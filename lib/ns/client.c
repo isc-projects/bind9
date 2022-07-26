@@ -34,7 +34,6 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -2407,7 +2406,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 isc_result_t
 ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, dns_aclenv_t *aclenv, int tid,
+		    isc_loopmgr_t *loopmgr, dns_aclenv_t *aclenv, int tid,
 		    ns_clientmgr_t **managerp) {
 	ns_clientmgr_t *manager = NULL;
 	isc_mem_t *mctx = NULL;
@@ -2422,7 +2421,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	isc_mutex_init(&manager->reclock);
 
 	manager->taskmgr = taskmgr;
-	manager->timermgr = timermgr;
+	manager->loopmgr = loopmgr;
 	manager->tid = tid;
 
 	dns_aclenv_attach(aclenv, &manager->aclenv);

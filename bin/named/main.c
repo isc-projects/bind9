@@ -923,8 +923,8 @@ create_managers(void) {
 		      named_g_udpdisp == 1 ? "" : "s");
 
 	result = isc_managers_create(named_g_mctx, named_g_cpus,
-				     0 /* quantum */, &named_g_netmgr,
-				     &named_g_taskmgr, &named_g_timermgr);
+				     0 /* quantum */, &named_g_loopmgr,
+				     &named_g_netmgr, &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -936,8 +936,8 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	isc_managers_destroy(&named_g_netmgr, &named_g_taskmgr,
-			     &named_g_timermgr);
+	isc_managers_destroy(&named_g_loopmgr, &named_g_netmgr,
+			     &named_g_taskmgr);
 }
 
 static void

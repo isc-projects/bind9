@@ -16,17 +16,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/condition.h>
 #include <isc/event.h>
+#include <isc/job.h>
+#include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
@@ -41,6 +44,9 @@
 #include "dighost.h"
 #include "readline.h"
 
+static char cmdlinebuf[COMMSIZE];
+static char *cmdline = NULL;
+
 static bool short_form = true, tcpmode = false, tcpmode_set = false,
 	    identify = false, stats = true, comments = true,
 	    section_question = true, section_answer = true,
@@ -53,7 +59,6 @@ static bool interactive;
 static bool in_use = false;
 static char defclass[MXRD] = "IN";
 static char deftype[MXRD] = "A";
-static isc_event_t *global_event = NULL;
 static int query_error = 1, print_error = 0;
 
 static char domainopt[DNS_NAME_MAXTEXT];
@@ -112,9 +117,6 @@ static const char *rtypetext[] = {
 
 #define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
-static void
-getinput(isc_task_t *task, isc_event_t *event);
-
 static char *
 rcode_totext(dns_rcode_t rcode) {
 	static char buf[sizeof("?65535")];
@@ -130,20 +132,6 @@ rcode_totext(dns_rcode_t rcode) {
 		totext.consttext = rcodetext[rcode];
 	}
 	return (totext.deconsttext);
-}
-
-static void
-query_finished(void) {
-	isc_event_t *event = global_event;
-
-	debug("dighost_shutdown()");
-
-	if (!in_use) {
-		isc_app_shutdown();
-		return;
-	}
-
-	isc_task_send(global_task, &event);
 }
 
 static void
@@ -401,8 +389,6 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 static isc_result_t
 printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	     bool headers) {
-	char servtext[ISC_SOCKADDR_FORMATSIZE];
-
 	UNUSED(msgbuf);
 
 	/* I've we've gotten this far, we've reached a server. */
@@ -411,6 +397,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	debug("printmessage()");
 
 	if (!default_lookups || query->lookup->rdtype == dns_rdatatype_a) {
+		char servtext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&query->sockaddr, servtext,
 				    sizeof(servtext));
 		printf("Server:\t\t%s\n", query->userarg);
@@ -805,10 +792,8 @@ do_next_command(char *input) {
 	} else if ((strcasecmp(ptr, "server") == 0) ||
 		   (strcasecmp(ptr, "lserver") == 0))
 	{
-		isc_app_block();
 		set_nameserver(arg);
 		check_ra = false;
-		isc_app_unblock();
 		show_settings(true, true);
 	} else if (strcasecmp(ptr, "exit") == 0) {
 		in_use = false;
@@ -825,28 +810,31 @@ do_next_command(char *input) {
 }
 
 static void
-get_next_command(void) {
-	char cmdlinebuf[COMMSIZE];
-	char *cmdline, *ptr = NULL;
+readline_next_command(void *arg) {
+	char *ptr = NULL;
 
-	isc_app_block();
-	if (interactive) {
-		cmdline = ptr = readline("> ");
-		if (ptr != NULL && *ptr != 0) {
-			add_history(ptr);
-		}
-	} else {
-		cmdline = fgets(cmdlinebuf, COMMSIZE, stdin);
+	UNUSED(arg);
+
+	isc_loopmgr_blocking(loopmgr);
+	ptr = readline("> ");
+	isc_loopmgr_nonblocking(loopmgr);
+	if (ptr == NULL) {
+		return;
 	}
-	isc_app_unblock();
-	if (cmdline == NULL) {
-		in_use = false;
-	} else {
-		do_next_command(cmdline);
+
+	if (*ptr != 0) {
+		add_history(ptr);
+		strlcpy(cmdlinebuf, ptr, COMMSIZE);
+		cmdline = cmdlinebuf;
 	}
-	if (ptr != NULL) {
-		free(ptr);
-	}
+	free(ptr);
+}
+
+static void
+fgets_next_command(void *arg) {
+	UNUSED(arg);
+
+	cmdline = fgets(cmdlinebuf, COMMSIZE, stdin);
 }
 
 noreturn static void
@@ -899,25 +887,53 @@ parse_args(int argc, char **argv) {
 }
 
 static void
-getinput(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
-	if (global_event == NULL) {
-		global_event = event;
-	}
-	while (in_use) {
-		get_next_command();
+start_next_command(void);
+
+static void
+process_next_command(void *arg __attribute__((__unused__))) {
+	if (cmdline == NULL) {
+		in_use = false;
+	} else {
+		do_next_command(cmdline);
 		if (ISC_LIST_HEAD(lookup_list) != NULL) {
-			start_lookup();
+			isc_job_run(loopmgr, run_loop, NULL);
 			return;
 		}
 	}
-	isc_app_shutdown();
+
+	start_next_command();
+}
+
+static void
+start_next_command(void) {
+	isc_loop_t *loop = isc_loop_main(loopmgr);
+	if (!in_use) {
+		isc_loopmgr_shutdown(loopmgr);
+		return;
+	}
+
+	cmdline = NULL;
+
+	isc_loopmgr_pause(loopmgr);
+	if (interactive) {
+		isc_work_enqueue(loop, readline_next_command,
+				 process_next_command, loop);
+	} else {
+		isc_work_enqueue(loop, fgets_next_command, process_next_command,
+				 loop);
+	}
+	isc_loopmgr_resume(loopmgr);
+}
+
+static void
+read_loop(void *arg) {
+	UNUSED(arg);
+
+	start_next_command();
 }
 
 int
 main(int argc, char **argv) {
-	isc_result_t result;
-
 	interactive = isatty(0);
 
 	ISC_LIST_INIT(lookup_list);
@@ -930,10 +946,7 @@ main(int argc, char **argv) {
 	dighost_printmessage = printmessage;
 	dighost_received = received;
 	dighost_trying = trying;
-	dighost_shutdown = query_finished;
-
-	result = isc_app_start();
-	check_result(result, "isc_app_start");
+	dighost_shutdown = start_next_command;
 
 	setup_libs();
 	progname = argv[0];
@@ -949,23 +962,18 @@ main(int argc, char **argv) {
 		set_search_domain(domainopt);
 	}
 	if (in_use) {
-		result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
+		isc_loopmgr_setup(loopmgr, run_loop, NULL);
 	} else {
-		result = isc_app_onrun(mctx, global_task, getinput, NULL);
+		isc_loopmgr_setup(loopmgr, read_loop, NULL);
 	}
-	check_result(result, "isc_app_onrun");
 	in_use = !in_use;
 
-	(void)isc_app_run();
+	isc_loopmgr_run(loopmgr);
 
 	puts("");
 	debug("done, and starting to shut down");
-	if (global_event != NULL) {
-		isc_event_free(&global_event);
-	}
 	cancel_all();
 	destroy_libs();
-	isc_app_finish();
 
 	return (query_error | print_error);
 }

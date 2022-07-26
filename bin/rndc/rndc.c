@@ -22,6 +22,7 @@
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/event.h>
 #include <isc/file.h>
 #include <isc/log.h>
 #include <isc/managers.h>
@@ -60,6 +61,7 @@ const char *progname = NULL;
 bool verbose;
 
 static isc_nm_t *netmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *rndc_task = NULL;
 
@@ -1027,7 +1029,7 @@ main(int argc, char **argv) {
 	serial = isc_random32();
 
 	isc_mem_create(&rndc_mctx);
-	isc_managers_create(rndc_mctx, 1, 0, &netmgr, &taskmgr, NULL);
+	isc_managers_create(rndc_mctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
 	DO("create task", isc_task_create(taskmgr, 0, &rndc_task, 0));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
@@ -1082,7 +1084,7 @@ main(int argc, char **argv) {
 	}
 
 	isc_task_detach(&rndc_task);
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
+	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
 
 	/*
 	 * Note: when TCP connections are shut down, there will be a final

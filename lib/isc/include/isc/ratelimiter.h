@@ -31,6 +31,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/loop.h>
 #include <isc/time.h>
 #include <isc/types.h>
 
@@ -41,13 +42,12 @@ ISC_LANG_BEGINDECLS
 *****/
 
 isc_result_t
-isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
-		       isc_task_t *task, isc_ratelimiter_t **ratelimiterp);
+isc_ratelimiter_create(isc_loop_t *loop, isc_ratelimiter_t **ratelimiterp);
 /*%<
  * Create a rate limiter.  The execution interval is initially undefined.
  */
 
-isc_result_t
+void
 isc_ratelimiter_setinterval(isc_ratelimiter_t *rl, isc_interval_t *interval);
 /*!<
  * Set the minimum interval between event executions.
@@ -110,37 +110,19 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
  *
  * Ensures:
  *\li	All events that have not yet been
- * 	dispatched to the task are dispatched immediately with
+ *	dispatched to the task are dispatched immediately with
  *	the #ISC_EVENTATTR_CANCELED bit set in ev_attributes.
  *
  *\li	Further attempts to enqueue events will fail with
- * 	#ISC_R_SHUTTINGDOWN.
+ *	#ISC_R_SHUTTINGDOWN.
  *
  *\li	The rate limiter is no longer attached to its task.
  */
 
 void
-isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target);
+isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp);
 /*%<
- * Attach to a rate limiter.
- */
-
-void
-isc_ratelimiter_detach(isc_ratelimiter_t **ratelimiterp);
-/*%<
- * Detach from a rate limiter.
- */
-
-isc_result_t
-isc_ratelimiter_stall(isc_ratelimiter_t *rl);
-/*%<
- * Stall event processing.
- */
-
-isc_result_t
-isc_ratelimiter_release(isc_ratelimiter_t *rl);
-/*%<
- * Release a stalled rate limiter.
+ * Destroy the rate limiter.
  */
 
 ISC_LANG_ENDDECLS

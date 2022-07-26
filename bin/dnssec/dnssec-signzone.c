@@ -144,6 +144,7 @@ static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
 static isc_mutex_t namelock, statslock;
+static isc_loopmgr_t *loopmgr = NULL;
 static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
@@ -3995,7 +3996,7 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	isc_managers_create(mctx, ntasks, 0, &netmgr, &taskmgr, NULL);
+	isc_managers_create(mctx, ntasks, 0, &loopmgr, &netmgr, &taskmgr);
 
 	main_task = NULL;
 	result = isc_task_create(taskmgr, 0, &main_task, 0);
@@ -4046,7 +4047,7 @@ main(int argc, char *argv[]) {
 	for (i = 0; i < (int)ntasks; i++) {
 		isc_task_detach(&tasks[i]);
 	}
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
+	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 	TIME_NOW(&sign_finish);

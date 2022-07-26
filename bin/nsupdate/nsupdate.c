@@ -125,6 +125,7 @@ static bool use_win2k_gsstsig = false;
 static bool tried_other_gsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
 static isc_event_t *global_event = NULL;
@@ -905,7 +906,7 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = isc_managers_create(gmctx, 1, 0, &netmgr, &taskmgr, NULL);
+	result = isc_managers_create(gmctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
 	check_result(result, "isc_managers_create");
 
 	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
@@ -3277,7 +3278,7 @@ cleanup(void) {
 	UNLOCK(&answer_lock);
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
+	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
 
 #if HAVE_GSSAPI
 	if (tsigkey != NULL) {

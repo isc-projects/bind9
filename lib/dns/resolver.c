@@ -21,6 +21,7 @@
 #include <isc/counter.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
@@ -29,6 +30,7 @@
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/tid.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -351,6 +353,7 @@ struct fetchctx {
 	dns_name_t *domain;
 	dns_rdataset_t nameservers;
 	atomic_uint_fast32_t attributes;
+	isc_loop_t *loop;
 	isc_timer_t *timer;
 	isc_time_t expires;
 	isc_time_t expires_try_stale;
@@ -527,8 +530,8 @@ struct dns_resolver {
 	isc_mutex_t lock;
 	isc_mutex_t primelock;
 	dns_rdataclass_t rdclass;
+	isc_loopmgr_t *loopmgr;
 	isc_nm_t *nm;
-	isc_timermgr_t *timermgr;
 	isc_taskmgr_t *taskmgr;
 	dns_view_t *view;
 	bool frozen;
@@ -1260,7 +1263,7 @@ update_edns_stats(resquery_t *query) {
  * trigger if, for example, some ADB or validator dependency
  * loop occurs and causes a fetch to hang.
  */
-static isc_result_t
+static void
 fctx_starttimer(fetchctx_t *fctx) {
 	isc_interval_t interval;
 	isc_time_t now;
@@ -1276,26 +1279,18 @@ fctx_starttimer(fetchctx_t *fctx) {
 		isc_time_subtract(&expires, &now, &interval);
 	}
 
-	return (isc_timer_reset(fctx->timer, isc_timertype_once, &interval,
-				true));
+	isc_timer_start(fctx->timer, isc_timertype_once, &interval);
 }
 
 static void
 fctx_stoptimer(fetchctx_t *fctx) {
-	isc_result_t result;
-
 	/*
 	 * We don't return a result if resetting the timer to inactive fails
 	 * since there's nothing to be done about it.  Resetting to inactive
 	 * should never fail anyway, since the code as currently written
 	 * cannot fail in that case.
 	 */
-	result = isc_timer_reset(fctx->timer, isc_timertype_inactive, NULL,
-				 true);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
-				 isc_result_totext(result));
-	}
+	isc_timer_stop(fctx->timer);
 }
 
 static void
@@ -1807,10 +1802,8 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 				logit = true;
 			}
 			isc_interval_set(&i, 20 * 60, 0);
-			result = isc_timer_reset(fctx->res->spillattimer,
-						 isc_timertype_ticker, &i,
-						 true);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			isc_timer_start(fctx->res->spillattimer,
+					isc_timertype_ticker, &i);
 		}
 		UNLOCK(&fctx->res->lock);
 		if (logit) {
@@ -4530,9 +4523,21 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
+fctx_expired(void *arg) {
+	fetchctx_t *fctx = (fetchctx_t *)arg;
+
+	REQUIRE(VALID_FCTX(fctx));
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "shut down hung fetch while resolving %p(%s)", fctx,
+		      fctx->info);
+	fctx_shutdown(fctx);
+}
+
+static void
 fctx_start(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
-	isc_result_t result;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -4541,6 +4546,13 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("start");
 
 	LOCK(&fctx->bucket->lock);
+
+	/*
+	 * Create an inactive timer to enforce maximum query
+	 * lifetime. It will be made active when the fetch is
+	 * started.
+	 */
+	isc_timer_create(fctx->loop, fctx_expired, fctx, &fctx->timer);
 
 	INSIST(fctx->state == fetchstate_init);
 	if (atomic_load_acquire(&fctx->want_shutdown)) {
@@ -4584,12 +4596,8 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	 * should be enough of a gap to avoid the timer firing
 	 * while a response is being processed normally.)
 	 */
-	result = fctx_starttimer(fctx);
-	if (result != ISC_R_SUCCESS) {
-		fctx_done_detach(&fctx, result);
-	} else {
-		fctx_try(fctx, false, false);
-	}
+	fctx_starttimer(fctx);
+	fctx_try(fctx, false, false);
 }
 
 /*
@@ -4664,23 +4672,6 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 		      where, namebuf, domainbuf, fctx->ns_ttl_ok, fctx->ns_ttl);
 }
 
-static void
-fctx_expired(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx = event->ev_arg;
-
-	REQUIRE(VALID_FCTX(fctx));
-
-	UNUSED(task);
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "shut down hung fetch while resolving '%s'", fctx->info);
-	LOCK(&fctx->bucket->lock);
-	fctx_shutdown(fctx);
-	UNLOCK(&fctx->bucket->lock);
-	isc_event_free(&event);
-}
-
 static isc_result_t
 fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	    const dns_name_t *domain, dns_rdataset_t *nameservers,
@@ -4693,13 +4684,9 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
-	int tid = isc_nm_tid();
+	int tid = isc_tid();
 	uint_fast32_t nfctx;
 	size_t p;
-
-	if (tid == ISC_NETMGR_TID_UNKNOWN) {
-		tid = 0;
-	}
 
 	/*
 	 * Caller must be holding the lock for 'bucket'
@@ -4720,6 +4707,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		.fwdpolicy = dns_fwdpolicy_none,
 		.result = ISC_R_FAILURE,
 		.exitline = -1, /* sentinel */
+		.loop = isc_loop_get(res->loopmgr, tid),
 	};
 
 	dns_resolver_attach(res, &fctx->res);
@@ -4895,14 +4883,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
 	}
-
-	/*
-	 * Create an inactive timer to enforce maximum query
-	 * lifetime. It will be made active when the fetch is
-	 * started.
-	 */
-	isc_timer_create(res->timermgr, fctx->restask, fctx_expired, fctx,
-			 &fctx->timer);
 
 	/*
 	 * Default retry interval initialization.  We set the interval
@@ -10163,15 +10143,12 @@ destroy(dns_resolver_t *res) {
 }
 
 static void
-spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
-	dns_resolver_t *res = event->ev_arg;
-	isc_result_t result;
+spillattimer_countdown(void *arg) {
+	dns_resolver_t *res = (dns_resolver_t *)arg;
 	unsigned int count;
 	bool logit = false;
 
 	REQUIRE(VALID_RESOLVER(res));
-
-	UNUSED(task);
 
 	LOCK(&res->lock);
 	INSIST(!atomic_load_acquire(&res->exiting));
@@ -10180,9 +10157,7 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 		logit = true;
 	}
 	if (res->spillat <= res->spillatmin) {
-		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, true);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		isc_timer_stop(res->spillattimer);
 	}
 	count = res->spillat;
 	UNLOCK(&res->lock);
@@ -10191,20 +10166,18 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 			      "clients-per-query decreased to %u", count);
 	}
-
-	isc_event_free(&event);
 }
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    unsigned int ndisp, isc_nm_t *nm, isc_timermgr_t *timermgr,
+dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
+		    isc_taskmgr_t *taskmgr, unsigned int ndisp, isc_nm_t *nm,
 		    unsigned int options, dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	char name[sizeof("res4294967295")];
 	dns_resolver_t *res = NULL;
-	isc_task_t *task = NULL;
+	isc_loop_t *loop = NULL;
 
 	/*
 	 * Create a resolver.
@@ -10217,25 +10190,28 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	REQUIRE(dispatchv4 != NULL || dispatchv6 != NULL);
 
 	RTRACE("create");
+
 	res = isc_mem_get(view->mctx, sizeof(*res));
-	*res = (dns_resolver_t){ .rdclass = view->rdclass,
-				 .nm = nm,
-				 .timermgr = timermgr,
-				 .taskmgr = taskmgr,
-				 .dispatchmgr = dispatchmgr,
-				 .options = options,
-				 .ntasks = isc_nm_getnworkers(nm),
-				 .udpsize = DEFAULT_EDNS_BUFSIZE,
-				 .spillatmin = 10,
-				 .spillat = 10,
-				 .spillatmax = 100,
-				 .retryinterval = 10000,
-				 .nonbackofftries = 3,
-				 .query_timeout = DEFAULT_QUERY_TIMEOUT,
-				 .maxdepth = DEFAULT_RECURSION_DEPTH,
-				 .maxqueries = DEFAULT_MAX_QUERIES,
-				 .querydscp4 = -1,
-				 .querydscp6 = -1 };
+	*res = (dns_resolver_t){
+		.loopmgr = loopmgr,
+		.rdclass = view->rdclass,
+		.nm = nm,
+		.taskmgr = taskmgr,
+		.dispatchmgr = dispatchmgr,
+		.options = options,
+		.udpsize = DEFAULT_EDNS_BUFSIZE,
+		.spillatmin = 10,
+		.spillat = 10,
+		.spillatmax = 100,
+		.retryinterval = 10000,
+		.nonbackofftries = 3,
+		.query_timeout = DEFAULT_QUERY_TIMEOUT,
+		.maxdepth = DEFAULT_RECURSION_DEPTH,
+		.maxqueries = DEFAULT_MAX_QUERIES,
+		.ntasks = isc_loopmgr_nloops(loopmgr),
+		.querydscp4 = -1,
+		.querydscp6 = -1,
+	};
 
 	dns_view_weakattach(view, &res->view);
 	isc_mem_attach(view->mctx, &res->mctx);
@@ -10289,38 +10265,15 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
 
-	result = isc_task_create(taskmgr, 0, &task, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_primelock;
-	}
-	isc_task_setname(task, "resolver_task", NULL);
+	loop = isc_loop_main(res->loopmgr);
 
-	isc_timer_create(timermgr, task, spillattimer_countdown, res,
-			 &res->spillattimer);
-	isc_task_detach(&task);
+	isc_timer_create(loop, spillattimer_countdown, res, &res->spillattimer);
 
 	res->magic = RES_MAGIC;
 
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_primelock:
-	isc_mutex_destroy(&res->primelock);
-	isc_mutex_destroy(&res->lock);
-
-	if (res->dispatches6 != NULL) {
-		dns_dispatchset_destroy(&res->dispatches6);
-	}
-	if (res->dispatches4 != NULL) {
-		dns_dispatchset_destroy(&res->dispatches4);
-	}
-
-	isc_rwlock_destroy(&res->zonehash_lock);
-	isc_ht_destroy(&res->zonebuckets);
-
-	isc_rwlock_destroy(&res->hash_lock);
-	isc_ht_destroy(&res->buckets);
 
 cleanup_tasks:
 	for (size_t i = 0; i < res->ntasks; i++) {
@@ -10495,9 +10448,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 		isc_ht_iter_destroy(&it);
 		RWUNLOCK(&res->hash_lock, isc_rwlocktype_read);
 
-		result = isc_timer_reset(res->spillattimer,
-					 isc_timertype_inactive, NULL, true);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		isc_timer_stop(res->spillattimer);
 	}
 }
 

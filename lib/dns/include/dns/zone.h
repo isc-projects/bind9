@@ -633,16 +633,6 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
  */
 
 void
-dns_zone_maintenance(dns_zone_t *zone);
-/*%<
- *	Perform regular maintenance on the zone.  This is called as a
- *	result of a zone being managed.
- *
- * Require
- *\li	'zone' to be a valid zone.
- */
-
-void
 dns_zone_setprimaries(dns_zone_t *zone, const isc_sockaddr_t *primaries,
 		      dns_name_t **keynames, dns_name_t **tlsnames,
 		      uint32_t count);
@@ -1772,8 +1762,8 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
  */
 
 isc_result_t
-dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
+dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		   isc_taskmgr_t *taskmgr, isc_nm_t *netmgr,
 		   dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.
@@ -1781,7 +1771,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  * Requires:
  *\li	'mctx' to be a valid memory context.
  *\li	'taskmgr' to be a valid task manager.
- *\li	'timermgr' to be a valid timer manager.
  *\li	'zmgrp'	to point to a NULL pointer.
  */
 

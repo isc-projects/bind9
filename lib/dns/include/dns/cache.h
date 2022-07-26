@@ -57,9 +57,9 @@ ISC_LANG_BEGINDECLS
  ***/
 isc_result_t
 dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
-		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		 const char *cachename, const char *db_type,
-		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep);
+		 dns_rdataclass_t rdclass, const char *cachename,
+		 const char *db_type, unsigned int db_argc, char **db_argv,
+		 dns_cache_t **cachep);
 /*%<
  * Create a new DNS cache.
  *
@@ -77,9 +77,8 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
  *
  *\li	'cmctx' (and 'hmctx' if applicable) is a valid memory context.
  *
- *\li	'taskmgr' is a valid task manager and 'timermgr' is a valid timer
- * 	manager, or both are NULL.  If NULL, no periodic cleaning of the
- * 	cache will take place.
+ *\li	'taskmgr' is a valid task manager or are NULL.  If NULL, no periodic
+ *      cleaning of the cache will take place.
  *
  *\li	'cachename' is a valid string.  This must not be NULL.
  *

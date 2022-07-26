@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
@@ -27,6 +28,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -92,7 +94,7 @@ static void
 update_from_db(dns_rpz_zone_t *rpz);
 
 static void
-dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event);
+dns_rpz_update_taskaction(void *);
 
 /*
  * Use a private definition of IPv6 addresses because s6_addr32 is not
@@ -1437,8 +1439,8 @@ rpz_node_deleter(void *nm_data, void *mctx) {
  */
 isc_result_t
 dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr, size_t rps_cstr_size,
-		  isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		  isc_timermgr_t *timermgr) {
+		  isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		  isc_taskmgr_t *taskmgr) {
 	dns_rpz_zones_t *rpzs = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -1448,7 +1450,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr, size_t rps_cstr_size,
 	*rpzs = (dns_rpz_zones_t){
 		.rps_cstr = rps_cstr,
 		.rps_cstr_size = rps_cstr_size,
-		.timermgr = timermgr,
+		.loopmgr = loopmgr,
 		.taskmgr = taskmgr,
 	};
 
@@ -1516,7 +1518,7 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 		.addsoa = true,
 	};
 
-	isc_timer_create(rpzs->timermgr, rpzs->updater,
+	isc_timer_create(isc_loop_main(rpzs->loopmgr),
 			 dns_rpz_update_taskaction, rpz, &rpz->updatetimer);
 
 	isc_refcount_init(&rpz->refs, 1);
@@ -1541,9 +1543,6 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	isc_time_settoepoch(&rpz->lastupdated);
 
 	rpz_attach_rpzs(rpzs, &rpz->rpzs);
-
-	ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent), 0, 0, NULL,
-		       NULL, NULL, NULL, NULL);
 
 	rpz->num = rpzs->p.num_zones++;
 	rpzs->zones[rpz->num] = rpz;
@@ -1585,6 +1584,7 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 	if (!rpz->updatepending && !rpz->updaterunning) {
 		uint64_t tdiff;
+		isc_interval_t interval;
 
 		rpz->updatepending = true;
 
@@ -1592,7 +1592,6 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		tdiff = isc_time_microdiff(&now, &rpz->lastupdated) / 1000000;
 		if (tdiff < rpz->min_update_interval) {
 			uint64_t defer = rpz->min_update_interval - tdiff;
-			isc_interval_t interval;
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 				      "rpz: %s: new zone version came "
@@ -1600,22 +1599,12 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 				      "%" PRIu64 " seconds",
 				      dname, defer);
 			isc_interval_set(&interval, (unsigned int)defer, 0);
-			dns_db_currentversion(rpz->db, &rpz->dbversion);
-			result = isc_timer_reset(rpz->updatetimer,
-						 isc_timertype_once, &interval,
-						 true);
 		} else {
-			isc_event_t *event = NULL;
-
-			dns_db_currentversion(rpz->db, &rpz->dbversion);
-			INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
-			ISC_EVENT_INIT(
-				&rpz->updateevent, sizeof(rpz->updateevent), 0,
-				DNS_EVENT_RPZUPDATED, dns_rpz_update_taskaction,
-				rpz, rpz, NULL, NULL);
-			event = &rpz->updateevent;
-			isc_task_send(rpz->rpzs->updater, &event);
+			isc_interval_set(&interval, 0, 0);
 		}
+		dns_db_currentversion(rpz->db, &rpz->dbversion);
+		isc_timer_start(rpz->updatetimer, isc_timertype_once,
+				&interval);
 	} else {
 		rpz->updatepending = true;
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -1633,16 +1622,10 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 }
 
 static void
-dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
+dns_rpz_update_taskaction(void *arg) {
 	isc_result_t result;
-	dns_rpz_zone_t *rpz = NULL;
+	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)arg;
 
-	REQUIRE(event != NULL);
-	REQUIRE(event->ev_arg != NULL);
-
-	UNUSED(task);
-	rpz = (dns_rpz_zone_t *)event->ev_arg;
-	isc_event_free(&event);
 	LOCK(&rpz->rpzs->maint_lock);
 	rpz->updatepending = false;
 	rpz->updaterunning = true;
@@ -1650,22 +1633,17 @@ dns_rpz_update_taskaction(isc_task_t *task, isc_event_t *event) {
 
 	update_from_db(rpz);
 
-	result = isc_timer_reset(rpz->updatetimer, isc_timertype_inactive, NULL,
-				 true);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_timer_stop(rpz->updatetimer);
 	result = isc_time_now(&rpz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&rpz->rpzs->maint_lock);
 }
 
 static void
-update_rpz_done_cb(void *data, isc_result_t result) {
+update_rpz_done_cb(void *data) {
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)data;
 	char dname[DNS_NAME_FORMATSIZE];
-
-	if (result == ISC_R_SUCCESS && rpz->updateresult != ISC_R_SUCCESS) {
-		result = rpz->updateresult;
-	}
+	isc_interval_t interval;
 
 	LOCK(&rpz->rpzs->maint_lock);
 	rpz->updaterunning = false;
@@ -1680,7 +1658,6 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 	/* If there's an update pending, schedule it */
 	if (rpz->min_update_interval > 0) {
 		uint64_t defer = rpz->min_update_interval;
-		isc_interval_t interval;
 
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
@@ -1689,17 +1666,11 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 			      "%" PRIu64 " seconds",
 			      dname, defer);
 		isc_interval_set(&interval, (unsigned int)defer, 0);
-		isc_timer_reset(rpz->updatetimer, isc_timertype_once, &interval,
-				true);
 	} else {
-		isc_event_t *event = NULL;
-		INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
-		ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent), 0,
-			       DNS_EVENT_RPZUPDATED, dns_rpz_update_taskaction,
-			       rpz, rpz, NULL, NULL);
-		event = &rpz->updateevent;
-		isc_task_send(rpz->rpzs->updater, &event);
+		isc_interval_set(&interval, 0, 0);
 	}
+
+	isc_timer_start(rpz->updatetimer, isc_timertype_once, &interval);
 
 done:
 	dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
@@ -1707,11 +1678,11 @@ done:
 
 	UNLOCK(&rpz->rpzs->maint_lock);
 
-	rpz_detach(&rpz);
-
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload done: %s", dname,
-		      isc_result_totext(result));
+		      isc_result_totext(rpz->updateresult));
+
+	rpz_detach(&rpz);
 }
 
 static isc_result_t
@@ -1955,7 +1926,6 @@ update_from_db(dns_rpz_zone_t *rpz) {
 	char domain[DNS_NAME_FORMATSIZE];
 	dns_rpz_zone_t *rpz_zone = NULL;
 
-	REQUIRE(isc_nm_tid() >= 0);
 	REQUIRE(rpz != NULL);
 	REQUIRE(DNS_DB_VALID(rpz->db));
 	REQUIRE(rpz->updb == NULL);
@@ -1970,8 +1940,8 @@ update_from_db(dns_rpz_zone_t *rpz) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
-	isc_nm_work_offload(isc_task_getnetmgr(rpz->rpzs->updater),
-			    update_rpz_cb, update_rpz_done_cb, rpz_zone);
+	isc_work_enqueue(isc_loop_current(rpz->rpzs->loopmgr), update_rpz_cb,
+			 update_rpz_done_cb, rpz_zone);
 }
 
 /*

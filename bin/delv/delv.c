@@ -1719,9 +1719,9 @@ main(int argc, char *argv[]) {
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
 	unsigned int resopt;
+	isc_loopmgr_t *loopmgr = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
 	dns_master_style_t *style = NULL;
 
 	progname = argv[0];
@@ -1737,7 +1737,7 @@ main(int argc, char *argv[]) {
 		fatal("dst_lib_init failed: %d", result);
 	}
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, &timermgr);
+	isc_managers_create(mctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
 
 	parse_args(argc, argv);
 
@@ -1746,7 +1746,7 @@ main(int argc, char *argv[]) {
 	setup_logging(stderr);
 
 	/* Create client */
-	result = dns_client_create(mctx, taskmgr, netmgr, timermgr, 0, &client,
+	result = dns_client_create(mctx, loopmgr, taskmgr, netmgr, 0, &client,
 				   srcaddr4, srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
@@ -1830,7 +1830,7 @@ cleanup:
 		dns_client_detach(&client);
 	}
 
-	isc_managers_destroy(&netmgr, &taskmgr, &timermgr);
+	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
 
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);

@@ -336,7 +336,7 @@ struct dns_catz_zonemodmethods {
 isc_result_t
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr);
+		   isc_loopmgr_t *loopmgr);
 /*%<
  * Allocate a new catz_zones object, a collection storing all catalog zones
  * for a view.
@@ -415,7 +415,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
  */
 
 void
-dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event);
+dns_catz_update_taskaction(void *arg);
 /*%<
  * Task that launches dns_catz_update_from_db.
  *

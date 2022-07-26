@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
@@ -152,7 +153,7 @@ struct dns_cache {
 
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
+		   cache_cleaner_t *cleaner);
 
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
@@ -180,9 +181,9 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 
 isc_result_t
 dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
-		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		 const char *cachename, const char *db_type,
-		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep) {
+		 dns_rdataclass_t rdclass, const char *cachename,
+		 const char *db_type, unsigned int db_argc, char **db_argv,
+		 dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache;
 	int i, extra = 0;
@@ -275,10 +276,9 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	 * need the control of the generic cleaner.
 	 */
 	if (strcmp(db_type, "rbt") == 0) {
-		result = cache_cleaner_init(cache, NULL, NULL, &cache->cleaner);
+		result = cache_cleaner_init(cache, NULL, &cache->cleaner);
 	} else {
-		result = cache_cleaner_init(cache, taskmgr, timermgr,
-					    &cache->cleaner);
+		result = cache_cleaner_init(cache, taskmgr, &cache->cleaner);
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_db;
@@ -447,7 +447,7 @@ dns_cache_getname(dns_cache_t *cache) {
 
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner) {
+		   cache_cleaner_t *cleaner) {
 	isc_result_t result;
 
 	isc_mutex_init(&cleaner->lock);
@@ -469,7 +469,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		goto cleanup;
 	}
 
-	if (taskmgr != NULL && timermgr != NULL) {
+	if (taskmgr != NULL) {
 		result = isc_task_create(taskmgr, 1, &cleaner->task, 0);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,

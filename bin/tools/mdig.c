@@ -2103,6 +2103,7 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
 	isc_log_t *lctx = NULL;
 	isc_logconfig_t *lcfg = NULL;
+	isc_loopmgr_t *loopmgr = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	isc_task_t *task = NULL;
@@ -2156,7 +2157,7 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
+	isc_managers_create(mctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
 	RUNCHECK(isc_task_create(taskmgr, 0, &task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
@@ -2217,7 +2218,7 @@ main(int argc, char *argv[]) {
 
 	isc_task_detach(&task);
 
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
+	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
 
 	dst_lib_destroy();
 

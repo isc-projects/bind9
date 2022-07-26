@@ -385,9 +385,9 @@ dns_view_createzonetable(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
-			unsigned int ndisp, isc_nm_t *nm,
-			isc_timermgr_t *timermgr, unsigned int options,
+dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
+			isc_taskmgr_t *taskmgr, unsigned int ndisp,
+			isc_nm_t *netmgr, unsigned int options,
 			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6);
 /*%<
@@ -400,8 +400,7 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
  *\li	'view' does not have a resolver already.
  *
  *\li	The requirements of dns_resolver_create() apply to 'taskmgr',
- *	'ntasks', 'nm', 'timermgr', 'options', 'dispatchv4', and
- *	'dispatchv6'.
+ *	'ndisp', 'netmgr', 'options', 'dispatchv4', and 'dispatchv6'.
  *
  * Returns:
  *
@@ -1006,7 +1005,7 @@ dns_view_iscacheshared(dns_view_t *view);
 
 isc_result_t
 dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		      isc_timermgr_t *timermgr);
+		      isc_loopmgr_t *loopmgr);
 /*%<
  * Initialize the negative trust anchor table for the view.
  *

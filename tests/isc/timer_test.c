@@ -26,9 +26,11 @@
 #include <isc/atomic.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
+#include <isc/job.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
+#include <isc/os.h>
 #include <isc/print.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -45,8 +47,6 @@ static bool verbose = false;
 #define FUDGE_NANOSECONDS 500000000 /* in absence of clock_getres() */
 
 static isc_timer_t *timer = NULL;
-static isc_condition_t cv;
-static isc_mutex_t mx;
 static isc_time_t endtime;
 static isc_mutex_t lasttime_mx;
 static isc_time_t lasttime;
@@ -56,77 +56,48 @@ static atomic_int_fast32_t eventcnt;
 static atomic_uint_fast32_t errcnt;
 static int nevents;
 
-static int
-_setup(void **state) {
-	atomic_init(&errcnt, ISC_R_SUCCESS);
-
-	setup_managers(state);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	teardown_managers(state);
-
-	return (0);
-}
+typedef struct setup_test_arg {
+	isc_timertype_t timertype;
+	isc_interval_t *interval;
+	isc_job_cb action;
+} setup_test_arg_t;
 
 static void
-test_shutdown(void) {
-	/*
-	 * Signal shutdown processing complete.
-	 */
-	LOCK(&mx);
-	SIGNAL(&cv);
-	UNLOCK(&mx);
-}
-
-static void
-setup_test(isc_timertype_t timertype, isc_interval_t *interval,
-	   void (*action)(isc_task_t *, isc_event_t *)) {
+setup_test_run(void *data) {
+	isc_timertype_t timertype = ((setup_test_arg_t *)data)->timertype;
+	isc_interval_t *interval = ((setup_test_arg_t *)data)->interval;
+	isc_job_cb action = ((setup_test_arg_t *)data)->action;
 	isc_result_t result;
-	isc_task_t *task = NULL;
-	isc_time_settoepoch(&endtime);
-	atomic_init(&eventcnt, 0);
 
-	isc_mutex_init(&mx);
-	isc_mutex_init(&lasttime_mx);
-
-	isc_condition_init(&cv);
-
-	atomic_store(&errcnt, ISC_R_SUCCESS);
-
-	LOCK(&mx);
-
-	result = isc_task_create(taskmgr, 0, &task, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	LOCK(&lasttime_mx);
+	isc_mutex_lock(&lasttime_mx);
 	result = isc_time_now(&lasttime);
 	UNLOCK(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_timer_create(timermgr, task, action, (void *)timertype, &timer);
-	result = isc_timer_reset(timer, timertype, interval, false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_timer_create(mainloop, action, (void *)timertype, &timer);
+	isc_timer_start(timer, timertype, interval);
+}
 
-	/*
-	 * Wait for shutdown processing to complete.
-	 */
-	while (atomic_load(&eventcnt) != nevents) {
-		WAIT(&cv, &mx);
-		assert_int_equal(result, ISC_R_SUCCESS);
-	}
+static void
+setup_test(isc_timertype_t timertype, isc_interval_t *interval,
+	   isc_job_cb action) {
+	setup_test_arg_t arg = { .timertype = timertype,
+				 .interval = interval,
+				 .action = action };
 
-	UNLOCK(&mx);
+	isc_time_settoepoch(&endtime);
+	atomic_init(&eventcnt, 0);
+
+	isc_mutex_init(&lasttime_mx);
+
+	atomic_store(&errcnt, ISC_R_SUCCESS);
+
+	isc_loop_setup(mainloop, setup_test_run, &arg);
+	isc_loopmgr_run(loopmgr);
 
 	assert_int_equal(atomic_load(&errcnt), ISC_R_SUCCESS);
 
-	isc_task_detach(&task);
-	isc_mutex_destroy(&mx);
 	isc_mutex_destroy(&lasttime_mx);
-	isc_condition_destroy(&cv);
 }
 
 static void
@@ -146,18 +117,6 @@ subthread_assert_true(bool expected, const char *file, unsigned int line) {
 	subthread_assert_true(expected, __FILE__, __LINE__)
 
 static void
-subthread_assert_int_equal(int observed, int expected, const char *file,
-			   unsigned int line) {
-	if (observed != expected) {
-		printf("# %s:%u subthread_assert_int_equal(%d != %d)\n", file,
-		       line, observed, expected);
-		set_global_error(ISC_R_UNEXPECTED);
-	}
-}
-#define subthread_assert_int_equal(observed, expected) \
-	subthread_assert_int_equal(observed, expected, __FILE__, __LINE__)
-
-static void
 subthread_assert_result_equal(isc_result_t result, isc_result_t expected,
 			      const char *file, unsigned int line) {
 	if (result != expected) {
@@ -171,31 +130,19 @@ subthread_assert_result_equal(isc_result_t result, isc_result_t expected,
 	subthread_assert_result_equal(observed, expected, __FILE__, __LINE__)
 
 static void
-ticktock(isc_task_t *task, isc_event_t *event) {
+ticktock(void *arg) {
 	isc_result_t result;
 	isc_time_t now;
 	isc_time_t base;
 	isc_time_t ulim;
 	isc_time_t llim;
 	isc_interval_t interval;
-	isc_eventtype_t expected_event_type;
-
-	UNUSED(task);
-
 	int tick = atomic_fetch_add(&eventcnt, 1);
+
+	UNUSED(arg);
 
 	if (verbose) {
 		print_message("# tick %d\n", tick);
-	}
-
-	expected_event_type = ISC_TIMEREVENT_ONCE;
-	if ((uintptr_t)event->ev_arg == isc_timertype_ticker) {
-		expected_event_type = ISC_TIMEREVENT_TICK;
-	}
-
-	if (event->ev_type != expected_event_type) {
-		print_error("# expected event type %u, got %u\n",
-			    expected_event_type, event->ev_type);
 	}
 
 	result = isc_time_now(&now);
@@ -223,13 +170,11 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	isc_mutex_unlock(&lasttime_mx);
 	subthread_assert_result_equal(result, ISC_R_SUCCESS);
 
-	isc_event_free(&event);
-
 	if (atomic_load(&eventcnt) == nevents) {
 		result = isc_time_now(&endtime);
 		subthread_assert_result_equal(result, ISC_R_SUCCESS);
 		isc_timer_destroy(&timer);
-		test_shutdown();
+		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -253,17 +198,16 @@ ISC_RUN_TEST_IMPL(ticker) {
 }
 
 static void
-test_idle(isc_task_t *task, isc_event_t *event) {
+test_idle(void *arg) {
 	isc_result_t result;
 	isc_time_t now;
 	isc_time_t base;
 	isc_time_t ulim;
 	isc_time_t llim;
 	isc_interval_t interval;
-
-	UNUSED(task);
-
 	int tick = atomic_fetch_add(&eventcnt, 1);
+
+	UNUSED(arg);
 
 	if (verbose) {
 		print_message("# tick %d\n", tick);
@@ -293,12 +237,8 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 	isc_time_add(&now, &interval, &lasttime);
 	isc_mutex_unlock(&lasttime_mx);
 
-	subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_ONCE);
-
-	isc_event_free(&event);
-
 	isc_timer_destroy(&timer);
-	test_shutdown();
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* timer type once idles out */
@@ -318,17 +258,16 @@ ISC_RUN_TEST_IMPL(once_idle) {
 
 /* timer reset */
 static void
-test_reset(isc_task_t *task, isc_event_t *event) {
+test_reset(void *arg) {
 	isc_result_t result;
 	isc_time_t now;
 	isc_time_t base;
 	isc_time_t ulim;
 	isc_time_t llim;
 	isc_interval_t interval;
-
-	UNUSED(task);
-
 	int tick = atomic_fetch_add(&eventcnt, 1);
+
+	UNUSED(arg);
 
 	if (verbose) {
 		print_message("# tick %d\n", tick);
@@ -362,24 +301,14 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	isc_time_add(&now, &interval, &lasttime);
 	isc_mutex_unlock(&lasttime_mx);
 
-	int _eventcnt = atomic_load(&eventcnt);
-
-	if (_eventcnt < 3) {
-		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_TICK);
-		if (_eventcnt == 2) {
+	if (tick < 2) {
+		if (tick == 1) {
 			isc_interval_set(&interval, seconds, nanoseconds);
-			result = isc_timer_reset(timer, isc_timertype_once,
-						 &interval, false);
-			subthread_assert_result_equal(result, ISC_R_SUCCESS);
+			isc_timer_start(timer, isc_timertype_once, &interval);
 		}
-
-		isc_event_free(&event);
 	} else {
-		subthread_assert_int_equal(event->ev_type, ISC_TIMEREVENT_ONCE);
-
-		isc_event_free(&event);
 		isc_timer_destroy(&timer);
-		test_shutdown();
+		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -398,58 +327,38 @@ ISC_RUN_TEST_IMPL(reset) {
 }
 
 static atomic_bool startflag;
-static atomic_bool shutdownflag;
 static isc_timer_t *tickertimer = NULL;
 static isc_timer_t *oncetimer = NULL;
-static isc_task_t *task1 = NULL;
-static isc_task_t *task2 = NULL;
-
-/*
- * task1 blocks on mx while events accumulate
- * in its queue, until signaled by task2.
- */
 
 static void
-tick_event(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	isc_time_t expires;
-	isc_interval_t interval;
+tick_event(void *arg) {
+	int tick;
 
-	UNUSED(task);
+	UNUSED(arg);
 
 	if (!atomic_load(&startflag)) {
 		if (verbose) {
 			print_message("# tick_event %d\n", -1);
 		}
-		isc_event_free(&event);
 		return;
 	}
 
-	int tick = atomic_fetch_add(&eventcnt, 1);
+	tick = atomic_fetch_add(&eventcnt, 1);
 	if (verbose) {
 		print_message("# tick_event %d\n", tick);
 	}
 
 	/*
-	 * On the first tick, purge all remaining tick events
-	 * and then shut down the task.
+	 * On the first tick, purge all remaining tick events.
 	 */
 	if (tick == 0) {
-		isc_time_settoepoch(&expires);
-		isc_interval_set(&interval, seconds, 0);
-		result = isc_timer_reset(tickertimer, isc_timertype_ticker,
-					 &interval, true);
-		subthread_assert_result_equal(result, ISC_R_SUCCESS);
-
-		atomic_store(&shutdownflag, 1);
+		isc_timer_destroy(&tickertimer);
 	}
-
-	isc_event_free(&event);
 }
 
 static void
-once_event(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
+once_event(void *arg) {
+	UNUSED(arg);
 
 	if (verbose) {
 		print_message("# once_event\n");
@@ -460,67 +369,54 @@ once_event(isc_task_t *task, isc_event_t *event) {
 	 */
 	atomic_store(&startflag, true);
 
-	isc_event_free(&event);
+	isc_loopmgr_shutdown(loopmgr);
+	isc_timer_destroy(&oncetimer);
+}
+
+ISC_LOOP_SETUP_IMPL(purge) {
+	atomic_init(&eventcnt, 0);
+	atomic_store(&errcnt, ISC_R_SUCCESS);
+}
+
+ISC_LOOP_TEARDOWN_IMPL(purge) {
+	assert_int_equal(atomic_load(&errcnt), ISC_R_SUCCESS);
+	assert_int_equal(atomic_load(&eventcnt), 1);
 }
 
 /* timer events purged */
-ISC_RUN_TEST_IMPL(purge) {
-	isc_result_t result;
+ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(purge) {
 	isc_interval_t interval;
 
-	UNUSED(state);
+	UNUSED(arg);
+
+	if (verbose) {
+		print_message("# purge_run\n");
+	}
 
 	atomic_init(&startflag, 0);
-	atomic_init(&shutdownflag, 0);
-	atomic_init(&eventcnt, 0);
 	seconds = 1;
 	nanoseconds = 0;
-
-	result = isc_task_create(taskmgr, 0, &task1, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_task_create(taskmgr, 0, &task2, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, seconds, 0);
 
 	tickertimer = NULL;
-	isc_timer_create(timermgr, task1, tick_event, NULL, &tickertimer);
-	result = isc_timer_reset(tickertimer, isc_timertype_ticker, &interval,
-				 false);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_timer_create(mainloop, tick_event, NULL, &tickertimer);
+	isc_timer_start(tickertimer, isc_timertype_ticker, &interval);
 
 	oncetimer = NULL;
 
 	isc_interval_set(&interval, (seconds * 2) + 1, 0);
 
-	isc_timer_create(timermgr, task2, once_event, NULL, &oncetimer);
-	result = isc_timer_reset(oncetimer, isc_timertype_once, &interval,
-				 false);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/*
-	 * Wait for shutdown processing to complete.
-	 */
-	while (!atomic_load(&shutdownflag)) {
-		uv_sleep(1);
-	}
-
-	assert_int_equal(atomic_load(&errcnt), ISC_R_SUCCESS);
-
-	assert_int_equal(atomic_load(&eventcnt), 1);
-
-	isc_timer_destroy(&tickertimer);
-	isc_timer_destroy(&oncetimer);
-	isc_task_detach(&task1);
-	isc_task_detach(&task2);
+	isc_timer_create(mainloop, once_event, NULL, &oncetimer);
+	isc_timer_start(oncetimer, isc_timertype_once, &interval);
 }
 
 ISC_TEST_LIST_START
 
-ISC_TEST_ENTRY_CUSTOM(once_idle, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(reset, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(purge, _setup, _teardown)
+ISC_TEST_ENTRY_CUSTOM(ticker, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(once_idle, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(reset, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(purge, setup_loopmgr, teardown_loopmgr)
 
 ISC_TEST_LIST_END
 

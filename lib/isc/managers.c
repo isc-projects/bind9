@@ -11,21 +11,20 @@
  * information regarding copyright ownership.
  */
 
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/util.h>
 
 #include "netmgr_p.h"
 #include "task_p.h"
-#include "timer_p.h"
 
 isc_result_t
 isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
-		    isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
-		    isc_timermgr_t **timermgrp) {
+		    isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp,
+		    isc_taskmgr_t **taskmgrp) {
 	isc_result_t result;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
-	isc_timermgr_t *timermgr = NULL;
 
 	REQUIRE(netmgrp != NULL && *netmgrp == NULL);
 	isc__netmgr_create(mctx, workers, &netmgr);
@@ -45,28 +44,18 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 		*taskmgrp = taskmgr;
 	}
 
-	REQUIRE(timermgrp == NULL || *timermgrp == NULL);
-	if (timermgrp != NULL) {
-		result = isc__timermgr_create(mctx, &timermgr);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_timermgr_create() failed: %s",
-					 isc_result_totext(result));
-			goto fail;
-		}
-		*timermgrp = timermgr;
-	}
+	isc_loopmgr_create(mctx, workers, loopmgrp);
 
 	return (ISC_R_SUCCESS);
 fail:
-	isc_managers_destroy(netmgrp, taskmgrp, timermgrp);
+	isc_managers_destroy(loopmgrp, netmgrp, taskmgrp);
 
 	return (result);
 }
 
 void
-isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
-		     isc_timermgr_t **timermgrp) {
+isc_managers_destroy(isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp,
+		     isc_taskmgr_t **taskmgrp) {
 	/*
 	 * If we have a taskmgr to clean up, then we must also have a netmgr.
 	 */
@@ -109,11 +98,5 @@ isc_managers_destroy(isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp,
 		isc__netmgr_destroy(netmgrp);
 	}
 
-	/*
-	 * 5. Clean up the remaining managers.
-	 */
-	if (timermgrp != NULL) {
-		INSIST(*timermgrp != NULL);
-		isc__timermgr_destroy(timermgrp);
-	}
+	isc_loopmgr_destroy(loopmgrp);
 }

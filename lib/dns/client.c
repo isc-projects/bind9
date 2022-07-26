@@ -25,7 +25,6 @@
 #include <isc/safe.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>
-#include <isc/timer.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -84,7 +83,7 @@ struct dns_client {
 	isc_taskmgr_t *taskmgr;
 	isc_task_t *task;
 	isc_nm_t *nm;
-	isc_timermgr_t *timermgr;
+	isc_loopmgr_t *loopmgr;
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatch_t *dispatchv4;
 	dns_dispatch_t *dispatchv6;
@@ -219,9 +218,9 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 
 static isc_result_t
 createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
-	   isc_nm_t *nm, isc_timermgr_t *timermgr,
-	   dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
-	   dns_dispatch_t *dispatchv6, dns_view_t **viewp) {
+	   isc_nm_t *nm, isc_loopmgr_t *loopmgr, dns_dispatchmgr_t *dispatchmgr,
+	   dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
+	   dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
@@ -237,7 +236,7 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 		return (result);
 	}
 
-	result = dns_view_createresolver(view, taskmgr, 1, nm, timermgr, 0,
+	result = dns_view_createresolver(view, loopmgr, taskmgr, 1, nm, 0,
 					 dispatchmgr, dispatchv4, dispatchv6);
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&view);
@@ -256,8 +255,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_taskmgr_t *taskmgr,
 }
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
-		  isc_timermgr_t *timermgr, unsigned int options,
+dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		  isc_taskmgr_t *taskmgr, isc_nm_t *nm, unsigned int options,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6) {
 	isc_result_t result;
@@ -268,7 +267,7 @@ dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(taskmgr != NULL);
-	REQUIRE(timermgr != NULL);
+	REQUIRE(loopmgr != NULL);
 	REQUIRE(nm != NULL);
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
@@ -277,7 +276,7 @@ dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
 	client = isc_mem_get(mctx, sizeof(*client));
 	*client = (dns_client_t){
 		.taskmgr = taskmgr,
-		.timermgr = timermgr,
+		.loopmgr = loopmgr,
 		.nm = nm,
 	};
 
@@ -328,7 +327,7 @@ dns_client_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr, isc_nm_t *nm,
 	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
-	result = createview(mctx, dns_rdataclass_in, taskmgr, nm, timermgr,
+	result = createview(mctx, dns_rdataclass_in, taskmgr, nm, loopmgr,
 			    client->dispatchmgr, dispatchv4, dispatchv6, &view);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_references;

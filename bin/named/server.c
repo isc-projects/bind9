@@ -38,6 +38,7 @@
 #include <isc/hmac.h>
 #include <isc/httpd.h>
 #include <isc/lex.h>
+#include <isc/loop.h>
 #include <isc/meminfo.h>
 #include <isc/netmgr.h>
 #include <isc/nonce.h>
@@ -1110,7 +1111,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = dns_view_initntatable(view, named_g_taskmgr, named_g_timermgr);
+	result = dns_view_initntatable(view, named_g_taskmgr, named_g_loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -2489,8 +2490,8 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 #endif /* ifndef USE_DNSRPS */
 
 	result = dns_rpz_new_zones(&view->rpzs, rps_cstr, rps_cstr_size,
-				   view->mctx, named_g_taskmgr,
-				   named_g_timermgr);
+				   view->mctx, named_g_loopmgr,
+				   named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3157,8 +3158,7 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	}
 
 	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
-				 view->mctx, named_g_taskmgr,
-				 named_g_timermgr));
+				 view->mctx, named_g_taskmgr, named_g_loopmgr));
 
 	if (pview != NULL) {
 		old = pview->catzs;
@@ -4703,9 +4703,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			isc_mem_create(&hmctx);
 			isc_mem_setname(hmctx, "cache_heap");
 			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
-					       named_g_timermgr, view->rdclass,
-					       cachename, "rbt", 0, NULL,
-					       &cache));
+					       view->rdclass, cachename, "rbt",
+					       0, NULL, &cache));
 			isc_mem_detach(&cmctx);
 			isc_mem_detach(&hmctx);
 		}
@@ -4751,7 +4750,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
-		view, named_g_taskmgr, ndisp, named_g_netmgr, named_g_timermgr,
+		view, named_g_loopmgr, named_g_taskmgr, ndisp, named_g_netmgr,
 		resopts, named_g_dispatchmgr, dispatch4, dispatch6));
 
 	if (resstats == NULL) {
@@ -5658,7 +5657,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			CHECK(dns_dyndb_createctx(mctx, hashinit, named_g_lctx,
 						  view, named_g_server->zonemgr,
 						  named_g_server->task,
-						  named_g_timermgr, &dctx));
+						  named_g_loopmgr, &dctx));
 		}
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
@@ -7048,22 +7047,17 @@ directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
  */
 
 static void
-interface_timer_tick(isc_task_t *task, isc_event_t *event) {
-	named_server_t *server = (named_server_t *)event->ev_arg;
-	INSIST(task == server->task);
-	UNUSED(task);
+interface_timer_tick(void *arg) {
+	named_server_t *server = (named_server_t *)arg;
 
-	isc_event_free(&event);
 	ns_interfacemgr_scan(server->interfacemgr, false, false);
 }
 
 static void
-heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
-	named_server_t *server = (named_server_t *)event->ev_arg;
-	dns_view_t *view;
+heartbeat_timer_tick(void *arg) {
+	named_server_t *server = (named_server_t *)arg;
+	dns_view_t *view = NULL;
 
-	UNUSED(task);
-	isc_event_free(&event);
 	view = ISC_LIST_HEAD(server->viewlist);
 	while (view != NULL) {
 		dns_view_dialup(view);
@@ -7294,10 +7288,10 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
       void *arg) {
 	struct dotat_arg *dotat_arg = arg;
 	isc_result_t result;
-	dns_view_t *view;
-	isc_task_t *task;
-	ns_tat_t *tat;
-	isc_event_t *event;
+	dns_view_t *view = NULL;
+	isc_task_t *task = NULL;
+	ns_tat_t *tat = NULL;
+	isc_event_t *event = NULL;
 
 	REQUIRE(keytable != NULL);
 	REQUIRE(keynode != NULL);
@@ -7307,11 +7301,8 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	task = dotat_arg->task;
 
 	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
+	*tat = (ns_tat_t){ 0 };
 
-	tat->fetch = NULL;
-	tat->mctx = NULL;
-	tat->task = NULL;
-	tat->view = NULL;
 	dns_rdataset_init(&tat->rdataset);
 	dns_rdataset_init(&tat->sigrdataset);
 	dns_name_copy(keyname, dns_fixedname_initname(&tat->keyname));
@@ -7345,14 +7336,12 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 }
 
 static void
-tat_timer_tick(isc_task_t *task, isc_event_t *event) {
+tat_timer_tick(void *arg) {
 	isc_result_t result;
-	named_server_t *server = (named_server_t *)event->ev_arg;
-	struct dotat_arg arg;
-	dns_view_t *view;
+	named_server_t *server = (named_server_t *)arg;
+	struct dotat_arg dotat_arg = { 0 };
+	dns_view_t *view = NULL;
 	dns_keytable_t *secroots = NULL;
-
-	isc_event_free(&event);
 
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -7366,20 +7355,19 @@ tat_timer_tick(isc_task_t *task, isc_event_t *event) {
 			continue;
 		}
 
-		arg.view = view;
-		arg.task = task;
-		(void)dns_keytable_forall(secroots, dotat, &arg);
+		dotat_arg.view = view;
+		dotat_arg.task = server->task;
+		(void)dns_keytable_forall(secroots, dotat, &dotat_arg);
 		dns_keytable_detach(&secroots);
 	}
 }
 
 static void
-pps_timer_tick(isc_task_t *task, isc_event_t *event) {
+pps_timer_tick(void *arg) {
 	static unsigned int oldrequests = 0;
 	unsigned int requests = atomic_load_relaxed(&ns_client_requests);
 
-	UNUSED(task);
-	isc_event_free(&event);
+	UNUSED(arg);
 
 	/*
 	 * Don't worry about wrapping as the overflow result will be right.
@@ -9004,17 +8992,13 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "interface-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	interface_interval = cfg_obj_asduration(obj);
-
 	if (server->interface_timer != NULL) {
 		if (interface_interval == 0) {
-			CHECK(isc_timer_reset(server->interface_timer,
-					      isc_timertype_inactive, NULL,
-					      true));
+			isc_timer_stop(server->interface_timer);
 		} else if (server->interface_interval != interface_interval) {
 			isc_interval_set(&interval, interface_interval, 0);
-			CHECK(isc_timer_reset(server->interface_timer,
-					      isc_timertype_ticker, &interval,
-					      false));
+			isc_timer_start(server->interface_timer,
+					isc_timertype_ticker, &interval);
 		}
 	}
 	server->interface_interval = interface_interval;
@@ -9035,22 +9019,19 @@ load_configuration(const char *filename, named_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	heartbeat_interval = cfg_obj_asuint32(obj) * 60;
 	if (heartbeat_interval == 0) {
-		CHECK(isc_timer_reset(server->heartbeat_timer,
-				      isc_timertype_inactive, NULL, true));
+		isc_timer_stop(server->heartbeat_timer);
 	} else if (server->heartbeat_interval != heartbeat_interval) {
 		isc_interval_set(&interval, heartbeat_interval, 0);
-		CHECK(isc_timer_reset(server->heartbeat_timer,
-				      isc_timertype_ticker, &interval, false));
+		isc_timer_start(server->heartbeat_timer, isc_timertype_ticker,
+				&interval);
 	}
 	server->heartbeat_interval = heartbeat_interval;
 
 	isc_interval_set(&interval, 1200, 0);
-	CHECK(isc_timer_reset(server->pps_timer, isc_timertype_ticker,
-			      &interval, false));
+	isc_timer_start(server->pps_timer, isc_timertype_ticker, &interval);
 
 	isc_interval_set(&interval, named_g_tat_interval, 0);
-	CHECK(isc_timer_reset(server->tat_timer, isc_timertype_ticker,
-			      &interval, false));
+	isc_timer_start(server->tat_timer, isc_timertype_ticker, &interval);
 
 	/*
 	 * Write the PID file.
@@ -9856,11 +9837,10 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	geoip = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
-	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
-					  named_g_taskmgr, named_g_timermgr,
-					  named_g_netmgr, named_g_dispatchmgr,
-					  server->task, geoip, true,
-					  &server->interfacemgr),
+	CHECKFATAL(ns_interfacemgr_create(
+			   named_g_mctx, server->sctx, named_g_taskmgr,
+			   named_g_loopmgr, named_g_netmgr, named_g_dispatchmgr,
+			   server->task, geoip, true, &server->interfacemgr),
 		   "creating interface manager");
 
 	/*
@@ -9876,18 +9856,17 @@ run_server(isc_task_t *task, isc_event_t *event) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "Disabling periodic interface re-scans timer");
 	} else {
-		isc_timer_create(named_g_timermgr, server->task,
-				 interface_timer_tick, server,
+		isc_timer_create(named_g_mainloop, interface_timer_tick, server,
 				 &server->interface_timer);
 	}
 
-	isc_timer_create(named_g_timermgr, server->task, heartbeat_timer_tick,
-			 server, &server->heartbeat_timer);
+	isc_timer_create(named_g_mainloop, heartbeat_timer_tick, server,
+			 &server->heartbeat_timer);
 
-	isc_timer_create(named_g_timermgr, server->task, tat_timer_tick, server,
+	isc_timer_create(named_g_mainloop, tat_timer_tick, server,
 			 &server->tat_timer);
 
-	isc_timer_create(named_g_timermgr, server->task, pps_timer_tick, server,
+	isc_timer_create(named_g_mainloop, pps_timer_tick, server,
 			 &server->pps_timer);
 
 	CHECKFATAL(
@@ -10124,6 +10103,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->sctx->fuzznotify = named_fuzz_notify;
 #endif /* ifdef ENABLE_AFL */
 
+	named_g_mainloop = isc_loop_main(named_g_loopmgr);
+
 	CHECKFATAL(
 		isc_app_onrun(named_g_mctx, server->task, run_server, server),
 		"isc_app_onrun");
@@ -10136,8 +10117,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->interface_interval = 0;
 	server->heartbeat_interval = 0;
 
-	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_taskmgr,
-				      named_g_timermgr, named_g_netmgr,
+	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_loopmgr,
+				      named_g_taskmgr, named_g_netmgr,
 				      &server->zonemgr),
 		   "dns_zonemgr_create");
 

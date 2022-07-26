@@ -169,7 +169,6 @@ libisc_la_SOURCES =		\
 	mutexblock.c		\
 	net.c			\
 	netaddr.c		\
-	netmgr_p.h		\
 	netscope.c		\
 	nonce.c			\
 	openssl_shim.c		\
@@ -199,12 +198,10 @@ libisc_la_SOURCES =		\
 	symtab.c		\
 	syslog.c		\
 	task.c			\
-	task_p.h		\
 	thread.c		\
 	tid.c			\
 	time.c			\
 	timer.c			\
-	timer_p.h		\
 	tls.c			\
 	tls_p.h			\
 	tm.c			\

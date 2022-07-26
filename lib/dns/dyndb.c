@@ -268,7 +268,7 @@ dns_dyndb_cleanup(bool exiting) {
 isc_result_t
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
-		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp) {
+		    isc_loopmgr_t *loopmgr, dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
@@ -285,7 +285,7 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	if (task != NULL) {
 		isc_task_attach(task, &dctx->task);
 	}
-	dctx->timermgr = tmgr;
+	dctx->loopmgr = loopmgr;
 	dctx->hashinit = hashinit;
 	dctx->lctx = lctx;
 	dctx->refvar = &isc_bind9;
@@ -318,7 +318,7 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	if (dctx->task != NULL) {
 		isc_task_detach(&dctx->task);
 	}
-	dctx->timermgr = NULL;
+	dctx->loopmgr = NULL;
 	dctx->lctx = NULL;
 
 	isc_mem_putanddetach(&dctx->mctx, dctx, sizeof(*dctx));
