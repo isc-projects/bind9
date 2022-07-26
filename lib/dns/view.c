@@ -636,7 +636,7 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 
-	result = isc_task_create(taskmgr, 0, &view->task, 0);
+	result = isc_task_create(taskmgr, &view->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

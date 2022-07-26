@@ -21,6 +21,7 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -46,17 +47,12 @@ typedef struct ns_test_id {
 		.description = desc, .lineno = __LINE__ \
 	}
 
-#define CHECK(r)                             \
-	do {                                 \
-		result = (r);                \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup;        \
-	} while (0)
-
 extern dns_dispatchmgr_t *dispatchmgr;
-extern ns_clientmgr_t	 *clientmgr;
 extern ns_interfacemgr_t *interfacemgr;
 extern ns_server_t	 *sctx;
+
+extern atomic_uint_fast32_t client_refs[32];
+extern atomic_uintptr_t	    client_addrs[32];
 
 #ifdef NETMGR_TRACE
 #define FLARG                                              \
@@ -71,6 +67,8 @@ int
 setup_server(void **state);
 int
 teardown_server(void **state);
+void
+shutdown_interfacemgr(void *arg __attribute__((unused)));
 
 /*%
  * Load data for zone "zonename" from file "filename" and start serving it to

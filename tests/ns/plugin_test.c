@@ -30,9 +30,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-noreturn void
-_fail(const char *const file, const int line);
-
 #include <ns/hooks.h>
 
 #include <tests/ns.h>
@@ -157,9 +154,7 @@ ISC_RUN_TEST_IMPL(ns_plugin_expandpath) {
 }
 
 ISC_TEST_LIST_START
-
-ISC_TEST_ENTRY_CUSTOM(ns_plugin_expandpath, setup_managers, teardown_managers)
-
+ISC_TEST_ENTRY(ns_plugin_expandpath)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

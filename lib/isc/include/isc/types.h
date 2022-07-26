@@ -79,16 +79,14 @@ typedef struct isc_signal	 isc_signal_t;	      /*%< Signal handler */
 typedef struct isc_sockaddr	 isc_sockaddr_t;      /*%< Socket Address */
 typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;  /*%< Socket Address List
 						       * */
-typedef struct isc_stats  isc_stats_t;		      /*%< Statistics */
-typedef int_fast64_t	  isc_statscounter_t;
-typedef struct isc_symtab isc_symtab_t;		/*%< Symbol Table */
-typedef struct isc_task	  isc_task_t;		/*%< Task */
-typedef ISC_LIST(isc_task_t) isc_tasklist_t;	/*%< Task List */
+typedef struct isc_stats      isc_stats_t;	      /*%< Statistics */
+typedef int_fast64_t	      isc_statscounter_t;
+typedef struct isc_symtab     isc_symtab_t;	/*%< Symbol Table */
+typedef struct isc_task	      isc_task_t;	/*%< Task */
 typedef struct isc_taskmgr    isc_taskmgr_t;	/*%< Task Manager */
 typedef struct isc_textregion isc_textregion_t; /*%< Text Region */
 typedef struct isc_time	      isc_time_t;	/*%< Time */
 typedef struct isc_timer      isc_timer_t;	/*%< Timer */
-typedef struct isc_timermgr   isc_timermgr_t;	/*%< Timer Manager */
 typedef struct isc_work	      isc_work_t;	/*%< Work offloaded to an
 						 *   external thread */
 

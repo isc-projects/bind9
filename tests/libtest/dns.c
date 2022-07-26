@@ -72,7 +72,7 @@ dns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
 	}
 
 	if (with_cache) {
-		result = dns_cache_create(mctx, mctx, taskmgr, timermgr,
+		result = dns_cache_create(mctx, mctx, taskmgr,
 					  dns_rdataclass_in, "", "rbt", 0, NULL,
 					  &cache);
 		if (result != ISC_R_SUCCESS) {
@@ -163,7 +163,7 @@ dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, netmgr, &zonemgr);
+	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &zonemgr);
 	return (result);
 }
 

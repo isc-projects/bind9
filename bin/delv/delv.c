@@ -25,7 +25,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -81,6 +80,11 @@ char *progname;
 static isc_mem_t *mctx = NULL;
 static isc_log_t *lctx = NULL;
 
+/* Managers */
+static isc_nm_t *netmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
+static isc_taskmgr_t *taskmgr = NULL;
+
 /* Configurables */
 static char *server = NULL;
 static const char *port = "53";
@@ -113,6 +117,9 @@ static int num_keys = 0;
 
 static dns_fixedname_t afn;
 static dns_name_t *anchor_name = NULL;
+
+static dns_master_style_t *style = NULL;
+static dns_fixedname_t qfn;
 
 /* Default bind.keys contents */
 static char anchortext[] = TRUST_ANCHORS;
@@ -417,8 +424,7 @@ print_status(dns_rdataset_t *rdataset) {
 }
 
 static isc_result_t
-printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
-	  dns_master_style_t *style) {
+printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
 	static bool first = true;
@@ -512,11 +518,8 @@ cleanup:
 }
 
 static isc_result_t
-setup_style(dns_master_style_t **stylep) {
+setup_style(void) {
 	isc_result_t result;
-	dns_master_style_t *style = NULL;
-
-	REQUIRE(stylep != NULL && *stylep == NULL);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (yaml) {
@@ -557,9 +560,6 @@ setup_style(dns_master_style_t **stylep) {
 						48, 80, 8, splitwidth, mctx);
 	}
 
-	if (result == ISC_R_SUCCESS) {
-		*stylep = style;
-	}
 	return (result);
 }
 
@@ -1709,20 +1709,101 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 	}
 }
 
+static void
+resolve_cb(dns_client_t *client, const dns_name_t *query_name,
+	   dns_namelist_t *namelist, isc_result_t result) {
+	char namestr[DNS_NAME_FORMATSIZE];
+	dns_rdataset_t *rdataset;
+
+	if (result != ISC_R_SUCCESS && !yaml) {
+		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
+			 isc_result_totext(result));
+	}
+
+	if (yaml) {
+		printf("type: DELV_RESULT\n");
+		dns_name_format(query_name, namestr, sizeof(namestr));
+		printf("query_name: %s\n", namestr);
+		printf("status: %s\n", isc_result_totext(result));
+		printf("records:\n");
+	}
+
+	for (dns_name_t *response_name = ISC_LIST_HEAD(*namelist);
+	     response_name != NULL;
+	     response_name = ISC_LIST_NEXT(response_name, link))
+	{
+		for (rdataset = ISC_LIST_HEAD(response_name->list);
+		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			result = printdata(rdataset, response_name);
+			if (result != ISC_R_SUCCESS) {
+				delv_log(ISC_LOG_ERROR, "print data failed");
+			}
+		}
+	}
+
+	dns_client_freeresanswer(client, namelist);
+	isc_mem_put(mctx, namelist, sizeof(*namelist));
+
+	dns_client_detach(&client);
+
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+static void
+resolve(void *arg) {
+	dns_client_t *client = arg;
+	dns_namelist_t *namelist;
+	unsigned int resopt;
+	isc_result_t result;
+	dns_name_t *query_name;
+
+	namelist = isc_mem_get(mctx, sizeof(*namelist));
+	ISC_LIST_INIT(*namelist);
+
+	/* Construct QNAME */
+	CHECK(convert_name(&qfn, &query_name, qname));
+
+	/* Set up resolution options */
+	resopt = DNS_CLIENTRESOPT_NOCDFLAG;
+	if (no_sigs) {
+		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
+	}
+	if (!root_validation) {
+		resopt |= DNS_CLIENTRESOPT_NOVALIDATE;
+	}
+	if (cdflag) {
+		resopt &= ~DNS_CLIENTRESOPT_NOCDFLAG;
+	}
+	if (use_tcp) {
+		resopt |= DNS_CLIENTRESOPT_TCP;
+	}
+
+	/* Perform resolution */
+	result = dns_client_resolve(client, query_name, dns_rdataclass_in,
+				    qtype, resopt, namelist, resolve_cb);
+
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	return;
+cleanup:
+	if (!yaml) {
+		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
+			 isc_result_totext(result));
+	}
+
+	isc_mem_put(mctx, namelist, sizeof(*namelist));
+	isc_loopmgr_shutdown(loopmgr);
+
+	dns_client_detach(&client);
+}
+
 int
 main(int argc, char *argv[]) {
 	dns_client_t *client = NULL;
 	isc_result_t result;
-	dns_fixedname_t qfn;
-	dns_name_t *query_name, *response_name;
-	char namestr[DNS_NAME_FORMATSIZE];
-	dns_rdataset_t *rdataset;
-	dns_namelist_t namelist;
-	unsigned int resopt;
-	isc_loopmgr_t *loopmgr = NULL;
-	isc_nm_t *netmgr = NULL;
-	isc_taskmgr_t *taskmgr = NULL;
-	dns_master_style_t *style = NULL;
 
 	progname = argv[0];
 	preparse_args(argc, argv);
@@ -1730,18 +1811,16 @@ main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 
-	isc_mem_create(&mctx);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dst_lib_init failed: %d", result);
 	}
 
-	isc_managers_create(mctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
-
 	parse_args(argc, argv);
 
-	CHECK(setup_style(&style));
+	CHECK(setup_style());
 
 	setup_logging(stderr);
 
@@ -1763,55 +1842,9 @@ main(int argc, char *argv[]) {
 
 	CHECK(setup_dnsseckeys(client));
 
-	/* Construct QNAME */
-	CHECK(convert_name(&qfn, &query_name, qname));
+	isc_loop_setup(isc_loop_main(loopmgr), resolve, client);
 
-	/* Set up resolution options */
-	resopt = DNS_CLIENTRESOPT_NOCDFLAG;
-	if (no_sigs) {
-		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
-	}
-	if (!root_validation) {
-		resopt |= DNS_CLIENTRESOPT_NOVALIDATE;
-	}
-	if (cdflag) {
-		resopt &= ~DNS_CLIENTRESOPT_NOCDFLAG;
-	}
-	if (use_tcp) {
-		resopt |= DNS_CLIENTRESOPT_TCP;
-	}
-
-	/* Perform resolution */
-	ISC_LIST_INIT(namelist);
-	result = dns_client_resolve(client, query_name, dns_rdataclass_in,
-				    qtype, resopt, &namelist);
-	if (result != ISC_R_SUCCESS && !yaml) {
-		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
-			 isc_result_totext(result));
-	}
-
-	if (yaml) {
-		printf("type: DELV_RESULT\n");
-		dns_name_format(query_name, namestr, sizeof(namestr));
-		printf("query_name: %s\n", namestr);
-		printf("status: %s\n", isc_result_totext(result));
-		printf("records:\n");
-	}
-
-	for (response_name = ISC_LIST_HEAD(namelist); response_name != NULL;
-	     response_name = ISC_LIST_NEXT(response_name, link))
-	{
-		for (rdataset = ISC_LIST_HEAD(response_name->list);
-		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			result = printdata(rdataset, response_name, style);
-			if (result != ISC_R_SUCCESS) {
-				delv_log(ISC_LOG_ERROR, "print data failed");
-			}
-		}
-	}
-
-	dns_client_freeresanswer(client, &namelist);
+	isc_loopmgr_run(loopmgr);
 
 cleanup:
 	if (trust_anchor != NULL) {
@@ -1826,18 +1859,12 @@ cleanup:
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
 	}
-	if (client != NULL) {
-		dns_client_detach(&client);
-	}
 
-	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
-
-	if (lctx != NULL) {
-		isc_log_destroy(&lctx);
-	}
-	isc_mem_detach(&mctx);
+	isc_log_destroy(&lctx);
 
 	dst_lib_destroy();
+
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 
 	return (0);
 }

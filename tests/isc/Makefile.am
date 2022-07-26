@@ -27,7 +27,6 @@ check_PROGRAMS =	\
 	md_test		\
 	mem_test	\
 	netaddr_test	\
-	netmgr_test	\
 	parse_test	\
 	quota_test	\
 	radix_test	\
@@ -78,18 +77,6 @@ md_test_CPPFLAGS =	\
 md_test_LDADD =		\
 	$(LDADD)	\
 	$(OPENSSL_LIBS)
-
-netmgr_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)	\
-	$(OPENSSL_CFLAGS)
-
-netmgr_test_LDADD =	\
-	$(LDADD)	\
-	$(OPENSSL_LIBS)
-
-netmgr_test_SOURCES =	\
-	netmgr_test.c	\
-	uv_wrap.h
 
 random_test_LDADD =	\
 	$(LDADD)	\

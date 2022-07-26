@@ -85,10 +85,16 @@ typedef void (*isc_nm_opaquecb_t)(void *arg);
  * callbacks.
  */
 
-typedef void (*isc_nm_workcb_t)(void *arg);
-typedef void (*isc_nm_after_workcb_t)(void *arg, isc_result_t result);
+void
+isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netgmrp);
 /*%<
- * Callback functions for libuv threadpool work (see uv_work_t)
+ * Creates a new network manager and starts it running when loopmgr is started.
+ */
+
+void
+isc_netmgr_destroy(isc_nm_t **netmgrp);
+/*%<
+ * Similar to isc_nm_detach(), but requires all other references to be gone.
  */
 
 void
@@ -98,15 +104,7 @@ isc_nm_detach(isc_nm_t **mgr0);
 /*%<
  * Attach/detach a network manager. When all references have been
  * released, the network manager is shut down, freeing all resources.
- * Destroy is working the same way as detach, but it actively waits
- * for all other references to be gone.
  */
-
-#define ISC_NETMGR_TID_UNKNOWN -1
-
-/* Return thread ID of current thread, or ISC_NETMGR_TID_UNKNOWN */
-int
-isc_nm_tid(void);
 
 void
 isc_nmsocket_close(isc_nmsocket_t **sockp);
@@ -709,42 +707,10 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
  */
 
 void
-isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int tid);
-/*%<
- * Enqueue the 'task' onto the netmgr ievents queue.
- *
- * Requires:
- * \li 'mgr' is a valid netmgr object
- * \li 'task' is a valid task
- * \li 'tid' is either the preferred netmgr tid or -1, in which case
- *     tid will be picked randomly. The tid is capped (by modulo) to
- *     maximum number of 'workers' as specifed in isc_nm_start()
- */
-
-void
-isc_nm_work_offload(isc_nm_t *mgr, isc_nm_workcb_t work_cb,
-		    isc_nm_after_workcb_t after_work_cb, void *data);
-/*%<
- * Schedules a job to be handled by the libuv thread pool (see uv_work_t).
- * The function specified in `work_cb` will be run by a thread in the
- * thread pool; when complete, the `after_work_cb` function will run.
- *
- * Requires:
- * \li 'mgr' is a valid netmgr object.
- * \li We are currently running in a network manager thread.
- */
-
-void
 isc__nm_force_tid(int tid);
 /*%<
  * Force the thread ID to 'tid'. This is STRICTLY for use in unit
  * tests and should not be used in any production code.
- */
-
-uint32_t
-isc_nm_getnworkers(const isc_nm_t *);
-/*%<
- * Return the number of active workers
  */
 
 void

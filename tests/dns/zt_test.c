@@ -23,9 +23,9 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/app.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
+#include <isc/loop.h>
 #include <isc/print.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -39,27 +39,9 @@
 
 #include <tests/dns.h>
 
-static int
-_setup(void **state) {
-	isc_app_start();
-	setup_managers(state);
-
-	return (0);
-}
-
-static int
-_teardown(void **state) {
-	teardown_managers(state);
-	isc_app_finish();
-
-	return (0);
-}
-
-struct args {
-	void *arg1;
-	void *arg2;
-	bool arg3;
-};
+static dns_db_t *db = NULL;
+static FILE *zonefile, *origfile;
+static dns_view_t *view = NULL;
 
 static isc_result_t
 count_zone(dns_zone_t *zone, void *uap) {
@@ -71,57 +53,11 @@ count_zone(dns_zone_t *zone, void *uap) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-load_done(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
-	/* We treat zt as a pointer to a boolean for testing purposes */
-	atomic_bool *done = (atomic_bool *)zt;
-
-	UNUSED(zone);
-	UNUSED(task);
-
-	atomic_store(done, true);
-	isc_app_shutdown();
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-all_done(void *arg) {
-	atomic_bool *done = (atomic_bool *)arg;
-
-	atomic_store(done, true);
-	isc_app_shutdown();
-	return (ISC_R_SUCCESS);
-}
-
-static void
-start_zt_asyncload(isc_task_t *task, isc_event_t *event) {
-	struct args *args = (struct args *)(event->ev_arg);
-
-	UNUSED(task);
-
-	dns_zt_asyncload(args->arg1, false, all_done, args->arg2);
-
-	isc_event_free(&event);
-}
-
-static void
-start_zone_asyncload(isc_task_t *task, isc_event_t *event) {
-	struct args *args = (struct args *)(event->ev_arg);
-
-	UNUSED(task);
-
-	dns_zone_asyncload(args->arg1, args->arg3, load_done, args->arg2);
-	isc_event_free(&event);
-}
-
 /* apply a function to a zone table */
-ISC_RUN_TEST_IMPL(dns_zt_apply) {
+ISC_LOOP_TEST_IMPL(apply) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
-	dns_view_t *view = NULL;
 	int nzones = 0;
-
-	UNUSED(state);
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -146,22 +82,88 @@ ISC_RUN_TEST_IMPL(dns_zt_apply) {
 	/* The view was left attached in dns_test_makezone() */
 	dns_view_detach(&view);
 	dns_zone_detach(&zone);
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+static isc_result_t
+load_done_last(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+	isc_result_t result;
+
+	UNUSED(zt);
+	UNUSED(zone);
+	UNUSED(task);
+
+	/* The zone should now be loaded; test it */
+	result = dns_zone_getdb(zone, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	assert_non_null(db);
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	dns_test_releasezone(zone);
+	dns_test_closezonemgr();
+
+	dns_zone_detach(&zone);
+	dns_view_detach(&view);
+
+	isc_loopmgr_shutdown(loopmgr);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+load_done_new_only(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+	isc_result_t result;
+
+	UNUSED(zt);
+	UNUSED(zone);
+	UNUSED(task);
+
+	/* The zone should now be loaded; test it */
+	result = dns_zone_getdb(zone, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_db_detach(&db);
+
+	dns_zone_asyncload(zone, true, load_done_last, NULL);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+load_done_first(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+	atomic_bool *done = (atomic_bool *)zt;
+	isc_result_t result;
+
+	UNUSED(zone);
+	UNUSED(task);
+
+	/* The zone should now be loaded; test it */
+	result = dns_zone_getdb(zone, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_db_detach(&db);
+
+	/*
+	 * Add something to zone file, reload zone with newonly - it should
+	 * not be reloaded.
+	 */
+	fprintf(zonefile, "\nb in b 1.2.3.4\n");
+	fflush(zonefile);
+	fclose(zonefile);
+
+	dns_zone_asyncload(zone, true, load_done_new_only, &done);
+
+	return (ISC_R_SUCCESS);
 }
 
 /* asynchronous zone load */
-ISC_RUN_TEST_IMPL(dns_zt_asyncload_zone) {
+ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	isc_result_t result;
 	int n;
 	dns_zone_t *zone = NULL;
-	dns_view_t *view = NULL;
-	dns_db_t *db = NULL;
-	FILE *zonefile, *origfile;
 	char buf[4096];
 	atomic_bool done;
-	int i = 0;
-	struct args args;
-
-	UNUSED(state);
 
 	atomic_init(&done, false);
 
@@ -190,84 +192,49 @@ ISC_RUN_TEST_IMPL(dns_zt_asyncload_zone) {
 	dns_zone_setfile(zone, "./zone.data", dns_masterformat_text,
 			 &dns_master_style_default);
 
-	args.arg1 = zone;
-	args.arg2 = &done;
-	args.arg3 = false;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
+	dns_zone_asyncload(zone, false, load_done_first, &done);
+}
 
-	isc_app_run();
-	while (dns__zone_loadpending(zone) && i++ < 5000) {
-		dns_test_nap(1000);
-	}
-	assert_true(atomic_load(&done));
-	/* The zone should now be loaded; test it */
-	result = dns_zone_getdb(zone, &db);
+dns_zone_t *zone1 = NULL, *zone2 = NULL, *zone3 = NULL;
+
+static isc_result_t
+all_done(void *arg __attribute__((__unused__))) {
+	isc_result_t result;
+
+	/* Both zones should now be loaded; test them */
+	result = dns_zone_getdb(zone1, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_db_detach(&db);
-	/*
-	 * Add something to zone file, reload zone with newonly - it should
-	 * not be reloaded.
-	 */
-	fprintf(zonefile, "\nb in b 1.2.3.4\n");
-	fflush(zonefile);
-	fclose(zonefile);
-
-	args.arg1 = zone;
-	args.arg2 = &done;
-	args.arg3 = true;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
-
-	isc_app_run();
-
-	while (dns__zone_loadpending(zone) && i++ < 5000) {
-		dns_test_nap(1000);
-	}
-	assert_true(atomic_load(&done));
-	/* The zone should now be loaded; test it */
-	result = dns_zone_getdb(zone, &db);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	dns_db_detach(&db);
-
-	/* Now reload it without newonly - it should be reloaded */
-	args.arg1 = zone;
-	args.arg2 = &done;
-	args.arg3 = false;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
-
-	isc_app_run();
-
-	while (dns__zone_loadpending(zone) && i++ < 5000) {
-		dns_test_nap(1000);
-	}
-	assert_true(atomic_load(&done));
-	/* The zone should now be loaded; test it */
-	result = dns_zone_getdb(zone, &db);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
 	assert_non_null(db);
 	if (db != NULL) {
 		dns_db_detach(&db);
 	}
 
-	dns_test_releasezone(zone);
+	result = dns_zone_getdb(zone2, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(db);
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
+	dns_test_releasezone(zone3);
+	dns_test_releasezone(zone2);
+	dns_test_releasezone(zone1);
 	dns_test_closezonemgr();
 
-	dns_zone_detach(&zone);
+	dns_zone_detach(&zone1);
+	dns_zone_detach(&zone2);
+	dns_zone_detach(&zone3);
 	dns_view_detach(&view);
+
+	isc_loopmgr_shutdown(loopmgr);
+	return (ISC_R_SUCCESS);
 }
 
 /* asynchronous zone table load */
-ISC_RUN_TEST_IMPL(dns_zt_asyncload_zt) {
+ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	isc_result_t result;
-	dns_zone_t *zone1 = NULL, *zone2 = NULL, *zone3 = NULL;
-	dns_view_t *view;
 	dns_zt_t *zt = NULL;
-	dns_db_t *db = NULL;
 	atomic_bool done;
-	int i = 0;
-	struct args args;
-
-	UNUSED(state);
 
 	atomic_init(&done, false);
 
@@ -304,48 +271,13 @@ ISC_RUN_TEST_IMPL(dns_zt_asyncload_zt) {
 	assert_false(dns__zone_loadpending(zone2));
 	assert_false(atomic_load(&done));
 
-	args.arg1 = zt;
-	args.arg2 = &done;
-	isc_app_onrun(mctx, maintask, start_zt_asyncload, &args);
-
-	isc_app_run();
-	while (!atomic_load(&done) && i++ < 5000) {
-		dns_test_nap(1000);
-	}
-	assert_true(atomic_load(&done));
-
-	/* Both zones should now be loaded; test them */
-	result = dns_zone_getdb(zone1, &db);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_non_null(db);
-	if (db != NULL) {
-		dns_db_detach(&db);
-	}
-
-	result = dns_zone_getdb(zone2, &db);
-	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_non_null(db);
-	if (db != NULL) {
-		dns_db_detach(&db);
-	}
-
-	dns_test_releasezone(zone3);
-	dns_test_releasezone(zone2);
-	dns_test_releasezone(zone1);
-	dns_test_closezonemgr();
-
-	dns_zone_detach(&zone1);
-	dns_zone_detach(&zone2);
-	dns_zone_detach(&zone3);
-	dns_view_detach(&view);
+	dns_zt_asyncload(zt, false, all_done, NULL);
 }
 
 ISC_TEST_LIST_START
-
-ISC_TEST_ENTRY_CUSTOM(dns_zt_apply, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_zt_asyncload_zone, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_zt_asyncload_zt, _setup, _teardown)
-
+ISC_TEST_ENTRY_CUSTOM(apply, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(asyncload_zone, setup_managers, teardown_managers)
+ISC_TEST_ENTRY_CUSTOM(asyncload_zt, setup_managers, teardown_managers)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

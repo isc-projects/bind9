@@ -33,8 +33,9 @@ typedef enum { UDP, TCP, DOT, HTTPS, HTTP } protocol_t;
 static const char *protocols[] = { "udp", "tcp", "dot", "https", "http-plain" };
 
 static isc_mem_t *mctx = NULL;
-static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
+static isc_nm_t *netmgr = NULL;
+static isc_taskmgr_t *taskmgr = NULL;
 
 static protocol_t protocol;
 static in_port_t port;
@@ -166,40 +167,17 @@ parse_options(int argc, char **argv) {
 }
 
 static void
-_signal(int sig, void (*handler)(int)) {
-	struct sigaction sa = { .sa_handler = handler };
-
-	RUNTIME_CHECK(sigfillset(&sa.sa_mask) == 0);
-	RUNTIME_CHECK(sigaction(sig, &sa, NULL) >= 0);
-}
-
-static void
 setup(void) {
-	sigset_t sset;
-
-	_signal(SIGPIPE, SIG_IGN);
-	_signal(SIGHUP, SIG_DFL);
-	_signal(SIGTERM, SIG_DFL);
-	_signal(SIGINT, SIG_DFL);
-
-	RUNTIME_CHECK(sigemptyset(&sset) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGHUP) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGINT) == 0);
-	RUNTIME_CHECK(sigaddset(&sset, SIGTERM) == 0);
-	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
-
-	isc_mem_create(&mctx);
-
-	isc_managers_create(mctx, workers, 0, &loopmgr, &netmgr, NULL);
+	isc_managers_create(&mctx, workers, &loopmgr, &netmgr, &taskmgr);
 }
 
 static void
 teardown(void) {
-	isc_managers_destroy(&loopmgr, &netmgr, NULL);
-	isc_mem_destroy(&mctx);
 	if (tls_ctx) {
 		isc_tlsctx_free(&tls_ctx);
 	}
+
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 }
 
 static void

@@ -732,7 +732,7 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	new_zones->loopmgr = loopmgr;
 	new_zones->taskmgr = taskmgr;
 
-	result = isc_task_create(taskmgr, 0, &new_zones->updater, 0);
+	result = isc_task_create(taskmgr, &new_zones->updater, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_ht;
 	}

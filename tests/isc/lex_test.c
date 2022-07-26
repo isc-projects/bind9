@@ -348,7 +348,6 @@ ISC_TEST_ENTRY(lex_keypair)
 ISC_TEST_ENTRY(lex_setline)
 ISC_TEST_ENTRY(lex_string)
 ISC_TEST_ENTRY(lex_qstring)
-
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

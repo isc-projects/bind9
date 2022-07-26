@@ -36,6 +36,14 @@
 
 #define TEST_ORIGIN "test"
 
+#define CHECK(r)                               \
+	{                                      \
+		result = (r);                  \
+		if (result != ISC_R_SUCCESS) { \
+			goto cleanup;          \
+		}                              \
+	}
+
 static int debug = 0;
 
 static int

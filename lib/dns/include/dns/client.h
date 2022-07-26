@@ -113,7 +113,7 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
  *
  *\li	'nm' is a valid network manager.
  *
- *\li	'loopmgr' is a valid loop manager.
+ *\li	'timermgr' is a valid timer manager.
  *
  *\li	clientp != NULL && *clientp == NULL.
  *
@@ -187,10 +187,16 @@ dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
  *\li	Anything else				Failure.
  */
 
+typedef void (*dns_client_resolve_cb)(dns_client_t     *client,
+				      const dns_name_t *name,
+				      dns_namelist_t   *namelist,
+				      isc_result_t	result);
+
 isc_result_t
 dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		   unsigned int options, dns_namelist_t *namelist);
+		   unsigned int options, dns_namelist_t *namelist,
+		   dns_client_resolve_cb resolve_cb);
 
 isc_result_t
 dns_client_startresolve(dns_client_t *client, const dns_name_t *name,

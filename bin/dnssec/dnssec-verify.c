@@ -17,7 +17,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
@@ -206,7 +205,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_commandline_reset = true;
-	check_result(isc_app_start(), "isc_app_start");
 
 	isc_mem_create(&mctx);
 
@@ -345,8 +343,6 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	}
 	isc_mem_destroy(&mctx);
-
-	(void)isc_app_finish();
 
 	return (result == ISC_R_SUCCESS ? 0 : 1);
 }

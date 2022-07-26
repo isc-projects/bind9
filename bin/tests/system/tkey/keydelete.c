@@ -14,10 +14,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -55,6 +55,7 @@
 static char *ip_address = NULL;
 static int port;
 static isc_mem_t *mctx = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dns_tsig_keyring_t *ring = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
@@ -97,19 +98,18 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	dns_message_detach(&response);
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
-	isc_app_shutdown();
-	return;
+	isc_task_detach(&task);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
-sendquery(isc_task_t *task, isc_event_t *event) {
+sendquery(void *arg) {
+	isc_task_t *task = (isc_task_t *)arg;
 	struct in_addr inaddr;
 	isc_sockaddr_t address;
 	isc_result_t result;
 	dns_message_t *query = NULL;
 	dns_request_t *request = NULL;
-
-	isc_event_free(&event);
 
 	result = ISC_R_FAILURE;
 	if (inet_pton(AF_INET, ip_address, &inaddr) != 1) {
@@ -145,8 +145,6 @@ main(int argc, char **argv) {
 	isc_result_t result;
 	int type;
 
-	RUNCHECK(isc_app_start());
-
 	if (argc < 4) {
 		fprintf(stderr, "I:no key to delete\n");
 		exit(-1);
@@ -159,15 +157,13 @@ main(int argc, char **argv) {
 	port = atoi(argv[2]);
 	keyname = argv[3];
 
-	isc_mem_create(&mctx);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	isc_log_create(mctx, &log, &logconfig);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
-
-	RUNCHECK(isc_task_create(taskmgr, 0, &task, 0));
+	RUNCHECK(isc_task_create(taskmgr, &task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&bind_any);
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, &bind_any, &dispatchv4));
@@ -180,8 +176,6 @@ main(int argc, char **argv) {
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 	dns_view_setkeyring(view, ring);
 
-	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
-
 	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
 	result = dst_key_fromnamedfile(keyname, NULL, type, mctx, &dstkey);
 	CHECK("dst_key_fromnamedfile", result);
@@ -191,14 +185,13 @@ main(int argc, char **argv) {
 	dst_key_free(&dstkey);
 	CHECK("dns_tsigkey_createfromkey", result);
 
-	(void)isc_app_run();
+	isc_loopmgr_setup(loopmgr, sendquery, task);
+	isc_loopmgr_run(loopmgr);
 
 	dns_requestmgr_shutdown(requestmgr);
 	dns_requestmgr_detach(&requestmgr);
 	dns_dispatch_detach(&dispatchv4);
 	dns_dispatchmgr_detach(&dispatchmgr);
-	isc_task_detach(&task);
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	dns_tsigkeyring_detach(&ring);
 
@@ -212,9 +205,7 @@ main(int argc, char **argv) {
 
 	dst_lib_destroy();
 
-	isc_mem_destroy(&mctx);
-
-	isc_app_finish();
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 
 	return (0);
 }

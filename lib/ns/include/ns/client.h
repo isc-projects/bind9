@@ -148,7 +148,7 @@ struct ns_clientmgr {
 	isc_taskmgr_t *taskmgr;
 	isc_loopmgr_t *loopmgr;
 	isc_refcount_t references;
-	int	       tid;
+	uint32_t       tid;
 
 	/* Attached by clients, needed for e.g. recursion */
 	isc_task_t *task;

@@ -61,7 +61,7 @@ void
 isc_timer_create(isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		 isc_timer_t **timerp) {
 	int r;
-	isc_timer_t *timer = NULL;
+	isc_timer_t *timer;
 	isc_loopmgr_t *loopmgr = NULL;
 
 	REQUIRE(cb != NULL);

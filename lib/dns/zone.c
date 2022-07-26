@@ -18860,8 +18860,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	memset(zmgr->zonetasks, 0, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create(zmgr->taskmgr, 2, &zmgr->zonetasks[i],
-					 i);
+		result = isc_task_create(zmgr->taskmgr, &zmgr->zonetasks[i], i);
 		INSIST(result == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result == ISC_R_SUCCESS);
@@ -18874,8 +18873,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	memset(zmgr->loadtasks, 0, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create(zmgr->taskmgr, UINT_MAX,
-					 &zmgr->loadtasks[i], i);
+		result = isc_task_create(zmgr->taskmgr, &zmgr->loadtasks[i], i);
 		INSIST(result == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS) {
 			goto free_loadtasks;

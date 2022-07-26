@@ -35,6 +35,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/dyndb.h>
@@ -42,7 +43,6 @@
 #include <dns/zone.h>
 
 #include "instance.h"
-#include "lock.h"
 #include "log.h"
 #include "util.h"
 
@@ -134,7 +134,6 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	bool freeze = false;
 	dns_zone_t *zone_in_view = NULL;
 	dns_view_t *view_in_zone = NULL;
-	isc_result_t lock_state = ISC_R_IGNORE;
 
 	REQUIRE(inst != NULL);
 	REQUIRE(zone != NULL);
@@ -172,7 +171,7 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 		CLEANUP_WITH(ISC_R_UNEXPECTED);
 	}
 
-	run_exclusive_enter(inst, &lock_state);
+	isc_task_beginexclusive(inst->task);
 	if (inst->view->frozen) {
 		freeze = true;
 		dns_view_thaw(inst->view);
@@ -194,7 +193,7 @@ cleanup:
 	if (freeze) {
 		dns_view_freeze(inst->view);
 	}
-	run_exclusive_exit(inst, lock_state);
+	isc_task_endexclusive(inst->task);
 
 	return (result);
 }

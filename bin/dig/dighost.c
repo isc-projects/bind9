@@ -53,6 +53,7 @@
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/timer.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -1359,10 +1360,7 @@ setup_libs(void) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "dig");
-
-	isc_managers_create(mctx, 1, 0, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);
@@ -1374,6 +1372,7 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
+	isc_mem_setname(mctx, "dig");
 	mainloop = isc_loop_main(loopmgr);
 
 	result = dst_lib_init(mctx, NULL);
@@ -3136,7 +3135,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("udp_ready(%p, %s, %p)", handle, isc_result_totext(eresult),
 	      query);
 
-	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
 
 	if (eresult == ISC_R_CANCELED || query->canceled) {
@@ -3147,7 +3145,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		query_detach(&query);
 		lookup_detach(&l);
 		clear_current_lookup();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3168,7 +3165,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			nssearch_next(l, query);
 
 			check_if_done();
-			UNLOCK_LOOKUP;
 			return;
 		}
 
@@ -3203,7 +3199,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 
 		check_if_done();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3231,12 +3226,12 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	query_detach(&query);
 	lookup_detach(&l);
-	UNLOCK_LOOKUP;
 }
 
 /*%
  * Send a UDP packet to the remote nameserver, possible starting the
- * recv action as well.
+ * recv action as well.  Also make sure that the timer is running and
+ * is properly reset.
  */
 static void
 start_udp(dig_query_t *query) {
@@ -3563,9 +3558,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		 */
 		if (l->ns_search_only && !l->trace_root) {
 			nssearch_next(l, query);
-
 			check_if_done();
-			UNLOCK_LOOKUP;
 			return;
 		}
 
@@ -4347,7 +4340,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		 * the timeout to much longer, so brief network
 		 * outages won't cause the XFR to abort
 		 */
-		if (timeout != INT_MAX) {
+		if (timeout != INT_MAX && query->timer != NULL) {
 			unsigned int local_timeout;
 
 			if (timeout == 0) {
@@ -4683,7 +4676,7 @@ destroy_libs(void) {
 		isc_mem_stats(mctx, stderr);
 	}
 
-	isc_managers_destroy(&loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 }
 
 #ifdef HAVE_LIBIDN2

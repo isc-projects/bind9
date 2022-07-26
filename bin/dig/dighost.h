@@ -219,6 +219,7 @@ struct dig_query {
 	isc_time_t time_sent;
 	isc_time_t time_recv;
 	uint64_t byte_count;
+	isc_timer_t *timer;
 };
 
 struct dig_server {

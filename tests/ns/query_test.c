@@ -40,20 +40,6 @@
 
 #include <tests/ns.h>
 
-static int
-setup_test(void **state) {
-	isc__nm_force_tid(0);
-	setup_server(state);
-	return (0);
-}
-
-static int
-teardown_test(void **state) {
-	isc__nm_force_tid(-1);
-	teardown_server(state);
-	return (0);
-}
-
 /* can be used for client->sendcb to avoid disruption on sending a response */
 static void
 send_noop(isc_buffer_t *buffer) {
@@ -61,8 +47,8 @@ send_noop(isc_buffer_t *buffer) {
 }
 
 /*****
-***** ns__query_sfcache() tests
-*****/
+ ***** ns__query_sfcache() tests
+ *****/
 
 /*%
  * Structure containing parameters for ns__query_sfcache_test().
@@ -170,9 +156,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 }
 
 /* test ns__query_sfcache() */
-ISC_RUN_TEST_IMPL(ns_query_sfcache) {
-	size_t i;
-
+ISC_LOOP_TEST_IMPL(ns__query_sfcache) {
 	const ns__query_sfcache_test_params_t tests[] = {
 		/*
 		 * Sanity check for an empty SERVFAIL cache.
@@ -243,11 +227,12 @@ ISC_RUN_TEST_IMPL(ns_query_sfcache) {
 		},
 	};
 
-	UNUSED(state);
-
-	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
+	for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
 		run_sfcache_test(&tests[i]);
 	}
+
+	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /*****
@@ -312,7 +297,6 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_lookup() or ns_query_done() is called.
 	 */
-
 	ns_hooktable_create(mctx, &query_hooks);
 	ns_hook_add(query_hooks, mctx, NS_QUERY_LOOKUP_BEGIN, &hook);
 	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
@@ -434,7 +418,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 }
 
 /* test ns__query_start() */
-ISC_RUN_TEST_IMPL(ns_query_start) {
+ISC_LOOP_TEST_IMPL(ns__query_start) {
 	size_t i;
 
 	const ns__query_start_test_params_t tests[] = {
@@ -595,11 +579,12 @@ ISC_RUN_TEST_IMPL(ns_query_start) {
 		},
 	};
 
-	UNUSED(state);
-
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
 		run_start_test(&tests[i]);
 	}
+
+	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /*****
@@ -1013,10 +998,8 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	}
 }
 
-ISC_RUN_TEST_IMPL(ns_query_hookasync) {
+ISC_LOOP_TEST_IMPL(ns__query_hookasync) {
 	size_t i;
-
-	UNUSED(state);
 
 	const ns__query_hookasync_test_params_t tests[] = {
 		{
@@ -1253,6 +1236,9 @@ ISC_RUN_TEST_IMPL(ns_query_hookasync) {
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
 		run_hookasync_test(&tests[i]);
 	}
+
+	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /*****
@@ -1446,9 +1432,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 	ns_hooktable_free(mctx, (void **)&ns__hook_table);
 }
 
-ISC_RUN_TEST_IMPL(ns_query_hookasync_e2e) {
-	UNUSED(state);
-
+ISC_LOOP_TEST_IMPL(ns__query_hookasync_e2e) {
 	const ns__query_hookasync_e2e_test_params_t tests[] = {
 		{
 			NS_TEST_ID("positive answer"),
@@ -1487,14 +1471,16 @@ ISC_RUN_TEST_IMPL(ns_query_hookasync_e2e) {
 	for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
 		run_hookasync_e2e_test(&tests[i]);
 	}
+
+	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
-
-ISC_TEST_ENTRY_CUSTOM(ns_query_sfcache, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(ns_query_start, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(ns_query_hookasync, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(ns_query_hookasync_e2e, setup_test, teardown_test)
-
+ISC_TEST_ENTRY_CUSTOM(ns__query_sfcache, setup_server, teardown_server)
+ISC_TEST_ENTRY_CUSTOM(ns__query_start, setup_server, teardown_server)
+ISC_TEST_ENTRY_CUSTOM(ns__query_hookasync, setup_server, teardown_server)
+ISC_TEST_ENTRY_CUSTOM(ns__query_hookasync_e2e, setup_server, teardown_server)
 ISC_TEST_LIST_END
+
 ISC_TEST_MAIN

@@ -32,6 +32,7 @@
 #include <isc/time.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -1503,14 +1504,10 @@ master_dump_cb(void *data) {
  * This will run in a network/task manager thread when the dump is complete.
  */
 static void
-master_dump_done_cb(void *data, isc_result_t result) {
+master_dump_done_cb(void *data) {
 	dns_dumpctx_t *dctx = data;
 
-	if (result == ISC_R_SUCCESS && dctx->result != ISC_R_SUCCESS) {
-		result = dctx->result;
-	}
-
-	(dctx->done)(dctx->done_arg, result);
+	(dctx->done)(dctx->done_arg, dctx->result);
 	dns_dumpctx_detach(&dctx);
 }
 
@@ -1520,16 +1517,16 @@ master_dump_done_cb(void *data, isc_result_t result) {
 static void
 setup_dump(isc_task_t *task, isc_event_t *event) {
 	dns_dumpctx_t *dctx = NULL;
+	isc_loopmgr_t *loopmgr = isc_task_getloopmgr(task);
+	isc_loop_t *loop = isc_loop_current(loopmgr);
 
-	REQUIRE(isc_nm_tid() >= 0);
 	REQUIRE(event != NULL);
 
 	dctx = event->ev_arg;
 
 	REQUIRE(DNS_DCTX_VALID(dctx));
 
-	isc_nm_work_offload(isc_task_getnetmgr(task), master_dump_cb,
-			    master_dump_done_cb, dctx);
+	isc_work_enqueue(loop, master_dump_cb, master_dump_done_cb, dctx);
 
 	isc_event_free(&event);
 }

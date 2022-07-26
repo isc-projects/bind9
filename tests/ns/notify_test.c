@@ -37,20 +37,7 @@
 #include <ns/client.h>
 #include <ns/notify.h>
 
-#include <tests/dns.h>
 #include <tests/ns.h>
-
-static int
-setup_test(void **state) {
-	isc__nm_force_tid(0);
-	return (setup_server(state));
-}
-
-static int
-teardown_test(void **state) {
-	isc__nm_force_tid(-1);
-	return (teardown_server(state));
-}
 
 static void
 check_response(isc_buffer_t *buf) {
@@ -74,7 +61,7 @@ check_response(isc_buffer_t *buf) {
 }
 
 /* test ns_notify_start() */
-ISC_RUN_TEST_IMPL(ns_notify_start) {
+ISC_LOOP_TEST_IMPL(notify_start) {
 	isc_result_t result;
 	ns_client_t *client = NULL;
 	isc_nmhandle_t *handle = NULL;
@@ -82,8 +69,6 @@ ISC_RUN_TEST_IMPL(ns_notify_start) {
 	unsigned char ndata[4096];
 	isc_buffer_t nbuf;
 	size_t nsize;
-
-	UNUSED(state);
 
 	result = ns_test_getclient(NULL, false, &client);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -132,10 +117,13 @@ ISC_RUN_TEST_IMPL(ns_notify_start) {
 	handle = client->handle;
 	isc_nmhandle_detach(&client->handle);
 	isc_nmhandle_detach(&handle);
+
+	isc_loop_teardown(mainloop, shutdown_interfacemgr, NULL);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY_CUSTOM(ns_notify_start, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(notify_start, setup_server, teardown_server)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

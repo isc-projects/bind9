@@ -112,7 +112,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
 
 	ntatable->task = NULL;
-	result = isc_task_create(taskmgr, 0, &ntatable->task, 0);
+	result = isc_task_create(taskmgr, &ntatable->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_ntatable;
 	}

@@ -36,7 +36,6 @@
 
 #include <tests/isc.h>
 
-isc_log_t *lctx = NULL;
 static isc_logcategory_t categories[] = { { "", 0 },
 					  { "client", 0 },
 					  { "network", 0 },

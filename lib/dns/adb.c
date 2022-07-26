@@ -2135,7 +2135,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	/*
 	 * Allocate an internal task.
 	 */
-	result = isc_task_create(adb->taskmgr, 0, &adb->task, 0);
+	result = isc_task_create(adb->taskmgr, &adb->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto free_lock;
 	}

@@ -33,22 +33,20 @@ isc_nm_timer_create(isc_nmhandle_t *handle, isc_nm_timer_cb cb, void *cbarg,
 	isc_nm_timer_t *timer = NULL;
 	int r;
 
-	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	sock = handle->sock;
-	worker = &sock->mgr->workers[isc_nm_tid()];
+	worker = sock->worker;
 
 	/* TODO: per-loop object cache */
-	timer = isc_mem_get(sock->mgr->mctx, sizeof(*timer));
+	timer = isc_mem_get(worker->mctx, sizeof(*timer));
 	*timer = (isc_nm_timer_t){ .cb = cb, .cbarg = cbarg };
 	isc_refcount_init(&timer->references, 1);
 	isc_nmhandle_attach(handle, &timer->handle);
 
-	r = uv_timer_init(&worker->loop, &timer->timer);
+	r = uv_timer_init(&worker->loop->loop, &timer->timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
-
 	uv_handle_set_data((uv_handle_t *)&timer->timer, timer);
 
 	*timerp = timer;
@@ -67,7 +65,7 @@ static void
 timer_destroy(uv_handle_t *uvhandle) {
 	isc_nm_timer_t *timer = uv_handle_get_data(uvhandle);
 	isc_nmhandle_t *handle = timer->handle;
-	isc_mem_t *mctx = timer->handle->sock->mgr->mctx;
+	isc_mem_t *mctx = timer->handle->sock->worker->mctx;
 
 	isc_mem_put(mctx, timer, sizeof(*timer));
 
@@ -86,7 +84,6 @@ isc_nm_timer_detach(isc_nm_timer_t **timerp) {
 
 	handle = timer->handle;
 
-	REQUIRE(isc__nm_in_netthread());
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 

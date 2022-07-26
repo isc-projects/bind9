@@ -186,13 +186,6 @@ Functions:
 	Initiate transfer of the zone from the given server or the
 	primary servers listed in the zone structure.
 
-    dns_zone_maintenance(dns_zone_t *zone);
-
-	Perform any maintenance operations required on the zone
-	* initiate up to date checks
-	* expire zones
-	* initiate ixfr version expire consolidation
-
     dns_zone_locateprimary(dns_zone_t *zone);
 
 	Working from the root zone locate the primary server for the zone.

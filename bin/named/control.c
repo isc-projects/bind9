@@ -15,7 +15,6 @@
 
 #include <stdbool.h>
 
-#include <isc/app.h>
 #include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
@@ -175,9 +174,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 			named_smf_want_disable = 1;
 		}
 		/*
-		 * If named_smf_got_instance = 0, named_smf_chroot
-		 * is not relevant and we fall through to
-		 * isc_app_shutdown below.
+		 * If named_smf_got_instance = 0, named_smf_chroot is
+		 * not relevant and we fall through to shutdown below.
 		 */
 #endif /* ifdef HAVE_LIBSCF */
 		/* Do not flush master files */

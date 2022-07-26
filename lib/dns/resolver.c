@@ -10235,7 +10235,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		 * Since we have a pool of tasks we bind them to task
 		 * queues to spread the load evenly
 		 */
-		result = isc_task_create(taskmgr, 0, &res->tasks[i], i);
+		result = isc_task_create(taskmgr, &res->tasks[i], i);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_tasks;
 		}
