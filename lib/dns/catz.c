@@ -2065,7 +2065,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 			dns_db_currentversion(db, &zone->dbversion);
 			ISC_EVENT_INIT(&zone->updateevent,
-				       sizeof(zone->updateevent), 0, NULL,
+				       sizeof(zone->updateevent), 0,
 				       DNS_EVENT_CATZUPDATED,
 				       dns_catz_update_taskaction, zone, zone,
 				       NULL, NULL);

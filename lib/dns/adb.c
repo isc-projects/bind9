@@ -1489,7 +1489,7 @@ new_adbfind(dns_adb_t *adb, in_port_t port) {
 	ISC_LINK_INIT(find, plink);
 	ISC_LIST_INIT(find->list);
 	isc_mutex_init(&find->lock);
-	ISC_EVENT_INIT(&find->event, sizeof(isc_event_t), 0, 0, 0, NULL, NULL,
+	ISC_EVENT_INIT(&find->event, sizeof(isc_event_t), 0, 0, NULL, NULL,
 		       NULL, NULL, find);
 
 	find->magic = DNS_ADBFIND_MAGIC;

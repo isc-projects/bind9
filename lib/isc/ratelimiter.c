@@ -81,7 +81,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	 */
 	isc_refcount_increment(&rl->references);
 
-	ISC_EVENT_INIT(&rl->shutdownevent, sizeof(isc_event_t), 0, NULL,
+	ISC_EVENT_INIT(&rl->shutdownevent, sizeof(isc_event_t), 0,
 		       ISC_RATELIMITEREVENT_SHUTDOWN,
 		       ratelimiter_shutdowncomplete, rl, rl, NULL, NULL);
 

@@ -35,7 +35,6 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 #define ISC_EVENT_COMMON(ltype)                                 \
 	size_t		      ev_size;                          \
 	unsigned int	      ev_attributes;                    \
-	void		     *ev_tag;                           \
 	isc_eventtype_t	      ev_type;                          \
 	isc_taskaction_t      ev_action;                        \
 	void		     *ev_arg;                           \
@@ -50,32 +49,30 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 	ISC_LINK(ltype) ev_link;                                \
 	ISC_LINK(ltype) ev_ratelink
 
-#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da)            \
-	ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, __func__, \
+#define ISC_EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da)            \
+	ISC__EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da, __func__, \
 			__FILE__, __LINE__)
 
-#define ISC_EVENT_INIT_PASS(event, sz, at, ta, ty, ac, ar, sn, df, da)         \
-	ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, func, file, \
-			line)
+#define ISC_EVENT_INIT_PASS(event, sz, at, ty, ac, ar, sn, df, da) \
+	ISC__EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da, func, file, line)
 
-#define ISC__EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da, fn, fl, ln) \
-	{                                                                      \
-		(event)->ev_size = (sz);                                       \
-		(event)->ev_attributes = (at);                                 \
-		(event)->ev_tag = (ta);                                        \
-		(event)->ev_type = (ty);                                       \
-		(event)->ev_action = (ac);                                     \
-		(event)->ev_arg = (ar);                                        \
-		(event)->ev_sender = (sn);                                     \
-		(event)->ev_destroy = (df);                                    \
-		(event)->ev_destroy_arg = (da);                                \
-		ISC_LINK_INIT((event), ev_link);                               \
-		ISC_LINK_INIT((event), ev_ratelink);                           \
-		strlcpy((event)->func, fn, sizeof((event)->func));             \
-		strlcpy((event)->file, fl, sizeof((event)->file));             \
-		(event)->line = ln;                                            \
-		(event)->backtrace_size = isc_backtrace(                       \
-			(event)->backtrace, ISC__EVENT_TRACE_SIZE);            \
+#define ISC__EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da, fn, fl, ln) \
+	{                                                                  \
+		(event)->ev_size = (sz);                                   \
+		(event)->ev_attributes = (at);                             \
+		(event)->ev_type = (ty);                                   \
+		(event)->ev_action = (ac);                                 \
+		(event)->ev_arg = (ar);                                    \
+		(event)->ev_sender = (sn);                                 \
+		(event)->ev_destroy = (df);                                \
+		(event)->ev_destroy_arg = (da);                            \
+		ISC_LINK_INIT((event), ev_link);                           \
+		ISC_LINK_INIT((event), ev_ratelink);                       \
+		strlcpy((event)->func, fn, sizeof((event)->func));         \
+		strlcpy((event)->file, fl, sizeof((event)->file));         \
+		(event)->line = ln;                                        \
+		(event)->backtrace_size = isc_backtrace(                   \
+			(event)->backtrace, ISC__EVENT_TRACE_SIZE);        \
 	}
 
 #else
@@ -86,7 +83,6 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 #define ISC_EVENT_COMMON(ltype)               \
 	size_t		      ev_size;        \
 	unsigned int	      ev_attributes;  \
-	void		     *ev_tag;         \
 	isc_eventtype_t	      ev_type;        \
 	isc_taskaction_t      ev_action;      \
 	void		     *ev_arg;         \
@@ -96,19 +92,18 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 	ISC_LINK(ltype) ev_link;              \
 	ISC_LINK(ltype) ev_ratelink
 
-#define ISC_EVENT_INIT(event, sz, at, ta, ty, ac, ar, sn, df, da) \
-	{                                                         \
-		(event)->ev_size = (sz);                          \
-		(event)->ev_attributes = (at);                    \
-		(event)->ev_tag = (ta);                           \
-		(event)->ev_type = (ty);                          \
-		(event)->ev_action = (ac);                        \
-		(event)->ev_arg = (ar);                           \
-		(event)->ev_sender = (sn);                        \
-		(event)->ev_destroy = (df);                       \
-		(event)->ev_destroy_arg = (da);                   \
-		ISC_LINK_INIT((event), ev_link);                  \
-		ISC_LINK_INIT((event), ev_ratelink);              \
+#define ISC_EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da) \
+	{                                                     \
+		(event)->ev_size = (sz);                      \
+		(event)->ev_attributes = (at);                \
+		(event)->ev_type = (ty);                      \
+		(event)->ev_action = (ac);                    \
+		(event)->ev_arg = (ar);                       \
+		(event)->ev_sender = (sn);                    \
+		(event)->ev_destroy = (df);                   \
+		(event)->ev_destroy_arg = (da);               \
+		ISC_LINK_INIT((event), ev_link);              \
+		ISC_LINK_INIT((event), ev_ratelink);          \
 	}
 
 #define ISC_EVENT_INIT_PASS ISC_EVENT_INIT

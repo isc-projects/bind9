@@ -4572,7 +4572,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	 * Reset the control event for later use in shutting
 	 * down the fctx.
 	 */
-	ISC_EVENT_INIT(event, sizeof(*event), 0, NULL, DNS_EVENT_FETCHCONTROL,
+	ISC_EVENT_INIT(event, sizeof(*event), 0, DNS_EVENT_FETCHCONTROL,
 		       fctx_doshutdown, fctx, NULL, NULL, NULL);
 
 	UNLOCK(&fctx->bucket->lock);
@@ -10808,7 +10808,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 */
 			event = &fctx->control_event;
 			fctx_addref(fctx);
-			ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
+			ISC_EVENT_INIT(event, sizeof(*event), 0,
 				       DNS_EVENT_FETCHCONTROL, fctx_start, fctx,
 				       NULL, NULL, NULL);
 			isc_task_send(fctx->restask, &event);

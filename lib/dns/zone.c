@@ -1211,7 +1211,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	/* Must be after magic is set. */
 	dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 
-	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
+	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone, NULL,
 		       NULL);
 	*zonep = zone;

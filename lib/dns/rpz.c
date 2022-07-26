@@ -1542,8 +1542,8 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 
 	rpz_attach_rpzs(rpzs, &rpz->rpzs);
 
-	ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent), 0, NULL, 0,
-		       NULL, NULL, NULL, NULL, NULL);
+	ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent), 0, 0, NULL,
+		       NULL, NULL, NULL, NULL);
 
 	rpz->num = rpzs->p.num_zones++;
 	rpzs->zones[rpz->num] = rpz;
@@ -1609,11 +1609,10 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 			dns_db_currentversion(rpz->db, &rpz->dbversion);
 			INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
-			ISC_EVENT_INIT(&rpz->updateevent,
-				       sizeof(rpz->updateevent), 0, NULL,
-				       DNS_EVENT_RPZUPDATED,
-				       dns_rpz_update_taskaction, rpz, rpz,
-				       NULL, NULL);
+			ISC_EVENT_INIT(
+				&rpz->updateevent, sizeof(rpz->updateevent), 0,
+				DNS_EVENT_RPZUPDATED, dns_rpz_update_taskaction,
+				rpz, rpz, NULL, NULL);
 			event = &rpz->updateevent;
 			isc_task_send(rpz->rpzs->updater, &event);
 		}
@@ -1696,8 +1695,8 @@ update_rpz_done_cb(void *data, isc_result_t result) {
 		isc_event_t *event = NULL;
 		INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
 		ISC_EVENT_INIT(&rpz->updateevent, sizeof(rpz->updateevent), 0,
-			       NULL, DNS_EVENT_RPZUPDATED,
-			       dns_rpz_update_taskaction, rpz, rpz, NULL, NULL);
+			       DNS_EVENT_RPZUPDATED, dns_rpz_update_taskaction,
+			       rpz, rpz, NULL, NULL);
 		event = &rpz->updateevent;
 		isc_task_send(rpz->rpzs->updater, &event);
 	}
