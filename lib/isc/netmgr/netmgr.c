@@ -1511,6 +1511,16 @@ void
 isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	switch (sock->type) {
+#ifdef HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmsocket_tls_timer_restart(sock);
+		return;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
+
 	if (uv_is_closing((uv_handle_t *)&sock->read_timer)) {
 		return;
 	}
@@ -1573,6 +1583,16 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 	int r;
 
 	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+#ifdef HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmsocket_tls_timer_stop(sock);
+		return;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	}
 
 	/* uv_timer_stop() is idempotent, no need to check if running */
 
