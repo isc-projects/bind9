@@ -265,6 +265,8 @@ help(void) {
 	       "request)\n"
 	       "                 +padding=###        (Set padding block size "
 	       "[0])\n"
+	       "                 +qid=###            (Specify the query ID to "
+	       "use when sending queries)\n"
 	       "                 +[no]qr             (Print question before "
 	       "sending)\n"
 	       "                 +[no]question       (Control display of "
