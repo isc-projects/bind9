@@ -1430,9 +1430,7 @@ list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
 	 *	- private5 is the node.
 	 */
 
-	/* This should never fail. */
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) ==
-		      ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	rdataset->methods = &sdb_rdataset_methods;
 	dns_db_attachnode(db, node, &rdataset->private5);

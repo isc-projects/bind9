@@ -15403,10 +15403,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	temprdatalist->ttl = rdataset.ttl;
 	ISC_LIST_APPEND(temprdatalist->rdata, temprdata, link);
 
-	result = dns_rdatalist_tordataset(temprdatalist, temprdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto soa_cleanup;
-	}
+	dns_rdatalist_tordataset(temprdatalist, temprdataset);
 
 	ISC_LIST_APPEND(tempname->list, temprdataset, link);
 	dns_message_addname(message, tempname, DNS_SECTION_ANSWER);
@@ -16800,8 +16797,7 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	ISC_LIST_APPEND(temprdatalist.rdata, &rdata, link);
 
 	dns_rdataset_init(&temprdataset);
-	result = dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
 
 	name = dns_fixedname_initname(&fixed);
 	result = dns_db_nodefullname(db, node, name);

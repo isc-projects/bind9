@@ -879,10 +879,7 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	req_log(ISC_LOG_DEBUG(3), "dns_request_getresponse: request %p",
 		request);
 
-	result = dns_message_setquerytsig(message, request->tsig);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_message_setquerytsig(message, request->tsig);
 	result = dns_message_settsigkey(message, request->tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		return (result);

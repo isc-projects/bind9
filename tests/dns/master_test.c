@@ -396,8 +396,7 @@ ISC_RUN_TEST_IMPL(totext) {
 	rdatalist.covers = dns_rdatatype_none;
 
 	dns_rdataset_init(&rdataset);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	isc_buffer_init(&target, buf, BIGBUFLEN);
 	result = dns_master_rdatasettotext(dns_rootname, &rdataset,

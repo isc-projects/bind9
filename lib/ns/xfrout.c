@@ -146,7 +146,7 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, uint32_t ttl) {
 	dns_rdata_init(&rd);
 	dns_rdata_clone(rdata, &rd);
 	ISC_LIST_APPEND(rdl.rdata, &rd, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(&rdl, &rds) == ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdl, &rds);
 
 	isc_buffer_init(&buf, mem, sizeof(mem));
 	result = dns_rdataset_totext(&rds, name, false, false, &buf);
@@ -1341,7 +1341,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			msg->flags |= DNS_MESSAGEFLAG_RA;
 		}
 		CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
-		CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+		dns_message_setquerytsig(msg, xfr->lasttsig);
 		if (xfr->lasttsig != NULL) {
 			isc_buffer_free(&xfr->lasttsig);
 		}
@@ -1491,8 +1491,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		ISC_LIST_APPEND(msgrdl->rdata, msgrdata, link);
 
 		dns_message_gettemprdataset(msg, &msgrds);
-		result = dns_rdatalist_tordataset(msgrdl, msgrds);
-		INSIST(result == ISC_R_SUCCESS);
+		dns_rdatalist_tordataset(msgrdl, msgrds);
 
 		ISC_LIST_APPEND(msgname->list, msgrds, link);
 

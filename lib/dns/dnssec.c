@@ -1043,8 +1043,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	ISC_LIST_APPEND(datalist->rdata, rdata, link);
 	dataset = NULL;
 	dns_message_gettemprdataset(msg, &dataset);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(datalist, dataset) ==
-		      ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(datalist, dataset);
 	msg->sig0 = dataset;
 
 	return (ISC_R_SUCCESS);

@@ -156,10 +156,9 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp) {
 	isc_mem_putanddetach(&mctx, tctx, sizeof(dns_tkeyctx_t));
 }
 
-static isc_result_t
+static void
 add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 		  uint32_t ttl, dns_namelist_t *namelist) {
-	isc_result_t result;
 	isc_region_t r, newr;
 	dns_rdata_t *newrdata = NULL;
 	dns_name_t *newname = NULL;
@@ -186,34 +185,12 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 	ISC_LIST_APPEND(newlist->rdata, newrdata, link);
 
 	dns_message_gettemprdataset(msg, &newset);
-	RETERR(dns_rdatalist_tordataset(newlist, newset));
+	dns_rdatalist_tordataset(newlist, newset);
 
 	ISC_LIST_INIT(newname->list);
 	ISC_LIST_APPEND(newname->list, newset, link);
 
 	ISC_LIST_APPEND(*namelist, newname, link);
-
-	return (ISC_R_SUCCESS);
-
-failure:
-	if (newrdata != NULL) {
-		if (ISC_LINK_LINKED(newrdata, link)) {
-			INSIST(newlist != NULL);
-			ISC_LIST_UNLINK(newlist->rdata, newrdata, link);
-		}
-		dns_message_puttemprdata(msg, &newrdata);
-	}
-	if (newname != NULL) {
-		dns_message_puttempname(msg, &newname);
-	}
-	if (newset != NULL) {
-		dns_rdataset_disassociate(newset);
-		dns_message_puttemprdataset(msg, &newset);
-	}
-	if (newlist != NULL) {
-		dns_message_puttemprdatalist(msg, &newlist);
-	}
-	return (result);
 }
 
 static void
@@ -430,7 +407,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		}
 	}
 
-	RETERR(add_rdata_to_list(msg, keyname, &keyrdata, ttl, namelist));
+	add_rdata_to_list(msg, keyname, &keyrdata, ttl, namelist);
 
 	isc_buffer_init(&ourkeybuf, keydata, sizeof(keydata));
 	RETERR(dst_key_todns(tctx->dhkey, &ourkeybuf));
@@ -444,7 +421,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	/*
 	 * XXXBEW The TTL should be obtained from the database, if it exists.
 	 */
-	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, 0, namelist));
+	add_rdata_to_list(msg, &ourname, &ourkeyrdata, 0, namelist);
 
 	RETERR(dst_key_secretsize(tctx->dhkey, &sharedsize));
 	isc_buffer_allocate(msg->mctx, &shared, sharedsize);
@@ -923,7 +900,7 @@ failure_with_tkey:
 		goto failure;
 	}
 
-	RETERR(add_rdata_to_list(msg, keyname, &rdata, 0, &namelist));
+	add_rdata_to_list(msg, keyname, &rdata, 0, &namelist);
 
 	RETERR(dns_message_reply(msg, true));
 
@@ -984,7 +961,7 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 	ISC_LIST_APPEND(tkeylist->rdata, rdata, link);
 
 	dns_message_gettemprdataset(msg, &tkeyset);
-	RETERR(dns_rdatalist_tordataset(tkeylist, tkeyset));
+	dns_rdatalist_tordataset(tkeylist, tkeyset);
 
 	dns_name_copy(name, qname);
 	dns_name_copy(name, aname);
@@ -1079,7 +1056,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 	dns_name_clone(dst_key_name(key), &keyname);
 
 	ISC_LIST_INIT(namelist);
-	RETERR(add_rdata_to_list(msg, &keyname, rdata, 0, &namelist));
+	add_rdata_to_list(msg, &keyname, rdata, 0, &namelist);
 	item = ISC_LIST_HEAD(namelist);
 	while (item != NULL) {
 		dns_name_t *next = ISC_LIST_NEXT(item, link);

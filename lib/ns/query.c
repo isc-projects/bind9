@@ -485,7 +485,7 @@ query_cname(query_ctx_t *qctx);
 static isc_result_t
 query_dname(query_ctx_t *qctx);
 
-static isc_result_t
+static void
 query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl);
 
 static isc_result_t
@@ -7326,11 +7326,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 	}
 
 	ns_client_keepname(client, qctx->fname, qctx->dbuf);
-	result = query_addcname(qctx, dns_trust_authanswer,
-				qctx->rpz_st->m.ttl);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	query_addcname(qctx, dns_trust_authanswer, qctx->rpz_st->m.ttl);
 
 	rpz_log_rewrite(client, false, qctx->rpz_st->m.policy,
 			qctx->rpz_st->m.type, qctx->rpz_st->m.zone,
@@ -8302,10 +8298,7 @@ query_dns64(query_ctx_t *qctx) {
 		goto cleanup;
 	}
 
-	result = dns_rdatalist_tordataset(dns64_rdatalist, dns64_rdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_rdatalist_tordataset(dns64_rdatalist, dns64_rdataset);
 	dns_rdataset_setownercase(dns64_rdataset, mname);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	dns64_rdataset->trust = qctx->rdataset->trust;
@@ -8438,10 +8431,7 @@ query_filter64(query_ctx_t *qctx) {
 		goto cleanup;
 	}
 
-	result = dns_rdatalist_tordataset(myrdatalist, myrdataset);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_rdatalist_tordataset(myrdatalist, myrdataset);
 	dns_rdataset_setownercase(myrdataset, name);
 	client->query.attributes |= NS_QUERYATTR_NOADDITIONAL;
 	if (mname == name) {
@@ -10463,10 +10453,7 @@ query_dname(query_ctx_t *qctx) {
 	 * on-the-fly is costly, and not really legitimate anyway
 	 * since the synthesized CNAME is NOT in the zone.
 	 */
-	result = query_addcname(qctx, trdataset->trust, trdataset->ttl);
-	if (result != ISC_R_SUCCESS) {
-		return (ns_query_done(qctx));
-	}
+	query_addcname(qctx, trdataset->trust, trdataset->ttl);
 
 	/*
 	 * If the original query was not for a CNAME or ANY then follow the
@@ -10496,7 +10483,7 @@ cleanup:
 /*%
  * Add CNAME to response.
  */
-static isc_result_t
+static void
 query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	ns_client_t *client = qctx->client;
 	dns_rdataset_t *rdataset = NULL;
@@ -10526,8 +10513,7 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	rdata->type = dns_rdatatype_cname;
 
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset) ==
-		      ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
 	rdataset->trust = trust;
 	dns_rdataset_setownercase(rdataset, aname);
 
@@ -10541,8 +10527,6 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	if (aname != NULL) {
 		dns_message_puttempname(client->message, &aname);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*%

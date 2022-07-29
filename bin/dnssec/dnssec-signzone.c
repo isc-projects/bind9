@@ -2040,8 +2040,7 @@ addnsec3param(const unsigned char *salt, size_t salt_len,
 	rdatalist.rdclass = rdata.rdclass;
 	rdatalist.type = rdata.type;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	check_result(result, "dns_rdatalist_tordataset()");
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	result = dns_db_findnode(gdb, gorigin, true, &node);
 	check_result(result, "dns_db_findnode(gorigin)");
@@ -2102,8 +2101,7 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node, const unsigned char *salt,
 	rdatalist.type = rdata.type;
 	rdatalist.ttl = ttl;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	check_result(result, "dns_rdatalist_tordataset()");
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	result = dns_db_findnsec3node(gdb, dns_fixedname_name(&hashname), true,
 				      &nsec3node);
 	check_result(result, "addnsec3: dns_db_findnode()");
@@ -2204,8 +2202,7 @@ nsec3clean(dns_name_t *name, dns_dbnode_t *node, unsigned int hashalg,
 		dns_rdata_init(&delrdata);
 		dns_rdata_clone(&rdata, &delrdata);
 		ISC_LIST_APPEND(rdatalist.rdata, &delrdata, link);
-		result = dns_rdatalist_tordataset(&rdatalist, &delrdataset);
-		check_result(result, "dns_rdatalist_tordataset()");
+		dns_rdatalist_tordataset(&rdatalist, &delrdataset);
 		result = dns_db_subtractrdataset(gdb, node, gversion,
 						 &delrdataset, 0, NULL);
 		dns_rdataset_disassociate(&delrdataset);

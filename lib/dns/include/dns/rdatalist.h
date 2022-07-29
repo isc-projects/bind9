@@ -71,7 +71,7 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist);
  *	values.
  */
 
-isc_result_t
+void
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset);
 /*%<
  * Make 'rdataset' refer to the rdata in 'rdatalist'.
@@ -91,12 +91,9 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset);
  *	on success,
  *
  *\li		'rdataset' is associated with the rdata in rdatalist.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
-isc_result_t
+void
 dns_rdatalist_fromrdataset(dns_rdataset_t   *rdataset,
 			   dns_rdatalist_t **rdatalist);
 /*%<
@@ -112,9 +109,6 @@ dns_rdatalist_fromrdataset(dns_rdataset_t   *rdataset,
  *	on success,
  *
  *\li		'rdatalist' is pointed to the rdatalist in rdataset.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
 ISC_LANG_ENDDECLS

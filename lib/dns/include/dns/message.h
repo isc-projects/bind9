@@ -1194,7 +1194,7 @@ dns_message_gettsigkey(dns_message_t *msg);
  *\li	'msg' is a valid message
  */
 
-isc_result_t
+void
 dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
 /*%<
  * Indicates that 'querytsig' is the TSIG from the signed query for which
@@ -1207,11 +1207,6 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
  *	or NULL
  *
  *\li	'msg' is a valid message
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 isc_result_t

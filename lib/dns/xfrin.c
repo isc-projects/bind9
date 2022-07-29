@@ -1277,9 +1277,8 @@ failure:
  * Convert a tuple into a dns_name_t suitable for inserting
  * into the given dns_message_t.
  */
-static isc_result_t
+static void
 tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
-	isc_result_t result;
 	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *rdl = NULL;
 	dns_rdataset_t *rds = NULL;
@@ -1299,30 +1298,13 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 	ISC_LIST_APPEND(rdl->rdata, rdata, link);
 
 	dns_message_gettemprdataset(msg, &rds);
-	CHECK(dns_rdatalist_tordataset(rdl, rds));
+	dns_rdatalist_tordataset(rdl, rds);
 
 	dns_message_gettempname(msg, &name);
 	dns_name_clone(&tuple->name, name);
 	ISC_LIST_APPEND(name->list, rds, link);
 
 	*target = name;
-	return (ISC_R_SUCCESS);
-
-failure:
-
-	if (rds != NULL) {
-		dns_rdataset_disassociate(rds);
-		dns_message_puttemprdataset(msg, &rds);
-	}
-	if (rdl != NULL) {
-		ISC_LIST_UNLINK(rdl->rdata, rdata, link);
-		dns_message_puttemprdatalist(msg, &rdl);
-	}
-	if (rdata != NULL) {
-		dns_message_puttemprdata(msg, &rdata);
-	}
-
-	return (result);
 }
 
 /*
@@ -1369,7 +1351,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 			  "requesting IXFR for serial %u",
 			  xfr->ixfr.request_serial);
 
-		CHECK(tuple2msgname(soatuple, msg, &msgsoaname));
+		tuple2msgname(soatuple, msg, &msgsoaname);
 		dns_message_addname(msg, msgsoaname, DNS_SECTION_AUTHORITY);
 	} else if (xfr->reqtype == dns_rdatatype_soa) {
 		CHECK(dns_db_getsoaserial(xfr->db, NULL,
@@ -1483,7 +1465,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
-	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+	dns_message_setquerytsig(msg, xfr->lasttsig);
 
 	msg->tsigctx = xfr->tsigctx;
 	xfr->tsigctx = NULL;

@@ -4158,8 +4158,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 							  &l->querysig);
 			check_result(result, "dns_message_getquerytsig");
 		}
-		result = dns_message_setquerytsig(msg, l->querysig);
-		check_result(result, "dns_message_setquerytsig");
+		dns_message_setquerytsig(msg, l->querysig);
 		result = dns_message_settsigkey(msg, tsigkey);
 		check_result(result, "dns_message_settsigkey");
 		msg->tsigctx = l->tsigctx;

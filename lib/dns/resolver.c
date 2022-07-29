@@ -7608,12 +7608,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	}
 
 	if (query->tsig != NULL) {
-		result = dns_message_setquerytsig(query->rmessage, query->tsig);
-		if (result != ISC_R_SUCCESS) {
-			FCTXTRACE3("unable to set query tsig", result);
-			rctx_done(&rctx, result);
-			return;
-		}
+		dns_message_setquerytsig(query->rmessage, query->tsig);
 	}
 
 	if (query->tsigkey != NULL) {

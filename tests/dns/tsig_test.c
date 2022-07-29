@@ -143,7 +143,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	rdatalist.type = dns_rdatatype_tsig;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	dns_rdataset_init(&rdataset);
-	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 	CHECK(dns_rdataset_towire(&rdataset, &key->name, &cctx, target, 0,
 				  &count));
 
@@ -228,8 +228,7 @@ render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
 		result = dns_message_settsigkey(msg, key);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		result = dns_message_setquerytsig(msg, *tsigin);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_message_setquerytsig(msg, *tsigin);
 	}
 
 	result = dns_compress_init(&cctx, mctx);
@@ -327,8 +326,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 
 	printmessage(msg);
 
-	result = dns_message_setquerytsig(msg, querytsig);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_setquerytsig(msg, querytsig);
 
 	result = dns_tsig_verify(buf, msg, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -385,8 +383,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 
 	printmessage(msg);
 
-	result = dns_message_setquerytsig(msg, tsigin);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_setquerytsig(msg, tsigin);
 
 	result = dns_tsig_verify(buf, msg, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -436,8 +433,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	 */
 	assert_non_null(dns_message_gettsig(msg, &tsigowner));
 
-	result = dns_message_setquerytsig(msg, tsigin);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_message_setquerytsig(msg, tsigin);
 
 	result = dns_tsig_verify(buf, msg, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);

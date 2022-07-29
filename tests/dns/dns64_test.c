@@ -72,8 +72,7 @@ multiple_prefixes(void) {
 	rdatalist.rdclass = rdata[0].rdclass;
 	rdatalist.ttl = 0;
 	dns_rdataset_init(&rdataset);
-	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	count = ARRAY_SIZE(prefix);
 	memset(&prefix, 0, sizeof(prefix));
@@ -206,8 +205,7 @@ ISC_RUN_TEST_IMPL(dns64_findprefix) {
 		ISC_LIST_APPEND(rdatalist.rdata, &rdata[0], link);
 		ISC_LIST_APPEND(rdatalist.rdata, &rdata[1], link);
 		dns_rdataset_init(&rdataset);
-		result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 		result = dns_dns64_findprefix(&rdataset, prefix, &count);
 		assert_int_equal(result, tests[i].result);
