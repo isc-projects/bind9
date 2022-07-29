@@ -443,7 +443,7 @@ configuration.
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. namedconf:statement:: acl
-   :tags:
+   :tags: server
    :short: Assigns a symbolic name to an address match list.
 
 :any:`acl` Block Definition and Usage
@@ -472,7 +472,7 @@ The following ACLs are built-in:
 :any:`controls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
-   :tags: 
+   :tags: server
    :short: Specifies control channels to be used to manage the name server.
 
 .. _controls_statement_definition_and_usage:
@@ -486,7 +486,7 @@ control channels are used by the :iscman:`rndc` utility to send commands to
 and retrieve non-DNS results from a name server.
 
 .. namedconf:statement:: unix
-   :tags:
+   :tags: server
    :short: Specifies a Unix domain socket as a control channel.
 
    A :any:`unix` control channel is a Unix domain socket listening at the
@@ -497,7 +497,7 @@ and retrieve non-DNS results from a name server.
 
 
 .. namedconf:statement:: inet
-   :tags:
+   :tags: server
    :short: Specifies a TCP socket as a control channel.
 
    An :any:`inet` control channel is a TCP socket listening at the specified
@@ -552,7 +552,7 @@ To disable the command channel, use an empty :any:`controls` statement:
 ``key`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
-   :tags: dnssec
+   :tags: security
    :short: Defines a shared secret key for use with :ref:`tsig` or the command channel.
 
 .. _key_statement:
@@ -576,7 +576,7 @@ match lists to verify that incoming requests have been signed with a key
 matching this name, algorithm, and secret.
 
 .. namedconf:statement:: algorithm
-   :tags: dnssec
+   :tags: security
    :short: Defines the algorithm to be used in a key clause.
 
    The ``algorithm_id`` is a string that specifies a security/authentication
@@ -587,7 +587,7 @@ matching this name, algorithm, and secret.
    ``hmac-sha1-80``.
 
 .. namedconf:statement:: secret
-   :tags: dnssec
+   :tags: security
    :short: Defines a Base64-encoded string to be used as the secret by the algorithm.
 
    The ``secret_string`` is the secret to be used by the
@@ -728,7 +728,7 @@ by the channel (the default is ``info``), and whether to include a
 
 .. namedconf:statement:: severity
    :tags: logging
-   :short: Defines the priority level of :any:`syslog` messages.
+   :short: Defines the priority level of log messages.
 
    The :any:`severity` clause works like :any:`syslog`'s "priorities," except
    that they can also be used when writing straight to a file rather
@@ -793,14 +793,14 @@ what messages to print.
 
 .. namedconf:statement:: print-category
    :tags: logging
-   :short: Logs the category of syslog messages.
+   :short: Includes the category in log messages.
 
    If :any:`print-category` is requested, then the category of the message
    is logged as well.
 
 .. namedconf:statement:: print-severity
    :tags: logging
-   :short: Logs the severity of syslog messages.
+   :short: Includes the severity in log messages.
 
    If :any:`print-severity` is on, then the
    severity level of the message is logged. The ``print-`` options may
@@ -813,7 +813,7 @@ Here is an example where all three ``print-`` options are on:
 
 .. namedconf:statement:: buffered
    :tags: logging
-   :short: Toggles flushing of log messages.
+   :short: Controls flushing of log messages.
 
    If :any:`buffered` has been turned on, the output to files is not
    flushed after each log entry. By default all log messages are flushed.
@@ -1026,7 +1026,7 @@ responses such as NXDOMAIN.
 :any:`parental-agents` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
-   :tags:
+   :tags: zone
    :short: Defines a list of delegation agents to be used by primary and secondary zones.
 
 .. _parental_agents_statement:
@@ -1858,7 +1858,7 @@ default is used.
 
 .. namedconf:statement:: ipv4only-enable
    :tags: query
-+   :short: Enables automatic IPv4 zones if a :any:`dns64` block is configured.
+   :short: Enables automatic IPv4 zones if a :any:`dns64` block is configured.
 
    This enables or disables automatic zones ``ipv4only.arpa``,
    ``170.0.0.192.in-addr.arpa``, and ``171.0.0.192.in-addr.arpa``.
@@ -2472,7 +2472,7 @@ Boolean Options
 
 .. namedconf:statement:: response-padding
    :tags: query
-   :short: Adds an EDNS padding option to encrypted messages, to reduce the chance of guessing the contents based on size.
+   :short: Adds an EDNS Padding option to encrypted messages, to reduce the chance of guessing the contents based on size.
 
    The EDNS Padding option is intended to improve confidentiality when
    DNS queries are sent over an encrypted channel, by reducing the
@@ -3791,18 +3791,33 @@ system.
 .. namedconf:statement:: clients-per-query
    :tags: server
    :short: Sets the initial minimum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
-   Sets the initial value (minimum) number of simultaneous recursive clients for any given query (<qname,qtype,qclass>) that the server accepts before dropping additional clents. :iscman:`named` attempts to self-tune this value and changes are logged. The default values is 10.
-   The chosen value should reflect how many queries come in for a given name in the time it takes to resolve that name. 
+   
+   This sets the initial value (minimum) number of simultaneous recursive clients
+   for any given query (<qname,qtype,qclass>) that the server accepts before
+   dropping additional clents. :iscman:`named` attempts to self-tune this
+   value and changes are logged. The default value is 10.
+   
+   The chosen value should reflect how many queries come in for a given name
+   in the time it takes to resolve that name. 
 
 .. namedconf:statement:: max-clients-per-query
    :tags: server
    :short: Sets the maximum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
-   Sets the maximum number of simultaneous recursive clients for any given query (<qname,qtype,qclass>) that the server accepts before dropping additional clients.
 
-   If the number of queries exceeds :any:`clients-per-query`, :iscman:`named` assumes that it is dealing with a non-responsive zone and drops additional queries. If it gets a response after dropping queries it raises the estimate, up to a limit of :any:`max-clients-per-query`. The estimate is then lowered in 20 minutes if it has remained unchanged.
+   This sets the maximum number of simultaneous recursive clients for any
+   given query (<qname,qtype,qclass>) that the server accepts before
+   dropping additional clients.
 
-   If :any:`max-clients-per-query` is set to zero, there is no upper bound, other than that imposed by :any:`recursive-clients`.
-   If :any:`clients-per-query` is set to zero, :any:`max-clients-per-query` no longer applies and there is no upper bound, other than that imposed by :any:`recursive-clients`.
+   If the number of queries exceeds :any:`clients-per-query`, :iscman:`named`
+   assumes that it is dealing with a non-responsive zone and drops additional
+   queries. If it gets a response after dropping queries, it raises the estimate,
+   up to a limit of :any:`max-clients-per-query`. The estimate is then lowered
+   after 20 minutes if it has remained unchanged.
+
+   If :any:`max-clients-per-query` is set to zero, there is no upper bound, other
+   than that imposed by :any:`recursive-clients`. If :any:`clients-per-query` is
+   set to zero, :any:`max-clients-per-query` no longer applies and there is no
+   upper bound, other than that imposed by :any:`recursive-clients`.
 
 .. namedconf:statement:: fetches-per-zone
    :tags: server, query
@@ -7630,6 +7645,8 @@ appear in a logging block.
 
 :ref:`query_tag_statements` relate to or control queries.
 
+:ref:`security_tag_statements` relate to or control security features.
+
 :ref:`server_tag_statements` relate to or control server behavior, and typically
 only appear in a server block.
 
@@ -7675,6 +7692,13 @@ Query Tag Statements
 ~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statementlist::
    :filter_tags: query
+
+.. _security_tag_statements:
+
+Security Tag Statements
+~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statementlist::
+   :filter_tags: security
 
 .. _server_tag_statements:
 
