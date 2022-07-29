@@ -35,6 +35,8 @@ functionality.
 Configuring Plugins
 ~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: plugin
+   :tags: server
+   :short: Configures plugins in :iscman:`named.conf`.
 
 A plugin is configured with the :any:`plugin` statement in :iscman:`named.conf`:
 
