@@ -1,3 +1,8 @@
+5934.	[func]		Improve fetches-per-zone fetch limit logging to log
+			the final allowed and spilled values of the fetch
+			counters before the counter object gets destroyed.
+			[GL #3461]
+
 5933.	[port]		Automatically disable RSASHA1 and NSEC3RSASHA1 in
 			named on Fedorda 33, Oracle Linux 9 and RHEL9 when
 			they are disabled by the security policy. [GL #3469]
