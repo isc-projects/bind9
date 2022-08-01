@@ -34,6 +34,8 @@ with the BIND source code, in the directory
 Configuring DynDB
 ~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dyndb
+   :tags: zone
+   :short: Configures a DynDB database in :iscman:`named.conf`.
 
 A DynDB database is configured with a :any:`dyndb` statement in
 :iscman:`named.conf`:
