@@ -400,12 +400,6 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 #define NAME_HINTOK(n)	 (((n)->flags & NAME_HINT_OK) != 0)
 
 /*
- * Private flag(s) for entries.
- * MUST NOT overlap FCTX_ADDRINFO_xxx and DNS_FETCHOPT_NOEDNS0.
- */
-#define ENTRY_IS_DEAD 0x00400000
-
-/*
  * To the name, address classes are all that really exist.  If it has a
  * V6 address it doesn't care if it came from a AAAA query.
  */
@@ -887,37 +881,6 @@ link_entry(dns_adbentrybucket_t *ebucket, dns_adbentry_t *entry) {
 
 	DP(DEF_LEVEL, "link ADB entry %p to bucket %p", entry, ebucket);
 
-	/*
-	 * If we're in the overmem condition, take this opportunity to
-	 * clean up the least-recently used entries in the bucket.
-	 */
-	if (isc_mem_isovermem(entry->adb->mctx)) {
-		int i;
-
-		DP(ISC_LOG_DEBUG(1), "adb: overmem, cleaning bucket %p",
-		   ebucket);
-
-		for (i = 0; i < 2; i++) {
-			dns_adbentry_t *e = ISC_LIST_TAIL(ebucket->entries);
-			if (e == NULL) {
-				break;
-			}
-
-			/*
-			 * If the only reference to an entry is from
-			 * the bucket itself, we can kill it. Otherwise
-			 * we move it to deadentries and kill it later.
-			 */
-			if (isc_refcount_current(&e->references) == 1) {
-				entry_detach(&e);
-				continue;
-			}
-
-			INSIST((e->flags & ENTRY_IS_DEAD) == 0);
-			e->flags |= ENTRY_IS_DEAD;
-		}
-	}
-
 	entry->bucket = ebucket;
 	ISC_LIST_PREPEND(ebucket->entries, entry, plink);
 	isc_refcount_increment0(&ebucket->references);
@@ -1002,7 +965,6 @@ shutdown_entries(dns_adb_t *adb) {
  */
 static void
 clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
-	dns_adbentrybucket_t *ebucket = NULL;
 	dns_adbnamehook_t *namehook = NULL;
 
 	namehook = ISC_LIST_HEAD(*namehooks);
@@ -1013,27 +975,17 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 		 * Clean up the entry if needed.
 		 */
 		if (namehook->entry != NULL) {
+			dns_adbentrybucket_t *ebucket = NULL;
+
 			INSIST(DNS_ADBENTRY_VALID(namehook->entry));
 
-			/*
-			 * If entry bucket for the next address is
-			 * different from the previous one, then
-			 * unlock the old one, lock the new one, and
-			 * carry on. (This way we don't necessarily
-			 * have to lock and unlock for every list
-			 * member.)
-			 */
-			if (ebucket != namehook->entry->bucket) {
-				if (ebucket != NULL) {
-					UNLOCK(&ebucket->lock);
-				}
-				ebucket = namehook->entry->bucket;
-				INSIST(ebucket != NULL);
-				LOCK(&ebucket->lock);
-			}
+			ebucket = namehook->entry->bucket;
+			INSIST(ebucket != NULL);
 
+			LOCK(&ebucket->lock);
 			namehook->entry->nh--;
 			entry_detach(&namehook->entry);
+			UNLOCK(&ebucket->lock);
 		}
 
 		/*
@@ -1043,10 +995,6 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 		free_adbnamehook(adb, &namehook);
 
 		namehook = ISC_LIST_HEAD(*namehooks);
-	}
-
-	if (ebucket != NULL) {
-		UNLOCK(&ebucket->lock);
 	}
 }
 
@@ -1915,15 +1863,11 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 		{
 			next_adbname = ISC_LIST_PREV(adbname, plink);
 
-			/* Don't remove name with active fetches */
-			if (NAME_FETCH(adbname)) {
-				continue;
-			}
-
 			/*
 			 * Remove the name if it's expired or unused,
 			 * has no address data.
 			 */
+			maybe_expire_namehooks(adbname, now);
 			maybe_expire_name(&adbname, now);
 			if (adbname == NULL) {
 				removed++;
@@ -3546,9 +3490,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-
-	REQUIRE((bits & ENTRY_IS_DEAD) == 0);
-	REQUIRE((mask & ENTRY_IS_DEAD) == 0);
 
 	ebucket = addr->entry->bucket;
 	LOCK(&ebucket->lock);
