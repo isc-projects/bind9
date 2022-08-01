@@ -2243,6 +2243,8 @@ Boolean Options
    The default is ``no-auth-recursive``.
 
 .. namedconf:statement:: glue-cache
+   :tags: deprecated, server
+   :short: Controls whether the server uses glue records cache.
 
    When set to ``yes``, a cache is used to improve query performance
    when adding address-type (A and AAAA) glue records to the additional
@@ -3176,6 +3178,8 @@ for details on how to specify IP address lists.
    responded to. The default is ``none``.
 
 .. namedconf:statement:: keep-response-order
+   :tags: server
+   :short: Defines an :any:`address_match_list` of addresses which do not accept reordered answers within a single TCP stream.
 
    This specifies a list of addresses to which the server sends responses
    to TCP queries, in the same order in which they were received. This
@@ -3931,6 +3935,7 @@ system.
 
 .. namedconf:statement:: reserved-sockets
    :tags: deprecated
+   :short: This statement is deprecated and no longer has any effect.
 
    This option is deprecated and no longer has any effect.
 
@@ -6613,6 +6618,7 @@ The following options apply to DS queries sent to :any:`parental-agents`:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: managed-keys
    :tags: deprecated
+   :short: Deprecated, use :any:`trust-anchors`.
 
 :any:`managed-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6625,6 +6631,7 @@ with the ``initial-key`` keyword.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: trusted-keys
    :tags: deprecated
+   :short: Deprecated, use :any:`trust-anchors`.
 
 :any:`trusted-keys` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
