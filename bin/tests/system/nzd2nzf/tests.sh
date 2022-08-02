@@ -34,8 +34,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "adding a new zone into default NZD using rndc addzone ($n)"
-rndccmd 10.53.0.1 addzone "added.example { type primary; file \"added.db\";
-};" 2>&1 | sed 's/^/I:ns1 /' | cat_i
+rndccmd 10.53.0.1 addzone 'added.example { type primary; file "added.db"; };' 2>&1 | sed 's/^/I:ns1 /' | cat_i
 sleep 2
 
 n=$((n+1))
