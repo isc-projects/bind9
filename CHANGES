@@ -1,3 +1,7 @@
+5936.	[bug]		Don't enable serve-stale for lookups that error because
+			it is a duplicate query or a query that would be
+			dropped. [GL #2982]
+
 5935.	[bug]		Fix DiG lookup reference counting bug, which could
 			be observed in NSSEARCH mode. [GL #3478]
 
