@@ -59,7 +59,7 @@ do
 		status=$((status+ret))
 
 		# Skip dnssec-keyfromlabel if key generation failed.
-		test $ret == 0 || continue
+		test $ret -eq 0 || continue
 
 		echo_i "Get ZSK $alg $zone $type:$bits"
 		ret=0
@@ -76,7 +76,7 @@ do
 		status=$((status+ret))
 
 		# Skip signing if dnssec-keyfromlabel failed.
-		test $ret == 0 || continue
+		test $ret -eq 0 || continue
 
 		echo_i "Sign zone with $ksk $zsk"
 		ret=0
