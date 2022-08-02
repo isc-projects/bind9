@@ -31,7 +31,7 @@ keygen() {
 
 	label="${id}-${zone}"
 	p11id=$(echo "${label}" | sha1sum - | awk '{print $1}')
-	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-engine_pkcs11" -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id 2> pkcs11-tool.err.$zone.$id || return 1
+	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-engine_pkcs11" -l -k --key-type $type:$bits --label "${label}" --id "${p11id}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id 2> pkcs11-tool.err.$zone.$id || return 1
 }
 
 keyfromlabel() {
