@@ -509,6 +509,12 @@ danger:
     variables:
       - $DANGER_GITLAB_API_TOKEN
 
+checkbashisms:
+  <<: *precheck_job
+  needs: []
+  script:
+    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print)
+
 tarball-create:
   stage: precheck
   <<: *base_image
