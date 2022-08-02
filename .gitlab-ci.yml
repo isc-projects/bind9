@@ -521,6 +521,12 @@ pylint:
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
 
+checkbashisms:
+  <<: *precheck_job
+  needs: []
+  script:
+    - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
+
 tarball-create:
   stage: precheck
   <<: *base_image
