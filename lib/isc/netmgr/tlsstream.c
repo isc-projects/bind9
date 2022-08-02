@@ -493,6 +493,13 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				if (sock->statichandle == NULL) {
 					finish = true;
 					break;
+				} else if (atomic_load(&sock->readpaused)) {
+					/*
+					 * Reading has been paused from withing
+					 * the context of read callback - stop
+					 * processing incoming data.
+					 */
+					break;
 				}
 			}
 		}
@@ -543,11 +550,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		}
 		return;
 	case SSL_ERROR_WANT_READ:
-		if (tls_try_to_close_unused_socket(sock)) {
-			return;
-		}
-
-		if (sock->outerhandle == NULL) {
+		if (tls_try_to_close_unused_socket(sock) ||
+		    sock->outerhandle == NULL || atomic_load(&sock->readpaused))
+		{
 			return;
 		}
 
