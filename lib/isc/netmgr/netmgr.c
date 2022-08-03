@@ -2922,6 +2922,27 @@ isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 	UNREACHABLE();
 }
 
+void
+isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
+				const unsigned char **alpn,
+				unsigned int *alpnlen) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmhandle_tls_get_selected_alpn(handle, alpn, alpnlen);
+		return;
+#endif /* HAVE_LIBNGHTTP2 */
+	default:
+		break;
+	};
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

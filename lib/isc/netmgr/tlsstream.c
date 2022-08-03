@@ -1402,3 +1402,18 @@ isc__nmhandle_tls_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 
 	sock->manual_read_timer = manual;
 }
+
+void
+isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
+				    const unsigned char **alpn,
+				    unsigned int *alpnlen) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tlssocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	isc_tls_get_selected_alpn(sock->tlsstream.tls, alpn, alpnlen);
+}

@@ -1604,6 +1604,11 @@ isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
 
 void
+isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
+				    const unsigned char **alpn,
+				    unsigned int *alpnlen);
+
+void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
 
 void
@@ -2021,4 +2026,16 @@ isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
 /*
  * Set manual read timer control mode - so that it will not get reset
  * automatically on read nor get started when read is initiated.
+ */
+
+void
+isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
+				const unsigned char **alpn,
+				unsigned int *alpnlen);
+/*
+ * Returns a non zero terminated ALPN identifier via 'alpn'. The
+ * length of the identifier is returned via 'alpnlen'. If after the
+ * call either 'alpn == NULL' or 'alpnlen == 0', then identifier was
+ * not negotiated of the underlying protocol of the connection
+ * represented via the given handle does not support ALPN.
  */
