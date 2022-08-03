@@ -251,8 +251,6 @@ retry_quiet 30 _wait_for_done_apexnsec || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-next_key_event_threshold=$((next_key_event_threshold+i))
-
 # Test max-zone-ttl rejects zones with too high TTL.
 n=$((n+1))
 echo_i "check that max-zone-ttl rejects zones with too high TTL ($n)"
