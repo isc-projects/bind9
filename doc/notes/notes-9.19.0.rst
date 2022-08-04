@@ -41,7 +41,7 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The ``keep-order-response`` option has been declared obsolete and the
+- The ``keep-response-order`` option has been declared obsolete and the
   functionality has been removed. :iscman:`named` expects DNS clients to
   be fully compliant with :rfc:`7766`. :gl:`#3140`
 
