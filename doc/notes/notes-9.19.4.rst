@@ -15,25 +15,27 @@ Notes for BIND 9.19.4
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The use of the ``max-zone-ttl`` option in ``options`` and ``zone``
-  blocks has been deprecated; it should now be configured as part of
-  ``dnssec-policy``. A warning is logged if this option is used in
-  ``options`` or ``zone``. In a future release, it will become
-  nonoperational. :gl:`#2918`
+- The use of the :any:`max-zone-ttl` option in :namedconf:ref:`options`
+  and :namedconf:ref:`zone` blocks has been deprecated; it should now be
+  configured as part of :any:`dnssec-policy`. A warning is logged if
+  this option is used in :namedconf:ref:`options` or :any:`zone` blocks.
+  In a future release, it will become nonoperational. :gl:`#2918`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- DNSSEC ``RSASHA1`` and ``NSEC3RSASHA1`` are automatically disabled
-  on systems (e.g. RHEL9) where they are disallowed by the security
-  policy.  Primary zones using those algorithms need to be moved
-  off of them prior to running on these systems as graceful migration
-  to different DNSSEC algorithms is not possible when RSASHA1 is
-  disallowed by the OS. :gl:`#3469`
+- The DNSSEC algorithms RSASHA1 and NSEC3RSASHA1 are now automatically
+  disabled on systems where they are disallowed by the security policy
+  (e.g. Red Hat Enterprise Linux 9). Primary zones using those
+  algorithms need to be migrated to new algorithms prior to running on
+  these systems, as graceful migration to different DNSSEC algorithms is
+  not possible when RSASHA1 is disallowed by the operating system.
+  :gl:`#3469`
 
-- Fetch limit log messages have been improved to provide more complete
-  information. Specifically, the final values of allowed and spilled fetches
-  will now be logged before the counter object gets destroyed. :gl:`#3461`
+- Log messages related to fetch limiting have been improved to provide
+  more complete information. Specifically, the final counts of allowed
+  and spilled fetches are now logged before the counter object is
+  destroyed. :gl:`#3461`
 
 Bug Fixes
 ~~~~~~~~~
@@ -44,13 +46,14 @@ Bug Fixes
   broken DS response and :iscman:`named` failed its attempts to find a
   proper one instead. This has been fixed. :gl:`#3439`
 
-- A DNS compression would be applied on the root zone name if it is repeatedly
-  used in the same RRSet. :gl:`#3423`
+- DNS compression is no longer applied to the root name (``.``) if it is
+  repeatedly used in the same RRset. :gl:`#3423`
 
-- Non-dynamic zones that inherit dnssec-policy from the view or
-  options level were not marked as inline-signed, and thus were never
-  scheduled to be re-signed. This is now fixed. :gl:`#3438`
+- Non-dynamic zones that inherit :any:`dnssec-policy` from the
+  :namedconf:ref:`view` or :namedconf:ref:`options` blocks were not
+  marked as inline-signed and therefore never scheduled to be re-signed.
+  This has been fixed. :gl:`#3438`
 
-- Fix `rndc dumpdb -expired` to include expired RRsets, even if the cache
-  cleaning time window has passed. This will now show expired RRsets that are
-  stuck in the cache. :gl:`#3462`
+- :option:`rndc dumpdb -expired <rndc dumpdb>` was fixed to include
+  expired RRsets, even if :any:`stale-cache-enable` is set to ``no`` and
+  the cache-cleaning time window has passed. :gl:`#3462`
