@@ -12,25 +12,8 @@
 Notes for BIND 9.19.4
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- None.
 
 - The use of the ``max-zone-ttl`` option in ``options`` and ``zone``
   blocks has been deprecated; it should now be configured as part of
