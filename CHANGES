@@ -1,3 +1,5 @@
+	--- 9.16.32 released ---
+
 5934.	[func]		Improve fetches-per-zone fetch limit logging to log
 			the final allowed and spilled values of the fetch
 			counters before the counter object gets destroyed.
