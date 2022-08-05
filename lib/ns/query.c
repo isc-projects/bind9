@@ -844,6 +844,15 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 	isc_result_t result;
 
 	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) == 0) {
+		enum refusal_reasons {
+			ALLOW_QUERY_CACHE,
+			ALLOW_QUERY_CACHE_ON
+		};
+		static const char *acl_desc[] = {
+			"allow-query-cache did not match",
+			"allow-query-cache-on did not match",
+		};
+
 		/*
 		 * The view's cache ACLs have not yet been evaluated.
 		 * Do it now. Both allow-query-cache and
@@ -852,9 +861,11 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		bool log = ((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 
+		enum refusal_reasons refusal_reason = ALLOW_QUERY_CACHE;
 		result = ns_client_checkaclsilent(client, NULL,
 						  client->view->cacheacl, true);
 		if (result == ISC_R_SUCCESS) {
+			refusal_reason = ALLOW_QUERY_CACHE_ON;
 			result = ns_client_checkaclsilent(
 				client, &client->destaddr,
 				client->view->cacheonacl, true);
@@ -890,7 +901,8 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 						 sizeof(msg));
 				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-					      "%s denied", msg);
+					      "%s denied (%s)", msg,
+					      acl_desc[refusal_reason]);
 			}
 		}
 
