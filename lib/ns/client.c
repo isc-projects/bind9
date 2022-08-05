@@ -1713,6 +1713,24 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 #ifdef HAVE_DNSTAP
 	dns_dtmsgtype_t dtmsgtype;
 #endif /* ifdef HAVE_DNSTAP */
+	static const char *ra_reasons[] = {
+		"ACLs not processed yet",
+		"no resolver in view",
+		"recursion not enabled for view",
+		"allow-recursion did not match",
+		"allow-query-cache did not match",
+		"allow-recursion-on did not match",
+		"allow-query-cache-on did not match",
+	};
+	enum refusal_reasons {
+		INVALID,
+		NO_RESOLVER,
+		RECURSION_DISABLED,
+		ALLOW_RECURSION,
+		ALLOW_QUERY_CACHE,
+		ALLOW_RECURSION_ON,
+		ALLOW_QUERY_CACHE_ON
+	} ra_refusal_reason = INVALID;
 
 	if (eresult != ISC_R_SUCCESS) {
 		return;
@@ -2152,28 +2170,42 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 * cache there is no point in setting RA.
 	 */
 	ra = false;
-	if (client->view->resolver != NULL && client->view->recursion &&
-	    ns_client_checkaclsilent(client, NULL, client->view->recursionacl,
-				     true) == ISC_R_SUCCESS &&
-	    ns_client_checkaclsilent(client, NULL, client->view->cacheacl,
-				     true) == ISC_R_SUCCESS &&
-	    ns_client_checkaclsilent(client, &client->destaddr,
-				     client->view->recursiononacl,
-				     true) == ISC_R_SUCCESS &&
-	    ns_client_checkaclsilent(client, &client->destaddr,
-				     client->view->cacheonacl,
-				     true) == ISC_R_SUCCESS)
-	{
-		ra = true;
-	}
 
-	if (ra) {
+	/* must be initialized before ns_client_log uses it as index */
+	if (client->view->resolver == NULL) {
+		ra_refusal_reason = NO_RESOLVER;
+	} else if (!client->view->recursion) {
+		ra_refusal_reason = RECURSION_DISABLED;
+	} else if (ns_client_checkaclsilent(client, NULL,
+					    client->view->recursionacl,
+					    true) != ISC_R_SUCCESS)
+	{
+		ra_refusal_reason = ALLOW_RECURSION;
+	} else if (ns_client_checkaclsilent(client, NULL,
+					    client->view->cacheacl,
+					    true) != ISC_R_SUCCESS)
+	{
+		ra_refusal_reason = ALLOW_QUERY_CACHE;
+	} else if (ns_client_checkaclsilent(client, &client->destaddr,
+					    client->view->recursiononacl,
+					    true) != ISC_R_SUCCESS)
+	{
+		ra_refusal_reason = ALLOW_RECURSION_ON;
+	} else if (ns_client_checkaclsilent(client, &client->destaddr,
+					    client->view->cacheonacl,
+					    true) != ISC_R_SUCCESS)
+	{
+		ra_refusal_reason = ALLOW_QUERY_CACHE_ON;
+	} else {
+		ra = true;
 		client->attributes |= NS_CLIENTATTR_RA;
 	}
 
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(3),
-		      ra ? "recursion available" : "recursion not available");
+		      ra ? "recursion available"
+			 : "recursion not available (%s)",
+		      ra_reasons[ra_refusal_reason]);
 
 	/*
 	 * Adjust maximum UDP response size for this client.
