@@ -719,13 +719,13 @@ cfg_acl_fromconfig2(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "tcp") == 0)
 			{
-				transports = isc_nm_tcpdnssocket;
+				transports = isc_nm_streamdnssocket;
 				encrypted = false;
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "udp-tcp") == 0)
 			{
 				/* Good ol' DNS over port 53 */
-				transports = isc_nm_tcpdnssocket |
+				transports = isc_nm_streamdnssocket |
 					     isc_nm_udpsocket;
 				encrypted = false;
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),

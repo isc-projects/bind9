@@ -952,9 +952,9 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	 */
 	switch (transport_type) {
 	case DNS_TRANSPORT_TCP:
-		isc_nm_tcpdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000);
+		isc_nm_streamdnsconnect(xfr->netmgr, &xfr->sourceaddr,
+					&xfr->primaryaddr, xfrin_connect_done,
+					connect_xfr, 30000, NULL, NULL);
 		break;
 	case DNS_TRANSPORT_TLS: {
 		result = dns_transport_get_tlsctx(
