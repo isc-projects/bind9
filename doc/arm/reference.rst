@@ -2243,8 +2243,8 @@ Boolean Options
    The default is ``no-auth-recursive``.
 
 .. namedconf:statement:: glue-cache
-   :tags: deprecated, server
-   :short: Controls whether the server uses glue records cache.
+   :tags: deprecated
+   :short: Deprecated.
 
    When set to ``yes``, a cache is used to improve query performance
    when adding address-type (A and AAAA) glue records to the additional
@@ -3935,7 +3935,7 @@ system.
 
 .. namedconf:statement:: reserved-sockets
    :tags: deprecated
-   :short: This statement is deprecated and no longer has any effect.
+   :short: Deprecated.
 
    This option is deprecated and no longer has any effect.
 
