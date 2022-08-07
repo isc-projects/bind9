@@ -29,12 +29,17 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dst__openssl_toresult(isc_result_t fallback);
 
+#define dst__openssl_toresult2(A, B) \
+	dst___openssl_toresult2(A, B, __FILE__, __LINE__)
 isc_result_t
-dst__openssl_toresult2(const char *funcname, isc_result_t fallback);
+dst___openssl_toresult2(const char *funcname, isc_result_t fallback,
+			const char *file, int line);
 
+#define dst__openssl_toresult3(A, B, C) \
+	dst___openssl_toresult3(A, B, C, __FILE__, __LINE__)
 isc_result_t
-dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
-		       isc_result_t fallback);
+dst___openssl_toresult3(isc_logcategory_t *category, const char *funcname,
+			isc_result_t fallback, const char *file, int line);
 
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 ENGINE *

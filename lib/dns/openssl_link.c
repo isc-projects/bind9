@@ -175,24 +175,26 @@ dst__openssl_toresult(isc_result_t fallback) {
 }
 
 isc_result_t
-dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
-	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
-				       fallback));
+dst___openssl_toresult2(const char *funcname, isc_result_t fallback,
+			const char *file, int line) {
+	return (dst___openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
+					fallback, file, line));
 }
 
 isc_result_t
-dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
-		       isc_result_t fallback) {
+dst___openssl_toresult3(isc_logcategory_t *category, const char *funcname,
+			isc_result_t fallback, const char *file, int line) {
 	isc_result_t result;
 	unsigned long err;
-	const char *file, *func, *data;
-	int line, flags;
+	const char *func, *data;
+	int flags;
 	char buf[256];
 
 	result = toresult(fallback);
 
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
-		      "%s failed (%s)", funcname, isc_result_totext(result));
+		      "%s (%s:%d) failed (%s)", funcname, file, line,
+		      isc_result_totext(result));
 
 	if (result == ISC_R_NOMEMORY) {
 		goto done;
