@@ -27,7 +27,7 @@ prefix = /usr
 libdir = $(prefix)/lib/bind9
 
 CFLAGS=-fPIC -g -I../include $(shell mysql_config --cflags)
-LDAP_LIBS=$(shell mysql_config --libs)
+MYSQL_LIBS=$(shell mysql_config --libs)
 
 all: dlz_mysql_dynamic.so
 
