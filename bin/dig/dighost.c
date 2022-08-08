@@ -1824,10 +1824,18 @@ clear_current_lookup(void) {
 		return;
 	}
 
+	if (lookup->cleared) {
+		debug("current_lookup is already cleared");
+		return;
+	}
+
 	if (ISC_LIST_HEAD(lookup->q) != NULL) {
 		debug("still have a worker");
 		return;
 	}
+
+	lookup->cleared = true;
+	debug("lookup cleared");
 
 	lookup_detach(&lookup);
 }
