@@ -7472,6 +7472,14 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		return (false);
 	}
 
+	if (result == DNS_R_DUPLICATE || result == DNS_R_DROP) {
+		/*
+		 * Don't enable serve-stale if the result signals a duplicate
+		 * query or query that is being dropped.
+		 */
+		return (false);
+	}
+
 	qctx_clean(qctx);
 	qctx_freedata(qctx);
 
