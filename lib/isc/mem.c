@@ -414,7 +414,7 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
 static void
 mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 	struct stats *stats = stats_bucket(ctx, size);
-	uint_fast32_t s, g;
+	atomic_size_t s, g;
 
 	UNUSED(ptr);
 
