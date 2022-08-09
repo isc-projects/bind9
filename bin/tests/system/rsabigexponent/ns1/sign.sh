@@ -19,7 +19,7 @@ zonefile=root.db
 
 cp ../ns2/dsset-example.in dsset-example.
 
-keyname=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -a RSASHA256 -b 2048 -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 
