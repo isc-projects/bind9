@@ -40,4 +40,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Fix a serve-stale bug, where BIND would try to return stale data from cache
+  for lookups that received duplicate queries or queries that would be dropped.
+  This bug resulted in premature SERVFAIL responses, and has now been resolved.
+  :gl:`#2982`
