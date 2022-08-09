@@ -3068,8 +3068,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 	}
 	do {
 		dns_rdataset_init(&dataset);
-		RUNTIME_CHECK(dns_rdatalist_tordataset(this, &dataset) ==
-			      ISC_R_SUCCESS);
+		dns_rdatalist_tordataset(this, &dataset);
 		dataset.trust = dns_trust_ultimate;
 		/*
 		 * If this is a secure dynamic zone set the re-signing time.

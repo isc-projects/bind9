@@ -808,12 +808,13 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 static void
 make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 		dns_rdataset_t *crdset) {
-	isc_result_t result;
-	dns_rdatalist_t *dslist;
 	unsigned int size = 16;
-	unsigned i, n;
 
 	for (;;) {
+		isc_result_t result = ISC_R_SUCCESS;
+		dns_rdatalist_t *dslist = NULL;
+		size_t n;
+
 		dslist = isc_mem_get(mctx, sizeof(*dslist));
 		dns_rdatalist_init(dslist);
 		dslist->rdclass = rdclass;
@@ -821,13 +822,12 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata, uint32_t ttl,
 		dslist->ttl = ttl;
 
 		dns_rdataset_init(&new_ds_set);
-		result = dns_rdatalist_tordataset(dslist, &new_ds_set);
-		check_result(result, "dns_rdatalist_tordataset(dslist)");
+		dns_rdatalist_tordataset(dslist, &new_ds_set);
 
 		isc_buffer_allocate(mctx, &new_ds_buf, size);
 
 		n = sizeof(dtype) / sizeof(dtype[0]);
-		for (i = 0; i < n && dtype[i] != 0; i++) {
+		for (size_t i = 0; i < n && dtype[i] != 0; i++) {
 			result = append_new_ds_set(ds_from_rdata, new_ds_buf,
 						   dslist, dtype[i], crdset);
 			if (result != ISC_R_SUCCESS) {

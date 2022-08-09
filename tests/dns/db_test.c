@@ -153,8 +153,7 @@ ISC_RUN_TEST_IMPL(dns_dbfind_staleok) {
 		}
 
 		dns_rdataset_init(&rdataset);
-		result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 		result = dns_db_findnode(db, example, true, &node);
 		assert_int_equal(result, ISC_R_SUCCESS);

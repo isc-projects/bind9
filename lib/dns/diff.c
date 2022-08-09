@@ -349,7 +349,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 			 */
 			dns_rdataset_init(&rds);
 			dns_rdataset_init(&ardataset);
-			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+			dns_rdatalist_tordataset(&rdl, &rds);
 			rds.trust = dns_trust_ultimate;
 
 			/*
@@ -509,7 +509,7 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			 * Convert the rdatalist into a rdataset.
 			 */
 			dns_rdataset_init(&rds);
-			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
+			dns_rdatalist_tordataset(&rdl, &rds);
 			rds.trust = dns_trust_ultimate;
 
 			INSIST(op == DNS_DIFFOP_ADD);
@@ -574,7 +574,7 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
  * an rdatalist structure for it to refer to.
  */
 
-static isc_result_t
+static void
 diff_tuple_tordataset(dns_difftuple_t *t, dns_rdata_t *rdata,
 		      dns_rdatalist_t *rdl, dns_rdataset_t *rds) {
 	REQUIRE(DNS_DIFFTUPLE_VALID(t));
@@ -589,7 +589,7 @@ diff_tuple_tordataset(dns_difftuple_t *t, dns_rdata_t *rdata,
 	ISC_LINK_INIT(rdata, link);
 	dns_rdata_clone(&t->rdata, rdata);
 	ISC_LIST_APPEND(rdl->rdata, rdata, link);
-	return (dns_rdatalist_tordataset(rdl, rds));
+	dns_rdatalist_tordataset(rdl, rds);
 }
 
 isc_result_t
@@ -613,14 +613,7 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 		dns_rdataset_t rds;
 		dns_rdata_t rd = DNS_RDATA_INIT;
 
-		result = diff_tuple_tordataset(t, &rd, &rdl, &rds);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "diff_tuple_tordataset failed: %s",
-					 isc_result_totext(result));
-			result = ISC_R_UNEXPECTED;
-			goto cleanup;
-		}
+		diff_tuple_tordataset(t, &rd, &rdl, &rds);
 	again:
 		isc_buffer_init(&buf, mem, size);
 		result = dns_rdataset_totext(&rds, &t->name, false, false,

@@ -266,8 +266,7 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	ncrdatalist.ttl = ttl;
 
 	dns_rdataset_init(&ncrdataset);
-	RUNTIME_CHECK(dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset) ==
-		      ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&ncrdatalist, &ncrdataset);
 	if (!secure && trust > dns_trust_answer) {
 		trust = dns_trust_answer;
 	}

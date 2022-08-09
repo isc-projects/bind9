@@ -66,7 +66,7 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
 	rdatalist->upper[0] &= ~0x01;
 }
 
-isc_result_t
+void
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset) {
 	/*
 	 * Make 'rdataset' refer to the rdata in 'rdatalist'.
@@ -90,17 +90,13 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset) {
 	rdataset->private3 = NULL;
 	rdataset->privateuint4 = 0;
 	rdataset->private5 = NULL;
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
 			   dns_rdatalist_t **rdatalist) {
 	REQUIRE(rdatalist != NULL && rdataset != NULL);
 	*rdatalist = rdataset->private1;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

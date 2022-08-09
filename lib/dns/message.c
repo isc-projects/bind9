@@ -1078,10 +1078,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 		rdatalist->rdclass = rdclass;
 
 		dns_rdataset_init(rdataset);
-		result = dns_rdatalist_tordataset(rdatalist, rdataset);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_rdatalist_tordataset(rdatalist, rdataset);
 
 		rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
 
@@ -1516,9 +1513,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			rdatalist->ttl = ttl;
 
 			dns_rdataset_init(rdataset);
-			RUNTIME_CHECK(
-				dns_rdatalist_tordataset(rdatalist, rdataset) ==
-				ISC_R_SUCCESS);
+			dns_rdatalist_tordataset(rdatalist, rdataset);
 			dns_rdataset_setownercase(rdataset, name);
 
 			if (!isedns && !istsig && !issigzero) {
@@ -2835,20 +2830,19 @@ dns_message_gettsigkey(dns_message_t *msg) {
 	return (msg->tsigkey);
 }
 
-isc_result_t
+void
 dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	dns_rdata_t *rdata = NULL;
 	dns_rdatalist_t *list = NULL;
 	dns_rdataset_t *set = NULL;
 	isc_buffer_t *buf = NULL;
 	isc_region_t r;
-	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->querytsig == NULL);
 
 	if (querytsig == NULL) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	dns_message_gettemprdata(msg, &rdata);
@@ -2864,26 +2858,9 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	dns_rdata_fromregion(rdata, dns_rdataclass_any, dns_rdatatype_tsig, &r);
 	dns_message_takebuffer(msg, &buf);
 	ISC_LIST_APPEND(list->rdata, rdata, link);
-	result = dns_rdatalist_tordataset(list, set);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	dns_rdatalist_tordataset(list, set);
 
 	msg->querytsig = set;
-
-	return (result);
-
-cleanup:
-	if (rdata != NULL) {
-		dns_message_puttemprdata(msg, &rdata);
-	}
-	if (list != NULL) {
-		dns_message_puttemprdatalist(msg, &list);
-	}
-	if (set != NULL) {
-		dns_message_puttemprdataset(msg, &set);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 isc_result_t
@@ -4634,8 +4611,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 	rdata->flags = 0;
 
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	result = dns_rdatalist_tordataset(rdatalist, rdataset);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	*rdatasetp = rdataset;
 	return (ISC_R_SUCCESS);

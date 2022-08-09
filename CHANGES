@@ -1,3 +1,10 @@
+5937.	[cleanup]	The dns_rdatalist_tordataset() and
+			dns_rdatalist_fromrdataset() functions can no
+			longer fail. Clean up their prototypes and error
+			handling, and that of other calling functions that
+			subsequently cannot fail, including
+			dns_message_setquerytsig(). [GL #3467]
+
 5936.	[bug]		Don't enable serve-stale for lookups that error because
 			it is a duplicate query or a query that would be
 			dropped. [GL #2982]

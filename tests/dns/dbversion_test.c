@@ -277,8 +277,7 @@ ISC_RUN_TEST_IMPL(subtract) {
 
 	rdatalist.rdclass = dns_rdataclass_in;
 
-	res = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(res, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	res = dns_db_findnode(db1, dns_rootname, false, &node);
 	assert_int_equal(res, ISC_R_SUCCESS);
@@ -291,8 +290,7 @@ ISC_RUN_TEST_IMPL(subtract) {
 	}
 
 	dns_rdataset_init(&rdataset);
-	res = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(res, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	check_assertion(
 		dns_db_subtractrdataset(db1, node, v2, &rdataset, 0, NULL));
@@ -338,8 +336,7 @@ ISC_RUN_TEST_IMPL(addrdataset) {
 
 	rdatalist.rdclass = dns_rdataclass_in;
 
-	res = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(res, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	res = dns_db_findnode(db1, dns_rootname, false, &node);
 	assert_int_equal(res, ISC_R_SUCCESS);
@@ -421,8 +418,7 @@ ISC_RUN_TEST_IMPL(resigned) {
 	rdatalist.type = dns_rdatatype_rrsig;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 
-	res = dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	assert_int_equal(res, ISC_R_SUCCESS);
+	dns_rdatalist_tordataset(&rdatalist, &rdataset);
 
 	rdataset.attributes |= DNS_RDATASETATTR_RESIGN;
 	rdataset.resign = 7200;
