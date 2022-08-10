@@ -29,6 +29,7 @@
 #include <isc/tls.h>
 
 #include <dns/catz.h>
+#include <dns/diff.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/rdatastruct.h>
@@ -2763,4 +2764,21 @@ const char *
 dns_zonetype_name(dns_zonetype_t type);
 /*%<
  * Return the name of the zone type 'type'.
+ */
+
+bool
+dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
+			    dns_dbversion_t *ver, dns_diff_t *diff,
+			    dst_key_t **keys, unsigned int numkeys);
+/**<
+ * Return whether the zone would enter an inconsistent state where NSEC only
+ * DNSKEYs are present along NSEC3 chains.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'db'is not NULL.
+ *
+ * Returns:
+ * \li	'true' if the check passes, that is the zone remains consistent,
+ *	'false' if the zone would have NSEC only DNSKEYs and an NSEC3 chain.
  */
