@@ -28,6 +28,39 @@ cp managed.conf ../ns2/managed.conf
 cp managed.conf ../ns4/managed.conf
 cp managed.conf ../ns5/managed.conf
 
+# Configure broken trust anchor for ns3
+# Rotate each nibble in the digest by -1
+$DSFROMKEY $keyname.key |
+awk '!/^; /{
+            printf "trust-anchors {\n"
+            printf "\t\""$1"\" initial-ds "
+            printf $4 " " $5 " " $6 " \""
+            for (i=7; i<=NF; i++) {
+		# rotate digest
+		digest=$i
+		gsub("0", ":", digest)
+		gsub("1", "0", digest)
+		gsub("2", "1", digest)
+		gsub("3", "2", digest)
+		gsub("4", "3", digest)
+		gsub("5", "4", digest)
+		gsub("6", "5", digest)
+		gsub("7", "6", digest)
+		gsub("8", "7", digest)
+		gsub("9", "8", digest)
+		gsub("A", "9", digest)
+		gsub("B", "A", digest)
+		gsub("C", "B", digest)
+		gsub("D", "C", digest)
+		gsub("E", "D", digest)
+		gsub("F", "E", digest)
+		gsub(":", "F", digest)
+		printf digest
+	    }
+	    printf "\";\n"
+	    printf "};\n"
+	}' > ../ns3/broken.conf
+
 # Configure a static key to be used by delv.
 keyfile_to_static_ds $keyname > trusted.conf
 
