@@ -37,6 +37,12 @@ Feature Changes
 
 - None.
 
+- When reconfiguring ``dnssec-policy`` from using NSEC with an NSEC-only DNSKEY
+  algorithm (e.g. RSASHA1) to a policy that uses NSEC3, BIND will no longer fail
+  to sign the zone, but keep using NSEC for a little longer until the offending
+  DNSKEY records have been removed from the zone, then switch to using NSEC3.
+  :gl:`#3486`
+
 Bug Fixes
 ~~~~~~~~~
 
