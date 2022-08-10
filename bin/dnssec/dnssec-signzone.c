@@ -3901,7 +3901,7 @@ main(int argc, char *argv[]) {
 		hashlist_init(&hashlist,
 			      dns_db_nodecount(gdb, dns_dbtree_main) * 2,
 			      hash_length);
-		result = dns_nsec_nseconly(gdb, gversion, &answer);
+		result = dns_nsec_nseconly(gdb, gversion, NULL, &answer);
 		if (result == ISC_R_NOTFOUND) {
 			fprintf(stderr,
 				"%s: warning: NSEC3 generation "

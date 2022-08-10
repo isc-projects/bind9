@@ -19,6 +19,7 @@
 
 #include <isc/lang.h>
 
+#include <dns/diff.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
@@ -60,11 +61,15 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
  */
 
 isc_result_t
-dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, bool *answer);
+dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
+		  bool *answer);
 /*
  * Report whether the DNSKEY RRset has a NSEC only algorithm.  Unknown
  * algorithms are assumed to support NSEC3.  If DNSKEY is not found,
  * *answer is set to false, and ISC_R_NOTFOUND is returned.
+ * If 'diff' is provided, check if the NSEC only DNSKEY will be deleted.
+ * If so, and there are no other NSEC only DNSKEYs that will stay in 'db',
+ * consider the DNSKEY RRset to have no NSEC only DNSKEYs.
  *
  * Requires:
  * 	'answer' to be non NULL.
