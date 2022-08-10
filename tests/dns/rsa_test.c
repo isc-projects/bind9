@@ -150,27 +150,30 @@ ISC_RUN_TEST_IMPL(isc_rsa_verify) {
 	ret = dns_name_fromtext(name, &buf, NULL, 0, NULL);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
-	ret = dst_key_fromfile(name, 29235, DST_ALG_RSASHA1, DST_TYPE_PUBLIC,
+	ret = dst_key_fromfile(name, 29238, DST_ALG_RSASHA256, DST_TYPE_PUBLIC,
 			       TESTS_DIR, mctx, &key);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
-	/* RSASHA1 */
+	/* RSASHA1 - May not be supported by the OS */
+	if (dst_algorithm_supported(DST_ALG_RSASHA1)) {
+		key->key_alg = DST_ALG_RSASHA1;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC, false, 0,
-				 &ctx);
-	assert_int_equal(ret, ISC_R_SUCCESS);
+		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+					 false, 0, &ctx);
+		assert_int_equal(ret, ISC_R_SUCCESS);
 
-	r.base = d;
-	r.length = 10;
-	ret = dst_context_adddata(ctx, &r);
-	assert_int_equal(ret, ISC_R_SUCCESS);
+		r.base = d;
+		r.length = 10;
+		ret = dst_context_adddata(ctx, &r);
+		assert_int_equal(ret, ISC_R_SUCCESS);
 
-	r.base = sigsha1;
-	r.length = 256;
-	ret = dst_context_verify(ctx, &r);
-	assert_int_equal(ret, ISC_R_SUCCESS);
+		r.base = sigsha1;
+		r.length = 256;
+		ret = dst_context_verify(ctx, &r);
+		assert_int_equal(ret, ISC_R_SUCCESS);
 
-	dst_context_destroy(&ctx);
+		dst_context_destroy(&ctx);
+	}
 
 	/* RSASHA256 */
 

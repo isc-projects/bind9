@@ -1418,13 +1418,13 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-get_rsasha1_key_ids_from_sigs() {
+get_default_algorithm_key_ids_from_sigs() {
 	zone=$1
 
-	awk '
+	awk -v alg=$DEFAULT_ALGORITHM_NUMBER '
 		NF < 8 { next }
 		$(NF-5) != "RRSIG" { next }
-		$(NF-3) != "5" { next }
+		$(NF-3) != alg { next }
 		$NF != "(" { next }
 		{
 			getline;
@@ -1438,9 +1438,9 @@ echo_i "check dnssec-signzone doesn't sign with prepublished zsk ($n)"
 ret=0
 zone=prepub
 # Generate keys.
-ksk=$("$KEYGEN" -K signer -f KSK -q -a RSASHA1 -b 1024 -n zone "$zone")
-zsk1=$("$KEYGEN" -K signer -q -a RSASHA1 -b 1024 -n zone "$zone")
-zsk2=$("$KEYGEN" -K signer -q -a RSASHA1 -b 1024 -n zone "$zone")
+ksk=$("$KEYGEN" -K signer -f KSK -q -a $DEFAULT_ALGORITHM -n zone "$zone")
+zsk1=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM -n zone "$zone")
+zsk2=$("$KEYGEN" -K signer -q -a $DEFAULT_ALGORITHM -n zone "$zone")
 zskid1=$(keyfile_to_key_id "$zsk1")
 zskid2=$(keyfile_to_key_id "$zsk2")
 (
@@ -1458,8 +1458,8 @@ cp -f $zone.db.in $zone.db
 $SIGNER -SDx -e +2592000 -X +5184000 -o $zone $zone.db > /dev/null
 echo "\$INCLUDE \"$zone.db.signed\"" >> $zone.db
 )
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed: missing signatures from key $zskid1"
 status=$((status+ret))
@@ -1478,8 +1478,8 @@ $SETTIME -A now-30d -I now -D now+30d $zsk1 > /dev/null
 $SETTIME -A now $zsk2 > /dev/null
 $SIGNER -SDx -e +2592000 -X +5184000 -o $zone $zone.db > /dev/null
 )
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1497,8 +1497,8 @@ $SETTIME -A now-50d -I now-20d -D now+10d $zsk1 > /dev/null
 $SETTIME -A now-20d $zsk2 > /dev/null
 $SIGNER -SDx -e +2592000 -X +5184000 -i 2592001 -o $zone $zone.db > /dev/null
 )
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null && ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid1$" > /dev/null && ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$zskid2$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1547,8 +1547,8 @@ status=$((status+ret))
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
 (
 cd signer || exit 1
 cat example.db.in "$key1.key" "$key2.key" > example.db
@@ -1561,8 +1561,8 @@ status=$((status+ret))
 echo_i "checking that we can sign a zone (NSEC3) with out-of-zone records ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
 (
 cd signer || exit 1
 cat example.db.in "$key1.key" "$key2.key" > example.db
@@ -1586,8 +1586,8 @@ status=$((status+ret))
 echo_i "checking NSEC3 signing with empty nonterminals above a delegation ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a NSEC3RSASHA1 -b 1024 -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a NSEC3RSASHA1 -b 1024 -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
 (
 cd signer || exit 1
 cat example.db.in "$key1.key" "$key2.key" > example3.db
@@ -1612,8 +1612,8 @@ status=$((status+ret))
 echo_i "checking that dnssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone)
-key2=$($KEYGEN -K signer -q -f KSK -a RSASHA1 -b 1024 -n zone $zone)
+key1=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
+key2=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
 (
 cd signer || exit 1
 cat example.db.in "$key1.key" "$key2.key" > example.db
@@ -1621,7 +1621,7 @@ $SIGNER -o example -f example.db.before example.db > /dev/null
 sed 's/60.IN.SOA./50 IN SOA /' example.db.before > example.db.changed
 $SIGNER -o example -f example.db.after example.db.changed > /dev/null
 )
-grep "SOA 5 1 50" signer/example.db.after > /dev/null || ret=1
+grep "SOA $DEFAULT_ALGORITHM_NUMBER 1 50" signer/example.db.after > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1629,10 +1629,10 @@ status=$((status+ret))
 echo_i "checking dnssec-signzone keeps valid signatures from removed keys ($n)"
 ret=0
 zone=example
-key1=$($KEYGEN -K signer -q -f KSK -a RSASHA1 -b 1024 -n zone $zone)
-key2=$($KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone)
+key1=$($KEYGEN -K signer -q -f KSK -a $DEFAULT_ALGORITHM -n zone $zone)
+key2=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
 keyid2=$(keyfile_to_key_id "$key2")
-key3=$($KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone)
+key3=$($KEYGEN -K signer -q -a $DEFAULT_ALGORITHM -n zone $zone)
 keyid3=$(keyfile_to_key_id "$key3")
 (
 cd signer || exit 1
@@ -1644,8 +1644,8 @@ cat example.db.in "$key1.key" "$key3.key" > example.db
 echo "\$INCLUDE \"example.db.signed\"" >> example.db
 $SIGNER -D -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1656,8 +1656,8 @@ ret=0
 cd signer || exit 1
 $SIGNER -RD -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1674,8 +1674,8 @@ echo "\$INCLUDE \"example.db.signed\"" >> example.db
 $SETTIME -I now "$key2" > /dev/null 2>&1
 $SIGNER -SD -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1686,8 +1686,8 @@ ret=0
 cd signer || exit 1
 $SIGNER -SDQ -o example example.db > /dev/null
 ) || ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
-get_rsasha1_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid2$" > /dev/null && ret=1
+get_default_algorithm_key_ids_from_sigs $zone | grep "^$keyid3$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1843,7 +1843,7 @@ keyid=$(cat ns1/managed.key.id)
 rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 cp ns4/named.secroots named.secroots.test$n
 check_secroots_layout named.secroots.test$n || ret=1
-linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; static" named.secroots.test$n || true)
+linecount=$(grep -c "./$DEFAULT_ALGORITHM/$keyid ; static" named.secroots.test$n || true)
 [ "$linecount" -eq 1 ] || ret=1
 linecount=$(< named.secroots.test$n wc -l)
 [ "$linecount" -eq 10 ] || ret=1
@@ -2542,7 +2542,7 @@ echo_i "checking that the NSEC3 record for the apex is properly signed when a DN
 ret=0
 (
 cd ns3 || exit 1
-kskname=$($KEYGEN -q -3 -a RSASHA1 -fk update-nsec3.example)
+kskname=$($KEYGEN -q -3 -a $DEFAULT_ALGORITHM -fk update-nsec3.example)
 (
 echo zone update-nsec3.example
 echo server 10.53.0.3 "$PORT"
@@ -2744,7 +2744,7 @@ grep -q "No signing records found" signing.out || {
         sed 's/^/ns3 /' signing.out | cat_i
 }
 { rndccmd 10.53.0.3 signing -list update-nsec3.example > signing.out; } 2>&1
-grep -q "Done signing with key .*/NSEC3RSASHA1" signing.out || {
+grep -q "Done signing with key .*/$DEFAULT_ALGORITHM" signing.out || {
         ret=1
         sed 's/^/ns3 /' signing.out | cat_i
 }
@@ -2889,7 +2889,7 @@ status=$((status+ret))
 # includes it anyway to avoid confusion (RT #21731)
 echo_i "check dnssec-dsfromkey error message when keyfile is not found ($n)"
 ret=0
-key=$($KEYGEN -a RSASHA1 -q example.) || ret=1
+key=$($KEYGEN -a $DEFAULT_ALGORITHM -q example.) || ret=1
 mv "$key.key" "$key"
 $DSFROMKEY "$key" > dsfromkey.out.$n 2>&1 && ret=1
 grep "$key.key: file not found" dsfromkey.out.$n > /dev/null || ret=1
@@ -3790,8 +3790,8 @@ ret=0
 # generate signed zone with MX and AAAA records at apex.
 (
 cd signer || exit 1
-$KEYGEN -q -a RSASHA1 -3 -fK remove > /dev/null
-$KEYGEN -q -a RSASHA1 -33 remove > /dev/null
+$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fK remove > /dev/null
+$KEYGEN -q -a $DEFAULT_ALGORITHM -33 remove > /dev/null
 echo > remove.db.signed
 $SIGNER -S -o remove -D -f remove.db.signed remove.db.in > signer.out.1.$n
 )
@@ -3900,7 +3900,7 @@ status=$((status+ret))
 echo_i "check that DNAME at apex with NSEC3 is correctly signed (dnssec-signzone) ($n)"
 ret=0
 dig_with_opts txt dname-at-apex-nsec3.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "RRSIG.NSEC3 ${DEFAULT_ALGORITHM_NUMBER} 3 600" dig.out.ns3.test$n > /dev/null || ret=1
+grep "RRSIG.NSEC3 $DEFAULT_ALGORITHM_NUMBER 3 600" dig.out.ns3.test$n > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -4088,10 +4088,10 @@ status=$((status+ret))
 
 # Save some useful information
 zone="updatecheck-kskonly.secure"
-KSK=`cat ns2/${zone}.ksk.key`
-ZSK=`cat ns2/${zone}.zsk.key`
-KSK_ID=`cat ns2/${zone}.ksk.id`
-ZSK_ID=`cat ns2/${zone}.zsk.id`
+KSK=$(cat ns2/${zone}.ksk.key)
+ZSK=$(cat ns2/${zone}.zsk.key)
+KSK_ID=$(cat ns2/${zone}.ksk.id)
+ZSK_ID=$(cat ns2/${zone}.zsk.id)
 SECTIONS="+answer +noauthority +noadditional"
 echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
 
@@ -4133,7 +4133,7 @@ status=$((status+ret))
 # Roll the ZSK.
 zsk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
 keyfile_to_key_id "$zsk2" > ns2/$zone.zsk.id2
-ZSK_ID2=`cat ns2/$zone.zsk.id2`
+ZSK_ID2=$(cat ns2/$zone.zsk.id2)
 
 echo_i "load new ZSK $ZSK_ID2 for $zone ($n)"
 ret=0
@@ -4205,7 +4205,7 @@ mv ns2/$KSK.private.bak ns2/$KSK.private
 # Roll the ZSK again.
 zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
 keyfile_to_key_id "$zsk3" > ns2/$zone.zsk.id3
-ZSK_ID3=`cat ns2/$zone.zsk.id3`
+ZSK_ID3=$(cat ns2/$zone.zsk.id3)
 
 # Schedule the new ZSK (ZSK3) to become active.
 echo_i "delete old ZSK $ZSK_ID schedule ZSK $ZSK_ID2 inactive and new ZSK $ZSK_ID3 active for zone $zone ($n)"

@@ -116,7 +116,7 @@ testdata/master/master18.data: testdata/master/master18.data.in
 
 EXTRA_DIST =			\
 	Kdh.+002+18602.key	\
-	Krsa.+005+29235.key	\
+	Krsa.+008+29238.key	\
 	comparekeys		\
 	mkraw.pl		\
 	testdata		\

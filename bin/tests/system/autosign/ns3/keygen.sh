@@ -26,12 +26,12 @@ setup () {
 	zone="$1"
 	zonefile="${zone}.db"
 	infile="${zonefile}.in"
-	n=`expr ${n:-0} + 1`
+	n=$((${n:-0} + 1))
 }
 
 setup secure.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -40,7 +40,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup secure.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -49,7 +49,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup nsec3.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -62,7 +62,7 @@ count=1
 while [ $count -le 1000 ]
 do
     echo "label${count} IN TXT label${count}" >> $zonefile
-    count=`expr $count + 1`
+    count=$((count + 1))
 done
 # Don't create keys just yet, because the scenario we want to test
 # is an unsigned zone that has a NSEC3PARAM record added with
@@ -73,7 +73,7 @@ done
 #
 setup optout.nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -82,7 +82,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup nsec3.example
 cat $infile dsset-*.${zone}. > $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -91,9 +91,9 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup autonsec3.example
 cat $infile > $zonefile
-ksk=`$KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 echo $ksk > ../autoksk.key
-zsk=`$KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+zsk=$($KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 echo $zsk > ../autozsk.key
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -102,7 +102,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup secure.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -111,7 +111,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup nsec3.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -120,7 +120,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup optout.optout.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -129,7 +129,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup optout.example
 cat $infile dsset-*.${zone}. > $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -138,8 +138,8 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup rsasha256.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a RSASHA256 -b 2048 -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -a RSASHA256 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+ksk=$($KEYGEN -q -a RSASHA256 -b 2048 -fk $zone 2> kg.out) || dumpit kg.out
+$KEYGEN -q -a RSASHA256 -b 2048 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #
@@ -147,18 +147,25 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup rsasha512.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a RSASHA512 -b 2048 -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -a RSASHA512 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+ksk=$($KEYGEN -q -a RSASHA512 -b 2048 -fk $zone 2> kg.out) || dumpit kg.out
+$KEYGEN -q -a RSASHA512 -b 2048 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
 #
-# NSEC-only zone.
+# NSEC-only zone. A zone using NSEC-only DNSSEC algorithms.
+# None of these algorithms are supported for signing in FIPS mode
+# as they are MD5 and SHA1 based.
 #
-setup nsec.example
-cp $infile $zonefile
-ksk=`$KEYGEN -q -a RSASHA1 -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -a RSASHA1 $zone > kg.out 2>&1 || dumpit kg.out
-$DSFROMKEY $ksk.key > dsset-${zone}.
+if (cd ..; $SHELL ../testcrypto.sh -q RSASHA1)
+then
+    setup nsec-only.example
+    cp $infile $zonefile
+    ksk=$($KEYGEN -q -a RSASHA1 -fk $zone 2> kg.out) || dumpit kg.out
+    $KEYGEN -q -a RSASHA1 $zone > kg.out 2>&1 || dumpit kg.out
+    $DSFROMKEY $ksk.key > dsset-${zone}.
+else
+    echo_i "skip: nsec-only.example - signing with RSASHA1 not supported"
+fi
 
 #
 # Signature refresh test zone.  Signatures are set to expire long
@@ -170,7 +177,7 @@ count=1
 while [ $count -le 1000 ]
 do
     echo "label${count} IN TXT label${count}" >> $zonefile
-    count=`expr $count + 1`
+    count=$((count + 1))
 done
 $KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM $zone > kg.out 2>&1 || dumpit kg.out
@@ -181,8 +188,8 @@ mv $zonefile.signed $zonefile
 # NSEC3->NSEC transition test zone.
 #
 setup nsec3-to-nsec.example
-$KEYGEN -q -a RSASHA512 -b 2048 -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -q -a RSASHA512 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
@@ -199,9 +206,9 @@ $SIGNER -S -o $zone -f $zonefile $infile > s.out || dumpit s.out
 # removal of keys on schedule.
 #
 setup secure-to-insecure2.example
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 echo $ksk > ../del1.key
-zsk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+zsk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 echo $zsk > ../del2.key
 $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
@@ -246,9 +253,9 @@ $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -L 180 $zone > kg.out 2>&1 || dumpit kg.out
 # A zone with a DNSKEY RRset that is published before it's activated
 #
 setup delay.example
-ksk=`$KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 echo $ksk > ../delayksk.key
-zsk=`$KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+zsk=$($KEYGEN -G -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 echo $zsk > ../delayzsk.key
 
 #
@@ -256,8 +263,8 @@ echo $zsk > ../delayzsk.key
 # is missing.
 #
 setup noksk.example
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
-zsk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
+zsk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
 echo $ksk > ../noksk-ksk.key
 rm -f ${ksk}.private
@@ -267,8 +274,8 @@ rm -f ${ksk}.private
 # is missing.
 #
 setup nozsk.example
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
-zsk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
+zsk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
 echo $ksk > ../nozsk-ksk.key
 echo $zsk > ../nozsk-zsk.key
@@ -279,8 +286,8 @@ rm -f ${zsk}.private
 # is inactive.
 #
 setup inaczsk.example
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
-zsk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
+zsk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
 $SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
 echo $ksk > ../inaczsk-ksk.key
 echo $zsk > ../inaczsk-zsk.key
@@ -299,7 +306,7 @@ $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 #
 setup sync.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk -P sync now $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk -P sync now $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 echo ns3/$ksk > ../sync.key
@@ -309,7 +316,7 @@ echo ns3/$ksk > ../sync.key
 #
 setup kskonly.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk -P sync now $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk -P sync now $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -318,7 +325,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup inacksk2.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -Pnow -A now+3600 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -Pnow -A now+3600 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -327,7 +334,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup inaczsk2.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -P now -A now+3600 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -337,7 +344,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 setup inacksk3.example
 cp $infile $zonefile
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -P now -A now+3600 -fk $zone > kg.out 2>&1 || dumpit kg.out
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -346,7 +353,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup inaczsk3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -P now -A now+3600 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
@@ -357,9 +364,9 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup delzsk.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -I now-1w $zone 2>kg.out` || dumpit kg.out
+zsk=$($KEYGEN -a $DEFAULT_ALGORITHM -3 -q -I now-1w $zone 2>kg.out) || dumpit kg.out
 echo $zsk > ../delzsk.key
 
 #
@@ -367,7 +374,7 @@ echo $zsk > ../delzsk.key
 #
 setup dname-at-apex-nsec3.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -376,7 +383,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup cds-delete.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.
 
@@ -386,6 +393,6 @@ $DSFROMKEY $ksk.key > dsset-${zone}.
 #
 setup cdnskey-delete.example
 cp $infile $zonefile
-ksk=`$KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out` || dumpit kg.out
+ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
 $KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}.

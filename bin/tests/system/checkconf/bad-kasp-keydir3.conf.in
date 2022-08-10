@@ -12,19 +12,24 @@
  */
 
 /*
- * No key-directory is set, so the default is used.
- * Should fail because the same zone in different views is using different
- * DNSSEC policies.
+ * The zone in view "example1" inherits the key directory value from "options",
+ * but in view "example2" sets the key directory to the same value. This should
+ * be detected as an error because the zone is using different DNSSEC policies
+ * and should thus use different key directories.
  */
 
 key "keyforview1" {
-	algorithm "hmac-sha1";
+	algorithm @DEFAULT_HMAC@;
 	secret "YPfMoAk6h+3iN8MDRQC004iSNHY=";
 };
 
 key "keyforview2" {
-	algorithm "hmac-sha1";
+	algorithm @DEFAULT_HMAC@;
 	secret "4xILSZQnuO1UKubXHkYUsvBRPu8=";
+};
+
+options {
+	key-directory "keys";
 };
 
 view "example1" {
@@ -32,6 +37,7 @@ view "example1" {
 
 	zone "example.net" {
 		type primary;
+		/* key-directory inherited from options. */
 		dnssec-policy "default";
 		file "example1.db";
 	};
@@ -43,6 +49,7 @@ view "example2" {
 	zone "example.net" {
 		type primary;
 		dnssec-policy "insecure";
+		key-directory "keys";
 		file "example2.db";
 	};
 };
