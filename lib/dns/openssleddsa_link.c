@@ -324,8 +324,9 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	else
 		siglen = DNS_SIG_ED448SIZE;
 
-	if (sig->length != siglen)
-		return (DST_R_VERIFYFAILURE);
+	if (sig->length != siglen) {
+		DST_RET(DST_R_VERIFYFAILURE);
+	}
 
 	isc_buffer_usedregion(buf, &tbsreg);
 
