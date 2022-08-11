@@ -3620,7 +3620,13 @@ print_namehook_list(FILE *f, const char *legend, dns_adb_t *adb,
 		if (debug) {
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
 		}
+#ifdef __SANITIZE_THREAD__
+		LOCK(&adb->entrylocks[nh->entry->lock_bucket]);
+#endif
 		dump_entry(f, adb, nh->entry, debug, now);
+#ifdef __SANITIZE_THREAD__
+		UNLOCK(&adb->entrylocks[nh->entry->lock_bucket]);
+#endif
 	}
 }
 
