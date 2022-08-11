@@ -6,10 +6,6 @@ variables:
 
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
-  SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
-  OPENSSL_ENGINES: "/usr/lib/x86_64-linux-gnu/engines-1.1"
-  DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
-  OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
 
   GIT_DEPTH: 1
   BUILD_PARALLEL_JOBS: 6
@@ -974,14 +970,12 @@ gcc:asan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
-    SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
     EXTRA_CONFIGURE: "--with-libidn2 --without-jemalloc"
   <<: *fedora_35_amd64_image
   <<: *build_job
 
 system:gcc:asan:
   variables:
-    SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
     LSAN_OPTIONS: "suppressions=$CI_PROJECT_DIR/suppr-lsan.txt"
   <<: *fedora_35_amd64_image
   <<: *system_test_job
@@ -1026,14 +1020,12 @@ gcc:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock --without-jemalloc"
   <<: *fedora_35_amd64_image
   <<: *build_job
 
 system:gcc:tsan:
   variables:
-    SOFTHSM2_MODULE: "/lib64/libsofthsm2.so"
     TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
   <<: *fedora_35_amd64_image
   <<: *system_test_tsan_job
@@ -1083,10 +1075,18 @@ clang:bullseye:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
+    # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
+    EXTRA_CONFIGURE: "--without-jemalloc"
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
 system:clang:bullseye:amd64:
+  # Set up environment variables that allow the "keyfromlabel" system test to be run
+  variables:
+    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
+    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
+    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
+    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
   <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
