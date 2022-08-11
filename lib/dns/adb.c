@@ -2946,7 +2946,9 @@ print_namehook_list(FILE *f, const char *legend, dns_adb_t *adb,
 		if (debug) {
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
 		}
+		LOCK(&nh->entry->bucket->lock);
 		dump_entry(f, adb, nh->entry, debug, now);
+		UNLOCK(&nh->entry->bucket->lock);
 	}
 }
 
