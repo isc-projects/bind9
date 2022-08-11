@@ -940,20 +940,24 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 	REQUIRE(name != NULL);
 	REQUIRE(tkey != NULL);
 
+	len = 16 + tkey->algorithm.length + tkey->keylen + tkey->otherlen;
+	isc_buffer_allocate(msg->mctx, &dynbuf, len);
+	dns_message_gettemprdata(msg, &rdata);
+	result = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
+				      dns_rdatatype_tkey, tkey, dynbuf);
+	if (result != ISC_R_SUCCESS) {
+		dns_message_puttemprdata(msg, &rdata);
+		isc_buffer_free(&dynbuf);
+		return (result);
+	}
+	dns_message_takebuffer(msg, &dynbuf);
+
 	dns_message_gettempname(msg, &qname);
 	dns_message_gettempname(msg, &aname);
 
 	dns_message_gettemprdataset(msg, &question);
 	dns_rdataset_makequestion(question, dns_rdataclass_any,
 				  dns_rdatatype_tkey);
-
-	len = 16 + tkey->algorithm.length + tkey->keylen + tkey->otherlen;
-	isc_buffer_allocate(msg->mctx, &dynbuf, len);
-	dns_message_gettemprdata(msg, &rdata);
-
-	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
-				    dns_rdatatype_tkey, tkey, dynbuf));
-	dns_message_takebuffer(msg, &dynbuf);
 
 	dns_message_gettemprdatalist(msg, &tkeylist);
 	tkeylist->rdclass = dns_rdataclass_any;
@@ -982,25 +986,6 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 	}
 
 	return (ISC_R_SUCCESS);
-
-failure:
-	if (qname != NULL) {
-		dns_message_puttempname(msg, &qname);
-	}
-	if (aname != NULL) {
-		dns_message_puttempname(msg, &aname);
-	}
-	if (question != NULL) {
-		dns_rdataset_disassociate(question);
-		dns_message_puttemprdataset(msg, &question);
-	}
-	if (dynbuf != NULL) {
-		isc_buffer_free(&dynbuf);
-	}
-	if (rdata != NULL) {
-		dns_message_puttemprdata(msg, &rdata);
-	}
-	return (result);
 }
 
 isc_result_t
