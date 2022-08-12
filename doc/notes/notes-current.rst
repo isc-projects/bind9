@@ -39,6 +39,10 @@ Security Fixes
   for the incoming query. This has been fixed. (CVE-2022-3080)
   :gl:`#3517`
 
+- Memory leaks were fixed that could be externally triggered in the
+  DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
+  :gl:`#3487`
+
 Known Issues
 ~~~~~~~~~~~~
 
