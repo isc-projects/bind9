@@ -1,3 +1,6 @@
+5962.	[security]	Fix memory leak in EdDSA verify processing.
+			(CVE-2022-38178) [GL #3487]
+
 5961.	[security]	Fix memory leak in ECDSA verify processing.
 			(CVE-2022-38177) [GL #3487]
 
