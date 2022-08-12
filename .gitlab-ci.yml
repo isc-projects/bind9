@@ -1074,25 +1074,25 @@ unit:clang:bullseye:amd64:
     - job: clang:bullseye:amd64
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Fedora 35 (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Debian 11 "bullseye" (amd64)
 
 gcc:softhsm2.6:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib64/pkcs11/libsofthsm2.so"
-  <<: *fedora_35_amd64_image
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_bullseye_amd64_image
   <<: *build_job
 
 system:gcc:softhsm2.6:
-  <<: *fedora_35_amd64_image
+  <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:softhsm2.6
       artifacts: true
 
 unit:gcc:softhsm2.6:
-  <<: *fedora_35_amd64_image
+  <<: *debian_bullseye_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:softhsm2.6
