@@ -1,3 +1,6 @@
+5961.	[security]	Fix memory leak in ECDSA verify processing.
+			(CVE-2022-38177) [GL #3487]
+
 5957.	[security]	Prevent excessive resource use while processing large
 			delegations. (CVE-2022-2795) [GL #3394]
 
