@@ -34,6 +34,10 @@ Security Fixes
   DNSSEC verification code for the ECDSA algorithm. (CVE-2022-38177)
   :gl:`#3487`
 
+- Memory leaks were fixed that could be externally triggered in the
+  DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
+  :gl:`#3487`
+
 Known Issues
 ~~~~~~~~~~~~
 
