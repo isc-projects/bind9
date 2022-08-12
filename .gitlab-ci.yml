@@ -181,7 +181,7 @@ stages:
   <<: *libvirt_amd64
 
 .freebsd-13-amd64: &freebsd_13_amd64_image
-  image: "freebsd-13.0-x86_64"
+  image: "freebsd-13.1-x86_64"
   <<: *libvirt_amd64
 
 .openbsd-amd64: &openbsd_amd64_image
