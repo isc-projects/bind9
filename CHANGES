@@ -1,3 +1,7 @@
+5940.	[placeholder]
+
+5939.	[placeholder]
+
 5938.	[bug]		An integer type overflow could cause an assertion
 			failure when freeing memory. [GL #3483]
 
