@@ -50,7 +50,7 @@ following systems:
 -  Fedora 35
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
 -  FreeBSD 12.3, 13.0
--  OpenBSD 7.0
+-  OpenBSD 7.1
 -  Alpine Linux 3.16
 
 The amd64, i386, armhf, and arm64 CPU architectures are all fully
