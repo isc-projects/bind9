@@ -1,3 +1,6 @@
+5941.	[func]		Zones with dnssec-policy now require dynamic DNS or
+			inline-siging to be configured explicitly. [GL #3381]
+
 5940.	[placeholder]
 
 5939.	[placeholder]

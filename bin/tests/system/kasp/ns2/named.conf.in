@@ -46,8 +46,9 @@ zone "unsigned.tld" {
 
 zone "signed.tld" {
 	type primary;
-	dnssec-policy "default";
 	file "signed.tld.db";
+	dnssec-policy "default";
+	inline-signing yes;
 };
 
 /* Primary service for ns3 */
