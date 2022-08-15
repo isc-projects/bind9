@@ -997,6 +997,9 @@ failure:
 	if (dynbuf != NULL) {
 		isc_buffer_free(&dynbuf);
 	}
+	if (rdata != NULL) {
+		dns_message_puttemprdata(msg, &rdata);
+	}
 	return (result);
 }
 
