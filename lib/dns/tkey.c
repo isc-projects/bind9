@@ -1019,6 +1019,18 @@ failure:
 	if (dynbuf != NULL) {
 		isc_buffer_free(&dynbuf);
 	}
+	if (rdata != NULL) {
+		dns_message_puttemprdata(msg, &rdata);
+	}
+	if (tkeylist != NULL) {
+		dns_message_puttemprdatalist(msg, &tkeylist);
+	}
+	if (tkeyset != NULL) {
+		if (dns_rdataset_isassociated(tkeyset)) {
+			dns_rdataset_disassociate(tkeyset);
+		}
+		dns_message_puttemprdataset(msg, &tkeyset);
+	}
 	return (result);
 }
 
