@@ -202,6 +202,8 @@ free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	if (r.base != NULL) {
 		isc_mem_put(mctx, r.base, r.length);
 	}
+
+	isc_buffer_initnull(buffer);
 }
 
 isc_result_t
@@ -864,6 +866,7 @@ httpd_compress(isc_httpd_t *httpd) {
 
 	inputlen = isc_buffer_usedlength(&httpd->bodybuffer);
 	alloc_compspace(httpd, inputlen);
+	isc_buffer_clear(&httpd->compbuffer);
 	isc_buffer_region(&httpd->compbuffer, &r);
 
 	/*
