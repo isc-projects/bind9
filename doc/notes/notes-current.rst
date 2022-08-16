@@ -35,7 +35,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- When an international domain name is not valid according to IDNA2008,
+  :program:`dig` will now try to convert it according to IDNA2003 rules,
+  or pass it through unchanged, instead of stopping with an error message.
+  You can use the ``idna2`` utility for checking IDNA syntax. :gl:`#3485`.
 
 Bug Fixes
 ~~~~~~~~~

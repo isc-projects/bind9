@@ -1,3 +1,7 @@
+5964.	[func]		When an international domain name is not valid, DiG will
+			now pass it through unchanged, instead of stopping with
+			an error message. [GL #3527]
+
 5963.	[bug]		Ensure struct named_server is properly initialized.
 			[GL #6531]
 
