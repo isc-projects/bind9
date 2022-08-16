@@ -823,7 +823,7 @@ render_500(const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
 
 #ifdef HAVE_ZLIB
 /*%<
- * Reallocates compbuffer to size, does nothing if compbuffer is already
+ * Reallocates compbuffer to size; does nothing if compbuffer is already
  * larger than size.
  */
 static void
@@ -831,11 +831,11 @@ alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
 	char *newspace = NULL;
 	isc_region_t r;
 
-	isc_buffer_region(&httpd->compbuffer, &r);
-	if (size < r.length) {
+	if (size <= isc_buffer_length(&httpd->compbuffer)) {
 		return;
 	}
 
+	isc_buffer_region(&httpd->compbuffer, &r);
 	newspace = isc_mem_get(httpd->mgr->mctx, size);
 	isc_buffer_reinit(&httpd->compbuffer, newspace, size);
 
@@ -860,25 +860,23 @@ alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
 static isc_result_t
 httpd_compress(isc_httpd_t *httpd) {
 	z_stream zstr;
-	isc_region_t r;
-	int ret;
-	int inputlen;
-
-	inputlen = isc_buffer_usedlength(&httpd->bodybuffer);
-	alloc_compspace(httpd, inputlen);
-	isc_buffer_clear(&httpd->compbuffer);
-	isc_buffer_region(&httpd->compbuffer, &r);
+	int ret, inputlen;
 
 	/*
 	 * We're setting output buffer size to input size so it fails if the
 	 * compressed data size would be bigger than the input size.
 	 */
-	memset(&zstr, 0, sizeof(zstr));
-	zstr.total_in = zstr.avail_in = zstr.total_out = zstr.avail_out =
-		inputlen;
+	inputlen = isc_buffer_usedlength(&httpd->bodybuffer);
+	alloc_compspace(httpd, inputlen);
+	isc_buffer_clear(&httpd->compbuffer);
 
-	zstr.next_in = isc_buffer_base(&httpd->bodybuffer);
-	zstr.next_out = r.base;
+	zstr = (z_stream){
+		.total_in = inputlen,
+		.avail_out = inputlen,
+		.avail_in = inputlen,
+		.next_in = isc_buffer_base(&httpd->bodybuffer),
+		.next_out = isc_buffer_base(&httpd->compbuffer),
+	};
 
 	ret = deflateInit(&zstr, Z_DEFAULT_COMPRESSION);
 	if (ret == Z_OK) {
@@ -886,7 +884,7 @@ httpd_compress(isc_httpd_t *httpd) {
 	}
 	deflateEnd(&zstr);
 	if (ret == Z_STREAM_END) {
-		isc_buffer_add(&httpd->compbuffer, inputlen - zstr.avail_out);
+		isc_buffer_add(&httpd->compbuffer, zstr.total_out);
 		return (ISC_R_SUCCESS);
 	} else {
 		return (ISC_R_FAILURE);
@@ -1025,9 +1023,8 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_buffer_clear(&httpd->headerbuffer);
 	isc_buffer_setautorealloc(httpd->sendbuffer, true);
 	databuffer = (is_compressed ? &httpd->compbuffer : &httpd->bodybuffer);
-	isc_buffer_usedregion(databuffer, &r);
-	result = isc_buffer_copyregion(httpd->sendbuffer, &r);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_buffer_putmem(httpd->sendbuffer, isc_buffer_base(databuffer),
+			  isc_buffer_usedlength(databuffer));
 
 	/* Consume the request from the recv buffer. */
 	if (httpd->consume != 0U) {
@@ -1206,18 +1203,11 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	REQUIRE(VALID_HTTPD(httpd));
 	REQUIRE(httpd->handle == handle);
 
+	/* Clean up buffers */
 	isc_buffer_free(&httpd->sendbuffer);
-
-	/*
-	 * We will always want to clean up our receive buffer, even if we
-	 * got an error on send or we are shutting down.
-	 */
-	if (httpd->freecb != NULL) {
-		isc_buffer_t *b = NULL;
-		if (isc_buffer_length(&httpd->bodybuffer) > 0) {
-			b = &httpd->bodybuffer;
-			httpd->freecb(b, httpd->freecb_arg);
-		}
+	if (httpd->freecb != NULL && isc_buffer_length(&httpd->bodybuffer) > 0)
+	{
+		httpd->freecb(&httpd->bodybuffer, httpd->freecb_arg);
 	}
 
 	isc_nmhandle_detach(&httpd->sendhandle);
