@@ -359,9 +359,11 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			proto = "TLS";
 		} else if (query->lookup->https_mode) {
 			if (query->lookup->http_plain) {
-				proto = "HTTP";
+				proto = query->lookup->https_get ? "HTTP-GET"
+								 : "HTTP";
 			} else {
-				proto = "HTTPS";
+				proto = query->lookup->https_get ? "HTTPS-GET"
+								 : "HTTPS";
 			}
 		} else if (query->lookup->tcp_mode) {
 			proto = "TCP";
