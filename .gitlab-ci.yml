@@ -1290,10 +1290,10 @@ release:
          --form token=$COVERITY_SCAN_TOKEN
   - test "$(md5sum /tmp/cov-analysis-linux64.tgz | awk '{ print $1 }')" = "$(cat /tmp/cov-analysis-linux64.md5)"
   - tar --extract --gzip --file=/tmp/cov-analysis-linux64.tgz --directory=/tmp
-  - test -d /tmp/cov-analysis-linux64-2021.12.1
+  - test -d /tmp/cov-analysis-linux64-2022.6.0
 
 .coverity_build: &coverity_build
-  - /tmp/cov-analysis-linux64-2021.12.1/bin/cov-build --dir /tmp/cov-int --fs-capture-search . sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
+  - /tmp/cov-analysis-linux64-2022.6.0/bin/cov-build --dir /tmp/cov-int --fs-capture-search . sh -c 'make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1'
   - tar --create --gzip --file=/tmp/cov-int.tar.gz --directory /tmp cov-int
   - curl -v https://scan.coverity.com/builds?project=$COVERITY_SCAN_PROJECT_NAME
         --form token=$COVERITY_SCAN_TOKEN
