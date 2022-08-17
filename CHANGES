@@ -1,3 +1,6 @@
+5942.	[bug]		Fix tkey.c:buildquery() function's error handling by
+			adding the missing cleanup code. [GL #3492]
+
 5938.	[bug]		An integer type overflow could cause an assertion
 			failure when freeing memory. [GL #3483]
 
