@@ -1558,12 +1558,12 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 					FULLCHECK("http-plain");
 					break;
 				case '-':
-					switch (cmd[6]) {
+					switch (cmd[11]) {
 					case 'p':
-						FULLCHECK("https-plain-post");
+						FULLCHECK("http-plain-post");
 						break;
 					case 'g':
-						FULLCHECK("https-plain-get");
+						FULLCHECK("http-plain-get");
 						lookup->https_get = true;
 						break;
 					}
