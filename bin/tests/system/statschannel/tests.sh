@@ -397,9 +397,9 @@ else
     echo_i "skipping test as nc not found"
 fi
 
+echo_i "Check HTTP/1.1 pipelined requests are handled (POST) ($n)"
+ret=0
 if [ -x "${NC}" ] ; then
-    echo_i "Check HTTP/1.1 pipelined requests are handled (POST) ($n)"
-    ret=0
     ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
 POST /xml/v3/status HTTP/1.1
 Host: 10.53.0.3:${EXTRAPORT1}
@@ -417,12 +417,12 @@ Connection: close
 EOF
     lines=$(grep -c "^HTTP/1.1" nc.out$n)
     test "$lines" = 2 || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-    n=$((n + 1))
 else
     echo_i "skipping test as nc not found"
 fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "Check HTTP with more than 10 headers ($n)"
 ret=0
@@ -472,6 +472,29 @@ test $((time2 - time1)) -lt 5 || ret=1
 # we expect 1 request to be processed.
 lines=$(grep -c "^HTTP/1.1" send.out$n)
 test $lines = 1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check pipelined responses do not grow excessively ($n)"
+ret=0
+i=0
+if [ -x "${NC}" ] ; then
+    {
+        while test $i -lt 10; do
+            printf "GET /json/v1 HTTP/1.1\r\nHost: 10.53.0.3:%s\r\nAccept-Encoding: deflate, gzip, br, zstd\r\n\r\n" "${EXTRAPORT1}"
+            i=$((i + 1))
+        done
+    } | ${NC} 10.53.0.3 ${EXTRAPORT1} | grep -a Content-Length |
+        awk 'BEGIN { prev=0; }
+             { if (prev != 0 && $2 - prev > 100) {
+                   exit(1);
+               }
+               prev = $2;
+             }' || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
