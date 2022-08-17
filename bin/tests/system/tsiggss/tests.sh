@@ -17,6 +17,9 @@ set -e
 
 . ../conf.sh
 
+# Uncomment to regenerate credential caches after running krb5/setup.sh
+# KRB5_CONFIG=$(pwd)/krb/krb5.conf
+
 status=0
 n=1
 
