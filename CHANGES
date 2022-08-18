@@ -1,3 +1,7 @@
+5944.	[bug]		Fix +http-plain-get and +http-plain-post options
+			support in dig. Thanks to Marco Davids at SIDN for
+			reporting the problem. [GL !6672]
+
 5943.	[placeholder]
 
 5942.	[bug]		Fix tkey.c:buildquery() function's error handling by

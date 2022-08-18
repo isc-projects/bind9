@@ -344,16 +344,18 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (POST) ($n)"
 ret=0
-dig_with_https_opts @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts +stat @10.53.0.1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTPS)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking DoH query via IPv6 (POST) ($n)"
 ret=0
-dig_with_https_opts -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_https_opts +stat -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTPS)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -416,16 +418,18 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (GET) ($n)"
 ret=0
-dig_with_https_opts +https-get @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts +stat +https-get @10.53.0.1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTPS-GET)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking DoH query via IPv6 (GET) ($n)"
 ret=0
-dig_with_https_opts -6 +https-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_https_opts -6 +stat +https-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTPS-GET)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -488,32 +492,36 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking unencrypted DoH query (POST) ($n)"
 ret=0
-dig_with_http_opts @10.53.0.1 . SOA > dig.out.test$n
+dig_with_http_opts +stat @10.53.0.1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTP)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking unencrypted DoH query via IPv6 (POST) ($n)"
 ret=0
-dig_with_http_opts -6 @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_http_opts -6 +stat @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTP)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking unencrypted DoH query (GET) ($n)"
 ret=0
-dig_with_http_opts +http-plain-get @10.53.0.1 . SOA > dig.out.test$n
+dig_with_http_opts +stat +http-plain-get @10.53.0.1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTP-GET)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking unencrypted DoH query via IPv6 (GET) ($n)"
 ret=0
-dig_with_http_opts -6 +http-plain-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_http_opts -6 +stat +http-plain-get @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep -F "(HTTP-GET)" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

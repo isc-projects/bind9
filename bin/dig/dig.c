@@ -359,9 +359,11 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			proto = "TLS";
 		} else if (query->lookup->https_mode) {
 			if (query->lookup->http_plain) {
-				proto = "HTTP";
+				proto = query->lookup->https_get ? "HTTP-GET"
+								 : "HTTP";
 			} else {
-				proto = "HTTPS";
+				proto = query->lookup->https_get ? "HTTPS-GET"
+								 : "HTTPS";
 			}
 		} else if (query->lookup->tcp_mode) {
 			proto = "TCP";
@@ -1552,12 +1554,12 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 					FULLCHECK("http-plain");
 					break;
 				case '-':
-					switch (cmd[6]) {
+					switch (cmd[11]) {
 					case 'p':
-						FULLCHECK("https-plain-post");
+						FULLCHECK("http-plain-post");
 						break;
 					case 'g':
-						FULLCHECK("https-plain-get");
+						FULLCHECK("http-plain-get");
 						lookup->https_get = true;
 						break;
 					}
