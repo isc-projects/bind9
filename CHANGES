@@ -27,6 +27,8 @@
 5935.	[bug]		Fix DiG lookup reference counting bug, which could
 			be observed in NSSEARCH mode. [GL #3478]
 
+	--- 9.19.4 released ---
+
 5934.	[func]		Improve fetches-per-zone fetch limit logging to log
 			the final allowed and spilled values of the fetch
 			counters before the counter object gets destroyed.
