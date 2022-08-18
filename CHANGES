@@ -1,3 +1,5 @@
+5943.	[placeholder]
+
 5942.	[bug]		Fix tkey.c:buildquery() function's error handling by
 			adding the missing cleanup code. [GL #3492]
 
