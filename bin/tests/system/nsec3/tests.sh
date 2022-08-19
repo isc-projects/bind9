@@ -112,7 +112,7 @@ _wait_for_nsec() {
 wait_for_zone_is_signed() {
 	n=$((n+1))
 	ret=0
-	echo_i "wait for ${ZONE} to be signed ($n)"
+	echo_i "wait for ${ZONE} to be signed with $1 ($n)"
 
 	if [ "$1" = "nsec3" ]; then
 		retry_quiet 10 _wait_for_nsec3param || log_error "wait for ${ZONE} to be signed failed"
@@ -146,6 +146,8 @@ _check_nsec_nxdomain() {
 }
 
 check_nsec() {
+	wait_for_zone_is_signed "nsec"
+
 	n=$((n+1))
 	echo_i "check DNSKEY rrset is signed correctly for zone ${ZONE} ($n)"
 	ret=0
@@ -194,6 +196,8 @@ _check_nsec3_nxdomain() {
 }
 
 check_nsec3() {
+	wait_for_zone_is_signed "nsec3"
+
 	n=$((n+1))
 	echo_i "check that NSEC3PARAM 1 0 ${ITERATIONS} is published zone ${ZONE} ($n)"
 	ret=0
@@ -363,6 +367,7 @@ then
 
 	# Zone: nsec3-to-rsasha1.kasp.
 	set_zone_policy "nsec3-to-rsasha1.kasp" "rsasha1" 2 3600
+	set_nsec3param "1" "0" "0"
 	set_server "ns3" "10.53.0.3"
 	set_key_default_values "KEY1"
 	set_key_states  "KEY1" "hidden" "unretentive" "unretentive" "unretentive" "hidden"
@@ -374,6 +379,7 @@ then
 
 	# Zone: nsec3-to-rsasha1-ds.kasp.
 	set_zone_policy "nsec3-to-rsasha1-ds.kasp" "rsasha1" 2 3600
+	set_nsec3param "1" "0" "0"
 	set_server "ns3" "10.53.0.3"
 	set_key_default_values "KEY1"
 	set_key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
