@@ -63,7 +63,7 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	duration->unlimited = false;
 
 	/* Every duration starts with 'P' */
-	if (toupper(str[0]) != 'P') {
+	if (toupper((unsigned char)str[0]) != 'P') {
 		return (ISC_R_BADNUMBER);
 	}
 	P = str;
