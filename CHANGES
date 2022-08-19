@@ -1,3 +1,7 @@
+5945.	[bug]		If parsing /etc/bind.key failed, delv could assert
+			when trying to parse the built in trust anchors as
+			the parser hadn't been reset. [GL !6468]
+
 5944.	[bug]		Fix +http-plain-get and +http-plain-post options
 			support in dig. Thanks to Marco Davids at SIDN for
 			reporting the problem. [GL !6672]
