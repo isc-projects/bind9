@@ -319,10 +319,12 @@ destroy_httpdmgr(isc_httpdmgr_t *httpdmgr) {
 /*
  * Look for the given header in headers.
  * If value is specified look for it terminated with a character in eov.
+ * If fvalue is specified and the header was found, then *fvalue will point to
+ * the found header's value.
  */
 static bool
 have_header(isc_httpd_t *httpd, const char *header, const char *value,
-	    const char *eov) {
+	    const char *eov, const char **fvalue) {
 	char *cr, *nl, *h;
 	size_t hlen, vlen = 0;
 
@@ -356,10 +358,6 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 			continue;
 		}
 
-		if (value == NULL) {
-			return (true);
-		}
-
 		/*
 		 * Skip optional leading white space.
 		 */
@@ -367,6 +365,18 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 		while (*h == ' ' || *h == '\t') {
 			h++;
 		}
+
+		/*
+		 * Set the found value.
+		 */
+		if (fvalue != NULL) {
+			*fvalue = h;
+		}
+
+		if (value == NULL) {
+			return (true);
+		}
+
 		/*
 		 * Terminate token search on NULL or EOL.
 		 */
@@ -398,8 +408,10 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 static isc_result_t
 process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	char *s = NULL, *p = NULL, *urlend = NULL;
+	const char *content_length = NULL;
 	size_t limit = sizeof(httpd->recvbuf) - httpd->recvlen - 1;
 	size_t len = region->length;
+	size_t clen = 0;
 	int delim;
 	bool truncated = false;
 
@@ -556,17 +568,40 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 
 	httpd->headers = s;
 
-	if (have_header(httpd, "Connection:", "close", ", \t\r\n")) {
+	if (!have_header(httpd, "Content-Length:", NULL, NULL, &content_length))
+	{
+		/* Require a Content-Length header for POST requests. */
+		if (httpd->method == METHOD_POST) {
+			return (ISC_R_BADNUMBER);
+		}
+	} else {
+		INSIST(content_length != NULL);
+
+		clen = (size_t)strtoul(content_length, NULL, 10);
+		if (clen == ULONG_MAX) {
+			/* Invalid number in the header value. */
+			return (ISC_R_BADNUMBER);
+		}
+		if (httpd->recvlen < httpd->consume + clen) {
+			/* The request data isn't complete yet. */
+			return (ISC_R_NOTFOUND);
+		}
+
+		/* Consume the request's data, which we do not use. */
+		httpd->consume += clen;
+	}
+
+	if (have_header(httpd, "Connection:", "close", ", \t\r\n", NULL)) {
 		httpd->flags |= HTTPD_CLOSE;
 	}
 
-	if (have_header(httpd, "Host:", NULL, NULL)) {
+	if (have_header(httpd, "Host:", NULL, NULL, NULL)) {
 		httpd->flags |= HTTPD_FOUNDHOST;
 	}
 
 	if (strncmp(httpd->protocol, "HTTP/1.0", 8) == 0) {
-		if (have_header(httpd, "Connection:", "Keep-Alive", ", \t\r\n"))
-		{
+		if (have_header(httpd, "Connection:", "Keep-Alive", ", \t\r\n",
+				NULL)) {
 			httpd->flags |= HTTPD_KEEPALIVE;
 		} else {
 			httpd->flags |= HTTPD_CLOSE;
@@ -577,7 +612,8 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	 * Check for Accept-Encoding:
 	 */
 #ifdef HAVE_ZLIB
-	if (have_header(httpd, "Accept-Encoding:", "deflate", ";, \t\r\n")) {
+	if (have_header(httpd, "Accept-Encoding:", "deflate", ";, \t\r\n",
+			NULL)) {
 		httpd->flags |= HTTPD_ACCEPT_DEFLATE;
 	}
 #endif /* ifdef HAVE_ZLIB */

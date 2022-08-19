@@ -110,8 +110,8 @@ if [ $PERL_JSON ]; then
     [ "$noerror_count" -eq "$json_noerror_count" ] || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking malloced memory statistics xml/json ($n)"
@@ -131,8 +131,8 @@ if [ $PERL_JSON ]; then
     grep '"Malloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "checking consistency between regular and compressed output ($n)"
 for i in 1 2 3 4 5; do
@@ -158,8 +158,8 @@ for i in 1 2 3 4 5; do
 	fi
 done
 
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking if compressed output is really compressed ($n)"
@@ -169,15 +169,15 @@ then
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
     COMPSIZE=`cat compressed.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
-    if [ ! `expr $REGSIZE / $COMPSIZE` -gt 2 ]; then
+    if [ ! $((REGSIZE / COMPSIZE)) -gt 2 ]; then
 	ret=1
     fi
 else
     echo_i "skipped"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test dnssec sign statistics.
 zone="dnssec"
@@ -208,8 +208,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dynamic update.
 ret=0
@@ -238,8 +238,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations of KSK.
 ret=0
@@ -265,8 +265,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations for scheduled resigning (many keys).
 ret=0
@@ -306,8 +306,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dynamic update (many keys).
 ret=0
@@ -344,8 +344,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dnssec-policy change (removing keys).
 ret=0
@@ -373,11 +373,11 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 if [ -x "${NC}" ] ; then
-    echo_i "Check HTTP/1.1 pipelined requests are handled ($n)"
+    echo_i "Check HTTP/1.1 pipelined requests are handled (GET) ($n)"
     ret=0
     ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
 GET /xml/v3/status HTTP/1.1
@@ -391,8 +391,35 @@ EOF
     lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
     test $lines = 2 || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-    n=`expr $n + 1`
+    status=$((status + ret))
+    n=$((n + 1))
+else
+    echo_i "skipping test as nc not found"
+fi
+
+if [ -x "${NC}" ] ; then
+    echo_i "Check HTTP/1.1 pipelined requests are handled (POST) ($n)"
+    ret=0
+    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+
+{}
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+Connection: close
+
+{}
+EOF
+    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
+    test $lines = 2 || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+    n=$((n + 1))
 else
     echo_i "skipping test as nc not found"
 fi
@@ -421,8 +448,8 @@ test $((time2 - time1)) -lt 5 || ret=1
 lines=$(grep "^HTTP/1.1" send.out$n | wc -l)
 test $lines = 91 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
