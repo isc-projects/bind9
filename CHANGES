@@ -1,3 +1,7 @@
+5945.	[bug]		If parsing /etc/bind.key failed, delv could assert
+			when trying to parse the built in trust anchors as
+			the parser hadn't been reset. [GL !6468]
+
 5942.	[bug]		Fix tkey.c:buildquery() function's error handling by
 			adding the missing cleanup code. [GL #3492]
 
