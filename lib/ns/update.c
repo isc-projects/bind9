@@ -2096,56 +2096,12 @@ failure:
 static isc_result_t
 check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	     dns_dbversion_t *ver, dns_diff_t *diff) {
-	dns_difftuple_t *tuple;
-	bool nseconly = false, nsec3 = false;
 	isc_result_t result;
 	unsigned int iterations = 0;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 
-	/* Scan the tuples for an NSEC-only DNSKEY or an NSEC3PARAM */
-	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
-		if (tuple->op != DNS_DIFFOP_ADD) {
-			continue;
-		}
-
-		if (tuple->rdata.type == dns_rdatatype_dnskey) {
-			uint8_t alg;
-			alg = tuple->rdata.data[3];
-			if (alg == DST_ALG_RSASHA1) {
-				nseconly = true;
-				break;
-			}
-		} else if (tuple->rdata.type == dns_rdatatype_nsec3param) {
-			nsec3 = true;
-			break;
-		}
-	}
-
-	/* Check existing DB for NSEC-only DNSKEY */
-	if (!nseconly) {
-		result = dns_nsec_nseconly(db, ver, &nseconly);
-
-		/*
-		 * An NSEC3PARAM update can proceed without a DNSKEY (it
-		 * will trigger a delayed change), so we can ignore
-		 * ISC_R_NOTFOUND here.
-		 */
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_SUCCESS;
-		}
-
-		CHECK(result);
-	}
-
-	/* Check existing DB for NSEC3 */
-	if (!nsec3) {
-		CHECK(dns_nsec3_activex(db, ver, false, privatetype, &nsec3));
-	}
-
 	/* Refuse to allow NSEC3 with NSEC-only keys */
-	if (nseconly && nsec3) {
+	if (!dns_zone_check_dnskey_nsec3(zone, db, ver, diff, NULL, 0)) {
 		update_log(client, zone, ISC_LOG_ERROR,
 			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
 		result = DNS_R_REFUSED;
@@ -2346,8 +2302,11 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 			 * supporting an NSEC3 chain, then we set the
 			 * INITIAL flag to indicate that these parameters
 			 * are to be used later.
+			 *
+			 * Don't provide a 'diff' here because we want to
+			 * know the capability of the current database.
 			 */
-			result = dns_nsec_nseconly(db, ver, &nseconly);
+			result = dns_nsec_nseconly(db, ver, NULL, &nseconly);
 			if (result == ISC_R_NOTFOUND || nseconly) {
 				buf[2] |= DNS_NSEC3FLAG_INITIAL;
 			}
