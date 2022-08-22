@@ -36,6 +36,8 @@ rndccmd() {
 set_zone_policy() {
 	ZONE=$1
 	POLICY=$2
+	NUM_KEYS=$3
+	DNSKEY_TTL=$4
 }
 # Set expected NSEC3 parameters: flags ($1), iterations ($2), and
 # salt length ($3).
@@ -45,6 +47,49 @@ set_nsec3param() {
 	SALTLEN=$3
 	# Reset salt.
 	SALT=""
+}
+
+# Set expected default dnssec-policy keys values.
+set_key_default_values() {
+	key_clear $1
+
+	set_keyrole      $1 "csk"
+	set_keylifetime  $1 "0"
+	set_keyalgorithm $1 "13" "ECDSAP256SHA256" "256"
+	set_keysigning   $1 "yes"
+	set_zonesigning  $1 "yes"
+
+	set_keystate $1 "GOAL"         "omnipresent"
+	set_keystate $1 "STATE_DNSKEY" "rumoured"
+	set_keystate $1 "STATE_KRRSIG" "rumoured"
+	set_keystate $1 "STATE_ZRRSIG" "rumoured"
+	set_keystate $1 "STATE_DS"     "hidden"
+}
+
+# Set expected rsasha1 dnssec-policy keys values.
+set_key_rsasha1_values() {
+	key_clear $1
+
+	set_keyrole      $1 "csk"
+	set_keylifetime  $1 "0"
+	set_keyalgorithm $1 "5" "RSASHA1" "2048"
+	set_keysigning   $1 "yes"
+	set_zonesigning  $1 "yes"
+
+	set_keystate $1 "GOAL"         "omnipresent"
+	set_keystate $1 "STATE_DNSKEY" "rumoured"
+	set_keystate $1 "STATE_KRRSIG" "rumoured"
+	set_keystate $1 "STATE_ZRRSIG" "rumoured"
+	set_keystate $1 "STATE_DS"     "hidden"
+}
+
+# Update the key states.
+set_key_states() {
+	set_keystate $1 "GOAL"         "$2"
+	set_keystate $1 "STATE_DNSKEY" "$3"
+	set_keystate $1 "STATE_KRRSIG" "$4"
+	set_keystate $1 "STATE_ZRRSIG" "$5"
+	set_keystate $1 "STATE_DS"     "$6"
 }
 
 # The apex NSEC3PARAM record indicates that it is signed.
@@ -67,7 +112,7 @@ _wait_for_nsec() {
 wait_for_zone_is_signed() {
 	n=$((n+1))
 	ret=0
-	echo_i "wait for ${ZONE} to be signed ($n)"
+	echo_i "wait for ${ZONE} to be signed with $1 ($n)"
 
 	if [ "$1" = "nsec3" ]; then
 		retry_quiet 10 _wait_for_nsec3param || log_error "wait for ${ZONE} to be signed failed"
@@ -79,24 +124,45 @@ wait_for_zone_is_signed() {
 	status=$((status+ret))
 }
 
+# Test: check DNSSEC verify
+_check_dnssec_verify() {
+        dig_with_opts @$SERVER "${ZONE}" AXFR > "dig.out.test$n.axfr.$ZONE" || return 1
+        $VERIFY -z -o "$ZONE" "dig.out.test$n.axfr.$ZONE" > "verify.out.test$n.$ZONE" 2>&1 || return 1
+	return 0
+}
+
 # Test: check NSEC in answers
-_check_nsec_nsec3param()
-{
+_check_nsec_nsec3param() {
 	dig_with_opts +noquestion @$SERVER "${ZONE}" NSEC3PARAM > "dig.out.test$n.nsec3param.$ZONE" || return 1
 	grep "NSEC3PARAM" "dig.out.test$n.nsec3param.$ZONE" > /dev/null && return 1
 	return 0
 }
 
-_check_nsec_nxdomain()
-{
+_check_nsec_nxdomain() {
 	dig_with_opts @$SERVER "nosuchname.${ZONE}" > "dig.out.test$n.nxdomain.$ZONE" || return 1
 	grep "${ZONE}.*IN.*NSEC.*NS.*SOA.*RRSIG.*NSEC.*DNSKEY" "dig.out.test$n.nxdomain.$ZONE" > /dev/null || return 1
 	grep "NSEC3" "dig.out.test$n.nxdomain.$ZONE" > /dev/null && return 1
 	return 0
 }
 
-check_nsec()
-{
+check_nsec() {
+	wait_for_zone_is_signed "nsec"
+
+	n=$((n+1))
+	echo_i "check DNSKEY rrset is signed correctly for zone ${ZONE} ($n)"
+	ret=0
+	check_keys
+	retry_quiet 10 _check_apex_dnskey || log_error "bad DNSKEY RRset for zone ${ZONE}"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+
+	n=$((n+1))
+	echo_i "verify DNSSEC for zone ${ZONE} ($n)"
+	ret=0
+	retry_quiet 10 _check_dnssec_verify || log_error "DNSSEC verify failed for zone ${ZONE}"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+
 	n=$((n+1))
 	echo_i "check NSEC3PARAM response for zone ${ZONE} ($n)"
 	ret=0
@@ -113,8 +179,7 @@ check_nsec()
 }
 
 # Test: check NSEC3 parameters in answers
-_check_nsec3_nsec3param()
-{
+_check_nsec3_nsec3param() {
 	dig_with_opts +noquestion @$SERVER "${ZONE}" NSEC3PARAM > "dig.out.test$n.nsec3param.$ZONE" || return 1
 	grep "${ZONE}.*0.*IN.*NSEC3PARAM.*1.*0.*${ITERATIONS}.*${SALT}" "dig.out.test$n.nsec3param.$ZONE" > /dev/null || return 1
 
@@ -124,15 +189,15 @@ _check_nsec3_nsec3param()
 	return 0
 }
 
-_check_nsec3_nxdomain()
-{
+_check_nsec3_nxdomain() {
 	dig_with_opts @$SERVER "nosuchname.${ZONE}" > "dig.out.test$n.nxdomain.$ZONE" || return 1
 	grep ".*\.${ZONE}.*IN.*NSEC3.*1.${FLAGS}.*${ITERATIONS}.*${SALT}" "dig.out.test$n.nxdomain.$ZONE" > /dev/null || return 1
 	return 0
 }
 
-check_nsec3()
-{
+check_nsec3() {
+	wait_for_zone_is_signed "nsec3"
+
 	n=$((n+1))
 	echo_i "check that NSEC3PARAM 1 0 ${ITERATIONS} is published zone ${ZONE} ($n)"
 	ret=0
@@ -146,74 +211,119 @@ check_nsec3()
 	retry_quiet 10 _check_nsec3_nxdomain || log_error "bad NXDOMAIN response for zone ${ZONE}"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
+
+	n=$((n+1))
+	echo_i "verify DNSSEC for zone ${ZONE} ($n)"
+	ret=0
+	retry_quiet 10 _check_dnssec_verify || log_error "DNSSEC verify failed for zone ${ZONE}"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
 }
 
 start_time="$(TZ=UTC date +%s)"
 status=0
 n=0
 
+key_clear "KEY1"
+key_clear "KEY2"
+key_clear "KEY3"
+key_clear "KEY4"
+
 # Zone: nsec-to-nsec3.kasp.
-set_zone_policy "nsec-to-nsec3.kasp" "nsec"
+set_zone_policy "nsec-to-nsec3.kasp" "nsec" 1 3600
 set_server "ns3" "10.53.0.3"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec
-dnssec_verify
+
+if ($SHELL ../testcrypto.sh -q RSASHA1)
+then
+	# Zone: rsasha1-to-nsec3.kasp.
+	set_zone_policy "rsasha1-to-nsec3.kasp" "rsasha1" 1 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	echo_i "initial check zone ${ZONE}"
+	check_nsec
+
+	# Zone: rsasha1-to-nsec3-wait.kasp.
+	set_zone_policy "rsasha1-to-nsec3-wait.kasp" "rsasha1" 1 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	set_key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+	echo_i "initial check zone ${ZONE}"
+	check_nsec
+
+	# Zone: nsec3-to-rsasha1.kasp.
+	set_zone_policy "nsec3-to-rsasha1.kasp" "nsec3" 1 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	echo_i "initial check zone ${ZONE}"
+	check_nsec3
+
+	# Zone: nsec3-to-rsasha1-ds.kasp.
+	set_zone_policy "nsec3-to-rsasha1-ds.kasp" "nsec3" 1 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	set_key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+	echo_i "initial check zone ${ZONE}"
+	check_nsec3
+fi
 
 # Zone: nsec3.kasp.
-set_zone_policy "nsec3.kasp" "nsec3"
+set_zone_policy "nsec3.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-dynamic.kasp.
-set_zone_policy "nsec3-dynamic.kasp" "nsec3"
+set_zone_policy "nsec3-dynamic.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-change.kasp.
-set_zone_policy "nsec3-change.kasp" "nsec3"
+set_zone_policy "nsec3-change.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-dynamic-change.kasp.
-set_zone_policy "nsec3-dynamic-change.kasp" "nsec3"
+set_zone_policy "nsec3-dynamic-change.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-to-nsec.kasp.
-set_zone_policy "nsec3-to-nsec.kasp" "nsec3"
+set_zone_policy "nsec3-to-nsec.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-to-optout.kasp.
-set_zone_policy "nsec3-to-optout.kasp" "nsec3"
+set_zone_policy "nsec3-to-optout.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-from-optout.kasp.
-set_zone_policy "nsec3-from-optout.kasp" "optout"
+set_zone_policy "nsec3-from-optout.kasp" "optout" 1 3600
 set_nsec3param "1" "0" "0"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-other.kasp.
-set_zone_policy "nsec3-other.kasp" "nsec3-other"
+set_zone_policy "nsec3-other.kasp" "nsec3-other" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-dnssec_verify
 
 # Reconfig named.
 echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
@@ -221,88 +331,141 @@ copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 
 # Zone: nsec-to-nsec3.kasp. (reconfigured)
-set_zone_policy "nsec-to-nsec3.kasp" "nsec3"
+set_zone_policy "nsec-to-nsec3.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
+
+if ($SHELL ../testcrypto.sh -q RSASHA1)
+then
+	# Zone: rsasha1-to-nsec3.kasp.
+	set_zone_policy "rsasha1-to-nsec3.kasp" "nsec3" 2 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	set_key_states "KEY1" "hidden" "unretentive" "unretentive" "unretentive" "hidden"
+	set_keysigning  "KEY1" "no"
+	set_zonesigning "KEY1" "no"
+	set_key_default_values "KEY2"
+	echo_i "check zone ${ZONE} after reconfig"
+	check_nsec3
+
+	# Zone: rsasha1-to-nsec3-wait.kasp.
+	set_zone_policy "rsasha1-to-nsec3-wait.kasp" "nsec3" 2 3600
+	set_server "ns3" "10.53.0.3"
+	set_key_rsasha1_values "KEY1"
+	set_key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+	set_key_default_values "KEY2"
+	echo_i "check zone ${ZONE} after reconfig"
+
+	ret=0
+	wait_for_log 10 "zone $ZONE/IN (signed): wait building NSEC3 chain until NSEC only DNSKEYs are removed" ns3/named.run || ret=1
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+
+	check_nsec
+
+	# Zone: nsec3-to-rsasha1.kasp.
+	set_zone_policy "nsec3-to-rsasha1.kasp" "rsasha1" 2 3600
+	set_nsec3param "1" "0" "0"
+	set_server "ns3" "10.53.0.3"
+	set_key_default_values "KEY1"
+	set_key_states  "KEY1" "hidden" "unretentive" "unretentive" "unretentive" "hidden"
+	set_keysigning  "KEY1" "no"
+	set_zonesigning "KEY1" "no"
+	set_key_rsasha1_values "KEY2"
+	echo_i "check zone ${ZONE} after reconfig"
+	check_nsec
+
+	# Zone: nsec3-to-rsasha1-ds.kasp.
+	set_zone_policy "nsec3-to-rsasha1-ds.kasp" "rsasha1" 2 3600
+	set_nsec3param "1" "0" "0"
+	set_server "ns3" "10.53.0.3"
+	set_key_default_values "KEY1"
+	set_key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+	set_key_rsasha1_values "KEY2"
+	echo_i "check zone ${ZONE} after reconfig"
+	check_nsec
+
+	key_clear "KEY1"
+	key_clear "KEY2"
+fi
 
 # Zone: nsec3.kasp. (same)
-set_zone_policy "nsec3.kasp" "nsec3"
+set_zone_policy "nsec3.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-dyamic.kasp. (same)
-set_zone_policy "nsec3-dynamic.kasp" "nsec3"
+set_zone_policy "nsec3-dynamic.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-change.kasp. (reconfigured)
-set_zone_policy "nsec3-change.kasp" "nsec3-other"
+set_zone_policy "nsec3-change.kasp" "nsec3-other" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-dynamic-change.kasp. (reconfigured)
-set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other"
+set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-to-nsec.kasp. (reconfigured)
-set_zone_policy "nsec3-to-nsec.kasp" "nsec"
+set_zone_policy "nsec3-to-nsec.kasp" "nsec" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec
-dnssec_verify
 
 # Zone: nsec3-to-optout.kasp. (reconfigured)
 # DISABLED:
 # There is a bug in the nsec3param building code that thinks when the
 # optout bit is changed, the chain already exists. [GL #2216]
-#set_zone_policy "nsec3-to-optout.kasp" "optout"
+#set_zone_policy "nsec3-to-optout.kasp" "optout" 1 3600
 #set_nsec3param "1" "0" "0"
+#set_key_default_values "KEY1"
 #echo_i "check zone ${ZONE} after reconfig"
 #check_nsec3
-#dnssec_verify
 
 # Zone: nsec3-from-optout.kasp. (reconfigured)
 # DISABLED:
 # There is a bug in the nsec3param building code that thinks when the
 # optout bit is changed, the chain already exists. [GL #2216]
-#set_zone_policy "nsec3-from-optout.kasp" "nsec3"
+#set_zone_policy "nsec3-from-optout.kasp" "nsec3" 1 3600
 #set_nsec3param "0" "0" "0"
+#set_key_default_values "KEY1"
 #echo_i "check zone ${ZONE} after reconfig"
 #check_nsec3
-#dnssec_verify
 
 # Zone: nsec3-other.kasp. (same)
-set_zone_policy "nsec3-other.kasp" "nsec3-other"
+set_zone_policy "nsec3-other.kasp" "nsec3-other" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
-dnssec_verify
 
 # Using rndc signing -nsec3param (should fail)
-set_zone_policy "nsec3-change.kasp" "nsec3-other"
+set_zone_policy "nsec3-change.kasp" "nsec3-other" 1 3600
 echo_i "use rndc signing -nsec3param ${ZONE} to change NSEC3 settings"
 rndccmd $SERVER signing -nsec3param 1 1 12 ffff $ZONE > rndc.signing.test$n.$ZONE || log_error "failed to call rndc signing -nsec3param $ZONE"
 grep "zone uses dnssec-policy, use rndc dnssec command instead" rndc.signing.test$n.$ZONE > /dev/null || log_error "rndc signing -nsec3param should fail"
 check_nsec3
-dnssec_verify
 
 # Test NSEC3 and NSEC3PARAM is the same after restart
-set_zone_policy "nsec3.kasp" "nsec3"
+set_zone_policy "nsec3.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} before restart"
 check_nsec3
-dnssec_verify
 
 # Restart named, NSEC3 should stay the same.
 ret=0
@@ -318,22 +481,22 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 prevsalt="${SALT}"
-set_zone_policy "nsec3.kasp" "nsec3"
+set_zone_policy "nsec3.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 SALT="${prevsalt}"
 echo_i "check zone ${ZONE} after restart has salt ${SALT}"
 check_nsec3
-dnssec_verify
 
 # Zone: nsec3-fails-to-load.kasp. (should be fixed after reload)
 cp ns3/template.db.in ns3/nsec3-fails-to-load.kasp.db
 rndc_reload ns3 10.53.0.3
 
-set_zone_policy "nsec3-fails-to-load.kasp" "nsec3"
+set_zone_policy "nsec3-fails-to-load.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reload"
 check_nsec3
-dnssec_verify
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

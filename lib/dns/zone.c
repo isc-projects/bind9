@@ -3716,7 +3716,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	 * latter to exist in the first place.
 	 */
 	dns_db_currentversion(db, &version);
-	result = dns_nsec_nseconly(db, version, &nseconly);
+	result = dns_nsec_nseconly(db, version, NULL, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
 	dns_db_closeversion(db, &version, false);
 	if (!nsec3ok && (nsec3param->flags & DNS_NSEC3FLAG_REMOVE) == 0) {
@@ -3908,7 +3908,7 @@ resume_addnsec3chain(dns_zone_t *zone) {
 	 * In order to create NSEC3 chains we need the DNSKEY RRset at zone
 	 * apex to exist and contain no keys using NSEC-only algorithms.
 	 */
-	result = dns_nsec_nseconly(db, version, &nseconly);
+	result = dns_nsec_nseconly(db, version, NULL, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
 
 	/*
@@ -8181,7 +8181,7 @@ try_private:
 		goto add;
 	}
 
-	result = dns_nsec_nseconly(db, ver, &nseconly);
+	result = dns_nsec_nseconly(db, ver, diff, &nseconly);
 	nsec3ok = (result == ISC_R_SUCCESS && !nseconly);
 
 	/*
@@ -9505,6 +9505,105 @@ failure:
 }
 
 /*
+ * Prevent the zone entering a inconsistent state where
+ * NSEC only DNSKEYs are present with NSEC3 chains.
+ */
+bool
+dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
+			    dns_dbversion_t *ver, dns_diff_t *diff,
+			    dst_key_t **keys, unsigned int numkeys) {
+	uint8_t alg;
+	dns_rdatatype_t privatetype;
+	;
+	bool nseconly = false, nsec3 = false;
+	isc_result_t result;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(db != NULL);
+
+	privatetype = dns_zone_getprivatetype(zone);
+
+	/* Scan the tuples for an NSEC-only DNSKEY */
+	if (diff != NULL) {
+		for (dns_difftuple_t *tuple = ISC_LIST_HEAD(diff->tuples);
+		     tuple != NULL; tuple = ISC_LIST_NEXT(tuple, link))
+		{
+			if (nseconly && nsec3) {
+				break;
+			}
+
+			if (tuple->op != DNS_DIFFOP_ADD) {
+				continue;
+			}
+
+			if (tuple->rdata.type == dns_rdatatype_nsec3param) {
+				nsec3 = true;
+			}
+
+			if (tuple->rdata.type != dns_rdatatype_dnskey) {
+				continue;
+			}
+
+			alg = tuple->rdata.data[3];
+			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DH ||
+			    alg == DNS_KEYALG_DSA || alg == DNS_KEYALG_RSASHA1)
+			{
+				nseconly = true;
+			}
+		}
+	}
+	/* Scan the zone keys for an NSEC-only DNSKEY */
+	if (keys != NULL && !nseconly) {
+		for (unsigned int i = 0; i < numkeys; i++) {
+			alg = dst_key_alg(keys[i]);
+			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DH ||
+			    alg == DNS_KEYALG_DSA || alg == DNS_KEYALG_RSASHA1)
+			{
+				nseconly = true;
+				break;
+			}
+		}
+	}
+
+	/* Check DB for NSEC-only DNSKEY */
+	if (!nseconly) {
+		result = dns_nsec_nseconly(db, ver, diff, &nseconly);
+		/*
+		 * Adding an NSEC3PARAM record can proceed without a
+		 * DNSKEY (it will trigger a delayed change), so we can
+		 * ignore ISC_R_NOTFOUND here.
+		 */
+		if (result == ISC_R_NOTFOUND) {
+			result = ISC_R_SUCCESS;
+		}
+		CHECK(result);
+	}
+
+	/* Check existing DB for NSEC3 */
+	if (!nsec3) {
+		CHECK(dns_nsec3_activex(db, ver, false, privatetype, &nsec3));
+	}
+
+	/* Check kasp for NSEC3PARAM settings */
+	if (!nsec3) {
+		dns_kasp_t *kasp = dns_zone_getkasp(zone);
+		if (kasp != NULL) {
+			nsec3 = dns_kasp_nsec3(kasp);
+		}
+	}
+
+	/* Refuse to allow NSEC3 with NSEC-only keys */
+	if (nseconly && nsec3) {
+		goto failure;
+	}
+
+	return (true);
+
+failure:
+	return (false);
+}
+
+/*
  * Incrementally sign the zone using the keys requested.
  * Builds the NSEC chain if required.
  */
@@ -9640,6 +9739,15 @@ zone_sign(dns_zone_t *zone) {
 	/* Determine which type of chain to build */
 	if (use_kasp) {
 		build_nsec3 = dns_kasp_nsec3(kasp);
+		if (!dns_zone_check_dnskey_nsec3(zone, db, version, NULL,
+						 (dst_key_t **)&zone_keys,
+						 nkeys))
+		{
+			dnssec_log(zone, ISC_LOG_INFO,
+				   "wait building NSEC3 chain until NSEC only "
+				   "DNSKEYs are removed");
+			build_nsec3 = false;
+		}
 		build_nsec = !build_nsec3;
 	} else {
 		CHECK(dns_private_chains(db, version, zone->privatetype,
@@ -20637,63 +20745,6 @@ failure:
 	return (result);
 }
 
-/*
- * Prevent the zone entering a inconsistent state where
- * NSEC only DNSKEYs are present with NSEC3 chains.
- * See update.c:check_dnssec()
- */
-static bool
-dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	    dns_diff_t *diff) {
-	isc_result_t result;
-	dns_difftuple_t *tuple;
-	bool nseconly = false, nsec3 = false;
-	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
-
-	/* Scan the tuples for an NSEC-only DNSKEY */
-	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
-		uint8_t alg;
-		if (tuple->rdata.type != dns_rdatatype_dnskey ||
-		    tuple->op != DNS_DIFFOP_ADD) {
-			continue;
-		}
-
-		alg = tuple->rdata.data[3];
-		if (alg == DST_ALG_RSASHA1) {
-			nseconly = true;
-			break;
-		}
-	}
-
-	/* Check existing DB for NSEC-only DNSKEY */
-	if (!nseconly) {
-		result = dns_nsec_nseconly(db, ver, &nseconly);
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_SUCCESS;
-		}
-		CHECK(result);
-	}
-
-	/* Check existing DB for NSEC3 */
-	if (!nsec3) {
-		CHECK(dns_nsec3_activex(db, ver, false, privatetype, &nsec3));
-	}
-
-	/* Refuse to allow NSEC3 with NSEC-only keys */
-	if (nseconly && nsec3) {
-		dnssec_log(zone, ISC_LOG_ERROR,
-			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
-		goto failure;
-	}
-
-	return (true);
-
-failure:
-	return (false);
-}
-
 static isc_result_t
 clean_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		 dns_diff_t *diff) {
@@ -21711,6 +21762,7 @@ zone_rekey(dns_zone_t *zone) {
 	if (result == ISC_R_SUCCESS) {
 		bool cdsdel = false;
 		bool cdnskeydel = false;
+		bool sane_diff, sane_dnskey;
 		isc_stdtime_t when;
 
 		/*
@@ -21879,9 +21931,21 @@ zone_rekey(dns_zone_t *zone) {
 			}
 		}
 
-		if ((newactive || fullsign || !ISC_LIST_EMPTY(diff.tuples)) &&
-		    dnskey_sane(zone, db, ver, &diff))
-		{
+		/*
+		 * A sane diff is one that is not empty, and that does not
+		 * introduce a zone with NSEC only DNSKEYs along with NSEC3
+		 * chains.
+		 */
+		sane_dnskey = dns_zone_check_dnskey_nsec3(zone, db, ver, &diff,
+							  NULL, 0);
+		sane_diff = !ISC_LIST_EMPTY(diff.tuples) && sane_dnskey;
+		if (!sane_dnskey) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "NSEC only DNSKEYs and NSEC3 chains not "
+				   "allowed");
+		}
+
+		if (newactive || fullsign || sane_diff) {
 			CHECK(dns_diff_apply(&diff, db, ver));
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
 			CHECK(add_signing_records(db, zone->privatetype, ver,
@@ -23075,7 +23139,7 @@ rss_post(dns_zone_t *zone, isc_event_t *event) {
 		dns_rdata_init(&rdata);
 
 		np->data[2] |= DNS_NSEC3FLAG_CREATE;
-		result = dns_nsec_nseconly(db, newver, &nseconly);
+		result = dns_nsec_nseconly(db, newver, NULL, &nseconly);
 		if (result == ISC_R_NOTFOUND || nseconly) {
 			np->data[2] |= DNS_NSEC3FLAG_INITIAL;
 		}
