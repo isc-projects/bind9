@@ -3062,9 +3062,9 @@ start_tcp(dig_query_t *query) {
 				   local_timeout);
 #endif
 	} else {
-		isc_nm_tcpdnsconnect(netmgr, &localaddr, &query->sockaddr,
-				     tcp_connected, connectquery,
-				     local_timeout);
+		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
+					tcp_connected, connectquery,
+					local_timeout, NULL, NULL);
 	}
 
 	/* XXX: set DSCP */
