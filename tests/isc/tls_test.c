@@ -38,7 +38,6 @@
 
 #include <tests/isc.h>
 
-#if HAVE_LIBNGHTTP2
 ISC_LOOP_TEST_IMPL(tls_noop) {
 	stream_noop(arg);
 	return;
@@ -96,11 +95,9 @@ ISC_LOOP_TEST_IMPL(tls_recv_send_quota_sendback) {
 	atomic_store(&check_listener_quota, true);
 	stream_recv_send(arg);
 }
-#endif
 
 ISC_TEST_LIST_START
 
-#if HAVE_LIBNGHTTP2
 /* TLS */
 ISC_TEST_ENTRY_CUSTOM(tls_noop, stream_noop_setup, stream_noop_teardown)
 ISC_TEST_ENTRY_CUSTOM(tls_noresponse, stream_noresponse_setup,
@@ -125,7 +122,6 @@ ISC_TEST_ENTRY_CUSTOM(tls_recv_send_quota, stream_recv_send_setup,
 		      stream_recv_send_teardown)
 ISC_TEST_ENTRY_CUSTOM(tls_recv_send_quota_sendback, stream_recv_send_setup,
 		      stream_recv_send_teardown)
-#endif
 
 ISC_TEST_LIST_END
 
