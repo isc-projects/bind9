@@ -1,3 +1,6 @@
+5948.	[bug]		Fix nsec3.c:dns_nsec3_activex() function, add a missing
+			dns_db_detachnode() call. [GL #3500]
+
 5947.	[func]		Change dnssec-policy to allow graceful transition from
 			an NSEC only zone to NSEC3. [GL #3486]
 
