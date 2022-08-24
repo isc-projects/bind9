@@ -125,6 +125,7 @@ setup_test(isc_timertype_t timertype, isc_interval_t *interval,
 
 	isc_task_detach(&task);
 	isc_mutex_destroy(&mx);
+	isc_mutex_destroy(&lasttime_mx);
 	isc_condition_destroy(&cv);
 }
 
