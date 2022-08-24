@@ -1,3 +1,8 @@
+6017.	[bug]		The view's zone table was not locked when it should
+			have been leading to race conditions when external
+			extensions that manipulate the zone table where in
+			use. [GL #3468]
+
 6016.	[func]		Change NSEC3PARAM TTL to match the SOA MINIMUM.
 			[GL #3570]
 
