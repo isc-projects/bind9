@@ -340,9 +340,13 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
-			result = sock->listener->accept_cb(
-				tlshandle, result,
-				sock->listener->accept_cbarg);
+			if (sock->listener->accept_cb == NULL) {
+				result = ISC_R_CANCELED;
+			} else {
+				result = sock->listener->accept_cb(
+					tlshandle, result,
+					sock->listener->accept_cbarg);
+			}
 		} else {
 			tls_call_connect_cb(sock, tlshandle, result);
 		}
@@ -931,6 +935,8 @@ void
 isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlslistener);
+	REQUIRE(sock->tlsstream.tls == NULL);
+	REQUIRE(sock->tlsstream.ctx == NULL);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
@@ -941,9 +947,6 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	atomic_store(&sock->closed, true);
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;
-
-	INSIST(sock->tlsstream.tls == NULL);
-	INSIST(sock->tlsstream.ctx == NULL);
 
 	if (sock->outer != NULL) {
 		isc_nm_stoplistening(sock->outer);

@@ -1300,6 +1300,7 @@ tcpdns_close_direct(isc_nmsocket_t *sock) {
 		isc_nmhandle_detach(&sock->recv_handle);
 	}
 
+	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 

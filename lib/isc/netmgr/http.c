@@ -2708,29 +2708,18 @@ void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httplistener);
+	REQUIRE(isc_tid() == sock->tid);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
 		UNREACHABLE();
 	}
 
-	REQUIRE(isc_tid() == sock->tid);
-	isc__netievent_httpstop_t ievent = { .sock = sock };
-	isc__nm_async_httpstop(NULL, (isc__netievent_t *)&ievent);
-}
-
-void
-isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpstop_t *ievent = (isc__netievent_httpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-
 	atomic_store(&sock->listening, false);
-	atomic_store(&sock->closing, false);
 	atomic_store(&sock->closed, true);
+	sock->recv_cb = NULL;
+	sock->recv_cbarg = NULL;
+
 	if (sock->outer != NULL) {
 		isc_nm_stoplistening(sock->outer);
 		isc_nmsocket_close(&sock->outer);

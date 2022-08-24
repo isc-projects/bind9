@@ -1172,10 +1172,10 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 
 		if (SSL_is_server(sock->tls.tls)) {
 			REQUIRE(sock->recv_handle != NULL);
+			REQUIRE(sock->accept_cb != NULL);
 			result = sock->accept_cb(sock->recv_handle,
 						 ISC_R_SUCCESS,
 						 sock->accept_cbarg);
-
 			if (result != ISC_R_SUCCESS) {
 				isc_nmhandle_detach(&sock->recv_handle);
 				goto failure;
@@ -1940,6 +1940,7 @@ tlsdns_close_direct(isc_nmsocket_t *sock) {
 		isc_nmhandle_detach(&sock->recv_handle);
 	}
 
+	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 

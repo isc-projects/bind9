@@ -305,7 +305,6 @@ typedef enum isc__netievent_type {
 	netievent_tcpdnsstop,
 	netievent_tlsdnslisten,
 	netievent_tlsdnsstop,
-	netievent_httpstop,
 
 	netievent_detach,
 } isc__netievent_type;
@@ -1698,9 +1697,6 @@ void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1861,7 +1857,6 @@ NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
 NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_TYPE(httpstop);
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
 NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
@@ -1921,7 +1916,6 @@ NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
 NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_DECL(httpstop);
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
 NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);

@@ -1060,6 +1060,10 @@ isc__nm_udp_close(isc_nmsocket_t *sock) {
 		return;
 	}
 
+	isc__nmsocket_clearcb(sock);
+	isc__nmsocket_timer_stop(sock);
+	isc__nm_stop_reading(sock);
+
 	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
 }
 

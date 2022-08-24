@@ -488,7 +488,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(tlsdobio);
 		NETIEVENT_CASE(tlscancel);
 
-		NETIEVENT_CASE(httpstop);
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
@@ -560,7 +559,6 @@ NETIEVENT_SOCKET_DEF(tlsdnscycle);
 NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_DEF(httpstop);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);

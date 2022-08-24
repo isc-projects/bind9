@@ -967,6 +967,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 		return (ISC_R_CANCELED);
 	}
 
+	REQUIRE(ssock->accept_cb != NULL);
+
 	csock = isc_mem_get(ssock->worker->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(csock, ssock->worker, isc_nm_tcpsocket,
 			   &ssock->iface);
@@ -1249,6 +1251,7 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		isc_quota_detach(&sock->quota);
 	}
 
+	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
