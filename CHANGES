@@ -1,3 +1,8 @@
+6017.	[bug]		The view's zone table was not locked when it should
+			have been leading to race conditions when external
+			extensions that manipulate the zone table where in
+			use. [GL #3468]
+
 6015.	[bug]		Some browsers (Firefox) send more than 10 HTTP
 			headers.  Bump the number of allowed HTTP headers
 			to 100. [GL #3670]
