@@ -140,6 +140,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 
 	isc_task_detach(&task);
 	isc_mutex_destroy(&mx);
+	isc_mutex_destroy(&lasttime_mx);
 	(void)isc_condition_destroy(&cv);
 }
 
