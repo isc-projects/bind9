@@ -49,6 +49,8 @@ options {
 	ixfr-from-differences yes;
 	check-integrity no;
 	dnssec-validation yes;
+	transfers-in 100;
+	transfers-out 100;
 };
 
 zone "." {
