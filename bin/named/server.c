@@ -9816,8 +9816,8 @@ cleanup:
 		if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0)
 		{
 			dns_view_setviewrevert(view);
-			(void)dns_zt_apply(view->zonetable, false, NULL,
-					   removed, view);
+			(void)dns_zt_apply(view->zonetable, isc_rwlocktype_read,
+					   false, NULL, removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -11467,8 +11467,8 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones) {
-		result = dns_zt_apply(view->zonetable, true, NULL,
-				      add_zone_tolist, dctx);
+		result = dns_zt_apply(view->zonetable, isc_rwlocktype_read,
+				      true, NULL, add_zone_tolist, dctx);
 	}
 	return (result);
 }
@@ -12813,7 +12813,8 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			result = dns_zt_apply(view->zonetable, false, NULL,
+			result = dns_zt_apply(view->zonetable,
+					      isc_rwlocktype_none, false, NULL,
 					      synczone, &cleanup);
 			if (result != ISC_R_SUCCESS && tresult == ISC_R_SUCCESS)
 			{
