@@ -37,4 +37,15 @@ dnssec_keygen_CPPFLAGS =	\
 
 dnssec_keygen_LDADD =		\
 	$(LDADD)		\
-	$(LIBISCCFG_LIBS)
+	$(LIBISCCFG_LIBS)	\
+	$(OPENSSL_LIBS)
+
+dnssec_signzone_CPPFLAGS =	\
+	$(AM_CPPFLAGS)		\
+	$(LIBISCCFG_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+dnssec_signzone_LDADD =		\
+	$(LDADD)		\
+	$(LIBISCCFG_LIBS)	\
+	$(OPENSSL_LIBS)
