@@ -183,6 +183,14 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
+		if (!dst_algorithm_supported(key->algorithm)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy: algorithm %s not supported",
+				    alg.base);
+			result = DNS_R_BADALG;
+			goto cleanup;
+		}
+
 		obj = cfg_tuple_get(config, "length");
 		if (cfg_obj_isuint32(obj)) {
 			uint32_t min, size;
