@@ -744,3 +744,15 @@ isc_nm_timer_start(isc_nm_timer_t *, uint64_t);
 
 void
 isc_nm_timer_stop(isc_nm_timer_t *);
+
+isc_result_t
+isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
+/*%<
+ * Disables/Enables Nagle's algorithm on a TCP socket for a
+ * transport backed by TCP (sets TCP_NODELAY if 'value' equals 'true'
+ * or vice versa).
+ *
+ * Requires:
+ *
+ * \li 'handle' is a valid netmgr handle object.
+ */

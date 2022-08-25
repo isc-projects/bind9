@@ -3013,6 +3013,31 @@ isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
 	};
 }
 
+isc_result_t
+isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
+	isc_result_t result = ISC_R_FAILURE;
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket: {
+		uv_os_fd_t tcp_fd = (uv_os_fd_t)-1;
+		(void)uv_fileno((uv_handle_t *)&sock->uv_handle.tcp, &tcp_fd);
+		RUNTIME_CHECK(tcp_fd != (uv_os_fd_t)-1);
+		result = isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd,
+						    value);
+	} break;
+	default:
+		UNREACHABLE();
+		break;
+	};
+
+	return (result);
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
