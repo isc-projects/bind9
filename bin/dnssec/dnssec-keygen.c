@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <openssl/opensslv.h>
+
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -58,6 +60,9 @@
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/provider.h>
+#endif
 
 #include "dnssectool.h"
 
@@ -178,6 +183,7 @@ usage(void) {
 	fprintf(stderr, "    -E <engine>:\n");
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
+	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
 	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
@@ -864,6 +870,10 @@ main(int argc, char **argv) {
 	const char *engine = NULL;
 	unsigned char c;
 	int ch;
+	bool set_fips_mode = false;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+	OSSL_PROVIDER *fips = NULL, *base = NULL;
+#endif
 
 	keygen_ctx_t ctx = {
 		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
@@ -1105,8 +1115,8 @@ main(int argc, char **argv) {
 			ctx.prepub = strtottl(isc_commandline_argument);
 			break;
 		case 'F':
-			/* Reserved for FIPS mode */
-			FALLTHROUGH;
+			set_fips_mode = true;
+			break;
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
@@ -1130,6 +1140,25 @@ main(int argc, char **argv) {
 
 	if (!isatty(0)) {
 		ctx.quiet = true;
+	}
+
+	if (set_fips_mode) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+		fips = OSSL_PROVIDER_load(NULL, "fips");
+		if (fips == NULL) {
+			fatal("Failed to load FIPS provider");
+		}
+		base = OSSL_PROVIDER_load(NULL, "base");
+		if (base == NULL) {
+			OSSL_PROVIDER_unload(fips);
+			fatal("Failed to load base provider");
+		}
+#endif
+		if (!isc_fips_mode()) {
+			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+				fatal("setting FIPS mode failed");
+			}
+		}
 	}
 
 	ret = dst_lib_init(mctx, engine);
@@ -1284,6 +1313,14 @@ main(int argc, char **argv) {
 	}
 	isc_mem_destroy(&mctx);
 
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif
 	if (freeit != NULL) {
 		free(freeit);
 	}
