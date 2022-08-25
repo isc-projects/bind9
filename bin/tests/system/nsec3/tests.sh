@@ -391,7 +391,14 @@ check_nsec
 # Reconfig named.
 ret=0
 echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
-copy_setports ns3/named2.conf.in ns3/named.conf
+if $FEATURETEST --have-fips-mode
+then
+    copy_setports ns3/named2-fips.conf.in ns3/named.conf
+else
+    copy_setports ns3/named2-fips.conf.in ns3/named-fips.conf
+    # includes named-fips.conf
+    cp ns3/named2.conf.in ns3/named.conf
+fi
 rndc_reconfig ns3 10.53.0.3
 
 # Zone: nsec-to-nsec3.kasp. (reconfigured)

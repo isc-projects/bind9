@@ -23,7 +23,15 @@ copy_setports ns2/named.conf.in ns2/named.conf
 	cd ns2
 	$SHELL setup.sh
 )
-copy_setports ns3/named.conf.in ns3/named.conf
+
+if $FEATURETEST --have-fips-mode
+then
+    copy_setports ns3/named-fips.conf.in ns3/named.conf
+else
+    copy_setports ns3/named-fips.conf.in ns3/named-fips.conf
+    # includes named-fips.conf
+    cp ns3/named.conf.in ns3/named.conf
+fi
 (
 	cd ns3
 	$SHELL setup.sh
