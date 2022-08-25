@@ -2434,7 +2434,7 @@ http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
 
 	(void)uv_fileno((uv_handle_t *)&tcpsock->uv_handle.tcp, &tcp_fd);
 	RUNTIME_CHECK(tcp_fd != (uv_os_fd_t)-1);
-	(void)isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd);
+	(void)isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd, true);
 }
 
 static isc_result_t

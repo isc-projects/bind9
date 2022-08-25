@@ -1861,9 +1861,10 @@ isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms);
  */
 
 isc_result_t
-isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
+isc__nm_socket_tcp_nodelay(const uv_os_sock_t fd, bool value);
 /*%<
- * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
+ * Disables/Enables Nagle's algorithm on a TCP socket (sets TCP_NODELAY if
+ * 'value' equals 'true' or vice versa).
  */
 
 isc_result_t
