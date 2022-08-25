@@ -275,7 +275,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 			continue;
 		}
 
-		result = cfg_kasp_fromconfig(kconfig, NULL, mctx, lctx,
+		result = cfg_kasp_fromconfig(kconfig, NULL, true, mctx, lctx,
 					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure dnssec-policy '%s': %s",

@@ -8366,8 +8366,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	result = isccfg_check_namedconf(config, false, named_g_lctx,
-					named_g_mctx);
+	result = isccfg_check_namedconf(config, BIND_CHECK_ALGORITHMS,
+					named_g_lctx, named_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_config;
 	}
@@ -9034,7 +9034,7 @@ load_configuration(const char *filename, named_server_t *server,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 
 		kasp = NULL;
-		result = cfg_kasp_fromconfig(kconfig, default_kasp,
+		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
 					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
@@ -9063,7 +9063,7 @@ load_configuration(const char *filename, named_server_t *server,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
-		result = cfg_kasp_fromconfig(kconfig, default_kasp,
+		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
 					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {

@@ -94,8 +94,8 @@ get_duration(const cfg_obj_t **maps, const char *option, const char *dfl) {
  */
 static isc_result_t
 cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
-		       isc_log_t *logctx, uint32_t ksk_min_lifetime,
-		       uint32_t zsk_min_lifetime) {
+		       bool check_algorithms, isc_log_t *logctx,
+		       uint32_t ksk_min_lifetime, uint32_t zsk_min_lifetime) {
 	isc_result_t result;
 	dns_kasp_key_t *key = NULL;
 
@@ -171,7 +171,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
-		if (isc_fips_mode() &&
+		if (check_algorithms && isc_fips_mode() &&
 		    (key->algorithm == DNS_KEYALG_RSASHA1 ||
 		     key->algorithm == DNS_KEYALG_NSEC3RSASHA1))
 		{
@@ -183,7 +183,9 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			goto cleanup;
 		}
 
-		if (!dst_algorithm_supported(key->algorithm)) {
+		if (check_algorithms &&
+		    !dst_algorithm_supported(key->algorithm))
+		{
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "dnssec-policy: algorithm %s not supported",
 				    alg.base);
@@ -351,7 +353,7 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
 
 isc_result_t
 cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
-		    isc_mem_t *mctx, isc_log_t *logctx,
+		    bool check_algorithms, isc_mem_t *mctx, isc_log_t *logctx,
 		    dns_kasplist_t *kasplist, dns_kasp_t **kaspp) {
 	isc_result_t result;
 	const cfg_obj_t *maps[2];
@@ -507,9 +509,9 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 		     element = cfg_list_next(element))
 		{
 			cfg_obj_t *kobj = cfg_listelt_value(element);
-			result = cfg_kaspkey_fromconfig(kobj, kasp, logctx,
-							ksk_min_lifetime,
-							zsk_min_lifetime);
+			result = cfg_kaspkey_fromconfig(
+				kobj, kasp, check_algorithms, logctx,
+				ksk_min_lifetime, zsk_min_lifetime);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
