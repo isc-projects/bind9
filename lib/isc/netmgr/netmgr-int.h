@@ -924,6 +924,7 @@ struct isc_nmsocket {
 			TLS_CLOSED
 		} state; /*%< The order of these is significant */
 		size_t nsending;
+		bool tcp_nodelay_value;
 	} tlsstream;
 
 	isc_nmsocket_h2_t h2;
@@ -1624,6 +1625,9 @@ void
 isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
 				    const unsigned char **alpn,
 				    unsigned int *alpnlen);
+
+isc_result_t
+isc__nmhandle_tls_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);

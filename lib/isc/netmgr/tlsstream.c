@@ -94,6 +94,9 @@ tls_keep_client_tls_session(isc_nmsocket_t *sock);
 static void
 tls_try_shutdown(isc_tls_t *tls, const bool quite);
 
+static void
+tls_try_to_enable_tcp_nodelay(isc_nmsocket_t *tlssock);
+
 /*
  * The socket is closing, outerhandle has been detached, listener is
  * inactive, or the netmgr is closing: any operation on it should abort
@@ -739,6 +742,17 @@ error:
 	return (ISC_R_TLSERROR);
 }
 
+static void
+tls_try_to_enable_tcp_nodelay(isc_nmsocket_t *tlssock) {
+	/*
+	 * Try to enable TCP_NODELAY for TLS connections by default to speed up
+	 * the handshakes, just like other software (e.g. NGINX) does.
+	 */
+	isc_result_t result = isc_nmhandle_set_tcp_nodelay(tlssock->outerhandle,
+							   true);
+	tlssock->tlsstream.tcp_nodelay_value = (result == ISC_R_SUCCESS);
+}
+
 static isc_result_t
 tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlslistensock = (isc_nmsocket_t *)cbarg;
@@ -795,6 +809,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	result = initialize_tls(tlssock, true);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	/* TODO: catch failure code, detach tlssock, and log the error */
+
+	tls_try_to_enable_tcp_nodelay(tlssock);
 
 	isc__nmhandle_set_manual_timer(tlssock->outerhandle, true);
 	tls_do_bio(tlssock, NULL, NULL, false);
@@ -1114,6 +1130,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 */
 	handle->sock->tlsstream.tlssocket = tlssock;
 
+	tls_try_to_enable_tcp_nodelay(tlssock);
+
 	isc__nmhandle_set_manual_timer(tlssock->outerhandle, true);
 	tls_do_bio(tlssock, NULL, NULL, false);
 	return;
@@ -1416,4 +1434,31 @@ isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
 	REQUIRE(sock->tid == isc_tid());
 
 	isc_tls_get_selected_alpn(sock->tlsstream.tls, alpn, alpnlen);
+}
+
+isc_result_t
+isc__nmhandle_tls_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
+	isc_nmsocket_t *sock = NULL;
+	isc_result_t result = ISC_R_FAILURE;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_tlssocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+
+		if (value == sock->tlsstream.tcp_nodelay_value) {
+			result = ISC_R_SUCCESS;
+		} else {
+			result = isc_nmhandle_set_tcp_nodelay(sock->outerhandle,
+							      value);
+			if (result == ISC_R_SUCCESS) {
+				sock->tlsstream.tcp_nodelay_value = value;
+			}
+		}
+	}
+
+	return (result);
 }

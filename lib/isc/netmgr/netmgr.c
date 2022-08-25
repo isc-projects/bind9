@@ -3030,6 +3030,9 @@ isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
 		result = isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd,
 						    value);
 	} break;
+	case isc_nm_tlssocket:
+		result = isc__nmhandle_tls_set_tcp_nodelay(handle, value);
+		break;
 	default:
 		UNREACHABLE();
 		break;
