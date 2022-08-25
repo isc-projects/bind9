@@ -391,7 +391,7 @@ check_nsec
 # Reconfig named.
 ret=0
 echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
-if $FEATURETEST --have-fips-mode
+if ! ($SHELL ../testcrypto.sh -q RSASHA1)
 then
     copy_setports ns3/named2-fips.conf.in ns3/named.conf
 else

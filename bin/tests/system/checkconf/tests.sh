@@ -518,7 +518,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking named-checkconf kasp nsec3 iterations errors ($n)"
 ret=0
-if $FEATURETEST --have-fips-mode; then
+if ! ($SHELL ../testcrypto.sh -q RSASHA1); then
     conf=kasp-bad-nsec3-iter-fips.conf
     expect=2
 else
@@ -536,8 +536,8 @@ n=`expr $n + 1`
 echo_i "checking named-checkconf kasp nsec3 algorithm errors ($n)"
 ret=0
 $CHECKCONF kasp-bad-nsec3-alg.conf > checkconf.out$n 2>&1 && ret=1
-if $FEATURETEST --have-fips-mode; then
-    grep "dnssec-policy: algorithm rsasha1 not supported in FIPS mode" < checkconf.out$n > /dev/null || ret=1
+if ! ($SHELL ../testcrypto.sh -q RSASHA1); then
+    grep "dnssec-policy: algorithm rsasha1 not supported" < checkconf.out$n > /dev/null || ret=1
 else
     grep "dnssec-policy: cannot use nsec3 with algorithm 'RSASHA1'" < checkconf.out$n > /dev/null || ret=1
 fi
