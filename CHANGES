@@ -1,3 +1,7 @@
+5951.	[bug]		In some cases, the dnstap query_message field was
+			erroneously set when logging response messages.
+			[GL #3501]
+
 5948.	[bug]		Fix nsec3.c:dns_nsec3_activex() function, add a missing
 			dns_db_detachnode() call. [GL #3500]
 
