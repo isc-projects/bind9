@@ -1426,6 +1426,24 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_ic "check that dnssec-signzone -F works with allowed algorithm ($n)"
+ret=0
+if $FEATURETEST --fips-provider
+then
+    (
+	cd signer/general || exit 1
+	rm -f signed.zone
+	$SIGNER -F -f signed.zone -o example.com. test1.zone > signer.out.$n
+	test -f signed.zone
+    ) || ret=1
+else
+    echo_i "skipped no FIPS provider available"
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+
 echo_ic "check that dnssec-signzone rejects excessive NSEC3 iterations ($n)"
 ret=0
 (
