@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -276,6 +277,32 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 		UNREACHABLE();
 	}
 	return (str);
+}
+
+uint16_t
+dns_rpz_str2ede(const char *str) {
+	static struct {
+		const char *str;
+		uint16_t ede;
+	} tbl[] = {
+		{ "none", 0 },
+		{ "forged", DNS_EDE_FORGEDANSWER },
+		{ "blocked", DNS_EDE_BLOCKED },
+		{ "censored", DNS_EDE_CENSORED },
+		{ "filtered", DNS_EDE_FILTERED },
+		{ "prohibited", DNS_EDE_PROHIBITED },
+	};
+	unsigned int n;
+
+	if (str == NULL) {
+		return (UINT16_MAX);
+	}
+	for (n = 0; n < sizeof(tbl) / sizeof(tbl[0]); ++n) {
+		if (!strcasecmp(tbl[n].str, str)) {
+			return (tbl[n].ede);
+		}
+	}
+	return (UINT16_MAX);
 }
 
 /*

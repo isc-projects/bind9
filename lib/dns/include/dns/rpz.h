@@ -143,6 +143,7 @@ struct dns_rpz_zone {
 	dns_name_t	 cname;	    /* override value for ..._CNAME */
 	dns_ttl_t	 max_policy_ttl;
 	dns_rpz_policy_t policy; /* DNS_RPZ_POLICY_GIVEN or override */
+	uint16_t	 ede;	 /* Extended DNS Error */
 
 	uint32_t min_update_interval;	/* minimal interval between
 					 * updates */
@@ -378,6 +379,9 @@ dns_rpz_str2policy(const char *str);
 
 const char *
 dns_rpz_policy2str(dns_rpz_policy_t policy);
+
+uint16_t
+dns_rpz_str2ede(const char *str);
 
 dns_rpz_policy_t
 dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,

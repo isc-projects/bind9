@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <signal.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -2392,6 +2393,18 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	if (*old_rpz_okp && (zone->policy != old->policy ||
 			     !dns_name_equal(&old->cname, &zone->cname)))
 	{
+		*old_rpz_okp = false;
+	}
+
+	obj = cfg_tuple_get(rpz_obj, "ede");
+	if (!cfg_obj_isstring(obj)) {
+		zone->ede = 0;
+	} else {
+		str = cfg_obj_asstring(obj);
+		zone->ede = dns_rpz_str2ede(str);
+		INSIST(zone->ede != UINT16_MAX);
+	}
+	if (*old_rpz_okp && zone->ede != old->ede) {
 		*old_rpz_okp = false;
 	}
 
