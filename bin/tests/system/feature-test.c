@@ -17,7 +17,11 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <openssl/crypto.h>
 #include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/provider.h>
+#endif
 
 #include <isc/fips.h>
 #include <isc/md.h>
@@ -37,6 +41,7 @@ usage(void) {
 	fprintf(stderr, "\t--enable-dnsrps\n");
 	fprintf(stderr, "\t--enable-dnstap\n");
 	fprintf(stderr, "\t--enable-querytrace\n");
+	fprintf(stderr, "\t--fips-provider\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
 	fprintf(stderr, "\t--have-fips-dh\n");
@@ -95,6 +100,18 @@ main(int argc, char **argv) {
 #endif /* ifdef WANT_QUERYTRACE */
 	}
 
+	if (strcasecmp(argv[1], "--fips-provider") == 0) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+		OSSL_PROVIDER *fips = OSSL_PROVIDER_load(NULL, "fips");
+		if (fips != NULL) {
+			OSSL_PROVIDER_unload(fips);
+		}
+		return (fips != NULL ? 0 : 1);
+#else
+		return (1);
+#endif
+	}
+
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[_POSIX_HOST_NAME_MAX + 1];
 		int n;
@@ -118,14 +135,14 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--have-fips-dh") == 0) {
 #if defined(ENABLE_FIPS_MODE)
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 		return (0);
 #else
 		return (1);
 #endif
 #else
 		if (isc_fips_mode()) {
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 			return (0);
 #else
 			return (1);
