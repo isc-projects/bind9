@@ -324,8 +324,8 @@ idna_enabled_test() {
     idna_test "$text" ""                   "√.com" "\226\136\154.com."
     idna_test "$text" "+noidnin +noidnout" "√.com" "\226\136\154.com."
     idna_test "$text" "+noidnin +idnout"   "√.com" "\226\136\154.com."
-    idna_fail "$text" "+idnin   +noidnout" "√.com"
-    idna_fail "$text" "+idnin   +idnout"   "√.com"
+    idna_test "$text" "+idnin   +noidnout" "√.com" "xn--19g.com."
+    idna_test "$text" "+idnin   +idnout"   "√.com" "√.com."
 
     # Tests of a valid unicode string but an invalid U-label (output)
     #
@@ -347,15 +347,15 @@ idna_enabled_test() {
     text="Checking invalid output U-label"
     idna_test "$text" ""                   "xn--19g" "xn--19g."
     idna_test "$text" "+noidnin +noidnout" "xn--19g" "xn--19g."
-    idna_fail "$text" "+noidnin +idnout"   "xn--19g"
-    idna_fail "$text" "+idnin   +idnout"   "xn--19g"
+    idna_test "$text" "+noidnin +idnout"   "xn--19g" "√."
+    idna_test "$text" "+idnin   +idnout"   "xn--19g" "√."
 
 
     # Test that non-letter characters are preserved in the output.  When
     # UseSTD3ASCIIRules are enabled, it would mangle non-letter characters like
     # `_` (underscore) and `*` (wildcard.
 
-    test="Checking valid non-letter characters"
+    text="Checking valid non-letter characters"
     idna_test "$text" ""                   "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
     idna_test "$text" "+noidnin +noidnout" "*.xn--nxasmq6b.com" "*.xn--nxasmq6b.com."
     idna_test "$text" "+noidnin +idnout"   "*.xn--nxasmq6b.com" "*.βόλοσ.com."
