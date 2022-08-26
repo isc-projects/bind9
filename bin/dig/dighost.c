@@ -4753,6 +4753,9 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	 * valid domain name.
 	 */
 	res = idn2_to_ascii_lz(src, &ascii_src, IDN2_NONTRANSITIONAL);
+	if (res == IDN2_DISALLOWED) {
+		res = idn2_to_ascii_lz(src, &ascii_src, IDN2_TRANSITIONAL);
+	}
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin",
 		      src, idn2_strerror(res));
@@ -4814,9 +4817,13 @@ idn_ace_to_locale(const char *src, char **dst) {
 	}
 
 	/*
-	 * Then, check whether decoded 'src' is a valid IDNA2008 name.
+	 * Then, check whether decoded 'src' is a valid IDNA2008 name
+	 * and if disallowed character is found, fallback to IDNA2003.
 	 */
 	res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_NONTRANSITIONAL);
+	if (res == IDN2_DISALLOWED) {
+		res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_TRANSITIONAL);
+	}
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
 		      src, idn2_strerror(res));
