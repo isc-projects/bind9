@@ -70,7 +70,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	 */
 	acl->magic = DNS_ACL_MAGIC;
 
-	acl->elements = isc_mem_getx(mctx, n * sizeof(dns_aclelement_t),
+	acl->elements = isc_mem_getx(mctx, n * sizeof(acl->elements[0]),
 				     ISC_MEM_ZERO);
 	acl->alloc = n;
 	ISC_LIST_INIT(acl->ports_and_transports);
@@ -306,30 +306,20 @@ dns_acl_match_port_transport(const isc_netaddr_t *reqaddr,
 isc_result_t
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 	isc_result_t result;
-	unsigned int newalloc, nelem, i;
+	unsigned int nelem, i;
 	int max_node = 0, nodes;
 
 	/* Resize the element array if needed. */
 	if (dest->length + source->length > dest->alloc) {
-		void *newmem;
-
-		newalloc = dest->alloc + source->alloc;
+		size_t newalloc = dest->alloc + source->alloc;
 		if (newalloc < 4) {
 			newalloc = 4;
 		}
 
-		newmem = isc_mem_getx(dest->mctx,
-				      newalloc * sizeof(dns_aclelement_t),
-				      ISC_MEM_ZERO);
-
-		/* Copy in the original elements */
-		memmove(newmem, dest->elements,
-			dest->length * sizeof(dns_aclelement_t));
-
-		/* Release the memory for the old elements array */
-		isc_mem_put(dest->mctx, dest->elements,
-			    dest->alloc * sizeof(dns_aclelement_t));
-		dest->elements = newmem;
+		dest->elements = isc_mem_regetx(
+			dest->mctx, dest->elements,
+			dest->alloc * sizeof(dest->elements[0]),
+			newalloc * sizeof(dest->elements[0]), ISC_MEM_ZERO);
 		dest->alloc = newalloc;
 	}
 
@@ -532,7 +522,7 @@ destroy(dns_acl_t *dacl) {
 	}
 	if (dacl->elements != NULL) {
 		isc_mem_put(dacl->mctx, dacl->elements,
-			    dacl->alloc * sizeof(dns_aclelement_t));
+			    dacl->alloc * sizeof(dacl->elements[0]));
 	}
 	if (dacl->name != NULL) {
 		isc_mem_free(dacl->mctx, dacl->name);
