@@ -39,10 +39,11 @@ feeds," or both.
 :iscman:`named` can subscribe to up to 64 Response Policy Zones, each of which
 encodes a separate policy rule set.  Each rule is stored in a DNS resource
 record set (RRset) within the RPZ, and consists of a **trigger** and an
-**action**.  There are four types of triggers and four types of actions.
+**action**.  There are five types of triggers and six types of actions.
 
 A response policy rule in a DNS RPZ can be triggered as follows:
 
+- by the IP address of the client
 - by the query name
 - by an address which would be present in a truthful response
 - by the name or address of an authoritative name server responsible for
@@ -53,6 +54,9 @@ A response policy action can be one of the following:
 - to synthesize a "domain does not exist" (NXDOMAIN) response
 - to synthesize a "name exists but there are no records of the requested
   type" (NODATA) response
+- to drop the response
+- to switch to TCP by sending a truncated UDP response that requires the
+  DNS client to try again with TCP
 - to replace/override the response's data with specific data (provided
   within the response policy zone)
 - to exempt the response from further policy processing
