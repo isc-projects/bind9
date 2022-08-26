@@ -283,15 +283,14 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, isc_logcategory_t *category,
 		return (DST_R_NULLKEY);
 	}
 
-	dctx = isc_mem_getx(mctx, sizeof(*dctx), ISC_MEM_ZERO);
+	dctx = isc_mem_get(mctx, sizeof(*dctx));
+	*dctx = (dst_context_t){
+		.category = category,
+		.use = (useforsigning) ? DO_SIGN : DO_VERIFY,
+	};
+
 	dst_key_attach(key, &dctx->key);
 	isc_mem_attach(mctx, &dctx->mctx);
-	dctx->category = category;
-	if (useforsigning) {
-		dctx->use = DO_SIGN;
-	} else {
-		dctx->use = DO_VERIFY;
-	}
 	if (key->func->createctx2 != NULL) {
 		result = key->func->createctx2(key, maxbits, dctx);
 	} else {
@@ -1521,33 +1520,27 @@ get_key_struct(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	       unsigned int protocol, unsigned int bits,
 	       dns_rdataclass_t rdclass, dns_ttl_t ttl, isc_mem_t *mctx) {
 	dst_key_t *key;
-	int i;
 
-	key = isc_mem_getx(mctx, sizeof(dst_key_t), ISC_MEM_ZERO);
-
-	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
+	key = isc_mem_get(mctx, sizeof(dst_key_t));
+	*key = (dst_key_t){
+		.key_name = isc_mem_get(mctx, sizeof(dns_name_t)),
+		.key_alg = alg,
+		.key_flags = flags,
+		.key_proto = protocol,
+		.key_size = bits,
+		.key_class = rdclass,
+		.key_ttl = ttl,
+		.func = dst_t_func[alg],
+	};
 
 	dns_name_init(key->key_name, NULL);
 	dns_name_dup(name, mctx, key->key_name);
 
 	isc_refcount_init(&key->refs, 1);
 	isc_mem_attach(mctx, &key->mctx);
-	key->key_alg = alg;
-	key->key_flags = flags;
-	key->key_proto = protocol;
-	key->keydata.generic = NULL;
-	key->key_size = bits;
-	key->key_class = rdclass;
-	key->key_ttl = ttl;
-	key->func = dst_t_func[alg];
-	key->fmt_major = 0;
-	key->fmt_minor = 0;
-	for (i = 0; i < (DST_MAX_TIMES + 1); i++) {
-		key->times[i] = 0;
-		key->timeset[i] = false;
-	}
+
 	isc_mutex_init(&key->mdlock);
-	key->inactive = false;
+
 	key->magic = KEY_MAGIC;
 	return (key);
 }

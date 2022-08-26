@@ -1337,10 +1337,13 @@ isc_tlsctx_cache_add(
 		 * The hash table entry does not exist, let's create one.
 		 */
 		INSIST(result != ISC_R_SUCCESS);
-		entry = isc_mem_getx(cache->mctx, sizeof(*entry), ISC_MEM_ZERO);
+		entry = isc_mem_get(cache->mctx, sizeof(*entry));
+		*entry = (isc_tlsctx_cache_entry_t){
+			.ca_store = store,
+		};
+
 		entry->ctx[tr_offset][ipv6] = ctx;
 		entry->client_sess_cache[tr_offset][ipv6] = client_sess_cache;
-		entry->ca_store = store;
 		RUNTIME_CHECK(isc_ht_add(cache->data, (const uint8_t *)name,
 					 name_len,
 					 (void *)entry) == ISC_R_SUCCESS);

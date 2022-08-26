@@ -2007,7 +2007,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			if (!state) {
 				if (lookup->ecs_addr != NULL) {
-					isc_mem_free(mctx, lookup->ecs_addr);
+					isc_mem_put(mctx, lookup->ecs_addr,
+						    sizeof(*lookup->ecs_addr));
 					lookup->ecs_addr = NULL;
 				}
 				break;
@@ -2016,7 +2017,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				lookup->edns = DEFAULT_EDNS_VERSION;
 			}
 			if (lookup->ecs_addr != NULL) {
-				isc_mem_free(mctx, lookup->ecs_addr);
+				isc_mem_put(mctx, lookup->ecs_addr,
+					    sizeof(*lookup->ecs_addr));
 				lookup->ecs_addr = NULL;
 			}
 			result = parse_netprefix(&lookup->ecs_addr, value);

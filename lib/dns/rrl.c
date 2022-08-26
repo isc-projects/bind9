@@ -933,13 +933,12 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 			if (qbuf != NULL) {
 				ISC_LIST_UNLINK(rrl->qname_free, qbuf, link);
 			} else if (rrl->num_qnames < DNS_RRL_QNAMES) {
-				qbuf = isc_mem_getx(rrl->mctx, sizeof(*qbuf),
-						    ISC_MEM_ZERO);
-				{
-					ISC_LINK_INIT(qbuf, link);
-					qbuf->index = rrl->num_qnames;
-					rrl->qnames[rrl->num_qnames++] = qbuf;
-				}
+				qbuf = isc_mem_get(rrl->mctx, sizeof(*qbuf));
+				*qbuf = (dns_rrl_qname_buf_t){
+					.index = rrl->num_qnames,
+				};
+				ISC_LINK_INIT(qbuf, link);
+				rrl->qnames[rrl->num_qnames++] = qbuf;
 			}
 			if (qbuf != NULL) {
 				e->log_qname = qbuf->index;

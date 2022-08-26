@@ -161,11 +161,14 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	atomic_fetch_add_release(&global_generation, 1);
 
-	env = isc_mem_getx(mctx, sizeof(dns_dtenv_t), ISC_MEM_ZERO);
+	env = isc_mem_get(mctx, sizeof(*env));
+	*env = (dns_dtenv_t){
+		.reopen_task = reopen_task,
+		.reopen_queued = false,
+	};
+
 	isc_mem_attach(mctx, &env->mctx);
-	env->reopen_task = reopen_task;
 	isc_mutex_init(&env->reopen_lock);
-	env->reopen_queued = false;
 	env->path = isc_mem_strdup(env->mctx, path);
 	isc_refcount_init(&env->refcount, 1);
 	CHECK(isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max));

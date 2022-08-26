@@ -43,7 +43,16 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	REQUIRE(sctxp != NULL && *sctxp == NULL);
 
-	sctx = isc_mem_getx(mctx, sizeof(*sctx), ISC_MEM_ZERO);
+	sctx = isc_mem_get(mctx, sizeof(*sctx));
+	*sctx = (ns_server_t){
+		.udpsize = 1232,
+		.transfer_tcp_message_size = 20480,
+
+		.fuzztype = isc_fuzz_none,
+
+		.matchingview = matchingview,
+		.answercookie = true,
+	};
 
 	isc_mem_attach(mctx, &sctx->mctx);
 
@@ -88,16 +97,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
 				    dns_sizecounter_out_max));
-
-	sctx->udpsize = 1232;
-	sctx->transfer_tcp_message_size = 20480;
-
-	sctx->fuzztype = isc_fuzz_none;
-	sctx->fuzznotify = NULL;
-	sctx->gethostname = NULL;
-
-	sctx->matchingview = matchingview;
-	sctx->answercookie = true;
 
 	ISC_LIST_INIT(sctx->altsecrets);
 

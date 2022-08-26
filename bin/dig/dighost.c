@@ -802,9 +802,10 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->fuzztime = lookold->fuzztime;
 
 	if (lookold->ecs_addr != NULL) {
-		size_t len = sizeof(isc_sockaddr_t);
-		looknew->ecs_addr = isc_mem_allocate(mctx, len);
-		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
+		looknew->ecs_addr = isc_mem_get(mctx,
+						sizeof(*looknew->ecs_addr));
+		memmove(looknew->ecs_addr, lookold->ecs_addr,
+			sizeof(*looknew->ecs_addr));
 	}
 
 	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
@@ -963,7 +964,8 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		fatal("invalid prefix '%s'\n", value);
 	}
 
-	sa = isc_mem_allocatex(mctx, sizeof(*sa), ISC_MEM_ZERO);
+	sa = isc_mem_get(mctx, sizeof(*sa));
+	*sa = (isc_sockaddr_t){ .length = 0 };
 
 	if (strcmp(buf, "0") == 0) {
 		sa->type.sa.sa_family = AF_UNSPEC;
@@ -1604,7 +1606,7 @@ _destroy_lookup(dig_lookup_t *lookup) {
 	}
 
 	if (lookup->ecs_addr != NULL) {
-		isc_mem_free(mctx, lookup->ecs_addr);
+		isc_mem_put(mctx, lookup->ecs_addr, sizeof(*lookup->ecs_addr));
 	}
 
 	if (lookup->ednsopts != NULL) {

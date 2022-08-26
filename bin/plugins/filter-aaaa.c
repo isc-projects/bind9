@@ -341,7 +341,9 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 		      "module from %s:%lu, %s parameters",
 		      cfg_file, cfg_line, parameters != NULL ? "with" : "no");
 
-	inst = isc_mem_getx(mctx, sizeof(*inst), ISC_MEM_ZERO);
+	inst = isc_mem_get(mctx, sizeof(*inst));
+	*inst = (filter_instance_t){ 0 };
+
 	isc_mem_attach(mctx, &inst->mctx);
 
 	if (parameters != NULL) {

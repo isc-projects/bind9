@@ -946,10 +946,12 @@ addserver(dns_client_t *client) {
 			    cur->ai_family != AF_INET6) {
 				continue;
 			}
-			sa = isc_mem_getx(mctx, sizeof(*sa), ISC_MEM_ZERO);
+			sa = isc_mem_get(mctx, sizeof(*sa));
+			*sa = (isc_sockaddr_t){
+				.length = (unsigned int)cur->ai_addrlen,
+			};
 			ISC_LINK_INIT(sa, link);
 			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
-			sa->length = (unsigned int)cur->ai_addrlen;
 			ISC_LIST_APPEND(servers, sa, link);
 		}
 		freeaddrinfo(res);

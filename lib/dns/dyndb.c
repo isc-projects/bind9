@@ -126,10 +126,12 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		      ISC_LOG_INFO, "loading DynDB instance '%s' driver '%s'",
 		      instname, filename);
 
-	imp = isc_mem_getx(mctx, sizeof(*imp), ISC_MEM_ZERO);
-	isc_mem_attach(mctx, &imp->mctx);
+	imp = isc_mem_get(mctx, sizeof(*imp));
+	*imp = (dyndb_implementation_t){
+		.name = isc_mem_strdup(mctx, instname),
+	};
 
-	imp->name = isc_mem_strdup(imp->mctx, instname);
+	isc_mem_attach(mctx, &imp->mctx);
 
 	INIT_LINK(imp, link);
 
@@ -272,7 +274,14 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
-	dctx = isc_mem_getx(mctx, sizeof(*dctx), ISC_MEM_ZERO);
+	dctx = isc_mem_get(mctx, sizeof(*dctx));
+	*dctx = (dns_dyndbctx_t){
+		.loopmgr = loopmgr,
+		.hashinit = hashinit,
+		.lctx = lctx,
+		.refvar = &isc_bind9,
+	};
+
 	if (view != NULL) {
 		dns_view_attach(view, &dctx->view);
 	}
@@ -282,10 +291,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	if (task != NULL) {
 		isc_task_attach(task, &dctx->task);
 	}
-	dctx->loopmgr = loopmgr;
-	dctx->hashinit = hashinit;
-	dctx->lctx = lctx;
-	dctx->refvar = &isc_bind9;
 
 	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->magic = DNS_DYNDBCTX_MAGIC;
