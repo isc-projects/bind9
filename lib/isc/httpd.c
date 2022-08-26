@@ -1055,8 +1055,8 @@ cleanup_readhandle:
 
 void
 isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
-	isc_httpdmgr_t *httpdmgr;
-	isc_httpd_t *httpd;
+	isc_httpdmgr_t *httpdmgr = NULL;
+	isc_httpd_t *httpd = NULL;
 
 	REQUIRE(httpdmgrp != NULL);
 	REQUIRE(VALID_HTTPDMGR(*httpdmgrp));
@@ -1075,6 +1075,8 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 		httpd = ISC_LIST_NEXT(httpd, link);
 	}
 	UNLOCK(&httpdmgr->lock);
+
+	isc_nmsocket_close(&httpdmgr->sock);
 
 	httpdmgr_detach(&httpdmgr);
 }

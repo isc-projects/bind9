@@ -11,9 +11,11 @@
  * information regarding copyright ownership.
  */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/backtrace.h>
 #include <isc/barrier.h>
@@ -22,6 +24,7 @@
 #include <isc/errno.h>
 #include <isc/list.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -36,12 +39,13 @@
 #include <isc/strerr.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 
+#include "../loop_p.h"
 #include "netmgr-int.h"
-#include "netmgr_p.h"
 #include "openssl_shim.h"
 #include "trampoline_p.h"
 
@@ -120,17 +124,6 @@ static const isc_statscounter_t unixstatsindex[] = {
 #endif /* if 0 */
 
 /*
- * libuv is not thread safe, but has mechanisms to pass messages
- * between threads. Each socket is owned by a thread. For UDP
- * sockets we have a set of sockets for each interface and we can
- * choose a sibling and send the message directly. For TCP, or if
- * we're calling from a non-networking thread, we need to pass the
- * request using async_cb.
- */
-
-static thread_local int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
-
-/*
  * Set by the -T dscp option on the command line. If set to a value
  * other than -1, we check to make sure DSCP values match it, and
  * assert if not. (Not currently in use.)
@@ -141,37 +134,12 @@ static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG);
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
-static isc_threadresult_t
-nm_thread(isc_threadarg_t worker0);
-static void
-async_cb(uv_async_t *handle);
-
-static bool
-process_netievent(isc__networker_t *worker, isc__netievent_t *ievent);
-static isc_result_t
-process_queue(isc__networker_t *worker, netievent_type_t type);
-static void
-wait_for_priority_queue(isc__networker_t *worker);
-static void
-drain_queue(isc__networker_t *worker, netievent_type_t type);
 
 static void
-isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0);
-static void
-isc__nm_async_pause(isc__networker_t *worker, isc__netievent_t *ev0);
-static void
-isc__nm_async_resume(isc__networker_t *worker, isc__netievent_t *ev0);
+process_netievent(void *arg);
+
 static void
 isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0);
-static void
-isc__nm_async_close(isc__networker_t *worker, isc__netievent_t *ev0);
-
-static void
-isc__nm_threadpool_initialize(uint32_t workers);
-static void
-isc__nm_work_cb(uv_work_t *req);
-static void
-isc__nm_after_work_cb(uv_work_t *req, int status);
 
 /*%<
  * Issue a 'handle closed' callback on the socket.
@@ -180,29 +148,36 @@ isc__nm_after_work_cb(uv_work_t *req, int status);
 static void
 nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG);
 
-int
-isc_nm_tid(void) {
-	return (isc__nm_tid_v);
-}
+static void
+shutdown_walk_cb(uv_handle_t *handle, void *arg);
 
-bool
-isc__nm_in_netthread(void) {
-	return (isc__nm_tid_v >= 0);
-}
+static void
+networker_teardown(void *arg) {
+	isc__networker_t *worker = arg;
+	isc_loop_t *loop = worker->loop;
 
-void
-isc__nm_force_tid(int tid) {
-	isc__nm_tid_v = tid;
+	worker->shuttingdown = true;
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      ISC_LOG_DEBUG(1),
+		      "Shutting down network manager worker on loop %p(%d)",
+		      loop, isc_tid());
+
+	uv_walk(&loop->loop, shutdown_walk_cb, NULL);
+
+	isc__networker_detach(&worker);
 }
 
 static void
-isc__nm_threadpool_initialize(uint32_t workers) {
-	char buf[11];
-	int r = uv_os_getenv("UV_THREADPOOL_SIZE", buf,
-			     &(size_t){ sizeof(buf) });
-	if (r == UV_ENOENT) {
-		snprintf(buf, sizeof(buf), "%" PRIu32, workers);
-		uv_os_setenv("UV_THREADPOOL_SIZE", buf);
+netmgr_teardown(void *arg) {
+	isc_nm_t *netmgr = (void *)arg;
+
+	if (atomic_compare_exchange_strong(&netmgr->shuttingdown,
+					   &(bool){ false }, true))
+	{
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(1),
+			      "Shutting down network manager");
 	}
 }
 
@@ -219,11 +194,8 @@ isc__nm_threadpool_initialize(uint32_t workers) {
 #endif
 
 void
-isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
-	isc_nm_t *mgr = NULL;
-	char name[32];
-
-	REQUIRE(workers > 0);
+isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
+	isc_nm_t *netmgr = NULL;
 
 	if (uv_version() < MINIMAL_UV_VERSION) {
 		isc_error_fatal(__FILE__, __LINE__,
@@ -233,88 +205,68 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 				uv_version_string(), UV_VERSION_STRING);
 	}
 
-	isc__nm_threadpool_initialize(workers);
+	netmgr = isc_mem_get(mctx, sizeof(*netmgr));
+	*netmgr = (isc_nm_t){
+		.loopmgr = loopmgr,
+		.nloops = isc_loopmgr_nloops(loopmgr),
+	};
 
-	mgr = isc_mem_get(mctx, sizeof(*mgr));
-	*mgr = (isc_nm_t){ .nworkers = workers };
-
-	isc_mem_attach(mctx, &mgr->mctx);
-	isc_mutex_init(&mgr->lock);
-	isc_condition_init(&mgr->wkstatecond);
-	isc_condition_init(&mgr->wkpausecond);
-	isc_refcount_init(&mgr->references, 1);
-	atomic_init(&mgr->maxudp, 0);
-	atomic_init(&mgr->interlocked, ISC_NETMGR_NON_INTERLOCKED);
-	atomic_init(&mgr->workers_paused, 0);
-	atomic_init(&mgr->paused, false);
-	atomic_init(&mgr->closing, false);
-	atomic_init(&mgr->recv_tcp_buffer_size, 0);
-	atomic_init(&mgr->send_tcp_buffer_size, 0);
-	atomic_init(&mgr->recv_udp_buffer_size, 0);
-	atomic_init(&mgr->send_udp_buffer_size, 0);
+	isc_mem_attach(mctx, &netmgr->mctx);
+	isc_mutex_init(&netmgr->lock);
+	isc_refcount_init(&netmgr->references, 1);
+	atomic_init(&netmgr->maxudp, 0);
+	atomic_init(&netmgr->shuttingdown, false);
+	atomic_init(&netmgr->recv_tcp_buffer_size, 0);
+	atomic_init(&netmgr->send_tcp_buffer_size, 0);
+	atomic_init(&netmgr->recv_udp_buffer_size, 0);
+	atomic_init(&netmgr->send_udp_buffer_size, 0);
 #if HAVE_SO_REUSEPORT_LB
-	mgr->load_balance_sockets = true;
+	netmgr->load_balance_sockets = true;
 #else
-	mgr->load_balance_sockets = false;
+	netmgr->load_balance_sockets = false;
 #endif
 
 #ifdef NETMGR_TRACE
-	ISC_LIST_INIT(mgr->active_sockets);
+	ISC_LIST_INIT(netmgr->active_sockets);
 #endif
 
 	/*
 	 * Default TCP timeout values.
 	 * May be updated by isc_nm_tcptimeouts().
 	 */
-	atomic_init(&mgr->init, 30000);
-	atomic_init(&mgr->idle, 30000);
-	atomic_init(&mgr->keepalive, 30000);
-	atomic_init(&mgr->advertised, 30000);
+	atomic_init(&netmgr->init, 30000);
+	atomic_init(&netmgr->idle, 30000);
+	atomic_init(&netmgr->keepalive, 30000);
+	atomic_init(&netmgr->advertised, 30000);
 
-	isc_barrier_init(&mgr->pausing, workers);
-	isc_barrier_init(&mgr->resuming, workers);
+	netmgr->workers =
+		isc_mem_get(mctx, netmgr->nloops * sizeof(netmgr->workers[0]));
 
-	mgr->workers = isc_mem_get(mctx, workers * sizeof(isc__networker_t));
-	for (size_t i = 0; i < workers; i++) {
-		isc__networker_t *worker = &mgr->workers[i];
-		int r;
+	isc_loopmgr_teardown(loopmgr, netmgr_teardown, netmgr);
+
+	netmgr->magic = NM_MAGIC;
+
+	for (size_t i = 0; i < netmgr->nloops; i++) {
+		isc_loop_t *loop = isc_loop_get(netmgr->loopmgr, i);
+		isc__networker_t *worker = &netmgr->workers[i];
 
 		*worker = (isc__networker_t){
-			.mgr = mgr,
-			.id = i,
+			.recvbuf = isc_mem_get(loop->mctx,
+					       ISC_NETMGR_RECVBUF_SIZE),
+			.sendbuf = isc_mem_get(loop->mctx,
+					       ISC_NETMGR_SENDBUF_SIZE),
 		};
 
-		r = uv_loop_init(&worker->loop);
-		UV_RUNTIME_CHECK(uv_loop_init, r);
+		isc_nm_attach(netmgr, &worker->netmgr);
 
-		worker->loop.data = &mgr->workers[i];
+		isc_mem_attach(loop->mctx, &worker->mctx);
 
-		r = uv_async_init(&worker->loop, &worker->async, async_cb);
-		UV_RUNTIME_CHECK(uv_async_init, r);
-
-		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-			isc_mutex_init(&worker->ievents[type].lock);
-			isc_condition_init(&worker->ievents[type].cond);
-			ISC_LIST_INIT(worker->ievents[type].list);
-		}
-
-		worker->recvbuf = isc_mem_get(mctx, ISC_NETMGR_RECVBUF_SIZE);
-		worker->sendbuf = isc_mem_get(mctx, ISC_NETMGR_SENDBUF_SIZE);
-
-		/*
-		 * We need to do this here and not in nm_thread to avoid a
-		 * race - we could exit isc_nm_start, launch nm_destroy,
-		 * and nm_thread would still not be up.
-		 */
-		mgr->workers_running++;
-		isc_thread_create(nm_thread, &mgr->workers[i], &worker->thread);
-
-		snprintf(name, sizeof(name), "isc-net-%04zu", i);
-		isc_thread_setname(worker->thread, name);
+		isc_loop_attach(loop, &worker->loop);
+		isc_loop_teardown(loop, networker_teardown, worker);
+		isc_refcount_init(&worker->references, 1);
 	}
 
-	mgr->magic = NM_MAGIC;
-	*netmgrp = mgr;
+	*netmgrp = netmgr;
 }
 
 /*
@@ -323,7 +275,6 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 static void
 nm_destroy(isc_nm_t **mgr0) {
 	REQUIRE(VALID_NM(*mgr0));
-	REQUIRE(!isc__nm_in_netthread());
 
 	isc_nm_t *mgr = *mgr0;
 	*mgr0 = NULL;
@@ -332,152 +283,15 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	mgr->magic = 0;
 
-	for (int i = 0; i < mgr->nworkers; i++) {
-		isc__networker_t *worker = &mgr->workers[i];
-		isc__netievent_t *event = isc__nm_get_netievent_stop(mgr);
-		isc__nm_enqueue_ievent(worker, event);
-	}
-
-	LOCK(&mgr->lock);
-	while (mgr->workers_running > 0) {
-		WAIT(&mgr->wkstatecond, &mgr->lock);
-	}
-	UNLOCK(&mgr->lock);
-
-	for (int i = 0; i < mgr->nworkers; i++) {
-		isc__networker_t *worker = &mgr->workers[i];
-		int r;
-
-		r = uv_loop_close(&worker->loop);
-		UV_RUNTIME_CHECK(uv_loop_close, r);
-
-		for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-			INSIST(ISC_LIST_EMPTY(worker->ievents[type].list));
-			isc_condition_destroy(&worker->ievents[type].cond);
-			isc_mutex_destroy(&worker->ievents[type].lock);
-		}
-
-		isc_mem_put(mgr->mctx, worker->sendbuf,
-			    ISC_NETMGR_SENDBUF_SIZE);
-		isc_mem_put(mgr->mctx, worker->recvbuf,
-			    ISC_NETMGR_RECVBUF_SIZE);
-		isc_thread_join(worker->thread, NULL);
-	}
-
 	if (mgr->stats != NULL) {
 		isc_stats_detach(&mgr->stats);
 	}
 
-	isc_barrier_destroy(&mgr->resuming);
-	isc_barrier_destroy(&mgr->pausing);
-
-	isc_condition_destroy(&mgr->wkstatecond);
-	isc_condition_destroy(&mgr->wkpausecond);
 	isc_mutex_destroy(&mgr->lock);
 
 	isc_mem_put(mgr->mctx, mgr->workers,
-		    mgr->nworkers * sizeof(isc__networker_t));
+		    mgr->nloops * sizeof(mgr->workers[0]));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
-}
-
-static void
-enqueue_pause(isc__networker_t *worker) {
-	isc__netievent_pause_t *event =
-		isc__nm_get_netievent_pause(worker->mgr);
-	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)event);
-}
-
-static void
-isc__nm_async_pause(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-	REQUIRE(worker->paused == false);
-
-	worker->paused = true;
-	uv_stop(&worker->loop);
-}
-
-void
-isc_nm_pause(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(!atomic_load(&mgr->paused));
-
-	isc__nm_acquire_interlocked_force(mgr);
-
-	if (isc__nm_in_netthread()) {
-		REQUIRE(isc_nm_tid() == 0);
-	}
-
-	for (int i = 0; i < mgr->nworkers; i++) {
-		isc__networker_t *worker = &mgr->workers[i];
-		if (i == isc_nm_tid()) {
-			isc__nm_async_pause(worker, NULL);
-		} else {
-			enqueue_pause(worker);
-		}
-	}
-
-	if (isc__nm_in_netthread()) {
-		atomic_fetch_add(&mgr->workers_paused, 1);
-		isc_barrier_wait(&mgr->pausing);
-	}
-
-	LOCK(&mgr->lock);
-	while (atomic_load(&mgr->workers_paused) != mgr->workers_running) {
-		WAIT(&mgr->wkstatecond, &mgr->lock);
-	}
-	UNLOCK(&mgr->lock);
-
-	atomic_compare_exchange_enforced(&mgr->paused, &(bool){ false }, true);
-}
-
-static void
-enqueue_resume(isc__networker_t *worker) {
-	isc__netievent_resume_t *event =
-		isc__nm_get_netievent_resume(worker->mgr);
-	isc__nm_enqueue_ievent(worker, (isc__netievent_t *)event);
-}
-
-static void
-isc__nm_async_resume(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-	REQUIRE(worker->paused == true);
-
-	worker->paused = false;
-}
-
-void
-isc_nm_resume(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
-	REQUIRE(atomic_load(&mgr->paused));
-
-	if (isc__nm_in_netthread()) {
-		REQUIRE(isc_nm_tid() == 0);
-		drain_queue(&mgr->workers[isc_nm_tid()], NETIEVENT_PRIORITY);
-	}
-
-	for (int i = 0; i < mgr->nworkers; i++) {
-		isc__networker_t *worker = &mgr->workers[i];
-		if (i == isc_nm_tid()) {
-			isc__nm_async_resume(worker, NULL);
-		} else {
-			enqueue_resume(worker);
-		}
-	}
-
-	if (isc__nm_in_netthread()) {
-		atomic_fetch_sub(&mgr->workers_paused, 1);
-		isc_barrier_wait(&mgr->resuming);
-	}
-
-	LOCK(&mgr->lock);
-	while (atomic_load(&mgr->workers_paused) != 0) {
-		WAIT(&mgr->wkstatecond, &mgr->lock);
-	}
-	UNLOCK(&mgr->lock);
-
-	atomic_compare_exchange_enforced(&mgr->paused, &(bool){ true }, false);
-
-	isc__nm_drop_interlocked(mgr);
 }
 
 void
@@ -506,56 +320,16 @@ isc_nm_detach(isc_nm_t **mgr0) {
 }
 
 void
-isc__netmgr_shutdown(isc_nm_t *mgr) {
-	REQUIRE(VALID_NM(mgr));
-
-	atomic_store(&mgr->closing, true);
-	for (int i = 0; i < mgr->nworkers; i++) {
-		isc__netievent_t *event = NULL;
-		event = isc__nm_get_netievent_shutdown(mgr);
-		isc__nm_enqueue_ievent(&mgr->workers[i], event);
-	}
-}
-
-void
-isc__netmgr_destroy(isc_nm_t **netmgrp) {
+isc_netmgr_destroy(isc_nm_t **netmgrp) {
 	isc_nm_t *mgr = NULL;
-	int counter = 0;
 
 	REQUIRE(VALID_NM(*netmgrp));
 
 	mgr = *netmgrp;
+	*netmgrp = NULL;
 
-	/*
-	 * Close active connections.
-	 */
-	isc__netmgr_shutdown(mgr);
-
-	/*
-	 * Wait for the manager to be dereferenced elsewhere.
-	 */
-	while (isc_refcount_current(&mgr->references) > 1 && counter++ < 1000) {
-		uv_sleep(10);
-	}
-
-#ifdef NETMGR_TRACE
-	if (isc_refcount_current(&mgr->references) > 1) {
-		isc__nm_dump_active(mgr);
-		UNREACHABLE();
-	}
-#endif
-
-	/*
-	 * Now just patiently wait
-	 */
-	while (isc_refcount_current(&mgr->references) > 1) {
-		uv_sleep(10);
-	}
-
-	/*
-	 * Detach final reference.
-	 */
-	isc_nm_detach(netmgrp);
+	REQUIRE(isc_refcount_decrement(&mgr->references) == 1);
+	nm_destroy(&mgr);
 }
 
 void
@@ -569,7 +343,7 @@ void
 isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->tid == isc_nm_tid());
+	REQUIRE(handle->sock->tid == isc_tid());
 
 	switch (handle->sock->type) {
 	case isc_nm_tcpsocket:
@@ -652,248 +426,30 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 }
 
 /*
- * nm_thread is a single worker thread, that runs uv_run event loop
- * until asked to stop.
- *
- * There are four queues for asynchronous events:
- *
- * 1. priority queue - netievents on the priority queue are run even when
- *    the taskmgr enters exclusive mode and the netmgr is paused.  This
- *    is needed to properly start listening on the interfaces, free
- *    resources on shutdown, or resume from a pause.
- *
- * 2. task queue - only (traditional) tasks are scheduled here, and this queue
- *    is processed when the netmgr workers are finishing.  This is needed to
- *    process the task shutdown events.
- *
- * 3. normal queue - this is the queue with netmgr events, e.g. reading,
- *    sending, callbacks, etc.
- */
-
-static isc_threadresult_t
-nm_thread(isc_threadarg_t worker0) {
-	isc__networker_t *worker = (isc__networker_t *)worker0;
-	isc_nm_t *mgr = worker->mgr;
-
-	isc__nm_tid_v = worker->id;
-
-	while (true) {
-		/*
-		 * uv_run() runs async_cb() in a loop, which processes
-		 * all four event queues until a "pause" or "stop" event
-		 * is encountered. On pause, we process only priority
-		 * events until resuming.
-		 */
-		int r = uv_run(&worker->loop, UV_RUN_DEFAULT);
-		INSIST(r > 0 || worker->finished);
-
-		if (worker->paused) {
-			INSIST(atomic_load(&mgr->interlocked) != isc_nm_tid());
-
-			atomic_fetch_add(&mgr->workers_paused, 1);
-			if (isc_barrier_wait(&mgr->pausing) != 0) {
-				LOCK(&mgr->lock);
-				SIGNAL(&mgr->wkstatecond);
-				UNLOCK(&mgr->lock);
-			}
-
-			while (worker->paused) {
-				wait_for_priority_queue(worker);
-			}
-
-			atomic_fetch_sub(&mgr->workers_paused, 1);
-			if (isc_barrier_wait(&mgr->resuming) != 0) {
-				LOCK(&mgr->lock);
-				SIGNAL(&mgr->wkstatecond);
-				UNLOCK(&mgr->lock);
-			}
-		}
-
-		if (r == 0) {
-			INSIST(worker->finished);
-			break;
-		}
-
-		INSIST(!worker->finished);
-	}
-
-	/*
-	 * We are shutting down.  Drain the queues.
-	 */
-	drain_queue(worker, NETIEVENT_TASK);
-
-	for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-		LOCK(&worker->ievents[type].lock);
-		INSIST(ISC_LIST_EMPTY(worker->ievents[type].list));
-		UNLOCK(&worker->ievents[type].lock);
-	}
-
-	LOCK(&mgr->lock);
-	mgr->workers_running--;
-	SIGNAL(&mgr->wkstatecond);
-	UNLOCK(&mgr->lock);
-
-	return ((isc_threadresult_t)0);
-}
-
-static bool
-process_all_queues(isc__networker_t *worker) {
-	bool reschedule = false;
-	/*
-	 * The queue processing functions will return false when the
-	 * system is pausing or stopping and we don't want to process
-	 * the other queues in such case, but we need the async event
-	 * to be rescheduled in the next uv_run().
-	 */
-	for (size_t type = 0; type < NETIEVENT_MAX; type++) {
-		isc_result_t result = process_queue(worker, type);
-		switch (result) {
-		case ISC_R_SUSPEND:
-			reschedule = true;
-			break;
-		case ISC_R_EMPTY:
-			/* empty queue */
-			break;
-		case ISC_R_SUCCESS:
-			reschedule = true;
-			break;
-		default:
-			UNREACHABLE();
-		}
-	}
-
-	return (reschedule);
-}
-
-/*
- * async_cb() is a universal callback for 'async' events sent to event loop.
- * It's the only way to safely pass data to the libuv event loop. We use a
- * single async event and a set of lockless queues of 'isc__netievent_t'
- * structures passed from other threads.
- */
-static void
-async_cb(uv_async_t *handle) {
-	isc__networker_t *worker = (isc__networker_t *)handle->loop->data;
-
-	if (process_all_queues(worker)) {
-		/*
-		 * If we didn't process all the events, we need to enqueue
-		 * async_cb to be run in the next iteration of the uv_loop
-		 */
-		uv_async_send(handle);
-	}
-}
-
-static void
-isc__nm_async_stop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-	worker->finished = true;
-	/* Close the async handler */
-	uv_close((uv_handle_t *)&worker->async, NULL);
-}
-
-void
-isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int tid) {
-	isc__netievent_t *event = NULL;
-	isc__networker_t *worker = NULL;
-	REQUIRE(tid >= 0 && tid < nm->nworkers);
-
-	worker = &nm->workers[tid];
-
-	event = (isc__netievent_t *)isc__nm_get_netievent_task(nm, task);
-
-	isc__nm_enqueue_ievent(worker, event);
-}
-
-static void
-isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_task_t *ievent = (isc__netievent_task_t *)ev0;
-	isc_result_t result;
-
-	UNUSED(worker);
-
-	result = isc_task_run(ievent->task);
-
-	switch (result) {
-	case ISC_R_QUOTA:
-		isc_task_ready(ievent->task);
-		return;
-	case ISC_R_SUCCESS:
-		return;
-	default:
-		UNREACHABLE();
-	}
-}
-
-static void
-wait_for_priority_queue(isc__networker_t *worker) {
-	isc_condition_t *cond = &worker->ievents[NETIEVENT_PRIORITY].cond;
-	isc_mutex_t *lock = &worker->ievents[NETIEVENT_PRIORITY].lock;
-	isc__netievent_list_t *list =
-		&(worker->ievents[NETIEVENT_PRIORITY].list);
-
-	LOCK(lock);
-	while (ISC_LIST_EMPTY(*list)) {
-		WAIT(cond, lock);
-	}
-	UNLOCK(lock);
-
-	drain_queue(worker, NETIEVENT_PRIORITY);
-}
-
-static void
-drain_queue(isc__networker_t *worker, netievent_type_t type) {
-	bool empty = false;
-	while (!empty) {
-		if (process_queue(worker, type) == ISC_R_EMPTY) {
-			LOCK(&worker->ievents[type].lock);
-			empty = ISC_LIST_EMPTY(worker->ievents[type].list);
-			UNLOCK(&worker->ievents[type].lock);
-		}
-	}
-}
-
-/*
  * The two macros here generate the individual cases for the process_netievent()
  * function.  The NETIEVENT_CASE(type) macro is the common case, and
  * NETIEVENT_CASE_NOMORE(type) is a macro that causes the loop in the
  * process_queue() to stop, e.g. it's only used for the netievent that
  * stops/pauses processing the enqueued netievents.
  */
-#define NETIEVENT_CASE(type)                                               \
-	case netievent_##type: {                                           \
-		isc__nm_async_##type(worker, ievent);                      \
-		isc__nm_put_netievent_##type(                              \
-			worker->mgr, (isc__netievent_##type##_t *)ievent); \
-		return (true);                                             \
+#define NETIEVENT_CASE(type)                                          \
+	case netievent_##type: {                                      \
+		isc__nm_async_##type(worker, ievent);                 \
+		isc__nm_put_netievent_##type(                         \
+			worker, (isc__netievent_##type##_t *)ievent); \
+		return;                                               \
 	}
 
-#define NETIEVENT_CASE_NOMORE(type)                                \
-	case netievent_##type: {                                   \
-		isc__nm_async_##type(worker, ievent);              \
-		isc__nm_put_netievent_##type(worker->mgr, ievent); \
-		return (false);                                    \
-	}
-
-static bool
-process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
-	REQUIRE(worker->id == isc_nm_tid());
+static void
+process_netievent(void *arg) {
+	isc__netievent_t *ievent = (isc__netievent_t *)arg;
+	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		/* Don't process more ievents when we are stopping */
-		NETIEVENT_CASE_NOMORE(stop);
-
-		NETIEVENT_CASE(task);
-
-		NETIEVENT_CASE(udpconnect);
 		NETIEVENT_CASE(udplisten);
 		NETIEVENT_CASE(udpstop);
-		NETIEVENT_CASE(udpsend);
-		NETIEVENT_CASE(udpread);
 		NETIEVENT_CASE(udpcancel);
-		NETIEVENT_CASE(udpclose);
-
-		NETIEVENT_CASE(routeconnect);
+		NETIEVENT_CASE(udpread);
 
 		NETIEVENT_CASE(tcpaccept);
 		NETIEVENT_CASE(tcpconnect);
@@ -932,85 +488,39 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tlsdobio);
 		NETIEVENT_CASE(tlscancel);
 
-		NETIEVENT_CASE(httpstop);
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
-#endif
 		NETIEVENT_CASE(settlsctx);
+#endif
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
 		NETIEVENT_CASE(sendcb);
 
-		NETIEVENT_CASE(close);
 		NETIEVENT_CASE(detach);
-
-		NETIEVENT_CASE(shutdown);
-		NETIEVENT_CASE(resume);
-		NETIEVENT_CASE_NOMORE(pause);
 	default:
 		UNREACHABLE();
 	}
-	return (true);
-}
-
-static isc_result_t
-process_queue(isc__networker_t *worker, netievent_type_t type) {
-	isc__netievent_t *ievent = NULL;
-	isc__netievent_list_t list;
-
-	ISC_LIST_INIT(list);
-
-	LOCK(&worker->ievents[type].lock);
-	ISC_LIST_MOVE(list, worker->ievents[type].list);
-	UNLOCK(&worker->ievents[type].lock);
-
-	ievent = ISC_LIST_HEAD(list);
-	if (ievent == NULL) {
-		/* There's nothing scheduled */
-		return (ISC_R_EMPTY);
-	}
-
-	while (ievent != NULL) {
-		isc__netievent_t *next = ISC_LIST_NEXT(ievent, link);
-		ISC_LIST_DEQUEUE(list, ievent, link);
-
-		if (!process_netievent(worker, ievent)) {
-			/* The netievent told us to stop */
-			if (!ISC_LIST_EMPTY(list)) {
-				/*
-				 * Reschedule the rest of the unprocessed
-				 * events.
-				 */
-				LOCK(&worker->ievents[type].lock);
-				ISC_LIST_PREPENDLIST(worker->ievents[type].list,
-						     list, link);
-				UNLOCK(&worker->ievents[type].lock);
-			}
-			return (ISC_R_SUSPEND);
-		}
-
-		ievent = next;
-	}
-
-	/* We processed at least one */
-	return (ISC_R_SUCCESS);
 }
 
 void *
-isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type) {
-	isc__netievent_storage_t *event = isc_mem_get(mgr->mctx,
+isc__nm_get_netievent(isc__networker_t *worker, isc__netievent_type type) {
+	isc__netievent_storage_t *event = isc_mem_get(worker->mctx,
 						      sizeof(*event));
 
 	*event = (isc__netievent_storage_t){ .ni.type = type };
 	ISC_LINK_INIT(&(event->ni), link);
+
+	isc__networker_ref(worker);
+
 	return (event);
 }
 
 void
-isc__nm_put_netievent(isc_nm_t *mgr, void *ievent) {
-	isc_mem_put(mgr->mctx, ievent, sizeof(isc__netievent_storage_t));
+isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
+	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
+	isc__networker_unref(worker);
 }
 
 NETIEVENT_SOCKET_DEF(tcpclose);
@@ -1023,11 +533,10 @@ NETIEVENT_SOCKET_DEF(tlsconnect);
 NETIEVENT_SOCKET_DEF(tlsdobio);
 NETIEVENT_SOCKET_DEF(tlsstartread);
 NETIEVENT_SOCKET_HANDLE_DEF(tlscancel);
-NETIEVENT_SOCKET_DEF(udpclose);
 NETIEVENT_SOCKET_DEF(udplisten);
-NETIEVENT_SOCKET_DEF(udpread);
-NETIEVENT_SOCKET_DEF(udpsend);
 NETIEVENT_SOCKET_DEF(udpstop);
+NETIEVENT_SOCKET_HANDLE_DEF(udpcancel);
+NETIEVENT_SOCKET_DEF(udpread);
 
 NETIEVENT_SOCKET_DEF(tcpdnsclose);
 NETIEVENT_SOCKET_DEF(tcpdnsread);
@@ -1050,7 +559,6 @@ NETIEVENT_SOCKET_DEF(tlsdnscycle);
 NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_DEF(httpstop);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
@@ -1059,27 +567,22 @@ NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
 NETIEVENT_SOCKET_REQ_DEF(tcpconnect);
 NETIEVENT_SOCKET_REQ_DEF(tcpsend);
 NETIEVENT_SOCKET_REQ_DEF(tlssend);
-NETIEVENT_SOCKET_REQ_DEF(udpconnect);
-NETIEVENT_SOCKET_REQ_DEF(routeconnect);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_DEF(sendcb);
 
 NETIEVENT_SOCKET_DEF(detach);
 NETIEVENT_SOCKET_HANDLE_DEF(tcpcancel);
-NETIEVENT_SOCKET_HANDLE_DEF(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_DEF(tcpaccept);
 
-NETIEVENT_SOCKET_DEF(close);
-NETIEVENT_DEF(pause);
-NETIEVENT_DEF(resume);
-NETIEVENT_DEF(shutdown);
-NETIEVENT_DEF(stop);
-
-NETIEVENT_TASK_DEF(task);
-
 NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
+
+void
+isc__nm_process_ievent(isc__networker_t *worker, isc__netievent_t *event) {
+	event->worker = worker;
+	process_netievent(event);
+}
 
 void
 isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
@@ -1088,8 +591,8 @@ isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
 	 * If we are already in the matching nmthread, process the ievent
 	 * directly.
 	 */
-	if (worker->id == isc_nm_tid()) {
-		process_netievent(worker, event);
+	if (worker->loop == isc_loop_current(worker->netmgr->loopmgr)) {
+		isc__nm_process_ievent(worker, event);
 		return;
 	}
 
@@ -1098,36 +601,9 @@ isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
 
 void
 isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
-	netievent_type_t type;
+	event->worker = worker;
 
-	if (event->type > netievent_prio) {
-		type = NETIEVENT_PRIORITY;
-	} else {
-		switch (event->type) {
-		case netievent_prio:
-			UNREACHABLE();
-			break;
-		case netievent_task:
-			type = NETIEVENT_TASK;
-			break;
-		default:
-			type = NETIEVENT_NORMAL;
-			break;
-		}
-	}
-
-	/*
-	 * We need to make sure this signal will be delivered and
-	 * the queue will be processed.
-	 */
-	LOCK(&worker->ievents[type].lock);
-	ISC_LIST_ENQUEUE(worker->ievents[type].list, event, link);
-	if (type == NETIEVENT_PRIORITY) {
-		SIGNAL(&worker->ievents[type].cond);
-	}
-	UNLOCK(&worker->ievents[type].lock);
-
-	uv_async_send(&worker->async);
+	isc_async_run(worker->loop, process_netievent, event);
 }
 
 bool
@@ -1208,16 +684,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		}
 
 		/*
-		 * This was a parent socket: destroy the listening
-		 * barriers that synchronized the children.
-		 */
-		isc_barrier_destroy(&sock->startlistening);
-		isc_barrier_destroy(&sock->stoplistening);
-
-		/*
 		 * Now free them.
 		 */
-		isc_mem_put(sock->mgr->mctx, sock->children,
+		isc_mem_put(sock->worker->mctx, sock->children,
 			    sock->nchildren * sizeof(*sock));
 		sock->children = NULL;
 		sock->nchildren = 0;
@@ -1238,7 +707,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	}
 
 	if (sock->buf != NULL) {
-		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
+		isc_mem_put(sock->worker->mctx, sock->buf, sock->buf_size);
 	}
 
 	if (sock->quota != NULL) {
@@ -1250,31 +719,35 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc_astack_destroy(sock->inactivehandles);
 
 	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
-		isc_mem_put(sock->mgr->mctx, uvreq, sizeof(*uvreq));
+		isc_mem_put(sock->worker->mctx, uvreq, sizeof(*uvreq));
 	}
 
 	isc_astack_destroy(sock->inactivereqs);
-	sock->magic = 0;
 
-	isc_condition_destroy(&sock->scond);
-	isc_condition_destroy(&sock->cond);
-	isc_mutex_destroy(&sock->lock);
 	isc__nm_tlsdns_cleanup_data(sock);
 #if HAVE_LIBNGHTTP2
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
 #endif
+
+	sock->magic = 0;
+
 #ifdef NETMGR_TRACE
-	LOCK(&sock->mgr->lock);
-	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
-	UNLOCK(&sock->mgr->lock);
+	LOCK(&sock->worker->netmgr->lock);
+	ISC_LIST_UNLINK(sock->worker->netmgr->active_sockets, sock,
+			active_link);
+	UNLOCK(&sock->worker->netmgr->lock);
+	isc_mutex_destroy(&sock->tracelock);
 #endif
+
+	isc_mutex_destroy(&sock->lock);
+
 	if (dofree) {
-		isc_nm_t *mgr = sock->mgr;
-		isc_mem_put(mgr->mctx, sock, sizeof(*sock));
-		isc_nm_detach(&mgr);
+		isc__networker_t *worker = sock->worker;
+		isc_mem_put(worker->mctx, sock, sizeof(*sock));
+		isc__networker_detach(&worker);
 	} else {
-		isc_nm_detach(&sock->mgr);
+		isc__networker_detach(&sock->worker);
 	}
 }
 
@@ -1301,20 +774,16 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 	 * children have active handles before deciding whether to
 	 * accept destruction.
 	 */
-	LOCK(&sock->lock);
 	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
 	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0)
 	{
-		UNLOCK(&sock->lock);
 		return;
 	}
 
 	active_handles = atomic_load(&sock->ah);
 	if (sock->children != NULL) {
 		for (size_t i = 0; i < sock->nchildren; i++) {
-			LOCK(&sock->children[i].lock);
 			active_handles += atomic_load(&sock->children[i].ah);
-			UNLOCK(&sock->children[i].lock);
 		}
 	}
 
@@ -1327,10 +796,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 
 	if (destroy) {
 		atomic_store(&sock->destroying, true);
-		UNLOCK(&sock->lock);
 		nmsocket_cleanup(sock, true FLARG_PASS);
-	} else {
-		UNLOCK(&sock->lock);
 	}
 }
 
@@ -1438,21 +904,26 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 }
 
 void
-isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
-		    isc_sockaddr_t *iface FLARG) {
+isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
+		    isc_nmsocket_type type, isc_sockaddr_t *iface FLARG) {
 	uint16_t family;
 
 	REQUIRE(sock != NULL);
-	REQUIRE(mgr != NULL);
+	REQUIRE(worker != NULL);
 
-	*sock = (isc_nmsocket_t){ .type = type,
-				  .fd = -1,
-				  .inactivehandles = isc_astack_new(
-					  mgr->mctx, ISC_NM_HANDLES_STACK_SIZE),
-				  .inactivereqs = isc_astack_new(
-					  mgr->mctx, ISC_NM_REQS_STACK_SIZE) };
+	*sock = (isc_nmsocket_t){
+		.type = type,
+		.tid = worker->loop->tid,
+		.fd = -1,
+		.inactivehandles = isc_astack_new(worker->mctx,
+						  ISC_NM_HANDLES_STACK_SIZE),
+		.inactivereqs = isc_astack_new(worker->mctx,
+					       ISC_NM_REQS_STACK_SIZE),
+		.result = ISC_R_UNSET,
+	};
 
 	ISC_LIST_INIT(sock->tls.sendreqs);
+	isc_mutex_init(&sock->lock);
 
 	if (iface != NULL) {
 		family = iface->type.sa.sa_family;
@@ -1465,12 +936,13 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 	sock->backtrace_size = isc_backtrace(sock->backtrace, TRACE_SIZE);
 	ISC_LINK_INIT(sock, active_link);
 	ISC_LIST_INIT(sock->active_handles);
-	LOCK(&mgr->lock);
-	ISC_LIST_APPEND(mgr->active_sockets, sock, active_link);
-	UNLOCK(&mgr->lock);
+	LOCK(&worker->netmgr->lock);
+	ISC_LIST_APPEND(worker->netmgr->active_sockets, sock, active_link);
+	UNLOCK(&worker->netmgr->lock);
+	isc_mutex_init(&sock->tracelock);
 #endif
 
-	isc_nm_attach(mgr, &sock->mgr);
+	isc__networker_attach(worker, &sock->worker);
 	sock->uv_handle.handle.data = sock;
 
 	ISC_LINK_INIT(&sock->quotacb, link);
@@ -1518,9 +990,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 		break;
 	}
 
-	isc_mutex_init(&sock->lock);
-	isc_condition_init(&sock->cond);
-	isc_condition_init(&sock->scond);
 	isc_refcount_init(&sock->references, 1);
 
 #if HAVE_LIBNGHTTP2
@@ -1558,7 +1027,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
 void
 isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(!isc__nm_in_netthread() || sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;
@@ -1570,19 +1039,16 @@ isc__nmsocket_clearcb(isc_nmsocket_t *sock) {
 
 void
 isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
-	isc__networker_t *worker = NULL;
-
 	REQUIRE(VALID_NMSOCK(sock));
 
-	worker = &sock->mgr->workers[sock->tid];
-	REQUIRE(buf->base == worker->recvbuf);
+	REQUIRE(buf->base == sock->worker->recvbuf);
 
-	worker->recvbuf_inuse = false;
+	sock->worker->recvbuf_inuse = false;
 }
 
 static isc_nmhandle_t *
 alloc_handle(isc_nmsocket_t *sock) {
-	isc_nmhandle_t *handle = isc_mem_get(sock->mgr->mctx,
+	isc_nmhandle_t *handle = isc_mem_get(sock->worker->mctx,
 					     sizeof(isc_nmhandle_t));
 
 	*handle = (isc_nmhandle_t){ .magic = NMHANDLE_MAGIC };
@@ -1635,9 +1101,9 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	(void)atomic_fetch_add(&sock->ah, 1);
 
 #ifdef NETMGR_TRACE
-	LOCK(&sock->lock);
+	LOCK(&sock->tracelock);
 	ISC_LIST_APPEND(sock->active_handles, handle, active_link);
-	UNLOCK(&sock->lock);
+	UNLOCK(&sock->tracelock);
 #endif
 
 	switch (sock->type) {
@@ -1708,7 +1174,7 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 	*handle = (isc_nmhandle_t){ .magic = 0 };
 
-	isc_mem_put(sock->mgr->mctx, handle, sizeof(isc_nmhandle_t));
+	isc_mem_put(sock->worker->mctx, handle, sizeof(isc_nmhandle_t));
 }
 
 static void
@@ -1721,8 +1187,6 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	 * destruction.  We have to do this now, because at this point the
 	 * socket is either unused or still attached to event->sock.
 	 */
-	LOCK(&sock->lock);
-
 #ifdef NETMGR_TRACE
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 #endif
@@ -1738,7 +1202,6 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	if (!reuse) {
 		nmhandle_free(sock, handle);
 	}
-	UNLOCK(&sock->lock);
 }
 
 void
@@ -1757,19 +1220,18 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
 	 * ensure correct ordering of the isc__nm_process_sock_buffer().
 	 */
 	sock = handle->sock;
-	if (sock->tid == isc_nm_tid() && sock->closehandle_cb == NULL) {
+	if (sock->tid == isc_tid() && sock->closehandle_cb == NULL) {
 		nmhandle_detach_cb(&handle FLARG_PASS);
 	} else {
 		isc__netievent_detach_t *event =
-			isc__nm_get_netievent_detach(sock->mgr, sock);
+			isc__nm_get_netievent_detach(sock->worker, sock);
 		/*
 		 * we are using implicit "attach" as the last reference
 		 * need to be destroyed explicitly in the async callback
 		 */
 		event->handle = handle;
 		FLARG_IEVENT_PASS(event);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-				       (isc__netievent_t *)event);
+		isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)event);
 	}
 }
 
@@ -1813,17 +1275,10 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	/*
 	 * The handle is gone now. If the socket has a callback configured
 	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now, or schedule it to run asynchronously.
+	 * call it now..
 	 */
 	if (sock->closehandle_cb != NULL) {
-		if (sock->tid == isc_nm_tid()) {
-			sock->closehandle_cb(sock);
-		} else {
-			isc__netievent_close_t *event =
-				isc__nm_get_netievent_close(sock->mgr, sock);
-			isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-					       (isc__netievent_t *)event);
-		}
+		sock->closehandle_cb(sock);
 	}
 
 	if (handle == sock->statichandle) {
@@ -1858,11 +1313,11 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 	if (sock->buf == NULL) {
 		/* We don't have the buffer at all */
 		size_t alloc_len = len < NM_REG_BUF ? NM_REG_BUF : NM_BIG_BUF;
-		sock->buf = isc_mem_get(sock->mgr->mctx, alloc_len);
+		sock->buf = isc_mem_get(sock->worker->mctx, alloc_len);
 		sock->buf_size = alloc_len;
 	} else {
 		/* We have the buffer but it's too small */
-		sock->buf = isc_mem_reget(sock->mgr->mctx, sock->buf,
+		sock->buf = isc_mem_reget(sock->worker->mctx, sock->buf,
 					  sock->buf_size, NM_BIG_BUF);
 		sock->buf_size = NM_BIG_BUF;
 	}
@@ -1916,7 +1371,7 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 			  isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(req));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(req->cb.connect != NULL);
 
 	isc__nm_incstats(sock, STATID_CONNECTFAIL);
@@ -1961,7 +1416,7 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	isc__nm_uvreq_t *req = uv_handle_get_data((uv_handle_t *)uvreq);
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->connecting));
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
@@ -2028,7 +1483,7 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)timer);
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->reading));
 
 	if (atomic_load(&sock->client)) {
@@ -2118,7 +1573,7 @@ isc__nm_uvreq_t *
 isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	isc__nm_uvreq_t *req = NULL;
 
-	req = isc__nm_uvreq_get(sock->mgr, sock);
+	req = isc__nm_uvreq_get(sock->worker, sock);
 	req->cb.recv = sock->recv_cb;
 	req->cbarg = sock->recv_cbarg;
 
@@ -2151,7 +1606,6 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(isc__nm_in_netthread());
 	/*
 	 * The size provided by libuv is only suggested size, and it always
 	 * defaults to 64 * 1024 in the current versions of libuv (see
@@ -2159,7 +1613,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 	 */
 	UNUSED(size);
 
-	worker = &sock->mgr->workers[sock->tid];
+	worker = sock->worker;
 	INSIST(!worker->recvbuf_inuse);
 	INSIST(worker->recvbuf != NULL);
 
@@ -2246,14 +1700,14 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 }
 
 bool
-isc__nm_closing(isc_nmsocket_t *sock) {
-	return (atomic_load(&sock->mgr->closing));
+isc__nm_closing(isc__networker_t *worker) {
+	return (worker->shuttingdown);
 }
 
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock) {
 	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
-		isc__nm_closing(sock) ||
+		isc__nm_closing(sock->worker) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
 }
 
@@ -2333,7 +1787,7 @@ isc__nm_resume_processing(void *arg) {
 	isc_nmsocket_t *sock = (isc_nmsocket_t *)arg;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(!atomic_load(&sock->client));
 
 	if (isc__nmsocket_closing(sock)) {
@@ -2389,21 +1843,23 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 void
 isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 	isc_nmsocket_t *sock = NULL;
+	isc_nm_t *netmgr = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	sock = handle->sock;
+	netmgr = sock->worker->netmgr;
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 	case isc_nm_tcpdnssocket:
 	case isc_nm_tlsdnssocket:
 		atomic_store(&sock->keepalive, value);
-		sock->read_timeout = value ? atomic_load(&sock->mgr->keepalive)
-					   : atomic_load(&sock->mgr->idle);
-		sock->write_timeout = value ? atomic_load(&sock->mgr->keepalive)
-					    : atomic_load(&sock->mgr->idle);
+		sock->read_timeout = value ? atomic_load(&netmgr->keepalive)
+					   : atomic_load(&netmgr->idle);
+		sock->write_timeout = value ? atomic_load(&netmgr->keepalive)
+					    : atomic_load(&netmgr->idle);
 		break;
 #if HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
@@ -2448,14 +1904,15 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	return (handle->sock->mgr);
+	return (handle->sock->worker->netmgr);
 }
 
+/* FIXME: Use per-worker mempool */
 isc__nm_uvreq_t *
-isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG) {
+isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG) {
 	isc__nm_uvreq_t *req = NULL;
 
-	REQUIRE(VALID_NM(mgr));
+	REQUIRE(worker != NULL);
 	REQUIRE(VALID_NMSOCK(sock));
 
 	if (sock != NULL && isc__nmsocket_active(sock)) {
@@ -2464,7 +1921,7 @@ isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG) {
 	}
 
 	if (req == NULL) {
-		req = isc_mem_get(mgr->mctx, sizeof(*req));
+		req = isc_mem_get(worker->mctx, sizeof(*req));
 	}
 
 	*req = (isc__nm_uvreq_t){
@@ -2504,10 +1961,10 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 #if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (!isc__nmsocket_active(sock) ||
 	    !isc_astack_trypush(sock->inactivereqs, req)) {
-		isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
+		isc_mem_put(sock->worker->mctx, req, sizeof(*req));
 	}
 #else  /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
-	isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
+	isc_mem_put(sock->worker->mctx, req, sizeof(*req));
 #endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
 
 	if (handle != NULL) {
@@ -2690,9 +2147,9 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
 		isc__netievent_connectcb_t *ievent =
-			isc__nm_get_netievent_connectcb(sock->mgr, sock, uvreq,
-							eresult);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			isc__nm_get_netievent_connectcb(sock->worker, sock,
+							uvreq, eresult);
+		isc__nm_enqueue_ievent(sock->worker,
 				       (isc__netievent_t *)ievent);
 	}
 }
@@ -2709,7 +2166,7 @@ isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(ievent->sock->tid == isc_nm_tid());
+	REQUIRE(ievent->sock->tid == isc_tid());
 	REQUIRE(uvreq->cb.connect != NULL);
 
 	uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
@@ -2725,15 +2182,16 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
 	if (eresult == ISC_R_SUCCESS || eresult == ISC_R_TIMEDOUT) {
-		isc__netievent_readcb_t ievent = { .sock = sock,
+		isc__netievent_readcb_t ievent = { .type = netievent_readcb,
+						   .sock = sock,
 						   .req = uvreq,
 						   .result = eresult };
 
 		isc__nm_async_readcb(NULL, (isc__netievent_t *)&ievent);
 	} else {
 		isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
-			sock->mgr, sock, uvreq, eresult);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+			sock->worker, sock, uvreq, eresult);
+		isc__nm_enqueue_ievent(sock->worker,
 				       (isc__netievent_t *)ievent);
 	}
 }
@@ -2751,7 +2209,7 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	region.base = (unsigned char *)uvreq->uvbuf.base;
 	region.length = uvreq->uvbuf.len;
@@ -2776,10 +2234,9 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		return;
 	}
 
-	isc__netievent_sendcb_t *ievent =
-		isc__nm_get_netievent_sendcb(sock->mgr, sock, uvreq, eresult);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
+	isc__netievent_sendcb_t *ievent = isc__nm_get_netievent_sendcb(
+		sock->worker, sock, uvreq, eresult);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 void
@@ -2794,25 +2251,11 @@ isc__nm_async_sendcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	uvreq->cb.send(uvreq->handle, eresult, uvreq->cbarg);
 
 	isc__nm_uvreq_put(&uvreq, sock);
-}
-
-static void
-isc__nm_async_close(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_close_t *ievent = (isc__netievent_close_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(sock->tid == isc_nm_tid());
-	REQUIRE(sock->closehandle_cb != NULL);
-
-	UNUSED(worker);
-
-	ievent->sock->closehandle_cb(sock);
 }
 
 void
@@ -2822,7 +2265,7 @@ isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
 	REQUIRE(VALID_NMHANDLE(ievent->handle));
-	REQUIRE(ievent->sock->tid == isc_nm_tid());
+	REQUIRE(ievent->sock->tid == isc_tid());
 
 	UNUSED(worker);
 
@@ -2900,12 +2343,14 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 
 static void
 shutdown_walk_cb(uv_handle_t *handle, void *arg) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	isc_nmsocket_t *sock = NULL;
 	UNUSED(arg);
 
 	if (uv_is_closing(handle)) {
 		return;
 	}
+
+	sock = uv_handle_get_data(handle);
 
 	switch (handle->type) {
 	case UV_UDP:
@@ -2933,58 +2378,6 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 }
 
 void
-isc__nm_async_shutdown(isc__networker_t *worker, isc__netievent_t *ev0) {
-	UNUSED(ev0);
-
-	uv_walk(&worker->loop, shutdown_walk_cb, NULL);
-}
-
-bool
-isc__nm_acquire_interlocked(isc_nm_t *mgr) {
-	if (!isc__nm_in_netthread()) {
-		return (false);
-	}
-
-	LOCK(&mgr->lock);
-	bool success = atomic_compare_exchange_strong(
-		&mgr->interlocked, &(int){ ISC_NETMGR_NON_INTERLOCKED },
-		isc_nm_tid());
-
-	UNLOCK(&mgr->lock);
-	return (success);
-}
-
-void
-isc__nm_drop_interlocked(isc_nm_t *mgr) {
-	if (!isc__nm_in_netthread()) {
-		return;
-	}
-
-	LOCK(&mgr->lock);
-	int tid = atomic_exchange(&mgr->interlocked,
-				  ISC_NETMGR_NON_INTERLOCKED);
-	INSIST(tid != ISC_NETMGR_NON_INTERLOCKED);
-	BROADCAST(&mgr->wkstatecond);
-	UNLOCK(&mgr->lock);
-}
-
-void
-isc__nm_acquire_interlocked_force(isc_nm_t *mgr) {
-	if (!isc__nm_in_netthread()) {
-		return;
-	}
-
-	LOCK(&mgr->lock);
-	while (!atomic_compare_exchange_strong(
-		&mgr->interlocked, &(int){ ISC_NETMGR_NON_INTERLOCKED },
-		isc_nm_tid()))
-	{
-		WAIT(&mgr->wkstatecond, &mgr->lock);
-	}
-	UNLOCK(&mgr->lock);
-}
-
-void
 isc_nm_setstats(isc_nm_t *mgr, isc_stats_t *stats) {
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(mgr->stats == NULL);
@@ -2998,8 +2391,9 @@ isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(id < STATID_MAX);
 
-	if (sock->statsindex != NULL && sock->mgr->stats != NULL) {
-		isc_stats_increment(sock->mgr->stats, sock->statsindex[id]);
+	if (sock->statsindex != NULL && sock->worker->netmgr->stats != NULL) {
+		isc_stats_increment(sock->worker->netmgr->stats,
+				    sock->statsindex[id]);
 	}
 }
 
@@ -3008,8 +2402,9 @@ isc__nm_decstats(isc_nmsocket_t *sock, isc__nm_statid_t id) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(id < STATID_MAX);
 
-	if (sock->statsindex != NULL && sock->mgr->stats != NULL) {
-		isc_stats_decrement(sock->mgr->stats, sock->statsindex[id]);
+	if (sock->statsindex != NULL && sock->worker->netmgr->stats != NULL) {
+		isc_stats_decrement(sock->worker->netmgr->stats,
+				    sock->statsindex[id]);
 	}
 }
 
@@ -3103,73 +2498,6 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle) {
 	}
 }
 
-static isc_threadresult_t
-isc__nm_work_run(isc_threadarg_t arg) {
-	isc__nm_work_t *work = (isc__nm_work_t *)arg;
-
-	work->cb(work->data);
-
-	return ((isc_threadresult_t)0);
-}
-
-static void
-isc__nm_work_cb(uv_work_t *req) {
-	isc__nm_work_t *work = uv_req_get_data((uv_req_t *)req);
-
-	if (isc_tid_v == SIZE_MAX) {
-		isc__trampoline_t *trampoline_arg =
-			isc__trampoline_get(isc__nm_work_run, work);
-		(void)isc__trampoline_run(trampoline_arg);
-	} else {
-		(void)isc__nm_work_run((isc_threadarg_t)work);
-	}
-}
-
-static void
-isc__nm_after_work_cb(uv_work_t *req, int status) {
-	isc_result_t result = ISC_R_SUCCESS;
-	isc__nm_work_t *work = uv_req_get_data((uv_req_t *)req);
-	isc_nm_t *netmgr = work->netmgr;
-
-	if (status != 0) {
-		result = isc_uverr2result(status);
-	}
-
-	work->after_cb(work->data, result);
-
-	isc_mem_put(netmgr->mctx, work, sizeof(*work));
-
-	isc_nm_detach(&netmgr);
-}
-
-void
-isc_nm_work_offload(isc_nm_t *netmgr, isc_nm_workcb_t work_cb,
-		    isc_nm_after_workcb_t after_work_cb, void *data) {
-	isc__networker_t *worker = NULL;
-	isc__nm_work_t *work = NULL;
-	int r;
-
-	REQUIRE(isc__nm_in_netthread());
-	REQUIRE(VALID_NM(netmgr));
-
-	worker = &netmgr->workers[isc_nm_tid()];
-
-	work = isc_mem_get(netmgr->mctx, sizeof(*work));
-	*work = (isc__nm_work_t){
-		.cb = work_cb,
-		.after_cb = after_work_cb,
-		.data = data,
-	};
-
-	isc_nm_attach(netmgr, &work->netmgr);
-
-	uv_req_set_data((uv_req_t *)&work->req, work);
-
-	r = uv_queue_work(&worker->loop, &work->req, isc__nm_work_cb,
-			  isc__nm_after_work_cb);
-	UV_RUNTIME_CHECK(uv_queue_work, r);
-}
-
 void
 isc_nm_bad_request(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
@@ -3204,7 +2532,7 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 
 bool
 isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock;
+	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
@@ -3298,16 +2626,9 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 	return (false);
 }
 
-uint32_t
-isc_nm_getnworkers(const isc_nm_t *netmgr) {
-	REQUIRE(VALID_NM(netmgr));
-
-	return (netmgr->nworkers);
-}
-
 const char *
 isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock;
+	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
@@ -3335,7 +2656,7 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent__tlsctx_t *ev_tlsctx = (isc__netievent__tlsctx_t *)ev0;
-	const int tid = isc_nm_tid();
+	const int tid = isc_tid();
 	isc_nmsocket_t *listener = ev_tlsctx->sock;
 	isc_tlsctx_t *tlsctx = ev_tlsctx->tlsctx;
 
@@ -3358,12 +2679,13 @@ isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
+	uint32_t nloops = isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
 	/* Update the TLS context reference for every worker thread. */
-	for (size_t i = 0; i < isc_nm_getnworkers(listener->mgr); i++) {
+	for (size_t i = 0; i < nloops; i++) {
 		isc__netievent__tlsctx_t *ievent =
-			isc__nm_get_netievent_settlsctx(listener->mgr, listener,
-							tlsctx);
-		isc__nm_enqueue_ievent(&listener->mgr->workers[i],
+			isc__nm_get_netievent_settlsctx(listener->worker,
+							listener, tlsctx);
+		isc__nm_enqueue_ievent(listener->worker,
 				       (isc__netievent_t *)ievent);
 	}
 }
@@ -3435,6 +2757,26 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 		      client_sabuf, local_sabuf);
 }
 
+static void
+isc__networker_destroy(isc__networker_t *worker) {
+	isc_nm_t *netmgr = worker->netmgr;
+	worker->netmgr = NULL;
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
+		      ISC_LOG_DEBUG(1),
+		      "Destroying down network manager worker on loop %p(%d)",
+		      worker->loop, isc_tid());
+
+	isc_loop_detach(&worker->loop);
+
+	isc_mem_put(worker->mctx, worker->sendbuf, ISC_NETMGR_SENDBUF_SIZE);
+	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
+			     ISC_NETMGR_RECVBUF_SIZE);
+	isc_nm_detach(&netmgr);
+}
+
+ISC_REFCOUNT_IMPL(isc__networker, isc__networker_destroy);
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
@@ -3487,7 +2829,7 @@ static void
 nmsocket_dump(isc_nmsocket_t *sock) {
 	isc_nmhandle_t *handle = NULL;
 
-	LOCK(&sock->lock);
+	LOCK(&sock->tracelock);
 	fprintf(stderr, "\n=================\n");
 	fprintf(stderr, "Active %s socket %p, type %s, refs %" PRIuFAST32 "\n",
 		atomic_load(&sock->client) ? "client" : "server", sock,
@@ -3520,7 +2862,7 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 	}
 
 	fprintf(stderr, "\n");
-	UNLOCK(&sock->lock);
+	UNLOCK(&sock->tracelock);
 }
 
 void

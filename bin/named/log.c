@@ -51,6 +51,7 @@ isc_result_t
 named_log_init(bool safe) {
 	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
+	isc_mem_t *log_mctx = NULL;
 
 	named_g_categories = categories;
 	named_g_modules = modules;
@@ -58,7 +59,9 @@ named_log_init(bool safe) {
 	/*
 	 * Setup a logging context.
 	 */
-	isc_log_create(named_g_mctx, &named_g_lctx, &lcfg);
+	isc_mem_create(&log_mctx);
+	isc_log_create(log_mctx, &named_g_lctx, &lcfg);
+	isc_mem_detach(&log_mctx);
 
 	/*
 	 * named-checktool.c:setup_logging() needs to be kept in sync.

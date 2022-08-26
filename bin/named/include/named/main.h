@@ -34,3 +34,6 @@ named_main_earlywarning(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
 named_main_setmemstats(const char *);
+
+void
+named_main_shutdown(void *arg, int signum);

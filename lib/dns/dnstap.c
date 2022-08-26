@@ -287,8 +287,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	/*
 	 * Run in task-exclusive mode.
 	 */
-	result = isc_task_beginexclusive(env->reopen_task);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_task_beginexclusive(env->reopen_task);
 
 	/*
 	 * Check that we can create a new fw object.

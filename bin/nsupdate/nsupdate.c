@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -29,8 +28,10 @@
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/job.h>
 #include <isc/lex.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -126,8 +127,8 @@ static bool tried_other_gsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static isc_task_t *global_task = NULL;
-static isc_event_t *global_event = NULL;
 static isc_log_t *glctx = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
@@ -176,6 +177,8 @@ static bool default_ttl_set = false;
 static bool checknames = true;
 static const char *resolvconf = RESOLV_CONF;
 
+bool done = false;
+
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
 	isc_sockaddr_t *addr;
@@ -186,6 +189,9 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	    dns_request_t **request);
 static void
 send_update(dns_name_t *zonename, isc_sockaddr_t *primary);
+
+static void
+getinput(void *arg);
 
 noreturn static void
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
@@ -681,8 +687,6 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 
 static void
 doshutdown(void) {
-	isc_task_detach(&global_task);
-
 	/*
 	 * The isc_mem_put of primary_servers must be before the
 	 * isc_mem_put of servers as it sets the servers pointer
@@ -752,7 +756,9 @@ maybeshutdown(void) {
 }
 
 static void
-shutdown_program(void) {
+shutdown_program(void *arg) {
+	UNUSED(arg);
+
 	ddebug("shutdown_program()");
 
 	shuttingdown = true;
@@ -905,13 +911,10 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = isc_managers_create(gmctx, 1, 0, &netmgr, &taskmgr, NULL);
-	check_result(result, "isc_managers_create");
-
 	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
-	result = isc_task_create(taskmgr, 0, &global_task, 0);
+	result = isc_task_create(taskmgr, &global_task, 0);
 	check_result(result, "isc_task_create");
 
 	result = dst_lib_init(gmctx, NULL);
@@ -959,9 +962,9 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 	int count = 0;
 	isc_result_t result;
 
-	isc_app_block();
+	isc_loopmgr_blocking(loopmgr);
 	result = bind9_getaddresses(host, port, sockaddr, naddrs, &count);
-	isc_app_unblock();
+	isc_loopmgr_nonblocking(loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		error("couldn't get address for '%s': %s", host,
 		      isc_result_totext(result));
@@ -2238,7 +2241,6 @@ get_next_command(void) {
 	char cmdlinebuf[MAXCMD];
 	char *cmdline = NULL, *ptr = NULL;
 
-	isc_app_block();
 	if (interactive) {
 		cmdline = ptr = readline("> ");
 		if (ptr != NULL && *ptr != 0) {
@@ -2247,7 +2249,6 @@ get_next_command(void) {
 	} else {
 		cmdline = fgets(cmdlinebuf, MAXCMD, input);
 	}
-	isc_app_unblock();
 
 	if (cmdline != NULL) {
 		char *tmp = cmdline;
@@ -2285,9 +2286,9 @@ user_interaction(void) {
 
 static void
 done_update(void) {
-	isc_event_t *event = global_event;
 	ddebug("done_update()");
-	isc_task_send(global_task, &event);
+
+	isc_job_run(loopmgr, getinput, NULL);
 }
 
 static void
@@ -3276,9 +3277,6 @@ cleanup(void) {
 	}
 	UNLOCK(&answer_lock);
 
-	ddebug("Shutting down managers");
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-
 #if HAVE_GSSAPI
 	if (tsigkey != NULL) {
 		ddebug("detach tsigkey x%p", tsigkey);
@@ -3293,9 +3291,6 @@ cleanup(void) {
 	if (sig0key != NULL) {
 		dst_key_free(&sig0key);
 	}
-
-	ddebug("Destroying event");
-	isc_event_free(&global_event);
 
 #ifdef HAVE_GSSAPI
 	/*
@@ -3324,7 +3319,6 @@ cleanup(void) {
 	if (memdebugging) {
 		isc_mem_stats(gmctx, stderr);
 	}
-	isc_mem_destroy(&gmctx);
 
 	isc_mutex_destroy(&answer_lock);
 
@@ -3333,43 +3327,43 @@ cleanup(void) {
 		dst_lib_destroy();
 		is_dst_up = false;
 	}
+
+	ddebug("Shutting down managers");
+	isc_managers_destroy(&gmctx, &loopmgr, &netmgr, &taskmgr);
 }
 
 static void
-getinput(isc_task_t *task, isc_event_t *event) {
+getinput(void *arg) {
 	bool more;
 
-	UNUSED(task);
+	UNUSED(arg);
 
 	if (shuttingdown) {
 		maybeshutdown();
 		return;
 	}
 
-	if (global_event == NULL) {
-		global_event = event;
-	}
-
 	reset_system();
+	isc_loopmgr_blocking(loopmgr);
 	more = user_interaction();
+	isc_loopmgr_nonblocking(loopmgr);
 	if (!more) {
-		isc_app_shutdown();
+		isc_task_detach(&global_task);
+		isc_loopmgr_shutdown(loopmgr);
 		return;
 	}
+
+	done = false;
 	start_update();
-	return;
 }
 
 int
 main(int argc, char **argv) {
-	isc_result_t result;
 	style = &dns_master_style_debug;
 
 	input = stdin;
 
 	interactive = isatty(0);
-
-	isc_app_start();
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 		have_ipv4 = true;
@@ -3383,22 +3377,17 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	isc_mem_create(&gmctx);
+	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	parse_args(argc, argv);
 
 	setup_system();
 
-	result = isc_app_onrun(gmctx, global_task, getinput, NULL);
-	check_result(result, "isc_app_onrun");
-
-	(void)isc_app_run();
-
-	shutdown_program();
+	isc_loopmgr_setup(loopmgr, getinput, NULL);
+	isc_loopmgr_teardown(loopmgr, shutdown_program, NULL);
+	isc_loopmgr_run(loopmgr);
 
 	cleanup();
-
-	isc_app_finish();
 
 	if (seenerror) {
 		return (2);

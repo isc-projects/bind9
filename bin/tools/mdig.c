@@ -17,12 +17,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -89,6 +89,8 @@
 #define US_PER_MS  1000	   /*%< Microseconds per millisecond. */
 
 static isc_mem_t *mctx = NULL;
+static isc_task_t *global_task = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static const char *batchname = NULL;
 static FILE *batchfp = NULL;
@@ -188,7 +190,6 @@ rcode_totext(dns_rcode_t rcode) {
 	return (totext.deconsttext);
 }
 
-/* receive response event handler */
 static void
 recvresponse(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
@@ -548,7 +549,8 @@ cleanup:
 	isc_event_free(&event);
 
 	if (--onfly == 0) {
-		isc_app_shutdown();
+		isc_task_detach(&global_task);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 	return;
 }
@@ -579,7 +581,7 @@ compute_cookie(unsigned char *cookie, size_t len) {
 }
 
 static isc_result_t
-sendquery(struct query *query, isc_task_t *task) {
+sendquery(struct query *query) {
 	dns_request_t *request = NULL;
 	dns_message_t *message = NULL;
 	dns_name_t *qname = NULL;
@@ -587,7 +589,7 @@ sendquery(struct query *query, isc_task_t *task) {
 	isc_result_t result;
 	dns_fixedname_t queryname;
 	isc_buffer_t buf;
-	unsigned int options;
+	unsigned int options = 0;
 
 	onfly++;
 
@@ -748,37 +750,35 @@ sendquery(struct query *query, isc_task_t *task) {
 		add_opt(message, query->udpsize, query->edns, flags, opts, i);
 	}
 
-	options = 0;
 	if (tcp_mode) {
 		options |= DNS_REQUESTOPT_TCP;
 	}
-	request = NULL;
+
 	result = dns_request_createvia(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, dscp,
 		options, NULL, query->timeout, query->udptimeout,
-		query->udpretries, task, recvresponse, message, &request);
+		query->udpretries, global_task, recvresponse, message,
+		&request);
 	CHECK("dns_request_createvia", result);
 
 	return (ISC_R_SUCCESS);
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event) {
-	struct query *query = (struct query *)event->ev_arg;
-
-	isc_event_free(&event);
+sendqueries(void *arg) {
+	struct query *query = (struct query *)arg;
 
 	while (query != NULL) {
 		struct query *next = ISC_LIST_NEXT(query, link);
 
-		sendquery(query, task);
+		sendquery(query);
 		query = next;
 	}
 
 	if (onfly == 0) {
-		isc_app_shutdown();
+		isc_task_detach(&global_task);
+		isc_loopmgr_shutdown(loopmgr);
 	}
-	return;
 }
 
 noreturn static void
@@ -2105,14 +2105,11 @@ main(int argc, char *argv[]) {
 	isc_logconfig_t *lcfg = NULL;
 	isc_nm_t *netmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
-	isc_task_t *task = NULL;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchvx = NULL;
 	dns_view_t *view = NULL;
 	unsigned int i;
 	int ns;
-
-	RUNCHECK(isc_app_start());
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 		have_ipv4 = true;
@@ -2126,7 +2123,7 @@ main(int argc, char *argv[]) {
 
 	preparse_args(argc, argv);
 
-	isc_mem_create(&mctx);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
@@ -2156,8 +2153,7 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
-	RUNCHECK(isc_task_create(taskmgr, 0, &task, 0));
+	RUNCHECK(isc_task_create(taskmgr, &global_task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	set_source_ports(dispatchmgr);
@@ -2177,7 +2173,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
 	query = ISC_LIST_HEAD(queries);
-	RUNCHECK(isc_app_onrun(mctx, task, sendqueries, query));
+	isc_loopmgr_setup(loopmgr, sendqueries, query);
 
 	/*
 	 * Stall to the start of a new second.
@@ -2205,7 +2201,7 @@ main(int argc, char *argv[]) {
 		} while (1);
 	}
 
-	(void)isc_app_run();
+	isc_loopmgr_run(loopmgr);
 
 	dns_view_detach(&view);
 
@@ -2214,10 +2210,6 @@ main(int argc, char *argv[]) {
 
 	dns_dispatch_detach(&dispatchvx);
 	dns_dispatchmgr_detach(&dispatchmgr);
-
-	isc_task_detach(&task);
-
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	dst_lib_destroy();
 
@@ -2248,9 +2240,6 @@ main(int argc, char *argv[]) {
 		isc_mem_free(mctx, default_query.ecs_addr);
 	}
 
-	isc_mem_destroy(&mctx);
-
-	isc_app_finish();
-
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 	return (0);
 }

@@ -42,6 +42,22 @@
 
 #include <tests/dns.h>
 
+static int
+setup_test(void **state) {
+	setup_loopmgr(state);
+	setup_taskmgr(state);
+
+	return (0);
+}
+
+static int
+teardown_test(void **state) {
+	teardown_taskmgr(state);
+	teardown_loopmgr(state);
+
+	return (0);
+}
+
 dns_keytable_t *keytable = NULL;
 dns_ntatable_t *ntatable = NULL;
 
@@ -162,9 +178,8 @@ create_tables(void) {
 			 ISC_R_SUCCESS);
 
 	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
-	assert_int_equal(
-		dns_ntatable_create(view, taskmgr, timermgr, &ntatable),
-		ISC_R_SUCCESS);
+	assert_int_equal(dns_ntatable_create(view, taskmgr, loopmgr, &ntatable),
+			 ISC_R_SUCCESS);
 
 	/* Add a normal key */
 	dns_test_namefromstring("example.com", &fn);
@@ -206,7 +221,7 @@ destroy_tables(void) {
 }
 
 /* add keys to the keytable */
-ISC_RUN_TEST_IMPL(dns_keytable_add) {
+ISC_LOOP_TEST_IMPL(add) {
 	dns_keynode_t *keynode = NULL;
 	dns_keynode_t *null_keynode = NULL;
 	unsigned char digest[ISC_MAX_MD_SIZE];
@@ -214,7 +229,7 @@ ISC_RUN_TEST_IMPL(dns_keytable_add) {
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 
-	UNUSED(state);
+	UNUSED(arg);
 
 	create_tables();
 
@@ -360,10 +375,14 @@ ISC_RUN_TEST_IMPL(dns_keytable_add) {
 
 	dns_keytable_detachkeynode(keytable, &keynode);
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* delete keys from the keytable */
-ISC_RUN_TEST_IMPL(dns_keytable_delete) {
+ISC_LOOP_TEST_IMPL(delete) {
+	UNUSED(arg);
+
 	create_tables();
 
 	/* dns_keytable_delete requires exact match */
@@ -389,15 +408,17 @@ ISC_RUN_TEST_IMPL(dns_keytable_delete) {
 		ISC_R_SUCCESS);
 
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* delete key nodes from the keytable */
-ISC_RUN_TEST_IMPL(dns_keytable_deletekey) {
+ISC_LOOP_TEST_IMPL(deletekey) {
 	dns_rdata_dnskey_t dnskey;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 
-	UNUSED(state);
+	UNUSED(arg);
 
 	create_tables();
 
@@ -456,15 +477,17 @@ ISC_RUN_TEST_IMPL(dns_keytable_deletekey) {
 	dns_rdata_freestruct(&dnskey);
 
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* check find-variant operations */
-ISC_RUN_TEST_IMPL(dns_keytable_find) {
+ISC_LOOP_TEST_IMPL(find) {
 	dns_keynode_t *keynode = NULL;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 
-	UNUSED(state);
+	UNUSED(arg);
 
 	create_tables();
 
@@ -510,16 +533,18 @@ ISC_RUN_TEST_IMPL(dns_keytable_find) {
 	assert_true(dns_name_equal(name, str2name("null.example")));
 
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* check issecuredomain() */
-ISC_RUN_TEST_IMPL(dns_keytable_issecuredomain) {
+ISC_LOOP_TEST_IMPL(issecuredomain) {
 	bool issecure;
 	const char **n;
 	const char *names[] = { "example.com", "sub.example.com",
 				"null.example", "sub.null.example", NULL };
 
-	UNUSED(state);
+	UNUSED(arg);
 	create_tables();
 
 	/*
@@ -547,13 +572,15 @@ ISC_RUN_TEST_IMPL(dns_keytable_issecuredomain) {
 	assert_false(issecure);
 
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* check dns_keytable_dump() */
-ISC_RUN_TEST_IMPL(dns_keytable_dump) {
+ISC_LOOP_TEST_IMPL(dump) {
 	FILE *f = fopen("/dev/null", "w");
 
-	UNUSED(state);
+	UNUSED(arg);
 
 	create_tables();
 
@@ -565,10 +592,12 @@ ISC_RUN_TEST_IMPL(dns_keytable_dump) {
 	fclose(f);
 
 	destroy_tables();
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* check negative trust anchors */
-ISC_RUN_TEST_IMPL(dns_keytable_nta) {
+ISC_LOOP_TEST_IMPL(nta) {
 	isc_result_t result;
 	bool issecure, covered;
 	dns_fixedname_t fn;
@@ -578,12 +607,10 @@ ISC_RUN_TEST_IMPL(dns_keytable_nta) {
 	dns_view_t *myview = NULL;
 	isc_stdtime_t now;
 
-	UNUSED(state);
-
 	result = dns_test_makeview("view", false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_task_create(taskmgr, 0, &myview->task, 0);
+	result = isc_task_create(taskmgr, &myview->task, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_view_initsecroots(myview, mctx);
@@ -591,7 +618,7 @@ ISC_RUN_TEST_IMPL(dns_keytable_nta) {
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initntatable(myview, taskmgr, timermgr);
+	result = dns_view_initntatable(myview, taskmgr, loopmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -671,19 +698,18 @@ ISC_RUN_TEST_IMPL(dns_keytable_nta) {
 	dns_ntatable_detach(&ntatable);
 	dns_keytable_detach(&keytable);
 	dns_view_detach(&myview);
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
-
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_add, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_delete, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_deletekey, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_find, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_issecuredomain, setup_managers,
-		      teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_dump, setup_managers, teardown_managers)
-ISC_TEST_ENTRY_CUSTOM(dns_keytable_nta, setup_managers, teardown_managers)
-
+ISC_TEST_ENTRY_CUSTOM(add, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(delete, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(deletekey, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(find, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(issecuredomain, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(dump, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(nta, setup_test, teardown_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/dir.h>
+#include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
@@ -59,7 +59,7 @@
 
 dig_lookup_t *default_lookup = NULL;
 
-static atomic_uintptr_t batchname = 0;
+static char *batchname = NULL;
 static FILE *batchfp = NULL;
 static char *argv0;
 static int addresscount = 0;
@@ -2352,7 +2352,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		}
 		return (value_from_next);
 	case 'f':
-		atomic_store(&batchname, (uintptr_t)value);
+		batchname = value;
 		return (value_from_next);
 	case 'k':
 		strlcpy(keyfile, value, sizeof(keyfile));
@@ -2838,7 +2838,7 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 	 * first entry, then trust the callback in dighost_shutdown
 	 * to get the rest
 	 */
-	char *filename = (char *)atomic_load(&batchname);
+	char *filename = batchname;
 	if ((filename != NULL) && !(is_batchfile)) {
 		if (strcmp(filename, "-") == 0) {
 			batchfp = stdin;
@@ -2902,38 +2902,32 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 static void
 query_finished(void) {
 	char batchline[MXNAME];
-	int bargc;
-	char *bargv[16];
-
-	if (atomic_load(&batchname) == 0) {
-		isc_app_shutdown();
-		return;
-	}
 
 	fflush(stdout);
-	if (feof(batchfp)) {
-		atomic_store(&batchname, 0);
-		isc_app_shutdown();
-		if (batchfp != stdin) {
-			fclose(batchfp);
-		}
-		return;
-	}
 
-	if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
+	if (batchname != NULL && !feof(batchfp) &&
+	    fgets(batchline, sizeof(batchline), batchfp) != NULL)
+	{
+		int bargc;
+		char *bargv[16];
 		debug("batch line %s", batchline);
 		bargc = split_batchline(batchline, bargv, 14, "batch argv");
 		bargv[0] = argv0;
 		parse_args(true, false, bargc, (char **)bargv);
 		start_lookup();
-	} else {
-		atomic_store(&batchname, 0);
+		return;
+	}
+
+	debug("shutdown");
+
+	/* We are done */
+	if (batchname != NULL) {
 		if (batchfp != stdin) {
 			fclose(batchfp);
 		}
-		isc_app_shutdown();
-		return;
+		batchname = NULL;
 	}
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
@@ -2997,8 +2991,6 @@ dig_comments(dig_lookup_t *lookup, const char *format, ...) {
 
 void
 dig_setup(int argc, char **argv) {
-	isc_result_t result;
-
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
@@ -3016,9 +3008,6 @@ dig_setup(int argc, char **argv) {
 
 	progname = argv[0];
 	preparse_args(argc, argv);
-
-	result = isc_app_start();
-	check_result(result, "isc_app_start");
 
 	setup_libs();
 	setup_system(ipv4only, ipv6only);
@@ -3042,13 +3031,10 @@ dig_query_setup(bool is_batchfile, bool config_only, int argc, char **argv) {
 
 void
 dig_startup(void) {
-	isc_result_t result;
-
 	debug("dig_startup()");
 
-	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
-	check_result(result, "isc_app_onrun");
-	isc_app_run();
+	isc_loopmgr_setup(loopmgr, run_loop, NULL);
+	isc_loopmgr_run(loopmgr);
 }
 
 void
@@ -3059,15 +3045,8 @@ dig_query_start(void) {
 void
 dig_shutdown(void) {
 	destroy_lookup(default_lookup);
-	if (atomic_load(&batchname) != 0) {
-		if (batchfp != stdin) {
-			fclose(batchfp);
-		}
-		atomic_store(&batchname, 0);
-	}
 	cancel_all();
 	destroy_libs();
-	isc_app_finish();
 }
 
 /*% Main processing routine for dig */

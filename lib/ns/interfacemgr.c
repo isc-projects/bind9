@@ -16,11 +16,13 @@
 #include <stdbool.h>
 
 #include <isc/interfaceiter.h>
+#include <isc/loop.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -71,13 +73,13 @@ struct ns_interfacemgr {
 	unsigned int magic; /*%< Magic number */
 	isc_refcount_t references;
 	isc_mutex_t lock;
-	isc_mem_t *mctx;	  /*%< Memory context */
-	ns_server_t *sctx;	  /*%< Server context */
-	isc_taskmgr_t *taskmgr;	  /*%< Task manager */
-	isc_task_t *task;	  /*%< Task */
-	isc_timermgr_t *timermgr; /*%< Timer manager */
-	isc_nm_t *nm;		  /*%< Net manager */
-	uint32_t ncpus;		  /*%< Number of workers */
+	isc_mem_t *mctx;	/*%< Memory context */
+	ns_server_t *sctx;	/*%< Server context */
+	isc_loopmgr_t *loopmgr; /*%< Loop manager */
+	isc_taskmgr_t *taskmgr; /*%< Task manager */
+	isc_task_t *task;	/*%< Task */
+	isc_nm_t *nm;		/*%< Net manager */
+	uint32_t ncpus;		/*%< Number of workers */
 	dns_dispatchmgr_t *dispatchmgr;
 	unsigned int generation; /*%< Current generation no */
 	ns_listenlist_t *listenon4;
@@ -274,7 +276,7 @@ route_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
-		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
+		       isc_loopmgr_t *loopmgr, isc_taskmgr_t *taskmgr,
 		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
 		       isc_task_t *task, dns_geoip_databases_t *geoip,
 		       bool scan, ns_interfacemgr_t **mgrp) {
@@ -289,12 +291,12 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
 	*mgr = (ns_interfacemgr_t){
+		.loopmgr = loopmgr,
 		.taskmgr = taskmgr,
-		.timermgr = timermgr,
 		.nm = nm,
 		.dispatchmgr = dispatchmgr,
 		.generation = 1,
-		.ncpus = isc_nm_getnworkers(nm),
+		.ncpus = isc_loopmgr_nloops(loopmgr),
 	};
 
 	isc_mem_attach(mctx, &mgr->mctx);
@@ -302,7 +304,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 
 	isc_mutex_init(&mgr->lock);
 
-	result = isc_task_create(taskmgr, 0, &mgr->task, 0);
+	result = isc_task_create(taskmgr, &mgr->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_lock;
 	}
@@ -339,7 +341,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 				      mgr->ncpus * sizeof(mgr->clientmgrs[0]));
 	for (size_t i = 0; i < mgr->ncpus; i++) {
 		result = ns_clientmgr_create(mgr->sctx, mgr->taskmgr,
-					     mgr->timermgr, mgr->aclenv, (int)i,
+					     mgr->loopmgr, mgr->aclenv, (int)i,
 					     &mgr->clientmgrs[i]);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
@@ -350,13 +352,11 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 		ns_interfacemgr_attach(mgr, &imgr);
 
 		result = isc_nm_routeconnect(nm, route_connected, imgr);
-		if (result == ISC_R_NOTIMPLEMENTED) {
-			ns_interfacemgr_detach(&imgr);
-		}
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 				      "unable to open route socket: %s",
 				      isc_result_totext(result));
+			ns_interfacemgr_detach(&imgr);
 		}
 	}
 
@@ -1347,7 +1347,7 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	bool purge = true;
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
-	REQUIRE(isc_nm_tid() == 0);
+	REQUIRE(isc_tid() == 0);
 
 	mgr->generation++; /* Increment the generation count. */
 
@@ -1452,7 +1452,7 @@ ns_interfacemgr_getserver(ns_interfacemgr_t *mgr) {
 
 ns_clientmgr_t *
 ns_interfacemgr_getclientmgr(ns_interfacemgr_t *mgr) {
-	int tid = isc_nm_tid();
+	int tid = isc_tid();
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 	REQUIRE(tid >= 0);

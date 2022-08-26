@@ -17,10 +17,12 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
@@ -238,6 +240,7 @@ struct dns_zone {
 	/* Locked */
 	dns_zonemgr_t *zmgr;
 	ISC_LINK(dns_zone_t) link; /* Used by zmgr. */
+	isc_loop_t *loop;
 	isc_timer_t *timer;
 	isc_refcount_t irefs;
 	dns_name_t origin;
@@ -350,7 +353,6 @@ struct dns_zone {
 	uint32_t maxxfrout;
 	uint32_t idlein;
 	uint32_t idleout;
-	isc_event_t ctlevent;
 	dns_ssutable_t *ssutable;
 	uint32_t sigvalidityinterval;
 	uint32_t keyvalidityinterval;
@@ -593,11 +595,10 @@ struct dns_zonemgr {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	isc_refcount_t refs;
+	isc_loopmgr_t *loopmgr;
 	isc_taskmgr_t *taskmgr;
-	isc_timermgr_t *timermgr;
 	isc_nm_t *netmgr;
 	uint32_t workers;
-	isc_task_t *task;
 	isc_task_t **zonetasks;
 	isc_task_t **loadtasks;
 	isc_mem_t **mctxpool;
@@ -852,9 +853,7 @@ unsigned int dns_zone_mkey_month = MONTH;
 #define SEND_BUFFER_SIZE 2048
 
 static void
-zone_timer_start(dns_zone_t *zone, isc_time_t *next, isc_time_t *now);
-static void
-zone_timer_stop(dns_zone_t *zone);
+zone_timer_set(dns_zone_t *zone, isc_time_t *next, isc_time_t *now);
 
 static void
 zone_settimer(dns_zone_t *, isc_time_t *);
@@ -905,7 +904,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 static void
 zone_needdump(dns_zone_t *zone, unsigned int delay);
 static void
-zone_shutdown(isc_task_t *, isc_event_t *);
+zone_shutdown(void *arg);
 static void
 zone_loaddone(void *arg, isc_result_t result);
 static isc_result_t
@@ -1211,9 +1210,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	/* Must be after magic is set. */
 	dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 
-	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
-		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone, NULL,
-		       NULL);
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
 
@@ -2435,9 +2431,6 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	if (asl->loaded != NULL) {
 		(asl->loaded)(asl->loaded_arg, zone, task);
 	}
-
-	/* Reduce the quantum */
-	isc_task_setquantum(zone->loadtask, 1);
 
 	isc_mem_put(zone->mctx, asl, sizeof(*asl));
 	dns_zone_idetach(&zone);
@@ -5785,8 +5778,8 @@ dns_zone_detach(dns_zone_t **zonep) {
 			 * up synchronously in the context of
 			 * its task.
 			 */
-			isc_event_t *ev = &zone->ctlevent;
-			isc_task_send(zone->task, &ev);
+
+			isc_async_run(zone->loop, zone_shutdown, zone);
 		} else {
 			/*
 			 * This zone is not being managed; it has
@@ -6599,22 +6592,6 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db) {
 	REQUIRE(zone->db == NULL);
 	dns_db_attach(db, &zone->db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
-}
-
-/*
- * Coordinates the starting of routine jobs.
- */
-void
-dns_zone_maintenance(dns_zone_t *zone) {
-	isc_time_t now;
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-	ENTER;
-
-	LOCK_ZONE(zone);
-	TIME_NOW(&now);
-	zone_settimer(zone, &now);
-	UNLOCK_ZONE(zone);
 }
 
 static bool
@@ -11556,9 +11533,12 @@ zone_maintenance(dns_zone_t *zone) {
 		}
 		break;
 	case dns_zone_primary:
+		if (zone->rss_event != NULL) {
+			isc_time_settoepoch(&zone->refreshkeytime);
+			break;
+		}
 		if (!isc_time_isepoch(&zone->refreshkeytime) &&
-		    isc_time_compare(&now, &zone->refreshkeytime) >= 0 &&
-		    zone->rss_event == NULL)
+		    isc_time_compare(&now, &zone->refreshkeytime) >= 0)
 		{
 			zone_rekey(zone);
 		}
@@ -11574,6 +11554,10 @@ zone_maintenance(dns_zone_t *zone) {
 		 * Do we need to sign/resign some RRsets?
 		 */
 		if (zone->rss_event != NULL) {
+			isc_time_settoepoch(&zone->signingtime);
+			isc_time_settoepoch(&zone->resigntime);
+			isc_time_settoepoch(&zone->nsec3chaintime);
+			isc_time_settoepoch(&zone->keywarntime);
 			break;
 		}
 		if (!isc_time_isepoch(&zone->signingtime) &&
@@ -15081,14 +15065,12 @@ unlock:
  * to shut down, it is not a shutdown event in the sense of the task library.
  */
 static void
-zone_shutdown(isc_task_t *task, isc_event_t *event) {
-	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
+zone_shutdown(void *arg) {
+	dns_zone_t *zone = (dns_zone_t *)arg;
 	bool free_needed, linked = false;
 	dns_zone_t *raw = NULL, *secure = NULL;
 
-	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
-	INSIST(event->ev_type == DNS_EVENT_ZONECONTROL);
 	INSIST(isc_refcount_current(&zone->erefs) == 0);
 
 	zone_debuglog(zone, __func__, 3, "shutting down");
@@ -15210,23 +15192,17 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 }
 
 static void
-zone_timer(isc_task_t *task, isc_event_t *event) {
-	dns_zone_t *zone = (dns_zone_t *)event->ev_arg;
+zone_timer(void *arg) {
+	dns_zone_t *zone = (dns_zone_t *)arg;
 
-	UNUSED(task);
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	ENTER;
-
 	zone_maintenance(zone);
-
-	isc_event_free(&event);
 }
 
 static void
-zone_timer_start(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
+zone_timer_set(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
 	isc_interval_t interval;
-	isc_result_t result;
 
 	if (isc_time_compare(next, now) <= 0) {
 		isc_interval_set(&interval, 0, 1);
@@ -15234,24 +15210,7 @@ zone_timer_start(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
 		isc_time_subtract(next, now, &interval);
 	}
 
-	result = isc_timer_reset(zone->timer, isc_timertype_once, &interval,
-				 true);
-	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "could not reset zone timer: %s",
-			     isc_result_totext(result));
-	}
-}
-
-static void
-zone_timer_stop(dns_zone_t *zone) {
-	isc_result_t result = isc_timer_reset(
-		zone->timer, isc_timertype_inactive, NULL, true);
-	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "could not deactivate zone timer: %s",
-			     isc_result_totext(result));
-	}
+	isc_timer_start(zone->timer, isc_timertype_once, &interval);
 }
 
 static void
@@ -15395,9 +15354,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 
 	if (isc_time_isepoch(&next)) {
 		zone_debuglog(zone, __func__, 10, "settimer inactive");
-		zone_timer_stop(zone);
 	} else {
-		zone_timer_start(zone, &next, now);
+		zone_timer_set(zone, &next, now);
 	}
 }
 
@@ -18829,24 +18787,26 @@ zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 }
 
 isc_result_t
-dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, isc_nm_t *netmgr,
+dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		   isc_taskmgr_t *taskmgr, isc_nm_t *netmgr,
 		   dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
+	isc_loop_t *mainloop = isc_loop_main(loopmgr);
 
 	REQUIRE(mctx != NULL);
+	REQUIRE(loopmgr != NULL);
 	REQUIRE(taskmgr != NULL);
-	REQUIRE(timermgr != NULL);
 	REQUIRE(netmgr != NULL);
+	REQUIRE(zmgrp != NULL && *zmgrp == NULL);
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 
 	*zmgr = (dns_zonemgr_t){
+		.loopmgr = loopmgr,
 		.taskmgr = taskmgr,
-		.timermgr = timermgr,
 		.netmgr = netmgr,
-		.workers = isc_nm_getnworkers(netmgr),
+		.workers = isc_loopmgr_nloops(loopmgr),
 		.transfersin = 10,
 		.transfersperns = 2,
 	};
@@ -18866,39 +18826,32 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	/* Unreachable lock. */
 	isc_rwlock_init(&zmgr->urlock, 0, 0);
 
-	/* Create a single task for queueing of SOA queries. */
-	result = isc_task_create(taskmgr, 1, &zmgr->task, 0);
+	result = isc_ratelimiter_create(mainloop, &zmgr->checkdsrl);
+	INSIST(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS) {
 		goto free_urlock;
 	}
 
-	isc_task_setname(zmgr->task, "zmgr", zmgr);
-	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->checkdsrl);
-	if (result != ISC_R_SUCCESS) {
-		goto free_task;
-	}
-
-	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->notifyrl);
+	result = isc_ratelimiter_create(mainloop, &zmgr->notifyrl);
+	INSIST(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS) {
 		goto free_checkdsrl;
 	}
 
-	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->refreshrl);
+	result = isc_ratelimiter_create(mainloop, &zmgr->refreshrl);
+	INSIST(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS) {
 		goto free_notifyrl;
 	}
 
-	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->startupnotifyrl);
+	result = isc_ratelimiter_create(mainloop, &zmgr->startupnotifyrl);
+	INSIST(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS) {
 		goto free_refreshrl;
 	}
 
-	result = isc_ratelimiter_create(mctx, timermgr, zmgr->task,
-					&zmgr->startuprefreshrl);
+	result = isc_ratelimiter_create(mainloop, &zmgr->startuprefreshrl);
+	INSIST(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS) {
 		goto free_startupnotifyrl;
 	}
@@ -18907,9 +18860,10 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	memset(zmgr->zonetasks, 0, zmgr->workers * sizeof(zmgr->zonetasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create(zmgr->taskmgr, 2, &zmgr->zonetasks[i],
-					 i);
+		result = isc_task_create(zmgr->taskmgr, &zmgr->zonetasks[i], i);
+		INSIST(result == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS) {
+			INSIST(result == ISC_R_SUCCESS);
 			goto free_zonetasks;
 		}
 		isc_task_setname(zmgr->zonetasks[i], "zonemgr-zonetasks", NULL);
@@ -18919,8 +18873,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	memset(zmgr->loadtasks, 0, zmgr->workers * sizeof(zmgr->loadtasks[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create(zmgr->taskmgr, UINT_MAX,
-					 &zmgr->loadtasks[i], i);
+		result = isc_task_create(zmgr->taskmgr, &zmgr->loadtasks[i], i);
+		INSIST(result == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS) {
 			goto free_loadtasks;
 		}
@@ -18983,17 +18937,20 @@ free_zonetasks:
 	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
 		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
-	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
+	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
+	isc_ratelimiter_destroy(&zmgr->startuprefreshrl);
 free_startupnotifyrl:
-	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
+	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
+	isc_ratelimiter_destroy(&zmgr->startupnotifyrl);
 free_refreshrl:
-	isc_ratelimiter_detach(&zmgr->refreshrl);
+	isc_ratelimiter_shutdown(zmgr->refreshrl);
+	isc_ratelimiter_destroy(&zmgr->refreshrl);
 free_notifyrl:
-	isc_ratelimiter_detach(&zmgr->notifyrl);
+	isc_ratelimiter_shutdown(zmgr->notifyrl);
+	isc_ratelimiter_destroy(&zmgr->notifyrl);
 free_checkdsrl:
-	isc_ratelimiter_detach(&zmgr->checkdsrl);
-free_task:
-	isc_task_detach(&zmgr->task);
+	isc_ratelimiter_shutdown(zmgr->checkdsrl);
+	isc_ratelimiter_destroy(&zmgr->checkdsrl);
 free_urlock:
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
@@ -19058,8 +19015,9 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_task_setname(zone->task, "zone", zone);
 	isc_task_setname(zone->loadtask, "loadzone", zone);
 
-	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, zone,
-			 &zone->timer);
+	zone->loop = isc_loop_get(zmgr->loopmgr, zone->tid);
+
+	isc_timer_create(zone->loop, zone_timer, zone, &zone->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -19133,14 +19091,18 @@ dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
 
 isc_result_t
 dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
-	dns_zone_t *p;
-
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
-	for (p = ISC_LIST_HEAD(zmgr->zones); p != NULL;
-	     p = ISC_LIST_NEXT(p, link)) {
-		dns_zone_maintenance(p);
+	for (dns_zone_t *zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
+	     zone = ISC_LIST_NEXT(zone, link))
+	{
+		isc_time_t now;
+
+		LOCK_ZONE(zone);
+		TIME_NOW(&now);
+		zone_settimer(zone, &now);
+		UNLOCK_ZONE(zone);
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
@@ -19177,24 +19139,16 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
 	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
 
-	if (zmgr->task != NULL) {
-		isc_task_detach(&zmgr->task);
-	}
-
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		isc_mem_detach(&zmgr->mctxpool[i]);
 	}
 
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		if (zmgr->loadtasks[i] != NULL) {
-			isc_task_detach(&zmgr->loadtasks[i]);
-		}
+		isc_task_detach(&zmgr->loadtasks[i]);
 	}
 
 	for (size_t i = 0; i < zmgr->workers; i++) {
-		if (zmgr->zonetasks[i] != NULL) {
-			isc_task_detach(&zmgr->zonetasks[i]);
-		}
+		isc_task_detach(&zmgr->zonetasks[i]);
 	}
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
@@ -19210,19 +19164,17 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 
 static void
 zonemgr_free(dns_zonemgr_t *zmgr) {
-	isc_mem_t *mctx;
-
-	INSIST(ISC_LIST_EMPTY(zmgr->zones));
+	REQUIRE(ISC_LIST_EMPTY(zmgr->zones));
 
 	zmgr->magic = 0;
 
 	isc_refcount_destroy(&zmgr->refs);
 	isc_mutex_destroy(&zmgr->iolock);
-	isc_ratelimiter_detach(&zmgr->checkdsrl);
-	isc_ratelimiter_detach(&zmgr->notifyrl);
-	isc_ratelimiter_detach(&zmgr->refreshrl);
-	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
-	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
+	isc_ratelimiter_destroy(&zmgr->checkdsrl);
+	isc_ratelimiter_destroy(&zmgr->notifyrl);
+	isc_ratelimiter_destroy(&zmgr->refreshrl);
+	isc_ratelimiter_destroy(&zmgr->startupnotifyrl);
+	isc_ratelimiter_destroy(&zmgr->startuprefreshrl);
 
 	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
 		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
@@ -19236,12 +19188,10 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	zonemgr_keymgmt_destroy(zmgr);
 
-	mctx = zmgr->mctx;
 	if (zmgr->tlsctx_cache != NULL) {
 		isc_tlsctx_cache_detach(&zmgr->tlsctx_cache);
 	}
-	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&zmgr->mctx, zmgr, sizeof(*zmgr));
 }
 
 void
@@ -19593,7 +19543,6 @@ setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value) {
 	isc_interval_t interval;
 	uint32_t s, ns;
 	uint32_t pertic;
-	isc_result_t result;
 
 	if (value == 0) {
 		value = 1;
@@ -19615,8 +19564,7 @@ setrl(isc_ratelimiter_t *rl, unsigned int *rate, unsigned int value) {
 
 	isc_interval_set(&interval, s, ns);
 
-	result = isc_ratelimiter_setinterval(rl, &interval);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_ratelimiter_setinterval(rl, &interval);
 	isc_ratelimiter_setpertic(rl, pertic);
 
 	*rate = value;
@@ -22487,8 +22435,8 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	LOCK_ZONE(zone);
 	LOCK_ZONE(raw);
 
-	isc_timer_create(zmgr->timermgr, zone->task, zone_timer, raw,
-			 &raw->timer);
+	raw->loop = zone->loop;
+	isc_timer_create(raw->loop, zone_timer, raw, &raw->timer);
 
 	/*
 	 * The timer "holds" a iref.
@@ -22499,7 +22447,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	isc_refcount_increment(&raw->erefs);
 	zone->raw = raw;
 
-	/* dns_zone_iattach(zone,  &raw->secure); */
+	/* dns_zone_iattach(zone, &raw->secure); */
 	zone_iattach(zone, &raw->secure);
 
 	isc_task_attach(zone->task, &raw->task);

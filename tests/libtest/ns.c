@@ -22,6 +22,8 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/job.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -52,11 +54,10 @@
 
 #include <tests/ns.h>
 
+isc_task_t *maintask = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
-ns_clientmgr_t *clientmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
-bool debug_mem_record = true;
 
 static isc_result_t
 matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
@@ -72,6 +73,12 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
+static void
+scan_interfaces(void *arg) {
+	UNUSED(arg);
+	ns_interfacemgr_scan(interfacemgr, true, false);
+}
+
 int
 setup_server(void **state) {
 	isc_result_t result;
@@ -84,36 +91,45 @@ setup_server(void **state) {
 
 	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
-		return (-1);
+		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr, netmgr,
+	result = ns_interfacemgr_create(mctx, sctx, loopmgr, taskmgr, netmgr,
 					dispatchmgr, maintask, NULL, false,
 					&interfacemgr);
 	if (result != ISC_R_SUCCESS) {
-		return (-1);
+		goto cleanup;
 	}
 
 	result = ns_listenlist_default(mctx, port, -1, true, AF_INET,
 				       &listenon);
 	if (result != ISC_R_SUCCESS) {
-		return (-1);
+		goto cleanup;
 	}
 
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
 	ns_listenlist_detach(&listenon);
 
-	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
+	isc_loop_setup(mainloop, scan_interfaces, NULL);
 
 	return (0);
+
+cleanup:
+	teardown_server(state);
+	return (-1);
 }
 
-int
-teardown_server(void **state) {
+void
+shutdown_interfacemgr(void *arg __attribute__((__unused__))) {
 	if (interfacemgr != NULL) {
 		ns_interfacemgr_shutdown(interfacemgr);
 		ns_interfacemgr_detach(&interfacemgr);
 	}
+}
+
+int
+teardown_server(void **state) {
+	shutdown_interfacemgr(NULL);
 
 	if (dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&dispatchmgr);
@@ -128,57 +144,6 @@ teardown_server(void **state) {
 }
 
 static dns_zone_t *served_zone = NULL;
-
-/*
- * We don't want to use netmgr-based client accounting, we need to emulate it.
- */
-atomic_uint_fast32_t client_refs[32];
-atomic_uintptr_t client_addrs[32];
-
-void
-isc__nmhandle_attach(isc_nmhandle_t *source, isc_nmhandle_t **targetp FLARG) {
-	ns_client_t *client = (ns_client_t *)source;
-	int i;
-
-	for (i = 0; i < 32; i++) {
-		if (atomic_load(&client_addrs[i]) == (uintptr_t)client) {
-			break;
-		}
-	}
-	INSIST(i < 32);
-	INSIST(atomic_load(&client_refs[i]) > 0);
-
-	atomic_fetch_add(&client_refs[i], 1);
-
-	*targetp = source;
-	return;
-}
-
-void
-isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
-	isc_nmhandle_t *handle = *handlep;
-	ns_client_t *client = (ns_client_t *)handle;
-	int i;
-
-	*handlep = NULL;
-
-	for (i = 0; i < 32; i++) {
-		if (atomic_load(&client_addrs[i]) == (uintptr_t)client) {
-			break;
-		}
-	}
-	INSIST(i < 32);
-
-	if (atomic_fetch_sub(&client_refs[i], 1) == 1) {
-		dns_view_detach(&client->view);
-		client->state = 4;
-		ns__client_reset_cb(client);
-		ns__client_put_cb(client);
-		atomic_store(&client_addrs[i], (uintptr_t)NULL);
-	}
-
-	return;
-}
 
 isc_result_t
 ns_test_serve_zone(const char *zonename, const char *filename,
@@ -256,12 +221,16 @@ ns_test_cleanup_zone(void) {
 isc_result_t
 ns_test_getclient(ns_interface_t *ifp0, bool tcp, ns_client_t **clientp) {
 	isc_result_t result;
-	ns_client_t *client = isc_mem_get(clientmgr->mctx, sizeof(*client));
+	ns_client_t *client;
+	ns_clientmgr_t *clientmgr;
 	int i;
 
 	UNUSED(ifp0);
 	UNUSED(tcp);
 
+	clientmgr = ns_interfacemgr_getclientmgr(interfacemgr);
+
+	client = isc_mem_get(clientmgr->mctx, sizeof(*client));
 	result = ns__client_setup(client, clientmgr, true);
 
 	for (i = 0; i < 32; i++) {
@@ -637,10 +606,12 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 			continue;
 		}
 		if (len % 2 != 0U) {
-			CHECK(ISC_R_UNEXPECTEDEND);
+			result = ISC_R_UNEXPECTEDEND;
+			goto cleanup;
 		}
 		if (len > bufsiz * 2) {
-			CHECK(ISC_R_NOSPACE);
+			result = ISC_R_NOSPACE;
+			goto cleanup;
 		}
 		rp = s;
 		for (i = 0; i < len; i += 2) {

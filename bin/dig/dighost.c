@@ -34,12 +34,12 @@
 #include <idn2.h>
 #endif /* HAVE_LIBIDN2 */
 
-#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
@@ -89,7 +89,7 @@ dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
 dig_searchlistlist_t search_list;
 
-static atomic_bool cancel_now = false;
+static bool cancel_now = false;
 
 bool check_ra = false, have_ipv4 = false, have_ipv6 = false,
      specified_source = false, free_now = false, usesearch = false,
@@ -103,7 +103,8 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_nm_t *netmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
-isc_task_t *global_task = NULL;
+isc_loopmgr_t *loopmgr = NULL;
+isc_loop_t *mainloop = NULL;
 isc_sockaddr_t localaddr;
 isc_refcount_t sendcount = 0;
 isc_refcount_t recvcount = 0;
@@ -151,26 +152,9 @@ bool debugging = false;
 bool debugtiming = false;
 bool memdebugging = false;
 char *progname = NULL;
-isc_mutex_t lookup_lock;
 dig_lookup_t *current_lookup = NULL;
 
 #define DIG_MAX_ADDRESSES 20
-
-/*%
- * Apply and clear locks at the event level in global task.
- * Can I get rid of these using shutdown events?  XXX
- */
-#define LOCK_LOOKUP                                             \
-	{                                                       \
-		debug("lock_lookup %s:%d", __FILE__, __LINE__); \
-		isc_mutex_lock((&lookup_lock));                 \
-		debug("success");                               \
-	}
-#define UNLOCK_LOOKUP                                             \
-	{                                                         \
-		debug("unlock_lookup %s:%d", __FILE__, __LINE__); \
-		isc_mutex_unlock((&lookup_lock));                 \
-	}
 
 static void
 default_warnerr(const char *format, ...) {
@@ -552,8 +536,10 @@ set_nameserver(char *opt) {
 		return;
 	}
 
+	isc_loopmgr_blocking(loopmgr);
 	result = bind9_getaddresses(opt, 0, sockaddrs, DIG_MAX_ADDRESSES,
 				    &count);
+	isc_loopmgr_nonblocking(loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		fatal("couldn't get address for '%s': %s", opt,
 		      isc_result_totext(result));
@@ -1374,8 +1360,7 @@ setup_libs(void) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_mem_create(&mctx);
-	isc_mem_setname(mctx, "dig");
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);
@@ -1387,17 +1372,12 @@ setup_libs(void) {
 
 	isc_log_setdebuglevel(lctx, 0);
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
-
-	result = isc_task_create(taskmgr, 0, &global_task, 0);
-	check_result(result, "isc_task_create");
-	isc_task_setname(global_task, "dig", NULL);
+	isc_mem_setname(mctx, "dig");
+	mainloop = isc_loop_main(loopmgr);
 
 	result = dst_lib_init(mctx, NULL);
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
-
-	isc_mutex_init(&lookup_lock);
 }
 
 typedef struct dig_ednsoptname {
@@ -1546,6 +1526,10 @@ check_if_done(void) {
 		INSIST(isc_refcount_current(&recvcount) == 0);
 		debug("shutting down");
 		dighost_shutdown();
+
+		if (current_lookup == NULL && keep != NULL) {
+			isc_nmhandle_detach(&keep);
+		}
 	}
 }
 
@@ -1773,7 +1757,7 @@ void
 start_lookup(void) {
 	debug("start_lookup()");
 
-	if (atomic_load(&cancel_now)) {
+	if (cancel_now) {
 		return;
 	}
 
@@ -2732,8 +2716,6 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	INSIST(!free_now);
 
-	LOCK_LOOKUP;
-
 	isc_nmhandle_detach(&query->sendhandle);
 
 	lookup_attach(query->lookup, &l);
@@ -2745,7 +2727,6 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 		query_detach(&query);
 		lookup_detach(&l);
-		UNLOCK_LOOKUP;
 		return;
 	} else if (eresult != ISC_R_SUCCESS) {
 		debug("send failed: %s", isc_result_totext(eresult));
@@ -2759,7 +2740,6 @@ send_done(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	check_if_done();
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -2930,6 +2910,8 @@ start_tcp(dig_query_t *query) {
 	isc_tlsctx_t *tlsctx = NULL;
 	bool tls_mode = false;
 	isc_tlsctx_client_session_cache_t *sess_cache = NULL;
+	int local_timeout;
+
 	REQUIRE(DIG_VALID_QUERY(query));
 
 	debug("start_tcp(%p)", query);
@@ -3000,68 +2982,66 @@ start_tcp(dig_query_t *query) {
 		launch_next_query(query);
 		query_detach(&query);
 		return;
+	} else if (keep != NULL) {
+		isc_nmhandle_detach(&keep);
+	}
+
+	if (timeout != 0) {
+		local_timeout = timeout * 1000;
 	} else {
-		int local_timeout = timeout * 1000;
-		if (local_timeout == 0) {
-			local_timeout = TCP_TIMEOUT * 1000;
+		local_timeout = TCP_TIMEOUT * 1000;
+	}
+
+	if (!specified_source) {
+		if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) && have_ipv4)
+		{
+			isc_sockaddr_any(&localaddr);
+		} else {
+			isc_sockaddr_any6(&localaddr);
 		}
+	}
 
-		if (keep != NULL) {
-			isc_nmhandle_detach(&keep);
+	REQUIRE(query != NULL);
+
+	query_attach(query, &connectquery);
+
+	if (tls_mode) {
+		tlsctx = get_create_tls_context(connectquery, false,
+						&sess_cache);
+		if (tlsctx == NULL) {
+			goto failure_tls;
 		}
+		isc_nm_tlsdnsconnect(netmgr, &localaddr, &query->sockaddr,
+				     tcp_connected, connectquery, local_timeout,
+				     tlsctx, sess_cache);
+#if HAVE_LIBNGHTTP2
+	} else if (query->lookup->https_mode) {
+		char uri[4096] = { 0 };
+		isc_nm_http_makeuri(!query->lookup->http_plain,
+				    &query->sockaddr, query->userarg, port,
+				    query->lookup->https_path, uri,
+				    sizeof(uri));
 
-		if (!specified_source) {
-			if ((isc_sockaddr_pf(&query->sockaddr) == AF_INET) &&
-			    have_ipv4) {
-				isc_sockaddr_any(&localaddr);
-			} else {
-				isc_sockaddr_any6(&localaddr);
-			}
-		}
-
-		REQUIRE(query != NULL);
-
-		query_attach(query, &connectquery);
-
-		if (tls_mode) {
-			tlsctx = get_create_tls_context(connectquery, false,
+		if (!query->lookup->http_plain) {
+			tlsctx = get_create_tls_context(connectquery, true,
 							&sess_cache);
 			if (tlsctx == NULL) {
 				goto failure_tls;
 			}
-			isc_nm_tlsdnsconnect(netmgr, &localaddr,
-					     &query->sockaddr, tcp_connected,
-					     connectquery, local_timeout,
-					     tlsctx, sess_cache);
-#if HAVE_LIBNGHTTP2
-		} else if (query->lookup->https_mode) {
-			char uri[4096] = { 0 };
-			isc_nm_http_makeuri(!query->lookup->http_plain,
-					    &query->sockaddr, query->userarg,
-					    port, query->lookup->https_path,
-					    uri, sizeof(uri));
-
-			if (!query->lookup->http_plain) {
-				tlsctx = get_create_tls_context(
-					connectquery, true, &sess_cache);
-				if (tlsctx == NULL) {
-					goto failure_tls;
-				}
-			}
-
-			isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr,
-					   uri, !query->lookup->https_get,
-					   tcp_connected, connectquery, tlsctx,
-					   sess_cache, local_timeout);
-#endif
-		} else {
-			isc_nm_tcpdnsconnect(netmgr, &localaddr,
-					     &query->sockaddr, tcp_connected,
-					     connectquery, local_timeout);
 		}
 
-		/* XXX: set DSCP */
+		isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr, uri,
+				   !query->lookup->https_get, tcp_connected,
+				   connectquery, tlsctx, sess_cache,
+				   local_timeout);
+#endif
+	} else {
+		isc_nm_tcpdnsconnect(netmgr, &localaddr, &query->sockaddr,
+				     tcp_connected, connectquery,
+				     local_timeout);
 	}
+
+	/* XXX: set DSCP */
 
 	return;
 
@@ -3145,7 +3125,7 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	query->started = true;
 
-	if (atomic_load(&cancel_now)) {
+	if (cancel_now) {
 		query_detach(&query);
 		return;
 	}
@@ -3155,7 +3135,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("udp_ready(%p, %s, %p)", handle, isc_result_totext(eresult),
 	      query);
 
-	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
 
 	if (eresult == ISC_R_CANCELED || query->canceled) {
@@ -3166,7 +3145,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		query_detach(&query);
 		lookup_detach(&l);
 		clear_current_lookup();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3187,7 +3165,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			nssearch_next(l, query);
 
 			check_if_done();
-			UNLOCK_LOOKUP;
 			return;
 		}
 
@@ -3222,7 +3199,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 
 		check_if_done();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3250,7 +3226,6 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	query_detach(&query);
 	lookup_detach(&l);
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -3357,11 +3332,9 @@ force_next(dig_query_t *query) {
 
 	debug("force_next()");
 
-	LOCK_LOOKUP;
 	INSIST(!free_now);
 
-	if (atomic_load(&cancel_now)) {
-		UNLOCK_LOOKUP;
+	if (cancel_now) {
 		return;
 	}
 
@@ -3369,7 +3342,6 @@ force_next(dig_query_t *query) {
 
 	if (try_next_server(l)) {
 		lookup_detach(&l);
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3384,7 +3356,6 @@ force_next(dig_query_t *query) {
 		      isc_refcount_current(&recvcount));
 		query_detach(&query);
 		clear_current_lookup();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3415,7 +3386,6 @@ force_next(dig_query_t *query) {
 	cancel_lookup(l);
 	lookup_detach(&l);
 	clear_current_lookup();
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -3533,7 +3503,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	query->started = true;
 
-	if (atomic_load(&cancel_now)) {
+	if (cancel_now) {
 		query_detach(&query);
 		return;
 	}
@@ -3543,7 +3513,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("tcp_connected(%p, %s, %p)", handle, isc_result_totext(eresult),
 	      query);
 
-	LOCK_LOOKUP;
 	lookup_attach(query->lookup, &l);
 
 	if (eresult == ISC_R_CANCELED || eresult == ISC_R_TLSBADPEERCERT ||
@@ -3570,7 +3539,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		query_detach(&query);
 		lookup_detach(&l);
 		clear_current_lookup();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3590,9 +3558,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		 */
 		if (l->ns_search_only && !l->trace_root) {
 			nssearch_next(l, query);
-
 			check_if_done();
-			UNLOCK_LOOKUP;
 			return;
 		}
 
@@ -3628,7 +3594,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		}
 
 		check_if_done();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3647,7 +3612,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	launch_next_query(query);
 	query_detach(&query);
 	lookup_detach(&l);
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -3921,8 +3885,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	debug("recv_done(%p, %s, %p, %p)", handle, isc_result_totext(eresult),
 	      region, arg);
 
-	LOCK_LOOKUP;
-
 	isc_refcount_decrement0(&recvcount);
 	debug("recvcount=%" PRIuFAST32, isc_refcount_current(&recvcount));
 
@@ -3937,7 +3899,6 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		query_detach(&query);
 		lookup_detach(&l);
 		clear_current_lookup();
-		UNLOCK_LOOKUP;
 		return;
 	}
 
@@ -3947,7 +3908,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		TIME_NOW(&query->time_recv);
 	}
 
-	if ((!l->pending && !l->ns_search_only) || atomic_load(&cancel_now)) {
+	if ((!l->pending && !l->ns_search_only) || cancel_now) {
 		debug("no longer pending.  Got %s", isc_result_totext(eresult));
 
 		goto next_lookup;
@@ -4529,7 +4490,6 @@ keep_query:
 	if (donext) {
 		clear_current_lookup();
 	}
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -4541,16 +4501,10 @@ isc_result_t
 get_address(char *host, in_port_t myport, isc_sockaddr_t *sockaddr) {
 	int count;
 	isc_result_t result;
-	bool is_running;
 
-	is_running = isc_app_isrunning();
-	if (is_running) {
-		isc_app_block();
-	}
+	isc_loopmgr_blocking(loopmgr);
 	result = bind9_getaddresses(host, myport, sockaddr, 1, &count);
-	if (is_running) {
-		isc_app_unblock();
-	}
+	isc_loopmgr_nonblocking(loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -4569,8 +4523,10 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 	dig_server_t *srv;
 	char tmp[ISC_NETADDR_FORMATSIZE];
 
+	isc_loopmgr_blocking(loopmgr);
 	result = bind9_getaddresses(host, 0, sockaddrs, DIG_MAX_ADDRESSES,
 				    &count);
+	isc_loopmgr_nonblocking(loopmgr);
 	if (resultp != NULL) {
 		*resultp = result;
 	}
@@ -4618,13 +4574,17 @@ do_lookup(dig_lookup_t *lookup) {
  * Start everything in action upon task startup.
  */
 void
-onrun_callback(isc_task_t *task, isc_event_t *event) {
-	UNUSED(task);
+onrun_callback(void *arg) {
+	UNUSED(arg);
 
-	isc_event_free(&event);
-	LOCK_LOOKUP;
 	start_lookup();
-	UNLOCK_LOOKUP;
+}
+
+void
+run_loop(void *arg) {
+	UNUSED(arg);
+
+	start_lookup();
 }
 
 /*%
@@ -4638,12 +4598,12 @@ cancel_all(void) {
 
 	debug("cancel_all()");
 
-	LOCK_LOOKUP;
 	if (free_now) {
-		UNLOCK_LOOKUP;
 		return;
 	}
-	atomic_store(&cancel_now, true);
+
+	cancel_now = true;
+
 	while (current_lookup != NULL) {
 		for (q = ISC_LIST_HEAD(current_lookup->q); q != NULL; q = nq) {
 			nq = ISC_LIST_NEXT(q, link);
@@ -4671,7 +4631,6 @@ cancel_all(void) {
 		lookup_detach(&l);
 		l = n;
 	}
-	UNLOCK_LOOKUP;
 }
 
 /*%
@@ -4680,18 +4639,8 @@ cancel_all(void) {
  */
 void
 destroy_libs(void) {
-	if (keep != NULL) {
-		isc_nmhandle_detach(&keep);
-	}
 	debug("destroy_libs()");
-	if (global_task != NULL) {
-		debug("freeing task");
-		isc_task_detach(&global_task);
-	}
 
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-
-	LOCK_LOOKUP;
 	isc_refcount_destroy(&recvcount);
 	isc_refcount_destroy(&sendcount);
 
@@ -4719,8 +4668,6 @@ destroy_libs(void) {
 		is_dst_up = false;
 	}
 
-	UNLOCK_LOOKUP;
-	isc_mutex_destroy(&lookup_lock);
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
 
@@ -4728,9 +4675,8 @@ destroy_libs(void) {
 	if (memdebugging != 0) {
 		isc_mem_stats(mctx, stderr);
 	}
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
-	}
+
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 }
 
 #ifdef HAVE_LIBIDN2

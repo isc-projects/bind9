@@ -1,3 +1,9 @@
+5949.	[func]		Add new isc_loopmgr API that runs the application
+			event loops and completely replaces the isc_app
+			API. Refactor the isc_taskmgr, isc_timermgr and
+			isc_netmgr to use the isc_loopmgr event loops.
+			[GL #3508]
+
 5948.	[bug]		Fix nsec3.c:dns_nsec3_activex() function, add a missing
 			dns_db_detachnode() call. [GL #3500]
 

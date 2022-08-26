@@ -104,7 +104,7 @@ inactive(isc_nmsocket_t *sock) {
 		atomic_load(&sock->outerhandle->sock->closing) ||
 		(sock->listener != NULL &&
 		 !isc__nmsocket_active(sock->listener)) ||
-		isc__nm_closing(sock));
+		isc__nm_closing(sock->worker));
 }
 
 static void
@@ -152,12 +152,12 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	 * requests. See the mirroring code in the tls_send_outgoing()
 	 * function. */
 	if (send_req->data.length > sizeof(send_req->smallbuf)) {
-		isc_mem_put(handle->sock->mgr->mctx, send_req->data.base,
+		isc_mem_put(handle->sock->worker->mctx, send_req->data.base,
 			    send_req->data.length);
 	} else {
 		INSIST(&send_req->smallbuf[0] == send_req->data.base);
 	}
-	isc_mem_put(handle->sock->mgr->mctx, send_req, sizeof(*send_req));
+	isc_mem_put(handle->sock->worker->mctx, send_req, sizeof(*send_req));
 	tlssock->tlsstream.nsending--;
 
 	if (finish && eresult == ISC_R_SUCCESS) {
@@ -205,7 +205,7 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 	} else if (sock->recv_cb != NULL && sock->statichandle != NULL) {
 		isc__nm_uvreq_t *req = NULL;
 		INSIST(VALID_NMHANDLE(sock->statichandle));
-		req = isc__nm_uvreq_get(sock->mgr, sock);
+		req = isc__nm_uvreq_get(sock->worker, sock);
 		req->cb.recv = sock->recv_cb;
 		req->cbarg = sock->recv_cbarg;
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
@@ -229,9 +229,8 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 static void
 async_tls_do_bio(isc_nmsocket_t *sock) {
 	isc__netievent_tlsdobio_t *ievent =
-		isc__nm_get_netievent_tlsdobio(sock->mgr, sock);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
+		isc__nm_get_netievent_tlsdobio(sock->worker, sock);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 static int
@@ -265,13 +264,13 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 		pending = TLS_BUF_SIZE;
 	}
 
-	send_req = isc_mem_get(sock->mgr->mctx, sizeof(*send_req));
+	send_req = isc_mem_get(sock->worker->mctx, sizeof(*send_req));
 	*send_req = (isc_nmsocket_tls_send_req_t){ .finish = finish,
 						   .data.length = pending };
 
 	/* Let's try to avoid a memory allocation for small write requests */
 	if ((size_t)pending > sizeof(send_req->smallbuf)) {
-		send_req->data.base = isc_mem_get(sock->mgr->mctx, pending);
+		send_req->data.base = isc_mem_get(sock->worker->mctx, pending);
 	} else {
 		send_req->data.base = &send_req->smallbuf[0];
 	}
@@ -341,9 +340,13 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
-			result = sock->listener->accept_cb(
-				tlshandle, result,
-				sock->listener->accept_cbarg);
+			if (sock->listener->accept_cb == NULL) {
+				result = ISC_R_CANCELED;
+			} else {
+				result = sock->listener->accept_cb(
+					tlshandle, result,
+					sock->listener->accept_cbarg);
+			}
 		} else {
 			tls_call_connect_cb(sock, tlshandle, result);
 		}
@@ -385,7 +388,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	int saved_errno = 0;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	/* We will resume read if TLS layer wants us to */
 	if (sock->tlsstream.reading && sock->outerhandle) {
@@ -590,10 +593,13 @@ tls_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 
 	REQUIRE(VALID_NMSOCK(tlssock));
 	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(tlssock->tid == isc_nm_tid());
+	REQUIRE(tlssock->tid == isc_tid());
 
 	if (result != ISC_R_SUCCESS) {
 		tls_failed_read_cb(tlssock, result);
+		return;
+	} else if (isc__nmsocket_closing(handle->sock)) {
+		tls_failed_read_cb(tlssock, ISC_R_CANCELED);
 		return;
 	}
 
@@ -602,7 +608,7 @@ tls_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 
 static isc_result_t
 initialize_tls(isc_nmsocket_t *sock, bool server) {
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	sock->tlsstream.bio_in = BIO_new(BIO_s_mem());
 	if (sock->tlsstream.bio_in == NULL) {
@@ -640,7 +646,6 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_tlsctx_t *tlsctx = NULL;
-	int tid;
 
 	/* If accept() was unsuccessful we can't do anything */
 	if (result != ISC_R_SUCCESS) {
@@ -655,13 +660,12 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	/*
 	 * We need to create a 'wrapper' tlssocket for this connection.
 	 */
-	tlssock = isc_mem_get(handle->sock->mgr->mctx, sizeof(*tlssock));
-	isc__nmsocket_init(tlssock, handle->sock->mgr, isc_nm_tlssocket,
+	tlssock = isc_mem_get(handle->sock->worker->mctx, sizeof(*tlssock));
+	isc__nmsocket_init(tlssock, handle->sock->worker, isc_nm_tlssocket,
 			   &handle->sock->iface);
 
-	tid = isc_nm_tid();
 	/* We need to initialize SSL now to reference SSL_CTX properly */
-	tlsctx = tls_get_listener_tlsctx(tlslistensock, tid);
+	tlsctx = tls_get_listener_tlsctx(tlslistensock, isc_tid());
 	RUNTIME_CHECK(tlsctx != NULL);
 	isc_tlsctx_attach(tlsctx, &tlssock->tlsstream.ctx);
 	tlssock->tlsstream.tls = isc_tls_create(tlssock->tlsstream.ctx);
@@ -675,8 +679,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc__nmsocket_attach(tlslistensock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
-	tlssock->read_timeout = atomic_load(&handle->sock->mgr->init);
-	tlssock->tid = tid;
+	tlssock->read_timeout =
+		atomic_load(&handle->sock->worker->netmgr->init);
 
 	/*
 	 * Hold a reference to tlssock in the TCP socket: it will
@@ -699,16 +703,23 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	isc_result_t result;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_nmsocket_t *tsock = NULL;
+	isc__networker_t *worker = &mgr->workers[isc_tid()];
 
 	REQUIRE(VALID_NM(mgr));
-	if (atomic_load(&mgr->closing)) {
+	REQUIRE(isc_tid() == 0);
+
+	if (isc__nm_closing(worker)) {
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
-	tlssock = isc_mem_get(mgr->mctx, sizeof(*tlssock));
+	if (workers == 0) {
+		workers = mgr->nloops;
+	}
+	REQUIRE(workers <= mgr->nloops);
 
-	isc__nmsocket_init(tlssock, mgr, isc_nm_tlslistener, iface);
-	tlssock->result = ISC_R_UNSET;
+	tlssock = isc_mem_get(worker->mctx, sizeof(*tlssock));
+
+	isc__nmsocket_init(tlssock, worker, isc_nm_tlslistener, iface);
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
 	tls_init_listener_tlsctx(tlssock, sslctx);
@@ -750,7 +761,7 @@ isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__nm_uvreq_t *req = ievent->req;
 
 	REQUIRE(VALID_UVREQ(req));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	UNUSED(worker);
 
@@ -786,7 +797,7 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		return;
 	}
 
-	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
+	uvreq = isc__nm_uvreq_get(sock->worker, sock);
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
@@ -796,9 +807,8 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	/*
 	 * We need to create an event and pass it using async channel
 	 */
-	ievent = isc__nm_get_netievent_tlssend(sock->mgr, sock, uvreq);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
+	ievent = isc__nm_get_netievent_tlssend(sock->worker, sock, uvreq);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 void
@@ -807,7 +817,7 @@ isc__nm_async_tlsstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
 		(isc__netievent_tlsstartread_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	UNUSED(worker);
 
@@ -824,7 +834,7 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock = handle->sock;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->statichandle == handle);
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(sock->recv_cb == NULL);
 
 	if (inactive(sock)) {
@@ -835,9 +845,8 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 
-	ievent = isc__nm_get_netievent_tlsstartread(sock->mgr, sock);
-	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-			       (isc__netievent_t *)ievent);
+	ievent = isc__nm_get_netievent_tlsstartread(sock->worker, sock);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 void
@@ -873,7 +882,7 @@ isc__nm_tls_resumeread(isc_nmhandle_t *handle) {
 static void
 tls_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	/*
 	 * At this point we're certain that there are no
 	 * external references, we can close everything.
@@ -906,9 +915,8 @@ isc__nm_tls_close(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	ievent = isc__nm_get_netievent_tlsclose(sock->mgr, sock);
-	isc__nm_maybe_enqueue_ievent(&sock->mgr->workers[sock->tid],
-				     (isc__netievent_t *)ievent);
+	ievent = isc__nm_get_netievent_tlsclose(sock->worker, sock);
+	isc__nm_maybe_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 void
@@ -916,7 +924,7 @@ isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tlsclose_t *ievent = (isc__netievent_tlsclose_t *)ev0;
 	isc_nmsocket_t *sock = ievent->sock;
 
-	REQUIRE(ievent->sock->tid == isc_nm_tid());
+	REQUIRE(ievent->sock->tid == isc_tid());
 
 	UNUSED(worker);
 
@@ -927,6 +935,8 @@ void
 isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlslistener);
+	REQUIRE(sock->tlsstream.tls == NULL);
+	REQUIRE(sock->tlsstream.ctx == NULL);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
 					    true)) {
@@ -937,9 +947,6 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	atomic_store(&sock->closed, true);
 	sock->recv_cb = NULL;
 	sock->recv_cbarg = NULL;
-
-	INSIST(sock->tlsstream.tls == NULL);
-	INSIST(sock->tlsstream.ctx == NULL);
 
 	if (sock->outer != NULL) {
 		isc_nm_stoplistening(sock->outer);
@@ -956,21 +963,17 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int timeout) {
 	isc_nmsocket_t *nsock = NULL;
-#if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
-	fprintf(stderr, "TLS: isc_nm_tlsconnect(): in net thread: %s\n",
-		isc__nm_in_netthread() ? "yes" : "no");
-#endif /* NETMGR_TRACE */
+	isc__networker_t *worker = &mgr->workers[isc_tid()];
 
 	REQUIRE(VALID_NM(mgr));
 
-	if (atomic_load(&mgr->closing)) {
+	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
 		return;
 	}
 
-	nsock = isc_mem_get(mgr->mctx, sizeof(*nsock));
-	isc__nmsocket_init(nsock, mgr, isc_nm_tlssocket, local);
-	nsock->result = ISC_R_UNSET;
+	nsock = isc_mem_get(worker->mctx, sizeof(*nsock));
+	isc__nmsocket_init(nsock, worker, isc_nm_tlssocket, local);
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
@@ -991,10 +994,12 @@ static void
 tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlssock = (isc_nmsocket_t *)cbarg;
 	isc_nmhandle_t *tlshandle = NULL;
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NMSOCK(tlssock));
 
-	tlssock->tid = isc_nm_tid();
+	worker = tlssock->worker;
+
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
@@ -1003,7 +1008,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	tlssock->iface = handle->sock->iface;
 	tlssock->peer = handle->sock->peer;
-	if (isc__nm_closing(tlssock)) {
+	if (isc__nm_closing(worker)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
 	}
@@ -1068,12 +1073,12 @@ isc__nm_tls_cancelread(isc_nmhandle_t *handle) {
 
 	REQUIRE(sock->type == isc_nm_tlssocket);
 
-	if (sock->tid == isc_nm_tid()) {
+	if (sock->tid == isc_tid()) {
 		tls_cancelread(sock);
 	} else {
-		ievent = isc__nm_get_netievent_tlscancel(sock->mgr, sock,
+		ievent = isc__nm_get_netievent_tlscancel(sock->worker, sock,
 							 handle);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
+		isc__nm_enqueue_ievent(sock->worker,
 				       (isc__netievent_t *)ievent);
 	}
 }
@@ -1084,8 +1089,7 @@ isc__nm_async_tlscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nmsocket_t *sock = ievent->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(worker->id == sock->tid);
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 
 	UNUSED(worker);
 	tls_cancelread(sock);
@@ -1221,14 +1225,15 @@ static void
 tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
 	size_t nworkers;
 
-	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(ctx != NULL);
 
-	nworkers = (size_t)isc_nm_getnworkers(listener->mgr);
+	nworkers =
+		(size_t)isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
 	INSIST(nworkers > 0);
 
 	listener->tlsstream.listener_tls_ctx = isc_mem_get(
-		listener->mgr->mctx, sizeof(isc_tlsctx_t *) * nworkers);
+		listener->worker->mctx, sizeof(isc_tlsctx_t *) * nworkers);
 	listener->tlsstream.n_listener_tls_ctx = nworkers;
 	for (size_t i = 0; i < nworkers; i++) {
 		listener->tlsstream.listener_tls_ctx[i] = NULL;
@@ -1239,7 +1244,7 @@ tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
 
 static void
 tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
-	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(VALID_NMSOCK(listener));
 
 	if (listener->tlsstream.listener_tls_ctx == NULL) {
 		return;
@@ -1248,7 +1253,8 @@ tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
 	for (size_t i = 0; i < listener->tlsstream.n_listener_tls_ctx; i++) {
 		isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[i]);
 	}
-	isc_mem_put(listener->mgr->mctx, listener->tlsstream.listener_tls_ctx,
+	isc_mem_put(listener->worker->mctx,
+		    listener->tlsstream.listener_tls_ctx,
 		    sizeof(isc_tlsctx_t *) *
 			    listener->tlsstream.n_listener_tls_ctx);
 	listener->tlsstream.n_listener_tls_ctx = 0;
@@ -1256,7 +1262,7 @@ tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
 
 static isc_tlsctx_t *
 tls_get_listener_tlsctx(isc_nmsocket_t *listener, const int tid) {
-	REQUIRE(VALID_NM(listener->mgr));
+	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(tid >= 0);
 
 	if (listener->tlsstream.listener_tls_ctx == NULL) {
@@ -1281,7 +1287,7 @@ tls_keep_client_tls_session(isc_nmsocket_t *sock) {
 	 * Ensure that the isc_tls_t is being accessed from
 	 * within the worker thread the socket is bound to.
 	 */
-	REQUIRE(sock->tid == isc_nm_tid());
+	REQUIRE(sock->tid == isc_tid());
 	if (sock->tlsstream.client_sess_cache != NULL &&
 	    sock->tlsstream.client_session_saved == false)
 	{

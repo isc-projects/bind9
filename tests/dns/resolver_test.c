@@ -21,7 +21,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/net.h>
 #include <isc/print.h>
@@ -41,7 +40,7 @@ static dns_dispatch_t *dispatch = NULL;
 static dns_view_t *view = NULL;
 
 static int
-_setup(void **state) {
+setup_test(void **state) {
 	isc_result_t result;
 	isc_sockaddr_t local;
 
@@ -50,7 +49,7 @@ _setup(void **state) {
 	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_test_makeview("view", true, &view);
+	result = dns_test_makeview("view", false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_sockaddr_any(&local);
@@ -61,11 +60,10 @@ _setup(void **state) {
 }
 
 static int
-_teardown(void **state) {
+teardown_test(void **state) {
 	dns_dispatch_detach(&dispatch);
 	dns_view_detach(&view);
 	dns_dispatchmgr_detach(&dispatchmgr);
-
 	teardown_managers(state);
 
 	return (0);
@@ -75,7 +73,7 @@ static void
 mkres(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
-	result = dns_resolver_create(view, taskmgr, 1, netmgr, timermgr, 0,
+	result = dns_resolver_create(view, loopmgr, taskmgr, 1, netmgr, 0,
 				     dispatchmgr, dispatch, NULL, resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
@@ -87,21 +85,18 @@ destroy_resolver(dns_resolver_t **resolverp) {
 }
 
 /* dns_resolver_create */
-ISC_RUN_TEST_IMPL(dns_resolver_create) {
+ISC_LOOP_TEST_IMPL(create) {
 	dns_resolver_t *resolver = NULL;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dns_resolver_gettimeout */
-ISC_RUN_TEST_IMPL(dns_resolver_gettimeout) {
+ISC_LOOP_TEST_IMPL(gettimeout) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int timeout;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 
@@ -109,14 +104,13 @@ ISC_RUN_TEST_IMPL(dns_resolver_gettimeout) {
 	assert_true(timeout > 0);
 
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dns_resolver_settimeout */
-ISC_RUN_TEST_IMPL(dns_resolver_settimeout) {
+ISC_LOOP_TEST_IMPL(settimeout) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 
@@ -126,14 +120,13 @@ ISC_RUN_TEST_IMPL(dns_resolver_settimeout) {
 	assert_true(timeout == default_timeout + 1);
 
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dns_resolver_settimeout */
-ISC_RUN_TEST_IMPL(dns_resolver_settimeout_default) {
+ISC_LOOP_TEST_IMPL(settimeout_default) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 
@@ -148,14 +141,13 @@ ISC_RUN_TEST_IMPL(dns_resolver_settimeout_default) {
 	assert_int_equal(timeout, default_timeout);
 
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dns_resolver_settimeout below minimum */
-ISC_RUN_TEST_IMPL(dns_resolver_settimeout_belowmin) {
+ISC_LOOP_TEST_IMPL(settimeout_belowmin) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int default_timeout, timeout;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 
@@ -166,14 +158,13 @@ ISC_RUN_TEST_IMPL(dns_resolver_settimeout_belowmin) {
 	assert_int_equal(timeout, default_timeout);
 
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 /* dns_resolver_settimeout over maximum */
-ISC_RUN_TEST_IMPL(dns_resolver_settimeout_overmax) {
+ISC_LOOP_TEST_IMPL(settimeout_overmax) {
 	dns_resolver_t *resolver = NULL;
 	unsigned int timeout;
-
-	UNUSED(state);
 
 	mkres(&resolver);
 
@@ -181,17 +172,16 @@ ISC_RUN_TEST_IMPL(dns_resolver_settimeout_overmax) {
 	timeout = dns_resolver_gettimeout(resolver);
 	assert_in_range(timeout, 0, 3999999);
 	destroy_resolver(&resolver);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START
-
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_create, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_gettimeout, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_default, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_belowmin, _setup, _teardown)
-ISC_TEST_ENTRY_CUSTOM(dns_resolver_settimeout_overmax, _setup, _teardown)
-
+ISC_TEST_ENTRY_CUSTOM(create, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(gettimeout, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(settimeout, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(settimeout_default, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(settimeout_belowmin, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(settimeout_overmax, setup_test, teardown_test)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

@@ -62,6 +62,7 @@
 #include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/netmgr.h>
+#include <isc/refcount.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -89,25 +90,14 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-#define isc_task_create(m, q, t, i) \
-	isc__task_create(m, q, t, i ISC__TASKFILELINE)
+#define isc_task_create(manager, taskp, tid) \
+	isc__task_create(manager, taskp, tid ISC__TASKFILELINE)
 
 isc_result_t
-isc__task_create(isc_taskmgr_t *manager, unsigned int quantum,
-		 isc_task_t **taskp, int tid ISC__TASKFLARG);
+isc__task_create(isc_taskmgr_t *manager, isc_task_t **taskp,
+		 int tid ISC__TASKFLARG);
 /*%<
  * Create a task, bound to a particular thread id.
- *
- * Notes:
- *
- *\li	If 'quantum' is non-zero, then only that many events can be dispatched
- *	before the task must yield to other tasks waiting to execute.  If
- *	quantum is zero, then the default quantum of the task manager will
- *	be used.
- *
- *\li	The 'quantum' option may be removed from isc_task_create() in the
- *	future.  If this happens, isc_task_getquantum() and
- *	isc_task_setquantum() will be provided.
  *
  * Requires:
  *
@@ -126,66 +116,7 @@ isc__task_create(isc_taskmgr_t *manager, unsigned int quantum,
  *\li	#ISC_R_SHUTTINGDOWN
  */
 
-void
-isc_task_ready(isc_task_t *task);
-/*%<
- * Enqueue the task onto netmgr queue.
- */
-
-isc_result_t
-isc_task_run(isc_task_t *task);
-/*%<
- * Run all the queued events for the 'task', returning
- * when the queue is empty or the number of events executed
- * exceeds the 'quantum' specified when the task was created.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_QUOTA
- */
-
-void
-isc_task_attach(isc_task_t *source, isc_task_t **targetp);
-/*%<
- * Attach *targetp to source.
- *
- * Requires:
- *
- *\li	'source' is a valid task.
- *
- *\li	'targetp' points to a NULL isc_task_t *.
- *
- * Ensures:
- *
- *\li	*targetp is attached to source.
- */
-
-void
-isc_task_detach(isc_task_t **taskp);
-/*%<
- * Detach *taskp from its task.
- *
- * Requires:
- *
- *\li	'*taskp' is a valid task.
- *
- * Ensures:
- *
- *\li	*taskp is NULL.
- *
- *\li	If '*taskp' is the last reference to the task, the task is idle (has
- *	an empty event queue), and has not been shutdown, the task will be
- *	shutdown.
- *
- *\li	If '*taskp' is the last reference to the task and
- *	the task has been shutdown,
- *		all resources used by the task will be freed.
- */
+ISC_REFCOUNT_DECL(isc_task);
 
 void
 isc_task_send(isc_task_t *task, isc_event_t **eventp);
@@ -228,34 +159,6 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-bool
-isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
-/*%<
- * Purge 'event' from a task's event queue.
- *
- * Notes:
- *
- *\li   If 'event' is on the task's event queue, it will be purged.  'event'
- *      does not have to be on the task's event queue; in fact, it can even be
- *	an invalid pointer.  Purging only occurs if the event is actually on the
- *	task's event queue.
- *
- * \li	Purging never changes the state of the task.
- *
- * Requires:
- *
- *\li	'task' is a valid task.
- *
- * Ensures:
- *
- *\li	'event' is not in the event queue for 'task'.
- *
- * Returns:
- *
- *\li	#true			The event was purged.
- *\li	#false			The event was not in the event queue.
- */
-
 void
 isc_task_setname(isc_task_t *task, const char *name, void *tag);
 /*%<
@@ -271,6 +174,9 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag);
  *
  *\li	'task' is a valid task.
  */
+
+isc_loopmgr_t *
+isc_task_getloopmgr(isc_task_t *task);
 
 const char *
 isc_task_getname(isc_task_t *task);
@@ -290,9 +196,6 @@ isc_task_getname(isc_task_t *task);
  *
  */
 
-isc_nm_t *
-isc_task_getnetmgr(isc_task_t *task);
-
 void *
 isc_task_gettag(isc_task_t *task);
 /*%<
@@ -306,15 +209,6 @@ isc_task_gettag(isc_task_t *task);
  */
 
 void
-isc_task_setquantum(isc_task_t *task, unsigned int quantum);
-/*%<
- * Set future 'task' quantum to 'quantum'.  The current 'task' quantum will be
- * kept for the current isc_task_run() loop, and will be changed for the next
- * run.  Therefore, the function is save to use from the event callback as it
- * will not affect the current event loop processing.
- */
-
-isc_result_t
 isc_task_beginexclusive(isc_task_t *task);
 /*%<
  * Request exclusive access for 'task', which must be the calling
@@ -339,8 +233,8 @@ isc_task_beginexclusive(isc_task_t *task);
 void
 isc_task_endexclusive(isc_task_t *task);
 /*%<
- * Relinquish the exclusive access obtained by isc_task_beginexclusive(),
- * allowing other tasks to execute.
+ * Relinquish the exclusive access obtained by
+ *isc_task_beginexclusive(), allowing other tasks to execute.
  *
  * Requires:
  *\li	'task' is the calling task, and has obtained
@@ -350,6 +244,72 @@ isc_task_endexclusive(isc_task_t *task);
 /*****
  ***** Task Manager.
  *****/
+
+void
+isc_taskmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		   isc_taskmgr_t **managerp);
+/*%<
+ * Create a new task manager.
+ *
+ * Notes:
+ *
+ *\li	This is meant to be called from isc_managers_create().
+ *
+ * Requires:
+ *
+ *\li      'mctx' is a valid memory context.
+
+ *\li      'loopmgr' is a valid loop manager.
+ *
+ *\li	managerp != NULL && *managerp == NULL
+ *
+ * Ensures:
+ *
+ *\li	On success, '*managerp' will be attached to the newly created task
+ *	manager.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOMEMORY
+ *\li	#ISC_R_NOTHREADS		No threads could be created.
+ *\li	#ISC_R_UNEXPECTED		An unexpected error occurred.
+ *\li	#ISC_R_SHUTTINGDOWN		The non-threaded, shared, task
+ *					manager shutting down.
+ */
+
+void
+isc_taskmgr_destroy(isc_taskmgr_t **managerp);
+/*%<
+ * Destroy '*managerp'.
+ *
+ * Notes:
+ *
+ *\li	Calling isc__taskmgr_destroy() will shut down all tasks managed by
+ *	*managerp that haven't already been shutdown. The call will block
+ *	until all tasks have entered the done state.
+ *
+ *\li	isc__taskmgr_destroy() must not be called by a task event action,
+ *	because it would block forever waiting for the event action to
+ *	complete. An event action that wants to cause task manager shutdown
+ *	should request some non-event action thread of execution to do the
+ *	shutdown, e.g. by signaling a condition variable or using
+ *	isc_loopmgr_shutdown().
+ *
+ *\li	The task manager is reference counted and will be destroyed when
+ *	the last reference is detached. The only difference between this
+ *	function and isc_task_detach() is that this one will assert if
+ *	more than 1 reference is held. This function is only meant to be
+ *	called from isc_managers_destroy(), by which time all other
+ *	references should have been detached. If any are still being held,
+ *	it's a programming error, and we want to crash.
+ *
+ * Requires:
+ *
+ *\li	'*managerp' is a valid task manager.
+ *
+ *\li   No other references to the task manager are being held.
+ */
 
 void
 isc_taskmgr_attach(isc_taskmgr_t *, isc_taskmgr_t **);

@@ -22,11 +22,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -56,24 +56,9 @@
  */
 
 isc_mem_t *ctxs_mctx = NULL;
+isc_loopmgr_t *ctxs_loopmgr = NULL;
 isc_nm_t *ctxs_netmgr = NULL;
 isc_taskmgr_t *ctxs_taskmgr = NULL;
-isc_timermgr_t *ctxs_timermgr = NULL;
-
-static void
-ctxs_destroy(void) {
-	isc_managers_destroy(&ctxs_netmgr, &ctxs_taskmgr, &ctxs_timermgr);
-
-	isc_mem_destroy(&ctxs_mctx);
-}
-
-static void
-ctxs_init(void) {
-	isc_mem_create(&ctxs_mctx);
-
-	isc_managers_create(ctxs_mctx, 1, 0, &ctxs_netmgr, &ctxs_taskmgr,
-			    &ctxs_timermgr);
-}
 
 static char *algname = NULL;
 
@@ -226,7 +211,7 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 		result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "failed to convert qname: %u\n",
-				result);
+				(unsigned int)result);
 			exit(1);
 		}
 	}
@@ -234,8 +219,64 @@ addserver(dns_client_t *client, const char *addrstr, const char *port,
 	result = dns_client_setservers(client, dns_rdataclass_in, name,
 				       &servers);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "set server failed: %u\n", result);
+		fprintf(stderr, "set server failed: %u\n",
+			(unsigned int)result);
 		exit(1);
+	}
+}
+
+static dns_name_t *qname = NULL;
+static unsigned int resopt = 0;
+static dns_rdatatype_t type = dns_rdatatype_a;
+
+static void
+resolve_cb(dns_client_t *client, const dns_name_t *query_name,
+	   dns_namelist_t *namelist, isc_result_t result) {
+	UNUSED(query_name);
+
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "resolution failed: %s\n",
+			isc_result_totext(result));
+		goto cleanup;
+	}
+
+	for (dns_name_t *name = ISC_LIST_HEAD(*namelist); name != NULL;
+	     name = ISC_LIST_NEXT(name, link))
+	{
+		for (dns_rdataset_t *rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			if (printdata(rdataset, name) != ISC_R_SUCCESS) {
+				fprintf(stderr, "print data failed\n");
+			}
+		}
+	}
+
+cleanup:
+	dns_client_freeresanswer(client, namelist);
+
+	dns_client_detach(&client);
+
+	isc_mem_put(ctxs_mctx, namelist, sizeof(*namelist));
+
+	isc_loopmgr_shutdown(ctxs_loopmgr);
+}
+
+static void
+resolve(void *arg) {
+	dns_client_t *client = (void *)arg;
+	dns_namelist_t *namelist = isc_mem_get(ctxs_mctx, sizeof(*namelist));
+	isc_result_t result;
+
+	ISC_LIST_INIT(*namelist);
+	result = dns_client_resolve(client, qname, dns_rdataclass_in, type,
+				    resopt, namelist, resolve_cb);
+
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "resolution failed: %s\n",
+			isc_result_totext(result));
+		isc_mem_put(ctxs_mctx, namelist, sizeof(*namelist));
+		isc_loopmgr_shutdown(ctxs_loopmgr);
 	}
 }
 
@@ -254,11 +295,7 @@ main(int argc, char *argv[]) {
 	isc_buffer_t b;
 	dns_fixedname_t qname0;
 	unsigned int namelen;
-	dns_name_t *qname = NULL, *name = NULL;
-	dns_rdatatype_t type = dns_rdatatype_a;
-	dns_rdataset_t *rdataset = NULL;
-	dns_namelist_t namelist;
-	unsigned int clientopt, resopt = 0;
+	unsigned int clientopt;
 	bool is_sep = false;
 	const char *port = "53";
 	struct in_addr in4;
@@ -366,21 +403,23 @@ main(int argc, char *argv[]) {
 		altserveraddr = cp + 1;
 	}
 
-	ctxs_init();
+	isc_managers_create(&ctxs_mctx, 1, &ctxs_loopmgr, &ctxs_netmgr,
+			    &ctxs_taskmgr);
 
 	result = dst_lib_init(ctxs_mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dst_lib_init failed: %u\n", result);
+		fprintf(stderr, "dst_lib_init failed: %u\n",
+			(unsigned int)result);
 		exit(1);
 	}
 
 	clientopt = 0;
-	result = dns_client_create(ctxs_mctx, ctxs_taskmgr, ctxs_netmgr,
-				   ctxs_timermgr, clientopt, &client, addr4,
+	result = dns_client_create(ctxs_mctx, ctxs_loopmgr, ctxs_taskmgr,
+				   ctxs_netmgr, clientopt, &client, addr4,
 				   addr6);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_client_create failed: %u, %s\n", result,
-			isc_result_totext(result));
+		fprintf(stderr, "dns_client_create failed: %u, %s\n",
+			(unsigned int)result, isc_result_totext(result));
 		exit(1);
 	}
 
@@ -393,7 +432,7 @@ main(int argc, char *argv[]) {
 					  &resconf);
 		if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
 			fprintf(stderr, "irs_resconf_load failed: %u\n",
-				result);
+				(unsigned int)result);
 			exit(1);
 		}
 		nameservers = irs_resconf_getnameservers(resconf);
@@ -402,7 +441,7 @@ main(int argc, char *argv[]) {
 		if (result != ISC_R_SUCCESS) {
 			irs_resconf_destroy(&resconf);
 			fprintf(stderr, "dns_client_setservers failed: %u\n",
-				result);
+				(unsigned int)result);
 			exit(1);
 		}
 		irs_resconf_destroy(&resconf);
@@ -432,39 +471,24 @@ main(int argc, char *argv[]) {
 	qname = dns_fixedname_initname(&qname0);
 	result = dns_name_fromtext(qname, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to convert qname: %u\n", result);
+		fprintf(stderr, "failed to convert qname: %u\n",
+			(unsigned int)result);
+		exit(1);
 	}
 
 	/* Perform resolution */
 	if (keynamestr == NULL) {
 		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
 	}
-	ISC_LIST_INIT(namelist);
-	result = dns_client_resolve(client, qname, dns_rdataclass_in, type,
-				    resopt, &namelist);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "resolution failed: %s\n",
-			isc_result_totext(result));
-	}
-	for (name = ISC_LIST_HEAD(namelist); name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			if (printdata(rdataset, name) != ISC_R_SUCCESS) {
-				fprintf(stderr, "print data failed\n");
-			}
-		}
-	}
 
-	dns_client_freeresanswer(client, &namelist);
+	isc_loopmgr_setup(ctxs_loopmgr, resolve, client);
 
-	/* Cleanup */
-	dns_client_detach(&client);
+	isc_loopmgr_run(ctxs_loopmgr);
 
-	ctxs_destroy();
 	dst_lib_destroy();
+
+	isc_managers_destroy(&ctxs_mctx, &ctxs_loopmgr, &ctxs_netmgr,
+			     &ctxs_taskmgr);
 
 	return (0);
 }

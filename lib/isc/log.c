@@ -42,11 +42,6 @@
 #define LCFG_MAGIC	   ISC_MAGIC('L', 'c', 'f', 'g')
 #define VALID_CONFIG(lcfg) ISC_MAGIC_VALID(lcfg, LCFG_MAGIC)
 
-#define RDLOCK(lp)   RWLOCK(lp, isc_rwlocktype_read);
-#define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write);
-#define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read);
-#define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write);
-
 static thread_local bool forcelog = false;
 
 /*

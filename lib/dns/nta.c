@@ -17,7 +17,9 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/event.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -74,8 +76,7 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 		isc_refcount_destroy(&nta->refcount);
 		nta->magic = 0;
 		if (nta->timer != NULL) {
-			(void)isc_timer_reset(
-				nta->timer, isc_timertype_inactive, NULL, true);
+			(void)isc_timer_stop(nta->timer);
 			isc_timer_destroy(&nta->timer);
 		}
 		if (dns_rdataset_isassociated(&nta->rdataset)) {
@@ -102,7 +103,7 @@ free_nta(void *data, void *arg) {
 
 isc_result_t
 dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, dns_ntatable_t **ntatablep) {
+		    isc_loopmgr_t *loopmgr, dns_ntatable_t **ntatablep) {
 	dns_ntatable_t *ntatable;
 	isc_result_t result;
 
@@ -111,7 +112,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
 
 	ntatable->task = NULL;
-	result = isc_task_create(taskmgr, 0, &ntatable->task, 0);
+	result = isc_task_create(taskmgr, &ntatable->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_ntatable;
 	}
@@ -127,7 +128,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	isc_rwlock_init(&ntatable->rwlock, 0, 0);
 
 	ntatable->shuttingdown = false;
-	ntatable->timermgr = timermgr;
+	ntatable->loopmgr = loopmgr;
 	ntatable->taskmgr = taskmgr;
 
 	ntatable->view = view;
@@ -173,7 +174,7 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep) {
 		if (ntatable->task != NULL) {
 			isc_task_detach(&ntatable->task);
 		}
-		ntatable->timermgr = NULL;
+		ntatable->loopmgr = NULL;
 		ntatable->taskmgr = NULL;
 		ntatable->magic = 0;
 		isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
@@ -218,9 +219,11 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
 	case DNS_R_NXRRSET:
+		RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 		if (nta->expiry > now) {
 			nta->expiry = now;
 		}
+		RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 		break;
 	default:
 		break;
@@ -230,17 +233,19 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	 * If we're expiring before the next recheck, we might
 	 * as well stop the timer now.
 	 */
+	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	if (nta->timer != NULL && nta->expiry - now < view->nta_recheck) {
-		(void)isc_timer_reset(nta->timer, isc_timertype_inactive, NULL,
-				      true);
+		(void)isc_timer_stop(nta->timer);
 	}
+	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
+
 	nta_detach(view->mctx, &nta);
 	dns_view_weakdetach(&view);
 }
 
 static void
-checkbogus(isc_task_t *task, isc_event_t *event) {
-	dns_nta_t *nta = event->ev_arg;
+checkbogus(void *arg) {
+	dns_nta_t *nta = arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -256,47 +261,42 @@ checkbogus(isc_task_t *task, isc_event_t *event) {
 		dns_rdataset_disassociate(&nta->sigrdataset);
 	}
 
-	isc_event_free(&event);
-
 	nta_ref(nta);
 	dns_view_weakattach(ntatable->view, &view);
 	result = dns_resolver_createfetch(
 		view->resolver, nta->name, dns_rdatatype_nsec, NULL, NULL, NULL,
-		NULL, 0, DNS_FETCHOPT_NONTA, 0, NULL, task, fetch_done, nta,
-		&nta->rdataset, &nta->sigrdataset, &nta->fetch);
+		NULL, 0, DNS_FETCHOPT_NONTA, 0, NULL, ntatable->task,
+		fetch_done, nta, &nta->rdataset, &nta->sigrdataset,
+		&nta->fetch);
 	if (result != ISC_R_SUCCESS) {
 		nta_detach(view->mctx, &nta);
 		dns_view_weakdetach(&view);
 	}
 }
 
-static isc_result_t
+static void
 settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
-	isc_result_t result;
 	isc_interval_t interval;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
+	isc_loop_t *loop = NULL;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 	REQUIRE(VALID_NTA(nta));
 
-	if (ntatable->timermgr == NULL) {
-		return (ISC_R_SUCCESS);
+	if (ntatable->loopmgr == NULL) {
+		return;
 	}
 
 	view = ntatable->view;
 	if (view->nta_recheck == 0 || lifetime <= view->nta_recheck) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
-	isc_timer_create(ntatable->timermgr, ntatable->task, checkbogus, nta,
-			 &nta->timer);
+	loop = isc_loop_main(ntatable->loopmgr);
+
+	isc_timer_create(loop, checkbogus, nta, &nta->timer);
 	isc_interval_set(&interval, view->nta_recheck, 0);
-	result = isc_timer_reset(nta->timer, isc_timertype_ticker, &interval,
-				 false);
-	if (result != ISC_R_SUCCESS) {
-		isc_timer_destroy(&nta->timer);
-	}
-	return (result);
+	isc_timer_start(nta->timer, isc_timertype_ticker, &interval);
 }
 
 static isc_result_t
@@ -360,7 +360,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 	result = dns_rbt_addnode(ntatable->table, name, &node);
 	if (result == ISC_R_SUCCESS) {
 		if (!force) {
-			(void)settimer(ntatable, nta, lifetime);
+			settimer(ntatable, nta, lifetime);
 		}
 		node->data = nta;
 		nta = NULL;
@@ -368,7 +368,7 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		dns_nta_t *n = node->data;
 		if (n == NULL) {
 			if (!force) {
-				(void)settimer(ntatable, nta, lifetime);
+				settimer(ntatable, nta, lifetime);
 			}
 			node->data = nta;
 			nta = NULL;
@@ -479,8 +479,7 @@ again:
 			      "deleting expired NTA at %s", nb);
 
 		if (nta->timer != NULL) {
-			(void)isc_timer_reset(
-				nta->timer, isc_timertype_inactive, NULL, true);
+			(void)isc_timer_stop(nta->timer);
 			isc_timer_destroy(&nta->timer);
 		}
 
@@ -689,9 +688,7 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable) {
 		if (node->data != NULL) {
 			dns_nta_t *nta = (dns_nta_t *)node->data;
 			if (nta->timer != NULL) {
-				(void)isc_timer_reset(nta->timer,
-						      isc_timertype_inactive,
-						      NULL, true);
+				(void)isc_timer_stop(nta->timer);
 			}
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);

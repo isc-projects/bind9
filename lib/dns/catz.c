@@ -17,6 +17,7 @@
 #include <stdbool.h>
 
 #include <isc/hex.h>
+#include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
@@ -90,7 +91,6 @@ struct dns_catz_zone {
 	dns_dbversion_t *dbversion;
 
 	isc_timer_t *updatetimer;
-	isc_event_t updateevent;
 
 	bool active;
 	bool db_registered;
@@ -122,7 +122,7 @@ struct dns_catz_zones {
 	isc_mutex_t lock;
 	dns_catz_zonemodmethods_t *zmm;
 	isc_taskmgr_t *taskmgr;
-	isc_timermgr_t *timermgr;
+	isc_loopmgr_t *loopmgr;
 	dns_view_t *view;
 	isc_task_t *updater;
 };
@@ -711,7 +711,7 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 isc_result_t
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr) {
+		   isc_loopmgr_t *loopmgr) {
 	dns_catz_zones_t *new_zones;
 	isc_result_t result;
 
@@ -729,10 +729,10 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 
 	isc_mem_attach(mctx, &new_zones->mctx);
 	new_zones->zmm = zmm;
-	new_zones->timermgr = timermgr;
+	new_zones->loopmgr = loopmgr;
 	new_zones->taskmgr = taskmgr;
 
-	result = isc_task_create(taskmgr, 0, &new_zones->updater, 0);
+	result = isc_task_create(taskmgr, &new_zones->updater, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_ht;
 	}
@@ -780,7 +780,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	isc_ht_init(&new_zone->coos, catzs->mctx, 4, ISC_HT_CASE_INSENSITIVE);
 
 	new_zone->updatetimer = NULL;
-	isc_timer_create(catzs->timermgr, catzs->updater,
+	isc_timer_create(isc_loop_main(catzs->loopmgr),
 			 dns_catz_update_taskaction, new_zone,
 			 &new_zone->updatetimer);
 
@@ -1981,22 +1981,16 @@ cleanup:
 }
 
 void
-dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event) {
+dns_catz_update_taskaction(void *arg) {
 	isc_result_t result;
-	dns_catz_zone_t *zone;
-	(void)task;
+	dns_catz_zone_t *zone = arg;
 
-	REQUIRE(event != NULL);
-	zone = event->ev_arg;
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
 
 	LOCK(&zone->catzs->lock);
 	zone->updatepending = false;
 	dns_catz_update_from_db(zone->db, zone->catzs);
-	result = isc_timer_reset(zone->updatetimer, isc_timertype_inactive,
-				 NULL, true);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_event_free(&event);
+	isc_timer_stop(zone->updatetimer);
 	result = isc_time_now(&zone->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&zone->catzs->lock);
@@ -2040,11 +2034,11 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	}
 
 	if (!zone->updatepending) {
+		isc_interval_t interval;
 		zone->updatepending = true;
 		isc_time_now(&now);
 		tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
 		if (tdiff < zone->defoptions.min_update_interval) {
-			isc_interval_t interval;
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
 				      "catz: new zone version came too soon, "
@@ -2053,25 +2047,12 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 					 zone->defoptions.min_update_interval -
 						 (unsigned int)tdiff,
 					 0);
-			dns_db_currentversion(db, &zone->dbversion);
-			result = isc_timer_reset(zone->updatetimer,
-						 isc_timertype_once, &interval,
-						 true);
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
 		} else {
-			isc_event_t *event;
-
-			dns_db_currentversion(db, &zone->dbversion);
-			ISC_EVENT_INIT(&zone->updateevent,
-				       sizeof(zone->updateevent), 0, NULL,
-				       DNS_EVENT_CATZUPDATED,
-				       dns_catz_update_taskaction, zone, zone,
-				       NULL, NULL);
-			event = &zone->updateevent;
-			isc_task_send(catzs->updater, &event);
+			isc_interval_set(&interval, 0, 0);
 		}
+		dns_db_currentversion(db, &zone->dbversion);
+		isc_timer_start(zone->updatetimer, isc_timertype_once,
+				&interval);
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),

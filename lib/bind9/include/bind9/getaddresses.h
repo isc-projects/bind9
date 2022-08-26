@@ -31,8 +31,9 @@ bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
  * seen, it is ignored.  If more than 'addrsize' addresses are seen, the
  * first 'addrsize' are returned and the remainder silently truncated.
  *
- * This routine may block.  If called by a program using the isc_app
- * framework, it should be surrounded by isc_app_block()/isc_app_unblock().
+ * This routine may block. If called by a program using the isc_loopmgr
+ * framework, it should be surrounded by isc_loopmgr_blocking() and
+ * isc_loopmgr_nonblocking().
  *
  *  Requires:
  *\li	'hostname' is not NULL.

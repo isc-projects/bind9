@@ -17,11 +17,11 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/commandline.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/net.h>
@@ -61,6 +61,7 @@
 
 static isc_mem_t *mctx = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static bool have_src = false;
 static isc_sockaddr_t srcaddr;
 static isc_sockaddr_t dstaddr;
@@ -119,7 +120,8 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	if (--onfly == 0) {
-		isc_app_shutdown();
+		isc_task_detach(&task);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 	return;
 }
@@ -177,17 +179,17 @@ sendquery(isc_task_t *task) {
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event) {
+sendqueries(void *arg) {
+	isc_task_t *task = (isc_task_t *)arg;
 	isc_result_t result;
-
-	isc_event_free(&event);
 
 	do {
 		result = sendquery(task);
 	} while (result == ISC_R_SUCCESS);
 
 	if (onfly == 0) {
-		isc_app_shutdown();
+		isc_task_detach(&task);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 	return;
 }
@@ -207,8 +209,6 @@ main(int argc, char *argv[]) {
 	dns_view_t *view = NULL;
 	uint16_t port = PORT;
 	int c;
-
-	RUNCHECK(isc_app_start());
 
 	isc_commandline_errprint = false;
 	while ((c = isc_commandline_parse(argc, argv, "p:r:")) != -1) {
@@ -256,14 +256,13 @@ main(int argc, char *argv[]) {
 	}
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
-	isc_mem_create(&mctx);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
 
 	isc_log_create(mctx, &lctx, &lcfg);
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	isc_managers_create(mctx, 1, 0, &netmgr, &taskmgr, NULL);
-	RUNCHECK(isc_task_create(taskmgr, 0, &task, 0));
+	RUNCHECK(isc_task_create(taskmgr, &task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	RUNCHECK(dns_dispatch_createudp(
@@ -272,9 +271,9 @@ main(int argc, char *argv[]) {
 				       NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
-	RUNCHECK(isc_app_onrun(mctx, task, sendqueries, NULL));
 
-	(void)isc_app_run();
+	isc_loopmgr_setup(loopmgr, sendqueries, task);
+	isc_loopmgr_run(loopmgr);
 
 	dns_view_detach(&view);
 
@@ -284,17 +283,11 @@ main(int argc, char *argv[]) {
 	dns_dispatch_detach(&dispatchv4);
 	dns_dispatchmgr_detach(&dispatchmgr);
 
-	isc_task_detach(&task);
-
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-
 	dst_lib_destroy();
 
 	isc_log_destroy(&lctx);
 
-	isc_mem_destroy(&mctx);
-
-	isc_app_finish();
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 
 	return (0);
 }

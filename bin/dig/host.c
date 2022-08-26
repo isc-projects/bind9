@@ -19,9 +19,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/commandline.h>
+#include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -139,7 +139,7 @@ show_usage(void) {
 
 static void
 host_shutdown(void) {
-	(void)isc_app_shutdown();
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
@@ -878,8 +878,6 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 
 int
 main(int argc, char **argv) {
-	isc_result_t result;
-
 	tries = 2;
 
 	ISC_LIST_INIT(lookup_list);
@@ -897,8 +895,6 @@ main(int argc, char **argv) {
 	debug("main()");
 	progname = argv[0];
 	pre_parse_args(argc, argv);
-	result = isc_app_start();
-	check_result(result, "isc_app_start");
 	setup_libs();
 	setup_system(ipv4only, ipv6only);
 	parse_args(false, argc, argv);
@@ -907,11 +903,12 @@ main(int argc, char **argv) {
 	} else if (keysecret[0] != 0) {
 		setup_text_key();
 	}
-	result = isc_app_onrun(mctx, global_task, onrun_callback, NULL);
-	check_result(result, "isc_app_onrun");
-	isc_app_run();
+
+	isc_loopmgr_setup(loopmgr, run_loop, NULL);
+	isc_loopmgr_run(loopmgr);
+
 	cancel_all();
 	destroy_libs();
-	isc_app_finish();
+
 	return ((seen_error == 0) ? 0 : 1);
 }

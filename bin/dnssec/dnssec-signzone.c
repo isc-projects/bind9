@@ -33,7 +33,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <isc/app.h>
 #include <isc/atomic.h>
 #include <isc/attributes.h>
 #include <isc/base32.h>
@@ -43,6 +42,8 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
+#include <isc/job.h>
+#include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -57,6 +58,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/tid.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
@@ -145,6 +147,7 @@ static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory = NULL, *dsdir = NULL;
 static isc_mutex_t namelock, statslock;
 static isc_nm_t *netmgr = NULL;
+static isc_loopmgr_t *loopmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static dns_db_t *gdb;		  /* The database */
 static dns_dbversion_t *gversion; /* The database version */
@@ -156,7 +159,7 @@ static dns_iterations_t nsec3iter = 0U;
 static unsigned char saltbuf[255];
 static unsigned char *gsalt = saltbuf;
 static size_t salt_length = 0;
-static isc_task_t *main_task = NULL;
+static isc_task_t *write_task = NULL;
 static unsigned int ntasks = 0;
 static atomic_bool shuttingdown;
 static atomic_bool finished;
@@ -1567,7 +1570,9 @@ signapex(void) {
 	result = dns_dbiterator_current(gdbiter, &node, name);
 	check_dns_dbiterator_current(result);
 	signname(node, name);
+	LOCK(&namelock);
 	dumpnode(name, node);
+	UNLOCK(&namelock);
 	cleannode(gdb, gversion, node);
 	dns_db_detachnode(gdb, &node);
 	result = dns_dbiterator_first(gdbiter);
@@ -1584,11 +1589,11 @@ signapex(void) {
  * lock.
  */
 static void
-assignwork(isc_task_t *task, isc_task_t *worker) {
-	dns_fixedname_t *fname;
-	dns_name_t *name;
-	dns_dbnode_t *node;
-	sevent_t *sevent;
+assignwork(isc_task_t *task) {
+	dns_fixedname_t *fname = NULL;
+	dns_name_t *name = NULL;
+	dns_dbnode_t *node = NULL;
+	sevent_t *sevent = NULL;
 	dns_rdataset_t nsec;
 	bool found;
 	isc_result_t result;
@@ -1604,8 +1609,8 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	if (atomic_load(&finished)) {
 		ended++;
 		if (ended == ntasks) {
-			isc_task_detach(&task);
-			isc_app_shutdown();
+			isc_task_detach(&write_task);
+			isc_loopmgr_shutdown(loopmgr);
 		}
 		goto unlock;
 	}
@@ -1679,8 +1684,8 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	if (!found) {
 		ended++;
 		if (ended == ntasks) {
-			isc_task_detach(&task);
-			isc_app_shutdown();
+			isc_task_detach(&write_task);
+			isc_loopmgr_shutdown(loopmgr);
 		}
 		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
 		goto unlock;
@@ -1690,7 +1695,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 
 	sevent->node = node;
 	sevent->fname = fname;
-	isc_task_send(worker, ISC_EVENT_PTR(&sevent));
+	isc_task_send(task, ISC_EVENT_PTR(&sevent));
 unlock:
 	UNLOCK(&namelock);
 }
@@ -1699,12 +1704,30 @@ unlock:
  * Start a worker task
  */
 static void
-startworker(isc_task_t *task, isc_event_t *event) {
-	isc_task_t *worker;
+startworker(void *arg) {
+	isc_task_t **tasks = (isc_task_t **)arg;
+	isc_result_t result;
+	int tid;
 
-	worker = (isc_task_t *)event->ev_arg;
-	assignwork(task, worker);
-	isc_event_free(&event);
+	REQUIRE(tasks != NULL);
+
+	tid = isc_tid();
+	result = isc_task_create(taskmgr, &tasks[tid], tid);
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed to create task: %s", isc_result_totext(result));
+	}
+
+	assignwork(tasks[tid]);
+}
+
+/*%
+ * Finish a worker task
+ */
+static void
+workerdone(void *arg) {
+	isc_task_t **tasks = (isc_task_t **)arg;
+
+	isc_task_detach(&tasks[isc_tid()]);
 }
 
 /*%
@@ -1712,15 +1735,15 @@ startworker(isc_task_t *task, isc_event_t *event) {
  */
 static void
 writenode(isc_task_t *task, isc_event_t *event) {
-	isc_task_t *worker;
 	sevent_t *sevent = (sevent_t *)event;
 
-	worker = (isc_task_t *)event->ev_sender;
+	LOCK(&namelock);
 	dumpnode(dns_fixedname_name(sevent->fname), sevent->node);
+	UNLOCK(&namelock);
 	cleannode(gdb, gversion, sevent->node);
 	dns_db_detachnode(gdb, &sevent->node);
 	isc_mem_put(mctx, sevent->fname, sizeof(dns_fixedname_t));
-	assignwork(task, worker);
+	assignwork(task);
 	isc_event_free(&event);
 }
 
@@ -1733,18 +1756,20 @@ sign(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node;
 	sevent_t *sevent, *wevent;
 
+	UNUSED(task);
+
 	sevent = (sevent_t *)event;
 	node = sevent->node;
 	fname = sevent->fname;
 	isc_event_free(&event);
 
 	signname(node, dns_fixedname_name(fname));
-	wevent = (sevent_t *)isc_event_allocate(mctx, task, SIGNER_EVENT_WRITE,
-						writenode, NULL,
-						sizeof(sevent_t));
+	wevent = (sevent_t *)isc_event_allocate(mctx, write_task,
+						SIGNER_EVENT_WRITE, writenode,
+						NULL, sizeof(sevent_t));
 	wevent->node = node;
 	wevent->fname = fname;
-	isc_task_send(main_task, ISC_EVENT_PTR(&wevent));
+	isc_task_send(write_task, ISC_EVENT_PTR(&wevent));
 }
 
 /*%
@@ -3324,7 +3349,7 @@ print_stats(isc_time_t *timer_start, isc_time_t *timer_finish,
 
 int
 main(int argc, char *argv[]) {
-	int i, ch;
+	int ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *dnskey_endstr = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
@@ -3385,12 +3410,7 @@ main(int argc, char *argv[]) {
 
 	masterstyle = &dns_master_style_explicitttl;
 
-	check_result(isc_app_start(), "isc_app_start");
-
-	isc_mem_create(&mctx);
-
 	isc_commandline_errprint = false;
-
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case '3':
@@ -3668,12 +3688,6 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	result = dst_lib_init(mctx, engine);
-	if (result != ISC_R_SUCCESS) {
-		fatal("could not initialize dst: %s",
-		      isc_result_totext(result));
-	}
-
 	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
@@ -3703,7 +3717,7 @@ main(int argc, char *argv[]) {
 	}
 
 	if (ntasks == 0) {
-		ntasks = isc_os_ncpus() * 2;
+		ntasks = isc_os_ncpus();
 	}
 	vbprintf(4, "using %d cpus\n", ntasks);
 
@@ -3711,6 +3725,16 @@ main(int argc, char *argv[]) {
 
 	if (directory == NULL) {
 		directory = ".";
+	}
+
+	isc_managers_create(&mctx, ntasks, &loopmgr, &netmgr, &taskmgr);
+
+	isc_task_create(taskmgr, &write_task, 0);
+
+	result = dst_lib_init(mctx, engine);
+	if (result != ISC_R_SUCCESS) {
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(result));
 	}
 
 	setup_logging(mctx, &log);
@@ -3995,24 +4019,6 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	isc_managers_create(mctx, ntasks, 0, &netmgr, &taskmgr, NULL);
-
-	main_task = NULL;
-	result = isc_task_create(taskmgr, 0, &main_task, 0);
-	if (result != ISC_R_SUCCESS) {
-		fatal("failed to create task: %s", isc_result_totext(result));
-	}
-
-	tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-	for (i = 0; i < (int)ntasks; i++) {
-		tasks[i] = NULL;
-		result = isc_task_create(taskmgr, 0, &tasks[i], i);
-		if (result != ISC_R_SUCCESS) {
-			fatal("failed to create task: %s",
-			      isc_result_totext(result));
-		}
-	}
-
 	isc_mutex_init(&namelock);
 
 	if (printstats) {
@@ -4027,27 +4033,21 @@ main(int argc, char *argv[]) {
 		 * There is more work to do.  Spread it out over multiple
 		 * processors if possible.
 		 */
-		for (i = 0; i < (int)ntasks; i++) {
-			result = isc_app_onrun(mctx, main_task, startworker,
-					       tasks[i]);
-			if (result != ISC_R_SUCCESS) {
-				fatal("failed to start task: %s",
-				      isc_result_totext(result));
-			}
-		}
-		(void)isc_app_run();
+		tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
+		memset(tasks, 0, ntasks * sizeof(isc_task_t *));
+
+		isc_loopmgr_setup(loopmgr, startworker, tasks);
+		isc_loopmgr_teardown(loopmgr, workerdone, tasks);
+
+		isc_loopmgr_run(loopmgr);
+
 		if (!atomic_load(&finished)) {
 			fatal("process aborted by user");
 		}
-	} else {
-		isc_task_detach(&main_task);
+
+		isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	}
 	atomic_store(&shuttingdown, true);
-	for (i = 0; i < (int)ntasks; i++) {
-		isc_task_detach(&tasks[i]);
-	}
-	isc_managers_destroy(&netmgr, &taskmgr, NULL);
-	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 	TIME_NOW(&sign_finish);
 
@@ -4077,11 +4077,6 @@ main(int argc, char *argv[]) {
 						 masterstyle, outputformat,
 						 &header, outfp);
 		check_result(result, "dns_master_dumptostream3");
-	}
-
-	isc_mutex_destroy(&namelock);
-	if (printstats) {
-		isc_mutex_destroy(&statslock);
 	}
 
 	if (!output_stdout) {
@@ -4127,15 +4122,16 @@ main(int argc, char *argv[]) {
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}
-	isc_mem_destroy(&mctx);
 
-	(void)isc_app_finish();
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 
 	if (printstats) {
 		TIME_NOW(&timer_finish);
 		print_stats(&timer_start, &timer_finish, &sign_start,
 			    &sign_finish);
+		isc_mutex_destroy(&statslock);
 	}
+	isc_mutex_destroy(&namelock);
 
 	return (vresult == ISC_R_SUCCESS ? 0 : 1);
 }

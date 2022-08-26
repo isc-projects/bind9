@@ -23,6 +23,7 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>
+#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -263,7 +264,8 @@ extern unsigned int digestbits;
 extern dns_tsigkey_t *tsigkey;
 extern bool validated;
 extern isc_taskmgr_t *taskmgr;
-extern isc_task_t *global_task;
+extern isc_loopmgr_t *loopmgr;
+extern isc_loop_t *mainloop;
 extern bool free_now;
 extern bool debugging, debugtiming, memdebugging;
 extern bool keep_open;
@@ -313,7 +315,10 @@ void
 start_lookup(void);
 
 void
-onrun_callback(isc_task_t *task, isc_event_t *event);
+onrun_callback(void *arg);
+
+void
+run_loop(void *arg);
 
 int
 dhmain(int argc, char **argv);

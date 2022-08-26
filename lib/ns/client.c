@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/aes.h>
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
@@ -34,6 +35,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -123,7 +125,7 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
 static void
 clientmgr_detach(ns_clientmgr_t **mp);
 static void
-clientmgr_destroy(ns_clientmgr_t *manager);
+clientmgr_destroy_cb(void *arg);
 static void
 ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static void
@@ -1722,7 +1724,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			ns_interfacemgr_getclientmgr(ifp->mgr);
 
 		INSIST(VALID_MANAGER(clientmgr));
-		INSIST(clientmgr->tid == isc_nm_tid());
+		INSIST(clientmgr->tid == isc_tid());
 
 		client = isc_mem_get(clientmgr->mctx, sizeof(*client));
 
@@ -2282,7 +2284,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	if (new) {
 		REQUIRE(VALID_MANAGER(mgr));
 		REQUIRE(client != NULL);
-		REQUIRE(mgr->tid == isc_nm_tid());
+		REQUIRE(mgr->tid == isc_tid());
 
 		*client = (ns_client_t){ .magic = 0 };
 
@@ -2304,7 +2306,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		}
 	} else {
 		REQUIRE(NS_CLIENT_VALID(client));
-		REQUIRE(client->manager->tid == isc_nm_tid());
+		REQUIRE(client->manager->tid == isc_tid());
 
 		/*
 		 * Retain these values from the existing client, but
@@ -2374,22 +2376,8 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
 }
 
 static void
-clientmgr_detach(ns_clientmgr_t **mp) {
-	int32_t oldrefs;
-	ns_clientmgr_t *mgr = *mp;
-	*mp = NULL;
-
-	oldrefs = isc_refcount_decrement(&mgr->references);
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
-		      ISC_LOG_DEBUG(3), "clientmgr @%p detach: %d", mgr,
-		      oldrefs - 1);
-	if (oldrefs == 1) {
-		clientmgr_destroy(mgr);
-	}
-}
-
-static void
-clientmgr_destroy(ns_clientmgr_t *manager) {
+clientmgr_destroy_cb(void *arg) {
+	ns_clientmgr_t *manager = (ns_clientmgr_t *)arg;
 	MTRACE("clientmgr_destroy");
 
 	isc_refcount_destroy(&manager->references);
@@ -2405,9 +2393,27 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 }
 
+static void
+clientmgr_detach(ns_clientmgr_t **mp) {
+	int32_t oldrefs;
+	ns_clientmgr_t *mgr = *mp;
+	*mp = NULL;
+
+	oldrefs = isc_refcount_decrement(&mgr->references);
+	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
+		      ISC_LOG_DEBUG(3), "clientmgr @%p detach: %d", mgr,
+		      oldrefs - 1);
+	if (oldrefs == 1) {
+		isc_loop_t *loop = isc_loop_get(mgr->loopmgr, mgr->tid);
+
+		/* FIXME: Use isc_loopmgr_teardown() function instead? */
+		isc_async_run(loop, clientmgr_destroy_cb, mgr);
+	}
+}
+
 isc_result_t
 ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, dns_aclenv_t *aclenv, int tid,
+		    isc_loopmgr_t *loopmgr, dns_aclenv_t *aclenv, int tid,
 		    ns_clientmgr_t **managerp) {
 	ns_clientmgr_t *manager = NULL;
 	isc_mem_t *mctx = NULL;
@@ -2422,12 +2428,12 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	isc_mutex_init(&manager->reclock);
 
 	manager->taskmgr = taskmgr;
-	manager->timermgr = timermgr;
+	manager->loopmgr = loopmgr;
 	manager->tid = tid;
 
 	dns_aclenv_attach(aclenv, &manager->aclenv);
 
-	result = isc_task_create(manager->taskmgr, 20, &manager->task,
+	result = isc_task_create(manager->taskmgr, &manager->task,
 				 manager->tid);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_task_setname(manager->task, "clientmgr", NULL);
@@ -2449,19 +2455,12 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 
 void
 ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
-	ns_clientmgr_t *manager;
-
 	REQUIRE(managerp != NULL);
 	REQUIRE(VALID_MANAGER(*managerp));
 
-	manager = *managerp;
-	*managerp = NULL;
-
 	MTRACE("destroy");
 
-	if (isc_refcount_decrement(&manager->references) == 1) {
-		clientmgr_destroy(manager);
-	}
+	clientmgr_detach(managerp);
 }
 
 isc_sockaddr_t *

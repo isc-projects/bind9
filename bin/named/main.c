@@ -24,7 +24,6 @@
 #include <protobuf-c/protobuf-c.h>
 #endif
 
-#include <isc/app.h>
 #include <isc/attributes.h>
 #include <isc/backtrace.h>
 #include <isc/commandline.h>
@@ -38,6 +37,7 @@
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/result.h>
+#include <isc/signal.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -899,13 +899,14 @@ parse_command_line(int argc, char *argv[]) {
 
 static isc_result_t
 create_managers(void) {
-	isc_result_t result;
-
+	/*
+	 * Set the default named_g_cpus if it was not set from the command line
+	 */
 	INSIST(named_g_cpus_detected > 0);
-
 	if (named_g_cpus == 0) {
 		named_g_cpus = named_g_cpus_detected;
 	}
+
 	isc_log_write(
 		named_g_lctx, NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
 		ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
@@ -922,22 +923,12 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface", named_g_udpdisp,
 		      named_g_udpdisp == 1 ? "" : "s");
 
-	result = isc_managers_create(named_g_mctx, named_g_cpus,
-				     0 /* quantum */, &named_g_netmgr,
-				     &named_g_taskmgr, &named_g_timermgr);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
+			    &named_g_netmgr, &named_g_taskmgr);
 
 	isc_nm_maxudp(named_g_netmgr, maxudp);
 
 	return (ISC_R_SUCCESS);
-}
-
-static void
-destroy_managers(void) {
-	isc_managers_destroy(&named_g_netmgr, &named_g_taskmgr,
-			     &named_g_timermgr);
 }
 
 static void
@@ -1009,16 +1000,6 @@ setup(void) {
 	 */
 	if (!named_g_foreground) {
 		named_os_daemonize();
-	}
-
-	/*
-	 * We call isc_app_start() here as some versions of FreeBSD's fork()
-	 * destroys all the signal handling it sets up.
-	 */
-	result = isc_app_start();
-	if (result != ISC_R_SUCCESS) {
-		named_main_earlyfatal("isc_app_start() failed: %s",
-				      isc_result_totext(result));
 	}
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -1258,10 +1239,6 @@ setup(void) {
 
 static void
 cleanup(void) {
-	named_server_shutdown(named_g_server);
-
-	destroy_managers();
-
 	if (named_g_mapped != NULL) {
 		dns_acl_detach(&named_g_mapped);
 	}
@@ -1453,30 +1430,15 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	isc_mem_create(&named_g_mctx);
+	setup();
 	isc_mem_setname(named_g_mctx, "main");
 
-	setup();
-
 	/*
-	 * Start things running and then wait for a shutdown request
-	 * or reload.
+	 * Start things running
 	 */
-	do {
-		result = isc_app_run();
+	isc_signal_start(named_g_server->sighup);
 
-		if (result == ISC_R_RELOAD) {
-			named_server_reloadwanted(named_g_server);
-		} else if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_run(): %s",
-					 isc_result_totext(result));
-			/*
-			 * Force exit.
-			 */
-			result = ISC_R_SUCCESS;
-		}
-	} while (result != ISC_R_SUCCESS);
+	isc_loopmgr_run(named_g_loopmgr);
 
 #ifdef HAVE_LIBSCF
 	if (named_smf_want_disable == 1) {
@@ -1510,12 +1472,12 @@ main(int argc, char *argv[]) {
 			(void)isc_stdio_close(fp);
 		}
 	}
-	isc_mem_destroy(&named_g_mctx);
+
+	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr,
+			     &named_g_taskmgr);
 	isc_mem_checkdestroyed(stderr);
 
 	named_main_setmemstats(NULL);
-
-	isc_app_finish();
 
 	named_os_closedevnull();
 

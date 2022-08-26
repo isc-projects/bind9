@@ -45,12 +45,12 @@ ISC_LANG_BEGINDECLS
 
 struct dns_ntatable {
 	/* Unlocked. */
-	unsigned int	magic;
-	dns_view_t     *view;
-	isc_rwlock_t	rwlock;
-	isc_taskmgr_t  *taskmgr;
-	isc_timermgr_t *timermgr;
-	isc_task_t     *task;
+	unsigned int   magic;
+	dns_view_t    *view;
+	isc_rwlock_t   rwlock;
+	isc_taskmgr_t *taskmgr;
+	isc_loopmgr_t *loopmgr;
+	isc_task_t    *task;
 	/* Protected by atomics */
 	isc_refcount_t references;
 	/* Locked by rwlock. */
@@ -63,7 +63,7 @@ struct dns_ntatable {
 
 isc_result_t
 dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, dns_ntatable_t **ntatablep);
+		    isc_loopmgr_t *loopmgr, dns_ntatable_t **ntatablep);
 /*%<
  * Create an NTA table in view 'view'.
  *

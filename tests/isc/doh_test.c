@@ -24,6 +24,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
@@ -43,7 +44,6 @@
 #include "netmgr/http.c"
 #include "netmgr/netmgr-int.h"
 #include "netmgr/socket.c"
-#include "netmgr_p.h"
 
 #include <tests/isc.h>
 
@@ -66,9 +66,22 @@ static atomic_int_fast64_t creads = 0;
 static atomic_int_fast64_t ctimeouts = 0;
 static atomic_int_fast64_t total_sends = 0;
 
-static atomic_bool was_error = false;
+static int expected_ssends;
+static int expected_sreads;
+static int expected_csends;
+static int expected_cconnects;
+static int expected_creads;
+static int expected_ctimeouts;
 
-static bool reuse_supported = true;
+#define have_expected_ssends(v) ((v) >= expected_ssends && expected_ssends >= 0)
+#define have_expected_sreads(v) ((v) >= expected_sreads && expected_sreads >= 0)
+#define have_expected_csends(v) ((v) >= expected_csends && expected_csends >= 0)
+#define have_expected_cconnects(v) \
+	((v) >= expected_cconnects && expected_cconnects >= 0)
+#define have_expected_creads(v) ((v) >= expected_creads && expected_creads >= 0)
+#define have_expected_ctimeouts(v) \
+	((v) >= expected_ctimeouts && expected_ctimeouts >= 0)
+
 static bool noanswer = false;
 
 static atomic_bool POST = true;
@@ -85,7 +98,7 @@ static atomic_bool check_listener_quota = false;
 
 static isc_nm_http_endpoints_t *endpoints = NULL;
 
-static bool skip_long_tests = false;
+static isc_nm_t **nm = NULL;
 
 /* Timeout for soft-timeout tests (0.05 seconds) */
 #define T_SOFT 50
@@ -113,13 +126,8 @@ static bool skip_long_tests = false;
 #define X(v)
 #endif
 
-#define SKIP_IN_CI             \
-	if (skip_long_tests) { \
-		skip();        \
-		return;        \
-	}
-
 typedef struct csdata {
+	isc_mem_t *mctx;
 	isc_nm_recv_cb_t reply_cb;
 	void *cb_arg;
 	isc_region_t region;
@@ -133,7 +141,7 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	(void)atomic_fetch_sub(&active_cconnects, 1);
 	memmove(&data, arg, sizeof(data));
-	isc_mem_put(handle->sock->mgr->mctx, arg, sizeof(data));
+	isc_mem_put(data.mctx, arg, sizeof(data));
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
@@ -144,17 +152,13 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		goto error;
 	}
 
-	isc_mem_put(handle->sock->mgr->mctx, data.region.base,
-		    data.region.length);
+	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
 	return;
 error:
 	data.reply_cb(handle, result, NULL, data.cb_arg);
-	isc_mem_put(handle->sock->mgr->mctx, data.region.base,
-		    data.region.length);
+	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
 	if (result == ISC_R_TOOMANYOPENFILES) {
 		atomic_store(&slowdown, true);
-	} else {
-		atomic_store(&was_error, true);
 	}
 }
 
@@ -171,6 +175,7 @@ connect_send_request(isc_nm_t *mgr, const char *uri, bool post,
 	memmove(copy.base, region->base, region->length);
 	data = isc_mem_get(mgr->mctx, sizeof(*data));
 	*data = (csdata_t){ .reply_cb = cb, .cb_arg = cbarg, .region = copy };
+	isc_mem_attach(mgr->mctx, &data->mctx);
 	if (tls) {
 		ctx = client_tlsctx;
 	}
@@ -227,9 +232,6 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 		close(fd);
 		return (-1);
 	}
-	if (result == ISC_R_NOTIMPLEMENTED) {
-		reuse_supported = false;
-	}
 
 #if IPV6_RECVERR
 #define setsockopt_on(socket, level, name) \
@@ -263,9 +265,7 @@ thread_local size_t tcp_buffer_length = 0;
 static int
 setup_test(void **state) {
 	char *env_workers = getenv("ISC_TASK_WORKERS");
-	size_t nworkers;
 	uv_os_sock_t tcp_listen_sock = -1;
-	isc_nm_t **nm = NULL;
 
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	tcp_listen_sock = setup_ephemeral_port(&tcp_listen_addr, SOCK_STREAM);
@@ -281,11 +281,6 @@ setup_test(void **state) {
 		workers = isc_os_ncpus();
 	}
 	INSIST(workers > 0);
-	nworkers = ISC_MAX(ISC_MIN(workers, 32), 1);
-
-	if (!reuse_supported || getenv("CI") != NULL) {
-		skip_long_tests = true;
-	}
 
 	atomic_store(&total_sends, NSENDS * NWRITES);
 	atomic_store(&nsends, atomic_load(&total_sends));
@@ -297,7 +292,12 @@ setup_test(void **state) {
 	atomic_store(&ctimeouts, 0);
 	atomic_store(&active_cconnects, 0);
 
-	atomic_store(&was_error, false);
+	expected_cconnects = -1;
+	expected_csends = -1;
+	expected_creads = -1;
+	expected_sreads = -1;
+	expected_ssends = -1;
+	expected_ctimeouts = -1;
 
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, false);
@@ -310,9 +310,11 @@ setup_test(void **state) {
 		return (-1);
 	}
 
+	setup_loopmgr(state);
+
 	nm = isc_mem_get(mctx, MAX_NM * sizeof(nm[0]));
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc__netmgr_create(mctx, nworkers, &nm[i]);
+		isc_netmgr_create(mctx, loopmgr, &nm[i]);
 		assert_non_null(nm[i]);
 	}
 
@@ -338,14 +340,14 @@ setup_test(void **state) {
 }
 
 static int
-teardown_test(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
-
+teardown_test(void **state __attribute__((__unused__))) {
 	for (size_t i = 0; i < MAX_NM; i++) {
-		isc__netmgr_destroy(&nm[i]);
+		isc_netmgr_destroy(&nm[i]);
 		assert_null(nm[i]);
 	}
 	isc_mem_put(mctx, nm, MAX_NM * sizeof(nm[0]));
+
+	teardown_loopmgr(state);
 
 	if (server_tlsctx != NULL) {
 		isc_tlsctx_free(&server_tlsctx);
@@ -391,11 +393,13 @@ doh_receive_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	if (eresult == ISC_R_SUCCESS) {
 		(void)atomic_fetch_sub(&nsends, 1);
-		atomic_fetch_add(&csends, 1);
-		atomic_fetch_add(&creads, 1);
+		if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1) ||
+		    have_expected_creads(atomic_fetch_add(&creads, 1) + 1))
+		{
+			isc_loopmgr_shutdown(loopmgr);
+		}
 	} else {
-		/* We failed to connect; try again */
-		atomic_store(&was_error, true);
+		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -420,7 +424,6 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	assert_non_null(handle);
 
 	if (eresult != ISC_R_SUCCESS) {
-		atomic_store(&was_error, true);
 		return;
 	}
 
@@ -454,8 +457,7 @@ doh_receive_request_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 }
 
-ISC_RUN_TEST_IMPL(mock_doh_uv_tcp_bind) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+ISC_LOOP_TEST_IMPL(mock_doh_uv_tcp_bind) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
@@ -472,11 +474,21 @@ ISC_RUN_TEST_IMPL(mock_doh_uv_tcp_bind) {
 	assert_null(listen_sock);
 
 	RESET_RETURN;
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
-doh_noop(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+listen_sock_close(void *arg) {
+	isc_nmsocket_t *listen_sock = arg;
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+}
+
+static void
+doh_noop(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -491,10 +503,7 @@ doh_noop(void **state) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -503,7 +512,7 @@ doh_noop(void **state) {
 					      .length = send_msg.len },
 			     noop_read_cb, NULL, atomic_load(&use_TLS), 30000);
 
-	isc__netmgr_shutdown(connect_nm);
+	isc_loopmgr_shutdown(loopmgr);
 
 	assert_int_equal(0, atomic_load(&csends));
 	assert_int_equal(0, atomic_load(&creads));
@@ -511,19 +520,18 @@ doh_noop(void **state) {
 	assert_int_equal(0, atomic_load(&ssends));
 }
 
-ISC_RUN_TEST_IMPL(doh_noop_POST) {
+ISC_LOOP_TEST_IMPL(doh_noop_POST) {
 	atomic_store(&POST, true);
-	doh_noop(state);
+	doh_noop(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_noop_GET) {
+ISC_LOOP_TEST_IMPL(doh_noop_GET) {
 	atomic_store(&POST, false);
-	doh_noop(state);
+	doh_noop(arg);
 }
 
 static void
-doh_noresponse(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+doh_noresponse(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -538,6 +546,7 @@ doh_noresponse(void **state) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
 	sockaddr_to_url(&tcp_listen_addr, false, req_url, sizeof(req_url),
 			ISC_NM_HTTP_DEFAULT_PATH);
@@ -546,20 +555,17 @@ doh_noresponse(void **state) {
 					      .length = send_msg.len },
 			     noop_read_cb, NULL, atomic_load(&use_TLS), 30000);
 
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-	isc__netmgr_shutdown(connect_nm);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
-ISC_RUN_TEST_IMPL(doh_noresponse_POST) {
+ISC_LOOP_TEST_IMPL(doh_noresponse_POST) {
 	atomic_store(&POST, true);
-	doh_noresponse(state);
+	doh_noresponse(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_noresponse_GET) {
+ISC_LOOP_TEST_IMPL(doh_noresponse_GET) {
 	atomic_store(&POST, false);
-	doh_noresponse(state);
+	doh_noresponse(arg);
 }
 
 static void
@@ -579,10 +585,8 @@ timeout_query_sent_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 static void
 timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
-		 isc_region_t *region, void *arg) {
-	UNUSED(region);
-	UNUSED(arg);
-
+		 isc_region_t *region __attribute__((__unused__)),
+		 void *arg __attribute__((__unused__))) {
 	assert_non_null(handle);
 
 	atomic_fetch_add(&ctimeouts, 1);
@@ -593,6 +597,7 @@ timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	isc_nmhandle_detach(&handle);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
@@ -603,7 +608,7 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	isc_nmhandle_attach(handle, &sendhandle);
@@ -614,19 +619,14 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, timeout_retry_cb, NULL);
-	return;
-
-error:
-	atomic_store(&was_error, true);
 }
 
 static void
-doh_timeout_recovery(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+doh_timeout_recovery(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
+	isc_nmsocket_t *listen_sock = NULL;
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_nmsocket_t *listen_sock = NULL;
 	isc_tlsctx_t *ctx = atomic_load(&use_TLS) ? server_tlsctx : NULL;
 	char req_url[256];
 
@@ -638,6 +638,7 @@ doh_timeout_recovery(void **state) {
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
 				   0, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
 	/*
 	 * Accept connections but don't send responses, forcing client
@@ -655,42 +656,33 @@ doh_timeout_recovery(void **state) {
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
 			   client_sess_cache, T_SOFT);
+}
 
-	/*
-	 * Sleep until sends reaches 5.
-	 */
-	for (size_t i = 0; i < 1000; i++) {
-		if (atomic_load(&ctimeouts) == 5) {
-			break;
-		}
-		isc_test_nap(1);
-	}
+static int
+doh_timeout_recovery_teardown(void **state) {
 	assert_true(atomic_load(&ctimeouts) == 5);
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-	isc__netmgr_shutdown(connect_nm);
+	return (teardown_test(state));
 }
 
-ISC_RUN_TEST_IMPL(doh_timeout_recovery_POST) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_timeout_recovery_POST) {
 	atomic_store(&POST, true);
-	doh_timeout_recovery(state);
+	doh_timeout_recovery(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_timeout_recovery_GET) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_timeout_recovery_GET) {
 	atomic_store(&POST, false);
-	doh_timeout_recovery(state);
+	doh_timeout_recovery(arg);
 }
+
+static void
+doh_connect_thread(void *arg);
 
 static void
 doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			  isc_region_t *region, void *cbarg) {
 	isc_nmhandle_t *thandle = NULL;
+	isc_nm_t *connect_nm = (isc_nm_t *)cbarg;
+
 	assert_non_null(handle);
 	UNUSED(region);
 
@@ -699,7 +691,7 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
 		atomic_fetch_add(&csends, 1);
 		atomic_fetch_add(&creads, 1);
-		if (sends > 0 && cbarg == NULL) {
+		if (sends > 0 && connect_nm != NULL) {
 			size_t i;
 			for (i = 0; i < NWRITES / 2; i++) {
 				eresult = isc__nm_http_request(
@@ -707,21 +699,24 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 					&(isc_region_t){
 						.base = (uint8_t *)send_msg.base,
 						.length = send_msg.len },
-					doh_receive_send_reply_cb, (void *)1);
+					doh_receive_send_reply_cb, NULL);
 				if (eresult == ISC_R_CANCELED) {
 					break;
 				}
 				assert_true(eresult == ISC_R_SUCCESS);
 			}
+
+			isc_job_run(loopmgr, doh_connect_thread, connect_nm);
 		}
-	} else {
-		atomic_store(&was_error, true);
+		if (sends <= 0) {
+			isc_loopmgr_shutdown(loopmgr);
+		}
 	}
 	isc_nmhandle_detach(&thandle);
 }
 
-static isc_threadresult_t
-doh_connect_thread(isc_threadarg_t arg) {
+static void
+doh_connect_thread(void *arg) {
 	isc_nm_t *connect_nm = (isc_nm_t *)arg;
 	char req_url[256];
 	int64_t sends = atomic_load(&nsends);
@@ -729,31 +724,29 @@ doh_connect_thread(isc_threadarg_t arg) {
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
 			sizeof(req_url), ISC_NM_HTTP_DEFAULT_PATH);
 
-	while (sends > 0) {
-		/*
-		 * We need to back off and slow down if we start getting
-		 * errors, to prevent a thundering herd problem.
-		 */
-		int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
-		if (atomic_load(&slowdown) || active > workers) {
-			isc_test_nap(active - workers);
-			atomic_store(&slowdown, false);
-		}
-		connect_send_request(
-			connect_nm, req_url, atomic_load(&POST),
-			&(isc_region_t){ .base = (uint8_t *)send_msg.base,
-					 .length = send_msg.len },
-			doh_receive_send_reply_cb, NULL, atomic_load(&use_TLS),
-			30000);
-		sends = atomic_load(&nsends);
+	/*
+	 * We need to back off and slow down if we start getting
+	 * errors, to prevent a thundering herd problem.
+	 */
+	int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
+	if (atomic_load(&slowdown) || active > workers) {
+		goto next;
+	}
+	connect_send_request(connect_nm, req_url, atomic_load(&POST),
+			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
+					      .length = send_msg.len },
+			     doh_receive_send_reply_cb, connect_nm,
+			     atomic_load(&use_TLS), 30000);
+
+	if (sends <= 0) {
+		isc_loopmgr_shutdown(loopmgr);
 	}
 
-	return ((isc_threadresult_t)0);
+next : {}
 }
 
 static void
-doh_recv_one(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+doh_recv_one(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -762,6 +755,7 @@ doh_recv_one(void **state) {
 	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, 1);
+	expected_creads = 1;
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
@@ -783,27 +777,11 @@ doh_recv_one(void **state) {
 			     doh_receive_reply_cb, NULL, atomic_load(&use_TLS),
 			     30000);
 
-	while (atomic_load(&nsends) > 0) {
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_thread_yield();
-	}
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+}
 
-	while (atomic_load(&ssends) != 1 || atomic_load(&sreads) != 1 ||
-	       atomic_load(&csends) != 1)
-	{
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_thread_yield();
-	}
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-	isc__netmgr_shutdown(connect_nm);
-
+static int
+doh_recv_one_teardown(void **state) {
 	X(total_sends);
 	X(csends);
 	X(creads);
@@ -814,70 +792,56 @@ doh_recv_one(void **state) {
 	assert_int_equal(atomic_load(&creads), 1);
 	assert_int_equal(atomic_load(&sreads), 1);
 	assert_int_equal(atomic_load(&ssends), 1);
+
+	return (teardown_test(state));
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_POST) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_POST) {
 	atomic_store(&POST, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_GET) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_GET) {
 	atomic_store(&POST, false);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_POST_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_POST_TLS) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_GET_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_GET_TLS) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_POST_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_POST_quota) {
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_GET_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_GET_quota) {
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_POST_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_POST_TLS_quota) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_one_GET_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_one_GET_TLS_quota) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_one(state);
+	doh_recv_one(arg);
 }
 
 static void
@@ -885,7 +849,7 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 void *arg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	result = isc__nm_http_request(
@@ -894,7 +858,7 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 .length = send_msg.len },
 		doh_receive_reply_cb, arg);
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
 
 	result = isc__nm_http_request(
@@ -903,16 +867,12 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 				 .length = send_msg.len },
 		doh_receive_reply_cb, arg);
 	if (result != ISC_R_SUCCESS) {
-		goto error;
+		return;
 	}
-	return;
-error:
-	atomic_store(&was_error, true);
 }
 
 static void
-doh_recv_two(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+doh_recv_two(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -922,6 +882,7 @@ doh_recv_two(void **state) {
 	isc_quota_t *quotap = init_listener_quota(workers);
 
 	atomic_store(&total_sends, 2);
+	expected_creads = 2;
 
 	atomic_store(&nsends, atomic_load(&total_sends));
 
@@ -946,27 +907,11 @@ doh_recv_two(void **state) {
 			   atomic_load(&POST), doh_connect_send_two_requests_cb,
 			   NULL, ctx, client_sess_cache, 5000);
 
-	while (atomic_load(&nsends) > 0) {
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_thread_yield();
-	}
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+}
 
-	while (atomic_load(&ssends) != 2 || atomic_load(&sreads) != 2 ||
-	       atomic_load(&csends) != 2)
-	{
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_thread_yield();
-	}
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-	isc__netmgr_shutdown(connect_nm);
-
+static int
+doh_recv_two_teardown(void **state) {
 	X(total_sends);
 	X(csends);
 	X(creads);
@@ -977,82 +922,69 @@ doh_recv_two(void **state) {
 	assert_int_equal(atomic_load(&creads), 2);
 	assert_int_equal(atomic_load(&sreads), 2);
 	assert_int_equal(atomic_load(&ssends), 2);
+
+	return (teardown_test(state));
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_POST) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_POST) {
 	atomic_store(&POST, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_GET) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_GET) {
 	atomic_store(&POST, false);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_POST_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_POST_TLS) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_GET_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_GET_TLS) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_POST_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_POST_quota) {
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_GET_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_GET_quota) {
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_POST_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_POST_TLS_quota) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_two_GET_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_two_GET_TLS_quota) {
 	atomic_store(&use_TLS, true);
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_two(state);
+	doh_recv_two(arg);
 }
 
 static void
-doh_recv_send(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+doh_recv_send(void *arg __attribute__((__unused__))) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
-	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
-	isc_thread_t threads[32] = { 0 };
+	size_t nthreads = isc_loopmgr_nloops(loopmgr);
 	isc_quota_t *quotap = init_listener_quota(workers);
+
+	atomic_store(&total_sends, 1000);
+	atomic_store(&nsends, 1000);
 
 	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
 					   doh_receive_request_cb, NULL);
@@ -1065,25 +997,16 @@ doh_recv_send(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
+		isc_async_run(isc_loop_get(loopmgr, i), doh_connect_thread,
+			      connect_nm);
 	}
 
-	/* wait for the all responses from the server */
-	while (atomic_load(&ssends) < atomic_load(&total_sends)) {
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_test_nap(1);
-	}
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
+}
 
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	isc__netmgr_shutdown(connect_nm);
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
+static int
+doh_recv_send_teardown(void **state) {
+	int res = teardown_test(state);
 
 	X(total_sends);
 	X(csends);
@@ -1095,431 +1018,77 @@ doh_recv_send(void **state) {
 	CHECK_RANGE_FULL(creads);
 	CHECK_RANGE_FULL(sreads);
 	CHECK_RANGE_FULL(ssends);
+
+	return (res);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_POST) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_POST) {
 	atomic_store(&POST, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_GET) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_GET) {
 	atomic_store(&POST, false);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_POST_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_POST_TLS) {
 	atomic_store(&POST, true);
 	atomic_store(&use_TLS, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_GET_TLS) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_GET_TLS) {
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_POST_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_POST_quota) {
 	atomic_store(&POST, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_GET_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_GET_quota) {
 	atomic_store(&POST, false);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_POST_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_POST_TLS_quota) {
 	atomic_store(&POST, true);
 	atomic_store(&use_TLS, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-ISC_RUN_TEST_IMPL(doh_recv_send_GET_TLS_quota) {
-	SKIP_IN_CI;
-
+ISC_LOOP_TEST_IMPL(doh_recv_send_GET_TLS_quota) {
 	atomic_store(&POST, false);
 	atomic_store(&use_TLS, true);
 	atomic_store(&check_listener_quota, true);
-	doh_recv_send(state);
+	doh_recv_send(arg);
 }
 
-static void
-doh_recv_half_send(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
-	isc_nm_t *listen_nm = nm[0];
-	isc_nm_t *connect_nm = nm[1];
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_nmsocket_t *listen_sock = NULL;
-	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
-	isc_thread_t threads[32] = { 0 };
-	isc_quota_t *quotap = init_listener_quota(workers);
-
-	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
-
-	atomic_store(&nsends, atomic_load(&total_sends));
-
-	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
-					   doh_receive_request_cb, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
-	}
-
-	while (atomic_load(&nsends) > 0) {
-		isc_thread_yield();
-	}
-
-	isc__netmgr_shutdown(connect_nm);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-
+static int
+doh_bad_connect_uri_teardown(void **state) {
 	X(total_sends);
 	X(csends);
 	X(creads);
 	X(sreads);
 	X(ssends);
 
-	CHECK_RANGE_HALF(csends);
-	CHECK_RANGE_HALF(creads);
-	CHECK_RANGE_HALF(sreads);
-	CHECK_RANGE_HALF(ssends);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_POST) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_GET) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_POST_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_recv_half_send_GET_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_recv_half_send(state);
-}
-
-static void
-doh_half_recv_send(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
-	isc_nm_t *listen_nm = nm[0];
-	isc_nm_t *connect_nm = nm[1];
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_nmsocket_t *listen_sock = NULL;
-	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
-	isc_thread_t threads[32] = { 0 };
-	isc_quota_t *quotap = init_listener_quota(workers);
-
-	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
-
-	atomic_store(&nsends, atomic_load(&total_sends));
-
-	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
-					   doh_receive_request_cb, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
-	}
-
-	while (atomic_load(&nsends) > 0) {
-		isc_thread_yield();
-	}
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	isc__netmgr_shutdown(connect_nm);
-
-	X(total_sends);
-	X(csends);
-	X(creads);
-	X(sreads);
-	X(ssends);
-
-	CHECK_RANGE_HALF(csends);
-	CHECK_RANGE_HALF(creads);
-	CHECK_RANGE_HALF(sreads);
-	CHECK_RANGE_HALF(ssends);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_POST) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_GET) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_POST_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_send_GET_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_send(state);
-}
-
-static void
-doh_half_recv_half_send(void **state) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
-	isc_nm_t *listen_nm = nm[0];
-	isc_nm_t *connect_nm = nm[1];
-	isc_result_t result = ISC_R_SUCCESS;
-	isc_nmsocket_t *listen_sock = NULL;
-	size_t nthreads = ISC_MAX(ISC_MIN(workers, 32), 1);
-	isc_thread_t threads[32] = { 0 };
-	isc_quota_t *quotap = init_listener_quota(workers);
-
-	atomic_store(&total_sends, atomic_load(&total_sends) / 2);
-
-	atomic_store(&nsends, atomic_load(&total_sends));
-
-	result = isc_nm_http_endpoints_add(endpoints, ISC_NM_HTTP_DEFAULT_PATH,
-					   doh_receive_request_cb, NULL);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_create(doh_connect_thread, connect_nm, &threads[i]);
-	}
-
-	while (atomic_load(&nsends) > 0) {
-		isc_thread_yield();
-	}
-
-	isc__netmgr_shutdown(connect_nm);
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-
-	for (size_t i = 0; i < nthreads; i++) {
-		isc_thread_join(threads[i], NULL);
-	}
-
-	X(total_sends);
-	X(csends);
-	X(creads);
-	X(sreads);
-	X(ssends);
-
-	CHECK_RANGE_HALF(csends);
-	CHECK_RANGE_HALF(creads);
-	CHECK_RANGE_HALF(sreads);
-	CHECK_RANGE_HALF(ssends);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_TLS) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_POST_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, true);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_half_send(state);
-}
-
-ISC_RUN_TEST_IMPL(doh_half_recv_half_send_GET_TLS_quota) {
-	SKIP_IN_CI;
-
-	atomic_store(&use_TLS, true);
-	atomic_store(&POST, false);
-	atomic_store(&check_listener_quota, true);
-	doh_half_recv_half_send(state);
+	/* As we used an ill-formed URI, there ought to be an error. */
+	assert_int_equal(atomic_load(&csends), 0);
+	assert_int_equal(atomic_load(&creads), 0);
+	assert_int_equal(atomic_load(&sreads), 0);
+	assert_int_equal(atomic_load(&ssends), 0);
+
+	return (teardown_test(state));
 }
 
 /* See: GL #2858, !5319 */
-ISC_RUN_TEST_IMPL(doh_bad_connect_uri) {
-	isc_nm_t **nm = (isc_nm_t **)*state;
+ISC_LOOP_TEST_IMPL(doh_bad_connect_uri) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1552,34 +1121,10 @@ ISC_RUN_TEST_IMPL(doh_bad_connect_uri) {
 					      .length = send_msg.len },
 			     doh_receive_reply_cb, NULL, true, 30000);
 
-	while (atomic_load(&nsends) > 0) {
-		if (atomic_load(&was_error)) {
-			break;
-		}
-		isc_thread_yield();
-	}
-
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-	isc__netmgr_shutdown(connect_nm);
-
-	X(total_sends);
-	X(csends);
-	X(creads);
-	X(sreads);
-	X(ssends);
-
-	/* As we used an ill-formed URI, there ought to be an error. */
-	assert_true(atomic_load(&was_error));
-	assert_int_equal(atomic_load(&csends), 0);
-	assert_int_equal(atomic_load(&creads), 0);
-	assert_int_equal(atomic_load(&sreads), 0);
-	assert_int_equal(atomic_load(&ssends), 0);
+	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 }
 
 ISC_RUN_TEST_IMPL(doh_parse_GET_query_string) {
-	UNUSED(state);
 	/* valid */
 	{
 		bool ret;
@@ -1801,7 +1346,6 @@ ISC_RUN_TEST_IMPL(doh_parse_GET_query_string) {
 }
 
 ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
-	UNUSED(state);
 	char *res;
 	size_t res_len = 0;
 	/* valid */
@@ -1940,7 +1484,6 @@ ISC_RUN_TEST_IMPL(doh_base64url_to_base64) {
 ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 	char *res;
 	size_t res_len = 0;
-	UNUSED(state);
 	/* valid */
 	{
 		char res_test[] = "YW55IGNhcm5hbCBwbGVhc3VyZS4";
@@ -2075,8 +1618,6 @@ ISC_RUN_TEST_IMPL(doh_base64_to_base64url) {
 }
 
 ISC_RUN_TEST_IMPL(doh_path_validation) {
-	UNUSED(state);
-
 	assert_true(isc_nm_http_path_isvalid("/"));
 	assert_true(isc_nm_http_path_isvalid(ISC_NM_HTTP_DEFAULT_PATH));
 	assert_false(isc_nm_http_path_isvalid("laaaa"));
@@ -2112,7 +1653,6 @@ ISC_RUN_TEST_IMPL(doh_connect_makeuri) {
 	struct in_addr localhostv4 = { .s_addr = ntohl(INADDR_LOOPBACK) };
 	isc_sockaddr_t sa;
 	char uri[256];
-	UNUSED(state);
 
 	/* Firstly, test URI generation using isc_sockaddr_t */
 	isc_sockaddr_fromin(&sa, &localhostv4, 0);
@@ -2234,7 +1774,12 @@ ISC_RUN_TEST_IMPL(doh_connect_makeuri) {
 }
 
 ISC_TEST_LIST_START
+
+/* Mock tests are unreliable on OpenBSD */
+#if !defined(__OpenBSD__)
 ISC_TEST_ENTRY_CUSTOM(mock_doh_uv_tcp_bind, setup_test, teardown_test)
+#endif /* !defined(__OpenBSD__) */
+
 ISC_TEST_ENTRY(doh_parse_GET_query_string)
 ISC_TEST_ENTRY(doh_base64url_to_base64)
 ISC_TEST_ENTRY(doh_base64_to_base64url)
@@ -2244,67 +1789,47 @@ ISC_TEST_ENTRY_CUSTOM(doh_noop_POST, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(doh_noop_GET, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(doh_noresponse_POST, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(doh_noresponse_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_GET_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_recv_half_send_POST_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_TLS, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_quota, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_GET_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_send_POST_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST, setup_test, teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_TLS, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_TLS, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_GET_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_half_recv_half_send_POST_TLS_quota, setup_test,
-		      teardown_test)
-ISC_TEST_ENTRY_CUSTOM(doh_bad_connect_uri, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_POST, setup_test,
+		      doh_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_timeout_recovery_GET, setup_test,
+		      doh_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST, setup_test, doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET, setup_test, doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS, setup_test, doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS, setup_test, doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_quota, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_quota, setup_test, doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_POST_TLS_quota, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_one_GET_TLS_quota, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST, setup_test, doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET, setup_test, doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS, setup_test, doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS, setup_test, doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_quota, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_quota, setup_test, doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_POST_TLS_quota, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_two_GET_TLS_quota, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET, setup_test, doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST, setup_test, doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS, setup_test, doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_quota, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_quota, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_GET_TLS_quota, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_recv_send_POST_TLS_quota, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(doh_bad_connect_uri, setup_test,
+		      doh_bad_connect_uri_teardown)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

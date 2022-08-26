@@ -43,11 +43,13 @@
 
 #include <stdbool.h>
 
+#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
 
 #include <dns/geoip.h>
 
@@ -99,7 +101,7 @@ struct ns_interface {
 
 isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
-		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
+		       isc_loopmgr_t *loopmgr, isc_taskmgr_t *taskmgr,
 		       isc_nm_t *nm, dns_dispatchmgr_t *dispatchmgr,
 		       isc_task_t *task, dns_geoip_databases_t *geoip,
 		       bool scan, ns_interfacemgr_t **mgrp);

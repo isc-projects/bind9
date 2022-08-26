@@ -34,12 +34,14 @@
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
 #include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 
-/* Must be different from ISC_NETMGR_TID_UNKNOWN */
-#define ISC_NETMGR_NON_INTERLOCKED -2
+#include "../loop_p.h"
+
+#define ISC_NETMGR_TID_UNKNOWN -1
 
 /*
  * Receive buffers
@@ -129,7 +131,7 @@ isc__nm_dump_active(isc_nm_t *nm);
 #ifdef NETMGR_TRACE_VERBOSE
 #define NETMGR_TRACE_LOG(format, ...)                                \
 	fprintf(stderr, "%" PRIu32 ":%d:%s:%u:%s:" format, gettid(), \
-		isc_nm_tid(), file, line, func, __VA_ARGS__)
+		isc_tid(), file, line, func, __VA_ARGS__)
 #else
 #define NETMGR_TRACE_LOG(format, ...) \
 	(void)file;                   \
@@ -189,47 +191,25 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define isc__nmsocket_prep_destroy(sock) isc___nmsocket_prep_destroy(sock)
 #endif
 
-/*
- * Queue types in the order of processing priority.
- */
-typedef enum {
-	NETIEVENT_PRIORITY = 0,
-	NETIEVENT_TASK = 1,
-	NETIEVENT_NORMAL = 2,
-	NETIEVENT_MAX = 3,
-} netievent_type_t;
-
 typedef struct isc__nm_uvreq isc__nm_uvreq_t;
 typedef struct isc__netievent isc__netievent_t;
-
-typedef ISC_LIST(isc__netievent_t) isc__netievent_list_t;
-
-typedef struct ievent {
-	isc_mutex_t lock;
-	isc_condition_t cond;
-	isc__netievent_list_t list;
-} ievent_t;
 
 /*
  * Single network event loop worker.
  */
 typedef struct isc__networker {
-	isc_nm_t *mgr;
-	int id;		  /* thread id */
-	uv_loop_t loop;	  /* libuv loop structure */
-	uv_async_t async; /* async channel to send
-			   * data to this networker */
-	bool paused;
-	bool finished;
-	isc_thread_t thread;
-	ievent_t ievents[NETIEVENT_MAX];
-
+	isc_mem_t *mctx;
 	isc_refcount_t references;
-	atomic_int_fast64_t pktcount;
+	isc_loop_t *loop;
+	isc_nm_t *netmgr;
+	bool shuttingdown;
+
 	char *recvbuf;
 	char *sendbuf;
 	bool recvbuf_inuse;
 } isc__networker_t;
+
+ISC_REFCOUNT_DECL(isc__networker);
 
 /*
  * A general handle for a connection bound to a networker.  For UDP
@@ -272,13 +252,7 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_udpconnect,
-	netievent_udpclose,
-	netievent_udpsend,
-	netievent_udpread,
 	netievent_udpcancel,
-
-	netievent_routeconnect,
 
 	netievent_tcpconnect,
 	netievent_tcpclose,
@@ -315,38 +289,24 @@ typedef enum isc__netievent_type {
 	netievent_httpsend,
 	netievent_httpendpoints,
 
-	netievent_shutdown,
-	netievent_stop,
-	netievent_pause,
-
 	netievent_connectcb,
 	netievent_readcb,
 	netievent_sendcb,
 
-	netievent_task,
-
 	netievent_settlsctx,
-
-	/*
-	 * event type values higher than this will be treated
-	 * as high-priority events, which can be processed
-	 * while the netmgr is pausing or paused.
-	 */
-	netievent_prio = 0xff,
 
 	netievent_udplisten,
 	netievent_udpstop,
+	netievent_udpread,
+
 	netievent_tcplisten,
 	netievent_tcpstop,
 	netievent_tcpdnslisten,
 	netievent_tcpdnsstop,
 	netievent_tlsdnslisten,
 	netievent_tlsdnsstop,
-	netievent_httpstop,
 
-	netievent_resume,
 	netievent_detach,
-	netievent_close,
 } isc__netievent_type;
 
 typedef union {
@@ -389,18 +349,17 @@ struct isc__nm_uvreq {
 		uv_connect_t connect;
 		uv_udp_send_t udp_send;
 		uv_fs_t fs;
-		uv_work_t work;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
 };
 
 void *
-isc__nm_get_netievent(isc_nm_t *mgr, isc__netievent_type type);
+isc__nm_get_netievent(isc__networker_t *worker, isc__netievent_type type);
 /*%<
  * Allocate an ievent and set the type.
  */
 void
-isc__nm_put_netievent(isc_nm_t *mgr, void *ievent);
+isc__nm_put_netievent(isc__networker_t *worker, void *ievent);
 
 /*
  * The macros here are used to simulate the "inheritance" in C, there's the base
@@ -432,6 +391,7 @@ isc__nm_put_netievent(isc_nm_t *mgr, void *ievent);
 #define NETIEVENT__SOCKET                \
 	isc__netievent_type type;        \
 	ISC_LINK(isc__netievent_t) link; \
+	isc__networker_t *worker;        \
 	isc_nmsocket_t *sock;            \
 	const char *file;                \
 	unsigned int line;               \
@@ -444,26 +404,26 @@ typedef struct isc__netievent__socket {
 #define NETIEVENT_SOCKET_TYPE(type) \
 	typedef isc__netievent__socket_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_DECL(type)                              \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type( \
-		isc_nm_t *nm, isc_nmsocket_t *sock);             \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,          \
+#define NETIEVENT_SOCKET_DECL(type)                                 \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock);    \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_DEF(type)                                             \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock) {                          \
+		isc__networker_t *worker, isc_nmsocket_t *sock) {              \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 typedef struct isc__netievent__socket_req {
@@ -474,27 +434,29 @@ typedef struct isc__netievent__socket_req {
 #define NETIEVENT_SOCKET_REQ_TYPE(type) \
 	typedef isc__netievent__socket_req_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_REQ_DECL(type)                                    \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(           \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc__nm_uvreq_t *req); \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                    \
+#define NETIEVENT_SOCKET_REQ_DECL(type)                             \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc__nm_uvreq_t *req);                              \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_REQ_DEF(type)                                         \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
+		isc__nm_uvreq_t *req) {                                        \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		ievent->req = req;                                             \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 typedef struct isc__netievent__socket_req_result {
@@ -506,19 +468,19 @@ typedef struct isc__netievent__socket_req_result {
 #define NETIEVENT_SOCKET_REQ_RESULT_TYPE(type) \
 	typedef isc__netievent__socket_req_result_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_REQ_RESULT_DECL(type)                            \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(          \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc__nm_uvreq_t *req, \
-		isc_result_t result);                                     \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                   \
+#define NETIEVENT_SOCKET_REQ_RESULT_DECL(type)                      \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc__nm_uvreq_t *req, isc_result_t result);         \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_REQ_RESULT_DEF(type)                                  \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc__nm_uvreq_t *req,      \
-		isc_result_t result) {                                         \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
+		isc__nm_uvreq_t *req, isc_result_t result) {                   \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		ievent->req = req;                                             \
 		ievent->result = result;                                       \
@@ -526,10 +488,10 @@ typedef struct isc__netievent__socket_req_result {
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 typedef struct isc__netievent__socket_handle {
@@ -540,28 +502,30 @@ typedef struct isc__netievent__socket_handle {
 #define NETIEVENT_SOCKET_HANDLE_TYPE(type) \
 	typedef isc__netievent__socket_handle_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_HANDLE_DECL(type)                                   \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(             \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_nmhandle_t *handle); \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                      \
+#define NETIEVENT_SOCKET_HANDLE_DECL(type)                          \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc_nmhandle_t *handle);                            \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_HANDLE_DEF(type)                                      \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_nmhandle_t *handle) {  \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
+		isc_nmhandle_t *handle) {                                      \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		isc_nmhandle_attach(handle, &ievent->handle);                  \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc__nmsocket_detach(&ievent->sock);                           \
 		isc_nmhandle_detach(&ievent->handle);                          \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 typedef struct isc__netievent__socket_quota {
@@ -572,65 +536,30 @@ typedef struct isc__netievent__socket_quota {
 #define NETIEVENT_SOCKET_QUOTA_TYPE(type) \
 	typedef isc__netievent__socket_quota_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_QUOTA_DECL(type)                                \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(         \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_quota_t *quota); \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                  \
+#define NETIEVENT_SOCKET_QUOTA_DECL(type)                           \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc_quota_t *quota);                                \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_QUOTA_DEF(type)                                       \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_quota_t *quota) {      \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
+		isc_quota_t *quota) {                                          \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		ievent->quota = quota;                                         \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
-
-typedef struct isc__netievent__task {
-	isc__netievent_type type;
-	ISC_LINK(isc__netievent_t) link;
-	isc_task_t *task;
-} isc__netievent__task_t;
-
-#define NETIEVENT_TASK_TYPE(type) \
-	typedef isc__netievent__task_t isc__netievent_##type##_t;
-
-#define NETIEVENT_TASK_DECL(type)                                \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type( \
-		isc_nm_t *nm, isc_task_t *task);                 \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,          \
-					  isc__netievent_##type##_t *ievent);
-
-#define NETIEVENT_TASK_DEF(type)                                               \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_task_t *task) {                              \
-		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
-		ievent->task = task;                                           \
-                                                                               \
-		return (ievent);                                               \
-	}                                                                      \
-                                                                               \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
-					  isc__netievent_##type##_t *ievent) { \
-		ievent->task = NULL;                                           \
-		isc__nm_put_netievent(nm, ievent);                             \
-	}
-
-typedef struct isc__netievent_udpsend {
-	NETIEVENT__SOCKET;
-	isc_sockaddr_t peer;
-	isc__nm_uvreq_t *req;
-} isc__netievent_udpsend_t;
 
 typedef struct isc__netievent_tlsconnect {
 	NETIEVENT__SOCKET;
@@ -642,27 +571,29 @@ typedef struct isc__netievent_tlsconnect {
 typedef struct isc__netievent {
 	isc__netievent_type type;
 	ISC_LINK(isc__netievent_t) link;
+	isc__networker_t *worker;
 } isc__netievent_t;
 
 #define NETIEVENT_TYPE(type) typedef isc__netievent_t isc__netievent_##type##_t;
 
-#define NETIEVENT_DECL(type)                                                   \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(isc_nm_t *nm); \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+#define NETIEVENT_DECL(type)                                        \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker);                          \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_DEF(type)                                                    \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm) {                                                \
+		isc__networker_t *worker) {                                    \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 typedef struct isc__netievent__tlsctx {
@@ -673,28 +604,30 @@ typedef struct isc__netievent__tlsctx {
 #define NETIEVENT_SOCKET_TLSCTX_TYPE(type) \
 	typedef isc__netievent__tlsctx_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_TLSCTX_DECL(type)                                 \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type(           \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx); \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                    \
+#define NETIEVENT_SOCKET_TLSCTX_DECL(type)                          \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc_tlsctx_t *tlsctx);                              \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_TLSCTX_DEF(type)                                      \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock, isc_tlsctx_t *tlsctx) {    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
+		isc_tlsctx_t *tlsctx) {                                        \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		isc_tlsctx_attach(tlsctx, &ievent->tlsctx);                    \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc_tlsctx_free(&ievent->tlsctx);                              \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
 #ifdef HAVE_LIBNGHTTP2
@@ -706,30 +639,30 @@ typedef struct isc__netievent__http_eps {
 #define NETIEVENT_SOCKET_HTTP_EPS_TYPE(type) \
 	typedef isc__netievent__http_eps_t isc__netievent_##type##_t;
 
-#define NETIEVENT_SOCKET_HTTP_EPS_DECL(type)                     \
-	isc__netievent_##type##_t *isc__nm_get_netievent_##type( \
-		isc_nm_t *nm, isc_nmsocket_t *sock,              \
-		isc_nm_http_endpoints_t *endpoints);             \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,          \
+#define NETIEVENT_SOCKET_HTTP_EPS_DECL(type)                        \
+	isc__netievent_##type##_t *isc__nm_get_netievent_##type(    \
+		isc__networker_t *worker, isc_nmsocket_t *sock,     \
+		isc_nm_http_endpoints_t *endpoints);                \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker, \
 					  isc__netievent_##type##_t *ievent);
 
 #define NETIEVENT_SOCKET_HTTP_EPS_DEF(type)                                    \
 	isc__netievent_##type##_t *isc__nm_get_netievent_##type(               \
-		isc_nm_t *nm, isc_nmsocket_t *sock,                            \
+		isc__networker_t *worker, isc_nmsocket_t *sock,                \
 		isc_nm_http_endpoints_t *endpoints) {                          \
 		isc__netievent_##type##_t *ievent =                            \
-			isc__nm_get_netievent(nm, netievent_##type);           \
+			isc__nm_get_netievent(worker, netievent_##type);       \
 		isc__nmsocket_attach(sock, &ievent->sock);                     \
 		isc_nm_http_endpoints_attach(endpoints, &ievent->endpoints);   \
                                                                                \
 		return (ievent);                                               \
 	}                                                                      \
                                                                                \
-	void isc__nm_put_netievent_##type(isc_nm_t *nm,                        \
+	void isc__nm_put_netievent_##type(isc__networker_t *worker,            \
 					  isc__netievent_##type##_t *ievent) { \
 		isc_nm_http_endpoints_detach(&ievent->endpoints);              \
 		isc__nmsocket_detach(&ievent->sock);                           \
-		isc__nm_put_netievent(nm, ievent);                             \
+		isc__nm_put_netievent(worker, ievent);                         \
 	}
 #endif /* HAVE_LIBNGHTTP2 */
 
@@ -737,7 +670,6 @@ typedef union {
 	isc__netievent_t ni;
 	isc__netievent__socket_t nis;
 	isc__netievent__socket_req_t nisr;
-	isc__netievent_udpsend_t nius;
 	isc__netievent__socket_quota_t nisq;
 	isc__netievent_tlsconnect_t nitc;
 	isc__netievent__tlsctx_t nitls;
@@ -745,17 +677,6 @@ typedef union {
 	isc__netievent__http_eps_t nihttpeps;
 #endif /* HAVE_LIBNGHTTP2 */
 } isc__netievent_storage_t;
-
-/*
- * Work item for a uv_work threadpool.
- */
-typedef struct isc__nm_work {
-	isc_nm_t *netmgr;
-	uv_work_t req;
-	isc_nm_workcb_t cb;
-	isc_nm_after_workcb_t after_cb;
-	void *data;
-} isc__nm_work_t;
 
 /*
  * Network manager
@@ -767,35 +688,22 @@ struct isc_nm {
 	int magic;
 	isc_refcount_t references;
 	isc_mem_t *mctx;
-	int nworkers;
+	isc_loopmgr_t *loopmgr;
+	uint32_t nloops;
 	isc_mutex_t lock;
-	isc_condition_t wkstatecond;
-	isc_condition_t wkpausecond;
 	isc__networker_t *workers;
 
 	isc_stats_t *stats;
 
-	uint_fast32_t workers_running;
-	atomic_uint_fast32_t workers_paused;
 	atomic_uint_fast32_t maxudp;
 
 	bool load_balance_sockets;
-
-	atomic_bool paused;
 
 	/*
 	 * Active connections are being closed and new connections are
 	 * no longer allowed.
 	 */
-	atomic_bool closing;
-
-	/*
-	 * A worker is actively waiting for other workers, for example to
-	 * stop listening; that means no other thread can do the same thing
-	 * or pause, or we'll deadlock. We have to either re-enqueue our
-	 * event or wait for the other one to finish if we want to pause.
-	 */
-	atomic_int interlocked;
+	atomic_bool shuttingdown;
 
 	/*
 	 * Timeout values for TCP connections, corresponding to
@@ -808,9 +716,6 @@ struct isc_nm {
 	atomic_uint_fast32_t idle;
 	atomic_uint_fast32_t keepalive;
 	atomic_uint_fast32_t advertised;
-
-	isc_barrier_t pausing;
-	isc_barrier_t resuming;
 
 	/*
 	 * Socket SO_RCVBUF and SO_SNDBUF values
@@ -957,9 +862,12 @@ typedef void (*isc_nm_closehandlecb_t)(void *arg);
 struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
-	int tid;
+	uint32_t tid;
 	isc_nmsocket_type type;
-	isc_nm_t *mgr;
+	isc__networker_t *worker;
+
+	isc_mutex_t lock;
+	isc_barrier_t barrier;
 
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
@@ -967,9 +875,6 @@ struct isc_nmsocket {
 	isc_nmsocket_t *listener;
 	/*% Self socket */
 	isc_nmsocket_t *self;
-
-	isc_barrier_t startlistening;
-	isc_barrier_t stoplistening;
 
 	/*% TLS stuff */
 	struct tls {
@@ -1135,41 +1040,6 @@ struct isc_nmsocket {
 	isc_astack_t *inactivereqs;
 
 	/*%
-	 * Used to wait for TCP listening events to complete, and
-	 * for the number of running children to reach zero during
-	 * shutdown.
-	 *
-	 * We use two condition variables to prevent the race where the netmgr
-	 * threads would be able to finish and destroy the socket before it's
-	 * unlocked by the isc_nm_listen<proto>() function.  So, the flow is as
-	 * follows:
-	 *
-	 *   1. parent thread creates all children sockets and passes then to
-	 *      netthreads, looks at the signaling variable and WAIT(cond) until
-	 *      the childrens are done initializing
-	 *
-	 *   2. the events get picked by netthreads, calls the libuv API (and
-	 *      either succeeds or fails) and WAIT(scond) until all other
-	 *      children sockets in netthreads are initialized and the listening
-	 *      socket lock is unlocked
-	 *
-	 *   3. the control is given back to the parent thread which now either
-	 *      returns success or shutdowns the listener if an error has
-	 *      occured in the children netthread
-	 *
-	 * NOTE: The other approach would be doing an extra attach to the parent
-	 * listening socket, and then detach it in the parent thread, but that
-	 * breaks the promise that once the libuv socket is initialized on the
-	 * nmsocket, the nmsocket needs to be handled only by matching
-	 * netthread, so in fact that would add a complexity in a way that
-	 * isc__nmsocket_detach would have to be converted to use an
-	 * asynchrounous netievent.
-	 */
-	isc_mutex_t lock;
-	isc_condition_t cond;
-	isc_condition_t scond;
-
-	/*%
 	 * Used to pass a result back from listen or connect events.
 	 */
 	isc_result_t result;
@@ -1209,13 +1079,14 @@ struct isc_nmsocket {
 	int backtrace_size;
 	LINK(isc_nmsocket_t) active_link;
 	ISC_LIST(isc_nmhandle_t) active_handles;
+	isc_mutex_t tracelock;
 #endif
 };
 
-bool
-isc__nm_in_netthread(void);
+void
+isc__nm_process_ievent(isc__networker_t *worker, isc__netievent_t *event);
 /*%<
- * Returns 'true' if we're in the network thread.
+ * If the call knows it's in the matching loop, process the netievent directly.
  */
 
 void
@@ -1260,7 +1131,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
  */
 
 isc__nm_uvreq_t *
-isc___nm_uvreq_get(isc_nm_t *mgr, isc_nmsocket_t *sock FLARG);
+isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG);
 /*%<
  * Get a UV request structure for the socket 'sock', allocating a
  * new one if there isn't one available in 'sock->inactivereqs'.
@@ -1276,8 +1147,8 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock FLARG);
  */
 
 void
-isc___nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr, isc_nmsocket_type type,
-		    isc_sockaddr_t *iface FLARG);
+isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
+		    isc_nmsocket_type type, isc_sockaddr_t *iface FLARG);
 /*%<
  * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
  * and its interface to 'iface'.
@@ -1439,25 +1310,13 @@ isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
 void
 isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_udpconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-void
 isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_udpsend(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0);
 void
-isc__nm_async_udpclose(isc__networker_t *worker, isc__netievent_t *ev0);
+isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
- */
-
-void
-isc__nm_async_routeconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Callback handler for route socket events.
  */
 
 void
@@ -1838,9 +1697,6 @@ void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1871,28 +1727,10 @@ void
 isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 			     const uint32_t max_concurrent_streams);
 
-#endif
-
 void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
-bool
-isc__nm_acquire_interlocked(isc_nm_t *mgr);
-/*%<
- * Try to acquire interlocked state; return true if successful.
- */
-
-void
-isc__nm_drop_interlocked(isc_nm_t *mgr);
-/*%<
- * Drop interlocked state; signal waiters.
- */
-
-void
-isc__nm_acquire_interlocked_force(isc_nm_t *mgr);
-/*%<
- * Actively wait for interlocked state.
- */
+#endif
 
 void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
@@ -1984,7 +1822,6 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
  * typedef all the netievent types
  */
 
-NETIEVENT_SOCKET_TYPE(close);
 NETIEVENT_SOCKET_TYPE(tcpclose);
 NETIEVENT_SOCKET_TYPE(tcplisten);
 NETIEVENT_SOCKET_TYPE(tcppauseread);
@@ -1995,11 +1832,9 @@ NETIEVENT_SOCKET_TYPE(tlsclose);
 NETIEVENT_SOCKET_TYPE(tlsdobio);
 NETIEVENT_SOCKET_TYPE(tlsstartread);
 NETIEVENT_SOCKET_HANDLE_TYPE(tlscancel);
-NETIEVENT_SOCKET_TYPE(udpclose);
 NETIEVENT_SOCKET_TYPE(udplisten);
-NETIEVENT_SOCKET_TYPE(udpread);
-/* NETIEVENT_SOCKET_TYPE(udpsend); */ /* unique type, defined independently */
 NETIEVENT_SOCKET_TYPE(udpstop);
+NETIEVENT_SOCKET_TYPE(udpread);
 
 NETIEVENT_SOCKET_TYPE(tcpdnsclose);
 NETIEVENT_SOCKET_TYPE(tcpdnsread);
@@ -2022,7 +1857,6 @@ NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
 NETIEVENT_SOCKET_TYPE(tlsdnscycle);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_TYPE(httpstop);
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
 NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
@@ -2032,9 +1866,6 @@ NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
 NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
 NETIEVENT_SOCKET_TYPE(tcpstartread);
 NETIEVENT_SOCKET_REQ_TYPE(tlssend);
-NETIEVENT_SOCKET_REQ_TYPE(udpconnect);
-
-NETIEVENT_SOCKET_REQ_TYPE(routeconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(readcb);
@@ -2046,18 +1877,10 @@ NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
-NETIEVENT_TYPE(pause);
-NETIEVENT_TYPE(resume);
-NETIEVENT_TYPE(shutdown);
-NETIEVENT_TYPE(stop);
-
-NETIEVENT_TASK_TYPE(task);
-
 NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 
 /* Now declared the helper functions */
 
-NETIEVENT_SOCKET_DECL(close);
 NETIEVENT_SOCKET_DECL(tcpclose);
 NETIEVENT_SOCKET_DECL(tcplisten);
 NETIEVENT_SOCKET_DECL(tcppauseread);
@@ -2068,11 +1891,9 @@ NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
 NETIEVENT_SOCKET_DECL(tlsstartread);
 NETIEVENT_SOCKET_HANDLE_DECL(tlscancel);
-NETIEVENT_SOCKET_DECL(udpclose);
 NETIEVENT_SOCKET_DECL(udplisten);
-NETIEVENT_SOCKET_DECL(udpread);
-NETIEVENT_SOCKET_DECL(udpsend);
 NETIEVENT_SOCKET_DECL(udpstop);
+NETIEVENT_SOCKET_DECL(udpread);
 
 NETIEVENT_SOCKET_DECL(tcpdnsclose);
 NETIEVENT_SOCKET_DECL(tcpdnsread);
@@ -2095,7 +1916,6 @@ NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
 NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_DECL(httpstop);
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
 NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
@@ -2104,26 +1924,16 @@ NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
 NETIEVENT_SOCKET_REQ_DECL(tcpsend);
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
-NETIEVENT_SOCKET_REQ_DECL(udpconnect);
-
-NETIEVENT_SOCKET_REQ_DECL(routeconnect);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
-NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
 NETIEVENT_SOCKET_HANDLE_DECL(tcpcancel);
+NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
 NETIEVENT_SOCKET_DECL(detach);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
-
-NETIEVENT_DECL(pause);
-NETIEVENT_DECL(resume);
-NETIEVENT_DECL(shutdown);
-NETIEVENT_DECL(stop);
-
-NETIEVENT_TASK_DECL(task);
 
 NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 
@@ -2169,7 +1979,7 @@ isc__nm_resume_processing(void *arg);
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock);
 bool
-isc__nm_closing(isc_nmsocket_t *sock);
+isc__nm_closing(isc__networker_t *worker);
 
 void
 isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);

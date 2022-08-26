@@ -160,7 +160,6 @@ struct dns_rpz_zone {
 					 * on */
 	bool	     addsoa;		/* add soa to the additional section */
 	isc_timer_t *updatetimer;
-	isc_event_t  updateevent;
 };
 
 /*
@@ -247,12 +246,12 @@ struct dns_rpz_zones {
 	 */
 	dns_rpz_triggers_t total_triggers;
 
-	isc_mem_t      *mctx;
-	isc_taskmgr_t  *taskmgr;
-	isc_timermgr_t *timermgr;
-	isc_task_t     *updater;
-	isc_refcount_t	refs;
-	isc_refcount_t	irefs;
+	isc_mem_t     *mctx;
+	isc_loopmgr_t *loopmgr;
+	isc_taskmgr_t *taskmgr;
+	isc_task_t    *updater;
+	isc_refcount_t refs;
+	isc_refcount_t irefs;
 	/*
 	 * One lock for short term read-only search that guarantees the
 	 * consistency of the pointers.
@@ -386,8 +385,8 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr, size_t rps_cstr_size,
-		  isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		  isc_timermgr_t *timermgr);
+		  isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		  isc_taskmgr_t *taskmgr);
 
 isc_result_t
 dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);

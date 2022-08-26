@@ -523,7 +523,7 @@ destroy(dns_sdb_t *sdb) {
 
 	isc_refcount_destroy(&sdb->references);
 
-	if (imp->methods->destroy != NULL) {
+	if (imp != NULL && imp->methods->destroy != NULL) {
 		MAYBE_LOCK(sdb);
 		imp->methods->destroy(sdb->zone, imp->driverdata, &sdb->dbdata);
 		MAYBE_UNLOCK(sdb);

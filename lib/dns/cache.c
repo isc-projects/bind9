@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
@@ -106,6 +107,7 @@ struct cache_cleaner {
 
 	dns_cache_t *cache;
 	isc_task_t *task;
+	isc_event_t *shutdown_event;
 	isc_event_t *resched_event; /*% Sent by cleaner task to
 				     * itself to reschedule */
 	isc_event_t *overmem_event;
@@ -152,7 +154,7 @@ struct dns_cache {
 
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
+		   cache_cleaner_t *cleaner);
 
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
@@ -180,9 +182,9 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 
 isc_result_t
 dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
-		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
-		 const char *cachename, const char *db_type,
-		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep) {
+		 dns_rdataclass_t rdclass, const char *cachename,
+		 const char *db_type, unsigned int db_argc, char **db_argv,
+		 dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache;
 	int i, extra = 0;
@@ -258,7 +260,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	}
 	if (taskmgr != NULL) {
 		dbtask = NULL;
-		result = isc_task_create(taskmgr, 1, &dbtask, 0);
+		result = isc_task_create(taskmgr, &dbtask, 0);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_db;
 		}
@@ -275,10 +277,9 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	 * need the control of the generic cleaner.
 	 */
 	if (strcmp(db_type, "rbt") == 0) {
-		result = cache_cleaner_init(cache, NULL, NULL, &cache->cleaner);
+		result = cache_cleaner_init(cache, NULL, &cache->cleaner);
 	} else {
-		result = cache_cleaner_init(cache, taskmgr, timermgr,
-					    &cache->cleaner);
+		result = cache_cleaner_init(cache, taskmgr, &cache->cleaner);
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_db;
@@ -335,6 +336,10 @@ cache_free(dns_cache_t *cache) {
 
 	if (cache->cleaner.resched_event != NULL) {
 		isc_event_free(&cache->cleaner.resched_event);
+	}
+
+	if (cache->cleaner.shutdown_event != NULL) {
+		isc_event_free(&cache->cleaner.shutdown_event);
 	}
 
 	if (cache->cleaner.iterator != NULL) {
@@ -406,16 +411,9 @@ dns_cache_detach(dns_cache_t **cachep) {
 	if (isc_refcount_decrement(&cache->references) == 1) {
 		cache->cleaner.overmem = false;
 
-		/*
-		 * If the cleaner task exists, let it free the cache.
-		 */
 		if (isc_refcount_decrement(&cache->live_tasks) > 1) {
-			isc_event_t *event = isc_event_allocate(
-				cache->mctx, &cache->cleaner,
-				DNS_EVENT_CACHESHUTDOWN,
-				cleaner_shutdown_action, &cache->cleaner,
-				sizeof(*event));
-			isc_task_send(cache->cleaner.task, &event);
+			isc_task_send(cache->cleaner.task,
+				      &cache->cleaner.shutdown_event);
 		} else {
 			cache_free(cache);
 		}
@@ -447,7 +445,7 @@ dns_cache_getname(dns_cache_t *cache) {
 
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner) {
+		   cache_cleaner_t *cleaner) {
 	isc_result_t result;
 
 	isc_mutex_init(&cleaner->lock);
@@ -460,26 +458,31 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->replaceiterator = false;
 
 	cleaner->task = NULL;
+	cleaner->shutdown_event = NULL;
 	cleaner->resched_event = NULL;
 	cleaner->overmem_event = NULL;
 
 	result = dns_db_createiterator(cleaner->cache->db, false,
 				       &cleaner->iterator);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto cleanup_mutex;
 	}
 
-	if (taskmgr != NULL && timermgr != NULL) {
-		result = isc_task_create(taskmgr, 1, &cleaner->task, 0);
+	if (taskmgr != NULL) {
+		result = isc_task_create(taskmgr, &cleaner->task, 0);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_task_create() failed: %s",
 					 isc_result_totext(result));
 			result = ISC_R_UNEXPECTED;
-			goto cleanup;
+			goto cleanup_iterator;
 		}
 		isc_refcount_increment(&cleaner->cache->live_tasks);
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
+
+		cleaner->shutdown_event = isc_event_allocate(
+			cache->mctx, cleaner, DNS_EVENT_CACHESHUTDOWN,
+			cleaner_shutdown_action, cleaner, sizeof(isc_event_t));
 
 		cleaner->resched_event = isc_event_allocate(
 			cache->mctx, cleaner, DNS_EVENT_CACHECLEAN,
@@ -493,19 +496,9 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 
 	return (ISC_R_SUCCESS);
 
-cleanup:
-	if (cleaner->overmem_event != NULL) {
-		isc_event_free(&cleaner->overmem_event);
-	}
-	if (cleaner->resched_event != NULL) {
-		isc_event_free(&cleaner->resched_event);
-	}
-	if (cleaner->task != NULL) {
-		isc_task_detach(&cleaner->task);
-	}
-	if (cleaner->iterator != NULL) {
-		dns_dbiterator_destroy(&cleaner->iterator);
-	}
+cleanup_iterator:
+	dns_dbiterator_destroy(&cleaner->iterator);
+cleanup_mutex:
 	isc_mutex_destroy(&cleaner->lock);
 
 	return (result);
@@ -956,8 +949,8 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 		isc_event_free(&event);
 	}
 
-	/* Make sure we don't reschedule anymore. */
-	(void)isc_task_purgeevent(task, cache->cleaner.resched_event);
+	/* FIXME: Make sure we don't reschedule anymore. */
+	/* (void)isc_task_purgeevent(task, cache->cleaner.resched_event); */
 
 	isc_refcount_decrementz(&cache->live_tasks);
 

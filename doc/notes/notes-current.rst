@@ -25,7 +25,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Worker threads' event loops are now managed by a new "loop maanger" API,
+  significantly changing the architecture of the task, timer and networking
+  systems for improved performance and code flow. :gl:`#3508`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

@@ -1489,7 +1489,7 @@ new_adbfind(dns_adb_t *adb, in_port_t port) {
 	ISC_LINK_INIT(find, plink);
 	ISC_LIST_INIT(find->list);
 	isc_mutex_init(&find->lock);
-	ISC_EVENT_INIT(&find->event, sizeof(isc_event_t), 0, 0, 0, NULL, NULL,
+	ISC_EVENT_INIT(&find->event, sizeof(isc_event_t), 0, 0, NULL, NULL,
 		       NULL, NULL, find);
 
 	find->magic = DNS_ADBFIND_MAGIC;
@@ -2135,7 +2135,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	/*
 	 * Allocate an internal task.
 	 */
-	result = isc_task_create(adb->taskmgr, 0, &adb->task, 0);
+	result = isc_task_create(adb->taskmgr, &adb->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto free_lock;
 	}
