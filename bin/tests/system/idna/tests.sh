@@ -328,8 +328,8 @@ idna_enabled_test() {
     idna_test "$text" ""                   "√.com" "\226\136\154.com."
     idna_test "$text" "+noidnin +noidnout" "√.com" "\226\136\154.com."
     idna_test "$text" "+noidnin +idnout"   "√.com" "\226\136\154.com."
-    idna_fail "$text" "+idnin   +noidnout" "√.com"
-    idna_fail "$text" "+idnin   +idnout"   "√.com"
+    idna_test "$text" "+idnin   +noidnout" "√.com" "xn--19g.com."
+    idna_test "$text" "+idnin   +idnout"   "√.com" "√.com."
 
     # Tests of a valid unicode string but an invalid U-label (output)
     #
@@ -351,8 +351,8 @@ idna_enabled_test() {
     text="Checking invalid output U-label"
     idna_test "$text" ""                   "xn--19g" "xn--19g."
     idna_test "$text" "+noidnin +noidnout" "xn--19g" "xn--19g."
-    idna_fail "$text" "+noidnin +idnout"   "xn--19g"
-    idna_fail "$text" "+idnin   +idnout"   "xn--19g"
+    idna_test "$text" "+noidnin +idnout"   "xn--19g" "√."
+    idna_test "$text" "+idnin   +idnout"   "xn--19g" "√."
 }
 
 
