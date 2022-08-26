@@ -3538,6 +3538,47 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that 'dnssec-keygen -F' disables rsasha1 ($n)"
+ret=0
+if $FEATURETEST --have-fips-mode
+then
+    echo_i "skipped: already in FIPS mode"
+elif ! $FEATURETEST --fips-provider
+then
+	echo_i "skipped no FIPS provider available"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    $KEYGEN -F -a rsasha1 example.fips 2> keygen.err$n || true
+    grep "unsupported algorithm: RSASHA1" "keygen.err$n" > /dev/null || ret=1
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check that 'dnssec-keygen -F' disables nsec3rsasha1 ($n)"
+ret=0
+if $FEATURETEST --have-fips-mode
+then
+    echo_i "skipped: already in FIPS mode"
+elif ! $FEATURETEST --fips-set-mode
+then
+    echo_i "skipped: cannot switch to FIPS mode"
+elif ! $FEATURETEST --fips-set-mode-dst-lib-init
+then
+	echo_i "skipped FIPS mode not properly set up"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    $KEYGEN -F -a nsec3rsasha1 example.fips 2> keygen.err$n || true
+    grep "unsupported algorithm: NSEC3RSASHA1" "keygen.err$n" > /dev/null || ret=1
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "check that CDS records are signed using KSK by dnssec-signzone ($n)"
 ret=0
 dig_with_opts +noall +answer @10.53.0.2 cds cds.secure > dig.out.test$n
