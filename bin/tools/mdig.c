@@ -332,7 +332,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 			if (hash != NULL) {
 				*hash = '\0';
 			}
-			printf("    response_address: %s\n", sockstr);
+			printf("    response_address: \"%s\"\n", sockstr);
 			printf("    response_port: %u\n", sport);
 		}
 
@@ -343,7 +343,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 			if (hash != NULL) {
 				*hash = '\0';
 			}
-			printf("    query_address: %s\n", sockstr);
+			printf("    query_address: \"%s\"\n", sockstr);
 			printf("    query_port: %u\n", sport);
 		}
 
