@@ -266,7 +266,7 @@ print_yaml(dns_dtdata_t *dt) {
 
 		(void)inet_ntop(ip->len == 4 ? AF_INET : AF_INET6, ip->data,
 				buf, sizeof(buf));
-		printf("  query_address: %s\n", buf);
+		printf("  query_address: \"%s\"\n", buf);
 	}
 
 	if (m->has_response_address) {
@@ -275,7 +275,7 @@ print_yaml(dns_dtdata_t *dt) {
 
 		(void)inet_ntop(ip->len == 4 ? AF_INET : AF_INET6, ip->data,
 				buf, sizeof(buf));
-		printf("  response_address: %s\n", buf);
+		printf("  response_address: \"%s\"\n", buf);
 	}
 
 	if (m->has_query_port) {
