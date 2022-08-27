@@ -1,3 +1,6 @@
+5952.	[bug]		Use quotes around address strings in YAML output.
+			[GL #3511]
+
 5951.	[bug]		In some cases, the dnstap query_message field was
 			erroneously set when logging response messages.
 			[GL #3501]
