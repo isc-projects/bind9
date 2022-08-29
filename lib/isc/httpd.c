@@ -413,7 +413,6 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	const char *content_length = NULL;
 	size_t limit = sizeof(httpd->recvbuf) - httpd->recvlen - 1;
 	size_t len = region->length;
-	size_t clen = 0;
 	int delim;
 	bool truncated = false;
 
@@ -579,7 +578,7 @@ process_request(isc_httpd_t *httpd, isc_region_t *region, size_t *buflen) {
 	} else {
 		INSIST(content_length != NULL);
 
-		clen = (size_t)strtoul(content_length, NULL, 10);
+		size_t clen = (size_t)strtoul(content_length, NULL, 10);
 		if (clen == ULONG_MAX) {
 			/* Invalid number in the header value. */
 			return (ISC_R_BADNUMBER);
@@ -931,7 +930,8 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			 * ISC_R_NOTFOUND is not returned from netmgr) and we
 			 * need to resume reading.
 			 */
-			isc_nm_resumeread(httpd->readhandle);
+			isc_nm_read(httpd->readhandle, httpd_request,
+				    httpd->mgr);
 			return;
 		}
 		goto cleanup_readhandle;
@@ -1043,7 +1043,7 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	 */
 	isc_buffer_usedregion(httpd->sendbuffer, &r);
 
-	isc_nm_pauseread(httpd->handle);
+	isc_nm_read_stop(httpd->handle);
 	httpd->state = SEND;
 
 	isc_nmhandle_attach(httpd->handle, &httpd->sendhandle);
@@ -1072,7 +1072,8 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 
 	httpd = ISC_LIST_HEAD(httpdmgr->running);
 	while (httpd != NULL) {
-		isc_nm_cancelread(httpd->readhandle);
+		isc_nm_read_stop(httpd->readhandle);
+		isc_nmhandle_detach(&httpd->readhandle);
 		httpd = ISC_LIST_NEXT(httpd, link);
 	}
 	UNLOCK(&httpdmgr->lock);
@@ -1232,7 +1233,7 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		 */
 		httpd_request(httpd->handle, ISC_R_SUCCESS, NULL, httpd->mgr);
 	} else if (!httpd->truncated) {
-		isc_nm_resumeread(httpd->readhandle);
+		isc_nm_read(httpd->readhandle, httpd_request, httpd->mgr);
 	} else {
 		/* Truncated request, don't resume */
 		goto cleanup_readhandle;

@@ -949,7 +949,7 @@ isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_tid());
 
 	if (isc__nmsocket_closing(sock)) {
-		atomic_store(&sock->reading, true);
+		sock->reading = true;
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		return;
 	}
@@ -1468,7 +1468,7 @@ isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->reading));
+	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {

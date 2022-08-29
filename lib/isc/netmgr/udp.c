@@ -102,7 +102,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
 
-	atomic_init(&csock->reading, true);
+	csock->reading = true;
 
 	if (mgr->load_balance_sockets) {
 		UNUSED(fd);
@@ -968,7 +968,7 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	return;
 
 fail:
-	atomic_store(&sock->reading, true); /* required by the next call */
+	sock->reading = true; /* required by the next call */
 	isc__nm_failed_read_cb(sock, result, false);
 }
 

@@ -725,8 +725,10 @@ isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	ievent = isc__nm_get_netievent_tcpdnsread(sock->worker, sock);
 
 	/*
-	 * This MUST be done asynchronously, no matter which thread we're
-	 * in. The callback function for isc_nm_read() often calls
+	 * FIXME: This MUST be done asynchronously, ~~no matter which thread
+	 * we're in.~~  ,only when there's existing data on the socket.
+
+	 * The callback function for isc_nm_read() often calls
 	 * isc_nm_read() again; if we tried to do that synchronously
 	 * we'd clash in processbuffer() and grow the stack indefinitely.
 	 */
@@ -754,7 +756,7 @@ isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&sock->reading, true);
+		sock->reading = true;
 		isc__nm_failed_read_cb(sock, result, false);
 	}
 }
@@ -870,7 +872,7 @@ isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread,
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->reading));
+	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
 	if (isc__nmsocket_closing(sock)) {
