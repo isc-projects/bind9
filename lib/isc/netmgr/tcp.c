@@ -62,6 +62,8 @@ static isc_result_t
 tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
 static void
 tcp_connect_cb(uv_connect_t *uvreq, int status);
+static void
+tcp_stop_cb(uv_handle_t *handle);
 
 static void
 tcp_connection_cb(uv_stream_t *server, int status);
@@ -683,7 +685,20 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
 						     &(bool){ false }, true));
 
-	tcp_close_direct(sock);
+	/*
+	 * The order of the close operation is important here, the uv_close()
+	 * gets scheduled in the reverse order, so we need to close the timer
+	 * last, so its gone by the time we destroy the socket
+	 */
+
+	/* 2. close the listening socket */
+	isc__nmsocket_clearcb(sock);
+	isc__nm_stop_reading(sock);
+	uv_close(&sock->uv_handle.handle, tcp_stop_cb);
+
+	/* 1. close the read timer */
+	isc__nmsocket_timer_stop(sock);
+	uv_close(&sock->read_timer, NULL);
 
 	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
 
@@ -1218,24 +1233,11 @@ tcp_close_cb(uv_handle_t *handle) {
 }
 
 static void
-read_timer_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	uv_handle_set_data(handle, NULL);
-
-	if (sock->parent) {
-		uv_close(&sock->uv_handle.handle, tcp_stop_cb);
-	} else if (uv_is_closing(&sock->uv_handle.handle)) {
-		tcp_close_sock(sock);
-	} else {
-		uv_close(&sock->uv_handle.handle, tcp_close_cb);
-	}
-}
-
-static void
 tcp_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->closing));
+	REQUIRE(sock->parent == NULL);
 
 	if (sock->server != NULL) {
 		REQUIRE(VALID_NMSOCK(sock->server));
@@ -1251,12 +1253,31 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		isc_quota_detach(&sock->quota);
 	}
 
-	isc__nmsocket_clearcb(sock);
-	isc__nmsocket_timer_stop(sock);
-	isc__nm_stop_reading(sock);
+	/*
+	 * The order of the close operation is important here, the uv_close()
+	 * gets scheduled in the reverse order, so we need to close the timer
+	 * last, so its gone by the time we destroy the socket
+	 */
 
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
+	if (!uv_is_closing(&sock->uv_handle.handle)) {
+		/* Normal order of operation */
+
+		/* 2. close the socket + destroy the socket in callback */
+		isc__nmsocket_clearcb(sock);
+		isc__nm_stop_reading(sock);
+		uv_close(&sock->uv_handle.handle, tcp_close_cb);
+
+		/* 1. close the timer */
+		isc__nmsocket_timer_stop(sock);
+		uv_close((uv_handle_t *)&sock->read_timer, NULL);
+	} else {
+		/* The socket was already closed elsewhere */
+
+		/* 1. close the timer + destroy the socket in callback */
+		isc__nmsocket_timer_stop(sock);
+		uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+		uv_close((uv_handle_t *)&sock->read_timer, tcp_close_cb);
+	}
 }
 
 void

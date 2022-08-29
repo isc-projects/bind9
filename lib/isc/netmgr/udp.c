@@ -65,9 +65,6 @@ udp_send_cb(uv_udp_send_t *req, int status);
 static void
 udp_close_cb(uv_handle_t *handle);
 
-static void
-read_timer_close_cb(uv_handle_t *handle);
-
 static uv_os_sock_t
 isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	isc_result_t result;
@@ -1008,14 +1005,6 @@ udp_close_cb(uv_handle_t *handle) {
 	}
 }
 
-static void
-read_timer_close_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	uv_handle_set_data(handle, NULL);
-
-	uv_close(&sock->uv_handle.handle, udp_close_cb);
-}
-
 void
 isc__nm_udp_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1031,7 +1020,20 @@ isc__nm_udp_close(isc_nmsocket_t *sock) {
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	uv_close((uv_handle_t *)&sock->read_timer, read_timer_close_cb);
+	/*
+	 * The order of the close operation is important here, the uv_close()
+	 * gets scheduled in the reverse order, so we need to close the timer
+	 * last, so its gone by the time we destroy the socket
+	 */
+
+	/* 2. close the listening socket */
+	isc__nmsocket_clearcb(sock);
+	isc__nm_stop_reading(sock);
+	uv_close(&sock->uv_handle.handle, udp_close_cb);
+
+	/* 1. close the read timer */
+	isc__nmsocket_timer_stop(sock);
+	uv_close((uv_handle_t *)&sock->read_timer, NULL);
 }
 
 void
