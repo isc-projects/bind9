@@ -808,10 +808,11 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 		dm.m.response_time_nsec = isc_time_nanoseconds(t);
 		dm.m.has_response_time_nsec = 1;
 
-		cpbuf(buf, &dm.m.response_message, &dm.m.has_response_message);
-
-		/* Types RR and FR get both query and response times */
-		if (msgtype == DNS_DTTYPE_CR || msgtype == DNS_DTTYPE_AR) {
+		/*
+		 * Types RR and FR can fall through and get the query
+		 * time set as well. Any other response type, break.
+		 */
+		if (msgtype != DNS_DTTYPE_RR && msgtype != DNS_DTTYPE_FR) {
 			break;
 		}
 
@@ -831,14 +832,19 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 		dm.m.has_query_time_sec = 1;
 		dm.m.query_time_nsec = isc_time_nanoseconds(t);
 		dm.m.has_query_time_nsec = 1;
-
-		cpbuf(buf, &dm.m.query_message, &dm.m.has_query_message);
 		break;
 	default:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSTAP,
 			      DNS_LOGMODULE_DNSTAP, ISC_LOG_ERROR,
 			      "invalid dnstap message type %d", msgtype);
 		return;
+	}
+
+	/* Query and response messages */
+	if ((msgtype & DNS_DTTYPE_QUERY) != 0) {
+		cpbuf(buf, &dm.m.query_message, &dm.m.has_query_message);
+	} else if ((msgtype & DNS_DTTYPE_RESPONSE) != 0) {
+		cpbuf(buf, &dm.m.response_message, &dm.m.has_response_message);
 	}
 
 	/* Zone/bailiwick */
