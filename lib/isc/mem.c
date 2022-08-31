@@ -1652,7 +1652,8 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 
 	mpctx->common.impmagic = MEMPOOL_MAGIC;
 	mpctx->common.magic = ISCAPI_MPOOL_MAGIC;
-	mpctx->mctx = mctx;
+	mpctx->mctx = NULL;
+	isc_mem_attach((isc_mem_t *)mctx, (isc_mem_t **)&mpctx->mctx);
 	/*
 	 * Mempools are stored as a linked list of element.
 	 */
@@ -1741,7 +1742,8 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	mpctx->common.impmagic = 0;
 	mpctx->common.magic = 0;
 
-	isc_mem_put((isc_mem_t *)mpctx->mctx, mpctx, sizeof(isc__mempool_t));
+	isc_mem_putanddetach((isc_mem_t **)&mpctx->mctx, mpctx,
+			     sizeof(isc__mempool_t));
 
 	*mpctxp = NULL;
 }
