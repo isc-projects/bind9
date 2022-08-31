@@ -24,6 +24,10 @@
 # We also set the MTU on the 1500 bytes to match the default MTU on physical
 # interfaces, so we can properly test the cases with packets bigger than
 # interface MTU.
+#
+# See also org.isc.bind.system (a version of this script for use on macOS)
+# and testsock.pl (which checks the interfaces are configured)
+#
 
 top_srcdir=@abs_top_srcdir@
 
@@ -236,6 +240,10 @@ sequence() (
 # 'i' is the outer loop counter.
 # 'ns' in the namserver being configured.
 # 'int' interface identifier.
+#
+# See also `org.isc.bind.system`.
+#
+# This `max` setting is grepped out for use by testsock.pl
 #
 max=11
 case $1 in

@@ -27,7 +27,15 @@ my @ids;
 if ($id != 0) {
 	@ids = ($id);
 } else {
-	@ids = (1..8);
+	my $fn = "ifconfig.sh.in";
+	open FH, "< $fn" or die "open < $fn: $!\n";
+	while (<FH>) {
+		@ids = (1..$1)
+		    if /^max=(\d+)\s*$/;
+	}
+	close FH;
+	die "could not find max IP address in $fn\n"
+	    unless @ids > 1;
 }
 
 foreach $id (@ids) {
