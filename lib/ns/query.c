@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #include <isc/hex.h>
@@ -7265,6 +7266,12 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			return (ISC_R_COMPLETE);
 		default:
 			UNREACHABLE();
+		}
+
+		if (qctx->rpz_st->m.rpz->ede != 0 &&
+		    qctx->rpz_st->m.rpz->ede != UINT16_MAX) {
+			ns_client_extendederror(qctx->client,
+						qctx->rpz_st->m.rpz->ede, NULL);
 		}
 
 		/*

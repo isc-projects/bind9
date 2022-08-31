@@ -48,7 +48,7 @@ options {
 	    zone "bl-drop"	policy drop;
 	    zone "bl-tcp-only"	policy tcp-only;
 	    zone "bl.tld2";
-	    zone "manual-update-rpz";
+	    zone "manual-update-rpz"	ede forged;
 	    zone "mixed-case-rpz";
 	}
 	add-soa yes

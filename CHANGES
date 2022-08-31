@@ -1,3 +1,6 @@
+5950.	[func]		Implement a feature to set an Extended DNS Error (EDE)
+			code on responses modified by RPZ. [GL #3410]
+
 5949.	[func]		Add new isc_loopmgr API that runs the application
 			event loops and completely replaces the isc_app
 			API. Refactor the isc_taskmgr, isc_timermgr and

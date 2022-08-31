@@ -16,6 +16,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <openssl/opensslv.h>
@@ -53,6 +54,7 @@
 #include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
+#include <dns/rpz.h>
 #include <dns/rrl.h>
 #include <dns/secalg.h>
 #include <dns/ssu.h>
@@ -4959,6 +4961,49 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 }
 
 static isc_result_t
+check_rpz(const cfg_obj_t *rpz_obj, isc_log_t *logctx) {
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj, *nameobj, *edeobj;
+	const char *zonename;
+	isc_result_t result = ISC_R_SUCCESS, tresult;
+	dns_fixedname_t fixed;
+	dns_name_t *name = dns_fixedname_initname(&fixed);
+
+	obj = cfg_tuple_get(rpz_obj, "zone list");
+
+	for (element = cfg_list_first(obj); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		nameobj = cfg_tuple_get(obj, "zone name");
+		zonename = cfg_obj_asstring(nameobj);
+
+		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "bad domain name '%s'", zonename);
+			if (result == ISC_R_SUCCESS) {
+				result = tresult;
+				continue;
+			}
+		}
+
+		edeobj = cfg_tuple_get(obj, "ede");
+		if (edeobj != NULL && cfg_obj_isstring(edeobj)) {
+			const char *str = cfg_obj_asstring(edeobj);
+
+			if (dns_rpz_str2ede(str) == UINT16_MAX) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "unsupported EDE type '%s'", str);
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
+
+	return (result);
+}
+
+static isc_result_t
 check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx,
 	   isc_log_t *logctx) {
 	const cfg_listelt_t *element;
@@ -5209,6 +5254,19 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		    (check_rpz_catz("catalog zone", obj, viewname, symtab,
 				    logctx,
 				    special_zonetype_catz) != ISC_R_SUCCESS))
+		{
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/*
+	 * Check response-policy configuration.
+	 */
+	if (opts != NULL) {
+		obj = NULL;
+		if ((cfg_map_get(opts, "response-policy", &obj) ==
+		     ISC_R_SUCCESS) &&
+		    (check_rpz(obj, logctx) != ISC_R_SUCCESS))
 		{
 			result = ISC_R_FAILURE;
 		}

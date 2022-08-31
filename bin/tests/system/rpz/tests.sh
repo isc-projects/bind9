@@ -848,6 +848,11 @@ EOF
     $PERL ../stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
     restart 3 "rebuild-bl-rpz"
 
+    t=`expr $t + 1`
+    echo_i "checking the configured extended DNS error code (EDE) (${t})"
+    $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t
+    grep -F "EDE: 4 (Forged Answer)" dig.out.$t > /dev/null || setret "failed"
+
     # reload a RPZ zone that is now deliberately broken.
     t=`expr $t + 1`
     echo_i "checking rpz failed update will keep previous rpz rules (${t})"
@@ -859,6 +864,11 @@ EOF
     # ensure previous RPZ rules still apply.
     $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
+
+    t=`expr $t + 1`
+    echo_i "checking the default (unset) extended DNS error code (EDE) (${t})"
+    $DIG -p ${PORT} @$ns3 a6-2.tld2. A > dig.out.$t
+    grep -F "EDE: " dig.out.$t > /dev/null && setret "failed"
 
     t=`expr $t + 1`
     echo_i "checking reload of a mixed-case RPZ zone (${t})"
@@ -907,20 +917,25 @@ EOF
   grep NXDOMAIN dig.out.${t} > /dev/null || setret "failed"
 
   t=`expr $t + 1`
-  echo_i "checking that "add-soa no" at rpz zone level works (${t})"
+  echo_i "checking that 'ede none' works same way as when \"ede\" is unset (${t})"
+  $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
+  grep -F "EDE: " dig.out.${t} > /dev/null && setret "failed"
+
+  t=`expr $t + 1`
+  echo_i "checking that 'add-soa no' at rpz zone level works (${t})"
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
   grep SOA dig.out.${t} > /dev/null && setret "failed"
 
   if [ native = "$mode" ]; then
     t=`expr $t + 1`
-    echo_i "checking that "add-soa yes" at response-policy level works (${t})"
+    echo_i "checking that 'add-soa yes' at response-policy level works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
   fi
 
   if [ native = "$mode" ]; then
     t=`expr $t + 1`
-    echo_i "checking that "add-soa unset" works (${t})"
+    echo_i "checking that 'add-soa unset' works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
   fi

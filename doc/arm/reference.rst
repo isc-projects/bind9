@@ -5374,6 +5374,35 @@ with this zone file:
    example.com                 CNAME   rpz-tcp-only.
    *.example.com               CNAME   rpz-tcp-only.
 
+Response policy zones can be configured to set an Extended DNS Error (EDE) code
+on the responses which have been modified by the response policy:
+
+::
+
+       response-policy { zone "badlist" ede filtered; };
+
+The following settings are supported for the ``ede`` option:
+
+``none``
+   No Extended DNS Error code is set (default).
+
+``forged``
+   Extended DNS Error code 4 - Forged Answer.
+
+``blocked``
+   Extended DNS Error code 15 - Blocked.
+
+``censored``
+   Extended DNS Error code 16 - Censored.
+
+``filtered``
+   Extended DNS Error code 17 - Filtered.
+
+``prohibited``
+   Extended DNS Error code 18 - Prohibited.
+
+See :rfc:`8914` for more information about the Extended DNS Error codes.
+
 RPZ can affect server performance. Each configured response policy zone
 requires the server to perform one to four additional database lookups
 before a query can be answered. For example, a DNS server with four
