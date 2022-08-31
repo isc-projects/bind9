@@ -1183,8 +1183,6 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 	mpctx = isc_mem_get(mctx, sizeof(isc_mempool_t));
 
 	*mpctx = (isc_mempool_t){
-		.magic = MEMPOOL_MAGIC,
-		.mctx = mctx,
 		.size = size,
 		.freemax = 1,
 		.fillcount = 1,
@@ -1196,6 +1194,9 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 			mpctx, file, line, mctx);
 	}
 #endif /* ISC_MEM_TRACKLINES */
+
+	isc_mem_attach(mctx, &mpctx->mctx);
+	mpctx->magic = MEMPOOL_MAGIC;
 
 	*mpctxp = (isc_mempool_t *)mpctx;
 
@@ -1266,7 +1267,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 
 	mpctx->magic = 0;
 
-	isc_mem_put(mpctx->mctx, mpctx, sizeof(isc_mempool_t));
+	isc_mem_putanddetach(&mpctx->mctx, mpctx, sizeof(isc_mempool_t));
 }
 
 void *
