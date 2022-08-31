@@ -1,3 +1,8 @@
+5953.	[bug]		Fix a crash on shutdown in delete_trace_entry(). Add
+			mctx attach/detach pair to make sure that the memory
+			context used by a memory pool is not destroyed before
+			the memory pool itself. [GL #3515]
+
 5952.	[bug]		Use quotes around address strings in YAML output.
 			[GL #3511]
 
