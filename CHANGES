@@ -1,3 +1,7 @@
+5951.	[bug]		In some cases, the dnstap query_message field was
+			erroneously set when logging response messages.
+			[GL #3501]
+
 5950.	[func]		Implement a feature to set an Extended DNS Error (EDE)
 			code on responses modified by RPZ. [GL #3410]
 
