@@ -4,7 +4,14 @@
 
 6065.	[placeholder]
 
-6064.	[placeholder]
+6064.	[security]	An UPDATE message flood could cause named to exhaust all
+			available memory. This flaw was addressed by adding a
+			new "update-quota" statement that controls the number of
+			simultaneous UPDATE messages that can be processed or
+			forwarded. The default is 100. A stats counter has been
+			added to record events when the update quota is
+			exceeded, and the XML and JSON statistics version
+			numbers have been updated. (CVE-2022-3094) [GL #3523]
 
 6063.	[cleanup]	The RSA and ECDSA parts of the DNSSEC has been
 			refactored for a better OpenSSL 3.x integration and
