@@ -84,6 +84,7 @@ struct ns_server {
 	isc_quota_t recursionquota;
 	isc_quota_t tcpquota;
 	isc_quota_t xfroutquota;
+	isc_quota_t updquota;
 	ISC_LIST(isc_quota_t) http_quotas;
 	isc_mutex_t http_quotas_lock;
 
