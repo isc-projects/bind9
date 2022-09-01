@@ -130,6 +130,7 @@ options {\n\
 	transfers-out 10;\n\
 	transfers-per-ns 2;\n\
 	trust-anchor-telemetry yes;\n\
+	update-quota 100;\n\
 \n\
 	/* view */\n\
 	allow-new-zones no;\n\

@@ -404,6 +404,7 @@ options {
         trust-anchor-telemetry <boolean>; // experimental
         try-tcp-refresh <boolean>;
         update-check-ksk <boolean>;
+        update-quota <integer>;
         use-alt-transfer-source <boolean>;
         use-id-pool <boolean>; // ancient
         use-ixfr <boolean>; // obsolete

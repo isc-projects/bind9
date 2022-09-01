@@ -3151,6 +3151,11 @@ system.
    value as ``tcp-keepalive-timeout``. This value can be updated at
    runtime by using ``rndc tcp-timeouts``.
 
+``update-quota``
+   This is the maximum number of simultaneous DNS UPDATE messages that
+   the server will accept for updating local authoritiative zones or
+   forwarding to a primary server. The default is ``100``.
+
 .. _intervals:
 
 Periodic Task Intervals
@@ -6840,7 +6845,7 @@ Name Server Statistics Counters
 ``UpdateQuota``
     This indicates the number of times a dynamic update or update
     forwarding request was rejected because the number of pending
-    requests exceeded the update quota.
+    requests exceeded ``update-quota``.
 
 ``RateDropped``
     This indicates the number of responses dropped due to rate limits.
