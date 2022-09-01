@@ -6837,6 +6837,11 @@ Name Server Statistics Counters
 ``UpdateBadPrereq``
     This indicates the number of dynamic updates rejected due to a prerequisite failure.
 
+``UpdateQuota``
+    This indicates the number of times a dynamic update or update
+    forwarding request was rejected because the number of pending
+    requests exceeded the update quota.
+
 ``RateDropped``
     This indicates the number of responses dropped due to rate limits.
 
