@@ -1645,6 +1645,19 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
 
+	result = isc_quota_attach(&client->manager->sctx->updquota,
+				  &(isc_quota_t *){ NULL });
+	if (result != ISC_R_SUCCESS) {
+		update_log(client, zone, LOGLEVEL_PROTOCOL,
+			   "update failed: too many DNS UPDATEs queued (%s)",
+			   isc_result_totext(result));
+		ns_stats_increment(client->manager->sctx->nsstats,
+				   ns_statscounter_updatequota);
+		ns_client_drop(client, result);
+		isc_nmhandle_detach(&client->reqhandle);
+		return (DNS_R_DROP);
+	}
+
 	event = (update_event_t *)isc_event_allocate(
 		client->mctx, client, DNS_EVENT_UPDATE, update_action, NULL,
 		sizeof(*event));
@@ -1783,12 +1796,19 @@ failure:
 		       dns_zone_gettype(zone) == dns_zone_mirror);
 		inc_stats(client, zone, ns_statscounter_updaterej);
 	}
+
 	/*
 	 * We failed without having sent an update event to the zone.
 	 * We are still in the client task context, so we can
 	 * simply give an error response without switching tasks.
 	 */
-	respond(client, result);
+	if (result == DNS_R_DROP) {
+		ns_client_drop(client, result);
+		isc_nmhandle_detach(&client->reqhandle);
+	} else {
+		respond(client, result);
+	}
+
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
@@ -3669,6 +3689,7 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 
 	respond(client, uev->result);
 
+	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
 	isc_event_free(&event);
 	isc_nmhandle_detach(&client->updatehandle);
 }
@@ -3685,6 +3706,8 @@ forward_fail(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->nupdates > 0);
 	client->nupdates--;
 	respond(client, DNS_R_SERVFAIL);
+
+	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
 	isc_event_free(&event);
 	isc_nmhandle_detach(&client->updatehandle);
 }
@@ -3722,6 +3745,8 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 	client->nupdates--;
 	ns_client_sendraw(client, uev->answer);
 	dns_message_detach(&uev->answer);
+
+	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
 	isc_event_free(&event);
 	isc_nmhandle_detach(&client->reqhandle);
 	isc_nmhandle_detach(&client->updatehandle);
@@ -3756,6 +3781,17 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
+
+	result = isc_quota_attach(&client->manager->sctx->updquota,
+				  &(isc_quota_t *){ NULL });
+	if (result != ISC_R_SUCCESS) {
+		update_log(client, zone, LOGLEVEL_PROTOCOL,
+			   "update failed: too many DNS UPDATEs queued (%s)",
+			   isc_result_totext(result));
+		ns_stats_increment(client->manager->sctx->nsstats,
+				   ns_statscounter_updatequota);
+		return (DNS_R_DROP);
+	}
 
 	event = (update_event_t *)isc_event_allocate(
 		client->mctx, client, DNS_EVENT_UPDATE, forward_action, NULL,

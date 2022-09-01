@@ -55,11 +55,11 @@
 #include "xsl_p.h"
 
 #define STATS_XML_VERSION_MAJOR "3"
-#define STATS_XML_VERSION_MINOR "12"
+#define STATS_XML_VERSION_MINOR "13"
 #define STATS_XML_VERSION	STATS_XML_VERSION_MAJOR "." STATS_XML_VERSION_MINOR
 
 #define STATS_JSON_VERSION_MAJOR "1"
-#define STATS_JSON_VERSION_MINOR "6"
+#define STATS_JSON_VERSION_MINOR "7"
 #define STATS_JSON_VERSION	 STATS_JSON_VERSION_MAJOR "." STATS_JSON_VERSION_MINOR
 
 #define CHECK(m)                               \
@@ -351,6 +351,7 @@ init_desc(void) {
 	SET_NSSTATDESC(reclimitdropped,
 		       "queries dropped due to recursive client limit",
 		       "RecLimitDropped");
+	SET_NSSTATDESC(updatequota, "Update quota exceeded", "UpdateQuota");
 
 	INSIST(i == ns_statscounter_max);
 
