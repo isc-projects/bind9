@@ -15,12 +15,25 @@ Notes for BIND 9.18.11
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- An UPDATE message flood could cause :iscman:`named` to exhaust all
+  available memory. This flaw was addressed by adding a new
+  :any:`update-quota` option that controls the maximum number of
+  outstanding DNS UPDATE messages that :iscman:`named` can hold in a
+  queue at any given time (default: 100). (CVE-2022-3094)
+
+  ISC would like to thank Rob Schulhof from Infoblox for bringing this
+  vulnerability to our attention. :gl:`#3523`
 
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The new :any:`update-quota` option can be used to control the number
+  of simultaneous DNS UPDATE messages that can be processed to update an
+  authoritative zone on a primary server, or forwarded to the primary
+  server by a secondary server. The default is 100. A new statistics
+  counter has also been added to record events when this quota is
+  exceeded, and the version numbers for the XML and JSON statistics
+  schemas have been updated. :gl:`#3523`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
