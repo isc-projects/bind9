@@ -8518,6 +8518,7 @@ load_configuration(const char *filename, named_server_t *server,
 	configure_server_quota(maps, "tcp-clients", &server->sctx->tcpquota);
 	configure_server_quota(maps, "recursive-clients",
 			       &server->sctx->recursionquota);
+	configure_server_quota(maps, "update-quota", &server->sctx->updquota);
 
 	max = isc_quota_getmax(&server->sctx->recursionquota);
 	if (max > 1000) {
