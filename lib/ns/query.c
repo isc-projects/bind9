@@ -5737,7 +5737,6 @@ query_lookup(query_ctx_t *qctx) {
 	bool dbfind_stale = false;
 	bool stale_timeout = false;
 	bool stale_found = false;
-	bool refresh_rrset = false;
 	bool stale_refresh_window = false;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_lookup");
@@ -5921,8 +5920,7 @@ query_lookup(query_ctx_t *qctx) {
 					"%s stale answer used, an attempt to "
 					"refresh the RRset will still be made",
 					namebuf);
-				refresh_rrset = STALE(qctx->rdataset);
-				qctx->client->nodetach = refresh_rrset;
+				qctx->refresh_rrset = STALE(qctx->rdataset);
 			}
 		} else {
 			/*
@@ -5959,17 +5957,6 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	result = query_gotanswer(qctx, result);
-
-	if (refresh_rrset) {
-		/*
-		 * If we reached this point then it means that we have found a
-		 * stale RRset entry in cache and BIND is configured to allow
-		 * queries to be answered with stale data if no active RRset
-		 * is available, i.e. "stale-anwer-client-timeout 0". But, we
-		 * still need to refresh the RRset.
-		 */
-		query_refresh_rrset(qctx);
-	}
 
 cleanup:
 	return (result);
@@ -7760,11 +7747,14 @@ query_addanswer(query_ctx_t *qctx) {
 
 	/*
 	 * On normal lookups, clear any rdatasets that were added on a
-	 * lookup due to stale-answer-client-timeout.
+	 * lookup due to stale-answer-client-timeout. Do not clear if we
+	 * are going to refresh the RRset, because the stale contents are
+	 * prioritized.
 	 */
 	if (QUERY_STALEOK(&qctx->client->query) &&
-	    !QUERY_STALETIMEOUT(&qctx->client->query))
+	    !QUERY_STALETIMEOUT(&qctx->client->query) && !qctx->refresh_rrset)
 	{
+		CCTRACE(ISC_LOG_DEBUG(3), "query_clear_stale");
 		query_clear_stale(qctx->client);
 		/*
 		 * We can clear the attribute to prevent redundant clearing
@@ -11478,9 +11468,29 @@ ns_query_done(query_ctx_t *qctx) {
 	/*
 	 * Client may have been detached after query_send(), so
 	 * we test and store the flag state here, for safety.
+	 * If we are refreshing the RRSet, we must not detach from the client
+	 * in the query_send(), so we need to override the flag.
 	 */
+	if (qctx->refresh_rrset) {
+		qctx->client->nodetach = true;
+	}
 	nodetach = qctx->client->nodetach;
 	query_send(qctx->client);
+
+	if (qctx->refresh_rrset) {
+		/*
+		 * If we reached this point then it means that we have found a
+		 * stale RRset entry in cache and BIND is configured to allow
+		 * queries to be answered with stale data if no active RRset
+		 * is available, i.e. "stale-anwer-client-timeout 0". But, we
+		 * still need to refresh the RRset. To prevent adding duplicate
+		 * RRsets, clear the RRsets from the message before doing the
+		 * refresh.
+		 */
+		message_clearrdataset(qctx->client->message, 0);
+		query_refresh_rrset(qctx);
+	}
+
 	if (!nodetach) {
 		qctx->detach_client = true;
 	}
