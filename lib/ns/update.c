@@ -1664,19 +1664,17 @@ respond(ns_client_t *client, isc_result_t result) {
 
 	msg_result = dns_message_reply(client->message, true);
 	if (msg_result != ISC_R_SUCCESS) {
-		goto msg_failure;
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_UPDATE,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+			      "could not create update response message: %s",
+			      isc_result_totext(msg_result));
+		ns_client_drop(client, msg_result);
+		isc_nmhandle_detach(&client->reqhandle);
+		return;
 	}
+
 	client->message->rcode = dns_result_torcode(result);
-
 	ns_client_send(client);
-	return;
-
-msg_failure:
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
-		      ISC_LOG_ERROR,
-		      "could not create update response message: %s",
-		      isc_result_totext(msg_result));
-	ns_client_drop(client, msg_result);
 	isc_nmhandle_detach(&client->reqhandle);
 }
 
@@ -1690,7 +1688,8 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	dns_zone_t *zone = NULL, *raw = NULL;
 
 	/*
-	 * Attach to the request handle
+	 * Attach to the request handle. This will be held until
+	 * we respond, or drop the request.
 	 */
 	isc_nmhandle_attach(handle, &client->reqhandle);
 
@@ -1772,8 +1771,6 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 	default:
 		FAILC(DNS_R_NOTAUTH, "not authoritative for update zone");
 	}
-
-	isc_nmhandle_detach(&client->reqhandle);
 	return;
 
 failure:
@@ -1791,7 +1788,6 @@ failure:
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
-	isc_nmhandle_detach(&client->reqhandle);
 }
 
 /*%
@@ -3705,6 +3701,7 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 	ns_client_sendraw(client, uev->answer);
 	dns_message_detach(&uev->answer);
 	isc_event_free(&event);
+	isc_nmhandle_detach(&client->reqhandle);
 	isc_nmhandle_detach(&client->updatehandle);
 }
 
