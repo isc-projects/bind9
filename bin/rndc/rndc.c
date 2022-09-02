@@ -307,6 +307,7 @@ rndc_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_load_acquire(&recvs) == 0)
 	{
 		shuttingdown = true;
+		isc_task_detach(&rndc_task);
 		isc_app_shutdown();
 	}
 }
@@ -392,6 +393,7 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_load_acquire(&sends) == 0)
 	{
 		shuttingdown = true;
+		isc_task_detach(&rndc_task);
 		isc_app_shutdown();
 	}
 }
@@ -1081,7 +1083,6 @@ main(int argc, char **argv) {
 		fatal("isc_app_run() failed: %s", isc_result_totext(result));
 	}
 
-	isc_task_detach(&rndc_task);
 	isc_managers_destroy(&netmgr, &taskmgr, NULL);
 
 	/*
