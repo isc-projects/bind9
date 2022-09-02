@@ -8764,7 +8764,7 @@ load_configuration(const char *filename, named_server_t *server,
 			      isc_result_totext(result));
 		goto cleanup_bindkeys_parser;
 	}
-	isc_portset_create(named_g_mctx, &v6portset);
+	result = isc_portset_create(named_g_mctx, &v6portset);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
