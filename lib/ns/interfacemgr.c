@@ -391,7 +391,7 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 static isc_result_t
 ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 		    const char *name, ns_interface_t **ifpret) {
-	ns_interface_t *ifp;
+	ns_interface_t *ifp = NULL;
 	isc_result_t result;
 	int disp;
 
@@ -422,12 +422,12 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ISC_LINK_INIT(ifp, link);
 
 	ns_interfacemgr_attach(mgr, &ifp->mgr);
+	isc_refcount_init(&ifp->references, 1);
+	ifp->magic = IFACE_MAGIC;
+
 	LOCK(&mgr->lock);
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 	UNLOCK(&mgr->lock);
-
-	isc_refcount_init(&ifp->references, 1);
-	ifp->magic = IFACE_MAGIC;
 
 	result = ns_clientmgr_create(mgr->mctx, mgr->sctx, mgr->taskmgr,
 				     mgr->timermgr, ifp, mgr->ncpus,
@@ -444,11 +444,17 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (ISC_R_SUCCESS);
 
 failure:
-	isc_mutex_destroy(&ifp->lock);
+	LOCK(&ifp->mgr->lock);
+	ISC_LIST_UNLINK(ifp->mgr->interfaces, ifp, link);
+	UNLOCK(&ifp->mgr->lock);
 
 	ifp->magic = 0;
-	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
+	ns_interfacemgr_detach(&ifp->mgr);
+	isc_refcount_decrement(&ifp->references);
+	isc_refcount_destroy(&ifp->references);
+	isc_mutex_destroy(&ifp->lock);
 
+	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
 	return (ISC_R_UNEXPECTED);
 }
 
