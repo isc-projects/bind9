@@ -1426,7 +1426,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_ic "check that dnssec-signzone -F works with allowed algorithm ($n)"
+echo_ic "check that 'dnssec-signzone -F' works with allowed algorithm ($n)"
 ret=0
 if $FEATURETEST --fips-provider
 then
@@ -1443,6 +1443,25 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_ic "check that 'dnssec-signzone -F' failed with disallowed algorithm ($n)"
+ret=0
+if ! $FEATURETEST --fips-provider
+then
+    echo_i "skipped no FIPS provider available"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    (
+	cd signer/general || exit 1
+	rm -f signed.zone
+	$SIGNER -F -f signed.zone -o example.com. test11.zone > signer.out.$n 2>&1 && exit 1
+	grep "fatal: dnskey 'example.com/RSASHA1/19857' failed to sign data" signer.out.$n > /dev/null
+    ) || ret=1
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 echo_ic "check that dnssec-signzone rejects excessive NSEC3 iterations ($n)"
 ret=0
@@ -3580,12 +3599,9 @@ ret=0
 if $FEATURETEST --have-fips-mode
 then
     echo_i "skipped: already in FIPS mode"
-elif ! $FEATURETEST --fips-set-mode
+elif ! $FEATURETEST --fips-provider
 then
     echo_i "skipped: cannot switch to FIPS mode"
-elif ! $FEATURETEST --fips-set-mode-dst-lib-init
-then
-	echo_i "skipped FIPS mode not properly set up"
 elif ! $SHELL ../testcrypto.sh -q RSASHA1
 then
     echo_i "skipped: RSASHA1 is not supported"
