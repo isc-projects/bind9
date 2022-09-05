@@ -235,10 +235,8 @@ help(void) {
 	       "                 +[no]identify       (ID responders in short "
 	       "answers)\n"
 #ifdef HAVE_LIBIDN2
-	       "                 +[no]idnin          (Parse IDN names "
-	       "[default=on on tty])\n"
-	       "                 +[no]idnout         (Convert IDN response "
-	       "[default=on on tty])\n"
+	       "                 +[no]idn            (convert international "
+	       "domain names)\n"
 #endif /* ifdef HAVE_LIBIDN2 */
 	       "                 +[no]ignore         (Don't revert to TCP for "
 	       "TC responses.)\n"
@@ -1615,7 +1613,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		break;
 	case 'i':
 		switch (cmd[1]) {
-		case 'd': /* identify */
+		case 'd':
 			switch (cmd[2]) {
 			case 'e':
 				FULLCHECK("identify");
@@ -1623,33 +1621,28 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				break;
 			case 'n':
 				switch (cmd[3]) {
-				case 'i':
-					FULLCHECK("idnin");
-#ifndef HAVE_LIBIDN2
-					if (state) {
-						fprintf(stderr,
-							";; IDN input support"
-							" not enabled\n");
-					}
-#else  /* ifndef HAVE_LIBIDN2 */
+				case '\0':
+					FULLCHECK("idn");
 					lookup->idnin = state;
-#endif /* ifndef HAVE_LIBIDN2 */
-					break;
-				case 'o':
-					FULLCHECK("idnout");
-#ifndef HAVE_LIBIDN2
-					if (state) {
-						fprintf(stderr,
-							";; IDN output support"
-							" not enabled\n");
-					}
-#else  /* ifndef HAVE_LIBIDN2 */
 					lookup->idnout = state;
-#endif /* ifndef HAVE_LIBIDN2 */
+					break;
+				case 'i': /* (compat) */
+					FULLCHECK("idnin");
+					lookup->idnin = state;
+					break;
+				case 'o': /* (compat) */
+					FULLCHECK("idnout");
+					lookup->idnout = state;
 					break;
 				default:
 					goto invalid_option;
 				}
+#ifndef HAVE_LIBIDN2
+				if (state) {
+					printf(";; IDN support "
+					       "is not available\n");
+				}
+#endif /* ifndef HAVE_LIBIDN2 */
 				break;
 			default:
 				goto invalid_option;

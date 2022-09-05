@@ -116,11 +116,7 @@ static char servercookie[256];
 
 #ifdef HAVE_LIBIDN2
 static void
-idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
-static void
-idn_ace_to_locale(const char *src, char **dst);
-static isc_result_t
-idn_output_filter(isc_buffer_t *buffer, unsigned int used_org);
+idn_input(const char *src, char *dst, size_t dstlen);
 #endif /* HAVE_LIBIDN2 */
 
 isc_nmhandle_t *keep = NULL;
@@ -585,8 +581,13 @@ clone_server_list(dig_serverlist_t src, dig_serverlist_t *dest) {
 dig_lookup_t *
 make_empty_lookup(void) {
 	dig_lookup_t *looknew;
+	int idnin = false, idnout = false;
+
 #ifdef HAVE_LIBIDN2
-	bool idn_allowed = isatty(1) ? (getenv("IDN_DISABLE") == NULL) : false;
+	if (getenv("IDN_DISABLE") == NULL) {
+		idnin = true;
+		idnout = isatty(1);
+	}
 #endif /* HAVE_LIBIDN2 */
 
 	debug("make_empty_lookup()");
@@ -603,10 +604,8 @@ make_empty_lookup(void) {
 		.besteffort = true,
 		.opcode = dns_opcode_query,
 		.badcookie = true,
-#ifdef HAVE_LIBIDN2
-		.idnin = idn_allowed,
-		.idnout = idn_allowed,
-#endif /* HAVE_LIBIDN2 */
+		.idnin = idnin,
+		.idnout = idnout,
 		.udpsize = -1,
 		.edns = -1,
 		.recurse = true,
@@ -2220,7 +2219,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	textname = lookup->textname;
 #ifdef HAVE_LIBIDN2
 	if (lookup->idnin) {
-		idn_locale_to_ace(textname, idn_textname, sizeof(idn_textname));
+		idn_input(textname, idn_textname, sizeof(idn_textname));
 		debug("idn_textname: %s", idn_textname);
 		textname = idn_textname;
 	}
@@ -2251,8 +2250,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2
 		if (lookup->idnin) {
-			idn_locale_to_ace(origin, idn_origin,
-					  sizeof(idn_origin));
+			idn_input(origin, idn_origin, sizeof(idn_origin));
 			debug("trying idn origin %s", idn_origin);
 			origin = idn_origin;
 		}
@@ -4680,57 +4678,48 @@ destroy_libs(void) {
 }
 
 #ifdef HAVE_LIBIDN2
+
 static isc_result_t
-idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
-	char src[MXNAME], *dst = NULL;
+idn_filter(isc_buffer_t *buffer, unsigned start) {
+	char src[MXNAME];
+	char *dst = NULL;
 	size_t srclen, dstlen;
-	isc_result_t result = ISC_R_SUCCESS;
+	int res;
 
 	/*
 	 * Copy name from 'buffer' to 'src' and terminate it with NULL.
 	 */
-	srclen = isc_buffer_usedlength(buffer) - used_org;
-	if (srclen >= sizeof(src)) {
-		warn("Input name too long to perform IDN conversion");
-		goto cleanup;
-	}
-	memmove(src, (char *)isc_buffer_base(buffer) + used_org, srclen);
+	srclen = isc_buffer_usedlength(buffer) - start;
+	INSIST(srclen < sizeof(src));
+	memmove(src, (char *)isc_buffer_base(buffer) + start, srclen);
 	src[srclen] = '\0';
 
+	/*
+	 * Try to convert the name; leave it unchanged if conversion fails.
+	 */
 	systemlocale(LC_ALL);
-
-	/*
-	 * Convert 'src' to the current locale's character encoding.
-	 */
-	idn_ace_to_locale(src, &dst);
-
+	res = idn2_to_unicode_8zlz(src, &dst, IDN2_NONTRANSITIONAL);
+	if (res == IDN2_DISALLOWED) {
+		res = idn2_to_unicode_8zlz(src, &dst, IDN2_TRANSITIONAL);
+	}
 	resetlocale(LC_ALL);
-
-	/*
-	 * Check whether the converted name will fit back into 'buffer'.
-	 */
-	dstlen = strlen(dst);
-	if (isc_buffer_length(buffer) < used_org + dstlen) {
-		result = ISC_R_NOSPACE;
-		goto cleanup;
+	if (res != IDN2_OK) {
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
-	 * Put the converted name back into 'buffer'.
+	 * Copy the converted back into 'buffer' if it fits.
 	 */
+	dstlen = strlen(dst);
+	if (isc_buffer_length(buffer) < start + dstlen) {
+		return (ISC_R_NOSPACE);
+	}
 	isc_buffer_subtract(buffer, srclen);
 	memmove(isc_buffer_used(buffer), dst, dstlen);
 	isc_buffer_add(buffer, dstlen);
 
-	/*
-	 * Clean up.
-	 */
-cleanup:
-	if (dst != NULL) {
-		idn2_free(dst);
-	}
-
-	return (result);
+	idn2_free(dst);
+	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -4741,126 +4730,42 @@ cleanup:
  * 'dst' MUST be large enough to hold any valid domain name.
  */
 static void
-idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
-	const char *final_src;
-	char *ascii_src;
+idn_input(const char *src, char *dst, size_t dstlen) {
+	char *ascii = NULL;
+	size_t len;
 	int res;
-
-	systemlocale(LC_ALL);
 
 	/*
 	 * We trust libidn2 to return an error if 'src' is too large to be a
 	 * valid domain name.
+	 *
+	 * If conversion fails under IDNA2008 rules, retry with transitional
+	 * rules. The aim is that characters whose interpretation changed will
+	 * be handled under the new rules, but we will accept characters (such
+	 * as emoji) that were OK but are now forbidden.
 	 */
-	res = idn2_to_ascii_lz(src, &ascii_src, IDN2_NONTRANSITIONAL);
-	if (res == IDN2_DISALLOWED) {
-		res = idn2_to_ascii_lz(src, &ascii_src, IDN2_TRANSITIONAL);
-	}
-	if (res != IDN2_OK) {
-		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin",
-		      src, idn2_strerror(res));
-	}
-
-	/*
-	 * idn2_to_ascii_lz() normalizes all strings to lower case, but we
-	 * generally don't want to lowercase all input strings; make sure to
-	 * return the original case if the two strings differ only in case.
-	 */
-	final_src = (strcasecmp(src, ascii_src) == 0 ? src : ascii_src);
-
-	(void)strlcpy(dst, final_src, dstlen);
-
-	idn2_free(ascii_src);
-
-	resetlocale(LC_ALL);
-}
-
-/*%
- * Convert 'src', which is an ACE string suitable for use in the DNS, into a
- * string using the current locale's character encoding, storing the conversion
- * result in 'dst'.
- *
- * The caller MUST subsequently release 'dst' using idn2_free().
- */
-static void
-idn_ace_to_locale(const char *src, char **dst) {
-	char *local_src, *utf8_src;
-	int res;
-
 	systemlocale(LC_ALL);
-
-	/*
-	 * We need to:
-	 *
-	 *  1) check whether 'src' is a valid IDNA2008 name,
-	 *  2) if it is, output it in the current locale's character encoding.
-	 *
-	 * Unlike idn2_to_ascii_*(), idn2_to_unicode_*() functions are unable
-	 * to perform IDNA2008 validity checks.  Thus, we need to decode any
-	 * Punycode in 'src', check if the resulting name is a valid IDNA2008
-	 * name, and only once we ensure it is, output that name in the current
-	 * locale's character encoding.
-	 *
-	 * We could just use idn2_to_unicode_8zlz() + idn2_to_ascii_lz(), but
-	 * then we would not be able to universally tell invalid names and
-	 * character encoding errors apart (if the current locale uses ASCII
-	 * for character encoding, the former function would fail even for a
-	 * valid IDNA2008 name, as long as it contained any non-ASCII
-	 * character).  Thus, we need to take a longer route.
-	 *
-	 * First, convert 'src' to UTF-8, ignoring the current locale.
-	 */
-	res = idn2_to_unicode_8z8z(src, &utf8_src, 0);
-	if (res != IDN2_OK) {
-		fatal("Bad ACE string '%s' (%s), use +noidnout", src,
-		      idn2_strerror(res));
-	}
-
-	/*
-	 * Then, check whether decoded 'src' is a valid IDNA2008 name
-	 * and if disallowed character is found, fallback to IDNA2003.
-	 */
-	res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_NONTRANSITIONAL);
+	res = idn2_to_ascii_lz(src, &ascii, IDN2_NONTRANSITIONAL);
 	if (res == IDN2_DISALLOWED) {
-		res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_TRANSITIONAL);
+		res = idn2_to_ascii_lz(src, &ascii, IDN2_TRANSITIONAL);
 	}
-	if (res != IDN2_OK) {
-		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
-		      src, idn2_strerror(res));
-	}
-
-	/*
-	 * Finally, try converting the decoded 'src' into the current locale's
-	 * character encoding.
-	 */
-	res = idn2_to_unicode_8zlz(utf8_src, &local_src, 0);
-	if (res != IDN2_OK) {
-		static bool warned = false;
-
-		res = idn2_to_ascii_8z(utf8_src, &local_src, 0);
-		if (res != IDN2_OK) {
-			fatal("Cannot represent '%s' "
-			      "in the current locale nor ascii (%s), "
-			      "use +noidnout or a different locale",
-			      src, idn2_strerror(res));
-		} else if (!warned) {
-			fprintf(stderr,
-				";; Warning: cannot represent '%s' "
-				"in the current locale",
-				local_src);
-			warned = true;
-		}
-	}
-
-	/*
-	 * Free the interim conversion result.
-	 */
-	idn2_free(utf8_src);
-
-	*dst = local_src;
-
 	resetlocale(LC_ALL);
+
+	/*
+	 * idn2_to_ascii_lz() normalizes all strings to lower case, but
+	 * we generally don't want to lowercase all input strings; make
+	 * sure to return the original case if the two strings differ
+	 * only in case.
+	 */
+	if (res == IDN2_OK && strcasecmp(src, ascii) != 0) {
+		len = strlcpy(dst, ascii, dstlen);
+	} else {
+		len = strlcpy(dst, src, dstlen);
+	}
+	INSIST(len < dstlen);
+	idn2_free(ascii);
 }
+
 #endif /* HAVE_LIBIDN2 */
 
 void
@@ -4868,7 +4773,7 @@ dig_idnsetup(dig_lookup_t *lookup, bool active) {
 #ifdef HAVE_LIBIDN2
 	isc_result_t result;
 	result = dns_name_settotextfilter(
-		(active && lookup->idnout) ? idn_output_filter : NULL);
+		(active && lookup->idnout) ? idn_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
 #else
 	UNUSED(lookup);

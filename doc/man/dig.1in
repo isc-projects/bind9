@@ -502,29 +502,19 @@ address and port number of the server that provided the answer.
 .UNINDENT
 .INDENT 0.0
 .TP
-.B +idnin, +noidnin
-This option processes [or does not process] IDN domain names on input. This requires
-\fBIDN SUPPORT\fP to have been enabled at compile time.
+.B +idn, +noidn
+Enable or disable IDN processing. By default IDN is enabled for
+input query names, and for display when the output is a terminal.
 .sp
-The default is to process IDN input when standard output is a tty.
-The IDN processing on input is disabled when \fBdig\fP output is redirected
-to files, pipes, and other non\-tty file descriptors.
-.UNINDENT
-.INDENT 0.0
-.TP
-.B +idnout, +noidnout
-This option converts [or does not convert] puny code on output. This requires
-\fBIDN SUPPORT\fP to have been enabled at compile time.
-.sp
-The default is to process puny code on output when standard output is
-a tty. The puny code processing on output is disabled when \fBdig\fP output
-is redirected to files, pipes, and other non\-tty file descriptors.
+You can also turn off \fBdig\fP\(aqs IDN processing by setting
+the \fBIDN_DISABLE\fP environment variable.
 .UNINDENT
 .INDENT 0.0
 .TP
 .B +ignore, +noignore
-This option ignores [or does not ignore] truncation in UDP responses instead of retrying with TCP. By
-default, TCP retries are performed.
+This option ignores [or does not ignore] truncation in UDP
+responses instead of retrying with TCP. By default, TCP retries are
+performed.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -867,15 +857,6 @@ and a query for the NS records of \fBisc.org\fP\&. A global query option of
 each lookup. The final query has a local query option of \fI\%+qr\fP which
 means that \fBdig\fP does not print the initial query when it looks up the
 NS records for \fBisc.org\fP\&.
-.SH IDN SUPPORT
-.sp
-If \fBdig\fP has been built with IDN (internationalized domain name)
-support, it can accept and display non\-ASCII domain names. \fBdig\fP
-appropriately converts character encoding of a domain name before sending
-a request to a DNS server or displaying a reply from the server.
-To turn off IDN support, use the parameters
-\fI\%+idnin\fP and \fI\%+idnout\fP, or define the \fBIDN_DISABLE\fP environment
-variable.
 .SH RETURN CODES
 .sp
 \fBdig\fP return codes are:
