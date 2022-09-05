@@ -37,6 +37,10 @@ Feature Changes
 
 - None.
 
+- Implement a backwards compatible approach for encoding the internationalized
+  domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
+  that fails try the IDNA2003 conversion. :gl:`#3485`
+
 Bug Fixes
 ~~~~~~~~~
 
