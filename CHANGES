@@ -1,3 +1,6 @@
+5954.	[func]		Fallback to IDNA2003 processing in dig when IDNA2008
+			conversion fails. [GL #3485]
+
 5953.	[bug]		Fix a crash on shutdown in delete_trace_entry(). Add
 			mctx attach/detach pair to make sure that the memory
 			context used by a memory pool is not destroyed before
