@@ -1,3 +1,8 @@
+5960.	[security]	Fix serve-stale crash that could happen when
+			stale-answer-client-timeout was set to 0 and there was
+			a stale CNAME in the cache for an incoming query.
+			(CVE-2022-3080) [GL #3517]
+
 5957.	[security]	Prevent excessive resource use while processing large
 			delegations. (CVE-2022-2795) [GL #3394]
 
