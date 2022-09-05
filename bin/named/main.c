@@ -1363,7 +1363,7 @@ main(int argc, char *argv[]) {
 #endif /* ifdef HAVE_GPERFTOOLS_PROFILER */
 
 #ifdef HAVE_LIBXML2
-	xmlInitThreads();
+	xmlInitParser();
 #endif /* HAVE_LIBXML2 */
 
 	/*
@@ -1484,7 +1484,7 @@ main(int argc, char *argv[]) {
 	named_os_shutdown();
 
 #ifdef HAVE_LIBXML2
-	xmlCleanupThreads();
+	xmlCleanupParser();
 #endif /* HAVE_LIBXML2 */
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
