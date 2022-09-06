@@ -542,7 +542,7 @@ isc_nm_listentlsdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&sock->active, false);
-		isc__nm_tcpdns_stoplistening(sock);
+		isc__nm_tlsdns_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 
 		return (result);
