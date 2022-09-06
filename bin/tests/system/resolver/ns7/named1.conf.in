@@ -62,3 +62,13 @@ zone "all-cnames" {
 	type primary;
 	file "all-cnames.db";
 };
+
+zone "tld2" {
+	type primary;
+	file "tld2.db";
+};
+
+zone "sub.tld1" {
+	type primary;
+	file "sub.tld1.db";
+};
