@@ -1,3 +1,8 @@
+5955.	[port]		The libxml2 library has deprecated the usage of
+			xmlInitThreads() and xmlCleanupThreads() functions. Use
+			xmlInitParser() and xmlCleanupParser() instead.
+			[GL #3518]
+
 5954.	[func]		Fallback to IDNA2003 processing in dig when IDNA2008
 			conversion fails. [GL #3485]
 
