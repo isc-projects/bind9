@@ -1,3 +1,6 @@
+5957.	[security]	Prevent excessive resource use while processing large
+			delegations. (CVE-2022-2795) [GL #3394]
+
 	--- 9.11.37 released ---
 
 5817.	[security]	The rules for acceptance of records into the cache
