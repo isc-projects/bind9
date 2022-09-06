@@ -8324,10 +8324,6 @@ cleanup:
 		isc_buffer_free(&buffer);
 	}
 
-	if (dns64_rdata != NULL) {
-		dns_message_puttemprdata(client->message, &dns64_rdata);
-	}
-
 	if (dns64_rdataset != NULL) {
 		dns_message_puttemprdataset(client->message, &dns64_rdataset);
 	}
@@ -8462,10 +8458,6 @@ cleanup:
 		isc_buffer_free(&buffer);
 	}
 
-	if (myrdata != NULL) {
-		dns_message_puttemprdata(client->message, &myrdata);
-	}
-
 	if (myrdataset != NULL) {
 		dns_message_puttemprdataset(client->message, &myrdataset);
 	}
@@ -8480,6 +8472,7 @@ cleanup:
 		}
 		dns_message_puttemprdatalist(client->message, &myrdatalist);
 	}
+
 	if (qctx->dbuf != NULL) {
 		ns_client_releasename(client, &name);
 	}

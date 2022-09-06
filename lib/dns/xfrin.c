@@ -1391,15 +1391,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	isc_nm_send(xfr->handle, &region, xfrin_send_done, send_xfr);
 
 failure:
-	if (qname != NULL) {
-		dns_message_puttempname(msg, &qname);
-	}
-	if (qrdataset != NULL) {
-		dns_message_puttemprdataset(msg, &qrdataset);
-	}
-	if (msg != NULL) {
-		dns_message_detach(&msg);
-	}
+	dns_message_detach(&msg);
 	if (soatuple != NULL) {
 		dns_difftuple_free(&soatuple);
 	}
