@@ -3186,6 +3186,7 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	bool unshared;
 	isc_result_t result;
 
+	FCTXTRACE("FINDNAME");
 	res = fctx->res;
 	unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	/*
