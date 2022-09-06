@@ -754,7 +754,6 @@ export NZD2NZF
 export PERL
 export PIPEQUERIES
 export PYTHON
-export RESOLVE
 export RNDC
 export RRCHECKER
 export SIGNER
