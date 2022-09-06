@@ -23,6 +23,9 @@
 5942.	[bug]		Fix tkey.c:buildquery() function's error handling by
 			adding the missing cleanup code. [GL #3492]
 
+5941.	[func]		Zones with dnssec-policy now require dynamic DNS or
+			inline-siging to be configured explicitly. [GL #3381]
+
 5936.	[bug]		Don't enable serve-stale for lookups that error because
 			it is a duplicate query or a query that would be
 			dropped. [GL #2982]
