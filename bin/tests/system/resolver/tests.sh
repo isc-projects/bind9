@@ -937,5 +937,36 @@ grep "status: SERVFAIL" dig.out.ns1.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n+1))
+echo_i "check handling of large referrals to unresponsive name servers ($n)"
+ret=0
+dig_with_opts +timeout=15 large-referral.example.net @10.53.0.1 a > dig.out.ns1.test${n} || ret=1
+grep "status: SERVFAIL" dig.out.ns1.test${n} > /dev/null || ret=1
+# Check the total number of findname() calls triggered by a single query
+# for large-referral.example.net/A.
+findname_call_count="$(grep -c "large-referral\.example\.net.*FINDNAME" ns1/named.run)"
+if [ "${findname_call_count}" -gt 1000 ]; then
+	echo_i "failed: ${findname_call_count} (> 1000) findname() calls detected for large-referral.example.net"
+	ret=1
+fi
+# Check whether the limit of NS RRs processed for any delegation
+# encountered was not exceeded.
+if grep -Eq "dns_adb_createfind: started (A|AAAA) fetch for name ns21.fake.redirect.com" ns1/named.run; then
+	echo_i "failed: unexpected address fetch(es) were triggered for ns21.fake.redirect.com"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n+1))
+echo_i "checking query resolution for a domain with a valid glueless delegation chain ($n)"
+ret=0
+rndccmd 10.53.0.1 flush || ret=1
+dig_with_opts foo.bar.sub.tld1 @10.53.0.1 TXT > dig.out.ns1.test${n} || ret=1
+grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
+grep "IN.*TXT.*baz" dig.out.ns1.test${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
