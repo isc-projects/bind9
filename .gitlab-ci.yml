@@ -595,7 +595,8 @@ unit:gcc:alpine3.16:amd64:
 gcc:oraclelinux7:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
+    # -Wno-address suppresses isc_buffer macro warnings
+    CFLAGS: "${CFLAGS_COMMON} -Wno-address"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *oraclelinux_7_amd64_image
   <<: *build_job
