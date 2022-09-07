@@ -1727,10 +1727,10 @@ void
 isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 			     const uint32_t max_concurrent_streams);
 
+#endif
+
 void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
-
-#endif
 
 void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
