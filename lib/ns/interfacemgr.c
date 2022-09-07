@@ -479,11 +479,11 @@ interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	ISC_LINK_INIT(ifp, link);
 
 	ns_interfacemgr_attach(mgr, &ifp->mgr);
+	ifp->magic = IFACE_MAGIC;
+
 	LOCK(&mgr->lock);
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 	UNLOCK(&mgr->lock);
-
-	ifp->magic = IFACE_MAGIC;
 
 	*ifpret = ifp;
 }
