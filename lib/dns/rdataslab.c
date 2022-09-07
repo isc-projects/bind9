@@ -86,7 +86,7 @@ compare_rdata(const void *p1, const void *p2) {
 #if DNS_RDATASET_FIXED
 static void
 fillin_offsets(unsigned char *offsetbase, unsigned int *offsettable,
-	       unsigned length) {
+	       unsigned int length) {
 	unsigned int i, j;
 	unsigned char *raw;
 

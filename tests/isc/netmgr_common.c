@@ -574,7 +574,7 @@ isc_quota_t *
 tcp_listener_init_quota(size_t nthreads) {
 	isc_quota_t *quotap = NULL;
 	if (atomic_load(&check_listener_quota)) {
-		unsigned max_quota = ISC_MAX(nthreads / 2, 1);
+		unsigned int max_quota = ISC_MAX(nthreads / 2, 1);
 		isc_quota_max(&listener_quota, max_quota);
 		quotap = &listener_quota;
 	}

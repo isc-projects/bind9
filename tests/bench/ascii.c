@@ -23,7 +23,7 @@
 #define SIZE (1024 * 1024)
 
 typedef void
-copy_fn(void *a, void *b, unsigned len);
+copy_fn(void *a, void *b, unsigned int len);
 
 static void
 time_it(copy_fn *copier, void *a, void *b, const char *name) {
@@ -40,12 +40,12 @@ time_it(copy_fn *copier, void *a, void *b, const char *name) {
 }
 
 static void
-copy_raw(void *a, void *b, unsigned size) {
+copy_raw(void *a, void *b, unsigned int size) {
 	memmove(a, b, size);
 }
 
 static void
-copy_toupper(void *va, void *vb, unsigned size) {
+copy_toupper(void *va, void *vb, unsigned int size) {
 	uint8_t *a = va, *b = vb;
 	while (size-- > 0) {
 		*a++ = isc_ascii_toupper(*b++);
@@ -53,21 +53,21 @@ copy_toupper(void *va, void *vb, unsigned size) {
 }
 
 static void
-copy_tolower8(void *a, void *b, unsigned size) {
+copy_tolower8(void *a, void *b, unsigned int size) {
 	isc_ascii_lowercopy(a, b, size);
 }
 
 #define TOLOWER(c) ((c) + ('a' - 'A') * (((c) >= 'A') ^ ((c) > 'Z')))
 
 static void
-copy_tolower1(void *va, void *vb, unsigned size) {
+copy_tolower1(void *va, void *vb, unsigned int size) {
 	for (uint8_t *a = va, *b = vb; size-- > 0; a++, b++) {
 		*a = TOLOWER(*b);
 	}
 }
 
 static bool
-cmp_tolower1(void *va, void *vb, unsigned size) {
+cmp_tolower1(void *va, void *vb, unsigned int size) {
 	for (uint8_t *a = va, *b = vb; size-- > 0; a++, b++) {
 		if (TOLOWER(*a) != TOLOWER(*b)) {
 			return false;
@@ -79,7 +79,7 @@ cmp_tolower1(void *va, void *vb, unsigned size) {
 static bool oldskool_result;
 
 static void
-cmp_oldskool(void *va, void *vb, unsigned size) {
+cmp_oldskool(void *va, void *vb, unsigned int size) {
 	uint8_t *a = va, *b = vb, c;
 
 	while (size > 3) {
@@ -119,22 +119,22 @@ diff:
 static bool tolower1_result;
 
 static void
-vcmp_tolower1(void *a, void *b, unsigned size) {
+vcmp_tolower1(void *a, void *b, unsigned int size) {
 	tolower1_result = cmp_tolower1(a, b, size);
 }
 
 static bool swar_result;
 
 static void
-cmp_swar(void *a, void *b, unsigned size) {
+cmp_swar(void *a, void *b, unsigned int size) {
 	swar_result = isc_ascii_lowerequal(a, b, size);
 }
 
 static bool chunk_result;
-static unsigned chunk_size;
+static unsigned int chunk_size;
 
 static void
-cmp_chunks1(void *va, void *vb, unsigned size) {
+cmp_chunks1(void *va, void *vb, unsigned int size) {
 	uint8_t *a = va, *b = vb;
 
 	chunk_result = false;
@@ -150,7 +150,7 @@ cmp_chunks1(void *va, void *vb, unsigned size) {
 }
 
 static void
-cmp_chunks8(void *va, void *vb, unsigned size) {
+cmp_chunks8(void *va, void *vb, unsigned int size) {
 	uint8_t *a = va, *b = vb;
 
 	while (size >= chunk_size) {
@@ -169,7 +169,7 @@ diff:
 }
 
 static void
-cmp_oldchunks(void *va, void *vb, unsigned size) {
+cmp_oldchunks(void *va, void *vb, unsigned int size) {
 	uint8_t *a = va, *b = vb;
 
 	while (size >= chunk_size) {

@@ -244,10 +244,10 @@ typedef void(librpz_fatal_t)(int ex_code, const char *p, ...) LIBRPZ_PF(2, 3);
 extern void
 librpz_fatal(int ex_code, const char *p, ...) LIBRPZ_PF(2, 3) LIBRPZ_NORET;
 
-typedef void(librpz_rpz_assert_t)(const char *file, unsigned line,
+typedef void(librpz_rpz_assert_t)(const char *file, unsigned int line,
 				  const char *p, ...) LIBRPZ_PF(3, 4);
 extern void
-librpz_rpz_assert(const char *file, unsigned line, const char *p, ...)
+librpz_rpz_assert(const char *file, unsigned int line, const char *p, ...)
 	LIBRPZ_PF(3, 4) LIBRPZ_NORET;
 
 typedef void(librpz_rpz_vassert_t)(const char *file, uint line, const char *p,

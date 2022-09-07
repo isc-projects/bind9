@@ -207,7 +207,7 @@ printmessage(dns_message_t *msg) {
 }
 
 static void
-render(isc_buffer_t *buf, unsigned flags, dns_tsigkey_t *key,
+render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
        isc_buffer_t **tsigin, isc_buffer_t **tsigout, dst_context_t *tsigctx) {
 	dns_message_t *msg = NULL;
 	dns_compress_t cctx;

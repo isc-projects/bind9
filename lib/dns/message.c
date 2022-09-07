@@ -54,7 +54,8 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
 	p = base;
 	cnt = 0;
 
-	printf("*** %s [%s] (%u bytes @ %p)\n", msg, msg2, (unsigned)len, base);
+	printf("*** %s [%s] (%u bytes @ %p)\n", msg, msg2, (unsigned int)len,
+	       base);
 
 	while (cnt < len) {
 		if (cnt % 16 == 0) {

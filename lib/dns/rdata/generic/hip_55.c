@@ -476,8 +476,8 @@ casecompare_hip(ARGS_COMPARE) {
 	isc_region_consume(&r1, 2); /* key length */
 	isc_region_consume(&r2, 4);
 
-	INSIST(r1.length >= (unsigned)(hit_len + key_len));
-	INSIST(r2.length >= (unsigned)(hit_len + key_len));
+	INSIST(r1.length >= (unsigned int)(hit_len + key_len));
+	INSIST(r2.length >= (unsigned int)(hit_len + key_len));
 	order = memcmp(r1.base, r2.base, hit_len + key_len);
 	if (order != 0) {
 		return (order);

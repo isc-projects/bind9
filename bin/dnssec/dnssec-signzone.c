@@ -215,7 +215,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	isc_buffer_t *buffer = NULL;
 	isc_region_t r;
 	isc_result_t result;
-	unsigned bufsize = 4096;
+	unsigned int bufsize = 4096;
 
 	if (outputformat != dns_masterformat_text) {
 		return;

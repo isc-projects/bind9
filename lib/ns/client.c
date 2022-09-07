@@ -1090,7 +1090,7 @@ no_nsid:
 			if ((plen % 8) != 0) {
 				addr[addrl - 1] &= ~0U << (8 - (plen % 8));
 			}
-			isc_buffer_putmem(&buf, addr, (unsigned)addrl);
+			isc_buffer_putmem(&buf, addr, (unsigned int)addrl);
 		}
 
 		ednsopts[count].code = DNS_OPT_CLIENT_SUBNET;

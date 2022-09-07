@@ -406,7 +406,7 @@ cmp_dtype(const void *ap, const void *bp) {
 
 void
 add_dtype(unsigned int dt) {
-	unsigned i, n;
+	unsigned int i, n;
 
 	/* ensure there is space for a zero terminator */
 	n = sizeof(dtype) / sizeof(dtype[0]) - 1;
