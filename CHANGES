@@ -1,3 +1,8 @@
+5969.	[bug]		DNSSEC signing statistics failed to identify the
+			algorithm involved.  The key names have been changed
+			to be the algorithm number followed by "+" followed
+			by the key id (e.g. "8+54274"). [GL #3525]
+
 5968.	[cleanup]	Remove 'resolve' binary from tests. [GL !6733]
 
 5967.	[cleanup]	Flagged the obsolete "random-device" option as
