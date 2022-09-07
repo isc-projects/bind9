@@ -23,8 +23,10 @@ ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 # Sign deliberately with a very short expiration date.
 "$SIGNER" -P -S -x -O full -e "now"+1s -o "$zone" -f "$zonefile" "$infile" > "signzone.out.$zone" 2>&1
-keyfile_to_key_id "$ksk" > dnssec.ksk.id
-keyfile_to_key_id "$zsk" > dnssec.zsk.id
+id=$(keyfile_to_key_id "$ksk")
+echo "$DEFAULT_ALGORITHM_NUMBER+$id" > dnssec.ksk.id
+id=$(keyfile_to_key_id "$zsk")
+echo "$DEFAULT_ALGORITHM_NUMBER+$id" > dnssec.zsk.id
 
 zone=manykeys.
 infile=manykeys.db.in
@@ -37,9 +39,15 @@ ksk14=$("$KEYGEN" -q -a ECDSAP384SHA384 -b 384 -f KSK "$zone")
 zsk14=$("$KEYGEN" -q -a ECDSAP384SHA384 -b 384 "$zone")
 # Sign deliberately with a very short expiration date.
 "$SIGNER" -S -x -O full -e "now"+1s -o "$zone" -f "$zonefile" "$infile" > "signzone.out.$zone" 2>&1
-keyfile_to_key_id "$ksk8" > manykeys.ksk8.id
-keyfile_to_key_id "$zsk8" > manykeys.zsk8.id
-keyfile_to_key_id "$ksk13" > manykeys.ksk13.id
-keyfile_to_key_id "$zsk13" > manykeys.zsk13.id
-keyfile_to_key_id "$ksk14" > manykeys.ksk14.id
-keyfile_to_key_id "$zsk14" > manykeys.zsk14.id
+id=$(keyfile_to_key_id "$ksk8")
+echo "8+$id" > manykeys.ksk8.id
+id=$(keyfile_to_key_id "$zsk8")
+echo "8+$id" > manykeys.zsk8.id
+id=$(keyfile_to_key_id "$ksk13")
+echo "13+$id" > manykeys.ksk13.id
+id=$(keyfile_to_key_id "$zsk13")
+echo "13+$id" > manykeys.zsk13.id
+id=$(keyfile_to_key_id "$ksk14")
+echo "14+$id" > manykeys.ksk14.id
+id=$(keyfile_to_key_id "$zsk14")
+echo "14+$id" > manykeys.zsk14.id

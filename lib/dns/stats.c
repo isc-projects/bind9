@@ -107,8 +107,6 @@ typedef enum {
 /* Maximum number of keys to keep track of for DNSSEC signing statistics. */
 static int dnssecsign_num_keys = 4;
 static int dnssecsign_block_size = 3;
-/* Key id mask */
-#define DNSSECSIGNSTATS_KEY_ID_MASK 0x0000FFFF
 
 struct dns_stats {
 	unsigned int magic;
@@ -536,7 +534,7 @@ static void
 dnssec_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	dnssecsigndumparg_t *dnssecarg = arg;
 
-	dnssecarg->fn((dns_keytag_t)counter, value, dnssecarg->arg);
+	dnssecarg->fn((uint32_t)counter, value, dnssecarg->arg);
 }
 
 static void
@@ -548,7 +546,6 @@ dnssec_statsdump(isc_stats_t *stats, dnssecsignstats_type_t operation,
 	for (i = 0; i < num_keys; i++) {
 		int idx = dnssecsign_block_size * i;
 		uint32_t kval, val;
-		dns_keytag_t id;
 
 		kval = isc_stats_get_counter(stats, idx);
 		if (kval == 0) {
@@ -560,9 +557,7 @@ dnssec_statsdump(isc_stats_t *stats, dnssecsignstats_type_t operation,
 			continue;
 		}
 
-		id = (dns_keytag_t)kval & DNSSECSIGNSTATS_KEY_ID_MASK;
-
-		dump_fn((isc_statscounter_t)id, val, arg);
+		dump_fn(kval, val, arg);
 	}
 }
 
