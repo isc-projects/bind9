@@ -43,22 +43,12 @@ Security Fixes
   DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
   :gl:`#3487`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
 - Worker threads' event loops are now managed by a new "loop maanger" API,
   significantly changing the architecture of the task, timer and networking
   systems for improved performance and code flow. :gl:`#3508`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
