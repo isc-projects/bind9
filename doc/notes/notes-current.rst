@@ -46,6 +46,12 @@ Feature Changes
   or pass it through unchanged, instead of stopping with an error message.
   You can use the ``idna2`` utility for checking IDNA syntax. :gl:`#3485`.
 
+- The DNSSEC signing data included in zone statistics identified
+  keys only by the key ID; this caused confusion when two keys using
+  different algorithms had the same ID. Zone statistics now identify
+  keys using the algorithm number, followed by "+", followed by the
+  key ID: for example, "8+54274". :gl:`#3525`
+
 Bug Fixes
 ~~~~~~~~~
 
