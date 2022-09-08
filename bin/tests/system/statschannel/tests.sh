@@ -277,6 +277,7 @@ ksk13_id=`cat ns2/$zone.ksk13.id`
 zsk13_id=`cat ns2/$zone.zsk13.id`
 ksk14_id=`cat ns2/$zone.ksk14.id`
 zsk14_id=`cat ns2/$zone.zsk14.id`
+num_ids=$( (echo $ksk8_id; echo $zsk8_id; echo $ksk13_id; echo $zsk13_id; echo $ksk14_id; echo $zsk14_id;) | sort -u | wc -l)
 # The dnssec zone has 10 RRsets to sign (including NSEC) with the ZSKs and one
 # RRset (DNSKEY) with the KSKs. So starting named with signatures that expire
 # almost right away, this should trigger 10 zsk and 1 ksk sign operations per
@@ -297,15 +298,20 @@ cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone '$zone' stats data after zone maintenance at startup ($n)"
-if [ $PERL_XML ]; then
-    getzones xml $zone x$n || ret=1
-    cmp zones.out.x$n zones.expect.$n || ret=1
+if test $num_ids -eq 6
+then
+    if [ $PERL_XML ]; then
+        getzones xml $zone x$n || ret=1
+        cmp zones.out.x$n zones.expect.$n || ret=1
+    fi
+    if [ $PERL_JSON ]; then
+        getzones json 2 j$n || ret=1
+        cmp zones.out.j$n zones.expect.$n || ret=1
+    fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+else
+    echo_i "skipped: duplicate key id detected (fixed in BIND 9.19)"
 fi
-if [ $PERL_JSON ]; then
-    getzones json 2 j$n || ret=1
-    cmp zones.out.j$n zones.expect.$n || ret=1
-fi
-if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
@@ -335,15 +341,20 @@ cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone '$zone' stats data after dynamic update ($n)"
-if [ $PERL_XML ]; then
-    getzones xml $zone x$n || ret=1
-    cmp zones.out.x$n zones.expect.$n || ret=1
+if test $num_ids -eq 6
+then
+    if [ $PERL_XML ]; then
+        getzones xml $zone x$n || ret=1
+        cmp zones.out.x$n zones.expect.$n || ret=1
+    fi
+    if [ $PERL_JSON ]; then
+        getzones json 2 j$n || ret=1
+        cmp zones.out.j$n zones.expect.$n || ret=1
+    fi
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+else
+    echo_i "skipped: duplicate key id detected (fixed in BIND 9.19)"
 fi
-if [ $PERL_JSON ]; then
-    getzones json 2 j$n || ret=1
-    cmp zones.out.j$n zones.expect.$n || ret=1
-fi
-if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
