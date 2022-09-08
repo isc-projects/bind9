@@ -25,10 +25,9 @@ Security Fixes
   this vulnerability to our attention. :gl:`#3394`
 
 - :iscman:`named` running as a resolver with the
-  :any:`stale-answer-client-timeout` option set to ``0`` could crash
-  with an assertion failure, when there was a stale CNAME in the cache
-  for the incoming query. This has been fixed. (CVE-2022-3080)
-  :gl:`#3517`
+  ``stale-answer-client-timeout`` option set to ``0`` could crash with
+  an assertion failure, when there was a stale CNAME in the cache for
+  the incoming query. This has been fixed. (CVE-2022-3080) :gl:`#3517`
 
 - A memory leak was fixed that could be externally triggered in the
   DNSSEC verification code for the ECDSA algorithm. (CVE-2022-38177)
@@ -38,21 +37,6 @@ Security Fixes
   DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
   :gl:`#3487`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -61,16 +45,17 @@ Feature Changes
   to prevent circumventing the limits enforced by RRL. :gl:`#3459`
 
 - Zones using ``dnssec-policy`` now require dynamic DNS or
-  ``inline-signing`` to be configured explicitly :gl:`#3381`.
+  ``inline-signing`` to be configured explicitly. :gl:`#3381`
 
-- Implement a backwards compatible approach for encoding the internationalized
-  domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
-  that fails try the IDNA2003 conversion. :gl:`#3485`
+- A backward-compatible approach was implemented for encoding
+  internationalized domain names (IDN) in :iscman:`dig` and converting
+  the domain to IDNA2008 form; if that fails, BIND tries an IDNA2003
+  conversion. :gl:`#3485`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix a serve-stale bug, where BIND would try to return stale data from cache
-  for lookups that received duplicate queries or queries that would be dropped.
-  This bug resulted in premature SERVFAIL responses, and has now been resolved.
-  :gl:`#2982`
+- A serve-stale bug was fixed, where BIND would try to return stale data
+  from cache for lookups that received duplicate queries or queries that
+  would be dropped. This bug resulted in premature SERVFAIL responses,
+  and has now been resolved. :gl:`#2982`
