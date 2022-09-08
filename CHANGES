@@ -1,3 +1,15 @@
+5962.	[placeholder]
+
+5961.	[placeholder]
+
+5960.	[placeholder]
+
+5959.	[placeholder]
+
+5958.	[placeholder]
+
+5957.	[placeholder]
+
 5956.	[func]		Make RRL code treat all QNAMEs that are subject to
 			wildcard processing within a given zone as the same
 			name. [GL #3459]
