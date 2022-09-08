@@ -29,6 +29,10 @@ Security Fixes
   in size past the end of the allocated buffer. This has been fixed.
   (CVE-2022-2881) :gl:`#3493`
 
+- Memory leaks in code handling Diffie-Hellman (DH) keys were fixed that
+  could be externally triggered, when using TKEY records in DH mode with
+  OpenSSL 3.0.0 and later versions. (CVE-2022-2906) :gl:`#3491`
+
 Known Issues
 ~~~~~~~~~~~~
 
