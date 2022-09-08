@@ -1,3 +1,6 @@
+5957.	[security]	Prevent excessive resource use while processing large
+			delegations. (CVE-2022-2795) [GL #3394]
+
 5956.	[func]		Make RRL code treat all QNAMEs that are subject to
 			wildcard processing within a given zone as the same
 			name. [GL #3459]
