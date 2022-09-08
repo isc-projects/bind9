@@ -1167,7 +1167,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
 		key->label = isc_mem_strdup(key->mctx, label);
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 		rsa = EVP_PKEY_get1_RSA(pkey);
 		if (rsa == NULL) {
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -1176,16 +1175,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 		}
 		RSA_get0_key(rsa, NULL, &ex, NULL);
-#else
-		if (rsa_check(pkey, pub != NULL ? pub->keydata.pkey : NULL) !=
-		    ISC_R_SUCCESS) {
-			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-		}
-		if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &ex) !=
-		    1) {
-			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-		}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 		if (ex == NULL) {
 			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
@@ -1437,12 +1426,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	ENGINE *e = NULL;
 	isc_result_t ret = ISC_R_SUCCESS;
 	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	RSA *rsa = NULL, *pubrsa = NULL;
 	const BIGNUM *ex = NULL;
-#else
-	BIGNUM *ex = NULL;
-#endif
 
 	UNUSED(pin);
 
@@ -1459,12 +1444,10 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
 					       DST_R_OPENSSLFAILURE));
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	pubrsa = EVP_PKEY_get1_RSA(pubpkey);
 	if (pubrsa == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
 	if (pkey == NULL) {
@@ -1475,7 +1458,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	key->engine = isc_mem_strdup(key->mctx, engine);
 	key->label = isc_mem_strdup(key->mctx, label);
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	rsa = EVP_PKEY_get1_RSA(pkey);
 	if (rsa == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -1484,14 +1466,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 	}
 	RSA_get0_key(rsa, NULL, &ex, NULL);
-#else
-	if (rsa_check(pkey, pubpkey) != ISC_R_SUCCESS) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &ex) != 1) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	if (ex == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
@@ -1505,18 +1479,12 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	pkey = NULL;
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	if (rsa != NULL) {
 		RSA_free(rsa);
 	}
 	if (pubrsa != NULL) {
 		RSA_free(pubrsa);
 	}
-#else
-	if (ex != NULL) {
-		BN_free(ex);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
 	}
