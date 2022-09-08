@@ -6785,10 +6785,10 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 		}
 
 		rrl_result = dns_rrl(
-			qctx->view, &qctx->client->peeraddr, TCP(qctx->client),
-			qctx->client->message->rdclass, qctx->qtype, constname,
-			resp_result, qctx->client->now, wouldlog, log_buf,
-			sizeof(log_buf));
+			qctx->view, qctx->zone, &qctx->client->peeraddr,
+			TCP(qctx->client), qctx->client->message->rdclass,
+			qctx->qtype, constname, resp_result, qctx->client->now,
+			wouldlog, log_buf, sizeof(log_buf));
 		if (rrl_result != DNS_RRL_RESULT_OK) {
 			/*
 			 * Log dropped or slipped responses in the query

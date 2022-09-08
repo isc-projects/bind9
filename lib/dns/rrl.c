@@ -29,12 +29,14 @@
 #include <isc/util.h>
 
 #include <dns/log.h>
+#include <dns/name.h>
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/rrl.h>
 #include <dns/view.h>
+#include <dns/zone.h>
 
 static void
 log_end(dns_rrl_t *rrl, dns_rrl_entry_t *e, bool early, char *log_buf,
@@ -413,12 +415,10 @@ hash_key(const dns_rrl_key_t *key) {
  */
 static void
 make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
-	 const isc_sockaddr_t *client_addr, dns_rdatatype_t qtype,
-	 const dns_name_t *qname, dns_rdataclass_t qclass,
-	 dns_rrl_rtype_t rtype) {
-	dns_name_t base;
-	dns_offsets_t base_offsets;
-	int labels, i;
+	 const isc_sockaddr_t *client_addr, dns_zone_t *zone,
+	 dns_rdatatype_t qtype, const dns_name_t *qname,
+	 dns_rdataclass_t qclass, dns_rrl_rtype_t rtype) {
+	int i;
 
 	memset(key, 0, sizeof(*key));
 
@@ -436,15 +436,30 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 	}
 
 	if (qname != NULL && qname->labels != 0) {
-		/*
-		 * Ignore the first label of wildcards.
-		 */
+		dns_name_t *origin = NULL;
+
 		if ((qname->attributes & DNS_NAMEATTR_WILDCARD) != 0 &&
-		    (labels = dns_name_countlabels(qname)) > 1)
+		    zone != NULL && (origin = dns_zone_getorigin(zone)) != NULL)
 		{
-			dns_name_init(&base, base_offsets);
-			dns_name_getlabelsequence(qname, 1, labels - 1, &base);
-			key->s.qname_hash = dns_name_fullhash(&base, false);
+			dns_fixedname_t fixed;
+			dns_name_t *wild;
+			isc_result_t result;
+
+			/*
+			 * Put all wildcard names in one bucket using the zone's
+			 * origin name concatenated to the "*" name.
+			 */
+			wild = dns_fixedname_initname(&fixed);
+			result = dns_name_concatenate(dns_wildcardname, origin,
+						      wild, NULL);
+			if (result != ISC_R_SUCCESS) {
+				/*
+				 * Fallback to use the zone's origin name
+				 * instead of the concatenated name.
+				 */
+				wild = origin;
+			}
+			key->s.qname_hash = dns_name_fullhash(wild, false);
 		} else {
 			key->s.qname_hash = dns_name_fullhash(qname, false);
 		}
@@ -509,7 +524,7 @@ response_balance(dns_rrl_t *rrl, const dns_rrl_entry_t *e, int age) {
  * Search for an entry for a response and optionally create it.
  */
 static dns_rrl_entry_t *
-get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
+get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr, dns_zone_t *zone,
 	  dns_rdataclass_t qclass, dns_rdatatype_t qtype,
 	  const dns_name_t *qname, dns_rrl_rtype_t rtype, isc_stdtime_t now,
 	  bool create, char *log_buf, unsigned int log_buf_len) {
@@ -520,7 +535,7 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 	dns_rrl_bin_t *new_bin, *old_bin;
 	int probes, age;
 
-	make_key(rrl, &key, client_addr, qtype, qname, qclass, rtype);
+	make_key(rrl, &key, client_addr, zone, qtype, qname, qclass, rtype);
 	hval = hash_key(&key);
 
 	/*
@@ -650,9 +665,9 @@ debit_rrl_entry(dns_rrl_t *rrl, dns_rrl_entry_t *e, double qps, double scale,
 		/*
 		 * The limit for clients that have used TCP is not scaled.
 		 */
-		credit_e = get_entry(rrl, client_addr, 0, dns_rdatatype_none,
-				     NULL, DNS_RRL_RTYPE_TCP, now, false,
-				     log_buf, log_buf_len);
+		credit_e = get_entry(
+			rrl, client_addr, NULL, 0, dns_rdatatype_none, NULL,
+			DNS_RRL_RTYPE_TCP, now, false, log_buf, log_buf_len);
 		if (credit_e != NULL) {
 			age = get_age(rrl, e, now);
 			if (age < rrl->window) {
@@ -1027,10 +1042,10 @@ log_stops(dns_rrl_t *rrl, isc_stdtime_t now, int limit, char *log_buf,
  * Main rate limit interface.
  */
 dns_rrl_result_t
-dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
-	dns_rdataclass_t qclass, dns_rdatatype_t qtype, const dns_name_t *qname,
-	isc_result_t resp_result, isc_stdtime_t now, bool wouldlog,
-	char *log_buf, unsigned int log_buf_len) {
+dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
+	bool is_tcp, dns_rdataclass_t qclass, dns_rdatatype_t qtype,
+	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
+	bool wouldlog, char *log_buf, unsigned int log_buf_len) {
 	dns_rrl_t *rrl;
 	dns_rrl_rtype_t rtype;
 	dns_rrl_entry_t *e;
@@ -1103,9 +1118,10 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 	 */
 	if (is_tcp) {
 		if (scale < 1.0) {
-			e = get_entry(rrl, client_addr, 0, dns_rdatatype_none,
-				      NULL, DNS_RRL_RTYPE_TCP, now, true,
-				      log_buf, log_buf_len);
+			e = get_entry(rrl, client_addr, NULL, 0,
+				      dns_rdatatype_none, NULL,
+				      DNS_RRL_RTYPE_TCP, now, true, log_buf,
+				      log_buf_len);
 			if (e != NULL) {
 				e->responses = -(rrl->window + 1);
 				set_age(rrl, e, now);
@@ -1136,8 +1152,8 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 		rtype = DNS_RRL_RTYPE_ERROR;
 		break;
 	}
-	e = get_entry(rrl, client_addr, qclass, qtype, qname, rtype, now, true,
-		      log_buf, log_buf_len);
+	e = get_entry(rrl, client_addr, zone, qclass, qtype, qname, rtype, now,
+		      true, log_buf, log_buf_len);
 	if (e == NULL) {
 		UNLOCK(&rrl->lock);
 		return (DNS_RRL_RESULT_OK);
@@ -1171,8 +1187,8 @@ dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
 		dns_rrl_entry_t *e_all;
 		dns_rrl_result_t rrl_all_result;
 
-		e_all = get_entry(rrl, client_addr, 0, dns_rdatatype_none, NULL,
-				  DNS_RRL_RTYPE_ALL, now, true, log_buf,
+		e_all = get_entry(rrl, client_addr, zone, 0, dns_rdatatype_none,
+				  NULL, DNS_RRL_RTYPE_ALL, now, true, log_buf,
 				  log_buf_len);
 		if (e_all == NULL) {
 			UNLOCK(&rrl->lock);

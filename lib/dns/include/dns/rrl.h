@@ -256,8 +256,8 @@ typedef enum {
 } dns_rrl_result_t;
 
 dns_rrl_result_t
-dns_rrl(dns_view_t *view, const isc_sockaddr_t *client_addr, bool is_tcp,
-	dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
+dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
+	bool is_tcp, dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
 	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
 	bool wouldlog, char *log_buf, unsigned int log_buf_len);
 

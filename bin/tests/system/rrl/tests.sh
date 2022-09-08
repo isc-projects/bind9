@@ -175,9 +175,7 @@ burst 3 a1.tld2
 sleep 1
 burst 10 a1.tld2
 # Request 30 different qnames to try a wildcard.
-burst 30 'x$CNT.a2.tld2'
-# These should be counted and limited but are not.  See RT33138.
-burst 10 'y.x$CNT.a2.tld2'
+burst 30 'y.x$CNT.a2.tld2'
 
 #					IP      TC      drop  NXDOMAIN SERVFAIL NOERROR
 # referrals to "."
@@ -185,12 +183,9 @@ ck_result   a1.tld3	x		0	1	2	0	0	2
 # check 13 results including 1 second delay that allows an additional response
 ck_result   a1.tld2	192.0.2.1	3	4	6	0	0	8
 
-# Check the wild card answers.
-# The parent name of the 30 requests is counted.
-ck_result 'x*.a2.tld2'	192.0.2.2	2	10	18	0	0	12
-
-# These should be limited but are not.  See RT33138.
-ck_result 'y.x*.a2.tld2' 192.0.2.2	10	0	0	0	0	10
+# Check the wildcard answers.
+# The zone origin name of the 30 requests is counted.
+ck_result 'y.x*.a2.tld2'	192.0.2.2	2	10	18	0	0	12
 
 #########
 sec_start
