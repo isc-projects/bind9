@@ -904,12 +904,13 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	httpd = isc_nmhandle_getdata(handle);
 
-	REQUIRE(httpd->state == RECV);
 	REQUIRE(httpd->handle == handle);
 
 	if (eresult != ISC_R_SUCCESS) {
 		goto cleanup_readhandle;
 	}
+
+	REQUIRE(httpd->state == RECV);
 
 	result = process_request(
 		httpd, region == NULL ? &(isc_region_t){ NULL, 0 } : region,
@@ -1195,7 +1196,6 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isc_httpd_t *httpd = (isc_httpd_t *)arg;
 
 	REQUIRE(VALID_HTTPD(httpd));
-	REQUIRE(httpd->state == SEND);
 	REQUIRE(httpd->handle == handle);
 
 	isc_buffer_free(&httpd->sendbuffer);
@@ -1221,6 +1221,8 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	if ((httpd->flags & HTTPD_CLOSE) != 0) {
 		goto cleanup_readhandle;
 	}
+
+	REQUIRE(httpd->state == SEND);
 
 	httpd->state = RECV;
 	httpd->sendhandle = NULL;
