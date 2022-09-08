@@ -236,11 +236,11 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	}
 #endif /* if HAVE_OPENSSL_ED448 */
 	if (siglen == 0) {
-		return (ISC_R_NOTIMPLEMENTED);
+		DST_RET(ISC_R_NOTIMPLEMENTED);
 	}
 
 	if (sig->length != siglen) {
-		return (DST_R_VERIFYFAILURE);
+		DST_RET(DST_R_VERIFYFAILURE);
 	}
 
 	isc_buffer_usedregion(buf, &tbsreg);
