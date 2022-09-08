@@ -17,14 +17,14 @@
 
 #include <openssl/bn.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 #include <openssl/core_names.h>
 #endif
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 #include <openssl/param_build.h>
 #endif
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
@@ -57,7 +57,7 @@
 		goto err; \
 	}
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 static isc_result_t
 raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
 		size_t key_len, EVP_PKEY **pkey) {
@@ -159,7 +159,8 @@ err:
 
 	return (ret);
 }
-#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
+	*/
 
 static isc_result_t
 opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
@@ -411,7 +412,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	bool ret;
 	EVP_PKEY *pkey1 = key1->keydata.pkey;
 	EVP_PKEY *pkey2 = key2->keydata.pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey1 = NULL;
 	EC_KEY *eckey2 = NULL;
 	const BIGNUM *priv1;
@@ -419,7 +420,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #else
 	BIGNUM *priv1 = NULL;
 	BIGNUM *priv2 = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (pkey1 == NULL && pkey2 == NULL) {
 		return (true);
@@ -432,7 +433,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		DST_RET(false);
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	eckey1 = EVP_PKEY_get1_EC_KEY(pkey1);
 	eckey2 = EVP_PKEY_get1_EC_KEY(pkey2);
 	if (eckey1 == NULL && eckey2 == NULL) {
@@ -445,7 +446,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #else
 	EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_PRIV_KEY, &priv1);
 	EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_PRIV_KEY, &priv2);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (priv1 != NULL || priv2 != NULL) {
 		if (priv1 == NULL || priv2 == NULL || BN_cmp(priv1, priv2) != 0)
@@ -457,7 +458,7 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	ret = true;
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (eckey1 != NULL) {
 		EC_KEY_free(eckey1);
 	}
@@ -471,7 +472,7 @@ err:
 	if (priv2 != NULL) {
 		BN_clear_free(priv2);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	return (ret);
 }
@@ -481,12 +482,12 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
 	int status;
 	EVP_PKEY *pkey = NULL;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey = NULL;
 #else
 	EVP_PKEY_CTX *ctx = NULL;
 	EVP_PKEY *params_pkey = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	int group_nid;
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
@@ -502,7 +503,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		key->key_size = DNS_KEY_ECDSA384SIZE * 4;
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	eckey = EC_KEY_new_by_curve_name(group_nid);
 	if (eckey == NULL) {
 		DST_RET(dst__openssl_toresult2("EC_KEY_new_by_curve_name",
@@ -563,7 +564,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen",
 					       DST_R_OPENSSLFAILURE));
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	key->keydata.pkey = pkey;
 	pkey = NULL;
@@ -573,7 +574,7 @@ err:
 	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
@@ -584,7 +585,7 @@ err:
 	if (ctx != NULL) {
 		EVP_PKEY_CTX_free(ctx);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	return (ret);
 }
@@ -593,11 +594,11 @@ static bool
 opensslecdsa_isprivate(const dst_key_t *key) {
 	bool ret;
 	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey;
 #else
 	BIGNUM *priv = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -607,7 +608,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 		return (false);
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 
 	ret = (eckey != NULL && EC_KEY_get0_private_key(eckey) != NULL);
@@ -621,7 +622,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	if (priv != NULL) {
 		BN_clear_free(priv);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	return (ret);
 }
@@ -640,7 +641,7 @@ static isc_result_t
 opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_result_t ret;
 	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey = NULL;
 	int len;
 	unsigned char *cp;
@@ -650,7 +651,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	BIGNUM *y = NULL;
 	size_t keysize = 0;
 	size_t len = 0;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	isc_region_t r;
 	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
 
@@ -658,7 +659,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	pkey = key->keydata.pkey;
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 	if (eckey == NULL) {
 		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
@@ -677,14 +678,14 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	}
 
 	len = keysize;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	isc_buffer_availableregion(data, &r);
 	if (r.length < (unsigned int)len) {
 		DST_RET(ISC_R_NOSPACE);
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	cp = buf;
 	if (!i2o_ECPublicKey(eckey, &cp)) {
 		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
@@ -704,13 +705,13 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	BN_bn2bin_fixed(x, &buf[0], keysize / 2);
 	BN_bn2bin_fixed(y, &buf[keysize / 2], keysize / 2);
 	memmove(r.base, buf, len);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	isc_buffer_add(data, len);
 	ret = ISC_R_SUCCESS;
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
@@ -721,7 +722,7 @@ err:
 	if (y != NULL) {
 		BN_clear_free(y);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	return (ret);
 }
@@ -731,7 +732,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
 	isc_region_t r;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey = NULL;
 	const unsigned char *cp;
 	unsigned int len;
@@ -739,7 +740,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	int group_nid;
 #else
 	size_t len;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
 		key->key_alg == DST_ALG_ECDSA384);
@@ -758,7 +759,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (key->key_alg == DST_ALG_ECDSA256) {
 		group_nid = NID_X9_62_prime256v1;
 	} else {
@@ -794,7 +795,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (ret != ISC_R_SUCCESS) {
 		DST_RET(ret);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	isc_buffer_forward(data, len);
 	key->keydata.pkey = pkey;
@@ -802,11 +803,11 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	ret = ISC_R_SUCCESS;
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	return (ret);
 }
 
@@ -814,13 +815,13 @@ static isc_result_t
 opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
 	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey = NULL;
 	const BIGNUM *privkey = NULL;
 #else
 	int status;
 	BIGNUM *privkey = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	dst_private_t priv;
 	unsigned char *buf = NULL;
 	unsigned short i;
@@ -835,7 +836,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	}
 
 	pkey = key->keydata.pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 	if (eckey == NULL) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_get1_EC_KEY",
@@ -853,7 +854,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_get_bn_param",
 					       DST_R_OPENSSLFAILURE));
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	buf = isc_mem_get(key->mctx, BN_num_bytes(privkey));
 
@@ -888,7 +889,7 @@ err:
 	if (buf != NULL && privkey != NULL) {
 		isc_mem_put(key->mctx, buf, BN_num_bytes(privkey));
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
@@ -896,12 +897,12 @@ err:
 	if (privkey != NULL) {
 		BN_clear_free(privkey);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	return (ret);
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 static isc_result_t
 ecdsa_check(EC_KEY *eckey, EC_KEY *pubeckey) {
 	const EC_POINT *pubkey;
@@ -1065,9 +1066,9 @@ err:
 
 	return (ret);
 }
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 static isc_result_t
 load_privkey_from_privstruct(EC_KEY *eckey, dst_private_t *priv,
 			     int privkey_index) {
@@ -1102,16 +1103,16 @@ eckey_to_pkey(EC_KEY *eckey, EVP_PKEY **pkey) {
 	}
 	return (ISC_R_SUCCESS);
 }
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 static isc_result_t
 finalize_eckey(dst_key_t *key,
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	       EC_KEY *eckey,
 #endif
 	       const char *engine, const char *label) {
 	isc_result_t result = ISC_R_SUCCESS;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EVP_PKEY *pkey = NULL;
 
 	REQUIRE(eckey != NULL);
@@ -1122,7 +1123,7 @@ finalize_eckey(dst_key_t *key,
 	}
 
 	key->keydata.pkey = pkey;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (label != NULL) {
 		key->label = isc_mem_strdup(key->mctx, label);
@@ -1138,7 +1139,7 @@ finalize_eckey(dst_key_t *key,
 	return (result);
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 static isc_result_t
 dst__key_to_eckey(dst_key_t *key, EC_KEY **eckey) {
 	int group_nid;
@@ -1163,7 +1164,7 @@ dst__key_to_eckey(dst_key_t *key, EC_KEY **eckey) {
 
 	return (ISC_R_SUCCESS);
 }
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 static isc_result_t
 opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
@@ -1173,10 +1174,10 @@ static isc_result_t
 opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	dst_private_t priv;
 	isc_result_t ret;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	EC_KEY *eckey = NULL;
 	EC_KEY *pubeckey = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	const char *engine = NULL;
 	const char *label = NULL;
 	int i, privkey_index = -1;
@@ -1227,14 +1228,14 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			goto err;
 		}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 		eckey = EVP_PKEY_get1_EC_KEY(key->keydata.pkey);
 		if (eckey == NULL) {
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 		}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	} else {
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 		ret = dst__key_to_eckey(key, &eckey);
 		if (ret != ISC_R_SUCCESS) {
 			goto err;
@@ -1251,7 +1252,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 				      priv.elements[privkey_index].data,
 				      priv.elements[privkey_index].length,
 				      &key->keydata.pkey);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 		if (ret != ISC_R_SUCCESS) {
 			goto err;
@@ -1260,7 +1261,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		finalize_key = true;
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (pub != NULL && pub->keydata.pkey != NULL) {
 		pubeckey = EVP_PKEY_get1_EC_KEY(pub->keydata.pkey);
 	}
@@ -1283,17 +1284,17 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (finalize_key) {
 		ret = finalize_eckey(key, engine, label);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (pubeckey != NULL) {
 		EC_KEY_free(pubeckey);
 	}
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	if (ret != ISC_R_SUCCESS) {
 		key->keydata.generic = NULL;
 	}
