@@ -1311,15 +1311,9 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	isc_result_t ret = ISC_R_SUCCESS;
 	ENGINE *e;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	EC_KEY *eckey = NULL;
 	EC_KEY *pubeckey = NULL;
 	int group_nid;
-#else
-	size_t len;
-	const char *curve_name, *nist_curve_name;
-	char buf[128]; /* Sufficient for all of the supported curves' names. */
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 	EVP_PKEY *pkey = NULL;
 	EVP_PKEY *pubpkey = NULL;
 
@@ -1336,22 +1330,11 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(DST_R_NOENGINE);
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	if (key->key_alg == DST_ALG_ECDSA256) {
 		group_nid = NID_X9_62_prime256v1;
 	} else {
 		group_nid = NID_secp384r1;
 	}
-#else
-	/* Get the expected curve names */
-	if (key->key_alg == DST_ALG_ECDSA256) {
-		curve_name = "prime256v1";
-		nist_curve_name = "P-256";
-	} else {
-		curve_name = "secp384r1";
-		nist_curve_name = "P-384";
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	/* Load private key. */
 	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
@@ -1363,7 +1346,6 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (EVP_PKEY_base_id(pkey) != EVP_PKEY_EC) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	eckey = EVP_PKEY_get1_EC_KEY(pkey);
 	if (eckey == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -1371,20 +1353,6 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) != group_nid) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
-#else
-	len = 0;
-	if (EVP_PKEY_get_utf8_string_param(pkey, OSSL_PKEY_PARAM_GROUP_NAME,
-					   buf, sizeof buf, &len) != 1 ||
-	    len == 0 || len >= sizeof buf)
-	{
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
-	}
-	if (strncasecmp(buf, curve_name, strlen(curve_name)) != 0 &&
-	    strncasecmp(buf, nist_curve_name, strlen(nist_curve_name)) != 0)
-	{
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	/* Load public key. */
 	pubpkey = ENGINE_load_public_key(e, label, NULL, NULL);
@@ -1396,7 +1364,6 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (EVP_PKEY_base_id(pubpkey) != EVP_PKEY_EC) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	pubeckey = EVP_PKEY_get1_EC_KEY(pubpkey);
 	if (pubeckey == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -1404,30 +1371,10 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(pubeckey)) != group_nid) {
 		DST_RET(DST_R_INVALIDPUBLICKEY);
 	}
-#else
-	len = 0;
-	if (EVP_PKEY_get_utf8_string_param(pubpkey, OSSL_PKEY_PARAM_GROUP_NAME,
-					   buf, sizeof buf, &len) != 1 ||
-	    len == 0 || len >= sizeof buf)
-	{
-		DST_RET(DST_R_INVALIDPUBLICKEY);
-	}
-	if (strncasecmp(buf, curve_name, strlen(curve_name)) != 0 &&
-	    strncasecmp(buf, nist_curve_name, strlen(nist_curve_name)) != 0)
-	{
-		DST_RET(DST_R_INVALIDPUBLICKEY);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	if (ecdsa_check(eckey, pubeckey) != ISC_R_SUCCESS) {
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 	}
-#else
-	if (ecdsa_check(&pkey, pubpkey) != ISC_R_SUCCESS) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	key->label = isc_mem_strdup(key->mctx, label);
 	key->engine = isc_mem_strdup(key->mctx, engine);
@@ -1442,14 +1389,12 @@ err:
 	if (pkey != NULL) {
 		EVP_PKEY_free(pkey);
 	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L
 	if (pubeckey != NULL) {
 		EC_KEY_free(pubeckey);
 	}
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	return (ret);
 #else
