@@ -1,3 +1,8 @@
+5959.	[security]	Fix memory leaks in the DH code when using OpenSSL 3.0.0
+			and later versions. The openssldh_compare(),
+			openssldh_paramcompare(), and openssldh_todns()
+			functions were affected. (CVE-2022-2906) [GL #3491]
+
 5958.	[security]	When an HTTP connection was reused to get
 			statistics from the stats channel, and zlib
 			compression was in use, each successive
