@@ -24,6 +24,12 @@ Security Fixes
   Bremler-Barr & Shani Stajnrod from Reichman University for bringing
   this vulnerability to our attention. :gl:`#3394`
 
+- :iscman:`named` running as a resolver with the
+  :any:`stale-answer-client-timeout` option set to ``0`` could crash
+  with an assertion failure, when there was a stale CNAME in the cache
+  for the incoming query. This has been fixed. (CVE-2022-3080)
+  :gl:`#3517`
+
 Known Issues
 ~~~~~~~~~~~~
 
