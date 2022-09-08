@@ -12,7 +12,7 @@ variables:
   TEST_PARALLEL_JOBS: 6
 
   CONFIGURE: ./configure
-  CLANG_VERSION: 14
+  CLANG_VERSION: 15
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
   ASAN_SYMBOLIZER_PATH: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
