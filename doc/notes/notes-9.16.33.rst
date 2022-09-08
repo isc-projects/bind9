@@ -38,21 +38,6 @@ Security Fixes
   DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
   :gl:`#3487`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
