@@ -43,22 +43,18 @@ Security Fixes
   DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
   :gl:`#3487`
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
-- Worker threads' event loops are now managed by a new "loop maanger" API,
-  significantly changing the architecture of the task, timer and networking
-  systems for improved performance and code flow. :gl:`#3508`
+- A new Response Policy Zone (RPZ) :ref:`option<rpz>`, ``ede``, was
+  added. It enables an :rfc:`8914` Extended DNS Error (EDE) code of
+  choice to be set for responses which have been modified by a given
+  RPZ. :gl:`#3410`
 
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
+- Worker threads' event loops are now managed by a new "loop manager"
+  API, significantly changing the architecture of the task, timer, and
+  networking subsystems for improved performance and code flow.
+  :gl:`#3508`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -67,23 +63,24 @@ Feature Changes
   subject to wildcard processing within a given zone as the same name,
   to prevent circumventing the limits enforced by RRL. :gl:`#3459`
 
-- Zones using ``dnssec-policy`` now require dynamic DNS or
-  ``inline-signing`` to be configured explicitly :gl:`#3381`.
+- Zones using :any:`dnssec-policy` now require dynamic DNS or
+  :any:`inline-signing` to be configured explicitly. :gl:`#3381`
 
-- When reconfiguring ``dnssec-policy`` from using NSEC with an NSEC-only DNSKEY
-  algorithm (e.g. RSASHA1) to a policy that uses NSEC3, BIND will no longer fail
-  to sign the zone, but keep using NSEC for a little longer until the offending
-  DNSKEY records have been removed from the zone, then switch to using NSEC3.
-  :gl:`#3486`
+- When reconfiguring :any:`dnssec-policy` from using NSEC with an
+  NSEC-only DNSKEY algorithm (e.g. RSASHA1) to a policy that uses NSEC3,
+  BIND 9 no longer fails to sign the zone; instead, it keeps using NSEC
+  until the offending DNSKEY records have been removed from the zone,
+  then switches to using NSEC3. :gl:`#3486`
 
-- Implement a backwards compatible approach for encoding the internationalized
-  domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
-  that fails try the IDNA2003 conversion. :gl:`#3485`
+- A backward-compatible approach was implemented for encoding
+  internationalized domain names (IDN) in :iscman:`dig` and converting
+  the domain to IDNA2008 form; if that fails, BIND tries an IDNA2003
+  conversion. :gl:`#3485`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix a serve-stale bug, where BIND would try to return stale data from cache
-  for lookups that received duplicate queries or queries that would be dropped.
-  This bug resulted in premature SERVFAIL responses, and has now been resolved.
-  :gl:`#2982`
+- A serve-stale bug was fixed, where BIND would try to return stale data
+  from cache for lookups that received duplicate queries or queries that
+  would be dropped. This bug resulted in premature SERVFAIL responses,
+  and has now been resolved. :gl:`#2982`
