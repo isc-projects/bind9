@@ -1,3 +1,8 @@
+5960.	[security]	Fix serve-stale crash that could happen when
+			stale-answer-client-timeout was set to 0 and there was
+			a stale CNAME in the cache for an incoming query.
+			(CVE-2022-3080) [GL #3517]
+
 5959.	[security]	Fix memory leaks in the DH code when using OpenSSL 3.0.0
 			and later versions. The openssldh_compare(),
 			openssldh_paramcompare(), and openssldh_todns()

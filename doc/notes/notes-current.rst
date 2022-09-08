@@ -33,6 +33,12 @@ Security Fixes
   could be externally triggered, when using TKEY records in DH mode with
   OpenSSL 3.0.0 and later versions. (CVE-2022-2906) :gl:`#3491`
 
+- :iscman:`named` running as a resolver with the
+  :any:`stale-answer-client-timeout` option set to ``0`` could crash
+  with an assertion failure, when there was a stale CNAME in the cache
+  for the incoming query. This has been fixed. (CVE-2022-3080)
+  :gl:`#3517`
+
 Known Issues
 ~~~~~~~~~~~~
 
