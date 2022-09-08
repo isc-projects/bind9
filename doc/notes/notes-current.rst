@@ -15,7 +15,14 @@ Notes for BIND 9.19.5
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Previously, there was no limit to the number of database lookups
+  performed while processing large delegations, which could be abused to
+  severely impact the performance of :iscman:`named` running as a
+  recursive resolver. This has been fixed. (CVE-2022-2795)
+
+  ISC would like to thank Yehuda Afek from Tel-Aviv University and Anat
+  Bremler-Barr & Shani Stajnrod from Reichman University for bringing
+  this vulnerability to our attention. :gl:`#3394`
 
 Known Issues
 ~~~~~~~~~~~~
