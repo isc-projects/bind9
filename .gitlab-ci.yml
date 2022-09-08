@@ -968,7 +968,7 @@ unit:gcc:jammy:amd64:
 gcc:asan:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -Wno-error=stringop-overread"
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2 --without-jemalloc"
   <<: *fedora_35_amd64_image
