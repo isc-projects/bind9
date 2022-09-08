@@ -754,12 +754,13 @@ sendquery(struct query *query, isc_task_t *task) {
 	if (tcp_mode) {
 		options |= DNS_REQUESTOPT_TCP;
 	}
+
 	request = NULL;
-	result = dns_request_createvia(
+	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, dscp,
 		options, NULL, query->timeout, query->udptimeout,
 		query->udpretries, task, recvresponse, message, &request);
-	CHECK("dns_request_createvia", result);
+	CHECK("dns_request_create", result);
 
 	return (ISC_R_SUCCESS);
 }
