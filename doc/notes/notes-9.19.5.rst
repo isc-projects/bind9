@@ -46,6 +46,11 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
+- A new Response Policy Zone (RPZ) :ref:`option<rpz>`, ``ede``, was
+  added. It enables an :rfc:`8914` Extended DNS Error (EDE) code of
+  choice to be set for responses which have been modified by a given
+  RPZ. :gl:`#3410`
+
 - Worker threads' event loops are now managed by a new "loop manager"
   API, significantly changing the architecture of the task, timer, and
   networking subsystems for improved performance and code flow.
