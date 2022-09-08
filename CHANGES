@@ -1,3 +1,5 @@
+	--- 9.18.7 released ---
+
 5962.	[security]	Fix memory leak in EdDSA verify processing.
 			(CVE-2022-38178) [GL #3487]
 
