@@ -24,6 +24,11 @@ Security Fixes
   Bremler-Barr & Shani Stajnrod from Reichman University for bringing
   this vulnerability to our attention. :gl:`#3394`
 
+- When an HTTP connection was reused to request statistics from the
+  stats channel, the content length of successive responses could grow
+  in size past the end of the allocated buffer. This has been fixed.
+  (CVE-2022-2881) :gl:`#3493`
+
 Known Issues
 ~~~~~~~~~~~~
 

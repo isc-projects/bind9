@@ -6,7 +6,12 @@
 
 5959.	[placeholder]
 
-5958.	[placeholder]
+5958.	[security]	When an HTTP connection was reused to get
+			statistics from the stats channel, and zlib
+			compression was in use, each successive
+			response sent larger and larger blocks of memory,
+			potentially reading past the end of the allocated
+			buffer. (CVE-2022-2881) [GL #3493]
 
 5957.	[security]	Prevent excessive resource use while processing large
 			delegations. (CVE-2022-2795) [GL #3394]
