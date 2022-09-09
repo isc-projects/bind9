@@ -1,3 +1,6 @@
+5963.	[bug]		Ensure struct named_server is properly initialized.
+			[GL #6531]
+
 5962.	[placeholder]
 
 5961.	[placeholder]
