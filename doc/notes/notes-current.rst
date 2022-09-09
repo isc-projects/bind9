@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.33
+Notes for BIND 9.16.34
 ----------------------
 
 Security Fixes
@@ -35,21 +35,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Response Rate Limiting (RRL) code now treats all QNAMEs that are
-  subject to wildcard processing within a given zone as the same name,
-  to prevent circumventing the limits enforced by RRL. :gl:`#3459`
-
-- Zones using ``dnssec-policy`` now require dynamic DNS or
-  ``inline-signing`` to be configured explicitly :gl:`#3381`.
-
-- Implement a backwards compatible approach for encoding the internationalized
-  domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
-  that fails try the IDNA2003 conversion. :gl:`#3485`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix a serve-stale bug, where BIND would try to return stale data from cache
-  for lookups that received duplicate queries or queries that would be dropped.
-  This bug resulted in premature SERVFAIL responses, and has now been resolved.
-  :gl:`#2982`
+- None.
