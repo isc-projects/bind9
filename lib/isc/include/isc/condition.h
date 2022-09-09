@@ -60,34 +60,34 @@ typedef pthread_cond_t isc_condition_t;
 
 #endif /* ISC_TRACK_PTHREADS_OBJECTS */
 
-#define isc__condition_init(cond)                         \
-	{                                                 \
-		int _ret = pthread_cond_init(cond, NULL); \
-		ERRNO_CHECK(pthread_cond_init, _ret);     \
+#define isc__condition_init(cond)                                \
+	{                                                        \
+		int _ret = pthread_cond_init(cond, NULL);        \
+		PTHREADS_RUNTIME_CHECK(pthread_cond_init, _ret); \
 	}
 
-#define isc__condition_wait(cp, mp)                   \
-	{                                             \
-		int _ret = pthread_cond_wait(cp, mp); \
-		ERRNO_CHECK(pthread_cond_wait, _ret); \
+#define isc__condition_wait(cp, mp)                              \
+	{                                                        \
+		int _ret = pthread_cond_wait(cp, mp);            \
+		PTHREADS_RUNTIME_CHECK(pthread_cond_wait, _ret); \
 	}
 
-#define isc__condition_signal(cp)                       \
-	{                                               \
-		int _ret = pthread_cond_signal(cp);     \
-		ERRNO_CHECK(pthread_cond_signal, _ret); \
+#define isc__condition_signal(cp)                                  \
+	{                                                          \
+		int _ret = pthread_cond_signal(cp);                \
+		PTHREADS_RUNTIME_CHECK(pthread_cond_signal, _ret); \
 	}
 
-#define isc__condition_broadcast(cp)                       \
-	{                                                  \
-		int _ret = pthread_cond_broadcast(cp);     \
-		ERRNO_CHECK(pthread_cond_broadcast, _ret); \
+#define isc__condition_broadcast(cp)                                  \
+	{                                                             \
+		int _ret = pthread_cond_broadcast(cp);                \
+		PTHREADS_RUNTIME_CHECK(pthread_cond_broadcast, _ret); \
 	}
 
-#define isc__condition_destroy(cp)                       \
-	{                                                \
-		int _ret = pthread_cond_destroy(cp);     \
-		ERRNO_CHECK(pthread_cond_destroy, _ret); \
+#define isc__condition_destroy(cp)                                  \
+	{                                                           \
+		int _ret = pthread_cond_destroy(cp);                \
+		PTHREADS_RUNTIME_CHECK(pthread_cond_destroy, _ret); \
 	}
 
 isc_result_t

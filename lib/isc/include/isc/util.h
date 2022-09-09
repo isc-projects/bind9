@@ -334,13 +334,17 @@ mock_assert(const int result, const char *const expression,
 
 #endif /* UNIT_TESTING */
 
-/*% Runtime check which logs the error string corresponding to errno */
-#define ERRNO_CHECK(func, ret)                                                 \
-	if ((ret) != 0) {                                                      \
-		char _strerrorbuf[ISC_STRERRORSIZE];                           \
-		strerror_r(errno, _strerrorbuf, sizeof(_strerrorbuf));         \
-		isc_error_fatal(__FILE__, __LINE__, "%s() failed in %s(): %s", \
-				#func, __func__, _strerrorbuf);                \
+/*%
+ * Runtime check which logs the error value returned by a POSIX Threads
+ * function and the error string that corresponds to it
+ */
+#define PTHREADS_RUNTIME_CHECK(func, ret)                               \
+	if ((ret) != 0) {                                               \
+		char _strerrorbuf[ISC_STRERRORSIZE];                    \
+		strerror_r(ret, _strerrorbuf, sizeof(_strerrorbuf));    \
+		isc_error_fatal(__FILE__, __LINE__,                     \
+				"%s(): %s() failed with error %d (%s)", \
+				__func__, #func, ret, _strerrorbuf);    \
 	}
 
 /*%

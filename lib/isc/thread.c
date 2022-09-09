@@ -58,18 +58,18 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
-	ERRNO_CHECK(pthread_attr_getstacksize, ret);
+	PTHREADS_RUNTIME_CHECK(pthread_attr_getstacksize, ret);
 
 	if (stacksize < THREAD_MINSTACKSIZE) {
 		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
-		ERRNO_CHECK(pthread_attr_setstacksize, ret);
+		PTHREADS_RUNTIME_CHECK(pthread_attr_setstacksize, ret);
 	}
 #endif /* if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	* defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE) */
 
 	ret = pthread_create(thread, &attr, isc__trampoline_run,
 			     trampoline_arg);
-	ERRNO_CHECK(pthread_create, ret);
+	PTHREADS_RUNTIME_CHECK(pthread_create, ret);
 
 	pthread_attr_destroy(&attr);
 
@@ -80,7 +80,7 @@ void
 isc_thread_join(isc_thread_t thread, isc_threadresult_t *result) {
 	int ret = pthread_join(thread, result);
 
-	ERRNO_CHECK(pthread_join, ret);
+	PTHREADS_RUNTIME_CHECK(pthread_join, ret);
 }
 
 void
