@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.5
+Notes for BIND 9.19.6
 ---------------------
 
 Security Fixes
@@ -25,9 +25,7 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- Worker threads' event loops are now managed by a new "loop maanger" API,
-  significantly changing the architecture of the task, timer and networking
-  systems for improved performance and code flow. :gl:`#3508`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
@@ -37,27 +35,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Response Rate Limiting (RRL) code now treats all QNAMEs that are
-  subject to wildcard processing within a given zone as the same name,
-  to prevent circumventing the limits enforced by RRL. :gl:`#3459`
-
-- Zones using ``dnssec-policy`` now require dynamic DNS or
-  ``inline-signing`` to be configured explicitly :gl:`#3381`.
-
-- When reconfiguring ``dnssec-policy`` from using NSEC with an NSEC-only DNSKEY
-  algorithm (e.g. RSASHA1) to a policy that uses NSEC3, BIND will no longer fail
-  to sign the zone, but keep using NSEC for a little longer until the offending
-  DNSKEY records have been removed from the zone, then switch to using NSEC3.
-  :gl:`#3486`
-
-- Implement a backwards compatible approach for encoding the internationalized
-  domain names (IDN) in dig, and convert the domain to IDNA2008 form, and if
-  that fails try the IDNA2003 conversion. :gl:`#3485`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix a serve-stale bug, where BIND would try to return stale data from cache
-  for lookups that received duplicate queries or queries that would be dropped.
-  This bug resulted in premature SERVFAIL responses, and has now been resolved.
-  :gl:`#2982`
+- None.
