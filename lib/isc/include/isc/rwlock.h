@@ -127,34 +127,34 @@ typedef struct isc_rwlock isc__rwlock_t;
 
 #endif /* USE_PTHREAD_RWLOCK */
 
-#define isc__rwlock_init(rwl, rq, wq)                      \
-	{                                                  \
-		int _ret = isc___rwlock_init(rwl, rq, wq); \
-		ERRNO_CHECK(isc___rwlock_init, _ret);      \
+#define isc__rwlock_init(rwl, rq, wq)                            \
+	{                                                        \
+		int _ret = isc___rwlock_init(rwl, rq, wq);       \
+		PTHREADS_RUNTIME_CHECK(isc___rwlock_init, _ret); \
 	}
 
-#define isc__rwlock_lock(rwl, type)                      \
-	{                                                \
-		int _ret = isc___rwlock_lock(rwl, type); \
-		ERRNO_CHECK(isc___rwlock_lock, _ret);    \
+#define isc__rwlock_lock(rwl, type)                              \
+	{                                                        \
+		int _ret = isc___rwlock_lock(rwl, type);         \
+		PTHREADS_RUNTIME_CHECK(isc___rwlock_lock, _ret); \
 	}
 
-#define isc__rwlock_unlock(rwl, type)                      \
-	{                                                  \
-		int _ret = isc___rwlock_unlock(rwl, type); \
-		ERRNO_CHECK(isc___rwlock_unlock, _ret);    \
+#define isc__rwlock_unlock(rwl, type)                              \
+	{                                                          \
+		int _ret = isc___rwlock_unlock(rwl, type);         \
+		PTHREADS_RUNTIME_CHECK(isc___rwlock_unlock, _ret); \
 	}
 
-#define isc__rwlock_downgrade(rwl)                         \
-	{                                                  \
-		int _ret = isc___rwlock_downgrade(rwl);    \
-		ERRNO_CHECK(isc___rwlock_downgrade, _ret); \
+#define isc__rwlock_downgrade(rwl)                                    \
+	{                                                             \
+		int _ret = isc___rwlock_downgrade(rwl);               \
+		PTHREADS_RUNTIME_CHECK(isc___rwlock_downgrade, _ret); \
 	}
 
-#define isc__rwlock_destroy(rwl)                         \
-	{                                                \
-		int _ret = isc___rwlock_destroy(rwl);    \
-		ERRNO_CHECK(isc___rwlock_destroy, _ret); \
+#define isc__rwlock_destroy(rwl)                                    \
+	{                                                           \
+		int _ret = isc___rwlock_destroy(rwl);               \
+		PTHREADS_RUNTIME_CHECK(isc___rwlock_destroy, _ret); \
 	}
 
 int
