@@ -1269,6 +1269,9 @@ update_edns_stats(resquery_t *query) {
 	}
 }
 
+static void
+fctx_expired(void *arg);
+
 /*
  * Start the maximum lifetime timer for the fetch. This will
  * trigger if, for example, some ADB or validator dependency
@@ -1290,6 +1293,9 @@ fctx_starttimer(fetchctx_t *fctx) {
 		isc_time_subtract(&expires, &now, &interval);
 	}
 
+	if (fctx->timer == NULL) {
+		isc_timer_create(fctx->loop, fctx_expired, fctx, &fctx->timer);
+	}
 	isc_timer_start(fctx->timer, isc_timertype_once, &interval);
 }
 
@@ -1301,6 +1307,10 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	 * should never fail anyway, since the code as currently written
 	 * cannot fail in that case.
 	 */
+	if (fctx->timer == NULL) {
+		return;
+	}
+
 	isc_timer_stop(fctx->timer);
 }
 
@@ -4436,8 +4446,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
 
-	isc_timer_destroy(&fctx->timer);
-
 	dns_resolver_detach(&fctx->res);
 
 	isc_mem_free(fctx->mctx, fctx->info);
@@ -4518,6 +4526,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_cancelqueries(fctx, false, false);
 	fctx_cleanup(fctx);
 
+	isc_timer_destroy(&fctx->timer);
+
 	LOCK(&fctx->bucket->lock);
 
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_SHUTTINGDOWN);
@@ -4563,13 +4573,6 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("start");
 
 	LOCK(&fctx->bucket->lock);
-
-	/*
-	 * Create an inactive timer to enforce maximum query
-	 * lifetime. It will be made active when the fetch is
-	 * started.
-	 */
-	isc_timer_create(fctx->loop, fctx_expired, fctx, &fctx->timer);
 
 	INSIST(fctx->state == fetchstate_init);
 	if (atomic_load_acquire(&fctx->want_shutdown)) {
