@@ -390,8 +390,8 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	REQUIRE(recvdone_handle == handle);
 	isc_nmhandle_detach(&recvdone_handle);
 
-	if (atomic_load_acquire(&sends) == 0 &&
-	    atomic_fetch_sub_release(&recvs, 1) == 1)
+	if (atomic_fetch_sub_release(&recvs, 1) == 1 &&
+	    atomic_load_acquire(&sends) == 0)
 	{
 		shuttingdown = true;
 		isc_task_detach(&rndc_task);
