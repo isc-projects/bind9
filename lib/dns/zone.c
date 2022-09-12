@@ -855,6 +855,11 @@ unsigned int dns_zone_mkey_month = MONTH;
 static void
 zone_timer_set(dns_zone_t *zone, isc_time_t *next, isc_time_t *now);
 
+typedef struct zone_settimer {
+	dns_zone_t *zone;
+	isc_time_t now;
+} zone_settimer_t;
+
 static void
 zone_settimer(dns_zone_t *, isc_time_t *);
 static void
@@ -15155,8 +15160,8 @@ zone_shutdown(void *arg) {
 	forward_cancel(zone);
 
 	if (zone->timer != NULL) {
-		isc_timer_destroy(&zone->timer);
 		isc_refcount_decrement(&zone->irefs);
+		isc_timer_destroy(&zone->timer);
 	}
 
 	/*
@@ -15202,30 +15207,47 @@ zone_timer(void *arg) {
 }
 
 static void
+zone_timer_stop(dns_zone_t *zone) {
+	zone_debuglog(zone, __func__, 10, "settimer inactive");
+	if (zone->timer != NULL) {
+		isc_timer_stop(zone->timer);
+	}
+}
+
+static void
 zone_timer_set(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
 	isc_interval_t interval;
 
 	if (isc_time_compare(next, now) <= 0) {
-		isc_interval_set(&interval, 0, 1);
+		isc_interval_set(&interval, 0, 0);
 	} else {
 		isc_time_subtract(next, now, &interval);
+	}
+
+	if (zone->timer == NULL) {
+		isc_refcount_increment0(&zone->irefs);
+		isc_timer_create(zone->loop, zone_timer, zone, &zone->timer);
 	}
 
 	isc_timer_start(zone->timer, isc_timertype_once, &interval);
 }
 
 static void
-zone_settimer(dns_zone_t *zone, isc_time_t *now) {
+zone__settimer(void *arg) {
+	zone_settimer_t *data = arg;
+
+	dns_zone_t *zone = data->zone;
+	isc_time_t *now = &data->now;
 	isc_time_t next;
+	bool free_needed = false;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(LOCKED_ZONE(zone));
 	ENTER;
 
+	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		return;
+		goto free;
 	}
-
 	isc_time_settoepoch(&next);
 
 	switch (zone->type) {
@@ -15354,10 +15376,30 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	}
 
 	if (isc_time_isepoch(&next)) {
-		zone_debuglog(zone, __func__, 10, "settimer inactive");
+		zone_timer_stop(zone);
 	} else {
 		zone_timer_set(zone, &next, now);
 	}
+
+free:
+	isc_mem_put(zone->mctx, data, sizeof(*data));
+	isc_refcount_decrement(&zone->irefs);
+	free_needed = exit_check(zone);
+	UNLOCK_ZONE(zone);
+	if (free_needed) {
+		zone_free(zone);
+	}
+}
+
+static void
+zone_settimer(dns_zone_t *zone, isc_time_t *now) {
+	zone_settimer_t *arg = isc_mem_get(zone->mctx, sizeof(*arg));
+	*arg = (zone_settimer_t){
+		.zone = zone,
+		.now = *now,
+	};
+	isc_refcount_increment0(&zone->irefs);
+	isc_async_run(zone->loop, zone__settimer, arg);
 }
 
 static void
@@ -19018,17 +19060,11 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	zone->loop = isc_loop_get(zmgr->loopmgr, zone->tid);
 
-	isc_timer_create(zone->loop, zone_timer, zone, &zone->timer);
-
-	/*
-	 * The timer "holds" a iref.
-	 */
-	isc_refcount_increment0(&zone->irefs);
-
 	zonemgr_keymgmt_add(zmgr, zone, NULL);
 
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 	zone->zmgr = zmgr;
+
 	isc_refcount_increment(&zmgr->refs);
 
 	UNLOCK_ZONE(zone);
@@ -22436,12 +22472,6 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	LOCK_ZONE(raw);
 
 	raw->loop = zone->loop;
-	isc_timer_create(raw->loop, zone_timer, raw, &raw->timer);
-
-	/*
-	 * The timer "holds" a iref.
-	 */
-	isc_refcount_increment0(&raw->irefs);
 
 	/* dns_zone_attach(raw, &zone->raw); */
 	isc_refcount_increment(&raw->erefs);
