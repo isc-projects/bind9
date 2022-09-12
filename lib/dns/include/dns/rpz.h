@@ -250,7 +250,6 @@ struct dns_rpz_zones {
 	isc_mem_t     *mctx;
 	isc_loopmgr_t *loopmgr;
 	isc_taskmgr_t *taskmgr;
-	isc_task_t    *updater;
 	isc_refcount_t refs;
 	isc_refcount_t irefs;
 	/*
