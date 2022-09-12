@@ -18939,19 +18939,19 @@ free_zonetasks:
 		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
 	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
-	isc_ratelimiter_destroy(&zmgr->startuprefreshrl);
+	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 free_startupnotifyrl:
 	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
-	isc_ratelimiter_destroy(&zmgr->startupnotifyrl);
+	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
 free_refreshrl:
 	isc_ratelimiter_shutdown(zmgr->refreshrl);
-	isc_ratelimiter_destroy(&zmgr->refreshrl);
+	isc_ratelimiter_detach(&zmgr->refreshrl);
 free_notifyrl:
 	isc_ratelimiter_shutdown(zmgr->notifyrl);
-	isc_ratelimiter_destroy(&zmgr->notifyrl);
+	isc_ratelimiter_detach(&zmgr->notifyrl);
 free_checkdsrl:
 	isc_ratelimiter_shutdown(zmgr->checkdsrl);
-	isc_ratelimiter_destroy(&zmgr->checkdsrl);
+	isc_ratelimiter_detach(&zmgr->checkdsrl);
 free_urlock:
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
@@ -19171,11 +19171,11 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	isc_refcount_destroy(&zmgr->refs);
 	isc_mutex_destroy(&zmgr->iolock);
-	isc_ratelimiter_destroy(&zmgr->checkdsrl);
-	isc_ratelimiter_destroy(&zmgr->notifyrl);
-	isc_ratelimiter_destroy(&zmgr->refreshrl);
-	isc_ratelimiter_destroy(&zmgr->startupnotifyrl);
-	isc_ratelimiter_destroy(&zmgr->startuprefreshrl);
+	isc_ratelimiter_detach(&zmgr->checkdsrl);
+	isc_ratelimiter_detach(&zmgr->notifyrl);
+	isc_ratelimiter_detach(&zmgr->refreshrl);
+	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
+	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 
 	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
 		    zmgr->workers * sizeof(zmgr->mctxpool[0]));

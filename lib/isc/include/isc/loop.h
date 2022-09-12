@@ -169,6 +169,11 @@ isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid);
  *\li   'tid' is smaller than number of initialized loops
  */
 
+ISC_REFCOUNT_DECL(isc_loop);
+/*%<
+ * Reference counting functions for isc_loop
+ */
+
 void
 isc_loopmgr_blocking(isc_loopmgr_t *loopmgr);
 void

@@ -145,5 +145,3 @@ struct isc_work {
 #define CURRENT_LOOP(loopmgr) (&(loopmgr)->loops[isc_tid()])
 #define LOOP(loopmgr, tid)    (&(loopmgr)->loops[tid])
 #define ON_LOOP(loop)	      ((loop) == CURRENT_LOOP((loop)->loopmgr))
-
-ISC_REFCOUNT_DECL(isc_loop);
