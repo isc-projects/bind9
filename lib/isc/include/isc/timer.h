@@ -141,9 +141,11 @@ isc_timer_start(isc_timer_t *timer, isc_timertype_t type,
  */
 
 void
+isc_timer_async_destroy(isc_timer_t **timerp);
+void
 isc_timer_destroy(isc_timer_t **timerp);
 /*%<
- * Destroy the timer *timerp.
+ * Destroy (asynchronously) the timer *timerp.
  *
  * Requires:
  *

@@ -225,3 +225,16 @@ void
 isc_timer_destroy(isc_timer_t **timerp) {
 	isc__timer_detach(timerp);
 }
+
+void
+isc_timer_async_destroy(isc_timer_t **timerp) {
+	isc_timer_t *timer = NULL;
+
+	REQUIRE(timerp != NULL && VALID_TIMER(*timerp));
+
+	timer = *timerp;
+	*timerp = NULL;
+
+	isc_timer_stop(timer);
+	isc_async_run(timer->loop, isc__timer_destroy, timer);
+}
