@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/ascii.h>
 #include <isc/buffer.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
@@ -474,7 +475,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		return (ISC_R_SUCCESS);                               \
 	}
 
-	switch (tolower((unsigned char)source->base[0])) {
+	switch (isc_ascii_tolower(source->base[0])) {
 	case 'a':
 		COMPARE("any", dns_rdataclass_any);
 		break;

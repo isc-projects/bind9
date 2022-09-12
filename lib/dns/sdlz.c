@@ -52,6 +52,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <isc/ascii.h>
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/log.h>
@@ -236,19 +237,6 @@ sdlz_log(int level, const char *fmt, ...) {
 	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_DLZ,
 		       ISC_LOG_DEBUG(level), fmt, ap);
 	va_end(ap);
-}
-
-/*% Converts the input string to lowercase, in place. */
-static void
-dns_sdlz_tolower(char *str) {
-	unsigned int len = strlen(str);
-	unsigned int i;
-
-	for (i = 0; i < len; i++) {
-		if (str[i] >= 'A' && str[i] <= 'Z') {
-			str[i] += 32;
-		}
-	}
 }
 
 static unsigned int
@@ -570,8 +558,8 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	isorigin = dns_name_equal(name, &sdlz->common.origin);
 
 	/* make sure strings are always lowercase */
-	dns_sdlz_tolower(zonestr);
-	dns_sdlz_tolower(namestr);
+	isc_ascii_strtolower(zonestr);
+	isc_ascii_strtolower(namestr);
 
 	MAYBE_LOCK(sdlz->dlzimp);
 
@@ -787,7 +775,7 @@ createiterator(dns_db_t *db, unsigned int options,
 	sdlziter->origin = NULL;
 
 	/* make sure strings are always lowercase */
-	dns_sdlz_tolower(zonestr);
+	isc_ascii_strtolower(zonestr);
 
 	MAYBE_LOCK(sdlz->dlzimp);
 	result = sdlz->dlzimp->methods->allnodes(
@@ -1541,8 +1529,8 @@ dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
 	isc_buffer_putuint8(&b2, 0);
 
 	/* make sure strings are always lowercase */
-	dns_sdlz_tolower(namestr);
-	dns_sdlz_tolower(clientstr);
+	isc_ascii_strtolower(namestr);
+	isc_ascii_strtolower(clientstr);
 
 	/* Call SDLZ driver's find zone method */
 	if (imp->methods->allowzonexfr != NULL) {
@@ -1651,7 +1639,7 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 	isc_buffer_putuint8(&b, 0);
 
 	/* make sure strings are always lowercase */
-	dns_sdlz_tolower(namestr);
+	isc_ascii_strtolower(namestr);
 
 	/* Call SDLZ driver's find zone method */
 	MAYBE_LOCK(imp);

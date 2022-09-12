@@ -1579,9 +1579,10 @@ AC_CONFIG_FILES([doc/Makefile
 		 doc/man/Makefile
 		 doc/misc/Makefile])
 
-# Unit Tests
+# Unit tests and benchmarks
 
 AC_CONFIG_FILES([tests/Makefile
+		 tests/bench/Makefile
 		 tests/isc/Makefile
 		 tests/dns/Makefile
 		 tests/ns/Makefile

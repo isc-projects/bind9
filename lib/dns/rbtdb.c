@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <sys/mman.h>
 
+#include <isc/ascii.h>
 #include <isc/atomic.h>
 #include <isc/crc64.h>
 #include <isc/event.h>
@@ -9373,10 +9374,9 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	}
 
 	if (CASEFULLYLOWER(header)) {
-		for (size_t i = 0; i < name->length; i++) {
-			name->ndata[i] = tolower(name->ndata[i]);
-		}
+		isc_ascii_lowercopy(name->ndata, name->ndata, name->length);
 	} else {
+		uint8_t *nd = name->ndata;
 		for (size_t i = 0; i < name->length; i++) {
 			if (mask == (1 << 7)) {
 				bits = header->upper[i / 8];
@@ -9384,10 +9384,8 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 			} else {
 				mask <<= 1;
 			}
-
-			name->ndata[i] = ((bits & mask) != 0)
-						 ? toupper(name->ndata[i])
-						 : tolower(name->ndata[i]);
+			nd[i] = (bits & mask) ? isc_ascii_toupper(nd[i])
+					      : isc_ascii_tolower(nd[i]);
 		}
 	}
 

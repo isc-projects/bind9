@@ -18,8 +18,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/ascii.h>
 #include <isc/buffer.h>
 #include <isc/hash.h>
+#include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -46,53 +48,6 @@ typedef enum {
 } ft_state;
 
 typedef enum { fw_start = 0, fw_ordinary, fw_newcurrent } fw_state;
-
-static char digitvalue[256] = {
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*16*/
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*32*/
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*48*/
-	0,  1,	2,  3,	4,  5,	6,  7,	8,  9,	-1, -1, -1, -1, -1, -1, /*64*/
-	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*80*/
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*96*/
-	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*112*/
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*128*/
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, /*256*/
-};
-
-static unsigned char maptolower[] = {
-	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
-	0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-	0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23,
-	0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f,
-	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b,
-	0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67,
-	0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73,
-	0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x5b, 0x5c, 0x5d, 0x5e, 0x5f,
-	0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b,
-	0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77,
-	0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f, 0x80, 0x81, 0x82, 0x83,
-	0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
-	0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b,
-	0x9c, 0x9d, 0x9e, 0x9f, 0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7,
-	0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3,
-	0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf,
-	0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb,
-	0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7,
-	0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf, 0xe0, 0xe1, 0xe2, 0xe3,
-	0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
-	0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb,
-	0xfc, 0xfd, 0xfe, 0xff
-};
-
-#define CONVERTTOASCII(c)
-#define CONVERTFROMASCII(c)
 
 #define INIT_OFFSETS(name, var, default_offsets) \
 	if ((name)->offsets != NULL)             \
@@ -487,7 +442,7 @@ dns_namereln_t
 dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 		     int *orderp, unsigned int *nlabelsp) {
 	unsigned int l1, l2, l, count1, count2, count, nlabels;
-	int cdiff, ldiff, chdiff;
+	int cdiff, ldiff, diff;
 	unsigned char *label1, *label2;
 	unsigned char *offsets1, *offsets2;
 	dns_offsets_t odata1, odata2;
@@ -537,20 +492,13 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 	offsets1 += l1;
 	offsets2 += l2;
 
-	while (l > 0) {
-		l--;
+	while (l-- > 0) {
 		offsets1--;
 		offsets2--;
 		label1 = &name1->ndata[*offsets1];
 		label2 = &name2->ndata[*offsets2];
 		count1 = *label1++;
 		count2 = *label2++;
-
-		/*
-		 * We dropped bitstring labels, and we don't support any
-		 * other extended label types.
-		 */
-		INSIST(count1 <= 63 && count2 <= 63);
 
 		cdiff = (int)count1 - (int)count2;
 		if (cdiff < 0) {
@@ -559,44 +507,12 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
 			count = count2;
 		}
 
-		/* Loop unrolled for performance */
-		while (count > 3) {
-			chdiff = (int)maptolower[label1[0]] -
-				 (int)maptolower[label2[0]];
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)maptolower[label1[1]] -
-				 (int)maptolower[label2[1]];
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)maptolower[label1[2]] -
-				 (int)maptolower[label2[2]];
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			chdiff = (int)maptolower[label1[3]] -
-				 (int)maptolower[label2[3]];
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-			count -= 4;
-			label1 += 4;
-			label2 += 4;
+		diff = isc_ascii_lowercmp(label1, label2, count);
+		if (diff != 0) {
+			*orderp = diff;
+			goto done;
 		}
-		while (count-- > 0) {
-			chdiff = (int)maptolower[*label1++] -
-				 (int)maptolower[*label2++];
-			if (chdiff != 0) {
-				*orderp = chdiff;
-				goto done;
-			}
-		}
+
 		if (cdiff != 0) {
 			*orderp = cdiff;
 			goto done;
@@ -646,9 +562,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 
 bool
 dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
-	unsigned int l, count;
-	unsigned char c;
-	unsigned char *label1, *label2;
+	unsigned int length;
 
 	/*
 	 * Are 'name1' and 'name2' equal?
@@ -671,57 +585,13 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 		return (true);
 	}
 
-	if (name1->length != name2->length) {
+	length = name1->length;
+	if (length != name2->length) {
 		return (false);
 	}
 
-	l = name1->labels;
-
-	if (l != name2->labels) {
-		return (false);
-	}
-
-	label1 = name1->ndata;
-	label2 = name2->ndata;
-	while (l-- > 0) {
-		count = *label1++;
-		if (count != *label2++) {
-			return (false);
-		}
-
-		INSIST(count <= 63); /* no bitstring support */
-
-		/* Loop unrolled for performance */
-		while (count > 3) {
-			c = maptolower[label1[0]];
-			if (c != maptolower[label2[0]]) {
-				return (false);
-			}
-			c = maptolower[label1[1]];
-			if (c != maptolower[label2[1]]) {
-				return (false);
-			}
-			c = maptolower[label1[2]];
-			if (c != maptolower[label2[2]]) {
-				return (false);
-			}
-			c = maptolower[label1[3]];
-			if (c != maptolower[label2[3]]) {
-				return (false);
-			}
-			count -= 4;
-			label1 += 4;
-			label2 += 4;
-		}
-		while (count-- > 0) {
-			c = maptolower[*label1++];
-			if (c != maptolower[*label2++]) {
-				return (false);
-			}
-		}
-	}
-
-	return (true);
+	/* label lengths are < 64 so tolower() does not affect them */
+	return (isc_ascii_lowerequal(name1->ndata, name2->ndata, length));
 }
 
 bool
@@ -756,10 +626,6 @@ dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2) {
 
 int
 dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2) {
-	unsigned int l1, l2, l, count1, count2, count;
-	unsigned char c1, c2;
-	unsigned char *label1, *label2;
-
 	/*
 	 * Compare two absolute names as rdata.
 	 */
@@ -771,47 +637,9 @@ dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2) {
 	REQUIRE(name2->labels > 0);
 	REQUIRE((name2->attributes & DNS_NAMEATTR_ABSOLUTE) != 0);
 
-	l1 = name1->labels;
-	l2 = name2->labels;
-
-	l = (l1 < l2) ? l1 : l2;
-
-	label1 = name1->ndata;
-	label2 = name2->ndata;
-	while (l > 0) {
-		l--;
-		count1 = *label1++;
-		count2 = *label2++;
-
-		/* no bitstring support */
-		INSIST(count1 <= 63 && count2 <= 63);
-
-		if (count1 != count2) {
-			return ((count1 < count2) ? -1 : 1);
-		}
-		count = count1;
-		while (count > 0) {
-			count--;
-			c1 = maptolower[*label1++];
-			c2 = maptolower[*label2++];
-			if (c1 < c2) {
-				return (-1);
-			} else if (c1 > c2) {
-				return (1);
-			}
-		}
-	}
-
-	/*
-	 * If one name had more labels than the other, their common
-	 * prefix must have been different because the shorter name
-	 * ended with the root label and the longer one can't have
-	 * a root label in the middle of it.  Therefore, if we get
-	 * to this point, the lengths must be equal.
-	 */
-	INSIST(l1 == l2);
-
-	return (0);
+	/* label lengths are < 64 so tolower() does not affect them */
+	return (isc_ascii_lowercmp(name1->ndata, name2->ndata,
+				   ISC_MIN(name1->length, name2->length)));
 }
 
 bool
@@ -1177,9 +1005,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					return (DNS_R_LABELTOOLONG);
 				}
 				count++;
-				CONVERTTOASCII(c);
 				if (downcase) {
-					c = maptolower[c & 0xff];
+					c = isc_ascii_tolower(c);
 				}
 				*ndata++ = c;
 				nrem--;
@@ -1203,9 +1030,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 					return (DNS_R_LABELTOOLONG);
 				}
 				count++;
-				CONVERTTOASCII(c);
 				if (downcase) {
-					c = maptolower[c & 0xff];
+					c = isc_ascii_tolower(c);
 				}
 				*ndata++ = c;
 				nrem--;
@@ -1221,8 +1047,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			if (!isdigit((unsigned char)c)) {
 				return (DNS_R_BADESCAPE);
 			}
-			value *= 10;
-			value += digitvalue[c & 0xff];
+			value = 10 * value + c - '0';
 			digits++;
 			if (digits == 3) {
 				if (value > 255) {
@@ -1233,7 +1058,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				}
 				count++;
 				if (downcase) {
-					value = maptolower[value];
+					value = isc_ascii_tolower(value);
 				}
 				*ndata++ = value;
 				nrem--;
@@ -1281,7 +1106,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				while (n2 > 0) {
 					c = *label++;
 					if (downcase) {
-						c = maptolower[c & 0xff];
+						c = isc_ascii_tolower(c);
 					}
 					*ndata++ = c;
 					n2--;
@@ -1430,7 +1255,6 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 						return (ISC_R_NOSPACE);
 					}
 					*tdata++ = '\\';
-					CONVERTFROMASCII(c);
 					*tdata++ = c;
 					ndata++;
 					trem -= 2;
@@ -1442,7 +1266,6 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 						if (trem == 0) {
 							return (ISC_R_NOSPACE);
 						}
-						CONVERTFROMASCII(c);
 						*tdata++ = c;
 						ndata++;
 						trem--;
@@ -1571,7 +1394,6 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 					if (c >= 0x41 && c <= 0x5A) {
 						c += 0x20;
 					}
-					CONVERTFROMASCII(c);
 					*tdata++ = c;
 					ndata++;
 					trem--;
@@ -1623,8 +1445,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 isc_result_t
 dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 		  isc_buffer_t *target) {
-	unsigned char *sndata, *ndata;
-	unsigned int nlen, count, labels;
+	unsigned char *ndata;
 	isc_buffer_t buffer;
 
 	/*
@@ -1650,33 +1471,13 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 		name->ndata = ndata;
 	}
 
-	sndata = source->ndata;
-	nlen = source->length;
-	labels = source->labels;
-
-	if (nlen > (target->length - target->used)) {
+	if (source->length > (target->length - target->used)) {
 		MAKE_EMPTY(name);
 		return (ISC_R_NOSPACE);
 	}
 
-	while (labels > 0 && nlen > 0) {
-		labels--;
-		count = *sndata++;
-		*ndata++ = count;
-		nlen--;
-		if (count < 64) {
-			INSIST(nlen >= count);
-			while (count > 0) {
-				*ndata++ = maptolower[(*sndata++)];
-				nlen--;
-				count--;
-			}
-		} else {
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected label type %02x", count);
-			/* Does not return. */
-		}
-	}
+	/* label lengths are < 64 so tolower() does not affect them */
+	isc_ascii_lowercopy(ndata, source->ndata, source->length);
 
 	if (source != name) {
 		name->labels = source->labels;
@@ -1852,7 +1653,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 			break;
 		case fw_ordinary:
 			if (downcase) {
-				c = maptolower[c];
+				c = isc_ascii_tolower(c);
 			}
 			*ndata++ = c;
 			n--;
@@ -2604,19 +2405,6 @@ dns_name_isula(const dns_name_t *name) {
 	return (false);
 }
 
-/*
- * Use a simple table as we don't want all the locale stuff
- * associated with ishexdigit().
- */
-const char ishex[256] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
-			  0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
 bool
 dns_name_istat(const dns_name_t *name) {
 	unsigned char len;
@@ -2641,8 +2429,8 @@ dns_name_istat(const dns_name_t *name) {
 		return (false);
 	}
 
-	if (ndata[0] != '_' || maptolower[ndata[1]] != 't' ||
-	    maptolower[ndata[2]] != 'a')
+	if (ndata[0] != '_' || isc_ascii_tolower(ndata[1]) != 't' ||
+	    isc_ascii_tolower(ndata[2]) != 'a')
 	{
 		return (false);
 	}
@@ -2651,8 +2439,9 @@ dns_name_istat(const dns_name_t *name) {
 
 	while (len > 0) {
 		INSIST(len >= 5);
-		if (ndata[0] != '-' || !ishex[ndata[1]] || !ishex[ndata[2]] ||
-		    !ishex[ndata[3]] || !ishex[ndata[4]])
+		if (ndata[0] != '-' || !isc_hex_char(ndata[1]) ||
+		    !isc_hex_char(ndata[2]) || !isc_hex_char(ndata[3]) ||
+		    !isc_hex_char(ndata[4]))
 		{
 			return (false);
 		}

@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <ctype.h>
 #include <stdbool.h>
 
 #include <isc/buffer.h>
@@ -21,6 +20,23 @@
 #include <isc/lex.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#define D ('0' - 0x0) /* ascii '0' to hex */
+#define U ('A' - 0xA) /* ascii 'A' to hex */
+#define L ('a' - 0xa) /* ascii 'a' to hex */
+
+const uint8_t isc__hex_char[256] = {
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, D, D, D, D, D, D, D, D, D, D, 0, 0, 0, 0, 0, 0, 0, U,
+	U, U, U, U, U, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, L, L, L, L, L, L, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+#undef D
+#undef U
+#undef L
 
 #define RETERR(x)                        \
 	do {                             \
@@ -86,12 +102,13 @@ hex_decode_init(hex_decode_ctx_t *ctx, int length, isc_buffer_t *target) {
 
 static isc_result_t
 hex_decode_char(hex_decode_ctx_t *ctx, int c) {
-	const char *s;
+	uint8_t hexval;
 
-	if ((s = strchr(hex, toupper(c))) == NULL) {
+	hexval = isc_hex_char(c);
+	if (hexval == 0) {
 		return (ISC_R_BADHEX);
 	}
-	ctx->val[ctx->digits++] = (int)(s - hex);
+	ctx->val[ctx->digits++] = c - hexval;
 	if (ctx->digits == 2) {
 		unsigned char num;
 

@@ -1464,9 +1464,11 @@ gcov:
     # source files from lib/dns/rdata/*/, using an even nastier trick.
     - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
     # Help gcovr process inline functions in headers
-    - cp -f lib/isc/include/isc/*.h lib/dns/
     - cp -f lib/dns/include/dns/*.h lib/dns/
     - cp -f lib/dns/include/dns/*.h lib/ns/
+    - cp -f lib/isc/include/isc/*.h lib/isc/
+    - cp -f lib/isc/include/isc/*.h lib/dns/
+    - cp -f lib/isc/include/isc/*.h lib/ns/
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
     # for the purpose of displaying code coverage information in the diff view
     # of a given merge request.

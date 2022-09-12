@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <stdlib.h>
 
+#include <isc/ascii.h>
 #include <isc/net.h>
 #include <isc/netdb.h>
 #include <isc/once.h>
@@ -70,7 +71,6 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	const char *ps = NULL;
 	unsigned int n;
 	char service[32];
-	int i;
 	isc_result_t result;
 
 	REQUIRE(type == dns_rdatatype_wks);
@@ -136,11 +136,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 		 * case sensitive and the database is usually in lowercase.
 		 */
 		strlcpy(service, DNS_AS_STR(token), sizeof(service));
-		for (i = strlen(service) - 1; i >= 0; i--) {
-			if (isupper(service[i] & 0xff)) {
-				service[i] = tolower(service[i] & 0xff);
-			}
-		}
+		isc_ascii_strtolower(service);
 
 		port = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e != 0 && !mygetservbyname(service, ps, &port) &&

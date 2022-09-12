@@ -20,6 +20,19 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * An `isc__hex_char` table entry is non-zero if the character is a hex digit;
+ * You can subtract the table entry from the character to convert the hex digit
+ * to its value. e.g. 'a' - isc__hex_char['a'] == 10. Unlike <ctype.h>
+ * isxdigit(), this saves you from needing another case analysis.
+ */
+extern const uint8_t isc__hex_char[256];
+
+/*
+ * Wrapper so we don't have to cast all over the place like <ctype.h>
+ */
+#define isc_hex_char(c) isc__hex_char[(uint8_t)(c)]
+
 /***
  *** Functions
  ***/

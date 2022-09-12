@@ -12,5 +12,6 @@ LDADD +=			\
 	$(LIBDNS_LIBS)		\
 	$(LIBNS_LIBS)
 
-SUBDIRS = libtest isc dns ns isccfg irs
+SUBDIRS = libtest isc dns ns isccfg irs bench
+
 check_PROGRAMS =
