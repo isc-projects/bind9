@@ -432,28 +432,19 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    form answers are requested, the default is not to show the source
    address and port number of the server that provided the answer.
 
-.. option:: +idnin, +noidnin
+.. option:: +idn, +noidn
 
-   This option processes [or does not process] IDN domain names on input. This requires
-   ``IDN SUPPORT`` to have been enabled at compile time.
+   Enable or disable IDN processing. By default IDN is enabled for
+   input query names, and for display when the output is a terminal.
 
-   The default is to process IDN input when standard output is a tty.
-   The IDN processing on input is disabled when :program:`dig` output is redirected
-   to files, pipes, and other non-tty file descriptors.
-
-.. option:: +idnout, +noidnout
-
-   This option converts [or does not convert] puny code on output. This requires
-   ``IDN SUPPORT`` to have been enabled at compile time.
-
-   The default is to process puny code on output when standard output is
-   a tty. The puny code processing on output is disabled when :program:`dig` output
-   is redirected to files, pipes, and other non-tty file descriptors.
+   You can also turn off :program:`dig`'s IDN processing by setting
+   the ``IDN_DISABLE`` environment variable.
 
 .. option:: +ignore, +noignore
 
-   This option ignores [or does not ignore] truncation in UDP responses instead of retrying with TCP. By
-   default, TCP retries are performed.
+   This option ignores [or does not ignore] truncation in UDP
+   responses instead of retrying with TCP. By default, TCP retries are
+   performed.
 
 .. option:: +keepalive, +nokeepalive
 
@@ -749,17 +740,6 @@ and a query for the NS records of ``isc.org``. A global query option of
 each lookup. The final query has a local query option of :option:`+qr` which
 means that :program:`dig` does not print the initial query when it looks up the
 NS records for ``isc.org``.
-
-IDN Support
-~~~~~~~~~~~
-
-If :program:`dig` has been built with IDN (internationalized domain name)
-support, it can accept and display non-ASCII domain names. :program:`dig`
-appropriately converts character encoding of a domain name before sending
-a request to a DNS server or displaying a reply from the server.
-To turn off IDN support, use the parameters
-:option:`+idnin` and :option:`+idnout`, or define the ``IDN_DISABLE`` environment
-variable.
 
 Return Codes
 ~~~~~~~~~~~~
