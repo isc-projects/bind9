@@ -28,6 +28,7 @@ options {
 	listen-on port @EXTRAPORT1@ { 10.53.0.1; };
 	listen-on-v6 { none; };
 	notify no;
+	notify-delay 0;
 	recursion no;
 	allow-transfer { any; };
 };

@@ -26,6 +26,7 @@ options {
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { fd92:7065:b8e:ffff::2; };
 	notify no;
+	notify-delay 0;
 	recursion no;
 	serial-query-rate 100;
 };
