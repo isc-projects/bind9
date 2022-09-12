@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/hex.h>
 #include <isc/loop.h>
 #include <isc/md.h>
@@ -96,8 +97,11 @@ struct dns_catz_zone {
 	bool db_registered;
 	bool broken;
 
-	isc_refcount_t refs;
+	isc_refcount_t references;
 };
+
+static void
+catz_timer_start(dns_catz_zone_t *zone);
 
 static isc_result_t
 catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
@@ -780,10 +784,6 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	isc_ht_init(&new_zone->coos, catzs->mctx, 4, ISC_HT_CASE_INSENSITIVE);
 
 	new_zone->updatetimer = NULL;
-	isc_timer_create(isc_loop_main(catzs->loopmgr),
-			 dns_catz_update_taskaction, new_zone,
-			 &new_zone->updatetimer);
-
 	isc_time_settoepoch(&new_zone->lastupdated);
 	new_zone->updatepending = false;
 	new_zone->db = NULL;
@@ -794,12 +794,39 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	new_zone->active = true;
 	new_zone->db_registered = false;
 	new_zone->version = DNS_CATZ_VERSION_UNDEFINED;
-	isc_refcount_init(&new_zone->refs, 1);
+	isc_refcount_init(&new_zone->references, 1);
 	new_zone->magic = DNS_CATZ_ZONE_MAGIC;
 
 	*zonep = new_zone;
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+catz_timer_start(dns_catz_zone_t *zone) {
+	isc_time_t now;
+	uint64_t tdiff;
+	isc_interval_t interval;
+
+	isc_time_now(&now);
+	tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
+	if (tdiff < zone->defoptions.min_update_interval) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: new zone version came too soon, "
+			      "deferring update");
+		isc_interval_set(&interval,
+				 zone->defoptions.min_update_interval -
+					 (unsigned int)tdiff,
+				 0);
+	} else {
+		isc_interval_set(&interval, 0, 0);
+	}
+
+	isc_timer_create(isc_loop_current(zone->catzs->loopmgr),
+			 dns_catz_update_taskaction, zone, &zone->updatetimer);
+
+	isc_timer_start(zone->updatetimer, isc_timertype_once, &interval);
 }
 
 isc_result_t
@@ -874,85 +901,75 @@ dns_catz_catzs_attach(dns_catz_zones_t *catzs, dns_catz_zones_t **catzsp) {
 	*catzsp = catzs;
 }
 
-void
-dns_catz_zone_attach(dns_catz_zone_t *zone, dns_catz_zone_t **zonep) {
-	REQUIRE(zonep != NULL && *zonep == NULL);
+static void
+dns__catz_zone_destroy(dns_catz_zone_t *zone) {
+	isc_mem_t *mctx = zone->catzs->mctx;
+	isc_refcount_destroy(&zone->references);
+	if (zone->entries != NULL) {
+		isc_ht_iter_t *iter = NULL;
+		isc_result_t result;
+		isc_ht_iter_create(zone->entries, &iter);
+		for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
+		     result = isc_ht_iter_delcurrent_next(iter))
+		{
+			dns_catz_entry_t *entry = NULL;
 
-	isc_refcount_increment(&zone->refs);
-	*zonep = zone;
-}
-
-void
-dns_catz_zone_detach(dns_catz_zone_t **zonep) {
-	REQUIRE(zonep != NULL && *zonep != NULL);
-	dns_catz_zone_t *zone = *zonep;
-	*zonep = NULL;
-
-	if (isc_refcount_decrement(&zone->refs) == 1) {
-		isc_mem_t *mctx = zone->catzs->mctx;
-		isc_refcount_destroy(&zone->refs);
-		if (zone->entries != NULL) {
-			isc_ht_iter_t *iter = NULL;
-			isc_result_t result;
-			isc_ht_iter_create(zone->entries, &iter);
-			for (result = isc_ht_iter_first(iter);
-			     result == ISC_R_SUCCESS;
-			     result = isc_ht_iter_delcurrent_next(iter))
-			{
-				dns_catz_entry_t *entry = NULL;
-
-				isc_ht_iter_current(iter, (void **)&entry);
-				dns_catz_entry_detach(zone, &entry);
-			}
-			INSIST(result == ISC_R_NOMORE);
-			isc_ht_iter_destroy(&iter);
-
-			/* The hashtable has to be empty now. */
-			INSIST(isc_ht_count(zone->entries) == 0);
-			isc_ht_destroy(&zone->entries);
+			isc_ht_iter_current(iter, (void **)&entry);
+			dns_catz_entry_detach(zone, &entry);
 		}
-		if (zone->coos != NULL) {
-			isc_ht_iter_t *iter = NULL;
-			isc_result_t result;
-			isc_ht_iter_create(zone->coos, &iter);
-			for (result = isc_ht_iter_first(iter);
-			     result == ISC_R_SUCCESS;
-			     result = isc_ht_iter_delcurrent_next(iter))
-			{
-				dns_catz_coo_t *coo = NULL;
+		INSIST(result == ISC_R_NOMORE);
+		isc_ht_iter_destroy(&iter);
 
-				isc_ht_iter_current(iter, (void **)&coo);
-				catz_coo_detach(zone, &coo);
-			}
-			INSIST(result == ISC_R_NOMORE);
-			isc_ht_iter_destroy(&iter);
-
-			/* The hashtable has to be empty now. */
-			INSIST(isc_ht_count(zone->coos) == 0);
-			isc_ht_destroy(&zone->coos);
-		}
-		zone->magic = 0;
-		isc_timer_destroy(&zone->updatetimer);
-		if (zone->db_registered) {
-			INSIST(dns_db_updatenotify_unregister(
-				       zone->db, dns_catz_dbupdate_callback,
-				       zone->catzs) == ISC_R_SUCCESS);
-		}
-		if (zone->dbversion) {
-			dns_db_closeversion(zone->db, &zone->dbversion, false);
-		}
-		if (zone->db != NULL) {
-			dns_db_detach(&zone->db);
-		}
-
-		dns_name_free(&zone->name, mctx);
-		dns_catz_options_free(&zone->defoptions, mctx);
-		dns_catz_options_free(&zone->zoneoptions, mctx);
-
-		zone->catzs = NULL;
-		isc_mem_put(mctx, zone, sizeof(dns_catz_zone_t));
+		/* The hashtable has to be empty now. */
+		INSIST(isc_ht_count(zone->entries) == 0);
+		isc_ht_destroy(&zone->entries);
 	}
+	if (zone->coos != NULL) {
+		isc_ht_iter_t *iter = NULL;
+		isc_result_t result;
+		isc_ht_iter_create(zone->coos, &iter);
+		for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
+		     result = isc_ht_iter_delcurrent_next(iter))
+		{
+			dns_catz_coo_t *coo = NULL;
+
+			isc_ht_iter_current(iter, (void **)&coo);
+			catz_coo_detach(zone, &coo);
+		}
+		INSIST(result == ISC_R_NOMORE);
+		isc_ht_iter_destroy(&iter);
+
+		/* The hashtable has to be empty now. */
+		INSIST(isc_ht_count(zone->coos) == 0);
+		isc_ht_destroy(&zone->coos);
+	}
+	zone->magic = 0;
+
+	if (zone->updatetimer != NULL) {
+		isc_timer_async_destroy(&zone->updatetimer);
+	}
+
+	if (zone->db_registered) {
+		INSIST(dns_db_updatenotify_unregister(
+			       zone->db, dns_catz_dbupdate_callback,
+			       zone->catzs) == ISC_R_SUCCESS);
+	}
+	if (zone->dbversion) {
+		dns_db_closeversion(zone->db, &zone->dbversion, false);
+	}
+	if (zone->db != NULL) {
+		dns_db_detach(&zone->db);
+	}
+
+	dns_name_free(&zone->name, mctx);
+	dns_catz_options_free(&zone->defoptions, mctx);
+	dns_catz_options_free(&zone->zoneoptions, mctx);
+
+	zone->catzs = NULL;
+	isc_mem_put(mctx, zone, sizeof(dns_catz_zone_t));
 }
+
+ISC_REFCOUNT_IMPL(dns_catz_zone, dns__catz_zone_destroy);
 
 void
 dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
@@ -1991,6 +2008,7 @@ dns_catz_update_taskaction(void *arg) {
 	zone->updatepending = false;
 	dns_catz_update_from_db(zone->db, zone->catzs);
 	isc_timer_stop(zone->updatetimer);
+	isc_timer_destroy(&zone->updatetimer);
 	result = isc_time_now(&zone->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&zone->catzs->lock);
@@ -2000,8 +2018,6 @@ isc_result_t
 dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	dns_catz_zones_t *catzs;
 	dns_catz_zone_t *zone = NULL;
-	isc_time_t now;
-	uint64_t tdiff;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_region_t r;
 
@@ -2034,25 +2050,9 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	}
 
 	if (!zone->updatepending) {
-		isc_interval_t interval;
 		zone->updatepending = true;
-		isc_time_now(&now);
-		tdiff = isc_time_microdiff(&now, &zone->lastupdated) / 1000000;
-		if (tdiff < zone->defoptions.min_update_interval) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-				      "catz: new zone version came too soon, "
-				      "deferring update");
-			isc_interval_set(&interval,
-					 zone->defoptions.min_update_interval -
-						 (unsigned int)tdiff,
-					 0);
-		} else {
-			isc_interval_set(&interval, 0, 0);
-		}
 		dns_db_currentversion(db, &zone->dbversion);
-		isc_timer_start(zone->updatetimer, isc_timertype_once,
-				&interval);
+		catz_timer_start(zone);
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
