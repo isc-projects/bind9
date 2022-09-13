@@ -1,3 +1,11 @@
+5976.	[cleanup]	isc_timer_t objects are now created, started and
+			destroyed in a particular loop, and timer callbacks
+			run in that loop. isc_timer_stop() can still be called
+			from any loop; when run from a different loop than
+			the one associated with the timer, the request will
+			be recorded in atomic variable and the timer will
+			be stopped on the next callback call. [GL #3202]
+
 5975.	[func]		Implement TLS transport support for dns_request and
 			dns_dispatch. [GL #3529]
 
