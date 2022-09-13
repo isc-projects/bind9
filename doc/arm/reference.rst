@@ -1074,6 +1074,13 @@ where ``tls-configuration-name`` refers to a previously defined
    observers but does not protect from man-in-the-middle attacks on
    zone transfers.
 
+.. warning::
+
+  Please note that this version of BIND 9 does not support dynamic updates
+  forwarding (see :any:`allow-update-forwarding`) in conjuction with zone
+  transfers over TLS (XoT), that is when the :any:`tls` keyword is used with
+  :any:`primaries`, e.g. ``primaries { 192.0.2.1 tls tls-configuration-name; };``.
+
 .. _options_grammar:
 
 ``options`` Block Grammar
