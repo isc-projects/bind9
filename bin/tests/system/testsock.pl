@@ -27,7 +27,7 @@ my @ids;
 if ($id != 0) {
 	@ids = ($id);
 } else {
-	my $fn = "ifconfig.sh.in";
+	my $fn = "ifconfig.sh";
 	open FH, "< $fn" or die "open < $fn: $!\n";
 	while (<FH>) {
 		@ids = (1..$1)
