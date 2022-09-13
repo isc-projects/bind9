@@ -282,17 +282,17 @@ idna_enabled_test() {
     idna_test "$text" "+idn"               "xn--xx" "xn--xx."
 
     # Fake A-label - the string does not translate to anything.
-    # This name is a syntax error: IDNA expects be punycode-encoded
-    # non-ascii characters after the last hyphen, but they are missing
-    # in this test.
+    # "xn--0000h" decodes to a single "code point" value of U+127252
+    # (1,208,914) which is not a legal Unicode code point.
+    # (https://www.farsightsecurity.com/blog/txt-record/punycode-20180711/)
 
     text="Checking fake A-label"
-    idna_test "$text" "+noidn"             "xn--ah-" "xn--ah-."
-    idna_test "$text" "+noidnin +noidnout" "xn--ah-" "xn--ah-."
-    idna_test "$text" "+noidnin   +idnout" "xn--ah-" "xn--ah-."
-    idna_test "$text" "+idnin   +noidnout" "xn--ah-" "xn--ah-."
-    idna_test "$text" "+idnin     +idnout" "xn--ah-" "xn--ah-."
-    idna_test "$text" "+idn"               "xn--ah-" "xn--ah-."
+    idna_test "$text" "+noidn"             "xn--0000h" "xn--0000h."
+    idna_test "$text" "+noidnin +noidnout" "xn--0000h" "xn--0000h."
+    idna_test "$text" "+noidnin   +idnout" "xn--0000h" "xn--0000h."
+    idna_test "$text" "+idnin   +noidnout" "xn--0000h" "xn--0000h."
+    idna_test "$text" "+idnin     +idnout" "xn--0000h" "xn--0000h."
+    idna_test "$text" "+idn"               "xn--0000h" "xn--0000h."
 
     # Too long a label. The punycode string is too long (at 64 characters).
     # BIND rejects such labels: with +idnin
