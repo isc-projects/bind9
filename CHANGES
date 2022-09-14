@@ -1,3 +1,6 @@
+5967.	[cleanup]	Flagged the obsolete "random-device" option as
+			ancient; it is now an error to configure it. [GL #3399]
+
 5966.	[func]		You can now specify if a server must return a DNS
 			COOKIE before accepting the response over UDP.
 			[GL #2295]
