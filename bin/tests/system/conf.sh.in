@@ -47,7 +47,6 @@ NSEC3HASH=$TOP_BUILDDIR/bin/tools/nsec3hash
 NSLOOKUP=$TOP_BUILDDIR/bin/dig/nslookup
 NSUPDATE=$TOP_BUILDDIR/bin/nsupdate/nsupdate
 NZD2NZF=$TOP_BUILDDIR/bin/tools/named-nzd2nzf
-RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
 REVOKE=$TOP_BUILDDIR/bin/dnssec/dnssec-revoke
 RNDC=$TOP_BUILDDIR/bin/rndc/rndc
 RNDCCONFGEN=$TOP_BUILDDIR/bin/confgen/rndc-confgen

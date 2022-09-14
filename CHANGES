@@ -1,3 +1,5 @@
+5968.	[cleanup]	Remove 'resolve' binary from tests. [GL !6733]
+
 5967.	[cleanup]	Flagged the obsolete "random-device" option as
 			ancient; it is now an error to configure it. [GL #3399]
 
