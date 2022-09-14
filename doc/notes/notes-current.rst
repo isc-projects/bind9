@@ -39,6 +39,11 @@ Feature Changes
 
 - None.
 
+- The ability to use pkcs11 via engine_pkcs11 has been restored, by only using
+  deprecated APIs in OpenSSL 3.0.0. BIND needs to be compiled
+  with '-DOPENSSL_API_COMPAT=10100' specified in the CFLAGS at
+  compile time. :gl:`!6711`
+
 Bug Fixes
 ~~~~~~~~~
 
