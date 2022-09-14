@@ -225,7 +225,6 @@ options {
 	query-source ( ( [ address ] ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ] port ( <integer> | * ) ) ) [ dscp <integer> ];
 	query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ] port ( <integer> | * ) ) ) [ dscp <integer> ];
 	querylog <boolean>;
-	random-device ( <quoted_string> | none );
 	rate-limit {
 		all-per-second <integer>;
 		errors-per-second <integer>;

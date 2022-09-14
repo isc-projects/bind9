@@ -1647,31 +1647,6 @@ default is used.
    classify outgoing DNS traffic, on operating systems that support DSCP.
    Valid values are 0 through 63. It is not configured by default.
 
-.. namedconf:statement:: random-device
-   :tags: server, security
-   :short: Specifies a source of entropy to be used by the server.
-
-   This specifies a source of entropy to be used by the server; it is a
-   device or file from which to read entropy. If it is a file,
-   operations requiring entropy will fail when the file has been
-   exhausted.
-
-   Entropy is needed for cryptographic operations such as TKEY
-   transactions, dynamic update of signed zones, and generation of TSIG
-   session keys. It is also used for seeding and stirring the
-   pseudo-random number generator which is used for less critical
-   functions requiring randomness, such as generation of DNS message
-   transaction IDs.
-
-   If :any:`random-device` is not specified, or if it is set to ``none``,
-   entropy is read from the random number generation function
-   supplied by the cryptographic library with which BIND was linked
-   (i.e. OpenSSL or a PKCS#11 provider).
-
-   The :any:`random-device` option takes effect during the initial
-   configuration load at server startup time and is ignored on
-   subsequent reloads.
-
 .. namedconf:statement:: preferred-glue
    :tags: query
    :short: Controls the order of glue records in an A or AAAA response.
