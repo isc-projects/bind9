@@ -789,7 +789,7 @@ scan-build:
 gcc:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CFLAGS: "${CFLAGS_COMMON} -O3 -DOPENSSL_API_COMPAT=10100"
     # For the jemalloc ./configure option, see https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
     EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb --without-jemalloc ${WITH_READLINE}"
     RUN_MAKE_INSTALL: 1
