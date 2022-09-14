@@ -501,11 +501,83 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 	}
 }
 
+/*%
+ * Convert algorithm type to string.
+ */
+static const char *
+dst_hmac_algorithm_totext(dns_secalg_t alg) {
+	switch (alg) {
+	case DST_ALG_HMACMD5:
+		return ("hmac-md5");
+	case DST_ALG_HMACSHA1:
+		return ("hmac-sha1");
+	case DST_ALG_HMACSHA224:
+		return ("hmac-sha224");
+	case DST_ALG_HMACSHA256:
+		return ("hmac-sha256");
+	case DST_ALG_HMACSHA384:
+		return ("hmac-sha384");
+	case DST_ALG_HMACSHA512:
+		return ("hmac-sha512");
+	default:
+		return ("(unknown)");
+	}
+}
+
+#define DST_ALG_HMAC_FIRST DST_ALG_HMACMD5
+#define DST_ALG_HMAC_LAST  DST_ALG_HMACSHA512
+
+static void
+list_dnssec_algorithms(isc_buffer_t *b) {
+	for (size_t i = DST_ALG_UNKNOWN; i < DST_MAX_ALGS; i++) {
+		if (i == DST_ALG_DH || i == DST_ALG_GSSAPI ||
+		    (i >= DST_ALG_HMAC_FIRST && i <= DST_ALG_HMAC_LAST))
+		{
+			continue;
+		}
+		if (dst_algorithm_supported(i)) {
+			isc_buffer_putstr(b, " ");
+			(void)dns_secalg_totext(i, b);
+		}
+	}
+}
+
+static void
+list_ds_algorithms(isc_buffer_t *b) {
+	for (size_t i = 0; i < 256; i++) {
+		if (dst_ds_digest_supported(i)) {
+			isc_buffer_putstr(b, " ");
+			(void)dns_dsdigest_totext(i, b);
+		}
+	}
+}
+
+static void
+list_hmac_algorithms(isc_buffer_t *b) {
+	isc_buffer_t sb = *b;
+	for (size_t i = DST_ALG_HMAC_FIRST; i <= DST_ALG_HMAC_LAST; i++) {
+		if (i == DST_ALG_GSSAPI) {
+			continue;
+		}
+		if (dst_algorithm_supported(i)) {
+			isc_buffer_putstr(b, " ");
+			isc_buffer_putstr(b, dst_hmac_algorithm_totext(i));
+		}
+	}
+	for (unsigned char *s = isc_buffer_used(&sb); s != isc_buffer_used(b);
+	     s++) {
+		*s = toupper(*s);
+	}
+}
+
 static void
 printversion(bool verbose) {
 	char rndcconf[PATH_MAX], *dot = NULL;
-#if defined(HAVE_GEOIP2)
 	isc_mem_t *mctx = NULL;
+	isc_result_t result;
+	isc_buffer_t b;
+	char buf[512];
+#if defined(HAVE_GEOIP2)
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config = NULL;
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
@@ -572,7 +644,45 @@ printversion(bool verbose) {
 	printf("compiled with protobuf-c version: %s\n", PROTOBUF_C_VERSION);
 	printf("linked to protobuf-c version: %s\n", protobuf_c_version());
 #endif /* if defined(HAVE_DNSTAP) */
-	printf("threads support is enabled\n\n");
+	printf("threads support is enabled\n");
+
+	isc_mem_create(&mctx);
+	result = dst_lib_init(mctx, named_g_engine);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DNSSEC algorithms:");
+	if (result == ISC_R_SUCCESS) {
+		list_dnssec_algorithms(&b);
+	}
+	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DS algorithms:");
+	if (result == ISC_R_SUCCESS) {
+		list_ds_algorithms(&b);
+	}
+	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "HMAC algorithms:");
+	if (result == ISC_R_SUCCESS) {
+		list_hmac_algorithms(&b);
+	}
+	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
+
+	printf("TKEY mode 2 support (Diffie-Hellman): %s\n",
+	       (result == ISC_R_SUCCESS &&
+		dst_algorithm_supported(DST_ALG_DH) &&
+		dst_algorithm_supported(DST_ALG_HMACMD5))
+		       ? "yes"
+		       : "no");
+
+	printf("TKEY mode 3 support (GSS-API): %s\n",
+	       (result == ISC_R_SUCCESS &&
+		dst_algorithm_supported(DST_ALG_GSSAPI))
+		       ? "yes"
+		       : "no");
+	printf("\n");
 
 	/*
 	 * The default rndc.conf and rndc.key paths are in the same
@@ -600,7 +710,6 @@ printversion(bool verbose) {
 	printf("  named lock file:      %s\n", named_g_defaultlockfile);
 #if defined(HAVE_GEOIP2)
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
-	isc_mem_create(&mctx);
 	RTC(cfg_parser_create(mctx, named_g_lctx, &parser));
 	RTC(named_config_parsedefaults(parser, &config));
 	RTC(cfg_map_get(config, "options", &defaults));
