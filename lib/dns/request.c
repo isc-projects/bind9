@@ -571,24 +571,13 @@ cleanup:
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		   const isc_sockaddr_t *address, unsigned int options,
-		   dns_tsigkey_t *key, unsigned int timeout, isc_task_t *task,
+		   const isc_sockaddr_t *srcaddr,
+		   const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		   unsigned int options, dns_tsigkey_t *key,
+		   unsigned int timeout, unsigned int udptimeout,
+		   unsigned int udpretries, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp) {
-	return (dns_request_createvia(requestmgr, message, NULL, address, -1,
-				      options, key, timeout, 0, 0, task, action,
-				      arg, requestp));
-}
-
-isc_result_t
-dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		      unsigned int options, dns_tsigkey_t *key,
-		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_task_t *task,
-		      isc_taskaction_t action, void *arg,
-		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_result_t result;
 	isc_mem_t *mctx = NULL;
@@ -606,7 +595,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 	mctx = requestmgr->mctx;
 
-	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia");
+	req_log(ISC_LOG_DEBUG(3), "dns_request_create");
 
 	if (atomic_load_acquire(&requestmgr->exiting)) {
 		return (ISC_R_SHUTTINGDOWN);
@@ -723,7 +712,7 @@ again:
 		}
 	}
 
-	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: request %p", request);
+	req_log(ISC_LOG_DEBUG(3), "dns_request_create: request %p", request);
 	*requestp = request;
 	return (ISC_R_SUCCESS);
 
@@ -740,7 +729,7 @@ cleanup:
 	isc_task_detach(&(isc_task_t *){ task });
 	/* final detach to shut down request */
 	req_detach(&request);
-	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia: failed %s",
+	req_log(ISC_LOG_DEBUG(3), "dns_request_create: failed %s",
 		isc_result_totext(result));
 	return (result);
 }
@@ -966,7 +955,7 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
-	/* attached in dns_request_createvia/_createraw() */
+	/* attached in dns_request_create/_createraw() */
 	req_detach(&(dns_request_t *){ request });
 }
 
