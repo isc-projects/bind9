@@ -1,3 +1,9 @@
+5966.	[func]		You can now specify if a server must return a DNS
+			COOKIE before accepting the response over UDP.
+			[GL #2295]
+
+			server <prefix> { require-cookie <yes_or_no>; };
+
 5965.	[cleanup]	Move the duplicated ASCII case conversion tables to
 			isc_ascii where they can be shared, and replace the
 			various hot-path tolower() loops with calls to new

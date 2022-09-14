@@ -215,6 +215,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking 'server <prefix> { require-cookie yes; };' triggers TCP when cookie not returned ($n)"
+ret=0
+nextpart ns8/named.run > /dev/null
+$DIG $DIGOPTS +cookie soa from-no-cookie-server.example @10.53.0.8 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+wait_for_log_peek 3 "missing required cookie from 10.53.0.7#" ns8/named.run || ret=1
+wait_for_log_peek 3 "from-no-cookie-server.example/SOA): connecting via TCP" ns8/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "send undersized cookie ($n)"
 ret=0
 $DIG $DIGOPTS +qr +cookie=000000 soa @10.53.0.1 > dig.out.test$n || ret=1
