@@ -284,6 +284,7 @@ stages:
     - test -z "${CROSS_COMPILATION}" || file lib/dns/gen | grep -F -q "ELF 64-bit LSB"
     - test -z "${CROSS_COMPILATION}" || ( ! git ls-files -z --others --exclude lib/dns/gen | xargs -0 file | grep "ELF 64-bit LSB" )
     - if test -z "${OUT_OF_TREE_WORKSPACE}" && test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+    - bin/named/named -V
   needs:
     - job: autoreconf
       artifacts: true
