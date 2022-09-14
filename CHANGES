@@ -1,3 +1,7 @@
+5967.	[cleanup]	Flagged the "random-device" option (which was
+			already nonoperational) as obsolete; configuring it
+			will generate a warning.  [GL #3399]
+
 5963.	[bug]		Ensure struct named_server is properly initialized.
 			[GL #6531]
 
