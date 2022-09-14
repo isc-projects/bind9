@@ -1304,7 +1304,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "https-port", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "querylog", &cfg_type_boolean, 0 },
-	{ "random-device", &cfg_type_qstringornone, 0 },
+	{ "random-device", &cfg_type_qstringornone, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "recursing-file", &cfg_type_qstring, 0 },
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "reuseport", &cfg_type_boolean, 0 },
