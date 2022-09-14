@@ -1029,6 +1029,8 @@ setup(void) {
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif /* ifdef HAVE_LIBSCF */
+	isc_buffer_t b;
+	char buf[512];
 
 	/*
 	 * Get the user and group information before changing the root
@@ -1292,6 +1294,49 @@ setup(void) {
 	named_server_create(named_g_mctx, &named_g_server);
 	ENSURE(named_g_server != NULL);
 	sctx = named_g_server->sctx;
+
+	/*
+	 * Report supported algorithms now that dst_lib_init() has
+	 * been called via named_server_create().
+	 */
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DNSSEC algorithms:");
+	list_dnssec_algorithms(&b);
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
+		      (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DS algorithms:");
+	list_ds_algorithms(&b);
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
+		      (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "HMAC algorithms:");
+	list_hmac_algorithms(&b);
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
+		      (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_printf(&b, "TKEY mode 2 support (Diffie-Hellman): %s\n",
+			  (dst_algorithm_supported(DST_ALG_DH) &&
+			   dst_algorithm_supported(DST_ALG_HMACMD5))
+				  ? "yes"
+				  : "no");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
+		      (int)isc_buffer_usedlength(&b), buf);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_printf(&b, "TKEY mode 3 support (GSS-API): %s\n",
+			  dst_algorithm_supported(DST_ALG_GSSAPI) ? "yes"
+								  : "no");
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
+		      (int)isc_buffer_usedlength(&b), buf);
 
 	/*
 	 * Modify server context according to command line options
