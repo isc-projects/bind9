@@ -1,3 +1,9 @@
+5978.	[port]		The ability to use pkcs11 via engine_pkcs11 has been
+			restored, by only using deprecated APIs in
+			OpenSSL 3.0.0. BIND needs to be compiled with
+			'-DOPENSSL_API_COMPAT=10100' specified in the CFLAGS
+			at compile time. [GL !6711]
+
 5977.	[bug]		named could incorrectly return non-truncated, glueless
 			referrals for responses whose size was close to the UDP
 			packet size limit. [GL #1967]
