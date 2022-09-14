@@ -504,6 +504,55 @@ list_hmac_algorithms(isc_buffer_t *b) {
 }
 
 static void
+logit(isc_buffer_t *b) {
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_WARNING, "%.*s",
+		      (int)isc_buffer_usedlength(b),
+		      (char *)isc_buffer_base(b));
+}
+
+static void
+printit(isc_buffer_t *b) {
+	printf("%.*s\n", (int)isc_buffer_usedlength(b),
+	       (char *)isc_buffer_base(b));
+}
+
+static void
+format_supported_algorithms(void (*emit)(isc_buffer_t *b)) {
+	isc_buffer_t b;
+	char buf[512];
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DNSSEC algorithms:");
+	list_dnssec_algorithms(&b);
+	(*emit)(&b);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "DS algorithms:");
+	list_ds_algorithms(&b);
+	(*emit)(&b);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_putstr(&b, "HMAC algorithms:");
+	list_hmac_algorithms(&b);
+	(*emit)(&b);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_printf(&b, "TKEY mode 2 support (Diffie-Hellman): %s",
+			  (dst_algorithm_supported(DST_ALG_DH) &&
+			   dst_algorithm_supported(DST_ALG_HMACMD5))
+				  ? "yes"
+				  : "non");
+	(*emit)(&b);
+
+	isc_buffer_init(&b, buf, sizeof(buf));
+	isc_buffer_printf(&b, "TKEY mode 3 support (GSS-API): %s",
+			  dst_algorithm_supported(DST_ALG_GSSAPI) ? "yes"
+								  : "no");
+	(*emit)(&b);
+}
+
+static void
 printversion(bool verbose) {
 	char rndcconf[PATH_MAX], *dot = NULL;
 	isc_mem_t *mctx = NULL;
@@ -586,41 +635,14 @@ printversion(bool verbose) {
 
 	isc_mem_create(&mctx);
 	result = dst_lib_init(mctx, named_g_engine);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "DNSSEC algorithms:");
 	if (result == ISC_R_SUCCESS) {
-		list_dnssec_algorithms(&b);
+		isc_buffer_init(&b, buf, sizeof(buf));
+		format_supported_algorithms(printit);
+		printf("\n");
+	} else {
+		printf("DST initialization failure: %s\n",
+		       isc_result_totext(result));
 	}
-	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "DS algorithms:");
-	if (result == ISC_R_SUCCESS) {
-		list_ds_algorithms(&b);
-	}
-	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "HMAC algorithms:");
-	if (result == ISC_R_SUCCESS) {
-		list_hmac_algorithms(&b);
-	}
-	printf("%.*s\n", (int)isc_buffer_usedlength(&b), buf);
-
-	printf("TKEY mode 2 support (Diffie-Hellman): %s\n",
-	       (result == ISC_R_SUCCESS &&
-		dst_algorithm_supported(DST_ALG_DH) &&
-		dst_algorithm_supported(DST_ALG_HMACMD5))
-		       ? "yes"
-		       : "no");
-
-	printf("TKEY mode 3 support (GSS-API): %s\n",
-	       (result == ISC_R_SUCCESS &&
-		dst_algorithm_supported(DST_ALG_GSSAPI))
-		       ? "yes"
-		       : "no");
-	printf("\n");
 
 	/*
 	 * The default rndc.conf and rndc.key paths are in the same
@@ -1029,8 +1051,6 @@ setup(void) {
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
 #endif /* ifdef HAVE_LIBSCF */
-	isc_buffer_t b;
-	char buf[512];
 
 	/*
 	 * Get the user and group information before changing the root
@@ -1299,44 +1319,7 @@ setup(void) {
 	 * Report supported algorithms now that dst_lib_init() has
 	 * been called via named_server_create().
 	 */
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "DNSSEC algorithms:");
-	list_dnssec_algorithms(&b);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "DS algorithms:");
-	list_ds_algorithms(&b);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_putstr(&b, "HMAC algorithms:");
-	list_hmac_algorithms(&b);
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_printf(&b, "TKEY mode 2 support (Diffie-Hellman): %s\n",
-			  (dst_algorithm_supported(DST_ALG_DH) &&
-			   dst_algorithm_supported(DST_ALG_HMACMD5))
-				  ? "yes"
-				  : "no");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(&b), buf);
-
-	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_printf(&b, "TKEY mode 3 support (GSS-API): %s\n",
-			  dst_algorithm_supported(DST_ALG_GSSAPI) ? "yes"
-								  : "no");
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
-		      (int)isc_buffer_usedlength(&b), buf);
+	format_supported_algorithms(logit);
 
 	/*
 	 * Modify server context according to command line options
