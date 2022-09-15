@@ -95,6 +95,7 @@ $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
+nextpart ns2/named.run | grep 'recursion not enabled for view' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -636,11 +637,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "test $n: default allow-recursion configuration"
 ret=0
+nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 -b 127.0.0.1 a.normal.example a > dig.out.ns3.1.$n
 grep 'status: NOERROR' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 -b 10.53.0.1 a.normal.example a > dig.out.ns3.2.$n
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -653,6 +656,7 @@ grep 'status: NOERROR' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 -b 10.53.0.1 ns . > dig.out.ns3.2.$n
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -671,6 +675,7 @@ grep 'ANSWER: 1' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 b.normal.example a > dig.out.ns3.2.$n
 grep 'recursion requested but not available' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'ANSWER: 0' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -697,6 +702,7 @@ $DIG -p ${PORT} @10.53.1.2 d.normal.example a > dig.out.ns3.4.$n
 grep 'recursion requested but not available' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns3.4.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -723,6 +729,7 @@ $DIG -p ${PORT} @10.53.1.2 f.normal.example a > dig.out.ns3.4.$n
 grep 'recursion requested but not available' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'EDE: 18 (Prohibited)' dig.out.ns3.4.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
