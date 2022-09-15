@@ -1713,7 +1713,7 @@ cleanup:
 
 #if defined(EXTENDED_STATS)
 static void
-dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
+dnssecsignstat_dump(uint32_t kval, uint64_t val, void *arg) {
 	FILE *fp;
 	char tagbuf[64];
 	stats_dumparg_t *dumparg = arg;
@@ -1725,7 +1725,11 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 	json_object *zoneobj, *obj;
 #endif /* ifdef HAVE_JSON_C */
 
-	snprintf(tagbuf, sizeof(tagbuf), "%u", tag);
+	/*
+	 * kval is '(algorithm << 16) | keyid'.
+	 */
+	snprintf(tagbuf, sizeof(tagbuf), "%u+%u", (kval >> 16) & 0xff,
+		 kval & 0xffff);
 
 	switch (dumparg->type) {
 	case isc_statsformat_file:

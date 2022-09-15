@@ -510,7 +510,7 @@ typedef enum {
 typedef void (*dns_generalstats_dumper_t)(isc_statscounter_t, uint64_t, void *);
 typedef void (*dns_rdatatypestats_dumper_t)(dns_rdatastatstype_t, uint64_t,
 					    void *);
-typedef void (*dns_dnssecsignstats_dumper_t)(dns_keytag_t, uint64_t, void *);
+typedef void (*dns_dnssecsignstats_dumper_t)(uint32_t, uint64_t, void *);
 typedef void (*dns_opcodestats_dumper_t)(dns_opcode_t, uint64_t, void *);
 typedef void (*dns_rcodestats_dumper_t)(dns_rcode_t, uint64_t, void *);
 
