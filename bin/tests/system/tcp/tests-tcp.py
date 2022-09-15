@@ -35,7 +35,7 @@ def timeout():
 
 
 def create_socket(host, port):
-    sock = socket.create_connection((host, port), timeout=1)
+    sock = socket.create_connection((host, port), timeout=10)
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, True)
     return sock
 
