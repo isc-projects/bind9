@@ -1558,6 +1558,7 @@ main(int argc, char *argv[]) {
 
 	setup();
 	isc_mem_setname(named_g_mctx, "main");
+	INSIST(named_g_server != NULL);
 
 	/*
 	 * Start things running
