@@ -34,13 +34,14 @@ enum encoding {
 	sbpr_base64,
 	sbpr_empty,
 	sbpr_alpn,
-	sbpr_keylist
+	sbpr_keylist,
+	sbpr_dohpath
 };
 static const struct {
 	const char *name; /* Restricted to lowercase LDH by registry. */
 	unsigned int value;
 	enum encoding encoding;
-	bool initial;
+	bool initial; /* Part of the first defined set of encodings. */
 } sbpr[] = {
 	{ "mandatory", 0, sbpr_keylist, true },
 	{ "alpn", 1, sbpr_alpn, true },
@@ -49,6 +50,7 @@ static const struct {
 	{ "ipv4hint", 4, sbpr_ipv4s, true },
 	{ "ech", 5, sbpr_base64, true },
 	{ "ipv6hint", 6, sbpr_ipv6s, true },
+	{ "dohpath", 7, sbpr_dohpath, false },
 };
 
 static isc_result_t
@@ -146,6 +148,30 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 			}
 			case sbpr_text:
 			case sbpr_base64:
+				break;
+			case sbpr_dohpath:
+				/*
+				 * Minimum valid dohpath is "/{?dns}" as
+				 * it MUST be relative (leading "/") and
+				 * MUST contain "{?dns}".
+				 */
+				if (region->length < 7) {
+					return (DNS_R_FORMERR);
+				}
+				/* MUST be relative */
+				if (region->base[0] != '/') {
+					return (DNS_R_FORMERR);
+				}
+				/* MUST be UTF8 */
+				if (!isc_utf8_valid(region->base,
+						    region->length)) {
+					return (DNS_R_FORMERR);
+				}
+				/* MUST contain "{?dns}" */
+				if (strnstr((char *)region->base, "{?dns}",
+					    region->length) == NULL) {
+					return (DNS_R_FORMERR);
+				}
 				break;
 			case sbpr_empty:
 				if (region->length != 0) {
@@ -252,6 +278,7 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 
 		switch (sbpr[i].encoding) {
 		case sbpr_text:
+		case sbpr_dohpath:
 			RETERR(multitxt_fromtext(region, target));
 			break;
 		case sbpr_alpn:
@@ -328,6 +355,19 @@ svc_fromtext(isc_textregion_t *region, isc_buffer_t *target) {
 		len = isc_buffer_usedlength(target) -
 		      isc_buffer_usedlength(&sb) - 2;
 		RETERR(uint16_tobuffer(len, &sb)); /* length */
+		switch (sbpr[i].encoding) {
+		case sbpr_dohpath:
+			/*
+			 * Apply constraints not applied by multitxt_fromtext.
+			 */
+			keyregion.base = isc_buffer_used(&sb);
+			keyregion.length = isc_buffer_usedlength(target) -
+					   isc_buffer_usedlength(&sb);
+			RETERR(svcb_validate(sbpr[i].value, &keyregion));
+			break;
+		default:
+			break;
+		}
 		return (ISC_R_SUCCESS);
 	}
 
