@@ -1,3 +1,6 @@
+5991.	[protocol]	Add support for parsing and validating "dohpath" to
+			SVCB. [GL #3544]
+
 5990.	[test]		fuzz/dns_message_checksig now creates the key directory
 			it uses when testing in /tmp at run time. [GL #3569]
 
