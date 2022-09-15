@@ -1,3 +1,5 @@
+5970.	[func]		Log the reason why a query was refused. [GL !6669]
+
 5969.	[bug]		DNSSEC signing statistics failed to identify the
 			algorithm involved.  The key names have been changed
 			to be the algorithm number followed by "+" followed
