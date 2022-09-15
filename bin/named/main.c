@@ -1716,6 +1716,7 @@ main(int argc, char *argv[]) {
 	isc_mem_setname(named_g_mctx, "main", NULL);
 
 	setup();
+	INSIST(named_g_server != NULL);
 
 	/*
 	 * Start things running and then wait for a shutdown request
