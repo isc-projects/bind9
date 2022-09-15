@@ -5876,9 +5876,21 @@ If no port is specified, port 80 is used for HTTP channels. The asterisk
 Attempts to open a statistics channel are restricted by the
 optional ``allow`` clause. Connections to the statistics channel are
 permitted based on the :term:`address_match_list`. If no ``allow`` clause is
-present, :iscman:`named` accepts connection attempts from any address; since
-the statistics may contain sensitive internal information, it is highly
-recommended to restrict the source of connection requests appropriately.
+present, :iscman:`named` accepts connection attempts from any address. Since
+the statistics may contain sensitive internal information, the source of
+connection requests must be restricted appropriately so that only
+trusted parties can access the statistics channel.
+
+Gathering data exposed by the statistics channel locks various subsystems in
+:iscman:`named`, which could slow down query processing if statistics data is
+requested too often.
+
+An issue in the statistics channel would be considered a security issue
+only if it could be exploited by unprivileged users circumventing the access
+control list. In other words, any issue in the statistics channel that could be
+used to access information unavailable otherwise, or to crash :iscman:`named`, is
+not considered a security issue if it can be avoided through the
+use of a secure configuration.
 
 If no :any:`statistics-channels` statement is present, :iscman:`named` does not
 open any communication channels.

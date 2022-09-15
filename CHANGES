@@ -1,3 +1,7 @@
+5972.	[bug]		Gracefully handle when the statschannel HTTP connection
+			gets cancelled during sending data back to the client.
+			[GL #3542]
+
 5971.	[func]		Add libsystemd sd_notify() support. [GL #1176]
 
 5970.	[func]		Log the reason why a query was refused. [GL !6669]
