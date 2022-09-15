@@ -297,7 +297,6 @@ typedef enum isc__netievent_type {
 
 	netievent_udplisten,
 	netievent_udpstop,
-	netievent_udpread,
 
 	netievent_tcplisten,
 	netievent_tcpstop,
@@ -1313,8 +1312,6 @@ void
 isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
  */
@@ -1834,7 +1831,6 @@ NETIEVENT_SOCKET_TYPE(tlsstartread);
 NETIEVENT_SOCKET_HANDLE_TYPE(tlscancel);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpstop);
-NETIEVENT_SOCKET_TYPE(udpread);
 
 NETIEVENT_SOCKET_TYPE(tcpdnsclose);
 NETIEVENT_SOCKET_TYPE(tcpdnsread);
@@ -1893,7 +1889,6 @@ NETIEVENT_SOCKET_DECL(tlsstartread);
 NETIEVENT_SOCKET_HANDLE_DECL(tlscancel);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpstop);
-NETIEVENT_SOCKET_DECL(udpread);
 
 NETIEVENT_SOCKET_DECL(tcpdnsclose);
 NETIEVENT_SOCKET_DECL(tcpdnsread);
