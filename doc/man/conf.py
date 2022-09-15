@@ -11,8 +11,6 @@
 # information regarding copyright ownership.
 ############################################################################
 
-# flake8: noqa: E501
-
 #
 # Configuration file for the Sphinx documentation builder.
 #
