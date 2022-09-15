@@ -208,7 +208,7 @@ main(int argc, char **argv) {
 	}
 
 	/* Use canonical algorithm name */
-	algname = alg_totext(alg);
+	algname = dst_hmac_algorithm_totext(alg);
 
 	isc_mem_create(&mctx);
 

@@ -1225,4 +1225,11 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
  *	'to' and 'from' to be valid.
  */
 
+const char *
+dst_hmac_algorithm_totext(dst_algorithm_t alg);
+/*$<
+ * Return the name associtated with the HMAC algorithm 'alg'
+ * or return "unknown".
+ */
+
 ISC_LANG_ENDDECLS

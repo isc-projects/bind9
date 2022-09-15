@@ -222,7 +222,7 @@ main(int argc, char **argv) {
 	if (keysize < 0) {
 		keysize = alg_bits(alg);
 	}
-	algname = alg_totext(alg);
+	algname = dst_hmac_algorithm_totext(alg);
 
 	isc_mem_create(&mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
