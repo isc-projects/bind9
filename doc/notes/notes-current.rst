@@ -74,6 +74,9 @@ Feature Changes
   libuv should be available on all supported platforms either as a native
   package or as a backport. :gl:`#3567`
 
+- Add support for parsing and validating ``dohpath`` to SVBC records.
+  :gl:`#3544`
+
 Bug Fixes
 ~~~~~~~~~
 
