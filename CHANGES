@@ -1,3 +1,6 @@
+5973.	[bug]		Fixed a possible invalid detach in UPDATE
+			processing. [GL #3522]
+
 5972.	[bug]		Gracefully handle when the statschannel HTTP connection
 			gets cancelled during sending data back to the client.
 			[GL #3542]
