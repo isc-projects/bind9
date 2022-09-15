@@ -11,8 +11,6 @@
 # information regarding copyright ownership.
 ############################################################################
 
-# flake8: noqa: E501
-
 from pathlib import Path
 import re
 import sys

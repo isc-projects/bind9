@@ -86,7 +86,7 @@
  - [ ] ***(QA)*** Merge published release tags (non-linearly) back into the their relevant development/maintenance branches.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
- - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Flake8, PyLint) by modifying the relevant `Dockerfile`.
+ - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint) by modifying the relevant `Dockerfile`.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
 [^2]: As a rule of thumb, security vulnerabilities which have reproducers merged to the public repository are considered okay for full disclosure.
