@@ -169,10 +169,10 @@ sendquery(isc_task_t *task) {
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
 
-	result = dns_request_createvia(requestmgr, message,
-				       have_src ? &srcaddr : NULL, &dstaddr, -1,
-				       DNS_REQUESTOPT_TCP, NULL, TIMEOUT, 0, 0,
-				       task, recvresponse, message, &request);
+	result = dns_request_create(requestmgr, message,
+				    have_src ? &srcaddr : NULL, &dstaddr, -1,
+				    DNS_REQUESTOPT_TCP, NULL, TIMEOUT, 0, 0,
+				    task, recvresponse, message, &request);
 	CHECK("dns_request_create", result);
 
 	return (ISC_R_SUCCESS);

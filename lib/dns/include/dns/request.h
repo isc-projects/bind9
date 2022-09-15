@@ -155,49 +155,13 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		   const isc_sockaddr_t *address, unsigned int options,
-		   dns_tsigkey_t *key, unsigned int timeout, isc_task_t *task,
+		   const isc_sockaddr_t *srcaddr,
+		   const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		   unsigned int options, dns_tsigkey_t *key,
+		   unsigned int timeout, unsigned int udptimeout,
+		   unsigned int udpretries, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp);
-/*%<
- * Create and send a request.
- *
- * Notes:
- *
- *\li	'message' will be rendered and sent to 'address'.  If the
- *	#DNS_REQUESTOPT_TCP option is set, TCP will be used,
- *	#DNS_REQUESTOPT_SHARE option is set too, connecting TCP
- *	(vs. connected) will be shared too.  The request
- *	will timeout after 'timeout' seconds.
- *
- *\li	If the #DNS_REQUESTOPT_CASE option is set, use case sensitive
- *	compression.
- *
- *\li	When the request completes, successfully, due to a timeout, or
- *	because it was canceled, a completion event will be sent to 'task'.
- *
- * Requires:
- *
- *\li	'message' is a valid DNS message.
- *
- *\li	'address' is a valid sockaddr.
- *
- *\li	'timeout' > 0
- *
- *\li	'task' is a valid task.
- *
- *\li	requestp != NULL && *requestp == NULL
- */
-
-isc_result_t
-dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
-		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		      unsigned int options, dns_tsigkey_t *key,
-		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_task_t *task,
-		      isc_taskaction_t action, void *arg,
-		      dns_request_t **requestp);
 /*%<
  * Create and send a request.
  *

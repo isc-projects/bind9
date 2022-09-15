@@ -122,9 +122,9 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	result = dns_tkey_builddeletequery(query, tsigkey);
 	CHECK("dns_tkey_builddeletequery", result);
 
-	result = dns_request_create(requestmgr, query, &address,
-				    DNS_REQUESTOPT_TCP, tsigkey, TIMEOUT, task,
-				    recvquery, query, &request);
+	result = dns_request_create(requestmgr, query, NULL, &address, -1,
+				    DNS_REQUESTOPT_TCP, tsigkey, TIMEOUT, 0, 0,
+				    task, recvquery, query, &request);
 	CHECK("dns_request_create", result);
 }
 
