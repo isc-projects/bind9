@@ -1,3 +1,10 @@
+5982.	[func]		Extend dig to allow requests to be signed using SIG(0)
+			as well as providing a mechanism to specify the signing
+			time. [GL !5923]
+
+5981.	[test]		Add dns_message_checksig fuzzer to check messages
+			signed using TSIG or SIG(0). [GL !5923]
+
 5978.	[port]		The ability to use pkcs11 via engine_pkcs11 has been
 			restored, by only using deprecated APIs in
 			OpenSSL 3.0.0. BIND needs to be compiled with
