@@ -1,3 +1,6 @@
+5974.	[bug]		Fix an assertion failure in dispatch caused by
+			extra read callback call. [GL #3545]
+
 5973.	[bug]		Fixed a possible invalid detach in UPDATE
 			processing. [GL #3522]
 
