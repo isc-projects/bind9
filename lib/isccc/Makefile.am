@@ -27,6 +27,7 @@ libisccc_la_SOURCES =		\
 libisccc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(LIBISC_CFLAGS)	\
+	$(LIBDNS_CFLAGS)	\
 	$(LIBISCCC_CFLAGS)
 
 libisccc_la_LIBADD =	\
