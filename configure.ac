@@ -925,6 +925,26 @@ AC_SUBST([ZLIB_CFLAGS])
 AC_SUBST([ZLIB_LIBS])
 
 #
+# was --with-libsystemd specified?
+#
+# [pairwise: --with-libsystemd=auto, --with-libsystemd=yes, --without-libsystemd]
+AC_ARG_WITH([libsystemd],
+	    [AS_HELP_STRING([--with-libsystemd],
+			    [build with libsystemd integration [default=auto]])],
+	    [], [with_libsystemd=auto])
+
+AS_CASE([$with_libsystemd],
+	[no],[],
+	[auto],[PKG_CHECK_MODULES([LIBSYSTEMD], [libsystemd],
+				  [AC_DEFINE([HAVE_LIBSYSTEMD], [1], [Use libsystemd library])],
+				  [:])],
+	[yes],[PKG_CHECK_MODULES([LIBSYSTEMD], [libsystemd],
+				 [AC_DEFINE([HAVE_LIBSYSTEMD], [1], [Use libsystemd library])])],
+	[AC_MSG_ERROR([Specifying libsystemd installation path is not supported, adjust PKG_CONFIG_PATH instead])])
+AC_SUBST([LIBSYSTEMD_CFLAGS])
+AC_SUBST([LIBSYSTEMD_LIBS])
+
+#
 # Check if the system supports glibc-compatible backtrace() function.
 #
 AC_CHECK_HEADERS([execinfo.h],

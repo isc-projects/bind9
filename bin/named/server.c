@@ -28,6 +28,10 @@
 #include <fstrm.h>
 #endif
 
+#ifdef HAVE_LIBSYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include <isc/aes.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
@@ -215,11 +219,12 @@
 	} while (0)
 
 #define CHECKFATAL(op, msg)                         \
-	do {                                        \
+	{                                           \
 		result = (op);                      \
-		if (result != ISC_R_SUCCESS)        \
+		if (result != ISC_R_SUCCESS) {      \
 			fatal(server, msg, result); \
-	} while (0)
+		}                                   \
+	}
 
 /*%
  * Maximum ADB size for views that share a cache.  Use this limit to suppress
@@ -9912,6 +9917,15 @@ view_loaded(void *arg) {
 			      "FIPS mode is %s",
 			      FIPS_mode() ? "enabled" : "disabled");
 #endif /* ifdef HAVE_FIPS_MODE */
+
+#if HAVE_LIBSYSTEMD
+		sd_notifyf(0,
+			   "READY=1\n"
+			   "STATUS=running\n"
+			   "MAINPID=%" PRId64 "\n",
+			   (int64_t)getpid());
+#endif /* HAVE_LIBSYSTEMD */
+
 		atomic_store(&server->reload_status, NAMED_RELOAD_DONE);
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -10084,6 +10098,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	INSIST(task == server->task);
 
 	isc_event_free(&event);
+
+#if HAVE_LIBSYSTEMD
+	sd_notify(0, "STOPPING=1\n");
+#endif /* HAVE_LIBSYSTEMD */
 
 	/*
 	 * We need to shutdown the interface before going
@@ -10526,6 +10544,10 @@ reload(named_server_t *server) {
 	isc_result_t result;
 
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+#if HAVE_LIBSYSTEMD
+	sd_notify(0, "RELOADING=1\n"
+		     "STATUS=reload command received\n");
+#endif /* HAVE_LIBSYSTEMD */
 
 	CHECK(loadconfig(server));
 
@@ -10542,6 +10564,12 @@ reload(named_server_t *server) {
 		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
+#if HAVE_LIBSYSTEMD
+	sd_notifyf(0,
+		   "READY=1\n"
+		   "STATUS=reload command finished: %s\n",
+		   isc_result_totext(result));
+#endif /* HAVE_LIBSYSTEMD */
 	return (result);
 }
 
@@ -10903,6 +10931,10 @@ isc_result_t
 named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
+#if HAVE_LIBSYSTEMD
+	sd_notify(0, "RELOADING=1\n"
+		     "STATUS=reconfig command received\n");
+#endif /* HAVE_LIBSYSTEMD */
 
 	CHECK(loadconfig(server));
 
@@ -10919,6 +10951,12 @@ named_server_reconfigcommand(named_server_t *server) {
 		atomic_store(&server->reload_status, NAMED_RELOAD_FAILED);
 	}
 cleanup:
+#if HAVE_LIBSYSTEMD
+	sd_notifyf(0,
+		   "READY=1\n"
+		   "STATUS=reconfig command finished: %s\n",
+		   isc_result_totext(result));
+#endif /* HAVE_LIBSYSTEMD */
 	return (result);
 }
 

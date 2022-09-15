@@ -14,6 +14,7 @@ AM_CPPFLAGS +=				\
 	$(MAXMINDDB_CFLAGS)		\
 	$(DNSTAP_CFLAGS)		\
 	$(LIBUV_CFLAGS)			\
+	$(LIBSYSTEMD_CFLAGS)		\
 	$(ZLIB_CFLAGS)
 
 if HAVE_JSON_C
@@ -109,7 +110,7 @@ named_LDADD =					\
 	$(MAXMINDDB_LIBS)			\
 	$(DNSTAP_LIBS)				\
 	$(LIBUV_LIBS)				\
-	$(LIBXML2_LIBS)				\
+	$(LIBSYSTEMD_LIBS)			\
 	$(ZLIB_LIBS)
 
 if HAVE_JSON_C
@@ -121,3 +122,8 @@ if HAVE_LIBNGHTTP2
 named_LDADD +=					\
 	$(LIBNGHTTP2_LIBS)
 endif HAVE_LIBNGHTTP2
+
+if HAVE_LIBXML2
+named_LDADD +=					\
+	$(LIBXML2_LIBS)
+endif HAVE_LIBXML2

@@ -33,6 +33,11 @@ New Features
   a given server support DNS COOKIE.  It can also be used to force all
   non DNS COOKIE responses to fall back to TCP.  :gl:`#2295`
 
+- Add libsystemd sd_notify() integration that allows the ``named`` to report
+  status to the supervisor.  This allows the systemd to wait until ``named`` is
+  fully started before starting other services that depend on name resolution.
+  :gl:`#1176`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
