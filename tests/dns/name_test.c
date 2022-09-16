@@ -379,6 +379,84 @@ ISC_RUN_TEST_IMPL(compression) {
 	dns_compress_invalidate(&cctx);
 }
 
+#define NAME_LO 25
+#define NAME_HI 250000
+
+/*
+ * test compression context hash set collisions and rollbacks
+ */
+ISC_RUN_TEST_IMPL(collision) {
+	isc_result_t result;
+	isc_region_t r;
+	dns_compress_t cctx;
+	isc_buffer_t message;
+	uint8_t msgbuf[65536];
+	dns_name_t name;
+	char namebuf[256];
+	uint8_t offsets[128];
+
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_LARGE);
+	isc_buffer_init(&message, msgbuf, sizeof(msgbuf));
+	dns_name_init(&name, offsets);
+
+	/*
+	 * compression offsets are not allowed to be zero so our
+	 * names need to start after a little fake header
+	 */
+	isc_buffer_putuint16(&message, 0xEAD);
+
+	static const char zone[] = "test";
+	const int zonelen = sizeof(zone) - 1;
+	unsigned int zone_coff = 0;
+
+	for (int i = NAME_LO; i < NAME_HI; i++) {
+		unsigned int prefix_len, suffix_coff;
+		unsigned int coff = isc_buffer_usedlength(&message);
+
+		int len = snprintf(namebuf, sizeof(namebuf), ".%d%c%s", i,
+				   zonelen, zone);
+		namebuf[0] = len - zonelen - 2;
+		r = (isc_region_t){ .base = (uint8_t *)namebuf,
+				    .length = len + 1 };
+		dns_name_fromregion(&name, &r);
+
+		/* the name we are about to add must partially match */
+		prefix_len = name.length;
+		suffix_coff = 0;
+		dns_compress_name(&cctx, &message, &name, &prefix_len,
+				  &suffix_coff);
+		if (i == NAME_LO) {
+			assert_int_equal(prefix_len, name.length);
+			assert_int_equal(suffix_coff, 0);
+			zone_coff = 2 + len - zonelen - 1;
+		} else {
+			assert_int_equal(prefix_len, len - zonelen - 1);
+			assert_int_equal(suffix_coff, zone_coff);
+		}
+		dns_compress_rollback(&cctx, coff);
+
+		result = dns_name_towire(&name, &cctx, &message);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		/* we must be able to find the name we just added */
+		prefix_len = name.length;
+		suffix_coff = 0;
+		dns_compress_name(&cctx, &message, &name, &prefix_len,
+				  &suffix_coff);
+		assert_int_equal(prefix_len, 0);
+		assert_int_equal(suffix_coff, coff);
+
+		/* don't let the hash set get too full */
+		if (cctx.count > cctx.mask * 3 / 5) {
+			dns_compress_rollback(&cctx, zone_coff + zonelen + 2);
+			isc_buffer_clear(&message);
+			isc_buffer_add(&message, zone_coff + zonelen + 2);
+		}
+	}
+
+	dns_compress_invalidate(&cctx);
+}
+
 /* is trust-anchor-telemetry test */
 ISC_RUN_TEST_IMPL(istat) {
 	dns_fixedname_t fixed;
@@ -823,6 +901,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(fullcompare)
 ISC_TEST_ENTRY(compression)
+ISC_TEST_ENTRY(collision)
 ISC_TEST_ENTRY(istat)
 ISC_TEST_ENTRY(init)
 ISC_TEST_ENTRY(invalidate)
