@@ -827,10 +827,10 @@ EOF
 
   # look for complaints from lib/dns/rpz.c and bin/name/query.c
   for runfile in ns*/named.run; do
-    EMSGS=`nextpart $runfile | egrep -l 'invalid rpz|rpz.*failed'`
+    EMSGS=`nextpart $runfile | grep -E -l 'invalid rpz|rpz.*failed'`
     if test -n "$EMSGS"; then
       setret "error messages in $runfile starting with:"
-      egrep 'invalid rpz|rpz.*failed' ns*/named.run | \
+      grep -E 'invalid rpz|rpz.*failed' ns*/named.run | \
               sed -e '10,$d' -e 's/^//' | cat_i
     fi
   done
