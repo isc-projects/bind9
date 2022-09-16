@@ -1194,7 +1194,7 @@ wait_until_raw_zone_update_is_processed() {
 	zone="$1"
 	for i in 1 2 3 4 5 6 7 8 9 10
 	do
-		if nextpart ns3/named.run | egrep "zone ${zone}.*(sending notifies|receive_secure_serial)" > /dev/null; then
+		if nextpart ns3/named.run | grep -E "zone ${zone}.*(sending notifies|receive_secure_serial)" > /dev/null; then
 			return
 		fi
 		sleep 1

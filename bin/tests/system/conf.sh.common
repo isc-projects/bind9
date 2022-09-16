@@ -500,7 +500,7 @@ _search_log() (
 	nextpart "$file" | grep -F -e "$msg" > /dev/null
 )
 
-# _search_log_re: same as _search_log but the message is an egrep regex
+# _search_log_re: same as _search_log but the message is an grep -E regex
 _search_log_re() (
 	msg="$1"
 	file="$2"
@@ -528,7 +528,7 @@ wait_for_log() (
         return 1
 )
 
-# wait_for_log_re: same as wait_for_log, but the message is an egrep regex
+# wait_for_log_re: same as wait_for_log, but the message is an grep -E regex
 wait_for_log_re() (
 	timeout="$1"
 	msg="$2"
