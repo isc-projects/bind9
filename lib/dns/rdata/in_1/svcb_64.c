@@ -363,7 +363,7 @@ svcparamkey(unsigned short value, enum encoding *encoding, char *buf,
 		}
 	}
 	n = snprintf(buf, len, "key%u", value);
-	INSIST(n > 0 && (unsigned)n < len);
+	INSIST(n > 0 && (unsigned int)n < len);
 	*encoding = sbpr_text;
 	return (buf);
 }
@@ -630,7 +630,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 	num = uint16_fromregion(&region);
 	isc_region_consume(&region, 2);
 	n = snprintf(buf, sizeof(buf), "%u ", num);
-	INSIST(n > 0 && (unsigned)n < sizeof(buf));
+	INSIST(n > 0 && (unsigned int)n < sizeof(buf));
 	RETERR(str_totext(buf, target));
 
 	/*
@@ -675,7 +675,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 			num = uint16_fromregion(&r);
 			isc_region_consume(&r, 2);
 			n = snprintf(buf, sizeof(buf), "%u", num);
-			INSIST(n > 0 && (unsigned)n < sizeof(buf));
+			INSIST(n > 0 && (unsigned int)n < sizeof(buf));
 			RETERR(str_totext(buf, target));
 			INSIST(r.length == 0U);
 			break;

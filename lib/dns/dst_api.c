@@ -2205,7 +2205,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	isc_buffer_usedregion(&classb, &r);
-	if ((unsigned)fwrite(r.base, 1, r.length, fp) != r.length) {
+	if ((unsigned int)fwrite(r.base, 1, r.length, fp) != r.length) {
 		ret = DST_R_WRITEERROR;
 	}
 
@@ -2216,7 +2216,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	isc_buffer_usedregion(&textb, &r);
-	if ((unsigned)fwrite(r.base, 1, r.length, fp) != r.length) {
+	if ((unsigned int)fwrite(r.base, 1, r.length, fp) != r.length) {
 		ret = DST_R_WRITEERROR;
 	}
 

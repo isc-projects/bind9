@@ -734,7 +734,7 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		l += strlen(ext) + 1;
 	}
 
-	if (l > length || l > (unsigned)PATH_MAX) {
+	if (l > length || l > (unsigned int)PATH_MAX) {
 		return (ISC_R_NOSPACE);
 	}
 

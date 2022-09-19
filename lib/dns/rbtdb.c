@@ -2421,7 +2421,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	serial = version->serial;
 	if (version->writer) {
 		if (commit) {
-			unsigned cur_ref;
+			unsigned int cur_ref;
 			rbtdb_version_t *cur_version;
 
 			INSIST(version->commit_ok);

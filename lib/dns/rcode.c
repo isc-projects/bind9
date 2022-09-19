@@ -231,7 +231,7 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source, unsigned int max,
 	 */
 	v = snprintf(buffer, sizeof(buffer), "%.*s", (int)source->length,
 		     source->base);
-	if (v < 0 || (unsigned)v != source->length) {
+	if (v < 0 || (unsigned int)v != source->length) {
 		return (ISC_R_BADNUMBER);
 	}
 	INSIST(buffer[source->length] == '\0');

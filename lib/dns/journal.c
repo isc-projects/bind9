@@ -1837,7 +1837,7 @@ read_one_rr(dns_journal_t *j);
  */
 
 static isc_result_t
-size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned size) {
+size_buffer(isc_mem_t *mctx, isc_buffer_t *b, unsigned int size) {
 	if (b->length < size) {
 		void *mem = isc_mem_get(mctx, size);
 		if (mem == NULL) {

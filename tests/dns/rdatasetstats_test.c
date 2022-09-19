@@ -112,7 +112,7 @@ verify_active_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned)value);
+		type, (unsigned int)value);
 #endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) == 0 &&
 	    (attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
@@ -143,7 +143,7 @@ verify_stale_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned)value);
+		type, (unsigned int)value);
 #endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
 		assert_int_equal(value, 1);
@@ -172,7 +172,7 @@ verify_ancient_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_ANCIENT) ? "~" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_STALE) ? "#" : " ",
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
-		type, (unsigned)value);
+		type, (unsigned int)value);
 #endif /* if debug */
 	if ((attributes & DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
 		assert_int_equal(value, 1);

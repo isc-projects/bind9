@@ -1236,7 +1236,7 @@ roll_increment(isc_logfile_t *file) {
 		 */
 		for (greatest = 0; greatest < INT_MAX; greatest++) {
 			n = snprintf(current, sizeof(current), "%s.%u", path,
-				     (unsigned)greatest);
+				     (unsigned int)greatest);
 			if (n >= (int)sizeof(current) || n < 0 ||
 			    !isc_file_exists(current)) {
 				break;
@@ -1263,13 +1263,13 @@ roll_increment(isc_logfile_t *file) {
 	for (i = greatest; i > 0; i--) {
 		result = ISC_R_SUCCESS;
 		n = snprintf(current, sizeof(current), "%s.%u", path,
-			     (unsigned)(i - 1));
+			     (unsigned int)(i - 1));
 		if (n >= (int)sizeof(current) || n < 0) {
 			result = ISC_R_NOSPACE;
 		}
 		if (result == ISC_R_SUCCESS) {
 			n = snprintf(newpath, sizeof(newpath), "%s.%u", path,
-				     (unsigned)i);
+				     (unsigned int)i);
 			if (n >= (int)sizeof(newpath) || n < 0) {
 				result = ISC_R_NOSPACE;
 			}

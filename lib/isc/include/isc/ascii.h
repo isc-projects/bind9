@@ -44,7 +44,7 @@ isc__ascii_tolower1(uint8_t c) {
  * Copy `len` bytes from `src` to `dst`, converting to lower case.
  */
 static inline void
-isc_ascii_lowercopy(uint8_t *dst, const uint8_t *src, unsigned len) {
+isc_ascii_lowercopy(uint8_t *dst, const uint8_t *src, unsigned int len) {
 	while (len-- > 0) {
 		*dst++ = isc__ascii_tolower1(*src++);
 	}
@@ -56,7 +56,7 @@ isc_ascii_lowercopy(uint8_t *dst, const uint8_t *src, unsigned len) {
 static inline void
 isc_ascii_strtolower(char *str) {
 	isc_ascii_lowercopy((uint8_t *)str, (uint8_t *)str,
-			    (unsigned)strlen(str));
+			    (unsigned int)strlen(str));
 }
 
 /*
@@ -117,7 +117,7 @@ isc__ascii_load8(const uint8_t *ptr) {
  * Compare `len` bytes at `a` and `b` for case-insensitive equality
  */
 static inline bool
-isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned len) {
+isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	uint64_t a8 = 0, b8 = 0;
 	while (len >= 8) {
 		a8 = isc__ascii_tolower8(isc__ascii_load8(a));
@@ -144,7 +144,7 @@ isc_ascii_lowerequal(const uint8_t *a, const uint8_t *b, unsigned len) {
  * i.e. they treat the strings as big-endian numbers.
  */
 static inline int
-isc_ascii_lowercmp(const uint8_t *a, const uint8_t *b, unsigned len) {
+isc_ascii_lowercmp(const uint8_t *a, const uint8_t *b, unsigned int len) {
 	uint64_t a8 = 0, b8 = 0;
 	while (len >= 8) {
 		a8 = isc__ascii_tolower8(htobe64(isc__ascii_load8(a)));

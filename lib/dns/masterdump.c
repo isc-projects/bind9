@@ -307,7 +307,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 
 	if (ntabs > 0) {
 		isc_buffer_availableregion(target, &r);
-		if (r.length < (unsigned)ntabs) {
+		if (r.length < (unsigned int)ntabs) {
 			return (ISC_R_NOSPACE);
 		}
 		p = r.base;
@@ -330,7 +330,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 	INSIST(nspaces >= 0);
 
 	isc_buffer_availableregion(target, &r);
-	if (r.length < (unsigned)nspaces) {
+	if (r.length < (unsigned int)nspaces) {
 		return (ISC_R_NOSPACE);
 	}
 	p = r.base;

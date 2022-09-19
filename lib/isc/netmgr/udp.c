@@ -506,7 +506,7 @@ isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
  */
 void
 isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-		    const struct sockaddr *addr, unsigned flags) {
+		    const struct sockaddr *addr, unsigned int flags) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc__nm_uvreq_t *req = NULL;
 	uint32_t maxudp;

@@ -7209,13 +7209,13 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 	r.base = label;
 	r.length = sizeof(label);
 	m = snprintf(r.base, r.length, "_ta");
-	if (m < 0 || (unsigned)m > r.length) {
+	if (m < 0 || (unsigned int)m > r.length) {
 		return (ISC_R_FAILURE);
 	}
 	isc_textregion_consume(&r, m);
 	for (i = 0; i < n; i++) {
 		m = snprintf(r.base, r.length, "-%04x", ids[i]);
-		if (m < 0 || (unsigned)m > r.length) {
+		if (m < 0 || (unsigned int)m > r.length) {
 			return (ISC_R_FAILURE);
 		}
 		isc_textregion_consume(&r, m);
@@ -8615,7 +8615,7 @@ load_configuration(const char *filename, named_server_t *server,
 
 	max = isc_quota_getmax(&server->sctx->recursionquota);
 	if (max > 1000) {
-		unsigned margin = ISC_MAX(100, named_g_cpus + 1);
+		unsigned int margin = ISC_MAX(100, named_g_cpus + 1);
 		if (margin + 100 > max) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -12461,8 +12461,8 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "TCP high-water: %u\n",
-		 (unsigned)ns_stats_get_counter(server->sctx->nsstats,
-						ns_statscounter_tcphighwater));
+		 (unsigned int)ns_stats_get_counter(
+			 server->sctx->nsstats, ns_statscounter_tcphighwater));
 	CHECK(putstr(text, line));
 
 	reload_status = atomic_load(&server->reload_status);
@@ -16793,7 +16793,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		dns_adb_getquota(view->adb, &val, NULL, NULL, NULL, NULL);
 		s = snprintf(tbuf, sizeof(tbuf),
 			     " (fetches-per-server %u):", val);
-		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
+		if (s < 0 || (unsigned int)s > sizeof(tbuf)) {
 			return (ISC_R_NOSPACE);
 		}
 		first = false;
@@ -16809,7 +16809,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		val = dns_resolver_getfetchesperzone(view->resolver);
 		s = snprintf(tbuf, sizeof(tbuf),
 			     " (fetches-per-zone %u):", val);
-		if (s < 0 || (unsigned)s > sizeof(tbuf)) {
+		if (s < 0 || (unsigned int)s > sizeof(tbuf)) {
 			return (ISC_R_NOSPACE);
 		}
 		CHECK(putstr(text, tbuf));

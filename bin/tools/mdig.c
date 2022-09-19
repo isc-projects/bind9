@@ -701,7 +701,8 @@ sendquery(struct query *query) {
 			isc_buffer_putuint8(&b, 0);
 			/* address */
 			if (addrl > 0) {
-				isc_buffer_putmem(&b, addr, (unsigned)addrl);
+				isc_buffer_putmem(&b, addr,
+						  (unsigned int)addrl);
 			}
 
 			opts[i].value = (uint8_t *)ecsbuf;

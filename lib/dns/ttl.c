@@ -74,7 +74,7 @@ ttlfmt(unsigned int t, const char *s, bool verbose, bool space,
  */
 isc_result_t
 dns_ttl_totext(uint32_t src, bool verbose, bool upcase, isc_buffer_t *target) {
-	unsigned secs, mins, hours, days, weeks, x;
+	unsigned int secs, mins, hours, days, weeks, x;
 
 	secs = src % 60;
 	src /= 60;

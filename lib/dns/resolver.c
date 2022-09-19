@@ -2468,7 +2468,7 @@ resquery_send(resquery_t *query) {
 	bool secure_domain;
 	bool tcp = ((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
-	unsigned ednsopt = 0;
+	unsigned int ednsopt = 0;
 	uint16_t hint = 0, udpsize = 0; /* No EDNS */
 #ifdef HAVE_DNSTAP
 	isc_sockaddr_t localaddr, *la = NULL;
@@ -5361,7 +5361,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_stdtime_t now;
 	uint32_t ttl;
-	unsigned options;
+	unsigned int options;
 	dns_fixedname_t fwild;
 	dns_name_t *wild = NULL;
 	dns_message_t *message = NULL;

@@ -1955,7 +1955,7 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);
 
 void
 isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-		    const struct sockaddr *addr, unsigned flags);
+		    const struct sockaddr *addr, unsigned int flags);
 void
 isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 void

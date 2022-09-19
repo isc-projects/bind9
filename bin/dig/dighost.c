@@ -2542,7 +2542,8 @@ setup_lookup(dig_lookup_t *lookup) {
 					addr[addrl - 1] &= ~0U
 							   << (8 - (plen % 8));
 				}
-				isc_buffer_putmem(&b, addr, (unsigned)addrl);
+				isc_buffer_putmem(&b, addr,
+						  (unsigned int)addrl);
 			}
 
 			opts[i].value = (uint8_t *)ecsbuf;
@@ -4680,7 +4681,7 @@ destroy_libs(void) {
 #ifdef HAVE_LIBIDN2
 
 static isc_result_t
-idn_filter(isc_buffer_t *buffer, unsigned start) {
+idn_filter(isc_buffer_t *buffer, unsigned int start) {
 	char src[MXNAME];
 	char *dst = NULL;
 	size_t srclen, dstlen;

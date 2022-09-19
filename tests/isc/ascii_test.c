@@ -111,13 +111,13 @@ ISC_RUN_TEST_IMPL(lowerequal) {
 	for (size_t n = 0; n < ARRAY_SIZE(same); n++) {
 		const uint8_t *a = (void *)same[n][0];
 		const uint8_t *b = (void *)same[n][1];
-		unsigned len = (unsigned)strlen(same[n][0]);
+		unsigned int len = (unsigned int)strlen(same[n][0]);
 		assert_true(isc_ascii_lowerequal(a, b, len));
 	}
 	for (size_t n = 0; n < ARRAY_SIZE(diff); n++) {
 		const uint8_t *a = (void *)diff[n].a;
 		const uint8_t *b = (void *)diff[n].b;
-		unsigned len = (unsigned)strlen(diff[n].a);
+		unsigned int len = (unsigned int)strlen(diff[n].a);
 		assert_true(!isc_ascii_lowerequal(a, b, len));
 	}
 }
@@ -126,13 +126,13 @@ ISC_RUN_TEST_IMPL(lowercmp) {
 	for (size_t n = 0; n < ARRAY_SIZE(same); n++) {
 		const uint8_t *a = (void *)same[n][0];
 		const uint8_t *b = (void *)same[n][1];
-		unsigned len = (unsigned)strlen(same[n][0]);
+		unsigned int len = (unsigned int)strlen(same[n][0]);
 		assert_true(isc_ascii_lowercmp(a, b, len) == 0);
 	}
 	for (size_t n = 0; n < ARRAY_SIZE(diff); n++) {
 		const uint8_t *a = (void *)diff[n].a;
 		const uint8_t *b = (void *)diff[n].b;
-		unsigned len = (unsigned)strlen(diff[n].a);
+		unsigned int len = (unsigned int)strlen(diff[n].a);
 		assert_true(isc_ascii_lowercmp(a, b, len) == diff[n].cmp);
 	}
 }

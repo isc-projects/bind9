@@ -254,7 +254,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	}
 
 	if (bad == NULL) {
-		unsigned count;
+		unsigned int count;
 		isc_buffer_t buffer;
 
 		bad = isc_mem_get(bc->mctx, sizeof(*bad));

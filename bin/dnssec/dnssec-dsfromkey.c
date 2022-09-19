@@ -314,7 +314,7 @@ emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 
 static void
 emits(bool showall, bool cds, dns_rdata_t *rdata) {
-	unsigned i, n;
+	unsigned int i, n;
 
 	n = sizeof(dtype) / sizeof(dtype[0]);
 	for (i = 0; i < n; i++) {

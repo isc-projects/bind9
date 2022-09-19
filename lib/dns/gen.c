@@ -398,7 +398,7 @@ insert_into_typenames(int type, const char *typebuf, const char *attr) {
 	if (attr == NULL) {
 		n = snprintf(tmp, sizeof(tmp), "RRTYPE_%s_ATTRIBUTES",
 			     upper(ttn->macroname));
-		INSIST(n > 0 && (unsigned)n < sizeof(tmp));
+		INSIST(n > 0 && (unsigned int)n < sizeof(tmp));
 		attr = tmp;
 	}
 
@@ -548,7 +548,7 @@ sd(unsigned int rdclass, const char *classbuf, const char *dirbuf,
 		 */
 		n = snprintf(buf, sizeof(buf), "%s_%u.%c", typebuf, type,
 			     filetype);
-		INSIST(n > 0 && (unsigned)n < sizeof(buf));
+		INSIST(n > 0 && (unsigned int)n < sizeof(buf));
 		if (strcmp(buf, dir.filename) != 0) {
 			continue;
 		}
@@ -657,7 +657,7 @@ main(int argc, char **argv) {
 				exit(1);
 			}
 			n = snprintf(srcdir, sizeof(srcdir), "%s/", optarg);
-			INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
+			INSIST(n > 0 && (unsigned int)n < sizeof(srcdir));
 			break;
 		case 'F':
 			file = optarg;
@@ -674,7 +674,7 @@ main(int argc, char **argv) {
 	}
 
 	n = snprintf(buf, sizeof(buf), "%srdata", srcdir);
-	INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
+	INSIST(n > 0 && (unsigned int)n < sizeof(srcdir));
 
 	if (!start_directory(buf, &dir)) {
 		exit(1);
@@ -693,7 +693,7 @@ main(int argc, char **argv) {
 		 */
 		n = snprintf(buf, sizeof(buf), "%srdata/%s_%u", srcdir,
 			     classbuf, rdclass);
-		INSIST(n > 0 && (unsigned)n < sizeof(buf));
+		INSIST(n > 0 && (unsigned int)n < sizeof(buf));
 		if (strcmp(buf + 6 + strlen(srcdir), dir.filename) != 0) {
 			continue;
 		}
@@ -706,7 +706,7 @@ main(int argc, char **argv) {
 	}
 	end_directory(&dir);
 	n = snprintf(buf, sizeof(buf), "%srdata/generic", srcdir);
-	INSIST(n > 0 && (unsigned)n < sizeof(srcdir));
+	INSIST(n > 0 && (unsigned int)n < sizeof(srcdir));
 	sd(0, "", buf, filetype);
 
 	source_date_epoch = getenv("SOURCE_DATE_EPOCH");
@@ -757,7 +757,7 @@ main(int argc, char **argv) {
 		if (tm != NULL && tm->tm_year > 104) {
 			n = snprintf(year, sizeof(year), "-%d",
 				     tm->tm_year + 1900);
-			INSIST(n > 0 && (unsigned)n < sizeof(year));
+			INSIST(n > 0 && (unsigned int)n < sizeof(year));
 		} else {
 			snprintf(year, sizeof(year), "-2016");
 		}
