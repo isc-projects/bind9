@@ -266,6 +266,7 @@ typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
 isc_result_t
 dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 		 dispatch_cb_t connected, dispatch_cb_t sent,
 		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
 		 dns_dispentry_t **resp);

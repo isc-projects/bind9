@@ -13,7 +13,9 @@
 
 #pragma once
 
-#include <dns/name.h>
+#include <isc/tls.h>
+
+#include <dns/types.h>
 
 typedef enum {
 	DNS_TRANSPORT_NONE = 0,
@@ -28,9 +30,6 @@ typedef enum {
 	DNS_HTTP_GET = 0,
 	DNS_HTTP_POST = 1,
 } dns_http_mode_t;
-
-typedef struct dns_transport	  dns_transport_t;
-typedef struct dns_transport_list dns_transport_list_t;
 
 dns_transport_t *
 dns_transport_new(const dns_name_t *name, dns_transport_type_t type,
@@ -70,6 +69,24 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
  * dns_transport_get_prefer_server_ciphers() returns 'true' is value
  * was set, 'false' otherwise. The actual value is returned via
  * 'preferp' pointer.
+ */
+
+isc_result_t
+dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
+			 isc_tlsctx_cache_t *tlsctx_cache, isc_mem_t *mctx,
+			 isc_tlsctx_t			   **pctx,
+			 isc_tlsctx_client_session_cache_t **psess_cache);
+/*%<
+ * Get the transport's TLS Context and the TLS Client Session Cache associated
+ * with it.
+ *
+ * Requires:
+ *\li	'transport' is a valid, 'DNS_TRANSPORT_TLS' type transport.
+ *\li	'peer' is not NULL.
+ *\li	'tlsctx_cache' is not NULL.
+ *\li	'mctx' is not NULL.
+ *\li	'pctx' is not NULL and '*pctx' is NULL.
+ *\li	'psess_cache' is not NULL and '*psess_cache' is NULL.
  */
 
 void

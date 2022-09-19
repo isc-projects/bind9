@@ -30,6 +30,7 @@
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -37,6 +38,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/stats.h>
+#include <dns/transport.h>
 #include <dns/types.h>
 
 typedef ISC_LIST(dns_dispentry_t) dns_displist_t;
@@ -75,6 +77,8 @@ struct dns_dispentry {
 	isc_refcount_t references;
 	dns_dispatch_t *disp;
 	isc_nmhandle_t *handle; /*%< netmgr handle for UDP connection */
+	dns_transport_t *transport;
+	isc_tlsctx_cache_t *tlsctx_cache;
 	unsigned int bucket;
 	unsigned int retries;
 	unsigned int timeout;
@@ -405,6 +409,14 @@ dispentry_destroy(dns_dispentry_t *resp) {
 
 	if (resp->handle != NULL) {
 		isc_nmhandle_detach(&resp->handle);
+	}
+
+	if (resp->tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&resp->tlsctx_cache);
+	}
+
+	if (resp->transport != NULL) {
+		dns_transport_detach(&resp->transport);
 	}
 
 	isc_refcount_destroy(&resp->references);
@@ -1384,6 +1396,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 isc_result_t
 dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 		 unsigned int timeout, const isc_sockaddr_t *dest,
+		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 		 dispatch_cb_t connected, dispatch_cb_t sent,
 		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
 		 dns_dispentry_t **resp) {
@@ -1484,6 +1497,14 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 		isc_mem_put(disp->mgr->mctx, res, sizeof(*res));
 		UNLOCK(&disp->lock);
 		return (ISC_R_NOMORE);
+	}
+
+	if (transport != NULL) {
+		dns_transport_attach(transport, &res->transport);
+	}
+
+	if (tlsctx_cache != NULL) {
+		isc_tlsctx_cache_attach(tlsctx_cache, &res->tlsctx_cache);
 	}
 
 	dns_dispatch_attach(disp, &res->disp);
@@ -1791,16 +1812,45 @@ isc_result_t
 dns_dispatch_connect(dns_dispentry_t *resp) {
 	dns_dispatch_t *disp = NULL;
 	uint_fast32_t tcpstate = DNS_DISPATCHSTATE_NONE;
+	dns_transport_type_t transport_type = DNS_TRANSPORT_NONE;
+	isc_tlsctx_t *tlsctx = NULL;
+	isc_tlsctx_client_session_cache_t *sess_cache = NULL;
 
 	REQUIRE(VALID_RESPONSE(resp));
 
 	disp = resp->disp;
 
+	if (disp->socktype == isc_socktype_tcp) {
+		transport_type = DNS_TRANSPORT_TCP;
+	} else if (disp->socktype == isc_socktype_udp) {
+		transport_type = DNS_TRANSPORT_UDP;
+	} else {
+		return (ISC_R_NOTIMPLEMENTED);
+	}
+
+	if (resp->transport != NULL) {
+		transport_type = dns_transport_get_type(resp->transport);
+	}
+
+	if (transport_type == DNS_TRANSPORT_TLS) {
+		isc_result_t result;
+
+		result = dns_transport_get_tlsctx(
+			resp->transport, &resp->peer, resp->tlsctx_cache,
+			resp->disp->mgr->mctx, &tlsctx, &sess_cache);
+
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		INSIST(tlsctx != NULL);
+	}
+
 	/* This will be detached once we've connected. */
 	dispentry_attach(resp, &(dns_dispentry_t *){ NULL });
 
-	switch (disp->socktype) {
-	case isc_socktype_tcp:
+	switch (transport_type) {
+	case DNS_TRANSPORT_TCP:
+	case DNS_TRANSPORT_TLS:
 		/*
 		 * Check whether the dispatch is already connecting
 		 * or connected.
@@ -1815,9 +1865,17 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 			ISC_LIST_APPEND(disp->pending, resp, plink);
 			UNLOCK(&disp->lock);
 			dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
-			isc_nm_tcpdnsconnect(disp->mgr->nm, &disp->local,
-					     &disp->peer, tcp_connected, disp,
-					     resp->timeout);
+			if (transport_type == DNS_TRANSPORT_TLS) {
+				isc_nm_tlsdnsconnect(
+					disp->mgr->nm, &disp->local,
+					&disp->peer, tcp_connected, disp,
+					resp->timeout, tlsctx, sess_cache);
+			} else {
+				isc_nm_tcpdnsconnect(disp->mgr->nm,
+						     &disp->local, &disp->peer,
+						     tcp_connected, disp,
+						     resp->timeout);
+			}
 			break;
 
 		case DNS_DISPATCHSTATE_CONNECTING:
@@ -1841,7 +1899,7 @@ dns_dispatch_connect(dns_dispentry_t *resp) {
 
 		break;
 
-	case isc_socktype_udp:
+	case DNS_TRANSPORT_UDP:
 		isc_nm_udpconnect(disp->mgr->nm, &resp->local, &resp->peer,
 				  udp_connected, resp, resp->timeout);
 		break;

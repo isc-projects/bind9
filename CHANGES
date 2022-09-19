@@ -1,3 +1,6 @@
+5975.	[func]		Implement TLS transport support for dns_request and
+			dns_dispatch. [GL #3529]
+
 5974.	[bug]		Fix an assertion failure in dispatch caused by
 			extra read callback call. [GL #3545]
 

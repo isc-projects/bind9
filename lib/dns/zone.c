@@ -12788,10 +12788,10 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_DIALNOTIFY)) {
 		timeout = 30;
 	}
-	result = dns_request_create(notify->zone->view->requestmgr, message,
-				    &src, &notify->dst, dscp, options, key,
-				    timeout * 3, timeout, 2, notify->zone->task,
-				    notify_done, notify, &notify->request);
+	result = dns_request_create(
+		notify->zone->view->requestmgr, message, &src, &notify->dst,
+		NULL, NULL, dscp, options, key, timeout * 3, timeout, 2,
+		notify->zone->task, notify_done, notify, &notify->request);
 	if (result == ISC_R_SUCCESS) {
 		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
 			inc_stats(notify->zone,
@@ -13498,7 +13498,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr,
-		&zone->primaryaddr, args->dscp, DNS_REQUESTOPT_TCP,
+		&zone->primaryaddr, NULL, NULL, args->dscp, DNS_REQUESTOPT_TCP,
 		args->tsig_key, args->timeout * 3, args->timeout, 2, zone->task,
 		stub_glue_response_cb, request, &request->request);
 
@@ -14741,8 +14741,8 @@ again:
 	}
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr,
-		&zone->primaryaddr, dscp, options, key, timeout * 3, timeout, 2,
-		zone->task, refresh_callback, zone, &zone->request);
+		&zone->primaryaddr, NULL, NULL, dscp, options, key, timeout * 3,
+		timeout, 2, zone->task, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		zone_debuglog(zone, __func__, 1,
@@ -15024,10 +15024,11 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->timeout = timeout;
 	cb_args->reqnsid = reqnsid;
 
-	result = dns_request_create(
-		zone->view->requestmgr, message, &zone->sourceaddr,
-		&zone->primaryaddr, dscp, DNS_REQUESTOPT_TCP, key, timeout * 3,
-		timeout, 2, zone->task, stub_callback, cb_args, &zone->request);
+	result = dns_request_create(zone->view->requestmgr, message,
+				    &zone->sourceaddr, &zone->primaryaddr, NULL,
+				    NULL, dscp, DNS_REQUESTOPT_TCP, key,
+				    timeout * 3, timeout, 2, zone->task,
+				    stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, __func__, 1,
 			      "dns_request_create() failed: %s",
@@ -18292,11 +18293,11 @@ sendtoprimary(dns_forward_t *forward) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto unlock;
 	}
-	result = dns_request_createraw(forward->zone->view->requestmgr,
-				       forward->msgbuf, &src, &forward->addr,
-				       dscp, forward->options, 15 /* XXX */, 0,
-				       0, forward->zone->task, forward_callback,
-				       forward, &forward->request);
+	result = dns_request_createraw(
+		forward->zone->view->requestmgr, forward->msgbuf, &src,
+		&forward->addr, NULL, NULL, dscp, forward->options,
+		15 /* XXX */, 0, 0, forward->zone->task, forward_callback,
+		forward, &forward->request);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LINK_LINKED(forward, link)) {
 			ISC_LIST_APPEND(forward->zone->forwards, forward, link);
@@ -21217,7 +21218,7 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	options |= DNS_REQUESTOPT_TCP;
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		dscp, options, key, timeout * 3, timeout, 2,
+		NULL, NULL, dscp, options, key, timeout * 3, timeout, 2,
 		checkds->zone->task, checkds_done, checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),

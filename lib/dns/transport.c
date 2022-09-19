@@ -15,9 +15,11 @@
 
 #include <isc/list.h>
 #include <isc/mem.h>
+#include <isc/netaddr.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
+#include <isc/sockaddr.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
@@ -330,6 +332,218 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 
 	UNREACHABLE();
 	return false;
+}
+
+isc_result_t
+dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
+			 isc_tlsctx_cache_t *tlsctx_cache, isc_mem_t *mctx,
+			 isc_tlsctx_t **pctx,
+			 isc_tlsctx_client_session_cache_t **psess_cache) {
+	isc_result_t result = ISC_R_FAILURE;
+	isc_tlsctx_t *tlsctx = NULL, *found = NULL;
+	isc_tls_cert_store_t *store = NULL, *found_store = NULL;
+	isc_tlsctx_client_session_cache_t *sess_cache = NULL;
+	isc_tlsctx_client_session_cache_t *found_sess_cache = NULL;
+	uint32_t tls_versions;
+	const char *ciphers = NULL;
+	bool prefer_server_ciphers;
+	uint16_t family;
+	const char *tlsname = NULL;
+
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS);
+	REQUIRE(peer != NULL);
+	REQUIRE(tlsctx_cache != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(pctx != NULL && *pctx == NULL);
+	REQUIRE(psess_cache != NULL && *psess_cache == NULL);
+
+	family = (isc_sockaddr_pf(peer) == PF_INET6) ? AF_INET6 : AF_INET;
+
+	tlsname = dns_transport_get_tlsname(transport);
+	INSIST(tlsname != NULL && *tlsname != '\0');
+
+	/*
+	 * Let's try to re-use the already created context. This way
+	 * we have a chance to resume the TLS session, bypassing the
+	 * full TLS handshake procedure, making establishing
+	 * subsequent TLS connections faster.
+	 */
+	result = isc_tlsctx_cache_find(tlsctx_cache, tlsname,
+				       isc_tlsctx_cache_tls, family, &found,
+				       &found_store, &found_sess_cache);
+	if (result != ISC_R_SUCCESS) {
+		const char *hostname =
+			dns_transport_get_remote_hostname(transport);
+		const char *ca_file = dns_transport_get_cafile(transport);
+		const char *cert_file = dns_transport_get_certfile(transport);
+		const char *key_file = dns_transport_get_keyfile(transport);
+		char peer_addr_str[INET6_ADDRSTRLEN] = { 0 };
+		isc_netaddr_t peer_netaddr = { 0 };
+		bool hostname_ignore_subject;
+
+		/*
+		 * So, no context exists. Let's create one using the
+		 * parameters from the configuration file and try to
+		 * store it for further reuse.
+		 */
+		result = isc_tlsctx_createclient(&tlsctx);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
+		tls_versions = dns_transport_get_tls_versions(transport);
+		if (tls_versions != 0) {
+			isc_tlsctx_set_protocols(tlsctx, tls_versions);
+		}
+		ciphers = dns_transport_get_ciphers(transport);
+		if (ciphers != NULL) {
+			isc_tlsctx_set_cipherlist(tlsctx, ciphers);
+		}
+
+		if (dns_transport_get_prefer_server_ciphers(
+			    transport, &prefer_server_ciphers)) {
+			isc_tlsctx_prefer_server_ciphers(tlsctx,
+							 prefer_server_ciphers);
+		}
+
+		if (hostname != NULL || ca_file != NULL) {
+			/*
+			 * The situation when 'found_store != NULL' while
+			 * 'found == NULL' may occur as there is a one-to-many
+			 * relation between cert stores and per-transport TLS
+			 * contexts. That is, there could be one store
+			 * shared between multiple contexts.
+			 */
+			if (found_store == NULL) {
+				/*
+				 * 'ca_file' can equal 'NULL' here, in
+				 * which case the store with system-wide
+				 * CA certificates will be created.
+				 */
+				result = isc_tls_cert_store_create(ca_file,
+								   &store);
+
+				if (result != ISC_R_SUCCESS) {
+					goto failure;
+				}
+			} else {
+				store = found_store;
+			}
+
+			INSIST(store != NULL);
+			if (hostname == NULL) {
+				/*
+				 * If CA bundle file is specified, but
+				 * hostname is not, then use the peer
+				 * IP address for validation, just like
+				 * dig does.
+				 */
+				INSIST(ca_file != NULL);
+				isc_netaddr_fromsockaddr(&peer_netaddr, peer);
+				isc_netaddr_format(&peer_netaddr, peer_addr_str,
+						   sizeof(peer_addr_str));
+				hostname = peer_addr_str;
+			}
+
+			/*
+			 * According to RFC 8310, Subject field MUST NOT
+			 * be inspected when verifying hostname for DoT.
+			 * Only SubjectAltName must be checked.
+			 */
+			hostname_ignore_subject = true;
+			result = isc_tlsctx_enable_peer_verification(
+				tlsctx, false, store, hostname,
+				hostname_ignore_subject);
+			if (result != ISC_R_SUCCESS) {
+				goto failure;
+			}
+
+			/*
+			 * Let's load client certificate and enable
+			 * Mutual TLS. We do that only in the case when
+			 * Strict TLS is enabled, because Mutual TLS is
+			 * an extension of it.
+			 */
+			if (cert_file != NULL) {
+				INSIST(key_file != NULL);
+
+				result = isc_tlsctx_load_certificate(
+					tlsctx, key_file, cert_file);
+				if (result != ISC_R_SUCCESS) {
+					goto failure;
+				}
+			}
+		}
+
+		isc_tlsctx_enable_dot_client_alpn(tlsctx);
+
+		sess_cache = isc_tlsctx_client_session_cache_new(
+			mctx, tlsctx,
+			ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+
+		found_store = NULL;
+		result = isc_tlsctx_cache_add(tlsctx_cache, tlsname,
+					      isc_tlsctx_cache_tls, family,
+					      tlsctx, store, sess_cache, &found,
+					      &found_store, &found_sess_cache);
+		if (result == ISC_R_EXISTS) {
+			/*
+			 * It seems the entry has just been created from
+			 * within another thread while we were initialising
+			 * ours. Although this is unlikely, it could happen
+			 * after startup/re-initialisation. In such a case,
+			 * discard the new context and associated data and use
+			 * the already established one from now on.
+			 *
+			 * Such situation will not occur after the
+			 * initial 'warm-up', so it is not critical
+			 * performance-wise.
+			 */
+			INSIST(found != NULL);
+			isc_tlsctx_free(&tlsctx);
+			isc_tls_cert_store_free(&store);
+			isc_tlsctx_client_session_cache_detach(&sess_cache);
+			/* Let's return the data from the cache. */
+			*psess_cache = found_sess_cache;
+			*pctx = found;
+		} else {
+			/*
+			 * Adding the fresh values into the cache has been
+			 * successful, let's return them
+			 */
+			INSIST(result == ISC_R_SUCCESS);
+			*psess_cache = sess_cache;
+			*pctx = tlsctx;
+		}
+	} else {
+		/*
+		 * The cache lookup has been successful, let's return the
+		 * results.
+		 */
+		INSIST(result == ISC_R_SUCCESS);
+		*psess_cache = found_sess_cache;
+		*pctx = found;
+	}
+
+	return (ISC_R_SUCCESS);
+
+failure:
+	if (tlsctx != NULL) {
+		isc_tlsctx_free(&tlsctx);
+	}
+
+	/*
+	 * The 'found_store' is being managed by the TLS context
+	 * cache. Thus, we should keep it as it is, as it will get
+	 * destroyed alongside the cache. As there is one store per
+	 * multiple TLS contexts, we need to handle store deletion in a
+	 * special way.
+	 */
+	if (store != NULL && store != found_store) {
+		isc_tls_cert_store_free(&store);
+	}
+
+	return (result);
 }
 
 static void
