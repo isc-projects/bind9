@@ -27,6 +27,7 @@
 #include <isc/buffer.h>
 #include <isc/managers.h>
 #include <isc/refcount.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 
@@ -54,6 +55,15 @@ static isc_sockaddr_t udp_server_addr;
 static isc_sockaddr_t udp_connect_addr;
 static isc_sockaddr_t tcp_server_addr;
 static isc_sockaddr_t tcp_connect_addr;
+static isc_sockaddr_t tls_server_addr;
+static isc_sockaddr_t tls_connect_addr;
+
+static isc_tlsctx_cache_t *tls_tlsctx_client_cache = NULL;
+static isc_tlsctx_t *tls_listen_tlsctx = NULL;
+static dns_name_t tls_name;
+static const char *tls_name_str = "ephemeral";
+static dns_transport_t *tls_transport = NULL;
+static dns_transport_list_t *transport_list = NULL;
 
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_dispatch_t *dispatch = NULL;
@@ -116,6 +126,9 @@ setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
 
 static int
 setup_test(void **state) {
+	isc_buffer_t namesrc, namebuf;
+	char namedata[DNS_NAME_FORMATSIZE + 1];
+
 	uv_os_sock_t socket = -1;
 
 	setup_loopmgr(state);
@@ -129,6 +142,9 @@ setup_test(void **state) {
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
+	tls_connect_addr = (isc_sockaddr_t){ .length = 0 };
+	isc_sockaddr_fromin6(&tls_connect_addr, &in6addr_loopback, 0);
+
 	udp_server_addr = (isc_sockaddr_t){ .length = 0 };
 	socket = setup_ephemeral_port(&udp_server_addr, SOCK_DGRAM);
 	if (socket < 0) {
@@ -138,6 +154,13 @@ setup_test(void **state) {
 
 	tcp_server_addr = (isc_sockaddr_t){ .length = 0 };
 	socket = setup_ephemeral_port(&tcp_server_addr, SOCK_STREAM);
+	if (socket < 0) {
+		return (-1);
+	}
+	close(socket);
+
+	tls_server_addr = (isc_sockaddr_t){ .length = 0 };
+	socket = setup_ephemeral_port(&tls_server_addr, SOCK_STREAM);
 	if (socket < 0) {
 		return (-1);
 	}
@@ -158,11 +181,36 @@ setup_test(void **state) {
 	testdata.region.length = sizeof(testdata.rbuf);
 	memset(testdata.message, 0, sizeof(testdata.message));
 
+	tls_tlsctx_client_cache = isc_tlsctx_cache_new(mctx);
+
+	if (isc_tlsctx_createserver(NULL, NULL, &tls_listen_tlsctx) !=
+	    ISC_R_SUCCESS) {
+		return (-1);
+	}
+
+	dns_name_init(&tls_name, NULL);
+	isc_buffer_constinit(&namesrc, tls_name_str, strlen(tls_name_str));
+	isc_buffer_add(&namesrc, strlen(tls_name_str));
+	isc_buffer_init(&namebuf, namedata, sizeof(namedata));
+	if (dns_name_fromtext(&tls_name, &namesrc, dns_rootname,
+			      DNS_NAME_DOWNCASE, &namebuf) != ISC_R_SUCCESS)
+	{
+		return (-1);
+	}
+	transport_list = dns_transport_list_new(mctx);
+	tls_transport = dns_transport_new(&tls_name, DNS_TRANSPORT_TLS,
+					  transport_list);
+	dns_transport_set_tlsname(tls_transport, tls_name_str);
+
 	return (0);
 }
 
 static int
 teardown_test(void **state) {
+	dns_transport_list_detach(&transport_list);
+	isc_tlsctx_cache_detach(&tls_tlsctx_client_cache);
+	isc_tlsctx_free(&tls_listen_tlsctx);
+
 	isc_netmgr_destroy(&connect_nm);
 
 	teardown_netmgr(state);
@@ -500,6 +548,43 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	dns_dispatch_connect(dispentry);
 }
 
+ISC_LOOP_TEST_IMPL(dispatch_tls_response) {
+	isc_result_t result;
+	uint16_t id;
+
+	/* Server */
+	result = isc_nm_listentlsdns(
+		netmgr, ISC_NM_LISTEN_ONE, &tls_server_addr, nameserver, NULL,
+		accept_cb, NULL, 0, NULL, tls_listen_tlsctx, &sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_loop_teardown(isc_loop_main(loopmgr), stop_listening, sock);
+
+	/* Client */
+	testdata.region.base = testdata.message;
+	testdata.region.length = sizeof(testdata.message);
+
+	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_dispatch_createtcp(dispatchmgr, &tls_connect_addr,
+					&tls_server_addr, -1, &dispatch);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_dispatchmgr_detach(&dispatchmgr);
+
+	result = dns_dispatch_add(
+		dispatch, 0, T_CLIENT_CONNECT, &tls_server_addr, tls_transport,
+		tls_tlsctx_client_cache, connected, client_senddone, response,
+		&testdata.region, &id, &dispentry);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_dispatch_detach(&dispatch);
+
+	testdata.message[0] = (id >> 8) & 0xff;
+	testdata.message[1] = id & 0xff;
+
+	dns_dispatch_connect(dispentry);
+}
+
 ISC_LOOP_TEST_IMPL(dispatch_timeout_udp_response) {
 	isc_result_t result;
 	uint16_t id;
@@ -575,6 +660,7 @@ ISC_TEST_ENTRY_CUSTOM(dispatchset_get, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(dispatch_timeout_tcp_response, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(dispatch_timeout_tcp_connect, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(dispatch_tcp_response, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(dispatch_tls_response, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(dispatch_getnext, setup_test, teardown_test)
 ISC_TEST_LIST_END
 
