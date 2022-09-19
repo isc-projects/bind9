@@ -756,8 +756,8 @@ sendquery(struct query *query) {
 	}
 
 	result = dns_request_create(
-		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, dscp,
-		options, NULL, query->timeout, query->udptimeout,
+		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
+		NULL, dscp, options, NULL, query->timeout, query->udptimeout,
 		query->udpretries, global_task, recvresponse, message,
 		&request);
 	CHECK("dns_request_create", result);

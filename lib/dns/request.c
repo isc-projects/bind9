@@ -22,6 +22,7 @@
 #include <isc/result.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -33,6 +34,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
 #include <dns/request.h>
+#include <dns/transport.h>
 #include <dns/tsig.h>
 
 #define REQUESTMGR_MAGIC      ISC_MAGIC('R', 'q', 'u', 'M')
@@ -407,7 +409,9 @@ get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		      const isc_sockaddr_t *destaddr,
+		      dns_transport_t *transport,
+		      isc_tlsctx_cache_t *tlsctx_cache, isc_dscp_t dscp,
 		      unsigned int options, unsigned int timeout,
 		      unsigned int udptimeout, unsigned int udpretries,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
@@ -504,9 +508,9 @@ again:
 	}
 
 	result = dns_dispatch_add(request->dispatch, dispopt, request->timeout,
-				  destaddr, req_connected, req_senddone,
-				  req_response, request, &id,
-				  &request->dispentry);
+				  destaddr, transport, tlsctx_cache,
+				  req_connected, req_senddone, req_response,
+				  request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -572,7 +576,8 @@ cleanup:
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
-		   const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
+		   const isc_sockaddr_t *destaddr, dns_transport_t *transport,
+		   isc_tlsctx_cache_t *tlsctx_cache, isc_dscp_t dscp,
 		   unsigned int options, dns_tsigkey_t *key,
 		   unsigned int timeout, unsigned int udptimeout,
 		   unsigned int udpretries, isc_task_t *task,
@@ -659,9 +664,10 @@ again:
 		goto detach;
 	}
 
-	result = dns_dispatch_add(
-		request->dispatch, 0, request->timeout, destaddr, req_connected,
-		req_senddone, req_response, request, &id, &request->dispentry);
+	result = dns_dispatch_add(request->dispatch, 0, request->timeout,
+				  destaddr, transport, tlsctx_cache,
+				  req_connected, req_senddone, req_response,
+				  request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto detach;
 	}

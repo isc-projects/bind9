@@ -2480,10 +2480,10 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 	}
 
-	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary, -1,
-				    options, tsigkey, timeout, udp_timeout,
-				    udp_retries, global_task, update_completed,
-				    NULL, &request);
+	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
+				    NULL, NULL, -1, options, tsigkey, timeout,
+				    udp_timeout, udp_retries, global_task,
+				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
 
 	if (debugging) {
@@ -2589,10 +2589,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			srcaddr = localaddr4;
 		}
 
-		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
-					    -1, 0, NULL, FIND_TIMEOUT * 20,
-					    FIND_TIMEOUT, 3, global_task,
-					    recvsoa, reqinfo, &request);
+		result = dns_request_create(
+			requestmgr, soaquery, srcaddr, addr, NULL, NULL, -1, 0,
+			NULL, FIND_TIMEOUT * 20, FIND_TIMEOUT, 3, global_task,
+			recvsoa, reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2808,10 +2808,10 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, -1, 0,
-				    default_servers ? NULL : tsigkey,
-				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    global_task, recvsoa, reqinfo, request);
+	result = dns_request_create(
+		requestmgr, msg, srcaddr, destaddr, NULL, NULL, -1, 0,
+		default_servers ? NULL : tsigkey, FIND_TIMEOUT * 20,
+		FIND_TIMEOUT, 3, global_task, recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -3010,10 +3010,10 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, -1,
-				    options, tsigkey, FIND_TIMEOUT * 20,
-				    FIND_TIMEOUT, 3, global_task, recvgss,
-				    reqinfo, request);
+	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, NULL,
+				    NULL, -1, options, tsigkey,
+				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
+				    global_task, recvgss, reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");

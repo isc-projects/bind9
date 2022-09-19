@@ -409,10 +409,10 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatchmgr_detach(&dispatchmgr);
 
-	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
-				  &tcp_server_addr, timeout_connected,
-				  client_senddone, response_timeout,
-				  &testdata.region, &id, &dispentry);
+	result = dns_dispatch_add(
+		dispatch, 0, T_CLIENT_CONNECT, &tcp_server_addr, NULL, NULL,
+		timeout_connected, client_senddone, response_timeout,
+		&testdata.region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatch_detach(&dispatch);
 
@@ -454,9 +454,9 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	dns_dispatchmgr_detach(&dispatchmgr);
 
 	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
-				  &tcp_server_addr, connected, client_senddone,
-				  response_timeout, &testdata.region, &id,
-				  &dispentry);
+				  &tcp_server_addr, NULL, NULL, connected,
+				  client_senddone, response_timeout,
+				  &testdata.region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatch_detach(&dispatch);
 
@@ -488,8 +488,9 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	dns_dispatchmgr_detach(&dispatchmgr);
 
 	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
-				  &tcp_server_addr, connected, client_senddone,
-				  response, &testdata.region, &id, &dispentry);
+				  &tcp_server_addr, NULL, NULL, connected,
+				  client_senddone, response, &testdata.region,
+				  &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatch_detach(&dispatch);
 
@@ -521,9 +522,9 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_udp_response) {
 	dns_dispatchmgr_detach(&dispatchmgr);
 
 	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
-				  &udp_server_addr, connected, client_senddone,
-				  response_timeout, &testdata.region, &id,
-				  &dispentry);
+				  &udp_server_addr, NULL, NULL, connected,
+				  client_senddone, response_timeout,
+				  &testdata.region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatch_detach(&dispatch);
 
@@ -555,9 +556,9 @@ ISC_LOOP_TEST_IMPL(dispatch_getnext) {
 	dns_dispatchmgr_detach(&dispatchmgr);
 
 	result = dns_dispatch_add(dispatch, 0, T_CLIENT_CONNECT,
-				  &udp_server_addr, connected, client_senddone,
-				  response_getnext, &testdata.region, &id,
-				  &dispentry);
+				  &udp_server_addr, NULL, NULL, connected,
+				  client_senddone, response_getnext,
+				  &testdata.region, &id, &dispentry);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatch_detach(&dispatch);
 

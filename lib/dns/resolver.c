@@ -2283,7 +2283,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	/* Set up the dispatch and set the query ID */
 	result = dns_dispatch_add(
 		query->dispatch, 0, isc_interval_ms(&fctx->interval),
-		&query->addrinfo->sockaddr, resquery_connected,
+		&query->addrinfo->sockaddr, NULL, NULL, resquery_connected,
 		resquery_senddone, resquery_response, query, &query->id,
 		&query->dispentry);
 	if (result != ISC_R_SUCCESS) {
