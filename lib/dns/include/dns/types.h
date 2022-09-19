@@ -140,6 +140,8 @@ typedef struct dns_ssutable	     dns_ssutable_t;
 typedef struct dns_stats	     dns_stats_t;
 typedef uint32_t		     dns_rdatastatstype_t;
 typedef struct dns_tkeyctx	     dns_tkeyctx_t;
+typedef struct dns_transport	     dns_transport_t;
+typedef struct dns_transport_list    dns_transport_list_t;
 typedef uint16_t		     dns_trust_t;
 typedef struct dns_tsec		     dns_tsec_t;
 typedef struct dns_tsig_keyring	     dns_tsig_keyring_t;
