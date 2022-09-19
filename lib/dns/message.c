@@ -3219,7 +3219,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 		dns_rdataset_init(&keyset);
 		if (view == NULL) {
-			return (DNS_R_KEYUNAUTHORIZED);
+			result = DNS_R_KEYUNAUTHORIZED;
+			goto freesig;
 		}
 		result = dns_view_simplefind(view, &sig.signer,
 					     dns_rdatatype_key /* SIG(0) */, 0,
