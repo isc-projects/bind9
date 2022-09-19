@@ -665,6 +665,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
 
+	isc_refcount_destroy(&sock->references);
+
 	isc__nm_decstats(sock, STATID_ACTIVE);
 
 	atomic_store(&sock->destroying, true);
@@ -675,7 +677,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		 * so we can clean up and free the children.
 		 */
 		for (size_t i = 0; i < sock->nchildren; i++) {
-			if (!atomic_load(&sock->children[i].destroying)) {
+			REQUIRE(!atomic_load(&sock->children[i].destroying));
+			if (isc_refcount_decrement(
+				    &sock->children[i].references)) {
 				nmsocket_cleanup(&sock->children[i],
 						 false FLARG_PASS);
 			}
