@@ -100,6 +100,8 @@ setup_test(void **state) {
 
 	isc_nonce_buf(&send_magic, sizeof(send_magic));
 
+	connect_readcb = connect_read_cb;
+
 	return (0);
 }
 
@@ -304,7 +306,6 @@ udp_noresponse_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 static void
 udp_noresponse_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		       isc_region_t *region, void *cbarg) {
-	UNUSED(handle);
 	UNUSED(region);
 	UNUSED(cbarg);
 
@@ -336,9 +337,6 @@ udp_noresponse_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			  void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
 	isc_nmhandle_t *sendhandle = NULL;
-
-	UNUSED(handle);
-	UNUSED(cbarg);
 
 	isc_refcount_decrement(&active_cconnects);
 
@@ -461,8 +459,6 @@ udp_timeout_recovery_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_t *readhandle = NULL;
 	isc_nmhandle_t *sendhandle = NULL;
 
-	UNUSED(cbarg);
-
 	F();
 
 	isc_refcount_decrement(&active_cconnects);
@@ -556,13 +552,49 @@ ISC_LOOP_TEST_IMPL(udp_shutdown_connect) {
 }
 
 static void
+udp_shutdown_read_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			  isc_region_t *region, void *cbarg) {
+	uint64_t magic = 0;
+
+	UNUSED(cbarg);
+
+	assert_non_null(handle);
+
+	F();
+
+	assert_int_equal(eresult, ISC_R_SUCCESS);
+
+	assert_true(region->length == sizeof(magic));
+
+	memmove(&magic, region->base, sizeof(magic));
+	assert_true(magic == send_magic);
+}
+
+static void
+udp_shutdown_read_send_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			  void *cbarg) {
+	UNUSED(cbarg);
+
+	F();
+
+	assert_non_null(handle);
+	assert_int_equal(eresult, ISC_R_SUCCESS);
+
+	atomic_fetch_add(&csends, 1);
+
+	isc_loopmgr_shutdown(loopmgr);
+
+	isc_nmhandle_detach(&handle);
+	isc_refcount_decrement(&active_csends);
+}
+
+static void
 udp_shutdown_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			  isc_region_t *region, void *cbarg) {
-	UNUSED(handle);
 	UNUSED(region);
 	UNUSED(cbarg);
 
-	assert_int_equal(eresult, ISC_R_SHUTTINGDOWN);
+	assert_true(eresult == ISC_R_SHUTTINGDOWN || eresult == ISC_R_TIMEDOUT);
 
 	isc_refcount_decrement(&active_creads);
 
@@ -575,21 +607,25 @@ static void
 udp_shutdown_read_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			     void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
-
-	UNUSED(handle);
-	UNUSED(cbarg);
+	isc_nmhandle_t *sendhandle = NULL;
 
 	isc_refcount_decrement(&active_cconnects);
 
 	assert_int_equal(eresult, ISC_R_SUCCESS);
 
+	/* Read */
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, udp_shutdown_read_read_cb, cbarg);
 
-	atomic_fetch_add(&cconnects, 1);
+	/* Send */
+	isc_refcount_increment0(&active_csends);
+	isc_nmhandle_attach(handle, &sendhandle);
+	isc_nmhandle_setwritetimeout(handle, T_IDLE);
+	isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
+		    udp_shutdown_read_send_cb, cbarg);
 
-	isc_loopmgr_shutdown(loopmgr);
+	atomic_fetch_add(&cconnects, 1);
 }
 
 ISC_SETUP_TEST_IMPL(udp_shutdown_read) {
@@ -607,6 +643,8 @@ ISC_TEARDOWN_TEST_IMPL(udp_shutdown_read) {
 }
 
 ISC_LOOP_TEST_IMPL(udp_shutdown_read) {
+	start_listening(ISC_NM_LISTEN_ONE, udp_shutdown_read_recv_cb);
+
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
 			  udp_shutdown_read_connect_cb, NULL, T_SOFT);
@@ -616,7 +654,8 @@ static void
 udp_cancel_read_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			isc_region_t *region, void *cbarg) {
 	uint64_t magic = 0;
-	isc_nmhandle_t *sendhandle = NULL;
+
+	UNUSED(cbarg);
 
 	assert_non_null(handle);
 
@@ -628,38 +667,6 @@ udp_cancel_read_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	memmove(&magic, region->base, sizeof(magic));
 	assert_true(magic == send_magic);
-
-	isc_nmhandle_attach(handle, &sendhandle);
-	isc_refcount_increment0(&active_ssends);
-	isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
-	isc_nm_send(sendhandle, (isc_region_t *)&send_msg, listen_send_cb,
-		    cbarg);
-}
-
-static void
-udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
-			isc_region_t *region, void *cbarg) {
-	UNUSED(handle);
-	UNUSED(region);
-	UNUSED(cbarg);
-
-	F();
-
-	switch (eresult) {
-	case ISC_R_TIMEDOUT:
-	case ISC_R_EOF:
-		break;
-	default:
-		UNREACHABLE();
-	}
-
-	isc_refcount_decrement(&active_creads);
-
-	atomic_fetch_add(&creads, 1);
-
-	isc_nmhandle_detach(&handle);
-
-	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
@@ -674,18 +681,56 @@ udp_cancel_read_send_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	atomic_fetch_add(&csends, 1);
 
+	isc_nm_cancelread(handle);
+
 	isc_nmhandle_detach(&handle);
 	isc_refcount_decrement(&active_csends);
+}
+
+static void
+udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			isc_region_t *region, void *cbarg) {
+	isc_nmhandle_t *sendhandle = NULL;
+	isc_nmhandle_t *readhandle = NULL;
+
+	UNUSED(region);
+
+	F();
+
+	switch (eresult) {
+	case ISC_R_TIMEDOUT:
+
+		/* Read again */
+		isc_refcount_increment0(&active_creads);
+		isc_nmhandle_attach(handle, &readhandle);
+		isc_nm_read(handle, udp_cancel_read_read_cb, cbarg);
+
+		/* Send */
+		isc_refcount_increment0(&active_csends);
+		isc_nmhandle_attach(handle, &sendhandle);
+		isc_nmhandle_setwritetimeout(handle, T_IDLE);
+		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
+			    udp_cancel_read_send_cb, cbarg);
+		break;
+	case ISC_R_EOF:
+		/* The read has been canceled */
+		isc_loopmgr_shutdown(loopmgr);
+		break;
+	default:
+		UNREACHABLE();
+	}
+
+	isc_refcount_decrement(&active_creads);
+
+	atomic_fetch_add(&creads, 1);
+
+	isc_nmhandle_detach(&handle);
 }
 
 static void
 udp_cancel_read_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			   void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
-	isc_nmhandle_t *sendhandle = NULL;
-
-	UNUSED(handle);
-	UNUSED(cbarg);
 
 	isc_refcount_decrement(&active_cconnects);
 
@@ -695,22 +740,13 @@ udp_cancel_read_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, udp_cancel_read_read_cb, cbarg);
 
-	/* Send */
-	isc_refcount_increment0(&active_csends);
-	isc_nmhandle_attach(handle, &sendhandle);
-	isc_nmhandle_setwritetimeout(handle, T_IDLE);
-	isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-		    udp_cancel_read_send_cb, readhandle);
-
-	isc_nm_cancelread(readhandle);
-
 	atomic_fetch_add(&cconnects, 1);
 }
 
 ISC_SETUP_TEST_IMPL(udp_cancel_read) {
 	setup_test(state);
 	expected_cconnects = 1;
-	expected_creads = 1;
+	expected_creads = 2;
 	return (0);
 }
 
@@ -732,8 +768,6 @@ ISC_LOOP_TEST_IMPL(udp_cancel_read) {
 static void
 udp__send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmhandle_t *sendhandle = handle;
-
-	UNUSED(cbarg);
 
 	assert_non_null(sendhandle);
 
@@ -780,8 +814,6 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
 	isc_nmhandle_t *sendhandle = NULL;
 
-	UNUSED(cbarg);
-
 	F();
 
 	isc_refcount_decrement(&active_cconnects);
@@ -797,7 +829,7 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 		isc_refcount_increment0(&active_creads);
 		isc_nmhandle_attach(handle, &readhandle);
-		isc_nm_read(handle, connect_read_cb, cbarg);
+		isc_nm_read(handle, connect_readcb, cbarg);
 
 		isc_refcount_increment0(&active_csends);
 		isc_nmhandle_attach(handle, &sendhandle);
@@ -931,6 +963,166 @@ ISC_LOOP_TEST_IMPL(udp_recv_send) {
 	}
 }
 
+static void
+double_read_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
+	assert_non_null(handle);
+
+	F();
+
+	isc_refcount_decrement(&active_ssends);
+
+	switch (eresult) {
+	case ISC_R_SUCCESS:
+		if (have_expected_ssends(atomic_fetch_add(&ssends, 1) + 1)) {
+			do_ssends_shutdown(loopmgr);
+		} else {
+			isc_nmhandle_t *sendhandle = NULL;
+			isc_nmhandle_attach(handle, &sendhandle);
+			isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
+			isc_refcount_increment0(&active_ssends);
+			isc_nm_send(sendhandle, &send_msg, double_read_send_cb,
+				    cbarg);
+			break;
+		}
+		break;
+	case ISC_R_CANCELED:
+		break;
+	default:
+		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
+			isc_result_totext(eresult), cbarg);
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
+
+	isc_nmhandle_detach(&handle);
+}
+
+static void
+double_read_listen_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		      isc_region_t *region, void *cbarg) {
+	uint64_t magic = 0;
+
+	assert_non_null(handle);
+
+	F();
+
+	switch (eresult) {
+	case ISC_R_EOF:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
+		break;
+	case ISC_R_SUCCESS:
+		memmove(&magic, region->base, sizeof(magic));
+		assert_true(magic == send_magic);
+
+		assert_true(region->length >= sizeof(magic));
+
+		memmove(&magic, region->base, sizeof(magic));
+		assert_true(magic == send_magic);
+
+		isc_nmhandle_t *sendhandle = NULL;
+		isc_nmhandle_attach(handle, &sendhandle);
+		isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
+		isc_refcount_increment0(&active_ssends);
+		isc_nm_send(sendhandle, &send_msg, double_read_send_cb, cbarg);
+		return;
+	default:
+		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
+			isc_result_totext(eresult), cbarg);
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
+
+	isc_refcount_decrement(&active_sreads);
+
+	isc_nmhandle_detach(&handle);
+}
+
+static void
+double_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+	       isc_region_t *region, void *cbarg) {
+	uint64_t magic = 0;
+	bool detach = false;
+
+	assert_non_null(handle);
+
+	F();
+
+	switch (eresult) {
+	case ISC_R_SUCCESS:
+		assert_true(region->length >= sizeof(magic));
+
+		memmove(&magic, region->base, sizeof(magic));
+
+		assert_true(magic == send_magic);
+
+		if (have_expected_creads(atomic_fetch_add(&creads, 1) + 1)) {
+			do_creads_shutdown(loopmgr);
+			detach = true;
+		}
+
+		if (magic == send_magic && allow_send_back) {
+			connect_send(handle);
+			return;
+		}
+
+		break;
+	case ISC_R_TIMEDOUT:
+	case ISC_R_EOF:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
+	case ISC_R_CONNECTIONRESET:
+		detach = true;
+		break;
+	default:
+		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
+			isc_result_totext(eresult), cbarg);
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
+
+	if (detach) {
+		isc_refcount_decrement(&active_creads);
+		isc_nmhandle_detach(&handle);
+	} else {
+		isc_nm_read(handle, connect_readcb, cbarg);
+	}
+}
+
+ISC_SETUP_TEST_IMPL(udp_double_read) {
+	setup_test(state);
+
+	expected_cconnects = 1;
+	cconnects_shutdown = false;
+
+	expected_csends = 1;
+	csends_shutdown = false;
+
+	expected_sreads = 1;
+	sreads_shutdown = false;
+
+	expected_ssends = 2;
+	ssends_shutdown = false;
+
+	expected_creads = 2;
+	creads_shutdown = true;
+
+	connect_readcb = double_read_cb;
+
+	return (0);
+}
+
+ISC_TEARDOWN_TEST_IMPL(udp_double_read) {
+	atomic_assert_int_eq(creads, expected_creads);
+
+	teardown_test(state);
+
+	return (0);
+}
+
+ISC_LOOP_TEST_IMPL(udp_double_read) {
+	start_listening(ISC_NM_LISTEN_ALL, double_read_listen_cb);
+
+	udp__connect(NULL);
+}
+
 ISC_TEST_LIST_START
 
 /* Mock tests are unreliable on OpenBSD */
@@ -956,6 +1148,7 @@ ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_shutdown_connect)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_shutdown_read)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_cancel_read)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_timeout_recovery)
+ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_double_read)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_recv_one)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_recv_two)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_recv_send)

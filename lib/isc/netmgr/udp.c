@@ -60,10 +60,6 @@
 	*/
 
 static void
-udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-	    const struct sockaddr *addr, unsigned flags);
-
-static void
 udp_send_cb(uv_udp_send_t *req, int status);
 
 static void
@@ -413,7 +409,7 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__nm_set_network_buffers(mgr, &sock->uv_handle.handle);
 
 	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
-			      udp_recv_cb);
+			      isc__nm_udp_read_cb);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
@@ -511,9 +507,9 @@ isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
  * reused for a series of packets, so we need to allocate a new one.
  * This new one can be reused to send the response then.
  */
-static void
-udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-	    const struct sockaddr *addr, unsigned flags) {
+void
+isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
+		    const struct sockaddr *addr, unsigned flags) {
 	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
 	isc__nm_uvreq_t *req = NULL;
 	uint32_t maxudp;
@@ -563,15 +559,6 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	}
 
 	/*
-	 * - If addr == NULL, in which case it's the end of stream;
-	 *   we can free the buffer and bail.
-	 */
-	if (addr == NULL) {
-		isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
-		goto free;
-	}
-
-	/*
 	 * - If the network manager is shutting down
 	 */
 	if (isc__nm_closing(sock->worker)) {
@@ -586,6 +573,23 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto free;
 	}
+
+	/*
+	 * End of the current (iteration) datagram stream, just free the buffer.
+	 * The callback with nrecv == 0 and addr == NULL is called for both
+	 * normal UDP sockets and recvmmsg sockets at the end of every event
+	 * loop iteration.
+	 */
+	if (nrecv == 0 && addr == NULL) {
+		INSIST(flags == 0);
+		goto free;
+	}
+
+	/*
+	 * We could receive an empty datagram in which case:
+	 * nrecv == 0 and addr != NULL
+	 */
+	INSIST(addr != NULL);
 
 	if (!sock->route_sock) {
 		result = isc_sockaddr_fromsockaddr(&sockaddr, addr);
@@ -603,6 +607,16 @@ udp_recv_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	req->uvbuf.len = nrecv;
 
 	sock->recv_read = false;
+
+	/*
+	 * The client isc_nm_read() expects just a single message, so we need to
+	 * stop reading now.  The reading could be restarted in the read
+	 * callback with another isc_nm_read() call.
+	 */
+	if (atomic_load(&sock->client)) {
+		isc__nmsocket_timer_stop(sock);
+		isc__nm_stop_reading(sock);
+	}
 
 	REQUIRE(!sock->processing);
 	sock->processing = true;
@@ -871,31 +885,6 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 }
 
 void
-isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
-		    const struct sockaddr *addr, unsigned flags) {
-	isc_nmsocket_t *sock = uv_handle_get_data((uv_handle_t *)handle);
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(atomic_load(&sock->client));
-	REQUIRE(sock->parent == NULL);
-
-	/*
-	 * This function can only be reached when calling isc_nm_read() on
-	 * a UDP client socket. There's no point calling isc_nm_read() on
-	 * a UDP listener socket; those are always reading.
-	 *
-	 * The reason why we stop the timer and the reading after calling the
-	 * callback is because there's a time window where a second UDP packet
-	 * might be received between isc__nm_stop_reading() call and
-	 * isc_nm_read() call from the callback and such UDP datagram would be
-	 * lost like tears in the rain.
-	 */
-	udp_recv_cb(handle, nrecv, buf, addr, flags);
-
-	isc__nmsocket_timer_stop(sock);
-	isc__nm_stop_reading(sock);
-}
-
-void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
@@ -940,23 +929,30 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	}
 }
 
-/*
- * Asynchronous 'udpread' call handler: start or resume reading on a
- * socket; pause reading and call the 'recv' callback after each
- * datagram.
- */
 void
-isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udpread_t *ievent = (isc__netievent_udpread_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
+isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
+	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
 
-	UNUSED(worker);
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	sock = handle->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_udpsocket);
+	REQUIRE(sock->statichandle == handle);
+	REQUIRE(!sock->recv_read);
 	REQUIRE(sock->tid == isc_tid());
 
-	if (isc__nm_closing(worker)) {
+	/*
+	 * We need to initialize the callback before checking for shutdown
+	 * conditions, so the callback is always called even on error condition.
+	 */
+	sock->recv_cb = cb;
+	sock->recv_cbarg = cbarg;
+	sock->recv_read = true;
+
+	if (isc__nm_closing(sock->worker)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto fail;
 	}
@@ -971,41 +967,12 @@ isc__nm_async_udpread(isc__networker_t *worker, isc__netievent_t *ev0) {
 		goto fail;
 	}
 
-	isc__nmsocket_timer_start(sock);
+	isc__nmsocket_timer_restart(sock);
 	return;
 
 fail:
 	atomic_store(&sock->reading, true); /* required by the next call */
 	isc__nm_failed_read_cb(sock, result, false);
-}
-
-void
-isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	sock = handle->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_udpsocket);
-	REQUIRE(sock->statichandle == handle);
-	REQUIRE(!sock->recv_read);
-
-	sock->recv_cb = cb;
-	sock->recv_cbarg = cbarg;
-	sock->recv_read = true;
-
-	if (!atomic_load(&sock->reading) && sock->tid == isc_tid()) {
-		isc__netievent_udpread_t ievent = { .sock = sock };
-		isc__nm_async_udpread(sock->worker,
-				      (isc__netievent_t *)&ievent);
-	} else {
-		isc__netievent_udpread_t *ievent =
-			isc__nm_get_netievent_udpread(sock->worker, sock);
-		isc__nm_enqueue_ievent(sock->worker,
-				       (isc__netievent_t *)ievent);
-	}
 }
 
 static void

@@ -449,7 +449,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(udplisten);
 		NETIEVENT_CASE(udpstop);
 		NETIEVENT_CASE(udpcancel);
-		NETIEVENT_CASE(udpread);
 
 		NETIEVENT_CASE(tcpaccept);
 		NETIEVENT_CASE(tcpconnect);
@@ -536,7 +535,6 @@ NETIEVENT_SOCKET_HANDLE_DEF(tlscancel);
 NETIEVENT_SOCKET_DEF(udplisten);
 NETIEVENT_SOCKET_DEF(udpstop);
 NETIEVENT_SOCKET_HANDLE_DEF(udpcancel);
-NETIEVENT_SOCKET_DEF(udpread);
 
 NETIEVENT_SOCKET_DEF(tcpdnsclose);
 NETIEVENT_SOCKET_DEF(tcpdnsread);
