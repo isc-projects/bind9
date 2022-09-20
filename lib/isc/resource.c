@@ -107,26 +107,16 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		rlim_value = RLIM_INFINITY;
 	} else {
 		/*
-		 * isc_resourcevalue_t was chosen as an unsigned 64 bit
-		 * integer so that it could contain the maximum range of
-		 * reasonable values.  Unfortunately, this exceeds the typical
-		 * range on Unix systems.  Ensure the range of
-		 * rlim_t is not overflowed.
+		 * Carefully ensure the range of rlim_t is not overflowed, by
+		 * calculating how many bytes wider is isc_resourcevalue_t than
+		 * rlim_t, and whether rlim_t has a sign bit.
 		 */
-		isc_resourcevalue_t rlim_max;
-		bool rlim_t_is_signed = (((double)(rlim_t)-1) < 0);
+		isc_resourcevalue_t rlim_max = UINT64_MAX;
+		size_t wider = sizeof(rlim_max) - sizeof(rlim_t);
+		bool sign_bit = (double)(rlim_t)-1 < 0;
 
-		if (rlim_t_is_signed) {
-			rlim_max = ~((rlim_t)1 << (sizeof(rlim_t) * 8 - 1));
-		} else {
-			rlim_max = (rlim_t)-1;
-		}
-
-		if (value > rlim_max) {
-			value = rlim_max;
-		}
-
-		rlim_value = value;
+		rlim_max >>= CHAR_BIT * wider + (sign_bit ? 1 : 0);
+		rlim_value = ISC_MIN(value, rlim_max);
 	}
 
 	rl.rlim_cur = rl.rlim_max = rlim_value;
