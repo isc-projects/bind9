@@ -56,6 +56,7 @@ struct dns_transport {
 		char *ciphers;
 		uint32_t protocol_versions;
 		ternary_t prefer_server_ciphers;
+		bool always_verify_remote;
 	} tls;
 	struct {
 		char *endpoint;
@@ -334,6 +335,25 @@ dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 	return false;
 }
 
+void
+dns_transport_set_always_verify_remote(dns_transport_t *transport,
+				       const bool always_verify_remote) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	transport->tls.always_verify_remote = always_verify_remote;
+}
+
+bool
+dns_transport_get_always_verify_remote(dns_transport_t *transport) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	return transport->tls.always_verify_remote;
+}
+
 isc_result_t
 dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 			 isc_tlsctx_cache_t *tlsctx_cache, isc_mem_t *mctx,
@@ -378,6 +398,8 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 		const char *ca_file = dns_transport_get_cafile(transport);
 		const char *cert_file = dns_transport_get_certfile(transport);
 		const char *key_file = dns_transport_get_keyfile(transport);
+		const bool always_verify_remote =
+			dns_transport_get_always_verify_remote(transport);
 		char peer_addr_str[INET6_ADDRSTRLEN] = { 0 };
 		isc_netaddr_t peer_netaddr = { 0 };
 		bool hostname_ignore_subject;
@@ -406,7 +428,8 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 							 prefer_server_ciphers);
 		}
 
-		if (hostname != NULL || ca_file != NULL) {
+		if (always_verify_remote || hostname != NULL || ca_file != NULL)
+		{
 			/*
 			 * The situation when 'found_store != NULL' while
 			 * 'found == NULL' may occur as there is a one-to-many
@@ -433,12 +456,9 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 			INSIST(store != NULL);
 			if (hostname == NULL) {
 				/*
-				 * If CA bundle file is specified, but
-				 * hostname is not, then use the peer
-				 * IP address for validation, just like
-				 * dig does.
+				 * If hostname is not specified, then use the
+				 * peer IP address for validation.
 				 */
-				INSIST(ca_file != NULL);
 				isc_netaddr_fromsockaddr(&peer_netaddr, peer);
 				isc_netaddr_format(&peer_netaddr, peer_addr_str,
 						   sizeof(peer_addr_str));

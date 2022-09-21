@@ -62,9 +62,13 @@ dns_transport_get_tls_versions(const dns_transport_t *transport);
 bool
 dns_transport_get_prefer_server_ciphers(const dns_transport_t *transport,
 					bool		      *preferp);
+bool
+dns_transport_get_always_verify_remote(dns_transport_t *transport);
 /*%<
  * Getter functions: return the type, cert file, key file, CA file,
- * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
+ * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, TLS name,
+ * TLS version, server ciphers preference mode, and always enabling
+ * authentication mode for 'transport'.
  *
  * dns_transport_get_prefer_server_ciphers() returns 'true' is value
  * was set, 'false' otherwise. The actual value is returned via
@@ -79,6 +83,13 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 /*%<
  * Get the transport's TLS Context and the TLS Client Session Cache associated
  * with it.
+ *
+ * When neither the TLS hostname, nor the TLS certificates authorities (CA)
+ * file are set for the 'transport', then Opportunistic TLS (no authentication
+ * of the remote peer) will be used, unless the 'always_verify_remote' mode is
+ * enabled on the 'transport', in which case the remote peer will be
+ * authenticated by its IP address using the system's default certificates
+ * authorities store.
  *
  * Requires:
  *\li	'transport' is a valid, 'DNS_TRANSPORT_TLS' type transport.
@@ -113,9 +124,14 @@ dns_transport_set_tls_versions(dns_transport_t *transport,
 void
 dns_transport_set_prefer_server_ciphers(dns_transport_t *transport,
 					const bool	 prefer);
+void
+dns_transport_set_always_verify_remote(dns_transport_t *transport,
+				       const bool	always_verify_remote);
 /*%<
  * Setter functions: set the type, cert file, key file, CA file,
- * hostname, HTTP endpoint, or HTTP mode (GET or POST) for 'transport'.
+ * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, TLS name,
+ * TLS version, server ciphers preference mode, and always enabling
+ * authentication mode for 'transport'.
  *
  * Requires:
  *\li	'transport' is valid.

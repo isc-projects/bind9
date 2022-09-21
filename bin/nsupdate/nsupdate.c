@@ -46,6 +46,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -68,6 +69,7 @@
 #include <dns/rdatatype.h>
 #include <dns/request.h>
 #include <dns/tkey.h>
+#include <dns/transport.h>
 #include <dns/tsig.h>
 
 #include <dst/dst.h>
@@ -120,6 +122,7 @@ static bool memdebugging = false;
 static bool have_ipv4 = false;
 static bool have_ipv6 = false;
 static bool is_dst_up = false;
+static bool use_tls = false;
 static bool usevc = false;
 static bool usegsstsig = false;
 static bool use_win2k_gsstsig = false;
@@ -147,6 +150,14 @@ static dns_tsigkey_t *tsigkey = NULL;
 static dst_key_t *sig0key = NULL;
 static isc_sockaddr_t *servers = NULL;
 static isc_sockaddr_t *primary_servers = NULL;
+static dns_transport_list_t *transport_list = NULL;
+static dns_transport_t *transport = NULL;
+static isc_tlsctx_cache_t *tls_ctx_cache = NULL;
+static char *tls_hostname = NULL;
+static char *tls_client_key_file = NULL;
+static char *tls_client_cert_file = NULL;
+static char *tls_ca_file = NULL;
+static bool tls_always_verify_remote = true;
 static bool default_servers = true;
 static int ns_inuse = 0;
 static int primary_inuse = 0;
@@ -793,6 +804,19 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 	isc_portset_destroy(gmctx, &v6portset);
 }
 
+static isc_result_t
+create_name(const char *str, char *namedata, size_t len, dns_name_t *name) {
+	isc_buffer_t namesrc, namebuf;
+
+	dns_name_init(name, NULL);
+	isc_buffer_constinit(&namesrc, str, strlen(str));
+	isc_buffer_add(&namesrc, strlen(str));
+	isc_buffer_init(&namebuf, namedata, len);
+
+	return (dns_name_fromtext(name, &namesrc, dns_rootname,
+				  DNS_NAME_DOWNCASE, &namebuf));
+}
+
 static void
 setup_system(void) {
 	isc_result_t result;
@@ -800,6 +824,8 @@ setup_system(void) {
 	isc_sockaddrlist_t *nslist;
 	isc_logconfig_t *logconfig = NULL;
 	irs_resconf_t *resconf = NULL;
+	dns_name_t tlsname;
+	char namedata[DNS_NAME_FORMATSIZE + 1];
 
 	ddebug("setup_system()");
 
@@ -936,6 +962,31 @@ setup_system(void) {
 						&dispatchv4);
 		check_result(result, "dns_dispatch_createudp (v4)");
 	}
+	transport_list = dns_transport_list_new(gmctx);
+
+	tls_ctx_cache = isc_tlsctx_cache_new(gmctx);
+
+	if (tls_client_key_file == NULL) {
+		result = create_name("tls-non-auth-client", namedata,
+				     sizeof(namedata), &tlsname);
+		check_result(result, "create_name (tls-non-auth-client)");
+		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
+					      transport_list);
+		dns_transport_set_tlsname(transport, "tls-non-auth-client");
+	} else {
+		result = create_name("tls-auth-client", namedata,
+				     sizeof(namedata), &tlsname);
+		check_result(result, "create_name (tls-auth-client)");
+		transport = dns_transport_new(&tlsname, DNS_TRANSPORT_TLS,
+					      transport_list);
+		dns_transport_set_tlsname(transport, "tls-auth-client");
+		dns_transport_set_keyfile(transport, tls_client_key_file);
+		dns_transport_set_certfile(transport, tls_client_cert_file);
+	}
+	dns_transport_set_cafile(transport, tls_ca_file);
+	dns_transport_set_remote_hostname(transport, tls_hostname);
+	dns_transport_set_always_verify_remote(transport,
+					       tls_always_verify_remote);
 
 	result = dns_requestmgr_create(gmctx, taskmgr, dispatchmgr, dispatchv4,
 				       dispatchv6, &requestmgr);
@@ -972,7 +1023,7 @@ get_addresses(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
 	return (count);
 }
 
-#define PARSE_ARGS_FMT "46C:dDghilL:Mok:p:Pr:R:t:Tu:vVy:"
+#define PARSE_ARGS_FMT "46A:C:dDE:ghH:iK:lL:MoOk:p:Pr:R:St:Tu:vVy:"
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -1015,7 +1066,9 @@ pre_parse_args(int argc, char **argv) {
 			fprintf(stderr, "usage: nsupdate [-CdDi] [-L level] "
 					"[-l] [-g | -o | -y keyname:secret "
 					"| -k keyfile] [-p port] "
-					"[-v] [-V] [-P] [-T] [-4 | -6] "
+					"[ -S [-K tlskeyfile] [-E tlscertfile] "
+					"[-A tlscafile] [-H tlshostname] "
+					"[-O] ] [-v] [-V] [-P] [-T] [-4 | -6] "
 					"[filename]\n");
 			exit(1);
 
@@ -1087,6 +1140,11 @@ parse_args(int argc, char **argv) {
 				fatal("can't find IPv6 networking");
 			}
 			break;
+		case 'A':
+			use_tls = true;
+			usevc = true;
+			tls_ca_file = isc_commandline_argument;
+			break;
 		case 'C':
 			resolvconf = isc_commandline_argument;
 			break;
@@ -1097,11 +1155,26 @@ parse_args(int argc, char **argv) {
 			debugging = true;
 			ddebugging = true;
 			break;
+		case 'E':
+			use_tls = true;
+			usevc = true;
+			tls_client_cert_file = isc_commandline_argument;
+			break;
+		case 'H':
+			use_tls = true;
+			usevc = true;
+			tls_hostname = isc_commandline_argument;
+			break;
 		case 'M':
 			break;
 		case 'i':
 			force_interactive = true;
 			interactive = true;
+			break;
+		case 'K':
+			use_tls = true;
+			usevc = true;
+			tls_client_key_file = isc_commandline_argument;
 			break;
 		case 'l':
 			local_only = true;
@@ -1135,6 +1208,11 @@ parse_args(int argc, char **argv) {
 			usegsstsig = true;
 			use_win2k_gsstsig = true;
 			break;
+		case 'O':
+			use_tls = true;
+			usevc = true;
+			tls_always_verify_remote = false;
+			break;
 		case 'p':
 			result = isc_parse_uint16(&dnsport,
 						  isc_commandline_argument, 10);
@@ -1145,6 +1223,10 @@ parse_args(int argc, char **argv) {
 					isc_commandline_argument);
 				exit(1);
 			}
+			break;
+		case 'S':
+			use_tls = true;
+			usevc = true;
 			break;
 		case 't':
 			result = isc_parse_uint32(&timeout,
@@ -1210,6 +1292,24 @@ parse_args(int argc, char **argv) {
 		exit(1);
 	}
 #endif /* HAVE_GSSAPI */
+
+	if (use_tls) {
+		if ((tls_client_key_file == NULL) !=
+		    (tls_client_cert_file == NULL)) {
+			fprintf(stderr,
+				"%s: cannot specify the -K option without"
+				"the -E option, and vice versa.\n",
+				argv[0]);
+			exit(1);
+		}
+		if (tls_ca_file != NULL && tls_always_verify_remote == false) {
+			fprintf(stderr,
+				"%s: cannot specify the -A option in "
+				"conjuction with the -O option.\n",
+				argv[0]);
+			exit(1);
+		}
+	}
 
 	if (argv[isc_commandline_index] != NULL) {
 		if (strcmp(argv[isc_commandline_index], "-") == 0) {
@@ -2448,8 +2548,10 @@ static void
 send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 	isc_result_t result;
 	dns_request_t *request = NULL;
-	unsigned int options = DNS_REQUESTOPT_CASE;
 	isc_sockaddr_t *srcaddr;
+	unsigned int options = DNS_REQUESTOPT_CASE;
+	dns_transport_t *req_transport = NULL;
+	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
 
 	ddebug("send_update()");
 
@@ -2457,7 +2559,12 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 
 	if (usevc) {
 		options |= DNS_REQUESTOPT_TCP;
+		if (use_tls) {
+			req_transport = transport;
+			req_tls_ctx_cache = tls_ctx_cache;
+		}
 	}
+
 	if (tsigkey == NULL && sig0key != NULL) {
 		result = dns_message_setsig0key(updatemsg, sig0key);
 		check_result(result, "dns_message_setsig0key");
@@ -2480,10 +2587,10 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 	}
 
-	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
-				    NULL, NULL, -1, options, tsigkey, timeout,
-				    udp_timeout, udp_retries, global_task,
-				    update_completed, NULL, &request);
+	result = dns_request_create(
+		requestmgr, updatemsg, srcaddr, primary, req_transport,
+		req_tls_ctx_cache, -1, options, tsigkey, timeout, udp_timeout,
+		udp_retries, global_task, update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
 
 	if (debugging) {
@@ -2574,6 +2681,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == DNS_R_TSIGERRORSET && servers != NULL) {
+		unsigned int options = DNS_REQUESTOPT_CASE;
+		dns_transport_t *req_transport = NULL;
+		isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
+
 		dns_message_detach(&rcvmsg);
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
@@ -2583,6 +2694,14 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_renderreset(soaquery);
 		ddebug("retrying soa request without TSIG");
 
+		if (usevc) {
+			options |= DNS_REQUESTOPT_TCP;
+			if (!default_servers && use_tls) {
+				req_transport = transport;
+				req_tls_ctx_cache = tls_ctx_cache;
+			}
+		}
+
 		if (isc_sockaddr_pf(addr) == AF_INET6) {
 			srcaddr = localaddr6;
 		} else {
@@ -2590,9 +2709,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		}
 
 		result = dns_request_create(
-			requestmgr, soaquery, srcaddr, addr, NULL, NULL, -1, 0,
-			NULL, FIND_TIMEOUT * 20, FIND_TIMEOUT, 3, global_task,
-			recvsoa, reqinfo, &request);
+			requestmgr, soaquery, srcaddr, addr, req_transport,
+			req_tls_ctx_cache, -1, options, NULL, FIND_TIMEOUT * 20,
+			FIND_TIMEOUT, 3, global_task, recvsoa, reqinfo,
+			&request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2797,6 +2917,17 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	isc_result_t result;
 	nsu_requestinfo_t *reqinfo;
 	isc_sockaddr_t *srcaddr;
+	unsigned int options = DNS_REQUESTOPT_CASE;
+	dns_transport_t *req_transport = NULL;
+	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
+
+	if (usevc) {
+		options |= DNS_REQUESTOPT_TCP;
+		if (!default_servers && use_tls) {
+			req_transport = transport;
+			req_tls_ctx_cache = tls_ctx_cache;
+		}
+	}
 
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
 	reqinfo->msg = msg;
@@ -2808,10 +2939,11 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(
-		requestmgr, msg, srcaddr, destaddr, NULL, NULL, -1, 0,
-		default_servers ? NULL : tsigkey, FIND_TIMEOUT * 20,
-		FIND_TIMEOUT, 3, global_task, recvsoa, reqinfo, request);
+	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
+				    req_transport, req_tls_ctx_cache, -1,
+				    options, default_servers ? NULL : tsigkey,
+				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
+				    global_task, recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -2991,8 +3123,15 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		dns_request_t **request, gss_ctx_id_t context) {
 	isc_result_t result;
 	nsu_gssinfo_t *reqinfo;
-	unsigned int options = 0;
 	isc_sockaddr_t *srcaddr;
+	unsigned int options = DNS_REQUESTOPT_CASE | DNS_REQUESTOPT_TCP;
+	dns_transport_t *req_transport = NULL;
+	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
+
+	if (!default_servers && use_tls) {
+		req_transport = transport;
+		req_tls_ctx_cache = tls_ctx_cache;
+	}
 
 	debug("send_gssrequest");
 	REQUIRE(destaddr != NULL);
@@ -3002,18 +3141,16 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	reqinfo->addr = destaddr;
 	reqinfo->context = context;
 
-	options |= DNS_REQUESTOPT_TCP;
-
 	if (isc_sockaddr_pf(destaddr) == AF_INET6) {
 		srcaddr = localaddr6;
 	} else {
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, NULL,
-				    NULL, -1, options, tsigkey,
-				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    global_task, recvgss, reqinfo, request);
+	result = dns_request_create(
+		requestmgr, msg, srcaddr, destaddr, req_transport,
+		req_tls_ctx_cache, -1, options, tsigkey, FIND_TIMEOUT * 20,
+		FIND_TIMEOUT, 3, global_task, recvgss, reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");
@@ -3270,6 +3407,14 @@ start_update(void) {
 static void
 cleanup(void) {
 	ddebug("cleanup()");
+
+	if (tls_ctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&tls_ctx_cache);
+	}
+
+	if (transport_list != NULL) {
+		dns_transport_list_detach(&transport_list);
+	}
 
 	LOCK(&answer_lock);
 	if (answer != NULL) {
