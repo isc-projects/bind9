@@ -90,17 +90,16 @@ next(void) {
 }
 void
 isc__random_initialize(void) {
-	int useed[4] = { 0, 0, 0, 1 };
 #if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/*
-	 * Set a constant seed to help in problem reproduction should fuzzing
-	 * find a crash or a hang.  The seed array must be non-zero else
-	 * xoshiro128starstar will generate an infinite series of zeroes.
+	 * A fixed seed helps with problem reproduction when fuzzing. It must be
+	 * non-zero else xoshiro128starstar will generate only zeroes, and the
+	 * first result needs to be non-zero as expected by random_test.c
 	 */
+	seed[0] = 1;
 #else  /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
-	isc_entropy_get(useed, sizeof(useed));
+	isc_entropy_get(seed, sizeof(seed));
 #endif /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
-	memmove(seed, useed, sizeof(seed));
 }
 
 uint8_t
