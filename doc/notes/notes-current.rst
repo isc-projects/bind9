@@ -38,6 +38,8 @@ New Features
   fully started before starting other services that depend on name resolution.
   :gl:`#1176`
 
+- The ``nsupdate`` tool now supports DNS-over-TLS (DoT). :gl:`#1781`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
