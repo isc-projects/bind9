@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 nsupdate \- dynamic DNS update utility
 .SH SYNOPSIS
 .sp
-\fBnsupdate\fP [\fB\-d\fP] [\fB\-D\fP] [\fB\-i\fP] [\fB\-L\fP level] [ [\fB\-g\fP] | [\fB\-o\fP] | [\fB\-l\fP] | [\fB\-y\fP [hmac:]keyname:secret] | [\fB\-k\fP keyfile] ] [\fB\-t\fP timeout] [\fB\-u\fP udptimeout] [\fB\-r\fP udpretries] [\fB\-v\fP] [\fB\-T\fP] [\fB\-P\fP] [\fB\-V\fP] [ [\fB\-4\fP] | [\fB\-6\fP] ] [filename]
+\fBnsupdate\fP [\fB\-d\fP] [\fB\-D\fP] [\fB\-i\fP] [\fB\-L\fP level] [ [\fB\-g\fP] | [\fB\-o\fP] | [\fB\-l\fP] | [\fB\-y\fP [hmac:]keyname:secret] | [\fB\-k\fP keyfile] ] [ [\fB\-S\fP] [\fB\-K\fP tlskeyfile] [\fB\-E\fP tlscertfile] [\fB\-A\fP tlscafile] [\fB\-H\fP tlshostname] [\-O] ] [\fB\-t\fP timeout] [\fB\-u\fP udptimeout] [\fB\-r\fP udpretries] [\fB\-v\fP] [\fB\-T\fP] [\fB\-P\fP] [\fB\-V\fP] [ [\fB\-4\fP] | [\fB\-6\fP] ] [filename]
 .SH DESCRIPTION
 .sp
 \fBnsupdate\fP is used to submit Dynamic DNS Update requests, as defined in
@@ -83,6 +83,16 @@ This option sets use of IPv6 only.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B \-A tlscafile
+This option specifies the file of the certificate authorities (CA) certificates
+(in PEM format) in order to verify the remote server TLS certificate when
+using DNS\-over\-TLS (DoT), to achieve Strict or Mutual TLS. When used, it will
+override the certificates from the global certificates store, which are
+otherwise used by default when \fI\%\-S\fP is enabled. This option can not
+be used in conjuction with \fI\%\-O\fP, and it implies \fI\%\-S\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B \-C
 Overrides the default \fIresolv.conf\fP file. This is only intended for testing.
 .UNINDENT
@@ -99,8 +109,23 @@ This option sets extra debug mode.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B \-E tlscertfile
+This option sets the certificate(s) file for authentication for the
+DNS\-over\-TLS (DoT) transport to the remote server. The certificate
+chain file is expected to be in PEM format. This option implies \fI\%\-S\fP,
+and can only be used with \fI\%\-K\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B \-g
 This option enables standard GSS\-TSIG mode.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-H tlshostname
+This option makes \fBnsupdate\fP use the provided hostname during remote
+server TLS certificate verification. Otherwise, the DNS server name
+is used. This option implies \fI\%\-S\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -119,6 +144,14 @@ or a pair of files whose names are of the format
 \fI\%dnssec\-keygen\fP\&. The \fI\%\-k\fP option can also be used to specify a SIG(0)
 key used to authenticate Dynamic DNS update requests. In this case,
 the key specified is not an HMAC\-MD5 key.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-K tlskeyfile
+This option sets the key file for authenticated encryption for the
+DNS\-over\-TLS (DoT) transport with the remote server. The private key file is
+expected to be in PEM format. This option implies \fI\%\-S\fP, and can only
+be used with \fI\%\-E\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -144,6 +177,15 @@ used by Windows 2000.
 .UNINDENT
 .INDENT 0.0
 .TP
+.B \-O
+This option enables Opportunistic TLS. When used, the remote peer\(aqs TLS
+certificate will not be verified. This option should be used for debugging
+purposes only, and it is not recommended to use it in production. This
+option can not be used in conjuction with \fI\%\-A\fP, and it implies
+\fI\%\-S\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
 .B \-p port
 This option sets the port to use for connections to a name server. The default is
 53.
@@ -159,6 +201,16 @@ format is understood by \fBnsupdate\fP\&. See also the \fI\%\-T\fP option.
 .B \-r udpretries
 This option sets the number of UDP retries. The default is 3. If zero, only one update
 request is made.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-S
+This option indicates whether to use DNS\-over\-TLS (DoT) when querying
+name servers specified by \fBserver servername port\fP syntax in the input
+file, and the primary server discovered through a SOA request. When the
+\fI\%\-K\fP and \fI\%\-E\fP options are used, then the specified TLS
+client certificate and private key pair are used for authentication
+(Mutual TLS). This option implies \fI\%\-v\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP

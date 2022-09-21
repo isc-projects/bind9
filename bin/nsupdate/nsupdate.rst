@@ -19,7 +19,7 @@ nsupdate - dynamic DNS update utility
 Synopsis
 ~~~~~~~~
 
-:program:`nsupdate` [**-d**] [**-D**] [**-i**] [**-L** level] [ [**-g**] | [**-o**] | [**-l**] | [**-y** [hmac:]keyname:secret] | [**-k** keyfile] ] [**-t** timeout] [**-u** udptimeout] [**-r** udpretries] [**-v**] [**-T**] [**-P**] [**-V**] [ [**-4**] | [**-6**] ] [filename]
+:program:`nsupdate` [**-d**] [**-D**] [**-i**] [**-L** level] [ [**-g**] | [**-o**] | [**-l**] | [**-y** [hmac:]keyname:secret] | [**-k** keyfile] ] [ [**-S**] [**-K** tlskeyfile] [**-E** tlscertfile] [**-A** tlscafile] [**-H** tlshostname] [-O] ] [**-t** timeout] [**-u** udptimeout] [**-r** udpretries] [**-v**] [**-T**] [**-P**] [**-V**] [ [**-4**] | [**-6**] ] [filename]
 
 Description
 ~~~~~~~~~~~
@@ -71,6 +71,15 @@ Options
 
    This option sets use of IPv6 only.
 
+.. option:: -A tlscafile
+
+   This option specifies the file of the certificate authorities (CA) certificates
+   (in PEM format) in order to verify the remote server TLS certificate when
+   using DNS-over-TLS (DoT), to achieve Strict or Mutual TLS. When used, it will
+   override the certificates from the global certificates store, which are
+   otherwise used by default when :option:`-S` is enabled. This option can not
+   be used in conjuction with :option:`-O`, and it implies :option:`-S`.
+
 .. option:: -C
 
    Overrides the default `resolv.conf` file. This is only intended for testing.
@@ -84,9 +93,22 @@ Options
 
    This option sets extra debug mode.
 
+.. option:: -E tlscertfile
+
+   This option sets the certificate(s) file for authentication for the
+   DNS-over-TLS (DoT) transport to the remote server. The certificate
+   chain file is expected to be in PEM format. This option implies :option:`-S`,
+   and can only be used with :option:`-K`.
+
 .. option:: -g
 
    This option enables standard GSS-TSIG mode.
+
+.. option:: -H tlshostname
+
+   This option makes :program:`nsupdate` use the provided hostname during remote
+   server TLS certificate verification. Otherwise, the DNS server name
+   is used. This option implies :option:`-S`.
 
 .. option:: -i
 
@@ -103,6 +125,13 @@ Options
    :iscman:`dnssec-keygen`. The :option:`-k` option can also be used to specify a SIG(0)
    key used to authenticate Dynamic DNS update requests. In this case,
    the key specified is not an HMAC-MD5 key.
+
+.. option:: -K tlskeyfile
+
+   This option sets the key file for authenticated encryption for the
+   DNS-over-TLS (DoT) transport with the remote server. The private key file is
+   expected to be in PEM format. This option implies :option:`-S`, and can only
+   be used with :option:`-E`.
 
 .. option:: -l
 
@@ -123,6 +152,14 @@ Options
    This option enables a non-standards-compliant variant of GSS-TSIG
    used by Windows 2000.
 
+.. option:: -O
+
+   This option enables Opportunistic TLS. When used, the remote peer's TLS
+   certificate will not be verified. This option should be used for debugging
+   purposes only, and it is not recommended to use it in production. This
+   option can not be used in conjuction with :option:`-A`, and it implies
+   :option:`-S`.
+
 .. option:: -p port
 
    This option sets the port to use for connections to a name server. The default is
@@ -137,6 +174,15 @@ Options
 
    This option sets the number of UDP retries. The default is 3. If zero, only one update
    request is made.
+
+.. option:: -S
+
+   This option indicates whether to use DNS-over-TLS (DoT) when querying
+   name servers specified by ``server servername port`` syntax in the input
+   file, and the primary server discovered through a SOA request. When the
+   :option:`-K` and :option:`-E` options are used, then the specified TLS
+   client certificate and private key pair are used for authentication
+   (Mutual TLS). This option implies :option:`-v`.
 
 .. option:: -t timeout
 
