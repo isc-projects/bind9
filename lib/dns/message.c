@@ -3212,7 +3212,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			return (ISC_R_UNEXPECTEDEND);
 		}
 
-		result = dns_rdata_tostruct(&rdata, &sig, msg->mctx);
+		result = dns_rdata_tostruct(&rdata, &sig, NULL);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
