@@ -1,3 +1,5 @@
+5979.	[func]		Implement DoT support for nsupdate. [GL #1781]
+
 5978.	[port]		The ability to use pkcs11 via engine_pkcs11 has been
 			restored, by only using deprecated APIs in
 			OpenSSL 3.0.0. BIND needs to be compiled with
