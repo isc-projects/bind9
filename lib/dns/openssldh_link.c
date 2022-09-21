@@ -165,6 +165,7 @@ openssldh_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 
 static bool
 openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
+	bool ret = true;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
 	DH *dh1, *dh2;
 	const BIGNUM *pub_key1 = NULL, *pub_key2 = NULL;
@@ -214,18 +215,17 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(g1, g2) != 0 ||
 	    BN_cmp(pub_key1, pub_key2) != 0)
 	{
-		return (false);
+		DST_RET(false);
 	}
 
 	if (priv_key1 != NULL || priv_key2 != NULL) {
-		if (priv_key1 == NULL || priv_key2 == NULL) {
-			return (false);
-		}
-		if (BN_cmp(priv_key1, priv_key2) != 0) {
-			return (false);
+		if (priv_key1 == NULL || priv_key2 == NULL ||
+		    BN_cmp(priv_key1, priv_key2) != 0) {
+			DST_RET(false);
 		}
 	}
 
+err:
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (p1 != NULL) {
 		BN_free(p1);
@@ -253,11 +253,12 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 
-	return (true);
+	return (ret);
 }
 
 static bool
 openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
+	bool ret = true;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
 	DH *dh1, *dh2;
 	const BIGNUM *p1 = NULL, *g1 = NULL, *p2 = NULL, *g2 = NULL;
@@ -295,9 +296,10 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L */
 
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(g1, g2) != 0) {
-		return (false);
+		DST_RET(false);
 	}
 
+err:
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (p1 != NULL) {
 		BN_free(p1);
@@ -313,7 +315,7 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 
-	return (true);
+	return (ret);
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
@@ -672,6 +674,7 @@ uint16_fromregion(isc_region_t *region) {
 
 static isc_result_t
 openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
+	isc_result_t ret = ISC_R_SUCCESS;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L
 	DH *dh;
 	const BIGNUM *pub_key = NULL, *p = NULL, *g = NULL;
@@ -713,7 +716,7 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 	publen = BN_num_bytes(pub_key);
 	dnslen = plen + glen + publen + 6;
 	if (r.length < (unsigned int)dnslen) {
-		return (ISC_R_NOSPACE);
+		DST_RET(ISC_R_NOSPACE);
 	}
 
 	uint16_toregion(plen, &r);
@@ -742,6 +745,7 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_add(data, dnslen);
 
+err:
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (p != NULL) {
 		BN_free(p);
@@ -754,7 +758,7 @@ openssldh_todns(const dst_key_t *key, isc_buffer_t *data) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L */
 
-	return (ISC_R_SUCCESS);
+	return (ret);
 }
 
 static isc_result_t
