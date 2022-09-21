@@ -7,4 +7,5 @@ LDADD +=			\
 	$(LIBISC_LIBS)
 
 noinst_PROGRAMS =		\
-	ascii
+	ascii			\
+	siphash
