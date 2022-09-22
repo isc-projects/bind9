@@ -94,6 +94,7 @@ atomic_bool check_listener_quota = false;
 bool allow_send_back = false;
 bool noanswer = false;
 bool stream_use_TLS = false;
+bool stream = false;
 
 isc_nm_recv_cb_t connect_readcb = NULL;
 
@@ -314,7 +315,11 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	if (eresult != ISC_R_SUCCESS) {
 		/* Send failed, we need to stop reading too */
-		isc_nm_cancelread(handle);
+		if (stream) {
+			isc_nm_read_stop(handle);
+		} else {
+			isc_nm_cancelread(handle);
+		}
 		goto unref;
 	}
 
@@ -369,6 +374,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_CONNECTIONRESET:
+	case ISC_R_CONNREFUSED:
 		break;
 	default:
 		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
@@ -378,6 +384,9 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	isc_refcount_decrement(&active_creads);
 
+	if (stream) {
+		isc_nm_read_stop(handle);
+	}
 	isc_nmhandle_detach(&handle);
 }
 
@@ -648,6 +657,8 @@ connect_success_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	UNUSED(handle);
 	UNUSED(cbarg);
 
+	F();
+
 	isc_refcount_decrement(&active_cconnects);
 	assert_int_equal(eresult, ISC_R_SUCCESS);
 
@@ -693,11 +704,8 @@ noresponse_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	UNUSED(region);
 	UNUSED(cbarg);
 
-	if (eresult == ISC_R_EOF) {
-		eresult = ISC_R_CONNECTIONRESET;
-	}
-
-	assert_int_equal(eresult, ISC_R_CONNECTIONRESET);
+	assert_true(eresult == ISC_R_CANCELED ||
+		    eresult == ISC_R_CONNECTIONRESET || eresult == ISC_R_EOF);
 
 	isc_refcount_decrement(&active_creads);
 

@@ -118,6 +118,7 @@ extern atomic_bool check_listener_quota;
 extern bool allow_send_back;
 extern bool noanswer;
 extern bool stream_use_TLS;
+extern bool stream;
 
 extern isc_nm_recv_cb_t connect_readcb;
 

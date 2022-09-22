@@ -55,9 +55,6 @@ can_log_tcp_quota(void) {
 static isc_result_t
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
 
-static void
-tcp_close_direct(isc_nmsocket_t *sock);
-
 static isc_result_t
 tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req);
 static void
@@ -173,36 +170,6 @@ tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	return (ISC_R_SUCCESS);
 }
 
-void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpconnect_t *ievent =
-		(isc__netievent_tcpconnect_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *req = ievent->req;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->parent == NULL);
-	REQUIRE(sock->tid == isc_tid());
-
-	result = tcp_connect_direct(sock, req);
-	if (result != ISC_R_SUCCESS) {
-		atomic_store(&sock->active, false);
-		if (sock->fd != (uv_os_sock_t)(-1)) {
-			isc__nm_tcp_close(sock);
-		}
-		isc__nm_connectcb(sock, req, result, true);
-	}
-
-	/*
-	 * The sock is now attached to the handle.
-	 */
-	isc__nmsocket_detach(&sock);
-}
-
 static void
 tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	isc_result_t result = ISC_R_UNSET;
@@ -295,7 +262,6 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
-	isc__netievent_tcpconnect_t *ievent = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
 	isc__networker_t *worker = &mgr->workers[isc_tid()];
@@ -335,14 +301,21 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
-	ievent = isc__nm_get_netievent_tcpconnect(worker, sock, req);
-
 	atomic_store(&sock->active, true);
-	isc__nm_async_tcpconnect(&mgr->workers[sock->tid],
-				 (isc__netievent_t *)ievent);
-	isc__nm_put_netievent_tcpconnect(worker, ievent);
 
-	atomic_store(&sock->active, true);
+	result = tcp_connect_direct(sock, req);
+	if (result != ISC_R_SUCCESS) {
+		atomic_store(&sock->active, false);
+		if (sock->fd != (uv_os_sock_t)(-1)) {
+			isc__nm_tcp_close(sock);
+		}
+		isc__nm_connectcb(sock, req, result, true);
+	}
+
+	/*
+	 * The sock is now attached to the handle.
+	 */
+	isc__nmsocket_detach(&sock);
 }
 
 static uv_os_sock_t
@@ -670,6 +643,26 @@ isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
 	stop_tcp_parent(sock);
 }
 
+static void
+tcp_stop_cb(uv_handle_t *handle) {
+	isc_nmsocket_t *sock = uv_handle_get_data(handle);
+	uv_handle_set_data(handle, NULL);
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(atomic_load(&sock->closing));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+
+	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closed,
+						     &(bool){ false }, true));
+
+	isc__nm_incstats(sock, STATID_CLOSE);
+
+	atomic_store(&sock->listening, false);
+
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpstop_t *)ev0;
@@ -739,12 +732,15 @@ destroy:
 
 void
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
+	isc_nmsocket_t *sock;
+	isc_nm_t *netmgr;
+	isc_result_t result;
+
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	isc_nmsocket_t *sock = handle->sock;
-	isc__netievent_tcpstartread_t *ievent = NULL;
-	isc_nm_t *netmgr = sock->worker->netmgr;
+	sock = handle->sock;
+	netmgr = sock->worker->netmgr;
 
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(sock->statichandle == handle);
@@ -752,54 +748,34 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 	sock->recv_read = true;
+
+	/* Initialize the timer */
 	if (sock->read_timeout == 0) {
 		sock->read_timeout = (atomic_load(&sock->keepalive)
 					      ? atomic_load(&netmgr->keepalive)
 					      : atomic_load(&netmgr->idle));
 	}
 
-	ievent = isc__nm_get_netievent_tcpstartread(sock->worker, sock);
-
-	/*
-	 * This MUST be done asynchronously, no matter which thread we're
-	 * in. The callback function for isc_nm_read() often calls
-	 * isc_nm_read() again; if we tried to do that synchronously
-	 * we'd clash in processbuffer() and grow the stack indefinitely.
-	 */
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-
-	return;
-}
-
-void
-isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpstartread_t *ievent =
-		(isc__netievent_tcpstartread_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc_result_t result;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	UNUSED(worker);
-
 	if (isc__nmsocket_closing(sock)) {
 		result = ISC_R_CANCELED;
-	} else {
-		result = isc__nm_start_reading(sock);
+		goto failure;
 	}
 
+	result = isc__nm_start_reading(sock);
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&sock->reading, true);
-		isc__nm_tcp_failed_read_cb(sock, result);
-		return;
+		goto failure;
 	}
 
 	isc__nmsocket_timer_start(sock);
+
+	return;
+failure:
+	sock->reading = true;
+	isc__nm_tcp_failed_read_cb(sock, result);
 }
 
 void
-isc__nm_tcp_pauseread(isc_nmhandle_t *handle) {
-	isc__netievent_tcppauseread_t *ievent = NULL;
+isc__nm_tcp_read_stop(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -808,61 +784,10 @@ isc__nm_tcp_pauseread(isc_nmhandle_t *handle) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	if (!atomic_compare_exchange_strong(&sock->readpaused, &(bool){ false },
-					    true)) {
-		return;
-	}
-
-	ievent = isc__nm_get_netievent_tcppauseread(sock->worker, sock);
-
-	isc__nm_maybe_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-
-	return;
-}
-
-void
-isc__nm_async_tcppauseread(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcppauseread_t *ievent =
-		(isc__netievent_tcppauseread_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	UNUSED(worker);
-
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
-}
 
-void
-isc__nm_tcp_resumeread(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	isc__netievent_tcpstartread_t *ievent = NULL;
-	isc_nmsocket_t *sock = handle->sock;
-
-	REQUIRE(sock->tid == isc_tid());
-
-	if (sock->recv_cb == NULL) {
-		/* We are no longer reading */
-		return;
-	}
-
-	if (!isc__nmsocket_active(sock)) {
-		atomic_store(&sock->reading, true);
-		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
-		return;
-	}
-
-	if (!atomic_compare_exchange_strong(&sock->readpaused, &(bool){ true },
-					    false)) {
-		return;
-	}
-
-	ievent = isc__nm_get_netievent_tcpstartread(sock->worker, sock);
-
-	isc__nm_maybe_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	return;
 }
 
 void
@@ -873,7 +798,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->reading));
+	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
 	netmgr = sock->worker->netmgr;
@@ -912,7 +837,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
 
 	/* The readcb could have paused the reading */
-	if (atomic_load(&sock->reading)) {
+	if (sock->reading) {
 		/* The timer will be updated */
 		isc__nmsocket_timer_restart(sock);
 	}
@@ -938,10 +863,12 @@ quota_accept_cb(isc_quota_t *quota, void *sock0) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	/*
-	 * Create a tcpaccept event and pass it using the async channel.
+	 * Create a tcpaccept event and pass it using the async channel.  This
+	 * needs to be asynchronous, because the quota might have been released
+	 * by a different child socket.
 	 */
 	ievent = isc__nm_get_netievent_tcpaccept(sock->worker, sock, quota);
-	isc__nm_maybe_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 /*
@@ -1048,8 +975,6 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	csock->read_timeout = atomic_load(&csock->worker->netmgr->init);
 
-	atomic_fetch_add(&ssock->parent->active_child_connections, 1);
-
 	/*
 	 * The acceptcb needs to attach to the handle if it wants to keep the
 	 * connection alive
@@ -1082,10 +1007,12 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	isc_nmsocket_t *sock = handle->sock;
-	isc__netievent_tcpsend_t *ievent = NULL;
+	isc_result_t result;
 	isc__nm_uvreq_t *uvreq = NULL;
+	isc_nm_t *netmgr = sock->worker->netmgr;
 
 	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(sock->tid == isc_tid());
 
 	uvreq = isc__nm_uvreq_get(sock->worker, sock);
 	uvreq->uvbuf.base = (char *)region->base;
@@ -1096,8 +1023,17 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
 
-	ievent = isc__nm_get_netievent_tcpsend(sock->worker, sock, uvreq);
-	isc__nm_maybe_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	if (sock->write_timeout == 0) {
+		sock->write_timeout = (atomic_load(&sock->keepalive)
+					       ? atomic_load(&netmgr->keepalive)
+					       : atomic_load(&netmgr->idle));
+	}
+
+	result = tcp_send_direct(sock, uvreq);
+	if (result != ISC_R_SUCCESS) {
+		isc__nm_incstats(sock, STATID_SENDFAIL);
+		isc__nm_failed_send_cb(sock, uvreq, result);
+	}
 
 	return;
 }
@@ -1122,34 +1058,6 @@ tcp_send_cb(uv_write_t *req, int status) {
 	}
 
 	isc__nm_sendcb(sock, uvreq, ISC_R_SUCCESS, false);
-}
-
-/*
- * Handle 'tcpsend' async event - send a packet on the socket
- */
-void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc_result_t result;
-	isc__netievent_tcpsend_t *ievent = (isc__netievent_tcpsend_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *uvreq = ievent->req;
-	isc_nm_t *netmgr = sock->worker->netmgr;
-
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->tid == isc_tid());
-	UNUSED(worker);
-
-	if (sock->write_timeout == 0) {
-		sock->write_timeout = (atomic_load(&sock->keepalive)
-					       ? atomic_load(&netmgr->keepalive)
-					       : atomic_load(&netmgr->idle));
-	}
-
-	result = tcp_send_direct(sock, uvreq);
-	if (result != ISC_R_SUCCESS) {
-		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq, result);
-	}
 }
 
 static isc_result_t
@@ -1181,37 +1089,13 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 }
 
 static void
-tcp_stop_cb(uv_handle_t *handle) {
-	isc_nmsocket_t *sock = uv_handle_get_data(handle);
-	uv_handle_set_data(handle, NULL);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->closing));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-
-	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
-		UNREACHABLE();
-	}
-
-	isc__nm_incstats(sock, STATID_CLOSE);
-
-	atomic_store(&sock->listening, false);
-
-	isc__nmsocket_detach(&sock);
-}
-
-static void
 tcp_close_sock(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->closing));
 
-	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
-		UNREACHABLE();
-	}
+	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closed,
+						     &(bool){ false }, true));
 
 	isc__nm_incstats(sock, STATID_CLOSE);
 
@@ -1232,22 +1116,16 @@ tcp_close_cb(uv_handle_t *handle) {
 	tcp_close_sock(sock);
 }
 
-static void
-tcp_close_direct(isc_nmsocket_t *sock) {
+void
+isc__nm_tcp_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(!isc__nmsocket_active(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->closing));
 	REQUIRE(sock->parent == NULL);
 
-	if (sock->server != NULL) {
-		REQUIRE(VALID_NMSOCK(sock->server));
-		REQUIRE(VALID_NMSOCK(sock->server->parent));
-		if (sock->server->parent != NULL) {
-			atomic_fetch_sub(
-				&sock->server->parent->active_child_connections,
-				1);
-		}
-	}
+	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
+						     &(bool){ false }, true));
 
 	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
@@ -1278,44 +1156,6 @@ tcp_close_direct(isc_nmsocket_t *sock) {
 		uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
 		uv_close((uv_handle_t *)&sock->read_timer, tcp_close_cb);
 	}
-}
-
-void
-isc__nm_tcp_close(isc_nmsocket_t *sock) {
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(!isc__nmsocket_active(sock));
-
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
-		return;
-	}
-
-	if (sock->tid == isc_tid()) {
-		tcp_close_direct(sock);
-	} else {
-		/*
-		 * We need to create an event and pass it using async channel
-		 */
-		isc__netievent_tcpclose_t *ievent =
-			isc__nm_get_netievent_tcpclose(sock->worker, sock);
-
-		isc__nm_enqueue_ievent(sock->worker,
-				       (isc__netievent_t *)ievent);
-	}
-}
-
-void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpclose_t *ievent = (isc__netievent_tcpclose_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	tcp_close_direct(sock);
 }
 
 static void
@@ -1374,45 +1214,4 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	if (sock->parent == NULL) {
 		isc__nmsocket_prep_destroy(sock);
 	}
-}
-
-void
-isc__nm_tcp_cancelread(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-	isc__netievent_tcpcancel_t *ievent = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	sock = handle->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-
-	ievent = isc__nm_get_netievent_tcpcancel(sock->worker, sock, handle);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_tcpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpcancel_t *ievent = (isc__netievent_tcpcancel_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	UNUSED(worker);
-
-	uv_timer_stop(&sock->read_timer);
-
-	isc__nm_tcp_failed_read_cb(sock, ISC_R_EOF);
-}
-
-int_fast32_t
-isc__nm_tcp_listener_nactive(isc_nmsocket_t *listener) {
-	int_fast32_t nactive;
-
-	REQUIRE(VALID_NMSOCK(listener));
-
-	nactive = atomic_load(&listener->active_child_connections);
-	INSIST(nactive >= 0);
-	return (nactive);
 }

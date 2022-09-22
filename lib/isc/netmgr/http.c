@@ -490,7 +490,8 @@ finish_http_session(isc_nm_http_session_t *session) {
 	if (session->handle != NULL) {
 		if (!session->closed) {
 			session->closed = true;
-			isc_nm_cancelread(session->handle);
+			session->reading = false;
+			isc_nmhandle_close(session->handle);
 		}
 
 		if (session->client) {
@@ -1007,7 +1008,7 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		}
 		isc_buffer_putmem(session->buf, region->base + readlen,
 				  unread_size);
-		isc_nm_pauseread(session->handle);
+		isc_nm_read_stop(session->handle);
 	}
 
 	/* We might have something to receive or send, do IO */
@@ -1287,11 +1288,11 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 			return;
 		} else {
 			/* Resume reading, it's idempotent, wait for more */
-			isc_nm_resumeread(session->handle);
+			isc_nm_read(session->handle, http_readcb, session);
 		}
 	} else {
 		/* We don't want more data, stop reading for now */
-		isc_nm_pauseread(session->handle);
+		isc_nm_read_stop(session->handle);
 	}
 
 	if (send_cb != NULL) {
@@ -1332,31 +1333,22 @@ get_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 static void
 http_call_connect_cb(isc_nmsocket_t *sock, isc_nm_http_session_t *session,
 		     isc_result_t result) {
-	isc__nm_uvreq_t *req = NULL;
 	isc_nmhandle_t *httphandle = isc__nmhandle_get(sock, &sock->peer,
 						       &sock->iface);
+	void *cbarg;
+	isc_nm_cb_t connect_cb;
 
 	REQUIRE(sock->connect_cb != NULL);
 
+	cbarg = sock->connect_cbarg;
+	connect_cb = sock->connect_cb;
+	isc__nmsocket_clearcb(sock);
 	if (result == ISC_R_SUCCESS) {
-		req = isc__nm_uvreq_get(sock->worker, sock);
-		req->cb.connect = sock->connect_cb;
-		req->cbarg = sock->connect_cbarg;
 		if (session != NULL) {
 			session->client_httphandle = httphandle;
-			req->handle = NULL;
-			isc_nmhandle_attach(httphandle, &req->handle);
-		} else {
-			req->handle = httphandle;
 		}
-
-		isc__nmsocket_clearcb(sock);
-		isc__nm_connectcb(sock, req, result, true);
+		connect_cb(httphandle, result, cbarg);
 	} else {
-		void *cbarg = sock->connect_cbarg;
-		isc_nm_cb_t connect_cb = sock->connect_cb;
-
-		isc__nmsocket_clearcb(sock);
 		connect_cb(httphandle, result, cbarg);
 		isc_nmhandle_detach(&httphandle);
 	}

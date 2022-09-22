@@ -254,13 +254,7 @@ struct isc_nmhandle {
 typedef enum isc__netievent_type {
 	netievent_udpcancel,
 
-	netievent_tcpconnect,
-	netievent_tcpclose,
-	netievent_tcpsend,
-	netievent_tcpstartread,
-	netievent_tcppauseread,
 	netievent_tcpaccept,
-	netievent_tcpcancel,
 
 	netievent_tcpdnsaccept,
 	netievent_tcpdnsconnect,
@@ -271,10 +265,8 @@ typedef enum isc__netievent_type {
 
 	netievent_tlsclose,
 	netievent_tlssend,
-	netievent_tlsstartread,
 	netievent_tlsconnect,
 	netievent_tlsdobio,
-	netievent_tlscancel,
 
 	netievent_tlsdnsaccept,
 	netievent_tlsdnsconnect,
@@ -924,7 +916,6 @@ struct isc_nmsocket {
 			TLS_CLOSED
 		} state; /*%< The order of these is significant */
 		size_t nsending;
-		bool reading;
 	} tlsstream;
 
 	isc_nmsocket_h2_t h2;
@@ -1005,7 +996,7 @@ struct isc_nmsocket {
 	atomic_bool connecting;
 	atomic_bool connected;
 	atomic_bool accepting;
-	atomic_bool reading;
+	bool reading;
 	atomic_bool timedout;
 	isc_refcount_t references;
 
@@ -1019,11 +1010,6 @@ struct isc_nmsocket {
 	 * data before the readcb is back.
 	 */
 	bool processing;
-
-	/*%
-	 * A TCP socket has had isc_nm_pauseread() called.
-	 */
-	atomic_bool readpaused;
 
 	/*%
 	 * A TCP or TCPDNS socket has been set to use the keepalive
@@ -1326,7 +1312,7 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 void
 isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*
- * Back-end implementation of isc_nm_read() for TCP handles.
+ * Start reading on this handle.
  */
 
 void
@@ -1335,16 +1321,9 @@ isc__nm_tcp_close(isc_nmsocket_t *sock);
  * Close a TCP socket.
  */
 void
-isc__nm_tcp_pauseread(isc_nmhandle_t *handle);
+isc__nm_tcp_read_stop(isc_nmhandle_t *handle);
 /*%<
- * Pause reading on this handle, while still remembering the callback.
- */
-
-void
-isc__nm_tcp_resumeread(isc_nmhandle_t *handle);
-/*%<
- * Resume reading from socket.
- *
+ * Stop reading on this handle.
  */
 
 void
@@ -1366,12 +1345,6 @@ isc__nm_tcp_stoplistening(isc_nmsocket_t *sock);
  * Stop listening on 'sock'.
  */
 
-int_fast32_t
-isc__nm_tcp_listener_nactive(isc_nmsocket_t *sock);
-/*%<
- * Returns the number of active connections for the TCP listener socket.
- */
-
 void
 isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
 /*%<
@@ -1379,27 +1352,11 @@ isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
  */
 
 void
-isc__nm_async_tcpconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpsend(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_startread(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_pauseread(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpstartread(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcppauseread(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpcancel(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpclose(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
  * stoplisten, send, read, pause, close).
@@ -1412,13 +1369,8 @@ void
 isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_tlsstartread(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
 
-void
-isc__nm_async_tlscancel(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TLS events.
  */
@@ -1570,15 +1522,15 @@ void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
 
-void
-isc__nm_tls_cancelread(isc_nmhandle_t *handle);
-
 /*%<
  * Back-end implementation of isc_nm_send() for TLSDNS handles.
  */
 
 void
 isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+/*%<
+ * Start reading on the TLS handle.
+ */
 
 void
 isc__nm_tls_close(isc_nmsocket_t *sock);
@@ -1587,16 +1539,9 @@ isc__nm_tls_close(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_tls_pauseread(isc_nmhandle_t *handle);
+isc__nm_tls_read_stop(isc_nmhandle_t *handle);
 /*%<
- * Pause reading on this handle, while still remembering the callback.
- */
-
-void
-isc__nm_tls_resumeread(isc_nmhandle_t *handle);
-/*%<
- * Resume reading from the handle.
- *
+ * Stop reading on the TLS handle.
  */
 
 void
@@ -1631,6 +1576,9 @@ isc__nm_async_tls_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
 void
 isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
 				  uint64_t write_timeout);
+
+void
+isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
@@ -1819,16 +1767,12 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
  * typedef all the netievent types
  */
 
-NETIEVENT_SOCKET_TYPE(tcpclose);
 NETIEVENT_SOCKET_TYPE(tcplisten);
-NETIEVENT_SOCKET_TYPE(tcppauseread);
 NETIEVENT_SOCKET_TYPE(tcpstop);
 NETIEVENT_SOCKET_TYPE(tlsclose);
 /* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
 					  */
 NETIEVENT_SOCKET_TYPE(tlsdobio);
-NETIEVENT_SOCKET_TYPE(tlsstartread);
-NETIEVENT_SOCKET_HANDLE_TYPE(tlscancel);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpstop);
 
@@ -1858,9 +1802,6 @@ NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
-NETIEVENT_SOCKET_REQ_TYPE(tcpconnect);
-NETIEVENT_SOCKET_REQ_TYPE(tcpsend);
-NETIEVENT_SOCKET_TYPE(tcpstartread);
 NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
@@ -1868,7 +1809,6 @@ NETIEVENT_SOCKET_REQ_RESULT_TYPE(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
 NETIEVENT_SOCKET_HANDLE_TYPE(detach);
-NETIEVENT_SOCKET_HANDLE_TYPE(tcpcancel);
 NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
@@ -1877,16 +1817,11 @@ NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 
 /* Now declared the helper functions */
 
-NETIEVENT_SOCKET_DECL(tcpclose);
 NETIEVENT_SOCKET_DECL(tcplisten);
-NETIEVENT_SOCKET_DECL(tcppauseread);
-NETIEVENT_SOCKET_DECL(tcpstartread);
 NETIEVENT_SOCKET_DECL(tcpstop);
 NETIEVENT_SOCKET_DECL(tlsclose);
 NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
-NETIEVENT_SOCKET_DECL(tlsstartread);
-NETIEVENT_SOCKET_HANDLE_DECL(tlscancel);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpstop);
 
@@ -1916,15 +1851,12 @@ NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
-NETIEVENT_SOCKET_REQ_DECL(tcpconnect);
-NETIEVENT_SOCKET_REQ_DECL(tcpsend);
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
-NETIEVENT_SOCKET_HANDLE_DECL(tcpcancel);
 NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
 NETIEVENT_SOCKET_DECL(detach);
 
