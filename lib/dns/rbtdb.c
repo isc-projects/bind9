@@ -9407,6 +9407,7 @@ typedef struct {
 	rbtdb_glue_t *glue_list;
 	dns_rbtdb_t *rbtdb;
 	rbtdb_version_t *rbtversion;
+	dns_name_t *nodename;
 } rbtdb_glue_additionaldata_ctx_t;
 
 static void
@@ -9629,6 +9630,25 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		}
 	}
 
+	/*
+	 * If the currently processed NS record is in-bailiwick, mark any glue
+	 * RRsets found for it with DNS_RDATASETATTR_REQUIRED.  Note that for
+	 * simplicity, glue RRsets for all in-bailiwick NS records are marked
+	 * this way, even though dns_message_rendersection() only checks the
+	 * attributes for the first rdataset associated with the first name
+	 * added to the ADDITIONAL section.
+	 */
+	if (glue != NULL && dns_name_issubdomain(name, ctx->nodename)) {
+		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
+			glue->rdataset_a.attributes |=
+				DNS_RDATASETATTR_REQUIRED;
+		}
+		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
+			glue->rdataset_aaaa.attributes |=
+				DNS_RDATASETATTR_REQUIRED;
+		}
+	}
+
 	if (glue != NULL) {
 		glue->next = ctx->glue_list;
 		ctx->glue_list = glue;
@@ -9666,6 +9686,7 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
 	rbtdb_version_t *rbtversion = version;
+	dns_fixedname_t nodename;
 	uint32_t idx;
 	rbtdb_glue_table_node_t *cur;
 	bool found = false;
@@ -9810,6 +9831,14 @@ no_glue:
 	ctx.glue_list = NULL;
 	ctx.rbtdb = rbtdb;
 	ctx.rbtversion = rbtversion;
+
+	/*
+	 * Get the owner name of the NS RRset - it will be necessary for
+	 * identifying required glue in glue_nsdname_cb() (by determining which
+	 * NS records in the delegation are in-bailiwick).
+	 */
+	ctx.nodename = dns_fixedname_initname(&nodename);
+	nodefullname((dns_db_t *)rbtdb, node, ctx.nodename);
 
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
