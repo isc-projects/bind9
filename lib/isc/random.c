@@ -35,13 +35,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <isc/entropy.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/thread.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include "entropy_private.h"
 #include "random_p.h"
 
 /*

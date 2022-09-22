@@ -15,16 +15,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "entropy_private.h"
-#include "isc/ascii.h"
-#include "isc/hash.h" /* IWYU pragma: keep */
-#include "isc/once.h"
-#include "isc/random.h"
-#include "isc/result.h"
-#include "isc/siphash.h"
-#include "isc/string.h"
-#include "isc/types.h"
-#include "isc/util.h"
+#include <isc/ascii.h>
+#include <isc/entropy.h>
+#include <isc/hash.h> /* IWYU pragma: keep */
+#include <isc/once.h>
+#include <isc/random.h>
+#include <isc/result.h>
+#include <isc/siphash.h>
+#include <isc/string.h>
+#include <isc/types.h>
+#include <isc/util.h>
 
 static uint8_t isc_hash_key[16];
 static uint8_t isc_hash32_key[8];
