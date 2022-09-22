@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/log.h>
@@ -40,11 +41,27 @@
 #include <dns/resolver.h>
 #include <dns/time.h>
 
-struct dns_nta {
+struct dns_ntatable {
+	/* Unlocked. */
 	unsigned int magic;
-	isc_refcount_t refcount;
+	dns_view_t *view;
+	isc_rwlock_t rwlock;
+	isc_loopmgr_t *loopmgr;
+	isc_task_t *task;
+	/* Protected by atomics */
+	isc_refcount_t references;
+	/* Locked by rwlock. */
+	dns_rbt_t *table;
+	bool shuttingdown;
+};
+
+struct dns__nta {
+	unsigned int magic;
+	isc_mem_t *mctx;
+	isc_refcount_t references;
 	dns_ntatable_t *ntatable;
 	bool forced;
+	isc_loop_t *loop;
 	isc_timer_t *timer;
 	dns_fetch_t *fetch;
 	dns_rdataset_t rdataset;
@@ -57,48 +74,37 @@ struct dns_nta {
 #define NTA_MAGIC     ISC_MAGIC('N', 'T', 'A', 'n')
 #define VALID_NTA(nn) ISC_MAGIC_VALID(nn, NTA_MAGIC)
 
-/*
- * Obtain a reference to the nta object.  Released by
- * nta_detach.
- */
 static void
-nta_ref(dns_nta_t *nta) {
-	isc_refcount_increment(&nta->refcount);
-}
+dns__nta_shutdown(dns__nta_t *nta);
 
 static void
-nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
-	REQUIRE(ntap != NULL && VALID_NTA(*ntap));
-	dns_nta_t *nta = *ntap;
-	*ntap = NULL;
-
-	if (isc_refcount_decrement(&nta->refcount) == 1) {
-		isc_refcount_destroy(&nta->refcount);
-		nta->magic = 0;
-		if (nta->timer != NULL) {
-			(void)isc_timer_stop(nta->timer);
-			isc_timer_destroy(&nta->timer);
-		}
-		if (dns_rdataset_isassociated(&nta->rdataset)) {
-			dns_rdataset_disassociate(&nta->rdataset);
-		}
-		if (dns_rdataset_isassociated(&nta->sigrdataset)) {
-			dns_rdataset_disassociate(&nta->sigrdataset);
-		}
-		if (nta->fetch != NULL) {
-			dns_resolver_cancelfetch(nta->fetch);
-			dns_resolver_destroyfetch(&nta->fetch);
-		}
-		isc_mem_put(mctx, nta, sizeof(dns_nta_t));
+dns__nta_destroy(dns__nta_t *nta) {
+	isc_refcount_destroy(&nta->references);
+	nta->magic = 0;
+	REQUIRE(nta->timer == NULL);
+	if (dns_rdataset_isassociated(&nta->rdataset)) {
+		dns_rdataset_disassociate(&nta->rdataset);
 	}
+	if (dns_rdataset_isassociated(&nta->sigrdataset)) {
+		dns_rdataset_disassociate(&nta->sigrdataset);
+	}
+	if (nta->fetch != NULL) {
+		dns_resolver_cancelfetch(nta->fetch);
+		dns_resolver_destroyfetch(&nta->fetch);
+	}
+	isc_mem_putanddetach(&nta->mctx, nta, sizeof(*nta));
 }
 
-static void
-free_nta(void *data, void *arg) {
-	dns_nta_t *nta = (dns_nta_t *)data;
-	isc_mem_t *mctx = (isc_mem_t *)arg;
+ISC_REFCOUNT_IMPL(dns__nta, dns__nta_destroy);
 
-	nta_detach(mctx, &nta);
+static void
+dns__nta_free(void *data, void *arg) {
+	dns__nta_t *nta = (dns__nta_t *)data;
+
+	UNUSED(arg);
+
+	dns__nta_shutdown(nta);
+	dns__nta_detach(&nta); /* for nta_create() */
 }
 
 isc_result_t
@@ -110,16 +116,18 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	REQUIRE(ntatablep != NULL && *ntatablep == NULL);
 
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
+	*ntatable = (dns_ntatable_t){
+		.loopmgr = loopmgr,
+		.view = view,
+	};
 
-	ntatable->task = NULL;
 	result = isc_task_create(taskmgr, &ntatable->task, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_ntatable;
 	}
 	isc_task_setname(ntatable->task, "ntatable", ntatable);
 
-	ntatable->table = NULL;
-	result = dns_rbt_create(view->mctx, free_nta, view->mctx,
+	result = dns_rbt_create(view->mctx, dns__nta_free, NULL,
 				&ntatable->table);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
@@ -127,11 +135,6 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 
 	isc_rwlock_init(&ntatable->rwlock, 0, 0);
 
-	ntatable->shuttingdown = false;
-	ntatable->loopmgr = loopmgr;
-	ntatable->taskmgr = taskmgr;
-
-	ntatable->view = view;
 	isc_refcount_init(&ntatable->references, 1);
 
 	ntatable->magic = NTATABLE_MAGIC;
@@ -148,43 +151,22 @@ cleanup_ntatable:
 	return (result);
 }
 
-void
-dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp) {
-	REQUIRE(VALID_NTATABLE(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&source->references);
-
-	*targetp = source;
+static void
+dns__ntatable_destroy(dns_ntatable_t *ntatable) {
+	isc_refcount_destroy(&ntatable->references);
+	ntatable->magic = 0;
+	dns_rbt_destroy(&ntatable->table);
+	isc_rwlock_destroy(&ntatable->rwlock);
+	isc_task_detach(&ntatable->task);
+	isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
 }
 
-void
-dns_ntatable_detach(dns_ntatable_t **ntatablep) {
-	dns_ntatable_t *ntatable;
-
-	REQUIRE(ntatablep != NULL && VALID_NTATABLE(*ntatablep));
-
-	ntatable = *ntatablep;
-	*ntatablep = NULL;
-
-	if (isc_refcount_decrement(&ntatable->references) == 1) {
-		dns_rbt_destroy(&ntatable->table);
-		isc_rwlock_destroy(&ntatable->rwlock);
-		isc_refcount_destroy(&ntatable->references);
-		if (ntatable->task != NULL) {
-			isc_task_detach(&ntatable->task);
-		}
-		ntatable->loopmgr = NULL;
-		ntatable->taskmgr = NULL;
-		ntatable->magic = 0;
-		isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
-	}
-}
+ISC_REFCOUNT_IMPL(dns_ntatable, dns__ntatable_destroy);
 
 static void
 fetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
-	dns_nta_t *nta = devent->ev_arg;
+	dns__nta_t *nta = devent->ev_arg;
 	isc_result_t eresult = devent->result;
 	dns_ntatable_t *ntatable = nta->ntatable;
 	dns_view_t *view = ntatable->view;
@@ -235,17 +217,17 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	 */
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	if (nta->timer != NULL && nta->expiry - now < view->nta_recheck) {
-		(void)isc_timer_stop(nta->timer);
+		isc_timer_stop(nta->timer);
 	}
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 
-	nta_detach(view->mctx, &nta);
+	dns__nta_detach(&nta); /* for dns_resolver_createfetch() */
 	dns_view_weakdetach(&view);
 }
 
 static void
 checkbogus(void *arg) {
-	dns_nta_t *nta = arg;
+	dns__nta_t *nta = arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -261,7 +243,7 @@ checkbogus(void *arg) {
 		dns_rdataset_disassociate(&nta->sigrdataset);
 	}
 
-	nta_ref(nta);
+	dns__nta_ref(nta); /* for dns_resolver_createfetch */
 	dns_view_weakattach(ntatable->view, &view);
 	result = dns_resolver_createfetch(
 		view->resolver, nta->name, dns_rdatatype_nsec, NULL, NULL, NULL,
@@ -269,40 +251,33 @@ checkbogus(void *arg) {
 		fetch_done, nta, &nta->rdataset, &nta->sigrdataset,
 		&nta->fetch);
 	if (result != ISC_R_SUCCESS) {
-		nta_detach(view->mctx, &nta);
+		dns__nta_detach(&nta); /* for dns_resolver_createfetch() */
 		dns_view_weakdetach(&view);
 	}
 }
 
 static void
-settimer(dns_ntatable_t *ntatable, dns_nta_t *nta, uint32_t lifetime) {
-	isc_interval_t interval;
+settimer(dns_ntatable_t *ntatable, dns__nta_t *nta, uint32_t lifetime) {
 	dns_view_t *view = NULL;
-	isc_loop_t *loop = NULL;
+	isc_interval_t interval;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 	REQUIRE(VALID_NTA(nta));
-
-	if (ntatable->loopmgr == NULL) {
-		return;
-	}
 
 	view = ntatable->view;
 	if (view->nta_recheck == 0 || lifetime <= view->nta_recheck) {
 		return;
 	}
 
-	loop = isc_loop_main(ntatable->loopmgr);
-
-	isc_timer_create(loop, checkbogus, nta, &nta->timer);
+	isc_timer_create(nta->loop, checkbogus, nta, &nta->timer);
 	isc_interval_set(&interval, view->nta_recheck, 0);
 	isc_timer_start(nta->timer, isc_timertype_ticker, &interval);
 }
 
-static isc_result_t
+static void
 nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
-	   dns_nta_t **target) {
-	dns_nta_t *nta = NULL;
+	   dns__nta_t **target) {
+	dns__nta_t *nta = NULL;
 	dns_view_t *view;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
@@ -310,37 +285,34 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 
 	view = ntatable->view;
 
-	nta = isc_mem_get(view->mctx, sizeof(dns_nta_t));
+	nta = isc_mem_get(view->mctx, sizeof(dns__nta_t));
+	*nta = (dns__nta_t){
+		.ntatable = ntatable,
+		.loop = isc_loop_current(ntatable->loopmgr),
+		.magic = NTA_MAGIC,
+	};
 
-	nta->ntatable = ntatable;
-	nta->expiry = 0;
-	nta->timer = NULL;
-	nta->fetch = NULL;
+	isc_mem_attach(view->mctx, &nta->mctx);
+
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
 
-	isc_refcount_init(&nta->refcount, 1);
+	isc_refcount_init(&nta->references, 1);
 
 	nta->name = dns_fixedname_initname(&nta->fn);
 	dns_name_copy(name, nta->name);
 
-	nta->magic = NTA_MAGIC;
-
 	*target = nta;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		 isc_stdtime_t now, uint32_t lifetime) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_nta_t *nta = NULL;
-	dns_rbtnode_t *node;
-	dns_view_t *view;
+	dns__nta_t *nta = NULL;
+	dns_rbtnode_t *node = NULL;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
-
-	view = ntatable->view;
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
@@ -348,43 +320,38 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		goto unlock;
 	}
 
-	result = nta_create(ntatable, name, &nta);
-	if (result != ISC_R_SUCCESS) {
-		goto unlock;
-	}
+	nta_create(ntatable, name, &nta);
 
 	nta->expiry = now + lifetime;
 	nta->forced = force;
 
-	node = NULL;
 	result = dns_rbt_addnode(ntatable->table, name, &node);
-	if (result == ISC_R_SUCCESS) {
+	switch (result) {
+	case ISC_R_EXISTS:
+		result = ISC_R_SUCCESS;
+		if (node->data != NULL) {
+			/* NTA already exists, just update the timer */
+			dns__nta_t *node_nta = (dns__nta_t *)node->data;
+			node_nta->expiry = nta->expiry;
+			dns__nta_detach(&nta); /* for nta_create */
+			break;
+		}
+		/* Node was empty, update as if new */
+		FALLTHROUGH;
+	case ISC_R_SUCCESS:
+		INSIST(node != NULL);
+		INSIST(node->data == NULL);
 		if (!force) {
 			settimer(ntatable, nta, lifetime);
 		}
 		node->data = nta;
-		nta = NULL;
-	} else if (result == ISC_R_EXISTS) {
-		dns_nta_t *n = node->data;
-		if (n == NULL) {
-			if (!force) {
-				settimer(ntatable, nta, lifetime);
-			}
-			node->data = nta;
-			nta = NULL;
-		} else {
-			n->expiry = nta->expiry;
-			nta_detach(view->mctx, &nta);
-		}
-		result = ISC_R_SUCCESS;
+		break;
+	default:
+		break;
 	}
 
 unlock:
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-
-	if (nta != NULL) {
-		nta_detach(view->mctx, &nta);
-	}
 
 	return (result);
 }
@@ -397,28 +364,30 @@ deletenode(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
-	REQUIRE(VALID_NTATABLE(ntatable));
-	REQUIRE(name != NULL);
-
 	result = dns_rbt_findnode(ntatable->table, name, NULL, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
-	if (result == ISC_R_SUCCESS) {
-		if (node->data != NULL) {
-			result = dns_rbt_deletenode(ntatable->table, node,
-						    false);
-		} else {
-			result = ISC_R_NOTFOUND;
+	switch (result) {
+	case ISC_R_SUCCESS:
+		if (node->data == NULL) {
+			/* Found empty node */
+			return (ISC_R_NOTFOUND);
 		}
-	} else if (result == DNS_R_PARTIALMATCH) {
-		result = ISC_R_NOTFOUND;
-	}
 
-	return (result);
+		result = dns_rbt_deletenode(ntatable->table, node, false);
+		return (result);
+	case DNS_R_PARTIALMATCH:
+		return (ISC_R_NOTFOUND);
+	default:
+		return (result);
+	}
 }
 
 isc_result_t
 dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *name) {
 	isc_result_t result;
+
+	REQUIRE(VALID_NTATABLE(ntatable));
+	REQUIRE(name != NULL);
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 	result = deletenode(ntatable, name);
@@ -434,64 +403,65 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 	dns_fixedname_t fn;
 	dns_rbtnode_t *node;
 	dns_name_t *foundname;
-	dns_nta_t *nta = NULL;
+	dns__nta_t *nta = NULL;
 	bool answer = false;
-	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	isc_rwlocktype_t locktype;
+	char nb[DNS_NAME_FORMATSIZE];
 
-	REQUIRE(ntatable == NULL || VALID_NTATABLE(ntatable));
+	REQUIRE(VALID_NTATABLE(ntatable));
 	REQUIRE(dns_name_isabsolute(name));
-
-	if (ntatable == NULL) {
-		return (false);
-	}
 
 	foundname = dns_fixedname_initname(&fn);
 
+	locktype = isc_rwlocktype_read;
 relock:
 	RWLOCK(&ntatable->rwlock, locktype);
 again:
 	node = NULL;
 	result = dns_rbt_findnode(ntatable->table, name, foundname, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
-	if (result == DNS_R_PARTIALMATCH) {
-		if (dns_name_issubdomain(foundname, anchor)) {
-			result = ISC_R_SUCCESS;
+	switch (result) {
+	case ISC_R_SUCCESS:
+		/* Found a node */
+		break;
+	case DNS_R_PARTIALMATCH:
+		if (!dns_name_issubdomain(foundname, anchor)) {
+			goto unlock;
 		}
+		/* Found a parental node */
+		result = ISC_R_SUCCESS;
+		break;
+	default:
+		goto unlock;
 	}
-	if (result == ISC_R_SUCCESS) {
-		nta = (dns_nta_t *)node->data;
-		answer = (nta->expiry > now);
+
+	INSIST(result == ISC_R_SUCCESS);
+	nta = (dns__nta_t *)node->data;
+	if (nta->expiry > now) {
+		/* We got non-expired answer */
+		answer = true;
+		goto unlock;
 	}
 
 	/* Deal with expired NTA */
-	if (result == ISC_R_SUCCESS && !answer) {
-		char nb[DNS_NAME_FORMATSIZE];
-
-		if (locktype == isc_rwlocktype_read) {
-			RWUNLOCK(&ntatable->rwlock, locktype);
-			locktype = isc_rwlocktype_write;
-			goto relock;
-		}
-
-		dns_name_format(foundname, nb, sizeof(nb));
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-			      DNS_LOGMODULE_NTA, ISC_LOG_INFO,
-			      "deleting expired NTA at %s", nb);
-
-		if (nta->timer != NULL) {
-			(void)isc_timer_stop(nta->timer);
-			isc_timer_destroy(&nta->timer);
-		}
-
-		result = deletenode(ntatable, foundname);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				      DNS_LOGMODULE_NTA, ISC_LOG_INFO,
-				      "deleting NTA failed: %s",
-				      isc_result_totext(result));
-		}
-		goto again;
+	if (locktype == isc_rwlocktype_read) {
+		RWUNLOCK(&ntatable->rwlock, locktype);
+		locktype = isc_rwlocktype_write;
+		goto relock;
 	}
+
+	dns_name_format(foundname, nb, sizeof(nb));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_NTA,
+		      ISC_LOG_INFO, "deleting expired NTA at %s", nb);
+
+	/* We already found the node under the lock, so just delete it */
+	result = dns_rbt_deletenode(ntatable->table, node, false);
+	INSIST(result == ISC_R_SUCCESS);
+
+	/* Look again */
+	goto again;
+
+unlock:
 	RWUNLOCK(&ntatable->rwlock, locktype);
 
 	return (answer);
@@ -535,7 +505,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 	for (;;) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
-			dns_nta_t *n = (dns_nta_t *)node->data;
+			dns__nta_t *n = (dns__nta_t *)node->data;
 			char nbuf[DNS_NAME_FORMATSIZE];
 			char tbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 			char obuf[DNS_NAME_FORMATSIZE +
@@ -617,7 +587,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 			char nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
 			dns_fixedname_t fn;
 			dns_name_t *name;
-			dns_nta_t *n = (dns_nta_t *)node->data;
+			dns__nta_t *n = (dns__nta_t *)node->data;
 
 			/*
 			 * Skip this node if the expiry is already in the
@@ -663,11 +633,35 @@ cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	} else {
-		return (written ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
+	if (result == ISC_R_SUCCESS && !written) {
+		result = ISC_R_NOTFOUND;
 	}
+
+	return (result);
+}
+
+static void
+dns__nta_shutdown_cb(dns__nta_t *nta) {
+	REQUIRE(VALID_NTA(nta));
+
+	if (nta->timer) {
+		isc_timer_stop(nta->timer); /* This is superfluous */
+		isc_timer_destroy(&nta->timer);
+	}
+
+	dns__nta_detach(&nta);
+}
+
+static void
+dns__nta_shutdown(dns__nta_t *nta) {
+	REQUIRE(VALID_NTA(nta));
+
+	if (nta->timer != NULL) {
+		isc_timer_stop(nta->timer);
+	}
+
+	dns__nta_ref(nta);
+	isc_async_run(nta->loop, (isc_job_cb)dns__nta_shutdown_cb, nta);
 }
 
 void
@@ -686,10 +680,8 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable) {
 	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
-			dns_nta_t *nta = (dns_nta_t *)node->data;
-			if (nta->timer != NULL) {
-				(void)isc_timer_stop(nta->timer);
-			}
+			dns__nta_t *nta = (dns__nta_t *)node->data;
+			dns__nta_shutdown(nta);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}

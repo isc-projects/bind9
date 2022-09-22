@@ -203,23 +203,9 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
  * \li 'false' if the entries differ.
  */
 
-void
-dns_catz_zone_attach(dns_catz_zone_t *zone, dns_catz_zone_t **zonep);
+ISC_REFCOUNT_DECL(dns_catz_zone);
 /*%<
- * Attach a catzone
- *
- * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
- * \li	'zonep' is not NULL and '*zonep' is NULL.
- */
-
-void
-dns_catz_zone_detach(dns_catz_zone_t **zonep);
-/*%<
- * Detach a zone, free if no further references
- *
- * Requires:
- * \li	'zonep' is not NULL and '*zonep' is not NULL.
+ * Declare reference counting functions for dns_catz_zone_t.
  */
 
 isc_result_t

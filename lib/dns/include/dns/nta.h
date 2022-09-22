@@ -43,21 +43,6 @@
 
 ISC_LANG_BEGINDECLS
 
-struct dns_ntatable {
-	/* Unlocked. */
-	unsigned int   magic;
-	dns_view_t    *view;
-	isc_rwlock_t   rwlock;
-	isc_taskmgr_t *taskmgr;
-	isc_loopmgr_t *loopmgr;
-	isc_task_t    *task;
-	/* Protected by atomics */
-	isc_refcount_t references;
-	/* Locked by rwlock. */
-	dns_rbt_t *table;
-	bool	   shuttingdown;
-};
-
 #define NTATABLE_MAGIC	   ISC_MAGIC('N', 'T', 'A', 't')
 #define VALID_NTATABLE(nt) ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
 
@@ -85,37 +70,9 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
  *\li	Any other result indicates failure.
  */
 
-void
-dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp);
-/*%<
- * Attach *targetp to source.
- *
- * Requires:
- *
- *\li	'source' is a valid ntatable.
- *
- *\li	'targetp' points to a NULL dns_ntatable_t *.
- *
- * Ensures:
- *
- *\li	*targetp is attached to source.
- */
-
-void
-dns_ntatable_detach(dns_ntatable_t **ntatablep);
-/*%<
- * Detach *ntatablep from its ntatable.
- *
- * Requires:
- *
- *\li	'ntatablep' points to a valid ntatable.
- *
- * Ensures:
- *
- *\li	*ntatablep is NULL.
- *
- *\li	If '*ntatablep' is the last reference to the ntatable,
- *		all resources used by the ntatable will be freed
+ISC_REFCOUNT_DECL(dns_ntatable);
+/*%
+ * Reference counting for dns_ntatable
  */
 
 isc_result_t
@@ -173,11 +130,9 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
  * Return true if 'name' is below a non-expired negative trust
  * anchor which in turn is at or below 'anchor'.
  *
- * If 'ntatable' has not been initialized, return false.
- *
  * Requires:
  *
- *\li	'ntatable' is NULL or is a valid ntatable.
+ *\li	'ntatable' is a valid ntatable.
  *
  *\li	'name' is a valid absolute name.
  */
@@ -205,5 +160,9 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable);
 /*%<
  * Cancel future checks to see if NTAs can be removed.
  */
+
+/* Internal */
+typedef struct dns__nta dns__nta_t;
+ISC_REFCOUNT_DECL(dns__nta);
 
 ISC_LANG_ENDDECLS

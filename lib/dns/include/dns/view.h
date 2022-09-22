@@ -71,6 +71,7 @@
 #include <dns/clientinfo.h>
 #include <dns/dnstap.h>
 #include <dns/fixedname.h>
+#include <dns/nta.h>
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
 #include <dns/rrl.h>

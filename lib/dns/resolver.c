@@ -17,6 +17,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/counter.h>
 #include <isc/hash.h>
@@ -1269,6 +1270,9 @@ update_edns_stats(resquery_t *query) {
 	}
 }
 
+static void
+fctx_expired(void *arg);
+
 /*
  * Start the maximum lifetime timer for the fetch. This will
  * trigger if, for example, some ADB or validator dependency
@@ -1290,6 +1294,9 @@ fctx_starttimer(fetchctx_t *fctx) {
 		isc_time_subtract(&expires, &now, &interval);
 	}
 
+	if (fctx->timer == NULL) {
+		isc_timer_create(fctx->loop, fctx_expired, fctx, &fctx->timer);
+	}
 	isc_timer_start(fctx->timer, isc_timertype_once, &interval);
 }
 
@@ -1301,6 +1308,10 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	 * should never fail anyway, since the code as currently written
 	 * cannot fail in that case.
 	 */
+	if (fctx->timer == NULL) {
+		return;
+	}
+
 	isc_timer_stop(fctx->timer);
 }
 
@@ -1729,11 +1740,13 @@ fcount_decr(fetchctx_t *fctx) {
 }
 
 static void
+spillattimer_countdown(void *arg);
+
+static void
 fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 	dns_fetchevent_t *event, *next_event;
 	isc_task_t *task;
 	unsigned int count = 0;
-	isc_interval_t i;
 	bool logit = false;
 	isc_time_t now;
 	unsigned int old_spillat;
@@ -1812,9 +1825,20 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 			if (new_spillat != old_spillat) {
 				logit = true;
 			}
-			isc_interval_set(&i, 20 * 60, 0);
-			isc_timer_start(fctx->res->spillattimer,
-					isc_timertype_ticker, &i);
+
+			/* Timer not running */
+			if (fctx->res->spillattimer == NULL) {
+				isc_interval_t i;
+
+				isc_timer_create(
+					isc_loop_current(fctx->res->loopmgr),
+					spillattimer_countdown, fctx->res,
+					&fctx->res->spillattimer);
+
+				isc_interval_set(&i, 20 * 60, 0);
+				isc_timer_start(fctx->res->spillattimer,
+						isc_timertype_ticker, &i);
+			}
 		}
 		UNLOCK(&fctx->res->lock);
 		if (logit) {
@@ -4436,8 +4460,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
 
-	isc_timer_destroy(&fctx->timer);
-
 	dns_resolver_detach(&fctx->res);
 
 	isc_mem_free(fctx->mctx, fctx->info);
@@ -4518,6 +4540,8 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	fctx_cancelqueries(fctx, false, false);
 	fctx_cleanup(fctx);
 
+	isc_timer_destroy(&fctx->timer);
+
 	LOCK(&fctx->bucket->lock);
 
 	FCTX_ATTR_SET(fctx, FCTX_ATTR_SHUTTINGDOWN);
@@ -4563,13 +4587,6 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("start");
 
 	LOCK(&fctx->bucket->lock);
-
-	/*
-	 * Create an inactive timer to enforce maximum query
-	 * lifetime. It will be made active when the fetch is
-	 * started.
-	 */
-	isc_timer_create(fctx->loop, fctx_expired, fctx, &fctx->timer);
 
 	INSIST(fctx->state == fetchstate_init);
 	if (atomic_load_acquire(&fctx->want_shutdown)) {
@@ -10193,7 +10210,7 @@ destroy(dns_resolver_t *res) {
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
 	dns_badcache_destroy(&res->badcache);
-	isc_timer_destroy(&res->spillattimer);
+
 	dns_view_weakdetach(&res->view);
 	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 }
@@ -10201,26 +10218,28 @@ destroy(dns_resolver_t *res) {
 static void
 spillattimer_countdown(void *arg) {
 	dns_resolver_t *res = (dns_resolver_t *)arg;
-	unsigned int count;
-	bool logit = false;
+	unsigned int spillat = 0;
 
 	REQUIRE(VALID_RESOLVER(res));
+
+	if (atomic_load(&res->exiting)) {
+		isc_timer_destroy(&res->spillattimer);
+		return;
+	}
 
 	LOCK(&res->lock);
 	INSIST(!atomic_load_acquire(&res->exiting));
 	if (res->spillat > res->spillatmin) {
-		res->spillat--;
-		logit = true;
+		spillat = --res->spillat;
 	}
 	if (res->spillat <= res->spillatmin) {
-		isc_timer_stop(res->spillattimer);
+		isc_timer_destroy(&res->spillattimer);
 	}
-	count = res->spillat;
 	UNLOCK(&res->lock);
-	if (logit) {
+	if (spillat > 0) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-			      "clients-per-query decreased to %u", count);
+			      "clients-per-query decreased to %u", spillat);
 	}
 }
 
@@ -10233,7 +10252,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	isc_result_t result = ISC_R_SUCCESS;
 	char name[sizeof("res4294967295")];
 	dns_resolver_t *res = NULL;
-	isc_loop_t *loop = NULL;
 
 	/*
 	 * Create a resolver.
@@ -10320,10 +10338,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
-
-	loop = isc_loop_main(res->loopmgr);
-
-	isc_timer_create(loop, spillattimer_countdown, res, &res->spillattimer);
 
 	res->magic = RES_MAGIC;
 
@@ -10504,7 +10518,11 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 		isc_ht_iter_destroy(&it);
 		RWUNLOCK(&res->hash_lock, isc_rwlocktype_read);
 
-		isc_timer_stop(res->spillattimer);
+		LOCK(&res->lock);
+		if (res->spillattimer != NULL) {
+			isc_timer_async_destroy(&res->spillattimer);
+		}
+		UNLOCK(&res->lock);
 	}
 }
 

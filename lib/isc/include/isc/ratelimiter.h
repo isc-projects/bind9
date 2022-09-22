@@ -119,10 +119,9 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *ratelimiter);
  *\li	The rate limiter is no longer attached to its task.
  */
 
-void
-isc_ratelimiter_destroy(isc_ratelimiter_t **ratelimiterp);
+ISC_REFCOUNT_DECL(isc_ratelimiter);
 /*%<
- * Destroy the rate limiter.
+ * The rate limiter reference counting.
  */
 
 ISC_LANG_ENDDECLS
