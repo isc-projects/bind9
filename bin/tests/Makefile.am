@@ -1,5 +1,7 @@
 include $(top_srcdir)/Makefile.top
 
+EXTRA_DIST = convert-trs-to-junit.py
+
 SUBDIRS = system
 
 noinst_PROGRAMS =	\
