@@ -411,12 +411,135 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(purge) {
 	isc_timer_start(oncetimer, isc_timertype_once, &interval);
 }
 
+/*
+ * Set of tests that check whether the rescheduling works as expected.
+ */
+
+uint64_t timer_start;
+uint64_t timer_stop;
+uint64_t timer_expect;
+uint64_t timer_ticks;
+isc_interval_t timer_interval;
+isc_timertype_t timer_type;
+
+#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
+ISC_LOOP_TEARDOWN_IMPL(timer_expect) {
+	uint64_t diff = (timer_stop - timer_start) / 1000000000;
+	assert_true(diff == timer_expect);
+}
+
+static void
+timer_event(void *arg __attribute__((__unused__))) {
+	if (--timer_ticks == 0) {
+		isc_timer_destroy(&timer);
+		isc_loopmgr_shutdown(loopmgr);
+		timer_stop = uv_hrtime();
+	} else {
+		isc_timer_start(timer, timer_type, &timer_interval);
+	}
+}
+
+ISC_LOOP_SETUP_IMPL(reschedule_up) {
+	timer_start = uv_hrtime();
+	timer_expect = 1;
+	timer_ticks = 1;
+	timer_type = isc_timertype_once;
+}
+
+ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_up, setup_loop_reschedule_up,
+			  teardown_loop_timer_expect) {
+	isc_timer_create(mainloop, timer_event, NULL, &timer);
+
+	/* Schedule the timer to fire immediately */
+	isc_interval_set(&timer_interval, 0, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+
+	/* And then reschedule it to 2 seconds */
+	isc_interval_set(&timer_interval, 1, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+}
+
+ISC_LOOP_SETUP_IMPL(reschedule_down) {
+	timer_start = uv_hrtime();
+	timer_expect = 0;
+	timer_ticks = 1;
+	timer_type = isc_timertype_once;
+}
+
+ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_down, setup_loop_reschedule_down,
+			  teardown_loop_timer_expect) {
+	isc_timer_create(mainloop, timer_event, NULL, &timer);
+
+	/* Schedule the timer to fire at 1 second */
+	isc_interval_set(&timer_interval, 10, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+
+	/* And then reschedule it fire immediately */
+	isc_interval_set(&timer_interval, 0, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+}
+
+ISC_LOOP_SETUP_IMPL(reschedule_from_callback) {
+	timer_start = uv_hrtime();
+	timer_expect = 1;
+	timer_ticks = 2;
+	timer_type = isc_timertype_once;
+}
+
+ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_from_callback,
+			  setup_loop_reschedule_from_callback,
+			  teardown_loop_timer_expect) {
+	isc_timer_create(mainloop, timer_event, NULL, &timer);
+
+	isc_interval_set(&timer_interval, 0, NS_PER_S / 2);
+	isc_timer_start(timer, timer_type, &timer_interval);
+}
+
+ISC_LOOP_SETUP_IMPL(zero) {
+	timer_start = uv_hrtime();
+	timer_expect = 0;
+	timer_ticks = 1;
+	timer_type = isc_timertype_once;
+}
+
+ISC_LOOP_TEST_CUSTOM_IMPL(zero, setup_loop_zero, teardown_loop_timer_expect) {
+	isc_timer_create(mainloop, timer_event, NULL, &timer);
+
+	/* Schedule the timer to fire immediately (in the next event loop) */
+	isc_interval_set(&timer_interval, 0, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+}
+
+ISC_LOOP_SETUP_IMPL(reschedule_ticker) {
+	timer_start = uv_hrtime();
+	timer_expect = 1;
+	timer_ticks = 5;
+	timer_type = isc_timertype_ticker;
+}
+
+ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_ticker, setup_loop_reschedule_ticker,
+			  teardown_loop_timer_expect) {
+	isc_timer_create(mainloop, timer_event, NULL, &timer);
+
+	/* Schedule the timer to fire immediately (in the next event loop) */
+	isc_interval_set(&timer_interval, 0, 0);
+	isc_timer_start(timer, timer_type, &timer_interval);
+
+	/* Then fire every 1/4 second */
+	isc_interval_set(&timer_interval, 0, NS_PER_S / 4);
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(ticker, setup_loopmgr, teardown_loopmgr)
 ISC_TEST_ENTRY_CUSTOM(once_idle, setup_loopmgr, teardown_loopmgr)
 ISC_TEST_ENTRY_CUSTOM(reset, setup_loopmgr, teardown_loopmgr)
 ISC_TEST_ENTRY_CUSTOM(purge, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(reschedule_up, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(reschedule_down, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(reschedule_from_callback, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(zero, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(reschedule_ticker, setup_loopmgr, teardown_loopmgr)
 
 ISC_TEST_LIST_END
 
