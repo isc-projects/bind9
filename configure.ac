@@ -1400,7 +1400,10 @@ AS_CASE([$with_jemalloc],
 	    with_jemalloc=no])])
 
 AS_IF([test "$with_jemalloc" = "no"],
-      [AC_CHECK_FUNCS([malloc_size malloc_usable_size])])
+      [AS_CASE([$host],
+	       [*-freebsd*],[AC_MSG_ERROR([You cannot compile without jemalloc; jemalloc is the system allocator on FreeBSD])],
+	       [*-netbsd*],[AC_MSG_ERROR([You cannot compile without jemalloc; jemalloc is the system allocator on NetBSD])])
+       AC_CHECK_FUNCS([malloc_size malloc_usable_size])])
 
 AM_CONDITIONAL([HAVE_JEMALLOC], [test "$with_jemalloc" = "yes"])
 
