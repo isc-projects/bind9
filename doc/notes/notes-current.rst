@@ -62,3 +62,7 @@ Bug Fixes
 
 - An assertion failure was fixed in ``named`` that was caused by aborting the statistics
   channel connection while sending statistics data to the client.  :gl:`#3542`
+
+- :iscman:`named` could incorrectly return non-truncated, glueless
+  referrals for responses whose size was close to the UDP packet size
+  limit. :gl:`#1967`

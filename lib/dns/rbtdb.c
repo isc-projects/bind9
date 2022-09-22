@@ -9407,6 +9407,7 @@ typedef struct {
 	rbtdb_glue_t *glue_list;
 	dns_rbtdb_t *rbtdb;
 	rbtdb_version_t *rbtversion;
+	dns_name_t *nodename;
 } rbtdb_glue_additionaldata_ctx_t;
 
 static void
@@ -9629,6 +9630,25 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 		}
 	}
 
+	/*
+	 * If the currently processed NS record is in-bailiwick, mark any glue
+	 * RRsets found for it with DNS_RDATASETATTR_REQUIRED.  Note that for
+	 * simplicity, glue RRsets for all in-bailiwick NS records are marked
+	 * this way, even though dns_message_rendersection() only checks the
+	 * attributes for the first rdataset associated with the first name
+	 * added to the ADDITIONAL section.
+	 */
+	if (glue != NULL && dns_name_issubdomain(name, ctx->nodename)) {
+		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
+			glue->rdataset_a.attributes |=
+				DNS_RDATASETATTR_REQUIRED;
+		}
+		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
+			glue->rdataset_aaaa.attributes |=
+				DNS_RDATASETATTR_REQUIRED;
+		}
+	}
+
 	if (glue != NULL) {
 		glue->next = ctx->glue_list;
 		ctx->glue_list = glue;
@@ -9660,12 +9680,15 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	return (result);
 }
 
+#define IS_REQUIRED_GLUE(r) (((r)->attributes & DNS_RDATASETATTR_REQUIRED) != 0)
+
 static isc_result_t
 rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 		 dns_message_t *msg) {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
 	rbtdb_version_t *rbtversion = version;
+	dns_fixedname_t nodename;
 	uint32_t idx;
 	rbtdb_glue_table_node_t *cur;
 	bool found = false;
@@ -9743,6 +9766,7 @@ restart:
 		dns_rdataset_t *rdataset_aaaa = NULL;
 		dns_rdataset_t *sigrdataset_aaaa = NULL;
 		dns_name_t *gluename = dns_fixedname_name(&ge->fixedname);
+		bool prepend_name = false;
 
 		dns_message_gettempname(msg, &name);
 
@@ -9767,6 +9791,9 @@ restart:
 		if (rdataset_a != NULL) {
 			dns_rdataset_clone(&ge->rdataset_a, rdataset_a);
 			ISC_LIST_APPEND(name->list, rdataset_a, link);
+			if (IS_REQUIRED_GLUE(rdataset_a)) {
+				prepend_name = true;
+			}
 		}
 
 		if (sigrdataset_a != NULL) {
@@ -9777,6 +9804,9 @@ restart:
 		if (rdataset_aaaa != NULL) {
 			dns_rdataset_clone(&ge->rdataset_aaaa, rdataset_aaaa);
 			ISC_LIST_APPEND(name->list, rdataset_aaaa, link);
+			if (IS_REQUIRED_GLUE(rdataset_aaaa)) {
+				prepend_name = true;
+			}
 		}
 		if (sigrdataset_aaaa != NULL) {
 			dns_rdataset_clone(&ge->sigrdataset_aaaa,
@@ -9785,6 +9815,23 @@ restart:
 		}
 
 		dns_message_addname(msg, name, DNS_SECTION_ADDITIONAL);
+
+		/*
+		 * When looking for required glue, dns_message_rendersection()
+		 * only processes the first rdataset associated with the first
+		 * name added to the ADDITIONAL section.  dns_message_addname()
+		 * performs an append on the list of names in a given section,
+		 * so if any glue record was marked as required, we need to
+		 * move the name it is associated with to the beginning of the
+		 * list for the ADDITIONAL section or else required glue might
+		 * not be rendered.
+		 */
+		if (prepend_name) {
+			ISC_LIST_UNLINK(msg->sections[DNS_SECTION_ADDITIONAL],
+					name, link);
+			ISC_LIST_PREPEND(msg->sections[DNS_SECTION_ADDITIONAL],
+					 name, link);
+		}
 	}
 
 no_glue:
@@ -9810,6 +9857,14 @@ no_glue:
 	ctx.glue_list = NULL;
 	ctx.rbtdb = rbtdb;
 	ctx.rbtversion = rbtversion;
+
+	/*
+	 * Get the owner name of the NS RRset - it will be necessary for
+	 * identifying required glue in glue_nsdname_cb() (by determining which
+	 * NS records in the delegation are in-bailiwick).
+	 */
+	ctx.nodename = dns_fixedname_initname(&nodename);
+	nodefullname((dns_db_t *)rbtdb, node, ctx.nodename);
 
 	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
