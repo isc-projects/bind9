@@ -20,7 +20,9 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- BIND 9.18 does not support dynamic updates forwarding (see
+  :any:`allow-update-forwarding`) in conjuction with zone transfers
+  over TLS (XoT). :gl:`#3512`
 
 New Features
 ~~~~~~~~~~~~
