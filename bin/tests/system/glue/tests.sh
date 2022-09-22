@@ -13,21 +13,30 @@
 
 . ../conf.sh
 
-#
-# Do glue tests.
-#
+set -e
 
-DIGOPTS="+norec -p ${PORT}"
+dig_with_opts() {
+	"$DIG" +norec -p "${PORT}" "$@"
+}
 
 status=0
+n=0
 
-echo_i "testing that a ccTLD referral gets a full glue set from the root zone"
-$DIG $DIGOPTS @10.53.0.1 foo.bar.fi. A >dig.out || status=1
-digcomp --lc fi.good dig.out || status=1
+n=$((n+1))
+echo_i "testing that a ccTLD referral gets a full glue set from the root zone ($n)"
+ret=0
+dig_with_opts @10.53.0.1 foo.bar.fi. A > dig.out.$n || ret=1
+digcomp --lc fi.good dig.out.$n || ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
-echo_i "testing that we don't find out-of-zone glue"
-$DIG $DIGOPTS @10.53.0.1 example.net. a > dig.out || status=1
-digcomp noglue.good dig.out || status=1
+n=$((n+1))
+echo_i "testing that we don't find out-of-zone glue ($n)"
+ret=0
+dig_with_opts @10.53.0.1 example.net. A > dig.out.$n || ret=1
+digcomp noglue.good dig.out.$n || ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
