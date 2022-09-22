@@ -1,3 +1,7 @@
+5977.	[bug]		named could incorrectly return non-truncated, glueless
+			referrals for responses whose size was close to the UDP
+			packet size limit. [GL #1967]
+
 5976.	[cleanup]	isc_timer_t objects are now created, started and
 			destroyed in a particular loop, and timer callbacks
 			run in that loop. isc_timer_stop() can still be called
