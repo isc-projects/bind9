@@ -26,3 +26,4 @@ Some of these settings are:
 | `-DISC_MEM_TRACKLINES=0`     | Don't track memory allocations by file and line number; this improves performance but makes debugging more difficult                   |
 | `-DNAMED_RUN_PID_DIR=0`      | Create default PID files in `${localstatedir}/run` rather than `${localstatedir}/run/named/`                                           |
 | `-DNS_CLIENT_DROPPORT=0`     | Disable dropping queries from particular well-known ports                                                                              |
+| `-DOPENSSL_API_COMPAT=10100` | Build using the deprecated OpenSSL APIs so that the `engine` API is available when building with OpenSSL 3.0.0 for PKCS#11 support     |
