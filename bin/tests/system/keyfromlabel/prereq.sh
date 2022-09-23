@@ -13,9 +13,9 @@
 
 . ../conf.sh
 
-if [ -n "${SOFTHSM2_MODULE}" ] && command -v softhsm2-util >/dev/null; then
+if [ -n "${SOFTHSM2_MODULE}" ] && command -v pkcs11-tool >/dev/null && command -v softhsm2-util >/dev/null; then
 	exit 0
 fi
 
-echo_i "skip: softhsm2-util not available"
+echo_i "skip: softhsm2-util or pkcs11-tool not available"
 exit 255
