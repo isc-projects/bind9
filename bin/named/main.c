@@ -1584,6 +1584,10 @@ main(int argc, char *argv[]) {
 			     &named_g_taskmgr);
 	isc_mem_checkdestroyed(stderr);
 
+	isc__tls_setdestroycheck(true);
+	isc__uv_setdestroycheck(true);
+	isc__xml_setdestroycheck(true);
+
 	named_main_setmemstats(NULL);
 
 	named_os_closedevnull();
