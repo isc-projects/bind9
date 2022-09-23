@@ -296,7 +296,7 @@ ISC_RUN_TEST_IMPL(isc_mem_reget) {
 ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
-	char buf[4096], *p, *q;
+	char buf[4096], *p;
 	FILE *f;
 	void *ptr;
 
@@ -305,13 +305,14 @@ ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 
 	UNUSED(state);
 
-	isc_mem_create(&mctx2);
 	isc_mem_debugging = 0;
+	isc_mem_create(&mctx2);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_destroy(&mctx2);
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_stdio_close(f);
 
 	memset(buf, 0, sizeof(buf));
@@ -325,15 +326,7 @@ ISC_RUN_TEST_IMPL(isc_mem_noflags) {
 	buf[sizeof(buf) - 1] = 0;
 
 	p = strchr(buf, '\n');
-	assert_non_null(p);
-	assert_in_range(p, 0, buf + sizeof(buf) - 3);
-	p += 2;
-	q = strchr(p, '\n');
-	assert_non_null(q);
-	*q = '\0';
-	assert_string_equal(p, "None.");
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
+	assert_null(p);
 }
 
 /* test mem with record flag */
@@ -390,13 +383,14 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 
 	UNUSED(state);
 
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD | ISC_MEM_DEBUGTRACE;
 	isc_mem_create(&mctx2);
-	isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_destroy(&mctx2);
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	isc_stdio_close(f);
 
 	memset(buf, 0, sizeof(buf));
@@ -412,8 +406,12 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 
 	buf[sizeof(buf) - 1] = 0;
 
-	assert_memory_equal(buf, "add ", 4);
+	assert_memory_equal(buf, "create ", 6);
 	p = strchr(buf, '\n');
+	assert_non_null(p);
+
+	assert_memory_equal(p + 1, "add ", 4);
+	p = strchr(p + 1, '\n');
 	assert_non_null(p);
 	p = strchr(p + 1, '\n');
 	assert_non_null(p);
@@ -422,8 +420,6 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 	p = strchr(p + 1, '\n');
 	assert_non_null(p);
 	assert_memory_equal(p + 1, "del ", 4);
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 }
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -502,9 +498,6 @@ ISC_TEST_ENTRY(isc_mem_inuse)
 ISC_TEST_ENTRY(isc_mem_zeroget)
 ISC_TEST_ENTRY(isc_mem_reget)
 
-#if !defined(__SANITIZE_THREAD__)
-ISC_TEST_ENTRY(isc_mem_benchmark)
-#endif /* __SANITIZE_THREAD__ */
 #if ISC_MEM_TRACKLINES
 ISC_TEST_ENTRY(isc_mem_noflags)
 ISC_TEST_ENTRY(isc_mem_recordflag)
@@ -515,6 +508,9 @@ ISC_TEST_ENTRY(isc_mem_recordflag)
  */
 ISC_TEST_ENTRY(isc_mem_traceflag)
 #endif /* if ISC_MEM_TRACKLINES */
+#if !defined(__SANITIZE_THREAD__)
+ISC_TEST_ENTRY(isc_mem_benchmark)
+#endif /* __SANITIZE_THREAD__ */
 
 ISC_TEST_LIST_END
 

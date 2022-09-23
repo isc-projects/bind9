@@ -132,6 +132,7 @@ static uint64_t totallost;
 struct isc_mem {
 	unsigned int magic;
 	unsigned int flags;
+	unsigned int debugging;
 	isc_mutex_t lock;
 	bool checkfree;
 	struct stats stats[STATS_BUCKETS + 1];
@@ -184,23 +185,23 @@ struct isc_mempool {
  */
 
 #if !ISC_MEM_TRACKLINES
-#define ADD_TRACE(a, b, c, d, e)
-#define DELETE_TRACE(a, b, c, d, e)
+#define ADD_TRACE(mctx, ptr, size, file, line)
+#define DELETE_TRACE(mctx, ptr, size, file, line)
 #define ISC_MEMFUNC_SCOPE
 #else /* if !ISC_MEM_TRACKLINES */
 #define TRACE_OR_RECORD (ISC_MEM_DEBUGTRACE | ISC_MEM_DEBUGRECORD)
 
-#define SHOULD_TRACE_OR_RECORD(ptr) \
-	((isc_mem_debugging & TRACE_OR_RECORD) != 0 && ptr != NULL)
+#define SHOULD_TRACE_OR_RECORD(mctx, ptr) \
+	(((mctx)->debugging & TRACE_OR_RECORD) != 0 && ptr != NULL)
 
-#define ADD_TRACE(a, b, c, d, e)                \
-	if (SHOULD_TRACE_OR_RECORD(b)) {        \
-		add_trace_entry(a, b, c, d, e); \
+#define ADD_TRACE(mctx, ptr, size, file, line)                \
+	if (SHOULD_TRACE_OR_RECORD(mctx, ptr)) {              \
+		add_trace_entry(mctx, ptr, size, file, line); \
 	}
 
-#define DELETE_TRACE(a, b, c, d, e)                \
-	if (SHOULD_TRACE_OR_RECORD(b)) {           \
-		delete_trace_entry(a, b, c, d, e); \
+#define DELETE_TRACE(mctx, ptr, size, file, line)                \
+	if (SHOULD_TRACE_OR_RECORD(mctx, ptr)) {                 \
+		delete_trace_entry(mctx, ptr, size, file, line); \
 	}
 
 static void
@@ -239,7 +240,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 
 	MCTXLOCK(mctx);
 
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((mctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "add %p size %zu file %s line %u mctx %p\n",
 			ptr, size, file, line, mctx);
 	}
@@ -284,7 +285,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 
 	MCTXLOCK(mctx);
 
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((mctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "del %p size %zu file %s line %u mctx %p\n",
 			ptr, size, file, line, mctx);
 	}
@@ -456,7 +457,7 @@ isc__mem_shutdown(void) {
 }
 
 static void
-mem_create(isc_mem_t **ctxp, unsigned int flags) {
+mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	isc_mem_t *ctx = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
@@ -466,6 +467,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 
 	*ctx = (isc_mem_t){
 		.magic = MEM_MAGIC,
+		.debugging = debugging,
 		.flags = flags,
 		.checkfree = true,
 	};
@@ -490,7 +492,7 @@ mem_create(isc_mem_t **ctxp, unsigned int flags) {
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_TRACKLINES
-	if ((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0) {
+	if ((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0) {
 		unsigned int i;
 
 		ctx->debuglist =
@@ -605,7 +607,7 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
 #if ISC_MEM_TRACKLINES
-		if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 			fprintf(stderr, "destroy mctx %p file %s line %u\n",
 				ctx, file, line);
 		}
@@ -662,7 +664,7 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	*ctxp = NULL;
 
 #if ISC_MEM_TRACKLINES
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "destroy mctx %p file %s line %u\n", ctx, file,
 			line);
 	}
@@ -713,7 +715,7 @@ hi_water(isc_mem_t *ctx) {
 		(void)atomic_compare_exchange_strong(&ctx->maxinuse, &maxinuse,
 						     inuse);
 
-		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
+		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
 			fprintf(stderr, "maxinuse = %lu\n",
 				(unsigned long)inuse);
 		}
@@ -1189,7 +1191,7 @@ isc__mempool_create(isc_mem_t *restrict mctx, const size_t element_size,
 	};
 
 #if ISC_MEM_TRACKLINES
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((mctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "create pool %p file %s line %u mctx %p\n",
 			mpctx, file, line, mctx);
 	}
@@ -1229,7 +1231,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 	mctx = mpctx->mctx;
 
 #if ISC_MEM_TRACKLINES
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+	if ((mctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "destroy pool %p file %s line %u mctx %p\n",
 			mpctx, file, line, mctx);
 	}
@@ -1747,7 +1749,7 @@ error:
 
 void
 isc__mem_create(isc_mem_t **mctxp FLARG) {
-	mem_create(mctxp, isc_mem_defaultflags);
+	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags);
 #if ISC_MEM_TRACKLINES
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "create mctx %p file %s line %u\n", *mctxp,
