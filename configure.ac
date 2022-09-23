@@ -1220,16 +1220,40 @@ AC_LINK_IFELSE(
 )
 
 #
-# Check for __builtin_uadd_overflow
+# Check for __builtin_*_overflow
 #
-AC_MSG_CHECKING([compiler support for __builtin_*_overflow()])
+AC_MSG_CHECKING([compiler support for __builtin_add_overflow()])
 AC_LINK_IFELSE(
   [AC_LANG_PROGRAM(
      [[#include <limits.h>]],
-     [[return (__builtin_uadd_overflow(UINT_MAX, UINT_MAX, &(unsigned int){ 0 }));]]
+     [[return (__builtin_add_overflow((unsigned int)UINT_MAX, (unsigned int)UINT_MAX, &(unsigned int){ 0 }));]]
    )],
   [AC_MSG_RESULT([yes])
-   AC_DEFINE([HAVE_BUILTIN_OVERFLOW], [1], [define if the compiler supports __builtin_*_overflow().])
+   AC_DEFINE([HAVE_BUILTIN_ADD_OVERFLOW], [1], [define if the compiler supports __builtin_add_overflow().])
+  ],
+  [AC_MSG_RESULT([no])
+  ])
+
+AC_MSG_CHECKING([compiler support for __builtin_sub_overflow()])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <limits.h>]],
+     [[return (__builtin_sub_overflow((unsigned int)0, (unsigned int)UINT_MAX, &(unsigned int){ 0 }));]]
+   )],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_BUILTIN_SUB_OVERFLOW], [1], [define if the compiler supports __builtin_sub_overflow().])
+  ],
+  [AC_MSG_RESULT([no])
+  ])
+
+AC_MSG_CHECKING([compiler support for __builtin_mul_overflow()])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <limits.h>]],
+     [[return (__builtin_mul_overflow(UINT64_C(UINT64_MAX), UINT64_C(UINT64_MAX), &(uint64_t){ 0 }));]]
+   )],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_BUILTIN_MUL_OVERFLOW], [1], [define if the compiler supports __builtin_mul_overflow().])
   ],
   [AC_MSG_RESULT([no])
   ])
