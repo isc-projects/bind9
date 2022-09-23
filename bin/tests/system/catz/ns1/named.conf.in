@@ -125,3 +125,8 @@ key tsig_key. {
 	secret "LSAnCU+Z";
 	algorithm @DEFAULT_HMAC@;
 };
+
+key next_key. {
+	secret "LaAnCU+Z";
+	algorithm @DEFAULT_HMAC@;
+};
