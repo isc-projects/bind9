@@ -19,6 +19,7 @@
 #include <isc/tls.h>
 #include <isc/util.h>
 #include <isc/uv.h>
+#include <isc/xml.h>
 
 #include "config.h"
 #include "mem_p.h"
@@ -47,11 +48,13 @@ isc__initialize(void) {
 	isc__tls_initialize();
 	isc__trampoline_initialize();
 	isc__uv_initialize();
+	isc__xml_initialize();
 	(void)isc_os_ncpus();
 }
 
 void
 isc__shutdown(void) {
+	isc__xml_shutdown();
 	isc__uv_shutdown();
 	isc__trampoline_shutdown();
 	isc__tls_shutdown();

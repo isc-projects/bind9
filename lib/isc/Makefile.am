@@ -105,6 +105,7 @@ libisc_la_HEADERS =			\
 	include/isc/utf8.h		\
 	include/isc/util.h		\
 	include/isc/uv.h		\
+	include/isc/xml.h		\
 	include/isc/work.h
 
 libisc_la_SOURCES =		\
@@ -210,6 +211,7 @@ libisc_la_SOURCES =		\
 	url.c			\
 	utf8.c			\
 	uv.c			\
+	xml.c			\
 	work.c
 
 libisc_la_CPPFLAGS =		\
