@@ -204,7 +204,6 @@ libisc_la_SOURCES =		\
 	time.c			\
 	timer.c			\
 	tls.c			\
-	tls_p.h			\
 	tm.c			\
 	trampoline.c		\
 	trampoline_p.h		\

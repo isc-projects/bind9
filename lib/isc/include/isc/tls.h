@@ -562,3 +562,12 @@ isc_tlsctx_cache_find(
  *		'pstore' still might get initialised as there is one to many
  *		relation between stores and contexts.
  */
+
+void
+isc__tls_initialize(void);
+
+void
+isc__tls_shutdown(void);
+
+void
+isc__tls_setdestroycheck(bool check);

@@ -24,7 +24,6 @@
 #include "mem_p.h"
 #include "mutex_p.h"
 #include "os_p.h"
-#include "tls_p.h"
 #include "trampoline_p.h"
 
 #ifndef ISC_CONSTRUCTOR
