@@ -49,6 +49,11 @@ Files: **/*.after*
        bin/tests/system/keepalive/expected
        bin/tests/system/legacy/ns6/edns512.db.signed
        bin/tests/system/legacy/ns7/edns512-notcp.db.signed
+       bin/tests/system/nsupdate/CA/CA.cfg
+       bin/tests/system/nsupdate/CA/README
+       bin/tests/system/nsupdate/CA/index.txt
+       bin/tests/system/nsupdate/CA/index.txt.attr
+       bin/tests/system/nsupdate/CA/serial
        bin/tests/system/nsupdate/commandlist
        bin/tests/system/nsupdate/verylarge.in
        bin/tests/system/org.isc.bind.system.plist
