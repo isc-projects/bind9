@@ -1230,13 +1230,63 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "change TSIG key name on primary ($n)"
+ret=0
+rndccmd 10.53.0.1 modzone dom9.example. in default '{type primary; notify yes; file "dom9.example.db"; allow-transfer { key next_key; }; };' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "update TSIG key name in catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update del label1.primaries.ext.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update add label1.primaries.ext.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "next_key"
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run  "catz: modifying zone 'dom9.example' from catalog 'catalog1.example'" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "update zone contents and reload ($n)"
+ret=0
+echo "@ 3600 IN SOA . . 2 3600 3600 3600 3600" > ns1/dom9.example.db
+echo "@ IN NS ns2" >> ns1/dom9.example.db
+echo "ns2 IN A 10.53.0.2" >> ns1/dom9.example.db
+rndccmd 10.53.0.1 reload dom9.example. || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "wait for primary to update zone ($n)"
+ret=0
+wait_for_a @10.53.0.1 ns2.dom9.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "wait for secondary to update zone ($n)"
+ret=0
+wait_for_a @10.53.0.2 ns2.dom9.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "deleting domain dom9.example. from catalog1 zone ($n)"
 ret=0
 $NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     update delete f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN PTR dom9.example.
     update delete label1.primaries.ext.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN A 10.53.0.1
-    update delete label1.primaries.ext.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    update delete label1.primaries.ext.f0f989bc71c5c8ca3a1eb9c9ab5246521907e3af.zones.catalog1.example. 3600 IN TXT "next_key"
     send
 END
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
