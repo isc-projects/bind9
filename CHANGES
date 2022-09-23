@@ -1,3 +1,7 @@
+5983.	[bug]		Changing just the TSIG key names for primaries in
+			catalog zones' member zones was not effective.
+			[GL #3557]
+
 5982.	[func]		Extend dig to allow requests to be signed using SIG(0)
 			as well as providing a mechanism to specify the signing
 			time. [GL !5923]
