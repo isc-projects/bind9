@@ -1,3 +1,11 @@
+5987.	[func]		Provide custom isc_mem based allocators for libuv,
+			OpenSSL and libxml2 libraries that support replacing
+			the internal allocators. [GL #3559]
+
+5986.	[func]		Make the memory context debugging options local to
+			the memory context and make it immutable for the memory
+			context lifetime. [GL #3559]
+
 5985.	[func]		Bump the minimal libuv version to 1.34.0. [GL #3567]
 
 5984.	[func]		'named -V' now reports the list of supported
