@@ -40,4 +40,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Changing just the TSIG key names for primaries in catalog zones' member
+  zones was not effective. :gl:`#3557`
