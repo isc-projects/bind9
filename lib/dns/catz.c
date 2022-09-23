@@ -365,6 +365,20 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 		return (false);
 	}
 
+	for (size_t i = 0; i < eb->opts.masters.count; i++) {
+		if ((ea->opts.masters.keys[i] == NULL) !=
+		    (eb->opts.masters.keys[i] == NULL)) {
+			return (false);
+		}
+		if (ea->opts.masters.keys[i] == NULL) {
+			continue;
+		}
+		if (!dns_name_equal(ea->opts.masters.keys[i],
+				    eb->opts.masters.keys[i])) {
+			return (false);
+		}
+	}
+
 	/* If one is NULL and the other isn't, the entries don't match */
 	if ((ea->opts.allow_query == NULL) != (eb->opts.allow_query == NULL)) {
 		return (false);
@@ -393,7 +407,7 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 		}
 	}
 
-	/* xxxwpk TODO compare dscps/keys! */
+	/* xxxwpk TODO compare dscps! */
 	return (true);
 }
 
