@@ -1,3 +1,7 @@
+5983.	[bug]		Changing just the TSIG key names for primaries in
+			catalog zones' member zones was not effective.
+			[GL #3557]
+
 5973.	[bug]		Fixed a possible invalid detach in UPDATE
 			processing. [GL #3522]
 
