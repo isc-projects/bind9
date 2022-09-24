@@ -35,7 +35,7 @@ The file :file:`named.conf` may contain three types of entities:
 
    Block
       :ref:`Blocks <configuration_blocks>` are containers for :term:`statements
-      <statement>` which either have common functionality - for example,
+      <Statement>` which either have common functionality - for example,
       the definition of a cryptographic key in a :namedconf:ref:`key` block - or which
       define the scope of the statement - for example, a statement which appears
       in a :namedconf:ref:`zone` block has scope only for that zone.
@@ -68,7 +68,7 @@ The file :file:`named.conf` may contain three types of entities:
         more argument/value pairs. The :any:`also-notify` statement may take a number
         of such argument/value pairs, such as ``also-notify port 5353;``,
         where ``port`` is the argument and ``5353`` is the corresponding value.
-      - Statements can appear in a single :term:`block` - for
+      - Statements can appear in a single :term:`block <Block>` - for
         example, an :namedconf:ref:`algorithm` statement can appear only in a
         :namedconf:ref:`key` block - or in multiple blocks - for example, an
         :any:`also-notify` statement can appear in an :namedconf:ref:`options`
@@ -6544,8 +6544,8 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     of the indicated length.
 
     .. warning::
-       Do not use extra :term:`iterations`, :term:`salt`, and
-       :term:`opt-out` unless their implications are fully understood.
+       Do not use extra :term:`iterations <Iterations>`, :term:`salt <Salt>`, and
+       :term:`opt-out <Opt-out>` unless their implications are fully understood.
        A higher number of iterations causes interoperability problems and opens
        servers to CPU-exhausting DoS attacks.
 
