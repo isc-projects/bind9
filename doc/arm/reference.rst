@@ -5091,8 +5091,8 @@ The following options can be specified in a ``dnssec-policy`` statement:
     of the indicated length.
 
     .. warning::
-       Do not use extra :term:`iterations`, :term:`salt`, and
-       :term:`opt-out` unless their implications are fully understood.
+       Do not use extra :term:`iterations <Iterations>`, :term:`salt <Salt>`, and
+       :term:`opt-out <Opt-out>` unless their implications are fully understood.
        A higher number of iterations causes interoperability problems and opens
        servers to CPU-exhausting DoS attacks.
 
