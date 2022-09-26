@@ -202,6 +202,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	}
 	RSA_get0_key(rsa, NULL, &e, NULL);
 	if (e == NULL) {
+		RSA_free(rsa);
 		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
 	}
 	bits = BN_num_bits(e);
