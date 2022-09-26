@@ -991,6 +991,9 @@ rsa_check(RSA *rsa, RSA *pub) {
 			}
 		} else {
 			n = BN_dup(n2);
+			if (n == NULL) {
+				return (ISC_R_NOMEMORY);
+			}
 		}
 		if (e1 != NULL) {
 			if (BN_cmp(e1, e2) != 0) {
@@ -1001,6 +1004,12 @@ rsa_check(RSA *rsa, RSA *pub) {
 			}
 		} else {
 			e = BN_dup(e2);
+			if (e == NULL) {
+				if (n != NULL) {
+					BN_free(n);
+				}
+				return (ISC_R_NOMEMORY);
+			}
 		}
 		if (RSA_set0_key(rsa, n, e, NULL) == 0) {
 			if (n != NULL) {
