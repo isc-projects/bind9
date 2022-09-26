@@ -591,10 +591,10 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 #else
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_N, &n);
+#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	if (e == NULL || n == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	mod_bytes = BN_num_bytes(n);
 	e_bytes = BN_num_bytes(e);
