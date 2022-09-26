@@ -23,6 +23,7 @@ libfuzzmain_la_SOURCES =		\
 
 check_PROGRAMS =			\
 	dns_master_load			\
+	dns_message_checksig		\
 	dns_message_parse		\
 	dns_name_fromtext_target	\
 	dns_rdata_fromtext		\
@@ -32,6 +33,7 @@ check_PROGRAMS =			\
 
 EXTRA_DIST =				\
 	dns_master_load.in		\
+	dns_message_checksig.in		\
 	dns_message_parse.in		\
 	dns_name_fromtext_target.in	\
 	dns_rdata_fromtext.in		\
