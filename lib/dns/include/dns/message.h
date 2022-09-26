@@ -281,6 +281,7 @@ struct dns_message {
 	unsigned int cc_bad	      : 1;
 	unsigned int tkey	      : 1;
 	unsigned int rdclass_set      : 1;
+	unsigned int fuzzing	      : 1;
 
 	unsigned int opt_reserved;
 	unsigned int sig_reserved;
@@ -322,6 +323,11 @@ struct dns_message {
 	dns_rcode_t  sig0status;
 	isc_region_t query;
 	isc_region_t saved;
+
+	/*
+	 * Time to be used when fuzzing.
+	 */
+	isc_stdtime_t fuzztime;
 
 	dns_rdatasetorderfunc_t order;
 	dns_sortlist_arg_t	order_arg;

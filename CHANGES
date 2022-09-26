@@ -1,3 +1,10 @@
+5982.	[func]		Extend dig to allow requests to be signed using SIG(0)
+			as well as providing a mechanism to specify the signing
+			time. [GL !5923]
+
+5981.	[test]		Add dns_message_checksig fuzzer to check messages
+			signed using TSIG or SIG(0). [GL !5923]
+
 5980.	[func]		The internal isc_entropy API provider has been
 			changed from OpenSSL RAND_bytes() to uv_random()
 			to use system provided entropy. [GL !6803]

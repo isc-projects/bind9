@@ -153,12 +153,14 @@ Print a usage summary.
 .INDENT 0.0
 .TP
 .B \-k keyfile
-This option tells \fI\%named\fP to sign queries using TSIG using a key read from the given file. Key
-files can be generated using \fI\%tsig\-keygen\fP\&. When using TSIG
-authentication with \fBdig\fP, the name server that is queried needs to
-know the key and algorithm that is being used. In BIND, this is done
-by providing appropriate \fBkey\fP and \fBserver\fP statements in
-\fI\%named.conf\fP\&.
+This option tells \fBdig\fP to sign queries using TSIG or
+SIG(0) using a key read from the given file. Key files can be
+generated using \fI\%tsig\-keygen\fP\&. When using TSIG authentication
+with \fBdig\fP, the name server that is queried needs to
+know the key and algorithm that is being used. In BIND, this is
+done by providing appropriate \fBkey\fP and \fBserver\fP statements
+in \fI\%named.conf\fP for TSIG and by looking up the KEY record
+in zone data for SIG(0).
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -445,6 +447,15 @@ This option sends an EDNS Expire option.
 This option indicates that \fI\%named\fP should try [or not try] the next server if a SERVFAIL is received. The default is
 to not try the next server, which is the reverse of normal stub
 resolver behavior.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B +fuzztime[=value], +nofuzztime
+This option allows the signing time to be specified when generating
+signed messages.  If a value is specified it is the seconds since
+00:00:00 January 1, 1970 UTC ignoring leap seconds.  If no value
+is specified 1646972129 (Fri 11 Mar 2022 04:15:29 UTC) is used.
+The default is \fB+nofuzztime\fP and the current time is used.
 .UNINDENT
 .INDENT 0.0
 .TP
