@@ -585,12 +585,14 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	if (rsa == NULL) {
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-
-	isc_buffer_availableregion(data, &r);
-
 	RSA_get0_key(rsa, &n, &e, NULL);
+	if (e == NULL || n == NULL) {
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	}
 	mod_bytes = BN_num_bytes(n);
 	e_bytes = BN_num_bytes(e);
+
+	isc_buffer_availableregion(data, &r);
 
 	if (e_bytes < 256) { /*%< key exponent is <= 2040 bits */
 		if (r.length < 1) {
