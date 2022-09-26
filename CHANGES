@@ -1,3 +1,6 @@
+5988.	[bug]		Some out of memory conditions in opensslrsa_link.c
+			could lead to memory leaks. [GL #3551]
+
 5983.	[bug]		Changing just the TSIG key names for primaries in
 			catalog zones' member zones was not effective.
 			[GL #3557]
