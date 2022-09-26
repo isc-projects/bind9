@@ -2,6 +2,7 @@ SPHINX_V = $(SPHINX_V_@AM_V@)
 SPHINX_V_ = $(SPHINX_V_@AM_DEFAULT_V@)
 SPHINX_V_0 = -q
 SPHINX_V_1 = -n
+SPHINX_W = -W
 
 AM_V_SPHINX = $(AM_V_SPHINX_@AM_V@)
 AM_V_SPHINX_ = $(AM_V_SPHINX_@AM_DEFAULT_V@)
@@ -20,7 +21,7 @@ SESSION_KEY = .. |session_key| replace:: ``$(runstatedir)/session.key``
 export RST_EPILOG = $(RNDC_CONF)$(LF)$(RNDC_KEY)$(LF)$(NAMED_CONF)$(LF)$(BIND_KEYS)$(LF)$(NAMED_PID)$(LF)$(SESSION_KEY)
 
 common_SPHINXOPTS =			\
-	-W				\
+	$(SPHINX_W)			\
 	-c $(srcdir)			\
 	-a				\
 	$(SPHINX_V)
