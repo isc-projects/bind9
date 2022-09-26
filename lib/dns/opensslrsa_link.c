@@ -994,6 +994,9 @@ rsa_check(RSA *rsa, RSA *pub) {
 		}
 		if (e1 != NULL) {
 			if (BN_cmp(e1, e2) != 0) {
+				if (n != NULL) {
+					BN_free(n);
+				}
 				return (DST_R_INVALIDPRIVATEKEY);
 			}
 		} else {
