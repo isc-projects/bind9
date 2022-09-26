@@ -671,6 +671,11 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	e = BN_bin2bn(r.base, e_bytes, NULL);
 	isc_region_consume(&r, e_bytes);
 	n = BN_bin2bn(r.base, r.length, NULL);
+	if (e == NULL || n == NULL) {
+		RSA_free(rsa);
+		return (ISC_R_NOMEMORY);
+	}
+
 	if (RSA_set0_key(rsa, n, e, NULL) == 0) {
 		if (n != NULL) {
 			BN_free(n);
