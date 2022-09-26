@@ -17,13 +17,11 @@
 
 #include <isc/lang.h>
 
-/*! \file isc/entropy_private.h
+/*! \file isc/entropy.h
  * \brief Implements wrapper around CSPRNG cryptographic library calls
  * for getting cryptographically secure pseudo-random numbers.
  *
- * - If OpenSSL is used, it uses RAND_bytes()
- * - If PKCS#11 is used, it uses pkcs_C_GenerateRandom()
- *
+ * Uses synchronous version of uv_random().
  */
 
 ISC_LANG_BEGINDECLS

@@ -11,9 +11,8 @@
  * information regarding copyright ownership.
  */
 
+#include <isc/entropy.h>
 #include <isc/nonce.h>
-
-#include "entropy_private.h"
 
 void
 isc_nonce_buf(void *buf, size_t buflen) {

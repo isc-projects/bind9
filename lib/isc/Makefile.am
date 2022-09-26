@@ -26,6 +26,7 @@ libisc_la_HEADERS =			\
 	include/isc/deprecated.h	\
 	include/isc/dir.h		\
 	include/isc/endian.h		\
+	include/isc/entropy.h		\
 	include/isc/errno.h		\
 	include/isc/error.h		\
 	include/isc/event.h		\
@@ -132,7 +133,6 @@ libisc_la_SOURCES =		\
 	crc64.c			\
 	dir.c			\
 	entropy.c		\
-	entropy_private.h	\
 	errno.c			\
 	errno2result.c		\
 	errno2result.h		\

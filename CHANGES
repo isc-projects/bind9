@@ -1,3 +1,7 @@
+5980.	[func]		The internal isc_entropy API provider has been
+			changed from OpenSSL RAND_bytes() to uv_random()
+			to use system provided entropy. [GL !6803]
+
 5979.	[func]		Implement DoT support for nsupdate. [GL #1781]
 
 5978.	[port]		The ability to use pkcs11 via engine_pkcs11 has been
