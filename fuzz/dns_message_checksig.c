@@ -119,6 +119,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 				     0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
 				     0xff, 0xff, 0xff, 0xff };
 	dns_zone_t *zone = NULL;
+	char pathbuf[PATH_MAX];
 
 	atexit(cleanup);
 
@@ -174,13 +175,16 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_primary);
 
-	result = dns_zone_setkeydirectory(zone, "dns_message_checksig.data");
+	snprintf(pathbuf, sizeof(pathbuf), FUZZDIR "/%s",
+		 "dns_message_checksig.data");
+	result = dns_zone_setkeydirectory(zone, pathbuf);
 	if (result != ISC_R_SUCCESS) {
 		return (1);
 	}
 
-	result = dns_zone_setfile(zone, "dns_message_checksig.data/sig0key.db",
-				  dns_masterformat_text,
+	snprintf(pathbuf, sizeof(pathbuf), FUZZDIR "/%s",
+		 "dns_message_checksig.data/sig0key.db");
+	result = dns_zone_setfile(zone, pathbuf, dns_masterformat_text,
 				  &dns_master_style_default);
 	if (result != ISC_R_SUCCESS) {
 		return (1);
@@ -209,7 +213,7 @@ create_message(dns_message_t **messagep, const uint8_t *data, size_t size,
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	isc_buffer_t b;
-	unsigned char buf[65535];
+	static unsigned char buf[65535];
 
 	isc_buffer_init(&b, buf, sizeof(buf));
 
