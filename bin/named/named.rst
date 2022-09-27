@@ -203,7 +203,8 @@ Options
 
 .. option:: -V
 
-   This option reports the version number and build options, and exits.
+   This option reports the version number, build options, supported
+   cryptographics algorithms, and exits.
 
 .. option:: -X lock-file
 
