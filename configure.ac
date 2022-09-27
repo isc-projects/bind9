@@ -186,18 +186,6 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test -z "$PKG_CONFIG"],
       [AC_MSG_ERROR([The pkg-config script could not be found or is too old.])])
 
-# [pairwise: --enable-buffer-useinline, --disable-buffer-useinline]
-AC_ARG_ENABLE(buffer_useinline,
-	      AS_HELP_STRING([--enable-buffer-useinline],
-			     [define ISC_BUFFER_USEINLINE when compiling
-				[default=yes]]),
-	      if test yes = "${enable}"
-	      then
-		      AC_DEFINE([ISC_BUFFER_USEINLINE], [1],
-				[Define if you want to use inline buffers])
-	      fi,
-	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
-
 # Fuzzing is not included in pairwise testing as fuzzing tools are
 # not present in the relevant Docker image.
 #
