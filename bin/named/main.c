@@ -1582,11 +1582,14 @@ main(int argc, char *argv[]) {
 
 	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr,
 			     &named_g_taskmgr);
-	isc_mem_checkdestroyed(stderr);
 
+#if ENABLE_LEAK_DETECTION
 	isc__tls_setdestroycheck(true);
 	isc__uv_setdestroycheck(true);
 	isc__xml_setdestroycheck(true);
+#endif
+
+	isc_mem_checkdestroyed(stderr);
 
 	named_main_setmemstats(NULL);
 

@@ -4705,9 +4705,11 @@ destroy_libs(void) {
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
 
+#if ENABLE_LEAK_DETECTION
 	isc__tls_setdestroycheck(true);
 	isc__uv_setdestroycheck(true);
 	isc__xml_setdestroycheck(true);
+#endif
 
 	isc_mem_checkdestroyed(stderr);
 }

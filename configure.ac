@@ -1420,6 +1420,16 @@ AS_IF([test "$with_jemalloc" = "no"],
 AM_CONDITIONAL([HAVE_JEMALLOC], [test "$with_jemalloc" = "yes"])
 
 #
+# Check memory leaks in external libraries
+#
+# [pairwise: --enable-leak-detection, --disable-leak-detection]
+AC_ARG_ENABLE([leak-detection],
+	      [AS_HELP_STRING([--enable-leak-detection],[enable the memory leak detection in external libraries (libxml2, libuv, OpenSSL) (disabled by default)])],
+	      [],[enable_leak_detection=no])
+AS_CASE([$enable_leak_detection],
+	[yes],[AC_DEFINE([ENABLE_LEAK_DETECTION], [1], [Define to enable memory leak detection in external libraries])])
+
+#
 # was --with-tuning specified?
 #
 # [pairwise: --with-tuning=small, --without-tuning]

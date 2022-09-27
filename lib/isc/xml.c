@@ -71,7 +71,7 @@ isc__xml_shutdown(void) {
 
 void
 isc__xml_setdestroycheck(bool check) {
-#ifdef HAVE_LIBXML2
+#if HAVE_LIBXML2
 	isc_mem_setdestroycheck(isc__xml_mctx, check);
 #else
 	UNUSED(check);
