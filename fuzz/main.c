@@ -94,10 +94,15 @@ test_all_from(const char *dirname) {
 
 int
 main(int argc, char **argv) {
+	int ret;
 	char corpusdir[PATH_MAX];
 	const char *target = strrchr(argv[0], '/');
 
-	(void)LLVMFuzzerInitialize(&argc, &argv);
+	ret = LLVMFuzzerInitialize(&argc, &argv);
+	if (ret != 0) {
+		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
+		return 1;
+	}
 
 	if (argv[1] != NULL && strcmp(argv[1], "-d") == 0) {
 		debug = true;
@@ -134,7 +139,11 @@ main(int argc, char **argv) {
 	int ret;
 	unsigned char buf[64 * 1024];
 
-	(void)LLVMFuzzerInitialize(&argc, &argv);
+	LLVMFuzzerInitialize(&argc, &argv);
+	if (ret != 0) {
+		fprintf(stderr, "LLVMFuzzerInitialize failure: %d\n", ret);
+		return 1;
+	}
 
 #ifdef __AFL_LOOP
 	while (__AFL_LOOP(10000)) { /* only works with afl-clang-fast */
