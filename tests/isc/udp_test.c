@@ -228,7 +228,6 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_bind) {
 	RESET_RETURN;
 }
 
-#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_connect) {
 	WILL_RETURN(uv_udp_connect, UV_ENOMEM);
 
@@ -239,8 +238,6 @@ ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_udp_connect) {
 
 	RESET_RETURN;
 }
-
-#endif
 
 ISC_LOOP_TEST_IMPL(mock_udpconnect_uv_recv_buffer_size) {
 	WILL_RETURN(uv_recv_buffer_size, UV_ENOMEM);
@@ -1133,9 +1130,7 @@ ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_recv_start, setup_test,
 		      teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_open, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_bind, setup_test, teardown_test)
-#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_udp_connect, setup_test, teardown_test)
-#endif
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_recv_buffer_size, setup_test,
 		      teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_send_buffer_size, setup_test,

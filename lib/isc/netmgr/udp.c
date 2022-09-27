@@ -725,17 +725,14 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
 
-#if UV_VERSION_HEX >= UV_VERSION(1, 27, 0)
 	/*
-	 * If we used uv_udp_connect() (and not the shim version for
-	 * older versions of libuv), then the peer address has to be
+	 * We used uv_udp_connect(), so the peer address has to be
 	 * set to NULL or else uv_udp_send() could fail or assert,
 	 * depending on the libuv version.
 	 */
 	if (atomic_load(&sock->connected)) {
 		sa = NULL;
 	}
-#endif
 
 	r = uv_udp_send(&uvreq->uv_req.udp_send, &sock->uv_handle.udp,
 			&uvreq->uvbuf, 1, sa, udp_send_cb);
@@ -790,8 +787,7 @@ udp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	 * giving up.
 	 */
 	do {
-		r = isc_uv_udp_connect(&sock->uv_handle.udp,
-				       &req->peer.type.sa);
+		r = uv_udp_connect(&sock->uv_handle.udp, &req->peer.type.sa);
 	} while (r == UV_EADDRINUSE && --req->connect_tries > 0);
 	if (r != 0) {
 		isc__nm_incstats(sock, STATID_CONNECTFAIL);

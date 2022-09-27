@@ -552,8 +552,8 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
 # libuv
 AC_MSG_CHECKING([for libuv])
-PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
-		  [AC_MSG_ERROR([libuv not found])])
+PKG_CHECK_MODULES([LIBUV], [libuv >= 1.34.0], [],
+		  [AC_MSG_ERROR([libuv >= 1.34.0 not found])])
 
 AX_SAVE_FLAGS([libuv])
 CFLAGS="$CFLAGS $LIBUV_CFLAGS"

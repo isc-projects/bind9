@@ -45,8 +45,8 @@ Regularly Tested Platforms
 As of August 2022, current versions of BIND 9 are fully supported and regularly tested on the
 following systems:
 
--  Debian 10, 11
--  Ubuntu LTS 18.04, 20.04, 22.04
+-  Debian 11
+-  Ubuntu LTS 20.04, 22.04
 -  Fedora 36
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
 -  FreeBSD 12.3, 13.1
@@ -90,9 +90,9 @@ supported platforms.
 
 -  Platforms past or close to their respective EOL dates, such as:
 
-   -  Ubuntu 14.04, 16.04 (Ubuntu ESM releases are not supported)
+   -  Ubuntu 14.04, 16.04, 18.04 (Ubuntu ESM releases are not supported)
    -  CentOS 6
-   -  Debian 8 Jessie, 9 Stretch
+   -  Debian 8 Jessie, 9 Stretch, 10 Buster
    -  FreeBSD 10.x, 11.x
 
 Unsupported Platforms
@@ -107,7 +107,7 @@ These are platforms on which current versions of BIND 9 are known *not* to build
 -  Platforms that do not support atomic operations (via compiler or
    library)
 -  Linux without NPTL (Native POSIX Thread Library)
--  Platforms on which **libuv** cannot be compiled
+-  Platforms on which **libuv >= 1.34** cannot be compiled or is not available
 
 Installing BIND 9
 -----------------

@@ -60,7 +60,7 @@ To build BIND 9, the following packages must be installed:
 - ``perl``
 - ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
 
-BIND 9.19 requires ``libuv`` 1.x or higher. On older systems, an updated
+BIND 9.19 requires ``libuv`` 1.34.0 or higher. On older systems, an updated
 ``libuv`` package needs to be installed from sources such as EPEL, PPA,
 or other native sources. The other option is to build and install
 ``libuv`` from source.
