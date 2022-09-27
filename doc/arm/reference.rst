@@ -6366,12 +6366,16 @@ zone is generated even if they have the same policy.  If multiple views
 are configured with different versions of the same zone, each separate
 version uses the same set of signing keys.
 
-By default, :any:`dnssec-policy` assumes :any:`inline-signing`. This means that
-a signed version of the zone is maintained separately and is written out to
-a different file on disk (the zone's filename plus a ``.signed`` extension).
+The :any:`dnssec-policy` statement requires dynamic DNS to be set up, or
+:any:`inline-signing` to be enabled.
+
+If :any:`inline-signing` is enabled, this means that a signed version of the
+zone is maintained separately and is written out to a different file on disk
+(the zone's filename plus a ``.signed`` extension).
 
 If the zone is dynamic because it is configured with an :any:`update-policy` or
-:any:`allow-update`, the DNSSEC records are written to the filename set in the original zone's :any:`file`, unless :any:`inline-signing` is explicitly set.
+:any:`allow-update`, the DNSSEC records are written to the filename set in the
+original zone's :any:`file`, unless :any:`inline-signing` is explicitly set.
 
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
