@@ -32,6 +32,8 @@ rm -f ns1/many.test.db
 rm -f ns1/maxjournal.db
 rm -f ns1/md5.key ns1/sha1.key ns1/sha224.key ns1/sha256.key ns1/sha384.key
 rm -f ns1/sample.db
+rm -f ns1/tls.conf
+rm -f ns1/tls.options
 rm -f ns1/sha512.key ns1/ddns.key
 rm -f ns10/_default.tsigkeys
 rm -f ns10/example.com.db

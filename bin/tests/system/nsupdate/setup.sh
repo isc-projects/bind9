@@ -18,6 +18,14 @@
 #
 $SHELL clean.sh
 
+if $FEATURETEST --have-fips-dh
+then
+	copy_setports ns1/tls.conf.in ns1/tls.conf
+	copy_setports ns1/tls.options.in ns1/tls.options
+else
+	: > ns1/tls.conf
+	: > ns1/tls.options
+fi
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
