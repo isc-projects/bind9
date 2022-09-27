@@ -190,7 +190,8 @@ Options
    This option reports the version number and exits.
 
 ``-V``
-   This option reports the version number and build options, and exits.
+   This option reports the version number, build options, supported
+   cryptographics algorithms, and exits.
 
 ``-X lock-file``
    This option acquires a lock on the specified file at runtime; this helps to
