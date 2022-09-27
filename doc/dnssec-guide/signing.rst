@@ -835,6 +835,7 @@ this example, we'll add it to the ``zone`` statement:
    zone "example.net" in {
        ...
        dnssec-policy standard;
+       inline-signing yes;
        ...
    };
 
@@ -916,6 +917,7 @@ presence. Let's look at the following configuration excerpt:
    zone "example.net" in {
        ...
        dnssec-policy standard;
+       inline-signing yes;
        parental-agents { "net"; };
        ...
    };
