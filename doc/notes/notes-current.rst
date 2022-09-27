@@ -49,3 +49,6 @@ Bug Fixes
 
 - An assertion failure was fixed in ``named`` that was caused by aborting the statistics
   channel connection while sending statistics data to the client.  :gl:`#3542`
+
+- Changing just the TSIG key names for primaries in catalog zones' member
+  zones was not effective. :gl:`#3557`
