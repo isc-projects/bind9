@@ -3729,7 +3729,10 @@ main(int argc, char *argv[]) {
 
 	isc_managers_create(&mctx, ntasks, &loopmgr, &netmgr, &taskmgr);
 
-	isc_task_create(taskmgr, &write_task, 0);
+	result = isc_task_create(taskmgr, &write_task, 0);
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed to create task: %s", isc_result_totext(result));
+	}
 
 	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS) {
