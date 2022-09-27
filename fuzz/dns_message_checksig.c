@@ -213,7 +213,7 @@ create_message(dns_message_t **messagep, const uint8_t *data, size_t size,
 	isc_result_t result;
 	dns_message_t *message = NULL;
 	isc_buffer_t b;
-	unsigned char buf[65535];
+	static unsigned char buf[65535];
 
 	isc_buffer_init(&b, buf, sizeof(buf));
 
