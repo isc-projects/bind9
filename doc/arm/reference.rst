@@ -1763,6 +1763,17 @@ default is used.
               suffix ::;
           };
 
+.. namedconf:statement:: resolver-use-dns64
+   :tags: server
+   :short: Specifies whether to apply DNS64 mappings when sending queries.
+
+   If :any:`resolver-use-dns64` is set to ``yes``, then the IPv4-to-IPv6
+   address transformations specified by the :any:`dns64` option will be
+   applied to IPv4 server addresses to which recursive queries are sent.
+   This allows a server to perform lookups via a NAT64 connection; queries
+   that would have been sent via IPv4 are instead sent to mapped IPv6
+   addresses. The default is ``no``.
+
 .. namedconf:statement:: ipv4only-enable
    :tags: query
    :short: Enables automatic IPv4 zones if a :any:`dns64` block is configured.
