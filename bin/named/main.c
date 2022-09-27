@@ -44,6 +44,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/uv.h>
+#include <isc/xml.h>
 
 #include <dns/dispatch.h>
 #include <dns/dyndb.h>
@@ -1471,10 +1472,6 @@ main(int argc, char *argv[]) {
 	(void)ProfilerStart(NULL);
 #endif /* ifdef HAVE_GPERFTOOLS_PROFILER */
 
-#ifdef HAVE_LIBXML2
-	xmlInitParser();
-#endif /* HAVE_LIBXML2 */
-
 	/*
 	 * Technically, this call is superfluous because on startup of the main
 	 * program, the portable "C" locale is selected by default.  This
@@ -1585,6 +1582,13 @@ main(int argc, char *argv[]) {
 
 	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr,
 			     &named_g_taskmgr);
+
+#if ENABLE_LEAK_DETECTION
+	isc__tls_setdestroycheck(true);
+	isc__uv_setdestroycheck(true);
+	isc__xml_setdestroycheck(true);
+#endif
+
 	isc_mem_checkdestroyed(stderr);
 
 	named_main_setmemstats(NULL);
@@ -1592,10 +1596,6 @@ main(int argc, char *argv[]) {
 	named_os_closedevnull();
 
 	named_os_shutdown();
-
-#ifdef HAVE_LIBXML2
-	xmlCleanupParser();
-#endif /* HAVE_LIBXML2 */
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	ProfilerStop();

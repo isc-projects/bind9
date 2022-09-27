@@ -54,8 +54,11 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 #include <isc/util.h>
+#include <isc/uv.h>
+#include <isc/xml.h>
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
@@ -4701,6 +4704,14 @@ destroy_libs(void) {
 	}
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
+
+#if ENABLE_LEAK_DETECTION
+	isc__tls_setdestroycheck(true);
+	isc__uv_setdestroycheck(true);
+	isc__xml_setdestroycheck(true);
+#endif
+
+	isc_mem_checkdestroyed(stderr);
 }
 
 #ifdef HAVE_LIBIDN2

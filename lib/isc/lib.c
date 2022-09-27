@@ -18,12 +18,13 @@
 #include <isc/os.h>
 #include <isc/tls.h>
 #include <isc/util.h>
+#include <isc/uv.h>
+#include <isc/xml.h>
 
 #include "config.h"
 #include "mem_p.h"
 #include "mutex_p.h"
 #include "os_p.h"
-#include "tls_p.h"
 #include "trampoline_p.h"
 
 #ifndef ISC_CONSTRUCTOR
@@ -46,11 +47,15 @@ isc__initialize(void) {
 	isc__mem_initialize();
 	isc__tls_initialize();
 	isc__trampoline_initialize();
+	isc__uv_initialize();
+	isc__xml_initialize();
 	(void)isc_os_ncpus();
 }
 
 void
 isc__shutdown(void) {
+	isc__xml_shutdown();
+	isc__uv_shutdown();
 	isc__trampoline_shutdown();
 	isc__tls_shutdown();
 	isc__mem_shutdown();

@@ -37,6 +37,7 @@
 #include <isc/ht.h>
 #include <isc/log.h>
 #include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
 #include <isc/once.h>
@@ -49,15 +50,11 @@
 #include <isc/util.h>
 
 #include "openssl_shim.h"
-#include "tls_p.h"
 
 #define COMMON_SSL_OPTIONS \
 	(SSL_OP_NO_COMPRESSION | SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION)
 
-static isc_once_t init_once = ISC_ONCE_INIT;
-static isc_once_t shut_once = ISC_ONCE_INIT;
-static atomic_bool init_done = false;
-static atomic_bool shut_done = false;
+static isc_mem_t *isc__tls_mctx = NULL;
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static isc_mutex_t *locks = NULL;
@@ -80,26 +77,116 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 }
 #endif
 
+#if !defined(LIBRESSL_VERSION_NUMBER)
+/*
+ * This was crippled with LibreSSL, so just skip it:
+ * https://cvsweb.openbsd.org/src/lib/libcrypto/Attic/mem.c
+ */
+
+#if ISC_MEM_TRACKLINES
+/*
+ * We use the internal isc__mem API here, so we can pass the file and line
+ * arguments passed from OpenSSL >= 1.1.0 to our memory functions for better
+ * tracking of the OpenSSL allocations.  Without this, we would always just see
+ * isc__tls_{malloc,realloc,free} in the tracking output, but with this in place
+ * we get to see the places in the OpenSSL code where the allocations happen.
+ */
+
+static void *
+isc__tls_malloc_ex(size_t size, const char *file, int line) {
+	return (isc__mem_allocate(isc__tls_mctx, size, file,
+				  (unsigned int)line));
+}
+
+static void *
+isc__tls_realloc_ex(void *ptr, size_t size, const char *file, int line) {
+	return (isc__mem_reallocate(isc__tls_mctx, ptr, size, file,
+				    (unsigned int)line));
+}
+
 static void
-tls_initialize(void) {
-	REQUIRE(!atomic_load(&init_done));
+isc__tls_free_ex(void *ptr, const char *file, int line) {
+	if (ptr == NULL) {
+		return;
+	}
+	isc__mem_free(isc__tls_mctx, ptr, file, (unsigned int)line);
+}
+
+#elif OPENSSL_VERSION_NUMBER >= 0x10100000L
+
+static void *
+isc__tls_malloc_ex(size_t size, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+	return (isc_mem_allocate(isc__tls_mctx, size));
+}
+
+static void *
+isc__tls_realloc_ex(void *ptr, size_t size, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+	return (isc_mem_reallocate(isc__tls_mctx, ptr, size));
+}
+
+static void
+isc__tls_free_ex(void *ptr, const char *file, int line) {
+	UNUSED(file);
+	UNUSED(line);
+	if (ptr == NULL) {
+		return;
+	}
+	isc__mem_free(isc__tls_mctx, ptr);
+}
+
+#endif /* ISC_MEM_TRACKLINES */
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+static void
+isc__tls_free(void *ptr) {
+	isc__tls_free_ex(ptr, __FILE__, __LINE__);
+}
+
+#endif
+
+#endif /* !defined(LIBRESSL_VERSION_NUMBER) */
+
+void
+isc__tls_initialize(void) {
+	isc_mem_create(&isc__tls_mctx);
+	isc_mem_setname(isc__tls_mctx, "OpenSSL");
+	isc_mem_setdestroycheck(isc__tls_mctx, false);
+
+#if !defined(LIBRESSL_VERSION_NUMBER)
+	/*
+	 * CRYPTO_set_mem_(_ex)_functions() returns 1 on success or 0 on
+	 * failure, which means OpenSSL already allocated some memory.  There's
+	 * nothing we can do about it.
+	 */
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	(void)CRYPTO_set_mem_functions(isc__tls_malloc_ex, isc__tls_realloc_ex,
+				       isc__tls_free_ex);
+#else
+	(void)CRYPTO_set_mem_ex_functions(isc__tls_malloc_ex,
+					  isc__tls_realloc_ex, isc__tls_free);
+#endif
+#endif /* !defined(LIBRESSL_VERSION_NUMBER) */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
-	RUNTIME_CHECK(OPENSSL_init_ssl(OPENSSL_INIT_ENGINE_ALL_BUILTIN |
-					       OPENSSL_INIT_LOAD_CONFIG,
-				       NULL) == 1);
+	uint64_t opts = OPENSSL_INIT_ENGINE_ALL_BUILTIN |
+			OPENSSL_INIT_LOAD_CONFIG;
+#if defined(OPENSSL_INIT_NO_ATEXIT)
+	/*
+	 * We call OPENSSL_cleanup() manually, in a correct order, thus disable
+	 * the automatic atexit() handler.
+	 */
+	opts |= OPENSSL_INIT_NO_ATEXIT;
+#endif
+
+	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	/*
-	 * We can't use isc_mem API here, because it's called too
-	 * early and when the isc_mem_debugging flags are changed
-	 * later.
-	 *
-	 * Actually, since this is a single allocation at library load
-	 * and deallocation at library unload, using the standard
-	 * allocator without the tracking is fine for this purpose.
-	 */
-	locks = calloc(nlocks, sizeof(locks[0]));
+	locks = isc_mem_get(isc__tls_mctx, nlocks * sizeof(locks[0]));
+	memset(locks, 0, nlocks * sizeof(locks[0]));
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
@@ -127,22 +214,10 @@ tls_initialize(void) {
 			    "cannot be initialized (see the `PRNG not "
 			    "seeded' message in the OpenSSL FAQ)");
 	}
-
-	atomic_compare_exchange_enforced(&init_done, &(bool){ false }, true);
 }
 
 void
-isc__tls_initialize(void) {
-	isc_result_t result = isc_once_do(&init_once, tls_initialize);
-	REQUIRE(result == ISC_R_SUCCESS);
-	REQUIRE(atomic_load(&init_done));
-}
-
-static void
-tls_shutdown(void) {
-	REQUIRE(atomic_load(&init_done));
-	REQUIRE(!atomic_load(&shut_done));
-
+isc__tls_shutdown(void) {
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	OPENSSL_cleanup();
 #else
@@ -161,19 +236,17 @@ tls_shutdown(void) {
 
 	if (locks != NULL) {
 		isc_mutexblock_destroy(locks, nlocks);
-		free(locks);
+		isc_mem_put(isc__tls_mctx, locks, nlocks * sizeof(locks[0]));
 		locks = NULL;
 	}
 #endif
 
-	atomic_compare_exchange_enforced(&shut_done, &(bool){ false }, true);
+	isc_mem_destroy(&isc__tls_mctx);
 }
 
 void
-isc__tls_shutdown(void) {
-	isc_result_t result = isc_once_do(&shut_once, tls_shutdown);
-	REQUIRE(result == ISC_R_SUCCESS);
-	REQUIRE(atomic_load(&shut_done));
+isc__tls_setdestroycheck(bool check) {
+	isc_mem_setdestroycheck(isc__tls_mctx, check);
 }
 
 void

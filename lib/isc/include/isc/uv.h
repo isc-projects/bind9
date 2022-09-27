@@ -107,3 +107,14 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 	})
 
 #endif
+
+/*
+ * Internal
+ */
+
+void
+isc__uv_initialize(void);
+void
+isc__uv_shutdown(void);
+void
+isc__uv_setdestroycheck(bool check);

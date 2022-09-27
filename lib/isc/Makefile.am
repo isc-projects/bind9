@@ -105,6 +105,7 @@ libisc_la_HEADERS =			\
 	include/isc/utf8.h		\
 	include/isc/util.h		\
 	include/isc/uv.h		\
+	include/isc/xml.h		\
 	include/isc/work.h
 
 libisc_la_SOURCES =		\
@@ -204,13 +205,13 @@ libisc_la_SOURCES =		\
 	time.c			\
 	timer.c			\
 	tls.c			\
-	tls_p.h			\
 	tm.c			\
 	trampoline.c		\
 	trampoline_p.h		\
 	url.c			\
 	utf8.c			\
 	uv.c			\
+	xml.c			\
 	work.c
 
 libisc_la_CPPFLAGS =		\

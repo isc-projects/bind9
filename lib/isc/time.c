@@ -194,8 +194,8 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result) {
 	REQUIRE(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
 
 	/* Seconds */
-#if HAVE_BUILTIN_OVERFLOW
-	if (__builtin_uadd_overflow(t->seconds, i->seconds, &result->seconds)) {
+#if HAVE_BUILTIN_ADD_OVERFLOW
+	if (__builtin_add_overflow(t->seconds, i->seconds, &result->seconds)) {
 		return (ISC_R_RANGE);
 	}
 #else
@@ -225,8 +225,8 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	REQUIRE(t->nanoseconds < NS_PER_S && i->nanoseconds < NS_PER_S);
 
 	/* Seconds */
-#if HAVE_BUILTIN_OVERFLOW
-	if (__builtin_usub_overflow(t->seconds, i->seconds, &result->seconds)) {
+#if HAVE_BUILTIN_SUB_OVERFLOW
+	if (__builtin_sub_overflow(t->seconds, i->seconds, &result->seconds)) {
 		return (ISC_R_RANGE);
 	}
 #else
