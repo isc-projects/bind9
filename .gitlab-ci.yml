@@ -152,10 +152,6 @@ stages:
 
 # Ubuntu
 
-.ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
-  <<: *linux_amd64
-
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
@@ -880,40 +876,13 @@ unit:gcc:tumbleweed:amd64:
     - job: gcc:tumbleweed:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Ubuntu 18.04 Bionic Beaver (amd64)
-
-gcc:bionic:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-dnstap --without-cmocka --without-gssapi"
-  <<: *ubuntu_bionic_amd64_image
-  <<: *build_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-
-system:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
-  <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:bionic:amd64
-      artifacts: true
-
-unit:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
-  <<: *unit_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:bionic:amd64
-      artifacts: true
-
 # Jobs for regular GCC builds on Ubuntu 20.04 Focal Fossa (amd64)
 
 gcc:focal:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    EXTRA_CONFIGURE: "--disable-geoip --with-libidn2"
+    EXTRA_CONFIGURE: "--disable-dnstap --without-cmocka --without-gssapi --with-libidn2"
   <<: *ubuntu_focal_amd64_image
   <<: *build_job
 
@@ -937,7 +906,7 @@ gcc:jammy:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-doh"
+    EXTRA_CONFIGURE: "--disable-geoip --with-libidn2 --disable-doh"
   <<: *ubuntu_jammy_amd64_image
   <<: *build_job
 
