@@ -685,6 +685,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	isc__networker_t *worker = NULL;
 	uint32_t maxudp;
 	int r;
+	isc_result_t result;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udpsocket);
@@ -706,16 +707,6 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		return;
 	}
 
-	if (isc__nm_closing(worker)) {
-		cb(handle, ISC_R_SHUTTINGDOWN, cbarg);
-		return;
-	}
-
-	if (isc__nmsocket_closing(sock)) {
-		cb(handle, ISC_R_CANCELED, cbarg);
-		return;
-	}
-
 	uvreq = isc__nm_uvreq_get(sock->worker, sock);
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
@@ -724,6 +715,16 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
+
+	if (isc__nm_closing(worker)) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto fail;
+	}
+
+	if (isc__nmsocket_closing(sock)) {
+		result = ISC_R_CANCELED;
+		goto fail;
+	}
 
 	/*
 	 * We used uv_udp_connect(), so the peer address has to be
@@ -738,8 +739,12 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 			&uvreq->uvbuf, 1, sa, udp_send_cb);
 	if (r < 0) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(r));
+		result = isc_uverr2result(r);
+		goto fail;
 	}
+	return;
+fail:
+	isc__nm_failed_send_cb(sock, uvreq, result);
 }
 
 static isc_result_t
