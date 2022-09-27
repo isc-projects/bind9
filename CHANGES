@@ -1,3 +1,6 @@
+5988.	[bug]		Some out of memory conditions in opensslrsa_link.c
+			could lead to memory leaks. [GL #3551]
+
 5987.	[func]		Provide custom isc_mem based allocators for libuv,
 			OpenSSL and libxml2 libraries that support replacing
 			the internal allocators. [GL #3559]
