@@ -65,3 +65,8 @@ key tsig_key. {
 	secret "LSAnCU+Z";
 	algorithm hmac-md5;
 };
+
+key next_key. {
+	secret "LaAnCU+Z";
+	algorithm @DEFAULT_HMAC@;
+};
