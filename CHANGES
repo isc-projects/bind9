@@ -1,3 +1,5 @@
+5985.	[func]		Bump the minimal libuv version to 1.34.0. [GL #3567]
+
 5984.	[func]		'named -V' now reports the list of supported
 			DNSSEC/DS/HMAC algorithms and the supported TKEY modes.
 			[GL #3541]

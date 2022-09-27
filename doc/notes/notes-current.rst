@@ -67,6 +67,10 @@ Feature Changes
   with '-DOPENSSL_API_COMPAT=10100' specified in the CFLAGS at
   compile time. :gl:`!6711`
 
+- Compiling BIND 9 now requires at least libuv version 1.34.0 or higher.  The
+  libuv should be available on all supported platforms either as a native
+  package or as a backport. :gl:`#3567`
+
 Bug Fixes
 ~~~~~~~~~
 
