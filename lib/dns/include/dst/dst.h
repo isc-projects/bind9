@@ -78,32 +78,36 @@ typedef enum dst_key_state {
 } dst_key_state_t;
 
 /* DST algorithm codes */
-#define DST_ALG_UNKNOWN	     0
-#define DST_ALG_RSA	     1 /* Used for parsing RSASHA1, RSASHA256 and RSASHA512 */
-#define DST_ALG_RSAMD5	     1
-#define DST_ALG_DH	     2
-#define DST_ALG_DSA	     3
-#define DST_ALG_ECC	     4
-#define DST_ALG_RSASHA1	     5
-#define DST_ALG_NSEC3DSA     6
-#define DST_ALG_NSEC3RSASHA1 7
-#define DST_ALG_RSASHA256    8
-#define DST_ALG_RSASHA512    10
-#define DST_ALG_ECCGOST	     12
-#define DST_ALG_ECDSA256     13
-#define DST_ALG_ECDSA384     14
-#define DST_ALG_ED25519	     15
-#define DST_ALG_ED448	     16
-#define DST_ALG_HMACMD5	     157
-#define DST_ALG_GSSAPI	     160
-#define DST_ALG_HMACSHA1     161 /* XXXMPA */
-#define DST_ALG_HMACSHA224   162 /* XXXMPA */
-#define DST_ALG_HMACSHA256   163 /* XXXMPA */
-#define DST_ALG_HMACSHA384   164 /* XXXMPA */
-#define DST_ALG_HMACSHA512   165 /* XXXMPA */
-#define DST_ALG_INDIRECT     252
-#define DST_ALG_PRIVATE	     254
-#define DST_MAX_ALGS	     256
+typedef enum dst_algorithm {
+	DST_ALG_UNKNOWN = 0,
+	DST_ALG_RSA = 1, /* Used for parsing RSASHA1, RSASHA256 and RSASHA512 */
+	DST_ALG_RSAMD5 = 1,
+	DST_ALG_DH = 2,
+	DST_ALG_DSA = 3,
+	DST_ALG_ECC = 4,
+	DST_ALG_RSASHA1 = 5,
+	DST_ALG_NSEC3DSA = 6,
+	DST_ALG_NSEC3RSASHA1 = 7,
+	DST_ALG_RSASHA256 = 8,
+	DST_ALG_RSASHA512 = 10,
+	DST_ALG_ECCGOST = 12,
+	DST_ALG_ECDSA256 = 13,
+	DST_ALG_ECDSA384 = 14,
+	DST_ALG_ED25519 = 15,
+	DST_ALG_ED448 = 16,
+	DST_ALG_GSSAPI = 159,
+	DST_ALG_HMACMD5 = 160,
+	DST_ALG_HMAC_FIRST = DST_ALG_HMACMD5,
+	DST_ALG_HMACSHA1 = 161,	  /* XXXMPA */
+	DST_ALG_HMACSHA224 = 162, /* XXXMPA */
+	DST_ALG_HMACSHA256 = 163, /* XXXMPA */
+	DST_ALG_HMACSHA384 = 164, /* XXXMPA */
+	DST_ALG_HMACSHA512 = 165, /* XXXMPA */
+	DST_ALG_HMAC_LAST = DST_ALG_HMACSHA512,
+	DST_ALG_INDIRECT = 252,
+	DST_ALG_PRIVATE = 254,
+	DST_MAX_ALGS = 256,
+} dst_algorithm_t;
 
 /*% A buffer of this size is large enough to hold any key */
 #define DST_KEY_MAXSIZE 1280
@@ -1219,6 +1223,13 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
  *
  * Requires:
  *	'to' and 'from' to be valid.
+ */
+
+const char *
+dst_hmac_algorithm_totext(dst_algorithm_t alg);
+/*$<
+ * Return the name associtated with the HMAC algorithm 'alg'
+ * or return "unknown".
  */
 
 ISC_LANG_ENDDECLS

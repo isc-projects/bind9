@@ -2747,3 +2747,23 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from) {
 
 	dst_key_setmodified(to, dst_key_ismodified(from));
 }
+
+const char *
+dst_hmac_algorithm_totext(dst_algorithm_t alg) {
+	switch (alg) {
+	case DST_ALG_HMACMD5:
+		return ("hmac-md5");
+	case DST_ALG_HMACSHA1:
+		return ("hmac-sha1");
+	case DST_ALG_HMACSHA224:
+		return ("hmac-sha224");
+	case DST_ALG_HMACSHA256:
+		return ("hmac-sha256");
+	case DST_ALG_HMACSHA384:
+		return ("hmac-sha384");
+	case DST_ALG_HMACSHA512:
+		return ("hmac-sha512");
+	default:
+		return ("unknown");
+	}
+}

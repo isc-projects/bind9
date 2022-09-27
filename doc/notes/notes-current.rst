@@ -29,6 +29,9 @@ New Features
 
 - None.
 
+- :iscman:`named` now logs the supported cryptographic algorithms during
+  startup and in the output of :option:`named -V`. :gl:`#3541`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
