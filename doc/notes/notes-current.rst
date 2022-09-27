@@ -73,3 +73,7 @@ Bug Fixes
 - :iscman:`named` could incorrectly return non-truncated, glueless
   referrals for responses whose size was close to the UDP packet size
   limit. :gl:`#1967`
+
+- Changing just the TSIG key names for primaries in catalog zones' member
+  zones was not effective. :gl:`#3557`
+
