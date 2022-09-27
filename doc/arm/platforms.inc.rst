@@ -107,7 +107,7 @@ These are platforms on which current versions of BIND 9 are known *not* to build
 -  Platforms that do not support atomic operations (via compiler or
    library)
 -  Linux without NPTL (Native POSIX Thread Library)
--  Platforms on which **libuv** cannot be compiled
+-  Platforms on which **libuv >= 1.34** cannot be compiled or is not available
 
 Installing BIND 9
 -----------------
