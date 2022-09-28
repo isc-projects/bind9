@@ -1,3 +1,6 @@
+5988.	[bug]		Some out of memory conditions in opensslrsa_link.c
+			could lead to memory leaks. [GL #3551]
+
 5984.	[func]		'named -V' now reports the list of supported
 			DNSSEC/DS/HMAC algorithms and the supported TKEY modes.
 			[GL #3541]
