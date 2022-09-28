@@ -40,6 +40,9 @@ New Features
 
 - The ``nsupdate`` tool now supports DNS-over-TLS (DoT). :gl:`#1781`
 
+- :iscman:``named`` now supports forwarding Dynamic DNS updates through
+  DNS-over-TLS (DoT), configured with a TLS-enabled primary server. :gl:`#3512`
+
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
 
