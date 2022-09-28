@@ -66,6 +66,7 @@ To sign a zone, add the following statement to its
    zone "example.com" in {
        ...
        dnssec-policy default;
+       inline-signing yes;
        ...
    };
 
@@ -76,6 +77,17 @@ as signatures expire and replacing keys on a periodic basis. The value
 for most situations. We cover the creation of a custom policy in
 :ref:`signing_custom_policy`, but for the moment we are accepting the
 default values.
+
+Using :any:`dnssec-policy` requires dynamic DNS or :any:`inline-signing`
+to be enabled.
+
+.. note::
+
+   Previously, if a zone with a :any:`dnssec-policy` did not have dynamic
+   DNS set up and :any:`inline-signing` was not explicity set, BIND 9 used
+   inline-signing implicitly. But this caused a lot of problems when operators
+   switched on or off dynamic DNS for their zones. Therefor, you now have to
+   configure it explicitly.
 
 When the configuration file is updated, tell :iscman:`named` to
 reload the configuration file by running :option:`rndc reconfig`:
@@ -823,6 +835,7 @@ this example, we'll add it to the :any:`zone` statement:
    zone "example.net" in {
        ...
        dnssec-policy standard;
+       inline-signing yes;
        ...
    };
 
@@ -904,6 +917,7 @@ presence. Let's look at the following configuration excerpt:
    zone "example.net" in {
        ...
        dnssec-policy standard;
+       inline-signing yes;
        parental-agents { "net"; };
        ...
    };
@@ -1358,9 +1372,8 @@ repeated here. A few points are worth noting, though:
 -  The :any:`dnssec-policy` statement in the :iscman:`named` configuration file
    describes all aspects of the DNSSEC policy, including the signing.
 
--  When using :any:`dnssec-policy`, there is no need to set the
-   :any:`auto-dnssec` and :any:`inline-signing` options for a zone. The zone's
-   ``policy`` statement implicitly does this.
+-  The :any:`dnssec-policy` statement requires to zone to use dynamic DNS,
+   or that :any:`inline-signing` is enabled.
 
 .. _advanced_discussions_manual_key_management_and_signing:
 
