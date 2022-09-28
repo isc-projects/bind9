@@ -4916,12 +4916,16 @@ Multiple key and signing policies can be configured.  To attach a policy
 to a zone, add a ``dnssec-policy`` option to the ``zone`` statement,
 specifying the name of the policy that should be used.
 
-By default, ``dnssec-policy`` assumes ``inline-signing``. This means that
-a signed version of the zone is maintained separately and is written out to
-a different file on disk (the zone's filename plus a ``.signed`` extension).
+The ``dnssec-policy`` statement requires dynamic DNS to be set up, or
+``inline-signing`` to be enabled.
+
+If ``inline-signing`` is enabled, this means that a signed version of the
+zone is maintained separately and is written out to a different file on disk
+(the zone's filename plus a ``.signed`` extension).
 
 If the zone is dynamic because it is configured with an ``update-policy`` or
-``allow-update``, the DNSSEC records are written to the filename set in the original zone's ``file``, unless ``inline-signing`` is explicitly set.
+``allow-update``, the DNSSEC records are written to the filename set in the
+original zone's ``file``, unless ``inline-signing`` is explicitly set.
 
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
