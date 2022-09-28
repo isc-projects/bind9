@@ -2523,7 +2523,7 @@ recursionquotatype_detach(ns_client_t *client,
 }
 
 static void
-cleanup_after_fetch(isc_task_t *task, isc_event_t *event,
+cleanup_after_fetch(isc_task_t *task, isc_event_t *event, const char *ctracestr,
 		    ns_query_rectype_t recursion_type) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	isc_nmhandle_t **handlep;
@@ -2537,7 +2537,7 @@ cleanup_after_fetch(isc_task_t *task, isc_event_t *event,
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->manager->task);
 
-	CTRACE(ISC_LOG_DEBUG(3), "prefetch_done");
+	CTRACE(ISC_LOG_DEBUG(3), ctracestr);
 
 	handlep = &client->query.recursions[recursion_type].handle;
 	fetchp = &client->query.recursions[recursion_type].fetch;
@@ -2557,12 +2557,17 @@ cleanup_after_fetch(isc_task_t *task, isc_event_t *event,
 
 static void
 prefetch_done(isc_task_t *task, isc_event_t *event) {
-	cleanup_after_fetch(task, event, RECTYPE_PREFETCH);
+	cleanup_after_fetch(task, event, "prefetch_done", RECTYPE_PREFETCH);
 }
 
 static void
 rpzfetch_done(isc_task_t *task, isc_event_t *event) {
-	cleanup_after_fetch(task, event, RECTYPE_RPZ);
+	cleanup_after_fetch(task, event, "rpzfetch_done", RECTYPE_RPZ);
+}
+
+static void
+refresh_done(isc_task_t *task, isc_event_t *event) {
+	cleanup_after_fetch(task, event, "refresh_done", RECTYPE_REFRESH);
 }
 
 /*
@@ -2606,6 +2611,10 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 		options = client->query.fetchoptions;
 		action = rpzfetch_done;
 		break;
+	case RECTYPE_REFRESH:
+		options = client->query.fetchoptions;
+		action = refresh_done;
+		break;
 	default:
 		UNREACHABLE();
 	}
@@ -2645,6 +2654,20 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	ns_stats_increment(client->manager->sctx->nsstats,
 			   ns_statscounter_prefetch);
 }
+
+/*
+static void
+query_refresh(ns_client_t *client, dns_name_t *qname,
+	       dns_rdataset_t *rdataset) {
+	CTRACE(ISC_LOG_DEBUG(3), "query_refresh");
+
+	if (FETCH_RECTYPE_REFRESH(client) != NULL) {
+		return;
+	}
+
+	fetch_and_forget(client, qname, rdataset->type, RECTYPE_REFRESH);
+}
+*/
 
 static void
 rpz_clean(dns_zone_t **zonep, dns_db_t **dbp, dns_dbnode_t **nodep,

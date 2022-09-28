@@ -46,6 +46,7 @@ typedef enum {
 	RECTYPE_NORMAL,
 	RECTYPE_PREFETCH,
 	RECTYPE_RPZ,
+	RECTYPE_STALE_REFRESH,
 	RECTYPE_HOOK,
 	RECTYPE_COUNT,
 } ns_query_rectype_t;
@@ -60,6 +61,8 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_PREFETCH].handle)
 #define HANDLE_RECTYPE_RPZ(client) \
 	((client)->query.recursions[RECTYPE_RPZ].handle)
+#define HANDLE_RECTYPE_STALE_REFRESH(client) \
+	((client)->query.recursions[RECTYPE_STALE_REFRESH].handle)
 #define HANDLE_RECTYPE_HOOK(client) \
 	((client)->query.recursions[RECTYPE_HOOK].handle)
 
@@ -73,6 +76,8 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_PREFETCH].fetch)
 #define FETCH_RECTYPE_RPZ(client) \
 	((client)->query.recursions[RECTYPE_RPZ].fetch)
+#define FETCH_RECTYPE_STALE_REFRESH(client) \
+	((client)->query.recursions[RECTYPE_STALE_REFRESH].fetch)
 #define FETCH_RECTYPE_HOOK(client) \
 	((client)->query.recursions[RECTYPE_HOOK].fetch)
 
@@ -86,6 +91,8 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_PREFETCH].quota)
 #define QUOTA_RECTYPE_RPZ(client) \
 	((client)->query.recursions[RECTYPE_RPZ].quota)
+#define QUOTA_RECTYPE_STALE_REFRESH(client) \
+	((client)->query.recursions[RECTYPE_STALE_REFRESH].quota)
 #define QUOTA_RECTYPE_HOOK(client) \
 	((client)->query.recursions[RECTYPE_HOOK].quota)
 
