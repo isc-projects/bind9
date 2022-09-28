@@ -21,8 +21,10 @@ options {
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
 	port @PORT@;
+	tls-port @TLSPORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
+	listen-on tls ephemeral { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion yes;
 	notify yes;

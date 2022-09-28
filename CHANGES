@@ -1,3 +1,6 @@
+5989.	[func]		Implement support for DDNS update forwarding using DoT
+			to TLS-enabled primary servers. [GL #3512]
+
 5988.	[bug]		Some out of memory conditions in opensslrsa_link.c
 			could lead to memory leaks. [GL #3551]
 
