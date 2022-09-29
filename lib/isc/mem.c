@@ -981,6 +981,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	size_t size = 0;
 
 	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(ptr != NULL);
 
 	size = sallocx(ptr, 0);
 
