@@ -18865,7 +18865,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		   dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
 	isc_result_t result;
-	isc_loop_t *mainloop = isc_loop_main(loopmgr);
+	isc_loop_t *loop = isc_loop_current(loopmgr);
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(loopmgr != NULL);
@@ -18899,35 +18899,11 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	/* Unreachable lock. */
 	isc_rwlock_init(&zmgr->urlock, 0, 0);
 
-	result = isc_ratelimiter_create(mainloop, &zmgr->checkdsrl);
-	INSIST(result == ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) {
-		goto free_urlock;
-	}
-
-	result = isc_ratelimiter_create(mainloop, &zmgr->notifyrl);
-	INSIST(result == ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) {
-		goto free_checkdsrl;
-	}
-
-	result = isc_ratelimiter_create(mainloop, &zmgr->refreshrl);
-	INSIST(result == ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) {
-		goto free_notifyrl;
-	}
-
-	result = isc_ratelimiter_create(mainloop, &zmgr->startupnotifyrl);
-	INSIST(result == ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) {
-		goto free_refreshrl;
-	}
-
-	result = isc_ratelimiter_create(mainloop, &zmgr->startuprefreshrl);
-	INSIST(result == ISC_R_SUCCESS);
-	if (result != ISC_R_SUCCESS) {
-		goto free_startupnotifyrl;
-	}
+	isc_ratelimiter_create(loop, &zmgr->checkdsrl);
+	isc_ratelimiter_create(loop, &zmgr->notifyrl);
+	isc_ratelimiter_create(loop, &zmgr->refreshrl);
+	isc_ratelimiter_create(loop, &zmgr->startupnotifyrl);
+	isc_ratelimiter_create(loop, &zmgr->startuprefreshrl);
 
 	zmgr->zonetasks = isc_mem_get(
 		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]));
@@ -19012,19 +18988,15 @@ free_zonetasks:
 
 	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
 	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
-free_startupnotifyrl:
 	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
-free_refreshrl:
 	isc_ratelimiter_shutdown(zmgr->refreshrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
-free_notifyrl:
 	isc_ratelimiter_shutdown(zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
-free_checkdsrl:
 	isc_ratelimiter_shutdown(zmgr->checkdsrl);
 	isc_ratelimiter_detach(&zmgr->checkdsrl);
-free_urlock:
+
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
 	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));

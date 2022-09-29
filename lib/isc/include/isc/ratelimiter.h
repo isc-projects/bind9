@@ -41,8 +41,8 @@ ISC_LANG_BEGINDECLS
 ***** Functions.
 *****/
 
-isc_result_t
-isc_ratelimiter_create(isc_loop_t *loop, isc_ratelimiter_t **ratelimiterp);
+void
+isc_ratelimiter_create(isc_loop_t *loop, isc_ratelimiter_t **rlp);
 /*%<
  * Create a rate limiter.  The execution interval is initially undefined.
  */
