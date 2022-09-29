@@ -10004,8 +10004,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	named_server_t *server = (named_server_t *)event->ev_arg;
 	dns_geoip_databases_t *geoip = NULL;
 
-	fprintf(stderr, "%s\n", __func__);
-
 	INSIST(task == server->task);
 
 	isc_event_free(&event);
