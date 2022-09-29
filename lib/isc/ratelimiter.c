@@ -57,9 +57,12 @@ ratelimiter_tick(void *arg);
 isc_result_t
 isc_ratelimiter_create(isc_loop_t *loop, isc_ratelimiter_t **ratelimiterp) {
 	isc_ratelimiter_t *rl = NULL;
-	isc_mem_t *mctx = isc_loop_getmctx(loop);
+	isc_mem_t *mctx;
 
+	INSIST(loop != NULL);
 	INSIST(ratelimiterp != NULL && *ratelimiterp == NULL);
+
+	mctx = isc_loop_getmctx(loop);
 
 	rl = isc_mem_get(mctx, sizeof(*rl));
 	*rl = (isc_ratelimiter_t){
@@ -237,14 +240,16 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	REQUIRE(VALID_RATELIMITER(rl));
 
 	LOCK(&rl->lock);
-	rl->state = isc_ratelimiter_shuttingdown;
+	if (rl->state != isc_ratelimiter_shuttingdown) {
+		rl->state = isc_ratelimiter_shuttingdown;
 
-	while ((event = ISC_LIST_HEAD(rl->pending)) != NULL) {
-		ISC_LIST_UNLINK(rl->pending, event, ev_ratelink);
-		event->ev_attributes |= ISC_EVENTATTR_CANCELED;
-		isc_task_send(event->ev_sender, &event);
+		while ((event = ISC_LIST_HEAD(rl->pending)) != NULL) {
+			ISC_LIST_UNLINK(rl->pending, event, ev_ratelink);
+			event->ev_attributes |= ISC_EVENTATTR_CANCELED;
+			isc_task_send(event->ev_sender, &event);
+		}
+		isc_loop_detach(&rl->loop);
 	}
-	isc_loop_detach(&rl->loop);
 	UNLOCK(&rl->lock);
 }
 
