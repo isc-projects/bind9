@@ -104,3 +104,13 @@ functions MUST be called from the thread that created the network manager
 socket.
 
 The ``isc_nm_listen*()`` functions MUST be called from the ``main`` loop.
+
+The general design of Network Manager is based on callbacks.  An extra care must
+be taken when implementing new functions because the callbacks MUST be called
+asynchronously because the caller might be inside a lock and the same lock must
+be acquired in the callback.  This doesn't mean that the callback must be always
+called asynchronously, because sometimes we are already in the libuv callback
+and thus we can just call the callback directly, but in other places, especially
+when returning an error, the control hasn't been returned to the caller yet and
+in such case, the callback must be scheduled onto the event loop instead of
+executing it directly.
