@@ -143,7 +143,7 @@ responses for all users.
 
 Private IP addresses may be defined using standard :ref:`reverse-mapping
 techniques<ipv4_reverse>` or using the
-:ref:`empty-zones-enable<empty-zones-enable>` statement. By
+:any:`empty-zones-enable` statement. By
 default this statement is set to ``empty-zones-enable yes;`` and thus automatically prevents
 unnecessary DNS traffic by sending an NXDOMAIN error response (indicating the
 name does not exist) to any request.  However, some applications may require a
@@ -263,8 +263,8 @@ It is therefore a **closed** resolver and cannot be used in wider network attack
         };
 
 The :any:`zone` and :any:`acl` blocks, and the
-:ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
-:ref:`file<file>`, :ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and
+:any:`allow-query`, :any:`empty-zones-enable`,
+:any:`file`, :namedconf:ref:`notify`, :any:`recursion`, and
 :any:`type` statements are described in detail in the appropriate
 sections.
 
@@ -381,9 +381,9 @@ provided<selective_forward_sample>`.
         };
 
 The :any:`zone` and :any:`acl` blocks, and the
-:ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
-:ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
+:any:`allow-query`, :any:`empty-zones-enable`,
+:any:`file`, :any:`forward`, :any:`forwarders`,
+:namedconf:ref:`notify`, :any:`recursion`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 As a reminder, the configuration of this forwarding resolver does **not**
@@ -508,9 +508,9 @@ those IPs from which it will accept recursive queries.
 
 
 The :any:`zone` and :any:`acl` blocks, and the
-:ref:`allow-query<allow-query>`, :ref:`empty-zones-enable<empty-zones-enable>`,
-:ref:`file<file>`, :ref:`forward<forward>`, :ref:`forwarders<forwarders>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
+:any:`allow-query`, :any:`empty-zones-enable`,
+:any:`file`, :any:`forward`, :any:`forwarders`,
+:namedconf:ref:`notify`, :any:`recursion`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 As a reminder, the configuration of this resolver does **not** access the DNS

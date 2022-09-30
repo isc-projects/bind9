@@ -402,8 +402,6 @@ The following blocks are supported:
     :any:`parental-agents`
         Defines a named list of servers for inclusion in primary and secondary zones' :any:`parental-agents` lists.
 
-.. _primaries:
-
     :any:`primaries`
         Defines a named list of servers for inclusion in stub and secondary zones' :any:`primaries` or :any:`also-notify` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
 
@@ -430,8 +428,6 @@ The following blocks are supported:
 
     :any:`view`
         Defines a view.
-
-.. _zone_clause:
 
     :any:`zone`
         Defines a zone.
@@ -723,8 +719,6 @@ by the channel (the default is ``info``), and whether to include a
    ``syslog.conf`` man page. On a system which uses a very old
    version of :any:`syslog`, which only uses two arguments to the ``openlog()``
    function, this clause is silently ignored.
-
-.. _severity:
 
 .. namedconf:statement:: severity
    :tags: logging
@@ -1085,8 +1079,6 @@ where ``tls-configuration-name`` refers to a previously defined
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
 
-.. _options:
-
 ``options`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1094,8 +1086,6 @@ The ``options`` statement sets up global options to be used by BIND.
 This statement may appear only once in a configuration file. If there is
 no ``options`` statement, an options block with each option set to its
 default is used.
-
-.. _attach-cache:
 
 .. namedconf:statement:: attach-cache
    :tags: view
@@ -1157,8 +1147,6 @@ default is used.
    answer does not make sense or could even be harmful. It is the
    administrator's responsibility to ensure that configuration differences in
    different views do not cause disruption with a shared cache.
-
-.. _directory:
 
 .. namedconf:statement:: directory
    :tags: server
@@ -1655,8 +1643,6 @@ default is used.
    other glue in the additional section of a query response. The default
    is to prefer A records when responding to queries that arrived via
    IPv4 and AAAA when responding to queries that arrived via IPv6.
-
-.. _root-delegation-only:
 
 .. namedconf:statement:: root-delegation-only
    :tags: query
@@ -2236,8 +2222,6 @@ Boolean Options
    unnecessary records are added to the authority or additional
    sections. The default is ``no``.
 
-.. _notify_st:
-
 .. namedconf:statement:: notify
    :tags: transfer
    :short: Controls whether ``NOTIFY`` messages are sent on zone changes.
@@ -2269,8 +2253,6 @@ Boolean Options
    hidden primary configurations; in that case, the
    ultimate primary should be set to still send NOTIFY messages to all the name servers
    listed in the NS RRset.
-
-.. _recursion:
 
 .. namedconf:statement:: recursion
    :tags: query
@@ -2642,8 +2624,6 @@ Boolean Options
    The DNSSEC records are written to the zone's filename set in :any:`file`,
    unless :any:`inline-signing` is enabled.
 
-.. _dnssec-validation-option:
-
 .. namedconf:statement:: dnssec-validation
    :tags: dnssec
    :short: Enables DNSSEC validation in :iscman:`named`.
@@ -2921,8 +2901,6 @@ access to the Internet, but wish to look up exterior names anyway.
 Forwarding occurs only on those queries for which the server is not
 authoritative and does not have the answer in its cache.
 
-.. _forward:
-
 .. namedconf:statement:: forward
    :tags: query
    :short: Allows or disallows fallback to recursion if forwarding has failed; it is always used in conjunction with the :any:`forwarders` statement.
@@ -2932,8 +2910,6 @@ authoritative and does not have the answer in its cache.
    forwarders first; if that does not answer the question, the
    server then looks for the answer itself. If ``only`` is
    specified, the server only queries the forwarders.
-
-.. _forwarders:
 
 .. namedconf:statement:: forwarders
    :tags: query
@@ -3124,10 +3100,6 @@ for details on how to specify IP address lists.
    While a default value can be set at the :namedconf:ref:`options` or :any:`view` level
    and inherited by zones, this can lead to some zones unintentionally
    forwarding updates.
-
-.. _allow-transfer-access:
-
-.. _allow-transfer:
 
 .. namedconf:statement:: allow-transfer
    :tags: transfer
@@ -3447,8 +3419,6 @@ Zone Transfers
 BIND has mechanisms in place to facilitate zone transfers and set limits
 on the amount of load that transfers place on the system. The following
 options apply to zone transfers.
-
-.. _also-notify:
 
 .. namedconf:statement:: also-notify
    :tags: transfer
@@ -3918,8 +3888,6 @@ system.
 
    This option is deprecated and no longer has any effect.
 
-.. _max-cache-size:
-
 .. namedconf:statement:: max-cache-size
    :tags: server
    :short: Sets the maximum amount of memory to use for an individual cache database and its associated metadata.
@@ -3929,7 +3897,7 @@ system.
    physical memory. By default, each view has its own separate cache,
    which means the total amount of memory required for cache data is the
    sum of the cache database sizes for all views (unless the
-   :ref:`attach-cache <attach-cache>` option is used).
+   :any:`attach-cache` option is used).
 
    When the amount of data in a cache database reaches the configured
    limit, :iscman:`named` starts purging non-expired records (following an
@@ -4930,15 +4898,11 @@ away from the infrastructure servers.
    This specifies the contact name that appears in the returned SOA record for
    empty zones. If none is specified, "." is used.
 
-.. _empty-zones-enable:
-
 .. namedconf:statement:: empty-zones-enable
    :tags: server, zone
    :short: Enables or disables all empty zones.
 
    This enables or disables all empty zones. By default, they are enabled.
-
-.. _disable-empty-zone:
 
 .. namedconf:statement:: disable-empty-zone
    :tags: server, zone
@@ -6897,7 +6861,7 @@ Zone Types
    methods may be added in the future.
 
    To make mirror zone contents persist between :iscman:`named` restarts, use
-   the :ref:`file <file-option>` option.
+   the :any:`file` option.
 
    Mirroring a zone other than root requires an explicit list of primary
    servers to be provided using the :any:`primaries` option (see
@@ -6915,7 +6879,7 @@ Zone Types
    explicit;``.
 
    Outgoing transfers of mirror zones are disabled by default but may be
-   enabled using :ref:`allow-transfer <allow-transfer-access>`.
+   enabled using :any:`allow-transfer`.
 
    .. note::
       Use of this zone type with any zone other than the root should be
@@ -7048,7 +7012,7 @@ Zone Types
 
    :any:`delegation-only` has no effect on answers received from forwarders.
 
-   See caveats in :ref:`root-delegation-only <root-delegation-only>`.
+   See caveats in :any:`root-delegation-only`.
 
 .. namedconf:statement:: in-view
    :tags: view, zone
@@ -7086,8 +7050,6 @@ Zone Options
 
 :any:`allow-notify`
    See the description of :any:`allow-notify` in :ref:`access_control`.
-
-.. _allow-query:
 
 :any:`allow-query`
    See the description of :any:`allow-query` in :ref:`access_control`.
@@ -7147,10 +7109,10 @@ Zone Options
    See the description of :any:`update-check-ksk` in :ref:`boolean_options`.
 
 :any:`dnssec-loadkeys-interval`
-   See the description of :any:`dnssec-loadkeys-interval` in :ref:`options`.
+   See the description of :any:`dnssec-loadkeys-interval` in :namedconf:ref:`options`.
 
 :any:`dnssec-update-mode`
-   See the description of :any:`dnssec-update-mode` in :ref:`options`.
+   See the description of :any:`dnssec-update-mode` in :namedconf:ref:`options`.
 
 :any:`dnssec-dnskey-kskonly`
    See the description of :any:`dnssec-dnskey-kskonly` in :ref:`boolean_options`.
@@ -7187,11 +7149,7 @@ Zone Options
    ``yes``, then the zone is treated as if it is also a
    delegation-only type zone.
 
-   See caveats in :ref:`root-delegation-only <root-delegation-only>`.
-
-.. _file-option:
-
-.. _file:
+   See caveats in :any:`root-delegation-only`.
 
 .. namedconf:statement:: file
    :tags: zone
@@ -7223,7 +7181,7 @@ Zone Options
    :any:`primary <type primary>` and :any:`secondary <type secondary>` zones.
 
 :any:`max-ixfr-ratio`
-   See the description of :any:`max-ixfr-ratio` in :ref:`options`.
+   See the description of :any:`max-ixfr-ratio` in :namedconf:ref:`options`.
 
 :any:`max-journal-size`
    See the description of :any:`max-journal-size` in :ref:`server_resource_limits`.
@@ -7253,7 +7211,7 @@ Zone Options
    See the description of :any:`notify-to-soa` in :ref:`boolean_options`.
 
 :any:`zone-statistics`
-   See the description of :any:`zone-statistics` in :ref:`options`.
+   See the description of :any:`zone-statistics` in :namedconf:ref:`options`.
 
 .. namedconf:statement:: server-addresses
    :tags: query, zone
@@ -7354,13 +7312,13 @@ Zone Options
    are not available at the zone level.)
 
 :any:`key-directory`
-   See the description of :any:`key-directory` in :ref:`options`.
+   See the description of :any:`key-directory` in :namedconf:ref:`options`.
 
 :any:`auto-dnssec`
-   See the description of :any:`auto-dnssec` in :ref:`options`.
+   See the description of :any:`auto-dnssec` in :namedconf:ref:`options`.
 
 :any:`serial-update-method`
-   See the description of :any:`serial-update-method` in :ref:`options`.
+   See the description of :any:`serial-update-method` in :namedconf:ref:`options`.
 
 .. namedconf:statement:: inline-signing
    :tags: dnssec, zone
@@ -7380,7 +7338,7 @@ Zone Options
    See the description of :any:`masterfile-format` in :ref:`tuning`.
 
 :any:`max-zone-ttl`
-   See the description of :any:`max-zone-ttl` in :ref:`options`.
+   See the description of :any:`max-zone-ttl` in :namedconf:ref:`options`.
    The use of this option in :any:`zone` blocks is deprecated and
    will be rendered nonoperational in a future release.
 
@@ -7842,7 +7800,7 @@ Socket I/O Statistics
 A subset of Name Server Statistics is collected and shown per zone for
 which the server has the authority, when :any:`zone-statistics` is set to
 ``full`` (or ``yes``), for backward compatibility. See the description of
-:any:`zone-statistics` in :ref:`options` for further details.
+:any:`zone-statistics` in :namedconf:ref:`options` for further details.
 
 These statistics counters are shown with their zone and view names. The
 view name is omitted when the server is not configured with explicit

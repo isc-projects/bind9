@@ -77,11 +77,11 @@ The numbers in parentheses in the following text refer to the numbered items in 
    propagation can therefore take extended periods.
 
 4. The optional NOTIFY (:rfc:`1996`) feature (2) is automatically configured;
-   use the :ref:`notify <notify_st>` statement to turn off the feature.
+   use the :namedconf:ref:`notify` statement to turn off the feature.
    Whenever the primary loads or reloads a zone, it sends a NOTIFY message to
    the configured secondary (or secondaries) and may optionally be configured
    to send the NOTIFY message to other hosts using the
-   :ref:`also-notify<also-notify>` statement.  The NOTIFY message simply
+   :any:`also-notify` statement.  The NOTIFY message simply
    indicates to the secondary that the primary has loaded or reloaded the zone.
    On receipt of the NOTIFY message, the secondary respons to indicate it has received the NOTIFY and immediately reads the SOA RR
    from the primary (as described in section 2 a. above). If the zone file has
@@ -166,10 +166,10 @@ the :iscman:`named.conf` file has been modified as shown:
 
 The added statements and blocks are commented in the above file.
 
-The :any:`zone` block, and :ref:`allow-query<allow-query>`,
+The :any:`zone` block, and :any:`allow-query`,
 :any:`allow-query-cache`,
-:ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
-:ref:`notify<notify_st>`, :ref:`recursion<recursion>`, and :any:`type`
+:any:`allow-transfer`, :any:`file`,
+:namedconf:ref:`notify`, :any:`recursion`, and :any:`type`
 statements are described in detail in the appropriate sections.
 
 .. _sample_secondary:
@@ -248,11 +248,11 @@ The :ref:`named.conf<named_conf>` file has been modified as shown:
 
 The statements and blocks added are all commented in the above file.
 
-The :any:`zone` block, and :ref:`allow-query<allow-query>`,
+The :any:`zone` block, and :any:`allow-query`,
 :any:`allow-query-cache`,
-:ref:`allow-transfer<allow-transfer>`, :ref:`file<file>`,
-:ref:`notify<notify_st>`, :ref:`primaries<primaries>`,
-:ref:`recursion<recursion>`, and :any:`type` statements are described in
+:any:`allow-transfer`, :any:`file`,
+:namedconf:ref:`primaries`,
+:any:`recursion`, and :any:`type` statements are described in
 detail in the appropriate sections.
 
 If NOTIFY is not being used, no changes are required in this
@@ -264,5 +264,5 @@ message.
    can get more complicated.  A secondary zone can also be a primary to other
    secondaries: :iscman:`named`, by default, sends NOTIFY messages for every
    zone it loads.  Specifying :ref:`notify primary-only;<notify>` in the
-   :ref:`zone<zone_clause>` block for the secondary causes :iscman:`named` to
+   :any:`zone` block for the secondary causes :iscman:`named` to
    only send NOTIFY messages for primary zones that it loads.
