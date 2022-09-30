@@ -98,7 +98,7 @@ if ($use_rndc) {
 		stop_rndc($name, $rndc_port);
 	}
 
-	@ns = wait_for_servers(30, @ns);
+	@ns = wait_for_servers(120, @ns);
 }
 
 # Pass 2: SIGTERM
@@ -106,13 +106,13 @@ foreach my $name (@ns) {
 	stop_signal($name, "TERM");
 }
 
-@ns = wait_for_servers(60, @ns);
+@ns = wait_for_servers(300, @ns);
 
 foreach my $name(@ans) {
 	stop_signal($name, "TERM", 1);
 }
 
-@ans = wait_for_servers(1200, @ans);
+@ans = wait_for_servers(300, @ans);
 
 # Pass 3: SIGABRT
 foreach my $name (@ns) {
