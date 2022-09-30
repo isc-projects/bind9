@@ -645,7 +645,7 @@ dns__nta_shutdown_cb(dns__nta_t *nta) {
 	REQUIRE(VALID_NTA(nta));
 
 	if (nta->timer) {
-		isc_timer_stop(nta->timer); /* This is superfluous */
+		isc_timer_stop(nta->timer);
 		isc_timer_destroy(&nta->timer);
 	}
 
@@ -655,10 +655,6 @@ dns__nta_shutdown_cb(dns__nta_t *nta) {
 static void
 dns__nta_shutdown(dns__nta_t *nta) {
 	REQUIRE(VALID_NTA(nta));
-
-	if (nta->timer != NULL) {
-		isc_timer_stop(nta->timer);
-	}
 
 	dns__nta_ref(nta);
 	isc_async_run(nta->loop, (isc_job_cb)dns__nta_shutdown_cb, nta);
