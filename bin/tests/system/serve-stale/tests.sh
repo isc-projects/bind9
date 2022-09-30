@@ -2062,7 +2062,7 @@ status=$((status+ret))
 n=$((n+1))
 ret=0
 echo_i "wait until resolver query times out, activating stale-refresh-time"
-wait_for_log 15 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+wait_for_log 15 "data.example/TXT stale refresh failed: timed out" ns3/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

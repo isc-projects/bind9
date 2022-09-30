@@ -399,6 +399,15 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	  query_ctx_t *qctx);
 
 static isc_result_t
+qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer);
+
+static void
+qctx_freedata(query_ctx_t *qctx);
+
+static void
+qctx_destroy(query_ctx_t *qctx);
+
+static isc_result_t
 query_setup(ns_client_t *client, dns_rdatatype_t qtype);
 
 static isc_result_t
@@ -2523,12 +2532,94 @@ recursionquotatype_detach(ns_client_t *client,
 }
 
 static void
+stale_refresh_aftermath(ns_client_t *client, isc_result_t result) {
+	dns_db_t *db = NULL;
+	unsigned int dboptions;
+	isc_buffer_t buffer;
+	query_ctx_t qctx;
+	dns_clientinfomethods_t cm;
+	dns_clientinfo_t ci;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+	/*
+	 * If refreshing a stale RRset failed, we need to set the
+	 * stale-refresh-time window, so that on future requests for this
+	 * RRset the stale entry may be used immediately.
+	 */
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_GLUE:
+	case DNS_R_ZONECUT:
+	case ISC_R_NOTFOUND:
+	case DNS_R_DELEGATION:
+	case DNS_R_EMPTYNAME:
+	case DNS_R_NXRRSET:
+	case DNS_R_EMPTYWILD:
+	case DNS_R_NXDOMAIN:
+	case DNS_R_COVERINGNSEC:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		break;
+	default:
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		dns_rdatatype_format(client->query.qtype, typebuf,
+				     sizeof(typebuf));
+		ns_client_log(client, NS_LOGCATEGORY_SERVE_STALE,
+			      NS_LOGMODULE_QUERY, ISC_LOG_NOTICE,
+			      "%s/%s stale refresh failed: timed out", namebuf,
+			      typebuf);
+
+		/*
+		 * Set up a short lived query context, solely to set the
+		 * last refresh failure time on the RRset in the cache
+		 * database, starting the stale-refresh-time window for it.
+		 * This is a condensed form of query_lookup().
+		 */
+		isc_stdtime_get(&client->now);
+		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
+		qctx_init(client, NULL, 0, &qctx);
+
+		dns_clientinfomethods_init(&cm, ns_client_sourceip);
+		dns_clientinfo_init(
+			&ci, qctx.client,
+			HAVEECS(qctx.client) ? &qctx.client->ecs : NULL, NULL);
+
+		result = qctx_prepare_buffers(&qctx, &buffer);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+
+		dboptions = qctx.client->query.dboptions;
+		dboptions |= DNS_DBFIND_STALEOK;
+		dboptions |= DNS_DBFIND_STALESTART;
+
+		dns_db_attach(qctx.client->view->cachedb, &db);
+		(void)dns_db_findext(db, qctx.client->query.qname, NULL,
+				     qctx.client->query.qtype, dboptions,
+				     qctx.client->now, &qctx.node, qctx.fname,
+				     &cm, &ci, qctx.rdataset, qctx.sigrdataset);
+		if (qctx.node != NULL) {
+			dns_db_detachnode(db, &qctx.node);
+		}
+		dns_db_detach(&db);
+
+	cleanup:
+		qctx_freedata(&qctx);
+		qctx_destroy(&qctx);
+	}
+}
+
+static void
 cleanup_after_fetch(isc_task_t *task, isc_event_t *event, const char *ctracestr,
 		    ns_query_rectype_t recursion_type) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	isc_nmhandle_t **handlep;
 	dns_fetch_t **fetchp;
 	ns_client_t *client;
+	isc_result_t result;
 
 	UNUSED(task);
 
@@ -2541,14 +2632,19 @@ cleanup_after_fetch(isc_task_t *task, isc_event_t *event, const char *ctracestr,
 
 	handlep = &client->query.recursions[recursion_type].handle;
 	fetchp = &client->query.recursions[recursion_type].fetch;
+	result = devent->result;
 
 	LOCK(&client->query.fetchlock);
-
 	if (*fetchp != NULL) {
 		INSIST(devent->fetch == *fetchp);
 		*fetchp = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
+
+	/* Some type of recursions require a bit of aftermath. */
+	if (recursion_type == RECTYPE_STALE_REFRESH) {
+		stale_refresh_aftermath(client, result);
+	}
 
 	recursionquotatype_detach(client, recursion_type);
 	free_devent(client, &event, &devent);
