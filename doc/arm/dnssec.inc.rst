@@ -461,8 +461,7 @@ DNSSEC Validation
 ~~~~~~~~~~~~~~~~~
 
 The BIND resolver validates answers from authoritative servers by default. This
-behavior is controlled by the configuration statement :ref:`dnssec-validation
-<dnssec-validation-option>`.
+behavior is controlled by the configuration statement :namedconf:ref:`dnssec-validation`.
 
 By default a trust anchor for the DNS root zone is used.
 This trust anchor is provided as part of BIND and is kept up-to-date using
