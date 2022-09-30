@@ -1,3 +1,6 @@
+5990.	[test]		fuzz/dns_message_checksig now creates the key directory
+			it uses when testing in /tmp at run time. [GL #3569]
+
 5989.	[func]		Implement support for DDNS update forwarding using DoT
 			to TLS-enabled primary servers. [GL #3512]
 
