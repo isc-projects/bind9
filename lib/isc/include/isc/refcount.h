@@ -174,6 +174,7 @@ isc_refcount_decrement(isc_refcount_t *target) {
 	}                                                            \
                                                                      \
 	void name##_detach(name##_t **ptrp) {                        \
+		REQUIRE(ptrp != NULL && *ptrp != NULL);              \
 		name##_t *ptr = *ptrp;                               \
 		*ptrp = NULL;                                        \
 		name##_unref(ptr);                                   \

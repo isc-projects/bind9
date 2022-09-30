@@ -10008,6 +10008,11 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_loopmgr,
+				      named_g_taskmgr, named_g_netmgr,
+				      &server->zonemgr),
+		   "dns_zonemgr_create");
+
 	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
 					  &named_g_dispatchmgr),
 		   "creating dispatch manager");
@@ -10321,11 +10326,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	/* Add SIGHUP reload handler  */
 	server->sighup = isc_signal_new(
 		named_g_loopmgr, named_server_reloadwanted, server, SIGHUP);
-
-	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_loopmgr,
-				      named_g_taskmgr, named_g_netmgr,
-				      &server->zonemgr),
-		   "dns_zonemgr_create");
 
 	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
 				    isc_sockstatscounter_max),

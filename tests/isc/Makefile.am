@@ -32,6 +32,7 @@ check_PROGRAMS =	\
 	quota_test	\
 	radix_test	\
 	random_test	\
+	ratelimiter_test\
 	regex_test	\
 	result_test	\
 	safe_test	\
