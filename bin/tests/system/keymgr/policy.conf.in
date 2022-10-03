@@ -13,8 +13,11 @@
 
 policy default {
 	policy global;
-	algorithm nsec3rsasha1;
-	pre-publish zsk 2w;
+	algorithm @DEFAULT_ALGORITHM@;
+	key-size zsk 1024;
+	pre-publish zsk 6w;
+	post-publish zsk 6w;
 	roll-period zsk 6mo;
+	roll-period ksk 0;
 	coverage 364d;
 };
