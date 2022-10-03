@@ -14,7 +14,7 @@
 DNSSEC
 ------
 DNS Security Extensions (DNSSEC) provide reliable protection from
-`cache poisoning`_ attacks. At the same time these extensions also provide other benefits: 
+`cache poisoning`_ attacks. At the same time these extensions also provide other benefits:
 they limit the impact of `random subdomain attacks`_ on resolver caches and authoritative
 servers, and provide the foundation for modern applications like `authenticated
 and private e-mail transfer`_.

@@ -3766,14 +3766,14 @@ system.
 .. namedconf:statement:: clients-per-query
    :tags: server
    :short: Sets the initial minimum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
-   
+
    This sets the initial value (minimum) number of simultaneous recursive clients
    for any given query (<qname,qtype,qclass>) that the server accepts before
    dropping additional clents. :iscman:`named` attempts to self-tune this
    value and changes are logged. The default value is 10.
-   
+
    The chosen value should reflect how many queries come in for a given name
-   in the time it takes to resolve that name. 
+   in the time it takes to resolve that name.
 
 .. namedconf:statement:: max-clients-per-query
    :tags: server
@@ -4242,7 +4242,7 @@ Tuning
 
 .. namedconf:statement:: servfail-ttl
    :tags: server
-   :short: Sets the length of time (in seconds) that a SERVFAIL response is cached. 
+   :short: Sets the length of time (in seconds) that a SERVFAIL response is cached.
 
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
    validation failure or other general server failure. If set to ``0``,
@@ -5739,7 +5739,7 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
 .. namedconf:statement:: keys
    :tags: server, security
    :short: Specifies one or more :any:`server_key` s to be used with a remote server.
-   
+
    :suppress_grammar:
 
    .. warning::
@@ -6977,7 +6977,7 @@ Zone Types
 
 .. namedconf:statement:: type delegation-only
    :tags: query
-   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.). 
+   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.).
 
    This zone type is used to enforce the delegation-only status of infrastructure
    zones (e.g., COM, NET, ORG). Any answer that is received without an
