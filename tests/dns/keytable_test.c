@@ -211,6 +211,7 @@ create_tables(void) {
 static void
 destroy_tables(void) {
 	if (ntatable != NULL) {
+		dns_ntatable_shutdown(ntatable);
 		dns_ntatable_detach(&ntatable);
 	}
 	if (keytable != NULL) {

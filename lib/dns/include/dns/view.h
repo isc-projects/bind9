@@ -1299,4 +1299,7 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
  *\li	'foundname' to be valid with a buffer sufficient to hold the name.
  */
 
+isc_result_t
+dns_view_getresolver(dns_view_t *view, dns_resolver_t **resolverp);
+
 ISC_LANG_ENDDECLS

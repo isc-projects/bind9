@@ -507,23 +507,46 @@ dns_view_detach(dns_view_t **viewp) {
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 		dns_zt_t *zt = NULL;
+		dns_resolver_t *resolver = NULL;
+		dns_adb_t *adb = NULL;
+		dns_requestmgr_t *requestmgr = NULL;
 
 		isc_refcount_destroy(&view->references);
 
+		/* Swap the pointers under the lock */
+		LOCK(&view->lock);
 		if (view->resolver != NULL) {
-			dns_resolver_shutdown(view->resolver);
-			dns_resolver_detach(&view->resolver);
-		}
-		if (view->adb != NULL) {
-			dns_adb_shutdown(view->adb);
-			dns_adb_detach(&view->adb);
-		}
-		if (view->requestmgr != NULL) {
-			dns_requestmgr_shutdown(view->requestmgr);
-			dns_requestmgr_detach(&view->requestmgr);
+			resolver = view->resolver;
+			view->resolver = NULL;
+			UNLOCK(&view->lock);
+
+			dns_resolver_shutdown(resolver);
+			dns_resolver_detach(&resolver);
+
+			LOCK(&view->lock);
 		}
 
-		LOCK(&view->lock);
+		if (view->adb != NULL) {
+			adb = view->adb;
+			view->adb = NULL;
+			UNLOCK(&view->lock);
+
+			dns_adb_shutdown(adb);
+			dns_adb_detach(&adb);
+
+			LOCK(&view->lock);
+		}
+
+		if (view->requestmgr != NULL) {
+			requestmgr = view->requestmgr;
+			view->requestmgr = NULL;
+			UNLOCK(&view->lock);
+
+			dns_requestmgr_shutdown(requestmgr);
+			dns_requestmgr_detach(&requestmgr);
+
+			LOCK(&view->lock);
+		}
 
 		if (view->zonetable != NULL) {
 			zt = view->zonetable;
@@ -2395,4 +2418,20 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 	} else {
 		dns_name_copy(dns_rootname, foundname);
 	}
+}
+
+isc_result_t
+dns_view_getresolver(dns_view_t *view, dns_resolver_t **resolverp) {
+	isc_result_t result;
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(resolverp != NULL && *resolverp == NULL);
+	LOCK(&view->lock);
+	if (view->resolver != NULL) {
+		dns_resolver_attach(view->resolver, resolverp);
+		result = ISC_R_SUCCESS;
+	} else {
+		result = ISC_R_SHUTTINGDOWN;
+	}
+	UNLOCK(&view->lock);
+	return (result);
 }
