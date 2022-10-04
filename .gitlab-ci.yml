@@ -337,7 +337,7 @@ stages:
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   after_script:
-    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
     untracked: true
@@ -396,16 +396,10 @@ stages:
   <<: *unit_test_common
   after_script:
     - *kyua_report_html
-    - for f in tsan.* ; do test -f "$f" && python3 util/parse_tsan.py "$f" ; done
-    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
+    untracked: true
     expire_in: "1 day"
-    paths:
-      - lib/*/tests/tsan.*
-      - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
     when: on_failure
 
 .respdiff: &respdiff_job
