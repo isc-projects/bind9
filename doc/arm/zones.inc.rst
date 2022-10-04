@@ -29,7 +29,7 @@ of RRs in a set is not significant and need not be preserved by name
 servers, resolvers, or other parts of the DNS. However, sorting of
 multiple RRs is permitted for optimization purposes: for example, to
 specify that a particular nearby server be tried first. See
-:ref:`the_sortlist_statement` and :ref:`rrset_ordering`.
+:any:`sortlist` and :ref:`rrset_ordering`.
 
 The components of a Resource Record are:
 

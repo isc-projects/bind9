@@ -79,7 +79,7 @@ as required by the user.
         };
 
 The :any:`logging` and :namedconf:ref:`options` blocks
-and :ref:`category<the_category_phrase>`, :any:`channel`,
+and :any:`category`, :any:`channel`,
 :any:`directory`, :any:`file`, and :any:`severity`
 statements are all described further in the appropriate sections of this ARM.
 

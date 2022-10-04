@@ -53,10 +53,10 @@ New Features
   Incoming zone transfers over TLS are enabled by adding the :any:`tls`
   keyword, followed by either the name of a previously configured
   :any:`tls` block or the string ``ephemeral``, to the
-  addresses included in :ref:`primaries <primaries_grammar>` lists.
+  addresses included in :any:`primaries` lists.
   :gl:`#2392`
 
-  Similarly, the :ref:`allow-transfer <allow-transfer-access>` option
+  Similarly, the :any:`allow-transfer` option
   was extended to accept additional ``port`` and ``transport``
   parameters, to further restrict outgoing zone transfers to a
   particular port and/or DNS transport protocol. :gl:`#2776`
@@ -185,7 +185,7 @@ Removed Features
   ``dnssec-keymgr`` have been removed from the BIND distribution, as well
   as the ``isc`` Python package. DNSSEC features formerly provided
   by these utilities are now integrated into ``named``.
-  See the :ref:`dnssec-policy <dnssec_policy_grammar>` configuration option
+  See the :any:`dnssec-policy` configuration option
   for more details.
 
   An archival version of the Python utilities has been moved to
@@ -194,7 +194,7 @@ Removed Features
 
 - Since the old socket manager API has been removed, "socketmgr"
   statistics are no longer reported by the
-  :ref:`statistics channel <statschannels>`. :gl:`#2926`
+  :any:`statistics-channels`. :gl:`#2926`
 
 - The :any:`glue-cache` *option* has been marked as deprecated. The glue
   cache *feature* still works and will be permanently *enabled* in a

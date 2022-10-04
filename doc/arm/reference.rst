@@ -385,7 +385,7 @@ The following blocks are supported:
         Declares control channels to be used by the :iscman:`rndc` utility.
 
     :any:`dnssec-policy`
-        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec_policy_grammar` for details.
+        Describes a DNSSEC key and signing policy for zones. See :any:`dnssec-policy` for details.
 
     :namedconf:ref:`key`
         Specifies key information for use in authentication and authorization using TSIG.
@@ -463,15 +463,11 @@ The following ACLs are built-in:
     ``localnets``
         Matches any host on an IPv4 or IPv6 network for which the system has an interface. When addresses are added or removed, the ``localnets`` ACL element is updated to reflect the changes. Some systems do not provide a way to determine the prefix lengths of local IPv6 addresses; in such cases, ``localnets`` only matches the local IPv6 addresses, just like ``localhost``.
 
-.. _controls_grammar:
-
 :any:`controls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
    :tags: server
    :short: Specifies control channels to be used to manage the name server.
-
-.. _controls_statement_definition_and_usage:
 
 :any:`controls` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -543,27 +539,22 @@ To disable the command channel, use an empty :any:`controls` statement:
 ``controls { };``.
 
 
-.. _key_grammar:
-
 ``key`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
    :tags: security
    :short: Defines a shared secret key for use with :ref:`tsig` or the command channel.
 
-.. _key_statement:
-
 ``key`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``key`` statement defines a shared secret key for use with TSIG (see
-:ref:`tsig`) or the command channel (see :ref:`controls_statement_definition_and_usage`).
+:ref:`tsig`) or the command channel (see :any:`controls`).
 
 The ``key`` statement can occur at the top level of the configuration
 file or inside a :any:`view` statement. Keys defined in top-level ``key``
 statements can be used in all views. Keys intended for use in a
-:any:`controls` statement (see :ref:`controls_statement_definition_and_usage`)
-must be defined at the top level.
+:any:`controls` statement must be defined at the top level.
 
 The :term:`server_key`, also known as the key name, is a domain name that uniquely
 identifies the key. It can be used in a :namedconf:ref:`server` statement to cause
@@ -589,15 +580,11 @@ matching this name, algorithm, and secret.
    The ``secret_string`` is the secret to be used by the
    algorithm, and is treated as a Base64-encoded string.
 
-.. _logging_grammar:
-
 :any:`logging` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
    :tags: logging
    :short: Configures logging options for the name server.
-
-.. _logging_statement:
 
 :any:`logging` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -815,7 +802,7 @@ Here is an example where all three ``print-`` options are on:
 There are four predefined channels that are used for :iscman:`named`'s default
 logging, as follows. If :iscman:`named` is started with the :option:`-L <named -L>` option, then a fifth
 channel, ``default_logfile``, is added. How they are used is described in
-:ref:`the_category_phrase`.
+:any:`category`.
 
 ::
 
@@ -871,8 +858,6 @@ be redirected to a file.
 Once a channel is defined, it cannot be redefined. The
 built-in channels cannot be altered directly, but the default logging
 can be modified by pointing categories at defined channels.
-
-.. _the_category_phrase:
 
 The :any:`category` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1015,15 +1000,11 @@ At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
 
-.. _parental_agents_grammar:
-
 :any:`parental-agents` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
    :tags: zone
    :short: Defines a list of delegation agents to be used by primary and secondary zones.
-
-.. _parental_agents_statement:
 
 :any:`parental-agents` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1033,15 +1014,11 @@ used by multiple primary and secondary zones.
 A parental agent is the entity that is allowed to
 change a zone's delegation information (defined in :rfc:`7344`).
 
-.. _primaries_grammar:
-
 :any:`primaries` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
    :tags: zone
    :short: Defines one or more primary servers for a zone.
-
-.. _primaries_statement:
 
 :any:`primaries` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1074,8 +1051,6 @@ where ``tls-configuration-name`` refers to a previously defined
   forwarding (see :any:`allow-update-forwarding`) in conjuction with zone
   transfers over TLS (XoT), that is when the :any:`tls` keyword is used with
   :any:`primaries`, e.g. ``primaries { 192.0.2.1 tls tls-configuration-name; };``.
-
-.. _options_grammar:
 
 ``options`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2917,7 +2892,7 @@ Forwarding can also be configured on a per-domain basis, allowing for
 the global forwarding options to be overridden in a variety of ways.
 Particular domains can be set to use different forwarders, or have a
 different ``forward only/first`` behavior, or not forward at all; see
-:ref:`zone_statement_grammar`.
+:any:`zone`.
 
 .. _dual_stack:
 
@@ -4031,8 +4006,6 @@ Periodic Task Intervals
    gone away. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
 
-.. _the_sortlist_statement:
-
 The :any:`sortlist` Statement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -4137,7 +4110,7 @@ RRset Ordering
 
    The :any:`rrset-order` statement permits configuration of the ordering of
    the records in a multiple-record response. See also:
-   :ref:`the_sortlist_statement`.
+   :any:`sortlist`.
 
    Each rule in an :any:`rrset-order` statement is defined as follows:
 
@@ -4694,7 +4667,7 @@ Built-in Server Information Zones
 The server provides some helpful diagnostic information through a number
 of built-in zones under the pseudo-top-level-domain ``bind`` in the
 ``CHAOS`` class. These zones are part of a built-in view
-(see :ref:`view_statement_grammar`) of class ``CHAOS``, which is
+(see :any:`view`) of class ``CHAOS``, which is
 separate from the default view of class ``IN``. Most global
 configuration options (:any:`allow-query`, etc.) apply to this view,
 but some are locally overridden: :namedconf:ref:`notify`, :any:`recursion`, and
@@ -5617,7 +5590,7 @@ NXDOMAIN Redirection
 
 :iscman:`named` supports NXDOMAIN redirection via two methods:
 
--  Redirect zone (:ref:`zone_statement_grammar`)
+-  :any:`Redirect zone <type redirect>`
 -  Redirect namespace
 
 With either method, when :iscman:`named` gets an NXDOMAIN response it examines a
@@ -5644,15 +5617,11 @@ zone; there are no delegations.
 If both a redirect zone and a redirect namespace are configured, the
 redirect zone is tried first.
 
-.. _server_statement_grammar:
-
 ``server`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
    :tags: server
    :short: Defines characteristics to be associated with a remote name server.
-
-.. _server_statement_definition_and_usage:
 
 ``server`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5776,15 +5745,11 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`transfer-source`
 
 
-.. _statschannels:
-
 :any:`statistics-channels` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
    :tags: logging
    :short: Specifies the communication channels to be used by system administrators to access statistics information on the name server.
-
-.. _statistics_channels:
 
 :any:`statistics-channels` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6267,15 +6232,11 @@ that is used to initialize the key-maintenance process is stored in
 can be found, the initializing key is also compiled directly into
 :iscman:`named`.
 
-.. _dnssec_policy_grammar:
-
 :any:`dnssec-policy` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
    :tags: dnssec
    :short: Defines a key and signing policy (KASP) for zones.
-
-.. _dnssec_policy:
 
 :any:`dnssec-policy` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6603,8 +6564,6 @@ with the ``initial-key`` keyword.
 The :any:`trusted-keys` statement has been deprecated in favor of
 :any:`trust-anchors` with the ``static-key`` keyword.
 
-.. _view_statement_grammar:
-
 :any:`view` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: view
@@ -6620,8 +6579,6 @@ The :any:`trusted-keys` statement has been deprecated in favor of
      [ view_option ; ... ]
      [ zone_statement ; ... ]
    } ;
-
-.. _view_statement:
 
 :any:`view` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6721,8 +6678,6 @@ Here is an example of a typical split DNS setup implemented using
          };
    };
 
-.. _zone_statement_grammar:
-
 :any:`zone` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
@@ -6730,8 +6685,6 @@ Here is an example of a typical split DNS setup implemented using
    :short: Specifies the zone in a BIND 9 configuration.
 
    :suppress_grammar:
-
-.. _zone_statement:
 
 :any:`zone` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6840,7 +6793,7 @@ Zone Types
 
    Mirroring a zone other than root requires an explicit list of primary
    servers to be provided using the :any:`primaries` option (see
-   :ref:`primaries_grammar` for details), and a key-signing key (KSK)
+   :any:`primaries` for details), and a key-signing key (KSK)
    for the specified zone to be explicitly configured as a trust anchor
    (see :any:`trust-anchors`).
 
@@ -7785,7 +7738,7 @@ There are currently two user interfaces to get access to the statistics.
 One is in plain-text format, dumped to the file specified by the
 :any:`statistics-file` configuration option; the other is remotely
 accessible via a statistics channel when the :any:`statistics-channels`
-statement is specified in the configuration file (see :ref:`statschannels`.)
+statement is specified in the configuration file.
 
 .. _statsfile:
 

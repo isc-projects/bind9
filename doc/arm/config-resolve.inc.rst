@@ -563,4 +563,4 @@ and discard the rest.
 
 For more detail on ordering responses, refer to the
 :ref:`rrset-order<rrset_ordering>` statement in the
-:ref:`options<options_grammar>` block.
+:namedconf:ref:`options` block.
