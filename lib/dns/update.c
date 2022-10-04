@@ -1055,26 +1055,49 @@ failure:
 }
 
 static isc_result_t
-find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       isc_mem_t *mctx, unsigned int maxkeys, dst_key_t **keys,
-	       unsigned int *nkeys) {
+find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
+	       dst_key_t **keys, unsigned int *nkeys) {
+	dns_dnsseckeylist_t keylist;
+	dns_dnsseckey_t *k = NULL;
+	unsigned int count = 0;
 	isc_result_t result;
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_dbnode_t *node = NULL;
-	const char *directory = dns_zone_getkeydirectory(zone);
 
-	CHECK(dns_db_findnode(db, dns_db_origin(db), false, &node));
+	ISC_LIST_INIT(keylist);
 
 	dns_zone_lock_keyfiles(zone);
-	result = dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
-					 directory, now, mctx, maxkeys, keys,
-					 nkeys);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
+					     dns_zone_getkeydirectory(zone),
+					     now, mctx, &keylist);
 	dns_zone_unlock_keyfiles(zone);
 
-failure:
-	if (node != NULL) {
-		dns_db_detachnode(db, &node);
+	if (result != ISC_R_SUCCESS) {
+		*nkeys = 0;
+		return (result);
 	}
+
+	/* Add new 'dnskeys' to 'keys' */
+	while ((k = ISC_LIST_HEAD(keylist)) != NULL) {
+		if (count >= maxkeys) {
+			result = ISC_R_NOSPACE;
+			goto next;
+		}
+
+		/* Detect inactive keys */
+		if (!dns_dnssec_keyactive(k->key, now)) {
+			dst_key_setinactive(k->key, true);
+		}
+
+		keys[count] = k->key;
+		k->key = NULL;
+		count++;
+
+	next:
+		ISC_LIST_UNLINK(keylist, k, link);
+		dns_dnsseckey_destroy(mctx, &k);
+	}
+
+	*nkeys = count;
 	return (result);
 }
 
@@ -1544,10 +1567,13 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		state->nkeys = 0;
 		state->build_nsec3 = false;
 
-		result = find_zone_keys(zone, db, newver, diff->mctx,
-					DNS_MAXZONEKEYS, state->zone_keys,
-					&state->nkeys);
-		if (result != ISC_R_SUCCESS) {
+		result = find_zone_keys(zone, diff->mctx, DNS_MAXZONEKEYS,
+					state->zone_keys, &state->nkeys);
+		if (result == ISC_R_NOSPACE) {
+			update_log(log, zone, ISC_LOG_ERROR,
+				   "too many zone keys for secure "
+				   "dynamic update");
+		} else if (result != ISC_R_SUCCESS) {
 			update_log(log, zone, ISC_LOG_ERROR,
 				   "could not get zone keys for secure "
 				   "dynamic update");
