@@ -399,6 +399,27 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		isc_nm_read_stop(sock->outerhandle);
 	}
 
+	/*
+	 * Clear the TLS error queue so that SSL_get_error() and SSL I/O
+	 * routine calls will not get affected by prior error statuses.
+	 *
+	 * See here:
+	 * https://www.openssl.org/docs/man3.0/man3/SSL_get_error.html
+	 *
+	 * In particular, it mentions the following:
+	 *
+	 * The current thread's error queue must be empty before the
+	 * TLS/SSL I/O operation is attempted, or SSL_get_error() will not
+	 * work reliably.
+	 *
+	 * As we use the result of SSL_get_error() to decide on I/O
+	 * operations, we need to ensure that it works reliably by
+	 * cleaning the error queue.
+	 *
+	 * The sum of details: https://stackoverflow.com/a/37980911
+	 */
+	ERR_clear_error();
+
 	if (sock->tlsstream.state == TLS_INIT) {
 		INSIST(received_data == NULL && send_data == NULL);
 		if (sock->tlsstream.server) {
@@ -534,7 +555,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	}
 
 	pending = tls_process_outgoing(sock, finish, send_data);
-	if (pending > 0) {
+	if (pending > 0 && tls_status != SSL_ERROR_SSL) {
 		/* We'll continue in tls_senddone */
 		return;
 	}

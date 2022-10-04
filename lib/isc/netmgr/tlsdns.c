@@ -1394,6 +1394,27 @@ static isc_result_t
 tls_cycle(isc_nmsocket_t *sock) {
 	isc_result_t result;
 
+	/*
+	 * Clear the TLS error queue so that SSL_get_error() and SSL I/O
+	 * routine calls will not get affected by prior error statuses.
+	 *
+	 * See here:
+	 * https://www.openssl.org/docs/man3.0/man3/SSL_get_error.html
+	 *
+	 * In particular, it mentions the following:
+	 *
+	 * The current thread's error queue must be empty before the
+	 * TLS/SSL I/O operation is attempted, or SSL_get_error() will not
+	 * work reliably.
+	 *
+	 * As we use the result of SSL_get_error() to decide on I/O
+	 * operations, we need to ensure that it works reliably by
+	 * cleaning the error queue.
+	 *
+	 * The sum of details: https://stackoverflow.com/a/37980911
+	 */
+	ERR_clear_error();
+
 	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
 	}
