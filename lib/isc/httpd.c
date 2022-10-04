@@ -248,6 +248,8 @@ free_buffer(isc_mem_t *mctx, isc_buffer_t *buffer) {
 	if (r.length > 0) {
 		isc_mem_put(mctx, r.base, r.length);
 	}
+
+	isc_buffer_initnull(buffer);
 }
 
 static void
@@ -912,6 +914,7 @@ isc_httpd_compress(isc_httpd_t *httpd) {
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+	isc_buffer_clear(&httpd->compbuffer);
 	isc_buffer_region(&httpd->compbuffer, &r);
 
 	/*
