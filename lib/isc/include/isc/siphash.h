@@ -28,9 +28,9 @@ ISC_LANG_BEGINDECLS
 
 void
 isc_siphash24(const uint8_t *key, const uint8_t *in, const size_t inlen,
-	      uint8_t *out);
+	      bool case_sensitive, uint8_t *out);
 void
 isc_halfsiphash24(const uint8_t *key, const uint8_t *in, const size_t inlen,
-		  uint8_t *out);
+		  bool case_sensitive, uint8_t *out);
 
 ISC_LANG_ENDDECLS

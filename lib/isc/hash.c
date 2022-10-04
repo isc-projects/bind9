@@ -86,14 +86,8 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive) {
 	RUNTIME_CHECK(isc_once_do(&isc_hash_once, isc_hash_initialize) ==
 		      ISC_R_SUCCESS);
 
-	if (case_sensitive) {
-		isc_siphash24(isc_hash_key, data, length, (uint8_t *)&hval);
-	} else {
-		uint8_t lower[1024];
-		REQUIRE(length <= sizeof(lower));
-		isc_ascii_lowercopy(lower, data, length);
-		isc_siphash24(isc_hash_key, lower, length, (uint8_t *)&hval);
-	}
+	isc_siphash24(isc_hash_key, data, length, case_sensitive,
+		      (uint8_t *)&hval);
 
 	return (hval);
 }
@@ -107,15 +101,8 @@ isc_hash32(const void *data, const size_t length, const bool case_sensitive) {
 	RUNTIME_CHECK(isc_once_do(&isc_hash_once, isc_hash_initialize) ==
 		      ISC_R_SUCCESS);
 
-	if (case_sensitive) {
-		isc_halfsiphash24(isc_hash_key, data, length, (uint8_t *)&hval);
-	} else {
-		uint8_t lower[1024];
-		REQUIRE(length <= sizeof(lower));
-		isc_ascii_lowercopy(lower, data, length);
-		isc_halfsiphash24(isc_hash_key, lower, length,
-				  (uint8_t *)&hval);
-	}
+	isc_halfsiphash24(isc_hash_key, data, length, case_sensitive,
+			  (uint8_t *)&hval);
 
 	return (hval);
 }

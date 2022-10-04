@@ -145,14 +145,14 @@ ISC_RUN_TEST_IMPL(exhaustive) {
 		uint64_t abi = isc_ascii_tolower(a) << 8 | isc_ascii_tolower(b);
 		uint64_t ab1 = isc__ascii_tolower1(a) << 8 |
 			       isc__ascii_tolower1(b);
-		uint64_t ab8 = isc__ascii_tolower8(ab);
+		uint64_t ab8 = isc_ascii_tolower8(ab);
 		/* each byte individually matches ctype.h */
 		assert_int_equal(tolower(a), isc_ascii_tolower(a));
 		assert_int_equal(tolower(a), isc__ascii_tolower1(a));
-		assert_int_equal(tolower(a), isc__ascii_tolower8(a));
+		assert_int_equal(tolower(a), isc_ascii_tolower8(a));
 		assert_int_equal(tolower(b), isc_ascii_tolower(b));
 		assert_int_equal(tolower(b), isc__ascii_tolower1(b));
-		assert_int_equal(tolower(b), isc__ascii_tolower8(b));
+		assert_int_equal(tolower(b), isc_ascii_tolower8(b));
 		/* two lanes of SWAR match other implementations */
 		assert_int_equal(ab8, abc);
 		assert_int_equal(ab8, abi);
@@ -160,12 +160,12 @@ ISC_RUN_TEST_IMPL(exhaustive) {
 		/* check lack of overflow */
 		assert_int_equal(ab8 >> 16, 0);
 		/* all lanes of SWAR work */
-		assert_int_equal(isc__ascii_tolower8(ab << 8), abc << 8);
-		assert_int_equal(isc__ascii_tolower8(ab << 16), abc << 16);
-		assert_int_equal(isc__ascii_tolower8(ab << 24), abc << 24);
-		assert_int_equal(isc__ascii_tolower8(ab << 32), abc << 32);
-		assert_int_equal(isc__ascii_tolower8(ab << 40), abc << 40);
-		assert_int_equal(isc__ascii_tolower8(ab << 48), abc << 48);
+		assert_int_equal(isc_ascii_tolower8(ab << 8), abc << 8);
+		assert_int_equal(isc_ascii_tolower8(ab << 16), abc << 16);
+		assert_int_equal(isc_ascii_tolower8(ab << 24), abc << 24);
+		assert_int_equal(isc_ascii_tolower8(ab << 32), abc << 32);
+		assert_int_equal(isc_ascii_tolower8(ab << 40), abc << 40);
+		assert_int_equal(isc_ascii_tolower8(ab << 48), abc << 48);
 	}
 }
 
