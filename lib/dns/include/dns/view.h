@@ -185,6 +185,7 @@ struct dns_view {
 	dns_dlzdblist_t	  dlz_unsearched;
 	uint32_t	  fail_ttl;
 	dns_badcache_t	 *failcache;
+	unsigned int	  udpsize;
 
 	/*
 	 * Configurable data for server use only,
@@ -1301,5 +1302,20 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_getresolver(dns_view_t *view, dns_resolver_t **resolverp);
+/*%<
+ * Return the resolver associated with the view.
+ */
+
+void
+dns_view_setudpsize(dns_view_t *view, uint16_t udpsize);
+/*%<
+ * Set the EDNS UDP buffer size advertised by the server.
+ */
+
+uint16_t
+dns_view_getudpsize(dns_view_t *view);
+/*%<
+ * Get the current EDNS UDP buffer size.
+ */
 
 ISC_LANG_ENDDECLS

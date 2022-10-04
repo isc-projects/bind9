@@ -14660,7 +14660,6 @@ again:
 		result = dns_peerlist_peerbyaddr(zone->view->peers, &primaryip,
 						 &peer);
 		if (result == ISC_R_SUCCESS) {
-			dns_resolver_t *resolver = NULL;
 			result = dns_peer_getsupportedns(peer, &edns);
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
@@ -14674,11 +14673,7 @@ again:
 			if (dscp != -1) {
 				have_xfrdscp = true;
 			}
-			result = dns_view_getresolver(zone->view, &resolver);
-			if (result == ISC_R_SUCCESS) {
-				udpsize = dns_resolver_getudpsize(resolver);
-				dns_resolver_detach(&resolver);
-			}
+			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 			(void)dns_peer_getrequestexpire(peer, &reqexpire);
@@ -14961,7 +14956,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		result = dns_peerlist_peerbyaddr(zone->view->peers, &primaryip,
 						 &peer);
 		if (result == ISC_R_SUCCESS) {
-			dns_resolver_t *resolver;
 			result = dns_peer_getsupportedns(peer, &edns);
 			if (result == ISC_R_SUCCESS && !edns) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
@@ -14975,11 +14969,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS && dscp != -1) {
 				have_xfrdscp = true;
 			}
-			result = dns_view_getresolver(zone->view, &resolver);
-			if (result == ISC_R_SUCCESS) {
-				udpsize = dns_resolver_getudpsize(resolver);
-				dns_resolver_detach(&resolver);
-			}
+			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 		}

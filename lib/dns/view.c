@@ -75,6 +75,11 @@
 #define DNS_VIEW_DELONLYHASH   111
 #define DNS_VIEW_FAILCACHESIZE 1021
 
+/*%
+ * Default EDNS0 buffer size
+ */
+#define DEFAULT_EDNS_BUFSIZE 1232
+
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
@@ -110,6 +115,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		.synthfromdnssec = true,
 		.trust_anchor_telemetry = true,
 		.root_key_sentinel = true,
+		.udpsize = DEFAULT_EDNS_BUFSIZE,
 	};
 
 	isc_refcount_init(&view->references, 1);
@@ -2434,4 +2440,16 @@ dns_view_getresolver(dns_view_t *view, dns_resolver_t **resolverp) {
 	}
 	UNLOCK(&view->lock);
 	return (result);
+}
+
+void
+dns_view_setudpsize(dns_view_t *view, uint16_t udpsize) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->udpsize = udpsize;
+}
+
+uint16_t
+dns_view_getudpsize(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	return (view->udpsize);
 }
