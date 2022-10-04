@@ -112,7 +112,7 @@ that are about to expire and managing :ref:`key_rollovers`.
 
 .. note::
    :any:`dnssec-policy` needs write access to the zone. Please see
-   :ref:`dnssec_policy` for more details about implications for zone storage.
+   :any:`dnssec-policy` for more details about implications for zone storage.
 
 The default policy creates one key that is used to sign the complete zone,
 and uses ``NSEC`` to enable authenticated denial of existence (a secure way
@@ -150,7 +150,7 @@ Also:
     using zero extra iterations and no salt. NSEC3 opt-out is disabled, meaning
     insecure delegations also get an NSEC3 record.
 
-For more information about KASP configuration see :ref:`dnssec_policy_grammar`.
+For more information about KASP configuration see :any:`dnssec-policy`.
 
 The :ref:`dnssec_advanced_discussions` section in the DNSSEC Guide discusses the
 various policy settings and may be useful for determining values for specific
