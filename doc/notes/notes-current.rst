@@ -38,6 +38,9 @@ Feature Changes
 
 - None.
 
+- Add support for parsing and validating ``dohpath`` to SVBC records.
+  :gl:`#3544`
+
 Bug Fixes
 ~~~~~~~~~
 
