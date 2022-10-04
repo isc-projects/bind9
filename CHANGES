@@ -1,3 +1,6 @@
+5991.	[protocol]	Add support for parsing and validating "dohpath" to
+			SVCB. [GL #3544]
+
 5988.	[bug]		Some out of memory conditions in opensslrsa_link.c
 			could lead to memory leaks. [GL #3551]
 

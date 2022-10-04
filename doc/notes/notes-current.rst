@@ -47,6 +47,9 @@ Feature Changes
   with '-DOPENSSL_API_COMPAT=10100' specified in the CFLAGS at
   compile time. :gl:`!6711`
 
+- Add support for parsing and validating ``dohpath`` to SVBC records.
+  :gl:`#3544`
+
 Bug Fixes
 ~~~~~~~~~
 
