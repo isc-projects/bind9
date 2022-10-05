@@ -479,25 +479,25 @@ nextpartreset() {
 
 # nextpartread: read everything that's been appended to a file since the
 # last time nextpart() was called and print it to stdout, print the
-# total number of lines read from that file so far to stderr
+# total number of lines read from that file so far to file descriptor 3
 nextpartread() {
     [ -f $1.prev ] || nextpartreset $1
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-	 END          { print NR > "/dev/stderr" }' $1
+	 END          { print NR > "/dev/stderr" }' $1 2>&3
 }
 
 # nextpart: read everything that's been appended to a file since the
 # last time nextpart() was called
 nextpart() {
-	nextpartread $1 2> $1.prev.tmp
+	nextpartread $1 3> $1.prev.tmp
 	mv $1.prev.tmp $1.prev
 }
 
 # nextpartpeek: read everything that's been appended to a file since the
 # last time nextpart() was called
 nextpartpeek() {
-	nextpartread $1 2> /dev/null
+	nextpartread $1 3> /dev/null
 }
 
 # _search_log: look for message $1 in file $2 with nextpart().
