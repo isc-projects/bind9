@@ -14,6 +14,8 @@
 set -e
 
 rm -f *.created
+rm -f cdnskey.ns*
+rm -f cds.ns*
 rm -f created.key-*
 rm -f dig.out.*
 rm -f python.out.*
