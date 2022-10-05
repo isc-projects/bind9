@@ -2376,3 +2376,57 @@ dns_name_istat(const dns_name_t *name) {
 	}
 	return (true);
 }
+
+bool
+dns_name_isdnssvcb(const dns_name_t *name) {
+	unsigned char len, len1;
+	const unsigned char *ndata;
+
+	REQUIRE(VALID_NAME(name));
+
+	if (name->labels < 1 || name->length < 5) {
+		return (false);
+	}
+
+	ndata = name->ndata;
+	len = len1 = ndata[0];
+	INSIST(len <= name->length);
+	ndata++;
+
+	if (len < 2 || ndata[0] != '_') {
+		return (false);
+	}
+	if (isdigit(ndata[1]) && name->labels > 1) {
+		char buf[sizeof("65000")];
+		long port;
+		char *endp;
+
+		/*
+		 * Do we have a valid _port label?
+		 */
+		if (len > 6U || (ndata[1] == '0' && len != 2)) {
+			return (false);
+		}
+		memcpy(buf, ndata + 1, len - 1);
+		buf[len - 1] = 0;
+		port = strtol(buf, &endp, 10);
+		if (*endp != 0 || port < 0 || port > 0xffff) {
+			return (false);
+		}
+
+		/*
+		 * Move to next label.
+		 */
+		ndata += len;
+		INSIST(len1 + 1U < name->length);
+		len = *ndata;
+		INSIST(len + len1 + 1U <= name->length);
+		ndata++;
+	}
+
+	if (len == 4U && strncasecmp((const char *)ndata, "_dns", 4) == 0) {
+		return (true);
+	}
+
+	return (false);
+}

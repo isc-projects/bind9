@@ -1298,8 +1298,15 @@ dns_name_isula(const dns_name_t *owner);
 
 bool
 dns_name_istat(const dns_name_t *name);
-/*
+/*%<
  * Determine if 'name' is a potential 'trust-anchor-telemetry' name.
+ */
+
+bool
+dns_name_isdnssvcb(const dns_name_t *name);
+/*%<
+ * Determine if 'name' is a dns service name,
+ * i.e. it starts with and optional _port label followed by a _dns label.
  */
 
 ISC_LANG_ENDDECLS
