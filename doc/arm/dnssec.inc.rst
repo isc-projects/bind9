@@ -14,7 +14,7 @@
 DNSSEC
 ------
 DNS Security Extensions (DNSSEC) provide reliable protection from
-`cache poisoning`_ attacks. At the same time these extensions also provide other benefits: 
+`cache poisoning`_ attacks. At the same time these extensions also provide other benefits:
 they limit the impact of `random subdomain attacks`_ on resolver caches and authoritative
 servers, and provide the foundation for modern applications like `authenticated
 and private e-mail transfer`_.
@@ -112,7 +112,7 @@ that are about to expire and managing :ref:`key_rollovers`.
 
 .. note::
    :any:`dnssec-policy` needs write access to the zone. Please see
-   :ref:`dnssec_policy` for more details about implications for zone storage.
+   :any:`dnssec-policy` for more details about implications for zone storage.
 
 The default policy creates one key that is used to sign the complete zone,
 and uses ``NSEC`` to enable authenticated denial of existence (a secure way
@@ -150,7 +150,7 @@ Also:
     using zero extra iterations and no salt. NSEC3 opt-out is disabled, meaning
     insecure delegations also get an NSEC3 record.
 
-For more information about KASP configuration see :ref:`dnssec_policy_grammar`.
+For more information about KASP configuration see :any:`dnssec-policy`.
 
 The :ref:`dnssec_advanced_discussions` section in the DNSSEC Guide discusses the
 various policy settings and may be useful for determining values for specific
@@ -461,8 +461,7 @@ DNSSEC Validation
 ~~~~~~~~~~~~~~~~~
 
 The BIND resolver validates answers from authoritative servers by default. This
-behavior is controlled by the configuration statement :ref:`dnssec-validation
-<dnssec-validation-option>`.
+behavior is controlled by the configuration statement :namedconf:ref:`dnssec-validation`.
 
 By default a trust anchor for the DNS root zone is used.
 This trust anchor is provided as part of BIND and is kept up-to-date using
