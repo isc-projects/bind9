@@ -5739,9 +5739,19 @@ dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 
 dns_kasp_t *
 dns_zone_getkasp(dns_zone_t *zone) {
+	dns_kasp_t *kasp;
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->kasp);
+	LOCK_ZONE(zone);
+	if (inline_raw(zone) && zone->secure != NULL) {
+		kasp = zone->secure->kasp;
+	} else {
+		kasp = zone->kasp;
+	}
+	UNLOCK_ZONE(zone);
+
+	return (kasp);
 }
 
 void
@@ -6108,7 +6118,7 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_dnsseckey_t *key, *key_next;
 	dns_dnsseckeylist_t dnskeys;
 	dns_name_t *origin = dns_zone_getorigin(zone);
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 	dns_rdataset_t keyset;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6335,7 +6345,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	bool kasp = (dns_zone_getkasp(zone) != NULL);
+	bool kasp = zone->kasp;
 	bool found;
 	int64_t timewarn = 0, timemaybe = 0;
 
@@ -6536,7 +6546,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	unsigned int i, j;
 	bool use_kasp = false;
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (zone->kasp != NULL) {
 		check_ksk = false;
 		keyset_kskonly = true;
 		use_kasp = true;
@@ -7095,7 +7105,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
 	int count = 0;
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_rrsig,
@@ -7122,7 +7132,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdata_reset(&rdata);
 	}
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (zone->kasp != NULL) {
 		dns_kasp_key_t *kkey;
 		int zsk_count = 0;
 		bool approved;
@@ -7336,7 +7346,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 							 inception, &when))
 		{
 			/* Only applies to dnssec-policy. */
-			if (dns_zone_getkasp(zone) != NULL) {
+			if (zone->kasp != NULL) {
 				goto next_rdataset;
 			}
 		}
@@ -9057,7 +9067,7 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
 
 	/* Check kasp for NSEC3PARAM settings */
 	if (!nsec3) {
-		dns_kasp_t *kasp = dns_zone_getkasp(zone);
+		dns_kasp_t *kasp = zone->kasp;
 		if (kasp != NULL) {
 			nsec3 = dns_kasp_nsec3(kasp);
 		}
@@ -9157,7 +9167,7 @@ zone_sign(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	kasp = dns_zone_getkasp(zone);
+	kasp = zone->kasp;
 	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600; /* Allow for clock skew. */
 	soaexpire = now + sigvalidityinterval;
@@ -9194,7 +9204,7 @@ zone_sign(dns_zone_t *zone) {
 	signing = ISC_LIST_HEAD(zone->signing);
 	first = true;
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (kasp != NULL) {
 		check_ksk = false;
 		keyset_kskonly = true;
 		use_kasp = true;
@@ -19928,7 +19938,7 @@ make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
 static bool
 do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 	   bool dspublish) {
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 	const char *dir = dns_zone_getkeydirectory(zone);
 	isc_result_t result;
 	uint32_t count = 0;
@@ -21141,7 +21151,7 @@ zone_rekey(dns_zone_t *zone) {
 	timenow = isc_time_now();
 	now = isc_time_seconds(&timenow);
 
-	kasp = dns_zone_getkasp(zone);
+	kasp = zone->kasp;
 
 	dnssec_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
