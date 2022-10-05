@@ -10302,9 +10302,8 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		goto cleanup_res;
 	}
 
-	res->tasks = isc_mem_get(view->mctx,
-				 res->ntasks * sizeof(res->tasks[0]));
-	memset(res->tasks, 0, res->ntasks * sizeof(res->tasks[0]));
+	res->tasks = isc_mem_getx(
+		view->mctx, res->ntasks * sizeof(res->tasks[0]), ISC_MEM_ZERO);
 	for (uint32_t i = 0; i < res->ntasks; i++) {
 		/*
 		 * Since we have a pool of tasks we bind them to task
@@ -11111,10 +11110,10 @@ isc_result_t
 dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg) {
 	unsigned int len, mask;
-	unsigned char *tmp;
-	unsigned char *algorithms;
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
+	unsigned char *algorithms = NULL;
+	unsigned int algorithms_len;
 
 	/*
 	 * Whether an algorithm is disabled (or not) is stored in a
@@ -11131,7 +11130,7 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 		result = dns_rbt_create(resolver->mctx, free_algorithm,
 					resolver->mctx, &resolver->algorithms);
 		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
+			return (result);
 		}
 	}
 
@@ -11140,40 +11139,31 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 
 	result = dns_rbt_addnode(resolver->algorithms, name, &node);
 
-	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
-		algorithms = node->data;
-		/*
-		 * If algorithms is set, algorithms[0] contains its
-		 * length.
-		 */
-		if (algorithms == NULL || len > *algorithms) {
-			/*
-			 * If no bitfield exists in the node data, or if
-			 * it is not long enough, allocate a new
-			 * bitfield and copy the old (smaller) bitfield
-			 * into it if one exists.
-			 */
-			tmp = isc_mem_get(resolver->mctx, len);
-			memset(tmp, 0, len);
-			if (algorithms != NULL) {
-				memmove(tmp, algorithms, *algorithms);
-			}
-			tmp[len - 1] |= mask;
-			/* tmp[0] should contain the length of 'tmp'. */
-			*tmp = len;
-			node->data = tmp;
-			/* Free the older bitfield. */
-			if (algorithms != NULL) {
-				isc_mem_put(resolver->mctx, algorithms,
-					    *algorithms);
-			}
-		} else {
-			algorithms[len - 1] |= mask;
-		}
+	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+		return (result);
 	}
-	result = ISC_R_SUCCESS;
-cleanup:
-	return (result);
+
+	/* If algorithms is set, algorithms[0] contains its length. */
+	algorithms = node->data;
+	algorithms_len = (algorithms) ? algorithms[0] : 0;
+
+	if (algorithms == NULL || len > algorithms_len) {
+		INSIST(len > 0);
+		/*
+		 * If no bitfield exists in the node data, or if
+		 * it is not long enough, allocate a new
+		 * bitfield and copy the old (smaller) bitfield
+		 * into it if one exists.
+		 */
+		node->data = algorithms =
+			isc_mem_regetx(resolver->mctx, algorithms,
+				       algorithms_len, len, ISC_MEM_ZERO);
+		/* store the new length */
+		algorithms[0] = len;
+	}
+
+	algorithms[len - 1] |= mask;
+	return (ISC_R_SUCCESS);
 }
 
 bool
@@ -11273,8 +11263,7 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 			 * bitfield and copy the old (smaller) bitfield
 			 * into it if one exists.
 			 */
-			tmp = isc_mem_get(resolver->mctx, len);
-			memset(tmp, 0, len);
+			tmp = isc_mem_getx(resolver->mctx, len, ISC_MEM_ZERO);
 			if (digests != NULL) {
 				memmove(tmp, digests, *digests);
 			}

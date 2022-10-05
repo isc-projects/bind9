@@ -16,40 +16,17 @@
 #if !defined(HAVE_JEMALLOC)
 
 #include <stddef.h>
+#include <string.h>
 
 #include <isc/util.h>
 
 const char *malloc_conf = NULL;
 
-/* Without jemalloc, isc_mem_get_align() is equal to isc_mem_get() */
-#define MALLOCX_ALIGN(a) (a & 0) /* Clear the flag */
+#define MALLOCX_ZERO ((int)0x40)
 
 #if defined(HAVE_MALLOC_SIZE) || defined(HAVE_MALLOC_USABLE_SIZE)
 
 #include <stdlib.h>
-
-static inline void *
-mallocx(size_t size, int flags) {
-	UNUSED(flags);
-
-	return (malloc(size));
-}
-
-static inline void
-sdallocx(void *ptr, size_t size, int flags) {
-	UNUSED(size);
-	UNUSED(flags);
-
-	free(ptr);
-}
-
-static inline void *
-rallocx(void *ptr, size_t size, int flags) {
-	UNUSED(flags);
-	REQUIRE(size != 0);
-
-	return (realloc(ptr, size));
-}
 
 #ifdef HAVE_MALLOC_SIZE
 
@@ -75,6 +52,47 @@ sallocx(void *ptr, int flags) {
 
 #endif /* HAVE_MALLOC_SIZE */
 
+static inline void *
+mallocx(size_t size, int flags) {
+	void *ptr = malloc(size);
+	INSIST(ptr != NULL);
+
+	if ((flags & MALLOCX_ZERO) != 0) {
+		memset(ptr, 0, size);
+	}
+
+	return (ptr);
+}
+
+static inline void
+sdallocx(void *ptr, size_t size, int flags) {
+	UNUSED(size);
+	UNUSED(flags);
+
+	free(ptr);
+}
+
+static inline void *
+rallocx(void *ptr, size_t size, int flags) {
+	void *new_ptr;
+	size_t old_size;
+
+	REQUIRE(size != 0);
+
+	if ((flags & MALLOCX_ZERO) != 0) {
+		old_size = sallocx(ptr, flags);
+	}
+
+	new_ptr = realloc(ptr, size);
+	INSIST(new_ptr != NULL);
+
+	if ((flags & MALLOCX_ZERO) != 0 && size > old_size) {
+		memset((uint8_t *)new_ptr + old_size, 0, size - old_size);
+	}
+
+	return (new_ptr);
+}
+
 #else /* defined(HAVE_MALLOC_SIZE) || defined (HAVE_MALLOC_USABLE_SIZE) */
 
 #include <stdlib.h>
@@ -88,13 +106,15 @@ static inline void *
 mallocx(size_t size, int flags) {
 	void *ptr = NULL;
 
-	UNUSED(flags);
-
 	size_info *si = malloc(size + sizeof(*si));
 	INSIST(si != NULL);
 
 	si->size = size;
 	ptr = &si[1];
+
+	if ((flags & MALLOCX_ZERO) != 0) {
+		memset(ptr, 0, size);
+	}
 
 	return (ptr);
 }
@@ -120,12 +140,13 @@ sallocx(void *ptr, int flags) {
 
 static inline void *
 rallocx(void *ptr, size_t size, int flags) {
-	size_info *si = &(((size_info *)ptr)[-1]);
-
-	UNUSED(flags);
-
-	si = realloc(si, size + sizeof(*si));
+	size_info *si = realloc(&(((size_info *)ptr)[-1]), size + sizeof(*si));
 	INSIST(si != NULL);
+
+	if ((flags & MALLOCX_ZERO) != 0 && size > si->size) {
+		memset((uint8_t *)si + sizeof(*si) + si->size, 0,
+		       size - si->size);
+	}
 
 	si->size = size;
 	ptr = &si[1];

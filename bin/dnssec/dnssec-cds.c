@@ -519,7 +519,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 
 	nkey = dns_rdataset_count(keyset);
 
-	keytable = isc_mem_get(mctx, sizeof(keyinfo_t) * nkey);
+	keytable = isc_mem_getx(mctx, sizeof(keytable[0]) * nkey, ISC_MEM_ZERO);
 
 	for (result = dns_rdataset_first(keyset), i = 0;
 	     result == ISC_R_SUCCESS; result = dns_rdataset_next(keyset), i++)
@@ -575,7 +575,7 @@ free_keytable(keyinfo_t **keytable_p) {
 		}
 	}
 
-	isc_mem_put(mctx, keytable, sizeof(keyinfo_t) * nkey);
+	isc_mem_put(mctx, keytable, sizeof(keytable[0]) * nkey);
 }
 
 /*
@@ -594,8 +594,7 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	dns_secalg_t *algo;
 	int i;
 
-	algo = isc_mem_get(mctx, nkey);
-	memset(algo, 0, nkey);
+	algo = isc_mem_getx(mctx, nkey * sizeof(algo[0]), ISC_MEM_ZERO);
 
 	for (result = dns_rdataset_first(sigset); result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(sigset))
@@ -677,7 +676,7 @@ signed_loose(dns_secalg_t *algo) {
 			ok = true;
 		}
 	}
-	isc_mem_put(mctx, algo, nkey);
+	isc_mem_put(mctx, algo, nkey * sizeof(algo[0]));
 	return (ok);
 }
 

@@ -161,13 +161,14 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	atomic_fetch_add_release(&global_generation, 1);
 
-	env = isc_mem_get(mctx, sizeof(dns_dtenv_t));
+	env = isc_mem_get(mctx, sizeof(*env));
+	*env = (dns_dtenv_t){
+		.reopen_task = reopen_task,
+		.reopen_queued = false,
+	};
 
-	memset(env, 0, sizeof(dns_dtenv_t));
 	isc_mem_attach(mctx, &env->mctx);
-	env->reopen_task = reopen_task;
 	isc_mutex_init(&env->reopen_lock);
-	env->reopen_queued = false;
 	env->path = isc_mem_strdup(env->mctx, path);
 	isc_refcount_init(&env->refcount, 1);
 	CHECK(isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max));
@@ -1064,9 +1065,7 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	REQUIRE(src != NULL);
 	REQUIRE(destp != NULL && *destp == NULL);
 
-	d = isc_mem_get(mctx, sizeof(*d));
-
-	memset(d, 0, sizeof(*d));
+	d = isc_mem_getx(mctx, sizeof(*d), ISC_MEM_ZERO);
 	isc_mem_attach(mctx, &d->mctx);
 
 	d->frame = dnstap__dnstap__unpack(NULL, src->length, src->base);

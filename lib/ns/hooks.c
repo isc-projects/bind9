@@ -126,10 +126,11 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	REQUIRE(pluginp != NULL && *pluginp == NULL);
 
 	plugin = isc_mem_get(mctx, sizeof(*plugin));
-	memset(plugin, 0, sizeof(*plugin));
-	isc_mem_attach(mctx, &plugin->mctx);
+	*plugin = (ns_plugin_t){
+		.modpath = isc_mem_strdup(mctx, modpath),
+	};
 
-	plugin->modpath = isc_mem_strdup(plugin->mctx, modpath);
+	isc_mem_attach(mctx, &plugin->mctx);
 
 	ISC_LINK_INIT(plugin, link);
 
@@ -319,10 +320,10 @@ ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 	REQUIRE(hook != NULL);
 
 	copy = isc_mem_get(mctx, sizeof(*copy));
-	memset(copy, 0, sizeof(*copy));
-
-	copy->action = hook->action;
-	copy->action_data = hook->action_data;
+	*copy = (ns_hook_t){
+		.action = hook->action,
+		.action_data = hook->action_data,
+	};
 	isc_mem_attach(mctx, &copy->mctx);
 
 	ISC_LINK_INIT(copy, link);
@@ -336,7 +337,7 @@ ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp) {
 	REQUIRE(listp != NULL && *listp == NULL);
 
 	plugins = isc_mem_get(mctx, sizeof(*plugins));
-	memset(plugins, 0, sizeof(*plugins));
+	*plugins = (ns_plugins_t){ 0 };
 	ISC_LIST_INIT(*plugins);
 
 	*listp = plugins;

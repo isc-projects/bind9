@@ -1,3 +1,10 @@
+5992.	[func]		Introduce the new isc_mem_*x() APIs that takes extra
+			flags as the last argument.  Currently ISC_MEM_ZERO
+			and ISC_MEM_ALIGN(n) flags have been implemented that
+			clears the memory to avoid the isc_mem_get()/memset()
+			pattern and make aligned allocation which replaces the
+			previous isc_mem_*_aligned() calls. [GL !6398]
+
 5991.	[protocol]	Add support for parsing and validating "dohpath" to
 			SVCB. [GL #3544]
 

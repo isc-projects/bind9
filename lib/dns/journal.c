@@ -591,8 +591,7 @@ journal_file_create(isc_mem_t *mctx, bool downgrade, const char *filename) {
 	size = sizeof(journal_rawheader_t) +
 	       index_size * sizeof(journal_rawpos_t);
 
-	mem = isc_mem_get(mctx, size);
-	memset(mem, 0, size);
+	mem = isc_mem_getx(mctx, size, ISC_MEM_ZERO);
 	memmove(mem, &rawheader, sizeof(rawheader));
 
 	result = isc_stdio_write(mem, 1, (size_t)size, fp, NULL);

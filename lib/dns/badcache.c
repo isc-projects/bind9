@@ -74,22 +74,24 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	REQUIRE(bcp != NULL && *bcp == NULL);
 	REQUIRE(mctx != NULL);
 
-	bc = isc_mem_get(mctx, sizeof(dns_badcache_t));
-	memset(bc, 0, sizeof(dns_badcache_t));
+	bc = isc_mem_get(mctx, sizeof(*bc));
+
+	*bc = (dns_badcache_t){
+		.size = size,
+		.minsize = size,
+	};
 
 	isc_mem_attach(mctx, &bc->mctx);
 	isc_rwlock_init(&bc->lock, 0, 0);
 
-	bc->table = isc_mem_get(bc->mctx, sizeof(*bc->table) * size);
-	bc->tlocks = isc_mem_get(bc->mctx, sizeof(isc_mutex_t) * size);
+	bc->table = isc_mem_getx(bc->mctx, sizeof(bc->table[0]) * size,
+				 ISC_MEM_ZERO);
+	bc->tlocks = isc_mem_getx(bc->mctx, sizeof(bc->tlocks[0]) * size,
+				  ISC_MEM_ZERO);
 	for (i = 0; i < size; i++) {
 		isc_mutex_init(&bc->tlocks[i]);
 	}
-	bc->size = bc->minsize = size;
-	memset(bc->table, 0, bc->size * sizeof(dns_bcentry_t *));
 
-	atomic_init(&bc->count, 0);
-	atomic_init(&bc->sweep, 0);
 	bc->magic = BADCACHE_MAGIC;
 
 	*bcp = bc;
@@ -112,8 +114,8 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 	for (i = 0; i < bc->size; i++) {
 		isc_mutex_destroy(&bc->tlocks[i]);
 	}
-	isc_mem_put(bc->mctx, bc->table, sizeof(dns_bcentry_t *) * bc->size);
-	isc_mem_put(bc->mctx, bc->tlocks, sizeof(isc_mutex_t) * bc->size);
+	isc_mem_put(bc->mctx, bc->table, sizeof(bc->table[0]) * bc->size);
+	isc_mem_put(bc->mctx, bc->tlocks, sizeof(bc->tlocks[0]) * bc->size);
 	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
 }
 
@@ -164,8 +166,8 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now) {
 	}
 	RUNTIME_CHECK(newsize > 0);
 
-	newtable = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
-	memset(newtable, 0, sizeof(dns_bcentry_t *) * newsize);
+	newtable = isc_mem_getx(bc->mctx, sizeof(dns_bcentry_t *) * newsize,
+				ISC_MEM_ZERO);
 
 	newlocks = isc_mem_get(bc->mctx, sizeof(isc_mutex_t) * newsize);
 

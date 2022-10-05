@@ -1454,8 +1454,14 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	imp = (dns_sdlzimplementation_t *)driverarg;
 
 	/* allocate and zero memory for driver structure */
-	sdlzdb = isc_mem_get(mctx, sizeof(dns_sdlz_db_t));
-	memset(sdlzdb, 0, sizeof(dns_sdlz_db_t));
+	sdlzdb = isc_mem_get(mctx, sizeof(*sdlzdb));
+
+	*sdlzdb = (dns_sdlz_db_t) {
+		.dlzimp = imp,
+		.common = { .methods = &sdlzdb_methods,
+			.rdclass = rdclass, },
+			.dbdata = dbdata,
+	};
 
 	/* initialize and set origin */
 	dns_name_init(&sdlzdb->common.origin, NULL);
@@ -1464,13 +1470,6 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		goto mem_cleanup;
 	}
 
-	/* set the rest of the database structure attributes */
-	sdlzdb->dlzimp = imp;
-	sdlzdb->common.methods = &sdlzdb_methods;
-	sdlzdb->common.attributes = 0;
-	sdlzdb->common.rdclass = rdclass;
-	sdlzdb->common.mctx = NULL;
-	sdlzdb->dbdata = dbdata;
 	isc_refcount_init(&sdlzdb->references, 1);
 
 	/* attach to the memory context */
@@ -1483,7 +1482,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 
 	return (result);
 mem_cleanup:
-	isc_mem_put(mctx, sdlzdb, sizeof(dns_sdlz_db_t));
+	isc_mem_put(mctx, sdlzdb, sizeof(*sdlzdb));
 	return (result);
 }
 
@@ -1973,16 +1972,14 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * Allocate memory for a sdlz_implementation object.  Error if
 	 * we cannot.
 	 */
-	imp = isc_mem_get(mctx, sizeof(dns_sdlzimplementation_t));
-
-	/* Make sure memory region is set to all 0's */
-	memset(imp, 0, sizeof(dns_sdlzimplementation_t));
+	imp = isc_mem_get(mctx, sizeof(*imp));
 
 	/* Store the data passed into this method */
-	imp->methods = methods;
-	imp->driverarg = driverarg;
-	imp->flags = flags;
-	imp->mctx = NULL;
+	*imp = (dns_sdlzimplementation_t){
+		.methods = methods,
+		.driverarg = driverarg,
+		.flags = flags,
+	};
 
 	/* attach the new sdlz_implementation object to a memory context */
 	isc_mem_attach(mctx, &imp->mctx);
@@ -1992,8 +1989,6 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * (used if a driver does not support multiple threads)
 	 */
 	isc_mutex_init(&imp->driverlock);
-
-	imp->dlz_imp = NULL;
 
 	/*
 	 * register the DLZ driver.  Pass in our "extra" sdlz information as
@@ -2021,7 +2016,7 @@ cleanup_mutex:
 	 * return the memory back to the available memory pool and
 	 * remove it from the memory context.
 	 */
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdlzimplementation_t));
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
 	return (result);
 }
 

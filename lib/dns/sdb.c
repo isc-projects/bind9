@@ -1319,15 +1319,13 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	sdb = isc_mem_get(mctx, sizeof(dns_sdb_t));
-	memset(sdb, 0, sizeof(dns_sdb_t));
+	sdb = isc_mem_get(mctx, sizeof(*sdb));
+	*sdb = (dns_sdb_t){
+		.common = { .methods = &sdb_methods, .rdclass = rdclass },
+		.implementation = imp,
+	};
 
 	dns_name_init(&sdb->common.origin, NULL);
-	sdb->common.attributes = 0;
-	sdb->common.methods = &sdb_methods;
-	sdb->common.rdclass = rdclass;
-	sdb->common.mctx = NULL;
-	sdb->implementation = imp;
 
 	isc_mem_attach(mctx, &sdb->common.mctx);
 
@@ -1345,7 +1343,6 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	sdb->zone = isc_mem_strdup(mctx, zonestr);
 
-	sdb->dbdata = NULL;
 	if (imp->methods->create != NULL) {
 		MAYBE_LOCK(sdb);
 		result = imp->methods->create(sdb->zone, argc, argv,

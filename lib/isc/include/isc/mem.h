@@ -125,26 +125,52 @@ extern unsigned int isc_mem_defaultflags;
  * (two underscores). The single-underscore macros are used to pass
  * __FILE__ and __LINE__, and in the case of the put functions, to
  * set the pointer being freed to NULL in the calling function.
- *
- * Many of these functions have a further isc___mem_<function>
- * (three underscores) implementation, which is called indirectly
- * via the isc_memmethods structure in the mctx so that dynamically
- * loaded modules can use them even if named is statically linked.
  */
+
+/*%
+ * Flags that can be passed to isc_mem_*x() variants of the macros.
+ *
+ * The definitions of the macros have been pulled directly from jemalloc.h
+ * and checked for consistency in mem.c.
+ *
+ *\li	ISC_MEM_ALIGN(alignment) - use when you need aligned allocation,
+ *
+ *	NOTE: Set the matching flag, when freeing aligned memory allocation.
+ *
+ *\li	ISC_MEM_ZERO - fill the memory with zeroes before returning
+ */
+
+#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
+#if __SIZEOF_POINTER__ == 4
+#define ISC_MEM_ALIGN(a) ((int)(ffs((int)(a)) - 1))
+#else
+#define ISC_MEM_ALIGN(a)                       \
+	((int)(((size_t)(a) < (size_t)INT_MAX) \
+		       ? ffs((int)(a)) - 1     \
+		       : ffs((int)(((size_t)(a)) >> 32)) + 31))
+#endif
+#else
+#define ISC_MEM_ALIGN(a) (a & 0)
+#endif
+#define ISC_MEM_ZERO ((int)0x40)
 
 #define ISCMEMFUNC(sfx)	    isc__mem_##sfx
 #define ISCMEMPOOLFUNC(sfx) isc__mempool_##sfx
 
-#define isc_mem_get(c, s) ISCMEMFUNC(get)((c), (s), 0 _ISC_MEM_FILELINE)
-#define isc_mem_get_aligned(c, s, a) \
-	ISCMEMFUNC(get)((c), (s), (a)_ISC_MEM_FILELINE)
+#define isc_mem_get(c, s)     ISCMEMFUNC(get)((c), (s), 0 _ISC_MEM_FILELINE)
+#define isc_mem_getx(c, s, f) ISCMEMFUNC(get)((c), (s), (f)_ISC_MEM_FILELINE)
 #define isc_mem_reget(c, p, o, n) \
 	ISCMEMFUNC(reget)((c), (p), (o), (n), 0 _ISC_MEM_FILELINE)
-#define isc_mem_reget_aligned(c, p, o, n, a) \
-	ISCMEMFUNC(reget)((c), (p), (o), (n), (a)_ISC_MEM_FILELINE)
-#define isc_mem_allocate(c, s) ISCMEMFUNC(allocate)((c), (s)_ISC_MEM_FILELINE)
+#define isc_mem_regetx(c, p, o, n, f) \
+	ISCMEMFUNC(reget)((c), (p), (o), (n), (f)_ISC_MEM_FILELINE)
+#define isc_mem_allocate(c, s) \
+	ISCMEMFUNC(allocate)((c), (s), 0 _ISC_MEM_FILELINE)
+#define isc_mem_allocatex(c, s, f) \
+	ISCMEMFUNC(allocate)((c), (s), (f)_ISC_MEM_FILELINE)
 #define isc_mem_reallocate(c, p, s) \
-	ISCMEMFUNC(reallocate)((c), (p), (s)_ISC_MEM_FILELINE)
+	ISCMEMFUNC(reallocate)((c), (p), (s), 0 _ISC_MEM_FILELINE)
+#define isc_mem_reallocatex(c, p, s, f) \
+	ISCMEMFUNC(reallocate)((c), (p), (s), (f)_ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p) ISCMEMFUNC(strdup)((c), (p)_ISC_MEM_FILELINE)
 #define isc_mem_strndup(c, p, l) \
 	ISCMEMFUNC(strndup)((c), (p), (l)_ISC_MEM_FILELINE)
@@ -155,10 +181,10 @@ extern unsigned int isc_mem_defaultflags;
 		ISCMEMFUNC(put)((c), (p), (s), 0 _ISC_MEM_FILELINE); \
 		(p) = NULL;                                          \
 	} while (0)
-#define isc_mem_put_aligned(c, p, s, a)                \
+#define isc_mem_putx(c, p, s, f)                       \
 	do {                                           \
 		ISCMEMFUNC(put)                        \
-		((c), (p), (s), (a)_ISC_MEM_FILELINE); \
+		((c), (p), (s), (f)_ISC_MEM_FILELINE); \
 		(p) = NULL;                            \
 	} while (0)
 #define isc_mem_putanddetach(c, p, s)                                         \
@@ -166,16 +192,21 @@ extern unsigned int isc_mem_defaultflags;
 		ISCMEMFUNC(putanddetach)((c), (p), (s), 0 _ISC_MEM_FILELINE); \
 		(p) = NULL;                                                   \
 	} while (0)
-#define isc_mem_putanddetach_aligned(c, p, s, a)       \
+#define isc_mem_putanddetachx(c, p, s, f)              \
 	do {                                           \
 		ISCMEMFUNC(putanddetach)               \
-		((c), (p), (s), (a)_ISC_MEM_FILELINE); \
+		((c), (p), (s), (f)_ISC_MEM_FILELINE); \
 		(p) = NULL;                            \
 	} while (0)
-#define isc_mem_free(c, p)                                   \
-	do {                                                 \
-		ISCMEMFUNC(free)((c), (p)_ISC_MEM_FILELINE); \
-		(p) = NULL;                                  \
+#define isc_mem_free(c, p)                                       \
+	do {                                                     \
+		ISCMEMFUNC(free)((c), (p), 0 _ISC_MEM_FILELINE); \
+		(p) = NULL;                                      \
+	} while (0)
+#define isc_mem_freex(c, p, f)                                    \
+	do {                                                      \
+		ISCMEMFUNC(free)((c), (p), (f)_ISC_MEM_FILELINE); \
+		(p) = NULL;                                       \
 	} while (0)
 #define isc_mempool_put(c, p)                                   \
 	do {                                                    \
@@ -495,23 +526,22 @@ isc_mempool_setfillcount(isc_mempool_t *restrict mpctx,
 /*
  * Pseudo-private functions for use via macros.  Do not call directly.
  */
-void ISCMEMFUNC(putanddetach)(isc_mem_t **, void *, size_t,
-			      size_t _ISC_MEM_FLARG);
-void ISCMEMFUNC(put)(isc_mem_t *, void *, size_t, size_t _ISC_MEM_FLARG);
-void ISCMEMFUNC(free)(isc_mem_t *, void *_ISC_MEM_FLARG);
+void ISCMEMFUNC(putanddetach)(isc_mem_t **, void *, size_t, int _ISC_MEM_FLARG);
+void ISCMEMFUNC(put)(isc_mem_t *, void *, size_t, int _ISC_MEM_FLARG);
+void ISCMEMFUNC(free)(isc_mem_t *, void *, int _ISC_MEM_FLARG);
 
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(put), 2)
-void *ISCMEMFUNC(get)(isc_mem_t *, size_t, size_t _ISC_MEM_FLARG);
+void *ISCMEMFUNC(get)(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
 
 ISC_ATTR_DEALLOCATOR_IDX(ISCMEMFUNC(put), 2)
 void *ISCMEMFUNC(reget)(isc_mem_t *, void *, size_t, size_t,
-			size_t _ISC_MEM_FLARG);
+			int _ISC_MEM_FLARG);
 
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
-void *ISCMEMFUNC(allocate)(isc_mem_t *, size_t _ISC_MEM_FLARG);
+void *ISCMEMFUNC(allocate)(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
 
 ISC_ATTR_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
-void *ISCMEMFUNC(reallocate)(isc_mem_t *, void *, size_t _ISC_MEM_FLARG);
+void *ISCMEMFUNC(reallocate)(isc_mem_t *, void *, size_t, int _ISC_MEM_FLARG);
 
 ISC_ATTR_RETURNS_NONNULL
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)

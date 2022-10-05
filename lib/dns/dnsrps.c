@@ -258,7 +258,14 @@ dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 	rpsdb_t *rpsdb;
 
 	rpsdb = isc_mem_get(mctx, sizeof(*rpsdb));
-	memset(rpsdb, 0, sizeof(*rpsdb));
+	*rpsdb = (rpsdb_t){
+		.common = {
+			.methods = &rpsdb_db_methods,
+			.rdclass = dns_rdataclass_in,
+		},
+		.ref_cnt = 1,
+		.qname = qname,
+	};
 
 	if (!librpz->rsp_create(emsg, &rpsdb->rsp, NULL, rpzs->rps_client,
 				have_rd, false))
@@ -273,13 +280,8 @@ dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 
 	rpsdb->common.magic = DNS_DB_MAGIC;
 	rpsdb->common.impmagic = RPSDB_MAGIC;
-	rpsdb->common.methods = &rpsdb_db_methods;
-	rpsdb->common.rdclass = dns_rdataclass_in;
 	dns_name_init(&rpsdb->common.origin, NULL);
 	isc_mem_attach(mctx, &rpsdb->common.mctx);
-
-	rpsdb->ref_cnt = 1;
-	rpsdb->qname = qname;
 
 	st->rpsdb = &rpsdb->common;
 	return (ISC_R_SUCCESS);
@@ -632,11 +634,14 @@ rpsdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(node == &rpsdb->origin_node || node == &rpsdb->data_node);
 
 	rpsdb_iter = isc_mem_get(rpsdb->common.mctx, sizeof(*rpsdb_iter));
+	*rpsdb_iter = ( rpsdb_rdatasetiter_t){
 
-	memset(rpsdb_iter, 0, sizeof(*rpsdb_iter));
-	rpsdb_iter->common.magic = DNS_RDATASETITER_MAGIC;
-	rpsdb_iter->common.methods = &rpsdb_rdatasetiter_methods;
-	rpsdb_iter->common.db = db;
+		.common= {.magic = DNS_RDATASETITER_MAGIC,
+			.methods = &rpsdb_rdatasetiter_methods,
+			.db = db,
+		},
+	};
+
 	rpsdb_attachnode(db, node, &rpsdb_iter->common.node);
 
 	*iteratorp = &rpsdb_iter->common;

@@ -94,13 +94,13 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 
 static void *
 isc__tls_malloc_ex(size_t size, const char *file, int line) {
-	return (isc__mem_allocate(isc__tls_mctx, size, file,
+	return (isc__mem_allocate(isc__tls_mctx, size, 0, file,
 				  (unsigned int)line));
 }
 
 static void *
 isc__tls_realloc_ex(void *ptr, size_t size, const char *file, int line) {
-	return (isc__mem_reallocate(isc__tls_mctx, ptr, size, file,
+	return (isc__mem_reallocate(isc__tls_mctx, ptr, size, 0, file,
 				    (unsigned int)line));
 }
 
@@ -109,7 +109,7 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 	if (ptr == NULL) {
 		return;
 	}
-	isc__mem_free(isc__tls_mctx, ptr, file, (unsigned int)line);
+	isc__mem_free(isc__tls_mctx, ptr, 0, file, (unsigned int)line);
 }
 
 #elif OPENSSL_VERSION_NUMBER >= 0x10100000L
@@ -135,7 +135,7 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 	if (ptr == NULL) {
 		return;
 	}
-	isc__mem_free(isc__tls_mctx, ptr);
+	isc__mem_free(isc__tls_mctx, ptr, 0);
 }
 
 #endif /* ISC_MEM_TRACKLINES */
@@ -185,8 +185,8 @@ isc__tls_initialize(void) {
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_get(isc__tls_mctx, nlocks * sizeof(locks[0]));
-	memset(locks, 0, nlocks * sizeof(locks[0]));
+	locks = isc_mem_getx(isc__tls_mctx, nlocks * sizeof(locks[0]),
+			     ISC_MEM_ZERO);
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
@@ -1338,11 +1338,12 @@ isc_tlsctx_cache_add(
 		 */
 		INSIST(result != ISC_R_SUCCESS);
 		entry = isc_mem_get(cache->mctx, sizeof(*entry));
-		/* Oracle/Red Hat Linux, GCC bug #53119 */
-		memset(entry, 0, sizeof(*entry));
+		*entry = (isc_tlsctx_cache_entry_t){
+			.ca_store = store,
+		};
+
 		entry->ctx[tr_offset][ipv6] = ctx;
 		entry->client_sess_cache[tr_offset][ipv6] = client_sess_cache;
-		entry->ca_store = store;
 		RUNTIME_CHECK(isc_ht_add(cache->data, (const uint8_t *)name,
 					 name_len,
 					 (void *)entry) == ISC_R_SUCCESS);

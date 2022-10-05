@@ -124,8 +124,7 @@ isc__uv_calloc(size_t count, size_t size) {
 	REQUIRE(count == 0 || res / count == size);
 #endif
 
-	ptr = isc_mem_allocate(isc__uv_mctx, res);
-	memset(ptr, 0, res);
+	ptr = isc_mem_allocatex(isc__uv_mctx, res, ISC_MEM_ZERO);
 
 	return (ptr);
 }

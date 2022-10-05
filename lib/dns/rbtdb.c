@@ -1246,8 +1246,7 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 
 	size = ISC_HASHSIZE(version->glue_table_bits) *
 	       sizeof(version->glue_table[0]);
-	version->glue_table = isc_mem_get(mctx, size);
-	memset(version->glue_table, 0, size);
+	version->glue_table = isc_mem_getx(mctx, size, ISC_MEM_ZERO);
 
 	version->writer = writer;
 	version->commit_ok = false;
@@ -8113,7 +8112,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/* Keep the compiler happy. */
 	UNUSED(driverarg);
 
-	rbtdb = isc_mem_get(mctx, sizeof(*rbtdb));
+	rbtdb = isc_mem_getx(mctx, sizeof(*rbtdb), ISC_MEM_ZERO);
 
 	/*
 	 * If argv[0] exists, it points to a memory context to use for heap
@@ -8122,7 +8121,6 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		hmctx = (isc_mem_t *)argv[0];
 	}
 
-	memset(rbtdb, '\0', sizeof(*rbtdb));
 	dns_name_init(&rbtdb->common.origin, NULL);
 	rbtdb->common.attributes = 0;
 	if (type == dns_dbtype_cache) {
@@ -9507,9 +9505,9 @@ rehash_gluetable(rbtdb_version_t *version) {
 	newbits = rehash_bits(version, version->glue_table_nodecount);
 	newsize = ISC_HASHSIZE(newbits) * sizeof(version->glue_table[0]);
 
-	version->glue_table = isc_mem_get(version->rbtdb->common.mctx, newsize);
+	version->glue_table = isc_mem_getx(version->rbtdb->common.mctx, newsize,
+					   ISC_MEM_ZERO);
 	version->glue_table_bits = newbits;
-	memset(version->glue_table, 0, newsize);
 
 	for (i = 0; i < oldcount; i++) {
 		rbtdb_glue_table_node_t *gluenode;

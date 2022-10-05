@@ -1504,8 +1504,7 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	nodelen = sizeof(dns_rbtnode_t) + region.length + labels + 1;
-	node = isc_mem_get(mctx, nodelen);
-	memset(node, 0, nodelen);
+	node = isc_mem_getx(mctx, nodelen, ISC_MEM_ZERO);
 
 	node->is_root = 0;
 	node->parent = NULL;
@@ -1589,8 +1588,7 @@ hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits) {
 	rbt->hashbits[index] = bits;
 
 	size = ISC_HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
-	rbt->hashtable[index] = isc_mem_get(rbt->mctx, size);
-	memset(rbt->hashtable[index], 0, size);
+	rbt->hashtable[index] = isc_mem_getx(rbt->mctx, size, ISC_MEM_ZERO);
 }
 
 static void
