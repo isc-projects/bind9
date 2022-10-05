@@ -503,7 +503,7 @@ n=`expr $n + 1`
 echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
 $CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
-grep "'dnssec-policy;' requires dynamic DNS or inline-signing to be configured for the zone" < checkconf.out$n > /dev/null || ret=1
+grep "'inline-signing yes;' must also be configured explicitly for zones using dnssec-policy without a configured 'allow-update' or 'update-policy'" < checkconf.out$n > /dev/null || ret=1
 grep "'auto-dnssec maintain;' cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnskey-sig-validity: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-dnskey-kskonly: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
