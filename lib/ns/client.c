@@ -963,7 +963,6 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	unsigned char cookie[COOKIE_SIZE];
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	dns_resolver_t *resolver = NULL;
 	uint16_t udpsize;
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	int count = 0;
@@ -978,9 +977,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 	env = client->manager->aclenv;
 	view = client->view;
-	resolver = (view != NULL) ? view->resolver : NULL;
-	if (resolver != NULL) {
-		udpsize = dns_resolver_getudpsize(resolver);
+	if (view != NULL) {
+		udpsize = dns_view_getudpsize(view);
 	} else {
 		udpsize = client->manager->sctx->udpsize;
 	}

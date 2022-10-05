@@ -422,18 +422,6 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
  */
 
 void
-dns_resolver_setudpsize(dns_resolver_t *resolver, uint16_t udpsize);
-/*%<
- * Set the EDNS UDP buffer size advertised by the server.
- */
-
-uint16_t
-dns_resolver_getudpsize(dns_resolver_t *resolver);
-/*%<
- * Get the current EDNS UDP buffer size.
- */
-
-void
 dns_resolver_reset_algorithms(dns_resolver_t *resolver);
 /*%<
  * Clear the disabled DNSSEC algorithms.

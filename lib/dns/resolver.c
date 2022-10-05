@@ -241,11 +241,6 @@ STATIC_ASSERT(NS_PROCESSING_LIMIT > NS_RR_LIMIT,
 #define RECV_BUFFER_SIZE 4096 /* XXXRTH  Constant. */
 
 /*%
- * Default EDNS0 buffer size
- */
-#define DEFAULT_EDNS_BUFSIZE 1232
-
-/*%
  * This defines the maximum number of timeouts we will permit before we
  * disable EDNS0 on the query.
  */
@@ -561,7 +556,6 @@ struct dns_resolver {
 	isc_task_t **tasks;
 	uint32_t lame_ttl;
 	ISC_LIST(alternate_t) alternates;
-	uint16_t udpsize;
 	dns_rbt_t *algorithms;
 	dns_rbt_t *digests;
 	dns_rbt_t *mustbesecure;
@@ -2661,7 +2655,7 @@ resquery_send(resquery_t *query) {
 			 * Set the default UDP size to what was
 			 * configured as 'edns-buffer-size'
 			 */
-			udpsize = res->udpsize;
+			udpsize = res->view->udpsize;
 
 			/*
 			 * This server timed out for the first time in
@@ -10274,7 +10268,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		.taskmgr = taskmgr,
 		.dispatchmgr = dispatchmgr,
 		.options = options,
-		.udpsize = DEFAULT_EDNS_BUFSIZE,
 		.spillatmin = 10,
 		.spillat = 10,
 		.spillatmax = 100,
@@ -11038,18 +11031,6 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 	}
 	ISC_LINK_INIT(a, link);
 	ISC_LIST_APPEND(resolver->alternates, a, link);
-}
-
-void
-dns_resolver_setudpsize(dns_resolver_t *resolver, uint16_t udpsize) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	resolver->udpsize = udpsize;
-}
-
-uint16_t
-dns_resolver_getudpsize(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return (resolver->udpsize);
 }
 
 void

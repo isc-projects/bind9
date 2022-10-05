@@ -11298,16 +11298,27 @@ zone_refreshkeys(dns_zone_t *zone) {
 #ifdef ENABLE_AFL
 		if (!dns_fuzzing_resolver) {
 #endif /* ifdef ENABLE_AFL */
+			/*
+			 * We need to unlock and lock zone here because view
+			 * gets locked in the dns_resolver_createfetch() via
+			 * dns_view_findzonecut() and this violates the locking
+			 * hierarchy (view -> zone).
+			 */
 			UNLOCK_ZONE(zone);
-			result = dns_resolver_createfetch(
-				zone->view->resolver, kname,
-				dns_rdatatype_dnskey, NULL, NULL, NULL, NULL, 0,
-				DNS_FETCHOPT_NOVALIDATE |
-					DNS_FETCHOPT_UNSHARED |
-					DNS_FETCHOPT_NOCACHED,
-				0, NULL, zone->task, keyfetch_done, kfetch,
-				&kfetch->dnskeyset, &kfetch->dnskeysigset,
-				&kfetch->fetch);
+			dns_resolver_t *resolver = NULL;
+			result = dns_view_getresolver(zone->view, &resolver);
+			if (result == ISC_R_SUCCESS) {
+				result = dns_resolver_createfetch(
+					resolver, kname, dns_rdatatype_dnskey,
+					NULL, NULL, NULL, NULL, 0,
+					DNS_FETCHOPT_NOVALIDATE |
+						DNS_FETCHOPT_UNSHARED |
+						DNS_FETCHOPT_NOCACHED,
+					0, NULL, zone->task, keyfetch_done,
+					kfetch, &kfetch->dnskeyset,
+					&kfetch->dnskeysigset, &kfetch->fetch);
+				dns_resolver_detach(&resolver);
+			}
 			LOCK_ZONE(zone);
 #ifdef ENABLE_AFL
 		} else {
@@ -14662,10 +14673,7 @@ again:
 			if (dscp != -1) {
 				have_xfrdscp = true;
 			}
-			if (zone->view->resolver != NULL) {
-				udpsize = dns_resolver_getudpsize(
-					zone->view->resolver);
-			}
+			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 			(void)dns_peer_getrequestexpire(peer, &reqexpire);
@@ -14961,10 +14969,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS && dscp != -1) {
 				have_xfrdscp = true;
 			}
-			if (zone->view->resolver != NULL) {
-				udpsize = dns_resolver_getudpsize(
-					zone->view->resolver);
-			}
+			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
 		}

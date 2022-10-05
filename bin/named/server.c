@@ -4931,7 +4931,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	if (udpsize > 4096) {
 		udpsize = 4096;
 	}
-	dns_resolver_setudpsize(view->resolver, (uint16_t)udpsize);
+	dns_view_setudpsize(view, (uint16_t)udpsize);
 
 	/*
 	 * Set the maximum UDP response size.

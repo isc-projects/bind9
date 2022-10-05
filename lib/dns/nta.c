@@ -44,6 +44,7 @@
 struct dns_ntatable {
 	/* Unlocked. */
 	unsigned int magic;
+	isc_mem_t *mctx;
 	dns_view_t *view;
 	isc_rwlock_t rwlock;
 	isc_loopmgr_t *loopmgr;
@@ -52,7 +53,7 @@ struct dns_ntatable {
 	isc_refcount_t references;
 	/* Locked by rwlock. */
 	dns_rbt_t *table;
-	bool shuttingdown;
+	atomic_bool shuttingdown;
 };
 
 struct dns__nta {
@@ -118,8 +119,10 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
 	*ntatable = (dns_ntatable_t){
 		.loopmgr = loopmgr,
-		.view = view,
 	};
+
+	isc_mem_attach(view->mctx, &ntatable->mctx);
+	dns_view_weakattach(view, &ntatable->view);
 
 	result = isc_task_create(taskmgr, &ntatable->task, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -127,7 +130,7 @@ dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 	isc_task_setname(ntatable->task, "ntatable", ntatable);
 
-	result = dns_rbt_create(view->mctx, dns__nta_free, NULL,
+	result = dns_rbt_create(ntatable->mctx, dns__nta_free, NULL,
 				&ntatable->table);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
@@ -146,7 +149,7 @@ cleanup_task:
 	isc_task_detach(&ntatable->task);
 
 cleanup_ntatable:
-	isc_mem_put(view->mctx, ntatable, sizeof(*ntatable));
+	isc_mem_putanddetach(&ntatable->mctx, ntatable, sizeof(*ntatable));
 
 	return (result);
 }
@@ -158,7 +161,8 @@ dns__ntatable_destroy(dns_ntatable_t *ntatable) {
 	dns_rbt_destroy(&ntatable->table);
 	isc_rwlock_destroy(&ntatable->rwlock);
 	isc_task_detach(&ntatable->task);
-	isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
+	INSIST(ntatable->view == NULL);
+	isc_mem_putanddetach(&ntatable->mctx, ntatable, sizeof(*ntatable));
 }
 
 ISC_REFCOUNT_IMPL(dns_ntatable, dns__ntatable_destroy);
@@ -222,14 +226,13 @@ fetch_done(isc_task_t *task, isc_event_t *event) {
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 
 	dns__nta_detach(&nta); /* for dns_resolver_createfetch() */
-	dns_view_weakdetach(&view);
 }
 
 static void
 checkbogus(void *arg) {
 	dns__nta_t *nta = arg;
 	dns_ntatable_t *ntatable = nta->ntatable;
-	dns_view_t *view = NULL;
+	dns_resolver_t *resolver = NULL;
 	isc_result_t result;
 
 	if (nta->fetch != NULL) {
@@ -243,17 +246,25 @@ checkbogus(void *arg) {
 		dns_rdataset_disassociate(&nta->sigrdataset);
 	}
 
+	if (atomic_load(&ntatable->shuttingdown)) {
+		isc_timer_stop(nta->timer);
+		return;
+	}
+
+	result = dns_view_getresolver(ntatable->view, &resolver);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
 	dns__nta_ref(nta); /* for dns_resolver_createfetch */
-	dns_view_weakattach(ntatable->view, &view);
 	result = dns_resolver_createfetch(
-		view->resolver, nta->name, dns_rdatatype_nsec, NULL, NULL, NULL,
-		NULL, 0, DNS_FETCHOPT_NONTA, 0, NULL, ntatable->task,
-		fetch_done, nta, &nta->rdataset, &nta->sigrdataset,
-		&nta->fetch);
+		resolver, nta->name, dns_rdatatype_nsec, NULL, NULL, NULL, NULL,
+		0, DNS_FETCHOPT_NONTA, 0, NULL, ntatable->task, fetch_done, nta,
+		&nta->rdataset, &nta->sigrdataset, &nta->fetch);
 	if (result != ISC_R_SUCCESS) {
 		dns__nta_detach(&nta); /* for dns_resolver_createfetch() */
-		dns_view_weakdetach(&view);
 	}
+	dns_resolver_detach(&resolver);
 }
 
 static void
@@ -278,21 +289,18 @@ static void
 nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	   dns__nta_t **target) {
 	dns__nta_t *nta = NULL;
-	dns_view_t *view;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 	REQUIRE(target != NULL && *target == NULL);
 
-	view = ntatable->view;
-
-	nta = isc_mem_get(view->mctx, sizeof(dns__nta_t));
+	nta = isc_mem_get(ntatable->mctx, sizeof(dns__nta_t));
 	*nta = (dns__nta_t){
 		.ntatable = ntatable,
 		.loop = isc_loop_current(ntatable->loopmgr),
 		.magic = NTA_MAGIC,
 	};
 
-	isc_mem_attach(view->mctx, &nta->mctx);
+	isc_mem_attach(ntatable->mctx, &nta->mctx);
 
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
@@ -314,11 +322,11 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 
 	REQUIRE(VALID_NTATABLE(ntatable));
 
-	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-
-	if (ntatable->shuttingdown) {
-		goto unlock;
+	if (atomic_load(&ntatable->shuttingdown)) {
+		return (ISC_R_SUCCESS);
 	}
+
+	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
 	nta_create(ntatable, name, &nta);
 
@@ -350,7 +358,6 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name, bool force,
 		break;
 	}
 
-unlock:
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 
 	return (result);
@@ -683,5 +690,7 @@ dns_ntatable_shutdown(dns_ntatable_t *ntatable) {
 	}
 
 	dns_rbtnodechain_invalidate(&chain);
+
+	dns_view_weakdetach(&ntatable->view);
 	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
 }
