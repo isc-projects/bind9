@@ -385,7 +385,7 @@ The following blocks are supported:
         Declares control channels to be used by the :iscman:`rndc` utility.
 
     :any:`dnssec-policy`
-        Describes a DNSSEC key and signing policy for zones. See :ref:`dnssec_policy_grammar` for details.
+        Describes a DNSSEC key and signing policy for zones. See :any:`dnssec-policy` for details.
 
     :namedconf:ref:`key`
         Specifies key information for use in authentication and authorization using TSIG.
@@ -401,8 +401,6 @@ The following blocks are supported:
 
     :any:`parental-agents`
         Defines a named list of servers for inclusion in primary and secondary zones' :any:`parental-agents` lists.
-
-.. _primaries:
 
     :any:`primaries`
         Defines a named list of servers for inclusion in stub and secondary zones' :any:`primaries` or :any:`also-notify` lists. (Note: this is a synonym for the original keyword ``masters``, which can still be used, but is no longer the preferred terminology.)
@@ -430,8 +428,6 @@ The following blocks are supported:
 
     :any:`view`
         Defines a view.
-
-.. _zone_clause:
 
     :any:`zone`
         Defines a zone.
@@ -467,15 +463,11 @@ The following ACLs are built-in:
     ``localnets``
         Matches any host on an IPv4 or IPv6 network for which the system has an interface. When addresses are added or removed, the ``localnets`` ACL element is updated to reflect the changes. Some systems do not provide a way to determine the prefix lengths of local IPv6 addresses; in such cases, ``localnets`` only matches the local IPv6 addresses, just like ``localhost``.
 
-.. _controls_grammar:
-
 :any:`controls` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: controls
    :tags: server
    :short: Specifies control channels to be used to manage the name server.
-
-.. _controls_statement_definition_and_usage:
 
 :any:`controls` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -547,27 +539,22 @@ To disable the command channel, use an empty :any:`controls` statement:
 ``controls { };``.
 
 
-.. _key_grammar:
-
 ``key`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: key
    :tags: security
    :short: Defines a shared secret key for use with :ref:`tsig` or the command channel.
 
-.. _key_statement:
-
 ``key`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``key`` statement defines a shared secret key for use with TSIG (see
-:ref:`tsig`) or the command channel (see :ref:`controls_statement_definition_and_usage`).
+:ref:`tsig`) or the command channel (see :any:`controls`).
 
 The ``key`` statement can occur at the top level of the configuration
 file or inside a :any:`view` statement. Keys defined in top-level ``key``
 statements can be used in all views. Keys intended for use in a
-:any:`controls` statement (see :ref:`controls_statement_definition_and_usage`)
-must be defined at the top level.
+:any:`controls` statement must be defined at the top level.
 
 The :term:`server_key`, also known as the key name, is a domain name that uniquely
 identifies the key. It can be used in a :namedconf:ref:`server` statement to cause
@@ -593,15 +580,11 @@ matching this name, algorithm, and secret.
    The ``secret_string`` is the secret to be used by the
    algorithm, and is treated as a Base64-encoded string.
 
-.. _logging_grammar:
-
 :any:`logging` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: logging
    :tags: logging
    :short: Configures logging options for the name server.
-
-.. _logging_statement:
 
 :any:`logging` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -724,8 +707,6 @@ by the channel (the default is ``info``), and whether to include a
    version of :any:`syslog`, which only uses two arguments to the ``openlog()``
    function, this clause is silently ignored.
 
-.. _severity:
-
 .. namedconf:statement:: severity
    :tags: logging
    :short: Defines the priority level of log messages.
@@ -821,7 +802,7 @@ Here is an example where all three ``print-`` options are on:
 There are four predefined channels that are used for :iscman:`named`'s default
 logging, as follows. If :iscman:`named` is started with the :option:`-L <named -L>` option, then a fifth
 channel, ``default_logfile``, is added. How they are used is described in
-:ref:`the_category_phrase`.
+:any:`category`.
 
 ::
 
@@ -877,8 +858,6 @@ be redirected to a file.
 Once a channel is defined, it cannot be redefined. The
 built-in channels cannot be altered directly, but the default logging
 can be modified by pointing categories at defined channels.
-
-.. _the_category_phrase:
 
 The :any:`category` Phrase
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1021,15 +1000,11 @@ At ``debug`` level 4 or higher, the detailed context information logged at
 ``debug`` level 2 is logged for errors other than SERVFAIL and for negative
 responses such as NXDOMAIN.
 
-.. _parental_agents_grammar:
-
 :any:`parental-agents` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: parental-agents
    :tags: zone
    :short: Defines a list of delegation agents to be used by primary and secondary zones.
-
-.. _parental_agents_statement:
 
 :any:`parental-agents` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1039,15 +1014,11 @@ used by multiple primary and secondary zones.
 A parental agent is the entity that is allowed to
 change a zone's delegation information (defined in :rfc:`7344`).
 
-.. _primaries_grammar:
-
 :any:`primaries` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: primaries
    :tags: zone
    :short: Defines one or more primary servers for a zone.
-
-.. _primaries_statement:
 
 :any:`primaries` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1074,8 +1045,6 @@ where ``tls-configuration-name`` refers to a previously defined
    observers but does not protect from man-in-the-middle attacks on
    zone transfers.
 
-.. _options_grammar:
-
 ``options`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: options
@@ -1085,8 +1054,6 @@ where ``tls-configuration-name`` refers to a previously defined
 This is the grammar of the ``options`` statement in the :iscman:`named.conf`
 file:
 
-.. _options:
-
 ``options`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1094,8 +1061,6 @@ The ``options`` statement sets up global options to be used by BIND.
 This statement may appear only once in a configuration file. If there is
 no ``options`` statement, an options block with each option set to its
 default is used.
-
-.. _attach-cache:
 
 .. namedconf:statement:: attach-cache
    :tags: view
@@ -1157,8 +1122,6 @@ default is used.
    answer does not make sense or could even be harmful. It is the
    administrator's responsibility to ensure that configuration differences in
    different views do not cause disruption with a shared cache.
-
-.. _directory:
 
 .. namedconf:statement:: directory
    :tags: server
@@ -1655,8 +1618,6 @@ default is used.
    other glue in the additional section of a query response. The default
    is to prefer A records when responding to queries that arrived via
    IPv4 and AAAA when responding to queries that arrived via IPv6.
-
-.. _root-delegation-only:
 
 .. namedconf:statement:: root-delegation-only
    :tags: query
@@ -2236,8 +2197,6 @@ Boolean Options
    unnecessary records are added to the authority or additional
    sections. The default is ``no``.
 
-.. _notify_st:
-
 .. namedconf:statement:: notify
    :tags: transfer
    :short: Controls whether ``NOTIFY`` messages are sent on zone changes.
@@ -2269,8 +2228,6 @@ Boolean Options
    hidden primary configurations; in that case, the
    ultimate primary should be set to still send NOTIFY messages to all the name servers
    listed in the NS RRset.
-
-.. _recursion:
 
 .. namedconf:statement:: recursion
    :tags: query
@@ -2642,8 +2599,6 @@ Boolean Options
    The DNSSEC records are written to the zone's filename set in :any:`file`,
    unless :any:`inline-signing` is enabled.
 
-.. _dnssec-validation-option:
-
 .. namedconf:statement:: dnssec-validation
    :tags: dnssec
    :short: Enables DNSSEC validation in :iscman:`named`.
@@ -2921,8 +2876,6 @@ access to the Internet, but wish to look up exterior names anyway.
 Forwarding occurs only on those queries for which the server is not
 authoritative and does not have the answer in its cache.
 
-.. _forward:
-
 .. namedconf:statement:: forward
    :tags: query
    :short: Allows or disallows fallback to recursion if forwarding has failed; it is always used in conjunction with the :any:`forwarders` statement.
@@ -2932,8 +2885,6 @@ authoritative and does not have the answer in its cache.
    forwarders first; if that does not answer the question, the
    server then looks for the answer itself. If ``only`` is
    specified, the server only queries the forwarders.
-
-.. _forwarders:
 
 .. namedconf:statement:: forwarders
    :tags: query
@@ -2948,7 +2899,7 @@ Forwarding can also be configured on a per-domain basis, allowing for
 the global forwarding options to be overridden in a variety of ways.
 Particular domains can be set to use different forwarders, or have a
 different ``forward only/first`` behavior, or not forward at all; see
-:ref:`zone_statement_grammar`.
+:any:`zone`.
 
 .. _dual_stack:
 
@@ -3124,10 +3075,6 @@ for details on how to specify IP address lists.
    While a default value can be set at the :namedconf:ref:`options` or :any:`view` level
    and inherited by zones, this can lead to some zones unintentionally
    forwarding updates.
-
-.. _allow-transfer-access:
-
-.. _allow-transfer:
 
 .. namedconf:statement:: allow-transfer
    :tags: transfer
@@ -3447,8 +3394,6 @@ Zone Transfers
 BIND has mechanisms in place to facilitate zone transfers and set limits
 on the amount of load that transfers place on the system. The following
 options apply to zone transfers.
-
-.. _also-notify:
 
 .. namedconf:statement:: also-notify
    :tags: transfer
@@ -3794,14 +3739,14 @@ system.
 .. namedconf:statement:: clients-per-query
    :tags: server
    :short: Sets the initial minimum number of simultaneous recursive clients accepted by the server for any given query before the server drops additional clients.
-   
+
    This sets the initial value (minimum) number of simultaneous recursive clients
    for any given query (<qname,qtype,qclass>) that the server accepts before
    dropping additional clents. :iscman:`named` attempts to self-tune this
    value and changes are logged. The default value is 10.
-   
+
    The chosen value should reflect how many queries come in for a given name
-   in the time it takes to resolve that name. 
+   in the time it takes to resolve that name.
 
 .. namedconf:statement:: max-clients-per-query
    :tags: server
@@ -3918,8 +3863,6 @@ system.
 
    This option is deprecated and no longer has any effect.
 
-.. _max-cache-size:
-
 .. namedconf:statement:: max-cache-size
    :tags: server
    :short: Sets the maximum amount of memory to use for an individual cache database and its associated metadata.
@@ -3929,7 +3872,7 @@ system.
    physical memory. By default, each view has its own separate cache,
    which means the total amount of memory required for cache data is the
    sum of the cache database sizes for all views (unless the
-   :ref:`attach-cache <attach-cache>` option is used).
+   :any:`attach-cache` option is used).
 
    When the amount of data in a cache database reaches the configured
    limit, :iscman:`named` starts purging non-expired records (following an
@@ -4060,8 +4003,6 @@ Periodic Task Intervals
    gone away. For convenience, TTL-style time-unit suffixes may be used to
    specify the value. It also accepts ISO 8601 duration formats.
 
-.. _the_sortlist_statement:
-
 The :any:`sortlist` Statement
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -4166,7 +4107,7 @@ RRset Ordering
 
    The :any:`rrset-order` statement permits configuration of the ordering of
    the records in a multiple-record response. See also:
-   :ref:`the_sortlist_statement`.
+   :any:`sortlist`.
 
    Each rule in an :any:`rrset-order` statement is defined as follows:
 
@@ -4271,7 +4212,7 @@ Tuning
 
 .. namedconf:statement:: servfail-ttl
    :tags: server
-   :short: Sets the length of time (in seconds) that a SERVFAIL response is cached. 
+   :short: Sets the length of time (in seconds) that a SERVFAIL response is cached.
 
    This sets the number of seconds to cache a SERVFAIL response due to DNSSEC
    validation failure or other general server failure. If set to ``0``,
@@ -4723,7 +4664,7 @@ Built-in Server Information Zones
 The server provides some helpful diagnostic information through a number
 of built-in zones under the pseudo-top-level-domain ``bind`` in the
 ``CHAOS`` class. These zones are part of a built-in view
-(see :ref:`view_statement_grammar`) of class ``CHAOS``, which is
+(see :any:`view`) of class ``CHAOS``, which is
 separate from the default view of class ``IN``. Most global
 configuration options (:any:`allow-query`, etc.) apply to this view,
 but some are locally overridden: :namedconf:ref:`notify`, :any:`recursion`, and
@@ -4930,15 +4871,11 @@ away from the infrastructure servers.
    This specifies the contact name that appears in the returned SOA record for
    empty zones. If none is specified, "." is used.
 
-.. _empty-zones-enable:
-
 .. namedconf:statement:: empty-zones-enable
    :tags: server, zone
    :short: Enables or disables all empty zones.
 
    This enables or disables all empty zones. By default, they are enabled.
-
-.. _disable-empty-zone:
 
 .. namedconf:statement:: disable-empty-zone
    :tags: server, zone
@@ -5679,7 +5616,7 @@ NXDOMAIN Redirection
 
 :iscman:`named` supports NXDOMAIN redirection via two methods:
 
--  Redirect zone (:ref:`zone_statement_grammar`)
+-  :any:`Redirect zone <type redirect>`
 -  Redirect namespace
 
 With either method, when :iscman:`named` gets an NXDOMAIN response it examines a
@@ -5706,15 +5643,11 @@ zone; there are no delegations.
 If both a redirect zone and a redirect namespace are configured, the
 redirect zone is tried first.
 
-.. _server_statement_grammar:
-
 ``server`` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: server
    :tags: server
    :short: Defines characteristics to be associated with a remote name server.
-
-.. _server_statement_definition_and_usage:
 
 ``server`` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -5801,7 +5734,7 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
 .. namedconf:statement:: keys
    :tags: server, security
    :short: Specifies one or more :any:`server_key` s to be used with a remote server.
-   
+
    :suppress_grammar:
 
    .. warning::
@@ -5839,15 +5772,11 @@ and :namedconf:ref:`options` blocks:
    - :namedconf:ref:`transfer-source`
 
 
-.. _statschannels:
-
 :any:`statistics-channels` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: statistics-channels
    :tags: logging
    :short: Specifies the communication channels to be used by system administrators to access statistics information on the name server.
-
-.. _statistics_channels:
 
 :any:`statistics-channels` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6330,15 +6259,11 @@ that is used to initialize the key-maintenance process is stored in
 can be found, the initializing key is also compiled directly into
 :iscman:`named`.
 
-.. _dnssec_policy_grammar:
-
 :any:`dnssec-policy` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: dnssec-policy
    :tags: dnssec
    :short: Defines a key and signing policy (KASP) for zones.
-
-.. _dnssec_policy:
 
 :any:`dnssec-policy` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6664,8 +6589,6 @@ with the ``initial-key`` keyword.
 The :any:`trusted-keys` statement has been deprecated in favor of
 :any:`trust-anchors` with the ``static-key`` keyword.
 
-.. _view_statement_grammar:
-
 :any:`view` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: view
@@ -6681,8 +6604,6 @@ The :any:`trusted-keys` statement has been deprecated in favor of
      [ view_option ; ... ]
      [ zone_statement ; ... ]
    } ;
-
-.. _view_statement:
 
 :any:`view` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6782,8 +6703,6 @@ Here is an example of a typical split DNS setup implemented using
          };
    };
 
-.. _zone_statement_grammar:
-
 :any:`zone` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. namedconf:statement:: zone
@@ -6791,8 +6710,6 @@ Here is an example of a typical split DNS setup implemented using
    :short: Specifies the zone in a BIND 9 configuration.
 
    :suppress_grammar:
-
-.. _zone_statement:
 
 :any:`zone` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6897,11 +6814,11 @@ Zone Types
    methods may be added in the future.
 
    To make mirror zone contents persist between :iscman:`named` restarts, use
-   the :ref:`file <file-option>` option.
+   the :any:`file` option.
 
    Mirroring a zone other than root requires an explicit list of primary
    servers to be provided using the :any:`primaries` option (see
-   :ref:`primaries_grammar` for details), and a key-signing key (KSK)
+   :any:`primaries` for details), and a key-signing key (KSK)
    for the specified zone to be explicitly configured as a trust anchor
    (see :any:`trust-anchors`).
 
@@ -6915,7 +6832,7 @@ Zone Types
    explicit;``.
 
    Outgoing transfers of mirror zones are disabled by default but may be
-   enabled using :ref:`allow-transfer <allow-transfer-access>`.
+   enabled using :any:`allow-transfer`.
 
    .. note::
       Use of this zone type with any zone other than the root should be
@@ -7038,7 +6955,7 @@ Zone Types
 
 .. namedconf:statement:: type delegation-only
    :tags: query
-   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.). 
+   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.).
 
    This zone type is used to enforce the delegation-only status of infrastructure
    zones (e.g., COM, NET, ORG). Any answer that is received without an
@@ -7048,7 +6965,7 @@ Zone Types
 
    :any:`delegation-only` has no effect on answers received from forwarders.
 
-   See caveats in :ref:`root-delegation-only <root-delegation-only>`.
+   See caveats in :any:`root-delegation-only`.
 
 .. namedconf:statement:: in-view
    :tags: view, zone
@@ -7086,8 +7003,6 @@ Zone Options
 
 :any:`allow-notify`
    See the description of :any:`allow-notify` in :ref:`access_control`.
-
-.. _allow-query:
 
 :any:`allow-query`
    See the description of :any:`allow-query` in :ref:`access_control`.
@@ -7147,10 +7062,10 @@ Zone Options
    See the description of :any:`update-check-ksk` in :ref:`boolean_options`.
 
 :any:`dnssec-loadkeys-interval`
-   See the description of :any:`dnssec-loadkeys-interval` in :ref:`options`.
+   See the description of :any:`dnssec-loadkeys-interval` in :namedconf:ref:`options`.
 
 :any:`dnssec-update-mode`
-   See the description of :any:`dnssec-update-mode` in :ref:`options`.
+   See the description of :any:`dnssec-update-mode` in :namedconf:ref:`options`.
 
 :any:`dnssec-dnskey-kskonly`
    See the description of :any:`dnssec-dnskey-kskonly` in :ref:`boolean_options`.
@@ -7187,11 +7102,7 @@ Zone Options
    ``yes``, then the zone is treated as if it is also a
    delegation-only type zone.
 
-   See caveats in :ref:`root-delegation-only <root-delegation-only>`.
-
-.. _file-option:
-
-.. _file:
+   See caveats in :any:`root-delegation-only`.
 
 .. namedconf:statement:: file
    :tags: zone
@@ -7223,7 +7134,7 @@ Zone Options
    :any:`primary <type primary>` and :any:`secondary <type secondary>` zones.
 
 :any:`max-ixfr-ratio`
-   See the description of :any:`max-ixfr-ratio` in :ref:`options`.
+   See the description of :any:`max-ixfr-ratio` in :namedconf:ref:`options`.
 
 :any:`max-journal-size`
    See the description of :any:`max-journal-size` in :ref:`server_resource_limits`.
@@ -7253,7 +7164,7 @@ Zone Options
    See the description of :any:`notify-to-soa` in :ref:`boolean_options`.
 
 :any:`zone-statistics`
-   See the description of :any:`zone-statistics` in :ref:`options`.
+   See the description of :any:`zone-statistics` in :namedconf:ref:`options`.
 
 .. namedconf:statement:: server-addresses
    :tags: query, zone
@@ -7354,13 +7265,13 @@ Zone Options
    are not available at the zone level.)
 
 :any:`key-directory`
-   See the description of :any:`key-directory` in :ref:`options`.
+   See the description of :any:`key-directory` in :namedconf:ref:`options`.
 
 :any:`auto-dnssec`
-   See the description of :any:`auto-dnssec` in :ref:`options`.
+   See the description of :any:`auto-dnssec` in :namedconf:ref:`options`.
 
 :any:`serial-update-method`
-   See the description of :any:`serial-update-method` in :ref:`options`.
+   See the description of :any:`serial-update-method` in :namedconf:ref:`options`.
 
 .. namedconf:statement:: inline-signing
    :tags: dnssec, zone
@@ -7380,7 +7291,7 @@ Zone Options
    See the description of :any:`masterfile-format` in :ref:`tuning`.
 
 :any:`max-zone-ttl`
-   See the description of :any:`max-zone-ttl` in :ref:`options`.
+   See the description of :any:`max-zone-ttl` in :namedconf:ref:`options`.
    The use of this option in :any:`zone` blocks is deprecated and
    will be rendered nonoperational in a future release.
 
@@ -7842,7 +7753,7 @@ Socket I/O Statistics
 A subset of Name Server Statistics is collected and shown per zone for
 which the server has the authority, when :any:`zone-statistics` is set to
 ``full`` (or ``yes``), for backward compatibility. See the description of
-:any:`zone-statistics` in :ref:`options` for further details.
+:any:`zone-statistics` in :namedconf:ref:`options` for further details.
 
 These statistics counters are shown with their zone and view names. The
 view name is omitted when the server is not configured with explicit
@@ -7852,7 +7763,7 @@ There are currently two user interfaces to get access to the statistics.
 One is in plain-text format, dumped to the file specified by the
 :any:`statistics-file` configuration option; the other is remotely
 accessible via a statistics channel when the :any:`statistics-channels`
-statement is specified in the configuration file (see :ref:`statschannels`.)
+statement is specified in the configuration file.
 
 .. _statsfile:
 

@@ -45,7 +45,7 @@ Memory Requirements
 -------------------
 
 Server memory must be sufficient to hold both the cache and the
-zones loaded from disk. The :ref:`max-cache-size<max-cache-size>` option can
+zones loaded from disk. The :any:`max-cache-size` option can
 limit the amount of memory used by the cache, at the expense of reducing
 cache hit rates and causing more DNS traffic. It is still good practice
 to have enough memory to load all zone and cache data into memory;

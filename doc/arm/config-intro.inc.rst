@@ -78,9 +78,9 @@ as required by the user.
           };
         };
 
-The :ref:`logging<logging_grammar>` and :ref:`options<options_grammar>` blocks
-and :ref:`category<the_category_phrase>`, :any:`channel`,
-:ref:`directory<directory>`, :ref:`file<file>`, and :ref:`severity<severity>`
+The :any:`logging` and :namedconf:ref:`options` blocks
+and :any:`category`, :any:`channel`,
+:any:`directory`, :any:`file`, and :any:`severity`
 statements are all described further in the appropriate sections of this ARM.
 
 .. _base_zone_file:
