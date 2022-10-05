@@ -804,4 +804,20 @@ dns_rdata_makedelete(dns_rdata_t *rdata);
 const char *
 dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section);
 
+isc_result_t
+dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata);
+/*%<
+ * Checks that 'rdata' contains a valid SVCB record.
+ *
+ * Requires:
+ *\li	'owner' is a valid name.
+ *\li	'rdata' is a valid, non-empty rdata.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS		-- success, the data is valid
+ *\li	#DNS_R_HAVEPARMKEYS	-- alias mode record, but SvcParamKeys is found
+ *\li	#DNS_R_NOALPN		-- ALPN required for 'owner', but not found
+ *\li	#DNS_R_NODOHPATH	-- DOHPATH required for 'owner', but not found
+ */
+
 ISC_LANG_ENDDECLS

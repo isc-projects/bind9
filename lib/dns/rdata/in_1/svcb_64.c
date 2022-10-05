@@ -21,6 +21,7 @@
 #define SVCB_MAN_KEY		 0
 #define SVCB_ALPN_KEY		 1
 #define SVCB_NO_DEFAULT_ALPN_KEY 2
+#define SVCB_DOHPATH_KEY	 7
 #define MAX_CNAMES		 16 /* See ns/query.c MAX_RESTARTS */
 
 /*
