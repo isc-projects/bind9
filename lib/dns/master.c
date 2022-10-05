@@ -1895,6 +1895,28 @@ load_text(dns_loadctx_t *lctx) {
 			}
 		}
 
+		if (type == dns_rdatatype_svcb &&
+		    (lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    (lctx->options & DNS_MASTER_CHECKSVCB) != 0)
+		{
+			result = dns_rdata_checksvcb(ictx->current,
+						     &rdata[rdcount]);
+			if (result != ISC_R_SUCCESS) {
+				(*callbacks->error)(callbacks,
+						    "%s:%lu: SVCB "
+						    "record not valid: %s",
+						    source, line,
+						    isc_result_totext(result));
+				if (MANYERRS(lctx, result)) {
+					SETRESULT(lctx, result);
+					target = target_ft;
+					continue;
+				} else if (result != ISC_R_SUCCESS) {
+					goto insist_and_cleanup;
+				}
+			}
+		}
+
 		if (dns_rdatatype_atparent(type) &&
 		    dns_master_isprimary(lctx) &&
 		    dns_name_equal(ictx->current, lctx->top))

@@ -90,6 +90,7 @@ options {
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
+	check-svcb <boolean>;
 	check-wildcard <boolean>;
 	clients-per-query <integer>;
 	cookie-algorithm ( aes | siphash24 );
@@ -398,6 +399,7 @@ view <string> [ <class> ] {
 	check-sibling <boolean>;
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
+	check-svcb <boolean>;
 	check-wildcard <boolean>;
 	clients-per-query <integer>;
 	deny-answer-addresses { <address_match_element>; ... } [ except-from { <string>; ... } ];

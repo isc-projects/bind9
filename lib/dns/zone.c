@@ -2562,6 +2562,9 @@ get_primary_options(dns_zone_t *zone) {
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKTTL)) {
 		options |= DNS_MASTER_CHECKTTL;
 	}
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSVCB)) {
+		options |= DNS_MASTER_CHECKSVCB;
+	}
 
 	return (options);
 }

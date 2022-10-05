@@ -2772,6 +2772,16 @@ Boolean Options
    Policy Framework record present (starts with "v=spf1") if there is an
    SPF record present. The default is ``warn``.
 
+.. namedconf:statement:: check-svcb
+   :tags: zone
+   :short: Specifies whether to perform additional checks on SVCB records.
+
+   If ``yes``, checks that SVCB records that start with a ``_dns``
+   label prefixed by an optional ``_<port>`` label (e.g.
+   ``_443._dns.ns1.example``), have an ``alpn`` parameter and that
+   the ``dohpath`` parameter exists when the ``alpn`` indicates
+   that it should be present.  The default is ``yes``.
+
 .. namedconf:statement:: zero-no-soa-ttl
    :tags: zone, query, server
    :short: Specifies whether to set the time to live (TTL) of the SOA record to zero, when returning authoritative negative responses to SOA queries.
