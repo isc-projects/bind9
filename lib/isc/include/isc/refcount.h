@@ -149,6 +149,53 @@ isc_refcount_decrement(isc_refcount_t *target) {
 		ISC_INSIST(_refs > 0);                                \
 	} while (0)
 
+#define ISC_REFCOUNT_TRACE_DECL(name)                                         \
+	void name##__ref(name##_t *ptr, const char *func, const char *file,   \
+			 unsigned int line);                                  \
+	void name##__unref(name##_t *ptr, const char *func, const char *file, \
+			   unsigned int line);                                \
+	void name##__attach(name##_t *ptr, name##_t **ptrp, const char *func, \
+			    const char *file, unsigned int line);             \
+	void name##__detach(name##_t **ptrp, const char *func,                \
+			    const char *file, unsigned int line)
+
+#define ISC_REFCOUNT_TRACE_IMPL(name, destroy)                                \
+	void name##__ref(name##_t *ptr, const char *func, const char *file,   \
+			 unsigned int line) {                                 \
+		uint_fast32_t refs;                                           \
+		REQUIRE(ptr != NULL);                                         \
+		refs = isc_refcount_increment(&ptr->references);              \
+		fprintf(stderr,                                               \
+			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
+			__func__, func, file, line, ptr, refs + 1);           \
+	}                                                                     \
+                                                                              \
+	void name##__unref(name##_t *ptr, const char *func, const char *file, \
+			   unsigned int line) {                               \
+		uint_fast32_t refs;                                           \
+		REQUIRE(ptr != NULL);                                         \
+		if ((refs = isc_refcount_decrement(&ptr->references)) == 1) { \
+			destroy(ptr);                                         \
+		}                                                             \
+		fprintf(stderr,                                               \
+			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
+			__func__, func, file, line, ptr, refs - 1);           \
+	}                                                                     \
+	void name##__attach(name##_t *ptr, name##_t **ptrp, const char *func, \
+			    const char *file, unsigned int line) {            \
+		REQUIRE(ptrp != NULL && *ptrp == NULL);                       \
+		name##__ref(ptr, func, file, line);                           \
+		*ptrp = ptr;                                                  \
+	}                                                                     \
+                                                                              \
+	void name##__detach(name##_t **ptrp, const char *func,                \
+			    const char *file, unsigned int line) {            \
+		REQUIRE(ptrp != NULL && *ptrp != NULL);                       \
+		name##_t *ptr = *ptrp;                                        \
+		*ptrp = NULL;                                                 \
+		name##__unref(ptr, func, file, line);                         \
+	}
+
 #define ISC_REFCOUNT_DECL(name)                             \
 	void name##_ref(name##_t *ptr);                     \
 	void name##_unref(name##_t *ptr);                   \
