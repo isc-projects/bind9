@@ -16020,7 +16020,6 @@ dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
 		break;
 	}
 
-out:
 	while (!ISC_LIST_EMPTY(keylist)) {
 		key = ISC_LIST_HEAD(keylist);
 		ISC_LIST_UNLINK(keylist, key, link);
@@ -16085,13 +16084,31 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 			continue;
 		}
 
+		/*
+		 * Skip DNSSEC records that BIND maintains with inline-signing.
+		 */
 		if (rdata->type == dns_rdatatype_nsec ||
 		    rdata->type == dns_rdatatype_rrsig ||
 		    rdata->type == dns_rdatatype_nsec3 ||
-		    rdata->type == dns_rdatatype_dnskey ||
 		    rdata->type == dns_rdatatype_nsec3param)
 		{
 			continue;
+		}
+		/*
+		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
+		 * update the zone with these records from a different provider,
+		 * but skip records that are under our control.
+		 */
+		if (rdata->type == dns_rdatatype_dnskey ||
+		    rdata->type == dns_rdatatype_cdnskey ||
+		    rdata->type == dns_rdatatype_cds)
+		{
+			bool inuse = false;
+			isc_result_t r = dns_zone_dnskey_inuse(zone, rdata,
+							       &inuse);
+			if (r == ISC_R_SUCCESS && inuse) {
+				continue;
+			}
 		}
 
 		op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
@@ -16138,9 +16155,11 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
 		next = ISC_LIST_NEXT(tuple, link);
+		/*
+		 * Skip DNSSEC records that BIND maintains with inline-signing.
+		 */
 		if (tuple->rdata.type == dns_rdatatype_nsec ||
 		    tuple->rdata.type == dns_rdatatype_rrsig ||
-		    tuple->rdata.type == dns_rdatatype_dnskey ||
 		    tuple->rdata.type == dns_rdatatype_nsec3 ||
 		    tuple->rdata.type == dns_rdatatype_nsec3param)
 		{
@@ -16148,6 +16167,26 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 			dns_difftuple_free(&tuple);
 			continue;
 		}
+
+		/*
+		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
+		 * update the zone with these records from a different provider,
+		 * but skip records that are under our control.
+		 */
+		if (tuple->rdata.type == dns_rdatatype_dnskey ||
+		    tuple->rdata.type == dns_rdatatype_cdnskey ||
+		    tuple->rdata.type == dns_rdatatype_cds)
+		{
+			bool inuse = false;
+			isc_result_t r = dns_zone_dnskey_inuse(
+				seczone, &tuple->rdata, &inuse);
+			if (r == ISC_R_SUCCESS && inuse) {
+				ISC_LIST_UNLINK(diff->tuples, tuple, link);
+				dns_difftuple_free(&tuple);
+				continue;
+			}
+		}
+
 		if (tuple->rdata.type == dns_rdatatype_soa) {
 			if (tuple->op == DNS_DIFFOP_DEL) {
 				INSIST(oldtuple == NULL);

@@ -3377,6 +3377,30 @@ update_action(void *arg) {
 						continue;
 					}
 				}
+				/*
+				 * Don't remove DNSKEY, CDNSKEY, CDS records
+				 * that are in use (under our control).
+				 */
+				if (rdata.type == dns_rdatatype_dnskey ||
+				    rdata.type == dns_rdatatype_cdnskey ||
+				    rdata.type == dns_rdatatype_cds)
+				{
+					isc_result_t r;
+					bool inuse = false;
+					r = dns_zone_dnskey_inuse(zone, &rdata,
+								  &inuse);
+					if (r != ISC_R_SUCCESS) {
+						FAIL(r);
+					}
+					if (inuse) {
+						update_log(client, zone,
+							   LOGLEVEL_PROTOCOL,
+							   "attempt to "
+							   "delete in use "
+							   "DNSKEY ignored");
+						continue;
+					}
+				}
 			}
 			dns_name_format(name, namestr, sizeof(namestr));
 			dns_rdatatype_format(rdata.type, typestr,
