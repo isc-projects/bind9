@@ -23,6 +23,8 @@
 
 #define SIZE (1024 * 1024)
 
+#define KILOHASHES(count, us) ((us) == 0 ? 0.0 : ((count)*1000.0 / (us)))
+
 int
 main(void) {
 	static uint8_t bytes[SIZE];
@@ -51,9 +53,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us wide-lower len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us wide-lower len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 
@@ -76,9 +77,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us wide-icase len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us wide-icase len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 	for (size_t len = 256; len > 0; len = len * 4 / 5) {
@@ -100,9 +100,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us wide-bytes len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us wide-bytes len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 
@@ -126,9 +125,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us half-lower len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us half-lower len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 
@@ -151,9 +149,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us half-icase len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us half-icase len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 
@@ -176,9 +173,8 @@ main(void) {
 		isc_time_now_hires(&finish);
 
 		us = isc_time_microdiff(&finish, &start);
-		printf("%f us half-bytes len %3zu, %7llu kh/s (%llx)\n",
-		       (double)us / 1000000.0, len,
-		       (unsigned long long)(count * 1000 / us),
+		printf("%f us half-bytes len %3zu, %7.0f kh/s (%llx)\n",
+		       (double)us / 1000000.0, len, KILOHASHES(count, us),
 		       (unsigned long long)sum);
 	}
 }
