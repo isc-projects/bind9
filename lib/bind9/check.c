@@ -3447,11 +3447,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (has_dnssecpolicy) {
 			if (!ddns && !signing) {
 				cfg_obj_log(kasp, logctx, ISC_LOG_ERROR,
-					    "'dnssec-policy;' requires%s "
-					    "inline-signing to be configured "
-					    "for the zone",
+					    "'inline-signing yes;' must also "
+					    "be configured explicitly for "
+					    "zones using dnssec-policy%s. See "
+					    "https://kb.isc.org/docs/"
+					    "dnssec-policy-requires-dynamic-"
+					    "dns-or-inline-signing",
 					    (ztype == CFG_ZONE_PRIMARY)
-						    ? " dynamic DNS or"
+						    ? " without a configured "
+						      "'allow-update' or "
+						      "'update-policy'"
 						    : "");
 				result = ISC_R_FAILURE;
 			}
