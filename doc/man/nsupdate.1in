@@ -349,6 +349,12 @@ Check\-names has no effect on prerequisites or records to be deleted.
 By default check\-names processing is on. If check\-names processing
 fails, the record is not added to the UPDATE message.
 .TP
+.B \fBcheck\-svbc [boolean]\fP
+This command turns on or off check\-svcb processing on records to be added.
+Check\-svcb has no effect on prerequisites or records to be deleted.
+By default check\-svcb processing is on. If check\-svcb processing
+fails, the record is not added to the UPDATE message.
+.TP
 .B \fBprereq nxdomain domain\-name\fP
 This command requires that no resource record of any type exist with the name
 \fBdomain\-name\fP\&.
