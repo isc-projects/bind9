@@ -299,6 +299,7 @@ destroy(dns_view_t *view) {
 	}
 	dns_rrl_view_destroy(view);
 	if (view->rpzs != NULL) {
+		dns_rpz_shutdown_rpzs(view->rpzs);
 		dns_rpz_detach_rpzs(&view->rpzs);
 	}
 	if (view->catzs != NULL) {
