@@ -113,9 +113,9 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		 */
 		isc_resourcevalue_t rlim_max = UINT64_MAX;
 		size_t wider = sizeof(rlim_max) - sizeof(rlim_t);
-		bool sign_bit = (double)(rlim_t)-1 < 0;
+		size_t sign_bit = (size_t)(0.0 > (double)(rlim_t)-1);
 
-		rlim_max >>= CHAR_BIT * wider + (sign_bit ? 1 : 0);
+		rlim_max >>= CHAR_BIT * wider + sign_bit;
 		rlim_value = ISC_MIN(value, rlim_max);
 	}
 
