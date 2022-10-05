@@ -20,7 +20,17 @@ Security Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- Upgrading from BIND 9.16.32 or older may require a manual
+  configuration change. The following configurations are affected:
+
+  - ``type primary`` zones configured with ``dnssec-policy`` but without
+    either ``allow-update`` or ``update-policy``
+  - ``type secondary`` zones configured with ``dnssec-policy``
+
+  In these cases please add ``inline-signing yes;``
+  to individual zone configuration(s). Without applying this
+  change :iscman:`named` will fail to start. For more details see
+  https://kb.isc.org/docs/dnssec-policy-requires-dynamic-dns-or-inline-signing
 
 New Features
 ~~~~~~~~~~~~
