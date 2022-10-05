@@ -9,8 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# flake8: noqa: E501
-
 import re
 
 from typing import List, Tuple
