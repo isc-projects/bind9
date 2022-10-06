@@ -96,14 +96,6 @@ typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 
-/* The following cannot be listed alphabetically due to forward reference */
-typedef isc_result_t(isc_httpdaction_t)(
-	const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
-	const char *headers, void *arg, unsigned int *retcode,
-	const char **retmsg, const char **mimetype, isc_buffer_t *body,
-	isc_httpdfree_t **freecb, void **freecb_args);
-typedef bool(isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
-
 /*% Resource */
 typedef enum {
 	isc_resource_coresize = 1,
