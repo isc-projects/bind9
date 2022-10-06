@@ -1200,6 +1200,33 @@ grep "bad name" nsupdate.out4-$n > /dev/null && ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
+echo_i "check check-svcb processing ($n)"
+ret=0
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
+EOF
+grep "check-svcb failed: no ALPN" nsupdate.out1-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+check-svcb off
+update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
+EOF
+grep "check-svcb failed: no ALPN" nsupdate.out2-$n > /dev/null && ret=1
+
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
+EOF
+grep "check-svcb failed: no DOHPATH" nsupdate.out3-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+check-svcb off
+update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
+EOF
+grep "check-svcb failed: no DOHPATH" nsupdate.out4-$n > /dev/null && ret=1
+
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
 echo_i "check adding of delegating NS records processing ($n)"
 ret=0
 $NSUPDATE -v << EOF > nsupdate.out.test$n 2>&1 || ret=1
