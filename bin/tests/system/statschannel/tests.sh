@@ -388,8 +388,8 @@ Host: 10.53.0.3:${EXTRAPORT1}
 Connection: close
 
 EOF
-    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
-    test $lines = 2 || ret=1
+    lines=$(grep -c "^HTTP/1.1" nc.out$n)
+    test "$lines" = 2 || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
     n=$((n + 1))
@@ -415,8 +415,8 @@ Connection: close
 
 {}
 EOF
-    lines=$(grep "^HTTP/1.1" nc.out$n | wc -l)
-    test $lines = 2 || ret=1
+    lines=$(grep -c "^HTTP/1.1" nc.out$n)
+    test "$lines" = 2 || ret=1
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
     n=$((n + 1))
@@ -424,29 +424,54 @@ else
     echo_i "skipping test as nc not found"
 fi
 
+echo_i "Check HTTP with more than 10 headers ($n)"
+ret=0
+i=0
+# build input stream.
+printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n\r\n' > send.in$n
+printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n' >> send.in$n
+
+while test $i -lt 11
+do
+printf 'X-Bloat: VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==\r\n' >> send.in$n
+i=$((i+1))
+done
+printf '\r\n' >> send.in$n
+
+# send the requests then wait for named to close the socket.
+time1=$($PERL -e 'print time(), "\n";')
+${NC} 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
+time2=$($PERL -e 'print time(), "\n";')
+test $((time2 - time1)) -lt 5 || ret=1
+# we expect 1 request to be processed.
+lines=$(grep -c "^HTTP/1.1" send.out$n)
+test $lines = 1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 echo_i "Check HTTP/1.1 pipelined with truncated stream ($n)"
 ret=0
 i=0
 # build input stream.
-cp /dev/null send.in$n
-while test $i -lt 500
+printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n\r\n' > send.in$n
+printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\nX-Bloat:' >> send.in$n
+while test $i -lt 5000
 do
-cat >> send.in$n << EOF
-GET /xml/v3/status HTTP/1.1
-Host: 10.53.0.3
-
-EOF
+printf '%s' "VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==" >> send.in$n
 i=$((i+1))
 done
+printf '\r\n' >> send.in$n
+printf '\r\n' >> send.in$n
 
 # send the requests then wait for named to close the socket.
 time1=$($PERL -e 'print time(), "\n";')
-${PERL} send64k.pl 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
+${NC} 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
 time2=$($PERL -e 'print time(), "\n";')
 test $((time2 - time1)) -lt 5 || ret=1
-# we expect 91 of the 500 requests to be processed.
-lines=$(grep "^HTTP/1.1" send.out$n | wc -l)
-test $lines = 91 || ret=1
+# we expect 1 request to be processed.
+lines=$(grep -c "^HTTP/1.1" send.out$n)
+test $lines = 1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
