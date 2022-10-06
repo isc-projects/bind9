@@ -44,7 +44,6 @@
 #include <dns/rdatatype.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
-#include <dns/tsec.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 
