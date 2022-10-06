@@ -25,7 +25,10 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- ``check-svcb`` has been added to control the checking of additional
+  constraints on SVBC records.  This change impacts on ``named``,
+  ``named-checkconf``, ``named-checkzone``, ``named-compilezone``
+  and ``nsupdate``.  :gl:`#3576`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
