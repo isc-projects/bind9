@@ -32,6 +32,13 @@ zone "example" {
 	file "example.db";
 };
 
+zone "relaxed" {
+	type primary;
+	allow-update { any; };
+	check-svcb no;
+	file "relaxed.db";
+};
+
 zone "nsec3param.test" {
 	type primary;
 	allow-update { any; };
