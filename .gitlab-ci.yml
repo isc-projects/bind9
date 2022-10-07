@@ -23,6 +23,7 @@ variables:
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
   TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan"
+  UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
   TARBALL_EXTENSION: xz
 
