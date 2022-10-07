@@ -42,6 +42,10 @@ New Features
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
 
+- The ``recursion not available`` and ``query (cache) '...' denied`` log
+  messages were extended to include the name of the ACL that caused a
+  given query to be denied. :gl:`#3587`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
