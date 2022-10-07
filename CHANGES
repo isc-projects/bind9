@@ -1,3 +1,6 @@
+5994.	[func]		Refactor the isc_httpd implementation used in the
+			statistics channel. [GL !6879]
+
 5993.	[cleanup]	Store dns_name_t attributes as boolean members of
 			the structure. Remove DNS_NAMEATTR_* macros.
 			Fix latent attribute handling bug in RBT. [GL !6902]
