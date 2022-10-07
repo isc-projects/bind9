@@ -12,11 +12,6 @@
 Notes for BIND 9.18.8
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 Known Issues
 ~~~~~~~~~~~~
 
@@ -39,20 +34,11 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
 
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - The ability to use pkcs11 via engine_pkcs11 has been restored, by only using
   deprecated APIs in OpenSSL 3.0.0. BIND needs to be compiled
