@@ -56,6 +56,10 @@ New Features
   systemd to wait until :iscman:`named` is fully ready before starting
   other services that depend on name resolution. :gl:`#1176`
 
+- The ``recursion not available`` and ``query (cache) '...' denied`` log
+  messages were extended to include the name of the ACL that caused a
+  given query to be denied. :gl:`#3587`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
