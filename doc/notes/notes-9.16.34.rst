@@ -12,11 +12,6 @@
 Notes for BIND 9.16.34
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 Known Issues
 ~~~~~~~~~~~~
 
@@ -37,16 +32,6 @@ New Features
 
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 - Add support for parsing and validating ``dohpath`` to SVBC records.
   :gl:`#3544`
