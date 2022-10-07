@@ -30,11 +30,11 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
-- :iscman:`named` now logs the supported cryptographic algorithms during
-  startup and in the output of ``named -V``. :gl:`#3541`
-
 - Support for parsing and validating the ``dohpath`` service parameter
   in SVCB records was added. :gl:`#3544`
+
+- :iscman:`named` now logs the supported cryptographic algorithms during
+  startup and in the output of ``named -V``. :gl:`#3541`
 
 Bug Fixes
 ~~~~~~~~~
