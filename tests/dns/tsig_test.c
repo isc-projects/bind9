@@ -46,8 +46,6 @@
 		}                              \
 	}
 
-static int debug = 0;
-
 static isc_result_t
 add_mac(dst_context_t *tsigctx, isc_buffer_t *buf) {
 	dns_rdata_any_tsig_t tsig;
