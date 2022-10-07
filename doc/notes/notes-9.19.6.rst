@@ -32,6 +32,18 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- Support for parsing and validating the ``dohpath`` service parameter
+  in SVCB records was added. :gl:`#3544`
+
+- :iscman:`named` now supports forwarding Dynamic DNS updates through
+  DNS-over-TLS (DoT). :gl:`#3512`
+
+- The :iscman:`nsupdate` tool now supports DNS-over-TLS (DoT).
+  :gl:`#1781`
+
+- :iscman:`named` now logs the supported cryptographic algorithms during
+  startup and in the output of :option:`named -V`. :gl:`#3541`
+
 - A new configuration option :any:`require-cookie` has been introduced.
   It specifies whether there should be a DNS COOKIE in the response for
   a given prefix; if not, :iscman:`named` falls back to TCP. This is
@@ -43,15 +55,6 @@ New Features
   :iscman:`named` to report its status to the init system. This allows
   systemd to wait until :iscman:`named` is fully ready before starting
   other services that depend on name resolution. :gl:`#1176`
-
-- The :iscman:`nsupdate` tool now supports DNS-over-TLS (DoT).
-  :gl:`#1781`
-
-- :iscman:`named` now supports forwarding Dynamic DNS updates through
-  DNS-over-TLS (DoT). :gl:`#3512`
-
-- :iscman:`named` now logs the supported cryptographic algorithms during
-  startup and in the output of :option:`named -V`. :gl:`#3541`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -75,9 +78,6 @@ Feature Changes
 - Compiling BIND 9 now requires at least libuv version 1.34.0 or higher.
   libuv should be available on all supported platforms either as a
   native package or as a backport. :gl:`#3567`
-
-- Support for parsing and validating the ``dohpath`` service parameter
-  in SVCB records was added. :gl:`#3544`
 
 Bug Fixes
 ~~~~~~~~~
