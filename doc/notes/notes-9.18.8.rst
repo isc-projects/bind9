@@ -36,6 +36,9 @@ Known Issues
 New Features
 ~~~~~~~~~~~~
 
+- Support for parsing and validating the ``dohpath`` service parameter
+  in SVCB records was added. :gl:`#3544`
+
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
 
@@ -46,9 +49,6 @@ Feature Changes
   using only deprecated APIs in OpenSSL 3.0.0. BIND 9 needs to be
   compiled with ``-DOPENSSL_API_COMPAT=10100`` specified in the CFLAGS
   environment variable at compile time. :gl:`#3578`
-
-- Support for parsing and validating the ``dohpath`` service parameter
-  in SVCB records was added. :gl:`#3544`
 
 Bug Fixes
 ~~~~~~~~~
