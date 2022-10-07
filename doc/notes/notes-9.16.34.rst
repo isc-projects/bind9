@@ -15,29 +15,29 @@ Notes for BIND 9.16.34
 Known Issues
 ~~~~~~~~~~~~
 
-- Upgrading from BIND 9.16.32 or older may require a manual
+- Upgrading from BIND 9.16.32 or any older version may require a manual
   configuration change. The following configurations are affected:
 
   - ``type primary`` zones configured with ``dnssec-policy`` but without
-    either ``allow-update`` or ``update-policy``
-  - ``type secondary`` zones configured with ``dnssec-policy``
+    either ``allow-update`` or ``update-policy``,
+  - ``type secondary`` zones configured with ``dnssec-policy``.
 
-  In these cases please add ``inline-signing yes;``
-  to individual zone configuration(s). Without applying this
-  change :iscman:`named` will fail to start. For more details see
+  In these cases please add ``inline-signing yes;`` to the individual
+  zone configuration(s). Without applying this change, :iscman:`named`
+  will fail to start. For more details, see
   https://kb.isc.org/docs/dnssec-policy-requires-dynamic-dns-or-inline-signing
 
 New Features
 ~~~~~~~~~~~~
 
 - :iscman:`named` now logs the supported cryptographic algorithms during
-  startup and in the output of :option:`named -V`. :gl:`#3541`
+  startup and in the output of ``named -V``. :gl:`#3541`
 
-- Add support for parsing and validating ``dohpath`` to SVBC records.
-  :gl:`#3544`
+- Support for parsing and validating the ``dohpath`` service parameter
+  in SVCB records was added. :gl:`#3544`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Changing just the TSIG key names for primaries in catalog zones' member
-  zones was not effective. :gl:`#3557`
+- Changing just the TSIG key names for primaries in catalog zones'
+  member zones was not effective. This has been fixed. :gl:`#3557`
