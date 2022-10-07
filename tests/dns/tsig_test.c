@@ -37,8 +37,6 @@
 
 #define TEST_ORIGIN "test"
 
-static int debug = 0;
-
 static int
 setup_test(void **state) {
 	isc_result_t result;

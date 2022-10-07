@@ -41,6 +41,7 @@ isc_timermgr_t *timermgr = NULL;
 isc_nm_t *netmgr = NULL;
 unsigned int workers = 0;
 isc_task_t *maintask = NULL;
+bool debug = false;
 
 int
 setup_managers(void **state) {
