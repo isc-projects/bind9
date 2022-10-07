@@ -12,11 +12,6 @@
 Notes for BIND 9.19.6
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 Known Issues
 ~~~~~~~~~~~~
 
@@ -34,8 +29,6 @@ Known Issues
 
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - A new configuration option ``require-cookie`` has been introduced, it
   specifies if there should be a DNS COOKIE in the response for a given
@@ -55,11 +48,6 @@ New Features
 
 - :iscman:`named` now logs the supported cryptographic algorithms during
   startup and in the output of :option:`named -V`. :gl:`#3541`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -99,4 +87,3 @@ Bug Fixes
 
 - Changing just the TSIG key names for primaries in catalog zones' member
   zones was not effective. :gl:`#3557`
-
