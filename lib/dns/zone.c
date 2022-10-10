@@ -17169,9 +17169,8 @@ restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 }
 
 static isc_result_t
-copy_non_dnssec_records(dns_zone_t *zone, dns_db_t *db, dns_db_t *version,
-			dns_db_t *rawdb, dns_dbiterator_t *dbiterator,
-			unsigned int *oldserial) {
+copy_non_dnssec_records(dns_db_t *db, dns_db_t *version, dns_db_t *rawdb,
+			dns_dbiterator_t *dbiterator, unsigned int *oldserial) {
 	dns_dbnode_t *rawnode = NULL, *node = NULL;
 	dns_fixedname_t fixed;
 	dns_name_t *name = dns_fixedname_initname(&fixed);
@@ -17208,14 +17207,8 @@ copy_non_dnssec_records(dns_zone_t *zone, dns_db_t *db, dns_db_t *version,
 		    rdataset.type == dns_rdatatype_dnskey ||
 		    rdataset.type == dns_rdatatype_nsec3param)
 		{
-			/*
-			 * Allow DNSSEC records with dnssec-policy.
-			 * WMM: Perhaps add config option for it.
-			 */
-			if (dns_zone_getkasp(zone) == NULL) {
-				dns_rdataset_disassociate(&rdataset);
-				continue;
-			}
+			dns_rdataset_disassociate(&rdataset);
+			continue;
 		}
 		if (rdataset.type == dns_rdatatype_soa && oldserial != NULL) {
 			result = checkandaddsoa(db, node, version, &rdataset,
@@ -17318,8 +17311,8 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	for (result = dns_dbiterator_first(dbiterator); result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(dbiterator))
 	{
-		result = copy_non_dnssec_records(zone, db, version, rawdb,
-						 dbiterator, oldserialp);
+		result = copy_non_dnssec_records(db, version, rawdb, dbiterator,
+						 oldserialp);
 		if (result != ISC_R_SUCCESS) {
 			goto failure;
 		}
