@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -9,13 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Clean up after rrl tests.
+# shellcheck source=conf.sh
+. ../conf.sh
 
-rm -f dig.out* *mdig.out*
-rm -f  */named.memstats */named.run */named.stats */log-* */session.key
-rm -f ns3/bl*.db */*.jnl */*.core */*.pid
-rm -f ns*/named.lock
-rm -f ns*/named.conf
-rm -f broken.conf
-rm -f broken.out
-rm -f ns*/managed-keys.bind*
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf

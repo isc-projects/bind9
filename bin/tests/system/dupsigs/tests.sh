@@ -21,7 +21,7 @@ do
 	et=`expr $now - $start`
 	echo "=============== $et ============"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl
-	$DIG axfr signing.test -p 5300 @10.53.0.1 > dig.out.at$et
+	$DIG axfr signing.test -p ${PORT} @10.53.0.1 > dig.out.at$et
 	awk '$4 == "RRSIG" { print $11 }' dig.out.at$et | sort | uniq -c
 	lines=`awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l`
 	if [ ${et} -ne 0 -a ${lines} -ne 4009 ]
