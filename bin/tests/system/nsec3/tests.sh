@@ -297,6 +297,13 @@ set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 
+# Zone: nsec3-dynamic-to-inline.kasp.
+set_zone_policy "nsec3-dynamic-to-inline.kasp" "nsec3" 1 3600
+set_nsec3param "0" "0" "0"
+set_key_default_values "KEY1"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+
 # Zone: nsec3-to-nsec.kasp.
 set_zone_policy "nsec3-to-nsec.kasp" "nsec3" 1 3600
 set_nsec3param "0" "0" "0"
@@ -415,6 +422,13 @@ check_nsec3
 # Zone: nsec3-dynamic-change.kasp. (reconfigured)
 set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other" 1 3600
 set_nsec3param "1" "11" "8"
+set_key_default_values "KEY1"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+
+# Zone: nsec3-dynamic-to-inline.kasp. (reconfigured)
+set_zone_policy "nsec3-dynamic-to-inline.kasp" "nsec3" 1 3600
+set_nsec3param "0" "0" "0"
 set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
