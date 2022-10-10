@@ -28,9 +28,8 @@ export LANG=C
 #
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# The "dialup" and "dupsigs" tests are also not run by
-# default because they take a very long time to complete.
-#
+# The "dupsigs" test is not run by default because it takes
+# a very long time to complete.
 
 #
 # These tests can use ports assigned by the caller (other than 5300

@@ -11,8 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f ns2/example.bk
-rm -f ns3/example.bk
-rm -f */named.memstats */named.run
-rm -f ns*/named.conf
-rm -f ns*/named.lock
+# shellcheck source=conf.sh
+. ../conf.sh
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
+copy_setports ns3/named.conf.in ns3/named.conf
