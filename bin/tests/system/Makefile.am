@@ -105,6 +105,7 @@ TESTS +=			\
 	checknames		\
 	checkzone		\
 	database		\
+	dialup			\
 	dlzexternal		\
 	dns64			\
 	dscp			\
@@ -172,9 +173,9 @@ TESTS +=			\
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# The "dialup" and "dupsigs" tests are also not run by
-# default because they take a very long time to complete.
-# TESTS += dialup dupsigs stress
+# The "dupsigs" test is not run by default because it takes
+# a very long time to complete.
+# TESTS += dupsigs stress
 
 if HAVE_LMDB
 TESTS += nzd2nzf
