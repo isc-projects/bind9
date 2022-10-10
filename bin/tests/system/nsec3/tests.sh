@@ -187,6 +187,12 @@ echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
+# Zone: nsec3-dynamic-to-inline.kasp.
+set_zone_policy "nsec3-dynamic-to-inline.kasp" "nsec3" 1 3600
+set_nsec3param "0" "5" "8"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+
 # Zone: nsec3-to-nsec.kasp.
 set_zone_policy "nsec3-to-nsec.kasp" "nsec3"
 set_nsec3param "0" "5" "8"
@@ -254,6 +260,12 @@ set_nsec3param "1" "11" "0"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
+
+# Zone: nsec3-dynamic-to-inline.kasp. (reconfigured)
+set_zone_policy "nsec3-dynamic-to-inline.kasp" "nsec3" 1 3600
+set_nsec3param "0" "5" "8"
+echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
 
 # Zone: nsec3-to-nsec.kasp. (reconfigured)
 set_zone_policy "nsec3-to-nsec.kasp" "nsec"
