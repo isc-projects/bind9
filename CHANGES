@@ -1,3 +1,5 @@
+	--- 9.19.6 released ---
+
 5992.	[func]		Introduce the new isc_mem_*x() APIs that takes extra
 			flags as the last argument.  Currently ISC_MEM_ZERO
 			and ISC_MEM_ALIGN(n) flags have been implemented that
