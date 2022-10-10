@@ -1,3 +1,5 @@
+	--- 9.18.8 released ---
+
 5991.	[protocol]	Add support for parsing and validating "dohpath" to
 			SVCB. [GL #3544]
 
