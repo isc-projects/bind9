@@ -389,3 +389,6 @@ $SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > sig
 #
 echo "example" >> zones
 cp example.db.in example.db
+
+setup "dynamic2inline.kasp"
+cp template.db.in $zonefile
