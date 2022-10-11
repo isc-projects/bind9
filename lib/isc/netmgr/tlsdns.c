@@ -863,6 +863,12 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 		sock->tls.pending_req = NULL;
 
 		if (peer_verification_has_failed(sock)) {
+			/*
+			 * Save error message as 'sock->tls' will get detached.
+			 */
+			sock->tls.tls_verify_errmsg =
+				isc_tls_verify_peer_result_string(
+					sock->tls.tls);
 			failure_result = ISC_R_TLSBADPEERCERT;
 		}
 		isc__nm_failed_connect_cb(sock, req, failure_result, async);
@@ -2121,6 +2127,13 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 			sock->tls.pending_req = NULL;
 
 			if (peer_verification_has_failed(sock)) {
+				/*
+				 * Save error message as 'sock->tls' will get
+				 * detached.
+				 */
+				sock->tls.tls_verify_errmsg =
+					isc_tls_verify_peer_result_string(
+						sock->tls.tls);
 				result = ISC_R_TLSBADPEERCERT;
 			}
 			isc__nm_failed_connect_cb(sock, req, result, false);
@@ -2214,7 +2227,7 @@ isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 
 	sock = handle->sock;
 	if (sock->tls.tls == NULL) {
-		return (NULL);
+		return (sock->tls.tls_verify_errmsg);
 	}
 
 	return (isc_tls_verify_peer_result_string(sock->tls.tls));
