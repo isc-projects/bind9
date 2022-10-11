@@ -774,6 +774,7 @@ udp__send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 			}
 		}
 		break;
+	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 		break;
 	default:
