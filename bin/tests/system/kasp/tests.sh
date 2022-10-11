@@ -1376,9 +1376,10 @@ check_rrsig_reuse() {
 		dig_with_opts "$ZONE" "@${SERVER}" "$_qtype" > "dig.out.$DIR.test$n" || log_error "dig ${ZONE} ${_qtype} failed"
 		grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || log_error "mismatch status in DNS response"
 		grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" "dig.out.$DIR.test$n" > "rrsig.out.$ZONE.$_qtype" || log_error "missing RRSIG (${_qtype}) record in response"
-		# If this exact RRSIG is also in the zone file it is not refreshed.
+		# If this exact RRSIG is also in the signed zone file it is not refreshed.
 		_rrsig=$(awk '{print $5, $6, $7, $8, $9, $10, $11, $12, $13, $14;}' < "rrsig.out.$ZONE.$_qtype")
-		grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
+		$CHECKZONE -f raw -F text -s full -o zone.out.${ZONE}.test$n "${ZONE}" "${DIR}/${ZONE}.db.signed" > /dev/null
+		grep "${_rrsig}" zone.out.${ZONE}.test$n > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
 		test "$ret" -eq 0 || echo_i "failed"
 		status=$((status+ret))
 	done
@@ -1396,8 +1397,10 @@ check_rrsig_reuse() {
 			dig_with_opts "${_label}.${ZONE}" "@${SERVER}" "$_qtype" > "dig.out.$DIR.test$n" || log_error "dig ${_label}.${ZONE} ${_qtype} failed"
 			grep "status: NOERROR" "dig.out.$DIR.test$n" > /dev/null || log_error "mismatch status in DNS response"
 			grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" "dig.out.$DIR.test$n" > "rrsig.out.$ZONE.$_qtype" || log_error "missing RRSIG (${_qtype}) record in response"
+			# If this exact RRSIG is also in the signed zone file it is not refreshed.
 			_rrsig=$(awk '{print $5, $6, $7, $8, $9, $10, $11, $12, $13, $14;}' < "rrsig.out.$ZONE.$_qtype")
-			grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
+			$CHECKZONE -f raw -F text -s full -o zone.out.${ZONE}.test$n "${ZONE}" "${DIR}/${ZONE}.db.signed" > /dev/null
+			grep "${_rrsig}" zone.out.${ZONE}.test$n > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
 			test "$ret" -eq 0 || echo_i "failed"
 			status=$((status+ret))
 		done
