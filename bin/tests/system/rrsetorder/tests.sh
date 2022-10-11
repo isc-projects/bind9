@@ -286,7 +286,7 @@ fi
 
 echo_i "Re-starting secondary"
 
-start_server --noclean --port ${PORT} rrsetorder ns2
+start_server --noclean --restart --port ${PORT} rrsetorder ns2
 
 #
 #
