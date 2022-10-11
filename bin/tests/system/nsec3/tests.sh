@@ -193,6 +193,12 @@ set_nsec3param "0" "5" "8"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 
+# Zone: nsec3-inline-to-dynamic.kasp.
+set_zone_policy "nsec3-inline-to-dynamic.kasp" "nsec3" 1 3600
+set_nsec3param "0" "5" "8"
+echo_i "initial check zone ${ZONE}"
+check_nsec3
+
 # Zone: nsec3-to-nsec.kasp.
 set_zone_policy "nsec3-to-nsec.kasp" "nsec3"
 set_nsec3param "0" "5" "8"
@@ -221,7 +227,25 @@ echo_i "initial check zone ${ZONE}"
 check_nsec3
 dnssec_verify
 
+# Zone: nsec3-dynamic-update-inline.kasp.
+set_zone_policy "nsec3-dynamic-update-inline.kasp" "nsec" 1 3600
+echo_i "initial check zone ${ZONE}"
+check_nsec
+
+n=$((n+1))
+echo_i "dynamic update dnssec-policy zone ${ZONE} with NSEC3 ($n)"
+ret=0
+$NSUPDATE > update.out.$ZONE.test$n 2>&1 << END || ret=1
+server 10.53.0.3 ${PORT}
+zone ${ZONE}.
+update add 04O18462RI5903H8RDVL0QDT5B528DUJ.${ZONE}. 3600 NSEC3 0 0 0 408A4B2D412A4E95 1JMDDPMTFF8QQLIOINSIG4CR9OTICAOC A RRSIG
+send
+END
+wait_for_log 10 "updating zone '${ZONE}/IN': update failed: explicit NSEC3 updates are not allowed in secure zones (REFUSED)" ns3/named.run || ret=1
+check_nsec
+
 # Reconfig named.
+ret=0
 echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
@@ -261,10 +285,16 @@ echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 dnssec_verify
 
-# Zone: nsec3-dynamic-to-inline.kasp. (reconfigured)
+# Zone: nsec3-dynamic-to-inline.kasp. (same)
 set_zone_policy "nsec3-dynamic-to-inline.kasp" "nsec3" 1 3600
 set_nsec3param "0" "5" "8"
 echo_i "check zone ${ZONE} after reconfig"
+check_nsec3
+
+# Zone: nsec3-inline-to-dynamic.kasp. (same)
+set_zone_policy "nsec3-inline-to-dynamic.kasp" "nsec3" 1 3600
+set_nsec3param "0" "5" "8"
+echo_i "initial check zone ${ZONE}"
 check_nsec3
 
 # Zone: nsec3-to-nsec.kasp. (reconfigured)
