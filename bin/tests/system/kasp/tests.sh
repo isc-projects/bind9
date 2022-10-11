@@ -4033,8 +4033,6 @@ key_clear "KEY4"
 # Various signing policy checks.
 check_keys
 check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
-check_apex
-check_subdomain
 dnssec_verify
 
 #
