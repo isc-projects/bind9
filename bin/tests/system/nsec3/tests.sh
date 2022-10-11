@@ -339,6 +339,14 @@ set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
 
+# Zone: nsec3-xfr-inline.kasp.
+# This is a secondary zone, where the primary is signed with NSEC3 but
+# the dnssec-policy dictates NSEC.
+set_zone_policy "nsec3-xfr-inline.kasp" "nsec" 1 3600
+set_key_default_values "KEY1"
+echo_i "initial check zone ${ZONE}"
+check_nsec
+
 # Zone: nsec3-dynamic-update-inline.kasp.
 set_zone_policy "nsec3-dynamic-update-inline.kasp" "nsec" 1 3600
 set_key_default_values "KEY1"
