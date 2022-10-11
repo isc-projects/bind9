@@ -132,6 +132,7 @@ ISC_TEST_LIST_END
 
 static int
 tcp_setup(void **state __attribute__((__unused__))) {
+	stream_port = TCP_TEST_PORT;
 	stream_use_TLS = false;
 	stream = true;
 
