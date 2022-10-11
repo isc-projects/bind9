@@ -283,7 +283,7 @@ fi
 
 echo_i "Re-starting secondary"
 
-$PERL $SYSTEMTESTTOP/start.pl --noclean --port ${PORT} rrsetorder ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rrsetorder ns2
 
 #
 #
