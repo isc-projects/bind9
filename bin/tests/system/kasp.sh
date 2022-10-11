@@ -695,7 +695,7 @@ dnssec_verify()
 	echo_i "dnssec-verify zone ${ZONE} ($n)"
 	ret=0
 	_dig_with_opts "$ZONE" "@${SERVER}" AXFR > dig.out.axfr.test$n || _log_error "dig ${ZONE} AXFR failed"
-	$VERIFY -z -o "$ZONE" dig.out.axfr.test$n > /dev/null || _log_error "dnssec verify zone $ZONE failed"
+	$VERIFY -z -o "$ZONE" dig.out.axfr.test$n > verify.out.$ZONE.test$n || _log_error "dnssec verify zone $ZONE failed"
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
 }
