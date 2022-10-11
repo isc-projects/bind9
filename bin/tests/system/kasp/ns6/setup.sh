@@ -45,7 +45,8 @@ do
 	cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-	$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+	cp $infile $zonefile
+	$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 	# Step 2:
 	# Set up a zone with dnssec-policy that is going insecure. Don't add
@@ -66,7 +67,8 @@ do
 	cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-	$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+	cp $infile $zonefile
+	$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 done
 
 # This zone is going straight to "none" policy. This is undefined behavior.
@@ -78,7 +80,8 @@ CSK=$($KEYGEN -k default $csktimes $zone 2> keygen.out.$zone.1)
 $SETTIME -s -g $O -k $O $TactN -z $O $TactN -r $O $TactN -d $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # The zones at algorithm-roll.kasp represent the various steps of a ZSK/KSK
@@ -99,7 +102,8 @@ $SETTIME -s -g $O -k $O $TactN -z $O $TactN              "$ZSK" > settime.out.$z
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone 8 "$KSK" >> "$infile"
 private_type_record $zone 8 "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # After the publication interval has passed the DNSKEY is OMNIPRESENT.
@@ -130,7 +134,8 @@ private_type_record $zone 8  "$KSK1" >> "$infile"
 private_type_record $zone 8  "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # The zone signatures are also OMNIPRESENT.
@@ -160,7 +165,8 @@ private_type_record $zone 8  "$KSK1" >> "$infile"
 private_type_record $zone 8  "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # The DS is swapped and can become OMNIPRESENT.
@@ -191,7 +197,8 @@ private_type_record $zone 8  "$KSK1" >> "$infile"
 private_type_record $zone 8  "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # The DNSKEY is removed long enough to be HIDDEN.
@@ -223,7 +230,8 @@ private_type_record $zone 8  "$KSK1" >> "$infile"
 private_type_record $zone 8  "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # The RRSIGs have been removed long enough to be HIDDEN.
@@ -256,7 +264,8 @@ private_type_record $zone 8  "$KSK1" >> "$infile"
 private_type_record $zone 8  "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # The zones at csk-algorithm-roll.kasp represent the various steps of a CSK
@@ -273,7 +282,8 @@ CSK=$($KEYGEN -k csk-algoroll -l policies/csk1.conf $csktimes $zone 2> keygen.ou
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -z $O $TactN -d $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone 5 "$CSK" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # After the publication interval has passed the DNSKEY is OMNIPRESENT.
@@ -292,7 +302,8 @@ echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # The zone signatures are also OMNIPRESENT.
@@ -313,7 +324,8 @@ echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # The DS is swapped and can become OMNIPRESENT.
@@ -335,7 +347,8 @@ echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # The DNSKEY is removed long enough to be HIDDEN.
@@ -358,7 +371,8 @@ echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # The RRSIGs have been removed long enough to be HIDDEN.
@@ -382,7 +396,8 @@ echo "Lifetime: 0" >> "${CSK1}.state"
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone 5  "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -z -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # Reload testing
