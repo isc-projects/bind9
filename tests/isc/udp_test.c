@@ -702,15 +702,17 @@ udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		isc_nmhandle_attach(handle, &readhandle);
 		isc_nm_read(handle, udp_cancel_read_read_cb, cbarg);
 
-		/* Send */
-		isc_refcount_increment0(&active_csends);
-		isc_nmhandle_attach(handle, &sendhandle);
-		isc_nmhandle_setwritetimeout(handle, T_IDLE);
-		isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
-			    udp_cancel_read_send_cb, cbarg);
+		/* Send only once */
+		if (isc_refcount_increment0(&active_csends) == 0) {
+			isc_nmhandle_attach(handle, &sendhandle);
+			isc_nmhandle_setwritetimeout(handle, T_IDLE);
+			isc_nm_send(sendhandle, (isc_region_t *)&send_msg,
+				    udp_cancel_read_send_cb, cbarg);
+		}
 		break;
 	case ISC_R_EOF:
 		/* The read has been canceled */
+		atomic_fetch_add(&creads, 1);
 		isc_loopmgr_shutdown(loopmgr);
 		break;
 	default:
@@ -718,8 +720,6 @@ udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	isc_refcount_decrement(&active_creads);
-
-	atomic_fetch_add(&creads, 1);
 
 	isc_nmhandle_detach(&handle);
 }
@@ -743,7 +743,7 @@ udp_cancel_read_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 ISC_SETUP_TEST_IMPL(udp_cancel_read) {
 	setup_test(state);
 	expected_cconnects = 1;
-	expected_creads = 2;
+	expected_creads = 1;
 	return (0);
 }
 
