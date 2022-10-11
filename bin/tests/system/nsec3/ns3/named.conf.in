@@ -152,3 +152,11 @@ zone "nsec3-dynamic-update-inline.kasp" {
 	allow-update { any; };
 	dnssec-policy "nsec";
 };
+
+zone "nsec3-xfr-inline.kasp" {
+	type secondary;
+	file "nsec3-xfr-inline.kasp.db";
+	inline-signing yes;
+	dnssec-policy "nsec";
+	primaries { 10.53.0.2; };
+};

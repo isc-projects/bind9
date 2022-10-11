@@ -12,19 +12,11 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../conf.sh
+. ../../conf.sh
 
-set -e
+echo_i "ns2/setup.sh"
 
-$SHELL clean.sh
-
-copy_setports ns2/named.conf.in ns2/named.conf
-(
-	cd ns2
-	$SHELL setup.sh
-)
-copy_setports ns3/named.conf.in ns3/named.conf
-(
-	cd ns3
-	$SHELL setup.sh
-)
+zone="nsec3-xfr-inline.kasp"
+echo_i "setting up zone: $zone"
+zonefile="${zone}.db"
+cp template.db.in "$zonefile"
