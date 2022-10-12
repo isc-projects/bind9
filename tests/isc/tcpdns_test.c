@@ -142,4 +142,12 @@ ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_send, stream_recv_send_setup,
 		      stream_recv_send_teardown)
 
 ISC_TEST_LIST_END
-ISC_TEST_MAIN
+
+static int
+tcpdns_setup(void **state __attribute__((__unused__))) {
+	stream_port = TCPDNS_TEST_PORT;
+
+	return (0);
+}
+
+ISC_TEST_MAIN_CUSTOM(tcpdns_setup, NULL)

@@ -95,69 +95,20 @@ bool allow_send_back = false;
 bool noanswer = false;
 bool stream_use_TLS = false;
 bool stream = false;
+in_port_t stream_port = 0;
 
 isc_nm_recv_cb_t connect_readcb = NULL;
 
 int
-setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family) {
-	socklen_t addrlen = sizeof(*addr);
-	uv_os_sock_t fd = -1;
-	int r;
-
-	isc_sockaddr_fromin6(addr, &in6addr_loopback, 0);
-
-	fd = socket(AF_INET6, family, 0);
-	if (fd < 0) {
-		perror("setup_ephemeral_port: socket()");
-		return (-1);
-	}
-
-	r = bind(fd, (const struct sockaddr *)&addr->type.sa,
-		 sizeof(addr->type.sin6));
-	if (r != 0) {
-		perror("setup_ephemeral_port: bind()");
-		isc__nm_closesocket(fd);
-		return (r);
-	}
-
-	r = getsockname(fd, (struct sockaddr *)&addr->type.sa, &addrlen);
-	if (r != 0) {
-		perror("setup_ephemeral_port: getsockname()");
-		isc__nm_closesocket(fd);
-		return (r);
-	}
-
-#if IPV6_RECVERR
-#define setsockopt_on(socket, level, name) \
-	setsockopt(socket, level, name, &(int){ 1 }, sizeof(int))
-
-	r = setsockopt_on(fd, IPPROTO_IPV6, IPV6_RECVERR);
-	if (r != 0) {
-		perror("setup_ephemeral_port");
-		isc__nm_closesocket(fd);
-		return (r);
-	}
-#endif
-
-	return (fd);
-}
-
-int
 setup_netmgr_test(void **state) {
 	char *env_workers = getenv("ISC_TASK_WORKERS");
-	uv_os_sock_t tcp_listen_sock = -1;
 	size_t nworkers;
 
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
-	tcp_listen_sock = setup_ephemeral_port(&tcp_listen_addr, SOCK_STREAM);
-	if (tcp_listen_sock < 0) {
-		return (-1);
-	}
-	isc__nm_closesocket(tcp_listen_sock);
-	tcp_listen_sock = -1;
+	isc_sockaddr_fromin6(&tcp_listen_addr, &in6addr_loopback, stream_port);
 
 	if (env_workers != NULL) {
 		workers = atoi(env_workers);

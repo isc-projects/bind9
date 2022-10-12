@@ -56,8 +56,6 @@ static isc_sockaddr_t udp_connect_addr;
 
 static int
 setup_test(void **state) {
-	uv_os_sock_t udp_listen_sock = -1;
-
 	setup_loopmgr(state);
 	setup_netmgr(state);
 
@@ -65,11 +63,8 @@ setup_test(void **state) {
 	isc_sockaddr_fromin6(&udp_connect_addr, &in6addr_loopback, 0);
 
 	udp_listen_addr = (isc_sockaddr_t){ .length = 0 };
-	udp_listen_sock = setup_ephemeral_port(&udp_listen_addr, SOCK_DGRAM);
-	if (udp_listen_sock < 0) {
-		return (-1);
-	}
-	isc__nm_closesocket(udp_listen_sock);
+	isc_sockaddr_fromin6(&udp_listen_addr, &in6addr_loopback,
+			     UDP_TEST_PORT);
 
 	atomic_store(&sreads, 0);
 	atomic_store(&ssends, 0);
@@ -779,6 +774,7 @@ udp__send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 			}
 		}
 		break;
+	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 		break;
 	default:

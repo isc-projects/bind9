@@ -131,6 +131,7 @@ ISC_TEST_LIST_END
 
 static int
 tls_setup(void **state __attribute__((__unused__))) {
+	stream_port = TLS_TEST_PORT;
 	stream_use_TLS = true;
 	stream = true;
 

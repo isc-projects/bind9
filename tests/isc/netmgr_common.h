@@ -18,6 +18,16 @@
 
 #include "netmgr/netmgr-int.h"
 
+/*
+ * Pick unused port outside the ephemeral port range, so we don't clash with
+ * connected sockets.
+ */
+#define UDP_TEST_PORT	 9153
+#define TCP_TEST_PORT	 9154
+#define TLS_TEST_PORT	 9155
+#define TCPDNS_TEST_PORT 9156
+#define TLSDNS_TEST_PORT 9157
+
 typedef void (*stream_connect_function)(isc_nm_t *nm);
 typedef void (*connect_func)(isc_nm_t *);
 
@@ -119,6 +129,7 @@ extern bool allow_send_back;
 extern bool noanswer;
 extern bool stream_use_TLS;
 extern bool stream;
+extern in_port_t stream_port;
 
 extern isc_nm_recv_cb_t connect_readcb;
 
@@ -212,9 +223,6 @@ extern isc_nm_recv_cb_t connect_readcb;
 #define atomic_assert_int_lt(val, exp) assert_true(atomic_load(&val) > exp)
 #define atomic_assert_int_ge(val, exp) assert_true(atomic_load(&val) >= exp)
 #define atomic_assert_int_gt(val, exp) assert_true(atomic_load(&val) > exp)
-
-int
-setup_ephemeral_port(isc_sockaddr_t *addr, sa_family_t family);
 
 int
 setup_netmgr_test(void **state);
