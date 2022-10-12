@@ -313,20 +313,29 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	F();
 
-	if (eresult != ISC_R_SUCCESS) {
+	switch (eresult) {
+	case ISC_R_EOF:
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
+	case ISC_R_CONNECTIONRESET:
 		/* Send failed, we need to stop reading too */
 		if (stream) {
 			isc_nm_read_stop(handle);
 		} else {
 			isc_nm_cancelread(handle);
 		}
-		goto unref;
+		break;
+	case ISC_R_SUCCESS:
+		if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1)) {
+			do_csends_shutdown(loopmgr);
+		}
+		break;
+	default:
+		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
+			isc_result_totext(eresult), cbarg);
+		assert_int_equal(eresult, ISC_R_SUCCESS);
 	}
 
-	if (have_expected_csends(atomic_fetch_add(&csends, 1) + 1)) {
-		do_csends_shutdown(loopmgr);
-	}
-unref:
 	isc_refcount_decrement(&active_csends);
 	isc_nmhandle_detach(&sendhandle);
 }
@@ -374,7 +383,6 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_CONNECTIONRESET:
-	case ISC_R_CONNREFUSED:
 		break;
 	default:
 		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
@@ -433,12 +441,15 @@ listen_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_refcount_decrement(&active_ssends);
 
 	switch (eresult) {
+	case ISC_R_CANCELED:
+	case ISC_R_CONNECTIONRESET:
+	case ISC_R_EOF:
+	case ISC_R_SHUTTINGDOWN:
+		break;
 	case ISC_R_SUCCESS:
 		if (have_expected_ssends(atomic_fetch_add(&ssends, 1) + 1)) {
 			do_ssends_shutdown(loopmgr);
 		}
-		break;
-	case ISC_R_CANCELED:
 		break;
 	default:
 		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
@@ -459,9 +470,10 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	switch (eresult) {
+	case ISC_R_CANCELED:
+	case ISC_R_CONNECTIONRESET:
 	case ISC_R_EOF:
 	case ISC_R_SHUTTINGDOWN:
-	case ISC_R_CANCELED:
 		break;
 	case ISC_R_SUCCESS:
 		memmove(&magic, region->base, sizeof(magic));
