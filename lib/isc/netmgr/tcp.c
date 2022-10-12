@@ -306,9 +306,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	result = tcp_connect_direct(sock, req);
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&sock->active, false);
-		if (sock->fd != (uv_os_sock_t)(-1)) {
-			isc__nm_tcp_close(sock);
-		}
+		isc__nm_tcp_close(sock);
 		isc__nm_connectcb(sock, req, result, true);
 	}
 
