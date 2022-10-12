@@ -863,6 +863,12 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 		sock->tls.pending_req = NULL;
 
 		if (peer_verification_has_failed(sock)) {
+			/*
+			 * Save error message as 'sock->tls' will get detached.
+			 */
+			sock->tls.tls_verify_errmsg =
+				isc_tls_verify_peer_result_string(
+					sock->tls.tls);
 			failure_result = ISC_R_TLSBADPEERCERT;
 		}
 		isc__nm_failed_connect_cb(sock, req, failure_result, async);
@@ -1384,6 +1390,27 @@ tls_pop_error(isc_nmsocket_t *sock) {
 static isc_result_t
 tls_cycle(isc_nmsocket_t *sock) {
 	isc_result_t result;
+
+	/*
+	 * Clear the TLS error queue so that SSL_get_error() and SSL I/O
+	 * routine calls will not get affected by prior error statuses.
+	 *
+	 * See here:
+	 * https://www.openssl.org/docs/man3.0/man3/SSL_get_error.html
+	 *
+	 * In particular, it mentions the following:
+	 *
+	 * The current thread's error queue must be empty before the
+	 * TLS/SSL I/O operation is attempted, or SSL_get_error() will not
+	 * work reliably.
+	 *
+	 * As we use the result of SSL_get_error() to decide on I/O
+	 * operations, we need to ensure that it works reliably by
+	 * cleaning the error queue.
+	 *
+	 * The sum of details: https://stackoverflow.com/a/37980911
+	 */
+	ERR_clear_error();
 
 	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
@@ -2100,6 +2127,13 @@ isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock) {
 			sock->tls.pending_req = NULL;
 
 			if (peer_verification_has_failed(sock)) {
+				/*
+				 * Save error message as 'sock->tls' will get
+				 * detached.
+				 */
+				sock->tls.tls_verify_errmsg =
+					isc_tls_verify_peer_result_string(
+						sock->tls.tls);
 				result = ISC_R_TLSBADPEERCERT;
 			}
 			isc__nm_failed_connect_cb(sock, req, result, false);
@@ -2193,7 +2227,7 @@ isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 
 	sock = handle->sock;
 	if (sock->tls.tls == NULL) {
-		return (NULL);
+		return (sock->tls.tls_verify_errmsg);
 	}
 
 	return (isc_tls_verify_peer_result_string(sock->tls.tls));
