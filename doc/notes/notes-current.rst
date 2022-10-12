@@ -30,7 +30,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The NSEC3PARAM TTL was previously set to 0 and is now changed to be the same
+  value as in the SOA MINIMUM field. :gl:`#3570`
 
 Bug Fixes
 ~~~~~~~~~
