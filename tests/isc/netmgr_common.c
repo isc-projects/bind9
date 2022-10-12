@@ -334,6 +334,7 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_CONNECTIONRESET:
+	case ISC_R_CONNREFUSED:
 		break;
 	default:
 		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
