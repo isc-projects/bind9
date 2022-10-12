@@ -86,8 +86,6 @@ static bool noanswer = false;
 
 static atomic_bool POST = true;
 
-static atomic_bool slowdown = false;
-
 static atomic_bool use_TLS = false;
 static isc_tlsctx_t *server_tlsctx = NULL;
 static isc_tlsctx_t *client_tlsctx = NULL;
@@ -157,9 +155,6 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 error:
 	data.reply_cb(handle, result, NULL, data.cb_arg);
 	isc_mem_putanddetach(&data.mctx, data.region.base, data.region.length);
-	if (result == ISC_R_TOOMANYOPENFILES) {
-		atomic_store(&slowdown, true);
-	}
 }
 
 static void
@@ -729,7 +724,7 @@ doh_connect_thread(void *arg) {
 	 * errors, to prevent a thundering herd problem.
 	 */
 	int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
-	if (atomic_load(&slowdown) || active > workers) {
+	if (active > workers) {
 		goto next;
 	}
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
