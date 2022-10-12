@@ -8120,6 +8120,7 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	dns_rdata_nsec3param_t nsec3param;
+	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	unsigned char parambuf[DNS_NSEC3PARAM_BUFFERSIZE];
@@ -8130,6 +8131,21 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 
 	result = dns_db_getoriginnode(db, &node);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/* Default TTL is SOA MINIMUM */
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_soa, 0, 0,
+				     &rdataset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		CHECK(dns_rdataset_first(&rdataset));
+		dns_rdataset_current(&rdataset, &rdata);
+		CHECK(dns_rdata_tostruct(&rdata, &soa, NULL));
+		ttl = soa.minimum;
+		dns_rdata_reset(&rdata);
+	}
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_nsec3param, 0,
 				     0, &rdataset, NULL);
 	if (result == ISC_R_NOTFOUND) {
