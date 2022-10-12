@@ -275,6 +275,14 @@ set_nsec3param "0" "0" "0"
 set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
+# Test that NSEC3PARAM TTL is equal to SOA MINIMUM.
+n=$((n+1))
+echo_i "check TTL of NSEC3PARAM in zone $ZONE ($n)"
+ret=0
+dig_with_opts +noquestion "@${SERVER}" "$ZONE" NSEC3PARAM > "dig.out.test$n" || ret=1
+grep "${ZONE}\..*3600.*IN.*NSEC3PARAM" "dig.out.test$n" > /dev/null || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Zone: nsec3-dynamic.kasp.
 set_zone_policy "nsec3-dynamic.kasp" "nsec3" 1 3600
