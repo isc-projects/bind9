@@ -807,6 +807,52 @@ udp__connect(void *arg __attribute__((__unused__))) {
 }
 
 static void
+udp__connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		     isc_region_t *region, void *cbarg) {
+	uint64_t magic = 0;
+
+	assert_non_null(handle);
+
+	F();
+
+	switch (eresult) {
+	case ISC_R_TIMEDOUT:
+		/*
+		 * We are operating on the localhost, UDP cannot get lost, but
+		 * it could be delayed, so we read again until we get the
+		 * answer.
+		 */
+		isc_nm_read(handle, connect_readcb, cbarg);
+		return;
+	case ISC_R_SUCCESS:
+		assert_true(region->length >= sizeof(magic));
+
+		memmove(&magic, region->base, sizeof(magic));
+
+		assert_true(magic == send_magic);
+
+		if (have_expected_creads(atomic_fetch_add(&creads, 1) + 1)) {
+			do_creads_shutdown(loopmgr);
+		}
+
+		if (magic == send_magic && allow_send_back) {
+			connect_send(handle);
+			return;
+		}
+
+		break;
+	default:
+		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
+			isc_result_totext(eresult), cbarg);
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+	}
+
+	isc_refcount_decrement(&active_creads);
+
+	isc_nmhandle_detach(&handle);
+}
+
+static void
 udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
 	isc_nmhandle_t *sendhandle = NULL;
@@ -853,6 +899,8 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 ISC_SETUP_TEST_IMPL(udp_recv_one) {
 	setup_test(state);
 
+	connect_readcb = udp__connect_read_cb;
+
 	expected_cconnects = 1;
 	cconnects_shutdown = false;
 
@@ -891,6 +939,8 @@ ISC_LOOP_TEST_IMPL(udp_recv_one) {
 
 ISC_SETUP_TEST_IMPL(udp_recv_two) {
 	setup_test(state);
+
+	connect_readcb = udp__connect_read_cb;
 
 	expected_cconnects = 2;
 	cconnects_shutdown = false;
@@ -1044,6 +1094,14 @@ double_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	switch (eresult) {
+	case ISC_R_TIMEDOUT:
+		/*
+		 * We are operating on the localhost, UDP cannot get lost, but
+		 * it could be delayed, so we read again until we get the
+		 * answer.
+		 */
+		detach = false;
+		break;
 	case ISC_R_SUCCESS:
 		assert_true(region->length >= sizeof(magic));
 
@@ -1062,7 +1120,6 @@ double_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		}
 
 		break;
-	case ISC_R_TIMEDOUT:
 	case ISC_R_EOF:
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
