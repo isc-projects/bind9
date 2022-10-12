@@ -22189,6 +22189,26 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 	UNLOCK(&zone->lock);
 }
 
+bool
+dns_zone_israw(dns_zone_t *zone) {
+	bool israw;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	israw = zone->secure != NULL;
+	UNLOCK(&zone->lock);
+	return (israw);
+}
+
+bool
+dns_zone_issecure(dns_zone_t *zone) {
+	bool issecure;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	issecure = zone->raw != NULL;
+	UNLOCK(&zone->lock);
+	return (issecure);
+}
+
 struct keydone {
 	bool all;
 	unsigned char data[5];

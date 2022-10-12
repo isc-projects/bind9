@@ -2317,6 +2317,12 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw);
 void
 dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
 
+bool
+dns_zone_israw(dns_zone_t *zone);
+
+bool
+dns_zone_issecure(dns_zone_t *zone);
+
 isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *data);
 /*%<
