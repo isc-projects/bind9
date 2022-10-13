@@ -66,6 +66,9 @@
  *** Imports
  ***/
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_ADB_TRACE
+
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -92,9 +95,7 @@ ISC_LANG_BEGINDECLS
  *** TYPES
  ***/
 
-typedef struct dns_adbname	  dns_adbname_t;
-typedef struct dns_adbnamebucket  dns_adbnamebucket_t;
-typedef struct dns_adbentrybucket dns_adbentrybucket_t;
+typedef struct dns_adbname dns_adbname_t;
 
 /*!
  *\brief
@@ -146,11 +147,6 @@ struct dns_adbfind {
  *	Fetches will start using the closest zone data or use the root servers.
  *	This is useful for reestablishing glue that has expired.
  *
- * _GLUEOK:
- * _HINTOK:
- *	Glue or hints are ok.  These are used when matching names already
- *	in the adb, and when dns databases are searched.
- *
  * _RETURNLAME:
  *	Return lame servers in a find, so that all addresses are returned.
  *
@@ -183,16 +179,6 @@ struct dns_adbfind {
  *	This is useful for reestablishing glue that has expired.
  */
 #define DNS_ADBFIND_STARTATZONE 0x00000020
-/*%
- *	Glue or hints are ok.  These are used when matching names already
- *	in the adb, and when dns databases are searched.
- */
-#define DNS_ADBFIND_GLUEOK 0x00000040
-/*%
- *	Glue or hints are ok.  These are used when matching names already
- *	in the adb, and when dns databases are searched.
- */
-#define DNS_ADBFIND_HINTOK 0x00000080
 /*%
  *	Return lame servers in a find, so that all addresses are returned.
  */
@@ -281,32 +267,16 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
  *\li	#ISC_R_NOMEMORY	after resource allocation failure.
  */
 
-#define dns_adb_attach(a, ap) \
-	dns__adb_attach(a, ap, __func__, __FILE__, __LINE__)
-void
-dns__adb_attach(dns_adb_t *adb, dns_adb_t **adbp, const char *func,
-		const char *file, unsigned int line);
-/*%
- * Attach to an 'adb' to 'adbp'.
- *
- * Requires:
- *\li	'adb' to be a valid dns_adb_t, created via dns_adb_create().
- *\li	'adbp' to be a valid pointer to a *dns_adb_t which is initialized
- *	to NULL.
- */
-
-#define dns_adb_detach(ap) dns__adb_detach(ap, __func__, __FILE__, __LINE__)
-void
-dns__adb_detach(dns_adb_t **adb, const char *func, const char *file,
-		unsigned int line);
-/*%
- * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.
- *
- * Requires:
- *
- *\li	'adb' be non-NULL and '*adb' be a valid dns_adb_t, created via
- *	dns_adb_create().
- */
+#if DNS_ADB_TRACE
+#define dns_adb_ref(ptr)   dns_adb__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_adb_unref(ptr) dns_adb__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_adb_attach(ptr, ptrp) \
+	dns_adb__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_adb_detach(ptrp) dns_adb__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_adb);
+#else
+ISC_REFCOUNT_DECL(dns_adb);
+#endif
 
 void
 dns_adb_shutdown(dns_adb_t *adb);
