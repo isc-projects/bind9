@@ -130,7 +130,7 @@ node_name(dns_rbtnode_t *node, dns_name_t *name) {
 	name->labels = node->offsetlen;
 	name->ndata = NAME(node);
 	name->offsets = OFFSETS(node);
-	name->attributes = node->attributes;
+	name->attributes = node->absolute ? DNS_NAMEATTR_ABSOLUTE : 0;
 	name->attributes |= DNS_NAMEATTR_READONLY;
 }
 
@@ -644,7 +644,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				current->right = NULL;
 
 				current->color = BLACK;
-				current->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+				current->absolute = false;
 
 				rbt->nodecount++;
 				dns_name_getlabelsequence(name,
@@ -1543,7 +1543,7 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 */
 	node->oldnamelen = node->namelen = region.length;
 	OLDOFFSETLEN(node) = node->offsetlen = labels;
-	node->attributes = name->attributes;
+	node->absolute = (name->attributes & DNS_NAMEATTR_ABSOLUTE) != 0;
 
 	memmove(NAME(node), region.base, region.length);
 	memmove(OFFSETS(node), name->offsets, labels);
