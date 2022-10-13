@@ -152,6 +152,7 @@ Files: **/.clang-format
        .clang-format
        .clang-format.headers
        .dir-locals.el
+       .git-blame-ignore-revs
        .gitattributes
        .gitignore
        .gitlab-ci.yml
