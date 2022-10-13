@@ -630,7 +630,7 @@ gcc:oraclelinux9:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-developer"
   <<: *oraclelinux_9_amd64_image
   <<: *build_job
 
