@@ -255,8 +255,8 @@ struct dns_adbaddrinfo {
 ****/
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
-	       dns_adb_t **newadb);
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
+	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
 /*%<
  * Create a new ADB.
  *

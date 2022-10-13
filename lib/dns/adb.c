@@ -26,6 +26,7 @@
 
 #include <isc/atomic.h>
 #include <isc/hashmap.h>
+#include <isc/loop.h>
 #include <isc/mutexblock.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -34,6 +35,7 @@
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -110,9 +112,10 @@ struct dns_adb {
 	isc_mem_t *mctx;
 	dns_view_t *view;
 	dns_resolver_t *res;
+	size_t nloops;
 
 	isc_taskmgr_t *taskmgr;
-	isc_task_t *task;
+	isc_task_t **tasks;
 
 	isc_refcount_t references;
 
@@ -2032,7 +2035,11 @@ destroy(dns_adb_t *adb) {
 	isc_mutex_destroy(&adb->lock);
 	isc_refcount_destroy(&adb->references);
 
-	isc_task_detach(&adb->task);
+	for (size_t i = 0; i < adb->nloops; i++) {
+		isc_task_detach(&adb->tasks[i]);
+	}
+	isc_mem_put(adb->mctx, adb->tasks, adb->nloops * sizeof(adb->tasks[0]));
+
 	isc_stats_detach(&adb->stats);
 	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
@@ -2044,8 +2051,8 @@ destroy(dns_adb_t *adb) {
  */
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
-	       dns_adb_t **newadb) {
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
+	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb) {
 	dns_adb_t *adb = NULL;
 	isc_result_t result;
 
@@ -2057,6 +2064,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
 		.taskmgr = taskmgr,
+		.nloops = isc_loopmgr_nloops(loopmgr),
 	};
 
 	/*
@@ -2083,16 +2091,19 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	/*
 	 * Allocate an internal task.
 	 */
-	result = isc_task_create(adb->taskmgr, &adb->task, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto free_lock;
+	adb->tasks = isc_mem_getx(
+		adb->mctx, adb->nloops * sizeof(adb->tasks[0]), ISC_MEM_ZERO);
+	for (size_t i = 0; i < adb->nloops; i++) {
+		result = isc_task_create(adb->taskmgr, &adb->tasks[i], i);
+		if (result != ISC_R_SUCCESS) {
+			goto free_tasks;
+		}
+		isc_task_setname(adb->tasks[i], "ADB", adb);
 	}
-
-	isc_task_setname(adb->task, "ADB", adb);
 
 	result = isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS) {
-		goto free_task;
+		goto free_tasks;
 	}
 
 	set_adbstat(adb, isc_hashmap_count(adb->namebuckets),
@@ -2107,10 +2118,14 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
 
-free_task:
-	isc_task_detach(&adb->task);
+free_tasks:
+	for (size_t i = 0; i < adb->nloops; i++) {
+		if (adb->tasks[i] != NULL) {
+			isc_task_detach(&adb->tasks[i]);
+		}
+	}
+	isc_mem_put(adb->mctx, adb->tasks, adb->nloops * sizeof(adb->tasks[0]));
 
-free_lock:
 	isc_mutex_destroy(&adb->lock);
 
 	isc_rwlock_destroy(&adb->entries_lock);
@@ -3313,6 +3328,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	dns_rdataset_t rdataset;
 	dns_rdataset_t *nameservers = NULL;
 	unsigned int options;
+	uint32_t tid = isc_tid();
 
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 
@@ -3354,7 +3370,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 */
 	result = dns_resolver_createfetch(
 		adb->res, &adbname->name, type, name, nameservers, NULL, NULL,
-		0, options, depth, qc, adb->task, fetch_callback, adbname,
+		0, options, depth, qc, adb->tasks[tid], fetch_callback, adbname,
 		&fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
@@ -3911,11 +3927,12 @@ water(void *arg, int mark) {
 	bool overmem = (mark == ISC_MEM_HIWATER);
 
 	/*
-	 * We're going to change the way to handle overmem condition: use
-	 * isc_mem_isovermem() instead of storing the state via this callback,
-	 * since the latter way tends to cause race conditions.
-	 * To minimize the change, and in case we re-enable the callback
-	 * approach, however, keep this function at the moment.
+	 * We're going to change the way to handle overmem condition:
+	 * use isc_mem_isovermem() instead of storing the state via this
+	 * callback, since the latter way tends to cause race
+	 * conditions. To minimize the change, and in case we re-enable
+	 * the callback approach, however, keep this function at the
+	 * moment.
 	 */
 
 	REQUIRE(DNS_ADB_VALID(adb));
