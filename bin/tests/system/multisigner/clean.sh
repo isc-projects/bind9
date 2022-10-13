@@ -25,6 +25,7 @@ rm -f verify.out.*
 
 rm -f ns*/*.jbk
 rm -f ns*/*.jnl
+rm -f ns*/*.journal.out.test*
 rm -f ns*/*.signed
 rm -f ns*/*.signed.jnl
 rm -f ns*/*.zsk
