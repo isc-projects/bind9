@@ -19,6 +19,7 @@ controls {
 
 http local {
 	endpoints { "/dns-query"; "/alter"; };
+	listener-clients 100;
 };
 
 tls tls-forward-secrecy {
@@ -94,6 +95,8 @@ options {
 	statistics-file "named.stats";
 	dnssec-validation yes;
 	tcp-initial-timeout 1200;
+	transfers-in 100;
+	transfers-out 100;
 };
 
 zone "." {
