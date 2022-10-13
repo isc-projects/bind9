@@ -1,0 +1,1528 @@
+# Since version 2.23 (released in August 2019), git-blame has a feature
+# to ignore or bypass certain commits.
+#
+# This file contains a list of commits that are not likely what you
+# are looking for in a blame, such as mass reformatting or renaming.
+# You can set this file as a default ignore file for blame by running
+# the following command.
+#
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# adjust the clang-format penalties to reduce string breaking
+0002377dca22d6072508bd3c1b31a6ace82283fd
+# update copyright notice / whitespace
+012142bbe07a89506d30fef12d2a4736a511567d
+# fix whitespaces
+013a49474cc25abd722ee91ab11c2033ee2b0efc
+# update copyright notice / whitespace
+0155ecba77787bc625ef926cdc856829fc22133c
+# update copyright notice
+024cf50d122a16a3ce190692d3669ecee47c23aa
+# update copyright notice / whitespace
+0297ebcc89bb070b12145a1121b528d04fbd14f8
+# update copyright notice / whitespace
+02ce048c915fce17094fe4e533d3c299319b884a
+# spelling; whitespace
+03ccae042b4acd22805d667f823066d3690965cf
+# update copyright notice
+03fc2ff5278321cc712818924ec591288ca560ac
+# update copyright notice
+04a9fcecf543712f74b341bd6d1bb10361ef8186
+# update copyright notice
+04b5785fde2948599bf259d2ca3235a3d9f55172
+# update copyright notice / whitespace
+052551c42398a2f3dfebb8e3ef491dea4310fb06
+# update copyright notice / whitespace
+055f6517b4328daaa06a27463cfc035cf04c35fa
+# update copyright notice
+055fd5fcba525e6ffe421b0ca4352adcf83d7c8f
+# Use clang-tidy to add curly braces around one-line statements
+056e133c4cd6c627b405bc1dc61a7bde3ddacf3e
+# update copyright notice / whitespace
+05cf9e32859fcc2d0e2b7e07ebbae0921308ffaf
+# update copyright notice
+06081a0d612c1c9eb3dd6ee66a90bcc8f5af849f
+# update copyright notice
+0666e6db543cda2de2b8472ba49ed9b53c836326
+# update copyright notice / whitespace
+0796eca5f7159622c0aa04ab41ca943a3493dc56
+# update_copyrights
+07dcadc6e24f4572f2b7d7cae7d47d0f5256d129
+# update copyright notice
+0837549bd6efe0594cbe783350753182b41a9437
+# update copyright notice
+08df939613d7f20bdac132a93efc537bb457ccfa
+# update copyright notice / whitespace
+08e0f8fcfa6d107367d11cb6ae32b56fe7cd9f99
+# update copyright notice / whitespace
+08f18efba2d17f8bb348603c2331e40ab9ccac66
+# now that the man page .html files are no longer processed by update_copyrights, there is no need to include a CVS Id line in them
+08fb9ebe293e189d7c1eba058d83582dd6400fca
+# update copyright notice / whitespace
+0967d759de1f0b7c3f93b2a198200b26169e2071
+# update copyright notice / whitespace
+099a9efd82f3782b37f5659ec67a89fbb0b38f68
+# update copyright notice
+099fa63e55bf5e987f4aecd013f667b95233a67f
+# MAN and HTML files generated from SGML files are now X-ed out so they will not be updated by update_copyrights
+09ab886382ad9e7149d9b72b4cf9a03ae4a1cddf
+# update copyright notice
+0a00c3eb03464988821a0b6817b63ddb3c090890
+# update copyright notice / whitespace
+0a3a65e3ccd06f672b32380435d228719aa716ac
+# update copyright notice
+0a8a14d5133169a67e2c6ac421f96267469ba532
+# update copyright notice / whitespace
+0ac6014fbf4f02b34a416650fd09a78e26c588a2
+# update copyright notice
+0add14467b53f33ace931f9a4790113cb8b5e45d
+# update copyright notice / whitespace
+0b115f3b55a625071a14be10de6e176414de5b2f
+# update copyright notice
+0b637179ccd82ca5e61ba7f890573085478c52d9
+# update copyright notice
+0c156cfa3939423689ed138a9cc7960bd2adf1eb
+# 4401.   [misc]          Change LICENSE to MPL 2.0.
+0c27b3fe77ac1d5094ba3521e8142d9e7973133f
+# update copyright notice / whitespace
+0d5b7ed79da7f2e835071834b2d4eb41863bc348
+# update copyright notice / whitespace
+0d63efe476bd07c8ea9a98dc8c9da7b4b114b701
+# update copyright notice / whitespace
+0d9572e437f04c6d6010cb89b6839d7859b7f2c2
+# update copyright notice / whitespace
+0d9aa35cac36db59161488bcdac69f56eaf7f8aa
+# update copyright notice / whitespace
+0dfc0745c4ec343c687adf752a8e04231b0aadb6
+# update copyright notice
+0e17b4207ee9278cd2183eab41bba3aefa64f15f
+# update copyright notice / whitespace
+0e2fe405f37afc60572c85fdb22e61327831f8e9
+# update copyright notice / whitespace
+0e9b328d62f6b051113287e6bade704bff66a009
+# update copyright notice
+0ecbe41b6b8dd7f561cfaf1897e9151b814f92d0
+# Unify whitespace in bin/tests/system/run.sh.in
+0f0a006c7e30829ead5fbadb725a5be479fed1cb
+# update file headers
+0fabe0da834e3a7cc96d851a866062227f8fb84c
+# update copyright notice / whitespace
+0fbf291dadf6042ca6b0e4b1bf72c7dcdaffa08a
+# update copyright notice
+0fc76b64fb631a537caa1707f3002e639de29463
+# update copyright notice
+0ff8ed750ed3e3510003020408b1bb4db5967e03
+# whitespace
+102c454e783d3dd9dbb9ceb30ed28c983cafd546
+# update copyright notice
+104f0e51ac7f472e69d53e4900fe121b7dc78537
+# update copyright notice / whitespace
+106368eb50b435c92aadc4e0411bb3327584a450
+# update copyright notice / whitespace
+10e49fc83bcb41743aa23458d51861c40363bbdc
+# update copyright notice
+1124950b35ae05a12e804e670607fe5ba775cb4a
+# update copyright notice
+11dc1b1508427252be3595ee3cb72fbfd9884c61
+# update copyright notice
+12253af3465f150a3b2f2cdaf15f396a5c060c21
+# update copyright notice
+12b386e1a6b12d1e482e87347cdeb773a0cd0fc2
+# update copyright notice / whitespace
+12ed5d34b9c206a217f4168a73ef8943066f2026
+# update copyright notice
+1361e038900701e126213261c0a1178025ae5a72
+# update copyright notice / whitespace
+13908e7551003805d0dc0907296c2fb0ec7e26fe
+# update copyright notice / whitespace
+1413616670fcb95b9ef236351502e4884ddca8bf
+# update copyright notice
+1443158c1101e58bf2fa0b9c785a40265b898a3b
+# update copyright notice
+14725aff16200258df1c0f93023cc4dfe3e83101
+# update copyright notice
+1599ac12be522feb3f0cf8dab9fdde695a93a03f
+# word wrap copyright notice at column 70
+15a44745412679c30a6d022733925af70a38b715
+# update copyright notice
+15c7a1bf207173deb2bff1d610d5f784b6629875
+# update copyright notice / whitespace
+161b5249b9277b95479ae933387ae9de65fbad30
+# update copyright notice / whitespace
+16201b15a6e228bf289f2448cb3b4d6ef47ff621
+# update copyright notice
+1633aead67b36a36bbf112a262d12025dbd4eec3
+# spelling; whitespace
+1677904b23401872189057441684ca5ce945b293
+# [master] fix update_copyrights to deal with python modules correctly
+168cf0ede1cf13a095e48af6749d88fbc432f096
+# update copyright notice
+17131a9459e5b30f764bc77f4fed288907a5b5e0
+# update copyright notice
+171f12f31edf85460ab3050b53633512b34bcc4f
+# [master] whitespace
+1736709296d81b06230f073543e95d70bd7cfe7c
+# update copyright notice
+1756e623f94b1573eee10ca208033fc5b42d085f
+# update copyright notice
+180c8cf5fa15ca82f9267eb139cebeb93a91b6ce
+# update copyright notice
+180d8b0eecfc02d3d25c96253aef3a3d19a58a5a
+# update copyright notice / whitespace
+1883d11ca231e5f7a20a8c7040cbb51411e3934b
+# update copyright notice / whitespace
+18b7760b290f757db842886c967bd09decfe3c5b
+# update copyright notice
+18cbe0a21642ba09a312e13cbbe809d28aaf35b9
+# update copyright notice / whitespace
+194f07c628122f38b9776146e51a0198579a9271
+# update copyright notice / whitespace
+19b7c0494eea9c5b72f11fa4d00e58e1aa0ade07
+# update copyright notice / whitespace
+19c7b1a0293498a3e36692c59646ed6e15ffc8d0
+# whitespace
+1aaedde67b42c433324eecb76ee379ca0ccda294
+# Remove extra whitespace in grammar for null statement
+1af157eb2095aca49f078d8e7d831b26cd9a676e
+# update copyright notice / whitespace
+1b0b6d7325f2d3404f58a8992606a9cfaf393703
+# update copyright notice
+1b2ae58ef163d9369ac1b693dde667ec49627ad9
+# update copyright notice
+1baa4729cee1c5aeacca90c57d4b4218315be53f
+# update copyright notice / whitespace
+1baa50950b413d81ecb98827fe2e1a3bb91d873a
+# update copyright notice / whitespace
+1c3b9b7666d40b0ab3f8662212f431a46ea41cb2
+# update copyright notice / whitespace
+1c6d1ca3356928847d4ad068c4d346254c35337c
+# whitespace changes in copyright message
+1cad45e9cf1f75bd6cf5353a933c4b9a0be07319
+# utility to trim trailing whitespace
+1cd587d241b4511b17e01ac31dbe9a38003758eb
+# update copyright notice
+1cd80e4825da12d8915617cd3e33f7afb83cb30c
+# update copyright notice / whitespace
+1d7d7cdcdada3406dc5d23cc41939e687f85a733
+# update copyright notice
+1d94248a12c2fcce1428c8ffd9ec4864db8a10fd
+# update copyright notice / whitespace
+1e33899f864d6dad313f606a188e5d905658e631
+# update copyright notice
+1e7501fe074fcacd9512af8b7db073f2a3ee4478
+# update copyright notice
+1e9f7a42bcfdfaa0ad314bed46e6c1297cdd0348
+# update copyright notice
+1ec9fe2c3cc2393c5af98229a555bcbe873300f2
+# reformat message
+1f058fb7d18d43e26ab0c9e8ce2ff6615740186a
+# update copyright notice / whitespace
+1f1c7c3b0a8d80235d2fd0ebf5deb5aa2693b393
+# update copyright notice / whitespace
+1f6505a424d696b73e5b2951cf5c9eeda9774f47
+# update copyright notice
+20a96edbf9894e327a99f21acf3571422df5c7b0
+# update copyright notice
+2147c4230131d392aa24aa363dab4e6636cf18fd
+# update copyright notice / whitespace
+21635968f7663163ce914f238fd99e40fdff07a1
+# update copyright notice
+21c8938824a2445bc750ba9c395a0d857f50ad72
+# update copyright notice / whitespace
+220ba6da875ee8824dd0b21c4446c2a369854efc
+# update copyright notice
+222f5e0697cdb7850e3664ea5e53091ddcf164b2
+# update copyright notice / whitespace
+225908aece0b71e282ae1b7135735999ae314cdf
+# whitespace
+2272d836ba1afb75a2079fa425e6aa03fb2e1c54
+# update copyright notice
+22dd28c5bc1b0319b00a1aa48a2eda36a75d91ee
+# update copyright notice / whitespace
+22eb44633919b688fdf227e3f99ba067bb578e52
+# update copyright notice / whitespace
+2317d1f835217db65808826b72a47920963c59fd
+# update copyright notice
+23554e8479a5995b1c7d775462145e426d637330
+# whitespace
+23de6c3ccd98fb8c7a6b6f06f33f6efcbfd1ca29
+# update copyright notice / whitespace
+24036b61f61e044c9058e4c01d0de7326c247c23
+# update copyright notice / whitespace
+243cfadf06bd3d2e89d0714267fc871e311a0ccc
+# update copyright notice / whitespace
+244d11a22724c7ee62bef8d8424da7042072fa9c
+# update copyright notice
+247bf378605811d695e968dbe930a7fc45c0038e
+# update copyright notice / whitespace
+24926303e446efae7a5b75c15365df0fedc3bd73
+# update copyright notice
+24a4fabc0b0508a2d2b4651454dba1dfa93968f2
+# update copyright notice
+25633bca239d1be056233c6e95f9ff86b1aa8193
+# update copyright notice / whitespace
+262bebd08115b2914ee3ae1612d6db480cbcae80
+# update copyright notice / whitespace
+2658ebbcbaf4c8f6712ab11d04c23b695a238a47
+# update copyright notice / whitespace
+27424c351db1b1ee96848956cf314025f727d1de
+# update copyright notice
+2777329775a039bea0ec3142a3e3158d9441fc75
+# update copyright notice / whitespace
+278b68ced5b6e77370741bc56c0bae8fba5f65e7
+# update copyright notice / whitespace
+2799701c3287106801cbbe64e7020087b3cd701f
+# update copyright notice / whitespace
+27def92931d3e01938f325a0bb722a0d871662d6
+# update_copyrights
+2834197ede0bfaec5b57cb1666e0c21f76408570
+# update copyright notice
+284d5252c14c81286b5d3d50c7c2a655e006c5e0
+# update copyright notice / whitespace
+288c18263f0b3306b6217ec24f9084f0f7230224
+# update copyright notice
+28b2fddfd4a68d4aa6000efce9c0537638818611
+# update_copyrights
+28d9fd53819cc163629c867466b20d8ebcae8842
+# update copyright notice
+291a670d12e88142f36a7561312233d80217d7f4
+# update copyright notice / whitespace
+29756974c585f616bb6e8233218cc385df9aeddb
+# update copyright notice / whitespace
+29916e6d7cda414f0c131f6b248669ab33421db5
+# update copyright notice / whitespace
+2a3747006563cfa1c07516ec594cc6d1f0db7ff2
+# update copyright notice / whitespace
+2b1bfbada6102d338fcc9dbf21e6a933a3ae14ed
+# update copyright notice / whitespace
+2b9cf58c57fdaeb007e0d14638a000cb516cbbcb
+# update copyright notice / whitespace
+2bc4d454e1958e540cf6000c3438f25e645b3c99
+# update copyright notice / whitespace
+2bd63eca275f4292452f6cb79cfb00a1065dd069
+# update copyright notice
+2c69f767d68a4bc5753982e861f358e2710578c0
+# update copyright notice / whitespace
+2cc103828e6bfcb8fa864383af321e201bb55250
+# update copyright notice
+2cf1d5b0986d38e60db88a7b2360798e539d7636
+# update copyright notice
+2d50cce72e08e29447c8b7adb56b55bca6c2e3c7
+# update copyright notice / whitespace
+2dd6ffb5cb356956685484160b0fdf157e2e9787
+# update copyright year to 2020
+2df13f79efa12335f52bcbe585e89bd695dceb17
+# update copyright notice / whitespace
+2f77f658a0ea063d7b2cab4f987cc646d7feb472
+# update copyright notice / whitespace
+2fac9b0be67117fdd4726998c77fa9d37c07b2e5
+# update copyright notice
+2fb35a6d5902aebbf2476a6d7ecbc5e9bd2e4dc9
+# update copyright notice
+313b0ea9f258edd8530f4454c69e6ba194280162
+# update copyright notice / whitespace
+31c2480cd4ce4043a98589f68d6db9af29973ec1
+# update copyright notice
+3278ff814d2babe5ba1aa61e7995cfddb1895b4f
+# fix whitespace
+32ba5a0494e26d49969c56e24865a858d4c3e9ac
+# style, braces, whitespace
+32d1cc1562f51dae332877672869bfa7b91b7700
+# update copyright notice
+32dc5779400ef0db8bffe27af4680b6dc226d40d
+# update copyright notice / whitespace
+337d408adbae1f91b625d0ce624fb39a66aae4d2
+# update copyright notice / whitespace
+33987cb5fd9a940010af4b023f2de1ba91e6c884
+# update copyright notice
+33d6c4a086b7c6618924f70aa66fa97a9ab4ea85
+# update copyright notice / whitespace
+34075107babc30457bde0b7ad1d7120bf355e2dd
+# update copyright notice
+345a210f5105134ae290f342cdf75986fdc2ac65
+# update copyright notice / whitespace
+34da98377c64688168b5197f52d0d40a5ce58206
+# update copyright notice / whitespace
+34eab435ace6e5c8392819d06dd54078124126df
+# whitespace
+34fba65d39b884775c30da2ae4eee15973b1b30d
+# Update copyright date in man pages
+358c133ee20e64b64569429df196d7c7767a624a
+# update copyright notice / whitespace
+35af5049f8a0a0ad08e4ad7de7594e81b2107004
+# update copyright notice / whitespace
+3618b965d1c86787f7743de02b99c54a31797289
+# update copyright notice
+36a3d08a723986554b559af7f8c228f98df7d318
+# reformatting; no functional change
+3755da41db87a4f31d1806e9374e6241759e0c24
+# update copyright notice
+377b774598f3973c2b231fb88d39acca1ff5ebc4
+# update copyright notice / whitespace
+37873c28de6da31df0c5632a8cbde34c31ee6907
+# update copyright notice
+37f7c4c673622e984a41570fda42c1a678622fa4
+# update copyright notice / whitespace
+3813d22587681c16ad3a85a6e684558182aeb9f9
+# Fixup the missing clang-format bits
+3832e3ecc9854d83d65efe8fa49b258b4ce744e5
+# update copyright notice / whitespace
+3865e18d3d076d018e9d6b1fa033ac5f5cffc7c7
+# update copyright notice / whitespace
+38a9d9ba76f2ed260a6bcc6cb658716850fd5d16
+# update copyright notice / whitespace
+393135d693bf264faabfcac2c947e2fae0e7412c
+# update copyright notice / whitespace
+3939cc42d8157258c3e65b99da2415e8adb532d3
+# update copyright notice / whitespace
+3947e3625ac09fa7122449242d45bbced81c728b
+# update copyright notice / whitespace
+39f68aa480323e94e4e9f60840069168135858ca
+# update copyright notice / whitespace
+39f68d7b64dce25e19f7132f6c46b3beabeed492
+# update copyright notice
+3a34908497c9f73ebc4b83c614b75844a204e006
+# update copyright notice
+3aaa526a94c80c31c16d44f0f6482984725860f1
+# update copyright notice
+3b398443f0dca316ba7a6e057ba2d1b8ab4ddf70
+# update copyright notice / whitespace
+3b443e87a0bb3c8d888d26d0a34db7255772715f
+# update copyright notice / whitespace
+3b5e75c07a7f2e5ad7b5db181a4880f8d7dfd136
+# update copyright notice
+3b7b634d56a63f5546103f994f283e72cb59fe76
+# update copyright notice
+3b922eeb6294d579edfd720ac162287e6736e07a
+# copyright messages now generated by util/update_copyrights
+3b938ff0d9207bc32075d8fd40176647f444c377
+# update copyright notice
+3b9bbd52c81036217d92193f46b194a1bf0e00bd
+# update copyright notice / whitespace
+3bd20c8dd4a8898ef5797429ad896ec1e0389104
+# update copyright notice / whitespace
+3bfc28a0d0652797368b72a1a733caff25f1a58a
+# update copyright notice
+3c04ca47c633e0e7aa4a18c0690feced27143951
+# update copyright notice
+3c15417fc12b04ed09f8f7caa63ca7198dbe69da
+# update copyright notice / whitespace
+3d2a6c994923835720fc199a84a55b779f87cfc0
+# update copyright notice
+3d4ce9ea273bcc6ceebe7f5b7a5699b598f9970f
+# update copyright notice / whitespace
+3d787a12133f09e16d6275d50a4547cff5869b44
+# update copyright notice / whitespace
+3e0b34d0ac3c4377feb6c9b156c81b405dfd35f8
+# update copyright notice / whitespace
+3e2bfb151a46d87dd3c18fed5d26b404bfbb55c5
+# update copyright notice / whitespace
+3e6b0b49317c86869ede222ea61ebc051c209cda
+# update copyright notice / whitespace
+3e7ed60f99932a1aa8dfd9b1d172a75ab941edca
+# update copyright notice / whitespace
+3eb65aba2a9c3de3aff4796f98ee17afc4d2cefc
+# update copyright notice / whitespace
+3ebda3f46b62b9644ef963e56c6c441e96693011
+# update copyright notice
+3fb95bfcb2e478d721d378f0be5ff0a32269bc2a
+# update copyright notice
+3fd181c98fc7997468d9cee2fbdd7a961ea67e78
+# update copyright notice
+3fd910dec5c3fd5586003fffd03ecf2f92aae53f
+# update copyright notice / whitespace
+3fda67b59698ad900dd1448b699a53f82ce12e5a
+# Check update_copyright results in precheck stage
+4016369212a4868edcdc83be2ee91493833c90ed
+# update copyright notice / whitespace
+40780aa36ffdf27572159bc4953d1c49638aaf23
+# update copyright notice
+40b42978b98217d0d856de694854fadda56f2d37
+# whitespace changes in copyright message
+40cd552b5e7888e5350b2f40f33a343dcaa219f9
+# Trailing whitespace trimmed.  Perhaps running "perl util/spacewhack.pl in your own CVS tree will help minimize CVS conflicts.  Maybe not. Blame Graff for getting me to trim all trailing whitespace.
+40f53fa8d9c6a4fc38c0014495e7a42b08f52481
+# update copyright notice / whitespace
+421f833b67ee7b4a67507784927af06e5964e54e
+# update copyright notice / whitespace
+429a43b720b5dd5436e5b5e8dbe8855fc502e13b
+# update copyright notice
+431a83fb29482c5170b3e4026e59bb14849a6707
+# update copyright notice / whitespace
+431e5c81dbd81cf411b9a187fa5f611f23c0e16f
+# update copyright notice
+432d8fa3b403767d63d166492222b0435486914d
+# [master] whitespace
+4357e13a4bc2e175d73b20f9ef3e809b3e269ee4
+# update copyright notice / whitespace
+43cc3edce92b58f05b09d9ed58484f45acafd388
+# update copyright notice / whitespace
+445cabb392efccf97da251d93d0b66198cebb317
+# update copyright notice
+44863746316be889b13ee5cf893245baa089a75d
+# update copyright notice
+44c016134fdac329e51c993f040a40cd9eb3ee6b
+# update copyright notice / whitespace
+452a29e62cf661c7a91b7a2a18b0ccbba50d832f
+# Cleanup cmocka related whitespace
+45bee4d3c3161b9a3b93a523720e966bc734ffeb
+# update copyright notice / whitespace
+4688741c5c81b5945be0270926804573e27cf11d
+# update copyright notice / whitespace
+46d7d8717a048309144850a48d79b01b9c6bc92c
+# update copyright notice / whitespace
+46ee7c3260725be660e4db900ad792ae186b33fc
+# cut-and-paste-o; reformatting
+470208d879b2935791540d2587d37d4fb648959a
+# fix whitespace
+47115d91ef32317a2c0eb9daaf9c910757568de0
+# update copyright notice
+4734976943ac9995a8ce0bbbf321e9ee6f52b3f6
+# update copyright notice
+473d3168f0051bd76641332b5eac36b36ee24f9e
+# A comment was reformatted badly.
+47846b7468f639713ad7ab69e70c7e0bfed5a6c7
+# update copyright notice / whitespace
+47d13972e9445ba9b1760eeb95db13e6535b613f
+# update copyright notice / whitespace
+47f617f8b2b42166d5e4690e1a5545bc7561c06c
+# fix a typo in copyright headers, and change "http" to "https"
+481a7aae44c95e07628df17e2a222ffa51a698b8
+# update copyright notice / whitespace
+4949f397164cac6609c11c896e4a08d0763a679f
+# update copyright notice
+49503f1d9f53aca7a3bfff5aafd05715670bcbd4
+# copyright update
+499b34cea04a46823d003d4c0520c8b03e8513cb
+# update_copyrights
+49dbdb0186eb23d87d685b96eaefa9ec3c71d9b8
+# update copyright notice / whitespace
+4a7004f3cec6958b8b20bccf07b9f6a44f0fd590
+# update copyright notice / whitespace
+4aaac77cb58050fdf097423b9bb5217501ae2cc6
+# update copyright notice
+4b1a93381194eee86de726fd313dd33d06fae946
+# update copyright notice
+4b2c089cd82a7915443c3ad71f30a55e1cfcf91a
+# update copyright notice / whitespace
+4b48e307e0a24c3f4e3512dffabbe2a7a81061f0
+# update copyright notice / whitespace
+4ba2689c1f4e0c8c670fc47307d7b46d9da3a45b
+# update copyright notice / whitespace
+4c60000629357757711553eb13c87fc20c6f3142
+# update copyright notice / whitespace
+4ccffa13aa1f87d8d3dbdf7a74cf29b1c323ad52
+# update copyright notice
+4ded8003e33ee5c9fbdde06630d6e0e50fe01797
+# update copyright notice / whitespace
+4df65ccfeca981cef1bf66706b8b505a8407f9d2
+# update copyright notice
+4e3e8cbea01a23167213d041808f0f5ddfc12443
+# update_copyrights
+4e6b8a18ff7dd22797970208060cca9f99f54daf
+# update copyright notice / whitespace
+4e92a74ec419e60e49d6857864920f085cc4613b
+# update copyright notice / whitespace
+4ef83f4333f19868f82b23259507c778c928c52d
+# update copyright notice / whitespace
+503ffdad3bc62e6458e4b60e329aa448ce1803a1
+# update copyright notice
+50464a33981af03d897f3fa3effdbd97396025d6
+# remove whitespace
+510dca6f52622cc06847b6b243eb9375dbeff016
+# update copyright notice
+5115a8b86894bdafc977e844fd37dc5fc8ac0ddd
+# update copyright notice
+51437e2eeae397261ee680e57dd8d6566be9539a
+# update copyright notice
+5165c59007b3f7e2948a9161b116367e5488df26
+# update copyright notice / whitespace
+523ad879ce1abb51cae579a6393da0e0436fe8df
+# update copyright notice
+526cc7c2c000d54340a6da18f1ae7964265cc6c2
+# update copyright notice
+52d3ce3ada750549c6abcf860f4e89071a6a90b1
+# update copyright notice / whitespace
+53993374748a007a86bedfc6ecd21f2e95eb8f75
+# update copyright notice / whitespace
+53ba272721898b15dc6abfa251cc648354303dda
+# Make clang-format happy
+53bd81ad1992520087a05edfd51fdb4ed627b789
+# update copyright notice
+53e8ebc8f0f7315d4af29401a856d45f10ee2bd8
+# update copyright notice / whitespace
+5414e486066c127276997cc58f4e4f328d36d56b
+# update copyright notice
+543ab56b01a4b173a1b1f1c393cc6dbcf0cfa0a1
+# update copyright notice / whitespace
+54599d0e4f2448ab2a38a94f9faec10e42ec3797
+# update copyright notice
+5465b124f1517b27c363872bd7648a950424ecca
+# whitespace
+54a00ea5ca94ff9e3a4204aea78639ba781d5865
+# update copyright notice
+54c820164aa74f0e6da0d58f21baed07b8aabb03
+# update copyright notice
+54f04323c0049de63c9469634e205e543138e2b4
+# update copyright notice / whitespace
+551e0d486d45ce379fe6bfdd64945342850a0835
+# Remove $Id markers, Principal Author and Reviewed tags from the full source tree
+55a10b7acd8fd6f13a6c49398ed51efd02a6a973
+# update copyright notice / whitespace
+55cfbf322d6051d7cf5c0ec4998aab9291dfee39
+# update copyright notice / whitespace
+563764584742696ac52028fd35fb85837c8554bf
+# update copyright notice
+56474e9d28b5cf2d6b8327ed445b6784364fca0d
+# whitespace
+564968bc0aefe5a3d19d88fdb654fb9128ecf6af
+# update copyright notice
+5655174c2c382238efbf7fdbf3f4afe39c7ddc03
+# update copyright notice
+56af756b6c4ae9fea1b27303c4a0c7ddd3fb749b
+# update copyright notice
+573d78f3d53859bc01ce5d5cebbaac9b8b90bfba
+# Reformat using the new rules
+5777c44ad01e1947462b3742e32327650dba328a
+# update copyright notice
+5781d00939dae8d9da5d502fec1562488abf7461
+# update copyright notice
+585408ef543b1ea62a36272576834b6a31a3616e
+# update copyright notice / whitespace
+587f0050324ad07e8dd0ac68c5a9099e5d21c667
+# Update the copyright information in all files in the repository
+58bd26b6cf7bac3f614b6614cd2aff6075b6f9fa
+# Merge branch 'run-update_copyrights' into 'master'
+591a6c94ee310fad65ed9a520f76476db5b33a61
+# update copyright notice
+5924e4ace0c4bf2b2bbc5238a7a94594c28c779f
+# update copyright notice / whitespace
+59e7a41eaf07ba43132f09509582739e531f7ca2
+# update copyright notice
+5a31767b0982ba0fd5211d51fd002730c929656a
+# update_copyrights
+5a3eba71b414b6915c62390b05518041a17e7ae4
+# update copyright notice
+5ac5300fdf18c91405d1f83f521bf887ded495a3
+# update copyright notice / whitespace
+5c144477062a5df657acee41a82051d38537fd38
+# update copyright notice
+5c6b95ba1b2e35f8dd6b0a7f25aacba91fff3aa2
+# Make clang-format happy
+5cc33084af4de81aec3f9bb33837c4f2866d3aee
+# update copyright notice / whitespace
+5ce167be2e4bc1d7f8fef1e29d93fab6b8abba45
+# update copyright notice / whitespace
+5d35f07318456d6ca01d3866c89ae9e50ab029b0
+# Remove trailing whitespace
+5d64d05be9ea9ff7587d6b15e51b01717e50505c
+# update copyright notice / whitespace
+5d68969ab392316572eb3899f0d1409c2d18be8a
+# update copyright notice
+5d722dead43a8c087afde46f958b1d3351a2125b
+# update copyright notice
+5da851d171717413343d0cbaf0bf365e6d386255
+# update copyright notice / whitespace
+5e93bad21b6d68fce862ff8aace3bb29b658f4f6
+# update copyright notice / whitespace
+5e9585c8ad7b9673abcb380ce34e2dcbe1e3453b
+# update copyright notice / whitespace
+5ea0584a943416e5e563aa3e3ca8bfc48a2ae25c
+# whitespace.
+5f1f24822fabe7b78af5f81553bfc11a170326c3
+# update copyright notice / whitespace
+5f4f7c688e0cca18edd67e9760b266ce8f67e29c
+# somehow this got missed with the mega-update_copyrights run
+5f6b0ea19afa15772fe40a7901de3073f37858b9
+# update copyright notice
+5fa46bc91672ef5737aee6f99763161511566c24
+# update copyright notice / whitespace
+5fdca0da2f7fae40b85e0ea8d24a816d96f5e9b6
+# update copyright notice
+600cfd566a5e5db871a8726c8a52a10a38250a63
+# update copyright notice / whitespace
+601645a1e801dc07e7050f0ca9366c5f56271a68
+# update copyright notice
+603a182e43edeaf66445f1591caa3e3a643c5e3f
+# update copyright notice / whitespace
+6084b738bcfaf9fb91fa5916a6e18f1a586e05c1
+# whitespace
+61470ed14b20c55c0730461165faa582a3775eb8
+# [master] copyrights/whitespace
+61c843815e7d23110e089b45ab4be270bc2a415d
+# update copyright notice / whitespace
+61f11922d3f97561af9780652c5b75f75c2d8e97
+# update copyright notice / whitespace
+62735fcde38471e7dd9d1d94b693f8bf1c428d89
+# update copyright notice
+633c5dc507fa3133a6d49a55cfe84bf4fd522c72
+# update copyright notice / whitespace
+63582913c9c5e53d9f16a27b38aa19a92b6849b0
+# update copyright notice
+636aadbfe4f7e73ddf263e03524ab05773dd8695
+# update copyright notice
+63737247d167ffa7151bc3d228ca5c0875751818
+# update copyright notice / whitespace
+6376559cd312de81cb3396d0b1073bee79d59491
+# update copyright notice / whitespace
+63b0524b961b6dce1aa18488d7175ca4ee17778f
+# update copyright notice / whitespace
+6472130d32c5f38a25bf40ebb67909523e84ad4d
+# update copyright notice / whitespace
+651c5a50f4afb2c7dc119f33e3d7567ed1d399d4
+# update copyright notice
+657099c9bc05693eddfe8e2012f14ddde6aa2687
+# update copyright notice / whitespace
+6636beb00b62a8e4a389f7368613f3be5a00001f
+# update copyright notice / whitespace
+6648adb2e1e326e29bb9655ae36a025025ddfdd2
+# update copyright notice / whitespace
+672586440be723316fc03126c56f83e4651d6f2d
+# update copyright notice / whitespace
+67fa096a59417292ff3a1567f244cd5623ab9381
+# update copyright notice
+6874b16e4a0a6f491bce1ea112f92a124ac1c4d1
+# update copyright notice
+6932de75eff5f92475027d294264c80478c3c070
+# update copyright notice / whitespace
+69b10c86b9023330b170af058342c3268c56ac13
+# minor adjustment for compatibility with update_copyrights, which condenses multiple blank lines after the copyright and first paragraph.
+69b641bf31d95fd79a50dcea2cdb0fcb23fe22c6
+# update copyright notice / whitespace
+69f5e5f8154f8d0ace2478145bf6bfe2d282e76b
+# update copyright notice / whitespace
+6a149244545d2a8c11429ca4eac722060251a2f3
+# update copyright notice / whitespace
+6a6ceba6fe09c81558362f238dd727576af7108d
+# update copyright notice / whitespace
+6ad05c5f46fc235191ec458bd545db4eb3cd059a
+# update copyright notice / whitespace
+6c1f9f5c71ff526402f3b3e87749a9ddf102f75e
+# update copyright notice / whitespace
+6c5c87105328967ceee0514a8c0ba708e7a3646e
+# update copyright notice / whitespace
+6cdbcf7155036a1359b07589e26cda8e26ac6f6b
+# update copyright notice
+6cdcc9df5ba18c15e85944fd481b5a8574d2cd88
+# minor formatting issue -- kill trailing whitespace
+6d016e34bf98a543e66710c2bab1b3fbeae3027c
+# update copyright notice
+6d0a639bd0e8f18a9bfef15697564be853944716
+# update copyright notice / whitespace
+6d1f45ed81d02767bb1240755413285c0bd6675b
+# update copyright notice / whitespace
+6d27aeb4e2d12b507abadf83a781484d1f567bdb
+# update copyright notice
+6d4487398e6848e884a3e7bc67adc6c7757627da
+# update copyright notice
+6d5f928b26f51e51817248f7b28472eb6973a710
+# update_copyrights
+6dcde6ca366549264b23e191ff01162f9dd03350
+# update copyright notice / whitespace
+6e61135f10c7061650f7af6c7f6bb261c8049ffc
+# update copyright notice / whitespace
+6e87e723a44ec967821088841beaf0dda17d63df
+# update copyright notice
+6efae581d0c793badfd925a24e4474c52ead20b7
+# update copyright notice
+6fe42ff85ced80bd2ccc49b429d36831b5f2a5b9
+# update copyright notice
+70e5a7403f0e0a3bd292b8287c5fed5772c15270
+# update copyright notice
+7105104b6eaf80d22cf2bb80f4253510da15cd13
+# update copyright notice / whitespace
+7173647ada9f4d2c04b1e97819de482ddc5421f7
+# update copyright notice
+72141595cf9d7faefcf7cf4fbab044c61a902b0f
+# update copyright notice / whitespace
+72326f7701b19fc3057b5f9bdc3b5422c9b0a3f0
+# update copyright notice / whitespace
+724df78acd95dc0f313bc2b80a099f7ecd48b620
+# Apply clang-format to rbt.c
+72b23aafd2ea33a5bd578956d2677f00e5c9da91
+# update copyright notice
+72de8965c84a71c113630255aa3a1c906c7cc141
+# update copyright notice / whitespace
+731ec8ce9bbf015a51faafe392e8de0ff70ef817
+# update copyright notice / whitespace
+7321d8df7b5e3fdd53c1f72fe3e4f759e34334ca
+# update copyright notice / whitespace
+7336a129830944311eb4774c8b4a586e277ec060
+# update copyright notice / whitespace
+735e9fcadb9af6403ba51b33aa38d6e71e9b4029
+# fix whitespace
+73d187eab95980e7af7b31a22e522ed5ea1561d7
+# update copyright notice
+776833c82eb7fe91de8dd4d8f8c4c650c2d06545
+# update copyright notice
+77b1d950a6d949246884fa6738597491f7df2cdb
+# update copyright notice
+780169512e7405bb995230028edf6a9aa716f9db
+# update copyright notice / whitespace
+791aa3e9bee7f1e575f043351a55458c5eec924e
+# update copyright notice
+79812068ffb7723862077a6f9689dbb0c5869e32
+# update copyright notice
+79bb5099368af0e02734e5c59f53286114fe959e
+# cleanup trailing whitespace
+79f0eedd657d75889009226aa7ce23eeac28df5c
+# update copyright notice
+7a3f584cfc1b5699e99fc4bedcac49b3dc4b26bc
+# update copyright notice
+7a440c4300b1a2712e18100772263c97ce1ab9d6
+# update copyright notice / whitespace
+7ac51a8380e3bee2826e82d21817827ca6d9e18b
+# update copyright notice
+7b5130bd12ab4a5538240b6bbed9166dc7a856d6
+# update copyright notice / whitespace
+7b665158e951af8f21bf568b589196e35ac5c76b
+# Reformat sources using clang-format-11
+7ba18870dc535ac2afb61829a7edd9487c519211
+# update copyright notice / whitespace
+7bba3a7c44557bff2096aae98b6fc03566ca4e8b
+# update copyright notice
+7bd455641455950eff7d21be652c8142b134d32f
+# update copyright notice / whitespace
+7bd8900aa8a0a662a1e11e480e82f4fdae44b478
+# update copyright notice
+7c329be7c01260ff246cba7407492e96027e7a1d
+# update copyright notice / whitespace
+7c655c5b24145df40b223130f1fe0f323a789266
+# update_copyrights
+7c74e180c206e6ed99e8beb820da5f399d845c3e
+# update copyright notice
+7ce7ecf6bcf035a0075b7bc15cb29638c6a48ea3
+# update copyright notice / whitespace
+7d4f45f6bd729973f6d24554b3aac9f75a5a22c6
+# update copyright notice / whitespace
+7dbeeeaa1eb8c85dbccd0b745bfae107361301c7
+# update copyright notice
+7e75b6266db5b2711aa9ae18decc8a36c3db854f
+# update copyright notice / whitespace
+7e80eac638f6abcd81d502050f59e968ac259043
+# update copyright notice
+7fa75f8e0e542bd28951839461c80adad05677be
+# update copyright notice
+803d8426030e1f40c45d6861e95587189173f368
+# update copyright notice
+80d13a0d458afeb6bdac7ae97fa4604fa50d4b90
+# update copyright notice / whitespace
+811acf52b825f9fb4889cad7b84b581a2d4776f9
+# update copyright notice
+814fc913e65ecd205e77039412b2f268a24c3e83
+# update copyright notice
+81f58902eb5a1c1ab22742c72bd6cf318acbc06a
+# update copyright notice / whitespace
+8200eb4c60e1a6d08ec009ccf047599a209f6291
+# Update license headers to not include years in copyright in all applicable files
+843d389661c98d4cbf1af51aec5c31feae6da184
+# update copyright notice
+845a4b151d95dc9e2e79d56c1a225d5ddb0d7c41
+# update copyright notice / whitespace
+84d939b211e9d85a048cf5f7223acf0f319be8cc
+# update copyright notice
+85167bb10f76e71c3c8519e2135e31d249f54805
+# update copyright notice / whitespace
+854a865e16602234e71b0d10e19e0d3aea0d1f68
+# update copyright notice / whitespace
+858228febe1b9246f2317ab6977c2330ee8b29b1
+# update copyright notice / whitespace
+85bd975d3dc445d591a33f76922bd5ec84e82cae
+# update copyright notice / whitespace
+85d23eaae85cf7d1ca63889d530e9b2cc8f42f11
+# update copyright notice / whitespace
+8657223ebcfa4d33a76eed3119701defce23b3c4
+# update copyright notice
+869a7fe8e0eb29a55f5e73dc8ba73a668df412eb
+# update copyrights / whitespace
+888dc0fb4ff1f40d35fe01237ce904fe1449cecd
+# update copyright notice
+889eb2e055719146a46da14d323a5015e39b7884
+# update copyright notice / whitespace
+88ee987de69130fffcc9d7a2bc9c7fa965584b74
+# update copyright notice
+892506b68131e285ceeb714e8d9d33d5f945cefa
+# update copyrights / whitespace
+8927a982bde7e4b665966b55f0fa57c5cf21b9d8
+# update copyright notice / whitespace
+89c5c74c96c8376e6cb999aa1a52d9324c031ae6
+# update copyright notice / whitespace
+8a1d7e8e8fc1fe9fb660b7660279667ca8096b35
+# update copyright notice
+8a9485517e22f586602c9742c318825c04985c6b
+# update copyright notice
+8ab8cd1fa696b188e7c4849e44cb0117b52c04ca
+# update copyright notice / whitespace
+8b074bef0ccb6ea12df214a81ff73d2a581280e1
+# update copyright notice / whitespace
+8b22817d17cbf158b4e6c602366bacbab8d8f8d0
+# update copyright notice / whitespace
+8b8c2990d60ba7afcd9608743cf8c406ad87a2fa
+# update copyright notice / whitespace
+8bd6a7a1a32f5d313a5fbdca1281316053597a60
+# update copyright notice / whitespace
+8c20f8635ae2f236a7ecbb74aad4e0a39fa44802
+# update copyright notice
+8ce19234299104c9e55ceca9423bacb594bc9c64
+# reformat a long line
+8cf8a04209c3b6c8d4f0936f1dce06b629605c81
+# removed CVS Id from machine-generated man page files -- it is no longer needed now that they are ignored by update_copyrights
+8de7014e56565605a51898a2a33a8b08fd3f1e57
+# update copyright notice / whitespace
+8e2a8a3855233058140d8ff726df693215a60b7d
+# update copyright notice
+8e3eb3600a9fdade5807a928d0f200bf5a604330
+# update copyright notice / whitespace
+8e4d56d45dc6daa9dfc5c33b67138ecb9d5bf004
+# update copyright notice / whitespace
+8e50c697839c12d55bca0202ce09bd81f069f909
+# update copyright notice
+8e6b386ab7e2d1bd8efedecbb8f4efb6b572a866
+# update copyright notice
+8e9b13f5106abb50f0c9ac74f38a2572cc240f1f
+# update copyright notice / whitespace
+8f0427f11b9feedf9c95f2cadae0d605dbaf767b
+# update copyright notice / whitespace
+8f0b326d9a895faa71b55cb3994b54ff4666faa9
+# update_copyrights
+8f4e6ea383aa9a953c0adb5be6c4d8dc8dbd5c4a
+# update copyright notice / whitespace
+90a6f5a701218c098d68d47a6dad8dd054a7cdb3
+# update copyright notice / whitespace
+915994daa9b2b0a5ecab9c01a203a26265e60303
+# update copyright notice
+9191b6c9e89ac14c922bbedfcc6c703c0f47e694
+# update copyright notice / whitespace
+92059a966a6191138a9bf5fa397587ae686fdc8b
+# update copyright notice / whitespace
+9268c62bd0d85badde488143796be44bd75ca46a
+# whitespace
+92ff69c60001ed270248a6f38bafd2ae12d029be
+# update copyright notice
+934b17be8da521ed8289125466b35908b0f601c5
+# update copyright notice
+938440694b33cd752e9e4b71a526368b4811c177
+# whitespace
+9429595b674a1edc5651a13540060d95b56dfb29
+# update copyright notice
+948c80ffa8f4efbade049f49d9751675f6937cf4
+# whitespace fixes
+94ec6e9a1a335c419b640bf875a6a052c3c5cbc2
+# update copyright notice
+94f86d37b2e798b02383f4abc112e57b4c1aedb7
+# update copyright notice
+953189d30eb801f6f040ab6e3d3c6a6c30add952
+# update copyright notice
+953692fa1e307b7325e383302d82b711d164a9d5
+# update copyright notice
+954e43e60522932e71ac491778b3de3b5ec051a6
+# update copyright notice / whitespace
+96f5064e3cc8e656955c6d0d298cdaefb2db684c
+# update copyright notice / whitespace
+96f6f5dfc2aafa65d51b0734deedf9eaba95f263
+# update copyright notice / whitespace
+96fd32b7ef0c0503bf9e947a9887139c64d93c2e
+# update copyright notice / whitespace
+9748633ce6b12ea179c052c10ed50a1cd1dafc62
+# removed CVS ID line inadvertantly added by update_copyrights
+976e43c3ef45f06f32d846e8eff8664265abc0b6
+# update copyright notice
+97c299486a7011320b2f977f59cb6ab276e99338
+# whitespace
+98869e60fafc73aace8f54a36b881adfeb3baa4f
+# update copyright notice / whitespace
+98e1584b29f1a2323dfa98b88270c57354cd13db
+# [master] whitespace
+997f513065abf694ebcaa662aa7f369b79528350
+# update copyright notice / whitespace
+99bbb58ce7c172798fecb21d2d12756c159cff14
+# update copyright notice
+99d8f5a70440ee8b63ab1745d713b96dde890546
+# update_copyrights
+9a3d43d3b4f1b3f90edfd306222b219a6690bc68
+# update copyright notice / whitespace
+9ab5a7d83c3018863b018be890d50ef1e22790e4
+# update copyright notice / whitespace
+9ab5ec1d7221ac6c175e6df9f8a69d195eed0899
+# update copyright notice / whitespace
+9ae15880201d512667795095880032e043c7b3c3
+# whitespace style
+9af8851b85926cbfb1171430bff0a9ce381a4b3f
+# update_copyrights
+9bff67898d55cddfcec9ce30cc2b1bb6211ec691
+# add RCS id string
+9c3531d72aeaad6c5f01efe6a1c82023e1379e4d
+# update copyright notice
+9c5faa2ba809b881ee74b03a1a5ac0d9d6586dbb
+# update copyright notice
+9c61ab2c991c4d8eaee726729682e6efd5b37181
+# remove trailing whitespace
+9d5e42bb875bc287387241dd7563f5698afd31f6
+# update copyright notice
+9d7e943c3d49cc2286be921c9deb5eb3d2895ed8
+# update copyright notice
+9d8985bea97c11ae4a0e703e52879028559c829d
+# update copyright notice
+9d9626fb776663b1e5c62263f9a12b1b4e52106a
+# update copyright notice / whitespace
+9e6e0881fae829b35647e30998ff3e33a7b648ee
+# update copyright notice / whitespace
+9edeb0f922d192239fbe017a9c123093989780e4
+# update copyright notice
+9f40a783228eed48531756a6ab510d1e9c51648c
+# update copyright notice / whitespace
+9f76893bbc75c118a265e1039864ab2f593b00d1
+# update copyright notice
+9f8df2d75caac79f39367f0477c944bc097a0fc8
+# update copyright notice / whitespace
+a00838da9681b268a38ca42b901b2a2200e868cc
+# update copyright notice / whitespace
+a0132868d11fd0bcfec87fe8ff40fa8ddf48da72
+# update copyright notice / whitespace
+a03c39ef51faa73fd22a2d864befe8e7c6028f96
+# update copyright notice / whitespace
+a08f49ae177db25609e1592b943cdcb25b79402b
+# update copyright notice / whitespace
+a1d1a967dabc1b80b6ca13fd4e7e4e179990c4d1
+# update copyright notice / whitespace
+a269ca51cc3c4abcf39eb01c357ba3dc8dfd80d0
+# update copyright notice / whitespace
+a280a7871daeb95297d4653d6351e00e03ba5c2e
+# update copyright notice
+a3128c1995310262648e575a9ff148d5741fd167
+# update copyright notice / whitespace
+a3d2295829888700df137d08e79749e1d0011f44
+# update copyright notice
+a3fb84bd1b6a56585c0d8181f2ab0338b0cf852f
+# update copyright notice
+a4fa22bf149e1e3779543527659e03b0c77600aa
+# [master] whitespace
+a507cc4892ab6f3b0b9ef6b489eb72eb2f99194a
+# update copyright notice / whitespace
+a57a6dbe62fd4f48e84483ddb96898c9a8121b18
+# update copyright notice / whitespace
+a625502bdd149be06bd0cc06000c3dc9e4a813b9
+# update copyright notice / whitespace
+a63461cc4bb7d1d5fc39bb506e24f5a69a6fcfb5
+# update copyright notice / whitespace
+a6ca100924894cdd8e2b791d75a8cef32b1fba1f
+# update copyright notice / whitespace
+a6e307c5f1b3aeeb6b9702f5ca1e4655e4ba4691
+# update copyright notice
+a7051299c60cbaac13d62d35038460507459e140
+# update copyright notice / whitespace
+a70b865da3f594bde688021fea0844a99a9631c1
+# update copyright notice / whitespace
+a727cdff50383b98a150922e16a470cc63225309
+# update copyright notice
+a847a4bcd665fb1cafc1b2a0a42be7a1ede82a89
+# update copyright notice / whitespace
+a855b8d2312543b5f804cc21883c0b35a531256d
+# update copyright notice / whitespace
+a91ea57cb3f844bf3dd8f64b0993c1328079c0c3
+# update copyright notice / whitespace
+a9404a04a52e7481a2c50af322013c556a75b95d
+# update copyright notice / whitespace
+a96d7083bc80717f0175ecbbd1cdd77843f8a5b6
+# update copyright notice
+a989ffdbb3dd152cd79a66a59880140b661db999
+# update copyright notice / whitespace
+a9e8198788a4055e5ecfeedbc1aec26274ad33d6
+# whitespace
+aa3bffca69b487f5af9f72638412e461c897b894
+# copyrights/whitespace
+aa44b4682ae2d4466533d8a905b1541a67b02be4
+# update copyright notice
+aa64e902a0537ab6e3e41da4b96f4bc39be8c6e0
+# update copyright notice / whitespace
+aa70afe5c10ff9f742e71d4d86beddca2a246229
+# update copyright notice
+aa7b16ec2a5dacda1d65b64e0f7af434d02cbba4
+# update copyright notice
+aae306e914255e5fb477295f67e5e13201ded6d1
+# fix whitespace
+ab6c20f9782b546c4626c6520fa99b0c019d6728
+# update copyright notice
+abc71f216a61beebbe806ab29110818680064888
+# update copyright notice / whitespace
+abf9790162ae88bf74d3959f5ac0dd2090a9a9fc
+# update copyright notice / whitespace
+ace0b8d470fdbec5b0a9eed2a1fe3b741b11e0cf
+# update copyright notice
+ad673634303305de6985920d9115cca55abf7ba2
+# update copyright notice
+adb113e2354eff72a527ef5b6201f13c56022e84
+# update copyright notice / whitespace
+adb31d0b10883da08e1078db53a066710ab8eb7f
+# update copyright notice
+aebd0e85bfd8c7b4108efcbf0adc503ee6c64f52
+# update copyright notice
+aee6c351d3b517f3e6a4ddf770606617fd42015b
+# update copyright notice / whitespace
+af0bea7aa7b300d028c12ad296453ebf75242861
+# update copyright notice
+afe7d4b934e5e2d2e0cde135aba948704d4c2520
+# update copyright notice / whitespace
+b129f72d951663755496670606e5f7303e8f2dc2
+# update copyright notice / whitespace
+b140aa009b3b0e5acc6144b96676530b7233ac5a
+# update copyright notice
+b16174507d1429ae4dbf7b4939f9e45ca7b76d74
+# update copyright notice / whitespace
+b168f3f805fb396518d49f2081da8602c3dda261
+# update copyright notice / whitespace
+b1aac28027f3482d7b67fd7067cb3063fe265808
+# update copyright notice
+b269de36bebe9de7c127d0fa8575a430c594a903
+# update copyright notice / whitespace
+b299727c2ee225eb40b65e87407ef24b05114883
+# update copyright notice / whitespace
+b3378292d038ff9297a74543fb24d15e37930d38
+# Update the source code formatting using clang-format-12
+b3de93e54c65061bc27559d6de770d7cd3ec7c08
+# spelling, whitespace
+b3f23e7a7d5aeddf1fc2d3b658b2a72c5710327f
+# update copyright notice / whitespace
+b3fb6947aae4f4294816399f1ca1e78e7a3227bf
+# update copyright notice / whitespace
+b3fc795f4df74fa74ce8211925bf8ee534c9efba
+# update copyright notice / whitespace
+b4099ed035c395493d2dae38f8cd9c2c512d3396
+# update copyright notice / whitespace
+b439455672e2d86cf0192d42e563006ae069cce5
+# update_copyrights
+b4636f4587118f55ace3ccde473fff5f6b1418f4
+# whitespace police
+b4dfb4747498ab22831a30c44607e81082fef962
+# update copyright notice / whitespace
+b54c2849fbb215cecb3aa962d014a88d0a257e41
+# update copyright notice / whitespace
+b55ae9abd294435405d53b3e557592a475dd0670
+# update copyright notice / whitespace
+b5808abc69d3c6d6367e0cb0cd7e06b463a02126
+# update_copyrights
+b60271016957475ef5d675f8a5a116a661b46b82
+# update copyright notice / whitespace
+b624001e36cf750d88a13d300915b0a8ea936d3a
+# update copyright notice / whitespace
+b6a4f7937ed7c5eea43489301a87895bead9addd
+# update copyright notice
+b6f7267093b3ad0587fa1715600a279431bbec6c
+# update copyright notice / whitespace
+b74e1c3b50c9c5258c8a23a3ac8bf2dea54b1cc8
+# update copyright notice / whitespace
+b7b835bfb08e66e192f62149dbb61f0fb32ac3d8
+# whitespace
+b7e6fb4e8464ceb4a62a8c00e3127da3c2839329
+# update copyright notice
+b7e6fc2a4cca2c07bca1aa122a9105786b282743
+# update copyright notice / whitespace
+b7f3400f3b34fee8e29ac4a43f62c153b42b3200
+# whitespace
+b8493d3292459454aeaf4d1ef10750f2e4e52d8e
+# update copyright notice
+b8e2e5dd861bdc72a5496a745a85f8761bef7dc4
+# update copyright notice / whitespace
+b9097be03b7b8fe7801abef97cf573a39399d995
+# copyrights / whitespace
+b91d11bfcc30b96f2c80f3a76d12e3dcc8597a68
+# update copyright notice
+b941edbeb52407b7402126ed49efdce6c4d5ea3c
+# update copyright notice
+b95504f9a74fb6571124262d1eafd262bd06f7c8
+# update copyright notice
+b9a067ba403c95e681c8176259d113804785d254
+# fix spelling errors reported by Fossies.
+ba0313e649b9de3d746cc8a748cd02da75f258bd
+# whitespace
+ba85bb1a85ca30a8499eaf8f1ea148c56d442af6
+# update copyright notice / whitespace
+baa0e0467572e2bff0b2a423c7fa9fb59ad9cfa4
+# update copyright notice / whitespace
+bb01fced12fe728b1b0b1001fe9b149996fa172e
+# update copyright notice
+bb6f850a5d6f88c0f1cbae83e5c5cd5eed6beb71
+# update copyright notice
+bcbb556868b881de9540f5a791e92bd827be51eb
+# whitespace
+bcce55197a28670e7e46ce42980970ecba31a990
+# update copyright notice / whitespace
+be33f4ead17cb2e0755094ee3da17df368762ba9
+# update copyright notice
+be484acb22e4d903764ccb5ebe51be3a9d4ca29f
+# update copyright notice / whitespace
+be755f4725e6579ffe725b3ead9ccfbd108f55dd
+# update copyright notice
+be899a549d6d55a5d99a0e4b73c670859e9d959c
+# update copyright notice / whitespace
+be8f1da296d80181c40c6a5fdf61c13632cea002
+# update copyright notice
+be8fedce2aac86b27ed4d0aa2ca41febdd42fc3e
+# update copyright notice
+bea3baa50cc275ede316c34db9da3292c7ca6f9b
+# Update copyrights to 2022
+befd654e00e38ec8f3deb39c5f6253c94085d3e3
+# update copyright notice
+bf0266f286c9350f6579d03cc74429433d8e6381
+# whitespace
+bf0b64999352b8bf72b200ece4f9d6997e94e7ab
+# reverse bad copyright update
+bf8267aa453e5d2a735ed732a043b77a0b355b20
+# update copyright notice
+bfc4a951c5007479e2aea2208596c5b7a2cb4248
+# update copyright notice
+bfceb3a1ed70c9e1d1afd88753d19e1bb95a4728
+# update copyright notice / whitespace
+c03e9eb43d85c1a68fe24a42f3ded1ed28a4e6fe
+# update copyright notice
+c0682c23675731274a86416914fb7e3c5861606a
+# update copyright notice / whitespace
+c0cc899496cccf8ea3bec24a94ed384287ec3e1a
+# update copyright notice
+c0de084bbd67ee6c40525314ce8141455be1d410
+# update copyright notice
+c0de0cd8d88485aba260a08dccca76f83bdf9538
+# update copyright notice / whitespace
+c10fda07d68c04221c2d552dc71a2de1352074cb
+# update copyright notice / whitespace
+c110d61b173a68420d19858abb80285be0dc1120
+# update copyright notice / whitespace
+c13b582b162f6428a469cf43b51c2d51c281c36b
+# update copyright notice / whitespace
+c19f42a378f76af272166f9cababe7bfbc1cf6ab
+# update copyright notice / whitespace
+c203aa153c89a2b9181db34cfba7e8762499b27f
+# update copyright notice
+c207dd839459abf61cde94e2dbc477a2c5790677
+# update copyright notice
+c37fbb91e37b771bb0fad908ad78ddd12ac07538
+# update copyright notice
+c381ccf7947fed7d5ced30bd2b7e611dee6bee39
+# update copyright notice / whitespace
+c3854e9cd3d7c8f7cbe6d6bb8153f1e81c8af587
+# update copyright notice / whitespace
+c43f150d0a3dc71653dfe280f8e2a4af5b9259ad
+# update copyright notice / whitespace
+c4567d06753c4420af492d07b720125a918fcf23
+# update copyright notice / whitespace
+c46ac73c8f1d0133903c00332ab4fa4e2550ecc4
+# whitespace
+c656722ea789f512132d5df9a613bea5717dbe3a
+# update copyright notice / whitespace
+c7940abbd32f1d070c708c5d2371beb9a8cf6c35
+# whitespace
+c810393bd89ee3e4be7a6e1eea097a0705b5979a
+# update copyright notice / whitespace
+c8a55dfd0acfad1c31a759e79e506fe6f2636e15
+# update copyright notice
+c922066e771c136351dddedf21c546827e6fd832
+# minor reformatting
+c9cc73cbc8100d9f4afda3d145407991beb06a57
+# update copyright notice / whitespace
+ca0ae70046d90a549368d8cc964936d17e5162c9
+# update copyright notice
+ca283f2ecb9fe01b9808268d1885828fd0ee3add
+# update copyright notice
+ca48f47d881bc25cc78c1bb0f3c08669246c0cfe
+# update copyright notice / whitespace
+ca5b644b9e87127a60cc7f825cc0a74cf4fe9e90
+# update copyright notice
+ca8ad4871ead659a0a7107ad1cef7fc04782f394
+# whitespace
+caa0a135d49dfbe3de9711eacf94d6e112a77688
+# oops, use the nominum copyright for lib/isccc.  Also fix the update_copyrights script to do @YEARS@ expansion on 2 lines.
+cb3e854e181373807f7f011e5050c1a8013b4841
+# update copyright notice / whitespace
+cb5bc50c9140ba705f0fad8b5a0396b1f79ef8f0
+# update_copyrights
+cbce6b0c9a9fbe09ceb6c9b28b4a17777950cb7e
+# update copyright notice
+cc2a5156841ec6dfe1e90eed40c65fa8cdec246d
+# typo and whitespace fixes
+cc48bb397fa6ba889f25157840492e68114dec8f
+# Fix whitespace so that the names align
+cc5e16e4d3fcbde42d35ed6d6eec8dcab1482d71
+# update copyright notice
+cd14665cdf406ee9976ab59c4ec390a0e8de8b19
+# [master] whitespace
+cdd99263f24a64a14f0e26742b33fcb08e2db115
+# update copyright notice
+cfa2326b5c96a3a4c720262e077b2baf9fc27970
+# update copyright notice / whitespace
+d029dfe95cae7c360c68c402ebd910e03226c79b
+# update_copyrights
+d0be1e954bd4674fc27f2616c72adb37cf3525a2
+# update copyright notice
+d1573beb053485ca7683a1fcf530bbab4aef7a35
+# update copyright notice
+d1b499c8271594a904387afbebf4135fd1ab81bb
+# update copyright notice
+d1fd0990fc89c00b7788e2e2cf8c4b9c85d43858
+# update copyright notice / whitespace
+d28022225df341daa982bd41b832397cdd0c8a5d
+# update copyright notice / whitespace
+d2f2db283b2541fa0beadd11eaa2a216077ad66d
+# update copyright notice / whitespace
+d2ff6f0f07fd4d13ff29dc718706ae8e35dbea15
+# update copyright notice
+d319beb9d0b08db8b7f9789d916a02a56976b9b9
+# Merge branch 'each-style-tweak' into 'master'
+d3b49b6675a2fdb07e98639abc6a889365bc7ccb
+# update copyright notice
+d458ef4acb25b66d39525cca3ab5a64c4f210a0b
+# update copyright notice
+d478dbae80bd215df3fef6cfc207b078ea285b8d
+# update copyright notice / whitespace
+d481ce8bba34ce6414865ef53aeaee122bb2f39c
+# update copyright notice / whitespace
+d4a69308f5322314d067bebf4592257f536542ec
+# update copyright notice / whitespace
+d4f90b4519ce2f39a0e53de52ca51de8b9f7b85a
+# update copyright notice / whitespace
+d68d29f96795b7a1d47109705a4c9891b07e99bf
+# update copyright notice / whitespace
+d6b82bc2ae12cedd220f82d1c9ddbb21885939b8
+# update copyright notice / whitespace
+d70dac20d2b88e48fbf2606180d0ba6dcc4bc44f
+# update copyright notice / whitespace
+d83a9a980a24201bf207684a54b4e6c4f69157d6
+# update copyright notice
+d91e5a75df148ed3c5689d84cddea977c6a4d928
+# update copyright notice
+d9eb3dcfa1b45100fa4e29d115314ccd13b0250a
+# whitespace
+da49a52345d44caebc63c8ef0192daa68c068d1d
+# update copyright notice
+da5d53fb1401f5e17a77373af32d865489aa04a8
+# update copyright notice / whitespace
+dae43e88b785d15f4b8048c793f5e62904c66cdc
+# update copyright notice
+dafcb997e390efa4423883dafd100c975c4095d6
+# update copyright notice / whitespace
+db1010fe82c01e5bb125c34aa8a6b73510b34d21
+# update copyright notice / whitespace
+db15f78ad74d0701b36f1d6b249f498294408c64
+# Make update_copyrights return error code when error is encountered during processing the files
+db3d69263d0476c71a8594a264a78b77430e2dc5
+# remove trailing whitespace
+db8369d873196b3771ecc13debf904a732a700fe
+# update copyright notice
+dbd8673fa060c8132a0195f69103cca615b55ad4
+# update copyright notice
+dc3d68d6fe0c0dc0d43015ed6b651f407b38ee25
+# update copyright notice / whitespace
+dc5e29a7d216b4233c80bec8967015aa9c05962e
+# update copyrights
+dc64b706162cf13c298978f7ae0f80e4c1f62d5b
+# update copyright notice / whitespace
+dc66c4a49cdbb20248a655a1afa1119eefe7be14
+# update copyright notice / whitespace
+dcc059e2c94438e58c225145494e6e27f8321e88
+# update copyright notice / whitespace
+dce54b9b5cfa450570fe9c11644450aeb3ee89f3
+# update all copyright headers to eliminate the typo
+dcee985b7f693a89b4a8585ae94f98ad36c034af
+# Reran update_copyrights, which slightly reformatted the copyrights.
+dd750c560ae48cf6caeb9a9fe81d33fc4746106d
+# update copyright notice / whitespace
+ddcf6c7d2bdd40e0024c8a5088b5c0210a426b7a
+# update copyright notice / whitespace
+dddceb77323878e871a18b58e245c3d7449b3971
+# update copyright notice / whitespace
+dde6dc06b06d1c2edcb14defa9fe02fad84784c6
+# Update copyrights and whitespace
+de23b20ccfee6b7ae8bb466b65317845961740ad
+# update copyright notice
+de77dcc2c1a578ba43072608763bbab38e9cf15e
+# update copyright notice
+dfd5f3b388d5720ec29aba87d8af334f59ed6840
+# whitespace
+e03e455cd5013ea9e419d7b14ae6bfc6814b7546
+# update copyright notice / whitespace
+e04dff4bfdd3b11974e8005f3c11df7abab94274
+# update copyright notice / whitespace
+e085a5fc5ec78763c3532bea1085b1535ec53655
+# update copyright notice / whitespace
+e0ba64bdd2088b0af0081cebaf2c1d965692db07
+# copyrights/whitespace
+e0c102d9ee8c74d1a31fc7e4506a368012e4b709
+# update copyright notice / whitespace
+e13c3286a53d3ac3ca7693a7ffd7dc45be477a16
+# update copyright notice / whitespace
+e1836d1fe413cc14430ce89508e79c4c01df830b
+# update copyright notice / whitespace
+e208712faa6d6053313b5e0320c892ebea9bb900
+# update copyright notice
+e23798e2ab09d2714c6fb18aec3431826154e58a
+# update copyright notice / whitespace
+e24f9b0a332f99be7d317c190a02f41419b14f21
+# update copyright notice / whitespace
+e29263c656d9db58b9337fabf3bde32c05c4522b
+# update copyright notice
+e2eaaf8015f3e680c3a03b48b657e16226cb75c8
+# update copyright notice / whitespace
+e37bc34b317d9d81d3974b448917809ad2dd7d54
+# update copyright notice
+e38affadb35615f77bd6e4ccdeab58de13e74cb8
+# update copyright notice
+e436a3d9656604856290321f3a0421861eb73a49
+# update_copyrights
+e44e0ff3850931e7a79e4c86363f52990536f7bf
+# update copyright notice / whitespace
+e545fce91b64e57420b69cb5c230df4c0029a547
+# update copyright notice
+e5d117e83f365d9921685e91bd9ff2c62a136455
+# update copyright notice
+e64f32cd04913a922d8a75da3d7b611684941b70
+# update copyright notice / whitespace
+e66aaccfd886dc6843296c73eb2eea820082f36b
+# update copyright notice / whitespace
+e6801bf89ec7cf2f2e7cb542c14eba8c6f6505c9
+# update copyright notice
+e81f7dffab7e793394b84f4a451f51b3db3a7e25
+# apply the modified style
+e851ed0bb502fb2e883ed3e3cc2e90d680009294
+# update copyright notice / whitespace
+e8742e9598a72a429cf2ca05c6c1bc3de9b35283
+# update copyright notice / whitespace
+e880197f31dd191b3dcbb689f79f98b0493ec64b
+# update copyright notice
+e8914b47a2481a993a9be6a1c9587715aa936b5a
+# whitespace: line out settime calls nicely
+e97313b44d9c572ef6701cda4d8eb17e677af6bc
+# update copyright notice
+e9c7fe450ed5f6f40ce5a64b9309812bb4082685
+# update copyright notice / whitespace
+ea055a82cd9eb225f26a17af58189fc0fd9e74f2
+# Remove trailing whitespaces
+ea2d213f34b623d538b8f2d4d58acde080e076fb
+# update copyright notice / whitespace
+ea2ea0914c797038581232aca561195a4127cc6c
+# update copyright notice
+ea3dd509f64804198bcd0792e319ce0fa0b10907
+# [master] whitespace
+eaa2277753c6e7e642e83b2ccd27671a15336310
+# update copyright notice
+eade480b330b543777431760fd6c467c21affc86
+# update copyright notice
+ec5347e2c775f027573ce5648b910361aa926c01
+# update copyright notice
+ecc420b2837f8de347d7b4d779248933b453ce79
+# [master] whitespace
+ecfe29f54b0566d9923b826b2e4a36ee83c9ea3e
+# update copyright notice / whitespace
+ed07d7a8f59521f0b9ade193ce5ecc7cbd4d2510
+# minor reformatting issue; no functional change made.
+ed0b018ee06295f5fa8c45412486d40f219f2fef
+# update copyright notice / whitespace
+ed1f93cc24c0940e4d237e4d05d01926d05e16f4
+# update copyright notice / whitespace
+ed5bf0e581e9a41511682fbc5e8ba987d9697683
+# update copyright notice / whitespace
+ed91aca9e609ae3f4a23a96e50b6991d95f16951
+# Update the source code formatting using clang-format-13
+ed95f9fba3897126d0902db0053e6e776176bd40
+# update copyright notice / whitespace
+ed9fea3a6e2b5660fd87f328f71ab6db8735be0d
+# update copyright notice / whitespace
+ee47b6607af1afdf0d00ee3ceed088cbee72871b
+# update copyright notice
+ee53fcb61cfc8c54125bcd9da8adfa89974dc948
+# update copyright notice
+ee980d3fc4c23b7f87fed96d3ba5e928937c9ed4
+# update copyright notice
+ef1963d83d69d03a006a882afcddbff48cd747d0
+# update copyright notice / whitespace
+f0cbe180f0ec1a660b397886c55c592bbbcbb4ae
+# update copyright notice / whitespace
+f159b7b5c761d9107808fef524a8491f41b4cd4f
+# update copyright notice / whitespace
+f16a6bfb6cb4559cce89943f9427d4ec054fbdc4
+# update copyright notice / whitespace
+f192875d12aa62afe6b7cd7c9fdd49b174d0ab6e
+# update copyright notice / whitespace
+f254ab049e6fb9772fd9811d0f218dbf4ee7afaa
+# update copyright notice / whitespace
+f28c6dc514ce348284f6fc0ed58f79a2830b402e
+# update_copyrights
+f2e5c64635e0c561b7d371b3b9d703632e390cc5
+# update copyright notice / whitespace
+f30a3f28db24b3216ff7e5358afff03887732898
+# update copyright notice
+f378953f3b0ca72e03871bbc8eef9d190838e2f9
+# update copyright notice / whitespace
+f3affbe2ffee62f16a54e01fd03f02b1d2a948bc
+# update copyright notice / whitespace
+f3cbd0e0299338f95a97e73ac9c2b0fcdca2cbfb
+# update copyright notice / whitespace
+f4eb664ce35fcfc7136c278ff204547418abcc9d
+# Use clang-format to reformat the source files
+f50b1e0685e1afc8da3e314cb230be7192141761
+# update copyright notice / whitespace
+f5280a1563f38e3e8295277b6d18266f4a139456
+# update copyright notice / whitespace
+f5489931d7f0155a98042fb746a52111a88450fc
+# update copyright notice / whitespace
+f54a365aeb0741ea9ccecf8496df37a08701fd86
+# update copyright notice / whitespace
+f557aeef7cadac2940dfaa6300c922f0e1ff9453
+# update copyright notice / whitespace
+f562de3f71f9ca9827d96cf6468d8e03361564c7
+# whitespace
+f5dc94b026b5153de76eeb3c1161596251f26bcb
+# update copyright notice / whitespace
+f62eb5f112426d046b30f97595e3ba5f406ee152
+# update copyright notice / whitespace
+f6bc0a8608268bf96cc19573a7257bce22adc6fd
+# update copyright notice
+f6ea2b1d09668564c764e5d32ada7652068f0562
+# update copyright notice
+f70a10508f030b097a9b8afe907a06f9a1e2c4d4
+# update copyright notice / whitespace
+f72460c717166333266e73bf839d5cfce162d89d
+# update copyright notice / whitespace
+f89adb2c2a52b505501c3eaa2aec9fd4df6bd60a
+# update copyright notice / whitespace
+f8d33c2b2a85cdf1f6da27b9e8b58805c29a569c
+# update copyright notice / whitespace
+f929677ed8e0550fdc1bc4686bb35a0b0d545c31
+# update copyright notice
+f97d56e757b9a293ffbaa915ca4d792ae84ba85a
+# update copyright notice
+f9adb48aeade1ce6a815cf7fba57acac14861723
+# update copyright notice / whitespace
+faa3b61828dc2c6b92b68cd6e603fe2b9a7d5fdc
+# update copyright notice
+fb05b13c6f70997575febb3c2eb5a4709072ab60
+# update copyright notice / whitespace
+fba207e51a3c27f2ace7bbc61a4304b7a25f9944
+# update copyright notice
+fba68262db6fc189c8a29c3e044c69e0166971cd
+# update copyright notice
+fbe600459d05e644dbda2c36ef091535ea1eacee
+# update copyright notice
+fc84418f4a809e40f16cfb5b4f3834d735fca31f
+# whitespace / layout
+fcb54ce0a4f7377486df5bec83b3aa4711bf4131
+# update copyright notice
+fcd7c22fdff859e47d290981bb08cd3fc07369a1
+# update copyright notice / whitespace
+fd0039f4659e99c3ff3293d6bd334d3810d3c91e
+# update copyright notice
+fd5b3eb81a8c7ab17d7126c9ddc72c5a03230193
+# update copyright notice
+fe43ef9e63e66ddd04267e8ad0b41c96991fe7cc
+# update copyright notice
+fea81a5e0e9485b24262b6a7271a4643a4d2bad4
+# update copyright notice / whitespace
+feb1ccdaf161557d2f160974c16c294a6cdd8c3a
+# Add couple missing braces around single-line statements
+ff2249884948e309ade3a3abe83968a214e3e63f
+# random reformatting
+ff5760e233f6ab75e33783b6dd48f961ce04d933
+# update copyright notice / whitespace
+ffaab41a01621c0e02196e225f9269daf8b2ec8f
+# update copyright notice / whitespace
+ffac31097d25039951063bbb9f864e223a46ad1b
+# update copyright notice / whitespace
+ffbe6b95371c99b7fb05e6de17a8d6b7bf4f629f
