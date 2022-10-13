@@ -13,6 +13,8 @@
 
 /*! \file */
 
+#define DNS_NAME_USEINLINE 1
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -33,8 +35,6 @@
  * This define is so dns/name.h (included by dns/fixedname.h) uses more
  * efficient macro calls instead of functions for a few operations.
  */
-#define DNS_NAME_USEINLINE 1
-
 #include <unistd.h>
 
 #include <isc/result.h>
@@ -130,8 +130,8 @@ node_name(dns_rbtnode_t *node, dns_name_t *name) {
 	name->labels = node->offsetlen;
 	name->ndata = NAME(node);
 	name->offsets = OFFSETS(node);
-	name->attributes = node->attributes;
-	name->attributes |= DNS_NAMEATTR_READONLY;
+	name->attributes = (struct dns_name_attrs){ .absolute = node->absolute,
+						    .readonly = true };
 }
 
 #ifdef DEBUG
@@ -627,7 +627,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				/*
 				 * Set up the new root of the next level.
 				 * By definition it will not be the top
-				 * level tree, so clear DNS_NAMEATTR_ABSOLUTE.
+				 * level tree, so clear the absolute flag.
 				 */
 				current->is_root = 1;
 				current->parent = new_current;
@@ -644,7 +644,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				current->right = NULL;
 
 				current->color = BLACK;
-				current->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+				current->absolute = false;
 
 				rbt->nodecount++;
 				dns_name_getlabelsequence(name,
@@ -1543,7 +1543,7 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 */
 	node->oldnamelen = node->namelen = region.length;
 	OLDOFFSETLEN(node) = node->offsetlen = labels;
-	node->attributes = name->attributes;
+	node->absolute = name->attributes.absolute;
 
 	memmove(NAME(node), region.base, region.length);
 	memmove(OFFSETS(node), name->offsets, labels);
@@ -2589,7 +2589,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 			 */
 			name->labels--;
 			name->length--;
-			name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
+			name->attributes.absolute = false;
 		}
 	}
 

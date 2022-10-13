@@ -71,9 +71,7 @@ struct dns_rbtnode {
 	/*@{*/
 	/*!
 	 * The following bitfields add up to a total bitwidth of 32.
-	 * The range of values necessary for each item is indicated,
-	 * but in the case of "attributes" the field is wider to accommodate
-	 * possible future expansion.
+	 * The range of values necessary for each item is indicated.
 	 *
 	 * In each case below the "range" indicated is what's _necessary_ for
 	 * the bitfield to hold, not what it actually _can_ hold.
@@ -92,7 +90,7 @@ struct dns_rbtnode {
 	unsigned int is_root	   : 1; /*%< range is 0..1 */
 	unsigned int color	   : 1; /*%< range is 0..1 */
 	unsigned int find_callback : 1; /*%< range is 0..1 */
-	unsigned int attributes	   : 3; /*%< range is 0..2 */
+	bool	     absolute	   : 1; /*%< node with absolute DNS name */
 	unsigned int nsec	   : 2; /*%< range is 0..3 */
 	unsigned int namelen	   : 8; /*%< range is 1..255 */
 	unsigned int offsetlen	   : 8; /*%< range is 1..128 */
@@ -605,7 +603,7 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  * \li  name->offsets == NULL
  *
  * Ensures:
- * \li  'name' is DNS_NAMEATTR_READONLY.
+ * \li  'name' is readonly.
  *
  * \li  'name' will point directly to the labels stored after the
  *      dns_rbtnode_t struct.

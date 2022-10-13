@@ -401,7 +401,8 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		node->name.length = node->r.length;
 		node->name.ndata = node->r.base;
 		node->name.labels = tname.labels;
-		node->name.attributes = DNS_NAMEATTR_ABSOLUTE;
+		node->name.attributes =
+			(struct dns_name_attrs){ .absolute = true };
 		node->next = cctx->table[i];
 		cctx->table[i] = node;
 		start++;

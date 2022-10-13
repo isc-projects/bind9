@@ -2583,7 +2583,7 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 
 	/* Windows doesn't like the tsig name to be compressed. */
 	if (updatemsg->tsigname) {
-		updatemsg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
+		updatemsg->tsigname->attributes.nocompress = true;
 	}
 
 	result = dns_request_create(
@@ -3082,7 +3082,7 @@ start_gssrequest(dns_name_t *primary) {
 	}
 
 	/* Windows doesn't recognize name compression in the key name. */
-	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
+	keyname->attributes.nocompress = true;
 
 	rmsg = NULL;
 	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);

@@ -406,6 +406,7 @@ ISC_RUN_TEST_IMPL(istat) {
 ISC_RUN_TEST_IMPL(init) {
 	dns_name_t name;
 	unsigned char offsets[1];
+	struct dns_name_attrs zeroes = {};
 
 	UNUSED(state);
 
@@ -414,7 +415,7 @@ ISC_RUN_TEST_IMPL(init) {
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
 	assert_int_equal(name.labels, 0);
-	assert_int_equal(name.attributes, 0);
+	assert_memory_equal(&name.attributes, &zeroes, sizeof(zeroes));
 	assert_ptr_equal(name.offsets, offsets);
 	assert_null(name.buffer);
 }
@@ -423,6 +424,7 @@ ISC_RUN_TEST_IMPL(init) {
 ISC_RUN_TEST_IMPL(invalidate) {
 	dns_name_t name;
 	unsigned char offsets[1];
+	struct dns_name_attrs zeroes = {};
 
 	UNUSED(state);
 
@@ -432,7 +434,7 @@ ISC_RUN_TEST_IMPL(invalidate) {
 	assert_null(name.ndata);
 	assert_int_equal(name.length, 0);
 	assert_int_equal(name.labels, 0);
-	assert_int_equal(name.attributes, 0);
+	assert_memory_equal(&name.attributes, &zeroes, sizeof(zeroes));
 	assert_null(name.offsets);
 	assert_null(name.buffer);
 }

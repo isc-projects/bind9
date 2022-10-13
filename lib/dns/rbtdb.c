@@ -4292,7 +4292,7 @@ found:
 			}
 		}
 		if (wild) {
-			foundname->attributes |= DNS_NAMEATTR_WILDCARD;
+			foundname->attributes.wildcard = true;
 		}
 		goto node_exit;
 	}
@@ -4378,7 +4378,7 @@ found:
 	}
 
 	if (wild) {
-		foundname->attributes |= DNS_NAMEATTR_WILDCARD;
+		foundname->attributes.wildcard = true;
 	}
 
 node_exit:
