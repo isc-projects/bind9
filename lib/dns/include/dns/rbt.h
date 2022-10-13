@@ -603,7 +603,7 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  * \li  name->offsets == NULL
  *
  * Ensures:
- * \li  'name' is DNS_NAMEATTR_READONLY.
+ * \li  'name' is readonly.
  *
  * \li  'name' will point directly to the labels stored after the
  *      dns_rbtnode_t struct.

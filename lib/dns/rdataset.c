@@ -445,7 +445,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	dns_rdataset_getownercase(rdataset, name);
 	offset = 0xffff;
 
-	name->attributes |= owner_name->attributes & DNS_NAMEATTR_NOCOMPRESS;
+	name->attributes.nocompress |= owner_name->attributes.nocompress;
 
 	do {
 		/*

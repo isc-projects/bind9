@@ -1576,7 +1576,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 			/*
 			 * Windows doesn't like TSIG names to be compressed.
 			 */
-			msg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
+			msg->tsigname->attributes.nocompress = true;
 			rdataset = NULL;
 			free_rdataset = false;
 			free_name = false;

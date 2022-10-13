@@ -436,8 +436,8 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 	if (qname != NULL && qname->labels != 0) {
 		dns_name_t *origin = NULL;
 
-		if ((qname->attributes & DNS_NAMEATTR_WILDCARD) != 0 &&
-		    zone != NULL && (origin = dns_zone_getorigin(zone)) != NULL)
+		if (qname->attributes.wildcard && zone != NULL &&
+		    (origin = dns_zone_getorigin(zone)) != NULL)
 		{
 			dns_fixedname_t fixed;
 			dns_name_t *wild;
