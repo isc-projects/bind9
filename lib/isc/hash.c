@@ -52,9 +52,7 @@ isc_hash_initialize(void) {
 const void *
 isc_hash_get_initializer(void) {
 	if (!hash_initialized) {
-		RUNTIME_CHECK(
-			isc_once_do(&isc_hash_once, isc_hash_initialize) ==
-			ISC_R_SUCCESS);
+		isc_once_do(&isc_hash_once, isc_hash_initialize);
 	}
 
 	return (isc_hash_key);
@@ -69,9 +67,7 @@ isc_hash_set_initializer(const void *initializer) {
 	 * isc_hash_set_initializer() is called.
 	 */
 	if (!hash_initialized) {
-		RUNTIME_CHECK(
-			isc_once_do(&isc_hash_once, isc_hash_initialize) ==
-			ISC_R_SUCCESS);
+		isc_once_do(&isc_hash_once, isc_hash_initialize);
 	}
 
 	memmove(isc_hash_key, initializer, sizeof(isc_hash_key));
@@ -83,8 +79,7 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive) {
 
 	REQUIRE(length == 0 || data != NULL);
 
-	RUNTIME_CHECK(isc_once_do(&isc_hash_once, isc_hash_initialize) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&isc_hash_once, isc_hash_initialize);
 
 	isc_siphash24(isc_hash_key, data, length, case_sensitive,
 		      (uint8_t *)&hval);
@@ -98,8 +93,7 @@ isc_hash32(const void *data, const size_t length, const bool case_sensitive) {
 
 	REQUIRE(length == 0 || data != NULL);
 
-	RUNTIME_CHECK(isc_once_do(&isc_hash_once, isc_hash_initialize) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&isc_hash_once, isc_hash_initialize);
 
 	isc_halfsiphash24(isc_hash_key, data, length, case_sensitive,
 			  (uint8_t *)&hval);

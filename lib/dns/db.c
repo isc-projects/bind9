@@ -106,7 +106,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	      char *argv[], dns_db_t **dbp) {
 	dns_dbimplementation_t *impinfo;
 
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, initialize);
 
 	/*
 	 * Create a new database using implementation 'db_type'.
@@ -841,7 +841,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 	REQUIRE(name != NULL);
 	REQUIRE(dbimp != NULL && *dbimp == NULL);
 
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, initialize);
 
 	RWLOCK(&implock, isc_rwlocktype_write);
 	imp = impfind(name);
@@ -871,7 +871,7 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 
 	REQUIRE(dbimp != NULL && *dbimp != NULL);
 
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, initialize);
 
 	imp = *dbimp;
 	*dbimp = NULL;

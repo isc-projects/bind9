@@ -43,8 +43,7 @@ mutex_initialize(void) {
 
 void
 isc__mutex_initialize(void) {
-	RUNTIME_CHECK(isc_once_do(&init_once, mutex_initialize) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&init_once, mutex_initialize);
 }
 
 void

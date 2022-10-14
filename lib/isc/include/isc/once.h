@@ -23,7 +23,8 @@ typedef pthread_once_t isc_once_t;
 
 #define ISC_ONCE_INIT PTHREAD_ONCE_INIT
 
-/* XXX We could do fancier error handling... */
-
-#define isc_once_do(op, f) \
-	((pthread_once((op), (f)) == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+#define isc_once_do(op, f)                                  \
+	{                                                   \
+		int _ret = pthread_once((op), (f));         \
+		PTHREADS_RUNTIME_CHECK(pthread_once, _ret); \
+	}

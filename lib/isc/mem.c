@@ -451,7 +451,7 @@ mem_initialize(void) {
 
 void
 isc__mem_initialize(void) {
-	RUNTIME_CHECK(isc_once_do(&init_once, mem_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&init_once, mem_initialize);
 }
 
 static void
@@ -463,7 +463,7 @@ mem_shutdown(void) {
 
 void
 isc__mem_shutdown(void) {
-	RUNTIME_CHECK(isc_once_do(&shut_once, mem_shutdown) == ISC_R_SUCCESS);
+	isc_once_do(&shut_once, mem_shutdown);
 }
 
 static void
