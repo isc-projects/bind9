@@ -3726,7 +3726,7 @@ named_statschannels_configure(named_server_t *server, const cfg_obj_t *config,
 	const cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
-	RUNTIME_CHECK(isc_once_do(&once, init_desc) == ISC_R_SUCCESS);
+	isc_once_do(&once, init_desc);
 
 	ISC_LIST_INIT(new_listeners);
 
@@ -3883,7 +3883,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	uint64_t sockstat_values[isc_sockstatscounter_max];
 	uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
-	RUNTIME_CHECK(isc_once_do(&once, init_desc) == ISC_R_SUCCESS);
+	isc_once_do(&once, init_desc);
 
 	/* Set common fields */
 	dumparg.type = isc_statsformat_file;

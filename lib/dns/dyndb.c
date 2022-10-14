@@ -212,7 +212,7 @@ dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	REQUIRE(DNS_DYNDBCTX_VALID(dctx));
 	REQUIRE(name != NULL);
 
-	RUNTIME_CHECK(isc_once_do(&once, dyndb_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, dyndb_initialize);
 
 	LOCK(&dyndb_lock);
 
@@ -244,7 +244,7 @@ dns_dyndb_cleanup(bool exiting) {
 	dyndb_implementation_t *elem;
 	dyndb_implementation_t *prev;
 
-	RUNTIME_CHECK(isc_once_do(&once, dyndb_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, dyndb_initialize);
 
 	LOCK(&dyndb_lock);
 	elem = TAIL(dyndb_implementations);

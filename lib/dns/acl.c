@@ -616,8 +616,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 	unsigned int i;
 	bool insecure;
 
-	RUNTIME_CHECK(isc_once_do(&insecure_prefix_once, initialize_action) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&insecure_prefix_once, initialize_action);
 
 	/*
 	 * Walk radix tree to find out if there are any non-negated,

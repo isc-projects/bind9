@@ -198,7 +198,7 @@ initialize_action(void) {
 
 static void
 initialize(void) {
-	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+	isc_once_do(&once, initialize_action);
 }
 
 isc_result_t
@@ -281,8 +281,7 @@ close:
 
 static void
 initialize_ipv6only(void) {
-	RUNTIME_CHECK(isc_once_do(&once_ipv6only, try_ipv6only) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&once_ipv6only, try_ipv6only);
 }
 
 #ifdef __notyet__
@@ -329,8 +328,7 @@ close:
 
 static void
 initialize_ipv6pktinfo(void) {
-	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo) ==
-		      ISC_R_SUCCESS);
+	isc_once_do(&once_ipv6pktinfo, try_ipv6pktinfo);
 }
 #endif /* ifdef __notyet__ */
 
@@ -696,7 +694,7 @@ try_dscp(void) {
 
 static void
 initialize_dscp(void) {
-	RUNTIME_CHECK(isc_once_do(&once_dscp, try_dscp) == ISC_R_SUCCESS);
+	isc_once_do(&once_dscp, try_dscp);
 }
 
 unsigned int

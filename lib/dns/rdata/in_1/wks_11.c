@@ -82,7 +82,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	RUNTIME_CHECK(isc_once_do(&once, init_lock) == ISC_R_SUCCESS);
+	isc_once_do(&once, init_lock);
 
 	/*
 	 * IPv4 dotted quad.

@@ -166,7 +166,7 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	 * initialize the dlz_implementations list, this is guaranteed
 	 * to only really happen once.
 	 */
-	RUNTIME_CHECK(isc_once_do(&once, dlz_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, dlz_initialize);
 
 	/*
 	 * Performs checks to make sure data is as we expect it to be.
@@ -296,7 +296,7 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	 * initialize the dlz_implementations list, this is guaranteed
 	 * to only really happen once.
 	 */
-	RUNTIME_CHECK(isc_once_do(&once, dlz_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, dlz_initialize);
 
 	/* lock the dlz_implementations list so we can modify it. */
 	RWLOCK(&dlz_implock, isc_rwlocktype_write);
@@ -377,7 +377,7 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 	 * initialize the dlz_implementations list, this is guaranteed
 	 * to only really happen once.
 	 */
-	RUNTIME_CHECK(isc_once_do(&once, dlz_initialize) == ISC_R_SUCCESS);
+	isc_once_do(&once, dlz_initialize);
 
 	dlz_imp = *dlzimp;
 
