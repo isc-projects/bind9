@@ -34,8 +34,6 @@
 
 #include <dns/log.h>
 
-#define fatal_error(...) isc_error_fatal(__FILE__, __LINE__, __VA_ARGS__)
-
 #define log_error_r(fmt, ...) \
 	log_error(fmt ": %s", ##__VA_ARGS__, isc_result_totext(result))
 

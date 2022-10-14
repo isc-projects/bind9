@@ -133,7 +133,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	UNUSED(db);
 	UNUSED(callbacks);
 
-	fatal_error("current implementation should never call beginload()");
+	FATAL_ERROR("current implementation should never call beginload()");
 
 	/* Not reached */
 	return (ISC_R_SUCCESS);
@@ -149,7 +149,7 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	UNUSED(db);
 	UNUSED(callbacks);
 
-	fatal_error("current implementation should never call endload()");
+	FATAL_ERROR("current implementation should never call endload()");
 
 	/* Not reached */
 	return (ISC_R_SUCCESS);
@@ -163,7 +163,7 @@ dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 	UNUSED(filename);
 	UNUSED(masterformat);
 
-	fatal_error("current implementation should never call dump()");
+	FATAL_ERROR("current implementation should never call dump()");
 
 	/* Not reached */
 	return (ISC_R_SUCCESS);
