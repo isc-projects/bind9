@@ -27,100 +27,6 @@
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
-#if USE_PTHREAD_RWLOCK
-
-#include <errno.h>
-#include <pthread.h>
-
-void
-isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
-		 unsigned int write_quota) {
-	int ret;
-	UNUSED(read_quota);
-	UNUSED(write_quota);
-
-	ret = pthread_rwlock_init(rwl, NULL);
-	PTHREADS_RUNTIME_CHECK(pthread_rwlock_init, ret);
-}
-
-void
-isc__rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
-	int ret;
-	switch (type) {
-	case isc_rwlocktype_read:
-		ret = pthread_rwlock_rdlock(rwl);
-		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rdlock, ret);
-		break;
-	case isc_rwlocktype_write:
-		ret = pthread_rwlock_wrlock(rwl);
-		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, ret);
-		break;
-	default:
-		UNREACHABLE();
-	}
-}
-
-isc_result_t
-isc__rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
-	int ret = 0;
-	switch (type) {
-	case isc_rwlocktype_read:
-		ret = pthread_rwlock_tryrdlock(rwl);
-		break;
-	case isc_rwlocktype_write:
-		ret = pthread_rwlock_trywrlock(rwl);
-		break;
-	default:
-		UNREACHABLE();
-	}
-
-	switch (ret) {
-	case 0:
-		return (ISC_R_SUCCESS);
-	case EBUSY:
-		return (ISC_R_LOCKBUSY);
-	case EAGAIN:
-		return (ISC_R_LOCKBUSY);
-	default:
-		break;
-	}
-
-	switch (type) {
-	case isc_rwlocktype_read:
-		PTHREADS_RUNTIME_CHECK(pthread_rwlock_tryrdlock, ret);
-		break;
-	case isc_rwlocktype_write:
-		PTHREADS_RUNTIME_CHECK(pthread_rwlock_trywrlock, ret);
-		break;
-	default:
-		break;
-	}
-	UNREACHABLE();
-}
-
-void
-isc__rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
-	int ret;
-	UNUSED(type);
-	ret = pthread_rwlock_unlock(rwl);
-	PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, ret);
-}
-
-isc_result_t
-isc__rwlock_tryupgrade(isc__rwlock_t *rwl) {
-	UNUSED(rwl);
-	return (ISC_R_LOCKBUSY);
-}
-
-void
-isc__rwlock_destroy(isc__rwlock_t *rwl) {
-	int ret = pthread_rwlock_destroy(rwl);
-
-	PTHREADS_RUNTIME_CHECK(pthread_rwlock_destroy, ret);
-}
-
-#else /* if USE_PTHREAD_RWLOCK */
-
 #define RWLOCK_MAGIC	  ISC_MAGIC('R', 'W', 'L', 'k')
 #define VALID_RWLOCK(rwl) ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
@@ -178,7 +84,7 @@ print_lock(const char *operation, isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 		atomic_load_acquire(&rwl->cnt_and_flag), rwl->readers_waiting,
 		atomic_load_acquire(&rwl->write_granted), rwl->write_quota);
 }
-#endif			/* ISC_RWLOCK_TRACE */
+#endif /* ISC_RWLOCK_TRACE */
 
 void
 isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
@@ -595,5 +501,3 @@ isc__rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	print_lock("postunlock", rwl, type);
 #endif /* ifdef ISC_RWLOCK_TRACE */
 }
-
-#endif /* USE_PTHREAD_RWLOCK */

@@ -35,6 +35,12 @@ typedef enum {
 #if USE_PTHREAD_RWLOCK
 #include <pthread.h>
 
+/*
+ * We use macros instead of static inline functions so that the exact code
+ * location can be reported when PTHREADS_RUNTIME_CHECK() fails or when mutrace
+ * reports lock contention.
+ */
+
 #if ISC_TRACK_PTHREADS_OBJECTS
 
 typedef pthread_rwlock_t *isc_rwlock_t;
@@ -68,6 +74,89 @@ typedef pthread_rwlock_t isc__rwlock_t;
 #define isc_rwlock_destroy(rwl)	      isc__rwlock_destroy(rwl)
 
 #endif /* ISC_TRACK_PTHREADS_OBJECTS */
+
+#define isc__rwlock_init(rwl, read_quota, write_quote)             \
+	{                                                          \
+		int _ret = pthread_rwlock_init(rwl, NULL);         \
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_init, _ret); \
+	}
+
+#define isc__rwlock_lock(rwl, type)                                          \
+	{                                                                    \
+		int _ret;                                                    \
+		switch (type) {                                              \
+		case isc_rwlocktype_read:                                    \
+			_ret = pthread_rwlock_rdlock(rwl);                   \
+			PTHREADS_RUNTIME_CHECK(pthread_rwlock_rdlock, _ret); \
+			break;                                               \
+		case isc_rwlocktype_write:                                   \
+			_ret = pthread_rwlock_wrlock(rwl);                   \
+			PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, _ret); \
+			break;                                               \
+		default:                                                     \
+			UNREACHABLE();                                       \
+		}                                                            \
+	}
+
+#define isc__rwlock_trylock(rwl, type)                                   \
+	({                                                               \
+		int	     _ret = 0;                                   \
+		isc_result_t _res = ISC_R_UNSET;                         \
+                                                                         \
+		switch (type) {                                          \
+		case isc_rwlocktype_read:                                \
+			_ret = pthread_rwlock_tryrdlock(rwl);            \
+			break;                                           \
+		case isc_rwlocktype_write:                               \
+			_ret = pthread_rwlock_trywrlock(rwl);            \
+			break;                                           \
+		default:                                                 \
+			UNREACHABLE();                                   \
+		}                                                        \
+                                                                         \
+		switch (_ret) {                                          \
+		case 0:                                                  \
+			_res = ISC_R_SUCCESS;                            \
+			break;                                           \
+		case EBUSY:                                              \
+		case EAGAIN:                                             \
+			_res = ISC_R_LOCKBUSY;                           \
+			break;                                           \
+		default:                                                 \
+			switch (type) {                                  \
+			case isc_rwlocktype_read:                        \
+				PTHREADS_RUNTIME_CHECK(                  \
+					pthread_rwlock_tryrdlock, _ret); \
+				break;                                   \
+			case isc_rwlocktype_write:                       \
+				PTHREADS_RUNTIME_CHECK(                  \
+					pthread_rwlock_trywrlock, _ret); \
+				break;                                   \
+			default:                                         \
+				UNREACHABLE();                           \
+			}                                                \
+			UNREACHABLE();                                   \
+		}                                                        \
+		_res;                                                    \
+	})
+
+#define isc__rwlock_unlock(rwl, type)                                \
+	{                                                            \
+		int _ret = pthread_rwlock_unlock(rwl);               \
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, _ret); \
+	}
+
+#define isc__rwlock_tryupgrade(rwl) \
+	({                          \
+		UNUSED(rwl);        \
+		ISC_R_LOCKBUSY;     \
+	})
+
+#define isc__rwlock_destroy(rwl)                                      \
+	{                                                             \
+		int _ret = pthread_rwlock_destroy(rwl);               \
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_destroy, _ret); \
+	}
 
 #else /* USE_PTHREAD_RWLOCK */
 
@@ -117,8 +206,6 @@ typedef struct isc_rwlock isc__rwlock_t;
 #define isc_rwlock_tryupgrade(rwl)    isc__rwlock_tryupgrade(rwl)
 #define isc_rwlock_destroy(rwl)	      isc__rwlock_destroy(rwl)
 
-#endif /* USE_PTHREAD_RWLOCK */
-
 void
 isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
 		 unsigned int write_quota);
@@ -137,5 +224,7 @@ isc__rwlock_tryupgrade(isc__rwlock_t *rwl);
 
 void
 isc__rwlock_destroy(isc__rwlock_t *rwl);
+
+#endif /* USE_PTHREAD_RWLOCK */
 
 ISC_LANG_ENDDECLS

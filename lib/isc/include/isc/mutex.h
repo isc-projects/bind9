@@ -25,6 +25,12 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * We use macros instead of static inline functions so that the exact code
+ * location can be reported when PTHREADS_RUNTIME_CHECK() fails or when mutrace
+ * reports lock contention.
+ */
+
 #ifdef ISC_TRACK_PTHREADS_OBJECTS
 
 typedef pthread_mutex_t *isc_mutex_t;
