@@ -234,8 +234,7 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, bool address_only) {
 		p = ntohs(sockaddr->type.sin6.sin6_port);
 		break;
 	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unknown address family: %d",
+		UNEXPECTED_ERROR("unknown address family: %d",
 				 (int)sockaddr->type.sa.sa_family);
 		s = (const unsigned char *)&sockaddr->type;
 		length = sockaddr->length;
@@ -341,7 +340,7 @@ isc_sockaddr_pf(const isc_sockaddr_t *sockaddr) {
 	case AF_INET6:
 		return (PF_INET6);
 	default:
-		FATAL_ERROR(__FILE__, __LINE__, "unknown address family: %d",
+		FATAL_ERROR("unknown address family: %d",
 			    (int)sockaddr->type.sa.sa_family);
 	}
 #endif /* if (AF_INET == PF_INET && AF_INET6 == PF_INET6) */
@@ -380,7 +379,7 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port) {
 		sockaddr->type.sin6.sin6_port = htons(port);
 		break;
 	default:
-		FATAL_ERROR(__FILE__, __LINE__, "unknown address family: %d",
+		FATAL_ERROR("unknown address family: %d",
 			    (int)sockaddr->type.sa.sa_family);
 	}
 }
@@ -397,7 +396,7 @@ isc_sockaddr_getport(const isc_sockaddr_t *sockaddr) {
 		port = ntohs(sockaddr->type.sin6.sin6_port);
 		break;
 	default:
-		FATAL_ERROR(__FILE__, __LINE__, "unknown address family: %d",
+		FATAL_ERROR("unknown address family: %d",
 			    (int)sockaddr->type.sa.sa_family);
 	}
 

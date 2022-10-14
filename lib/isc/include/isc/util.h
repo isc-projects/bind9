@@ -311,10 +311,10 @@ mock_assert(const int result, const char *const expression,
  */
 #include <isc/error.h> /* Contractual promise. */
 
-/*% Unexpected Error */
-#define UNEXPECTED_ERROR isc_error_unexpected
-/*% Fatal Error */
-#define FATAL_ERROR isc_error_fatal
+#define UNEXPECTED_ERROR(...) \
+	isc_error_unexpected(__FILE__, __LINE__, __VA_ARGS__)
+
+#define FATAL_ERROR(...) isc_error_fatal(__FILE__, __LINE__, __VA_ARGS__)
 
 #ifdef UNIT_TESTING
 
@@ -325,7 +325,6 @@ mock_assert(const int result, const char *const expression,
 
 #else /* UNIT_TESTING */
 
-/*% Runtime Check */
 #define RUNTIME_CHECK(cond) ISC_ERROR_RUNTIMECHECK(cond)
 
 #endif /* UNIT_TESTING */

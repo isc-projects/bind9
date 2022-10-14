@@ -1244,8 +1244,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			break;
 		default:
-			FATAL_ERROR(__FILE__, __LINE__, "Unexpected state %d",
-				    state);
+			FATAL_ERROR("Unexpected state %d", state);
 			/* Does not return. */
 		}
 	}
@@ -1467,8 +1466,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 				count--;
 			}
 		} else {
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected label type %02x", count);
+			FATAL_ERROR("Unexpected label type %02x", count);
 			UNREACHABLE();
 		}
 
@@ -1591,8 +1589,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 				count--;
 			}
 		} else {
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected label type %02x", count);
+			FATAL_ERROR("Unexpected label type %02x", count);
 			UNREACHABLE();
 		}
 
@@ -1674,8 +1671,7 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 				count--;
 			}
 		} else {
-			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected label type %02x", count);
+			FATAL_ERROR("Unexpected label type %02x", count);
 			/* Does not return. */
 		}
 	}
@@ -1885,8 +1881,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 			state = fw_start;
 			break;
 		default:
-			FATAL_ERROR(__FILE__, __LINE__, "Unknown state %d",
-				    state);
+			FATAL_ERROR("Unknown state %d", state);
 			/* Does not return. */
 		}
 	}

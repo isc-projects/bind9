@@ -4436,7 +4436,7 @@ zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	UNUSED(rdataset);
 	UNUSED(sigrdataset);
 
-	FATAL_ERROR(__FILE__, __LINE__, "zone_findzonecut() called!");
+	FATAL_ERROR("zone_findzonecut() called!");
 
 	UNREACHABLE();
 	return (ISC_R_NOTIMPLEMENTED);
