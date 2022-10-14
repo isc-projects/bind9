@@ -27,8 +27,6 @@ export LANG=C
 #
 # Common lists of system tests to run.
 #
-# The "stress" test is not run by default since it creates enough
-# load on the machine to make it unusable to other users.
 # The "dupsigs" test is not run by default because it takes
 # a very long time to complete.
 #
