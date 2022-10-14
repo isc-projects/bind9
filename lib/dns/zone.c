@@ -21728,13 +21728,15 @@ zone_rekey(dns_zone_t *zone) {
 		result = dns_zone_getdnsseckeys(zone, db, ver, now,
 						&zone->checkds_ok);
 
-		if (result != ISC_R_SUCCESS) {
-			dnssec_log(zone, ISC_LOG_ERROR,
+		if (result == ISC_R_SUCCESS) {
+			zone_checkds(zone);
+		} else {
+			dnssec_log(zone,
+				   (result == ISC_R_NOTFOUND) ? ISC_LOG_DEBUG(1)
+							      : ISC_LOG_ERROR,
 				   "zone_rekey:dns_zone_getdnsseckeys failed: "
 				   "%s",
 				   isc_result_totext(result));
-		} else {
-			zone_checkds(zone);
 		}
 
 		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
