@@ -24,7 +24,6 @@
 
 #include <isc/log.h>
 #include <isc/print.h>
-#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/tm.h>
@@ -131,13 +130,11 @@ isc_time_isepoch(const isc_time_t *t) {
 static isc_result_t
 time_now(isc_time_t *t, clockid_t clock) {
 	struct timespec ts;
-	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 
 	if (clock_gettime(clock, &ts) == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR("%s", strbuf);
+		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -173,15 +170,13 @@ isc_time_now(isc_time_t *t) {
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	struct timespec ts;
-	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR("%s", strbuf);
+		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
 		return (ISC_R_UNEXPECTED);
 	}
 

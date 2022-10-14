@@ -40,23 +40,15 @@ initialize_attr(void) {
 }
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
-void
-isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
-	int err;
-
+int
+isc__mutex_init(isc_mutex_t *mp) {
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 	isc_result_t result = ISC_R_SUCCESS;
 	result = isc_once_do(&once_attr, initialize_attr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	err = pthread_mutex_init(mp, &attr);
+	return (pthread_mutex_init(mp, &attr));
 #else  /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-	err = pthread_mutex_init(mp, NULL);
+	return (pthread_mutex_init(mp, NULL));
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-	if (err != 0) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(err, strbuf, sizeof(strbuf));
-		isc_error_fatal(file, line, "pthread_mutex_init failed: %s",
-				strbuf);
-	}
 }
