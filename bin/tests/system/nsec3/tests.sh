@@ -275,14 +275,6 @@ set_nsec3param "0" "0" "0"
 set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
-# Test that NSEC3PARAM TTL is equal to SOA MINIMUM.
-n=$((n+1))
-echo_i "check TTL of NSEC3PARAM in zone $ZONE ($n)"
-ret=0
-dig_with_opts +noquestion "@${SERVER}" "$ZONE" NSEC3PARAM > "dig.out.test$n" || ret=1
-grep "${ZONE}\..*3600.*IN.*NSEC3PARAM" "dig.out.test$n" > /dev/null || ret=1
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
 
 # Zone: nsec3-dynamic.kasp.
 set_zone_policy "nsec3-dynamic.kasp" "nsec3" 1 3600
@@ -297,6 +289,24 @@ set_nsec3param "0" "0" "0"
 set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec3
+
+# Test that NSEC3PARAM TTL is equal to SOA MINIMUM.
+n=$((n+1))
+echo_i "check TTL of NSEC3PARAM in zone $ZONE is equal to SOA MINIMUM ($n)"
+ret=0
+dig_with_opts +noquestion "@${SERVER}" "$ZONE" NSEC3PARAM > "dig.out.test$n" || ret=1
+grep "${ZONE}\..*3600.*IN.*NSEC3PARAM" "dig.out.test$n" > /dev/null || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update SOA MINIMUM.
+cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
+rndccmd $SERVER reload $ZONE > rndc.reload.test$n.$ZONE || log_error "failed to call rndc reload $ZONE"
+_wait_for_new_soa() {
+	dig_with_opts +noquestion "@${SERVER}" "$ZONE" SOA > "dig.out.soa.test$n" || return 1
+	grep "${ZONE}\..*IN.*SOA.*mname1..*..*20.*20.*.1814400.*900" "dig.out.soa.test$n" > /dev/null || return 1
+}
+retry_quiet 10 _wait_for_new_soa || log_error "failed to update SOA record in zone $ZONE"
 
 # Zone: nsec3-dynamic-change.kasp.
 set_zone_policy "nsec3-dynamic-change.kasp" "nsec3" 1 3600
@@ -460,6 +470,16 @@ set_nsec3param "1" "11" "8"
 set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
+
+# Test that NSEC3PARAM TTL is equal to new SOA MINIMUM.
+n=$((n+1))
+echo_i "check TTL of NSEC3PARAM in zone $ZONE is updated after SOA MINIMUM changed ($n)"
+ret=0
+# Check NSEC3PARAM TTL.
+dig_with_opts +noquestion "@${SERVER}" "$ZONE" NSEC3PARAM > "dig.out.nsec3param.test$n" || ret=1
+grep "${ZONE}\..*900.*IN.*NSEC3PARAM" "dig.out.nsec3param.test$n" > /dev/null || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Zone: nsec3-dynamic-change.kasp. (reconfigured)
 set_zone_policy "nsec3-dynamic-change.kasp" "nsec3-other" 1 3600
