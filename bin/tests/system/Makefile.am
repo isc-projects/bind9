@@ -171,11 +171,9 @@ TESTS +=			\
 	xferquota		\
 	zonechecks
 
-# The "stress" test is not run by default since it creates enough
-# load on the machine to make it unusable to other users.
 # The "dupsigs" test is not run by default because it takes
 # a very long time to complete.
-# TESTS += dupsigs stress
+# TESTS += dupsigs
 
 if HAVE_LMDB
 TESTS += nzd2nzf
@@ -189,6 +187,7 @@ TESTS +=		\
 	nsupdate	\
 	resolver	\
 	statistics	\
+	stress		\
 	upforwd		\
 	zero
 
