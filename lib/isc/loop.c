@@ -45,14 +45,10 @@
 
 static void
 ignore_signal(int sig, void (*handler)(int)) {
-	struct sigaction sa;
+	struct sigaction sa = { .sa_handler = handler };
 
-	sa = (struct sigaction){ .sa_handler = handler };
 	if (sigfillset(&sa.sa_mask) != 0 || sigaction(sig, &sa, NULL) < 0) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		isc_error_fatal(__FILE__, __LINE__, "%s() %d setup: %s",
-				__func__, sig, strbuf);
+		FATAL_SYSERROR(errno, "ignore_signal(%d)", sig);
 	}
 }
 

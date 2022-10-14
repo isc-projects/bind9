@@ -198,11 +198,10 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	isc_nm_t *netmgr = NULL;
 
 	if (uv_version() < MINIMAL_UV_VERSION) {
-		isc_error_fatal(__FILE__, __LINE__,
-				"libuv version too old: running with libuv %s "
-				"when compiled with libuv %s will lead to "
-				"libuv failures because of unknown flags",
-				uv_version_string(), UV_VERSION_STRING);
+		FATAL_ERROR("libuv version too old: running with libuv %s "
+			    "when compiled with libuv %s will lead to "
+			    "libuv failures because of unknown flags",
+			    uv_version_string(), UV_VERSION_STRING);
 	}
 
 	netmgr = isc_mem_get(mctx, sizeof(*netmgr));

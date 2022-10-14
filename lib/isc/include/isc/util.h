@@ -320,16 +320,30 @@ mock_assert(const int result, const char *const expression,
 
 #define FATAL_ERROR(...) isc_error_fatal(__FILE__, __LINE__, __VA_ARGS__)
 
+#define REPORT_SYSERROR(report, err, fmt, ...)                             \
+	{                                                                  \
+		char _strerr[ISC_STRERRORSIZE];                            \
+		strerror_r(err, _strerr, sizeof(_strerr));                 \
+		report(__FILE__, __LINE__, fmt ": %s (%d)", ##__VA_ARGS__, \
+		       _strerr, err);                                      \
+	}
+
+#define UNEXPECTED_SYSERROR(err, ...) \
+	REPORT_SYSERROR(isc_error_unexpected, err, __VA_ARGS__)
+
+#define FATAL_SYSERROR(err, ...) \
+	REPORT_SYSERROR(isc_error_fatal, err, __VA_ARGS__)
+
 #ifdef UNIT_TESTING
 
-#define RUNTIME_CHECK(expression)                                             \
-	((!(expression))                                                      \
-		 ? (mock_assert(0, #expression, __FILE__, __LINE__), abort()) \
-		 : (void)0)
+#define RUNTIME_CHECK(cond) \
+	((cond) ? (void)0   \
+		: (mock_assert(0, #cond, __FILE__, __LINE__), abort()))
 
 #else /* UNIT_TESTING */
 
-#define RUNTIME_CHECK(cond) ISC_ERROR_RUNTIMECHECK(cond)
+#define RUNTIME_CHECK(cond) \
+	((cond) ? (void)0 : isc_error_runtimecheck(__FILE__, __LINE__, #cond))
 
 #endif /* UNIT_TESTING */
 
@@ -337,13 +351,9 @@ mock_assert(const int result, const char *const expression,
  * Runtime check which logs the error value returned by a POSIX Threads
  * function and the error string that corresponds to it
  */
-#define PTHREADS_RUNTIME_CHECK(func, ret)                               \
-	if ((ret) != 0) {                                               \
-		char _strerrorbuf[ISC_STRERRORSIZE];                    \
-		strerror_r(ret, _strerrorbuf, sizeof(_strerrorbuf));    \
-		isc_error_fatal(__FILE__, __LINE__,                     \
-				"%s(): %s() failed with error %d (%s)", \
-				__func__, #func, ret, _strerrorbuf);    \
+#define PTHREADS_RUNTIME_CHECK(func, ret)                           \
+	if ((ret) != 0) {                                           \
+		FATAL_SYSERROR(ret, "%s(): %s()", __func__, #func); \
 	}
 
 /*%
