@@ -240,12 +240,12 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 }
 
 noreturn static void
-library_fatal_error(const char *file, int line, const char *format,
-		    va_list args) ISC_FORMAT_PRINTF(3, 0);
+library_fatal_error(const char *file, int line, const char *func,
+		    const char *format, va_list args) ISC_FORMAT_PRINTF(3, 0);
 
 static void
-library_fatal_error(const char *file, int line, const char *format,
-		    va_list args) {
+library_fatal_error(const char *file, int line, const char *func,
+		    const char *format, va_list args) {
 	/*
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
@@ -259,7 +259,7 @@ library_fatal_error(const char *file, int line, const char *format,
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "%s:%d: fatal error:", file, line);
+			      "%s:%d:%s(): fatal error: ", file, line, func);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
 			       args);
@@ -267,7 +267,7 @@ library_fatal_error(const char *file, int line, const char *format,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to fatal error in library)");
 	} else {
-		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 		fflush(stderr);
@@ -280,12 +280,13 @@ library_fatal_error(const char *file, int line, const char *format,
 }
 
 static void
-library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args) ISC_FORMAT_PRINTF(3, 0);
+library_unexpected_error(const char *file, int line, const char *func,
+			 const char *format, va_list args)
+	ISC_FORMAT_PRINTF(3, 0);
 
 static void
-library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args) {
+library_unexpected_error(const char *file, int line, const char *func,
+			 const char *format, va_list args) {
 	/*
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
@@ -293,12 +294,13 @@ library_unexpected_error(const char *file, int line, const char *format,
 	if (named_g_lctx != NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR,
-			      "%s:%d: unexpected error:", file, line);
+			      "%s:%d:%s(): unexpected error: ", file, line,
+			      func);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			       NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR, format,
 			       args);
 	} else {
-		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 		fflush(stderr);
