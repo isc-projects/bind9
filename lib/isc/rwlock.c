@@ -224,8 +224,7 @@ isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
 	rwl->readers_waiting = 0;
 	atomic_init(&rwl->write_granted, 0);
 	if (read_quota != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "read quota is not supported");
+		UNEXPECTED_ERROR("read quota is not supported");
 	}
 	if (write_quota == 0) {
 		write_quota = RWLOCK_DEFAULT_WRITE_QUOTA;

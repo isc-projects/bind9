@@ -4880,8 +4880,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 
 	if (!dns_name_issubdomain(fctx->name, fctx->domain)) {
 		dns_name_format(fctx->domain, buf, sizeof(buf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "'%s' is not subdomain of '%s'", fctx->info,
+		UNEXPECTED_ERROR("'%s' is not subdomain of '%s'", fctx->info,
 				 buf);
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_fcount;
@@ -4897,8 +4896,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 			 res->query_timeout % 1000 * 1000000);
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_nowplusinterval: %s",
+		UNEXPECTED_ERROR("isc_time_nowplusinterval: %s",
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
@@ -4925,8 +4923,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		iresult = isc_time_nowplusinterval(&fctx->expires_try_stale,
 						   &interval);
 		if (iresult != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_nowplusinterval: %s",
+			UNEXPECTED_ERROR("isc_time_nowplusinterval: %s",
 					 isc_result_totext(iresult));
 			result = ISC_R_UNEXPECTED;
 			goto cleanup_timer;

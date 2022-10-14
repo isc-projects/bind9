@@ -5240,8 +5240,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		break;
 
 	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "unexpected zone type %d",
-				 zone->type);
+		UNEXPECTED_ERROR("unexpected zone type %d", zone->type);
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}

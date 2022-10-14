@@ -1406,8 +1406,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if ((h = scf_handle_create(SCF_VERSION)) == NULL) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_handle_create() failed: %s",
+			UNEXPECTED_ERROR("scf_handle_create() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		return (ISC_R_FAILURE);
@@ -1415,8 +1414,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if (scf_handle_bind(h) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_handle_bind() failed: %s",
+			UNEXPECTED_ERROR("scf_handle_bind() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1425,8 +1423,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if ((namelen = scf_myname(h, NULL, 0)) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_myname() failed: %s",
+			UNEXPECTED_ERROR("scf_myname() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1434,8 +1431,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 	}
 
 	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "named_smf_get_instance memory "
+		UNEXPECTED_ERROR("named_smf_get_instance memory "
 				 "allocation failed: %s",
 				 isc_result_totext(ISC_R_NOMEMORY));
 		scf_handle_destroy(h);
@@ -1444,8 +1440,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if (scf_myname(h, instance, namelen + 1) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_myname() failed: %s",
+			UNEXPECTED_ERROR("scf_myname() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1552,8 +1547,7 @@ main(int argc, char *argv[]) {
 		result = named_smf_get_instance(&instance, 1, named_g_mctx);
 		if (result == ISC_R_SUCCESS && instance != NULL) {
 			if (smf_disable_instance(instance, 0) != 0) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "smf_disable_instance() "
+				UNEXPECTED_ERROR("smf_disable_instance() "
 						 "failed for %s : %s",
 						 instance,
 						 scf_strerror(scf_error()));

@@ -2745,10 +2745,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			/* "temp<rr.name, rr.type> += rr;" */
 			result = temp_append(&temp, name, &rdata);
 			if (result != ISC_R_SUCCESS) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "temp entry creation failed: "
-						 "%s",
-						 isc_result_totext(result));
+				UNEXPECTED_ERROR(
+					"temp entry creation failed: %s",
+					isc_result_totext(result));
 				FAIL(ISC_R_UNEXPECTED);
 			}
 		} else {

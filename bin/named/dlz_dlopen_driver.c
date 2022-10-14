@@ -531,8 +531,7 @@ dlz_dlopen_init(isc_mem_t *mctx) {
 				  mctx, &dlz_dlopen);
 
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_sdlzregister() failed: %s",
+		UNEXPECTED_ERROR("dns_sdlzregister() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
 	}

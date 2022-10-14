@@ -176,8 +176,7 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuplep) {
 		{
 			ISC_LIST_UNLINK(diff->tuples, ot, link);
 			if ((*tuplep)->op == ot->op) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "unexpected non-minimal diff");
+				UNEXPECTED_ERROR("unexpected non-minimal diff");
 			} else {
 				dns_difftuple_free(tuplep);
 			}

@@ -142,8 +142,7 @@ try_proto(int domain) {
 			return (ISC_R_NOTFOUND);
 		default:
 			strerror_r(errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() failed: %s", strbuf);
+			UNEXPECTED_ERROR("socket() failed: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 	}
@@ -241,8 +240,7 @@ try_ipv6only(void) {
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_ERROR("socket() failed: %s", strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -259,8 +257,7 @@ try_ipv6only(void) {
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_ERROR("socket() failed: %s", strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -302,8 +299,7 @@ try_ipv6pktinfo(void) {
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_ERROR("socket() failed: %s", strbuf);
 		ipv6pktinfo_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -422,13 +418,12 @@ make_nonblock(int fd) {
 
 	if (ret == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
-				 "ioctl(%d, FIONBIO, &on): %s", fd,
+		UNEXPECTED_ERROR("ioctl(%d, FIONBIO, &on): %s", fd, strbuf);
 #else  /* ifdef USE_FIONBIO_IOCTL */
-				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
-#endif /* ifdef USE_FIONBIO_IOCTL */
+		UNEXPECTED_ERROR("fcntl(%d, F_SETFL, %d): %s", fd, flags,
 				 strbuf);
+#endif /* ifdef USE_FIONBIO_IOCTL */
 
 		return (ISC_R_UNEXPECTED);
 	}
@@ -509,7 +504,6 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 
 	if (sendmsg(s, &msg, 0) < 0) {
 		int debug = ISC_LOG_DEBUG(10);
-		const char *typestr;
 		switch (errno) {
 #ifdef ENOPROTOOPT
 		case ENOPROTOOPT:
@@ -529,11 +523,10 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 				      "sendmsg: %s", strbuf);
 		} else {
-			typestr = (type == IP_TOS) ? "IP_TOS" : "IPV6_TCLASS";
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "probing "
-					 "sendmsg() with %s=%02x failed: %s",
-					 typestr, dscp, strbuf);
+			UNEXPECTED_ERROR(
+				"probing sendmsg() with %s=%02x failed: %s",
+				(type == IP_TOS) ? "IP_TOS" : "IPV6_TCLASS",
+				dscp, strbuf);
 		}
 		return (false);
 	}

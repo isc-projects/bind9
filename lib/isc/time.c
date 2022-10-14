@@ -94,7 +94,7 @@ time_now(isc_time_t *t, clockid_t clock) {
 	if (clock_gettime(clock, &ts) == -1) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
+		UNEXPECTED_ERROR("%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -138,7 +138,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
 		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
+		UNEXPECTED_ERROR("%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 

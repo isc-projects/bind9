@@ -62,7 +62,6 @@ isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 	} while (presult == EINTR);
 
 	strerror_r(presult, strbuf, sizeof(strbuf));
-	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() returned %s", strbuf);
+	UNEXPECTED_ERROR("pthread_cond_timedwait() returned %s", strbuf);
 	return (ISC_R_UNEXPECTED);
 }
