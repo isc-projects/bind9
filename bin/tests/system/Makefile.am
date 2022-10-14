@@ -163,9 +163,9 @@ TESTS +=			\
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# The "dialup", "delzone", and "dupsigs" tests are also not run by
+# The "dialup" and "dupsigs" tests are also not run by
 # default because they take a very long time to complete.
-# TESTS += delzone dialup dupsigs stress
+# TESTS += dialup dupsigs stress
 
 if HAVE_LMDB
 TESTS += nzd2nzf
