@@ -46,13 +46,13 @@ typedef pthread_rwlock_t  isc__rwlock_t;
 		isc__rwlock_init(*rwl, rq, wq); \
 	}
 #define isc_rwlock_lock(rwl, type)    isc__rwlock_lock(*rwl, type)
-#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(*rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc__rwlock_trylock(*rwl, type)
 #define isc_rwlock_unlock(rwl, type)  isc__rwlock_unlock(*rwl, type)
-#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(*rwl)
-#define isc_rwlock_destroy(rwl)             \
-	{                                   \
-		isc___rwlock_destroy(*rwl); \
-		free(*rwl);                 \
+#define isc_rwlock_tryupgrade(rwl)    isc__rwlock_tryupgrade(*rwl)
+#define isc_rwlock_destroy(rwl)            \
+	{                                  \
+		isc__rwlock_destroy(*rwl); \
+		free(*rwl);                \
 	}
 
 #else /* ISC_TRACK_PTHREADS_OBJECTS */
@@ -62,9 +62,9 @@ typedef pthread_rwlock_t isc__rwlock_t;
 
 #define isc_rwlock_init(rwl, rq, wq)  isc__rwlock_init(rwl, rq, wq)
 #define isc_rwlock_lock(rwl, type)    isc__rwlock_lock(rwl, type)
-#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc__rwlock_trylock(rwl, type)
 #define isc_rwlock_unlock(rwl, type)  isc__rwlock_unlock(rwl, type)
-#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(rwl)
+#define isc_rwlock_tryupgrade(rwl)    isc__rwlock_tryupgrade(rwl)
 #define isc_rwlock_destroy(rwl)	      isc__rwlock_destroy(rwl)
 
 #endif /* ISC_TRACK_PTHREADS_OBJECTS */
@@ -112,54 +112,30 @@ typedef struct isc_rwlock isc__rwlock_t;
 
 #define isc_rwlock_init(rwl, rq, wq)  isc__rwlock_init(rwl, rq, wq)
 #define isc_rwlock_lock(rwl, type)    isc__rwlock_lock(rwl, type)
-#define isc_rwlock_trylock(rwl, type) isc___rwlock_trylock(rwl, type)
+#define isc_rwlock_trylock(rwl, type) isc__rwlock_trylock(rwl, type)
 #define isc_rwlock_unlock(rwl, type)  isc__rwlock_unlock(rwl, type)
-#define isc_rwlock_tryupgrade(rwl)    isc___rwlock_tryupgrade(rwl)
+#define isc_rwlock_tryupgrade(rwl)    isc__rwlock_tryupgrade(rwl)
 #define isc_rwlock_destroy(rwl)	      isc__rwlock_destroy(rwl)
 
 #endif /* USE_PTHREAD_RWLOCK */
 
-#define isc__rwlock_init(rwl, rq, wq)                            \
-	{                                                        \
-		int _ret = isc___rwlock_init(rwl, rq, wq);       \
-		PTHREADS_RUNTIME_CHECK(isc___rwlock_init, _ret); \
-	}
+void
+isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
+		 unsigned int write_quota);
 
-#define isc__rwlock_lock(rwl, type)                              \
-	{                                                        \
-		int _ret = isc___rwlock_lock(rwl, type);         \
-		PTHREADS_RUNTIME_CHECK(isc___rwlock_lock, _ret); \
-	}
-
-#define isc__rwlock_unlock(rwl, type)                              \
-	{                                                          \
-		int _ret = isc___rwlock_unlock(rwl, type);         \
-		PTHREADS_RUNTIME_CHECK(isc___rwlock_unlock, _ret); \
-	}
-
-#define isc__rwlock_destroy(rwl)                                    \
-	{                                                           \
-		int _ret = isc___rwlock_destroy(rwl);               \
-		PTHREADS_RUNTIME_CHECK(isc___rwlock_destroy, _ret); \
-	}
-
-int
-isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
-		  unsigned int write_quota);
-
-int
-isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
+void
+isc__rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
-isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
+isc__rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
-int
-isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
+void
+isc__rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type);
 
 isc_result_t
-isc___rwlock_tryupgrade(isc__rwlock_t *rwl);
+isc__rwlock_tryupgrade(isc__rwlock_t *rwl);
 
-int
-isc___rwlock_destroy(isc__rwlock_t *rwl);
+void
+isc__rwlock_destroy(isc__rwlock_t *rwl);
 
 ISC_LANG_ENDDECLS

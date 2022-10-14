@@ -32,32 +32,36 @@
 #include <errno.h>
 #include <pthread.h>
 
-int
-isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
-		  unsigned int write_quota) {
+void
+isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
+		 unsigned int write_quota) {
 	int ret;
 	UNUSED(read_quota);
 	UNUSED(write_quota);
 
 	ret = pthread_rwlock_init(rwl, NULL);
-
-	return (ret);
+	PTHREADS_RUNTIME_CHECK(pthread_rwlock_init, ret);
 }
 
-int
-isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+void
+isc__rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+	int ret;
 	switch (type) {
 	case isc_rwlocktype_read:
-		return (pthread_rwlock_rdlock(rwl));
+		ret = pthread_rwlock_rdlock(rwl);
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rdlock, ret);
+		break;
 	case isc_rwlocktype_write:
-		return (pthread_rwlock_wrlock(rwl));
+		ret = pthread_rwlock_wrlock(rwl);
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, ret);
+		break;
 	default:
 		UNREACHABLE();
 	}
 }
 
 isc_result_t
-isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+isc__rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int ret = 0;
 	switch (type) {
 	case isc_rwlocktype_read:
@@ -78,25 +82,41 @@ isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	case EAGAIN:
 		return (ISC_R_LOCKBUSY);
 	default:
-		UNREACHABLE();
+		break;
 	}
+
+	switch (type) {
+	case isc_rwlocktype_read:
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_tryrdlock, ret);
+		break;
+	case isc_rwlocktype_write:
+		PTHREADS_RUNTIME_CHECK(pthread_rwlock_trywrlock, ret);
+		break;
+	default:
+		break;
+	}
+	UNREACHABLE();
 }
 
-int
-isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+void
+isc__rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+	int ret;
 	UNUSED(type);
-	return (pthread_rwlock_unlock(rwl));
+	ret = pthread_rwlock_unlock(rwl);
+	PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, ret);
 }
 
 isc_result_t
-isc___rwlock_tryupgrade(isc__rwlock_t *rwl) {
+isc__rwlock_tryupgrade(isc__rwlock_t *rwl) {
 	UNUSED(rwl);
 	return (ISC_R_LOCKBUSY);
 }
 
-int
-isc___rwlock_destroy(isc__rwlock_t *rwl) {
-	return (pthread_rwlock_destroy(rwl));
+void
+isc__rwlock_destroy(isc__rwlock_t *rwl) {
+	int ret = pthread_rwlock_destroy(rwl);
+
+	PTHREADS_RUNTIME_CHECK(pthread_rwlock_destroy, ret);
 }
 
 #else /* if USE_PTHREAD_RWLOCK */
@@ -160,9 +180,9 @@ print_lock(const char *operation, isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 #endif			/* ISC_RWLOCK_TRACE */
 
-int
-isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
-		  unsigned int write_quota) {
+void
+isc__rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
+		 unsigned int write_quota) {
 	REQUIRE(rwl != NULL);
 
 	/*
@@ -191,12 +211,10 @@ isc___rwlock_init(isc__rwlock_t *rwl, unsigned int read_quota,
 	isc_condition_init(&rwl->writeable);
 
 	rwl->magic = RWLOCK_MAGIC;
-
-	return (0);
 }
 
-int
-isc___rwlock_destroy(isc__rwlock_t *rwl) {
+void
+isc__rwlock_destroy(isc__rwlock_t *rwl) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
 	REQUIRE(atomic_load_acquire(&rwl->write_requests) ==
@@ -208,8 +226,6 @@ isc___rwlock_destroy(isc__rwlock_t *rwl) {
 	isc_condition_destroy(&rwl->readable);
 	isc_condition_destroy(&rwl->writeable);
 	isc_mutex_destroy(&rwl->lock);
-
-	return (0);
 }
 
 /*
@@ -394,8 +410,8 @@ rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif /* ifdef ISC_RWLOCK_TRACE */
 }
 
-int
-isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+void
+isc__rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cnt = 0;
 	int32_t spins = atomic_load_acquire(&rwl->spins) * 2 + 10;
 	int32_t max_cnt = ISC_MAX(spins, RWLOCK_MAX_ADAPTIVE_COUNT);
@@ -409,12 +425,10 @@ isc___rwlock_lock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
 
 	atomic_fetch_add_release(&rwl->spins, (cnt - spins) / 8);
-
-	return (0);
 }
 
 isc_result_t
-isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+isc__rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
@@ -481,7 +495,7 @@ isc___rwlock_trylock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 }
 
 isc_result_t
-isc___rwlock_tryupgrade(isc__rwlock_t *rwl) {
+isc__rwlock_tryupgrade(isc__rwlock_t *rwl) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
 	int_fast32_t reader_incr = READER_INCR;
@@ -509,8 +523,8 @@ isc___rwlock_tryupgrade(isc__rwlock_t *rwl) {
 	return (ISC_R_SUCCESS);
 }
 
-int
-isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
+void
+isc__rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t prev_cnt;
 
 	REQUIRE(VALID_RWLOCK(rwl));
@@ -580,8 +594,6 @@ isc___rwlock_unlock(isc__rwlock_t *rwl, isc_rwlocktype_t type) {
 #ifdef ISC_RWLOCK_TRACE
 	print_lock("postunlock", rwl, type);
 #endif /* ifdef ISC_RWLOCK_TRACE */
-
-	return (0);
 }
 
 #endif /* USE_PTHREAD_RWLOCK */
