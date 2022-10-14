@@ -2650,14 +2650,16 @@ isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 static void
 set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
-	uint32_t nloops = isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
+	const size_t nworkers =
+		(size_t)isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
 	/* Update the TLS context reference for every worker thread. */
-	for (size_t i = 0; i < nloops; i++) {
+	for (size_t i = 0; i < nworkers; i++) {
+		isc__networker_t *worker =
+			&listener->worker->netmgr->workers[i];
 		isc__netievent__tlsctx_t *ievent =
-			isc__nm_get_netievent_settlsctx(listener->worker,
-							listener, tlsctx);
-		isc__nm_enqueue_ievent(listener->worker,
-				       (isc__netievent_t *)ievent);
+			isc__nm_get_netievent_settlsctx(worker, listener,
+							tlsctx);
+		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ievent);
 	}
 }
 
