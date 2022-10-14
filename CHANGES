@@ -1,3 +1,6 @@
+5997.	[cleanup]	Less ceremonial UNEXPECTED_ERROR() and FATAL_ERROR()
+			reporting macros. [GL !6914]
+
 5996.	[bug]		Fix a couple of bugs in cfg_print_duration(), which
 			could result in generating incomplete duration values
 			when printing the configuration using named-checkconf.
