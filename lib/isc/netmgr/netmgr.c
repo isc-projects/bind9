@@ -964,12 +964,12 @@ process_netievent(isc__networker_t *worker, isc__netievent_t *ievent) {
 		NETIEVENT_CASE(tlsdobio);
 		NETIEVENT_CASE(tlscancel);
 
-		NETIEVENT_CASE(httpstop);
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
 #endif
 		NETIEVENT_CASE(settlsctx);
+		NETIEVENT_CASE(sockstop);
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
@@ -1082,7 +1082,6 @@ NETIEVENT_SOCKET_DEF(tlsdnscycle);
 NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_DEF(httpstop);
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_DEF(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
@@ -1113,6 +1112,7 @@ NETIEVENT_TASK_DEF(task);
 NETIEVENT_TASK_DEF(privilegedtask);
 
 NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
+NETIEVENT_SOCKET_DEF(sockstop);
 
 void
 isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
@@ -1302,6 +1302,11 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 #endif
 
 	INSIST(ISC_LIST_EMPTY(sock->tls.sendreqs));
+
+	if (sock->barrier_initialised) {
+		isc_barrier_destroy(&sock->barrier);
+	}
+
 #ifdef NETMGR_TRACE
 	LOCK(&sock->mgr->lock);
 	ISC_LIST_UNLINK(sock->mgr->active_sockets, sock, active_link);
@@ -2725,6 +2730,76 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	default:
 		UNREACHABLE();
 	}
+}
+
+void
+isc__nmsocket_stop(isc_nmsocket_t *listener) {
+	isc__netievent_sockstop_t ievent = { .sock = listener };
+
+	REQUIRE(VALID_NMSOCK(listener));
+
+	if (!atomic_compare_exchange_strong(&listener->closing,
+					    &(bool){ false }, true)) {
+		UNREACHABLE();
+	}
+
+	for (size_t i = 0; i < listener->nchildren; i++) {
+		isc__networker_t *worker = &listener->mgr->workers[i];
+		isc__netievent_sockstop_t *ev;
+
+		if (isc__nm_in_netthread() && i == (size_t)isc_nm_tid()) {
+			continue;
+		}
+
+		ev = isc__nm_get_netievent_sockstop(listener->mgr, listener);
+		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ev);
+	}
+
+	if (isc__nm_in_netthread()) {
+		isc__nm_async_sockstop(&listener->mgr->workers[0],
+				       (isc__netievent_t *)&ievent);
+	}
+}
+
+void
+isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
+	REQUIRE(listener->nchildren > 0);
+	isc_barrier_init(&listener->barrier, listener->nchildren);
+	listener->barrier_initialised = true;
+}
+
+void
+isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_sockstop_t *ievent = (isc__netievent_sockstop_t *)ev0;
+	isc_nmsocket_t *listener = ievent->sock;
+	UNUSED(worker);
+
+	(void)atomic_fetch_sub(&listener->rchildren, 1);
+	isc_barrier_wait(&listener->barrier);
+
+	if (listener->tid != isc_nm_tid()) {
+		return;
+	}
+
+	if (!atomic_compare_exchange_strong(&listener->listening,
+					    &(bool){ true }, false))
+	{
+		UNREACHABLE();
+	}
+
+	INSIST(atomic_load(&listener->rchildren) == 0);
+
+	listener->accept_cb = NULL;
+	listener->accept_cbarg = NULL;
+	listener->recv_cb = NULL;
+	listener->recv_cbarg = NULL;
+
+	if (listener->outer != NULL) {
+		isc_nm_stoplistening(listener->outer);
+		isc__nmsocket_detach(&listener->outer);
+	}
+
+	atomic_store(&listener->closed, true);
 }
 
 void

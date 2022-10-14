@@ -2527,6 +2527,9 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	sock->tid = 0;
 	sock->fd = (uv_os_sock_t)-1;
 
+	isc__nmsocket_barrier_init(sock);
+	atomic_init(&sock->rchildren, sock->nchildren);
+
 	atomic_store(&sock->listening, true);
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
@@ -2694,39 +2697,7 @@ isc__nm_http_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httplistener);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
-		UNREACHABLE();
-	}
-
-	if (!isc__nm_in_netthread()) {
-		isc__netievent_httpstop_t *ievent =
-			isc__nm_get_netievent_httpstop(sock->mgr, sock);
-		isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
-				       (isc__netievent_t *)ievent);
-	} else {
-		REQUIRE(isc_nm_tid() == sock->tid);
-		isc__netievent_httpstop_t ievent = { .sock = sock };
-		isc__nm_async_httpstop(NULL, (isc__netievent_t *)&ievent);
-	}
-}
-
-void
-isc__nm_async_httpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpstop_t *ievent = (isc__netievent_httpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-
-	atomic_store(&sock->listening, false);
-	atomic_store(&sock->closing, false);
-	atomic_store(&sock->closed, true);
-	if (sock->outer != NULL) {
-		isc_nm_stoplistening(sock->outer);
-		isc_nmsocket_close(&sock->outer);
-	}
+	isc__nmsocket_stop(sock);
 }
 
 static void
