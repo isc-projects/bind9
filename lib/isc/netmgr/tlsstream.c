@@ -675,6 +675,13 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(tlslistensock));
 	REQUIRE(tlslistensock->type == isc_nm_tlslistener);
 
+	if (isc__nmsocket_closing(handle->sock) ||
+	    isc__nmsocket_closing(tlslistensock) ||
+	    !atomic_load(&tlslistensock->listening))
+	{
+		return (ISC_R_CANCELED);
+	}
+
 	/*
 	 * We need to create a 'wrapper' tlssocket for this connection.
 	 */
@@ -763,6 +770,10 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	isc__nmsocket_attach(tlssock, &tlssock->outer->tlsstream.tlslistener);
 	isc__nmsocket_detach(&tsock);
 	INSIST(result != ISC_R_UNSET);
+	tlssock->nchildren = tlssock->outer->nchildren;
+
+	isc__nmsocket_barrier_init(tlssock);
+	atomic_init(&tlssock->rchildren, tlssock->nchildren);
 
 	if (result == ISC_R_SUCCESS) {
 		atomic_store(&tlssock->listening, true);
@@ -933,20 +944,7 @@ isc__nm_tls_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tlsstream.tls == NULL);
 	REQUIRE(sock->tlsstream.ctx == NULL);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
-		UNREACHABLE();
-	}
-
-	atomic_store(&sock->listening, false);
-	atomic_store(&sock->closed, true);
-	sock->recv_cb = NULL;
-	sock->recv_cbarg = NULL;
-
-	if (sock->outer != NULL) {
-		isc_nm_stoplistening(sock->outer);
-		isc__nmsocket_detach(&sock->outer);
-	}
+	isc__nmsocket_stop(sock);
 }
 
 static void

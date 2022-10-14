@@ -286,6 +286,7 @@ typedef enum isc__netievent_type {
 	netievent_sendcb,
 
 	netievent_settlsctx,
+	netievent_sockstop, /* for multilayer sockets */
 
 	netievent_udplisten,
 	netievent_udpstop,
@@ -1060,6 +1061,7 @@ struct isc_nmsocket {
 
 	atomic_int_fast32_t active_child_connections;
 
+	bool barrier_initialised;
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
@@ -1679,6 +1681,9 @@ void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
+isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
  * Increment socket-related statistics counters.
@@ -1764,6 +1769,27 @@ isc__nm_set_network_buffers(isc_nm_t *nm, uv_handle_t *handle);
  * Sets the pre-configured network buffers size on the handle.
  */
 
+void
+isc__nmsocket_barrier_init(isc_nmsocket_t *listener);
+/*%>
+ * Initialise the socket synchronisation barrier according to the
+ * number of children.
+ */
+
+void
+isc__nmsocket_stop(isc_nmsocket_t *listener);
+/*%>
+ * Broadcast "stop" event for a listener socket across all workers and
+ * wait its processing completion - then, stop and close the underlying
+ * transport listener socket.
+ *
+ * The primitive is used in multi-layer transport listener sockets to
+ * implement shutdown properly: after the broadcasted events has been
+ * processed it is safe to destroy the shared data within the listener
+ * socket (including shutting down the underlying transport listener
+ * socket).
+ */
+
 /*
  * typedef all the netievent types
  */
@@ -1815,6 +1841,7 @@ NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
 NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
+NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
 
@@ -1864,6 +1891,7 @@ NETIEVENT_SOCKET_DECL(detach);
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 
 NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
+NETIEVENT_SOCKET_DECL(sockstop);
 
 void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);

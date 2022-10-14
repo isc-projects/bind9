@@ -2536,6 +2536,9 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	sock->nchildren = sock->outer->nchildren;
 	sock->fd = (uv_os_sock_t)-1;
 
+	isc__nmsocket_barrier_init(sock);
+	atomic_init(&sock->rchildren, sock->nchildren);
+
 	atomic_store(&sock->listening, true);
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
@@ -2702,20 +2705,7 @@ isc__nm_http_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_httplistener);
 	REQUIRE(isc_tid() == sock->tid);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
-		UNREACHABLE();
-	}
-
-	atomic_store(&sock->listening, false);
-	atomic_store(&sock->closed, true);
-	sock->recv_cb = NULL;
-	sock->recv_cbarg = NULL;
-
-	if (sock->outer != NULL) {
-		isc_nm_stoplistening(sock->outer);
-		isc_nmsocket_close(&sock->outer);
-	}
+	isc__nmsocket_stop(sock);
 }
 
 static void
