@@ -1,3 +1,8 @@
+5996.	[bug]		Fix a couple of bugs in cfg_print_duration(), which
+			could result in generating incomplete duration values
+			when printing the configuration using named-checkconf.
+			[GL !6880]
+
 5995.	[performance]	A new algorithm for DNS name compression based on a
 			hash set of message offsets. Name compression is now
 			more complete as well as being generally faster, and
