@@ -136,6 +136,13 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 	isc_buffer_init(&source, buf1, sizeof(buf1));
 	isc_buffer_init(&target, buf2, sizeof(buf2));
 
+	/*
+	 * compression offsets are not allowed to be zero so our
+	 * names need to start after a little fake header
+	 */
+	isc_buffer_putuint16(&source, 0xEAD);
+	isc_buffer_putuint16(&target, 0xEAD);
+
 	if (rdata) {
 		/* RDATA compression */
 		assert_int_equal(dns_name_towire(name1, cctx, &source),
@@ -172,6 +179,7 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 	isc_buffer_setactive(&source, source.used);
 
 	dns_name_init(&name, NULL);
+	RUNTIME_CHECK(isc_buffer_getuint16(&source) == 0xEAD);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
@@ -193,26 +201,37 @@ ISC_RUN_TEST_IMPL(compression) {
 	dns_name_t name1;
 	dns_name_t name2;
 	dns_name_t name3;
+	dns_name_t name4;
 	isc_region_t r;
 	unsigned char plain1[] = "\003yyy\003foo";
 	unsigned char plain2[] = "\003bar\003yyy\003foo";
 	unsigned char plain3[] = "\003xxx\003bar\003foo";
-	unsigned char plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
-				"bar\003yyy\003foo\0\003xxx\003bar\003foo";
-	/*
-	 * Note: foo in xxx.bar.foo is not compressed because dns_compress_find
-	 * only looks for the name and name less the leading label.
-	 */
-	unsigned char compressed[] = "\003yyy\003foo\0\003bar\xc0\x00\xc0\x09"
-				     "\003xxx\003bar\003foo";
+	unsigned char plain4[] = "\003xxx\003bar\003zzz";
+
+	unsigned char plain[] = "\x0E\xAD"
+				"\003yyy\003foo\0"
+				"\003bar\003yyy\003foo\0"
+				"\003bar\003yyy\003foo\0"
+				"\003xxx\003bar\003foo";
+
+	unsigned char compressed[29] = "\x0E\xAD"
+				       "\003yyy\003foo\0"
+				       "\003bar\xc0\x02"
+				       "\xc0\x0B"
+				       "\003xxx\003bar\xc0\x06";
 	/*
 	 * Only the second owner name is compressed.
 	 */
-	unsigned char disabled_owner[] =
-		"\003yyy\003foo\0\003bar\003yyy\003foo\0"
-		"\xc0\x09\003xxx\003bar\003foo";
-	unsigned char root_plain[] = "\003yyy\003foo\0\0\0"
-				     "\003xxx\003bar\003foo";
+	unsigned char disabled_owner[] = "\x0E\xAD"
+					 "\003yyy\003foo\0"
+					 "\003bar\003yyy\003foo\0"
+					 "\xc0\x0B"
+					 "\003xxx\003bar\003foo";
+
+	unsigned char root_plain[] = "\x0E\xAD"
+				     "\003yyy\003foo\0"
+				     "\0\0"
+				     "\003xxx\003bar\003zzz";
 
 	UNUSED(state);
 
@@ -231,9 +250,14 @@ ISC_RUN_TEST_IMPL(compression) {
 	r.length = sizeof(plain3);
 	dns_name_fromregion(&name3, &r);
 
+	dns_name_init(&name4, NULL);
+	r.base = plain4;
+	r.length = sizeof(plain3);
+	dns_name_fromregion(&name4, &r);
+
 	/* Test 1: off, rdata */
 	permitted = false;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
@@ -245,7 +269,7 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test2: on, rdata */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
@@ -257,9 +281,8 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test3: off, disabled, rdata */
 	permitted = false;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_compress_disable(&cctx);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
@@ -270,9 +293,8 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test4: on, disabled, rdata */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_compress_disable(&cctx);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
@@ -283,11 +305,11 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test5: on, rdata */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
-	compress_test(&name1, dns_rootname, &name3, root_plain,
+	compress_test(&name1, dns_rootname, &name4, root_plain,
 		      sizeof(root_plain), root_plain, sizeof(root_plain), &cctx,
 		      dctx, true);
 
@@ -296,7 +318,7 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test 6: off, owner */
 	permitted = false;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
@@ -308,7 +330,7 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test7: on, owner */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
@@ -320,9 +342,8 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test8: off, disabled, owner */
 	permitted = false;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_compress_disable(&cctx);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, plain, sizeof(plain), plain,
@@ -333,9 +354,8 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test9: on, disabled, owner */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_DISABLED);
 	dns_compress_setpermitted(&cctx, permitted);
-	dns_compress_disable(&cctx);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
 	compress_test(&name1, &name2, &name3, disabled_owner,
@@ -347,15 +367,93 @@ ISC_RUN_TEST_IMPL(compression) {
 
 	/* Test10: on, owner */
 	permitted = true;
-	assert_int_equal(dns_compress_init(&cctx, mctx), ISC_R_SUCCESS);
+	dns_compress_init(&cctx, mctx, 0);
 	dns_compress_setpermitted(&cctx, permitted);
 	dctx = dns_decompress_setpermitted(DNS_DECOMPRESS_DEFAULT, permitted);
 
-	compress_test(&name1, dns_rootname, &name3, root_plain,
+	compress_test(&name1, dns_rootname, &name4, root_plain,
 		      sizeof(root_plain), root_plain, sizeof(root_plain), &cctx,
 		      dctx, false);
 
 	dns_compress_rollback(&cctx, 0);
+	dns_compress_invalidate(&cctx);
+}
+
+#define NAME_LO 25
+#define NAME_HI 250000
+
+/*
+ * test compression context hash set collisions and rollbacks
+ */
+ISC_RUN_TEST_IMPL(collision) {
+	isc_result_t result;
+	isc_region_t r;
+	dns_compress_t cctx;
+	isc_buffer_t message;
+	uint8_t msgbuf[65536];
+	dns_name_t name;
+	char namebuf[256];
+	uint8_t offsets[128];
+
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_LARGE);
+	isc_buffer_init(&message, msgbuf, sizeof(msgbuf));
+	dns_name_init(&name, offsets);
+
+	/*
+	 * compression offsets are not allowed to be zero so our
+	 * names need to start after a little fake header
+	 */
+	isc_buffer_putuint16(&message, 0xEAD);
+
+	static const char zone[] = "test";
+	const int zonelen = sizeof(zone) - 1;
+	unsigned int zone_coff = 0;
+
+	for (int i = NAME_LO; i < NAME_HI; i++) {
+		unsigned int prefix_len, suffix_coff;
+		unsigned int coff = isc_buffer_usedlength(&message);
+
+		int len = snprintf(namebuf, sizeof(namebuf), ".%d%c%s", i,
+				   zonelen, zone);
+		namebuf[0] = len - zonelen - 2;
+		r = (isc_region_t){ .base = (uint8_t *)namebuf,
+				    .length = len + 1 };
+		dns_name_fromregion(&name, &r);
+
+		/* the name we are about to add must partially match */
+		prefix_len = name.length;
+		suffix_coff = 0;
+		dns_compress_name(&cctx, &message, &name, &prefix_len,
+				  &suffix_coff);
+		if (i == NAME_LO) {
+			assert_int_equal(prefix_len, name.length);
+			assert_int_equal(suffix_coff, 0);
+			zone_coff = 2 + len - zonelen - 1;
+		} else {
+			assert_int_equal(prefix_len, len - zonelen - 1);
+			assert_int_equal(suffix_coff, zone_coff);
+		}
+		dns_compress_rollback(&cctx, coff);
+
+		result = dns_name_towire(&name, &cctx, &message);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		/* we must be able to find the name we just added */
+		prefix_len = name.length;
+		suffix_coff = 0;
+		dns_compress_name(&cctx, &message, &name, &prefix_len,
+				  &suffix_coff);
+		assert_int_equal(prefix_len, 0);
+		assert_int_equal(suffix_coff, coff);
+
+		/* don't let the hash set get too full */
+		if (cctx.count > cctx.mask * 3 / 5) {
+			dns_compress_rollback(&cctx, zone_coff + zonelen + 2);
+			isc_buffer_clear(&message);
+			isc_buffer_add(&message, zone_coff + zonelen + 2);
+		}
+	}
+
 	dns_compress_invalidate(&cctx);
 }
 
@@ -803,6 +901,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(fullcompare)
 ISC_TEST_ENTRY(compression)
+ISC_TEST_ENTRY(collision)
 ISC_TEST_ENTRY(istat)
 ISC_TEST_ENTRY(init)
 ISC_TEST_ENTRY(invalidate)

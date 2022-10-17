@@ -748,7 +748,7 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, unsigned int options,
 	isc_result_t result;
 	isc_region_t r;
 	dns_compress_t cctx;
-	bool cleanup_cctx = false;
+	unsigned int compflags;
 
 	REQUIRE(bufferp != NULL && *bufferp == NULL);
 
@@ -759,15 +759,14 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, unsigned int options,
 	 */
 	isc_buffer_allocate(mctx, &buf1, 65535);
 
-	result = dns_compress_init(&cctx, mctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+	compflags = 0;
+	if ((options & DNS_REQUESTOPT_LARGE) != 0) {
+		compflags |= DNS_COMPRESS_LARGE;
 	}
-	cleanup_cctx = true;
-
 	if ((options & DNS_REQUESTOPT_CASE) != 0) {
-		dns_compress_setsensitive(&cctx, true);
+		compflags |= DNS_COMPRESS_CASE;
 	}
+	dns_compress_init(&cctx, mctx, compflags);
 
 	/*
 	 * Render message.
@@ -797,9 +796,6 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, unsigned int options,
 		goto cleanup;
 	}
 
-	dns_compress_invalidate(&cctx);
-	cleanup_cctx = false;
-
 	/*
 	 * Copy rendered message to exact sized buffer.
 	 */
@@ -817,20 +813,19 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp, unsigned int options,
 	/*
 	 * Cleanup and return.
 	 */
+	dns_compress_invalidate(&cctx);
 	isc_buffer_free(&buf1);
 	*bufferp = buf2;
 	return (ISC_R_SUCCESS);
 
 cleanup:
 	dns_message_renderreset(message);
+	dns_compress_invalidate(&cctx);
 	if (buf1 != NULL) {
 		isc_buffer_free(&buf1);
 	}
 	if (buf2 != NULL) {
 		isc_buffer_free(&buf2);
-	}
-	if (cleanup_cctx) {
-		dns_compress_invalidate(&cctx);
 	}
 	return (result);
 }

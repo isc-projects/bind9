@@ -2451,8 +2451,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->sendspace = isc_mem_get(mctx, COMMSIZE);
 
-	result = dns_compress_init(&cctx, mctx);
-	check_result(result, "dns_compress_init");
+	dns_compress_init(&cctx, mctx, 0);
 
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->renderbuf, lookup->sendspace, COMMSIZE);

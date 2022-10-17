@@ -11,444 +11,355 @@
  * information regarding copyright ownership.
  */
 
-/*! \file */
-
 #define DNS_NAME_USEINLINE 1
 
-#include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 #include <isc/ascii.h>
+#include <isc/buffer.h>
+#include <isc/hash.h>
 #include <isc/mem.h>
-#include <isc/result.h>
-#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/compress.h>
-#include <dns/fixedname.h>
-#include <dns/rbt.h>
+#include <dns/name.h>
+
+#define HASH_INIT_DJB2 5381
 
 #define CCTX_MAGIC    ISC_MAGIC('C', 'C', 'T', 'X')
-#define VALID_CCTX(x) ISC_MAGIC_VALID(x, CCTX_MAGIC)
+#define CCTX_VALID(x) ISC_MAGIC_VALID(x, CCTX_MAGIC)
 
-/*
- * The tableindex array below is of size 256, one entry for each
- * unsigned char value. The tableindex array elements are dependent on
- * DNS_COMPRESS_TABLESIZE. The table was created using the following
- * function.
- *
- * static void
- * gentable(unsigned char *table) {
- *         unsigned int i;
- *         const unsigned int left = DNS_COMPRESS_TABLESIZE - 38;
- *         long r;
- *
- *         for (i = 0; i < 26; i++) {
- *                 table['A' + i] = i;
- *                 table['a' + i] = i;
- *         }
- *
- *         for (i = 0; i <= 9; i++)
- *                 table['0' + i] = i + 26;
- *
- *         table['-'] = 36;
- *         table['_'] = 37;
- *
- *         for (i = 0; i < 256; i++) {
- *                 if ((i >= 'a' && i <= 'z') ||
- *                     (i >= 'A' && i <= 'Z') ||
- *                     (i >= '0' && i <= '9') ||
- *                     (i == '-') ||
- *                     (i == '_'))
- *                         continue;
- *                 r = random() % left;
- *                 table[i] = 38 + r;
- *         }
- * }
- */
-static unsigned char tableindex[256] = {
-	0x3e, 0x3e, 0x33, 0x2d, 0x30, 0x38, 0x31, 0x3c, 0x2b, 0x33, 0x30, 0x3f,
-	0x2d, 0x3c, 0x36, 0x3a, 0x28, 0x2c, 0x2a, 0x37, 0x3d, 0x34, 0x35, 0x2d,
-	0x39, 0x2b, 0x2f, 0x2c, 0x3b, 0x32, 0x2b, 0x39, 0x30, 0x38, 0x28, 0x3c,
-	0x32, 0x33, 0x39, 0x38, 0x27, 0x2b, 0x39, 0x30, 0x27, 0x24, 0x2f, 0x2b,
-	0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x3a, 0x29, 0x36,
-	0x31, 0x3c, 0x35, 0x26, 0x31, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
-	0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12,
-	0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x3e, 0x3b, 0x39, 0x2f, 0x25,
-	0x27, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
-	0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,
-	0x17, 0x18, 0x19, 0x36, 0x3b, 0x2f, 0x2f, 0x2e, 0x29, 0x33, 0x2a, 0x36,
-	0x28, 0x3f, 0x2e, 0x29, 0x2c, 0x29, 0x36, 0x2d, 0x32, 0x3d, 0x33, 0x2a,
-	0x2e, 0x2f, 0x3b, 0x30, 0x3d, 0x39, 0x2b, 0x36, 0x2a, 0x2f, 0x2c, 0x26,
-	0x3a, 0x37, 0x30, 0x3d, 0x2a, 0x36, 0x33, 0x2c, 0x38, 0x3d, 0x32, 0x3e,
-	0x26, 0x2a, 0x2c, 0x35, 0x27, 0x39, 0x3b, 0x31, 0x2a, 0x37, 0x3c, 0x27,
-	0x32, 0x29, 0x39, 0x37, 0x34, 0x3f, 0x39, 0x2e, 0x38, 0x2b, 0x2c, 0x3e,
-	0x3b, 0x3b, 0x2d, 0x33, 0x3b, 0x3b, 0x32, 0x3d, 0x3f, 0x3a, 0x34, 0x26,
-	0x35, 0x30, 0x31, 0x39, 0x27, 0x2f, 0x3d, 0x35, 0x35, 0x36, 0x2e, 0x29,
-	0x38, 0x27, 0x34, 0x32, 0x2c, 0x3c, 0x31, 0x28, 0x37, 0x38, 0x37, 0x34,
-	0x33, 0x29, 0x32, 0x34, 0x3f, 0x26, 0x34, 0x34, 0x32, 0x27, 0x30, 0x33,
-	0x33, 0x2d, 0x2b, 0x28, 0x3f, 0x33, 0x2b, 0x39, 0x37, 0x39, 0x2c, 0x3d,
-	0x35, 0x39, 0x27, 0x2f
-};
+void
+dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx,
+		  dns_compress_flags_t flags) {
+	dns_compress_slot_t *set = NULL;
+	uint16_t mask;
 
-/***
- ***	Compression
- ***/
-
-isc_result_t
-dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
-	REQUIRE(mctx != NULL); /* See: rdataset.c:towiresorted(). */
+	REQUIRE(mctx != NULL);
+
+	if ((flags & DNS_COMPRESS_LARGE) != 0) {
+		size_t count = (1 << DNS_COMPRESS_LARGEBITS);
+		size_t size = count * sizeof(*set);
+		mask = count - 1;
+		set = isc_mem_allocatex(mctx, size, ISC_MEM_ZERO);
+	} else {
+		mask = ARRAY_SIZE(cctx->smallset) - 1;
+		set = cctx->smallset;
+	}
 
 	/*
-	 * not using a structure literal here to avoid large memset()s
+	 * The lifetime of this object is limited to the stack frame of the
+	 * caller, so we don't need to attach to the memory context.
 	 */
-	cctx->mctx = mctx;
-	cctx->count = 0;
-	cctx->permitted = true;
-	cctx->disabled = false;
-	cctx->sensitive = false;
-	cctx->arena_off = 0;
-
-	memset(&cctx->table[0], 0, sizeof(cctx->table));
-
-	cctx->magic = CCTX_MAGIC;
-
-	return (ISC_R_SUCCESS);
+	*cctx = (dns_compress_t){
+		.magic = CCTX_MAGIC,
+		.flags = flags | DNS_COMPRESS_PERMITTED,
+		.mctx = mctx,
+		.mask = mask,
+		.set = set,
+	};
 }
 
 void
 dns_compress_invalidate(dns_compress_t *cctx) {
-	dns_compressnode_t *node;
-	unsigned int i;
-
-	REQUIRE(VALID_CCTX(cctx));
-
-	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
-		while (cctx->table[i] != NULL) {
-			node = cctx->table[i];
-			cctx->table[i] = cctx->table[i]->next;
-			if ((node->offset & 0x8000) != 0) {
-				isc_mem_put(cctx->mctx, node->r.base,
-					    node->r.length);
-			}
-			if (node->count < DNS_COMPRESS_INITIALNODES) {
-				continue;
-			}
-			isc_mem_put(cctx->mctx, node, sizeof(*node));
-		}
+	REQUIRE(CCTX_VALID(cctx));
+	if (cctx->set != cctx->smallset) {
+		isc_mem_free(cctx->mctx, cctx->set);
 	}
-
-	cctx->magic = 0;
-	cctx->permitted = false;
-	cctx->disabled = false;
-	cctx->sensitive = false;
+	*cctx = (dns_compress_t){ 0 };
 }
 
 void
 dns_compress_setpermitted(dns_compress_t *cctx, bool permitted) {
-	REQUIRE(VALID_CCTX(cctx));
-	cctx->permitted = permitted;
+	REQUIRE(CCTX_VALID(cctx));
+	if (permitted) {
+		cctx->flags |= DNS_COMPRESS_PERMITTED;
+	} else {
+		cctx->flags &= ~DNS_COMPRESS_PERMITTED;
+	}
 }
 
 bool
 dns_compress_getpermitted(dns_compress_t *cctx) {
-	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->permitted);
-}
-
-void
-dns_compress_disable(dns_compress_t *cctx) {
-	REQUIRE(VALID_CCTX(cctx));
-	cctx->disabled = true;
-}
-
-void
-dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive) {
-	REQUIRE(VALID_CCTX(cctx));
-	cctx->sensitive = sensitive;
-}
-
-bool
-dns_compress_getsensitive(dns_compress_t *cctx) {
-	REQUIRE(VALID_CCTX(cctx));
-	return (cctx->sensitive);
+	REQUIRE(CCTX_VALID(cctx));
+	return ((cctx->flags & DNS_COMPRESS_PERMITTED) != 0);
 }
 
 /*
- * Find the longest match of name in the table.
- * If match is found return true. prefix, suffix and offset are updated.
- * If no match is found return false.
+ * Our hash value needs to cover the entire suffix of a name, and we need
+ * to calculate it one label at a time. So this function mixes a label into
+ * an existing hash. (We don't use isc_hash32() because the djb2 hash is a
+ * lot faster, and we limit the impact of collision attacks by restricting
+ * the size and occupancy of the hash set.) The accumulator is 32 bits to
+ * keep more of the fun mixing that happens in the upper bits.
  */
-bool
-dns_compress_find(dns_compress_t *cctx, const dns_name_t *name,
-		  dns_name_t *prefix, uint16_t *offset) {
-	dns_name_t tname;
-	dns_compressnode_t *node = NULL;
-	unsigned int labels, i, n;
-	unsigned int numlabels;
-	unsigned char *p;
+static uint16_t
+hash_label(uint16_t init, uint8_t *ptr, bool sensitive) {
+	unsigned int len = ptr[0] + 1;
+	uint32_t hash = init;
 
-	REQUIRE(VALID_CCTX(cctx));
-	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(offset != NULL);
-
-	if (cctx->disabled) {
-		return (false);
-	}
-
-	if (cctx->count == 0) {
-		return (false);
-	}
-
-	labels = dns_name_countlabels(name);
-	INSIST(labels > 0);
-
-	dns_name_init(&tname, NULL);
-
-	numlabels = labels > 3U ? 3U : labels;
-	p = name->ndata;
-
-	for (n = 0; n < numlabels - 1; n++) {
-		unsigned char ch, llen;
-		unsigned int firstoffset, length;
-
-		firstoffset = (unsigned int)(p - name->ndata);
-		length = name->length - firstoffset;
-
-		/*
-		 * We calculate the table index using the first
-		 * character in the first label of the suffix name.
-		 */
-		ch = p[1];
-		i = tableindex[ch];
-		if (cctx->sensitive) {
-			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
-				if (node->name.length != length) {
-					continue;
-				}
-
-				if (memcmp(node->name.ndata, p, length) == 0) {
-					goto found;
-				}
-			}
-		} else {
-			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
-				unsigned int l, count;
-				unsigned char *p1, *p2;
-
-				if (node->name.length != length) {
-					continue;
-				}
-
-				l = labels - n;
-				if (node->name.labels != l) {
-					continue;
-				}
-
-				p1 = node->name.ndata;
-				p2 = p;
-				while (l-- > 0) {
-					count = *p1++;
-					if (count != *p2++) {
-						goto cont1;
-					}
-
-					/* no bitstring support */
-					INSIST(count <= 63);
-
-					if (!isc_ascii_lowerequal(p1, p2,
-								  count)) {
-						goto cont1;
-					}
-					p1 += count;
-					p2 += count;
-				}
-				break;
-			cont1:
-				continue;
-			}
+	if (sensitive) {
+		while (len-- > 0) {
+			hash = hash * 33 + *ptr++;
 		}
-
-		if (node != NULL) {
-			break;
-		}
-
-		llen = *p;
-		p += llen + 1;
-	}
-
-found:
-	/*
-	 * If node == NULL, we found no match at all.
-	 */
-	if (node == NULL) {
-		return (false);
-	}
-
-	if (n == 0) {
-		dns_name_reset(prefix);
 	} else {
-		dns_name_getlabelsequence(name, 0, n, prefix);
+		/* using the autovectorize-friendly tolower() */
+		while (len-- > 0) {
+			hash = hash * 33 + isc__ascii_tolower1(*ptr++);
+		}
 	}
 
-	*offset = (node->offset & 0x7fff);
-	return (true);
+	return (isc_hash_bits32(hash, 16));
+}
+
+static bool
+match_wirename(uint8_t *a, uint8_t *b, unsigned int len, bool sensitive) {
+	if (sensitive) {
+		return (memcmp(a, b, len) == 0);
+	} else {
+		/* label lengths are < 'A' so unaffected by tolower() */
+		return (isc_ascii_lowerequal(a, b, len));
+	}
+}
+
+/*
+ * We have found a hash set entry whose hash value matches the current
+ * suffix of our name, which is passed to this function via `sptr` and
+ * `slen`. We need to verify that the suffix in the message (referred to
+ * by `new_coff`) actually matches, in case of hash collisions.
+ *
+ * We know that the previous suffix of this name (after the first label)
+ * occurs in the message at `old_coff`, and all the compression offsets in
+ * the hash set and in the message refer to the first occurrence of a
+ * particular name or suffix.
+ *
+ * First, we need to match the label that was just added to our suffix,
+ * and second, verify that it is followed by the previous suffix.
+ *
+ * There are a few ways to match the previous suffix:
+ *
+ * When the first occurrence of this suffix is also the first occurrence
+ * of the previous suffix, `old_coff` points just after the new label.
+ *
+ * Otherwise, if this suffix occurs in a compressed name, it will be
+ * followed by a compression pointer that refers to the previous suffix,
+ * which must be equal to `old_coff`.
+ *
+ * The final possibility is that this suffix occurs in an uncompressed
+ * name, so we have to compare the rest of the suffix in full.
+ *
+ * A special case is when this suffix is a TLD. That can be handled by
+ * the case for uncompressed names, but it is common enough that it is
+ * worth taking a short cut. (In the TLD case, the `old_coff` will be
+ * zero, and the quick checks for the previous suffix will fail.)
+ */
+static bool
+match_suffix(isc_buffer_t *buffer, unsigned int new_coff, uint8_t *sptr,
+	     unsigned int slen, unsigned int old_coff, bool sensitive) {
+	uint8_t pptr[] = { 0xC0 | (old_coff >> 8), old_coff & 0xff };
+	uint8_t *bptr = isc_buffer_base(buffer);
+	unsigned int blen = isc_buffer_usedlength(buffer);
+	unsigned int llen = sptr[0] + 1;
+
+	INSIST(llen <= 64 && llen < slen);
+
+	if (blen < new_coff + llen) {
+		return (false);
+	}
+
+	blen -= new_coff;
+	bptr += new_coff;
+
+	/* does the first label of the suffix appear here? */
+	if (!match_wirename(bptr, sptr, llen, sensitive)) {
+		return (false);
+	}
+
+	/* is this label followed by the previously matched suffix? */
+	if (old_coff == new_coff + llen) {
+		return (true);
+	}
+
+	blen -= llen;
+	bptr += llen;
+	slen -= llen;
+	sptr += llen;
+
+	/* are both labels followed by the root label? */
+	if (blen >= 1 && slen == 1 && bptr[0] == 0 && sptr[0] == 0) {
+		return (true);
+	}
+
+	/* is this label followed by a pointer to the previous match? */
+	if (blen >= 2 && bptr[0] == pptr[0] && bptr[1] == pptr[1]) {
+		return (true);
+	}
+
+	/* is this label followed by a copy of the rest of the suffix? */
+	return (blen >= slen && match_wirename(bptr, sptr, slen, sensitive));
+}
+
+/*
+ * Robin Hood hashing aims to minimize probe distance when inserting a
+ * new element by ensuring that the new element does not have a worse
+ * probe distance than any other element in its probe sequence. During
+ * insertion, if an existing element is encountered with a shorter
+ * probe distance, it is swapped with the new element, and insertion
+ * continues with the displaced element.
+ */
+static unsigned int
+probe_distance(dns_compress_t *cctx, unsigned int slot) {
+	return ((slot - cctx->set[slot].hash) & cctx->mask);
 }
 
 static unsigned int
-name_length(const dns_name_t *name) {
-	isc_region_t r;
-	dns_name_toregion(name, &r);
-	return (r.length);
+slot_index(dns_compress_t *cctx, unsigned int hash, unsigned int probe) {
+	return ((hash + probe) & cctx->mask);
 }
 
-void
-dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, uint16_t offset) {
-	dns_name_t tname, xname;
-	unsigned int start;
-	unsigned int n;
-	unsigned int count;
-	unsigned int i;
-	dns_compressnode_t *node;
-	unsigned int length;
-	unsigned int tlength;
-	uint16_t toffset;
-	unsigned char *tmp;
-	isc_region_t r;
-	bool allocated = false;
-
-	REQUIRE(VALID_CCTX(cctx));
-	REQUIRE(dns_name_isabsolute(name));
-
-	if (cctx->disabled) {
-		return;
-	}
-
-	if (offset >= 0x4000) {
-		return;
-	}
-	dns_name_init(&tname, NULL);
-	dns_name_init(&xname, NULL);
-
-	n = dns_name_countlabels(name);
-	count = dns_name_countlabels(prefix);
-	if (dns_name_isabsolute(prefix)) {
-		count--;
-	}
-	if (count == 0) {
-		return;
-	}
-	start = 0;
-	dns_name_toregion(name, &r);
-	length = r.length;
-	if (cctx->arena_off + length < DNS_COMPRESS_ARENA_SIZE) {
-		tmp = &cctx->arena[cctx->arena_off];
-		cctx->arena_off += length;
-	} else {
-		allocated = true;
-		tmp = isc_mem_get(cctx->mctx, length);
-	}
+static bool
+insert_label(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
+	     unsigned int label, uint16_t hash, unsigned int probe) {
 	/*
-	 * Copy name data to 'tmp' and make 'r' use 'tmp'.
+	 * hash set entries must have valid compression offsets
+	 * and the hash set must not get too full (75% load)
 	 */
-	memmove(tmp, r.base, r.length);
-	r.base = tmp;
-	dns_name_fromregion(&xname, &r);
+	unsigned int prefix_len = name->offsets[label];
+	unsigned int coff = isc_buffer_usedlength(buffer) + prefix_len;
+	if (coff >= 0x4000 || cctx->count > cctx->mask * 3 / 4) {
+		return false;
+	}
+	for (;;) {
+		unsigned int slot = slot_index(cctx, hash, probe);
+		/* we can stop when we find an empty slot */
+		if (cctx->set[slot].coff == 0) {
+			cctx->set[slot].hash = hash;
+			cctx->set[slot].coff = coff;
+			cctx->count++;
+			return true;
+		}
+		/* he steals from the rich and gives to the poor */
+		if (probe > probe_distance(cctx, slot)) {
+			probe = probe_distance(cctx, slot);
+			ISC_SWAP(cctx->set[slot].hash, hash);
+			ISC_SWAP(cctx->set[slot].coff, coff);
+		}
+		probe++;
+	}
+}
 
-	if (count > 2U) {
-		count = 2U;
+/*
+ * Add the unmatched prefix of the name to the hash set.
+ */
+static void
+insert(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
+       unsigned int label, uint16_t hash, unsigned int probe) {
+	bool sensitive = (cctx->flags & DNS_COMPRESS_CASE) != 0;
+	/*
+	 * this insertion loop continues from the search loop inside
+	 * dns_compress_name() below, iterating over the remaining labels
+	 * of the name and accumulating the hash in the same manner
+	 */
+	while (insert_label(cctx, buffer, name, label, hash, probe) &&
+	       label-- > 0) {
+		unsigned int prefix_len = name->offsets[label];
+		uint8_t *suffix_ptr = name->ndata + prefix_len;
+		hash = hash_label(hash, suffix_ptr, sensitive);
+		probe = 0;
+	}
+}
+
+void
+dns_compress_name(dns_compress_t *cctx, isc_buffer_t *buffer,
+		  const dns_name_t *name, unsigned int *return_prefix,
+		  unsigned int *return_coff) {
+	REQUIRE(CCTX_VALID(cctx));
+	REQUIRE(ISC_BUFFER_VALID(buffer));
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(name->labels > 0);
+	REQUIRE(name->offsets != NULL);
+	REQUIRE(return_prefix != NULL);
+	REQUIRE(return_coff != NULL);
+	REQUIRE(*return_coff == 0);
+
+	if ((cctx->flags & DNS_COMPRESS_DISABLED) != 0) {
+		return;
 	}
 
-	while (count > 0) {
-		unsigned char ch;
+	bool sensitive = (cctx->flags & DNS_COMPRESS_CASE) != 0;
 
-		dns_name_getlabelsequence(&xname, start, n, &tname);
-		/*
-		 * We calculate the table index using the first
-		 * character in the first label of tname.
-		 */
-		ch = tname.ndata[1];
-		i = tableindex[ch];
-		tlength = name_length(&tname);
-		toffset = (uint16_t)(offset + (length - tlength));
-		if (toffset >= 0x4000) {
-			break;
-		}
-		/*
-		 * Create a new node and add it.
-		 */
-		if (cctx->count < DNS_COMPRESS_INITIALNODES) {
-			node = &cctx->initialnodes[cctx->count];
-		} else {
-			node = isc_mem_get(cctx->mctx,
-					   sizeof(dns_compressnode_t));
-		}
-		node->count = cctx->count++;
-		/*
-		 * 'node->r.base' becomes 'tmp' when start == 0.
-		 * Record this by setting 0x8000 so it can be freed later.
-		 */
-		if (start == 0 && allocated) {
-			toffset |= 0x8000;
-		}
-		node->offset = toffset;
-		dns_name_toregion(&tname, &node->r);
-		dns_name_init(&node->name, NULL);
-		node->name.length = node->r.length;
-		node->name.ndata = node->r.base;
-		node->name.labels = tname.labels;
-		node->name.attributes =
-			(struct dns_name_attrs){ .absolute = true };
-		node->next = cctx->table[i];
-		cctx->table[i] = node;
-		start++;
-		n--;
-		count--;
-	}
+	uint16_t hash = HASH_INIT_DJB2;
+	unsigned int label = name->labels - 1; /* skip the root label */
 
-	if (start == 0) {
-		if (!allocated) {
-			cctx->arena_off -= length;
-		} else {
-			isc_mem_put(cctx->mctx, tmp, length);
+	/*
+	 * find out how much of the name's suffix is in the hash set,
+	 * stepping backwards from the end one label at a time
+	 */
+	while (label-- > 0) {
+		unsigned int prefix_len = name->offsets[label];
+		unsigned int suffix_len = name->length - prefix_len;
+		uint8_t *suffix_ptr = name->ndata + prefix_len;
+		hash = hash_label(hash, suffix_ptr, sensitive);
+
+		for (unsigned int probe = 0; true; probe++) {
+			unsigned int slot = slot_index(cctx, hash, probe);
+			unsigned int coff = cctx->set[slot].coff;
+
+			/*
+			 * if we would have inserted this entry here (as in
+			 * insert_label() above), our suffix cannot be in the
+			 * hash set, so stop searching and switch to inserting
+			 * the rest of the name (its prefix) into the set
+			 */
+			if (coff == 0 || probe > probe_distance(cctx, slot)) {
+				insert(cctx, buffer, name, label, hash, probe);
+				return;
+			}
+
+			/*
+			 * this slot matches, so provisionally set the
+			 * return values and continue with the next label
+			 */
+			if (hash == cctx->set[slot].hash &&
+			    match_suffix(buffer, coff, suffix_ptr, suffix_len,
+					 *return_coff, sensitive))
+			{
+				*return_coff = coff;
+				*return_prefix = prefix_len;
+				break;
+			}
 		}
 	}
 }
 
 void
-dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
-	unsigned int i;
-	dns_compressnode_t *node;
+dns_compress_rollback(dns_compress_t *cctx, unsigned int coff) {
+	REQUIRE(CCTX_VALID(cctx));
 
-	REQUIRE(VALID_CCTX(cctx));
-
-	if (cctx->disabled) {
-		return;
-	}
-
-	for (i = 0; i < DNS_COMPRESS_TABLESIZE; i++) {
-		node = cctx->table[i];
-		/*
-		 * This relies on nodes with greater offsets being
-		 * closer to the beginning of the list, and the
-		 * items with the greatest offsets being at the end
-		 * of the initialnodes[] array.
-		 */
-		while (node != NULL && (node->offset & 0x7fff) >= offset) {
-			cctx->table[i] = node->next;
-			if ((node->offset & 0x8000) != 0) {
-				isc_mem_put(cctx->mctx, node->r.base,
-					    node->r.length);
-			}
-			if (node->count >= DNS_COMPRESS_INITIALNODES) {
-				isc_mem_put(cctx->mctx, node, sizeof(*node));
-			}
-			cctx->count--;
-			node = cctx->table[i];
+	for (unsigned int slot = 0; slot <= cctx->mask; slot++) {
+		if (cctx->set[slot].coff < coff) {
+			continue;
 		}
+		/*
+		 * The next few elements might be part of the deleted element's
+		 * probe sequence, so we slide them down to overwrite the entry
+		 * we are deleting and preserve the probe sequence. Moving an
+		 * element to the previous slot reduces its probe distance, so
+		 * we stop when we find an element whose probe distance is zero.
+		 */
+		unsigned int prev = slot;
+		unsigned int next = slot_index(cctx, prev, 1);
+		while (cctx->set[next].coff != 0 &&
+		       probe_distance(cctx, next) != 0) {
+			cctx->set[prev] = cctx->set[next];
+			prev = next;
+			next = slot_index(cctx, prev, 1);
+		}
+		cctx->set[prev].coff = 0;
+		cctx->set[prev].hash = 0;
+		cctx->count--;
 	}
 }

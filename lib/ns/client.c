@@ -464,6 +464,7 @@ ns_client_send(ns_client_t *client) {
 	isc_buffer_t buffer = { .magic = 0 };
 	isc_region_t r;
 	dns_compress_t cctx;
+	unsigned int compflags;
 	bool cleanup_cctx = false;
 	unsigned int render_opts;
 	unsigned int preferred_glue;
@@ -531,11 +532,7 @@ ns_client_send(ns_client_t *client) {
 	}
 
 	client_allocsendbuf(client, &buffer, &data);
-
-	result = dns_compress_init(&cctx, client->manager->mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	compflags = 0;
 	if (client->peeraddr_valid && client->view != NULL) {
 		isc_netaddr_t netaddr;
 		dns_name_t *name = NULL;
@@ -549,13 +546,14 @@ ns_client_send(ns_client_t *client) {
 		    !dns_acl_allowed(&netaddr, name,
 				     client->view->nocasecompress, env))
 		{
-			dns_compress_setsensitive(&cctx, true);
+			compflags |= DNS_COMPRESS_CASE;
 		}
 
 		if (!client->view->msgcompression) {
-			dns_compress_disable(&cctx);
+			compflags = DNS_COMPRESS_DISABLED;
 		}
 	}
+	dns_compress_init(&cctx, client->manager->mctx, compflags);
 	cleanup_cctx = true;
 
 	result = dns_message_renderbegin(client->message, &cctx, &buffer);

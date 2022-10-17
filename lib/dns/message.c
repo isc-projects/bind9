@@ -2012,9 +2012,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				msg->flags |= DNS_MESSAGEFLAG_TC;
 			}
 			if (result != ISC_R_SUCCESS) {
-				INSIST(st.used < 65536);
-				dns_compress_rollback(msg->cctx,
-						      (uint16_t)st.used);
+				dns_compress_rollback(msg->cctx, st.used);
 				*(msg->buffer) = st; /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;

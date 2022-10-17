@@ -44,6 +44,7 @@
 #define DNS_REQUESTOPT_TCP     0x00000001U
 #define DNS_REQUESTOPT_CASE    0x00000002U
 #define DNS_REQUESTOPT_FIXEDID 0x00000004U
+#define DNS_REQUESTOPT_LARGE   0x00000008U
 
 typedef struct dns_requestevent {
 	ISC_EVENT_COMMON(struct dns_requestevent);
@@ -151,6 +152,9 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  *
  *\li	If the #DNS_REQUESTOPT_CASE option is set, use case sensitive
  *	compression.
+ *
+ *\li	If the #DNS_REQUESTOPT_LARGE option is set, use a large
+ *	compression context to accommodate more names.
  *
  *\li	When the request completes, successfully, due to a timeout, or
  *	because it was canceled, a completion event will be sent to 'task'.

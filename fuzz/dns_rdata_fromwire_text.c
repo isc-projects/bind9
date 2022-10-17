@@ -203,8 +203,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	/*
 	 * Convert rdata back to wire.
 	 */
-	CHECK(dns_compress_init(&cctx, mctx));
-	dns_compress_disable(&cctx);
+	dns_compress_init(&cctx, mctx, DNS_COMPRESS_DISABLED);
 	isc_buffer_init(&target, towire, sizeof(towire));
 	result = dns_rdata_towire(&rdata1, &cctx, &target);
 	dns_compress_invalidate(&cctx);
