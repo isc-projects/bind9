@@ -2235,10 +2235,9 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer);
 void
 isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult);
 
-#define UV_RUNTIME_CHECK(func, ret)                                           \
-	if (ret != 0) {                                                       \
-		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s\n", #func, \
-				uv_strerror(ret));                            \
+#define UV_RUNTIME_CHECK(func, ret)                                      \
+	if (ret != 0) {                                                  \
+		FATAL_ERROR("%s failed: %s\n", #func, uv_strerror(ret)); \
 	}
 
 void

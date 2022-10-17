@@ -856,8 +856,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(&dns_master_style_debug, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -889,8 +888,7 @@ dns_master_rdatasettotext(const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(style, indent, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -906,8 +904,7 @@ dns_master_questiontotext(const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -982,8 +979,7 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 	result = isc_stdio_write(r.base, 1, (size_t)r.length, f, NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "master file write failed: %s",
+		UNEXPECTED_ERROR("master file write failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -1265,8 +1261,7 @@ restart:
 	result = isc_stdio_write(r.base, 1, (size_t)r.length, f, NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "raw master file write failed: %s",
+		UNEXPECTED_ERROR("raw master file write failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -1585,8 +1580,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = totext_ctx_init(style, NULL, &dctx->tctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		goto cleanup;
 	}
 
@@ -1976,8 +1970,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 

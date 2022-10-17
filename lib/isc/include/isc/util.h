@@ -309,24 +309,39 @@ mock_assert(const int result, const char *const expression,
 /*
  * Errors
  */
-#include <isc/error.h> /* Contractual promise. */
+#include <isc/error.h>	/* Contractual promise. */
+#include <isc/strerr.h> /* for ISC_STRERRORSIZE */
 
-/*% Unexpected Error */
-#define UNEXPECTED_ERROR isc_error_unexpected
-/*% Fatal Error */
-#define FATAL_ERROR isc_error_fatal
+#define UNEXPECTED_ERROR(...) \
+	isc_error_unexpected(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define FATAL_ERROR(...) \
+	isc_error_fatal(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define REPORT_SYSERROR(report, err, fmt, ...)                        \
+	{                                                             \
+		char strerr[ISC_STRERRORSIZE];                        \
+		strerror_r(err, strerr, sizeof(strerr));              \
+		report(__FILE__, __LINE__, __func__, fmt ": %s (%d)", \
+		       ##__VA_ARGS__, strerr, err);                   \
+	}
+
+#define UNEXPECTED_SYSERROR(err, ...) \
+	REPORT_SYSERROR(isc_error_unexpected, err, __VA_ARGS__)
+
+#define FATAL_SYSERROR(err, ...) \
+	REPORT_SYSERROR(isc_error_fatal, err, __VA_ARGS__)
 
 #ifdef UNIT_TESTING
 
-#define RUNTIME_CHECK(expression)                                             \
-	((!(expression))                                                      \
-		 ? (mock_assert(0, #expression, __FILE__, __LINE__), abort()) \
-		 : (void)0)
+#define RUNTIME_CHECK(cond) \
+	((cond) ? (void)0   \
+		: (mock_assert(0, #cond, __FILE__, __LINE__), abort()))
 
 #else /* UNIT_TESTING */
 
-/*% Runtime Check */
-#define RUNTIME_CHECK(cond) ISC_ERROR_RUNTIMECHECK(cond)
+#define RUNTIME_CHECK(cond) \
+	((cond) ? (void)0 : FATAL_ERROR("RUNTIME_CHECK(%s) failed", #cond))
 
 #endif /* UNIT_TESTING */
 

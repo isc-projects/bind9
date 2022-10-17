@@ -445,8 +445,7 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 	if (lctx->f != NULL) {
 		isc_result_t result = isc_stdio_close(lctx->f);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_stdio_close() failed: %s",
+			UNEXPECTED_ERROR("isc_stdio_close() failed: %s",
 					 isc_result_totext(result));
 		}
 	}
@@ -1281,8 +1280,7 @@ load_text(dns_loadctx_t *lctx) {
 				}
 				dump_time = (isc_stdtime_t)dump_time64;
 				if (dump_time != dump_time64) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s: %s:%lu: $DATE "
+					UNEXPECTED_ERROR("%s: %s:%lu: $DATE "
 							 "outside epoch",
 							 "dns_master_load",
 							 source, line);
@@ -1290,8 +1288,7 @@ load_text(dns_loadctx_t *lctx) {
 					goto insist_and_cleanup;
 				}
 				if (dump_time > current_time) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s: %s:%lu: "
+					UNEXPECTED_ERROR("%s: %s:%lu: "
 							 "$DATE in future, "
 							 "using current date",
 							 "dns_master_load",
@@ -1570,8 +1567,7 @@ load_text(dns_loadctx_t *lctx) {
 				ictx->drop = false;
 			}
 		} else {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "%s:%lu: isc_lex_gettoken() returned "
+			UNEXPECTED_ERROR("%s:%lu: isc_lex_gettoken() returned "
 					 "unexpected token type (%d)",
 					 source, line, token.type);
 			result = ISC_R_UNEXPECTED;
@@ -1663,8 +1659,7 @@ load_text(dns_loadctx_t *lctx) {
 		}
 
 		if (token.type != isc_tokentype_string) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_lex_gettoken() returned "
+			UNEXPECTED_ERROR("isc_lex_gettoken() returned "
 					 "unexpected token type");
 			result = ISC_R_UNEXPECTED;
 			if (MANYERRS(lctx, result)) {
@@ -1685,8 +1680,7 @@ load_text(dns_loadctx_t *lctx) {
 		}
 
 		if (token.type != isc_tokentype_string) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_lex_gettoken() returned "
+			UNEXPECTED_ERROR("isc_lex_gettoken() returned "
 					 "unexpected token type");
 			result = ISC_R_UNEXPECTED;
 			if (MANYERRS(lctx, result)) {
@@ -2273,8 +2267,7 @@ load_header(dns_loadctx_t *lctx) {
 
 	result = isc_stdio_read(data, 1, commonlen, lctx->f, NULL);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_read failed: %s",
+		UNEXPECTED_ERROR("isc_stdio_read failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -2306,8 +2299,7 @@ load_header(dns_loadctx_t *lctx) {
 
 	result = isc_stdio_read(data + commonlen, 1, remainder, lctx->f, NULL);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_read failed: %s",
+		UNEXPECTED_ERROR("isc_stdio_read failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -2332,8 +2324,7 @@ openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
 
 	result = isc_stdio_open(master_file, "rb", &lctx->f);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_stdio_open() failed: %s",
+		UNEXPECTED_ERROR("isc_stdio_open() failed: %s",
 				 isc_result_totext(result));
 	}
 

@@ -20,7 +20,6 @@
 #include <isc/backtrace.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/strerr.h>
 
 /*
  * The maximum number of stack frames to dump on assertion failure.

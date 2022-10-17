@@ -157,7 +157,7 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 		break;
 
 	default:
-		fatal_error("unsupported address type 0x%x", rdata->type);
+		FATAL_ERROR("unsupported address type 0x%x", rdata->type);
 		break;
 	}
 

@@ -37,8 +37,7 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 		INSIST(netmgr != NULL);
 		result = isc__taskmgr_create(mctx, quantum, netmgr, &taskmgr);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_taskmgr_create() failed: %s",
+			UNEXPECTED_ERROR("isc_taskmgr_create() failed: %s",
 					 isc_result_totext(result));
 			goto fail;
 		}
@@ -49,8 +48,7 @@ isc_managers_create(isc_mem_t *mctx, size_t workers, size_t quantum,
 	if (timermgrp != NULL) {
 		result = isc__timermgr_create(mctx, &timermgr);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_timermgr_create() failed: %s",
+			UNEXPECTED_ERROR("isc_timermgr_create() failed: %s",
 					 isc_result_totext(result));
 			goto fail;
 		}

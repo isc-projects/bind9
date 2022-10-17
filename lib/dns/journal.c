@@ -168,7 +168,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 freenode:
 	dns_db_detachnode(db, &node);
 nonode:
-	UNEXPECTED_ERROR(__FILE__, __LINE__, "missing SOA");
+	UNEXPECTED_ERROR("missing SOA");
 	return (result);
 }
 

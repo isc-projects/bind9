@@ -31,7 +31,6 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
-#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -1236,10 +1235,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 #endif
 
 	if (mpctx->allocated > 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mempool_destroy(): mempool %s "
-				 "leaked memory",
-				 mpctx->name);
+		UNEXPECTED_ERROR("mempool %s leaked memory", mpctx->name);
 	}
 	REQUIRE(mpctx->allocated == 0);
 

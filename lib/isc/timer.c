@@ -24,6 +24,7 @@
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
@@ -565,9 +566,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 					isc_task_send(timer->task,
 						      ISC_EVENT_PTR(&event));
 				} else {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s",
-							 "couldn't allocate "
+					UNEXPECTED_ERROR("couldn't allocate "
 							 "event");
 				}
 			}
@@ -579,11 +578,9 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			if (need_schedule) {
 				result = schedule(timer, now, false);
 				if (result != ISC_R_SUCCESS) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s: %u",
-							 "couldn't schedule "
-							 "timer",
-							 result);
+					UNEXPECTED_ERROR(
+						"couldn't schedule timer: %s",
+						isc_result_totext(result));
 				}
 			}
 		} else {

@@ -30,7 +30,6 @@
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -75,10 +74,7 @@ handle_signal(int sig, void (*handler)(int)) {
 	sa.sa_handler = handler;
 
 	if (sigfillset(&sa.sa_mask) != 0 || sigaction(sig, &sa, NULL) < 0) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		isc_error_fatal(__FILE__, __LINE__,
-				"handle_signal() %d setup: %s", sig, strbuf);
+		FATAL_SYSERROR(errno, "signal %d", sig);
 	}
 }
 
@@ -86,7 +82,6 @@ isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
 	int presult;
 	sigset_t sset;
-	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_APPCTX(ctx));
 
@@ -128,15 +123,11 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	if (sigemptyset(&sset) != 0 || sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 || sigaddset(&sset, SIGTERM) != 0)
 	{
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		isc_error_fatal(__FILE__, __LINE__,
-				"isc_app_start() sigsetops: %s", strbuf);
+		FATAL_SYSERROR(errno, "sigsetops");
 	}
 	presult = pthread_sigmask(SIG_BLOCK, &sset, NULL);
 	if (presult != 0) {
-		strerror_r(presult, strbuf, sizeof(strbuf));
-		isc_error_fatal(__FILE__, __LINE__,
-				"isc_app_start() pthread_sigmask: %s", strbuf);
+		FATAL_SYSERROR(presult, "pthread_sigmask()");
 	}
 
 	return (ISC_R_SUCCESS);
@@ -226,11 +217,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 			    sigaddset(&sset, SIGINT) != 0 ||
 			    sigaddset(&sset, SIGTERM) != 0)
 			{
-				char strbuf[ISC_STRERRORSIZE];
-				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_error_fatal(__FILE__, __LINE__,
-						"isc_app_run() sigsetops: %s",
-						strbuf);
+				FATAL_SYSERROR(errno, "sigsetops");
 			}
 
 			if (sigwait(&sset, &sig) == 0) {
@@ -315,12 +302,7 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 		} else {
 			/* Normal single BIND9 context */
 			if (kill(getpid(), SIGTERM) < 0) {
-				char strbuf[ISC_STRERRORSIZE];
-				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_error_fatal(__FILE__, __LINE__,
-						"isc_app_shutdown() "
-						"kill: %s",
-						strbuf);
+				FATAL_SYSERROR(errno, "kill");
 			}
 		}
 	}
@@ -348,12 +330,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 		} else {
 			/* Normal single BIND9 context */
 			if (kill(getpid(), SIGHUP) < 0) {
-				char strbuf[ISC_STRERRORSIZE];
-				strerror_r(errno, strbuf, sizeof(strbuf));
-				isc_error_fatal(__FILE__, __LINE__,
-						"isc_app_reload() "
-						"kill: %s",
-						strbuf);
+				FATAL_SYSERROR(errno, "kill");
 			}
 		}
 	}

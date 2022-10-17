@@ -1299,7 +1299,7 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	result = isc_timer_reset(fctx->timer, isc_timertype_inactive, NULL,
 				 NULL, true);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_reset(): %s",
+		UNEXPECTED_ERROR("isc_timer_reset(): %s",
 				 isc_result_totext(result));
 	}
 }
@@ -4907,8 +4907,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 
 	if (!dns_name_issubdomain(fctx->name, fctx->domain)) {
 		dns_name_format(fctx->domain, buf, sizeof(buf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "'%s' is not subdomain of '%s'", fctx->info,
+		UNEXPECTED_ERROR("'%s' is not subdomain of '%s'", fctx->info,
 				 buf);
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_fcount;
@@ -4924,8 +4923,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 			 res->query_timeout % 1000 * 1000000);
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_nowplusinterval: %s",
+		UNEXPECTED_ERROR("isc_time_nowplusinterval: %s",
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
@@ -4941,7 +4939,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	isc_interval_set(&interval, 2, 0);
 	iresult = isc_time_add(&fctx->expires, &interval, &fctx->final);
 	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_time_add: %s",
+		UNEXPECTED_ERROR("isc_time_add: %s",
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
@@ -4956,7 +4954,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 				   NULL, res->buckets[bucketnum].task,
 				   fctx_expired, fctx, &fctx->timer);
 	if (iresult != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_timer_create: %s",
+		UNEXPECTED_ERROR("isc_timer_create: %s",
 				 isc_result_totext(iresult));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_qmessage;
@@ -4983,8 +4981,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 		iresult = isc_time_nowplusinterval(&fctx->expires_try_stale,
 						   &interval);
 		if (iresult != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_nowplusinterval: %s",
+			UNEXPECTED_ERROR("isc_time_nowplusinterval: %s",
 					 isc_result_totext(iresult));
 			result = ISC_R_UNEXPECTED;
 			goto cleanup_timer;

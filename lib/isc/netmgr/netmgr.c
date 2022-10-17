@@ -34,7 +34,6 @@
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
-#include <isc/strerr.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/tls.h>
@@ -227,11 +226,10 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	REQUIRE(workers > 0);
 
 	if (uv_version() < MINIMAL_UV_VERSION) {
-		isc_error_fatal(__FILE__, __LINE__,
-				"libuv version too old: running with libuv %s "
-				"when compiled with libuv %s will lead to "
-				"libuv failures because of unknown flags",
-				uv_version_string(), UV_VERSION_STRING);
+		FATAL_ERROR("libuv version too old: running with libuv %s "
+			    "when compiled with libuv %s will lead to "
+			    "libuv failures because of unknown flags",
+			    uv_version_string(), UV_VERSION_STRING);
 	}
 
 	isc__nm_threadpool_initialize(workers);
