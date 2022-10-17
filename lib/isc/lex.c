@@ -902,8 +902,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			remaining--;
 			break;
 		default:
-			FATAL_ERROR(__FILE__, __LINE__, "Unexpected state %d",
-				    state);
+			FATAL_ERROR("Unexpected state %d", state);
 		}
 	} while (!done);
 

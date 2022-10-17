@@ -37,8 +37,7 @@ not, we call UNEXPECTED_ERROR().  E.g.
 
 void foo() {
 	if (some_unix_thang() < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "some_unix_thang() failed: %s",
+		UNEXPECTED_ERROR("some_unix_thang() failed: %s",
 				 strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}

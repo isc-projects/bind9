@@ -4765,8 +4765,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		maps, AF_INET6, &dispatch6, &dscp6,
 		(ISC_LIST_PREV(view, link) == NULL)));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to obtain either an IPv4 or"
+		UNEXPECTED_ERROR("unable to obtain either an IPv4 or"
 				 " an IPv6 dispatch");
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;

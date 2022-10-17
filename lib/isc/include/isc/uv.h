@@ -46,10 +46,9 @@
  * These are used with all versions of libuv:
  */
 
-#define UV_RUNTIME_CHECK(func, ret)                                           \
-	if (ret != 0) {                                                       \
-		isc_error_fatal(__FILE__, __LINE__, "%s failed: %s\n", #func, \
-				uv_strerror(ret));                            \
+#define UV_RUNTIME_CHECK(func, ret)                                      \
+	if (ret != 0) {                                                  \
+		FATAL_ERROR("%s failed: %s\n", #func, uv_strerror(ret)); \
 	}
 
 #define isc_uverr2result(x) \

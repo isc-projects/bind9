@@ -92,9 +92,7 @@ time_now(isc_time_t *t, clockid_t clock) {
 	REQUIRE(t != NULL);
 
 	if (clock_gettime(clock, &ts) == -1) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
+		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -136,9 +134,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
-		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
+		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
 		return (ISC_R_UNEXPECTED);
 	}
 

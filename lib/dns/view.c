@@ -138,8 +138,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_zt_create() failed: %s",
+		UNEXPECTED_ERROR("dns_zt_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_mutex;
@@ -147,8 +146,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_fwdtable_create() failed: %s",
+		UNEXPECTED_ERROR("dns_fwdtable_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_zt;

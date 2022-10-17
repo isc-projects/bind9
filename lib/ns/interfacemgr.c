@@ -1319,8 +1319,7 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		continue;
 	}
 	if (result != ISC_R_NOMORE) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "interface iteration failed: %s",
+		UNEXPECTED_ERROR("interface iteration failed: %s",
 				 isc_result_totext(result));
 	} else {
 		result = ((tried_listening && all_addresses_in_use)

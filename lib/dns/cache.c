@@ -471,8 +471,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	if (taskmgr != NULL) {
 		result = isc_task_create(taskmgr, &cleaner->task, 0);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_task_create() failed: %s",
+			UNEXPECTED_ERROR("isc_task_create() failed: %s",
 					 isc_result_totext(result));
 			result = ISC_R_UNEXPECTED;
 			goto cleanup_iterator;
@@ -534,8 +533,7 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 		 * so there is nothing to be cleaned.
 		 */
 		if (result != ISC_R_NOMORE && cleaner->iterator != NULL) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "cache cleaner: "
+			UNEXPECTED_ERROR("cache cleaner: "
 					 "dns_dbiterator_first() failed: %s",
 					 isc_result_totext(result));
 			dns_dbiterator_destroy(&cleaner->iterator);
@@ -674,10 +672,8 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_dbiterator_current(cleaner->iterator, &node, NULL);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "cache cleaner: "
-					 "dns_dbiterator_current() "
-					 "failed: %s",
+			UNEXPECTED_ERROR("cache cleaner: "
+					 "dns_dbiterator_current() failed: %s",
 					 isc_result_totext(result));
 
 			end_cleaning(cleaner, event);
@@ -703,8 +699,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			 * keep trying to clean it, otherwise stop cleaning.
 			 */
 			if (result != ISC_R_NOMORE) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "cache cleaner: "
+				UNEXPECTED_ERROR("cache cleaner: "
 						 "dns_dbiterator_next() "
 						 "failed: %s",
 						 isc_result_totext(result));
@@ -779,8 +774,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 		 */
 		result = dns_db_expirenode(cache->db, node, now);
 		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "cache cleaner: dns_db_expirenode() "
+			UNEXPECTED_ERROR("cache cleaner: dns_db_expirenode() "
 					 "failed: %s",
 					 isc_result_totext(result));
 			/*

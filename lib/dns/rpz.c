@@ -207,7 +207,7 @@ dns_rpz_type2str(dns_rpz_type_t type) {
 	case DNS_RPZ_TYPE_BAD:
 		break;
 	}
-	FATAL_ERROR(__FILE__, __LINE__, "impossible rpz type %d", type);
+	FATAL_ERROR("impossible rpz type %d", type);
 	return ("impossible");
 }
 

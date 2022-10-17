@@ -173,10 +173,9 @@ ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, dns_aclenv_t *env,
 		*orderp = NULL;
 		break;
 	default:
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unexpected return from ns_sortlist_setup(): "
-				 "%d",
-				 sortlisttype);
+		UNEXPECTED_ERROR(
+			"unexpected return from ns_sortlist_setup(): %d",
+			sortlisttype);
 		break;
 	}
 }

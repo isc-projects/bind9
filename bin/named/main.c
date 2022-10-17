@@ -241,12 +241,12 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 }
 
 noreturn static void
-library_fatal_error(const char *file, int line, const char *format,
-		    va_list args) ISC_FORMAT_PRINTF(3, 0);
+library_fatal_error(const char *file, int line, const char *func,
+		    const char *format, va_list args) ISC_FORMAT_PRINTF(3, 0);
 
 static void
-library_fatal_error(const char *file, int line, const char *format,
-		    va_list args) {
+library_fatal_error(const char *file, int line, const char *func,
+		    const char *format, va_list args) {
 	/*
 	 * Handle isc_error_fatal() calls from our libraries.
 	 */
@@ -260,7 +260,7 @@ library_fatal_error(const char *file, int line, const char *format,
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "%s:%d: fatal error:", file, line);
+			      "%s:%d:%s(): fatal error: ", file, line, func);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			       NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL, format,
 			       args);
@@ -268,7 +268,7 @@ library_fatal_error(const char *file, int line, const char *format,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			      "exiting (due to fatal error in library)");
 	} else {
-		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 		fflush(stderr);
@@ -281,12 +281,13 @@ library_fatal_error(const char *file, int line, const char *format,
 }
 
 static void
-library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args) ISC_FORMAT_PRINTF(3, 0);
+library_unexpected_error(const char *file, int line, const char *func,
+			 const char *format, va_list args)
+	ISC_FORMAT_PRINTF(3, 0);
 
 static void
-library_unexpected_error(const char *file, int line, const char *format,
-			 va_list args) {
+library_unexpected_error(const char *file, int line, const char *func,
+			 const char *format, va_list args) {
 	/*
 	 * Handle isc_error_unexpected() calls from our libraries.
 	 */
@@ -294,12 +295,13 @@ library_unexpected_error(const char *file, int line, const char *format,
 	if (named_g_lctx != NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR,
-			      "%s:%d: unexpected error:", file, line);
+			      "%s:%d:%s(): unexpected error: ", file, line,
+			      func);
 		isc_log_vwrite(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			       NAMED_LOGMODULE_MAIN, ISC_LOG_ERROR, format,
 			       args);
 	} else {
-		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		fprintf(stderr, "%s:%d:%s(): fatal error: ", file, line, func);
 		vfprintf(stderr, format, args);
 		fprintf(stderr, "\n");
 		fflush(stderr);
@@ -1406,8 +1408,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if ((h = scf_handle_create(SCF_VERSION)) == NULL) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_handle_create() failed: %s",
+			UNEXPECTED_ERROR("scf_handle_create() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		return (ISC_R_FAILURE);
@@ -1415,8 +1416,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if (scf_handle_bind(h) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_handle_bind() failed: %s",
+			UNEXPECTED_ERROR("scf_handle_bind() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1425,8 +1425,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if ((namelen = scf_myname(h, NULL, 0)) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_myname() failed: %s",
+			UNEXPECTED_ERROR("scf_myname() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1434,8 +1433,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 	}
 
 	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "named_smf_get_instance memory "
+		UNEXPECTED_ERROR("named_smf_get_instance memory "
 				 "allocation failed: %s",
 				 isc_result_totext(ISC_R_NOMEMORY));
 		scf_handle_destroy(h);
@@ -1444,8 +1442,7 @@ named_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 
 	if (scf_myname(h, instance, namelen + 1) == -1) {
 		if (debug) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "scf_myname() failed: %s",
+			UNEXPECTED_ERROR("scf_myname() failed: %s",
 					 scf_strerror(scf_error()));
 		}
 		scf_handle_destroy(h);
@@ -1552,8 +1549,7 @@ main(int argc, char *argv[]) {
 		result = named_smf_get_instance(&instance, 1, named_g_mctx);
 		if (result == ISC_R_SUCCESS && instance != NULL) {
 			if (smf_disable_instance(instance, 0) != 0) {
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "smf_disable_instance() "
+				UNEXPECTED_ERROR("smf_disable_instance() "
 						 "failed for %s : %s",
 						 instance,
 						 scf_strerror(scf_error()));

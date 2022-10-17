@@ -122,7 +122,6 @@ static isc_result_t
 try_proto(int domain) {
 	int s;
 	isc_result_t result = ISC_R_SUCCESS;
-	char strbuf[ISC_STRERRORSIZE];
 
 	s = socket(domain, SOCK_STREAM, 0);
 	if (s == -1) {
@@ -141,9 +140,7 @@ try_proto(int domain) {
 #endif /* ifdef EINVAL */
 			return (ISC_R_NOTFOUND);
 		default:
-			strerror_r(errno, strbuf, sizeof(strbuf));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() failed: %s", strbuf);
+			UNEXPECTED_SYSERROR(errno, "socket()");
 			return (ISC_R_UNEXPECTED);
 		}
 	}
@@ -223,7 +220,6 @@ static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
 	int s, on;
-	char strbuf[ISC_STRERRORSIZE];
 #endif /* ifdef IPV6_V6ONLY */
 	isc_result_t result;
 
@@ -240,9 +236,7 @@ try_ipv6only(void) {
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_SYSERROR(errno, "socket()");
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -258,9 +252,7 @@ try_ipv6only(void) {
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
 	if (s == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_SYSERROR(errno, "socket()");
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -288,7 +280,6 @@ initialize_ipv6only(void) {
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
-	char strbuf[ISC_STRERRORSIZE];
 	isc_result_t result;
 	int optname;
 
@@ -301,9 +292,7 @@ try_ipv6pktinfo(void) {
 	/* we only use this for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "socket() failed: %s",
-				 strbuf);
+		UNEXPECTED_SYSERROR(errno, "socket()");
 		ipv6pktinfo_result = ISC_R_UNEXPECTED;
 		return;
 	}
@@ -409,11 +398,10 @@ static isc_result_t
 make_nonblock(int fd) {
 	int ret;
 	int flags;
-	char strbuf[ISC_STRERRORSIZE];
-#ifdef USE_FIONBIO_IOCTL
-	int on = 1;
 
-	ret = ioctl(fd, FIONBIO, (char *)&on);
+#ifdef USE_FIONBIO_IOCTL
+	flags = 1;
+	ret = ioctl(fd, FIONBIO, (char *)&flags);
 #else  /* ifdef USE_FIONBIO_IOCTL */
 	flags = fcntl(fd, F_GETFL, 0);
 	flags |= O_NONBLOCK;
@@ -421,15 +409,11 @@ make_nonblock(int fd) {
 #endif /* ifdef USE_FIONBIO_IOCTL */
 
 	if (ret == -1) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
-				 "ioctl(%d, FIONBIO, &on): %s", fd,
-#else  /* ifdef USE_FIONBIO_IOCTL */
-				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
-#endif /* ifdef USE_FIONBIO_IOCTL */
-				 strbuf);
-
+		UNEXPECTED_SYSERROR(errno, "ioctl(%d, FIONBIO, &on)", fd);
+#else
+		UNEXPECTED_SYSERROR(errno, "fcntl(%d, F_SETFL, %d)", fd, flags);
+#endif
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -508,8 +492,6 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	}
 
 	if (sendmsg(s, &msg, 0) < 0) {
-		int debug = ISC_LOG_DEBUG(10);
-		const char *typestr;
 		switch (errno) {
 #ifdef ENOPROTOOPT
 		case ENOPROTOOPT:
@@ -519,21 +501,17 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 #endif /* ifdef EOPNOTSUPP */
 		case EINVAL:
 		case EPERM:
-			break;
-		default:
-			debug = ISC_LOG_NOTICE;
-		}
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		if (debug != ISC_LOG_NOTICE) {
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 				      "sendmsg: %s", strbuf);
-		} else {
-			typestr = (type == IP_TOS) ? "IP_TOS" : "IPV6_TCLASS";
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "probing "
-					 "sendmsg() with %s=%02x failed: %s",
-					 typestr, dscp, strbuf);
+			break;
+		default:
+			UNEXPECTED_SYSERROR(
+				errno, "probing sendmsg() with %s=%02x failed",
+				(type == IP_TOS) ? "IP_TOS" : "IPV6_TCLASS",
+				dscp);
+			break;
 		}
 		return (false);
 	}
@@ -593,7 +571,6 @@ try_dscp_v4(void) {
 	}
 
 	s = socket(res0->ai_family, res0->ai_socktype, res0->ai_protocol);
-
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,

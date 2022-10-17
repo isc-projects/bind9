@@ -26,7 +26,6 @@ isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 	int presult;
 	isc_result_t result;
 	struct timespec ts;
-	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(c != NULL && m != NULL && t != NULL);
 
@@ -61,8 +60,6 @@ isc__condition_waituntil(pthread_cond_t *c, pthread_mutex_t *m, isc_time_t *t) {
 		}
 	} while (presult == EINTR);
 
-	strerror_r(presult, strbuf, sizeof(strbuf));
-	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() returned %s", strbuf);
+	UNEXPECTED_SYSERROR(presult, "pthread_cond_timedwait()");
 	return (ISC_R_UNEXPECTED);
 }
