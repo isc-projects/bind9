@@ -1030,11 +1030,11 @@ numlen(uint32_t num) {
  */
 void
 cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	char buf[DURATION_MAXLEN];
+	char buf[CFG_DURATION_MAXLEN];
 	char *str;
 	const char *indicators = "YMWDHMS";
 	int count, i;
-	int durationlen[7];
+	int durationlen[7] = { 0 };
 	isccfg_duration_t duration;
 	/*
 	 * D ? The duration has a date part.
@@ -1066,10 +1066,8 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 			} else {
 				T = true;
 			}
-		} else {
-			durationlen[i] = 0;
+			count += durationlen[i];
 		}
-		count += durationlen[i];
 	}
 	/*
 	 * Special case for seconds which is not taken into account in the
@@ -1087,7 +1085,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (T) {
 		count++;
 	}
-	INSIST(count < DURATION_MAXLEN);
+	INSIST(count < CFG_DURATION_MAXLEN);
 
 	/* Now print the duration. */
 	for (i = 0; i < 6; i++) {
@@ -1098,7 +1096,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		if (duration.parts[i] > 0) {
 			snprintf(str, durationlen[i] + 2, "%u%c",
 				 (uint32_t)duration.parts[i], indicators[i]);
-			str += durationlen[i] + 1;
+			str += durationlen[i];
 		}
 		if (i == 3 && T) {
 			snprintf(str, 2, "T");
@@ -1107,7 +1105,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 	/* Special case for seconds. */
 	if (duration.parts[6] > 0 ||
-	    (!D && !duration.parts[4] && !duration.parts[3])) {
+	    (!D && !duration.parts[4] && !duration.parts[5])) {
 		snprintf(str, durationlen[6] + 2, "%u%c",
 			 (uint32_t)duration.parts[6], indicators[6]);
 	}
