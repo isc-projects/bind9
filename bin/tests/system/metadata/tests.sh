@@ -92,7 +92,7 @@ echo_i "checking that standby KSK did not sign but is delegated ($n)"
 ret=0
 grep " $rolling"'$' sigs > /dev/null && ret=1
 grep " $rolling"'$' keys > /dev/null || ret=1
-egrep "DS[ 	]*$rolling[ 	]" ${pfile}.signed > /dev/null || ret=1
+grep -E "DS[ 	]*$rolling[ 	]" ${pfile}.signed > /dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

@@ -167,14 +167,14 @@ n=`expr $n + 1`
 ret=0
 echo_i "Checking that default version works for rndc ($n)"
 $RNDCCMD 10.53.0.1 status > rndc.status.ns1.$n 2>&1
-fgrep "version: $BIND_VERSION_STRING" rndc.status.ns1.$n > /dev/null || ret=1
+grep -F "version: $BIND_VERSION_STRING" rndc.status.ns1.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that custom version works for rndc ($n)"
 $RNDCCMD 10.53.0.3 status > rndc.status.ns3.$n 2>&1
-fgrep "version: $BIND_VERSION_STRING (this is a test of version)" rndc.status.ns3.$n > /dev/null || ret=1
+grep -F "version: $BIND_VERSION_STRING (this is a test of version)" rndc.status.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`

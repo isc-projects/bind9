@@ -1040,7 +1040,7 @@ END
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	ret=0
 	$DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-	egrep '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
+	grep -E '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
 	[ $ret -eq 0 ] && break
 	echo_i "waiting ... ($i)"
 	sleep 2
@@ -1059,7 +1059,7 @@ $SETTIME -I now -D now $file > settime.out.test$n.2 || ret=1
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	ret=0
 	$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-	egrep '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
+	grep -E '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
 	[ $ret -eq 0 ] && break
 	echo_i "waiting ... ($i)"
 	sleep 2
