@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -39,14 +40,14 @@
 isc_result_t
 isccfg_duration_fromtext(isc_textregion_t *source,
 			 isccfg_duration_t *duration) {
-	char buf[DURATION_MAXLEN];
+	char buf[CFG_DURATION_MAXLEN] = { 0 };
 	char *P, *X, *T, *W, *str;
 	bool not_weeks = false;
 	int i;
+	long long int lli;
 
 	/*
 	 * Copy the buffer as it may not be NULL terminated.
-	 * Anyone having a duration longer than 63 characters is crazy.
 	 */
 	if (source->length > sizeof(buf) - 1) {
 		return (ISC_R_BADNUMBER);
@@ -74,7 +75,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	/* Record years. */
 	X = strpbrk(str, "Yy");
 	if (X != NULL) {
-		duration->parts[0] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[0] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -87,7 +93,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	 * part, or this M indicator is before the time indicator.
 	 */
 	if (X != NULL && (T == NULL || (size_t)(X - P) < (size_t)(T - P))) {
-		duration->parts[1] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[1] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -95,7 +106,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	/* Record days. */
 	X = strpbrk(str, "Dd");
 	if (X != NULL) {
-		duration->parts[3] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[3] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -109,7 +125,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	/* Record hours. */
 	X = strpbrk(str, "Hh");
 	if (X != NULL && T != NULL) {
-		duration->parts[4] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[4] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -122,7 +143,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	 * part and the M indicator is behind the time indicator.
 	 */
 	if (X != NULL && T != NULL && (size_t)(X - P) > (size_t)(T - P)) {
-		duration->parts[5] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[5] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -130,7 +156,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 	/* Record seconds. */
 	X = strpbrk(str, "Ss");
 	if (X != NULL && T != NULL) {
-		duration->parts[6] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[6] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -142,7 +173,12 @@ isccfg_duration_fromtext(isc_textregion_t *source,
 			/* Mix of weeks and other indicators is not allowed */
 			return (ISC_R_BADNUMBER);
 		} else {
-			duration->parts[2] = atoi(str + 1);
+			errno = 0;
+			lli = strtoll(str + 1, NULL, 10);
+			if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+				return (ISC_R_BADNUMBER);
+			}
+			duration->parts[2] = (uint32_t)lli;
 			str = W;
 		}
 	}
@@ -183,20 +219,21 @@ isccfg_parse_duration(isc_textregion_t *source, isccfg_duration_t *duration) {
 
 uint32_t
 isccfg_duration_toseconds(const isccfg_duration_t *duration) {
-	uint32_t seconds = 0;
+	uint64_t seconds = 0;
 
 	REQUIRE(duration != NULL);
 
-	seconds += duration->parts[6];		   /* Seconds */
-	seconds += duration->parts[5] * 60;	   /* Minutes */
-	seconds += duration->parts[4] * 3600;	   /* Hours */
-	seconds += duration->parts[3] * 86400;	   /* Days */
-	seconds += duration->parts[2] * 86400 * 7; /* Weeks */
+	seconds += (uint64_t)duration->parts[6];	     /* Seconds */
+	seconds += (uint64_t)duration->parts[5] * 60;	     /* Minutes */
+	seconds += (uint64_t)duration->parts[4] * 3600;	     /* Hours */
+	seconds += (uint64_t)duration->parts[3] * 86400;     /* Days */
+	seconds += (uint64_t)duration->parts[2] * 86400 * 7; /* Weeks */
 	/*
 	 * The below additions are not entirely correct
-	 * because days may very per month and per year.
+	 * because days may vary per month and per year.
 	 */
-	seconds += duration->parts[1] * 86400 * 31;  /* Months */
-	seconds += duration->parts[0] * 86400 * 365; /* Years */
-	return (seconds);
+	seconds += (uint64_t)duration->parts[1] * 86400 * 31;  /* Months */
+	seconds += (uint64_t)duration->parts[0] * 86400 * 365; /* Years */
+
+	return (seconds > UINT32_MAX ? UINT32_MAX : (uint32_t)seconds);
 }

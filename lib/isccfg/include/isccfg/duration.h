@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-#define DURATION_MAXLEN 64
+#define CFG_DURATION_MAXLEN 80
 
 /*%
  * A configuration object to store ISO 8601 durations.
@@ -75,6 +75,10 @@ isccfg_duration_toseconds(const isccfg_duration_t *duration);
  * The conversion is approximate:
  * - Months will be treated as 31 days.
  * - Years will be treated as 365 days.
+ *
+ * Notes:
+ *\li	If the duration in seconds is greater than UINT32_MAX, the return value
+ * 	will be UINT32_MAX.
  *
  * Returns:
  *\li	The duration in seconds.

@@ -1030,7 +1030,7 @@ numlen(uint32_t num) {
  */
 void
 cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	char buf[DURATION_MAXLEN];
+	char buf[CFG_DURATION_MAXLEN];
 	char *str;
 	const char *indicators = "YMWDHMS";
 	int count, i;
@@ -1085,7 +1085,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (T) {
 		count++;
 	}
-	INSIST(count < DURATION_MAXLEN);
+	INSIST(count < CFG_DURATION_MAXLEN);
 
 	/* Now print the duration. */
 	for (i = 0; i < 6; i++) {
