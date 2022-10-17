@@ -43,8 +43,10 @@
 /*! \file */
 
 #include <ctype.h>
+#include <errno.h>
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -1041,7 +1043,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	char *str;
 	const char *indicators = "YMWDHMS";
 	int count, i;
-	int durationlen[7];
+	int durationlen[7] = { 0 };
 	cfg_duration_t duration;
 	/*
 	 * D ? The duration has a date part.
@@ -1073,10 +1075,8 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 			} else {
 				T = true;
 			}
-		} else {
-			durationlen[i] = 0;
+			count += durationlen[i];
 		}
-		count += durationlen[i];
 	}
 	/*
 	 * Special case for seconds which is not taken into account in the
@@ -1105,7 +1105,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		if (duration.parts[i] > 0) {
 			snprintf(str, durationlen[i] + 2, "%u%c",
 				 (uint32_t)duration.parts[i], indicators[i]);
-			str += durationlen[i] + 1;
+			str += durationlen[i];
 		}
 		if (i == 3 && T) {
 			snprintf(str, 2, "T");
@@ -1114,7 +1114,7 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 	/* Special case for seconds. */
 	if (duration.parts[6] > 0 ||
-	    (!D && !duration.parts[4] && !duration.parts[3])) {
+	    (!D && !duration.parts[4] && !duration.parts[5])) {
 		snprintf(str, durationlen[6] + 2, "%u%c",
 			 (uint32_t)duration.parts[6], indicators[6]);
 	}
@@ -1145,32 +1145,38 @@ cfg_obj_isduration(const cfg_obj_t *obj) {
 
 uint32_t
 cfg_obj_asduration(const cfg_obj_t *obj) {
+	uint64_t seconds = 0;
+	cfg_duration_t duration;
+
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_duration);
-	uint32_t duration = 0;
-	duration += obj->value.duration.parts[6];	      /* Seconds */
-	duration += obj->value.duration.parts[5] * 60;	      /* Minutes */
-	duration += obj->value.duration.parts[4] * 3600;      /* Hours */
-	duration += obj->value.duration.parts[3] * 86400;     /* Days */
-	duration += obj->value.duration.parts[2] * 86400 * 7; /* Weaks */
+
+	duration = obj->value.duration;
+
+	seconds += (uint64_t)duration.parts[6];		    /* Seconds */
+	seconds += (uint64_t)duration.parts[5] * 60;	    /* Minutes */
+	seconds += (uint64_t)duration.parts[4] * 3600;	    /* Hours */
+	seconds += (uint64_t)duration.parts[3] * 86400;	    /* Days */
+	seconds += (uint64_t)duration.parts[2] * 86400 * 7; /* Weeks */
 	/*
 	 * The below additions are not entirely correct
-	 * because days may very per month and per year.
+	 * because days may vary per month and per year.
 	 */
-	duration += obj->value.duration.parts[1] * 86400 * 31;	/* Months */
-	duration += obj->value.duration.parts[0] * 86400 * 365; /* Years */
-	return (duration);
+	seconds += (uint64_t)duration.parts[1] * 86400 * 31;  /* Months */
+	seconds += (uint64_t)duration.parts[0] * 86400 * 365; /* Years */
+
+	return (seconds > UINT32_MAX ? UINT32_MAX : (uint32_t)seconds);
 }
 
 static isc_result_t
 duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
-	char buf[CFG_DURATION_MAXLEN];
+	char buf[CFG_DURATION_MAXLEN] = { 0 };
 	char *P, *X, *T, *W, *str;
 	bool not_weeks = false;
 	int i;
+	long long int lli;
 
 	/*
 	 * Copy the buffer as it may not be NULL terminated.
-	 * Anyone having a duration longer than 63 characters is crazy.
 	 */
 	if (source->length > sizeof(buf) - 1) {
 		return (ISC_R_BADNUMBER);
@@ -1196,7 +1202,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	/* Record years. */
 	X = strpbrk(str, "Yy");
 	if (X != NULL) {
-		duration->parts[0] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[0] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1209,7 +1220,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	 * part, or this M indicator is before the time indicator.
 	 */
 	if (X != NULL && (T == NULL || (size_t)(X - P) < (size_t)(T - P))) {
-		duration->parts[1] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[1] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1217,7 +1233,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	/* Record days. */
 	X = strpbrk(str, "Dd");
 	if (X != NULL) {
-		duration->parts[3] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[3] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1231,7 +1252,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	/* Record hours. */
 	X = strpbrk(str, "Hh");
 	if (X != NULL && T != NULL) {
-		duration->parts[4] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[4] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1244,7 +1270,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	 * part and the M indicator is behind the time indicator.
 	 */
 	if (X != NULL && T != NULL && (size_t)(X - P) > (size_t)(T - P)) {
-		duration->parts[5] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[5] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1252,7 +1283,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 	/* Record seconds. */
 	X = strpbrk(str, "Ss");
 	if (X != NULL && T != NULL) {
-		duration->parts[6] = atoi(str + 1);
+		errno = 0;
+		lli = strtoll(str + 1, NULL, 10);
+		if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+			return (ISC_R_BADNUMBER);
+		}
+		duration->parts[6] = (uint32_t)lli;
 		str = X;
 		not_weeks = true;
 	}
@@ -1264,7 +1300,12 @@ duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
 			/* Mix of weeks and other indicators is not allowed */
 			return (ISC_R_BADNUMBER);
 		} else {
-			duration->parts[2] = atoi(str + 1);
+			errno = 0;
+			lli = strtoll(str + 1, NULL, 10);
+			if (errno != 0 || lli < 0 || lli > UINT32_MAX) {
+				return (ISC_R_BADNUMBER);
+			}
+			duration->parts[2] = (uint32_t)lli;
 			str = W;
 		}
 	}
