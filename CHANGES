@@ -1,3 +1,6 @@
+6021.	[bug]		Use the current domain name when checking answers from
+			a dual-stack-server. [GL #3607]
+
 6020.	[bug]		Ensure 'named-checkconf -z' respects the check-wildcard
 			option when loading a zone.  [GL #1905]
 
