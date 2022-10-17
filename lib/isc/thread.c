@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #endif /* if defined(HAVE_SYS_PROCSET_H) */
 
-#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 

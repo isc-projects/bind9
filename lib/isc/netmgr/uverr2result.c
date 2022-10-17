@@ -15,7 +15,6 @@
 #include <uv.h>
 
 #include <isc/result.h>
-#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

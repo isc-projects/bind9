@@ -21,7 +21,6 @@
 #include <time.h>
 
 #include <isc/stdtime.h>
-#include <isc/strerr.h>
 #include <isc/util.h>
 
 #define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
