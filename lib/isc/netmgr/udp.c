@@ -155,7 +155,7 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	sock->children = isc_mem_getx(worker->mctx, children_size,
 				      ISC_MEM_ZERO);
 
-	isc_barrier_init(&sock->barrier, sock->nchildren);
+	isc__nmsocket_barrier_init(sock);
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;

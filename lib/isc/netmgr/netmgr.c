@@ -483,6 +483,7 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(httpendpoints);
 		NETIEVENT_CASE(settlsctx);
 #endif
+		NETIEVENT_CASE(sockstop);
 
 		NETIEVENT_CASE(connectcb);
 		NETIEVENT_CASE(readcb);
@@ -558,6 +559,7 @@ NETIEVENT_SOCKET_DEF(detach);
 NETIEVENT_SOCKET_QUOTA_DEF(tcpaccept);
 
 NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
+NETIEVENT_SOCKET_DEF(sockstop);
 
 void
 isc__nm_process_ievent(isc__networker_t *worker, isc__netievent_t *event) {
@@ -714,6 +716,10 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 	isc__nm_tls_cleanup_data(sock);
 	isc__nm_http_cleanup_data(sock);
 #endif
+
+	if (sock->barrier_initialised) {
+		isc_barrier_destroy(&sock->barrier);
+	}
 
 	sock->magic = 0;
 
@@ -2101,6 +2107,66 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	default:
 		UNREACHABLE();
 	}
+}
+
+void
+isc__nmsocket_stop(isc_nmsocket_t *listener) {
+	isc__netievent_sockstop_t ievent = { .sock = listener };
+
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->tid == isc_tid());
+	REQUIRE(listener->tid == 0);
+
+	if (!atomic_compare_exchange_strong(&listener->closing,
+					    &(bool){ false }, true)) {
+		UNREACHABLE();
+	}
+
+	for (size_t i = 1; i < listener->nchildren; i++) {
+		isc__networker_t *worker =
+			&listener->worker->netmgr->workers[i];
+		isc__netievent_sockstop_t *ev =
+			isc__nm_get_netievent_sockstop(worker, listener);
+		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ev);
+	}
+
+	isc__nm_async_sockstop(listener->worker, (isc__netievent_t *)&ievent);
+	INSIST(atomic_load(&listener->rchildren) == 0);
+
+	if (!atomic_compare_exchange_strong(&listener->listening,
+					    &(bool){ true }, false))
+	{
+		UNREACHABLE();
+	}
+
+	listener->accept_cb = NULL;
+	listener->accept_cbarg = NULL;
+	listener->recv_cb = NULL;
+	listener->recv_cbarg = NULL;
+
+	if (listener->outer != NULL) {
+		isc_nm_stoplistening(listener->outer);
+		isc__nmsocket_detach(&listener->outer);
+	}
+
+	atomic_store(&listener->closed, true);
+}
+
+void
+isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
+	REQUIRE(listener->nchildren > 0);
+	isc_barrier_init(&listener->barrier, listener->nchildren);
+	listener->barrier_initialised = true;
+}
+
+void
+isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0) {
+	isc__netievent_sockstop_t *ievent = (isc__netievent_sockstop_t *)ev0;
+	isc_nmsocket_t *listener = ievent->sock;
+	UNUSED(worker);
+
+	(void)atomic_fetch_sub(&listener->rchildren, 1);
+	isc_barrier_wait(&listener->barrier);
 }
 
 void
