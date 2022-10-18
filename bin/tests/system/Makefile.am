@@ -110,6 +110,7 @@ TESTS +=			\
 	dns64			\
 	dscp			\
 	dsdigest		\
+	dupsigs			\
 	dyndb			\
 	ecdsa			\
 	eddsa			\
@@ -170,10 +171,6 @@ TESTS +=			\
 	wildcard		\
 	xferquota		\
 	zonechecks
-
-# The "dupsigs" test is not run by default because it takes
-# a very long time to complete.
-# TESTS += dupsigs
 
 if HAVE_LMDB
 TESTS += nzd2nzf

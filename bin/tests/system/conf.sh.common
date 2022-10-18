@@ -26,9 +26,6 @@ export LANG=C
 #
 # Common lists of system tests to run.
 #
-# The "dupsigs" test is not run by default because it takes
-# a very long time to complete.
-#
 # The following tests are hard-coded to use ports 5300 and 9953. For
 # this reason, these must be run sequentially.
 #
@@ -49,7 +46,10 @@ SEQUENTIAL_COMMON=""
 # rpzrecurse are scheduled first, in order to get more benefit from
 # parallelism.
 #
-PARALLEL_COMMON="rpzrecurse serve-stale
+PARALLEL_COMMON="
+rpzrecurse
+serve-stale
+dupsigs
 acl
 additional
 addzone
