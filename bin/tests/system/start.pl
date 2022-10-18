@@ -425,8 +425,13 @@ sub verify_ns_server {
 		$tcp = "";
 	}
 
+	my $ip = "10.53.0.$n";
+	if (-e "$testdir/$server/named.ipv6-only") {
+		$ip = "fd92:7065:b8e:ffff::$n";
+	}
+
 	while (1) {
-		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > /dev/null");
+		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@$ip > /dev/null");
 
 		last if ($return == 0);
 
