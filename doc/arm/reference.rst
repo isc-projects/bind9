@@ -4598,7 +4598,7 @@ Tuning
 
    :any:`prefetch` specifies the "trigger" TTL value at which prefetch
    of the current query takes place; when a cache record with a
-   lower TTL value is encountered during query processing, it is
+   lower or equal TTL value is encountered during query processing, it is
    refreshed. Valid trigger TTL values are 1 to 10 seconds. Values
    larger than 10 seconds are silently reduced to 10. Setting a
    trigger TTL to zero causes prefetch to be disabled. The default
