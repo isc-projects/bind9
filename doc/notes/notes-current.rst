@@ -40,4 +40,5 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- The RecursClients statistics counter could overflow in certain resolution
+  scenarios. This has been fixed. :gl:`#3584`

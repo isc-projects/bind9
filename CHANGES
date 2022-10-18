@@ -1,3 +1,6 @@
+5998.	[bug]		The RecursClients statistics counter could overflow
+			in certain resolution scenarios. [GL #3584]
+
 5997.	[cleanup]	Less ceremonial UNEXPECTED_ERROR() and FATAL_ERROR()
 			reporting macros. [GL !6914]
 
