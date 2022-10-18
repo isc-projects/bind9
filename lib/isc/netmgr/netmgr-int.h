@@ -1062,6 +1062,7 @@ struct isc_nmsocket {
 	atomic_int_fast32_t active_child_connections;
 
 	bool barrier_initialised;
+	bool manual_read_timer;
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
@@ -1353,6 +1354,9 @@ isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
 /*%<
  * Set the read timeout for the TCP socket associated with 'handle'.
  */
+
+void
+isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
 
 void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -2008,3 +2012,10 @@ isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...)
 void
 isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+
+void
+isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
+/*
+ * Set manual read timer control mode - so that it will not get reset
+ * automatically on read nor get started when read is initiated.
+ */

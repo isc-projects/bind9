@@ -2898,6 +2898,25 @@ isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt,
 	isc__nmsocket_log(handle->sock, level, "handle %p: %s", handle, msgbuf);
 }
 
+void
+isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	switch (sock->type) {
+	case isc_nm_tcpsocket:
+		isc__nmhandle_tcp_set_manual_timer(handle, manual);
+		return;
+	default:
+		break;
+	};
+
+	UNREACHABLE();
+}
+
 #ifdef NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

@@ -762,7 +762,9 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		goto failure;
 	}
 
-	isc__nmsocket_timer_start(sock);
+	if (!sock->manual_read_timer) {
+		isc__nmsocket_timer_start(sock);
+	}
 
 	return;
 failure:
@@ -831,7 +833,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 
 	/* The readcb could have paused the reading */
-	if (sock->reading) {
+	if (sock->reading && !sock->manual_read_timer) {
 		/* The timer will be updated */
 		isc__nmsocket_timer_restart(sock);
 	}
@@ -1224,4 +1226,19 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	if (sock->parent == NULL) {
 		isc__nmsocket_prep_destroy(sock);
 	}
+}
+
+void
+isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(!sock->reading);
+	REQUIRE(!sock->recv_read);
+
+	sock->manual_read_timer = manual;
 }
