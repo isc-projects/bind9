@@ -49,9 +49,10 @@
  * Size the recv buffer to hold at maximum two full buffers from isc_nm_read(),
  * so we don't have to handle the truncation.
  */
-#define HTTP_RECVLEN	 ISC_NETMGR_TCP_RECVBUF_SIZE * 2
-#define HTTP_SENDLEN	 ISC_NETMGR_TCP_RECVBUF_SIZE
-#define HTTP_HEADERS_NUM 10
+#define HTTP_RECVLEN	     ISC_NETMGR_TCP_RECVBUF_SIZE * 2
+#define HTTP_SENDLEN	     ISC_NETMGR_TCP_RECVBUF_SIZE
+#define HTTP_HEADERS_NUM     10
+#define HTTP_MAX_REQUEST_LEN 4096
 
 #define HTTPD_CLOSE	     0x0001 /* Got a Connection: close header */
 #define HTTPD_FOUNDHOST	     0x0002 /* Got a Host: header */
@@ -393,6 +394,10 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	}
 
 	INSIST(pret > 0);
+
+	if (pret > HTTP_MAX_REQUEST_LEN) {
+		return (ISC_R_RANGE);
+	}
 
 	httpd->consume = pret;
 
@@ -745,71 +750,22 @@ httpd_compress(isc_httpd_sendreq_t *req) {
 #endif /* ifdef HAVE_ZLIB */
 
 static void
-httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
-	      isc_region_t *region, void *arg) {
-	isc_result_t result;
-	isc_httpd_t *httpd = NULL;
-	isc_httpdmgr_t *mgr = (isc_httpdmgr_t *)arg;
-	isc_httpdurl_t *url = NULL;
+prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
+		 isc_httpd_sendreq_t **reqp) {
+	isc_httpd_sendreq_t *req = NULL;
 	isc_time_t now;
-	isc_region_t r;
-	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
-	size_t limit = 0;
-	size_t last_len;
-
-	httpd = isc_nmhandle_getdata(handle);
+	const char *path = "/";
+	size_t path_len = 1;
+	bool is_compressed = false;
+	isc_httpdurl_t *url = NULL;
+	isc_result_t result;
 
 	REQUIRE(VALID_HTTPD(httpd));
-
-	REQUIRE(httpd->handle == handle);
-
-	if (eresult != ISC_R_SUCCESS) {
-		goto cleanup_readhandle;
-	}
-
-	REQUIRE(region != NULL);
-
-	last_len = httpd->recvlen;
-
-	if (httpd->recvlen + region->length > sizeof(httpd->recvbuf)) {
-		goto cleanup_readhandle;
-	}
-
-	/* Store the received data into the recvbuf */
-	REQUIRE(httpd->recvlen + region->length < sizeof(httpd->recvbuf));
-	memmove(httpd->recvbuf + httpd->recvlen, region->base, region->length);
-	httpd->recvlen += region->length;
-
-again:
-	result = process_request(httpd, last_len);
-
-	if (result == ISC_R_NOMORE) {
-		limit = sizeof(httpd->recvbuf) - httpd->recvlen;
-		if (region->length > limit) {
-			/*
-			 * We need more data, but we don't have space to store
-			 * it
-			 */
-			goto cleanup_readhandle;
-		}
-
-		memmove(httpd->recvbuf + httpd->recvlen, region->base,
-			region->length);
-
-		/* Just wait for more data */
-		return;
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_readhandle;
-	}
+	REQUIRE(reqp != NULL && *reqp == NULL);
 
 	isc_time_now(&now);
 	isc_time_formathttptimestamp(&now, datebuf, sizeof(datebuf));
-
-	const char *path = "/";
-	size_t path_len = 1;
 
 	if (httpd->up.field_set & (1 << ISC_UF_PATH)) {
 		path = &httpd->path[httpd->up.field_data[ISC_UF_PATH].off];
@@ -826,7 +782,7 @@ again:
 	}
 	UNLOCK(&mgr->lock);
 
-	isc_httpd_sendreq_t *req = isc__httpd_sendreq_new(httpd);
+	req = isc__httpd_sendreq_new(httpd);
 
 	if (url == NULL) {
 		result = mgr->render_404(httpd, NULL, NULL, &req->retcode,
@@ -918,13 +874,74 @@ again:
 	}
 	httpd->recvlen -= httpd->consume;
 	httpd->consume = 0;
-	last_len = 0;
 
 	/*
 	 * We don't need to attach to httpd here because it gets only cleaned
 	 * when the last handle has been detached
 	 */
 	req->httpd = httpd;
+
+	*reqp = req;
+}
+
+static void
+httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
+	      isc_region_t *region, void *arg) {
+	isc_result_t result;
+	isc_httpdmgr_t *mgr = arg;
+	isc_httpd_t *httpd = NULL;
+	isc_httpd_sendreq_t *req = NULL;
+	isc_region_t r;
+	size_t last_len = 0;
+
+	httpd = isc_nmhandle_getdata(handle);
+
+	REQUIRE(VALID_HTTPD(httpd));
+
+	REQUIRE(httpd->handle == handle);
+	REQUIRE(httpd->readhandle == handle);
+
+	isc_nm_read_stop(httpd->readhandle);
+
+	if (eresult != ISC_R_SUCCESS) {
+		goto close_readhandle;
+	}
+
+	/*
+	 * If we are being called from httpd_senddone(), the last HTTP request
+	 * was processed successfully, reset the last_len to 0, even if there's
+	 * data in the httpd->recvbuf.
+	 */
+	last_len = (region == NULL) ? 0 : httpd->recvlen;
+
+	/* Store the received data into the recvbuf */
+	if (region != NULL) {
+		if (httpd->recvlen + region->length > sizeof(httpd->recvbuf)) {
+			goto close_readhandle;
+		}
+
+		memmove(httpd->recvbuf + httpd->recvlen, region->base,
+			region->length);
+		httpd->recvlen += region->length;
+	}
+
+	result = process_request(httpd, last_len);
+
+	if (result == ISC_R_NOMORE) {
+		if (httpd->recvlen > HTTP_MAX_REQUEST_LEN) {
+			goto close_readhandle;
+		}
+
+		/* Wait for more data, the readhandle is still attached */
+		isc_nm_read(handle, httpd_request, arg);
+		return;
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		goto close_readhandle;
+	}
+
+	prepare_response(mgr, httpd, &req);
 
 	/*
 	 * Determine total response size.
@@ -934,21 +951,11 @@ again:
 	isc_nmhandle_attach(httpd->handle, &req->handle);
 	isc_nm_send(httpd->handle, &r, httpd_senddone, req);
 
-	if ((httpd->flags & HTTPD_CLOSE) != 0) {
-		goto cleanup_readhandle;
-	}
-
-	/*
-	 * The request was successfully completed;
-	 */
-	if (httpd->recvlen > 0) {
-		goto again;
-	}
-
+	isc_nmhandle_detach(&httpd->readhandle);
 	return;
 
-cleanup_readhandle:
-	isc_nm_read_stop(httpd->readhandle);
+close_readhandle:
+	isc_nmhandle_close(httpd->readhandle);
 	isc_nmhandle_detach(&httpd->readhandle);
 }
 
@@ -1025,16 +1032,21 @@ httpd_addheaderuint(isc_httpd_sendreq_t *req, const char *name, int val) {
 }
 
 static void
-httpd_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+httpd_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	isc_httpd_sendreq_t *req = (isc_httpd_sendreq_t *)arg;
 	isc_httpd_t *httpd = req->httpd;
 
 	REQUIRE(VALID_HTTPD(httpd));
 
-	if (result != ISC_R_SUCCESS && httpd->readhandle != NULL) {
-		isc_nm_read_stop(httpd->readhandle);
-		isc_nmhandle_close(httpd->readhandle);
-		isc_nmhandle_detach(&httpd->readhandle);
+	if (eresult == ISC_R_SUCCESS && (httpd->flags & HTTPD_CLOSE) == 0) {
+		/*
+		 * Calling httpd_request() with region NULL restarts
+		 * reading.
+		 */
+		isc_nmhandle_attach(handle, &httpd->readhandle);
+		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
+	} else {
+		isc_nmhandle_close(handle);
 	}
 
 	isc_nmhandle_detach(&handle);
