@@ -15,13 +15,16 @@
 
 #include <isc/assertions.h>
 
+#define ISC_LINK_TOMBSTONE(type) ((type *)-1)
+
 #define ISC_LIST_INITIALIZER                \
 	{                                   \
 		.head = NULL, .tail = NULL, \
 	}
-#define ISC_LINK_INITIALIZER_TYPE(type)                 \
-	{                                               \
-		.prev = (type *)-1, .next = (type *)-1, \
+#define ISC_LINK_INITIALIZER_TYPE(type)           \
+	{                                         \
+		.prev = ISC_LINK_TOMBSTONE(type), \
+		.next = ISC_LINK_TOMBSTONE(type), \
 	}
 #define ISC_LINK_INITIALIZER ISC_LINK_INITIALIZER_TYPE(void)
 
@@ -45,13 +48,15 @@
 	struct {                   \
 		type *prev, *next; \
 	}
-#define ISC_LINK_INIT_TYPE(elt, link, type)      \
-	do {                                     \
-		(elt)->link.prev = (type *)(-1); \
-		(elt)->link.next = (type *)(-1); \
+#define ISC_LINK_INIT_TYPE(elt, link, type)                  \
+	do {                                                 \
+		(elt)->link.prev = ISC_LINK_TOMBSTONE(type); \
+		(elt)->link.next = ISC_LINK_TOMBSTONE(type); \
 	} while (0)
-#define ISC_LINK_INIT(elt, link)   ISC_LINK_INIT_TYPE(elt, link, void)
-#define ISC_LINK_LINKED(elt, link) ((void *)((elt)->link.prev) != (void *)(-1))
+#define ISC_LINK_INIT(elt, link) ISC_LINK_INIT_TYPE(elt, link, void)
+#define ISC_LINK_LINKED_TYPE(elt, link, type) \
+	((type *)((elt)->link.prev) != ISC_LINK_TOMBSTONE(type))
+#define ISC_LINK_LINKED(elt, link) ISC_LINK_LINKED_TYPE(elt, link, void)
 
 #define ISC_LIST_HEAD(list)  ((list).head)
 #define ISC_LIST_TAIL(list)  ((list).tail)
@@ -113,8 +118,8 @@
 			ISC_INSIST((list).head == (elt));               \
 			(list).head = (elt)->link.next;                 \
 		}                                                       \
-		(elt)->link.prev = (type *)(-1);                        \
-		(elt)->link.next = (type *)(-1);                        \
+		(elt)->link.prev = ISC_LINK_TOMBSTONE(type);            \
+		(elt)->link.next = ISC_LINK_TOMBSTONE(type);            \
 		ISC_INSIST((list).head != (elt));                       \
 		ISC_INSIST((list).tail != (elt));                       \
 	} while (0)
