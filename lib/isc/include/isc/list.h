@@ -15,6 +15,16 @@
 
 #include <isc/assertions.h>
 
+#define ISC_LIST_INITIALIZER                \
+	{                                   \
+		.head = NULL, .tail = NULL, \
+	}
+#define ISC_LINK_INITIALIZER_TYPE(type)                 \
+	{                                               \
+		.prev = (type *)-1, .next = (type *)-1, \
+	}
+#define ISC_LINK_INITIALIZER ISC_LINK_INITIALIZER_TYPE(void)
+
 #ifdef ISC_LIST_CHECKINIT
 #define ISC_LINK_INSIST(x) ISC_INSIST(x)
 #else /* ifdef ISC_LIST_CHECKINIT */
