@@ -341,7 +341,7 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		if (sock->tlsstream.server) {
-			if (sock->listener->accept_cb == NULL) {
+			if (isc__nmsocket_closing(sock->listener)) {
 				result = ISC_R_CANCELED;
 			} else {
 				result = sock->listener->accept_cb(
