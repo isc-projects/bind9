@@ -30,5 +30,4 @@ rm -f xml.*mem json.*mem
 rm -f xml.*stats json.*stats
 rm -f zones zones.out.* zones.json.* zones.xml.* zones.expect.*
 rm -rf ./__pycache__
-rm -f nc.out*
-rm -f send.in* send.out*
+rm -f nc.out* curl.out* header.in*

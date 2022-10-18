@@ -41,7 +41,7 @@ else
     echo_i "XML tests require XML::Simple; skipping" >&2
 fi
 
-if [ ! "$PERL_JSON" -a ! "$PERL_XML" ]; then
+if [ ! "$PERL_JSON" ] && [ ! "$PERL_XML" ]; then
     echo_i "skipping all tests"
     exit 0
 fi
@@ -135,29 +135,33 @@ status=$((status + ret))
 n=$((n + 1))
 
 echo_i "checking consistency between regular and compressed output ($n)"
-for i in 1 2 3 4 5; do
-	ret=0
-	if [ "$HAVEXMLSTATS" ];
-	then
-		URL=http://10.53.0.2:${EXTRAPORT1}/xml/v3/server
-		filter_str='s#<current-time>.*</current-time>##g'
-	else
-		URL=http://10.53.0.2:${EXTRAPORT1}/json/v1/server
-		filter_str='s#"current-time.*",##g'
-	fi
-	$CURL -D regular.headers $URL 2>/dev/null | \
-		sed -e "$filter_str" > regular.out
-	$CURL -D compressed.headers --compressed $URL 2>/dev/null | \
-		sed -e "$filter_str" > compressed.out
-	diff regular.out compressed.out >/dev/null || ret=1
-	if [ $ret != 0 ]; then
-		echo_i "failed on try $i, probably a timing issue, trying again"
-		sleep 1
-	else
-		break
-	fi
-done
-
+ret=0
+if [ -x "${CURL}" ] ; then
+    for i in 1 2 3 4 5; do
+        ret=0
+        if [ "$HAVEXMLSTATS" ];
+        then
+            URL="http://10.53.0.2:${EXTRAPORT1}/xml/v3/server"
+            filter_str='s#<current-time>.*</current-time>##g'
+        else
+            URL="http://10.53.0.2:${EXTRAPORT1}/json/v1/server"
+            filter_str='s#"current-time.*",##g'
+        fi
+        "${CURL}" -D regular.headers "$URL" 2>/dev/null | \
+            sed -e "$filter_str" > regular.out || ret=1
+        "${CURL}" -D compressed.headers --compressed "$URL" 2>/dev/null | \
+            sed -e "$filter_str" > compressed.out || ret=1
+        diff regular.out compressed.out >/dev/null || ret=1
+        if [ $ret != 0 ]; then
+            echo_i "failed on try $i, probably a timing issue, trying again"
+            sleep 1
+        else
+            break
+        fi
+    done
+else
+    echo_i "skipping test as curl not found"
+fi
 status=$((status + ret))
 n=$((n + 1))
 
@@ -166,11 +170,11 @@ echo_i "checking if compressed output is really compressed ($n)"
 if [ "$HAVEZLIB" ];
 then
     REGSIZE=`cat regular.headers | \
-	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
     COMPSIZE=`cat compressed.headers | \
-	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
     if [ ! $((REGSIZE / COMPSIZE)) -gt 2 ]; then
-	ret=1
+        ret=1
     fi
 else
     echo_i "skipped"
@@ -376,46 +380,19 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
-if [ -x "${NC}" ] ; then
-    echo_i "Check HTTP/1.1 pipelined requests are handled (GET) ($n)"
-    ret=0
-    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
-GET /xml/v3/status HTTP/1.1
-Host: 10.53.0.3:${EXTRAPORT1}
-
-GET /xml/v3/status HTTP/1.1
-Host: 10.53.0.3:${EXTRAPORT1}
-Connection: close
-
-EOF
-    lines=$(grep -c "^HTTP/1.1" nc.out$n)
-    test "$lines" = 2 || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=$((status + ret))
-    n=$((n + 1))
-else
-    echo_i "skipping test as nc not found"
-fi
-
-echo_i "Check HTTP/1.1 pipelined requests are handled (POST) ($n)"
+echo_i "Check HTTP/1.1 client-side pipelined requests are handled (GET) ($n)"
 ret=0
 if [ -x "${NC}" ] ; then
-    ${NC} 10.53.0.3 ${EXTRAPORT1} << EOF > nc.out$n || ret=1
-POST /xml/v3/status HTTP/1.1
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.1
 Host: 10.53.0.3:${EXTRAPORT1}
-Content-Type: application/json
-Content-Length: 3
 
-{}
-POST /xml/v3/status HTTP/1.1
+GET /xml/v3/status HTTP/1.1
 Host: 10.53.0.3:${EXTRAPORT1}
-Content-Type: application/json
-Content-Length: 3
 Connection: close
 
-{}
 EOF
-    lines=$(grep -c "^HTTP/1.1" nc.out$n)
+    lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
 else
     echo_i "skipping test as nc not found"
@@ -423,74 +400,99 @@ fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
+
+echo_i "Check HTTP/1.1 client-side pipelined requests are handled (POST) ($n)"
+ret=0
+if [ -x "${NC}" ]; then
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+
+{}
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+Connection: close
+
+{}
+EOF
+    lines=$(grep -c "^<statistics version" nc.out$n)
+    test "$lines" = 2 || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+if [ -x "${CURL}" ] && ! ("${CURL}" --next 2>&1 | grep 'option --next: is unknown'); then
+    CURL_NEXT="${CURL}"
+fi
 
 echo_i "Check HTTP with more than 10 headers ($n)"
 ret=0
 i=0
-# build input stream.
-printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n\r\n' > send.in$n
-printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n' >> send.in$n
+if [ -x "${CURL_NEXT}" ] ; then
+    # build input stream.
+    : > header.in$n
+    while test $i -lt 11
+    do
+        printf 'X-Bloat%d: VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==\r\n' $i >> header.in$n
+        i=$((i+1))
+    done
+    printf '\r\n' >> header.in$n
 
-while test $i -lt 11
-do
-printf 'X-Bloat: VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==\r\n' >> send.in$n
-i=$((i+1))
-done
-printf '\r\n' >> send.in$n
-
-# send the requests then wait for named to close the socket.
-${NC} 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
-# we expect 1 request to be processed.
-lines=$(grep -c "^HTTP/1.1" send.out$n)
-test $lines = 1 || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-n=$((n + 1))
-
-echo_i "Check HTTP/1.1 pipelined with truncated stream ($n)"
-ret=0
-i=0
-# build input stream.
-printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\n\r\n' > send.in$n
-printf 'GET /xml/v3/status HTTP/1.1\r\nHost: 10.53.0.3\r\nX-Bloat:' >> send.in$n
-while test $i -lt 5000
-do
-printf '%s' "VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==" >> send.in$n
-i=$((i+1))
-done
-printf '\r\n' >> send.in$n
-printf '\r\n' >> send.in$n
-
-# send the requests then wait for named to close the socket.
-time1=$($PERL -e 'print time(), "\n";')
-${NC} 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
-time2=$($PERL -e 'print time(), "\n";')
-test $((time2 - time1)) -lt 5 || ret=1
-# we expect 1 request to be processed.
-lines=$(grep -c "^HTTP/1.1" send.out$n)
-test $lines = 1 || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-n=$((n + 1))
-
-echo_i "Check pipelined responses do not grow excessively ($n)"
-ret=0
-i=0
-if [ -x "${NC}" ] ; then
-    {
-        while test $i -lt 10; do
-            printf "GET /json/v1 HTTP/1.1\r\nHost: 10.53.0.3:%s\r\nAccept-Encoding: deflate, gzip, br, zstd\r\n\r\n" "${EXTRAPORT1}"
-            i=$((i + 1))
-        done
-    } | ${NC} 10.53.0.3 ${EXTRAPORT1} | grep -a Content-Length |
-        awk 'BEGIN { prev=0; }
-             { if (prev != 0 && $2 - prev > 100) {
-                   exit(1);
-               }
-               prev = $2;
-             }' || ret=1
+    # send the requests then wait for named to close the socket.
+    URL="http://10.53.0.3:${EXTRAPORT1}/xml/v3/status"
+    "${CURL}" --silent --include --get "$URL" --next --get --header @header.in$n "$URL" > curl.out$n && ret=1
+    # we expect 1 request to be processed.
+    lines=$(grep -c "^<statistics version" curl.out$n)
+    test "$lines" = 1 || ret=1
 else
-    echo_i "skipping test as nc not found"
+    echo_i "skipping test as curl with --next support not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check HTTP/1.1 keep-alive with truncated stream ($n)"
+ret=0
+i=0
+if [ -x "${CURL_NEXT}" ] ; then
+    # build input stream.
+    printf 'X-Bloat: ' > header.in$n
+    while test $i -lt 5000
+    do
+        printf '%s' "VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==" >> header.in$n
+        i=$((i+1))
+    done
+    printf '\r\n' >> header.in$n
+
+    # send the requests then wait for named to close the socket.
+    URL="http://10.53.0.3:${EXTRAPORT1}/xml/v3/status"
+    "${CURL}" --silent --include --get "$URL" --next --get --header @header.in$n "$URL" > curl.out$n && ret=1
+    # we expect 1 request to be processed.
+    lines=$(grep -c "^<statistics version" curl.out$n)
+    test "$lines" = 1 || ret=1
+else
+    echo_i "skipping test as curl with --next support not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check that consequtive responses do not grow excessively ($n)"
+ret=0
+i=0
+if [ -x "${CURL}" ] ; then
+    URL="http://10.53.0.3:${EXTRAPORT1}/json/v1"
+    "${CURL}" --silent --include --header "Accept-Encoding: deflate, gzip, br, zstd" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" > curl.out$n || ret=1
+    grep -a Content-Length curl.out$n | awk 'BEGIN { prev=0; } { if (prev != 0 && $2 - prev > 100) { exit(1); } prev = $2; }' || ret=1
+else
+    echo_i "skipping test as curl not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
