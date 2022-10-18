@@ -1,3 +1,6 @@
+5999.	[bug]		rpz-ip rules could be ineffective in some scenarios
+			with CD=1 queries. [GL #3247]
+
 5998.	[placeholder]
 
 5997.	[cleanup]	Less ceremonial UNEXPECTED_ERROR() and FATAL_ERROR()
