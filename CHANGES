@@ -1,3 +1,5 @@
+5998.	[placeholder]
+
 5997.	[cleanup]	Less ceremonial UNEXPECTED_ERROR() and FATAL_ERROR()
 			reporting macros. [GL !6914]
 
