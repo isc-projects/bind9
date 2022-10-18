@@ -533,10 +533,6 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
  * 'isc_nm_httpsocket'.
  */
 
-#if HAVE_LIBNGHTTP2
-
-#define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
-
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
@@ -548,6 +544,10 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int			     timeout);
+
+#if HAVE_LIBNGHTTP2
+
+#define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
 
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,

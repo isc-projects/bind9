@@ -120,6 +120,7 @@ libisc_la_SOURCES =		\
 	netmgr/tcpdns.c		\
 	netmgr/timer.c		\
 	netmgr/tlsdns.c		\
+	netmgr/tlsstream.c	\
 	netmgr/udp.c		\
 	aes.c			\
 	ascii.c			\
@@ -256,8 +257,7 @@ endif HAVE_JSON_C
 
 if HAVE_LIBNGHTTP2
 libisc_la_SOURCES +=		\
-	netmgr/http.c		\
-	netmgr/tlsstream.c
+	netmgr/http.c
 
 libisc_la_CPPFLAGS +=		\
 	$(LIBNGHTTP2_CFLAGS)

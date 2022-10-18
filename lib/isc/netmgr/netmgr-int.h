@@ -753,7 +753,6 @@ typedef enum {
 	STATID_MAX = 11,
 } isc__nm_statid_t;
 
-#if HAVE_LIBNGHTTP2
 typedef struct isc_nmsocket_tls_send_req {
 	isc_nmsocket_t *tlssock;
 	isc_region_t data;
@@ -763,6 +762,8 @@ typedef struct isc_nmsocket_tls_send_req {
 	bool finish;
 	uint8_t smallbuf[512];
 } isc_nmsocket_tls_send_req_t;
+
+#if HAVE_LIBNGHTTP2
 
 typedef enum isc_http_request_type {
 	ISC_HTTP_REQ_GET,
@@ -901,7 +902,6 @@ struct isc_nmsocket {
 		const char *tls_verify_errmsg;
 	} tls;
 
-#if HAVE_LIBNGHTTP2
 	/*% TLS stuff */
 	struct tlsstream {
 		bool server;
@@ -927,6 +927,7 @@ struct isc_nmsocket {
 		bool tcp_nodelay_value;
 	} tlsstream;
 
+#if HAVE_LIBNGHTTP2
 	isc_nmsocket_h2_t h2;
 #endif /* HAVE_LIBNGHTTP2 */
 
@@ -1542,7 +1543,6 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
 void
 isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock);
 
-#if HAVE_LIBNGHTTP2
 void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
@@ -1628,6 +1628,8 @@ isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
 
 isc_result_t
 isc__nmhandle_tls_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
+
+#if HAVE_LIBNGHTTP2
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
