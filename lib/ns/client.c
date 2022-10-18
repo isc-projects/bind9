@@ -242,10 +242,8 @@ ns_client_endrequest(ns_client_t *client) {
 	 */
 	if (client->recursionquota != NULL) {
 		isc_quota_detach(&client->recursionquota);
-		if (client->query.prefetch == NULL) {
-			ns_stats_decrement(client->sctx->nsstats,
-					   ns_statscounter_recursclients);
-		}
+		ns_stats_decrement(client->sctx->nsstats,
+				   ns_statscounter_recursclients);
 	}
 
 	/*
