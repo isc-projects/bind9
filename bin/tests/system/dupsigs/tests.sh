@@ -14,22 +14,23 @@ SYSTEMTESTTOP=..
 
 status=0
 start=`date +%s`
-end=`expr $start + 1200`
-now=$start
+end=`expr $start + 150`
+sleep 10  # wait for a bit for the initial signing
+now=`expr $start + 10`
 while test $now -lt $end
 do
 	et=`expr $now - $start`
 	echo "=============== $et ============"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl
-	$DIG axfr signing.test -p 5300 @10.53.0.1 > dig.out.at$et
+	$DIG axfr signing.test -p ${PORT} @10.53.0.1 > dig.out.at$et
 	awk '$4 == "RRSIG" { print $11 }' dig.out.at$et | sort | uniq -c
 	lines=`awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l`
-	if [ ${et} -ne 0 -a ${lines} -ne 4009 ]
+	if [ ${et} -ne 0 -a ${lines} -ne 1009 ]
 	then
 		echo_i "failed"
 		status=`expr $status + 1`
 	fi
-	sleep 20
+	sleep 5
 	now=`date +%s`
 done
 

@@ -14,12 +14,12 @@
 controls { /* empty */ };
 
 options {
-	query-source address 10.53.0.2;
-	notify-source 10.53.0.2;
-	transfer-source 10.53.0.2;
-	port 5300;
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.2; };
+	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	heartbeat-interval 2;
 	recursion no;
@@ -33,8 +33,8 @@ zone "." {
 
 zone "example." {
 	type slave;
-	dialup passive;
+	dialup refresh;
 	notify no;
 	file "example.bk";
-	masters { 10.53.0.1; };
+	masters { 10.53.0.2; };
 };

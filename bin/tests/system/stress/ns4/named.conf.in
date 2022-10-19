@@ -14,19 +14,22 @@
 controls { /* empty */ };
 
 options {
-	query-source address 10.53.0.1;
-	notify-source 10.53.0.1;
-	transfer-source 10.53.0.1;
-	port 5300;
+	query-source address 10.53.0.4;
+	notify-source 10.53.0.4;
+	transfer-source 10.53.0.4;
+	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.1; };
+	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
-	recursion no;
-	dnssec-validation no;
+	recursion yes;
+	dnssec-validation yes;
 	notify yes;
 };
 
 zone "." {
-	type master;
-	file "root.db";
+	type hint;
+	file "../../common/root.hint";
 };
+
+include "zones.conf";
+
