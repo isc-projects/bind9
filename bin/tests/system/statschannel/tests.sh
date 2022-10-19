@@ -439,10 +439,7 @@ done
 printf '\r\n' >> send.in$n
 
 # send the requests then wait for named to close the socket.
-time1=$($PERL -e 'print time(), "\n";')
 ${NC} 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
-time2=$($PERL -e 'print time(), "\n";')
-test $((time2 - time1)) -lt 5 || ret=1
 # we expect 1 request to be processed.
 lines=$(grep -c "^HTTP/1.1" send.out$n)
 test $lines = 1 || ret=1
