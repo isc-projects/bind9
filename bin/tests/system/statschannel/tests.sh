@@ -451,10 +451,7 @@ i=$((i+1))
 done
 
 # send the requests then wait for named to close the socket.
-time1=$($PERL -e 'print time(), "\n";')
 ${PERL} send64k.pl 10.53.0.3 ${EXTRAPORT1} < send.in$n  > send.out$n
-time2=$($PERL -e 'print time(), "\n";')
-test $((time2 - time1)) -lt 5 || ret=1
 # we expect 91 of the 500 requests to be processed.
 lines=$(grep "^HTTP/1.1" send.out$n | wc -l)
 test $lines = 91 || ret=1
