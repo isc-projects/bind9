@@ -1,5 +1,10 @@
+6000.	[bug]		Fix a startup issue on Solaris systems with many
+			(reportedly > 510) CPUs. Thanks to Stacey Marshall from
+			Oracle for deep investigation of the problem. [GL #3563]
+
 5999.	[bug]		rpz-ip rules could be ineffective in some scenarios
 			with CD=1 queries. [GL #3247]
+
 
 5998.	[bug]		The RecursClients statistics counter could overflow
 			in certain resolution scenarios. [GL #3584]
