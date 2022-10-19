@@ -26,11 +26,6 @@ export LANG=C
 #
 # Common lists of system tests to run.
 #
-# The "stress" test is not run by default since it creates enough
-# load on the machine to make it unusable to other users.
-# The "dialup" and "dupsigs" tests are also not run by
-# default because they take a very long time to complete.
-#
 # The following tests are hard-coded to use ports 5300 and 9953. For
 # this reason, these must be run sequentially.
 #
@@ -51,7 +46,10 @@ SEQUENTIAL_COMMON=""
 # rpzrecurse are scheduled first, in order to get more benefit from
 # parallelism.
 #
-PARALLEL_COMMON="rpzrecurse serve-stale
+PARALLEL_COMMON="
+rpzrecurse
+serve-stale
+dupsigs
 acl
 additional
 addzone

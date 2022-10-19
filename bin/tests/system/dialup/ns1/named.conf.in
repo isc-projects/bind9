@@ -14,33 +14,27 @@
 controls { /* empty */ };
 
 options {
-	query-source address 10.53.0.5;
-	notify-source 10.53.0.5;
-	transfer-source 10.53.0.5;
-	port 5300;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
 	pid-file "named.pid";
-	statistics-file	"named.stats";
-	listen-on { 10.53.0.5; };
+	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
-	notify no;
-
-	rate-limit {
-	    responses-per-second 2;
-	    all-per-second 50;
-	    slip 3;
-	    exempt-clients { 10.53.0.7; };
-	    log-only yes;
-
-	    min-table-size 0;
-	    max-table-size 0;
-	};
+	heartbeat-interval 2;
+	recursion no;
+	dnssec-validation no;
 };
 
-key rndc_key {
-	secret "1234abcd8765";
-	algorithm hmac-sha256;
-};
-controls {
-	inet 10.53.0.5 port 9953 allow { any; } keys { rndc_key; };
+zone "." {
+	type primary;
+	file "root.db";
 };
 
+zone "example." {
+	type primary;
+	notify explicit;
+	also-notify { 10.53.0.2; };
+	dialup yes;
+	file "example.db";
+};
