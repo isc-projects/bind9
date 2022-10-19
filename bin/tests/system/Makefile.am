@@ -96,10 +96,12 @@ TESTS +=			\
 	checknames		\
 	checkzone		\
 	database		\
+	dialup			\
 	dlzexternal		\
 	dns64			\
 	dscp			\
 	dsdigest		\
+	dupsigs			\
 	dyndb			\
 	ecdsa			\
 	eddsa			\
@@ -161,12 +163,6 @@ TESTS +=			\
 	xferquota		\
 	zonechecks
 
-# The "stress" test is not run by default since it creates enough
-# load on the machine to make it unusable to other users.
-# The "dialup" and "dupsigs" tests are also not run by
-# default because they take a very long time to complete.
-# TESTS += dialup dupsigs stress
-
 if HAVE_LMDB
 TESTS += nzd2nzf
 endif # HAVE_LMDB
@@ -179,6 +175,7 @@ TESTS +=		\
 	nsupdate	\
 	resolver	\
 	statistics	\
+	stress		\
 	upforwd		\
 	zero
 
