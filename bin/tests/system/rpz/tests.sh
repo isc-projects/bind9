@@ -982,6 +982,15 @@ EOF
     done
   done
 
+  if [ native = "$mode" ]; then
+    t=`expr $t + 1`
+    echo_i "checking that rewriting CD=1 queries handles pending data correctly (${t})"
+    $RNDCCMD $ns3 flush
+    $RNDCCMD $ns6 flush
+    $DIG a7-2.tld2s -p ${PORT} @$ns6 +cd > dig.out.${t}
+    grep -w "1.1.1.1" dig.out.${t} > /dev/null || setret "failed"
+  fi
+
   [ $status -ne 0 ] && pf=fail || pf=pass
   case $mode in
   native)
