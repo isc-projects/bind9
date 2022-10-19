@@ -485,13 +485,15 @@ ns_os_uid(void) {
 
 void
 named_os_adjustnofile(void) {
-#if defined(__linux__)
+#if defined(__linux__) || defined(__sun)
 	isc_result_t result;
 	isc_resourcevalue_t newvalue;
 
 	/*
 	 * Linux: max number of open files specified by one thread doesn't seem
 	 * to apply to other threads on Linux.
+	 * Sun: restriction needs to be removed sooner when hundreds of CPUs
+	 * are available.
 	 */
 	newvalue = ISC_RESOURCE_UNLIMITED;
 
@@ -499,7 +501,7 @@ named_os_adjustnofile(void) {
 	if (result != ISC_R_SUCCESS) {
 		named_main_earlywarning("couldn't adjust limit on open files");
 	}
-#endif /* if defined(__linux__) */
+#endif /* if defined(__linux__) || defined(__sun) */
 }
 
 void
