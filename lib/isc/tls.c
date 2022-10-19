@@ -112,7 +112,7 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 	isc__mem_free(isc__tls_mctx, ptr, 0, file, (unsigned int)line);
 }
 
-#elif OPENSSL_VERSION_NUMBER >= 0x10100000L
+#else /* ISC_MEM_TRACKLINES */
 
 static void *
 isc__tls_malloc_ex(size_t size, const char *file, int line) {
