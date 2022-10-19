@@ -20,7 +20,7 @@ options {
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.6; };
-	listen-on-v6 { none; };
+	listen-on-v6 { fd92:7065:b8e:ffff::6; };
 	recursion no;
 	dnssec-validation no;
 	querylog yes;
