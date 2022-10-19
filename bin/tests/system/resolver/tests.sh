@@ -847,5 +847,18 @@ grep "IN.*TXT.*baz" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n+1))
+echo_i "check that correct namespace is chosen for dual-stack-servers ($n)"
+ret=0
+#
+# The two priming queries are needed until we fix dual-stack-servers fully
+#
+dig_with_opts @fd92:7065:b8e:ffff::9 v4.nameserver A > dig.out.prime1.${n} || ret=1
+dig_with_opts @fd92:7065:b8e:ffff::9 v4.nameserver AAAA > dig.out.prime2.${n} || ret=1
+dig_with_opts @fd92:7065:b8e:ffff::9 foo.v4only.net A > dig.out.ns9.${n} || ret=1
+grep "status: NOERROR" dig.out.ns9.${n} > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
