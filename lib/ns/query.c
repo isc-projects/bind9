@@ -3585,7 +3585,7 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 	struct in_addr ina;
 	struct in6_addr in6a;
 	isc_result_t result;
-	unsigned int options = DNS_DBFIND_GLUEOK;
+	unsigned int options = client->query.dboptions | DNS_DBFIND_GLUEOK;
 	bool done = false;
 
 	CTRACE(ISC_LOG_DEBUG(3), "rpz_rewrite_ip_rrset");
@@ -3646,8 +3646,9 @@ rpz_rewrite_ip_rrset(ns_client_t *client, dns_name_t *name,
 		 * otherwise we are done.
 		 */
 		if (result == DNS_R_GLUE) {
-			options = 0;
+			options = client->query.dboptions;
 		} else {
+			options = client->query.dboptions | DNS_DBFIND_GLUEOK;
 			done = true;
 		}
 
@@ -4207,7 +4208,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 
 	dns_fixedname_init(&nsnamef);
 	dns_name_clone(client->query.qname, dns_fixedname_name(&nsnamef));
-	options = DNS_DBFIND_GLUEOK;
+	options = client->query.dboptions | DNS_DBFIND_GLUEOK;
 	while (st->r.label > st->popt.min_ns_labels) {
 		bool was_glue = false;
 		/*
@@ -4333,9 +4334,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 		 * glue responses, otherwise setup for the next name.
 		 */
 		if (was_glue) {
-			options = 0;
+			options = client->query.dboptions;
 		} else {
-			options = DNS_DBFIND_GLUEOK;
+			options = client->query.dboptions | DNS_DBFIND_GLUEOK;
 			st->r.label--;
 		}
 
