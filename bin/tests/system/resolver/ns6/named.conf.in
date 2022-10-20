@@ -61,6 +61,16 @@ zone "broken" {
 	allow-update { any; };
 };
 
+zone "redirect.com" {
+	type primary;
+	file "redirect.com.db";
+};
+
+zone "tld1" {
+	type primary;
+	file "tld1.db";
+};
+
 zone "no-edns-version.tld" {
 	type primary;
 	file "no-edns-version.tld.db";
