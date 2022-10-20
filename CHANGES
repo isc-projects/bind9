@@ -9,6 +9,8 @@
 			when printing the configuration using named-checkconf.
 			[GL !6880]
 
+	--- 9.16.34 released ---
+
 5991.	[protocol]	Add support for parsing and validating "dohpath" to
 			SVCB. [GL #3544]
 
@@ -28,6 +30,10 @@
 
 5963.	[bug]		Ensure struct named_server is properly initialized.
 			[GL #6531]
+
+5921.	[test]		Convert system tests to use a default DNSKEY algorithm
+			where the test is not DNSKEY algorithm specific.
+			[GL #3440]
 
 	--- 9.16.33 released ---
 
@@ -119,10 +125,6 @@
 
 5922.	[bug]		Forwarding of UPDATE message could fail with the
 			introduction of netmgr. This has been fixed. [GL #3389]
-
-5921.	[test]		Convert system tests to use a default DNSKEY algorithm
-			where the test is not DNSKEY algorithm specific.
-			[GL #3440]
 
 	--- 9.16.31 released ---
 
