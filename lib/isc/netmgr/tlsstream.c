@@ -458,6 +458,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		sock->tlsstream.state = TLS_HANDSHAKE;
 		rv = tls_try_handshake(sock, NULL);
 		INSIST(SSL_is_init_finished(sock->tlsstream.tls) == 0);
+		isc__nmsocket_timer_restart(sock);
 	} else if (sock->tlsstream.state == TLS_CLOSED) {
 		return;
 	} else { /* initialised and doing I/O */
@@ -494,6 +495,11 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					       1);
 					INSIST(!atomic_load(&sock->client));
 					finish = true;
+				} else if (sock->tlsstream.state == TLS_IO &&
+					   hs_result == ISC_R_SUCCESS &&
+					   !sock->tlsstream.server)
+				{
+					INSIST(atomic_load(&sock->client));
 				}
 			}
 		} else if (send_data != NULL) {
@@ -523,6 +529,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		if (sock->tlsstream.state >= TLS_IO && sock->recv_cb != NULL &&
 		    was_reading && sock->statichandle != NULL && !finish)
 		{
+			bool was_new_data = false;
 			uint8_t recv_buf[TLS_BUF_SIZE];
 			INSIST(sock->tlsstream.state > TLS_HANDSHAKE);
 			while ((rv = SSL_read_ex(sock->tlsstream.tls, recv_buf,
@@ -532,6 +539,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				region = (isc_region_t){ .base = &recv_buf[0],
 							 .length = len };
 
+				was_new_data = true;
 				INSIST(VALID_NMHANDLE(sock->statichandle));
 				sock->recv_cb(sock->statichandle, ISC_R_SUCCESS,
 					      &region, sock->recv_cbarg);
@@ -570,8 +578,29 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					break;
 				}
 			}
+
+			if (was_new_data && !sock->manual_read_timer) {
+				/*
+				 * Some data has been decrypted, it is the right
+				 * time to stop the read timer as it will be
+				 * restarted on the next read attempt.
+				 */
+				isc__nmsocket_timer_stop(sock);
+			}
 		}
 	}
+
+	/*
+	 * Setting 'finish' to 'true' means that we are about to close the
+	 * TLS stream (we intend to send TLS shutdown message to the
+	 * remote side). After that no new data can be received, so we
+	 * should stop the timer regardless of the
+	 * 'sock->manual_read_timer' value.
+	 */
+	if (finish) {
+		isc__nmsocket_timer_stop(sock);
+	}
+
 	errno = 0;
 	tls_status = SSL_get_error(sock->tlsstream.tls, rv);
 	saved_errno = errno;
@@ -633,6 +662,9 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 		INSIST(VALID_NMHANDLE(sock->outerhandle));
 
 		isc_nm_read(sock->outerhandle, tls_readcb, sock);
+		if (!sock->manual_read_timer) {
+			isc__nmsocket_timer_start(sock);
+		}
 		return;
 	default:
 		result = tls_error_to_result(tls_status, sock->tlsstream.state,
@@ -764,6 +796,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	/* TODO: catch failure code, detach tlssock, and log the error */
 
+	isc__nmhandle_set_manual_timer(tlssock->outerhandle, true);
 	tls_do_bio(tlssock, NULL, NULL, false);
 	return (result);
 }
@@ -1081,6 +1114,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 */
 	handle->sock->tlsstream.tlssocket = tlssock;
 
+	isc__nmhandle_set_manual_timer(tlssock->outerhandle, true);
 	tls_do_bio(tlssock, NULL, NULL, false);
 	return;
 error:
@@ -1354,4 +1388,17 @@ tls_try_shutdown(isc_tls_t *tls, const bool force) {
 	} else if ((SSL_get_shutdown(tls) & SSL_SENT_SHUTDOWN) == 0) {
 		(void)SSL_shutdown(tls);
 	}
+}
+
+void
+isc__nmhandle_tls_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tlssocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	sock->manual_read_timer = manual;
 }

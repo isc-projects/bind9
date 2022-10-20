@@ -2910,6 +2910,11 @@ isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 	case isc_nm_tcpsocket:
 		isc__nmhandle_tcp_set_manual_timer(handle, manual);
 		return;
+#if HAVE_LIBNGHTTP2
+	case isc_nm_tlssocket:
+		isc__nmhandle_tls_set_manual_timer(handle, manual);
+		return;
+#endif /* HAVE_LIBNGHTTP2 */
 	default:
 		break;
 	};
