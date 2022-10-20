@@ -40,4 +40,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- BIND would fail to start on Solaris-based systems with hundreds of CPUs. This
+  has been fixed. ISC would like to thank Stacey Marshall from Oracle for
+  bringing this problem to our attention. :gl:`#3563`
