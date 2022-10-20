@@ -12,6 +12,8 @@
 			when printing the configuration using named-checkconf.
 			[GL !6880]
 
+	--- 9.18.8 released ---
+
 5991.	[protocol]	Add support for parsing and validating "dohpath" to
 			SVCB. [GL #3544]
 
