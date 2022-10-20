@@ -169,6 +169,8 @@ libisc_la_SOURCES =		\
 	os_p.h			\
 	parseint.c		\
 	pool.c			\
+	picohttpparser.c	\
+	picohttpparser.h	\
 	portset.c		\
 	quota.c			\
 	radix.c			\

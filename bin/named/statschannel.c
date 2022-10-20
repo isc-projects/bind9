@@ -2367,19 +2367,13 @@ wrap_xmlfree(isc_buffer_t *buffer, void *arg) {
 }
 
 static isc_result_t
-render_xml(uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
-	   const char *querystring, const char *headers, void *arg,
-	   unsigned int *retcode, const char **retmsg, const char **mimetype,
-	   isc_buffer_t *b, isc_httpdfree_t **freecb, void **freecb_args) {
+render_xml(uint32_t flags, void *arg, unsigned int *retcode,
+	   const char **retmsg, const char **mimetype, isc_buffer_t *b,
+	   isc_httpdfree_t **freecb, void **freecb_args) {
 	unsigned char *msg = NULL;
 	int msglen;
 	named_server_t *server = arg;
 	isc_result_t result;
-
-	UNUSED(url);
-	UNUSED(urlinfo);
-	UNUSED(headers);
-	UNUSED(querystring);
 
 	result = generatexml(server, flags, &msglen, &msg);
 
@@ -2401,91 +2395,91 @@ render_xml(uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
-render_xml_all(const char *url, isc_httpdurl_t *urlinfo,
-	       const char *querystring, const char *headers, void *arg,
-	       unsigned int *retcode, const char **retmsg,
+render_xml_all(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+	       void *arg, unsigned int *retcode, const char **retmsg,
 	       const char **mimetype, isc_buffer_t *b, isc_httpdfree_t **freecb,
 	       void **freecb_args) {
-	return (render_xml(STATS_XML_ALL, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_ALL, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_status(const char *url, isc_httpdurl_t *urlinfo,
-		  const char *querystring, const char *headers, void *arg,
-		  unsigned int *retcode, const char **retmsg,
+render_xml_status(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		  void *arg, unsigned int *retcode, const char **retmsg,
 		  const char **mimetype, isc_buffer_t *b,
 		  isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_xml(STATS_XML_STATUS, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_STATUS, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_server(const char *url, isc_httpdurl_t *urlinfo,
-		  const char *querystring, const char *headers, void *arg,
-		  unsigned int *retcode, const char **retmsg,
+render_xml_server(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		  void *arg, unsigned int *retcode, const char **retmsg,
 		  const char **mimetype, isc_buffer_t *b,
 		  isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_xml(STATS_XML_SERVER, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_SERVER, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_zones(const char *url, isc_httpdurl_t *urlinfo,
-		 const char *querystring, const char *headers, void *arg,
-		 unsigned int *retcode, const char **retmsg,
+render_xml_zones(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		 void *arg, unsigned int *retcode, const char **retmsg,
 		 const char **mimetype, isc_buffer_t *b,
 		 isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_xml(STATS_XML_ZONES, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_ZONES, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_net(const char *url, isc_httpdurl_t *urlinfo,
-	       const char *querystring, const char *headers, void *arg,
-	       unsigned int *retcode, const char **retmsg,
+render_xml_net(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+	       void *arg, unsigned int *retcode, const char **retmsg,
 	       const char **mimetype, isc_buffer_t *b, isc_httpdfree_t **freecb,
 	       void **freecb_args) {
-	return (render_xml(STATS_XML_NET, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_NET, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_tasks(const char *url, isc_httpdurl_t *urlinfo,
-		 const char *querystring, const char *headers, void *arg,
-		 unsigned int *retcode, const char **retmsg,
+render_xml_tasks(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		 void *arg, unsigned int *retcode, const char **retmsg,
 		 const char **mimetype, isc_buffer_t *b,
 		 isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_xml(STATS_XML_TASKS, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_TASKS, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_mem(const char *url, isc_httpdurl_t *urlinfo,
-	       const char *querystring, const char *headers, void *arg,
-	       unsigned int *retcode, const char **retmsg,
+render_xml_mem(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+	       void *arg, unsigned int *retcode, const char **retmsg,
 	       const char **mimetype, isc_buffer_t *b, isc_httpdfree_t **freecb,
 	       void **freecb_args) {
-	return (render_xml(STATS_XML_MEM, url, urlinfo, querystring, headers,
-			   arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_MEM, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 static isc_result_t
-render_xml_traffic(const char *url, isc_httpdurl_t *urlinfo,
-		   const char *querystring, const char *headers, void *arg,
-		   unsigned int *retcode, const char **retmsg,
+render_xml_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		   void *arg, unsigned int *retcode, const char **retmsg,
 		   const char **mimetype, isc_buffer_t *b,
 		   isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_xml(STATS_XML_TRAFFIC, url, urlinfo, querystring,
-			   headers, arg, retcode, retmsg, mimetype, b, freecb,
-			   freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_TRAFFIC, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
 }
 
 #endif /* HAVE_LIBXML2 */
@@ -3308,21 +3302,15 @@ cleanup:
 }
 
 static isc_result_t
-render_json(uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
-	    const char *querystring, const char *headers, void *arg,
-	    unsigned int *retcode, const char **retmsg, const char **mimetype,
-	    isc_buffer_t *b, isc_httpdfree_t **freecb, void **freecb_args) {
+render_json(uint32_t flags, void *arg, unsigned int *retcode,
+	    const char **retmsg, const char **mimetype, isc_buffer_t *b,
+	    isc_httpdfree_t **freecb, void **freecb_args) {
 	isc_result_t result;
 	json_object *bindstats = NULL;
 	named_server_t *server = arg;
 	const char *msg = NULL;
 	size_t msglen = 0;
 	char *p;
-
-	UNUSED(url);
-	UNUSED(urlinfo);
-	UNUSED(headers);
-	UNUSED(querystring);
 
 	result = generatejson(server, &msglen, &msg, &bindstats, flags);
 	if (result == ISC_R_SUCCESS) {
@@ -3344,156 +3332,139 @@ render_json(uint32_t flags, const char *url, isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
-render_json_all(const char *url, isc_httpdurl_t *urlinfo,
-		const char *querystring, const char *headers, void *arg,
-		unsigned int *retcode, const char **retmsg,
+render_json_all(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		void *arg, unsigned int *retcode, const char **retmsg,
 		const char **mimetype, isc_buffer_t *b,
 		isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_ALL, url, urlinfo, querystring, headers,
-			    arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_ALL, arg, retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_status(const char *url, isc_httpdurl_t *urlinfo,
-		   const char *querystring, const char *headers, void *arg,
-		   unsigned int *retcode, const char **retmsg,
+render_json_status(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		   void *arg, unsigned int *retcode, const char **retmsg,
 		   const char **mimetype, isc_buffer_t *b,
 		   isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_STATUS, url, urlinfo, querystring,
-			    headers, arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_STATUS, arg, retcode, retmsg, mimetype,
+			    b, freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_server(const char *url, isc_httpdurl_t *urlinfo,
-		   const char *querystring, const char *headers, void *arg,
-		   unsigned int *retcode, const char **retmsg,
+render_json_server(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		   void *arg, unsigned int *retcode, const char **retmsg,
 		   const char **mimetype, isc_buffer_t *b,
 		   isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_SERVER, url, urlinfo, querystring,
-			    headers, arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_SERVER, arg, retcode, retmsg, mimetype,
+			    b, freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_zones(const char *url, isc_httpdurl_t *urlinfo,
-		  const char *querystring, const char *headers, void *arg,
-		  unsigned int *retcode, const char **retmsg,
+render_json_zones(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		  void *arg, unsigned int *retcode, const char **retmsg,
 		  const char **mimetype, isc_buffer_t *b,
 		  isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_ZONES, url, urlinfo, querystring,
-			    headers, arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_ZONES, arg, retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_mem(const char *url, isc_httpdurl_t *urlinfo,
-		const char *querystring, const char *headers, void *arg,
-		unsigned int *retcode, const char **retmsg,
+render_json_mem(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		void *arg, unsigned int *retcode, const char **retmsg,
 		const char **mimetype, isc_buffer_t *b,
 		isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_MEM, url, urlinfo, querystring, headers,
-			    arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_MEM, arg, retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_tasks(const char *url, isc_httpdurl_t *urlinfo,
-		  const char *querystring, const char *headers, void *arg,
-		  unsigned int *retcode, const char **retmsg,
+render_json_tasks(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		  void *arg, unsigned int *retcode, const char **retmsg,
 		  const char **mimetype, isc_buffer_t *b,
 		  isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_TASKS, url, urlinfo, querystring,
-			    headers, arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_TASKS, arg, retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_net(const char *url, isc_httpdurl_t *urlinfo,
-		const char *querystring, const char *headers, void *arg,
-		unsigned int *retcode, const char **retmsg,
+render_json_net(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		void *arg, unsigned int *retcode, const char **retmsg,
 		const char **mimetype, isc_buffer_t *b,
 		isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_NET, url, urlinfo, querystring, headers,
-			    arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_NET, arg, retcode, retmsg, mimetype, b,
+			    freecb, freecb_args));
 }
 
 static isc_result_t
-render_json_traffic(const char *url, isc_httpdurl_t *urlinfo,
-		    const char *querystring, const char *headers, void *arg,
-		    unsigned int *retcode, const char **retmsg,
+render_json_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		    void *arg, unsigned int *retcode, const char **retmsg,
 		    const char **mimetype, isc_buffer_t *b,
 		    isc_httpdfree_t **freecb, void **freecb_args) {
-	return (render_json(STATS_JSON_TRAFFIC, url, urlinfo, querystring,
-			    headers, arg, retcode, retmsg, mimetype, b, freecb,
-			    freecb_args));
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_TRAFFIC, arg, retcode, retmsg, mimetype,
+			    b, freecb, freecb_args));
 }
 
 #endif /* HAVE_JSON_C */
 
 static isc_result_t
-render_xsl(const char *url, isc_httpdurl_t *urlinfo, const char *querystring,
-	   const char *headers, void *args, unsigned int *retcode,
-	   const char **retmsg, const char **mimetype, isc_buffer_t *b,
-	   isc_httpdfree_t **freecb, void **freecb_args) {
+render_xsl(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *args,
+	   unsigned int *retcode, const char **retmsg, const char **mimetype,
+	   isc_buffer_t *b, isc_httpdfree_t **freecb, void **freecb_args) {
 	isc_result_t result;
-	char *_headers = NULL;
-	char *p;
+	char *p = NULL;
 
-	UNUSED(url);
-	UNUSED(querystring);
+	UNUSED(httpd);
 	UNUSED(args);
 
 	*freecb = NULL;
 	*freecb_args = NULL;
 	*mimetype = "text/xslt+xml";
 
-	if (urlinfo->isstatic) {
-		isc_time_t when;
-		char *line, *saveptr;
-		const char *if_modified_since = "If-Modified-Since: ";
-		_headers = strdup(headers);
+	if (isc_httpdurl_isstatic(urlinfo)) {
+		time_t t1, t2;
+		const isc_time_t *when;
+		const isc_time_t *loadtime;
 
-		if (_headers == NULL) {
+		when = isc_httpd_if_modified_since(httpd);
+
+		if (isc_time_isepoch(when)) {
 			goto send;
 		}
 
-		saveptr = NULL;
-		for (line = strtok_r(_headers, "\n", &saveptr); line;
-		     line = strtok_r(NULL, "\n", &saveptr))
-		{
-			if (strncasecmp(line, if_modified_since,
-					strlen(if_modified_since)) == 0) {
-				time_t t1, t2;
-				line += strlen(if_modified_since);
-				result = isc_time_parsehttptimestamp(line,
-								     &when);
-				if (result != ISC_R_SUCCESS) {
-					goto send;
-				}
-
-				result = isc_time_secondsastimet(&when, &t1);
-				if (result != ISC_R_SUCCESS) {
-					goto send;
-				}
-
-				result = isc_time_secondsastimet(
-					&urlinfo->loadtime, &t2);
-				if (result != ISC_R_SUCCESS) {
-					goto send;
-				}
-
-				if (t1 < t2) {
-					goto send;
-				}
-
-				*retcode = 304;
-				*retmsg = "Not modified";
-				goto end;
-			}
+		result = isc_time_secondsastimet(when, &t1);
+		if (result != ISC_R_SUCCESS) {
+			goto send;
 		}
+
+		loadtime = isc_httpdurl_loadtime(urlinfo);
+
+		result = isc_time_secondsastimet(loadtime, &t2);
+		if (result != ISC_R_SUCCESS) {
+			goto send;
+		}
+
+		if (t1 < t2) {
+			goto send;
+		}
+
+		*retcode = 304;
+		*retmsg = "Not modified";
+		goto end;
 	}
 
 send:
@@ -3503,7 +3474,6 @@ send:
 	isc_buffer_reinit(b, p, strlen(xslmsg));
 	isc_buffer_add(b, strlen(xslmsg));
 end:
-	free(_headers);
 	return (ISC_R_SUCCESS);
 }
 
