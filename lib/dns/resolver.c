@@ -1422,11 +1422,11 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 		}
 
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
+	}
 
-		if ((query->options & DNS_FETCHOPT_TCP) == 0) {
-			/* Inform the ADB that we're ending a UDP fetch */
-			dns_adb_endudpfetch(fctx->adb, query->addrinfo);
-		}
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+		/* Inform the ADB that we're ending a UDP fetch */
+		dns_adb_endudpfetch(fctx->adb, query->addrinfo);
 	}
 
 	/*
