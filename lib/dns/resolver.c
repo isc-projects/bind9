@@ -2279,7 +2279,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		resquery_senddone, resquery_response, query, &query->id,
 		&query->dispentry);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_dispatch;
+		goto cleanup_udpfetch;
 	}
 
 	/* Connect the socket */
@@ -2289,6 +2289,14 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	return (result);
+
+cleanup_udpfetch:
+	if (!RESQUERY_CANCELED(query)) {
+		if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+			/* Inform the ADB that we're ending a UDP fetch */
+			dns_adb_endudpfetch(fctx->adb, addrinfo);
+		}
+	}
 
 cleanup_dispatch:
 	fctx_detach(&query->fctx);
