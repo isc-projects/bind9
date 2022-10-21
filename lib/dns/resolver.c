@@ -1427,11 +1427,11 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 		}
 
 		dns_adb_adjustsrtt(fctx->adb, query->addrinfo, rtt, factor);
+	}
 
-		if ((query->options & DNS_FETCHOPT_TCP) == 0) {
-			/* Inform the ADB that we're ending a UDP fetch */
-			dns_adb_endudpfetch(fctx->adb, query->addrinfo);
-		}
+	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+		/* Inform the ADB that we're ending a UDP fetch */
+		dns_adb_endudpfetch(fctx->adb, query->addrinfo);
 	}
 
 	/*
@@ -2316,7 +2316,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		resquery_senddone, resquery_response, query, &query->id,
 		&query->dispentry);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_dispatch;
+		goto cleanup_udpfetch;
 	}
 
 	/* Connect the socket */
@@ -2327,6 +2327,14 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	return (result);
 
+cleanup_udpfetch:
+	if (!RESQUERY_CANCELED(query)) {
+		if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+			/* Inform the ADB that we're ending a UDP fetch */
+			dns_adb_endudpfetch(fctx->adb, addrinfo);
+		}
+	}
+
 cleanup_dispatch:
 	fctx_detach(&query->fctx);
 
@@ -2335,6 +2343,12 @@ cleanup_dispatch:
 	}
 
 cleanup_query:
+	LOCK(&fctx->bucket->lock);
+	if (ISC_LINK_LINKED(query, link)) {
+		atomic_fetch_sub_release(&fctx->nqueries, 1);
+		ISC_LIST_UNLINK(fctx->queries, query, link);
+	}
+	UNLOCK(&fctx->bucket->lock);
 
 	query->magic = 0;
 	dns_message_detach(&query->rmessage);
