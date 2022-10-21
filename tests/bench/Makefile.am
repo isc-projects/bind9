@@ -11,5 +11,4 @@ LDADD +=			\
 noinst_PROGRAMS =		\
 	ascii			\
 	compress		\
-	render			\
 	siphash
