@@ -2298,6 +2298,12 @@ cleanup_dispatch:
 	}
 
 cleanup_query:
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+	if (ISC_LINK_LINKED(query, link)) {
+		atomic_fetch_sub_release(&fctx->nqueries, 1);
+		ISC_LIST_UNLINK(fctx->queries, query, link);
+	}
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 
 	query->magic = 0;
 	dns_message_detach(&query->rmessage);
