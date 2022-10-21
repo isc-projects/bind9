@@ -6179,7 +6179,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		/*
 		 * Mark the rdataset as being prefetch eligible.
 		 */
-		if (rdataset->ttl > fctx->res->view->prefetch_eligible) {
+		if (rdataset->ttl >= fctx->res->view->prefetch_eligible) {
 			rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 		}
 
@@ -6241,7 +6241,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 			/*
 			 * Mark the rdataset as being prefetch eligible.
 			 */
-			if (rdataset->ttl > fctx->res->view->prefetch_eligible)
+			if (rdataset->ttl >= fctx->res->view->prefetch_eligible)
 			{
 				rdataset->attributes |=
 					DNS_RDATASETATTR_PREFETCH;

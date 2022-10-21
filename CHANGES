@@ -1,3 +1,8 @@
+6002.	[bug]		Fix a resolver prefetch bug when the record's TTL value
+			is equal to the configured prefetch eligibility value,
+			but the record was erroneously not treated as eligible
+			for prefetching. [GL #3603]
+
 6001.	[bug]		Always call dns_adb_endudpfetch() after calling
 			dns_adb_beginudpfetch() for UDP queries in resolver.c,
 			in order to adjust back the quota. [GL #3598]

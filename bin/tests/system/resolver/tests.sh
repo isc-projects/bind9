@@ -444,8 +444,12 @@ sleep "${ttl1:-0}"
 dig_with_opts @10.53.0.5 fetchall.tld any > dig.out.2.${n} || ret=1
 ttl2=$(awk '/"A" "short" "ttl"/ { print $2 }' dig.out.2.${n})
 sleep 1
-# check that the nameserver is still alive
+# check that prefetch occurred;
+# note that only one record is prefetched, which is the TXT record in this case,
+# because of the order of the records in the cache
 dig_with_opts @10.53.0.5 fetchall.tld any > dig.out.3.${n} || ret=1
+ttl3=$(awk '/"A" "short" "ttl"/ { print $2 }' dig.out.3.${n})
+test "${ttl3:-0}" -gt "${ttl2:-1}" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
