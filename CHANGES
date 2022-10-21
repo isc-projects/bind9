@@ -1,3 +1,7 @@
+6001.	[bug]		Always call dns_adb_endudpfetch() after calling
+			dns_adb_beginudpfetch() for UDP queries in resolver.c,
+			in order to adjust back the quota. [GL #3598]
+
 6000.	[bug]		Fix a startup issue on Solaris systems with many
 			(reportedly > 510) CPUs. Thanks to Stacey Marshall from
 			Oracle for deep investigation of the problem. [GL #3563]
