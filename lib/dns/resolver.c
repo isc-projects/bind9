@@ -2335,6 +2335,12 @@ cleanup_dispatch:
 	}
 
 cleanup_query:
+	LOCK(&fctx->bucket->lock);
+	if (ISC_LINK_LINKED(query, link)) {
+		atomic_fetch_sub_release(&fctx->nqueries, 1);
+		ISC_LIST_UNLINK(fctx->queries, query, link);
+	}
+	UNLOCK(&fctx->bucket->lock);
 
 	query->magic = 0;
 	dns_message_detach(&query->rmessage);
