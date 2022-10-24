@@ -481,8 +481,8 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
 		NETIEVENT_CASE(httpendpoints);
-		NETIEVENT_CASE(settlsctx);
 #endif
+		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
 
 		NETIEVENT_CASE(connectcb);
