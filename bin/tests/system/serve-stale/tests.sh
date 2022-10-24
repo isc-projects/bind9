@@ -1945,6 +1945,90 @@ retry_quiet 10 wait_for_nodata_refresh || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+############################################################
+# Test for stale-answer-client-timeout 0 and CNAME record. #
+############################################################
+echo_i "test stale-answer-client-timeout (0) and CNAME record"
+
+n=$((n+1))
+echo_i "prime cache cname1.stale.test (stale-answer-client-timeout 0) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
+grep "cname1\.stale\.test\..*1.*IN.*CNAME.*a1\.stale\.test\." dig.out.test$n > /dev/null || ret=1
+grep "a1\.stale\.test\..*1.*IN.*A.*192\.0\.2\.1" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow RRset to become stale.
+sleep 1
+
+n=$((n+1))
+ret=0
+echo_i "check stale cname1.stale.test comes from cache (stale-answer-client-timeout 0) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A > dig.out.test$n
+wait_for_log 5 "cname1.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
+grep "cname1\.stale\.test\..*3.*IN.*CNAME.*a1\.stale\.test\." dig.out.test$n > /dev/null || ret=1
+grep "a1\.stale\.test\..*3.*IN.*A.*192\.0\.2\.1" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check server is alive or restart ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status > rndc.out.test$n 2>&1 || ret=1
+if [ $ret != 0 ]; then
+    echo_i "failed"
+    echo_i "restart ns3"
+    start_server --noclean --restart --port ${PORT} serve-stale ns3
+fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache cname2.stale.test (stale-answer-client-timeout 0) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
+grep "cname2\.stale\.test\..*1.*IN.*CNAME.*a2\.stale\.test\." dig.out.test$n > /dev/null || ret=1
+grep "a2\.stale\.test\..*300.*IN.*A.*192\.0\.2\.2" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Allow CNAME record in the RRSET to become stale.
+sleep 1
+
+n=$((n+1))
+ret=0
+echo_i "check stale cname2.stale.test comes from cache (stale-answer-client-timeout 0) ($n)"
+nextpart ns3/named.run > /dev/null
+$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A > dig.out.test$n
+wait_for_log 5 "cname2.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
+grep "cname2\.stale\.test\..*3.*IN.*CNAME.*a2\.stale\.test\." dig.out.test$n > /dev/null || ret=1
+# We can't reliably test the TTL of the a2.stale.test A record.
+grep "a2\.stale\.test\..*IN.*A.*192\.0\.2\.2" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check server is alive or restart ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status > rndc.out.test$n 2>&1 || ret=1
+if [ $ret != 0 ]; then
+    echo_i "failed"
+    echo_i "restart ns3"
+    start_server --noclean --restart --port ${PORT} serve-stale ns3
+fi
+status=$((status+ret))
+
 ####################################################################
 # Test for stale-answer-client-timeout 0 and stale-refresh-time 4. #
 ####################################################################
