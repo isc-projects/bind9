@@ -22,45 +22,45 @@ quiet=0
 
 msg="cryptography"
 while test "$#" -gt 0; do
-        case $1 in
-        -q)
-                args="$args -q"
-                quiet=1
-                ;;
-        rsa|RSA|rsasha1|RSASHA1)
-                alg="-a RSASHA1"
-                msg="RSA cryptography"
-                ;;
-	rsasha256|RSASHA256)
-                alg="-a RSASHA256"
-                msg="RSA cryptography"
-                ;;
-	rsasha512|RSASHA512)
-                alg="-a RSASHA512"
-                msg="RSA cryptography"
-                ;;
-        ecdsa|ECDSA|ecdsap256sha256|ECDSAP256SHA256)
-                alg="-a ECDSAP256SHA256"
-                msg="ECDSA cryptography"
-                ;;
-        ecdsap384sha384|ECDSAP384SHA384)
-                alg="-a ECDSAP384SHA384"
-                msg="ECDSA cryptography"
-                ;;
-        eddsa|EDDSA|ed25519|ED25519)
-                alg="-a ED25519"
-                msg="EDDSA cryptography"
-                ;;
-        ed448|ED448)
-                alg="-a ED448"
-                msg="EDDSA cryptography"
-                ;;
-        *)
-                echo "${prog}: unknown argument"
-                exit 1
-                ;;
-        esac
-        shift
+    case $1 in
+    -q)
+        args="$args -q"
+        quiet=1
+        ;;
+    rsa|RSA|rsasha1|RSASHA1)
+        alg="-a RSASHA1"
+        msg="RSA cryptography"
+        ;;
+    rsasha256|RSASHA256)
+        alg="-a RSASHA256"
+        msg="RSA cryptography"
+        ;;
+    rsasha512|RSASHA512)
+        alg="-a RSASHA512"
+        msg="RSA cryptography"
+        ;;
+    ecdsa|ECDSA|ecdsap256sha256|ECDSAP256SHA256)
+        alg="-a ECDSAP256SHA256"
+        msg="ECDSA cryptography"
+        ;;
+    ecdsap384sha384|ECDSAP384SHA384)
+        alg="-a ECDSAP384SHA384"
+        msg="ECDSA cryptography"
+        ;;
+    eddsa|EDDSA|ed25519|ED25519)
+        alg="-a ED25519"
+        msg="EDDSA cryptography"
+        ;;
+    ed448|ED448)
+        alg="-a ED448"
+        msg="EDDSA cryptography"
+        ;;
+    *)
+        echo "${prog}: unknown argument"
+        exit 1
+        ;;
+    esac
+    shift
 done
 
 if $KEYGEN $args $alg foo > /dev/null 2>&1
