@@ -12,14 +12,17 @@
 # information regarding copyright ownership.
 
 SYSTEMTESTTOP=${SYSTEMTESTTOP:=..}
-. $SYSTEMTESTTOP/conf.sh
+
+if test -z "$KEYGEN"; then
+    . $SYSTEMTESTTOP/conf.sh
+    alg="-a $DEFAULT_ALGORITHM -b $DEFAULT_BITS"
+else
+    alg=""
+fi
 
 prog=$0
-
 args=""
-alg="-a $DEFAULT_ALGORITHM -b $DEFAULT_BITS"
 quiet=0
-
 msg="cryptography"
 while test "$#" -gt 0; do
     case $1 in
@@ -62,6 +65,11 @@ while test "$#" -gt 0; do
     esac
     shift
 done
+
+if test -z "$alg"; then
+    echo "${prog}: no algorithm selected"
+    exit 1
+fi
 
 if $KEYGEN $args $alg foo > /dev/null 2>&1
 then
