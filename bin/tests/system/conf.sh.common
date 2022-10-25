@@ -148,25 +148,25 @@ zonechecks"
 # Set up color-coded test output
 #
 if [ ${SYSTEMTEST_FORCE_COLOR:-0} -eq 1 ] || test -t 1 && type tput > /dev/null 2>&1 && tput setaf 7 > /dev/null 2>&1 ; then
-    COLOR_END=`tput setaf 4`    # blue
-    COLOR_FAIL=`tput setaf 1`   # red
-    COLOR_INFO=`tput bold`      # bold
-    COLOR_NONE=`tput sgr0`
-    COLOR_PASS=`tput setaf 2`   # green
-    COLOR_START=`tput setaf 4`  # blue
-    COLOR_WARN=`tput setaf 3`   # yellow
+    export COLOR_END=`tput setaf 4`    # blue
+    export COLOR_FAIL=`tput setaf 1`   # red
+    export COLOR_INFO=`tput bold`      # bold
+    export COLOR_NONE=`tput sgr0`
+    export COLOR_PASS=`tput setaf 2`   # green
+    export COLOR_START=`tput setaf 4`  # blue
+    export COLOR_WARN=`tput setaf 3`   # yellow
 else
     # set to empty strings so printf succeeds
-    COLOR_END=''
-    COLOR_FAIL=''
-    COLOR_INFO=''
-    COLOR_NONE=''
-    COLOR_PASS=''
-    COLOR_START=''
-    COLOR_WARN=''
+    export COLOR_END=''
+    export COLOR_FAIL=''
+    export COLOR_INFO=''
+    export COLOR_NONE=''
+    export COLOR_PASS=''
+    export COLOR_START=''
+    export COLOR_WARN=''
 fi
 
-SYSTESTDIR="`basename $PWD`"
+export SYSTESTDIR="`basename $PWD`"
 
 if type printf > /dev/null 2>&1
 then
@@ -280,26 +280,26 @@ send() {
 #
 
 # Default algorithm for testing.
-DEFAULT_ALGORITHM=ECDSAP256SHA256
-DEFAULT_ALGORITHM_NUMBER=13
-DEFAULT_BITS=256
+export DEFAULT_ALGORITHM=ECDSAP256SHA256
+export DEFAULT_ALGORITHM_NUMBER=13
+export DEFAULT_BITS=256
 
 # This is an alternative algorithm for test cases that require more than
 # one algorithm (for example algorithm rollover).  Must be different from
 # DEFAULT_ALGORITHM.
-ALTERNATIVE_ALGORITHM=RSASHA256
-ALTERNATIVE_ALGORITHM_NUMBER=8
-ALTERNATIVE_BITS=1280
+export ALTERNATIVE_ALGORITHM=RSASHA256
+export ALTERNATIVE_ALGORITHM_NUMBER=8
+export ALTERNATIVE_BITS=1280
 
 # This is an algorithm that is used for tests against the
 # "disable-algorithms" configuration option.  Must be different from above
 # algorithms.
-DISABLED_ALGORITHM=ECDSAP384SHA384
-DISABLED_ALGORITHM_NUMBER=14
-DISABLED_BITS=384
+export DISABLED_ALGORITHM=ECDSAP384SHA384
+export DISABLED_ALGORITHM_NUMBER=14
+export DISABLED_BITS=384
 
 # Default HMAC algorithm.
-DEFAULT_HMAC=hmac-sha256
+export DEFAULT_HMAC=hmac-sha256
 
 #
 # Useful functions in test scripts
@@ -716,49 +716,3 @@ copy_setports() {
         -e "s/${atsign}DISABLED_BITS${atsign}/${DISABLED_BITS}/g" \
         $1 > $2
 }
-
-#
-# Export command paths
-#
-export ARPANAME
-export BIGKEY
-export CDS
-export CHECKZONE
-export CYGWIN
-export DESCRIPTION
-export DIG
-export FEATURETEST
-export FSTRM_CAPTURE
-export GENCHECK
-export JOURNALPRINT
-export KEYCREATE
-export KEYDELETE
-export KEYFRLAB
-export KEYGEN
-export KEYSETTOOL
-export KEYSIGNER
-export KRB5_CONFIG
-export KRB5_KTNAME
-export MAKEJOURNAL
-export MDIG
-export NAMED
-export NSEC3HASH
-export NSLOOKUP
-export NSUPDATE
-export NZD2NZF
-export PERL
-export PIPEQUERIES
-export PK11DEL
-export PK11GEN
-export PK11LIST
-export PSSUSPEND
-export PYTHON
-export RESOLVE
-export RNDC
-export RRCHECKER
-export SIGNER
-export SUBDIRS
-export TMPDIR
-export TSIGKEYGEN
-export VERIFY
-export WIRETEST
