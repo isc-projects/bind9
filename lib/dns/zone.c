@@ -947,7 +947,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event);
 static isc_result_t
 zone_dump(dns_zone_t *, bool);
 static void
-got_transfer_quota(isc_task_t *task, isc_event_t *event);
+got_transfer_quota(void *arg);
 static isc_result_t
 zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone);
 static void
@@ -1054,8 +1054,8 @@ struct np3event {
 	nsec3param_t params;
 };
 
-struct ssevent {
-	isc_event_t event;
+struct setserial {
+	dns_zone_t *zone;
 	uint32_t serial;
 };
 
@@ -17663,23 +17663,19 @@ queue_xfrin(dns_zone_t *zone) {
  * to go ahead and start the transfer.
  */
 static void
-got_transfer_quota(isc_task_t *task, isc_event_t *event) {
+got_transfer_quota(void *arg) {
+	dns_zone_t *zone = (dns_zone_t *)arg;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_peer_t *peer = NULL;
 	char primary[ISC_SOCKADDR_FORMATSIZE];
 	char source[ISC_SOCKADDR_FORMATSIZE];
 	dns_rdatatype_t xfrtype;
-	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t primaryip;
 	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
 	isc_time_t now;
 	const char *soa_before = "";
 	bool loaded;
-
-	UNUSED(task);
-
-	INSIST(task == zone->task);
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		CHECK(ISC_R_CANCELED);
@@ -17842,8 +17838,6 @@ failure:
 	if (result != ISC_R_SUCCESS) {
 		zone_xfrdone(zone, result);
 	}
-
-	isc_event_free(&event);
 }
 
 /*
@@ -18712,9 +18706,8 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	isc_netaddr_t primaryip;
 	isc_sockaddr_t curraddr;
 	uint32_t nxfrsin, nxfrsperns;
-	dns_zone_t *x;
+	dns_zone_t *x = NULL;
 	uint32_t maxtransfersin, maxtransfersperns;
-	isc_event_t *e;
 
 	/*
 	 * If we are exiting just pretend we got quota so the zone will
@@ -18782,18 +18775,14 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 gotquota:
 	/*
 	 * We have sufficient quota.  Move the zone to the "xfrin_in_progress"
-	 * list and send it an event to let it start the actual transfer in the
-	 * context of its own task.
+	 * list and start the actual transfer asynchronously.
 	 */
-	e = isc_event_allocate(zmgr->mctx, zmgr, DNS_EVENT_ZONESTARTXFRIN,
-			       got_transfer_quota, zone, sizeof(isc_event_t));
-
 	LOCK_ZONE(zone);
 	INSIST(zone->statelist == &zmgr->waiting_for_xfrin);
 	ISC_LIST_UNLINK(zmgr->waiting_for_xfrin, zone, statelink);
 	ISC_LIST_APPEND(zmgr->xfrin_in_progress, zone, statelink);
 	zone->statelist = &zmgr->xfrin_in_progress;
-	isc_task_send(zone->task, &e);
+	isc_async_run(zone->loop, got_transfer_quota, zone);
 	dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 		      "Transfer started.");
 	UNLOCK_ZONE(zone);
@@ -21924,31 +21913,28 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 }
 
 struct keydone {
-	isc_event_t event;
 	bool all;
 	unsigned char data[5];
+	dns_zone_t *zone;
 };
 
 #define PENDINGFLAGS (DNS_NSEC3FLAG_CREATE | DNS_NSEC3FLAG_INITIAL)
 
 static void
-keydone(isc_task_t *task, isc_event_t *event) {
+keydone(void *arg) {
 	bool commit = false;
 	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
-	dns_zone_t *zone;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_diff_t diff;
-	struct keydone *kd = (struct keydone *)event;
+	struct keydone *kd = (struct keydone *)arg;
+	dns_zone_t *zone = kd->zone;
 	dns_update_log_t log = { update_log_cb, NULL };
 	bool clear_pending = false;
 
-	UNUSED(task);
-
-	zone = event->ev_arg;
 	INSIST(DNS_ZONE_VALID(zone));
 
 	ENTER;
@@ -22061,7 +22047,7 @@ failure:
 		dns_db_detach(&db);
 	}
 	dns_diff_clear(&diff);
-	isc_event_free(&event);
+	isc_mem_put(zone->mctx, kd, sizeof(*kd));
 	dns_zone_idetach(&zone);
 
 	INSIST(oldver == NULL);
@@ -22071,29 +22057,24 @@ failure:
 isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_event_t *e;
+	struct keydone *kd = NULL;
 	isc_buffer_t b;
-	dns_zone_t *dummy = NULL;
-	struct keydone *kd;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 
-	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_KEYDONE, keydone,
-			       zone, sizeof(struct keydone));
+	kd = isc_mem_get(zone->mctx, sizeof(*kd));
+	*kd = (struct keydone){ .all = false };
 
-	kd = (struct keydone *)e;
 	if (strcasecmp(keystr, "all") == 0) {
 		kd->all = true;
 	} else {
 		isc_textregion_t r;
-		const char *algstr;
+		const char *algstr = NULL;
 		dns_keytag_t keyid;
 		dns_secalg_t alg;
 		size_t n;
-
-		kd->all = false;
 
 		n = sscanf(keystr, "%hu/", &keyid);
 		if (n == 0U) {
@@ -22123,12 +22104,13 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 		isc_buffer_putuint8(&b, 1);
 	}
 
-	zone_iattach(zone, &dummy);
-	isc_task_send(zone->task, &e);
+	zone_iattach(zone, &kd->zone);
+	isc_async_run(zone->loop, keydone, kd);
+	kd = NULL;
 
 failure:
-	if (e != NULL) {
-		isc_event_free(&e);
+	if (kd != NULL) {
+		isc_mem_put(zone->mctx, kd, sizeof(*kd));
 	}
 	UNLOCK_ZONE(zone);
 	return (result);
@@ -22837,21 +22819,18 @@ dns_zone_getstatlevel(dns_zone_t *zone) {
 }
 
 static void
-setserial(isc_task_t *task, isc_event_t *event) {
+setserial(void *arg) {
 	uint32_t oldserial, desired;
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
-	dns_zone_t *zone;
 	dns_db_t *db = NULL;
 	dns_diff_t diff;
-	struct ssevent *sse = (struct ssevent *)event;
+	struct setserial *sse = (struct setserial *)arg;
+	dns_zone_t *zone = sse->zone;
 	dns_update_log_t log = { update_log_cb, NULL };
 	dns_difftuple_t *oldtuple = NULL, *newtuple = NULL;
 
-	UNUSED(task);
-
-	zone = event->ev_arg;
 	INSIST(DNS_ZONE_VALID(zone));
 
 	ENTER;
@@ -22938,7 +22917,7 @@ failure:
 	dns_diff_clear(&diff);
 
 disabled:
-	isc_event_free(&event);
+	isc_mem_put(zone->mctx, sse, sizeof(*sse));
 	dns_zone_idetach(&zone);
 
 	INSIST(oldver == NULL);
@@ -22948,9 +22927,7 @@ disabled:
 isc_result_t
 dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_zone_t *dummy = NULL;
-	isc_event_t *e = NULL;
-	struct ssevent *sse;
+	struct setserial *sse = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -22968,19 +22945,12 @@ dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 		goto failure;
 	}
 
-	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETSERIAL, setserial,
-			       zone, sizeof(struct ssevent));
-
-	sse = (struct ssevent *)e;
-	sse->serial = serial;
-
-	zone_iattach(zone, &dummy);
-	isc_task_send(zone->task, &e);
+	sse = isc_mem_get(zone->mctx, sizeof(*sse));
+	*sse = (struct setserial){ .serial = serial };
+	zone_iattach(zone, &sse->zone);
+	isc_async_run(zone->loop, setserial, sse);
 
 failure:
-	if (e != NULL) {
-		isc_event_free(&e);
-	}
 	UNLOCK_ZONE(zone);
 	return (result);
 }
