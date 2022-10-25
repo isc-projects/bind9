@@ -2415,16 +2415,12 @@ dns_zone_load(dns_zone_t *zone, bool newonly) {
 }
 
 static void
-zone_asyncload(isc_task_t *task, isc_event_t *event) {
-	dns_asyncload_t *asl = event->ev_arg;
+zone_asyncload(void *arg) {
+	dns_asyncload_t *asl = arg;
 	dns_zone_t *zone = asl->zone;
 	isc_result_t result;
 
-	UNUSED(task);
-
 	REQUIRE(DNS_ZONE_VALID(zone));
-
-	isc_event_free(&event);
 
 	LOCK_ZONE(zone);
 	result = zone_load(zone, asl->flags, true);
@@ -2435,7 +2431,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 
 	/* Inform the zone table we've finished loading */
 	if (asl->loaded != NULL) {
-		(asl->loaded)(asl->loaded_arg, zone, task);
+		(asl->loaded)(asl->loaded_arg, zone, zone->task);
 	}
 
 	isc_mem_put(zone->mctx, asl, sizeof(*asl));
@@ -2445,7 +2441,6 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 isc_result_t
 dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_zoneloaded_t done,
 		   void *arg) {
-	isc_event_t *e;
 	dns_asyncload_t *asl = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2468,12 +2463,9 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_zoneloaded_t done,
 	asl->loaded = done;
 	asl->loaded_arg = arg;
 
-	e = isc_event_allocate(zone->zmgr->mctx, zone->zmgr, DNS_EVENT_ZONELOAD,
-			       zone_asyncload, asl, sizeof(isc_event_t));
-
 	zone_iattach(zone, &asl->zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
-	isc_task_send(zone->loadtask, &e);
+	isc_async_run(zone->loop, zone_asyncload, asl);
 	UNLOCK_ZONE(zone);
 
 	return (ISC_R_SUCCESS);
@@ -2612,6 +2604,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(DNS_LOAD_VALID(load));
 
+	UNUSED(task);
+
 	if ((event->ev_attributes & ISC_EVENTATTR_CANCELED) != 0) {
 		result = ISC_R_CANCELED;
 	}
@@ -2625,9 +2619,9 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	result = dns_master_loadfileinc(
 		load->zone->masterfile, dns_db_origin(load->db),
 		dns_db_origin(load->db), load->zone->rdclass, options, 0,
-		&load->callbacks, task, zone_loaddone, load, &load->zone->lctx,
-		zone_registerinclude, load->zone, load->zone->mctx,
-		load->zone->masterformat, load->zone->maxttl);
+		&load->callbacks, load->zone->loop, zone_loaddone, load,
+		&load->zone->lctx, zone_registerinclude, load->zone,
+		load->zone->mctx, load->zone->masterformat, load->zone->maxttl);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 	{
@@ -2762,7 +2756,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		options |= DNS_MASTER_MANYERRORS;
 	}
 
-	if (zone->zmgr != NULL && zone->db != NULL && zone->loadtask != NULL) {
+	if (zone->zmgr != NULL && zone->db != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
 
 		load->mctx = NULL;

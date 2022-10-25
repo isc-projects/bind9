@@ -136,44 +136,18 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx);
 
 isc_result_t
-dns_master_loadlexer(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
-		     dns_rdataclass_t zclass, unsigned int options,
-		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx);
-
-isc_result_t
 dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 		       dns_name_t *origin, dns_rdataclass_t zclass,
 		       unsigned int options, uint32_t resign,
-		       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
+		       dns_rdatacallbacks_t *callbacks, isc_loop_t *loop,
 		       dns_loaddonefunc_t done, void *done_arg,
 		       dns_loadctx_t **ctxp, dns_masterincludecb_t include_cb,
 		       void *include_arg, isc_mem_t *mctx,
 		       dns_masterformat_t format, uint32_t maxttl);
 
-isc_result_t
-dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
-			 dns_rdataclass_t zclass, unsigned int options,
-			 dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-			 dns_loaddonefunc_t done, void *done_arg,
-			 dns_loadctx_t **ctxp, isc_mem_t *mctx);
-
-isc_result_t
-dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
-			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 unsigned int options, dns_rdatacallbacks_t *callbacks,
-			 isc_task_t *task, dns_loaddonefunc_t done,
-			 void *done_arg, dns_loadctx_t **ctxp, isc_mem_t *mctx);
-
-isc_result_t
-dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
-			dns_rdataclass_t zclass, unsigned int options,
-			dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp, isc_mem_t *mctx);
-
 /*%<
- * Loads a RFC1305 master file from a file, stream, buffer, or existing
- * lexer into rdatasets and then calls 'callbacks->commit' to commit the
+ * Loads a RFC1305 master file from a file, stream, or buffer
+ * into rdatasets and then calls 'callbacks->commit' to commit the
  * rdatasets.  Rdata memory belongs to dns_master_load and will be
  * reused / released when the callback completes.  dns_load_master will
  * abort if callbacks->commit returns any value other than ISC_R_SUCCESS.
@@ -193,14 +167,13 @@ dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
  *
  * Requires:
  *\li	'master_file' points to a valid string.
- *\li	'lexer' points to a valid lexer.
  *\li	'top' points to a valid name.
  *\li	'origin' points to a valid name.
  *\li	'callbacks->commit' points to a valid function.
  *\li	'callbacks->error' points to a valid function.
  *\li	'callbacks->warn' points to a valid function.
  *\li	'mctx' points to a valid memory context.
- *\li	'task' and 'done' to be valid.
+ *\li	'loop' and 'done' to be valid.
  *\li	'lmgr' to be valid.
  *\li	'ctxp != NULL && ctxp == NULL'.
  *
@@ -215,7 +188,7 @@ dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
  *\li	DNS_R_NOOWNER failed to specify a ownername.
  *\li	DNS_R_NOTTL failed to specify a ttl.
  *\li	DNS_R_BADCLASS record class did not match zone class.
- *\li	DNS_R_CONTINUE load still in progress (dns_master_load*inc() only).
+ *\li	DNS_R_CONTINUE load still in progress (dns_master_loadfileinc() only).
  *\li	Any dns_rdata_fromtext() error code.
  *\li	Any error code from callbacks->commit().
  */
