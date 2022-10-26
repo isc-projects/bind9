@@ -50,3 +50,7 @@ Bug Fixes
 - In certain resolution scenarios quotas could be erroneously reached for
   servers, including the configured forwarders, resulting in SERVFAIL answers
   sent to the clients. This has been fixed. :gl:`#3598`
+
+- The port in remote servers such as in :any:`primaries` and
+  :any:`parental-agents` could be wrongly configured because of an inheritance
+  bug. :gl:`#3627`
