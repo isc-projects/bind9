@@ -72,3 +72,12 @@ zone "mapped" {
 	masterfile-format text;
 	primaries { 10.53.0.100; };
 };
+
+zone "dot-fallback" {
+	type secondary;
+	file "dot-fallback.db";
+	primaries {
+		10.53.0.1 tls ephemeral;
+		10.53.0.1;
+	};
+};
