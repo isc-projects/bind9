@@ -36,25 +36,25 @@
 
 isc_ratelimiter_t *rl = NULL;
 
+typedef struct rlstat {
+	isc_rlevent_t *event;
+} rlstat_t;
+
 ISC_LOOP_TEST_IMPL(ratelimiter_create) {
-	rl = NULL;
+	assert_null(rl);
 	expect_assert_failure(isc_ratelimiter_create(NULL, &rl));
 	expect_assert_failure(isc_ratelimiter_create(mainloop, NULL));
-	rl = (isc_ratelimiter_t *)&rl;
-	expect_assert_failure(isc_ratelimiter_create(mainloop, &rl));
+	assert_null(rl);
 
-	rl = NULL;
 	isc_ratelimiter_create(mainloop, &rl);
 	isc_ratelimiter_shutdown(rl);
-
 	isc_ratelimiter_detach(&rl);
 
 	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_LOOP_TEST_IMPL(ratelimiter_shutdown) {
-	rl = NULL;
-
+	assert_null(rl);
 	expect_assert_failure(isc_ratelimiter_shutdown(NULL));
 	expect_assert_failure(isc_ratelimiter_shutdown(rl));
 
@@ -62,7 +62,7 @@ ISC_LOOP_TEST_IMPL(ratelimiter_shutdown) {
 }
 
 ISC_LOOP_TEST_IMPL(ratelimiter_detach) {
-	rl = NULL;
+	assert_null(rl);
 
 	expect_assert_failure(isc_ratelimiter_detach(NULL));
 	expect_assert_failure(isc_ratelimiter_detach(&rl));
@@ -71,31 +71,28 @@ ISC_LOOP_TEST_IMPL(ratelimiter_detach) {
 }
 
 static int ticks = 0;
-static isc_task_t *rl_task = NULL;
 static isc_time_t start_time;
 static isc_time_t tick_time;
 
 static void
-tick(isc_task_t *task, isc_event_t *event) {
-	assert_ptr_equal(task, rl_task);
-	isc_event_free(&event);
+tick(void *arg) {
+	rlstat_t *rlstat = (rlstat_t *)arg;
+
+	isc_rlevent_free(&rlstat->event);
+	isc_mem_put(mctx, rlstat, sizeof(*rlstat));
 
 	ticks++;
 
 	assert_int_equal(isc_time_now(&tick_time), ISC_R_SUCCESS);
 
-	isc_loopmgr_shutdown(loopmgr);
-
-	isc_task_detach(&rl_task);
 	isc_ratelimiter_shutdown(rl);
 	isc_ratelimiter_detach(&rl);
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_LOOP_SETUP_IMPL(ratelimiter_common) {
-	isc_result_t result = isc_task_create(taskmgr, &rl_task, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	rl = NULL;
+	assert_null(rl);
 	isc_time_set(&tick_time, 0, 0);
 	assert_int_equal(isc_time_now(&start_time), ISC_R_SUCCESS);
 	isc_ratelimiter_create(mainloop, &rl);
@@ -110,14 +107,12 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_enqueue) { assert_int_equal(ticks, 1); }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_enqueue) {
 	isc_result_t result;
-	isc_event_t *event = NULL;
+	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	result = isc_ratelimiter_enqueue(rl, rl_task, &event);
+	result = isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
+					 &rlstat->event);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(rlstat->event);
 }
 
 ISC_LOOP_SETUP_IMPL(ratelimiter_enqueue_shutdown) {
@@ -130,31 +125,27 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_enqueue_shutdown) {
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_enqueue_shutdown) {
-	isc_event_t *event = NULL;
+	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	isc_rlevent_t *event = NULL;
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	expect_assert_failure(isc_ratelimiter_enqueue(NULL, rl_task, &event));
-	expect_assert_failure(isc_ratelimiter_enqueue(rl, NULL, &event));
-	expect_assert_failure(isc_ratelimiter_enqueue(rl, rl_task, NULL));
 	expect_assert_failure(
-		isc_ratelimiter_enqueue(rl, rl_task, &(isc_event_t *){ NULL }));
+		isc_ratelimiter_enqueue(NULL, mainloop, tick, NULL, &event));
+	expect_assert_failure(
+		isc_ratelimiter_enqueue(rl, NULL, tick, NULL, &event));
+	expect_assert_failure(
+		isc_ratelimiter_enqueue(rl, mainloop, tick, NULL, NULL));
 
-	assert_int_equal(isc_ratelimiter_enqueue(rl, rl_task, &event),
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
+						 &rlstat->event),
 			 ISC_R_SUCCESS);
+	assert_non_null(rlstat->event);
 
 	isc_ratelimiter_shutdown(rl);
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	assert_int_equal(isc_ratelimiter_enqueue(rl, rl_task, &event),
-			 ISC_R_SHUTTINGDOWN);
-
-	isc_event_free(&event);
+	assert_int_equal(
+		isc_ratelimiter_enqueue(rl, mainloop, tick, NULL, &event),
+		ISC_R_SHUTTINGDOWN);
+	assert_null(event);
 }
 
 ISC_LOOP_SETUP_IMPL(ratelimiter_dequeue) {
@@ -163,38 +154,43 @@ ISC_LOOP_SETUP_IMPL(ratelimiter_dequeue) {
 }
 
 ISC_LOOP_TEARDOWN_IMPL(ratelimiter_dequeue) { /* */
-	assert_int_equal(ticks, 1);
+	assert_int_equal(ticks, 0);
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_dequeue) {
-	isc_event_t *event = NULL;
+	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	isc_rlevent_t *fake = isc_mem_get(mctx, sizeof(*fake));
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-	assert_int_equal(
-		isc_ratelimiter_enqueue(rl, rl_task, &(isc_event_t *){ event }),
-		ISC_R_SUCCESS);
-	assert_int_equal(isc_ratelimiter_dequeue(rl, event), ISC_R_SUCCESS);
-	isc_event_free(&event);
-	assert_null(event);
-
-	/* This event didn't get scheduled */
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-	assert_int_equal(isc_ratelimiter_dequeue(rl, event), ISC_R_NOTFOUND);
-	assert_int_equal(isc_ratelimiter_enqueue(rl, rl_task, &event),
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
+						 &rlstat->event),
 			 ISC_R_SUCCESS);
-	assert_null(event);
+	assert_int_equal(isc_ratelimiter_dequeue(rl, &rlstat->event),
+			 ISC_R_SUCCESS);
+	isc_mem_put(mctx, rlstat, sizeof(*rlstat));
+
+	/* Set up a mock ratelimiter event that isn't actually scheduled */
+	*fake = (isc_rlevent_t){ .link = ISC_LINK_INITIALIZER };
+	isc_loop_attach(mainloop, &fake->loop);
+	isc_ratelimiter_attach(rl, &fake->rl);
+	assert_int_equal(isc_ratelimiter_dequeue(rl, &fake), ISC_R_NOTFOUND);
+	isc_loop_detach(&fake->loop);
+	isc_ratelimiter_detach(&fake->rl);
+	isc_mem_put(mctx, fake, sizeof(*fake));
+
+	isc_ratelimiter_shutdown(rl);
+	isc_ratelimiter_detach(&rl);
+
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static isc_time_t tock_time;
 
 static void
-tock(isc_task_t *task, isc_event_t *event) {
-	assert_ptr_equal(task, rl_task);
-	isc_event_free(&event);
+tock(void *arg) {
+	rlstat_t *rlstat = (rlstat_t *)arg;
+
+	isc_rlevent_free(&rlstat->event);
+	isc_mem_put(mctx, rlstat, sizeof(*rlstat));
 
 	ticks++;
 	assert_int_equal(isc_time_now(&tock_time), ISC_R_SUCCESS);
@@ -216,7 +212,7 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_pertick_interval) {
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pertick_interval) {
-	isc_event_t *event = NULL;
+	rlstat_t *rlstat = NULL;
 	isc_interval_t interval;
 
 	isc_interval_set(&interval, 1, NS_PER_SEC / 10);
@@ -231,18 +227,14 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pertick_interval) {
 	isc_ratelimiter_setpertic(rl, 1);
 	isc_ratelimiter_setpushpop(rl, false);
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tock, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	assert_int_equal(isc_ratelimiter_enqueue(rl, rl_task, &event),
+	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tock, rlstat,
+						 &rlstat->event),
 			 ISC_R_SUCCESS);
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	assert_int_equal(isc_ratelimiter_enqueue(rl, rl_task, &event),
+	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
+						 &rlstat->event),
 			 ISC_R_SUCCESS);
 }
 
@@ -259,7 +251,7 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_pushpop) {
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pushpop) {
-	isc_event_t *event = NULL;
+	rlstat_t *rlstat = NULL;
 	isc_interval_t interval;
 
 	isc_interval_set(&interval, 1, NS_PER_SEC / 10);
@@ -268,21 +260,15 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pushpop) {
 	isc_ratelimiter_setpertic(rl, 2);
 	isc_ratelimiter_setpushpop(rl, true);
 
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tick, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
+	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tock, rlstat,
+						 &rlstat->event),
+			 ISC_R_SUCCESS);
 
-	assert_int_equal(
-		isc_ratelimiter_enqueue(rl, rl_task, &(isc_event_t *){ event }),
-		ISC_R_SUCCESS);
-
-	event = isc_event_allocate(mctx, NULL, ISC_TASKEVENT_TEST, tock, NULL,
-				   sizeof(isc_event_t));
-	assert_non_null(event);
-
-	assert_int_equal(
-		isc_ratelimiter_enqueue(rl, rl_task, &(isc_event_t *){ event }),
-		ISC_R_SUCCESS);
+	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
+						 &rlstat->event),
+			 ISC_R_SUCCESS);
 }
 
 static int
