@@ -2616,19 +2616,17 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 
 	options = get_primary_options(load->zone);
 
-	result = dns_master_loadfileinc(
+	result = dns_master_loadfileasync(
 		load->zone->masterfile, dns_db_origin(load->db),
 		dns_db_origin(load->db), load->zone->rdclass, options, 0,
 		&load->callbacks, load->zone->loop, zone_loaddone, load,
 		&load->zone->lctx, zone_registerinclude, load->zone,
 		load->zone->mctx, load->zone->masterformat, load->zone->maxttl);
-	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
-	    result != DNS_R_SEENINCLUDE)
-	{
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
 	}
-	return;
 
+	return;
 fail:
 	zone_loaddone(load, result);
 }

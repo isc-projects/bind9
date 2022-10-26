@@ -136,17 +136,17 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 		      dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx);
 
 isc_result_t
-dns_master_loadfileinc(const char *master_file, dns_name_t *top,
-		       dns_name_t *origin, dns_rdataclass_t zclass,
-		       unsigned int options, uint32_t resign,
-		       dns_rdatacallbacks_t *callbacks, isc_loop_t *loop,
-		       dns_loaddonefunc_t done, void *done_arg,
-		       dns_loadctx_t **ctxp, dns_masterincludecb_t include_cb,
-		       void *include_arg, isc_mem_t *mctx,
-		       dns_masterformat_t format, uint32_t maxttl);
+dns_master_loadfileasync(const char *master_file, dns_name_t *top,
+			 dns_name_t *origin, dns_rdataclass_t zclass,
+			 unsigned int options, uint32_t resign,
+			 dns_rdatacallbacks_t *callbacks, isc_loop_t *loop,
+			 dns_loaddonefunc_t done, void *done_arg,
+			 dns_loadctx_t **ctxp, dns_masterincludecb_t include_cb,
+			 void *include_arg, isc_mem_t *mctx,
+			 dns_masterformat_t format, uint32_t maxttl);
 
 /*%<
- * Loads a RFC1305 master file from a file, stream, or buffer
+ * Loads a RFC1035 master file from a file, stream, or buffer
  * into rdatasets and then calls 'callbacks->commit' to commit the
  * rdatasets.  Rdata memory belongs to dns_master_load and will be
  * reused / released when the callback completes.  dns_load_master will
@@ -188,7 +188,6 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
  *\li	DNS_R_NOOWNER failed to specify a ownername.
  *\li	DNS_R_NOTTL failed to specify a ttl.
  *\li	DNS_R_BADCLASS record class did not match zone class.
- *\li	DNS_R_CONTINUE load still in progress (dns_master_loadfileinc() only).
  *\li	Any dns_rdata_fromtext() error code.
  *\li	Any error code from callbacks->commit().
  */
