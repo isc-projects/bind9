@@ -262,7 +262,6 @@ struct dns_dumpctx {
 	dns_dbversion_t *version;
 	dns_dbiterator_t *dbiter;
 	dns_totext_ctx_t tctx;
-	isc_loop_t *loop;
 	dns_dumpdonefunc_t done;
 	void *done_arg;
 	/* dns_master_dumpasync() */
@@ -1072,7 +1071,6 @@ again:
 		sorted[i] = &rdatasets[i];
 	}
 	n = i;
-	INSIST(n <= MAXSORT);
 
 	qsort(sorted, n, sizeof(sorted[0]), dump_order_compare);
 
@@ -1335,9 +1333,6 @@ dumpctx_destroy(dns_dumpctx_t *dctx) {
 		dns_db_closeversion(dctx->db, &dctx->version, false);
 	}
 	dns_db_detach(&dctx->db);
-	if (dctx->loop != NULL) {
-		isc_loop_detach(&dctx->loop);
-	}
 	if (dctx->file != NULL) {
 		isc_mem_free(dctx->mctx, dctx->file);
 	}
@@ -1505,18 +1500,6 @@ master_dump_done_cb(void *data) {
 
 	(dctx->done)(dctx->done_arg, dctx->result);
 	dns_dumpctx_detach(&dctx);
-}
-
-/*
- * This must be run from a loop manager thread.
- */
-static void
-setup_dump(void *arg) {
-	dns_dumpctx_t *dctx = (dns_dumpctx_t *)arg;
-
-	REQUIRE(DNS_DCTX_VALID(dctx));
-
-	isc_work_enqueue(dctx->loop, master_dump_cb, master_dump_done_cb, dctx);
 }
 
 static isc_result_t
@@ -1761,13 +1744,13 @@ dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	isc_loop_attach(loop, &dctx->loop);
 	dctx->done = done;
 	dctx->done_arg = done_arg;
 
-	isc_async_run(dctx->loop, setup_dump, dctx);
 	dns_dumpctx_attach(dctx, dctxp);
-	return (DNS_R_CONTINUE);
+	isc_work_enqueue(loop, master_dump_cb, master_dump_done_cb, dctx);
+
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1850,39 +1833,33 @@ dns_master_dumpasync(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 
 	result = opentmp(mctx, format, filename, &tempname, &f);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto cleanup_file;
 	}
 
 	result = dumpctx_create(mctx, db, version, style, f, &dctx, format,
 				header);
 	if (result != ISC_R_SUCCESS) {
-		(void)isc_stdio_close(f);
-		(void)isc_file_remove(tempname);
-		goto cleanup;
+		goto cleanup_tempname;
 	}
 
-	isc_loop_attach(loop, &dctx->loop);
 	dctx->done = done;
 	dctx->done_arg = done_arg;
 	dctx->file = file;
-	file = NULL;
 	dctx->tmpfile = tempname;
-	tempname = NULL;
 
-	isc_async_run(dctx->loop, setup_dump, dctx);
 	dns_dumpctx_attach(dctx, dctxp);
-	return (DNS_R_CONTINUE);
+	isc_work_enqueue(loop, master_dump_cb, master_dump_done_cb, dctx);
 
-cleanup:
-	if (dctx != NULL) {
-		dns_dumpctx_detach(&dctx);
-	}
-	if (file != NULL) {
-		isc_mem_free(mctx, file);
-	}
-	if (tempname != NULL) {
-		isc_mem_free(mctx, tempname);
-	}
+	return (ISC_R_SUCCESS);
+
+cleanup_tempname:
+	(void)isc_stdio_close(f);
+	(void)isc_file_remove(tempname);
+	isc_mem_free(mctx, tempname);
+
+cleanup_file:
+	isc_mem_free(mctx, file);
+
 	return (result);
 }
 

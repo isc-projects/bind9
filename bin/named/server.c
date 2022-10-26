@@ -11611,7 +11611,7 @@ resume:
 			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->cache, NULL, style, dctx->fp,
 				named_g_mainloop, dumpdone, dctx, &dctx->mdctx);
-			if (result == DNS_R_CONTINUE) {
+			if (result == ISC_R_SUCCESS) {
 				return;
 			}
 			if (result == ISC_R_NOTIMPLEMENTED) {
@@ -11670,9 +11670,9 @@ resume:
 			dns_db_currentversion(dctx->db, &dctx->version);
 			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->db, dctx->version, style,
-				dctx->fp, named_g_mainloop, dumpdone, dctx,
-				&dctx->mdctx);
-			if (result == DNS_R_CONTINUE) {
+				dctx->fp, dns_zone_getloop(dctx->zone->zone),
+				dumpdone, dctx, &dctx->mdctx);
+			if (result == ISC_R_SUCCESS) {
 				return;
 			}
 			if (result == ISC_R_NOTIMPLEMENTED) {
