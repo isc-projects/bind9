@@ -82,7 +82,7 @@ grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	isc_lex_t *lex;
 
@@ -110,8 +110,6 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	lex->magic = LEX_MAGIC;
 
 	*lexp = lex;
-
-	return (ISC_R_SUCCESS);
 }
 
 void
