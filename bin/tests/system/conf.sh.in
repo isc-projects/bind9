@@ -26,9 +26,6 @@ export TMPDIR=${TMPDIR:-/tmp}
 # This is not the windows build.
 export CYGWIN=""
 
-# Load common values shared between windows and unix/linux.
-. $TOP/bin/tests/system/conf.sh.common
-
 export ARPANAME=$TOP/bin/tools/arpaname
 export CDS=$TOP/bin/dnssec/dnssec-cds
 export CHECKCONF=$TOP/bin/check/named-checkconf
@@ -79,6 +76,9 @@ export PIPEQUERIES=$TOP/bin/tests/system/pipelined/pipequeries
 export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
+
+# Load common values shared between windows and unix/linux.
+. $TOP/bin/tests/system/conf.sh.common
 
 #
 # Construct the lists of tests to run
