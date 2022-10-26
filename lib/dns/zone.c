@@ -2691,7 +2691,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		}
 		result = dns_master_dumpasync(
 			zone->mctx, db, version, output_style, zone->masterfile,
-			zone->task, dump_done, zone, &zone->dctx,
+			zone->loop, dump_done, zone, &zone->dctx,
 			zone->masterformat, &rawdata);
 		dns_db_closeversion(db, &version, false);
 	} else {

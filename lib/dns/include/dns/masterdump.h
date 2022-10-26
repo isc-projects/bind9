@@ -245,7 +245,7 @@ isc_result_t
 dns_master_dumptostreamasync(isc_mem_t *mctx, dns_db_t *db,
 			     dns_dbversion_t	      *version,
 			     const dns_master_style_t *style, FILE *f,
-			     isc_task_t *task, dns_dumpdonefunc_t done,
+			     isc_loop_t *loop, dns_dumpdonefunc_t done,
 			     void *done_arg, dns_dumpctx_t **dctxp);
 
 isc_result_t
@@ -264,7 +264,6 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
  * Temporary dynamic memory may be allocated from 'mctx'.
  *
  * Require:
- *\li	'task' to be valid.
  *\li	'done' to be non NULL.
  *\li	'dctxp' to be non NULL && '*dctxp' to be NULL.
  *
@@ -281,7 +280,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 isc_result_t
 dns_master_dumpasync(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		     const dns_master_style_t *style, const char *filename,
-		     isc_task_t *task, dns_dumpdonefunc_t done, void *done_arg,
+		     isc_loop_t *loop, dns_dumpdonefunc_t done, void *done_arg,
 		     dns_dumpctx_t **dctxp, dns_masterformat_t format,
 		     dns_masterrawheader_t *header);
 

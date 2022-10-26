@@ -265,7 +265,7 @@ struct dumpcontext {
 	dns_dumpctx_t *mdctx;
 	dns_db_t *db;
 	dns_db_t *cache;
-	isc_task_t *task;
+	isc_loop_t *loop;
 	dns_dbversion_t *version;
 };
 
@@ -11555,9 +11555,6 @@ dumpcontext_destroy(struct dumpcontext *dctx) {
 	if (dctx->cache != NULL) {
 		dns_db_detach(&dctx->cache);
 	}
-	if (dctx->task != NULL) {
-		isc_task_detach(&dctx->task);
-	}
 	if (dctx->fp != NULL) {
 		(void)isc_stdio_close(dctx->fp);
 	}
@@ -11613,7 +11610,7 @@ resume:
 				dns_cache_getname(dctx->view->view->cache));
 			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->cache, NULL, style, dctx->fp,
-				dctx->task, dumpdone, dctx, &dctx->mdctx);
+				named_g_mainloop, dumpdone, dctx, &dctx->mdctx);
 			if (result == DNS_R_CONTINUE) {
 				return;
 			}
@@ -11673,7 +11670,7 @@ resume:
 			dns_db_currentversion(dctx->db, &dctx->version);
 			result = dns_master_dumptostreamasync(
 				dctx->mctx, dctx->db, dctx->version, style,
-				dctx->fp, dctx->task, dumpdone, dctx,
+				dctx->fp, named_g_mainloop, dumpdone, dctx,
 				&dctx->mdctx);
 			if (result == DNS_R_CONTINUE) {
 				return;
@@ -11732,25 +11729,14 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	}
 
 	dctx = isc_mem_get(server->mctx, sizeof(*dctx));
-
-	dctx->mctx = server->mctx;
-	dctx->dumpcache = true;
-	dctx->dumpadb = true;
-	dctx->dumpbad = true;
-	dctx->dumpexpired = false;
-	dctx->dumpfail = true;
-	dctx->dumpzones = false;
-	dctx->fp = NULL;
-	ISC_LIST_INIT(dctx->viewlist);
-	dctx->view = NULL;
-	dctx->zone = NULL;
-	dctx->cache = NULL;
-	dctx->mdctx = NULL;
-	dctx->db = NULL;
-	dctx->cache = NULL;
-	dctx->task = NULL;
-	dctx->version = NULL;
-	isc_task_attach(server->task, &dctx->task);
+	*dctx = (struct dumpcontext){
+		.mctx = server->mctx,
+		.dumpcache = true,
+		.dumpadb = true,
+		.dumpbad = true,
+		.dumpfail = true,
+		.viewlist = ISC_LIST_INITIALIZER,
+	};
 
 	CHECKMF(isc_stdio_open(server->dumpfile, "w", &dctx->fp),
 		"could not open dump file", server->dumpfile);
