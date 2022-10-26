@@ -1,3 +1,9 @@
+6005.	[func]		The zone loading has been moved to the offload
+			threadpool instead of doing incremental repeated
+			tasks, so zone loading scheduling is now driven
+			by the operating system scheduler rather than fixed
+			(100) quantum. [GL #3625]
+
 6004.	[func]		Add check-svcb to control the checking of additional
 			constraints on SVBC records.  This change impacts on
 			named, named-checkconf, named-checkzone,
