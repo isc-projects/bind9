@@ -150,7 +150,7 @@ ISC_TEST_LIST_END
 
 static int
 tlsdns_setup(void **state __attribute__((__unused__))) {
-	stream_port = TCPDNS_TEST_PORT;
+	stream_port = TLSDNS_TEST_PORT;
 
 	return (0);
 }
