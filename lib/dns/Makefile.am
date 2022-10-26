@@ -109,6 +109,7 @@ libdns_la_HEADERS =			\
 	include/dns/rdatasetiter.h	\
 	include/dns/rdataslab.h		\
 	include/dns/rdatatype.h		\
+	include/dns/remote.h		\
 	include/dns/request.h		\
 	include/dns/resolver.h		\
 	include/dns/result.h		\
@@ -211,6 +212,7 @@ libdns_la_SOURCES =			\
 	rdataset.c			\
 	rdatasetiter.c			\
 	rdataslab.c			\
+	remote.c			\
 	request.c			\
 	resolver.c			\
 	result.c			\
