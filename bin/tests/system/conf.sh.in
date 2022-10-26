@@ -23,9 +23,6 @@ export TOP_SRCDIR=@abs_top_srcdir@
 # Provide TMPDIR variable for tests that need it.
 export TMPDIR=${TMPDIR:-/tmp}
 
-# Load common values
-. $TOP_SRCDIR/bin/tests/system/conf.sh.common
-
 export ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname
 export CDS=$TOP_BUILDDIR/bin/dnssec/dnssec-cds
 export CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
@@ -68,6 +65,9 @@ export PIPEQUERIES=$TOP_BUILDDIR/bin/tests/system/pipelined/pipequeries
 export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
+
+# Load common values
+. $TOP_SRCDIR/bin/tests/system/conf.sh.common
 
 #
 # Construct the lists of tests to run
