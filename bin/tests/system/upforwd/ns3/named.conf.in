@@ -35,11 +35,16 @@ controls {
         inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+tls tls-example-primary {
+	remote-hostname "srv01.crt01.example.com"; // enable Strict TLS
+	ca-file "../CA/CA.pem";
+};
+
 zone "example" {
 	type secondary;
 	file "example.bk";
 	allow-update-forwarding { any; };
-	primaries { 10.53.0.1 port @TLSPORT@ tls ephemeral; };
+	primaries { 10.53.0.1 tls ephemeral; };
 };
 
 zone "example2" {
@@ -47,6 +52,16 @@ zone "example2" {
 	file "example2.bk";
 	allow-update-forwarding { any; };
 	primaries { 10.53.0.1; };
+};
+
+zone "example3" {
+	type secondary;
+	file "example3.bk";
+	allow-update-forwarding { any; };
+	primaries {
+		10.53.0.1 tls tls-example-primary; // bad
+		10.53.0.1; // good
+	};
 };
 
 zone "noprimary" {
