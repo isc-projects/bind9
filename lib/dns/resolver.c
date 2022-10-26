@@ -10944,12 +10944,6 @@ dns_resolver_dispatchv6(dns_resolver_t *resolver) {
 	return (dns_dispatchset_get(resolver->dispatches6));
 }
 
-isc_taskmgr_t *
-dns_resolver_taskmgr(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return (resolver->taskmgr);
-}
-
 uint32_t
 dns_resolver_getlamettl(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));

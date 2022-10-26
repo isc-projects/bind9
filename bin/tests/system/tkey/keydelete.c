@@ -60,26 +60,22 @@ static dns_tsig_keyring_t *ring = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 
 static void
-recvquery(isc_task_t *task, isc_event_t *event) {
-	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
+recvquery(void *arg) {
 	isc_result_t result;
-	dns_message_t *query = NULL, *response = NULL;
+	dns_request_t *request = (dns_request_t *)arg;
+	dns_message_t *query = dns_request_getarg(request);
+	dns_message_t *response = NULL;
 
-	UNUSED(task);
-
-	REQUIRE(reqev != NULL);
-
-	if (reqev->result != ISC_R_SUCCESS) {
+	result = dns_request_getresult(request);
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "I:request event result: %s\n",
-			isc_result_totext(reqev->result));
+			isc_result_totext(result));
 		exit(-1);
 	}
 
-	query = reqev->ev_arg;
-
 	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
-	result = dns_request_getresponse(reqev->request, response,
+	result = dns_request_getresponse(request, response,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	CHECK("dns_request_getresponse", result);
 
@@ -95,20 +91,19 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 
 	dns_message_detach(&query);
 	dns_message_detach(&response);
-	dns_request_destroy(&reqev->request);
-	isc_event_free(&event);
-	isc_task_detach(&task);
+	dns_request_destroy(&request);
 	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
 sendquery(void *arg) {
-	isc_task_t *task = (isc_task_t *)arg;
 	struct in_addr inaddr;
 	isc_sockaddr_t address;
 	isc_result_t result;
 	dns_message_t *query = NULL;
 	dns_request_t *request = NULL;
+
+	UNUSED(arg);
 
 	result = ISC_R_FAILURE;
 	if (inet_pton(AF_INET, ip_address, &inaddr) != 1) {
@@ -123,7 +118,8 @@ sendquery(void *arg) {
 
 	result = dns_request_create(requestmgr, query, NULL, &address, NULL,
 				    NULL, DNS_REQUESTOPT_TCP, tsigkey, TIMEOUT,
-				    0, 0, task, recvquery, query, &request);
+				    0, 0, isc_loop_main(loopmgr), recvquery,
+				    query, &request);
 	CHECK("dns_request_create", result);
 }
 
@@ -140,7 +136,6 @@ main(int argc, char **argv) {
 	dst_key_t *dstkey = NULL;
 	isc_log_t *log = NULL;
 	isc_logconfig_t *logconfig = NULL;
-	isc_task_t *task = NULL;
 	isc_result_t result;
 	int type;
 
@@ -162,12 +157,11 @@ main(int argc, char **argv) {
 
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
-	RUNCHECK(isc_task_create(taskmgr, &task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&bind_any);
 	RUNCHECK(dns_dispatch_createudp(dispatchmgr, &bind_any, &dispatchv4));
-	RUNCHECK(dns_requestmgr_create(mctx, taskmgr, dispatchmgr, dispatchv4,
-				       NULL, &requestmgr));
+	RUNCHECK(dns_requestmgr_create(mctx, dispatchmgr, dispatchv4, NULL,
+				       &requestmgr));
 
 	RUNCHECK(dns_tsigkeyring_create(mctx, &ring));
 	RUNCHECK(dns_tkeyctx_create(mctx, &tctx));
@@ -184,7 +178,7 @@ main(int argc, char **argv) {
 	dst_key_free(&dstkey);
 	CHECK("dns_tsigkey_createfromkey", result);
 
-	isc_loopmgr_setup(loopmgr, sendquery, task);
+	isc_loopmgr_setup(loopmgr, sendquery, NULL);
 	isc_loopmgr_run(loopmgr);
 
 	dns_requestmgr_shutdown(requestmgr);

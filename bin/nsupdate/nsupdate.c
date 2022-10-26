@@ -25,7 +25,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/event.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/job.h>
@@ -44,7 +43,6 @@
 #include <isc/sockaddr.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/tls.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -52,7 +50,6 @@
 #include <dns/callbacks.h>
 #include <dns/dispatch.h>
 #include <dns/dnssec.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
@@ -130,7 +127,6 @@ static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
-static isc_task_t *global_task = NULL;
 static isc_log_t *glctx = NULL;
 static isc_mem_t *gmctx = NULL;
 static dns_dispatchmgr_t *dispatchmgr = NULL;
@@ -233,7 +229,7 @@ static void
 send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		dns_request_t **request, gss_ctx_id_t context);
 static void
-recvgss(isc_task_t *task, isc_event_t *event);
+recvgss(void *arg);
 #endif /* HAVE_GSSAPI */
 
 static void
@@ -942,9 +938,6 @@ setup_system(void) {
 	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
-	result = isc_task_create(taskmgr, &global_task, 0);
-	check_result(result, "isc_task_create");
-
 	result = dst_lib_init(gmctx, NULL);
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
@@ -990,7 +983,7 @@ setup_system(void) {
 	dns_transport_set_always_verify_remote(transport,
 					       tls_always_verify_remote);
 
-	result = dns_requestmgr_create(gmctx, taskmgr, dispatchmgr, dispatchv4,
+	result = dns_requestmgr_create(gmctx, dispatchmgr, dispatchv4,
 				       dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
@@ -2476,32 +2469,24 @@ next_primary(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 }
 
 static void
-update_completed(isc_task_t *task, isc_event_t *event) {
-	dns_requestevent_t *reqev = NULL;
+update_completed(void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
 	isc_result_t result;
-	dns_request_t *request;
-
-	UNUSED(task);
 
 	ddebug("update_completed()");
 
 	requests--;
 
-	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
-	reqev = (dns_requestevent_t *)event;
-	request = reqev->request;
-
 	if (shuttingdown) {
 		dns_request_destroy(&request);
-		isc_event_free(&event);
 		maybeshutdown();
 		return;
 	}
 
-	if (reqev->result != ISC_R_SUCCESS) {
+	result = dns_request_getresult(request);
+	if (result != ISC_R_SUCCESS) {
 		if (!next_primary("update_completed",
-				  &primary_servers[primary_inuse],
-				  reqev->result))
+				  &primary_servers[primary_inuse], result))
 		{
 			seenerror = true;
 			goto done;
@@ -2512,7 +2497,6 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		dns_message_renderreset(updatemsg);
 		dns_message_settsigkey(updatemsg, NULL);
 		send_update(zname, &primary_servers[primary_inuse]);
-		isc_event_free(&event);
 		return;
 	}
 
@@ -2583,7 +2567,6 @@ done:
 		dns_name_init(&tmpzonename, 0);
 		dns_name_init(&restart_primary, 0);
 	}
-	isc_event_free(&event);
 	done_update();
 }
 
@@ -2630,10 +2613,11 @@ send_update(dns_name_t *zone, isc_sockaddr_t *primary) {
 		updatemsg->tsigname->attributes.nocompress = true;
 	}
 
-	result = dns_request_create(
-		requestmgr, updatemsg, srcaddr, primary, req_transport,
-		req_tls_ctx_cache, options, tsigkey, timeout, udp_timeout,
-		udp_retries, global_task, update_completed, NULL, &request);
+	result = dns_request_create(requestmgr, updatemsg, srcaddr, primary,
+				    req_transport, req_tls_ctx_cache, options,
+				    tsigkey, timeout, udp_timeout, udp_retries,
+				    isc_loop_main(loopmgr), update_completed,
+				    NULL, &request);
 	check_result(result, "dns_request_create");
 
 	if (debugging) {
@@ -2658,10 +2642,11 @@ next_server(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 }
 
 static void
-recvsoa(isc_task_t *task, isc_event_t *event) {
-	dns_requestevent_t *reqev = NULL;
-	dns_request_t *request = NULL;
-	isc_result_t result, eresult;
+recvsoa(void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
+	isc_result_t result, eresult = dns_request_getresult(request);
+	nsu_requestinfo_t *reqinfo = dns_request_getarg(request);
+	dns_message_t *soaquery = reqinfo->msg;
 	dns_message_t *rcvmsg = NULL;
 	dns_section_t section;
 	dns_name_t *name = NULL;
@@ -2670,33 +2655,20 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_t soarr = DNS_RDATA_INIT;
 	int pass = 0;
 	dns_name_t primary;
-	nsu_requestinfo_t *reqinfo;
-	dns_message_t *soaquery = NULL;
-	isc_sockaddr_t *addr;
-	isc_sockaddr_t *srcaddr;
+	isc_sockaddr_t *addr = reqinfo->addr;
+	isc_sockaddr_t *srcaddr = NULL;
 	bool seencname = false;
 	dns_name_t tname;
 	unsigned int nlabels;
-
-	UNUSED(task);
 
 	ddebug("recvsoa()");
 
 	requests--;
 
-	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
-	reqev = (dns_requestevent_t *)event;
-	request = reqev->request;
-	eresult = reqev->result;
-	reqinfo = reqev->ev_arg;
-	soaquery = reqinfo->msg;
-	addr = reqinfo->addr;
-
 	if (shuttingdown) {
 		dns_request_destroy(&request);
 		dns_message_detach(&soaquery);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
-		isc_event_free(&event);
 		maybeshutdown();
 		return;
 	}
@@ -2709,15 +2681,12 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_settsigkey(soaquery, NULL);
 		sendrequest(&servers[ns_inuse], soaquery, &request);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
-		isc_event_free(&event);
 		setzoneclass(dns_rdataclass_none);
 		return;
 	}
 
 	isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
 	reqinfo = NULL;
-	isc_event_free(&event);
-	reqev = NULL;
 
 	ddebug("About to create rcvmsg");
 	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
@@ -2751,11 +2720,11 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			srcaddr = localaddr4;
 		}
 
-		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
-					    req_transport, req_tls_ctx_cache,
-					    options, NULL, FIND_TIMEOUT * 20,
-					    FIND_TIMEOUT, 3, global_task,
-					    recvsoa, reqinfo, &request);
+		result = dns_request_create(
+			requestmgr, soaquery, srcaddr, addr, req_transport,
+			req_tls_ctx_cache, options, NULL, FIND_TIMEOUT * 20,
+			FIND_TIMEOUT, 3, isc_loop_main(loopmgr), recvsoa,
+			reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2988,11 +2957,11 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
-				    req_transport, req_tls_ctx_cache, options,
-				    default_servers ? NULL : tsigkey,
-				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    global_task, recvsoa, reqinfo, request);
+	result = dns_request_create(
+		requestmgr, msg, srcaddr, destaddr, req_transport,
+		req_tls_ctx_cache, options, default_servers ? NULL : tsigkey,
+		FIND_TIMEOUT * 20, FIND_TIMEOUT, 3, isc_loop_main(loopmgr),
+		recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -3171,8 +3140,8 @@ static void
 send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		dns_request_t **request, gss_ctx_id_t context) {
 	isc_result_t result;
-	nsu_gssinfo_t *reqinfo;
-	isc_sockaddr_t *srcaddr;
+	nsu_gssinfo_t *reqinfo = NULL;
+	isc_sockaddr_t *srcaddr = NULL;
 	unsigned int options = DNS_REQUESTOPT_CASE | DNS_REQUESTOPT_TCP;
 	dns_transport_t *req_transport = NULL;
 	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
@@ -3186,9 +3155,11 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	REQUIRE(destaddr != NULL);
 
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_gssinfo_t));
-	reqinfo->msg = msg;
-	reqinfo->addr = destaddr;
-	reqinfo->context = context;
+	*reqinfo = (nsu_gssinfo_t){
+		.msg = msg,
+		.addr = destaddr,
+		.context = context,
+	};
 
 	if (isc_sockaddr_pf(destaddr) == AF_INET6) {
 		srcaddr = localaddr6;
@@ -3199,7 +3170,8 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
 				    req_transport, req_tls_ctx_cache, options,
 				    tsigkey, FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    global_task, recvgss, reqinfo, request);
+				    isc_loop_main(loopmgr), recvgss, reqinfo,
+				    request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");
@@ -3208,40 +3180,27 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 }
 
 static void
-recvgss(isc_task_t *task, isc_event_t *event) {
-	dns_requestevent_t *reqev = NULL;
-	dns_request_t *request = NULL;
-	isc_result_t result, eresult;
+recvgss(void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
+	nsu_gssinfo_t *reqinfo = dns_request_getarg(request);
+	isc_result_t result, eresult = dns_request_getresult(request);
 	dns_message_t *rcvmsg = NULL;
-	nsu_gssinfo_t *reqinfo;
-	dns_message_t *tsigquery = NULL;
-	isc_sockaddr_t *addr;
-	dns_gss_ctx_id_t context;
+	dns_message_t *tsigquery = reqinfo->msg;
+	dns_gss_ctx_id_t context = reqinfo->context;
+	isc_sockaddr_t *addr = reqinfo->addr;
 	isc_buffer_t buf;
-	dns_name_t *servname;
+	dns_name_t *servname = NULL;
 	dns_fixedname_t fname;
 	char *err_message = NULL;
-
-	UNUSED(task);
 
 	ddebug("recvgss()");
 
 	requests--;
 
-	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
-	reqev = (dns_requestevent_t *)event;
-	request = reqev->request;
-	eresult = reqev->result;
-	reqinfo = reqev->ev_arg;
-	tsigquery = reqinfo->msg;
-	context = reqinfo->context;
-	addr = reqinfo->addr;
-
 	if (shuttingdown) {
 		dns_request_destroy(&request);
 		dns_message_detach(&tsigquery);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
-		isc_event_free(&event);
 		maybeshutdown();
 		return;
 	}
@@ -3259,13 +3218,9 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 			send_gssrequest(kserver, tsigquery, &request, context);
 		}
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
-		isc_event_free(&event);
 		return;
 	}
 	isc_mem_put(gmctx, reqinfo, sizeof(nsu_gssinfo_t));
-
-	isc_event_free(&event);
-	reqev = NULL;
 
 	ddebug("recvgss creating rcvmsg");
 	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
@@ -3543,7 +3498,6 @@ getinput(void *arg) {
 	more = user_interaction();
 	isc_loopmgr_nonblocking(loopmgr);
 	if (!more) {
-		isc_task_detach(&global_task);
 		isc_loopmgr_shutdown(loopmgr);
 		return;
 	}
