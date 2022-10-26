@@ -488,13 +488,13 @@ struct dns_zone {
 	 * Inline zone signing state.
 	 */
 	dns_diff_t rss_diff;
-	isc_eventlist_t rss_events;
+	ISC_LIST(struct rss) rss_events;
 	ISC_LIST(struct np3) rss_post;
 	dns_dbversion_t *rss_newver;
 	dns_dbversion_t *rss_oldver;
 	dns_db_t *rss_db;
 	dns_zone_t *rss_raw;
-	isc_event_t *rss_event;
+	struct rss *rss;
 	dns_update_state_t *rss_state;
 
 	isc_stats_t *gluecachestats;
@@ -11193,7 +11193,7 @@ zone_maintenance(dns_zone_t *zone) {
 		break;
 	case dns_zone_primary:
 		LOCK_ZONE(zone);
-		if (zone->rss_event != NULL) {
+		if (zone->rss != NULL) {
 			isc_time_settoepoch(&zone->refreshkeytime);
 			UNLOCK_ZONE(zone);
 			break;
@@ -11216,7 +11216,7 @@ zone_maintenance(dns_zone_t *zone) {
 		 * Do we need to sign/resign some RRsets?
 		 */
 		LOCK_ZONE(zone);
-		if (zone->rss_event != NULL) {
+		if (zone->rss != NULL) {
 			isc_time_settoepoch(&zone->signingtime);
 			isc_time_settoepoch(&zone->resigntime);
 			isc_time_settoepoch(&zone->nsec3chaintime);
@@ -15984,10 +15984,11 @@ done:
 	dns_message_detach(&message);
 }
 
-struct secure_event {
-	isc_event_t e;
+struct rss {
+	dns_zone_t *zone;
 	dns_db_t *db;
 	uint32_t serial;
+	ISC_LINK(struct rss) link;
 };
 
 static void
@@ -16175,22 +16176,18 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 }
 
 static void
-receive_secure_serial(isc_task_t *task, isc_event_t *event) {
+receive_secure_serial(void *arg) {
+	struct rss *rss = (struct rss *)arg;
+	dns_zone_t *zone = rss->zone;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_journal_t *rjournal = NULL;
 	dns_journal_t *sjournal = NULL;
-	uint32_t start, end;
-	dns_zone_t *zone;
+	uint32_t start, end = rss->serial;
 	dns_difftuple_t *tuple = NULL, *soatuple = NULL;
 	dns_update_log_t log = { update_log_cb, NULL };
 	uint32_t newserial = 0, desired = 0;
 	isc_time_t timenow;
 	int level = ISC_LOG_ERROR;
-
-	UNUSED(task);
-
-	zone = event->ev_arg;
-	end = ((struct secure_event *)event)->serial;
 
 	ENTER;
 
@@ -16200,18 +16197,18 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	 * If we are already processing a receive secure serial event
 	 * for the zone, just queue the new one and exit.
 	 */
-	if (zone->rss_event != NULL && zone->rss_event != event) {
-		ISC_LIST_APPEND(zone->rss_events, event, ev_link);
+	if (zone->rss != NULL && zone->rss != rss) {
+		ISC_LIST_APPEND(zone->rss_events, rss, link);
 		UNLOCK_ZONE(zone);
 		return;
 	}
 
 nextevent:
-	if (zone->rss_event != NULL) {
-		INSIST(zone->rss_event == event);
+	if (zone->rss != NULL) {
+		INSIST(zone->rss == rss);
 		UNLOCK_ZONE(zone);
 	} else {
-		zone->rss_event = event;
+		zone->rss = rss;
 		dns_diff_init(zone->mctx, &zone->rss_diff);
 
 		/*
@@ -16330,9 +16327,10 @@ nextevent:
 		if (rjournal != NULL) {
 			dns_journal_destroy(&rjournal);
 		}
-		isc_task_send(task, &event);
+		isc_async_run(zone->loop, receive_secure_serial, rss);
 		return;
 	}
+
 	/*
 	 * If something went wrong while trying to update the secure zone and
 	 * the latter was already signed before, do not apply raw zone deltas
@@ -16381,8 +16379,8 @@ nextevent:
 	}
 
 failure:
-	isc_event_free(&zone->rss_event);
-	event = ISC_LIST_HEAD(zone->rss_events);
+	isc_mem_put(zone->mctx, rss, sizeof(*rss));
+	zone->rss = NULL;
 
 	if (zone->rss_raw != NULL) {
 		dns_zone_detach(&zone->rss_raw);
@@ -16423,10 +16421,11 @@ failure:
 	}
 	dns_diff_clear(&zone->rss_diff);
 
-	if (event != NULL) {
+	rss = ISC_LIST_HEAD(zone->rss_events);
+	if (rss != NULL) {
 		LOCK_ZONE(zone);
 		isc_refcount_decrement(&zone->irefs);
-		ISC_LIST_UNLINK(zone->rss_events, event, ev_link);
+		ISC_LIST_UNLINK(zone->rss_events, rss, link);
 		goto nextevent;
 	}
 
@@ -16442,17 +16441,17 @@ failure:
 
 static isc_result_t
 zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
-	isc_event_t *e;
-	dns_zone_t *dummy = NULL;
+	struct rss *rss = NULL;
 
-	e = isc_event_allocate(zone->secure->mctx, zone,
-			       DNS_EVENT_ZONESECURESERIAL,
-			       receive_secure_serial, zone->secure,
-			       sizeof(struct secure_event));
-	((struct secure_event *)e)->serial = serial;
+	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
+	*rss = (struct rss){
+		.serial = serial,
+		.link = ISC_LINK_INITIALIZER,
+	};
+
 	INSIST(LOCKED_ZONE(zone->secure));
-	zone_iattach(zone->secure, &dummy);
-	isc_task_send(zone->secure->task, &e);
+	zone_iattach(zone->secure, &rss->zone);
+	isc_async_run(zone->secure->loop, receive_secure_serial, rss);
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SENDSECURE);
 	return (ISC_R_SUCCESS);
@@ -16791,23 +16790,18 @@ cleanup:
 }
 
 static void
-receive_secure_db(isc_task_t *task, isc_event_t *event) {
+receive_secure_db(void *arg) {
 	isc_result_t result;
-	dns_zone_t *zone = NULL;
-	dns_db_t *rawdb, *db = NULL;
+	struct rss *rss = (struct rss *)arg;
+	dns_zone_t *zone = rss->zone;
+	dns_db_t *rawdb = rss->db, *db = NULL;
 	dns_dbiterator_t *dbiterator = NULL;
 	dns_dbversion_t *version = NULL;
 	isc_time_t loadtime;
 	unsigned int oldserial = 0, *oldserialp = NULL;
 	nsec3paramlist_t nsec3list;
 
-	UNUSED(task);
-
 	ISC_LIST_INIT(nsec3list);
-
-	zone = event->ev_arg;
-	rawdb = ((struct secure_event *)event)->db;
-	isc_event_free(&event);
 
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || !inline_secure(zone)) {
@@ -16926,7 +16920,9 @@ failure:
 		}
 		dns_db_detach(&db);
 	}
+
 	dns_db_detach(&rawdb);
+	isc_mem_put(zone->mctx, rss, sizeof(*rss));
 	dns_zone_idetach(&zone);
 
 	INSIST(version == NULL);
@@ -16934,18 +16930,16 @@ failure:
 
 static isc_result_t
 zone_send_securedb(dns_zone_t *zone, dns_db_t *db) {
-	isc_event_t *e;
-	dns_db_t *dummy = NULL;
-	dns_zone_t *secure = NULL;
+	struct rss *rss = NULL;
 
-	e = isc_event_allocate(zone->secure->mctx, zone, DNS_EVENT_ZONESECUREDB,
-			       receive_secure_db, zone->secure,
-			       sizeof(struct secure_event));
-	dns_db_attach(db, &dummy);
-	((struct secure_event *)e)->db = dummy;
+	rss = isc_mem_get(zone->secure->mctx, sizeof(*rss));
+	*rss = (struct rss){ .link = ISC_LINK_INITIALIZER };
+
 	INSIST(LOCKED_ZONE(zone->secure));
-	zone_iattach(zone->secure, &secure);
-	isc_task_send(zone->secure->task, &e);
+	zone_iattach(zone->secure, &rss->zone);
+	dns_db_attach(db, &rss->db);
+	isc_async_run(zone->secure->loop, receive_secure_db, rss);
+
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SENDSECURE);
 	return (ISC_R_SUCCESS);
 }
