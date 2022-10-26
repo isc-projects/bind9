@@ -351,10 +351,7 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		origin = dns_rootname;
 	}
 
-	result = isc_lex_create(mctx, 64, &lex);
-	if (result != ISC_R_SUCCESS) {
-		goto failure;
-	}
+	isc_lex_create(mctx, 64, &lex);
 
 	datalen = strlen(data);
 	size = initial_size(datalen);

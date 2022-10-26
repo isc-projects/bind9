@@ -29,12 +29,8 @@ static isc_lex_t *lex = NULL;
 int
 LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 		     char ***argv __attribute__((unused))) {
-	isc_result_t result;
-
 	isc_mem_create(&mctx);
-
-	result = isc_lex_create(mctx, 1024, &lex);
-	REQUIRE(result == ISC_R_SUCCESS);
+	isc_lex_create(mctx, 1024, &lex);
 
 	return (0);
 }

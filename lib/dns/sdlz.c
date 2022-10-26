@@ -1816,10 +1816,7 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 	}
 
 	lex = NULL;
-	result = isc_lex_create(mctx, 64, &lex);
-	if (result != ISC_R_SUCCESS) {
-		goto failure;
-	}
+	isc_lex_create(mctx, 64, &lex);
 
 	size = initial_size(data);
 	do {

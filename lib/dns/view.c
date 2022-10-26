@@ -2165,7 +2165,7 @@ dns_view_loadnta(dns_view_t *view) {
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(isc_lex_create(view->mctx, 1025, &lex));
+	isc_lex_create(view->mctx, 1025, &lex);
 	CHECK(isc_lex_openfile(lex, view->nta_file));
 	CHECK(dns_view_getntatable(view, &ntatable));
 	isc_stdtime_get(&now);

@@ -663,7 +663,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 			   ".private");
 	INSIST(result == ISC_R_SUCCESS);
 
-	RETERR(isc_lex_create(mctx, 1500, &lex));
+	isc_lex_create(mctx, 1500, &lex);
 	RETERR(isc_lex_openfile(lex, newfilename));
 	isc_mem_put(mctx, newfilename, newfilenamelen);
 
@@ -843,7 +843,7 @@ dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
 		RETERR(DST_R_UNSUPPORTEDALG);
 	}
 
-	RETERR(isc_lex_create(key->mctx, 1500, &lex));
+	isc_lex_create(key->mctx, 1500, &lex);
 	RETERR(isc_lex_openbuffer(lex, buffer));
 	RETERR(key->func->parse(key, lex, NULL));
 out:
@@ -1587,10 +1587,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	 */
 
 	/* 1500 should be large enough for any key */
-	ret = isc_lex_create(mctx, 1500, &lex);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_lex_create(mctx, 1500, &lex);
 
 	memset(specials, 0, sizeof(specials));
 	specials['('] = 1;
@@ -1740,10 +1737,7 @@ dst_key_read_state(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	isc_result_t ret;
 	unsigned int opt = ISC_LEXOPT_EOL;
 
-	ret = isc_lex_create(mctx, 1500, &lex);
-	if (ret != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_lex_create(mctx, 1500, &lex);
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
 	ret = isc_lex_openfile(lex, filename);

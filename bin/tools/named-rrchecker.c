@@ -157,7 +157,7 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
+	isc_lex_create(mctx, 256, &lex);
 
 	/*
 	 * Set up to lex DNS master file.

@@ -352,10 +352,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	/*
 	 * Create a lexer as one is required by dns_rdata_fromtext().
 	 */
-	result = isc_lex_create(mctx, 64, &lex);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	isc_lex_create(mctx, 64, &lex);
 
 	/*
 	 * Set characters which will be treated as valid multi-line RDATA

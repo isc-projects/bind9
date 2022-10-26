@@ -530,7 +530,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	specials['"'] = 1;
 	specials['!'] = 1;
 
-	CHECK(isc_lex_create(pctx->mctx, 1024, &pctx->lexer));
+	isc_lex_create(pctx->mctx, 1024, &pctx->lexer);
 
 	isc_lex_setspecials(pctx->lexer, specials);
 	isc_lex_setcomments(pctx->lexer,

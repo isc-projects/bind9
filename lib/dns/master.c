@@ -547,10 +547,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		lctx->keep_lex = true;
 	} else {
 		lctx->lex = NULL;
-		result = isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_inc;
-		}
+		isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
 		lctx->keep_lex = false;
 		/*
 		 * If specials change update dns_test_rdatafromstring()
@@ -607,8 +604,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 	*lctxp = lctx;
 	return (ISC_R_SUCCESS);
 
-cleanup_inc:
-	incctx_destroy(mctx, lctx->inc);
 cleanup_ctx:
 	isc_mem_put(mctx, lctx, sizeof(*lctx));
 	return (result);
