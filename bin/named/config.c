@@ -866,18 +866,22 @@ resume:
 			goto cleanup;
 		}
 
-		/* Set the default port or tls-port */
-		if (port == 0) {
-			if (tlss[i] != NULL) {
-				port = def_tlsport;
-			} else {
-				port = def_port;
+		/* If the port is unset, take it from one of the upper levels */
+		if (isc_sockaddr_getport(&addrs[i]) == 0) {
+			in_port_t addr_port = port;
+
+			/* If unset, use the default port or tls-port */
+			if (addr_port == 0) {
+				if (tlss[i] != NULL) {
+					addr_port = def_tlsport;
+				} else {
+					addr_port = def_port;
+				}
 			}
+
+			isc_sockaddr_setport(&addrs[i], addr_port);
 		}
 
-		if (isc_sockaddr_getport(&addrs[i]) == 0) {
-			isc_sockaddr_setport(&addrs[i], port);
-		}
 		i++;
 	}
 	if (pushed != 0) {
