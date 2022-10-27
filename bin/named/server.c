@@ -33,6 +33,7 @@
 #endif
 
 #include <isc/aes.h>
+#include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/commandline.h>
@@ -7246,22 +7247,15 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 }
 
 static void
-tat_send(isc_task_t *task, isc_event_t *event) {
-	ns_tat_t *tat;
+tat_send(void *arg) {
+	ns_tat_t *tat = (ns_tat_t *)arg;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fdomain;
-	dns_name_t *domain;
+	dns_name_t *domain = NULL;
 	dns_rdataset_t nameservers;
 	isc_result_t result;
-	dns_name_t *keyname;
-	dns_name_t *tatname;
-
-	INSIST(event != NULL && event->ev_type == NAMED_EVENT_TATSEND);
-	INSIST(event->ev_arg != NULL);
-
-	UNUSED(task);
-
-	tat = event->ev_arg;
+	dns_name_t *keyname = NULL;
+	dns_name_t *tatname = NULL;
 
 	keyname = dns_fixedname_name(&tat->keyname);
 	tatname = dns_fixedname_name(&tat->tatname);
@@ -7325,27 +7319,23 @@ tat_send(isc_task_t *task, isc_event_t *event) {
 		isc_task_detach(&tat->task);
 		isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
 	}
-	isc_event_free(&event);
 }
 
 static void
 dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
       void *arg) {
-	struct dotat_arg *dotat_arg = arg;
+	struct dotat_arg *dotat_arg = (struct dotat_arg *)arg;
 	isc_result_t result;
 	dns_view_t *view = NULL;
-	isc_task_t *task = NULL;
 	ns_tat_t *tat = NULL;
-	isc_event_t *event = NULL;
 
 	REQUIRE(keytable != NULL);
 	REQUIRE(keynode != NULL);
 	REQUIRE(dotat_arg != NULL);
 
 	view = dotat_arg->view;
-	task = dotat_arg->task;
 
-	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
+	tat = isc_mem_get(view->mctx, sizeof(*tat));
 	*tat = (ns_tat_t){ 0 };
 
 	dns_rdataset_init(&tat->rdataset);
@@ -7354,11 +7344,11 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	result = get_tat_qname(dns_fixedname_initname(&tat->tatname), keyname,
 			       keynode);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(dotat_arg->view->mctx, tat, sizeof(*tat));
+		isc_mem_put(view->mctx, tat, sizeof(*tat));
 		return;
 	}
-	isc_mem_attach(dotat_arg->view->mctx, &tat->mctx);
-	isc_task_attach(task, &tat->task);
+	isc_mem_attach(view->mctx, &tat->mctx);
+	isc_task_attach(dotat_arg->task, &tat->task);
 	dns_view_attach(view, &tat->view);
 
 	/*
@@ -7375,9 +7365,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 	 * view->lock (dns_view_findzonecut) while holding keytable->lock
 	 * (dns_keytable_forall)
 	 */
-	event = isc_event_allocate(tat->mctx, keytable, NAMED_EVENT_TATSEND,
-				   tat_send, tat, sizeof(isc_event_t));
-	isc_task_send(task, &event);
+	isc_async_run(named_g_mainloop, tat_send, tat);
 }
 
 static void
