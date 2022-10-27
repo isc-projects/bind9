@@ -14244,8 +14244,8 @@ typedef struct {
  * Carry out a zone deletion scheduled by named_server_delzone().
  */
 static void
-rmzone(isc_task_t *task, isc_event_t *event) {
-	ns_dzctx_t *dz = (ns_dzctx_t *)event->ev_arg;
+rmzone(void *arg) {
+	ns_dzctx_t *dz = (ns_dzctx_t *)arg;
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw = NULL;
 	dns_catz_zone_t *catz = NULL;
 	char zonename[DNS_NAME_FORMATSIZE];
@@ -14260,8 +14260,6 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 #endif /* ifdef HAVE_LMDB */
 
 	REQUIRE(dz != NULL);
-
-	isc_event_free(&event);
 
 	/* Dig out configuration for this zone */
 	zone = dz->zone;
@@ -14398,7 +14396,6 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 	}
 	dns_zone_detach(&zone);
 	isc_mem_put(named_g_mctx, dz, sizeof(*dz));
-	isc_task_detach(&task);
 }
 
 /*
@@ -14417,8 +14414,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	const char *ptr;
 	bool added;
 	ns_dzctx_t *dz = NULL;
-	isc_event_t *dzevent = NULL;
-	isc_task_t *task = NULL;
 
 	REQUIRE(text != NULL);
 
@@ -14466,16 +14461,11 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 
 	/* Send cleanup event */
 	dz = isc_mem_get(named_g_mctx, sizeof(*dz));
-
-	dz->cleanup = cleanup;
-	dz->zone = NULL;
+	*dz = (ns_dzctx_t){
+		.cleanup = cleanup,
+	};
 	dns_zone_attach(zone, &dz->zone);
-	dzevent = isc_event_allocate(named_g_mctx, server, NAMED_EVENT_DELZONE,
-				     rmzone, dz, sizeof(isc_event_t));
-
-	dns_zone_gettask(zone, &task);
-	isc_task_send(task, &dzevent);
-	dz = NULL;
+	isc_async_run(dns_zone_getloop(zone), rmzone, dz);
 
 	/* Inform user about cleaning up stub/secondary zone files */
 	dns_zone_getraw(zone, &raw);

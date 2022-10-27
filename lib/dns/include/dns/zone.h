@@ -1308,17 +1308,6 @@ dns_zone_getredirecttype(dns_zone_t *zone);
  */
 
 void
-dns_zone_gettask(dns_zone_t *zone, isc_task_t **target);
-/*%<
- * Attach '*target' to the zone's task.
- *
- * Requires:
- *\li	'zone' to be valid initialised zone.
- *\li	'zone' to have a task.
- *\li	'target' to be != NULL && '*target' == NULL.
- */
-
-void
 dns_zone_notify(dns_zone_t *zone);
 /*%<
  * Generate notify events for this zone.

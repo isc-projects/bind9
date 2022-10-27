@@ -15696,12 +15696,6 @@ dns_zone_getorigin(dns_zone_t *zone) {
 }
 
 void
-dns_zone_gettask(dns_zone_t *zone, isc_task_t **target) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	isc_task_attach(zone->task, target);
-}
-
-void
 dns_zone_setidlein(dns_zone_t *zone, uint32_t idlein) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
