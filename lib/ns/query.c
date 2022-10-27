@@ -5878,6 +5878,7 @@ query_lookup(query_ctx_t *qctx) {
 	dns_clientinfo_t ci;
 	dns_name_t *rpzqname = NULL;
 	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	unsigned int dboptions;
 	dns_ttl_t stale_refresh = 0;
 	bool dbfind_stale = false;
@@ -5992,6 +5993,7 @@ query_lookup(query_ctx_t *qctx) {
 	if (dbfind_stale || stale_refresh_window || stale_timeout) {
 		dns_name_format(qctx->client->query.qname, namebuf,
 				sizeof(namebuf));
+		dns_rdatatype_format(qctx->qtype, typebuf, sizeof(typebuf));
 
 		inc_stats(qctx->client, ns_statscounter_trystale);
 
@@ -6015,10 +6017,10 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	if (dbfind_stale) {
-		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-			      "%s resolver failure, stale answer %s", namebuf,
-			      stale_found ? "used" : "unavailable");
+		isc_log_write(
+			ns_lctx, NS_LOGCATEGORY_SERVE_STALE, NS_LOGMODULE_QUERY,
+			ISC_LOG_INFO, "%s %s resolver failure, stale answer %s",
+			namebuf, typebuf, stale_found ? "used" : "unavailable");
 		if (stale_found) {
 			ns_client_extendederror(qctx->client, ede,
 						"resolver failure");
@@ -6037,9 +6039,10 @@ query_lookup(query_ctx_t *qctx) {
 		 */
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-			      "%s query within stale refresh time, stale "
+			      "%s %s query within stale refresh time, stale "
 			      "answer %s",
-			      namebuf, stale_found ? "used" : "unavailable");
+			      namebuf, typebuf,
+			      stale_found ? "used" : "unavailable");
 
 		if (stale_found) {
 			ns_client_extendederror(
@@ -6082,9 +6085,10 @@ query_lookup(query_ctx_t *qctx) {
 				isc_log_write(
 					ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 					NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-					"%s stale answer used, an attempt to "
-					"refresh the RRset will still be made",
-					namebuf);
+					"%s %s stale answer used, an attempt "
+					"to refresh the RRset will still be "
+					"made",
+					namebuf, typebuf);
 				qctx->refresh_rrset = STALE(qctx->rdataset);
 				ns_client_extendederror(
 					qctx->client, ede,
@@ -6098,8 +6102,8 @@ query_lookup(query_ctx_t *qctx) {
 			 */
 			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s client timeout, stale answer %s",
-				      namebuf,
+				      "%s %s client timeout, stale answer %s",
+				      namebuf, typebuf,
 				      stale_found ? "used" : "unavailable");
 			if (stale_found) {
 				ns_client_extendederror(qctx->client, ede,

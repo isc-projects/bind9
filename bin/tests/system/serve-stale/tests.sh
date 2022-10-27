@@ -1720,7 +1720,7 @@ t2=`$PERL -e 'print time()'`
 n=$((n+1))
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-wait_for_log 5 "data.example client timeout, stale answer used" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT client timeout, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (client timeout)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -1764,7 +1764,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check not in cache longttl.example TXT times out (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-wait_for_log 4 "longttl.example client timeout, stale answer unavailable" ns3/named.run || ret=1
+wait_for_log 4 "longttl.example TXT client timeout, stale answer unavailable" ns3/named.run || ret=1
 grep "timed out" dig.out.test$n > /dev/null || ret=1
 grep ";; no servers could be reached" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1880,7 +1880,7 @@ ret=0
 echo_i "check stale nodata.example TXT comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 nodata.example TXT > dig.out.test$n
-wait_for_log 5 "nodata.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "nodata.example TXT stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -1893,7 +1893,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -1969,7 +1969,7 @@ ret=0
 echo_i "check stale cname1.stale.test A comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 cname1.stale.test A > dig.out.test$n
-wait_for_log 5 "cname1.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "cname1.stale.test A stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
@@ -2008,7 +2008,7 @@ ret=0
 echo_i "check stale cname2.stale.test A comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 cname2.stale.test A > dig.out.test$n
-wait_for_log 5 "cname2.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "cname2.stale.test A stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n > /dev/null || ret=1
@@ -2085,7 +2085,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2134,7 +2134,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2155,7 +2155,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache within stale-refresh-time (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT query within stale refresh time" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (query within stale refresh time window)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2182,7 +2182,7 @@ ret=0
 echo_i "check stale data.example TXT was not refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT query within stale refresh time" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (query within stale refresh time window)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2197,7 +2197,7 @@ n=$((n+1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (stale data prioritized over lookup)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2305,7 +2305,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache (fetch-limits) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT resolver failure, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (resolver failure" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
@@ -2319,7 +2319,7 @@ ret=0
 echo_i "check stale data.example TXT comes from cache again (fetch-limits) ($n)"
 nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
+wait_for_log 5 "data.example TXT resolver failure, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (resolver failure" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
