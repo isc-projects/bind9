@@ -60,7 +60,7 @@
 #include <dst/dst.h>
 
 /*%
- * A dns_validatorevent_t is sent when a 'validation' completes.
+ * A dns_valstatus_t is sent when a 'validation' completes.
  * \brief
  * 'name', 'rdataset', 'sigrdataset', and 'message' are the values that were
  * supplied when dns_validator_create() was called.  They are returned to the
@@ -69,14 +69,19 @@
  * If the RESULT is ISC_R_SUCCESS and the answer is secure then
  * proofs[] will contain the names of the NSEC records that hold the
  * various proofs.  Note the same name may appear multiple times.
+ *
+ * The structure is freed by dns_validator_destroy().
  */
-typedef struct dns_validatorevent {
-	ISC_EVENT_COMMON(struct dns_validatorevent);
+typedef struct dns_valstatus {
 	dns_validator_t *validator;
 	isc_result_t	 result;
+
+	isc_mem_t *mctx;
+
 	/*
 	 * Name and type of the response to be validated.
 	 */
+	dns_fixedname_t fname;
 	dns_name_t     *name;
 	dns_rdatatype_t type;
 	/*
@@ -101,7 +106,7 @@ typedef struct dns_validatorevent {
 	 * Answer is secure.
 	 */
 	bool secure;
-} dns_validatorevent_t;
+} dns_valstatus_t;
 
 #define DNS_VALIDATOR_NOQNAMEPROOF    0
 #define DNS_VALIDATOR_NODATAPROOF     1
@@ -121,28 +126,29 @@ struct dns_validator {
 	isc_mutex_t  lock;
 	dns_view_t  *view;
 	/* Locked by lock. */
-	unsigned int	      options;
-	unsigned int	      attributes;
-	dns_validatorevent_t *event;
-	dns_fetch_t	     *fetch;
-	dns_validator_t	     *subvalidator;
-	dns_validator_t	     *parent;
-	dns_keytable_t	     *keytable;
-	dst_key_t	     *key;
-	dns_rdata_rrsig_t    *siginfo;
-	isc_task_t	     *task;
-	isc_taskaction_t      action;
-	void		     *arg;
-	unsigned int	      labels;
-	dns_rdataset_t	     *currentset;
-	dns_rdataset_t	     *keyset;
-	dns_rdataset_t	     *dsset;
-	dns_rdataset_t	      fdsset;
-	dns_rdataset_t	      frdataset;
-	dns_rdataset_t	      fsigrdataset;
-	dns_fixedname_t	      fname;
-	dns_fixedname_t	      wild;
-	dns_fixedname_t	      closest;
+	unsigned int	   options;
+	unsigned int	   attributes;
+	dns_valstatus_t	  *vstat;
+	dns_fetch_t	  *fetch;
+	dns_validator_t	  *subvalidator;
+	dns_validator_t	  *parent;
+	dns_keytable_t	  *keytable;
+	dst_key_t	  *key;
+	dns_rdata_rrsig_t *siginfo;
+	isc_task_t	  *task;
+	isc_loop_t	  *loop;
+	isc_job_cb	   cb;
+	void		  *arg;
+	unsigned int	   labels;
+	dns_rdataset_t	  *currentset;
+	dns_rdataset_t	  *keyset;
+	dns_rdataset_t	  *dsset;
+	dns_rdataset_t	   fdsset;
+	dns_rdataset_t	   frdataset;
+	dns_rdataset_t	   fsigrdataset;
+	dns_fixedname_t	   fname;
+	dns_fixedname_t	   wild;
+	dns_fixedname_t	   closest;
 	ISC_LINK(dns_validator_t) link;
 	bool	      mustbesecure;
 	unsigned int  depth;
@@ -165,8 +171,8 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     dns_validator_t **validatorp);
+		     isc_task_t *task, isc_loop_t *loop, isc_job_cb cb,
+		     void *arg, dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
  *
@@ -193,8 +199,11 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  * The validation is performed in the context of 'view'.
  *
- * When the validation finishes, a dns_validatorevent_t with
- * the given 'action' and 'arg' are sent to 'task'.
+ * When the validation finishes, the callback function 'cb' is
+ * called, passing a dns_valstatus_t object which contains a
+ * poiner to 'arg'. The caller is responsible for freeing this
+ * object.
+ *
  * Its 'result' field will be ISC_R_SUCCESS iff the
  * response was successfully proven to be either secure or
  * part of a known insecure domain.
