@@ -149,9 +149,8 @@ struct ns_clientmgr {
 	isc_loopmgr_t *loopmgr;
 	isc_refcount_t references;
 	uint32_t       tid;
-
-	/* Attached by clients, needed for e.g. recursion */
-	isc_task_t *task;
+	isc_task_t    *task;
+	isc_loop_t    *loop;
 
 	dns_aclenv_t *aclenv;
 
