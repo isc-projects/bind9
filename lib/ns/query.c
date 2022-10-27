@@ -6761,18 +6761,16 @@ cleanup:
 }
 
 static void
-query_hookresume(isc_task_t *task, isc_event_t *event) {
-	ns_hook_resevent_t *rev = (ns_hook_resevent_t *)event;
+query_hookresume(void *arg) {
+	ns_hook_resume_t *rev = (ns_hook_resume_t *)arg;
 	ns_hookasync_t *hctx = NULL;
-	ns_client_t *client = rev->ev_arg;
+	ns_client_t *client = rev->arg;
 	query_ctx_t *qctx = rev->saved_qctx;
 	bool canceled;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_hookresume");
 
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(task == client->manager->task);
-	REQUIRE(event->ev_type == NS_EVENT_HOOKASYNCDONE);
 
 	LOCK(&client->query.fetchlock);
 	if (client->query.hookactx != NULL) {
@@ -6898,10 +6896,10 @@ query_hookresume(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
+	isc_mem_put(hctx->mctx, rev, sizeof(*rev));
 	hctx->destroy(&hctx);
 	qctx_destroy(qctx);
 	isc_mem_put(client->manager->mctx, qctx, sizeof(*qctx));
-	isc_event_free(&event);
 }
 
 isc_result_t
@@ -6925,7 +6923,7 @@ ns_query_hookasync(query_ctx_t *qctx, ns_query_starthookasync_t runasync,
 	saved_qctx = isc_mem_get(client->manager->mctx, sizeof(*saved_qctx));
 	qctx_save(qctx, saved_qctx);
 	result = runasync(saved_qctx, client->manager->mctx, arg,
-			  client->manager->task, query_hookresume, client,
+			  client->manager->loop, query_hookresume, client,
 			  &client->query.hookactx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_and_detach_from_quota;

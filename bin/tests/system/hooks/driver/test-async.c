@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <isc/async.h>
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/ht.h>
@@ -30,7 +31,6 @@
 #include <isc/util.h>
 
 #include <ns/client.h>
-#include <ns/events.h>
 #include <ns/hooks.h>
 #include <ns/log.h>
 #include <ns/query.h>
@@ -59,7 +59,7 @@ typedef struct async_instance {
 
 typedef struct state {
 	bool async;
-	ns_hook_resevent_t *rev;
+	ns_hook_resume_t *rev;
 	ns_hookpoint_t hookpoint;
 	isc_result_t origresult;
 } state_t;
@@ -277,29 +277,31 @@ destroyasync(ns_hookasync_t **ctxp) {
 }
 
 static isc_result_t
-doasync(query_ctx_t *qctx, isc_mem_t *mctx, void *arg, isc_task_t *task,
-	isc_taskaction_t action, void *evarg, ns_hookasync_t **ctxp) {
-	ns_hook_resevent_t *rev = (ns_hook_resevent_t *)isc_event_allocate(
-		mctx, task, NS_EVENT_HOOKASYNCDONE, action, evarg,
-		sizeof(*rev));
+doasync(query_ctx_t *qctx, isc_mem_t *mctx, void *arg, isc_loop_t *loop,
+	isc_job_cb cb, void *evarg, ns_hookasync_t **ctxp) {
+	ns_hook_resume_t *rev = isc_mem_get(mctx, sizeof(*rev));
 	ns_hookasync_t *ctx = isc_mem_get(mctx, sizeof(*ctx));
 	state_t *state = (state_t *)arg;
 
 	logmsg("doasync");
-	*ctx = (ns_hookasync_t){ .mctx = NULL };
+	*ctx = (ns_hookasync_t){
+		.cancel = cancelasync,
+		.destroy = destroyasync,
+	};
 	isc_mem_attach(mctx, &ctx->mctx);
-	ctx->cancel = cancelasync;
-	ctx->destroy = destroyasync;
 
-	rev->hookpoint = state->hookpoint;
-	rev->origresult = state->origresult;
 	qctx->result = DNS_R_NOTIMP;
-	rev->saved_qctx = qctx;
-	rev->ctx = ctx;
+	*rev = (ns_hook_resume_t){
+		.hookpoint = state->hookpoint,
+		.origresult = qctx->result,
+		.saved_qctx = qctx,
+		.ctx = ctx,
+		.arg = evarg,
+	};
 
 	state->rev = rev;
 
-	isc_task_send(task, (isc_event_t **)&rev);
+	isc_async_run(loop, cb, rev);
 
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);

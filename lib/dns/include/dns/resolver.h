@@ -52,6 +52,7 @@
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 
 #include <dns/fixedname.h>

@@ -19,7 +19,6 @@
 
 #include <isc/buffer.h>
 #include <isc/netaddr.h>
-#include <isc/task.h>
 #include <isc/types.h>
 
 #include <dns/rdataset.h>
@@ -243,9 +242,11 @@ struct query_ctx {
 	int	     line;   /* line to report error */
 };
 
-typedef isc_result_t (*ns_query_starthookasync_t)(
-	query_ctx_t *qctx, isc_mem_t *mctx, void *arg, isc_task_t *task,
-	isc_taskaction_t action, void *evarg, ns_hookasync_t **ctxp);
+typedef isc_result_t (*ns_query_starthookasync_t)(query_ctx_t *qctx,
+						  isc_mem_t *mctx, void *arg,
+						  isc_loop_t *loop,
+						  isc_job_cb cb, void *evarg,
+						  ns_hookasync_t **ctxp);
 
 /*
  * The following functions are expected to be used only within query.c

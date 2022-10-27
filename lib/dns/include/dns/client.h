@@ -73,7 +73,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTVIEW_NAME "_dnsclient"
 
 /*%
- * A dns_clientresevent_t is sent when name resolution performed by a client
+ * A dns_clientresume_t is sent when name resolution performed by a client
  * completes.  'result' stores the result code of the entire resolution
  * procedure.  'vresult' specifically stores the result code of DNSSEC
  * validation if it is performed.  When name resolution successfully completes,
@@ -81,12 +81,12 @@ ISC_LANG_BEGINDECLS
  * RRsets.  It is the receiver's responsibility to free this list by calling
  * dns_client_freeresanswer() before freeing the event structure.
  */
-typedef struct dns_clientresevent {
-	ISC_EVENT_COMMON(struct dns_clientresevent);
+typedef struct dns_clientresume {
+	ISC_EVENT_COMMON(struct dns_clientresume);
 	isc_result_t   result;
 	isc_result_t   vresult;
 	dns_namelist_t answerlist;
-} dns_clientresevent_t; /* too long? */
+} dns_clientresume_t; /* too long? */
 
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
@@ -232,7 +232,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  *
  * dns_client_startresolve() is an asynchronous version of dns_client_resolve()
  * and does not block.  When name resolution is completed, 'action' will be
- * called with the argument of a 'dns_clientresevent_t' object, which contains
+ * called with the argument of a 'dns_clientresume_t' object, which contains
  * the resulting list of answer names (on success).  On return, '*transp' is
  * set to an opaque transaction ID so that the caller can cancel this
  * resolution process.

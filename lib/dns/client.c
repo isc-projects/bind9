@@ -115,7 +115,7 @@ typedef struct resctx {
 	dns_fetch_t *fetch;
 	dns_namelist_t namelist;
 	isc_result_t result;
-	dns_clientresevent_t *event;
+	dns_clientresume_t *event;
 	dns_rdataset_t *rdataset;
 	dns_rdataset_t *sigrdataset;
 } resctx_t;
@@ -878,7 +878,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 static void
 resolve_done(isc_task_t *task, isc_event_t *event) {
 	resarg_t *resarg = event->ev_arg;
-	dns_clientresevent_t *rev = (dns_clientresevent_t *)event;
+	dns_clientresume_t *rev = (dns_clientresume_t *)event;
 	dns_name_t *name = NULL;
 	isc_result_t result;
 
@@ -955,7 +955,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 			unsigned int options, isc_task_t *task,
 			isc_taskaction_t action, void *arg,
 			dns_clientrestrans_t **transp) {
-	dns_clientresevent_t *event = NULL;
+	dns_clientresume_t *event = NULL;
 	resctx_t *rctx = NULL;
 	isc_task_t *tclone = NULL;
 	isc_mem_t *mctx;
@@ -980,7 +980,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	 */
 	tclone = NULL;
 	isc_task_attach(task, &tclone);
-	event = (dns_clientresevent_t *)isc_event_allocate(
+	event = (dns_clientresume_t *)isc_event_allocate(
 		mctx, tclone, DNS_EVENT_CLIENTRESDONE, action, arg,
 		sizeof(*event));
 	event->result = DNS_R_SERVFAIL;
