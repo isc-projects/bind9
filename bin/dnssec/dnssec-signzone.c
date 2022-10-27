@@ -117,9 +117,8 @@ static int nsec_datatype = dns_rdatatype_nsec;
 #define SOA_SERIAL_UNIXTIME  2
 #define SOA_SERIAL_DATE	     3
 
-typedef struct signer_event sevent_t;
-struct signer_event {
-	ISC_EVENT_COMMON(sevent_t);
+typedef struct signer_work swork_t;
+struct signer_work {
 	dns_fixedname_t *fname;
 	dns_dbnode_t *node;
 };
@@ -159,8 +158,7 @@ static dns_iterations_t nsec3iter = 0U;
 static unsigned char saltbuf[255];
 static unsigned char *gsalt = saltbuf;
 static size_t salt_length = 0;
-static isc_task_t *write_task = NULL;
-static unsigned int ntasks = 0;
+static unsigned int nloops = 0;
 static atomic_bool shuttingdown;
 static atomic_bool finished;
 static bool nokeys = false;
@@ -193,7 +191,7 @@ static bool no_max_check = false;
 	}
 
 static void
-sign(isc_task_t *task, isc_event_t *event);
+sign(void *arg);
 
 /*%
  * Store a copy of 'name' in 'fzonecut' and return a pointer to that copy.
@@ -1600,17 +1598,19 @@ signapex(void) {
  * lock.
  */
 static void
-assignwork(isc_task_t *task) {
+assignwork(void *arg) {
 	dns_fixedname_t *fname = NULL;
 	dns_name_t *name = NULL;
 	dns_dbnode_t *node = NULL;
-	sevent_t *sevent = NULL;
 	dns_rdataset_t nsec;
 	bool found;
 	isc_result_t result;
 	static dns_name_t *zonecut = NULL; /* Protected by namelock. */
 	static dns_fixedname_t fzonecut;   /* Protected by namelock. */
 	static unsigned int ended = 0;	   /* Protected by namelock. */
+	swork_t *swork = NULL;
+
+	UNUSED(arg);
 
 	if (atomic_load(&shuttingdown)) {
 		return;
@@ -1619,8 +1619,7 @@ assignwork(isc_task_t *task) {
 	LOCK(&namelock);
 	if (atomic_load(&finished)) {
 		ended++;
-		if (ended == ntasks) {
-			isc_task_detach(&write_task);
+		if (ended == nloops) {
 			isc_loopmgr_shutdown(loopmgr);
 		}
 		goto unlock;
@@ -1696,93 +1695,53 @@ assignwork(isc_task_t *task) {
 	}
 	if (!found) {
 		ended++;
-		if (ended == ntasks) {
-			isc_task_detach(&write_task);
+		if (ended == nloops) {
 			isc_loopmgr_shutdown(loopmgr);
 		}
 		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
 		goto unlock;
 	}
-	sevent = (sevent_t *)isc_event_allocate(mctx, task, SIGNER_EVENT_WORK,
-						sign, NULL, sizeof(sevent_t));
 
-	sevent->node = node;
-	sevent->fname = fname;
-	isc_task_send(task, ISC_EVENT_PTR(&sevent));
+	swork = isc_mem_get(mctx, sizeof(*swork));
+	*swork = (swork_t){
+		.node = node,
+		.fname = fname,
+	};
 unlock:
 	UNLOCK(&namelock);
-}
-
-/*%
- * Start a worker task
- */
-static void
-startworker(void *arg) {
-	isc_task_t **tasks = (isc_task_t **)arg;
-	isc_result_t result;
-	int tid;
-
-	REQUIRE(tasks != NULL);
-
-	tid = isc_tid();
-	result = isc_task_create(taskmgr, &tasks[tid], tid);
-	if (result != ISC_R_SUCCESS) {
-		fatal("failed to create task: %s", isc_result_totext(result));
+	if (swork != NULL) {
+		sign(swork);
 	}
-
-	assignwork(tasks[tid]);
-}
-
-/*%
- * Finish a worker task
- */
-static void
-workerdone(void *arg) {
-	isc_task_t **tasks = (isc_task_t **)arg;
-
-	isc_task_detach(&tasks[isc_tid()]);
 }
 
 /*%
  * Write a node to the output file, and restart the worker task.
  */
 static void
-writenode(isc_task_t *task, isc_event_t *event) {
-	sevent_t *sevent = (sevent_t *)event;
-
+writenode(swork_t *swork) {
 	LOCK(&namelock);
-	dumpnode(dns_fixedname_name(sevent->fname), sevent->node);
+	dumpnode(dns_fixedname_name(swork->fname), swork->node);
 	UNLOCK(&namelock);
-	cleannode(gdb, gversion, sevent->node);
-	dns_db_detachnode(gdb, &sevent->node);
-	isc_mem_put(mctx, sevent->fname, sizeof(dns_fixedname_t));
-	assignwork(task);
-	isc_event_free(&event);
+	cleannode(gdb, gversion, swork->node);
+	dns_db_detachnode(gdb, &swork->node);
+	isc_mem_put(mctx, swork->fname, sizeof(dns_fixedname_t));
+	isc_mem_put(mctx, swork, sizeof(*swork));
+	isc_job_run(loopmgr, assignwork, NULL);
 }
 
 /*%
  *  Sign a database node.
  */
 static void
-sign(isc_task_t *task, isc_event_t *event) {
-	dns_fixedname_t *fname;
-	dns_dbnode_t *node;
-	sevent_t *sevent, *wevent;
-
-	UNUSED(task);
-
-	sevent = (sevent_t *)event;
-	node = sevent->node;
-	fname = sevent->fname;
-	isc_event_free(&event);
+sign(void *arg) {
+	swork_t *swork = (swork_t *)arg;
+	dns_fixedname_t *fname = swork->fname;
+	dns_dbnode_t *node = swork->node;
 
 	signname(node, dns_fixedname_name(fname));
-	wevent = (sevent_t *)isc_event_allocate(mctx, write_task,
-						SIGNER_EVENT_WRITE, writenode,
-						NULL, sizeof(sevent_t));
-	wevent->node = node;
-	wevent->fname = fname;
-	isc_task_send(write_task, ISC_EVENT_PTR(&wevent));
+	swork->node = node;
+	swork->fname = fname;
+	writenode(swork);
 }
 
 /*%
@@ -3391,7 +3350,6 @@ main(int argc, char *argv[]) {
 	bool free_output = false;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
-	isc_task_t **tasks = NULL;
 	hashlist_t hashlist;
 	bool make_keyset = false;
 	bool set_salt = false;
@@ -3598,8 +3556,8 @@ main(int argc, char *argv[]) {
 
 		case 'n':
 			endp = NULL;
-			ntasks = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0' || ntasks > INT32_MAX) {
+			nloops = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0' || nloops > INT32_MAX) {
 				fatal("number of cpus must be numeric");
 			}
 			break;
@@ -3740,10 +3698,10 @@ main(int argc, char *argv[]) {
 		cycle = (endtime - starttime) / 4;
 	}
 
-	if (ntasks == 0) {
-		ntasks = isc_os_ncpus();
+	if (nloops == 0) {
+		nloops = isc_os_ncpus();
 	}
-	vbprintf(4, "using %d cpus\n", ntasks);
+	vbprintf(4, "using %d cpus\n", nloops);
 
 	rdclass = strtoclass(classname);
 
@@ -3751,12 +3709,7 @@ main(int argc, char *argv[]) {
 		directory = ".";
 	}
 
-	isc_managers_create(&mctx, ntasks, &loopmgr, &netmgr, &taskmgr);
-
-	result = isc_task_create(taskmgr, &write_task, 0);
-	if (result != ISC_R_SUCCESS) {
-		fatal("failed to create task: %s", isc_result_totext(result));
-	}
+	isc_managers_create(&mctx, nloops, &loopmgr, &netmgr, &taskmgr);
 
 	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS) {
@@ -4062,19 +4015,12 @@ main(int argc, char *argv[]) {
 		 * There is more work to do.  Spread it out over multiple
 		 * processors if possible.
 		 */
-		tasks = isc_mem_getx(mctx, ntasks * sizeof(isc_task_t *),
-				     ISC_MEM_ZERO);
-
-		isc_loopmgr_setup(loopmgr, startworker, tasks);
-		isc_loopmgr_teardown(loopmgr, workerdone, tasks);
-
+		isc_loopmgr_setup(loopmgr, assignwork, NULL);
 		isc_loopmgr_run(loopmgr);
 
 		if (!atomic_load(&finished)) {
 			fatal("process aborted by user");
 		}
-
-		isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	}
 	atomic_store(&shuttingdown, true);
 	postsign();
