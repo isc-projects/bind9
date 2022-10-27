@@ -356,6 +356,7 @@ streamdns_transport_connected(isc_nmhandle_t *handle, isc_result_t result,
 	streamdns_save_alpn_status(sock, handle);
 	isc__nmhandle_set_manual_timer(sock->outerhandle, true);
 	streamhandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
+	(void)isc_nmhandle_set_tcp_nodelay(sock->outerhandle, true);
 	streamdns_call_connect_cb(sock, streamhandle, result);
 	isc_nmhandle_detach(&streamhandle);
 
@@ -720,6 +721,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nm_gettimeouts(nsock->worker->netmgr, &initial, NULL, NULL, NULL);
 	/* settimeout restarts the timer */
 	isc_nmhandle_settimeout(nsock->outerhandle, initial);
+	(void)isc_nmhandle_set_tcp_nodelay(nsock->outerhandle, true);
 	streamdns_handle_incoming_data(nsock, nsock->outerhandle, NULL, 0);
 
 exit:
