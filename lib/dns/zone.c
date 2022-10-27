@@ -2355,7 +2355,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 			      isc_result_totext(result));
 		goto cleanup;
 	}
-	dns_db_settask(db, zone->task);
+	dns_db_setloop(db, zone->loop);
 
 	if (zone->type == dns_zone_primary ||
 	    zone->type == dns_zone_secondary || zone->type == dns_zone_mirror)
@@ -14978,7 +14978,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 					     isc_result_totext(result));
 				goto cleanup;
 			}
-			dns_db_settask(stub->db, zone->task);
+			dns_db_setloop(stub->db, zone->loop);
 		}
 
 		result = dns_db_newversion(stub->db, &stub->version);
@@ -17666,7 +17666,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 		zone_detachdb(zone);
 	}
 	zone_attachdb(zone, db);
-	dns_db_settask(zone->db, zone->task);
+	dns_db_setloop(zone->db, zone->loop);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED | DNS_ZONEFLG_NEEDNOTIFY);
 	return (ISC_R_SUCCESS);
 

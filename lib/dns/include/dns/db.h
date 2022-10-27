@@ -139,7 +139,7 @@ typedef struct dns_dbmethods {
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
 	bool (*ispersistent)(dns_db_t *db);
 	void (*overmem)(dns_db_t *db, bool overmem);
-	void (*settask)(dns_db_t *db, isc_task_t *);
+	void (*setloop)(dns_db_t *db, isc_loop_t *);
 	isc_result_t (*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 			     dns_dbnode_t **targetp);
@@ -1379,13 +1379,13 @@ dns_db_hashsize(dns_db_t *db);
  */
 
 void
-dns_db_settask(dns_db_t *db, isc_task_t *task);
+dns_db_setloop(dns_db_t *db, isc_loop_t *loop);
 /*%<
- * If task is set then the final detach maybe performed asynchronously.
+ * If loop is set then the final detach maybe performed asynchronously.
  *
  * Requires:
  * \li	'db' is a valid database.
- * \li	'task' to be valid or NULL.
+ * \li	'loop' to be valid or NULL.
  */
 
 bool

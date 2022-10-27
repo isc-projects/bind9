@@ -41,7 +41,6 @@
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -72,7 +71,7 @@ dns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
 	}
 
 	if (with_cache) {
-		result = dns_cache_create(taskmgr, dns_rdataclass_in, "",
+		result = dns_cache_create(loopmgr, dns_rdataclass_in, "",
 					  &cache);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);

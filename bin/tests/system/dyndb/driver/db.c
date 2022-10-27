@@ -419,12 +419,12 @@ overmem(dns_db_t *db, bool over) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+setloop(dns_db_t *db, isc_loop_t *loop) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	dns_db_settask(sampledb->rbtdb, task);
+	dns_db_setloop(sampledb->rbtdb, loop);
 }
 
 static isc_result_t
@@ -570,7 +570,7 @@ static dns_dbmethods_t sampledb_methods = {
 	printnode,	createiterator, findrdataset,
 	allrdatasets,	addrdataset,	subtractrdataset,
 	deleterdataset, issecure,	nodecount,
-	ispersistent,	overmem,	settask,
+	ispersistent,	overmem,	setloop,
 	getoriginnode,	transfernode,	getnsec3parameters,
 	findnsec3node,	setsigningtime, getsigningtime,
 	resigned,	isdnssec,	getrrsetstats,
