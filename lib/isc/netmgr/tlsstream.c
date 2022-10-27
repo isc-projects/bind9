@@ -882,7 +882,7 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(sock->recv_cb == NULL);
 
 	if (inactive(sock)) {
-		cb(handle, ISC_R_NOTCONNECTED, NULL, cbarg);
+		cb(handle, ISC_R_CANCELED, NULL, cbarg);
 		return;
 	}
 
