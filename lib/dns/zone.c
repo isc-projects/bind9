@@ -18354,7 +18354,7 @@ sendtoprimary(dns_forward_t *forward) {
 	    zone->primarytlsnames[forward->which] != NULL)
 	{
 		dns_view_t *view = dns_zone_getview(zone);
-		dns_name_t *tlsname = zone->primarytlsnames[zone->curprimary];
+		dns_name_t *tlsname = zone->primarytlsnames[forward->which];
 
 		result = dns_view_gettransport(view, DNS_TRANSPORT_TLS, tlsname,
 					       &forward->transport);

@@ -34,3 +34,9 @@ zone "example2" {
 	file "example2.bk";
 	primaries { 10.53.0.1; };
 };
+
+zone "example3" {
+	type secondary;
+	file "example3.bk";
+	primaries { 10.53.0.1; };
+};
