@@ -32,6 +32,8 @@ copy_setports ns8/named.conf.in ns8/named.conf
 
 copy_setports ns4/named.conf.base ns4/named.conf
 
+cp ns1/dot-fallback.db.in ns1/dot-fallback.db
+
 cp ns2/sec.db.in ns2/sec.db
 touch -t 200101010000 ns2/sec.db
 

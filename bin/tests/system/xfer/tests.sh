@@ -35,13 +35,24 @@ tmp=0
 # Spin to allow the zone to transfer.
 #
 wait_for_xfer () {
-	$DIG $DIGOPTS example. @10.53.0.3 axfr > dig.out.ns3.test$n || return 1
-	grep "^;" dig.out.ns3.test$n > /dev/null && return 1
+	ZONE=$1
+	SERVER=$2
+	$DIG $DIGOPTS $ZONE @$SERVER axfr > dig.out.test$n || return 1
+	grep "^;" dig.out.test$n > /dev/null && return 1
 	return 0
 }
-retry_quiet 25 wait_for_xfer || tmp=1
-grep "^;" dig.out.ns3.test$n | cat_i
-digcomp dig1.good dig.out.ns3.test$n || tmp=1
+retry_quiet 25 wait_for_xfer example. 10.53.0.3 || tmp=1
+grep "^;" dig.out.test$n | cat_i
+digcomp dig1.good dig.out.test$n || tmp=1
+if test $tmp != 0 ; then echo_i "failed"; fi
+status=$((status+tmp))
+
+n=$((n+1))
+echo_i "testing zone transfer functionality (fallback to DNS after DoT failed) ($n)"
+tmp=0
+retry_quiet 25 wait_for_xfer dot-fallback. 10.53.0.2 || tmp=1
+grep "^;" dig.out.test$n | cat_i
+digcomp dig3.good dig.out.test$n || tmp=1
 if test $tmp != 0 ; then echo_i "failed"; fi
 status=$((status+tmp))
 

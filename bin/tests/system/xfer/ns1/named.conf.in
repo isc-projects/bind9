@@ -59,3 +59,8 @@ zone "xfer-stats" {
 	type primary;
 	file "xfer-stats.db";
 };
+
+zone "dot-fallback" {
+	type primary;
+	file "dot-fallback.db";
+};
