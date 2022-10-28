@@ -55,10 +55,11 @@
 #define DNS_MASTER_CHECKMX     0x00000800
 #define DNS_MASTER_CHECKMXFAIL 0x00001000
 
-#define DNS_MASTER_RESIGN   0x00002000
-#define DNS_MASTER_KEY	    0x00004000 /*%< Loading a key zone master file. */
-#define DNS_MASTER_NOTTL    0x00008000 /*%< Don't require ttl. */
-#define DNS_MASTER_CHECKTTL 0x00010000 /*%< Check max-zone-ttl */
+#define DNS_MASTER_RESIGN    0x00002000
+#define DNS_MASTER_KEY	     0x00004000 /*%< Loading a key zone master file. */
+#define DNS_MASTER_NOTTL     0x00008000 /*%< Don't require ttl. */
+#define DNS_MASTER_CHECKTTL  0x00010000 /*%< Check max-zone-ttl */
+#define DNS_MASTER_CHECKSVCB 0x00020000 /*%< Check SVBC records */
 
 ISC_LANG_BEGINDECLS
 

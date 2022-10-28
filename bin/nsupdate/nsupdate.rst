@@ -310,6 +310,12 @@ The command formats and their meanings are as follows:
    By default check-names processing is on. If check-names processing
    fails, the record is not added to the UPDATE message.
 
+``check-svbc [boolean]``
+   This command turns on or off check-svcb processing on records to be added.
+   Check-svcb has no effect on prerequisites or records to be deleted.
+   By default check-svcb processing is on. If check-svcb processing
+   fails, the record is not added to the UPDATE message.
+
 ``prereq nxdomain domain-name``
    This command requires that no resource record of any type exist with the name
    ``domain-name``.

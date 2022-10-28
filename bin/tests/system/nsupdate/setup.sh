@@ -51,6 +51,7 @@ sed 's/example.nil/unixtime.nil/g' ns1/example1.db > ns1/unixtime.db
 sed 's/example.nil/yyyymmddvv.nil/g' ns1/example1.db > ns1/yyyymmddvv.db
 sed 's/example.nil/keytests.nil/g' ns1/example1.db > ns1/keytests.db
 cp -f ns3/example.db.in ns3/example.db
+cp -f ns3/relaxed.db.in ns3/relaxed.db
 cp -f ns3/too-big.test.db.in ns3/too-big.test.db
 
 # update_test.pl has its own zone file because it

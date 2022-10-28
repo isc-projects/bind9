@@ -2253,6 +2253,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "check-sibling", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-spf", &cfg_type_warn, CFG_ZONE_PRIMARY },
 	{ "check-srv-cname", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
+	{ "check-svcb", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-wildcard", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "dialup", &cfg_type_dialuptype,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB },

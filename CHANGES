@@ -1,3 +1,8 @@
+6004.	[func]		Add check-svcb to control the checking of additional
+			constraints on SVBC records.  This change impacts on
+			named, named-checkconf, named-checkzone,
+			named-compilezone and nsupdate. [GL #3576]
+
 6003.	[bug]		Fix an inheritance bug when setting the port on
 			remote servers in configuration. [GL #3627]
 

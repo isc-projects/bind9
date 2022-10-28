@@ -220,6 +220,9 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_NSEC3BADALG] = "cannot use NSEC3 with key algorithm",
 	[DNS_R_NSEC3RESALT] = "NSEC3 resalt",
 	[DNS_R_INCONSISTENTRR] = "inconsistent resource record",
+	[DNS_R_HAVEPARMKEYS] = "unexpected service parameter keys",
+	[DNS_R_NOALPN] = "no ALPN",
+	[DNS_R_NODOHPATH] = "no DOHPATH",
 
 	[DST_R_UNSUPPORTEDALG] = "algorithm is unsupported",
 	[DST_R_CRYPTOFAILURE] = "crypto failure",
@@ -466,6 +469,9 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_NSEC3BADALG] = "DNS_R_NSEC3BADALG",
 	[DNS_R_NSEC3RESALT] = "DNS_R_NSEC3RESALT",
 	[DNS_R_INCONSISTENTRR] = "DNS_R_INCONSISTENTRR",
+	[DNS_R_HAVEPARMKEYS] = "DNS_R_HAVEPARMKEYS",
+	[DNS_R_NOALPN] = "DNS_R_NOALPN",
+	[DNS_R_NODOHPATH] = "DNS_R_NODOHPATH",
 
 	[DST_R_UNSUPPORTEDALG] = "DST_R_UNSUPPORTEDALG",
 	[DST_R_CRYPTOFAILURE] = "DST_R_CRYPTOFAILURE",

@@ -186,6 +186,7 @@ static dns_message_t *answer = NULL;
 static uint32_t default_ttl = 0;
 static bool default_ttl_set = false;
 static bool checknames = true;
+static bool checksvcb = true;
 static const char *resolvconf = RESOLV_CONF;
 
 bool done = false;
@@ -2020,6 +2021,15 @@ parseclass:
 		}
 	}
 
+	if (!isdelete && checksvcb && rdata->type == dns_rdatatype_svcb) {
+		result = dns_rdata_checksvcb(name, rdata);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "check-svcb failed: %s\n",
+				isc_result_totext(result));
+			goto failure;
+		}
+	}
+
 	if (!isdelete && rdata->type == dns_rdatatype_nsec3param) {
 		dns_rdata_nsec3param_t nsec3param;
 
@@ -2101,6 +2111,32 @@ evaluate_checknames(char *cmdline) {
 		checknames = false;
 	} else {
 		fprintf(stderr, "incorrect check-names directive: %s\n", word);
+		return (STATUS_SYNTAX);
+	}
+	return (STATUS_MORE);
+}
+
+static uint16_t
+evaluate_checksvcb(char *cmdline) {
+	char *word;
+
+	ddebug("evaluate_checksvcb()");
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL || *word == 0) {
+		fprintf(stderr, "could not read check-svcb directive\n");
+		return (STATUS_SYNTAX);
+	}
+	if (strcasecmp(word, "yes") == 0 || strcasecmp(word, "true") == 0 ||
+	    strcasecmp(word, "on") == 0)
+	{
+		checksvcb = true;
+	} else if (strcasecmp(word, "no") == 0 ||
+		   strcasecmp(word, "false") == 0 ||
+		   strcasecmp(word, "off") == 0)
+	{
+		checksvcb = false;
+	} else {
+		fprintf(stderr, "incorrect check-svcb directive: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
 	return (STATUS_MORE);
@@ -2264,6 +2300,10 @@ do_next_command(char *cmdline) {
 	if (strcasecmp(word, "check-names") == 0 ||
 	    strcasecmp(word, "checknames") == 0) {
 		return (evaluate_checknames(cmdline));
+	}
+	if (strcasecmp(word, "check-svcb") == 0 ||
+	    strcasecmp(word, "checksvcb") == 0) {
+		return (evaluate_checksvcb(cmdline));
 	}
 	if (strcasecmp(word, "gsstsig") == 0) {
 #if HAVE_GSSAPI

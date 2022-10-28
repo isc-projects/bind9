@@ -2813,6 +2813,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				     ISC_MEM_ZERO);
 	}
 
+	options = dns_zone_getoptions(zone);
+
 	for (rule = 0,
 	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
@@ -2843,6 +2845,16 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			result = dns_zone_checknames(zone, name, &rdata);
 			if (result != ISC_R_SUCCESS) {
 				FAIL(DNS_R_REFUSED);
+			}
+			if ((options & DNS_ZONEOPT_CHECKSVCB) != 0 &&
+			    rdata.type == dns_rdatatype_svcb) {
+				result = dns_rdata_checksvcb(name, &rdata);
+				if (result != ISC_R_SUCCESS) {
+					const char *reason =
+						isc_result_totext(result);
+					FAILNT(DNS_R_REFUSED, name, rdata.type,
+					       reason);
+				}
 			}
 		} else if (update_class == dns_rdataclass_any) {
 			if (ttl != 0 || rdata.length != 0 ||
@@ -2982,7 +2994,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Process the Update Section.
 	 */
 
-	options = dns_zone_getoptions(zone);
 	for (rule = 0,
 	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;

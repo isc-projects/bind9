@@ -165,8 +165,8 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = false;
 
 	while ((c = isc_commandline_parse(argc, argv,
-					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:DF:"
-					  "M:S:T:W:")) != EOF)
+					  "c:df:hi:jJ:k:L:l:m:n:qr:s:t:o:vw:C:"
+					  "DF:M:S:T:W:")) != EOF)
 	{
 		switch (c) {
 		case 'c':
@@ -359,6 +359,18 @@ main(int argc, char **argv) {
 
 		case 'w':
 			workdir = isc_commandline_argument;
+			break;
+
+		case 'C':
+			if (ARGCMP("check-svcb:fail")) {
+				zone_options |= DNS_ZONEOPT_CHECKSVCB;
+			} else if (ARGCMP("check-svcb:ignore")) {
+				zone_options &= ~DNS_ZONEOPT_CHECKSVCB;
+			} else {
+				fprintf(stderr, "invalid argument to -C: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
 			break;
 
 		case 'D':

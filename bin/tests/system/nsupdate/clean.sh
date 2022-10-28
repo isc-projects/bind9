@@ -45,6 +45,7 @@ rm -f ns3/delegation.test.db
 rm -f ns3/dnskey.test.db
 rm -f ns3/dsset-*
 rm -f ns3/example.db
+rm -f ns3/relaxed.db
 rm -f ns3/multisigner.test.db
 rm -f ns3/many.test.bk
 rm -f ns3/nsec3param.test.db

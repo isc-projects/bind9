@@ -1200,6 +1200,33 @@ grep "bad name" nsupdate.out4-$n > /dev/null && ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
+echo_i "check check-svcb processing ($n)"
+ret=0
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
+EOF
+grep "check-svcb failed: no ALPN" nsupdate.out1-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+check-svcb off
+update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
+EOF
+grep "check-svcb failed: no ALPN" nsupdate.out2-$n > /dev/null && ret=1
+
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
+EOF
+grep "check-svcb failed: no DOHPATH" nsupdate.out3-$n > /dev/null || ret=1
+
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+check-svcb off
+update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
+EOF
+grep "check-svcb failed: no DOHPATH" nsupdate.out4-$n > /dev/null && ret=1
+
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
 echo_i "check adding of delegating NS records processing ($n)"
 ret=0
 $NSUPDATE -v << EOF > nsupdate.out.test$n 2>&1 || ret=1
@@ -1527,6 +1554,66 @@ send
 EOF
 grep '10.53.0.1.*REFUSED' nsupdate.out.test$n > /dev/null || ret=1
 grep 'Reply from SOA query' nsupdate.out.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that named rejects '_dns' SVCB with missing ALPN ($n)"
+nextpart ns3/named.run > /dev/null
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone example
+check-svcb no
+update add _dns.ns.example 0 in SVCB 1 ns.example dohpath=/{?dns}
+send
+END
+grep 'status: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
+msg="update failed: _dns.ns.example/SVCB: no ALPN (REFUSED)"
+nextpart ns3/named.run | grep "$msg" ns3/named.run > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that named accepts '_dns' SVCB with missing ALPN (check-svcb no) ($n)"
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone relaxed
+check-svcb no
+update add _dns.ns.relaxed 0 in SVCB 1 ns.relaxed dohpath=/{?dns}
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.3 _dns.ns.relaxed SVCB > dig.out.ns3.test$n
+grep '1 ns.relaxed. key7="/{?dns}"' dig.out.ns3.test$n || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that named rejects '_dns' SVCB with missing DOHPATH ($n)"
+nextpart ns3/named.run > /dev/null
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.3 ${PORT}
+zone example
+check-svcb no
+update add _dns.ns.example 0 in SVCB 1 ns.example alpn=h2
+send
+END
+grep 'status: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
+msg="update failed: _dns.ns.example/SVCB: no DOHPATH (REFUSED)"
+nextpart ns3/named.run | grep "$msg" ns3/named.run > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that named accepts '_dns' SVCB with missing DOHPATH (check-svcb no) ($n)"
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone relaxed
+check-svcb no
+update add _dns.ns.relaxed 0 in SVCB 1 ns.relaxed alpn=h2
+send
+END
+$DIG $DIGOPTS +tcp @10.53.0.3 _dns.ns.relaxed SVCB > dig.out.ns3.test$n
+grep '1 ns.relaxed. alpn="h2"' dig.out.ns3.test$n || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 if ! $FEATURETEST --gssapi ; then

@@ -32,7 +32,7 @@ level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
 named-checkzone \- zone file validity checking or converting tool
 .SH SYNOPSIS
 .sp
-\fBnamed\-checkzone\fP [\fB\-d\fP] [\fB\-h\fP] [\fB\-j\fP] [\fB\-q\fP] [\fB\-v\fP] [\fB\-c\fP class] [\fB\-f\fP format] [\fB\-F\fP format] [\fB\-J\fP filename] [\fB\-i\fP mode] [\fB\-k\fP mode] [\fB\-m\fP mode] [\fB\-M\fP mode] [\fB\-n\fP mode] [\fB\-l\fP ttl] [\fB\-L\fP serial] [\fB\-o\fP filename] [\fB\-r\fP mode] [\fB\-s\fP style] [\fB\-S\fP mode] [\fB\-t\fP directory] [\fB\-T\fP mode] [\fB\-w\fP directory] [\fB\-D\fP] [\fB\-W\fP mode] {zonename} {filename}
+\fBnamed\-checkzone\fP [\fB\-d\fP] [\fB\-h\fP] [\fB\-j\fP] [\fB\-q\fP] [\fB\-v\fP] [\fB\-c\fP class] [\fB\-C\fP mode] [\fB\-f\fP format] [\fB\-F\fP format] [\fB\-J\fP filename] [\fB\-i\fP mode] [\fB\-k\fP mode] [\fB\-m\fP mode] [\fB\-M\fP mode] [\fB\-n\fP mode] [\fB\-l\fP ttl] [\fB\-L\fP serial] [\fB\-o\fP filename] [\fB\-r\fP mode] [\fB\-s\fP style] [\fB\-S\fP mode] [\fB\-t\fP directory] [\fB\-T\fP mode] [\fB\-w\fP directory] [\fB\-D\fP] [\fB\-W\fP mode] {zonename} {filename}
 .SH DESCRIPTION
 .sp
 \fBnamed\-checkzone\fP checks the syntax and integrity of a zone file. It
@@ -78,6 +78,16 @@ it exists. This implies \fI\%\-j\fP\&.
 .TP
 .B \-c class
 This option specifies the class of the zone. If not specified, \fBIN\fP is assumed.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-C mode
+This option controls check mode on zone files when loading.
+Possible modes are \fBcheck\-svcb:fail\fP and \fBcheck\-svcb:ignore\fP\&.
+.sp
+\fBcheck\-svcb:fail\fP turns on additional checks on \fB_dns\fP SVCB
+records and \fBcheck\-svcb:ignore\fP disables these checks.  The
+default is \fBcheck\-svcb:fail\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP

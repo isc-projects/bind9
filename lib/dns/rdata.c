@@ -2369,3 +2369,114 @@ dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section) {
 	}
 	return ("invalid");
 }
+
+static bool
+svcb_ishttp(const char *s, size_t len) {
+	/*
+	 * HTTP entries from:
+	 *
+	 * https://www.iana.org/assignments/tls-extensiontype-values/\
+	 * tls-extensiontype-values.xhtml#alpn-protocol-ids
+	 */
+	struct {
+		size_t len;
+		const char *value;
+	} http[] = { { 8, "http/0.9" }, { 8, "http/1.0" }, { 8, "http/1.1" },
+		     { 2, "h2" },	{ 3, "h2c" },	   { 2, "h3" } };
+
+	for (size_t i = 0; i < ARRAY_SIZE(http); i++) {
+		if (len == http[i].len && memcmp(s, http[i].value, len) == 0) {
+			return (true);
+		}
+	}
+	return (false);
+}
+
+static bool
+svcb_hashttp(isc_textregion_t *alpn) {
+	while (alpn->length > 0) {
+		char c, *s;
+		unsigned char len = *alpn->base;
+
+		isc_textregion_consume(alpn, 1);
+
+		/*
+		 * This has to detect "http/1.1", "h2" and "h3", etc.
+		 * in a comma list.
+		 */
+		s = alpn->base;
+		while (len-- > 0) {
+			c = *alpn->base;
+			isc_textregion_consume(alpn, 1);
+			if (c == ',') {
+				if (svcb_ishttp(s, (alpn->base - s) - 1)) {
+					return (true);
+				}
+				s = alpn->base;
+			}
+		}
+		if (svcb_ishttp(s, (alpn->base - s))) {
+			return (true);
+		}
+	}
+	return (false);
+}
+
+isc_result_t
+dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata) {
+	dns_rdata_in_svcb_t svcb;
+
+	REQUIRE(owner != NULL);
+	REQUIRE(rdata != NULL);
+	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
+
+	dns_rdata_tostruct(rdata, &svcb, NULL);
+
+	/*
+	 * Check that Alias Mode records don't have SvcParamKeys.
+	 */
+	if (svcb.priority == 0 && svcb.svclen != 0) {
+		return (DNS_R_HAVEPARMKEYS);
+	}
+
+	if (dns_name_isdnssvcb(owner)) {
+		isc_region_t r = { .base = svcb.svc, .length = svcb.svclen };
+		isc_textregion_t alpn;
+		uint16_t key = 0, len = 0;
+
+		/* Check for ALPN (key1) */
+		while (r.length > 0) {
+			key = uint16_fromregion(&r);
+			isc_region_consume(&r, 2);
+			len = uint16_fromregion(&r);
+			isc_region_consume(&r, 2);
+			if (key >= SVCB_ALPN_KEY) {
+				break;
+			}
+			isc_region_consume(&r, len);
+		}
+		if (key != SVCB_ALPN_KEY) {
+			return (DNS_R_NOALPN);
+		}
+		alpn = (isc_textregion_t){ .base = (char *)r.base,
+					   .length = len };
+		isc_region_consume(&r, len);
+		if (svcb_hashttp(&alpn)) {
+			/* Check for DOHPATH (key7) */
+			while (r.length > 0) {
+				key = uint16_fromregion(&r);
+				isc_region_consume(&r, 2);
+				len = uint16_fromregion(&r);
+				isc_region_consume(&r, 2);
+				if (key >= SVCB_DOHPATH_KEY) {
+					break;
+				}
+				isc_region_consume(&r, len);
+			}
+			if (key != SVCB_DOHPATH_KEY) {
+				return (DNS_R_NODOHPATH);
+			}
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
