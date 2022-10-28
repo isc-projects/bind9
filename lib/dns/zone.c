@@ -12103,27 +12103,30 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
  * XXXAG should check for DNS_ZONEFLG_EXITING
  */
 static void
-process_adb_event(isc_task_t *task, isc_event_t *ev) {
-	dns_notify_t *notify;
-	isc_eventtype_t result;
+process_adb_event(void *arg) {
+	dns_adbfind_t *find = (dns_adbfind_t *)arg;
+	dns_notify_t *notify = (dns_notify_t *)find->cbarg;
+	dns_adbstatus_t astat = find->status;
 
-	UNUSED(task);
-
-	notify = ev->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	INSIST(task == notify->zone->task);
-	result = ev->ev_type;
-	isc_event_free(&ev);
-	if (result == DNS_EVENT_ADBMOREADDRESSES) {
+	REQUIRE(find == notify->find);
+
+	switch (astat) {
+	case DNS_ADB_MOREADDRESSES:
 		dns_adb_destroyfind(&notify->find);
 		notify_find_address(notify);
 		return;
-	}
-	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
+
+	case DNS_ADB_NOMOREADDRESSES:
 		LOCK_ZONE(notify->zone);
 		notify_send(notify);
 		UNLOCK_ZONE(notify->zone);
+		break;
+
+	default:
+		break;
 	}
+
 	notify_destroy(notify, false);
 }
 
@@ -12141,7 +12144,7 @@ notify_find_address(dns_notify_t *notify) {
 	}
 
 	result = dns_adb_createfind(
-		notify->zone->view->adb, notify->zone->task, process_adb_event,
+		notify->zone->view->adb, notify->zone->loop, process_adb_event,
 		notify, &notify->ns, dns_rootname, 0, options, 0, NULL,
 		notify->zone->view->dstport, 0, NULL, &notify->find);
 

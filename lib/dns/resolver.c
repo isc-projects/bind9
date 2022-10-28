@@ -3089,16 +3089,14 @@ detach:
 }
 
 static void
-fctx_finddone(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx = event->ev_arg;
-	dns_adbfind_t *find = event->ev_sender;
+fctx_finddone(void *arg) {
+	dns_adbfind_t *find = (dns_adbfind_t *)arg;
+	fetchctx_t *fctx = (fetchctx_t *)find->cbarg;
 	bool want_try = false;
 	bool want_done = false;
 	uint_fast32_t pending;
 
 	REQUIRE(VALID_FCTX(fctx));
-
-	UNUSED(task);
 
 	FCTXTRACE("finddone");
 
@@ -3113,7 +3111,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		 * The fetch is waiting for a name to be found.
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
-		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES) {
+		if (find->status == DNS_ADB_MOREADDRESSES) {
 			FCTX_ATTR_CLR(fctx, FCTX_ATTR_ADDRWAIT);
 			want_try = true;
 		} else {
@@ -3132,7 +3130,6 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 
 	UNLOCK(&fctx->lock);
 
-	isc_event_free(&event);
 	dns_adb_destroyfind(&find);
 
 	if (want_done) {
@@ -3469,10 +3466,10 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	 */
 	INSIST(!SHUTTINGDOWN(fctx));
 	fetchctx_ref(fctx);
-	result = dns_adb_createfind(fctx->adb, fctx->restask, fctx_finddone,
-				    fctx, name, fctx->name, fctx->type, options,
-				    now, NULL, res->view->dstport,
-				    fctx->depth + 1, fctx->qc, &find);
+	result = dns_adb_createfind(fctx->adb, fctx->loop, fctx_finddone, fctx,
+				    name, fctx->name, fctx->type, options, now,
+				    NULL, res->view->dstport, fctx->depth + 1,
+				    fctx->qc, &find);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),

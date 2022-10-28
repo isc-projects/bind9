@@ -11,19 +11,13 @@
  * information regarding copyright ownership.
  */
 
-/*! \file
- *
- * \note
- * In finds, if task == NULL, no events will be generated, and no events
- * have been sent.  If task != NULL but taskaction == NULL, an event has been
- * posted but not yet freed.  If neither are NULL, no event was posted.
- *
- */
+/*! \file */
 
 #include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/hashmap.h>
 #include <isc/list.h>
@@ -364,13 +358,13 @@ clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void
 clean_target(dns_adb_t *, dns_name_t *);
 static void
-clean_finds_at_name(dns_adbname_t *, isc_eventtype_t, unsigned int);
+clean_finds_at_name(dns_adbname_t *, dns_adbstatus_t, unsigned int);
 static void
 maybe_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static bool
 maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now);
 static void
-expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype);
+expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat);
 static bool
 entry_expired(dns_adbentry_t *adbentry, isc_stdtime_t now);
 static bool
@@ -399,10 +393,8 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
  */
-#define FIND_EVENT_SENT	   0x40000000
-#define FIND_EVENT_FREED   0x80000000
-#define FIND_EVENTSENT(h)  (((h)->flags & FIND_EVENT_SENT) != 0)
-#define FIND_EVENTFREED(h) (((h)->flags & FIND_EVENT_FREED) != 0)
+#define FIND_EVENT_SENT	  0x40000000
+#define FIND_EVENTSENT(h) (((h)->flags & FIND_EVENT_SENT) != 0)
 
 #define NAME_IS_DEAD	 0x40000000
 #define NAME_STARTATZONE DNS_ADBFIND_STARTATZONE
@@ -674,7 +666,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
  * Requires the name to be locked.
  */
 static void
-expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype) {
+expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat) {
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 	REQUIRE(DNS_ADB_VALID(adbname->adb));
 
@@ -688,7 +680,7 @@ expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype) {
 	 * are destructive in that they will always empty the lists
 	 * of finds and namehooks.
 	 */
-	clean_finds_at_name(adbname, evtype, DNS_ADBFIND_ADDRESSMASK);
+	clean_finds_at_name(adbname, astat, DNS_ADBFIND_ADDRESSMASK);
 	clean_namehooks(adb, &adbname->v4);
 	clean_namehooks(adb, &adbname->v6);
 	clean_target(adb, &adbname->target);
@@ -777,7 +769,7 @@ shutdown_names(dns_adb_t *adb) {
 		 * all the fetches are canceled, the name will destroy
 		 * itself.
 		 */
-		expire_name(name, DNS_EVENT_ADBSHUTDOWN);
+		expire_name(name, DNS_ADB_SHUTTINGDOWN);
 		UNLOCK(&name->lock);
 		dns_adbname_detach(&name);
 	}
@@ -904,33 +896,17 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 	return (ISC_R_SUCCESS);
 }
 
-static void
-event_freefind(isc_event_t *event) {
-	dns_adbfind_t *find = NULL;
-
-	REQUIRE(event != NULL);
-
-	find = event->ev_destroy_arg;
-
-	REQUIRE(DNS_ADBFIND_VALID(find));
-
-	LOCK(&find->lock);
-	find->flags |= FIND_EVENT_FREED;
-	event->ev_destroy_arg = NULL;
-	UNLOCK(&find->lock);
-}
-
 /*
  * The name must be locked.
  */
 static void
-clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
+clean_finds_at_name(dns_adbname_t *name, dns_adbstatus_t astat,
 		    unsigned int addrs) {
 	dns_adbfind_t *find = NULL, *next = NULL;
 
 	DP(ENTER_LEVEL,
-	   "ENTER clean_finds_at_name, name %p, evtype %08x, addrs %08x", name,
-	   evtype, addrs);
+	   "ENTER clean_finds_at_name, name %p, astat %08x, addrs %08x", name,
+	   astat, addrs);
 
 	for (find = ISC_LIST_HEAD(name->finds); find != NULL; find = next) {
 		bool process = false;
@@ -942,16 +918,16 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 		wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
 		notify = wanted & addrs;
 
-		switch (evtype) {
-		case DNS_EVENT_ADBMOREADDRESSES:
-			DP(ISC_LOG_DEBUG(3), "DNS_EVENT_ADBMOREADDRESSES");
+		switch (astat) {
+		case DNS_ADB_MOREADDRESSES:
+			DP(ISC_LOG_DEBUG(3), "more addresses");
 			if ((notify) != 0) {
 				find->flags &= ~addrs;
 				process = true;
 			}
 			break;
-		case DNS_EVENT_ADBNOMOREADDRESSES:
-			DP(ISC_LOG_DEBUG(3), "DNS_EVENT_ADBNOMOREADDRESSES");
+		case DNS_ADB_NOMOREADDRESSES:
+			DP(ISC_LOG_DEBUG(3), "no more addresses");
 			find->flags &= ~addrs;
 			wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
 			if (wanted == 0) {
@@ -964,9 +940,6 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 		}
 
 		if (process) {
-			isc_task_t *task = NULL;
-			isc_event_t *ev = NULL;
-
 			DP(DEF_LEVEL, "cfan: processing find %p", find);
 
 			/*
@@ -979,21 +952,13 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 			INSIST(!FIND_EVENTSENT(find));
 
-			ev = &find->event;
-			task = ev->ev_sender;
-			ev->ev_sender = find;
 			find->result_v4 = find_err_map[name->fetch_err];
 			find->result_v6 = find_err_map[name->fetch6_err];
-			ev->ev_type = evtype;
-			ev->ev_destroy = event_freefind;
-			ev->ev_destroy_arg = find;
+			find->status = astat;
 
-			DP(DEF_LEVEL,
-			   "cfan: sending event %p "
-			   "to task %p for find %p",
-			   ev, task, find);
+			DP(DEF_LEVEL, "cfan: sending find %p to caller", find);
 
-			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
+			isc_async_run(find->loop, find->cb, find);
 			find->flags |= FIND_EVENT_SENT;
 		} else {
 			DP(DEF_LEVEL, "cfan: skipping find %p", find);
@@ -1218,14 +1183,13 @@ new_adbfind(dns_adb_t *adb, in_port_t port) {
 		.port = port,
 		.result_v4 = ISC_R_UNEXPECTED,
 		.result_v6 = ISC_R_UNEXPECTED,
+		.publink = ISC_LINK_INITIALIZER,
+		.plink = ISC_LINK_INITIALIZER,
+		.list = ISC_LIST_INITIALIZER,
 	};
+
 	dns_adb_attach(adb, &find->adb);
-	ISC_LINK_INIT(find, publink);
-	ISC_LINK_INIT(find, plink);
-	ISC_LIST_INIT(find->list);
 	isc_mutex_init(&find->lock);
-	ISC_EVENT_INIT(&find->event, sizeof(isc_event_t), 0, 0, NULL, NULL,
-		       NULL, NULL, find);
 
 	find->magic = DNS_ADBFIND_MAGIC;
 
@@ -1679,7 +1643,7 @@ maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 		return (false);
 	}
 
-	expire_name(adbname, DNS_EVENT_ADBEXPIRED);
+	expire_name(adbname, DNS_ADB_EXPIRED);
 
 	return (true);
 }
@@ -1779,13 +1743,13 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 		}
 
 		if (overmem) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED);
+			expire_name(adbname, DNS_ADB_CANCELED);
 			removed++;
 			goto next;
 		}
 
 		if (adbname->last_used + ADB_STALE_MARGIN < now) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED);
+			expire_name(adbname, DNS_ADB_CANCELED);
 			removed++;
 			goto next;
 		}
@@ -2104,8 +2068,8 @@ dns_adb_shutdown(dns_adb_t *adb) {
  *   more info coming later.
  */
 isc_result_t
-dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		   void *arg, const dns_name_t *name, const dns_name_t *qname,
+dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
+		   const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		   unsigned int depth, isc_counter_t *qc,
@@ -2123,8 +2087,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	char namebuf[DNS_NAME_FORMATSIZE] = { 0 };
 
 	REQUIRE(DNS_ADB_VALID(adb));
-	if (task != NULL) {
-		REQUIRE(action != NULL);
+	if (loop != NULL) {
+		REQUIRE(cb != NULL);
 	}
 	REQUIRE(name != NULL);
 	REQUIRE(qname != NULL);
@@ -2151,7 +2115,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	find->options = options;
 	find->flags |= wanted_addresses;
 	if (FIND_WANTEVENT(find)) {
-		REQUIRE(task != NULL);
+		REQUIRE(loop != NULL);
 	}
 
 	if (isc_log_wouldlog(dns_lctx, DEF_LEVEL)) {
@@ -2384,7 +2348,7 @@ post_copy:
 		 */
 		find->query_pending = (query_pending & wanted_addresses);
 		find->options &= ~DNS_ADBFIND_WANTEVENT;
-		find->flags |= (FIND_EVENT_SENT | FIND_EVENT_FREED);
+		find->flags |= FIND_EVENT_SENT;
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 	}
 
@@ -2406,10 +2370,10 @@ post_copy:
 
 	if (want_event) {
 		INSIST((find->flags & DNS_ADBFIND_ADDRESSMASK) != 0);
-		isc_task_attach(task, &(isc_task_t *){ NULL });
-		find->event.ev_sender = task;
-		find->event.ev_action = action;
-		find->event.ev_arg = arg;
+		find->loop = loop;
+		find->status = DNS_ADB_UNSET;
+		find->cb = cb;
+		find->cbarg = cbarg;
 	}
 
 	*findp = find;
@@ -2437,7 +2401,6 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 
 	LOCK(&find->lock);
 
-	REQUIRE(FIND_EVENTFREED(find));
 	REQUIRE(find->adbname == NULL);
 
 	/*
@@ -2462,20 +2425,13 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 static void
 find_sendevent(dns_adbfind_t *find) {
 	if (!FIND_EVENTSENT(find)) {
-		isc_event_t *ev = &find->event;
-		isc_task_t *task = ev->ev_sender;
-
-		ev->ev_sender = find;
-		ev->ev_type = DNS_EVENT_ADBCANCELED;
-		ev->ev_destroy = event_freefind;
-		ev->ev_destroy_arg = find;
+		find->status = DNS_ADB_CANCELED;
 		find->result_v4 = ISC_R_CANCELED;
 		find->result_v6 = ISC_R_CANCELED;
 
-		DP(DEF_LEVEL, "sending event %p to task %p for find %p", ev,
-		   task, find);
+		DP(DEF_LEVEL, "sending find %p to caller", find);
 
-		isc_task_sendanddetach(&task, (isc_event_t **)&ev);
+		isc_async_run(find->loop, find->cb, find);
 	}
 }
 
@@ -2489,7 +2445,6 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 	REQUIRE(DNS_ADB_VALID(find->adb));
 
 	LOCK(&find->lock);
-	REQUIRE(!FIND_EVENTFREED(find));
 	REQUIRE(FIND_WANTEVENT(find));
 
 	adbname = find->adbname;
@@ -2685,8 +2640,7 @@ dumpfind(dns_adbfind_t *find, FILE *f) {
 	fprintf(f, ";\tqpending %08x partial %08x options %08x flags %08x\n",
 		find->query_pending, find->partial_result, find->options,
 		find->flags);
-	fprintf(f, ";\name %p, event sender %p\n", find->adbname,
-		find->event.ev_sender);
+	fprintf(f, ";\tname %p\n", find->adbname);
 
 	ai = ISC_LIST_HEAD(find->list);
 	if (ai != NULL) {
@@ -2971,14 +2925,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	dns_adbname_t *name = NULL;
 	dns_adb_t *adb = NULL;
 	dns_adbfetch_t *fetch = NULL;
-	isc_eventtype_t ev_status;
+	dns_adbstatus_t astat = DNS_ADB_NOMOREADDRESSES;
 	isc_stdtime_t now;
 	isc_result_t result;
 	unsigned int address_type;
 
 	UNUSED(task);
 
-	REQUIRE(ev->ev_type == DNS_EVENT_FETCHDONE);
 	name = ev->ev_arg;
 
 	REQUIRE(DNS_ADBNAME_VALID(name));
@@ -3006,8 +2959,6 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 	INSIST(address_type != 0 && fetch != NULL);
 
-	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
-
 	/*
 	 * Cleanup things we don't care about.
 	 */
@@ -3023,7 +2974,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * potentially good data.
 	 */
 	if (NAME_DEAD(name)) {
-		ev_status = DNS_EVENT_ADBCANCELED;
+		astat = DNS_ADB_CANCELED;
 		goto out;
 	}
 
@@ -3119,7 +3070,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 check_result:
 	if (result == ISC_R_SUCCESS) {
-		ev_status = DNS_EVENT_ADBMOREADDRESSES;
+		astat = DNS_ADB_MOREADDRESSES;
 		if (address_type == DNS_ADBFIND_INET) {
 			name->fetch_err = FIND_ERR_SUCCESS;
 		} else {
@@ -3131,8 +3082,8 @@ out:
 	dns_resolver_destroyfetch(&fetch->fetch);
 	free_adbfetch(adb, &fetch);
 	isc_event_free(&ev);
-	if (ev_status != DNS_EVENT_ADBCANCELED) {
-		clean_finds_at_name(name, ev_status, address_type);
+	if (astat != DNS_ADB_CANCELED) {
+		clean_finds_at_name(name, astat, address_type);
 	}
 	UNLOCK(&name->lock);
 	dns_adbname_detach(&name);
@@ -3678,7 +3629,7 @@ again:
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_equal(name, &adbname->name)) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED);
+			expire_name(adbname, DNS_ADB_CANCELED);
 		}
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
@@ -3709,7 +3660,7 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_issubdomain(&adbname->name, name)) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED);
+			expire_name(adbname, DNS_ADB_CANCELED);
 		}
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
