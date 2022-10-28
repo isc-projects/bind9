@@ -1,6 +1,7 @@
 6067.	[placeholder]
 
-6066.	[placeholder]
+6066.	[security]	Handle RRSIG lookups when serve-stale is active.
+			(CVE-2022-3736) [GL #3622]
 
 6065.	[placeholder]
 
