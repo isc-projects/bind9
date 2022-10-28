@@ -835,11 +835,6 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 
 	REQUIRE(sock->type == isc_nm_tlssocket);
 
-	if (inactive(sock)) {
-		cb(handle, ISC_R_CANCELED, cbarg);
-		return;
-	}
-
 	uvreq = isc__nm_uvreq_get(sock->mgr, sock);
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
