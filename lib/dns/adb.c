@@ -102,10 +102,8 @@ struct dns_adb {
 	isc_mem_t *hmctx;
 	dns_view_t *view;
 	dns_resolver_t *res;
-	size_t nloops;
 
-	isc_taskmgr_t *taskmgr;
-	isc_task_t **tasks;
+	isc_loopmgr_t *loopmgr;
 
 	isc_refcount_t references;
 
@@ -667,11 +665,13 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
  */
 static void
 expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat) {
-	REQUIRE(DNS_ADBNAME_VALID(adbname));
-	REQUIRE(DNS_ADB_VALID(adbname->adb));
-
 	isc_result_t result;
+
+	REQUIRE(DNS_ADBNAME_VALID(adbname));
+
 	dns_adb_t *adb = adbname->adb;
+
+	REQUIRE(DNS_ADB_VALID(adb));
 
 	DP(DEF_LEVEL, "killing name %p", adbname);
 
@@ -704,7 +704,7 @@ expire_name(dns_adbname_t *adbname, dns_adbstatus_t astat) {
 	/* ... and LRU list */
 	ISC_LIST_UNLINK(adb->names_lru, adbname, link);
 
-	dns_adbname_detach(&adbname);
+	dns_adbname_unref(adbname);
 }
 
 /*
@@ -1913,11 +1913,6 @@ destroy(dns_adb_t *adb) {
 	isc_mutex_destroy(&adb->lock);
 	isc_refcount_destroy(&adb->references);
 
-	for (size_t i = 0; i < adb->nloops; i++) {
-		isc_task_detach(&adb->tasks[i]);
-	}
-	isc_mem_put(adb->mctx, adb->tasks, adb->nloops * sizeof(adb->tasks[0]));
-
 	isc_stats_detach(&adb->stats);
 	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
@@ -1936,19 +1931,17 @@ ISC_REFCOUNT_IMPL(dns_adb, destroy);
 
 isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
-	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb) {
+	       dns_adb_t **newadb) {
 	dns_adb_t *adb = NULL;
 	isc_result_t result;
 
 	REQUIRE(mem != NULL);
 	REQUIRE(view != NULL);
-	REQUIRE(taskmgr != NULL);
 	REQUIRE(newadb != NULL && *newadb == NULL);
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
 	*adb = (dns_adb_t){
-		.taskmgr = taskmgr,
-		.nloops = isc_loopmgr_nloops(loopmgr),
+		.loopmgr = loopmgr,
 		.names_lru = ISC_LIST_INITIALIZER,
 		.entries_lru = ISC_LIST_INITIALIZER,
 	};
@@ -1979,22 +1972,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&adb->lock);
 
-	/*
-	 * Allocate an internal task.
-	 */
-	adb->tasks = isc_mem_getx(
-		adb->mctx, adb->nloops * sizeof(adb->tasks[0]), ISC_MEM_ZERO);
-	for (size_t i = 0; i < adb->nloops; i++) {
-		result = isc_task_create(adb->taskmgr, &adb->tasks[i], i);
-		if (result != ISC_R_SUCCESS) {
-			goto free_tasks;
-		}
-		isc_task_setname(adb->tasks[i], "ADB", adb);
-	}
-
 	result = isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS) {
-		goto free_tasks;
+		goto free_lock;
 	}
 
 	set_adbstat(adb, 0, dns_adbstats_nnames);
@@ -2007,14 +1987,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
 
-free_tasks:
-	for (size_t i = 0; i < adb->nloops; i++) {
-		if (adb->tasks[i] != NULL) {
-			isc_task_detach(&adb->tasks[i]);
-		}
-	}
-	isc_mem_put(adb->mctx, adb->tasks, adb->nloops * sizeof(adb->tasks[0]));
-
+free_lock:
 	isc_mutex_destroy(&adb->lock);
 
 	isc_rwlock_destroy(&adb->entries_lock);
@@ -2062,7 +2035,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
  *   structure for each found and append it to the linked list
  *   of addresses for this header.
  *
- * - Name found, queries pending.  In this case, if a task was
+ * - Name found, queries pending.  In this case, if a loop was
  *   passed in, allocate a job id, attach it to the name's job
  *   list and remember to tell the caller that there will be
  *   more info coming later.
@@ -2920,19 +2893,15 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 }
 
 static void
-fetch_callback(isc_task_t *task, isc_event_t *ev) {
-	dns_fetchevent_t *dev = (dns_fetchevent_t *)ev;
-	dns_adbname_t *name = NULL;
+fetch_callback(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	dns_adbname_t *name = resp->arg;
 	dns_adb_t *adb = NULL;
 	dns_adbfetch_t *fetch = NULL;
 	dns_adbstatus_t astat = DNS_ADB_NOMOREADDRESSES;
 	isc_stdtime_t now;
 	isc_result_t result;
 	unsigned int address_type;
-
-	UNUSED(task);
-
-	name = ev->ev_arg;
 
 	REQUIRE(DNS_ADBNAME_VALID(name));
 	dns_adb_attach(name->adb, &adb);
@@ -2943,12 +2912,12 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 	INSIST(NAME_FETCH_A(name) || NAME_FETCH_AAAA(name));
 	address_type = 0;
-	if (NAME_FETCH_A(name) && (name->fetch_a->fetch == dev->fetch)) {
+	if (NAME_FETCH_A(name) && (name->fetch_a->fetch == resp->fetch)) {
 		address_type = DNS_ADBFIND_INET;
 		fetch = name->fetch_a;
 		name->fetch_a = NULL;
 	} else if (NAME_FETCH_AAAA(name) &&
-		   (name->fetch_aaaa->fetch == dev->fetch))
+		   (name->fetch_aaaa->fetch == resp->fetch))
 	{
 		address_type = DNS_ADBFIND_INET6;
 		fetch = name->fetch_aaaa;
@@ -2962,11 +2931,11 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Cleanup things we don't care about.
 	 */
-	if (dev->node != NULL) {
-		dns_db_detachnode(dev->db, &dev->node);
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
 	}
-	if (dev->db != NULL) {
-		dns_db_detach(&dev->db);
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
 	}
 
 	/*
@@ -2983,16 +2952,16 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * If we got a negative cache response, remember it.
 	 */
-	if (NCACHE_RESULT(dev->result)) {
-		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
+	if (NCACHE_RESULT(resp->result)) {
+		resp->rdataset->ttl = ttlclamp(resp->rdataset->ttl);
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
 			   "caching negative entry for A (ttl %u)",
-			   name, dev->rdataset->ttl);
+			   name, resp->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
-						  dev->rdataset->ttl + now);
-			if (dev->result == DNS_R_NCACHENXDOMAIN) {
+						  resp->rdataset->ttl + now);
+			if (resp->result == DNS_R_NCACHENXDOMAIN) {
 				name->fetch_err = FIND_ERR_NXDOMAIN;
 			} else {
 				name->fetch_err = FIND_ERR_NXRRSET;
@@ -3002,10 +2971,10 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: "
 			   "caching negative entry for AAAA (ttl %u)",
-			   name, dev->rdataset->ttl);
+			   name, resp->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
-						  dev->rdataset->ttl + now);
-			if (dev->result == DNS_R_NCACHENXDOMAIN) {
+						  resp->rdataset->ttl + now);
+			if (resp->result == DNS_R_NCACHENXDOMAIN) {
 				name->fetch6_err = FIND_ERR_NXDOMAIN;
 			} else {
 				name->fetch6_err = FIND_ERR_NXRRSET;
@@ -3018,16 +2987,16 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Handle CNAME/DNAME.
 	 */
-	if (dev->result == DNS_R_CNAME || dev->result == DNS_R_DNAME) {
-		dev->rdataset->ttl = ttlclamp(dev->rdataset->ttl);
+	if (resp->result == DNS_R_CNAME || resp->result == DNS_R_DNAME) {
+		resp->rdataset->ttl = ttlclamp(resp->rdataset->ttl);
 		clean_target(adb, &name->target);
 		name->expire_target = INT_MAX;
-		result = set_target(adb, &name->name, dev->foundname,
-				    dev->rdataset, &name->target);
+		result = set_target(adb, &name->name, resp->foundname,
+				    resp->rdataset, &name->target);
 		if (result == ISC_R_SUCCESS) {
 			DP(NCACHE_LEVEL,
 			   "adb fetch name %p: caching alias target", name);
-			name->expire_target = dev->rdataset->ttl + now;
+			name->expire_target = resp->rdataset->ttl + now;
 		}
 		goto check_result;
 	}
@@ -3036,13 +3005,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * Did we get back junk?  If so, and there are no more fetches
 	 * sitting out there, tell all the finds about it.
 	 */
-	if (dev->result != ISC_R_SUCCESS) {
+	if (resp->result != ISC_R_SUCCESS) {
 		char buf[DNS_NAME_FORMATSIZE];
 
 		dns_name_format(&name->name, buf, sizeof(buf));
 		DP(DEF_LEVEL, "adb: fetch of '%s' %s failed: %s", buf,
 		   address_type == DNS_ADBFIND_INET ? "A" : "AAAA",
-		   isc_result_totext(dev->result));
+		   isc_result_totext(resp->result));
 		/*
 		 * Don't record a failure unless this is the initial
 		 * fetch of a chain.
@@ -3081,7 +3050,7 @@ check_result:
 out:
 	dns_resolver_destroyfetch(&fetch->fetch);
 	free_adbfetch(adb, &fetch);
-	isc_event_free(&ev);
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 	if (astat != DNS_ADB_CANCELED) {
 		clean_finds_at_name(name, astat, address_type);
 	}
@@ -3101,7 +3070,6 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	dns_rdataset_t rdataset;
 	dns_rdataset_t *nameservers = NULL;
 	unsigned int options;
-	uint32_t tid = isc_tid();
 
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 
@@ -3143,8 +3111,8 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	 */
 	result = dns_resolver_createfetch(
 		adb->res, &adbname->name, type, name, nameservers, NULL, NULL,
-		0, options, depth, qc, adb->tasks[tid], fetch_callback, adbname,
-		&fetch->rdataset, NULL, &fetch->fetch);
+		0, options, depth, qc, isc_loop_current(adb->loopmgr),
+		fetch_callback, adbname, &fetch->rdataset, NULL, &fetch->fetch);
 	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL, "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));

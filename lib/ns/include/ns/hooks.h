@@ -436,7 +436,7 @@ struct ns_hookasync {
 
 /*
  * isc_event to be sent on the completion of a hook-initiated asyncronous
- * process, similar to dns_fetchevent_t.
+ * process, similar to dns_fetchresponse_t.
  */
 typedef struct ns_hook_resume {
 	ns_hookasync_t *ctx;	   /* asynchronous processing context */

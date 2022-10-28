@@ -319,9 +319,6 @@ destroy(dns_view_t *view) {
 	if (view->requestmgr != NULL) {
 		dns_requestmgr_detach(&view->requestmgr);
 	}
-	if (view->task != NULL) {
-		isc_task_detach(&view->task);
-	}
 	if (view->hints != NULL) {
 		dns_db_detach(&view->hints);
 	}
@@ -640,9 +637,8 @@ dns_view_createzonetable(dns_view_t *view) {
 
 isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
-			isc_taskmgr_t *taskmgr, unsigned int ndisp,
-			isc_nm_t *netmgr, unsigned int options,
-			isc_tlsctx_cache_t *tlsctx_cache,
+			unsigned int ndisp, isc_nm_t *netmgr,
+			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
 			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
@@ -653,23 +649,18 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 
-	result = isc_task_create(taskmgr, &view->task, 0);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	isc_task_setname(view->task, "view", view);
+	view->loop = isc_loop_current(loopmgr);
 
-	result = dns_resolver_create(view, loopmgr, taskmgr, ndisp, netmgr,
-				     options, tlsctx_cache, dispatchmgr,
-				     dispatchv4, dispatchv6, &view->resolver);
+	result = dns_resolver_create(view, loopmgr, ndisp, netmgr, options,
+				     tlsctx_cache, dispatchmgr, dispatchv4,
+				     dispatchv6, &view->resolver);
 	if (result != ISC_R_SUCCESS) {
-		isc_task_detach(&view->task);
 		return (result);
 	}
 
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "ADB");
-	result = dns_adb_create(mctx, view, loopmgr, taskmgr, &view->adb);
+	result = dns_adb_create(mctx, view, loopmgr, &view->adb);
 	isc_mem_detach(&mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_resolver;
@@ -1691,14 +1682,12 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 }
 
 isc_result_t
-dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		      isc_loopmgr_t *loopmgr) {
+dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL) {
 		dns_ntatable_detach(&view->ntatable_priv);
 	}
-	return (dns_ntatable_create(view, taskmgr, loopmgr,
-				    &view->ntatable_priv));
+	return (dns_ntatable_create(view, loopmgr, &view->ntatable_priv));
 }
 
 isc_result_t

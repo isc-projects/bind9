@@ -1828,7 +1828,7 @@ main(int argc, char *argv[]) {
 
 	/* Create client */
 	isc_tlsctx_cache_create(mctx, &tlsctx_client_cache);
-	result = dns_client_create(mctx, loopmgr, taskmgr, netmgr, 0,
+	result = dns_client_create(mctx, loopmgr, netmgr, 0,
 				   tlsctx_client_cache, &client, srcaddr4,
 				   srcaddr6);
 	if (result != ISC_R_SUCCESS) {

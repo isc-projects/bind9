@@ -45,14 +45,12 @@
 static int
 setup_test(void **state) {
 	setup_loopmgr(state);
-	setup_taskmgr(state);
 
 	return (0);
 }
 
 static int
 teardown_test(void **state) {
-	teardown_taskmgr(state);
 	teardown_loopmgr(state);
 
 	return (0);
@@ -178,7 +176,7 @@ create_tables(void) {
 			 ISC_R_SUCCESS);
 
 	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
-	assert_int_equal(dns_ntatable_create(view, taskmgr, loopmgr, &ntatable),
+	assert_int_equal(dns_ntatable_create(view, loopmgr, &ntatable),
 			 ISC_R_SUCCESS);
 
 	/* Add a normal key */
@@ -611,15 +609,12 @@ ISC_LOOP_TEST_IMPL(nta) {
 	result = dns_test_makeview("view", false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_task_create(taskmgr, &myview->task, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
 	result = dns_view_initsecroots(myview, mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initntatable(myview, taskmgr, loopmgr);
+	result = dns_view_initntatable(myview, loopmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);

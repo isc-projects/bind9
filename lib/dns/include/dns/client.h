@@ -42,6 +42,7 @@
 #include <isc/event.h>
 #include <isc/loop.h>
 #include <isc/sockaddr.h>
+#include <isc/tls.h>
 
 #include <dns/tsig.h>
 #include <dns/types.h>
@@ -97,9 +98,8 @@ typedef struct dns_clientresume {
 } dns_clientresume_t; /* too long? */
 
 isc_result_t
-dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		  isc_taskmgr_t *taskmgr, isc_nm_t *nm, unsigned int options,
-		  isc_tlsctx_cache_t *tlsctx_client_cache,
+dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
+		  unsigned int options, isc_tlsctx_cache_t *tlsctx_client_cache,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6);
 /*%<
@@ -120,8 +120,6 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
  *
  *\li	'loopmgr' is a valid loop manager.
 
- *\li	'taskmgr' is a valid task manager.
- *
  *\li	'nm' is a valid network manager.
  *
  *\li	'tlsctx_client_cache' is a valid TLS context cache.

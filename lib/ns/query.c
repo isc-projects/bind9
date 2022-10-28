@@ -394,8 +394,8 @@ static void
 query_trace(query_ctx_t *qctx);
 
 static void
-qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
-	  query_ctx_t *qctx);
+qctx_init(ns_client_t *client, dns_fetchresponse_t **respp,
+	  dns_rdatatype_t qtype, query_ctx_t *qctx);
 
 static isc_result_t
 qctx_prepare_buffers(query_ctx_t *qctx, isc_buffer_t *buffer);
@@ -413,7 +413,7 @@ static isc_result_t
 query_lookup(query_ctx_t *qctx);
 
 static void
-fetch_callback(isc_task_t *task, isc_event_t *event);
+fetch_callback(void *arg);
 
 static void
 recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
@@ -2460,38 +2460,29 @@ fixfname(ns_client_t *client, dns_name_t **fname, isc_buffer_t **dbuf,
 }
 
 static void
-free_devent(ns_client_t *client, isc_event_t **eventp,
-	    dns_fetchevent_t **deventp) {
-	dns_fetchevent_t *devent = *deventp;
+free_fresp(ns_client_t *client, dns_fetchresponse_t **frespp) {
+	dns_fetchresponse_t *fresp = *frespp;
 
-	REQUIRE((void *)(*eventp) == (void *)(*deventp));
+	CTRACE(ISC_LOG_DEBUG(3), "free_fresp");
 
-	CTRACE(ISC_LOG_DEBUG(3), "free_devent");
-
-	if (devent->fetch != NULL) {
-		dns_resolver_destroyfetch(&devent->fetch);
+	if (fresp->fetch != NULL) {
+		dns_resolver_destroyfetch(&fresp->fetch);
 	}
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
+	if (fresp->node != NULL) {
+		dns_db_detachnode(fresp->db, &fresp->node);
 	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
+	if (fresp->db != NULL) {
+		dns_db_detach(&fresp->db);
 	}
-	if (devent->rdataset != NULL) {
-		ns_client_putrdataset(client, &devent->rdataset);
+	if (fresp->rdataset != NULL) {
+		ns_client_putrdataset(client, &fresp->rdataset);
 	}
-	if (devent->sigrdataset != NULL) {
-		ns_client_putrdataset(client, &devent->sigrdataset);
+	if (fresp->sigrdataset != NULL) {
+		ns_client_putrdataset(client, &fresp->sigrdataset);
 	}
 
-	/*
-	 * If the two pointers are the same then leave the setting of
-	 * (*deventp) to NULL to isc_event_free.
-	 */
-	if ((void *)eventp != (void *)deventp) {
-		(*deventp) = NULL;
-	}
-	isc_event_free(eventp);
+	*frespp = NULL;
+	isc_mem_putanddetach(&fresp->mctx, fresp, sizeof(*fresp));
 }
 
 static isc_result_t
@@ -2630,30 +2621,25 @@ stale_refresh_aftermath(ns_client_t *client, isc_result_t result) {
 }
 
 static void
-cleanup_after_fetch(isc_task_t *task, isc_event_t *event, const char *ctracestr,
+cleanup_after_fetch(dns_fetchresponse_t *resp, const char *ctracestr,
 		    ns_query_rectype_t recursion_type) {
-	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
-	isc_nmhandle_t **handlep;
-	dns_fetch_t **fetchp;
-	ns_client_t *client;
+	ns_client_t *client = resp->arg;
+	isc_nmhandle_t **handlep = NULL;
+	dns_fetch_t **fetchp = NULL;
 	isc_result_t result;
 
-	UNUSED(task);
-
-	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
-	client = devent->ev_arg;
+	REQUIRE(resp->type == FETCHDONE);
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(task == client->manager->task);
 
 	CTRACE(ISC_LOG_DEBUG(3), ctracestr);
 
 	handlep = &client->query.recursions[recursion_type].handle;
 	fetchp = &client->query.recursions[recursion_type].fetch;
-	result = devent->result;
+	result = resp->result;
 
 	LOCK(&client->query.fetchlock);
 	if (*fetchp != NULL) {
-		INSIST(devent->fetch == *fetchp);
+		INSIST(resp->fetch == *fetchp);
 		*fetchp = NULL;
 	}
 	UNLOCK(&client->query.fetchlock);
@@ -2664,24 +2650,23 @@ cleanup_after_fetch(isc_task_t *task, isc_event_t *event, const char *ctracestr,
 	}
 
 	recursionquotatype_detach(client, recursion_type);
-	free_devent(client, &event, &devent);
+	free_fresp(client, &resp);
 	isc_nmhandle_detach(handlep);
 }
 
 static void
-prefetch_done(isc_task_t *task, isc_event_t *event) {
-	cleanup_after_fetch(task, event, "prefetch_done", RECTYPE_PREFETCH);
+prefetch_done(void *arg) {
+	cleanup_after_fetch(arg, "prefetch_done", RECTYPE_PREFETCH);
 }
 
 static void
-rpzfetch_done(isc_task_t *task, isc_event_t *event) {
-	cleanup_after_fetch(task, event, "rpzfetch_done", RECTYPE_RPZ);
+rpzfetch_done(void *arg) {
+	cleanup_after_fetch(arg, "rpzfetch_done", RECTYPE_RPZ);
 }
 
 static void
-stale_refresh_done(isc_task_t *task, isc_event_t *event) {
-	cleanup_after_fetch(task, event, "stale_refresh_done",
-			    RECTYPE_STALE_REFRESH);
+stale_refresh_done(void *arg) {
+	cleanup_after_fetch(arg, "stale_refresh_done", RECTYPE_STALE_REFRESH);
 }
 
 /*
@@ -2698,7 +2683,7 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	dns_rdataset_t *tmprdataset;
 	isc_sockaddr_t *peeraddr;
 	unsigned int options;
-	isc_taskaction_t action;
+	isc_job_cb cb;
 	isc_nmhandle_t **handlep;
 	dns_fetch_t **fetchp;
 	isc_result_t result;
@@ -2719,15 +2704,15 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	switch (recursion_type) {
 	case RECTYPE_PREFETCH:
 		options = client->query.fetchoptions | DNS_FETCHOPT_PREFETCH;
-		action = prefetch_done;
+		cb = prefetch_done;
 		break;
 	case RECTYPE_RPZ:
 		options = client->query.fetchoptions;
-		action = rpzfetch_done;
+		cb = rpzfetch_done;
 		break;
 	case RECTYPE_STALE_REFRESH:
 		options = client->query.fetchoptions;
-		action = stale_refresh_done;
+		cb = stale_refresh_done;
 		break;
 	default:
 		UNREACHABLE();
@@ -2737,11 +2722,10 @@ fetch_and_forget(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t qtype,
 	fetchp = &client->query.recursions[recursion_type].fetch;
 
 	isc_nmhandle_attach(client->handle, handlep);
-	result = dns_resolver_createfetch(client->view->resolver, qname, qtype,
-					  NULL, NULL, NULL, peeraddr,
-					  client->message->id, options, 0, NULL,
-					  client->manager->task, action, client,
-					  tmprdataset, NULL, fetchp);
+	result = dns_resolver_createfetch(
+		client->view->resolver, qname, qtype, NULL, NULL, NULL,
+		peeraddr, client->message->id, options, 0, NULL,
+		client->manager->loop, cb, client, tmprdataset, NULL, fetchp);
 	if (result != ISC_R_SUCCESS) {
 		ns_client_putrdataset(client, &tmprdataset);
 		isc_nmhandle_detach(handlep);
@@ -5335,8 +5319,8 @@ nxrrset:
  * when leaving the scope or freeing the qctx.
  */
 static void
-qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
-	  query_ctx_t *qctx) {
+qctx_init(ns_client_t *client, dns_fetchresponse_t **frespp,
+	  dns_rdatatype_t qtype, query_ctx_t *qctx) {
 	REQUIRE(qctx != NULL);
 	REQUIRE(client != NULL);
 
@@ -5349,11 +5333,11 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 
 	CCTRACE(ISC_LOG_DEBUG(3), "qctx_init");
 
-	if (eventp != NULL) {
-		qctx->event = *eventp;
-		*eventp = NULL;
+	if (frespp != NULL) {
+		qctx->fresp = *frespp;
+		*frespp = NULL;
 	} else {
-		qctx->event = NULL;
+		qctx->fresp = NULL;
 	}
 	qctx->qtype = qctx->type = qtype;
 	qctx->result = ISC_R_SUCCESS;
@@ -5424,9 +5408,8 @@ qctx_freedata(query_ctx_t *qctx) {
 		dns_db_detach(&qctx->zdb);
 	}
 
-	if (qctx->event != NULL && !qctx->client->nodetach) {
-		free_devent(qctx->client, ISC_EVENT_PTR(&qctx->event),
-			    &qctx->event);
+	if (qctx->fresp != NULL && !qctx->client->nodetach) {
+		free_fresp(qctx->client, &qctx->fresp);
 	}
 }
 
@@ -5465,7 +5448,7 @@ qctx_save(query_ctx_t *src, query_ctx_t *tgt) {
 	INITANDSAVE(tgt->rdataset, src->rdataset);
 	INITANDSAVE(tgt->sigrdataset, src->sigrdataset);
 	INITANDSAVE(tgt->noqname, src->noqname);
-	INITANDSAVE(tgt->event, src->event);
+	INITANDSAVE(tgt->fresp, src->fresp);
 	INITANDSAVE(tgt->db, src->db);
 	INITANDSAVE(tgt->version, src->version);
 	INITANDSAVE(tgt->node, src->node);
@@ -5797,7 +5780,7 @@ ns__query_start(query_ctx_t *qctx) {
 	 * Attach to the database which will be used to prepare the answer.
 	 * Update query statistics.
 	 */
-	if (qctx->event == NULL && qctx->client->query.restarts == 0) {
+	if (qctx->fresp == NULL && qctx->client->query.restarts == 0) {
 		if (qctx->is_zone) {
 			if (qctx->zone != NULL) {
 				/*
@@ -6236,10 +6219,10 @@ query_lookup_stale(ns_client_t *client) {
  * call query_resume() to continue the ongoing work.
  */
 static void
-fetch_callback(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
+fetch_callback(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	ns_client_t *client = resp->arg;
 	dns_fetch_t *fetch = NULL;
-	ns_client_t *client = NULL;
 	bool fetch_canceled = false;
 	bool fetch_answered = false;
 	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
@@ -6247,24 +6230,16 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	int errorloglevel;
 	query_ctx_t qctx;
 
-	UNUSED(task);
-
-	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE ||
-		event->ev_type == DNS_EVENT_TRYSTALE);
-
-	client = devent->ev_arg;
-
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(task == client->manager->task);
 	REQUIRE(RECURSING(client));
 
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
 
-	if (event->ev_type == DNS_EVENT_TRYSTALE) {
-		if (devent->result != ISC_R_CANCELED) {
+	if (resp->type == TRYSTALE) {
+		if (resp->result != ISC_R_CANCELED) {
 			query_lookup_stale(client);
 		}
-		isc_event_free(ISC_EVENT_PTR(&event));
+		isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 		return;
 	}
 	/*
@@ -6279,7 +6254,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
-	INSIST(FETCH_RECTYPE_NORMAL(client) == devent->fetch ||
+	INSIST(FETCH_RECTYPE_NORMAL(client) == resp->fetch ||
 	       FETCH_RECTYPE_NORMAL(client) == NULL);
 	if (QUERY_STALEPENDING(&client->query)) {
 		/*
@@ -6293,7 +6268,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
-		INSIST(FETCH_RECTYPE_NORMAL(client) == devent->fetch);
+		INSIST(FETCH_RECTYPE_NORMAL(client) == resp->fetch);
 		FETCH_RECTYPE_NORMAL(client) = NULL;
 
 		/*
@@ -6309,7 +6284,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&client->query.fetchlock);
 
-	SAVE(fetch, devent->fetch);
+	SAVE(fetch, resp->fetch);
 
 	/*
 	 * We're done recursing, detach from quota and unlink from
@@ -6332,9 +6307,9 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Initialize a new qctx and use it to either resume from
 	 * recursion or clean up after cancelation.  Transfer
-	 * ownership of devent to the new qctx in the process.
+	 * ownership of resp to the new qctx in the process.
 	 */
-	qctx_init(client, &devent, 0, &qctx);
+	qctx_init(client, &resp, 0, &qctx);
 
 	if (fetch_canceled || fetch_answered) {
 		/*
@@ -6545,7 +6520,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	result = dns_resolver_createfetch(
 		client->view->resolver, qname, qtype, qdomain, nameservers,
 		NULL, peeraddr, client->message->id, client->query.fetchoptions,
-		0, NULL, client->manager->task, fetch_callback, client,
+		0, NULL, client->manager->loop, fetch_callback, client,
 		rdataset, sigrdataset, &FETCH_RECTYPE_NORMAL(client));
 	if (result != ISC_R_SUCCESS) {
 		isc_nmhandle_detach(&HANDLE_RECTYPE_NORMAL(client));
@@ -6626,13 +6601,13 @@ query_resume(query_ctx_t *qctx) {
 		RESTORE(qctx->sigrdataset, qctx->rpz_st->q.sigrdataset);
 		qctx->qtype = qctx->rpz_st->q.qtype;
 
-		if (qctx->event->node != NULL) {
-			dns_db_detachnode(qctx->event->db, &qctx->event->node);
+		if (qctx->fresp->node != NULL) {
+			dns_db_detachnode(qctx->fresp->db, &qctx->fresp->node);
 		}
-		SAVE(qctx->rpz_st->r.db, qctx->event->db);
-		qctx->rpz_st->r.r_type = qctx->event->qtype;
-		SAVE(qctx->rpz_st->r.r_rdataset, qctx->event->rdataset);
-		ns_client_putrdataset(qctx->client, &qctx->event->sigrdataset);
+		SAVE(qctx->rpz_st->r.db, qctx->fresp->db);
+		qctx->rpz_st->r.r_type = qctx->fresp->qtype;
+		SAVE(qctx->rpz_st->r.r_rdataset, qctx->fresp->rdataset);
+		ns_client_putrdataset(qctx->client, &qctx->fresp->sigrdataset);
 	} else if (REDIRECT(qctx->client)) {
 		/*
 		 * Restore saved state.
@@ -6662,23 +6637,23 @@ query_resume(query_ctx_t *qctx) {
 		/*
 		 * Free resources used while recursing.
 		 */
-		ns_client_putrdataset(qctx->client, &qctx->event->rdataset);
-		ns_client_putrdataset(qctx->client, &qctx->event->sigrdataset);
-		if (qctx->event->node != NULL) {
-			dns_db_detachnode(qctx->event->db, &qctx->event->node);
+		ns_client_putrdataset(qctx->client, &qctx->fresp->rdataset);
+		ns_client_putrdataset(qctx->client, &qctx->fresp->sigrdataset);
+		if (qctx->fresp->node != NULL) {
+			dns_db_detachnode(qctx->fresp->db, &qctx->fresp->node);
 		}
-		if (qctx->event->db != NULL) {
-			dns_db_detach(&qctx->event->db);
+		if (qctx->fresp->db != NULL) {
+			dns_db_detach(&qctx->fresp->db);
 		}
 	} else {
 		CCTRACE(ISC_LOG_DEBUG(3), "resume from normal recursion");
 		qctx->authoritative = false;
 
-		qctx->qtype = qctx->event->qtype;
-		SAVE(qctx->db, qctx->event->db);
-		SAVE(qctx->node, qctx->event->node);
-		SAVE(qctx->rdataset, qctx->event->rdataset);
-		SAVE(qctx->sigrdataset, qctx->event->sigrdataset);
+		qctx->qtype = qctx->fresp->qtype;
+		SAVE(qctx->db, qctx->fresp->db);
+		SAVE(qctx->node, qctx->fresp->node);
+		SAVE(qctx->rdataset, qctx->fresp->rdataset);
+		SAVE(qctx->sigrdataset, qctx->fresp->sigrdataset);
 	}
 	INSIST(qctx->rdataset != NULL);
 
@@ -6734,7 +6709,7 @@ query_resume(query_ctx_t *qctx) {
 	} else if (REDIRECT(qctx->client)) {
 		tname = qctx->client->query.redirect.fname;
 	} else {
-		tname = qctx->event->foundname;
+		tname = qctx->fresp->foundname;
 	}
 
 	dns_name_copy(tname, qctx->fname);
@@ -6742,14 +6717,13 @@ query_resume(query_ctx_t *qctx) {
 	if (qctx->rpz_st != NULL &&
 	    (qctx->rpz_st->state & DNS_RPZ_RECURSING) != 0)
 	{
-		qctx->rpz_st->r.r_result = qctx->event->result;
+		qctx->rpz_st->r.r_result = qctx->fresp->result;
 		result = qctx->rpz_st->q.result;
-		free_devent(qctx->client, ISC_EVENT_PTR(&qctx->event),
-			    &qctx->event);
+		free_fresp(qctx->client, &qctx->fresp);
 	} else if (REDIRECT(qctx->client)) {
 		result = qctx->client->query.redirect.result;
 	} else {
-		result = qctx->event->result;
+		result = qctx->fresp->result;
 	}
 
 	qctx->resuming = true;

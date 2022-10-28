@@ -20,7 +20,6 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/client.h>
@@ -207,7 +206,7 @@ marksecure(dns_valstatus_t *vstat) {
 }
 
 /*
- * Validator 'val' is finished; send the completion event to the task
+ * Validator 'val' is finished; send the completion event to the loop
  * that called dns_validator_create(), with result `result`.
  *
  * Caller must be holding the validator lock.
@@ -367,34 +366,29 @@ trynsec3:
  * If not found, fail the validation process.
  */
 static void
-fetch_callback_dnskey(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *devent;
-	dns_validator_t *val;
-	dns_rdataset_t *rdataset;
-	bool want_destroy;
+fetch_callback_dnskey(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	dns_validator_t *val = resp->arg;
+	dns_rdataset_t *rdataset = &val->frdataset;
+	isc_result_t eresult = resp->result;
 	isc_result_t result;
-	isc_result_t eresult;
 	isc_result_t saved_result;
-	dns_fetch_t *fetch;
+	dns_fetch_t *fetch = NULL;
+	bool want_destroy;
 
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
-	devent = (dns_fetchevent_t *)event;
-	val = devent->ev_arg;
-	rdataset = &val->frdataset;
-	eresult = devent->result;
+	INSIST(resp->type == FETCHDONE);
 
 	/* Free resources which are not of interest. */
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
 	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
 	}
 	if (dns_rdataset_isassociated(&val->fsigrdataset)) {
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	}
-	isc_event_free(&event);
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 
 	INSIST(val->vstat != NULL);
 
@@ -467,21 +461,16 @@ fetch_callback_dnskey(isc_task_t *task, isc_event_t *event) {
  * walking a trust chain, or an insecurity proof.
  */
 static void
-fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *devent;
-	dns_validator_t *val;
-	dns_rdataset_t *rdataset;
-	bool want_destroy, trustchain;
+fetch_callback_ds(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	dns_validator_t *val = resp->arg;
+	dns_rdataset_t *rdataset = &val->frdataset;
+	isc_result_t eresult = resp->result;
 	isc_result_t result;
-	isc_result_t eresult;
-	dns_fetch_t *fetch;
+	dns_fetch_t *fetch = NULL;
+	bool want_destroy, trustchain;
 
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
-	devent = (dns_fetchevent_t *)event;
-	val = devent->ev_arg;
-	rdataset = &val->frdataset;
-	eresult = devent->result;
+	INSIST(resp->type == FETCHDONE);
 
 	/*
 	 * Set 'trustchain' to true if we're walking a chain of
@@ -490,11 +479,11 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 	trustchain = ((val->attributes & VALATTR_INSECURITY) == 0);
 
 	/* Free resources which are not of interest. */
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
 	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
 	}
 	if (dns_rdataset_isassociated(&val->fsigrdataset)) {
 		dns_rdataset_disassociate(&val->fsigrdataset);
@@ -572,7 +561,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 		} else if (eresult == DNS_R_SERVFAIL) {
 			goto unexpected;
 		} else if (eresult != DNS_R_CNAME &&
-			   isdelegation(devent->foundname, &val->frdataset,
+			   isdelegation(resp->foundname, &val->frdataset,
 					eresult))
 		{
 			/*
@@ -608,7 +597,7 @@ fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 	}
 done:
 
-	isc_event_free(&event);
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 
@@ -996,7 +985,7 @@ check_deadlock(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
  */
 static isc_result_t
 create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
-	     isc_taskaction_t callback, const char *caller) {
+	     isc_job_cb callback, const char *caller) {
 	unsigned int fopts = 0;
 
 	disassociate_rdatasets(val);
@@ -1018,7 +1007,7 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	validator_logcreate(val, name, type, caller, "fetch");
 	return (dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
-		fopts, 0, NULL, val->task, callback, val, &val->frdataset,
+		fopts, 0, NULL, val->loop, callback, val, &val->frdataset,
 		&val->fsigrdataset, &val->fetch));
 }
 
@@ -1049,8 +1038,8 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type, rdataset, sig,
-				      NULL, vopts, val->task, val->loop, cb,
-				      val, &val->subvalidator);
+				      NULL, vopts, val->loop, cb, val,
+				      &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		val->subvalidator->parent = val;
 		val->subvalidator->depth = val->depth + 1;
@@ -3074,8 +3063,8 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_task_t *task, isc_loop_t *loop, isc_job_cb cb,
-		     void *arg, dns_validator_t **validatorp) {
+		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
 	dns_valstatus_t *vstat = NULL;
@@ -3105,7 +3094,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				  .loop = loop,
 				  .cb = cb,
 				  .arg = arg };
-	isc_task_attach(task, &val->task);
 	dns_view_attach(view, &val->view);
 	isc_mutex_init(&val->lock);
 
@@ -3135,7 +3123,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 cleanup:
 	isc_mutex_destroy(&val->lock);
-	isc_task_detach(&val->task);
 	isc_mem_putanddetach(&vstat->mctx, vstat, sizeof(*vstat));
 
 	dns_view_detach(&val->view);
@@ -3206,7 +3193,6 @@ destroy(dns_validator_t *val) {
 	}
 	isc_mutex_destroy(&val->lock);
 	dns_view_detach(&val->view);
-	isc_task_detach(&val->task);
 	if (val->vstat->message != NULL) {
 		dns_message_detach(&val->vstat->message);
 	}
