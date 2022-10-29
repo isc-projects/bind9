@@ -23,7 +23,6 @@
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/result.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/catz.h>
@@ -124,10 +123,9 @@ struct dns_catz_zones {
 	isc_refcount_t refs;
 	isc_mutex_t lock;
 	dns_catz_zonemodmethods_t *zmm;
-	isc_taskmgr_t *taskmgr;
 	isc_loopmgr_t *loopmgr;
 	dns_view_t *view;
-	isc_task_t *updater;
+	isc_loop_t *loop;
 };
 
 void
@@ -566,7 +564,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 					      zname, pczname, czname);
 				result = delzone(nentry, parentcatz,
 						 parentcatz->catzs->view,
-						 parentcatz->catzs->taskmgr,
 						 parentcatz->catzs->zmm->udata);
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_MASTER,
@@ -657,7 +654,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = delzone(entry, target, target->catzs->view,
-				 target->catzs->taskmgr,
 				 target->catzs->zmm->udata);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
@@ -679,7 +675,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = addzone(entry, target, target->catzs->view,
-				 target->catzs->taskmgr,
 				 target->catzs->zmm->udata);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
@@ -696,7 +691,6 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 		dns_name_format(&entry->name, zname, DNS_NAME_FORMATSIZE);
 		result = modzone(entry, target, target->catzs->view,
-				 target->catzs->taskmgr,
 				 target->catzs->zmm->udata);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
@@ -745,12 +739,10 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	return (result);
 }
 
-isc_result_t
+void
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
-		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_loopmgr_t *loopmgr) {
-	dns_catz_zones_t *new_zones;
-	isc_result_t result;
+		   isc_mem_t *mctx, isc_loopmgr_t *loopmgr) {
+	dns_catz_zones_t *new_zones = NULL;
 
 	REQUIRE(catzsp != NULL && *catzsp == NULL);
 	REQUIRE(zmm != NULL);
@@ -766,24 +758,11 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	isc_mem_attach(mctx, &new_zones->mctx);
 	new_zones->zmm = zmm;
 	new_zones->loopmgr = loopmgr;
-	new_zones->taskmgr = taskmgr;
+	new_zones->loop = isc_loop_get(new_zones->loopmgr, 0);
 
-	result = isc_task_create(taskmgr, &new_zones->updater, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_ht;
-	}
 	new_zones->magic = DNS_CATZ_ZONES_MAGIC;
 
 	*catzsp = new_zones;
-	return (ISC_R_SUCCESS);
-
-cleanup_ht:
-	isc_ht_destroy(&new_zones->zones);
-	isc_refcount_destroy(&new_zones->refs);
-	isc_mutex_destroy(&new_zones->lock);
-	isc_mem_put(mctx, new_zones, sizeof(*new_zones));
-
-	return (result);
 }
 
 void
@@ -854,7 +833,7 @@ catz_timer_start(dns_catz_zone_t *zone) {
 	}
 
 	isc_timer_create(isc_loop_current(zone->catzs->loopmgr),
-			 dns_catz_update_taskaction, zone, &zone->updatetimer);
+			 dns_catz_update_action, zone, &zone->updatetimer);
 
 	isc_timer_start(zone->updatetimer, isc_timertype_once, &interval);
 }
@@ -1011,7 +990,6 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 
 	if (isc_refcount_decrement(&catzs->refs) == 1) {
 		catzs->magic = 0;
-		isc_task_detach(&catzs->updater);
 		isc_mutex_destroy(&catzs->lock);
 		if (catzs->zones != NULL) {
 			isc_ht_iter_t *iter = NULL;
@@ -2024,7 +2002,7 @@ cleanup:
 }
 
 void
-dns_catz_update_taskaction(void *arg) {
+dns_catz_update_action(void *arg) {
 	isc_result_t result;
 	dns_catz_zone_t *zone = arg;
 

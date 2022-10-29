@@ -313,14 +313,20 @@ typedef struct {
 	named_server_t *server;
 } catz_cb_data_t;
 
-typedef struct catz_chgzone_event {
-	ISC_EVENT_COMMON(struct catz_chgzone_event);
+typedef struct catz_chgzone {
+	isc_mem_t *mctx;
 	dns_catz_entry_t *entry;
 	dns_catz_zone_t *origin;
 	dns_view_t *view;
 	catz_cb_data_t *cbd;
 	bool mod;
-} catz_chgzone_event_t;
+} catz_chgzone_t;
+
+typedef enum {
+	CATZ_ADDZONE,
+	CATZ_MODZONE,
+	CATZ_DELZONE,
+} catz_type_t;
 
 typedef struct {
 	unsigned int magic;
@@ -2659,23 +2665,21 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 }
 
 static void
-catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
-	catz_chgzone_event_t *ev = (catz_chgzone_event_t *)event0;
+catz_addmodzone_cb(void *arg) {
+	catz_chgzone_t *cz = (catz_chgzone_t *)arg;
 	isc_result_t result;
 	dns_forwarders_t *dnsforwarders = NULL;
 	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
-	isc_buffer_t *confbuf;
+	isc_buffer_t *confbuf = NULL;
 	char nameb[DNS_NAME_FORMATSIZE];
 	const cfg_obj_t *zlist = NULL;
 	cfg_obj_t *zoneconf = NULL;
 	cfg_obj_t *zoneobj = NULL;
-	ns_cfgctx_t *cfg;
+	ns_cfgctx_t *cfg = NULL;
 	dns_zone_t *zone = NULL;
 
-	UNUSED(task);
-
-	cfg = (ns_cfgctx_t *)ev->view->new_zone_config;
+	cfg = (ns_cfgctx_t *)cz->view->new_zone_config;
 	if (cfg == NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -2684,29 +2688,29 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
-	name = dns_catz_entry_getname(ev->entry);
+	name = dns_catz_entry_getname(cz->entry);
 
 	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
 	dns_name_totext(name, true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	result = dns_fwdtable_find(ev->view->fwdtable, name, NULL,
+	result = dns_fwdtable_find(cz->view->fwdtable, name, NULL,
 				   &dnsforwarders);
 	if (result == ISC_R_SUCCESS &&
 	    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 	{
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_addmodzone_taskaction: "
+			      "catz: catz_addmodzone_cb: "
 			      "zone '%s' will not be processed because of the "
 			      "explicitly configured forwarding for that zone",
 			      nameb);
 		goto cleanup;
 	}
 
-	result = dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone);
+	result = dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone);
 
-	if (ev->mod) {
+	if (cz->mod) {
 		dns_catz_zone_t *parentcatz;
 
 		if (result != ISC_R_SUCCESS) {
@@ -2721,7 +2725,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (!dns_zone_getadded(zone)) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' is not a dynamically "
 				      "added zone",
 				      nameb);
@@ -2733,16 +2737,16 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (parentcatz == NULL) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' exists and is not added by "
 				      "a catalog zone, so won't be modified",
 				      nameb);
 			goto cleanup;
 		}
-		if (parentcatz != ev->origin) {
+		if (parentcatz != cz->origin) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' exists in multiple "
 				      "catalog zones",
 				      nameb);
@@ -2758,7 +2762,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
-					"catz_addmodzone_taskaction: "
+					"catz_addmodzone_cb: "
 					"zone '%s' will not be added "
 					"because it is an explicitly "
 					"configured zone",
@@ -2768,7 +2772,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
-					"catz_addmodzone_taskaction: "
+					"catz_addmodzone_cb: "
 					"zone '%s' will not be added "
 					"because another catalog zone "
 					"already contains an entry with "
@@ -2794,7 +2798,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	RUNTIME_CHECK(zone == NULL);
 	/* Create a config for new zone */
 	confbuf = NULL;
-	result = dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
+	result = dns_catz_generate_zonecfg(cz->origin, cz->entry, &confbuf);
 	if (result == ISC_R_SUCCESS) {
 		cfg_parser_reset(cfg->add_parser);
 		result = cfg_parse_buffer(cfg->add_parser, confbuf, "catz", 0,
@@ -2824,12 +2828,12 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	/* Mark view unfrozen so that zone can be added */
 
 	isc_loopmgr_pause(named_g_loopmgr);
-	dns_view_thaw(ev->view);
-	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, ev->view,
-				&ev->cbd->server->viewlist,
-				&ev->cbd->server->kasplist, cfg->actx, true,
-				false, ev->mod);
-	dns_view_freeze(ev->view);
+	dns_view_thaw(cz->view);
+	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, cz->view,
+				&cz->cbd->server->viewlist,
+				&cz->cbd->server->kasplist, cfg->actx, true,
+				false, cz->mod);
+	dns_view_freeze(cz->view);
 	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (result != ISC_R_SUCCESS) {
@@ -2841,7 +2845,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone));
+	CHECK(dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone));
 
 	/*
 	 * Load the zone from the master file.	If this fails, we'll
@@ -2863,13 +2867,13 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(ev->view->zonetable, zone);
+		dns_zt_unmount(cz->view->zonetable, zone);
 		goto cleanup;
 	}
 
 	/* Flag the zone as having been added at runtime */
 	dns_zone_setadded(zone, true);
-	dns_zone_set_parentcatz(zone, ev->origin);
+	dns_zone_set_parentcatz(zone, cz->origin);
 
 cleanup:
 	if (zone != NULL) {
@@ -2878,33 +2882,31 @@ cleanup:
 	if (zoneconf != NULL) {
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
 	}
-	dns_catz_entry_detach(ev->origin, &ev->entry);
-	dns_catz_zone_detach(&ev->origin);
-	dns_view_detach(&ev->view);
-	isc_event_free(ISC_EVENT_PTR(&ev));
+	dns_catz_entry_detach(cz->origin, &cz->entry);
+	dns_catz_zone_detach(&cz->origin);
+	dns_view_detach(&cz->view);
+	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
 static void
-catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
-	catz_chgzone_event_t *ev = (catz_chgzone_event_t *)event0;
+catz_delzone_cb(void *arg) {
+	catz_chgzone_t *cz = (catz_chgzone_t *)arg;
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_db_t *dbp = NULL;
 	char cname[DNS_NAME_FORMATSIZE];
-	const char *file;
-
-	UNUSED(task);
+	const char *file = NULL;
 
 	isc_loopmgr_pause(named_g_loopmgr);
 
-	dns_name_format(dns_catz_entry_getname(ev->entry), cname,
+	dns_name_format(dns_catz_entry_getname(cz->entry), cname,
 			DNS_NAME_FORMATSIZE);
-	result = dns_zt_find(ev->view->zonetable,
-			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	result = dns_zt_find(cz->view->zonetable,
+			     dns_catz_entry_getname(cz->entry), 0, NULL, &zone);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: "
+			      "catz: catz_delzone_cb: "
 			      "zone '%s' not found",
 			      cname);
 		goto cleanup;
@@ -2913,16 +2915,16 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	if (!dns_zone_getadded(zone)) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: "
+			      "catz: catz_delzone_cb: "
 			      "zone '%s' is not a dynamically added zone",
 			      cname);
 		goto cleanup;
 	}
 
-	if (dns_zone_get_parentcatz(zone) != ev->origin) {
+	if (dns_zone_get_parentcatz(zone) != cz->origin) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: zone "
+			      "catz: catz_delzone_cb: zone "
 			      "'%s' exists in multiple catalog zones",
 			      cname);
 		goto cleanup;
@@ -2934,7 +2936,7 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		dns_zone_unload(zone);
 	}
 
-	CHECK(dns_zt_unmount(ev->view->zonetable, zone));
+	CHECK(dns_zt_unmount(cz->view->zonetable, zone));
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
@@ -2946,7 +2948,7 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-		      "catz: catz_delzone_taskaction: "
+		      "catz: catz_delzone_cb: "
 		      "zone '%s' deleted",
 		      cname);
 cleanup:
@@ -2954,77 +2956,63 @@ cleanup:
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
-	dns_catz_entry_detach(ev->origin, &ev->entry);
-	dns_catz_zone_detach(&ev->origin);
-	dns_view_detach(&ev->view);
-	isc_event_free(ISC_EVENT_PTR(&ev));
+	dns_catz_entry_detach(cz->origin, &cz->entry);
+	dns_catz_zone_detach(&cz->origin);
+	dns_view_detach(&cz->view);
+	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
 static isc_result_t
-catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
-		     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata,
-		     isc_eventtype_t type) {
-	catz_chgzone_event_t *event = NULL;
-	isc_task_t *task = NULL;
-	isc_result_t result;
-	isc_taskaction_t action = NULL;
-
-	result = isc_taskmgr_excltask(taskmgr, &task);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+catz_run(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
+	 void *udata, catz_type_t type) {
+	catz_chgzone_t *cz = NULL;
+	isc_job_cb action = NULL;
 
 	switch (type) {
-	case DNS_EVENT_CATZADDZONE:
-	case DNS_EVENT_CATZMODZONE:
-		action = catz_addmodzone_taskaction;
+	case CATZ_ADDZONE:
+	case CATZ_MODZONE:
+		action = catz_addmodzone_cb;
 		break;
-	case DNS_EVENT_CATZDELZONE:
-		action = catz_delzone_taskaction;
+	case CATZ_DELZONE:
+		action = catz_delzone_cb;
 		break;
 	default:
 		REQUIRE(0);
 		UNREACHABLE();
 	}
 
-	event = (catz_chgzone_event_t *)isc_event_allocate(
-		view->mctx, origin, type, action, NULL, sizeof(*event));
+	cz = isc_mem_get(view->mctx, sizeof(*cz));
+	*cz = (catz_chgzone_t){
+		.cbd = (catz_cb_data_t *)udata,
+		.mod = (type == CATZ_MODZONE),
+	};
+	isc_mem_attach(view->mctx, &cz->mctx);
 
-	event->cbd = (catz_cb_data_t *)udata;
-	event->entry = NULL;
-	event->origin = NULL;
-	event->view = NULL;
-	event->mod = (type == DNS_EVENT_CATZMODZONE);
+	dns_catz_entry_attach(entry, &cz->entry);
+	dns_catz_zone_attach(origin, &cz->origin);
+	dns_view_attach(view, &cz->view);
 
-	dns_catz_entry_attach(entry, &event->entry);
-	dns_catz_zone_attach(origin, &event->origin);
-	dns_view_attach(view, &event->view);
-
-	isc_task_send(task, ISC_EVENT_PTR(&event));
-	isc_task_detach(&task);
+	isc_async_run(named_g_mainloop, action, cz);
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 catz_addzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZADDZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_ADDZONE));
 }
 
 static isc_result_t
 catz_delzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZDELZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_DELZONE));
 }
 
 static isc_result_t
 catz_modzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZMODZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_MODZONE));
 }
 
 static isc_result_t
@@ -3177,8 +3165,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
-				 view->mctx, named_g_taskmgr, named_g_loopmgr));
+	dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods, view->mctx,
+			   named_g_loopmgr);
 
 	if (pview != NULL) {
 		old = pview->catzs;
