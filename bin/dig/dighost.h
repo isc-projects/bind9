@@ -263,7 +263,6 @@ extern const dns_name_t *hmacname;
 extern unsigned int digestbits;
 extern dns_tsigkey_t *tsigkey;
 extern bool validated;
-extern isc_taskmgr_t *taskmgr;
 extern isc_loopmgr_t *loopmgr;
 extern isc_loop_t *mainloop;
 extern bool free_now;

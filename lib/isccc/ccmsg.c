@@ -38,7 +38,6 @@
 #include <isc/util.h>
 
 #include <isccc/ccmsg.h>
-#include <isccc/events.h>
 
 #define CCMSG_MAGIC	 ISC_MAGIC('C', 'C', 'm', 's')
 #define VALID_CCMSG(foo) ISC_MAGIC_VALID(foo, CCMSG_MAGIC)

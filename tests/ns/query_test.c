@@ -32,7 +32,6 @@
 #include <dns/zone.h>
 
 #include <ns/client.h>
-#include <ns/events.h>
 #include <ns/hooks.h>
 #include <ns/query.h>
 #include <ns/server.h>

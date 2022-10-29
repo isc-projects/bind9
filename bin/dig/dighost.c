@@ -51,7 +51,6 @@
 #include <isc/serial.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/tls.h>
 #include <isc/types.h>
@@ -104,7 +103,6 @@ unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_nm_t *netmgr = NULL;
-isc_taskmgr_t *taskmgr = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_loop_t *mainloop = NULL;
 isc_sockaddr_t localaddr;
@@ -1369,7 +1367,7 @@ setup_libs(void) {
 		fatal("can't find either v4 or v6 networking");
 	}
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_setcontext(lctx);
@@ -4716,7 +4714,7 @@ destroy_libs(void) {
 		isc_mem_stats(mctx, stderr);
 	}
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
 #if ENABLE_LEAK_DETECTION
 	isc__tls_setdestroycheck(true);

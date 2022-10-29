@@ -20,7 +20,6 @@
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
-#include <isc/event.h>
 #include <isc/file.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
@@ -36,7 +35,6 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/master.h>

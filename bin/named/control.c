@@ -15,7 +15,6 @@
 
 #include <stdbool.h>
 
-#include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/result.h>

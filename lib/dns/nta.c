@@ -18,14 +18,12 @@
 
 #include <isc/async.h>
 #include <isc/buffer.h>
-#include <isc/event.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>

@@ -24,7 +24,6 @@
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>

@@ -22,7 +22,6 @@
 #include <isc/mem.h>
 #include <isc/ratelimiter.h>
 #include <isc/refcount.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>

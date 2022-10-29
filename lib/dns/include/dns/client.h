@@ -39,7 +39,6 @@
  *	security issue specific to this module is anticipated.
  */
 
-#include <isc/event.h>
 #include <isc/loop.h>
 #include <isc/sockaddr.h>
 #include <isc/tls.h>

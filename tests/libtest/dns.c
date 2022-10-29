@@ -155,13 +155,11 @@ detach_zone:
 	return (result);
 }
 
-isc_result_t
+void
 dns_test_setupzonemgr(void) {
-	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &zonemgr);
-	return (result);
+	dns_zonemgr_create(mctx, loopmgr, netmgr, &zonemgr);
 }
 
 isc_result_t

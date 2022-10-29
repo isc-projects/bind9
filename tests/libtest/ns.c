@@ -32,7 +32,6 @@
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -52,7 +51,6 @@
 
 #include <tests/ns.h>
 
-isc_task_t *maintask = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
@@ -92,8 +90,8 @@ setup_server(void **state) {
 		goto cleanup;
 	}
 
-	result = ns_interfacemgr_create(mctx, sctx, loopmgr, taskmgr, netmgr,
-					dispatchmgr, maintask, NULL, false,
+	result = ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr,
+					dispatchmgr, NULL, false,
 					&interfacemgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -159,10 +157,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Start zone manager.
 	 */
-	result = dns_test_setupzonemgr();
-	if (result != ISC_R_SUCCESS) {
-		goto free_zone;
-	}
+	dns_test_setupzonemgr();
 
 	/*
 	 * Add the zone to the zone manager.
@@ -201,7 +196,6 @@ release_zone:
 	dns_test_releasezone(served_zone);
 close_zonemgr:
 	dns_test_closezonemgr();
-free_zone:
 	dns_zone_detach(&served_zone);
 
 	return (result);

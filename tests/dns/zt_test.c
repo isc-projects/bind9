@@ -26,7 +26,6 @@
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/loop.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -71,8 +70,7 @@ ISC_LOOP_TEST_IMPL(apply) {
 	assert_int_equal(nzones, 1);
 
 	/* These steps are necessary so the zone can be detached properly */
-	result = dns_test_setupzonemgr();
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_test_setupzonemgr();
 	result = dns_test_managezone(zone);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_test_releasezone(zone);
@@ -85,12 +83,11 @@ ISC_LOOP_TEST_IMPL(apply) {
 }
 
 static isc_result_t
-load_done_last(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+load_done_last(dns_zt_t *zt, dns_zone_t *zone) {
 	isc_result_t result;
 
 	UNUSED(zt);
 	UNUSED(zone);
-	UNUSED(task);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -113,12 +110,11 @@ load_done_last(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 }
 
 static isc_result_t
-load_done_new_only(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+load_done_new_only(dns_zt_t *zt, dns_zone_t *zone) {
 	isc_result_t result;
 
 	UNUSED(zt);
 	UNUSED(zone);
-	UNUSED(task);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -131,12 +127,11 @@ load_done_new_only(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 }
 
 static isc_result_t
-load_done_first(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
+load_done_first(dns_zt_t *zt, dns_zone_t *zone) {
 	atomic_bool *done = (atomic_bool *)zt;
 	isc_result_t result;
 
 	UNUSED(zone);
-	UNUSED(task);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -169,8 +164,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_test_setupzonemgr();
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_test_setupzonemgr();
 	result = dns_test_managezone(zone);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -257,8 +251,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	zt = view->zonetable;
 	assert_non_null(zt);
 
-	result = dns_test_setupzonemgr();
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_test_setupzonemgr();
 	result = dns_test_managezone(zone1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_test_managezone(zone2);

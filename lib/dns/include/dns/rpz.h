@@ -21,7 +21,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/event.h>
 #include <isc/ht.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>

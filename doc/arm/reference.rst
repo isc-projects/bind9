@@ -5756,7 +5756,6 @@ reconfiguration time), http://127.0.0.1:8888/xml/v3/server (server and
 resolver statistics), http://127.0.0.1:8888/xml/v3/zones (zone
 statistics), http://127.0.0.1:8888/xml/v3/net (network status and socket
 statistics), http://127.0.0.1:8888/xml/v3/mem (memory manager
-statistics), http://127.0.0.1:8888/xml/v3/tasks (task manager
 statistics), and http://127.0.0.1:8888/xml/v3/traffic (traffic sizes).
 
 The full set of statistics can also be read in JSON format at
@@ -5766,7 +5765,6 @@ reconfiguration time), http://127.0.0.1:8888/json/v1/server (server and
 resolver statistics), http://127.0.0.1:8888/json/v1/zones (zone
 statistics), http://127.0.0.1:8888/json/v1/net (network status and
 socket statistics), http://127.0.0.1:8888/json/v1/mem (memory manager
-statistics), http://127.0.0.1:8888/json/v1/tasks (task manager
 statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
 
 :any:`tls` Block Grammar

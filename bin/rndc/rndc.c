@@ -33,7 +33,6 @@
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -59,9 +58,7 @@ const char *progname = NULL;
 bool verbose;
 
 static isc_nm_t *netmgr = NULL;
-static isc_taskmgr_t *taskmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
-static isc_task_t *rndc_task = NULL;
 
 static const char *admin_conffile = NULL;
 static const char *admin_keyfile = NULL;
@@ -307,7 +304,6 @@ rndc_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_load_acquire(&recvs) == 0)
 	{
 		shuttingdown = true;
-		isc_task_detach(&rndc_task);
 		isc_loopmgr_shutdown(loopmgr);
 	}
 }
@@ -393,7 +389,6 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	    atomic_load_acquire(&sends) == 0)
 	{
 		shuttingdown = true;
-		isc_task_detach(&rndc_task);
 		isc_loopmgr_shutdown(loopmgr);
 	}
 }
@@ -1025,10 +1020,9 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr, &taskmgr);
-	isc_loopmgr_setup(loopmgr, rndc_start, rndc_task);
+	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr);
+	isc_loopmgr_setup(loopmgr, rndc_start, NULL);
 
-	DO("create task", isc_task_create(taskmgr, &rndc_task, 0));
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
 	isc_log_settag(logconfig, progname);
@@ -1098,7 +1092,7 @@ main(int argc, char **argv) {
 		isc_mem_stats(rndc_mctx, stderr);
 	}
 
-	isc_managers_destroy(&rndc_mctx, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&rndc_mctx, &loopmgr, &netmgr);
 
 	if (failed) {
 		return (1);

@@ -35,7 +35,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/dyndb.h>

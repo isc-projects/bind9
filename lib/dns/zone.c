@@ -36,7 +36,6 @@
 #include <isc/stdtime.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/timer.h>
@@ -51,7 +50,6 @@
 #include <dns/dbiterator.h>
 #include <dns/dlz.h>
 #include <dns/dnssec.h>
-#include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keydata.h>
@@ -318,9 +316,6 @@ struct dns_zone {
 	dns_remote_t notify;
 	dns_notifytype_t notifytype;
 	isc_sockaddr_t notifyfrom;
-
-	isc_task_t *task;
-
 	isc_sockaddr_t notifysrc4;
 	isc_sockaddr_t notifysrc6;
 	isc_sockaddr_t parentalsrc4;
@@ -328,8 +323,7 @@ struct dns_zone {
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t sourceaddr;
-
-	dns_xfrin_ctx_t *xfr;	    /* task locked */
+	dns_xfrin_ctx_t *xfr;	    /* loop locked */
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
@@ -592,10 +586,8 @@ struct dns_zonemgr {
 	isc_mem_t *mctx;
 	isc_refcount_t refs;
 	isc_loopmgr_t *loopmgr;
-	isc_taskmgr_t *taskmgr;
 	isc_nm_t *netmgr;
 	uint32_t workers;
-	isc_task_t **zonetasks;
 	isc_mem_t **mctxpool;
 	isc_ratelimiter_t *checkdsrl;
 	isc_ratelimiter_t *notifyrl;
@@ -1188,10 +1180,6 @@ zone_free(dns_zone_t *zone) {
 	INSIST(zone->statelist == NULL);
 	INSIST(zone->view == NULL);
 	INSIST(zone->prev_view == NULL);
-
-	if (zone->task != NULL) {
-		isc_task_detach(&zone->task);
-	}
 
 	/* Unmanaged objects */
 	for (struct np3 *npe = ISC_LIST_HEAD(zone->setnsec3param_queue);
@@ -2247,7 +2235,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 					      "no master file");
 			}
 			zone->refreshtime = now;
-			if (zone->task != NULL) {
+			if (zone->loop != NULL) {
 				zone_settimer(zone, &now);
 			}
 			result = ISC_R_SUCCESS;
@@ -2351,7 +2339,7 @@ zone_asyncload(void *arg) {
 
 	/* Inform the zone table we've finished loading */
 	if (asl->loaded != NULL) {
-		(asl->loaded)(asl->loaded_arg, zone, zone->task);
+		(asl->loaded)(asl->loaded_arg, zone);
 	}
 
 	isc_mem_put(zone->mctx, asl, sizeof(*asl));
@@ -3657,7 +3645,7 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		if (isc_time_isepoch(&zone->nsec3chaintime)) {
 			TIME_NOW(&now);
 			zone->nsec3chaintime = now;
-			if (zone->task != NULL) {
+			if (zone->loop != NULL) {
 				zone_settimer(zone, &now);
 			}
 		}
@@ -5144,7 +5132,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 	}
 
-	if (zone->task != NULL) {
+	if (zone->loop != NULL) {
 		if (zone->type == dns_zone_primary) {
 			set_resigntime(zone);
 			resume_signingwithkey(zone);
@@ -5260,7 +5248,7 @@ cleanup:
 
 		/* Mark the zone for immediate refresh. */
 		zone->refreshtime = now;
-		if (zone->task != NULL) {
+		if (zone->loop != NULL) {
 			zone_settimer(zone, &now);
 		}
 		result = ISC_R_SUCCESS;
@@ -5295,7 +5283,7 @@ done:
 		 * due to DNS_ZONEFLG_LOADPENDING being set when
 		 * zone_maintenance was called.
 		 */
-		if (zone->secure->task != NULL) {
+		if (zone->secure->loop != NULL) {
 			zone_settimer(zone->secure, &now);
 		}
 	}
@@ -11000,7 +10988,7 @@ zone_maintenance(dns_zone_t *zone) {
 		}
 		UNLOCK_ZONE(zone);
 		if (!dumping) {
-			result = zone_dump(zone, true); /* task locked */
+			result = zone_dump(zone, true); /* loop locked */
 			if (result != ISC_R_SUCCESS) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "dump failed: %s",
@@ -11156,7 +11144,7 @@ again:
 		/* XXXMPA make separate call back */
 		if (result == ISC_R_SUCCESS) {
 			set_resigntime(zone);
-			if (zone->task != NULL) {
+			if (zone->loop != NULL) {
 				isc_time_t now;
 				TIME_NOW(&now);
 				zone_settimer(zone, &now);
@@ -11442,7 +11430,7 @@ dns_zone_flush(dns_zone_t *zone) {
 	}
 	UNLOCK_ZONE(zone);
 	if (!dumping) {
-		result = zone_dump(zone, true); /* Unknown task. */
+		result = zone_dump(zone, true);
 	}
 	return (result);
 }
@@ -11458,7 +11446,7 @@ dns_zone_dump(dns_zone_t *zone) {
 	dumping = was_dumping(zone);
 	UNLOCK_ZONE(zone);
 	if (!dumping) {
-		result = zone_dump(zone, false); /* Unknown task. */
+		result = zone_dump(zone, false);
 	}
 	return (result);
 }
@@ -11495,7 +11483,7 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	{
 		zone->dumptime = dumptime;
 	}
-	if (zone->task != NULL) {
+	if (zone->loop != NULL) {
 		zone_settimer(zone, &now);
 	}
 }
@@ -11636,7 +11624,7 @@ zone_dump(dns_zone_t *zone, bool compact) {
 	dns_masterrawheader_t rawdata;
 
 	/*
-	 * 'compact' MUST only be set if we are task locked.
+	 * 'compact' MUST only be set if we are loop locked.
 	 */
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -14488,7 +14476,7 @@ zone_shutdown(void *arg) {
 	}
 
 	/*
-	 * In task context, no locking required.  See zone_xfrdone().
+	 * In loop context, no locking required.  See zone_xfrdone().
 	 */
 	if (zone->xfr != NULL) {
 		/* The final detach will happen in zone_xfrdone() */
@@ -17354,7 +17342,7 @@ dns_zone_setsigresigninginterval(dns_zone_t *zone, uint32_t interval) {
 	LOCK_ZONE(zone);
 	zone->sigresigninginterval = interval;
 	set_resigntime(zone);
-	if (zone->task != NULL) {
+	if (zone->loop != NULL) {
 		TIME_NOW(&now);
 		zone_settimer(zone, &now);
 	}
@@ -17999,17 +17987,14 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_keyfileio_t **deleted) {
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
 }
 
-isc_result_t
-dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   isc_taskmgr_t *taskmgr, isc_nm_t *netmgr,
+void
+dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
 		   dns_zonemgr_t **zmgrp) {
-	dns_zonemgr_t *zmgr;
-	isc_result_t result;
+	dns_zonemgr_t *zmgr = NULL;
 	isc_loop_t *loop = isc_loop_current(loopmgr);
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(loopmgr != NULL);
-	REQUIRE(taskmgr != NULL);
 	REQUIRE(netmgr != NULL);
 	REQUIRE(zmgrp != NULL && *zmgrp == NULL);
 
@@ -18017,7 +18002,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 
 	*zmgr = (dns_zonemgr_t){
 		.loopmgr = loopmgr,
-		.taskmgr = taskmgr,
 		.netmgr = netmgr,
 		.workers = isc_loopmgr_nloops(loopmgr),
 		.transfersin = 10,
@@ -18045,17 +18029,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	isc_ratelimiter_create(loop, &zmgr->startupnotifyrl);
 	isc_ratelimiter_create(loop, &zmgr->startuprefreshrl);
 
-	zmgr->zonetasks = isc_mem_getx(
-		zmgr->mctx, zmgr->workers * sizeof(zmgr->zonetasks[0]),
-		ISC_MEM_ZERO);
-	for (size_t i = 0; i < zmgr->workers; i++) {
-		result = isc_task_create(zmgr->taskmgr, &zmgr->zonetasks[i], i);
-		if (result != ISC_R_SUCCESS) {
-			goto free_zonetasks;
-		}
-		isc_task_setname(zmgr->zonetasks[i], "zonemgr-zonetasks", NULL);
-	}
-
 	zmgr->mctxpool = isc_mem_getx(zmgr->mctx,
 				      zmgr->workers * sizeof(zmgr->mctxpool[0]),
 				      ISC_MEM_ZERO);
@@ -18081,38 +18054,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	zmgr->magic = ZONEMGR_MAGIC;
 
 	*zmgrp = zmgr;
-	return (ISC_R_SUCCESS);
-
-#if 0
- free_iolock:
-	isc_mutex_destroy(&zmgr->iolock);
-#endif /* if 0 */
-
-free_zonetasks:
-	for (size_t i = 0; i < zmgr->workers; i++) {
-		if (zmgr->zonetasks[i] != NULL) {
-			isc_task_detach(&zmgr->zonetasks[i]);
-		}
-	}
-	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
-		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
-
-	isc_ratelimiter_shutdown(zmgr->startuprefreshrl);
-	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
-	isc_ratelimiter_shutdown(zmgr->startupnotifyrl);
-	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
-	isc_ratelimiter_shutdown(zmgr->refreshrl);
-	isc_ratelimiter_detach(&zmgr->refreshrl);
-	isc_ratelimiter_shutdown(zmgr->notifyrl);
-	isc_ratelimiter_detach(&zmgr->notifyrl);
-	isc_ratelimiter_shutdown(zmgr->checkdsrl);
-	isc_ratelimiter_detach(&zmgr->checkdsrl);
-
-	isc_rwlock_destroy(&zmgr->urlock);
-	isc_rwlock_destroy(&zmgr->rwlock);
-	isc_mem_put(zmgr->mctx, zmgr, sizeof(*zmgr));
-	isc_mem_detach(&mctx);
-	return (result);
 }
 
 isc_result_t
@@ -18150,24 +18091,10 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
-	if (zmgr->zonetasks == NULL) {
-		return (ISC_R_FAILURE);
-	}
-
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	LOCK_ZONE(zone);
-	REQUIRE(zone->task == NULL);
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
-
-	isc_task_attach(zmgr->zonetasks[zone->tid], &zone->task);
-
-	/*
-	 * Set the task name.  The tag will arbitrarily point to one
-	 * of the zones sharing the task (in practice, the one
-	 * to be managed last).
-	 */
-	isc_task_setname(zone->task, "zone", zone);
 
 	zone->loop = isc_loop_get(zmgr->loopmgr, zone->tid);
 
@@ -18287,10 +18214,6 @@ dns_zonemgr_shutdown(dns_zonemgr_t *zmgr) {
 		isc_mem_detach(&zmgr->mctxpool[i]);
 	}
 
-	for (size_t i = 0; i < zmgr->workers; i++) {
-		isc_task_detach(&zmgr->zonetasks[i]);
-	}
-
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
 	     zone = ISC_LIST_NEXT(zone, link))
@@ -18317,8 +18240,6 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
 		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
-	isc_mem_put(zmgr->mctx, zmgr->zonetasks,
-		    zmgr->workers * sizeof(zmgr->zonetasks[0]));
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
@@ -18357,13 +18278,6 @@ dns_zonemgr_gettransfersperns(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	return (zmgr->transfersperns);
-}
-
-isc_taskmgr_t *
-dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr) {
-	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
-
-	return (zmgr->taskmgr);
 }
 
 /*
@@ -18434,7 +18348,7 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	/*
 	 * If we are exiting just pretend we got quota so the zone will
-	 * be cleaned up in the zone's task context.
+	 * be cleaned up in the zone's loop context.
 	 */
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
@@ -19271,7 +19185,7 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
 		signing = NULL;
 		if (isc_time_isepoch(&zone->signingtime)) {
 			zone->signingtime = now;
-			if (zone->task != NULL) {
+			if (zone->loop != NULL) {
 				zone_settimer(zone, &now);
 			}
 		}
@@ -21039,7 +20953,7 @@ void
 dns_zone_rekey(dns_zone_t *zone, bool fullsign) {
 	isc_time_t now;
 
-	if (zone->type == dns_zone_primary && zone->task != NULL) {
+	if (zone->type == dns_zone_primary && zone->loop != NULL) {
 		LOCK_ZONE(zone);
 
 		if (fullsign) {
@@ -21418,12 +21332,12 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(zone->zmgr != NULL);
-	REQUIRE(zone->task != NULL);
+	REQUIRE(zone->loop != NULL);
 	REQUIRE(zone->raw == NULL);
 
 	REQUIRE(DNS_ZONE_VALID(raw));
 	REQUIRE(raw->zmgr == NULL);
-	REQUIRE(raw->task == NULL);
+	REQUIRE(raw->loop == NULL);
 	REQUIRE(raw->secure == NULL);
 
 	REQUIRE(zone != raw);
@@ -21444,8 +21358,6 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 
 	/* dns_zone_iattach(zone, &raw->secure); */
 	zone_iattach(zone, &raw->secure);
-
-	isc_task_attach(zone->task, &raw->task);
 
 	ISC_LIST_APPEND(zmgr->zones, raw, link);
 	raw->zmgr = zmgr;
@@ -21675,7 +21587,7 @@ failure:
 }
 
 /*
- * Called from the zone task's queue after the relevant event is posted by
+ * Called from the zone loop's queue after the relevant event is posted by
  * dns_zone_setnsec3param().
  */
 static void
@@ -22157,7 +22069,7 @@ failure:
  *     in the "data" field of the nsec3param_t structure.
  *
  * Once the nsec3param_t structure is prepared, post an event to the zone's
- * task which will cause setnsec3param() to be called with the prepared
+ * loop which will cause setnsec3param() to be called with the prepared
  * structure passed as an argument.
  */
 isc_result_t

@@ -21,6 +21,7 @@
 #include <isc/condition.h>
 #include <isc/job.h>
 #include <isc/list.h>
+#include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -484,6 +485,12 @@ void
 isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "loop exclusive mode: starting");
+	}
+
 	for (size_t i = 0; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
 
@@ -499,15 +506,33 @@ isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&loopmgr->paused,
 						     &(bool){ false }, true));
 	pause_loop(CURRENT_LOOP(loopmgr));
+
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "loop exclusive mode: started");
+	}
 }
 
 void
 isc_loopmgr_resume(isc_loopmgr_t *loopmgr) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "loop exclusive mode: ending");
+	}
+
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&loopmgr->paused,
 						     &(bool){ true }, false));
 	resume_loop(CURRENT_LOOP(loopmgr));
+
+	if (isc_log_wouldlog(isc_lctx, ISC_LOG_DEBUG(1))) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_OTHER, ISC_LOG_DEBUG(1),
+			      "loop exclusive mode: ended");
+	}
 }
 
 void

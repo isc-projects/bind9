@@ -26,7 +26,6 @@
 #include <dns/db.h>
 #include <dns/dnssec.h>
 #include <dns/ds.h>
-#include <dns/events.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>

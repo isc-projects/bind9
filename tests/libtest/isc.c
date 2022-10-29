@@ -27,7 +27,6 @@
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -37,7 +36,6 @@ isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_loop_t *mainloop = NULL;
 isc_loopmgr_t *loopmgr = NULL;
-isc_taskmgr_t *taskmgr = NULL;
 isc_nm_t *netmgr = NULL;
 unsigned int workers = -1;
 
@@ -91,27 +89,10 @@ setup_loopmgr(void **state __attribute__((__unused__))) {
 
 int
 teardown_loopmgr(void **state __attribute__((__unused__))) {
-	REQUIRE(taskmgr == NULL);
 	REQUIRE(netmgr == NULL);
 
 	mainloop = NULL;
 	isc_loopmgr_destroy(&loopmgr);
-
-	return (0);
-}
-
-int
-setup_taskmgr(void **state __attribute__((__unused__))) {
-	REQUIRE(loopmgr != NULL);
-
-	isc_taskmgr_create(mctx, loopmgr, &taskmgr);
-
-	return (0);
-}
-
-int
-teardown_taskmgr(void **state __attribute__((__unused__))) {
-	isc_taskmgr_destroy(&taskmgr);
 
 	return (0);
 }
@@ -139,7 +120,6 @@ teardown_netmgr(void **state __attribute__((__unused__))) {
 int
 setup_managers(void **state) {
 	setup_loopmgr(state);
-	setup_taskmgr(state);
 	setup_netmgr(state);
 
 	return (0);
@@ -148,7 +128,6 @@ setup_managers(void **state) {
 int
 teardown_managers(void **state) {
 	teardown_netmgr(state);
-	teardown_taskmgr(state);
 	teardown_loopmgr(state);
 
 	return (0);

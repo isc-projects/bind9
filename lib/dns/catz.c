@@ -27,7 +27,6 @@
 
 #include <dns/catz.h>
 #include <dns/dbiterator.h>
-#include <dns/events.h>
 #include <dns/rdatasetiter.h>
 #include <dns/view.h>
 #include <dns/zone.h>

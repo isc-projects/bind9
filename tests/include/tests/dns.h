@@ -25,7 +25,6 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -73,7 +72,7 @@ isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 		  bool createview);
 
-isc_result_t
+void
 dns_test_setupzonemgr(void);
 
 isc_result_t

@@ -42,7 +42,6 @@ check_PROGRAMS =	\
 	sockaddr_test	\
 	stats_test	\
 	symtab_test	\
-	task_test	\
 	tcp_test	\
 	tcpdns_test	\
 	time_test	\
@@ -100,12 +99,6 @@ md_test_LDADD =		\
 random_test_LDADD =	\
 	$(LDADD)	\
 	-lm
-
-task_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)
-
-task_test_LDADD =	\
-	$(LDADD)
 
 tcp_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
@@ -176,17 +169,6 @@ udp_test_SOURCES =	\
 	netmgr_common.h \
 	netmgr_common.c \
 	uv_wrap.h
-
-if HAVE_LIBXML2
-task_test_CPPFLAGS += $(LIBXML2_CFLAGS)
-task_test_LDADD += $(LIBXML2_LIBS)
-endif HAVE_LIBXML2
-
-if HAVE_JSON_C
-task_test_CPPFLAGS += $(JSON_C_CFLAGS)
-task_test_LDADD += $(JSON_C_LIBS)
-endif HAVE_JSON_C
-
 
 EXTRA_DIST = testdata
 

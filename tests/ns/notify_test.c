@@ -25,8 +25,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/event.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 
 #include <dns/acl.h>

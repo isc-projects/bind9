@@ -17,7 +17,6 @@
 
 #include <stdbool.h>
 
-#include <isc/event.h>
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>

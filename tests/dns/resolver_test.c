@@ -23,7 +23,6 @@
 
 #include <isc/buffer.h>
 #include <isc/net.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/tls.h>
 #include <isc/util.h>

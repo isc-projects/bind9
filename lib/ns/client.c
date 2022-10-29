@@ -32,7 +32,6 @@
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/timer.h>
@@ -45,7 +44,6 @@
 #include <dns/dispatch.h>
 #include <dns/dnstap.h>
 #include <dns/edns.h>
-#include <dns/events.h>
 #include <dns/message.h>
 #include <dns/peer.h>
 #include <dns/rcode.h>
@@ -82,7 +80,7 @@
  * need for locking.
  *
  * If a routine is ever created that allows someone other than the client's
- * task to change the client, then the client will have to be locked.
+ * loop to change the client, then the client will have to be locked.
  */
 
 #ifdef NS_CLIENT_TRACE
@@ -2392,14 +2390,16 @@ clientmgr_destroy_cb(void *arg) {
 	ns_clientmgr_t *manager = (ns_clientmgr_t *)arg;
 	MTRACE("clientmgr_destroy");
 
-	isc_refcount_destroy(&manager->references);
 	manager->magic = 0;
+
+	isc_refcount_destroy(&manager->references);
+
+	isc_loop_detach(&manager->loop);
 
 	dns_aclenv_detach(&manager->aclenv);
 
 	isc_mutex_destroy(&manager->reclock);
 
-	isc_task_detach(&manager->task);
 	ns_server_detach(&manager->sctx);
 
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
@@ -2407,45 +2407,32 @@ clientmgr_destroy_cb(void *arg) {
 
 static void
 clientmgr_destroy(ns_clientmgr_t *mgr) {
-	isc_loop_t *loop = isc_loop_get(mgr->loopmgr, mgr->tid);
-	isc_async_run(loop, clientmgr_destroy_cb, mgr);
+	isc_async_run(mgr->loop, clientmgr_destroy_cb, mgr);
 }
 
 ISC_REFCOUNT_IMPL(ns_clientmgr, clientmgr_destroy);
 
 isc_result_t
-ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_loopmgr_t *loopmgr, dns_aclenv_t *aclenv, int tid,
-		    ns_clientmgr_t **managerp) {
+ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
+		    dns_aclenv_t *aclenv, int tid, ns_clientmgr_t **managerp) {
 	ns_clientmgr_t *manager = NULL;
 	isc_mem_t *mctx = NULL;
-	isc_result_t result;
 
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "clientmgr");
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	*manager = (ns_clientmgr_t){ .magic = 0, .mctx = mctx };
-
+	*manager = (ns_clientmgr_t){
+		.magic = 0,
+		.mctx = mctx,
+		.tid = tid,
+		.recursing = ISC_LIST_INITIALIZER,
+	};
+	isc_loop_attach(isc_loop_get(loopmgr, tid), &manager->loop);
 	isc_mutex_init(&manager->reclock);
-
-	manager->taskmgr = taskmgr;
-	manager->loopmgr = loopmgr;
-	manager->tid = tid;
-	manager->loop = isc_loop_get(loopmgr, tid);
-
 	dns_aclenv_attach(aclenv, &manager->aclenv);
-
-	result = isc_task_create(manager->taskmgr, &manager->task,
-				 manager->tid);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_task_setname(manager->task, "clientmgr", NULL);
-
 	isc_refcount_init(&manager->references, 1);
-	manager->sctx = NULL;
 	ns_server_attach(sctx, &manager->sctx);
-
-	ISC_LIST_INIT(manager->recursing);
 
 	manager->magic = MANAGER_MAGIC;
 

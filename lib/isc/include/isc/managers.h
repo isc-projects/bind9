@@ -16,16 +16,14 @@
 #include <isc/loop.h>
 #include <isc/netmgr.h>
 #include <isc/result.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 
 typedef struct isc_managers isc_managers_t;
 
 void
 isc_managers_create(isc_mem_t **mctx, uint32_t workers,
-		    isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp,
-		    isc_taskmgr_t **taskmgrp);
+		    isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp);
 
 void
 isc_managers_destroy(isc_mem_t **mctx, isc_loopmgr_t **loopmgrp,
-		     isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp);
+		     isc_nm_t **netmgrp);

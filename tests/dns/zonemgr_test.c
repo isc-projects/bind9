@@ -23,7 +23,6 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -36,7 +35,6 @@
 static int
 setup_test(void **state) {
 	setup_loopmgr(state);
-	setup_taskmgr(state);
 	setup_netmgr(state);
 
 	return (0);
@@ -45,7 +43,6 @@ setup_test(void **state) {
 static int
 teardown_test(void **state) {
 	teardown_netmgr(state);
-	teardown_taskmgr(state);
 	teardown_loopmgr(state);
 
 	return (0);
@@ -54,12 +51,10 @@ teardown_test(void **state) {
 /* create zone manager */
 ISC_LOOP_TEST_IMPL(zonemgr_create) {
 	dns_zonemgr_t *myzonemgr = NULL;
-	isc_result_t result;
 
 	UNUSED(arg);
 
-	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &myzonemgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_zonemgr_create(mctx, loopmgr, netmgr, &myzonemgr);
 
 	dns_zonemgr_shutdown(myzonemgr);
 	dns_zonemgr_detach(&myzonemgr);
@@ -76,8 +71,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_managezone) {
 
 	UNUSED(arg);
 
-	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &myzonemgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_zonemgr_create(mctx, loopmgr, netmgr, &myzonemgr);
 
 	result = dns_test_makezone("foo", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -110,8 +104,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_createzone) {
 
 	UNUSED(arg);
 
-	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &myzonemgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_zonemgr_create(mctx, loopmgr, netmgr, &myzonemgr);
 
 	result = dns_zonemgr_createzone(myzonemgr, &zone);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -142,8 +135,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_unreachable) {
 
 	TIME_NOW(&now);
 
-	result = dns_zonemgr_create(mctx, loopmgr, taskmgr, netmgr, &myzonemgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_zonemgr_create(mctx, loopmgr, netmgr, &myzonemgr);
 
 	result = dns_test_makezone("foo", &zone, NULL, false);
 	assert_int_equal(result, ISC_R_SUCCESS);

@@ -27,7 +27,6 @@
 #include <dns/catz.h>
 #include <dns/db.h>
 #include <dns/diff.h>
-#include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>

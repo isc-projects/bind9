@@ -32,7 +32,6 @@
 #include <dns/dbiterator.h>
 #include <dns/diff.h>
 #include <dns/dnssec.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/kasp.h>

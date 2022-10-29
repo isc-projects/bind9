@@ -18,7 +18,6 @@
 
 #include <isc/async.h>
 #include <isc/atomic.h>
-#include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
@@ -33,7 +32,6 @@
 #include <isc/work.h>
 
 #include <dns/callbacks.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/master.h>
 #include <dns/name.h>
