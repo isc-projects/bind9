@@ -19,7 +19,6 @@
 #include <isc/once.h>
 #include <isc/region.h>
 #include <isc/result.h>
-#include <isc/task.h>
 #include <isc/types.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -268,7 +267,7 @@ dns_dyndb_cleanup(bool exiting) {
 
 isc_result_t
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
+		    dns_view_t *view, dns_zonemgr_t *zmgr,
 		    isc_loopmgr_t *loopmgr, dns_dyndbctx_t **dctxp) {
 	dns_dyndbctx_t *dctx;
 
@@ -286,9 +285,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	}
 	if (zmgr != NULL) {
 		dns_zonemgr_attach(zmgr, &dctx->zmgr);
-	}
-	if (task != NULL) {
-		isc_task_attach(task, &dctx->task);
 	}
 
 	isc_mem_attach(mctx, &dctx->mctx);
@@ -315,9 +311,6 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp) {
 	}
 	if (dctx->zmgr != NULL) {
 		dns_zonemgr_detach(&dctx->zmgr);
-	}
-	if (dctx->task != NULL) {
-		isc_task_detach(&dctx->task);
 	}
 	dctx->loopmgr = NULL;
 	dctx->lctx = NULL;

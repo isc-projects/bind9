@@ -171,7 +171,6 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 		CLEANUP_WITH(ISC_R_UNEXPECTED);
 	}
 
-	isc_task_beginexclusive(inst->task);
 	if (inst->view->frozen) {
 		freeze = true;
 		dns_view_thaw(inst->view);
@@ -193,7 +192,6 @@ cleanup:
 	if (freeze) {
 		dns_view_freeze(inst->view);
 	}
-	isc_task_endexclusive(inst->task);
 
 	return (result);
 }

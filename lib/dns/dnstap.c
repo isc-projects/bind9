@@ -54,6 +54,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/async.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/log.h>
@@ -62,7 +63,6 @@
 #include <isc/once.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/types.h>
@@ -104,13 +104,12 @@ struct dns_dtenv {
 	isc_refcount_t refcount;
 
 	isc_mem_t *mctx;
+	isc_loop_t *loop;
 
 	struct fstrm_iothr *iothr;
 	struct fstrm_iothr_options *fopt;
 
-	isc_task_t *reopen_task;
-	isc_mutex_t reopen_lock; /* locks 'reopen_queued'
-				  * */
+	isc_mutex_t reopen_lock; /* locks 'reopen_queued' */
 	bool reopen_queued;
 
 	isc_region_t identity;
@@ -141,7 +140,7 @@ static atomic_uint_fast32_t global_generation;
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	      struct fstrm_iothr_options **foptp, isc_loop_t *loop,
 	      dns_dtenv_t **envp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	fstrm_res res;
@@ -162,7 +161,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	env = isc_mem_get(mctx, sizeof(*env));
 	*env = (dns_dtenv_t){
-		.reopen_task = reopen_task,
+		.loop = loop,
 		.reopen_queued = false,
 	};
 
@@ -281,13 +280,12 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 	struct fstrm_file_options *ffwopt = NULL;
 	struct fstrm_writer_options *fwopt = NULL;
 	struct fstrm_writer *fw = NULL;
+	isc_loopmgr_t *loopmgr = NULL;
 
 	REQUIRE(VALID_DTENV(env));
 
-	/*
-	 * Run in task-exclusive mode.
-	 */
-	isc_task_beginexclusive(env->reopen_task);
+	loopmgr = isc_loop_getloopmgr(env->loop);
+	isc_loopmgr_pause(loopmgr);
 
 	/*
 	 * Check that we can create a new fw object.
@@ -383,7 +381,7 @@ cleanup:
 		fstrm_writer_options_destroy(&fwopt);
 	}
 
-	isc_task_endexclusive(env->reopen_task);
+	isc_loopmgr_resume(loopmgr);
 
 	return (result);
 }
@@ -680,36 +678,18 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
 }
 
 /*%
- * Invoke dns_dt_reopen() and re-allow dnstap output file rolling.  This
- * function is run in the context of the task stored in the 'reopen_task' field
- * of the dnstap environment structure.
+ * Invoke dns_dt_reopen() and re-allow dnstap output file rolling.
  */
 static void
-perform_reopen(isc_task_t *task, isc_event_t *event) {
-	dns_dtenv_t *env;
-
-	REQUIRE(event != NULL);
-	REQUIRE(event->ev_type == DNS_EVENT_FREESTORAGE);
-
-	env = (dns_dtenv_t *)event->ev_arg;
+perform_reopen(void *arg) {
+	dns_dtenv_t *env = (dns_dtenv_t *)arg;
 
 	REQUIRE(VALID_DTENV(env));
-	REQUIRE(task == env->reopen_task);
 
-	/*
-	 * Roll output file in the context of env->reopen_task.
-	 */
+	/* Roll output file. */
 	dns_dt_reopen(env, env->rolls);
 
-	/*
-	 * Clean up.
-	 */
-	isc_event_free(&event);
-	isc_task_detach(&task);
-
-	/*
-	 * Re-allow output file rolling.
-	 */
+	/* Re-allow output file rolling. */
 	LOCK(&env->reopen_lock);
 	env->reopen_queued = false;
 	UNLOCK(&env->reopen_lock);
@@ -721,15 +701,10 @@ perform_reopen(isc_task_t *task, isc_event_t *event) {
  */
 static void
 check_file_size_and_maybe_reopen(dns_dtenv_t *env) {
-	isc_task_t *reopen_task = NULL;
-	isc_event_t *event;
 	struct stat statbuf;
 
-	/*
-	 * If the task from which the output file should be reopened was not
-	 * specified, abort.
-	 */
-	if (env->reopen_task == NULL) {
+	/* If a loopmgr wasn't specified, abort. */
+	if (env->loop == NULL) {
 		return;
 	}
 
@@ -746,15 +721,10 @@ check_file_size_and_maybe_reopen(dns_dtenv_t *env) {
 	}
 
 	/*
-	 * We need to roll the output file, but it needs to be done in the
-	 * context of env->reopen_task.  Allocate and send an event to achieve
-	 * that, then disallow output file rolling until the roll we queue is
-	 * completed.
+	 * Send an event to roll the output file, then disallow output file
+	 * rolling until the roll we queue is completed.
 	 */
-	event = isc_event_allocate(env->mctx, NULL, DNS_EVENT_FREESTORAGE,
-				   perform_reopen, env, sizeof(*event));
-	isc_task_attach(env->reopen_task, &reopen_task);
-	isc_task_send(reopen_task, &event);
+	isc_async_run(env->loop, perform_reopen, env);
 	env->reopen_queued = true;
 
 unlock_and_return:

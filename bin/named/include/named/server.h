@@ -140,12 +140,6 @@ named_server_destroy(named_server_t **serverp);
  */
 
 void
-named_server_shutdown(named_server_t *server);
-/*%<
- * Initiate the server shutdown.
- */
-
-void
 named_server_reloadwanted(void *arg, int signum);
 /*%<
  * Inform a server that a reload is wanted.  This function

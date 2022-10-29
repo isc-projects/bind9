@@ -39,7 +39,6 @@ struct dns_dyndbctx {
 	isc_log_t     *lctx;
 	dns_view_t    *view;
 	dns_zonemgr_t *zmgr;
-	isc_task_t    *task;
 	isc_loopmgr_t *loopmgr;
 	const bool    *refvar; /* unused, but retained for API compatibility */
 };
@@ -133,7 +132,7 @@ dns_dyndb_cleanup(bool exiting);
 
 isc_result_t
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
-		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
+		    dns_view_t *view, dns_zonemgr_t *zmgr,
 		    isc_loopmgr_t *loopmgr, dns_dyndbctx_t **dctxp);
 /*%
  * Create a dyndb initialization context structure, with

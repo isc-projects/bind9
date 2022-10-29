@@ -16,9 +16,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
-#include <isc/event.h>
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -30,13 +30,11 @@
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <isccc/alist.h>
 #include <isccc/cc.h>
 #include <isccc/ccmsg.h>
-#include <isccc/events.h>
 #include <isccc/sexpr.h>
 #include <isccc/symtab.h>
 #include <isccc/util.h>
@@ -375,24 +373,19 @@ cleanup:
 }
 
 static void
-control_command(isc_task_t *task, isc_event_t *event) {
-	controlconnection_t *conn = event->ev_arg;
+control_command(void *arg) {
+	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
-
-	UNUSED(task);
 
 	if (atomic_load_acquire(&listener->controls->shuttingdown)) {
 		conn_cleanup(conn);
 		isc_nmhandle_detach(&conn->cmdhandle);
-		goto done;
+		return;
 	}
 
 	conn->result = named_control_docommand(conn->request,
 					       listener->readonly, &conn->text);
 	control_respond(conn->cmdhandle, conn);
-
-done:
-	isc_event_free(&event);
 }
 
 static void
@@ -400,7 +393,6 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
 	controlkey_t *key = NULL;
-	isc_event_t *event = NULL;
 	isccc_time_t sent;
 	isccc_time_t exp;
 	uint32_t nonce;
@@ -535,9 +527,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	 * Trigger the command.
 	 */
 
-	event = isc_event_allocate(listener->mctx, conn, NAMED_EVENT_COMMAND,
-				   control_command, conn, sizeof(isc_event_t));
-	isc_task_send(named_g_server->task, &event);
+	isc_async_run(named_g_mainloop, control_command, conn);
 
 	return;
 
