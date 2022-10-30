@@ -47,7 +47,9 @@ isc_async_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 
 	job = isc__job_new(loop, cb, cbarg);
 
-	/* Now send the half initialized job to loop queue */
+	/*
+	 * Now send the half-initialized job to the loop queue.
+	 */
 	LOCK(&loop->queue_lock);
 	ISC_LIST_APPEND(loop->queue_jobs, job, link);
 	UNLOCK(&loop->queue_lock);
