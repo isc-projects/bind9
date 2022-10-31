@@ -219,9 +219,11 @@ def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
 
 
 def main():
+    disable_checking = int(os.getenv("DISABLE_ALGORITHM_SUPPORT_CHECKING", "0"))
     try:
         algs = ALGORITHM_SETS[ALGORITHM_SET]
-        algs = filter_supported(algs)
+        if not disable_checking:
+            algs = filter_supported(algs)
         algs = select_random(algs)
         algs_env = algorithms_env(algs)
     except Exception:
