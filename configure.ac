@@ -1393,7 +1393,7 @@ AC_SUBST([CMOCKA_LIBS])
 AM_CONDITIONAL([HAVE_CMOCKA], [test "$with_cmocka" = "yes"])
 
 #
-# Compile with jemalloc (either provided as package or wired in the system on FreeBSD and NetBSD)
+# Compile with jemalloc (either provided as package or wired in the system on FreeBSD)
 #
 # [pairwise: --with-jemalloc=detect, --with-jemalloc=yes, --without-jemalloc]
 AC_ARG_WITH([jemalloc],
@@ -1413,8 +1413,7 @@ AS_CASE([$with_jemalloc],
 
 AS_IF([test "$with_jemalloc" = "no"],
       [AS_CASE([$host],
-	       [*-freebsd*],[AC_MSG_ERROR([You cannot compile without jemalloc; jemalloc is the system allocator on FreeBSD])],
-	       [*-netbsd*],[AC_MSG_ERROR([You cannot compile without jemalloc; jemalloc is the system allocator on NetBSD])])
+	       [*-freebsd*],[AC_MSG_ERROR([You cannot compile without jemalloc; jemalloc is the system allocator on FreeBSD])])
        AC_CHECK_FUNCS([malloc_size malloc_usable_size])])
 
 AM_CONDITIONAL([HAVE_JEMALLOC], [test "$with_jemalloc" = "yes"])
