@@ -16,9 +16,11 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/event.h>
 #include <isc/lex.h>
+#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -28,8 +30,8 @@
 #include <isc/stdio.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/callbacks.h>
 #include <dns/events.h>
@@ -104,7 +106,6 @@ struct dns_loadctx {
 	dns_masterformat_t format;
 
 	dns_rdatacallbacks_t *callbacks;
-	isc_task_t *task;
 	dns_loaddonefunc_t done;
 	void *done_arg;
 
@@ -137,8 +138,6 @@ struct dns_loadctx {
 	dns_masterrawheader_t header;
 
 	/* Which fixed buffers we are using? */
-	unsigned int loop_cnt; /*% records per quantum,
-				* 0 => all. */
 	isc_result_t result;
 
 	/* Atomic */
@@ -204,12 +203,6 @@ grow_rdatalist(int, dns_rdatalist_t *, int, rdatalist_head_t *,
 static dns_rdata_t *
 grow_rdata(int, dns_rdata_t *, int, rdatalist_head_t *, rdatalist_head_t *,
 	   isc_mem_t *);
-
-static void
-load_quantum(isc_task_t *task, isc_event_t *event);
-
-static isc_result_t
-task_send(dns_loadctx_t *lctx);
 
 static void
 loadctx_destroy(dns_loadctx_t *lctx);
@@ -295,11 +288,10 @@ loadctx_destroy(dns_loadctx_t *lctx);
 	((result != ISC_R_SUCCESS) && (result != ISC_R_IOERROR) && \
 	 ((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
 
-#define SETRESULT(lctx, r)                           \
-	do {                                         \
-		if ((lctx)->result == ISC_R_SUCCESS) \
-			(lctx)->result = r;          \
-	} while (0)
+#define SETRESULT(lctx, r)                     \
+	if ((lctx)->result == ISC_R_SUCCESS) { \
+		(lctx)->result = r;            \
+	}
 
 #define LOGITFILE(result, filename)                                            \
 	if (result == ISC_R_INVALIDFILE || result == ISC_R_FILENOTFOUND ||     \
@@ -455,14 +447,10 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 		isc_lex_destroy(&lctx->lex);
 	}
 
-	if (lctx->task != NULL) {
-		isc_task_detach(&lctx->task);
-	}
-
 	isc_mem_putanddetach(&lctx->mctx, lctx, sizeof(*lctx));
 }
 
-static isc_result_t
+static void
 incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	dns_incctx_t *ictx;
 	isc_region_t r;
@@ -492,20 +480,17 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	ictx->origin_changed = true;
 
 	*ictxp = ictx;
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 	       uint32_t resign, dns_name_t *top, dns_rdataclass_t zclass,
 	       dns_name_t *origin, dns_rdatacallbacks_t *callbacks,
-	       isc_task_t *task, dns_loaddonefunc_t done, void *done_arg,
+	       dns_loaddonefunc_t done, void *done_arg,
 	       dns_masterincludecb_t include_cb, void *include_arg,
 	       isc_lex_t *lex, dns_loadctx_t **lctxp) {
-	dns_loadctx_t *lctx;
-	isc_result_t result;
+	dns_loadctx_t *lctx = NULL;
 	isc_region_t r;
-	isc_lexspecials_t specials;
 
 	REQUIRE(lctxp != NULL && *lctxp == NULL);
 	REQUIRE(callbacks != NULL);
@@ -515,20 +500,28 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dns_name_isabsolute(top));
 	REQUIRE(dns_name_isabsolute(origin));
-	REQUIRE((task == NULL && done == NULL) ||
-		(task != NULL && done != NULL));
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
+	*lctx = (dns_loadctx_t){
+		.format = format,
+		.ttl_known = ((options & DNS_MASTER_NOTTL) != 0),
+		.default_ttl_known = ((options & DNS_MASTER_NOTTL) != 0),
+		.warn_1035 = true,
+		.warn_tcr = true,
+		.warn_sigexpired = true,
+		.options = options,
+		.zclass = zclass,
+		.resign = resign,
+		.include_cb = include_cb,
+		.include_arg = include_arg,
+		.first = true,
+		.done = done,
+		.callbacks = callbacks,
+		.done_arg = done_arg,
+	};
 
-	lctx->inc = NULL;
-	result = incctx_create(mctx, origin, &lctx->inc);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_ctx;
-	}
+	incctx_create(mctx, origin, &lctx->inc);
 
-	lctx->maxttl = 0;
-
-	lctx->format = format;
 	switch (format) {
 	case dns_masterformat_text:
 		lctx->openfile = openfile_text;
@@ -546,6 +539,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		lctx->lex = lex;
 		lctx->keep_lex = true;
 	} else {
+		isc_lexspecials_t specials;
 		lctx->lex = NULL;
 		isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
 		lctx->keep_lex = false;
@@ -562,51 +556,20 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		isc_lex_setcomments(lctx->lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	}
 
-	lctx->ttl_known = ((options & DNS_MASTER_NOTTL) != 0);
-	lctx->ttl = 0;
-	lctx->default_ttl_known = lctx->ttl_known;
-	lctx->default_ttl = 0;
-	lctx->warn_1035 = true;	      /* XXX Argument? */
-	lctx->warn_tcr = true;	      /* XXX Argument? */
-	lctx->warn_sigexpired = true; /* XXX Argument? */
-	lctx->options = options;
-	lctx->seen_include = false;
-	lctx->zclass = zclass;
-	lctx->resign = resign;
-	lctx->result = ISC_R_SUCCESS;
-	lctx->include_cb = include_cb;
-	lctx->include_arg = include_arg;
 	isc_stdtime_get(&lctx->now);
 
 	lctx->top = dns_fixedname_initname(&lctx->fixed_top);
 	dns_name_toregion(top, &r);
 	dns_name_fromregion(lctx->top, &r);
 
-	lctx->f = NULL;
-	lctx->first = true;
 	dns_master_initrawheader(&lctx->header);
 
-	lctx->loop_cnt = (done != NULL) ? 100 : 0;
-	lctx->callbacks = callbacks;
-	lctx->task = NULL;
-	if (task != NULL) {
-		isc_task_attach(task, &lctx->task);
-	}
-	lctx->done = done;
-	lctx->done_arg = done_arg;
-	atomic_init(&lctx->canceled, false);
-	lctx->mctx = NULL;
-	isc_mem_attach(mctx, &lctx->mctx);
-
 	isc_refcount_init(&lctx->references, 1); /* Implicit attach. */
+	isc_mem_attach(mctx, &lctx->mctx);
 
 	lctx->magic = DNS_LCTX_MAGIC;
 	*lctxp = lctx;
-	return (ISC_R_SUCCESS);
-
-cleanup_ctx:
-	isc_mem_put(mctx, lctx, sizeof(*lctx));
-	return (result);
+	return;
 }
 
 static const char *hex = "0123456789abcdef0123456789ABCDEF";
@@ -1047,7 +1010,6 @@ load_text(dns_loadctx_t *lctx) {
 	uint32_t ttl_offset = 0;
 	dns_name_t *new_name;
 	bool current_has_delegation = false;
-	bool done = false;
 	bool finish_origin = false;
 	bool finish_include = false;
 	bool read_till_eol = false;
@@ -1075,7 +1037,6 @@ load_text(dns_loadctx_t *lctx) {
 	unsigned char *target_mem = NULL;
 	int target_size = TSIZ;
 	int new_in_use;
-	unsigned int loop_cnt = 0;
 	isc_mem_t *mctx;
 	dns_rdatacallbacks_t *callbacks;
 	dns_incctx_t *ictx;
@@ -1119,7 +1080,12 @@ load_text(dns_loadctx_t *lctx) {
 		options |= DNS_RDATA_CHECKMXFAIL;
 	}
 	source = isc_lex_getsourcename(lctx->lex);
-	do {
+	while (true) {
+		if (atomic_load_acquire(&lctx->canceled)) {
+			result = ISC_R_CANCELED;
+			goto log_and_cleanup;
+		}
+
 		initialws = false;
 		line = isc_lex_getsourceline(lctx->lex);
 		GETTOKEN(lctx->lex, ISC_LEXOPT_INITIALWS | ISC_LEXOPT_QSTRING,
@@ -1144,8 +1110,7 @@ load_text(dns_loadctx_t *lctx) {
 				ictx = lctx->inc;
 				continue;
 			}
-			done = true;
-			continue;
+			break;
 		}
 
 		if (token.type == isc_tokentype_eol) {
@@ -1698,7 +1663,7 @@ load_text(dns_loadctx_t *lctx) {
 				SETRESULT(lctx, result);
 				read_till_eol = true;
 				continue;
-			} else if (result != ISC_R_SUCCESS) {
+			} else {
 				goto insist_and_cleanup;
 			}
 		}
@@ -2107,7 +2072,7 @@ load_text(dns_loadctx_t *lctx) {
 			COMMITALL;
 		}
 	next_line:;
-	} while (!done && (lctx->loop_cnt == 0 || loop_cnt++ < lctx->loop_cnt));
+	}
 
 	/*
 	 * Commit what has not yet been committed.
@@ -2125,16 +2090,12 @@ load_text(dns_loadctx_t *lctx) {
 		SETRESULT(lctx, result);
 	} else if (result != ISC_R_SUCCESS) {
 		goto insist_and_cleanup;
-	}
-
-	if (!done) {
-		INSIST(lctx->done != NULL && lctx->task != NULL);
-		result = DNS_R_CONTINUE;
-	} else if (result == ISC_R_SUCCESS && lctx->result != ISC_R_SUCCESS) {
+	} else if (lctx->result != ISC_R_SUCCESS) {
 		result = lctx->result;
-	} else if (result == ISC_R_SUCCESS && lctx->seen_include) {
+	} else if (lctx->seen_include) {
 		result = DNS_R_SEENINCLUDE;
 	}
+
 	goto cleanup;
 
 log_and_cleanup:
@@ -2175,6 +2136,7 @@ cleanup:
 	if (rhs != NULL) {
 		isc_mem_free(mctx, rhs);
 	}
+
 	return (result);
 }
 
@@ -2191,10 +2153,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	ictx = lctx->inc;
 	lctx->seen_include = true;
 
-	result = incctx_create(lctx->mctx, origin, &newctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	incctx_create(lctx->mctx, origin, &newctx);
 
 	/*
 	 * Push origin_changed.
@@ -2351,8 +2310,6 @@ openfile_raw(dns_loadctx_t *lctx, const char *master_file) {
 static isc_result_t
 load_raw(dns_loadctx_t *lctx) {
 	isc_result_t result = ISC_R_SUCCESS;
-	bool done = false;
-	unsigned int loop_cnt = 0;
 	dns_rdatacallbacks_t *callbacks;
 	unsigned char namebuf[DNS_NAME_MAXWIRE];
 	dns_fixedname_t fixed;
@@ -2397,9 +2354,7 @@ load_raw(dns_loadctx_t *lctx) {
 	 * in this format, and so trying to continue parsing erroneous data
 	 * does not really make sense.
 	 */
-	for (loop_cnt = 0; (lctx->loop_cnt == 0 || loop_cnt < lctx->loop_cnt);
-	     loop_cnt++)
-	{
+	while (true) {
 		unsigned int i, rdcount;
 		uint16_t namelen;
 		uint32_t totallen;
@@ -2413,7 +2368,6 @@ load_raw(dns_loadctx_t *lctx) {
 					lctx->f, NULL);
 		if (result == ISC_R_EOF) {
 			result = ISC_R_SUCCESS;
-			done = true;
 			break;
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -2622,10 +2576,7 @@ load_raw(dns_loadctx_t *lctx) {
 		}
 	}
 
-	if (!done) {
-		INSIST(lctx->done != NULL && lctx->task != NULL);
-		result = DNS_R_CONTINUE;
-	} else if (result == ISC_R_SUCCESS && lctx->result != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS && lctx->result != ISC_R_SUCCESS) {
 		result = lctx->result;
 	}
 
@@ -2640,7 +2591,7 @@ cleanup:
 	if (target_mem != NULL) {
 		isc_mem_put(mctx, target_mem, target_size);
 	}
-	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE) {
+	if (result != ISC_R_SUCCESS) {
 		(*callbacks->error)(callbacks, "dns_master_load: %s",
 				    isc_result_totext(result));
 	}
@@ -2659,12 +2610,9 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
-	result = loadctx_create(format, mctx, options, resign, top, zclass,
-				origin, callbacks, NULL, NULL, NULL, include_cb,
-				include_arg, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	loadctx_create(format, mctx, options, resign, top, zclass, origin,
+		       callbacks, NULL, NULL, include_cb, include_arg, NULL,
+		       &lctx);
 
 	lctx->maxttl = maxttl;
 
@@ -2681,44 +2629,52 @@ cleanup:
 	return (result);
 }
 
+static void
+load(void *arg) {
+	dns_loadctx_t *lctx = arg;
+	lctx->result = (lctx->load)(lctx);
+}
+
+static void
+load_done(void *arg) {
+	dns_loadctx_t *lctx = arg;
+
+	(lctx->done)(lctx->done_arg, lctx->result);
+	dns_loadctx_detach(&lctx);
+}
+
 isc_result_t
-dns_master_loadfileinc(const char *master_file, dns_name_t *top,
-		       dns_name_t *origin, dns_rdataclass_t zclass,
-		       unsigned int options, uint32_t resign,
-		       dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-		       dns_loaddonefunc_t done, void *done_arg,
-		       dns_loadctx_t **lctxp, dns_masterincludecb_t include_cb,
-		       void *include_arg, isc_mem_t *mctx,
-		       dns_masterformat_t format, uint32_t maxttl) {
+dns_master_loadfileasync(const char *master_file, dns_name_t *top,
+			 dns_name_t *origin, dns_rdataclass_t zclass,
+			 unsigned int options, uint32_t resign,
+			 dns_rdatacallbacks_t *callbacks, isc_loop_t *loop,
+			 dns_loaddonefunc_t done, void *done_arg,
+			 dns_loadctx_t **lctxp,
+			 dns_masterincludecb_t include_cb, void *include_arg,
+			 isc_mem_t *mctx, dns_masterformat_t format,
+			 uint32_t maxttl) {
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
-	REQUIRE(task != NULL);
+	REQUIRE(loop != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(format, mctx, options, resign, top, zclass,
-				origin, callbacks, task, done, done_arg,
-				include_cb, include_arg, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	loadctx_create(format, mctx, options, resign, top, zclass, origin,
+		       callbacks, done, done_arg, include_cb, include_arg, NULL,
+		       &lctx);
 
 	lctx->maxttl = maxttl;
 
 	result = (lctx->openfile)(lctx, master_file);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		dns_loadctx_detach(&lctx);
+		return (result);
 	}
 
-	result = task_send(lctx);
-	if (result == ISC_R_SUCCESS) {
-		dns_loadctx_attach(lctx, lctxp);
-		return (DNS_R_CONTINUE);
-	}
+	dns_loadctx_attach(lctx, lctxp);
+	isc_work_enqueue(loop, load, load_done, lctx);
 
-cleanup:
-	dns_loadctx_detach(&lctx);
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -2730,12 +2686,8 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	REQUIRE(stream != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, NULL, NULL, NULL,
-				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top, zclass,
+		       origin, callbacks, NULL, NULL, NULL, NULL, NULL, &lctx);
 
 	result = isc_lex_openstream(lctx->lex, stream);
 	if (result != ISC_R_SUCCESS) {
@@ -2746,47 +2698,7 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	INSIST(result != DNS_R_CONTINUE);
 
 cleanup:
-	if (lctx != NULL) {
-		dns_loadctx_detach(&lctx);
-	}
-	return (result);
-}
-
-isc_result_t
-dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
-			 dns_rdataclass_t zclass, unsigned int options,
-			 dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-			 dns_loaddonefunc_t done, void *done_arg,
-			 dns_loadctx_t **lctxp, isc_mem_t *mctx) {
-	isc_result_t result;
-	dns_loadctx_t *lctx = NULL;
-
-	REQUIRE(stream != NULL);
-	REQUIRE(task != NULL);
-	REQUIRE(done != NULL);
-
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, task, done, done_arg,
-				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	result = isc_lex_openstream(lctx->lex, stream);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	result = task_send(lctx);
-	if (result == ISC_R_SUCCESS) {
-		dns_loadctx_attach(lctx, lctxp);
-		return (DNS_R_CONTINUE);
-	}
-
-cleanup:
-	if (lctx != NULL) {
-		dns_loadctx_detach(&lctx);
-	}
+	dns_loadctx_detach(&lctx);
 	return (result);
 }
 
@@ -2799,12 +2711,8 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 
 	REQUIRE(buffer != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, NULL, NULL, NULL,
-				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top, zclass,
+		       origin, callbacks, NULL, NULL, NULL, NULL, NULL, &lctx);
 
 	result = isc_lex_openbuffer(lctx->lex, buffer);
 	if (result != ISC_R_SUCCESS) {
@@ -2815,96 +2723,6 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top, dns_name_t *origin,
 	INSIST(result != DNS_R_CONTINUE);
 
 cleanup:
-	dns_loadctx_detach(&lctx);
-	return (result);
-}
-
-isc_result_t
-dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
-			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 unsigned int options, dns_rdatacallbacks_t *callbacks,
-			 isc_task_t *task, dns_loaddonefunc_t done,
-			 void *done_arg, dns_loadctx_t **lctxp,
-			 isc_mem_t *mctx) {
-	isc_result_t result;
-	dns_loadctx_t *lctx = NULL;
-
-	REQUIRE(buffer != NULL);
-	REQUIRE(task != NULL);
-	REQUIRE(done != NULL);
-
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, task, done, done_arg,
-				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	result = isc_lex_openbuffer(lctx->lex, buffer);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	result = task_send(lctx);
-	if (result == ISC_R_SUCCESS) {
-		dns_loadctx_attach(lctx, lctxp);
-		return (DNS_R_CONTINUE);
-	}
-
-cleanup:
-	dns_loadctx_detach(&lctx);
-	return (result);
-}
-
-isc_result_t
-dns_master_loadlexer(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
-		     dns_rdataclass_t zclass, unsigned int options,
-		     dns_rdatacallbacks_t *callbacks, isc_mem_t *mctx) {
-	isc_result_t result;
-	dns_loadctx_t *lctx = NULL;
-
-	REQUIRE(lex != NULL);
-
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, NULL, NULL, NULL,
-				NULL, NULL, lex, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	result = (lctx->load)(lctx);
-	INSIST(result != DNS_R_CONTINUE);
-
-	dns_loadctx_detach(&lctx);
-	return (result);
-}
-
-isc_result_t
-dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
-			dns_rdataclass_t zclass, unsigned int options,
-			dns_rdatacallbacks_t *callbacks, isc_task_t *task,
-			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **lctxp, isc_mem_t *mctx) {
-	isc_result_t result;
-	dns_loadctx_t *lctx = NULL;
-
-	REQUIRE(lex != NULL);
-	REQUIRE(task != NULL);
-	REQUIRE(done != NULL);
-
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
-				zclass, origin, callbacks, task, done, done_arg,
-				NULL, NULL, lex, &lctx);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	result = task_send(lctx);
-	if (result == ISC_R_SUCCESS) {
-		dns_loadctx_attach(lctx, lctxp);
-		return (DNS_R_CONTINUE);
-	}
-
 	dns_loadctx_detach(&lctx);
 	return (result);
 }
@@ -3151,40 +2969,6 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		rdata = ISC_LIST_NEXT(rdata, link);
 	}
 	return (false);
-}
-
-static void
-load_quantum(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	dns_loadctx_t *lctx;
-
-	REQUIRE(event != NULL);
-	lctx = event->ev_arg;
-	REQUIRE(DNS_LCTX_VALID(lctx));
-
-	if (atomic_load_acquire(&lctx->canceled)) {
-		result = ISC_R_CANCELED;
-	} else {
-		result = (lctx->load)(lctx);
-	}
-	if (result == DNS_R_CONTINUE) {
-		event->ev_arg = lctx;
-		isc_task_send(task, &event);
-	} else {
-		(lctx->done)(lctx->done_arg, result);
-		isc_event_free(&event);
-		dns_loadctx_detach(&lctx);
-	}
-}
-
-static isc_result_t
-task_send(dns_loadctx_t *lctx) {
-	isc_event_t *event;
-
-	event = isc_event_allocate(lctx->mctx, NULL, DNS_EVENT_MASTERQUANTUM,
-				   load_quantum, lctx, sizeof(*event));
-	isc_task_send(lctx->task, &event);
-	return (ISC_R_SUCCESS);
 }
 
 void
