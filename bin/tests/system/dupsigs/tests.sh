@@ -12,13 +12,30 @@
 . ../conf.sh
 
 status=0
+
+# Wait for the zone to be fully signed before beginning test
+#
+# We expect the zone to have the following:
+#
+# - 5 signatures for signing.test.
+# - 3 signatures for ns.signing.test.
+# - 2 x 500 signatures for a{0000-0499}.signing.test.
+#
+# for a total of 1008.
+fully_signed () {
+        $DIG axfr signing.test -p ${PORT} @10.53.0.1 |
+                awk 'BEGIN { lines = 0 }
+                     $4 == "RRSIG" {lines++}
+                     END { if (lines != 1008) exit(1) }'
+}
+retry_quiet 30 fully_signed || ret=1
+
 start=`date +%s`
-end=`expr $start + 150`
-sleep 10  # wait for a bit for the initial signing
-now=`expr $start + 10`
-while test $now -lt $end
-do
-	et=`expr $now - $start`
+now=$start
+end=$((start + 140))
+
+while [ $now -lt $end ]; do
+        et=$((now - start))
 	echo "=============== $et ============"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl
 	$DIG axfr signing.test -p ${PORT} @10.53.0.1 > dig.out.at$et
@@ -27,7 +44,7 @@ do
 	if [ ${et} -ne 0 -a ${lines} -ne 1008 ]
 	then
 		echo_i "failed"
-		status=`expr $status + 1`
+                status=$((status + 1))
 	fi
 	sleep 5
 	now=`date +%s`
