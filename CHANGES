@@ -1,3 +1,8 @@
+6006.	[cleanup]	The zone dumping was using isc_task API to launch
+			the zonedump on the offloaded threadpool.  Remove
+			the task and launch the offloaded work directly.
+			[GL #3628]
+
 6005.	[func]		The zone loading has been moved to the offload
 			threadpool instead of doing incremental repeated
 			tasks, so zone loading scheduling is now driven
