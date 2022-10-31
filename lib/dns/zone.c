@@ -11382,8 +11382,8 @@ static void
 zone_maintenance(dns_zone_t *zone) {
 	isc_time_t now;
 	isc_result_t result;
-	bool dumping, load_pending, viewok;
-	bool need_notify;
+	bool dumping, load_pending, viewok, notify, refreshkeys;
+	bool sign, resign, rekey, chain, warn_expire;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -11469,14 +11469,14 @@ zone_maintenance(dns_zone_t *zone) {
 	 * primaries after.
 	 */
 	LOCK_ZONE(zone);
-	need_notify = (zone->type == dns_zone_secondary ||
-		       zone->type == dns_zone_mirror) &&
-		      (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-		       DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
-		      (isc_time_compare(&now, &zone->notifytime) >= 0);
+	notify = (zone->type == dns_zone_secondary ||
+		  zone->type == dns_zone_mirror) &&
+		 (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+		  DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
+		 isc_time_compare(&now, &zone->notifytime) >= 0;
 	UNLOCK_ZONE(zone);
 
-	if (need_notify) {
+	if (notify) {
 		zone_notify(zone, &now);
 	}
 
@@ -11520,10 +11520,12 @@ zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_primary:
 	case dns_zone_redirect:
-		if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
-		     DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
-		    isc_time_compare(&now, &zone->notifytime) >= 0)
-		{
+		LOCK_ZONE(zone);
+		notify = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY) ||
+			  DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDSTARTUPNOTIFY)) &&
+			 isc_time_compare(&now, &zone->notifytime) >= 0;
+		UNLOCK_ZONE(zone);
+		if (notify) {
 			zone_notify(zone, &now);
 		}
 	default:
@@ -11535,22 +11537,27 @@ zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_key:
-		if (isc_time_compare(&now, &zone->refreshkeytime) >= 0) {
-			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING))
-			{
-				zone_refreshkeys(zone);
-			}
+		LOCK_ZONE(zone);
+		refreshkeys = isc_time_compare(&now, &zone->refreshkeytime) >=
+				      0 &&
+			      DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
+			      !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESHING);
+		UNLOCK_ZONE(zone);
+		if (refreshkeys) {
+			zone_refreshkeys(zone);
 		}
 		break;
 	case dns_zone_primary:
+		LOCK_ZONE(zone);
 		if (zone->rss_event != NULL) {
 			isc_time_settoepoch(&zone->refreshkeytime);
+			UNLOCK_ZONE(zone);
 			break;
 		}
-		if (!isc_time_isepoch(&zone->refreshkeytime) &&
-		    isc_time_compare(&now, &zone->refreshkeytime) >= 0)
-		{
+		rekey = (!isc_time_isepoch(&zone->refreshkeytime) &&
+			 isc_time_compare(&now, &zone->refreshkeytime) >= 0);
+		UNLOCK_ZONE(zone);
+		if (rekey) {
 			zone_rekey(zone);
 		}
 	default:
@@ -11564,32 +11571,37 @@ zone_maintenance(dns_zone_t *zone) {
 		/*
 		 * Do we need to sign/resign some RRsets?
 		 */
+		LOCK_ZONE(zone);
 		if (zone->rss_event != NULL) {
 			isc_time_settoepoch(&zone->signingtime);
 			isc_time_settoepoch(&zone->resigntime);
 			isc_time_settoepoch(&zone->nsec3chaintime);
 			isc_time_settoepoch(&zone->keywarntime);
+			UNLOCK_ZONE(zone);
 			break;
 		}
-		if (!isc_time_isepoch(&zone->signingtime) &&
-		    isc_time_compare(&now, &zone->signingtime) >= 0)
-		{
+		sign = !isc_time_isepoch(&zone->signingtime) &&
+		       isc_time_compare(&now, &zone->signingtime) >= 0;
+		resign = !isc_time_isepoch(&zone->resigntime) &&
+			 isc_time_compare(&now, &zone->resigntime) >= 0;
+		chain = !isc_time_isepoch(&zone->nsec3chaintime) &&
+			isc_time_compare(&now, &zone->nsec3chaintime) >= 0;
+		warn_expire = !isc_time_isepoch(&zone->keywarntime) &&
+			      isc_time_compare(&now, &zone->keywarntime) >= 0;
+		UNLOCK_ZONE(zone);
+
+		if (sign) {
 			zone_sign(zone);
-		} else if (!isc_time_isepoch(&zone->resigntime) &&
-			   isc_time_compare(&now, &zone->resigntime) >= 0)
-		{
+		} else if (resign) {
 			zone_resigninc(zone);
-		} else if (!isc_time_isepoch(&zone->nsec3chaintime) &&
-			   isc_time_compare(&now, &zone->nsec3chaintime) >= 0)
-		{
+		} else if (chain) {
 			zone_nsec3chain(zone);
 		}
+
 		/*
 		 * Do we need to issue a key expiry warning?
 		 */
-		if (!isc_time_isepoch(&zone->keywarntime) &&
-		    isc_time_compare(&now, &zone->keywarntime) >= 0)
-		{
+		if (warn_expire) {
 			set_key_expiry_warning(zone, zone->key_expiry,
 					       isc_time_seconds(&now));
 		}
