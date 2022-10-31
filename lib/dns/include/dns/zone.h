@@ -2753,6 +2753,16 @@ dns_zone_gettid(dns_zone_t *zone);
  * \return thread id associated with the zone
  */
 
+isc_loop_t *
+dns_zone_getloop(dns_zone_t *zone);
+/**<
+ * \brief Return loop associated with the zone.
+ *
+ * \param valid dns_zone_t object
+ *
+ * \return loop associated with the zone
+ */
+
 bool
 dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
 			    dns_dbversion_t *ver, dns_diff_t *diff,

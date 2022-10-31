@@ -2691,7 +2691,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		}
 		result = dns_master_dumpasync(
 			zone->mctx, db, version, output_style, zone->masterfile,
-			zone->task, dump_done, zone, &zone->dctx,
+			zone->loop, dump_done, zone, &zone->dctx,
 			zone->masterformat, &rawdata);
 		dns_db_closeversion(db, &version, false);
 	} else {
@@ -2701,7 +2701,7 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		dns_db_detach(&db);
 	}
 	UNLOCK_ZONE(zone);
-	if (result != DNS_R_CONTINUE) {
+	if (result != ISC_R_SUCCESS) {
 		goto fail;
 	}
 	return;
@@ -12174,8 +12174,6 @@ redo:
 				       &zone->writeio);
 		if (result != ISC_R_SUCCESS) {
 			zone_idetach(&dummy);
-		} else {
-			result = DNS_R_CONTINUE;
 		}
 		UNLOCK_ZONE(zone);
 	} else {
@@ -12205,7 +12203,7 @@ fail:
 	}
 	masterfile = NULL;
 
-	if (result == DNS_R_CONTINUE) {
+	if (result == ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS); /* XXXMPA */
 	}
 
@@ -23673,4 +23671,9 @@ dns_zone_getmem(dns_zone_t *zone) {
 unsigned int
 dns_zone_gettid(dns_zone_t *zone) {
 	return (zone->tid);
+}
+
+isc_loop_t *
+dns_zone_getloop(dns_zone_t *zone) {
+	return (zone->loop);
 }
