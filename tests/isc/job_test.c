@@ -76,8 +76,39 @@ ISC_RUN_TEST_IMPL(isc_job_run) {
 	assert_int_equal(atomic_load(&scheduled), atomic_load(&executed));
 }
 
+static char string[32] = "";
+int n1 = 1, n2 = 2, n3 = 3, n4 = 4, n5 = 5;
+
+static void
+append(void *arg) {
+	char value[32];
+	sprintf(value, "%d", *(int *)arg);
+	strlcat(string, value, 10);
+}
+
+static void
+job_multiple(void *arg) {
+	UNUSED(arg);
+
+	/* These will be processed in reverse order */
+	isc_job_run(loopmgr, append, &n1);
+	isc_job_run(loopmgr, append, &n2);
+	isc_job_run(loopmgr, append, &n3);
+	isc_job_run(loopmgr, append, &n4);
+	isc_job_run(loopmgr, append, &n5);
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+ISC_RUN_TEST_IMPL(isc_job_multiple) {
+	string[0] = '\0';
+	isc_loop_setup(isc_loop_main(loopmgr), job_multiple, loopmgr);
+	isc_loopmgr_run(loopmgr);
+	assert_string_equal(string, "54321");
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(isc_job_run, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(isc_job_multiple, setup_loopmgr, teardown_loopmgr)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

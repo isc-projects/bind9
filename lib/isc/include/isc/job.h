@@ -39,6 +39,11 @@ isc_job_run(isc_loopmgr_t *loopmgr, isc_job_cb cb, void *cbarg);
  * Schedule the job callback 'cb' to be run on the currently
  * running event loop.
  *
+ * Note: Because of the design of uv_idle_start(), if more than one
+ * job is posted at once, the jobs will be pushed onto a stack and
+ * executed in last-in-first-out order. To post events that are
+ * executed in order posted, use isc_async_run() instead.
+ *
  * Requires:
  *
  *\li	'loopmgr' is the active loop manager.

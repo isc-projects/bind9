@@ -39,8 +39,9 @@ static atomic_uint scheduled = 0;
 
 static void
 async_cb(void *arg) {
-	UNUSED(arg);
 	uint32_t tid = isc_tid();
+
+	UNUSED(arg);
 
 	atomic_fetch_add(&scheduled, 1);
 
@@ -54,10 +55,10 @@ async_cb(void *arg) {
 
 static void
 async_setup_cb(void *arg) {
-	UNUSED(arg);
 	uint32_t tid = isc_loopmgr_nloops(loopmgr) - 1;
-
 	isc_loop_t *loop = isc_loop_get(loopmgr, tid);
+
+	UNUSED(arg);
 
 	isc_async_run(loop, async_cb, loopmgr);
 }
@@ -68,8 +69,40 @@ ISC_RUN_TEST_IMPL(isc_async_run) {
 	assert_int_equal(atomic_load(&scheduled), loopmgr->nloops);
 }
 
+static char string[32] = "";
+int n1 = 1, n2 = 2, n3 = 3, n4 = 4, n5 = 5;
+
+static void
+append(void *arg) {
+	char value[32];
+	sprintf(value, "%d", *(int *)arg);
+	strlcat(string, value, 10);
+}
+
+static void
+async_multiple(void *arg) {
+	isc_loop_t *loop = isc_loop_current(loopmgr);
+
+	UNUSED(arg);
+
+	isc_async_run(loop, append, &n1);
+	isc_async_run(loop, append, &n2);
+	isc_async_run(loop, append, &n3);
+	isc_async_run(loop, append, &n4);
+	isc_async_run(loop, append, &n5);
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+ISC_RUN_TEST_IMPL(isc_async_multiple) {
+	string[0] = '\0';
+	isc_loop_setup(isc_loop_main(loopmgr), async_multiple, loopmgr);
+	isc_loopmgr_run(loopmgr);
+	assert_string_equal(string, "12345");
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(isc_async_run, setup_loopmgr, teardown_loopmgr)
+ISC_TEST_ENTRY_CUSTOM(isc_async_multiple, setup_loopmgr, teardown_loopmgr)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

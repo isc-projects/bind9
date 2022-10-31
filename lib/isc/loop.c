@@ -191,9 +191,14 @@ queue_cb(uv_async_t *handle) {
 	ISC_LIST_MOVE(list, loop->queue_jobs);
 	UNLOCK(&loop->queue_lock);
 
-	job = ISC_LIST_HEAD(list);
+	/*
+	 * The ISC_LIST_TAIL is counterintuitive here, but uv_idle
+	 * drains its queue backwards, so if there's more than one event to
+	 * be processed then they need to be in reverse order.
+	 */
+	job = ISC_LIST_TAIL(list);
 	while (job != NULL) {
-		isc_job_t *next = ISC_LIST_NEXT(job, link);
+		isc_job_t *next = ISC_LIST_PREV(job, link);
 		ISC_LIST_UNLINK(list, job, link);
 
 		isc__job_init(loop, job);
