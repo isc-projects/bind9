@@ -1,3 +1,5 @@
+6007.	[cleanup]	Don't enforce the jemalloc use on NetBSD. [GL #3634]
+
 6003.	[bug]		Fix an inheritance bug when setting the port on
 			remote servers in configuration. [GL #3627]
 
