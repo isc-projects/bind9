@@ -7071,7 +7071,7 @@ static void
 interface_timer_tick(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 
-	ns_interfacemgr_scan(server->interfacemgr, false, false);
+	(void)ns_interfacemgr_scan(server->interfacemgr, false, false);
 }
 
 static void
@@ -8403,6 +8403,11 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
+	/*
+	 * Require the reconfiguration to happen always on the main loop
+	 */
+	REQUIRE(isc_loop_current(named_g_loopmgr) == named_g_mainloop);
+
 	ISC_LIST_INIT(kasplist);
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
@@ -9035,6 +9040,32 @@ load_configuration(const char *filename, named_server_t *server,
 			ns_interfacemgr_setlistenon6(server->interfacemgr,
 						     listenon);
 			ns_listenlist_detach(&listenon);
+		}
+	}
+
+	if (first_time) {
+		isc_task_endexclusive(server->task);
+
+		/*
+		 * Rescan the interface list to pick up changes in the
+		 * listen-on option.
+		 */
+		result = ns_interfacemgr_scan(server->interfacemgr, true, true);
+
+		isc_task_beginexclusive(server->task);
+
+		/*
+		 * Check that named is able to TCP listen on at least one
+		 * interface. Otherwise, another named process could be running
+		 * and we should fail.
+		 */
+		if (result == ISC_R_ADDRINUSE) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "unable to listen on any configured "
+				      "interfaces");
+			result = ISC_R_FAILURE;
+			goto cleanup_v6portset;
 		}
 	}
 
@@ -9767,26 +9798,7 @@ load_configuration(const char *filename, named_server_t *server,
 		goto cleanup_altsecrets;
 	}
 
-	/*
-	 * Rescan the interface list to pick up changes in the
-	 * listen-on option.  It's important that we do this before we try
-	 * to configure the query source, since the dispatcher we use might
-	 * be shared with an interface.
-	 */
-	result = ns_interfacemgr_scan(server->interfacemgr, true, true);
-
-	/*
-	 * Check that named is able to TCP listen on at least one
-	 * interface. Otherwise, another named process could be running
-	 * and we should fail.
-	 */
-	if (first_time && (result == ISC_R_ADDRINUSE)) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "unable to listen on any configured interfaces");
-		result = ISC_R_FAILURE;
-		goto cleanup_altsecrets;
-	}
+	(void)ns_interfacemgr_scan(server->interfacemgr, true, true);
 
 	/*
 	 * These cleans up either the old production view list

@@ -1,3 +1,11 @@
+6010.	[func]		Make the initial interface scan happen before
+			dropping the privileges.  This requires exiting
+			exclusive mode before scanning the interfaces
+			and re-entering it again when we are done.  This
+			is because starting the listening on interfaces
+			requires the loopmgr to be running and not paused.
+			[GL #3583]
+
 6009.	[bug]		Don't trust a placeholder KEYDATA from the managed-keys
 			zone by adding it into secroots. [GL #2895]
 
