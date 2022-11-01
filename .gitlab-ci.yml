@@ -1109,6 +1109,8 @@ gcc:softhsm2.6:
   <<: *build_job
 
 system:gcc:softhsm2.6:
+  variables:
+    DISABLE_ALGORITHM_SUPPORT_CHECKING: 1
   <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:

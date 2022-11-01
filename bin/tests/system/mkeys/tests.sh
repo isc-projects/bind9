@@ -14,6 +14,7 @@
 set -e
 
 SYSTEMTESTTOP=..
+export ALGORITHM_SET="ecc_default"
 #shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
@@ -691,7 +692,7 @@ ret=0
 # compare against the known key.
 tathex=$(grep "query '_ta-[0-9a-f][0-9a-f]*/NULL/IN' approved" ns1/named.run | awk '{print $6; exit 0}' | sed -e 's/(_ta-\([0-9a-f][0-9a-f]*\)):/\1/') || true
 tatkey=$($PERL -e 'printf("%d\n", hex(@ARGV[0]));' "$tathex")
-realkey=$(rndccmd 10.53.0.2 secroots - | sed -n 's#.*SHA256/\([0-9][0-9]*\) ; .*managed.*#\1#p')
+realkey=$(rndccmd 10.53.0.2 secroots - | sed -n "s#.*${DEFAULT_ALGORITHM}/\([0-9][0-9]*\) ; .*managed.*#\1#p")
 [ "$tatkey" -eq "$realkey" ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
