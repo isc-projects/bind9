@@ -54,3 +54,9 @@ Bug Fixes
 - The port in remote servers such as in :any:`primaries` and
   :any:`parental-agents` could be wrongly configured because of an inheritance
   bug. :gl:`#3627`
+
+- When having Internet connectivity issues during the initial startup of
+  ``named``, BIND resolver with :any:`dnssec-validation` set to ``auto`` could
+  enter into a state where it would not recover without stopping ``named``,
+  manually deleting ``managed-keys.bind`` and ``managed-keys.bind.jnl`` files,
+  and starting ``named`` again. :gl:`#2895`
