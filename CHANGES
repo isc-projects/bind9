@@ -1,3 +1,6 @@
+6008.	[bug]		Fixed a race condition that could cause a crash
+			in dns_zone_synckeyzone(). [GL #3617]
+
 6002.	[bug]		Fix a resolver prefetch bug when the record's TTL value
 			is equal to the configured prefetch eligibility value,
 			but the record was erroneously not treated as eligible
