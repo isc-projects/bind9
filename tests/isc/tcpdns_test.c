@@ -61,7 +61,7 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 static void
 tcpdns_connect(isc_nm_t *nm) {
 	isc_nm_tcpdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_connect_cb, NULL, T_CONNECT);
+			     connect_connect_cb, tcpdns_connect, T_CONNECT);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noop) {
@@ -70,7 +70,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noop) {
 	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_success_cb, NULL, T_CONNECT);
+			     connect_success_cb, tcpdns_connect, T_CONNECT);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
@@ -78,7 +78,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
 
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tcpdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_connect_cb, NULL, T_CONNECT);
+			     connect_connect_cb, tcpdns_connect, T_CONNECT);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_timeout_recovery) {

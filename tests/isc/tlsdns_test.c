@@ -60,7 +60,7 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 static void
 tlsdns_connect(isc_nm_t *nm) {
 	isc_nm_tlsdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_connect_cb, NULL, T_CONNECT,
+			     connect_connect_cb, tlsdns_connect, T_CONNECT,
 			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
@@ -70,7 +70,7 @@ ISC_LOOP_TEST_IMPL(tlsdns_noop) {
 	connect_readcb = NULL;
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_success_cb, NULL, T_CONNECT,
+			     connect_success_cb, tlsdns_connect, T_CONNECT,
 			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
@@ -79,7 +79,7 @@ ISC_LOOP_TEST_IMPL(tlsdns_noresponse) {
 
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_connect_cb, NULL, T_CONNECT,
+			     connect_connect_cb, tlsdns_connect, T_CONNECT,
 			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
@@ -100,7 +100,7 @@ ISC_LOOP_TEST_IMPL(tlsdns_timeout_recovery) {
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-			     connect_connect_cb, NULL, T_SOFT,
+			     connect_connect_cb, tlsdns_connect, T_SOFT,
 			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
 }
 
@@ -150,7 +150,7 @@ ISC_TEST_LIST_END
 
 static int
 tlsdns_setup(void **state __attribute__((__unused__))) {
-	stream_port = TCPDNS_TEST_PORT;
+	stream_port = TLSDNS_TEST_PORT;
 
 	return (0);
 }
