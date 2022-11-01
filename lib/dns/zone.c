@@ -38,6 +38,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
 #include <isc/timer.h>
 #include <isc/tls.h>
 #include <isc/util.h>
@@ -5757,56 +5758,43 @@ dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 void
 dns_zone_detach(dns_zone_t **zonep) {
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+
 	dns_zone_t *zone = *zonep;
 	*zonep = NULL;
 
-	bool free_now = false;
-	dns_zone_t *raw = NULL;
-	dns_zone_t *secure = NULL;
 	if (isc_refcount_decrement(&zone->erefs) == 1) {
 		isc_refcount_destroy(&zone->erefs);
 
-		LOCK_ZONE(zone);
-		INSIST(zone != zone->raw);
 		/*
 		 * We just detached the last external reference.
 		 */
-		if (zone->task != NULL) {
+		if (zone->loop != NULL) {
 			/*
-			 * This zone is being managed.	Post
-			 * its control event and let it clean
-			 * up synchronously in the context of
-			 * its task.
+			 * This zone has a loop; it can clean
+			 * itself up asynchronously.
 			 */
-
 			isc_async_run(zone->loop, zone_shutdown, zone);
-		} else {
-			/*
-			 * This zone is not being managed; it has
-			 * no task and can have no outstanding
-			 * events.  Free it immediately.
-			 */
-			/*
-			 * Unmanaged zones should not have non-null views;
-			 * we have no way of detaching from the view here
-			 * without causing deadlock because this code is called
-			 * with the view already locked.
-			 */
-			INSIST(zone->view == NULL);
-			free_now = true;
-			raw = zone->raw;
-			zone->raw = NULL;
-			secure = zone->secure;
-			zone->secure = NULL;
+			return;
 		}
-		UNLOCK_ZONE(zone);
-	}
-	if (free_now) {
-		if (raw != NULL) {
-			dns_zone_detach(&raw);
+
+		/*
+		 * This zone is unmanaged; we're probably running in
+		 * named-checkzone or a unit test. There's no loop, so we need
+		 * to free it immediately.
+		 *
+		 * Unmanaged zones must not have null views;
+		 * we have no way of detaching from the view here
+		 * without causing deadlock because this code is
+		 * called with the view already locked.
+		 */
+		INSIST(isc_tid() == ISC_TID_UNKNOWN);
+		INSIST(zone->view == NULL);
+
+		if (zone->raw != NULL) {
+			dns_zone_detach(&zone->raw);
 		}
-		if (secure != NULL) {
-			dns_zone_idetach(&secure);
+		if (zone->secure != NULL) {
+			dns_zone_idetach(&zone->secure);
 		}
 		zone_free(zone);
 	}
@@ -11128,7 +11116,9 @@ cleanup:
 
 	isc_refcount_decrement(&zone->irefs);
 
-	kfetch->zone = NULL;
+	/* The zone must be managed */
+	INSIST(kfetch->zone->loop != NULL);
+	dns_zone_detach(&kfetch->zone);
 
 	if (dns_rdataset_isassociated(keydataset)) {
 		dns_rdataset_disassociate(keydataset);
@@ -11149,11 +11139,71 @@ cleanup:
 
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
+
 	if (free_needed) {
 		zone_free(zone);
 	}
 
 	INSIST(ver == NULL);
+}
+
+static void
+retry_keyfetch(dns_keyfetch_t *kfetch, dns_name_t *kname) {
+	isc_time_t timenow, timethen;
+	char timebuf[80];
+	dns_zone_t *zone = kfetch->zone;
+
+	/*
+	 * Error during a key fetch; cancel and retry in an hour.
+	 */
+	zone->refreshkeycount--;
+	isc_refcount_decrement(&zone->irefs);
+	dns_db_detach(&kfetch->db);
+	dns_rdataset_disassociate(&kfetch->keydataset);
+	dns_name_free(kname, zone->mctx);
+	isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
+	dnssec_log(zone, ISC_LOG_WARNING,
+		   "Failed to create fetch for DNSKEY update");
+
+	TIME_NOW(&timenow);
+	DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
+	zone->refreshkeytime = timethen;
+	zone_settimer(zone, &timenow);
+
+	isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+	dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s", timebuf);
+
+	dns_zone_detach(&zone);
+}
+
+static void
+do_keyfetch(void *arg) {
+	isc_result_t result;
+	dns_keyfetch_t *kfetch = (dns_keyfetch_t *)arg;
+	dns_name_t *kname = dns_fixedname_name(&kfetch->name);
+	dns_resolver_t *resolver = NULL;
+	dns_zone_t *zone = kfetch->zone;
+	unsigned int options = DNS_FETCHOPT_NOVALIDATE | DNS_FETCHOPT_UNSHARED |
+			       DNS_FETCHOPT_NOCACHED;
+
+	result = dns_view_getresolver(zone->view, &resolver);
+	if (result != ISC_R_SUCCESS) {
+		goto retry;
+	}
+
+	result = dns_resolver_createfetch(
+		resolver, kname, dns_rdatatype_dnskey, NULL, NULL, NULL, NULL,
+		0, options, 0, NULL, zone->task, keyfetch_done, kfetch,
+		&kfetch->dnskeyset, &kfetch->dnskeysigset, &kfetch->fetch);
+
+	dns_resolver_detach(&resolver);
+	if (result != ISC_R_SUCCESS) {
+		goto retry;
+	}
+
+	return;
+retry:
+	retry_keyfetch(kfetch, kname);
 }
 
 /*
@@ -11171,7 +11221,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	dns_rdata_keydata_t kd;
 	isc_stdtime_t now;
 	bool commit = false;
-	bool fetching = false, fetch_err = false;
+	bool fetching = false;
 	bool timerset = false;
 
 	ENTER;
@@ -11256,9 +11306,10 @@ zone_refreshkeys(dns_zone_t *zone) {
 		dns_rriterator_pause(&rrit);
 
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
+		*kfetch = (dns_keyfetch_t){ .zone = NULL };
 
 		zone->refreshkeycount++;
-		kfetch->zone = zone;
+		dns_zone_attach(zone, &kfetch->zone);
 		isc_refcount_increment0(&zone->irefs);
 		kname = dns_fixedname_initname(&kfetch->name);
 		dns_name_dup(name, zone->mctx, kname);
@@ -11292,46 +11343,19 @@ zone_refreshkeys(dns_zone_t *zone) {
 #ifdef ENABLE_AFL
 		if (!dns_fuzzing_resolver) {
 #endif /* ifdef ENABLE_AFL */
-			/*
-			 * We need to unlock and lock zone here because view
-			 * gets locked in the dns_resolver_createfetch() via
-			 * dns_view_findzonecut() and this violates the locking
-			 * hierarchy (view -> zone).
-			 */
-			UNLOCK_ZONE(zone);
-			dns_resolver_t *resolver = NULL;
-			result = dns_view_getresolver(zone->view, &resolver);
-			if (result == ISC_R_SUCCESS) {
-				result = dns_resolver_createfetch(
-					resolver, kname, dns_rdatatype_dnskey,
-					NULL, NULL, NULL, NULL, 0,
-					DNS_FETCHOPT_NOVALIDATE |
-						DNS_FETCHOPT_UNSHARED |
-						DNS_FETCHOPT_NOCACHED,
-					0, NULL, zone->task, keyfetch_done,
-					kfetch, &kfetch->dnskeyset,
-					&kfetch->dnskeysigset, &kfetch->fetch);
-				dns_resolver_detach(&resolver);
-			}
-			LOCK_ZONE(zone);
-#ifdef ENABLE_AFL
-		} else {
-			result = ISC_R_FAILURE;
-		}
-#endif /* ifdef ENABLE_AFL */
-		if (result == ISC_R_SUCCESS) {
+			isc_async_run(zone->loop, do_keyfetch, kfetch);
 			fetching = true;
+#ifdef ENABLE_AFL
 		} else {
 			zone->refreshkeycount--;
 			isc_refcount_decrement(&zone->irefs);
 			dns_db_detach(&kfetch->db);
 			dns_rdataset_disassociate(&kfetch->keydataset);
 			dns_name_free(kname, zone->mctx);
+			dns_zone_detach(&kfetch->zone);
 			isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
-			dnssec_log(zone, ISC_LOG_WARNING,
-				   "Failed to create fetch for DNSKEY update");
-			fetch_err = true;
 		}
+#endif /* ifdef ENABLE_AFL */
 	}
 	if (!ISC_LIST_EMPTY(diff.tuples)) {
 		CHECK(update_soa_serial(zone, db, ver, &diff, zone->mctx,
@@ -11343,22 +11367,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	}
 
 failure:
-	if (fetch_err) {
-		/*
-		 * Error during a key fetch; retry in an hour.
-		 */
-		isc_time_t timenow, timethen;
-		char timebuf[80];
-
-		TIME_NOW(&timenow);
-		DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
-		zone->refreshkeytime = timethen;
-		zone_settimer(zone, &timenow);
-
-		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-		dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
-			   timebuf);
-	} else if (!timerset) {
+	if (!timerset) {
 		isc_time_settoepoch(&zone->refreshkeytime);
 	}
 

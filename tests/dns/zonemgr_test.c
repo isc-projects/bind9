@@ -117,9 +117,10 @@ ISC_LOOP_TEST_IMPL(zonemgr_createzone) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(zone);
 
-	if (zone != NULL) {
-		dns_zone_detach(&zone);
-	}
+	result = dns_zonemgr_managezone(myzonemgr, zone);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_zone_detach(&zone);
 
 	dns_zonemgr_shutdown(myzonemgr);
 	dns_zonemgr_detach(&myzonemgr);
