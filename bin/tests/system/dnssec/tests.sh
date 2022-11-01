@@ -2446,7 +2446,10 @@ status=$((status+ret))
 
 # Reconfigure caching server to use "dnssec-validation auto", and repeat
 # some of the DNSSEC validation tests to ensure that it works correctly.
+# Also setup a placeholder managed-keys zone to check if named can process it
+# correctly.
 echo_i "switching to automatic root key configuration"
+cp ns4/managed-keys.bind.in ns4/managed-keys.bind
 copy_setports ns4/named2.conf.in ns4/named.conf
 rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 5
