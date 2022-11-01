@@ -351,10 +351,10 @@ AS_CASE([$host],
 AC_CHECK_FUNCS([sysctlbyname])
 
 #
-# Older versions of HP/UX don't define seteuid() and setegid()
+# Check for uid/gid setting variants
 #
-AC_CHECK_FUNCS([seteuid setresuid])
-AC_CHECK_FUNCS([setegid setresgid])
+AC_CHECK_FUNCS([setresuid setreuid getresuid])
+AC_CHECK_FUNCS([setresgid setregid getresgid])
 
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
@@ -1050,32 +1050,10 @@ case "$enable_chroot" in
 		;;
 esac
 
-LIBCAP_LIBS=""
-AC_MSG_CHECKING([whether to enable Linux capabilities])
-
-# [pairwise: --enable-linux-caps, --disable-linux-caps]
-AC_ARG_ENABLE([linux-caps],
-	      [AS_HELP_STRING([--disable-linux-caps],
-			      [disable Linux capabilities])],
-	      [],
-	      [AS_CASE([$host],
-		       [*-linux*],[enable_linux_caps=yes],
-		       [enable_linux_caps=no])])
-
-AS_IF([test "$enable_linux_caps" = "yes"],
-      [AC_MSG_RESULT([yes])
-       AC_CHECK_HEADERS([sys/capability.h],
-			[],
-			[AC_MSG_ERROR(m4_normalize([sys/capability.h header is required for Linux capabilities support.
-						    Either install libcap or use --disable-linux-caps.]))])
-       AX_SAVE_FLAGS([cap])
-       AC_SEARCH_LIBS([cap_set_proc], [cap],
-		      [LIBCAP_LIBS="$ac_cv_search_cap_set_proc"],
-		      [AC_MSG_ERROR(m4_normalize([libcap is required for Linux capabilities support.
-						  Either install libcap or use --disable-linux-caps.]))])
-       AX_RESTORE_FLAGS([cap])],
-      [AC_MSG_RESULT([no])])
-AC_SUBST([LIBCAP_LIBS])
+AS_CASE([$host],
+	[*-linux*],
+	[PKG_CHECK_MODULES([LIBCAP], [libcap],
+			   [AC_DEFINE([HAVE_LIBCAP], [1], [Define to 1 if libcap was found])])])
 
 case "$host" in
 *-solaris*)

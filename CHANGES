@@ -1,3 +1,7 @@
+6011.	[func]		Refactor the privilege setting part of named_os unit
+			to make libcap on Linux mandatory and use setreuid
+			and setregid if available. [GL #3583]
+
 6010.	[func]		Make the initial interface scan happen before
 			dropping the privileges.  This requires exiting
 			exclusive mode before scanning the interfaces

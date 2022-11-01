@@ -40,6 +40,9 @@ Feature Changes
 
 - None.
 
+- On Linux, libcap is now required dependency to help us keep needed
+  privileges. :gl:`#3583`
+
 Bug Fixes
 ~~~~~~~~~
 
