@@ -4645,8 +4645,14 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	     result = dns_rriterator_nextrrset(&rrit))
 	{
 		dns_rdataset_t *rdataset = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_keydata_t keydata;
+		isc_stdtime_t now;
+		bool load = true;
 		dns_name_t *rrname = NULL;
 		uint32_t ttl;
+
+		isc_stdtime_get(&now);
 
 		dns_rriterator_current(&rrit, &rrname, &ttl, &rdataset, NULL);
 		if (!dns_rdataset_isassociated(rdataset)) {
@@ -4657,6 +4663,31 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		if (rdataset->type != dns_rdatatype_keydata) {
 			continue;
 		}
+
+		/*
+		 * The managed-keys zone can contain a placeholder instead of
+		 * legitimate data, in which case we will not use it, and we
+		 * will try to refresh it.
+		 */
+		for (result = dns_rdataset_first(rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(rdataset))
+		{
+			isc_result_t iresult;
+
+			dns_rdata_reset(&rdata);
+			dns_rdataset_current(rdataset, &rdata);
+
+			iresult = dns_rdata_tostruct(&rdata, &keydata, NULL);
+			/* Do we have a valid placeholder KEYDATA record? */
+			if (iresult == ISC_R_SUCCESS && keydata.flags == 0 &&
+			    keydata.protocol == 0 && keydata.algorithm == 0)
+			{
+				set_refreshkeytimer(zone, &keydata, now, true);
+				load = false;
+			}
+		}
+
 		/*
 		 * Release db wrlock to prevent LOR reports against
 		 * dns_keytable_forall() call below.
@@ -4666,7 +4697,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		if (result != ISC_R_SUCCESS || !dns_keynode_managed(keynode)) {
 			CHECK(delete_keydata(db, ver, &diff, rrname, rdataset));
 			changed = true;
-		} else {
+		} else if (load) {
 			load_secroots(zone, rrname, rdataset);
 		}
 

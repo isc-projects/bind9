@@ -1,3 +1,6 @@
+6009.	[bug]		Don't trust a placeholder KEYDATA from the managed-keys
+			zone by adding it into secroots. [GL #2895]
+
 6008.	[bug]		Fixed a race condition that could cause a crash
 			in dns_zone_synckeyzone(). [GL #3617]
 

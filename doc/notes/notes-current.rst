@@ -50,3 +50,9 @@ Bug Fixes
 - In certain resolution scenarios quotas could be erroneously reached for
   servers, including the configured forwarders, resulting in SERVFAIL answers
   sent to the clients. This has been fixed. :gl:`#3598`
+
+- When having Internet connectivity issues during the initial startup of
+  ``named``, BIND resolver with ``dnssec-validation`` set to ``auto`` could
+  enter into a state where it would not recover without stopping ``named``,
+  manually deleting ``managed-keys.bind`` and ``managed-keys.bind.jnl`` files,
+  and starting ``named`` again. :gl:`#2895`
