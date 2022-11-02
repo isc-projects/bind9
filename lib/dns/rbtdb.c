@@ -809,8 +809,6 @@ typedef struct rbtdb_dbiterator {
 	dns_rbtnodechain_t nsec3chain;
 	dns_rbtnodechain_t *current;
 	dns_rbtnode_t *node;
-	dns_rbtnode_t *deletions[DELETION_BATCH_MAX];
-	int delcnt;
 	bool nsec3only;
 	bool nonsec3;
 } rbtdb_dbiterator_t;
@@ -5867,17 +5865,14 @@ createiterator(dns_db_t *db, unsigned int options,
 	rbtdbiter->common.relative_names = ((options & DNS_DB_RELATIVENAMES) !=
 					    0);
 	rbtdbiter->common.magic = DNS_DBITERATOR_MAGIC;
-	rbtdbiter->common.cleaning = false;
 	rbtdbiter->paused = true;
 	rbtdbiter->tree_locked = isc_rwlocktype_none;
 	rbtdbiter->result = ISC_R_SUCCESS;
 	dns_fixedname_init(&rbtdbiter->name);
 	dns_fixedname_init(&rbtdbiter->origin);
 	rbtdbiter->node = NULL;
-	rbtdbiter->delcnt = 0;
 	rbtdbiter->nsec3only = ((options & DNS_DB_NSEC3ONLY) != 0);
 	rbtdbiter->nonsec3 = ((options & DNS_DB_NONSEC3) != 0);
-	memset(rbtdbiter->deletions, 0, sizeof(rbtdbiter->deletions));
 	dns_rbtnodechain_init(&rbtdbiter->chain);
 	dns_rbtnodechain_init(&rbtdbiter->nsec3chain);
 	if (rbtdbiter->nsec3only) {
@@ -9042,53 +9037,6 @@ dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 }
 
 static void
-flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
-	isc_rwlocktype_t tlocktype = rbtdbiter->tree_locked;
-
-	if (rbtdbiter->delcnt == 0) {
-		return;
-	}
-
-	/*
-	 * Note that "%d node of %d in tree" can report things like
-	 * "flush_deletions: 59 nodes of 41 in tree".  This means
-	 * That some nodes appear on the deletions list more than
-	 * once.  Only the last occurrence will actually be deleted.
-	 */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1),
-		      "flush_deletions: %d nodes of %d in tree",
-		      rbtdbiter->delcnt, dns_rbt_nodecount(rbtdb->tree));
-
-	if (rbtdbiter->tree_locked == isc_rwlocktype_read) {
-		TREE_UNLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-	}
-	INSIST(rbtdbiter->tree_locked == isc_rwlocktype_none);
-
-	TREE_WRLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-
-	for (size_t i = 0; i < (size_t)rbtdbiter->delcnt; i++) {
-		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		dns_rbtnode_t *node = rbtdbiter->deletions[i];
-		nodelock_t *lock = &rbtdb->node_locks[node->locknum].lock;
-
-		NODE_RDLOCK(lock, &nlocktype);
-		decrement_reference(rbtdb, node, 0, &nlocktype,
-				    &rbtdbiter->tree_locked, true, false);
-		NODE_UNLOCK(lock, &nlocktype);
-	}
-
-	rbtdbiter->delcnt = 0;
-
-	TREE_UNLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-	if (tlocktype == isc_rwlocktype_read) {
-		TREE_RDLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-	}
-	INSIST(rbtdbiter->tree_locked == tlocktype);
-}
-
-static void
 resume_iteration(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 
@@ -9112,8 +9060,6 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	INSIST(rbtdbiter->tree_locked == isc_rwlocktype_none);
 
 	dereference_iter_node(rbtdbiter);
-
-	flush_deletions(rbtdbiter);
 
 	dns_db_attach(rbtdbiter->common.db, &db);
 	dns_db_detach(&rbtdbiter->common.db);
@@ -9452,29 +9398,6 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	*nodep = rbtdbiter->node;
 
-	if (iterator->cleaning && result == ISC_R_SUCCESS) {
-		isc_result_t expire_result;
-
-		/*
-		 * If the deletion array is full, flush it before trying
-		 * to expire the current node.  The current node can't
-		 * fully deleted while the iteration cursor is still on it.
-		 */
-		if (rbtdbiter->delcnt == DELETION_BATCH_MAX) {
-			flush_deletions(rbtdbiter);
-		}
-
-		expire_result = expirenode(iterator->db, *nodep, 0);
-
-		/*
-		 * expirenode() currently always returns success.
-		 */
-		if (expire_result == ISC_R_SUCCESS && node->down == NULL) {
-			rbtdbiter->deletions[rbtdbiter->delcnt++] = node;
-			isc_refcount_increment(&node->references);
-		}
-	}
-
 	return (result);
 }
 
@@ -9501,8 +9424,6 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 		TREE_UNLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
 	}
 	INSIST(rbtdbiter->tree_locked == isc_rwlocktype_none);
-
-	flush_deletions(rbtdbiter);
 
 	return (ISC_R_SUCCESS);
 }
