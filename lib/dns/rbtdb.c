@@ -2254,6 +2254,12 @@ prune_tree(isc_task_t *task, isc_event_t *event) {
 		decrement_reference(rbtdb, node, 0, &nlocktype, &tlocktype,
 				    true);
 
+		/*
+		 * We have both write locks, we might as well do a light
+		 * dead nodes cleaning.
+		 */
+		cleanup_dead_nodes(rbtdb, locknum);
+
 		if (parent != NULL && parent->down == NULL) {
 			/*
 			 * node was the only down child of the parent and has
