@@ -11942,7 +11942,7 @@ static isc_result_t
 zone_dump(dns_zone_t *zone, bool compact) {
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
-	bool again;
+	bool again, async_write = false;
 	dns_db_t *db = NULL;
 	char *masterfile = NULL;
 	dns_masterformat_t masterformat = dns_masterformat_none;
@@ -11984,6 +11984,8 @@ redo:
 				       &zone->writeio);
 		if (result != ISC_R_SUCCESS) {
 			zone_idetach(&dummy);
+		} else {
+			async_write = true;
 		}
 		UNLOCK_ZONE(zone);
 	} else {
@@ -12013,8 +12015,12 @@ fail:
 	}
 	masterfile = NULL;
 
-	if (result == ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS); /* XXXMPA */
+	if (async_write) {
+		/*
+		 * Asyncronous write is in progress.  Zone flags will get
+		 * updated on completion.  Cleanup is complete.  We are done.
+		 */
+		return (ISC_R_SUCCESS);
 	}
 
 	again = false;
