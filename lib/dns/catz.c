@@ -375,6 +375,20 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 		}
 	}
 
+	for (size_t i = 0; i < eb->opts.masters.count; i++) {
+		if ((ea->opts.masters.tlss[i] == NULL) !=
+		    (eb->opts.masters.tlss[i] == NULL)) {
+			return (false);
+		}
+		if (ea->opts.masters.tlss[i] == NULL) {
+			continue;
+		}
+		if (!dns_name_equal(ea->opts.masters.tlss[i],
+				    eb->opts.masters.tlss[i])) {
+			return (false);
+		}
+	}
+
 	/* If one is NULL and the other isn't, the entries don't match */
 	if ((ea->opts.allow_query == NULL) != (eb->opts.allow_query == NULL)) {
 		return (false);
@@ -1967,6 +1981,15 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		if (entry->opts.masters.keys[i] != NULL) {
 			isc_buffer_putstr(buffer, " key ");
 			result = dns_name_totext(entry->opts.masters.keys[i],
+						 true, buffer);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup;
+			}
+		}
+
+		if (entry->opts.masters.tlss[i] != NULL) {
+			isc_buffer_putstr(buffer, " tls ");
+			result = dns_name_totext(entry->opts.masters.tlss[i],
 						 true, buffer);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
