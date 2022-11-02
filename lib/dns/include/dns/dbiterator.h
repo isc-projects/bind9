@@ -99,7 +99,6 @@ struct dns_dbiterator {
 	dns_dbiteratormethods_t *methods;
 	dns_db_t		*db;
 	bool			 relative_names;
-	bool			 cleaning;
 };
 
 void
@@ -273,18 +272,6 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
  *\li	#ISC_R_NOSPACE
  *
  *\li	Other results are possible, depending on the DB implementation.
- */
-
-void
-dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode);
-/*%<
- * Indicate that the given iterator is/is not cleaning the DB.
- *
- * Notes:
- *\li	When 'mode' is true,
- *
- * Requires:
- *\li	'iterator' is a valid iterator.
  */
 
 ISC_LANG_ENDDECLS

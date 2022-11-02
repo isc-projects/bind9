@@ -241,7 +241,6 @@ ns_client_endrequest(ns_client_t *client) {
 	if (client->view != NULL) {
 #ifdef ENABLE_AFL
 		if (client->manager->sctx->fuzztype == isc_fuzz_resolver) {
-			dns_cache_clean(client->view->cache, INT_MAX);
 			dns_adb_flush(client->view->adb);
 		}
 #endif /* ifdef ENABLE_AFL */
