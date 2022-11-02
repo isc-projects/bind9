@@ -189,7 +189,6 @@ libisc_la_SOURCES =		\
 	region.c		\
 	resource.c		\
 	result.c		\
-	rwlock.c		\
 	safe.c			\
 	serial.c		\
 	signal.c		\
@@ -215,6 +214,11 @@ libisc_la_SOURCES =		\
 	uv.c			\
 	xml.c			\
 	work.c
+
+if USE_ISC_RWLOCK
+libisc_la_SOURCES +=		\
+	rwlock.c
+endif USE_ISC_RWLOCK
 
 libisc_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
