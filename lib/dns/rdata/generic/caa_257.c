@@ -319,7 +319,8 @@ fromtext_caa(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
 				      false));
 	if (token.type != isc_tokentype_qstring &&
-	    token.type != isc_tokentype_string) {
+	    token.type != isc_tokentype_string)
+	{
 		RETERR(DNS_R_SYNTAX);
 	}
 	RETERR(multitxt_fromtext(&token.value.as_textregion, target));

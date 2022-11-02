@@ -375,7 +375,8 @@ entry_search(dns_qid_t *qid, const isc_sockaddr_t *dest, dns_messageid_t id,
 
 	while (res != NULL) {
 		if (res->id == id && isc_sockaddr_equal(dest, &res->peer) &&
-		    res->port == port) {
+		    res->port == port)
+		{
 			return (res);
 		}
 		res = ISC_LIST_NEXT(res, link);
@@ -1224,7 +1225,8 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		     isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
 			if (atomic_load(&disp->tcpstate) ==
-			    DNS_DISPATCHSTATE_CONNECTED) {
+			    DNS_DISPATCHSTATE_CONNECTED)
+			{
 				/* We found connected dispatch */
 				disp_connected = disp;
 				UNLOCK(&disp->lock);
@@ -1554,7 +1556,8 @@ dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp, int32_t timeout) {
 
 	case isc_socktype_tcp:
 		if (atomic_compare_exchange_strong(&disp->tcpreading,
-						   &(bool){ false }, true)) {
+						   &(bool){ false }, true))
+		{
 			dns_dispatch_attach(disp, &(dns_dispatch_t *){ NULL });
 			if (timeout > 0) {
 				isc_nmhandle_settimeout(disp->handle, timeout);

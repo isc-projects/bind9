@@ -338,7 +338,8 @@ hmac_fromdns(const isc_md_type_t *type, dst_key_t *key, isc_buffer_t *data) {
 	/* Hash the key if the key is longer then chosen MD block size */
 	if (r.length > (unsigned int)isc_md_type_get_block_size(type)) {
 		if (isc_md(type, r.base, r.length, hkey->key, &keylen) !=
-		    ISC_R_SUCCESS) {
+		    ISC_R_SUCCESS)
+		{
 			isc_mem_put(key->mctx, hkey, sizeof(dst_hmac_key_t));
 			return (DST_R_OPENSSLFAILURE);
 		}

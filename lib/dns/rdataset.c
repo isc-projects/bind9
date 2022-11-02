@@ -413,7 +413,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 
 		if (want_cyclic &&
-		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED)) {
+		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED))
+		{
 			j = rdataset->count % count;
 		}
 

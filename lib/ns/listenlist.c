@@ -103,7 +103,8 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 			if (tls_params->dhparam_file != NULL) {
 				if (!isc_tlsctx_load_dhparams(
-					    sslctx, tls_params->dhparam_file)) {
+					    sslctx, tls_params->dhparam_file))
+				{
 					result = ISC_R_FAILURE;
 					goto tls_error;
 				}

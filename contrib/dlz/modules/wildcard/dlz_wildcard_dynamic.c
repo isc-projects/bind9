@@ -265,7 +265,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		if (strcmp(cd->record, nrec->name) == 0) {
 			/* We handle authority data in dlz_authority() */
 			if (strcmp(nrec->type, "SOA") == 0 ||
-			    strcmp(nrec->type, "NS") == 0) {
+			    strcmp(nrec->type, "NS") == 0)
+			{
 				nrec = next;
 				continue;
 			}
@@ -641,7 +642,8 @@ fnmatch(const char *pattern, const char *string, int flags) {
 			/* General case, use recursion. */
 			while ((test = *string) != EOS) {
 				if (!fnmatch(pattern, string,
-					     flags & ~FNM_PERIOD)) {
+					     flags & ~FNM_PERIOD))
+				{
 					return (0);
 				}
 				if (test == '/' && flags & FNM_PATHNAME) {
@@ -744,7 +746,8 @@ rangematch(const char *pattern, char test, int flags, char **newp) {
 		}
 
 		if (*pattern == '-' && (c2 = *(pattern + 1)) != EOS &&
-		    c2 != ']') {
+		    c2 != ']')
+		{
 			pattern += 2;
 			if (c2 == '\\' && !(flags & FNM_NOESCAPE)) {
 				c2 = *pattern++;

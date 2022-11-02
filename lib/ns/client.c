@@ -827,7 +827,8 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		int loglevel;
 
 		if ((client->manager->sctx->options & NS_SERVER_LOGQUERIES) !=
-		    0) {
+		    0)
+		{
 			loglevel = DNS_RRL_LOG_DROP;
 		} else {
 			loglevel = ISC_LOG_DEBUG(1);
@@ -1955,7 +1956,8 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * Simulate a STD13 compliant server.
 		 */
 		if ((client->manager->sctx->options & NS_SERVER_EDNSFORMERR) !=
-		    0) {
+		    0)
+		{
 			ns_client_error(client, DNS_R_FORMERR);
 			return;
 		}
@@ -1964,7 +1966,8 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * Are returning NOTIMP to all EDNS queries?
 		 */
 		if ((client->manager->sctx->options & NS_SERVER_EDNSNOTIMP) !=
-		    0) {
+		    0)
+		{
 			ns_client_error(client, DNS_R_NOTIMP);
 			return;
 		}
@@ -1973,7 +1976,8 @@ ns__client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		 * Are returning REFUSED to all EDNS queries?
 		 */
 		if ((client->manager->sctx->options & NS_SERVER_EDNSREFUSED) !=
-		    0) {
+		    0)
+		{
 			ns_client_error(client, DNS_R_REFUSED);
 			return;
 		}

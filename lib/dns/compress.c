@@ -264,7 +264,8 @@ insert(dns_compress_t *cctx, isc_buffer_t *buffer, const dns_name_t *name,
 	 * of the name and accumulating the hash in the same manner
 	 */
 	while (insert_label(cctx, buffer, name, label, hash, probe) &&
-	       label-- > 0) {
+	       label-- > 0)
+	{
 		unsigned int prefix_len = name->offsets[label];
 		uint8_t *suffix_ptr = name->ndata + prefix_len;
 		hash = hash_label(hash, suffix_ptr, sensitive);
@@ -353,7 +354,8 @@ dns_compress_rollback(dns_compress_t *cctx, unsigned int coff) {
 		unsigned int prev = slot;
 		unsigned int next = slot_index(cctx, prev, 1);
 		while (cctx->set[next].coff != 0 &&
-		       probe_distance(cctx, next) != 0) {
+		       probe_distance(cctx, next) != 0)
+		{
 			cctx->set[prev] = cctx->set[next];
 			prev = next;
 			next = slot_index(cctx, prev, 1);

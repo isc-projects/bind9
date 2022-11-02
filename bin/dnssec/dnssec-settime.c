@@ -544,7 +544,8 @@ main(int argc, char **argv) {
 	}
 
 	if (argc < isc_commandline_index + 1 ||
-	    argv[isc_commandline_index] == NULL) {
+	    argv[isc_commandline_index] == NULL)
+	{
 		fatal("The key file name was not specified");
 	}
 	if (argc > isc_commandline_index + 1) {
@@ -552,7 +553,8 @@ main(int argc, char **argv) {
 	}
 
 	if ((setgoal || setds || setdnskey || setkrrsig || setzrrsig) &&
-	    !write_state) {
+	    !write_state)
+	{
 		fatal("Options -g, -d, -k, -r and -z require -s to be set");
 	}
 

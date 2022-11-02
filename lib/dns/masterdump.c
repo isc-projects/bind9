@@ -665,7 +665,8 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			INDENT_TO(class_column);
 			class_start = target->used;
 			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) !=
-			    0) {
+			    0)
+			{
 				result = dns_rdataclass_tounknowntext(
 					rdataset->rdclass, target);
 			} else {
@@ -698,7 +699,8 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 #define KEYDATA "KEYDATA"
 			if ((ctx->style.flags & DNS_STYLEFLAG_KEYDATA) != 0) {
 				if (isc_buffer_availablelength(target) <
-				    (sizeof(KEYDATA) - 1)) {
+				    (sizeof(KEYDATA) - 1))
+				{
 					return (ISC_R_NOSPACE);
 				}
 				isc_buffer_putstr(target, KEYDATA);
@@ -707,7 +709,8 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			FALLTHROUGH;
 		default:
 			if ((ctx->style.flags & DNS_STYLEFLAG_UNKNOWNFORMAT) !=
-			    0) {
+			    0)
+			{
 				result = dns_rdatatype_tounknowntext(type,
 								     target);
 			} else {
@@ -933,7 +936,8 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 
 	if ((ctx->style.flags & DNS_STYLEFLAG_TTL) != 0) {
 		if (!ctx->current_ttl_valid ||
-		    ctx->current_ttl != rdataset->ttl) {
+		    ctx->current_ttl != rdataset->ttl)
+		{
 			if ((ctx->style.flags & DNS_STYLEFLAG_COMMENT) != 0) {
 				isc_buffer_clear(buffer);
 				result = dns_ttl_totext(rdataset->ttl, true,
@@ -1078,7 +1082,8 @@ again:
 		dns_rdataset_t *rds = sorted[i];
 
 		if (ANCIENT(rds) &&
-		    (ctx->style.flags & DNS_STYLEFLAG_EXPIRED) == 0) {
+		    (ctx->style.flags & DNS_STYLEFLAG_EXPIRED) == 0)
+		{
 			/* Omit expired entries */
 			dns_rdataset_disassociate(rds);
 			continue;
@@ -1223,7 +1228,8 @@ restart:
 		 * continue?).
 		 */
 		if (isc_buffer_availablelength(buffer) <
-		    sizeof(dlen) + r.length) {
+		    sizeof(dlen) + r.length)
+		{
 			int newlength;
 			void *newmem;
 
@@ -1691,7 +1697,8 @@ dumptostream(dns_dumpctx_t *dctx) {
 			result = dns_dbiterator_origin(dctx->dbiter, origin);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if ((dctx->tctx.style.flags & DNS_STYLEFLAG_REL_DATA) !=
-			    0) {
+			    0)
+			{
 				dctx->tctx.origin = origin;
 			}
 			dctx->tctx.neworigin = origin;

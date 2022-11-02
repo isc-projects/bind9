@@ -477,7 +477,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 				continue;
 			}
 			if (role[i] !=
-			    (DNS_KASP_KEY_ROLE_ZSK | DNS_KASP_KEY_ROLE_KSK)) {
+			    (DNS_KASP_KEY_ROLE_ZSK | DNS_KASP_KEY_ROLE_KSK))
+			{
 				cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
 					    "dnssec-policy: algorithm %zu "
 					    "requires both KSK and ZSK roles",

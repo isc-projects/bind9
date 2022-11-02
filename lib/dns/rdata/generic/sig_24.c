@@ -302,7 +302,8 @@ fromwire_sig(ARGS_FROMWIRE) {
 	}
 
 	if (algorithm == DNS_KEYALG_PRIVATEDNS ||
-	    algorithm == DNS_KEYALG_PRIVATEOID) {
+	    algorithm == DNS_KEYALG_PRIVATEOID)
+	{
 		isc_buffer_t b = *source;
 		RETERR(check_private(&b, algorithm));
 	}

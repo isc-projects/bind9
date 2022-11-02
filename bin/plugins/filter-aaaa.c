@@ -623,7 +623,8 @@ process_section(const section_filter_t *filter) {
 		}
 
 		if (section == DNS_SECTION_ANSWER ||
-		    section == DNS_SECTION_AUTHORITY) {
+		    section == DNS_SECTION_AUTHORITY)
+		{
 			message->flags &= ~DNS_MESSAGEFLAG_AD;
 		}
 	}

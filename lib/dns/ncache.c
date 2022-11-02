@@ -172,7 +172,8 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			     rdataset = ISC_LIST_NEXT(rdataset, link))
 			{
 				if ((rdataset->attributes &
-				     DNS_RDATASETATTR_NCACHE) == 0) {
+				     DNS_RDATASETATTR_NCACHE) == 0)
+				{
 					continue;
 				}
 				type = rdataset->type;
@@ -639,7 +640,8 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		isc_region_consume(&remaining, 2);
 
 		if (type != dns_rdatatype_rrsig ||
-		    !dns_name_equal(&tname, name)) {
+		    !dns_name_equal(&tname, name))
+		{
 			result = dns_rdataset_next(&rclone);
 			dns_rdata_reset(&rdata);
 			continue;

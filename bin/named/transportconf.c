@@ -59,7 +59,8 @@
 				const cfg_listelt_t *proto = NULL;                \
 				INSIST(obj != NULL);                              \
 				for (proto = cfg_list_first(obj); proto != 0;     \
-				     proto = cfg_list_next(proto)) {              \
+				     proto = cfg_list_next(proto))                \
+				{                                                 \
 					const cfg_obj_t *tls_proto_obj =          \
 						cfg_listelt_value(proto);         \
 					const char *tls_sver =                    \

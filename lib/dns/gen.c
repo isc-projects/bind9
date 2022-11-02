@@ -137,7 +137,7 @@ static struct cc {
 	struct cc *next;
 	uint16_t rdclass;
 	char classbuf[TYPECLASSBUF];
-} * classes;
+} *classes;
 
 static struct tt {
 	struct tt *next;
@@ -146,7 +146,7 @@ static struct tt {
 	char classbuf[TYPECLASSBUF];
 	char typebuf[TYPECLASSBUF];
 	char dirbuf[PATH_MAX - 30];
-} * types;
+} *types;
 
 static struct ttnam {
 	char typebuf[TYPECLASSBUF];

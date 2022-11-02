@@ -234,14 +234,16 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 	if (dctx->use == DO_SIGN) {
 		if (EVP_DigestSignUpdate(evp_md_ctx, data->base,
-					 data->length) != 1) {
+					 data->length) != 1)
+		{
 			DST_RET(dst__openssl_toresult3(dctx->category,
 						       "EVP_DigestSignUpdate",
 						       ISC_R_FAILURE));
 		}
 	} else {
 		if (EVP_DigestVerifyUpdate(evp_md_ctx, data->base,
-					   data->length) != 1) {
+					   data->length) != 1)
+		{
 			DST_RET(dst__openssl_toresult3(dctx->category,
 						       "EVP_DigestVerifyUpdate",
 						       ISC_R_FAILURE));
@@ -775,7 +777,8 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memmove(buf + 1, r.base, len);
 	cp = buf;
 	if (o2i_ECPublicKey(&eckey, (const unsigned char **)&cp,
-			    (long)len + 1) == NULL) {
+			    (long)len + 1) == NULL)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPUBLICKEY));
 	}
 	if (EC_KEY_check_key(eckey) != 1) {
@@ -1008,7 +1011,8 @@ ecdsa_check(EVP_PKEY **pkey, EVP_PKEY *pubpkey) {
 			DST_RET(ISC_R_FAILURE);
 		}
 		if (OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_PRIV_KEY,
-					   priv) != 1) {
+					   priv) != 1)
+		{
 			DST_RET(ISC_R_FAILURE);
 		}
 		if (OSSL_PARAM_BLD_push_octet_string(bld,
