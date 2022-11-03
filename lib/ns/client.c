@@ -121,10 +121,6 @@
 atomic_uint_fast64_t ns_client_requests = 0;
 
 static void
-clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
-static void
-clientmgr_detach(ns_clientmgr_t **mp);
-static void
 clientmgr_destroy_cb(void *arg);
 static void
 ns_client_dumpmessage(ns_client_t *client, const char *reason);
@@ -1680,7 +1676,7 @@ ns__client_put_cb(void *client0) {
 
 	isc_mem_put(manager->mctx, client, sizeof(*client));
 
-	clientmgr_detach(&manager);
+	ns_clientmgr_detach(&manager);
 }
 
 /*
@@ -2319,7 +2315,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 
 		*client = (ns_client_t){ .magic = 0 };
 
-		clientmgr_attach(mgr, &client->manager);
+		ns_clientmgr_attach(mgr, &client->manager);
 
 		dns_message_create(client->manager->mctx,
 				   DNS_MESSAGE_INTENTPARSE, &client->message);
@@ -2381,7 +2377,7 @@ cleanup:
 	}
 
 	if (client->manager != NULL) {
-		clientmgr_detach(&client->manager);
+		ns_clientmgr_detach(&client->manager);
 	}
 
 	return (result);
@@ -2390,21 +2386,6 @@ cleanup:
 /***
  *** Client Manager
  ***/
-
-static void
-clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
-	int32_t oldrefs;
-
-	REQUIRE(VALID_MANAGER(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	oldrefs = isc_refcount_increment0(&source->references);
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
-		      ISC_LOG_DEBUG(3), "clientmgr @%p attach: %d", source,
-		      oldrefs + 1);
-
-	*targetp = source;
-}
 
 static void
 clientmgr_destroy_cb(void *arg) {
@@ -2425,22 +2406,12 @@ clientmgr_destroy_cb(void *arg) {
 }
 
 static void
-clientmgr_detach(ns_clientmgr_t **mp) {
-	int32_t oldrefs;
-	ns_clientmgr_t *mgr = *mp;
-	*mp = NULL;
-
-	oldrefs = isc_refcount_decrement(&mgr->references);
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
-		      ISC_LOG_DEBUG(3), "clientmgr @%p detach: %d", mgr,
-		      oldrefs - 1);
-	if (oldrefs == 1) {
-		isc_loop_t *loop = isc_loop_get(mgr->loopmgr, mgr->tid);
-
-		/* FIXME: Use isc_loopmgr_teardown() function instead? */
-		isc_async_run(loop, clientmgr_destroy_cb, mgr);
-	}
+clientmgr_destroy(ns_clientmgr_t *mgr) {
+	isc_loop_t *loop = isc_loop_get(mgr->loopmgr, mgr->tid);
+	isc_async_run(loop, clientmgr_destroy_cb, mgr);
 }
+
+ISC_REFCOUNT_IMPL(ns_clientmgr, clientmgr_destroy);
 
 isc_result_t
 ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
@@ -2485,13 +2456,20 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 }
 
 void
-ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
-	REQUIRE(managerp != NULL);
-	REQUIRE(VALID_MANAGER(*managerp));
+ns_clientmgr_shutdown(ns_clientmgr_t *manager) {
+	ns_client_t *client;
+
+	REQUIRE(VALID_MANAGER(manager));
 
 	MTRACE("destroy");
 
-	clientmgr_detach(managerp);
+	LOCK(&manager->reclock);
+	for (client = ISC_LIST_HEAD(manager->recursing); client != NULL;
+	     client = ISC_LIST_NEXT(client, rlink))
+	{
+		ns_query_cancel(client);
+	}
+	UNLOCK(&manager->reclock);
 }
 
 isc_sockaddr_t *
