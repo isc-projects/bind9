@@ -2519,6 +2519,19 @@ cleanup_reclock:
 }
 
 void
+ns_clientmgr_shutdown(ns_clientmgr_t *manager) {
+	REQUIRE(VALID_MANAGER(manager));
+
+	LOCK(&manager->reclock);
+	for (ns_client_t *client = ISC_LIST_HEAD(manager->recursing);
+	     client != NULL; client = ISC_LIST_NEXT(client, rlink))
+	{
+		ns_query_cancel(client);
+	}
+	UNLOCK(&manager->reclock);
+}
+
+void
 ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	isc_result_t result;
 	ns_clientmgr_t *manager;

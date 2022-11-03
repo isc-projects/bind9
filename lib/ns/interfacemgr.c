@@ -574,6 +574,7 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 		isc_nmsocket_close(&ifp->tcplistensocket);
 	}
 	if (ifp->clientmgr != NULL) {
+		ns_clientmgr_shutdown(ifp->clientmgr);
 		ns_clientmgr_destroy(&ifp->clientmgr);
 	}
 }
