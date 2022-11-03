@@ -796,6 +796,7 @@ struct dns_keymgmt {
  */
 
 struct dns_keyfetch {
+	isc_mem_t *mctx;
 	dns_fixedname_t name;
 	dns_rdataset_t keydataset;
 	dns_rdataset_t dnskeyset;
@@ -5730,17 +5731,20 @@ dns_zone_detach(dns_zone_t **zonep) {
 	*zonep = NULL;
 
 	if (isc_refcount_decrement(&zone->erefs) == 1) {
+		isc_event_t *ev = &zone->ctlevent;
+
 		isc_refcount_destroy(&zone->erefs);
 
 		/*
-		 * We just detached the last external reference.
+		 * Stop things being restarted after we cancel them below.
 		 */
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
+		dns_zone_log(zone, ISC_LOG_INFO, "final reference detached");
 		if (zone->task != NULL) {
 			/*
 			 * This zone has a task; it can clean
 			 * itself up asynchronously.
 			 */
-			isc_event_t *ev = &zone->ctlevent;
 			isc_task_send(zone->task, &ev);
 			return;
 		}
@@ -5750,20 +5754,15 @@ dns_zone_detach(dns_zone_t **zonep) {
 		 * named-checkzone or a unit test. There's no task,
 		 * so we need to free it immediately.
 		 *
-		 * Unmanaged zones must not have null views;
-		 * we have no way of detaching from the view here
-		 * without causing deadlock because this code is
-		 * called with the view already locked.
+		 * Unmanaged zones must not have null views; we have no way
+		 * of detaching from the view here without causing deadlock
+		 * because this code is called with the view already
+		 * locked.
 		 */
 		INSIST(zone->view == NULL);
 
-		if (zone->raw != NULL) {
-			dns_zone_detach(&zone->raw);
-		}
-		if (zone->secure != NULL) {
-			dns_zone_idetach(&zone->secure);
-		}
-		zone_free(zone);
+		zone_shutdown(zone->task, ev);
+		ev = NULL;
 	}
 }
 
@@ -5808,7 +5807,6 @@ zone_idetach(dns_zone_t **zonep) {
 void
 dns_zone_idetach(dns_zone_t **zonep) {
 	dns_zone_t *zone;
-	bool free_needed;
 
 	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
 
@@ -5816,6 +5814,7 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	*zonep = NULL;
 
 	if (isc_refcount_decrement(&zone->irefs) == 1) {
+		bool free_needed;
 		LOCK_ZONE(zone);
 		free_needed = exit_check(zone);
 		UNLOCK_ZONE(zone);
@@ -10392,7 +10391,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 	kfetch = event->ev_arg;
 	zone = kfetch->zone;
-	isc_mem_attach(zone->mctx, &mctx);
+	mctx = kfetch->mctx;
 	keyname = dns_fixedname_name(&kfetch->name);
 	dnskeys = &kfetch->dnskeyset;
 	dnskeysigs = &kfetch->dnskeysigset;
@@ -10983,11 +10982,9 @@ failure:
 cleanup:
 	dns_db_detach(&kfetch->db);
 
-	isc_refcount_decrement(&zone->irefs);
-
 	/* The zone must be managed */
 	INSIST(kfetch->zone->task != NULL);
-	dns_zone_detach(&kfetch->zone);
+	isc_refcount_decrement(&zone->irefs);
 
 	if (dns_rdataset_isassociated(keydataset)) {
 		dns_rdataset_disassociate(keydataset);
@@ -11000,7 +10997,7 @@ cleanup:
 	}
 
 	dns_name_free(keyname, mctx);
-	isc_mem_putanddetach(&mctx, kfetch, sizeof(dns_keyfetch_t));
+	isc_mem_putanddetach(&kfetch->mctx, kfetch, sizeof(dns_keyfetch_t));
 
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
@@ -11019,33 +11016,42 @@ cleanup:
 static void
 retry_keyfetch(dns_keyfetch_t *kfetch, dns_name_t *kname) {
 	isc_time_t timenow, timethen;
-	char timebuf[80];
 	dns_zone_t *zone = kfetch->zone;
+	bool free_needed;
 
 	/*
 	 * Error during a key fetch; cancel and retry in an hour.
 	 */
+	LOCK_ZONE(zone);
 	zone->refreshkeycount--;
 	isc_refcount_decrement(&zone->irefs);
 	dns_db_detach(&kfetch->db);
 	dns_rdataset_disassociate(&kfetch->keydataset);
 	dns_name_free(kname, zone->mctx);
-	isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
+	isc_mem_putanddetach(&kfetch->mctx, kfetch, sizeof(*kfetch));
 	dnssec_log(zone, ISC_LOG_WARNING,
 		   "Failed to create fetch for DNSKEY update");
 
-	TIME_NOW(&timenow);
-	DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		/* Don't really retry if we are exiting */
+		char timebuf[80];
 
-	LOCK_ZONE(zone);
-	zone->refreshkeytime = timethen;
-	zone_settimer(zone, &timenow);
+		TIME_NOW(&timenow);
+		DNS_ZONE_TIME_ADD(&timenow, dns_zone_mkey_hour, &timethen);
+		zone->refreshkeytime = timethen;
+		zone_settimer(zone, &timenow);
+
+		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
+		dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
+			   timebuf);
+	}
+
+	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
 
-	isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-	dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s", timebuf);
-
-	dns_zone_detach(&zone);
+	if (free_needed) {
+		zone_free(zone);
+	}
 }
 
 static void
@@ -11059,6 +11065,20 @@ do_keyfetch(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		retry_keyfetch(kfetch, kname);
+		return;
+	}
+
+	/*
+	 * Use of DNS_FETCHOPT_NOCACHED is essential here.  If it is not
+	 * set and the cache still holds a non-expired, validated version
+	 * of the RRset being queried for by the time the response is
+	 * received, the cached RRset will be passed to keyfetch_done()
+	 * instead of the one received in the response as the latter will
+	 * have a lower trust level due to not being validated until
+	 * keyfetch_done() is called.
+	 */
 	result = dns_resolver_createfetch(
 		zone->view->resolver, kname, dns_rdatatype_dnskey, NULL, NULL,
 		NULL, NULL, 0,
@@ -11120,7 +11140,6 @@ zone_refreshkeys(dns_zone_t *zone) {
 		isc_stdtime_t timer = 0xffffffff;
 		dns_name_t *name = NULL, *kname = NULL;
 		dns_rdataset_t *kdset = NULL;
-		dns_keyfetch_t *kfetch;
 		uint32_t ttl;
 
 		dns_rriterator_current(&rrit, &name, &ttl, &kdset, NULL);
@@ -11172,58 +11191,43 @@ zone_refreshkeys(dns_zone_t *zone) {
 
 		dns_rriterator_pause(&rrit);
 
-		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
-		*kfetch = (dns_keyfetch_t){ .zone = NULL };
-
-		zone->refreshkeycount++;
-		dns_zone_attach(zone, &kfetch->zone);
-		isc_refcount_increment0(&zone->irefs);
-		kname = dns_fixedname_initname(&kfetch->name);
-		dns_name_dup(name, zone->mctx, kname);
-		dns_rdataset_init(&kfetch->dnskeyset);
-		dns_rdataset_init(&kfetch->dnskeysigset);
-		dns_rdataset_init(&kfetch->keydataset);
-		dns_rdataset_clone(kdset, &kfetch->keydataset);
-		kfetch->db = NULL;
-		dns_db_attach(db, &kfetch->db);
-		kfetch->fetch = NULL;
-
-		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
-			char namebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(kname, namebuf, sizeof(namebuf));
-			dnssec_log(zone, ISC_LOG_DEBUG(3),
-				   "Creating key fetch in "
-				   "zone_refreshkeys() for '%s'",
-				   namebuf);
-		}
-
-		/*
-		 * Use of DNS_FETCHOPT_NOCACHED is essential here.  If it is
-		 * not set and the cache still holds a non-expired, validated
-		 * version of the RRset being queried for by the time the
-		 * response is received, the cached RRset will be passed to
-		 * keyfetch_done() instead of the one received in the response
-		 * as the latter will have a lower trust level due to not being
-		 * validated until keyfetch_done() is called.
-		 */
-
 #ifdef ENABLE_AFL
 		if (!dns_fuzzing_resolver) {
 #endif /* ifdef ENABLE_AFL */
-			isc_event_t *e = isc_event_allocate(
-				zone->mctx, NULL, DNS_EVENT_ZONE, do_keyfetch,
-				kfetch, sizeof(isc_event_t));
+			dns_keyfetch_t *kfetch = NULL;
+			isc_event_t *e;
+
+			kfetch = isc_mem_get(zone->mctx,
+					     sizeof(dns_keyfetch_t));
+			*kfetch = (dns_keyfetch_t){ .zone = zone };
+			isc_mem_attach(zone->mctx, &kfetch->mctx);
+
+			zone->refreshkeycount++;
+			isc_refcount_increment0(&zone->irefs);
+			kname = dns_fixedname_initname(&kfetch->name);
+			dns_name_dup(name, zone->mctx, kname);
+			dns_rdataset_init(&kfetch->dnskeyset);
+			dns_rdataset_init(&kfetch->dnskeysigset);
+			dns_rdataset_init(&kfetch->keydataset);
+			dns_rdataset_clone(kdset, &kfetch->keydataset);
+			dns_db_attach(db, &kfetch->db);
+
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				dns_name_format(kname, namebuf,
+						sizeof(namebuf));
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Creating key fetch in "
+					   "zone_refreshkeys() for '%s'",
+					   namebuf);
+			}
+
+			e = isc_event_allocate(zone->mctx, NULL, DNS_EVENT_ZONE,
+					       do_keyfetch, kfetch,
+					       sizeof(isc_event_t));
 			isc_task_send(zone->task, &e);
 			fetching = true;
 #ifdef ENABLE_AFL
-		} else {
-			zone->refreshkeycount--;
-			isc_refcount_decrement(&zone->irefs);
-			dns_db_detach(&kfetch->db);
-			dns_rdataset_disassociate(&kfetch->keydataset);
-			dns_name_free(kname, zone->mctx);
-			dns_zone_detach(&kfetch->zone);
-			isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
 		}
 #endif /* ifdef ENABLE_AFL */
 	}
@@ -11262,34 +11266,24 @@ zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "zone_maintenance";
 	isc_time_t now;
 	isc_result_t result;
-	bool dumping, load_pending, viewok;
+	bool dumping, load_pending, exiting, viewok;
 	bool need_notify;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
 
 	/*
-	 * Are we pending load/reload?
+	 * Are we pending load/reload, exiting, or unconfigured
+	 * (e.g. because of a syntax failure in the config file)?
+	 * If so, don't attempt maintenance.
 	 */
 	LOCK_ZONE(zone);
 	load_pending = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING);
-	UNLOCK_ZONE(zone);
-
-	if (load_pending) {
-		return;
-	}
-
-	/*
-	 * Configuring the view of this zone may have
-	 * failed, for example because the config file
-	 * had a syntax error.	In that case, the view
-	 * adb or resolver will be NULL, and we had better not try
-	 * to do further maintenance on it.
-	 */
-	LOCK_ZONE(zone);
+	exiting = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING);
 	viewok = (zone->view != NULL && zone->view->adb != NULL);
 	UNLOCK_ZONE(zone);
-	if (!viewok) {
+
+	if (load_pending || exiting || !viewok) {
 		return;
 	}
 
@@ -14880,8 +14874,7 @@ unlock:
 }
 
 /*
- * Handle the control event.  Note that although this event causes the zone
- * to shut down, it is not a shutdown event in the sense of the task library.
+ * Shut the zone down.
  */
 static void
 zone_shutdown(isc_task_t *task, isc_event_t *event) {
@@ -14895,13 +14888,6 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	INSIST(isc_refcount_current(&zone->erefs) == 0);
 
 	zone_debuglog(zone, "zone_shutdown", 3, "shutting down");
-
-	/*
-	 * Stop things being restarted after we cancel them below.
-	 */
-	LOCK_ZONE(zone);
-	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
-	UNLOCK_ZONE(zone);
 
 	/*
 	 * If we were waiting for xfrin quota, step out of
