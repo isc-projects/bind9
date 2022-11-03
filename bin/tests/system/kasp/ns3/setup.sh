@@ -161,7 +161,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -PS -x -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # These signatures are set to expire long in the past, update immediately.
 setup expired-sigs.autosign
@@ -175,7 +176,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -PS -x -s now-2mo -e now-1mo -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -PS -x -s now-2mo -e now-1mo -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # These signatures are still good, and can be reused.
 setup fresh-sigs.autosign
@@ -189,7 +191,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # These signatures are still good, but not fresh enough, update immediately.
 setup unfresh-sigs.autosign
@@ -203,7 +206,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1w -e now+1w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # These signatures are still good, but the private KSK is missing.
 setup ksk-missing.autosign
@@ -217,7 +221,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1w -e now+1w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 echo "KSK: yes" >> "${KSK}".state
 echo "ZSK: no" >> "${KSK}".state
 echo "Lifetime: 63072000" >> "${KSK}".state # PT2Y
@@ -235,7 +240,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1w -e now+1w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1w -e now+1w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 echo "KSK: no" >> "${ZSK}".state
 echo "ZSK: yes" >> "${ZSK}".state
 echo "Lifetime: 31536000" >> "${ZSK}".state # PT1Y
@@ -253,7 +259,8 @@ $SETTIME -s -g $O -k $O $T -z $O $T          "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 $SETTIME -s -g HIDDEN "$ZSK" > settime.out.$zone.3 2>&1
 
 #
@@ -286,7 +293,8 @@ CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keyg
 $SETTIME -s -g $O -k $R $TpubN -r $R $TpubN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # The zone signatures have been published long enough to become OMNIPRESENT.
@@ -302,7 +310,8 @@ CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keyg
 $SETTIME -s -g $O -k $O $TcotN -r $O $TcotN -d $H $TpubN -z $R $TpubN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # The DS has been submitted long enough ago to become OMNIPRESENT.
@@ -321,7 +330,8 @@ CSK=$($KEYGEN -k enable-dnssec -l policies/autosign.conf $keytimes $zone 2> keyg
 $SETTIME -s -g $O -P ds $TsbmN -k $O $TcotN -r $O $TcotN -d $R $TsbmN -z $O $TsbmN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 setup step4.enable-dnssec.autosign
 
 #
@@ -342,7 +352,8 @@ $SETTIME -s -g $O -k $O $TactN -z $O $TactN              "$ZSK" > settime.out.$z
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # It is time to pre-publish the successor ZSK.
@@ -381,7 +392,8 @@ $SETTIME -s -g $O -k $O $TactN -z $O $TactN              "$ZSK" > settime.out.$z
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # After the publication interval has passed the DNSKEY of the successor ZSK
@@ -443,7 +455,8 @@ cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK"  >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # After the retire interval has passed the predecessor DNSKEY can be
@@ -502,7 +515,8 @@ $SETTIME -s -g $O -k $O $TactN1 -z $R $TactN1             "$ZSK2" > settime.out.
 key_successor $ZSK1 $ZSK2
 # Sign zone.
 cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
-$SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -PS -x -s now-2w -e now-1mi -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # The predecessor DNSKEY is removed long enough that is has become HIDDEN.
@@ -540,7 +554,8 @@ cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK"  >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # The predecessor DNSKEY can be purged.
@@ -578,7 +593,8 @@ cat template.db.in "${KSK}.key" "${ZSK1}.key" "${ZSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK"  >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK2" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # The zones at ksk-doubleksk.autosign represent the various steps of a KSK
@@ -596,7 +612,8 @@ ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 7200        $zsktimes $zone 2> keygen.out
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $O $TactN "$KSK" > settime.out.$zone.1 2>&1
 $SETTIME -s -g $O              -k $O $TactN -z $O $TactN "$ZSK" > settime.out.$zone.2 2>&1
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # It is time to submit the introduce the new KSK.
@@ -647,7 +664,8 @@ $SETTIME -s -g $O -k $O $TactN -z $O $TactN              "$ZSK" > settime.out.$z
 cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # It is time to submit the DS.
@@ -713,7 +731,8 @@ cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # The DS should be swapped now.
@@ -773,7 +792,8 @@ cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # The predecessor DNSKEY is removed long enough that is has become HIDDEN.
@@ -811,7 +831,8 @@ cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # The predecessor DNSKEY can be purged.
@@ -849,7 +870,8 @@ cat template.db.in "${KSK1}.key" "${KSK2}.key" "${ZSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$KSK2" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
-$SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # The zones at csk-roll.autosign represent the various steps of a CSK rollover
@@ -865,7 +887,8 @@ CSK=$($KEYGEN -k csk-roll -l policies/autosign.conf $csktimes $zone 2> keygen.ou
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # It is time to introduce the new CSK.
@@ -892,7 +915,8 @@ CSK=$($KEYGEN -k csk-roll -l policies/autosign.conf $csktimes $zone 2> keygen.ou
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # It is time to submit the DS and to roll signatures.
@@ -946,7 +970,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # Some time later all the ZRRSIG records should be from the new CSK, and the
@@ -992,7 +1017,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # After the DS is swapped in step 4, also the KRRSIG records can be removed.
@@ -1027,7 +1053,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # After the retire interval has passed the predecessor DNSKEY can be
@@ -1070,7 +1097,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 7:
 # Some time later the predecessor DNSKEY enters the HIDDEN state.
@@ -1104,7 +1132,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 8:
 # The predecessor DNSKEY can be purged.
@@ -1138,7 +1167,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 #
 # The zones at csk-roll2.autosign represent the various steps of a CSK rollover
@@ -1156,7 +1186,8 @@ CSK=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $csktimes $zone 2> keygen.o
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 2:
 # It is time to introduce the new CSK.
@@ -1183,7 +1214,8 @@ CSK=$($KEYGEN -k csk-roll2 -l policies/autosign.conf $csktimes $zone 2> keygen.o
 $SETTIME -s -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN "$CSK" > settime.out.$zone.1 2>&1
 cat template.db.in "${CSK}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 3:
 # It is time to submit the DS and to roll signatures.
@@ -1237,7 +1269,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 4:
 # Some time later all the ZRRSIG records should be from the new CSK, and the
@@ -1284,7 +1317,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 5:
 # Some time later the DS can be swapped and the old DNSKEY can be removed from
@@ -1320,7 +1354,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 6:
 # Some time later the predecessor DNSKEY enters the HIDDEN state.
@@ -1355,7 +1390,8 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
 # Step 7:
 # The predecessor DNSKEY can be purged, but purge-keys is disabled.
@@ -1389,4 +1425,5 @@ key_successor $CSK1 $CSK2
 cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK1" >> "$infile"
 private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK2" >> "$infile"
-$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+cp $infile $zonefile
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1

@@ -60,3 +60,6 @@ Bug Fixes
   enter into a state where it would not recover without stopping ``named``,
   manually deleting ``managed-keys.bind`` and ``managed-keys.bind.jnl`` files,
   and starting ``named`` again. :gl:`#2895`
+
+- Fixed a crash that happens when you reconfigure a ``dnssec-policy``
+  zone that uses NSEC3 to enable ``inline-signing``. :gl:`#3591`

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -11,12 +11,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-set -e
+# shellcheck source=conf.sh
+. ../../conf.sh
 
-rm -f dig.out.* rndc.signing.* update.out.* verify.out.*
-rm -f ns*/named.conf ns*/named.memstats ns*/named.run*
-rm -f ns*/*.jnl ns*/*.jbk ns*/managed-keys.bind
-rm -f ns*/K*.private ns*/K*.key ns*/K*.state
-rm -f ns*/dsset-* ns*/*.db ns*/*.db.signed
-rm -f ns*/keygen.out.* ns*/settime.out.*
-rm -f created.key-* *.created unused.key-*
+echo_i "ns2/setup.sh"
+
+zone="nsec3-xfr-inline.kasp"
+echo_i "setting up zone: $zone"
+zonefile="${zone}.db"
+cp template.db.in "$zonefile"

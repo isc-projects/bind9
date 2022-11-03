@@ -20,6 +20,10 @@ dnssec-policy "unsigning" {
 	};
 };
 
+dnssec-policy "nsec3" {
+	nsec3param iterations 0 optout no salt-length 0;
+};
+
 dnssec-policy "rsasha256" {
 	signatures-refresh P5D;
 	signatures-validity 30d;
