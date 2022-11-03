@@ -2086,7 +2086,8 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 static bool
 decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		    rbtdb_serial_t least_serial, isc_rwlocktype_t *nlocktypep,
-		    isc_rwlocktype_t *tlocktypep, bool pruning) {
+		    isc_rwlocktype_t *tlocktypep, bool tryupgrade,
+		    bool pruning) {
 	isc_result_t result;
 	bool locked = *tlocktypep != isc_rwlocktype_none;
 	bool write_locked = false;
@@ -2153,12 +2154,17 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 * the node lock before acquiring the tree write lock because
 	 * we only do a trylock.
 	 */
+	/* We are allowed to upgrade the tree lock */
 	switch (*tlocktypep) {
 	case isc_rwlocktype_write:
 		result = ISC_R_SUCCESS;
 		break;
 	case isc_rwlocktype_read:
-		result = TREE_TRYUPGRADE(&rbtdb->tree_lock, tlocktypep);
+		if (tryupgrade) {
+			result = TREE_TRYUPGRADE(&rbtdb->tree_lock, tlocktypep);
+		} else {
+			result = ISC_R_LOCKBUSY;
+		}
 		break;
 	case isc_rwlocktype_none:
 		result = TREE_TRYWRLOCK(&rbtdb->tree_lock, tlocktypep);
@@ -2252,7 +2258,7 @@ prune_tree(isc_task_t *task, isc_event_t *event) {
 	do {
 		parent = node->parent;
 		decrement_reference(rbtdb, node, 0, &nlocktype, &tlocktype,
-				    true);
+				    true, true);
 
 		if (parent != NULL && parent->down == NULL) {
 			/*
@@ -2705,7 +2711,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 			resign_insert(rbtdb, header->node->locknum, header);
 		}
 		decrement_reference(rbtdb, header->node, least_serial,
-				    &nlocktype, &tlocktype, false);
+				    &nlocktype, &tlocktype, true, false);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -2755,7 +2761,8 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 				rollback_node(rbtnode, serial);
 			}
 			decrement_reference(rbtdb, rbtnode, least_serial,
-					    &nlocktype, &tlocktype, false);
+					    &nlocktype, &tlocktype, true,
+					    false);
 
 			NODE_UNLOCK(lock, &nlocktype);
 
@@ -4532,7 +4539,7 @@ tree_exit:
 
 		NODE_RDLOCK(lock, &nlocktype);
 		decrement_reference(search.rbtdb, node, 0, &nlocktype,
-				    &tlocktype, false);
+				    &tlocktype, true, false);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -5389,7 +5396,7 @@ tree_exit:
 
 		NODE_RDLOCK(lock, &nlocktype);
 		decrement_reference(search.rbtdb, node, 0, &nlocktype,
-				    &tlocktype, false);
+				    &tlocktype, true, false);
 		NODE_UNLOCK(lock, &nlocktype);
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
@@ -5605,8 +5612,8 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 
 	NODE_RDLOCK(&nodelock->lock, &nlocktype);
 
-	if (decrement_reference(rbtdb, node, 0, &nlocktype, &tlocktype, false))
-	{
+	if (decrement_reference(rbtdb, node, 0, &nlocktype, &tlocktype, true,
+				false)) {
 		if (isc_refcount_current(&nodelock->references) == 0 &&
 		    nodelock->exiting) {
 			inactive = true;
@@ -8958,15 +8965,9 @@ dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	lock = &rbtdb->node_locks[node->locknum].lock;
 	NODE_RDLOCK(lock, &nlocktype);
 	decrement_reference(rbtdb, node, 0, &nlocktype, &rbtdbiter->tree_locked,
-			    false);
+			    false, false);
 	NODE_UNLOCK(lock, &nlocktype);
 
-	if (tlocktype != rbtdbiter->tree_locked) {
-		TREE_UNLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-		if (tlocktype == isc_rwlocktype_read) {
-			TREE_RDLOCK(&rbtdb->tree_lock, &rbtdbiter->tree_locked);
-		}
-	}
 	INSIST(rbtdbiter->tree_locked == tlocktype);
 
 	rbtdbiter->node = NULL;
@@ -9006,7 +9007,7 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 
 		NODE_RDLOCK(lock, &nlocktype);
 		decrement_reference(rbtdb, node, 0, &nlocktype,
-				    &rbtdbiter->tree_locked, false);
+				    &rbtdbiter->tree_locked, true, false);
 		NODE_UNLOCK(lock, &nlocktype);
 	}
 
@@ -10192,7 +10193,7 @@ expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 		 */
 		new_reference(rbtdb, header->node, nlocktype);
 		decrement_reference(rbtdb, header->node, 0, &nlocktype,
-				    tlocktypep, false);
+				    tlocktypep, true, false);
 
 		if (rbtdb->cachestats == NULL) {
 			return;
