@@ -9,7 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import os
 import re
+
+import gitlab
 
 # Helper functions and variables
 
@@ -41,6 +44,13 @@ release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 modified_files = danger.git.modified_files
 mr_labels = danger.gitlab.mr.labels
 target_branch = danger.gitlab.mr.target_branch
+
+gl = gitlab.Gitlab(
+    url=f"https://{os.environ['CI_SERVER_HOST']}",
+    private_token=os.environ["DANGER_GITLAB_API_TOKEN"],
+)
+proj = gl.projects.get(os.environ["CI_PROJECT_ID"])
+mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 
 ###############################################################################
 # COMMIT MESSAGES
@@ -165,15 +175,16 @@ if not backport_label_set and not version_labels:
 #   remind developers about the need to set the latter on merge requests which
 #   passed review.)
 
+approved = mr.approvals.get().approved
 if "Review" not in mr_labels:
     warn(
         "This merge request does not have the *Review* label set. "
         "Please set it if you would like the merge request to be reviewed."
     )
-elif "LGTM (Merge OK)" not in mr_labels:
+elif not approved:
     warn(
         "This merge request is currently in review. "
-        "It should not be merged until it is marked with the *LGTM* label."
+        "It should not be merged until it is approved."
     )
 
 ###############################################################################
