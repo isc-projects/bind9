@@ -445,7 +445,7 @@ static void
 doc_updatepolicy(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "( local | { ");
 	cfg_doc_obj(pctx, type->of);
-	cfg_print_cstr(pctx, "; ... }");
+	cfg_print_cstr(pctx, "; ... } )");
 }
 
 /*%
