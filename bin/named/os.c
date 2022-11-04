@@ -269,8 +269,8 @@ getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid) {
 #if !HAVE_SETRESGID
 static int
 setresgid(gid_t rgid, gid_t egid, gid_t sgid) {
-	REQUIRE(rgid == -1);
-	REQUIRE(sgid == -1);
+	REQUIRE(rgid == (gid_t)-1);
+	REQUIRE(sgid == (gid_t)-1);
 
 #if HAVE_SETREGID
 	return (setregid(rgid, egid));
@@ -283,9 +283,9 @@ setresgid(gid_t rgid, gid_t egid, gid_t sgid) {
 #if !HAVE_GETRESUID
 static int
 getresuid(uid_t *ruid, uid_t *euid, uid_t *suid) {
-	*rgid = -1;
-	*egid = geteuid();
-	*sgid = -1;
+	*ruid = -1;
+	*euid = geteuid();
+	*suid = -1;
 
 	return (0);
 }
@@ -294,13 +294,13 @@ getresuid(uid_t *ruid, uid_t *euid, uid_t *suid) {
 #if !HAVE_SETRESUID
 static int
 setresuid(uid_t ruid, uid_t euid, uid_t suid) {
-	REQUIRE(rgid == -1);
-	REQUIRE(sgid == -1);
+	REQUIRE(ruid == (uid_t)-1);
+	REQUIRE(suid == (uid_t)-1);
 
 #if HAVE_SETREGID
-	return (setregid(rgid, egid));
+	return (setregid(ruid, euid));
 #else  /* HAVE_SETREGID */
-	return (setegid(egid));
+	return (setegid(euid));
 #endif /* HAVE_SETREGID */
 }
 #endif /* !HAVE_SETRESUID */
