@@ -950,7 +950,7 @@ VIEW
   		    6to4-self | external | krb5-self | krb5-selfsub |
   		    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |
   		    name | self | selfsub | selfwild | subdomain | tcp-self
-  		    | wildcard | zonesub ) [ string ] rrtypelist; ... };
+  		    | wildcard | zonesub ) [ string ] rrtypelist; ... } );
   		use-alt-transfer-source boolean;
   		zero-no-soa-ttl boolean;
   		zone-statistics ( full | terse | none | boolean );
@@ -1063,7 +1063,7 @@ ZONE
   	    external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self
   	    | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild
   	    | subdomain | tcp-self | wildcard | zonesub ) [ string ]
-  	    rrtypelist; ... };
+  	    rrtypelist; ... } );
   	use-alt-transfer-source boolean;
   	zero-no-soa-ttl boolean;
   	zone-statistics ( full | terse | none | boolean );
