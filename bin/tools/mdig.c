@@ -36,6 +36,7 @@
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
@@ -83,10 +84,6 @@
 #define TCPTIMEOUT 10
 #define UDPTIMEOUT 5
 #define MAXTRIES   0xffffffff
-
-#define NS_PER_US  1000	   /*%< Nanoseconds per microsecond. */
-#define US_PER_SEC 1000000 /*%< Microseconds per second. */
-#define US_PER_MS  1000	   /*%< Microseconds per millisecond. */
 
 static isc_mem_t *mctx = NULL;
 static isc_task_t *global_task = NULL;

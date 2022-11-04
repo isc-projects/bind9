@@ -422,7 +422,6 @@ uint64_t timer_ticks;
 isc_interval_t timer_interval;
 isc_timertype_t timer_type;
 
-#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
 ISC_LOOP_TEARDOWN_IMPL(timer_expect) {
 	uint64_t diff = (timer_stop - timer_start) / 1000000000;
 	assert_true(diff == timer_expect);
@@ -491,7 +490,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_from_callback,
 			  teardown_loop_timer_expect) {
 	isc_timer_create(mainloop, timer_event, NULL, &timer);
 
-	isc_interval_set(&timer_interval, 0, NS_PER_S / 2);
+	isc_interval_set(&timer_interval, 0, NS_PER_SEC / 2);
 	isc_timer_start(timer, timer_type, &timer_interval);
 }
 
@@ -526,7 +525,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_ticker, setup_loop_reschedule_ticker,
 	isc_timer_start(timer, timer_type, &timer_interval);
 
 	/* Then fire every 1/4 second */
-	isc_interval_set(&timer_interval, 0, NS_PER_S / 4);
+	isc_interval_set(&timer_interval, 0, NS_PER_SEC / 4);
 }
 
 ISC_TEST_LIST_START

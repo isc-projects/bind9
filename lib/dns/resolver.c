@@ -33,6 +33,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -175,14 +176,11 @@
 #define fctx_addref(f) fctx_attach((f), &(fetchctx_t *){ NULL })
 #define fctx_unref(f)  fctx_detach(&(fetchctx_t *){ (f) })
 
-#define US_PER_SEC  1000000U
-#define US_PER_MSEC 1000U
-#define NS_PER_US   1000U
 /*
  * The maximum time we will wait for a single query.
  */
 #define MAX_SINGLE_QUERY_TIMEOUT    9000U
-#define MAX_SINGLE_QUERY_TIMEOUT_US (MAX_SINGLE_QUERY_TIMEOUT * US_PER_MSEC)
+#define MAX_SINGLE_QUERY_TIMEOUT_US (MAX_SINGLE_QUERY_TIMEOUT * US_PER_MS)
 
 /*
  * We need to allow a individual query time to complete / timeout.
@@ -1358,7 +1356,7 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 							       &query->start);
 			factor = DNS_ADB_RTTADJDEFAULT;
 
-			rttms = rtt / US_PER_MSEC;
+			rttms = rtt / US_PER_MS;
 			if (rttms < DNS_RESOLVER_QRYRTTCLASS0) {
 				inc_stats(fctx->res,
 					  dns_resstatscounter_queryrtt0);
@@ -2011,13 +2009,13 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	 */
 	isc_time_now(&now);
 	limit = isc_time_microdiff(&fctx->expires, &now);
-	if (limit < US_PER_MSEC) {
+	if (limit < US_PER_MS) {
 		FCTXTRACE("fetch already expired");
 		isc_interval_set(&fctx->interval, 0, 0);
 		return;
 	}
 
-	us = fctx->res->retryinterval * US_PER_MSEC;
+	us = fctx->res->retryinterval * US_PER_MS;
 
 	/*
 	 * Exponential backoff after the first few tries.
@@ -2056,7 +2054,7 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	if ((fctx->options & DNS_FETCHOPT_TRYSTALE_ONTIMEOUT) != 0) {
 		uint64_t stale = isc_time_microdiff(&fctx->expires_try_stale,
 						    &now);
-		if (stale >= US_PER_MSEC && us > stale) {
+		if (stale >= US_PER_MS && us > stale) {
 			FCTXTRACE("setting stale timeout");
 			us = stale;
 		}
@@ -2097,7 +2095,7 @@ resquery_timeout(resquery_t *query) {
 	 */
 	isc_time_now(&now);
 	timeleft = isc_time_microdiff(&fctx->expires_try_stale, &now);
-	if (timeleft >= US_PER_MSEC) {
+	if (timeleft >= US_PER_MS) {
 		return (ISC_R_SUCCESS);
 	}
 
@@ -2126,8 +2124,8 @@ resquery_timeout(resquery_t *query) {
 	 * resume waiting.
 	 */
 	timeleft = isc_time_microdiff(&fctx->next_timeout, &now);
-	if (timeleft >= US_PER_MSEC) {
-		dns_dispatch_resume(query->dispentry, (timeleft / US_PER_MSEC));
+	if (timeleft >= US_PER_MS) {
+		dns_dispatch_resume(query->dispentry, (timeleft / US_PER_MS));
 		return (ISC_R_COMPLETE);
 	}
 
@@ -8156,7 +8154,7 @@ rctx_timedout(respctx_t *rctx) {
 
 		isc_time_now(&now);
 		/* netmgr timeouts are accurate to the millisecond */
-		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MSEC) {
+		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
 			FCTXTRACE("stopped trying to make fetch happen");
 		} else {
 			FCTXTRACE("query timed out; no response");
