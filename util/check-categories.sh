@@ -16,6 +16,7 @@ list1=$(
     | grep -E "^[[:space:]]+[^[:space:]]+_LOGCATEGORY_[^[:space:]]+([[:space:]]+=[[:space:]]+[-0-9]+)?," \
     | grep -Ev "ISC_LOGCATEGORY_(MAX|INVALID)" \
     | sed -e 's/.*LOGCATEGORY_\([A-Z_]*\).*/\1/' -e 's/^RRL$/rate-limit/' \
+      -e 's/DRA/dns-reporting-agent/' \
     | tr 'A-Z' 'a-z' \
     | tr _ - \
     | sed 's/^tat$/trust-anchor-telemetry/' \

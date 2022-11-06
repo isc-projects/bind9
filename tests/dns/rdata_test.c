@@ -1848,6 +1848,45 @@ ISC_RUN_TEST_IMPL(edns_client_subnet) {
 		    dns_rdatatype_opt, sizeof(dns_rdata_opt_t));
 }
 
+ISC_RUN_TEST_IMPL(edns_rad) {
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Option code with no content.
+		 */
+		WIRE_INVALID(0x00, 0x12, 0x00, 0x00),
+		/*
+		 * Agent Domain = "."
+		 */
+		WIRE_VALID(0x00, 0x12, 0x00, 0x01, 0x00),
+		/*
+		 * Data after name.
+		 */
+		WIRE_INVALID(0x00, 0x12, 0x00, 0x02, 0x00, 0x00),
+		/*
+		 * Agent Domain = "example.com."
+		 */
+		WIRE_VALID(0x00, 0x12, 0x00, 13, 7, 'e', 'x', 'a', 'm', 'p',
+			   'l', 'e', 3, 'c', 'o', 'm', 0x00),
+		/*
+		 * No root label at end.
+		 */
+		WIRE_INVALID(0x00, 0x12, 0x00, 12, 7, 'e', 'x', 'a', 'm', 'p',
+			     'l', 'e', 3, 'c', 'o', 'm'),
+		/*
+		 * Truncated label.
+		 */
+		WIRE_INVALID(0x00, 0x12, 0x00, 11, 7, 'e', 'x', 'a', 'm', 'p',
+			     'l', 'e', 3, 'c', 'o'),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	check_rdata(NULL, wire_ok, NULL, true, dns_rdataclass_in,
+		    dns_rdatatype_opt, sizeof(dns_rdata_opt_t));
+}
+
 /*
  * http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
  *
@@ -3171,6 +3210,7 @@ ISC_TEST_ENTRY(zonemd)
 
 /* other tests */
 ISC_TEST_ENTRY(edns_client_subnet)
+ISC_TEST_ENTRY(edns_rad)
 ISC_TEST_ENTRY(atcname)
 ISC_TEST_ENTRY(atparent)
 ISC_TEST_ENTRY(iszonecutauth)

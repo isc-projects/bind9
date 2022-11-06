@@ -772,5 +772,16 @@ if [ $ret != 0 ]; then
 fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "check that 'send-report-channel' warns if no matching zone exists ($n)"
+ret=0
+$CHECKCONF -z warn-rad.conf >checkconf.out$n 2>&1 || ret=1
+grep -F "send-report-channel 'example.com' is not a primary or secondary zone" checkconf.out$n >/dev/null || ret=1
+if [ $ret != 0 ]; then
+  echo_i "failed"
+  ret=1
+fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

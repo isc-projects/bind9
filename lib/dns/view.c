@@ -376,6 +376,10 @@ destroy(dns_view_t *view) {
 		dns_dns64_unlink(&view->dns64, dns64);
 		dns_dns64_destroy(&dns64);
 	}
+	if (view->rad != NULL) {
+		dns_name_free(view->rad, view->mctx);
+		isc_mem_put(view->mctx, view->rad, sizeof(*view->rad));
+	}
 	if (view->managed_keys != NULL) {
 		dns_zone_detach(&view->managed_keys);
 	}

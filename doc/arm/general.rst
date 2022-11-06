@@ -388,6 +388,8 @@ in the DNS.* February 2014.
 :rfc:`8749` - W. Mekking and D. Mahoney. *Moving DNSSEC Lookaside Validation
 (DLV) to Historic Status.* March 2020.
 
+:rfc:`9567` - R. Arends and M. Larson. *DNS Error Reporting*
+
 Notes
 ~~~~~
 

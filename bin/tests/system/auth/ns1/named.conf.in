@@ -22,6 +22,7 @@ options {
 	recursion no;
 	notify yes;
 	dnssec-validation no;
+	send-report-channel "rad.example.net";
 };
 
 view main in {

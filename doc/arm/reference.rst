@@ -1680,6 +1680,41 @@ default is used.
    If all supported digest types are disabled, the zones covered by
    :any:`disable-ds-digests` are treated as insecure.
 
+.. namedconf:statement:: send-report-channel
+   :tags: query
+   :short: Sets the Agent Domain value for the EDNS Report-Channel option
+
+   The EDNS Report-Channel option can be added to responses by an
+   authoritative server to inform clients of a domain name to which
+   operational and protocol errors may be reported. This can help
+   operators find out about configuration errors that are causing
+   problems with resolution or validation elsewhere (for example,
+   expired DNSSEC signatures).
+
+   When :any:`send-report-channel` is set in :namedconf:ref:`options`, or
+   :namedconf:ref:`view` :iscman:`named` adds a Report-Channel option to
+   authoritative responses, using the specified domain name as the
+   Agent-Domain.  :iscman:`named` also logs any TXT queries received for
+   names matching the prescribed error-reporting format
+   (_er.<type>.<name>.<extended-rcode>._er.<agent-domain>) to the
+   ``dns-reporting-agent`` logging category at level ``info``.
+
+   There should be a zone delegated to respond to these queries with TXT
+   records, to avoid unnecessarily query repetition. For example:
+
+   ::
+
+      e.g.
+          $ORIGIN <agent-domain>
+          @ 600 SOA <namserver1> <contact-email> 0 0 0 0 600
+          @ 600 NS <nameserver1>
+          @ 600 NS <nameserver2>
+          *._er 600 TXT ""
+
+   If :any:`send-report-channel` is not set, or is set to ``.``, then
+   the EDNS option is not added to responses, and error-report queries are
+   not logged.
+
 .. namedconf:statement:: dnssec-must-be-secure
    :tags: deprecated
    :short: Defines hierarchies that must or may not be secure (signed and validated).

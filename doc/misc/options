@@ -266,6 +266,7 @@ options {
 	rrset-order { [ class <string> ] [ type <string> ] [ name <quoted_string> ] <string> <string>; ... };
 	secroots-file <quoted_string>;
 	send-cookie <boolean>;
+	send-report-channel <string>;
 	serial-query-rate <integer>;
 	serial-update-method ( date | increment | unixtime );
 	server-id ( <quoted_string> | none | hostname );
@@ -545,6 +546,7 @@ view <string> [ <class> ] {
 	root-key-sentinel <boolean>;
 	rrset-order { [ class <string> ] [ type <string> ] [ name <quoted_string> ] <string> <string>; ... };
 	send-cookie <boolean>;
+	send-report-channel <string>;
 	serial-update-method ( date | increment | unixtime );
 	server <netprefix> {
 		bogus <boolean>;

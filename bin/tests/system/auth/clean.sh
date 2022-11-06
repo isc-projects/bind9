@@ -11,10 +11,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
-rm -f */named.conf
+rm -f */named.run.prev
 rm -f dig.out.test*
+rm -f ns*/managed-keys.bind* ns*/*mkeys*
 rm -f ns2/example.com.bk
 rm -f ns2/example.net.bk
-rm -f ns*/managed-keys.bind* ns*/*mkeys*

@@ -1350,6 +1350,19 @@ dns_name_size(const dns_name_t *name);
 /*%<
  * Return the amount of dynamically allocated memory associated with
  * 'name' (which is 0 if 'name' is not dynamic).
+ */
+
+bool
+dns_name_israd(const dns_name_t *name, const dns_name_t *rad);
+/*%<
+ * Determine whether 'name' matches the prescribed format of a
+ * DNS error-reporting name:
+ *
+ * _er.<TYPE>.<QNAME>.<EDE>._er.<AGENT-DOMAIN>.
+ *
+ * AGENT-DOMAIN is specified by the 'rad' parameter.
+ * EDE is a numeric value representing an extended DNS error code.
+ * TYPE and EDE are not currently checked.
  *
  * Requires:
  * \li	'name' to be valid.

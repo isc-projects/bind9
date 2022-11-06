@@ -186,6 +186,7 @@ struct dns_view {
 	uint32_t	      maxrrperset;
 	uint32_t	      maxtypepername;
 	uint8_t		      max_restarts;
+	dns_name_t	     *rad; /* reporting agent domain */
 
 	/*
 	 * Configurable data for server use only,
