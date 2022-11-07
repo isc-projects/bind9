@@ -9,11 +9,10 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.8
----------------------
+.. _relnotes_known_issues:
 
 Known Issues
-~~~~~~~~~~~~
+------------
 
 - Upgrading from BIND 9.16.32, 9.18.6, or any older version may require
   a manual configuration change. The following configurations are
@@ -33,36 +32,20 @@ Known Issues
   :any:`allow-update-forwarding`) in conjuction with zone transfers over
   TLS (XoT). :gl:`#3512`
 
-- See :ref:`above <relnotes_known_issues>` for a list of all known
-  issues affecting this BIND 9 branch.
+- According to :rfc:`8310`, Section 8.1, the ``Subject`` field MUST NOT
+  be inspected when verifying a remote certificate while establishing a
+  DNS-over-TLS connection. Only ``subjectAltName`` must be checked
+  instead. Unfortunately, some quite old versions of cryptographic
+  libraries might lack the ability to ignore the ``Subject`` field. This
+  should have minimal production-use consequences, as most of the
+  production-ready certificates issued by certificate authorities will
+  have ``subjectAltName`` set. In such cases, the ``Subject`` field is
+  ignored. Only old platforms are affected by this, e.g. those supplied
+  with OpenSSL versions older than 1.1.1. :gl:`#3163`
 
-New Features
-~~~~~~~~~~~~
-
-- Support for parsing and validating the ``dohpath`` service parameter
-  in SVCB records was added. :gl:`#3544`
-
-- :iscman:`named` now logs the supported cryptographic algorithms during
-  startup and in the output of :option:`named -V`. :gl:`#3541`
-
-- The ``recursion not available`` and ``query (cache) '...' denied`` log
-  messages were extended to include the name of the ACL that caused a
-  given query to be denied. :gl:`#3587`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- The ability to use PKCS#11 via engine_pkcs11 has been restored, by
-  using only deprecated APIs in OpenSSL 3.0.0. BIND 9 needs to be
-  compiled with ``-DOPENSSL_API_COMPAT=10100`` specified in the CFLAGS
-  environment variable at compile time. :gl:`#3578`
-
-Bug Fixes
-~~~~~~~~~
-
-- An assertion failure was fixed in :iscman:`named` that was caused by
-  aborting the statistics channel connection while sending statistics
-  data to the client. :gl:`#3542`
-
-- Changing just the TSIG key names for primaries in catalog zones'
-  member zones was not effective. This has been fixed. :gl:`#3557`
+- ``rndc`` has been updated to use the new BIND network manager API. As
+  the network manager currently has no support for UNIX-domain sockets,
+  those cannot now be used with ``rndc``. This will be addressed in a
+  future release, either by restoring UNIX-domain socket support or by
+  formally declaring them to be obsolete in the control channel.
+  :gl:`#1759`

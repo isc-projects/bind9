@@ -53,3 +53,10 @@ Bug Fixes
 - :option:`rndc dumpdb -expired <rndc dumpdb>` was fixed to include
   expired RRsets, even if :any:`stale-cache-enable` is set to ``no`` and
   the cache-cleaning time window has passed. :gl:`#3462`
+
+Known Issues
+~~~~~~~~~~~~
+
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
