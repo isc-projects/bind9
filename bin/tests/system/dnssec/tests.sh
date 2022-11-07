@@ -2602,7 +2602,6 @@ status=$((status+ret))
 echo_i "checking that signing records have been marked as complete ($n)"
 ret=0
 checkprivate dynamic.example 10.53.0.3 || ret=1
-checkprivate update-nsec3.example 10.53.0.3 || ret=1
 checkprivate auto-nsec3.example 10.53.0.3 || ret=1
 checkprivate expiring.example 10.53.0.3 || ret=1
 checkprivate auto-nsec.example 10.53.0.3 || ret=1
@@ -2759,31 +2758,11 @@ status=$((status+ret))
 
 echo_i "check rndc signing -list output ($n)"
 ret=0
-{ rndccmd 10.53.0.3 signing -list dynamic.example > signing.out; } 2>&1
-grep -q "No signing records found" signing.out || {
+{ rndccmd 10.53.0.3 signing -list dynamic.example > signing.out.dynamic.example; } 2>&1
+grep -q "No signing records found" signing.out.dynamic.example || {
         ret=1
-        sed 's/^/ns3 /' signing.out | cat_i
+        sed 's/^/ns3 /' signing.out.dynamic.example | cat_i
 }
-{ rndccmd 10.53.0.3 signing -list update-nsec3.example > signing.out; } 2>&1
-grep -q "Done signing with key .*/$DEFAULT_ALGORITHM" signing.out || {
-        ret=1
-        sed 's/^/ns3 /' signing.out | cat_i
-}
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "clear signing records ($n)"
-{ rndccmd 10.53.0.3 signing -clear all update-nsec3.example > /dev/null; } 2>&1 || ret=1
-check_no_signing_record_found() {
-  { rndccmd 10.53.0.3 signing -list update-nsec3.example > signing.out; } 2>&1
-  grep -q "No signing records found" signing.out || {
-    sed 's/^/ns3 /' signing.out | cat_i
-    return 1
-  }
-  return 0
-}
-retry_quiet 5 check_no_signing_record_found || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -2846,40 +2825,6 @@ dig_with_opts soa split-smart.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "ANSWER: 2," dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that NOTIFY is sent at the end of NSEC3 chain generation ($n)"
-ret=0
-(
-echo zone nsec3chain-test
-echo server 10.53.0.2 "$PORT"
-echo update add nsec3chain-test. 0 nsec3param 1 0 1 123456
-echo send
-) | $NSUPDATE
-for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
-do
-	dig_with_opts nsec3param nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
-	if grep "ANSWER: 3," dig.out.ns2.test$n >/dev/null
-	then
-		break;
-	fi
-	echo_i "sleeping ...."
-	sleep 3
-done
-grep "ANSWER: 3," dig.out.ns2.test$n > /dev/null || ret=1
-if [ "$ret" -ne 0 ]; then echo_i "nsec3 chain generation not complete"; fi
-dig_with_opts +noauth +nodnssec soa nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
-s2=$(awk '$4 == "SOA" { print $7}' dig.out.ns2.test$n)
-for i in 1 2 3 4 5 6 7 8 9 10
-do
-	dig_with_opts +noauth +nodnssec soa nsec3chain-test @10.53.0.3 > dig.out.ns3.test$n || ret=1
-	s3=$(awk '$4 == "SOA" { print $7}' dig.out.ns3.test$n)
-	test "$s2" = "$s3" && break
-	sleep 1
-done
-digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

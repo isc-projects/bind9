@@ -59,11 +59,8 @@ rm -f ns3/optout.example.db
 rm -f ns3/optout.nsec3.example.db
 rm -f ns3/optout.optout.example.db
 rm -f ns3/prepub.example.db
-rm -f ns3/prepub.example.db.in
 rm -f ns3/reconf.example.db
 rm -f ns3/rsasha256.example.db ns3/rsasha512.example.db
-rm -f ns3/secure-to-insecure.example.db
-rm -f ns3/secure-to-insecure2.example.db
 rm -f ns3/secure.example.db
 rm -f ns3/secure.nsec3.example.db
 rm -f ns3/secure.optout.example.db
