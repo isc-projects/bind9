@@ -15,22 +15,14 @@ Notes for BIND 9.18.9
 Bug Fixes
 ~~~~~~~~~
 
-- The statistics counter representing the current number of clients
-  awaiting recursive resolution results (``RecursClients``) could
-  overflow in certain resolution scenarios. This has been fixed.
-  :gl:`#3584`
-
-- Previously, BIND failed to start on Solaris-based systems with
-  hundreds of CPUs. This has been fixed. :gl:`#3563`
+- A crash was fixed that happened when a :any:`dnssec-policy` zone that
+  used NSEC3 was reconfigured to enable :any:`inline-signing`.
+  :gl:`#3591`
 
 - In certain resolution scenarios, quotas could be erroneously reached
   for servers, including any configured forwarders, resulting in
   SERVFAIL answers being sent to clients. This has been fixed.
   :gl:`#3598`
-
-- Previously, the port in remote servers such as in :any:`primaries` and
-  :any:`parental-agents` could be wrongly configured because of an
-  inheritance bug. This has been fixed. :gl:`#3627`
 
 - Previously, if Internet connectivity issues were experienced during
   the initial startup of :iscman:`named`, a BIND resolver with
@@ -40,9 +32,17 @@ Bug Fixes
   files, and starting :iscman:`named` again. This has been fixed.
   :gl:`#2895`
 
-- A crash was fixed that happened when a :any:`dnssec-policy` zone that
-  used NSEC3 was reconfigured to enable :any:`inline-signing`.
-  :gl:`#3591`
+- The statistics counter representing the current number of clients
+  awaiting recursive resolution results (``RecursClients``) could
+  overflow in certain resolution scenarios. This has been fixed.
+  :gl:`#3584`
+
+- Previously, the port in remote servers such as in :any:`primaries` and
+  :any:`parental-agents` could be wrongly configured because of an
+  inheritance bug. This has been fixed. :gl:`#3627`
+
+- Previously, BIND failed to start on Solaris-based systems with
+  hundreds of CPUs. This has been fixed. :gl:`#3563`
 
 Known Issues
 ~~~~~~~~~~~~
