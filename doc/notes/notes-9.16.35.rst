@@ -23,6 +23,10 @@ Bug Fixes
   SERVFAIL answers being sent to clients. This has been fixed.
   :gl:`#3598`
 
+- ``rpz-ip`` rules in ``response-policy`` zones could be ineffective in
+  some cases if a query had the CD (Checking Disabled) bit set to 1.
+  This has been fixed. :gl:`#3247`
+
 - Previously, if Internet connectivity issues were experienced during
   the initial startup of :iscman:`named`, a BIND resolver with
   ``dnssec-validation`` set to ``auto`` could enter into a state where
