@@ -12,11 +12,6 @@
 Notes for BIND 9.19.7
 ---------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -25,15 +20,8 @@ New Features
   ``named-checkconf``, ``named-checkzone``, ``named-compilezone``
   and ``nsupdate``.  :gl:`#3576`
 
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - On Linux, libcap is now required dependency to help us keep needed
   privileges. :gl:`#3583`
