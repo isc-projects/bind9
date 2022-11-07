@@ -2842,23 +2842,10 @@ Boolean Options
 
 .. namedconf:statement:: dnssec-secure-to-insecure
    :tags: dnssec
-   :short: Allows a dynamic zone to transition from secure to insecure by deleting all DNSKEY records.
+   :short: Allows a dynamic zone to transition from secure to insecure by deleting all DNSKEY records (obsoleted).
 
-   This allows a dynamic zone to transition from secure to insecure (i.e.,
-   signed to unsigned) by deleting all of the DNSKEY records. The
-   default is ``no``. If set to ``yes``, and if the DNSKEY RRset at the
-   zone apex is deleted, all RRSIG and NSEC records are removed from
-   the zone as well.
-
-   If the zone uses NSEC3, it is also necessary to delete the
-   NSEC3PARAM RRset from the zone apex; this causes the removal of
-   all corresponding NSEC3 records. (It is expected that this
-   requirement will be eliminated in a future release.)
-
-   Note that if a zone has been configured with ``auto-dnssec maintain``
-   and the private keys remain accessible in the key repository,
-   the zone will be automatically signed again the next time :iscman:`named`
-   is started.
+   This option used to allow a dynamic zone to transition from secure to insecure by deleting all DNSKEY records.
+   It has been obsoleted because DNSSEC key operations triggered by dynamic updates are no longer supported.
 
 .. namedconf:statement:: synth-from-dnssec
    :tags: dnssec

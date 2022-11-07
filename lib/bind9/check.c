@@ -3525,15 +3525,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "dnssec-secure-to-insecure", &obj);
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-secure-to-insecure: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing) {

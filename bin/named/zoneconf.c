@@ -1814,13 +1814,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				   ignore);
 
 		obj = NULL;
-		result = named_config_get(maps, "dnssec-secure-to-insecure",
-					  &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_SECURETOINSECURE,
-				   cfg_obj_asboolean(obj));
-
-		obj = NULL;
 		result = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
 		if (result == ISC_R_SUCCESS) {
 			const char *arg = cfg_obj_asstring(obj);

@@ -223,7 +223,6 @@ options {\n\
 	dialup no;\n\
 	dnssec-dnskey-kskonly yes;\n\
 	dnssec-loadkeys-interval 60;\n\
-	dnssec-secure-to-insecure no;\n\
 	dnssec-update-mode maintain;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\

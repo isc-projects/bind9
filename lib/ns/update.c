@@ -3392,22 +3392,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		CHECK(rrset_exists(db, ver, zonename, dns_rdatatype_dnskey, 0,
 				   &has_dnskey));
 
-#define ALLOW_SECURE_TO_INSECURE(zone) \
-	((dns_zone_getoptions(zone) & DNS_ZONEOPT_SECURETOINSECURE) != 0)
-
 		CHECK(rrset_exists(db, oldver, zonename, dns_rdatatype_dnskey,
 				   0, &had_dnskey));
-		if (!ALLOW_SECURE_TO_INSECURE(zone)) {
-			if (had_dnskey && !has_dnskey) {
-				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "update rejected: all DNSKEY "
-					   "records removed and "
-					   "'dnssec-secure-to-insecure' "
-					   "not set");
-				result = DNS_R_REFUSED;
-				goto failure;
-			}
-		}
 
 		CHECK(rollback_private(db, privatetype, ver, &diff));
 
