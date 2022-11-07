@@ -62,6 +62,9 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #
 #     * The subject line starts with "fixup!" or "Apply suggestion".
 #
+#     * The subject line starts with a prohibited word indicating a work in
+#       progress commit (e.g. "WIP").
+#
 #     * The subject line contains a trailing dot.
 #
 #     * There is no empty line between the subject line and the log message.
@@ -87,6 +90,9 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #           "[2]", etc.) which allows e.g. long URLs to be included in the
 #           commit log message.
 
+PROHIBITED_WORDS_RE = re.compile(
+    "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
+)
 fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
@@ -99,6 +105,12 @@ for commit in danger.git.commits:
             "Please squash them before merging."
         )
         fixup_error_logged = True
+    match = PROHIBITED_WORDS_RE.search(subject)
+    if match:
+        fail(
+            f"Prohibited keyword `{match.groups()[0]}` detected "
+            f"at the start of a subject line in commit {commit.sha}."
+        )
     if len(subject) > 72 and not subject.startswith("Merge branch "):
         warn(
             f"Subject line for commit {commit.sha} is too long: "
