@@ -44,6 +44,8 @@ https://www.isc.org/download/. There you will find additional
 information about each release, source code, and pre-compiled versions
 for Microsoft Windows operating systems.
 
+.. include:: ../notes/notes-known-issues.rst
+
 .. include:: ../notes/notes-current.rst
 .. include:: ../notes/notes-9.16.34.rst
 .. include:: ../notes/notes-9.16.33.rst
