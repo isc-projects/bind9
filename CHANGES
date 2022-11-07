@@ -2,8 +2,7 @@
 			a dnssec-policy zone with NSEC3 to start using
 			inline-signing. [GL #3591]
 
-6012.	[func]		Cleanup the dead nodes while pruning the tree.
-			[GL #3641]
+6012.	[placeholder]
 
 6011.	[func]		Refactor the privilege setting part of named_os unit
 			to make libcap on Linux mandatory and use setreuid
