@@ -689,9 +689,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  * Notes:
  * \li	Decompression policy is controlled by 'dctx'.
  *
- * \li	If DNS_NAME_DOWNCASE is set, any uppercase letters in 'source' will be
- *	downcased when they are copied into 'target'.
- *
  * Security:
  *
  * \li	*** WARNING ***
@@ -712,13 +709,12 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  *
  * \li	'dctx' is a valid decompression context.
  *
+ * \li	DNS_NAME_DOWNCASE is not set.
+ *
  * Ensures:
  *
  *	If result is success:
- * \li	 	If 'target' is not NULL, 'name' is attached to it.
- *
- * \li		Uppercase letters are downcased in the copy iff
- *		DNS_NAME_DOWNCASE is set in options.
+ * \li		If 'target' is not NULL, 'name' is attached to it.
  *
  * \li		The current location in source is advanced, and the used space
  *		in target is updated.
@@ -731,7 +727,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  * \li	Bad Form: Compression type not allowed
  * \li	Bad Form: Bad compression pointer
  * \li	Bad Form: Input too short
- * \li	Resource Limit: Too many compression pointers
  * \li	Resource Limit: Not enough space in buffer
  */
 
