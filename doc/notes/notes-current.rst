@@ -17,11 +17,6 @@ Security Fixes
 
 - None.
 
-Known Issues
-~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -63,3 +58,10 @@ Bug Fixes
 
 - Fixed a crash that happens when you reconfigure a ``dnssec-policy``
   zone that uses NSEC3 to enable ``inline-signing``. :gl:`#3591`
+
+Known Issues
+~~~~~~~~~~~~
+
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.

@@ -37,6 +37,9 @@ Known Issues
   ignored. Only old platforms are affected by this, e.g. those supplied
   with OpenSSL versions older than 1.1.1. :gl:`#3163`
 
+- See :ref:`above <relnotes_known_issues>` for a list of all known
+  issues affecting this BIND 9 branch.
+
 New Features
 ~~~~~~~~~~~~
 

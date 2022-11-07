@@ -50,3 +50,10 @@ Bug Fixes
 - It was possible for a catalog zone consumer to process a catalog zone
   member zone when there was a configured pre-existing forward-only
   forward zone with the same name. This has been fixed. :gl:`#2506`
+
+Known Issues
+~~~~~~~~~~~~
+
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.

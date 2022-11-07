@@ -26,6 +26,9 @@ Known Issues
   formally declaring them to be obsolete in the control channel.
   :gl:`#1759`
 
+- See :ref:`above <relnotes_known_issues>` for a list of all known
+  issues affecting this BIND 9 branch.
+
 New Features
 ~~~~~~~~~~~~
 
