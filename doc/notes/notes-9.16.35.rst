@@ -15,13 +15,8 @@ Notes for BIND 9.16.35
 Bug Fixes
 ~~~~~~~~~
 
-- The statistics counter representing the current number of clients
-  awaiting recursive resolution results (``RecursClients``) could
-  overflow in certain resolution scenarios. This has been fixed.
-  :gl:`#3584`
-
-- Previously, BIND failed to start on Solaris-based systems with
-  hundreds of CPUs. This has been fixed. :gl:`#3563`
+- A crash was fixed that happened when a ``dnssec-policy`` zone that
+  used NSEC3 was reconfigured to enable ``inline-signing``. :gl:`#3591`
 
 - In certain resolution scenarios, quotas could be erroneously reached
   for servers, including any configured forwarders, resulting in
@@ -36,8 +31,13 @@ Bug Fixes
   files, and starting :iscman:`named` again. This has been fixed.
   :gl:`#2895`
 
-- A crash was fixed that happened when a ``dnssec-policy`` zone that
-  used NSEC3 was reconfigured to enable ``inline-signing``. :gl:`#3591`
+- The statistics counter representing the current number of clients
+  awaiting recursive resolution results (``RecursClients``) could
+  overflow in certain resolution scenarios. This has been fixed.
+  :gl:`#3584`
+
+- Previously, BIND failed to start on Solaris-based systems with
+  hundreds of CPUs. This has been fixed. :gl:`#3563`
 
 Known Issues
 ~~~~~~~~~~~~
