@@ -48,6 +48,11 @@ Bug Fixes
 - Previously, BIND failed to start on Solaris-based systems with
   hundreds of CPUs. This has been fixed. :gl:`#3563`
 
+- When a DNS resource record's TTL value was equal to the resolver's
+  configured :any:`prefetch` "eligibility" value, the record was
+  erroneously not treated as eligible for prefetching. This has been
+  fixed. :gl:`#3603`
+
 Known Issues
 ~~~~~~~~~~~~
 
