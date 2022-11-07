@@ -15,29 +15,34 @@ Notes for BIND 9.18.9
 Bug Fixes
 ~~~~~~~~~
 
-- The RecursClients statistics counter could overflow in certain resolution
-  scenarios. This has been fixed. :gl:`#3584`
+- The statistics counter representing the current number of clients
+  awaiting recursive resolution results (``RecursClients``) could
+  overflow in certain resolution scenarios. This has been fixed.
+  :gl:`#3584`
 
-- BIND would fail to start on Solaris-based systems with hundreds of CPUs. This
-  has been fixed. ISC would like to thank Stacey Marshall from Oracle for
-  bringing this problem to our attention. :gl:`#3563`
+- Previously, BIND failed to start on Solaris-based systems with
+  hundreds of CPUs. This has been fixed. :gl:`#3563`
 
-- In certain resolution scenarios quotas could be erroneously reached for
-  servers, including the configured forwarders, resulting in SERVFAIL answers
-  sent to the clients. This has been fixed. :gl:`#3598`
+- In certain resolution scenarios, quotas could be erroneously reached
+  for servers, including any configured forwarders, resulting in
+  SERVFAIL answers being sent to clients. This has been fixed.
+  :gl:`#3598`
 
-- The port in remote servers such as in :any:`primaries` and
-  :any:`parental-agents` could be wrongly configured because of an inheritance
-  bug. :gl:`#3627`
+- Previously, the port in remote servers such as in :any:`primaries` and
+  :any:`parental-agents` could be wrongly configured because of an
+  inheritance bug. This has been fixed. :gl:`#3627`
 
-- When having Internet connectivity issues during the initial startup of
-  ``named``, BIND resolver with :any:`dnssec-validation` set to ``auto`` could
-  enter into a state where it would not recover without stopping ``named``,
-  manually deleting ``managed-keys.bind`` and ``managed-keys.bind.jnl`` files,
-  and starting ``named`` again. :gl:`#2895`
+- Previously, if Internet connectivity issues were experienced during
+  the initial startup of :iscman:`named`, a BIND resolver with
+  :any:`dnssec-validation` set to ``auto`` could enter into a state
+  where it would not recover without stopping :iscman:`named`, manually
+  deleting the ``managed-keys.bind`` and ``managed-keys.bind.jnl``
+  files, and starting :iscman:`named` again. This has been fixed.
+  :gl:`#2895`
 
-- Fixed a crash that happens when you reconfigure a ``dnssec-policy``
-  zone that uses NSEC3 to enable ``inline-signing``. :gl:`#3591`
+- A crash was fixed that happened when a :any:`dnssec-policy` zone that
+  used NSEC3 was reconfigured to enable :any:`inline-signing`.
+  :gl:`#3591`
 
 Known Issues
 ~~~~~~~~~~~~
