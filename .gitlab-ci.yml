@@ -1408,6 +1408,22 @@ stress:rpz:freebsd12:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
+# git fsck operates over the whole repository and is sufficient to schedule it
+# only in one branch, preferably "main". GitLab's clone strategy prevents us
+# from using the "bind9" repo clone; we need to clone it ourselves.
+fsck:
+  <<: *base_image
+  stage: postcheck
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - git clone https://gitlab.isc.org/isc-projects/bind9.git bind9-full-clone
+    - cd bind9-full-clone/
+    - git fsck
+  only:
+    - schedules
+  needs: []
+
 gcov:
   <<: *base_image
   <<: *default_triggering_rules
