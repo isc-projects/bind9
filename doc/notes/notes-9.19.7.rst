@@ -26,6 +26,11 @@ Feature Changes
 - On Linux, libcap is now a required dependency to help :iscman:`named`
   keep needed privileges. :gl:`#3583`
 
+- The DNS name compression algorithm used in BIND 9 has been revised: it
+  now compresses more thoroughly than before, so responses containing
+  names with many labels might have a smaller encoding than before.
+  :gl:`#3661`
+
 Bug Fixes
 ~~~~~~~~~
 
