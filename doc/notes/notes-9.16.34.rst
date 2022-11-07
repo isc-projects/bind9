@@ -27,6 +27,9 @@ Known Issues
   will fail to start. For more details, see
   https://kb.isc.org/docs/dnssec-policy-requires-dynamic-dns-or-inline-signing
 
+- See :ref:`above <relnotes_known_issues>` for a list of all known
+  issues affecting this BIND 9 branch.
+
 New Features
 ~~~~~~~~~~~~
 
