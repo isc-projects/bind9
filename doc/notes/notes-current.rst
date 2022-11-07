@@ -25,7 +25,10 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- Dynamic updates that add and remove DNSKEY and NSEC3PARAM records no
+  longer trigger key rollovers and denial of existence operations. This
+  also means that the option :any:`dnssec-secure-to-insecure` has been
+  obsoleted. :gl:`#3686`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
