@@ -46,6 +46,7 @@ release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 modified_files = danger.git.modified_files
 mr_labels = danger.gitlab.mr.labels
 target_branch = danger.gitlab.mr.target_branch
+backport_label_set = "Backport" in mr_labels
 
 gl = gitlab.Gitlab(
     url=f"https://{os.environ['CI_SERVER_HOST']}",
@@ -89,6 +90,8 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #         - lines which contain references (i.e. those starting with "[1]",
 #           "[2]", etc.) which allows e.g. long URLs to be included in the
 #           commit log message.
+#
+#     * There is no "cherry picked from X" message in Backport commits.
 
 PROHIBITED_WORDS_RE = re.compile(
     "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
@@ -137,6 +140,11 @@ for commit in danger.git.commits:
                 f"Line too long in log message for commit {commit.sha}: "
                 f"```{line}``` ({len(line)} > 72 characters)."
             )
+    if backport_label_set and "cherry picked from commit" not in commit.message:
+        warn(
+            f"`cherry picked from commit...` message missing in commit {commit.sha}. "
+            "Please use `-x` option with `git cherry-pick` or remove the `Backport` label."
+        )
 
 ###############################################################################
 # MILESTONE
@@ -163,7 +171,6 @@ if not danger.gitlab.mr.milestone:
 #   request is not a backport, version labels are used for indicating
 #   backporting preferences.)
 
-backport_label_set = "Backport" in mr_labels
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
 if backport_label_set and len(version_labels) != 1:
     fail(
