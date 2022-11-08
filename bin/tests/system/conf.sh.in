@@ -80,7 +80,11 @@ export PYTEST=@PYTEST@
 #
 # Interpreters for system tests detected by configure
 #
-export PERL=$(command -v "@PERL@")
+export PERL=$(command -v "@PERL@" || true)
+if ! test -x "$PERL"; then
+    echo "Perl interpreter is required for system tests."
+    exit 77
+fi
 export PYTHON=$(command -v "@PYTHON@" || true)
 
 # Load common values
