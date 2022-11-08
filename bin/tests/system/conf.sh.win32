@@ -32,6 +32,10 @@ export VSCONF=${VSCONF:-Debug}
 
 # Interpreters for system tests
 export PERL=/usr/bin/perl
+if ! test -x "$PERL"; then
+    echo "Perl interpreter is required for system tests."
+    exit 77
+fi
 export PYTHON=@PYTHON@
 
 
