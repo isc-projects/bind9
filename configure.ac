@@ -1408,20 +1408,6 @@ AS_CASE([$enable_leak_detection],
 	[yes],[AC_DEFINE([ENABLE_LEAK_DETECTION], [1], [Define to enable memory leak detection in external libraries])])
 
 #
-# was --with-tuning specified?
-#
-# [pairwise: --with-tuning=small, --without-tuning]
-AC_ARG_WITH([tuning],
-	    AS_HELP_STRING([--with-tuning=ARG],
-			   [Specify server tuning (default or small)]),
-	    [],[with_tuning=no])
-
-AS_CASE([$with_tuning],
-	[small],[AC_MSG_NOTICE(using small system tuning)],
-	[AC_DEFINE(TUNE_LARGE, 1, [Define to use default system tuning.])
-	 AC_MSG_NOTICE(using default system tuning)])
-
-#
 # was --enable-querytrace or --enable-singletrace specified?
 #
 # [pairwise: --enable-singletrace --enable-querytrace, --disable-singletrace --enable-querytrace, --disable-singletrace --disable-querytrace]
@@ -1674,7 +1660,6 @@ report() {
     if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
 	echo "    Mutex lock type: $with_locktype"
     fi
-    test "small" = "$with_tuning" && echo "    Small-system tuning (--with-tuning)"
     test "no" = "$enable_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
@@ -1719,7 +1704,6 @@ report() {
       echo "    +------------------------------------------+"
       echo
     fi
-    test "small" = "$with_tuning" || echo "    Small-system tuning (--with-tuning)"
 
     test "no" = "$enable_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
