@@ -86,6 +86,10 @@ if ! test -x "$PERL"; then
     exit 77
 fi
 export PYTHON=$(command -v "@PYTHON@" || true)
+if ! test -x "$PYTHON"; then
+    echo "Python interpreter is required for system tests."
+    exit 77
+fi
 
 # Load common values
 . $TOP_SRCDIR/bin/tests/system/conf.sh.common
