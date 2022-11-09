@@ -147,7 +147,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	dctx = dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length > 0 && ((sr.base[0] & 0x80) != 0 || sr.length > 16 ||

@@ -225,8 +225,7 @@ fromwire_amtrelay(ARGS_FROMWIRE) {
 		RETERR(mem_tobuffer(target, region.base, 2));
 		isc_buffer_forward(source, 2);
 		dns_name_init(&name, NULL);
-		return (dns_name_fromwire(&name, source, dctx, options,
-					  target));
+		return (dns_name_fromwire(&name, source, dctx, target));
 
 	default:
 		isc_buffer_forward(source, region.length);

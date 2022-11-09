@@ -51,7 +51,7 @@
 #define TOTEXTTYPE  "rdata->type"
 #define TOTEXTDEF   "use_default = true"
 
-#define FROMWIREARGS  "rdclass, type, source, dctx, options, target"
+#define FROMWIREARGS  "rdclass, type, source, dctx, target"
 #define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE  "type"
 #define FROMWIREDEF   "use_default = true"

@@ -824,7 +824,7 @@ generic_fromwire_in_svcb(ARGS_FROMWIRE) {
 	/*
 	 * TargetName.
 	 */
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	if (alias) {
 		return (ISC_R_SUCCESS);

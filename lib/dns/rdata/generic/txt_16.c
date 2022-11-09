@@ -76,7 +76,6 @@ generic_fromwire_txt(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(options);
 
 	do {
 		result = txt_fromwire(source, target);

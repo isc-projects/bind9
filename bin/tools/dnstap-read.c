@@ -297,7 +297,7 @@ print_yaml(dns_dtdata_t *dt) {
 		isc_buffer_init(&b, m->query_zone.data, m->query_zone.len);
 		isc_buffer_add(&b, m->query_zone.len);
 
-		result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER, 0,
+		result = dns_name_fromwire(name, &b, DNS_DECOMPRESS_NEVER,
 					   NULL);
 		if (result == ISC_R_SUCCESS) {
 			printf("  query_zone: ");

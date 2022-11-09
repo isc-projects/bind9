@@ -58,7 +58,6 @@ fromwire_hinfo(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(options);
 
 	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));

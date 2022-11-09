@@ -260,7 +260,7 @@ fromwire_tkey(ARGS_FROMWIRE) {
 	 * Algorithm.
 	 */
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	/*
 	 * Inception: 4

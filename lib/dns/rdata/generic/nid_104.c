@@ -83,7 +83,6 @@ fromwire_nid(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_nid);
 
 	UNUSED(type);
-	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 

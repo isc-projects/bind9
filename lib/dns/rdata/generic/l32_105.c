@@ -85,7 +85,6 @@ fromwire_l32(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_l32);
 
 	UNUSED(type);
-	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 

@@ -145,7 +145,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	 * reading a packet)
 	 */
 	CHECK(dns_rdata_fromwire(&rdata1, rdclass, rdtype, &source,
-				 DNS_DECOMPRESS_NEVER, 0, &target));
+				 DNS_DECOMPRESS_NEVER, &target));
 	assert(rdata1.length == size);
 
 	/*

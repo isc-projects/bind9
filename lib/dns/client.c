@@ -1134,7 +1134,7 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	dns_rdata_init(&rdata);
 	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
 	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype, databuf,
-				 DNS_DECOMPRESS_NEVER, 0, &b));
+				 DNS_DECOMPRESS_NEVER, &b));
 
 	if (rdtype == dns_rdatatype_ds) {
 		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));

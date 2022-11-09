@@ -69,7 +69,6 @@ fromwire_x25(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5 || sr.base[0] != (sr.length - 1)) {

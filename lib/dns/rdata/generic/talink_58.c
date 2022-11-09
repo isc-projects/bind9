@@ -93,8 +93,8 @@ fromwire_talink(ARGS_FROMWIRE) {
 	dns_name_init(&prev, NULL);
 	dns_name_init(&next, NULL);
 
-	RETERR(dns_name_fromwire(&prev, source, dctx, options, target));
-	return (dns_name_fromwire(&next, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&prev, source, dctx, target));
+	return (dns_name_fromwire(&next, source, dctx, target));
 }
 
 static isc_result_t

@@ -190,7 +190,6 @@ fromwire_nsec3(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
-	UNUSED(options);
 	UNUSED(dctx);
 
 	isc_buffer_activeregion(source, &sr);

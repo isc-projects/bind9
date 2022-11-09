@@ -255,7 +255,7 @@ fromwire_ipseckey(ARGS_FROMWIRE) {
 	case 3:
 		RETERR(mem_tobuffer(target, region.base, 3));
 		isc_buffer_forward(source, 3);
-		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+		RETERR(dns_name_fromwire(&name, source, dctx, target));
 		isc_buffer_activeregion(source, &region);
 		isc_buffer_forward(source, region.length);
 		if (region.length < 1) {

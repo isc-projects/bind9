@@ -98,10 +98,9 @@
 
 #define ARGS_FROMWIRE                                            \
 	int rdclass, dns_rdatatype_t type, isc_buffer_t *source, \
-		dns_decompress_t dctx, unsigned int options,     \
-		isc_buffer_t *target
+		dns_decompress_t dctx, isc_buffer_t *target
 
-#define CALL_FROMWIRE rdclass, type, source, dctx, options, target
+#define CALL_FROMWIRE rdclass, type, source, dctx, target
 
 #define ARGS_TOWIRE \
 	dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target
@@ -604,7 +603,7 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 		dns_fixedname_t fixed;
 
 		RETERR(dns_name_fromwire(dns_fixedname_initname(&fixed), source,
-					 DNS_DECOMPRESS_DEFAULT, 0, NULL));
+					 DNS_DECOMPRESS_DEFAULT, NULL));
 		/*
 		 * There should be a public key or signature after the key name.
 		 */
@@ -795,8 +794,7 @@ dns_rdata_toregion(const dns_rdata_t *rdata, isc_region_t *r) {
 isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
-		   dns_decompress_t dctx, unsigned int options,
-		   isc_buffer_t *target) {
+		   dns_decompress_t dctx, isc_buffer_t *target) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_region_t region;
 	isc_buffer_t ss;
@@ -915,7 +913,7 @@ rdata_validate(isc_buffer_t *src, isc_buffer_t *dest, dns_rdataclass_t rdclass,
 
 	isc_buffer_setactive(src, isc_buffer_usedlength(src));
 	result = dns_rdata_fromwire(NULL, rdclass, type, src,
-				    DNS_DECOMPRESS_NEVER, 0, dest);
+				    DNS_DECOMPRESS_NEVER, dest);
 
 	return (result);
 }

@@ -681,7 +681,7 @@ dns_name_toregion(const dns_name_t *name, isc_region_t *r);
 
 isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
-		  unsigned int options, isc_buffer_t *target);
+		  isc_buffer_t *target);
 /*%<
  * Copy the possibly-compressed name at source (active region) into target,
  * decompressing it.

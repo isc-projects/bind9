@@ -2034,7 +2034,7 @@ read_one_rr(dns_journal_t *j) {
 	 */
 	isc_buffer_setactive(&j->it.source,
 			     j->it.source.used - j->it.source.current);
-	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, j->it.dctx, 0,
+	CHECK(dns_name_fromwire(&j->it.name, &j->it.source, j->it.dctx,
 				&j->it.target));
 
 	/*
@@ -2066,7 +2066,7 @@ read_one_rr(dns_journal_t *j) {
 	isc_buffer_setactive(&j->it.source, rdlen);
 	dns_rdata_reset(&j->it.rdata);
 	CHECK(dns_rdata_fromwire(&j->it.rdata, rdclass, rdtype, &j->it.source,
-				 j->it.dctx, 0, &j->it.target));
+				 j->it.dctx, &j->it.target));
 	j->it.ttl = ttl;
 
 	j->it.xpos += sizeof(journal_rawrrhdr_t) + rrhdr.size;
