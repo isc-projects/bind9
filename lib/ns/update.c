@@ -230,6 +230,8 @@ struct update_event {
 	dns_zone_t *zone;
 	isc_result_t result;
 	dns_message_t *answer;
+	const dns_ssurule_t **rules;
+	size_t ruleslen;
 };
 
 /*%
@@ -269,6 +271,9 @@ static void
 forward_done(isc_task_t *task, isc_event_t *event);
 static isc_result_t
 add_rr_prepare_action(void *data, rr_t *rr);
+static isc_result_t
+rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	  const dns_rdata_t *rdata, bool *flag);
 
 /**************************************************************************/
 
@@ -341,25 +346,26 @@ inc_stats(ns_client_t *client, dns_zone_t *zone, isc_statscounter_t counter) {
 static isc_result_t
 checkqueryacl(ns_client_t *client, dns_acl_t *queryacl, dns_name_t *zonename,
 	      dns_acl_t *updateacl, dns_ssutable_t *ssutable) {
+	isc_result_t result;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
-	int level;
-	isc_result_t result;
+	bool update_possible =
+		((updateacl != NULL && !dns_acl_isnone(updateacl)) ||
+		 ssutable != NULL);
 
 	result = ns_client_checkaclsilent(client, NULL, queryacl, true);
 	if (result != ISC_R_SUCCESS) {
+		int level = update_possible ? ISC_LOG_ERROR : ISC_LOG_INFO;
+
 		dns_name_format(zonename, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(client->view->rdclass, classbuf,
 				      sizeof(classbuf));
-
-		level = (updateacl == NULL && ssutable == NULL) ? ISC_LOG_INFO
-								: ISC_LOG_ERROR;
 
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
 			      NS_LOGMODULE_UPDATE, level,
 			      "update '%s/%s' denied due to allow-query",
 			      namebuf, classbuf);
-	} else if (updateacl == NULL && ssutable == NULL) {
+	} else if (!update_possible) {
 		dns_name_format(zonename, namebuf, sizeof(namebuf));
 		dns_rdataclass_format(client->view->rdclass, classbuf,
 				      sizeof(classbuf));
@@ -1643,6 +1649,240 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
+	dns_ssutable_t *ssutable = NULL;
+	dns_message_t *request = client->message;
+	isc_mem_t *mctx = client->manager->mctx;
+	dns_aclenv_t *env = client->manager->aclenv;
+	dns_rdataclass_t zoneclass;
+	dns_rdatatype_t covers;
+	dns_name_t *zonename = NULL;
+	const dns_ssurule_t **rules = NULL;
+	size_t rule = 0, ruleslen = 0;
+	dns_zoneopt_t options;
+	dns_db_t *db = NULL;
+	dns_dbversion_t *ver = NULL;
+
+	CHECK(dns_zone_getdb(zone, &db));
+	zonename = dns_db_origin(db);
+	zoneclass = dns_db_class(db);
+	dns_zone_getssutable(zone, &ssutable);
+	options = dns_zone_getoptions(zone);
+	dns_db_currentversion(db, &ver);
+
+	/*
+	 * Update message processing can leak record existence information
+	 * so check that we are allowed to query this zone.  Additionally,
+	 * if we would refuse all updates for this zone, we bail out here.
+	 */
+	CHECK(checkqueryacl(client, dns_zone_getqueryacl(zone),
+			    dns_zone_getorigin(zone),
+			    dns_zone_getupdateacl(zone), ssutable));
+
+	/*
+	 * Check requestor's permissions.
+	 */
+	if (ssutable == NULL) {
+		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
+				     "update", dns_zone_getorigin(zone), false,
+				     false));
+	} else if (client->signer == NULL && !TCPCLIENT(client)) {
+		CHECK(checkupdateacl(client, NULL, "update",
+				     dns_zone_getorigin(zone), false, true));
+	}
+
+	if (dns_zone_getupdatedisabled(zone)) {
+		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled "
+				     "because the zone is frozen.  Use "
+				     "'rndc thaw' to re-enable updates.");
+	}
+
+	/*
+	 * Prescan the update section, checking for updates that
+	 * are illegal or violate policy.
+	 */
+	if (ssutable != NULL) {
+		ruleslen = request->counts[DNS_SECTION_UPDATE];
+		rules = isc_mem_getx(mctx, sizeof(*rules) * ruleslen,
+				     ISC_MEM_ZERO);
+	}
+
+	for (rule = 0,
+	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
+	     result == ISC_R_SUCCESS;
+	     rule++, result = dns_message_nextname(request, DNS_SECTION_UPDATE))
+	{
+		dns_name_t *name = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_ttl_t ttl;
+		dns_rdataclass_t update_class;
+
+		INSIST(ssutable == NULL || rule < ruleslen);
+
+		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
+			       &rdata, &covers, &ttl, &update_class);
+
+		if (!dns_name_issubdomain(name, zonename)) {
+			FAILC(DNS_R_NOTZONE, "update RR is outside zone");
+		}
+		if (update_class == zoneclass) {
+			/*
+			 * Check for meta-RRs.  The RFC2136 pseudocode says
+			 * check for ANY|AXFR|MAILA|MAILB, but the text adds
+			 * "or any other QUERY metatype"
+			 */
+			if (dns_rdatatype_ismeta(rdata.type)) {
+				FAILC(DNS_R_FORMERR, "meta-RR in update");
+			}
+			result = dns_zone_checknames(zone, name, &rdata);
+			if (result != ISC_R_SUCCESS) {
+				FAIL(DNS_R_REFUSED);
+			}
+			if ((options & DNS_ZONEOPT_CHECKSVCB) != 0 &&
+			    rdata.type == dns_rdatatype_svcb)
+			{
+				result = dns_rdata_checksvcb(name, &rdata);
+				if (result != ISC_R_SUCCESS) {
+					const char *reason =
+						isc_result_totext(result);
+					FAILNT(DNS_R_REFUSED, name, rdata.type,
+					       reason);
+				}
+			}
+		} else if (update_class == dns_rdataclass_any) {
+			if (ttl != 0 || rdata.length != 0 ||
+			    (dns_rdatatype_ismeta(rdata.type) &&
+			     rdata.type != dns_rdatatype_any))
+			{
+				FAILC(DNS_R_FORMERR, "meta-RR in update");
+			}
+		} else if (update_class == dns_rdataclass_none) {
+			if (ttl != 0 || dns_rdatatype_ismeta(rdata.type)) {
+				FAILC(DNS_R_FORMERR, "meta-RR in update");
+			}
+		} else {
+			update_log(client, zone, ISC_LOG_WARNING,
+				   "update RR has incorrect class %d",
+				   update_class);
+			FAIL(DNS_R_FORMERR);
+		}
+
+		/*
+		 * draft-ietf-dnsind-simple-secure-update-01 says
+		 * "Unlike traditional dynamic update, the client
+		 * is forbidden from updating NSEC records."
+		 */
+		if (rdata.type == dns_rdatatype_nsec3) {
+			FAILC(DNS_R_REFUSED, "explicit NSEC3 updates are not "
+					     "allowed "
+					     "in secure zones");
+		} else if (rdata.type == dns_rdatatype_nsec) {
+			FAILC(DNS_R_REFUSED, "explicit NSEC updates are not "
+					     "allowed "
+					     "in secure zones");
+		} else if (rdata.type == dns_rdatatype_rrsig &&
+			   !dns_name_equal(name, zonename))
+		{
+			FAILC(DNS_R_REFUSED, "explicit RRSIG updates are "
+					     "currently "
+					     "not supported in secure zones "
+					     "except "
+					     "at the apex");
+		}
+
+		if (ssutable != NULL) {
+			isc_netaddr_t netaddr;
+			dns_name_t *target = NULL;
+			dst_key_t *tsigkey = NULL;
+			dns_rdata_ptr_t ptr;
+			dns_rdata_in_srv_t srv;
+
+			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+			if (client->message->tsigkey != NULL) {
+				tsigkey = client->message->tsigkey->key;
+			}
+
+			if ((update_class == dns_rdataclass_in ||
+			     update_class == dns_rdataclass_none) &&
+			    rdata.type == dns_rdatatype_ptr)
+			{
+				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &ptr.ptr;
+			}
+
+			if ((update_class == dns_rdataclass_in ||
+			     update_class == dns_rdataclass_none) &&
+			    rdata.type == dns_rdatatype_srv)
+			{
+				result = dns_rdata_tostruct(&rdata, &srv, NULL);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
+				target = &srv.target;
+			}
+
+			if (update_class == dns_rdataclass_any &&
+			    zoneclass == dns_rdataclass_in &&
+			    (rdata.type == dns_rdatatype_ptr ||
+			     rdata.type == dns_rdatatype_srv))
+			{
+				ssu_check_t ssuinfo;
+
+				ssuinfo.name = name;
+				ssuinfo.table = ssutable;
+				ssuinfo.signer = client->signer;
+				ssuinfo.addr = &netaddr;
+				ssuinfo.aclenv = env;
+				ssuinfo.tcp = TCPCLIENT(client);
+				ssuinfo.key = tsigkey;
+
+				result = foreach_rr(db, ver, name, rdata.type,
+						    dns_rdatatype_none,
+						    ssu_checkrr, &ssuinfo);
+				if (result != ISC_R_SUCCESS) {
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
+				}
+			} else if (target != NULL &&
+				   update_class == dns_rdataclass_none)
+			{
+				bool flag;
+				CHECK(rr_exists(db, ver, name, &rdata, &flag));
+				if (flag &&
+				    !dns_ssutable_checkrules(
+					    ssutable, client->signer, name,
+					    &netaddr, TCPCLIENT(client), env,
+					    rdata.type, target, tsigkey,
+					    &rules[rule]))
+				{
+					FAILC(DNS_R_REFUSED,
+					      "rejected by secure update");
+				}
+			} else if (rdata.type != dns_rdatatype_any) {
+				if (!dns_ssutable_checkrules(
+					    ssutable, client->signer, name,
+					    &netaddr, TCPCLIENT(client), env,
+					    rdata.type, target, tsigkey,
+					    &rules[rule]))
+				{
+					FAILC(DNS_R_REFUSED, "rejected by "
+							     "secure update");
+				}
+			} else {
+				if (!ssu_checkall(db, ver, name, ssutable,
+						  client->signer, &netaddr, env,
+						  TCPCLIENT(client), tsigkey))
+				{
+					FAILC(DNS_R_REFUSED, "rejected by "
+							     "secure update");
+				}
+			}
+		}
+	}
+	if (result != ISC_R_NOMORE) {
+		FAIL(result);
+	}
+
+	update_log(client, zone, LOGLEVEL_DEBUG, "update section prescan OK");
 
 	result = isc_quota_attach(&client->manager->sctx->updquota,
 				  &(isc_quota_t *){ NULL });
@@ -1652,22 +1892,35 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 			   isc_result_totext(result));
 		ns_stats_increment(client->manager->sctx->nsstats,
 				   ns_statscounter_updatequota);
-		ns_client_drop(client, result);
-		isc_nmhandle_detach(&client->reqhandle);
-		return (DNS_R_DROP);
+		CHECK(DNS_R_DROP);
 	}
 
 	event = (update_event_t *)isc_event_allocate(
 		client->manager->mctx, client, DNS_EVENT_UPDATE, update_action,
-		NULL, sizeof(*event));
+		client, sizeof(*event));
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
-
-	event->ev_arg = client;
+	event->rules = rules;
+	event->ruleslen = ruleslen;
+	rules = NULL;
 
 	isc_nmhandle_attach(client->handle, &client->updatehandle);
 	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
+
+failure:
+	if (db != NULL) {
+		dns_db_closeversion(db, &ver, false);
+		dns_db_detach(&db);
+	}
+
+	if (rules != NULL) {
+		isc_mem_put(mctx, rules, sizeof(*rules) * ruleslen);
+	}
+
+	if (ssutable != NULL) {
+		dns_ssutable_detach(&ssutable);
+	}
 
 	return (result);
 }
@@ -1776,9 +2029,6 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		break;
 	case dns_zone_secondary:
 	case dns_zone_mirror:
-		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
-				     "update forwarding", zonename, true,
-				     false));
 		dns_message_clonebuffer(client->message);
 		CHECK(send_forward_event(client, zone));
 		break;
@@ -1789,8 +2039,6 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 
 failure:
 	if (result == DNS_R_REFUSED) {
-		INSIST(dns_zone_gettype(zone) == dns_zone_secondary ||
-		       dns_zone_gettype(zone) == dns_zone_mirror);
 		inc_stats(client, zone, ns_statscounter_updaterej);
 	}
 
@@ -2639,6 +2887,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	update_event_t *uev = (update_event_t *)event;
 	dns_zone_t *zone = uev->zone;
 	ns_client_t *client = (ns_client_t *)event->ev_arg;
+	const dns_ssurule_t **rules = uev->rules;
+	size_t rule = 0, ruleslen = uev->ruleslen;
 	isc_result_t result;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *oldver = NULL;
@@ -2650,7 +2900,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_rdatatype_t covers;
 	dns_message_t *request = client->message;
 	dns_rdataclass_t zoneclass;
-	dns_name_t *zonename;
+	dns_name_t *zonename = NULL;
 	dns_ssutable_t *ssutable = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
@@ -2660,10 +2910,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ttl_t maxttl = 0;
 	uint32_t maxrecords;
 	uint64_t records;
-	dns_aclenv_t *env = client->manager->aclenv;
-	size_t ruleslen = 0;
-	size_t rule;
-	const dns_ssurule_t **rules = NULL;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -2674,14 +2920,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	zonename = dns_db_origin(db);
 	zoneclass = dns_db_class(db);
 	dns_zone_getssutable(zone, &ssutable);
-
-	/*
-	 * Update message processing can leak record existence information
-	 * so check that we are allowed to query this zone.  Additionally
-	 * if we would refuse all updates for this zone we bail out here.
-	 */
-	CHECK(checkqueryacl(client, dns_zone_getqueryacl(zone), zonename,
-			    dns_zone_getupdateacl(zone), ssutable));
+	options = dns_zone_getoptions(zone);
 
 	/*
 	 * Get old and new versions now that queryacl has been checked.
@@ -2817,216 +3056,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	update_log(client, zone, LOGLEVEL_DEBUG, "prerequisites are OK");
 
 	/*
-	 * Check Requestor's Permissions.  It seems a bit silly to do this
-	 * only after prerequisite testing, but that is what RFC2136 says.
-	 */
-	if (ssutable == NULL) {
-		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
-				     "update", zonename, false, false));
-	} else if (client->signer == NULL && !TCPCLIENT(client)) {
-		CHECK(checkupdateacl(client, NULL, "update", zonename, false,
-				     true));
-	}
-
-	if (dns_zone_getupdatedisabled(zone)) {
-		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled "
-				     "because the zone is frozen.  Use "
-				     "'rndc thaw' to re-enable updates.");
-	}
-
-	/*
-	 * Perform the Update Section Prescan.
-	 */
-	if (ssutable != NULL) {
-		ruleslen = request->counts[DNS_SECTION_UPDATE];
-		rules = isc_mem_getx(mctx, sizeof(*rules) * ruleslen,
-				     ISC_MEM_ZERO);
-	}
-
-	options = dns_zone_getoptions(zone);
-
-	for (rule = 0,
-	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
-	     result == ISC_R_SUCCESS;
-	     rule++, result = dns_message_nextname(request, DNS_SECTION_UPDATE))
-	{
-		dns_name_t *name = NULL;
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		dns_ttl_t ttl;
-		dns_rdataclass_t update_class;
-
-		INSIST(ssutable == NULL || rule < ruleslen);
-
-		get_current_rr(request, DNS_SECTION_UPDATE, zoneclass, &name,
-			       &rdata, &covers, &ttl, &update_class);
-
-		if (!dns_name_issubdomain(name, zonename)) {
-			FAILC(DNS_R_NOTZONE, "update RR is outside zone");
-		}
-		if (update_class == zoneclass) {
-			/*
-			 * Check for meta-RRs.  The RFC2136 pseudocode says
-			 * check for ANY|AXFR|MAILA|MAILB, but the text adds
-			 * "or any other QUERY metatype"
-			 */
-			if (dns_rdatatype_ismeta(rdata.type)) {
-				FAILC(DNS_R_FORMERR, "meta-RR in update");
-			}
-			result = dns_zone_checknames(zone, name, &rdata);
-			if (result != ISC_R_SUCCESS) {
-				FAIL(DNS_R_REFUSED);
-			}
-			if ((options & DNS_ZONEOPT_CHECKSVCB) != 0 &&
-			    rdata.type == dns_rdatatype_svcb)
-			{
-				result = dns_rdata_checksvcb(name, &rdata);
-				if (result != ISC_R_SUCCESS) {
-					const char *reason =
-						isc_result_totext(result);
-					FAILNT(DNS_R_REFUSED, name, rdata.type,
-					       reason);
-				}
-			}
-		} else if (update_class == dns_rdataclass_any) {
-			if (ttl != 0 || rdata.length != 0 ||
-			    (dns_rdatatype_ismeta(rdata.type) &&
-			     rdata.type != dns_rdatatype_any))
-			{
-				FAILC(DNS_R_FORMERR, "meta-RR in update");
-			}
-		} else if (update_class == dns_rdataclass_none) {
-			if (ttl != 0 || dns_rdatatype_ismeta(rdata.type)) {
-				FAILC(DNS_R_FORMERR, "meta-RR in update");
-			}
-		} else {
-			update_log(client, zone, ISC_LOG_WARNING,
-				   "update RR has incorrect class %d",
-				   update_class);
-			FAIL(DNS_R_FORMERR);
-		}
-
-		/*
-		 * draft-ietf-dnsind-simple-secure-update-01 says
-		 * "Unlike traditional dynamic update, the client
-		 * is forbidden from updating NSEC records."
-		 */
-		if (rdata.type == dns_rdatatype_nsec3) {
-			FAILC(DNS_R_REFUSED, "explicit NSEC3 updates are not "
-					     "allowed "
-					     "in secure zones");
-		} else if (rdata.type == dns_rdatatype_nsec) {
-			FAILC(DNS_R_REFUSED, "explicit NSEC updates are not "
-					     "allowed "
-					     "in secure zones");
-		} else if (rdata.type == dns_rdatatype_rrsig &&
-			   !dns_name_equal(name, zonename))
-		{
-			FAILC(DNS_R_REFUSED, "explicit RRSIG updates are "
-					     "currently "
-					     "not supported in secure zones "
-					     "except "
-					     "at the apex");
-		}
-
-		if (ssutable != NULL) {
-			isc_netaddr_t netaddr;
-			dns_name_t *target = NULL;
-			dst_key_t *tsigkey = NULL;
-			dns_rdata_ptr_t ptr;
-			dns_rdata_in_srv_t srv;
-
-			isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-
-			if (client->message->tsigkey != NULL) {
-				tsigkey = client->message->tsigkey->key;
-			}
-
-			if ((update_class == dns_rdataclass_in ||
-			     update_class == dns_rdataclass_none) &&
-			    rdata.type == dns_rdatatype_ptr)
-			{
-				result = dns_rdata_tostruct(&rdata, &ptr, NULL);
-				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				target = &ptr.ptr;
-			}
-
-			if ((update_class == dns_rdataclass_in ||
-			     update_class == dns_rdataclass_none) &&
-			    rdata.type == dns_rdatatype_srv)
-			{
-				result = dns_rdata_tostruct(&rdata, &srv, NULL);
-				RUNTIME_CHECK(result == ISC_R_SUCCESS);
-				target = &srv.target;
-			}
-
-			if (update_class == dns_rdataclass_any &&
-			    zoneclass == dns_rdataclass_in &&
-			    (rdata.type == dns_rdatatype_ptr ||
-			     rdata.type == dns_rdatatype_srv))
-			{
-				ssu_check_t ssuinfo;
-
-				ssuinfo.name = name;
-				ssuinfo.table = ssutable;
-				ssuinfo.signer = client->signer;
-				ssuinfo.addr = &netaddr;
-				ssuinfo.aclenv = env;
-				ssuinfo.tcp = TCPCLIENT(client);
-				ssuinfo.key = tsigkey;
-
-				result = foreach_rr(db, ver, name, rdata.type,
-						    dns_rdatatype_none,
-						    ssu_checkrr, &ssuinfo);
-				if (result != ISC_R_SUCCESS) {
-					FAILC(DNS_R_REFUSED,
-					      "rejected by secure update");
-				}
-			} else if (target != NULL &&
-				   update_class == dns_rdataclass_none)
-			{
-				bool flag;
-				CHECK(rr_exists(db, ver, name, &rdata, &flag));
-				if (flag &&
-				    !dns_ssutable_checkrules(
-					    ssutable, client->signer, name,
-					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, target, tsigkey,
-					    &rules[rule]))
-				{
-					FAILC(DNS_R_REFUSED,
-					      "rejected by secure update");
-				}
-			} else if (rdata.type != dns_rdatatype_any) {
-				if (!dns_ssutable_checkrules(
-					    ssutable, client->signer, name,
-					    &netaddr, TCPCLIENT(client), env,
-					    rdata.type, target, tsigkey,
-					    &rules[rule]))
-				{
-					FAILC(DNS_R_REFUSED, "rejected by "
-							     "secure update");
-				}
-			} else {
-				if (!ssu_checkall(db, ver, name, ssutable,
-						  client->signer, &netaddr, env,
-						  TCPCLIENT(client), tsigkey))
-				{
-					FAILC(DNS_R_REFUSED, "rejected by "
-							     "secure update");
-				}
-			}
-		}
-	}
-	if (result != ISC_R_NOMORE) {
-		FAIL(result);
-	}
-
-	update_log(client, zone, LOGLEVEL_DEBUG, "update section prescan OK");
-
-	/*
 	 * Process the Update Section.
 	 */
-
+	INSIST(ssutable == NULL || rules != NULL);
 	for (rule = 0,
 	    result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
@@ -3474,10 +3506,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (result == ISC_R_SUCCESS && records > maxrecords) {
 				update_log(client, zone, ISC_LOG_ERROR,
 					   "records in zone (%" PRIu64 ") "
-					   "exceeds"
-					   " max-"
-					   "records"
-					   " (%u)",
+					   "exceeds max-records (%u)",
 					   records, maxrecords);
 				result = DNS_R_TOOMANYRECORDS;
 				goto failure;
@@ -3690,6 +3719,13 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
+
+	result = checkupdateacl(client, dns_zone_getforwardacl(zone),
+				"update forwarding", dns_zone_getorigin(zone),
+				true, false);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	result = isc_quota_attach(&client->manager->sctx->updquota,
 				  &(isc_quota_t *){ NULL });
