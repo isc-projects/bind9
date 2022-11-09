@@ -610,6 +610,22 @@ grep "not recommended" < checkconf.out$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check that 'check-wildcard no;' succeeds as configured ($n)"
+ret=0
+$CHECKCONF -z check-wildcard-no.conf > checkconf.out$n 2>&1 || ret=1
+grep -F "warning: ownername 'foo.*.check-wildcard' contains an non-terminal wildcard" checkconf.out$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that 'check-wildcard yes;' warns as configured ($n)"
+ret=0
+$CHECKCONF -z check-wildcard.conf > checkconf.out$n 2>&1 || ret=1
+grep -F "warning: ownername 'foo.*.check-wildcard' contains an non-terminal wildcard" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
 rmdir keys
 
 echo_i "exit status: $status"
