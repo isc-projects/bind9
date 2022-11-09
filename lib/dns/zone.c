@@ -11033,6 +11033,11 @@ retry_keyfetch(dns_keyfetch_t *kfetch, dns_name_t *kname) {
 	isc_time_t timenow, timethen;
 	dns_zone_t *zone = kfetch->zone;
 	bool free_needed;
+	char namebuf[DNS_NAME_FORMATSIZE];
+
+	dns_name_format(kname, namebuf, sizeof(namebuf));
+	dnssec_log(zone, ISC_LOG_WARNING,
+		   "Failed to create fetch for %s DNSKEY update", namebuf);
 
 	/*
 	 * Error during a key fetch; cancel and retry in an hour.
@@ -11044,8 +11049,6 @@ retry_keyfetch(dns_keyfetch_t *kfetch, dns_name_t *kname) {
 	dns_rdataset_disassociate(&kfetch->keydataset);
 	dns_name_free(kname, zone->mctx);
 	isc_mem_putanddetach(&kfetch->mctx, kfetch, sizeof(*kfetch));
-	dnssec_log(zone, ISC_LOG_WARNING,
-		   "Failed to create fetch for DNSKEY update");
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		/* Don't really retry if we are exiting */
