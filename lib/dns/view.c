@@ -1037,9 +1037,14 @@ db_find:
 			 * We just used a hint.  Let the resolver know it
 			 * should consider priming.
 			 */
-			dns_resolver_prime(view->resolver);
-			dns_db_attach(view->hints, &db);
-			result = DNS_R_HINT;
+			dns_resolver_t *res = NULL;
+			result = dns_view_getresolver(view, &res);
+			if (result == ISC_R_SUCCESS) {
+				dns_resolver_prime(res);
+				dns_db_attach(view->hints, &db);
+				dns_resolver_detach(&res);
+				result = DNS_R_HINT;
+			}
 		} else if (result == DNS_R_NXRRSET) {
 			dns_db_attach(view->hints, &db);
 			result = DNS_R_HINTNXRRSET;
