@@ -6034,6 +6034,8 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``zonesub``, ``wildca
 
     The daemon replies with a four-byte value in network byte order, containing either 0 or 1; 0 indicates that the specified update is not permitted, and 1 indicates that it is.
 
+       .. warning:: The external daemon must not delay communication. This policy is evaluated synchronously; any wait period negatively affects :iscman:`named` performance.
+
 .. _multiple_views:
 
 Multiple Views
