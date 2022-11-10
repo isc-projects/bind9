@@ -53,16 +53,6 @@ dns_zonetype_t
 named_config_getzonetype(const cfg_obj_t *zonetypeobj);
 
 isc_result_t
-named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
-		       in_port_t defport, isc_mem_t *mctx,
-		       isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		       uint32_t *countp);
-
-void
-named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		       isc_dscp_t **dscpsp, uint32_t count);
-
-isc_result_t
 named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
 			   const char *name, const cfg_obj_t **ret);
 
