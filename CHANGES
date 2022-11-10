@@ -1,3 +1,7 @@
+6015.	[bug]		Some browsers (Firefox) send more than 10 HTTP
+			headers.  Bump the number of allowed HTTP headers
+			to 100. [GL #3670]
+
 6014.	[func]		Add isc_hashmap API implementation that implements
 			Robin Hood hashing.  The API requires the keys to
 			be stored with the stored value.  [GL !6790]

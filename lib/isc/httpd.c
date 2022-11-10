@@ -51,7 +51,7 @@
  */
 #define HTTP_RECVLEN	     ISC_NETMGR_TCP_RECVBUF_SIZE * 2
 #define HTTP_SENDLEN	     ISC_NETMGR_TCP_RECVBUF_SIZE
-#define HTTP_HEADERS_NUM     10
+#define HTTP_HEADERS_NUM     100
 #define HTTP_MAX_REQUEST_LEN 4096
 
 #define HTTPD_CLOSE	     0x0001 /* Got a Connection: close header */
