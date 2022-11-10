@@ -1528,7 +1528,10 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 		dns_badcache_flush(view->failcache);
 	}
 
-	dns_adb_flush(view->adb);
+	if (view->adb) {
+		dns_adb_flush(view->adb);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
