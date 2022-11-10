@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 #include <isc/atomic.h>
-#include <isc/ht.h>
+#include <isc/hashmap.h>
 #include <isc/mutexblock.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -77,6 +77,10 @@
 #define ADB_CACHE_MAXIMUM 86400 /*%< seconds (86400 = 24 hours) */
 #define ADB_ENTRY_WINDOW  1800	/*%< seconds */
 
+#ifndef ADB_HASH_BITS
+#define ADB_HASH_BITS 12
+#endif /* ifndef ADB_HASH_BITS */
+
 /*%
  * The period in seconds after which an ADB name entry is regarded as stale
  * and forced to be cleaned up.
@@ -110,10 +114,10 @@ struct dns_adb {
 
 	isc_refcount_t references;
 
-	isc_ht_t *namebuckets;
+	isc_hashmap_t *namebuckets;
 	isc_rwlock_t names_lock;
 
-	isc_ht_t *entrybuckets;
+	isc_hashmap_t *entrybuckets;
 	isc_rwlock_t entries_lock;
 
 	isc_stats_t *stats;
@@ -170,6 +174,8 @@ struct dns_adbnamebucket {
 	dns_adbnamelist_t deadnames;
 	isc_mutex_t lock;
 	isc_refcount_t references;
+	size_t keysize;
+	uint8_t key[];
 };
 
 /*%
@@ -275,6 +281,8 @@ struct dns_adbentrybucket {
 	dns_adbentrylist_t deadentries;
 	isc_mutex_t lock;
 	isc_refcount_t references;
+	size_t keysize;
+	uint8_t key[];
 };
 
 /*
@@ -283,7 +291,7 @@ struct dns_adbentrybucket {
 static dns_adbname_t *
 new_adbname(dns_adb_t *, const dns_name_t *);
 static dns_adbnamebucket_t *
-new_adbnamebucket(dns_adb_t *);
+new_adbnamebucket(dns_adb_t *, const uint8_t *key, const size_t keysize);
 static void
 free_adbname(dns_adbname_t **);
 static dns_adbnamehook_t *
@@ -299,7 +307,7 @@ new_adbentry(dns_adb_t *);
 static void
 free_adbentry(dns_adbentry_t **);
 static dns_adbentrybucket_t *
-new_adbentrybucket(dns_adb_t *adb);
+new_adbentrybucket(dns_adb_t *adb, const uint8_t *key, const size_t keysize);
 static dns_adbfind_t *
 new_adbfind(dns_adb_t *, in_port_t);
 static void
@@ -953,18 +961,18 @@ unlink_entry(dns_adbentry_t *entry) {
 static void
 shutdown_names(dns_adb_t *adb) {
 	isc_result_t result;
-	isc_ht_iter_t *it = NULL;
+	isc_hashmap_iter_t *it = NULL;
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->namebuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->namebuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbnamebucket_t *nbucket = NULL;
 		dns_adbname_t *name = NULL;
 		dns_adbname_t *next_name = NULL;
 
-		isc_ht_iter_current(it, (void **)&nbucket);
+		isc_hashmap_iter_current(it, (void **)&nbucket);
 		INSIST(nbucket != NULL);
 
 		LOCK(&nbucket->lock);
@@ -984,25 +992,25 @@ shutdown_names(dns_adb_t *adb) {
 		UNLOCK(&nbucket->lock);
 	}
 
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_read);
 }
 
 static void
 shutdown_entries(dns_adb_t *adb) {
 	isc_result_t result;
-	isc_ht_iter_t *iter = NULL;
+	isc_hashmap_iter_t *iter = NULL;
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->entrybuckets, &iter);
-	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(iter))
+	isc_hashmap_iter_create(adb->entrybuckets, &iter);
+	for (result = isc_hashmap_iter_first(iter); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(iter))
 	{
 		dns_adbentrybucket_t *ebucket = NULL;
 		dns_adbentry_t *entry = NULL;
 		dns_adbentry_t *next_entry = NULL;
 
-		isc_ht_iter_current(iter, (void **)&ebucket);
+		isc_hashmap_iter_current(iter, (void **)&ebucket);
 		INSIST(ebucket != NULL);
 
 		LOCK(&ebucket->lock);
@@ -1025,7 +1033,7 @@ shutdown_entries(dns_adb_t *adb) {
 	}
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
 
-	isc_ht_iter_destroy(&iter);
+	isc_hashmap_iter_destroy(&iter);
 }
 
 /*
@@ -1316,13 +1324,15 @@ free_adbname(dns_adbname_t **namep) {
 }
 
 static dns_adbnamebucket_t *
-new_adbnamebucket(dns_adb_t *adb) {
+new_adbnamebucket(dns_adb_t *adb, const uint8_t *key, const size_t keysize) {
 	dns_adbnamebucket_t *nbucket = NULL;
 
-	nbucket = isc_mem_get(adb->mctx, sizeof(*nbucket));
+	nbucket = isc_mem_get(adb->mctx, sizeof(*nbucket) + keysize);
 	*nbucket = (dns_adbnamebucket_t){
-		.references = 0, /* workaround for old gcc */
+		.keysize = keysize,
 	};
+
+	memmove(nbucket->key, key, keysize);
 
 	ISC_LIST_INIT(nbucket->names);
 	ISC_LIST_INIT(nbucket->deadnames);
@@ -1457,13 +1467,15 @@ free_adbentry(dns_adbentry_t **entryp) {
 }
 
 static dns_adbentrybucket_t *
-new_adbentrybucket(dns_adb_t *adb) {
+new_adbentrybucket(dns_adb_t *adb, const uint8_t *key, const size_t keysize) {
 	dns_adbentrybucket_t *ebucket = NULL;
 
-	ebucket = isc_mem_get(adb->mctx, sizeof(*ebucket));
+	ebucket = isc_mem_get(adb->mctx, sizeof(*ebucket) + keysize);
 	*ebucket = (dns_adbentrybucket_t){
-		.references = 0, /* workaround for old gcc */
+		.keysize = keysize,
 	};
+
+	memmove(ebucket->key, key, keysize);
 
 	ISC_LIST_INIT(ebucket->entries);
 	ISC_LIST_INIT(ebucket->deadentries);
@@ -1602,19 +1614,23 @@ get_namebucket(dns_adb_t *adb, const dns_name_t *name,
 	       dns_adbnamebucket_t **nbucketp) {
 	isc_result_t result;
 	dns_adbnamebucket_t *nbucket = NULL;
+	uint32_t hashval;
 
 	REQUIRE(nbucketp != NULL && *nbucketp == NULL);
 
+	hashval = isc_hashmap_hash(adb->namebuckets, name->ndata, name->length);
+
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	result = isc_ht_find(adb->namebuckets, name->ndata, name->length,
-			     (void **)&nbucket);
+	result = isc_hashmap_find(adb->namebuckets, &hashval, name->ndata,
+				  name->length, (void **)&nbucket);
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * Allocate a new bucket and add it to the hash table.
 		 */
-		nbucket = new_adbnamebucket(adb);
-		result = isc_ht_add(adb->namebuckets, name->ndata, name->length,
-				    nbucket);
+		nbucket = new_adbnamebucket(adb, name->ndata, name->length);
+		result = isc_hashmap_add(adb->namebuckets, &hashval,
+					 nbucket->key, nbucket->keysize,
+					 nbucket);
 	}
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
 	INSIST(result == ISC_R_SUCCESS);
@@ -1652,20 +1668,26 @@ get_entrybucket(dns_adb_t *adb, const isc_sockaddr_t *addr,
 		dns_adbentrybucket_t **ebucketp) {
 	isc_result_t result;
 	dns_adbentrybucket_t *ebucket = NULL;
+	uint32_t hashval;
 
 	REQUIRE(ebucketp != NULL && *ebucketp == NULL);
 
+	hashval = isc_hashmap_hash(adb->entrybuckets,
+				   (const unsigned char *)addr, sizeof(*addr));
+
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	result = isc_ht_find(adb->entrybuckets, (const unsigned char *)addr,
-			     sizeof(*addr), (void **)&ebucket);
+	result = isc_hashmap_find(adb->entrybuckets, &hashval,
+				  (const unsigned char *)addr, sizeof(*addr),
+				  (void **)&ebucket);
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * Allocate a new bucket and add it to the hash table.
 		 */
-		ebucket = new_adbentrybucket(adb);
-		result = isc_ht_add(adb->entrybuckets,
-				    (const unsigned char *)addr, sizeof(*addr),
-				    ebucket);
+		ebucket = new_adbentrybucket(adb, (const unsigned char *)addr,
+					     sizeof(*addr));
+		result = isc_hashmap_add(adb->entrybuckets, &hashval,
+					 ebucket->key, ebucket->keysize,
+					 ebucket);
 	}
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	INSIST(result == ISC_R_SUCCESS);
@@ -2015,73 +2037,75 @@ cleanup_entries(dns_adbentrybucket_t *ebucket, isc_stdtime_t now) {
 static void
 clean_hashes(dns_adb_t *adb, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_ht_iter_t *it = NULL;
+	isc_hashmap_iter_t *it = NULL;
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->namebuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->namebuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbnamebucket_t *nbucket = NULL;
-		isc_ht_iter_current(it, (void **)&nbucket);
+		isc_hashmap_iter_current(it, (void **)&nbucket);
 		cleanup_names(nbucket, now);
 	}
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_read);
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->entrybuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->entrybuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbentrybucket_t *ebucket = NULL;
-		isc_ht_iter_current(it, (void **)&ebucket);
+		isc_hashmap_iter_current(it, (void **)&ebucket);
 		cleanup_entries(ebucket, now);
 	}
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
 }
 
 static void
 destroy(dns_adb_t *adb) {
 	isc_result_t result;
-	isc_ht_iter_t *it = NULL;
+	isc_hashmap_iter_t *it = NULL;
 
 	DP(DEF_LEVEL, "destroying ADB %p", adb);
 
 	adb->magic = 0;
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
-	isc_ht_iter_create(adb->namebuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_delcurrent_next(it))
+	isc_hashmap_iter_create(adb->namebuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_delcurrent_next(it))
 	{
 		dns_adbnamebucket_t *nbucket = NULL;
-		isc_ht_iter_current(it, (void **)&nbucket);
+		isc_hashmap_iter_current(it, (void **)&nbucket);
 		cleanup_names(nbucket, INT_MAX);
 		isc_mutex_destroy(&nbucket->lock);
 		isc_refcount_destroy(&nbucket->references);
-		isc_mem_put(adb->mctx, nbucket, sizeof(*nbucket));
+		isc_mem_put(adb->mctx, nbucket,
+			    sizeof(*nbucket) + nbucket->keysize);
 	}
-	isc_ht_iter_destroy(&it);
-	isc_ht_destroy(&adb->namebuckets);
+	isc_hashmap_iter_destroy(&it);
+	isc_hashmap_destroy(&adb->namebuckets);
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&adb->names_lock);
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_write);
-	isc_ht_iter_create(adb->entrybuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_delcurrent_next(it))
+	isc_hashmap_iter_create(adb->entrybuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_delcurrent_next(it))
 	{
 		dns_adbentrybucket_t *ebucket = NULL;
-		isc_ht_iter_current(it, (void **)&ebucket);
+		isc_hashmap_iter_current(it, (void **)&ebucket);
 		cleanup_entries(ebucket, INT_MAX);
 		isc_mutex_destroy(&ebucket->lock);
 		isc_refcount_destroy(&ebucket->references);
-		isc_mem_put(adb->mctx, ebucket, sizeof(*ebucket));
+		isc_mem_put(adb->mctx, ebucket,
+			    sizeof(*ebucket) + ebucket->keysize);
 	}
-	isc_ht_iter_destroy(&it);
-	isc_ht_destroy(&adb->entrybuckets);
+	isc_hashmap_iter_destroy(&it);
+	isc_hashmap_destroy(&adb->entrybuckets);
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&adb->entries_lock);
 
@@ -2124,10 +2148,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
-	isc_ht_init(&adb->namebuckets, adb->mctx, 1, ISC_HT_CASE_INSENSITIVE);
+	isc_hashmap_create(adb->mctx, ADB_HASH_BITS,
+			   ISC_HASHMAP_CASE_INSENSITIVE, &adb->namebuckets);
 	isc_rwlock_init(&adb->names_lock, 0, 0);
 
-	isc_ht_init(&adb->entrybuckets, adb->mctx, 1, ISC_HT_CASE_SENSITIVE);
+	isc_hashmap_create(adb->mctx, ADB_HASH_BITS, ISC_HASHMAP_CASE_SENSITIVE,
+			   &adb->entrybuckets);
 	isc_rwlock_init(&adb->entries_lock, 0, 0);
 
 	isc_mutex_init(&adb->lock);
@@ -2147,8 +2173,9 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_taskmgr_t *taskmgr,
 		goto free_task;
 	}
 
-	set_adbstat(adb, isc_ht_count(adb->namebuckets), dns_adbstats_nnames);
-	set_adbstat(adb, isc_ht_count(adb->entrybuckets),
+	set_adbstat(adb, isc_hashmap_count(adb->namebuckets),
+		    dns_adbstats_nnames);
+	set_adbstat(adb, isc_hashmap_count(adb->entrybuckets),
 		    dns_adbstats_nentries);
 
 	/*
@@ -2165,10 +2192,10 @@ free_lock:
 	isc_mutex_destroy(&adb->lock);
 
 	isc_rwlock_destroy(&adb->entries_lock);
-	isc_ht_destroy(&adb->entrybuckets);
+	isc_hashmap_destroy(&adb->entrybuckets);
 
 	isc_rwlock_destroy(&adb->names_lock);
-	isc_ht_destroy(&adb->namebuckets);
+	isc_hashmap_destroy(&adb->namebuckets);
 
 	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
@@ -2727,7 +2754,7 @@ dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
 static void
 dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 	isc_result_t result;
-	isc_ht_iter_t *it = NULL;
+	isc_hashmap_iter_t *it = NULL;
 
 	fprintf(f, ";\n; Address database dump\n;\n");
 	fprintf(f, "; [edns success/timeout]\n");
@@ -2742,14 +2769,14 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 	 */
 	RWLOCK(&adb->names_lock, isc_rwlocktype_read);
 
-	isc_ht_iter_create(adb->namebuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->namebuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbnamebucket_t *nbucket = NULL;
 		dns_adbname_t *name = NULL;
 
-		isc_ht_iter_current(it, (void **)&nbucket);
+		isc_hashmap_iter_current(it, (void **)&nbucket);
 		LOCK(&nbucket->lock);
 		if (debug) {
 			static int n = 0;
@@ -2796,20 +2823,20 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 		}
 		UNLOCK(&nbucket->lock);
 	}
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_read);
 
 	fprintf(f, ";\n; Unassociated entries\n;\n");
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->entrybuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->entrybuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbentrybucket_t *ebucket = NULL;
 		dns_adbentry_t *entry = NULL;
 
-		isc_ht_iter_current(it, (void **)&ebucket);
+		isc_hashmap_iter_current(it, (void **)&ebucket);
 		LOCK(&ebucket->lock);
 
 		for (entry = ISC_LIST_HEAD(ebucket->entries); entry != NULL;
@@ -2821,7 +2848,7 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 		}
 		UNLOCK(&ebucket->lock);
 	}
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
 }
@@ -2994,19 +3021,19 @@ putstr(isc_buffer_t **b, const char *str) {
 isc_result_t
 dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf) {
 	isc_result_t result;
-	isc_ht_iter_t *it = NULL;
+	isc_hashmap_iter_t *it = NULL;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 
 	RWLOCK(&adb->entries_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->entrybuckets, &it);
-	for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(it))
+	isc_hashmap_iter_create(adb->entrybuckets, &it);
+	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(it))
 	{
 		dns_adbentrybucket_t *ebucket = NULL;
 		dns_adbentry_t *entry = NULL;
 
-		isc_ht_iter_current(it, (void **)&ebucket);
+		isc_hashmap_iter_current(it, (void **)&ebucket);
 		LOCK(&ebucket->lock);
 		for (entry = ISC_LIST_HEAD(ebucket->entries); entry != NULL;
 		     entry = ISC_LIST_NEXT(entry, plink))
@@ -3031,7 +3058,7 @@ dns_adb_dumpquota(dns_adb_t *adb, isc_buffer_t **buf) {
 		UNLOCK(&ebucket->lock);
 	}
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_read);
-	isc_ht_iter_destroy(&it);
+	isc_hashmap_iter_destroy(&it);
 
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
@@ -3919,8 +3946,8 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	}
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_read);
-	result = isc_ht_find(adb->namebuckets, name->ndata, name->length,
-			     (void **)&nbucket);
+	result = isc_hashmap_find(adb->namebuckets, NULL, name->ndata,
+				  name->length, (void **)&nbucket);
 	if (result != ISC_R_SUCCESS) {
 		RWUNLOCK(&adb->names_lock, isc_rwlocktype_read);
 		return;
@@ -3943,7 +3970,7 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 void
 dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 	isc_result_t result;
-	isc_ht_iter_t *iter = NULL;
+	isc_hashmap_iter_t *iter = NULL;
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(name != NULL);
@@ -3953,14 +3980,14 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 	}
 
 	RWLOCK(&adb->names_lock, isc_rwlocktype_read);
-	isc_ht_iter_create(adb->namebuckets, &iter);
-	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
-	     result = isc_ht_iter_next(iter))
+	isc_hashmap_iter_create(adb->namebuckets, &iter);
+	for (result = isc_hashmap_iter_first(iter); result == ISC_R_SUCCESS;
+	     result = isc_hashmap_iter_next(iter))
 	{
 		dns_adbnamebucket_t *nbucket = NULL;
 		dns_adbname_t *adbname = NULL, *nextname = NULL;
 
-		isc_ht_iter_current(iter, (void **)&nbucket);
+		isc_hashmap_iter_current(iter, (void **)&nbucket);
 		LOCK(&nbucket->lock);
 		adbname = ISC_LIST_HEAD(nbucket->names);
 		while (adbname != NULL) {
@@ -3973,7 +4000,7 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 		}
 		UNLOCK(&nbucket->lock);
 	}
-	isc_ht_iter_destroy(&iter);
+	isc_hashmap_iter_destroy(&iter);
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_read);
 }
 

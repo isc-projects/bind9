@@ -1,3 +1,7 @@
+6014.	[func]		Add isc_hashmap API implementation that implements
+			Robin Hood hashing.  The API requires the keys to
+			be stored with the stored value.  [GL !6790]
+
 6013.	[bug]		Fix a crash that could happen when you change
 			a dnssec-policy zone with NSEC3 to start using
 			inline-signing. [GL #3591]
