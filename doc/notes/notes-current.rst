@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Increase the number of HTTP headers in the statistics channel from
+  10 to 100 to accomodate for some browsers that send more that 10
+  headers by default. :gl:`#3670`
 
 Known Issues
 ~~~~~~~~~~~~

@@ -1,3 +1,7 @@
+6015.	[bug]		Some browsers (Firefox) send more than 10 HTTP
+			headers.  Bump the number of allowed HTTP headers
+			to 100. [GL #3670]
+
 6013.	[bug]		Fix a crash that could happen when you change
 			a dnssec-policy zone with NSEC3 to start using
 			inline-signing. [GL #3591]
