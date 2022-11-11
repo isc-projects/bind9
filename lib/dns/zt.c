@@ -225,7 +225,8 @@ flush(dns_zone_t *zone, void *uap) {
 static void
 zt_destroy(dns_zt_t *zt) {
 	if (atomic_load_acquire(&zt->flush)) {
-		(void)dns_zt_apply(zt, false, NULL, flush, NULL);
+		(void)dns_zt_apply(zt, isc_rwlocktype_none, false, NULL, flush,
+				   NULL);
 	}
 	dns_rbt_destroy(&zt->table);
 	isc_rwlock_destroy(&zt->rwlock);
@@ -267,9 +268,8 @@ dns_zt_load(dns_zt_t *zt, bool stop, bool newonly) {
 	struct zt_load_params params;
 	REQUIRE(VALID_ZT(zt));
 	params.newonly = newonly;
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, stop, NULL, load, &params);
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+	result = dns_zt_apply(zt, isc_rwlocktype_read, stop, NULL, load,
+			      &params);
 	return (result);
 }
 
@@ -340,9 +340,8 @@ dns_zt_asyncload(dns_zt_t *zt, bool newonly, dns_zt_allloaded_t alldone,
 	zt->loaddone = alldone;
 	zt->loaddone_arg = arg;
 
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, false, NULL, asyncload, zt);
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+	result = dns_zt_apply(zt, isc_rwlocktype_read, false, NULL, asyncload,
+			      zt);
 
 	/*
 	 * Have all the loads completed?
@@ -388,9 +387,8 @@ dns_zt_freezezones(dns_zt_t *zt, dns_view_t *view, bool freeze) {
 
 	REQUIRE(VALID_ZT(zt));
 
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, false, &tresult, freezezones, &params);
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
+	result = dns_zt_apply(zt, isc_rwlocktype_read, false, &tresult,
+			      freezezones, &params);
 	if (tresult == ISC_R_NOTFOUND) {
 		tresult = ISC_R_SUCCESS;
 	}
@@ -524,7 +522,7 @@ dns_zt_setviewrevert(dns_zt_t *zt) {
 }
 
 isc_result_t
-dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
+dns_zt_apply(dns_zt_t *zt, isc_rwlocktype_t lock, bool stop, isc_result_t *sub,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap) {
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
@@ -533,6 +531,10 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(action != NULL);
+
+	if (lock != isc_rwlocktype_none) {
+		RWLOCK(&zt->rwlock, lock);
+	}
 
 	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
@@ -568,6 +570,10 @@ cleanup:
 	dns_rbtnodechain_invalidate(&chain);
 	if (sub != NULL) {
 		*sub = tresult;
+	}
+
+	if (lock != isc_rwlocktype_none) {
+		RWUNLOCK(&zt->rwlock, lock);
 	}
 
 	return (result);

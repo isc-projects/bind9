@@ -56,6 +56,13 @@
 
 #include "bind9.xsl.h"
 
+#define CHECK(m)                             \
+	do {                                 \
+		result = (m);                \
+		if (result != ISC_R_SUCCESS) \
+			goto error;          \
+	} while (0)
+
 struct named_statschannel {
 	/* Unlocked */
 	isc_httpdmgr_t *httpdmgr;
@@ -2298,11 +2305,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 		if ((flags & STATS_XML_ZONES) != 0) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "zones"));
-			result = dns_zt_apply(view->zonetable, true, NULL,
-					      zone_xmlrender, writer);
-			if (result != ISC_R_SUCCESS) {
-				goto error;
-			}
+			CHECK(dns_zt_apply(view->zonetable, isc_rwlocktype_read,
+					   true, NULL, zone_xmlrender, writer));
 			TRY0(xmlTextWriterEndElement(writer)); /* /zones */
 		}
 
@@ -2574,13 +2578,6 @@ render_xml_traffic(const char *url, isc_httpdurl_t *urlinfo,
 #define STATS_JSON_MEM	   0x10
 #define STATS_JSON_TRAFFIC 0x20
 #define STATS_JSON_ALL	   0xff
-
-#define CHECK(m)                             \
-	do {                                 \
-		result = (m);                \
-		if (result != ISC_R_SUCCESS) \
-			goto error;          \
-	} while (0)
 
 #define CHECKMEM(m)                              \
 	do {                                     \
@@ -3071,12 +3068,9 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 			CHECKMEM(za);
 
 			if ((flags & STATS_JSON_ZONES) != 0) {
-				result = dns_zt_apply(view->zonetable, true,
-						      NULL, zone_jsonrender,
-						      za);
-				if (result != ISC_R_SUCCESS) {
-					goto error;
-				}
+				CHECK(dns_zt_apply(view->zonetable,
+						   isc_rwlocktype_read, true,
+						   NULL, zone_jsonrender, za));
 			}
 
 			if (json_object_array_length(za) != 0) {
