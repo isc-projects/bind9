@@ -1,3 +1,5 @@
+6024.	[func]		Deprecate 'auto-dnssec'. [GL #3667]
+
 6021.	[bug]		Use the current domain name when checking answers from
 			a dual-stack-server. [GL #3607]
 

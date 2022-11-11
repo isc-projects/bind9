@@ -30,7 +30,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The option ``auto-dnssec`` is deprecated and will be removed in 9.19.
+  Please migrate to ``dnssec-policy``. :gl:`#3667`
 
 Bug Fixes
 ~~~~~~~~~
