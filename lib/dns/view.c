@@ -725,7 +725,8 @@ dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	(void)dns_zt_apply(view->zonetable, false, NULL, dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, isc_rwlocktype_read, false, NULL,
+			   dialup, NULL);
 }
 
 void

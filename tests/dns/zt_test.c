@@ -130,8 +130,8 @@ ISC_RUN_TEST_IMPL(dns_zt_apply) {
 	assert_non_null(view->zonetable);
 
 	assert_int_equal(nzones, 0);
-	result = dns_zt_apply(view->zonetable, false, NULL, count_zone,
-			      &nzones);
+	result = dns_zt_apply(view->zonetable, isc_rwlocktype_read, false, NULL,
+			      count_zone, &nzones);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 
