@@ -1,3 +1,5 @@
+6024.	[func]		Deprecate 'auto-dnssec'. [GL #3667]
+
 6023.	[func]		Remove dynamic update DNSSEC management feature.
 			[GL #3686]
 

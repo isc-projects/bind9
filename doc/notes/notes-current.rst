@@ -37,6 +37,9 @@ Feature Changes
   settings that required different values based on "workload" have been either
   removed or a sensible default has been picked.  :gl:`#3664`
 
+- The option :any:`auto-dnssec` is deprecated and will be removed in 9.19.
+  Please migrate to :any:`dnssec-policy`. :gl:`#3667`
+
 - Deprecate setting the operating system limit (``coresize``, ``datasize``,
   ``files`` and ``stacksize``) from ``named.conf``.  These options should be set
   from the operating system (``ulimit``) or from the process supervisor
