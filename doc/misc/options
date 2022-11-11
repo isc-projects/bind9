@@ -75,7 +75,7 @@ options {
 	answer-cookie <boolean>;
 	attach-cache <string>;
 	auth-nxdomain <boolean>;
-	auto-dnssec ( allow | maintain | off );
+	auto-dnssec ( allow | maintain | off ); // deprecated
 	automatic-interface-scan <boolean>;
 	avoid-v4-udp-ports { <portrange>; ... };
 	avoid-v6-udp-ports { <portrange>; ... };
@@ -389,7 +389,7 @@ view <string> [ <class> ] {
 	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	attach-cache <string>;
 	auth-nxdomain <boolean>;
-	auto-dnssec ( allow | maintain | off );
+	auto-dnssec ( allow | maintain | off ); // deprecated
 	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <boolean>;
