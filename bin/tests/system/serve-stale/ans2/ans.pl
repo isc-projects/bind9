@@ -100,6 +100,12 @@ sub reply_handler {
     # If we are not responding to queries we are done.
     return if (!$send_response);
 
+    if (index($qname, "latency") == 0) {
+        # simulate network latency before answering
+        print "  Sleeping 50 milliseconds\n";
+        select(undef, undef, undef, 0.05);
+    }
+
     # Construct the response and send it.
     if ($qname eq "ns.example" ) {
 	if ($qtype eq "A") {
