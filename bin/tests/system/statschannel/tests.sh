@@ -432,13 +432,13 @@ if [ -x "${CURL}" ] && ! ("${CURL}" --next 2>&1 | grep 'option --next: is unknow
     CURL_NEXT="${CURL}"
 fi
 
-echo_i "Check HTTP with more than 10 headers ($n)"
+echo_i "Check HTTP with more than 100 headers ($n)"
 ret=0
 i=0
 if [ -x "${CURL_NEXT}" ] ; then
     # build input stream.
     : > header.in$n
-    while test $i -lt 11
+    while test $i -lt 101
     do
         printf 'X-Bloat%d: VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==\r\n' $i >> header.in$n
         i=$((i+1))
