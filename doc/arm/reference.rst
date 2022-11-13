@@ -3645,19 +3645,19 @@ gigabyte. ``unlimited`` requests unlimited use, or the maximum available
 amount. ``default`` uses the limit that was in force when the server was
 started. See the description of :term:`size`.
 
-The following options set operating system resource limits for the name
-server process. Some operating systems do not support some or any of the
-limits; on such systems, a warning is issued if an unsupported
-limit is used.
+The following options are deprecated in favor of setting the operating system
+resource limits from the operating system and/or process supervisor, should not
+be used, and will be rendered non-operational in a future release.
+
 
 .. namedconf:statement:: coresize
-   :tags: server
+   :tags: deprecated
    :short: Sets the maximum size of a core dump.
 
    This sets the maximum size of a core dump. The default is ``default``.
 
 .. namedconf:statement:: datasize
-   :tags: server
+   :tags: deprecated
    :short: Sets the maximum amount of data memory that can be used by the server.
 
    This sets the maximum amount of data memory the server may use. The default is
@@ -3672,14 +3672,14 @@ limit is used.
    instead.
 
 .. namedconf:statement:: files
-   :tags: server
+   :tags: deprecated
    :short: Sets the maximum number of files the server may have open concurrently.
 
    This sets the maximum number of files the server may have open concurrently.
    The default is ``unlimited``.
 
 .. namedconf:statement:: stacksize
-   :tags: server
+   :tags: deprecated
    :short: Sets the maximum amount of stack memory that can be used by the server.
 
    This sets the maximum amount of stack memory the server may use. The default is

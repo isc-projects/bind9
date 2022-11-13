@@ -45,12 +45,9 @@ options {
 	blackhole {
 		10.0.0.0/8;
 	};
-	coresize 1073741824;
-	datasize 104857600;
 	directory ".";
 	dscp 41;
 	dump-file "named_dumpdb";
-	files 1000;
 	heartbeat-interval 30;
 	hostname none;
 	interface-interval 30;
