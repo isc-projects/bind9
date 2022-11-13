@@ -1219,15 +1219,6 @@ setup(void) {
 	/*
 	 * Get the initial resource limits.
 	 */
-	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_stacksize,
-					    &named_g_initstacksize) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_datasize,
-					    &named_g_initdatasize) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_coresize,
-					    &named_g_initcoresize) ==
-		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
 					    &named_g_initopenfiles) ==
 		      ISC_R_SUCCESS);

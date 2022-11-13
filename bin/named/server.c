@@ -52,7 +52,6 @@
 #include <isc/portset.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
-#include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/siphash.h>
@@ -7439,51 +7438,6 @@ setoptstring(named_server_t *server, char **field, const cfg_obj_t *obj) {
 }
 
 static void
-set_limit(const cfg_obj_t **maps, const char *configname,
-	  const char *description, isc_resource_t resourceid,
-	  isc_resourcevalue_t defaultvalue) {
-	const cfg_obj_t *obj = NULL;
-	const char *resource;
-	isc_resourcevalue_t value;
-	isc_result_t result;
-
-	if (named_config_get(maps, configname, &obj) != ISC_R_SUCCESS) {
-		return;
-	}
-
-	if (cfg_obj_isstring(obj)) {
-		resource = cfg_obj_asstring(obj);
-		if (strcasecmp(resource, "unlimited") == 0) {
-			value = ISC_RESOURCE_UNLIMITED;
-		} else {
-			INSIST(strcasecmp(resource, "default") == 0);
-			value = defaultvalue;
-		}
-	} else {
-		value = cfg_obj_asuint64(obj);
-	}
-
-	result = isc_resource_setlimit(resourceid, value);
-	isc_log_write(
-		named_g_lctx, NAMED_LOGCATEGORY_GENERAL, NAMED_LOGMODULE_SERVER,
-		result == ISC_R_SUCCESS ? ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
-		"set maximum %s to %" PRIu64 ": %s", description, value,
-		isc_result_totext(result));
-}
-
-#define SETLIMIT(cfgvar, resource, description)                       \
-	set_limit(maps, cfgvar, description, isc_resource_##resource, \
-		  named_g_init##resource)
-
-static void
-set_limits(const cfg_obj_t **maps) {
-	SETLIMIT("stacksize", stacksize, "stack size");
-	SETLIMIT("datasize", datasize, "data size");
-	SETLIMIT("coresize", coresize, "core size");
-	SETLIMIT("files", openfiles, "open files");
-}
-
-static void
 portset_fromconf(isc_portset_t *portset, const cfg_obj_t *ports,
 		 bool positive) {
 	const cfg_listelt_t *element;
@@ -8574,11 +8528,6 @@ load_configuration(const char *filename, named_server_t *server,
 			      "instead",
 			      server->bindkeysfile);
 	}
-
-	/*
-	 * Set process limits, which (usually) needs to be done as root.
-	 */
-	set_limits(maps);
 
 	/*
 	 * Check the process lockfile.

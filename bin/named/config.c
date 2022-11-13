@@ -50,16 +50,12 @@ options {\n\
 	answer-cookie true;\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
-#	blackhole {none;};\n"
-			    "	cookie-algorithm siphash24;\n"
-			    "	coresize default;\n\
-	datasize default;\n"
-			    "\
+#	blackhole {none;};\n\
+	cookie-algorithm siphash24;\n\
 #	directory <none>\n\
 	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
-	edns-udp-size 1232;\n\
-	files unlimited;\n"
+	edns-udp-size 1232;\n"
 #if defined(HAVE_GEOIP2)
 			    "\
 	geoip-directory \"" MAXMINDDB_PREFIX "/share/GeoIP\";\n"
@@ -115,7 +111,6 @@ options {\n\
 	session-keyalg hmac-sha256;\n\
 #	session-keyfile \"" NAMED_LOCALSTATEDIR "/run/named/session.key\";\n\
 	session-keyname local-ddns;\n\
-	stacksize default;\n\
 	startup-notify-rate 20;\n\
 	statistics-file \"named.stats\";\n\
 	tcp-advertised-timeout 300;\n\
