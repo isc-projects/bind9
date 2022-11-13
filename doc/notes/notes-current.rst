@@ -32,6 +32,11 @@ Feature Changes
 
 - None.
 
+- Deprecate setting the operating system limit (``coresize``, ``datasize``,
+  ``files`` and ``stacksize``) from ``named.conf``.  These options should be set
+  from the operating system (``ulimit``) or from the process supervisor
+  (e.g. ``systemd``). :gl:`#3676`
+
 Bug Fixes
 ~~~~~~~~~
 
