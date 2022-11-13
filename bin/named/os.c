@@ -14,6 +14,7 @@
 /*! \file */
 #include <stdarg.h>
 #include <stdbool.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #ifdef HAVE_UNAME
@@ -37,13 +38,13 @@
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/print.h>
-#include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <named/globals.h>
+#include <named/log.h>
 #include <named/main.h>
 #include <named/os.h>
 #ifdef HAVE_LIBSCF
@@ -615,23 +616,47 @@ ns_os_uid(void) {
 
 void
 named_os_adjustnofile(void) {
-#if defined(__linux__) || defined(__sun)
-	isc_result_t result;
-	isc_resourcevalue_t newvalue;
+	int r;
+	struct rlimit rl;
+	rlim_t rlim_old;
+	char strbuf[ISC_STRERRORSIZE];
 
-	/*
-	 * Linux: max number of open files specified by one thread doesn't seem
-	 * to apply to other threads on Linux.
-	 * Sun: restriction needs to be removed sooner when hundreds of CPUs
-	 * are available.
-	 */
-	newvalue = ISC_RESOURCE_UNLIMITED;
-
-	result = isc_resource_setlimit(isc_resource_openfiles, newvalue);
-	if (result != ISC_R_SUCCESS) {
-		named_main_earlywarning("couldn't adjust limit on open files");
+	r = getrlimit(RLIMIT_NOFILE, &rl);
+	if (r != 0) {
+		goto fail;
 	}
-#endif /* if defined(__linux__) || defined(__sun) */
+
+	rlim_old = rl.rlim_cur;
+
+	if (rl.rlim_cur == rl.rlim_max) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+			      "the limit on open files is already at the "
+			      "maximum allowed value: "
+			      "%" PRIu64,
+			      (uint64_t)rl.rlim_max);
+		return;
+	}
+
+	rl.rlim_cur = rl.rlim_max;
+	r = setrlimit(RLIMIT_NOFILE, &rl);
+	if (r != 0) {
+		goto fail;
+	}
+
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "adjusted limit on open files from "
+		      "%" PRIu64 " to "
+		      "%" PRIu64,
+		      (uint64_t)rlim_old, (uint64_t)rl.rlim_cur);
+	return;
+
+fail:
+	strerror_r(errno, strbuf, sizeof(strbuf));
+	named_main_earlywarning("adjusting limit on open files failed: %s",
+				strbuf);
+	return;
 }
 
 void

@@ -77,7 +77,6 @@ libisc_la_HEADERS =			\
 	include/isc/refcount.h		\
 	include/isc/regex.h		\
 	include/isc/region.h		\
-	include/isc/resource.h		\
 	include/isc/result.h		\
 	include/isc/rwlock.h		\
 	include/isc/safe.h		\
@@ -189,7 +188,6 @@ libisc_la_SOURCES =		\
 	ratelimiter.c		\
 	regex.c			\
 	region.c		\
-	resource.c		\
 	result.c		\
 	safe.c			\
 	serial.c		\

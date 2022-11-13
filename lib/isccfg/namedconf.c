@@ -2651,7 +2651,7 @@ cfg_type_t cfg_type_addzoneconf = { "addzoneconf",     cfg_parse_mapbody,
 				    &cfg_rep_map,      addzoneconf_clausesets };
 
 static isc_result_t
-parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
+parse_unitstring(char *str, uint64_t *valuep) {
 	char *endp;
 	unsigned int len;
 	uint64_t value;

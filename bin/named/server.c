@@ -4354,8 +4354,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		max_cache_size = SIZE_AS_PERCENT;
 		max_cache_size_percent = cfg_obj_aspercentage(obj);
 	} else {
-		isc_resourcevalue_t value;
-		value = cfg_obj_asuint64(obj);
+		uint64_t value = cfg_obj_asuint64(obj);
 		if (value > SIZE_MAX) {
 			cfg_obj_log(obj, named_g_lctx, ISC_LOG_WARNING,
 				    "'max-cache-size "

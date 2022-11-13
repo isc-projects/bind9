@@ -35,7 +35,6 @@
 #include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/print.h>
-#include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/stdio.h>
@@ -1043,7 +1042,6 @@ create_managers(void) {
 static void
 setup(void) {
 	isc_result_t result;
-	isc_resourcevalue_t old_openfiles;
 	ns_server_t *sctx;
 #ifdef HAVE_LIBSCF
 	char *instance = NULL;
@@ -1217,29 +1215,10 @@ setup(void) {
 		      "----------------------------------------------------");
 
 	/*
-	 * Get the initial resource limits.
-	 */
-	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
-					    &named_g_initopenfiles) ==
-		      ISC_R_SUCCESS);
-
-	/*
 	 * System resources cannot effectively be tuned on some systems.
 	 * Raise the limit in such cases for safety.
 	 */
-	old_openfiles = named_g_initopenfiles;
 	named_os_adjustnofile();
-	RUNTIME_CHECK(isc_resource_getlimit(isc_resource_openfiles,
-					    &named_g_initopenfiles) ==
-		      ISC_R_SUCCESS);
-	if (old_openfiles != named_g_initopenfiles) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-			      "adjusted limit on open files from "
-			      "%" PRIu64 " to "
-			      "%" PRIu64,
-			      old_openfiles, named_g_initopenfiles);
-	}
 
 	/*
 	 * If the named configuration filename is relative, prepend the current

@@ -71,14 +71,13 @@ typedef struct isc_nmsocket	 isc_nmsocket_t; /*%< Network manager socket */
 typedef struct isc_nmhandle	 isc_nmhandle_t; /*%< Network manager handle */
 typedef struct isc_portset	 isc_portset_t;	 /*%< Port Set */
 typedef struct isc_quota	 isc_quota_t;	 /*%< Quota */
-typedef struct isc_ratelimiter	 isc_ratelimiter_t;   /*%< Rate Limiter */
-typedef struct isc_region	 isc_region_t;	      /*%< Region */
-typedef uint64_t		 isc_resourcevalue_t; /*%< Resource Value */
-typedef struct isc_signal	 isc_signal_t;	      /*%< Signal handler */
-typedef struct isc_sockaddr	 isc_sockaddr_t;      /*%< Socket Address */
-typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;  /*%< Socket Address List
-						       * */
-typedef struct isc_stats      isc_stats_t;	      /*%< Statistics */
+typedef struct isc_ratelimiter	 isc_ratelimiter_t;  /*%< Rate Limiter */
+typedef struct isc_region	 isc_region_t;	     /*%< Region */
+typedef struct isc_signal	 isc_signal_t;	     /*%< Signal handler */
+typedef struct isc_sockaddr	 isc_sockaddr_t;     /*%< Socket Address */
+typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List
+						      * */
+typedef struct isc_stats      isc_stats_t;	     /*%< Statistics */
 typedef int_fast64_t	      isc_statscounter_t;
 typedef struct isc_symtab     isc_symtab_t;	/*%< Symbol Table */
 typedef struct isc_task	      isc_task_t;	/*%< Task */
@@ -95,19 +94,6 @@ typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
 #endif /* HAVE_LIBNGHTTP2 */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
-
-/*% Resource */
-typedef enum {
-	isc_resource_coresize = 1,
-	isc_resource_cputime,
-	isc_resource_datasize,
-	isc_resource_filesize,
-	isc_resource_lockedmemory,
-	isc_resource_openfiles,
-	isc_resource_processes,
-	isc_resource_residentsize,
-	isc_resource_stacksize
-} isc_resource_t;
 
 /*% Statistics formats (text file or XML) */
 typedef enum {
