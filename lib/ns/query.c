@@ -6236,7 +6236,9 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
 
 	if (event->ev_type == DNS_EVENT_TRYSTALE) {
-		query_lookup_stale(client);
+		if (devent->result != ISC_R_CANCELED) {
+			query_lookup_stale(client);
+		}
 		isc_event_free(ISC_EVENT_PTR(&event));
 		return;
 	}
