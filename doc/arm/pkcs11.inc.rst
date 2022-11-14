@@ -206,8 +206,8 @@ this is when creating ECDSA keys, you should specify a unique ID:
 
 ::
 
-   ksk=$(echo "example.net-ksk" | sha1sum - | awk '{print $1}')
-   zsk=$(echo "example.net-zsk" | sha1sum - | awk '{print $1}')
+   ksk=$(echo "example.net-ksk" | openssl sha1 -r | awk '{print $1}')
+   zsk=$(echo "example.net-zsk" | openssl sha1 -r | awk '{print $1}')
    pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type EC:prime256v1 --id $ksk --label example.net-ksk --pin <PIN>
    pkcs11-tool --module <FULL_PATH_TO_HSM_MODULE> -l -k --key-type EC:prime256v1 --id $zsk --label example.net-zsk --pin <PIN>
 
