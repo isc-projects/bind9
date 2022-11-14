@@ -32,6 +32,15 @@ Security Fixes
   Iratxe Niño from Fundación Sarenet) for bringing this vulnerability to
   our attention. :gl:`#3622`
 
+- :iscman:`named` running as a resolver with the
+  :any:`stale-answer-client-timeout` option set to any value greater
+  than ``0`` could crash with an assertion failure, when the
+  :any:`recursive-clients` soft quota was reached. This has been fixed.
+  (CVE-2022-3924)
+
+  ISC would like to thank Maksym Odinintsev from AWS for bringing this
+  vulnerability to our attention. :gl:`#3619`
+
 New Features
 ~~~~~~~~~~~~
 
