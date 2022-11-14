@@ -74,6 +74,7 @@ fi
 
 echo "Running $TEST_PROGRAM"
 
-./run.sh -p "$(($RANDOM%32000+32000))" "$@" "$TEST_PROGRAM"
+random=$(awk 'BEGIN { srand(); print int(rand()*32768) }' /dev/null)
+./run.sh -p "$((random%32000+32000))" "$@" "$TEST_PROGRAM"
 
 exit $?
