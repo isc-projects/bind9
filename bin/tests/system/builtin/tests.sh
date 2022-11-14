@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -158,7 +160,7 @@ sleep 1
 grep "zone serial (0) unchanged." ns1/named.run > /dev/null && ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
-HOSTNAME=`$FEATURETEST --gethostname`
+HOST_NAME=`$FEATURETEST --gethostname`
 BIND_VERSION_STRING=$($NAMED -V | head -1)
 BIND_VERSION=$($NAMED -V | sed -ne 's/^BIND \([^ ]*\).*/\1/p')
 
@@ -194,7 +196,7 @@ n=`expr $n + 1`
 ret=0
 echo_i "Checking that default hostname works for query ($n)"
 $DIG $DIGOPTS +short hostname.bind txt ch @10.53.0.1 > dig.out.ns1.$n
-grep "^\"$HOSTNAME\"$" dig.out.ns1.$n > /dev/null || ret=1
+grep "^\"$HOST_NAME\"$" dig.out.ns1.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
@@ -216,14 +218,14 @@ n=`expr $n + 1`
 ret=0
 echo_i "Checking that server-id hostname works for query ($n)"
 $DIG $DIGOPTS +short id.server txt ch @10.53.0.2 > dig.out.ns2.$n
-grep "^\"$HOSTNAME\"$" dig.out.ns2.$n > /dev/null || ret=1
+grep "^\"$HOST_NAME\"$" dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that server-id hostname works for EDNS name server ID request ($n)"
 $DIG $DIGOPTS +norec +nsid foo @10.53.0.2 > dig.out.ns2.$n
-grep "^; NSID: .* (\"$HOSTNAME\")$" dig.out.ns2.$n > /dev/null || ret=1
+grep "^; NSID: .* (\"$HOST_NAME\")$" dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`

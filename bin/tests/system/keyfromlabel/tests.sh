@@ -23,8 +23,8 @@ keygen() {
 	id="$4"
 
 	label="${id}-${zone}"
-	p11id=$(echo "${label}" | sha1sum - | awk '{print $1}')
-	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-keyfromlabel" -l -k --key-type $type:$bits --label "${label}" --id "${p11id//$'\n'/}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
+	p11id=$(echo "${label}" | openssl sha1 -r | awk '{print $1}')
+	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-keyfromlabel" -l -k --key-type $type:$bits --label "${label}" --id "${p11id}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
 }
 
 keyfromlabel() {
@@ -59,7 +59,7 @@ do
 		status=$((status+ret))
 
 		# Skip dnssec-keyfromlabel if key generation failed.
-		test $ret == 0 || continue
+		test $ret -eq 0 || continue
 
 		echo_i "Get ZSK $alg $zone $type:$bits"
 		ret=0
@@ -76,7 +76,7 @@ do
 		status=$((status+ret))
 
 		# Skip signing if dnssec-keyfromlabel failed.
-		test $ret == 0 || continue
+		test $ret -eq 0 || continue
 
 		echo_i "Sign zone with $ksk $zsk"
 		ret=0
