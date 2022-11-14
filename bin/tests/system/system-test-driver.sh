@@ -27,7 +27,7 @@ if [ "$?" -ne 4 ]; then
     exit 1
 fi
 
-OPTS=$(getopt --shell sh --name "$(basename "$0")" --options '' --longoptions test-name:,log-file:,trs-file:,color-tests:,expect-failure:,enable-hard-errors: -- "$@")
+OPTS=$(getopt --shell "sh" --name "$(basename "$0")" --options '' --longoptions test-name:,log-file:,trs-file:,color-tests:,expect-failure:,enable-hard-errors: -- "$@")
 
 if [ "$?" != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
