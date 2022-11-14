@@ -56,12 +56,6 @@
 
 #define LISTENING(ifp) (((ifp)->flags & NS_INTERFACEFLAG_LISTENING) != 0)
 
-#ifdef TUNE_LARGE
-#define UDPBUFFERS 32768
-#else /* ifdef TUNE_LARGE */
-#define UDPBUFFERS 1000
-#endif /* TUNE_LARGE */
-
 #define IFMGR_MAGIC		 ISC_MAGIC('I', 'F', 'M', 'G')
 #define NS_INTERFACEMGR_VALID(t) ISC_MAGIC_VALID(t, IFMGR_MAGIC)
 
