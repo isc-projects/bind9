@@ -1218,8 +1218,8 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "cookie-algorithm", &cfg_type_cookiealg, 0 },
 	{ "cookie-secret", &cfg_type_sstring, CFG_CLAUSEFLAG_MULTI },
-	{ "coresize", &cfg_type_size, 0 },
-	{ "datasize", &cfg_type_size, 0 },
+	{ "coresize", &cfg_type_size, CFG_CLAUSEFLAG_DEPRECATED },
+	{ "datasize", &cfg_type_size, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "deallocate-on-exit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
 #ifdef HAVE_DNSTAP
@@ -1236,7 +1236,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "dscp", &cfg_type_uint32, 0 },
 	{ "dump-file", &cfg_type_qstring, 0 },
 	{ "fake-iquery", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "files", &cfg_type_size, 0 },
+	{ "files", &cfg_type_size, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 #ifdef HAVE_DNSTAP
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32, 0 },
@@ -1318,7 +1318,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "session-keyfile", &cfg_type_qstringornone, 0 },
 	{ "session-keyname", &cfg_type_astring, 0 },
 	{ "sit-secret", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "stacksize", &cfg_type_size, 0 },
+	{ "stacksize", &cfg_type_size, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "startup-notify-rate", &cfg_type_uint32, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", NULL, CFG_CLAUSEFLAG_ANCIENT },

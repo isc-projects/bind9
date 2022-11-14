@@ -95,8 +95,8 @@ options {
 	clients-per-query <integer>;
 	cookie-algorithm ( aes | siphash24 );
 	cookie-secret <string>; // may occur multiple times
-	coresize ( default | unlimited | <sizeval> );
-	datasize ( default | unlimited | <sizeval> );
+	coresize ( default | unlimited | <sizeval> ); // deprecated
+	datasize ( default | unlimited | <sizeval> ); // deprecated
 	deny-answer-addresses { <address_match_element>; ... } [ except-from { <string>; ... } ];
 	deny-answer-aliases { <string>; ... } [ except-from { <string>; ... } ];
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
@@ -139,7 +139,7 @@ options {
 	fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
 	fetches-per-server <integer> [ ( drop | fail ) ];
 	fetches-per-zone <integer> [ ( drop | fail ) ];
-	files ( default | unlimited | <sizeval> );
+	files ( default | unlimited | <sizeval> ); // deprecated
 	flush-zones-on-shutdown <boolean>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
@@ -274,7 +274,7 @@ options {
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ];
 	sortlist { <address_match_element>; ... };
-	stacksize ( default | unlimited | <sizeval> );
+	stacksize ( default | unlimited | <sizeval> ); // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;
 	stale-answer-ttl <duration>;
