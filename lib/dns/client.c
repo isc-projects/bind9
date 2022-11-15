@@ -717,7 +717,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			int n = 0;
 			dns_rdatasetiter_t *rdsiter = NULL;
 
-			tresult = dns_db_allrdatasets(db, node, NULL, 0,
+			tresult = dns_db_allrdatasets(db, node, NULL, 0, 0,
 						      &rdsiter);
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;

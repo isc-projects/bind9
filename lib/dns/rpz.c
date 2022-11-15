@@ -1755,7 +1755,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		result = dns_db_allrdatasets(rpz->updb, node, rpz->updbversion,
-					     0, &rdsiter);
+					     0, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,

@@ -2125,7 +2125,7 @@ get_name_diff(dns_db_t *db, dns_dbversion_t *ver, isc_stdtime_t now,
 		return (result);
 	}
 
-	result = dns_db_allrdatasets(db, node, ver, now, &rdsiter);
+	result = dns_db_allrdatasets(db, node, ver, 0, now, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_node;
 	}
