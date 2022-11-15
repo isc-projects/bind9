@@ -9186,10 +9186,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				 *  queries for 0 TTL rdatasets to work.
 				 */
 				if (NONEXISTENT(header) ||
-				    (now != 0 &&
-				     (now - RBTDB_VIRTUAL) >
-					     header->rdh_ttl +
-						     rbtdb->serve_stale_ttl))
+				    (now != 0 && now > header->rdh_ttl))
 				{
 					header = NULL;
 				}
@@ -9270,9 +9267,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					 * queries for 0 TTL rdatasets to work.
 					 */
 					if (NONEXISTENT(header) ||
-					    (now != 0 &&
-					     (now - RBTDB_VIRTUAL) >
-						     header->rdh_ttl))
+					    (now != 0 && now > header->rdh_ttl))
 					{
 						header = NULL;
 					}
