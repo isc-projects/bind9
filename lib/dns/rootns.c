@@ -176,7 +176,7 @@ check_hints(dns_db_t *db) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		result = dns_db_allrdatasets(db, node, NULL, now, &rdsiter);
+		result = dns_db_allrdatasets(db, node, NULL, 0, now, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}

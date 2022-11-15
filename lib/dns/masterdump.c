@@ -1752,7 +1752,7 @@ dumptostream(dns_dumpctx_t *dctx) {
 		result = dns_dbiterator_pause(dctx->dbiter);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		result = dns_db_allrdatasets(dctx->db, node, dctx->version,
+		result = dns_db_allrdatasets(dctx->db, node, dctx->version, 0,
 					     dctx->now, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			dns_db_detachnode(dctx->db, &node);
@@ -1987,7 +1987,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
-	result = dns_db_allrdatasets(db, node, version, now, &rdsiter);
+	result = dns_db_allrdatasets(db, node, version, 0, now, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}

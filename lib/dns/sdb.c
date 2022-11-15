@@ -1169,7 +1169,8 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     isc_stdtime_t now, dns_rdatasetiter_t **iteratorp) {
+	     unsigned int options, isc_stdtime_t now,
+	     dns_rdatasetiter_t **iteratorp) {
 	sdb_rdatasetiter_t *iterator;
 
 	REQUIRE(version == NULL || version == &dummy);
@@ -1185,6 +1186,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	iterator->common.node = NULL;
 	attachnode(db, node, &iterator->common.node);
 	iterator->common.version = version;
+	iterator->common.options = options;
 	iterator->common.now = now;
 
 	*iteratorp = (dns_rdatasetiter_t *)iterator;

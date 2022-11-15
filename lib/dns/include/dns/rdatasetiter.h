@@ -93,6 +93,7 @@ struct dns_rdatasetiter {
 	dns_dbnode_t		  *node;
 	dns_dbversion_t		  *version;
 	isc_stdtime_t		   now;
+	unsigned int		   options;
 };
 
 void

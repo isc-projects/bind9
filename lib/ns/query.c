@@ -3092,7 +3092,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		dns_rdatasetiter_t *rdsiter;
 
 		rdsiter = NULL;
-		result = dns_db_allrdatasets(*dbp, *nodep, *versionp, 0,
+		result = dns_db_allrdatasets(*dbp, *nodep, *versionp, 0, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name,
@@ -7868,7 +7868,7 @@ query_respond_any(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_RESPOND_ANY_BEGIN, qctx);
 
-	result = dns_db_allrdatasets(qctx->db, qctx->node, qctx->version, 0,
+	result = dns_db_allrdatasets(qctx->db, qctx->node, qctx->version, 0, 0,
 				     &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR, "query_respond_any: allrdatasets "

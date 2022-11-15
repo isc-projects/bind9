@@ -1014,7 +1014,8 @@ clearnode(dns_db_t *db, dns_dbnode_t *node) {
 	isc_result_t result;
 	dns_rdatasetiter_t *iter = NULL;
 
-	result = dns_db_allrdatasets(db, node, NULL, (isc_stdtime_t)0, &iter);
+	result = dns_db_allrdatasets(db, node, NULL, 0, (isc_stdtime_t)0,
+				     &iter);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
