@@ -311,13 +311,14 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     isc_stdtime_t now, dns_rdatasetiter_t **iteratorp) {
+	     unsigned int options, isc_stdtime_t now,
+	     dns_rdatasetiter_t **iteratorp) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	return (dns_db_allrdatasets(sampledb->rbtdb, node, version, now,
-				    iteratorp));
+	return (dns_db_allrdatasets(sampledb->rbtdb, node, version, options,
+				    now, iteratorp));
 }
 
 static isc_result_t

@@ -610,7 +610,7 @@ check_ttls(dns_zone_t *zone, dns_ttl_t maxttl) {
 		}
 		CHECK(result);
 
-		CHECK(dns_db_allrdatasets(db, node, version, 0, &rdsiter));
+		CHECK(dns_db_allrdatasets(db, node, version, 0, 0, &rdsiter));
 		for (result = dns_rdatasetiter_first(rdsiter);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdatasetiter_next(rdsiter))

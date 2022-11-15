@@ -1957,7 +1957,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 		}
 
 		result = dns_db_allrdatasets(rpz->updb, node, rpz->updbversion,
-					     0, &rdsiter);
+					     0, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
