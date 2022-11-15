@@ -189,7 +189,7 @@ stages:
   <<: *libvirt_amd64
 
 .openbsd-amd64: &openbsd_amd64_image
-  image: "openbsd-7.1-x86_64"
+  image: "openbsd-7.2-x86_64"
   <<: *libvirt_amd64
 
 ### Job Templates
