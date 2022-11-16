@@ -305,7 +305,20 @@ send() {
 # There are multiple algoritms sets to choose from (see get_algorithms.py). To
 # override the default choice, set the ALGORITHM_SET env var (see mkeys system
 # test for example).
-eval "$($PYTHON "$TOP_SRCDIR/bin/tests/system/get_algorithms.py")"
+if test -x "$PYTHON"; then
+    eval "$($PYTHON "$TOP_SRCDIR/bin/tests/system/get_algorithms.py")"
+else
+    # 9.16 workaround for our Windows CI which lacks Python
+    DEFAULT_ALGORITHM=ECDSAP256SHA256
+    DEFAULT_ALGORITHM_NUMBER=13
+    DEFAULT_BITS=256
+    ALTERNATIVE_ALGORITHM=RSASHA256
+    ALTERNATIVE_ALGORITHM_NUMBER=8
+    ALTERNATIVE_BITS=1280
+    DISABLED_ALGORITHM=ECDSAP384SHA384
+    DISABLED_ALGORITHM_NUMBER=14
+    DISABLED_BITS=384
+fi
 
 # Default HMAC algorithm.
 export DEFAULT_HMAC=hmac-sha256
