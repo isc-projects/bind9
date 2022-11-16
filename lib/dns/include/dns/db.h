@@ -301,6 +301,9 @@ struct dns_dbonupdatelistener {
 #define DNS_DB_NONSEC3	     0x4
 /*@}*/
 
+#define DNS_DB_STALEOK	 0x01
+#define DNS_DB_EXPIREDOK 0x02
+
 /*****
 ***** Methods
 *****/
@@ -1189,6 +1192,9 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * \li	'options' controls which rdatasets are selected when interating over
  *	the node.
+ *	'DNS_DB_STALEOK' return stale rdatasets as well as current rdatasets.
+ *	'DNS_DB_EXPIREDOK' return expired rdatasets as well as current
+ *	rdatasets.
  *
  * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
