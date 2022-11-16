@@ -325,6 +325,12 @@ hash_32(uint32_t val, unsigned int bits) {
 	return (val * GOLDEN_RATIO_32 >> (32 - bits));
 }
 
+#define EXPIREDOK(rbtiterator) \
+	(((rbtiterator)->common.options & DNS_DB_EXPIREDOK) != 0)
+
+#define STALEOK(rbtiterator) \
+	(((rbtiterator)->common.options & DNS_DB_STALEOK) != 0)
+
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
  * There is a tradeoff issue about configuring this value: if this is too
@@ -8748,7 +8754,17 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	for (header = rbtnode->data; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			if (header->serial <= serial && !IGNORE(header)) {
+			dns_ttl_t stale_ttl = header->rdh_ttl;
+			if (STALEOK(rbtiterator)) {
+				stale_ttl += STALE_TTL(header, rbtdb);
+			}
+			if (EXPIREDOK(rbtiterator)) {
+				if (!NONEXISTENT(header)) {
+					break;
+				}
+				header = header->down;
+			} else if (header->serial <= serial && !IGNORE(header))
+			{
 				/*
 				 * Is this a "this rdataset doesn't exist"
 				 * record?  Or is it too old in the cache?
@@ -8759,8 +8775,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				 *  queries for 0 TTL rdatasets to work.
 				 */
 				if (NONEXISTENT(header) ||
-				    (now != 0 && now > header->rdh_ttl))
-				{
+				    (now != 0 && now > stale_ttl)) {
 					header = NULL;
 				}
 				break;
@@ -8796,6 +8811,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	isc_stdtime_t now;
 	rbtdb_rdatatype_t type, negtype;
 	dns_rdatatype_t rdtype, covers;
+	bool expiredok = EXPIREDOK(rbtiterator);
 
 	header = rbtiterator->current;
 	if (header == NULL) {
@@ -8821,37 +8837,69 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	} else {
 		negtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 	}
-	for (header = header->next; header != NULL; header = top_next) {
-		top_next = header->next;
+
+	/*
+	 * Find the start of the header chain for the next type
+	 * by walking back up the list.
+	 */
+	top_next = header->next;
+	while (top_next != NULL &&
+	       (top_next->type == type || top_next->type == negtype))
+	{
+		top_next = top_next->next;
+	}
+	if (expiredok) {
 		/*
-		 * If not walking back up the down list.
+		 * Keep walking down the list if possible or
+		 * start the next type.
 		 */
-		if (header->type != type && header->type != negtype) {
-			do {
-				if (header->serial <= serial && !IGNORE(header))
-				{
-					/*
-					 * Is this a "this rdataset doesn't
-					 * exist" record?
-					 *
-					 * Note: unlike everywhere else, we
-					 * check for now > header->ttl instead
-					 * of ">=".  This allows ANY and RRSIG
-					 * queries for 0 TTL rdatasets to work.
-					 */
-					if (NONEXISTENT(header) ||
-					    (now != 0 && now > header->rdh_ttl))
-					{
-						header = NULL;
-					}
-					break;
-				} else {
-					header = header->down;
-				}
-			} while (header != NULL);
-			if (header != NULL) {
-				break;
+		header = header->down != NULL ? header->down : top_next;
+	} else {
+		header = top_next;
+	}
+	for (; header != NULL; header = top_next) {
+		top_next = header->next;
+		do {
+			dns_ttl_t stale_ttl = header->rdh_ttl;
+			if (STALEOK(rbtiterator)) {
+				stale_ttl += STALE_TTL(header, rbtdb);
 			}
+			if (expiredok) {
+				if (!NONEXISTENT(header)) {
+					break;
+				}
+				header = header->down;
+			} else if (header->serial <= serial && !IGNORE(header))
+			{
+				/*
+				 * Is this a "this rdataset doesn't
+				 * exist" record?
+				 *
+				 * Note: unlike everywhere else, we
+				 * check for now > header->ttl instead
+				 * of ">=".  This allows ANY and RRSIG
+				 * queries for 0 TTL rdatasets to work.
+				 */
+				if (NONEXISTENT(header) ||
+				    (now != 0 && now > stale_ttl)) {
+					header = NULL;
+				}
+				break;
+			} else {
+				header = header->down;
+			}
+		} while (header != NULL);
+		if (header != NULL) {
+			break;
+		}
+		/*
+		 * Find the start of the header chain for the next type
+		 * by walking back up the list.
+		 */
+		while (top_next != NULL &&
+		       (top_next->type == type || top_next->type == negtype))
+		{
+			top_next = top_next->next;
 		}
 	}
 
