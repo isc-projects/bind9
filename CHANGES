@@ -3,6 +3,8 @@
 			extensions that manipulate the zone table where in
 			use. [GL #3468]
 
+	--- 9.16.35 released ---
+
 6013.	[bug]		Fix a crash that could happen when you change
 			a dnssec-policy zone with NSEC3 to start using
 			inline-signing. [GL #3591]
