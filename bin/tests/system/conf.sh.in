@@ -77,6 +77,36 @@ export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
 
+# Things that are different on Windows
+export KILL=kill
+export DIFF=diff
+export DOS2UNIX=true
+# There's no trailing period on Windows
+export TP=.
+
+# Programs detected by configure
+# Variables will be empty if no program was found by configure
+export SHELL=@SHELL@
+export CURL=@CURL@
+export XMLLINT=@XMLLINT@
+export XSLTPROC=@XSLTPROC@
+export PYTEST=@PYTEST@
+
+# Windows process management leave empty
+export PSSUSPEND=
+
+#
+# Interpreters for system tests detected by configure
+#
+export PERL=@PERL@
+export PYTHON=@PYTHON@
+
+#
+# Determine if we support various optional features.
+#
+export CRYPTO=@CRYPTO@
+
+
 # Load common values shared between windows and unix/linux.
 . $TOP/bin/tests/system/conf.sh.common
 
@@ -90,37 +120,3 @@ PARALLEL_UNIX="@CHECKDS@ @COVERAGE@ @DNSTAP@ @KEYMGR@ cookie logfileconfig"
 PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
-
-# Things that are different on Windows
-export KILL=kill
-export DIFF=diff
-export DOS2UNIX=true
-# There's no trailing period on Windows
-export TP=.
-
-# Use the CONFIG_SHELL detected by configure for tests
-export SHELL=@SHELL@
-
-# CURL will be empty if no program was found by configure
-export CURL=@CURL@
-
-# XMLLINT will be empty if no program was found by configure
-export XMLLINT=@XMLLINT@
-
-# XSLTPROC will be empty if no program was found by configure
-export XSLTPROC=@XSLTPROC@
-
-# PERL will be an empty string if no perl interpreter was found.
-export PERL=@PERL@
-
-# Windows process management leave empty
-export PSSUSPEND=
-
-export PYTHON=@PYTHON@
-export PYTEST=@PYTEST@
-
-#
-# Determine if we support various optional features.
-#
-export CRYPTO=@CRYPTO@
