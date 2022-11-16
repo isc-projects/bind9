@@ -305,10 +305,13 @@ send() {
 # There are multiple algoritms sets to choose from (see get_algorithms.py). To
 # override the default choice, set the ALGORITHM_SET env var (see mkeys system
 # test for example).
-if test -x "$PYTHON"; then
+if test -x "$PYTHON" && test -x "$KEYGEN"; then
     eval "$($PYTHON "$TOP_SRCDIR/bin/tests/system/get_algorithms.py")"
 else
-    # 9.16 workaround for our Windows CI which lacks Python
+    # 9.16 workarounds
+    #   - for ./configure which calls bin/tests/system/cleanall.sh, which
+    #     includes this file before $KEYGEN is compiled
+    #   - for our Windows CI which lacks Python
     DEFAULT_ALGORITHM=ECDSAP256SHA256
     DEFAULT_ALGORITHM_NUMBER=13
     DEFAULT_BITS=256
