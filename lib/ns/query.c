@@ -5837,6 +5837,13 @@ query_lookup(query_ctx_t *qctx) {
 		dns_cache_updatestats(qctx->view->cache, result);
 	}
 
+	if (dns_rdataset_isassociated(qctx->rdataset) &&
+	    dns_rdataset_count(qctx->rdataset) > 0 && !STALE(qctx->rdataset))
+	{
+		/* Found non-stale usable rdataset. */
+		goto gotanswer;
+	}
+
 	/*
 	 * If DNS_DBFIND_STALEOK is set this means we are dealing with a
 	 * lookup following a failed lookup and it is okay to serve a stale
@@ -5983,6 +5990,7 @@ query_lookup(query_ctx_t *qctx) {
 		qctx->rdataset->attributes |= DNS_RDATASETATTR_STALE_ADDED;
 	}
 
+gotanswer:
 	result = query_gotanswer(qctx, result);
 
 cleanup:
