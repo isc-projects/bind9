@@ -1,3 +1,8 @@
+6038.	[bug]		In some serve stale scenarios, like when following an
+			expired CNAME record, named could return SERVFAIL if the
+			previous request wasn't successful. Consider non-stale
+			data when in serve-stale mode. [GL #3678]
+
 6031.	[bug]		Move the "final reference detached" log message
 			from dns_zone unit to the DEBUG(1) log level.
 			[GL #3707]
