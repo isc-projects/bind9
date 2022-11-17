@@ -1,3 +1,8 @@
+6038.	[bug]		In some serve stale scenarios, like when following an
+			expired CNAME record, named could return SERVFAIL if the
+			previous request wasn't successful. Consider non-stale
+			data when in serve-stale mode. [GL #3678]
+
 6036.	[bug]		nslookup and host were not honoring the selected port
 			in TCP mode. [GL #3721]
 
