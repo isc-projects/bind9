@@ -26,6 +26,7 @@ check_PROGRAMS =			\
 	dns_message_checksig		\
 	dns_message_parse		\
 	dns_name_fromtext_target	\
+	dns_name_fromwire		\
 	dns_rdata_fromtext		\
 	dns_rdata_fromwire_text		\
 	isc_lex_getmastertoken		\
@@ -36,10 +37,16 @@ EXTRA_DIST =				\
 	dns_message_checksig.in		\
 	dns_message_parse.in		\
 	dns_name_fromtext_target.in	\
+	dns_name_fromwire.in		\
 	dns_rdata_fromtext.in		\
 	dns_rdata_fromwire_text.in	\
 	isc_lex_getmastertoken.in	\
 	isc_lex_gettoken.in
+
+dns_name_fromwire_SOURCES =		\
+	dns_name_fromwire.c		\
+	old.c				\
+	old.h
 
 TESTS = $(check_PROGRAMS)
 

@@ -31,9 +31,9 @@
  * makes adding names to messages easy.  Having much of the server know
  * the representation would be perilous, and we certainly don't want each
  * user of names to be manipulating such a low-level structure.  This is
- * where the Names and Labels module comes in.  The module allows name or
- * label handles to be created and attached to uncompressed wire format
- * regions.  All name operations and conversions are done through these
+ * where the Names and Labels module comes in. The module allows name
+ * handles to be created and attached to uncompressed wire format
+ * regions. All name operations and conversions are done through these
  * handles.
  *
  * MP:
@@ -56,7 +56,6 @@
  * Standards:
  *\li	RFC1035
  *\li	Draft EDNS0 (0)
- *\li	Draft Binary Labels (2)
  *
  */
 
@@ -77,17 +76,10 @@
 ISC_LANG_BEGINDECLS
 
 /*****
-***** Labels
-*****
-***** A 'label' is basically a region.  It contains one DNS wire format
-***** label of type 00 (ordinary).
-*****/
-
-/*****
 ***** Names
 *****
 ***** A 'name' is a handle to a binary region.  It contains a sequence of one
-***** or more DNS wire format labels of type 00 (ordinary).
+***** or more DNS wire format labels.
 ***** Note that all names are not required to end with the root label,
 ***** as they are in the actual DNS wire protocol.
 *****/
@@ -697,9 +689,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  * Notes:
  * \li	Decompression policy is controlled by 'dctx'.
  *
- * \li	If DNS_NAME_DOWNCASE is set, any uppercase letters in 'source' will be
- *	downcased when they are copied into 'target'.
- *
  * Security:
  *
  * \li	*** WARNING ***
@@ -720,13 +709,12 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  *
  * \li	'dctx' is a valid decompression context.
  *
+ * \li	DNS_NAME_DOWNCASE is not set.
+ *
  * Ensures:
  *
  *	If result is success:
- * \li	 	If 'target' is not NULL, 'name' is attached to it.
- *
- * \li		Uppercase letters are downcased in the copy iff
- *		DNS_NAME_DOWNCASE is set in options.
+ * \li		If 'target' is not NULL, 'name' is attached to it.
  *
  * \li		The current location in source is advanced, and the used space
  *		in target is updated.
@@ -739,7 +727,6 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
  * \li	Bad Form: Compression type not allowed
  * \li	Bad Form: Bad compression pointer
  * \li	Bad Form: Input too short
- * \li	Resource Limit: Too many compression pointers
  * \li	Resource Limit: Not enough space in buffer
  */
 

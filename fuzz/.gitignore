@@ -4,6 +4,7 @@
 /dns_message_checksig
 /dns_message_parse
 /dns_name_fromtext_target
+/dns_name_fromwire
 /dns_rdata_fromtext
 /dns_rdata_fromwire_text
 /isc_lex_getmastertoken
