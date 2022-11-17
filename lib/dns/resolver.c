@@ -320,6 +320,11 @@ struct fetchctx {
 	ISC_LIST(resquery_t) queries;
 	dns_adbfindlist_t finds;
 	dns_adbfind_t *find;
+	/*
+	 * altfinds are names and/or addresses of dual stack servers that
+	 * should be used when iterative resolution to a server is not
+	 * possible because the address family of that server is not usable.
+	 */
 	dns_adbfindlist_t altfinds;
 	dns_adbfind_t *altfind;
 	dns_adbaddrinfolist_t forwaddrs;
@@ -588,12 +593,14 @@ struct dns_resolver {
 #define FCTX_ADDRINFO_EDNSOK	0x04000
 #define FCTX_ADDRINFO_NOCOOKIE	0x08000
 #define FCTX_ADDRINFO_BADCOOKIE 0x10000
+#define FCTX_ADDRINFO_DUALSTACK 0x20000
 
 #define UNMARKED(a)    (((a)->flags & FCTX_ADDRINFO_MARK) == 0)
 #define ISFORWARDER(a) (((a)->flags & FCTX_ADDRINFO_FORWARDER) != 0)
 #define NOCOOKIE(a)    (((a)->flags & FCTX_ADDRINFO_NOCOOKIE) != 0)
 #define EDNSOK(a)      (((a)->flags & FCTX_ADDRINFO_EDNSOK) != 0)
 #define BADCOOKIE(a)   (((a)->flags & FCTX_ADDRINFO_BADCOOKIE) != 0)
+#define ISDUALSTACK(a) (((a)->flags & FCTX_ADDRINFO_DUALSTACK) != 0)
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
@@ -3639,7 +3646,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				}
 			}
 		}
-		if ((flags & FCTX_ADDRINFO_FORWARDER) != 0) {
+		if ((flags & FCTX_ADDRINFO_DUALSTACK) != 0) {
 			ISC_LIST_APPEND(fctx->altfinds, find, publink);
 		} else {
 			ISC_LIST_APPEND(fctx->finds, find, publink);
@@ -3938,7 +3945,7 @@ normal_nses:
 		     a = ISC_LIST_NEXT(a, link)) {
 			if (!a->isaddress) {
 				findname(fctx, &a->_u._n.name, a->_u._n.port,
-					 stdoptions, FCTX_ADDRINFO_FORWARDER,
+					 stdoptions, FCTX_ADDRINFO_DUALSTACK,
 					 now, NULL, NULL, NULL);
 				continue;
 			}
@@ -3951,6 +3958,7 @@ normal_nses:
 			if (result == ISC_R_SUCCESS) {
 				dns_adbaddrinfo_t *cur;
 				ai->flags |= FCTX_ADDRINFO_FORWARDER;
+				ai->flags |= FCTX_ADDRINFO_DUALSTACK;
 				cur = ISC_LIST_HEAD(fctx->altaddrs);
 				while (cur != NULL && cur->srtt < ai->srtt) {
 					cur = ISC_LIST_NEXT(cur, publink);
@@ -7117,7 +7125,9 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	unsigned int labels;
 	dns_namereln_t rel;
 
-	apex = ISFORWARDER(fctx->addrinfo) ? fctx->fwdname : &fctx->domain;
+	apex = (ISDUALSTACK(fctx->addrinfo) || !ISFORWARDER(fctx->addrinfo))
+		       ? &fctx->domain
+		       : fctx->fwdname;
 
 	/*
 	 * The name is outside the queried namespace.
