@@ -1,3 +1,6 @@
+6095.	[test]		Test various 'islands of trust' configurations when
+			using managed keys. [GL #3662]
+
 6094.	[bug]		Building against (or running with) libuv versions
 			1.35.0 and 1.36.0 is now a fatal error.  The rules for
 			mixing and matching compile-time and run-time libuv
