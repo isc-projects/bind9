@@ -404,6 +404,17 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	}
 
 	obj = NULL;
+	if (get_maps(maps, "check-wildcard", &obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			zone_options |= DNS_ZONEOPT_CHECKWILDCARD;
+		} else {
+			zone_options &= ~DNS_ZONEOPT_CHECKWILDCARD;
+		}
+	} else {
+		zone_options |= DNS_ZONEOPT_CHECKWILDCARD;
+	}
+
+	obj = NULL;
 	if (get_checknames(maps, &obj)) {
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
 			zone_options |= DNS_ZONEOPT_CHECKNAMES;
