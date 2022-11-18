@@ -193,30 +193,10 @@ $KEYGEN -q -a $DEFAULT_ALGORITHM $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
-# secure-to-insecure transition test zone; used to test removal of
-# keys via nsupdate
-#
-setup secure-to-insecure.example
-$KEYGEN -a $DEFAULT_ALGORITHM -q -fk $zone > kg.out 2>&1 || dumpit kg.out
-$KEYGEN -a $DEFAULT_ALGORITHM -q $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -S -o $zone -f $zonefile $infile > s.out || dumpit s.out
-
-#
-# another secure-to-insecure transition test zone; used to test
-# removal of keys on schedule.
-#
-setup secure-to-insecure2.example
-ksk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 -fk $zone 2> kg.out) || dumpit kg.out
-echo $ksk > ../del1.key
-zsk=$($KEYGEN -q -a $DEFAULT_ALGORITHM -3 $zone 2> kg.out) || dumpit kg.out
-echo $zsk > ../del2.key
-$SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out || dumpit s.out
-
-#
 # Introducing a pre-published key test.
 #
 setup prepub.example
-infile="secure-to-insecure2.example.db.in"
+infile="prepub.example.db.in"
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q $zone > kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out || dumpit s.out

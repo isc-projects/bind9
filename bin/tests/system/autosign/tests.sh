@@ -267,80 +267,6 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-echo_i "checking NSEC->NSEC3 conversion prerequisites ($n)"
-ret=0
-# these commands should result in an empty file:
-$DIG $DIGOPTS +noall +answer nsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.1.test$n > /dev/null && ret=1
-$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.2.test$n > /dev/null && ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC3->NSEC conversion prerequisites ($n)"
-ret=0
-$DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "converting zones from nsec to nsec3"
-$NSUPDATE > /dev/null 2>&1 <<END	|| status=1
-server 10.53.0.3 ${PORT}
-zone nsec3.nsec3.example.
-update add nsec3.nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
-send
-zone optout.nsec3.example.
-update add optout.nsec3.example. 3600 NSEC3PARAM 1 1 10 BEEF
-send
-zone nsec3.example.
-update add nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
-send
-zone autonsec3.example.
-update add autonsec3.example. 3600 NSEC3PARAM 1 0 20 DEAF
-send
-zone nsec3.optout.example.
-update add nsec3.optout.example. 3600 NSEC3PARAM 1 0 10 BEEF
-send
-zone optout.optout.example.
-update add optout.optout.example. 3600 NSEC3PARAM 1 1 10 BEEF
-send
-zone optout.example.
-update add optout.example. 3600 NSEC3PARAM 1 1 10 BEEF
-send
-END
-
-if $SHELL ../testcrypto.sh -q RSASHA1
-then
-    # try to convert nsec-only.example; this should fail due to
-    # non-NSEC3 compatible keys
-    echo_i "preset nsec3param in unsigned zone via nsupdate ($n)"
-    $NSUPDATE > nsupdate.out 2>&1 <<END
-server 10.53.0.3 ${PORT}
-zone nsec-only.example.
-update add nsec-only.example. 3600 NSEC3PARAM 1 0 10 BEEF
-send
-END
-fi
-
-echo_i "checking for nsec3param in unsigned zone ($n)"
-ret=0
-$DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null && ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking for nsec3param signing record ($n)"
-ret=0
-$RNDCCMD 10.53.0.3 signing -list autonsec3.example. > signing.out.test$n 2>&1
-grep "Pending NSEC3 chain 1 0 20 DEAF" signing.out.test$n > /dev/null || ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
 echo_i "resetting nsec3param via rndc signing ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 signing -clear all autonsec3.example. > /dev/null 2>&1
@@ -359,6 +285,22 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "setting nsec3param via rndc signing ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 signing -nsec3param 1 1 10 beef optout.example. 2>&1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	ret=0
+	$DIG $DIGOPTS @10.53.0.3 nsec3param optout.example > dig.out.ns3.test$n
+	# Note that the Opt-Out flag is not used in NSEC3PARAM and is set to zero.
+	grep "NSEC3PARAM.*1.*0.*10.*BEEF" dig.out.ns3.test$n > /dev/null || ret=1
+	[ $ret -eq 0 ] && break
+	echo_i "waiting ... ($i)"
+	sleep 2
+done
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "signing preset nsec3 zone"
 zsk=$(cat autozsk.key)
 ksk=$(cat autoksk.key)
@@ -367,17 +309,6 @@ $SETTIME -K ns3 -P now -A now $ksk > settime.out.test$n.ksk || ret=1
 ($RNDCCMD 10.53.0.3 loadkeys autonsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 
 echo_i "waiting for changes to take effect"
-sleep 3
-
-echo_i "converting zone from nsec3 to nsec"
-$NSUPDATE > /dev/null 2>&1 << END	|| status=1
-server 10.53.0.3 ${PORT}
-zone nsec3-to-nsec.example.
-update delete nsec3-to-nsec.example. NSEC3PARAM
-send
-END
-
-echo_i "waiting for change to take effect"
 sleep 3
 
 missing=$(keyfile_to_key_id "$(cat noksk-ksk.key)")
@@ -483,51 +414,6 @@ ret=0
 $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.ok.test$n || ret=1
 [ -s  dig.out.ns3.ok.test$n ] || ret=1
 grep "NSEC3PARAM" dig.out.ns3.ok.test$n > /dev/null || ret=1
-$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC->NSEC3 conversion failed with NSEC-only key ($n)"
-ret=0
-if $SHELL ../testcrypto.sh -q RSASHA1
-then
-    grep "failed: REFUSED" nsupdate.out > /dev/null || ret=1
-else
-    echo_i "skip: RSASHA1 not supported"
-fi
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC3->NSEC conversion succeeded ($n)"
-ret=0
-# this command should result in an empty file:
-$DIG $DIGOPTS +noall +answer nsec3-to-nsec.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || ret=1
-grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && ret=1
-$DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
-$DIG $DIGOPTS +noauth q.nsec3-to-nsec.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
-grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking NSEC3->NSEC conversion with 'rndc signing -nsec3param none' ($n)"
-ret=0
-$RNDCCMD 10.53.0.3 signing -nsec3param none autonsec3.example. > /dev/null 2>&1
-# this command should result in an empty file:
-no_nsec3param() (
- $DIG $DIGOPTS +noall +answer autonsec3.example. nsec3param @10.53.0.3 > dig.out.ns3.nx.test$n || return 1
- grep "NSEC3PARAM" dig.out.ns3.nx.test$n > /dev/null && return 1
- return 0
-)
-retry_quiet 10 no_nsec3param || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
 $DIG $DIGOPTS +noauth q.autonsec3.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
 digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
@@ -1036,79 +922,11 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-echo_i "checking secure-to-insecure transition, nsupdate ($n)"
-ret=0
-$NSUPDATE > /dev/null 2>&1 <<END	|| status=1
-server 10.53.0.3 ${PORT}
-zone secure-to-insecure.example
-update delete secure-to-insecure.example dnskey
-send
-END
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	ret=0
-	$DIG $DIGOPTS axfr secure-to-insecure.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-	grep -E '(RRSIG|DNSKEY|NSEC)' dig.out.ns3.test$n > /dev/null && ret=1
-	[ $ret -eq 0 ] && break
-	echo_i "waiting ... ($i)"
-	sleep 2
-done
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking secure-to-insecure transition, scheduled ($n)"
-ret=0
-file="ns3/$(cat del1.key).key"
-$SETTIME -I now -D now $file > settime.out.test$n.1 || ret=1
-file="ns3/$(cat del2.key).key"
-$SETTIME -I now -D now $file > settime.out.test$n.2 || ret=1
-($RNDCCMD 10.53.0.3 sign secure-to-insecure2.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	ret=0
-	$DIG $DIGOPTS axfr secure-to-insecure2.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-	grep -E '(RRSIG|DNSKEY|NSEC3)' dig.out.ns3.test$n > /dev/null && ret=1
-	[ $ret -eq 0 ] && break
-	echo_i "waiting ... ($i)"
-	sleep 2
-done
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "checking jitter in a newly signed NSEC3 zone ($n)"
-ret=0
-# Use DNS UPDATE to add an NSEC3PARAM record into the zone.
-$NSUPDATE > nsupdate.out.test$n 2>&1 <<END || ret=1
-server 10.53.0.3 ${PORT}
-zone jitter.nsec3.example.
-update add jitter.nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
-send
-END
-[ $ret != 0 ] && echo_i "error: dynamic update add NSEC3PARAM failed"
-# Create DNSSEC keys in the zone directory.
-$KEYGEN -a $DEFAULT_ALGORITHM -3 -q -K ns3 jitter.nsec3.example > /dev/null
-# Trigger zone signing.
-($RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
-# Wait until zone has been signed.
-check_if_nsec3param_exists() {
-	$DIG $DIGOPTS NSEC3PARAM jitter.nsec3.example @10.53.0.3 > dig.out.ns3.1.test$n || return 1
-	grep -q "^jitter\.nsec3\.example\..*NSEC3PARAM" dig.out.ns3.1.test$n || return 1
-}
-retry_quiet 40 check_if_nsec3param_exists || {
-	echo_i "error: NSEC3PARAM not present yet"
-	ret=1
-}
-$DIG $DIGOPTS AXFR jitter.nsec3.example @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
-# Check jitter distribution.
-checkjitter dig.out.ns3.2.test$n || ret=1
-n=$((n + 1))
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
 echo_i "checking that serial number and RRSIGs are both updated (rt21045) ($n)"
 ret=0
-oldserial=$($DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '$0 !~ /SOA/ {print $3}')
-oldinception=$($DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {print $6}' | sort -u)
+$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+oldserial=$(cat dig.out.ns3.test$n | awk '$0 !~ /SOA/ {print $3}')
+oldinception=$(cat dig.out.ns3.test$n | awk '/SOA/ {print $6}' | sort -u)
 
 $KEYGEN -a $DEFAULT_ALGORITHM -3 -q -K ns3 -P 0 -A +6d -I +38d -D +45d prepub.example > /dev/null
 
@@ -1117,12 +935,12 @@ newserial=$oldserial
 try=0
 while [ $oldserial -eq $newserial -a $try -lt 42 ]
 do
-	newserial=$($DIG $DIGOPTS +short soa prepub.example @10.53.0.3 |
-		 awk '$0 !~ /SOA/ {print $3}')
+	$DIG $DIGOPTS +short soa prepub.example @10.53.0.3 > dig.out.ns3.test$n.2
+	newserial=$(cat dig.out.ns3.test$n.2 | awk '$0 !~ /SOA/ {print $3}')
 	sleep 1
 	try=$((try + 1))
 done
-newinception=$($DIG $DIGOPTS +short soa prepub.example @10.53.0.3 | awk '/SOA/ {print $6}' | sort -u)
+newinception=$(cat dig.out.ns3.test$n.2 | awk '/SOA/ {print $6}' | sort -u)
 #echo "$oldserial : $newserial"
 #echo "$oldinception : $newinception"
 
@@ -1179,7 +997,6 @@ status=$((status + ret))
 
 echo_i "checking that signing records have been marked as complete ($n)"
 ret=0
-checkprivate . 10.53.0.1 || ret=1
 checkprivate bar 10.53.0.2 || ret=1
 checkprivate example 10.53.0.2 0 type65280 || ret=1 # sig-signing-type 65280
 checkprivate private.secure.example 10.53.0.3 2 || ret=1 # pre-signed
@@ -1201,8 +1018,6 @@ checkprivate rsasha512.example 10.53.0.3 || ret=1
 checkprivate secure.example 10.53.0.3 || ret=1
 checkprivate secure.nsec3.example 10.53.0.3 || ret=1
 checkprivate secure.optout.example 10.53.0.3 || ret=1
-checkprivate secure-to-insecure2.example 10.53.0.3 2|| ret=1 # automatically removed
-checkprivate secure-to-insecure.example 10.53.0.3 2 || ret=1 # automatically removed
 checkprivate ttl1.example 10.53.0.3 || ret=1
 checkprivate ttl2.example 10.53.0.3 || ret=1
 checkprivate ttl3.example 10.53.0.3 || ret=1
@@ -1210,8 +1025,11 @@ checkprivate ttl4.example 10.53.0.3 || ret=1
 n=$((n + 1))
 status=$((status + ret))
 
-echo_i "forcing full sign"
+echo_i "forcing full sign ($n)"
+ret=0
 ($RNDCCMD 10.53.0.1 sign . 2>&1 | sed 's/^/ns1 /' | cat_i) || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
 
 echo_i "waiting for change to take effect"
 sleep 5

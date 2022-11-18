@@ -493,64 +493,6 @@ grep "3600.*NSEC3PARAM" dig.out.ns3.$n > /dev/null || ret=1
 grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
-n=$((n + 1))
-ret=0
-echo_i "add a new NSEC3PARAM via update ($n)"
-$NSUPDATE << EOF
-server 10.53.0.3 ${PORT}
-update add nsec3param.test 3600 NSEC3PARAM 1 0 4 -
-send
-EOF
-
-_ret=1
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	$DIG $DIGOPTS +tcp +norec +time=1 +tries=1 @10.53.0.3 nsec3param.test. NSEC3PARAM > dig.out.ns3.$n || _ret=1
-	if grep "ANSWER: 2," dig.out.ns3.$n > /dev/null; then
-		_ret=0
-		break
-	fi
-	sleep 1
-done
-
-if [ $_ret -ne 0 ]; then ret=1; fi
-grep "NSEC3PARAM 1 0 4 -" dig.out.ns3.$n > /dev/null || ret=1
-grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=$((ret + status)); fi
-
-n=$((n + 1))
-ret=0
-echo_i "add, delete and change the ttl of the NSEC3PARAM rrset via update ($n)"
-$NSUPDATE << EOF
-server 10.53.0.3 ${PORT}
-update delete nsec3param.test NSEC3PARAM
-update add nsec3param.test 7200 NSEC3PARAM 1 0 5 -
-send
-EOF
-
-_ret=1
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	$DIG $DIGOPTS +tcp +norec +time=1 +tries=1 @10.53.0.3 nsec3param.test. NSEC3PARAM > dig.out.ns3.$n || _ret=1
-	if grep "ANSWER: 1," dig.out.ns3.$n > /dev/null; then
-		_ret=0
-		break
-	fi
-	sleep 1
-done
-
-if [ $_ret -ne 0 ]; then ret=1; fi
-grep "7200.*NSEC3PARAM 1 0 5 -" dig.out.ns3.$n > /dev/null || ret=1
-grep "flags:[^;]* aa[ ;]" dig.out.ns3.$n > /dev/null || ret=1
-$JOURNALPRINT ns3/nsec3param.test.db.signed.jnl > jp.out.ns3.$n
-# intermediate TTL changes.
-grep "add nsec3param.test.	7200	IN	NSEC3PARAM 1 0 4 -" jp.out.ns3.$n > /dev/null || ret=1
-grep "add nsec3param.test.	7200	IN	NSEC3PARAM 1 0 1 -" jp.out.ns3.$n > /dev/null || ret=1
-# delayed adds and deletes.
-grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000180000500" jp.out.ns3.$n > /dev/null || ret=1
-grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000140000100" jp.out.ns3.$n > /dev/null || ret=1
-grep "add nsec3param.test.	0	IN	TYPE65534 .# 6 000140000400" jp.out.ns3.$n > /dev/null || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=$((ret + status)); fi
-
-
 ret=0
 echo_i "testing that rndc stop updates the file"
 $NSUPDATE -k ns1/ddns.key <<END > /dev/null || ret=1

@@ -2623,8 +2623,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
 	dns_zoneopt_t options;
-	dns_difftuple_t *tuple;
-	dns_rdata_dnskey_t dnskey;
 	bool had_dnskey;
 	dns_rdatatype_t privatetype = dns_zone_getprivatetype(zone);
 	dns_ttl_t maxttl = 0;
@@ -3394,22 +3392,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		CHECK(rrset_exists(db, ver, zonename, dns_rdatatype_dnskey, 0,
 				   &has_dnskey));
 
-#define ALLOW_SECURE_TO_INSECURE(zone) \
-	((dns_zone_getoptions(zone) & DNS_ZONEOPT_SECURETOINSECURE) != 0)
-
 		CHECK(rrset_exists(db, oldver, zonename, dns_rdatatype_dnskey,
 				   0, &had_dnskey));
-		if (!ALLOW_SECURE_TO_INSECURE(zone)) {
-			if (had_dnskey && !has_dnskey) {
-				update_log(client, zone, LOGLEVEL_PROTOCOL,
-					   "update rejected: all DNSKEY "
-					   "records removed and "
-					   "'dnssec-secure-to-insecure' "
-					   "not set");
-				result = DNS_R_REFUSED;
-				goto failure;
-			}
-		}
 
 		CHECK(rollback_private(db, privatetype, ver, &diff));
 
@@ -3500,81 +3484,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		 * Notify secondaries of the change we just made.
 		 */
 		dns_zone_notify(zone);
-
-		/*
-		 * Cause the zone to be signed with the key that we
-		 * have just added or have the corresponding signatures
-		 * deleted.
-		 *
-		 * Note: we are already committed to this course of action.
-		 */
-		for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-		     tuple = ISC_LIST_NEXT(tuple, link))
-		{
-			isc_region_t r;
-			dns_secalg_t algorithm;
-			uint16_t keyid;
-
-			if (tuple->rdata.type != dns_rdatatype_dnskey) {
-				continue;
-			}
-
-			dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
-			if ((dnskey.flags &
-			     (DNS_KEYFLAG_OWNERMASK | DNS_KEYTYPE_NOAUTH)) !=
-			    DNS_KEYOWNER_ZONE)
-			{
-				continue;
-			}
-
-			dns_rdata_toregion(&tuple->rdata, &r);
-			algorithm = dnskey.algorithm;
-			keyid = dst_region_computeid(&r);
-
-			result = dns_zone_signwithkey(
-				zone, algorithm, keyid,
-				(tuple->op == DNS_DIFFOP_DEL));
-			if (result != ISC_R_SUCCESS) {
-				update_log(client, zone, ISC_LOG_ERROR,
-					   "dns_zone_signwithkey failed: %s",
-					   isc_result_totext(result));
-			}
-		}
-
-		/*
-		 * Cause the zone to add/delete NSEC3 chains for the
-		 * deferred NSEC3PARAM changes.
-		 *
-		 * Note: we are already committed to this course of action.
-		 */
-		for (tuple = ISC_LIST_HEAD(diff.tuples); tuple != NULL;
-		     tuple = ISC_LIST_NEXT(tuple, link))
-		{
-			unsigned char buf[DNS_NSEC3PARAM_BUFFERSIZE];
-			dns_rdata_t rdata = DNS_RDATA_INIT;
-			dns_rdata_nsec3param_t nsec3param;
-
-			if (tuple->rdata.type != privatetype ||
-			    tuple->op != DNS_DIFFOP_ADD) {
-				continue;
-			}
-
-			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
-							buf, sizeof(buf))) {
-				continue;
-			}
-			dns_rdata_tostruct(&rdata, &nsec3param, NULL);
-			if (nsec3param.flags == 0) {
-				continue;
-			}
-
-			result = dns_zone_addnsec3chain(zone, &nsec3param);
-			if (result != ISC_R_SUCCESS) {
-				update_log(client, zone, ISC_LOG_ERROR,
-					   "dns_zone_addnsec3chain failed: %s",
-					   isc_result_totext(result));
-			}
-		}
 	} else {
 		update_log(client, zone, LOGLEVEL_DEBUG, "redundant request");
 		dns_db_closeversion(db, &ver, true);

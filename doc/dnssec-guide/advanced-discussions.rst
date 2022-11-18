@@ -889,24 +889,15 @@ for the relevant keys, and :iscman:`named` uses the new algorithm when the
 key is next rolled. It performs a smooth transition to the new
 algorithm, ensuring that the zone remains valid throughout rollover.
 
-If you are using other methods to sign the zone, the administrator needs to do more work. As
-with other key rollovers, when the zone is a primary zone, an algorithm
-rollover can be accomplished using dynamic updates or automatic key
-rollovers. For secondary zones, only automatic key rollovers are
-possible, but the :iscman:`dnssec-settime` utility can be used to control the
-timing.
-
-In any case, the first step is to put DNSKEYs in place using the new algorithm.
+If you are using other methods to sign the zone, the administrator needs to do
+more work. The first step is to put DNSKEYs in place using the new algorithm.
 You must generate the ``K*`` files for the new algorithm and put
 them in the zone's key directory, where :iscman:`named` can access them. Take
 care to set appropriate ownership and permissions on the keys. If the
 :any:`auto-dnssec` zone option is set to ``maintain``, :iscman:`named`
 automatically signs the zone with the new keys, based on their timing
 metadata when the :any:`dnssec-loadkeys-interval` elapses or when you issue the
-:option:`rndc loadkeys` command. Otherwise, for primary zones, you can use
-:iscman:`nsupdate` to add the new DNSKEYs to the zone; this causes :iscman:`named`
-to use them to sign the zone. For secondary zones, e.g., on a
-"bump in the wire" signing server, :iscman:`nsupdate` cannot be used.
+:option:`rndc loadkeys` command.
 
 Once the zone has been signed by the new DNSKEYs (and you have waited
 for at least one TTL period), you must inform the parent zone and any trust
@@ -930,10 +921,8 @@ utility to set the *Delete* date on all keys to any time in the past.
 (See the :option:`dnssec-settime -D date/offset <dnssec-settime -D>` option.)
 
 After adjusting the timing metadata, the :option:`rndc loadkeys` command
-causes :iscman:`named` to remove the DNSKEYs and
-RRSIGs for the old algorithm from the zone. Note also that with the
-:iscman:`nsupdate` method, removing the DNSKEYs also causes :iscman:`named` to
-remove the associated RRSIGs automatically.
+causes :iscman:`named` to remove the DNSKEYs and RRSIGs for the old algorithm
+from the zone.
 
 Once you have verified that the old DNSKEYs and RRSIGs have been removed
 from the zone, the final (optional) step is to remove the key files for

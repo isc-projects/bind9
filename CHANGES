@@ -1,3 +1,6 @@
+6023.	[func]		Remove dynamic update DNSSEC management feature.
+			[GL #3686]
+
 6022.	[performance]	The decompression implementation in dns_name_fromwire()
 			is now smaller and faster. [GL #3655]
 

@@ -170,21 +170,6 @@ zone "nsec3-to-nsec.example" {
 	auto-dnssec maintain;
 };
 
-zone "secure-to-insecure.example" {
-	type primary;
-	file "secure-to-insecure.example.db";
-	allow-update { any; };
-	dnssec-secure-to-insecure yes;
-};
-
-zone "secure-to-insecure2.example" {
-	type primary;
-	file "secure-to-insecure2.example.db";
-	allow-update { any; };
-	auto-dnssec maintain;
-	dnssec-secure-to-insecure yes;
-};
-
 zone "oldsigs.example" {
 	type primary;
 	file "oldsigs.example.db";

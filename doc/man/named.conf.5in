@@ -179,7 +179,7 @@ options {
 	dnssec\-loadkeys\-interval <integer>;
 	dnssec\-must\-be\-secure <string> <boolean>; // may occur multiple times
 	dnssec\-policy <string>;
-	dnssec\-secure\-to\-insecure <boolean>;
+	dnssec\-secure\-to\-insecure <boolean>; // obsolete
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
@@ -487,7 +487,7 @@ view <string> [ <class> ] {
 	dnssec\-loadkeys\-interval <integer>;
 	dnssec\-must\-be\-secure <string> <boolean>; // may occur multiple times
 	dnssec\-policy <string>;
-	dnssec\-secure\-to\-insecure <boolean>;
+	dnssec\-secure\-to\-insecure <boolean>; // obsolete
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
@@ -691,7 +691,7 @@ zone <string> [ <class> ] {
 	dnssec\-dnskey\-kskonly <boolean>;
 	dnssec\-loadkeys\-interval <integer>;
 	dnssec\-policy <string>;
-	dnssec\-secure\-to\-insecure <boolean>;
+	dnssec\-secure\-to\-insecure <boolean>; // obsolete
 	dnssec\-update\-mode ( maintain | no\-resign );
 	file <quoted_string>;
 	forward ( first | only );
