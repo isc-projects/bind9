@@ -2515,5 +2515,55 @@ rndccmd 10.53.0.2 reconfig || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+##########################################################################
+n=$((n+1))
+echo_i "Adding a domain tls1.example. to primary via RNDC ($n)"
+ret=0
+# enough initial content for IXFR response when TXT record is added below
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/tls1.example.db
+echo "@ 3600 IN NS invalid." >> ns1/tls1.example.db
+echo "foo 3600 IN TXT some content here" >> ns1/tls1.example.db
+echo "bar 3600 IN TXT some content here" >> ns1/tls1.example.db
+echo "xxx 3600 IN TXT some content here" >> ns1/tls1.example.db
+echo "yyy 3600 IN TXT some content here" >> ns1/tls1.example.db
+rndccmd 10.53.0.1 addzone tls1.example. in default '{ type primary; file "tls1.example.db"; allow-transfer transport tls { key tsig_key; }; allow-update { any; }; notify explicit; also-notify { 10.53.0.4; }; };' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that tls1.example. is now served by primary ($n)"
+ret=0
+wait_for_soa @10.53.0.1 tls1.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns4/named.run >/dev/null
+
+n=$((n+1))
+echo_i "Adding domain tls1.example. to catalog-tls zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add 1ba056ba375209a66a2c9a0617b1df714b998112.zones.catalog-tls.example. 3600 IN PTR tls1.example.
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns4/named.run "catz: adding zone 'tls1.example' from catalog 'catalog-tls.example'" &&
+wait_for_message ns4/named.run "transfer of 'tls1.example/IN' from 10.53.0.1#${TLSPORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that tls1.example. is served by secondary ($n)"
+ret=0
+wait_for_soa @10.53.0.4 tls1.example. dig.out.test$n || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
