@@ -1,3 +1,6 @@
+6025.	[bug]		Copy TLS identifier when setting up primaries for
+			catalog member zones. [GL #3638]
+
 6024.	[func]		Deprecate 'auto-dnssec'. [GL #3667]
 
 6022.	[performance]	The decompression implementation in dns_name_fromwire()
