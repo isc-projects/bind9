@@ -1490,12 +1490,9 @@ gcov:
     # Help gcovr process the nasty tricks in lib/dns/code.h, where we include C
     # source files from lib/dns/rdata/*/, using an even nastier trick.
     - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
-    # Help gcovr process inline functions in headers
-    - cp -f lib/dns/include/dns/*.h lib/dns/
-    - cp -f lib/dns/include/dns/*.h lib/ns/
-    - cp -f lib/isc/include/isc/*.h lib/isc/
-    - cp -f lib/isc/include/isc/*.h lib/dns/
-    - cp -f lib/isc/include/isc/*.h lib/ns/
+    # Help gcovr process inline functions in headers by copying all libdns and
+    # libisc headers to lib/{dns,isc,ns}/.
+    - for SRC in dns isc; do for DST in dns isc ns; do cp -f "lib/${SRC}/include/${SRC}"/*.h "lib/${DST}/"; done; done
     - find bin lib -maxdepth 1 -mindepth 1 -type d -exec cp -f lib/isc/include/isc/buffer.h "{}" \;
     - cp -f lib/isc/include/isc/buffer.h lib/isc/netmgr/buffer.h
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
