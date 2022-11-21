@@ -7,6 +7,10 @@
 6020.	[bug]		Ensure 'named-checkconf -z' respects the check-wildcard
 			option when loading a zone.  [GL #1905]
 
+6019.	[func]		Deprecate `coresize`, `datasize`, `files`, and
+			`stacksize` named.conf options. [GL #3676]
+
+
 6017.	[bug]		The view's zone table was not locked when it should
 			have been leading to race conditions when external
 			extensions that manipulate the zone table where in
