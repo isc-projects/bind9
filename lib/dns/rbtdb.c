@@ -9159,6 +9159,35 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	*iteratorp = NULL;
 }
 
+static bool
+iterator_active(dns_rbtdb_t *rbtdb, rbtdb_rdatasetiter_t *rbtiterator,
+		rdatasetheader_t *header) {
+	dns_ttl_t stale_ttl = header->rdh_ttl + rbtdb->serve_stale_ttl;
+
+	/*
+	 * Is this a "this rdataset doesn't exist" record?
+	 */
+	if (NONEXISTENT(header)) {
+		return (false);
+	}
+
+	/*
+	 * If this is a zone or this header still active then return it.
+	 */
+	if (!IS_CACHE(rbtdb) || ACTIVE(header, rbtiterator->common.now)) {
+		return (true);
+	}
+
+	/*
+	 * If we are not returning stale records or the rdataset is
+	 * too old don't return it.
+	 */
+	if (!STALEOK(rbtiterator) || (rbtiterator->common.now > stale_ttl)) {
+		return (false);
+	}
+	return (true);
+}
+
 static isc_result_t
 rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
@@ -9166,16 +9195,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
-	rbtdb_serial_t serial;
-	isc_stdtime_t now;
-
-	if (IS_CACHE(rbtdb)) {
-		serial = 1;
-		now = rbtiterator->common.now;
-	} else {
-		serial = rbtversion->serial;
-		now = 0;
-	}
+	rbtdb_serial_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_read);
@@ -9183,10 +9203,6 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	for (header = rbtnode->data; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			dns_ttl_t stale_ttl = header->rdh_ttl;
-			if (STALEOK(rbtiterator)) {
-				stale_ttl += rbtdb->serve_stale_ttl;
-			}
 			if (EXPIREDOK(rbtiterator)) {
 				if (!NONEXISTENT(header)) {
 					break;
@@ -9194,17 +9210,9 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				header = header->down;
 			} else if (header->serial <= serial && !IGNORE(header))
 			{
-				/*
-				 * Is this a "this rdataset doesn't exist"
-				 * record?  Or is it too old in the cache?
-				 *
-				 * Note: unlike everywhere else, we
-				 * check for now > header->rdh_ttl instead
-				 * of ">=".  This allows ANY and RRSIG
-				 *  queries for 0 TTL rdatasets to work.
-				 */
-				if (NONEXISTENT(header) ||
-				    (now != 0 && now > stale_ttl)) {
+				if (!iterator_active(rbtdb, rbtiterator,
+						     header))
+				{
 					header = NULL;
 				}
 				break;
@@ -9236,8 +9244,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
-	rbtdb_serial_t serial;
-	isc_stdtime_t now;
+	rbtdb_serial_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 	rbtdb_rdatatype_t type, negtype;
 	dns_rdatatype_t rdtype, covers;
 	bool expiredok = EXPIREDOK(rbtiterator);
@@ -9245,14 +9252,6 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	header = rbtiterator->current;
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
-	}
-
-	if (IS_CACHE(rbtdb)) {
-		serial = 1;
-		now = rbtiterator->common.now;
-	} else {
-		serial = rbtversion->serial;
-		now = 0;
 	}
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
@@ -9289,10 +9288,6 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	for (; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			dns_ttl_t stale_ttl = header->rdh_ttl;
-			if (STALEOK(rbtiterator)) {
-				stale_ttl += rbtdb->serve_stale_ttl;
-			}
 			if (expiredok) {
 				if (!NONEXISTENT(header)) {
 					break;
@@ -9300,17 +9295,9 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 				header = header->down;
 			} else if (header->serial <= serial && !IGNORE(header))
 			{
-				/*
-				 * Is this a "this rdataset doesn't
-				 * exist" record?
-				 *
-				 * Note: unlike everywhere else, we
-				 * check for now > header->ttl instead
-				 * of ">=".  This allows ANY and RRSIG
-				 * queries for 0 TTL rdatasets to work.
-				 */
-				if (NONEXISTENT(header) ||
-				    (now != 0 && now > stale_ttl)) {
+				if (!iterator_active(rbtdb, rbtiterator,
+						     header))
+				{
 					header = NULL;
 				}
 				break;
