@@ -1646,8 +1646,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
-	INSIST(client->nupdates == 0);
-	client->nupdates++;
 	event->ev_arg = client;
 
 	isc_nmhandle_attach(client->handle, &client->updatehandle);
@@ -3545,7 +3543,6 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->manager->task);
 	REQUIRE(client->updatehandle == client->handle);
 
-	INSIST(client->nupdates > 0);
 	switch (uev->result) {
 	case ISC_R_SUCCESS:
 		inc_stats(client, uev->zone, ns_statscounter_updatedone);
@@ -3560,8 +3557,6 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	if (uev->zone != NULL) {
 		dns_zone_detach(&uev->zone);
 	}
-
-	client->nupdates--;
 
 	respond(client, uev->result);
 
@@ -3578,8 +3573,6 @@ forward_fail(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	INSIST(client->nupdates > 0);
-	client->nupdates--;
 	respond(client, DNS_R_SERVFAIL);
 	isc_event_free(&event);
 	isc_nmhandle_detach(&client->updatehandle);
@@ -3614,8 +3607,6 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	INSIST(client->nupdates > 0);
-	client->nupdates--;
 	ns_client_sendraw(client, uev->answer);
 	dns_message_detach(&uev->answer);
 	isc_event_free(&event);
@@ -3659,8 +3650,6 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
-	INSIST(client->nupdates == 0);
-	client->nupdates++;
 	event->ev_arg = client;
 
 	dns_name_format(dns_zone_getorigin(zone), namebuf, sizeof(namebuf));
