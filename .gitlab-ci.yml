@@ -1497,7 +1497,6 @@ gcov:
     - cp -f lib/isc/include/isc/*.h lib/dns/
     - cp -f lib/isc/include/isc/*.h lib/ns/
     - find bin lib -maxdepth 1 -mindepth 1 -type d -exec cp -f lib/isc/include/isc/buffer.h "{}" \;
-    - cp -f lib/isc/include/isc/buffer.h fuzz/
     - cp -f lib/isc/include/isc/buffer.h lib/isc/netmgr/buffer.h
     - cp -f lib/isc/include/isc/hash.h lib/dns/hash.h
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
