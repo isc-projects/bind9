@@ -257,13 +257,6 @@ typedef enum isc__netievent_type {
 
 	netievent_tcpaccept,
 
-	netievent_tcpdnsaccept,
-	netievent_tcpdnsconnect,
-	netievent_tcpdnsclose,
-	netievent_tcpdnssend,
-	netievent_tcpdnsread,
-	netievent_tcpdnscancel,
-
 	netievent_tlsclose,
 	netievent_tlssend,
 	netievent_tlsconnect,
@@ -299,8 +292,6 @@ typedef enum isc__netievent_type {
 
 	netievent_tcplisten,
 	netievent_tcpstop,
-	netievent_tcpdnslisten,
-	netievent_tcpdnsstop,
 	netievent_tlsdnslisten,
 	netievent_tlsdnsstop,
 
@@ -1402,67 +1393,6 @@ isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
-isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
-		    isc_nm_cb_t cb, void *cbarg);
-/*%<
- * Back-end implementation of isc_nm_send() for TCPDNS handles.
- */
-
-void
-isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock);
-
-void
-isc__nm_tcpdns_close(isc_nmsocket_t *sock);
-/*%<
- * Close a TCPDNS socket.
- */
-
-void
-isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on 'sock'.
- */
-
-void
-isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
-/*%<
- * Set the read timeout and reset the timer for the TCPDNS socket
- * associated with 'handle', and the TCP socket it wraps around.
- */
-
-void
-isc__nm_async_tcpdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Callback handlers for asynchronous TCPDNS events.
- */
-
-void
-isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
-/*
- * Back-end implementation of isc_nm_read() for TCPDNS handles.
- */
-
-void
-isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
-/*%<
- * Stop reading on a connected TCPDNS handle.
- */
-
-void
 isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 
@@ -1925,15 +1855,6 @@ NETIEVENT_SOCKET_TYPE(tlsdobio);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpstop);
 
-NETIEVENT_SOCKET_TYPE(tcpdnsclose);
-NETIEVENT_SOCKET_TYPE(tcpdnsread);
-NETIEVENT_SOCKET_TYPE(tcpdnsstop);
-NETIEVENT_SOCKET_TYPE(tcpdnslisten);
-NETIEVENT_SOCKET_REQ_TYPE(tcpdnsconnect);
-NETIEVENT_SOCKET_REQ_TYPE(tcpdnssend);
-NETIEVENT_SOCKET_HANDLE_TYPE(tcpdnscancel);
-NETIEVENT_SOCKET_QUOTA_TYPE(tcpdnsaccept);
-
 NETIEVENT_SOCKET_TYPE(tlsdnsclose);
 NETIEVENT_SOCKET_TYPE(tlsdnsread);
 NETIEVENT_SOCKET_TYPE(tlsdnsstop);
@@ -1980,15 +1901,6 @@ NETIEVENT_SOCKET_DECL(tlsdobio);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpstop);
 
-NETIEVENT_SOCKET_DECL(tcpdnsclose);
-NETIEVENT_SOCKET_DECL(tcpdnsread);
-NETIEVENT_SOCKET_DECL(tcpdnsstop);
-NETIEVENT_SOCKET_DECL(tcpdnslisten);
-NETIEVENT_SOCKET_REQ_DECL(tcpdnsconnect);
-NETIEVENT_SOCKET_REQ_DECL(tcpdnssend);
-NETIEVENT_SOCKET_HANDLE_DECL(tcpdnscancel);
-NETIEVENT_SOCKET_QUOTA_DECL(tcpdnsaccept);
-
 NETIEVENT_SOCKET_DECL(tlsdnsclose);
 NETIEVENT_SOCKET_DECL(tlsdnsread);
 NETIEVENT_SOCKET_DECL(tlsdnsstop);
@@ -2031,15 +1943,10 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 void
 isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
-void
-isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
-			      bool async);
-void
+
 isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			      bool async);
 
-isc_result_t
-isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock);
 isc_result_t
 isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock);
 
@@ -2054,8 +1961,6 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		    const struct sockaddr *addr, unsigned int flags);
 void
 isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-void
-isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 void
 isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
