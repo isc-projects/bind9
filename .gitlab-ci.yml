@@ -239,6 +239,9 @@ stages:
   - PYTHON="$(source bin/tests/system/conf.sh; echo $PYTHON)"
   - test -x "$PYTHON"
 
+.parse_tsan: &parse_tsan
+    - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
+
 .check_readline_setup: &check_readline_setup
     - if [[ -n "${WITHOUT_READLINE}" ]]; then
         ! grep "^#define HAVE_READLINE" config.h;
@@ -336,7 +339,7 @@ stages:
   after_script:
     - cat bin/tests/system/test-suite.log
     - *find_python
-    - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
+    - *parse_tsan
     - >
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
@@ -381,7 +384,7 @@ stages:
   <<: *unit_test_common
   after_script:
     - *find_python
-    - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
+    - *parse_tsan
     - >
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
