@@ -1258,6 +1258,36 @@ respdiff-short:
   script:
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
 
+respdiff-short:asan:
+  <<: *respdiff_job
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--without-jemalloc"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+  script:
+    - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+  allow_failure: true
+
+respdiff-short:tsan:
+  <<: *respdiff_job
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+  script:
+    - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+  after_script:
+    - *find_python
+    - *parse_tsan
+  allow_failure: true
+
 respdiff-long:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
@@ -1267,6 +1297,36 @@ respdiff-long:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -m /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+
+respdiff-long:asan:
+  <<: *respdiff_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--without-jemalloc"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+  script:
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+  allow_failure: true
+
+respdiff-long:tsan:
+  <<: *respdiff_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+  script:
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
+  after_script:
+    - *find_python
+    - *parse_tsan
+  allow_failure: true
 
 respdiff-long-third-party:
   <<: *respdiff_job
