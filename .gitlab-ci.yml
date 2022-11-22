@@ -248,6 +248,9 @@ stages:
       $EXTRA_CONFIGURE
       || (test -s config.log && cat config.log; exit 1)
 
+.parse_tsan: &parse_tsan
+    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -340,7 +343,7 @@ stages:
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   after_script:
-    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - *parse_tsan
   artifacts:
     expire_in: "1 day"
     untracked: true
@@ -399,7 +402,7 @@ stages:
   <<: *unit_test_common
   after_script:
     - *kyua_report_html
-    - find -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+    - *parse_tsan
   artifacts:
     untracked: true
     expire_in: "1 day"
