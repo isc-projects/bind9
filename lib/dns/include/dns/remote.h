@@ -170,8 +170,7 @@ dns_remote_sourceaddr(dns_remote_t *remote);
 isc_sockaddr_t
 dns_remote_addr(dns_remote_t *remote, unsigned int i);
 /*%<
- *	Return the address at index 'i'. Returns NULL if we i is equal
- *	or larger than the address count.
+ *	Return the address at index 'i'.
  *
  *	Requires:
  *		'remote' is a valid remote structure.
