@@ -547,6 +547,20 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				if (sock->statichandle == NULL) {
 					finish = true;
 					break;
+				} else if (sock->recv_cb == NULL) {
+					/*
+					 * The 'sock->recv_cb' might have been
+					 * nullified during the call to
+					 * 'sock->recv_cb'. That could happen,
+					 * e.g. by an indirect call to
+					 * 'isc_nmhandle_close()' from within
+					 * the callback when wrapping up.
+					 *
+					 * In this case, let's close the TLS
+					 * connection.
+					 */
+					finish = true;
+					break;
 				} else if (!sock->reading) {
 					/*
 					 * Reading has been paused from withing
