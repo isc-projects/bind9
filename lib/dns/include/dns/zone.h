@@ -635,8 +635,8 @@ dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
 
 void
 dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
-		      dns_name_t **keynames, dns_name_t **tlsnames,
-		      uint32_t count);
+		      isc_sockaddr_t *sources, dns_name_t **keynames,
+		      dns_name_t **tlsnames, uint32_t count);
 /*%<
  *	Set the list of primary servers for the zone.
  *
@@ -656,8 +656,8 @@ dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
 
 void
 dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
-		      dns_name_t **keynames, dns_name_t **tlsnames,
-		      uint32_t count);
+		      isc_sockaddr_t *sources, dns_name_t **keynames,
+		      dns_name_t **tlsnames, uint32_t count);
 /*%<
  *	Set the list of parental agents for the zone.
  *
@@ -677,8 +677,9 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 
 void
 dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
-		       isc_dscp_t *dscps, dns_name_t **keynames,
-		       dns_name_t **tlsnames, uint32_t count);
+		       isc_sockaddr_t *sources, isc_dscp_t *dscps,
+		       dns_name_t **keynames, dns_name_t **tlsnames,
+		       uint32_t count);
 /*%<
  *	Set the list of additional servers to be notified when
  *	a zone changes.	 To clear the list use 'count = 0'.

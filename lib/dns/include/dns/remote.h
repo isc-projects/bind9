@@ -32,6 +32,7 @@ struct dns_remote {
 	unsigned int	magic;
 	isc_mem_t      *mctx;
 	isc_sockaddr_t *addresses;
+	isc_sockaddr_t *sources;
 	isc_dscp_t     *dscps;
 	dns_name_t    **keynames;
 	dns_name_t    **tlsnames;
@@ -44,6 +45,15 @@ isc_sockaddr_t *
 dns_remote_addresses(dns_remote_t *remote);
 /*%<
  *	Return the addresses of the remote server.
+ *
+ *	Requires:
+ *		'remote' is a valid remote structure.
+ */
+
+isc_sockaddr_t *
+dns_remote_sources(dns_remote_t *remote);
+/*%<
+ *	Return the source addresses to be used for the remote server.
  *
  *	Requires:
  *		'remote' is a valid remote structure.
@@ -78,15 +88,16 @@ dns_remote_tlsnames(dns_remote_t *remote);
 
 void
 dns_remote_init(dns_remote_t *remote, unsigned int count,
-		const isc_sockaddr_t *addrs, const isc_dscp_t *dscp,
-		dns_name_t **keynames, dns_name_t **tlsnames, bool mark,
-		isc_mem_t *mctx);
+		const isc_sockaddr_t *addrs, const isc_sockaddr_t *srcs,
+		const isc_dscp_t *dscp, dns_name_t **keynames,
+		dns_name_t **tlsnames, bool mark, isc_mem_t *mctx);
 
 /*%<
  *	Initialize a remote server. Set the provided addresses (addrs),
- *	dscp's (dscp), key names (keynames) and tls names (tlsnames). Use the
- *	provided memory context (mctx) for allocations. If 'mark' is 'true',
- *	set up a list of boolean values to mark the server bad or good.
+ *	source addresses (srcs), dscp's (dscp), key names (keynames) and
+ *	tls names (tlsnames). Use the provided memory context (mctx) for
+ *	allocations. If 'mark' is 'true', set up a list of boolean values to
+ *	mark the server bad or good.
  *
  *	Requires:
  *		'remote' is a valid remote structure.
@@ -144,6 +155,16 @@ dns_remote_curraddr(dns_remote_t *remote);
  *	Requires:
  *		'remote' is a valid remote structure.
  *		'remote->addresses' is not NULL.
+ */
+
+isc_sockaddr_t
+dns_remote_sourceaddr(dns_remote_t *remote);
+/*%<
+ *	Return the current source address.
+ *
+ *	Requires:
+ *		'remote' is a valid remote structure.
+ *		'remote->sources' is not NULL.
  */
 
 isc_sockaddr_t
