@@ -345,7 +345,6 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 	switch (handle->sock->type) {
 	case isc_nm_tcpsocket:
 	case isc_nm_udpsocket:
-	case isc_nm_tlsdnssocket:
 		handle->sock->write_timeout = write_timeout;
 		break;
 	case isc_nm_tlssocket:
@@ -451,17 +450,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(tcplisten);
 		NETIEVENT_CASE(tcpstop);
 
-		NETIEVENT_CASE(tlsdnscycle);
-		NETIEVENT_CASE(tlsdnsaccept);
-		NETIEVENT_CASE(tlsdnslisten);
-		NETIEVENT_CASE(tlsdnsconnect);
-		NETIEVENT_CASE(tlsdnssend);
-		NETIEVENT_CASE(tlsdnscancel);
-		NETIEVENT_CASE(tlsdnsclose);
-		NETIEVENT_CASE(tlsdnsread);
-		NETIEVENT_CASE(tlsdnsstop);
-		NETIEVENT_CASE(tlsdnsshutdown);
-
 		NETIEVENT_CASE(tlssend);
 		NETIEVENT_CASE(tlsclose);
 		NETIEVENT_CASE(tlsdobio);
@@ -515,17 +503,6 @@ NETIEVENT_SOCKET_DEF(tlsdobio);
 NETIEVENT_SOCKET_DEF(udplisten);
 NETIEVENT_SOCKET_DEF(udpstop);
 NETIEVENT_SOCKET_HANDLE_DEF(udpcancel);
-
-NETIEVENT_SOCKET_DEF(tlsdnsclose);
-NETIEVENT_SOCKET_DEF(tlsdnsread);
-NETIEVENT_SOCKET_DEF(tlsdnsstop);
-NETIEVENT_SOCKET_DEF(tlsdnslisten);
-NETIEVENT_SOCKET_REQ_DEF(tlsdnsconnect);
-NETIEVENT_SOCKET_REQ_DEF(tlsdnssend);
-NETIEVENT_SOCKET_HANDLE_DEF(tlsdnscancel);
-NETIEVENT_SOCKET_QUOTA_DEF(tlsdnsaccept);
-NETIEVENT_SOCKET_DEF(tlsdnscycle);
-NETIEVENT_SOCKET_DEF(tlsdnsshutdown);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
@@ -683,10 +660,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		nmhandle_free(sock, handle);
 	}
 
-	if (sock->buf != NULL) {
-		isc_mem_put(sock->worker->mctx, sock->buf, sock->buf_size);
-	}
-
 	if (sock->quota != NULL) {
 		isc_quota_detach(&sock->quota);
 	}
@@ -701,7 +674,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 
 	isc_astack_destroy(sock->inactivereqs);
 
-	isc__nm_tlsdns_cleanup_data(sock);
 	isc__nm_tls_cleanup_data(sock);
 #if HAVE_LIBNGHTTP2
 	isc__nm_http_cleanup_data(sock);
@@ -830,9 +802,6 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_tcpsocket:
 			isc__nm_tcp_close(sock);
 			return;
-		case isc_nm_tlsdnssocket:
-			isc__nm_tlsdns_close(sock);
-			return;
 		case isc_nm_streamdnssocket:
 			isc__nm_streamdns_close(sock);
 			return;
@@ -886,7 +855,6 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 	REQUIRE(VALID_NMSOCK(*sockp));
 	REQUIRE((*sockp)->type == isc_nm_udplistener ||
 		(*sockp)->type == isc_nm_tcplistener ||
-		(*sockp)->type == isc_nm_tlsdnslistener ||
 		(*sockp)->type == isc_nm_streamdnslistener ||
 		(*sockp)->type == isc_nm_tlslistener ||
 		(*sockp)->type == isc_nm_httplistener);
@@ -913,7 +881,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.result = ISC_R_UNSET,
 	};
 
-	ISC_LIST_INIT(sock->tls.sendreqs);
 	isc_mutex_init(&sock->lock);
 
 	if (iface != NULL) {
@@ -960,8 +927,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		break;
 	case isc_nm_tcpsocket:
 	case isc_nm_tcplistener:
-	case isc_nm_tlsdnssocket:
-	case isc_nm_tlsdnslistener:
 	case isc_nm_httpsocket:
 	case isc_nm_httplistener:
 		switch (family) {
@@ -1094,7 +1059,6 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
-	case isc_nm_tlsdnssocket:
 		if (!atomic_load(&sock->client)) {
 			break;
 		}
@@ -1144,7 +1108,6 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 
 	return (handle->sock->type == isc_nm_tcpsocket ||
 		handle->sock->type == isc_nm_tlssocket ||
-		handle->sock->type == isc_nm_tlsdnssocket ||
 		handle->sock->type == isc_nm_httpsocket ||
 		handle->sock->type == isc_nm_streamdnssocket);
 }
@@ -1292,23 +1255,6 @@ isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
 }
 
 void
-isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
-	REQUIRE(len <= NM_BIG_BUF);
-
-	if (sock->buf == NULL) {
-		/* We don't have the buffer at all */
-		size_t alloc_len = len < NM_REG_BUF ? NM_REG_BUF : NM_BIG_BUF;
-		sock->buf = isc_mem_get(sock->worker->mctx, alloc_len);
-		sock->buf_size = alloc_len;
-	} else {
-		/* We have the buffer but it's too small */
-		sock->buf = isc_mem_reget(sock->worker->mctx, sock->buf,
-					  sock->buf_size, NM_BIG_BUF);
-		sock->buf_size = NM_BIG_BUF;
-	}
-}
-
-void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1375,15 +1321,13 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 void
 isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
+	UNUSED(async);
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 		isc__nm_udp_failed_read_cb(sock, result, async);
 		return;
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_failed_read_cb(sock, result, async);
-		return;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_failed_read_cb(sock, result, async);
 		return;
 	case isc_nm_tlssocket:
 		isc__nm_tls_failed_read_cb(sock, result, async);
@@ -1409,11 +1353,6 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
 	isc__nmsocket_timer_stop(sock);
-
-	if (sock->tls.pending_req != NULL) {
-		REQUIRE(req == sock->tls.pending_req);
-		sock->tls.pending_req = NULL;
-	}
 
 	/*
 	 * Mark the connection as timed out and shutdown the socket.
@@ -1643,7 +1582,6 @@ isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf) {
 		buf->len = ISC_NETMGR_UDP_RECVBUF_SIZE;
 		break;
 	case isc_nm_tcpsocket:
-	case isc_nm_tlsdnssocket:
 		buf->len = ISC_NETMGR_TCP_RECVBUF_SIZE;
 		break;
 	default:
@@ -1674,10 +1612,6 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
 				  isc__nm_tcp_read_cb);
 		break;
-	case isc_nm_tlsdnssocket:
-		r = uv_read_start(&sock->uv_handle.stream, isc__nm_alloc_cb,
-				  isc__nm_tlsdns_read_cb);
-		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1704,7 +1638,6 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 		UV_RUNTIME_CHECK(uv_udp_recv_stop, r);
 		break;
 	case isc_nm_tcpsocket:
-	case isc_nm_tlsdnssocket:
 		r = uv_read_stop(&sock->uv_handle.stream);
 		UV_RUNTIME_CHECK(uv_read_stop, r);
 		break;
@@ -1724,90 +1657,6 @@ isc__nmsocket_closing(isc_nmsocket_t *sock) {
 	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
 		isc__nm_closing(sock->worker) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
-}
-
-static isc_result_t
-processbuffer(isc_nmsocket_t *sock) {
-	switch (sock->type) {
-	case isc_nm_tlsdnssocket:
-		return (isc__nm_tlsdns_processbuffer(sock));
-	default:
-		UNREACHABLE();
-	}
-}
-
-/*
- * Process a DNS message.
- *
- * If we only have an incomplete DNS message, we don't touch any
- * timers. If we do have a full message, reset the timer.
- *
- * Stop reading if this is a client socket.  In this case we'll be
- * called again later by isc__nm_resume_processing().
- */
-isc_result_t
-isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
-	for (;;) {
-		int_fast32_t ah = atomic_load(&sock->ah);
-		isc_result_t result = processbuffer(sock);
-		switch (result) {
-		case ISC_R_NOMORE:
-			/*
-			 * Don't reset the timer until we have a
-			 * full DNS message.
-			 */
-			result = isc__nm_start_reading(sock);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
-			/*
-			 * Start the timer only if there are no externally used
-			 * active handles, there's always one active handle
-			 * attached internally to sock->recv_handle in
-			 * accept_connection()
-			 */
-			if (ah == 1) {
-				isc__nmsocket_timer_start(sock);
-			}
-			goto done;
-		case ISC_R_CANCELED:
-			isc__nmsocket_timer_stop(sock);
-			isc__nm_stop_reading(sock);
-			goto done;
-		case ISC_R_SUCCESS:
-			/*
-			 * Stop the timer on the successful message read, this
-			 * also allows to restart the timer when we have no more
-			 * data.
-			 */
-			isc__nmsocket_timer_stop(sock);
-
-			if (atomic_load(&sock->client)) {
-				isc__nm_stop_reading(sock);
-				goto done;
-			}
-			break;
-		default:
-			UNREACHABLE();
-		}
-	}
-done:
-	return (ISC_R_SUCCESS);
-}
-
-void
-isc__nm_resume_processing(void *arg) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *)arg;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(!atomic_load(&sock->client));
-
-	if (isc__nmsocket_closing(sock)) {
-		return;
-	}
-
-	isc__nm_process_sock_buffer(sock);
 }
 
 void
@@ -1872,7 +1721,6 @@ isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-	case isc_nm_tlsdnssocket:
 		atomic_store(&sock->keepalive, value);
 		sock->read_timeout = value ? atomic_load(&netmgr->keepalive)
 					   : atomic_load(&netmgr->idle);
@@ -2009,9 +1857,6 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_send(handle, region, cb, cbarg);
 		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_send(handle, region, cb, cbarg);
-		break;
 	case isc_nm_streamdnssocket:
 		isc__nm_streamdns_send(handle, region, cb, cbarg);
 		break;
@@ -2039,9 +1884,6 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_read(handle, cb, cbarg);
 		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_read(handle, cb, cbarg);
-		break;
 	case isc_nm_streamdnssocket:
 		isc__nm_streamdns_read(handle, cb, cbarg);
 		break;
@@ -2065,9 +1907,6 @@ isc_nm_cancelread(isc_nmhandle_t *handle) {
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
 		isc__nm_udp_cancelread(handle);
-		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_cancelread(handle);
 		break;
 	case isc_nm_streamdnssocket:
 		isc__nm_streamdns_cancelread(handle);
@@ -2105,9 +1944,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tcplistener:
 		isc__nm_tcp_stoplistening(sock);
-		break;
-	case isc_nm_tlsdnslistener:
-		isc__nm_tlsdns_stoplistening(sock);
 		break;
 	case isc_nm_streamdnslistener:
 		isc__nm_streamdns_stoplistening(sock);
@@ -2339,10 +2175,8 @@ isc__nmsocket_reset(isc_nmsocket_t *sock) {
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-	case isc_nm_tlsdnssocket:
 		/*
-		 * This can be called from the TCP write timeout, or
-		 * from the TCPDNS or TLSDNS branches of isc_nm_bad_request().
+		 * This can be called from the TCP write timeout.
 		 */
 		REQUIRE(sock->parent == NULL);
 		break;
@@ -2383,12 +2217,8 @@ isc__nmsocket_shutdown(isc_nmsocket_t *sock) {
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_shutdown(sock);
 		break;
-	case isc_nm_tlsdnssocket:
-		isc__nm_tlsdns_shutdown(sock);
-		break;
 	case isc_nm_udplistener:
 	case isc_nm_tcplistener:
-	case isc_nm_tlsdnslistener:
 		return;
 	default:
 		UNREACHABLE();
@@ -2413,7 +2243,6 @@ shutdown_walk_cb(uv_handle_t *handle, void *arg) {
 	case UV_TCP:
 		switch (sock->type) {
 		case isc_nm_tcpsocket:
-		case isc_nm_tlsdnssocket:
 			if (sock->parent == NULL) {
 				/* Reset the TCP connections on shutdown */
 				isc__nmsocket_reset(sock);
@@ -2563,7 +2392,6 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 	switch (sock->type) {
 	case isc_nm_udpsocket:
 		return;
-	case isc_nm_tlsdnssocket:
 	case isc_nm_tcpsocket:
 	case isc_nm_streamdnssocket:
 	case isc_nm_tlssocket:
@@ -2591,8 +2419,6 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 	sock = handle->sock;
 
 	switch (sock->type) {
-	case isc_nm_tlsdnssocket:
-		return (isc__nm_tlsdns_xfr_allowed(sock));
 	case isc_nm_streamdnssocket:
 		return (isc__nm_streamdns_xfr_allowed(sock));
 	default:
@@ -2632,7 +2458,6 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_udpsocket:
-	case isc_nm_tlsdnssocket:
 	case isc_nm_streamdnssocket:
 		return;
 		break;
@@ -2658,7 +2483,6 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	switch (handle->sock->type) {
-	case isc_nm_tlsdnssocket:
 	case isc_nm_tlssocket:
 		return (true);
 #if HAVE_LIBNGHTTP2
@@ -2683,9 +2507,6 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 
 	sock = handle->sock;
 	switch (sock->type) {
-	case isc_nm_tlsdnssocket:
-		return (isc__nm_tlsdns_verify_tls_peer_result_string(handle));
-		break;
 	case isc_nm_tlssocket:
 		return (isc__nm_tls_verify_tls_peer_result_string(handle));
 		break;
@@ -2715,9 +2536,6 @@ isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
 	UNUSED(worker);
 
 	switch (listener->type) {
-	case isc_nm_tlsdnslistener:
-		isc__nm_async_tlsdns_set_tlsctx(listener, tlsctx, tid);
-		break;
 	case isc_nm_tlslistener:
 		isc__nm_async_tls_set_tlsctx(listener, tlsctx, tid);
 		break;
@@ -2760,9 +2578,6 @@ isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_tlslistener:
-		set_tlsctx_workers(listener, tlsctx);
-		break;
-	case isc_nm_tlsdnslistener:
 		set_tlsctx_workers(listener, tlsctx);
 		break;
 	case isc_nm_streamdnslistener:
@@ -2971,10 +2786,6 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_tlssocket");
 	case isc_nm_tlslistener:
 		return ("isc_nm_tlslistener");
-	case isc_nm_tlsdnslistener:
-		return ("isc_nm_tlsdnslistener");
-	case isc_nm_tlsdnssocket:
-		return ("isc_nm_tlsdnssocket");
 	case isc_nm_httplistener:
 		return ("isc_nm_httplistener");
 	case isc_nm_httpsocket:

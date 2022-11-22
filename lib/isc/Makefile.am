@@ -118,7 +118,6 @@ libisc_la_SOURCES =		\
 	netmgr/streamdns.c	\
 	netmgr/tcp.c		\
 	netmgr/timer.c		\
-	netmgr/tlsdns.c		\
 	netmgr/tlsstream.c	\
 	netmgr/udp.c		\
 	aes.c			\
