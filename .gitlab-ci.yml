@@ -1558,7 +1558,7 @@ gcov:
     - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
     # These drivers are built into bin/named/named in a way which trips up
     # gcovr.  Copy them to where gcovr expects them.
-    - cp contrib/dlz/drivers/dlz_drivers.c contrib/dlz/drivers/dlz_filesystem_driver.c contrib/dlz/drivers/sdlz_helper.c bin/named/
+    - cp contrib/dlz/drivers/{dlz_drivers,dlz_filesystem_driver,sdlz_helper}.c bin/named/
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
     # for the purpose of displaying code coverage information in the diff view
     # of a given merge request.
