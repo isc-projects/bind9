@@ -75,11 +75,11 @@ typedef struct {
  * SQLite3 result set
  */
 typedef struct {
-	char **pazResult;    /* Result of the query */
-	int pnRow;	     /* Number of result rows */
-	int pnColumn;	     /* Number of result columns */
-	unsigned int curRow; /* Current row */
-	char *pzErrmsg;	     /* Error message */
+	char **pazResult; /* Result of the query */
+	int pnRow;	  /* Number of result rows */
+	int pnColumn;	  /* Number of result columns */
+	int curRow;	  /* Current row */
+	char *pzErrmsg;	  /* Error message */
 } sqlite3_res_t;
 
 /* forward references */
@@ -444,7 +444,7 @@ static char **
 dlz_sqlite3_fetch_row(sqlite3_res_t *rs) {
 	char **retval = NULL;
 	if (rs != NULL) {
-		if (rs->pnRow > 0U && rs->curRow < rs->pnRow) {
+		if (rs->pnRow > 0 && rs->curRow < rs->pnRow) {
 			int index = (rs->curRow + 1) * rs->pnColumn;
 			retval = &rs->pazResult[index];
 			rs->curRow++;
