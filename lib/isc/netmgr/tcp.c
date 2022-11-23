@@ -698,7 +698,8 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 
@@ -713,7 +714,7 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 		isc__nmsocket_clearcb(sock);
-		isc__nm_readcb(sock, req, result);
+		isc__nm_readcb(sock, req, result, async);
 	}
 
 destroy:
@@ -769,18 +770,15 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	return;
 failure:
 	sock->reading = true;
-	isc__nm_tcp_failed_read_cb(sock, result);
+	isc__nm_tcp_failed_read_cb(sock, result, true);
 }
 
 void
 isc__nm_tcp_read_stop(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-
 	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	sock = handle->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
+	isc_nmsocket_t *sock = handle->sock;
 
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
@@ -802,7 +800,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	netmgr = sock->worker->netmgr;
 
 	if (isc__nmsocket_closing(sock)) {
-		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED);
+		isc__nm_tcp_failed_read_cb(sock, ISC_R_CANCELED, false);
 		goto free;
 	}
 
@@ -811,7 +809,8 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 			isc__nm_incstats(sock, STATID_RECVFAIL);
 		}
 
-		isc__nm_tcp_failed_read_cb(sock, isc_uverr2result(nread));
+		isc__nm_tcp_failed_read_cb(sock, isc_uverr2result(nread),
+					   false);
 
 		goto free;
 	}
@@ -832,7 +831,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 					      : atomic_load(&netmgr->idle));
 	}
 
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 
 	/* The readcb could have paused the reading */
 	if (sock->reading) {

@@ -1224,7 +1224,7 @@ isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
 isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-	       isc_result_t eresult);
+	       isc_result_t eresult, bool async);
 void
 isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0);
 
@@ -1581,7 +1581,8 @@ isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
 				  uint64_t write_timeout);
 
 void
-isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async);
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
@@ -1894,11 +1895,14 @@ NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 NETIEVENT_SOCKET_DECL(sockstop);
 
 void
-isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async);
 void
-isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async);
 void
-isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result);
+isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			      bool async);
 void
 isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			      bool async);

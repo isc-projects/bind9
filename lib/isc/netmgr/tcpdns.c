@@ -671,7 +671,8 @@ isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
-isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			      bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 
@@ -686,7 +687,7 @@ isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 		isc__nmsocket_clearcb(sock);
-		isc__nm_readcb(sock, req, result);
+		isc__nm_readcb(sock, req, result, async);
 	}
 
 destroy:
@@ -848,7 +849,7 @@ isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock) {
 	 */
 	REQUIRE(sock->processing == false);
 	sock->processing = true;
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 	sock->processing = false;
 
 	len += 2;

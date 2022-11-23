@@ -617,7 +617,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 
 	REQUIRE(!sock->processing);
 	sock->processing = true;
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 	sock->processing = false;
 
 free:
@@ -879,7 +879,8 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 }
 
 void
-isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 	REQUIRE(sock->tid == isc_tid());
@@ -892,13 +893,14 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 		if (!sock->recv_read) {
 			goto destroy;
 		}
-		sock->recv_read = false;
 
 		if (sock->recv_cb != NULL) {
 			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 			isc__nmsocket_clearcb(sock);
-			isc__nm_readcb(sock, req, result);
+			isc__nm_readcb(sock, req, result, async);
 		}
+
+		sock->recv_read = false;
 
 	destroy:
 		isc__nmsocket_prep_destroy(sock);
@@ -919,7 +921,7 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
 
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
-		isc__nm_readcb(sock, req, result);
+		isc__nm_readcb(sock, req, result, async);
 	}
 }
 
@@ -966,7 +968,7 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 fail:
 	sock->reading = true; /* required by the next call */
-	isc__nm_failed_read_cb(sock, result, false);
+	isc__nm_failed_read_cb(sock, result, true);
 }
 
 static void
