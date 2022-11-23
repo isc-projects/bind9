@@ -47,8 +47,12 @@ Bug Fixes
   10 to 100 to accomodate for some browsers that send more that 10
   headers by default. :gl:`#3670`
 
+
 - Copy TLS identifier when setting up primaries for catalog member
   zones. :gl:`#3638`
+
+- Fix an assertion failure in the statschannel caused by reading from the HTTP
+  connection closed prematurely (connection error, shutdown). :gl:`#3693`
 
 Known Issues
 ~~~~~~~~~~~~
