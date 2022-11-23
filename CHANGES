@@ -1,3 +1,7 @@
+6052.	[func]		Replace DNS over TCP and DNS over TLS transports
+			code with a new, unified transport implementation.
+			[GL #3374]
+
 6051.	[bug]		Improve thread safety in the dns_dispatch unit.
 			[GL #3178] [GL #3636]
 
