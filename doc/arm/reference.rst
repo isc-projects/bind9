@@ -1909,7 +1909,7 @@ default is used.
    cannot be longer than a week.
 
 :any:`max-zone-ttl`
-   :tags: zone, query
+   :tags: deprecated
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
    This should now be configured as part of :namedconf:ref:`dnssec-policy`.
