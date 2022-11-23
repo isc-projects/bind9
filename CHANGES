@@ -1,3 +1,8 @@
+6027.	[bug]		Fix assertion failure in isc_http API used by
+			statschannel if the read callback would be called
+			on HTTP request that has been already closed.
+			[GL #3693]
+
 6026.	[cleanup]	Deduplicate time unit conversion factors.
 			[GL !7033]
 
