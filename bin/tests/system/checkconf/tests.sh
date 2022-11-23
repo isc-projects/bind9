@@ -126,10 +126,15 @@ grep "'dnssec-enable' is obsolete and should be removed" < checkconf.out$n.1 > /
 # dnssec.2: auto-dnssec warning
 $CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1
 grep 'auto-dnssec may only be ' < checkconf.out$n.2 > /dev/null || ret=1
-# dnssec.3: should have no warnings
+# dnssec.3: should have no warnings (other than deprecation warning)
 $CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
-grep '.*' < checkconf.out$n.3 > /dev/null && ret=1
-if [ $ret -ne 0 ]; then echo_i "failed"; fi
+grep "option 'auto-dnssec' is deprecated" < checkconf.out$n.3 > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n.3")
+if [ $lines != 1 ]; then ret=1; fi
+# dnssec.4: should have specific deprecation warning
+$CHECKCONF dnssec.4 > checkconf.out$n.4 2>&1
+grep "'auto-dnssec' option is deprecated and will be removed in BIND 9\.19" < checkconf.out$n.4 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
