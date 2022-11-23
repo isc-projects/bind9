@@ -3467,6 +3467,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
 		if (res3 == ISC_R_SUCCESS) {
 			arg = cfg_obj_asstring(obj);
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "'auto-dnssec' option is deprecated and "
+				    "will be removed in BIND 9.19. Please "
+				    "migrate to dnssec-policy");
 		}
 		if (strcasecmp(arg, "off") != 0) {
 			if (!ddns && !signing && !has_dnssecpolicy) {

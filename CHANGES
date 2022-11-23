@@ -1,3 +1,5 @@
+6024.	[func]		Deprecate 'auto-dnssec'. [GL #3667]
+
 6022.	[performance]	The decompression implementation in dns_name_fromwire()
 			is now smaller and faster. [GL #3655]
 
