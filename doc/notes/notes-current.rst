@@ -40,6 +40,10 @@ Feature Changes
   from the operating system (``ulimit``) or from the process supervisor
   (e.g. ``systemd``). :gl:`#3676`
 
+- Deprecate setting alternate local addresses for inbound zone transfers
+  (:any:`alt-transfer-source`, :any:`alt-transfer-source-v6`,
+  :any:`use-alt-transfer-source`). :gl:`#3694`
+
 Bug Fixes
 ~~~~~~~~~
 
