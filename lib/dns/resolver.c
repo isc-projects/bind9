@@ -4773,7 +4773,6 @@ fctx_timeout_try_stale(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx = event->ev_arg;
 	dns_fetchevent_t *dns_event, *next_event;
 	isc_task_t *sender_task;
-	unsigned int count = 0;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -4806,7 +4805,6 @@ fctx_timeout_try_stale(isc_task_t *task, isc_event_t *event) {
 		dns_event->result = ISC_R_TIMEDOUT;
 
 		isc_task_sendanddetach(&sender_task, ISC_EVENT_PTR(&dns_event));
-		count++;
 	}
 
 	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
