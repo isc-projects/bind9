@@ -478,14 +478,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "stop bump in the wire signer server ($n)"
 ret=0
-stop_server inline ns3 || ret=1
+stop_server ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "restart bump in the wire signer server ($n)"
 ret=0
-start_server --noclean --restart --port ${PORT} inline ns3 || ret=1
+start_server --noclean --restart --port ${PORT} ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -886,7 +886,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "stop bump in the wire signer server ($n)"
 ret=0
-stop_server inline ns3 || ret=1
+stop_server ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -897,7 +897,7 @@ rm ns3/primary.db.jnl
 n=$((n + 1))
 echo_i "restart bump in the wire signer server ($n)"
 ret=0
-start_server --noclean --restart --port ${PORT} inline ns3 || ret=1
+start_server --noclean --restart --port ${PORT} ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -1369,19 +1369,19 @@ check_done_signing () (
 retry_quiet 10 check_done_signing || ret=1
 # Halt rather than stopping the server to prevent the file from being
 # flushed upon shutdown since we specifically want to avoid it.
-$PERL ../stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
+stop_server --use-rndc --halt --port ${CONTROLPORT} ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
-start_server --noclean --restart --port ${PORT} inline ns3
+start_server --noclean --restart --port ${PORT} ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
 # server startup, receive_secure_serial() will rectify that, update SOA, resign
 # it, and schedule its future resign.  This will cause "rndc zonestatus" to
 # return delayedkeys/SOA as the next node to resign, so we restart the server
 # once again; with the raw zone journal now having a source serial set,
 # receive_secure_serial() should refrain from introducing any zone changes.
-$PERL ../stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
+stop_server --use-rndc --halt --port ${CONTROLPORT} ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 nextpart ns3/named.run > /dev/null
-start_server --noclean --restart --port ${PORT} inline ns3
+start_server --noclean --restart --port ${PORT} ns3
 # We can now test whether the secure zone journal was correctly processed:
 # unless the records contained in it were scheduled for resigning, no resigning
 # event will be scheduled at all since the secure zone file contains no
@@ -1464,12 +1464,12 @@ echo_i "Check that restart with zone changes and deleted journal works ($n)"
 TSIG=
 ret=0
 dig_with_opts @10.53.0.8 example SOA > dig.out.ns8.test$n.soa1 || ret=1
-stop_server --use-rndc --port ${CONTROLPORT} inline ns8
+stop_server --use-rndc --port ${CONTROLPORT} ns8
 # TTL of all records change from 300 to 400
 cp ns8/example3.db.in ns8/example.db || ret=1
 rm ns8/example.db.jnl
 nextpart ns8/named.run > /dev/null
-start_server --noclean --restart --port ${PORT} inline ns8
+start_server --noclean --restart --port ${PORT} ns8
 wait_for_log 3 "all zones loaded" ns8/named.run
 sleep 1
 dig_with_opts @10.53.0.8 example SOA > dig.out.ns8.test$n.soa2 || ret=1

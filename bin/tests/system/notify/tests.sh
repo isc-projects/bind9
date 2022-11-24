@@ -129,12 +129,12 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 test_end
 
 echo_i "stopping primary and restarting with example4 then waiting up to 45 seconds"
-stop_server notify ns2
+stop_server ns2
 
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
-start_server --noclean --restart --port "${PORT}" notify ns2
+start_server --noclean --restart --port "${PORT}" ns2
 wait_for_log_re 45 "transfer of 'example/IN' from 10.53.0.2#.*success" ns3/named.run
 
 test_start "checking notify message was logged"

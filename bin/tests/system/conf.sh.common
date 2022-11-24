@@ -247,11 +247,11 @@ digcomp() {
 }
 
 start_server() {
-    $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$@"
+    $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$SYSTESTDIR" "$@"
 }
 
 stop_server() {
-    $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$@"
+    $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$SYSTESTDIR" "$@"
 }
 
 send() {
