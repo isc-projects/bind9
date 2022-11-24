@@ -1,3 +1,6 @@
+6037.	[func]		Reject zones which have DS records not at delegation
+			points. [GL #3697]
+
 6036.	[bug]		nslookup and host were not honoring the selected port
 			in TCP mode. [GL #3721]
 
