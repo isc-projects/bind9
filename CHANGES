@@ -1,3 +1,6 @@
+6028.	[performance]	Build-time code generation of DNS RRtype switches
+			is now much faster. [GL !7121]
+
 6027.	[bug]		Fix assertion failure in isc_http API used by
 			statschannel if the read callback would be called
 			on HTTP request that has been already closed.
