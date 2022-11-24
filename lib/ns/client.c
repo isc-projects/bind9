@@ -219,7 +219,6 @@ ns_client_extendederror(ns_client_t *client, uint16_t code, const char *text) {
 
 static void
 ns_client_endrequest(ns_client_t *client) {
-	INSIST(client->nupdates == 0);
 	INSIST(client->state == NS_CLIENTSTATE_WORKING ||
 	       client->state == NS_CLIENTSTATE_RECURSING);
 
