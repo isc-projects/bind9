@@ -577,7 +577,7 @@ AX_RESTORE_FLAGS([libuv])
 
 # [pairwise: --enable-doh --with-libnghttp2=auto, --enable-doh --with-libnghttp2=yes, --disable-doh]
 AC_ARG_ENABLE([doh],
-	      [AS_HELP_STRING([--disable-doh], [enable DNS over HTTPS, requires libnghttp2 (default=yes)])],
+	      [AS_HELP_STRING([--disable-doh], [disable DNS over HTTPS, removes dependency on libnghttp2 (default is --enable-doh)])],
 	      [], [enable_doh=yes])
 
 # [pairwise: skip]
