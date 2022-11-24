@@ -1946,7 +1946,7 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);
 
 void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-		       isc_result_t eresult);
+		       isc_result_t eresult, bool async);
 void
 isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
 void

@@ -1029,7 +1029,7 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	result = tcp_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq, result);
+		isc__nm_failed_send_cb(sock, uvreq, result, true);
 	}
 
 	return;
@@ -1050,7 +1050,8 @@ tcp_send_cb(uv_write_t *req, int status) {
 
 	if (status < 0) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status));
+		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status),
+				       false);
 		return;
 	}
 

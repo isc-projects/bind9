@@ -1324,12 +1324,12 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 
 void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-		       isc_result_t eresult) {
+		       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult, true);
+		isc__nm_sendcb(sock, req, eresult, async);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}

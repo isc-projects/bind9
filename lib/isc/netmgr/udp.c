@@ -663,8 +663,10 @@ udp_send_cb(uv_udp_send_t *req, int status) {
 	REQUIRE(sock->tid == isc_tid());
 
 	if (status < 0) {
-		result = isc_uverr2result(status);
 		isc__nm_incstats(sock, STATID_SENDFAIL);
+		isc__nm_failed_send_cb(sock, uvreq, isc_uverr2result(status),
+				       false);
+		return;
 	}
 
 	isc__nm_sendcb(sock, uvreq, result, false);
@@ -744,7 +746,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	}
 	return;
 fail:
-	isc__nm_failed_send_cb(sock, uvreq, result);
+	isc__nm_failed_send_cb(sock, uvreq, result, true);
 }
 
 static isc_result_t
