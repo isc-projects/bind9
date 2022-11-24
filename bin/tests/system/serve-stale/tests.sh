@@ -1382,7 +1382,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "stop ns4"
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns4
+stop_server --use-rndc --port ${CONTROLPORT} ns4
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older. Since
 # max-stale-ttl defaults to a week, we need to adjust the date by one week and
@@ -1401,7 +1401,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "start ns4"
-start_server --noclean --restart --port ${PORT} serve-stale ns4
+start_server --noclean --restart --port ${PORT} ns4
 
 n=$((n+1))
 echo_i "verify ancient cache statistics (serve-stale answers disabled) ($n)"
@@ -1622,7 +1622,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "stop ns5"
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns5
+stop_server --use-rndc --port ${CONTROLPORT} ns5
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
 cp ns5/named_dump.db.test$n ns5/named_dump.db
@@ -1640,7 +1640,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "start ns5"
-start_server --noclean --restart --port ${PORT} serve-stale ns5
+start_server --noclean --restart --port ${PORT} ns5
 
 n=$((n+1))
 echo_i "verify ancient cache statistics (serve-stale cache disabled) ($n)"
@@ -1672,8 +1672,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "restart ns3"
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns3
-start_server --noclean --restart --port ${PORT} serve-stale ns3
+stop_server --use-rndc --port ${CONTROLPORT} ns3
+start_server --noclean --restart --port ${PORT} ns3
 
 n=$((n+1))
 echo_i "check 'rndc serve-stale status' ($n)"
@@ -1859,8 +1859,8 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "restart ns3"
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} serve-stale ns3
-start_server --noclean --restart --port ${PORT} serve-stale ns3
+stop_server --use-rndc --port ${CONTROLPORT} ns3
+start_server --noclean --restart --port ${PORT} ns3
 
 n=$((n+1))
 echo_i "prime cache data.example (stale-answer-client-timeout 0)"
@@ -2002,7 +2002,7 @@ $RNDCCMD 10.53.0.3 status > rndc.out.test$n 2>&1 || ret=1
 if [ $ret != 0 ]; then
     echo_i "failed"
     echo_i "restart ns3"
-    start_server --noclean --restart --port ${PORT} serve-stale ns3
+    start_server --noclean --restart --port ${PORT} ns3
 fi
 status=$((status+ret))
 
@@ -2042,7 +2042,7 @@ $RNDCCMD 10.53.0.3 status > rndc.out.test$n 2>&1 || ret=1
 if [ $ret != 0 ]; then
     echo_i "failed"
     echo_i "restart ns3"
-    start_server --noclean --restart --port ${PORT} serve-stale ns3
+    start_server --noclean --restart --port ${PORT} ns3
 fi
 status=$((status+ret))
 

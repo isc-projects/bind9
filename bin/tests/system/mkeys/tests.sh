@@ -301,11 +301,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "reinitialize trust anchors, add second key to bind.keys"
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns2
+stop_server --use-rndc --port "${CONTROLPORT}" ns2
 rm -f ns2/managed-keys.bind*
 keyfile_to_initial_ds ns1/"$original" ns1/"$standby1" > ns2/managed.conf
 nextpart ns2/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns2
+start_server --noclean --restart --port "${PORT}" ns2
 
 n=$((n+1))
 echo_i "check that no key from bind.keys is marked as an initializing key ($n)"
@@ -317,11 +317,11 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "reinitialize trust anchors, revert to one key in bind.keys"
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns2
+stop_server --use-rndc --port "${CONTROLPORT}" ns2
 rm -f ns2/managed-keys.bind*
 mv ns2/managed1.conf ns2/managed.conf
 nextpart ns2/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns2
+start_server --noclean --restart --port "${PORT}" ns2
 
 n=$((n+1))
 echo_i "check that standby key is now trusted ($n)"
@@ -480,10 +480,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "reinitialize trust anchors"
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns2
+stop_server --use-rndc --port "${CONTROLPORT}" ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns2
+start_server --noclean --restart --port "${PORT}" ns2
 
 n=$((n+1))
 echo_i "check positive validation ($n)"
@@ -579,11 +579,11 @@ ret=0
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
 t1=$(grep 'next refresh:' rndc.out.1.$n) || true
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns1
+stop_server --use-rndc --port "${CONTROLPORT}" ns1
 rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns1
+start_server --noclean --restart --port "${PORT}" ns1
 wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
@@ -613,11 +613,11 @@ ret=0
 mkeys_refresh_on 2 || ret=1
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
 t1=$(grep 'next refresh:' rndc.out.1.$n) || true
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns1
+stop_server --use-rndc --port "${CONTROLPORT}" ns1
 rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns1
+start_server --noclean --restart --port "${PORT}" ns1
 wait_for_log 20 "all zones loaded" ns1/named.run || ret=1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -715,9 +715,9 @@ ret=0
 # ensure key refresh retry will be scheduled to one actual hour after the first
 # key refresh failure instead of just a few seconds, in order to prevent races
 # between the next scheduled key refresh time and startup time of restarted ns5.
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns5
+stop_server --use-rndc --port "${CONTROLPORT}" ns5
 nextpart ns5/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns5
+start_server --noclean --restart --port "${PORT}" ns5
 wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns5/named.run || ret=1
 # ns5/named.run will contain logs from both the old instance and the new
 # instance.  In order for the test to pass, both must attempt a fetch.
@@ -729,14 +729,14 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check key refreshes are resumed after root servers become available ($n)"
 ret=0
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns5
+stop_server --use-rndc --port "${CONTROLPORT}" ns5
 # Prevent previous check from affecting this one
 rm -f ns5/managed-keys.bind*
 # named2.args adds "-T mkeytimers=2/20/40" to named1.args as we need to wait for
 # an "hour" until keys are refreshed again after initial failure
 cp ns5/named2.args ns5/named.args
 nextpart ns5/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns5
+start_server --noclean --restart --port "${PORT}" ns5
 wait_for_log 20 "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
 mkeys_secroots_on 5 || ret=1
 grep '; initializing managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
@@ -765,10 +765,10 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "reinitialize trust anchors, add unsupported algorithm ($n)"
 ret=0
-stop_server --use-rndc --port "${CONTROLPORT}" mkeys ns6
+stop_server --use-rndc --port "${CONTROLPORT}" ns6
 rm -f ns6/managed-keys.bind*
 nextpart ns6/named.run > /dev/null
-start_server --noclean --restart --port "${PORT}" mkeys ns6
+start_server --noclean --restart --port "${PORT}" ns6
 # log when an unsupported algorithm is encountered during startup
 wait_for_log 20 "ignoring initial-key for 'unsupported.': algorithm is unsupported" ns6/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
