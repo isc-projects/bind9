@@ -2734,7 +2734,8 @@ Boolean Options
    records, only in-zone hostnames are checked (for out-of-zone hostnames,
    use :iscman:`named-checkzone`). For NS records, only names below top-of-zone
    are checked (for out-of-zone names and glue consistency checks, use
-   :iscman:`named-checkzone`). The default is ``yes``.
+   :iscman:`named-checkzone`). DS records not at delegations are rejected.
+   The default is ``yes``.
 
    The use of the SPF record to publish Sender Policy Framework is
    deprecated, as the migration from using TXT records to SPF records was

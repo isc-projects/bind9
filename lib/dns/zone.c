@@ -3349,6 +3349,8 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	dns_name_t *bottom;
 	isc_result_t result;
 	bool ok = true, have_spf, have_txt;
+	int level;
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	name = dns_fixedname_initname(&fixed);
 	bottom = dns_fixedname_initname(&fixedbottom);
@@ -3383,13 +3385,13 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		 * Don't check the NS records at the origin.
 		 */
 		if (dns_name_equal(name, &zone->origin)) {
-			goto checkfordname;
+			goto checkfords;
 		}
 
 		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ns,
 					     0, 0, &rdataset, NULL);
 		if (result != ISC_R_SUCCESS) {
-			goto checkfordname;
+			goto checkfords;
 		}
 		/*
 		 * Remember bottom of zone due to NS.
@@ -3409,6 +3411,24 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		}
 		dns_rdataset_disassociate(&rdataset);
 		goto next;
+
+	checkfords:
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ds,
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto checkfordname;
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+		if (zone->type == dns_zone_primary) {
+			level = ISC_LOG_ERROR;
+			ok = false;
+		} else {
+			level = ISC_LOG_WARNING;
+		}
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		dns_zone_log(zone, level, "DS not at delegation point (%s)",
+			     namebuf);
 
 	checkfordname:
 		result = dns_db_findrdataset(db, node, NULL,
@@ -3499,8 +3519,6 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 
 	notxt:
 		if (have_spf && !have_txt) {
-			char namebuf[DNS_NAME_FORMATSIZE];
-
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			dns_zone_log(zone, ISC_LOG_WARNING,
 				     "'%s' found type "
