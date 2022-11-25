@@ -218,7 +218,10 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 }
 
 void
-isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result) {
+isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+			   bool async) {
+	UNUSED(async);
+
 	if (!inactive(sock) && sock->tlsstream.state == TLS_IO) {
 		tls_do_bio(sock, NULL, NULL, true);
 	} else if (sock->reading) {
@@ -871,10 +874,12 @@ isc__nm_tls_read_stop(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	handle->sock->reading = false;
+	isc_nmsocket_t *sock = handle->sock;
 
-	if (handle->sock->outerhandle != NULL) {
-		isc_nm_read_stop(handle->sock->outerhandle);
+	sock->reading = false;
+
+	if (sock->outerhandle != NULL) {
+		isc_nm_read_stop(sock->outerhandle);
 	}
 }
 

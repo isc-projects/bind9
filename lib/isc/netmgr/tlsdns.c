@@ -891,7 +891,7 @@ isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 		isc__nmsocket_clearcb(sock);
-		isc__nm_readcb(sock, req, result);
+		isc__nm_readcb(sock, req, result, async);
 	}
 
 destroy:
@@ -1054,7 +1054,7 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 	 */
 	REQUIRE(sock->processing == false);
 	sock->processing = true;
-	isc__nm_readcb(sock, req, ISC_R_SUCCESS);
+	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 	sock->processing = false;
 
 	len += 2;
@@ -1794,7 +1794,7 @@ isc__nm_async_tlsdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 	result = tlsdns_send_direct(sock, uvreq);
 	if (result != ISC_R_SUCCESS) {
 		isc__nm_incstats(sock, STATID_SENDFAIL);
-		isc__nm_failed_send_cb(sock, uvreq, result);
+		isc__nm_failed_send_cb(sock, uvreq, result, false);
 	}
 }
 

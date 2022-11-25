@@ -1324,12 +1324,12 @@ isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len) {
 
 void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
-		       isc_result_t eresult) {
+		       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(req));
 
 	if (req->cb.send != NULL) {
-		isc__nm_sendcb(sock, req, eresult, true);
+		isc__nm_sendcb(sock, req, eresult, async);
 	} else {
 		isc__nm_uvreq_put(&req, sock);
 	}
@@ -1392,20 +1392,20 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	switch (sock->type) {
 	case isc_nm_udpsocket:
-		isc__nm_udp_failed_read_cb(sock, result);
+		isc__nm_udp_failed_read_cb(sock, result, async);
 		return;
 	case isc_nm_tcpsocket:
-		isc__nm_tcp_failed_read_cb(sock, result);
+		isc__nm_tcp_failed_read_cb(sock, result, async);
 		return;
 	case isc_nm_tcpdnssocket:
-		isc__nm_tcpdns_failed_read_cb(sock, result);
+		isc__nm_tcpdns_failed_read_cb(sock, result, async);
 		return;
 	case isc_nm_tlsdnssocket:
 		isc__nm_tlsdns_failed_read_cb(sock, result, async);
 		return;
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_tlssocket:
-		isc__nm_tls_failed_read_cb(sock, result);
+		isc__nm_tls_failed_read_cb(sock, result, async);
 		return;
 #endif
 	default:
@@ -1497,7 +1497,7 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 		if (sock->recv_cb != NULL) {
 			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
-			isc__nm_readcb(sock, req, ISC_R_TIMEDOUT);
+			isc__nm_readcb(sock, req, ISC_R_TIMEDOUT, false);
 		}
 
 		if (!isc__nmsocket_timer_running(sock)) {
@@ -2212,24 +2212,24 @@ isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 void
 isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-	       isc_result_t eresult) {
+	       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	if (eresult == ISC_R_SUCCESS || eresult == ISC_R_TIMEDOUT) {
+	if (!async) {
 		isc__netievent_readcb_t ievent = { .type = netievent_readcb,
 						   .sock = sock,
 						   .req = uvreq,
 						   .result = eresult };
 
 		isc__nm_async_readcb(NULL, (isc__netievent_t *)&ievent);
-	} else {
-		isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
-			sock->worker, sock, uvreq, eresult);
-		isc__nm_enqueue_ievent(sock->worker,
-				       (isc__netievent_t *)ievent);
+		return;
 	}
+
+	isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
+		sock->worker, sock, uvreq, eresult);
+	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
 }
 
 void
