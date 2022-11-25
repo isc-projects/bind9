@@ -22,10 +22,12 @@ options {
 	notify-source 10.53.0.1;
 	transfer-source 10.53.0.1;
 	port @PORT@;
+	tls-port @TLSPORT@;
 	allow-new-zones yes;
 	pid-file "named.pid";
 	listen-on { 10.53.0.1; };
 	listen-on port @EXTRAPORT1@ { 10.53.0.1; };
+	listen-on tls ephemeral { 10.53.0.1; };
 	listen-on-v6 { none; };
 	notify no;
 	recursion no;
@@ -104,6 +106,16 @@ view "default" {
 		also-notify { 10.53.0.2; };
 		notify explicit;
 	};
+
+	# A catalog zone that requires TLS to be used
+	zone "catalog-tls.example" {
+		type primary;
+		file "catalog-tls.example.db";
+		allow-transfer transport tls { key tsig_key; };
+		allow-update { any; };
+		also-notify { 10.53.0.4; };
+		notify explicit;
+	};
 };
 
 view "ch" ch {
@@ -122,7 +134,7 @@ view "ch" ch {
 
 key tsig_key. {
 	secret "LSAnCU+Z";
-	algorithm hmac-md5;
+	algorithm @DEFAULT_HMAC@;
 };
 
 key next_key. {

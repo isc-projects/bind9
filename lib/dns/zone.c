@@ -13083,7 +13083,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 						    tlsname, &transport);
 
 			dns_zone_logc(
-				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 				"got TLS configuration for zone transfer");
 		}
 
@@ -18308,7 +18308,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		result = dns_view_gettransport(view, DNS_TRANSPORT_TLS, tlsname,
 					       &zone->transport);
 
-		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 			      "got TLS configuration for zone transfer: %s",
 			      isc_result_totext(result));
 	}
@@ -21542,7 +21542,7 @@ checkds_send(dns_zone_t *zone) {
 			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
 						    tlsname, &transport);
 			dns_zone_logc(
-				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
+				zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
 				"got TLS configuration for zone transfer");
 		}
 

@@ -47,6 +47,9 @@ Bug Fixes
   10 to 100 to accomodate for some browsers that send more that 10
   headers by default. :gl:`#3670`
 
+- Copy TLS identifier when setting up primaries for catalog member
+  zones. :gl:`#3638`
+
 Known Issues
 ~~~~~~~~~~~~
 
