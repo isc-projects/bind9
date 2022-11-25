@@ -22,9 +22,8 @@
 
 #include <isc/stdtime.h>
 #include <isc/strerr.h>
+#include <isc/time.h>
 #include <isc/util.h>
-
-#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
 
 #if defined(CLOCK_REALTIME_COARSE)
 #define CLOCKSOURCE CLOCK_REALTIME_COARSE
@@ -44,7 +43,7 @@ isc_stdtime_get(isc_stdtime_t *t) {
 		FATAL_SYSERROR(errno, "clock_gettime()");
 	}
 
-	REQUIRE(ts.tv_sec > 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_S);
+	REQUIRE(ts.tv_sec > 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_SEC);
 
 	*t = (isc_stdtime_t)ts.tv_sec;
 }

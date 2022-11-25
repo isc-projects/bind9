@@ -28,12 +28,11 @@
 #include <isc/loop.h>
 #include <isc/ratelimiter.h>
 #include <isc/task.h>
+#include <isc/time.h>
 
 #include "ratelimiter.c"
 
 #include <tests/isc.h>
-
-#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
 
 isc_ratelimiter_t *rl = NULL;
 
@@ -220,7 +219,7 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pertick_interval) {
 	isc_event_t *event = NULL;
 	isc_interval_t interval;
 
-	isc_interval_set(&interval, 1, NS_PER_S / 10);
+	isc_interval_set(&interval, 1, NS_PER_SEC / 10);
 
 	expect_assert_failure(isc_ratelimiter_setinterval(NULL, &interval));
 	expect_assert_failure(isc_ratelimiter_setinterval(rl, NULL));
@@ -263,7 +262,7 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pushpop) {
 	isc_event_t *event = NULL;
 	isc_interval_t interval;
 
-	isc_interval_set(&interval, 1, NS_PER_S / 10);
+	isc_interval_set(&interval, 1, NS_PER_SEC / 10);
 
 	isc_ratelimiter_setinterval(rl, &interval);
 	isc_ratelimiter_setpertic(rl, 2);

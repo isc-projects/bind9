@@ -30,8 +30,7 @@
 
 #include <tests/isc.h>
 
-#define NS_PER_S 1000000000 /*%< Nanoseconds per second. */
-#define MAX_NS	 (NS_PER_S - 1)
+#define MAX_NS (NS_PER_SEC - 1)
 
 struct time_vectors {
 	isc_time_t a;
@@ -43,13 +42,16 @@ struct time_vectors {
 const struct time_vectors vectors_add[8] = {
 	{ { 0, 0 }, { 0, 0 }, { 0, 0 }, ISC_R_SUCCESS },
 	{ { 0, MAX_NS }, { 0, MAX_NS }, { 1, MAX_NS - 1 }, ISC_R_SUCCESS },
-	{ { 0, NS_PER_S / 2 }, { 0, NS_PER_S / 2 }, { 1, 0 }, ISC_R_SUCCESS },
+	{ { 0, NS_PER_SEC / 2 },
+	  { 0, NS_PER_SEC / 2 },
+	  { 1, 0 },
+	  ISC_R_SUCCESS },
 	{ { UINT_MAX, MAX_NS }, { 0, 0 }, { UINT_MAX, MAX_NS }, ISC_R_SUCCESS },
 	{ { UINT_MAX, 0 }, { 0, MAX_NS }, { UINT_MAX, MAX_NS }, ISC_R_SUCCESS },
 	{ { UINT_MAX, 0 }, { 1, 0 }, { 0, 0 }, ISC_R_RANGE },
 	{ { UINT_MAX, MAX_NS }, { 0, 1 }, { 0, 0 }, ISC_R_RANGE },
-	{ { UINT_MAX / 2 + 1, NS_PER_S / 2 },
-	  { UINT_MAX / 2, NS_PER_S / 2 },
+	{ { UINT_MAX / 2 + 1, NS_PER_SEC / 2 },
+	  { UINT_MAX / 2, NS_PER_SEC / 2 },
 	  { 0, 0 },
 	  ISC_R_RANGE },
 };
@@ -57,9 +59,9 @@ const struct time_vectors vectors_add[8] = {
 const struct time_vectors vectors_sub[7] = {
 	{ { 0, 0 }, { 0, 0 }, { 0, 0 }, ISC_R_SUCCESS },
 	{ { 1, 0 }, { 0, MAX_NS }, { 0, 1 }, ISC_R_SUCCESS },
-	{ { 1, NS_PER_S / 2 },
+	{ { 1, NS_PER_SEC / 2 },
 	  { 0, MAX_NS },
-	  { 0, NS_PER_S / 2 + 1 },
+	  { 0, NS_PER_SEC / 2 + 1 },
 	  ISC_R_SUCCESS },
 	{ { UINT_MAX, MAX_NS }, { UINT_MAX, 0 }, { 0, MAX_NS }, ISC_R_SUCCESS },
 	{ { 0, 0 }, { 1, 0 }, { 0, 0 }, ISC_R_RANGE },
