@@ -87,9 +87,9 @@ fi
 
 echo_i "repeat previous tests without named -g"
 copy_setports ns1/named.plain.in ns1/named.conf
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} logfileconfig ns1
+stop_server --use-rndc --port ${CONTROLPORT} ns1
 cp named1.args ns1/named.args
-start_server --noclean --restart --port ${PORT} logfileconfig ns1
+start_server --noclean --restart --port ${PORT} ns1
 
 n=$((n+1))
 echo_i "testing log file validity (only plain files allowed) ($n)"
@@ -225,12 +225,12 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "testing default logfile using named -L file ($n)"
 ret=0
-$PERL ../stop.pl logfileconfig ns1
+stop_server ns1
 cp named2.args ns1/named.args
 test -f ns1/named.pid && ret=1
 rm -f ns1/named_deflog
 copy_setports ns1/named.plainconf.in ns1/named.conf
-start_server --noclean --restart --port ${PORT} logfileconfig ns1
+start_server --noclean --restart --port ${PORT} ns1
 [ -f "ns1/named_deflog" ] || ret=1
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))

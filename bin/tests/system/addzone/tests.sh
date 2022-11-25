@@ -725,8 +725,8 @@ $RNDCCMD 10.53.0.3 addzone '"test\".baz"' '{ type primary; check-names ignore; f
 $RNDCCMD 10.53.0.3 addzone '"test\\.baz"' '{ type primary; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.3 addzone '"test\032.baz"' '{ type primary; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
 $RNDCCMD 10.53.0.3 addzone '"test\010.baz"' '{ type primary; check-names ignore; file "e.db"; };' > /dev/null 2>&1 || ret=1
-stop_server addzone ns3
-start_server --noclean --restart --port ${PORT} addzone ns3 || ret=1
+stop_server ns3
+start_server --noclean --restart --port ${PORT} ns3 || ret=1
 retry_quiet 10 _check_version_bind || ret=1
 $DIG $DIGOPTS @10.53.0.3 SOA  "test4.baz" > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
