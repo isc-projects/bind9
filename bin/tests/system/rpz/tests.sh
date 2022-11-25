@@ -220,7 +220,7 @@ restart () {
             done
         fi
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
+    start_server --noclean --restart --port ${PORT} ns$1
     load_db
     dnsrps_loaded
     sleep 1
@@ -482,7 +482,7 @@ for mode in native dnsrps; do
       continue
     fi
     echo_i "attempting to configure servers with DNSRPS..."
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz
+    stop_server --use-rndc --port ${CONTROLPORT}
     $SHELL ./setup.sh -N -D $DEBUG
     for server in ns*; do
       resetstats $server
@@ -497,7 +497,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz
+      start_server --noclean --restart --port ${PORT}
       sleep 3
     fi
     ;;
@@ -819,7 +819,7 @@ EOF
 
   # restart the main test RPZ server to see if that creates a core file
   if test -z "$HAVE_CORE"; then
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    stop_server --use-rndc --port ${CONTROLPORT} ns3
     restart 3 "rebuild-bl-rpz"
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
@@ -839,11 +839,11 @@ EOF
     # restart the main test RPZ server with a bad zone.
     t=`expr $t + 1`
     echo_i "checking that ns3 with broken rpz does not crash (${t})"
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    stop_server --use-rndc --port ${CONTROLPORT} ns3
     cp ns3/broken.db.in ns3/bl.db
     restart 3 # do not rebuild rpz zones
     nocrash a3-1.tld2 -tA
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    stop_server --use-rndc --port ${CONTROLPORT} ns3
     restart 3 "rebuild-bl-rpz"
 
     # reload a RPZ zone that is now deliberately broken.

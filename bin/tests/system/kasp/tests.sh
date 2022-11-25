@@ -4786,12 +4786,12 @@ echo_i "Check that restart with zone changes and deleted journal works ($n)"
 TSIG=
 ret=0
 dig_with_opts @10.53.0.6 example SOA > dig.out.ns6.test$n.soa1 || ret=1
-stop_server --use-rndc --port ${CONTROLPORT} kasp ns6
+stop_server --use-rndc --port ${CONTROLPORT} ns6
 # TTL of all records change from 300 to 400
 cp ns6/example3.db.in ns6/example.db || ret=1
 rm ns6/example.db.jnl
 nextpart ns6/named.run > /dev/null
-start_server --noclean --restart --port ${PORT} kasp ns6
+start_server --noclean --restart --port ${PORT} ns6
 wait_for_log 3 "all zones loaded" ns6/named.run
 # Check that the SOA SERIAL increases and check the TTLs (should be changed
 # from 300 to 400 as defined in ns6/example3.db.in).

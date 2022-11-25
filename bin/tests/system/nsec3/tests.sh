@@ -357,13 +357,13 @@ dnssec_verify
 # Restart named, NSEC3 should stay the same.
 ret=0
 echo "stop ns3"
-$PERL ../stop.pl --use-rndc --port ${CONTROLPORT} nsec3 ${DIR} || ret=1
+stop_server --use-rndc --port ${CONTROLPORT} ${DIR} || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 ret=0
 echo "start ns3"
-start_server --noclean --restart --port ${PORT} nsec3 ${DIR}
+start_server --noclean --restart --port ${PORT} ${DIR}
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 

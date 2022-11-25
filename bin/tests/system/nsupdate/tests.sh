@@ -389,7 +389,7 @@ rm named.pid
 cd ..
 sleep 10
 if
-	$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nsupdate ns1
+	start_server --noclean --restart --port ${PORT} ns1
 then
 	echo_i "restarted server ns1"
 else
@@ -570,13 +570,13 @@ update add updated4.example.nil. 600 A 10.10.10.3
 send
 END
 sleep 3
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} nsupdate ns1
+stop_server --use-rndc --port ${CONTROLPORT} ns1
 sleep 3
 # Removing the journal file and restarting the server means
 # that the data served by the new server process are exactly
 # those dumped to the file by "rndc stop".
 rm -f ns1/*jnl
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nsupdate ns1
+start_server --noclean --restart --port ${PORT} ns1
 for try in 0 1 2 3 4 5 6 7 8 9; do
     iret=0
     $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
