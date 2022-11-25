@@ -157,8 +157,8 @@ done
 status=`expr $status + $ret`
 
 echo_i "stop and restart secondary"
-$PERL ../stop.pl unknown ns2
-start_server --noclean --restart --port ${PORT} unknown ns2
+stop_server ns2
+start_server --noclean --restart --port ${PORT} ns2
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails
@@ -183,8 +183,8 @@ diff large.out dig.out.test$n > /dev/null || { ret=1 ; echo_i "diff failed"; }
 status=`expr $status + $ret`
 
 echo_i "stop and restart inline secondary"
-$PERL ../stop.pl unknown ns3
-start_server --noclean --restart --port ${PORT} unknown ns3
+stop_server ns3
+start_server --noclean --restart --port ${PORT} ns3
 
 # server may be answering queries before zones are loaded,
 # so retry a few times if this query fails
