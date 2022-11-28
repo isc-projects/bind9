@@ -747,7 +747,7 @@ shows how :program:`dig` can be used from the command line to make three
 lookups: an ANY query for ``www.isc.org``, a reverse lookup of 127.0.0.1,
 and a query for the NS records of ``isc.org``. A global query option of
 :option:`+qr` is applied, so that :program:`dig` shows the initial query it made for
-each lookup. The final query has a local query option of :option:`+qr` which
+each lookup. The final query has a local query option of :option:`+noqr` which
 means that :program:`dig` does not print the initial query when it looks up the
 NS records for ``isc.org``.
 
