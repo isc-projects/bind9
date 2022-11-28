@@ -135,7 +135,7 @@ static const char copyright[] = "/*\n"
 
 static struct cc {
 	struct cc *next;
-	int rdclass;
+	uint16_t rdclass;
 	char classbuf[TYPECLASSBUF];
 } * classes;
 
@@ -152,11 +152,12 @@ static struct ttnam {
 	char typebuf[TYPECLASSBUF];
 	char macroname[TYPECLASSBUF];
 	char attr[ATTRIBUTESIZE];
-	unsigned int sorted;
+	bool todo;
+	uint8_t hash;
 	uint16_t type;
 } typenames[TYPENAMES];
 
-static int maxtype = -1;
+static int ttnam_count;
 
 typedef struct {
 	DIR *handle;
@@ -176,6 +177,19 @@ static void
 sd(unsigned int, const char *, const char *, char);
 static void
 insert_into_typenames(int, const char *, const char *);
+
+static uint8_t
+HASH(char *string) {
+	size_t n;
+	unsigned char a, b;
+
+	n = strlen(string);
+	INSIST(n > 0);
+	a = tolower((unsigned char)string[0]);
+	b = tolower((unsigned char)string[n - 1]);
+
+	return (((a + n) * b) % 256);
+}
 
 static bool
 start_directory(const char *path, isc_dir_t *dir) {
@@ -336,18 +350,6 @@ doswitch(const char *name, const char *function, const char *args,
 	}
 }
 
-static struct ttnam *
-find_typename(int type) {
-	int i;
-
-	for (i = 0; i < TYPENAMES; i++) {
-		if (typenames[i].typebuf[0] != 0 && typenames[i].type == type) {
-			return (&typenames[i]);
-		}
-	}
-	return (NULL);
-}
-
 static void
 insert_into_typenames(int type, const char *typebuf, const char *attr) {
 	struct ttnam *ttn = NULL;
@@ -356,22 +358,25 @@ insert_into_typenames(int type, const char *typebuf, const char *attr) {
 	char tmp[256];
 
 	INSIST(strlen(typebuf) < TYPECLASSBUF);
-	for (i = 0; i < TYPENAMES; i++) {
-		if (typenames[i].typebuf[0] != 0 && typenames[i].type == type &&
-		    strcmp(typebuf, typenames[i].typebuf) != 0)
-		{
+	for (i = 0; i < TYPENAMES && typenames[i].typebuf[0] != 0; i++) {
+		if (typenames[i].type != type) {
+			continue;
+		}
+		if (strcmp(typebuf, typenames[i].typebuf) != 0) {
 			fprintf(stderr,
-				"Error:  type %d has two names: %s, %s\n", type,
+				"Error: type %d has two names: %s, %s\n", type,
 				typenames[i].typebuf, typebuf);
 			exit(1);
 		}
-		if (typenames[i].typebuf[0] == 0 && ttn == NULL) {
-			ttn = &typenames[i];
-		}
+		ttn = &typenames[i];
 	}
-	if (ttn == NULL) {
+	/* Subtract one to leave an empty sentinel entry at the end */
+	if (i >= TYPENAMES - 1) {
 		fprintf(stderr, "Error: typenames array too small\n");
 		exit(1);
+	} else if (ttn == NULL) {
+		ttn = &typenames[i];
+		ttnam_count = i + 1;
 	}
 
 	/* XXXMUKS: This is redundant due to the INSIST above. */
@@ -419,10 +424,8 @@ insert_into_typenames(int type, const char *typebuf, const char *attr) {
 	strncpy(ttn->attr, attr, sizeof(ttn->attr));
 	ttn->attr[sizeof(ttn->attr) - 1] = '\0';
 
-	ttn->sorted = 0;
-	if (maxtype < type) {
-		maxtype = type;
-	}
+	ttn->hash = HASH(ttn->typebuf);
+	ttn->todo = true;
 }
 
 static void
@@ -469,16 +472,12 @@ add(unsigned int rdclass, const char *classbuf, int type, const char *typebuf,
 	}
 
 	while ((tt != NULL) && (tt->type == type) && (tt->rdclass < rdclass)) {
-		if (strcmp(tt->typebuf, typebuf) != 0) {
-			exit(1);
-		}
+		INSIST(strcmp(tt->typebuf, typebuf) == 0);
 		oldtt = tt;
 		tt = tt->next;
 	}
 
-	if ((tt != NULL) && (tt->type == type) && (tt->rdclass == rdclass)) {
-		exit(1);
-	}
+	INSIST(tt == NULL || tt->type != type || tt->rdclass != rdclass);
 
 	newtt->next = tt;
 	if (oldtt != NULL) {
@@ -563,20 +562,10 @@ sd(unsigned int rdclass, const char *classbuf, const char *dirbuf,
 	end_directory(&dir);
 }
 
-static unsigned int
-HASH(char *string) {
-	size_t n;
-	unsigned char a, b;
-
-	n = strlen(string);
-	if (n == 0) {
-		fprintf(stderr, "n == 0?\n");
-		exit(1);
-	}
-	a = tolower((unsigned char)string[0]);
-	b = tolower((unsigned char)string[n - 1]);
-
-	return (((a + n) * b) % 256);
+static int
+ttnam_cmp(const void *va, const void *vb) {
+	const struct ttnam *ttna = va, *ttnb = vb;
+	return (ttna->type - ttnb->type);
 }
 
 int
@@ -588,7 +577,6 @@ main(int argc, char **argv) {
 	struct tt *tt;
 	struct cc *cc;
 	struct ttnam *ttn, *ttn2;
-	unsigned int hash;
 	time_t now;
 	char year[11];
 	int lasttype;
@@ -597,7 +585,7 @@ main(int argc, char **argv) {
 	int type_enum = 0;
 	int structs = 0;
 	int depend = 0;
-	int c, i, j, n;
+	int c, n;
 	char buf1[TYPECLASSBUF];
 	char filetype = 'c';
 	FILE *fd;
@@ -608,10 +596,6 @@ main(int argc, char **argv) {
 	unsigned long long epoch;
 	char *endptr;
 	isc_dir_t dir;
-
-	for (i = 0; i < TYPENAMES; i++) {
-		memset(&typenames[i], 0, sizeof(typenames[i]));
-	}
 
 	srcdir[0] = '\0';
 	while ((c = getopt(argc, argv, "cdits:F:P:S:")) != -1) {
@@ -676,9 +660,7 @@ main(int argc, char **argv) {
 	n = snprintf(buf, sizeof(buf), "%srdata", srcdir);
 	INSIST(n > 0 && (unsigned int)n < sizeof(srcdir));
 
-	if (!start_directory(buf, &dir)) {
-		exit(1);
-	}
+	INSIST(start_directory(buf, &dir));
 
 	while (next_file(&dir)) {
 		if (sscanf(dir.filename, TYPECLASSFMT, classbuf, &rdclass) != 2)
@@ -816,8 +798,6 @@ main(int argc, char **argv) {
 		 * attributes.
 		 */
 
-#define PRINT_COMMA(x) (x == maxtype ? "" : ",")
-
 #define METANOTQUESTION             \
 	"DNS_RDATATYPEATTR_META | " \
 	"DNS_RDATATYPEATTR_NOTQUESTION"
@@ -840,6 +820,12 @@ main(int argc, char **argv) {
 		insert_into_typenames(253, "mailb", METAQUESTIONONLY);
 		insert_into_typenames(254, "maila", METAQUESTIONONLY);
 		insert_into_typenames(255, "any", METAQUESTIONONLY);
+
+		/*
+		 * For reproducible builds, ensure the directory read
+		 * order does not affect the order of switch cases.
+		 */
+		qsort(typenames, ttnam_count, sizeof(struct ttnam), ttnam_cmp);
 
 		/*
 		 * Spit out a quick and dirty hash function.  Here,
@@ -867,37 +853,27 @@ main(int argc, char **argv) {
 		printf("#define RDATATYPE_FROMTEXT_SW(_hash,"
 		       "_typename,_length,_typep) \\\n");
 		printf("\tswitch (_hash) { \\\n");
-		for (i = 0; i <= maxtype; i++) {
-			ttn = find_typename(i);
-			if (ttn == NULL) {
-				continue;
-			}
-
+		for (ttn = typenames; ttn->typebuf[0] != 0; ttn++) {
 			/*
 			 * Skip entries we already processed.
 			 */
-			if (ttn->sorted != 0) {
+			if (!ttn->todo) {
 				continue;
 			}
 
-			hash = HASH(ttn->typebuf);
-			printf("\t\tcase %u: \\\n", hash);
+			printf("\t\tcase %u: \\\n", ttn->hash);
 
 			/*
 			 * Find all other entries that happen to match
 			 * this hash.
 			 */
-			for (j = 0; j <= maxtype; j++) {
-				ttn2 = find_typename(j);
-				if (ttn2 == NULL) {
-					continue;
-				}
-				if (hash == HASH(ttn2->typebuf)) {
+			for (ttn2 = typenames; ttn2->typebuf[0] != 0; ttn2++) {
+				if (ttn2->todo && ttn2->hash == ttn->hash) {
 					printf("\t\t\tRDATATYPE_COMPARE"
 					       "(\"%s\", %d, _typename, "
 					       " _length, _typep); \\\n",
 					       ttn2->typebuf, ttn2->type);
-					ttn2->sorted = 1;
+					ttn2->todo = false;
 				}
 			}
 			printf("\t\t\tbreak; \\\n");
@@ -906,35 +882,27 @@ main(int argc, char **argv) {
 
 		printf("#define RDATATYPE_ATTRIBUTE_SW \\\n");
 		printf("\tswitch (type) { \\\n");
-		for (i = 0; i <= maxtype; i++) {
-			ttn = find_typename(i);
-			if (ttn == NULL) {
-				continue;
-			}
-			printf("\tcase %d: return (%s); \\\n", i,
+		for (ttn = typenames; ttn->typebuf[0] != 0; ttn++) {
+			printf("\tcase %d: return (%s); \\\n", ttn->type,
 			       upper(ttn->attr));
 		}
 		printf("\t}\n");
 
 		printf("#define RDATATYPE_TOTEXT_SW \\\n");
 		printf("\tswitch (type) { \\\n");
-		for (i = 0; i <= maxtype; i++) {
-			ttn = find_typename(i);
-			if (ttn == NULL) {
-				continue;
-			}
+		for (ttn = typenames; ttn->typebuf[0] != 0; ttn++) {
 			/*
 			 * Remove KEYDATA (65533) from the type to memonic
 			 * translation as it is internal use only.  This
 			 * stops the tools from displaying KEYDATA instead
 			 * of TYPE65533.
 			 */
-			if (i == 65533U) {
+			if (ttn->type == 65533U) {
 				continue;
 			}
 			printf("\tcase %d: return "
 			       "(str_totext(\"%s\", target)); \\\n",
-			       i, upper(ttn->typebuf));
+			       ttn->type, upper(ttn->typebuf));
 		}
 		printf("\t}\n");
 	} else if (type_enum) {
