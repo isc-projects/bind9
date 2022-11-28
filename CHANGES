@@ -1,3 +1,8 @@
+6029.	[cleanup]	Remove the unused external cache cleaning mechanism
+			as RBTDB has its own internal cache cleaning
+			mechanism and we don't support any other database
+			implementations. [GL #3639]
+
 6028.	[performance]	Build-time code generation of DNS RRtype switches
 			is now much faster. [GL !7121]
 
