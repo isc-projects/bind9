@@ -398,6 +398,15 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         """Function to call a perl script with arguments."""
         return partial(_run_script, env, logger, system_test_dir, env["PERL"])
 
+    @pytest.fixture(scope="module")
+    def run_tests_sh(system_test_dir, shell):
+        """Utility function to execute tests.sh as a python test."""
+
+        def run_tests():
+            shell(f"{system_test_dir}/tests.sh")
+
+        return run_tests
+
     @pytest.fixture(scope="module", autouse=True)
     def system_test(  # pylint: disable=too-many-arguments,too-many-statements
         request,
