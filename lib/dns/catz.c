@@ -363,28 +363,32 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 
 	for (size_t i = 0; i < eb->opts.masters.count; i++) {
 		if ((ea->opts.masters.keys[i] == NULL) !=
-		    (eb->opts.masters.keys[i] == NULL)) {
+		    (eb->opts.masters.keys[i] == NULL))
+		{
 			return (false);
 		}
 		if (ea->opts.masters.keys[i] == NULL) {
 			continue;
 		}
 		if (!dns_name_equal(ea->opts.masters.keys[i],
-				    eb->opts.masters.keys[i])) {
+				    eb->opts.masters.keys[i]))
+		{
 			return (false);
 		}
 	}
 
 	for (size_t i = 0; i < eb->opts.masters.count; i++) {
 		if ((ea->opts.masters.tlss[i] == NULL) !=
-		    (eb->opts.masters.tlss[i] == NULL)) {
+		    (eb->opts.masters.tlss[i] == NULL))
+		{
 			return (false);
 		}
 		if (ea->opts.masters.tlss[i] == NULL) {
 			continue;
 		}
 		if (!dns_name_equal(ea->opts.masters.tlss[i],
-				    eb->opts.masters.tlss[i])) {
+				    eb->opts.masters.tlss[i]))
+		{
 			return (false);
 		}
 	}
@@ -405,7 +409,8 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 
 	/* Repeat the above checks with allow_transfer */
 	if ((ea->opts.allow_transfer == NULL) !=
-	    (eb->opts.allow_transfer == NULL)) {
+	    (eb->opts.allow_transfer == NULL))
+	{
 		return (false);
 	}
 
@@ -571,7 +576,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 			}
 		}
 		if (zt_find_result == ISC_R_SUCCESS ||
-		    zt_find_result == DNS_R_PARTIALMATCH) {
+		    zt_find_result == DNS_R_PARTIALMATCH)
+		{
 			dns_zone_detach(&zone);
 		}
 
@@ -580,7 +586,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 				     (void **)&oentry);
 		if (result != ISC_R_SUCCESS) {
 			if (zt_find_result == ISC_R_SUCCESS &&
-			    parentcatz == target) {
+			    parentcatz == target)
+			{
 				/*
 				 * This means that the zone's unique label
 				 * has been changed, in that case we must
@@ -1012,7 +1019,8 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 			isc_result_t result;
 			isc_ht_iter_create(catzs->zones, &iter);
 			for (result = isc_ht_iter_first(iter);
-			     result == ISC_R_SUCCESS;) {
+			     result == ISC_R_SUCCESS;)
+			{
 				dns_catz_zone_t *zone = NULL;
 				isc_ht_iter_current(iter, (void **)&zone);
 				result = isc_ht_iter_delcurrent_next(iter);
@@ -1045,7 +1053,8 @@ catz_opt_cmp(const dns_label_t *option, const char *opt) {
 	size_t len = strlen(opt);
 
 	if (option->length - 1 == len &&
-	    memcmp(opt, option->base + 1, len) == 0) {
+	    memcmp(opt, option->base + 1, len) == 0)
+	{
 		return (true);
 	} else {
 		return (false);
@@ -1059,7 +1068,8 @@ catz_get_option(const dns_label_t *option) {
 	} else if (catz_opt_cmp(option, "zones")) {
 		return (CATZ_OPT_ZONES);
 	} else if (catz_opt_cmp(option, "masters") ||
-		   catz_opt_cmp(option, "primaries")) {
+		   catz_opt_cmp(option, "primaries"))
+	{
 		return (CATZ_OPT_PRIMARIES);
 	} else if (catz_opt_cmp(option, "allow-query")) {
 		return (CATZ_OPT_ALLOW_QUERY);
@@ -1426,7 +1436,8 @@ catz_process_primaries(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 		 */
 		for (i = 0; i < ipkl->count; i++) {
 			if (ipkl->labels[i] != NULL &&
-			    !dns_name_compare(name, ipkl->labels[i])) {
+			    !dns_name_compare(name, ipkl->labels[i]))
+			{
 				break;
 			}
 		}

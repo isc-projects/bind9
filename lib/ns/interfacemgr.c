@@ -124,7 +124,8 @@ need_rescan(ns_interfacemgr_t *mgr, struct MSGHDR *rtm, size_t len) {
 			 * state changes.
 			 */
 			if (rth->rta_type == IFA_ADDRESS &&
-			    ifa->ifa_family == AF_INET6) {
+			    ifa->ifa_family == AF_INET6)
+			{
 				bool existed = false;
 				bool was_listening = false;
 				isc_netaddr_t addr = { 0 };
@@ -180,7 +181,8 @@ need_rescan(ns_interfacemgr_t *mgr, struct MSGHDR *rtm, size_t len) {
 					return (true);
 				}
 			} else if (rth->rta_type == IFA_ADDRESS &&
-				   ifa->ifa_family == AF_INET) {
+				   ifa->ifa_family == AF_INET)
+			{
 				/*
 				 * It seems that the IPv4 P2P link state
 				 * has changed.
@@ -713,7 +715,8 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 		result = ns_interface_listentcp(ifp);
 		if (result != ISC_R_SUCCESS) {
 			if ((result == ISC_R_ADDRINUSE) &&
-			    (addr_in_use != NULL)) {
+			    (addr_in_use != NULL))
+			{
 				*addr_in_use = true;
 			}
 
@@ -1176,11 +1179,13 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		 * a temporary media glitch at rescan time.
 		 */
 		if (family == AF_INET &&
-		    isc_netaddr_equal(&interface.address, &zero_address)) {
+		    isc_netaddr_equal(&interface.address, &zero_address))
+		{
 			continue;
 		}
 		if (family == AF_INET6 &&
-		    isc_netaddr_equal(&interface.address, &zero_address6)) {
+		    isc_netaddr_equal(&interface.address, &zero_address6))
+		{
 			continue;
 		}
 
@@ -1203,7 +1208,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
 		dolistenon = true;
 		for (le = ISC_LIST_HEAD(ll->elts); le != NULL;
-		     le = ISC_LIST_NEXT(le, link)) {
+		     le = ISC_LIST_NEXT(le, link))
+		{
 			int match;
 			bool addr_in_use = false;
 			bool ipv6_wildcard = false;
@@ -1237,7 +1243,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			 * special considerations later, so remember it.
 			 */
 			if (family == AF_INET6 && ipv6only && ipv6pktinfo &&
-			    listenon_is_ip6_any(le)) {
+			    listenon_is_ip6_any(le))
+			{
 				ipv6_wildcard = true;
 			}
 
@@ -1270,7 +1277,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			}
 
 			if (log_explicit && family == AF_INET6 &&
-			    listenon_is_ip6_any(le)) {
+			    listenon_is_ip6_any(le))
+			{
 				isc_log_write(IFMGR_COMMON_LOGARGS,
 					      verbose ? ISC_LOG_INFO
 						      : ISC_LOG_DEBUG(1),

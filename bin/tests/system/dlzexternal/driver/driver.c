@@ -520,7 +520,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "too-long") == 0 ||
-	    strcmp(zone, "bigcname.domain") == 0) {
+	    strcmp(zone, "bigcname.domain") == 0)
+	{
 		for (i = 0; i < 511; i++) {
 			buf[i] = 'x';
 		}
@@ -542,7 +543,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	}
 
 	if (strcmp(name, "long.name.is.not.there") == 0 &&
-	    strcmp(zone, ".") == 0) {
+	    strcmp(zone, ".") == 0)
+	{
 		result = state->putrr(lookup, "A", 0, "100.100.100.3");
 		found = true;
 		if (result != ISC_R_SUCCESS) {

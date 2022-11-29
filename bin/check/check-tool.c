@@ -205,7 +205,8 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 		 */
 		cur = ai;
 		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL) {
+		       cur->ai_next != NULL)
+		{
 			cur = cur->ai_next;
 		}
 		if (cur != NULL && cur->ai_canonname != NULL &&
@@ -407,7 +408,8 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 		 */
 		cur = ai;
 		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL) {
+		       cur->ai_next != NULL)
+		{
 			cur = cur->ai_next;
 		}
 		if (cur != NULL && cur->ai_canonname != NULL &&
@@ -493,7 +495,8 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 		 */
 		cur = ai;
 		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL) {
+		       cur->ai_next != NULL)
+		{
 			cur = cur->ai_next;
 		}
 		if (cur != NULL && cur->ai_canonname != NULL &&

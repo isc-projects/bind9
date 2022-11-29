@@ -918,7 +918,8 @@ isc_log_closefilelogs(isc_log_t *lctx) {
 		     channel != NULL; channel = ISC_LIST_NEXT(channel, link))
 		{
 			if (channel->type == ISC_LOG_TOFILE &&
-			    FILE_STREAM(channel) != NULL) {
+			    FILE_STREAM(channel) != NULL)
+			{
 				(void)fclose(FILE_STREAM(channel));
 				FILE_STREAM(channel) = NULL;
 			}
@@ -1070,7 +1071,8 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 			if (*digit_end == '\0' && version >= versions) {
 				result = isc_file_remove(dir.entry.name);
 				if (result != ISC_R_SUCCESS &&
-				    result != ISC_R_FILENOTFOUND) {
+				    result != ISC_R_FILENOTFOUND)
+				{
 					syslog(LOG_ERR,
 					       "unable to remove "
 					       "log file '%s': %s",
@@ -1206,7 +1208,8 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 			if (*digit_end == '\0' && version < last) {
 				result = isc_file_remove(dir.entry.name);
 				if (result != ISC_R_SUCCESS &&
-				    result != ISC_R_FILENOTFOUND) {
+				    result != ISC_R_FILENOTFOUND)
+				{
 					syslog(LOG_ERR,
 					       "unable to remove "
 					       "log file '%s': %s",
@@ -1243,7 +1246,8 @@ roll_increment(isc_logfile_t *file) {
 			n = snprintf(current, sizeof(current), "%s.%u", path,
 				     (unsigned)greatest);
 			if (n >= (int)sizeof(current) || n < 0 ||
-			    !isc_file_exists(current)) {
+			    !isc_file_exists(current))
+			{
 				break;
 			}
 		}
@@ -1560,7 +1564,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		}
 
 		if (category_channels->module != NULL &&
-		    category_channels->module != module) {
+		    category_channels->module != module)
+		{
 			category_channels = ISC_LIST_NEXT(category_channels,
 							  link);
 			continue;
@@ -1574,7 +1579,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		if (!forcelog) {
 			dlevel = atomic_load_acquire(&lctx->debug_level);
 			if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) &&
-			    dlevel == 0) {
+			    dlevel == 0)
+			{
 				continue;
 			}
 
@@ -1588,7 +1594,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
-		    local_time[0] == '\0') {
+		    local_time[0] == '\0')
+		{
 			isc_time_t isctime;
 
 			TIME_NOW(&isctime);
@@ -1602,7 +1609,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTLEVEL) != 0 &&
-		    level_string[0] == '\0') {
+		    level_string[0] == '\0')
+		{
 			if (level < ISC_LOG_CRITICAL) {
 				snprintf(level_string, sizeof(level_string),
 					 "level %d: ", level);
@@ -1656,7 +1664,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 				while (message != NULL) {
 					if (isc_time_compare(&message->time,
-							     &oldest) < 0) {
+							     &oldest) < 0)
+					{
 						/*
 						 * This message is older
 						 * than the
@@ -1693,7 +1702,8 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 					 * ...
 					 */
 					if (strcmp(lctx->buffer,
-						   message->text) == 0) {
+						   message->text) == 0)
+					{
 						/*
 						 * ... and it is a
 						 * duplicate. Unlock the

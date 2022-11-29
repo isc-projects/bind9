@@ -500,7 +500,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 	xfr->nrecs++;
 
 	if (rdata->type == dns_rdatatype_none ||
-	    dns_rdatatype_ismeta(rdata->type)) {
+	    dns_rdatatype_ismeta(rdata->type))
+	{
 		FAIL(DNS_R_FORMERR);
 	}
 
@@ -510,7 +511,8 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 	 * apex.
 	 */
 	if (rdata->type == dns_rdatatype_soa &&
-	    !dns_name_equal(&xfr->name, name)) {
+	    !dns_name_equal(&xfr->name, name))
+	{
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "SOA name mismatch: '%s'",
@@ -644,7 +646,8 @@ redo:
 			}
 		}
 		if (rdata->type == dns_rdatatype_ns &&
-		    dns_name_iswildcard(name)) {
+		    dns_name_iswildcard(name))
+		{
 			FAIL(DNS_R_INVALIDNS);
 		}
 		CHECK(ixfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
@@ -830,7 +833,8 @@ static void
 xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 	/* Make sure only the first xfrin_fail() trumps */
 	if (atomic_compare_exchange_strong(&xfr->shuttingdown, &(bool){ false },
-					   true)) {
+					   true))
+	{
 		if (result != DNS_R_UPTODATE && result != DNS_R_TOOMANYRECORDS)
 		{
 			xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s", msg,
@@ -1518,17 +1522,20 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		{
 			result = dns_result_fromrcode(msg->rcode);
 		} else if (result == ISC_R_SUCCESS &&
-			   msg->opcode != dns_opcode_query) {
+			   msg->opcode != dns_opcode_query)
+		{
 			result = DNS_R_UNEXPECTEDOPCODE;
 		} else if (result == ISC_R_SUCCESS &&
-			   msg->rdclass != xfr->rdclass) {
+			   msg->rdclass != xfr->rdclass)
+		{
 			result = DNS_R_BADCLASS;
 		} else if (result == ISC_R_SUCCESS || result == DNS_R_NOERROR) {
 			result = DNS_R_UNEXPECTEDID;
 		}
 
 		if (xfr->reqtype == dns_rdatatype_axfr ||
-		    xfr->reqtype == dns_rdatatype_soa) {
+		    xfr->reqtype == dns_rdatatype_soa)
+		{
 			goto failure;
 		}
 
@@ -1619,7 +1626,8 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	}
 
 	if (xfr->reqtype == dns_rdatatype_soa &&
-	    (msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
+	    (msg->flags & DNS_MESSAGEFLAG_AA) == 0)
+	{
 		FAIL(DNS_R_NOTAUTHORITATIVE);
 	}
 

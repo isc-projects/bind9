@@ -453,7 +453,8 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				isc_result_t hs_result = ISC_R_UNSET;
 				rv = tls_try_handshake(sock, &hs_result);
 				if (sock->tlsstream.state == TLS_IO &&
-				    hs_result != ISC_R_SUCCESS) {
+				    hs_result != ISC_R_SUCCESS)
+				{
 					/*
 					 * The accept callback has been called
 					 * unsuccessfully. Let's try to shut
@@ -943,7 +944,8 @@ isc__nm_tls_close(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_tlssocket);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 
@@ -1129,7 +1131,8 @@ isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0) {
 void
 isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 	if (sock->type == isc_nm_tcplistener &&
-	    sock->tlsstream.tlslistener != NULL) {
+	    sock->tlsstream.tlslistener != NULL)
+	{
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
 	} else if (sock->type == isc_nm_tlslistener) {
 		tls_cleanup_listener_tlsctx(sock);
@@ -1155,7 +1158,8 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 				&sock->tlsstream.client_sess_cache);
 		}
 	} else if (sock->type == isc_nm_tcpsocket &&
-		   sock->tlsstream.tlssocket != NULL) {
+		   sock->tlsstream.tlssocket != NULL)
+	{
 		/*
 		 * The TLS socket can't be destroyed until its underlying TCP
 		 * socket is, to avoid possible use-after-free errors.

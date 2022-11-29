@@ -260,7 +260,8 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		i = tableindex[ch];
 		if ((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0) {
 			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
+			     node = node->next)
+			{
 				if (node->name.length != length) {
 					continue;
 				}
@@ -271,7 +272,8 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 			}
 		} else {
 			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
+			     node = node->next)
+			{
 				unsigned int l, count;
 				unsigned char c;
 				unsigned char *label1, *label2;

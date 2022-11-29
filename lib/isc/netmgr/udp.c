@@ -521,7 +521,8 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_udplistener);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1179,7 +1180,8 @@ udp_stop_cb(uv_handle_t *handle) {
 	REQUIRE(atomic_load(&sock->closing));
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1200,7 +1202,8 @@ udp_close_cb(uv_handle_t *handle) {
 	REQUIRE(atomic_load(&sock->closing));
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1234,7 +1237,8 @@ stop_udp_child(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 
@@ -1306,7 +1310,8 @@ isc__nm_udp_close(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 

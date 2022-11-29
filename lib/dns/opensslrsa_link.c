@@ -299,7 +299,8 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 		if (BN_cmp(d1, d2) != 0 || BN_cmp(p1, p2) != 0 ||
-		    BN_cmp(q1, q2) != 0) {
+		    BN_cmp(q1, q2) != 0)
+		{
 			DST_RET(false);
 		}
 	}
@@ -1306,15 +1307,18 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	}
 
 	if (n != NULL &&
-	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_N, n) != 1) {
+	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_N, n) != 1)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	if (e != NULL &&
-	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_E, e) != 1) {
+	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_E, e) != 1)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	if (d != NULL &&
-	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_D, d) != 1) {
+	    OSSL_PARAM_BLD_push_BN(bld, OSSL_PKEY_PARAM_RSA_D, d) != 1)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 	if (p != NULL &&
@@ -1363,7 +1367,8 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	}
 
 	if (rsa_check(pkey, pub != NULL ? pub->keydata.pkey : NULL) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */

@@ -326,7 +326,8 @@ setup_test(void **state __attribute__((unused))) {
 	noanswer = false;
 
 	if (isc_tlsctx_createserver(NULL, NULL, &tcp_listen_tlsctx) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		return (-1);
 	}
 	if (isc_tlsctx_createclient(&tcp_connect_tlsctx) != ISC_R_SUCCESS) {

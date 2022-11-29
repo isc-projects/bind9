@@ -636,7 +636,8 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 						   NULL);
 
 			if (result != ISC_R_SUCCESS &&
-			    result != DNS_R_FROMWILDCARD) {
+			    result != DNS_R_FROMWILDCARD)
+			{
 				vbprintf(1,
 					 "skip RRSIG by key %d:"
 					 " verification failed: %s\n",
@@ -1085,7 +1086,8 @@ main(int argc, char *argv[]) {
 			 * optional, so that it works just like sed(1).
 			 */
 			if (isc_commandline_argument ==
-			    argv[isc_commandline_index - 1]) {
+			    argv[isc_commandline_index - 1])
+			{
 				isc_commandline_index--;
 				inplace = "";
 			} else {
@@ -1177,7 +1179,8 @@ main(int argc, char *argv[]) {
 		fatal("missing RRSIG CDNSKEY records for %s", namestr);
 	}
 	if (dns_rdataset_isassociated(&cds_set) &&
-	    !dns_rdataset_isassociated(&cds_sig)) {
+	    !dns_rdataset_isassociated(&cds_sig))
+	{
 		fatal("missing RRSIG CDS records for %s", namestr);
 	}
 
@@ -1200,7 +1203,8 @@ main(int argc, char *argv[]) {
 	if (dns_rdataset_isassociated(&cdnskey_set)) {
 		vbprintf(1, "verify CDNSKEY signature(s)\n");
 		if (!signed_loose(matching_sigs(old_key_tbl, &cdnskey_set,
-						&cdnskey_sig))) {
+						&cdnskey_sig)))
+		{
 			fatal("could not validate child CDNSKEY RRset for %s",
 			      namestr);
 		}
@@ -1208,7 +1212,8 @@ main(int argc, char *argv[]) {
 	if (dns_rdataset_isassociated(&cds_set)) {
 		vbprintf(1, "verify CDS signature(s)\n");
 		if (!signed_loose(
-			    matching_sigs(old_key_tbl, &cds_set, &cds_sig))) {
+			    matching_sigs(old_key_tbl, &cds_set, &cds_sig)))
+		{
 			fatal("could not validate child CDS RRset for %s",
 			      namestr);
 		}

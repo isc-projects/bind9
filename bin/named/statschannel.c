@@ -1463,7 +1463,8 @@ rdtypestat_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 #endif /* ifdef HAVE_JSON_C */
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) &
-	     DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) == 0) {
+	     DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) == 0)
+	{
 		dns_rdatatype_format(DNS_RDATASTATSTYPE_BASE(type), typebuf,
 				     sizeof(typebuf));
 		typestr = typebuf;
@@ -1535,7 +1536,8 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 #endif /* ifdef HAVE_JSON_C */
 
 	if ((DNS_RDATASTATSTYPE_ATTR(type) &
-	     DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) != 0) {
+	     DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) != 0)
+	{
 		typestr = "NXDOMAIN";
 	} else if ((DNS_RDATASTATSTYPE_ATTR(type) &
 		    DNS_RDATASTATSTYPE_ATTR_OTHERTYPE) != 0)
@@ -2238,7 +2240,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	view = ISC_LIST_HEAD(server->viewlist);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "views"));
 	while (view != NULL &&
-	       ((flags & (STATS_XML_SERVER | STATS_XML_ZONES)) != 0)) {
+	       ((flags & (STATS_XML_SERVER | STATS_XML_ZONES)) != 0))
+	{
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "view"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
 						 ISC_XMLCHAR view->name));
@@ -2720,7 +2723,8 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 			}
 
 			if (json_object_get_object(refresh_counters)->count !=
-			    0) {
+			    0)
+			{
 				json_object_object_add(zoneobj,
 						       "dnssec-refresh",
 						       refresh_counters);

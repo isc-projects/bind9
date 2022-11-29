@@ -1069,7 +1069,8 @@ parse_portrange(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(parse_port(pctx, &obj->value.tuple[0]));
 		CHECK(parse_port(pctx, &obj->value.tuple[1]));
 		if (obj->value.tuple[0]->value.uint32 >
-		    obj->value.tuple[1]->value.uint32) {
+		    obj->value.tuple[1]->value.uint32)
+		{
 			cfg_parser_error(pctx, CFG_LOG_NOPREP,
 					 "low port '%u' must not be larger "
 					 "than high port",
@@ -1529,7 +1530,8 @@ parse_dtout(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		if (pctx->token.type == isc_tokentype_string) {
 			CHECK(cfg_gettoken(pctx, 0));
 			if (strcasecmp(TOKEN_STRING(pctx), "size") == 0 &&
-			    obj->value.tuple[2] == NULL) {
+			    obj->value.tuple[2] == NULL)
+			{
 				CHECK(cfg_parse_obj(pctx, fields[2].type,
 						    &obj->value.tuple[2]));
 			} else if (strcasecmp(TOKEN_STRING(pctx), "versions") ==
@@ -3198,7 +3200,8 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 				CHECK(cfg_parse_dscp(pctx, &dscp));
 				have_dscp++;
 			} else if (have_port == 0 && have_dscp == 0 &&
-				   have_address == 0) {
+				   have_address == 0)
+			{
 				return (cfg_parse_sockaddr(pctx, type, ret));
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -3807,14 +3810,16 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 
 	for (clause = zone_clauses; clause->name != NULL; clause++) {
 		if ((clause->flags & ztype) == 0 ||
-		    strcmp(clause->name, name) != 0) {
+		    strcmp(clause->name, name) != 0)
+		{
 			continue;
 		}
 		valid = true;
 	}
 	for (clause = zone_only_clauses; clause->name != NULL; clause++) {
 		if ((clause->flags & ztype) == 0 ||
-		    strcmp(clause->name, name) != 0) {
+		    strcmp(clause->name, name) != 0)
+		{
 			continue;
 		}
 		valid = true;
@@ -3907,7 +3912,8 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		}
 
 		if ((clause->flags & zonetype) == 0 ||
-		    strcasecmp(clause->name, "type") == 0) {
+		    strcasecmp(clause->name, "type") == 0)
+		{
 			continue;
 		}
 		cfg_print_indent(&pctx);

@@ -37,7 +37,8 @@ isc_utf8_valid(const unsigned char *buf, size_t len) {
 			continue;
 		}
 		if ((i + 1) < len && (buf[i] & 0xe0) == 0xc0 &&
-		    (buf[i + 1] & 0xc0) == 0x80) {
+		    (buf[i + 1] & 0xc0) == 0x80)
+		{
 			unsigned int w;
 			w = (buf[i] & 0x1f) << 6;
 			w |= (buf[++i] & 0x3f);

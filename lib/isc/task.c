@@ -299,7 +299,8 @@ task_shutdown(isc_task_t *task) {
 	XTRACE("task_shutdown");
 
 	if (atomic_compare_exchange_strong(&task->shuttingdown,
-					   &(bool){ false }, true)) {
+					   &(bool){ false }, true))
+	{
 		XTRACE("shutting down");
 		if (task->state == task_state_idle) {
 			INSIST(EMPTY(task->events));
@@ -313,7 +314,8 @@ task_shutdown(isc_task_t *task) {
 		 * Note that we post shutdown events LIFO.
 		 */
 		for (event = TAIL(task->on_shutdown); event != NULL;
-		     event = prev) {
+		     event = prev)
+		{
 			prev = PREV(event, ev_link);
 			DEQUEUE(task->on_shutdown, event, ev_link);
 			ENQUEUE(task->events, event, ev_link);
@@ -855,7 +857,8 @@ task_run(isc_task_t *task) {
 			 */
 			XTRACE("empty");
 			if (isc_refcount_current(&task->references) == 0 &&
-			    TASK_SHUTTINGDOWN(task)) {
+			    TASK_SHUTTINGDOWN(task))
+			{
 				/*
 				 * The task is done.
 				 */
@@ -1036,7 +1039,8 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 #ifdef ISC_TASK_TRACE
 	int counter = 0;
 	while (isc_refcount_current(&(*managerp)->references) > 1 &&
-	       counter++ < 1000) {
+	       counter++ < 1000)
+	{
 		usleep(10 * 1000);
 	}
 	INSIST(counter < 1000);

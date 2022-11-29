@@ -198,7 +198,8 @@ named_log_setdefaultsslkeylogfile(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
 	if (sslkeylogfile_path == NULL ||
-	    strcmp(sslkeylogfile_path, "config") == 0) {
+	    strcmp(sslkeylogfile_path, "config") == 0)
+	{
 		return;
 	}
 

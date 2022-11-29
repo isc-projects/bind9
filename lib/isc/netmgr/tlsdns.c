@@ -744,7 +744,8 @@ isc__nm_tlsdns_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_tlsdnslistener);
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1141,7 +1142,8 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 	switch (err) {
 	case SSL_ERROR_WANT_READ:
 		if (sock->tls.state == TLS_STATE_NONE &&
-		    !SSL_is_init_finished(sock->tls.tls)) {
+		    !SSL_is_init_finished(sock->tls.tls))
+		{
 			sock->tls.state = TLS_STATE_HANDSHAKE;
 			result = isc__nm_process_sock_buffer(sock);
 			if (result != ISC_R_SUCCESS) {
@@ -1302,7 +1304,8 @@ tls_cycle_output(isc_nmsocket_t *sock) {
 		int r;
 
 		if (sock->tls.senddata.base != NULL ||
-		    sock->tls.senddata.length > 0) {
+		    sock->tls.senddata.length > 0)
+		{
 			break;
 		}
 
@@ -1882,7 +1885,8 @@ tlsdns_stop_cb(uv_handle_t *handle) {
 	uv_handle_set_data(handle, NULL);
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1907,7 +1911,8 @@ tlsdns_close_sock(isc_nmsocket_t *sock) {
 	REQUIRE(atomic_load(&sock->closing));
 
 	if (!atomic_compare_exchange_strong(&sock->closed, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		UNREACHABLE();
 	}
 
@@ -1969,7 +1974,8 @@ stop_tlsdns_child(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tid == isc_nm_tid());
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 
@@ -2044,7 +2050,8 @@ isc__nm_tlsdns_close(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 
@@ -2245,7 +2252,8 @@ isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
 void
 isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock) {
 	if (sock->type == isc_nm_tlsdnslistener ||
-	    sock->type == isc_nm_tlsdnssocket) {
+	    sock->type == isc_nm_tlsdnssocket)
+	{
 		if (sock->tls.client_sess_cache != NULL) {
 			INSIST(atomic_load(&sock->client));
 			INSIST(sock->type == isc_nm_tlsdnssocket);

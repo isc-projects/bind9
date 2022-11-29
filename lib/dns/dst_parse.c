@@ -122,7 +122,8 @@ find_value(const char *s, const unsigned int alg) {
 
 	for (i = 0; map[i].tag != NULL; i++) {
 		if (strcasecmp(s, map[i].tag) == 0 &&
-		    (TAG_ALG(map[i].value) == alg)) {
+		    (TAG_ALG(map[i].value) == alg))
+		{
 			return (map[i].value);
 		}
 	}

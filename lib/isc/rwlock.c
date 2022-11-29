@@ -334,7 +334,8 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		POST(cntflag);
 		while (1) {
 			if ((atomic_load_acquire(&rwl->cnt_and_flag) &
-			     WRITER_ACTIVE) == 0) {
+			     WRITER_ACTIVE) == 0)
+			{
 				break;
 			}
 
@@ -342,7 +343,8 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			LOCK(&rwl->lock);
 			rwl->readers_waiting++;
 			if ((atomic_load_acquire(&rwl->cnt_and_flag) &
-			     WRITER_ACTIVE) != 0) {
+			     WRITER_ACTIVE) != 0)
+			{
 				WAIT(&rwl->readable, &rwl->lock);
 			}
 			rwl->readers_waiting--;
@@ -386,10 +388,12 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		/* enter the waiting queue, and wait for our turn */
 		prev_writer = atomic_fetch_add_release(&rwl->write_requests, 1);
 		while (atomic_load_acquire(&rwl->write_completions) !=
-		       prev_writer) {
+		       prev_writer)
+		{
 			LOCK(&rwl->lock);
 			if (atomic_load_acquire(&rwl->write_completions) !=
-			    prev_writer) {
+			    prev_writer)
+			{
 				WAIT(&rwl->writeable, &rwl->lock);
 				UNLOCK(&rwl->lock);
 				continue;
