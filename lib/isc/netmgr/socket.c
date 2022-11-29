@@ -344,7 +344,8 @@ isc_result_t
 isc__nm_socket_tcp_maxseg(uv_os_sock_t fd, int size) {
 #ifdef TCP_MAXSEG
 	if (setsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, (void *)&size,
-		       sizeof(size))) {
+		       sizeof(size)))
+	{
 		return (ISC_R_FAILURE);
 	} else {
 		return (ISC_R_SUCCESS);
@@ -367,7 +368,8 @@ isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family) {
 	}
 #elif defined(IPV6_MTU)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &(int){ 1280 },
-		       sizeof(int)) == -1) {
+		       sizeof(int)) == -1)
+	{
 		return (ISC_R_FAILURE);
 	}
 #else

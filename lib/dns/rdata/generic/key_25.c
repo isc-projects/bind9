@@ -211,7 +211,8 @@ generic_totext_key(ARGS_TOTEXT) {
 
 	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0) {
 		if (rdata->type == dns_rdatatype_dnskey ||
-		    rdata->type == dns_rdatatype_cdnskey) {
+		    rdata->type == dns_rdatatype_cdnskey)
+		{
 			RETERR(str_totext(" ; ", target));
 			RETERR(str_totext(keyinfo, target));
 		}
@@ -258,7 +259,8 @@ generic_fromwire_key(ARGS_FROMWIRE) {
 	}
 
 	if (algorithm == DNS_KEYALG_PRIVATEDNS ||
-	    algorithm == DNS_KEYALG_PRIVATEOID) {
+	    algorithm == DNS_KEYALG_PRIVATEOID)
+	{
 		isc_buffer_t b = *source;
 		RETERR(check_private(&b, algorithm));
 	}

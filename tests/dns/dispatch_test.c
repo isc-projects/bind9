@@ -184,7 +184,8 @@ setup_test(void **state) {
 	tls_tlsctx_client_cache = isc_tlsctx_cache_new(mctx);
 
 	if (isc_tlsctx_createserver(NULL, NULL, &tls_listen_tlsctx) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		return (-1);
 	}
 

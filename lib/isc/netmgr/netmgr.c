@@ -664,7 +664,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		for (size_t i = 0; i < sock->nchildren; i++) {
 			REQUIRE(!atomic_load(&sock->children[i].destroying));
 			if (isc_refcount_decrement(
-				    &sock->children[i].references)) {
+				    &sock->children[i].references))
+			{
 				nmsocket_cleanup(&sock->children[i],
 						 false FLARG_PASS);
 			}
@@ -1964,7 +1965,8 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 
 #if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (!isc__nmsocket_active(sock) ||
-	    !isc_astack_trypush(sock->inactivereqs, req)) {
+	    !isc_astack_trypush(sock->inactivereqs, req))
+	{
 		isc_mem_put(sock->worker->mctx, req, sizeof(*req));
 	}
 #else  /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
@@ -2118,7 +2120,8 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(listener->tid == 0);
 
 	if (!atomic_compare_exchange_strong(&listener->closing,
-					    &(bool){ false }, true)) {
+					    &(bool){ false }, true))
+	{
 		UNREACHABLE();
 	}
 

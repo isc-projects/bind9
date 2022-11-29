@@ -329,7 +329,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	 * Ignore this if it's a GSS key, since the key size is meaningless.
 	 */
 	if (dstkey != NULL && dst_key_size(dstkey) < 64 &&
-	    dstalg != DST_ALG_GSSAPI) {
+	    dstalg != DST_ALG_GSSAPI)
+	{
 		char namestr[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namestr, sizeof(namestr));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
@@ -871,7 +872,8 @@ dns_tsig_sign(dns_message_t *msg) {
 			}
 			isc_buffer_putuint16(&databuf, querytsig.siglen);
 			if (isc_buffer_availablelength(&databuf) <
-			    querytsig.siglen) {
+			    querytsig.siglen)
+			{
 				ret = ISC_R_NOSPACE;
 				goto cleanup_context;
 			}
@@ -1197,7 +1199,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			return (DNS_R_FORMERR);
 		}
 		if (tsig.siglen > 0 &&
-		    (tsig.siglen < 10 || tsig.siglen < ((siglen + 1) / 2))) {
+		    (tsig.siglen < 10 || tsig.siglen < ((siglen + 1) / 2)))
+		{
 			tsig_log(msg->tsigkey, 2,
 				 "signature length below minimum");
 			return (DNS_R_FORMERR);
@@ -1366,7 +1369,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		uint16_t digestbits = dst_key_getbits(key);
 
 		if (tsig.siglen > 0 && digestbits != 0 &&
-		    tsig.siglen < ((digestbits + 7) / 8)) {
+		    tsig.siglen < ((digestbits + 7) / 8))
+		{
 			msg->tsigstatus = dns_tsigerror_badtrunc;
 			tsig_log(msg->tsigkey, 2,
 				 "truncated signature length too small");
@@ -1501,7 +1505,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			}
 			if (tsig.siglen > 0 &&
 			    (tsig.siglen < 10 ||
-			     tsig.siglen < ((siglen + 1) / 2))) {
+			     tsig.siglen < ((siglen + 1) / 2)))
+			{
 				tsig_log(tsigkey, 2,
 					 "signature length below minimum");
 				ret = DNS_R_FORMERR;
@@ -1673,7 +1678,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			uint16_t digestbits = dst_key_getbits(key);
 
 			if (tsig.siglen > 0 && digestbits != 0 &&
-			    tsig.siglen < ((digestbits + 7) / 8)) {
+			    tsig.siglen < ((digestbits + 7) / 8))
+			{
 				msg->tsigstatus = dns_tsigerror_badtrunc;
 				tsig_log(msg->tsigkey, 2,
 					 "truncated signature length "
@@ -1682,7 +1688,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 				goto cleanup_context;
 			}
 			if (tsig.siglen > 0 && digestbits == 0 &&
-			    tsig.siglen < siglen) {
+			    tsig.siglen < siglen)
+			{
 				msg->tsigstatus = dns_tsigerror_badtrunc;
 				tsig_log(msg->tsigkey, 2,
 					 "signature length too small");

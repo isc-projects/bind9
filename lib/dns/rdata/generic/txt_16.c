@@ -39,7 +39,8 @@ generic_fromtext_txt(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qstring, true));
 		if (token.type != isc_tokentype_qstring &&
-		    token.type != isc_tokentype_string) {
+		    token.type != isc_tokentype_string)
+		{
 			break;
 		}
 		RETTOK(txt_fromtext(&token.value.as_textregion, target));

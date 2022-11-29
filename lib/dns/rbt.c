@@ -653,7 +653,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep) {
 				hash_node(rbt, new_current, new_name);
 
 				if (common_labels ==
-				    dns_name_countlabels(add_name)) {
+				    dns_name_countlabels(add_name))
+				{
 					/*
 					 * The name has been added by pushing
 					 * the not-in-common parts down to
@@ -728,7 +729,8 @@ dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data) {
 	 * there is data associated with a node.
 	 */
 	if (result == ISC_R_SUCCESS ||
-	    (result == ISC_R_EXISTS && node->data == NULL)) {
+	    (result == ISC_R_EXISTS && node->data == NULL))
+	{
 		node->data = data;
 		result = ISC_R_SUCCESS;
 	}
@@ -1246,7 +1248,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 					result2 = dns_rbtnodechain_prev(
 						chain, NULL, NULL);
 					if (result2 == ISC_R_SUCCESS ||
-					    result2 == DNS_R_NEWORIGIN) {
+					    result2 == DNS_R_NEWORIGIN)
+					{
 						/* Nothing. */
 					} else if (result2 == ISC_R_NOMORE) {
 						/*
@@ -1680,7 +1683,8 @@ maybe_rehash(dns_rbt_t *rbt, size_t newcount) {
 	uint32_t newbits = rehash_bits(rbt, newcount);
 
 	if (rbt->hashbits[rbt->hindex] < newbits &&
-	    newbits <= ISC_HASH_MAX_BITS) {
+	    newbits <= ISC_HASH_MAX_BITS)
+	{
 		hashtable_rehash(rbt, newbits);
 	}
 }
@@ -2105,7 +2109,8 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 				INSIST(sibling != NULL);
 
 				if (IS_BLACK(sibling->left) &&
-				    IS_BLACK(sibling->right)) {
+				    IS_BLACK(sibling->right))
+				{
 					sibling->color = RED;
 					child = parent;
 				} else {
@@ -2141,7 +2146,8 @@ deletefromlevel(dns_rbtnode_t *item, dns_rbtnode_t **rootp) {
 				INSIST(sibling != NULL);
 
 				if (IS_BLACK(sibling->left) &&
-				    IS_BLACK(sibling->right)) {
+				    IS_BLACK(sibling->right))
+				{
 					sibling->color = RED;
 					child = parent;
 				} else {
@@ -2292,7 +2298,8 @@ check_properties_helper(dns_rbtnode_t *node) {
 	 * a subtree root and must have the flag set.
 	 */
 	if (((!node->parent) || (node->parent->down == node)) &&
-	    (!node->is_root)) {
+	    (!node->is_root))
+	{
 		return (false);
 	}
 
@@ -2700,7 +2707,8 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * the origin for the second level tree.
 		 */
 		if (origin != NULL &&
-		    (chain->level_count > 0 || predecessor->offsetlen > 1)) {
+		    (chain->level_count > 0 || predecessor->offsetlen > 1))
+		{
 			new_origin = true;
 		}
 	}

@@ -296,7 +296,8 @@ ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
 
 	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
 		for (hook = ISC_LIST_HEAD((*table)[i]); hook != NULL;
-		     hook = next) {
+		     hook = next)
+		{
 			next = ISC_LIST_NEXT(hook, link);
 			ISC_LIST_UNLINK((*table)[i], hook, link);
 			if (hook->mctx != NULL) {

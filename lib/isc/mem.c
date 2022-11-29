@@ -1417,7 +1417,8 @@ print_contexts(FILE *file) {
 	isc_mem_t *ctx;
 
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
+	     ctx = ISC_LIST_NEXT(ctx, link))
+	{
 		fprintf(file, "context: %p (%s): %" PRIuFAST32 " references\n",
 			ctx, ctx->name[0] == 0 ? "<unknown>" : ctx->name,
 			isc_refcount_current(&ctx->references));
@@ -1573,7 +1574,8 @@ isc_mem_renderxml(void *writer0) {
 	LOCK(&contextslock);
 	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
+	     ctx = ISC_LIST_NEXT(ctx, link))
+	{
 		xmlrc = xml_renderctx(ctx, &summary, writer);
 		if (xmlrc < 0) {
 			UNLOCK(&contextslock);
@@ -1715,7 +1717,8 @@ isc_mem_renderjson(void *memobj0) {
 	LOCK(&contextslock);
 	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
+	     ctx = ISC_LIST_NEXT(ctx, link))
+	{
 		result = json_renderctx(ctx, &summary, ctxarray);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&contextslock);

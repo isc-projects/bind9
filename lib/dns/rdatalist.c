@@ -199,7 +199,8 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 			continue;
 		}
 		if (rdset->type == dns_rdatatype_nsec ||
-		    rdset->type == dns_rdatatype_nsec3) {
+		    rdset->type == dns_rdatatype_nsec3)
+		{
 			neg = rdset;
 		}
 	}
@@ -211,7 +212,8 @@ isc__rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	     rdset = ISC_LIST_NEXT(rdset, link))
 	{
 		if (rdset->type == dns_rdatatype_rrsig &&
-		    rdset->covers == neg->type) {
+		    rdset->covers == neg->type)
+		{
 			negsig = rdset;
 		}
 	}
@@ -271,7 +273,8 @@ isc__rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	     rdataset = ISC_LIST_NEXT(rdataset, link))
 	{
 		if (rdataset->type == dns_rdatatype_rrsig &&
-		    rdataset->covers == tneg->type) {
+		    rdataset->covers == tneg->type)
+		{
 			tnegsig = rdataset;
 		}
 	}
@@ -301,7 +304,8 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 			continue;
 		}
 		if (rdset->type == dns_rdatatype_nsec ||
-		    rdset->type == dns_rdatatype_nsec3) {
+		    rdset->type == dns_rdatatype_nsec3)
+		{
 			neg = rdset;
 		}
 	}
@@ -313,7 +317,8 @@ isc__rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	     rdset = ISC_LIST_NEXT(rdset, link))
 	{
 		if (rdset->type == dns_rdatatype_rrsig &&
-		    rdset->covers == neg->type) {
+		    rdset->covers == neg->type)
+		{
 			negsig = rdset;
 		}
 	}
@@ -373,7 +378,8 @@ isc__rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	     rdataset = ISC_LIST_NEXT(rdataset, link))
 	{
 		if (rdataset->type == dns_rdatatype_rrsig &&
-		    rdataset->covers == tneg->type) {
+		    rdataset->covers == tneg->type)
+		{
 			tnegsig = rdataset;
 		}
 	}

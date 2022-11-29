@@ -1076,7 +1076,8 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	 * case this function will print "PT0S".
 	 */
 	if (duration.parts[6] > 0 ||
-	    (!D && !duration.parts[4] && !duration.parts[5])) {
+	    (!D && !duration.parts[4] && !duration.parts[5]))
+	{
 		durationlen[6] = 1 + numlen(duration.parts[6]);
 		T = true;
 		count += durationlen[6];
@@ -1105,7 +1106,8 @@ cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	}
 	/* Special case for seconds. */
 	if (duration.parts[6] > 0 ||
-	    (!D && !duration.parts[4] && !duration.parts[5])) {
+	    (!D && !duration.parts[4] && !duration.parts[5]))
+	{
 		snprintf(str, durationlen[6] + 2, "%u%c",
 			 (uint32_t)duration.parts[6], indicators[6]);
 	}
@@ -1625,7 +1627,8 @@ parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	if (pctx->token.type == isc_tokentype_string) {
 		CHECK(cfg_gettoken(pctx, 0));
 		if (strcasecmp(TOKEN_STRING(pctx), "db") == 0 &&
-		    obj->value.tuple[1] == NULL) {
+		    obj->value.tuple[1] == NULL)
+		{
 			CHECK(cfg_parse_obj(pctx, fields[1].type,
 					    &obj->value.tuple[1]));
 		} else {
@@ -2008,7 +2011,8 @@ print_list(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	const cfg_listelt_t *elt;
 
 	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link)) {
+	     elt = ISC_LIST_NEXT(elt, link))
+	{
 		if ((pctx->flags & CFG_PRINTER_ONELINE) != 0) {
 			cfg_print_obj(pctx, elt->obj);
 			cfg_print_cstr(pctx, "; ");
@@ -2107,7 +2111,8 @@ cfg_print_spacelist(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	list = &obj->value.list;
 
 	for (elt = ISC_LIST_HEAD(*list); elt != NULL;
-	     elt = ISC_LIST_NEXT(elt, link)) {
+	     elt = ISC_LIST_NEXT(elt, link))
+	{
 		cfg_print_obj(pctx, elt->obj);
 		if (ISC_LIST_NEXT(elt, link) != NULL) {
 			cfg_print_cstr(pctx, " ");
@@ -2249,9 +2254,11 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		clause = NULL;
 		for (clauseset = clausesets; *clauseset != NULL; clauseset++) {
 			for (clause = *clauseset; clause->name != NULL;
-			     clause++) {
+			     clause++)
+			{
 				if (strcasecmp(TOKEN_STRING(pctx),
-					       clause->name) == 0) {
+					       clause->name) == 0)
+				{
 					goto done;
 				}
 			}
@@ -2499,7 +2506,8 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
 
 	for (clauseset = obj->value.map.clausesets; *clauseset != NULL;
-	     clauseset++) {
+	     clauseset++)
+	{
 		isc_symvalue_t symval;
 		const cfg_clausedef_t *clause;
 
@@ -2515,7 +2523,8 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 					cfg_listelt_t *elt;
 					for (elt = ISC_LIST_HEAD(*list);
 					     elt != NULL;
-					     elt = ISC_LIST_NEXT(elt, link)) {
+					     elt = ISC_LIST_NEXT(elt, link))
+					{
 						print_symval(pctx, clause->name,
 							     elt->obj);
 					}

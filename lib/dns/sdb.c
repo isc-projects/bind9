@@ -448,7 +448,8 @@ getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
 		dns_name_dup(newname, mctx, sdbnode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdbnode, link);
 		if (allnodes->origin == NULL &&
-		    dns_name_equal(newname, &sdb->common.origin)) {
+		    dns_name_equal(newname, &sdb->common.origin))
+		{
 			allnodes->origin = sdbnode;
 		}
 	}
@@ -937,7 +938,8 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 					dns_rdataset_disassociate(rdataset);
 					if (sigrdataset != NULL &&
 					    dns_rdataset_isassociated(
-						    sigrdataset)) {
+						    sigrdataset))
+					{
 						dns_rdataset_disassociate(
 							sigrdataset);
 					}
@@ -1092,7 +1094,8 @@ createiterator(dns_db_t *db, unsigned int options,
 	}
 
 	if ((options & DNS_DB_NSEC3ONLY) != 0 ||
-	    (options & DNS_DB_NONSEC3) != 0) {
+	    (options & DNS_DB_NONSEC3) != 0)
+	{
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 

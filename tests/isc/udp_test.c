@@ -860,7 +860,8 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	switch (eresult) {
 	case ISC_R_SUCCESS:
 		if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) +
-					    1)) {
+					    1))
+		{
 			do_cconnects_shutdown(loopmgr);
 		} else if (do_send) {
 			isc_job_run(loopmgr, udp__connect, cbarg);

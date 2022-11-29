@@ -484,7 +484,8 @@ isc__ht_iter_next(isc_ht_iter_t *it) {
 	isc_ht_t *ht = it->ht;
 
 	while (it->i < ht->size[it->hindex] &&
-	       ht->table[it->hindex][it->i] == NULL) {
+	       ht->table[it->hindex][it->i] == NULL)
+	{
 		it->i++;
 	}
 

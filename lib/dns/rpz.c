@@ -926,9 +926,11 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		 */
 		*tgt_prefix = (dns_rpz_prefix_t)prefix_num;
 		for (i = 0; ip_labels > 0 && i < DNS_RPZ_CIDR_WORDS * 2;
-		     ip_labels--) {
+		     ip_labels--)
+		{
 			if (cp[0] == 'z' && cp[1] == 'z' &&
-			    (cp[2] == '.' || cp[2] == '\0') && i <= 6) {
+			    (cp[2] == '.' || cp[2] == '\0') && i <= 6)
+			{
 				do {
 					if ((i & 1) == 0) {
 						tgt_ip->w[3 - i / 2] = 0;
@@ -939,7 +941,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			} else {
 				l = strtoul(cp, &cp2, 16);
 				if (l > 0xffffu ||
-				    (*cp2 != '.' && *cp2 != '\0')) {
+				    (*cp2 != '.' && *cp2 != '\0'))
+				{
 					if (*cp2 == '.') {
 						*cp2 = '\0';
 					}
@@ -984,7 +987,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	 * Complain about bad names but be generous and accept them.
 	 */
 	if (log_level < DNS_RPZ_DEBUG_QUIET &&
-	    isc_log_wouldlog(dns_lctx, log_level)) {
+	    isc_log_wouldlog(dns_lctx, log_level))
+	{
 		/*
 		 * Convert the address back to a canonical domain name
 		 * to ensure that the original name is in canonical form.
@@ -993,7 +997,8 @@ name2ipkey(int log_level, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		result = ip2name(tgt_ip, (dns_rpz_prefix_t)prefix_num, NULL,
 				 ip_name2);
 		if (result != ISC_R_SUCCESS ||
-		    !dns_name_equal(&ip_name, ip_name2)) {
+		    !dns_name_equal(&ip_name, ip_name2))
+		{
 			char ip2_str[DNS_NAME_FORMATSIZE];
 			dns_name_format(ip_name2, ip2_str, sizeof(ip2_str));
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
@@ -2096,7 +2101,8 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		 */
 		LOCK(&rpzs->maint_lock);
 		for (dns_rpz_num_t rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES;
-		     ++rpz_num) {
+		     ++rpz_num)
+		{
 			if (rpzs->zones[rpz_num] != NULL) {
 				rpz_detach(&rpzs->zones[rpz_num]);
 			}
@@ -2253,7 +2259,8 @@ del_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			child = tgt->child[1];
 		}
 		if (tgt->set.client_ip != 0 || tgt->set.ip != 0 ||
-		    tgt->set.nsip != 0) {
+		    tgt->set.nsip != 0)
+		{
 			break;
 		}
 

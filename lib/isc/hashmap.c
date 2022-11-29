@@ -297,7 +297,8 @@ nexttable:
 		}
 
 		if (hashmap_match(node, hashval, key, keysize,
-				  hashmap->case_sensitive)) {
+				  hashmap->case_sensitive))
+		{
 			*pslp = psl;
 			*idxp = idx;
 			return (node);
@@ -562,7 +563,8 @@ hashmap_add(isc_hashmap_t *hashmap, const uint32_t hashval, const uint8_t *key,
 		}
 
 		if (hashmap_match(current, hashval, key, keysize,
-				  hashmap->case_sensitive)) {
+				  hashmap->case_sensitive))
+		{
 			return (ISC_R_EXISTS);
 		}
 		/* Found rich node */

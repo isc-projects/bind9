@@ -649,7 +649,8 @@ dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2) {
 
 	namereln = dns_name_fullcompare(name1, name2, &order, &nlabels);
 	if (namereln == dns_namereln_subdomain ||
-	    namereln == dns_namereln_equal) {
+	    namereln == dns_namereln_equal)
+	{
 		return (true);
 	}
 
@@ -1229,7 +1230,8 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 				case 0x40: /* '@' */
 				case 0x24: /* '$' */
 					if ((options & DNS_NAME_MASTERFILE) ==
-					    0) {
+					    0)
+					{
 						goto no_escape;
 					}
 					FALLTHROUGH;

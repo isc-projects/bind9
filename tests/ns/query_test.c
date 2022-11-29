@@ -914,7 +914,8 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	 * query_error.
 	 */
 	if (test->start_result != ISC_R_SUCCESS || !test->quota_ok ||
-	    test->do_cancel) {
+	    test->do_cancel)
+	{
 		expect_servfail = true;
 		isc_nmhandle_attach(qctx->client->handle,
 				    &qctx->client->reqhandle);

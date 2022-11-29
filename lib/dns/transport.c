@@ -423,7 +423,8 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 		}
 
 		if (dns_transport_get_prefer_server_ciphers(
-			    transport, &prefer_server_ciphers)) {
+			    transport, &prefer_server_ciphers))
+		{
 			isc_tlsctx_prefer_server_ciphers(tlsctx,
 							 prefer_server_ciphers);
 		}

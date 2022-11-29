@@ -865,7 +865,8 @@ maybe_fixup_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr, uint32_t serial,
 	 * transaction headers in a version 1 journal.
 	 */
 	if ((xhdr->serial0 != serial ||
-	     isc_serial_le(xhdr->serial1, xhdr->serial0))) {
+	     isc_serial_le(xhdr->serial1, xhdr->serial0)))
+	{
 		if (j->xhdr_version == XHDR_VERSION1 && xhdr->serial1 == serial)
 		{
 			isc_log_write(
@@ -877,7 +878,8 @@ maybe_fixup_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr, uint32_t serial,
 			CHECK(journal_read_xhdr(j, xhdr));
 			j->recovered = true;
 		} else if (j->xhdr_version == XHDR_VERSION2 &&
-			   xhdr->count == serial) {
+			   xhdr->count == serial)
+		{
 			isc_log_write(
 				JOURNAL_COMMON_LOGARGS, ISC_LOG_DEBUG(3),
 				"%s: XHDR_VERSION2 -> XHDR_VERSION1 at %u",
@@ -972,7 +974,8 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	 * Check serial number consistency.
 	 */
 	if (xhdr.serial0 != pos->serial ||
-	    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+	    isc_serial_le(xhdr.serial1, xhdr.serial0))
+	{
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: journal file corrupt: "
 			      "expected serial %u, got %u",
@@ -1202,7 +1205,8 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	 * keep track of SOA serial numbers.
 	 */
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link)) {
+	     t = ISC_LIST_NEXT(t, link))
+	{
 		if (t->rdata.type == dns_rdatatype_soa) {
 			if (j->x.n_soa < 2) {
 				j->x.pos[j->x.n_soa].serial =
@@ -1232,7 +1236,8 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	 * Pass 2.  Write RRs to buffer.
 	 */
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link)) {
+	     t = ISC_LIST_NEXT(t, link))
+	{
 		/*
 		 * Write the RR header.
 		 */
@@ -1344,7 +1349,8 @@ dns_journal_commit(dns_journal_t *j) {
 	 */
 	if (!JOURNAL_EMPTY(&j->header)) {
 		while (!DNS_SERIAL_GT(j->x.pos[1].serial,
-				      j->header.begin.serial)) {
+				      j->header.begin.serial))
+		{
 			CHECK(journal_next(j, &j->header.begin));
 		}
 		index_invalidate(j, j->x.pos[1].serial);
@@ -1888,7 +1894,8 @@ dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
 			 * Check that xhdr is consistent.
 			 */
 			if (xhdr.serial0 != pos.serial ||
-			    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+			    isc_serial_le(xhdr.serial1, xhdr.serial0))
+			{
 				CHECK(ISC_R_UNEXPECTED);
 			}
 
@@ -2640,7 +2647,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			 * xhdr format may be wrong.
 			 */
 			if (rewrite && (result != ISC_R_SUCCESS ||
-					!check_delta(buf, size))) {
+					!check_delta(buf, size)))
+			{
 				if (j1->xhdr_version == XHDR_VERSION2) {
 					/* XHDR_VERSION2 -> XHDR_VERSION1 */
 					j1->xhdr_version = XHDR_VERSION1;
@@ -2694,7 +2702,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 			 * Check that xhdr is consistent.
 			 */
 			if (xhdr.serial0 != serial ||
-			    isc_serial_le(xhdr.serial1, xhdr.serial0)) {
+			    isc_serial_le(xhdr.serial1, xhdr.serial0))
+			{
 				CHECK(ISC_R_UNEXPECTED);
 			}
 
@@ -2783,7 +2792,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		if (errno == EEXIST && !is_backup) {
 			result = isc_file_remove(backup);
 			if (result != ISC_R_SUCCESS &&
-			    result != ISC_R_FILENOTFOUND) {
+			    result != ISC_R_FILENOTFOUND)
+			{
 				goto failure;
 			}
 			if (rename(filename, backup) == -1) {

@@ -565,7 +565,8 @@ on_server_data_chunk_recv_callback(int32_t stream_id, const uint8_t *data,
 			size_t new_bufsize = isc_buffer_usedlength(&h2->rbuf) +
 					     len;
 			if (new_bufsize <= MAX_DNS_MESSAGE_SIZE &&
-			    new_bufsize <= h2->content_length) {
+			    new_bufsize <= h2->content_length)
+			{
 				isc_buffer_putmem(&h2->rbuf, data, len);
 				break;
 			}
@@ -1731,7 +1732,8 @@ server_handle_path_header(isc_nmsocket_t *socket, const uint8_t *value,
 		size_t dns_value_len = 0;
 
 		if (isc__nm_parse_httpquery((const char *)qstr, &dns_value,
-					    &dns_value_len)) {
+					    &dns_value_len))
+		{
 			const size_t decoded_size = dns_value_len / 4 * 3;
 			if (decoded_size <= MAX_DNS_MESSAGE_SIZE) {
 				if (socket->h2.query_data != NULL) {
@@ -2220,7 +2222,8 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc_nm_cb_t cb = req->cb.send;
 	void *cbarg = req->cbarg;
 	if (isc__nmsocket_closing(sock) ||
-	    !http_session_active(handle->httpsession)) {
+	    !http_session_active(handle->httpsession))
+	{
 		failed_send_cb(sock, req, ISC_R_CANCELED);
 		return;
 	}
@@ -2738,7 +2741,8 @@ isc__nm_http_close(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nmsocket_active(sock));
 
 	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true)) {
+					    true))
+	{
 		return;
 	}
 
@@ -3209,9 +3213,11 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 	}
 
 	if (sock->type == isc_nm_httplistener ||
-	    sock->type == isc_nm_httpsocket) {
+	    sock->type == isc_nm_httpsocket)
+	{
 		if (sock->type == isc_nm_httplistener &&
-		    sock->h2.listener_endpoints != NULL) {
+		    sock->h2.listener_endpoints != NULL)
+		{
 			/* Delete all handlers */
 			http_cleanup_listener_endpoints(sock);
 		}
@@ -3321,7 +3327,8 @@ isc_nm_http_makeuri(const bool https, const isc_sockaddr_t *sa,
 		 * wrap it between [ and ].
 		 */
 		if (inet_pton(AF_INET6, hostname, &sa6) == 1 &&
-		    hostname[0] != '[') {
+		    hostname[0] != '[')
+		{
 			ipv6_addr = true;
 		}
 		host = hostname;
@@ -3539,7 +3546,8 @@ rule_value_char(isc_httpparser_state_t *st) {
 static bool
 rule_unreserved_char(isc_httpparser_state_t *st) {
 	if (MATCH_ALNUM() || MATCH('_') || MATCH('.') || MATCH('-') ||
-	    MATCH('~')) {
+	    MATCH('~'))
+	{
 		ADVANCE();
 		return (true);
 	}
