@@ -1071,8 +1071,23 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		return (ISC_R_CANCELED);
 	}
 
-	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, &req->uvbuf,
-		     1, tcp_send_cb);
+	uv_buf_t uvbuf = { .base = req->uvbuf.base, .len = req->uvbuf.len };
+
+	r = uv_try_write(&sock->uv_handle.stream, &uvbuf, 1);
+
+	if (r == (int)(uvbuf.len)) {
+		/* Wrote everything */
+		isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
+		return (ISC_R_SUCCESS);
+	} else if (r > 0) {
+		uvbuf.base += (size_t)r;
+		uvbuf.len -= (size_t)r;
+	} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
+		return (isc_uverr2result(r));
+	}
+
+	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, &uvbuf, 1,
+		     tcp_send_cb);
 	if (r < 0) {
 		return (isc_uverr2result(r));
 	}
