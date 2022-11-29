@@ -731,7 +731,7 @@ cfg_acl_fromconfig2(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "tls") == 0)
 			{
-				transports = isc_nm_tlsdnssocket;
+				transports = isc_nm_streamdnssocket;
 				encrypted = true;
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "http") == 0)

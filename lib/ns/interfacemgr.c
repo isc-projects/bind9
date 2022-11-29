@@ -543,7 +543,7 @@ static isc_result_t
 ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
 
-	result = isc_nm_listentlsdns(
+	result = isc_nm_listenstreamdns(
 		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);

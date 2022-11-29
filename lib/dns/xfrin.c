@@ -964,9 +964,9 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 			goto failure;
 		}
 		INSIST(tlsctx != NULL);
-		isc_nm_tlsdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-				     &xfr->primaryaddr, xfrin_connect_done,
-				     connect_xfr, 30000, tlsctx, sess_cache);
+		isc_nm_streamdnsconnect(xfr->netmgr, &xfr->sourceaddr,
+					&xfr->primaryaddr, xfrin_connect_done,
+					connect_xfr, 30000, tlsctx, sess_cache);
 	} break;
 	default:
 		UNREACHABLE();

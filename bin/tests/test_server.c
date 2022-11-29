@@ -256,7 +256,7 @@ run(void) {
 	case DOT: {
 		isc_tlsctx_createserver(NULL, NULL, &tls_ctx);
 
-		result = isc_nm_listentlsdns(
+		result = isc_nm_listenstreamdns(
 			netmgr, ISC_NM_LISTEN_ALL, &sockaddr, read_cb, NULL,
 			accept_cb, NULL, 0, NULL, tls_ctx, &sock);
 		break;

@@ -11962,7 +11962,9 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 				query_error(client, DNS_R_NOTIMP, __LINE__);
 				return;
 			}
-			if (isc_nm_socket_type(handle) == isc_nm_tlsdnssocket &&
+			if (isc_nm_socket_type(handle) ==
+				    isc_nm_streamdnssocket &&
+			    isc_nm_has_encryption(handle) &&
 			    !isc_nm_xfr_allowed(handle))
 			{
 				/*
