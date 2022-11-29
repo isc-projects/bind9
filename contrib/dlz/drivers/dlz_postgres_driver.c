@@ -1108,7 +1108,8 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 		/* if we cannot connect the first time, try 3 more times. */
 		for (j = 0;
 		     PQstatus((PGconn *)dbi->dbconn) != CONNECTION_OK && j < 3;
-		     j++) {
+		     j++)
+		{
 			PQreset((PGconn *)dbi->dbconn);
 		}
 

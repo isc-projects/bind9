@@ -109,7 +109,8 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 		 * Loop through the entries
 		 */
 		for (i = 0; (i < dwEntriesRead && *totalGroups < maxgroups);
-		     i++) {
+		     i++)
+		{
 			assert(pTmpLBuf != NULL);
 			if (pTmpLBuf == NULL) {
 				break;
@@ -168,7 +169,8 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 		 * Loop through the entries
 		 */
 		for (i = 0; (i < dwEntriesRead && *totalGroups < maxgroups);
-		     i++) {
+		     i++)
+		{
 			assert(pTmpBuf != NULL);
 
 			if (pTmpBuf == NULL) {

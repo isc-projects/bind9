@@ -227,7 +227,8 @@ main(int argc, char *argv[]) {
 				name = dns_fixedname_name(&wname2);
 				if (result == ISC_R_SUCCESS) {
 					if (check_absolute &&
-					    dns_name_countlabels(name) > 0) {
+					    dns_name_countlabels(name) > 0)
+					{
 						if (dns_name_isabsolute(name)) {
 							printf("absolute\n");
 						} else {
@@ -235,7 +236,8 @@ main(int argc, char *argv[]) {
 						}
 					}
 					if (check_wildcard &&
-					    dns_name_countlabels(name) > 0) {
+					    dns_name_countlabels(name) > 0)
+					{
 						if (dns_name_iswildcard(name)) {
 							printf("wildcard\n");
 						} else {
@@ -328,7 +330,8 @@ main(int argc, char *argv[]) {
 					break;
 				}
 				if (namereln != dns_namereln_none &&
-				    namereln != dns_namereln_equal) {
+				    namereln != dns_namereln_equal)
+				{
 					printf(", nlabels = %u", nlabels);
 				}
 				printf("\n");

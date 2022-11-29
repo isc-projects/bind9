@@ -107,7 +107,8 @@ isc_dir_read(isc_dir_t *dir) {
 		 * Fetch next file in directory.
 		 */
 		if (FindNextFile(dir->search_handle, &dir->entry.find_data) ==
-		    FALSE) {
+		    FALSE)
+		{
 			/*
 			 * Either the last file has been processed or
 			 * an error has occurred.  The former is not

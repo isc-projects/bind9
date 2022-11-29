@@ -61,7 +61,8 @@ is_ntfs(const char *file) {
 	REQUIRE(filename != NULL);
 
 	if (isc_file_absolutepath(file, filename, sizeof(filename)) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		return (FALSE);
 	}
 
@@ -222,7 +223,8 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	}
 
 	if (NTFSbits ==
-	    (FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE)) {
+	    (FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE))
+	{
 		NTFSbits |= FILE_ALL_ACCESS;
 	}
 	/*

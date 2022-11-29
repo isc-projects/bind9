@@ -266,7 +266,8 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
 		if (strcmp(cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
-			   name) != 0) {
+			   name) != 0)
+		{
 			continue;
 		}
 
@@ -403,7 +404,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 		if (!ctx->oldstyle && ctx->prepub > 0) {
 			if (ctx->setpub && ctx->setact &&
-			    (ctx->activate - ctx->prepub) < ctx->publish) {
+			    (ctx->activate - ctx->prepub) < ctx->publish)
+			{
 				fatal("Activation and publication dates "
 				      "are closer together than the\n\t"
 				      "prepublication interval.");
@@ -739,7 +741,8 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 			if (ctx->setdel) {
 				if (ctx->setinact &&
-				    ctx->deltime < ctx->inactive) {
+				    ctx->deltime < ctx->inactive)
+				{
 					fprintf(stderr,
 						"%s: warning: Key is "
 						"scheduled to be deleted "
@@ -1004,7 +1007,8 @@ main(int argc, char **argv) {
 			ctx.protocol = strtol(isc_commandline_argument, &endp,
 					      10);
 			if (*endp != '\0' || ctx.protocol < 0 ||
-			    ctx.protocol > 255) {
+			    ctx.protocol > 255)
+			{
 				fatal("-p must be followed by a number "
 				      "[0..255]");
 			}
@@ -1020,7 +1024,8 @@ main(int argc, char **argv) {
 			ctx.signatory = strtol(isc_commandline_argument, &endp,
 					       10);
 			if (*endp != '\0' || ctx.signatory < 0 ||
-			    ctx.signatory > 15) {
+			    ctx.signatory > 15)
+			{
 				fatal("-s must be followed by a number "
 				      "[0..15]");
 			}

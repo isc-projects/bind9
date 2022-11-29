@@ -145,7 +145,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			 *    a NS record but do have other data.
 			 */
 			if (rdataset.type == dns_rdatatype_soa ||
-			    rdataset.type == dns_rdatatype_ds) {
+			    rdataset.type == dns_rdatatype_ds)
+			{
 				need_rrsig = true;
 			} else if (rdataset.type == dns_rdatatype_ns) {
 				found_ns = true;
@@ -170,7 +171,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	{
 		for (i = 0; i <= max_type; i++) {
 			if (dns_nsec_isset(bm, i) &&
-			    !dns_rdatatype_iszonecutauth((dns_rdatatype_t)i)) {
+			    !dns_rdatatype_iszonecutauth((dns_rdatatype_t)i))
+			{
 				dns_nsec_setbit(bm, i, 0);
 			}
 		}
@@ -486,7 +488,8 @@ better_param(dns_rdataset_t *nsec3paramset, dns_rdata_t *param) {
 			dns_rdata_t tmprdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &tmprdata);
 			if (!dns_nsec3param_fromprivate(&tmprdata, &rdata, buf,
-							sizeof(buf))) {
+							sizeof(buf)))
+			{
 				continue;
 			}
 		} else {
@@ -1311,7 +1314,8 @@ try_private:
 
 		dns_rdataset_current(&prdataset, &rdata1);
 		if (!dns_nsec3param_fromprivate(&rdata1, &rdata2, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param, NULL));
@@ -1740,7 +1744,8 @@ try_private:
 
 		dns_rdataset_current(&rdataset, &rdata1);
 		if (!dns_nsec3param_fromprivate(&rdata1, &rdata2, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		CHECK(dns_rdata_tostruct(&rdata2, &nsec3param, NULL));
@@ -1858,7 +1863,8 @@ try_private:
 
 		dns_rdataset_current(&rdataset, &rdata1);
 		if (!dns_nsec3param_fromprivate(&rdata1, &rdata2, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		result = dns_rdata_tostruct(&rdata2, &nsec3param, NULL);
@@ -1966,7 +1972,8 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Is this zone the same or deeper than the current zone?
 	 */
 	if (dns_name_countlabels(zonename) == 0 ||
-	    dns_name_issubdomain(zone, zonename)) {
+	    dns_name_issubdomain(zone, zonename))
+	{
 		dns_name_copynf(zone, zonename);
 	}
 

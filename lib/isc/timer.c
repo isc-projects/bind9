@@ -538,7 +538,8 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 
 				LOCK(&timer->lock);
 				if (!isc_time_isepoch(&timer->idle) &&
-				    isc_time_compare(now, &timer->idle) >= 0) {
+				    isc_time_compare(now, &timer->idle) >= 0)
+				{
 					idle = true;
 				}
 				UNLOCK(&timer->lock);

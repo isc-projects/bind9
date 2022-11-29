@@ -208,7 +208,8 @@ main(int argc, char *argv[]) {
 					break;
 				}
 				if (*rp != ' ' && *rp != '\t' && *rp != '\r' &&
-				    *rp != '\n') {
+				    *rp != '\n')
+				{
 					*wp++ = *rp;
 					len++;
 				}

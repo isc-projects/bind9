@@ -259,21 +259,25 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		ch = p[1];
 		i = tableindex[ch];
 		if (ISC_LIKELY((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) !=
-			       0)) {
+			       0))
+		{
 			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
+			     node = node->next)
+			{
 				if (ISC_UNLIKELY(node->name.length != length)) {
 					continue;
 				}
 
 				if (ISC_LIKELY(memcmp(node->name.ndata, p,
-						      length) == 0)) {
+						      length) == 0))
+				{
 					goto found;
 				}
 			}
 		} else {
 			for (node = cctx->table[i]; node != NULL;
-			     node = node->next) {
+			     node = node->next)
+			{
 				unsigned int l, count;
 				unsigned char c;
 				unsigned char *label1, *label2;

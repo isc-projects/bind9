@@ -385,7 +385,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 
 			/* split string into dns data parts. */
 			if (bdbhpt_parse_data(db->log, tmp, &pd) !=
-			    ISC_R_SUCCESS) {
+			    ISC_R_SUCCESS)
+			{
 				goto allnodes_cleanup;
 			}
 			result = db->putnamedrr(allnodes, pd.host, pd.type,
@@ -575,7 +576,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 
 	flags = DB_SET;
 	while ((bdbhptres = data_cursor->c_get(data_cursor, &key, &data,
-					       flags)) == 0) {
+					       flags)) == 0)
+	{
 		flags = DB_NEXT_DUP;
 		tmp = realloc(tmp, data.size + 1);
 		if (tmp == NULL) {

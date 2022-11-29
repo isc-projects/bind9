@@ -476,7 +476,8 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 		arglen = (int)(end - arg);
 		for (def = defs; def->name != NULL; def++) {
 			if (arglen == (int)strlen(def->name) &&
-			    memcmp(arg, def->name, arglen) == 0) {
+			    memcmp(arg, def->name, arglen) == 0)
+			{
 				if (def->value == 0) {
 					clear = true;
 				}
@@ -565,7 +566,8 @@ list_hmac_algorithms(isc_buffer_t *b) {
 		}
 	}
 	for (unsigned char *s = isc_buffer_used(&sb); s != isc_buffer_used(b);
-	     s++) {
+	     s++)
+	{
 		*s = toupper(*s);
 	}
 }

@@ -576,7 +576,8 @@ main(int argc, char **argv) {
 		flags |= DNS_KEYOWNER_ZONE;
 	} else if ((options & DST_TYPE_KEY) != 0) { /* KEY */
 		if (strcasecmp(nametype, "host") == 0 ||
-		    strcasecmp(nametype, "entity") == 0) {
+		    strcasecmp(nametype, "entity") == 0)
+		{
 			flags |= DNS_KEYOWNER_ENTITY;
 		} else if (strcasecmp(nametype, "user") == 0) {
 			flags |= DNS_KEYOWNER_USER;
@@ -603,7 +604,8 @@ main(int argc, char **argv) {
 	if (protocol == -1) {
 		protocol = DNS_KEYPROTO_DNSSEC;
 	} else if ((options & DST_TYPE_KEY) == 0 &&
-		   protocol != DNS_KEYPROTO_DNSSEC) {
+		   protocol != DNS_KEYPROTO_DNSSEC)
+	{
 		fatal("invalid DNSKEY protocol: %d", protocol);
 	}
 

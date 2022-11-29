@@ -353,7 +353,8 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 			uniform_values = (uint16_t *)values;
 			for (i = 0;
 			     i < (sizeof(values) / (sizeof(*uniform_values)));
-			     i++) {
+			     i++)
+			{
 				uniform_values[i] =
 					isc_random_uniform(UINT16_MAX);
 			}

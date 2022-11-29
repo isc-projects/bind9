@@ -134,7 +134,8 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer) {
 	 * More specifics to front of list.
 	 */
 	for (p = ISC_LIST_HEAD(peers->elements); p != NULL;
-	     p = ISC_LIST_NEXT(p, next)) {
+	     p = ISC_LIST_NEXT(p, next))
+	{
 		if (p->prefixlen < peer->prefixlen) {
 			break;
 		}
@@ -159,7 +160,8 @@ dns_peerlist_peerbyaddr(dns_peerlist_t *servers, const isc_netaddr_t *addr,
 	server = ISC_LIST_HEAD(servers->elements);
 	while (server != NULL) {
 		if (isc_netaddr_eqprefix(addr, &server->address,
-					 server->prefixlen)) {
+					 server->prefixlen))
+		{
 			break;
 		}
 

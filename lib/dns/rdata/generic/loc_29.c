@@ -180,13 +180,15 @@ get_direction(isc_lex_t *lexer, isc_token_t *token, const char *directions,
 	RETERR(isc_lex_getmastertoken(lexer, token, isc_tokentype_string,
 				      false));
 	if (DNS_AS_STR(*token)[0] == directions[1] &&
-	    DNS_AS_STR(*token)[1] == 0) {
+	    DNS_AS_STR(*token)[1] == 0)
+	{
 		*direction = DNS_AS_STR(*token)[0];
 		return (ISC_R_SUCCESS);
 	}
 
 	if (DNS_AS_STR(*token)[0] == directions[0] &&
-	    DNS_AS_STR(*token)[1] == 0) {
+	    DNS_AS_STR(*token)[1] == 0)
+	{
 		*direction = DNS_AS_STR(*token)[0];
 		return (ISC_R_SUCCESS);
 	}
@@ -585,7 +587,8 @@ fromwire_loc(ARGS_FROMWIRE) {
 	c = sr.base[1];
 	if (c != 0) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0) {
+		    ((c >> 4) & 0xf) == 0)
+		{
 			return (ISC_R_RANGE);
 
 			/*
@@ -600,7 +603,8 @@ fromwire_loc(ARGS_FROMWIRE) {
 	c = sr.base[2];
 	if (c != 0) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0) {
+		    ((c >> 4) & 0xf) == 0)
+		{
 			return (ISC_R_RANGE);
 
 			/*
@@ -615,7 +619,8 @@ fromwire_loc(ARGS_FROMWIRE) {
 	c = sr.base[3];
 	if (c != 0) {
 		if ((c & 0xf) > 9 || ((c >> 4) & 0xf) > 9 ||
-		    ((c >> 4) & 0xf) == 0) {
+		    ((c >> 4) & 0xf) == 0)
+		{
 			return (ISC_R_RANGE);
 		}
 	}

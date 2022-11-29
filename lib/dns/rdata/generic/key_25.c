@@ -176,7 +176,8 @@ generic_totext_key(ARGS_TOTEXT) {
 
 	if ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0) {
 		if (rdata->type == dns_rdatatype_dnskey ||
-		    rdata->type == dns_rdatatype_cdnskey) {
+		    rdata->type == dns_rdatatype_cdnskey)
+		{
 			RETERR(str_totext(" ; ", target));
 			RETERR(str_totext(keyinfo, target));
 		}

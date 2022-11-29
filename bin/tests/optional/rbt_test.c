@@ -216,7 +216,8 @@ iterate(dns_rbt_t *rbt, bool forward) {
 			}
 
 			if (result == ISC_R_SUCCESS ||
-			    result == DNS_R_NEWORIGIN) {
+			    result == DNS_R_NEWORIGIN)
+			{
 				print_name(&foundname);
 				printf("\n");
 			} else {

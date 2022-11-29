@@ -249,7 +249,8 @@ isc_netaddr_prefixok(const isc_netaddr_t *na, unsigned int prefixlen) {
 		nbytes++;
 	}
 	if (nbytes < ipbytes &&
-	    memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0) {
+	    memcmp(p + nbytes, zeros, ipbytes - nbytes) != 0)
+	{
 		return (ISC_R_FAILURE);
 	}
 	return (ISC_R_SUCCESS);

@@ -631,7 +631,8 @@ isc_url_parse(const char *buf, size_t buflen, bool is_connect,
 
 	/* CONNECT requests can only contain "hostname:port" */
 	if (is_connect &&
-	    up->field_set != ((1 << ISC_UF_HOST) | (1 << ISC_UF_PORT))) {
+	    up->field_set != ((1 << ISC_UF_HOST) | (1 << ISC_UF_PORT)))
+	{
 		return (ISC_R_FAILURE);
 	}
 

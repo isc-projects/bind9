@@ -243,7 +243,8 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 		 */
 		LOCK(&ctx->lock);
 		for (event = ISC_LIST_HEAD(ctx->on_run); event != NULL;
-		     event = next_event) {
+		     event = next_event)
+		{
 			next_event = ISC_LIST_NEXT(event, ev_link);
 			ISC_LIST_UNLINK(ctx->on_run, event, ev_link);
 			task = event->ev_sender;

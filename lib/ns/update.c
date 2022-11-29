@@ -805,7 +805,8 @@ static isc_result_t
 cname_compatibility_action(void *data, dns_rdataset_t *rrset) {
 	UNUSED(data);
 	if (rrset->type != dns_rdatatype_cname &&
-	    !dns_rdatatype_atcname(rrset->type)) {
+	    !dns_rdatatype_atcname(rrset->type))
+	{
 		return (ISC_R_EXISTS);
 	}
 	return (ISC_R_SUCCESS);
@@ -909,7 +910,8 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	 * if we're normally not allowed to.
 	 */
 	if (rrset->type == dns_rdatatype_rrsig ||
-	    rrset->type == dns_rdatatype_nsec) {
+	    rrset->type == dns_rdatatype_nsec)
+	{
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1072,7 +1074,8 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 
 			*typep = type = t->rdata.type;
 			if (type == dns_rdatatype_rrsig ||
-			    type == dns_rdatatype_sig) {
+			    type == dns_rdatatype_sig)
+			{
 				covers = dns_rdata_covers(&t->rdata);
 			} else if (type == dns_rdatatype_any) {
 				dns_db_detachnode(db, &node);
@@ -1124,7 +1127,8 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 			 * they are already sorted.
 			 */
 			while (t != NULL && dns_name_equal(&t->name, name) &&
-			       t->rdata.type == type) {
+			       t->rdata.type == type)
+			{
 				dns_difftuple_t *next = ISC_LIST_NEXT(t, link);
 				ISC_LIST_UNLINK(temp->tuples, t, link);
 				ISC_LIST_APPEND(u_rrs.tuples, t, link);
@@ -1723,7 +1727,8 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 		CHECK(rrset_exists(db, newver, &tuple->name, dns_rdatatype_ns,
 				   0, &ns_exists));
 		if (ns_exists &&
-		    !dns_name_equal(&tuple->name, dns_db_origin(db))) {
+		    !dns_name_equal(&tuple->name, dns_db_origin(db)))
+		{
 			continue;
 		}
 		CHECK(delete_if(true_p, db, newver, &tuple->name,
@@ -1768,9 +1773,11 @@ check_mx(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	options = dns_zone_getoptions(zone);
 
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link)) {
+	     t = ISC_LIST_NEXT(t, link))
+	{
 		if (t->op != DNS_DIFFOP_ADD ||
-		    t->rdata.type != dns_rdatatype_mx) {
+		    t->rdata.type != dns_rdatatype_mx)
+		{
 			continue;
 		}
 
@@ -1962,7 +1969,8 @@ try_private:
 
 		dns_rdataset_current(&rdataset, &rdata);
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
@@ -2110,7 +2118,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * delayed changes.
 	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next) {
+	     tuple = next)
+	{
 		if (tuple->op == DNS_DIFFOP_ADD) {
 			if (!ttl_good) {
 				/*
@@ -2169,7 +2178,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * taking into account any TTL change of the NSEC3PARAM RRset.
 	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next) {
+	     tuple = next)
+	{
 		next = ISC_LIST_NEXT(tuple, link);
 		if ((tuple->rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) != 0) {
 			/*
@@ -2197,7 +2207,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	 * deletions.
 	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next) {
+	     tuple = next)
+	{
 		/*
 		 * If we haven't had any adds then the tuple->ttl must be the
 		 * original ttl and should be used for any future changes.
@@ -2299,7 +2310,8 @@ add_nsec3param_records(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	}
 
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next) {
+	     tuple = next)
+	{
 		INSIST(ttl_good);
 
 		next = ISC_LIST_NEXT(tuple, link);
@@ -2359,7 +2371,8 @@ rollback_private(dns_db_t *db, dns_rdatatype_t privatetype,
 		next = ISC_LIST_NEXT(tuple, link);
 
 		if (tuple->rdata.type != privatetype ||
-		    !dns_name_equal(name, &tuple->name)) {
+		    !dns_name_equal(name, &tuple->name))
+		{
 			continue;
 		}
 
@@ -2432,7 +2445,8 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	 * Extract TTL changes pairs, we don't need signing records for these.
 	 */
 	for (tuple = ISC_LIST_HEAD(temp_diff.tuples); tuple != NULL;
-	     tuple = next) {
+	     tuple = next)
+	{
 		if (tuple->op == DNS_DIFFOP_ADD) {
 			/*
 			 * Walk the temp_diff list looking for the
@@ -2813,7 +2827,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					     "allowed "
 					     "in secure zones");
 		} else if (rdata.type == dns_rdatatype_rrsig &&
-			   !dns_name_equal(name, zonename)) {
+			   !dns_name_equal(name, zonename))
+		{
 			FAILC(DNS_R_REFUSED, "explicit RRSIG updates are "
 					     "currently "
 					     "not supported in secure zones "
@@ -2879,7 +2894,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 * RFC1123 doesn't allow MF and MD in master zones.
 			 */
 			if (rdata.type == dns_rdatatype_md ||
-			    rdata.type == dns_rdatatype_mf) {
+			    rdata.type == dns_rdatatype_mf)
+			{
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 				dns_rdatatype_format(rdata.type, typebuf,
@@ -2953,7 +2969,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			}
 
 			if (dns_rdatatype_atparent(rdata.type) &&
-			    dns_name_equal(name, zonename)) {
+			    dns_name_equal(name, zonename))
+			{
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 				dns_rdatatype_format(rdata.type, typebuf,
@@ -2980,7 +2997,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				 * with any flags other than OPTOUT.
 				 */
 				if ((rdata.data[1] & ~DNS_NSEC3FLAG_OPTOUT) !=
-				    0) {
+				    0)
+				{
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
 						   "attempt to add NSEC3PARAM "
@@ -3085,7 +3103,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		} else if (update_class == dns_rdataclass_any) {
 			if (rdata.type == dns_rdatatype_any) {
 				if (isc_log_wouldlog(ns_lctx,
-						     LOGLEVEL_PROTOCOL)) {
+						     LOGLEVEL_PROTOCOL))
+				{
 					char namestr[DNS_NAME_FORMATSIZE];
 					dns_name_format(name, namestr,
 							sizeof(namestr));
@@ -3116,7 +3135,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				continue;
 			} else {
 				if (isc_log_wouldlog(ns_lctx,
-						     LOGLEVEL_PROTOCOL)) {
+						     LOGLEVEL_PROTOCOL))
+				{
 					char namestr[DNS_NAME_FORMATSIZE];
 					char typestr[DNS_RDATATYPE_FORMATSIZE];
 					dns_name_format(name, namestr,
@@ -3399,12 +3419,14 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			dns_rdata_nsec3param_t nsec3param;
 
 			if (tuple->rdata.type != privatetype ||
-			    tuple->op != DNS_DIFFOP_ADD) {
+			    tuple->op != DNS_DIFFOP_ADD)
+			{
 				continue;
 			}
 
 			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
-							buf, sizeof(buf))) {
+							buf, sizeof(buf)))
+			{
 				continue;
 			}
 			dns_rdata_tostruct(&rdata, &nsec3param, NULL);

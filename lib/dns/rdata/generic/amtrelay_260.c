@@ -451,7 +451,8 @@ casecompare_amtrelay(ARGS_COMPARE) {
 	dns_rdata_toregion(rdata2, &region2);
 
 	if (memcmp(region1.base, region2.base, 2) != 0 ||
-	    (region1.base[1] & 0x7f) != 3) {
+	    (region1.base[1] & 0x7f) != 3)
+	{
 		return (isc_region_compare(&region1, &region2));
 	}
 

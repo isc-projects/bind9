@@ -476,7 +476,8 @@ signal_iocompletionport_exit(isc_socketmgr_t *manager) {
 	REQUIRE(VALID_MANAGER(manager));
 	for (i = 0; i < manager->maxIOCPThreads; i++) {
 		if (!PostQueuedCompletionStatus(manager->hIoCompletionPort, 0,
-						0, 0)) {
+						0, 0))
+		{
 			errval = GetLastError();
 			strerror_r(errval, strbuf, sizeof(strbuf));
 			FATAL_ERROR(__FILE__, __LINE__,
@@ -2053,7 +2054,8 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 		 * fd and pretend nothing strange happened.
 		 */
 		if (SOFT_ERROR(connect_errno) ||
-		    connect_errno == WSAEINPROGRESS) {
+		    connect_errno == WSAEINPROGRESS)
+		{
 			sock->pending_connect = 1;
 			CONSISTENT(sock);
 			UNLOCK(&sock->lock);
@@ -2371,7 +2373,8 @@ SocketIoThread(LPVOID ThreadContext) {
 	 * higher than the timer sync thread.
 	 */
 	if (!SetThreadPriority(GetCurrentThread(),
-			       THREAD_PRIORITY_ABOVE_NORMAL)) {
+			       THREAD_PRIORITY_ABOVE_NORMAL))
+	{
 		errval = GetLastError();
 		strerror_r(errval, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__, "Can't set thread priority: %s",
@@ -2460,7 +2463,8 @@ SocketIoThread(LPVOID ThreadContext) {
 
 				if (acceptdone_is_active(sock, lpo->adev)) {
 					if (restart_accept(sock, lpo) ==
-					    ISC_R_SUCCESS) {
+					    ISC_R_SUCCESS)
+					{
 						UNLOCK(&sock->lock);
 						goto wait_again;
 					} else {
@@ -2844,7 +2848,8 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		 * queue it unless ISC_SOCKFLAG_NORETRY is set.
 		 */
 		if ((flags & ISC_SOCKFLAG_NORETRY) == 0 ||
-		    io_state == DOIO_PENDING) {
+		    io_state == DOIO_PENDING)
+		{
 			isc_task_attach(task, &ntask);
 			dev->attributes |= ISC_SOCKEVENTATTR_ATTACHED;
 
@@ -3079,7 +3084,8 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 
 #if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN, &on, sizeof(on)) <
-	    0) {
+	    0)
+	{
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
@@ -3486,7 +3492,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	how &= ~ISC_SOCKCANCEL_SEND;
 
 	if (((how & ISC_SOCKCANCEL_ACCEPT) != 0) &&
-	    !ISC_LIST_EMPTY(sock->accept_list)) {
+	    !ISC_LIST_EMPTY(sock->accept_list))
+	{
 		isc_socket_newconnev_t *dev;
 		isc_socket_newconnev_t *next;
 		isc_task_t *current_task;

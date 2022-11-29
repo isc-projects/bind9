@@ -654,7 +654,8 @@ process_request(isc_httpd_t *httpd, int length) {
 	 * HTTP/1.0 or HTTP/1.1 for now.
 	 */
 	while (LENGTHOK(s) && BUFLENOK(s) &&
-	       (*s != '\n' && *s != '\r' && *s != '\0')) {
+	       (*s != '\n' && *s != '\r' && *s != '\0'))
+	{
 		s++;
 	}
 	if (!LENGTHOK(s)) {
@@ -671,7 +672,8 @@ process_request(isc_httpd_t *httpd, int length) {
 	}
 	*s = 0;
 	if ((strncmp(p, "HTTP/1.0", 8) != 0) &&
-	    (strncmp(p, "HTTP/1.1", 8) != 0)) {
+	    (strncmp(p, "HTTP/1.1", 8) != 0))
+	{
 		return (ISC_R_RANGE);
 	}
 	httpd->protocol = p;

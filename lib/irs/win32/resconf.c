@@ -98,7 +98,8 @@ get_win32_nameservers(irs_resconf_t *conf) {
 	}
 
 	if (ISC_LIST_EMPTY(conf->searchlist) &&
-	    strlen(FixedInfo->DomainName) > 0) {
+	    strlen(FixedInfo->DomainName) > 0)
+	{
 		result = add_search(conf, FixedInfo->DomainName);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;

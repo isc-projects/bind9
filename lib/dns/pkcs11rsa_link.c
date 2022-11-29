@@ -108,7 +108,8 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if ((dctx->key->key_size < 1024) ||
-		    (dctx->key->key_size > 4096)) {
+		    (dctx->key->key_size > 4096))
+		{
 			return (ISC_R_FAILURE);
 		}
 		break;
@@ -319,7 +320,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if ((dctx->key->key_size < 1024) ||
-		    (dctx->key->key_size > 4096)) {
+		    (dctx->key->key_size > 4096))
+		{
 			return (ISC_R_FAILURE);
 		}
 		break;
@@ -360,7 +362,8 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 			ret = pk11_numbits(attr->pValue, attr->ulValueLen,
 					   &bits);
 			if (ret != ISC_R_SUCCESS ||
-			    (bits > maxbits && maxbits != 0)) {
+			    (bits > maxbits && maxbits != 0))
+			{
 				DST_RET(DST_R_VERIFYFAILURE);
 			}
 			break;
@@ -452,7 +455,8 @@ pkcs11rsa_destroyctx(dst_context_t *dctx) {
 
 	if (pk11_ctx != NULL) {
 		if (!pk11_ctx->ontoken &&
-		    (pk11_ctx->object != CK_INVALID_HANDLE)) {
+		    (pk11_ctx->object != CK_INVALID_HANDLE))
+		{
 			(void)pkcs_C_DestroyObject(pk11_ctx->session,
 						   pk11_ctx->object);
 		}
@@ -579,7 +583,8 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if ((dctx->key->key_size < 1024) ||
-		    (dctx->key->key_size > 4096)) {
+		    (dctx->key->key_size > 4096))
+		{
 			return (ISC_R_FAILURE);
 		}
 		break;
@@ -721,7 +726,8 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if ((dctx->key->key_size < 1024) ||
-		    (dctx->key->key_size > 4096)) {
+		    (dctx->key->key_size > 4096))
+		{
 			return (ISC_R_FAILURE);
 		}
 		break;
@@ -1069,7 +1075,8 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (!rsa1->ontoken && !rsa2->ontoken) {
 		return (true);
 	} else if (rsa1->ontoken || rsa2->ontoken ||
-		   (rsa1->object != rsa2->object)) {
+		   (rsa1->object != rsa2->object))
+	{
 		return (false);
 	}
 

@@ -66,10 +66,12 @@ ns_sortlist_setup(dns_acl_t *acl, dns_aclenv_t *env, isc_netaddr_t *clientaddr,
 		}
 
 		if (dns_aclelement_match(clientaddr, NULL, try_elt, env,
-					 &matched_elt)) {
+					 &matched_elt))
+		{
 			if (order_elt != NULL) {
 				if (order_elt->type ==
-				    dns_aclelementtype_nestedacl) {
+				    dns_aclelementtype_nestedacl)
+				{
 					*argp = order_elt->nestedacl;
 					return (NS_SORTLISTTYPE_2ELEMENT);
 				} else if (order_elt->type ==

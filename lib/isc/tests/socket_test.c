@@ -160,7 +160,8 @@ waitfor2(completion_t *c1, completion_t *c2) {
 	int i = 0;
 
 	while (!(atomic_load(&c1->done) && atomic_load(&c2->done)) &&
-	       i++ < 5000) {
+	       i++ < 5000)
+	{
 		waitbody();
 	}
 	if (atomic_load(&c1->done) && atomic_load(&c2->done)) {

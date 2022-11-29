@@ -111,7 +111,8 @@ dns_order_find(dns_order_t *order, const dns_name_t *name,
 			continue;
 		}
 		if (ent->rdclass != rdclass &&
-		    ent->rdclass != dns_rdataclass_any) {
+		    ent->rdclass != dns_rdataclass_any)
+		{
 			continue;
 		}
 		if (match(name, dns_fixedname_name(&ent->name))) {

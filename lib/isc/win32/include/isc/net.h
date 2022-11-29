@@ -139,7 +139,8 @@ typedef uint16_t in_port_t;
 			if (((fd_set FAR *)(set))->fd_array[__i] ==            \
 			    (SOCKET)fd) {                                      \
 				while (__i <                                   \
-				       ((fd_set FAR *)(set))->fd_count - 1) {  \
+				       ((fd_set FAR *)(set))->fd_count - 1)    \
+				{                                              \
 					((fd_set FAR *)(set))->fd_array[__i] = \
 						((fd_set FAR *)(set))          \
 							->fd_array[__i + 1];   \
@@ -157,7 +158,8 @@ typedef uint16_t in_port_t;
 		u_int __i;                                                    \
 		for (__i = 0; __i < ((fd_set FAR *)(set))->fd_count; __i++) { \
 			if (((fd_set FAR *)(set))->fd_array[__i] ==           \
-			    (SOCKET)(fd)) {                                   \
+			    (SOCKET)(fd))                                     \
+			{                                                     \
 				break;                                        \
 			}                                                     \
 		}                                                             \

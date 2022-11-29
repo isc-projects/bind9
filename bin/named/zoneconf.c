@@ -254,7 +254,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		str = cfg_obj_asstring(matchtype);
 		CHECK(dns_ssu_mtypefromstring(str, &mtype));
 		if (mtype == dns_ssumatchtype_subdomain &&
-		    strcasecmp(str, "zonesub") == 0) {
+		    strcasecmp(str, "zonesub") == 0)
+		{
 			usezone = true;
 		}
 
@@ -444,7 +445,8 @@ configure_staticstub_serveraddrs(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	 * there's nothing to do anymore.
 	 */
 	if (ISC_LIST_EMPTY(rdatalist_a->rdata) &&
-	    ISC_LIST_EMPTY(rdatalist_aaaa->rdata)) {
+	    ISC_LIST_EMPTY(rdatalist_aaaa->rdata))
+	{
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1007,7 +1009,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * will be needing a master file.
 	 */
 	if (ztype == dns_zone_primary && cpval == default_dbtype &&
-	    filename == NULL) {
+	    filename == NULL)
+	{
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "zone '%s': 'file' not specified", zname);

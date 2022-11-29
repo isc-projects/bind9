@@ -284,7 +284,8 @@ isccc_alist_prettyprint(isccc_sexpr_t *sexpr, unsigned int indent,
 		fprintf(stream, "{\n");
 		indent += 4;
 		for (elt = isccc_alist_first(sexpr); elt != NULL;
-		     elt = CDR(elt)) {
+		     elt = CDR(elt))
+		{
 			kv = CAR(elt);
 			INSIST(isccc_sexpr_listp(kv));
 			k = CAR(kv);

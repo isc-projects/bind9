@@ -634,7 +634,8 @@ odbc_getField(SQLHSTMT *stmnt, SQLSMALLINT field, char **data) {
 		*data = isc_mem_allocate(named_g_mctx, size + 1);
 		if (data != NULL) {
 			if (sqlOK(SQLGetData(stmnt, field, SQL_C_CHAR, *data,
-					     size + 1, &size))) {
+					     size + 1, &size)))
+			{
 				return (ISC_R_SUCCESS);
 			}
 			isc_mem_free(named_g_mctx, *data);
@@ -689,7 +690,8 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 	/* get the data and concat all fields into a large string */
 	for (i = startField; i <= endField; i++) {
 		if (sqlOK(SQLGetData(stmnt, i, SQL_C_CHAR, &(data[j]),
-				     totSize - j, &size))) {
+				     totSize - j, &size)))
+		{
 			if (size > 0) {
 				j += size;
 				data[j++] = ' ';
@@ -757,7 +759,8 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi) {
 			 * about it.
 			 */
 			if ((result = odbc_getField(stmnt, 1, &data)) ==
-			    ISC_R_SUCCESS) {
+			    ISC_R_SUCCESS)
+			{
 				result = dns_sdlz_putrr(lookup, "a", 86400,
 							data);
 			}

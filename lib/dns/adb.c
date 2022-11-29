@@ -2245,7 +2245,8 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			}
 
 			if (!FIND_RETURNLAME(find) &&
-			    entry_is_lame(adb, entry, qname, qtype, now)) {
+			    entry_is_lame(adb, entry, qname, qtype, now))
+			{
 				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv4;
 			}
@@ -2282,7 +2283,8 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			}
 
 			if (!FIND_RETURNLAME(find) &&
-			    entry_is_lame(adb, entry, qname, qtype, now)) {
+			    entry_is_lame(adb, entry, qname, qtype, now))
+			{
 				find->options |= DNS_ADBFIND_LAMEPRUNED;
 				goto nextv6;
 			}
@@ -3671,7 +3673,8 @@ print_namehook_list(FILE *f, const char *legend, dns_adb_t *adb,
 	dns_adbnamehook_t *nh;
 
 	for (nh = ISC_LIST_HEAD(*list); nh != NULL;
-	     nh = ISC_LIST_NEXT(nh, plink)) {
+	     nh = ISC_LIST_NEXT(nh, plink))
+	{
 		if (debug) {
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
 		}
@@ -3892,7 +3895,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		fetch = name->fetch_a;
 		name->fetch_a = NULL;
 	} else if (NAME_FETCH_AAAA(name) &&
-		   (name->fetch_aaaa->fetch == dev->fetch)) {
+		   (name->fetch_aaaa->fetch == dev->fetch))
+	{
 		address_type = DNS_ADBFIND_INET6;
 		fetch = name->fetch_aaaa;
 		name->fetch_aaaa = NULL;
@@ -4152,7 +4156,8 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 	LOCK(&adb->entrylocks[bucket]);
 	li = ISC_LIST_HEAD(addr->entry->lameinfo);
 	while (li != NULL &&
-	       (li->qtype != qtype || !dns_name_equal(qname, &li->qname))) {
+	       (li->qtype != qtype || !dns_name_equal(qname, &li->qname)))
+	{
 		li = ISC_LIST_NEXT(li, plink);
 	}
 	if (li != NULL) {
@@ -4565,7 +4570,8 @@ dns_adb_probesize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups) {
 	 * lookups.
 	 */
 	if (lookups > 0 && size < addr->entry->udpsize &&
-	    addr->entry->udpsize < 4096) {
+	    addr->entry->udpsize < 4096)
+	{
 		size = addr->entry->udpsize;
 	}
 	UNLOCK(&adb->entrylocks[bucket]);
@@ -4788,7 +4794,8 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 			bool ret;
 			nextname = ISC_LIST_NEXT(adbname, plink);
 			if (!NAME_DEAD(adbname) &&
-			    dns_name_issubdomain(&adbname->name, name)) {
+			    dns_name_issubdomain(&adbname->name, name))
+			{
 				ret = kill_name(&adbname,
 						DNS_EVENT_ADBCANCELED);
 				RUNTIME_CHECK(!ret);

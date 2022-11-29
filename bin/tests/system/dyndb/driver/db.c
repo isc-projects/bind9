@@ -334,7 +334,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	CHECK(dns_db_addrdataset(sampledb->rbtdb, node, version, now, rdataset,
 				 options, addedrdataset));
 	if (rdataset->type == dns_rdatatype_a ||
-	    rdataset->type == dns_rdatatype_aaaa) {
+	    rdataset->type == dns_rdatatype_aaaa)
+	{
 		CHECK(sample_name_fromnode(node, dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),
 			       rdataset, DNS_DIFFOP_ADD));
@@ -362,7 +363,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	if (rdataset->type == dns_rdatatype_a ||
-	    rdataset->type == dns_rdatatype_aaaa) {
+	    rdataset->type == dns_rdatatype_aaaa)
+	{
 		CHECK(sample_name_fromnode(node, dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),
 			       rdataset, DNS_DIFFOP_DEL));

@@ -268,7 +268,8 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		bc->table[hash] = bad;
 		unsigned count = atomic_fetch_add_relaxed(&bc->count, 1);
 		if ((count > bc->size * 8) ||
-		    (count < bc->size * 2 && bc->size > bc->minsize)) {
+		    (count < bc->size * 2 && bc->size > bc->minsize))
+		{
 			resize = true;
 		}
 	} else {

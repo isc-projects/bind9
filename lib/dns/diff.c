@@ -304,7 +304,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 
 			node = NULL;
 			if (type != dns_rdatatype_nsec3 &&
-			    covers != dns_rdatatype_nsec3) {
+			    covers != dns_rdatatype_nsec3)
+			{
 				CHECK(dns_db_findnode(db, name, true, &node));
 			} else {
 				CHECK(dns_db_findnsec3node(db, name, true,
@@ -386,11 +387,13 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 							      resign);
 				}
 				if (op == DNS_DIFFOP_ADD ||
-				    op == DNS_DIFFOP_ADDRESIGN) {
+				    op == DNS_DIFFOP_ADDRESIGN)
+				{
 					setownercase(&ardataset, name);
 				}
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN) {
+				    op == DNS_DIFFOP_DELRESIGN)
+				{
 					getownercase(&ardataset, name);
 				}
 			} else if (result == DNS_R_UNCHANGED) {
@@ -416,11 +419,13 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 						      namebuf, classbuf);
 				}
 				if (op == DNS_DIFFOP_ADD ||
-				    op == DNS_DIFFOP_ADDRESIGN) {
+				    op == DNS_DIFFOP_ADDRESIGN)
+				{
 					setownercase(&ardataset, name);
 				}
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN) {
+				    op == DNS_DIFFOP_DELRESIGN)
+				{
 					getownercase(&ardataset, name);
 				}
 			} else if (result == DNS_R_NXRRSET) {
@@ -428,7 +433,8 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 				 * OK.
 				 */
 				if (op == DNS_DIFFOP_DEL ||
-				    op == DNS_DIFFOP_DELRESIGN) {
+				    op == DNS_DIFFOP_DELRESIGN)
+				{
 					getownercase(&ardataset, name);
 				}
 				if (dns_rdataset_isassociated(&ardataset)) {
@@ -520,7 +526,8 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 					      "dns_diff_load: "
 					      "update with no effect");
 			} else if (result == ISC_R_SUCCESS ||
-				   result == DNS_R_NXRRSET) {
+				   result == DNS_R_NXRRSET)
+			{
 				/*
 				 * OK.
 				 */
@@ -547,7 +554,8 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	REQUIRE(DNS_DIFF_VALID(diff));
 
 	for (p = ISC_LIST_HEAD(diff->tuples); p != NULL;
-	     p = ISC_LIST_NEXT(p, link)) {
+	     p = ISC_LIST_NEXT(p, link))
+	{
 		length++;
 	}
 	if (length == 0) {
@@ -605,7 +613,8 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 	mem = isc_mem_get(diff->mctx, size);
 
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
-	     t = ISC_LIST_NEXT(t, link)) {
+	     t = ISC_LIST_NEXT(t, link))
+	{
 		isc_buffer_t buf;
 		isc_region_t r;
 
