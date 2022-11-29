@@ -1237,6 +1237,19 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
  * \li	'dnskey' is valid.
  */
 
+bool
+dns_view_istrusted(dns_view_t *view, const dns_name_t *keyname,
+		   const dns_rdata_dnskey_t *dnskey);
+/*%<
+ * Determine if the key defined by 'keyname' and 'dnskey' is
+ * trusted by 'view'.
+ *
+ * Requires:
+ * \li	'view' is valid.
+ * \li	'keyname' is valid.
+ * \li	'dnskey' is valid.
+ */
+
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 		     void (*cfg_destroy)(void **), uint64_t mapsize);
