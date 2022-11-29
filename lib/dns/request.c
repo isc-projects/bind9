@@ -665,7 +665,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	}
 
 	if (srcaddr != NULL &&
-	    isc_sockaddr_pf(srcaddr) != isc_sockaddr_pf(destaddr)) {
+	    isc_sockaddr_pf(srcaddr) != isc_sockaddr_pf(destaddr))
+	{
 		return (ISC_R_FAMILYMISMATCH);
 	}
 

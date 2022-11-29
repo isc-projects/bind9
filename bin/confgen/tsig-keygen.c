@@ -127,7 +127,8 @@ main(int argc, char **argv) {
 	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, "a:hk:Mmr:qs:y:z:")) !=
-	       -1) {
+	       -1)
+	{
 		switch (ch) {
 		case 'a':
 			algname = isc_commandline_argument;

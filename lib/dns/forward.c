@@ -80,7 +80,8 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (fwd = ISC_LIST_HEAD(*fwdrs); fwd != NULL;
-	     fwd = ISC_LIST_NEXT(fwd, link)) {
+	     fwd = ISC_LIST_NEXT(fwd, link))
+	{
 		nfwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
 		*nfwd = *fwd;
 		ISC_LINK_INIT(nfwd, link);
@@ -122,7 +123,8 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (sa = ISC_LIST_HEAD(*addrs); sa != NULL;
-	     sa = ISC_LIST_NEXT(sa, link)) {
+	     sa = ISC_LIST_NEXT(sa, link))
+	{
 		fwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
 		fwd->addr = *sa;
 		fwd->dscp = -1;

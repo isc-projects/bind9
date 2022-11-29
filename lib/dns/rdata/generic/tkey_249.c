@@ -75,7 +75,8 @@ fromtext_tkey(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion) !=
-	    ISC_R_SUCCESS) {
+	    ISC_R_SUCCESS)
+	{
 		i = strtol(DNS_AS_STR(token), &e, 10);
 		if (*e != 0) {
 			RETTOK(DNS_R_UNKNOWN);

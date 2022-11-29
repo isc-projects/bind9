@@ -2068,7 +2068,8 @@ zone_touched(dns_zone_t *zone) {
 
 	result = isc_file_getmodtime(zone->masterfile, &modtime);
 	if (result != ISC_R_SUCCESS ||
-	    isc_time_compare(&modtime, &zone->loadtime) > 0) {
+	    isc_time_compare(&modtime, &zone->loadtime) > 0)
+	{
 		return (true);
 	}
 
@@ -2208,7 +2209,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 		}
 
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-		    !zone_touched(zone)) {
+		    !zone_touched(zone))
+		{
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 				      ISC_LOG_DEBUG(1),
 				      "skipping load: master file "
@@ -2223,7 +2225,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 		 */
 		result = isc_file_getmodtime(zone->masterfile, &filetime);
 		if (result == ISC_R_SUCCESS &&
-		    isc_time_compare(&loadtime, &filetime) > 0) {
+		    isc_time_compare(&loadtime, &filetime) > 0)
+		{
 			loadtime = filetime;
 		}
 	}
@@ -3567,7 +3570,8 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 		 * fermat number).
 		 */
 		if (dnskey.datalen > 1 && dnskey.data[0] == 1 &&
-		    dnskey.data[1] == 3) {
+		    dnskey.data[1] == 3)
+		{
 			const char *algorithm = "";
 			isc_region_t r;
 			bool logit = true;
@@ -3653,7 +3657,8 @@ resume_signingwithkey(dns_zone_t *zone) {
 	{
 		dns_rdataset_current(&rdataset, &rdata);
 		if (rdata.length != 5 || rdata.data[0] == 0 ||
-		    rdata.data[4] != 0) {
+		    rdata.data[4] != 0)
+		{
 			dns_rdata_reset(&rdata);
 			continue;
 		}
@@ -3937,7 +3942,8 @@ resume_addnsec3chain(dns_zone_t *zone) {
 		 * represent an NSEC3PARAM record, so skip it.
 		 */
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
@@ -4947,7 +4953,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		} else {
 			int level = ISC_LOG_ERROR;
 			if (zone->type == dns_zone_key &&
-			    result == ISC_R_FILENOTFOUND) {
+			    result == ISC_R_FILENOTFOUND)
+			{
 				level = ISC_LOG_DEBUG(1);
 			}
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, level,
@@ -5109,7 +5116,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			goto cleanup;
 		}
 		if (zone->type != dns_zone_stub &&
-		    zone->type != dns_zone_redirect) {
+		    zone->type != dns_zone_redirect)
+		{
 			result = check_nsec3param(zone, db);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
@@ -5166,7 +5174,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				INSIST(zone->raw == NULL);
 
 				if (serial == oldserial &&
-				    zone_unchanged(zone->db, db, zone->mctx)) {
+				    zone_unchanged(zone->db, db, zone->mctx))
+				{
 					dns_zone_logc(zone,
 						      DNS_LOGCATEGORY_ZONELOAD,
 						      ISC_LOG_INFO,
@@ -5251,7 +5260,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				 isc_random_uniform((zone->retry * 3) / 4));
 			DNS_ZONE_TIME_ADD(&now, delay, &zone->refreshtime);
 			if (isc_time_compare(&zone->refreshtime,
-					     &zone->expiretime) >= 0) {
+					     &zone->expiretime) >= 0)
+			{
 				zone->refreshtime = now;
 			}
 		}
@@ -5301,7 +5311,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED |
 					       DNS_ZONEFLG_NEEDSTARTUPNOTIFY);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SENDSECURE) &&
-		    inline_raw(zone)) {
+		    inline_raw(zone))
+		{
 			if (zone->secure->db == NULL) {
 				zone_send_securedb(zone, db);
 			} else {
@@ -5454,7 +5465,8 @@ cleanup:
 		}
 		result = ISC_R_SUCCESS;
 	} else if (zone->type == dns_zone_primary ||
-		   zone->type == dns_zone_redirect) {
+		   zone->type == dns_zone_redirect)
+	{
 		if (!(inline_secure(zone) && result == ISC_R_FILENOTFOUND)) {
 			dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 				      ISC_LOG_ERROR,
@@ -6727,12 +6739,14 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	/* Add new 'dnskeys' to 'keys'. */
 	for (dns_dnsseckey_t *k1 = ISC_LIST_HEAD(dnskeys); k1 != NULL;
-	     k1 = key_next) {
+	     k1 = key_next)
+	{
 		dns_dnsseckey_t *k2 = NULL;
 		key_next = ISC_LIST_NEXT(k1, link);
 
 		for (k2 = ISC_LIST_HEAD(*keys); k2 != NULL;
-		     k2 = ISC_LIST_NEXT(k2, link)) {
+		     k2 = ISC_LIST_NEXT(k2, link))
+		{
 			if (dst_key_compare(k1->key, k2->key)) {
 				break;
 			}
@@ -7029,16 +7043,19 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				 * iff there is a new offline signature.
 				 */
 				if (!dst_key_inactive(keys[i]) &&
-				    !dst_key_isprivate(keys[i])) {
+				    !dst_key_isprivate(keys[i]))
+				{
 					int64_t timeexpire = dns_time64_from32(
 						rrsig.timeexpire);
 					if (timewarn != 0 &&
-					    timewarn > timeexpire) {
+					    timewarn > timeexpire)
+					{
 						timewarn = timeexpire;
 					}
 					if (rdata.flags & DNS_RDATA_OFFLINE) {
 						if (timemaybe == 0 ||
-						    timemaybe > timeexpire) {
+						    timemaybe > timeexpire)
+						{
 							timemaybe = timeexpire;
 						}
 						break;
@@ -7047,7 +7064,8 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 						timewarn = timemaybe;
 					}
 					if (timewarn == 0 ||
-					    timewarn > timeexpire) {
+					    timewarn > timeexpire)
+					{
 						timewarn = timeexpire;
 					}
 					result = offline(db, ver, zonediff,
@@ -7286,14 +7304,16 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				 * Other RRsets are signed with ZSK.
 				 */
 				if (type != dns_rdatatype_soa &&
-				    type != zone->privatetype) {
+				    type != zone->privatetype)
+				{
 					continue;
 				}
 				if (have_zsk) {
 					continue;
 				}
 			} else if (!dst_key_is_signing(keys[i], DST_BOOL_ZSK,
-						       inception, &when)) {
+						       inception, &when))
+			{
 				/*
 				 * This key is not active for zone-signing.
 				 */
@@ -7394,7 +7414,8 @@ zone_resigninc(dns_zone_t *zone) {
 	 * Pause for 5 minutes.
 	 */
 	if (zone->update_disabled ||
-	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN)) {
+	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN))
+	{
 		result = ISC_R_FAILURE;
 		goto failure;
 	}
@@ -7680,7 +7701,8 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		INSIST(result == ISC_R_SUCCESS);
 		if (rrsig.algorithm == dst_key_alg(key) &&
-		    rrsig.keyid == dst_key_id(key)) {
+		    rrsig.keyid == dst_key_id(key))
+		{
 			dns_rdataset_disassociate(&rdataset);
 			return (true);
 		}
@@ -7881,7 +7903,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (rdataset.type == dns_rdatatype_soa ||
-		    rdataset.type == dns_rdatatype_rrsig) {
+		    rdataset.type == dns_rdatatype_rrsig)
+		{
 			goto next_rdataset;
 		}
 		if (rdataset.type == dns_rdatatype_dnskey ||
@@ -7900,7 +7923,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		} else if (!is_zsk) {
 			goto next_rdataset;
 		} else if (is_zsk && !dst_key_is_signing(key, DST_BOOL_ZSK,
-							 inception, &when)) {
+							 inception, &when))
+		{
 			/* Only applies to dnssec-policy. */
 			if (dns_zone_getkasp(zone) != NULL) {
 				goto next_rdataset;
@@ -7913,7 +7937,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 			goto next_rdataset;
 		}
 		if (signed_with_good_key(zone, db, node, version, rdataset.type,
-					 key)) {
+					 key))
+		{
 			goto next_rdataset;
 		}
 
@@ -8220,7 +8245,8 @@ try_private:
 
 		dns_rdataset_current(&rdataset, &private);
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
@@ -9478,7 +9504,8 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
 			if (nkeys != 0 && (rrsig.algorithm != algorithm ||
-					   rrsig.keyid != keyid)) {
+					   rrsig.keyid != keyid))
+			{
 				if (rrsig.algorithm == algorithm) {
 					has_alg = true;
 				}
@@ -9904,7 +9931,8 @@ zone_sign(dns_zone_t *zone) {
 			 * with the algorithm that was being removed.
 			 */
 			if (signing->deleteit &&
-			    ALG(zone_keys[i]) != signing->algorithm) {
+			    ALG(zone_keys[i]) != signing->algorithm)
+			{
 				continue;
 			}
 
@@ -9922,7 +9950,8 @@ zone_sign(dns_zone_t *zone) {
 				}
 				for (j = 0; j < nkeys; j++) {
 					if (j == i || (ALG(zone_keys[i]) !=
-						       ALG(zone_keys[j]))) {
+						       ALG(zone_keys[j])))
+					{
 						continue;
 					}
 					/*
@@ -9940,7 +9969,8 @@ zone_sign(dns_zone_t *zone) {
 					if (KSK(zone_keys[j])) {
 						have_ksk = true;
 					} else if (dst_key_isprivate(
-							   zone_keys[j])) {
+							   zone_keys[j]))
+					{
 						have_nonksk = true;
 					}
 					both = have_ksk && have_nonksk;
@@ -10506,7 +10536,8 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dst_key_alg(dstkey) == sig.algorithm &&
-		    dst_key_rid(dstkey) == sig.keyid) {
+		    dst_key_rid(dstkey) == sig.keyid)
+		{
 			result = dns_dnssec_verify(
 				keyname, &kfetch->dnskeyset, dstkey, false, 0,
 				mctx, &sigrr, dns_fixedname_name(&fixed));
@@ -10675,7 +10706,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 
 				if (ds.key_tag != sig.keyid ||
-				    ds.algorithm != sig.algorithm) {
+				    ds.algorithm != sig.algorithm)
+				{
 					continue;
 				}
 
@@ -10788,7 +10820,8 @@ anchors_done:
 
 			if (!secure) {
 				if (keydata.removehd != 0 &&
-				    keydata.removehd <= now) {
+				    keydata.removehd <= now)
+				{
 					deletekey = true;
 				}
 			} else if (keydata.addhd == 0) {
@@ -11985,7 +12018,8 @@ dns_zone_flush(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FLUSH);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
-	    zone->masterfile != NULL) {
+	    zone->masterfile != NULL)
+	{
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDCOMPACT);
 		result = ISC_R_ALREADYRUNNING;
 		dumping = was_dumping(zone);
@@ -12033,7 +12067,8 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	 * Do we have a place to dump to and are we loaded?
 	 */
 	if (zone->masterfile == NULL ||
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0) {
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0)
+	{
 		return;
 	}
 
@@ -12106,7 +12141,8 @@ dump_done(void *arg, isc_result_t result) {
 				mresult = dns_db_getsoaserial(zone->secure->db,
 							      NULL, &sserial);
 				if (mresult == ISC_R_SUCCESS &&
-				    isc_serial_lt(sserial, serial)) {
+				    isc_serial_lt(sserial, serial))
+				{
 					serial = sserial;
 				}
 			}
@@ -12913,7 +12949,8 @@ notify_send(dns_notify_t *notify) {
 	{
 		dst = ai->sockaddr;
 		if (notify_isqueued(notify->zone, notify->flags, NULL, &dst,
-				    NULL, NULL)) {
+				    NULL, NULL))
+		{
 			continue;
 		}
 		if (notify_isself(notify->zone, &dst)) {
@@ -12999,7 +13036,8 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	}
 
 	if (notifytype == dns_notifytype_masteronly &&
-	    zone->type != dns_zone_primary) {
+	    zone->type != dns_zone_primary)
+	{
 		return;
 	}
 
@@ -13071,13 +13109,15 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dns_view_t *view = dns_zone_getview(zone);
 
 		if ((zone->notifykeynames != NULL) &&
-		    (zone->notifykeynames[i] != NULL)) {
+		    (zone->notifykeynames[i] != NULL))
+		{
 			dns_name_t *keyname = zone->notifykeynames[i];
 			(void)dns_view_gettsig(view, keyname, &key);
 		}
 
 		if ((zone->notifytlsnames != NULL) &&
-		    (zone->notifytlsnames[i] != NULL)) {
+		    (zone->notifytlsnames[i] != NULL))
+		{
 			dns_name_t *tlsname = zone->notifytlsnames[i];
 			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
 						    tlsname, &transport);
@@ -14291,7 +14331,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			goto same_primary;
 		}
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
-		    msg->rcode == dns_rcode_badvers) {
+		    msg->rcode == dns_rcode_badvers)
+		{
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: rcode (%.*s) retrying without "
 				     "EDNS EXPIRE OPTION primary %s "
@@ -14771,7 +14812,8 @@ again:
 	case PF_INET:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 			if (isc_sockaddr_equal(&zone->altxfrsource4,
-					       &zone->xfrsource4)) {
+					       &zone->xfrsource4))
+			{
 				goto skip_primary;
 			}
 			zone->sourceaddr = zone->altxfrsource4;
@@ -14788,7 +14830,8 @@ again:
 	case PF_INET6:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 			if (isc_sockaddr_equal(&zone->altxfrsource6,
-					       &zone->xfrsource6)) {
+					       &zone->xfrsource6))
+			{
 				goto skip_primary;
 			}
 			zone->sourceaddr = zone->altxfrsource6;
@@ -15333,7 +15376,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0) {
+			    isc_time_compare(&zone->dumptime, &next) < 0)
+			{
 				next = zone->dumptime;
 			}
 		}
@@ -15351,19 +15395,22 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		}
 		if (!isc_time_isepoch(&zone->resigntime)) {
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->resigntime, &next) < 0) {
+			    isc_time_compare(&zone->resigntime, &next) < 0)
+			{
 				next = zone->resigntime;
 			}
 		}
 		if (!isc_time_isepoch(&zone->keywarntime)) {
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->keywarntime, &next) < 0) {
+			    isc_time_compare(&zone->keywarntime, &next) < 0)
+			{
 				next = zone->keywarntime;
 			}
 		}
 		if (!isc_time_isepoch(&zone->signingtime)) {
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->signingtime, &next) < 0) {
+			    isc_time_compare(&zone->signingtime, &next) < 0)
+			{
 				next = zone->signingtime;
 			}
 		}
@@ -15401,7 +15448,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		    !isc_time_isepoch(&zone->expiretime))
 		{
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->expiretime, &next) < 0) {
+			    isc_time_compare(&zone->expiretime, &next) < 0)
+			{
 				next = zone->expiretime;
 			}
 		}
@@ -15410,7 +15458,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0) {
+			    isc_time_compare(&zone->dumptime, &next) < 0)
+			{
 				next = zone->dumptime;
 			}
 		}
@@ -15422,7 +15471,8 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 		{
 			INSIST(!isc_time_isepoch(&zone->dumptime));
 			if (isc_time_isepoch(&next) ||
-			    isc_time_compare(&zone->dumptime, &next) < 0) {
+			    isc_time_compare(&zone->dumptime, &next) < 0)
+			{
 				next = zone->dumptime;
 			}
 		}
@@ -16182,7 +16232,8 @@ zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	if (zone->view == NULL) {
 		isc_buffer_putstr(&buffer, "_none");
 	} else if (strlen(zone->view->name) <
-		   isc_buffer_availablelength(&buffer)) {
+		   isc_buffer_availablelength(&buffer))
+	{
 		isc_buffer_putstr(&buffer, zone->view->name);
 	} else {
 		isc_buffer_putstr(&buffer, "_toolong");
@@ -17122,7 +17173,8 @@ getprivate:
 		 * Do we have a valid private record?
 		 */
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 
@@ -17136,7 +17188,8 @@ getprivate:
 			rdata.data[1] = 0;
 
 			for (nsec3p = ISC_LIST_HEAD(*nsec3list); nsec3p != NULL;
-			     nsec3p = next) {
+			     nsec3p = next)
+			{
 				next = ISC_LIST_NEXT(nsec3p, link);
 
 				if (nsec3p->length == rdata.length + 1 &&
@@ -17963,7 +18016,8 @@ again:
 	 * Let any other zones waiting for quota have it.
 	 */
 	if (zone->zmgr != NULL &&
-	    zone->statelist == &zone->zmgr->xfrin_in_progress) {
+	    zone->statelist == &zone->zmgr->xfrin_in_progress)
+	{
 		UNLOCK_ZONE(zone);
 		RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_write);
 		ISC_LIST_UNLINK(zone->zmgr->xfrin_in_progress, zone, statelink);
@@ -18734,7 +18788,8 @@ zonemgr_keymgmt_destroy(dns_zonemgr_t *zmgr) {
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 	size = HASHSIZE(mgmt->bits);
 	for (unsigned int i = 0;
-	     atomic_load_relaxed(&mgmt->count) > 0 && i < size; i++) {
+	     atomic_load_relaxed(&mgmt->count) > 0 && i < size; i++)
+	{
 		for (curr = mgmt->table[i]; curr != NULL; curr = next) {
 			next = curr->next;
 			isc_mutex_destroy(&curr->lock);
@@ -19228,7 +19283,8 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr) {
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 	for (p = ISC_LIST_HEAD(zmgr->zones); p != NULL;
-	     p = ISC_LIST_NEXT(p, link)) {
+	     p = ISC_LIST_NEXT(p, link))
+	{
 		dns_zone_maintenance(p);
 	}
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
@@ -19462,7 +19518,8 @@ zmgr_resume_xfrs(dns_zonemgr_t *zmgr, bool multi) {
 	dns_zone_t *next;
 
 	for (zone = ISC_LIST_HEAD(zmgr->waiting_for_xfrin); zone != NULL;
-	     zone = next) {
+	     zone = next)
+	{
 		isc_result_t result;
 		next = ISC_LIST_NEXT(zone, statelink);
 		result = zmgr_start_xfrin_ifquota(zmgr, zone);
@@ -20531,7 +20588,8 @@ next_keyevent(dst_key_t *key, isc_stdtime_t *timep) {
 	for (i = 0; i <= DST_MAX_TIMES; i++) {
 		result = dst_key_gettime(key, i, &event);
 		if (result == ISC_R_SUCCESS && event > now &&
-		    (then == 0 || event < then)) {
+		    (then == 0 || event < then))
+		{
 			then = event;
 		}
 	}
@@ -20682,7 +20740,8 @@ tickle_apex_rrset(dns_rdatatype_t rrtype, dns_zone_t *zone, dns_db_t *db,
 	     tuple = ISC_LIST_NEXT(tuple, link))
 	{
 		if (tuple->rdata.type == rrtype &&
-		    dns_name_equal(&tuple->name, &zone->origin)) {
+		    dns_name_equal(&tuple->name, &zone->origin))
+		{
 			break;
 		}
 	}
@@ -21134,7 +21193,8 @@ checkds_done(isc_task_t *task, isc_event_t *event) {
 		if (ds_state == DST_KEY_STATE_RUMOURED && published == 0) {
 			checkdspub = true;
 		} else if (ds_state == DST_KEY_STATE_UNRETENTIVE &&
-			   withdrawn == 0) {
+			   withdrawn == 0)
+		{
 			checkdsdel = true;
 		}
 		if (!checkdspub && !checkdsdel) {
@@ -21531,13 +21591,15 @@ checkds_send(dns_zone_t *zone) {
 		dns_checkds_t *checkds = NULL;
 
 		if ((zone->parentalkeynames != NULL) &&
-		    (zone->parentalkeynames[i] != NULL)) {
+		    (zone->parentalkeynames[i] != NULL))
+		{
 			dns_name_t *keyname = zone->parentalkeynames[i];
 			(void)dns_view_gettsig(view, keyname, &key);
 		}
 
 		if ((zone->parentaltlsnames != NULL) &&
-		    (zone->parentaltlsnames[i] != NULL)) {
+		    (zone->parentaltlsnames[i] != NULL))
+		{
 			dns_name_t *tlsname = zone->parentaltlsnames[i];
 			(void)dns_view_gettransport(view, DNS_TRANSPORT_TLS,
 						    tlsname, &transport);
@@ -21630,7 +21692,8 @@ zone_checkds(dns_zone_t *zone) {
 			dst_key_setnum(key->key, DST_NUM_DSPUBCOUNT, 0);
 			cdscheck = true;
 		} else if (ds_state == DST_KEY_STATE_UNRETENTIVE &&
-			   withdrawn == 0) {
+			   withdrawn == 0)
+		{
 			dst_key_setnum(key->key, DST_NUM_DSDELCOUNT, 0);
 			cdscheck = true;
 		}
@@ -21909,7 +21972,8 @@ zone_rekey(dns_zone_t *zone) {
 			 */
 			bool allow = false;
 			for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-			     key = ISC_LIST_NEXT(key, link)) {
+			     key = ISC_LIST_NEXT(key, link))
+			{
 				dst_key_t *dstk = key->key;
 
 				if (dst_key_is_published(dstk, now, &when) &&
@@ -21946,7 +22010,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * the zone signing can be handled incrementally.)
 		 */
 		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
+		     key = ISC_LIST_NEXT(key, link))
+		{
 			if (!key->first_sign) {
 				continue;
 			}
@@ -22018,7 +22083,8 @@ zone_rekey(dns_zone_t *zone) {
 		/* Remove any signatures from removed keys.  */
 		if (!ISC_LIST_EMPTY(rmkeys)) {
 			for (key = ISC_LIST_HEAD(rmkeys); key != NULL;
-			     key = ISC_LIST_NEXT(key, link)) {
+			     key = ISC_LIST_NEXT(key, link))
+			{
 				result = zone_signwithkey(
 					zone, dst_key_alg(key->key),
 					dst_key_id(key->key), true);
@@ -22053,7 +22119,8 @@ zone_rekey(dns_zone_t *zone) {
 			 * with all active keys, whether they're new or not.
 			 */
 			for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-			     key = ISC_LIST_NEXT(key, link)) {
+			     key = ISC_LIST_NEXT(key, link))
+			{
 				if (!key->force_sign && !key->hint_sign) {
 					continue;
 				}
@@ -22076,7 +22143,8 @@ zone_rekey(dns_zone_t *zone) {
 			 * keys.
 			 */
 			for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-			     key = ISC_LIST_NEXT(key, link)) {
+			     key = ISC_LIST_NEXT(key, link))
+			{
 				if (!key->first_sign) {
 					continue;
 				}
@@ -22111,12 +22179,14 @@ zone_rekey(dns_zone_t *zone) {
 			dns_rdata_nsec3param_t nsec3param;
 
 			if (tuple->rdata.type != zone->privatetype ||
-			    tuple->op != DNS_DIFFOP_ADD) {
+			    tuple->op != DNS_DIFFOP_ADD)
+			{
 				continue;
 			}
 
 			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
-							buf, sizeof(buf))) {
+							buf, sizeof(buf)))
+			{
 				continue;
 			}
 
@@ -22192,7 +22262,8 @@ zone_rekey(dns_zone_t *zone) {
 		zone->refreshkeytime = timethen;
 
 		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
+		     key = ISC_LIST_NEXT(key, link))
+		{
 			then = now;
 			result = next_keyevent(key->key, &then);
 			if (result != ISC_R_SUCCESS) {
@@ -22201,7 +22272,8 @@ zone_rekey(dns_zone_t *zone) {
 
 			DNS_ZONE_TIME_ADD(&timenow, then - now, &timethen);
 			if (isc_time_compare(&timethen, &zone->refreshkeytime) <
-			    0) {
+			    0)
+			{
 				zone->refreshkeytime = timethen;
 			}
 		}
@@ -22215,7 +22287,8 @@ zone_rekey(dns_zone_t *zone) {
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
 		for (key = ISC_LIST_HEAD(dnskeys); key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
+		     key = ISC_LIST_NEXT(key, link))
+		{
 			/* This debug log is used in the kasp system test */
 			char algbuf[DNS_SECALG_FORMATSIZE];
 			dns_secalg_format(dst_key_alg(key->key), algbuf,
@@ -22352,7 +22425,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 	}
 
 	if (!dns_rdataset_isassociated(&cds) &&
-	    !dns_rdataset_isassociated(&cdnskey)) {
+	    !dns_rdataset_isassociated(&cdnskey))
+	{
 		result = ISC_R_SUCCESS;
 		goto failure;
 	}
@@ -22413,7 +22487,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 							 NULL));
 
 				if (structdnskey.algorithm ==
-				    structcds.algorithm) {
+				    structcds.algorithm)
+				{
 					algorithms[structcds.algorithm] = found;
 				}
 			}
@@ -22485,7 +22560,8 @@ dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version) {
 							 NULL));
 
 				if (structdnskey.algorithm ==
-				    structcdnskey.algorithm) {
+				    structcdnskey.algorithm)
+				{
 					algorithms[structcdnskey.algorithm] =
 						found;
 				}
@@ -22808,12 +22884,14 @@ keydone(isc_task_t *task, isc_event_t *event) {
 			{
 				found = true;
 			} else if (rdata.data[0] == 0 &&
-				   (rdata.data[2] & PENDINGFLAGS) != 0) {
+				   (rdata.data[2] & PENDINGFLAGS) != 0)
+			{
 				found = true;
 				clear_pending = true;
 			}
 		} else if (rdata.length == 5 &&
-			   memcmp(rdata.data, kd->data, 5) == 0) {
+			   memcmp(rdata.data, kd->data, 5) == 0)
+		{
 			found = true;
 		}
 
@@ -23119,7 +23197,8 @@ rss_post(dns_zone_t *zone, isc_event_t *event) {
 			dns_rdataset_current(&prdataset, &rdata);
 
 			if (np->length == rdata.length &&
-			    memcmp(rdata.data, np->data, np->length) == 0) {
+			    memcmp(rdata.data, np->data, np->length) == 0)
+			{
 				exists = true;
 				break;
 			}
@@ -23327,7 +23406,8 @@ dns__zone_lookup_nsec3param(dns_zone_t *zone, dns_rdata_nsec3param_t *lookup,
 		}
 		if (lookup->salt != NULL) {
 			if (memcmp(nsec3param.salt, lookup->salt,
-				   lookup->salt_length) != 0) {
+				   lookup->salt_length) != 0)
+			{
 				continue;
 			}
 		}

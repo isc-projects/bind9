@@ -220,7 +220,8 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 	if (priv_key1 != NULL || priv_key2 != NULL) {
 		if (priv_key1 == NULL || priv_key2 == NULL ||
-		    BN_cmp(priv_key1, priv_key2) != 0) {
+		    BN_cmp(priv_key1, priv_key2) != 0)
+		{
 			DST_RET(false);
 		}
 	}
@@ -398,7 +399,8 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		 * static parameters which we can use.
 		 */
 		if (key->key_size == 768 || key->key_size == 1024 ||
-		    key->key_size == 1536) {
+		    key->key_size == 1536)
+		{
 			if (key->key_size == 768) {
 				p = BN_dup(bn768);
 			} else if (key->key_size == 1024) {
@@ -463,14 +465,16 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		}
 
 		if (!DH_generate_parameters_ex(dh, key->key_size, generator,
-					       cb)) {
+					       cb))
+		{
 			DST_RET(dst__openssl_toresult2("DH_generate_parameters_"
 						       "ex",
 						       DST_R_OPENSSLFAILURE));
 		}
 #else
 		if (OSSL_PARAM_BLD_push_int(bld, OSSL_PKEY_PARAM_DH_GENERATOR,
-					    generator) != 1) {
+					    generator) != 1)
+		{
 			DST_RET(dst__openssl_toresult2("OSSL_PARAM_BLD_push_"
 						       "int",
 						       DST_R_OPENSSLFAILURE));
@@ -529,7 +533,8 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 						       DST_R_OPENSSLFAILURE));
 		}
 		if (EVP_PKEY_paramgen(param_ctx, &param_pkey) != 1 ||
-		    param_pkey == NULL) {
+		    param_pkey == NULL)
+		{
 			DST_RET(dst__openssl_toresult2("EVP_PKEY_paramgen",
 						       DST_R_OPENSSLFAILURE));
 		}

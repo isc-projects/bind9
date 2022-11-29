@@ -2364,7 +2364,8 @@ isc__nm_process_sock_buffer(isc_nmsocket_t *sock) {
 			isc__nmsocket_timer_stop(sock);
 
 			if (atomic_load(&sock->client) ||
-			    atomic_load(&sock->sequential)) {
+			    atomic_load(&sock->sequential))
+			{
 				isc__nm_stop_reading(sock);
 				goto done;
 			}
@@ -2559,7 +2560,8 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 
 #if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (!isc__nmsocket_active(sock) ||
-	    !isc_astack_trypush(sock->inactivereqs, req)) {
+	    !isc_astack_trypush(sock->inactivereqs, req))
+	{
 		isc_mem_put(sock->mgr->mctx, req, sizeof(*req));
 	}
 #else  /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
@@ -2739,7 +2741,8 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(VALID_NMSOCK(listener));
 
 	if (!atomic_compare_exchange_strong(&listener->closing,
-					    &(bool){ false }, true)) {
+					    &(bool){ false }, true))
+	{
 		UNREACHABLE();
 	}
 
@@ -3445,7 +3448,8 @@ isc_result_t
 isc__nm_socket_tcp_maxseg(uv_os_sock_t fd, int size) {
 #ifdef TCP_MAXSEG
 	if (setsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, (void *)&size,
-		       sizeof(size))) {
+		       sizeof(size)))
+	{
 		return (ISC_R_FAILURE);
 	} else {
 		return (ISC_R_SUCCESS);
@@ -3468,7 +3472,8 @@ isc__nm_socket_min_mtu(uv_os_sock_t fd, sa_family_t sa_family) {
 	}
 #elif defined(IPV6_MTU)
 	if (setsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &(int){ 1280 },
-		       sizeof(int)) == -1) {
+		       sizeof(int)) == -1)
+	{
 		return (ISC_R_FAILURE);
 	}
 #else

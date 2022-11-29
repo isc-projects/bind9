@@ -72,7 +72,8 @@ ignore(dns_rdata_t *param, dns_rdataset_t *privateset) {
 
 		dns_rdataset_current(privateset, &private);
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			continue;
 		}
 		/*
@@ -178,7 +179,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 
 			dns_rdataset_current(&privateset, &private);
 			if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-							sizeof(buf))) {
+							sizeof(buf)))
+			{
 				continue;
 			}
 			if (REMOVE(rdata.data[1])) {
@@ -215,7 +217,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 
 			dns_rdataset_current(&privateset, &private);
 			if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-							sizeof(buf))) {
+							sizeof(buf)))
+			{
 				continue;
 			}
 			if (CREATE(rdata.data[1])) {
@@ -283,7 +286,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 
 		dns_rdataset_current(&privateset, &private);
 		if (!dns_nsec3param_fromprivate(&private, &rdata, buf,
-						sizeof(buf))) {
+						sizeof(buf)))
+		{
 			/*
 			 * Look for record that says we are signing the
 			 * zone with a key.
@@ -347,7 +351,8 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 		isc_buffer_t b;
 
 		if (!dns_nsec3param_fromprivate(private, &rdata, nsec3buf,
-						sizeof(nsec3buf))) {
+						sizeof(nsec3buf)))
+		{
 			CHECK(ISC_R_FAILURE);
 		}
 

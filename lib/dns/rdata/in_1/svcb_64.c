@@ -82,7 +82,8 @@ svcsortkeylist(isc_buffer_t *target, unsigned int used) {
 	/* Reject duplicates. */
 	while (region.length >= 4) {
 		if (region.base[0] == region.base[2] &&
-		    region.base[1] == region.base[3]) {
+		    region.base[1] == region.base[3])
+		{
 			return (DNS_R_SYNTAX);
 		}
 		isc_region_consume(&region, 2);
@@ -104,13 +105,15 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				break;
 			case sbpr_ipv4s:
 				if ((region->length % 4) != 0 ||
-				    region->length == 0) {
+				    region->length == 0)
+				{
 					return (DNS_R_FORMERR);
 				}
 				break;
 			case sbpr_ipv6s:
 				if ((region->length % 16) != 0 ||
-				    region->length == 0) {
+				    region->length == 0)
+				{
 					return (DNS_R_FORMERR);
 				}
 				break;
@@ -129,7 +132,8 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 			}
 			case sbpr_keylist: {
 				if ((region->length % 2) != 0 ||
-				    region->length == 0) {
+				    region->length == 0)
+				{
 					return (DNS_R_FORMERR);
 				}
 				/* In order? */
@@ -164,12 +168,14 @@ svcb_validate(uint16_t key, isc_region_t *region) {
 				}
 				/* MUST be UTF8 */
 				if (!isc_utf8_valid(region->base,
-						    region->length)) {
+						    region->length))
+				{
 					return (DNS_R_FORMERR);
 				}
 				/* MUST contain "{?dns}" */
 				if (strnstr((char *)region->base, "{?dns}",
-					    region->length) == NULL) {
+					    region->length) == NULL)
+				{
 					return (DNS_R_FORMERR);
 				}
 				break;
@@ -218,7 +224,8 @@ svc_keyfromregion(isc_textregion_t *region, char sep, uint16_t *value,
 	}
 	/* No zero padding. */
 	if (region->length > 1 && *region->base == '0' &&
-	    region->base[1] != sep) {
+	    region->base[1] != sep)
+	{
 		return (DNS_R_SYNTAX);
 	}
 	ul = strtoul(region->base, &e, 10);
@@ -454,7 +461,8 @@ svcsortkeys(isc_buffer_t *target, unsigned int used) {
 				/* Lone mandatory field. */
 				return (DNS_R_DISALLOWED);
 			} else if (key1 == SVCB_NO_DEFAULT_ALPN_KEY &&
-				   !have_alpn) {
+				   !have_alpn)
+			{
 				/* Missing required ALPN field. */
 				return (DNS_R_DISALLOWED);
 			}
@@ -621,7 +629,8 @@ generic_fromtext_in_svcb(ARGS_FROMTEXT) {
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_qvpair, true));
 		if (token.type == isc_tokentype_eol ||
-		    token.type == isc_tokentype_eof) {
+		    token.type == isc_tokentype_eof)
+		{
 			isc_lex_ungettoken(lexer, &token);
 			return (svcsortkeys(target, used));
 		}

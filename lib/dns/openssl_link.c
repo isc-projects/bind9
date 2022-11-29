@@ -141,7 +141,8 @@ toresult(isc_result_t fallback) {
 	default:
 #if defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
 		if (lib == ERR_R_ECDSA_LIB &&
-		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED) {
+		    reason == ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
+		{
 			result = ISC_R_NOENTROPY;
 			break;
 		}

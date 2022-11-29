@@ -474,7 +474,8 @@ repopulate_buffer:
 						dns_rdataset_next(rdataset);
 					dns_rdata_reset(&rdata);
 					if (strlen("\n") >=
-					    isc_buffer_availablelength(buf)) {
+					    isc_buffer_availablelength(buf))
+					{
 						goto buftoosmall;
 					}
 					isc_buffer_putstr(buf, "\n");
@@ -1887,7 +1888,8 @@ preparse_args(int argc, char **argv) {
 		}
 		/* Look for dash value option. */
 		if (strpbrk(option, dash_opts) != &option[0] ||
-		    strlen(option) > 1U) {
+		    strlen(option) > 1U)
+		{
 			/* Error or value in option. */
 			continue;
 		}
@@ -1974,13 +1976,15 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL, query, global,
-						&setname)) {
+						&setname))
+				{
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1], query, global,
-						&setname)) {
+						&setname))
+				{
 					rc--;
 					rv++;
 				}

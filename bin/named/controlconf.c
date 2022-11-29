@@ -470,7 +470,8 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	if (isccc_cc_lookupuint32(conn->ctrl, "_tim", &sent) == ISC_R_SUCCESS) {
 		if ((sent + CLOCKSKEW) < conn->now ||
-		    (sent - CLOCKSKEW) > conn->now) {
+		    (sent - CLOCKSKEW) > conn->now)
+		{
 			log_invalid(&conn->ccmsg, ISCCC_R_CLOCKSKEW);
 			goto cleanup;
 		}
@@ -914,7 +915,8 @@ get_key_info(const cfg_obj_t *config, const cfg_obj_t *control,
 	control_keylist = cfg_tuple_get(control, "keys");
 
 	if (!cfg_obj_isvoid(control_keylist) &&
-	    cfg_list_first(control_keylist) != NULL) {
+	    cfg_list_first(control_keylist) != NULL)
+	{
 		result = cfg_map_get(config, "key", &global_keylist);
 
 		if (result == ISC_R_SUCCESS) {

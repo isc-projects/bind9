@@ -169,7 +169,8 @@ sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 		/* Find the smallest of the (at most) two children. */
 		j = heap_left(i);
 		if (j < size &&
-		    heap->compare(heap->array[j + 1], heap->array[j])) {
+		    heap->compare(heap->array[j + 1], heap->array[j]))
+		{
 			j++;
 		}
 		if (heap->compare(elt, heap->array[j])) {

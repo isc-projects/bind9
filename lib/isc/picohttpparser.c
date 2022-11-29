@@ -85,7 +85,8 @@
 				break;                                    \
 			} else if (unlikely(!IS_PRINTABLE_ASCII(*buf))) { \
 				if ((unsigned char)*buf < '\040' ||       \
-				    *buf == '\177') {                     \
+				    *buf == '\177')                       \
+				{                                         \
 					*ret = -1;                        \
 					return NULL;                      \
 				}                                         \
@@ -364,7 +365,8 @@ parse_headers(const char *buf, const char *buf_end, struct phr_header *headers,
 		const char *value;
 		size_t value_len;
 		if ((buf = get_token_to_eol(buf, buf_end, &value, &value_len,
-					    ret)) == NULL) {
+					    ret)) == NULL)
+		{
 			return NULL;
 		}
 		/* remove trailing SPs and HTABs */
@@ -397,7 +399,8 @@ parse_request(const char *buf, const char *buf_end, const char **method,
 
 	/* parse request line */
 	if ((buf = parse_token(buf, buf_end, method, method_len, ' ', ret)) ==
-	    NULL) {
+	    NULL)
+	{
 		return NULL;
 	}
 	do {
@@ -414,7 +417,8 @@ parse_request(const char *buf, const char *buf_end, const char **method,
 		return NULL;
 	}
 	if ((buf = parse_http_version(buf, buf_end, minor_version, ret)) ==
-	    NULL) {
+	    NULL)
+	{
 		return NULL;
 	}
 	if (*buf == '\015') {
@@ -470,7 +474,8 @@ parse_response(const char *buf, const char *buf_end, int *minor_version,
 	       size_t max_headers, int *ret) {
 	/* parse "HTTP/1.x" */
 	if ((buf = parse_http_version(buf, buf_end, minor_version, ret)) ==
-	    NULL) {
+	    NULL)
+	{
 		return NULL;
 	}
 	/* skip space */

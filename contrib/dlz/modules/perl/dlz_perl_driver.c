@@ -169,7 +169,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	while (r++ < rrcount) {
 		record_ref = POPs;
 		if ((!SvROK(record_ref)) ||
-		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV)) {
+		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV))
+		{
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: allnodes for zone %s "
 				"returned an invalid value "
@@ -187,7 +188,8 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 		rr_data = av_fetch((AV *)record_ref, 3, 0);
 
 		if (rr_name == NULL || rr_type == NULL || rr_ttl == NULL ||
-		    rr_data == NULL) {
+		    rr_data == NULL)
+		{
 			cd->log(ISC_LOG_ERROR,
 				"DLZ Perl: allnodes for zone %s "
 				"returned an array that was missing data",
@@ -424,7 +426,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 	while (r++ < rrcount) {
 		record_ref = POPs;
 		if ((!SvROK(record_ref)) ||
-		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV)) {
+		    (SvTYPE(SvRV(record_ref)) != SVt_PVAV))
+		{
 			cd->log(ISC_LOG_ERROR, "DLZ Perl: lookup returned an "
 					       "invalid value (expected array "
 					       "of arrayrefs)!");

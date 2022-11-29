@@ -1236,13 +1236,15 @@ isc_tlsctx_cache_add(
 		found_client_sess_cache =
 			entry->client_sess_cache[tr_offset][ipv6];
 		if (pfound_client_sess_cache != NULL &&
-		    found_client_sess_cache != NULL) {
+		    found_client_sess_cache != NULL)
+		{
 			INSIST(*pfound_client_sess_cache == NULL);
 			*pfound_client_sess_cache = found_client_sess_cache;
 		}
 		result = ISC_R_EXISTS;
 	} else if (result == ISC_R_SUCCESS &&
-		   entry->ctx[tr_offset][ipv6] == NULL) {
+		   entry->ctx[tr_offset][ipv6] == NULL)
+	{
 		/*
 		 * The hash table entry exists, but is not filled for this
 		 * particular transport/IP type combination.
@@ -1307,7 +1309,8 @@ isc_tlsctx_cache_find(
 			     (void **)&entry);
 
 	if (result == ISC_R_SUCCESS && pstore != NULL &&
-	    entry->ca_store != NULL) {
+	    entry->ca_store != NULL)
+	{
 		*pstore = entry->ca_store;
 	}
 
@@ -1318,12 +1321,14 @@ isc_tlsctx_cache_find(
 		*pctx = entry->ctx[tr_offset][ipv6];
 
 		if (pfound_client_sess_cache != NULL &&
-		    found_client_sess_cache != NULL) {
+		    found_client_sess_cache != NULL)
+		{
 			INSIST(*pfound_client_sess_cache == NULL);
 			*pfound_client_sess_cache = found_client_sess_cache;
 		}
 	} else if (result == ISC_R_SUCCESS &&
-		   entry->ctx[tr_offset][ipv6] == NULL) {
+		   entry->ctx[tr_offset][ipv6] == NULL)
+	{
 		result = ISC_R_NOTFOUND;
 	} else {
 		INSIST(result != ISC_R_SUCCESS);

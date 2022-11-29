@@ -175,7 +175,8 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 				break;
 			}
 			if (strlen((char *)&tmpPtr[i + 1]) <=
-			    (unsigned int)cd->splitcnt) {
+			    (unsigned int)cd->splitcnt)
+			{
 				break;
 			}
 			i += cd->splitcnt;
@@ -386,10 +387,12 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 					 */
 					while ((tmpPtr = strrchr(
 							tmpString,
-							cd->pathsep)) != NULL) {
+							cd->pathsep)) != NULL)
+					{
 						if ((strlen(host) +
 						     strlen(tmpPtr + 1) + 2) >
-						    DIR_NAMEMAX) {
+						    DIR_NAMEMAX)
+						{
 							continue;
 						}
 						strcat(host, tmpPtr + 1);
@@ -397,7 +400,8 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 						tmpPtr[0] = '\0';
 					}
 					if ((strlen(host) + strlen(tmpString) +
-					     1) <= DIR_NAMEMAX) {
+					     1) <= DIR_NAMEMAX)
+					{
 						strcat(host, tmpString);
 					}
 				}
@@ -413,13 +417,15 @@ process_dir(dir_t *dir, void *passback, config_data_t *cd, dlist_t *dir_list,
 			 */
 			while (dir_read(dir) == ISC_R_SUCCESS) {
 				if (strncasecmp(".host", dir->entry.name, 5) ==
-				    0) {
+				    0)
+				{
 					/*
 					 * handle filesystem's special
 					 * wildcard "-"
 					 */
 					if (strcmp((char *)&dir->entry.name[6],
-						   "-") == 0) {
+						   "-") == 0)
+					{
 						strcpy(host, "*");
 					} else {
 						strncpy(host,

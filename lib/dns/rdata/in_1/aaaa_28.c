@@ -238,7 +238,8 @@ checkowner_in_aaaa(ARGS_CHECKOWNER) {
 		dns_name_split(name, dns_name_countlabels(name) - 2, &prefix,
 			       &suffix);
 		if (dns_name_equal(&gc_msdcs, &prefix) &&
-		    dns_name_ishostname(&suffix, false)) {
+		    dns_name_ishostname(&suffix, false))
+		{
 			return (true);
 		}
 	}
