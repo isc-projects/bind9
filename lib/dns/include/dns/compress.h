@@ -58,9 +58,10 @@ ISC_LANG_BEGINDECLS
  * few dozen names in the hash set. (We can't actually use every slot because
  * space is reserved for performance reasons.) For large messages, the number
  * of names is limited by the minimum size of an RR (owner, type, class, ttl,
- * length) which is 16 bytes when the owner has a new 3-character label
- * before the compressed zone name. Divide the maximum compression offset
- * 0x3FFF by 16 and you get roughly 1024.
+ * length) which is 12 bytes - call it 16 bytes to make space for a new label.
+ * Divide the maximum compression offset 0x4000 by 16 and you get 0x400 == 1024.
+ * In practice, the root zone (for example) uses less than 200 distinct names
+ * per message.
  */
 enum {
 	DNS_COMPRESS_SMALLBITS = 6,

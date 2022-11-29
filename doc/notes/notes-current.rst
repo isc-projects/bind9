@@ -52,7 +52,6 @@ Bug Fixes
   10 to 100 to accomodate for some browsers that send more that 10
   headers by default. :gl:`#3670`
 
-
 - Copy TLS identifier when setting up primaries for catalog member
   zones. :gl:`#3638`
 
@@ -63,6 +62,10 @@ Bug Fixes
   moved from the INFO log level to the DEBUG(1) log level to prevent the
   :iscman:`named-checkzone` tool from superfluously logging this message
   in non-debug mode. :gl:`#3707`
+
+- The new name compression code in BIND 9.19.7 was not compressing
+  names in zone transfers that should have been compressed, so zone
+  transfers were larger than before. :gl:`#3706`
 
 Known Issues
 ~~~~~~~~~~~~
