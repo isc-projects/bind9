@@ -225,7 +225,7 @@ fi
 
 if [ $status -eq 0 ]; then
     if [ -n "$PYTEST" ]; then
-        for test in $(cd "${systest}" && find . -name "tests*.py"); do
+        for test in $(cd "${systest}" && find . -name "tests*.py" ! -name "tests_sh_*.py"); do
             rm -f "$systest/$test.status"
             if start_servers; then
                 run=$((run+1))
