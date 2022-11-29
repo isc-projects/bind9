@@ -2037,26 +2037,28 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 
 void
 dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
-		 dns_rdata_dnskey_t *dnskey) {
+		 const dns_rdata_dnskey_t *dnskey) {
 	isc_result_t result;
 	dns_keytable_t *sr = NULL;
+	dns_rdata_dnskey_t tmpkey;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(keyname != NULL);
 	REQUIRE(dnskey != NULL);
-
-	/*
-	 * Clear the revoke bit, if set, so that the key will match what's
-	 * in secroots now.
-	 */
-	dnskey->flags &= ~DNS_KEYFLAG_REVOKE;
 
 	result = dns_view_getsecroots(view, &sr);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
 
-	result = dns_keytable_deletekey(sr, keyname, dnskey);
+	/*
+	 * Clear the revoke bit, if set, so that the key will match what's
+	 * in secroots now.
+	 */
+	tmpkey = *dnskey;
+	tmpkey.flags &= ~DNS_KEYFLAG_REVOKE;
+
+	result = dns_keytable_deletekey(sr, keyname, &tmpkey);
 	if (result == ISC_R_SUCCESS) {
 		/*
 		 * If key was found in secroots, then it was a
