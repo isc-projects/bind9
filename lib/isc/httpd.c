@@ -899,13 +899,19 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	REQUIRE(VALID_HTTPD(httpd));
 
 	REQUIRE(httpd->handle == handle);
-	REQUIRE(httpd->readhandle == handle);
 
-	isc_nm_pauseread(httpd->readhandle);
+	if (httpd->readhandle == NULL) {
+		/* The channel has been already closed, just bail out */
+		return;
+	}
 
 	if (eresult != ISC_R_SUCCESS) {
 		goto close_readhandle;
 	}
+
+	REQUIRE(httpd->readhandle == handle);
+
+	isc_nm_pauseread(httpd->readhandle);
 
 	/*
 	 * If we are being called from httpd_senddone(), the last HTTP request
@@ -950,11 +956,10 @@ httpd_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	isc_nmhandle_attach(httpd->handle, &req->handle);
 	isc_nm_send(httpd->handle, &r, httpd_senddone, req);
-
-	isc_nmhandle_detach(&httpd->readhandle);
 	return;
 
 close_readhandle:
+	isc_nm_pauseread(httpd->readhandle);
 	isc_nmhandle_detach(&httpd->readhandle);
 }
 
@@ -976,8 +981,7 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 
 	httpd = ISC_LIST_HEAD(httpdmgr->running);
 	while (httpd != NULL) {
-		isc_nm_pauseread(httpd->readhandle);
-		isc_nmhandle_detach(&httpd->readhandle);
+		isc_nm_cancelread(httpd->readhandle);
 		httpd = ISC_LIST_NEXT(httpd, link);
 	}
 	UNLOCK(&httpdmgr->lock);
@@ -1037,15 +1041,21 @@ httpd_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	REQUIRE(VALID_HTTPD(httpd));
 
+	if (httpd->readhandle == NULL) {
+		goto detach;
+	}
+
 	if (eresult == ISC_R_SUCCESS && (httpd->flags & HTTPD_CLOSE) == 0) {
 		/*
 		 * Calling httpd_request() with region NULL restarts
 		 * reading.
 		 */
-		isc_nmhandle_attach(handle, &httpd->readhandle);
 		httpd_request(handle, ISC_R_SUCCESS, NULL, httpd->mgr);
+	} else {
+		isc_nm_cancelread(httpd->readhandle);
 	}
 
+detach:
 	isc_nmhandle_detach(&handle);
 
 	isc__httpd_sendreq_free(req);
