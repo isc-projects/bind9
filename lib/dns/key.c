@@ -134,7 +134,8 @@ dst_key_iszonekey(const dst_key_t *key) {
 		return (false);
 	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY) {
+	    key->key_proto != DNS_KEYPROTO_ANY)
+	{
 		return (false);
 	}
 	return (true);
@@ -151,7 +152,8 @@ dst_key_isnullkey(const dst_key_t *key) {
 		return (false);
 	}
 	if (key->key_proto != DNS_KEYPROTO_DNSSEC &&
-	    key->key_proto != DNS_KEYPROTO_ANY) {
+	    key->key_proto != DNS_KEYPROTO_ANY)
+	{
 		return (false);
 	}
 	return (true);

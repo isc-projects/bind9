@@ -313,7 +313,8 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	 */
 	n = strspn(str, "0123456789");
 	if ((n == 8u || n == 14u) &&
-	    (str[n] == '\0' || str[n] == '-' || str[n] == '+')) {
+	    (str[n] == '\0' || str[n] == '-' || str[n] == '+'))
+	{
 		char timestr[15];
 
 		strlcpy(timestr, str, sizeof(timestr));

@@ -491,7 +491,8 @@ builtin_create(const char *zone, int argc, char **argv, void *driverdata,
 	} else if (strcmp(argv[0], "id") == 0) {
 		*dbdata = &id_builtin;
 	} else if (strcmp(argv[0], "empty") == 0 ||
-		   strcmp(argv[0], "dns64") == 0) {
+		   strcmp(argv[0], "dns64") == 0)
+	{
 		builtin_t *empty;
 		char *server;
 		char *contact;

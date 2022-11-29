@@ -84,7 +84,8 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		 */
 		algstr = cfg_obj_asstring(algobj);
 		if (named_config_getkeyalgorithm(algstr, &alg, &bits) !=
-		    ISC_R_SUCCESS) {
+		    ISC_R_SUCCESS)
+		{
 			cfg_obj_log(algobj, named_g_lctx, ISC_LOG_ERROR,
 				    "key '%s': has a "
 				    "unsupported algorithm '%s'",

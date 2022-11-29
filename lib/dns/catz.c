@@ -324,14 +324,16 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 
 	for (size_t i = 0; i < eb->opts.masters.count; i++) {
 		if ((ea->opts.masters.keys[i] == NULL) !=
-		    (eb->opts.masters.keys[i] == NULL)) {
+		    (eb->opts.masters.keys[i] == NULL))
+		{
 			return (false);
 		}
 		if (ea->opts.masters.keys[i] == NULL) {
 			continue;
 		}
 		if (!dns_name_equal(ea->opts.masters.keys[i],
-				    eb->opts.masters.keys[i])) {
+				    eb->opts.masters.keys[i]))
+		{
 			return (false);
 		}
 	}
@@ -352,7 +354,8 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 
 	/* Repeat the above checks with allow_transfer */
 	if ((ea->opts.allow_transfer == NULL) !=
-	    (eb->opts.allow_transfer == NULL)) {
+	    (eb->opts.allow_transfer == NULL))
+	{
 		return (false);
 	}
 
@@ -845,7 +848,8 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 			isc_result_t result;
 			isc_ht_iter_create(catzs->zones, &iter);
 			for (result = isc_ht_iter_first(iter);
-			     result == ISC_R_SUCCESS;) {
+			     result == ISC_R_SUCCESS;)
+			{
 				dns_catz_zone_t *zone = NULL;
 				isc_ht_iter_current(iter, (void **)&zone);
 				result = isc_ht_iter_delcurrent_next(iter);
@@ -874,7 +878,8 @@ static bool
 catz_opt_cmp(const dns_label_t *option, const char *opt) {
 	unsigned int l = strlen(opt);
 	if (option->length - 1 == l &&
-	    memcmp(opt, option->base + 1, l - 1) == 0) {
+	    memcmp(opt, option->base + 1, l - 1) == 0)
+	{
 		return (true);
 	} else {
 		return (false);
@@ -1000,7 +1005,8 @@ catz_process_version(dns_catz_zone_t *zone, dns_rdataset_t *value) {
 	REQUIRE(DNS_RDATASET_VALID(value));
 
 	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_txt) {
+	    value->type != dns_rdatatype_txt)
+	{
 		return (ISC_R_FAILURE);
 	}
 
@@ -1152,7 +1158,8 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 		 */
 		for (i = 0; i < ipkl->count; i++) {
 			if (ipkl->labels[i] != NULL &&
-			    !dns_name_compare(name, ipkl->labels[i])) {
+			    !dns_name_compare(name, ipkl->labels[i]))
+			{
 				break;
 			}
 		}
@@ -1243,7 +1250,8 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 	REQUIRE(dns_rdataset_isassociated(value));
 
 	if (value->rdclass != dns_rdataclass_in ||
-	    value->type != dns_rdatatype_apl) {
+	    value->type != dns_rdatatype_apl)
+	{
 		return (ISC_R_FAILURE);
 	}
 

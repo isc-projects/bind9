@@ -1046,7 +1046,8 @@ dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
 	     listener = ISC_LIST_NEXT(listener, link))
 	{
 		if ((listener->onupdate == fn) &&
-		    (listener->onupdate_arg == fn_arg)) {
+		    (listener->onupdate_arg == fn_arg))
+		{
 			ISC_LIST_UNLINK(db->update_listeners, listener, link);
 			isc_mem_put(db->mctx, listener,
 				    sizeof(dns_dbonupdatelistener_t));

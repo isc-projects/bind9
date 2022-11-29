@@ -900,7 +900,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createvia");
 
 	if (srcaddr != NULL &&
-	    isc_sockaddr_pf(srcaddr) != isc_sockaddr_pf(destaddr)) {
+	    isc_sockaddr_pf(srcaddr) != isc_sockaddr_pf(destaddr))
+	{
 		return (ISC_R_FAMILYMISMATCH);
 	}
 

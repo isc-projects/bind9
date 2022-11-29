@@ -155,14 +155,16 @@ keyclass_fromtext(const char *name) {
 	}
 
 	if (strncasecmp(name, "rsa", 3) == 0 ||
-	    strncasecmp(name, "nsec3rsa", 8) == 0) {
+	    strncasecmp(name, "nsec3rsa", 8) == 0)
+	{
 		return (key_rsa);
 	} else if (strncasecmp(name, "ecc", 3) == 0 ||
 		   strncasecmp(name, "ecdsa", 5) == 0)
 	{
 		return (key_ecc);
 	} else if (strncasecmp(name, "ecx", 3) == 0 ||
-		   strncasecmp(name, "ed", 2) == 0) {
+		   strncasecmp(name, "ed", 2) == 0)
+	{
 		return (key_ecx);
 	} else {
 		return (key_unknown);

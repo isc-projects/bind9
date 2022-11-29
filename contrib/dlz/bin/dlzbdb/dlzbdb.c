@@ -543,7 +543,8 @@ insert_data(void) {
 
 			if ((data_type != 'u' &&
 			     isc_buffer_usedlength(&buf) > 0) ||
-			    data_type == 'b') {
+			    data_type == 'b')
+			{
 				/* perform insert operation */
 				if (data_type == 'd' || data_type == 'D') {
 					/* add string terminator to buffer */
@@ -925,7 +926,8 @@ operation_listOrDelete(bool dlt) {
 	/* Dump database in "dlzbdb" bulk format */
 	if (list_everything) {
 		if (bulk_write('c', db.client, db.cursor, &bdbkey, &bdbdata) !=
-		    ISC_R_SUCCESS) {
+		    ISC_R_SUCCESS)
+		{
 			return;
 		}
 		memset(&bdbkey, 0, sizeof(bdbkey));
@@ -1148,7 +1150,8 @@ main(int argc, char **argv) {
 
 	/* use the ISC commandline parser to get all the program arguments */
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ldesna:f:k:z:h:c:i:")) != -1) {
+					   "ldesna:f:k:z:h:c:i:")) != -1)
+	{
 		switch (ch) {
 		case 'n':
 			create_allowed = true;

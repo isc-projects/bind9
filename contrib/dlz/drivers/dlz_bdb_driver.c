@@ -288,7 +288,8 @@ bdb_allnodes(const char *zone, void *driverarg, void *dbdata,
 	flags = DB_SET;
 
 	while ((bdbres = zone_cursor->c_get(zone_cursor, &key, &data, flags)) ==
-	       0) {
+	       0)
+	{
 		flags = DB_NEXT_DUP;
 
 		tmp = realloc(tmp, data.size + 1);

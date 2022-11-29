@@ -850,7 +850,8 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 				tresult = dns_rdatasetiter_next(rdsiter);
 
 				if (tresult == ISC_R_SUCCESS &&
-				    rctx->rdataset == NULL) {
+				    rctx->rdataset == NULL)
+				{
 					tresult = getrdataset(mctx,
 							      &rctx->rdataset);
 					if (tresult != ISC_R_SUCCESS) {
@@ -909,7 +910,8 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			dns_rdataset_t *rdataset;
 
 			while ((rdataset = ISC_LIST_HEAD(ansname->list)) !=
-			       NULL) {
+			       NULL)
+			{
 				ISC_LIST_UNLINK(ansname->list, rdataset, link);
 				putrdataset(mctx, &rdataset);
 			}

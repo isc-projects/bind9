@@ -885,7 +885,8 @@ entry_search(dns_qid_t *qid, const isc_sockaddr_t *dest, dns_messageid_t id,
 
 	while (res != NULL) {
 		if (res->id == id && isc_sockaddr_equal(dest, &res->host) &&
-		    res->port == port) {
+		    res->port == port)
+		{
 			return (res);
 		}
 		res = ISC_LIST_NEXT(res, link);
@@ -1189,7 +1190,8 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 			     (resp == NULL ? "not found" : "found"));
 
 	} else if (resp->id != id ||
-		   !isc_sockaddr_equal(&ev->address, &resp->host)) {
+		   !isc_sockaddr_equal(&ev->address, &resp->host))
+	{
 		dispatch_log(disp, LVL(90),
 			     "response to an exclusive socket doesn't match");
 		inc_stats(mgr, dns_resstatscounter_mismatch);
@@ -1513,7 +1515,8 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 	}
 
 	if ((disp->attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0 &&
-	    dispsock == NULL) {
+	    dispsock == NULL)
+	{
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1665,7 +1668,8 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 			return (result);
 		}
 	} else if (dup_socket != NULL &&
-		   (!isc_socket_hasreuseport() || duponly)) {
+		   (!isc_socket_hasreuseport() || duponly))
+	{
 		result = isc_socket_dup(dup_socket, &sock);
 		if (result != ISC_R_SUCCESS) {
 			return (result);

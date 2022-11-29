@@ -45,7 +45,8 @@ dns_zonekey_iszonekey(dns_rdata_t *keyrdata) {
 		iszonekey = false;
 	}
 	if (key.protocol != DNS_KEYPROTO_DNSSEC &&
-	    key.protocol != DNS_KEYPROTO_ANY) {
+	    key.protocol != DNS_KEYPROTO_ANY)
+	{
 		iszonekey = false;
 	}
 

@@ -259,7 +259,8 @@ main(int argc, char **argv) {
 			memset(&addr, 0, sizeof(addr));
 			addr.type.sin.sin_family = AF_INET;
 			if (inet_pton(AF_INET, isc_commandline_argument,
-				      &addr.type.sin.sin_addr) != 1) {
+				      &addr.type.sin.sin_addr) != 1)
+			{
 				fprintf(stderr, "bad master address '%s'\n",
 					isc_commandline_argument);
 				exit(1);

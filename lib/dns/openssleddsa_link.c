@@ -192,7 +192,8 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 			dctx->category, "EVP_DigestSignInit", ISC_R_FAILURE));
 	}
 	if (EVP_DigestSign(ctx, sigreg.base, &siglen, tbsreg.base,
-			   tbsreg.length) != 1) {
+			   tbsreg.length) != 1)
+	{
 		DST_RET(dst__openssl_toresult3(dctx->category, "EVP_DigestSign",
 					       DST_R_SIGNFAILURE));
 	}
@@ -461,7 +462,8 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 		}
 		buf = isc_mem_get(key->mctx, len);
 		if (EVP_PKEY_get_raw_private_key(key->keydata.pkey, buf,
-						 &len) != 1) {
+						 &len) != 1)
+		{
 			DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
 		}
 		priv.elements[i].tag = TAG_EDDSA_PRIVATEKEY;

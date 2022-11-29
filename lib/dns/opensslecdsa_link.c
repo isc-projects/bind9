@@ -466,7 +466,8 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	memmove(buf + 1, r.base, len);
 	cp = buf;
 	if (o2i_ECPublicKey(&eckey, (const unsigned char **)&cp,
-			    (long)len + 1) == NULL) {
+			    (long)len + 1) == NULL)
+	{
 		DST_RET(dst__openssl_toresult(DST_R_INVALIDPUBLICKEY));
 	}
 	if (EC_KEY_check_key(eckey) != 1) {

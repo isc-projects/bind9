@@ -983,7 +983,8 @@ ns_test_getdata(const char *file, unsigned char *buf, size_t bufsiz,
 				break;
 			}
 			if (*rp != ' ' && *rp != '\t' && *rp != '\r' &&
-			    *rp != '\n') {
+			    *rp != '\n')
+			{
 				*wp++ = *rp;
 				len++;
 			}

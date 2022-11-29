@@ -131,7 +131,8 @@ select_db(char *origintext) {
 	}
 
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL;
-	     dbi = ISC_LIST_NEXT(dbi, link)) {
+	     dbi = ISC_LIST_NEXT(dbi, link))
+	{
 		if (dns_name_compare(dns_db_origin(dbi->db), origin) == 0) {
 			break;
 		}
@@ -380,7 +381,8 @@ main(int argc, char *argv[]) {
 
 	snprintf(dbtype, sizeof(dbtype), "rbt");
 	while ((ch = isc_commandline_parse(argc, argv, "c:d:t:z:P:Q:glpqvT")) !=
-	       -1) {
+	       -1)
+	{
 		switch (ch) {
 		case 'c':
 			result = load(isc_commandline_argument, ".", true);
@@ -766,7 +768,8 @@ main(int argc, char *argv[]) {
 			result = dns_dbtable_find(dbtable, &name, zcoptions,
 						  &db);
 			if (result != ISC_R_SUCCESS &&
-			    result != DNS_R_PARTIALMATCH) {
+			    result != DNS_R_PARTIALMATCH)
+			{
 				if (!quiet) {
 					printf("\n");
 					print_result("", result);

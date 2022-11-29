@@ -215,7 +215,8 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	case DST_ALG_RSASHA512:
 		/* From RFC 5702 */
 		if ((dctx->key->key_size < 1024) ||
-		    (dctx->key->key_size > 4096)) {
+		    (dctx->key->key_size > 4096))
+		{
 			return (ISC_R_FAILURE);
 		}
 		break;

@@ -118,7 +118,8 @@ main(int argc, char **argv) {
 			rsp = NULL;
 			if (!librpz->rsp_create(&emsg, &rsp, NULL, client, true,
 						false) ||
-			    rsp == NULL) {
+			    rsp == NULL)
+			{
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->client_detach(&client);
 				return (1);

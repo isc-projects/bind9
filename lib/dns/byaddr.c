@@ -176,7 +176,8 @@ bevent_destroy(isc_event_t *event) {
 	bevent = (dns_byaddrevent_t *)event;
 
 	for (name = ISC_LIST_HEAD(bevent->names); name != NULL;
-	     name = next_name) {
+	     name = next_name)
+	{
 		next_name = ISC_LIST_NEXT(name, link);
 		ISC_LIST_UNLINK(bevent->names, name, link);
 		dns_name_free(name, mctx);

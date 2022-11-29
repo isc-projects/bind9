@@ -953,7 +953,8 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 #endif /* if DNS_RDATASET_FIXED */
 
 		if (length1 != length2 ||
-		    memcmp(current1, current2, length1) != 0) {
+		    memcmp(current1, current2, length1) != 0)
+		{
 			return (false);
 		}
 

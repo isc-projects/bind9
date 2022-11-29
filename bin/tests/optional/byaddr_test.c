@@ -200,10 +200,12 @@ main(int argc, char *argv[]) {
 	printf("address = %s\n", argv[isc_commandline_index]);
 	na.family = AF_INET;
 	if (inet_pton(AF_INET, argv[isc_commandline_index],
-		      (char *)&na.type.in) != 1) {
+		      (char *)&na.type.in) != 1)
+	{
 		na.family = AF_INET6;
 		if (inet_pton(AF_INET6, argv[isc_commandline_index],
-			      (char *)&na.type.in6) != 1) {
+			      (char *)&na.type.in6) != 1)
+		{
 			printf("unknown address format\n");
 			exit(1);
 		}

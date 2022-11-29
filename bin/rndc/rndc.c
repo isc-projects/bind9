@@ -374,7 +374,8 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
 	if (atomic_load_acquire(&sends) == 0 &&
-	    atomic_load_acquire(&recvs) == 0) {
+	    atomic_load_acquire(&recvs) == 0)
+	{
 		isc_socket_detach(&sock);
 		isc_task_detach(&task);
 		isc_app_shutdown();
@@ -491,7 +492,8 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 		isc_sockaddr_format(&serveraddrs[currentaddr], socktext,
 				    sizeof(socktext));
 		if (sevent->result != ISC_R_CANCELED &&
-		    ++currentaddr < nserveraddrs) {
+		    ++currentaddr < nserveraddrs)
+		{
 			notify("connection failed: %s: %s", socktext,
 			       isc_result_totext(sevent->result));
 			isc_socket_detach(&sock);
@@ -660,7 +662,8 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 		(void)cfg_map_get(config, "server", &servers);
 		if (servers != NULL) {
 			for (elt = cfg_list_first(servers); elt != NULL;
-			     elt = cfg_list_next(elt)) {
+			     elt = cfg_list_next(elt))
+			{
 				const char *name;
 				server = cfg_listelt_value(elt);
 				name = cfg_obj_asstring(
@@ -697,10 +700,12 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	} else {
 		DO("get config key list", cfg_map_get(config, "key", &keys));
 		for (elt = cfg_list_first(keys); elt != NULL;
-		     elt = cfg_list_next(elt)) {
+		     elt = cfg_list_next(elt))
+		{
 			key = cfg_listelt_value(elt);
 			if (strcasecmp(cfg_obj_asstring(cfg_map_getname(key)),
-				       keyname) == 0) {
+				       keyname) == 0)
+			{
 				break;
 			}
 		}
@@ -913,11 +918,13 @@ main(int argc, char **argv) {
 			break;
 		case 'b':
 			if (inet_pton(AF_INET, isc_commandline_argument, &in) ==
-			    1) {
+			    1)
+			{
 				isc_sockaddr_fromin(&local4, &in, 0);
 				local4set = true;
 			} else if (inet_pton(AF_INET6, isc_commandline_argument,
-					     &in6) == 1) {
+					     &in6) == 1)
+			{
 				isc_sockaddr_fromin6(&local6, &in6, 0);
 				local6set = true;
 			}

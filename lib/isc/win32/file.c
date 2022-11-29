@@ -86,7 +86,8 @@ gettemp(char *path, bool binary, int *doopen) {
 	for (;;) {
 		if (doopen) {
 			if ((*doopen = open(path, flags,
-					    _S_IREAD | _S_IWRITE)) >= 0) {
+					    _S_IREAD | _S_IWRITE)) >= 0)
+			{
 				return (1);
 			}
 			if (errno != EEXIST) {
@@ -266,7 +267,8 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 	}
 
 	if (!GetFileTime((HANDLE)_get_osfhandle(fh), NULL, NULL,
-			 &time->absolute)) {
+			 &time->absolute))
+	{
 		close(fh);
 		errno = EINVAL;
 		return (isc__errno2result(errno));
@@ -970,7 +972,8 @@ isc_file_isdirwritable(const char *path) {
 		HANDLE hImpersonatedToken = NULL;
 
 		if (DuplicateToken(hToken, SecurityImpersonation,
-				   &hImpersonatedToken)) {
+				   &hImpersonatedToken))
+		{
 			GENERIC_MAPPING mapping;
 			PRIVILEGE_SET privileges = { 0 };
 			DWORD grantedAccess = 0;

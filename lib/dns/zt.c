@@ -446,7 +446,8 @@ freezezones(dns_zone_t *zone, void *uap) {
 		if (frozen) {
 			result = dns_zone_loadandthaw(zone);
 			if (result == DNS_R_CONTINUE ||
-			    result == DNS_R_UPTODATE) {
+			    result == DNS_R_UPTODATE)
+			{
 				result = ISC_R_SUCCESS;
 			}
 		}
@@ -556,7 +557,8 @@ dns_zt_apply(dns_zt_t *zt, isc_rwlocktype_t lock, bool stop, isc_result_t *sub,
 				tresult = result;
 				goto cleanup; /* don't break */
 			} else if (result != ISC_R_SUCCESS &&
-				   tresult == ISC_R_SUCCESS) {
+				   tresult == ISC_R_SUCCESS)
+			{
 				tresult = result;
 			}
 		}

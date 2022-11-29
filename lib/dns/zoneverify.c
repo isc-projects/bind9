@@ -881,12 +881,14 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	result = ISC_R_SUCCESS;
 
 	if (memcmp(set_algorithms, vctx->act_algorithms,
-		   sizeof(set_algorithms)) != 0) {
+		   sizeof(set_algorithms)) != 0)
+	{
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		for (size_t i = 0; i < ARRAY_SIZE(set_algorithms); i++) {
 			if ((vctx->act_algorithms[i] != 0) &&
-			    (set_algorithms[i] == 0)) {
+			    (set_algorithms[i] == 0))
+			{
 				dns_secalg_format(i, algbuf, sizeof(algbuf));
 				zoneverify_log_error(vctx,
 						     "No correct %s signature "
@@ -1246,13 +1248,15 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 	nlabels = dns_name_countlabels(name);
 
 	if (reln == dns_namereln_commonancestor ||
-	    reln == dns_namereln_contains) {
+	    reln == dns_namereln_contains)
+	{
 		dns_name_init(&suffix, NULL);
 		for (i = labels + 1; i < nlabels; i++) {
 			dns_name_getlabelsequence(name, nlabels - i, i,
 						  &suffix);
 			if (nsec3paramset != NULL &&
-			    dns_rdataset_isassociated(nsec3paramset)) {
+			    dns_rdataset_isassociated(nsec3paramset))
+			{
 				result = verifynsec3s(
 					vctx, &suffix, nsec3paramset,
 					isdelegation, true, NULL, 0, &tvresult);
@@ -1526,7 +1530,8 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 			if (ds.key_tag != dst_key_id(key) ||
-			    ds.algorithm != dst_key_alg(key)) {
+			    ds.algorithm != dst_key_alg(key))
+			{
 				continue;
 			}
 
@@ -1667,7 +1672,8 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 		 * the algorithm as bad if this is not met.
 		 */
 		if ((vctx->ksk_algorithms[i] != 0) ==
-		    (vctx->zsk_algorithms[i] != 0)) {
+		    (vctx->zsk_algorithms[i] != 0))
+		{
 			continue;
 		}
 		dns_secalg_format(i, algbuf, sizeof(algbuf));
@@ -1778,7 +1784,8 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			if (result != ISC_R_SUCCESS &&
-			    result != DNS_R_NEWORIGIN) {
+			    result != DNS_R_NEWORIGIN)
+			{
 				zoneverify_log_error(vctx,
 						     "dns_dbiterator_current():"
 						     " %s",

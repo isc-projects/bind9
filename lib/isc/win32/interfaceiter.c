@@ -177,7 +177,8 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			 * case and retry.
 			 */
 			if (bytesReturned > 0 &&
-			    (bytesReturned < iter->buf4size)) {
+			    (bytesReturned < iter->buf4size))
+			{
 				break;
 			}
 		}
