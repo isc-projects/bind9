@@ -1673,11 +1673,11 @@ dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
 			     void *fn_arg);
 /*%<
  * Register a notify-on-update callback function to a database.
+ * Duplicate callbacks are suppressed.
  *
  * Requires:
  *
  * \li	'db' is a valid database
- * \li	'db' does not have an update callback registered
  * \li	'fn' is not NULL
  *
  */
