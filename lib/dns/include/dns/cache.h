@@ -22,7 +22,7 @@
  * Defines dns_cache_t, the cache object.
  *
  * Notes:
- *\li 	A cache object contains DNS data of a single class.
+ *\li	A cache object contains DNS data of a single class.
  *	Multiple classes will be handled by creating multiple
  *	views, each with a different class and its own cache.
  *
@@ -56,26 +56,14 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 isc_result_t
-dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
-		 dns_rdataclass_t rdclass, const char *cachename,
-		 const char *db_type, unsigned int db_argc, char **db_argv,
-		 dns_cache_t **cachep);
+dns_cache_create(isc_taskmgr_t *taskmgr, dns_rdataclass_t rdclass,
+		 const char *cachename, dns_cache_t **cachep);
 /*%<
  * Create a new DNS cache.
  *
- * dns_cache_create2() will create a named cache.
- *
- * dns_cache_create3() will create a named cache using two separate memory
- * contexts, one for cache data which can be cleaned and a separate one for
- * memory allocated for the heap (which can grow without an upper limit and
- * has no mechanism for shrinking).
- *
- * dns_cache_create() is a backward compatible version that internally
- * specifies an empty cache name and a single memory context.
+ * dns_cache_create() will create a named cache (based on dns_rbtdb).
  *
  * Requires:
- *
- *\li	'cmctx' (and 'hmctx' if applicable) is a valid memory context.
  *
  *\li	'taskmgr' is a valid task manager or are NULL.  If NULL, no periodic
  *      cleaning of the cache will take place.
@@ -151,14 +139,6 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
  * Ensures:
  *
  *\li	*dbp is attached to the database.
- */
-
-isc_result_t
-dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now);
-/*%<
- * Force immediate cleaning of the cache, freeing all rdatasets
- * whose TTL has expired as of 'now' and that have no pending
- * references.
  */
 
 const char *

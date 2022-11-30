@@ -4105,7 +4105,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_tsig_keyring_t *ring = NULL;
 	dns_transport_list_t *transports = NULL;
 	dns_view_t *pview = NULL; /* Production view */
-	isc_mem_t *cmctx = NULL, *hmctx = NULL;
 	dns_dispatch_t *dispatch4 = NULL;
 	dns_dispatch_t *dispatch6 = NULL;
 	bool rpz_configured = false;
@@ -4734,20 +4733,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * view but is not yet configured.  If it is not the
 			 * view name but not a forward reference either, then it
 			 * is simply a named cache that is not shared.
-			 *
-			 * We use two separate memory contexts for the
-			 * cache, for the main cache memory and the heap
-			 * memory.
 			 */
-			isc_mem_create(&cmctx);
-			isc_mem_setname(cmctx, "cache");
-			isc_mem_create(&hmctx);
-			isc_mem_setname(hmctx, "cache_heap");
-			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
-					       view->rdclass, cachename, "rbt",
-					       0, NULL, &cache));
-			isc_mem_detach(&cmctx);
-			isc_mem_detach(&hmctx);
+			CHECK(dns_cache_create(named_g_taskmgr, view->rdclass,
+					       cachename, &cache));
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
 		nsc->cache = NULL;
@@ -6146,12 +6134,6 @@ cleanup:
 	}
 	if (order != NULL) {
 		dns_order_detach(&order);
-	}
-	if (cmctx != NULL) {
-		isc_mem_detach(&cmctx);
-	}
-	if (hmctx != NULL) {
-		isc_mem_detach(&hmctx);
 	}
 	if (cache != NULL) {
 		dns_cache_detach(&cache);
