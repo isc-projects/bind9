@@ -1,3 +1,7 @@
+6039.	[bug]		Removing a catalog zone from catalog-zones without
+			also removing the referenced zone could leave a
+			dangling pointer. [GL #3683]
+
 6038.	[bug]		In some serve stale scenarios, like when following an
 			expired CNAME record, named could return SERVFAIL if the
 			previous request wasn't successful. Consider non-stale
