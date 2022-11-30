@@ -5813,7 +5813,8 @@ dns_zone_detach(dns_zone_t **zonep) {
 		 * Stop things being restarted after we cancel them below.
 		 */
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
-		dns_zone_log(zone, ISC_LOG_INFO, "final reference detached");
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "final reference detached");
 
 		if (zone->loop != NULL) {
 			/*
