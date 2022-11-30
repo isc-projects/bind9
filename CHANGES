@@ -1,3 +1,7 @@
+6031.	[bug]		Move the "final reference detached" log message
+			from dns_zone unit to the DEBUG(1) log level.
+			[GL #3707]
+
 6024.	[func]		Deprecate 'auto-dnssec'. [GL #3667]
 
 6021.	[bug]		Use the current domain name when checking answers from
