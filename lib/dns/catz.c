@@ -981,9 +981,9 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 		zone->magic = 0;
 		isc_timer_detach(&zone->updatetimer);
 		if (zone->db_registered) {
-			INSIST(dns_db_updatenotify_unregister(
-				       zone->db, dns_catz_dbupdate_callback,
-				       zone->catzs) == ISC_R_SUCCESS);
+			dns_db_updatenotify_unregister(
+				zone->db, dns_catz_dbupdate_callback,
+				zone->catzs);
 		}
 		if (zone->dbversion) {
 			dns_db_closeversion(zone->db, &zone->dbversion, false);
