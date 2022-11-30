@@ -38,6 +38,11 @@ Bug Fixes
 
 - None.
 
+- The ``zone <name>/<class>: final reference detached`` log message was
+  moved from the INFO log level to the DEBUG(1) log level to prevent the
+  :iscman:`named-checkzone` tool from superfluously logging this message
+  in non-debug mode. :gl:`#3707`
+
 Known Issues
 ~~~~~~~~~~~~
 
