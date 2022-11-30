@@ -1,3 +1,9 @@
+6032.	[bug]		After change 5995, zone transfers were using a small
+			compression context that only had space for the first
+			few dozen names in each message. They now use a large
+			compression context with enough space for every name.
+			[GL #3706]
+
 6031.	[bug]		Move the "final reference detached" log message
 			from dns_zone unit to the DEBUG(1) log level.
 			[GL #3707]
