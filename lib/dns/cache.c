@@ -369,17 +369,10 @@ dns_cache_getservestalerefresh(dns_cache_t *cache) {
 isc_result_t
 dns_cache_flush(dns_cache_t *cache) {
 	dns_db_t *db = NULL, *olddb;
-	dns_dbiterator_t *dbiterator = NULL, *olddbiterator = NULL;
 	isc_result_t result;
 
 	result = cache_create_db(cache, &db);
 	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	result = dns_db_createiterator(db, false, &dbiterator);
-	if (result != ISC_R_SUCCESS) {
-		dns_db_detach(&db);
 		return (result);
 	}
 
@@ -389,12 +382,6 @@ dns_cache_flush(dns_cache_t *cache) {
 	dns_db_setcachestats(cache->db, cache->stats);
 	UNLOCK(&cache->lock);
 
-	if (dbiterator != NULL) {
-		dns_dbiterator_destroy(&dbiterator);
-	}
-	if (olddbiterator != NULL) {
-		dns_dbiterator_destroy(&olddbiterator);
-	}
 	dns_db_detach(&olddb);
 
 	return (ISC_R_SUCCESS);
