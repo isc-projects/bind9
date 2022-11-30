@@ -1,3 +1,10 @@
+6030.	[bug]		Refactor the ADB to use a global LRU queue, store
+			the ADB names and ADB entries directly in the hash
+			tables instead of buckets, and properly clean the
+			ADB names and entries when not in use. [GL #3239]
+			[GL #3238] [GL #2615] [GL #2078] [GL #2437]
+			[GL #3312] [GL #2441]
+
 6029.	[cleanup]	Remove the unused external cache cleaning mechanism
 			as RBTDB has its own internal cache cleaning
 			mechanism and we don't support any other database
