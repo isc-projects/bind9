@@ -16,13 +16,13 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -108,14 +108,15 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 }
 
 isc_result_t
-dns_cache_create(isc_taskmgr_t *taskmgr, dns_rdataclass_t rdclass,
+dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 		 const char *cachename, dns_cache_t **cachep) {
 	isc_result_t result;
 	dns_cache_t *cache = NULL;
 	isc_mem_t *mctx = NULL, *hmctx = NULL;
 
-	REQUIRE(cachep != NULL && *cachep == NULL);
+	REQUIRE(loopmgr != NULL);
 	REQUIRE(cachename != NULL);
+	REQUIRE(cachep != NULL && *cachep == NULL);
 
 	/*
 	 * This will be the main cache memory context, which is subject
@@ -159,18 +160,7 @@ dns_cache_create(isc_taskmgr_t *taskmgr, dns_rdataclass_t rdclass,
 		goto cleanup_stats;
 	}
 
-	if (taskmgr != NULL) {
-		isc_task_t *dbtask = NULL;
-		result = isc_task_create(taskmgr, &dbtask, 0);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_db;
-		}
-
-		isc_task_setname(dbtask, "cache_dbtask", NULL);
-		dns_db_settask(cache->db, dbtask);
-		isc_task_detach(&dbtask);
-	}
-
+	dns_db_setloop(cache->db, isc_loop_main(loopmgr));
 	cache->magic = CACHE_MAGIC;
 
 	/*

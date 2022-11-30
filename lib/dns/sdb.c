@@ -1258,9 +1258,9 @@ overmem(dns_db_t *db, bool over) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+setloop(dns_db_t *db, isc_loop_t *loop) {
 	UNUSED(db);
-	UNUSED(task);
+	UNUSED(loop);
 }
 
 static dns_dbmethods_t sdb_methods = {
@@ -1277,7 +1277,7 @@ static dns_dbmethods_t sdb_methods = {
 	addrdataset,	subtractrdataset,
 	deleterdataset, issecure,
 	nodecount,	ispersistent,
-	overmem,	settask,
+	overmem,	setloop,
 	getoriginnode, /* getoriginnode */
 	NULL,	       /* transfernode */
 	NULL,	       /* getnsec3parameters */

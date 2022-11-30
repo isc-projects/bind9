@@ -955,7 +955,7 @@ static dns_dbmethods_t rpsdb_db_methods = {
 	NULL, /* nodecount */
 	NULL, /* ispersistent */
 	NULL, /* overmem */
-	NULL, /* settask */
+	NULL, /* setloop */
 	rpsdb_getoriginnode,
 	NULL, /* transfernode */
 	NULL, /* getnsec3parameters */

@@ -827,10 +827,10 @@ dns_db_hashsize(dns_db_t *db) {
 }
 
 void
-dns_db_settask(dns_db_t *db, isc_task_t *task) {
+dns_db_setloop(dns_db_t *db, isc_loop_t *loop) {
 	REQUIRE(DNS_DB_VALID(db));
 
-	(db->methods->settask)(db, task);
+	(db->methods->setloop)(db, loop);
 }
 
 isc_result_t

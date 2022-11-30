@@ -19,13 +19,14 @@
 #include <sys/mman.h>
 
 #include <isc/ascii.h>
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/crc64.h>
-#include <isc/event.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
+#include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
@@ -37,14 +38,12 @@
 #include <isc/serial.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
@@ -567,7 +566,7 @@ struct dns_rbtdb {
 	rbtdb_version_t *current_version;
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
-	isc_task_t *task;
+	isc_loop_t *loop;
 	dns_dbnode_t *soanode;
 	dns_dbnode_t *nsnode;
 
@@ -647,6 +646,14 @@ typedef struct {
 	isc_stdtime_t now;
 } rbtdb_load_t;
 
+/*%
+ * Prune context
+ */
+typedef struct {
+	dns_db_t *db;
+	dns_rbtnode_t *node;
+} prune_t;
+
 static void
 delete_callback(void *data, void *arg);
 static void
@@ -683,7 +690,7 @@ static void
 resign_delete(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	      rdatasetheader_t *header);
 static void
-prune_tree(isc_task_t *task, isc_event_t *event);
+prune_tree(void *arg);
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust);
 static void
@@ -817,7 +824,7 @@ typedef struct rbtdb_dbiterator {
 #define IS_CACHE(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_CACHE) != 0)
 
 static void
-free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event);
+free_rbtdb(dns_rbtdb_t *rbtdb, bool log);
 static void
 overmem(dns_db_t *db, bool over);
 static void
@@ -888,12 +895,10 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 }
 
 static void
-free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
-	dns_rbtdb_t *rbtdb = event->ev_arg;
+free_rbtdb_callback(void *arg) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)arg;
 
-	UNUSED(task);
-
-	free_rbtdb(rbtdb, true, event);
+	free_rbtdb(rbtdb, true);
 }
 
 static void
@@ -1101,7 +1106,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 }
 
 static void
-free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
+free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	unsigned int i;
 	isc_result_t result;
 	char buf[DNS_NAME_FORMATSIZE];
@@ -1140,9 +1145,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 		}
 	}
 
-	if (event == NULL) {
-		rbtdb->quantum = (rbtdb->task != NULL) ? 100 : 0;
-	}
+	rbtdb->quantum = (rbtdb->loop != NULL) ? 100 : 0;
 
 	for (;;) {
 		/*
@@ -1165,27 +1168,17 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 		isc_time_now(&start);
 		result = dns_rbt_destroy2(treep, rbtdb->quantum);
 		if (result == ISC_R_QUOTA) {
-			INSIST(rbtdb->task != NULL);
+			INSIST(rbtdb->loop != NULL);
 			if (rbtdb->quantum != 0) {
 				rbtdb->quantum = adjust_quantum(rbtdb->quantum,
 								&start);
 			}
-			if (event == NULL) {
-				event = isc_event_allocate(
-					rbtdb->common.mctx, NULL,
-					DNS_EVENT_FREESTORAGE,
-					free_rbtdb_callback, rbtdb,
-					sizeof(isc_event_t));
-			}
-			isc_task_send(rbtdb->task, &event);
+			isc_async_run(rbtdb->loop, free_rbtdb_callback, rbtdb);
 			return;
 		}
 		INSIST(result == ISC_R_SUCCESS && *treep == NULL);
 	}
 
-	if (event != NULL) {
-		isc_event_free(&event);
-	}
 	if (log) {
 		if (dns_name_dynamic(&rbtdb->common.origin)) {
 			dns_name_format(&rbtdb->common.origin, buf,
@@ -1251,8 +1244,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 	TREE_DESTROYLOCK(&rbtdb->tree_lock);
 	isc_refcount_destroy(&rbtdb->references);
-	if (rbtdb->task != NULL) {
-		isc_task_detach(&rbtdb->task);
+	if (rbtdb->loop != NULL) {
+		isc_loop_detach(&rbtdb->loop);
 	}
 
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
@@ -1329,7 +1322,7 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_rbtdb(%s)", buf);
-			free_rbtdb(rbtdb, true, NULL);
+			free_rbtdb(rbtdb, true);
 		}
 	}
 }
@@ -1955,16 +1948,13 @@ is_leaf(dns_rbtnode_t *node) {
 static void
 send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		   isc_rwlocktype_t locktype) {
-	isc_event_t *ev;
-	dns_db_t *db;
+	prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
+	*prune = (prune_t){ .node = node };
 
-	ev = isc_event_allocate(rbtdb->common.mctx, NULL, DNS_EVENT_RBTPRUNE,
-				prune_tree, node, sizeof(isc_event_t));
+	attach((dns_db_t *)rbtdb, &prune->db);
 	new_reference(rbtdb, node, locktype);
-	db = NULL;
-	attach((dns_db_t *)rbtdb, &db);
-	ev->ev_sender = db;
-	isc_task_send(rbtdb->task, &ev);
+
+	isc_async_run(rbtdb->loop, prune_tree, prune);
 }
 
 /*%
@@ -1997,7 +1987,7 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 			continue;
 		}
 
-		if (is_leaf(node) && rbtdb->task != NULL) {
+		if (is_leaf(node) && rbtdb->loop != NULL) {
 			send_to_prune_tree(rbtdb, node, isc_rwlocktype_write);
 		} else if (node->down == NULL && node->data == NULL) {
 			/*
@@ -2206,12 +2196,12 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		 * the trouble, we'll dispatch a separate event for batch
 		 * cleaning.  We need to check whether we're deleting the node
 		 * as a result of pruning to avoid infinite dispatching.
-		 * Note: pruning happens only when a task has been set for the
-		 * rbtdb.  If the user of the rbtdb chooses not to set a task,
+		 * Note: pruning happens only when a loop has been set for the
+		 * rbtdb.  If the user of the rbtdb chooses not to set a loop,
 		 * it's their responsibility to purge stale leaves (e.g. by
 		 * periodic walk-through).
 		 */
-		if (!pruning && is_leaf(node) && rbtdb->task != NULL) {
+		if (!pruning && is_leaf(node) && rbtdb->loop != NULL) {
 			send_to_prune_tree(rbtdb, node, isc_rwlocktype_write);
 			no_reference = false;
 		} else {
@@ -2244,17 +2234,16 @@ restore_locks:
  * acceptable for a single event.
  */
 static void
-prune_tree(isc_task_t *task, isc_event_t *event) {
-	dns_rbtdb_t *rbtdb = event->ev_sender;
-	dns_rbtnode_t *node = event->ev_arg;
-	dns_rbtnode_t *parent;
+prune_tree(void *arg) {
+	prune_t *prune = (prune_t *)arg;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)prune->db;
+	dns_rbtnode_t *node = prune->node;
+	dns_rbtnode_t *parent = NULL;
 	unsigned int locknum;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-	UNUSED(task);
-
-	isc_event_free(&event);
+	isc_mem_put(rbtdb->common.mctx, prune, sizeof(*prune));
 
 	TREE_WRLOCK(&rbtdb->tree_lock, &tlocktype);
 	locknum = node->locknum;
@@ -2488,8 +2477,8 @@ unlock:
 }
 
 static void
-cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
-	dns_rbtdb_t *rbtdb = event->ev_arg;
+cleanup_dead_nodes_callback(void *arg) {
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)arg;
 	bool again = false;
 	unsigned int locknum;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
@@ -2506,9 +2495,8 @@ cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
 	}
 	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 	if (again) {
-		isc_task_send(task, &event);
+		isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback, rbtdb);
 	} else {
-		isc_event_free(&event);
 		if (isc_refcount_decrement(&rbtdb->references) == 1) {
 			(void)isc_refcount_current(&rbtdb->references);
 			maybe_free_rbtdb(rbtdb);
@@ -2724,23 +2712,16 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	}
 
 	if (!EMPTY(cleanup_list)) {
-		isc_event_t *event = NULL;
 		isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
-		if (rbtdb->task != NULL) {
-			event = isc_event_allocate(rbtdb->common.mctx, NULL,
-						   DNS_EVENT_RBTDEADNODES,
-						   cleanup_dead_nodes_callback,
-						   rbtdb, sizeof(isc_event_t));
-		}
-		if (event == NULL) {
+		if (rbtdb->loop == NULL) {
 			/*
 			 * We acquire a tree write lock here in order to make
 			 * sure that stale nodes will be removed in
 			 * decrement_reference().  If we didn't have the lock,
 			 * those nodes could miss the chance to be removed
 			 * until the server stops.  The write lock is
-			 * expensive, but this event should be rare enough
+			 * expensive, but this should be rare enough
 			 * to justify the cost.
 			 */
 			TREE_WRLOCK(&rbtdb->tree_lock, &tlocktype);
@@ -2761,7 +2742,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 			 * This is a good opportunity to purge any dead nodes,
 			 * so use it.
 			 */
-			if (event == NULL) {
+			if (rbtdb->loop == NULL) {
 				cleanup_dead_nodes(rbtdb, rbtnode->locknum);
 			}
 
@@ -2777,9 +2758,10 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 			isc_mem_put(rbtdb->common.mctx, changed,
 				    sizeof(*changed));
 		}
-		if (event != NULL) {
+		if (rbtdb->loop != NULL) {
 			isc_refcount_increment(&rbtdb->references);
-			isc_task_send(rbtdb->task, &event);
+			isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback,
+				      rbtdb);
 		} else {
 			TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 		}
@@ -5690,7 +5672,7 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 				      "calling free_rbtdb(%s)", buf);
-			free_rbtdb(rbtdb, true, NULL);
+			free_rbtdb(rbtdb, true);
 		}
 	}
 }
@@ -7825,7 +7807,7 @@ hashsize(dns_db_t *db) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+setloop(dns_db_t *db, isc_loop_t *loop) {
 	dns_rbtdb_t *rbtdb;
 
 	rbtdb = (dns_rbtdb_t *)db;
@@ -7833,11 +7815,11 @@ settask(dns_db_t *db, isc_task_t *task) {
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-	if (rbtdb->task != NULL) {
-		isc_task_detach(&rbtdb->task);
+	if (rbtdb->loop != NULL) {
+		isc_loop_detach(&rbtdb->loop);
 	}
-	if (task != NULL) {
-		isc_task_attach(task, &rbtdb->task);
+	if (loop != NULL) {
+		isc_loop_attach(loop, &rbtdb->loop);
 	}
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
@@ -8232,7 +8214,7 @@ static dns_dbmethods_t zone_methods = { attach,
 					nodecount,
 					ispersistent,
 					overmem,
-					settask,
+					setloop,
 					getoriginnode,
 					NULL, /* transfernode */
 					getnsec3parameters,
@@ -8282,7 +8264,7 @@ static dns_dbmethods_t cache_methods = { attach,
 					 nodecount,
 					 ispersistent,
 					 overmem,
-					 settask,
+					 setloop,
 					 getoriginnode,
 					 NULL, /* transfernode */
 					 NULL, /* getnsec3parameters */
@@ -8431,7 +8413,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 */
 	result = dns_name_dupwithoffsets(origin, mctx, &rbtdb->common.origin);
 	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, false, NULL);
+		free_rbtdb(rbtdb, false);
 		return (result);
 	}
 
@@ -8440,19 +8422,19 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 */
 	result = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->tree);
 	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, false, NULL);
+		free_rbtdb(rbtdb, false);
 		return (result);
 	}
 
 	result = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->nsec);
 	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, false, NULL);
+		free_rbtdb(rbtdb, false);
 		return (result);
 	}
 
 	result = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->nsec3);
 	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, false, NULL);
+		free_rbtdb(rbtdb, false);
 		return (result);
 	}
 
@@ -8475,7 +8457,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 					 &rbtdb->origin_node);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result != ISC_R_EXISTS);
-			free_rbtdb(rbtdb, false, NULL);
+			free_rbtdb(rbtdb, false);
 			return (result);
 		}
 		INSIST(rbtdb->origin_node != NULL);
@@ -8497,7 +8479,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 					 &rbtdb->nsec3_origin_node);
 		if (result != ISC_R_SUCCESS) {
 			INSIST(result != ISC_R_EXISTS);
-			free_rbtdb(rbtdb, false, NULL);
+			free_rbtdb(rbtdb, false);
 			return (result);
 		}
 		rbtdb->nsec3_origin_node->nsec = DNS_RBT_NSEC_NSEC3;
@@ -8516,7 +8498,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 */
 	isc_refcount_init(&rbtdb->references, 1);
 	rbtdb->attributes = 0;
-	rbtdb->task = NULL;
+	rbtdb->loop = NULL;
 	rbtdb->serve_stale_ttl = 0;
 
 	/*

@@ -4734,7 +4734,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * view name but not a forward reference either, then it
 			 * is simply a named cache that is not shared.
 			 */
-			CHECK(dns_cache_create(named_g_taskmgr, view->rdclass,
+			CHECK(dns_cache_create(named_g_loopmgr, view->rdclass,
 					       cachename, &cache));
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
