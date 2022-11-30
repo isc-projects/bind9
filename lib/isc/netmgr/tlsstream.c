@@ -687,10 +687,9 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(tlslistensock));
 	REQUIRE(tlslistensock->type == isc_nm_tlslistener);
 
-	if (isc__nmsocket_closing(handle->sock) ||
-	    isc__nmsocket_closing(tlslistensock) ||
-	    !atomic_load(&tlslistensock->listening))
-	{
+	if (isc__nm_closing(handle->sock->worker)) {
+		return (ISC_R_SHUTTINGDOWN);
+	} else if (isc__nmsocket_closing(handle->sock)) {
 		return (ISC_R_CANCELED);
 	}
 
