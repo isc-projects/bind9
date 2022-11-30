@@ -49,6 +49,9 @@ Bug Fixes
   structures used for "housekeeping") and exclude recently used (<= 10 seconds)
   ADB names and entries from the overmem memory cleaner. :gl:`#3739`
 
+- Fix a rare assertion failure in the outgoing TCP DNS connection handling.
+  :gl:`#3178` :gl:`#3636`
+
 Known Issues
 ~~~~~~~~~~~~
 
