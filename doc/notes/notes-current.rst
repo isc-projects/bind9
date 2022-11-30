@@ -63,6 +63,10 @@ Bug Fixes
   :iscman:`named-checkzone` tool from superfluously logging this message
   in non-debug mode. :gl:`#3707`
 
+- When a catalog zone is removed from the configuration, in some
+  cases a dangling pointer could cause a :iscman:`named` process
+  crash. This has been fixed. :gl:`#3683`
+
 Known Issues
 ~~~~~~~~~~~~
 
