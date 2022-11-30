@@ -1,3 +1,6 @@
+6033.	[func]		Log messages related to serve-stale now include the RR
+			type involved. [GL !7145]
+
 6032.	[bug]		After change 5995, zone transfers were using a small
 			compression context that only had space for the first
 			few dozen names in each message. They now use a large
