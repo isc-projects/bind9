@@ -221,7 +221,7 @@ nextpart ns8/named.run > /dev/null
 $DIG $DIGOPTS +cookie soa from-no-cookie-server.example @10.53.0.8 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 wait_for_log_peek 3 "missing required cookie from 10.53.0.7#" ns8/named.run || ret=1
-wait_for_log_peek 3 "TCP connected" ns8/named.run || ret=1
+wait_for_log_peek 3 "connected from" ns8/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
