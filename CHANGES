@@ -1,3 +1,7 @@
+6031.	[bug]		Move the "final reference detached" log message
+			from dns_zone unit to the DEBUG(1) log level.
+			[GL #3707]
+
 6027.	[bug]		Fix assertion failure in isc_http API used by
 			statschannel if the read callback would be called
 			on HTTP request that has been already closed.
