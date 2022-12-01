@@ -1909,7 +1909,7 @@ default is used.
    cannot be longer than a week.
 
 :any:`max-zone-ttl`
-   :tags: zone, query
+   :tags: deprecated
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
    This should now be configured as part of :namedconf:ref:`dnssec-policy`.
@@ -3576,7 +3576,7 @@ options apply to zone transfers.
    using IPv6.
 
 .. namedconf:statement:: alt-transfer-source
-   :tags: transfer
+   :tags: deprecated
    :short: Defines alternate local IPv4 address(es) to be used by the server for inbound zone transfers, if the address(es) defined by :any:`transfer-source` fail and :any:`use-alt-transfer-source` is enabled.
 
    This indicates an alternate transfer source if the one listed in :any:`transfer-source`
@@ -3588,14 +3588,14 @@ options apply to zone transfers.
       query.
 
 .. namedconf:statement:: alt-transfer-source-v6
-   :tags: transfer
+   :tags: deprecated
    :short: Defines alternate local IPv6 address(es) to be used by the server for inbound zone transfers.
 
    This indicates an alternate transfer source if the one listed in
    :any:`transfer-source-v6` fails and :any:`use-alt-transfer-source` is set.
 
 .. namedconf:statement:: use-alt-transfer-source
-   :tags: transfer
+   :tags: deprecated
    :short: Indicates whether :any:`alt-transfer-source` and :any:`alt-transfer-source-v6` can be used.
 
    This indicates whether the alternate transfer sources should be used. If views are specified,

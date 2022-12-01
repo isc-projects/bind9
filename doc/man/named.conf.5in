@@ -127,8 +127,8 @@ options {
 	allow\-update { <address_match_element>; ... };
 	allow\-update\-forwarding { <address_match_element>; ... };
 	also\-notify [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
+	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	answer\-cookie <boolean>;
 	attach\-cache <string>;
 	auth\-nxdomain <boolean>;
@@ -367,7 +367,7 @@ options {
 	udp\-receive\-buffer <integer>;
 	udp\-send\-buffer <integer>;
 	update\-check\-ksk <boolean>;
-	use\-alt\-transfer\-source <boolean>;
+	use\-alt\-transfer\-source <boolean>; // deprecated
 	use\-v4\-udp\-ports { <portrange>; ... };
 	use\-v6\-udp\-ports { <portrange>; ... };
 	v6\-bias <integer>;
@@ -442,8 +442,8 @@ view <string> [ <class> ] {
 	allow\-update { <address_match_element>; ... };
 	allow\-update\-forwarding { <address_match_element>; ... };
 	also\-notify [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
+	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	attach\-cache <string>;
 	auth\-nxdomain <boolean>;
 	auto\-dnssec ( allow | maintain | off ); // deprecated
@@ -643,7 +643,7 @@ view <string> [ <class> ] {
 	trusted\-keys { <string> <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times, deprecated
 	try\-tcp\-refresh <boolean>;
 	update\-check\-ksk <boolean>;
-	use\-alt\-transfer\-source <boolean>;
+	use\-alt\-transfer\-source <boolean>; // deprecated
 	v6\-bias <integer>;
 	validate\-except { <string>; ... };
 	zero\-no\-soa\-ttl <boolean>;
@@ -670,8 +670,8 @@ zone <string> [ <class> ] {
 	allow\-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow\-update { <address_match_element>; ... };
 	also\-notify [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
+	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	auto\-dnssec ( allow | maintain | off ); // deprecated
 	check\-dup\-records ( fail | warn | ignore );
 	check\-integrity <boolean>;
@@ -743,8 +743,8 @@ zone <string> [ <class> ] {
 	allow\-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow\-update\-forwarding { <address_match_element>; ... };
 	also\-notify [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
+	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	auto\-dnssec ( allow | maintain | off ); // deprecated
 	check\-names ( fail | warn | ignore );
 	database <string>;
@@ -796,7 +796,7 @@ zone <string> [ <class> ] {
 	transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	try\-tcp\-refresh <boolean>;
 	update\-check\-ksk <boolean>;
-	use\-alt\-transfer\-source <boolean>;
+	use\-alt\-transfer\-source <boolean>; // deprecated
 	zero\-no\-soa\-ttl <boolean>;
 	zone\-statistics ( full | terse | none | <boolean> );
 };
@@ -818,8 +818,8 @@ zone <string> [ <class> ] {
 	allow\-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow\-update\-forwarding { <address_match_element>; ... };
 	also\-notify [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
+	alt\-transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
+	alt\-transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	check\-names ( fail | warn | ignore );
 	database <string>;
 	file <quoted_string>;
@@ -849,7 +849,7 @@ zone <string> [ <class> ] {
 	transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	try\-tcp\-refresh <boolean>;
-	use\-alt\-transfer\-source <boolean>;
+	use\-alt\-transfer\-source <boolean>; // deprecated
 	zero\-no\-soa\-ttl <boolean>;
 	zone\-statistics ( full | terse | none | <boolean> );
 };
@@ -963,7 +963,7 @@ zone <string> [ <class> ] {
 	primaries [ port <integer> ] [ dscp <integer> ] { ( <remote\-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	transfer\-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	transfer\-source\-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-	use\-alt\-transfer\-source <boolean>;
+	use\-alt\-transfer\-source <boolean>; // deprecated
 	zone\-statistics ( full | terse | none | <boolean> );
 };
 

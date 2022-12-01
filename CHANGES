@@ -1,3 +1,6 @@
+6034.	[func]		Deprecate alt-transfer-source, alt-transfer-source-v6
+			and use-alt-transfer-source. [GL #3694]
+
 6031.	[bug]		Move the "final reference detached" log message
 			from dns_zone unit to the DEBUG(1) log level.
 			[GL #3707]
