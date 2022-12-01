@@ -119,10 +119,6 @@ PYTHON=@PYTHON@
 #
 # Determine if we support various optional features.
 #
-HAVEXMLSTATS=@XMLSTATS@
-HAVEJSONSTATS=@JSONSTATS@
-HAVEZLIB=@ZLIB@
-NZD=@NZD_TOOLS@
 CRYPTO=@CRYPTO@
 
 # The rest is shared between Windows and Unices
