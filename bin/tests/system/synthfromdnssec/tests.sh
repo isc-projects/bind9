@@ -751,7 +751,7 @@ do
 	echo_i "Skipping XML statistics checks"
    fi
 
-   if [ ${HAVEJSONSTATS} ] && [ -x "${CURL}" ] ; then
+   if $FEATURETEST --have-json-c && [ -x "${CURL}" ] ; then
 	echo_i "getting JSON statisistcs for (synth-from-dnssec ${description};) ($n)"
 	ret=0
 	json=json.out$n
