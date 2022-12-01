@@ -18,7 +18,7 @@ SYSTEMTESTTOP=..
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
-if [ ! "$HAVEJSONSTATS" ]
+if ! $FEATURETEST --have-json-c
 then
     unset PERL_JSON
     echo_i "JSON was not configured; skipping" >&2
@@ -30,7 +30,7 @@ else
     echo_i "JSON tests require JSON library; skipping" >&2
 fi
 
-if [ ! "$HAVEXMLSTATS" ]
+if ! $FEATURETEST --have-libxml2
 then
     unset PERL_XML
     echo_i "XML was not configured; skipping" >&2
@@ -138,7 +138,7 @@ n=`expr $n + 1`
 echo_i "checking consistency between regular and compressed output ($n)"
 for i in 1 2 3 4 5; do
 	ret=0
-	if [ "$HAVEXMLSTATS" ];
+	if $FEATURETEST --have-libxml2;
 	then
 		URL=http://10.53.0.2:${EXTRAPORT1}/xml/v3/server
 		filter_str='s#<current-time>.*</current-time>##g'
@@ -164,7 +164,7 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking if compressed output is really compressed ($n)"
-if [ "$HAVEZLIB" ];
+if $FEATURETEST --with-zlib;
 then
     REGSIZE=`cat regular.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
