@@ -1127,6 +1127,10 @@ tls_cycle_input(isc_nmsocket_t *sock) {
 				goto failure;
 			}
 
+			if (atomic_load(&sock->client)) {
+				break;
+			}
+
 			if (pending == 0) {
 				break;
 			}
