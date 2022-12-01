@@ -1,3 +1,8 @@
+6035.	[bug]		Refactor the dns_resolver unit to store the fetch
+			contexts and zone counter directly in the hash
+			tables without buckets and implement effective
+			cleaning of both objects. [GL #3709]
+
 6034.	[func]		Deprecate alt-transfer-source, alt-transfer-source-v6
 			and use-alt-transfer-source. [GL #3694]
 

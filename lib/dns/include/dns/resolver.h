@@ -50,10 +50,15 @@
 
 #include <isc/event.h>
 #include <isc/lang.h>
+#include <isc/refcount.h>
 #include <isc/stats.h>
 
 #include <dns/fixedname.h>
 #include <dns/types.h>
+
+#include <netinet/in.h>
+
+#undef DNS_RESOLVER_TRACE
 
 ISC_LANG_BEGINDECLS
 
@@ -253,11 +258,19 @@ dns_resolver_shutdown(dns_resolver_t *res);
  *\li	'res' is a valid resolver.
  */
 
-void
-dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp);
-
-void
-dns_resolver_detach(dns_resolver_t **resp);
+#if DNS_RESOLVER_TRACE
+#define dns_resolver_ref(ptr) \
+	dns_resolver__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_resolver_unref(ptr) \
+	dns_resolver__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_resolver_attach(ptr, ptrp) \
+	dns_resolver__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_resolver_detach(ptrp) \
+	dns_resolver__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_resolver);
+#else
+ISC_REFCOUNT_DECL(dns_resolver);
+#endif
 
 isc_result_t
 dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
