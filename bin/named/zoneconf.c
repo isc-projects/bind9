@@ -1967,47 +1967,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
-		result = named_config_get(maps, "alt-transfer-source", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		RETERR(dns_zone_setaltxfrsource4(mayberaw,
-						 cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setaltxfrsource4dscp(mayberaw, dscp));
-
-		obj = NULL;
-		result = named_config_get(maps, "alt-transfer-source-v6", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		RETERR(dns_zone_setaltxfrsource6(mayberaw,
-						 cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setaltxfrsource6dscp(mayberaw, dscp));
-
-		obj = NULL;
-		(void)named_config_get(maps, "use-alt-transfer-source", &obj);
-		if (obj == NULL) {
-			/*
-			 * Default off when views are in use otherwise
-			 * on for BIND 8 compatibility.
-			 */
-			view = dns_zone_getview(zone);
-			if (view != NULL && strcmp(view->name, "_default") == 0)
-			{
-				alt = true;
-			} else {
-				alt = false;
-			}
-		} else {
-			alt = cfg_obj_asboolean(obj);
-		}
-		dns_zone_setoption(mayberaw, DNS_ZONEOPT_USEALTXFRSRC, alt);
-
-		obj = NULL;
 		(void)named_config_get(maps, "try-tcp-refresh", &obj);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_TRYTCPREFRESH,
 				   cfg_obj_asboolean(obj));

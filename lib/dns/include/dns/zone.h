@@ -71,8 +71,8 @@ typedef enum {
 	DNS_ZONEOPT_FATALNS = 1 << 4,	    /*%< DNS_ZONEOPT_CHECKNS is fatal */
 	DNS_ZONEOPT_MULTIMASTER = 1 << 5,   /*%< this zone has multiple
 						 primaries */
-	DNS_ZONEOPT_USEALTXFRSRC = 1 << 6,  /*%< use alternate transfer sources
-					     */
+	DNS_ZONEOPT_USEALTXFRSRC = 1 << 6,  /*%< use alternate transfer sources.
+						 Obsoleted. */
 	DNS_ZONEOPT_CHECKNAMES = 1 << 7,    /*%< check-names */
 	DNS_ZONEOPT_CHECKNAMESFAIL = 1 << 8, /*%< fatal check-name failures */
 	DNS_ZONEOPT_CHECKWILDCARD = 1 << 9, /*%< check for internal wildcards */
@@ -804,8 +804,6 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, uint32_t val);
 
 isc_result_t
 dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
-isc_result_t
-dns_zone_setaltxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 /*%<
  * 	Set the source address to be used in IPv4 zone transfers.
  *
@@ -819,8 +817,6 @@ dns_zone_setaltxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 
 isc_sockaddr_t *
 dns_zone_getxfrsource4(dns_zone_t *zone);
-isc_sockaddr_t *
-dns_zone_getaltxfrsource4(dns_zone_t *zone);
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource4
  *	call, or the default of inaddr_any, port 0.
@@ -831,10 +827,8 @@ dns_zone_getaltxfrsource4(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
-isc_result_t
-dns_zone_setaltxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
 /*%<
- * Set the DSCP value associated with the transfer/alt-transfer source.
+ * Set the DSCP value associated with the transfer source.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -845,10 +839,8 @@ dns_zone_setaltxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
 
 isc_dscp_t
 dns_zone_getxfrsource4dscp(dns_zone_t *zone);
-isc_dscp_t
-dns_zone_getaltxfrsource4dscp(dns_zone_t *zone);
 /*%/
- * Get the DSCP value associated with the transfer/alt-transfer source.
+ * Get the DSCP value associated with the transfer source.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -856,8 +848,6 @@ dns_zone_getaltxfrsource4dscp(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
-isc_result_t
-dns_zone_setaltxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 /*%<
  * 	Set the source address to be used in IPv6 zone transfers.
  *
@@ -871,8 +861,6 @@ dns_zone_setaltxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 
 isc_sockaddr_t *
 dns_zone_getxfrsource6(dns_zone_t *zone);
-isc_sockaddr_t *
-dns_zone_getaltxfrsource6(dns_zone_t *zone);
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource6
  *	call, or the default of in6addr_any, port 0.
@@ -883,10 +871,8 @@ dns_zone_getaltxfrsource6(dns_zone_t *zone);
 
 isc_dscp_t
 dns_zone_getxfrsource6dscp(dns_zone_t *zone);
-isc_dscp_t
-dns_zone_getaltxfrsource6dscp(dns_zone_t *zone);
 /*%/
- * Get the DSCP value associated with the transfer/alt-transfer source.
+ * Get the DSCP value associated with the transfer source.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -894,10 +880,8 @@ dns_zone_getaltxfrsource6dscp(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
-isc_result_t
-dns_zone_setaltxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
 /*%<
- * Set the DSCP value associated with the transfer/alt-transfer source.
+ * Set the DSCP value associated with the transfer source.
  *
  * Require:
  *\li	'zone' to be a valid zone.

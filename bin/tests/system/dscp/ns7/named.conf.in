@@ -16,7 +16,6 @@ options {
 	query-source dscp 46 address 10.53.0.7;
 	notify-source 10.53.0.7 dscp 47;
 	transfer-source 10.53.0.7 dscp 47;
-	alt-transfer-source 10.53.0.7 dscp 47;
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on dscp 46 { 10.53.0.7; };
@@ -31,6 +30,5 @@ zone "." {
 	file "root.bk";
 	transfer-source 10.53.0.7 dscp 46;
 	notify-source 10.53.0.7 dscp 46;
-	alt-transfer-source 10.53.0.7 dscp 46;
 	primaries { 10.53.0.4; };
 };

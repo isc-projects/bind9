@@ -2250,10 +2250,10 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "alt-transfer-source", &cfg_type_sockaddr4wild,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
-		  CFG_CLAUSEFLAG_DEPRECATED },
+		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "alt-transfer-source-v6", &cfg_type_sockaddr6wild,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
-		  CFG_CLAUSEFLAG_DEPRECATED },
+		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "auto-dnssec", &cfg_type_autodnssec,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_DEPRECATED },
 	{ "check-dup-records", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
@@ -2361,7 +2361,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "use-alt-transfer-source", &cfg_type_boolean,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
-		  CFG_CLAUSEFLAG_DEPRECATED },
+		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "zero-no-soa-ttl", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "zone-statistics", &cfg_type_zonestat,

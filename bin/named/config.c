@@ -208,8 +208,6 @@ options {\n\
 	allow-query-on {any;};\n\
 	allow-transfer {any;};\n\
 #	also-notify <none>\n\
-	alt-transfer-source *;\n\
-	alt-transfer-source-v6 *;\n\
 	check-integrity yes;\n\
 	check-mx-cname warn;\n\
 	check-sibling yes;\n\
