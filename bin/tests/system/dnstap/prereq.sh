@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -9,12 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
-if ! $FEATURETEST --with-lmdb; then
-        echo_i "This test requires LMDB support (--with-lmdb)"
-        exit 255
-fi
-
+$FEATURETEST --enable-dnstap || {
+	echo_i "This test requires dnstap support." >&2
+	exit 255
+}
 exit 0

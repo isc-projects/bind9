@@ -13,15 +13,12 @@
 
 from datetime import datetime
 
-import os
-
 import pytest
 
 import generic
+import pytest_custom_markers
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("HAVEJSONSTATS"), reason="json-c support disabled in the build"
-)
+pytestmark = pytest_custom_markers.have_json_c
 requests = pytest.importorskip("requests")
 
 
