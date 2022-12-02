@@ -32,4 +32,4 @@ rm -f ns1/update.log.*
 rm -f ns1/verify.out.*
 rm -f ns1/zone.*.signed.jnl ns1/zone.*.signed.jbk
 
-softhsm2-util --delete-token --token "softhsm2-engine_pkcs11" >/dev/null 2>&1 || echo_i "softhsm2-engine_pkcs11 token not found for cleaning"
+softhsm2-util --delete-token --token "softhsm2-enginepkcs11" >/dev/null 2>&1 || echo_i "softhsm2-enginepkcs11 token not found for cleaning"
