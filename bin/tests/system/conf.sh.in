@@ -113,18 +113,3 @@ export PERL=$(command -v "@PERL@")
 
 export PYTHON=$(command -v "@PYTHON@" || true)
 export PYTEST=@PYTEST@
-
-#
-# Determine if we support various optional features.
-#
-export LIBXML2_LIBS="@LIBXML2_LIBS@"
-export HAVEXMLSTATS=${LIBXML2_LIBS:+1}
-export JSON_C_LIBS="@JSON_C_LIBS@"
-export HAVEJSONSTATS=${JSON_C_LIBS:+1}
-export MAXMINDDB_LIBS="@MAXMINDDB_LIBS@"
-export HAVEGEOIP2=${MAXMINDDB_LIBS:+1}
-export ZLIB_LIBS="@ZLIB_LIBS@"
-export HAVEZLIB=${ZLIB_LIBS:+1}
-export LMDB_LIBS="@LMDB_LIBS@"
-export NZD=${LMDB_LIBS:+1}
-export CRYPTO=@CRYPTO@
