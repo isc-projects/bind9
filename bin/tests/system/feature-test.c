@@ -34,6 +34,7 @@ usage(void) {
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
 	fprintf(stderr, "\t--have-geoip2\n");
+	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--tsan\n");
@@ -41,6 +42,7 @@ usage(void) {
 	fprintf(stderr, "\t--with-libidn2\n");
 	fprintf(stderr, "\t--with-lmdb\n");
 	fprintf(stderr, "\t--with-libnghttp2\n");
+	fprintf(stderr, "\t--with-zlib\n");
 }
 
 int
@@ -112,6 +114,14 @@ main(int argc, char **argv) {
 #endif /* ifdef HAVE_GEOIP2 */
 	}
 
+	if (strcmp(argv[1], "--have-json-c") == 0) {
+#ifdef HAVE_JSON_C
+		return (0);
+#else  /* ifdef HAVE_JSON_C */
+		return (1);
+#endif /* ifdef HAVE_JSON_C */
+	}
+
 	if (strcmp(argv[1], "--have-libxml2") == 0) {
 #ifdef HAVE_LIBXML2
 		return (0);
@@ -179,9 +189,17 @@ main(int argc, char **argv) {
 	if (strcmp(argv[1], "--with-libnghttp2") == 0) {
 #ifdef HAVE_LIBNGHTTP2
 		return (0);
-#else  /* ifdef HAVE_LMDB */
+#else  /* ifdef HAVE_LIBNGHTTP2 */
 		return (1);
-#endif /* ifdef HAVE_LMDB */
+#endif /* ifdef HAVE_LIBNGHTTP2 */
+	}
+
+	if (strcmp(argv[1], "--with-zlib") == 0) {
+#ifdef HAVE_ZLIB
+		return (0);
+#else  /* ifdef HAVE_ZLIB */
+		return (1);
+#endif /* ifdef HAVE_ZLIB */
 	}
 
 	fprintf(stderr, "unknown arg: %s\n", argv[1]);
