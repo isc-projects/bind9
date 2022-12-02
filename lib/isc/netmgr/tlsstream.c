@@ -203,9 +203,12 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 		tls_call_connect_cb(sock, handle, result);
 		isc__nmsocket_clearcb(sock);
 		isc_nmhandle_detach(&handle);
-	} else if (sock->recv_cb != NULL && sock->statichandle != NULL) {
+	} else if (sock->recv_cb != NULL && sock->statichandle != NULL &&
+		   (sock->recv_read || result == ISC_R_TIMEDOUT))
+	{
 		isc__nm_uvreq_t *req = NULL;
 		INSIST(VALID_NMHANDLE(sock->statichandle));
+		sock->recv_read = false;
 		req = isc__nm_uvreq_get(sock->mgr, sock);
 		req->cb.recv = sock->recv_cb;
 		req->cbarg = sock->recv_cbarg;
@@ -883,6 +886,7 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
+	sock->recv_read = true;
 
 	ievent = isc__nm_get_netievent_tlsstartread(sock->mgr, sock);
 	isc__nm_enqueue_ievent(&sock->mgr->workers[sock->tid],
