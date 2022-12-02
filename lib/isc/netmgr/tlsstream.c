@@ -351,7 +351,30 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		tls_read_stop(sock);
 		if (sock->tlsstream.server) {
-			if (isc__nmsocket_closing(sock->listener)) {
+			/*
+			 * We need to check for 'sock->listener->closing' to
+			 * make sure that we are not breaking the contract by
+			 * calling an accept callback after the listener socket
+			 * was shot down. Also, in this case the accept callback
+			 * can be 'NULL'. That can happen as calling the accept
+			 * callback in TLS is deferred until handshake is done.
+			 * There is a possibility for that to happen *after* the
+			 * underlying TCP connection was accepted. That is, a
+			 * situation possible when the underlying TCP connection
+			 * was accepted, handshake related data transmission
+			 * took place, but in the middle of that the socket is
+			 * being shot down before the TLS accept callback could
+			 * have been called.
+			 *
+			 * Also see 'isc__nmsocket_stop()' - the function used
+			 * to shut down the listening TLS socket - for more
+			 * details.
+			 */
+			if (isc__nm_closing(sock->worker)) {
+				result = ISC_R_SHUTTINGDOWN;
+			} else if (isc__nmsocket_closing(sock) ||
+				   atomic_load(&sock->listener->closing))
+			{
 				result = ISC_R_CANCELED;
 			} else {
 				result = sock->listener->accept_cb(

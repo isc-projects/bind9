@@ -2459,7 +2459,9 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 * function gets invoked, so we need to do extra sanity checks to
 	 * detect this case.
 	 */
-	if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
+	if (isc__nm_closing(handle->sock->worker)) {
+		return (ISC_R_SHUTTINGDOWN);
+	} else if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -2471,9 +2473,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(httplistensock));
 	INSIST(httplistensock == httpserver);
 
-	if (isc__nmsocket_closing(httplistensock) ||
-	    !atomic_load(&httplistensock->listening))
-	{
+	if (atomic_load(&httplistensock->closing)) {
 		return (ISC_R_CANCELED);
 	}
 
