@@ -848,6 +848,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			break;
 		case 'p':
 			port = atoi(isc_commandline_argument);
+			port_set = true;
 			break;
 		}
 	}
