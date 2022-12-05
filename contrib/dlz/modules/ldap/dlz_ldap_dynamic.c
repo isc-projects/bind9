@@ -998,11 +998,13 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
+		FALLTHROUGH;
 	case 11:
 		result = dlz_ldap_checkURL(ldap, argv[10], 3, "all nodes");
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
+		FALLTHROUGH;
 	case 10:
 		if (strlen(argv[9]) > 0) {
 			result = dlz_ldap_checkURL(ldap, argv[9], 3,
@@ -1011,6 +1013,7 @@ dlz_create(const char *dlzname, unsigned int argc, char *argv[], void **dbdata,
 				goto cleanup;
 			}
 		}
+		FALLTHROUGH;
 	case 9:
 		result = dlz_ldap_checkURL(ldap, argv[8], 3, "lookup");
 		if (result != ISC_R_SUCCESS) {
