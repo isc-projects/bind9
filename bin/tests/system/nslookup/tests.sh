@@ -122,5 +122,20 @@ grep "2001::ffff" nslookup.out${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+n=$((n+1))
+echo_i "Check ANY lookup ($n)"
+ret=0
+$NSLOOKUP -port=${PORT} -type=ANY example.net 10.53.0.1 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(grep -c 'Address:.10\.53\.0\.1#'"${PORT}" nslookup.out${n})
+test $lines -eq 1 || ret=1
+lines=$(grep -c 'origin = ns1\.example\.net' nslookup.out${n})
+test $lines -eq 1 || ret=1
+lines=$(grep -c 'mail addr = hostmaster\.example\.net' nslookup.out${n})
+test $lines -eq 1 || ret=1
+lines=$(grep -c 'nameserver = ns1\.example\.net.' nslookup.out${n})
+test $lines -eq 1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
