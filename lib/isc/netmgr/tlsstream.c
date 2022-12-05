@@ -131,6 +131,9 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		(isc_nmsocket_tls_send_req_t *)cbarg;
 	isc_nmsocket_t *tlssock = NULL;
 	bool finish = send_req->finish;
+	isc_nm_cb_t send_cb = NULL;
+	void *send_cbarg = NULL;
+	isc_nmhandle_t *send_handle = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
@@ -138,33 +141,51 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	tlssock = send_req->tlssock;
 	send_req->tlssock = NULL;
+	send_cb = send_req->cb;
+	send_cbarg = send_req->cbarg;
+	send_handle = send_req->handle;
+	send_req->handle = NULL;
 
 	if (finish) {
 		tls_try_shutdown(tlssock->tlsstream.tls, true);
 	}
 
-	if (send_req->cb != NULL) {
-		INSIST(VALID_NMHANDLE(tlssock->statichandle));
-		send_req->cb(send_req->handle, eresult, send_req->cbarg);
-		isc_nmhandle_detach(&send_req->handle);
-		/* The last handle has been just detached: close the underlying
-		 * socket. */
-		if (tlssock->statichandle == NULL) {
-			finish = true;
-		}
-	}
-
-	/* We are tying to avoid a memory allocation for small write
+	/*
+	 * We are tying to avoid a memory allocation for small write
 	 * requests. See the mirroring code in the tls_send_outgoing()
-	 * function. */
+	 * function. The object is attempted to be freed or put for reuse
+	 * before the call to callback because there is a chance that it
+	 * is going to be reused during the call to the callback.
+	 */
 	if (send_req->data.length > sizeof(send_req->smallbuf)) {
 		isc_mem_put(handle->sock->worker->mctx, send_req->data.base,
 			    send_req->data.length);
 	} else {
 		INSIST(&send_req->smallbuf[0] == send_req->data.base);
 	}
-	isc_mem_put(handle->sock->worker->mctx, send_req, sizeof(*send_req));
+
+	send_req->data.base = NULL;
+	send_req->data.length = 0;
+
+	/* Try to keep the object to be reused later - to avoid an allocation */
+	if (tlssock->tlsstream.send_req == NULL) {
+		tlssock->tlsstream.send_req = send_req;
+	} else {
+		isc_mem_put(handle->sock->worker->mctx, send_req,
+			    sizeof(*send_req));
+	}
 	tlssock->tlsstream.nsending--;
+
+	if (send_cb != NULL) {
+		INSIST(VALID_NMHANDLE(tlssock->statichandle));
+		send_cb(send_handle, eresult, send_cbarg);
+		isc_nmhandle_detach(&send_handle);
+		/* The last handle has been just detached: close the underlying
+		 * socket. */
+		if (tlssock->statichandle == NULL) {
+			finish = true;
+		}
+	}
 
 	if (finish && eresult == ISC_R_SUCCESS && tlssock->reading) {
 		tls_failed_read_cb(tlssock, ISC_R_EOF);
@@ -277,7 +298,14 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 		pending = TLS_BUF_SIZE;
 	}
 
-	send_req = isc_mem_get(sock->worker->mctx, sizeof(*send_req));
+	/* Try to reuse previously allocated object */
+	if (sock->tlsstream.send_req != NULL) {
+		send_req = sock->tlsstream.send_req;
+		sock->tlsstream.send_req = NULL;
+	} else {
+		send_req = isc_mem_get(sock->worker->mctx, sizeof(*send_req));
+	}
+
 	*send_req = (isc_nmsocket_tls_send_req_t){ .finish = finish,
 						   .data.length = pending };
 
@@ -1180,6 +1208,14 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 			INSIST(atomic_load(&sock->client));
 			isc_tlsctx_client_session_cache_detach(
 				&sock->tlsstream.client_sess_cache);
+		}
+
+		if (sock->tlsstream.send_req != NULL) {
+			INSIST(sock->tlsstream.send_req->data.base == NULL);
+			INSIST(sock->tlsstream.send_req->data.length == 0);
+			isc_mem_put(sock->worker->mctx,
+				    sock->tlsstream.send_req,
+				    sizeof(*sock->tlsstream.send_req));
 		}
 	} else if (sock->type == isc_nm_tcpsocket &&
 		   sock->tlsstream.tlssocket != NULL)

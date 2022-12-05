@@ -878,6 +878,7 @@ struct isc_nmsocket {
 		} state; /*%< The order of these is significant */
 		size_t nsending;
 		bool tcp_nodelay_value;
+		isc_nmsocket_tls_send_req_t *send_req; /*%< Send req to reuse */
 	} tlsstream;
 
 #if HAVE_LIBNGHTTP2
