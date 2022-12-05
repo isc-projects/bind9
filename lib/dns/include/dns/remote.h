@@ -207,31 +207,11 @@ dns_remote_tlsname(dns_remote_t *remote);
  *		'remote' is a valid remote structure.
  */
 
-bool
-dns_remote_allgood(dns_remote_t *remote);
-/*%<
- *	Return 'true' if all the addresses are considered good.
- *
- *	Requires:
- *		'remote' is a valid remote structure.
- */
-
 void
 dns_remote_mark(dns_remote_t *remote, bool good);
 /*%<
  *	Mark the current address 'good' (or not good if 'good' is
  *	'false').
- *
- *	Requires:
- *		'remote' is a valid remote structure.
- *		The current address index is lower than the address count.
- */
-
-bool
-dns_remote_addrok(dns_remote_t *remote);
-/*%<
- *	Return 'true' if the current address is marked good, 'false'
- *	otherwise. Also return 'true' if marking servers is not used.
  *
  *	Requires:
  *		'remote' is a valid remote structure.
