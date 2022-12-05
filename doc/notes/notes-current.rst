@@ -27,6 +27,10 @@ Removed Features
 
 - None.
 
+- The options to set alternate local addresses for inbound zone transfers
+  are removed (``alt-transfer-source``, ``alt-transfer-source-v6``,
+  ``use-alt-transfer-source``). :gl:`#3694`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
