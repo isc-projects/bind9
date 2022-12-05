@@ -891,8 +891,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	int i;
 	int32_t journal_size;
 	bool multi;
-	bool alt;
-	dns_view_t *view = NULL;
 	dns_kasp_t *kasp = NULL;
 	bool check = false, fail = false;
 	bool warn = false, ignore = false;
