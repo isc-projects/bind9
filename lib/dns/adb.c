@@ -1358,15 +1358,18 @@ get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
 	case ISC_R_NOTFOUND:
 		/* Allocate a new name and add it to the hash table. */
 		adbname = new_adbname(adb, name, start_at_zone);
+		dns_adbname_ref(adbname);
+		adbname->last_used = now;
+
 		result = isc_hashmap_add(adb->names, &hashval,
 					 &adbname->key.key, adbname->key.size,
 					 adbname);
 		INSIST(result == ISC_R_SUCCESS);
 
 		ISC_LIST_PREPEND(adb->names_lru, adbname, link);
-		adbname->last_used = now;
 		break;
 	case ISC_R_SUCCESS:
+		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (adbname->last_used + ADB_STALE_MARGIN <= last_update) {
 			adbname->last_used = now;
@@ -1384,8 +1387,6 @@ get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
 	 * expire_name() - the unused adbname stored in the hashtable and lru
 	 * has always refcount == 1
 	 */
-	dns_adbname_ref(adbname);
-
 	UNLOCK(&adb->names_lock);
 
 	return (adbname);
@@ -1424,16 +1425,19 @@ get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
 	create:
 		/* Allocate a new entry and add it to the hash table. */
 		adbentry = new_adbentry(adb, addr);
+		dns_adbentry_ref(adbentry);
+		adbentry->last_used = now;
+
 		result = isc_hashmap_add(adb->entries, &hashval,
 					 &adbentry->sockaddr,
 					 sizeof(adbentry->sockaddr), adbentry);
 		INSIST(result == ISC_R_SUCCESS);
 
 		ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
-		adbentry->last_used = now;
 		break;
 	}
 	case ISC_R_SUCCESS:
+		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock);
 		if (maybe_expire_entry(adbentry, now)) {
 			UNLOCK(&adbentry->lock);
@@ -1451,7 +1455,6 @@ get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
 	default:
 		UNREACHABLE();
 	}
-	dns_adbentry_ref(adbentry);
 
 	UNLOCK(&adb->entries_lock);
 
