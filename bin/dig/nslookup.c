@@ -582,6 +582,7 @@ set_port(const char *value) {
 	isc_result_t result = parse_uint(&n, value, 65535, "port");
 	if (result == ISC_R_SUCCESS) {
 		port = (uint16_t)n;
+		port_set = true;
 	}
 }
 

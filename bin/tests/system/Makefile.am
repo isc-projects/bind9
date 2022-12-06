@@ -126,6 +126,7 @@ TESTS +=			\
 	inline			\
 	integrity		\
 	hooks			\
+	host			\
 	journal			\
 	keepalive		\
 	keyfromlabel		\
