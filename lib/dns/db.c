@@ -995,7 +995,7 @@ dns_db_rpz_ready(dns_db_t *db) {
 	return ((db->methods->rpz_ready)(db));
 }
 
-/**
+/*
  * Attach a notify-on-update function the database
  */
 isc_result_t
@@ -1005,6 +1005,16 @@ dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
 
 	REQUIRE(db != NULL);
 	REQUIRE(fn != NULL);
+
+	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
+	     listener = ISC_LIST_NEXT(listener, link))
+	{
+		if ((listener->onupdate == fn) &&
+		    (listener->onupdate_arg == fn_arg))
+		{
+			return (ISC_R_SUCCESS);
+		}
+	}
 
 	listener = isc_mem_get(db->mctx, sizeof(dns_dbonupdatelistener_t));
 

@@ -1112,7 +1112,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	char buf[DNS_NAME_FORMATSIZE];
 	dns_rbt_t **treep;
 	isc_time_t start;
-	dns_dbonupdatelistener_t *listener, *listener_next;
 
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in) {
 		overmem((dns_db_t *)rbtdb, (bool)-1);
@@ -1253,14 +1252,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	rbtdb->common.impmagic = 0;
 	isc_mem_detach(&rbtdb->hmctx);
 
-	for (listener = ISC_LIST_HEAD(rbtdb->common.update_listeners);
-	     listener != NULL; listener = listener_next)
-	{
-		listener_next = ISC_LIST_NEXT(listener, link);
-		ISC_LIST_UNLINK(rbtdb->common.update_listeners, listener, link);
-		isc_mem_put(rbtdb->common.mctx, listener,
-			    sizeof(dns_dbonupdatelistener_t));
-	}
+	INSIST(ISC_LIST_EMPTY(rbtdb->common.update_listeners));
 
 	isc_mem_putanddetach(&rbtdb->common.mctx, rbtdb, sizeof(*rbtdb));
 }

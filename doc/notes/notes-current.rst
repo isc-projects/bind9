@@ -71,6 +71,10 @@ Bug Fixes
   names in zone transfers that should have been compressed, so zone
   transfers were larger than before. :gl:`#3706`
 
+- When a catalog zone is removed from the configuration, in some
+  cases a dangling pointer could cause a :iscman:`named` process
+  crash. This has been fixed. :gl:`#3683`
+
 Known Issues
 ~~~~~~~~~~~~
 
