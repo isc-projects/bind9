@@ -1,3 +1,7 @@
+6040.	[bug]		Speed up the named shutdown time by explicitly
+			canceling all recursing ns_client objects for
+			each ns_clientmgr. [GL #3183]
+
 6039.	[bug]		Removing a catalog zone from catalog-zones without
 			also removing the referenced zone could leave a
 			dangling pointer. [GL #3683]

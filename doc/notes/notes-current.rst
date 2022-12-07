@@ -47,6 +47,9 @@ Bug Fixes
   cases a dangling pointer could cause a :iscman:`named` process
   crash. This has been fixed. :gl:`#3683`
 
+- The ``named`` would wait for some outstanding recursing queries
+  to finish before shutting down.  This has been fixed.  :gl:`#3183`
+
 Known Issues
 ~~~~~~~~~~~~
 
