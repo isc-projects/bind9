@@ -173,10 +173,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check stale nxdomain.example TXT ($n)"
 ret=0
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "EDE: 19 (Stale NXDOMAIN Answer): (resolver failure)" dig.out.test$n > /dev/null || ret=1
-grep "example\..*4.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -195,7 +193,6 @@ grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
-grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -409,10 +406,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check stale nxdomain.example TXT (serve-stale on) ($n)"
 ret=0
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep "EDE: 19 (Stale NXDOMAIN Answer): (resolver failure)" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*4.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -479,10 +474,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check stale nxdomain.example TXT (serve-stale reset) ($n)"
 ret=0
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep "EDE: 19 (Stale NXDOMAIN Answer): (resolver failure)" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*4.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -675,10 +668,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check stale nxdomain.example TXT (low max-stale-ttl) ($n)"
 ret=0
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep "EDE: 19 (Stale NXDOMAIN Answer): (resolver failure)" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -697,7 +688,6 @@ grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #Others" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
-grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1118,7 +1108,6 @@ grep "1 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #Others" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
-grep "1 #NXDOMAIN" ns3/named.stats.$n.cachedb > /dev/null || ret=1
 
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1193,10 +1182,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "check nxdomain.example TXT (max-stale-ttl default) ($n)"
 ret=0
-grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep "EDE: 19 (Stale NXDOMAIN Answer): (resolver failure)" dig.out.test$n > /dev/null || ret=1
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
-grep "example\..*30.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1369,7 +1356,6 @@ grep "1 TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #Others" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 #!TXT" ns4/named.stats.$n.cachedb > /dev/null || ret=1
-grep "1 #NXDOMAIN" ns4/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -1497,7 +1483,6 @@ grep -A 10 "++ Cache DB RRsets ++" ns5/named.stats.$n > ns5/named.stats.$n.cache
 grep "2 TXT" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 Others" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 grep "1 !TXT" ns5/named.stats.$n.cachedb > /dev/null || ret=1
-grep "1 NXDOMAIN" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -1579,7 +1564,6 @@ grep -A 10 "++ Cache DB RRsets ++" ns5/named.stats.$n > ns5/named.stats.$n.cache
 grep -F "1 Others" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 grep -F "2 TXT" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 grep -F "1 !TXT" ns5/named.stats.$n.cachedb > /dev/null || ret=1
-grep -F "1 NXDOMAIN" ns5/named.stats.$n.cachedb > /dev/null || ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
@@ -1655,7 +1639,6 @@ grep -A 10 "++ Cache DB RRsets ++" ns5/named.stats.$n > ns5/named.stats.$n.cache
 grep -F "#TXT" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 grep -F "#Others" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 grep -F "#!TXT" ns5/named.stats.$n.cachedb > /dev/null && ret=1
-grep -F "#NXDOMAIN" ns5/named.stats.$n.cachedb > /dev/null && ret=1
 status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 

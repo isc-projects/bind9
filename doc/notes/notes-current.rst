@@ -30,7 +30,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- In order to reduce unnecessary memory consumption in the cache,
+  NXDOMAIN records are no longer retained past the normal negative
+  cache TTL, even if ``stale-cache-enable`` is set to ``yes``.
+  :gl:`#3386`.
 
 - The option :any:`auto-dnssec` is deprecated and will be removed in 9.19.
   Please migrate to :any:`dnssec-policy`. :gl:`#3667`
