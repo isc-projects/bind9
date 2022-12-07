@@ -1874,6 +1874,20 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 }
 
 void
+isc__nm_senddns(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+		void *cbarg) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	switch (handle->sock->type) {
+	case isc_nm_tcpsocket:
+		isc__nm_tcp_senddns(handle, region, cb, cbarg);
+		break;
+	default:
+		UNREACHABLE();
+	}
+}
+
+void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 

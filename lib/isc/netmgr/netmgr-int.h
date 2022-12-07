@@ -1338,6 +1338,14 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
  */
 
 void
+isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg);
+/*%<
+ * The same as 'isc__nm_tcp_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
+ */
+
+void
 isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1992,4 +2000,12 @@ isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
  * call either 'alpn == NULL' or 'alpnlen == 0', then identifier was
  * not negotiated of the underlying protocol of the connection
  * represented via the given handle does not support ALPN.
+ */
+
+void
+isc__nm_senddns(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+		void *cbarg);
+/*%<
+ * The same as 'isc_nm_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
  */
