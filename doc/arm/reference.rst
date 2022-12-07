@@ -2158,11 +2158,16 @@ Boolean Options
 
    This option controls the addition of records to the authority and
    additional sections of responses. Such records may be included in
-   responses to be helpful to clients; for example, NS or MX records may
+   responses to be helpful to clients; for example, MX records may
    have associated address records included in the additional section,
    obviating the need for a separate address lookup. However, adding
    these records to responses is not mandatory and requires additional
    database lookups, causing extra latency when marshalling responses.
+
+   Responses to DNSKEY, DS, CDNSKEY, and CDS requests will never have
+   optional additional records added. Responses to NS requests will
+   always have additional section processing.
+
    :any:`minimal-responses` takes one of four values:
 
    -  ``no``: the server is as complete as possible when generating
