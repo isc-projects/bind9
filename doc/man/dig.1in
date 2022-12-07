@@ -726,10 +726,11 @@ This option sets [or does not set] the TC (TrunCation) bit in the query. The def
 .INDENT 0.0
 .TP
 .B +tcp, +notcp
-This option indicates whether to use TCP when querying name servers.
-The default behavior is to use UDP unless a type \fBany\fP or \fBixfr=N\fP
-query is requested, in which case the default is TCP. AXFR queries
-always use TCP.
+This option indicates whether to use TCP when querying name
+servers.  The default behavior is to use UDP unless a type \fBany\fP
+or \fBixfr=N\fP query is requested, in which case the default is
+TCP. AXFR queries always use TCP. To prevent retry over TCP when
+TC=1 is returned from a UDP query, use \fB+ignore\fP\&.
 .UNINDENT
 .INDENT 0.0
 .TP
