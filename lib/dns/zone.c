@@ -1938,6 +1938,31 @@ dns_zone_rpz_disable_db(dns_zone_t *zone, dns_db_t *db) {
 					     zone->rpzs->zones[zone->rpz_num]);
 }
 
+/*
+ * If a zone is a catalog zone, attach it to update notification in database.
+ */
+void
+dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(db != NULL);
+
+	if (zone->catzs != NULL) {
+		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
+					     zone->catzs);
+	}
+}
+
+static void
+dns_zone_catz_disable_db(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(db != NULL);
+
+	if (zone->catzs != NULL) {
+		dns_db_updatenotify_unregister(db, dns_catz_dbupdate_callback,
+					       zone->catzs);
+	}
+}
+
 static void
 zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1964,6 +1989,9 @@ zone_catz_disable(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	if (zone->catzs != NULL) {
+		if (zone->db != NULL) {
+			dns_zone_catz_disable_db(zone, zone->db);
+		}
 		dns_catz_catzs_detach(&zone->catzs);
 	}
 }
@@ -1982,31 +2010,6 @@ dns_zone_catz_is_enabled(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->catzs != NULL);
-}
-
-/*
- * If a zone is a catalog zone, attach it to update notification in database.
- */
-void
-dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(db != NULL);
-
-	if (zone->catzs != NULL) {
-		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
-					     zone->catzs);
-	}
-}
-
-static void
-dns_zone_catz_disable_db(dns_zone_t *zone, dns_db_t *db) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(db != NULL);
-
-	if (zone->catzs != NULL) {
-		dns_db_updatenotify_unregister(db, dns_catz_dbupdate_callback,
-					       zone->catzs);
-	}
 }
 
 /*
@@ -5373,6 +5376,11 @@ cleanup:
 			   "failed to initialize managed-keys (%s): "
 			   "DNSSEC validation is at risk",
 			   isc_result_totext(result));
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_rpz_disable_db(zone, db);
+		dns_zone_catz_disable_db(zone, db);
 	}
 
 	for (inc = ISC_LIST_HEAD(zone->newincludes); inc != NULL;
@@ -17472,6 +17480,8 @@ static void
 zone_detachdb(dns_zone_t *zone) {
 	REQUIRE(zone->db != NULL);
 
+	dns_zone_rpz_disable_db(zone, zone->db);
+	dns_zone_catz_disable_db(zone, zone->db);
 	dns_db_detach(&zone->db);
 }
 

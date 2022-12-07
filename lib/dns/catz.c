@@ -638,7 +638,7 @@ cleanup_ht:
 void
 dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view) {
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
-	REQUIRE(view != NULL);
+	REQUIRE(DNS_VIEW_VALID(view));
 	/* Either it's a new one or it's being reconfigured. */
 	REQUIRE(catzs->view == NULL || !strcmp(catzs->view->name, view->name));
 
@@ -810,9 +810,9 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 		zone->magic = 0;
 		isc_timer_detach(&zone->updatetimer);
 		if (zone->db_registered) {
-			INSIST(dns_db_updatenotify_unregister(
-				       zone->db, dns_catz_dbupdate_callback,
-				       zone->catzs) == ISC_R_SUCCESS);
+			dns_db_updatenotify_unregister(
+				zone->db, dns_catz_dbupdate_callback,
+				zone->catzs);
 		}
 		if (zone->dbversion) {
 			dns_db_closeversion(zone->db, &zone->dbversion, false);
@@ -834,7 +834,7 @@ void
 dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 	dns_catz_zones_t *catzs;
 
-	REQUIRE(catzsp != NULL && *catzsp != NULL);
+	REQUIRE(catzsp != NULL && DNS_CATZ_ZONES_VALID(*catzsp));
 
 	catzs = *catzsp;
 	*catzsp = NULL;
@@ -1515,7 +1515,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	bool special = false;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
-	REQUIRE(entry != NULL);
+	REQUIRE(DNS_CATZ_ENTRY_VALID(entry));
 	REQUIRE(buffer != NULL && *buffer != NULL);
 
 	isc_buffer_allocate(zone->catzs->mctx, &tbuf,
@@ -1613,7 +1613,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	char zname[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
-	REQUIRE(entry != NULL);
+	REQUIRE(DNS_CATZ_ENTRY_VALID(entry));
 	REQUIRE(buf != NULL && *buf == NULL);
 
 	/*
@@ -1745,7 +1745,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	isc_region_t r;
 
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(fn_arg != NULL);
+	REQUIRE(DNS_CATZ_ZONES_VALID(fn_arg));
 	catzs = (dns_catz_zones_t *)fn_arg;
 
 	dns_name_toregion(&db->origin, &r);

@@ -1816,5 +1816,44 @@ rndccmd 10.53.0.2 reconfig || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+#########################################################################
+
+nextpart ns2/named.run >/dev/null
+
+n=$((n+1))
+echo_i "Adding a dom19.example. to primary via RNDC ($n)"
+ret=0
+# enough initial content for IXFR response when TXT record is added below
+echo "@ 3600 IN SOA . . 1 3600 3600 3600 3600" > ns1/dom19.example.db
+echo "@ 3600 IN NS invalid." >> ns1/dom19.example.db
+echo "foo 3600 IN TXT some content here" >> ns1/dom19.example.db
+echo "bar 3600 IN TXT some content here" >> ns1/dom19.example.db
+echo "xxx 3600 IN TXT some content here" >> ns1/dom19.example.db
+echo "yyy 3600 IN TXT some content here" >> ns1/dom19.example.db
+rndccmd 10.53.0.1 addzone dom19.example. '{ type primary; file "dom19.example.db"; allow-transfer { key tsig_key; }; allow-update { any; }; notify explicit; also-notify { 10.53.0.2; }; };' || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "add an entry to the restored catalog zone ($n)"
+ret=0
+$NSUPDATE -d <<END >> nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${PORT}
+    update add 09da0a318e5333a9a7f6c14c385d69f6933e8b72.zones.catalog1.example. 3600 IN PTR dom19.example.
+    update add label1.masters.09da0a318e5333a9a7f6c14c385d69f6933e8b72.zones.catalog1.example. 3600 IN A 10.53.0.1
+    update add label1.masters.09da0a318e5333a9a7f6c14c385d69f6933e8b72.zones.catalog1.example. 3600 IN TXT "tsig_key"
+    send
+END
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "waiting for secondary to sync up ($n)"
+ret=0
+wait_for_message ns2/named.run "catz: adding zone 'dom19.example' from catalog 'catalog1.example'" &&
+wait_for_message ns2/named.run "transfer of 'dom19.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
