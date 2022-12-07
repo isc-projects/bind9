@@ -48,14 +48,9 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
-			 dns_name_t *name);
+dns_byaddr_createptrname(const isc_netaddr_t *address, dns_name_t *name);
 /*%<
- * Creates a name that would be used in a PTR query for this address.  The
- * nibble flag indicates that the 'nibble' format is to be used if an IPv6
- * address is provided, instead of the 'bitstring' format.  Since we dropped
- * the support of the bitstring labels, it is expected that the flag is always
- * set.  'options' are the same as for dns_byaddr_create().
+ * Creates a name that would be used in a PTR query for this address.
  *
  * Requires:
  *

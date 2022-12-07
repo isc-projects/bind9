@@ -167,7 +167,7 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 	 * @example
 	 * 192.168.0.1 -> 1.0.168.192.in-addr.arpa
 	 */
-	result = dns_byaddr_createptrname(&isc_ip, 0, name);
+	result = dns_byaddr_createptrname(&isc_ip, name);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "syncptr_find_zone: dns_byaddr_createptrname -> %s\n",

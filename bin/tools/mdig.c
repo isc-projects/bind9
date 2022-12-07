@@ -1091,11 +1091,10 @@ get_reverse(char *reverse, size_t len, const char *value) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
 		dns_name_t *name;
-		unsigned int options = 0;
 
 		name = dns_fixedname_initname(&fname);
-		result = dns_byaddr_createptrname(&addr, options, name);
-		CHECK("dns_byaddr_createptrname2", result);
+		result = dns_byaddr_createptrname(&addr, name);
+		CHECK("dns_byaddr_createptrname", result);
 		dns_name_format(name, reverse, (unsigned int)len);
 		return;
 	} else {

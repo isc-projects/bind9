@@ -793,9 +793,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	/*
 	 * search_name is the name segment being sought in each tree level.
 	 * By using a fixedname, the search_name will definitely have offsets
-	 * for use by any splitting.
-	 * By using dns_name_clone, no name data should be copied thanks to
-	 * the lack of bitstring labels.
+	 * for use by any splitting. By using dns_name_clone, no name data
+	 * should be copied.
 	 */
 	search_name = dns_fixedname_initname(&fixedsearchname);
 	INSIST(search_name != NULL);
@@ -949,8 +948,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 
 			/*
 			 * All of the labels have been tried against the hash
-			 * table.  Since we dropped the support of bitstring
-			 * labels, the name isn't in the table.
+			 * table.
 			 */
 			current = NULL;
 			continue;

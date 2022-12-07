@@ -40,8 +40,7 @@ static char hex_digits[] = { '0', '1', '2', '3', '4', '5', '6', '7',
 			     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
 isc_result_t
-dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
-			 dns_name_t *name) {
+dns_byaddr_createptrname(const isc_netaddr_t *address, dns_name_t *name) {
 	char textname[128];
 	const unsigned char *bytes;
 	int i;
@@ -50,7 +49,6 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 	unsigned int len;
 
 	REQUIRE(address != NULL);
-	UNUSED(options);
 
 	/*
 	 * We create the text representation and then convert to a

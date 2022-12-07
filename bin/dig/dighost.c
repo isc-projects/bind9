@@ -328,10 +328,9 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
 		dns_name_t *name;
-		unsigned int options = 0;
 
 		name = dns_fixedname_initname(&fname);
-		result = dns_byaddr_createptrname(&addr, options, name);
+		result = dns_byaddr_createptrname(&addr, name);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
