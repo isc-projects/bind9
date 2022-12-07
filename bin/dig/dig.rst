@@ -618,10 +618,11 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
 
 .. option:: +tcp, +notcp
 
-   This option indicates whether to use TCP when querying name servers.
-   The default behavior is to use UDP unless a type ``any`` or ``ixfr=N``
-   query is requested, in which case the default is TCP. AXFR queries
-   always use TCP.
+   This option indicates whether to use TCP when querying name
+   servers.  The default behavior is to use UDP unless a type ``any``
+   or ``ixfr=N`` query is requested, in which case the default is
+   TCP. AXFR queries always use TCP. To prevent retry over TCP when
+   TC=1 is returned from a UDP query, use ``+ignore``.
 
 .. option:: +timeout=T
 
