@@ -78,12 +78,11 @@ typedef struct streamdns_send_req {
 	isc_nm_cb_t cb;		   /* send callback */
 	void *cbarg;		   /* send callback argument */
 	isc_nmhandle_t *dnshandle; /* Stream DNS socket handle */
-	isc_dnsbuffer_t data; /* buffer that contains the DNS message to send */
 } streamdns_send_req_t;
 
 static streamdns_send_req_t *
 streamdns_get_send_req(isc_nmsocket_t *sock, isc_mem_t *mctx,
-		       isc__nm_uvreq_t *req, isc_region_t *data);
+		       isc__nm_uvreq_t *req);
 
 static void
 streamdns_put_send_req(isc_mem_t *mctx, streamdns_send_req_t *send_req,
@@ -549,7 +548,7 @@ streamdns_try_close_unused(isc_nmsocket_t *sock) {
 
 static streamdns_send_req_t *
 streamdns_get_send_req(isc_nmsocket_t *sock, isc_mem_t *mctx,
-		       isc__nm_uvreq_t *req, isc_region_t *data) {
+		       isc__nm_uvreq_t *req) {
 	streamdns_send_req_t *send_req;
 
 	if (sock->streamdns.send_req != NULL) {
@@ -563,21 +562,12 @@ streamdns_get_send_req(isc_nmsocket_t *sock, isc_mem_t *mctx,
 		/* Allocate a new object. */
 		send_req = isc_mem_get(mctx, sizeof(*send_req));
 		*send_req = (streamdns_send_req_t){ 0 };
-		isc_dnsbuffer_init(&send_req->data, mctx);
 	}
 
 	/* Initialise the send request object */
 	send_req->cb = req->cb.send;
 	send_req->cbarg = req->cbarg;
 	isc_nmhandle_attach(req->handle, &send_req->dnshandle);
-
-	/* Prepare the message */
-	/* 1. Add the message length at the very beginning of the message */
-	isc_dnsbuffer_putmem_uint16be(&send_req->data,
-				      (uint16_t)req->uvbuf.len);
-	/* 2. Append the data itself */
-	isc_dnsbuffer_putmem(&send_req->data, req->uvbuf.base, req->uvbuf.len);
-	isc_dnsbuffer_remainingregion(&send_req->data, data);
 
 	sock->streamdns.nsending++;
 
@@ -596,7 +586,6 @@ streamdns_put_send_req(isc_mem_t *mctx, streamdns_send_req_t *send_req,
 		sock->streamdns.nsending--;
 		isc_nmhandle_detach(&send_req->dnshandle);
 		if (sock->streamdns.send_req == NULL) {
-			isc_dnsbuffer_clear(&send_req->data);
 			sock->streamdns.send_req = send_req;
 			/*
 			 * An object has been recycled,
@@ -606,7 +595,6 @@ streamdns_put_send_req(isc_mem_t *mctx, streamdns_send_req_t *send_req,
 		}
 	}
 
-	isc_dnsbuffer_uninit(&send_req->data);
 	isc_mem_put(mctx, send_req, sizeof(*send_req));
 }
 
@@ -917,9 +905,11 @@ isc__nm_async_streamdnssend(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	mctx = sock->worker->mctx;
 
-	send_req = streamdns_get_send_req(sock, mctx, req, &data);
-	isc_nm_send(sock->outerhandle, &data, streamdns_writecb,
-		    (void *)send_req);
+	send_req = streamdns_get_send_req(sock, mctx, req);
+	data.base = (unsigned char *)req->uvbuf.base;
+	data.length = req->uvbuf.len;
+	isc__nm_senddns(sock->outerhandle, &data, streamdns_writecb,
+			(void *)send_req);
 
 	isc__nm_uvreq_put(&req, sock);
 	return;
