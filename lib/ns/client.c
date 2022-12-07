@@ -121,8 +121,6 @@ atomic_uint_fast64_t ns_client_requests = 0;
 static void
 clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
 static void
-clientmgr_detach(ns_clientmgr_t **mp);
-static void
 clientmgr_destroy(ns_clientmgr_t *manager);
 static void
 ns_client_endrequest(ns_client_t *client);
@@ -1665,7 +1663,7 @@ ns__client_put_cb(void *client0) {
 	dns_message_detach(&client->message);
 
 	if (client->manager != NULL) {
-		clientmgr_detach(&client->manager);
+		ns_clientmgr_detach(&client->manager);
 	}
 
 	/*
@@ -2408,7 +2406,7 @@ cleanup:
 	}
 
 	if (client->manager != NULL) {
-		clientmgr_detach(&client->manager);
+		ns_clientmgr_detach(&client->manager);
 	}
 	isc_mem_detach(&client->mctx);
 	if (client->sctx != NULL) {
@@ -2442,8 +2440,8 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
 	*targetp = source;
 }
 
-static void
-clientmgr_detach(ns_clientmgr_t **mp) {
+void
+ns_clientmgr_detach(ns_clientmgr_t **mp) {
 	int32_t oldrefs;
 	ns_clientmgr_t *mgr = *mp;
 	*mp = NULL;
@@ -2517,20 +2515,20 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 }
 
 void
-ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
-	ns_clientmgr_t *manager;
+ns_clientmgr_shutdown(ns_clientmgr_t *manager) {
+	ns_client_t *client;
 
-	REQUIRE(managerp != NULL);
-	REQUIRE(VALID_MANAGER(*managerp));
-
-	manager = *managerp;
-	*managerp = NULL;
+	REQUIRE(VALID_MANAGER(manager));
 
 	MTRACE("destroy");
 
-	if (isc_refcount_decrement(&manager->references) == 1) {
-		clientmgr_destroy(manager);
+	LOCK(&manager->reclock);
+	for (client = ISC_LIST_HEAD(manager->recursing); client != NULL;
+	     client = ISC_LIST_NEXT(client, rlink))
+	{
+		ns_query_cancel(client);
 	}
+	UNLOCK(&manager->reclock);
 }
 
 isc_sockaddr_t *
