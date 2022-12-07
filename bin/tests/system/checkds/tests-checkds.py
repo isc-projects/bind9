@@ -328,6 +328,7 @@ def test_checkds_dspublished(named_port):
     keystate_check(parent, "incomplete-dspublished.checkds.", "!DSPublish")
 
     # One of the parents is badly configured.
+    zone_check(server, "bad2-dswithdrawn.checkds.")
     wait_for_log(
         "ns9/named.run",
         "zone bad2-dspublished.checkds/IN (signed): checkds: "
@@ -425,6 +426,7 @@ def test_checkds_dswithdrawn(named_port):
     keystate_check(parent, "incomplete-dswithdrawn.checkds.", "!DSRemoved")
 
     # One of the parents is badly configured.
+    zone_check(server, "bad2-dswithdrawn.checkds.")
     wait_for_log(
         "ns9/named.run",
         "zone bad2-dswithdrawn.checkds/IN (signed): checkds: "
