@@ -1362,8 +1362,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				journal_size = -1;
 			}
 		} else {
-			isc_resourcevalue_t value;
-			value = cfg_obj_asuint64(obj);
+			uint64_t value = cfg_obj_asuint64(obj);
 			if (value > DNS_JOURNAL_SIZE_MAX) {
 				cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
 					    "'max-journal-size "
@@ -1508,8 +1507,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				journal_size = -1;
 			}
 		} else {
-			isc_resourcevalue_t value;
-			value = cfg_obj_asuint64(obj);
+			uint64_t value = cfg_obj_asuint64(obj);
 			if (value > DNS_JOURNAL_SIZE_MAX) {
 				cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
 					    "'max-journal-size "

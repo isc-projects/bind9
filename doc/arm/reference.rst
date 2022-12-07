@@ -3626,58 +3626,6 @@ options apply to zone transfers.
    This option acts like :any:`notify-source`, but applies to ``NOTIFY`` messages sent to IPv6
    addresses.
 
-.. _resource_limits:
-
-Operating System Resource Limits
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The server's usage of many system resources can be limited. Scaled
-values are allowed when specifying resource limits. For example, ``1G``
-can be used instead of ``1073741824`` to specify a limit of one
-gigabyte. ``unlimited`` requests unlimited use, or the maximum available
-amount. ``default`` uses the limit that was in force when the server was
-started. See the description of :term:`size`.
-
-The following options are deprecated in favor of setting the operating system
-resource limits from the operating system and/or process supervisor, should not
-be used, and will be rendered non-operational in a future release.
-
-
-.. namedconf:statement:: coresize
-   :tags: deprecated
-   :short: Sets the maximum size of a core dump.
-
-   This sets the maximum size of a core dump. The default is ``default``.
-
-.. namedconf:statement:: datasize
-   :tags: deprecated
-   :short: Sets the maximum amount of data memory that can be used by the server.
-
-   This sets the maximum amount of data memory the server may use. The default is
-   ``default``. This is a hard limit on server memory usage; if the
-   server attempts to allocate memory in excess of this limit, the
-   allocation will fail, which may in turn leave the server unable to
-   perform DNS service. Therefore, this option is rarely useful as a way
-   to limit the amount of memory used by the server, but it can be
-   used to raise an operating system data size limit that is too small
-   by default. To limit the amount of memory used by the
-   server, use the :any:`max-cache-size` and :any:`recursive-clients` options
-   instead.
-
-.. namedconf:statement:: files
-   :tags: deprecated
-   :short: Sets the maximum number of files the server may have open concurrently.
-
-   This sets the maximum number of files the server may have open concurrently.
-   The default is ``unlimited``.
-
-.. namedconf:statement:: stacksize
-   :tags: deprecated
-   :short: Sets the maximum amount of stack memory that can be used by the server.
-
-   This sets the maximum amount of stack memory the server may use. The default is
-   ``default``.
-
 .. _server_resource_limits:
 
 Server Resource Limits

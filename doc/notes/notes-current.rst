@@ -40,14 +40,15 @@ Feature Changes
 - The option :any:`auto-dnssec` is deprecated and will be removed in 9.19.
   Please migrate to :any:`dnssec-policy`. :gl:`#3667`
 
-- Deprecate setting the operating system limit (``coresize``, ``datasize``,
+- Remove setting the operating system limit (``coresize``, ``datasize``,
   ``files`` and ``stacksize``) from ``named.conf``.  These options should be set
   from the operating system (``ulimit``) or from the process supervisor
   (e.g. ``systemd``). :gl:`#3676`
 
-- Deprecate setting alternate local addresses for inbound zone transfers
-  (:any:`alt-transfer-source`, :any:`alt-transfer-source-v6`,
-  :any:`use-alt-transfer-source`). :gl:`#3694`
+- On startup, ``named`` will set the current number of open files to maximum
+  allowed by the operating system instead of trying to set it to unlimited
+  which worked only very briefly on Linux 2.6.28 (and was causing performance
+  problems and thus the change was reverted in the kernel). :gl:`#3676`
 
 Bug Fixes
 ~~~~~~~~~

@@ -107,14 +107,6 @@ EXTERN bool named_g_conffileset		    INIT(false);
 EXTERN cfg_aclconfctx_t *named_g_aclconfctx INIT(NULL);
 
 /*
- * Initial resource limits.
- */
-EXTERN isc_resourcevalue_t named_g_initstacksize INIT(0);
-EXTERN isc_resourcevalue_t named_g_initdatasize	 INIT(0);
-EXTERN isc_resourcevalue_t named_g_initcoresize	 INIT(0);
-EXTERN isc_resourcevalue_t named_g_initopenfiles INIT(0);
-
-/*
  * Misc.
  */
 EXTERN bool named_g_coreok	     INIT(true);

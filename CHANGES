@@ -1,3 +1,7 @@
+6041.	[func]		Set the RLIMIT_NOFILE to rlim_max returned from
+			getrlimit() instead of trying to guess the maximum
+			allowed value. [GL #3676]
+
 6040.	[bug]		Speed up the named shutdown time by explicitly
 			canceling all recursing ns_client objects for
 			each ns_clientmgr. [GL #3183]

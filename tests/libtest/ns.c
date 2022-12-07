@@ -30,7 +30,6 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
-#include <isc/resource.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
