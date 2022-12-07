@@ -228,7 +228,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 		return;
 	}
 
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &iter);
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &iter);
 	check_result(result, "dns_db_allrdatasets");
 
 	dns_rdataset_init(&rds);
@@ -1193,7 +1193,7 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	dns_diff_init(mctx, &del);
 	dns_diff_init(mctx, &add);
 	rdsiter = NULL;
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
@@ -1267,7 +1267,7 @@ active_node(dns_dbnode_t *node) {
 	bool found;
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
@@ -1313,7 +1313,8 @@ active_node(dns_dbnode_t *node) {
 		/*
 		 * Delete RRSIGs for types that no longer exist.
 		 */
-		result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter2);
+		result = dns_db_allrdatasets(gdb, node, gversion, 0, 0,
+					     &rdsiter2);
 		check_result(result, "dns_db_allrdatasets()");
 		for (result = dns_rdatasetiter_first(rdsiter);
 		     result == ISC_R_SUCCESS;
@@ -1515,7 +1516,7 @@ cleannode(dns_db_t *db, dns_dbversion_t *dbversion, dns_dbnode_t *node) {
 	}
 
 	dns_rdataset_init(&set);
-	result = dns_db_allrdatasets(db, node, dbversion, 0, &rdsiter);
+	result = dns_db_allrdatasets(db, node, dbversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets");
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
@@ -1837,7 +1838,7 @@ remove_records(dns_dbnode_t *node, dns_rdatatype_t which, bool checknsec) {
 	/*
 	 * Delete any records of the given type at the apex.
 	 */
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
@@ -1880,7 +1881,7 @@ remove_sigs(dns_dbnode_t *node, bool delegation, dns_rdatatype_t which) {
 	dns_rdataset_t rdataset;
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+	result = dns_db_allrdatasets(gdb, node, gversion, 0, 0, &rdsiter);
 	check_result(result, "dns_db_allrdatasets()");
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
@@ -1944,7 +1945,8 @@ nsecify(void) {
 	{
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
-		result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+		result = dns_db_allrdatasets(gdb, node, gversion, 0, 0,
+					     &rdsiter);
 		check_result(result, "dns_db_allrdatasets()");
 		for (result = dns_rdatasetiter_first(rdsiter);
 		     result == ISC_R_SUCCESS;
@@ -2355,7 +2357,8 @@ cleanup_zone(void) {
 	{
 		result = dns_dbiterator_current(dbiter, &node, name);
 		check_dns_dbiterator_current(result);
-		result = dns_db_allrdatasets(gdb, node, gversion, 0, &rdsiter);
+		result = dns_db_allrdatasets(gdb, node, gversion, 0, 0,
+					     &rdsiter);
 		check_result(result, "dns_db_allrdatasets()");
 		for (result = dns_rdatasetiter_first(rdsiter);
 		     result == ISC_R_SUCCESS;

@@ -1669,6 +1669,11 @@ dumptostream(dns_dumpctx_t *dctx) {
 	char *bufmem;
 	dns_name_t *name;
 	dns_fixedname_t fixname;
+	unsigned int options = DNS_DB_STALEOK;
+
+	if ((dctx->tctx.style.flags & DNS_STYLEFLAG_EXPIRED) != 0) {
+		options |= DNS_DB_EXPIREDOK;
+	}
 
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
 
@@ -1708,7 +1713,7 @@ dumptostream(dns_dumpctx_t *dctx) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		result = dns_db_allrdatasets(dctx->db, node, dctx->version,
-					     dctx->now, &rdsiter);
+					     options, dctx->now, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			dns_db_detachnode(dctx->db, &node);
 			goto cleanup;
@@ -1916,6 +1921,11 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 	isc_stdtime_t now;
 	dns_totext_ctx_t ctx;
 	dns_rdatasetiter_t *rdsiter = NULL;
+	unsigned int options = DNS_DB_STALEOK;
+
+	if ((style->flags & DNS_STYLEFLAG_EXPIRED) != 0) {
+		options |= DNS_DB_EXPIREDOK;
+	}
 
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
@@ -1929,7 +1939,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
-	result = dns_db_allrdatasets(db, node, version, now, &rdsiter);
+	result = dns_db_allrdatasets(db, node, version, options, now, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}

@@ -444,6 +444,12 @@ typedef ISC_LIST(dns_rbtnode_t) rbtnodelist_t;
 
 #define DEFAULT_NODE_LOCK_COUNT 7 /*%< Should be prime. */
 
+#define EXPIREDOK(rbtiterator) \
+	(((rbtiterator)->common.options & DNS_DB_EXPIREDOK) != 0)
+
+#define STALEOK(rbtiterator) \
+	(((rbtiterator)->common.options & DNS_DB_STALEOK) != 0)
+
 /*%
  * Number of buckets for cache DB entries (locks, LRU lists, TTL heaps).
  * There is a tradeoff issue about configuring this value: if this is too
@@ -6057,7 +6063,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	     isc_stdtime_t now, dns_rdatasetiter_t **iteratorp) {
+	     unsigned int options, isc_stdtime_t now,
+	     dns_rdatasetiter_t **iteratorp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rbtdb_version_t *rbtversion = version;
@@ -6089,6 +6096,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	iterator->common.db = db;
 	iterator->common.node = node;
 	iterator->common.version = (dns_dbversion_t *)rbtversion;
+	iterator->common.options = options;
 	iterator->common.now = now;
 
 	isc_refcount_increment(&rbtnode->references);
@@ -8832,6 +8840,35 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	*iteratorp = NULL;
 }
 
+static bool
+iterator_active(dns_rbtdb_t *rbtdb, rbtdb_rdatasetiter_t *rbtiterator,
+		rdatasetheader_t *header) {
+	dns_ttl_t stale_ttl = header->rdh_ttl + STALE_TTL(header, rbtdb);
+
+	/*
+	 * Is this a "this rdataset doesn't exist" record?
+	 */
+	if (NONEXISTENT(header)) {
+		return (false);
+	}
+
+	/*
+	 * If this is a zone or this header still active then return it.
+	 */
+	if (!IS_CACHE(rbtdb) || ACTIVE(header, rbtiterator->common.now)) {
+		return (true);
+	}
+
+	/*
+	 * If we are not returning stale records or the rdataset is
+	 * too old don't return it.
+	 */
+	if (!STALEOK(rbtiterator) || (rbtiterator->common.now > stale_ttl)) {
+		return (false);
+	}
+	return (true);
+}
+
 static isc_result_t
 rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	rbtdb_rdatasetiter_t *rbtiterator = (rbtdb_rdatasetiter_t *)iterator;
@@ -8839,24 +8876,24 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
-	rbtdb_serial_t serial = 1;
+	rbtdb_serial_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-
-	if (!IS_CACHE(rbtdb)) {
-		serial = rbtversion->serial;
-	}
 
 	NODE_RDLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 
 	for (header = rbtnode->data; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			if (header->serial <= serial && !IGNORE(header)) {
-				/*
-				 * Is this a "this rdataset doesn't exist"
-				 * record?
-				 */
-				if (NONEXISTENT(header)) {
+			if (EXPIREDOK(rbtiterator)) {
+				if (!NONEXISTENT(header)) {
+					break;
+				}
+				header = header->down;
+			} else if (header->serial <= serial && !IGNORE(header))
+			{
+				if (!iterator_active(rbtdb, rbtiterator,
+						     header))
+				{
 					header = NULL;
 				}
 				break;
@@ -8887,18 +8924,15 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	dns_rbtnode_t *rbtnode = rbtiterator->common.node;
 	rbtdb_version_t *rbtversion = rbtiterator->common.version;
 	rdatasetheader_t *header, *top_next;
+	rbtdb_serial_t serial = IS_CACHE(rbtdb) ? 1 : rbtversion->serial;
 	rbtdb_rdatatype_t type, negtype;
 	dns_rdatatype_t rdtype, covers;
-	rbtdb_serial_t serial = 1;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+	bool expiredok = EXPIREDOK(rbtiterator);
 
 	header = rbtiterator->current;
 	if (header == NULL) {
 		return (ISC_R_NOMORE);
-	}
-
-	if (!IS_CACHE(rbtdb)) {
-		serial = rbtversion->serial;
 	}
 
 	NODE_RDLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
@@ -8911,30 +8945,57 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	} else {
 		negtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 	}
-	for (header = header->next; header != NULL; header = top_next) {
-		top_next = header->next;
+
+	/*
+	 * Find the start of the header chain for the next type
+	 * by walking back up the list.
+	 */
+	top_next = header->next;
+	while (top_next != NULL &&
+	       (top_next->type == type || top_next->type == negtype))
+	{
+		top_next = top_next->next;
+	}
+	if (expiredok) {
 		/*
-		 * If not walking back up the down list.
+		 * Keep walking down the list if possible or
+		 * start the next type.
 		 */
-		if (header->type != type && header->type != negtype) {
-			do {
-				if (header->serial <= serial && !IGNORE(header))
-				{
-					/*
-					 * Is this a "this rdataset doesn't
-					 * exist" record?
-					 */
-					if (NONEXISTENT(header)) {
-						header = NULL;
-					}
+		header = header->down != NULL ? header->down : top_next;
+	} else {
+		header = top_next;
+	}
+	for (; header != NULL; header = top_next) {
+		top_next = header->next;
+		do {
+			if (expiredok) {
+				if (!NONEXISTENT(header)) {
 					break;
-				} else {
-					header = header->down;
 				}
-			} while (header != NULL);
-			if (header != NULL) {
+				header = header->down;
+			} else if (header->serial <= serial && !IGNORE(header))
+			{
+				if (!iterator_active(rbtdb, rbtiterator,
+						     header))
+				{
+					header = NULL;
+				}
 				break;
+			} else {
+				header = header->down;
 			}
+		} while (header != NULL);
+		if (header != NULL) {
+			break;
+		}
+		/*
+		 * Find the start of the header chain for the next type
+		 * by walking back up the list.
+		 */
+		while (top_next != NULL &&
+		       (top_next->type == type || top_next->type == negtype))
+		{
+			top_next = top_next->next;
 		}
 	}
 
