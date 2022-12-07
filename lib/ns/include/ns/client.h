@@ -329,10 +329,10 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
  */
 
 void
-ns_clientmgr_destroy(ns_clientmgr_t **managerp);
+ns_clientmgr_shutdown(ns_clientmgr_t *manager);
 /*%<
- * Destroy a client manager and all ns_client_t objects
- * managed by it.
+ * Shutdown a client manager and all ns_client_t objects
+ * managed by it
  */
 
 isc_sockaddr_t *
@@ -531,6 +531,8 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
  * otherwise, take a database version from the list of dbversions
  * allocated by ns_client_newdbversion().
  */
+
+ISC_REFCOUNT_DECL(ns_clientmgr);
 
 isc_result_t
 ns__client_setup(ns_client_t *client, ns_clientmgr_t *manager, bool new);

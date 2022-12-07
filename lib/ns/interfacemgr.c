@@ -382,7 +382,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	clearlistenon(mgr);
 	isc_mutex_destroy(&mgr->lock);
 	for (size_t i = 0; i < mgr->ncpus; i++) {
-		ns_clientmgr_destroy(&mgr->clientmgrs[i]);
+		ns_clientmgr_detach(&mgr->clientmgrs[i]);
 	}
 	isc_mem_put(mgr->mctx, mgr->clientmgrs,
 		    mgr->ncpus * sizeof(mgr->clientmgrs[0]));
@@ -450,6 +450,10 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 
 	if (mgr->route != NULL) {
 		isc_nm_cancelread(mgr->route);
+	}
+
+	for (size_t i = 0; i < mgr->ncpus; i++) {
+		ns_clientmgr_shutdown(mgr->clientmgrs[i]);
 	}
 }
 
