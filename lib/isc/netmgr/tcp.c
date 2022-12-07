@@ -100,10 +100,9 @@ failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 		/* IGNORE: The client disconnected before we could accept */
 		break;
 	default:
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "Accepting TCP connection failed: %s",
-			      isc_result_totext(eresult));
+		isc__nmsocket_log(sock, ISC_LOG_ERROR,
+				  "Accepting TCP connection failed: %s",
+				  isc_result_totext(eresult));
 	}
 }
 
@@ -532,10 +531,8 @@ isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
 		      tcp_connection_cb);
 	if (r != 0) {
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "uv_listen failed: %s",
-			      isc_result_totext(isc_uverr2result(r)));
+		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
+				  isc_result_totext(isc_uverr2result(r)));
 		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
@@ -592,7 +589,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 
 	result = accept_connection(ssock, quota);
 done:
-	isc__nm_accept_connection_log(result, can_log_tcp_quota());
+	isc__nm_accept_connection_log(ssock, result, can_log_tcp_quota());
 }
 
 static void
@@ -883,7 +880,7 @@ isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(sock->tid == isc_tid());
 
 	result = accept_connection(sock, ievent->quota);
-	isc__nm_accept_connection_log(result, can_log_tcp_quota());
+	isc__nm_accept_connection_log(sock, result, can_log_tcp_quota());
 }
 
 static isc_result_t

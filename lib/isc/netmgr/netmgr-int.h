@@ -1956,7 +1956,8 @@ void
 isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async);
 
 void
-isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota);
+isc__nm_accept_connection_log(isc_nmsocket_t *sock, isc_result_t result,
+			      bool can_log_quota);
 
 /*
  * Timeout callbacks
@@ -1982,3 +1983,16 @@ isc__nm_tcp_freebind(uv_tcp_t *handle, const struct sockaddr *addr,
 
 void
 isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls);
+
+/*
+ * Logging helpers
+ */
+void
+isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(3, 4);
+void
+isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(3, 4);
+void
+isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt, ...)
+	ISC_FORMAT_PRINTF(3, 4);

@@ -641,10 +641,8 @@ isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
 		      tlsdns_connection_cb);
 	if (r != 0) {
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "uv_listen failed: %s",
-			      isc_result_totext(isc_uverr2result(r)));
+		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
+				  isc_result_totext(isc_uverr2result(r)));
 		isc__nm_incstats(sock, STATID_BINDFAIL);
 		goto done;
 	}
@@ -701,7 +699,7 @@ tlsdns_connection_cb(uv_stream_t *server, int status) {
 
 	result = accept_connection(ssock, quota);
 done:
-	isc__nm_accept_connection_log(result, can_log_tlsdns_quota());
+	isc__nm_accept_connection_log(ssock, result, can_log_tlsdns_quota());
 }
 
 static void
@@ -1583,7 +1581,8 @@ isc__nm_async_tlsdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
 	REQUIRE(ievent->sock->tid == isc_tid());
 
 	result = accept_connection(ievent->sock, ievent->quota);
-	isc__nm_accept_connection_log(result, can_log_tlsdns_quota());
+	isc__nm_accept_connection_log(ievent->sock, result,
+				      can_log_tlsdns_quota());
 }
 
 static isc_result_t
