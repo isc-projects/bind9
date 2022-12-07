@@ -542,10 +542,41 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 			bool sent_shutdown =
 				((SSL_get_shutdown(sock->tlsstream.tls) &
 				  SSL_SENT_SHUTDOWN) != 0);
-			rv = SSL_write_ex(sock->tlsstream.tls,
-					  send_data->uvbuf.base,
-					  send_data->uvbuf.len, &len);
-			if (rv != 1 || len != send_data->uvbuf.len) {
+			bool write_failed = false;
+			if (*(uint16_t *)send_data->tcplen != 0) {
+				/*
+				 * There is a DNS message length to write - do
+				 * it.
+				 */
+				rv = SSL_write_ex(
+					sock->tlsstream.tls, send_data->tcplen,
+					sizeof(send_data->tcplen), &len);
+				if (rv != 1 || len != sizeof(send_data->tcplen))
+				{
+					write_failed = true;
+				} else {
+					/* Write data */
+					rv = SSL_write_ex(sock->tlsstream.tls,
+							  send_data->uvbuf.base,
+							  send_data->uvbuf.len,
+							  &len);
+					if (rv != 1 ||
+					    len != send_data->uvbuf.len)
+					{
+						write_failed = true;
+					}
+				}
+			} else {
+				/* Write data only */
+				rv = SSL_write_ex(sock->tlsstream.tls,
+						  send_data->uvbuf.base,
+						  send_data->uvbuf.len, &len);
+				if (rv != 1 || len != send_data->uvbuf.len) {
+					write_failed = true;
+				}
+			}
+
+			if (write_failed) {
 				result = received_shutdown || sent_shutdown
 						 ? ISC_R_CANCELED
 						 : ISC_R_TLSERROR;
@@ -931,9 +962,9 @@ done:
 	return;
 }
 
-void
-isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
-		 isc_nm_cb_t cb, void *cbarg) {
+static void
+tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
+	 void *cbarg, const bool dnsmsg) {
 	isc__netievent_tlssend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	isc_nmsocket_t *sock = NULL;
@@ -951,12 +982,27 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->cbarg = cbarg;
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
+	if (dnsmsg) {
+		*(uint16_t *)uvreq->tcplen = htons(region->length);
+	}
 
 	/*
 	 * We need to create an event and pass it using async channel
 	 */
 	ievent = isc__nm_get_netievent_tlssend(sock->worker, sock, uvreq);
 	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+}
+
+void
+isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg) {
+	tls_send(handle, region, cb, cbarg, false);
+}
+
+void
+isc__nm_tls_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg) {
+	tls_send(handle, region, cb, cbarg, true);
 }
 
 void

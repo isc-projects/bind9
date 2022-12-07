@@ -1445,6 +1445,14 @@ isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
  */
 
 void
+isc__nm_tls_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg);
+/*%<
+ * The same as 'isc__nm_tls_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
+ */
+
+void
 isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*%<
  * Start reading on the TLS handle.

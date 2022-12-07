@@ -1882,6 +1882,9 @@ isc__nm_senddns(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_tcpsocket:
 		isc__nm_tcp_senddns(handle, region, cb, cbarg);
 		break;
+	case isc_nm_tlssocket:
+		isc__nm_tls_senddns(handle, region, cb, cbarg);
+		break;
 	default:
 		UNREACHABLE();
 	}
