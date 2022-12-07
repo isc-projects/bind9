@@ -18959,7 +18959,7 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 		if (dns_name_equal(kfio->name, &zone->origin)) {
 			unsigned int count;
 
-			count = atomic_fetch_sub_relaxed(&kfio->count, 1);
+			count = atomic_fetch_sub_relaxed(&kfio->count, 1) - 1;
 			if (count > 0) {
 				/* Keep the entry. */
 				break;
