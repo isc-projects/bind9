@@ -42,6 +42,11 @@ Files: **/*.after*
        bin/tests/system/formerr/nametoolong
        bin/tests/system/formerr/noquestions
        bin/tests/system/formerr/twoquestions
+       bin/tests/system/forward/CA/CA.cfg
+       bin/tests/system/forward/CA/README
+       bin/tests/system/forward/CA/index.txt
+       bin/tests/system/forward/CA/index.txt.attr
+       bin/tests/system/forward/CA/serial
        bin/tests/system/journal/ns1/managed-keys.bind.in
        bin/tests/system/journal/ns1/managed-keys.bind.jnl.in
        bin/tests/system/journal/ns2/managed-keys.bind.in

@@ -16,6 +16,7 @@ options {
 	notify-source 10.53.0.4;
 	transfer-source 10.53.0.4;
 	port @PORT@;
+	tls-port @TLSPORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
@@ -29,15 +30,57 @@ zone "." {
 	file "root.db";
 };
 
+tls tls-forward-secrecy {
+    protocols { TLSv1.2; };
+    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+    dhparam-file "../dhparam3072.pem";
+    ca-file "../CA/CA.pem";
+};
+
+tls tls-forward-secrecy-remote-hostname {
+    protocols { TLSv1.2; };
+    ca-file "../CA/CA.pem";
+    remote-hostname "srv02.crt01.example.nil";
+};
+
+tls tls-forward-secrecy-bad-remote-hostname {
+    protocols { TLSv1.2; };
+    ca-file "../CA/CA.pem";
+    remote-hostname "srv02-bad.crt01.example.nil";
+};
+
+tls tls-forward-secrecy-mutual-tls {
+    protocols { TLSv1.2; };
+    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+    key-file "../CA/certs/srv04.crt01.example.nil.key";
+    cert-file "../CA/certs/srv04.crt01.example.nil.pem";
+    dhparam-file "../dhparam3072.pem";
+    ca-file "../CA/CA.pem";
+};
+
+tls tls-expired {
+    protocols { TLSv1.2; };
+    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
+    prefer-server-ciphers yes;
+    dhparam-file "../dhparam3072.pem";
+    ca-file "../CA/CA.pem";
+};
+
 zone "example1." {
 	type forward;
 	forward first;
-	forwarders { 10.53.0.2; };
+	forwarders { 10.53.0.2 tls ephemeral; };
 };
 
 zone "example3." {
 	type forward;
-	forwarders { 10.53.0.2; };
+	forwarders port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.2; };
+};
+
+zone "example4." {
+	type forward;
+	forward only;
+	forwarders port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.2 tls tls-expired port @EXTRAPORT3@; };
 };
 
 zone "example5." {
@@ -46,10 +89,22 @@ zone "example5." {
 	forwarders { 10.53.0.2; };
 };
 
+zone "example8." {
+	type forward;
+	forward only;
+	forwarders port @EXTRAPORT1@ tls tls-forward-secrecy-remote-hostname { 10.53.0.2; };
+};
+
+zone "example9." {
+	type forward;
+	forward only;
+	forwarders port @EXTRAPORT1@ tls tls-forward-secrecy-bad-remote-hostname { 10.53.0.2; };
+};
+
 zone "1.0.10.in-addr.arpa" {
 	type forward;
 	forward only;
-	forwarders { 10.53.0.2; };
+	forwarders { 10.53.0.2 tls tls-forward-secrecy-mutual-tls port @EXTRAPORT2@; };
 };
 
 zone "grafted" {
