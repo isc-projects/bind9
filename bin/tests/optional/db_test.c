@@ -199,7 +199,7 @@ list(dbinfo *dbi, char *seektext) {
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			break;
 		}
-		result = dns_db_allrdatasets(dbi->db, node, dbi->iversion, 0,
+		result = dns_db_allrdatasets(dbi->db, node, dbi->iversion, 0, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			dns_db_detachnode(dbi->db, &node);
@@ -891,7 +891,7 @@ main(int argc, char *argv[]) {
 
 		if (!found_as && type == dns_rdatatype_any) {
 			rdsiter = NULL;
-			result = dns_db_allrdatasets(db, node, version, 0,
+			result = dns_db_allrdatasets(db, node, version, 0, 0,
 						     &rdsiter);
 			if (result == ISC_R_SUCCESS) {
 				if (!quiet) {

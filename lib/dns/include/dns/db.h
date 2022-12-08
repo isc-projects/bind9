@@ -116,8 +116,8 @@ typedef struct dns_dbmethods {
 				     dns_rdataset_t *rdataset,
 				     dns_rdataset_t *sigrdataset);
 	isc_result_t (*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
-				     dns_dbversion_t	 *version,
-				     isc_stdtime_t	  now,
+				     dns_dbversion_t *version,
+				     unsigned int options, isc_stdtime_t now,
 				     dns_rdatasetiter_t **iteratorp);
 	isc_result_t (*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				    dns_dbversion_t *version, isc_stdtime_t now,
@@ -300,6 +300,9 @@ struct dns_dbonupdatelistener {
 #define DNS_DB_NSEC3ONLY     0x2
 #define DNS_DB_NONSEC3	     0x4
 /*@}*/
+
+#define DNS_DB_STALEOK	 0x01
+#define DNS_DB_EXPIREDOK 0x02
 
 /*****
 ***** Methods
@@ -1177,7 +1180,8 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp);
+		    unsigned int options, isc_stdtime_t now,
+		    dns_rdatasetiter_t **iteratorp);
 /*%<
  * Make '*iteratorp' an rdataset iterator for all rdatasets at 'node' in
  * version 'version' of 'db'.
@@ -1185,6 +1189,12 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * Notes:
  *
  * \li	If 'version' is NULL, then the current version will be used.
+ *
+ * \li	'options' controls which rdatasets are selected when interating over
+ *	the node.
+ *	'DNS_DB_STALEOK' return stale rdatasets as well as current rdatasets.
+ *	'DNS_DB_EXPIREDOK' return expired rdatasets as well as current
+ *	rdatasets.
  *
  * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
