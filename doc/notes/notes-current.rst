@@ -20,7 +20,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The :any:`forwarders` configuration option now supports the :any:`tls`
+  statement, to be used for query forwarding to DoT-enabled upstream servers.
+  :gl:`#3726`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
