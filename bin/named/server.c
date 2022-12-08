@@ -4758,7 +4758,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
 		view, named_g_loopmgr, named_g_taskmgr, ndisp, named_g_netmgr,
-		resopts, named_g_dispatchmgr, dispatch4, dispatch6));
+		resopts, named_g_server->tlsctx_client_cache,
+		named_g_dispatchmgr, dispatch4, dispatch6));
 
 	if (resstats == NULL) {
 		CHECK(isc_stats_create(mctx, &resstats,

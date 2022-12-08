@@ -2884,8 +2884,12 @@ authoritative and does not have the answer in its cache.
 
    This specifies a list of IP addresses to which queries are forwarded. The
    default is the empty list (no forwarding). Each address in the list can be
-   associated with an optional port number. A default port number can be set
-   for the entire list.
+   associated with an optional port number and a TLS transport. A default port
+   number and a TLS transport can be set for the entire list.
+
+   If a TLS configuration is specified, :iscman:`named` will use DNS-over-TLS
+   (DoT) connections when connecting to the specified IP address(es), using the
+   TLS configuration referenced by the :any:`tls` statement.
 
 Forwarding can also be configured on a per-domain basis, allowing for
 the global forwarding options to be overridden in a variety of ways.

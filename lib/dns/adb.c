@@ -49,6 +49,7 @@
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/stats.h>
+#include <dns/transport.h>
 
 #define DNS_ADB_MAGIC		 ISC_MAGIC('D', 'a', 'd', 'b')
 #define DNS_ADB_VALID(x)	 ISC_MAGIC_VALID(x, DNS_ADB_MAGIC)
@@ -1321,6 +1322,9 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo) {
 
 	ai->magic = 0;
 
+	if (ai->transport != NULL) {
+		dns_transport_detach(&ai->transport);
+	}
 	dns_adbentry_detach(&ai->entry);
 
 	isc_mem_put(adb->mctx, ai, sizeof(*ai));
