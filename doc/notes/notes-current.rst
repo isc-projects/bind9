@@ -50,6 +50,12 @@ Bug Fixes
 - The ``named`` would wait for some outstanding recursing queries
   to finish before shutting down.  This has been fixed.  :gl:`#3183`
 
+- When a zone is deleted from a server, an key management objects related to
+  that zone would be kept in the memory and released only at the server
+  shutdown.  This could lead to constantly increasing memory usage for servers
+  with a high zone churn. :gl:`#3727`
+
+
 Known Issues
 ~~~~~~~~~~~~
 

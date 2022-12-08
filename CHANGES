@@ -1,3 +1,7 @@
+6043.	[bug]		The key file IO locks objects would never get
+			deleted from the hashtable due to off-by-one error.
+			[GL #3727]
+
 6042.	[bug]		ANY responses could sometimes have the wrong TTL.
 			[GL #3613]
 
