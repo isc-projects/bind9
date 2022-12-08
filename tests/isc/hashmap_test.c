@@ -351,6 +351,30 @@ ISC_RUN_TEST_IMPL(isc_hashmap_iterator) {
 	return;
 }
 
+ISC_RUN_TEST_IMPL(isc_hashmap_hash_zero_length) {
+	isc_hashmap_t *hashmap = NULL;
+	uint32_t hashval;
+	bool again = false;
+
+again:
+	isc_hashmap_create(mctx, 1, ISC_HASHMAP_CASE_SENSITIVE, &hashmap);
+
+	hashval = isc_hashmap_hash(hashmap, "", 0);
+
+	isc_hashmap_destroy(&hashmap);
+
+	if (hashval == 0 && !again) {
+		/*
+		 * We could be extremely unlock and the siphash could hash the
+		 * zero length string to 0, so try one more time.
+		 */
+		again = true;
+		goto again;
+	}
+
+	assert_int_not_equal(hashval, 0);
+}
+
 ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	isc_result_t result;
 	isc_hashmap_t *hashmap = NULL;
@@ -401,6 +425,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 }
 
 ISC_TEST_LIST_START
+ISC_TEST_ENTRY(isc_hashmap_hash_zero_length)
 ISC_TEST_ENTRY(isc_hashmap_case)
 ISC_TEST_ENTRY(isc_hashmap_1_120)
 ISC_TEST_ENTRY(isc_hashmap_6_1000)
