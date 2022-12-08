@@ -3,7 +3,7 @@ zone <string> [ <class> ] {
 	allow-query { <address_match_element>; ... };
 	allow-query-on { <address_match_element>; ... };
 	forward ( first | only );
-	forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ]; ... };
+	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
 	max-records <integer>;
 	server-addresses { ( <ipv4_address> | <ipv6_address> ); ... };
 	server-names { <string>; ... };

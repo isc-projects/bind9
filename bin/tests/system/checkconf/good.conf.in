@@ -118,8 +118,8 @@ view "second" {
 	zone "example2" {
 		type static-stub;
 		forward only;
-		forwarders {
-			10.53.0.4;
+		forwarders tls "ephemeral" {
+			10.53.0.4 port 8053 tls "ephemeral";
 		};
 		zone-statistics no;
 	};

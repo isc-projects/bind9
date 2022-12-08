@@ -392,6 +392,12 @@ cfg_obj_issockaddr(const cfg_obj_t *obj);
  * Return true iff 'obj' is a socket address.
  */
 
+bool
+cfg_obj_issockaddrtls(const cfg_obj_t *obj);
+/*%<
+ * Return true iff 'obj' is a socket address with an optional tls configuration.
+ */
+
 const isc_sockaddr_t *
 cfg_obj_assockaddr(const cfg_obj_t *obj);
 /*%<
@@ -399,11 +405,25 @@ cfg_obj_assockaddr(const cfg_obj_t *obj);
  *
  * Requires:
  * \li     'obj' points to a valid configuration object of a socket address
- * type.
+ * type, or of a socket address type with an optional tls configuration.
  *
  * Returns:
  * \li     A pointer to a sockaddr.  The sockaddr must be copied by the caller
  *      if necessary.
+ */
+
+const char *
+cfg_obj_getsockaddrtls(const cfg_obj_t *obj);
+/*%<
+ * Returns the TLS value of a configuration object representing a
+ * socket address.
+ *
+ * Requires:
+ * \li     'obj' points to a valid configuration object of a
+ *         socket address type.
+ *
+ * Returns:
+ * \li     TLS value associated with a sockaddr, or NULL.
  */
 
 bool

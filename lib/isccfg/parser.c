@@ -119,6 +119,12 @@ create_string(cfg_parser_t *pctx, const char *contents, const cfg_type_t *type,
 static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj);
 
+static void
+copy_string(cfg_parser_t *pctx, const cfg_obj_t *obj, isc_textregion_t *dst);
+
+static void
+free_sockaddrtls(cfg_parser_t *pctx, cfg_obj_t *obj);
+
 static isc_result_t
 create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **objp);
 
@@ -164,6 +170,7 @@ cfg_rep_t cfg_rep_map = { "map", free_map };
 cfg_rep_t cfg_rep_list = { "list", free_list };
 cfg_rep_t cfg_rep_tuple = { "tuple", free_tuple };
 cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
+cfg_rep_t cfg_rep_sockaddrtls = { "sockaddrtls", free_sockaddrtls };
 cfg_rep_t cfg_rep_netprefix = { "netprefix", free_noop };
 cfg_rep_t cfg_rep_void = { "void", free_noop };
 cfg_rep_t cfg_rep_fixedpoint = { "fixedpoint", free_noop };
@@ -1511,15 +1518,20 @@ cfg_print_ustring(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 }
 
 static void
-print_qstring(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+print_rawqstring(cfg_printer_t *pctx, const isc_textregion_t string) {
 	cfg_print_cstr(pctx, "\"");
-	for (size_t i = 0; i < obj->value.string.length; i++) {
-		if (obj->value.string.base[i] == '"') {
+	for (size_t i = 0; i < string.length; i++) {
+		if (string.base[i] == '"') {
 			cfg_print_cstr(pctx, "\\");
 		}
-		cfg_print_chars(pctx, &obj->value.string.base[i], 1);
+		cfg_print_chars(pctx, (const char *)&string.base[i], 1);
 	}
 	cfg_print_cstr(pctx, "\"");
+}
+
+static void
+print_qstring(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	print_rawqstring(pctx, obj->value.string);
 }
 
 static void
@@ -1540,6 +1552,27 @@ static void
 free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
 	isc_mem_put(pctx->mctx, obj->value.string.base,
 		    obj->value.string.length + 1);
+}
+
+static void
+copy_string(cfg_parser_t *pctx, const cfg_obj_t *obj, isc_textregion_t *dst) {
+	if (dst->base != NULL) {
+		INSIST(dst->length != 0);
+		isc_mem_put(pctx->mctx, dst->base, dst->length + 1);
+	}
+	dst->length = obj->value.string.length;
+	dst->base = isc_mem_get(pctx->mctx, dst->length + 1);
+	memmove(dst->base, obj->value.string.base, dst->length);
+	dst->base[dst->length] = '\0';
+}
+
+static void
+free_sockaddrtls(cfg_parser_t *pctx, cfg_obj_t *obj) {
+	if (obj->value.sockaddrtls.tls.base != NULL) {
+		INSIST(obj->value.sockaddrtls.tls.length != 0);
+		isc_mem_put(pctx->mctx, obj->value.sockaddrtls.tls.base,
+			    obj->value.sockaddrtls.tls.length + 1);
+	}
 }
 
 bool
@@ -3211,9 +3244,11 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 	in_port_t port = 0;
 	cfg_obj_t *obj = NULL;
 	int have_port = 0;
+	int have_tls = 0;
 
 	CHECK(cfg_create_obj(pctx, type, &obj));
 	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
+
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
@@ -3229,6 +3264,17 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 				CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 				CHECK(cfg_parse_rawport(pctx, flags, &port));
 				++have_port;
+			} else if ((flags & CFG_ADDR_TLSOK) != 0 &&
+				   strcasecmp(TOKEN_STRING(pctx), "tls") == 0)
+			{
+				cfg_obj_t *tls = NULL;
+
+				CHECK(cfg_gettoken(pctx, 0)); /* read "tls" */
+				CHECK(cfg_parse_astring(pctx, NULL, &tls));
+				copy_string(pctx, tls,
+					    &obj->value.sockaddrtls.tls);
+				CLEANUP_OBJ(tls);
+				++have_tls;
 			} else {
 				break;
 			}
@@ -3236,8 +3282,14 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 			break;
 		}
 	}
+
 	if (have_port > 1) {
 		cfg_parser_error(pctx, 0, "expected at most one port");
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+	if (have_tls > 1) {
+		cfg_parser_error(pctx, 0, "expected at most one tls");
 		result = ISC_R_UNEXPECTEDTOKEN;
 		goto cleanup;
 	}
@@ -3257,6 +3309,12 @@ cfg_type_t cfg_type_sockaddr = { "sockaddr",	     cfg_parse_sockaddr,
 				 cfg_print_sockaddr, cfg_doc_sockaddr,
 				 &cfg_rep_sockaddr,  &sockaddr_flags };
 
+static unsigned int sockaddrtls_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
+					CFG_ADDR_PORTOK | CFG_ADDR_TLSOK;
+cfg_type_t cfg_type_sockaddrtls = { "sockaddrtls",	  cfg_parse_sockaddrtls,
+				    cfg_print_sockaddr,	  cfg_doc_sockaddr,
+				    &cfg_rep_sockaddrtls, &sockaddrtls_flags };
+
 isc_result_t
 cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type,
 		   cfg_obj_t **ret) {
@@ -3269,6 +3327,20 @@ cfg_parse_sockaddr(cfg_parser_t *pctx, const cfg_type_t *type,
 	flagp = type->of;
 
 	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, *flagp, ret));
+}
+
+isc_result_t
+cfg_parse_sockaddrtls(cfg_parser_t *pctx, const cfg_type_t *type,
+		      cfg_obj_t **ret) {
+	const unsigned int *flagp;
+
+	REQUIRE(pctx != NULL);
+	REQUIRE(type != NULL);
+	REQUIRE(ret != NULL && *ret == NULL);
+
+	flagp = type->of;
+
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddrtls, *flagp, ret));
 }
 
 void
@@ -3287,6 +3359,10 @@ cfg_print_sockaddr(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	if (port != 0) {
 		cfg_print_cstr(pctx, " port ");
 		cfg_print_rawuint(pctx, port);
+	}
+	if (obj->value.sockaddrtls.tls.base != NULL) {
+		cfg_print_cstr(pctx, " tls ");
+		print_rawqstring(pctx, obj->value.sockaddrtls.tls);
 	}
 }
 
@@ -3320,13 +3396,16 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 		n++;
 		POST(n);
 	}
-	cfg_print_cstr(pctx, " ) ");
+	cfg_print_cstr(pctx, " )");
 	if ((*flagp & CFG_ADDR_PORTOK) != 0) {
 		if ((*flagp & CFG_ADDR_WILDOK) != 0) {
-			cfg_print_cstr(pctx, "[ port ( <integer> | * ) ]");
+			cfg_print_cstr(pctx, " [ port ( <integer> | * ) ]");
 		} else {
-			cfg_print_cstr(pctx, "[ port <integer> ]");
+			cfg_print_cstr(pctx, " [ port <integer> ]");
 		}
+	}
+	if ((*flagp & CFG_ADDR_TLSOK) != 0) {
+		cfg_print_cstr(pctx, " [ tls <string> ]");
 	}
 }
 
@@ -3336,10 +3415,24 @@ cfg_obj_issockaddr(const cfg_obj_t *obj) {
 	return (obj->type->rep == &cfg_rep_sockaddr);
 }
 
+bool
+cfg_obj_issockaddrtls(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (obj->type->rep == &cfg_rep_sockaddrtls);
+}
+
 const isc_sockaddr_t *
 cfg_obj_assockaddr(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
+	REQUIRE(obj != NULL);
+	REQUIRE(obj->type->rep == &cfg_rep_sockaddr ||
+		obj->type->rep == &cfg_rep_sockaddrtls);
 	return (&obj->value.sockaddr);
+}
+
+const char *
+cfg_obj_getsockaddrtls(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddrtls);
+	return (obj->value.sockaddrtls.tls.base);
 }
 
 isc_result_t
@@ -3626,12 +3719,10 @@ cfg_create_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	REQUIRE(ret != NULL && *ret == NULL);
 
 	obj = isc_mem_get(pctx->mctx, sizeof(cfg_obj_t));
-
-	obj->type = type;
-	obj->file = current_file(pctx);
-	obj->line = pctx->line;
-	obj->pctx = pctx;
-
+	*obj = (cfg_obj_t){ .type = type,
+			    .file = current_file(pctx),
+			    .line = pctx->line,
+			    .pctx = pctx };
 	isc_refcount_init(&obj->references, 1);
 
 	*ret = obj;

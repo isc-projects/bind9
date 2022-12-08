@@ -80,6 +80,10 @@ fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 static isc_result_t
 keydirexist(const cfg_obj_t *zcgf, const char *dir, const char *kaspnamestr,
 	    isc_symtab_t *symtab, isc_log_t *logctx, isc_mem_t *mctx);
+
+static const cfg_obj_t *
+find_maplist(const cfg_obj_t *config, const char *listname, const char *name);
+
 static void
 freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
 	UNUSED(type);
@@ -272,10 +276,38 @@ check_dual_stack(const cfg_obj_t *options, isc_log_t *logctx) {
 }
 
 static isc_result_t
-check_forward(const cfg_obj_t *options, const cfg_obj_t *global,
-	      isc_log_t *logctx) {
+validate_tls(const cfg_obj_t *config, const cfg_obj_t *obj, isc_log_t *logctx,
+	     const char *str) {
+	dns_fixedname_t fname;
+	dns_name_t *nm = dns_fixedname_initname(&fname);
+	isc_result_t result = dns_name_fromstring(nm, str, 0, NULL);
+
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "'%s' is not a valid name", str);
+		return (result);
+	}
+
+	if (strcasecmp(str, "ephemeral") != 0) {
+		const cfg_obj_t *tlsmap = find_maplist(config, "tls", str);
+
+		if (tlsmap == NULL) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "tls '%s' is not defined", str);
+			return (ISC_R_FAILURE);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+check_forward(const cfg_obj_t *config, const cfg_obj_t *options,
+	      const cfg_obj_t *global, isc_log_t *logctx) {
 	const cfg_obj_t *forward = NULL;
 	const cfg_obj_t *forwarders = NULL;
+	const cfg_obj_t *faddresses = NULL;
+	const cfg_listelt_t *element;
 
 	(void)cfg_map_get(options, "forward", &forward);
 	(void)cfg_map_get(options, "forwarders", &forwarders);
@@ -294,6 +326,37 @@ check_forward(const cfg_obj_t *options, const cfg_obj_t *global,
 			    "no matching 'forwarders' statement");
 		return (ISC_R_FAILURE);
 	}
+	if (forwarders != NULL) {
+		isc_result_t result = ISC_R_SUCCESS;
+		const cfg_obj_t *tlspobj = cfg_tuple_get(forwarders, "tls");
+
+		if (tlspobj != NULL && cfg_obj_isstring(tlspobj)) {
+			const char *tls = cfg_obj_asstring(tlspobj);
+			if (tls != NULL) {
+				result = validate_tls(config, tlspobj, logctx,
+						      tls);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		}
+
+		faddresses = cfg_tuple_get(forwarders, "addresses");
+		for (element = cfg_list_first(faddresses); element != NULL;
+		     element = cfg_list_next(element))
+		{
+			const cfg_obj_t *forwarder = cfg_listelt_value(element);
+			const char *tls = cfg_obj_getsockaddrtls(forwarder);
+			if (tls != NULL) {
+				result = validate_tls(config, faddresses,
+						      logctx, tls);
+				if (result != ISC_R_SUCCESS) {
+					return (result);
+				}
+			}
+		}
+	}
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -3601,7 +3664,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			(void)cfg_map_get(goptions, "forwarders", &obj);
 		}
 	}
-	if (check_forward(zoptions, obj, logctx) != ISC_R_SUCCESS) {
+	if (check_forward(config, zoptions, obj, logctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
@@ -5293,7 +5356,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (opts != NULL && check_forward(opts, NULL, logctx) != ISC_R_SUCCESS)
+	if (opts != NULL &&
+	    check_forward(config, opts, NULL, logctx) != ISC_R_SUCCESS)
 	{
 		result = ISC_R_FAILURE;
 	}
