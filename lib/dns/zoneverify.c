@@ -307,7 +307,7 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 	isc_result_t result;
 
 	dns_rdataset_init(&sigrdataset);
-	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
+	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
@@ -816,7 +816,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	isc_result_t result;
 
 	dns_rdataset_init(&sigrdataset);
-	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
+	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
@@ -920,7 +920,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 
 	REQUIRE(vresult != NULL || (nsecset == NULL && nsec3paramset == NULL));
 
-	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
+	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));
@@ -1012,7 +1012,7 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node, bool *empty) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 
-	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
+	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
 		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
 				     isc_result_totext(result));

@@ -985,5 +985,24 @@ grep "status: NOERROR" dig.out.ns9.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n+1))
+echo_i "check expired TTLs with qtype * (${n})"
+ret=0
+dig_with_opts +tcp @10.53.0.5 mixedttl.tld any > dig.out.1.${n} || ret=1
+ttl1=$(awk '$1 == "mixedttl.tld." && $4 == "A" { print $2 + 1 }' dig.out.1.${n})
+# sleep TTL + 1 so that record has expired
+sleep "${ttl1:-0}"
+dig_with_opts +tcp @10.53.0.5 mixedttl.tld any > dig.out.2.${n} || ret=1
+# check preconditions
+grep "ANSWER: 3," dig.out.1.${n} > /dev/null || ret=1
+lines=$(awk '$1 == "mixedttl.tld." && $2 > 30 { print }' dig.out.1.${n} | wc -l)
+test ${lines:-1} -ne 0 && ret=1
+# check behaviour (there may be 1 answer on very slow machines)
+grep "ANSWER: [12]," dig.out.2.${n} > /dev/null || ret=1
+lines=$(awk '$1 == "mixedttl.tld." && $2 > 30 { print }' dig.out.2.${n} | wc -l)
+test ${lines:-1} -ne 0 && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

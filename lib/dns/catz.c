@@ -2281,7 +2281,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			continue;
 		}
 
-		result = dns_db_allrdatasets(db, node, oldzone->dbversion, 0,
+		result = dns_db_allrdatasets(db, node, oldzone->dbversion, 0, 0,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
