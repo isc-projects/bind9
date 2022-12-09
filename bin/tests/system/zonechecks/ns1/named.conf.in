@@ -36,6 +36,7 @@ controls {
 };
 
 dnssec-policy "zonechecks" {
+	inline-signing no;
 	keys {
 		ksk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;

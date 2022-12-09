@@ -2793,6 +2793,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool dlz;
 	bool ddns = false;
 	bool has_dnssecpolicy = false;
+	bool kasp_inlinesigning = false;
 	const void *clauses = NULL;
 	const char *option = NULL;
 	const char *kaspname = NULL;
@@ -3038,10 +3039,13 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		kaspname = cfg_obj_asstring(obj);
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
+			kasp_inlinesigning = true;
 		} else if (strcmp(kaspname, "insecure") == 0) {
 			has_dnssecpolicy = true;
+			kasp_inlinesigning = true;
 		} else if (strcmp(kaspname, "none") == 0) {
 			has_dnssecpolicy = false;
+			kasp_inlinesigning = false;
 		} else {
 			(void)cfg_map_get(config, "dnssec-policy", &kasps);
 			for (element = cfg_list_first(kasps); element != NULL;
@@ -3052,7 +3056,24 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				if (strcmp(kaspname, cfg_obj_asstring(kobj)) ==
 				    0)
 				{
+					const cfg_obj_t *inlinesigning = NULL;
+					const cfg_obj_t *kopt = cfg_tuple_get(
+						cfg_listelt_value(element),
+						"options");
+					if (cfg_map_get(kopt, "inline-signing",
+							&inlinesigning) ==
+					    ISC_R_SUCCESS)
+					{
+						kasp_inlinesigning =
+							cfg_obj_asboolean(
+								inlinesigning);
+					} else {
+						/* By default true */
+						kasp_inlinesigning = true;
+					}
+
 					has_dnssecpolicy = true;
+					break;
 				}
 			}
 
@@ -3369,6 +3390,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		res1 = cfg_map_get(zoptions, "inline-signing", &obj);
 		if (res1 == ISC_R_SUCCESS) {
 			signing = cfg_obj_asboolean(obj);
+		} else if (has_dnssecpolicy) {
+			signing = kasp_inlinesigning;
 		}
 
 		if (has_dnssecpolicy) {

@@ -73,6 +73,7 @@ zone "step1.going-straight-to-none.kasp" {
 zone "step1.going-straight-to-none-dynamic.kasp" {
 	type primary;
 	file "step1.going-straight-to-none-dynamic.kasp.db.signed";
+	inline-signing no;
 	dnssec-policy "default";
 	allow-update { any; };
 };
