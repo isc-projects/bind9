@@ -103,7 +103,7 @@ cleanup:
 	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
 		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(isc_sockaddr_t));
+		isc_mem_put(fwdtable->mctx, fwd, sizeof(dns_forwarder_t));
 	}
 	isc_mem_put(fwdtable->mctx, forwarders, sizeof(dns_forwarders_t));
 	return (result);
