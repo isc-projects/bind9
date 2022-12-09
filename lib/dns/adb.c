@@ -3465,21 +3465,26 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 }
 
 size_t
-dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		  unsigned char *cookie, size_t len) {
-	REQUIRE(DNS_ADB_VALID(adb));
+dns_adb_getcookie(dns_adbaddrinfo_t *addr, unsigned char *cookie, size_t len) {
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
 	dns_adbentry_t *entry = addr->entry;
 
 	LOCK(&entry->lock);
-	if (cookie != NULL && entry->cookie != NULL && len >= entry->cookielen)
-	{
-		memmove(cookie, entry->cookie, entry->cookielen);
-		len = entry->cookielen;
-	} else {
+	if (entry->cookie == NULL) {
 		len = 0;
+		goto unlock;
 	}
+	if (cookie != NULL) {
+		if (len < entry->cookielen) {
+			len = 0;
+			goto unlock;
+		}
+		memmove(cookie, entry->cookie, entry->cookielen);
+	}
+	len = entry->cookielen;
+
+unlock:
 	UNLOCK(&entry->lock);
 
 	return (len);
