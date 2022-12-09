@@ -562,3 +562,23 @@ isc_tlsctx_cache_find(
  *		'pstore' still might get initialised as there is one to many
  *		relation between stores and contexts.
  */
+
+void
+isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx);
+/*%<
+ * Set context within which session can be reused to a randomly
+ * generated value. This one is used for TLS session resumption using
+ * session IDs. See OpenSSL documentation for
+ * 'SSL_CTX_set_session_id_context()'.
+ *
+ * It might be worth noting that usually session ID contexts are kept
+ * static for an application and particular certificate
+ * combination. However, for the cases when exporting server side TLS
+ * session cache to/loading from external memory is not required, we
+ * might use random IDs just fine. See,
+ * e.g. 'ngx_ssl_session_id_context()' in NGINX for an example of how
+ * a session ID might be obtained.
+ *
+ * Requires:
+ *\li   'ctx' - a valid non-NULL pointer;
+ */
