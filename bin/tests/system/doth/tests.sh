@@ -776,6 +776,16 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+# send two requests one after another so that session resumption will happen
+n=$((n + 1))
+echo_i "checking DoH query (client certificate used - session resumption when using Mutual TLS) ($n)"
+ret=0
+# shellcheck disable=SC2086
+dig_with_https_opts +https +tls-ca="$ca_file" +tls-certfile="./CA/certs/srv01.client01.example.com.pem" +tls-keyfile="./CA/certs/srv01.client01.example.com.key" -p "${EXTRAPORT6}" +comm @10.53.0.1 . SOA . SOA > dig.out.test$n
+grep "TLS error" dig.out.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 test_opcodes() {
 	EXPECT_STATUS="$1"
 	shift
