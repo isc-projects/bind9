@@ -117,6 +117,9 @@
 #define KEYMGMT_MAGIC		ISC_MAGIC('M', 'g', 'm', 't')
 #define DNS_KEYMGMT_VALID(load) ISC_MAGIC_VALID(load, KEYMGMT_MAGIC)
 
+#define KEYFILEIO_MAGIC		  ISC_MAGIC('K', 'y', 'I', 'O')
+#define DNS_KEYFILEIO_VALID(kfio) ISC_MAGIC_VALID(kfio, KEYFILEIO_MAGIC)
+
 /*%
  * Ensure 'a' is at least 'min' but not more than 'max'.
  */
@@ -219,6 +222,31 @@ typedef struct dns_include dns_include_t;
 extern bool dns_fuzzing_resolver;
 #endif /* ifdef ENABLE_AFL */
 
+/*%
+ *	Hold key file IO locks.
+ */
+typedef struct dns_keyfileio {
+	unsigned int magic;
+	struct dns_keyfileio *next;
+	uint32_t hashval;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	isc_refcount_t references;
+	isc_mutex_t lock;
+} dns_keyfileio_t;
+
+struct dns_keymgmt {
+	unsigned int magic;
+	isc_rwlock_t lock;
+	isc_mem_t *mctx;
+
+	dns_keyfileio_t **table;
+
+	atomic_uint_fast32_t count;
+
+	uint32_t bits;
+};
+
 struct dns_zone {
 	/* Unlocked */
 	unsigned int magic;
@@ -271,6 +299,7 @@ struct dns_zone {
 	isc_stdtime_t key_expiry;
 	isc_stdtime_t log_key_expired_timer;
 	char *keydirectory;
+	dns_keyfileio_t *kfio;
 
 	uint32_t maxrefresh;
 	uint32_t minrefresh;
@@ -747,30 +776,6 @@ struct dns_nsec3chain {
 	bool delete_nsec;
 	bool save_delete_nsec;
 	ISC_LINK(dns_nsec3chain_t) link;
-};
-
-/*%
- *	Hold key file IO locks.
- */
-typedef struct dns_keyfileio {
-	struct dns_keyfileio *next;
-	uint32_t hashval;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	atomic_uint_fast32_t count;
-	isc_mutex_t lock;
-} dns_keyfileio_t;
-
-struct dns_keymgmt {
-	unsigned int magic;
-	isc_rwlock_t lock;
-	isc_mem_t *mctx;
-
-	dns_keyfileio_t **table;
-
-	atomic_uint_fast32_t count;
-
-	uint32_t bits;
 };
 
 /*%<
@@ -18494,24 +18499,14 @@ zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 static void
 zonemgr_keymgmt_destroy(dns_zonemgr_t *zmgr) {
 	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	dns_keyfileio_t *curr, *next;
 	uint32_t size;
 
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
 
-	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 	size = HASHSIZE(mgmt->bits);
-	for (unsigned int i = 0;
-	     atomic_load_relaxed(&mgmt->count) > 0 && i < size; i++)
-	{
-		for (curr = mgmt->table[i]; curr != NULL; curr = next) {
-			next = curr->next;
-			isc_mutex_destroy(&curr->lock);
-			isc_mem_put(mgmt->mctx, curr, sizeof(*curr));
-			atomic_fetch_sub_relaxed(&mgmt->count, 1);
-		}
-		mgmt->table[i] = NULL;
-	}
+
+	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
+	INSIST(mgmt->count == 0);
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
 
 	mgmt->magic = 0;
@@ -18594,6 +18589,7 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	dns_keyfileio_t *kfio, *next;
 
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
+	REQUIRE(added != NULL && *added == NULL);
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
@@ -18604,7 +18600,7 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 		next = kfio->next;
 		if (dns_name_equal(kfio->name, &zone->origin)) {
 			/* Already in table, increment the counter. */
-			atomic_fetch_add_relaxed(&kfio->count, 1);
+			isc_refcount_increment(&kfio->references);
 			break;
 		}
 	}
@@ -18612,24 +18608,27 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	if (kfio == NULL) {
 		/* No entry found, add it. */
 		kfio = isc_mem_get(mgmt->mctx, sizeof(*kfio));
-		*kfio = (dns_keyfileio_t){ .hashval = hashval,
-					   .next = mgmt->table[hash] };
+		*kfio = (dns_keyfileio_t){
+			.hashval = hashval,
+			.next = mgmt->table[hash],
+			.magic = KEYFILEIO_MAGIC,
+		};
+
+		isc_refcount_init(&kfio->references, 1);
 
 		kfio->name = dns_fixedname_initname(&kfio->fname);
 		dns_name_copynf(&zone->origin, kfio->name);
 
-		atomic_fetch_add_relaxed(&kfio->count, 1);
 		isc_mutex_init(&kfio->lock);
 
 		mgmt->table[hash] = kfio;
-		if (added != NULL) {
-			*added = kfio;
-		}
 
 		atomic_fetch_add_relaxed(&mgmt->count, 1);
 	}
 
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
+
+	*added = kfio;
 
 	/*
 	 * Call resize, that function will also check if resize is necessary.
@@ -18638,12 +18637,14 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 }
 
 static void
-zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
+zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone,
+		       dns_keyfileio_t **deleted) {
 	dns_keymgmt_t *mgmt = zmgr->keymgmt;
 	uint32_t hashval, hash;
 	dns_keyfileio_t *kfio, *prev, *next;
 
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
+	REQUIRE(deleted != NULL && DNS_KEYFILEIO_VALID(*deleted));
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
@@ -18654,26 +18655,22 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
 		next = kfio->next;
 		if (dns_name_equal(kfio->name, &zone->origin)) {
-			unsigned int count;
+			INSIST(kfio == *deleted);
+			*deleted = NULL;
 
-			count = atomic_fetch_sub_relaxed(&kfio->count, 1) - 1;
-			if (count > 0) {
-				/* Keep the entry. */
-				break;
+			if (isc_refcount_decrement(&kfio->references) == 1) {
+				if (prev == NULL) {
+					mgmt->table[hash] = kfio->next;
+				} else {
+					prev->next = kfio->next;
+				}
+
+				isc_refcount_destroy(&kfio->references);
+				isc_mutex_destroy(&kfio->lock);
+				isc_mem_put(mgmt->mctx, kfio, sizeof(*kfio));
+
+				atomic_fetch_sub_relaxed(&mgmt->count, 1);
 			}
-
-			/* Delete the entry. */
-			if (prev == NULL) {
-				mgmt->table[hash] = kfio->next;
-			} else {
-				prev->next = kfio->next;
-			}
-
-			isc_mutex_destroy(&kfio->lock);
-			isc_mem_put(mgmt->mctx, kfio, sizeof(*kfio));
-
-			atomic_fetch_sub_relaxed(&mgmt->count, 1);
-
 			break;
 		}
 
@@ -18686,38 +18683,6 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	 * Call resize, that function will also check if resize is necessary.
 	 */
 	zonemgr_keymgmt_resize(zmgr);
-}
-
-static void
-zonemgr_keymgmt_find(dns_zonemgr_t *zmgr, dns_zone_t *zone,
-		     dns_keyfileio_t **match) {
-	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	uint32_t hashval, hash;
-	dns_keyfileio_t *kfio, *next;
-
-	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
-	REQUIRE(match != NULL && *match == NULL);
-
-	RWLOCK(&mgmt->lock, isc_rwlocktype_read);
-
-	if (atomic_load_relaxed(&mgmt->count) == 0) {
-		RWUNLOCK(&mgmt->lock, isc_rwlocktype_read);
-		return;
-	}
-
-	hashval = dns_name_hash(&zone->origin, false);
-	hash = hash_index(hashval, mgmt->bits);
-
-	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
-		next = kfio->next;
-
-		if (dns_name_equal(kfio->name, &zone->origin)) {
-			*match = kfio;
-			break;
-		}
-	}
-
-	RWUNLOCK(&mgmt->lock, isc_rwlocktype_read);
 }
 
 isc_result_t
@@ -18912,7 +18877,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	 */
 	isc_refcount_increment0(&zone->irefs);
 
-	zonemgr_keymgmt_add(zmgr, zone, NULL);
+	zonemgr_keymgmt_add(zmgr, zone, &zone->kfio);
+	INSIST(zone->kfio != NULL);
 
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 	zone->zmgr = zmgr;
@@ -18943,7 +18909,10 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	ISC_LIST_UNLINK(zmgr->zones, zone, link);
 
-	zonemgr_keymgmt_delete(zmgr, zone);
+	if (zone->kfio != NULL) {
+		zonemgr_keymgmt_delete(zmgr, zone, &zone->kfio);
+		ENSURE(zone->kfio == NULL);
+	}
 
 	zone->zmgr = NULL;
 
@@ -19975,10 +19944,8 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	return (count);
 }
 
-static void
-dns__zone_lockunlock_keyfiles(dns_zone_t *zone, bool lock) {
-	dns_keyfileio_t *kfio = NULL;
-
+void
+dns_zone_lock_keyfiles(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	if (zone->kasp == NULL) {
@@ -19986,30 +19953,21 @@ dns__zone_lockunlock_keyfiles(dns_zone_t *zone, bool lock) {
 		return;
 	}
 
-	zonemgr_keymgmt_find(zone->zmgr, zone, &kfio);
-	if (kfio == NULL) {
-		/* Should not happen, but if so, add the entry now. */
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "attempt to lock key files, but no key file lock "
-			     "available, abort");
-		return;
-	}
-
-	if (lock) {
-		isc_mutex_lock(&kfio->lock);
-	} else {
-		isc_mutex_unlock(&kfio->lock);
-	}
-}
-
-void
-dns_zone_lock_keyfiles(dns_zone_t *zone) {
-	dns__zone_lockunlock_keyfiles(zone, true);
+	REQUIRE(DNS_KEYFILEIO_VALID(zone->kfio));
+	isc_mutex_lock(&zone->kfio->lock);
 }
 
 void
 dns_zone_unlock_keyfiles(dns_zone_t *zone) {
-	dns__zone_lockunlock_keyfiles(zone, false);
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (zone->kasp == NULL) {
+		/* No need to lock, nothing is writing key files. */
+		return;
+	}
+
+	REQUIRE(DNS_KEYFILEIO_VALID(zone->kfio));
+	isc_mutex_unlock(&zone->kfio->lock);
 }
 
 isc_result_t
