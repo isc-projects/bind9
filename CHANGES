@@ -1,3 +1,6 @@
+6044.	[bug]		There was an "RSASHA236" typo in a log message.
+			[GL !7206]
+
 6043.	[bug]		The key file IO locks objects would never get
 			deleted from the hashtable due to off-by-one error.
 			[GL #3727]
