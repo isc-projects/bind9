@@ -65,6 +65,17 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 			}
 
 			/*
+			 * We need to initialise session ID context to make TLS
+			 * session resumption work correctly - in particular in
+			 * the case when client certificates are used (Mutual
+			 * TLS) - otherwise resumption attempts will lead to
+			 * handshake failures. See OpenSSL documentation for
+			 * 'SSL_CTX_set_session_id_context()', the "Warnings"
+			 * section.
+			 */
+			isc_tlsctx_set_random_session_id_context(sslctx);
+
+			/*
 			 * If CA-bundle file is specified - enable client
 			 * certificates validation.
 			 */
