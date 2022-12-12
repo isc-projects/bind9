@@ -39,6 +39,10 @@ Bug Fixes
   certificates are used for authentication (Mutual TLS).  This has
   been fixed. :gl:`#3725`
 
+- When an outgoing request timed out, the ``named`` would retry up to three
+  times with the same server instead of trying a next available name server.
+  This has been fixed. :gl:`#3637`
+
 Known Issues
 ~~~~~~~~~~~~
 
