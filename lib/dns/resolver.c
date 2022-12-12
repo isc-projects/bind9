@@ -8041,19 +8041,16 @@ rctx_timedout(respctx_t *rctx) {
 		isc_time_now(&now);
 		/* netmgr timeouts are accurate to the millisecond */
 		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
-			FCTXTRACE("stopped trying to make fetch happen");
+			FCTXTRACE("query timed out; stopped trying to make "
+				  "fetch happen");
 		} else {
-			FCTXTRACE("query timed out; no response");
+			FCTXTRACE("query timed out; trying next server");
+			/* try next server */
 			rctx->no_response = true;
 			rctx->finish = NULL;
-			if (!ISFORWARDER(rctx->query->addrinfo) ||
-			    fctx->fwdpolicy != dns_fwdpolicy_first)
-			{
-				rctx->resend = true;
-			}
+			rctx->next_server = true;
 		}
 
-		FCTXTRACE("timed out");
 		rctx_done(rctx, rctx->result);
 		return (ISC_R_COMPLETE);
 	}
@@ -9759,10 +9756,11 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 	fctx_cancelquery(&query, rctx->finish, rctx->no_response, false);
 
 	/*
-	 * If nobody's waiting for results, don't resend.
+	 * If nobody's waiting for results, don't resend or try next server.
 	 */
 	LOCK(&fctx->lock);
 	if (ISC_LIST_EMPTY(fctx->events)) {
+		rctx->next_server = false;
 		rctx->resend = false;
 	}
 	UNLOCK(&fctx->lock);
