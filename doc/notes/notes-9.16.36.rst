@@ -12,21 +12,6 @@
 Notes for BIND 9.16.36
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -35,8 +20,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- None.
 
 - The ``zone <name>/<class>: final reference detached`` log message was
   moved from the INFO log level to the DEBUG(1) log level to prevent the
