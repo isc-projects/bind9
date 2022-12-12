@@ -1177,9 +1177,6 @@ parse_args(int argc, char **argv) {
 					isc_commandline_argument);
 				exit(1);
 			}
-			if (udp_timeout == 0) {
-				udp_timeout = UINT_MAX;
-			}
 			break;
 		case 'r':
 			result = isc_parse_uint32(&udp_retries,
