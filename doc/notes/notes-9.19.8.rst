@@ -80,6 +80,10 @@ Bug Fixes
   outstanding recursive queries to finish before shutting down. This was
   unintended and has been fixed. :gl:`#3183`
 
+- :iscman:`host` and :iscman:`nslookup` command-line options setting the
+  custom TCP/UDP port to use were ignored for ANY queries (which are
+  sent over TCP). This has been fixed. :gl:`#3721`
+
 - The new name compression code in BIND 9.19.7 was not compressing
   names in zone transfers that should have been compressed, so zone
   transfers were larger than before. This has been fixed. :gl:`#3706`
