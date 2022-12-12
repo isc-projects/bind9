@@ -15,54 +15,58 @@ Notes for BIND 9.18.10
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- In order to reduce unnecessary memory consumption in the cache,
-  NXDOMAIN records are no longer retained past the normal negative
-  cache TTL, even if ``stale-cache-enable`` is set to ``yes``.
-  :gl:`#3386`.
+- To reduce unnecessary memory consumption in the cache, NXDOMAIN
+  records are no longer retained past the normal negative cache TTL,
+  even if :any:`stale-cache-enable` is set to ``yes``. :gl:`#3386`
 
-- The option :any:`auto-dnssec` is deprecated and will be removed in 9.19.
-  Please migrate to :any:`dnssec-policy`. :gl:`#3667`
+- The :any:`auto-dnssec` option has been deprecated and will be removed
+  in a future BIND 9.19.x release. Please migrate to
+  :any:`dnssec-policy`. :gl:`#3667`
 
-- Deprecate setting the operating system limit (``coresize``, ``datasize``,
-  ``files`` and ``stacksize``) from ``named.conf``.  These options should be set
-  from the operating system (``ulimit``) or from the process supervisor
+- The :any:`coresize`, :any:`datasize`, :any:`files`, and
+  :any:`stacksize` options have been deprecated. The limits these
+  options set should be enforced externally, either by manual
+  configuration (e.g. using ``ulimit``) or via the process supervisor
   (e.g. ``systemd``). :gl:`#3676`
 
-- Deprecate setting alternate local addresses for inbound zone transfers
-  (:any:`alt-transfer-source`, :any:`alt-transfer-source-v6`,
-  :any:`use-alt-transfer-source`). :gl:`#3694`
+- Setting alternate local addresses for inbound zone transfers has been
+  deprecated. The relevant options (:any:`alt-transfer-source`,
+  :any:`alt-transfer-source-v6`, and :any:`use-alt-transfer-source`)
+  will be removed in a future BIND 9.19.x release. :gl:`#3694`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Increase the number of HTTP headers in the statistics channel from
-  10 to 100 to accomodate for some browsers that send more that 10
-  headers by default. :gl:`#3670`
+- The number of HTTP headers allowed in requests sent to
+  :iscman:`named`'s statistics channel has been increased from 10 to
+  100, to accommodate some browsers that send more than 10 headers
+  by default. :gl:`#3670`
 
+- TLS configuration for primary servers was not applied for zones that
+  were members of a catalog zone. This has been fixed. :gl:`#3638`
 
-- Copy TLS identifier when setting up primaries for catalog member
-  zones. :gl:`#3638`
-
-- Fix an assertion failure in the statschannel caused by reading from the HTTP
-  connection closed prematurely (connection error, shutdown). :gl:`#3693`
+- :iscman:`named` could crash due to an assertion failure when an HTTP
+  connection to the statistics channel was closed prematurely (due to a
+  connection error, shutdown, etc.). This has been fixed. :gl:`#3693`
 
 - The ``zone <name>/<class>: final reference detached`` log message was
   moved from the INFO log level to the DEBUG(1) log level to prevent the
   :iscman:`named-checkzone` tool from superfluously logging this message
   in non-debug mode. :gl:`#3707`
 
-- When a catalog zone is removed from the configuration, in some
-  cases a dangling pointer could cause a :iscman:`named` process
-  crash. This has been fixed. :gl:`#3683`
+- When a catalog zone was removed from the configuration, in some cases
+  a dangling pointer could cause the :iscman:`named` process to crash.
+  This has been fixed. :gl:`#3683`
 
-- The ``named`` would wait for some outstanding recursing queries
-  to finish before shutting down.  This has been fixed.  :gl:`#3183`
+- In certain cases, :iscman:`named` waited for the resolution of
+  outstanding recursive queries to finish before shutting down. This was
+  unintended and has been fixed. :gl:`#3183`
 
-- When a zone is deleted from a server, an key management objects related to
-  that zone would be kept in the memory and released only at the server
-  shutdown.  This could lead to constantly increasing memory usage for servers
-  with a high zone churn. :gl:`#3727`
-
+- When a zone was deleted from a server, a key management object related
+  to that zone was inadvertently kept in memory and only released upon
+  shutdown. This could lead to constantly increasing memory use on
+  servers with a high rate of changes affecting the set of zones being
+  served. This has been fixed. :gl:`#3727`
 
 Known Issues
 ~~~~~~~~~~~~
