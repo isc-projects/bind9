@@ -63,6 +63,10 @@ Bug Fixes
   outstanding recursive queries to finish before shutting down. This was
   unintended and has been fixed. :gl:`#3183`
 
+- :iscman:`host` and :iscman:`nslookup` command-line options setting the
+  custom TCP/UDP port to use were ignored for ANY queries (which are
+  sent over TCP). This has been fixed. :gl:`#3721`
+
 - The ``zone <name>/<class>: final reference detached`` log message was
   moved from the INFO log level to the DEBUG(1) log level to prevent the
   :iscman:`named-checkzone` tool from superfluously logging this message
