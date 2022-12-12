@@ -33,6 +33,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- The NSEC3PARAM TTL was previously set to 0 and is now changed to be the same
+  value as in the SOA MINIMUM field. :gl:`#3570`
+
 - A ``configure`` option ``--with-tuning`` has been removed.  The compile-time
   settings that required different values based on "workload" have been either
   removed or a sensible default has been picked.  :gl:`#3664`
