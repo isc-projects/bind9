@@ -972,6 +972,8 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
 		isc_result_totext(result));
 
+	REQUIRE(VALID_REQUEST(request));
+
 	if (result == ISC_R_TIMEDOUT) {
 		LOCK(&request->requestmgr->locks[request->hash]);
 		if (request->udpcount > 1) {
@@ -988,8 +990,6 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 		/* The lock is unlocked below */
 		goto done;
 	}
-
-	REQUIRE(VALID_REQUEST(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
 
