@@ -102,6 +102,7 @@ struct dns_adb {
 	isc_mutex_t reflock;	 /*%< Covers irefcnt, erefcnt */
 	isc_mutex_t overmemlock; /*%< Covers overmem */
 	isc_mem_t *mctx;
+	isc_mem_t *hmctx;
 	dns_view_t *view;
 
 	isc_taskmgr_t *taskmgr;
@@ -611,11 +612,11 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Grab all the resources we need.
 	 */
-	newentries = isc_mem_get(adb->mctx, sizeof(*newentries) * n);
-	newdeadentries = isc_mem_get(adb->mctx, sizeof(*newdeadentries) * n);
-	newentrylocks = isc_mem_get(adb->mctx, sizeof(*newentrylocks) * n);
-	newentry_sd = isc_mem_get(adb->mctx, sizeof(*newentry_sd) * n);
-	newentry_refcnt = isc_mem_get(adb->mctx, sizeof(*newentry_refcnt) * n);
+	newentries = isc_mem_get(adb->hmctx, sizeof(*newentries) * n);
+	newdeadentries = isc_mem_get(adb->hmctx, sizeof(*newdeadentries) * n);
+	newentrylocks = isc_mem_get(adb->hmctx, sizeof(*newentrylocks) * n);
+	newentry_sd = isc_mem_get(adb->hmctx, sizeof(*newentry_sd) * n);
+	newentry_refcnt = isc_mem_get(adb->hmctx, sizeof(*newentry_refcnt) * n);
 
 	/*
 	 * Initialise the new resources.
@@ -664,15 +665,15 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	 * Cleanup old resources.
 	 */
 	isc_mutexblock_destroy(adb->entrylocks, adb->nentries);
-	isc_mem_put(adb->mctx, adb->entries,
+	isc_mem_put(adb->hmctx, adb->entries,
 		    sizeof(*adb->entries) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->deadentries,
+	isc_mem_put(adb->hmctx, adb->deadentries,
 		    sizeof(*adb->deadentries) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entrylocks,
+	isc_mem_put(adb->hmctx, adb->entrylocks,
 		    sizeof(*adb->entrylocks) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entry_sd,
+	isc_mem_put(adb->hmctx, adb->entry_sd,
 		    sizeof(*adb->entry_sd) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entry_refcnt,
+	isc_mem_put(adb->hmctx, adb->entry_refcnt,
 		    sizeof(*adb->entry_refcnt) * adb->nentries);
 
 	/*
@@ -776,11 +777,11 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Grab all the resources we need.
 	 */
-	newnames = isc_mem_get(adb->mctx, sizeof(*newnames) * n);
-	newdeadnames = isc_mem_get(adb->mctx, sizeof(*newdeadnames) * n);
-	newnamelocks = isc_mem_get(adb->mctx, sizeof(*newnamelocks) * n);
-	newname_sd = isc_mem_get(adb->mctx, sizeof(*newname_sd) * n);
-	newname_refcnt = isc_mem_get(adb->mctx, sizeof(*newname_refcnt) * n);
+	newnames = isc_mem_get(adb->hmctx, sizeof(*newnames) * n);
+	newdeadnames = isc_mem_get(adb->hmctx, sizeof(*newdeadnames) * n);
+	newnamelocks = isc_mem_get(adb->hmctx, sizeof(*newnamelocks) * n);
+	newname_sd = isc_mem_get(adb->hmctx, sizeof(*newname_sd) * n);
+	newname_refcnt = isc_mem_get(adb->hmctx, sizeof(*newname_refcnt) * n);
 
 	/*
 	 * Initialise the new resources.
@@ -829,14 +830,14 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	 * Cleanup old resources.
 	 */
 	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
-	isc_mem_put(adb->mctx, adb->names, sizeof(*adb->names) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->deadnames,
+	isc_mem_put(adb->hmctx, adb->names, sizeof(*adb->names) * adb->nnames);
+	isc_mem_put(adb->hmctx, adb->deadnames,
 		    sizeof(*adb->deadnames) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->namelocks,
+	isc_mem_put(adb->hmctx, adb->namelocks,
 		    sizeof(*adb->namelocks) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->name_sd,
+	isc_mem_put(adb->hmctx, adb->name_sd,
 		    sizeof(*adb->name_sd) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->name_refcnt,
+	isc_mem_put(adb->hmctx, adb->name_refcnt,
 		    sizeof(*adb->name_refcnt) * adb->nnames);
 
 	/*
@@ -860,19 +861,21 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 
 cleanup:
 	if (newnames != NULL) {
-		isc_mem_put(adb->mctx, newnames, sizeof(*newnames) * n);
+		isc_mem_put(adb->hmctx, newnames, sizeof(*newnames) * n);
 	}
 	if (newdeadnames != NULL) {
-		isc_mem_put(adb->mctx, newdeadnames, sizeof(*newdeadnames) * n);
+		isc_mem_put(adb->hmctx, newdeadnames,
+			    sizeof(*newdeadnames) * n);
 	}
 	if (newnamelocks != NULL) {
-		isc_mem_put(adb->mctx, newnamelocks, sizeof(*newnamelocks) * n);
+		isc_mem_put(adb->hmctx, newnamelocks,
+			    sizeof(*newnamelocks) * n);
 	}
 	if (newname_sd != NULL) {
-		isc_mem_put(adb->mctx, newname_sd, sizeof(*newname_sd) * n);
+		isc_mem_put(adb->hmctx, newname_sd, sizeof(*newname_sd) * n);
 	}
 	if (newname_refcnt != NULL) {
-		isc_mem_put(adb->mctx, newname_refcnt,
+		isc_mem_put(adb->hmctx, newname_refcnt,
 			    sizeof(*newname_refcnt) * n);
 	}
 done:
@@ -2478,27 +2481,29 @@ destroy(dns_adb_t *adb) {
 	}
 
 	isc_mutexblock_destroy(adb->entrylocks, adb->nentries);
-	isc_mem_put(adb->mctx, adb->entries,
+	isc_mem_put(adb->hmctx, adb->entries,
 		    sizeof(*adb->entries) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->deadentries,
+	isc_mem_put(adb->hmctx, adb->deadentries,
 		    sizeof(*adb->deadentries) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entrylocks,
+	isc_mem_put(adb->hmctx, adb->entrylocks,
 		    sizeof(*adb->entrylocks) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entry_sd,
+	isc_mem_put(adb->hmctx, adb->entry_sd,
 		    sizeof(*adb->entry_sd) * adb->nentries);
-	isc_mem_put(adb->mctx, adb->entry_refcnt,
+	isc_mem_put(adb->hmctx, adb->entry_refcnt,
 		    sizeof(*adb->entry_refcnt) * adb->nentries);
 
 	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
-	isc_mem_put(adb->mctx, adb->names, sizeof(*adb->names) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->deadnames,
+	isc_mem_put(adb->hmctx, adb->names, sizeof(*adb->names) * adb->nnames);
+	isc_mem_put(adb->hmctx, adb->deadnames,
 		    sizeof(*adb->deadnames) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->namelocks,
+	isc_mem_put(adb->hmctx, adb->namelocks,
 		    sizeof(*adb->namelocks) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->name_sd,
+	isc_mem_put(adb->hmctx, adb->name_sd,
 		    sizeof(*adb->name_sd) * adb->nnames);
-	isc_mem_put(adb->mctx, adb->name_refcnt,
+	isc_mem_put(adb->hmctx, adb->name_refcnt,
 		    sizeof(*adb->name_refcnt) * adb->nnames);
+
+	isc_mem_destroy(&adb->hmctx);
 
 	isc_mutex_destroy(&adb->reflock);
 	isc_mutex_destroy(&adb->lock);
@@ -2540,6 +2545,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	adb->task = NULL;
 	adb->excl = NULL;
 	adb->mctx = NULL;
+	adb->hmctx = NULL;
 	adb->view = view;
 	adb->taskmgr = taskmgr;
 	adb->next_cleanbucket = 0;
@@ -2597,9 +2603,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	isc_mutex_init(&adb->entriescntlock);
 	isc_mutex_init(&adb->namescntlock);
 
+	isc_mem_create(&adb->hmctx);
+
 #define ALLOCENTRY(adb, el)                                                    \
 	do {                                                                   \
-		(adb)->el = isc_mem_get((adb)->mctx,                           \
+		(adb)->el = isc_mem_get((adb)->hmctx,                          \
 					sizeof(*(adb)->el) * (adb)->nentries); \
 	} while (0)
 	ALLOCENTRY(adb, entries);
@@ -2611,7 +2619,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 
 #define ALLOCNAME(adb, el)                                                   \
 	do {                                                                 \
-		(adb)->el = isc_mem_get((adb)->mctx,                         \
+		(adb)->el = isc_mem_get((adb)->hmctx,                        \
 					sizeof(*(adb)->el) * (adb)->nnames); \
 	} while (0)
 	ALLOCNAME(adb, names);
@@ -2681,45 +2689,47 @@ fail2:
 	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
 
 	if (adb->entries != NULL) {
-		isc_mem_put(adb->mctx, adb->entries,
+		isc_mem_put(adb->hmctx, adb->entries,
 			    sizeof(*adb->entries) * adb->nentries);
 	}
 	if (adb->deadentries != NULL) {
-		isc_mem_put(adb->mctx, adb->deadentries,
+		isc_mem_put(adb->hmctx, adb->deadentries,
 			    sizeof(*adb->deadentries) * adb->nentries);
 	}
 	if (adb->entrylocks != NULL) {
-		isc_mem_put(adb->mctx, adb->entrylocks,
+		isc_mem_put(adb->hmctx, adb->entrylocks,
 			    sizeof(*adb->entrylocks) * adb->nentries);
 	}
 	if (adb->entry_sd != NULL) {
-		isc_mem_put(adb->mctx, adb->entry_sd,
+		isc_mem_put(adb->hmctx, adb->entry_sd,
 			    sizeof(*adb->entry_sd) * adb->nentries);
 	}
 	if (adb->entry_refcnt != NULL) {
-		isc_mem_put(adb->mctx, adb->entry_refcnt,
+		isc_mem_put(adb->hmctx, adb->entry_refcnt,
 			    sizeof(*adb->entry_refcnt) * adb->nentries);
 	}
 	if (adb->names != NULL) {
-		isc_mem_put(adb->mctx, adb->names,
+		isc_mem_put(adb->hmctx, adb->names,
 			    sizeof(*adb->names) * adb->nnames);
 	}
 	if (adb->deadnames != NULL) {
-		isc_mem_put(adb->mctx, adb->deadnames,
+		isc_mem_put(adb->hmctx, adb->deadnames,
 			    sizeof(*adb->deadnames) * adb->nnames);
 	}
 	if (adb->namelocks != NULL) {
-		isc_mem_put(adb->mctx, adb->namelocks,
+		isc_mem_put(adb->hmctx, adb->namelocks,
 			    sizeof(*adb->namelocks) * adb->nnames);
 	}
 	if (adb->name_sd != NULL) {
-		isc_mem_put(adb->mctx, adb->name_sd,
+		isc_mem_put(adb->hmctx, adb->name_sd,
 			    sizeof(*adb->name_sd) * adb->nnames);
 	}
 	if (adb->name_refcnt != NULL) {
-		isc_mem_put(adb->mctx, adb->name_refcnt,
+		isc_mem_put(adb->hmctx, adb->name_refcnt,
 			    sizeof(*adb->name_refcnt) * adb->nnames);
 	}
+
+	isc_mem_destroy(&adb->hmctx);
 
 	isc_mutex_destroy(&adb->namescntlock);
 	isc_mutex_destroy(&adb->entriescntlock);
