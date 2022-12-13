@@ -16,7 +16,7 @@
 #
 m4_define([bind_VERSION_MAJOR], 9)dnl
 m4_define([bind_VERSION_MINOR], 19)dnl
-m4_define([bind_VERSION_PATCH], 8)dnl
+m4_define([bind_VERSION_PATCH], 9)dnl
 m4_define([bind_VERSION_EXTRA], -dev)dnl
 m4_define([bind_DESCRIPTION], [(Development Release)])dnl
 m4_define([bind_SRCID], [m4_esyscmd_s([git rev-parse --short HEAD | cut -b1-7])])dnl
@@ -596,7 +596,7 @@ AS_IF([test "$enable_doh" = "yes"],
 	       [AC_MSG_ERROR([Specifying libnghttp2 installation path is not supported, adjust PKG_CONFIG_PATH instead])])])
 
 AM_CONDITIONAL([HAVE_LIBNGHTTP2], [test -n "$LIBNGHTTP2_LIBS"])
-					  
+
 
 #
 # flockfile is usually provided by pthreads
