@@ -324,7 +324,7 @@ inc_adb_erefcnt(dns_adb_t *);
 static void
 inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *, bool);
 static bool
-dec_entry_refcnt(dns_adb_t *, bool, dns_adbentry_t *, bool);
+dec_entry_refcnt(dns_adb_t *, bool, dns_adbentry_t *, bool, isc_stdtime_t);
 static void
 violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static bool
@@ -1372,7 +1372,8 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 			}
 
 			entry->nh--;
-			result = dec_entry_refcnt(adb, overmem, entry, false);
+			result = dec_entry_refcnt(adb, overmem, entry, false,
+						  INT_MAX);
 		}
 
 		/*
@@ -1648,10 +1649,10 @@ inc_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, bool lock) {
 }
 
 static bool
-dec_entry_refcnt(dns_adb_t *adb, bool overmem, dns_adbentry_t *entry,
-		 bool lock) {
+dec_entry_refcnt(dns_adb_t *adb, bool overmem, dns_adbentry_t *entry, bool lock,
+		 isc_stdtime_t now) {
 	int bucket;
-	bool destroy_entry;
+	bool destroy_entry = false;
 	bool result = false;
 
 	bucket = entry->lock_bucket;
@@ -1663,9 +1664,9 @@ dec_entry_refcnt(dns_adb_t *adb, bool overmem, dns_adbentry_t *entry,
 	INSIST(entry->refcnt > 0);
 	entry->refcnt--;
 
-	destroy_entry = false;
 	if (entry->refcnt == 0 &&
-	    (adb->entry_sd[bucket] || entry->expires == 0 || overmem ||
+	    (adb->entry_sd[bucket] || entry->expires == 0 ||
+	     (overmem && entry->expires + ADB_CACHE_MINIMUM < now) ||
 	     (entry->flags & ENTRY_IS_DEAD) != 0))
 	{
 		destroy_entry = true;
@@ -2368,6 +2369,14 @@ check_stale_name(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 		if (victim == NULL) {
 			victims++;
 			goto next;
+		}
+
+		/*
+		 * Make sure that we are not purging ADB names that has been
+		 * just created.
+		 */
+		if (victim->last_used + ADB_CACHE_MINIMUM >= now) {
+			break;
 		}
 
 		if (!NAME_FETCH(victim) &&
@@ -3240,6 +3249,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 	int bucket;
 	dns_adb_t *adb;
 	bool overmem;
+	isc_stdtime_t now;
 
 	REQUIRE(findp != NULL && DNS_ADBFIND_VALID(*findp));
 	find = *findp;
@@ -3264,6 +3274,7 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 	 * Return the find to the memory pool, and decrement the adb's
 	 * reference count.
 	 */
+	isc_stdtime_get(&now);
 	overmem = isc_mem_isovermem(adb->mctx);
 	ai = ISC_LIST_HEAD(find->list);
 	while (ai != NULL) {
@@ -3271,7 +3282,8 @@ dns_adb_destroyfind(dns_adbfind_t **findp) {
 		entry = ai->entry;
 		ai->entry = NULL;
 		INSIST(DNS_ADBENTRY_VALID(entry));
-		RUNTIME_CHECK(!dec_entry_refcnt(adb, overmem, entry, true));
+		RUNTIME_CHECK(
+			!dec_entry_refcnt(adb, overmem, entry, true, now));
 		free_adbaddrinfo(adb, &ai);
 		ai = ISC_LIST_HEAD(find->list);
 	}
@@ -4533,12 +4545,12 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 
+	isc_stdtime_get(&now);
 	if (entry->expires == 0) {
-		isc_stdtime_get(&now);
 		entry->expires = now + ADB_ENTRY_WINDOW;
 	}
 
-	want_check_exit = dec_entry_refcnt(adb, overmem, entry, false);
+	want_check_exit = dec_entry_refcnt(adb, overmem, entry, false, now);
 
 	UNLOCK(&adb->entrylocks[bucket]);
 
