@@ -7213,8 +7213,6 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res = NULL;
 	dns_rdataset_t *nsrdataset = NULL;
 	dns_rdataset_t nameservers;
-	dns_fixedname_t fixed;
-	dns_name_t *domain = NULL;
 	unsigned int n;
 	dns_fetch_t *fetch = NULL;
 
@@ -7278,27 +7276,23 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 
 	default:
-		/* Get nameservers from fctx->nsfetch before we destroy it. */
-		dns_rdataset_init(&nameservers);
-		if (dns_rdataset_isassociated(&fetch->private->nameservers)) {
-			dns_rdataset_clone(&fetch->private->nameservers,
-					   &nameservers);
-			nsrdataset = &nameservers;
-		}
-
-		/* Get domain from nsfetch before we destroy it. */
-		domain = dns_fixedname_initname(&fixed);
-		dns_name_copy(fetch->private->domain, domain);
-
 		/*
 		 * If the chain of resume_dslookup() invocations managed to
 		 * chop off enough labels from the original DS owner name to
 		 * reach the top of the namespace, no further progress can be
 		 * made.  Interrupt the DS chasing process, returning SERVFAIL.
 		 */
-		if (dns_name_equal(fctx->nsname, domain)) {
+		if (dns_name_equal(fctx->nsname, fetch->private->domain)) {
 			result = DNS_R_SERVFAIL;
 			goto cleanup;
+		}
+
+		/* Get nameservers from fctx->nsfetch before we destroy it. */
+		dns_rdataset_init(&nameservers);
+		if (dns_rdataset_isassociated(&fetch->private->nameservers)) {
+			dns_rdataset_clone(&fetch->private->nameservers,
+					   &nameservers);
+			nsrdataset = &nameservers;
 		}
 
 		n = dns_name_countlabels(fctx->nsname);
@@ -7308,10 +7302,10 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		fetchctx_ref(fctx);
 		result = dns_resolver_createfetch(
-			res, fctx->nsname, dns_rdatatype_ns, domain, nsrdataset,
-			NULL, NULL, 0, fctx->options, 0, NULL, task,
-			resume_dslookup, fctx, &fctx->nsrrset, NULL,
-			&fctx->nsfetch);
+			res, fctx->nsname, dns_rdatatype_ns,
+			fetch->private->domain, nsrdataset, NULL, NULL, 0,
+			fctx->options, 0, NULL, task, resume_dslookup, fctx,
+			&fctx->nsrrset, NULL, &fctx->nsfetch);
 		if (result != ISC_R_SUCCESS) {
 			fetchctx_unref(fctx);
 			if (result == DNS_R_DUPLICATE) {
