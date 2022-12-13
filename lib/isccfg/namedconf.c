@@ -121,6 +121,8 @@ static cfg_type_t cfg_type_optional_dscp;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_optional_port;
+static cfg_type_t cfg_type_optional_sourceaddr4;
+static cfg_type_t cfg_type_optional_sourceaddr6;
 static cfg_type_t cfg_type_optional_uint32;
 static cfg_type_t cfg_type_optional_tls;
 static cfg_type_t cfg_type_options;
@@ -234,6 +236,8 @@ static cfg_tuplefielddef_t remotes_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "source", &cfg_type_optional_sourceaddr4, 0 },
+	{ "source-v6", &cfg_type_optional_sourceaddr6, 0 },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -273,6 +277,8 @@ static cfg_type_t cfg_type_bracketed_namesockaddrkeylist = {
 static cfg_tuplefielddef_t namesockaddrkeylist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
 	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "source", &cfg_type_optional_sourceaddr4, 0 },
+	{ "source-v6", &cfg_type_optional_sourceaddr6, 0 },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -3571,6 +3577,20 @@ static cfg_type_t cfg_type_sockaddr4wild = {
 static cfg_type_t cfg_type_sockaddr6wild = {
 	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr6wild_flags
+};
+
+static keyword_type_t sourceaddr4_kw = { "source", &cfg_type_sockaddr4wild };
+
+static cfg_type_t cfg_type_optional_sourceaddr4 = {
+	"optional_sourceaddr4", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue,	&cfg_rep_sockaddr,	 &sourceaddr4_kw
+};
+
+static keyword_type_t sourceaddr6_kw = { "source-v6", &cfg_type_sockaddr6wild };
+
+static cfg_type_t cfg_type_optional_sourceaddr6 = {
+	"optional_sourceaddr6", parse_optional_keyvalue, print_keyvalue,
+	doc_optional_keyvalue,	&cfg_rep_sockaddr,	 &sourceaddr6_kw
 };
 
 /*%
