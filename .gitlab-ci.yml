@@ -576,6 +576,7 @@ docs:
       - doc/arm/
       - doc/man/
       - doc/misc/
+    when: always
 
 # Jobs for regular GCC builds on Alpine Linux 3.16 (amd64)
 
