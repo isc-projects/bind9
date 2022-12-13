@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.36
+Notes for BIND 9.16.37
 ----------------------
 
 Security Fixes
@@ -30,31 +30,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The option ``auto-dnssec`` is deprecated and will be removed in 9.19.
-  Please migrate to ``dnssec-policy``. :gl:`#3667`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
 - None.
-
-- The ``zone <name>/<class>: final reference detached`` log message was
-  moved from the INFO log level to the DEBUG(1) log level to prevent the
-  :iscman:`named-checkzone` tool from superfluously logging this message
-  in non-debug mode. :gl:`#3707`
-
-- When a catalog zone is removed from the configuration, in some
-  cases a dangling pointer could cause a :iscman:`named` process
-  crash. This has been fixed. :gl:`#3683`
-
-- The ``named`` would wait for some outstanding recursing queries
-  to finish before shutting down.  This has been fixed.  :gl:`#3183`
-
-- When a zone is deleted from a server, an key management objects related to
-  that zone would be kept in the memory and released only at the server
-  shutdown.  This could lead to constantly increasing memory usage for servers
-  with a high zone churn. :gl:`#3727`
-
 
 Known Issues
 ~~~~~~~~~~~~
