@@ -1375,7 +1375,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 		break;
 	case ISC_R_SUCCESS:
 		LOCK(&adbname->lock); /* Must be unlocked by the caller */
-		if (adbname->last_used + ADB_STALE_MARGIN <= last_update) {
+		if (adbname->last_used + ADB_CACHE_MINIMUM <= last_update) {
 			adbname->last_used = now;
 
 			ISC_LIST_UNLINK(adb->names_lru, adbname, link);
@@ -1449,7 +1449,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 			dns_adbentry_detach(&adbentry);
 			goto create;
 		}
-		if (adbentry->last_used + ADB_STALE_MARGIN <= last_update) {
+		if (adbentry->last_used + ADB_CACHE_MINIMUM <= last_update) {
 			adbentry->last_used = now;
 
 			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
@@ -1708,6 +1708,15 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 			goto next;
 		}
 
+		/*
+		 * Make sure that we are not purging ADB names that has been
+		 * just created.
+		 */
+		if (adbname->last_used + ADB_CACHE_MINIMUM >= now) {
+			prev = NULL;
+			goto next;
+		}
+
 		if (overmem) {
 			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
 			removed++;
@@ -1717,13 +1726,14 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 		if (adbname->last_used + ADB_STALE_MARGIN < now) {
 			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
 			removed++;
+			goto next;
 		}
 
 		/*
-		 * we won't expire anything on the LRU list as the
+		 * We won't expire anything on the LRU list as the
 		 * .last_used + ADB_STALE_MARGIN will always be bigger
 		 * than `now` for all previous entries, so we just stop
-		 * the scanning
+		 * the scanning.
 		 */
 		prev = NULL;
 	next:
@@ -1801,6 +1811,15 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 			goto next;
 		}
 
+		/*
+		 * Make sure that we are not purging ADB named that has been
+		 * just created.
+		 */
+		if (adbentry->last_used + ADB_CACHE_MINIMUM >= now) {
+			prev = NULL;
+			goto next;
+		}
+
 		if (overmem) {
 			maybe_expire_entry(adbentry, INT_MAX);
 			removed++;
@@ -1814,7 +1833,7 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 		}
 
 		/*
-		 * we won't expire anything on the LRU list as the
+		 * We won't expire anything on the LRU list as the
 		 * .last_used + ADB_STALE_MARGIN will always be bigger
 		 * than `now` for all previous entries, so we just stop
 		 * the scanning
