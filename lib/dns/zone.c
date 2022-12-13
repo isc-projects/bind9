@@ -3601,42 +3601,24 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 		 * fermat number).
 		 */
 		if (dnskey.datalen > 1 && dnskey.data[0] == 1 &&
-		    dnskey.data[1] == 3)
+		    dnskey.data[1] == 3 &&
+		    (dnskey.algorithm == DNS_KEYALG_RSAMD5 ||
+		     dnskey.algorithm == DNS_KEYALG_RSASHA1 ||
+		     dnskey.algorithm == DNS_KEYALG_NSEC3RSASHA1 ||
+		     dnskey.algorithm == DNS_KEYALG_RSASHA256 ||
+		     dnskey.algorithm == DNS_KEYALG_RSASHA512))
 		{
-			const char *algorithm = "";
+			char algorithm[DNS_SECALG_FORMATSIZE];
 			isc_region_t r;
-			bool logit = true;
 
 			dns_rdata_toregion(&rdata, &r);
+			dns_secalg_format(dnskey.algorithm, algorithm,
+					  sizeof(algorithm));
 
-			switch (dnskey.algorithm) {
-			case DNS_KEYALG_RSAMD5:
-				algorithm = "RSAMD5";
-				break;
-			case DNS_KEYALG_RSASHA1:
-				algorithm = "RSASHA1";
-				break;
-			case DNS_KEYALG_NSEC3RSASHA1:
-				algorithm = "NSEC3RSASHA1";
-				break;
-			case DNS_KEYALG_RSASHA256:
-				algorithm = "RSASHA236";
-				break;
-			case DNS_KEYALG_RSASHA512:
-				algorithm = "RSASHA512";
-				break;
-			default:
-				logit = false;
-				break;
-			}
-
-			if (logit) {
-				dnssec_log(zone, ISC_LOG_WARNING,
-					   "weak %s (%u) key found "
-					   "(exponent=3, id=%u)",
-					   algorithm, dnskey.algorithm,
-					   dst_region_computeid(&r));
-			}
+			dnssec_log(zone, ISC_LOG_WARNING,
+				   "weak %s (%u) key found (exponent=3, id=%u)",
+				   algorithm, dnskey.algorithm,
+				   dst_region_computeid(&r));
 		}
 		dns_rdata_reset(&rdata);
 	}
