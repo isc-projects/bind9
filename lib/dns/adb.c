@@ -104,6 +104,7 @@ struct dns_adb {
 
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
+	isc_mem_t *hmctx;
 	dns_view_t *view;
 	dns_resolver_t *res;
 	size_t nloops;
@@ -1863,6 +1864,8 @@ destroy(dns_adb_t *adb) {
 	UNLOCK(&adb->entries_lock);
 	isc_mutex_destroy(&adb->entries_lock);
 
+	isc_mem_destroy(&adb->hmctx);
+
 	isc_mutex_destroy(&adb->lock);
 	isc_refcount_destroy(&adb->references);
 
@@ -1919,12 +1922,14 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
-	isc_hashmap_create(adb->mctx, ADB_HASH_BITS,
+	isc_mem_create(&adb->hmctx);
+
+	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS,
 			   ISC_HASHMAP_CASE_INSENSITIVE, &adb->names);
 	isc_mutex_init(&adb->names_lock);
 
-	isc_hashmap_create(adb->mctx, ADB_HASH_BITS, ISC_HASHMAP_CASE_SENSITIVE,
-			   &adb->entries);
+	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS,
+			   ISC_HASHMAP_CASE_SENSITIVE, &adb->entries);
 	isc_mutex_init(&adb->entries_lock);
 
 	isc_mutex_init(&adb->lock);
@@ -1974,6 +1979,8 @@ free_tasks:
 	isc_mutex_destroy(&adb->names_lock);
 	isc_hashmap_destroy(&adb->names);
 	INSIST(ISC_LIST_EMPTY(adb->names_lru));
+
+	isc_mem_destroy(&adb->hmctx);
 
 	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
