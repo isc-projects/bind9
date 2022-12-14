@@ -21,6 +21,7 @@
 #include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/hashmap.h>
 #include <isc/hex.h>
 #include <isc/loop.h>
 #include <isc/md.h>
@@ -231,25 +232,23 @@ extern bool dns_fuzzing_resolver;
  */
 typedef struct dns_keyfileio {
 	unsigned int magic;
-	struct dns_keyfileio *next;
-	uint32_t hashval;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	isc_refcount_t references;
 	isc_mutex_t lock;
+	isc_refcount_t references;
+	dns_name_t *name;
+	dns_fixedname_t fname;
 } dns_keyfileio_t;
 
 struct dns_keymgmt {
 	unsigned int magic;
 	isc_rwlock_t lock;
 	isc_mem_t *mctx;
-
-	dns_keyfileio_t **table;
-
-	atomic_uint_fast32_t count;
-
-	uint32_t bits;
+	isc_hashmap_t *table;
 };
+
+/*
+ * Initial size of the keymgmt hash table.
+ */
+#define DNS_KEYMGMT_HASH_BITS 12
 
 struct dns_zone {
 	/* Unlocked */
@@ -18709,41 +18708,18 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first) {
  ***	Zone manager.
  ***/
 
-static uint32_t
-hash_bits_grow(uint32_t bits, uint32_t count) {
-	uint32_t newbits = bits;
-	while (count >= ISC_HASHSIZE(newbits) && newbits < ISC_HASH_MAX_BITS) {
-		newbits++;
-	}
-	return (newbits);
-}
-
-static uint32_t
-hash_bits_shrink(uint32_t bits, uint32_t count) {
-	uint32_t newbits = bits;
-	while (count <= ISC_HASHSIZE(newbits) && newbits > ISC_HASH_MIN_BITS) {
-		newbits--;
-	}
-	return (newbits);
-}
-
 static void
 zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 	dns_keymgmt_t *mgmt = isc_mem_get(zmgr->mctx, sizeof(*mgmt));
-	uint32_t size;
 
 	*mgmt = (dns_keymgmt_t){
-		.bits = ISC_HASH_MIN_BITS,
+		.magic = KEYMGMT_MAGIC,
 	};
+
 	isc_mem_attach(zmgr->mctx, &mgmt->mctx);
 	isc_rwlock_init(&mgmt->lock, 0, 0);
-
-	size = ISC_HASHSIZE(mgmt->bits);
-	mgmt->table = isc_mem_get(mgmt->mctx, sizeof(*mgmt->table) * size);
-	memset(mgmt->table, 0, size * sizeof(mgmt->table[0]));
-
-	atomic_init(&mgmt->count, 0);
-	mgmt->magic = KEYMGMT_MAGIC;
+	isc_hashmap_create(mgmt->mctx, DNS_KEYMGMT_HASH_BITS,
+			   ISC_HASHMAP_CASE_SENSITIVE, &mgmt->table);
 
 	zmgr->keymgmt = mgmt;
 }
@@ -18751,190 +18727,91 @@ zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 static void
 zonemgr_keymgmt_destroy(dns_zonemgr_t *zmgr) {
 	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	uint32_t size;
 
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
-
-	size = ISC_HASHSIZE(mgmt->bits);
-
-	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
-	INSIST(mgmt->count == 0);
-	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
 
 	mgmt->magic = 0;
-	isc_rwlock_destroy(&mgmt->lock);
-	isc_mem_put(mgmt->mctx, mgmt->table, size * sizeof(mgmt->table[0]));
-	isc_mem_putanddetach(&mgmt->mctx, mgmt, sizeof(dns_keymgmt_t));
-}
-
-static void
-zonemgr_keymgmt_resize(dns_zonemgr_t *zmgr) {
-	dns_keyfileio_t **newtable;
-	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	uint32_t bits, newbits, count, size, newsize;
-	bool grow;
-
-	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
-
-	RWLOCK(&mgmt->lock, isc_rwlocktype_read);
-	count = atomic_load_relaxed(&mgmt->count);
-	bits = mgmt->bits;
-	RWUNLOCK(&mgmt->lock, isc_rwlocktype_read);
-
-	size = ISC_HASHSIZE(bits);
-	INSIST(size > 0);
-
-	if (count >= (size * ISC_HASH_OVERCOMMIT)) {
-		grow = true;
-	} else if (count < (size / 2)) {
-		grow = false;
-	} else {
-		/* No need to resize. */
-		return;
-	}
-
-	if (grow) {
-		newbits = hash_bits_grow(bits, count);
-	} else {
-		newbits = hash_bits_shrink(bits, count);
-	}
-
-	if (newbits == bits) {
-		/*
-		 * Bit values may stay the same if maximum or minimum is
-		 * reached.
-		 */
-		return;
-	}
-
-	newsize = ISC_HASHSIZE(newbits);
-	INSIST(newsize > 0);
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
-
-	newtable = isc_mem_getx(mgmt->mctx, sizeof(dns_keyfileio_t *) * newsize,
-				ISC_MEM_ZERO);
-
-	for (unsigned int i = 0; i < size; i++) {
-		dns_keyfileio_t *kfio, *next;
-		for (kfio = mgmt->table[i]; kfio != NULL; kfio = next) {
-			uint32_t hash = isc_hash_bits32(kfio->hashval, newbits);
-			next = kfio->next;
-			kfio->next = newtable[hash];
-			newtable[hash] = kfio;
-		}
-		mgmt->table[i] = NULL;
-	}
-
-	isc_mem_put(mgmt->mctx, mgmt->table, sizeof(*mgmt->table) * size);
-	mgmt->bits = newbits;
-	mgmt->table = newtable;
-
+	INSIST(isc_hashmap_count(mgmt->table) == 0);
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
+	isc_hashmap_destroy(&mgmt->table);
+
+	isc_rwlock_destroy(&mgmt->lock);
+	isc_mem_putanddetach(&mgmt->mctx, mgmt, sizeof(dns_keymgmt_t));
 }
 
 static void
 zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 		    dns_keyfileio_t **added) {
 	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	uint32_t hashval, hash;
-	dns_keyfileio_t *kfio, *next;
+	dns_keyfileio_t *kfio = NULL;
+	isc_result_t result;
+	dns_fixedname_t fname;
+	dns_name_t *name;
 
 	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
 	REQUIRE(added != NULL && *added == NULL);
 
+	name = dns_fixedname_initname(&fname);
+	dns_name_downcase(&zone->origin, name, NULL);
+
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
-	hashval = dns_name_hash(&zone->origin, false);
-	hash = isc_hash_bits32(hashval, mgmt->bits);
-
-	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
-		next = kfio->next;
-		if (dns_name_equal(kfio->name, &zone->origin)) {
-			/* Already in table, increment the counter. */
-			isc_refcount_increment(&kfio->references);
-			break;
-		}
-	}
-
-	if (kfio == NULL) {
-		/* No entry found, add it. */
+	result = isc_hashmap_find(mgmt->table, NULL, name->ndata, name->length,
+				  (void **)&kfio);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		isc_refcount_increment(&kfio->references);
+		break;
+	case ISC_R_NOTFOUND:
 		kfio = isc_mem_get(mgmt->mctx, sizeof(*kfio));
 		*kfio = (dns_keyfileio_t){
-			.hashval = hashval,
-			.next = mgmt->table[hash],
 			.magic = KEYFILEIO_MAGIC,
 		};
-
 		isc_refcount_init(&kfio->references, 1);
-
 		kfio->name = dns_fixedname_initname(&kfio->fname);
-		dns_name_copy(&zone->origin, kfio->name);
+		dns_name_copy(name, kfio->name);
 
 		isc_mutex_init(&kfio->lock);
-
-		mgmt->table[hash] = kfio;
-
-		atomic_fetch_add_relaxed(&mgmt->count, 1);
+		result = isc_hashmap_add(mgmt->table, NULL, kfio->name->ndata,
+					 kfio->name->length, kfio);
+		INSIST(result == ISC_R_SUCCESS);
+		break;
+	default:
+		UNREACHABLE();
 	}
-
-	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
-
 	*added = kfio;
-
-	/*
-	 * Call resize, that function will also check if resize is necessary.
-	 */
-	zonemgr_keymgmt_resize(zmgr);
+	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
 }
 
 static void
-zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_zone_t *zone,
-		       dns_keyfileio_t **deleted) {
-	dns_keymgmt_t *mgmt = zmgr->keymgmt;
-	uint32_t hashval, hash;
-	dns_keyfileio_t *kfio, *prev, *next;
-
-	REQUIRE(DNS_KEYMGMT_VALID(mgmt));
+zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_keyfileio_t **deleted) {
+	REQUIRE(DNS_KEYMGMT_VALID(zmgr->keymgmt));
 	REQUIRE(deleted != NULL && DNS_KEYFILEIO_VALID(*deleted));
+
+	dns_keymgmt_t *mgmt = zmgr->keymgmt;
+	dns_keyfileio_t *kfio = *deleted;
+	isc_result_t result;
+
+	*deleted = NULL;
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
-	hashval = dns_name_hash(&zone->origin, false);
-	hash = isc_hash_bits32(hashval, mgmt->bits);
+	if (isc_refcount_decrement(&kfio->references) == 1) {
+		isc_refcount_destroy(&kfio->references);
+		kfio->magic = 0;
+		isc_mutex_destroy(&kfio->lock);
 
-	prev = NULL;
-	for (kfio = mgmt->table[hash]; kfio != NULL; kfio = next) {
-		next = kfio->next;
-		if (dns_name_equal(kfio->name, &zone->origin)) {
-			INSIST(kfio == *deleted);
-			*deleted = NULL;
+		result = isc_hashmap_delete(mgmt->table, NULL,
+					    kfio->name->ndata,
+					    kfio->name->length);
+		INSIST(result == ISC_R_SUCCESS);
 
-			if (isc_refcount_decrement(&kfio->references) == 1) {
-				if (prev == NULL) {
-					mgmt->table[hash] = kfio->next;
-				} else {
-					prev->next = kfio->next;
-				}
-
-				isc_refcount_destroy(&kfio->references);
-				isc_mutex_destroy(&kfio->lock);
-				isc_mem_put(mgmt->mctx, kfio, sizeof(*kfio));
-
-				atomic_fetch_sub_relaxed(&mgmt->count, 1);
-			}
-			break;
-		}
-
-		prev = kfio;
+		isc_mem_put(mgmt->mctx, kfio, sizeof(*kfio));
 	}
 
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
-
-	/*
-	 * Call resize, that function will also check if resize is necessary.
-	 */
-	zonemgr_keymgmt_resize(zmgr);
 }
 
 isc_result_t
@@ -19167,7 +19044,7 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	ISC_LIST_UNLINK(zmgr->zones, zone, link);
 
 	if (zone->kfio != NULL) {
-		zonemgr_keymgmt_delete(zmgr, zone, &zone->kfio);
+		zonemgr_keymgmt_delete(zmgr, &zone->kfio);
 		ENSURE(zone->kfio == NULL);
 	}
 
@@ -23325,8 +23202,8 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	LOCK_ZONE(zone);
 
 	/*
-	 * First check if the requested NSEC3 parameters are already set,
-	 * if so, no need to set again.
+	 * First check if the requested NSEC3 parameters are already
+	 * set, if so, no need to set again.
 	 */
 	if (hash != 0) {
 		lookup.hash = hash;
@@ -23342,8 +23219,8 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 			return (ISC_R_SUCCESS);
 		}
 		/*
-		 * Schedule lookup if lookup above failed (may happen if zone
-		 * db is NULL for example).
+		 * Schedule lookup if lookup above failed (may happen if
+		 * zone db is NULL for example).
 		 */
 		do_lookup = (param.salt == NULL) ? true : false;
 	}
@@ -23365,7 +23242,10 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		param.common.rdtype = dns_rdatatype_nsec3param;
 		ISC_LINK_INIT(&param.common, link);
 		param.mctx = NULL;
-		/* nsec3 specific param set in dns__zone_lookup_nsec3param() */
+		/*
+		 * nsec3 specific param set in
+		 * dns__zone_lookup_nsec3param()
+		 */
 		isc_buffer_init(&b, nbuf, sizeof(nbuf));
 
 		if (param.salt != NULL) {
@@ -23397,11 +23277,11 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 	}
 
 	/*
-	 * setnsec3param() will silently return early if the zone does not yet
-	 * have a database.  Prevent that by queueing the event up if zone->db
-	 * is NULL.  All events queued here are subsequently processed by
-	 * receive_secure_db() if it ever gets called or simply freed by
-	 * zone_free() otherwise.
+	 * setnsec3param() will silently return early if the zone does
+	 * not yet have a database.  Prevent that by queueing the event
+	 * up if zone->db is NULL.  All events queued here are
+	 * subsequently processed by receive_secure_db() if it ever gets
+	 * called or simply freed by zone_free() otherwise.
 	 */
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
