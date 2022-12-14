@@ -514,7 +514,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 static bool
 isdotlocal(dns_message_t *msg) {
 	isc_result_t result;
-	static unsigned char local_ndata[] = { "\005local\0" };
+	static unsigned char local_ndata[] = { "\005local" };
 	static unsigned char local_offsets[] = { 0, 6 };
 	static dns_name_t local = DNS_NAME_INITABSOLUTE(local_ndata,
 							local_offsets);
