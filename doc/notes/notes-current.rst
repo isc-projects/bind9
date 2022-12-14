@@ -43,6 +43,12 @@ Bug Fixes
   times with the same server instead of trying a next available name server.
   This has been fixed. :gl:`#3637`
 
+- Recently used ADB names and ADB entries (IP addresses) could get cleaned when
+  ADB would be under memory pressure.  To mitigate this, count only actual ADB
+  names and ADB entries into the overmem memory limit (exclude internal memory
+  structures used for "housekeeping") and exclude recently used (<= 10 seconds)
+  ADB names and entries from the overmem memory cleaner. :gl:`#3739`
+
 Known Issues
 ~~~~~~~~~~~~
 
