@@ -1,3 +1,7 @@
+6047.	[bug]		Try the next server instead of trying the same
+			server again on an outgoing query timeout.
+			[GL #3637]
+
 6046.	[bug]		TLS session resumption might lead to handshake
 			failures when client certificates are used for
 			authentication (Mutual TLS).  This has been fixed.
