@@ -575,7 +575,7 @@ list_hmac_algorithms(isc_buffer_t *b) {
 static void
 logit(isc_buffer_t *b) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_WARNING, "%.*s",
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "%.*s",
 		      (int)isc_buffer_usedlength(b),
 		      (char *)isc_buffer_base(b));
 }
