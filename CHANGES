@@ -1,3 +1,7 @@
+6048.	[bug]		Fix a log message error in dns_catz_update_from_db(),
+			where serials with values of 2^31 or larger were logged
+			incorrectly as negative numbers. [GL #3742]
+
 6045.	[cleanup]	The list of supported DNSSEC algorithms changed log
 			level from "warning" to "notice" to match named's other
 			startup messages. [GL !7217]
