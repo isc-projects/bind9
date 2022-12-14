@@ -534,5 +534,14 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking extended error is not set on allow-recursion ($n)"
+ret=0
+$DIG $DIGOPTS example. @10.53.0.1 -b 10.53.0.2 soa > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
+grep "EDE" dig.out.ns1.test$n > /dev/null && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
