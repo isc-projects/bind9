@@ -134,7 +134,7 @@ try_nexttable(const isc_hashmap_t *hashmap, uint8_t idx) {
 static void
 hashmap_node_init(hashmap_node_t *node, const uint32_t hashval,
 		  const uint8_t *key, const uint32_t keysize, void *value) {
-	REQUIRE(key != NULL && keysize > 0 && keysize <= UINT16_MAX);
+	REQUIRE(key != NULL && keysize <= UINT16_MAX);
 
 	*node = (hashmap_node_t){
 		.value = value,
@@ -318,7 +318,6 @@ uint32_t
 isc_hashmap_hash(const isc_hashmap_t *hashmap, const void *key,
 		 uint32_t keysize) {
 	REQUIRE(ISC_HASHMAP_VALID(hashmap));
-	REQUIRE(key != NULL && keysize > 0 && keysize <= UINT16_MAX);
 
 	uint32_t hashval;
 
@@ -332,7 +331,7 @@ isc_result_t
 isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t *hashvalp,
 		 const void *key, uint32_t keysize, void **valuep) {
 	REQUIRE(ISC_HASHMAP_VALID(hashmap));
-	REQUIRE(key != NULL && keysize > 0 && keysize <= UINT16_MAX);
+	REQUIRE(key != NULL && keysize <= UINT16_MAX);
 
 	hashmap_node_t *node;
 	uint8_t idx = hashmap->hindex;
@@ -487,7 +486,7 @@ isc_result_t
 isc_hashmap_delete(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
 		   const void *key, uint32_t keysize) {
 	REQUIRE(ISC_HASHMAP_VALID(hashmap));
-	REQUIRE(key != NULL && keysize > 0 && keysize <= UINT16_MAX);
+	REQUIRE(key != NULL && keysize <= UINT16_MAX);
 
 	hashmap_node_t *node;
 	isc_result_t result = ISC_R_NOTFOUND;
@@ -600,7 +599,7 @@ isc_result_t
 isc_hashmap_add(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
 		const void *key, uint32_t keysize, void *value) {
 	REQUIRE(ISC_HASHMAP_VALID(hashmap));
-	REQUIRE(key != NULL && keysize > 0 && keysize <= UINT16_MAX);
+	REQUIRE(key != NULL && keysize <= UINT16_MAX);
 
 	isc_result_t result;
 	uint32_t hashval = (hashvalp != NULL)
