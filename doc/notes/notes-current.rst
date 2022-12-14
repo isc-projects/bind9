@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- TLS session resumption might lead to handshake failures when client
+  certificates are used for authentication (Mutual TLS).  This has
+  been fixed. :gl:`#3725`
 
 Known Issues
 ~~~~~~~~~~~~
