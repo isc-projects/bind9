@@ -2003,10 +2003,10 @@ log_server_error_response(const isc_nmsocket_t *socket,
 	local_addr = isc_nmhandle_localaddr(socket->h2.session->handle);
 	isc_sockaddr_format(&client_addr, client_sabuf, sizeof(client_sabuf));
 	isc_sockaddr_format(&local_addr, local_sabuf, sizeof(local_sabuf));
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      log_level, "HTTP/2 request from %s (on %s) failed: %s %s",
-		      client_sabuf, local_sabuf, response->header.value,
-		      response->desc);
+	isc__nmsocket_log(socket, log_level,
+			  "HTTP/2 request from %s (on %s) failed: %s %s",
+			  client_sabuf, local_sabuf, response->header.value,
+			  response->desc);
 }
 
 static isc_result_t

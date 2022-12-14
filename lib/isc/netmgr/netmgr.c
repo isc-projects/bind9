@@ -158,10 +158,9 @@ networker_teardown(void *arg) {
 
 	worker->shuttingdown = true;
 
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      ISC_LOG_DEBUG(1),
-		      "Shutting down network manager worker on loop %p(%d)",
-		      loop, isc_tid());
+	isc__netmgr_log(worker->netmgr, ISC_LOG_DEBUG(1),
+			"Shutting down network manager worker on loop %p(%d)",
+			loop, isc_tid());
 
 	uv_walk(&loop->loop, shutdown_walk_cb, NULL);
 
@@ -175,9 +174,8 @@ netmgr_teardown(void *arg) {
 	if (atomic_compare_exchange_strong(&netmgr->shuttingdown,
 					   &(bool){ false }, true))
 	{
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_DEBUG(1),
-			      "Shutting down network manager");
+		isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
+				"Shutting down network manager");
 	}
 }
 
@@ -1359,10 +1357,9 @@ isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 		/* IGNORE: The client disconnected before we could accept */
 		break;
 	default:
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_NETMGR, ISC_LOG_ERROR,
-			      "Accepting TCP connection failed: %s",
-			      isc_result_totext(eresult));
+		isc__nmsocket_log(sock, ISC_LOG_ERROR,
+				  "Accepting TCP connection failed: %s",
+				  isc_result_totext(eresult));
 	}
 }
 
@@ -1443,7 +1440,8 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 }
 
 void
-isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
+isc__nm_accept_connection_log(isc_nmsocket_t *sock, isc_result_t result,
+			      bool can_log_quota) {
 	int level;
 
 	switch (result) {
@@ -1464,9 +1462,8 @@ isc__nm_accept_connection_log(isc_result_t result, bool can_log_quota) {
 		level = ISC_LOG_ERROR;
 	}
 
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      level, "Accepting TCP connection failed: %s",
-		      isc_result_totext(result));
+	isc__nmsocket_log(sock, level, "Accepting TCP connection failed: %s",
+			  isc_result_totext(result));
 }
 
 void
@@ -2791,11 +2788,10 @@ isc__nmsocket_log_tls_session_reuse(isc_nmsocket_t *sock, isc_tls_t *tls) {
 
 	isc_sockaddr_format(&sock->peer, client_sabuf, sizeof(client_sabuf));
 	isc_sockaddr_format(&sock->iface, local_sabuf, sizeof(local_sabuf));
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      log_level, "TLS %s session %s for %s on %s",
-		      SSL_is_server(tls) ? "server" : "client",
-		      SSL_session_reused(tls) ? "resumed" : "created",
-		      client_sabuf, local_sabuf);
+	isc__nmsocket_log(sock, log_level, "TLS %s session %s for %s on %s",
+			  SSL_is_server(tls) ? "server" : "client",
+			  SSL_session_reused(tls) ? "resumed" : "created",
+			  client_sabuf, local_sabuf);
 }
 
 static void
@@ -2803,10 +2799,9 @@ isc__networker_destroy(isc__networker_t *worker) {
 	isc_nm_t *netmgr = worker->netmgr;
 	worker->netmgr = NULL;
 
-	isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_NETMGR,
-		      ISC_LOG_DEBUG(1),
-		      "Destroying down network manager worker on loop %p(%d)",
-		      worker->loop, isc_tid());
+	isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
+			"Destroying down network manager worker on loop %p(%d)",
+			worker->loop, isc_tid());
 
 	isc_loop_detach(&worker->loop);
 
@@ -2817,6 +2812,57 @@ isc__networker_destroy(isc__networker_t *worker) {
 }
 
 ISC_REFCOUNT_IMPL(isc__networker, isc__networker_destroy);
+
+void
+isc__netmgr_log(const isc_nm_t *netmgr, int level, const char *fmt, ...) {
+	char msgbuf[2048];
+	va_list ap;
+
+	if (!isc_log_wouldlog(isc_lctx, level)) {
+		return;
+	}
+
+	va_start(ap, fmt);
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+	va_end(ap);
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
+		      level, "netmgr %p: %s", netmgr, msgbuf);
+}
+
+void
+isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...) {
+	char msgbuf[2048];
+	va_list ap;
+
+	if (!isc_log_wouldlog(isc_lctx, level)) {
+		return;
+	}
+
+	va_start(ap, fmt);
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+	va_end(ap);
+
+	isc_log_write(isc_lctx, ISC_LOGCATEGORY_DEFAULT, ISC_LOGMODULE_NETMGR,
+		      level, "socket %p: %s", sock, msgbuf);
+}
+
+void
+isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt,
+		  ...) {
+	char msgbuf[2048];
+	va_list ap;
+
+	if (!isc_log_wouldlog(isc_lctx, level)) {
+		return;
+	}
+
+	va_start(ap, fmt);
+	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
+	va_end(ap);
+
+	isc__nmsocket_log(handle->sock, level, "handle %p: %s", handle, msgbuf);
+}
 
 #ifdef NETMGR_TRACE
 /*
