@@ -766,6 +766,8 @@ shutdown_names(dns_adb_t *adb) {
 	     name = next)
 	{
 		next = ISC_LIST_NEXT(name, link);
+		dns_adbname_ref(name);
+		LOCK(&name->lock);
 		/*
 		 * Run through the list.  For each name, clean up finds
 		 * found there, and cancel any fetches running.  When
@@ -773,6 +775,8 @@ shutdown_names(dns_adb_t *adb) {
 		 * itself.
 		 */
 		expire_name(name, DNS_EVENT_ADBSHUTDOWN, INT_MAX);
+		UNLOCK(&name->lock);
+		dns_adbname_detach(&name);
 	}
 	UNLOCK(&adb->names_lock);
 }
