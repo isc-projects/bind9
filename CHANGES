@@ -1,3 +1,7 @@
+6050.	[bug]		Changes to the RPZ response-policy min-update-interval
+			and add-soa options now take effect as expected when
+			named is reconfigured. [GL #3740]
+
 6048.	[bug]		Fix a log message error in dns_catz_update_from_db(),
 			where serials with values of 2^31 or larger were logged
 			incorrectly as negative numbers. [GL #3742]
