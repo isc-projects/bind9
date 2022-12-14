@@ -1,3 +1,8 @@
+6049.	[bug]		Exclude ABD hashtables from the ADB memory
+			overmem checks and don't clean ADB names
+			and ADB entries used in the last 10 seconds
+			(ADB_CACHE_MINIMUM). [GL #3739]
+
 6048.	[bug]		Fix a log message error in dns_catz_update_from_db(),
 			where serials with values of 2^31 or larger were logged
 			incorrectly as negative numbers. [GL #3742]
