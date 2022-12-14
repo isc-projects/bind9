@@ -1,3 +1,7 @@
+6045.	[cleanup]	The list of supported DNSSEC algorithms changed log
+			level from "warning" to "notice" to match named's other
+			startup messages. [GL !7217]
+
 6044.	[bug]		There was an "RSASHA236" typo in a log message.
 			[GL !7206]
 
