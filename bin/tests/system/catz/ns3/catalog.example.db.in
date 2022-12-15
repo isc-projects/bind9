@@ -9,6 +9,6 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-@ 3600 SOA . . 1 86400 3600 86400 3600
+@ 3600 SOA . . 2670950424 86400 3600 86400 3600
 @ 3600 IN NS invalid.
 version IN TXT "1"

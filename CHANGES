@@ -1,3 +1,7 @@
+6048.	[bug]		Fix a log message error in dns_catz_update_from_db(),
+			where serials with values of 2^31 or larger were logged
+			incorrectly as negative numbers. [GL #3742]
+
 6047.	[bug]		Try the next server instead of trying the same
 			server again on an outgoing query timeout.
 			[GL #3637]
