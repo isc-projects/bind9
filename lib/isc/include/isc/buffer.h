@@ -420,21 +420,6 @@ isc_buffer_putmem(isc_buffer_t *b, const unsigned char *base,
  *\li	The used pointer in 'b' is advanced by 'length'.
  */
 
-void
-isc_buffer_putdecint(isc_buffer_t *b, int64_t v);
-/*!<
- * \brief Put decimal representation of 'v' in b
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least strlen(dec('v'))
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by strlen(dec('v')).
- */
-
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
 /*!<

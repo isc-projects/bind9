@@ -1575,7 +1575,7 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		    (apl_ent.family == 2 && apl_ent.prefix < 128))
 		{
 			isc_buffer_putuint8(aclb, '/');
-			isc_buffer_putdecint(aclb, apl_ent.prefix);
+			isc_buffer_printf(aclb, "%" PRId8, apl_ent.prefix);
 		}
 		isc_buffer_putstr(aclb, "; ");
 	}

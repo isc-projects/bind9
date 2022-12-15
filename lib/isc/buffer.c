@@ -81,29 +81,6 @@ isc_buffer_compact(isc_buffer_t *b) {
 	b->used = length;
 }
 
-void
-isc_buffer_putdecint(isc_buffer_t *b, int64_t v) {
-	unsigned int l = 0;
-	unsigned char *cp;
-	char buf[21];
-	isc_result_t result;
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-
-	/* xxxwpk do it more low-level way ? */
-	l = snprintf(buf, 21, "%" PRId64, v);
-	RUNTIME_CHECK(l <= 21);
-	if (b->autore) {
-		result = isc_buffer_reserve(b, l);
-		REQUIRE(result == ISC_R_SUCCESS);
-	}
-	REQUIRE(isc_buffer_availablelength(b) >= l);
-
-	cp = isc_buffer_used(b);
-	memmove(cp, buf, l);
-	b->used += l;
-}
-
 isc_result_t
 isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 	isc_buffer_t *dst = NULL;
