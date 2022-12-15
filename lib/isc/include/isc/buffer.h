@@ -104,6 +104,7 @@
 #include <stdbool.h>
 
 #include <isc/assertions.h>
+#include <isc/endian.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>
@@ -282,87 +283,141 @@ isc_buffer_compact(isc_buffer_t *b);
  *	are those of the remaining region (as it was before the call).
  */
 
-uint8_t
+static inline isc_result_t
+isc_buffer_peekuint8(const isc_buffer_t *b, uint8_t *valp);
+static inline uint8_t
 isc_buffer_getuint8(isc_buffer_t *b);
+static inline void
+isc_buffer_putuint8(isc_buffer_t *b, uint8_t val);
 /*!<
- * \brief Read an unsigned 8-bit integer from 'b' and return it.
+ * \brief Peek/Read/Write an unsigned 8-bit integer from/to 'b'.
  *
  * Requires:
  *
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the remaining region of 'b' is at least 1.
+ *\li	The length of the available region of 'b' is at least 1
+ *	or the buffer has autoreallocation enabled.
  *
- * Ensures:
+ * Ensures (for Read):
  *
  *\li	The current pointer in 'b' is advanced by 1.
  *
- * Returns:
+ * Ensures (for Write):
  *
- *\li	A 8-bit unsigned integer.
+ *\li	The used pointer in 'b' is advanced by 1.
+ *
+ * Returns (for Peek and Read):
+ *
+ *\li	A 8-bit unsigned integer. (peek and get)
  */
 
-uint16_t
+static inline isc_result_t
+isc_buffer_peekuint16(const isc_buffer_t *b, uint16_t *valp);
+static inline uint16_t
 isc_buffer_getuint16(isc_buffer_t *b);
+static inline void
+isc_buffer_putuint16(isc_buffer_t *b, uint16_t val);
 /*!<
- * \brief Read an unsigned 16-bit integer in network byte order from 'b',
- * convert it to host byte order, and return it.
+ * \brief Peek/Read/Write an unsigned 16-bit integer in network byte order
+ * from/to 'b', convert it to/from host byte order..
  *
  * Requires:
  *
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the remaining region of 'b' is at least 2.
+ *\li	The length of the available region of 'b' is at least 2
+ *	or the buffer has autoreallocation enabled.
  *
- * Ensures:
+ * Ensures (for Read):
  *
  *\li	The current pointer in 'b' is advanced by 2.
  *
- * Returns:
+ * Ensures (for Write):
+ *
+ *\li	The used pointer in 'b' is advanced by 2.
+ *
+ * Returns (for Peek and Read):
  *
  *\li	A 16-bit unsigned integer.
  */
 
-uint32_t
+static inline isc_result_t
+isc_buffer_peekuint32(const isc_buffer_t *b, uint32_t *valp);
+static inline uint32_t
 isc_buffer_getuint32(isc_buffer_t *b);
+static inline void
+isc_buffer_putuint32(isc_buffer_t *b, uint32_t val);
 /*!<
- * \brief Read an unsigned 32-bit integer in network byte order from 'b',
- * convert it to host byte order, and return it.
+ * \brief Peek/Read/Write an unsigned 32-bit integer in network byte order
+ * from/to 'b', convert it to/from host byte order.
  *
  * Requires:
  *
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the remaining region of 'b' is at least 4.
+ *\li	The length of the available region of 'b' is at least 4
+ *	or the buffer has autoreallocation enabled.
  *
- * Ensures:
+ * Ensures (for Read):
  *
  *\li	The current pointer in 'b' is advanced by 4.
  *
- * Returns:
+ * Ensures (for Write):
+ *
+ *\li	The used pointer in 'b' is advanced by 4.
+ *
+ * Returns (for Peek and Read):
  *
  *\li	A 32-bit unsigned integer.
  */
 
-uint64_t
+static inline isc_result_t
+isc_buffer_peekuint48(const isc_buffer_t *b, uint64_t *valp);
+static inline uint64_t
 isc_buffer_getuint48(isc_buffer_t *b);
+static inline void
+isc_buffer_putuint48(isc_buffer_t *b, uint64_t val);
 /*!<
- * \brief Read an unsigned 48-bit integer in network byte order from 'b',
- * convert it to host byte order, and return it.
+ * \brief Peek/Read/Write an unsigned 48-bit integer in network byte order
+ * from/to 'b', convert it to/from host byte order.
  *
  * Requires:
  *
  *\li	'b' is a valid buffer.
  *
- *\li	The length of the remaining region of 'b' is at least 6.
+ *\li	The length of the available region of 'b' is at least 6
+ *	or the buffer has autoreallocation enabled.
  *
- * Ensures:
+ * Ensures (for Read):
  *
  *\li	The current pointer in 'b' is advanced by 6.
  *
- * Returns:
+ * Ensures (for Write):
+ *
+ *\li	The used pointer in 'b' is advanced by 6.
+ *
+ * Returns (for Peek and Read):
  *
  *\li	A 48-bit unsigned integer (stored in a 64-bit integer).
+ */
+
+static inline void
+isc_buffer_putmem(isc_buffer_t *b, const unsigned char *base,
+		  unsigned int length);
+/*!<
+ * \brief Copy 'length' bytes of memory at 'base' into 'b'.
+ *
+ * Requires:
+ *\li	'b' is a valid buffer.
+ *
+ *\li	'base' points to 'length' bytes of valid memory.
+ *
+ *\li	The length of the available region of 'b' is at least 'length'
+ *	or the buffer has autoreallocation enabled.
+ *
+ * Ensures:
+ *\li	The used pointer in 'b' is advanced by 'length'.
  */
 
 void
@@ -782,193 +837,156 @@ isc_buffer_back(isc_buffer_t *b, unsigned int n) {
 	b->current -= n;
 }
 
-/*!
- * \brief Store an unsigned 8-bit integer from 'val' into 'b'.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least 1
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 1.
- */
-static inline void
-isc_buffer_putuint8(isc_buffer_t *b, uint8_t val) {
-	unsigned char *cp;
-
-	ISC_REQUIRE(ISC_BUFFER_VALID(b));
-
-	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, 1) == ISC_R_SUCCESS);
+#define ISC_BUFFER_PEEK_CHECK(b, s)                 \
+	{                                           \
+		REQUIRE(ISC_BUFFER_VALID(b));       \
+		if ((b)->used - (b)->current < s) { \
+			return (ISC_R_NOMORE);      \
+		}                                   \
 	}
 
-	ISC_REQUIRE(isc_buffer_availablelength(b) >= 1U);
+static inline isc_result_t
+isc_buffer_peekuint8(const isc_buffer_t *b, uint8_t *valp) {
+	ISC_BUFFER_PEEK_CHECK(b, sizeof(*valp));
 
-	cp = isc_buffer_used(b);
-	b->used++;
+	uint8_t *cp = isc_buffer_current(b);
+	if (valp != NULL) {
+		*valp = (uint8_t)(cp[0]);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static inline uint8_t
+isc_buffer_getuint8(isc_buffer_t *b) {
+	uint8_t	     val = 0;
+	isc_result_t result = isc_buffer_peekuint8(b, &val);
+	ENSURE(result == ISC_R_SUCCESS);
+	b->current += sizeof(val);
+	return (val);
+}
+
+#define ISC_BUFFER_PUT_RESERVE(b, v)                                           \
+	{                                                                      \
+		REQUIRE(ISC_BUFFER_VALID(b));                                  \
+                                                                               \
+		if (b->autore) {                                               \
+			isc_result_t result = isc_buffer_reserve(b,            \
+								 sizeof(val)); \
+			ENSURE(result == ISC_R_SUCCESS);                       \
+		}                                                              \
+                                                                               \
+		REQUIRE(isc_buffer_availablelength(b) >= sizeof(val));         \
+	}
+
+static inline void
+isc_buffer_putuint8(isc_buffer_t *b, uint8_t val) {
+	ISC_BUFFER_PUT_RESERVE(b, val);
+
+	uint8_t *cp = isc_buffer_used(b);
+	b->used += sizeof(val);
 	cp[0] = val;
 }
 
-/*!
- * \brief Store an unsigned 16-bit integer in host byte order from 'val'
- * into 'b' in network byte order.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least 2
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 2.
- */
+static inline isc_result_t
+isc_buffer_peekuint16(const isc_buffer_t *b, uint16_t *valp) {
+	ISC_BUFFER_PEEK_CHECK(b, sizeof(*valp));
+
+	uint8_t *cp = isc_buffer_current(b);
+
+	if (valp != NULL) {
+		*valp = ISC_U8TO16_BE(cp);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static inline uint16_t
+isc_buffer_getuint16(isc_buffer_t *b) {
+	uint16_t     val = 0;
+	isc_result_t result = isc_buffer_peekuint16(b, &val);
+	ENSURE(result == ISC_R_SUCCESS);
+	b->current += sizeof(val);
+	return (val);
+}
+
 static inline void
 isc_buffer_putuint16(isc_buffer_t *b, uint16_t val) {
-	unsigned char *cp;
+	ISC_BUFFER_PUT_RESERVE(b, val);
 
-	ISC_REQUIRE(ISC_BUFFER_VALID(b));
-
-	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, 2) == ISC_R_SUCCESS);
-	}
-
-	ISC_REQUIRE(isc_buffer_availablelength(b) >= 2U);
-
-	cp = isc_buffer_used(b);
-	b->used += 2;
-	cp[0] = (unsigned char)(val >> 8);
-	cp[1] = (unsigned char)val;
+	uint8_t *cp = isc_buffer_used(b);
+	b->used += sizeof(val);
+	ISC_U16TO8_BE(cp, val);
 }
 
-/*!
- * Store an unsigned 24-bit integer in host byte order from 'val'
- * into 'b' in network byte order.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least 3
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 3.
- */
-static inline void
-isc_buffer_putuint24(isc_buffer_t *b, uint32_t val) {
-	unsigned char *cp;
+static inline isc_result_t
+isc_buffer_peekuint32(const isc_buffer_t *b, uint32_t *valp) {
+	ISC_BUFFER_PEEK_CHECK(b, sizeof(*valp));
 
-	ISC_REQUIRE(ISC_BUFFER_VALID(b));
+	uint8_t *cp = isc_buffer_current(b);
 
-	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, 3) == ISC_R_SUCCESS);
+	if (valp != NULL) {
+		*valp = ISC_U8TO32_BE(cp);
 	}
-
-	ISC_REQUIRE(isc_buffer_availablelength(b) >= 3U);
-
-	cp = isc_buffer_used(b);
-	b->used += 3;
-	cp[0] = (unsigned char)(val >> 16);
-	cp[1] = (unsigned char)(val >> 8);
-	cp[2] = (unsigned char)val;
+	return (ISC_R_SUCCESS);
 }
 
-/*!
- * \brief Store an unsigned 32-bit integer in host byte order from 'val'
- * into 'b' in network byte order.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least 4
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 4.
- */
+uint32_t
+isc_buffer_getuint32(isc_buffer_t *b) {
+	uint32_t     val = 0;
+	isc_result_t result = isc_buffer_peekuint32(b, &val);
+	ENSURE(result == ISC_R_SUCCESS);
+	b->current += sizeof(val);
+	return (val);
+}
+
 static inline void
 isc_buffer_putuint32(isc_buffer_t *b, uint32_t val) {
-	unsigned char *cp;
+	ISC_BUFFER_PUT_RESERVE(b, val);
 
-	ISC_REQUIRE(ISC_BUFFER_VALID(b));
+	uint8_t *cp = isc_buffer_used(b);
+	b->used += sizeof(val);
 
-	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, 4) == ISC_R_SUCCESS);
-	}
-
-	ISC_REQUIRE(isc_buffer_availablelength(b) >= 4U);
-
-	cp = isc_buffer_used(b);
-	b->used += 4;
-	cp[0] = (unsigned char)(val >> 24);
-	cp[1] = (unsigned char)(val >> 16);
-	cp[2] = (unsigned char)(val >> 8);
-	cp[3] = (unsigned char)val;
+	ISC_U32TO8_BE(cp, val);
 }
 
-/*!
- * \brief Store an unsigned 48-bit integer in host byte order from 'val'
- * into 'b' in network byte order.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	The length of the available region of 'b' is at least 6
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 6.
- */
+static inline isc_result_t
+isc_buffer_peekuint48(const isc_buffer_t *b, uint64_t *valp) {
+	ISC_BUFFER_PEEK_CHECK(b, 6); /* 48-bits */
+
+	uint8_t *cp = isc_buffer_current(b);
+
+	if (valp != NULL) {
+		*valp = ISC_U8TO48_BE(cp);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static inline uint64_t
+isc_buffer_getuint48(isc_buffer_t *b) {
+	uint64_t     val = 0;
+	isc_result_t result = isc_buffer_peekuint48(b, &val);
+	ENSURE(result == ISC_R_SUCCESS);
+	b->current += 6; /* 48-bits */
+	return (val);
+}
+
 static inline void
 isc_buffer_putuint48(isc_buffer_t *b, uint64_t val) {
-	unsigned char *cp = NULL;
+	ISC_BUFFER_PUT_RESERVE(b, val);
 
-	ISC_REQUIRE(ISC_BUFFER_VALID(b));
-
-	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, 6) == ISC_R_SUCCESS);
-	}
-
-	ISC_REQUIRE(isc_buffer_availablelength(b) >= 6U);
-
-	cp = isc_buffer_used(b);
+	uint8_t *cp = isc_buffer_used(b);
 	b->used += 6;
-	cp[0] = (unsigned char)(val >> 40);
-	cp[1] = (unsigned char)(val >> 32);
-	cp[2] = (unsigned char)(val >> 24);
-	cp[3] = (unsigned char)(val >> 16);
-	cp[4] = (unsigned char)(val >> 8);
-	cp[5] = (unsigned char)val;
+
+	ISC_U48TO8_BE(cp, val);
 }
 
-/*!
- * \brief Copy 'length' bytes of memory at 'base' into 'b'.
- *
- * Requires:
- *\li	'b' is a valid buffer.
- *
- *\li	'base' points to 'length' bytes of valid memory.
- *
- *\li	The length of the available region of 'b' is at least 'length'
- *	or the buffer has autoreallocation enabled.
- *
- * Ensures:
- *\li	The used pointer in 'b' is advanced by 'length'.
- */
 static inline void
 isc_buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 		  unsigned int length) {
 	ISC_REQUIRE(ISC_BUFFER_VALID(b));
 
 	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, length) == ISC_R_SUCCESS);
+		isc_result_t result = isc_buffer_reserve(b, length);
+		ISC_REQUIRE(result == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= (unsigned int)length);
@@ -1003,8 +1021,8 @@ isc_buffer_putstr(isc_buffer_t *b, const char *source) {
 
 	length = (unsigned int)strlen(source);
 	if (b->autore) {
-		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(tmp, length) == ISC_R_SUCCESS);
+		isc_result_t result = isc_buffer_reserve(b, length);
+		ISC_ENSURE(result == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= length);

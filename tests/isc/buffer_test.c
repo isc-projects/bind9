@@ -136,14 +136,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 
 	assert_true(b->length - last_length >= 10000 * 2);
 
-	last_length += 10000 * 2;
-	for (i = 0; i < 10000; i++) {
-		isc_buffer_putuint24(b, 1);
-	}
-	assert_true(b->length - last_length >= 10000 * 3);
-
-	last_length += 10000 * 3;
-
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint32(b, 1);
 	}

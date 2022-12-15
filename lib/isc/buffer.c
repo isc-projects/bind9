@@ -10,7 +10,6 @@
  * See the COPYRIGHT file distributed with this work for additional
  * information regarding copyright ownership.
  */
-
 /*! \file */
 
 #include <inttypes.h>
@@ -80,94 +79,6 @@ isc_buffer_compact(isc_buffer_t *b) {
 	}
 	b->current = 0;
 	b->used = length;
-}
-
-uint8_t
-isc_buffer_getuint8(isc_buffer_t *b) {
-	unsigned char *cp;
-	uint8_t result;
-
-	/*
-	 * Read an unsigned 8-bit integer from 'b' and return it.
-	 */
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->used - b->current >= 1);
-
-	cp = isc_buffer_current(b);
-	b->current += 1;
-	result = ((uint8_t)(cp[0]));
-
-	return (result);
-}
-
-uint16_t
-isc_buffer_getuint16(isc_buffer_t *b) {
-	unsigned char *cp;
-	uint16_t result;
-
-	/*
-	 * Read an unsigned 16-bit integer in network byte order from 'b',
-	 * convert it to host byte order, and return it.
-	 */
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->used - b->current >= 2);
-
-	cp = isc_buffer_current(b);
-	b->current += 2;
-	result = ((unsigned int)(cp[0])) << 8;
-	result |= ((unsigned int)(cp[1]));
-
-	return (result);
-}
-
-uint32_t
-isc_buffer_getuint32(isc_buffer_t *b) {
-	unsigned char *cp;
-	uint32_t result;
-
-	/*
-	 * Read an unsigned 32-bit integer in network byte order from 'b',
-	 * convert it to host byte order, and return it.
-	 */
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->used - b->current >= 4);
-
-	cp = isc_buffer_current(b);
-	b->current += 4;
-	result = ((unsigned int)(cp[0])) << 24;
-	result |= ((unsigned int)(cp[1])) << 16;
-	result |= ((unsigned int)(cp[2])) << 8;
-	result |= ((unsigned int)(cp[3]));
-
-	return (result);
-}
-
-uint64_t
-isc_buffer_getuint48(isc_buffer_t *b) {
-	unsigned char *cp;
-	uint64_t result;
-
-	/*
-	 * Read an unsigned 48-bit integer in network byte order from 'b',
-	 * convert it to host byte order, and return it.
-	 */
-
-	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->used - b->current >= 6);
-
-	cp = isc_buffer_current(b);
-	b->current += 6;
-	result = ((int64_t)(cp[0])) << 40;
-	result |= ((int64_t)(cp[1])) << 32;
-	result |= ((int64_t)(cp[2])) << 24;
-	result |= ((int64_t)(cp[3])) << 16;
-	result |= ((int64_t)(cp[4])) << 8;
-	result |= ((int64_t)(cp[5]));
-
-	return (result);
 }
 
 void
