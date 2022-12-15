@@ -562,7 +562,6 @@ isc__httpd_sendreq_new(isc_httpd_t *httpd) {
 	 */
 	isc_buffer_allocate(req->mctx, &req->sendbuffer, HTTP_SENDLEN);
 	isc_buffer_clear(req->sendbuffer);
-	isc_buffer_setautorealloc(req->sendbuffer, true);
 
 	isc_buffer_initnull(&req->bodybuffer);
 

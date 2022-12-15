@@ -113,8 +113,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 	assert_non_null(b);
 	assert_int_equal(b->length, last_length);
 
-	isc_buffer_setautorealloc(b, true);
-
 	isc_buffer_putuint8(b, 1);
 
 	for (i = 0; i < 1000; i++) {
@@ -166,15 +164,8 @@ ISC_RUN_TEST_IMPL(isc_buffer_copyregion) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
-	 * Appending more data to the buffer should fail.
+	 * Appending should succeed.
 	 */
-	result = isc_buffer_copyregion(b, &r);
-	assert_int_equal(result, ISC_R_NOSPACE);
-
-	/*
-	 * Enable auto reallocation and retry.  Appending should now succeed.
-	 */
-	isc_buffer_setautorealloc(b, true);
 	result = isc_buffer_copyregion(b, &r);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -196,7 +187,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_printf) {
 	 */
 	b = NULL;
 	isc_buffer_allocate(mctx, &b, 0);
-	isc_buffer_setautorealloc(b, true);
 
 	/*
 	 * Sanity check.

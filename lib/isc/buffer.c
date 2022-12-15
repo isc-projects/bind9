@@ -36,7 +36,7 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 	 */
 	REQUIRE(b->length <= length);
 	REQUIRE(base != NULL);
-	REQUIRE(!b->autore);
+	REQUIRE(b->mctx == NULL);
 
 	if (b->length > 0U) {
 		(void)memmove(base, b->base, b->length);
@@ -44,13 +44,6 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 
 	b->base = base;
 	b->length = length;
-}
-
-void
-isc_buffer_setautorealloc(isc_buffer_t *b, bool enable) {
-	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->mctx != NULL);
-	b->autore = enable;
 }
 
 void
@@ -107,7 +100,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	if (b->autore) {
+	if (b->mctx) {
 		result = isc_buffer_reserve(b, r->length);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
@@ -135,8 +128,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	unsigned char *bdata = isc_mem_get(mctx, length);
 
 	isc_buffer_init(dbuf, bdata, length);
-
-	ENSURE(ISC_BUFFER_VALID(dbuf));
 
 	dbuf->mctx = mctx;
 
@@ -213,7 +204,7 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 		return (ISC_R_FAILURE);
 	}
 
-	if (b->autore) {
+	if (b->mctx) {
 		result = isc_buffer_reserve(b, n + 1);
 		if (result != ISC_R_SUCCESS) {
 			return (result);

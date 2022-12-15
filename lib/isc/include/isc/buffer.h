@@ -182,8 +182,6 @@ struct isc_buffer {
 	ISC_LINK(isc_buffer_t) link;
 	/*! private internal elements */
 	isc_mem_t *mctx;
-	/* automatically realloc buffer at put* */
-	bool autore;
 };
 
 /***
@@ -250,16 +248,6 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length);
  *\li	'length' > 0 AND length >= previous length
  *
  *\li	'base' is a pointer to a sequence of 'length' bytes.
- *
- */
-
-void
-isc_buffer_setautorealloc(isc_buffer_t *b, bool enable);
-/*!<
- * \brief Enable or disable autoreallocation on 'b'.
- *
- * Requires:
- *\li	'b' is a valid dynamic buffer (b->mctx != NULL).
  *
  */
 
@@ -854,7 +842,7 @@ isc_buffer_getuint8(isc_buffer_t *b) {
 	{                                                                      \
 		REQUIRE(ISC_BUFFER_VALID(b));                                  \
                                                                                \
-		if (b->autore) {                                               \
+		if (b->mctx) {                                                 \
 			isc_result_t result = isc_buffer_reserve(b,            \
 								 sizeof(val)); \
 			ENSURE(result == ISC_R_SUCCESS);                       \
@@ -969,7 +957,7 @@ isc_buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 		  unsigned int length) {
 	ISC_REQUIRE(ISC_BUFFER_VALID(b));
 
-	if (b->autore) {
+	if (b->mctx) {
 		isc_result_t result = isc_buffer_reserve(b, length);
 		ISC_REQUIRE(result == ISC_R_SUCCESS);
 	}
@@ -1005,7 +993,7 @@ isc_buffer_putstr(isc_buffer_t *b, const char *source) {
 	ISC_REQUIRE(source != NULL);
 
 	length = (unsigned int)strlen(source);
-	if (b->autore) {
+	if (b->mctx) {
 		isc_result_t result = isc_buffer_reserve(b, length);
 		ISC_ENSURE(result == ISC_R_SUCCESS);
 	}

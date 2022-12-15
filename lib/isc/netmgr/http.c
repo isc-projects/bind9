@@ -443,7 +443,6 @@ new_http_cstream(isc_nmsocket_t *sock, http_cstream_t **streamp) {
 
 	isc_buffer_allocate(mctx, &stream->rbuf,
 			    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
-	isc_buffer_setautorealloc(stream->rbuf, true);
 
 	ISC_LIST_PREPEND(sock->h2.session->cstreams, stream, link);
 	*streamp = stream;
@@ -1005,7 +1004,6 @@ http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		if (session->buf == NULL) {
 			isc_buffer_allocate(session->mctx, &session->buf,
 					    unread_size);
-			isc_buffer_setautorealloc(session->buf, true);
 		}
 		isc_buffer_putmem(session->buf, region->base + readlen,
 				  unread_size);
@@ -1121,8 +1119,6 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 			isc_buffer_allocate(session->mctx,
 					    &session->pending_write_data,
 					    INITIAL_DNS_MESSAGE_BUFFER_SIZE);
-			isc_buffer_setautorealloc(session->pending_write_data,
-						  true);
 		}
 		isc_buffer_putmem(session->pending_write_data, data, pending);
 		total = new_total;
@@ -1267,13 +1263,15 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 
 	if (nghttp2_session_want_read(session->ngsession) != 0) {
 		if (!session->reading) {
-			/* We have not yet started reading from this handle */
+			/* We have not yet started
+			 * reading from this handle */
 			isc_nm_read(session->handle, http_readcb, session);
 			session->reading = true;
 		} else if (session->buf != NULL) {
 			size_t remaining =
 				isc_buffer_remaininglength(session->buf);
-			/* Leftover data in the buffer, use it */
+			/* Leftover data in the
+			 * buffer, use it */
 			size_t readlen = nghttp2_session_mem_recv(
 				session->ngsession,
 				isc_buffer_current(session->buf), remaining);
@@ -1288,7 +1286,9 @@ http_do_bio(isc_nm_http_session_t *session, isc_nmhandle_t *send_httphandle,
 				    send_cbarg);
 			return;
 		} else {
-			/* Resume reading, it's idempotent, wait for more */
+			/* Resume reading, it's
+			 * idempotent, wait for more
+			 */
 			isc_nm_read(session->handle, http_readcb, session);
 		}
 	} else {
@@ -1406,9 +1406,10 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			   NGHTTP2_PROTO_VERSION_ID_LEN) != 0)
 		{
 			/*
-			 * HTTP/2 negotiation error. Any sensible DoH
-			 * client will fail if HTTP/2 cannot be
-			 * negotiated via ALPN.
+			 * HTTP/2 negotiation error.
+			 * Any sensible DoH client
+			 * will fail if HTTP/2 cannot
+			 * be negotiated via ALPN.
 			 */
 			result = ISC_R_HTTP2ALPNERROR;
 			goto error;
@@ -2346,9 +2347,12 @@ server_on_frame_recv_callback(nghttp2_session *ngsession,
 				ngsession, frame->hd.stream_id);
 
 			/*
-			 * For DATA and HEADERS frame, this callback may be
-			 * called after on_stream_close_callback. Check that
-			 * the stream is still alive.
+			 * For DATA and HEADERS frame,
+			 * this callback may be called
+			 * after
+			 * on_stream_close_callback.
+			 * Check that the stream is
+			 * still alive.
 			 */
 			if (socket == NULL) {
 				return (0);
@@ -3168,9 +3172,12 @@ isc__nm_base64_to_base64url(isc_mem_t *mem, const char *base64,
 			break;
 		default:
 			/*
-			 * All other characters from the alphabet are the same
-			 * for both base64 and base64url, so we can reuse the
-			 * validation table for the rest of the characters.
+			 * All other characters from
+			 * the alphabet are the same
+			 * for both base64 and
+			 * base64url, so we can reuse
+			 * the validation table for
+			 * the rest of the characters.
 			 */
 			if (base64[i] != '-' && base64[i] != '_' &&
 			    base64url_validation_table[(size_t)base64[i]])

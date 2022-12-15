@@ -1548,7 +1548,6 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		return (result);
 	}
 	isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
-	isc_buffer_setautorealloc(aclb, true);
 	for (result = dns_rdata_apl_first(&rdata_apl); result == ISC_R_SUCCESS;
 	     result = dns_rdata_apl_next(&rdata_apl))
 	{
@@ -1940,7 +1939,6 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 */
 	isc_buffer_allocate(zone->catzs->mctx, &buffer, ISC_BUFFER_INCR);
 
-	isc_buffer_setautorealloc(buffer, true);
 	isc_buffer_putstr(buffer, "zone \"");
 	dns_name_totext(&entry->name, true, buffer);
 	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
