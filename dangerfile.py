@@ -91,8 +91,6 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #         - lines which contain references (i.e. those starting with "[1]",
 #           "[2]", etc.) which allows e.g. long URLs to be included in the
 #           commit log message.
-#
-#     * There is no "cherry picked from X" message in Backport commits.
 
 PROHIBITED_WORDS_RE = re.compile(
     "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
@@ -141,11 +139,6 @@ for commit in danger.git.commits:
                 f"Line too long in log message for commit {commit.sha}: "
                 f"```{line}``` ({len(line)} > 72 characters)."
             )
-    if is_backport and "cherry picked from commit" not in commit.message:
-        warn(
-            f"`cherry picked from commit...` message missing in commit {commit.sha}. "
-            "Please use `-x` option with `git cherry-pick` or remove the `Backport` label."
-        )
 
 ###############################################################################
 # MILESTONE
