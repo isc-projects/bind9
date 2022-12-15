@@ -341,13 +341,13 @@ free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
 static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbname_t *
-get_attached_name(dns_adb_t *, const dns_name_t *, bool start_at_zone,
-		  isc_stdtime_t now);
+get_attached_and_locked_name(dns_adb_t *, const dns_name_t *,
+			     bool start_at_zone, isc_stdtime_t now);
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now);
 static dns_adbentry_t *
-get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
-		   const isc_sockaddr_t *addr);
+get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
+			      const isc_sockaddr_t *addr);
 static void
 dump_adb(dns_adb_t *, FILE *, bool debug, isc_stdtime_t);
 static void
@@ -598,9 +598,8 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		}
 
 	again:
-		entry = get_attached_entry(adb, now, &sockaddr);
+		entry = get_attached_and_locked_entry(adb, now, &sockaddr);
 
-		LOCK(&entry->lock);
 		if (ENTRY_DEAD(entry)) {
 			UNLOCK(&entry->lock);
 			dns_adbentry_detach(&entry);
@@ -1329,8 +1328,8 @@ free_adbaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **ainfo) {
  * Search for the name in the hash table.
  */
 static dns_adbname_t *
-get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
-		  isc_stdtime_t now) {
+get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
+			     bool start_at_zone, isc_stdtime_t now) {
 	isc_result_t result;
 	dns_adbname_t *adbname = NULL;
 	uint32_t hashval;
@@ -1348,7 +1347,7 @@ get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
 
 	LOCK(&adb->names_lock);
 	last_update = adb->names_last_update;
-	if (now - last_update > ADB_STALE_MARGIN ||
+	if (last_update + ADB_STALE_MARGIN < now ||
 	    atomic_load_relaxed(&adb->is_overmem))
 	{
 		last_update = adb->names_last_update = now;
@@ -1362,30 +1361,31 @@ get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
 	case ISC_R_NOTFOUND:
 		/* Allocate a new name and add it to the hash table. */
 		adbname = new_adbname(adb, name, start_at_zone);
-		dns_adbname_ref(adbname);
-		adbname->last_used = now;
 
 		result = isc_hashmap_add(adb->names, &hashval,
 					 &adbname->key.key, adbname->key.size,
 					 adbname);
 		INSIST(result == ISC_R_SUCCESS);
 
+		LOCK(&adbname->lock); /* Must be unlocked by the caller */
+		adbname->last_used = now;
+
 		ISC_LIST_PREPEND(adb->names_lru, adbname, link);
 		break;
 	case ISC_R_SUCCESS:
-		dns_adbname_ref(adbname);
-		LOCK(&adbname->lock);
+		LOCK(&adbname->lock); /* Must be unlocked by the caller */
 		if (adbname->last_used + ADB_STALE_MARGIN <= last_update) {
 			adbname->last_used = now;
 
 			ISC_LIST_UNLINK(adb->names_lru, adbname, link);
 			ISC_LIST_PREPEND(adb->names_lru, adbname, link);
 		}
-		UNLOCK(&adbname->lock);
 		break;
 	default:
 		UNREACHABLE();
 	}
+
+	dns_adbname_ref(adbname);
 	/*
 	 * The refcount is now 2 and the final detach will happen in
 	 * expire_name() - the unused adbname stored in the hashtable and lru
@@ -1400,8 +1400,8 @@ get_attached_name(dns_adb_t *adb, const dns_name_t *name, bool start_at_zone,
  * Find the entry in the adb->entries hashtable.
  */
 static dns_adbentry_t *
-get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
-		   const isc_sockaddr_t *addr) {
+get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
+			      const isc_sockaddr_t *addr) {
 	isc_result_t result;
 	dns_adbentry_t *adbentry = NULL;
 	isc_time_t timenow;
@@ -1429,20 +1429,20 @@ get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
 	create:
 		/* Allocate a new entry and add it to the hash table. */
 		adbentry = new_adbentry(adb, addr);
-		dns_adbentry_ref(adbentry);
-		adbentry->last_used = now;
 
 		result = isc_hashmap_add(adb->entries, &hashval,
 					 &adbentry->sockaddr,
 					 sizeof(adbentry->sockaddr), adbentry);
 		INSIST(result == ISC_R_SUCCESS);
 
+		LOCK(&adbentry->lock); /* Must be unlocked by the caller */
+		adbentry->last_used = now;
+
 		ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
 		break;
 	}
 	case ISC_R_SUCCESS:
-		dns_adbentry_ref(adbentry);
-		LOCK(&adbentry->lock);
+		LOCK(&adbentry->lock); /* Must be unlocked by the caller */
 		if (maybe_expire_entry(adbentry, now)) {
 			UNLOCK(&adbentry->lock);
 			dns_adbentry_detach(&adbentry);
@@ -1454,11 +1454,12 @@ get_attached_entry(dns_adb_t *adb, isc_stdtime_t now,
 			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
 			ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
 		}
-		UNLOCK(&adbentry->lock);
 		break;
 	default:
 		UNREACHABLE();
 	}
+
+	dns_adbentry_ref(adbentry);
 
 	UNLOCK(&adb->entries_lock);
 
@@ -2071,9 +2072,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 again:
 	/* Try to see if we know anything about this name at all. */
-	adbname = get_attached_name(adb, name, FIND_STARTATZONE(find), now);
+	adbname = get_attached_and_locked_name(adb, name,
+					       FIND_STARTATZONE(find), now);
 
-	LOCK(&adbname->lock);
 	if (NAME_DEAD(adbname)) {
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
@@ -3506,10 +3507,8 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
-	entry = get_attached_entry(adb, now, sa);
+	entry = get_attached_and_locked_entry(adb, now, sa);
 	INSIST(entry != NULL);
-
-	LOCK(&entry->lock);
 
 	port = isc_sockaddr_getport(sa);
 	addr = new_adbaddrinfo(adb, entry, port);
