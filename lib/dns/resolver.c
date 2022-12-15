@@ -11415,7 +11415,7 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 			 " spilled %" PRIuFAST32 ")",
 			 nb, count, allowed, dropped);
 
-		result = isc_buffer_reserve(buf, strlen(text));
+		result = isc_buffer_reserve(*buf, strlen(text));
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}

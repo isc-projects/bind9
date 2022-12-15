@@ -2713,7 +2713,7 @@ static isc_result_t
 putstr(isc_buffer_t **b, const char *str) {
 	isc_result_t result;
 
-	result = isc_buffer_reserve(b, strlen(str));
+	result = isc_buffer_reserve(*b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

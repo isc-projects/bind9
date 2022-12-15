@@ -183,7 +183,7 @@ isc_buffer_putdecint(isc_buffer_t *b, int64_t v) {
 	l = snprintf(buf, 21, "%" PRId64, v);
 	RUNTIME_CHECK(l <= 21);
 	if (b->autore) {
-		result = isc_buffer_reserve(&b, l);
+		result = isc_buffer_reserve(b, l);
 		REQUIRE(result == ISC_R_SUCCESS);
 	}
 	REQUIRE(isc_buffer_availablelength(b) >= l);
@@ -220,7 +220,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	REQUIRE(r != NULL);
 
 	if (b->autore) {
-		result = isc_buffer_reserve(&b, r->length);
+		result = isc_buffer_reserve(b, r->length);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -256,23 +256,22 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 }
 
 isc_result_t
-isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
+isc_buffer_reserve(isc_buffer_t *dynbuffer, unsigned int size) {
 	size_t len;
 
-	REQUIRE(dynbuffer != NULL);
-	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
+	REQUIRE(ISC_BUFFER_VALID(dynbuffer));
 
-	len = (*dynbuffer)->length;
-	if ((len - (*dynbuffer)->used) >= size) {
+	len = dynbuffer->length;
+	if ((len - dynbuffer->used) >= size) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((*dynbuffer)->mctx == NULL) {
+	if (dynbuffer->mctx == NULL) {
 		return (ISC_R_NOSPACE);
 	}
 
 	/* Round to nearest buffer size increment */
-	len = size + (*dynbuffer)->used;
+	len = size + dynbuffer->used;
 	len = (len + ISC_BUFFER_INCR - 1 - ((len - 1) % ISC_BUFFER_INCR));
 
 	/* Cap at UINT_MAX */
@@ -280,14 +279,13 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 		len = UINT_MAX;
 	}
 
-	if ((len - (*dynbuffer)->used) < size) {
+	if ((len - dynbuffer->used) < size) {
 		return (ISC_R_NOMEMORY);
 	}
 
-	(*dynbuffer)->base = isc_mem_reget((*dynbuffer)->mctx,
-					   (*dynbuffer)->base,
-					   (*dynbuffer)->length, len);
-	(*dynbuffer)->length = (unsigned int)len;
+	dynbuffer->base = isc_mem_reget(dynbuffer->mctx, dynbuffer->base,
+					dynbuffer->length, len);
+	dynbuffer->length = (unsigned int)len;
 
 	return (ISC_R_SUCCESS);
 }
@@ -328,7 +326,7 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 	}
 
 	if (b->autore) {
-		result = isc_buffer_reserve(&b, n + 1);
+		result = isc_buffer_reserve(b, n + 1);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}

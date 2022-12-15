@@ -206,24 +206,17 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
  */
 
 isc_result_t
-isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size);
+isc_buffer_reserve(isc_buffer_t *dynbuffer, unsigned int size);
 /*!<
  * \brief Make "size" bytes of space available in the buffer. The buffer
  * pointer may move when you call this function.
  *
  * Requires:
- *\li	"dynbuffer" is not NULL.
- *
- *\li	"*dynbuffer" is a valid dynamic buffer.
+ *\li	"dynbuffer" is a valid dynamic buffer.
  *
  * Returns:
  *\li	ISC_R_SUCCESS		- success
  *\li	ISC_R_NOMEMORY		- no memory available
- *
- * Ensures:
- *\li	"*dynbuffer" will be valid on return and will contain all the
- *	original data. However, the buffer pointer may be moved during
- *	reallocation.
  */
 
 void
@@ -809,7 +802,7 @@ isc_buffer_putuint8(isc_buffer_t *b, uint8_t val) {
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, 1) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, 1) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= 1U);
@@ -840,7 +833,7 @@ isc_buffer_putuint16(isc_buffer_t *b, uint16_t val) {
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, 2) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, 2) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= 2U);
@@ -872,7 +865,7 @@ isc_buffer_putuint24(isc_buffer_t *b, uint32_t val) {
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, 3) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, 3) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= 3U);
@@ -905,7 +898,7 @@ isc_buffer_putuint32(isc_buffer_t *b, uint32_t val) {
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, 4) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, 4) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= 4U);
@@ -939,7 +932,7 @@ isc_buffer_putuint48(isc_buffer_t *b, uint64_t val) {
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, 6) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, 6) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= 6U);
@@ -975,7 +968,7 @@ isc_buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, length) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, length) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= (unsigned int)length);
@@ -1011,7 +1004,7 @@ isc_buffer_putstr(isc_buffer_t *b, const char *source) {
 	length = (unsigned int)strlen(source);
 	if (b->autore) {
 		isc_buffer_t *tmp = b;
-		ISC_REQUIRE(isc_buffer_reserve(&tmp, length) == ISC_R_SUCCESS);
+		ISC_REQUIRE(isc_buffer_reserve(tmp, length) == ISC_R_SUCCESS);
 	}
 
 	ISC_REQUIRE(isc_buffer_availablelength(b) >= length);

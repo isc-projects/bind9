@@ -1568,7 +1568,7 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		if (apl_ent.negative) {
 			isc_buffer_putuint8(aclb, '!');
 		}
-		isc_buffer_reserve(&aclb, INET6_ADDRSTRLEN);
+		isc_buffer_reserve(aclb, INET6_ADDRSTRLEN);
 		result = isc_netaddr_totext(&addr, aclb);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if ((apl_ent.family == 1 && apl_ent.prefix < 32) ||
@@ -1872,7 +1872,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		rlen += strlen(entry->opts.zonedir) + 1;
 	}
 
-	result = isc_buffer_reserve(buffer, (unsigned int)rlen);
+	result = isc_buffer_reserve(*buffer, (unsigned int)rlen);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1981,7 +1981,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		}
 		isc_netaddr_fromsockaddr(&netaddr,
 					 &entry->opts.masters.addrs[i]);
-		isc_buffer_reserve(&buffer, INET6_ADDRSTRLEN);
+		isc_buffer_reserve(buffer, INET6_ADDRSTRLEN);
 		result = isc_netaddr_totext(&netaddr, buffer);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 

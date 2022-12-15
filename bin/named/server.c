@@ -7971,8 +7971,8 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data, isc_buffer_t **text,
 	INSIST(zone_config != NULL && zone_config_len > 0);
 
 	/* zone zonename { config; }; */
-	result = isc_buffer_reserve(text, 6 + zone_name_len + 2 +
-						  zone_config_len + 2);
+	result = isc_buffer_reserve(*text, 6 + zone_name_len + 2 +
+						   zone_config_len + 2);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -12474,7 +12474,7 @@ named_server_testgen(isc_lex_t *lex, isc_buffer_t **text) {
 		count = strtoul(ptr, NULL, 10);
 	}
 
-	CHECK(isc_buffer_reserve(text, count));
+	CHECK(isc_buffer_reserve(*text, count));
 	for (i = 0; i < count; i++) {
 		CHECK(putuint8(text, chars[i % (sizeof(chars) - 1)]));
 	}
@@ -15422,7 +15422,7 @@ static isc_result_t
 putmem(isc_buffer_t **b, const char *str, size_t len) {
 	isc_result_t result;
 
-	result = isc_buffer_reserve(b, (unsigned int)len);
+	result = isc_buffer_reserve(*b, (unsigned int)len);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOSPACE);
 	}
@@ -15440,7 +15440,7 @@ static isc_result_t
 putuint8(isc_buffer_t **b, uint8_t val) {
 	isc_result_t result;
 
-	result = isc_buffer_reserve(b, 1);
+	result = isc_buffer_reserve(*b, 1);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOSPACE);
 	}

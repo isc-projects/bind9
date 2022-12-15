@@ -49,7 +49,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	 * 1024 bytes should already be available, so this call does
 	 * nothing.
 	 */
-	result = isc_buffer_reserve(&b, 1024);
+	result = isc_buffer_reserve(b, 1024);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
@@ -59,7 +59,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	 * This call should grow it to 2048 bytes as only 1024 bytes are
 	 * available in the buffer.
 	 */
-	result = isc_buffer_reserve(&b, 1025);
+	result = isc_buffer_reserve(b, 1025);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
@@ -69,7 +69,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	 * 2048 bytes should already be available, so this call does
 	 * nothing.
 	 */
-	result = isc_buffer_reserve(&b, 2000);
+	result = isc_buffer_reserve(b, 2000);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
@@ -79,7 +79,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	 * This call should grow it to 4096 bytes as only 2048 bytes are
 	 * available in the buffer.
 	 */
-	result = isc_buffer_reserve(&b, 3000);
+	result = isc_buffer_reserve(b, 3000);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
@@ -91,7 +91,7 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	/*
 	 * This call should fail and leave buffer untouched.
 	 */
-	result = isc_buffer_reserve(&b, UINT_MAX);
+	result = isc_buffer_reserve(b, UINT_MAX);
 	assert_int_equal(result, ISC_R_NOMEMORY);
 	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
