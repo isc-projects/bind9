@@ -128,7 +128,7 @@ ISC_LANG_BEGINDECLS
  * space in a buffer, we round the allocated buffer length up to the
  * nearest * multiple of this value.
  */
-#define ISC_BUFFER_INCR 2048
+#define ISC_BUFFER_INCR 512
 
 /*
  * The following macros MUST be used only on valid buffers.  It is the
@@ -177,12 +177,16 @@ struct isc_buffer {
 	unsigned int used;
 	unsigned int current;
 	unsigned int active;
+	/*! The extra bytes allocated for dynamic buffer */
+	unsigned int extra;
 	/*@}*/
 	/*! linkable */
 	ISC_LINK(isc_buffer_t) link;
 	/*! private internal elements */
 	isc_mem_t *mctx;
 };
+
+#define ISC_BUFFER_STATIC_SIZE 512
 
 /***
  *** Functions
@@ -509,10 +513,12 @@ static inline void
 isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	ISC_REQUIRE(b != NULL);
 
-	*b = (isc_buffer_t){ .base = base,
-			     .length = length,
-			     .magic = ISC_BUFFER_MAGIC };
-	ISC_LINK_INIT(b, link);
+	*b = (isc_buffer_t){
+		.base = base,
+		.length = length,
+		.link = ISC_LINK_INITIALIZER,
+		.magic = ISC_BUFFER_MAGIC,
+	};
 }
 
 /*!
@@ -521,8 +527,10 @@ isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
  */
 static inline void
 isc_buffer_initnull(isc_buffer_t *b) {
-	*b = (isc_buffer_t){ .magic = ISC_BUFFER_MAGIC };
-	ISC_LINK_INIT(b, link);
+	*b = (isc_buffer_t){
+		.link = ISC_LINK_INITIALIZER,
+		.magic = ISC_BUFFER_MAGIC,
+	};
 }
 
 /*!
@@ -560,12 +568,9 @@ isc_buffer_invalidate(isc_buffer_t *b) {
 	ISC_REQUIRE(!ISC_LINK_LINKED(b, link));
 	ISC_REQUIRE(b->mctx == NULL);
 
-	b->magic = 0;
-	b->base = NULL;
-	b->length = 0;
-	b->used = 0;
-	b->current = 0;
-	b->active = 0;
+	*b = (isc_buffer_t){
+		.magic = 0,
+	};
 }
 
 /*!

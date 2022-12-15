@@ -120,72 +120,80 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 }
 
 void
-isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
+isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dbufp,
 		    unsigned int length) {
-	REQUIRE(dynbuffer != NULL && *dynbuffer == NULL);
+	REQUIRE(dbufp != NULL && *dbufp == NULL);
 
-	isc_buffer_t *dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
-	unsigned char *bdata = isc_mem_get(mctx, length);
+	isc_buffer_t *dbuf = isc_mem_get(mctx, sizeof(*dbuf) + length);
+	uint8_t *bdata = (uint8_t *)dbuf + sizeof(*dbuf);
 
 	isc_buffer_init(dbuf, bdata, length);
-
+	dbuf->extra = length;
 	dbuf->mctx = mctx;
 
-	*dynbuffer = dbuf;
+	*dbufp = dbuf;
 }
 
 isc_result_t
-isc_buffer_reserve(isc_buffer_t *dynbuffer, unsigned int size) {
+isc_buffer_reserve(isc_buffer_t *dbuf, unsigned int size) {
+	REQUIRE(ISC_BUFFER_VALID(dbuf));
+
 	size_t len;
+	uint8_t *bdata = (uint8_t *)dbuf + sizeof(*dbuf);
 
-	REQUIRE(ISC_BUFFER_VALID(dynbuffer));
-
-	len = dynbuffer->length;
-	if ((len - dynbuffer->used) >= size) {
+	len = dbuf->length;
+	if ((len - dbuf->used) >= size) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (dynbuffer->mctx == NULL) {
+	if (dbuf->mctx == NULL) {
 		return (ISC_R_NOSPACE);
 	}
 
 	/* Round to nearest buffer size increment */
-	len = size + dynbuffer->used;
-	len = (len + ISC_BUFFER_INCR - 1 - ((len - 1) % ISC_BUFFER_INCR));
+	len = size + dbuf->used;
+	len = ISC_ALIGN(len, ISC_BUFFER_INCR);
 
 	/* Cap at UINT_MAX */
 	if (len > UINT_MAX) {
 		len = UINT_MAX;
 	}
 
-	if ((len - dynbuffer->used) < size) {
+	if ((len - dbuf->used) < size) {
 		return (ISC_R_NOMEMORY);
 	}
 
-	dynbuffer->base = isc_mem_reget(dynbuffer->mctx, dynbuffer->base,
-					dynbuffer->length, len);
-	dynbuffer->length = (unsigned int)len;
+	if (dbuf->base == bdata) {
+		dbuf->base = isc_mem_get(dbuf->mctx, len);
+		memmove(dbuf->base, bdata, dbuf->used);
+	} else {
+		dbuf->base = isc_mem_reget(dbuf->mctx, dbuf->base, dbuf->length,
+					   len);
+	}
+	dbuf->length = (unsigned int)len;
 
 	return (ISC_R_SUCCESS);
 }
 
 void
-isc_buffer_free(isc_buffer_t **dynbuffer) {
-	isc_buffer_t *dbuf;
-	isc_mem_t *mctx;
+isc_buffer_free(isc_buffer_t **dbufp) {
+	REQUIRE(dbufp != NULL && ISC_BUFFER_VALID(*dbufp));
+	REQUIRE((*dbufp)->mctx != NULL);
 
-	REQUIRE(dynbuffer != NULL);
-	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
-	REQUIRE((*dynbuffer)->mctx != NULL);
+	isc_buffer_t *dbuf = *dbufp;
+	isc_mem_t *mctx = dbuf->mctx;
+	uint8_t *bdata = (uint8_t *)dbuf + sizeof(*dbuf);
+	unsigned int extra = dbuf->extra;
 
-	dbuf = *dynbuffer;
-	*dynbuffer = NULL; /* destroy external reference */
-	mctx = dbuf->mctx;
+	*dbufp = NULL; /* destroy external reference */
 	dbuf->mctx = NULL;
 
-	isc_mem_put(mctx, dbuf->base, dbuf->length);
+	if (dbuf->base != bdata) {
+		isc_mem_put(mctx, dbuf->base, dbuf->length);
+	}
+
 	isc_buffer_invalidate(dbuf);
-	isc_mem_put(mctx, dbuf, sizeof(isc_buffer_t));
+	isc_mem_put(mctx, dbuf, sizeof(*dbuf) + extra);
 }
 
 isc_result_t
