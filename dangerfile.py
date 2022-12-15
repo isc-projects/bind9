@@ -207,6 +207,28 @@ if is_backport:
                 f"Original MR !{original_mr_id} has not been merged. "
                 "Please re-run `danger` check once it's merged."
             )
+        else:  # check for commit IDs once original MR is merged
+            original_mr_commits = list(original_mr.commits(all=True))
+            backport_mr_commits = list(mr.commits(all=True))
+            for orig_commit in original_mr_commits:
+                for backport_commit in backport_mr_commits:
+                    if orig_commit.id in backport_commit.message:
+                        break
+                else:
+                    msg = (
+                        f"Commit {orig_commit.id} from original MR !{original_mr_id} "
+                        "is not referenced in any of the backport commits."
+                    )
+                    if not is_full_backport:
+                        message(msg)
+                    else:
+                        msg += (
+                            " Please use `-x` when cherry-picking to include "
+                            "the full original commit ID. Alternately, use the "
+                            "`Backport::Partial` label if not all original "
+                            "commits are meant to be backported."
+                        )
+                        fail(msg)
 if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
