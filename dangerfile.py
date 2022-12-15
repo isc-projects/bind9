@@ -46,7 +46,8 @@ release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 modified_files = danger.git.modified_files
 mr_labels = danger.gitlab.mr.labels
 target_branch = danger.gitlab.mr.target_branch
-backport_label_set = "Backport" in mr_labels
+is_backport = "Backport" in mr_labels or "Backport::Partial" in mr_labels
+is_full_backport = is_backport and "Backport::Partial" not in mr_labels
 
 gl = gitlab.Gitlab(
     url=f"https://{os.environ['CI_SERVER_HOST']}",
@@ -140,7 +141,7 @@ for commit in danger.git.commits:
                 f"Line too long in log message for commit {commit.sha}: "
                 f"```{line}``` ({len(line)} > 72 characters)."
             )
-    if backport_label_set and "cherry picked from commit" not in commit.message:
+    if is_backport and "cherry picked from commit" not in commit.message:
         warn(
             f"`cherry picked from commit...` message missing in commit {commit.sha}. "
             "Please use `-x` option with `git cherry-pick` or remove the `Backport` label."
@@ -156,28 +157,28 @@ if not danger.gitlab.mr.milestone:
     fail("Please assign this merge request to a milestone.")
 
 ###############################################################################
-# VERSION LABELS
+# BACKPORT & VERSION LABELS
 ###############################################################################
 #
 # FAIL if any of the following is true for the merge request:
 #
-# * The "Backport" label is set and the number of version labels set is
+# * The MR is marked as Backport and the number of version labels set is
 #   different than 1.  (For backports, the version label is used for indicating
 #   its target branch.  This is a rather ugly attempt to address a UI
 #   deficiency - the target branch for each MR is not visible on milestone
 #   dashboards.)
 #
-# * Neither the "Backport" label nor any version label is set.  (If the merge
-#   request is not a backport, version labels are used for indicating
+# * The MR is not marked as "Backport" nor any version label is set.  (If the
+#   merge request is not a backport, version labels are used for indicating
 #   backporting preferences.)
 
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
-if backport_label_set and len(version_labels) != 1:
+if is_backport and len(version_labels) != 1:
     fail(
-        "The *Backport* label is set for this merge request. "
+        "This MR was marked as *Backport*. "
         "Please also set exactly one version label (*v9.x*)."
     )
-if not backport_label_set and not version_labels:
+if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
         "a single version label (*v9.x*) indicating the target branch. "
