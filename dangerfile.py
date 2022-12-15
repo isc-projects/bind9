@@ -129,7 +129,13 @@ if not danger.gitlab.mr.milestone:
 #   backporting preferences.)
 #
 # * The Backport MR doesn't have target branch in the merge request title.
+#
+# * The Backport MR doesn't link to the original MR is its description.
 
+BACKPORT_OF_RE = re.compile(
+    r"Backport\s+of.*(merge_requests/|!)([0-9]+)", flags=re.IGNORECASE
+)
+backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description)
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
 if is_backport:
     if len(version_labels) != 1:
@@ -144,6 +150,11 @@ if is_backport:
                 "Backport MRs must have their target branch in the "
                 f"title. Please put `{mr_title_version}` in the MR title."
             )
+    if backport_desc is None:
+        fail(
+            "Backport MRs must link to the original MR. Please put "
+            "`Backport of MR !XXXX` in the MR description."
+        )
 if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
