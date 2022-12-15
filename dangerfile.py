@@ -173,6 +173,8 @@ if not danger.gitlab.mr.milestone:
 # * The Backport MR doesn't have target branch in the merge request title.
 #
 # * The Backport MR doesn't link to the original MR is its description.
+#
+# * The original MR linked to from Backport MR hasn't been merged.
 
 BACKPORT_OF_RE = re.compile(
     r"Backport\s+of.*(merge_requests/|!)([0-9]+)", flags=re.IGNORECASE
@@ -197,6 +199,14 @@ if is_backport:
             "Backport MRs must link to the original MR. Please put "
             "`Backport of MR !XXXX` in the MR description."
         )
+    else:  # backport MR is linked to original MR
+        original_mr_id = backport_desc.groups()[1]
+        original_mr = proj.mergerequests.get(original_mr_id)
+        if original_mr.state != "merged":
+            fail(
+                f"Original MR !{original_mr_id} has not been merged. "
+                "Please re-run `danger` check once it's merged."
+            )
 if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
