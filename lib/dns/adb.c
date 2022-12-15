@@ -104,6 +104,7 @@ struct dns_adb {
 
 	isc_mutex_t lock;
 	isc_mem_t *mctx;
+	isc_mem_t *hmctx;
 	dns_view_t *view;
 	dns_resolver_t *res;
 	size_t nloops;
@@ -1374,7 +1375,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 		break;
 	case ISC_R_SUCCESS:
 		LOCK(&adbname->lock); /* Must be unlocked by the caller */
-		if (adbname->last_used + ADB_STALE_MARGIN <= last_update) {
+		if (adbname->last_used + ADB_CACHE_MINIMUM <= last_update) {
 			adbname->last_used = now;
 
 			ISC_LIST_UNLINK(adb->names_lru, adbname, link);
@@ -1448,7 +1449,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 			dns_adbentry_detach(&adbentry);
 			goto create;
 		}
-		if (adbentry->last_used + ADB_STALE_MARGIN <= last_update) {
+		if (adbentry->last_used + ADB_CACHE_MINIMUM <= last_update) {
 			adbentry->last_used = now;
 
 			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
@@ -1707,6 +1708,15 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 			goto next;
 		}
 
+		/*
+		 * Make sure that we are not purging ADB names that has been
+		 * just created.
+		 */
+		if (adbname->last_used + ADB_CACHE_MINIMUM >= now) {
+			prev = NULL;
+			goto next;
+		}
+
 		if (overmem) {
 			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
 			removed++;
@@ -1716,13 +1726,14 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 		if (adbname->last_used + ADB_STALE_MARGIN < now) {
 			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
 			removed++;
+			goto next;
 		}
 
 		/*
-		 * we won't expire anything on the LRU list as the
+		 * We won't expire anything on the LRU list as the
 		 * .last_used + ADB_STALE_MARGIN will always be bigger
 		 * than `now` for all previous entries, so we just stop
-		 * the scanning
+		 * the scanning.
 		 */
 		prev = NULL;
 	next:
@@ -1800,6 +1811,15 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 			goto next;
 		}
 
+		/*
+		 * Make sure that we are not purging ADB named that has been
+		 * just created.
+		 */
+		if (adbentry->last_used + ADB_CACHE_MINIMUM >= now) {
+			prev = NULL;
+			goto next;
+		}
+
 		if (overmem) {
 			maybe_expire_entry(adbentry, INT_MAX);
 			removed++;
@@ -1813,7 +1833,7 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 		}
 
 		/*
-		 * we won't expire anything on the LRU list as the
+		 * We won't expire anything on the LRU list as the
 		 * .last_used + ADB_STALE_MARGIN will always be bigger
 		 * than `now` for all previous entries, so we just stop
 		 * the scanning
@@ -1862,6 +1882,8 @@ destroy(dns_adb_t *adb) {
 	isc_hashmap_destroy(&adb->entries);
 	UNLOCK(&adb->entries_lock);
 	isc_mutex_destroy(&adb->entries_lock);
+
+	isc_mem_destroy(&adb->hmctx);
 
 	isc_mutex_destroy(&adb->lock);
 	isc_refcount_destroy(&adb->references);
@@ -1919,12 +1941,14 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	dns_resolver_attach(view->resolver, &adb->res);
 	isc_mem_attach(mem, &adb->mctx);
 
-	isc_hashmap_create(adb->mctx, ADB_HASH_BITS,
+	isc_mem_create(&adb->hmctx);
+
+	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS,
 			   ISC_HASHMAP_CASE_INSENSITIVE, &adb->names);
 	isc_mutex_init(&adb->names_lock);
 
-	isc_hashmap_create(adb->mctx, ADB_HASH_BITS, ISC_HASHMAP_CASE_SENSITIVE,
-			   &adb->entries);
+	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS,
+			   ISC_HASHMAP_CASE_SENSITIVE, &adb->entries);
 	isc_mutex_init(&adb->entries_lock);
 
 	isc_mutex_init(&adb->lock);
@@ -1974,6 +1998,8 @@ free_tasks:
 	isc_mutex_destroy(&adb->names_lock);
 	isc_hashmap_destroy(&adb->names);
 	INSIST(ISC_LIST_EMPTY(adb->names_lru));
+
+	isc_mem_destroy(&adb->hmctx);
 
 	dns_resolver_detach(&adb->res);
 	dns_view_weakdetach(&adb->view);
