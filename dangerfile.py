@@ -171,13 +171,23 @@ if not danger.gitlab.mr.milestone:
 # * The MR is not marked as "Backport" nor any version label is set.  (If the
 #   merge request is not a backport, version labels are used for indicating
 #   backporting preferences.)
+#
+# * The Backport MR doesn't have target branch in the merge request title.
 
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
-if is_backport and len(version_labels) != 1:
-    fail(
-        "This MR was marked as *Backport*. "
-        "Please also set exactly one version label (*v9.x*)."
-    )
+if is_backport:
+    if len(version_labels) != 1:
+        fail(
+            "This MR was marked as *Backport*. "
+            "Please also set exactly one version label (*v9.x*)."
+        )
+    else:
+        mr_title_version = f"[{version_labels[0].replace('.', '_')}]"
+        if mr_title_version not in danger.gitlab.mr.title:
+            fail(
+                "Backport MRs must have their target branch in the "
+                f"title. Please put `{mr_title_version}` in the MR title."
+            )
 if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
