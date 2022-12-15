@@ -2744,8 +2744,8 @@ resquery_send(resquery_t *query) {
 				ednsopts[ednsopt].code = DNS_OPT_COOKIE;
 				ednsopts[ednsopt].length =
 					(uint16_t)dns_adb_getcookie(
-						fctx->adb, query->addrinfo,
-						cookie, sizeof(cookie));
+						query->addrinfo, cookie,
+						sizeof(cookie));
 				if (ednsopts[ednsopt].length != 0) {
 					ednsopts[ednsopt].value = cookie;
 					inc_stats(
@@ -7658,9 +7658,8 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	    !query->rmessage->cc_ok && !query->rmessage->cc_bad &&
 	    (rctx.retryopts & DNS_FETCHOPT_TCP) == 0)
 	{
-		unsigned char cookie[COOKIE_BUFFER_SIZE];
-		if (dns_adb_getcookie(fctx->adb, query->addrinfo, cookie,
-				      sizeof(cookie)) > CLIENT_COOKIE_SIZE)
+		if (dns_adb_getcookie(query->addrinfo, NULL, 0) >
+		    CLIENT_COOKIE_SIZE)
 		{
 			if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
 				char addrbuf[ISC_SOCKADDR_FORMATSIZE];
