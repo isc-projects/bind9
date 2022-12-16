@@ -33,6 +33,10 @@ Removed Features
   moved to the ``libisc`` and ``libisccfg`` libraries, and the
   now-empty ``libbind9`` has been removed and is no longer installed.
 
+- The ``irs_resconf`` module has been moved to the ``libdns`` shared
+  library and the now-empty ``libirs`` library has been removed and is
+  no longer installed.
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

@@ -142,9 +142,14 @@ dst_HEADERS =				\
 	include/dst/dst.h		\
 	include/dst/gssapi.h
 
+irsdir = $(includedir)/irs
+irs_HEADERS =				\
+	include/irs/resconf.h
+
 libdns_la_SOURCES =			\
 	$(libdns_la_HEADERS)		\
 	$(dst_HEADERS)			\
+	$(irs_HEADERS)			\
 	acl.c				\
 	adb.c				\
 	badcache.c			\
@@ -212,6 +217,7 @@ libdns_la_SOURCES =			\
 	rdataslab.c			\
 	remote.c			\
 	request.c			\
+	resconf.c			\
 	resolver.c			\
 	result.c			\
 	rootns.c			\

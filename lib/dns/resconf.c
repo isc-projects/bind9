@@ -96,13 +96,11 @@ struct irs_resconf {
 	isc_mem_t *mctx;
 
 	isc_sockaddrlist_t nameservers;
-	unsigned int numns; /*%< number of configured servers
-			     * */
+	unsigned int numns; /*%< number of configured servers */
 
 	char *domainname;
 	char *search[RESCONFMAXSEARCH];
-	uint8_t searchnxt; /*%< index for next free slot
-			    * */
+	uint8_t searchnxt; /*%< index for next free slot */
 
 	irs_resconf_searchlist_t searchlist;
 
