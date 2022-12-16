@@ -7,7 +7,6 @@ AM_CPPFLAGS +=				\
 	$(LIBNS_CFLAGS)			\
 	$(LIBISCCC_CFLAGS)		\
 	$(LIBISCCFG_CFLAGS)		\
-	$(LIBBIND9_CFLAGS)		\
 	$(OPENSSL_CFLAGS)		\
 	$(LIBCAP_CFLAGS)		\
 	$(LMDB_CFLAGS)			\
@@ -103,7 +102,6 @@ named_LDADD =					\
 	$(LIBNS_LIBS)				\
 	$(LIBISCCC_LIBS)			\
 	$(LIBISCCFG_LIBS)			\
-	$(LIBBIND9_LIBS)			\
 	$(OPENSSL_LIBS)				\
 	$(LIBCAP_LIBS)				\
 	$(LMDB_LIBS)				\
