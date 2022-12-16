@@ -127,7 +127,6 @@ libisc_la_SOURCES =		\
 	base32.c		\
 	base64.c		\
 	bind9.c			\
-	buffer.c		\
 	commandline.c		\
 	condition.c		\
 	counter.c		\
