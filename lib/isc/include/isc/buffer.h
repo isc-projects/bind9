@@ -266,6 +266,8 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length);
  */
 
 static inline void
+isc_buffer_trycompact(isc_buffer_t *b);
+static inline void
 isc_buffer_compact(isc_buffer_t *b);
 /*!<
  * \brief Compact the used region by moving the remaining region so it occurs
@@ -1041,6 +1043,13 @@ isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
 
 	b->base = base;
 	b->length = length;
+}
+
+static inline void
+isc_buffer_trycompact(isc_buffer_t *b) {
+	if (isc_buffer_consumedlength(b) >= isc_buffer_remaininglength(b)) {
+		isc_buffer_compact(b);
+	}
 }
 
 static inline void
