@@ -1,3 +1,6 @@
+6101.	[port]		Clarify the portability dodge needed for `strerror_r()`
+			[GL !7465]
+
 6100.	[cleanup]	Deprecate <isc/deprecated.h>, because obsolete
 			functions are now deleted instead of marked with
 			an attribute. [GL !7466]
