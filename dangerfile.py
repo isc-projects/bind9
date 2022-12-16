@@ -46,7 +46,8 @@ release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 modified_files = danger.git.modified_files
 mr_labels = danger.gitlab.mr.labels
 target_branch = danger.gitlab.mr.target_branch
-backport_label_set = "Backport" in mr_labels
+is_backport = "Backport" in mr_labels or "Backport::Partial" in mr_labels
+is_full_backport = is_backport and "Backport::Partial" not in mr_labels
 
 gl = gitlab.Gitlab(
     url=f"https://{os.environ['CI_SERVER_HOST']}",
@@ -90,8 +91,6 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #         - lines which contain references (i.e. those starting with "[1]",
 #           "[2]", etc.) which allows e.g. long URLs to be included in the
 #           commit log message.
-#
-#     * There is no "cherry picked from X" message in Backport commits.
 
 PROHIBITED_WORDS_RE = re.compile(
     "^(WIP|wip|DROP|drop|DROPME|checkpoint|experiment|TODO|todo)[^a-zA-Z]"
@@ -140,11 +139,6 @@ for commit in danger.git.commits:
                 f"Line too long in log message for commit {commit.sha}: "
                 f"```{line}``` ({len(line)} > 72 characters)."
             )
-    if backport_label_set and "cherry picked from commit" not in commit.message:
-        warn(
-            f"`cherry picked from commit...` message missing in commit {commit.sha}. "
-            "Please use `-x` option with `git cherry-pick` or remove the `Backport` label."
-        )
 
 ###############################################################################
 # MILESTONE
@@ -156,28 +150,81 @@ if not danger.gitlab.mr.milestone:
     fail("Please assign this merge request to a milestone.")
 
 ###############################################################################
-# VERSION LABELS
+# BACKPORT & VERSION LABELS
 ###############################################################################
 #
 # FAIL if any of the following is true for the merge request:
 #
-# * The "Backport" label is set and the number of version labels set is
+# * The MR is marked as Backport and the number of version labels set is
 #   different than 1.  (For backports, the version label is used for indicating
 #   its target branch.  This is a rather ugly attempt to address a UI
 #   deficiency - the target branch for each MR is not visible on milestone
 #   dashboards.)
 #
-# * Neither the "Backport" label nor any version label is set.  (If the merge
-#   request is not a backport, version labels are used for indicating
+# * The MR is not marked as "Backport" nor any version label is set.  (If the
+#   merge request is not a backport, version labels are used for indicating
 #   backporting preferences.)
+#
+# * The Backport MR doesn't have target branch in the merge request title.
+#
+# * The Backport MR doesn't link to the original MR is its description.
+#
+# * The original MR linked to from Backport MR hasn't been merged.
 
+BACKPORT_OF_RE = re.compile(
+    r"Backport\s+of.*(merge_requests/|!)([0-9]+)", flags=re.IGNORECASE
+)
+backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description)
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
-if backport_label_set and len(version_labels) != 1:
-    fail(
-        "The *Backport* label is set for this merge request. "
-        "Please also set exactly one version label (*v9.x*)."
-    )
-if not backport_label_set and not version_labels:
+if is_backport:
+    if len(version_labels) != 1:
+        fail(
+            "This MR was marked as *Backport*. "
+            "Please also set exactly one version label (*v9.x*)."
+        )
+    else:
+        mr_title_version = f"[{version_labels[0].replace('.', '_')}]"
+        if mr_title_version not in danger.gitlab.mr.title:
+            fail(
+                "Backport MRs must have their target branch in the "
+                f"title. Please put `{mr_title_version}` in the MR title."
+            )
+    if backport_desc is None:
+        fail(
+            "Backport MRs must link to the original MR. Please put "
+            "`Backport of MR !XXXX` in the MR description."
+        )
+    else:  # backport MR is linked to original MR
+        original_mr_id = backport_desc.groups()[1]
+        original_mr = proj.mergerequests.get(original_mr_id)
+        if original_mr.state != "merged":
+            fail(
+                f"Original MR !{original_mr_id} has not been merged. "
+                "Please re-run `danger` check once it's merged."
+            )
+        else:  # check for commit IDs once original MR is merged
+            original_mr_commits = list(original_mr.commits(all=True))
+            backport_mr_commits = list(mr.commits(all=True))
+            for orig_commit in original_mr_commits:
+                for backport_commit in backport_mr_commits:
+                    if orig_commit.id in backport_commit.message:
+                        break
+                else:
+                    msg = (
+                        f"Commit {orig_commit.id} from original MR !{original_mr_id} "
+                        "is not referenced in any of the backport commits."
+                    )
+                    if not is_full_backport:
+                        message(msg)
+                    else:
+                        msg += (
+                            " Please use `-x` when cherry-picking to include "
+                            "the full original commit ID. Alternately, use the "
+                            "`Backport::Partial` label if not all original "
+                            "commits are meant to be backported."
+                        )
+                        fail(msg)
+if not is_backport and not version_labels:
     fail(
         "If this merge request is a backport, set the *Backport* label and "
         "a single version label (*v9.x*) indicating the target branch. "
