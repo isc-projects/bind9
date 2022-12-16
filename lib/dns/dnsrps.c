@@ -967,8 +967,6 @@ static dns_dbmethods_t rpsdb_db_methods = {
 	NULL, /* resigned */
 	NULL, /* isdnssec */
 	NULL, /* getrrsetstats */
-	NULL, /* rpz_attach */
-	NULL, /* rpz_ready */
 	NULL, /* findnodeext */
 	NULL, /* findext */
 	NULL, /* setcachestats */

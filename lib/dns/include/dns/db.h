@@ -50,7 +50,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/deprecated.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stats.h>
@@ -159,8 +158,6 @@ typedef struct dns_dbmethods {
 			 dns_dbversion_t *version);
 	bool (*isdnssec)(dns_db_t *db);
 	dns_stats_t *(*getrrsetstats)(dns_db_t *db);
-	void (*rpz_attach)(dns_db_t *db, void *rpzs, uint8_t rpz_num);
-	isc_result_t (*rpz_ready)(dns_db_t *db);
 	isc_result_t (*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				    bool		     create,
 				    dns_clientinfomethods_t *methods,
@@ -1624,19 +1621,6 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
  * Returns:
  * \li	when available, a pointer to a statistics object created by
  *	dns_rdatasetstats_create(); otherwise NULL.
- */
-
-void
-dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num) ISC_DEPRECATED;
-/*%<
- * Attach the response policy information for a view to a database for a
- * zone for the view.
- */
-
-isc_result_t
-dns_db_rpz_ready(dns_db_t *db) ISC_DEPRECATED;
-/*%<
- * Finish loading a response policy zone.
  */
 
 isc_result_t

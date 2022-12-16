@@ -1289,8 +1289,6 @@ static dns_dbmethods_t sdb_methods = {
 	NULL,	       /* resigned */
 	NULL,	       /* isdnssec */
 	NULL,	       /* getrrsetstats */
-	NULL,	       /* rpz_attach */
-	NULL,	       /* rpz_ready */
 	findnodeext,	findext,
 	NULL, /* setcachestats */
 	NULL, /* hashsize */

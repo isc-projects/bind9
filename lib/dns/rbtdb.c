@@ -8138,8 +8138,6 @@ static dns_dbmethods_t zone_methods = { attach,
 					resigned,
 					isdnssec,
 					NULL, /* getrrsetstats */
-					NULL, /* rpz_attach */
-					NULL, /* rpz_ready */
 					NULL, /* findnodeext */
 					NULL, /* findext */
 					NULL, /* setcachestats */
@@ -8188,8 +8186,6 @@ static dns_dbmethods_t cache_methods = { attach,
 					 NULL, /* resigned */
 					 isdnssec,
 					 getrrsetstats,
-					 NULL, /* rpz_attach */
-					 NULL, /* rpz_ready */
 					 NULL, /* findnodeext */
 					 NULL, /* findext */
 					 setcachestats,

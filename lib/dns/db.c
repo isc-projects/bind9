@@ -976,28 +976,6 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 }
 
 /*
- * Attach a database to policy zone databases.
- * This should only happen when the caller has already ensured that
- * it is dealing with a database that understands response policy zones.
- */
-void
-dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num) {
-	REQUIRE(db->methods->rpz_attach != NULL);
-	(db->methods->rpz_attach)(db, rpzs, rpz_num);
-}
-
-/*
- * Finish loading a response policy zone.
- */
-isc_result_t
-dns_db_rpz_ready(dns_db_t *db) {
-	if (db->methods->rpz_ready == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-	return ((db->methods->rpz_ready)(db));
-}
-
-/*
  * Attach a notify-on-update function the database
  */
 isc_result_t
