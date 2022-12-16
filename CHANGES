@@ -1,3 +1,7 @@
+6050.	[bug]		Changes to the RPZ response-policy min-update-interval
+			and add-soa options now take effect as expected when
+			named is reconfigured. [GL #3740]
+
 6049.	[bug]		Exclude ABD hashtables from the ADB memory
 			overmem checks and don't clean ADB names
 			and ADB entries used in the last 10 seconds
