@@ -54,7 +54,6 @@
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/siphash.h>
-#include <isc/stat.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>

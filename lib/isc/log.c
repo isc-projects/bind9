@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <sys/types.h> /* dev_t FreeBSD 2.1 */
 #include <time.h>
 
@@ -28,7 +29,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/rwlock.h>
-#include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/thread.h>
