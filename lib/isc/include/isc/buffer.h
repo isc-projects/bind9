@@ -179,16 +179,15 @@ struct isc_buffer {
 	unsigned int used;
 	unsigned int current;
 	unsigned int active;
-	/*! The extra bytes allocated for dynamic buffer */
-	unsigned int extra;
 	/*@}*/
+	/*! The extra bytes allocated for static buffer */
+	unsigned int extra;
+	bool	     dynamic;
 	/*! linkable */
 	ISC_LINK(isc_buffer_t) link;
 	/*! private internal elements */
 	isc_mem_t *mctx;
 };
-
-#define ISC_BUFFER_STATIC_SIZE 512
 
 /***
  *** Functions
@@ -208,6 +207,15 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
  *
  * Note:
  *\li	Changing the buffer's length field is not permitted.
+ */
+
+static inline void
+isc_buffer_setmctx(isc_buffer_t *b, isc_mem_t *mctx);
+static inline void
+isc_buffer_clearmctx(isc_buffer_t *b);
+/*!<
+ * \brief Sets/Clears the internal memory context, so isc_buffer_reserve() can
+ * be used on previously 'static' buffer.
  */
 
 static inline isc_result_t
@@ -1073,17 +1081,35 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dbufp,
 
 	isc_buffer_init(dbuf, bdata, length);
 	dbuf->extra = length;
-	dbuf->mctx = mctx;
+	isc_buffer_setmctx(dbuf, mctx);
 
 	*dbufp = dbuf;
+}
+
+static inline void
+isc_buffer_setmctx(isc_buffer_t *b, isc_mem_t *mctx) {
+	REQUIRE(ISC_BUFFER_VALID(b));
+
+	b->mctx = mctx;
+}
+
+static inline void
+isc_buffer_clearmctx(isc_buffer_t *b) {
+	REQUIRE(ISC_BUFFER_VALID(b));
+
+	if (b->dynamic) {
+		isc_mem_put(b->mctx, b->base, b->length);
+		b->dynamic = false;
+	}
+
+	b->mctx = NULL;
 }
 
 static inline isc_result_t
 isc_buffer_reserve(isc_buffer_t *dbuf, unsigned int size) {
 	REQUIRE(ISC_BUFFER_VALID(dbuf));
 
-	size_t	 len;
-	uint8_t *bdata = (uint8_t *)dbuf + sizeof(*dbuf);
+	size_t len;
 
 	len = dbuf->length;
 	if ((len - dbuf->used) >= size) {
@@ -1107,9 +1133,11 @@ isc_buffer_reserve(isc_buffer_t *dbuf, unsigned int size) {
 		return (ISC_R_NOMEMORY);
 	}
 
-	if (dbuf->base == bdata) {
+	if (!dbuf->dynamic) {
+		void *old_base = dbuf->base;
 		dbuf->base = isc_mem_get(dbuf->mctx, len);
-		memmove(dbuf->base, bdata, dbuf->used);
+		memmove(dbuf->base, old_base, dbuf->used);
+		dbuf->dynamic = true;
 	} else {
 		dbuf->base = isc_mem_reget(dbuf->mctx, dbuf->base, dbuf->length,
 					   len);
@@ -1126,15 +1154,11 @@ isc_buffer_free(isc_buffer_t **dbufp) {
 
 	isc_buffer_t *dbuf = *dbufp;
 	isc_mem_t    *mctx = dbuf->mctx;
-	uint8_t	     *bdata = (uint8_t *)dbuf + sizeof(*dbuf);
 	unsigned int  extra = dbuf->extra;
 
 	*dbufp = NULL; /* destroy external reference */
-	dbuf->mctx = NULL;
 
-	if (dbuf->base != bdata) {
-		isc_mem_put(mctx, dbuf->base, dbuf->length);
-	}
+	isc_buffer_clearmctx(dbuf);
 
 	isc_buffer_invalidate(dbuf);
 	isc_mem_put(mctx, dbuf, sizeof(*dbuf) + extra);
