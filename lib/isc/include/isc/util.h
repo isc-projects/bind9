@@ -388,11 +388,6 @@ mock_assert(const int result, const char *const expression,
 #endif /* ifdef __GNUC__ */
 
 /*%
- * Misc
- */
-#include <isc/deprecated.h>
-
-/*%
  * Swap
  */
 #define ISC_SWAP(a, b)                    \
