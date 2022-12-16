@@ -108,6 +108,7 @@
 
 #include <dst/dst.h>
 
+#include <isccfg/check.h>
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
@@ -116,8 +117,6 @@
 #include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/listenlist.h>
-
-#include <bind9/check.h>
 
 #include <named/config.h>
 #include <named/control.h>
@@ -8423,8 +8422,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	result = bind9_check_namedconf(config, false, named_g_lctx,
-				       named_g_mctx);
+	result = isccfg_check_namedconf(config, false, named_g_lctx,
+					named_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_config;
 	}
