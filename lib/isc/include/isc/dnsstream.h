@@ -12,12 +12,13 @@
  */
 #pragma once
 
-#include <isc/dnsbuffer.h>
+#include <isc/buffer.h>
+#include <isc/mem.h>
 
 typedef struct isc_dnsstream_assembler isc_dnsstream_assembler_t;
 /*!<
  * \brief The 'isc_dnsstream_assembler_t' object is built on top of
- * 'isc_dnsbuffer_t' and intended to encapsulate the state machine
+ * 'isc_buffer_t' and intended to encapsulate the state machine
  * used for handling DNS messages received in the format used for
  * messages transmitted over TCP.
  *
@@ -34,7 +35,7 @@ typedef struct isc_dnsstream_assembler isc_dnsstream_assembler_t;
  * itself makes it trivial to write unit tests for it, leading to
  * better verification of its correctness.  Another important aspect
  * of its functioning is directly related to the fact that it is built
- * on top of 'isc_dnsbuffer_t', which tries to manage memory in a
+ * on top of 'isc_buffer_t', which tries to manage memory in a
  * smart way. In particular:
  *
  *\li	It tries to use a static buffer for smaller messages, reducing
@@ -86,9 +87,12 @@ more;
 message (i.e. someone attempts to send us junk data).
  */
 
+#define ISC_DNSSTREAM_STATIC_BUFFER_SIZE (512)
+
 struct isc_dnsstream_assembler {
-	isc_dnsbuffer_t dnsbuf; /*!< Internal buffer for assembling DNS
+	isc_buffer_t dnsbuf; /*!< Internal buffer for assembling DNS
 				   messages. */
+	uint8_t			     buf[ISC_DNSSTREAM_STATIC_BUFFER_SIZE];
 	isc_dnsstream_assembler_cb_t onmsg_cb; /*!< Data processing callback. */
 	void			    *cbarg;    /*!< Callback argument. */
 	bool calling_cb; /*<! Callback calling marker. Used to detect recursive
@@ -226,7 +230,9 @@ isc_dnsstream_assembler_init(isc_dnsstream_assembler_t *restrict dnsasm,
 	*dnsasm = (isc_dnsstream_assembler_t){ .result = ISC_R_UNSET };
 	isc_dnsstream_assembler_setcb(dnsasm, cb, cbarg);
 	isc_mem_attach(memctx, &dnsasm->mctx);
-	isc_dnsbuffer_init(&dnsasm->dnsbuf, memctx);
+
+	isc_buffer_init(&dnsasm->dnsbuf, dnsasm->buf, sizeof(dnsasm->buf));
+	isc_buffer_setmctx(&dnsasm->dnsbuf, dnsasm->mctx);
 }
 
 static inline void
@@ -237,7 +243,8 @@ isc_dnsstream_assembler_uninit(isc_dnsstream_assembler_t *restrict dnsasm) {
 	 * make any sense.
 	 */
 	INSIST(dnsasm->calling_cb == false);
-	isc_dnsbuffer_uninit(&dnsasm->dnsbuf);
+	isc_buffer_clearmctx(&dnsasm->dnsbuf);
+	isc_buffer_invalidate(&dnsasm->dnsbuf);
 	if (dnsasm->mctx != NULL) {
 		isc_mem_detach(&dnsasm->mctx);
 	}
@@ -286,40 +293,52 @@ isc__dnsstream_assembler_handle_message(
 	isc_dnsstream_assembler_t *restrict dnsasm, void *userarg) {
 	bool	     cont = false;
 	isc_region_t region = { 0 };
+	uint16_t     dnslen = 0;
 	isc_result_t result;
-	uint16_t     dnslen = isc_dnsbuffer_peek_uint16be(&dnsasm->dnsbuf);
 
 	INSIST(dnsasm->calling_cb == false);
 
-	if (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf) < sizeof(uint16_t)) {
-		result = ISC_R_NOMORE;
-	} else if (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf) >=
-			   sizeof(uint16_t) &&
-		   dnslen == 0)
-	{
-		/*
-		 * Someone seems to send us binary junk or output from /dev/zero
-		 */
-		result = ISC_R_RANGE;
-		isc_dnsbuffer_clear(&dnsasm->dnsbuf);
-	} else if (dnslen <= (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf) -
+	result = isc_buffer_peekuint16(&dnsasm->dnsbuf, &dnslen);
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+		if (dnslen == 0) {
+			/* This didn't make much sense to me: */
+			/* isc_buffer_remaininglength(&dnsasm->dnsbuf) >=
+			 * sizeof(uint16_t) && */
+
+			/*
+			 * Someone seems to send us binary junk or output from
+			 * /dev/zero
+			 */
+			result = ISC_R_RANGE;
+			isc_buffer_clear(&dnsasm->dnsbuf);
+			break;
+		}
+
+		if (dnslen > (isc_buffer_remaininglength(&dnsasm->dnsbuf) -
 			      sizeof(uint16_t)))
-	{
-		result = ISC_R_SUCCESS;
-	} else {
-		result = ISC_R_NOMORE;
+		{
+			result = ISC_R_NOMORE;
+			break;
+		}
+		break;
+	case ISC_R_NOMORE:
+		break;
+	default:
+		UNREACHABLE();
 	}
 
 	dnsasm->result = result;
 	dnsasm->calling_cb = true;
 	if (result == ISC_R_SUCCESS) {
-		(void)isc_dnsbuffer_consume_uint16be(&dnsasm->dnsbuf);
-		isc_dnsbuffer_remainingregion(&dnsasm->dnsbuf, &region);
+		(void)isc_buffer_getuint16(&dnsasm->dnsbuf);
+		isc_buffer_remainingregion(&dnsasm->dnsbuf, &region);
 		region.length = dnslen;
 		cont = dnsasm->onmsg_cb(dnsasm, ISC_R_SUCCESS, &region,
 					dnsasm->cbarg, userarg);
-		if (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf) >= dnslen) {
-			isc_dnsbuffer_consume(&dnsasm->dnsbuf, dnslen);
+		if (isc_buffer_remaininglength(&dnsasm->dnsbuf) >= dnslen) {
+			isc_buffer_forward(&dnsasm->dnsbuf, dnslen);
 		}
 	} else {
 		cont = false;
@@ -342,15 +361,15 @@ isc_dnsstream_assembler_incoming(isc_dnsstream_assembler_t *restrict dnsasm,
 		INSIST(buf == NULL);
 	} else {
 		INSIST(buf != NULL);
-		isc_dnsbuffer_putmem(&dnsasm->dnsbuf, buf, buf_size);
+		isc_buffer_putmem(&dnsasm->dnsbuf, buf, buf_size);
 	}
 
 	while (isc__dnsstream_assembler_handle_message(dnsasm, userarg)) {
-		if (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf) == 0) {
+		if (isc_buffer_remaininglength(&dnsasm->dnsbuf) == 0) {
 			break;
 		}
 	}
-	isc_dnsbuffer_trycompact(&dnsasm->dnsbuf);
+	isc_buffer_trycompact(&dnsasm->dnsbuf);
 }
 
 static inline isc_result_t
@@ -366,13 +385,13 @@ isc_dnsstream_assembler_remaininglength(
 	const isc_dnsstream_assembler_t *restrict dnsasm) {
 	REQUIRE(dnsasm != NULL);
 
-	return (isc_dnsbuffer_remaininglength(&dnsasm->dnsbuf));
+	return (isc_buffer_remaininglength(&dnsasm->dnsbuf));
 }
 
 static inline void
 isc_dnsstream_assembler_clear(isc_dnsstream_assembler_t *restrict dnsasm) {
 	REQUIRE(dnsasm != NULL);
 
-	isc_dnsbuffer_clear(&dnsasm->dnsbuf);
+	isc_buffer_clear(&dnsasm->dnsbuf);
 	dnsasm->result = ISC_R_UNSET;
 }

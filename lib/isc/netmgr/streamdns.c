@@ -15,7 +15,6 @@
 #include <unistd.h>
 
 #include <isc/atomic.h>
-#include <isc/dnsbuffer.h>
 #include <isc/result.h>
 #include <isc/thread.h>
 
@@ -24,15 +23,14 @@
 /*
  * Stream DNS is a unified transport capable of serving both DNS over
  * TCP and DNS over TLS.  It is built on top of
- * 'isc_dnsstream_assembler_t' and 'isc_dnsbuffer_t'.  The first one
- * is used for assembling DNS messages in the format used for DNS over
- * TCP out of incoming data and is built on top of
- * 'isc_dnsbuffer_t'. The 'isc_dnbuffer_t' is a thin wrapper on top of
- * 'isc_buffer_t' and is optimised for small (>= 512 bytes) DNS
- * messages. For small messages it uses a small static memory buffer,
- * but it can automatically switch to a dynamically allocated memory
- * buffer for larger ones. This way we avoid unnecessary memory
- * allocation requests in most cases, as most DNS messages are small.
+ * 'isc_dnsstream_assembler_t' which is used for assembling DNS
+ * messages in the format used for DNS over TCP out of incoming data.
+ * It is built on top of 'isc_buffer_t' optimised for small (>= 512
+ * bytes) DNS messages. For small messages it uses a small static
+ * memory buffer, but it can automatically switch to a larger
+ * dynamically allocated memory buffer for larger ones. This way we
+ * avoid unnecessary memory allocation requests in most cases, as most
+ * DNS messages are small.
  *
  * The use of 'isc_dnsstream_assembler_t' allows decoupling DNS
  * message assembling code from networking code itself, making it
@@ -47,22 +45,12 @@
  * The writing is done in a simpler manner due to the fact that we
  * have full control over the data. For each write request we attempt
  * to allocate a 'streamdns_send_req_t' structure, whose main purpose
- * is to keep the data required for the send request processing. An
- * 'isc_dnsbuffer_t' object is used as a data storage for the reasons
- * described above.
+ * is to keep the data required for the send request processing.
  *
  * When processing write requests there is an important optimisation:
  * we attempt to reuse 'streamdns_send_req_t' objects again, in order
- * to avoid memory allocations when:
- *
- * a) requesting memory for the new 'streamdns_send_req_t' object;
- *
- * b) resizing the 'isc_dnsbuffer_t' to fit large messages, should it
- *    be required.
- *
- * The last characteristic is important as it allows gradually growing
- * the reused send buffer in a lazy manner when transmitting multiple
- * DNS messages (e.g. during zone transfers).
+ * to avoid memory allocations when requesting memory for the new
+ * 'streamdns_send_req_t' object.
  *
  * To understand how sending is done, start by looking at
  * 'isc__nm_async_streamdnssend()'. Additionally also take a look at
@@ -1147,7 +1135,7 @@ isc__nm_streamdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 		return (sock->streamdns.tls_verify_error);
 	}
 
-	return (false);
+	return (NULL);
 }
 
 void

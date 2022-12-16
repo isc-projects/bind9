@@ -24,6 +24,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/buffer.h>
 #include <isc/dnsstream.h>
 #include <isc/mem.h>
 #include <isc/os.h>
@@ -34,17 +35,20 @@
 
 #include <tests/isc.h>
 
+#define STATIC_BUFFER_SIZE  (512)
+#define DYNAMIC_BUFFER_SIZE (STATIC_BUFFER_SIZE + ISC_BUFFER_INCR)
+
 static int
 setup_test_dnsbuf(void **state) {
-	isc_dnsbuffer_t **pdnsbuf = (isc_dnsbuffer_t **)state;
-	*pdnsbuf = isc_dnsbuffer_new(mctx);
+	isc_buffer_t **pdnsbuf = (isc_buffer_t **)state;
+	isc_buffer_allocate(mctx, pdnsbuf, STATIC_BUFFER_SIZE);
 
 	return (0);
 }
 
 static int
 teardown_test_dnsbuf(void **state) {
-	isc_dnsbuffer_free((isc_dnsbuffer_t **)state);
+	isc_buffer_free((isc_buffer_t **)state);
 
 	return (0);
 }
@@ -77,8 +81,8 @@ teardown_test_dnsasm(void **state) {
 }
 
 ISC_RUN_TEST_IMPL(dnsbuffer_generic_test) {
-	uint8_t buf[ISC_DNSBUFFER_STATIC_BUFFER_SIZE / 2] = { 0 };
-	isc_dnsbuffer_t *dnsbuf = (isc_dnsbuffer_t *)*state;
+	uint8_t buf[STATIC_BUFFER_SIZE / 2] = { 0 };
+	isc_buffer_t *dnsbuf = (isc_buffer_t *)*state;
 	isc_region_t reg = { 0 };
 	size_t n = 0;
 
@@ -87,88 +91,74 @@ ISC_RUN_TEST_IMPL(dnsbuffer_generic_test) {
 	}
 
 	/* sanity checks */
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_STATIC_BUFFER_SIZE);
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == 0);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_length(dnsbuf) == STATIC_BUFFER_SIZE);
+	assert_true(isc_buffer_usedlength(dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == sizeof(buf));
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_usedlength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(buf));
 
-	assert_true(isc_dnsbuffer_current(dnsbuf) == dnsbuf->buf);
-	assert_true(dnsbuf->current == &dnsbuf->stbuf);
+	assert_true(isc_buffer_current(dnsbuf) == dnsbuf->base);
 
-	isc_dnsbuffer_clear(dnsbuf);
+	isc_buffer_clear(dnsbuf);
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_STATIC_BUFFER_SIZE);
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == 0);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_length(dnsbuf) == STATIC_BUFFER_SIZE);
+	assert_true(isc_buffer_usedlength(dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 
-	assert_true(dnsbuf->current == &dnsbuf->stbuf);
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	assert_true(isc_buffer_usedlength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(buf));
 
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == sizeof(buf));
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_current(dnsbuf) == dnsbuf->base);
 
-	assert_true(isc_dnsbuffer_current(dnsbuf) == dnsbuf->buf);
-	assert_true(dnsbuf->current == &dnsbuf->stbuf);
-
-	for (size_t i = 0; i < sizeof(buf);
-	     i++, isc_dnsbuffer_consume(dnsbuf, 1))
+	for (size_t i = 0; i < sizeof(buf); i++, isc_buffer_forward(dnsbuf, 1))
 	{
-		uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+		uint8_t *p = isc_buffer_current(dnsbuf);
 
 		assert_true(*p == i);
 	}
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_usedlength(dnsbuf) == sizeof(buf));
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(buf));
-	assert_true(isc_dnsbuffer_usedlength(dnsbuf) == sizeof(buf) * 2);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(buf));
+	assert_true(isc_buffer_usedlength(dnsbuf) == sizeof(buf) * 2);
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_STATIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) == STATIC_BUFFER_SIZE);
 
-	assert_true(dnsbuf->current == &dnsbuf->stbuf);
-
-	for (size_t i = 0; i < sizeof(buf);
-	     i++, isc_dnsbuffer_consume(dnsbuf, 1))
+	for (size_t i = 0; i < sizeof(buf); i++, isc_buffer_forward(dnsbuf, 1))
 	{
-		uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+		uint8_t *p = isc_buffer_current(dnsbuf);
 
 		assert_true(*p == i);
 	}
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) == DYNAMIC_BUFFER_SIZE);
 
-	for (size_t i = 0; i < sizeof(buf);
-	     i++, isc_dnsbuffer_consume(dnsbuf, 1))
+	for (size_t i = 0; i < sizeof(buf); i++, isc_buffer_forward(dnsbuf, 1))
 	{
-		uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+		uint8_t *p = isc_buffer_current(dnsbuf);
 
 		assert_true(*p == i);
 	}
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
-	assert_true(isc_dnsbuffer_trycompact(dnsbuf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
+	isc_buffer_trycompact(dnsbuf);
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) == DYNAMIC_BUFFER_SIZE);
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
-	isc_dnsbuffer_remainingregion(dnsbuf, &reg);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == reg.length);
+	isc_buffer_remainingregion(dnsbuf, &reg);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == reg.length);
 	assert_true(reg.length == sizeof(buf));
 
 	for (size_t i = 0; i < reg.length; i++) {
@@ -177,35 +167,33 @@ ISC_RUN_TEST_IMPL(dnsbuffer_generic_test) {
 		assert_true(d == i);
 	}
 
-	isc_dnsbuffer_consume(dnsbuf, reg.length);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	isc_buffer_forward(dnsbuf, reg.length);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(buf));
 
-	isc_dnsbuffer_clear(dnsbuf);
+	isc_buffer_clear(dnsbuf);
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) == DYNAMIC_BUFFER_SIZE);
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 
-	n = ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE / sizeof(buf) + 1;
+	n = DYNAMIC_BUFFER_SIZE / sizeof(buf) + 1;
 	for (size_t i = 0; i < n; i++) {
-		isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+		isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 	}
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) >
-		    ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE);
-	assert_true(isc_dnsbuffer_length(dnsbuf) >= n * sizeof(buf));
+	assert_true(isc_buffer_length(dnsbuf) > DYNAMIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) >= n * sizeof(buf));
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == n * sizeof(buf));
+	assert_true(isc_buffer_remaininglength(dnsbuf) == n * sizeof(buf));
 
 	for (size_t i = 0; i < n; i++) {
 		for (size_t k = 0; k < sizeof(buf);
-		     k++, isc_dnsbuffer_consume(dnsbuf, 1))
+		     k++, isc_buffer_forward(dnsbuf, 1))
 		{
-			uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+			uint8_t *p = isc_buffer_current(dnsbuf);
 
 			assert_true(*p == k);
 		}
@@ -213,64 +201,61 @@ ISC_RUN_TEST_IMPL(dnsbuffer_generic_test) {
 }
 
 ISC_RUN_TEST_IMPL(dnsbuffer_resize_alloc_test) {
-	uint8_t buf[ISC_DNSBUFFER_STATIC_BUFFER_SIZE / 2] = { 0 };
-	isc_dnsbuffer_t *dnsbuf = (isc_dnsbuffer_t *)*state;
+	uint8_t buf[STATIC_BUFFER_SIZE / 2] = { 0 };
+	isc_buffer_t *dnsbuf = (isc_buffer_t *)*state;
 	size_t i = 0, n = 0;
 
 	for (i = 0; i < sizeof(buf); i++) {
 		buf[i] = (uint8_t)i;
 	}
 
-	isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+	isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 
 	for (i = 0; i < (sizeof(buf) / 3) * 2;
-	     i++, isc_dnsbuffer_consume(dnsbuf, 1))
+	     i++, isc_buffer_forward(dnsbuf, 1))
 	{
-		uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+		uint8_t *p = isc_buffer_current(dnsbuf);
 
 		assert_true(*p == i);
 	}
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) ==
-		    ISC_DNSBUFFER_STATIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) == STATIC_BUFFER_SIZE);
 
-	n = ISC_DNSBUFFER_INITIAL_DYNAMIC_BUFFER_SIZE / sizeof(buf) + 1;
+	n = DYNAMIC_BUFFER_SIZE / sizeof(buf) + 1;
 	for (size_t k = 0; k < n; k++) {
-		isc_dnsbuffer_putmem(dnsbuf, buf, sizeof(buf));
+		isc_buffer_putmem(dnsbuf, buf, sizeof(buf));
 	}
 
-	assert_true(isc_dnsbuffer_length(dnsbuf) >=
-		    ISC_DNSBUFFER_STATIC_BUFFER_SIZE);
+	assert_true(isc_buffer_length(dnsbuf) >= STATIC_BUFFER_SIZE);
 
-	for (; i < sizeof(buf); i++, isc_dnsbuffer_consume(dnsbuf, 1)) {
-		uint8_t *p = isc_dnsbuffer_current(dnsbuf);
+	for (; i < sizeof(buf); i++, isc_buffer_forward(dnsbuf, 1)) {
+		uint8_t *p = isc_buffer_current(dnsbuf);
 
 		assert_true(*p == i);
 	}
 }
 
 ISC_RUN_TEST_IMPL(dnsbuffer_be_test) {
-	isc_dnsbuffer_t *dnsbuf = (isc_dnsbuffer_t *)*state;
+	isc_buffer_t *dnsbuf = (isc_buffer_t *)*state;
 	const uint16_t u16 = 0xBEEF;
 	uint16_t *pu16;
+	uint16_t u16v;
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 
-	assert_true(isc_dnsbuffer_peek_uint16be(dnsbuf) == 0);
-	assert_true(isc_dnsbuffer_consume_uint16be(dnsbuf) == 0);
+	isc_buffer_putuint16(dnsbuf, u16);
 
-	isc_dnsbuffer_putmem_uint16be(dnsbuf, u16);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(u16));
 
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(u16));
-
-	pu16 = (uint16_t *)isc_dnsbuffer_current(dnsbuf);
+	pu16 = (uint16_t *)isc_buffer_current(dnsbuf);
 	assert_true(*pu16 == htons(u16));
 
-	assert_true(isc_dnsbuffer_peek_uint16be(dnsbuf) == u16);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == sizeof(u16));
+	assert_int_equal(isc_buffer_peekuint16(dnsbuf, &u16v), ISC_R_SUCCESS);
+	assert_int_equal(u16v, u16);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == sizeof(u16));
 
-	assert_true(isc_dnsbuffer_consume_uint16be(dnsbuf) == u16);
-	assert_true(isc_dnsbuffer_remaininglength(dnsbuf) == 0);
+	assert_true(isc_buffer_getuint16(dnsbuf) == u16);
+	assert_true(isc_buffer_remaininglength(dnsbuf) == 0);
 }
 
 typedef struct verify_cbdata {
@@ -392,17 +377,18 @@ ISC_RUN_TEST_IMPL(dnsasm_sequence_test) {
 
 ISC_RUN_TEST_IMPL(dnsasm_multiple_messages_test) {
 	isc_dnsstream_assembler_t *dnsasm = (isc_dnsstream_assembler_t *)*state;
-	isc_dnsbuffer_t dnsbuf;
+	isc_buffer_t dnsbuf;
 	verify_cbdata_t cbdata = { 0 };
 	size_t verified = 0;
 
-	isc_dnsbuffer_init(&dnsbuf, mctx);
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)request, sizeof(request));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)response, sizeof(response));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)request_large,
-			     sizeof(request_large));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)response_large,
-			     sizeof(response_large));
+	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_setmctx(&dnsbuf, mctx);
+	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
+	isc_buffer_putmem(&dnsbuf, (void *)response, sizeof(response));
+	isc_buffer_putmem(&dnsbuf, (void *)request_large,
+			  sizeof(request_large));
+	isc_buffer_putmem(&dnsbuf, (void *)response_large,
+			  sizeof(response_large));
 
 	cbdata.cont_on_success = false;
 
@@ -411,11 +397,12 @@ ISC_RUN_TEST_IMPL(dnsasm_multiple_messages_test) {
 	 */
 	cbdata.verify_message = (uint8_t *)request;
 	isc_dnsstream_assembler_setcb(dnsasm, verify_dnsmsg, (void *)&cbdata);
-	isc_dnsstream_assembler_incoming(
-		dnsasm, &verified, isc_dnsbuffer_current(&dnsbuf),
-		isc_dnsbuffer_remaininglength(&dnsbuf));
+	isc_dnsstream_assembler_incoming(dnsasm, &verified,
+					 isc_buffer_current(&dnsbuf),
+					 isc_buffer_remaininglength(&dnsbuf));
 
-	isc_dnsbuffer_uninit(&dnsbuf);
+	isc_buffer_clearmctx(&dnsbuf);
+	isc_buffer_invalidate(&dnsbuf);
 	assert_true(verified == 1);
 	assert_true(isc_dnsstream_assembler_result(dnsasm) == ISC_R_SUCCESS);
 
@@ -473,26 +460,28 @@ ISC_RUN_TEST_IMPL(dnsasm_error_data_test) {
 	isc_dnsstream_assembler_t *dnsasm = (isc_dnsstream_assembler_t *)*state;
 	verify_cbdata_t cbdata = { 0 };
 	size_t verified = 0;
-	isc_dnsbuffer_t dnsbuf;
+	isc_buffer_t dnsbuf;
 	uint16_t bad_data = 0;
 
-	isc_dnsbuffer_init(&dnsbuf, mctx);
+	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_setmctx(&dnsbuf, mctx);
 
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)request, sizeof(request));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)&bad_data, sizeof(bad_data));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)&bad_data, sizeof(bad_data));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)response_large,
-			     sizeof(response_large));
+	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
+	isc_buffer_putmem(&dnsbuf, (void *)&bad_data, sizeof(bad_data));
+	isc_buffer_putmem(&dnsbuf, (void *)&bad_data, sizeof(bad_data));
+	isc_buffer_putmem(&dnsbuf, (void *)response_large,
+			  sizeof(response_large));
 
 	cbdata.cont_on_success = false;
 
 	cbdata.verify_message = (uint8_t *)request;
 	isc_dnsstream_assembler_setcb(dnsasm, verify_dnsmsg, (void *)&cbdata);
-	isc_dnsstream_assembler_incoming(
-		dnsasm, &verified, isc_dnsbuffer_current(&dnsbuf),
-		isc_dnsbuffer_remaininglength(&dnsbuf));
+	isc_dnsstream_assembler_incoming(dnsasm, &verified,
+					 isc_buffer_current(&dnsbuf),
+					 isc_buffer_remaininglength(&dnsbuf));
 
-	isc_dnsbuffer_uninit(&dnsbuf);
+	isc_buffer_clearmctx(&dnsbuf);
+	isc_buffer_invalidate(&dnsbuf);
 
 	assert_true(verified == 1);
 	assert_true(isc_dnsstream_assembler_result(dnsasm) == ISC_R_SUCCESS);
@@ -513,7 +502,7 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 	isc_dnsstream_assembler_t *dnsasm = (isc_dnsstream_assembler_t *)*state;
 	verify_cbdata_t cbdata = { 0 };
 	verify_regions_cbdata_t cbdata_regions = { 0 };
-	isc_dnsbuffer_t dnsbuf;
+	isc_buffer_t dnsbuf;
 	size_t packetno;
 	isc_region_t packets[] = {
 		{ (void *)request, sizeof(request) },
@@ -528,10 +517,11 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 	};
 	const size_t npackets = sizeof(packets) / sizeof(packets[0]);
 
-	isc_dnsbuffer_init(&dnsbuf, mctx);
+	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_setmctx(&dnsbuf, mctx);
+
 	for (size_t i = 0; i < npackets; i++) {
-		isc_dnsbuffer_putmem(&dnsbuf, packets[i].base,
-				     packets[i].length);
+		isc_buffer_putmem(&dnsbuf, packets[i].base, packets[i].length);
 	}
 
 	/* process packet by packet */
@@ -540,9 +530,9 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 	isc_dnsstream_assembler_setcb(dnsasm, verify_dnsmsg, (void *)&cbdata);
 
 	/* process random amount of data */
-	for (; isc_dnsbuffer_remaininglength(&dnsbuf) > 0;) {
+	for (; isc_buffer_remaininglength(&dnsbuf) > 0;) {
 		size_t sz = 1 + isc_random_uniform(
-					isc_dnsbuffer_remaininglength(&dnsbuf));
+					isc_buffer_remaininglength(&dnsbuf));
 
 		for (bool start = true; packetno < npackets; start = false) {
 			cbdata.verify_message =
@@ -551,7 +541,7 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 			if (start) {
 				isc_dnsstream_assembler_incoming(
 					dnsasm, &packetno,
-					isc_dnsbuffer_current(&dnsbuf), sz);
+					isc_buffer_current(&dnsbuf), sz);
 			} else {
 				isc_dnsstream_assembler_incoming(
 					dnsasm, &packetno, NULL, 0);
@@ -564,16 +554,15 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 			}
 		}
 
-		isc_dnsbuffer_consume(&dnsbuf, sz);
+		isc_buffer_forward(&dnsbuf, sz);
 	}
 
 	assert_true(packetno == npackets);
 	assert_true(isc_dnsstream_assembler_remaininglength(dnsasm) == 0);
-	assert_true(isc_dnsbuffer_remaininglength(&dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(&dnsbuf) == 0);
 
 	for (size_t i = 0; i < npackets; i++) {
-		isc_dnsbuffer_putmem(&dnsbuf, packets[i].base,
-				     packets[i].length);
+		isc_buffer_putmem(&dnsbuf, packets[i].base, packets[i].length);
 	}
 
 	/* try to process multiple packets at once, when possible */
@@ -585,44 +574,48 @@ ISC_RUN_TEST_IMPL(dnsasm_torn_randomly_test) {
 				      (void *)&cbdata_regions);
 
 	/* process random amount of data */
-	for (; isc_dnsbuffer_remaininglength(&dnsbuf) > 0;) {
+	for (; isc_buffer_remaininglength(&dnsbuf) > 0;) {
 		size_t sz = 1 + isc_random_uniform(
-					isc_dnsbuffer_remaininglength(&dnsbuf));
+					isc_buffer_remaininglength(&dnsbuf));
 
 		isc_dnsstream_assembler_incoming(
-			dnsasm, &packetno, isc_dnsbuffer_current(&dnsbuf), sz);
+			dnsasm, &packetno, isc_buffer_current(&dnsbuf), sz);
 
-		isc_dnsbuffer_consume(&dnsbuf, sz);
+		isc_buffer_forward(&dnsbuf, sz);
 	}
 
 	assert_true(packetno == npackets);
 	assert_true(isc_dnsstream_assembler_remaininglength(dnsasm) == 0);
-	assert_true(isc_dnsbuffer_remaininglength(&dnsbuf) == 0);
+	assert_true(isc_buffer_remaininglength(&dnsbuf) == 0);
 
-	isc_dnsbuffer_uninit(&dnsbuf);
+	isc_buffer_clearmctx(&dnsbuf);
+	isc_buffer_invalidate(&dnsbuf);
+	dnsasm->cbarg = NULL; /* to make GCC happy about dangling pointers */
 }
 
 ISC_RUN_TEST_IMPL(dnsasm_clear_buffer_within_cb_test) {
 	isc_dnsstream_assembler_t *dnsasm = (isc_dnsstream_assembler_t *)*state;
 	verify_cbdata_t cbdata = { 0 };
 	size_t verified = 0;
-	isc_dnsbuffer_t dnsbuf;
+	isc_buffer_t dnsbuf;
 
-	isc_dnsbuffer_init(&dnsbuf, mctx);
+	isc_buffer_init(&dnsbuf, NULL, 0);
+	isc_buffer_setmctx(&dnsbuf, mctx);
 
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)request, sizeof(request));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)&response, sizeof(response));
-	isc_dnsbuffer_putmem(&dnsbuf, (void *)request, sizeof(request));
+	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
+	isc_buffer_putmem(&dnsbuf, (void *)&response, sizeof(response));
+	isc_buffer_putmem(&dnsbuf, (void *)request, sizeof(request));
 	cbdata.cont_on_success = true;
 	cbdata.clear_on_success = true;
 
 	cbdata.verify_message = (uint8_t *)request;
 	isc_dnsstream_assembler_setcb(dnsasm, verify_dnsmsg, (void *)&cbdata);
-	isc_dnsstream_assembler_incoming(
-		dnsasm, &verified, isc_dnsbuffer_current(&dnsbuf),
-		isc_dnsbuffer_remaininglength(&dnsbuf));
+	isc_dnsstream_assembler_incoming(dnsasm, &verified,
+					 isc_buffer_current(&dnsbuf),
+					 isc_buffer_remaininglength(&dnsbuf));
 
-	isc_dnsbuffer_uninit(&dnsbuf);
+	isc_buffer_clearmctx(&dnsbuf);
+	isc_buffer_invalidate(&dnsbuf);
 
 	assert_true(verified == 1);
 	assert_true(isc_dnsstream_assembler_result(dnsasm) == ISC_R_UNSET);
