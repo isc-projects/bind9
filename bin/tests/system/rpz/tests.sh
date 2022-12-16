@@ -920,7 +920,18 @@ EOF
 
   if [ native = "$mode" ]; then
     t=`expr $t + 1`
-    echo_i "checking that "add-soa unset" works (${t})"
+    echo_i "reconfiguring server with 'add-soa no' (${t})"
+    cp ns3/named.conf ns3/named.conf.tmp
+    sed -e "s/add-soa yes/add-soa no/g" < ns3/named.conf.tmp > ns3/named.conf
+    rndc_reconfig ns3 $ns3
+    echo_i "checking that 'add-soa no' at response-policy level works (${t})"
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 > dig.out.${t}
+    grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null && setret "failed"
+  fi
+
+  if [ native = "$mode" ]; then
+    t=`expr $t + 1`
+    echo_i "checking that 'add-soa unset' works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
   fi

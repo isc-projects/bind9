@@ -2311,6 +2311,9 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	} else {
 		zone->max_policy_ttl = ttl_default;
 	}
+	if (*old_rpz_okp && zone->max_policy_ttl != old->max_policy_ttl) {
+		*old_rpz_okp = false;
+	}
 
 	obj = cfg_tuple_get(rpz_obj, "min-update-interval");
 	if (cfg_obj_isduration(obj)) {
@@ -2318,8 +2321,9 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	} else {
 		zone->min_update_interval = minupdateinterval_default;
 	}
-
-	if (*old_rpz_okp && zone->max_policy_ttl != old->max_policy_ttl) {
+	if (*old_rpz_okp &&
+	    zone->min_update_interval != old->min_update_interval)
+	{
 		*old_rpz_okp = false;
 	}
 
@@ -2421,6 +2425,9 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 		zone->addsoa = add_soa_default;
 	} else {
 		zone->addsoa = cfg_obj_asboolean(obj);
+	}
+	if (*old_rpz_okp && zone->addsoa != old->addsoa) {
+		*old_rpz_okp = false;
 	}
 
 	return (ISC_R_SUCCESS);
