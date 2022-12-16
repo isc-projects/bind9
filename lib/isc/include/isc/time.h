@@ -15,8 +15,7 @@
 
 /*! \file */
 
-#include <inttypes.h>
-#include <stdbool.h>
+#include <time.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>

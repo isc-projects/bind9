@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #include <isc/file.h>
-#include <isc/offset.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
@@ -146,14 +145,14 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		const cfg_obj_t *suffixobj = cfg_tuple_get(fileobj, "suffix");
 		int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_log_rollsuffix_t suffix = isc_log_rollsuffix_increment;
-		isc_offset_t size = 0;
+		off_t size = 0;
 		uint64_t maxoffset;
 
 		/*
-		 * isc_offset_t is a signed integer type, so the maximum
+		 * off_t is a signed integer type, so the maximum
 		 * value is all 1s except for the MSB.
 		 */
-		switch (sizeof(isc_offset_t)) {
+		switch (sizeof(off_t)) {
 		case 4:
 			maxoffset = 0x7fffffffULL;
 			break;
@@ -178,7 +177,7 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig) {
 		if (sizeobj != NULL && cfg_obj_isuint64(sizeobj) &&
 		    cfg_obj_asuint64(sizeobj) < maxoffset)
 		{
-			size = (isc_offset_t)cfg_obj_asuint64(sizeobj);
+			size = (off_t)cfg_obj_asuint64(sizeobj);
 		}
 		if (suffixobj != NULL && cfg_obj_isstring(suffixobj) &&
 		    strcasecmp(cfg_obj_asstring(suffixobj), "timestamp") == 0)

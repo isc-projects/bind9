@@ -61,7 +61,6 @@ libisc_la_HEADERS =			\
 	include/isc/netmgr.h		\
 	include/isc/netscope.h		\
 	include/isc/nonce.h		\
-	include/isc/offset.h		\
 	include/isc/once.h		\
 	include/isc/os.h		\
 	include/isc/parseint.h		\

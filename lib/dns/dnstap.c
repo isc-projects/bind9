@@ -118,7 +118,7 @@ struct dns_dtenv {
 	isc_region_t version;
 	char *path;
 	dns_dtmode_t mode;
-	isc_offset_t max_size;
+	off_t max_size;
 	int rolls;
 	isc_log_rollsuffix_t suffix;
 	isc_stats_t *stats;
