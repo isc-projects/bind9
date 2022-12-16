@@ -4,12 +4,10 @@ lib_LTLIBRARIES = libbind9.la
 
 libbind9_ladir = $(includedir)/bind9
 
-libbind9_la_HEADERS =			\
-	include/bind9/getaddresses.h
+libbind9_la_HEADERS =
 
 libbind9_la_SOURCES =		\
-	$(libbind9_la_HEADERS)	\
-	getaddresses.c
+	$(libbind9_la_HEADERS)
 
 libbind9_la_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\

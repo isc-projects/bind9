@@ -22,6 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/file.h>
+#include <isc/getaddresses.h>
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
@@ -47,8 +48,6 @@
 #include <isccc/util.h>
 
 #include <isccfg/namedconf.h>
-
-#include <bind9/getaddresses.h>
 
 #include "util.h"
 
@@ -278,7 +277,7 @@ get_addresses(const char *host, in_port_t port) {
 		}
 	} else {
 		count = SERVERADDRS - nserveraddrs;
-		result = bind9_getaddresses(
+		result = isc_getaddresses(
 			host, port, &serveraddrs[nserveraddrs], count, &found);
 		nserveraddrs += found;
 	}
