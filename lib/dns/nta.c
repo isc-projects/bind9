@@ -22,7 +22,6 @@
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>

@@ -20,7 +20,6 @@
 #endif /* HAVE_BACKTRACE_SYMBOLS */
 
 #include <isc/backtrace.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
 

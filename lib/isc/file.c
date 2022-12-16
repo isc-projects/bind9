@@ -62,7 +62,6 @@
 #include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>

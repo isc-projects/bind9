@@ -45,7 +45,6 @@
 #include <isc/netaddr.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/safe.h>

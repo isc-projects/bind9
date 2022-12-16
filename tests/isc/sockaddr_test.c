@@ -24,7 +24,6 @@
 #include <cmocka.h>
 
 #include <isc/netaddr.h>
-#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 

@@ -35,7 +35,6 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>

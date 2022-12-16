@@ -24,7 +24,6 @@
 #include <cmocka.h>
 
 #include <isc/crc64.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
 

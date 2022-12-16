@@ -22,7 +22,6 @@
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/task.h>
 #include <isc/util.h>

@@ -24,7 +24,6 @@
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>

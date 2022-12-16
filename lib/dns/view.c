@@ -26,7 +26,6 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h>

@@ -14,7 +14,6 @@
 #include <stdbool.h>
 
 #include <isc/file.h>
-#include <isc/print.h>
 #include <isc/regex.h>
 #include <isc/string.h>
 

@@ -22,7 +22,6 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/string.h>

@@ -28,7 +28,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/quota.h>
 #include <isc/random.h>
 #include <isc/refcount.h>

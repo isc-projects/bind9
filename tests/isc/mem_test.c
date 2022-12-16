@@ -28,7 +28,6 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/stdio.h>

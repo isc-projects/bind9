@@ -14,20 +14,6 @@
 status=0
 
 #
-# Check for missing #include <isc/print.h> or "print_p.h"
-#
-list=`git grep -l snprintf lib bin |
-      grep '\.c$' |
-      grep -vE -e '(lib/bind|lib/dns/rdata|lib/dns/gen.c)' \
-	       -e '(dlzexternal/driver/driver.c)' |
-      xargs grep -EL "(isc/print.h|print_p.h)" 2> /dev/null`
-[ -n "$list" ] && {
-    status=1
-    echo 'Missing #include <isc/print.h> or #include "print_p.h":'
-    echo "$list"
-}
-
-#
 # Check for missing #include <isc/strerr.h>
 #
 list=`git grep -wl strerror_r lib bin |

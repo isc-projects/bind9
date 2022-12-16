@@ -16,7 +16,6 @@
 #include <stdbool.h>
 
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>

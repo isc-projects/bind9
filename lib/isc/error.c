@@ -17,7 +17,6 @@
 #include <stdlib.h>
 
 #include <isc/error.h>
-#include <isc/print.h>
 
 /*% Default unexpected callback. */
 static void

@@ -58,7 +58,6 @@
 #include <isc/netaddr.h>
 #include <isc/netmgr.h>
 #include <isc/netscope.h>
-#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>

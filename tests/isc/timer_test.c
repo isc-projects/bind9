@@ -30,7 +30,6 @@
 #include <isc/loop.h>
 #include <isc/mem.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>

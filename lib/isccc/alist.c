@@ -34,7 +34,6 @@
 #include <string.h>
 
 #include <isc/assertions.h>
-#include <isc/print.h>
 #include <isc/result.h>
 
 #include <isccc/alist.h>

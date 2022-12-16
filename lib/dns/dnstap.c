@@ -60,7 +60,6 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/task.h>

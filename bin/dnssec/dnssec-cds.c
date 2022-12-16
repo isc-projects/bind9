@@ -30,7 +30,6 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/string.h>

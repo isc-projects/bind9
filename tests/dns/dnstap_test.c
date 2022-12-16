@@ -28,7 +28,6 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
-#include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
 #include <isc/util.h>

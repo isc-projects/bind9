@@ -27,7 +27,6 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/time.h>

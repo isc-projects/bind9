@@ -26,7 +26,6 @@
 #include <cmocka.h>
 
 #include <isc/list.h>
-#include <isc/print.h>
 #include <isc/random.h>
 
 #include <dns/acl.h>

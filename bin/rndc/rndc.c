@@ -28,7 +28,6 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>

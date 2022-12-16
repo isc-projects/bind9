@@ -26,7 +26,6 @@
 #include <isc/log.h>
 #include <isc/loop.h>
 #include <isc/mutex.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>

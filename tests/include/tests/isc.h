@@ -23,7 +23,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>

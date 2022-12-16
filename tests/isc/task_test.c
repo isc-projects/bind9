@@ -35,7 +35,6 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>

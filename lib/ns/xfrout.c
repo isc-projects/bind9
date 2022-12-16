@@ -17,7 +17,6 @@
 #include <isc/formatcheck.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/util.h>

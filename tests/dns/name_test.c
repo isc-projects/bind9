@@ -28,7 +28,6 @@
 #include <isc/commandline.h>
 #include <isc/mem.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 

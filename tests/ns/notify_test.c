@@ -26,7 +26,6 @@
 #include <cmocka.h>
 
 #include <isc/event.h>
-#include <isc/print.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 

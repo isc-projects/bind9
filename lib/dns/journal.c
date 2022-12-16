@@ -20,7 +20,6 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>

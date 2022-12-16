@@ -20,7 +20,6 @@
 #include <isc/httpd.h>
 #include <isc/mem.h>
 #include <isc/once.h>
-#include <isc/print.h>
 #include <isc/stats.h>
 #include <isc/string.h>
 #include <isc/util.h>
