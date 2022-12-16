@@ -1368,12 +1368,14 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 					 adbname);
 		INSIST(result == ISC_R_SUCCESS);
 
+		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock); /* Must be unlocked by the caller */
 		adbname->last_used = now;
 
 		ISC_LIST_PREPEND(adb->names_lru, adbname, link);
 		break;
 	case ISC_R_SUCCESS:
+		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock); /* Must be unlocked by the caller */
 		if (adbname->last_used + ADB_CACHE_MINIMUM <= last_update) {
 			adbname->last_used = now;
@@ -1386,7 +1388,6 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 		UNREACHABLE();
 	}
 
-	dns_adbname_ref(adbname);
 	/*
 	 * The refcount is now 2 and the final detach will happen in
 	 * expire_name() - the unused adbname stored in the hashtable and lru
@@ -1436,6 +1437,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 					 sizeof(adbentry->sockaddr), adbentry);
 		INSIST(result == ISC_R_SUCCESS);
 
+		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock); /* Must be unlocked by the caller */
 		adbentry->last_used = now;
 
@@ -1443,6 +1445,11 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 		break;
 	}
 	case ISC_R_SUCCESS:
+		/*
+		 * The dns_adbentry_ref() must stay here before trying to expire
+		 * the ADB entry, so it is not destroyed under the lock.
+		 */
+		dns_adbentry_ref(adbentry);
 		LOCK(&adbentry->lock); /* Must be unlocked by the caller */
 		if (maybe_expire_entry(adbentry, now)) {
 			UNLOCK(&adbentry->lock);
@@ -1459,8 +1466,6 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 	default:
 		UNREACHABLE();
 	}
-
-	dns_adbentry_ref(adbentry);
 
 	UNLOCK(&adb->entries_lock);
 
