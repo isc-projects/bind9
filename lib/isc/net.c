@@ -22,12 +22,12 @@
 #endif /* if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__) */
 #include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <sys/uio.h>
 #include <unistd.h>
 
 #include <isc/log.h>
 #include <isc/net.h>
-#include <isc/netdb.h>
 #include <isc/once.h>
 #include <isc/strerr.h>
 #include <isc/string.h>

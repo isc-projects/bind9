@@ -58,7 +58,6 @@ libisc_la_HEADERS =			\
 	include/isc/mutexblock.h	\
 	include/isc/net.h		\
 	include/isc/netaddr.h		\
-	include/isc/netdb.h		\
 	include/isc/netmgr.h		\
 	include/isc/netscope.h		\
 	include/isc/nonce.h		\

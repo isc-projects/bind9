@@ -15,13 +15,13 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <netdb.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/dir.h>
 #include <isc/magic.h>
-#include <isc/netdb.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>

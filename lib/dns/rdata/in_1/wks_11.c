@@ -15,11 +15,10 @@
 #define RDATA_IN_1_WKS_11_C
 
 #include <limits.h>
-#include <stdlib.h>
+#include <netdb.h>
 
 #include <isc/ascii.h>
 #include <isc/net.h>
-#include <isc/netdb.h>
 #include <isc/once.h>
 
 #define RRTYPE_WKS_ATTRIBUTES (0)
