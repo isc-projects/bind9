@@ -177,6 +177,7 @@ BACKPORT_OF_RE = re.compile(
 VERSION_LABEL_RE = re.compile(r"v9.([0-9]+)(-S)?")
 backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description)
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
+affects_labels = [l for l in mr_labels if l.startswith("Affects v9.")]
 if is_backport:
     if len(version_labels) != 1:
         fail(
@@ -228,12 +229,18 @@ if is_backport:
                             "commits are meant to be backported."
                         )
                         fail(msg)
-if not is_backport and not version_labels:
-    fail(
-        "If this merge request is a backport, set the *Backport* label and "
-        "a single version label (*v9.x*) indicating the target branch. "
-        "If not, set version labels for all targeted backport branches."
-    )
+else:
+    if not version_labels:
+        fail(
+            "If this merge request is a backport, set the *Backport* label and "
+            "a single version label (*v9.x*) indicating the target branch. "
+            "If not, set version labels for all targeted backport branches."
+        )
+    if not affects_labels:
+        warn(
+            "Set `Affects v9.` label(s) for all versions that are affected by "
+            "the issue which this MR addresses."
+        )
 
 ###############################################################################
 # OTHER LABELS
