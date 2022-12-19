@@ -339,20 +339,18 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 static isc_result_t
 tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     isc_dscp_t dscp, bool *connected, dns_dispatch_t **dispatchp) {
+	     isc_dscp_t dscp, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (!newtcp) {
 		result = dns_dispatch_gettcp(requestmgr->dispatchmgr, destaddr,
-					     srcaddr, connected, dispatchp);
+					     srcaddr, dispatchp);
 		if (result == ISC_R_SUCCESS) {
 			char peer[ISC_SOCKADDR_FORMATSIZE];
 
 			isc_sockaddr_format(destaddr, peer, sizeof(peer));
 			req_log(ISC_LOG_DEBUG(1),
-				"attached to %s TCP "
-				"connection to %s",
-				*connected ? "existing" : "pending", peer);
+				"attached to TCP connection to %s", peer);
 			return (result);
 		}
 	}
@@ -394,12 +392,12 @@ udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 static isc_result_t
 get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     isc_dscp_t dscp, bool *connected, dns_dispatch_t **dispatchp) {
+	     isc_dscp_t dscp, dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (tcp) {
 		result = tcp_dispatch(newtcp, requestmgr, srcaddr, destaddr,
-				      dscp, connected, dispatchp);
+				      dscp, dispatchp);
 	} else {
 		result = udp_dispatch(requestmgr, srcaddr, destaddr, dispatchp);
 	}
@@ -423,7 +421,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	bool tcp = false;
 	bool newtcp = false;
 	isc_region_t r;
-	bool connected = false;
 	unsigned int dispopt = 0;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
@@ -497,7 +494,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 again:
 
 	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
-			      &connected, &request->dispatch);
+			      &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto detach;
 	}
@@ -514,7 +511,6 @@ again:
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
-			connected = false;
 			dns_dispatch_detach(&request->dispatch);
 			goto again;
 		}
@@ -534,21 +530,15 @@ again:
 	UNLOCK(&requestmgr->lock);
 
 	request->destaddr = *destaddr;
-	if (tcp && connected) {
-		req_send(request);
 
-		/* no need to call req_connected(), detach here */
-		req_detach(&(dns_request_t *){ request });
-	} else {
-		request->flags |= DNS_REQUEST_F_CONNECTING;
-		if (tcp) {
-			request->flags |= DNS_REQUEST_F_TCP;
-		}
+	request->flags |= DNS_REQUEST_F_CONNECTING;
+	if (tcp) {
+		request->flags |= DNS_REQUEST_F_TCP;
+	}
 
-		result = dns_dispatch_connect(request->dispentry);
-		if (result != ISC_R_SUCCESS) {
-			goto unlink;
-		}
+	result = dns_dispatch_connect(request->dispentry);
+	if (result != ISC_R_SUCCESS) {
+		goto unlink;
 	}
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw: request %p", request);
@@ -660,7 +650,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 
 again:
 	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr, dscp,
-			      &connected, &request->dispatch);
+			      &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto detach;
 	}
@@ -841,7 +831,7 @@ request_cancel(dns_request_t *request) {
 		request->flags &= ~DNS_REQUEST_F_CONNECTING;
 
 		if (request->dispentry != NULL) {
-			dns_dispatch_cancel(&request->dispentry);
+			dns_dispatch_done(&request->dispentry);
 		}
 
 		dns_dispatch_detach(&request->dispatch);
@@ -996,12 +986,12 @@ static void
 req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 
-	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
-		isc_result_totext(result));
-
 	if (result == ISC_R_CANCELED) {
 		return;
 	}
+
+	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
+		isc_result_totext(result));
 
 	if (result == ISC_R_TIMEDOUT) {
 		LOCK(&request->requestmgr->locks[request->hash]);
