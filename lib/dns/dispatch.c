@@ -1264,11 +1264,13 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		     isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
 			switch (disp->state) {
+			case DNS_DISPATCHSTATE_NONE:
+				/* Dispatch in indeterminate state */
+				break;
 			case DNS_DISPATCHSTATE_CONNECTED:
 				/* We found a connected dispatch */
 				dns_dispatch_attach(disp, &disp_connected);
 				break;
-			case DNS_DISPATCHSTATE_NONE:
 			case DNS_DISPATCHSTATE_CONNECTING:
 				/* We found "a" dispatch, store it for later */
 				if (disp_fallback == NULL) {
