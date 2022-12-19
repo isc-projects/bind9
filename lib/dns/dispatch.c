@@ -1265,7 +1265,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		{
 			switch (disp->state) {
 			case DNS_DISPATCHSTATE_NONE:
-				/* Dispatch in indeterminate state */
+				/* Dispatch in indeterminate state, skip it */
 				break;
 			case DNS_DISPATCHSTATE_CONNECTED:
 				/* We found a connected dispatch */
@@ -1280,10 +1280,8 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 				break;
 			case DNS_DISPATCHSTATE_CANCELED:
 				/*
-				 * We found a canceled dispatch, help its
-				 * removal from the list, and skip it.
+				 * We found a canceled dispatch, skip it.
 				 */
-				ISC_LIST_UNLINK(disp->mgr->list, disp, link);
 				break;
 			default:
 				UNREACHABLE();
