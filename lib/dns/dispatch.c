@@ -1842,7 +1842,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	LOCK(&disp->lock);
-	INSIST(disp->state = DNS_DISPATCHSTATE_CONNECTING);
+	INSIST(disp->state == DNS_DISPATCHSTATE_CONNECTING);
 
 	if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
