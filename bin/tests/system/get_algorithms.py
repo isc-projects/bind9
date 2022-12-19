@@ -111,7 +111,10 @@ def is_supported(alg: Algorithm) -> bool:
             f"{TESTCRYPTO} -q {alg.name}",
             shell=True,
             check=True,
-            env={"KEYGEN": KEYGEN},
+            env={
+                "KEYGEN": KEYGEN,
+                "TMPDIR": os.getenv("TMPDIR", "/tmp"),
+            },
             stdout=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError as exc:
