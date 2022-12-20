@@ -13,6 +13,12 @@ SYSTEMTESTTOP=..
 #shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+symlink_alg=$(basename $PWD | awk -F- '{ print $2 }')
+if [ "$symlink_alg" == "eddsa" ]; then
+    echo_i "Setting algorithm to ED25519"
+    DEFAULT_ALGORITHM=ED25519
+fi
+
 dig_with_opts() (
 	"$DIG" +tcp +noadd +nosea +nostat +nocmd +dnssec -p "${PORT}" "$@"
 )
