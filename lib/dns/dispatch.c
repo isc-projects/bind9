@@ -738,6 +738,7 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 		next = ISC_LIST_NEXT(resp, alink);
 		tcp_recv_add(resps, resp, result);
 	}
+	disp->state = DNS_DISPATCHSTATE_CANCELED;
 }
 
 static void
@@ -1232,34 +1233,42 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		 * 2. destination address is same
 		 * 3. local address is either NULL or same
 		 */
-		if (disp->socktype == isc_socktype_tcp &&
-		    isc_sockaddr_equal(destaddr, &peeraddr) &&
-		    (localaddr == NULL ||
-		     isc_sockaddr_eqaddr(localaddr, &sockname)))
+		if (disp->socktype != isc_socktype_tcp ||
+		    !isc_sockaddr_equal(destaddr, &peeraddr) ||
+		    (localaddr != NULL &&
+		     !isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
-			switch (disp->state) {
-			case DNS_DISPATCHSTATE_NONE:
-				/* Dispatch in indeterminate state, skip it */
+			UNLOCK(&disp->lock);
+			continue;
+		}
+
+		switch (disp->state) {
+		case DNS_DISPATCHSTATE_NONE:
+			/* A dispatch in indeterminate state, skip it */
+			break;
+		case DNS_DISPATCHSTATE_CONNECTED:
+			if (ISC_LIST_EMPTY(disp->active)) {
+				/* Ignore dispatch with no responses */
 				break;
-			case DNS_DISPATCHSTATE_CONNECTED:
-				/* We found a connected dispatch */
-				dns_dispatch_attach(disp, &disp_connected);
-				break;
-			case DNS_DISPATCHSTATE_CONNECTING:
-				/* We found "a" dispatch, store it for later */
-				if (disp_fallback == NULL) {
-					dns_dispatch_attach(disp,
-							    &disp_fallback);
-				}
-				break;
-			case DNS_DISPATCHSTATE_CANCELED:
-				/*
-				 * We found a canceled dispatch, skip it.
-				 */
-				break;
-			default:
-				UNREACHABLE();
 			}
+			/* We found a connected dispatch */
+			dns_dispatch_attach(disp, &disp_connected);
+			break;
+		case DNS_DISPATCHSTATE_CONNECTING:
+			if (ISC_LIST_EMPTY(disp->pending)) {
+				/* Ignore dispatch with no responses */
+				break;
+			}
+			/* We found "a" dispatch, store it for later */
+			if (disp_fallback == NULL) {
+				dns_dispatch_attach(disp, &disp_fallback);
+			}
+			break;
+		case DNS_DISPATCHSTATE_CANCELED:
+			/* A canceled dispatch, skip it. */
+			break;
+		default:
+			UNREACHABLE();
 		}
 
 		UNLOCK(&disp->lock);
@@ -1844,7 +1853,10 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	LOCK(&disp->lock);
 	INSIST(disp->state == DNS_DISPATCHSTATE_CONNECTING);
 
-	if (eresult == ISC_R_SUCCESS) {
+	if (ISC_LIST_EMPTY(disp->pending)) {
+		/* All responses have been canceled */
+		disp->state = DNS_DISPATCHSTATE_CANCELED;
+	} else if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
 		tcp_startrecv(handle, disp, resp);
 	} else {
