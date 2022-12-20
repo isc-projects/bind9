@@ -1166,7 +1166,8 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
 		isc_buffer_putuint8(buf, NS_COOKIE_VERSION_1);
-		isc_buffer_putuint24(buf, 0); /* Reserved */
+		isc_buffer_putuint8(buf, 0);  /* Reserved */
+		isc_buffer_putuint16(buf, 0); /* Reserved */
 		isc_buffer_putuint32(buf, when);
 
 		memmove(input, cp, 16);

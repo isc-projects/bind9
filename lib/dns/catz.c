@@ -1548,7 +1548,6 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		return (result);
 	}
 	isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
-	isc_buffer_setautorealloc(aclb, true);
 	for (result = dns_rdata_apl_first(&rdata_apl); result == ISC_R_SUCCESS;
 	     result = dns_rdata_apl_next(&rdata_apl))
 	{
@@ -1568,14 +1567,14 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 		if (apl_ent.negative) {
 			isc_buffer_putuint8(aclb, '!');
 		}
-		isc_buffer_reserve(&aclb, INET6_ADDRSTRLEN);
+		isc_buffer_reserve(aclb, INET6_ADDRSTRLEN);
 		result = isc_netaddr_totext(&addr, aclb);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if ((apl_ent.family == 1 && apl_ent.prefix < 32) ||
 		    (apl_ent.family == 2 && apl_ent.prefix < 128))
 		{
 			isc_buffer_putuint8(aclb, '/');
-			isc_buffer_putdecint(aclb, apl_ent.prefix);
+			isc_buffer_printf(aclb, "%" PRId8, apl_ent.prefix);
 		}
 		isc_buffer_putstr(aclb, "; ");
 	}
@@ -1872,7 +1871,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		rlen += strlen(entry->opts.zonedir) + 1;
 	}
 
-	result = isc_buffer_reserve(buffer, (unsigned int)rlen);
+	result = isc_buffer_reserve(*buffer, (unsigned int)rlen);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1940,7 +1939,6 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 */
 	isc_buffer_allocate(zone->catzs->mctx, &buffer, ISC_BUFFER_INCR);
 
-	isc_buffer_setautorealloc(buffer, true);
 	isc_buffer_putstr(buffer, "zone \"");
 	dns_name_totext(&entry->name, true, buffer);
 	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
@@ -1981,7 +1979,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		}
 		isc_netaddr_fromsockaddr(&netaddr,
 					 &entry->opts.masters.addrs[i]);
-		isc_buffer_reserve(&buffer, INET6_ADDRSTRLEN);
+		isc_buffer_reserve(buffer, INET6_ADDRSTRLEN);
 		result = isc_netaddr_totext(&netaddr, buffer);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 

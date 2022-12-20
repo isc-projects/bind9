@@ -186,7 +186,7 @@ main(int argc, char *argv[]) {
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
-			result = isc_buffer_reserve(&input, 1);
+			result = isc_buffer_reserve(input, 1);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_buffer_putuint8(input, (uint8_t)c);
 		}
@@ -223,7 +223,7 @@ main(int argc, char *argv[]) {
 				c = fromhex(*rp++);
 				c *= 16;
 				c += fromhex(*rp++);
-				result = isc_buffer_reserve(&input, 1);
+				result = isc_buffer_reserve(input, 1);
 				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				isc_buffer_putuint8(input, (uint8_t)c);
 			}

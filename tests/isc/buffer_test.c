@@ -42,48 +42,44 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	UNUSED(state);
 
 	b = NULL;
-	isc_buffer_allocate(mctx, &b, 1024);
-	assert_int_equal(b->length, 1024);
+	isc_buffer_allocate(mctx, &b, ISC_BUFFER_INCR);
+	assert_int_equal(b->length, ISC_BUFFER_INCR);
 
 	/*
-	 * 1024 bytes should already be available, so this call does
+	 * 512 bytes should already be available, so this call does
 	 * nothing.
 	 */
-	result = isc_buffer_reserve(&b, 1024);
+	result = isc_buffer_reserve(b, 512);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
-	assert_int_equal(b->length, 1024);
+	assert_int_equal(b->length, ISC_BUFFER_INCR);
 
 	/*
-	 * This call should grow it to 2048 bytes as only 1024 bytes are
+	 * This call should grow it to 1536 bytes as only 1024 bytes are
 	 * available in the buffer.
 	 */
-	result = isc_buffer_reserve(&b, 1025);
+	result = isc_buffer_reserve(b, 1025);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
-	assert_int_equal(b->length, 2048);
+	assert_int_equal(b->length, 3 * ISC_BUFFER_INCR);
 
 	/*
-	 * 2048 bytes should already be available, so this call does
+	 * 1536 bytes should already be available, so this call does
 	 * nothing.
 	 */
-	result = isc_buffer_reserve(&b, 2000);
+	result = isc_buffer_reserve(b, 1500);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
-	assert_int_equal(b->length, 2048);
+	assert_int_equal(b->length, 3 * ISC_BUFFER_INCR);
 
 	/*
-	 * This call should grow it to 4096 bytes as only 2048 bytes are
+	 * This call should grow it to 4096 bytes as only 1536 bytes are
 	 * available in the buffer.
 	 */
-	result = isc_buffer_reserve(&b, 3000);
+	result = isc_buffer_reserve(b, 3585);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
-	assert_int_equal(b->length, 4096);
+	assert_int_equal(b->length, 8 * ISC_BUFFER_INCR);
 
 	/* Consume some of the buffer so we can run the next test. */
 	isc_buffer_add(b, 4096);
@@ -91,11 +87,10 @@ ISC_RUN_TEST_IMPL(isc_buffer_reserve) {
 	/*
 	 * This call should fail and leave buffer untouched.
 	 */
-	result = isc_buffer_reserve(&b, UINT_MAX);
+	result = isc_buffer_reserve(b, UINT_MAX);
 	assert_int_equal(result, ISC_R_NOMEMORY);
-	assert_true(ISC_BUFFER_VALID(b));
 	assert_non_null(b);
-	assert_int_equal(b->length, 4096);
+	assert_int_equal(b->length, 8 * ISC_BUFFER_INCR);
 
 	isc_buffer_free(&b);
 }
@@ -112,8 +107,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 	isc_buffer_allocate(mctx, &b, last_length);
 	assert_non_null(b);
 	assert_int_equal(b->length, last_length);
-
-	isc_buffer_setautorealloc(b, true);
 
 	isc_buffer_putuint8(b, 1);
 
@@ -135,14 +128,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_dynamic) {
 	}
 
 	assert_true(b->length - last_length >= 10000 * 2);
-
-	last_length += 10000 * 2;
-	for (i = 0; i < 10000; i++) {
-		isc_buffer_putuint24(b, 1);
-	}
-	assert_true(b->length - last_length >= 10000 * 3);
-
-	last_length += 10000 * 3;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint32(b, 1);
@@ -174,15 +159,8 @@ ISC_RUN_TEST_IMPL(isc_buffer_copyregion) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
-	 * Appending more data to the buffer should fail.
+	 * Appending should succeed.
 	 */
-	result = isc_buffer_copyregion(b, &r);
-	assert_int_equal(result, ISC_R_NOSPACE);
-
-	/*
-	 * Enable auto reallocation and retry.  Appending should now succeed.
-	 */
-	isc_buffer_setautorealloc(b, true);
 	result = isc_buffer_copyregion(b, &r);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -204,7 +182,6 @@ ISC_RUN_TEST_IMPL(isc_buffer_printf) {
 	 */
 	b = NULL;
 	isc_buffer_allocate(mctx, &b, 0);
-	isc_buffer_setautorealloc(b, true);
 
 	/*
 	 * Sanity check.

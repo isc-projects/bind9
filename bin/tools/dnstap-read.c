@@ -157,7 +157,7 @@ print_packet(dns_dtdata_t *dt, const dns_master_style_t *style) {
 		}
 
 		for (;;) {
-			isc_buffer_reserve(&b, textlen);
+			isc_buffer_reserve(b, textlen);
 			if (b == NULL) {
 				fatal("out of memory");
 			}

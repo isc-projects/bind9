@@ -884,7 +884,7 @@ static isc_result_t
 putstr(isc_buffer_t **b, const char *str) {
 	isc_result_t result;
 
-	result = isc_buffer_reserve(b, strlen(str));
+	result = isc_buffer_reserve(*b, strlen(str));
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOSPACE);
 	}
@@ -1357,7 +1357,7 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 		CHECK(putstr(dest, d->typebuf));
 	}
 
-	CHECK(isc_buffer_reserve(dest, 1));
+	CHECK(isc_buffer_reserve(*dest, 1));
 	isc_buffer_putuint8(*dest, 0);
 
 cleanup:
