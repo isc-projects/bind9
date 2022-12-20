@@ -762,7 +762,9 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 		goto failure;
 	}
 
-	isc__nmsocket_timer_start(sock);
+	if (!sock->manual_read_timer) {
+		isc__nmsocket_timer_start(sock);
+	}
 
 	return;
 failure:
@@ -831,7 +833,7 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 	isc__nm_readcb(sock, req, ISC_R_SUCCESS, false);
 
 	/* The readcb could have paused the reading */
-	if (sock->reading) {
+	if (sock->reading && !sock->manual_read_timer) {
 		/* The timer will be updated */
 		isc__nmsocket_timer_restart(sock);
 	}
@@ -994,9 +996,9 @@ failure:
 	return (result);
 }
 
-void
-isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
-		 isc_nm_cb_t cb, void *cbarg) {
+static void
+tcp_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
+	 void *cbarg, const bool dnsmsg) {
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
@@ -1009,6 +1011,9 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	REQUIRE(sock->tid == isc_tid());
 
 	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	if (dnsmsg) {
+		*(uint16_t *)uvreq->tcplen = htons(region->length);
+	}
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
@@ -1030,6 +1035,18 @@ isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	}
 
 	return;
+}
+
+void
+isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		 isc_nm_cb_t cb, void *cbarg) {
+	tcp_send(handle, region, cb, cbarg, false);
+}
+
+void
+isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg) {
+	tcp_send(handle, region, cb, cbarg, true);
 }
 
 static void
@@ -1063,27 +1080,59 @@ tcp_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 
 	int r;
+	uv_buf_t bufs[2] = { { 0 }, { 0 } }; /* ugly, but required for old GCC
+						versions */
+	size_t nbufs = 1;
 
 	if (isc__nmsocket_closing(sock)) {
 		return (ISC_R_CANCELED);
 	}
 
-	uv_buf_t uvbuf = { .base = req->uvbuf.base, .len = req->uvbuf.len };
+	/* Check if we are not trying to send a DNS message */
+	if (*(uint16_t *)req->tcplen == 0) {
+		bufs[0].base = req->uvbuf.base;
+		bufs[0].len = req->uvbuf.len;
 
-	r = uv_try_write(&sock->uv_handle.stream, &uvbuf, 1);
+		r = uv_try_write(&sock->uv_handle.stream, bufs, nbufs);
 
-	if (r == (int)(uvbuf.len)) {
-		/* Wrote everything */
-		isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
-		return (ISC_R_SUCCESS);
-	} else if (r > 0) {
-		uvbuf.base += (size_t)r;
-		uvbuf.len -= (size_t)r;
-	} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
-		return (isc_uverr2result(r));
+		if (r == (int)(bufs[0].len)) {
+			/* Wrote everything */
+			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
+			return (ISC_R_SUCCESS);
+		} else if (r > 0) {
+			bufs[0].base += (size_t)r;
+			bufs[0].len -= (size_t)r;
+		} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
+			return (isc_uverr2result(r));
+		}
+	} else {
+		nbufs = 2;
+		bufs[0].base = req->tcplen;
+		bufs[0].len = 2;
+		bufs[1].base = req->uvbuf.base;
+		bufs[1].len = req->uvbuf.len;
+
+		r = uv_try_write(&sock->uv_handle.stream, bufs, nbufs);
+
+		if (r == (int)(bufs[0].len + bufs[1].len)) {
+			/* Wrote everything */
+			isc__nm_sendcb(sock, req, ISC_R_SUCCESS, true);
+			return (ISC_R_SUCCESS);
+		} else if (r == 1) {
+			/* Partial write of DNSMSG length */
+			bufs[0].base = req->tcplen + 1;
+			bufs[0].len = 1;
+		} else if (r > 0) {
+			/* Partial write of DNSMSG */
+			nbufs = 1;
+			bufs[0].base = req->uvbuf.base + (r - 2);
+			bufs[0].len = req->uvbuf.len - (r - 2);
+		} else if (!(r == UV_ENOSYS || r == UV_EAGAIN)) {
+			return (isc_uverr2result(r));
+		}
 	}
 
-	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, &uvbuf, 1,
+	r = uv_write(&req->uv_req.write, &sock->uv_handle.stream, bufs, nbufs,
 		     tcp_send_cb);
 	if (r < 0) {
 		return (isc_uverr2result(r));
@@ -1224,4 +1273,19 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	if (sock->parent == NULL) {
 		isc__nmsocket_prep_destroy(sock);
 	}
+}
+
+void
+isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(!sock->reading);
+	REQUIRE(!sock->recv_read);
+
+	sock->manual_read_timer = manual;
 }

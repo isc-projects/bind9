@@ -25,6 +25,7 @@ libisc_la_HEADERS =			\
 	include/isc/crc64.h		\
 	include/isc/deprecated.h	\
 	include/isc/dir.h		\
+	include/isc/dnsstream.h		\
 	include/isc/endian.h		\
 	include/isc/entropy.h		\
 	include/isc/errno.h		\
@@ -113,10 +114,10 @@ libisc_la_SOURCES =		\
 	netmgr/netmgr-int.h	\
 	netmgr/netmgr.c		\
 	netmgr/socket.c		\
+	netmgr/streamdns.c	\
 	netmgr/tcp.c		\
-	netmgr/tcpdns.c		\
 	netmgr/timer.c		\
-	netmgr/tlsdns.c		\
+	netmgr/tlsstream.c	\
 	netmgr/udp.c		\
 	aes.c			\
 	ascii.c			\
@@ -253,8 +254,7 @@ endif HAVE_JSON_C
 
 if HAVE_LIBNGHTTP2
 libisc_la_SOURCES +=		\
-	netmgr/http.c		\
-	netmgr/tlsstream.c
+	netmgr/http.c
 
 libisc_la_CPPFLAGS +=		\
 	$(LIBNGHTTP2_CFLAGS)

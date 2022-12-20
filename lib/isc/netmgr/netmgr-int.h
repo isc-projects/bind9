@@ -23,6 +23,7 @@
 #include <isc/barrier.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
+#include <isc/dnsstream.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
@@ -256,30 +257,19 @@ typedef enum isc__netievent_type {
 
 	netievent_tcpaccept,
 
-	netievent_tcpdnsaccept,
-	netievent_tcpdnsconnect,
-	netievent_tcpdnsclose,
-	netievent_tcpdnssend,
-	netievent_tcpdnsread,
-	netievent_tcpdnscancel,
-
 	netievent_tlsclose,
 	netievent_tlssend,
 	netievent_tlsconnect,
 	netievent_tlsdobio,
 
-	netievent_tlsdnsaccept,
-	netievent_tlsdnsconnect,
-	netievent_tlsdnsclose,
-	netievent_tlsdnssend,
-	netievent_tlsdnsread,
-	netievent_tlsdnscancel,
-	netievent_tlsdnscycle,
-	netievent_tlsdnsshutdown,
-
 	netievent_httpclose,
 	netievent_httpsend,
 	netievent_httpendpoints,
+
+	netievent_streamdnsclose,
+	netievent_streamdnssend,
+	netievent_streamdnsread,
+	netievent_streamdnscancel,
 
 	netievent_connectcb,
 	netievent_readcb,
@@ -293,10 +283,6 @@ typedef enum isc__netievent_type {
 
 	netievent_tcplisten,
 	netievent_tcpstop,
-	netievent_tcpdnslisten,
-	netievent_tcpdnsstop,
-	netievent_tlsdnslisten,
-	netievent_tlsdnsstop,
 
 	netievent_detach,
 } isc__netievent_type;
@@ -747,7 +733,6 @@ typedef enum {
 	STATID_MAX = 11,
 } isc__nm_statid_t;
 
-#if HAVE_LIBNGHTTP2
 typedef struct isc_nmsocket_tls_send_req {
 	isc_nmsocket_t *tlssock;
 	isc_region_t data;
@@ -757,6 +742,8 @@ typedef struct isc_nmsocket_tls_send_req {
 	bool finish;
 	uint8_t smallbuf[512];
 } isc_nmsocket_tls_send_req_t;
+
+#if HAVE_LIBNGHTTP2
 
 typedef enum isc_http_request_type {
 	ISC_HTTP_REQ_GET,
@@ -869,34 +856,6 @@ struct isc_nmsocket {
 	isc_nmsocket_t *self;
 
 	/*% TLS stuff */
-	struct tls {
-		isc_tls_t *tls;
-		isc_tlsctx_t *ctx;
-		isc_tlsctx_client_session_cache_t *client_sess_cache;
-		bool client_session_saved;
-		BIO *app_rbio;
-		BIO *app_wbio;
-		BIO *ssl_rbio;
-		BIO *ssl_wbio;
-		enum {
-			TLS_STATE_NONE,
-			TLS_STATE_HANDSHAKE,
-			TLS_STATE_IO,
-			TLS_STATE_ERROR,
-			TLS_STATE_CLOSING
-		} state;
-		isc_region_t senddata;
-		ISC_LIST(isc__nm_uvreq_t) sendreqs;
-		bool cycle;
-		isc_result_t pending_error;
-		/* List of active send requests. */
-		isc__nm_uvreq_t *pending_req;
-		bool alpn_negotiated;
-		const char *tls_verify_errmsg;
-	} tls;
-
-#if HAVE_LIBNGHTTP2
-	/*% TLS stuff */
 	struct tlsstream {
 		bool server;
 		BIO *bio_in;
@@ -918,10 +877,24 @@ struct isc_nmsocket {
 			TLS_CLOSED
 		} state; /*%< The order of these is significant */
 		size_t nsending;
+		bool tcp_nodelay_value;
+		isc_nmsocket_tls_send_req_t *send_req; /*%< Send req to reuse */
 	} tlsstream;
 
+#if HAVE_LIBNGHTTP2
 	isc_nmsocket_h2_t h2;
 #endif /* HAVE_LIBNGHTTP2 */
+
+	struct {
+		isc_dnsstream_assembler_t *input;
+		bool reading;
+		isc_nmsocket_t *listener;
+		isc_nmsocket_t *sock;
+		size_t nsending;
+		void *send_req;
+		bool dot_alpn_negotiated;
+		const char *tls_verify_error;
+	} streamdns;
 	/*%
 	 * quota is the TCP client, attached when a TCP connection
 	 * is established. pquota is a non-attached pointer to the
@@ -1036,11 +1009,6 @@ struct isc_nmsocket {
 	 */
 	atomic_int_fast32_t ah;
 
-	/*% Buffer for TCPDNS processing */
-	size_t buf_size;
-	size_t buf_len;
-	unsigned char *buf;
-
 	/*%
 	 * This function will be called with handle->sock
 	 * as the argument whenever a handle's references drop
@@ -1062,6 +1030,7 @@ struct isc_nmsocket {
 	atomic_int_fast32_t active_child_connections;
 
 	bool barrier_initialised;
+	bool manual_read_timer;
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
@@ -1355,6 +1324,9 @@ isc__nm_tcp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
  */
 
 void
+isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
+
+void
 isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0);
@@ -1363,6 +1335,14 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
  * stoplisten, send, read, pause, close).
+ */
+
+void
+isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg);
+/*%<
+ * The same as 'isc__nm_tcp_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
  */
 
 void
@@ -1376,67 +1356,6 @@ isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
 
 /*%<
  * Callback handlers for asynchronous TLS events.
- */
-
-void
-isc__nm_tcpdns_send(isc_nmhandle_t *handle, isc_region_t *region,
-		    isc_nm_cb_t cb, void *cbarg);
-/*%<
- * Back-end implementation of isc_nm_send() for TCPDNS handles.
- */
-
-void
-isc__nm_tcpdns_shutdown(isc_nmsocket_t *sock);
-
-void
-isc__nm_tcpdns_close(isc_nmsocket_t *sock);
-/*%<
- * Close a TCPDNS socket.
- */
-
-void
-isc__nm_tcpdns_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on 'sock'.
- */
-
-void
-isc__nm_tcpdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
-/*%<
- * Set the read timeout and reset the timer for the TCPDNS socket
- * associated with 'handle', and the TCP socket it wraps around.
- */
-
-void
-isc__nm_async_tcpdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Callback handlers for asynchronous TCPDNS events.
- */
-
-void
-isc__nm_tcpdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
-/*
- * Back-end implementation of isc_nm_read() for TCPDNS handles.
- */
-
-void
-isc__nm_tcpdns_cancelread(isc_nmhandle_t *handle);
-/*%<
- * Stop reading on a connected TCPDNS handle.
  */
 
 void
@@ -1518,15 +1437,19 @@ isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_tlsdns_cleanup_data(isc_nmsocket_t *sock);
-
-#if HAVE_LIBNGHTTP2
-void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
 
 /*%<
  * Back-end implementation of isc_nm_send() for TLSDNS handles.
+ */
+
+void
+isc__nm_tls_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
+		    isc_nm_cb_t cb, void *cbarg);
+/*%<
+ * The same as 'isc__nm_tls_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
  */
 
 void
@@ -1563,6 +1486,12 @@ isc__nm_tls_cleartimeout(isc_nmhandle_t *handle);
  * around.
  */
 
+void
+isc__nmsocket_tls_reset(isc_nmsocket_t *sock);
+
+void
+isc__nmhandle_tls_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
+
 const char *
 isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 
@@ -1580,9 +1509,28 @@ void
 isc__nmhandle_tls_setwritetimeout(isc_nmhandle_t *handle,
 				  uint64_t write_timeout);
 
+bool
+isc__nmsocket_tls_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_tls_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_tls_timer_stop(isc_nmsocket_t *sock);
+
 void
 isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
+
+void
+isc__nmhandle_tls_get_selected_alpn(isc_nmhandle_t *handle,
+				    const unsigned char **alpn,
+				    unsigned int *alpnlen);
+
+isc_result_t
+isc__nmhandle_tls_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
+
+#if HAVE_LIBNGHTTP2
 
 void
 isc__nm_http_stoplistening(isc_nmsocket_t *sock);
@@ -1679,6 +1627,79 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 #endif
 
 void
+isc__nm_async_streamdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
+		       void *cbarg);
+
+void
+isc__nm_async_streamdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_send(isc_nmhandle_t *handle, const isc_region_t *region,
+		       isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_async_streamdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nm_async_streamdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
+
+void
+isc__nm_streamdns_cancelread(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_streamdns_cleartimeout(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_streamdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+
+void
+isc__nmhandle_streamdns_keepalive(isc_nmhandle_t *handle, bool value);
+
+void
+isc__nmhandle_streamdns_setwritetimeout(isc_nmhandle_t *handle,
+					uint32_t timeout);
+
+bool
+isc__nm_streamdns_has_encryption(const isc_nmhandle_t *handle);
+
+const char *
+isc__nm_streamdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+
+void
+isc__nm_streamdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx);
+
+bool
+isc__nm_streamdns_xfr_allowed(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_reset(isc_nmsocket_t *sock);
+
+bool
+isc__nmsocket_streamdns_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_timer_stop(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_streamdns_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nm_streamdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+				 bool async);
+
+void
 isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1747,9 +1768,10 @@ isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms);
  */
 
 isc_result_t
-isc__nm_socket_tcp_nodelay(uv_os_sock_t fd);
+isc__nm_socket_tcp_nodelay(const uv_os_sock_t fd, bool value);
 /*%<
- * Disables Nagle's algorithm on a TCP socket (sets TCP_NODELAY).
+ * Disables/Enables Nagle's algorithm on a TCP socket (sets TCP_NODELAY if
+ * 'value' equals 'true' or vice versa).
  */
 
 isc_result_t
@@ -1804,15 +1826,6 @@ NETIEVENT_SOCKET_TYPE(tlsdobio);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpstop);
 
-NETIEVENT_SOCKET_TYPE(tcpdnsclose);
-NETIEVENT_SOCKET_TYPE(tcpdnsread);
-NETIEVENT_SOCKET_TYPE(tcpdnsstop);
-NETIEVENT_SOCKET_TYPE(tcpdnslisten);
-NETIEVENT_SOCKET_REQ_TYPE(tcpdnsconnect);
-NETIEVENT_SOCKET_REQ_TYPE(tcpdnssend);
-NETIEVENT_SOCKET_HANDLE_TYPE(tcpdnscancel);
-NETIEVENT_SOCKET_QUOTA_TYPE(tcpdnsaccept);
-
 NETIEVENT_SOCKET_TYPE(tlsdnsclose);
 NETIEVENT_SOCKET_TYPE(tlsdnsread);
 NETIEVENT_SOCKET_TYPE(tlsdnsstop);
@@ -1841,6 +1854,11 @@ NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
+NETIEVENT_SOCKET_TYPE(streamdnsclose);
+NETIEVENT_SOCKET_REQ_TYPE(streamdnssend);
+NETIEVENT_SOCKET_TYPE(streamdnsread);
+NETIEVENT_SOCKET_HANDLE_TYPE(streamdnscancel);
+
 NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 NETIEVENT_SOCKET_TYPE(sockstop);
 
@@ -1853,15 +1871,6 @@ NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpstop);
-
-NETIEVENT_SOCKET_DECL(tcpdnsclose);
-NETIEVENT_SOCKET_DECL(tcpdnsread);
-NETIEVENT_SOCKET_DECL(tcpdnsstop);
-NETIEVENT_SOCKET_DECL(tcpdnslisten);
-NETIEVENT_SOCKET_REQ_DECL(tcpdnsconnect);
-NETIEVENT_SOCKET_REQ_DECL(tcpdnssend);
-NETIEVENT_SOCKET_HANDLE_DECL(tcpdnscancel);
-NETIEVENT_SOCKET_QUOTA_DECL(tcpdnsaccept);
 
 NETIEVENT_SOCKET_DECL(tlsdnsclose);
 NETIEVENT_SOCKET_DECL(tlsdnsread);
@@ -1891,6 +1900,11 @@ NETIEVENT_SOCKET_DECL(detach);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 
+NETIEVENT_SOCKET_DECL(streamdnsclose);
+NETIEVENT_SOCKET_REQ_DECL(streamdnssend);
+NETIEVENT_SOCKET_DECL(streamdnsread);
+NETIEVENT_SOCKET_HANDLE_DECL(streamdnscancel);
+
 NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 NETIEVENT_SOCKET_DECL(sockstop);
 
@@ -1900,17 +1914,6 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 void
 isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
-void
-isc__nm_tcpdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
-			      bool async);
-void
-isc__nm_tlsdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
-			      bool async);
-
-isc_result_t
-isc__nm_tcpdns_processbuffer(isc_nmsocket_t *sock);
-isc_result_t
-isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock);
 
 isc__nm_uvreq_t *
 isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr);
@@ -1924,25 +1927,16 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 void
 isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 void
-isc__nm_tcpdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-void
 isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
 isc_result_t
 isc__nm_start_reading(isc_nmsocket_t *sock);
 void
 isc__nm_stop_reading(isc_nmsocket_t *sock);
-isc_result_t
-isc__nm_process_sock_buffer(isc_nmsocket_t *sock);
-void
-isc__nm_resume_processing(void *arg);
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock);
 bool
 isc__nm_closing(isc__networker_t *worker);
-
-void
-isc__nm_alloc_dnsbuf(isc_nmsocket_t *sock, size_t len);
 
 void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
@@ -1996,3 +1990,30 @@ isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...)
 void
 isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+
+void
+isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
+/*
+ * Set manual read timer control mode - so that it will not get reset
+ * automatically on read nor get started when read is initiated.
+ */
+
+void
+isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
+				const unsigned char **alpn,
+				unsigned int *alpnlen);
+/*
+ * Returns a non zero terminated ALPN identifier via 'alpn'. The
+ * length of the identifier is returned via 'alpnlen'. If after the
+ * call either 'alpn == NULL' or 'alpnlen == 0', then identifier was
+ * not negotiated of the underlying protocol of the connection
+ * represented via the given handle does not support ALPN.
+ */
+
+void
+isc__nm_senddns(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
+		void *cbarg);
+/*%<
+ * The same as 'isc_nm_send()', but with data length sent
+ * ahead of data (two bytes (16 bit) in big-endian format).
+ */

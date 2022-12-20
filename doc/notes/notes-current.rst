@@ -32,6 +32,9 @@ Feature Changes
 
 - None.
 
+- Replace DNS over TCP and DNS over TLS transports code with a new,
+  unified transport implementation. :gl:`#3374`
+
 Bug Fixes
 ~~~~~~~~~
 

@@ -2036,13 +2036,14 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      peerbuf, resp->timeout);
 
 		if (transport_type == DNS_TRANSPORT_TLS) {
-			isc_nm_tlsdnsconnect(disp->mgr->nm, &disp->local,
-					     &disp->peer, tcp_connected, disp,
-					     resp->timeout, tlsctx, sess_cache);
+			isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
+						&disp->peer, tcp_connected,
+						disp, resp->timeout, tlsctx,
+						sess_cache);
 		} else {
-			isc_nm_tcpdnsconnect(disp->mgr->nm, &disp->local,
-					     &disp->peer, tcp_connected, disp,
-					     resp->timeout);
+			isc_nm_streamdnsconnect(
+				disp->mgr->nm, &disp->local, &disp->peer,
+				tcp_connected, disp, resp->timeout, NULL, NULL);
 		}
 		break;
 

@@ -410,6 +410,13 @@ isc_nm_listentlsdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
  */
 
+isc_result_t
+isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
+		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		       int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
+		       isc_nmsocket_t **sockp);
+
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised);
@@ -496,6 +503,11 @@ isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
 		     isc_tlsctx_t		       *sslctx,
 		     isc_tlsctx_client_session_cache_t *client_sess_cache);
+void
+isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
+			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
+			unsigned int timeout, isc_tlsctx_t *sslctx,
+			isc_tlsctx_client_session_cache_t *client_sess_cache);
 /*%<
  * Establish a DNS client connection via a TCP or TLS connection, bound to
  * the address 'local' and connected to the address 'peer'.
@@ -521,10 +533,6 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
  * 'isc_nm_httpsocket'.
  */
 
-#if HAVE_LIBNGHTTP2
-
-#define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
-
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
@@ -536,6 +544,10 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int			     timeout);
+
+#if HAVE_LIBNGHTTP2
+
+#define ISC_NM_HTTP_DEFAULT_PATH "/dns-query"
 
 void
 isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
@@ -732,3 +744,15 @@ isc_nm_timer_start(isc_nm_timer_t *, uint64_t);
 
 void
 isc_nm_timer_stop(isc_nm_timer_t *);
+
+isc_result_t
+isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
+/*%<
+ * Disables/Enables Nagle's algorithm on a TCP socket for a
+ * transport backed by TCP (sets TCP_NODELAY if 'value' equals 'true'
+ * or vice versa).
+ *
+ * Requires:
+ *
+ * \li 'handle' is a valid netmgr handle object.
+ */

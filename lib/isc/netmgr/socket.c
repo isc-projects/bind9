@@ -327,9 +327,17 @@ isc__nm_socket_connectiontimeout(uv_os_sock_t fd, int timeout_ms) {
 }
 
 isc_result_t
-isc__nm_socket_tcp_nodelay(uv_os_sock_t fd) {
+isc__nm_socket_tcp_nodelay(uv_os_sock_t fd, bool value) {
 #ifdef TCP_NODELAY
-	if (setsockopt_on(fd, IPPROTO_TCP, TCP_NODELAY) == -1) {
+	int ret;
+
+	if (value) {
+		ret = setsockopt_on(fd, IPPROTO_TCP, TCP_NODELAY);
+	} else {
+		ret = setsockopt_off(fd, IPPROTO_TCP, TCP_NODELAY);
+	}
+
+	if (ret == -1) {
 		return (ISC_R_FAILURE);
 	} else {
 		return (ISC_R_SUCCESS);

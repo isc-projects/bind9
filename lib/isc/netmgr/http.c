@@ -1399,8 +1399,7 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 		INSIST(transp_sock->type == isc_nm_tlssocket);
 
-		isc_tls_get_selected_alpn(transp_sock->tlsstream.tls, &alpn,
-					  &alpnlen);
+		isc__nmhandle_get_selected_alpn(handle, &alpn, &alpnlen);
 		if (alpn == NULL || alpnlen != NGHTTP2_PROTO_VERSION_ID_LEN ||
 		    memcmp(NGHTTP2_PROTO_VERSION_ID, alpn,
 			   NGHTTP2_PROTO_VERSION_ID_LEN) != 0)
@@ -2424,18 +2423,7 @@ server_send_connection_header(isc_nm_http_session_t *session) {
  */
 static void
 http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
-	isc_nmsocket_t *tcpsock = NULL;
-	uv_os_fd_t tcp_fd = (uv_os_fd_t)-1;
-
-	if (transphandle->sock->type == isc_nm_tlssocket) {
-		tcpsock = transphandle->sock->outerhandle->sock;
-	} else {
-		tcpsock = transphandle->sock;
-	}
-
-	(void)uv_fileno((uv_handle_t *)&tcpsock->uv_handle.tcp, &tcp_fd);
-	RUNTIME_CHECK(tcp_fd != (uv_os_fd_t)-1);
-	(void)isc__nm_socket_tcp_nodelay((uv_os_sock_t)tcp_fd);
+	(void)isc_nmhandle_set_tcp_nodelay(transphandle, true);
 }
 
 static isc_result_t
