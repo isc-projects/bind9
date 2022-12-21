@@ -1499,7 +1499,7 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	 * exist, cancel them.
 	 */
 	if (query->dispentry != NULL) {
-		dns_dispatch_cancel(&query->dispentry);
+		dns_dispatch_done(&query->dispentry);
 	}
 
 	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);

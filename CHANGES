@@ -1,3 +1,6 @@
+6051.	[bug]		Improve thread safety in the dns_dispatch unit.
+			[GL #3178] [GL #3636]
+
 6050.	[bug]		Changes to the RPZ response-policy min-update-interval
 			and add-soa options now take effect as expected when
 			named is reconfigured. [GL #3740]

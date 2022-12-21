@@ -53,9 +53,12 @@
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/netmgr.h>
+#include <isc/refcount.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
+
+#undef DNS_DISPATCH_TRACE
 
 ISC_LANG_BEGINDECLS
 
@@ -94,25 +97,22 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm, dns_dispatchmgr_t **mgrp);
  *\li	anything else	-- failure
  */
 
-void
-dns_dispatchmgr_attach(dns_dispatchmgr_t *mgr, dns_dispatchmgr_t **mgrp);
-/*%<
- * Attach to a dispatch manger.
- *
- * Requires:
- *\li	 is valid.
- *
- *\li	mgrp != NULL && *mgrp == NULL
- */
+#if DNS_DISPATCH_TRACE
+#define dns_dispatchmgr_ref(ptr) \
+	dns_dispatchmgr__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_dispatchmgr_unref(ptr) \
+	dns_dispatchmgr__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_dispatchmgr_attach(ptr, ptrp) \
+	dns_dispatchmgr__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_dispatchmgr_detach(ptrp) \
+	dns_dispatchmgr__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_dispatchmgr);
+#else
+ISC_REFCOUNT_DECL(dns_dispatchmgr);
+#endif
 
-void
-dns_dispatchmgr_detach(dns_dispatchmgr_t **mgrp);
 /*%<
- * Detach from the dispatch manager, and destroy it if no references
- * remain.
- *
- * Requires:
- *\li	mgrp != NULL && *mgrp is a valid dispatchmgr.
+ * Attach/Detach to a dispatch manager.
  */
 
 void
@@ -201,24 +201,26 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
  *\li	Anything else	-- failure.
  */
 
-void
-dns_dispatch_attach(dns_dispatch_t *disp, dns_dispatch_t **dispp);
+#if DNS_DISPATCH_TRACE
+#define dns_dispatch_ref(ptr) \
+	dns_dispatch__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_dispatch_unref(ptr) \
+	dns_dispatch__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_dispatch_attach(ptr, ptrp) \
+	dns_dispatch__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_dispatch_detach(ptrp) \
+	dns_dispatch__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_dispatch);
+#else
+ISC_REFCOUNT_DECL(dns_dispatch);
+#endif
 /*%<
- * Attach to a dispatch handle.
+ * Attach/Detach to a dispatch handle.
  *
  * Requires:
  *\li	disp is valid.
  *
  *\li	dispp != NULL && *dispp == NULL
- */
-
-void
-dns_dispatch_detach(dns_dispatch_t **dispp);
-/*%<
- * Detaches from the dispatch.
- *
- * Requires:
- *\li	dispp != NULL and *dispp be a valid dispatch.
  */
 
 isc_result_t
@@ -253,11 +255,9 @@ dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout);
 
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
-		    const isc_sockaddr_t *localaddr, bool *connected,
-		    dns_dispatch_t **dispp);
+		    const isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
 /*
- * Attempt to connect to a existing TCP connection (connection completed
- * if connected == NULL).
+ * Attempt to connect to a existing TCP connection.
  */
 
 typedef void (*dispatch_cb_t)(isc_result_t eresult, isc_region_t *region,
@@ -307,22 +307,10 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 
 void
 dns_dispatch_done(dns_dispentry_t **respp);
-/*%<
- * Disconnects a dispatch response entry from its dispatch and shuts it
- * down. This is called when the dispatch is complete; use
- * dns_dispatch_cancel() if it is still pending.
- *
- * Requires:
- *\li	"resp" != NULL and "*resp" contain a value previously allocated
- *	by dns_dispatch_add();
- */
+/*<
+ * Disconnect a dispatch response entry from its dispatch, cancel all
+ * pending connects and reads in a dispatch entry and shut it down.
 
-void
-dns_dispatch_cancel(dns_dispentry_t **respp);
-/*%<
- * Cancel all pending connects and reads in a dispatch entry,
- * then call dns_dispatch_done(). This is used when the caller
- * cancels a dispatch response before it has completed.
  *
  * Requires:
  *\li	"resp" != NULL and "*resp" contain a value previously allocated
