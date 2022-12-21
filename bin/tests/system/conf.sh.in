@@ -103,7 +103,7 @@ cookie
 dlzexternal
 dnssec
 dyndb
-engine_pkcs11
+enginepkcs11
 filter-aaaa
 kasp
 keyfromlabel
