@@ -223,8 +223,9 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	else
 		siglen = DNS_SIG_ECDSA384SIZE;
 
-	if (sig->length != siglen)
-		return (DST_R_VERIFYFAILURE);
+	if (sig->length != siglen) {
+		DST_RET(DST_R_VERIFYFAILURE);
+	}
 
 	if (!EVP_DigestFinal_ex(evp_md_ctx, digest, &dgstlen))
 		DST_RET (dst__openssl_toresult3(dctx->category,

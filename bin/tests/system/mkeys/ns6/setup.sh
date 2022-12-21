@@ -15,8 +15,8 @@ SYSTEMTESTTOP=../..
 zone=.
 zonefile=root.db
 
-# an RSA key
-rsakey=`$KEYGEN -a rsasha256 -b 2048 -r $RANDFILE -qfk rsasha256.`
+# a key for a trust island
+islandkey=$($KEYGEN -a ${DEFAULT_ALGORITHM} -b $DEFAULT_BITS -r $RANDFILE -qfk island.)
 
 # a key with unsupported algorithm
 unsupportedkey=Kunknown.+255+00000
@@ -27,4 +27,4 @@ rootkey=`cat ../ns1/managed.key`
 cp "../ns1/${rootkey}.key" .
 
 # Configure the resolving server with a managed trusted key.
-keyfile_to_managed_keys $unsupportedkey $rsakey $rootkey > managed.conf
+keyfile_to_managed_keys $unsupportedkey $islandkey $rootkey > managed.conf
