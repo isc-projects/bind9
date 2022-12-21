@@ -67,6 +67,31 @@ export KRB5_CONFIG=/dev/null
 # use local keytab instead of default /etc/krb5.keytab
 export KRB5_KTNAME=dns.keytab
 
+#
+# Programs detected by configure
+# Variables will be empty if no program was found by configure
+#
+export SHELL=@SHELL@
+export CURL=@CURL@
+export NC=@NC@
+export XMLLINT=@XMLLINT@
+export XSLTPROC=@XSLTPROC@
+export PYTEST=@PYTEST@
+
+#
+# Interpreters for system tests detected by configure
+#
+export PERL=$(command -v "@PERL@" || true)
+if ! test -x "$PERL"; then
+    echo "Perl interpreter is required for system tests."
+    exit 77
+fi
+export PYTHON=$(command -v "@PYTHON@" || true)
+if ! test -x "$PYTHON"; then
+    echo "Python interpreter is required for system tests."
+    exit 77
+fi
+
 # Load common values
 . $TOP_SRCDIR/bin/tests/system/conf.sh.common
 
@@ -98,24 +123,3 @@ tcp"
 PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
-# Use the CONFIG_SHELL detected by configure for tests
-export SHELL=@SHELL@
-
-# CURL will be empty if no program was found by configure
-export CURL=@CURL@
-
-# NC will be empty if no program was found by configure
-export NC=@NC@
-
-# XMLLINT will be empty if no program was found by configure
-export XMLLINT=@XMLLINT@
-
-# XSLTPROC will be empty if no program was found by configure
-export XSLTPROC=@XSLTPROC@
-
-# PERL will be an empty string if no perl interpreter was found.
-export PERL=$(command -v "@PERL@")
-
-export PYTHON=$(command -v "@PYTHON@" || true)
-export PYTEST=@PYTEST@
