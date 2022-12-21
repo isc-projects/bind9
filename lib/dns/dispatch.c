@@ -764,6 +764,7 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 		next = ISC_LIST_NEXT(resp, alink);
 		tcp_recv_add(resps, resp, result);
 	}
+	disp->state = DNS_DISPATCHSTATE_CANCELED;
 }
 
 static void
@@ -1258,34 +1259,42 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		 * 2. destination address is same
 		 * 3. local address is either NULL or same
 		 */
-		if (disp->socktype == isc_socktype_tcp &&
-		    isc_sockaddr_equal(destaddr, &peeraddr) &&
-		    (localaddr == NULL ||
-		     isc_sockaddr_eqaddr(localaddr, &sockname)))
+		if (disp->socktype != isc_socktype_tcp ||
+		    !isc_sockaddr_equal(destaddr, &peeraddr) ||
+		    (localaddr != NULL &&
+		     !isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
-			switch (disp->state) {
-			case DNS_DISPATCHSTATE_CONNECTED:
-				/* We found a connected dispatch */
-				dns_dispatch_attach(disp, &disp_connected);
+			UNLOCK(&disp->lock);
+			continue;
+		}
+
+		switch (disp->state) {
+		case DNS_DISPATCHSTATE_NONE:
+			/* A dispatch in indeterminate state, skip it */
+			break;
+		case DNS_DISPATCHSTATE_CONNECTED:
+			if (ISC_LIST_EMPTY(disp->active)) {
+				/* Ignore dispatch with no responses */
 				break;
-			case DNS_DISPATCHSTATE_NONE:
-			case DNS_DISPATCHSTATE_CONNECTING:
-				/* We found "a" dispatch, store it for later */
-				if (disp_fallback == NULL) {
-					dns_dispatch_attach(disp,
-							    &disp_fallback);
-				}
-				break;
-			case DNS_DISPATCHSTATE_CANCELED:
-				/*
-				 * We found a canceled dispatch, help its
-				 * removal from the list, and skip it.
-				 */
-				ISC_LIST_UNLINK(disp->mgr->list, disp, link);
-				break;
-			default:
-				UNREACHABLE();
 			}
+			/* We found a connected dispatch */
+			dns_dispatch_attach(disp, &disp_connected);
+			break;
+		case DNS_DISPATCHSTATE_CONNECTING:
+			if (ISC_LIST_EMPTY(disp->pending)) {
+				/* Ignore dispatch with no responses */
+				break;
+			}
+			/* We found "a" dispatch, store it for later */
+			if (disp_fallback == NULL) {
+				dns_dispatch_attach(disp, &disp_fallback);
+			}
+			break;
+		case DNS_DISPATCHSTATE_CANCELED:
+			/* A canceled dispatch, skip it. */
+			break;
+		default:
+			UNREACHABLE();
 		}
 
 		UNLOCK(&disp->lock);
@@ -1600,7 +1609,6 @@ udp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	dns_dispatch_t *disp = resp->disp;
 	dns_dispatchmgr_t *mgr = disp->mgr;
 	dns_qid_t *qid = mgr->qid;
-	dispatch_cb_t connected = NULL;
 	dispatch_cb_t response = NULL;
 
 	LOCK(&disp->lock);
@@ -1622,9 +1630,6 @@ udp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:
-		dns_dispentry_ref(resp); /* DISPENTRY008 */
-		ISC_LIST_UNLINK(disp->pending, resp, plink);
-		connected = resp->connected;
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTED:
@@ -1655,12 +1660,6 @@ udp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 unlock:
 	UNLOCK(&disp->lock);
 
-	if (connected) {
-		dispentry_log(resp, LVL(90), "connect callback: %s",
-			      isc_result_totext(result));
-		connected(result, NULL, resp->arg);
-		dns_dispentry_detach(&resp); /* DISPENTRY008 */
-	}
 	if (response) {
 		dispentry_log(resp, LVL(90), "read callback: %s",
 			      isc_result_totext(result));
@@ -1678,7 +1677,6 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	dns_dispatch_t *disp = resp->disp;
 	dns_dispatchmgr_t *mgr = disp->mgr;
 	dns_qid_t *qid = mgr->qid;
-	dispatch_cb_t connected = NULL;
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 
 	LOCK(&disp->lock);
@@ -1696,8 +1694,6 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:
-		ISC_LIST_UNLINK(disp->pending, resp, plink);
-		connected = resp->connected;
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTED:
@@ -1765,19 +1761,12 @@ unlock:
 	UNLOCK(&disp->lock);
 
 	/*
-	 * NOTE: Calling the connected and response callbacks directly from here
-	 * should be done asynchronously, as the dns_dispatch_done() is usually
-	 * called directly from the response callback, so there's a slight
-	 * chance that the call stack will get higher here, but it's mitigated
-	 * by the ".reading" flag, so we don't ever go into a loop.
+	 * NOTE: Calling the response callback directly from here should be done
+	 * asynchronously, as the dns_dispatch_done() is usually called directly
+	 * from the response callback, so there's a slight chance that the call
+	 * stack will get higher here, but it's mitigated by the ".reading"
+	 * flag, so we don't ever go into a loop.
 	 */
-
-	if (connected) {
-		dispentry_log(resp, LVL(90), "connect callback: %s",
-			      isc_result_totext(result));
-		connected(result, NULL, resp->arg);
-		dns_dispentry_detach(&resp); /* DISPENTRY005 */
-	}
 
 	tcp_recv_processall(&resps, NULL);
 }
@@ -1877,14 +1866,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	LOCK(&disp->lock);
-	INSIST(disp->state = DNS_DISPATCHSTATE_CONNECTING);
-
-	if (eresult == ISC_R_SUCCESS) {
-		disp->state = DNS_DISPATCHSTATE_CONNECTED;
-		tcp_startrecv(handle, disp, resp);
-	} else {
-		disp->state = DNS_DISPATCHSTATE_NONE;
-	}
+	INSIST(disp->state == DNS_DISPATCHSTATE_CONNECTING);
 
 	/*
 	 * If there are pending responses, call the connect
@@ -1894,8 +1876,11 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		next = ISC_LIST_NEXT(resp, plink);
 		ISC_LIST_UNLINK(disp->pending, resp, plink);
 		ISC_LIST_APPEND(resps, resp, rlink);
+		resp->result = eresult;
 
-		if (eresult == ISC_R_SUCCESS) {
+		if (resp->state == DNS_DISPATCHSTATE_CANCELED) {
+			resp->result = ISC_R_CANCELED;
+		} else if (eresult == ISC_R_SUCCESS) {
 			resp->state = DNS_DISPATCHSTATE_CONNECTED;
 			ISC_LIST_APPEND(disp->active, resp, alink);
 			resp->reading = true;
@@ -1904,6 +1889,17 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			resp->state = DNS_DISPATCHSTATE_NONE;
 		}
 	}
+
+	if (ISC_LIST_EMPTY(disp->active)) {
+		/* All responses have been canceled */
+		disp->state = DNS_DISPATCHSTATE_CANCELED;
+	} else if (eresult == ISC_R_SUCCESS) {
+		disp->state = DNS_DISPATCHSTATE_CONNECTED;
+		tcp_startrecv(handle, disp, resp);
+	} else {
+		disp->state = DNS_DISPATCHSTATE_NONE;
+	}
+
 	UNLOCK(&disp->lock);
 
 	for (resp = ISC_LIST_HEAD(resps); resp != NULL; resp = next) {
@@ -1911,8 +1907,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		ISC_LIST_UNLINK(resps, resp, rlink);
 
 		dispentry_log(resp, LVL(90), "connect callback: %s",
-			      isc_result_totext(eresult));
-		resp->connected(eresult, NULL, resp->arg);
+			      isc_result_totext(resp->result));
+		resp->connected(resp->result, NULL, resp->arg);
 		dns_dispentry_detach(&resp); /* DISPENTRY005 */
 	}
 
@@ -1934,8 +1930,9 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 	switch (resp->state) {
 	case DNS_DISPATCHSTATE_CANCELED:
-		UNLOCK(&disp->lock);
-		goto detach;
+		eresult = ISC_R_CANCELED;
+		ISC_LIST_UNLINK(disp->pending, resp, plink);
+		goto unlock;
 	case DNS_DISPATCHSTATE_CONNECTING:
 		ISC_LIST_UNLINK(disp->pending, resp, plink);
 		break;
@@ -1944,6 +1941,8 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	}
 
 	switch (eresult) {
+	case ISC_R_CANCELED:
+		break;
 	case ISC_R_SUCCESS:
 		resp->state = DNS_DISPATCHSTATE_CONNECTED;
 		udp_startrecv(handle, resp);
@@ -1966,7 +1965,7 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		resp->state = DNS_DISPATCHSTATE_NONE;
 		break;
 	}
-
+unlock:
 	UNLOCK(&disp->lock);
 
 	dispentry_log(resp, LVL(90), "connect callback: %s",
