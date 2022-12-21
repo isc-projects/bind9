@@ -78,7 +78,8 @@ dnsstream_utils_test_LDADD =	\
 	$(LDADD)
 
 dnsstream_utils_test_SOURCES =	\
-	dnsstream_utils_test.c
+	dnsstream_utils_test.c \
+	dnsstream_utils_test_data.h
 
 hmac_test_CPPFLAGS =	\
 	$(AM_CPPFLAGS)	\
