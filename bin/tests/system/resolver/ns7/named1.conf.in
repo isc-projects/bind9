@@ -59,3 +59,13 @@ zone "all-cnames" {
 	type master;
 	file "all-cnames.db";
 };
+
+zone "tld2" {
+	type master;
+	file "tld2.db";
+};
+
+zone "sub.tld1" {
+	type master;
+	file "sub.tld1.db";
+};

@@ -180,6 +180,12 @@
  */
 #define NS_FAIL_LIMIT 4
 #define NS_RR_LIMIT   5
+/*
+ * IP address lookups are performed for at most NS_PROCESSING_LIMIT NS RRs in
+ * any NS RRset encountered, to avoid excessive resource use while processing
+ * large delegations.
+ */
+#define NS_PROCESSING_LIMIT 20
 
 /* Number of hash buckets for zone counters */
 #ifndef RES_DOMAIN_BUCKETS
@@ -3180,6 +3186,7 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	bool unshared;
 	isc_result_t result;
 
+	FCTXTRACE("FINDNAME");
 	res = fctx->res;
 	unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	/*
@@ -3318,6 +3325,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	bool need_alternate = false;
 	bool all_spilled = true;
 	unsigned int no_addresses = 0;
+	unsigned int ns_processed = 0;
 
 	FCTXTRACE5("getaddresses", "fctx->depth=", fctx->depth);
 
@@ -3504,6 +3512,11 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 
 		dns_rdata_reset(&rdata);
 		dns_rdata_freestruct(&ns);
+
+		if (++ns_processed >= NS_PROCESSING_LIMIT) {
+			result = ISC_R_NOMORE;
+			break;
+		}
 	}
 	if (result != ISC_R_NOMORE) {
 		return (result);
