@@ -104,7 +104,7 @@ RANDOMSIZE=4096
 #
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
-SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
+SEQUENTIALDIRS="ecdsa eddsa gost lwresd mkeys-eddsa @PKCS11_TEST@ tkey"
 
 # List of tests that use ports assigned by caller (other than 5300
 # and 9953). Because separate blocks of ports can be used for teach

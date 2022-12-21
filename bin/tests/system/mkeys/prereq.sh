@@ -12,4 +12,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-exec $SHELL ../testcrypto.sh
+symlink_alg=$(basename $PWD | awk -F- '{ print $2 }')
+if [ "$symlink_alg" == "eddsa" ]; then
+	exec $SHELL ../testcrypto.sh eddsa
+else
+	exec $SHELL ../testcrypto.sh
+fi

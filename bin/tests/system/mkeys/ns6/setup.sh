@@ -12,6 +12,12 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+symlink_alg=$(basename $(dirname $PWD) | awk -F- '{ print $2 }')
+if [ "$symlink_alg" == "eddsa" ]; then
+	echo_i "Setting algorithm to ED25519"
+	DEFAULT_ALGORITHM=ED25519
+fi
+
 zone=.
 zonefile=root.db
 
