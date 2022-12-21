@@ -33,8 +33,8 @@ resolution_fails() {
 	_servfail=0
 	_timeout=0
 	$DIG $DIGOPTS +tcp +tries=3 +time=5 @10.53.0.1 ${1} TXT > dig.out.test$n
-	grep "status: SERVFAIL" dig.out.test$n > /dev/null && _servfail=1
-	grep "connection timed out" dig.out.test$n > /dev/null && _timeout=1
+	grep -F "status: SERVFAIL" dig.out.test$n > /dev/null && _servfail=1
+	grep -F "timed out" dig.out.test$n > /dev/null && _timeout=1
 	if [ $_servfail -eq 1 ] || [ $_timeout -eq 1 ]; then
 		return 0
 	else
