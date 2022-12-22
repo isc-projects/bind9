@@ -1,3 +1,5 @@
+6053.	[bug]		Fix an ADB quota management bug in resolver. [GL #3752]
+
 6052.	[func]		Replace DNS over TCP and DNS over TLS transports
 			code with a new, unified transport implementation.
 			[GL #3374]
