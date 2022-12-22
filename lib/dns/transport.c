@@ -498,9 +498,10 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 
 		isc_tlsctx_enable_dot_client_alpn(tlsctx);
 
-		sess_cache = isc_tlsctx_client_session_cache_new(
+		isc_tlsctx_client_session_cache_create(
 			mctx, tlsctx,
-			ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+			ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
+			&sess_cache);
 
 		found_store = NULL;
 		result = isc_tlsctx_cache_add(tlsctx_cache, tlsname,

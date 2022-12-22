@@ -1465,13 +1465,15 @@ struct isc_tlsctx_client_session_cache {
 	isc_mutex_t lock;
 };
 
-isc_tlsctx_client_session_cache_t *
-isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
-				    const size_t max_entries) {
+void
+isc_tlsctx_client_session_cache_create(
+	isc_mem_t *mctx, isc_tlsctx_t *ctx, const size_t max_entries,
+	isc_tlsctx_client_session_cache_t **cachep) {
 	isc_tlsctx_client_session_cache_t *nc;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(max_entries > 0);
+	REQUIRE(cachep != NULL && *cachep == NULL);
 
 	nc = isc_mem_get(mctx, sizeof(*nc));
 
@@ -1486,7 +1488,7 @@ isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
 
 	nc->magic = TLSCTX_CLIENT_SESSION_CACHE_MAGIC;
 
-	return (nc);
+	*cachep = nc;
 }
 
 void
