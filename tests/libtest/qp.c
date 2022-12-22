@@ -16,7 +16,9 @@
 #include <stdio.h>
 
 #include <isc/buffer.h>
+#include <isc/loop.h>
 #include <isc/magic.h>
+#include <isc/qsbr.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
@@ -136,7 +138,7 @@ qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name) {
 
 static size_t
 getheight(dns_qp_t *qp, qp_node_t *n) {
-	if (!is_branch(n)) {
+	if (node_tag(n) == LEAF_TAG) {
 		return (0);
 	}
 	size_t max_height = 0;
@@ -151,18 +153,15 @@ getheight(dns_qp_t *qp, qp_node_t *n) {
 
 size_t
 qp_test_getheight(dns_qp_t *qp) {
-	return (getheight(qp, &qp->root));
+	qp_node_t *root = get_root(qp);
+	return (root == NULL ? 0 : getheight(qp, root));
 }
 
 static size_t
 maxkeylen(dns_qp_t *qp, qp_node_t *n) {
-	if (!is_branch(n)) {
-		if (leaf_pval(n) == NULL) {
-			return (0);
-		} else {
-			dns_qpkey_t key;
-			return (leaf_qpkey(qp, n, key));
-		}
+	if (node_tag(n) == LEAF_TAG) {
+		dns_qpkey_t key;
+		return (leaf_qpkey(qp, n, key));
 	}
 	size_t max_len = 0;
 	qp_weight_t size = branch_twigs_size(n);
@@ -176,7 +175,8 @@ maxkeylen(dns_qp_t *qp, qp_node_t *n) {
 
 size_t
 qp_test_maxkeylen(dns_qp_t *qp) {
-	return (maxkeylen(qp, &qp->root));
+	qp_node_t *root = get_root(qp);
+	return (root == NULL ? 0 : maxkeylen(qp, root));
 }
 
 /***********************************************************************
@@ -186,8 +186,9 @@ qp_test_maxkeylen(dns_qp_t *qp) {
 
 static void
 dumpread(dns_qpreadable_t qpr, const char *type, const char *tail) {
-	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	printf("%s %p root %p base %p methods %p%s", type, qp, &qp->root,
+	dns_qpreader_t *qp = dns_qpreader(qpr);
+	printf("%s %p root %u %u:%u base %p methods %p%s", type, qp,
+	       qp->root_ref, ref_chunk(qp->root_ref), ref_cell(qp->root_ref),
 	       qp->base, qp->methods, tail);
 }
 
@@ -195,17 +196,14 @@ static void
 dumpqp(dns_qp_t *qp, const char *type) {
 	dumpread(qp, type, " mctx ");
 	printf("%p\n", qp->mctx);
-	printf("%s %p usage %p generation %u "
-	       "chunk_max %u bump %u fender %u\n",
-	       type, qp, qp->usage, qp->generation, qp->chunk_max, qp->bump,
-	       qp->fender);
+	printf("%s %p usage %p chunk_max %u bump %u fender %u\n", type, qp,
+	       qp->usage, qp->chunk_max, qp->bump, qp->fender);
 	printf("%s %p leaf %u live %u used %u free %u hold %u\n", type, qp,
 	       qp->leaf_count, qp->used_count - qp->free_count, qp->used_count,
 	       qp->free_count, qp->hold_count);
-	printf("%s %p compact_all=%d shared_arrays=%d"
-	       " transaction_mode=%d write_protect=%d\n",
-	       type, qp, qp->compact_all, qp->shared_arrays,
-	       qp->transaction_mode, qp->write_protect);
+	printf("%s %p compact_all=%d transaction_mode=%d write_protect=%d\n",
+	       type, qp, qp->compact_all, qp->transaction_mode,
+	       qp->write_protect);
 }
 
 void
@@ -229,10 +227,19 @@ qp_test_dumpqp(dns_qp_t *qp) {
 
 void
 qp_test_dumpmulti(dns_qpmulti_t *multi) {
-	dumpqp(&multi->phase[0], "qpmulti->phase[0]");
-	dumpqp(&multi->phase[1], "qpmulti->phase[1]");
-	printf("qpmulti %p read %p snapshots %u\n", &multi, multi->read,
-	       multi->snapshots);
+	dns_qpreader_t qpr;
+	qp_node_t *reader = atomic_load(&multi->reader);
+	dns_qpmulti_t *whence = unpack_reader(&qpr, reader);
+	dumpqp(&multi->writer, "qpmulti->writer");
+	printf("qpmulti->reader %p root_ref %u %u:%u base %p\n", reader,
+	       qpr.root_ref, ref_chunk(qpr.root_ref), ref_cell(qpr.root_ref),
+	       qpr.base);
+	printf("qpmulti->reader %p whence %p\n", reader, whence);
+	unsigned int snapshots = 0;
+	for (dns_qpsnap_t *snap = ISC_LIST_HEAD(multi->snapshots); //
+	     snap != NULL; snap = ISC_LIST_NEXT(snap, link), snapshots++)
+	{}
+	printf("qpmulti %p snapshots %u\n", multi, snapshots);
 	fflush(stdout);
 }
 
@@ -242,9 +249,11 @@ qp_test_dumpchunks(dns_qp_t *qp) {
 	qp_cell_t free = 0;
 	dumpqp(qp, "qp");
 	for (qp_chunk_t c = 0; c < qp->chunk_max; c++) {
-		printf("qp %p chunk %u base %p used %u free %u generation %u\n",
-		       qp, c, qp->base[c], qp->usage[c].used, qp->usage[c].free,
-		       qp->usage[c].generation);
+		printf("qp %p chunk %u base %p "
+		       "used %u free %u immutable %u phase %u\n",
+		       qp, c, qp->base->ptr[c], qp->usage[c].used,
+		       qp->usage[c].free, qp->usage[c].immutable,
+		       qp->usage[c].phase);
 		used += qp->usage[c].used;
 		free += qp->usage[c].free;
 	}
@@ -254,7 +263,7 @@ qp_test_dumpchunks(dns_qp_t *qp) {
 
 void
 qp_test_dumptrie(dns_qpreadable_t qpr) {
-	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
+	dns_qpreader_t *qp = dns_qpreader(qpr);
 	struct {
 		qp_ref_t ref;
 		qp_shift_t max, pos;
@@ -267,11 +276,18 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 	 * node; the ref is deliberately out of bounds, and pos == max
 	 * so we will immediately stop scanning it
 	 */
-	stack[sp].ref = ~0U;
+	stack[sp].ref = INVALID_REF;
 	stack[sp].max = 0;
 	stack[sp].pos = 0;
-	qp_node_t *n = &qp->root;
-	printf("%p ROOT\n", n);
+
+	qp_node_t *n = get_root(qp);
+	if (n == NULL) {
+		printf("%p EMPTY\n", n);
+		fflush(stdout);
+		return;
+	} else {
+		printf("%p ROOT qp %p base %p\n", n, qp, qp->base);
+	}
 
 	for (;;) {
 		if (is_branch(n)) {
@@ -291,25 +307,20 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 			}
 			assert(len == max);
 			qp_test_keytoascii(bits, len);
-			printf("%*s%p BRANCH %p %d %zu %s\n", (int)sp * 2, "",
-			       n, twigs, ref, branch_key_offset(n), bits);
+			printf("%*s%p BRANCH %p %u %u:%u %zu %s\n", (int)sp * 2,
+			       "", n, twigs, ref, ref_chunk(ref), ref_cell(ref),
+			       branch_key_offset(n), bits);
 
 			++sp;
 			stack[sp].ref = ref;
 			stack[sp].max = max;
 			stack[sp].pos = 0;
 		} else {
-			if (leaf_pval(n) != NULL) {
-				dns_qpkey_t key;
-				qp_test_keytoascii(key, leaf_qpkey(qp, n, key));
-				printf("%*s%p LEAF %p %d %s\n", (int)sp * 2, "",
-				       n, leaf_pval(n), leaf_ival(n), key);
-				leaf_count++;
-			} else {
-				assert(n == &qp->root);
-				assert(leaf_count == 0);
-				printf("%p EMPTY", n);
-			}
+			dns_qpkey_t key;
+			qp_test_keytoascii(key, leaf_qpkey(qp, n, key));
+			printf("%*s%p LEAF %p %d %s\n", (int)sp * 2, "", n,
+			       leaf_pval(n), leaf_ival(n), key);
+			leaf_count++;
 		}
 
 		while (stack[sp].pos == stack[sp].max) {
@@ -328,7 +339,9 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 
 static void
 dumpdot_name(qp_node_t *n) {
-	if (is_branch(n)) {
+	if (n == NULL) {
+		printf("empty");
+	} else if (is_branch(n)) {
 		qp_ref_t ref = branch_twigs_ref(n);
 		printf("c%dn%d", ref_chunk(ref), ref_cell(ref));
 	} else {
@@ -338,7 +351,9 @@ dumpdot_name(qp_node_t *n) {
 
 static void
 dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
-	if (is_branch(n)) {
+	if (n == NULL) {
+		printf("empty [shape=oval, label=\"\\N EMPTY\"];\n");
+	} else if (is_branch(n)) {
 		dumpdot_name(n);
 		printf(" [shape=record, label=\"{ \\N\\noff %zu | ",
 		       branch_key_offset(n));
@@ -370,11 +385,7 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 	} else {
 		dns_qpkey_t key;
 		const char *str;
-		if (leaf_pval(n) == NULL) {
-			str = "EMPTY";
-		} else {
-			str = qp_test_keytoascii(key, leaf_qpkey(qp, n, key));
-		}
+		str = qp_test_keytoascii(key, leaf_qpkey(qp, n, key));
 		printf("v%p [shape=oval, label=\"\\N ival %d\\n%s\"];\n",
 		       leaf_pval(n), leaf_ival(n), str);
 	}
@@ -383,7 +394,7 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 void
 qp_test_dumpdot(dns_qp_t *qp) {
 	REQUIRE(QP_VALID(qp));
-	qp_node_t *n = &qp->root;
+	qp_node_t *n = get_root(qp);
 	printf("strict digraph {\nrankdir = \"LR\"; ranksep = 1.0;\n");
 	printf("ROOT [shape=point]; ROOT -> ");
 	dumpdot_name(n);

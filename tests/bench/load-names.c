@@ -17,6 +17,8 @@
 #include <isc/file.h>
 #include <isc/hashmap.h>
 #include <isc/ht.h>
+#include <isc/list.h>
+#include <isc/qsbr.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
 

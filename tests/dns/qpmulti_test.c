@@ -22,8 +22,12 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/assertions.h>
 #include <isc/log.h>
+#include <isc/loop.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/qsbr.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -44,11 +48,10 @@
 #define TRANSACTION_COUNT 1234
 
 #if VERBOSE
-#define TRACE(fmt, ...)                                                       \
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP,   \
-		      ISC_LOG_DEBUG(7), "%s:%d:%s: " fmt, __FILE__, __LINE__, \
-		      __func__, ##__VA_ARGS__)
-
+#define TRACE(fmt, ...)                                                     \
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
+		      ISC_LOG_DEBUG(7), "%s:%d:%s(): " fmt, __FILE__,       \
+		      __LINE__, __func__, ##__VA_ARGS__)
 #else
 #define TRACE(...)
 #endif
@@ -110,8 +113,8 @@ item_attach(void *ctx, void *pval, uint32_t ival) {
 
 static void
 item_detach(void *ctx, void *pval, uint32_t ival) {
-	INSIST(ctx == NULL);
-	INSIST(pval == &item[ival]);
+	assert_null(ctx);
+	assert_ptr_equal(pval, &item[ival]);
 	item[ival].refcount--;
 }
 
@@ -124,11 +127,11 @@ item_makekey(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	if (!(ival < ARRAY_SIZE(item) && lo <= ip && ip < hi &&
 	      pval == &item[ival]))
 	{
-		TRACE("ival %u pval %lx", ival, ip);
-		INSIST(ival < ARRAY_SIZE(item));
-		INSIST(ip >= lo);
-		INSIST(ip < hi);
-		INSIST(pval == &item[ival]);
+		ISC_INSIST(ival < ARRAY_SIZE(item));
+		ISC_INSIST(pval != NULL);
+		ISC_INSIST(ip >= lo);
+		ISC_INSIST(ip < hi);
+		ISC_INSIST(pval == &item[ival]);
 	}
 	memmove(key, item[ival].key, item[ival].len);
 	return (item[ival].len);
@@ -182,13 +185,13 @@ checkkey(dns_qpreadable_t qpr, size_t i, bool exists, const char *rubric) {
 	isc_result_t result;
 	result = dns_qp_getkey(qpr, item[i].key, item[i].len, &pval, &ival);
 	if (result == ISC_R_SUCCESS) {
-		ASSERT(exists == true);
-		ASSERT(pval == &item[i]);
-		ASSERT(ival == i);
+		assert_true(exists);
+		assert_ptr_equal(pval, &item[i]);
+		assert_int_equal(ival, i);
 	} else if (result == ISC_R_NOTFOUND) {
-		ASSERT(exists == false);
-		ASSERT(pval == NULL);
-		ASSERT(ival == ~0U);
+		assert_false(exists);
+		assert_null(pval);
+		assert_int_equal(ival, ~0U);
 	} else {
 		UNREACHABLE();
 	}
@@ -232,9 +235,9 @@ one_transaction(dns_qpmulti_t *qpm) {
 	isc_result_t result;
 	bool ok = true;
 
-	dns_qpreadable_t qpo = (dns_qpreadable_t)(dns_qp_t *)NULL;
-	dns_qpread_t *qpr = NULL;
+	dns_qpreader_t *qpo = NULL;
 	dns_qpsnap_t *qps = NULL;
+	dns_qpread_t qpr = { 0 };
 	dns_qp_t *qpw = NULL;
 
 	bool snap = isc_random_uniform(2) == 0;
@@ -242,7 +245,7 @@ one_transaction(dns_qpmulti_t *qpm) {
 	bool rollback = update && isc_random_uniform(4) == 0;
 	size_t count = isc_random_uniform(TRANSACTION_SIZE);
 
-	TRACE("transaction %s %s %s %zu", snap ? "snapshot" : "query",
+	TRACE("transaction %s %s %s size %zu", snap ? "snapshot" : "query",
 	      update ? "update" : "write", rollback ? "rollback" : "commit",
 	      count);
 
@@ -255,7 +258,7 @@ one_transaction(dns_qpmulti_t *qpm) {
 	/* briefly take and drop mutex */
 	if (snap) {
 		dns_qpmulti_snapshot(qpm, &qps);
-		qpo = (dns_qpreadable_t)qps;
+		qpo = (dns_qpreader_t *)qps;
 	}
 
 	/* take mutex */
@@ -265,10 +268,9 @@ one_transaction(dns_qpmulti_t *qpm) {
 		dns_qpmulti_write(qpm, &qpw);
 	}
 
-	/* take rwlock */
 	if (!snap) {
 		dns_qpmulti_query(qpm, &qpr);
-		qpo = (dns_qpreadable_t)qpr;
+		qpo = (dns_qpreader_t *)&qpr;
 	}
 
 	for (size_t n = 0; n < count; n++) {
@@ -278,15 +280,15 @@ one_transaction(dns_qpmulti_t *qpm) {
 		ASSERT(checkkey(qpw, i, item[i].in_rw, "before rw"));
 
 		if (item[i].in_rw) {
-			/* TRACE("delete %zu %.*s", i, item[i].len,
-				 item[i].ascii); */
+			/* TRACE("delete %zu %.*s", i,
+				 item[i].len, item[i].ascii); */
 			result = dns_qp_deletekey(qpw, item[i].key,
 						  item[i].len);
 			ASSERT(result == ISC_R_SUCCESS);
 			item[i].in_rw = false;
 		} else {
-			/* TRACE("insert %zu %.*s", i, item[i].len,
-				 item[i].ascii); */
+			/* TRACE("insert %zu %.*s", i,
+				 item[i].len, item[i].ascii); */
 			result = dns_qp_insert(qpw, &item[i], i);
 			ASSERT(result == ISC_R_SUCCESS);
 			item[i].in_rw = true;
@@ -307,7 +309,6 @@ one_transaction(dns_qpmulti_t *qpm) {
 	assert_true(checkallrw(qpw));
 
 	if (!snap) {
-		/* drop the rwlock so the commit can take it */
 		dns_qpread_destroy(qpm, &qpr);
 	}
 
@@ -322,7 +323,7 @@ one_transaction(dns_qpmulti_t *qpm) {
 						"rollback ro"));
 			}
 			item[i].in_rw = item[i].in_ro;
-			ASSERT(checkkey(qpr, i, item[i].in_rw, "rollback rw"));
+			ASSERT(checkkey(&qpr, i, item[i].in_rw, "rollback rw"));
 		}
 		dns_qpread_destroy(qpm, &qpr);
 	} else {
@@ -336,7 +337,7 @@ one_transaction(dns_qpmulti_t *qpm) {
 						"commit ro"));
 			}
 			item[i].in_ro = item[i].in_rw;
-			ASSERT(checkkey(qpr, i, item[i].in_rw, "commit rw"));
+			ASSERT(checkkey(&qpr, i, item[i].in_rw, "commit rw"));
 		}
 		dns_qpread_destroy(qpm, &qpr);
 	}
@@ -347,28 +348,45 @@ one_transaction(dns_qpmulti_t *qpm) {
 		dns_qpsnap_destroy(qpm, &qps);
 	}
 
+	TRACE("completed %s %s %s size %zu", snap ? "snapshot" : "query",
+	      update ? "update" : "write", rollback ? "rollback" : "commit",
+	      count);
+
 	if (!ok) {
 		TRACE("transaction failed");
 		dns_qpmulti_query(qpm, &qpr);
-		qp_test_dumptrie(qpr);
+		qp_test_dumptrie(&qpr);
 		dns_qpread_destroy(qpm, &qpr);
 	}
 	assert_true(ok);
 }
 
-ISC_RUN_TEST_IMPL(qpmulti) {
-	setup_logging();
-	setup_items();
+static void
+many_transactions(void *arg) {
+	UNUSED(arg);
 
 	dns_qpmulti_t *qpm = NULL;
-	dns_qpmulti_create(mctx, &test_methods, NULL, &qpm);
+	dns_qpmulti_create(mctx, loopmgr, &test_methods, NULL, &qpm);
+	qpm->writer.write_protect = true;
 
 	for (size_t n = 0; n < TRANSACTION_COUNT; n++) {
+		TRACE("transaction %zu", n);
 		one_transaction(qpm);
+		isc__qsbr_quiescent_state(isc_loop_current(loopmgr));
+		isc_loopmgr_wakeup(loopmgr);
 	}
 
 	dns_qpmulti_destroy(&qpm);
+	isc_loopmgr_shutdown(loopmgr);
+}
 
+ISC_RUN_TEST_IMPL(qpmulti) {
+	setup_loopmgr(NULL);
+	setup_logging();
+	setup_items();
+	isc_loop_setup(isc_loop_main(loopmgr), many_transactions, NULL);
+	isc_loopmgr_run(loopmgr);
+	isc_loopmgr_destroy(&loopmgr);
 	isc_log_destroy(&dns_lctx);
 }
 

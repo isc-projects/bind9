@@ -42,30 +42,24 @@
  * value can be freed after it is no longer needed by readers using an old
  * version of the trie.
  *
- * For fast concurrent reads, call `dns_qpmulti_query()` to get a
- * `dns_qpread_t`. Readers can access a single version of the trie between
- * write commits. Most write activity is not blocked by readers, but reads
- * must finish before a write can commit (a read-write lock blocks
- * commits).
+ * For fast concurrent reads, call `dns_qpmulti_query()` to fill in a
+ * `dns_qpread_t`, which must be allocated on the stack. Readers can
+ * access a single version of the trie within the scope of an isc_loop
+ * thread (NOT an isc_work thread). We rely on the loop to bound the
+ * lifetime of a `dns_qpread_t`, instead of using locks. Readers are
+ * not blocked by any write activity, and vice versa.
  *
- * For long-running reads that need a stable view of the trie, while still
- * allow commits to proceed, call `dns_qpmulti_snapshot()` to get a
- * `dns_qpsnap_t`. It briefly gets the write mutex while creating the
- * snapshot, which requires allocating a copy of some of the trie's
- * metadata. A snapshot is for relatively heavy long-running read-only
- * operations such as zone transfers.
- *
- * While snapshots exist, a qp-trie cannot reclaim memory: it does not
- * retain detailed information about which memory is used by which
- * snapshots, so it pessimistically retains all memory that might be
- * used by old versions of the trie.
+ * For reads that need a stable view of the trie for multiple cycles
+ * of an isc_loop, or which can be used from any thread, call
+ * `dns_qpmulti_snapshot()` to get a `dns_qpsnap_t`. A snapshot is for
+ * relatively heavy long-running read-only operations such as zone
+ * transfers.
  *
  * You can start one read-write transaction at a time using
  * `dns_qpmulti_write()` or `dns_qpmulti_update()`. Either way, you
  * get a `dns_qp_t` that can be modified like a single-threaded trie,
  * without affecting other read-only query or snapshot users of the
- * `dns_qpmulti_t`. Committing a transaction only blocks readers
- * briefly when flipping the active readonly `dns_qp_t` pointer.
+ * `dns_qpmulti_t`.
  *
  * "Update" transactions are heavyweight. They allocate working memory to
  * hold modifications to the trie, and compact the trie before committing.
@@ -96,34 +90,68 @@
 typedef struct dns_qp dns_qp_t;
 
 /*%
- * A `dns_qpmulti_t` supports multi-version concurrent reads and transactional
- * modification.
+ * A `dns_qpmulti_t` supports multi-version wait-free concurrent reads
+ * and one transactional modification at a time.
  */
 typedef struct dns_qpmulti dns_qpmulti_t;
 
 /*%
- * A `dns_qpread_t` is a lightweight read-only handle on a `dns_qpmulti_t`.
+ * Read-only parts of a qp-trie.
+ *
+ * A `dns_qpreader_t` is the common prefix of the `dns_qpreadable`
+ * types, containing just the fields neded for the hot path.
+ *
+ * Ranty aside: annoyingly, C doesn't allow us to use a predeclared
+ * structure type as an anonymous struct member, so we have to use a
+ * macro. (GCC and Clang have the feature we want under -fms-extensions,
+ * but a non-standard extension won't make these declarations neater if
+ * we must also have a standard alternative.)
  */
-typedef struct dns_qpread dns_qpread_t;
+#define DNS_QPREADER_FIELDS                   \
+	uint32_t		    magic;    \
+	uint32_t		    root_ref; \
+	dns_qpbase_t		   *base;     \
+	void			   *uctx;     \
+	const struct dns_qpmethods *methods
+
+typedef struct dns_qpbase dns_qpbase_t; /* private */
+
+typedef struct dns_qpreader {
+	DNS_QPREADER_FIELDS;
+} dns_qpreader_t;
 
 /*%
- * A `dns_qpsnap_t` is a heavier read-only snapshot of a `dns_qpmulti_t`.
+ * A `dns_qpread_t` is a read-only handle on a `dns_qpmulti_t`.
+ * The caller provides space for it on the stack; it can be
+ * used by only one thread. As well as the `DNS_QPREADER_FIELDS`,
+ * it contains a thread ID to check for incorrect usage.
+ */
+typedef struct dns_qpread {
+	DNS_QPREADER_FIELDS;
+	uint32_t tid;
+} dns_qpread_t;
+
+/*%
+ * A `dns_qpsnap_t` is a read-only snapshot of a `dns_qpmulti_t`.
+ * It requires allocation and taking the `dns_qpmulti_t` mutex to
+ * create; it can be used from any thread.
  */
 typedef struct dns_qpsnap dns_qpsnap_t;
 
-/*
+/*%
  * The read-only qp-trie functions can work on either of the read-only
- * qp-trie types or the general-purpose read-write `dns_qp_t`. They
- * relies on the fact that all the `dns_qpreadable_t` structures start
- * with a `dns_qpread_t`.
+ * qp-trie types dns_qpsnap_t or dns_qpread_t, or the general-purpose
+ * read-write `dns_qp_t`. They rely on the fact that all the
+ * `dns_qpreadable_t` structures start with a `dns_qpreader_t`
  */
 typedef union dns_qpreadable {
-	dns_qpread_t *qpr;
-	dns_qpsnap_t *qps;
-	dns_qp_t     *qpt;
+	dns_qpreader_t *qp;
+	dns_qpread_t   *qpr;
+	dns_qpsnap_t   *qps;
+	dns_qp_t       *qpt;
 } dns_qpreadable_t __attribute__((__transparent_union__));
 
-#define dns_qpreadable_cast(qp) ((qp).qpr)
+#define dns_qpreader(qpr) ((qpr).qp)
 
 /*%
  * A trie lookup key is a small array, allocated on the stack during trie
@@ -136,9 +164,6 @@ typedef union dns_qpreadable {
  * common hostname character; otherwise unusual characters are escaped,
  * using two bytes in the key. So we allow keys to be up to 512 bytes.
  * (The actual max is (255 - 5) * 2 + 6 == 506)
- *
- * Every byte of a key must be greater than 0 and less than 48. Elements
- * after the end of the key are treated as having the value 1.
  */
 typedef uint8_t dns_qpkey_t[512];
 
@@ -154,7 +179,9 @@ typedef uint8_t dns_qpkey_t[512];
  *
  * The `attach` and `detach` methods adjust reference counts on value
  * objects. They support copy-on-write and safe memory reclamation
- * needed for multi-version concurrency.
+ * needed for multi-version concurrency. The methods are only called
+ * when the `dns_qpmulti_t` mutex is held, so they only need to use
+ * atomic ops if the refcounts are used by code other than the qp-trie.
  *
  * Note: When a value object reference count is greater than one, the
  * object is in use by concurrent readers so it must not be modified. A
@@ -237,15 +264,17 @@ dns_qp_destroy(dns_qp_t **qptp);
  */
 
 void
-dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
+dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		   const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp);
 /*%<
  * Create a multi-threaded qp-trie.
  *
  * Requires:
  * \li  `mctx` is a pointer to a valid memory context.
- * \li  all the methods are non-NULL
+ * \li  'loopmgr' is a valid loop manager.
  * \li  `qpmp != NULL && *qpmp == NULL`
+ * \li  all the methods are non-NULL
  *
  * Ensures:
  * \li  `*qpmp` is a pointer to a valid multi-threaded qp-trie
@@ -400,7 +429,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival);
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
  * \li  `pval != NULL`
- * \li  `alignof(pval) > 1`
+ * \li  `alignof(pval) >= 4`
  *
  * Returns:
  * \li  ISC_R_EXISTS if the trie already has a leaf with the same key
@@ -440,34 +469,32 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name);
  */
 
 void
-dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t **qprp);
+dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qpr);
 /*%<
  * Start a lightweight (brief) read-only transaction
  *
- * This takes a read lock on `multi`s rwlock that prevents
- * transactions from committing.
+ * The `dns_qpmulti_query()` function must be called from an isc_loop
+ * thread and its 'qpr' argument must be allocated on the stack.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie
- * \li  `qprp != NULL`
- * \li  `*qprp == NULL`
+ * \li  `qpr != NULL`
  *
  * Returns:
- * \li  `*qprp` is a pointer to a valid read-only qp-trie handle
+ * \li  `qpr` is a valid read-only qp-trie handle
  */
 
 void
-dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t **qprp);
+dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qpr);
 /*%<
- * End a lightweight read transaction, i.e. release read lock
+ * End a lightweight read transaction.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie
- * \li  `qprp != NULL`
- * \li  `*qprp` is a read-only qp-trie handle obtained from `multi`
+ * \li  `qpr` is a read-only qp-trie handle obtained from `multi`
  *
  * Returns:
- * \li  `*qprp == NULL`
+ * \li  `qpr` is invalidated
  */
 
 void
@@ -478,7 +505,7 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp);
  * This function briefly takes and releases the modification mutex
  * while allocating a copy of the trie's metadata. While the snapshot
  * exists it does not interfere with other read-only or read-write
- * transactions on the trie, except that memory cannot be reclaimed.
+ * transactions on the trie.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie
@@ -493,10 +520,6 @@ void
 dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp);
 /*%<
  * End a heavyweight read transaction
- *
- * If this is the last remaining snapshot belonging to `multi` then
- * this function takes the modification mutex in order to free() any
- * memory that is no longer in use.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie
@@ -538,6 +561,12 @@ dns_qpmulti_write(dns_qpmulti_t *multi, dns_qp_t **qptp);
  * for a large trie that gets frequent small writes, such as a DNS
  * cache.
  *
+ * A sequence of lightweight write transactions can accumulate
+ * garbage that the automatic compact/recycle cannot reclaim.
+ * To reclaim this space, you can use the `dns_qp_memusage
+ * fragmented` flag to trigger a call to dns_qp_compact(), or you
+ * can use occasional update transactions to compact the trie.
+ *
  * During the transaction, the modification mutex is held.
  *
  * Requires:
@@ -554,10 +583,9 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp);
 /*%<
  * Complete a modification transaction
  *
- * The commit itself only requires flipping the read pointer inside
- * `multi` from the old version of the trie to the new version. This
- * function takes a write lock on `multi`s rwlock just long enough to
- * flip the pointer. This briefly blocks `query` readers.
+ * Apart from memory management logistics, the commit itself only
+ * requires flipping the read pointer inside `multi` from the old
+ * version of the trie to the new version. Readers are not blocked.
  *
  * This function releases the modification mutex after the post-commit
  * memory reclamation is completed.

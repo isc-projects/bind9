@@ -1,11 +1,14 @@
 include $(top_srcdir)/Makefile.top
 
+AM_CFLAGS += -Wno-vla
+
 AM_CPPFLAGS +=				\
 	$(LIBUV_CFLAGS)			\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
 	-I$(top_srcdir)/fuzz		\
 	-I$(top_srcdir)/lib/dns		\
+	-I$(top_srcdir)/lib/isc		\
 	-I$(top_srcdir)/tests/include
 
 LDADD +=				\

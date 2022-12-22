@@ -362,7 +362,7 @@ one 64 bit word and one 32-bit word.
 
 A branch node contains
 
-  * a branch/leaf tag bit
+  * two type tag bits
 
   * a 47-wide bitmap, with a bit for each common hostname character
     and each escape character
@@ -374,8 +374,8 @@ A branch node contains
     these references are described in more detail below
 
 A leaf node contains a pointer value (which we assume to be 64 bits)
-and a 32-bit integer value. The branch/leaf tag is smuggled into the
-low-order bit of the pointer value, so the pointer value must have
+and a 32-bit integer value. The type tag is smuggled into the
+low-order bits of the pointer value, so the pointer value must have
 large enough alignment. (This requirement is checked when a leaf is
 added to the trie.) Apart from that, the meaning of leaf values
 is entirely under control of the qp-trie user.
@@ -478,8 +478,8 @@ labels. This is slightly different from the root node, which tested the
 first character of the label; here we are testing the last character.
 
 
-memory management for concurrency
----------------------------------
+concurrency and transactions
+----------------------------
 
 The following sections discuss how the qp-trie supports concurrency.
 
@@ -487,11 +487,31 @@ The requirement is to support many concurrent read threads, and
 allow updates to occur without blocking readers (or blocking readers
 as little as possible).
 
+Concurrent access to a qp-trie uses a transactional API. There can be
+at most one writer at a time. When a writer commits its transaction
+(by atomically replacing the trie's root pointer) the changes become
+visible to readers. Read transactions ensure that memory is not
+reclaimed while readers are still using it.
+
+If there are relatively long read transactions and brief write
+transactions (though that is unlikely) there can be multiple versions
+of a qp-trie in use at a time.
+
+
+copy-on-write
+-------------
+
 The strategy is to use "copy-on-write", that is, when an update
 needs to alter the trie it makes a copy of the parts that it needs
 to change, so that concurrent readers can continue to use the
 original. (It is analogous to multiversion concurrency in databases
 such as PostgreSQL, where copy-on-write uses a write-ahead log.)
+
+The qp-trie only uses copy-on-write when the nodes that need to be
+altered can be shared with concurrent readers. After copying, the
+nodes are exclusive to the writer and can be updated in place. This
+reduces the pressure on the allocator a lot: pure copy-on-write
+allocates and discards memory at a ferocious rate.
 
 Software that uses copy-on-write needs some mechanism for clearing
 away old versions that are no longer in use. (For example, VACUUM in
@@ -567,27 +587,114 @@ garbage collector. Reference counting for value objects is handled
 by the `attach()` and `detach()` qp-trie methods.
 
 
-memory layout
--------------
+chunked memory layout
+---------------------
 
-BIND's qp-trie code organizes its memory as a collection of "chunks",
-each of which is a few pages in size and large enough to hold a few
-thousand nodes.
-
-Most memory management is per-chunk: obtaining memory from the
-system allocator and returning it; keeping track of which chunks are
-in use by readers, and which chunks can be mutated; and counting
-whether chunks are fragmented enough to need garbage collection.
+BIND's qp-trie code organizes its memory as a collection of "chunks"
+allocated by `malloc()`, each of which is a few pages in size and
+large enough to hold a thousand nodes or so.
 
 As noted above, we also use the chunk-based layout to reduce the size
 of interior nodes. Instead of using a native pointer (typically 64
 bits) to refer to a node, we use a 32 bit integer containing the chunk
 number and the position of the node in the chunk. This reduces the
-memory used by interior nodes by 25%.
+memory used for interior nodes by 25%. See the "helper types" section
+in `lib/dns/qp_p.h` for the relevant definitions.
 
-In `lib/dns/qp_p.h`, the _"main qp-trie structures"_ hold information
-about a trie's chunks. Most of the chunk handling code is in the
-_"allocator"_ and _"chunk reclamation"_ sections in `lib/dns/qp.c`.
+BIND stores each zone separately, and there can be a very large number
+of zones in a server. To avoid wasting memory on small zones that only
+have a few names, chunks can be "shrunk" using `realloc()` to fit just
+the nodes that have been allocated.
+
+
+chunk metadata
+--------------
+
+The chunked memory layout is supported by a `base` array of pointers
+to the start of each chunk. A chunk number is just an index into this
+array.
+
+Alongside the `base` array is a `usage` array, indexed the same way.
+Instead of keeping track of individual nodes, the allocator just keeps
+a count of how many nodes have been allocated from a chunk, and how
+many were subsequently freed. The `used` count of the newest chunk
+also serves as the allocation point for the bump allocator, and the
+size of the chunk when it has been shrunk. This is why we increment
+the `free` count when a node is discarded, instead of decrementing the
+`used` count. The `usage` array also contains some fields used for
+chunk reclamation, about which more below.
+
+The `base` and `usage` arrays are separate because the `usage` array
+is only used by writers, and never shared with readers. The read-only
+hot path only needs the `base` array, so keeping it separate is more
+cache-friendly: less memory pressure on the read path and less
+interference from false sharing with write ops.
+
+Both arrays can have empty slots in which new chunks can be allocated;
+when a chunk is reclaimed its slot becomes empty. Additions and
+removals from the `base` array don't affect readers: they will not see
+a reference to a new chunk until after the writer commits, and the
+chunk reclamation machinery ensures that no readers depend on a chunk
+before it is deleted.
+
+When the arrays fill up they are reallocated. This is easy for the
+`usage` array because it is only accessed by writers, but the `base`
+array must be cloned, and the old version must be reclaimed later
+after it is no longer used by readers. For this reason the `base`
+array has a reference count.
+
+
+lightweight write transactions
+------------------------------
+
+"Write" transactions are intended for use when there is a heavy write
+load, such as a resolver cache. They minimize the amount of allocation
+by re-using the same chunk for the bump allocator across multiple
+transactions until it fills up.
+
+When a write (or update) is committed, a new packed read-only trie
+anchor is created. This contains a pointer to the `base` array and a
+32-bit reference to the trie's root node. The packed reader is stored
+in a pair of nodes in the current chunk, allocated by the bump
+allocator, so it does not need to be `malloc()`ed separately, and so
+the chunk reclamation machinery can also reclaim the `base` array when
+it is no longer in use.
+
+
+heavyweight update transactions
+-------------------------------
+
+By contrast, "update" transactions are intended to keep memory usage
+as low as possible between writes. On commit, the trie is compacted,
+and the bump allocator's chunk is shrunk to fit. When a transaction is
+opened, a fresh chunk must be allocated.
+
+Update transactions also support rollback, which requires making a
+copy of all the chunk metadata.
+
+
+lightweight query transactions
+------------------------------
+
+A "query" transaction dereferences a pointer to the current trie
+anchor and unpacks it into a `dns_qpread_t` object on the stack. There
+is no explicit interlocking with writers. Instead, query transactions
+must only be used inside an `isc_loop` callback function; the qp-trie
+memory reclamation machinery knows that the reader has completed when
+the callback returns to the loop. See `include/isc/qsbr.h` for more
+about how this works.
+
+
+heavyweight read-only snapshots
+-------------------------------
+
+A "snapshot" is for things like zone transfers that need a long-lived
+consistent view of a zone. When a snapshot is created, it includes a
+copy of the necessary parts of the `base` array. A qp-trie keeps a
+list of its snapshots, and there are flags in the `usage` array to
+mark which chunks are in use by snapshots and therefore cannot be
+reclaimed.
+
 
 
 lifecycle of value objects
@@ -609,103 +716,23 @@ adding special lookup functions that return whether leaf objects are
 mutable - see the "todo" in `include/dns/qp.h`.
 
 
-locking and RCU
----------------
+chunk cleanup
+-------------
 
-The Linux kernel has a collection of copy-on-write schemes collectively
-called read-copy-update; there is also https://liburcu.org/ for RCU in
-userspace. RCU is attractively speedy: readers can proceed without
-blocking at all; writers can proceed concurrently with readers, and
-updates can be committed without blocking. A commit is just a single
-atomic pointer update. RCU only requires writers to block when waiting
-for a "grace period" while older readers complete their critical
-sections, after which the writer can free memory that is no longer in
-use. Writers must also block on a mutex to ensure there is only one
-writer at a time.
+After a "write" or "update" transaction has committed, there can be a
+number of chunks that are no longer needed by the latest version of
+the trie, but still in use by readers accessing an older version.
+The qp-trie uses a QSBR callback to clean up chunks when they are no
+longer used at all.
 
-The qp-trie concurrency strategy is designed to be able to use RCU, but
-RCU is not required. Instead of RCU we can use a reader-writer lock.
-This requires readers to block when a writer commits, which (in RCU
-style) just requires an atomic pointer swap. The rwlock also changes
-when writers must block: commits must wait for readers to exit their
-critical sections, but there is no further waiting to be able to release
-memory.
+When reclaiming a chunk, we have to scan it for any remaining leaf
+nodes. When nodes are accessibly only to the writer, they are zeroed
+out when they are freed. If they are shared with readers, they must be
+left in place (though the `free` count in the usage array is still
+adjucted), and finally `detach()`ed when the chunk is reclaimed.
 
-In BIND, there are two kinds of reader: queries, which are relatiely
-quick, and zone transfers, which are relatively slow. BIND's dbversion
-machinery allows updates to proceed while there are long-running zone
-transfers. RCU supports this without further machinery, but a
-reader-writer lock needs some help so that long-running readers can
-avoid blocking writers.
-
-To avoid blocking updates, long-running readers can take a snapshot of a
-qp-trie, which only requires copying the allocator's chunk array. After
-a writer commits, it does not releases memory if there are any
-snapshots. Instead, chunks that are no longer needed by the latest
-version of the trie are stashed on a list to be released later,
-analogous to RCU waiting for a grace period.
-
-The locking occurs only in the functions under _"read-write
-transactions"_ and _"read-only transactions"_ in `lib/dns/qp.c`.
-
-
-immutability and copy-on-write
-------------------------------
-
-A qp-trie has a `generation` counter which is incremented by each
-write transaction. We keep track of which generation each chunk was
-created in; only chunks created in the current generation are
-mutable, because older chunks may be in use by concurrent readers.
-
-This logic is implemented by `chunk_alloc()` and `chunk_mutable()`
-in `lib/dns/qp.c`.
-
-The `make_twigs_mutable()` function ensures that a node is mutable,
-copying it if necessary.
-
-The chunk arrays are a mixture of mutable and immutable. Pointers to
-immutable chunks are immutable; new chunks can be assigned to unused
-entries; and entries are cleared when it is safe to reclaim the chunks
-they refer to. If the chunk arrays need to be expanded, the existing
-arrays are retained for use by readers, and the writer uses the
-expanded arrays (see `alloc_slow()`). The old arrays are cleaned up
-after the writer commits.
-
-
-update transactions
--------------------
-
-A typical heavy-weight `update` transaction comprises:
-
-  * make a copy of the chunk arrays in case we need to roll back
-
-  * get a freshly allocated chunk where new nodes or copied nodes
-    can be written
-
-  * make any changes that are required; nodes in old chunks are
-    copied to the new space first; new nodes are modified in place
-    to avoid creating unnecessary garbage
-
-  * when the updates are finished, and before committing, run the
-    garbage collector to clear out chunks that were fragmented by the
-    update
-
-  * shrink the allocation chunk to eliminate unused space
-
-  * commit the update by flipping the root pointer of the trie; this
-    is the only point that needs a multithreading interlock
-
-  * free any chunks that were emptied by the garbage collector
-
-A lightweight `write` transaction is similar, except that:
-
-  * rollback is not supported
-
-  * any existing allocation chunk is reused if possible
-
-  * the gabage collector is not run before committing
-
-  * the allocation chunk is not shrunk
+This chunk scan also cleans up old `base` arrays referred to by packed
+reader nodes.
 
 
 testing strategies

@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <isc/qsbr.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
