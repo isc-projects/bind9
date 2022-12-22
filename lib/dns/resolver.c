@@ -2633,7 +2633,16 @@ resquery_send(resquery_t *query) {
 				hint = dns_adb_getudpsize(fctx->adb,
 							  query->addrinfo);
 			} else if (tried->count >= 2U) {
-				query->options |= DNS_FETCHOPT_TCP;
+				if ((query->options & DNS_FETCHOPT_TCP) == 0) {
+					/*
+					 * Inform the ADB that we're ending a
+					 * UDP fetch, and turn the query into
+					 * a TCP query.
+					 */
+					dns_adb_endudpfetch(fctx->adb,
+							    query->addrinfo);
+					query->options |= DNS_FETCHOPT_TCP;
+				}
 			}
 		}
 	}
