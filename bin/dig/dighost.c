@@ -644,7 +644,7 @@ make_empty_lookup(void) {
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 
-	looknew->tls_ctx_cache = isc_tlsctx_cache_new(mctx);
+	isc_tlsctx_cache_create(mctx, &looknew->tls_ctx_cache);
 
 	isc_refcount_init(&looknew->references, 1);
 

@@ -466,13 +466,14 @@ typedef enum {
 } isc_tlsctx_cache_transport_t;
 /*%< TLS context cache transport type values. */
 
-isc_tlsctx_cache_t *
-isc_tlsctx_cache_new(isc_mem_t *mctx);
+void
+isc_tlsctx_cache_create(isc_mem_t *mctx, isc_tlsctx_cache_t **cachep);
 /*%<
  * Create a new TLS context cache object.
  *
  * Requires:
- *\li	'mctx' is a valid memory context.
+ *\li	'mctx' is a valid memory context;
+ *\li	'cachep' is a valid pointer to a pointer which must be equal to NULL.
  */
 
 void
