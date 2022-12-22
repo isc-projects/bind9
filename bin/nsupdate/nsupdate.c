@@ -967,7 +967,7 @@ setup_system(void) {
 	}
 	transport_list = dns_transport_list_new(gmctx);
 
-	tls_ctx_cache = isc_tlsctx_cache_new(gmctx);
+	isc_tlsctx_cache_create(gmctx, &tls_ctx_cache);
 
 	if (tls_client_key_file == NULL) {
 		result = create_name("tls-non-auth-client", namedata,
