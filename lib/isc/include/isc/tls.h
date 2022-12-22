@@ -320,9 +320,10 @@ typedef struct isc_tlsctx_client_session_cache isc_tlsctx_client_session_cache_t
  * comparable to or surpass the size of a typical DNS message.
  */
 
-isc_tlsctx_client_session_cache_t *
-isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
-				    const size_t max_entries);
+void
+isc_tlsctx_client_session_cache_create(
+	isc_mem_t *mctx, isc_tlsctx_t *ctx, const size_t max_entries,
+	isc_tlsctx_client_session_cache_t **cachep);
 /*%<
  * Create a new TLS client session cache object.
  *
@@ -330,6 +331,7 @@ isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
  *\li	'mctx' is a valid memory context object;
  *\li	'ctx' is a valid TLS context object;
  *\li	'max_entries' is a positive number;
+ *\li	'cachep' is a valid pointer to a pointer which must be equal to NULL.
  */
 
 void

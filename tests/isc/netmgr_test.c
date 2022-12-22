@@ -336,9 +336,10 @@ setup_test(void **state __attribute__((unused))) {
 
 	isc_tlsctx_enable_dot_client_alpn(tcp_connect_tlsctx);
 
-	tcp_tlsctx_client_sess_cache = isc_tlsctx_client_session_cache_new(
+	isc_tlsctx_client_session_cache_create(
 		mctx, tcp_connect_tlsctx,
-		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
+		&tcp_tlsctx_client_sess_cache);
 
 	return (0);
 }

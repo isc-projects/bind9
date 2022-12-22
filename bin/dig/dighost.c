@@ -2908,9 +2908,9 @@ get_create_tls_context(dig_query_t *query, const bool is_https,
 		}
 #endif /* HAVE_LIBNGHTTP2 */
 
-		sess_cache = isc_tlsctx_client_session_cache_new(
-			mctx, ctx,
-			ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+		isc_tlsctx_client_session_cache_create(
+			mctx, ctx, ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
+			&sess_cache);
 
 		result = isc_tlsctx_cache_add(
 			query->lookup->tls_ctx_cache, tlsctxname, transport,
