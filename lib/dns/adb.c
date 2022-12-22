@@ -1874,11 +1874,14 @@ static void
 free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 	dns_adbentry_t *e;
 	dns_adblameinfo_t *li;
+	uint_fast32_t active;
 
 	INSIST(entry != NULL && DNS_ADBENTRY_VALID(*entry));
 	e = *entry;
 	*entry = NULL;
 
+	active = atomic_load_acquire(&e->active);
+	INSIST(active == 0);
 	INSIST(e->lock_bucket == DNS_ADB_INVALIDBUCKET);
 	INSIST(e->refcnt == 0);
 	INSIST(!ISC_LINK_LINKED(e, plink));
