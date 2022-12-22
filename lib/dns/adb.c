@@ -1173,10 +1173,14 @@ destroy_adbentry(dns_adbentry_t *entry) {
 
 	dns_adblameinfo_t *li = NULL;
 	dns_adb_t *adb = entry->adb;
+	uint_fast32_t active;
 
 	entry->magic = 0;
 
 	INSIST(ISC_LIST_EMPTY(entry->nhs));
+
+	active = atomic_load_acquire(&entry->active);
+	INSIST(active == 0);
 
 	if (entry->cookie != NULL) {
 		isc_mem_put(adb->mctx, entry->cookie, entry->cookielen);
