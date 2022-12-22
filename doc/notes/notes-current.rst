@@ -30,7 +30,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Add the ability to configure the preferred source address when talking to
+  remote servers such as :any:`primaries` and any:`parental-agents`.
+  :gl:`!7110`
 
 - Replace DNS over TCP and DNS over TLS transports code with a new,
   unified transport implementation. :gl:`#3374`
