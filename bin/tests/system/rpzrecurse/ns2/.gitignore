@@ -1,3 +1,8 @@
 /*.local
 /*.queries
-/*.conf
+/named.1*.conf
+/named.2*.conf
+/named.3*.conf
+/named.4*.conf
+/named.5*.conf
+/named.6*.conf
