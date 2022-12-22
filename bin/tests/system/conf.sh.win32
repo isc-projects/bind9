@@ -27,11 +27,17 @@ export TOP_SRCDIR="$TOP"
 # and changes some specific behaviors where necessary.
 export CYGWIN=1
 
-# Load common values shared between windows and unix/linux.
-. $TOP/bin/tests/system/conf.sh.common
-
 # Visual Studio build configurations are Release and Debug
 export VSCONF=${VSCONF:-Debug}
+
+# Interpreters for system tests
+export PERL=/usr/bin/perl
+if ! test -x "$PERL"; then
+    echo "Perl interpreter is required for system tests."
+    exit 77
+fi
+export PYTHON=@PYTHON@
+
 
 export ARPANAME=$TOP/Build/$VSCONF/arpaname@EXEEXT@
 export CDS=$TOP/Build/$VSCONF/dnssec-cds@EXEEXT@
@@ -83,17 +89,6 @@ export RESOLVE=$TOP/Build/$VSCONF/resolve@EXEEXT@
 # we don't want a KRB5_CONFIG setting breaking the tests
 export KRB5_CONFIG=NUL
 
-#
-# Construct the lists of tests to run
-#
-SEQUENTIAL_WINDOWS=""
-SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_WINDOWS"
-
-PARALLEL_WINDOWS="@CHECKDS@ @COVERAGE@ @DNSTAP@ @KEYMGR@"
-PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_WINDOWS"
-
-SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
 # Things that are different on Windows
 export KILL="/bin/kill -f"
 export DIFF="diff --strip-trailing-cr"
@@ -106,7 +101,6 @@ export TP=
 export SHELL="/bin/bash -o igncr"
 export CURL=/usr/bin/curl
 export XMLLINT=/usr/bin/xmllint
-export PERL=/usr/bin/perl
 
 #
 # PsSuspend is part of PSTools and can be downloaded from
@@ -114,12 +108,22 @@ export PERL=/usr/bin/perl
 #
 export PSSUSPEND=@PSSUSPEND@
 
-export PYTHON=@PYTHON@
-
 #
 # Determine if we support various optional features.
 #
 export CRYPTO=@CRYPTO@
 
+
 # The rest is shared between Windows and Unices
 . $TOP/bin/tests/system/conf.sh.common
+
+#
+# Construct the lists of tests to run
+#
+SEQUENTIAL_WINDOWS=""
+SEQUENTIALDIRS="$SEQUENTIAL_COMMON $SEQUENTIAL_WINDOWS"
+
+PARALLEL_WINDOWS="@CHECKDS@ @COVERAGE@ @DNSTAP@ @KEYMGR@"
+PARALLELDIRS="$PARALLEL_COMMON $PARALLEL_WINDOWS"
+
+SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"

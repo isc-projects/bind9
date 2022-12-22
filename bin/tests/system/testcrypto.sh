@@ -12,23 +12,27 @@
 # information regarding copyright ownership.
 
 SYSTEMTESTTOP=${SYSTEMTESTTOP:=..}
+prog=$0
+args=""
+quiet=0
+msg="cryptography"
 
 if test -z "$KEYGEN"; then
     . $SYSTEMTESTTOP/conf.sh
     alg="-a $DEFAULT_ALGORITHM -b $DEFAULT_BITS"
 else
     alg=""
+    quiet=1
+    args="-q"
 fi
 
-prog=$0
-args=""
-quiet=0
-msg="cryptography"
 while test "$#" -gt 0; do
     case $1 in
     -q)
-        args="$args -q"
-        quiet=1
+        if test $quiet -eq 0; then
+            args="$args -q"
+            quiet=1
+        fi
         ;;
     rsa|RSA|rsasha1|RSASHA1)
         alg="-a RSASHA1"
