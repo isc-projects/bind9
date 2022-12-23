@@ -323,9 +323,10 @@ setup_test(void **state) {
 	client_tlsctx = NULL;
 	isc_tlsctx_createclient(&client_tlsctx);
 	isc_tlsctx_enable_http2client_alpn(client_tlsctx);
-	client_sess_cache = isc_tlsctx_client_session_cache_new(
+	isc_tlsctx_client_session_cache_create(
 		mctx, client_tlsctx,
-		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE);
+		ISC_TLSCTX_CLIENT_SESSION_CACHE_DEFAULT_SIZE,
+		&client_sess_cache);
 
 	isc_quota_init(&listener_quota, 0);
 	atomic_store(&check_listener_quota, false);

@@ -1101,10 +1101,11 @@ struct isc_tlsctx_cache {
 	isc_ht_t *data;
 };
 
-isc_tlsctx_cache_t *
-isc_tlsctx_cache_new(isc_mem_t *mctx) {
+void
+isc_tlsctx_cache_create(isc_mem_t *mctx, isc_tlsctx_cache_t **cachep) {
 	isc_tlsctx_cache_t *nc;
 
+	REQUIRE(cachep != NULL && *cachep == NULL);
 	nc = isc_mem_get(mctx, sizeof(*nc));
 
 	*nc = (isc_tlsctx_cache_t){ .magic = TLSCTX_CACHE_MAGIC };
@@ -1114,7 +1115,7 @@ isc_tlsctx_cache_new(isc_mem_t *mctx) {
 	isc_ht_init(&nc->data, mctx, 5);
 	isc_rwlock_init(&nc->rwlock, 0, 0);
 
-	return (nc);
+	*cachep = nc;
 }
 
 void
@@ -1390,13 +1391,15 @@ struct isc_tlsctx_client_session_cache {
 	isc_mutex_t lock;
 };
 
-isc_tlsctx_client_session_cache_t *
-isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
-				    const size_t max_entries) {
+void
+isc_tlsctx_client_session_cache_create(
+	isc_mem_t *mctx, isc_tlsctx_t *ctx, const size_t max_entries,
+	isc_tlsctx_client_session_cache_t **cachep) {
 	isc_tlsctx_client_session_cache_t *nc;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(max_entries > 0);
+	REQUIRE(cachep != NULL && *cachep == NULL);
 
 	nc = isc_mem_get(mctx, sizeof(*nc));
 
@@ -1411,7 +1414,7 @@ isc_tlsctx_client_session_cache_new(isc_mem_t *mctx, isc_tlsctx_t *ctx,
 
 	nc->magic = TLSCTX_CLIENT_SESSION_CACHE_MAGIC;
 
-	return (nc);
+	*cachep = nc;
 }
 
 void
