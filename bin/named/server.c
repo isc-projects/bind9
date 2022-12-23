@@ -8448,13 +8448,13 @@ load_configuration(const char *filename, named_server_t *server,
 		isc_tlsctx_cache_detach(&server->tlsctx_server_cache);
 	}
 
-	server->tlsctx_server_cache = isc_tlsctx_cache_new(named_g_mctx);
+	isc_tlsctx_cache_create(named_g_mctx, &server->tlsctx_server_cache);
 
 	if (server->tlsctx_client_cache != NULL) {
 		isc_tlsctx_cache_detach(&server->tlsctx_client_cache);
 	}
 
-	server->tlsctx_client_cache = isc_tlsctx_cache_new(named_g_mctx);
+	isc_tlsctx_cache_create(named_g_mctx, &server->tlsctx_client_cache);
 
 	dns_zonemgr_set_tlsctx_cache(server->zonemgr,
 				     server->tlsctx_client_cache);

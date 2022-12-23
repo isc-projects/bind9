@@ -181,7 +181,7 @@ setup_test(void **state) {
 	testdata.region.length = sizeof(testdata.rbuf);
 	memset(testdata.message, 0, sizeof(testdata.message));
 
-	tls_tlsctx_client_cache = isc_tlsctx_cache_new(mctx);
+	isc_tlsctx_cache_create(mctx, &tls_tlsctx_client_cache);
 
 	if (isc_tlsctx_createserver(NULL, NULL, &tls_listen_tlsctx) !=
 	    ISC_R_SUCCESS)
