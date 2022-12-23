@@ -41,7 +41,7 @@ if $test_fixed; then
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     dig_cmd @10.53.0.1 fixed.example > dig.out.fixed || ret=1
-    diff dig.out.fixed dig.out.fixed.good >/dev/null || ret=1
+    diff dig.out.fixed reference.dig.out.fixed.good >/dev/null || ret=1
     done
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
@@ -133,7 +133,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -172,7 +172,7 @@ if $test_fixed; then
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     dig_cmd @10.53.0.2 fixed.example > dig.out.fixed || ret=1
-    diff dig.out.fixed dig.out.fixed.good || ret=1
+    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
@@ -242,7 +242,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -297,7 +297,7 @@ if $test_fixed; then
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     dig_cmd @10.53.0.2 fixed.example > dig.out.fixed || ret=1
-    diff dig.out.fixed dig.out.fixed.good || ret=1
+    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
@@ -367,7 +367,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -406,7 +406,7 @@ if $test_fixed; then
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
     do
     dig_cmd @10.53.0.3 fixed.example > dig.out.fixed || ret=1
-    diff dig.out.fixed dig.out.fixed.good || ret=1
+    diff dig.out.fixed reference.dig.out.fixed.good || ret=1
     done
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status + ret))
@@ -480,7 +480,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -522,7 +522,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
