@@ -450,6 +450,7 @@ misc:
     - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
     - rm CHANGES.tmp
     - sh util/check-categories.sh
+    - sh util/check-gitignore.sh
     - if git grep SYSTEMTESTTOP -- ':!.gitlab-ci.yml'; then echo 'Please use relative paths instead of $SYSTEMTESTTOP.'; exit 1; fi
     - bash util/unused-headers.sh
     - bash util/xmllint-html.sh
