@@ -36,6 +36,7 @@ zone "." {
 
 zone "secondary" {
 	type primary;
+	allow-transfer { 10.53.0.1; 10.53.0.2; 10.53.0.6; 10.53.0.7; };
 	file "sec.db";
 };
 

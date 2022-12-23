@@ -82,9 +82,9 @@ options {
 	transfer-source 0.0.0.0 dscp 63;
 	zone-statistics none;
 };
-parental-agents "parents" {
+parental-agents "parents" port 5353 source 10.10.10.10 port 5354 dscp 54 source-v6 2001:db8::10 port 5355 dscp 55 {
 	10.10.10.11;
-	10.10.10.12;
+	2001:db8::11;
 };
 view "first" {
 	match-clients {

@@ -1,3 +1,8 @@
+6054.	[func]		Refactor remote servers (primaries, parental-agents)
+			in zone.c. Store common code in new source files
+			remote.c and remote.h. Introduce a new way to set the
+			source address and port. [GL !7110]
+
 6053.	[bug]		Fix an ADB quota management bug in resolver. [GL #3752]
 
 6052.	[func]		Replace DNS over TCP and DNS over TLS transports

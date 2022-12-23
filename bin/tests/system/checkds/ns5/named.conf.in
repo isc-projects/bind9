@@ -41,5 +41,6 @@ zone "." {
 
 zone "checkds" {
 	type primary;
+	allow-transfer { 10.53.0.5; 10.53.0.7; };
 	file "checkds.db";
 };

@@ -59,10 +59,14 @@ zone "tsigzone" {
 	allow-transfer { tzkey; };
 };
 
+primaries "ns1" port @PORT@ source 10.53.0.2 {
+	10.53.0.1;
+};
+
 zone "secondary" {
 	type secondary;
 	file "sec.db";
-	primaries { 10.53.0.1; };
+	primaries { ns1; };
 	masterfile-format text;
 };
 

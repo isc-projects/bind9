@@ -128,6 +128,7 @@ typedef struct dns_rdataset	  dns_rdataset_t;
 typedef ISC_LIST(dns_rdataset_t) dns_rdatasetlist_t;
 typedef struct dns_rdatasetiter	     dns_rdatasetiter_t;
 typedef uint16_t		     dns_rdatatype_t;
+typedef struct dns_remote	     dns_remote_t;
 typedef struct dns_request	     dns_request_t;
 typedef struct dns_requestmgr	     dns_requestmgr_t;
 typedef struct dns_resolver	     dns_resolver_t;

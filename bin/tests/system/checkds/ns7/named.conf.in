@@ -42,5 +42,5 @@ zone "." {
 zone "checkds" {
 	type secondary;
 	file "checkds.db";
-        primaries { 10.53.0.5 port @PORT@; };
+        primaries source 10.53.0.7 { 10.53.0.5 port @PORT@; };
 };

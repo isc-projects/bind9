@@ -26,6 +26,7 @@
 struct dns_ipkeylist {
 	isc_sockaddr_t *addrs;
 	isc_dscp_t     *dscps;
+	isc_sockaddr_t *sources;
 	dns_name_t    **keys;
 	dns_name_t    **tlss;
 	dns_name_t    **labels;
