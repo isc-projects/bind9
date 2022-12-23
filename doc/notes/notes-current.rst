@@ -52,6 +52,11 @@ Bug Fixes
 - Fix a rare assertion failure in the outgoing TCP DNS connection handling.
   :gl:`#3178` :gl:`#3636`
 
+- In addition to a previously fixed bug, another similar issue was discovered
+  where quotas could be erroneously reached for servers, including any
+  configured forwarders, resulting in SERVFAIL answers being sent to clients.
+  This has been fixed. :gl:`#3752`
+
 Known Issues
 ~~~~~~~~~~~~
 
