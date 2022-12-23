@@ -172,8 +172,10 @@ if not danger.gitlab.mr.milestone:
 BACKPORT_OF_RE = re.compile(
     r"Backport\s+of.*(merge_requests/|!)([0-9]+)", flags=re.IGNORECASE
 )
+VERSION_LABEL_RE = re.compile(r"v9.([0-9]+)(-S)?")
 backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description)
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
+affects_labels = [l for l in mr_labels if l.startswith("Affects v9.")]
 if is_backport:
     if len(version_labels) != 1:
         fail(
@@ -181,11 +183,14 @@ if is_backport:
             "Please also set exactly one version label (*v9.x*)."
         )
     else:
-        mr_title_version = f"[{version_labels[0].replace('.', '_')}]"
-        if mr_title_version not in danger.gitlab.mr.title:
+        minor_ver, edition = VERSION_LABEL_RE.search(version_labels[0]).groups()
+        edition = "" if edition is None else edition
+        title_re = f"^\\[9.{minor_ver}{edition}\\]"
+        match = re.search(title_re, danger.gitlab.mr.title)
+        if match is None:
             fail(
-                "Backport MRs must have their target branch in the "
-                f"title. Please put `{mr_title_version}` in the MR title."
+                "Backport MRs must have their target version in the title. "
+                f"Please put `[9.{minor_ver}{edition}]` at the start of the MR title."
             )
     if backport_desc is None:
         fail(
@@ -222,12 +227,18 @@ if is_backport:
                             "commits are meant to be backported."
                         )
                         fail(msg)
-if not is_backport and not version_labels:
-    fail(
-        "If this merge request is a backport, set the *Backport* label and "
-        "a single version label (*v9.x*) indicating the target branch. "
-        "If not, set version labels for all targeted backport branches."
-    )
+else:
+    if not version_labels:
+        fail(
+            "If this merge request is a backport, set the *Backport* label and "
+            "a single version label (*v9.x*) indicating the target branch. "
+            "If not, set version labels for all targeted backport branches."
+        )
+    if not affects_labels:
+        warn(
+            "Set `Affects v9.` label(s) for all versions that are affected by "
+            "the issue which this MR addresses."
+        )
 
 ###############################################################################
 # OTHER LABELS
