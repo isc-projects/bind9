@@ -43,8 +43,8 @@ Feature Changes
   :any:`dnssec-policy`. :gl:`#3667`
 
 - Setting alternate local addresses for inbound zone transfers has been
-  deprecated. The relevant options (:any:`alt-transfer-source`,
-  :any:`alt-transfer-source-v6`, and :any:`use-alt-transfer-source`)
+  deprecated. The relevant options (``alt-transfer-source``,
+  ``alt-transfer-source-v6``, and ``use-alt-transfer-source``)
   will be removed in a future BIND 9.19.x release. :gl:`#3694`
 
 - On startup, :iscman:`named` now sets the limit on the number of open

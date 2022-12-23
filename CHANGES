@@ -1,3 +1,7 @@
+6055.	[cleanup]	Remove setting alternate transfer sources, make options
+			alt-transfer-source, alt-transfer-transfer-source-v6,
+			and use-alt-transfer-source ancient. [GL #3714]
+
 6054.	[func]		Refactor remote servers (primaries, parental-agents)
 			in zone.c. Store common code in new source files
 			remote.c and remote.h. Introduce a new way to set the

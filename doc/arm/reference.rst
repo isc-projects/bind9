@@ -3576,32 +3576,6 @@ options apply to zone transfers.
    This option is the same as :any:`transfer-source`, except zone transfers are performed
    using IPv6.
 
-.. namedconf:statement:: alt-transfer-source
-   :tags: deprecated
-   :short: Defines alternate local IPv4 address(es) to be used by the server for inbound zone transfers, if the address(es) defined by :any:`transfer-source` fail and :any:`use-alt-transfer-source` is enabled.
-
-   This indicates an alternate transfer source if the one listed in :any:`transfer-source`
-   fails and :any:`use-alt-transfer-source` is set.
-
-   .. note:: To avoid using the alternate transfer source,
-      set :any:`use-alt-transfer-source` appropriately and
-      do not depend upon getting an answer back to the first refresh
-      query.
-
-.. namedconf:statement:: alt-transfer-source-v6
-   :tags: deprecated
-   :short: Defines alternate local IPv6 address(es) to be used by the server for inbound zone transfers.
-
-   This indicates an alternate transfer source if the one listed in
-   :any:`transfer-source-v6` fails and :any:`use-alt-transfer-source` is set.
-
-.. namedconf:statement:: use-alt-transfer-source
-   :tags: deprecated
-   :short: Indicates whether :any:`alt-transfer-source` and :any:`alt-transfer-source-v6` can be used.
-
-   This indicates whether the alternate transfer sources should be used. If views are specified,
-   this defaults to ``no``; otherwise, it defaults to ``yes``.
-
 .. namedconf:statement:: notify-source
    :tags: transfer
    :short: Defines the IPv4 address (and optional port) to be used for outgoing ``NOTIFY`` messages.
@@ -7191,15 +7165,6 @@ Zone Options
 
 :any:`transfer-source-v6`
    See the description of :any:`transfer-source-v6` in :ref:`zone_transfers`.
-
-:any:`alt-transfer-source`
-   See the description of :any:`alt-transfer-source` in :ref:`zone_transfers`.
-
-:any:`alt-transfer-source-v6`
-   See the description of :any:`alt-transfer-source-v6` in :ref:`zone_transfers`.
-
-:any:`use-alt-transfer-source`
-   See the description of :any:`use-alt-transfer-source` in :ref:`zone_transfers`.
 
 :any:`notify-source`
    See the description of :any:`notify-source` in :ref:`zone_transfers`.

@@ -16,7 +16,6 @@ options {
 	query-source dscp 46 address 10.53.0.5;
 	notify-source 10.53.0.5 dscp 46;
 	transfer-source 10.53.0.5 dscp 46;
-	alt-transfer-source 10.53.0.5 dscp 46;
 	port @PORT@;
 	pid-file "named.pid";
 	listen-on dscp 46 { 10.53.0.5; };

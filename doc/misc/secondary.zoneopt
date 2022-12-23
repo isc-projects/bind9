@@ -6,8 +6,6 @@ zone <string> [ <class> ] {
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
 	also-notify [ port <integer> ] [ dscp <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
-	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ]; // deprecated
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
 	database <string>;
@@ -59,7 +57,6 @@ zone <string> [ <class> ] {
 	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	try-tcp-refresh <boolean>;
 	update-check-ksk <boolean>;
-	use-alt-transfer-source <boolean>; // deprecated
 	zero-no-soa-ttl <boolean>;
 	zone-statistics ( full | terse | none | <boolean> );
 };
