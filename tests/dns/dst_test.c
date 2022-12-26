@@ -369,18 +369,6 @@ ISC_RUN_TEST_IMPL(cmp_test) {
 		{ "example.", 53461, "example-n.", 37464, DST_ALG_RSASHA256,
 		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, false },
 
-		/* RSA Keypair: different PrivateExponent (d) */
-		{ "example.", 53461, "example-d.", 53461, DST_ALG_RSASHA256,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, false },
-
-		/* RSA Keypair: different Prime1 (p) */
-		{ "example.", 53461, "example-p.", 53461, DST_ALG_RSASHA256,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, false },
-
-		/* RSA Keypair: different Prime2 (q) */
-		{ "example.", 53461, "example-q.", 53461, DST_ALG_RSASHA256,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE, false },
-
 		/* RSA Public Key: self */
 		{ "example.", 53461, "example.", 53461, DST_ALG_RSASHA256,
 		  DST_TYPE_PUBLIC, true },
