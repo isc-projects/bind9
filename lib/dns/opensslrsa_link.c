@@ -21,9 +21,6 @@
 #include <openssl/objects.h>
 #include <openssl/opensslv.h>
 #include <openssl/rsa.h>
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-#include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 #include <openssl/core_names.h>
 #include <openssl/param_build.h>
@@ -1106,34 +1103,16 @@ err:
 static isc_result_t
 opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		     const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	ENGINE *e = NULL;
-	isc_result_t ret = ISC_R_SUCCESS;
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
+	isc_result_t ret;
 
-	UNUSED(pin);
-
-	if (engine == NULL) {
-		DST_RET(DST_R_NOENGINE);
-	}
-	e = dst__openssl_getengine(engine);
-	if (e == NULL) {
-		DST_RET(dst__openssl_toresult(DST_R_NOENGINE));
+	ret = dst__openssl_fromlabel(engine, label, pin, &pubpkey, &privpkey);
+	if (ret != ISC_R_SUCCESS) {
+		goto err;
 	}
 
-	pubpkey = ENGINE_load_public_key(e, label, NULL, NULL);
-	if (pubpkey == NULL) {
-		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
-					       DST_R_OPENSSLFAILURE));
-	}
 	if (!opensslrsa_check_exponent_bits(pubpkey, RSA_MAX_PUBEXP_BITS)) {
 		DST_RET(ISC_R_RANGE);
-	}
-
-	privpkey = ENGINE_load_private_key(e, label, NULL, NULL);
-	if (privpkey == NULL) {
-		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
-					       DST_R_OPENSSLFAILURE));
 	}
 
 	key->engine = isc_mem_strdup(key->mctx, engine);
@@ -1145,20 +1124,9 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	pubpkey = NULL;
 
 err:
-	if (privpkey != NULL) {
-		EVP_PKEY_free(privpkey);
-	}
-	if (pubpkey != NULL) {
-		EVP_PKEY_free(pubpkey);
-	}
+	EVP_PKEY_free(privpkey);
+	EVP_PKEY_free(pubpkey);
 	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	UNUSED(key);
-	UNUSED(engine);
-	UNUSED(label);
-	UNUSED(pin);
-	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t opensslrsa_functions = {
