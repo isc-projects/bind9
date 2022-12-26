@@ -1106,7 +1106,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
 
-	ret = dst__openssl_fromlabel(engine, label, pin, &pubpkey, &privpkey);
+	ret = dst__openssl_fromlabel(EVP_PKEY_RSA, engine, label, pin, &pubpkey,
+				     &privpkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
