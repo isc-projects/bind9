@@ -98,8 +98,12 @@ struct dst_key {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;
 		DH *dh;
-		EVP_PKEY *pkey;
 		dst_hmac_key_t *hmac_key;
+		EVP_PKEY *pkey;
+		struct {
+			EVP_PKEY *pub;
+			EVP_PKEY *priv;
+		} pkeypair;
 	} keydata; /*%< pointer to key in crypto pkg fmt */
 
 	isc_stdtime_t times[DST_MAX_TIMES + 1]; /*%< timing metadata */
