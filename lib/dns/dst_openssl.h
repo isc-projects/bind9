@@ -24,20 +24,6 @@
 #include <isc/log.h>
 #include <isc/result.h>
 
-#if !HAVE_BN_GENCB_NEW
-/*
- * These are new in OpenSSL 1.1.0.  BN_GENCB _cb needs to be declared in
- * the function like this before the BN_GENCB_new call:
- *
- * #if !HAVE_BN_GENCB_NEW
- *     	 _cb;
- * #endif
- */
-#define BN_GENCB_free(x)    ((void)0)
-#define BN_GENCB_new()	    (&_cb)
-#define BN_GENCB_get_arg(x) ((x)->arg)
-#endif /* !HAVE_BN_GENCB_NEW */
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t

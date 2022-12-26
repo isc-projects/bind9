@@ -28,6 +28,27 @@
 #define RSA_MAX_PUBEXP_BITS 35
 #endif /* ifndef RSA_MAX_PUBEXP_BITS */
 
+#if !HAVE_BN_GENCB_NEW
+/* These are new in OpenSSL 1.1.0. */
+static inline BN_GENCB *
+BN_GENCB_new(void) {
+	return (OPENSSL_malloc(sizeof(BN_GENCB)));
+}
+
+static inline void
+BN_GENCB_free(BN_GENCB *cb) {
+	if (cb == NULL) {
+		return;
+	}
+	OPENSSL_free(cb);
+}
+
+static inline void *
+BN_GENCB_get_arg(BN_GENCB *cb) {
+	return cb->arg;
+}
+#endif /* !HAVE_BN_GENCB_NEW */
+
 #if !HAVE_EVP_PKEY_GET0_RSA && OPENSSL_VERSION_NUMBER < 0x10100000L
 static inline const RSA *
 EVP_PKEY_get0_RSA(const EVP_PKEY *pkey) {
