@@ -17,6 +17,7 @@
 #include <openssl/dh.h>
 #include <openssl/ecdsa.h>
 #include <openssl/err.h>
+#include <openssl/evp.h>
 #include <openssl/opensslv.h>
 #include <openssl/rsa.h>
 
@@ -26,6 +27,13 @@
 #ifndef RSA_MAX_PUBEXP_BITS
 #define RSA_MAX_PUBEXP_BITS 35
 #endif /* ifndef RSA_MAX_PUBEXP_BITS */
+
+#if !HAVE_EVP_PKEY_GET0_RSA && OPENSSL_VERSION_NUMBER < 0x10100000L
+static inline const RSA *
+EVP_PKEY_get0_RSA(const EVP_PKEY *pkey) {
+	return (pkey->type == EVP_PKEY_RSA ? pkey->pkey.rsa : NULL);
+}
+#endif
 
 #if !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L
 int
