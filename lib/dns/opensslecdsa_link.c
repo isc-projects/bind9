@@ -46,6 +46,8 @@
 #error "P-384 group is not known (NID_secp384r1)"
 #endif /* ifndef NID_secp384r1 */
 
+#define MAX_PUBKEY_SIZE DNS_KEY_ECDSA384SIZE
+
 #define DST_RET(a)        \
 	{                 \
 		ret = a;  \
@@ -75,6 +77,18 @@ opensslecdsa_key_alg_to_group_nid(unsigned int key_alg) {
 	}
 }
 
+static size_t
+opensslecdsa_key_alg_to_publickey_size(unsigned int key_alg) {
+	switch (key_alg) {
+	case DST_ALG_ECDSA256:
+		return (DNS_KEY_ECDSA256SIZE);
+	case DST_ALG_ECDSA384:
+		return (DNS_KEY_ECDSA384SIZE);
+	default:
+		UNREACHABLE();
+	}
+}
+
 /*
  * OpenSSL requires us to set the public key portion, but since our private key
  * file format does not contain it directly, we generate it as needed.
@@ -90,6 +104,17 @@ opensslecdsa_generate_public_key(const EC_GROUP *group, const BIGNUM *privkey) {
 		return (NULL);
 	}
 	return (pubkey);
+}
+
+static int
+BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
+	int bytes = size - BN_num_bytes(bn);
+
+	while (bytes-- > 0) {
+		*buf++ = 0;
+	}
+	BN_bn2bin(bn, buf);
+	return (size);
 }
 
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
@@ -177,7 +202,7 @@ opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 	EC_POINT *pubkey = NULL;
 	EC_GROUP *group = NULL;
 	BIGNUM *priv = NULL;
-	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
+	unsigned char buf[MAX_PUBKEY_SIZE + 1];
 
 	bld = OSSL_PARAM_BLD_new();
 	if (bld == NULL) {
@@ -292,6 +317,29 @@ opensslecdsa_validate_pkey_group(unsigned int key_alg, EVP_PKEY *pkey) {
 	return (ISC_R_SUCCESS);
 }
 
+static bool
+opensslecdsa_extract_public_key(const dst_key_t *key, unsigned char *buf,
+				size_t buflen) {
+	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
+	BIGNUM *x = NULL;
+	BIGNUM *y = NULL;
+	bool ret = false;
+
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_EC_PUB_X, &x) != 1) {
+		goto err;
+	}
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_EC_PUB_Y, &y) != 1) {
+		goto err;
+	}
+	BN_bn2bin_fixed(x, &buf[0], buflen / 2);
+	BN_bn2bin_fixed(y, &buf[buflen / 2], buflen / 2);
+	ret = true;
+err:
+	BN_clear_free(x);
+	BN_clear_free(y);
+	return (ret);
+}
+
 #else
 
 static isc_result_t
@@ -339,7 +387,7 @@ opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 	EVP_PKEY *pkey = NULL;
 	BIGNUM *privkey = NULL;
 	EC_POINT *pubkey = NULL;
-	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
+	unsigned char buf[MAX_PUBKEY_SIZE + 1];
 	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 
 	eckey = EC_KEY_new_by_curve_name(group_nid);
@@ -407,6 +455,24 @@ opensslecdsa_validate_pkey_group(unsigned int key_alg, EVP_PKEY *pkey) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+static bool
+opensslecdsa_extract_public_key(const dst_key_t *key, unsigned char *dst,
+				size_t dstlen) {
+	const EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(key->keydata.pkeypair.pub);
+	const EC_GROUP *group = EC_KEY_get0_group(eckey);
+	const EC_POINT *pub = EC_KEY_get0_public_key(eckey);
+	unsigned char buf[MAX_PUBKEY_SIZE + 1];
+	size_t len;
+
+	len = EC_POINT_point2oct(group, pub, POINT_CONVERSION_UNCOMPRESSED, buf,
+				 sizeof(buf), NULL);
+	if (len != dstlen + 1) {
+		return (false);
+	}
+	memmove(dst, buf + 1, dstlen);
+	return (true);
 }
 
 #endif /* OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000 \
@@ -499,17 +565,6 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 
 err:
 	return (ret);
-}
-
-static int
-BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
-	int bytes = size - BN_num_bytes(bn);
-
-	while (bytes-- > 0) {
-		*buf++ = 0;
-	}
-	BN_bn2bin(bn, buf);
-	return (size);
 }
 
 static isc_result_t
@@ -694,90 +749,25 @@ opensslecdsa_destroy(dst_key_t *key) {
 static isc_result_t
 opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_result_t ret;
-	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	EC_KEY *eckey = NULL;
-	int len;
-	unsigned char *cp;
-#else
-	int status;
-	BIGNUM *x = NULL;
-	BIGNUM *y = NULL;
-	size_t keysize = 0;
-	size_t len = 0;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	isc_region_t r;
-	unsigned char buf[DNS_KEY_ECDSA384SIZE + 1];
+	size_t keysize;
 
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	REQUIRE(key->keydata.pkeypair.pub != NULL);
 
-	pkey = key->keydata.pkeypair.pub;
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	if (eckey == NULL) {
-		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
-	}
-	len = i2o_ECPublicKey(eckey, NULL);
-
-	/* skip form */
-	len--;
-#else
-	if (key->key_alg == DST_ALG_ECDSA256) {
-		keysize = DNS_KEY_ECDSA256SIZE;
-	} else if (key->key_alg == DST_ALG_ECDSA384) {
-		keysize = DNS_KEY_ECDSA384SIZE;
-	} else {
-		DST_RET(ISC_R_NOTIMPLEMENTED);
-	}
-
-	len = keysize;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
+	keysize = opensslecdsa_key_alg_to_publickey_size(key->key_alg);
 	isc_buffer_availableregion(data, &r);
-	if (r.length < (unsigned int)len) {
+	if (r.length < keysize) {
 		DST_RET(ISC_R_NOSPACE);
 	}
+	if (!opensslecdsa_extract_public_key(key, r.base, keysize)) {
+		DST_RET(DST_R_OPENSSLFAILURE);
+	}
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	cp = buf;
-	if (!i2o_ECPublicKey(eckey, &cp)) {
-		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
-	}
-	memmove(r.base, buf + 1, len);
-#else
-	status = EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_EC_PUB_X, &x);
-	if (status != 1 || x == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_get_bn_param",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_EC_PUB_Y, &y);
-	if (status != 1 || y == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_get_bn_param",
-					       DST_R_OPENSSLFAILURE));
-	}
-	BN_bn2bin_fixed(x, &buf[0], keysize / 2);
-	BN_bn2bin_fixed(y, &buf[keysize / 2], keysize / 2);
-	memmove(r.base, buf, len);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	isc_buffer_add(data, len);
+	isc_buffer_add(data, keysize);
 	ret = ISC_R_SUCCESS;
 
 err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	if (eckey != NULL) {
-		EC_KEY_free(eckey);
-	}
-#else
-	if (x != NULL) {
-		BN_clear_free(x);
-	}
-	if (y != NULL) {
-		BN_clear_free(y);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
 	return (ret);
 }
 
@@ -786,16 +776,10 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
 	isc_region_t r;
-
 	size_t len;
 
 	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
-
-	if (key->key_alg == DST_ALG_ECDSA256) {
-		len = DNS_KEY_ECDSA256SIZE;
-	} else {
-		len = DNS_KEY_ECDSA384SIZE;
-	}
+	len = opensslecdsa_key_alg_to_publickey_size(key->key_alg);
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
