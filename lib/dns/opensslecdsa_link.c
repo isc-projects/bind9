@@ -107,6 +107,63 @@ opensslecdsa_key_alg_to_group_name(unsigned int key_alg) {
 }
 
 static isc_result_t
+opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
+	isc_result_t ret;
+	EVP_PKEY_CTX *ctx = NULL;
+	EVP_PKEY *params_pkey = NULL;
+	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
+	int status;
+
+	/* Generate the key's parameters. */
+	ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
+	if (ctx == NULL) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new_from_name",
+					       DST_R_OPENSSLFAILURE));
+	}
+	status = EVP_PKEY_paramgen_init(ctx);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_paramgen_init",
+					       DST_R_OPENSSLFAILURE));
+	}
+	status = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, group_nid);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_set_ec_paramgen_"
+					       "curve_nid",
+					       DST_R_OPENSSLFAILURE));
+	}
+	status = EVP_PKEY_paramgen(ctx, &params_pkey);
+	if (status != 1 || params_pkey == NULL) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_paramgen",
+					       DST_R_OPENSSLFAILURE));
+	}
+	EVP_PKEY_CTX_free(ctx);
+
+	/* Generate the key. */
+	ctx = EVP_PKEY_CTX_new(params_pkey, NULL);
+	if (ctx == NULL) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new",
+					       DST_R_OPENSSLFAILURE));
+	}
+	status = EVP_PKEY_keygen_init(ctx);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_keygen(ctx, retkey);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen",
+					       DST_R_OPENSSLFAILURE));
+	}
+	ret = ISC_R_SUCCESS;
+
+err:
+	EVP_PKEY_free(params_pkey);
+	EVP_PKEY_CTX_free(ctx);
+	return (ret);
+}
+
+static isc_result_t
 opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 			 const unsigned char *key, size_t key_len,
 			 EVP_PKEY **pkey) {
@@ -236,6 +293,42 @@ opensslecdsa_validate_pkey_group(unsigned int key_alg, EVP_PKEY *pkey) {
 }
 
 #else
+
+static isc_result_t
+opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
+	isc_result_t ret;
+	EC_KEY *eckey = NULL;
+	EVP_PKEY *pkey = NULL;
+	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
+
+	eckey = EC_KEY_new_by_curve_name(group_nid);
+	if (eckey == NULL) {
+		DST_RET(dst__openssl_toresult2("EC_KEY_new_by_curve_name",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	if (EC_KEY_generate_key(eckey) != 1) {
+		DST_RET(dst__openssl_toresult2("EC_KEY_generate_key",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	pkey = EVP_PKEY_new();
+	if (pkey == NULL) {
+		DST_RET(ISC_R_NOMEMORY);
+	}
+	if (EVP_PKEY_set1_EC_KEY(pkey, eckey) != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_set1_EC_KEY",
+					       DST_R_OPENSSLFAILURE));
+	}
+	*retkey = pkey;
+	pkey = NULL;
+	ret = ISC_R_SUCCESS;
+
+err:
+	EC_KEY_free(eckey);
+	EVP_PKEY_free(pkey);
+	return (ret);
+}
 
 static isc_result_t
 opensslecdsa_create_pkey(unsigned int key_alg, bool private,
@@ -564,108 +657,20 @@ err:
 static isc_result_t
 opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
-	int status;
 	EVP_PKEY *pkey = NULL;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	EC_KEY *eckey = NULL;
-#else
-	EVP_PKEY_CTX *ctx = NULL;
-	EVP_PKEY *params_pkey = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-	int group_nid;
 
 	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	UNUSED(unused);
 	UNUSED(callback);
 
-	group_nid = opensslecdsa_key_alg_to_group_nid(key->key_alg);
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	eckey = EC_KEY_new_by_curve_name(group_nid);
-	if (eckey == NULL) {
-		DST_RET(dst__openssl_toresult2("EC_KEY_new_by_curve_name",
-					       DST_R_OPENSSLFAILURE));
+	ret = opensslecdsa_generate_pkey(key->key_alg, &pkey);
+	if (ret != ISC_R_SUCCESS) {
+		return (ret);
 	}
-
-	status = EC_KEY_generate_key(eckey);
-	if (status != 1) {
-		DST_RET(dst__openssl_toresult2("EC_KEY_generate_key",
-					       DST_R_OPENSSLFAILURE));
-	}
-
-	pkey = EVP_PKEY_new();
-	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
-	}
-	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
-		DST_RET(ISC_R_FAILURE);
-	}
-#else
-	/* Generate the key's parameters. */
-	ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
-	if (ctx == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new_from_name",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_paramgen_init(ctx);
-	if (status != 1) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_paramgen_init",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, group_nid);
-	if (status != 1) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_set_ec_paramgen_"
-					       "curve_nid",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_paramgen(ctx, &params_pkey);
-	if (status != 1 || params_pkey == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_paramgen",
-					       DST_R_OPENSSLFAILURE));
-	}
-	EVP_PKEY_CTX_free(ctx);
-
-	/* Generate the key. */
-	ctx = EVP_PKEY_CTX_new(params_pkey, NULL);
-	if (ctx == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_keygen_init(ctx);
-	if (status != 1) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
-					       DST_R_OPENSSLFAILURE));
-	}
-	status = EVP_PKEY_keygen(ctx, &pkey);
-	if (status != 1 || pkey == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen",
-					       DST_R_OPENSSLFAILURE));
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	key->key_size = EVP_PKEY_bits(pkey);
 	key->keydata.pkeypair.priv = pkey;
 	key->keydata.pkeypair.pub = pkey;
-	pkey = NULL;
-	ret = ISC_R_SUCCESS;
-
-err:
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
-	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	if (eckey != NULL) {
-		EC_KEY_free(eckey);
-	}
-#else
-	if (params_pkey != NULL) {
-		EVP_PKEY_free(params_pkey);
-	}
-	if (ctx != NULL) {
-		EVP_PKEY_CTX_free(ctx);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
 	return (ret);
 }
 
