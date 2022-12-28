@@ -1211,7 +1211,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	if (isc_log_wouldlog(dns_lctx, 90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
-		isc_sockaddr_format(localaddr, addrbuf,
+		isc_sockaddr_format(&disp->local, addrbuf,
 				    ISC_SOCKADDR_FORMATSIZE);
 
 		mgr_log(mgr, LVL(90),
