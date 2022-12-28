@@ -45,4 +45,7 @@ isc_result_t
 dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv);
 
+bool
+dst__openssl_compare_keypair(const dst_key_t *key1, const dst_key_t *key2);
+
 ISC_LANG_ENDDECLS
