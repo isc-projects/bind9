@@ -48,6 +48,8 @@
 
 #define MAX_PUBKEY_SIZE DNS_KEY_ECDSA384SIZE
 
+#define MAX_PRIVKEY_SIZE (MAX_PUBKEY_SIZE / 2)
+
 #define DST_RET(a)        \
 	{                 \
 		ret = a;  \
@@ -340,6 +342,21 @@ err:
 	return (ret);
 }
 
+static bool
+opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
+				 size_t buflen) {
+	EVP_PKEY *pkey = key->keydata.pkeypair.priv;
+	BIGNUM *priv = NULL;
+
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) != 1) {
+		return (false);
+	}
+
+	BN_bn2bin_fixed(priv, buf, buflen);
+	BN_clear_free(priv);
+	return (true);
+}
+
 #else
 
 static isc_result_t
@@ -472,6 +489,26 @@ opensslecdsa_extract_public_key(const dst_key_t *key, unsigned char *dst,
 		return (false);
 	}
 	memmove(dst, buf + 1, dstlen);
+	return (true);
+}
+
+static bool
+opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
+				 size_t buflen) {
+	const EC_KEY *eckey = NULL;
+	const BIGNUM *privkey = NULL;
+
+	eckey = EVP_PKEY_get0_EC_KEY(key->keydata.pkeypair.priv);
+	if (eckey == NULL) {
+		return (false);
+	}
+
+	privkey = EC_KEY_get0_private_key(eckey);
+	if (privkey == NULL) {
+		return (false);
+	}
+
+	BN_bn2bin_fixed(privkey, buf, buflen);
 	return (true);
 }
 
@@ -806,16 +843,9 @@ err:
 static isc_result_t
 opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	isc_result_t ret;
-	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	EC_KEY *eckey = NULL;
-	const BIGNUM *privkey = NULL;
-#else
-	int status;
-	BIGNUM *privkey = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	dst_private_t priv;
-	unsigned char *buf = NULL;
+	unsigned char buf[MAX_PRIVKEY_SIZE];
+	size_t keylen = 0;
 	unsigned short i;
 
 	if (key->keydata.pkeypair.pub == NULL) {
@@ -831,34 +861,15 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		DST_RET(DST_R_NULLKEY);
 	}
 
-	pkey = key->keydata.pkeypair.priv;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	if (eckey == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_get1_EC_KEY",
-					       DST_R_OPENSSLFAILURE));
+	keylen = opensslecdsa_key_alg_to_publickey_size(key->key_alg) / 2;
+	INSIST(keylen <= sizeof(buf));
+	if (!opensslecdsa_extract_private_key(key, buf, keylen)) {
+		DST_RET(DST_R_OPENSSLFAILURE);
 	}
-	privkey = EC_KEY_get0_private_key(eckey);
-	if (privkey == NULL) {
-		DST_RET(dst__openssl_toresult2("EC_KEY_get0_private_key",
-					       DST_R_OPENSSLFAILURE));
-	}
-#else
-	status = EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY,
-				       &privkey);
-	if (status != 1 || privkey == NULL) {
-		DST_RET(dst__openssl_toresult2("EVP_PKEY_get_bn_param",
-					       DST_R_OPENSSLFAILURE));
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	buf = isc_mem_get(key->mctx, BN_num_bytes(privkey));
 
 	i = 0;
-
 	priv.elements[i].tag = TAG_ECDSA_PRIVATEKEY;
-	priv.elements[i].length = BN_num_bytes(privkey);
-	BN_bn2bin(privkey, buf);
+	priv.elements[i].length = keylen;
 	priv.elements[i].data = buf;
 	i++;
 
@@ -882,19 +893,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	ret = dst__privstruct_writefile(key, &priv, directory);
 
 err:
-	if (buf != NULL && privkey != NULL) {
-		isc_mem_put(key->mctx, buf, BN_num_bytes(privkey));
-	}
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	if (eckey != NULL) {
-		EC_KEY_free(eckey);
-	}
-#else
-	if (privkey != NULL) {
-		BN_clear_free(privkey);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
+	isc_safe_memwipe(buf, keylen);
 	return (ret);
 }
 
