@@ -187,7 +187,11 @@ Options
 .. option:: -t timeout
 
    This option sets the maximum time an update request can take before it is aborted. The
-   default is 300 seconds. If zero, the timeout is disabled.
+   default is 300 seconds. If zero, the timeout is disabled for TCP mode. For UDP mode,
+   the option :option:`-u` takes precedence over this option, unless the option :option:`-u`
+   is set to zero, in which case the interval is computed from the :option:`-t` timeout interval
+   and the number of UDP retries. For UDP mode, the timeout can not be disabled, and will
+   be rounded up to 1 second in case if both :option:`-t` and :option:`-u` are set to zero.
 
 .. option:: -T
 
