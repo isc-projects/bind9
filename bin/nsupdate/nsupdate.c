@@ -96,12 +96,11 @@
 
 #include "../dig/readline.h"
 
-#define MAXCMD	     (128 * 1024)
-#define MAXWIRE	     (64 * 1024)
-#define INITTEXT     (2 * 1024)
-#define MAXTEXT	     (128 * 1024)
-#define FIND_TIMEOUT 5
-#define TTL_MAX	     2147483647U /* Maximum signed 32 bit integer. */
+#define MAXCMD	 (128 * 1024)
+#define MAXWIRE	 (64 * 1024)
+#define INITTEXT (2 * 1024)
+#define MAXTEXT	 (128 * 1024)
+#define TTL_MAX	 2147483647U /* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -2611,9 +2610,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		}
 
 		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
-					    0, NULL, FIND_TIMEOUT * 20,
-					    FIND_TIMEOUT, 3, global_task,
-					    recvsoa, reqinfo, &request);
+					    0, NULL, timeout, udp_timeout,
+					    udp_retries, global_task, recvsoa,
+					    reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2838,9 +2837,9 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	}
 
 	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, 0,
-				    default_servers ? NULL : tsigkey,
-				    FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    global_task, recvsoa, reqinfo, request);
+				    default_servers ? NULL : tsigkey, timeout,
+				    udp_timeout, udp_retries, global_task,
+				    recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
 }
@@ -3040,7 +3039,7 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	}
 
 	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, options,
-				    tsigkey, FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
+				    tsigkey, timeout, udp_timeout, udp_retries,
 				    global_task, recvgss, reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
