@@ -69,6 +69,17 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr);
  */
 
 void
+isc_loopmgr_wakeup(isc_loopmgr_t *loopmgr);
+/*%<
+ * Send no-op events to wake up all running loops in 'loopmgr' except
+ * the current one. (See <isc/qsbr.h>.)
+ *
+ * Requires:
+ *\li  'loopmgr' is a valid loop manager.
+ *\li  We are in a running loop.
+ */
+
+void
 isc_loopmgr_pause(isc_loopmgr_t *loopmgr);
 /*%<
  * Send pause events to all running loops in 'loopmgr' except the

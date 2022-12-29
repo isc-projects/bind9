@@ -26,12 +26,14 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
+#include <isc/qsbr.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 #include <isc/work.h>
@@ -63,8 +65,6 @@ isc_loopmgr_shutdown(isc_loopmgr_t *loopmgr) {
 	for (size_t i = 0; i < loopmgr->nloops; i++) {
 		isc_loop_t *loop = &loopmgr->loops[i];
 		int r;
-
-		REQUIRE(!atomic_load(&loop->finished));
 
 		r = uv_async_send(&loop->shutdown_trigger);
 		UV_RUNTIME_CHECK(uv_async_send, r);
@@ -143,6 +143,8 @@ destroy_cb(uv_async_t *handle) {
 	uv_close(&loop->destroy_trigger, NULL);
 	uv_close(&loop->queue_trigger, NULL);
 	uv_close(&loop->pause_trigger, NULL);
+	uv_close(&loop->wakeup_trigger, NULL);
+	uv_close(&loop->quiescent, NULL);
 
 	uv_walk(&loop->loop, loop_walk_cb, (char *)"destroy_cb");
 }
@@ -152,6 +154,8 @@ shutdown_cb(uv_async_t *handle) {
 	isc_job_t *job = NULL;
 	isc_loop_t *loop = uv_handle_get_data(handle);
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
+
+	loop->shuttingdown = true;
 
 	/* Make sure, we can't be called again */
 	uv_close(&loop->shutdown_trigger, shutdown_trigger_close_cb);
@@ -195,6 +199,12 @@ queue_cb(uv_async_t *handle) {
 }
 
 static void
+wakeup_cb(uv_async_t *handle) {
+	/* we only woke up to make the loop take a spin */
+	UNUSED(handle);
+}
+
+static void
 loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	*loop = (isc_loop_t){
 		.tid = tid,
@@ -223,6 +233,13 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	UV_RUNTIME_CHECK(uv_async_init, r);
 	uv_handle_set_data(&loop->destroy_trigger, loop);
 
+	r = uv_async_init(&loop->loop, &loop->wakeup_trigger, wakeup_cb);
+	UV_RUNTIME_CHECK(uv_async_init, r);
+
+	r = uv_prepare_init(&loop->loop, &loop->quiescent);
+	UV_RUNTIME_CHECK(uv_prepare_init, r);
+	uv_handle_set_data(&loop->quiescent, loop);
+
 	char name[16];
 	snprintf(name, sizeof(name), "loop-%08" PRIx32, tid);
 	isc_mem_create(&loop->mctx);
@@ -247,6 +264,9 @@ loop_run(isc_loop_t *loop) {
 
 		job = next;
 	}
+
+	r = uv_prepare_start(&loop->quiescent, isc__qsbr_quiescent_cb);
+	UV_RUNTIME_CHECK(uv_prepare_start, r);
 
 	isc_barrier_wait(&loop->loopmgr->starting);
 
@@ -330,6 +350,7 @@ isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {
 	loopmgr = isc_mem_get(mctx, sizeof(*loopmgr));
 	*loopmgr = (isc_loopmgr_t){
 		.nloops = nloops,
+		.qsbr = ISC_QSBR_INITIALIZER(nloops),
 	};
 
 	isc_mem_attach(mctx, &loopmgr->mctx);
@@ -464,6 +485,22 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr) {
 }
 
 void
+isc_loopmgr_wakeup(isc_loopmgr_t *loopmgr) {
+	REQUIRE(VALID_LOOPMGR(loopmgr));
+
+	for (size_t i = 0; i < loopmgr->nloops; i++) {
+		isc_loop_t *loop = &loopmgr->loops[i];
+
+		/* Skip current loop */
+		if (i == isc_tid()) {
+			continue;
+		}
+
+		uv_async_send(&loop->wakeup_trigger);
+	}
+}
+
+void
 isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 	REQUIRE(VALID_LOOPMGR(loopmgr));
 
@@ -481,7 +518,6 @@ isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 			continue;
 		}
 
-		REQUIRE(!atomic_load(&loop->finished));
 		uv_async_send(&loop->pause_trigger);
 	}
 
