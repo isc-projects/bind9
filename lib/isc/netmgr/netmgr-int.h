@@ -735,7 +735,7 @@ typedef enum {
 
 typedef struct isc_nmsocket_tls_send_req {
 	isc_nmsocket_t *tlssock;
-	isc_region_t data;
+	isc_buffer_t data;
 	isc_nm_cb_t cb;
 	void *cbarg;
 	isc_nmhandle_t *handle;

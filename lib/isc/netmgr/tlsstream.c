@@ -42,6 +42,8 @@
 
 #define TLS_BUF_SIZE (UINT16_MAX)
 
+#define TLS_MAX_SEND_BUF_SIZE (UINT16_MAX + UINT16_MAX / 2)
+
 static isc_result_t
 tls_error_to_result(const int tls_err, const int tls_state, isc_tls_t *tls) {
 	switch (tls_err) {
@@ -142,7 +144,9 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	tlssock = send_req->tlssock;
 	send_req->tlssock = NULL;
 	send_cb = send_req->cb;
+	send_req->cb = NULL;
 	send_cbarg = send_req->cbarg;
+	send_req->cbarg = NULL;
 	send_handle = send_req->handle;
 	send_req->handle = NULL;
 
@@ -150,27 +154,31 @@ tls_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		tls_try_shutdown(tlssock->tlsstream.tls, true);
 	}
 
-	/*
-	 * We are tying to avoid a memory allocation for small write
-	 * requests. See the mirroring code in the tls_send_outgoing()
-	 * function. The object is attempted to be freed or put for reuse
-	 * before the call to callback because there is a chance that it
-	 * is going to be reused during the call to the callback.
-	 */
-	if (send_req->data.length > sizeof(send_req->smallbuf)) {
-		isc_mem_put(handle->sock->worker->mctx, send_req->data.base,
-			    send_req->data.length);
-	} else {
-		INSIST(&send_req->smallbuf[0] == send_req->data.base);
-	}
-
-	send_req->data.base = NULL;
-	send_req->data.length = 0;
-
 	/* Try to keep the object to be reused later - to avoid an allocation */
 	if (tlssock->tlsstream.send_req == NULL) {
 		tlssock->tlsstream.send_req = send_req;
+		/*
+		 * We need to ensure that the buffer is not going to grow too
+		 * large uncontrollably. We try to keep its size to be no more
+		 * than TLS_MAX_SEND_BUF_SIZE. The constant should be larger
+		 * than 64 KB for this to work efficiently when combined with
+		 * DNS transports.
+		 */
+		if (isc_buffer_length(&send_req->data) > TLS_MAX_SEND_BUF_SIZE)
+		{
+			/* free the underlying buffer */
+			isc_buffer_clearmctx(&send_req->data);
+			isc_buffer_invalidate(&send_req->data);
+			isc_buffer_init(&send_req->data, send_req->smallbuf,
+					sizeof(send_req->smallbuf));
+			isc_buffer_setmctx(&send_req->data,
+					   handle->sock->worker->mctx);
+		} else {
+			isc_buffer_clear(&send_req->data);
+		}
 	} else {
+		isc_buffer_clearmctx(&send_req->data);
+		isc_buffer_invalidate(&send_req->data);
 		isc_mem_put(handle->sock->worker->mctx, send_req,
 			    sizeof(*send_req));
 	}
@@ -274,6 +282,8 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 	int pending;
 	int rv;
 	size_t len = 0;
+	bool new_send_req = false;
+	isc_region_t used_region = { 0 };
 
 	if (inactive(sock)) {
 		if (cb != NULL) {
@@ -293,28 +303,23 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 		return (pending);
 	}
 
-	/* TODO Should we keep track of these requests in a list? */
-	if ((unsigned int)pending > TLS_BUF_SIZE) {
-		pending = TLS_BUF_SIZE;
-	}
-
 	/* Try to reuse previously allocated object */
 	if (sock->tlsstream.send_req != NULL) {
 		send_req = sock->tlsstream.send_req;
+		send_req->finish = finish;
 		sock->tlsstream.send_req = NULL;
 	} else {
 		send_req = isc_mem_get(sock->worker->mctx, sizeof(*send_req));
+		*send_req = (isc_nmsocket_tls_send_req_t){ .finish = finish };
+		new_send_req = true;
 	}
 
-	*send_req = (isc_nmsocket_tls_send_req_t){ .finish = finish,
-						   .data.length = pending };
-
-	/* Let's try to avoid a memory allocation for small write requests */
-	if ((size_t)pending > sizeof(send_req->smallbuf)) {
-		send_req->data.base = isc_mem_get(sock->worker->mctx, pending);
-	} else {
-		send_req->data.base = &send_req->smallbuf[0];
+	if (new_send_req) {
+		isc_buffer_init(&send_req->data, &send_req->smallbuf,
+				sizeof(send_req->smallbuf));
+		isc_buffer_setmctx(&send_req->data, sock->worker->mctx);
 	}
+	INSIST(isc_buffer_remaininglength(&send_req->data) == 0);
 
 	isc__nmsocket_attach(sock, &send_req->tlssock);
 	if (cb != NULL) {
@@ -323,15 +328,19 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 		isc_nmhandle_attach(tlshandle, &send_req->handle);
 	}
 
-	rv = BIO_read_ex(sock->tlsstream.bio_out, send_req->data.base, pending,
-			 &len);
+	RUNTIME_CHECK(isc_buffer_reserve(&send_req->data, pending) ==
+		      ISC_R_SUCCESS);
+	isc_buffer_add(&send_req->data, pending);
+	rv = BIO_read_ex(sock->tlsstream.bio_out,
+			 isc_buffer_base(&send_req->data), pending, &len);
 	/* There's something pending, read must succeed */
-	RUNTIME_CHECK(rv == 1);
+	RUNTIME_CHECK(rv == 1 && len == (size_t)pending);
 
 	INSIST(VALID_NMHANDLE(sock->outerhandle));
 
 	sock->tlsstream.nsending++;
-	isc_nm_send(sock->outerhandle, &send_req->data, tls_senddone, send_req);
+	isc_buffer_remainingregion(&send_req->data, &used_region);
+	isc_nm_send(sock->outerhandle, &used_region, tls_senddone, send_req);
 
 	return (pending);
 }
@@ -1257,8 +1266,8 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 		}
 
 		if (sock->tlsstream.send_req != NULL) {
-			INSIST(sock->tlsstream.send_req->data.base == NULL);
-			INSIST(sock->tlsstream.send_req->data.length == 0);
+			isc_buffer_clearmctx(&sock->tlsstream.send_req->data);
+			isc_buffer_invalidate(&sock->tlsstream.send_req->data);
 			isc_mem_put(sock->worker->mctx,
 				    sock->tlsstream.send_req,
 				    sizeof(*sock->tlsstream.send_req));
