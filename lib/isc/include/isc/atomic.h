@@ -42,9 +42,6 @@
 #define atomic_compare_exchange_strong_relaxed(o, e, d) \
 	atomic_compare_exchange_strong_explicit(        \
 		(o), (e), (d), memory_order_relaxed, memory_order_relaxed)
-#define atomic_compare_exchange_strong_acq_rel(o, e, d) \
-	atomic_compare_exchange_strong_explicit(        \
-		(o), (e), (d), memory_order_acq_rel, memory_order_acquire)
 
 /* Acquire-Release Memory Ordering */
 
@@ -59,6 +56,8 @@
 	atomic_fetch_and_explicit((o), (v), memory_order_release)
 #define atomic_fetch_or_release(o, v) \
 	atomic_fetch_or_explicit((o), (v), memory_order_release)
+#define atomic_exchange_acquire(o, v) \
+	atomic_exchange_explicit((o), (v), memory_order_acquire)
 #define atomic_exchange_acq_rel(o, v) \
 	atomic_exchange_explicit((o), (v), memory_order_acq_rel)
 #define atomic_fetch_sub_acq_rel(o, v) \
@@ -73,3 +72,6 @@
 /* compare/exchange that MUST succeed */
 #define atomic_compare_exchange_enforced(o, e, d) \
 	RUNTIME_CHECK(atomic_compare_exchange_strong((o), (e), (d)))
+
+/* more comfortable atomic pointer declarations */
+#define atomic_ptr(type) _Atomic(type *)
