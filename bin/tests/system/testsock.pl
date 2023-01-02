@@ -15,6 +15,8 @@
 
 require 5.001;
 
+use Cwd 'abs_path';
+use File::Basename;
 use Socket;
 use Getopt::Long;
 
@@ -27,7 +29,8 @@ my @ids;
 if ($id != 0) {
 	@ids = ($id);
 } else {
-	my $fn = "ifconfig.sh";
+	my $dir = dirname(abs_path($0));
+	my $fn = "$dir/ifconfig.sh.in";
 	open FH, "< $fn" or die "open < $fn: $!\n";
 	while (<FH>) {
 		@ids = (1..$1)
