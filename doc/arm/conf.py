@@ -108,7 +108,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / "misc"))
 
 project = "BIND 9"
 # pylint: disable=redefined-builtin
-copyright = "2022, Internet Systems Consortium"
+copyright = "2023, Internet Systems Consortium"
 author = "Internet Systems Consortium"
 
 m4_vars = {}
