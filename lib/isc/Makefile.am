@@ -193,8 +193,6 @@ libisc_la_SOURCES =		\
 	timer.c			\
 	tls.c			\
 	tm.c			\
-	trampoline.c		\
-	trampoline_p.h		\
 	url.c			\
 	utf8.c			\
 	uv.c			\
