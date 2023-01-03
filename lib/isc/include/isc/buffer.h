@@ -1150,7 +1150,9 @@ isc_buffer_reserve(isc_buffer_t *restrict dbuf, const unsigned int size) {
 	if (!dbuf->dynamic) {
 		void *old_base = dbuf->base;
 		dbuf->base = isc_mem_get(dbuf->mctx, len);
-		memmove(dbuf->base, old_base, dbuf->used);
+		if (old_base != NULL) {
+			memmove(dbuf->base, old_base, dbuf->used);
+		}
 		dbuf->dynamic = true;
 	} else {
 		dbuf->base = isc_mem_reget(dbuf->mctx, dbuf->base, dbuf->length,
