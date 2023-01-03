@@ -359,7 +359,7 @@ print_find_list(FILE *, dns_adbname_t *);
 static void
 print_fetch_list(FILE *, dns_adbname_t *);
 static void
-clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *, isc_stdtime_t now);
+clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void
 clean_target(dns_adb_t *, dns_name_t *);
 static void
@@ -369,7 +369,7 @@ maybe_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static bool
 maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now);
 static void
-expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype, isc_stdtime_t now);
+expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype);
 static bool
 maybe_expire_entry(dns_adbentry_t *adbentry, isc_stdtime_t now);
 static void
@@ -671,7 +671,7 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
  * Requires the name to be locked.
  */
 static void
-expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype, isc_stdtime_t now) {
+expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype) {
 	REQUIRE(DNS_ADBNAME_VALID(adbname));
 	REQUIRE(DNS_ADB_VALID(adbname->adb));
 
@@ -686,8 +686,8 @@ expire_name(dns_adbname_t *adbname, isc_eventtype_t evtype, isc_stdtime_t now) {
 	 * of finds and namehooks.
 	 */
 	clean_finds_at_name(adbname, evtype, DNS_ADBFIND_ADDRESSMASK);
-	clean_namehooks(adb, &adbname->v4, now);
-	clean_namehooks(adb, &adbname->v6, now);
+	clean_namehooks(adb, &adbname->v4);
+	clean_namehooks(adb, &adbname->v6);
 	clean_target(adb, &adbname->target);
 
 	if (NAME_FETCH_A(adbname)) {
@@ -728,7 +728,7 @@ maybe_expire_namehooks(dns_adbname_t *adbname, isc_stdtime_t now) {
 	if (!NAME_FETCH_A(adbname) && EXPIRE_OK(adbname->expire_v4, now)) {
 		if (NAME_HAS_V4(adbname)) {
 			DP(DEF_LEVEL, "expiring v4 for name %p", adbname);
-			clean_namehooks(adb, &adbname->v4, now);
+			clean_namehooks(adb, &adbname->v4);
 			adbname->partial_result &= ~DNS_ADBFIND_INET;
 		}
 		adbname->expire_v4 = INT_MAX;
@@ -741,7 +741,7 @@ maybe_expire_namehooks(dns_adbname_t *adbname, isc_stdtime_t now) {
 	if (!NAME_FETCH_AAAA(adbname) && EXPIRE_OK(adbname->expire_v6, now)) {
 		if (NAME_HAS_V6(adbname)) {
 			DP(DEF_LEVEL, "expiring v6 for name %p", adbname);
-			clean_namehooks(adb, &adbname->v6, now);
+			clean_namehooks(adb, &adbname->v6);
 			adbname->partial_result &= ~DNS_ADBFIND_INET6;
 		}
 		adbname->expire_v6 = INT_MAX;
@@ -774,7 +774,7 @@ shutdown_names(dns_adb_t *adb) {
 		 * all the fetches are canceled, the name will destroy
 		 * itself.
 		 */
-		expire_name(name, DNS_EVENT_ADBSHUTDOWN, INT_MAX);
+		expire_name(name, DNS_EVENT_ADBSHUTDOWN);
 		UNLOCK(&name->lock);
 		dns_adbname_detach(&name);
 	}
@@ -798,8 +798,7 @@ shutdown_entries(dns_adb_t *adb) {
  * The name containing the 'namehooks' list must be locked.
  */
 static void
-clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks,
-		isc_stdtime_t now) {
+clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks) {
 	dns_adbnamehook_t *namehook = NULL;
 
 	namehook = ISC_LIST_HEAD(*namehooks);
@@ -817,7 +816,6 @@ clean_namehooks(dns_adb_t *adb, dns_adbnamehooklist_t *namehooks,
 
 		LOCK(&adbentry->lock);
 		ISC_LIST_UNLINK(adbentry->nhs, namehook, entry_link);
-		(void)maybe_expire_entry(adbentry, now);
 		UNLOCK(&adbentry->lock);
 		dns_adbentry_detach(&adbentry);
 
@@ -1635,7 +1633,7 @@ maybe_expire_name(dns_adbname_t *adbname, isc_stdtime_t now) {
 		return (false);
 	}
 
-	expire_name(adbname, DNS_EVENT_ADBEXPIRED, now);
+	expire_name(adbname, DNS_EVENT_ADBEXPIRED);
 
 	return (true);
 }
@@ -1727,13 +1725,13 @@ purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
 		}
 
 		if (overmem) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
+			expire_name(adbname, DNS_EVENT_ADBCANCELED);
 			removed++;
 			goto next;
 		}
 
 		if (adbname->last_used + ADB_STALE_MARGIN < now) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED, now);
+			expire_name(adbname, DNS_EVENT_ADBCANCELED);
 			removed++;
 			goto next;
 		}
@@ -1785,7 +1783,7 @@ cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
  * We don't care about a race on 'overmem' at the risk of causing some
  * collateral damage or a small delay in starting cleanup.
  *
- * adb->names_lock MUST be write locked
+ * adb->entries_lock MUST be write locked
  */
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
@@ -1821,7 +1819,7 @@ purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
 		}
 
 		/*
-		 * Make sure that we are not purging ADB named that has been
+		 * Make sure that we are not purging ADB entry that has been
 		 * just created.
 		 */
 		if (adbentry->last_used + ADB_CACHE_MINIMUM >= now) {
@@ -3625,7 +3623,7 @@ again:
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_equal(name, &adbname->name)) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED, INT_MAX);
+			expire_name(adbname, DNS_EVENT_ADBCANCELED);
 		}
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);
@@ -3656,7 +3654,7 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 		dns_adbname_ref(adbname);
 		LOCK(&adbname->lock);
 		if (dns_name_issubdomain(&adbname->name, name)) {
-			expire_name(adbname, DNS_EVENT_ADBCANCELED, INT_MAX);
+			expire_name(adbname, DNS_EVENT_ADBCANCELED);
 		}
 		UNLOCK(&adbname->lock);
 		dns_adbname_detach(&adbname);

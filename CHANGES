@@ -1,3 +1,7 @@
+6056.	[bug]		Fix a race in adb.c:clean_namehooks(), so that an ADB
+			entry does not expire without holding the entries lock.
+			[GL #3754]
+
 6055.	[cleanup]	Remove setting alternate transfer sources, make options
 			alt-transfer-source, alt-transfer-transfer-source-v6,
 			and use-alt-transfer-source ancient. [GL #3714]
