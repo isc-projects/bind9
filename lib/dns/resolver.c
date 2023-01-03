@@ -10378,7 +10378,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 				 .querydscp4 = -1,
 				 .querydscp6 = -1 };
 
-	atomic_init(&res->activebuckets, ntasks);
+	atomic_init(&res->activebuckets, res->nbuckets);
 
 	isc_mem_attach(view->mctx, &res->mctx);
 
@@ -10399,12 +10399,12 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	}
 
 	if (view->resstats != NULL) {
-		isc_stats_set(view->resstats, ntasks,
+		isc_stats_set(view->resstats, res->nbuckets,
 			      dns_resstatscounter_buckets);
 	}
 
 	res->buckets = isc_mem_get(view->mctx,
-				   ntasks * sizeof(res->buckets[0]));
+				   res->nbuckets * sizeof(res->buckets[0]));
 	for (uint32_t i = 0; i < ntasks; i++) {
 		res->buckets[i] = (fctxbucket_t){ 0 };
 
@@ -10417,6 +10417,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		result = isc_task_create_bound(taskmgr, 0,
 					       &res->buckets[i].task, i);
 		if (result != ISC_R_SUCCESS) {
+			ntasks = i;
 			isc_mutex_destroy(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
