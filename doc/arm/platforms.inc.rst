@@ -40,7 +40,7 @@ able to offer support on a “best-effort” basis for some.
 Regularly Tested Platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As of August 2022, current versions of BIND 9 are fully supported and regularly tested on the
+Current versions of BIND 9 are fully supported and regularly tested on the
 following systems:
 
 -  Debian 11
