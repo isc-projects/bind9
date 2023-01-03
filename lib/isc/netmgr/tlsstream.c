@@ -848,7 +848,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	 */
 	tlssock = isc_mem_get(handle->sock->worker->mctx, sizeof(*tlssock));
 	isc__nmsocket_init(tlssock, handle->sock->worker, isc_nm_tlssocket,
-			   &handle->sock->iface);
+			   &handle->sock->iface, NULL);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
 	tlsctx = tls_get_listener_tlsctx(tlslistensock, isc_tid());
@@ -908,7 +908,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 	tlssock = isc_mem_get(worker->mctx, sizeof(*tlssock));
 
-	isc__nmsocket_init(tlssock, worker, isc_nm_tlslistener, iface);
+	isc__nmsocket_init(tlssock, worker, isc_nm_tlslistener, iface, NULL);
 	tlssock->accept_cb = accept_cb;
 	tlssock->accept_cbarg = accept_cbarg;
 	tls_init_listener_tlsctx(tlssock, sslctx);
@@ -1144,7 +1144,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	nsock = isc_mem_get(worker->mctx, sizeof(*nsock));
-	isc__nmsocket_init(nsock, worker, isc_nm_tlssocket, local);
+	isc__nmsocket_init(nsock, worker, isc_nm_tlssocket, local, NULL);
 	nsock->connect_cb = cb;
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;

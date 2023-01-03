@@ -284,7 +284,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, isc_nm_tcpsocket, local);
+	isc__nmsocket_init(sock, worker, isc_nm_tcpsocket, local, NULL);
 
 	sock->connect_timeout = timeout;
 	sock->fd = fd;
@@ -346,8 +346,7 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	isc_nmsocket_t *csock = &sock->children[tid];
 	isc__networker_t *worker = &mgr->workers[tid];
 
-	isc__nmsocket_init(csock, worker, isc_nm_tcpsocket, iface);
-	csock->parent = sock;
+	isc__nmsocket_init(csock, worker, isc_nm_tcpsocket, iface, sock);
 	csock->accept_cb = sock->accept_cb;
 	csock->accept_cbarg = sock->accept_cbarg;
 	csock->backlog = sock->backlog;
@@ -398,7 +397,7 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	REQUIRE(workers <= mgr->nloops);
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, isc_nm_tcplistener, iface);
+	isc__nmsocket_init(sock, worker, isc_nm_tcplistener, iface, NULL);
 
 	atomic_init(&sock->rchildren, 0);
 	sock->nchildren = (workers == ISC_NM_LISTEN_ALL) ? (uint32_t)mgr->nloops
@@ -909,7 +908,7 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 
 	csock = isc_mem_get(ssock->worker->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(csock, ssock->worker, isc_nm_tcpsocket,
-			   &ssock->iface);
+			   &ssock->iface, NULL);
 	isc__nmsocket_attach(ssock, &csock->server);
 	csock->recv_cb = ssock->recv_cb;
 	csock->recv_cbarg = ssock->recv_cbarg;

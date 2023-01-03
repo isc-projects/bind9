@@ -1470,7 +1470,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	}
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, isc_nm_httpsocket, local);
+	isc__nmsocket_init(sock, worker, isc_nm_httpsocket, local, NULL);
 
 	sock->connect_timeout = timeout;
 	sock->connect_cb = cb;
@@ -1655,7 +1655,8 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	worker = session->handle->sock->worker;
 	socket = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
 	isc__nmsocket_init(socket, worker, isc_nm_httpsocket,
-			   (isc_sockaddr_t *)&session->handle->sock->iface);
+			   (isc_sockaddr_t *)&session->handle->sock->iface,
+			   NULL);
 	socket->peer = session->handle->sock->peer;
 	socket->h2 = (isc_nmsocket_h2_t){
 		.psock = socket,
@@ -2501,7 +2502,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	REQUIRE(isc_tid() == 0);
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, isc_nm_httplistener, iface);
+	isc__nmsocket_init(sock, worker, isc_nm_httplistener, iface, NULL);
 	atomic_init(&sock->h2.max_concurrent_streams,
 		    NGHTTP2_INITIAL_MAX_CONCURRENT_STREAMS);
 

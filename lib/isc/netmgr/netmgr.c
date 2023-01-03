@@ -216,10 +216,6 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	netmgr->load_balance_sockets = false;
 #endif
 
-#ifdef NETMGR_TRACE
-	ISC_LIST_INIT(netmgr->active_sockets);
-#endif
-
 	/*
 	 * Default TCP timeout values.
 	 * May be updated by isc_nm_tcptimeouts().
@@ -245,6 +241,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 					       ISC_NETMGR_RECVBUF_SIZE),
 			.sendbuf = isc_mem_get(loop->mctx,
 					       ISC_NETMGR_SENDBUF_SIZE),
+			.active_sockets = ISC_LIST_INITIALIZER,
 		};
 
 		isc_nm_attach(netmgr, &worker->netmgr);
@@ -594,16 +591,13 @@ isc___nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target FLARG) {
  * Free all resources inside a socket (including its children if any).
  */
 static void
-nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
-	isc_nmhandle_t *handle = NULL;
-	isc__nm_uvreq_t *uvreq = NULL;
-
+nmsocket_cleanup(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nmsocket_active(sock));
 
-	NETMGR_TRACE_LOG("nmsocket_cleanup():%p->references = %" PRIuFAST32
-			 "\n",
-			 sock, isc_refcount_current(&sock->references));
+	isc_nmhandle_t *handle = NULL;
+	isc__nm_uvreq_t *uvreq = NULL;
+	isc__networker_t *worker = sock->worker;
 
 	isc_refcount_destroy(&sock->references);
 
@@ -618,12 +612,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 		 */
 		for (size_t i = 0; i < sock->nchildren; i++) {
 			REQUIRE(!atomic_load(&sock->children[i].destroying));
-			if (isc_refcount_decrement(
-				    &sock->children[i].references))
-			{
-				nmsocket_cleanup(&sock->children[i],
-						 false FLARG_PASS);
-			}
+			isc_refcount_decrementz(&sock->children[i].references);
+			nmsocket_cleanup(&sock->children[i]);
 		}
 
 		/*
@@ -676,23 +666,18 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 
 	sock->magic = 0;
 
-#ifdef NETMGR_TRACE
-	LOCK(&sock->worker->netmgr->lock);
-	ISC_LIST_UNLINK(sock->worker->netmgr->active_sockets, sock,
-			active_link);
-	UNLOCK(&sock->worker->netmgr->lock);
-	isc_mutex_destroy(&sock->tracelock);
-#endif
-
 	isc_mutex_destroy(&sock->lock);
 
-	if (dofree) {
-		isc__networker_t *worker = sock->worker;
+	/* Don't free child socket */
+	if (sock->parent == NULL) {
+		REQUIRE(sock->tid == isc_tid());
+
+		ISC_LIST_UNLINK(worker->active_sockets, sock, active_link);
+
 		isc_mem_put(worker->mctx, sock, sizeof(*sock));
-		isc__networker_detach(&worker);
-	} else {
-		isc__networker_detach(&sock->worker);
 	}
+
+	isc__networker_detach(&worker);
 }
 
 static void
@@ -740,7 +725,12 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 
 	if (destroy) {
 		atomic_store(&sock->destroying, true);
-		nmsocket_cleanup(sock, true FLARG_PASS);
+		if (sock->tid == isc_tid()) {
+			nmsocket_cleanup(sock);
+		} else {
+			isc_async_run(sock->worker->loop,
+				      (isc_job_cb)nmsocket_cleanup, sock);
+		}
 	}
 }
 
@@ -854,7 +844,8 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 
 void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
-		    isc_nmsocket_type type, isc_sockaddr_t *iface FLARG) {
+		    isc_nmsocket_type type, isc_sockaddr_t *iface,
+		    isc_nmsocket_t *parent FLARG) {
 	uint16_t family;
 
 	REQUIRE(sock != NULL);
@@ -869,6 +860,8 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.inactivereqs = isc_astack_new(worker->mctx,
 					       ISC_NM_REQS_STACK_SIZE),
 		.result = ISC_R_UNSET,
+		.active_handles = ISC_LIST_INITIALIZER,
+		.active_link = ISC_LINK_INITIALIZER,
 	};
 
 	isc_mutex_init(&sock->lock);
@@ -880,14 +873,14 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		family = AF_UNSPEC;
 	}
 
-#if NETMGR_TRACE
+	if (parent) {
+		sock->parent = parent;
+	} else {
+		ISC_LIST_APPEND(worker->active_sockets, sock, active_link);
+	}
+
+#if ISC_NETMGR_TRACE
 	sock->backtrace_size = isc_backtrace(sock->backtrace, TRACE_SIZE);
-	ISC_LINK_INIT(sock, active_link);
-	ISC_LIST_INIT(sock->active_handles);
-	LOCK(&worker->netmgr->lock);
-	ISC_LIST_APPEND(worker->netmgr->active_sockets, sock, active_link);
-	UNLOCK(&worker->netmgr->lock);
-	isc_mutex_init(&sock->tracelock);
 #endif
 
 	isc__networker_attach(worker, &sock->worker);
@@ -992,18 +985,18 @@ alloc_handle(isc_nmsocket_t *sock) {
 	isc_nmhandle_t *handle = isc_mem_get(sock->worker->mctx,
 					     sizeof(isc_nmhandle_t));
 
-	*handle = (isc_nmhandle_t){ .magic = NMHANDLE_MAGIC };
-#ifdef NETMGR_TRACE
-	ISC_LINK_INIT(handle, active_link);
-#endif
+	*handle = (isc_nmhandle_t){
+		.magic = NMHANDLE_MAGIC,
+		.active_link = ISC_LINK_INITIALIZER,
+	};
 	isc_refcount_init(&handle->references, 1);
 
 	return (handle);
 }
 
 isc_nmhandle_t *
-isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
-		   isc_sockaddr_t *local FLARG) {
+isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
+		   isc_sockaddr_t const *local FLARG) {
 	isc_nmhandle_t *handle = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
@@ -1015,6 +1008,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 	} else {
 		isc_refcount_init(&handle->references, 1);
 		INSIST(VALID_NMHANDLE(handle));
+		ISC_LINK_INIT(handle, active_link);
 	}
 
 	NETMGR_TRACE_LOG(
@@ -1023,7 +1017,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 	isc___nmsocket_attach(sock, &handle->sock FLARG_PASS);
 
-#if NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 	handle->backtrace_size = isc_backtrace(handle->backtrace, TRACE_SIZE);
 #endif
 
@@ -1041,11 +1035,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 	(void)atomic_fetch_add(&sock->ah, 1);
 
-#ifdef NETMGR_TRACE
-	LOCK(&sock->tracelock);
 	ISC_LIST_APPEND(sock->active_handles, handle, active_link);
-	UNLOCK(&sock->tracelock);
-#endif
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
@@ -1125,9 +1115,7 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	 * destruction.  We have to do this now, because at this point the
 	 * socket is either unused or still attached to event->sock.
 	 */
-#ifdef NETMGR_TRACE
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
-#endif
 
 	ah = atomic_fetch_sub(&sock->ah, 1);
 	INSIST(ah > 0);
@@ -2706,11 +2694,10 @@ isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt,
 
 void
 isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
-	isc_nmsocket_t *sock;
-
 	REQUIRE(VALID_NMHANDLE(handle));
-	sock = handle->sock;
-	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc_nmsocket_t *sock = handle->sock;
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
@@ -2730,11 +2717,10 @@ void
 isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
 				const unsigned char **alpn,
 				unsigned int *alpnlen) {
-	isc_nmsocket_t *sock;
-
 	REQUIRE(VALID_NMHANDLE(handle));
-	sock = handle->sock;
-	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc_nmsocket_t *sock = handle->sock;
 
 	switch (sock->type) {
 	case isc_nm_tlssocket:
@@ -2747,12 +2733,11 @@ isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
 
 isc_result_t
 isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
-	isc_result_t result = ISC_R_FAILURE;
-	isc_nmsocket_t *sock;
-
 	REQUIRE(VALID_NMHANDLE(handle));
-	sock = handle->sock;
-	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc_result_t result = ISC_R_FAILURE;
+	isc_nmsocket_t *sock = handle->sock;
 
 	switch (sock->type) {
 	case isc_nm_tcpsocket: {
@@ -2773,7 +2758,7 @@ isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
 	return (result);
 }
 
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr
  * as the logger might be already shut down.
@@ -2821,7 +2806,6 @@ static void
 nmsocket_dump(isc_nmsocket_t *sock) {
 	isc_nmhandle_t *handle = NULL;
 
-	LOCK(&sock->tracelock);
 	fprintf(stderr, "\n=================\n");
 	fprintf(stderr, "Active %s socket %p, type %s, refs %" PRIuFAST32 "\n",
 		atomic_load(&sock->client) ? "client" : "server", sock,
@@ -2854,26 +2838,21 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 	}
 
 	fprintf(stderr, "\n");
-	UNLOCK(&sock->tracelock);
 }
 
 void
-isc__nm_dump_active(isc_nm_t *nm) {
+isc__nm_dump_active(isc__networker_t *worker) {
 	isc_nmsocket_t *sock = NULL;
+	bool first = true;
 
-	REQUIRE(VALID_NM(nm));
-
-	LOCK(&nm->lock);
-	for (sock = ISC_LIST_HEAD(nm->active_sockets); sock != NULL;
+	for (sock = ISC_LIST_HEAD(worker->active_sockets); sock != NULL;
 	     sock = ISC_LIST_NEXT(sock, active_link))
 	{
-		static bool first = true;
 		if (first) {
 			fprintf(stderr, "Outstanding sockets\n");
 			first = false;
 		}
 		nmsocket_dump(sock);
 	}
-	UNLOCK(&nm->lock);
 }
 #endif
