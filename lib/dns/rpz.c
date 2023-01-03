@@ -1718,7 +1718,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "rpz: %s: failed to create DB iterator - %s",
 			      domain, isc_result_totext(result));
-		goto cleanup;
+		return (result);
 	}
 
 	result = dns_dbiterator_first(updbit);
@@ -1737,7 +1737,6 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 		result = dns__rpz_shuttingdown(rpz->rpzs);
 		if (result != ISC_R_SUCCESS) {
-			dns_db_detachnode(rpz->updb, &node);
 			goto cleanup;
 		}
 
@@ -1747,7 +1746,6 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "rpz: %s: failed to get dbiterator - %s",
 				      domain, isc_result_totext(result));
-			dns_db_detachnode(rpz->updb, &node);
 			goto cleanup;
 		}
 
@@ -1911,7 +1909,7 @@ update_rpz_cb(void *data) {
 
 	result = dns__rpz_shuttingdown(rpz->rpzs);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto shuttingdown;
 	}
 
 	isc_ht_init(&newnodes, rpz->rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
@@ -1932,6 +1930,7 @@ update_rpz_cb(void *data) {
 cleanup:
 	isc_ht_destroy(&newnodes);
 
+shuttingdown:
 	rpz->updateresult = result;
 }
 

@@ -1,3 +1,6 @@
+6057.	[bug]		Fix shutdown and error path bugs in the rpz unit.
+			[GL #3735]
+
 6056.	[bug]		Fix a race in adb.c:clean_namehooks(), so that an ADB
 			entry does not expire without holding the entries lock.
 			[GL #3754]
