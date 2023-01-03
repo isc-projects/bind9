@@ -1718,7 +1718,7 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "rpz: %s: failed to create DB iterator - %s",
 			      domain, isc_result_totext(result));
-		goto cleanup;
+		return (result);
 	}
 
 	result = dns_dbiterator_first(updbit);
