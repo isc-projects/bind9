@@ -1737,7 +1737,6 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 
 		result = dns__rpz_shuttingdown(rpz->rpzs);
 		if (result != ISC_R_SUCCESS) {
-			dns_db_detachnode(rpz->updb, &node);
 			goto cleanup;
 		}
 
@@ -1747,7 +1746,6 @@ update_nodes(dns_rpz_zone_t *rpz, isc_ht_t *newnodes) {
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "rpz: %s: failed to get dbiterator - %s",
 				      domain, isc_result_totext(result));
-			dns_db_detachnode(rpz->updb, &node);
 			goto cleanup;
 		}
 
