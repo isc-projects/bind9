@@ -1911,7 +1911,7 @@ update_rpz_cb(void *data) {
 
 	result = dns__rpz_shuttingdown(rpz->rpzs);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		goto shuttingdown;
 	}
 
 	isc_ht_init(&newnodes, rpz->rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
@@ -1932,6 +1932,7 @@ update_rpz_cb(void *data) {
 cleanup:
 	isc_ht_destroy(&newnodes);
 
+shuttingdown:
 	rpz->updateresult = result;
 }
 
