@@ -1,3 +1,7 @@
+6058.	[bug]		Prevent named from crashing when "rndc delzone"
+			attempts to delete a zone added by a catalog zone.
+			[GL #3745]
+
 6050.	[bug]		Changes to the RPZ response-policy min-update-interval
 			and add-soa options now take effect as expected when
 			named is reconfigured. [GL #3740]
