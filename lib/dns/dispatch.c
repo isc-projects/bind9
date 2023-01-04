@@ -105,7 +105,8 @@ struct dns_dispentry {
 
 struct dns_dispatch {
 	/* Unlocked. */
-	unsigned int magic;	/*%< magic */
+	unsigned int magic; /*%< magic */
+	int tid;
 	dns_dispatchmgr_t *mgr; /*%< dispatch manager */
 	isc_nmhandle_t *handle; /*%< netmgr handle for TCP connection */
 	isc_sockaddr_t local;	/*%< local address */
@@ -1134,6 +1135,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type,
 		.link = ISC_LINK_INITIALIZER,
 		.active = ISC_LIST_INITIALIZER,
 		.pending = ISC_LIST_INITIALIZER,
+		.tid = isc_nm_tid(),
 		.magic = DISPATCH_MAGIC,
 	};
 
@@ -1218,6 +1220,11 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		isc_sockaddr_t peeraddr;
 
 		LOCK(&disp->lock);
+
+		if (disp->tid != isc_nm_tid()) {
+			UNLOCK(&disp->lock);
+			continue;
+		}
 
 		if (disp->handle != NULL) {
 			sockname = isc_nmhandle_localaddr(disp->handle);
