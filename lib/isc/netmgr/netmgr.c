@@ -663,8 +663,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 
 	sock->magic = 0;
 
-	isc_mutex_destroy(&sock->lock);
-
 	/* Don't free child socket */
 	if (sock->parent == NULL) {
 		REQUIRE(sock->tid == isc_tid());
@@ -857,8 +855,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
 	};
-
-	isc_mutex_init(&sock->lock);
 
 	if (iface != NULL) {
 		family = iface->type.sa.sa_family;

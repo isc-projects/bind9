@@ -163,20 +163,23 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		fd = isc__nm_udp_lb_socket(mgr, iface->type.sa.sa_family);
 	}
 
+	start_udp_child(mgr, iface, sock, fd, 0);
+	result = sock->children[0].result;
+	INSIST(result != ISC_R_UNSET);
+
 	for (size_t i = 1; i < sock->nchildren; i++) {
 		start_udp_child(mgr, iface, sock, fd, i);
 	}
 
-	start_udp_child(mgr, iface, sock, fd, 0);
+	isc_barrier_wait(&sock->listen_barrier);
 
 	if (!mgr->load_balance_sockets) {
 		isc__nm_closesocket(fd);
 	}
 
-	LOCK(&sock->lock);
-	result = sock->result;
-	UNLOCK(&sock->lock);
-	INSIST(result != ISC_R_UNSET);
+	for (size_t i = 1; i < sock->nchildren; i++) {
+		INSIST(result == sock->children[i].result);
+	}
 
 	atomic_store(&sock->active, true);
 
@@ -332,7 +335,6 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_nm_t *mgr = NULL;
 
 	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(ievent->sock->tid == isc_tid());
 	REQUIRE(VALID_NMSOCK(ievent->sock->parent));
 
 	sock = ievent->sock;
@@ -340,7 +342,6 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 	mgr = sock->worker->netmgr;
 
 	REQUIRE(sock->type == isc_nm_udpsocket);
-	REQUIRE(sock->parent != NULL);
 	REQUIRE(sock->tid == isc_tid());
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
@@ -379,27 +380,19 @@ isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
 			isc__nm_incstats(sock, STATID_BINDFAIL);
 			goto done;
 		}
-	} else {
-		LOCK(&sock->parent->lock);
-		if (sock->parent->fd == -1) {
-			/* This thread is first, bind the socket */
-			r = isc__nm_udp_freebind(&sock->uv_handle.udp,
-						 &sock->parent->iface.type.sa,
-						 uv_bind_flags);
-			if (r < 0) {
-				isc__nm_incstats(sock, STATID_BINDFAIL);
-				UNLOCK(&sock->parent->lock);
-				goto done;
-			}
-			sock->parent->uv_handle.udp.flags =
-				sock->uv_handle.udp.flags;
-			sock->parent->fd = sock->fd;
-		} else {
-			/* The socket is already bound, just copy the flags */
-			sock->uv_handle.udp.flags =
-				sock->parent->uv_handle.udp.flags;
+	} else if (sock->tid == 0) {
+		/* This thread is first, bind the socket */
+		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
+					 &sock->parent->iface.type.sa,
+					 uv_bind_flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
 		}
-		UNLOCK(&sock->parent->lock);
+		sock->parent->uv_handle.udp.flags = sock->uv_handle.udp.flags;
+	} else {
+		/* The socket is already bound, just copy the flags */
+		sock->uv_handle.udp.flags = sock->parent->uv_handle.udp.flags;
 	}
 
 	isc__nm_set_network_buffers(mgr, &sock->uv_handle.handle);
@@ -417,16 +410,13 @@ done:
 	result = isc_uverr2result(r);
 	atomic_fetch_add(&sock->parent->rchildren, 1);
 
-	LOCK(&sock->parent->lock);
-	if (sock->parent->result == ISC_R_UNSET) {
-		sock->parent->result = result;
-	} else {
-		REQUIRE(sock->parent->result == result);
-	}
-	UNLOCK(&sock->parent->lock);
+	sock->result = result;
 
 	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->listen_barrier);
+
+	if (sock->tid != 0) {
+		isc_barrier_wait(&sock->parent->listen_barrier);
+	}
 }
 
 static void
