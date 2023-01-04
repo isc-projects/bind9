@@ -96,7 +96,8 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	}
 
 	if (keynames != NULL) {
-		remote->keynames = isc_mem_get(mctx, count * sizeof(keynames));
+		remote->keynames = isc_mem_get(mctx,
+					       count * sizeof(keynames[0]));
 		for (i = 0; i < count; i++) {
 			remote->keynames[i] = NULL;
 		}
@@ -114,7 +115,8 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	}
 
 	if (tlsnames != NULL) {
-		remote->tlsnames = isc_mem_get(mctx, count * sizeof(tlsnames));
+		remote->tlsnames = isc_mem_get(mctx,
+					       count * sizeof(tlsnames[0]));
 		for (i = 0; i < count; i++) {
 			remote->tlsnames[i] = NULL;
 		}
