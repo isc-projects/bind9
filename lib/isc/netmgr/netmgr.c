@@ -248,6 +248,11 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mem_attach(loop->mctx, &worker->mctx);
 
+		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
+				   &worker->uvreq_pool);
+		isc_mempool_setfreemax(worker->uvreq_pool,
+				       ISC_NM_REQS_STACK_SIZE);
+
 		isc_loop_attach(loop, &worker->loop);
 		isc_loop_teardown(loop, networker_teardown, worker);
 		isc_refcount_init(&worker->references, 1);
@@ -596,7 +601,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 	REQUIRE(!isc__nmsocket_active(sock));
 
 	isc_nmhandle_t *handle = NULL;
-	isc__nm_uvreq_t *uvreq = NULL;
 	isc__networker_t *worker = sock->worker;
 
 	isc_refcount_destroy(&sock->references);
@@ -635,7 +639,8 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 		isc___nmsocket_detach(&sock->outer FLARG_PASS);
 	}
 
-	while ((handle = isc_astack_pop(sock->inactivehandles)) != NULL) {
+	while ((handle = ISC_LIST_HEAD(sock->inactive_handles)) != NULL) {
+		ISC_LIST_DEQUEUE(sock->inactive_handles, handle, inactive_link);
 		nmhandle_free(sock, handle);
 	}
 
@@ -644,14 +649,6 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 	}
 
 	sock->pquota = NULL;
-
-	isc_astack_destroy(sock->inactivehandles);
-
-	while ((uvreq = isc_astack_pop(sock->inactivereqs)) != NULL) {
-		isc_mem_put(sock->worker->mctx, uvreq, sizeof(*uvreq));
-	}
-
-	isc_astack_destroy(sock->inactivereqs);
 
 	isc__nm_tls_cleanup_data(sock);
 #if HAVE_LIBNGHTTP2
@@ -855,10 +852,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.type = type,
 		.tid = worker->loop->tid,
 		.fd = -1,
-		.inactivehandles = isc_astack_new(worker->mctx,
-						  ISC_NM_HANDLES_STACK_SIZE),
-		.inactivereqs = isc_astack_new(worker->mctx,
-					       ISC_NM_REQS_STACK_SIZE),
+		.inactive_handles = ISC_LIST_INITIALIZER,
 		.result = ISC_R_UNSET,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
@@ -988,27 +982,38 @@ alloc_handle(isc_nmsocket_t *sock) {
 	*handle = (isc_nmhandle_t){
 		.magic = NMHANDLE_MAGIC,
 		.active_link = ISC_LINK_INITIALIZER,
+		.inactive_link = ISC_LINK_INITIALIZER,
 	};
 	isc_refcount_init(&handle->references, 1);
 
 	return (handle);
 }
 
+static isc_nmhandle_t *
+dequeue_handle(isc_nmsocket_t *sock) {
+#if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
+	isc_nmhandle_t *handle = ISC_LIST_HEAD(sock->inactive_handles);
+	if (handle != NULL) {
+		ISC_LIST_DEQUEUE(sock->inactive_handles, handle, inactive_link);
+
+		isc_refcount_init(&handle->references, 1);
+		INSIST(VALID_NMHANDLE(handle));
+		return (handle);
+	}
+#else
+	UNUSED(sock);
+#endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
+	return (NULL);
+}
+
 isc_nmhandle_t *
 isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 		   isc_sockaddr_t const *local FLARG) {
-	isc_nmhandle_t *handle = NULL;
-
 	REQUIRE(VALID_NMSOCK(sock));
 
-	handle = isc_astack_pop(sock->inactivehandles);
-
+	isc_nmhandle_t *handle = dequeue_handle(sock);
 	if (handle == NULL) {
 		handle = alloc_handle(sock);
-	} else {
-		isc_refcount_init(&handle->references, 1);
-		INSIST(VALID_NMHANDLE(handle));
-		ISC_LINK_INIT(handle, active_link);
 	}
 
 	NETMGR_TRACE_LOG(
@@ -1107,25 +1112,17 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 
 static void
 nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
-	bool reuse = false;
-	uint_fast32_t ah;
-
-	/*
-	 * We do all of this under lock to avoid races with socket
-	 * destruction.  We have to do this now, because at this point the
-	 * socket is either unused or still attached to event->sock.
-	 */
-	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
-
-	ah = atomic_fetch_sub(&sock->ah, 1);
+	uint_fast32_t ah = atomic_fetch_sub(&sock->ah, 1);
 	INSIST(ah > 0);
+
+	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 
 #if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
 	if (atomic_load(&sock->active)) {
-		reuse = isc_astack_trypush(sock->inactivehandles, handle);
-	}
+		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
+	} else
 #endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
-	if (!reuse) {
+	{
 		nmhandle_free(sock, handle);
 	}
 }
@@ -1196,6 +1193,11 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	}
 #endif
 
+	if (handle == sock->statichandle) {
+		/* statichandle is assigned, not attached. */
+		sock->statichandle = NULL;
+	}
+
 	nmhandle_deactivate(sock, handle);
 
 	/*
@@ -1205,11 +1207,6 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	 */
 	if (sock->closehandle_cb != NULL) {
 		sock->closehandle_cb(sock);
-	}
-
-	if (handle == sock->statichandle) {
-		/* statichandle is assigned, not attached. */
-		sock->statichandle = NULL;
 	}
 
 	isc___nmsocket_detach(&sock FLARG_PASS);
@@ -1761,35 +1758,31 @@ isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG) {
 
 	REQUIRE(worker != NULL);
 	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
 
-	if (sock != NULL && isc__nmsocket_active(sock)) {
-		/* Try to reuse one */
-		req = isc_astack_pop(sock->inactivereqs);
-	}
-
-	if (req == NULL) {
-		req = isc_mem_get(worker->mctx, sizeof(*req));
-	}
-
+	req = isc_mempool_get(worker->uvreq_pool);
 	*req = (isc__nm_uvreq_t){
-		.magic = 0,
 		.connect_tries = 3,
+		.link = ISC_LINK_INITIALIZER,
+		.inactive_link = ISC_LINK_INITIALIZER,
+		.uv_req.req.data = req,
+		.magic = UVREQ_MAGIC,
 	};
-	ISC_LINK_INIT(req, link);
-	req->uv_req.req.data = req;
 	isc___nmsocket_attach(sock, &req->sock FLARG_PASS);
-	req->magic = UVREQ_MAGIC;
 
 	return (req);
 }
 
 void
 isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
-	isc__nm_uvreq_t *req = NULL;
-	isc_nmhandle_t *handle = NULL;
-
 	REQUIRE(req0 != NULL);
 	REQUIRE(VALID_UVREQ(*req0));
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
+
+	isc__nm_uvreq_t *req = NULL;
+	isc_nmhandle_t *handle = NULL;
+	isc__networker_t *worker = sock->worker;
 
 	req = *req0;
 	*req0 = NULL;
@@ -1802,18 +1795,9 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
 	 * We need to save this first to make sure that handle,
 	 * sock, and the netmgr won't all disappear.
 	 */
-	handle = req->handle;
-	req->handle = NULL;
+	ISC_SWAP(handle, req->handle);
 
-#if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
-	if (!isc__nmsocket_active(sock) ||
-	    !isc_astack_trypush(sock->inactivereqs, req))
-	{
-		isc_mem_put(sock->worker->mctx, req, sizeof(*req));
-	}
-#else  /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
-	isc_mem_put(sock->worker->mctx, req, sizeof(*req));
-#endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
+	isc_mempool_put(worker->uvreq_pool, req);
 
 	if (handle != NULL) {
 		isc__nmhandle_detach(&handle FLARG_PASS);
@@ -2632,6 +2616,8 @@ isc__networker_destroy(isc__networker_t *worker) {
 			worker->loop, isc_tid());
 
 	isc_loop_detach(&worker->loop);
+
+	isc_mempool_destroy(&worker->uvreq_pool);
 
 	isc_mem_put(worker->mctx, worker->sendbuf, ISC_NETMGR_SENDBUF_SIZE);
 	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
