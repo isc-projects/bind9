@@ -330,7 +330,11 @@ loop_destroy(isc_loop_t *loop) {
 	UV_RUNTIME_CHECK(uv_async_send, r);
 }
 
+#if ISC_LOOP_TRACE
+ISC_REFCOUNT_TRACE_IMPL(isc_loop, loop_destroy)
+#else
 ISC_REFCOUNT_IMPL(isc_loop, loop_destroy);
+#endif
 
 void
 isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {

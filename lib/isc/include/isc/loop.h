@@ -22,6 +22,8 @@
 
 typedef void (*isc_job_cb)(void *);
 
+#undef ISC_LOOP_TRACE
+
 ISC_LANG_BEGINDECLS
 
 void
@@ -169,7 +171,19 @@ isc_loop_get(isc_loopmgr_t *loopmgr, uint32_t tid);
  *\li   'tid' is smaller than number of initialized loops
  */
 
+#
+
+#if ISC_LOOP_TRACE
+#define isc_loop_ref(ptr)   isc_loop__ref(ptr, __func__, __FILE__, __LINE__)
+#define isc_loop_unref(ptr) isc_loop__unref(ptr, __func__, __FILE__, __LINE__)
+#define isc_loop_attach(ptr, ptrp) \
+	isc_loop__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define isc_loop_detach(ptrp) \
+	isc_loop__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(isc_loop);
+#else
 ISC_REFCOUNT_DECL(isc_loop);
+#endif
 /*%<
  * Reference counting functions for isc_loop
  */
