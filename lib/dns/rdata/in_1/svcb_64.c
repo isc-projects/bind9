@@ -1133,7 +1133,8 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 			return (ISC_R_SUCCESS);
 		}
 		/* Only lookup address records */
-		return ((add)(arg, owner, dns_rdatatype_a, NULL));
+		return ((add)(arg, owner, dns_rdatatype_a,
+			      NULL DNS__DB_FILELINE));
 	}
 
 	/*
@@ -1142,7 +1143,8 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	dns_rdataset_init(&rdataset);
 	fname = dns_fixedname_initname(&fixed);
 	do {
-		RETERR((add)(arg, &name, dns_rdatatype_cname, &rdataset));
+		RETERR((add)(arg, &name, dns_rdatatype_cname,
+			     &rdataset DNS__DB_FILELINE));
 		if (dns_rdataset_isassociated(&rdataset)) {
 			isc_result_t result;
 			result = dns_rdataset_first(&rdataset);
@@ -1176,7 +1178,8 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 	 * Look up HTTPS/SVCB records when processing the alias form.
 	 */
 	if (alias) {
-		RETERR((add)(arg, &name, rdata->type, &rdataset));
+		RETERR((add)(arg, &name, rdata->type,
+			     &rdataset DNS__DB_FILELINE));
 		/*
 		 * Don't return A or AAAA if this is not the last element
 		 * in the HTTP / SVCB chain.
@@ -1186,7 +1189,7 @@ generic_additionaldata_in_svcb(ARGS_ADDLDATA) {
 			return (ISC_R_SUCCESS);
 		}
 	}
-	return ((add)(arg, &name, dns_rdatatype_a, NULL));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
 }
 
 static isc_result_t

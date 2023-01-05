@@ -147,9 +147,9 @@ struct dns_rbtnode {
 	/*@}*/
 };
 
-typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
-					      dns_name_t    *name,
-					      void	    *callback_arg);
+typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t	*node,
+					      dns_name_t	*name,
+					      void *callback_arg DNS__DB_FLARG);
 
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file, unsigned char *data,
 					    void *arg, uint64_t *crc);
@@ -360,9 +360,11 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep);
  *\li   #ISC_R_NOMEMORY Resource Limit: Out of Memory
  */
 
+#define dns_rbt_findname(rbt, name, options, foundname, data) \
+	dns__rbt_findname(rbt, name, options, foundname, data DNS__DB_FILELINE)
 isc_result_t
-dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
-		 dns_name_t *foundname, void **data);
+dns__rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
+		  dns_name_t *foundname, void **data DNS__DB_FLARG);
 /*%<
  * Get the data pointer associated with 'name'.
  *
@@ -399,11 +401,16 @@ dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
  *\li   #ISC_R_NOSPACE          Concatenating nodes to form foundname failed
  */
 
+#define dns_rbt_findnode(rbt, name, foundname, node, chain, options, callback, \
+			 callback_arg)                                         \
+	dns__rbt_findnode(rbt, name, foundname, node, chain, options,          \
+			  callback, callback_arg DNS__DB_FILELINE)
+
 isc_result_t
-dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
-		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
-		 unsigned int options, dns_rbtfindcallback_t callback,
-		 void *callback_arg);
+dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
+		  dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
+		  unsigned int options, dns_rbtfindcallback_t callback,
+		  void *callback_arg DNS__DB_FLARG);
 /*%<
  * Find the node for 'name'.
  *
@@ -504,8 +511,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
  *\li   #ISC_R_NOSPACE Concatenating nodes to form foundname failed
  */
 
+#define dns_rbt_deletename(rbt, name, recurse) \
+	dns__rbt_deletename(rbt, name, recurse DNS__DB_FILELINE)
 isc_result_t
-dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name, bool recurse);
+dns__rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
+		    bool recurse DNS__DB_FLARG);
 /*%<
  * Delete 'name' from the tree of trees.
  *

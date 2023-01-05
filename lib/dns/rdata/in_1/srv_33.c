@@ -328,7 +328,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = (add)(arg, &name, dns_rdatatype_a, NULL);
+	result = (add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -348,7 +348,7 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 	}
 
 	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
-		      NULL));
+		      NULL DNS__DB_FILELINE));
 }
 
 static isc_result_t

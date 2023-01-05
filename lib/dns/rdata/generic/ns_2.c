@@ -198,7 +198,7 @@ additionaldata_ns(ARGS_ADDLDATA) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a, NULL));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
 }
 
 static isc_result_t

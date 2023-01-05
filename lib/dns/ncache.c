@@ -30,15 +30,15 @@
 #define DNS_NCACHE_RDATA 100U
 
 /*
- * The format of an ncache rdata is a sequence of zero or more records of
- * the following format:
+ * The format of an ncache rdata is a sequence of zero or more records
+ * of the following format:
  *
  *	owner name
  *	type
  *	trust
  *	rdata count
- *		rdata length			These two occur 'rdata count'
- *		rdata				times.
+ *	rdata length			These two occur 'rdata
+ *	rdata				count' times.
  *
  */
 
@@ -417,7 +417,7 @@ rollback:
 }
 
 static void
-rdataset_disassociate(dns_rdataset_t *rdataset) {
+rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	UNUSED(rdataset);
 }
 
@@ -478,7 +478,7 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
 	*target = *source;
 
 	/*

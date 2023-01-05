@@ -6915,7 +6915,7 @@ check_section(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
 
 static isc_result_t
 check_related(void *arg, const dns_name_t *addname, dns_rdatatype_t type,
-	      dns_rdataset_t *found) {
+	      dns_rdataset_t *found DNS__DB_FLARG) {
 	return (check_section(arg, addname, type, found,
 			      DNS_SECTION_ADDITIONAL));
 }

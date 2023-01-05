@@ -237,7 +237,7 @@ additionaldata_in_kx(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a, NULL));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL DNS__DB_FILELINE));
 }
 
 static isc_result_t

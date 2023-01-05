@@ -80,13 +80,15 @@ typedef struct bdb_rdatasetiter {
 static isc_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdatatype_t type, dns_rdatatype_t covers, isc_stdtime_t now,
-	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+	     dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 
 static void
-attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
+attachnode(dns_db_t *db, dns_dbnode_t *source,
+	   dns_dbnode_t **targetp DNS__DB_FLARG);
 
 static void
-detachnode(dns_db_t *db, dns_dbnode_t **nodep);
+detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
 
 /*
  * Helper functions to convert text to wire forma.
@@ -605,23 +607,24 @@ ipv4reverse_lookup(bdbnode_t *node) {
  * the implementation can be the same as dns_rdatalist..
  */
 static void
-disassociate(dns_rdataset_t *rdataset) {
+disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_dbnode_t *node = rdataset->private5;
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
 	dns_db_t *db = (dns_db_t *)bdbnode->bdb;
 
-	detachnode(db, &node);
-	dns_rdatalist_disassociate(rdataset);
+	detachnode(db, &node DNS__DB_FLARG_PASS);
+	dns_rdatalist_disassociate(rdataset DNS__DB_FLARG_PASS);
 }
 
 static void
-rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
 	dns_dbnode_t *node = source->private5;
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
 	dns_db_t *db = (dns_db_t *)bdbnode->bdb;
 
-	dns_rdatalist_clone(source, target);
-	attachnode(db, node, (dns_dbnode_t **)&target->private5);
+	dns_rdatalist_clone(source, target DNS__DB_FLARG_PASS);
+	attachnode(db, node,
+		   (dns_dbnode_t **)&target->private5 DNS__DB_FLARG_PASS);
 }
 
 static dns_rdatasetmethods_t bdb_rdataset_methods = {
@@ -649,16 +652,17 @@ new_rdataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
  */
 
 static void
-rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
+rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *bdbiterator = (bdb_rdatasetiter_t *)(*iteratorp);
-	detachnode(bdbiterator->common.db, &bdbiterator->common.node);
+	detachnode(bdbiterator->common.db,
+		   &bdbiterator->common.node DNS__DB_FLARG_PASS);
 	isc_mem_put(bdbiterator->common.db->mctx, bdbiterator,
 		    sizeof(bdb_rdatasetiter_t));
 	*iteratorp = NULL;
 }
 
 static isc_result_t
-rdatasetiter_first(dns_rdatasetiter_t *iterator) {
+rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *bdbiterator = (bdb_rdatasetiter_t *)iterator;
 	bdbnode_t *bdbnode = (bdbnode_t *)iterator->node;
 
@@ -670,7 +674,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 }
 
 static isc_result_t
-rdatasetiter_next(dns_rdatasetiter_t *iterator) {
+rdatasetiter_next(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *bdbiterator = (bdb_rdatasetiter_t *)iterator;
 
 	bdbiterator->current = ISC_LIST_NEXT(bdbiterator->current, link);
@@ -682,7 +686,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 }
 
 static void
-rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
+rdatasetiter_current(dns_rdatasetiter_t *iterator,
+		     dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *bdbiterator = (bdb_rdatasetiter_t *)iterator;
 
 	new_rdataset(bdbiterator->current, iterator->db, iterator->node,
@@ -748,7 +753,8 @@ attachversion(dns_db_t *db, dns_dbversion_t *source,
 }
 
 static void
-closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
+closeversion(dns_db_t *db, dns_dbversion_t **versionp,
+	     bool commit DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 
 	REQUIRE(VALID_BDB(bdb));
@@ -820,7 +826,7 @@ destroynode(bdbnode_t *node) {
 }
 
 static isc_result_t
-getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
+getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 	bdbnode_t *node = NULL;
 	isc_result_t result;
@@ -856,7 +862,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 
 static isc_result_t
 findnode(dns_db_t *db, const dns_name_t *name, bool create,
-	 dns_dbnode_t **nodep) {
+	 dns_dbnode_t **nodep DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 	bdbnode_t *node = NULL;
 	isc_result_t result;
@@ -904,7 +910,7 @@ static isc_result_t
 find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
      dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
      dns_dbnode_t **nodep, dns_name_t *foundname, dns_rdataset_t *rdataset,
-     dns_rdataset_t *sigrdataset) {
+     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -939,7 +945,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * Look up the next label.
 		 */
 		dns_name_getlabelsequence(name, nlabels - i, i, xname);
-		result = findnode(db, xname, false, &node);
+		result = findnode(db, xname, false, &node DNS__DB_FLARG_PASS);
 		if (result == ISC_R_NOTFOUND) {
 			/*
 			 * No data at zone apex?
@@ -966,9 +972,9 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * the qname.
 		 */
 		if (i < nlabels) {
-			result = findrdataset(db, node, version,
-					      dns_rdatatype_dname, 0, now,
-					      rdataset, sigrdataset);
+			result = findrdataset(
+				db, node, version, dns_rdatatype_dname, 0, now,
+				rdataset, sigrdataset DNS__DB_FLARG_PASS);
 			if (result == ISC_R_SUCCESS) {
 				result = DNS_R_DNAME;
 				break;
@@ -980,9 +986,9 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * origin or glue is ok.
 		 */
 		if (i != olabels && (options & DNS_DBFIND_GLUEOK) == 0) {
-			result = findrdataset(db, node, version,
-					      dns_rdatatype_ns, 0, now,
-					      rdataset, sigrdataset);
+			result = findrdataset(
+				db, node, version, dns_rdatatype_ns, 0, now,
+				rdataset, sigrdataset DNS__DB_FLARG_PASS);
 			if (result == ISC_R_SUCCESS) {
 				if (i == nlabels && type == dns_rdatatype_any) {
 					result = DNS_R_ZONECUT;
@@ -1024,7 +1030,7 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * Look for the qtype.
 		 */
 		result = findrdataset(db, node, version, type, 0, now, rdataset,
-				      sigrdataset);
+				      sigrdataset DNS__DB_FLARG_PASS);
 		if (result == ISC_R_SUCCESS) {
 			break;
 		}
@@ -1033,9 +1039,9 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * Look for a CNAME.
 		 */
 		if (type != dns_rdatatype_cname) {
-			result = findrdataset(db, node, version,
-					      dns_rdatatype_cname, 0, now,
-					      rdataset, sigrdataset);
+			result = findrdataset(
+				db, node, version, dns_rdatatype_cname, 0, now,
+				rdataset, sigrdataset DNS__DB_FLARG_PASS);
 			if (result == ISC_R_SUCCESS) {
 				result = DNS_R_CNAME;
 				break;
@@ -1057,14 +1063,15 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	if (nodep != NULL) {
 		*nodep = node;
 	} else if (node != NULL) {
-		detachnode(db, &node);
+		detachnode(db, &node DNS__DB_FLARG_PASS);
 	}
 
 	return (result);
 }
 
 static void
-attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
+attachnode(dns_db_t *db, dns_dbnode_t *source,
+	   dns_dbnode_t **targetp DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 	bdbnode_t *node = (bdbnode_t *)source;
 
@@ -1076,7 +1083,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 }
 
 static void
-detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
+detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	bdb_t *bdb = (bdb_t *)db;
 	bdbnode_t *node = NULL;
 
@@ -1094,7 +1101,8 @@ detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 static isc_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdatatype_t type, dns_rdatatype_t covers, isc_stdtime_t now,
-	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	     dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
 	dns_rdatalist_t *list = NULL;
 
@@ -1128,7 +1136,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     unsigned int options, isc_stdtime_t now,
-	     dns_rdatasetiter_t **iteratorp) {
+	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	bdb_rdatasetiter_t *iterator = NULL;
 
 	REQUIRE(version == NULL || version == &dummy);
@@ -1143,7 +1151,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		.common.magic = DNS_RDATASETITER_MAGIC,
 	};
 
-	attachnode(db, node, &iterator->common.node);
+	attachnode(db, node, &iterator->common.node DNS__DB_FLARG_PASS);
 
 	*iteratorp = (dns_rdatasetiter_t *)iterator;
 
