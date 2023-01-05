@@ -150,6 +150,13 @@ typedef isc_rwlock_t nodelock_t;
 		};                                               \
 		_result;                                         \
 	})
+#define NODE_FORCEUPGRADE(l, tp)                               \
+	{                                                      \
+		if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+			NODE_UNLOCK(l, tp);                    \
+			NODE_WRLOCK(l, tp);                    \
+		}                                              \
+	}
 
 typedef isc_rwlock_t treelock_t;
 
@@ -189,6 +196,13 @@ typedef isc_rwlock_t treelock_t;
 		};                                               \
 		_result;                                         \
 	})
+#define TREE_FORCEUPGRADE(l, tp)                               \
+	{                                                      \
+		if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+			TREE_UNLOCK(l, tp);                    \
+			TREE_WRLOCK(l, tp);                    \
+		}                                              \
+	}
 
 #else /* DNS_RBTDB_STRONG_RWLOCK_CHECK */
 
@@ -225,6 +239,13 @@ typedef isc_rwlock_t treelock_t;
 		};                                               \
 		_result;                                         \
 	})
+#define NODE_FORCEUPGRADE(l, tp)                               \
+	{                                                      \
+		if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+			NODE_UNLOCK(l, tp);                    \
+			NODE_WRLOCK(l, tp);                    \
+		}                                              \
+	}
 
 typedef isc_rwlock_t treelock_t;
 
@@ -266,6 +287,13 @@ typedef isc_rwlock_t treelock_t;
 		};                                               \
 		_result;                                         \
 	})
+#define TREE_FORCEUPGRADE(l, tp)                               \
+	{                                                      \
+		if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+			TREE_UNLOCK(l, tp);                    \
+			TREE_WRLOCK(l, tp);                    \
+		}                                              \
+	}
 
 #endif
 
@@ -2041,10 +2069,7 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		/*
 		 * Upgrade the lock and test if we still need to unlink.
 		 */
-		if (NODE_TRYUPGRADE(nodelock, &nlocktype) != ISC_R_SUCCESS) {
-			NODE_UNLOCK(nodelock, &nlocktype);
-			NODE_WRLOCK(nodelock, &nlocktype);
-		}
+		NODE_FORCEUPGRADE(nodelock, &nlocktype);
 		POST(nlocktype);
 		if (ISC_LINK_LINKED(node, deadlink)) {
 			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum], node,
@@ -2108,12 +2133,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	/* Upgrade the lock? */
 	if (*nlocktypep == isc_rwlocktype_read) {
-		if (NODE_TRYUPGRADE(&nodelock->lock, nlocktypep) !=
-		    ISC_R_SUCCESS)
-		{
-			NODE_UNLOCK(&nodelock->lock, nlocktypep);
-			NODE_WRLOCK(&nodelock->lock, nlocktypep);
-		}
+		NODE_FORCEUPGRADE(&nodelock->lock, nlocktypep);
 	}
 
 	if (isc_refcount_decrement(&node->references) > 1) {
@@ -2871,12 +2891,7 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 		/*
 		 * Try to upgrade the lock and if that fails unlock then relock.
 		 */
-		if (TREE_TRYUPGRADE(&rbtdb->tree_lock, &tlocktype) !=
-		    ISC_R_SUCCESS)
-		{
-			TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
-			TREE_WRLOCK(&rbtdb->tree_lock, &tlocktype);
-		}
+		TREE_FORCEUPGRADE(&rbtdb->tree_lock, &tlocktype);
 		node = NULL;
 		result = dns_rbt_addnode(tree, name, &node);
 		if (result == ISC_R_SUCCESS) {
@@ -4871,12 +4886,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			     need_headerupdate(foundsig, search->now)))
 			{
 				if (nlocktype != isc_rwlocktype_write) {
-					if (NODE_TRYUPGRADE(lock, &nlocktype) !=
-					    ISC_R_SUCCESS)
-					{
-						NODE_UNLOCK(lock, &nlocktype);
-						NODE_WRLOCK(lock, &nlocktype);
-					}
+					NODE_FORCEUPGRADE(lock, &nlocktype);
 					POST(nlocktype);
 				}
 				if (need_headerupdate(found, search->now)) {
@@ -5391,10 +5401,7 @@ node_exit:
 	if ((update != NULL || updatesig != NULL) &&
 	    nlocktype != isc_rwlocktype_write)
 	{
-		if (NODE_TRYUPGRADE(lock, &nlocktype) != ISC_R_SUCCESS) {
-			NODE_UNLOCK(lock, &nlocktype);
-			NODE_WRLOCK(lock, &nlocktype);
-		}
+		NODE_FORCEUPGRADE(lock, &nlocktype);
 		POST(nlocktype);
 	}
 	if (update != NULL && need_headerupdate(update, search.now)) {
@@ -5574,11 +5581,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	    (foundsig != NULL && need_headerupdate(foundsig, search.now)))
 	{
 		if (nlocktype != isc_rwlocktype_write) {
-			if (NODE_TRYUPGRADE(lock, &nlocktype) != ISC_R_SUCCESS)
-			{
-				NODE_UNLOCK(lock, &nlocktype);
-				NODE_WRLOCK(lock, &nlocktype);
-			}
+			NODE_FORCEUPGRADE(lock, &nlocktype);
 			POST(nlocktype);
 		}
 		if (need_headerupdate(found, search.now)) {
