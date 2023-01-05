@@ -18927,8 +18927,6 @@ unlock:
 
 void
 dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
-	bool free_now = false;
-
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 	REQUIRE(zone->zmgr == zmgr);
@@ -18943,19 +18941,13 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 		ENSURE(zone->kfio == NULL);
 	}
 
+	/* Detach below, outside of the write lock. */
 	zone->zmgr = NULL;
-
-	if (isc_refcount_decrement(&zmgr->refs) == 1) {
-		free_now = true;
-	}
 
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 
-	if (free_now) {
-		zonemgr_free(zmgr);
-	}
-	ENSURE(zone->zmgr == NULL);
+	dns_zonemgr_detach(&zmgr);
 }
 
 void
