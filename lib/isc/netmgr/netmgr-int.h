@@ -266,8 +266,6 @@ typedef enum isc__netievent_type {
 	netievent_httpsend,
 	netievent_httpendpoints,
 
-	netievent_streamdnsclose,
-	netievent_streamdnssend,
 	netievent_streamdnsread,
 	netievent_streamdnscancel,
 
@@ -1634,14 +1632,8 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 		       void *cbarg);
 
 void
-isc__nm_async_streamdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_streamdns_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		       isc_nm_cb_t cb, void *cbarg);
-
-void
-isc__nm_async_streamdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
 isc__nm_streamdns_close(isc_nmsocket_t *sock);
@@ -1854,8 +1846,6 @@ NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
-NETIEVENT_SOCKET_TYPE(streamdnsclose);
-NETIEVENT_SOCKET_REQ_TYPE(streamdnssend);
 NETIEVENT_SOCKET_TYPE(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_TYPE(streamdnscancel);
 
@@ -1900,8 +1890,6 @@ NETIEVENT_SOCKET_DECL(detach);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 
-NETIEVENT_SOCKET_DECL(streamdnsclose);
-NETIEVENT_SOCKET_REQ_DECL(streamdnssend);
 NETIEVENT_SOCKET_DECL(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_DECL(streamdnscancel);
 

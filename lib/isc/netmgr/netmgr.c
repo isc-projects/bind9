@@ -459,8 +459,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(httpendpoints);
 #endif
 		NETIEVENT_CASE(streamdnsread);
-		NETIEVENT_CASE(streamdnssend);
-		NETIEVENT_CASE(streamdnsclose);
 		NETIEVENT_CASE(streamdnscancel);
 
 		NETIEVENT_CASE(settlsctx);
@@ -519,8 +517,6 @@ NETIEVENT_SOCKET_DEF(detach);
 
 NETIEVENT_SOCKET_QUOTA_DEF(tcpaccept);
 
-NETIEVENT_SOCKET_DEF(streamdnsclose);
-NETIEVENT_SOCKET_REQ_DEF(streamdnssend);
 NETIEVENT_SOCKET_DEF(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_DEF(streamdnscancel);
 
