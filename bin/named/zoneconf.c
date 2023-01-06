@@ -912,7 +912,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	int seconds;
 	dns_ttl_t maxttl = 0; /* unlimited */
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
-	isc_dscp_t dscp;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -1273,23 +1272,17 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 			RETERR(named_config_getipandkeylist(config, "primaries",
 							    obj, mctx, &ipkl));
-			dns_zone_setalsonotify(zone, ipkl.addrs, ipkl.dscps,
-					       ipkl.keys, ipkl.tlss,
-					       ipkl.count);
+			dns_zone_setalsonotify(zone, ipkl.addrs, ipkl.keys,
+					       ipkl.tlss, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
 		} else {
-			dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0);
+			dns_zone_setalsonotify(zone, NULL, NULL, NULL, 0);
 		}
 
 		obj = NULL;
 		result = named_config_get(maps, "parental-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setparentalsrc4(zone, cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setparentalsrc4dscp(zone, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1297,11 +1290,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "parental-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setparentalsrc6(zone, cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setparentalsrc6dscp(zone, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1309,11 +1297,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "notify-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setnotifysrc4dscp(zone, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1321,11 +1304,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "notify-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setnotifysrc6dscp(zone, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1950,11 +1928,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource4(mayberaw,
 					      cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setxfrsource4dscp(mayberaw, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1963,11 +1936,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource6(mayberaw,
 					      cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setxfrsource6dscp(mayberaw, dscp));
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 
@@ -1976,23 +1944,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource4(mayberaw,
 						 cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setaltxfrsource4dscp(mayberaw, dscp));
-
 		obj = NULL;
 		result = named_config_get(maps, "alt-transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setaltxfrsource6(mayberaw,
 						 cfg_obj_assockaddr(obj)));
-		dscp = cfg_obj_getdscp(obj);
-		if (dscp == -1) {
-			dscp = named_g_dscp;
-		}
-		RETERR(dns_zone_setaltxfrsource6dscp(mayberaw, dscp));
-
 		obj = NULL;
 		(void)named_config_get(maps, "use-alt-transfer-source", &obj);
 		if (obj == NULL) {

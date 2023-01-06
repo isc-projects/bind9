@@ -83,7 +83,6 @@ struct dns_request {
 	isc_sockaddr_t destaddr;
 	unsigned int timeout;
 	unsigned int udpcount;
-	isc_dscp_t dscp;
 };
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
@@ -353,7 +352,7 @@ req_send(dns_request_t *request) {
 
 	/* detached in req_senddone() */
 	req_attach(request, &(dns_request_t *){ NULL });
-	dns_dispatch_send(request->dispentry, &r, request->dscp);
+	dns_dispatch_send(request->dispentry, &r);
 }
 
 static isc_result_t
@@ -361,7 +360,7 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 
 	request = isc_mem_get(mctx, sizeof(*request));
-	*request = (dns_request_t){ .dscp = -1 };
+	*request = (dns_request_t){ 0 };
 	ISC_LINK_INIT(request, link);
 
 	isc_refcount_init(&request->references, 1);
@@ -400,7 +399,7 @@ isblackholed(dns_dispatchmgr_t *dispatchmgr, const isc_sockaddr_t *destaddr) {
 static isc_result_t
 tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     isc_dscp_t dscp, dns_dispatch_t **dispatchp) {
+	     dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (!newtcp) {
@@ -417,7 +416,7 @@ tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	}
 
 	result = dns_dispatch_createtcp(requestmgr->dispatchmgr, srcaddr,
-					destaddr, dscp, dispatchp);
+					destaddr, dispatchp);
 	return (result);
 }
 
@@ -453,12 +452,12 @@ udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 static isc_result_t
 get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 	     const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *destaddr,
-	     isc_dscp_t dscp, dns_dispatch_t **dispatchp) {
+	     dns_dispatch_t **dispatchp) {
 	isc_result_t result;
 
 	if (tcp) {
 		result = tcp_dispatch(newtcp, requestmgr, srcaddr, destaddr,
-				      dscp, dispatchp);
+				      dispatchp);
 	} else {
 		result = udp_dispatch(requestmgr, srcaddr, destaddr, dispatchp);
 	}
@@ -468,10 +467,10 @@ get_dispatch(bool tcp, bool newtcp, dns_requestmgr_t *requestmgr,
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		      unsigned int options, unsigned int timeout,
-		      unsigned int udptimeout, unsigned int udpretries,
-		      isc_task_t *task, isc_taskaction_t action, void *arg,
+		      const isc_sockaddr_t *destaddr, unsigned int options,
+		      unsigned int timeout, unsigned int udptimeout,
+		      unsigned int udpretries, isc_task_t *task,
+		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_result_t result;
@@ -512,7 +511,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	}
 
 	request->udpcount = udpretries;
-	request->dscp = dscp;
 
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
@@ -552,7 +550,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 again:
 
-	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr, dscp,
+	result = get_dispatch(tcp, newtcp, requestmgr, srcaddr, destaddr,
 			      &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto detach;
@@ -625,11 +623,10 @@ cleanup:
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
-		   const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		   unsigned int options, dns_tsigkey_t *key,
-		   unsigned int timeout, unsigned int udptimeout,
-		   unsigned int udpretries, isc_task_t *task,
-		   isc_taskaction_t action, void *arg,
+		   const isc_sockaddr_t *destaddr, unsigned int options,
+		   dns_tsigkey_t *key, unsigned int timeout,
+		   unsigned int udptimeout, unsigned int udpretries,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp) {
 	dns_request_t *request = NULL;
 	isc_result_t result;
@@ -671,7 +668,6 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	}
 
 	request->udpcount = udpretries;
-	request->dscp = dscp;
 
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
@@ -707,7 +703,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	req_attach(request, &(dns_request_t *){ NULL });
 
 again:
-	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr, dscp,
+	result = get_dispatch(tcp, false, requestmgr, srcaddr, destaddr,
 			      &request->dispatch);
 	if (result != ISC_R_SUCCESS) {
 		goto detach;

@@ -282,7 +282,6 @@ typedef struct query {
 	isc_buffer_t buffer;
 	isc_buffer_t *tsig;
 	dns_tsigkey_t *tsigkey;
-	isc_dscp_t dscp;
 	int ednsversion;
 	unsigned int options;
 	unsigned int attributes;
@@ -564,8 +563,6 @@ struct dns_resolver {
 	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatchset_t *dispatches4;
 	dns_dispatchset_t *dispatches6;
-	isc_dscp_t querydscp4;
-	isc_dscp_t querydscp6;
 	unsigned int nbuckets;
 	fctxbucket_t *buckets;
 	uint8_t dhashbits;
@@ -2103,7 +2100,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_sockaddr_t addr;
 	bool have_addr = false;
 	unsigned int srtt;
-	isc_dscp_t dscp = -1;
 
 	FCTXTRACE("query");
 
@@ -2139,7 +2135,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query = isc_mem_get(fctx->mctx, sizeof(*query));
 	*query = (resquery_t){ .mctx = fctx->mctx,
 			       .options = options,
-			       .dscp = addrinfo->dscp,
 			       .addrinfo = addrinfo,
 			       .dispatchmgr = res->dispatchmgr };
 
@@ -2171,10 +2166,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result == ISC_R_SUCCESS) {
 				have_addr = true;
 			}
-			result = dns_peer_getquerydscp(peer, &dscp);
-			if (result == ISC_R_SUCCESS) {
-				query->dscp = dscp;
-			}
 			result = dns_peer_getforcetcp(peer, &usetcp);
 			if (result == ISC_R_SUCCESS && usetcp) {
 				query->options |= DNS_FETCHOPT_TCP;
@@ -2182,7 +2173,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		}
 	}
 
-	dscp = -1;
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
 		int pf;
 
@@ -2192,12 +2182,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			case PF_INET:
 				result = dns_dispatch_getlocaladdress(
 					res->dispatches4->dispatches[0], &addr);
-				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case PF_INET6:
 				result = dns_dispatch_getlocaladdress(
 					res->dispatches6->dispatches[0], &addr);
-				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -2208,13 +2196,10 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			}
 		}
 		isc_sockaddr_setport(&addr, 0);
-		if (query->dscp == -1) {
-			query->dscp = dscp;
-		}
 
 		result = dns_dispatch_createtcp(res->dispatchmgr, &addr,
 						&addrinfo->sockaddr,
-						query->dscp, &query->dispatch);
+						&query->dispatch);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_query;
 		}
@@ -2222,17 +2207,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		FCTXTRACE("connecting via TCP");
 	} else {
 		if (have_addr) {
-			switch (isc_sockaddr_pf(&addr)) {
-			case AF_INET:
-				dscp = dns_resolver_getquerydscp4(fctx->res);
-				break;
-			case AF_INET6:
-				dscp = dns_resolver_getquerydscp6(fctx->res);
-				break;
-			default:
-				result = ISC_R_NOTIMPLEMENTED;
-				goto cleanup_query;
-			}
 			result = dns_dispatch_createudp(res->dispatchmgr, &addr,
 							&query->dispatch);
 			if (result != ISC_R_SUCCESS) {
@@ -2244,13 +2218,11 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				dns_dispatch_attach(
 					dns_resolver_dispatchv4(res),
 					&query->dispatch);
-				dscp = dns_resolver_getquerydscp4(fctx->res);
 				break;
 			case PF_INET6:
 				dns_dispatch_attach(
 					dns_resolver_dispatchv6(res),
 					&query->dispatch);
-				dscp = dns_resolver_getquerydscp6(fctx->res);
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -2258,9 +2230,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			}
 		}
 
-		if (query->dscp == -1) {
-			query->dscp = dscp;
-		}
 		/*
 		 * We should always have a valid dispatcher here.  If we
 		 * don't support a protocol family, then its dispatcher
@@ -2889,7 +2858,7 @@ resquery_send(resquery_t *query) {
 	isc_buffer_usedregion(&buffer, &r);
 
 	resquery_attach(query, &(resquery_t *){ NULL });
-	dns_dispatch_send(query->dispentry, &r, query->dscp);
+	dns_dispatch_send(query->dispentry, &r);
 
 	QTRACE("sent");
 
@@ -3697,7 +3666,6 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		if (result == ISC_R_SUCCESS) {
 			dns_adbaddrinfo_t *cur;
 			ai->flags |= FCTX_ADDRINFO_FORWARDER;
-			ai->dscp = fwd->dscp;
 			cur = ISC_LIST_HEAD(fctx->forwaddrs);
 			while (cur != NULL && cur->srtt < ai->srtt) {
 				cur = ISC_LIST_NEXT(cur, publink);
@@ -10374,9 +10342,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 				 .maxdepth = DEFAULT_RECURSION_DEPTH,
 				 .maxqueries = DEFAULT_MAX_QUERIES,
 				 .nbuckets = ntasks,
-				 .dhashbits = RES_DOMAIN_HASH_BITS,
-				 .querydscp4 = -1,
-				 .querydscp6 = -1 };
+				 .dhashbits = RES_DOMAIN_HASH_BITS };
 
 	atomic_init(&res->activebuckets, res->nbuckets);
 
@@ -11611,32 +11577,6 @@ dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout) {
 	}
 
 	resolver->query_timeout = timeout;
-}
-
-void
-dns_resolver_setquerydscp4(dns_resolver_t *resolver, isc_dscp_t dscp) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	resolver->querydscp4 = dscp;
-}
-
-isc_dscp_t
-dns_resolver_getquerydscp4(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return (resolver->querydscp4);
-}
-
-void
-dns_resolver_setquerydscp6(dns_resolver_t *resolver, isc_dscp_t dscp) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	resolver->querydscp6 = dscp;
-}
-
-isc_dscp_t
-dns_resolver_getquerydscp6(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return (resolver->querydscp6);
 }
 
 void

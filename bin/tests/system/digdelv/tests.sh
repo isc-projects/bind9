@@ -543,17 +543,6 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
-  echo_i "checking dig +dscp ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +dscp=32 a a.example > /dev/null 2>&1 || ret=1
-  dig_with_opts @10.53.0.3 +dscp=-1 a a.example > /dev/null 2>&1 && ret=1
-  dig_with_opts @10.53.0.3 +dscp=64 a a.example > /dev/null 2>&1 && ret=1
-  #TODO add a check to make sure dig is actually setting the dscp on the query
-  #we might have to add better logging to named for this
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
   echo_i "checking dig +ednsopt with option number ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=3 a.example > dig.out.test$n 2>&1 || ret=1

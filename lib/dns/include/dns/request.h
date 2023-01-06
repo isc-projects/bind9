@@ -156,11 +156,10 @@ dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
-		   const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		   unsigned int options, dns_tsigkey_t *key,
-		   unsigned int timeout, unsigned int udptimeout,
-		   unsigned int udpretries, isc_task_t *task,
-		   isc_taskaction_t action, void *arg,
+		   const isc_sockaddr_t *destaddr, unsigned int options,
+		   dns_tsigkey_t *key, unsigned int timeout,
+		   unsigned int udptimeout, unsigned int udpretries,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp);
 /*%<
  * Create and send a request.
@@ -200,10 +199,10 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 isc_result_t
 dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *srcaddr,
-		      const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		      unsigned int options, unsigned int timeout,
-		      unsigned int udptimeout, unsigned int udpretries,
-		      isc_task_t *task, isc_taskaction_t action, void *arg,
+		      const isc_sockaddr_t *destaddr, unsigned int options,
+		      unsigned int timeout, unsigned int udptimeout,
+		      unsigned int udpretries, isc_task_t *task,
+		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
 /*!<
  * \brief Create and send a request.

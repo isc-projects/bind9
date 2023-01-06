@@ -210,7 +210,6 @@ struct ns_client {
 	dns_ecs_t ecs; /*%< EDNS client subnet sent by client */
 
 	struct in6_pktinfo pktinfo;
-	isc_dscp_t	   dscp;
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each

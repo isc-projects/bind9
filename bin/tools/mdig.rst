@@ -161,11 +161,10 @@ The global query options are:
    they are replaced by the string "[omitted]"; in the DNSKEY case, the
    key ID is displayed as the replacement, e.g., ``[ key id = value ]``.
 
-.. option:: +dscp[=value]
+.. option:: +dscp=value
 
-   This option sets the DSCP code point to be used when sending the query. Valid DSCP
-   code points are in the range [0...63]. By default no code point is
-   explicitly set.
+   This option formerly set the DSCP value used when sending a query.
+   It is now obsolete, and has no effect.
 
 .. option:: +multiline, +nomultiline
 

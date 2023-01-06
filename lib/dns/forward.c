@@ -127,7 +127,6 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	{
 		fwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
 		fwd->addr = *sa;
-		fwd->dscp = -1;
 		ISC_LINK_INIT(fwd, link);
 		ISC_LIST_APPEND(forwarders->fwdrs, fwd, link);
 	}

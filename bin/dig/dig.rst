@@ -349,9 +349,8 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
 
 .. option:: +dscp=value
 
-   This option sets the DSCP code point to be used when sending the query. Valid DSCP
-   code points are in the range [0...63]. By default no code point is
-   explicitly set.
+   This option formerly set the DSCP value used when sending a query.
+   It is now obsolete, and has no effect.
 
 .. option:: +edns[=#], +noedns
 

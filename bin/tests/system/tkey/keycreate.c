@@ -178,7 +178,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 				       DNS_TSIG_HMACMD5_NAME, &nonce, 3600);
 	CHECK("dns_tkey_builddhquery", result);
 
-	result = dns_request_create(requestmgr, query, NULL, &address, -1,
+	result = dns_request_create(requestmgr, query, NULL, &address,
 				    DNS_REQUESTOPT_TCP, initialkey, TIMEOUT, 0,
 				    0, task, recvquery, query, &request);
 	CHECK("dns_request_create", result);

@@ -29,7 +29,6 @@ check_PROGRAMS =		\
 	name_test		\
 	nsec3_test		\
 	nsec3param_test		\
-	peer_test		\
 	private_test		\
 	rbt_test		\
 	rbtdb_test		\
