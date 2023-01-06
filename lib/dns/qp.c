@@ -38,12 +38,20 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/qp.h>
 #include <dns/types.h>
 
 #include "qp_p.h"
+
+#ifndef DNS_QP_LOG_STATS
+#define DNS_QP_LOG_STATS 1
+#endif
+#ifndef DNS_QP_TRACE
+#define DNS_QP_TRACE 0
+#endif
 
 /*
  * very basic garbage collector statistics
@@ -55,7 +63,10 @@ static atomic_uint_fast64_t compact_time;
 static atomic_uint_fast64_t recycle_time;
 static atomic_uint_fast64_t rollback_time;
 
-#if 1
+/* for LOG_STATS() format strings */
+#define PRItime " %" PRIu64 " ns "
+
+#if DNS_QP_LOG_STATS
 #define LOG_STATS(...)                                                      \
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
 		      ISC_LOG_DEBUG(1), __VA_ARGS__)
@@ -65,7 +76,7 @@ static atomic_uint_fast64_t rollback_time;
 
 #define PRItime " %" PRIu64 " us "
 
-#if 0
+#if DNS_QP_TRACE
 /*
  * TRACE is generally used in allocation-related functions so it doesn't
  * trace very high-frequency ops
@@ -200,10 +211,16 @@ initialize_bits_for_byte(void) {
 size_t
 dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 	size_t len, label;
+	dns_fixedname_t fixed;
 
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
-	REQUIRE(name->offsets != NULL);
 	REQUIRE(name->labels > 0);
+
+	if (name->offsets == NULL) {
+		dns_name_t *clone = dns_fixedname_initname(&fixed);
+		dns_name_clone(name, clone);
+		name = clone;
+	}
 
 	len = 0;
 	label = name->labels;
@@ -368,28 +385,12 @@ clone_array(isc_mem_t *mctx, void *oldp, size_t oldsz, size_t newsz,
  */
 
 /*
- * How many cells are actually in use in a chunk?
- */
-static inline qp_cell_t
-chunk_usage(dns_qp_t *qp, qp_chunk_t chunk) {
-	return (qp->usage[chunk].used - qp->usage[chunk].free);
-}
-
-/*
- * Is this chunk wasting space?
- */
-static inline qp_cell_t
-chunk_fragmented(dns_qp_t *qp, qp_chunk_t chunk) {
-	return (qp->usage[chunk].free > QP_MAX_FREE);
-}
-
-/*
  * We can mutate a chunk if it was allocated in the current generation.
  * This might not be true for the `bump` chunk when it is reused.
  */
 static inline bool
-chunk_mutable(dns_qp_t *qp, qp_chunk_t chunk) {
-	return (qp->usage[chunk].generation == qp->generation);
+chunk_immutable(dns_qp_t *qp, qp_chunk_t chunk) {
+	return (qp->usage[chunk].generation != qp->generation);
 }
 
 /*
@@ -397,13 +398,13 @@ chunk_mutable(dns_qp_t *qp, qp_chunk_t chunk) {
  * it can have an immutable prefix and a mutable suffix.
  */
 static inline bool
-twigs_mutable(dns_qp_t *qp, qp_ref_t ref) {
+cells_immutable(dns_qp_t *qp, qp_ref_t ref) {
 	qp_chunk_t chunk = ref_chunk(ref);
 	qp_cell_t cell = ref_cell(ref);
 	if (chunk == qp->bump) {
-		return (cell >= qp->fender);
+		return (cell < qp->fender);
 	} else {
-		return (chunk_mutable(qp, chunk));
+		return (chunk_immutable(qp, chunk));
 	}
 }
 
@@ -519,6 +520,8 @@ alloc_twigs(dns_qp_t *qp, qp_weight_t size) {
  * zero them to ensure that there isn't a spurious double detach when
  * the chunk is later recycled.
  *
+ * Returns true if the twigs were immediately destroyed.
+ *
  * NOTE: the caller is responsible for attaching or detaching any
  * leaves as required.
  */
@@ -531,13 +534,13 @@ free_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 	ENSURE(qp->free_count <= qp->used_count);
 	ENSURE(qp->usage[chunk].free <= qp->usage[chunk].used);
 
-	if (twigs_mutable(qp, twigs)) {
-		zero_twigs(ref_ptr(qp, twigs), size);
-		return (true);
-	} else {
+	if (cells_immutable(qp, twigs)) {
 		qp->hold_count += size;
 		ENSURE(qp->free_count >= qp->hold_count);
 		return (false);
+	} else {
+		zero_twigs(ref_ptr(qp, twigs), size);
+		return (true);
 	}
 }
 
@@ -559,6 +562,14 @@ attach_twigs(dns_qp_t *qp, qp_node_t *twigs, qp_weight_t size) {
  *
  *  chunk reclamation
  */
+
+/*
+ * Is any of this chunk still in use?
+ */
+static inline qp_cell_t
+chunk_usage(dns_qp_t *qp, qp_chunk_t chunk) {
+	return (qp->usage[chunk].used - qp->usage[chunk].free);
+}
 
 /*
  * When a chunk is being recycled after a long-running read transaction,
@@ -600,8 +611,6 @@ chunk_free(dns_qp_t *qp, qp_chunk_t chunk) {
  */
 static void
 recycle(dns_qp_t *qp) {
-	isc_time_t t0, t1;
-	uint64_t time;
 	unsigned int live = 0;
 	unsigned int keep = 0;
 	unsigned int free = 0;
@@ -610,23 +619,22 @@ recycle(dns_qp_t *qp) {
 	      (qp->free_count - qp->hold_count),
 	      (qp->free_count - qp->hold_count) / QP_CHUNK_SIZE);
 
-	isc_time_now_hires(&t0);
+	isc_nanosecs_t start = isc_time_monotonic();
 
 	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
 		if (qp->base[chunk] == NULL) {
 			continue;
-		} else if (chunk == qp->bump || chunk_usage(qp, chunk) > 0) {
+		} else if (chunk_usage(qp, chunk) > 0 || chunk == qp->bump) {
 			live++;
-		} else if (chunk_mutable(qp, chunk) || qp->hold_count == 0) {
+		} else if (chunk_immutable(qp, chunk) && qp->hold_count > 0) {
+			keep++;
+		} else {
 			chunk_free(qp, chunk);
 			free++;
-		} else {
-			keep++;
 		}
 	}
 
-	isc_time_now_hires(&t1);
-	time = isc_time_microdiff(&t1, &t0);
+	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&recycle_time, time);
 
 	LOG_STATS("qp recycle" PRItime "live %u keep %u free %u chunks", time,
@@ -646,9 +654,12 @@ recycle(dns_qp_t *qp) {
  * or for garbage collection. We don't update the node in place
  * because `compact_recursive()` does not ensure the node itself is
  * mutable until after it discovers evacuation was necessary.
+ *
+ * If free_twigs() could not immediately destroy the old twigs, we have
+ * to re-attach to any leaves.
  */
 static qp_ref_t
-evacuate_twigs(dns_qp_t *qp, qp_node_t *n) {
+evacuate(dns_qp_t *qp, qp_node_t *n) {
 	qp_weight_t size = branch_twigs_size(n);
 	qp_ref_t old_ref = branch_twigs_ref(n);
 	qp_ref_t new_ref = alloc_twigs(qp, size);
@@ -664,73 +675,74 @@ evacuate_twigs(dns_qp_t *qp, qp_node_t *n) {
 }
 
 /*
- * Evacuate the node's twigs and update the node in place.
+ * Immutable nodes need copy-on-write. As we walk down the trie finding
+ * the right place to modify, make_twigs_mutable() is called to ensure
+ * that shared nodes on the path from the root are copied to a mutable
+ * chunk.
  */
-static void
-evacuate(dns_qp_t *qp, qp_node_t *n) {
-	*n = make_node(branch_index(n), evacuate_twigs(qp, n));
+static inline void
+make_twigs_mutable(dns_qp_t *qp, qp_node_t *n) {
+	if (cells_immutable(qp, branch_twigs_ref(n))) {
+		*n = make_node(branch_index(n), evacuate(qp, n));
+	}
 }
 
 /*
  * Compact the trie by traversing the whole thing recursively, copying
  * bottom-up as required. The aim is to avoid evacuation as much as
- * possible, but when parts of the trie are shared, we need to evacuate
+ * possible, but when parts of the trie are immutable, we need to evacuate
  * the paths from the root to the parts of the trie that occupy
  * fragmented chunks.
  *
- * Without the "should we evacuate?" check, the algorithm will leave
- * the trie unchanged. If the twigs are all leaves, the loop changes
- * nothing, so we will return this node's original ref. If all of the
- * twigs that are branches did not need moving, again, the loop
- * changes nothing. So the evacuation check is the only place that the
- * algorithm introduces ref changes, that then bubble up through the
- * logic inside the loop.
+ * Without the QP_MIN_USED check, the algorithm will leave the trie
+ * unchanged. If the children are all leaves, the loop changes nothing,
+ * so we will return this node's original ref. If all of the children
+ * that are branches did not need moving, again, the loop changes
+ * nothing. So the evacuation check is the only place that the
+ * algorithm introduces ref changes, that then bubble up towards the
+ * root through the logic inside the loop.
  */
 static qp_ref_t
 compact_recursive(dns_qp_t *qp, qp_node_t *parent) {
-	qp_ref_t ref = branch_twigs_ref(parent);
-	/* should we evacuate the twigs? */
-	if (chunk_fragmented(qp, ref_chunk(ref)) || qp->compact_all) {
-		ref = evacuate_twigs(qp, parent);
-	}
-	bool mutable = twigs_mutable(qp, ref);
 	qp_weight_t size = branch_twigs_size(parent);
+	qp_ref_t twigs_ref = branch_twigs_ref(parent);
+	qp_chunk_t chunk = ref_chunk(twigs_ref);
+	if (qp->compact_all ||
+	    (chunk != qp->bump && chunk_usage(qp, chunk) < QP_MIN_USED))
+	{
+		twigs_ref = evacuate(qp, parent);
+	}
+	bool immutable = cells_immutable(qp, twigs_ref);
 	for (qp_weight_t pos = 0; pos < size; pos++) {
-		qp_node_t *child = ref_ptr(qp, ref) + pos;
+		qp_node_t *child = ref_ptr(qp, twigs_ref) + pos;
 		if (!is_branch(child)) {
 			continue;
 		}
-		qp_ref_t old_ref = branch_twigs_ref(child);
-		qp_ref_t new_ref = compact_recursive(qp, child);
-		if (old_ref == new_ref) {
+		qp_ref_t old_grandtwigs = branch_twigs_ref(child);
+		qp_ref_t new_grandtwigs = compact_recursive(qp, child);
+		if (old_grandtwigs == new_grandtwigs) {
 			continue;
 		}
-		if (!mutable) {
-			ref = evacuate_twigs(qp, parent);
+		if (immutable) {
+			twigs_ref = evacuate(qp, parent);
 			/* the twigs have moved */
-			child = ref_ptr(qp, ref) + pos;
-			mutable = true;
+			child = ref_ptr(qp, twigs_ref) + pos;
+			immutable = false;
 		}
-		*child = make_node(branch_index(child), new_ref);
+		*child = make_node(branch_index(child), new_grandtwigs);
 	}
-	return (ref);
+	return (twigs_ref);
 }
 
 static void
 compact(dns_qp_t *qp) {
-	isc_time_t t0, t1;
-	uint64_t time;
-
 	LOG_STATS("qp compact before leaf %u live %u used %u free %u hold %u",
 		  qp->leaf_count, qp->used_count - qp->free_count,
 		  qp->used_count, qp->free_count, qp->hold_count);
 
-	isc_time_now_hires(&t0);
+	isc_nanosecs_t start = isc_time_monotonic();
 
-	/*
-	 * Reset the bump chunk if it is fragmented.
-	 */
-	if (chunk_fragmented(qp, qp->bump)) {
+	if (qp->usage[qp->bump].free > QP_MAX_FREE) {
 		alloc_reset(qp);
 	}
 
@@ -740,8 +752,7 @@ compact(dns_qp_t *qp) {
 	}
 	qp->compact_all = false;
 
-	isc_time_now_hires(&t1);
-	time = isc_time_microdiff(&t1, &t0);
+	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&compact_time, time);
 
 	LOG_STATS("qp compact" PRItime
@@ -751,9 +762,9 @@ compact(dns_qp_t *qp) {
 }
 
 void
-dns_qp_compact(dns_qp_t *qp) {
+dns_qp_compact(dns_qp_t *qp, bool all) {
 	REQUIRE(QP_VALID(qp));
-	qp->compact_all = true;
+	qp->compact_all = all;
 	compact(qp);
 	recycle(qp);
 }
@@ -780,8 +791,8 @@ auto_compact_recycle(dns_qp_t *qp) {
 }
 
 /*
- * Free some twigs and compact the trie if necessary; the space
- * accounting is similar to `evacuate_twigs()` above.
+ * Free some twigs and (if they were destroyed immediately so that the
+ * result from QP_MAX_GARBAGE can change) compact the trie if necessary.
  *
  * This is called by the trie modification API entry points. The
  * free_twigs() function requires the caller to attach or detach any
@@ -808,19 +819,6 @@ squash_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 	return (destroyed);
 }
 
-/*
- * Shared twigs need copy-on-write. As we walk down the trie finding
- * the right place to modify, make_twigs_mutable() is called to ensure
- * that shared nodes on the path from the root are copied to a mutable
- * chunk.
- */
-static inline void
-make_twigs_mutable(dns_qp_t *qp, qp_node_t *n) {
-	if (!twigs_mutable(qp, branch_twigs_ref(n))) {
-		evacuate(qp, n);
-	}
-}
-
 /***********************************************************************
  *
  *  public accessors for memory management internals
@@ -841,6 +839,14 @@ dns_qp_memusage(dns_qp_t *qp) {
 		.chunk_size = QP_CHUNK_SIZE,
 	};
 
+	/*
+	 * tell the caller about fragmentation of the whole trie
+	 * without discounting immutable chunks
+	 */
+	qp->hold_count = 0;
+	memusage.fragmented = QP_MAX_GARBAGE(qp);
+	qp->hold_count = memusage.hold;
+
 	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
 		if (qp->base[chunk] != NULL) {
 			memusage.chunk_count += 1;
@@ -855,8 +861,28 @@ dns_qp_memusage(dns_qp_t *qp) {
 	return (memusage);
 }
 
+dns_qp_memusage_t
+dns_qpmulti_memusage(dns_qpmulti_t *multi) {
+	REQUIRE(QPMULTI_VALID(multi));
+	LOCK(&multi->mutex);
+
+	dns_qp_t *qp = &multi->writer;
+	INSIST(QP_VALID(qp));
+
+	dns_qp_memusage_t memusage = dns_qp_memusage(qp);
+
+	if (qp->transaction_mode == QP_UPDATE) {
+		memusage.bytes -= QP_CHUNK_BYTES;
+		memusage.bytes += qp->usage[qp->bump].used * sizeof(qp_node_t);
+	}
+
+	UNLOCK(&multi->mutex);
+	return (memusage);
+}
+
 void
-dns_qp_gctime(uint64_t *compact_p, uint64_t *recycle_p, uint64_t *rollback_p) {
+dns_qp_gctime(isc_nanosecs_t *compact_p, isc_nanosecs_t *recycle_p,
+	      isc_nanosecs_t *rollback_p) {
 	*compact_p = atomic_load_relaxed(&compact_time);
 	*recycle_p = atomic_load_relaxed(&recycle_time);
 	*rollback_p = atomic_load_relaxed(&rollback_time);
@@ -1029,28 +1055,25 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
  */
 void
 dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
-	dns_qp_t *qp;
-	isc_time_t t0, t1;
-	uint64_t time;
 	unsigned int free = 0;
 
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qptp != NULL);
 	REQUIRE(*qptp == write_phase(multi));
 
-	qp = *qptp;
+	dns_qp_t *qp = *qptp;
 
 	REQUIRE(qp->transaction_mode == QP_UPDATE);
 	TRACE("");
 
-	isc_time_now_hires(&t0);
+	isc_nanosecs_t start = isc_time_monotonic();
 
 	/*
 	 * recycle any chunks allocated in this transaction,
 	 * including the bump chunk, and detach value objects
 	 */
 	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
-		if (qp->base[chunk] != NULL && chunk_mutable(qp, chunk)) {
+		if (qp->base[chunk] != NULL && !chunk_immutable(qp, chunk)) {
 			chunk_free(qp, chunk);
 			free++;
 		}
@@ -1060,8 +1083,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	INSIST(!qp->shared_arrays);
 	free_chunk_arrays(qp);
 
-	isc_time_now_hires(&t1);
-	time = isc_time_microdiff(&t1, &t0);
+	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&rollback_time, time);
 
 	LOG_STATS("qp rollback" PRItime "free %u chunks", time, free);
@@ -1388,6 +1410,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 		INSIST(branch_has_twig(n, bit));
 		n = branch_twig_ptr(qp, n, bit);
 	}
+	/* fall through */
 
 newbranch:
 	new_ref = alloc_twigs(qp, 2);

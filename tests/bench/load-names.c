@@ -161,7 +161,7 @@ add_qp(void *qp, size_t count) {
 
 static void
 sqz_qp(void *qp) {
-	dns_qp_compact(qp);
+	dns_qp_compact(qp, true);
 }
 
 static isc_result_t

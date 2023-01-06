@@ -147,9 +147,10 @@ typedef uint8_t dns_qpkey_t[512];
  * responsible for the leaf values that are stored in the trie. The
  * methods are provided for a whole trie when the trie is created.
  *
- * The qp-trie is also given a context pointer that is passed to the
- * methods, so the methods know about the trie's context as well as a
- * particular leaf value.
+ * When you create a qp-trie, you provide a context pointer that is
+ * passed to the methods. The context pointer can tell the methods
+ * something about the trie as a whole, in addition to a particular
+ * leaf's values.
  *
  * The `attach` and `detach` methods adjust reference counts on value
  * objects. They support copy-on-write and safe memory reclamation
@@ -198,6 +199,7 @@ typedef struct dns_qp_memusage {
 	size_t chunk_size;  /*%< nodes per chunk */
 	size_t chunk_count; /*%< allocated chunks */
 	size_t bytes;	    /*%< total memory in chunks and metadata */
+	bool   fragmented;  /*%< trie needs compaction */
 } dns_qp_memusage_t;
 
 /***********************************************************************
@@ -266,20 +268,23 @@ dns_qpmulti_destroy(dns_qpmulti_t **qpmp);
  */
 
 void
-dns_qp_compact(dns_qp_t *qp);
+dns_qp_compact(dns_qp_t *qp, bool all);
 /*%<
- * Defragment the entire qp-trie and release unused memory.
+ * Defragment the qp-trie and release unused memory.
  *
  * When modifications make a trie too fragmented, it is automatically
- * compacted. Automatic compaction avoids compacting chunks that are not
- * fragmented to save time, but this function compacts the entire trie to
- * defragment it as much as possible.
+ * compacted. However, automatic compaction is limited when a
+ * multithreaded trie has lots of immutable memory from past
+ * transactions, and lightweight write transactions do not do
  *
  * This function can be used with a single-threaded qp-trie and during a
  * transaction on a multi-threaded trie.
  *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
+ * \li  `all` is true, to compact the whole trie
+ * \li  `all` is false, to save time by not compacting
+ *            chunk that are not fragmented
  */
 
 void
@@ -300,6 +305,19 @@ dns_qp_memusage(dns_qp_t *qp);
  *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
+ *
+ * Returns:
+ * \li  a `dns_qp_memusage_t` structure described above
+ */
+
+dns_qp_memusage_t
+dns_qpmulti_memusage(dns_qpmulti_t *multi);
+/*%<
+ * Get the memory counters from multi-threaded qp-trie outside the
+ * context of a transaction.
+ *
+ * Requires:
+ * \li  `multi` is a pointer to a valid dns_qpmulti_t
  *
  * Returns:
  * \li  a `dns_qp_memusage_t` structure described above

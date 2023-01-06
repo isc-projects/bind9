@@ -127,6 +127,7 @@ STATIC_ASSERT(6 <= QP_CHUNK_LOG && QP_CHUNK_LOG <= 20,
  * (12% overhead seems reasonable)
  */
 #define QP_MAX_FREE (QP_CHUNK_SIZE / 8)
+#define QP_MIN_USED (QP_CHUNK_SIZE - QP_MAX_FREE)
 
 /*
  * Compact automatically when we pass this threshold: when there is a lot
@@ -169,6 +170,10 @@ STATIC_ASSERT(6 <= QP_CHUNK_LOG && QP_CHUNK_LOG <= 20,
  * Note: A dns_qpkey_t is logically an array of qp_shift_t values, but it
  * isn't declared that way because dns_qpkey_t is a public type whereas
  * qp_shift_t is private.
+ *
+ * A dns_qpkey element key[off] must satisfy
+ *
+ *	SHIFT_NOBYTE <= key[off] && key[off] < SHIFT_OFFSET
  */
 typedef uint8_t qp_shift_t;
 
@@ -250,7 +255,7 @@ ref_cell(qp_ref_t ref) {
 	uint32_t magic;   \
 	qp_node_t root;   \
 	qp_node_t **base; \
-	void *uctx;        \
+	void *uctx;       \
 	const dns_qpmethods_t *methods
 
 struct dns_qpread {
@@ -364,7 +369,7 @@ struct dns_qp {
 	qp_chunk_t chunk_max;
 	/*% which chunk is used for allocations */
 	qp_chunk_t bump;
-	/*% twigs in the `bump` chunk below `fender` are read only [MT] */
+	/*% nodes in the `bump` chunk below `fender` are read only [MT] */
 	qp_cell_t fender;
 	/*% number of leaf nodes */
 	qp_cell_t leaf_count;
@@ -560,8 +565,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
  */
 static inline qp_node_t *
 branch_twigs_vector(dns_qpreadable_t qpr, qp_node_t *n) {
-	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	return (ref_ptr(qp, branch_twigs_ref(n)));
+	return (ref_ptr(qpr, branch_twigs_ref(n)));
 }
 
 /*
@@ -659,7 +663,8 @@ detach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 static inline size_t
 leaf_qpkey(dns_qpreadable_t qpr, qp_node_t *n, dns_qpkey_t key) {
 	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	return (qp->methods->makekey(key, qp->uctx, leaf_pval(n), leaf_ival(n)));
+	return (qp->methods->makekey(key, qp->uctx, leaf_pval(n),
+				     leaf_ival(n)));
 }
 
 static inline char *
