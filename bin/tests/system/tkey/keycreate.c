@@ -179,7 +179,7 @@ sendquery(void *arg) {
 	CHECK("dns_tkey_builddhquery", result);
 
 	result = dns_request_create(requestmgr, query, NULL, &address, NULL,
-				    NULL, -1, DNS_REQUESTOPT_TCP, initialkey,
+				    NULL, DNS_REQUESTOPT_TCP, initialkey,
 				    TIMEOUT, 0, 0, task, recvquery, query,
 				    &request);
 	CHECK("dns_request_create", result);

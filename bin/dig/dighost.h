@@ -167,7 +167,6 @@ struct dig_lookup {
 	char *cookie;
 	dns_ednsopt_t *ednsopts;
 	unsigned int ednsoptscnt;
-	isc_dscp_t dscp;
 	unsigned int ednsflags;
 	dns_opcode_t opcode;
 	int rrcomments;

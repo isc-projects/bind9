@@ -33,7 +33,6 @@ struct dns_remote {
 	isc_mem_t      *mctx;
 	isc_sockaddr_t *addresses;
 	isc_sockaddr_t *sources;
-	isc_dscp_t     *dscps;
 	dns_name_t    **keynames;
 	dns_name_t    **tlsnames;
 	bool	       *ok;
@@ -89,15 +88,15 @@ dns_remote_tlsnames(dns_remote_t *remote);
 void
 dns_remote_init(dns_remote_t *remote, unsigned int count,
 		const isc_sockaddr_t *addrs, const isc_sockaddr_t *srcs,
-		const isc_dscp_t *dscp, dns_name_t **keynames,
-		dns_name_t **tlsnames, bool mark, isc_mem_t *mctx);
+		dns_name_t **keynames, dns_name_t **tlsnames, bool mark,
+		isc_mem_t *mctx);
 
 /*%<
  *	Initialize a remote server. Set the provided addresses (addrs),
- *	source addresses (srcs), dscp's (dscp), key names (keynames) and
- *	tls names (tlsnames). Use the provided memory context (mctx) for
- *	allocations. If 'mark' is 'true', set up a list of boolean values to
- *	mark the server bad or good.
+ *	source addresses (srcs), key names (keynames) and tls names
+ *	(tlsnames). Use the provided memory context (mctx) for allocations.
+ *	If 'mark' is 'true', set up a list of boolean values to mark the
+ *	server bad or good.
  *
  *	Requires:
  *		'remote' is a valid remote structure.
@@ -119,7 +118,7 @@ bool
 dns_remote_equal(dns_remote_t *a, dns_remote_t *b);
 /*%<
  *	Compare two remote servers 'a' and 'b'. Check if the address
- *	count, the addresses, the dscps, the key names and the tls names are
+ *	count, the addresses, the key names and the tls names are
  *	the same. Return 'true' if so, 'false' otherwise.
  *
  *	Requires:
@@ -175,16 +174,6 @@ dns_remote_addr(dns_remote_t *remote, unsigned int i);
  *	Requires:
  *		'remote' is a valid remote structure.
  *		'remote->addresses' is not NULL.
- */
-
-isc_dscp_t
-dns_remote_dscp(dns_remote_t *remote);
-/*%<
- *	Return the current dscp. Returns -1 if we have iterated over all
- *	addresses already, or if dscps are not used.
- *
- *	Requires:
- *		'remote' is a valid remote structure.
  */
 
 dns_name_t *

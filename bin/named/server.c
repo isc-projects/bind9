@@ -1260,13 +1260,11 @@ cleanup:
  */
 static isc_result_t
 get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
-			      dns_dispatch_t **dispatchp, isc_dscp_t *dscpp,
-			      bool is_firstview) {
+			      dns_dispatch_t **dispatchp, bool is_firstview) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa;
 	const cfg_obj_t *obj = NULL;
-	isc_dscp_t dscp = -1;
 
 	switch (af) {
 	case AF_INET:
@@ -1283,11 +1281,6 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 
 	sa = *(cfg_obj_assockaddr(obj));
 	INSIST(isc_sockaddr_pf(&sa) == af);
-
-	dscp = cfg_obj_getdscp(obj);
-	if (dscp != -1 && dscpp != NULL) {
-		*dscpp = dscp;
-	}
 
 	/*
 	 * If we don't support this address family, we're done!
@@ -1591,10 +1584,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		result = dns_peer_settransferdscp(peer, cfg_obj_getdscp(obj));
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 	}
@@ -1611,10 +1600,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		result = dns_peer_setnotifydscp(peer, cfg_obj_getdscp(obj));
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
 		named_add_reserved_dispatch(named_g_server,
 					    cfg_obj_assockaddr(obj));
 	}
@@ -1627,10 +1612,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 	if (obj != NULL) {
 		result = dns_peer_setquerysource(peer, cfg_obj_assockaddr(obj));
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-		result = dns_peer_setquerydscp(peer, cfg_obj_getdscp(obj));
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
@@ -4136,7 +4117,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
 	unsigned int query_timeout, ndisp;
 	bool old_rpz_ok = false;
-	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
@@ -4769,10 +4749,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * Resolver.
 	 */
 	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET, &dispatch4, &dscp4,
+		maps, AF_INET, &dispatch4,
 		(ISC_LIST_PREV(view, link) == NULL)));
 	CHECK(get_view_querysource_dispatch(
-		maps, AF_INET6, &dispatch6, &dscp6,
+		maps, AF_INET6, &dispatch6,
 		(ISC_LIST_PREV(view, link) == NULL)));
 	if (dispatch4 == NULL && dispatch6 == NULL) {
 		UNEXPECTED_ERROR("unable to obtain either an IPv4 or"
@@ -4795,19 +4775,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
 	}
 	dns_resolver_setquerystats(view->resolver, resquerystats);
-
-	if (dscp4 == -1) {
-		dscp4 = named_g_dscp;
-	}
-	if (dscp6 == -1) {
-		dscp6 = named_g_dscp;
-	}
-	if (dscp4 != -1) {
-		dns_resolver_setquerydscp4(view->resolver, dscp4);
-	}
-	if (dscp6 != -1) {
-		dns_resolver_setquerydscp6(view->resolver, dscp6);
-	}
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size or
@@ -6250,15 +6217,14 @@ static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		  const dns_name_t *origin, const cfg_obj_t *forwarders,
 		  const cfg_obj_t *forwardtype) {
-	const cfg_obj_t *portobj, *dscpobj;
-	const cfg_obj_t *faddresses;
-	const cfg_listelt_t *element;
+	const cfg_obj_t *portobj = NULL;
+	const cfg_obj_t *faddresses = NULL;
+	const cfg_listelt_t *element = NULL;
 	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 	dns_forwarderlist_t fwdlist;
-	dns_forwarder_t *fwd;
+	dns_forwarder_t *fwd = NULL;
 	isc_result_t result;
 	in_port_t port;
-	isc_dscp_t dscp = -1;
 
 	ISC_LIST_INIT(fwdlist);
 
@@ -6281,24 +6247,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		}
 	}
 
-	/*
-	 * DSCP value for forwarded requests.
-	 */
-	dscp = named_g_dscp;
-	if (forwarders != NULL) {
-		dscpobj = cfg_tuple_get(forwarders, "dscp");
-		if (cfg_obj_isuint32(dscpobj)) {
-			if (cfg_obj_asuint32(dscpobj) > 63) {
-				cfg_obj_log(dscpobj, named_g_lctx,
-					    ISC_LOG_ERROR,
-					    "dscp value '%u' is out of range",
-					    cfg_obj_asuint32(dscpobj));
-				return (ISC_R_RANGE);
-			}
-			dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
-		}
-	}
-
 	faddresses = NULL;
 	if (forwarders != NULL) {
 		faddresses = cfg_tuple_get(forwarders, "addresses");
@@ -6312,10 +6260,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 		fwd->addr = *cfg_obj_assockaddr(forwarder);
 		if (isc_sockaddr_getport(&fwd->addr) == 0) {
 			isc_sockaddr_setport(&fwd->addr, port);
-		}
-		fwd->dscp = cfg_obj_getdscp(forwarder);
-		if (fwd->dscp == -1) {
-			fwd->dscp = dscp;
 		}
 		ISC_LINK_INIT(fwd, link);
 		ISC_LIST_APPEND(fwdlist, fwd, link);
@@ -8889,17 +8833,6 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	/*
-	 * Determining the default DSCP code point.
-	 */
-	result = named_config_getdscp(config, &named_g_dscp);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR, "dscp: %s",
-			      isc_result_totext(result));
-		goto cleanup_v6portset;
-	}
-
-	/*
 	 * Find the listen queue depth.
 	 */
 	obj = NULL;
@@ -8957,7 +8890,7 @@ load_configuration(const char *filename, named_server_t *server,
 			 * Not specified, use default.
 			 */
 			result = ns_listenlist_default(named_g_mctx,
-						       listen_port, -1, true,
+						       listen_port, true,
 						       AF_INET, &listenon);
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -8991,7 +8924,7 @@ load_configuration(const char *filename, named_server_t *server,
 			 * Not specified, use default.
 			 */
 			result = ns_listenlist_default(named_g_mctx,
-						       listen_port, -1, true,
+						       listen_port, true,
 						       AF_INET6, &listenon);
 		}
 		if (result != ISC_R_SUCCESS) {
@@ -11125,10 +11058,9 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	isc_result_t result;
 	const cfg_obj_t *ltup = NULL;
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
-	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
+	const cfg_obj_t *portobj = NULL;
 	const cfg_obj_t *http_server = NULL;
 	in_port_t port = 0;
-	isc_dscp_t dscp = -1;
 	const char *key = NULL, *cert = NULL, *ca_file = NULL,
 		   *dhparam_file = NULL, *ciphers = NULL;
 	bool tls_prefer_server_ciphers = false,
@@ -11322,16 +11254,6 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		port = (in_port_t)cfg_obj_asuint32(portobj);
 	}
 
-	dscpobj = cfg_tuple_get(ltup, "dscp");
-	if (!cfg_obj_isuint32(dscpobj)) {
-		dscp = named_g_dscp;
-	} else {
-		if (cfg_obj_asuint32(dscpobj) > 63) {
-			return (ISC_R_RANGE);
-		}
-		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
-	}
-
 #ifdef HAVE_LIBNGHTTP2
 	if (http) {
 		CHECK(listenelt_http(http_server, family, do_tls, &tls_params,
@@ -11340,9 +11262,8 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 #endif /* HAVE_LIBNGHTTP2 */
 
 	if (!http) {
-		CHECK(ns_listenelt_create(mctx, port, dscp, NULL, family,
-					  do_tls, &tls_params, tlsctx_cache,
-					  &delt));
+		CHECK(ns_listenelt_create(mctx, port, NULL, family, do_tls,
+					  &tls_params, tlsctx_cache, &delt));
 	}
 
 	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"), config,
@@ -11428,9 +11349,9 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 
 	INSIST(i == len);
 
-	result = ns_listenelt_create_http(
-		mctx, port, named_g_dscp, NULL, family, tls, tls_params,
-		tlsctx_cache, endpoints, len, max_clients, max_streams, &delt);
+	result = ns_listenelt_create_http(mctx, port, NULL, family, tls,
+					  tls_params, tlsctx_cache, endpoints,
+					  len, max_clients, max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}

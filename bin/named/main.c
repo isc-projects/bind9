@@ -110,7 +110,6 @@
 #define BACKTRACE_MAXFRAME 128
 #endif /* ifndef BACKTRACE_MAXFRAME */
 
-extern int isc_dscp_check_value;
 extern unsigned int dns_zone_mkey_hour;
 extern unsigned int dns_zone_mkey_day;
 extern unsigned int dns_zone_mkey_month;
@@ -716,13 +715,9 @@ parse_T_opt(char *option) {
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
-	 * dscp=x:     check that dscp values are as
-	 * 	       expected and assert otherwise.
 	 */
 	if (!strcmp(option, "dropedns")) {
 		dropedns = true;
-	} else if (!strncmp(option, "dscp=", 5)) {
-		isc_dscp_check_value = atoi(option + 5);
 	} else if (!strcmp(option, "ednsformerr")) {
 		ednsformerr = true;
 	} else if (!strcmp(option, "ednsnotimp")) {
