@@ -1,3 +1,10 @@
+6062.	[func]		The DSCP implementation, which has been
+			nonfunctional for some time, is now marked as
+			obsolete and the implementation has been removed.
+			Configuring DSCP values in named.conf has no
+			effect, and a warning will be logged that
+			the feature should no longer be used. [GL #3773]
+
 6061.	[bug]		Fix unexpected "Prohibited" extended DNS error
 			on allow-recursion. [GL #3743]
 
