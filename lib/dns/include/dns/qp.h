@@ -171,11 +171,11 @@ typedef uint8_t dns_qpkey_t[512];
  * readable identifier into `buf` which has max length `size`.
  */
 typedef struct dns_qpmethods {
-	void (*attach)(void *ctx, void *pval, uint32_t ival);
-	void (*detach)(void *ctx, void *pval, uint32_t ival);
-	size_t (*makekey)(dns_qpkey_t key, void *ctx, void *pval,
+	void (*attach)(void *uctx, void *pval, uint32_t ival);
+	void (*detach)(void *uctx, void *pval, uint32_t ival);
+	size_t (*makekey)(dns_qpkey_t key, void *uctx, void *pval,
 			  uint32_t ival);
-	void (*triename)(void *ctx, char *buf, size_t size);
+	void (*triename)(void *uctx, char *buf, size_t size);
 } dns_qpmethods_t;
 
 /*%
@@ -188,7 +188,7 @@ typedef struct dns_qpmethods {
  * A container for the counters returned by `dns_qp_memusage()`
  */
 typedef struct dns_qp_memusage {
-	void  *ctx;	    /*%< qp-trie method context */
+	void  *uctx;	    /*%< qp-trie method context */
 	size_t leaves;	    /*%< values in the trie */
 	size_t live;	    /*%< nodes in use */
 	size_t used;	    /*%< allocated nodes */
@@ -206,7 +206,7 @@ typedef struct dns_qp_memusage {
  */
 
 void
-dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
+dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 	      dns_qp_t **qptp);
 /*%<
  * Create a single-threaded qp-trie.
@@ -235,7 +235,7 @@ dns_qp_destroy(dns_qp_t **qptp);
  */
 
 void
-dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
+dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp);
 /*%<
  * Create a multi-threaded qp-trie.

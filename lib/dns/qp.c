@@ -56,32 +56,32 @@ static atomic_uint_fast64_t recycle_time;
 static atomic_uint_fast64_t rollback_time;
 
 #if 1
-#define QP_LOG_STATS(...)                                                   \
+#define LOG_STATS(...)                                                      \
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_QP, \
 		      ISC_LOG_DEBUG(1), __VA_ARGS__)
 #else
-#define QP_LOG_STATS(...)
+#define LOG_STATS(...)
 #endif
 
 #define PRItime " %" PRIu64 " us "
 
 #if 0
 /*
- * QP_TRACE is generally used in allocation-related functions so it doesn't
+ * TRACE is generally used in allocation-related functions so it doesn't
  * trace very high-frequency ops
  */
-#define QP_TRACE(fmt, ...)                                                    \
+#define TRACE(fmt, ...)                                                       \
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(7))) {                   \
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,             \
 			      DNS_LOGMODULE_QP, ISC_LOG_DEBUG(7),             \
-			      "%s:%d:%s(qp %p ctx \"%s\" gen %u): " fmt,      \
+			      "%s:%d:%s(qp %p uctx \"%s\" gen %u): " fmt,     \
 			      __FILE__, __LINE__, __func__, qp, TRIENAME(qp), \
 			      qp->generation, ##__VA_ARGS__);                 \
 	} else                                                                \
 		do {                                                          \
 		} while (0)
 #else
-#define QP_TRACE(...)
+#define TRACE(...)
 #endif
 
 /***********************************************************************
@@ -425,14 +425,14 @@ chunk_alloc(dns_qp_t *qp, qp_chunk_t chunk, qp_weight_t size) {
 	qp->bump = chunk;
 	qp->fender = 0;
 
-	QP_TRACE("chunk %u gen %u base %p", chunk, qp->usage[chunk].generation,
-		 qp->base[chunk]);
+	TRACE("chunk %u gen %u base %p", chunk, qp->usage[chunk].generation,
+	      qp->base[chunk]);
 	return (make_ref(chunk, 0));
 }
 
 static void
 free_chunk_arrays(dns_qp_t *qp) {
-	QP_TRACE("base %p usage %p max %u", qp->base, qp->usage, qp->chunk_max);
+	TRACE("base %p usage %p max %u", qp->base, qp->usage, qp->chunk_max);
 	/*
 	 * They should both be null or both non-null; if they are out of sync,
 	 * this will intentionally trigger an assert in `isc_mem_free()`.
@@ -469,7 +469,7 @@ clone_chunk_arrays(dns_qp_t *qp, qp_chunk_t newmax) {
 	qp->base = base;
 	qp->usage = usage;
 
-	QP_TRACE("base %p usage %p max %u", qp->base, qp->usage, qp->chunk_max);
+	TRACE("base %p usage %p max %u", qp->base, qp->usage, qp->chunk_max);
 }
 
 /*
@@ -566,8 +566,8 @@ attach_twigs(dns_qp_t *qp, qp_node_t *twigs, qp_weight_t size) {
  */
 static void
 chunk_free(dns_qp_t *qp, qp_chunk_t chunk) {
-	QP_TRACE("chunk %u gen %u base %p", chunk, qp->usage[chunk].generation,
-		 qp->base[chunk]);
+	TRACE("chunk %u gen %u base %p", chunk, qp->usage[chunk].generation,
+	      qp->base[chunk]);
 
 	qp_node_t *n = qp->base[chunk];
 	write_protect(qp, n, false);
@@ -606,9 +606,9 @@ recycle(dns_qp_t *qp) {
 	unsigned int keep = 0;
 	unsigned int free = 0;
 
-	QP_TRACE("expect to free %u cells -> %u chunks",
-		 (qp->free_count - qp->hold_count),
-		 (qp->free_count - qp->hold_count) / QP_CHUNK_SIZE);
+	TRACE("expect to free %u cells -> %u chunks",
+	      (qp->free_count - qp->hold_count),
+	      (qp->free_count - qp->hold_count) / QP_CHUNK_SIZE);
 
 	isc_time_now_hires(&t0);
 
@@ -629,11 +629,11 @@ recycle(dns_qp_t *qp) {
 	time = isc_time_microdiff(&t1, &t0);
 	atomic_fetch_add_relaxed(&recycle_time, time);
 
-	QP_LOG_STATS("qp recycle" PRItime "live %u keep %u free %u chunks",
-		     time, live, keep, free);
-	QP_LOG_STATS("qp recycle after leaf %u live %u used %u free %u hold %u",
-		     qp->leaf_count, qp->used_count - qp->free_count,
-		     qp->used_count, qp->free_count, qp->hold_count);
+	LOG_STATS("qp recycle" PRItime "live %u keep %u free %u chunks", time,
+		  live, keep, free);
+	LOG_STATS("qp recycle after leaf %u live %u used %u free %u hold %u",
+		  qp->leaf_count, qp->used_count - qp->free_count,
+		  qp->used_count, qp->free_count, qp->hold_count);
 }
 
 /***********************************************************************
@@ -721,10 +721,9 @@ compact(dns_qp_t *qp) {
 	isc_time_t t0, t1;
 	uint64_t time;
 
-	QP_LOG_STATS(
-		"qp compact before leaf %u live %u used %u free %u hold %u",
-		qp->leaf_count, qp->used_count - qp->free_count, qp->used_count,
-		qp->free_count, qp->hold_count);
+	LOG_STATS("qp compact before leaf %u live %u used %u free %u hold %u",
+		  qp->leaf_count, qp->used_count - qp->free_count,
+		  qp->used_count, qp->free_count, qp->hold_count);
 
 	isc_time_now_hires(&t0);
 
@@ -745,15 +744,15 @@ compact(dns_qp_t *qp) {
 	time = isc_time_microdiff(&t1, &t0);
 	atomic_fetch_add_relaxed(&compact_time, time);
 
-	QP_LOG_STATS("qp compact" PRItime
-		     "leaf %u live %u used %u free %u hold %u",
-		     time, qp->leaf_count, qp->used_count - qp->free_count,
-		     qp->used_count, qp->free_count, qp->hold_count);
+	LOG_STATS("qp compact" PRItime
+		  "leaf %u live %u used %u free %u hold %u",
+		  time, qp->leaf_count, qp->used_count - qp->free_count,
+		  qp->used_count, qp->free_count, qp->hold_count);
 }
 
 void
 dns_qp_compact(dns_qp_t *qp) {
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 	qp->compact_all = true;
 	compact(qp);
 	recycle(qp);
@@ -772,7 +771,7 @@ auto_compact_recycle(dns_qp_t *qp) {
 	if (QP_MAX_GARBAGE(qp)) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_QP, ISC_LOG_NOTICE,
-			      "qp %p ctx \"%s\" compact/recycle "
+			      "qp %p uctx \"%s\" compact/recycle "
 			      "failed to recover any space, "
 			      "scheduling a full compaction",
 			      qp, TRIENAME(qp));
@@ -829,10 +828,10 @@ make_twigs_mutable(dns_qp_t *qp, qp_node_t *n) {
 
 dns_qp_memusage_t
 dns_qp_memusage(dns_qp_t *qp) {
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 
 	dns_qp_memusage_t memusage = {
-		.ctx = qp->ctx,
+		.uctx = qp->uctx,
 		.leaves = qp->leaf_count,
 		.live = qp->used_count - qp->free_count,
 		.used = qp->used_count,
@@ -872,7 +871,7 @@ static dns_qp_t *
 transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	dns_qp_t *qp, *old;
 
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qptp != NULL && *qptp == NULL);
 
 	LOCK(&multi->mutex);
@@ -880,8 +879,8 @@ transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	old = multi->read;
 	qp = write_phase(multi);
 
-	INSIST(VALID_QP(old));
-	INSIST(!VALID_QP(qp));
+	INSIST(QP_VALID(old));
+	INSIST(!QP_VALID(qp));
 
 	/*
 	 * prepare for copy-on-write
@@ -917,7 +916,7 @@ transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 void
 dns_qpmulti_write(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	dns_qp_t *qp = transaction_open(multi, qptp);
-	QP_TRACE("");
+	TRACE("");
 
 	if (qp->transaction_mode == QP_UPDATE) {
 		alloc_reset(qp);
@@ -941,7 +940,7 @@ dns_qpmulti_write(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 void
 dns_qpmulti_update(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	dns_qp_t *qp = transaction_open(multi, qptp);
-	QP_TRACE("");
+	TRACE("");
 
 	clone_chunk_arrays(qp, qp->chunk_max);
 	alloc_reset(qp);
@@ -954,14 +953,14 @@ void
 dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	dns_qp_t *qp, *old;
 
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qptp != NULL);
 	REQUIRE(*qptp == write_phase(multi));
 
 	old = multi->read;
 	qp = write_phase(multi);
 
-	QP_TRACE("");
+	TRACE("");
 
 	if (qp->transaction_mode == QP_UPDATE) {
 		qp_chunk_t c;
@@ -1035,14 +1034,14 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	uint64_t time;
 	unsigned int free = 0;
 
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qptp != NULL);
 	REQUIRE(*qptp == write_phase(multi));
 
 	qp = *qptp;
 
 	REQUIRE(qp->transaction_mode == QP_UPDATE);
-	QP_TRACE("");
+	TRACE("");
 
 	isc_time_now_hires(&t0);
 
@@ -1065,7 +1064,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	time = isc_time_microdiff(&t1, &t0);
 	atomic_fetch_add_relaxed(&rollback_time, time);
 
-	QP_LOG_STATS("qp rollback" PRItime "free %u chunks", time, free);
+	LOG_STATS("qp rollback" PRItime "free %u chunks", time, free);
 
 	*qp = (dns_qp_t){};
 	*qptp = NULL;
@@ -1083,7 +1082,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 
 void
 dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t **qprp) {
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qprp != NULL && *qprp == NULL);
 
 #if HAVE_LIBURCU
@@ -1097,7 +1096,7 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t **qprp) {
 
 void
 dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t **qprp) {
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qprp != NULL && *qprp != NULL);
 
 	/*
@@ -1125,7 +1124,7 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 	dns_qpsnap_t *qp;
 	size_t array_size, alloc_size;
 
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qpsp != NULL && *qpsp == NULL);
 
 	/*
@@ -1142,7 +1141,7 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 		.magic = QP_MAGIC,
 		.root = old->root,
 		.methods = old->methods,
-		.ctx = old->ctx,
+		.uctx = old->uctx,
 		.generation = old->generation,
 		.base = qp->base_array,
 		.whence = multi,
@@ -1155,7 +1154,7 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 	multi->snapshots++;
 	*qpsp = qp;
 
-	QP_TRACE("multi %p snaps %u", multi, multi->snapshots);
+	TRACE("multi %p snaps %u", multi, multi->snapshots);
 	UNLOCK(&multi->mutex);
 }
 
@@ -1163,7 +1162,7 @@ void
 dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 	dns_qpsnap_t *qp;
 
-	REQUIRE(VALID_QPMULTI(multi));
+	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qpsp != NULL && *qpsp != NULL);
 
 	qp = *qpsp;
@@ -1176,8 +1175,8 @@ dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 	REQUIRE(multi == qp->whence);
 
 	LOCK(&multi->mutex);
-	QP_TRACE("multi %p snaps %u gen %u", multi, multi->snapshots,
-		 multi->read->generation);
+	TRACE("multi %p snaps %u gen %u", multi, multi->snapshots,
+	      multi->read->generation);
 
 	isc_mem_free(multi->read->mctx, qp);
 	multi->snapshots--;
@@ -1197,7 +1196,7 @@ dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
  */
 
 static void
-initialize_guts(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
+initialize_guts(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 		dns_qp_t *qp) {
 	REQUIRE(methods != NULL);
 	REQUIRE(methods->attach != NULL);
@@ -1208,27 +1207,27 @@ initialize_guts(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
 	*qp = (dns_qp_t){
 		.magic = QP_MAGIC,
 		.methods = methods,
-		.ctx = ctx,
+		.uctx = uctx,
 	};
 	isc_mem_attach(mctx, &qp->mctx);
 }
 
 void
-dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
+dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 	      dns_qp_t **qptp) {
 	dns_qp_t *qp;
 
 	REQUIRE(qptp != NULL && *qptp == NULL);
 
 	qp = isc_mem_get(mctx, sizeof(*qp));
-	initialize_guts(mctx, methods, ctx, qp);
+	initialize_guts(mctx, methods, uctx, qp);
 	alloc_reset(qp);
-	QP_TRACE("");
+	TRACE("");
 	*qptp = qp;
 }
 
 void
-dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
+dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp) {
 	dns_qpmulti_t *multi;
 	dns_qp_t *qp;
@@ -1250,9 +1249,9 @@ dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *ctx,
 	 * previous transaction was an update
 	 */
 	qp = multi->read;
-	initialize_guts(mctx, methods, ctx, qp);
+	initialize_guts(mctx, methods, uctx, qp);
 	qp->transaction_mode = QP_UPDATE;
-	QP_TRACE("");
+	TRACE("");
 	*qpmp = multi;
 }
 
@@ -1280,7 +1279,7 @@ dns_qp_destroy(dns_qp_t **qptp) {
 	dns_qp_t *qp;
 
 	REQUIRE(qptp != NULL);
-	REQUIRE(VALID_QP(*qptp));
+	REQUIRE(QP_VALID(*qptp));
 
 	qp = *qptp;
 	*qptp = NULL;
@@ -1288,7 +1287,7 @@ dns_qp_destroy(dns_qp_t **qptp) {
 	/* do not try to destroy part of a dns_qpmulti_t */
 	REQUIRE(qp->transaction_mode == QP_NONE);
 
-	QP_TRACE("");
+	TRACE("");
 	destroy_guts(qp);
 	isc_mem_putanddetach(&qp->mctx, qp, sizeof(*qp));
 }
@@ -1299,17 +1298,17 @@ dns_qpmulti_destroy(dns_qpmulti_t **qpmp) {
 	dns_qpmulti_t *multi = NULL;
 
 	REQUIRE(qpmp != NULL);
-	REQUIRE(VALID_QPMULTI(*qpmp));
+	REQUIRE(QPMULTI_VALID(*qpmp));
 
 	multi = *qpmp;
 	qp = multi->read;
 	*qpmp = NULL;
 
-	REQUIRE(VALID_QP(qp));
-	REQUIRE(!VALID_QP(write_phase(multi)));
+	REQUIRE(QP_VALID(qp));
+	REQUIRE(!QP_VALID(write_phase(multi)));
 	REQUIRE(multi->snapshots == 0);
 
-	QP_TRACE("");
+	TRACE("");
 	destroy_guts(qp);
 	isc_mutex_destroy(&multi->mutex);
 	isc_rwlock_destroy(&multi->rwlock);
@@ -1336,7 +1335,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	qp_weight_t pos;
 	qp_node_t *n;
 
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 
 	new_leaf = make_leaf(pval, ival);
 	new_keylen = leaf_qpkey(qp, &new_leaf, new_key);
@@ -1456,7 +1455,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 	qp_node_t *parent;
 	qp_node_t *n;
 
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 
 	parent = NULL;
 	n = &qp->root;
@@ -1543,7 +1542,7 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	qp_shift_t bit;
 	qp_node_t *n;
 
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 	REQUIRE(pval_r != NULL);
 	REQUIRE(ival_r != NULL);
 

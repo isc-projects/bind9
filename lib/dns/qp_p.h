@@ -222,7 +222,7 @@ ref_cell(qp_ref_t ref) {
  */
 
 #define QP_MAGIC     ISC_MAGIC('t', 'r', 'i', 'e')
-#define VALID_QP(qp) ISC_MAGIC_VALID(qp, QP_MAGIC)
+#define QP_VALID(qp) ISC_MAGIC_VALID(qp, QP_MAGIC)
 
 /*
  * This is annoying: C doesn't allow us to use a predeclared structure as
@@ -250,7 +250,7 @@ ref_cell(qp_ref_t ref) {
 	uint32_t magic;   \
 	qp_node_t root;   \
 	qp_node_t **base; \
-	void *ctx;        \
+	void *uctx;        \
 	const dns_qpmethods_t *methods
 
 struct dns_qpread {
@@ -414,7 +414,7 @@ write_phase(dns_qpmulti_t *multi) {
 }
 
 #define QPMULTI_MAGIC	  ISC_MAGIC('q', 'p', 'm', 'v')
-#define VALID_QPMULTI(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
+#define QPMULTI_VALID(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
 
 /***********************************************************************
  *
@@ -647,25 +647,25 @@ zero_twigs(qp_node_t *twigs, qp_weight_t size) {
 static inline void
 attach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	qp->methods->attach(qp->ctx, leaf_pval(n), leaf_ival(n));
+	qp->methods->attach(qp->uctx, leaf_pval(n), leaf_ival(n));
 }
 
 static inline void
 detach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	qp->methods->detach(qp->ctx, leaf_pval(n), leaf_ival(n));
+	qp->methods->detach(qp->uctx, leaf_pval(n), leaf_ival(n));
 }
 
 static inline size_t
 leaf_qpkey(dns_qpreadable_t qpr, qp_node_t *n, dns_qpkey_t key) {
 	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	return (qp->methods->makekey(key, qp->ctx, leaf_pval(n), leaf_ival(n)));
+	return (qp->methods->makekey(key, qp->uctx, leaf_pval(n), leaf_ival(n)));
 }
 
 static inline char *
 triename(dns_qpreadable_t qpr, char *buf, size_t size) {
 	dns_qpread_t *qp = dns_qpreadable_cast(qpr);
-	qp->methods->triename(qp->ctx, buf, size);
+	qp->methods->triename(qp->uctx, buf, size);
 	return (buf);
 }
 

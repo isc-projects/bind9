@@ -382,7 +382,7 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 
 void
 qp_test_dumpdot(dns_qp_t *qp) {
-	REQUIRE(VALID_QP(qp));
+	REQUIRE(QP_VALID(qp));
 	qp_node_t *n = &qp->root;
 	printf("strict digraph {\nrankdir = \"LR\"; ranksep = 1.0;\n");
 	printf("ROOT [shape=point]; ROOT -> ");
