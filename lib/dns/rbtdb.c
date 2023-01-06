@@ -109,30 +109,33 @@ typedef uint32_t rbtdb_rdatatype_t;
 #define RBTDB_LOCK(l, t)     RWLOCK((l), (t))
 #define RBTDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
 
-typedef isc_rwlock_t nodelock_t;
-
 #ifdef DNS_RBTDB_STRONG_RWLOCK_CHECK
+#define STRONG_RWLOCK_CHECK(cond) REQUIRE(cond)
+#else
+#define STRONG_RWLOCK_CHECK(cond)
+#endif
+
+typedef isc_rwlock_t nodelock_t;
 
 #define NODE_INITLOCK(l)    isc_rwlock_init((l), 0, 0)
 #define NODE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define NODE_LOCK(l, t, tp)                          \
-	{                                            \
-		REQUIRE(*tp == isc_rwlocktype_none); \
-		RWLOCK((l), (t));                    \
-		*tp = t;                             \
+#define NODE_LOCK(l, t, tp)                                      \
+	{                                                        \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
+		RWLOCK((l), (t));                                \
+		*tp = t;                                         \
+	}
+#define NODE_UNLOCK(l, tp)                                       \
+	{                                                        \
+		STRONG_RWLOCK_CHECK(*tp != isc_rwlocktype_none); \
+		RWUNLOCK(l, *tp);                                \
+		*tp = isc_rwlocktype_none;                       \
 	}
 #define NODE_RDLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_read, tp);
 #define NODE_WRLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_write, tp);
-
-#define NODE_UNLOCK(l, tp)                           \
-	{                                            \
-		REQUIRE(*tp != isc_rwlocktype_none); \
-		RWUNLOCK(l, *tp);                    \
-		*tp = isc_rwlocktype_none;           \
-	}
 #define NODE_TRYLOCK(l, t, tp)                                   \
 	({                                                       \
-		REQUIRE(*tp == isc_rwlocktype_none);             \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
 		isc_result_t _result = isc_rwlock_trylock(l, t); \
 		if (_result == ISC_R_SUCCESS) {                  \
 			*tp = t;                                 \
@@ -143,42 +146,40 @@ typedef isc_rwlock_t nodelock_t;
 #define NODE_TRYWRLOCK(l, tp) NODE_TRYLOCK(l, isc_rwlocktype_write, tp)
 #define NODE_TRYUPGRADE(l, tp)                                   \
 	({                                                       \
-		REQUIRE(*tp == isc_rwlocktype_read);             \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_read); \
 		isc_result_t _result = isc_rwlock_tryupgrade(l); \
 		if (_result == ISC_R_SUCCESS) {                  \
 			*tp = isc_rwlocktype_write;              \
 		};                                               \
 		_result;                                         \
 	})
-#define NODE_FORCEUPGRADE(l, tp)                               \
-	{                                                      \
-		if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-			NODE_UNLOCK(l, tp);                    \
-			NODE_WRLOCK(l, tp);                    \
-		}                                              \
+#define NODE_FORCEUPGRADE(l, tp)                       \
+	if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+		NODE_UNLOCK(l, tp);                    \
+		NODE_WRLOCK(l, tp);                    \
 	}
 
 typedef isc_rwlock_t treelock_t;
 
 #define TREE_INITLOCK(l)    isc_rwlock_init(l, 0, 0)
 #define TREE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define TREE_LOCK(l, t, tp)                          \
-	{                                            \
-		REQUIRE(*tp == isc_rwlocktype_none); \
-		RWLOCK(l, t);                        \
-		*tp = t;                             \
+#define TREE_LOCK(l, t, tp)                                      \
+	{                                                        \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
+		RWLOCK(l, t);                                    \
+		*tp = t;                                         \
+	}
+#define TREE_UNLOCK(l, tp)                                       \
+	{                                                        \
+		STRONG_RWLOCK_CHECK(*tp != isc_rwlocktype_none); \
+		RWUNLOCK(l, *tp);                                \
+		*tp = isc_rwlocktype_none;                       \
 	}
 #define TREE_RDLOCK(l, tp) TREE_LOCK(l, isc_rwlocktype_read, tp);
 #define TREE_WRLOCK(l, tp) TREE_LOCK(l, isc_rwlocktype_write, tp);
-#define TREE_UNLOCK(l, tp)                           \
-	{                                            \
-		REQUIRE(*tp != isc_rwlocktype_none); \
-		RWUNLOCK(l, *tp);                    \
-		*tp = isc_rwlocktype_none;           \
-	}
 #define TREE_TRYLOCK(l, t, tp)                                   \
 	({                                                       \
-		REQUIRE(*tp == isc_rwlocktype_none);             \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
 		isc_result_t _result = isc_rwlock_trylock(l, t); \
 		if (_result == ISC_R_SUCCESS) {                  \
 			*tp = t;                                 \
@@ -189,113 +190,18 @@ typedef isc_rwlock_t treelock_t;
 #define TREE_TRYWRLOCK(l, tp) TREE_TRYLOCK(l, isc_rwlocktype_write, tp)
 #define TREE_TRYUPGRADE(l, tp)                                   \
 	({                                                       \
-		REQUIRE(*tp == isc_rwlocktype_read);             \
+		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_read); \
 		isc_result_t _result = isc_rwlock_tryupgrade(l); \
 		if (_result == ISC_R_SUCCESS) {                  \
 			*tp = isc_rwlocktype_write;              \
 		};                                               \
 		_result;                                         \
 	})
-#define TREE_FORCEUPGRADE(l, tp)                               \
-	{                                                      \
-		if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-			TREE_UNLOCK(l, tp);                    \
-			TREE_WRLOCK(l, tp);                    \
-		}                                              \
+#define TREE_FORCEUPGRADE(l, tp)                       \
+	if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
+		TREE_UNLOCK(l, tp);                    \
+		TREE_WRLOCK(l, tp);                    \
 	}
-
-#else /* DNS_RBTDB_STRONG_RWLOCK_CHECK */
-
-#define NODE_INITLOCK(l)    isc_rwlock_init((l), 0, 0)
-#define NODE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define NODE_LOCK(l, t, tp)       \
-	{                         \
-		RWLOCK((l), (t)); \
-		*tp = t;          \
-	}
-#define NODE_RDLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_read, tp);
-#define NODE_WRLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_write, tp);
-
-#define NODE_UNLOCK(l, tp)                 \
-	{                                  \
-		RWUNLOCK(l, *tp);          \
-		*tp = isc_rwlocktype_none; \
-	}
-#define NODE_TRYLOCK(l, t, tp)                                   \
-	({                                                       \
-		isc_result_t _result = isc_rwlock_trylock(l, t); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = t;                                 \
-		};                                               \
-		_result;                                         \
-	})
-#define NODE_TRYRDLOCK(l, tp) NODE_TRYLOCK(l, isc_rwlocktype_read, tp)
-#define NODE_TRYWRLOCK(l, tp) NODE_TRYLOCK(l, isc_rwlocktype_write, tp)
-#define NODE_TRYUPGRADE(l, tp)                                   \
-	({                                                       \
-		isc_result_t _result = isc_rwlock_tryupgrade(l); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = isc_rwlocktype_write;              \
-		};                                               \
-		_result;                                         \
-	})
-#define NODE_FORCEUPGRADE(l, tp)                               \
-	{                                                      \
-		if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-			NODE_UNLOCK(l, tp);                    \
-			NODE_WRLOCK(l, tp);                    \
-		}                                              \
-	}
-
-typedef isc_rwlock_t treelock_t;
-
-#define TREE_INITLOCK(l)    isc_rwlock_init(l, 0, 0)
-#define TREE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define TREE_LOCK(l, t, tp)   \
-	{                     \
-		RWLOCK(l, t); \
-		*tp = t;      \
-	}
-#define TREE_RDLOCK(l, tp)                             \
-	{                                              \
-		TREE_LOCK(l, isc_rwlocktype_read, tp); \
-	}
-#define TREE_WRLOCK(l, tp)                              \
-	{                                               \
-		TREE_LOCK(l, isc_rwlocktype_write, tp); \
-	}
-#define TREE_UNLOCK(l, tp)                 \
-	{                                  \
-		RWUNLOCK(l, *tp);          \
-		*tp = isc_rwlocktype_none; \
-	}
-#define TREE_TRYLOCK(l, t, tp)                                   \
-	({                                                       \
-		isc_result_t _result = isc_rwlock_trylock(l, t); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = t;                                 \
-		};                                               \
-		_result;                                         \
-	})
-#define TREE_TRYRDLOCK(l, tp) TREE_TRYLOCK(l, isc_rwlocktype_read, tp)
-#define TREE_TRYWRLOCK(l, tp) TREE_TRYLOCK(l, isc_rwlocktype_write, tp)
-#define TREE_TRYUPGRADE(l, tp)                                   \
-	({                                                       \
-		isc_result_t _result = isc_rwlock_tryupgrade(l); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = isc_rwlocktype_write;              \
-		};                                               \
-		_result;                                         \
-	})
-#define TREE_FORCEUPGRADE(l, tp)                               \
-	{                                                      \
-		if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-			TREE_UNLOCK(l, tp);                    \
-			TREE_WRLOCK(l, tp);                    \
-		}                                              \
-	}
-
-#endif
 
 /*%
  * Whether to rate-limit updating the LRU to avoid possible thread contention.
