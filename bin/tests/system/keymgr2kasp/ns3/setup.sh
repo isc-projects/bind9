@@ -96,6 +96,23 @@ private_type_record $zone 5 "$KSK" >> "$infile"
 private_type_record $zone 5 "$ZSK" >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
 
+# Set up a zone with auto-dnssec maintain to migrate to default dnssec-policy.
+# The zone is signed with KSK/ZSK split, but the dnssec-policy uses CSK.
+setup migrate-nomatch-kzc.kasp
+echo "$zone" >> zones
+Tds="now-3h"     # Time according to dnssec-policy that DS will be OMNIPRESENT
+Tkey="now-3900s" # DNSKEY TTL + propagation delay
+Tsig="now-12h"   # Zone's maximum TTL + propagation delay
+ksktimes="-P ${Tkey} -A ${Tkey} -P sync ${Tds}"
+zsktimes="-P ${Tkey} -A ${Tsig}"
+KSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+ZSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 300        $zsktimes $zone 2> keygen.out.$zone.2)
+cat template.db.in "${KSK}.key" "${ZSK}.key" > "$infile"
+cp $infile $zonefile
+private_type_record $zone 5 "$KSK" >> "$infile"
+private_type_record $zone 5 "$ZSK" >> "$infile"
+$SIGNER -PS -x -s now-1h -e now+2w -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
+
 #
 # Set up zones to test time metadata correctly sets state.
 #

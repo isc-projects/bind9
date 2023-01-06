@@ -96,3 +96,10 @@ zone "migrate-nomatch-alglen.kasp" {
 	dnssec-dnskey-kskonly yes;
 	update-check-ksk yes;
 };
+
+zone "migrate-nomatch-kzc.kasp" {
+	type primary;
+	file "migrate-nomatch-kzc.kasp.db";
+	auto-dnssec maintain;
+	inline-signing yes;
+};

@@ -85,3 +85,10 @@ zone "migrate-nomatch-alglen.kasp" {
 	allow-update { any; };
 	dnssec-policy "migrate-nomatch-alglen";
 };
+
+zone "migrate-nomatch-kzc.kasp" {
+	type primary;
+	file "migrate-nomatch-kzc.kasp.db";
+	inline-signing yes;
+	dnssec-policy "migrate-nomatch-kzc";
+};

@@ -346,6 +346,43 @@ dnssec_verify
 _migratenomatch_alglen_ksk=$(key_get KEY1 ID)
 _migratenomatch_alglen_zsk=$(key_get KEY2 ID)
 
+#
+# Testing migration with unmatched existing keys (different roles KSK/ZSK -> CSK).
+#
+set_zone "migrate-nomatch-kzc.kasp"
+set_policy "none" "2" "300"
+set_server "ns3" "10.53.0.3"
+
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "omnipresent" "omnipresent"
+
+# Make sure the zone is signed with legacy keys.
+check_keys
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# Set expected key times:
+# - The KSK is immediately published and activated.
+#   P     : now-3900s
+#   P sync: now-3h
+#   A     : now-3900s
+created=$(key_get KEY1 CREATED)
+set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
+set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
+# - The ZSK is immediately published and activated.
+#   P: now-3900s
+#   A: now-12h
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Remember legacy key tags.
+_migratenomatch_kzc_ksk=$(key_get KEY1 ID)
+_migratenomatch_kzc_zsk=$(key_get KEY2 ID)
 
 #############
 # Reconfig. #
@@ -788,6 +825,106 @@ echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing key
 ret=0
 [ $_migratenomatch_alglen_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
 [ $_migratenomatch_alglen_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# Test migration to dnssec-policy, existing keys do not match role (KSK/ZSK -> CSK).
+#
+set_zone "migrate-nomatch-kzc.kasp"
+set_policy "migrate-nomatch-kzc" "3" "300"
+set_server "ns3" "10.53.0.3"
+
+# The legacy keys need to be retired, but otherwise stay present until the
+# new keys are omnipresent, and can be used to construct a chain of trust.
+init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
+init_migration_states "hidden" "omnipresent"
+key_set "KEY1" "LEGACY" "no"
+key_set "KEY2" "LEGACY" "no"
+
+set_keyrole      "KEY3" "csk"
+set_keylifetime  "KEY3" "0"
+set_keyalgorithm "KEY3" "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS"
+set_keysigning   "KEY3" "yes"
+set_zonesigning  "KEY3" "no"
+
+set_keystate "KEY3" "GOAL"         "omnipresent"
+set_keystate "KEY3" "STATE_DNSKEY" "rumoured"
+set_keystate "KEY3" "STATE_KRRSIG" "rumoured"
+# This key is considered to be prepublished, so it is not yet signing.
+set_keystate "KEY3" "STATE_ZRRSIG" "hidden"
+set_keystate "KEY3" "STATE_DS"     "hidden"
+
+# Various signing policy checks.
+check_keys
+wait_for_done_signing
+check_dnssecstatus "$SERVER" "$POLICY" "$ZONE"
+
+# Set expected key times:
+# - KSK must be retired since it no longer matches the policy.
+#   P     : now-3900s
+#   P sync: now-3h
+#   A     : now-3900s
+# - The key is removed after the retire interval:
+#   IretKSK = TTLds + DprpP + retire_safety.
+#   TTLds:         2h (7200 seconds)
+#   Dprp:          1h (3600 seconds)
+#   retire-safety: 1h (3600 seconds)
+#   IretKSK:       4h (14400 seconds)
+IretKSK=14400
+created=$(key_get KEY1 CREATED)
+set_addkeytime "KEY1" "PUBLISHED"   "${created}" -3900
+set_addkeytime "KEY1" "ACTIVE"      "${created}" -3900
+set_addkeytime "KEY1" "SYNCPUBLISH" "${created}" -10800
+keyfile=$(key_get KEY1 BASEFILE)
+grep "; Inactive:" "${keyfile}.key" > retired.test${n}.ksk
+retired=$(awk '{print $3}' < retired.test${n}.ksk)
+set_keytime    "KEY1" "RETIRED" "${retired}"
+set_addkeytime "KEY1" "REMOVED" "${retired}" "${IretKSK}"
+# - ZSK must be retired since it no longer matches the policy.
+#   P: now-3900s
+#   A: now-12h
+# - The key is removed after the retire interval:
+#   IretZSK = TTLsig + Dprp + Dsgn + retire-safety.
+#   TTLsig:         11h (39600 seconds)
+#   Dprp:           1h (3600 seconds)
+#   Dsgn:           9d (777600 seconds)
+#   publish-safety: 1h (3600 seconds)
+#   IretZSK:        9d13h (824400 seconds)
+IretZSK=824400
+Lzsk=5184000
+created=$(key_get KEY2 CREATED)
+set_addkeytime "KEY2" "PUBLISHED"   "${created}" -3900
+set_addkeytime "KEY2" "ACTIVE"      "${created}" -43200
+keyfile=$(key_get KEY2 BASEFILE)
+grep "; Inactive:" "${keyfile}.key" > retired.test${n}.zsk
+retired=$(awk '{print $3}' < retired.test${n}.zsk)
+set_keytime    "KEY2" "RETIRED" "${retired}"
+set_addkeytime "KEY2" "REMOVED" "${retired}" "${IretZSK}"
+# - The new KSK is immediately published and activated.
+created=$(key_get KEY3 CREATED)
+set_keytime    "KEY3" "PUBLISHED"   "${created}"
+set_keytime    "KEY3" "ACTIVE"      "${created}"
+# - It takes TTLsig + Dprp + publish-safety hours to propagate the zone.
+#   TTLsig:         11h (39600 seconds)
+#   Dprp:           1h (3600 seconds)
+#   publish-safety: 1h (3600 seconds)
+#   Ipub:           13h (46800 seconds)
+Ipub=46800
+set_addkeytime "KEY3" "SYNCPUBLISH" "${created}" "${Ipub}"
+
+# Continue signing policy checks.
+check_keytimes
+check_apex
+check_subdomain
+dnssec_verify
+
+# Check key tags, should be the same.
+n=$((n+1))
+echo_i "check that of zone ${ZONE} migration to dnssec-policy keeps existing keys ($n)"
+ret=0
+[ $_migratenomatch_kzc_ksk = $(key_get KEY1 ID) ] || log_error "mismatch ksk tag"
+[ $_migratenomatch_kzc_zsk = $(key_get KEY2 ID) ] || log_error "mismatch zsk tag"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
