@@ -1,3 +1,11 @@
+6071.	[func]		The use of "port" when configuring query-source,
+			transfer-source, notify-source and parental-source
+			addresses has been deprecated, along with the
+			use-v[46]-udp-ports and avoid-v[46]-udp-ports
+			options. A warning will be logged when these
+			options are used. In a future release, they
+			will be removed. [GL #3781]
+
 6070.	[func]		DSCP parsing has now been fully removed, and
 			configuration of DSCP values in named.conf is a
 			configuration error. [GL #3789]
