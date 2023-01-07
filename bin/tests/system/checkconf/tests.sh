@@ -430,6 +430,7 @@ n=`expr $n + 1`
 echo_i "check that named-checkconf -l prints out the zone list ($n)"
 ret=0
 $CHECKCONF -l good.conf |
+grep -v "is deprecated" |
 grep -v "is not implemented" |
 grep -v "is not recommended" |
 grep -v "no longer exists" |
