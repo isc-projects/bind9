@@ -556,7 +556,7 @@ done:
 	UNLOCK(&sock->parent->lock);
 
 	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->barrier);
+	isc_barrier_wait(&sock->parent->listen_barrier);
 }
 
 static void
@@ -691,7 +691,7 @@ isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
 
 	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->barrier);
+	isc_barrier_wait(&sock->parent->stop_barrier);
 }
 
 void
