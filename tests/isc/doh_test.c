@@ -1771,11 +1771,7 @@ ISC_RUN_TEST_IMPL(doh_connect_makeuri) {
 
 ISC_TEST_LIST_START
 
-/* Mock tests are unreliable on OpenBSD */
-#if !defined(__OpenBSD__)
 ISC_TEST_ENTRY_CUSTOM(mock_doh_uv_tcp_bind, setup_test, teardown_test)
-#endif /* !defined(__OpenBSD__) */
-
 ISC_TEST_ENTRY(doh_parse_GET_query_string)
 ISC_TEST_ENTRY(doh_base64url_to_base64)
 ISC_TEST_ENTRY(doh_base64_to_base64url)
