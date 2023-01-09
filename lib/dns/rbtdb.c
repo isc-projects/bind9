@@ -2818,7 +2818,9 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 			if (tree == rbtdb->nsec3) {
 				node->nsec = DNS_RBT_NSEC_NSEC3;
 			}
-		} else if (result != ISC_R_EXISTS) {
+		} else if (result == ISC_R_EXISTS) {
+			result = ISC_R_SUCCESS;
+		} else {
 			goto unlock;
 		}
 	}
@@ -2830,7 +2832,6 @@ findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree, const dns_name_t *name,
 	reactivate_node(rbtdb, node, tlocktype);
 
 	*nodep = (dns_dbnode_t *)node;
-
 unlock:
 	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 
