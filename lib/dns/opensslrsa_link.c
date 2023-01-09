@@ -65,51 +65,26 @@ opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 	if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_E,
 				  (BIGNUM **)&c->e) == 1)
 	{
-		isc_result_t ret = ISC_R_UNSET;
-
 		c->bnfree = true;
-		if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
-					  (BIGNUM **)&c->n) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
+		(void)EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
+					    (BIGNUM **)&c->n);
 		if (!private) {
 			return (ISC_R_SUCCESS);
 		}
-		if (EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_D,
-					  (BIGNUM **)&c->d) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR1,
-					  (BIGNUM **)&c->p) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR2,
-					  (BIGNUM **)&c->q) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT1,
-					  (BIGNUM **)&c->dmp1) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT2,
-					  (BIGNUM **)&c->dmq1) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (EVP_PKEY_get_bn_param(priv,
-					  OSSL_PKEY_PARAM_RSA_COEFFICIENT1,
-					  (BIGNUM **)&c->iqmp) != 1)
-		{
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
+		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_D,
+					    (BIGNUM **)&c->d);
+		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR1,
+					    (BIGNUM **)&c->p);
+		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_FACTOR2,
+					    (BIGNUM **)&c->q);
+		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT1,
+					    (BIGNUM **)&c->dmp1);
+		(void)EVP_PKEY_get_bn_param(priv, OSSL_PKEY_PARAM_RSA_EXPONENT2,
+					    (BIGNUM **)&c->dmq1);
+		(void)EVP_PKEY_get_bn_param(priv,
+					    OSSL_PKEY_PARAM_RSA_COEFFICIENT1,
+					    (BIGNUM **)&c->iqmp);
 		return (ISC_R_SUCCESS);
-	err:
-		return (ret);
 	}
 #endif
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000

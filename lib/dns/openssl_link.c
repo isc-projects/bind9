@@ -290,8 +290,7 @@ dst__openssl_fromlabel_provider(int key_base_id, const char *engine,
 
 	ctx = OSSL_STORE_open(label, NULL, NULL, NULL, NULL);
 	if (!ctx) {
-		DST_RET(dst__openssl_toresult2("OSSL_STORE_open_ex",
-					       DST_R_OPENSSLFAILURE));
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 
 	while (!OSSL_STORE_eof(ctx)) {
