@@ -1,3 +1,8 @@
+6062.	[func]		The DSCP implementation, which has only been
+			partly operational since 9.16.0, is now marked as
+			deprecated. Configuring DSCP values in named.conf
+			will cause a warning will be logged. [GL #3773]
+
 6059.	[bug]		In some serve stale scenarios, like when following an
 			expired CNAME record, named could return SERVFAIL if the
 			previous request wasn't successful. Consider non-stale
