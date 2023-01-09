@@ -38,15 +38,6 @@
 #define BN_GENCB_get_arg(x) ((x)->arg)
 #endif /* !HAVE_BN_GENCB_NEW */
 
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
-/*
- * EVP_dss1() is a version of EVP_sha1() that was needed prior to
- * 1.1.0 because there was a link between digests and signing algorithms;
- * the link has been eliminated and EVP_sha1() can be used now instead.
- */
-#define EVP_dss1 EVP_sha1
-#endif /* if OPENSSL_VERSION_NUMBER >= 0x10100000L */
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t
