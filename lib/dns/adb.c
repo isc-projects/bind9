@@ -1297,7 +1297,6 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 	*ai = (dns_adbaddrinfo_t){
 		.srtt = entry->srtt,
 		.flags = entry->flags,
-		.dscp = -1,
 		.publink = ISC_LINK_INITIALIZER,
 		.sockaddr = entry->sockaddr,
 		.entry = dns_adbentry_ref(entry),

@@ -413,7 +413,7 @@ connected(isc_result_t eresult, isc_region_t *region, void *cbarg) {
 	UNUSED(eresult);
 	UNUSED(region);
 
-	dns_dispatch_send(dispentry, r, -1);
+	dns_dispatch_send(dispentry, r);
 }
 
 static void
@@ -454,7 +454,7 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatchmgr_detach(&dispatchmgr);
 
@@ -498,7 +498,7 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatchmgr_detach(&dispatchmgr);
 
@@ -532,7 +532,7 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatchmgr_detach(&dispatchmgr);
 
@@ -569,7 +569,7 @@ ISC_LOOP_TEST_IMPL(dispatch_tls_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tls_connect_addr,
-					&tls_server_addr, -1, &dispatch);
+					&tls_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_dispatchmgr_detach(&dispatchmgr);
 

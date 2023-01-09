@@ -71,6 +71,3 @@ named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
 isc_result_t
 named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			      unsigned int *typep, uint16_t *digestbits);
-
-isc_result_t
-named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp);

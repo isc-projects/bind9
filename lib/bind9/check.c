@@ -910,28 +910,6 @@ typedef enum {
 } optlevel_t;
 
 static isc_result_t
-check_dscp(const cfg_obj_t *options, isc_log_t *logctx) {
-	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_obj_t *obj = NULL;
-
-	/*
-	 * Check that DSCP setting is within range
-	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "dscp", &obj);
-	if (obj != NULL) {
-		uint32_t dscp = cfg_obj_asuint32(obj);
-		if (dscp >= 64) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'dscp' out of range (0-63)");
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	return (result);
-}
-
-static isc_result_t
 check_name(const char *str) {
 	dns_fixedname_t fixed;
 
@@ -990,7 +968,7 @@ check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
 	isc_result_t tresult, result = ISC_R_SUCCESS;
 	const cfg_obj_t *ltup = NULL;
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
-	const cfg_obj_t *portobj = NULL, *dscpobj = NULL;
+	const cfg_obj_t *portobj = NULL;
 	const cfg_obj_t *http_server = NULL;
 	bool do_tls = false, no_tls = false;
 	dns_acl_t *acl = NULL;
@@ -1051,16 +1029,6 @@ check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
 			    "port value '%u' is out of range",
 
 			    cfg_obj_asuint32(portobj));
-		if (result == ISC_R_SUCCESS) {
-			result = ISC_R_RANGE;
-		}
-	}
-
-	dscpobj = cfg_tuple_get(ltup, "dscp");
-	if (cfg_obj_isuint32(dscpobj) && cfg_obj_asuint32(dscpobj) > 63) {
-		cfg_obj_log(dscpobj, logctx, ISC_LOG_ERROR,
-			    "dscp value '%u' is out of range",
-			    cfg_obj_asuint32(dscpobj));
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_RANGE;
 		}
@@ -1594,11 +1562,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
-	}
-
-	tresult = check_dscp(options, logctx);
-	if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
-		result = tresult;
 	}
 
 	obj = NULL;

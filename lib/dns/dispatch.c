@@ -1179,14 +1179,11 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type,
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		       dns_dispatch_t **dispp) {
+		       const isc_sockaddr_t *destaddr, dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(destaddr != NULL);
-
-	UNUSED(dscp);
 
 	LOCK(&mgr->lock);
 
@@ -2199,27 +2196,12 @@ dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout) {
 }
 
 void
-dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp) {
+dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r) {
 	REQUIRE(VALID_RESPONSE(resp));
 	REQUIRE(VALID_DISPATCH(resp->disp));
-	UNUSED(dscp);
 
 	dns_dispatch_t *disp = resp->disp;
 	isc_nmhandle_t *sendhandle = NULL;
-
-#if 0
-	/* XXX: no DSCP support */
-	if (dscp == -1) {
-		sendevent->attributes &= ~ISC_SOCKEVENTATTR_DSCP;
-		sendevent->dscp = 0;
-	} else {
-		sendevent->attributes |= ISC_SOCKEVENTATTR_DSCP;
-		sendevent->dscp = dscp;
-		if (tcp) {
-			isc_socket_dscp(sock, dscp);
-		}
-	}
-#endif
 
 	dispentry_log(resp, LVL(90), "sending");
 	switch (disp->socktype) {

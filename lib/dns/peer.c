@@ -63,11 +63,8 @@ struct dns_peer {
 	bool check_axfr_id;
 	dns_name_t *key;
 	isc_sockaddr_t *transfer_source;
-	isc_dscp_t transfer_dscp;
 	isc_sockaddr_t *notify_source;
-	isc_dscp_t notify_dscp;
 	isc_sockaddr_t *query_source;
-	isc_dscp_t query_dscp;
 	uint16_t udpsize;    /* receive size */
 	uint16_t maxudp;     /* transmit size */
 	uint16_t padding;    /* pad block size */
@@ -91,15 +88,12 @@ struct dns_peer {
 #define SERVER_MAXUDP_BIT	   7
 #define REQUEST_NSID_BIT	   8
 #define SEND_COOKIE_BIT		   9
-#define NOTIFY_DSCP_BIT		   10
-#define TRANSFER_DSCP_BIT	   11
-#define QUERY_DSCP_BIT		   12
-#define REQUEST_EXPIRE_BIT	   13
-#define EDNS_VERSION_BIT	   14
-#define FORCE_TCP_BIT		   15
-#define SERVER_PADDING_BIT	   16
-#define REQUEST_TCP_KEEPALIVE_BIT  17
-#define REQUIRE_COOKIE_BIT	   18
+#define REQUEST_EXPIRE_BIT	   10
+#define EDNS_VERSION_BIT	   11
+#define FORCE_TCP_BIT		   12
+#define SERVER_PADDING_BIT	   13
+#define REQUEST_TCP_KEEPALIVE_BIT  14
+#define REQUIRE_COOKIE_BIT	   15
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -463,30 +457,6 @@ ACCESS_SOCKADDR(transfersource, transfer_source)
 	}
 
 ACCESS_OPTION_OVERWRITE(ednsversion, EDNS_VERSION_BIT, uint8_t, ednsversion)
-
-#define ACCESS_OPTION_OVERWRITEDSCP(name, macro, type, element)          \
-	isc_result_t dns_peer_get##name(dns_peer_t *peer, type *value) { \
-		REQUIRE(DNS_PEER_VALID(peer));                           \
-		REQUIRE(value != NULL);                                  \
-		if (DNS_BIT_CHECK(macro, &peer->bitflags)) {             \
-			*value = peer->element;                          \
-			return (ISC_R_SUCCESS);                          \
-		} else {                                                 \
-			return (ISC_R_NOTFOUND);                         \
-		}                                                        \
-	}                                                                \
-	isc_result_t dns_peer_set##name(dns_peer_t *peer, type value) {  \
-		REQUIRE(DNS_PEER_VALID(peer));                           \
-		REQUIRE(value < 64);                                     \
-		peer->element = value;                                   \
-		DNS_BIT_SET(macro, &peer->bitflags);                     \
-		return (ISC_R_SUCCESS);                                  \
-	}
-ACCESS_OPTION_OVERWRITEDSCP(notifydscp, NOTIFY_DSCP_BIT, isc_dscp_t,
-			    notify_dscp)
-ACCESS_OPTION_OVERWRITEDSCP(querydscp, QUERY_DSCP_BIT, isc_dscp_t, query_dscp)
-ACCESS_OPTION_OVERWRITEDSCP(transferdscp, TRANSFER_DSCP_BIT, isc_dscp_t,
-			    transfer_dscp)
 
 isc_result_t
 dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval) {

@@ -99,7 +99,6 @@ TESTS +=			\
 	dialup			\
 	dlzexternal		\
 	dns64			\
-	dscp			\
 	dsdigest		\
 	dupsigs			\
 	dyndb			\

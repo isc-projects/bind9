@@ -100,8 +100,7 @@ setup_server(void **state) {
 		goto cleanup;
 	}
 
-	result = ns_listenlist_default(mctx, port, -1, true, AF_INET,
-				       &listenon);
+	result = ns_listenlist_default(mctx, port, true, AF_INET, &listenon);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

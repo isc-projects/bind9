@@ -641,23 +641,6 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp);
  */
 
 void
-dns_resolver_setquerydscp4(dns_resolver_t *resolver, isc_dscp_t dscp);
-isc_dscp_t
-dns_resolver_getquerydscp4(dns_resolver_t *resolver);
-
-void
-dns_resolver_setquerydscp6(dns_resolver_t *resolver, isc_dscp_t dscp);
-isc_dscp_t
-dns_resolver_getquerydscp6(dns_resolver_t *resolver);
-/*%
- * Get and set the DSCP values for the resolver's IPv4 and IPV6 query
- * sources.
- *
- * Requires:
- * \li	resolver to be valid.
- */
-
-void
 dns_resolver_setmaxdepth(dns_resolver_t *resolver, unsigned int maxdepth);
 unsigned int
 dns_resolver_getmaxdepth(dns_resolver_t *resolver);

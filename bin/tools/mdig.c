@@ -118,7 +118,6 @@ static isc_sockaddr_t srcaddr;
 static char *server = NULL;
 static isc_sockaddr_t dstaddr;
 static in_port_t port = 53;
-static isc_dscp_t dscp = -1;
 static unsigned char cookie_secret[33];
 static int onfly = 0;
 static char hexcookie[81];
@@ -755,7 +754,7 @@ sendquery(struct query *query) {
 
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
-		NULL, dscp, options, NULL, query->timeout, query->udptimeout,
+		NULL, options, NULL, query->timeout, query->udptimeout,
 		query->udpretries, global_task, recvresponse, message,
 		&request);
 	CHECK("dns_request_create", result);
@@ -812,9 +811,6 @@ help(void) {
 	       "                 -p port             (specify port number)\n"
 	       "                 -m                  (enable memory usage "
 	       "debugging)\n"
-	       "                 +[no]dscp[=###]     (Set the DSCP value to "
-	       "### "
-	       "[0..63])\n"
 	       "                 +[no]vc             (TCP mode)\n"
 	       "                 +[no]tcp            (TCP mode, alternate "
 	       "syntax)\n"
@@ -1319,18 +1315,10 @@ plus_option(char *option, struct query *query, bool global) {
 			query->dnssec = state;
 			break;
 		case 's': /* dscp */
+			/* obsolete */
 			FULLCHECK("dscp");
-			GLOBAL();
-			if (!state) {
-				dscp = -1;
-				break;
-			}
-			if (value == NULL) {
-				goto need_value;
-			}
-			result = parse_uint(&num, value, 0x3f, "DSCP");
-			CHECK("parse_uint(DSCP)", result);
-			dscp = num;
+			fprintf(stderr, ";; +dscp option is obsolete "
+					"and has no effect");
 			break;
 		default:
 			goto invalid_option;

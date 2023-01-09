@@ -3019,29 +3019,6 @@ cfg_print_rawaddr(cfg_printer_t *pctx, const isc_netaddr_t *na) {
 			isc_buffer_usedlength(&buf));
 }
 
-isc_result_t
-cfg_parse_dscp(cfg_parser_t *pctx, isc_dscp_t *dscp) {
-	isc_result_t result;
-
-	REQUIRE(pctx != NULL);
-	REQUIRE(dscp != NULL);
-
-	CHECK(cfg_gettoken(pctx, ISC_LEXOPT_NUMBER | ISC_LEXOPT_CNUMBER));
-
-	if (pctx->token.type != isc_tokentype_number) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "expected number");
-		return (ISC_R_UNEXPECTEDTOKEN);
-	}
-	if (pctx->token.value.as_ulong > 63U) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "dscp out of range");
-		return (ISC_R_RANGE);
-	}
-	*dscp = (isc_dscp_t)(pctx->token.value.as_ulong);
-	return (ISC_R_SUCCESS);
-cleanup:
-	return (result);
-}
-
 /* netaddr */
 
 static unsigned int netaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
@@ -3233,12 +3210,13 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 	isc_result_t result;
 	isc_netaddr_t netaddr;
 	in_port_t port = 0;
-	isc_dscp_t dscp = -1;
 	cfg_obj_t *obj = NULL;
 	int have_port = 0, have_dscp = 0;
+	cfg_obj_t *dscp = NULL;
 
 	CHECK(cfg_create_obj(pctx, type, &obj));
 	CHECK(cfg_parse_rawaddr(pctx, flags, &netaddr));
+	obj->value.sockaddrdscp.dscp = -1;
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
@@ -3249,8 +3227,14 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 			} else if ((flags & CFG_ADDR_DSCPOK) != 0 &&
 				   strcasecmp(TOKEN_STRING(pctx), "dscp") == 0)
 			{
+				cfg_parser_warning(pctx, 0,
+						   "'dscp' is obsolete and "
+						   "should be removed");
 				CHECK(cfg_gettoken(pctx, 0)); /* read "dscp" */
-				CHECK(cfg_parse_dscp(pctx, &dscp));
+				CHECK(cfg_parse_uint32(pctx, NULL, &dscp));
+				obj->value.sockaddrdscp.dscp =
+					cfg_obj_asuint32(dscp);
+				cfg_obj_destroy(pctx, &dscp);
 				++have_dscp;
 			} else {
 				break;
@@ -3271,7 +3255,6 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		goto cleanup;
 	}
 	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
-	obj->value.sockaddrdscp.dscp = dscp;
 	*ret = obj;
 	return (ISC_R_SUCCESS);
 
@@ -3364,9 +3347,6 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 	} else {
 		cfg_print_cstr(pctx, "[ port <integer> ]");
 	}
-	if ((*flagp & CFG_ADDR_DSCPOK) != 0) {
-		cfg_print_cstr(pctx, " [ dscp <integer> ]");
-	}
 }
 
 bool
@@ -3379,12 +3359,6 @@ const isc_sockaddr_t *
 cfg_obj_assockaddr(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
 	return (&obj->value.sockaddr);
-}
-
-isc_dscp_t
-cfg_obj_getdscp(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
-	return (obj->value.sockaddrdscp.dscp);
 }
 
 isc_result_t

@@ -622,7 +622,6 @@ make_empty_lookup(void) {
 		.section_authority = true,
 		.section_additional = true,
 		.ednsneg = true,
-		.dscp = -1,
 	};
 
 	dns_fixedname_init(&looknew->fdomain);
@@ -797,7 +796,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->tsigctx = NULL;
 	looknew->need_search = lookold->need_search;
 	looknew->done_as_is = lookold->done_as_is;
-	looknew->dscp = lookold->dscp;
 	looknew->rrcomments = lookold->rrcomments;
 	looknew->fuzzing = lookold->fuzzing;
 	looknew->fuzztime = lookold->fuzztime;
@@ -3066,8 +3064,6 @@ start_tcp(dig_query_t *query) {
 					tcp_connected, connectquery,
 					local_timeout, NULL, NULL);
 	}
-
-	/* XXX: set DSCP */
 
 	return;
 

@@ -12,7 +12,7 @@ options {
 };
 
 server <string> {
-	addresses { ( <quoted_string> [ port <integer> ] [ dscp <integer> ] | <ipv4_address> [ port <integer> ] [ dscp <integer> ] | <ipv6_address> [ port <integer> ] [ dscp <integer> ] ); ... };
+	addresses { ( <quoted_string> [ port <integer> ] | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ); ... };
 	key <string>;
 	port <integer>;
 	source-address ( <ipv4_address> | * );

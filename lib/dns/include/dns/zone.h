@@ -677,9 +677,8 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 
 void
 dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
-		       isc_sockaddr_t *sources, isc_dscp_t *dscps,
-		       dns_name_t **keynames, dns_name_t **tlsnames,
-		       uint32_t count);
+		       isc_sockaddr_t *sources, dns_name_t **keynames,
+		       dns_name_t **tlsnames, uint32_t count);
 /*%<
  *	Set the list of additional servers to be notified when
  *	a zone changes.	 To clear the list use 'count = 0'.
@@ -826,27 +825,6 @@ dns_zone_getxfrsource4(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the transfer source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- */
-
-isc_dscp_t
-dns_zone_getxfrsource4dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the transfer source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
 dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
 /*%<
  * 	Set the source address to be used in IPv6 zone transfers.
@@ -867,27 +845,6 @@ dns_zone_getxfrsource6(dns_zone_t *zone);
  *
  * Require:
  *\li	'zone' to be a valid zone.
- */
-
-isc_dscp_t
-dns_zone_getxfrsource6dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the transfer source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
-dns_zone_setxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the transfer source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
 isc_result_t
@@ -913,27 +870,6 @@ dns_zone_getparentalsrc4(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
-isc_dscp_t
-dns_zone_getparentalsrc4dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the IPv4 parental source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
-dns_zone_setparentalsrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the IPv4 parental source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- */
-
 isc_result_t
 dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc);
 /*%<
@@ -955,27 +891,6 @@ dns_zone_getparentalsrc6(dns_zone_t *zone);
  *
  * Require:
  *\li	'zone' to be a valid zone.
- */
-
-isc_dscp_t
-dns_zone_getparentalsrc6dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the IPv6 parental source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
-dns_zone_setparentalsrc6dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the IPv6 parental source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
 isc_result_t
@@ -1001,27 +916,6 @@ dns_zone_getnotifysrc4(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
-isc_dscp_t
-dns_zone_getnotifysrc4dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the IPv4 notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
-dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the IPv4 notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- */
-
 isc_result_t
 dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
 /*%<
@@ -1043,27 +937,6 @@ dns_zone_getnotifysrc6(dns_zone_t *zone);
  *
  * Require:
  *\li	'zone' to be a valid zone.
- */
-
-isc_dscp_t
-dns_zone_getnotifysrc6dscp(dns_zone_t *zone);
-/*%/
- * Get the DSCP value associated with the IPv6 notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- */
-
-isc_result_t
-dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp);
-/*%<
- * Set the DSCP value associated with the IPv6 notify source.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
  */
 
 void

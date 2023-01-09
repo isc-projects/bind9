@@ -25,11 +25,15 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
-
 - The options to set alternate local addresses for inbound zone transfers
   are removed (``alt-transfer-source``, ``alt-transfer-source-v6``,
   ``use-alt-transfer-source``). :gl:`#3694`
+
+- The Differentiated Services Code Point (DSCP) feature in BIND
+  has been non-operational since the new Network Manager was introduced
+  in BIND 9.16. It is now marked as obsolete, and vestigial code
+  implementing it has been removed. Configuring DSCP values in
+  ``named.conf`` will cause a warning to be logged. :gl:`#3773`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

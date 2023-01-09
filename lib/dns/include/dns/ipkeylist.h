@@ -20,12 +20,11 @@
 #include <dns/types.h>
 
 /*%
- * A structure holding a list of addresses, dscps and keys.  Used to
- * store primaries for a secondary zone, created by parsing config options.
+ * A structure holding a list of addresses and keys.  Used to store
+ * primaries for a secondary zone, created by parsing config options.
  */
 struct dns_ipkeylist {
 	isc_sockaddr_t *addrs;
-	isc_dscp_t     *dscps;
 	isc_sockaddr_t *sources;
 	dns_name_t    **keys;
 	dns_name_t    **tlss;

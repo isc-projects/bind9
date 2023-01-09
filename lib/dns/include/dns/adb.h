@@ -206,7 +206,6 @@ struct dns_adbaddrinfo {
 
 	isc_sockaddr_t sockaddr; /*%< [rw] */
 	unsigned int   srtt;	 /*%< [rw] microsecs */
-	isc_dscp_t     dscp;
 
 	unsigned int	flags; /*%< [rw] */
 	dns_adbentry_t *entry; /*%< private */

@@ -58,8 +58,8 @@ dns_remote_tlsnames(dns_remote_t *remote) {
 void
 dns_remote_init(dns_remote_t *remote, unsigned int count,
 		const isc_sockaddr_t *addrs, const isc_sockaddr_t *srcs,
-		const isc_dscp_t *dscp, dns_name_t **keynames,
-		dns_name_t **tlsnames, bool mark, isc_mem_t *mctx) {
+		dns_name_t **keynames, dns_name_t **tlsnames, bool mark,
+		isc_mem_t *mctx) {
 	unsigned int i;
 
 	REQUIRE(DNS_REMOTE_VALID(remote));
@@ -86,13 +86,6 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 		memmove(remote->sources, srcs, count * sizeof(isc_sockaddr_t));
 	} else {
 		remote->sources = NULL;
-	}
-
-	if (dscp != NULL) {
-		remote->dscps = isc_mem_get(mctx, count * sizeof(isc_dscp_t));
-		memmove(remote->dscps, dscp, count * sizeof(isc_dscp_t));
-	} else {
-		remote->dscps = NULL;
 	}
 
 	if (keynames != NULL) {
@@ -191,25 +184,6 @@ same_names(dns_name_t *const *oldlist, dns_name_t *const *newlist,
 	return (true);
 }
 
-static bool
-same_dscp(isc_dscp_t *oldlist, isc_dscp_t *newlist, uint32_t count) {
-	unsigned int i;
-
-	if (oldlist == NULL && newlist == NULL) {
-		return (true);
-	}
-	if (oldlist == NULL || newlist == NULL) {
-		return (false);
-	}
-
-	for (i = 0; i < count; i++) {
-		if (oldlist[i] != newlist[i]) {
-			return (false);
-		}
-	}
-	return (true);
-}
-
 void
 dns_remote_clear(dns_remote_t *remote) {
 	unsigned int count;
@@ -239,11 +213,6 @@ dns_remote_clear(dns_remote_t *remote) {
 		isc_mem_put(mctx, remote->sources,
 			    count * sizeof(isc_sockaddr_t));
 		remote->sources = NULL;
-	}
-
-	if (remote->dscps != NULL) {
-		isc_mem_put(mctx, remote->dscps, count * sizeof(isc_dscp_t));
-		remote->dscps = NULL;
 	}
 
 	if (remote->keynames != NULL) {
@@ -293,10 +262,6 @@ dns_remote_equal(dns_remote_t *a, dns_remote_t *b) {
 	if (!same_addrs(a->addresses, b->addresses, a->addrcnt)) {
 		return (false);
 	}
-	if (!same_dscp(a->dscps, b->dscps, a->addrcnt)) {
-		return (false);
-	}
-
 	if (!same_names(a->keynames, b->keynames, a->addrcnt)) {
 		return (false);
 	}
@@ -345,20 +310,6 @@ dns_remote_sourceaddr(dns_remote_t *remote) {
 	REQUIRE(remote->curraddr < remote->addrcnt);
 
 	return (remote->sources[remote->curraddr]);
-}
-
-isc_dscp_t
-dns_remote_dscp(dns_remote_t *remote) {
-	REQUIRE(DNS_REMOTE_VALID(remote));
-
-	if (remote->dscps == NULL) {
-		return -1;
-	}
-	if (remote->curraddr >= remote->addrcnt) {
-		return -1;
-	}
-
-	return (remote->dscps[remote->curraddr]);
 }
 
 dns_name_t *

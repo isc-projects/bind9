@@ -335,12 +335,6 @@ struct dns_zone {
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t sourceaddr;
-	isc_dscp_t notifysrc4dscp;
-	isc_dscp_t notifysrc6dscp;
-	isc_dscp_t parentalsrc4dscp;
-	isc_dscp_t parentalsrc6dscp;
-	isc_dscp_t xfrsource4dscp;
-	isc_dscp_t xfrsource6dscp;
 
 	dns_xfrin_ctx_t *xfr;	    /* task locked */
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
@@ -668,7 +662,6 @@ struct dns_notify {
 	isc_sockaddr_t dst;
 	dns_tsigkey_t *key;
 	dns_transport_t *transport;
-	isc_dscp_t dscp;
 	ISC_LINK(dns_notify_t) link;
 	isc_event_t *event;
 };
@@ -689,7 +682,6 @@ struct dns_checkds {
 	isc_sockaddr_t dst;
 	dns_tsigkey_t *key;
 	dns_transport_t *transport;
-	isc_dscp_t dscp;
 	ISC_LINK(dns_checkds_t) link;
 	isc_event_t *event;
 };
@@ -1070,7 +1062,6 @@ struct ssevent {
 struct stub_cb_args {
 	dns_stub_t *stub;
 	dns_tsigkey_t *tsig_key;
-	isc_dscp_t dscp;
 	uint16_t udpsize;
 	int timeout;
 	bool reqnsid;
@@ -1118,12 +1109,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 		.check_names = dns_severity_ignore,
 		.idlein = DNS_DEFAULT_IDLEIN,
 		.idleout = DNS_DEFAULT_IDLEOUT,
-		.notifysrc4dscp = -1,
-		.notifysrc6dscp = -1,
-		.parentalsrc4dscp = -1,
-		.parentalsrc6dscp = -1,
-		.xfrsource4dscp = -1,
-		.xfrsource6dscp = -1,
 		.maxxfrin = MAX_XFER_TIME,
 		.maxxfrout = MAX_XFER_TIME,
 		.sigvalidityinterval = 30 * 24 * 3600,
@@ -1363,7 +1348,7 @@ zone_free(dns_zone_t *zone) {
 
 	dns_zone_setparentals(zone, NULL, NULL, NULL, NULL, 0);
 	dns_zone_setprimaries(zone, NULL, NULL, NULL, NULL, 0);
-	dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, NULL, 0);
+	dns_zone_setalsonotify(zone, NULL, NULL, NULL, NULL, 0);
 
 	zone->check_names = dns_severity_ignore;
 	if (zone->update_acl != NULL) {
@@ -5996,23 +5981,6 @@ dns_zone_getxfrsource4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->xfrsource4dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getxfrsource4dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->xfrsource4dscp);
-}
-
-isc_result_t
 dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -6027,23 +5995,6 @@ isc_sockaddr_t *
 dns_zone_getxfrsource6(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (&zone->xfrsource6);
-}
-
-isc_dscp_t
-dns_zone_getxfrsource6dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->xfrsource6dscp);
-}
-
-isc_result_t
-dns_zone_setxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->xfrsource6dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -6064,23 +6015,6 @@ dns_zone_getparentalsrc4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setparentalsrc4dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->parentalsrc4dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getparentalsrc4dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->parentalsrc4dscp);
-}
-
-isc_result_t
 dns_zone_setparentalsrc6(dns_zone_t *zone, const isc_sockaddr_t *parentalsrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -6095,23 +6029,6 @@ isc_sockaddr_t *
 dns_zone_getparentalsrc6(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	return (&zone->parentalsrc6);
-}
-
-isc_result_t
-dns_zone_setparentalsrc6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->parentalsrc6dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getparentalsrc6dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->parentalsrc6dscp);
 }
 
 isc_result_t
@@ -6132,23 +6049,6 @@ dns_zone_getnotifysrc4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->notifysrc4dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getnotifysrc4dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->notifysrc4dscp);
-}
-
-isc_result_t
 dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -6165,28 +6065,10 @@ dns_zone_getnotifysrc6(dns_zone_t *zone) {
 	return (&zone->notifysrc6);
 }
 
-isc_result_t
-dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	zone->notifysrc6dscp = dscp;
-	UNLOCK_ZONE(zone);
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_dscp_t
-dns_zone_getnotifysrc6dscp(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->notifysrc6dscp);
-}
-
 void
 dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
-		       isc_sockaddr_t *sources, isc_dscp_t *dscps,
-		       dns_name_t **keynames, dns_name_t **tlsnames,
-		       uint32_t count) {
+		       isc_sockaddr_t *sources, dns_name_t **keynames,
+		       dns_name_t **tlsnames, uint32_t count) {
 	dns_remote_t remote;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6196,7 +6078,6 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	remote.magic = DNS_REMOTE_MAGIC;
 	remote.addresses = addresses;
 	remote.sources = sources;
-	remote.dscps = dscps;
 	remote.keynames = keynames;
 	remote.tlsnames = tlsnames;
 	remote.addrcnt = count;
@@ -6217,8 +6098,8 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	/*
 	 * Now set up the notify address and key lists.
 	 */
-	dns_remote_init(&zone->notify, count, addresses, sources, dscps,
-			keynames, tlsnames, true, zone->mctx);
+	dns_remote_init(&zone->notify, count, addresses, sources, keynames,
+			tlsnames, true, zone->mctx);
 
 unlock:
 	UNLOCK_ZONE(zone);
@@ -6237,7 +6118,6 @@ dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	remote.magic = DNS_REMOTE_MAGIC;
 	remote.addresses = addresses;
 	remote.sources = sources;
-	remote.dscps = NULL;
 	remote.keynames = keynames;
 	remote.tlsnames = tlsnames;
 	remote.addrcnt = count;
@@ -6268,8 +6148,8 @@ dns_zone_setprimaries(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	/*
 	 * Now set up the primaries and primary key lists.
 	 */
-	dns_remote_init(&zone->primaries, count, addresses, sources, NULL,
-			keynames, tlsnames, true, zone->mctx);
+	dns_remote_init(&zone->primaries, count, addresses, sources, keynames,
+			tlsnames, true, zone->mctx);
 
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOPRIMARIES);
 
@@ -6290,7 +6170,6 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	remote.magic = DNS_REMOTE_MAGIC;
 	remote.addresses = addresses;
 	remote.sources = sources;
-	remote.dscps = NULL;
 	remote.keynames = keynames;
 	remote.tlsnames = tlsnames;
 	remote.addrcnt = count;
@@ -6311,8 +6190,8 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 	/*
 	 * Now set up the parentals and parental key lists.
 	 */
-	dns_remote_init(&zone->parentals, count, addresses, sources, NULL,
-			keynames, tlsnames, true, zone->mctx);
+	dns_remote_init(&zone->parentals, count, addresses, sources, keynames,
+			tlsnames, true, zone->mctx);
 
 	dns_zone_log(zone, ISC_LOG_NOTICE, "checkds: set %u parentals", count);
 
@@ -12507,8 +12386,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t src;
 	unsigned int options, timeout;
 	bool have_notifysource = false;
-	bool have_notifydscp = false;
-	isc_dscp_t dscp = -1;
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -12591,10 +12468,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			if (result == ISC_R_SUCCESS) {
 				have_notifysource = true;
 			}
-			dns_peer_getnotifydscp(peer, &dscp);
-			if (dscp != -1) {
-				have_notifydscp = true;
-			}
 			result = dns_peer_getforcetcp(peer, &usetcp);
 			if (result == ISC_R_SUCCESS && usetcp) {
 				options |= DNS_FETCHOPT_TCP;
@@ -12612,9 +12485,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 				src = notify->zone->notifysrc4;
 			}
 		}
-		if (!have_notifydscp) {
-			dscp = notify->zone->notifysrc4dscp;
-		}
 		break;
 	case PF_INET6:
 		if (!have_notifysource) {
@@ -12625,9 +12495,6 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			if (isc_sockaddr_equal(&src, &any)) {
 				src = notify->zone->notifysrc6;
 			}
-		}
-		if (!have_notifydscp) {
-			dscp = notify->zone->notifysrc6dscp;
 		}
 		break;
 	default:
@@ -12640,7 +12507,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	}
 	result = dns_request_create(
 		notify->zone->view->requestmgr, message, &src, &notify->dst,
-		NULL, NULL, dscp, options, key, timeout * 3, timeout, 2,
+		NULL, NULL, options, key, timeout * 3, timeout, 2,
 		notify->zone->task, notify_done, notify, &notify->request);
 	if (result == ISC_R_SUCCESS) {
 		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
@@ -13360,7 +13227,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, args->dscp, DNS_REQUESTOPT_TCP, args->tsig_key,
+		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
 		args->timeout * 3, args->timeout, 2, zone->task,
 		stub_glue_response_cb, request, &request->request);
 
@@ -14349,9 +14216,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	uint32_t options;
 	bool cancel = true;
 	int timeout;
-	bool have_xfrsource, have_xfrdscp, reqnsid, reqexpire;
+	bool have_xfrsource = false, reqnsid, reqexpire;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_dscp_t dscp = -1;
 	isc_sockaddr_t curraddr, sourceaddr;
 	bool do_queue_xfrin = false;
 
@@ -14429,7 +14295,6 @@ again:
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ? DNS_REQUESTOPT_TCP
 							 : 0;
-	have_xfrsource = have_xfrdscp = false;
 	reqnsid = zone->view->requestnsid;
 	reqexpire = zone->requestexpire;
 	if (zone->view->peers != NULL) {
@@ -14446,10 +14311,6 @@ again:
 							    &zone->sourceaddr);
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
-			}
-			(void)dns_peer_gettransferdscp(peer, &dscp);
-			if (dscp != -1) {
-				have_xfrdscp = true;
 			}
 			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
@@ -14473,9 +14334,6 @@ again:
 				zone->sourceaddr = zone->xfrsource4;
 			}
 		}
-		if (!have_xfrdscp) {
-			dscp = zone->xfrsource4dscp;
-		}
 		break;
 	case PF_INET6:
 		if (!have_xfrsource) {
@@ -14486,9 +14344,6 @@ again:
 			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
 				zone->sourceaddr = zone->xfrsource6;
 			}
-		}
-		if (!have_xfrdscp) {
-			dscp = zone->xfrsource6dscp;
 		}
 		break;
 	default:
@@ -14527,8 +14382,8 @@ again:
 	}
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, dscp, options, key, timeout * 3, timeout, 2,
-		zone->task, refresh_callback, zone, &zone->request);
+		NULL, NULL, options, key, timeout * 3, timeout, 2, zone->task,
+		refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		zone_debuglog(zone, __func__, 1,
@@ -14596,10 +14451,9 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
 	int timeout;
-	bool have_xfrsource = false, have_xfrdscp = false;
+	bool have_xfrsource = false;
 	bool reqnsid;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
-	isc_dscp_t dscp = -1;
 	isc_sockaddr_t curraddr, sourceaddr;
 	struct stub_cb_args *cb_args;
 
@@ -14734,10 +14588,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (result == ISC_R_SUCCESS) {
 				have_xfrsource = true;
 			}
-			result = dns_peer_gettransferdscp(peer, &dscp);
-			if (result == ISC_R_SUCCESS && dscp != -1) {
-				have_xfrdscp = true;
-			}
 			udpsize = dns_view_getudpsize(zone->view);
 			(void)dns_peer_getudpsize(peer, &udpsize);
 			(void)dns_peer_getrequestnsid(peer, &reqnsid);
@@ -14766,9 +14616,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 				zone->sourceaddr = zone->xfrsource4;
 			}
 		}
-		if (!have_xfrdscp) {
-			dscp = zone->xfrsource4dscp;
-		}
 		break;
 	case PF_INET6:
 		if (!have_xfrsource) {
@@ -14779,9 +14626,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			if (isc_sockaddr_equal(&zone->sourceaddr, &any)) {
 				zone->sourceaddr = zone->xfrsource6;
 			}
-		}
-		if (!have_xfrdscp) {
-			dscp = zone->xfrsource6dscp;
 		}
 		break;
 	default:
@@ -14801,15 +14645,14 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args = isc_mem_get(zone->mctx, sizeof(*cb_args));
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;
-	cb_args->dscp = dscp;
 	cb_args->udpsize = udpsize;
 	cb_args->timeout = timeout;
 	cb_args->reqnsid = reqnsid;
 
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
-		NULL, NULL, dscp, DNS_REQUESTOPT_TCP, key, timeout * 3, timeout,
-		2, zone->task, stub_callback, cb_args, &zone->request);
+		NULL, NULL, DNS_REQUESTOPT_TCP, key, timeout * 3, timeout, 2,
+		zone->task, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, __func__, 1,
 			      "dns_request_create() failed: %s",
@@ -17840,7 +17683,6 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t sourceaddr;
 	isc_time_t now;
 	const char *soa_before = "";
-	isc_dscp_t dscp = -1;
 	bool loaded;
 
 	UNUSED(task);
@@ -17970,24 +17812,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			isc_result_totext(result));
 	}
 
-	dscp = dns_remote_dscp(&zone->primaries);
-
 	LOCK_ZONE(zone);
 	sourceaddr = zone->sourceaddr;
-	switch (isc_sockaddr_pf(&primaryaddr)) {
-	case PF_INET:
-		if (dscp == -1) {
-			dscp = zone->xfrsource4dscp;
-		}
-		break;
-	case PF_INET6:
-		if (dscp == -1) {
-			dscp = zone->xfrsource6dscp;
-		}
-		break;
-	default:
-		UNREACHABLE();
-	}
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&primaryaddr) == isc_sockaddr_pf(&sourceaddr));
 
@@ -17995,7 +17821,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		dns_xfrin_detach(&zone->xfr);
 	}
 
-	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr, dscp,
+	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
 			       zone->tsigkey, zone->transport,
 			       zone->zmgr->tlsctx_cache, zone->mctx,
 			       zone->zmgr->netmgr, zone_xfrdone, &zone->xfr));
@@ -18059,7 +17885,6 @@ static isc_result_t
 sendtoprimary(dns_forward_t *forward) {
 	isc_result_t result;
 	isc_sockaddr_t src, any;
-	isc_dscp_t dscp = -1;
 	dns_zone_t *zone = forward->zone;
 	bool tls_transport_invalid = false;
 
@@ -18089,7 +17914,6 @@ sendtoprimary(dns_forward_t *forward) {
 		if (isc_sockaddr_equal(&src, &any)) {
 			src = zone->xfrsource4;
 		}
-		dscp = zone->xfrsource4dscp;
 		break;
 	case PF_INET6:
 		isc_sockaddr_any6(&any);
@@ -18097,7 +17921,6 @@ sendtoprimary(dns_forward_t *forward) {
 		if (isc_sockaddr_equal(&src, &any)) {
 			src = zone->xfrsource6;
 		}
-		dscp = zone->xfrsource6dscp;
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
@@ -18127,7 +17950,7 @@ sendtoprimary(dns_forward_t *forward) {
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
 		&forward->addr, forward->transport, zone->zmgr->tlsctx_cache,
-		dscp, forward->options, 15 /* XXX */, 0, 0, forward->zone->task,
+		forward->options, 15 /* XXX */, 0, 0, forward->zone->task,
 		forward_callback, forward, &forward->request);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LINK_LINKED(forward, link)) {
@@ -20727,8 +20550,6 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t src;
 	unsigned int options, timeout;
 	bool have_checkdssource = false;
-	bool have_checkdsdscp = false;
-	isc_dscp_t dscp = -1;
 
 	checkds = event->ev_arg;
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
@@ -20810,10 +20631,6 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			if (result == ISC_R_SUCCESS) {
 				have_checkdssource = true;
 			}
-			dns_peer_getquerydscp(peer, &dscp);
-			if (dscp != -1) {
-				have_checkdsdscp = true;
-			}
 			result = dns_peer_getforcetcp(peer, &usetcp);
 			if (result == ISC_R_SUCCESS && usetcp) {
 				options |= DNS_FETCHOPT_TCP;
@@ -20831,9 +20648,6 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 				src = checkds->zone->parentalsrc4;
 			}
 		}
-		if (!have_checkdsdscp) {
-			dscp = checkds->zone->parentalsrc4dscp;
-		}
 		break;
 	case PF_INET6:
 		if (!have_checkdssource) {
@@ -20844,9 +20658,6 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 			if (isc_sockaddr_equal(&src, &any)) {
 				src = checkds->zone->parentalsrc6;
 			}
-		}
-		if (!have_checkdsdscp) {
-			dscp = checkds->zone->parentalsrc6dscp;
 		}
 		break;
 	default:
@@ -20861,7 +20672,7 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	options |= DNS_REQUESTOPT_TCP;
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		NULL, NULL, dscp, options, key, timeout * 3, timeout, 2,
+		NULL, NULL, options, key, timeout * 3, timeout, 2,
 		checkds->zone->task, checkds_done, checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),

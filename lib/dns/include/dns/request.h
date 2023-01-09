@@ -132,11 +132,10 @@ isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   const isc_sockaddr_t *srcaddr,
 		   const isc_sockaddr_t *destaddr, dns_transport_t *transport,
-		   isc_tlsctx_cache_t *tlsctx_cache, isc_dscp_t dscp,
-		   unsigned int options, dns_tsigkey_t *key,
-		   unsigned int timeout, unsigned int udptimeout,
-		   unsigned int udpretries, isc_task_t *task,
-		   isc_taskaction_t action, void *arg,
+		   isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
+		   dns_tsigkey_t *key, unsigned int timeout,
+		   unsigned int udptimeout, unsigned int udpretries,
+		   isc_task_t *task, isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp);
 /*%<
  * Create and send a request.
@@ -181,10 +180,10 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      const isc_sockaddr_t *srcaddr,
 		      const isc_sockaddr_t *destaddr,
 		      dns_transport_t	   *transport,
-		      isc_tlsctx_cache_t *tlsctx_cache, isc_dscp_t dscp,
-		      unsigned int options, unsigned int timeout,
-		      unsigned int udptimeout, unsigned int udpretries,
-		      isc_task_t *task, isc_taskaction_t action, void *arg,
+		      isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
+		      unsigned int timeout, unsigned int udptimeout,
+		      unsigned int udpretries, isc_task_t *task,
+		      isc_taskaction_t action, void *arg,
 		      dns_request_t **requestp);
 /*!<
  * \brief Create and send a request.

@@ -184,8 +184,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr, isc_dscp_t dscp,
-		       dns_dispatch_t **dispp);
+		       const isc_sockaddr_t *destaddr, dns_dispatch_t **dispp);
 /*%<
  * Create a new TCP dns_dispatch.
  *
@@ -234,7 +233,7 @@ dns_dispatch_connect(dns_dispentry_t *resp);
  */
 
 void
-dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r, isc_dscp_t dscp);
+dns_dispatch_send(dns_dispentry_t *resp, isc_region_t *r);
 /*%<
  * Send region 'r' using the socket in 'resp', then run the specified
  * callback.

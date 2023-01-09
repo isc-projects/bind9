@@ -123,9 +123,8 @@ sendquery(void *arg) {
 	CHECK("dns_tkey_builddeletequery", result);
 
 	result = dns_request_create(requestmgr, query, NULL, &address, NULL,
-				    NULL, -1, DNS_REQUESTOPT_TCP, tsigkey,
-				    TIMEOUT, 0, 0, task, recvquery, query,
-				    &request);
+				    NULL, DNS_REQUESTOPT_TCP, tsigkey, TIMEOUT,
+				    0, 0, task, recvquery, query, &request);
 	CHECK("dns_request_create", result);
 }
 
