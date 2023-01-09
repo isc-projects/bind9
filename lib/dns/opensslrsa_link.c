@@ -155,7 +155,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_region_t r;
 	unsigned int siglen = 0;
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	EVP_PKEY *pkey = key->keydata.pkey;
+	EVP_PKEY *pkey = key->keydata.pkeypair.priv;
 
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
@@ -205,7 +205,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	int status = 0;
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
-	EVP_PKEY *pkey = key->keydata.pkey;
+	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
 
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
@@ -233,21 +233,8 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 static bool
 opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	bool ret;
-	int status;
-	EVP_PKEY *pkey1 = key1->keydata.pkey;
-	EVP_PKEY *pkey2 = key2->keydata.pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	RSA *rsa1 = NULL;
-	RSA *rsa2 = NULL;
-	const BIGNUM *d1 = NULL, *d2 = NULL;
-	const BIGNUM *p1 = NULL, *p2 = NULL;
-	const BIGNUM *q1 = NULL, *q2 = NULL;
-#else
-	BIGNUM *d1 = NULL, *d2 = NULL;
-	BIGNUM *p1 = NULL, *p2 = NULL;
-	BIGNUM *q1 = NULL, *q2 = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
+	EVP_PKEY *pkey1 = key1->keydata.pkeypair.pub;
+	EVP_PKEY *pkey2 = key2->keydata.pkeypair.pub;
 
 	if (pkey1 == NULL && pkey2 == NULL) {
 		return (true);
@@ -255,81 +242,17 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (false);
 	}
 
-	/* `EVP_PKEY_eq` checks only the public key components and paramters. */
-	status = EVP_PKEY_eq(pkey1, pkey2);
-	if (status != 1) {
-		DST_RET(false);
+	/* `EVP_PKEY_eq` checks only the public components and parameters. */
+	if (EVP_PKEY_eq(pkey1, pkey2) != 1) {
+		return (false);
 	}
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	rsa1 = EVP_PKEY_get1_RSA(pkey1);
-	rsa2 = EVP_PKEY_get1_RSA(pkey2);
-	if (rsa1 == NULL && rsa2 == NULL) {
-		DST_RET(true);
-	} else if (rsa1 == NULL || rsa2 == NULL) {
-		DST_RET(false);
+	/* The private key presence must be same for keys to match. */
+	if ((key1->keydata.pkeypair.priv != NULL) !=
+	    (key2->keydata.pkeypair.priv != NULL))
+	{
+		return (false);
 	}
-	RSA_get0_key(rsa1, NULL, NULL, &d1);
-	RSA_get0_key(rsa2, NULL, NULL, &d2);
-#else
-	EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_RSA_D, &d1);
-	EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_D, &d2);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	if (d1 != NULL || d2 != NULL) {
-		if (d1 == NULL || d2 == NULL) {
-			DST_RET(false);
-		}
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-		RSA_get0_factors(rsa1, &p1, &q1);
-		RSA_get0_factors(rsa2, &p2, &q2);
-#else
-		EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_RSA_FACTOR1, &p1);
-		EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_RSA_FACTOR2, &q1);
-		EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_FACTOR1, &p2);
-		EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_FACTOR2, &q2);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-		if (BN_cmp(d1, d2) != 0 || BN_cmp(p1, p2) != 0 ||
-		    BN_cmp(q1, q2) != 0)
-		{
-			DST_RET(false);
-		}
-	}
-
-	ret = true;
-
-err:
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	if (rsa1 != NULL) {
-		RSA_free(rsa1);
-	}
-	if (rsa2 != NULL) {
-		RSA_free(rsa2);
-	}
-#else
-	if (d1 != NULL) {
-		BN_clear_free(d1);
-	}
-	if (d2 != NULL) {
-		BN_clear_free(d2);
-	}
-	if (p1 != NULL) {
-		BN_clear_free(p1);
-	}
-	if (p2 != NULL) {
-		BN_clear_free(p2);
-	}
-	if (q1 != NULL) {
-		BN_clear_free(q1);
-	}
-	if (q2 != NULL) {
-		BN_clear_free(q2);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	return (ret);
+	return (true);
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -478,7 +401,8 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	key->keydata.pkey = pkey;
+	key->keydata.pkeypair.pub = pkey;
+	key->keydata.pkeypair.priv = pkey;
 	pkey = NULL;
 	ret = ISC_R_SUCCESS;
 
@@ -506,52 +430,19 @@ err:
 
 static bool
 opensslrsa_isprivate(const dst_key_t *key) {
-	bool ret;
-	EVP_PKEY *pkey;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	RSA *rsa;
-	const BIGNUM *d = NULL;
-#else
-	BIGNUM *d = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
 	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
-	pkey = key->keydata.pkey;
-	if (pkey == NULL) {
-		return (false);
-	}
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	INSIST(rsa != NULL);
-
-	if (RSA_test_flags(rsa, RSA_FLAG_EXT_PKEY) != 0) {
-		ret = true;
-	} else {
-		RSA_get0_key(rsa, NULL, NULL, &d);
-		ret = (d != NULL);
-	}
-	RSA_free(rsa);
-#else
-	ret = (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_D, &d) == 1 &&
-	       d != NULL);
-	if (d != NULL) {
-		BN_clear_free(d);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	return (ret);
+	return (key->keydata.pkeypair.priv != NULL);
 }
 
 static void
 opensslrsa_destroy(dst_key_t *key) {
-	EVP_PKEY *pkey = key->keydata.pkey;
-
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
-		key->keydata.pkey = NULL;
+	if (key->keydata.pkeypair.pub != key->keydata.pkeypair.priv) {
+		EVP_PKEY_free(key->keydata.pkeypair.priv);
 	}
+	EVP_PKEY_free(key->keydata.pkeypair.pub);
+	key->keydata.pkeypair.pub = NULL;
+	key->keydata.pkeypair.priv = NULL;
 }
 
 static isc_result_t
@@ -568,9 +459,9 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	BIGNUM *e = NULL, *n = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	REQUIRE(key->keydata.pkey != NULL);
+	REQUIRE(key->keydata.pkeypair.pub != NULL);
 
-	pkey = key->keydata.pkey;
+	pkey = key->keydata.pkeypair.pub;
 	isc_buffer_availableregion(data, &r);
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
@@ -748,7 +639,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	key->keydata.pkey = pkey;
+	key->keydata.pkeypair.pub = pkey;
 	pkey = NULL;
 	ret = ISC_R_SUCCESS;
 
@@ -800,7 +691,11 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	BIGNUM *dmp1 = NULL, *dmq1 = NULL, *iqmp = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	if (key->keydata.pkey == NULL) {
+	if (key->keydata.pkeypair.priv != NULL) {
+		pkey = key->keydata.pkeypair.priv;
+	} else if (key->keydata.pkeypair.pub != NULL) {
+		pkey = key->keydata.pkeypair.pub;
+	} else {
 		DST_RET(DST_R_NULLKEY);
 	}
 
@@ -808,7 +703,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 		return (dst__privstruct_writefile(key, &priv, directory));
 	}
 
-	pkey = key->keydata.pkey;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	rsa = EVP_PKEY_get1_RSA(pkey);
 	if (rsa == NULL) {
@@ -964,131 +858,9 @@ err:
 	return (ret);
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 static isc_result_t
-rsa_check(RSA *rsa, RSA *pub) {
-	const BIGNUM *n1 = NULL, *n2 = NULL;
-	const BIGNUM *e1 = NULL, *e2 = NULL;
-	BIGNUM *n = NULL, *e = NULL;
-
-	/*
-	 * Public parameters should be the same but if they are not set
-	 * copy them from the public key.
-	 */
-	if (pub != NULL) {
-		RSA_get0_key(rsa, &n1, &e1, NULL);
-		RSA_get0_key(pub, &n2, &e2, NULL);
-		if (n1 != NULL) {
-			if (BN_cmp(n1, n2) != 0) {
-				return (DST_R_INVALIDPRIVATEKEY);
-			}
-		} else {
-			n = BN_dup(n2);
-			if (n == NULL) {
-				return (ISC_R_NOMEMORY);
-			}
-		}
-		if (e1 != NULL) {
-			if (BN_cmp(e1, e2) != 0) {
-				if (n != NULL) {
-					BN_free(n);
-				}
-				return (DST_R_INVALIDPRIVATEKEY);
-			}
-		} else {
-			e = BN_dup(e2);
-			if (e == NULL) {
-				if (n != NULL) {
-					BN_free(n);
-				}
-				return (ISC_R_NOMEMORY);
-			}
-		}
-		if (RSA_set0_key(rsa, n, e, NULL) == 0) {
-			if (n != NULL) {
-				BN_free(n);
-			}
-			if (e != NULL) {
-				BN_free(e);
-			}
-		}
-	}
-
-	RSA_get0_key(rsa, &n1, &e1, NULL);
-	if (n1 == NULL || e1 == NULL) {
-		return (DST_R_INVALIDPRIVATEKEY);
-	}
-
-	return (ISC_R_SUCCESS);
-}
-#else
-static isc_result_t
-rsa_check(EVP_PKEY *pkey, EVP_PKEY *pubpkey) {
-	isc_result_t ret = ISC_R_FAILURE;
-	int status;
-	BIGNUM *n1 = NULL, *n2 = NULL;
-	BIGNUM *e1 = NULL, *e2 = NULL;
-
-	/* Try to get the public key from pkey. */
-	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_N, &n1);
-	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e1);
-
-	/* Check if `pubpkey` exists and that we can extract its public key. */
-	if (pubpkey == NULL ||
-	    EVP_PKEY_get_bn_param(pubpkey, OSSL_PKEY_PARAM_RSA_N, &n2) != 1 ||
-	    n2 == NULL ||
-	    EVP_PKEY_get_bn_param(pubpkey, OSSL_PKEY_PARAM_RSA_E, &e2) != 1 ||
-	    e2 == NULL)
-	{
-		if (n1 == NULL || e1 == NULL) {
-			/* No public key both in `pkey` and in `pubpkey`. */
-			DST_RET(DST_R_INVALIDPRIVATEKEY);
-		} else {
-			/*
-			 * `pkey` has a public key, but there is no public key
-			 * in `pubpkey` to check against.
-			 */
-			DST_RET(ISC_R_SUCCESS);
-		}
-	}
-
-	/*
-	 * If `pkey` doesn't have a public key then we will copy it from
-	 * `pubpkey`.
-	 */
-	if (n1 == NULL || e1 == NULL) {
-		status = EVP_PKEY_set_bn_param(pkey, OSSL_PKEY_PARAM_RSA_N, n2);
-		if (status != 1) {
-			DST_RET(ISC_R_FAILURE);
-		}
-
-		status = EVP_PKEY_set_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, e2);
-		if (status != 1) {
-			DST_RET(ISC_R_FAILURE);
-		}
-	}
-
-	if (EVP_PKEY_eq(pkey, pubpkey) == 1) {
-		DST_RET(ISC_R_SUCCESS);
-	}
-
-err:
-	if (n1 != NULL) {
-		BN_free(n1);
-	}
-	if (n2 != NULL) {
-		BN_free(n2);
-	}
-	if (e1 != NULL) {
-		BN_free(e1);
-	}
-	if (e2 != NULL) {
-		BN_free(e2);
-	}
-
-	return (ret);
-}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
+opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
+		     const char *pin);
 
 static isc_result_t
 opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
@@ -1096,17 +868,13 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	isc_result_t ret;
 	int i;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	RSA *rsa = NULL, *pubrsa = NULL;
-	const BIGNUM *ex = NULL;
+	RSA *rsa = NULL;
 #else
 	OSSL_PARAM_BLD *bld = NULL;
 	OSSL_PARAM *params = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
 	BIGNUM *ex = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	ENGINE *ep = NULL;
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	isc_mem_t *mctx = key->mctx;
 	const char *engine = NULL, *label = NULL;
 	EVP_PKEY *pkey = NULL;
@@ -1126,17 +894,13 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (priv.nelements != 0 || pub == NULL) {
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		}
-		key->keydata.pkey = pub->keydata.pkey;
-		pub->keydata.pkey = NULL;
+		key->keydata.pkeypair.pub = pub->keydata.pkeypair.pub;
+		key->keydata.pkeypair.priv = pub->keydata.pkeypair.priv;
+		pub->keydata.pkeypair.pub = NULL;
+		pub->keydata.pkeypair.priv = NULL;
 		key->key_size = pub->key_size;
 		DST_RET(ISC_R_SUCCESS);
 	}
-
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	if (pub != NULL && pub->keydata.pkey != NULL) {
-		pubrsa = EVP_PKEY_get1_RSA(pub->keydata.pkey);
-	}
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
@@ -1156,48 +920,17 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	 * See if we can fetch it.
 	 */
 	if (label != NULL) {
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-		if (engine == NULL) {
-			DST_RET(DST_R_NOENGINE);
+		ret = opensslrsa_fromlabel(key, engine, label, NULL);
+		if (ret != ISC_R_SUCCESS) {
+			DST_RET(ret);
 		}
-		ep = dst__openssl_getengine(engine);
-		if (ep == NULL) {
-			DST_RET(dst__openssl_toresult(DST_R_NOENGINE));
+		/* Check that the public component matches if given */
+		if (pub != NULL && EVP_PKEY_eq(key->keydata.pkeypair.pub,
+					       pub->keydata.pkeypair.pub) != 1)
+		{
+			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		}
-		pkey = ENGINE_load_private_key(ep, label, NULL, NULL);
-		if (pkey == NULL) {
-			DST_RET(dst__openssl_toresult2("ENGINE_load_private_"
-						       "key",
-						       ISC_R_NOTFOUND));
-		}
-		key->engine = isc_mem_strdup(key->mctx, engine);
-		key->label = isc_mem_strdup(key->mctx, label);
-
-		rsa = EVP_PKEY_get1_RSA(pkey);
-		if (rsa == NULL) {
-			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-		}
-		if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS) {
-			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-		}
-		RSA_get0_key(rsa, NULL, &ex, NULL);
-
-		if (ex == NULL) {
-			DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-		}
-		if (BN_num_bits(ex) > RSA_MAX_PUBEXP_BITS) {
-			DST_RET(ISC_R_RANGE);
-		}
-
-		key->key_size = EVP_PKEY_bits(pkey);
-		key->keydata.pkey = pkey;
-		pkey = NULL;
 		DST_RET(ISC_R_SUCCESS);
-#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-		UNUSED(engine);
-		UNUSED(ex);
-		DST_RET(DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	}
 
 	for (i = 0; i < priv.nelements; i++) {
@@ -1244,6 +977,14 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		}
 	}
 
+	/* Basic sanity check for public key portion */
+	if (n == NULL || e == NULL) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	}
+	if (BN_num_bits(e) > RSA_MAX_PUBEXP_BITS) {
+		DST_RET(ISC_R_RANGE);
+	}
+
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	rsa = RSA_new();
 	if (rsa == NULL) {
@@ -1266,6 +1007,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (d != NULL) {
 			BN_clear_free(d);
 		}
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 	if (RSA_set0_factors(rsa, p, q) == 0) {
 		if (p != NULL) {
@@ -1285,9 +1027,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (iqmp != NULL) {
 			BN_clear_free(iqmp);
 		}
-	}
-	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 	}
 #else
 	bld = OSSL_PARAM_BLD_new();
@@ -1354,20 +1093,16 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	{
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
-
-	if (rsa_check(pkey, pub != NULL ? pub->keydata.pkey : NULL) !=
-	    ISC_R_SUCCESS)
-	{
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	if (BN_num_bits(e) > RSA_MAX_PUBEXP_BITS) {
-		DST_RET(ISC_R_RANGE);
+	/* Check that the public component matches if given */
+	if (pub != NULL && EVP_PKEY_eq(pkey, pub->keydata.pkeypair.pub) != 1) {
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
 
 	key->key_size = BN_num_bits(n);
-	key->keydata.pkey = pkey;
+	key->keydata.pkeypair.pub = pkey;
+	key->keydata.pkeypair.priv = pkey;
 	pkey = NULL;
 
 err:
@@ -1377,9 +1112,6 @@ err:
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	if (rsa != NULL) {
 		RSA_free(rsa);
-	}
-	if (pubrsa != NULL) {
-		RSA_free(pubrsa);
 	}
 #else
 	if (ctx != NULL) {
@@ -1435,9 +1167,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	ENGINE *e = NULL;
 	isc_result_t ret = ISC_R_SUCCESS;
-	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
-	RSA *rsa = NULL, *pubrsa = NULL;
-	const BIGNUM *ex = NULL;
+	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 
 	UNUSED(pin);
 
@@ -1454,49 +1184,27 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
 					       DST_R_OPENSSLFAILURE));
 	}
-	pubrsa = EVP_PKEY_get1_RSA(pubpkey);
-	if (pubrsa == NULL) {
-		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	if (!opensslrsa_check_exponent_bits(pubpkey, RSA_MAX_PUBEXP_BITS)) {
+		DST_RET(ISC_R_RANGE);
 	}
 
-	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
-	if (pkey == NULL) {
+	privpkey = ENGINE_load_private_key(e, label, NULL, NULL);
+	if (privpkey == NULL) {
 		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
 					       DST_R_OPENSSLFAILURE));
 	}
 
 	key->engine = isc_mem_strdup(key->mctx, engine);
 	key->label = isc_mem_strdup(key->mctx, label);
-
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL) {
-		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	}
-	if (rsa_check(rsa, pubrsa) != ISC_R_SUCCESS) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-	RSA_get0_key(rsa, NULL, &ex, NULL);
-
-	if (ex == NULL) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-	if (BN_num_bits(ex) > RSA_MAX_PUBEXP_BITS) {
-		DST_RET(ISC_R_RANGE);
-	}
-
-	key->key_size = EVP_PKEY_bits(pkey);
-	key->keydata.pkey = pkey;
-	pkey = NULL;
+	key->key_size = EVP_PKEY_bits(privpkey);
+	key->keydata.pkeypair.priv = privpkey;
+	key->keydata.pkeypair.pub = pubpkey;
+	privpkey = NULL;
+	pubpkey = NULL;
 
 err:
-	if (rsa != NULL) {
-		RSA_free(rsa);
-	}
-	if (pubrsa != NULL) {
-		RSA_free(pubrsa);
-	}
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
+	if (privpkey != NULL) {
+		EVP_PKEY_free(privpkey);
 	}
 	if (pubpkey != NULL) {
 		EVP_PKEY_free(pubpkey);
