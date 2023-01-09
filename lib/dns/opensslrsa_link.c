@@ -48,16 +48,26 @@
 		goto err; \
 	}
 
+static bool
+opensslrsa_valid_key_alg(unsigned int key_alg) {
+	switch (key_alg) {
+	case DST_ALG_RSASHA1:
+	case DST_ALG_NSEC3RSASHA1:
+	case DST_ALG_RSASHA256:
+	case DST_ALG_RSASHA512:
+		return (true);
+	default:
+		return (false);
+	}
+}
+
 static isc_result_t
 opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	EVP_MD_CTX *evp_md_ctx;
 	const EVP_MD *type = NULL;
 
 	UNUSED(key);
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_RSASHA256 ||
-		dctx->key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
 	/*
 	 * Reject incorrect RSA key lengths.
@@ -120,10 +130,7 @@ static void
 opensslrsa_destroyctx(dst_context_t *dctx) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_RSASHA256 ||
-		dctx->key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
 	if (evp_md_ctx != NULL) {
 		EVP_MD_CTX_destroy(evp_md_ctx);
@@ -135,10 +142,7 @@ static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_RSASHA256 ||
-		dctx->key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
 	if (!EVP_DigestUpdate(evp_md_ctx, data->base, data->length)) {
 		return (dst__openssl_toresult3(
@@ -155,10 +159,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	EVP_PKEY *pkey = key->keydata.pkey;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_RSASHA256 ||
-		dctx->key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
 	isc_buffer_availableregion(sig, &r);
 
@@ -190,10 +191,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 	int bits;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		dctx->key->key_alg == DST_ALG_RSASHA256 ||
-		dctx->key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	rsa = EVP_PKEY_get1_RSA(pkey);
@@ -522,10 +520,7 @@ opensslrsa_isprivate(const dst_key_t *key) {
 	BIGNUM *d = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
 	pkey = key->keydata.pkey;
 	if (pkey == NULL) {
@@ -660,10 +655,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	EVP_PKEY *pkey = NULL;
 	BIGNUM *e = NULL, *n = NULL;
 
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0) {
@@ -1127,10 +1119,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	BIGNUM *p = NULL, *q = NULL;
 	BIGNUM *dmp1 = NULL, *dmq1 = NULL, *iqmp = NULL;
 
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
+	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
 
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_RSA, lexer, mctx, &priv);
