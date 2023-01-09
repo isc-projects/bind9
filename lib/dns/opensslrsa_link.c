@@ -343,30 +343,6 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (opensslrsa_verify2(dctx, 0, sig));
 }
 
-static bool
-opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	EVP_PKEY *pkey1 = key1->keydata.pkeypair.pub;
-	EVP_PKEY *pkey2 = key2->keydata.pkeypair.pub;
-
-	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
-	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
-	}
-
-	/* `EVP_PKEY_eq` checks only the public components and parameters. */
-	if (EVP_PKEY_eq(pkey1, pkey2) != 1) {
-		return (false);
-	}
-	/* The private key presence must be same for keys to match. */
-	if ((key1->keydata.pkeypair.priv != NULL) !=
-	    (key2->keydata.pkeypair.priv != NULL))
-	{
-		return (false);
-	}
-	return (true);
-}
-
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 static int
 progress_cb(int p, int n, BN_GENCB *cb) {
@@ -1139,7 +1115,7 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_verify,
 	opensslrsa_verify2,
 	NULL, /*%< computesecret */
-	opensslrsa_compare,
+	dst__openssl_compare_keypair,
 	NULL, /*%< paramcompare */
 	opensslrsa_generate,
 	opensslrsa_isprivate,

@@ -353,4 +353,28 @@ dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 					      ppub, ppriv));
 }
 
+bool
+dst__openssl_compare_keypair(const dst_key_t *key1, const dst_key_t *key2) {
+	EVP_PKEY *pkey1 = key1->keydata.pkeypair.pub;
+	EVP_PKEY *pkey2 = key2->keydata.pkeypair.pub;
+
+	if (pkey1 == NULL && pkey2 == NULL) {
+		return (true);
+	} else if (pkey1 == NULL || pkey2 == NULL) {
+		return (false);
+	}
+
+	/* `EVP_PKEY_eq` checks only the public components and parameters. */
+	if (EVP_PKEY_eq(pkey1, pkey2) != 1) {
+		return (false);
+	}
+	/* The private key presence must be same for keys to match. */
+	if ((key1->keydata.pkeypair.priv != NULL) !=
+	    (key2->keydata.pkeypair.priv != NULL))
+	{
+		return (false);
+	}
+	return (true);
+}
+
 /*! \file */
