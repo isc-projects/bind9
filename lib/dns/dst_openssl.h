@@ -42,7 +42,7 @@ dst__openssl_getengine(const char *engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 isc_result_t
-dst__openssl_fromlabel(const char *engine, const char *label, const char *pin,
-		       EVP_PKEY **ppub, EVP_PKEY **ppriv);
+dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
+		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv);
 
 ISC_LANG_ENDDECLS
