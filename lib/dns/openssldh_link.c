@@ -365,9 +365,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	DH *dh = NULL;
 	BN_GENCB *cb = NULL;
-#if !HAVE_BN_GENCB_NEW
-	BN_GENCB _cb;
-#endif /* !HAVE_BN_GENCB_NEW */
 #else
 	OSSL_PARAM_BLD *bld = NULL;
 	OSSL_PARAM *params = NULL;
@@ -452,12 +449,9 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 		if (callback != NULL) {
 			cb = BN_GENCB_new();
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 			if (cb == NULL) {
 				DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 			}
-#endif /* if OPENSSL_VERSION_NUMBER >= 0x10100000L && \
-	* !defined(LIBRESSL_VERSION_NUMBER) */
 			u.fptr = callback;
 			BN_GENCB_set(cb, progress_cb, u.dptr);
 		}

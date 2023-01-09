@@ -299,9 +299,6 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	RSA *rsa = RSA_new();
 	EVP_PKEY *pkey = EVP_PKEY_new();
-#if !HAVE_BN_GENCB_NEW
-	BN_GENCB _cb;
-#endif /* !HAVE_BN_GENCB_NEW */
 	BN_GENCB *cb = NULL;
 #else
 	EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", NULL);
@@ -362,12 +359,9 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 
 	if (callback != NULL) {
 		cb = BN_GENCB_new();
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
 		if (cb == NULL) {
 			DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 		}
-#endif /* if OPENSSL_VERSION_NUMBER >= 0x10100000L && \
-	* !defined(LIBRESSL_VERSION_NUMBER) */
 		u.fptr = callback;
 		BN_GENCB_set(cb, progress_cb, u.dptr);
 	}
