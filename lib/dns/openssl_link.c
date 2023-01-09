@@ -47,6 +47,12 @@
 
 #include "openssl_shim.h"
 
+#define DST_RET(a)        \
+	{                 \
+		ret = a;  \
+		goto err; \
+	}
+
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 static ENGINE *global_engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
@@ -218,5 +224,45 @@ dst__openssl_getengine(const char *engine) {
 	return (NULL);
 }
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
+
+isc_result_t
+dst__openssl_fromlabel(const char *engine, const char *label, const char *pin,
+		       EVP_PKEY **ppub, EVP_PKEY **ppriv) {
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
+	isc_result_t ret = ISC_R_SUCCESS;
+	ENGINE *e = NULL;
+
+	UNUSED(pin);
+
+	if (engine == NULL) {
+		DST_RET(DST_R_NOENGINE);
+	}
+	e = dst__openssl_getengine(engine);
+	if (e == NULL) {
+		DST_RET(dst__openssl_toresult(DST_R_NOENGINE));
+	}
+
+	*ppub = ENGINE_load_public_key(e, label, NULL, NULL);
+	if (*ppub == NULL) {
+		DST_RET(dst__openssl_toresult2("ENGINE_load_public_key",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	*ppriv = ENGINE_load_private_key(e, label, NULL, NULL);
+	if (*ppriv == NULL) {
+		DST_RET(dst__openssl_toresult2("ENGINE_load_private_key",
+					       DST_R_OPENSSLFAILURE));
+	}
+err:
+	return (ret);
+#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
+	UNUSED(engine);
+	UNUSED(label);
+	UNUSED(pin);
+	UNUSED(ppub);
+	UNUSED(ppriv);
+	return (DST_R_NOENGINE);
+#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
+}
 
 /*! \file */
