@@ -17,19 +17,17 @@
 #include <stdbool.h>
 
 #include <openssl/bn.h>
+#include <openssl/err.h>
+#include <openssl/objects.h>
 #include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
-#include <openssl/core_names.h>
-#endif
+#include <openssl/rsa.h>
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 #include <openssl/engine.h>
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-#include <openssl/err.h>
-#include <openssl/objects.h>
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#include <openssl/core_names.h>
 #include <openssl/param_build.h>
 #endif
-#include <openssl/rsa.h>
 
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -177,44 +175,41 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	return (ISC_R_SUCCESS);
 }
 
+static bool
+opensslrsa_check_exponent_bits(EVP_PKEY *pkey, int maxbits) {
+	/* Always use the new API first with OpenSSL 3.x. */
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+	BIGNUM *e = NULL;
+	if (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e) == 1) {
+		int bits = BN_num_bits(e);
+		BN_free(e);
+		return (bits < maxbits);
+	}
+#endif
+	/* Use old API for the OpenSSL ENGINE support, even with OpenSSL 3.x */
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+	const RSA *rsa = EVP_PKEY_get0_RSA(pkey);
+	if (rsa != NULL) {
+		const BIGNUM *ce = NULL;
+		RSA_get0_key(rsa, NULL, &ce, NULL);
+		if (ce != NULL) {
+			return (BN_num_bits(ce) < maxbits);
+		}
+	}
+#endif
+	return (false);
+}
+
 static isc_result_t
 opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	int status = 0;
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	RSA *rsa;
-	const BIGNUM *e = NULL;
-#else
-	BIGNUM *e = NULL;
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	EVP_PKEY *pkey = key->keydata.pkey;
-	int bits;
 
 	REQUIRE(opensslrsa_valid_key_alg(dctx->key->key_alg));
 
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
-	rsa = EVP_PKEY_get1_RSA(pkey);
-	if (rsa == NULL) {
-		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
-	}
-	RSA_get0_key(rsa, NULL, &e, NULL);
-	if (e == NULL) {
-		RSA_free(rsa);
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
-	}
-	bits = BN_num_bits(e);
-	RSA_free(rsa);
-#else
-	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_E, &e);
-	if (e == NULL) {
-		return (dst__openssl_toresult(DST_R_VERIFYFAILURE));
-	}
-	bits = BN_num_bits(e);
-	BN_free(e);
-#endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
-
-	if (bits > maxbits && maxbits != 0) {
+	if (maxbits != 0 && !opensslrsa_check_exponent_bits(pkey, maxbits)) {
 		return (DST_R_VERIFYFAILURE);
 	}
 
