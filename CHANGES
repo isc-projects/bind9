@@ -1,3 +1,6 @@
+6061.	[bug]		Fix unexpected "Prohibited" extended DNS error
+			on allow-recursion. [GL #3743]
+
 6060.	[bug]		Fix a use-after-free bug in dns_zonemgr_releasezone()
 			by detaching from the zone manager outside of the write
 			lock. [GL #3768]

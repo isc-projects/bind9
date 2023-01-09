@@ -2525,7 +2525,6 @@ allow:
 	return (ISC_R_SUCCESS);
 
 deny:
-	ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 	return (DNS_R_REFUSED);
 }
 
@@ -2548,6 +2547,7 @@ ns_client_checkacl(ns_client_t *client, isc_sockaddr_t *sockaddr,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "%s approved", opname);
 	} else {
+		ns_client_extendederror(client, DNS_EDE_PROHIBITED, NULL);
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, log_level, "%s denied",
 			      opname);

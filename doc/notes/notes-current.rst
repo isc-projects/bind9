@@ -66,6 +66,9 @@ Bug Fixes
   configured forwarders, resulting in SERVFAIL answers being sent to clients.
   This has been fixed. :gl:`#3752`
 
+- Clients may see an unexpected "Prohibited" extended DNS error when ``named``
+  is configured with :any:`allow-recursion`). :gl:`#3743`
+
 Known Issues
 ~~~~~~~~~~~~
 
