@@ -48,7 +48,7 @@
 #include "openssl_shim.h"
 
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-static ENGINE *e = NULL;
+static ENGINE *global_engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 static void
@@ -80,17 +80,17 @@ dst__openssl_init(const char *engine) {
 	}
 
 	if (engine != NULL) {
-		e = ENGINE_by_id(engine);
-		if (e == NULL) {
+		global_engine = ENGINE_by_id(engine);
+		if (global_engine == NULL) {
 			result = DST_R_NOENGINE;
 			goto cleanup_rm;
 		}
-		if (!ENGINE_init(e)) {
+		if (!ENGINE_init(global_engine)) {
 			result = DST_R_NOENGINE;
 			goto cleanup_rm;
 		}
 		/* This will init the engine. */
-		if (!ENGINE_set_default(e, ENGINE_METHOD_ALL)) {
+		if (!ENGINE_set_default(global_engine, ENGINE_METHOD_ALL)) {
 			result = DST_R_NOENGINE;
 			goto cleanup_init;
 		}
@@ -98,12 +98,12 @@ dst__openssl_init(const char *engine) {
 
 	return (ISC_R_SUCCESS);
 cleanup_init:
-	ENGINE_finish(e);
+	ENGINE_finish(global_engine);
 cleanup_rm:
-	if (e != NULL) {
-		ENGINE_free(e);
+	if (global_engine != NULL) {
+		ENGINE_free(global_engine);
 	}
-	e = NULL;
+	global_engine = NULL;
 #else
 	UNUSED(engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
@@ -113,11 +113,11 @@ cleanup_rm:
 void
 dst__openssl_destroy(void) {
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-	if (e != NULL) {
-		ENGINE_finish(e);
-		ENGINE_free(e);
+	if (global_engine != NULL) {
+		ENGINE_finish(global_engine);
+		ENGINE_free(global_engine);
 	}
-	e = NULL;
+	global_engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
@@ -209,11 +209,11 @@ dst__openssl_getengine(const char *engine) {
 	if (engine == NULL) {
 		return (NULL);
 	}
-	if (e == NULL) {
+	if (global_engine == NULL) {
 		return (NULL);
 	}
-	if (strcmp(engine, ENGINE_get_id(e)) == 0) {
-		return (e);
+	if (strcmp(engine, ENGINE_get_id(global_engine)) == 0) {
+		return (global_engine);
 	}
 	return (NULL);
 }
