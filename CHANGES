@@ -1,3 +1,7 @@
+6060.	[bug]		Fix a use-after-free bug in dns_zonemgr_releasezone()
+			by detaching from the zone manager outside of the write
+			lock. [GL #3768]
+
 6059.	[bug]		In some serve stale scenarios, like when following an
 			expired CNAME record, named could return SERVFAIL if the
 			previous request wasn't successful. Consider non-stale
