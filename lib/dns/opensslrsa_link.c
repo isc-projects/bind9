@@ -144,30 +144,21 @@ opensslrsa_components_free(rsa_components_t *c) {
 	if (!c->bnfree) {
 		return;
 	}
-	if (c->e != NULL) {
-		BN_free((BIGNUM *)c->e);
-	}
-	if (c->n != NULL) {
-		BN_free((BIGNUM *)c->n);
-	}
-	if (c->d != NULL) {
-		BN_clear_free((BIGNUM *)c->d);
-	}
-	if (c->p != NULL) {
-		BN_clear_free((BIGNUM *)c->p);
-	}
-	if (c->q != NULL) {
-		BN_clear_free((BIGNUM *)c->q);
-	}
-	if (c->dmp1 != NULL) {
-		BN_clear_free((BIGNUM *)c->dmp1);
-	}
-	if (c->dmq1 != NULL) {
-		BN_clear_free((BIGNUM *)c->dmq1);
-	}
-	if (c->iqmp != NULL) {
-		BN_clear_free((BIGNUM *)c->iqmp);
-	}
+	/*
+	 * NOTE: BN_free() frees the components of the BIGNUM, and if it was
+	 * created by BN_new(), also the structure itself. BN_clear_free()
+	 * additionally overwrites the data before the memory is returned to the
+	 * system. If a is NULL, nothing is done.
+	 */
+	BN_free((BIGNUM *)c->e);
+	BN_free((BIGNUM *)c->n);
+	BN_clear_free((BIGNUM *)c->d);
+	BN_clear_free((BIGNUM *)c->p);
+	BN_clear_free((BIGNUM *)c->q);
+	BN_clear_free((BIGNUM *)c->dmp1);
+	BN_clear_free((BIGNUM *)c->dmq1);
+	BN_clear_free((BIGNUM *)c->iqmp);
+	c->bnfree = false;
 }
 
 static bool
