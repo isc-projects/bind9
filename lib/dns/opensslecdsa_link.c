@@ -57,6 +57,17 @@
 		goto err; \
 	}
 
+static bool
+opensslecdsa_valid_key_alg(unsigned int key_alg) {
+	switch (key_alg) {
+	case DST_ALG_ECDSA256:
+	case DST_ALG_ECDSA384:
+		return (true);
+	default:
+		return (false);
+	}
+}
+
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 static isc_result_t
 raw_key_to_ossl(unsigned int key_alg, int private, const unsigned char *key,
@@ -169,8 +180,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	const EVP_MD *type = NULL;
 
 	UNUSED(key);
-	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
-		dctx->key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(dctx->key->key_alg));
 	REQUIRE(dctx->use == DO_SIGN || dctx->use == DO_VERIFY);
 
 	evp_md_ctx = EVP_MD_CTX_create();
@@ -213,8 +223,7 @@ static void
 opensslecdsa_destroyctx(dst_context_t *dctx) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
-		dctx->key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(dctx->key->key_alg));
 	REQUIRE(dctx->use == DO_SIGN || dctx->use == DO_VERIFY);
 
 	if (evp_md_ctx != NULL) {
@@ -228,8 +237,7 @@ opensslecdsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_ECDSA256 ||
-		dctx->key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(dctx->key->key_alg));
 	REQUIRE(dctx->use == DO_SIGN || dctx->use == DO_VERIFY);
 
 	if (dctx->use == DO_SIGN) {
@@ -277,8 +285,7 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	const unsigned char *sigder_copy;
 	const BIGNUM *r, *s;
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	REQUIRE(dctx->use == DO_SIGN);
 
 	if (key->key_alg == DST_ALG_ECDSA256) {
@@ -341,8 +348,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	unsigned char *sigder_copy;
 	BIGNUM *r = NULL, *s = NULL;
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	REQUIRE(dctx->use == DO_VERIFY);
 
 	if (key->key_alg == DST_ALG_ECDSA256) {
@@ -492,8 +498,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 	int group_nid;
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 	UNUSED(unused);
 	UNUSED(callback);
 
@@ -602,8 +607,7 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	BIGNUM *priv = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 
 	pkey = key->keydata.pkey;
 	if (pkey == NULL) {
@@ -744,8 +748,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	size_t len;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 
 	if (key->key_alg == DST_ALG_ECDSA256) {
 		len = DNS_KEY_ECDSA256SIZE;
@@ -1187,8 +1190,7 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	int i, privkey_index = -1;
 	bool finalize_key = false;
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 
 	/* read private key file */
 	ret = dst__privstruct_parse(key, DST_ALG_ECDSA256, lexer, key->mctx,
@@ -1321,8 +1323,7 @@ opensslecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	EVP_PKEY *pkey = NULL;
 	EVP_PKEY *pubpkey = NULL;
 
-	REQUIRE(key->key_alg == DST_ALG_ECDSA256 ||
-		key->key_alg == DST_ALG_ECDSA384);
+	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
 
 	UNUSED(pin);
 
