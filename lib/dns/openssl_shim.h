@@ -56,6 +56,13 @@ EVP_PKEY_get0_RSA(const EVP_PKEY *pkey) {
 }
 #endif
 
+#if !HAVE_EVP_PKEY_GET0_EC_KEY && OPENSSL_VERSION_NUMBER < 0x10100000L
+static inline const EC_KEY *
+EVP_PKEY_get0_EC_KEY(const EVP_PKEY *pkey) {
+	return (pkey->type == EVP_PKEY_EC ? pkey->pkey.ec : NULL);
+}
+#endif
+
 #if !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L
 int
 RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
