@@ -844,7 +844,8 @@ struct isc_nmsocket {
 	isc__networker_t *worker;
 
 	isc_mutex_t lock;
-	isc_barrier_t barrier;
+	isc_barrier_t listen_barrier;
+	isc_barrier_t stop_barrier;
 
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
@@ -1027,7 +1028,7 @@ struct isc_nmsocket {
 
 	atomic_int_fast32_t active_child_connections;
 
-	bool barrier_initialised;
+	bool barriers_initialised;
 	bool manual_read_timer;
 #ifdef NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];

@@ -676,8 +676,9 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree FLARG) {
 #endif
 	isc__nm_streamdns_cleanup_data(sock);
 
-	if (sock->barrier_initialised) {
-		isc_barrier_destroy(&sock->barrier);
+	if (sock->barriers_initialised) {
+		isc_barrier_destroy(&sock->listen_barrier);
+		isc_barrier_destroy(&sock->stop_barrier);
 	}
 
 	sock->magic = 0;
@@ -2021,8 +2022,9 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 void
 isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
 	REQUIRE(listener->nchildren > 0);
-	isc_barrier_init(&listener->barrier, listener->nchildren);
-	listener->barrier_initialised = true;
+	isc_barrier_init(&listener->listen_barrier, listener->nchildren);
+	isc_barrier_init(&listener->stop_barrier, listener->nchildren);
+	listener->barriers_initialised = true;
 }
 
 void
@@ -2032,7 +2034,7 @@ isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	UNUSED(worker);
 
 	(void)atomic_fetch_sub(&listener->rchildren, 1);
-	isc_barrier_wait(&listener->barrier);
+	isc_barrier_wait(&listener->stop_barrier);
 }
 
 void
