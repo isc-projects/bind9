@@ -44,15 +44,13 @@
  ***/
 
 typedef enum {
-	dns_aclelementtype_ipprefix,
 	dns_aclelementtype_keyname,
 	dns_aclelementtype_nestedacl,
 	dns_aclelementtype_localhost,
 	dns_aclelementtype_localnets,
 #if defined(HAVE_GEOIP2)
-	dns_aclelementtype_geoip,
+	dns_aclelementtype_geoip
 #endif /* HAVE_GEOIP2 */
-	dns_aclelementtype_any
 } dns_aclelementtype_t;
 
 typedef struct dns_acl_port_transports {
