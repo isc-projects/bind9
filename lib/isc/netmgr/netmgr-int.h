@@ -111,16 +111,13 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 #define NM_MAXSEG (1280 - 20 - 40)
 
 /*
- * Define NETMGR_TRACE to activate tracing of handles and sockets.
+ * Define ISC_NETMGR_TRACE to activate tracing of handles and sockets.
  * This will impair performance but enables us to quickly determine,
  * if netmgr resources haven't been cleaned up on shutdown, which ones
  * are still in use.
  */
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 #define TRACE_SIZE 8
-
-void
-isc__nm_dump_active(isc_nm_t *nm);
 
 #if defined(__linux__)
 #include <syscall.h>
@@ -129,16 +126,9 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define gettid() (uint32_t) pthread_self()
 #endif
 
-#ifdef NETMGR_TRACE_VERBOSE
 #define NETMGR_TRACE_LOG(format, ...)                                \
 	fprintf(stderr, "%" PRIu32 ":%d:%s:%u:%s:" format, gettid(), \
 		isc_tid(), file, line, func, __VA_ARGS__)
-#else
-#define NETMGR_TRACE_LOG(format, ...) \
-	(void)file;                   \
-	(void)line;                   \
-	(void)func;
-#endif
 
 #define FLARG_PASS , file, line, func
 #define FLARG                                              \
@@ -157,9 +147,9 @@ isc__nm_dump_active(isc_nm_t *nm);
 	isc___nm_uvreq_get(req, sock, __FILE__, __LINE__, __func__)
 #define isc__nm_uvreq_put(req, sock) \
 	isc___nm_uvreq_put(req, sock, __FILE__, __LINE__, __func__)
-#define isc__nmsocket_init(sock, mgr, type, iface)                      \
-	isc___nmsocket_init(sock, mgr, type, iface, __FILE__, __LINE__, \
-			    __func__)
+#define isc__nmsocket_init(sock, mgr, type, iface, parent)            \
+	isc___nmsocket_init(sock, mgr, type, iface, parent, __FILE__, \
+			    __LINE__, __func__)
 #define isc__nmsocket_put(sockp) \
 	isc___nmsocket_put(sockp, __FILE__, __LINE__, __func__)
 #define isc__nmsocket_attach(sock, target) \
@@ -181,8 +171,8 @@ isc__nm_dump_active(isc_nm_t *nm);
 #define FLARG_IEVENT_PASS(ievent)
 #define isc__nm_uvreq_get(req, sock) isc___nm_uvreq_get(req, sock)
 #define isc__nm_uvreq_put(req, sock) isc___nm_uvreq_put(req, sock)
-#define isc__nmsocket_init(sock, mgr, type, iface) \
-	isc___nmsocket_init(sock, mgr, type, iface)
+#define isc__nmsocket_init(sock, mgr, type, iface, parent) \
+	isc___nmsocket_init(sock, mgr, type, iface, parent)
 #define isc__nmsocket_put(sockp)	   isc___nmsocket_put(sockp)
 #define isc__nmsocket_attach(sock, target) isc___nmsocket_attach(sock, target)
 #define isc__nmsocket_detach(socketp)	   isc___nmsocket_detach(socketp)
@@ -208,9 +198,15 @@ typedef struct isc__networker {
 	char *recvbuf;
 	char *sendbuf;
 	bool recvbuf_inuse;
+
+	ISC_LIST(isc_nmsocket_t) active_sockets;
+
 } isc__networker_t;
 
 ISC_REFCOUNT_DECL(isc__networker);
+
+void
+isc__nm_dump_active(isc__networker_t *worker);
 
 /*
  * A general handle for a connection bound to a networker.  For UDP
@@ -244,11 +240,11 @@ struct isc_nmhandle {
 	isc_sockaddr_t local;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
 	isc_nm_opaquecb_t dofree;  /* free extra callback, external */
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
-	LINK(isc_nmhandle_t) active_link;
 #endif
+	LINK(isc_nmhandle_t) active_link;
 	void *opaque;
 };
 
@@ -700,10 +696,6 @@ struct isc_nm {
 	atomic_int_fast32_t send_udp_buffer_size;
 	atomic_int_fast32_t recv_tcp_buffer_size;
 	atomic_int_fast32_t send_tcp_buffer_size;
-
-#ifdef NETMGR_TRACE
-	ISC_LIST(isc_nmsocket_t) active_sockets;
-#endif
 };
 
 /*%
@@ -1030,13 +1022,12 @@ struct isc_nmsocket {
 
 	bool barriers_initialised;
 	bool manual_read_timer;
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 	void *backtrace[TRACE_SIZE];
 	int backtrace_size;
+#endif
 	LINK(isc_nmsocket_t) active_link;
 	ISC_LIST(isc_nmhandle_t) active_handles;
-	isc_mutex_t tracelock;
-#endif
 };
 
 void
@@ -1070,8 +1061,8 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf);
  */
 
 isc_nmhandle_t *
-isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
-		   isc_sockaddr_t *local FLARG);
+isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
+		   isc_sockaddr_t const *local FLARG);
 /*%<
  * Get a handle for the socket 'sock', allocating a new one
  * if there isn't one available in 'sock->inactivehandles'.
@@ -1104,7 +1095,8 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock FLARG);
 
 void
 isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
-		    isc_nmsocket_type type, isc_sockaddr_t *iface FLARG);
+		    isc_nmsocket_type type, isc_sockaddr_t *iface,
+		    isc_nmsocket_t *parent FLARG);
 /*%<
  * Initialize socket 'sock', attach it to 'mgr', and set it to type 'type'
  * and its interface to 'iface'.

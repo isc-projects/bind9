@@ -248,7 +248,7 @@ streamdns_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 	       type == isc_nm_streamdnslistener);
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, type, addr);
+	isc__nmsocket_init(sock, worker, type, addr, NULL);
 	sock->result = ISC_R_UNSET;
 	if (type == isc_nm_streamdnssocket) {
 		uint32_t initial = 0;

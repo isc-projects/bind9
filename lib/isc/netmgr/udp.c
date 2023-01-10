@@ -97,8 +97,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 
 	csock = &sock->children[tid];
 
-	isc__nmsocket_init(csock, worker, isc_nm_udpsocket, iface);
-	csock->parent = sock;
+	isc__nmsocket_init(csock, worker, isc_nm_udpsocket, iface, sock);
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
 
@@ -146,7 +145,7 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	REQUIRE(workers <= mgr->nloops);
 
 	sock = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(sock, worker, isc_nm_udplistener, iface);
+	isc__nmsocket_init(sock, worker, isc_nm_udplistener, iface, NULL);
 
 	atomic_init(&sock->rchildren, 0);
 	sock->nchildren = (workers == ISC_NM_LISTEN_ALL) ? (uint32_t)mgr->nloops
@@ -284,7 +283,7 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 	}
 
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
-	isc__nmsocket_init(sock, worker, isc_nm_udpsocket, NULL);
+	isc__nmsocket_init(sock, worker, isc_nm_udpsocket, NULL, NULL);
 
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
@@ -835,7 +834,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	/* Initialize the new socket */
 	/* FIXME: Use per-worker mempool for new sockets */
 	sock = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(sock, worker, isc_nm_udpsocket, local);
+	isc__nmsocket_init(sock, worker, isc_nm_udpsocket, local, NULL);
 
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;

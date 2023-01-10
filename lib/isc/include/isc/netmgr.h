@@ -24,6 +24,8 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#undef ISC_NETMGR_TRACE
+
 #if defined(SO_REUSEPORT_LB) || (defined(SO_REUSEPORT) && defined(__linux__))
 #define HAVE_SO_REUSEPORT_LB 1
 #endif
@@ -146,7 +148,7 @@ isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
  * \li	'listener' is a pointer to a valid network manager listener socket.
  */
 
-#ifdef NETMGR_TRACE
+#ifdef ISC_NETMGR_TRACE
 #define isc_nmhandle_attach(handle, dest) \
 	isc__nmhandle_attach(handle, dest, __FILE__, __LINE__, __func__)
 #define isc_nmhandle_detach(handlep) \
