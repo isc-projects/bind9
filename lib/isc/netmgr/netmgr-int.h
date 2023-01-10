@@ -18,7 +18,6 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
-#include <isc/astack.h>
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
@@ -201,6 +200,7 @@ typedef struct isc__networker {
 
 	ISC_LIST(isc_nmsocket_t) active_sockets;
 
+	isc_mempool_t *uvreq_pool;
 } isc__networker_t;
 
 ISC_REFCOUNT_DECL(isc__networker);
@@ -245,6 +245,7 @@ struct isc_nmhandle {
 	int backtrace_size;
 #endif
 	LINK(isc_nmhandle_t) active_link;
+	LINK(isc_nmhandle_t) inactive_link;
 	void *opaque;
 };
 
@@ -323,6 +324,7 @@ struct isc__nm_uvreq {
 		uv_fs_t fs;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
+	ISC_LINK(isc__nm_uvreq_t) inactive_link;
 };
 
 void *
@@ -987,8 +989,7 @@ struct isc_nmsocket {
 	 * 'spare' handles for that can be reused to avoid allocations,
 	 * for UDP.
 	 */
-	isc_astack_t *inactivehandles;
-	isc_astack_t *inactivereqs;
+	ISC_LIST(isc_nmhandle_t) inactive_handles;
 
 	/*%
 	 * Used to pass a result back from listen or connect events.
