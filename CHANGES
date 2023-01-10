@@ -5,6 +5,9 @@
 			effect, and a warning will be logged that
 			the feature should no longer be used. [GL #3773]
 
+6061.	[bug]		Fix unexpected "Prohibited" extended DNS error
+			on allow-recursion. [GL #3743]
+
 6059.	[bug]		In some serve stale scenarios, like when following an
 			expired CNAME record, named could return SERVFAIL if the
 			previous request wasn't successful. Consider non-stale
