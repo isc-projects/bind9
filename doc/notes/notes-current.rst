@@ -25,7 +25,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- Support for Red Hat Enterprise Linux version 7 (and clones) has been dropped.
+  A C11 compliant compiler (or better) is now required to compile BIND 9.
+  :gl:`#3729`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
