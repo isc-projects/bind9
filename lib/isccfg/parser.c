@@ -3470,6 +3470,12 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 			} else if ((flags & CFG_ADDR_DSCPOK) != 0 &&
 				   strcasecmp(TOKEN_STRING(pctx), "dscp") == 0)
 			{
+				if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0)
+				{
+					cfg_parser_warning(
+						pctx, 0,
+						"token 'dscp' is deprecated");
+				}
 				CHECK(cfg_gettoken(pctx, 0)); /* read "dscp" */
 				CHECK(cfg_parse_dscp(pctx, &dscp));
 				++have_dscp;

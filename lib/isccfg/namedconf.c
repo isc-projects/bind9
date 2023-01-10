@@ -149,7 +149,7 @@ static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
 
 static cfg_tuplefielddef_t listenon_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "dscp", &cfg_type_optional_dscp, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "acl", &cfg_type_bracketed_aml, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -173,7 +173,7 @@ static cfg_type_t cfg_type_acl = { "acl",	    cfg_parse_tuple,
 static cfg_tuplefielddef_t remotes_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "dscp", &cfg_type_optional_dscp, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -211,7 +211,7 @@ static cfg_type_t cfg_type_bracketed_namesockaddrkeylist = {
 
 static cfg_tuplefielddef_t namesockaddrkeylist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "dscp", &cfg_type_optional_dscp, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "addresses", &cfg_type_bracketed_namesockaddrkeylist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -226,7 +226,7 @@ static cfg_type_t cfg_type_namesockaddrkeylist = {
  */
 static cfg_tuplefielddef_t portiplist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "dscp", &cfg_type_optional_dscp, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "addresses", &cfg_type_bracketed_dscpsockaddrlist, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -1178,7 +1178,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "dnstap-version", &cfg_type_qstringornone,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* ifdef HAVE_DNSTAP */
-	{ "dscp", &cfg_type_uint32, 0 },
+	{ "dscp", &cfg_type_uint32, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "dump-file", &cfg_type_qstring, 0 },
 	{ "fake-iquery", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
 	{ "files", &cfg_type_size, 0 },
@@ -3150,6 +3150,12 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 				have_port++;
 			} else if (strcasecmp(TOKEN_STRING(pctx), "dscp") == 0)
 			{
+				if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0)
+				{
+					cfg_parser_warning(
+						pctx, 0,
+						"token 'dscp' is deprecated");
+				}
 				/* read "dscp" */
 				CHECK(cfg_gettoken(pctx, 0));
 				CHECK(cfg_parse_dscp(pctx, &dscp));
@@ -3596,7 +3602,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sessionkey = {
 static cfg_tuplefielddef_t nameport_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "dscp", &cfg_type_optional_dscp, 0 },
+	{ "dscp", &cfg_type_optional_dscp, CFG_CLAUSEFLAG_DEPRECATED },
 	{ NULL, NULL, 0 }
 };
 

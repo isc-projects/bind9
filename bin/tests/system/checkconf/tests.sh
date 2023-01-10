@@ -143,6 +143,8 @@ ret=0
 $CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
 grep "option 'managed-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'dscp' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "token 'dscp' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 # set -i to ignore deprecate warnings
@@ -408,6 +410,7 @@ n=`expr $n + 1`
 echo_i "check that named-checkconf -l prints out the zone list ($n)"
 ret=0
 $CHECKCONF -l good.conf |
+grep -v "is deprecated" |
 grep -v "is not implemented" |
 grep -v "is not recommended" |
 grep -v "no longer exists" |
