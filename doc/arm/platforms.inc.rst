@@ -20,11 +20,11 @@ found in the ISC Knowledgebase:
 https://kb.isc.org/docs/supported-platforms
 
 In general, this version of BIND will build and run on any
-POSIX-compliant system with a C11-compliant C compiler, BSD-style
+POSIX-compliant system with a modern C compiler, BSD-style
 sockets with RFC-compliant IPv6 support, POSIX-compliant threads, and
 the :ref:`required libraries <build_dependencies>`.
 
-The following C11 features are used in BIND 9:
+The following C11 features are required in BIND 9:
 
 -  Atomic operations support, either in the form of C11 atomics or
    **__atomic** builtin operations.
@@ -34,6 +34,10 @@ The following C11 features are used in BIND 9:
    extension.
 
 The C11 variants are preferred.
+
+The following C23 features are required in BIND 9.
+
+-  C23-style attributes - namely [[maybe_unused]] attribute.
 
 ISC regularly tests BIND on many operating systems and architectures,
 but lacks the resources to test all of them. Consequently, ISC is only
@@ -48,7 +52,7 @@ following systems:
 -  Debian 11
 -  Ubuntu LTS 20.04, 22.04
 -  Fedora 37
--  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
+-  Red Hat Enterprise Linux / CentOS / Oracle Linux 8, 9
 -  FreeBSD 12.3, 13.1
 -  OpenBSD 7.2
 -  Alpine Linux 3.16
@@ -91,7 +95,7 @@ supported platforms.
 -  Platforms past or close to their respective EOL dates, such as:
 
    -  Ubuntu 14.04, 16.04, 18.04 (Ubuntu ESM releases are not supported)
-   -  CentOS 6
+   -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster
    -  FreeBSD 10.x, 11.x
 
