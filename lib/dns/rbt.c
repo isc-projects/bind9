@@ -168,6 +168,10 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 		dns_rbtdatawriter_t datawriter, void *writer_arg,
 		uintptr_t *where, uint64_t *crc);
 
+#define ADJUST_ADDRESS(address, relative, header)        \
+	if (address != NULL && header != NULL) {         \
+		address += relative * (uintptr_t)header; \
+	}
 /*
  * The following functions allow you to get the actual address of a pointer
  * without having to use an if statement to check to see if that address is
@@ -176,7 +180,8 @@ serialize_nodes(FILE *file, dns_rbtnode_t *node, uintptr_t parent,
 static dns_rbtnode_t *
 getparent(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->parent);
-	adjusted_address += node->parent_is_relative * (uintptr_t)header;
+
+	ADJUST_ADDRESS(adjusted_address, node->parent_is_relative, header);
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -184,7 +189,8 @@ getparent(dns_rbtnode_t *node, file_header_t *header) {
 static dns_rbtnode_t *
 getleft(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->left);
-	adjusted_address += node->left_is_relative * (uintptr_t)header;
+
+	ADJUST_ADDRESS(adjusted_address, node->left_is_relative, header);
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -192,7 +198,8 @@ getleft(dns_rbtnode_t *node, file_header_t *header) {
 static dns_rbtnode_t *
 getright(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->right);
-	adjusted_address += node->right_is_relative * (uintptr_t)header;
+
+	ADJUST_ADDRESS(adjusted_address, node->right_is_relative, header);
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -200,7 +207,8 @@ getright(dns_rbtnode_t *node, file_header_t *header) {
 static dns_rbtnode_t *
 getdown(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->down);
-	adjusted_address += node->down_is_relative * (uintptr_t)header;
+
+	ADJUST_ADDRESS(adjusted_address, node->down_is_relative, header);
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
@@ -208,7 +216,8 @@ getdown(dns_rbtnode_t *node, file_header_t *header) {
 static dns_rbtnode_t *
 getdata(dns_rbtnode_t *node, file_header_t *header) {
 	char *adjusted_address = (char *)(node->data);
-	adjusted_address += node->data_is_relative * (uintptr_t)header;
+
+	ADJUST_ADDRESS(adjusted_address, node->data_is_relative, header);
 
 	return ((dns_rbtnode_t *)adjusted_address);
 }
