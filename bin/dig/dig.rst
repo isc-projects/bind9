@@ -347,11 +347,6 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    enables search list processing as if the :option:`+search` option were
    given.
 
-.. option:: +dscp=value
-
-   This option formerly set the DSCP value used when sending a query.
-   It is now obsolete, and has no effect.
-
 .. option:: +edns[=#], +noedns
 
    This option specifies the EDNS version to query with. Valid values are 0 to 255.

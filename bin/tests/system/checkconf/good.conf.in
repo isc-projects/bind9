@@ -46,7 +46,6 @@ options {
 		10.0.0.0/8;
 	};
 	directory ".";
-	dscp 41;
 	dump-file "named_dumpdb";
 	heartbeat-interval 30;
 	hostname none;
@@ -54,10 +53,10 @@ options {
 	listen-on port 90 {
 		"any";
 	};
-	listen-on port 100 dscp 33 {
+	listen-on port 100 {
 		127.0.0.1/32;
 	};
-	listen-on-v6 port 53 dscp 57 {
+	listen-on-v6 port 53 {
 		"none";
 	};
 	match-mapped-addresses yes;
@@ -79,10 +78,10 @@ options {
 	};
 	dnssec-policy "test";
 	max-ixfr-ratio 90%;
-	transfer-source 0.0.0.0 dscp 63;
+	transfer-source 0.0.0.0;
 	zone-statistics none;
 };
-parental-agents "parents" port 5353 source 10.10.10.10 port 5354 dscp 54 source-v6 2001:db8::10 port 5355 dscp 55 {
+parental-agents "parents" port 5353 source 10.10.10.10 port 5354 source-v6 2001:db8::10 port 5355 {
 	10.10.10.11;
 	2001:db8::11;
 };
@@ -95,7 +94,7 @@ view "first" {
 		file "xxx";
 		update-policy local;
 		max-ixfr-ratio 20%;
-		notify-source 10.10.10.10 port 53 dscp 55;
+		notify-source 10.10.10.10 port 53;
 	};
 	zone "clone" {
 		type primary;
@@ -186,7 +185,7 @@ view "fourth" {
 			1.2.3.5;
 		};
 		dnssec-policy "test";
-		parental-source 10.10.10.10 port 53 dscp 55;
+		parental-source 10.10.10.10 port 53;
 	};
 	zone "dnssec-default" {
 		type primary;

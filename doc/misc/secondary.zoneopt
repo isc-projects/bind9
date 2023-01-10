@@ -5,7 +5,7 @@ zone <string> [ <class> ] {
 	allow-query-on { <address_match_element>; ... };
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
-	also-notify [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
 	database <string>;
@@ -18,7 +18,7 @@ zone <string> [ <class> ] {
 	dnssec-update-mode ( maintain | no-resign );
 	file <quoted_string>;
 	forward ( first | only );
-	forwarders [ port <integer> ]  { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ]; ... };
+	forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ]; ... };
 	inline-signing <boolean>;
 	ixfr-from-differences <boolean>;
 	journal <quoted_string>;
@@ -43,10 +43,10 @@ zone <string> [ <class> ] {
 	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
 	notify-to-soa <boolean>;
 	nsec3-test-zone <boolean>; // test only
-	parental-agents [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	parental-agents [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
 	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
-	primaries [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	sig-signing-nodes <integer>;
