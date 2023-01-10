@@ -1,3 +1,8 @@
+6063.	[cleanup]	The RSA and ECDSA parts of the DNSSEC has been
+			refactored for a better OpenSSL 3.x integration and
+			preliminary PKCS#11 support via for OpenSSL Providers
+			has been added. [GL #3785]
+
 6062.	[func]		The DSCP implementation, which has been
 			nonfunctional for some time, is now marked as
 			obsolete and the implementation has been removed.
