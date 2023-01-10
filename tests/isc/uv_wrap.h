@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <isc/atomic.h>
+#include <isc/util.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
@@ -114,7 +115,7 @@ __wrap_uv_udp_bind(uv_udp_t *handle, const struct sockaddr *addr,
 	return (atomic_load(&__state_uv_udp_bind));
 }
 
-static atomic_int __state_uv_udp_connect __attribute__((unused)) = 0;
+static atomic_int __state_uv_udp_connect ISC_ATTR_UNUSED = 0;
 
 int
 __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
@@ -124,7 +125,7 @@ __wrap_uv_udp_connect(uv_udp_t *handle, const struct sockaddr *addr) {
 	return (atomic_load(&__state_uv_udp_connect));
 }
 
-static atomic_int __state_uv_udp_getpeername __attribute__((unused)) = 0;
+static atomic_int __state_uv_udp_getpeername ISC_ATTR_UNUSED = 0;
 
 int
 __wrap_uv_udp_getpeername(const uv_udp_t *handle, struct sockaddr *name,

@@ -126,7 +126,7 @@ ISC_TEST_ENTRY_CUSTOM(tls_recv_send_quota_sendback, stream_recv_send_setup,
 ISC_TEST_LIST_END
 
 static int
-tls_setup(void **state __attribute__((__unused__))) {
+tls_setup(void **state ISC_ATTR_UNUSED) {
 	stream_port = TLS_TEST_PORT;
 	stream_use_TLS = true;
 	stream = true;

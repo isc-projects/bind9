@@ -52,7 +52,7 @@ adjustnofile(void) {
 }
 
 int
-setup_mctx(void **state __attribute__((__unused__))) {
+setup_mctx(void **state ISC_ATTR_UNUSED) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
 
@@ -60,14 +60,14 @@ setup_mctx(void **state __attribute__((__unused__))) {
 }
 
 int
-teardown_mctx(void **state __attribute__((__unused__))) {
+teardown_mctx(void **state ISC_ATTR_UNUSED) {
 	isc_mem_destroy(&mctx);
 
 	return (0);
 }
 
 int
-setup_loopmgr(void **state __attribute__((__unused__))) {
+setup_loopmgr(void **state ISC_ATTR_UNUSED) {
 	char *env_workers = NULL;
 
 	REQUIRE(mctx != NULL);
@@ -88,7 +88,7 @@ setup_loopmgr(void **state __attribute__((__unused__))) {
 }
 
 int
-teardown_loopmgr(void **state __attribute__((__unused__))) {
+teardown_loopmgr(void **state ISC_ATTR_UNUSED) {
 	REQUIRE(netmgr == NULL);
 
 	mainloop = NULL;
@@ -98,7 +98,7 @@ teardown_loopmgr(void **state __attribute__((__unused__))) {
 }
 
 int
-setup_netmgr(void **state __attribute__((__unused__))) {
+setup_netmgr(void **state ISC_ATTR_UNUSED) {
 	REQUIRE(loopmgr != NULL);
 
 	adjustnofile();
@@ -109,7 +109,7 @@ setup_netmgr(void **state __attribute__((__unused__))) {
 }
 
 int
-teardown_netmgr(void **state __attribute__((__unused__))) {
+teardown_netmgr(void **state ISC_ATTR_UNUSED) {
 	REQUIRE(loopmgr != NULL);
 
 	isc_netmgr_destroy(&netmgr);

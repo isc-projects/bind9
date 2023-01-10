@@ -42,8 +42,7 @@ static isc_mem_t *mctx = NULL;
 static isc_lex_t *lex = NULL;
 
 int
-LLVMFuzzerInitialize(int *argc __attribute__((unused)),
-		     char ***argv __attribute__((unused))) {
+LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_lexspecials_t specials;
 
 	isc_mem_create(&mctx);

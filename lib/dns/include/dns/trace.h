@@ -19,10 +19,9 @@
 
 #define DNS__DB_FILELINE   , __func__, __FILE__, __LINE__
 #define DNS__DB_FLARG_PASS , func, file, line
-#define DNS__DB_FLARG                                          \
-	, const char	    *func __attribute__((__unused__)), \
-		const char  *file __attribute__((__unused__)), \
-		unsigned int line __attribute__((__unused__))
+#define DNS__DB_FLARG                                                         \
+	, const char *func ISC_ATTR_UNUSED, const char *file ISC_ATTR_UNUSED, \
+		unsigned int line ISC_ATTR_UNUSED
 
 #else /* DNS_DB_NODETRACE */
 

@@ -35,6 +35,7 @@
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/thread.h>
+#include <isc/util.h>
 #include <isc/uv.h>
 
 #include "uv_wrap.h"
@@ -335,7 +336,7 @@ setup_test(void **state) {
 }
 
 static int
-teardown_test(void **state __attribute__((__unused__))) {
+teardown_test(void **state ISC_ATTR_UNUSED) {
 	for (size_t i = 0; i < MAX_NM; i++) {
 		isc_netmgr_destroy(&nm[i]);
 		assert_null(nm[i]);
@@ -483,7 +484,7 @@ listen_sock_close(void *arg) {
 }
 
 static void
-doh_noop(void *arg __attribute__((__unused__))) {
+doh_noop(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -526,7 +527,7 @@ ISC_LOOP_TEST_IMPL(doh_noop_GET) {
 }
 
 static void
-doh_noresponse(void *arg __attribute__((__unused__))) {
+doh_noresponse(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -580,8 +581,8 @@ timeout_query_sent_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 static void
 timeout_retry_cb(isc_nmhandle_t *handle, isc_result_t eresult,
-		 isc_region_t *region __attribute__((__unused__)),
-		 void *arg __attribute__((__unused__))) {
+		 isc_region_t *region ISC_ATTR_UNUSED,
+		 void *arg ISC_ATTR_UNUSED) {
 	assert_non_null(handle);
 
 	atomic_fetch_add(&ctimeouts, 1);
@@ -617,7 +618,7 @@ timeout_request_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 }
 
 static void
-doh_timeout_recovery(void *arg __attribute__((__unused__))) {
+doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nmsocket_t *listen_sock = NULL;
 	isc_nm_t *connect_nm = nm[1];
@@ -740,7 +741,7 @@ next : {}
 }
 
 static void
-doh_recv_one(void *arg __attribute__((__unused__))) {
+doh_recv_one(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -866,7 +867,7 @@ doh_connect_send_two_requests_cb(isc_nmhandle_t *handle, isc_result_t result,
 }
 
 static void
-doh_recv_two(void *arg __attribute__((__unused__))) {
+doh_recv_two(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -969,7 +970,7 @@ ISC_LOOP_TEST_IMPL(doh_recv_two_GET_TLS_quota) {
 }
 
 static void
-doh_recv_send(void *arg __attribute__((__unused__))) {
+doh_recv_send(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_t *listen_nm = nm[0];
 	isc_nm_t *connect_nm = nm[1];
 	isc_result_t result = ISC_R_SUCCESS;

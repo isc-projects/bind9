@@ -427,7 +427,7 @@ ISC_LOOP_TEARDOWN_IMPL(timer_expect) {
 }
 
 static void
-timer_event(void *arg __attribute__((__unused__))) {
+timer_event(void *arg ISC_ATTR_UNUSED) {
 	if (--timer_ticks == 0) {
 		isc_timer_destroy(&timer);
 		isc_loopmgr_shutdown(loopmgr);

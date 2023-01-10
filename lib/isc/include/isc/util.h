@@ -42,12 +42,14 @@
  ***/
 
 /*%
- * Use this to hide unused function arguments.
+ * Legacy way how to hide unused function arguments, don't use in
+ * the new code, rather use the ISC_ATTR_UNUSED macro that expands
+ * to either C23's [[maybe_unused]] or __attribute__((__unused__)).
+ *
  * \code
  * int
- * foo(char *bar)
- * {
- *	UNUSED(bar);
+ * foo(ISC_ATTR_UNUSED char *bar) {
+ *         ...;
  * }
  * \endcode
  */
@@ -58,16 +60,6 @@
 #else /* if __GNUC__ >= 8 && !defined(__clang__) */
 #define ISC_NONSTRING
 #endif /* __GNUC__ */
-
-#if __has_c_attribute(fallthrough)
-#define FALLTHROUGH [[fallthrough]]
-#elif __GNUC__ >= 7 && !defined(__clang__)
-#define FALLTHROUGH __attribute__((fallthrough))
-#else
-/* clang-format off */
-#define FALLTHROUGH do {} while (0) /* FALLTHROUGH */
-/* clang-format on */
-#endif
 
 #if HAVE_FUNC_ATTRIBUTE_CONSTRUCTOR && HAVE_FUNC_ATTRIBUTE_DESTRUCTOR
 #define ISC_CONSTRUCTOR __attribute__((constructor))

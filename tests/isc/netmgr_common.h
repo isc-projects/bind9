@@ -15,6 +15,7 @@
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
 #include <isc/thread.h>
+#include <isc/util.h>
 
 #include "netmgr/netmgr-int.h"
 
@@ -227,7 +228,7 @@ extern isc_nm_recv_cb_t connect_readcb;
 int
 setup_netmgr_test(void **state);
 int
-teardown_netmgr_test(void **state __attribute__((unused)));
+teardown_netmgr_test(void **state ISC_ATTR_UNUSED);
 
 void
 noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
@@ -282,45 +283,45 @@ void
 stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 
 int
-stream_noop_setup(void **state __attribute__((unused)));
+stream_noop_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_noop(void **state __attribute__((unused)));
+stream_noop(void **state ISC_ATTR_UNUSED);
 int
-stream_noop_teardown(void **state __attribute__((unused)));
+stream_noop_teardown(void **state ISC_ATTR_UNUSED);
 
 int
-stream_noresponse_setup(void **state __attribute__((unused)));
+stream_noresponse_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_noresponse(void **state __attribute__((unused)));
+stream_noresponse(void **state ISC_ATTR_UNUSED);
 int
-stream_noresponse_teardown(void **state __attribute__((unused)));
+stream_noresponse_teardown(void **state ISC_ATTR_UNUSED);
 
 int
-stream_timeout_recovery_setup(void **state __attribute__((unused)));
+stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_timeout_recovery(void **state __attribute__((unused)));
+stream_timeout_recovery(void **state ISC_ATTR_UNUSED);
 int
-stream_timeout_recovery_teardown(void **state __attribute__((unused)));
+stream_timeout_recovery_teardown(void **state ISC_ATTR_UNUSED);
 
 int
-stream_recv_one_setup(void **state __attribute__((unused)));
+stream_recv_one_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_recv_one(void **state __attribute__((unused)));
+stream_recv_one(void **state ISC_ATTR_UNUSED);
 int
-stream_recv_one_teardown(void **state __attribute__((unused)));
+stream_recv_one_teardown(void **state ISC_ATTR_UNUSED);
 
 int
-stream_recv_two_setup(void **state __attribute__((unused)));
+stream_recv_two_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_recv_two(void **state __attribute__((unused)));
+stream_recv_two(void **state ISC_ATTR_UNUSED);
 int
-stream_recv_two_teardown(void **state __attribute__((unused)));
+stream_recv_two_teardown(void **state ISC_ATTR_UNUSED);
 
 int
-stream_recv_send_setup(void **state __attribute__((unused)));
+stream_recv_send_setup(void **state ISC_ATTR_UNUSED);
 void
-stream_recv_send(void **state __attribute__((unused)));
+stream_recv_send(void **state ISC_ATTR_UNUSED);
 int
-stream_recv_send_teardown(void **state __attribute__((unused)));
+stream_recv_send_teardown(void **state ISC_ATTR_UNUSED);
 void
 stream_recv_send_connect(void *arg);

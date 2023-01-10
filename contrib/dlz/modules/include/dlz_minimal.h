@@ -85,11 +85,13 @@ typedef uint32_t     dns_ttl_t;
 		var = _u.v;            \
 	} while (0)
 
-#if !defined(__has_attribute)
-#define __has_attribute(x) 0
-#endif /* if !defined(__has_attribute) */
+#if !defined(__has_c_attribute)
+#define __has_c_attribute(x) 0
+#endif /* if !defined(__has_c_attribute) */
 
-#if __GNUC__ >= 7 || __has_attribute(fallthrough)
+#if __has_c_attribute(fallthrough)
+#define FALLTHROUGH [[fallthrough]]
+#elif __GNUC__ >= 7 && !defined(__clang__)
 #define FALLTHROUGH __attribute__((fallthrough))
 #else
 /* clang-format off */

@@ -21,9 +21,7 @@
 #define __has_c_attribute(x) 0
 #endif /* if !defined(__has_c_attribute) */
 
-#if __has_c_attribute(noreturn)
-#define noreturn [[noreturn]]
-#elif defined(HAVE_STDNORETURN_H)
+#ifdef HAVE_STDNORETURN_H
 #include <stdnoreturn.h>
 #elif HAVE_FUNC_ATTRIBUTE_NORETURN
 #define noreturn __attribute__((noreturn))

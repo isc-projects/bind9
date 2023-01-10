@@ -191,7 +191,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 dns_zone_t *zone1 = NULL, *zone2 = NULL, *zone3 = NULL;
 
 static isc_result_t
-all_done(void *arg __attribute__((__unused__))) {
+all_done(void *arg ISC_ATTR_UNUSED) {
 	isc_result_t result;
 
 	/* Both zones should now be loaded; test them */

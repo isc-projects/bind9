@@ -888,7 +888,7 @@ static void
 start_next_command(void);
 
 static void
-process_next_command(void *arg __attribute__((__unused__))) {
+process_next_command(void *arg ISC_ATTR_UNUSED) {
 	isc_loop_t *loop = isc_loop_main(loopmgr);
 	if (cmdline == NULL) {
 		in_use = false;

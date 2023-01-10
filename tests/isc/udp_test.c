@@ -139,7 +139,7 @@ connect_nomemory_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 }
 
 static void
-stop_listening(void *arg __attribute__((__unused__))) {
+stop_listening(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -520,7 +520,7 @@ udp_shutdown_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 }
 
 static void
-udp_connect_udpconnect(void *arg __attribute__((__unused__))) {
+udp_connect_udpconnect(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
 			  udp_shutdown_connect_connect_cb, NULL, T_SOFT);
 }
@@ -790,7 +790,7 @@ udp__send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 static void
 udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg);
 static void
-udp__connect(void *arg __attribute__((__unused__))) {
+udp__connect(void *arg ISC_ATTR_UNUSED) {
 	isc_sockaddr_t connect_addr;
 
 	connect_addr = (isc_sockaddr_t){ .length = 0 };

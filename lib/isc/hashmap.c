@@ -145,7 +145,7 @@ hashmap_node_init(hashmap_node_t *node, const uint32_t hashval,
 	};
 }
 
-static void __attribute__((__unused__))
+ISC_ATTR_UNUSED static void
 hashmap_dump_table(const isc_hashmap_t *hashmap, const uint8_t idx) {
 	fprintf(stderr,
 		"====== %" PRIu8 " (bits = %" PRIu8 ", size = %zu =====\n", idx,

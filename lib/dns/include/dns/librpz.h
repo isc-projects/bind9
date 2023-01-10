@@ -215,7 +215,7 @@ typedef struct {
 } librpz_emsg_t;
 
 #ifdef LIBRPZ_HAVE_ATTR
-#define LIBRPZ_UNUSED	__attribute__((unused))
+#define LIBRPZ_UNUSED	ISC_ATTR_UNUSED
 #define LIBRPZ_PF(f, l) __attribute__((format(printf, f, l)))
 #define LIBRPZ_NORET	__attribute__((__noreturn__))
 #else /* ifdef LIBRPZ_HAVE_ATTR */
