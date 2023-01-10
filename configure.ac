@@ -311,10 +311,9 @@ AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sy
 #
 # Check for thread local storage
 #
+# NOTE: OpenBSD doesn't ship <threads.h>, so we can't require it (yet).
+#
 AC_CHECK_HEADERS([threads.h])
-AX_TLS([AS_IF([test "$ac_cv_tls" != "thread_local"],
-	      [AC_DEFINE_UNQUOTED([thread_local], [$ac_cv_tls], [Define if the compiler uses a different keyword than thread_local for TLS variables])])],
-       [AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])])
 
 AC_C_CONST
 AC_C_INLINE

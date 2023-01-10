@@ -16,8 +16,11 @@
 /*! \file */
 
 #include <pthread.h>
+
 #if HAVE_THREADS_H
 #include <threads.h>
+#else
+#define thread_local _Thread_local
 #endif
 
 #if defined(HAVE_PTHREAD_NP_H)

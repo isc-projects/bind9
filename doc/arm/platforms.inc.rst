@@ -20,24 +20,18 @@ found in the ISC Knowledgebase:
 https://kb.isc.org/docs/supported-platforms
 
 In general, this version of BIND will build and run on any
-POSIX-compliant system with a modern C compiler, BSD-style
+POSIX-compliant system with a modern C11 (or better) compiler, BSD-style
 sockets with RFC-compliant IPv6 support, POSIX-compliant threads, and
 the :ref:`required libraries <build_dependencies>`.
 
-The following C11 features are required in BIND 9:
+The following C11 features are required to compile BIND 9:
 
--  Atomic operations support, either in the form of C11 atomics or
-   **__atomic** builtin operations.
+-  Atomic operations support defined in <stdatomic.h>
 
--  Thread Local Storage support, either in the form of C11
-   **_Thread_local**/**thread_local**, or the **__thread** GCC
-   extension.
+-  Thread Local Storage support defined in <threads.h>
 
-The C11 variants are preferred.
-
-The following C23 features are required in BIND 9.
-
--  C23-style attributes - namely [[maybe_unused]] attribute.
+Where it makes sense, BIND 9 uses C-standard fixes introduced by C17 update
+of the C11 standard.
 
 ISC regularly tests BIND on many operating systems and architectures,
 but lacks the resources to test all of them. Consequently, ISC is only
@@ -74,7 +68,7 @@ regularly by ISC.
 -  NetBSD
 -  Other Linux distributions still supported by their vendors, such as:
 
-   -  Ubuntu 20.10+
+   -  Ubuntu 22.10+
    -  Gentoo
    -  Arch Linux
 
