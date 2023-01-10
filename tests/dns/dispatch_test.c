@@ -383,7 +383,7 @@ connected(isc_result_t eresult, isc_region_t *region, void *cbarg) {
 	UNUSED(eresult);
 	UNUSED(region);
 
-	dns_dispatch_send(dispentry, r, -1);
+	dns_dispatch_send(dispentry, r);
 }
 
 static void
@@ -421,7 +421,7 @@ ISC_RUN_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	region.base = rbuf;
@@ -477,7 +477,7 @@ ISC_RUN_TEST_IMPL(dispatch_timeout_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_listentcpdns(netmgr, &tcp_server_addr, noop_nameserver,
@@ -532,7 +532,7 @@ ISC_RUN_TEST_IMPL(dispatch_tcp_response) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
-					&tcp_server_addr, -1, &dispatch);
+					&tcp_server_addr, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_listentcpdns(netmgr, &tcp_server_addr, nameserver, NULL,

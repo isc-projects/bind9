@@ -212,9 +212,6 @@ help(void) {
 	       "from ipv4only.arpa)\n"
 	       "                 +[no]dnssec         (Request DNSSEC records)\n"
 	       "                 +domain=###         (Set default domainname)\n"
-	       "                 +[no]dscp[=###]     (Set the DSCP value to "
-	       "### "
-	       "[0..63])\n"
 	       "                 +[no]edns[=###]     (Set EDNS version) [0]\n"
 	       "                 +ednsflags=###      (Set EDNS flag bits)\n"
 	       "                 +[no]ednsnegotiation (Set EDNS version "
@@ -1400,20 +1397,10 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			strlcpy(domainopt, value, sizeof(domainopt));
 			break;
 		case 's': /* dscp */
+			/* obsolete */
 			FULLCHECK("dscp");
-			if (!state) {
-				lookup->dscp = -1;
-				break;
-			}
-			if (value == NULL) {
-				goto need_value;
-			}
-			result = parse_uint(&num, value, 0x3f, "DSCP");
-			if (result != ISC_R_SUCCESS) {
-				warn("Couldn't parse DSCP value");
-				goto exit_or_usage;
-			}
-			lookup->dscp = num;
+			fprintf(stderr, ";; +dscp option is obsolete "
+					"and has no effect");
 			break;
 		default:
 			goto invalid_option;

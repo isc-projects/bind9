@@ -422,7 +422,6 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb) {
 		}
 	}
 
-	/* xxxwpk TODO compare dscps! */
 	return (true);
 }
 
@@ -1915,7 +1914,7 @@ cleanup:
  * We have to generate a text buffer with regular zone config:
  * zone "foo.bar" {
  * 	type secondary;
- * 	primaries [ dscp X ] { ip1 port port1; ip2 port port2; };
+ * 	primaries { ip1 port port1; ip2 port port2; };
  * }
  */
 isc_result_t
@@ -1926,7 +1925,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_result_t result;
 	uint32_t i;
 	isc_netaddr_t netaddr;
-	char pbuf[sizeof("65535")]; /* used both for port number and DSCP */
+	char pbuf[sizeof("65535")]; /* used for port number */
 	char zname[DNS_NAME_FORMATSIZE];
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(zone));
@@ -1943,20 +1942,6 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_putstr(buffer, "zone \"");
 	dns_name_totext(&entry->name, true, buffer);
 	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
-
-	/*
-	 * DSCP value has no default, but when it is specified, it is
-	 * identical for all primaries and cannot be overridden for a
-	 * specific primary IP, so use the DSCP value set for the first
-	 * primary.
-	 */
-	if (entry->opts.masters.count > 0 && entry->opts.masters.dscps[0] >= 0)
-	{
-		isc_buffer_putstr(buffer, " dscp ");
-		snprintf(pbuf, sizeof(pbuf), "%hd",
-			 entry->opts.masters.dscps[0]);
-		isc_buffer_putstr(buffer, pbuf);
-	}
 
 	isc_buffer_putstr(buffer, " { ");
 	for (i = 0; i < entry->opts.masters.count; i++) {

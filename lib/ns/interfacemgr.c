@@ -469,9 +469,7 @@ interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
-	*ifp = (ns_interface_t){ .generation = mgr->generation,
-				 .addr = *addr,
-				 .dscp = -1 };
+	*ifp = (ns_interface_t){ .generation = mgr->generation, .addr = *addr };
 
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 
@@ -529,13 +527,6 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 			      isc_result_totext(result));
 	}
 
-#if 0
-	if (ifp->dscp != -1) {
-		isc_socket_dscp(ifp->tcpsocket,ifp->dscp);
-	}
-
-	(void)isc_socket_filter(ifp->tcpsocket,"dataready");
-#endif /* if 0 */
 	return (result);
 }
 
@@ -683,7 +674,6 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 		REQUIRE(!LISTENING(ifp));
 	}
 
-	ifp->dscp = elt->dscp;
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
 
 	if (elt->is_http) {
@@ -1093,17 +1083,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			ifp = find_matching_interface(mgr, &listen_addr);
 			if (ifp != NULL) {
 				ifp->generation = mgr->generation;
-				if (le->dscp != -1 && ifp->dscp == -1) {
-					ifp->dscp = le->dscp;
-				} else if (le->dscp != ifp->dscp) {
-					isc_sockaddr_format(&listen_addr, sabuf,
-							    sizeof(sabuf));
-					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_WARNING,
-						      "%s: conflicting DSCP "
-						      "values, using %d",
-						      sabuf, ifp->dscp);
-				}
 				if (LISTENING(ifp)) {
 					if (config) {
 						update_listener_configuration(
@@ -1255,18 +1234,6 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
 				ifp->generation = mgr->generation;
-				if (le->dscp != -1 && ifp->dscp == -1) {
-					ifp->dscp = le->dscp;
-				} else if (le->dscp != ifp->dscp) {
-					isc_sockaddr_format(&listen_sockaddr,
-							    sabuf,
-							    sizeof(sabuf));
-					isc_log_write(IFMGR_COMMON_LOGARGS,
-						      ISC_LOG_WARNING,
-						      "%s: conflicting DSCP "
-						      "values, using %d",
-						      sabuf, ifp->dscp);
-				}
 				if (LISTENING(ifp)) {
 					if (config) {
 						update_listener_configuration(

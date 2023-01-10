@@ -314,9 +314,6 @@ file documentation:
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
-    ``dscp``
-        An :term:`integer` between 0 and 63, used to select a Differentiated Services Code Point (DSCP) value for use with outgoing traffic on operating systems that support DSCP.
-
     ``fixedpoint``
         A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
@@ -1611,11 +1608,11 @@ default is used.
 
 .. namedconf:statement:: dscp
    :tags: server, query
-   :short: Specifies the global Differentiated Services Code Point (DSCP) value to classify outgoing DNS traffic.
+   :short: Sets the Differentiated Services Code Point (DSCP) value (obsolete).
 
-   This is the global Differentiated Services Code Point (DSCP) value to
-   classify outgoing DNS traffic, on operating systems that support DSCP.
-   Valid values are 0 through 63. It is not configured by default.
+   This option used to set the global Differentiated Services Code Point
+   (DSCP) value to classify outgoing DNS traffic. It is now obsolete and
+   has no effect.
 
 .. namedconf:statement:: preferred-glue
    :tags: query
@@ -2890,8 +2887,8 @@ authoritative and does not have the answer in its cache.
 
    This specifies a list of IP addresses to which queries are forwarded. The
    default is the empty list (no forwarding). Each address in the list can be
-   associated with an optional port number and/or DSCP value, and a default port
-   number and DSCP value can be set for the entire list.
+   associated with an optional port number. A default port number can be set
+   for the entire list.
 
 Forwarding can also be configured on a per-domain basis, allowing for
 the global forwarding options to be overridden in a variety of ways.

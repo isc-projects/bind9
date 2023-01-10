@@ -55,12 +55,11 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj);
 isc_result_t
 named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		       in_port_t defport, isc_mem_t *mctx,
-		       isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		       uint32_t *countp);
+		       isc_sockaddr_t **addrsp, uint32_t *countp);
 
 void
 named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		       isc_dscp_t **dscpsp, uint32_t count);
+		       uint32_t count);
 
 isc_result_t
 named_config_getremotesdef(const cfg_obj_t *cctx, const char *list,
@@ -81,6 +80,3 @@ named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
 isc_result_t
 named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 			      unsigned int *typep, uint16_t *digestbits);
-
-isc_result_t
-named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp);

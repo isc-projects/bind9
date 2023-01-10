@@ -507,19 +507,16 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 isc_result_t
 named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		       in_port_t defport, isc_mem_t *mctx,
-		       isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
-		       uint32_t *countp) {
+		       isc_sockaddr_t **addrsp, uint32_t *countp) {
 	int count, i = 0;
-	const cfg_obj_t *addrlist;
-	const cfg_obj_t *portobj, *dscpobj;
-	const cfg_listelt_t *element;
-	isc_sockaddr_t *addrs;
+	const cfg_obj_t *addrlist = NULL;
+	const cfg_obj_t *portobj = NULL;
+	const cfg_listelt_t *element = NULL;
+	isc_sockaddr_t *addrs = NULL;
 	in_port_t port;
-	isc_dscp_t dscp = -1, *dscps = NULL;
 	isc_result_t result;
 
 	INSIST(addrsp != NULL && *addrsp == NULL);
-	INSIST(dscpsp == NULL || *dscpsp == NULL);
 	INSIST(countp != NULL);
 
 	addrlist = cfg_tuple_get(list, "addresses");
@@ -543,22 +540,6 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		}
 	}
 
-	if (dscpsp != NULL) {
-		dscpobj = cfg_tuple_get(list, "dscp");
-		if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
-			if (cfg_obj_asuint32(dscpobj) > 63) {
-				cfg_obj_log(dscpobj, named_g_lctx,
-					    ISC_LOG_ERROR,
-					    "dscp value '%u' is out of range",
-					    cfg_obj_asuint32(dscpobj));
-				return (ISC_R_RANGE);
-			}
-			dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
-		}
-
-		dscps = isc_mem_get(mctx, count * sizeof(isc_dscp_t));
-	}
-
 	addrs = isc_mem_get(mctx, count * sizeof(isc_sockaddr_t));
 
 	for (element = cfg_list_first(addrlist); element != NULL;
@@ -568,14 +549,6 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 		INSIST(i < count);
 		addr = cfg_listelt_value(element);
 		addrs[i] = *cfg_obj_assockaddr(addr);
-		if (dscpsp != NULL) {
-			isc_dscp_t innerdscp;
-			innerdscp = cfg_obj_getdscp(addr);
-			if (innerdscp == -1) {
-				innerdscp = dscp;
-			}
-			dscps[i] = innerdscp;
-		}
 		if (isc_sockaddr_getport(&addrs[i]) == 0) {
 			isc_sockaddr_setport(&addrs[i], port);
 		}
@@ -585,26 +558,16 @@ named_config_getiplist(const cfg_obj_t *config, const cfg_obj_t *list,
 	*addrsp = addrs;
 	*countp = count;
 
-	if (dscpsp != NULL) {
-		*dscpsp = dscps;
-	}
-
 	return (ISC_R_SUCCESS);
 }
 
 void
 named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
-		       isc_dscp_t **dscpsp, uint32_t count) {
+		       uint32_t count) {
 	INSIST(addrsp != NULL && *addrsp != NULL);
-	INSIST(dscpsp == NULL || *dscpsp != NULL);
 
 	isc_mem_put(mctx, *addrsp, count * sizeof(isc_sockaddr_t));
 	*addrsp = NULL;
-
-	if (dscpsp != NULL) {
-		isc_mem_put(mctx, *dscpsp, count * sizeof(isc_dscp_t));
-		*dscpsp = NULL;
-	}
 }
 
 static isc_result_t
@@ -722,30 +685,28 @@ isc_result_t
 named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
 			     const cfg_obj_t *list, isc_mem_t *mctx,
 			     dns_ipkeylist_t *ipkl) {
-	uint32_t addrcount = 0, dscpcount = 0, keycount = 0, tlscount = 0,
-		 i = 0;
+	uint32_t addrcount = 0, keycount = 0, tlscount = 0, i = 0;
 	uint32_t listcount = 0, l = 0, j;
 	uint32_t stackcount = 0, pushed = 0;
 	isc_result_t result;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *addrlist;
 	const cfg_obj_t *portobj;
-	const cfg_obj_t *dscpobj;
 	in_port_t port = (in_port_t)0;
 	in_port_t def_port;
 	in_port_t def_tlsport;
-	isc_dscp_t dscp = -1;
 	isc_sockaddr_t *addrs = NULL;
-	isc_dscp_t *dscps = NULL;
 	dns_name_t **keys = NULL;
 	dns_name_t **tlss = NULL;
 	struct {
 		const char *name;
+		in_port_t port;
+		isc_sockaddr_t *src4s;
+		isc_sockaddr_t *src6s;
 	} *lists = NULL;
 	struct {
 		const cfg_listelt_t *element;
 		in_port_t port;
-		isc_dscp_t dscp;
 	} *stack = NULL;
 
 	REQUIRE(ipkl != NULL);
@@ -753,7 +714,6 @@ named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
 	REQUIRE(ipkl->addrs == NULL);
 	REQUIRE(ipkl->keys == NULL);
 	REQUIRE(ipkl->tlss == NULL);
-	REQUIRE(ipkl->dscps == NULL);
 	REQUIRE(ipkl->labels == NULL);
 	REQUIRE(ipkl->allocated == 0);
 
@@ -770,15 +730,9 @@ named_config_getipandkeylist(const cfg_obj_t *config, const char *listtype,
 		goto cleanup;
 	}
 
-	result = named_config_getdscp(config, &dscp);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
 newlist:
 	addrlist = cfg_tuple_get(list, "addresses");
 	portobj = cfg_tuple_get(list, "port");
-	dscpobj = cfg_tuple_get(list, "dscp");
 
 	if (cfg_obj_isuint32(portobj)) {
 		uint32_t val = cfg_obj_asuint32(portobj);
@@ -789,17 +743,6 @@ newlist:
 			goto cleanup;
 		}
 		port = (in_port_t)val;
-	}
-
-	if (dscpobj != NULL && cfg_obj_isuint32(dscpobj)) {
-		if (cfg_obj_asuint32(dscpobj) > 63) {
-			cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
-				    "dscp value '%u' is out of range",
-				    cfg_obj_asuint32(dscpobj));
-			result = ISC_R_RANGE;
-			goto cleanup;
-		}
-		dscp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	}
 
 	result = ISC_R_NOMEMORY;
@@ -855,21 +798,15 @@ resume:
 			 */
 			stack[pushed].element = cfg_list_next(element);
 			stack[pushed].port = port;
-			stack[pushed].dscp = dscp;
 			pushed++;
 			goto newlist;
 		}
 
 		grow_array(mctx, addrs, i, addrcount);
-		grow_array(mctx, dscps, i, dscpcount);
 		grow_array(mctx, keys, i, keycount);
 		grow_array(mctx, tlss, i, tlscount);
 
 		addrs[i] = *cfg_obj_assockaddr(addr);
-		dscps[i] = cfg_obj_getdscp(addr);
-		if (dscps[i] == -1) {
-			dscps[i] = dscp;
-		}
 
 		result = named_config_getname(mctx, key, &keys[i]);
 		if (result != ISC_R_SUCCESS) {
@@ -907,12 +844,10 @@ resume:
 		pushed--;
 		element = stack[pushed].element;
 		port = stack[pushed].port;
-		dscp = stack[pushed].dscp;
 		goto resume;
 	}
 
 	shrink_array(mctx, addrs, i, addrcount);
-	shrink_array(mctx, dscps, i, dscpcount);
 	shrink_array(mctx, keys, i, keycount);
 	shrink_array(mctx, tlss, i, tlscount);
 
@@ -923,13 +858,10 @@ resume:
 		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
 	}
 
-	INSIST(dscpcount == addrcount);
 	INSIST(keycount == addrcount);
 	INSIST(tlscount == addrcount);
-	INSIST(keycount == dscpcount);
 
 	ipkl->addrs = addrs;
-	ipkl->dscps = dscps;
 	ipkl->keys = keys;
 	ipkl->tlss = tlss;
 	ipkl->count = addrcount;
@@ -940,9 +872,6 @@ resume:
 cleanup:
 	if (addrs != NULL) {
 		isc_mem_put(mctx, addrs, addrcount * sizeof(addrs[0]));
-	}
-	if (dscps != NULL) {
-		isc_mem_put(mctx, dscps, dscpcount * sizeof(dscps[0]));
 	}
 	if (keys != NULL) {
 		for (j = 0; j < i; j++) {
@@ -1003,32 +932,6 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 		return (ISC_R_RANGE);
 	}
 	*portp = (in_port_t)cfg_obj_asuint32(portobj);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-named_config_getdscp(const cfg_obj_t *config, isc_dscp_t *dscpp) {
-	const cfg_obj_t *options = NULL;
-	const cfg_obj_t *dscpobj = NULL;
-	isc_result_t result;
-
-	(void)cfg_map_get(config, "options", &options);
-	if (options == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-	result = cfg_map_get(options, "dscp", &dscpobj);
-	if (result != ISC_R_SUCCESS || dscpobj == NULL) {
-		*dscpp = -1;
-		return (ISC_R_SUCCESS);
-	}
-	if (cfg_obj_asuint32(dscpobj) >= 64) {
-		cfg_obj_log(dscpobj, named_g_lctx, ISC_LOG_ERROR,
-			    "dscp '%u' out of range",
-			    cfg_obj_asuint32(dscpobj));
-		return (ISC_R_RANGE);
-	}
-	*dscpp = (isc_dscp_t)cfg_obj_asuint32(dscpobj);
 	return (ISC_R_SUCCESS);
 }
 

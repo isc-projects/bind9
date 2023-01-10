@@ -62,11 +62,8 @@ struct dns_peer {
 	bool check_axfr_id;
 	dns_name_t *key;
 	isc_sockaddr_t *transfer_source;
-	isc_dscp_t transfer_dscp;
 	isc_sockaddr_t *notify_source;
-	isc_dscp_t notify_dscp;
 	isc_sockaddr_t *query_source;
-	isc_dscp_t query_dscp;
 	uint16_t udpsize;    /* receive size */
 	uint16_t maxudp;     /* transmit size */
 	uint16_t padding;    /* pad block size */
@@ -90,14 +87,11 @@ struct dns_peer {
 #define SERVER_MAXUDP_BIT	   7
 #define REQUEST_NSID_BIT	   8
 #define SEND_COOKIE_BIT		   9
-#define NOTIFY_DSCP_BIT		   10
-#define TRANSFER_DSCP_BIT	   11
-#define QUERY_DSCP_BIT		   12
-#define REQUEST_EXPIRE_BIT	   13
-#define EDNS_VERSION_BIT	   14
-#define FORCE_TCP_BIT		   15
-#define SERVER_PADDING_BIT	   16
-#define REQUEST_TCP_KEEPALIVE_BIT  17
+#define REQUEST_EXPIRE_BIT	   10
+#define EDNS_VERSION_BIT	   11
+#define FORCE_TCP_BIT		   12
+#define SERVER_PADDING_BIT	   13
+#define REQUEST_TCP_KEEPALIVE_BIT  14
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -878,72 +872,6 @@ dns_peer_getpadding(dns_peer_t *peer, uint16_t *padding) {
 	} else {
 		return (ISC_R_NOTFOUND);
 	}
-}
-
-isc_result_t
-dns_peer_setnotifydscp(dns_peer_t *peer, isc_dscp_t dscp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscp < 64);
-
-	peer->notify_dscp = dscp;
-	DNS_BIT_SET(NOTIFY_DSCP_BIT, &peer->bitflags);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_peer_getnotifydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscpp != NULL);
-
-	if (DNS_BIT_CHECK(NOTIFY_DSCP_BIT, &peer->bitflags)) {
-		*dscpp = peer->notify_dscp;
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_NOTFOUND);
-}
-
-isc_result_t
-dns_peer_settransferdscp(dns_peer_t *peer, isc_dscp_t dscp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscp < 64);
-
-	peer->transfer_dscp = dscp;
-	DNS_BIT_SET(TRANSFER_DSCP_BIT, &peer->bitflags);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_peer_gettransferdscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscpp != NULL);
-
-	if (DNS_BIT_CHECK(TRANSFER_DSCP_BIT, &peer->bitflags)) {
-		*dscpp = peer->transfer_dscp;
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_NOTFOUND);
-}
-
-isc_result_t
-dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscp < 64);
-
-	peer->query_dscp = dscp;
-	DNS_BIT_SET(QUERY_DSCP_BIT, &peer->bitflags);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
-	REQUIRE(DNS_PEER_VALID(peer));
-	REQUIRE(dscpp != NULL);
-
-	if (DNS_BIT_CHECK(QUERY_DSCP_BIT, &peer->bitflags)) {
-		*dscpp = peer->query_dscp;
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_NOTFOUND);
 }
 
 isc_result_t

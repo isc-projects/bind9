@@ -63,7 +63,7 @@ ISC_RUN_TEST_IMPL(ns_listenlist_default) {
 
 	UNUSED(state);
 
-	result = ns_listenlist_default(mctx, port, -1, false, AF_INET, &list);
+	result = ns_listenlist_default(mctx, port, false, AF_INET, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(list);
 
@@ -90,7 +90,7 @@ ISC_RUN_TEST_IMPL(ns_listenlist_default) {
 
 	ns_listenlist_detach(&list);
 
-	result = ns_listenlist_default(mctx, port, -1, true, AF_INET, &list);
+	result = ns_listenlist_default(mctx, port, true, AF_INET, &list);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_false(ISC_LIST_EMPTY(list->elts));

@@ -44,7 +44,6 @@ struct ns_listenelt {
 	isc_mem_t	   *mctx;
 	in_port_t	    port;
 	bool		    is_http;
-	isc_dscp_t	    dscp; /* -1 = not set, 0..63 */
 	dns_acl_t	   *acl;
 	isc_tlsctx_t	   *sslctx;
 	isc_tlsctx_cache_t *sslctx_cache;
@@ -80,8 +79,8 @@ typedef struct ns_listen_tls_params {
  ***/
 
 isc_result_t
-ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		    dns_acl_t *acl, const uint16_t family, bool tls,
+ns_listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
+		    const uint16_t family, bool tls,
 		    const ns_listen_tls_params_t *tls_params,
 		    isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target);
 /*%<
@@ -94,8 +93,8 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
  */
 
 isc_result_t
-ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, isc_dscp_t dscp,
-			 dns_acl_t *acl, const uint16_t family, bool tls,
+ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, dns_acl_t *acl,
+			 const uint16_t family, bool tls,
 			 const ns_listen_tls_params_t *tls_params,
 			 isc_tlsctx_cache_t *tlsctx_cache, char **endpoints,
 			 size_t nendpoints, const uint32_t max_clients,
@@ -129,9 +128,8 @@ ns_listenlist_detach(ns_listenlist_t **listp);
  */
 
 isc_result_t
-ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
-		      bool enabled, const uint16_t family,
-		      ns_listenlist_t **target);
+ns_listenlist_default(isc_mem_t *mctx, in_port_t port, bool enabled,
+		      const uint16_t family, ns_listenlist_t **target);
 /*%<
  * Create a listen-on list with default contents, matching
  * all addresses with port 'port' (if 'enabled' is true),

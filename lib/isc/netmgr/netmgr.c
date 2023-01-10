@@ -130,13 +130,6 @@ static const isc_statscounter_t unixstatsindex[] = {
 
 static thread_local int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
-/*
- * Set by the -T dscp option on the command line. If set to a value
- * other than -1, we check to make sure DSCP values match it, and
- * assert if not. (Not currently in use.)
- */
-int isc_dscp_check_value = -1;
-
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG);
 static void
