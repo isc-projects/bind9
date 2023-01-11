@@ -45,7 +45,7 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep) {
 
 	REQUIRE(fwdtablep != NULL && *fwdtablep == NULL);
 
-	fwdtable = isc_mem_get(mctx, sizeof(dns_fwdtable_t));
+	fwdtable = isc_mem_get(mctx, sizeof(*fwdtable));
 
 	fwdtable->table = NULL;
 	result = dns_rbt_create(mctx, auto_detach, fwdtable, &fwdtable->table);
@@ -62,7 +62,7 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep) {
 	return (ISC_R_SUCCESS);
 
 cleanup_fwdtable:
-	isc_mem_put(mctx, fwdtable, sizeof(dns_fwdtable_t));
+	isc_mem_put(mctx, fwdtable, sizeof(*fwdtable));
 
 	return (result);
 }
@@ -76,13 +76,13 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
-	forwarders = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarders_t));
+	forwarders = isc_mem_get(fwdtable->mctx, sizeof(*forwarders));
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (fwd = ISC_LIST_HEAD(*fwdrs); fwd != NULL;
 	     fwd = ISC_LIST_NEXT(fwd, link))
 	{
-		nfwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
+		nfwd = isc_mem_get(fwdtable->mctx, sizeof(*nfwd));
 		*nfwd = *fwd;
 		ISC_LINK_INIT(nfwd, link);
 		ISC_LIST_APPEND(forwarders->fwdrs, nfwd, link);
@@ -103,9 +103,9 @@ cleanup:
 	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
 		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(isc_sockaddr_t));
+		isc_mem_put(fwdtable->mctx, fwd, sizeof(*fwd));
 	}
-	isc_mem_put(fwdtable->mctx, forwarders, sizeof(dns_forwarders_t));
+	isc_mem_put(fwdtable->mctx, forwarders, sizeof(*forwarders));
 	return (result);
 }
 
@@ -119,13 +119,13 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
-	forwarders = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarders_t));
+	forwarders = isc_mem_get(fwdtable->mctx, sizeof(*forwarders));
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (sa = ISC_LIST_HEAD(*addrs); sa != NULL;
 	     sa = ISC_LIST_NEXT(sa, link))
 	{
-		fwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
+		fwd = isc_mem_get(fwdtable->mctx, sizeof(*fwd));
 		fwd->addr = *sa;
 		ISC_LINK_INIT(fwd, link);
 		ISC_LIST_APPEND(forwarders->fwdrs, fwd, link);
@@ -146,9 +146,9 @@ cleanup:
 	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
 		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(dns_forwarder_t));
+		isc_mem_put(fwdtable->mctx, fwd, sizeof(*fwd));
 	}
-	isc_mem_put(fwdtable->mctx, forwarders, sizeof(dns_forwarders_t));
+	isc_mem_put(fwdtable->mctx, forwarders, sizeof(*forwarders));
 	return (result);
 }
 
@@ -193,7 +193,7 @@ dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	isc_rwlock_destroy(&fwdtable->rwlock);
 	fwdtable->magic = 0;
 
-	isc_mem_putanddetach(&fwdtable->mctx, fwdtable, sizeof(dns_fwdtable_t));
+	isc_mem_putanddetach(&fwdtable->mctx, fwdtable, sizeof(*fwdtable));
 }
 
 /***
@@ -211,7 +211,7 @@ auto_detach(void *data, void *arg) {
 	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
 		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(dns_forwarder_t));
+		isc_mem_put(fwdtable->mctx, fwd, sizeof(*fwd));
 	}
-	isc_mem_put(fwdtable->mctx, forwarders, sizeof(dns_forwarders_t));
+	isc_mem_put(fwdtable->mctx, forwarders, sizeof(*forwarders));
 }
