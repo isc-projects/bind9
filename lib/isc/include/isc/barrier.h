@@ -15,24 +15,53 @@
 
 #include <isc/util.h>
 
-#if __SANITIZE_THREAD__
+#if HAVE_PTHREAD_BARRIER_INIT
 
 #include <pthread.h>
 
-#define isc_barrier_t pthread_barrier_t
+#if ISC_TRACK_PTHREADS_OBJECTS
+typedef pthread_barrier_t *isc_barrier_t;
+#else
+typedef pthread_barrier_t isc_barrier_t;
+#endif
 
-#define isc_barrier_init(barrier, count) \
-	pthread_barrier_init(barrier, NULL, count)
-#define isc_barrier_destroy(barrier) pthread_barrier_destroy(barrier)
-#define isc_barrier_wait(barrier)    pthread_barrier_wait(barrier)
+#define isc__barrier_init(bp, count)                                \
+	{                                                           \
+		int _ret = pthread_barrier_init(bp, NULL, count);   \
+		PTHREADS_RUNTIME_CHECK(pthread_barrier_init, _ret); \
+	}
 
-#else /* __SANITIZE_THREAD__ */
+#define isc__barrier_wait(bp) pthread_barrier_wait(bp)
 
-#include <isc/uv.h>
+#define isc__barrier_destroy(bp)                                       \
+	{                                                              \
+		int _ret = pthread_barrier_destroy(bp);                \
+		PTHREADS_RUNTIME_CHECK(pthread_barrier_destroy, _ret); \
+	}
+
+#else
+
+#include <uv.h>
 
 #if ISC_TRACK_PTHREADS_OBJECTS
-
 typedef uv_barrier_t *isc_barrier_t;
+#else
+typedef uv_barrier_t isc_barrier_t;
+#endif
+
+#define isc__barrier_init(bp, count)                     \
+	{                                                \
+		int _ret = uv_barrier_init(bp, count);   \
+		UV_RUNTIME_CHECK(uv_barrier_init, _ret); \
+	}
+
+#define isc__barrier_wait(bp) uv_barrier_wait(bp)
+
+#define isc__barrier_destroy(bp) uv_barrier_destroy(bp)
+
+#endif
+
+#if ISC_TRACK_PTHREADS_OBJECTS
 
 #define isc_barrier_init(bp, count)            \
 	{                                      \
@@ -48,22 +77,8 @@ typedef uv_barrier_t *isc_barrier_t;
 
 #else /* ISC_TRACK_PTHREADS_OBJECTS */
 
-typedef uv_barrier_t isc_barrier_t;
-
 #define isc_barrier_init(bp, count) isc__barrier_init(bp, count)
 #define isc_barrier_wait(bp)	    isc__barrier_wait(bp)
 #define isc_barrier_destroy(bp)	    isc__barrier_destroy(bp)
 
 #endif /* ISC_TRACK_PTHREADS_OBJECTS */
-
-#define isc__barrier_init(bp, count)                     \
-	{                                                \
-		int _ret = uv_barrier_init(bp, count);   \
-		UV_RUNTIME_CHECK(uv_barrier_init, _ret); \
-	}
-
-#define isc__barrier_wait(bp) uv_barrier_wait(bp)
-
-#define isc__barrier_destroy(bp) uv_barrier_destroy(bp)
-
-#endif /* __SANITIZE_THREAD__ */
