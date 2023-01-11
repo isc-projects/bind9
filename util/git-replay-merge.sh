@@ -17,14 +17,9 @@ SELF="$(basename $0)"
 SELF="${SELF/-/ }"
 
 STATE_FILE=".git/REPLAY_MERGE"
+DONT_TAG=${DONT_TAG:=false}
 DONT_PUSH=${DONT_PUSH:=false}
 DONT_ACCEPT=${DONT_ACCEPT:=false}
-
-GITLAB_API_ENDPOINT=${GITLAB_API_ENDPOINT:=https://gitlab.isc.org/api/v4}
-GITLAB_URI=${GITLAB_URI:=$(echo $GITLAB_API_ENDPOINT | cut -f 1-3 -d /)}
-GITLAB_PROJECT_ID=${GITLAB_PROJECT_ID:=1}
-GITLAB_PROJECT_GROUP=${GITLAB_PROJECT_GROUP:=isc-projects}
-GITLAB_PROJECT_NAME=${GITLAB_PROJECT_NAME:=bind9}
 
 die() {
 	for MESSAGE in "$@"; do
@@ -36,17 +31,14 @@ die() {
 die_with_usage() {
 	die "Usage:"								\
 	    ""									\
-	    "	${SELF} <merge_commit_id> <target_remote> <target_branch>"	\
-	    "	${SELF} --no-push"						\
-	    "	${SELF} --continue"						\
-	    "	${SELF} --abort"
-}
-
-verify_gitlab_cli() {
-	which gitlab >/dev/null 2>&1 || \
-		die "You need to have gitlab cli installed and configured: "\
-		    "" \
-		    "$ gem install --user-install gitlab"
+	    "${SELF} [options] <merge_commit_id> <target_remote> <target_branch>" \
+	    "${SELF} --continue"						\
+	    "${SELF} --abort"							\
+	    ""									\
+	    "options:"								\
+	    "	--no-push"							\
+	    "	--no-tag"							\
+	    ""
 }
 
 die_with_continue_instructions() {
@@ -173,21 +165,39 @@ resume() {
 		fi
 	fi
 
-	if [[ "$DONT_PUSH" = "true" ]]; then
+	if $DONT_PUSH; then
 		die_before_push
 	fi
 
-	if [[ "$DONT_ACCEPT" = "true" ]]; then
-		AUTOMERGE=""
+	if $DONT_ACCEPT; then
+		AUTO_MERGE=""
 	else
-		AUTO_MERGE="-o merge_request.merge_when_pipeline_succeeds"
+		AUTO_MERGE="merge_request.merge_when_pipeline_succeeds"
+	fi
+
+	TITLE=""
+	LABEL_VERSION=""
+	LABEL_BACKPORT=""
+
+	if ! $DONT_TAG && [[ $TARGET_BRANCH == v9_[0-9][0-9] ]]; then
+
+		version="9.${TARGET_BRANCH#v9_}"
+
+		TITLE="$(git show --format=%b ${SOURCE_COMMIT} | head -n 1)"
+		TITLE="merge_request.title=[${version}] ${TITLE}"
+
+		LABEL_VERSION="merge_request.label=v${version}"
+		LABEL_BACKPORT="merge_request.label=Backport"
 	fi
 
 	git push -u ${TARGET_REMOTE} \
 	    -o merge_request.create \
 	    -o merge_request.remove_source_branch \
 	    -o "merge_request.target=${TARGET_BRANCH}" \
-	    ${AUTO_MERGE} \
+	    ${AUTO_MERGE:+-o} "${AUTO_MERGE}" \
+	    ${TITLE:+-o} "${TITLE}" \
+	    ${LABEL_VERSION:+-o} "${LABEL_VERSION}" \
+	    ${LABEL_BACKPORT:+-o} "${LABEL_BACKPORT}" \
 	    "${REPLAY_BRANCH}:${REPLAY_BRANCH}"
 
 	cleanup
@@ -208,6 +218,7 @@ cleanup() {
 cd $(git rev-parse --show-toplevel)
 
 next_action="go"
+args=3
 while [[ $# -ge 1 ]]; do
 	case "$1" in
 		"--no-push")
@@ -216,29 +227,38 @@ while [[ $# -ge 1 ]]; do
 		"--push")
 			DONT_PUSH=false
 			;;
+		"--no-tag")
+			DONT_TAG=true
+			;;
+		"--tag")
+			DONT_TAG=false
+			;;
 		"--abort")
 			die_if_not_in_progress
 			source "${STATE_FILE}"
 			next_action="cleanup"
+			args=0
+			shift
+			break
 			;;
 		"--continue")
-			verify_gitlab_cli
 			die_if_not_in_progress
 			source "${STATE_FILE}"
 			next_action="resume"
-			;;
-		*)
-			if [[ $# -ne 3 ]]; then
-				die_with_usage
-			fi
+			args=0
+			shift
 			break
+			;;
+		--*)	die_with_usage
+			;;
+		*)	break
 			;;
 	esac
 	shift
 done
 
-if [[ "DONT_PUSH" = "false" ]]; then
-	verify_gitlab_cli
+if [[ $# -ne $args ]]; then
+	die_with_usage
 fi
 
 $next_action "$@"
