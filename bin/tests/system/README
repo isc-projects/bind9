@@ -67,8 +67,53 @@ then run
 ... as root.
 
 
-Running the System Tests
+Running the System Tests with pytest
 ===
+
+The pytest system test runner is currently in development, but it is the
+recommended way to run tests. Please report issues to QA.
+
+Running an Individual Test
+---
+
+pytest -k <test-name>
+
+Note that in comparison to the legacy test runner, some additional tests might
+be picked up when specifying just the system test directory name. To check
+which tests will be executed, you can use the `--collect-only` option. You
+might also be able to find a more specific test name to provide to ensure only
+your desired test is executed. See help for `-k` option in `pytest --help` for
+more info.
+
+It is also possible to run a single individual pytest test case. For example,
+you can use the name test_sslyze_dot to execute just the test_sslyze_dot()
+function from doth/tests_sslyze.py. The entire needed setup and teardown will
+be handled by the framework.
+
+Running All the System Tests
+---
+
+Issuing plain `pytest` command without any argument will execute all tests
+sequenatially. To execute them in parallel, ensure you have pytest-xdist
+installed and run:
+
+pytest --dist loadscope -n <number-of-workers>
+
+It is vital to provide the `--dist loadscope` option when running the tests in
+parallel to ensure tests from a single module are executed from the same
+thread. Otherwise, there's a risk of port contention and inefficient use of
+resources.
+
+
+Running the System Tests Using the Legacy Runner
+===
+
+!!! WARNING !!!
+---
+The legacy way to run system tests is currently being reworked into a pytest
+system test runner described in the previous section. The contents of this
+section might be out of date and no longer applicable. Please try and use the
+pytest runner if possible and report issues and missing features.
 
 Running an Individual Test
 ---
