@@ -451,9 +451,6 @@ static isc_result_t
 add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx);
 
 static void
-end_reserved_dispatches(named_server_t *server, bool all);
-
-static void
 newzone_cfgctx_destroy(void **cfgp);
 
 static isc_result_t
@@ -1584,8 +1581,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 	}
 
 	obj = NULL;
@@ -1600,8 +1595,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 	}
 
 	obj = NULL;
@@ -1615,8 +1608,6 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
 		}
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 	}
 
 	*peerp = peer;
@@ -10029,7 +10020,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO, "shutting down%s",
 		      flush ? ": flushing changes" : "");
 
-	end_reserved_dispatches(server, true);
 	cleanup_session_key(server, server->mctx);
 
 	if (named_g_aclconfctx != NULL) {
@@ -10253,8 +10243,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(named_controls_create(server, &server->controls),
 		   "named_controls_create");
 
-	ISC_LIST_INIT(server->dispatches);
-
 	ISC_LIST_INIT(server->statschannels);
 
 	ISC_LIST_INIT(server->cachelist);
@@ -10348,91 +10336,11 @@ fatal(named_server_t *server, const char *msg, isc_result_t result) {
 	exit(1);
 }
 
-static void
-start_reserved_dispatches(named_server_t *server) {
-	REQUIRE(NAMED_SERVER_VALID(server));
-
-	server->dispatchgen++;
-}
-
-static void
-end_reserved_dispatches(named_server_t *server, bool all) {
-	named_dispatch_t *dispatch, *nextdispatch;
-
-	REQUIRE(NAMED_SERVER_VALID(server));
-
-	for (dispatch = ISC_LIST_HEAD(server->dispatches); dispatch != NULL;
-	     dispatch = nextdispatch)
-	{
-		nextdispatch = ISC_LIST_NEXT(dispatch, link);
-		if (!all && server->dispatchgen == dispatch->dispatchgen) {
-			continue;
-		}
-		ISC_LIST_UNLINK(server->dispatches, dispatch, link);
-		dns_dispatch_detach(&dispatch->dispatch);
-		isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
-	}
-}
-
-void
-named_add_reserved_dispatch(named_server_t *server,
-			    const isc_sockaddr_t *addr) {
-	named_dispatch_t *dispatch;
-	in_port_t port;
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	isc_result_t result;
-
-	REQUIRE(NAMED_SERVER_VALID(server));
-
-	port = isc_sockaddr_getport(addr);
-	if (port == 0 || port >= 1024) {
-		return;
-	}
-
-	for (dispatch = ISC_LIST_HEAD(server->dispatches); dispatch != NULL;
-	     dispatch = ISC_LIST_NEXT(dispatch, link))
-	{
-		if (isc_sockaddr_equal(&dispatch->addr, addr)) {
-			break;
-		}
-	}
-	if (dispatch != NULL) {
-		dispatch->dispatchgen = server->dispatchgen;
-		return;
-	}
-
-	dispatch = isc_mem_get(server->mctx, sizeof(*dispatch));
-
-	dispatch->addr = *addr;
-	dispatch->dispatchgen = server->dispatchgen;
-	dispatch->dispatch = NULL;
-
-	result = dns_dispatch_createudp(named_g_dispatchmgr, &dispatch->addr,
-					&dispatch->dispatch);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
-
-	ISC_LIST_INITANDPREPEND(server->dispatches, dispatch, link);
-
-	return;
-
-cleanup:
-	isc_mem_put(server->mctx, dispatch, sizeof(*dispatch));
-	isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-		      "unable to create dispatch for reserved port %s: %s",
-		      addrbuf, isc_result_totext(result));
-}
-
 static isc_result_t
 loadconfig(named_server_t *server) {
 	isc_result_t result;
-	start_reserved_dispatches(server);
 	result = load_configuration(named_g_conffile, server, false);
 	if (result == ISC_R_SUCCESS) {
-		end_reserved_dispatches(server, false);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "reloading configuration succeeded");

@@ -309,12 +309,6 @@ isc_result_t
 named_server_dumprecursing(named_server_t *server);
 
 /*%
- * Maintain a list of dispatches that require reserved ports.
- */
-void
-named_add_reserved_dispatch(named_server_t *server, const isc_sockaddr_t *addr);
-
-/*%
  * Enable or disable dnssec validation.
  */
 isc_result_t
