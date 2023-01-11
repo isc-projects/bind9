@@ -58,6 +58,9 @@
 6044.	[bug]		There was an "RSASHA236" typo in a log message.
 			[GL !7206]
 
+5830.	[func]		Implement incremental resizing of isc_ht hash tables to
+			perform the rehashing gradually. [GL #3212]
+
 	--- 9.18.10 released ---
 
 6043.	[bug]		The key file IO locks objects would never get

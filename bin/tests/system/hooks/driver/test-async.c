@@ -143,7 +143,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 	*inst = (async_instance_t){ .mctx = NULL };
 	isc_mem_attach(mctx, &inst->mctx);
 
-	isc_ht_init(&inst->ht, mctx, 16);
+	isc_ht_init(&inst->ht, mctx, 16, ISC_HT_CASE_SENSITIVE);
 	isc_mutex_init(&inst->hlock);
 
 	/*
