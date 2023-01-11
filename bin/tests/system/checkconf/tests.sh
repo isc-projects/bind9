@@ -165,6 +165,11 @@ $CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
 grep "option 'managed-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'max-zone-ttl' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'use-v4-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'use-v6-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'avoid-v4-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'avoid-v6-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "token 'port' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 # set -i to ignore deprecate warnings
