@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/resource.h>
 #include <time.h>
 
 #include <isc/buffer.h>
@@ -39,6 +40,18 @@ isc_loopmgr_t *loopmgr = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_nm_t *netmgr = NULL;
 unsigned int workers = -1;
+
+static void
+adjustnofile(void) {
+	struct rlimit rl;
+
+	if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+		if (rl.rlim_cur != rl.rlim_max) {
+			rl.rlim_cur = rl.rlim_max;
+			setrlimit(RLIMIT_NOFILE, &rl);
+		}
+	}
+}
 
 int
 setup_mctx(void **state __attribute__((__unused__))) {
@@ -106,6 +119,8 @@ teardown_taskmgr(void **state __attribute__((__unused__))) {
 int
 setup_netmgr(void **state __attribute__((__unused__))) {
 	REQUIRE(loopmgr != NULL);
+
+	adjustnofile();
 
 	isc_netmgr_create(mctx, loopmgr, &netmgr);
 
