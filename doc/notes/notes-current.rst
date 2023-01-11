@@ -64,6 +64,8 @@ Bug Fixes
 - Clients may see an unexpected "Prohibited" extended DNS error when ``named``
   is configured with :any:`allow-recursion`). :gl:`#3743`
 
+- Fix a TLS error that occured with large transfers over XoT. :gl:`#3772`
+
 Known Issues
 ~~~~~~~~~~~~
 
