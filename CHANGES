@@ -1,3 +1,11 @@
+6067.	[placeholder]
+
+6066.	[placeholder]
+
+6065.	[placeholder]
+
+6064.	[placeholder]
+
 6063.	[cleanup]	The RSA and ECDSA parts of the DNSSEC has been
 			refactored for a better OpenSSL 3.x integration and
 			preliminary PKCS#11 support via for OpenSSL Providers
