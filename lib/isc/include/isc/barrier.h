@@ -15,7 +15,7 @@
 
 #include <isc/util.h>
 
-#if __SANITIZE_THREAD__
+#if HAVE_PTHREAD_BARRIER_INIT
 
 #include <pthread.h>
 
