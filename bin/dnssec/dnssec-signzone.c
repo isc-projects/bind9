@@ -117,12 +117,6 @@ static int nsec_datatype = dns_rdatatype_nsec;
 #define SOA_SERIAL_UNIXTIME  2
 #define SOA_SERIAL_DATE	     3
 
-typedef struct signer_work swork_t;
-struct signer_work {
-	dns_fixedname_t *fname;
-	dns_dbnode_t *node;
-};
-
 static dns_dnsseckeylist_t keylist;
 static unsigned int keycount = 0;
 static isc_rwlock_t keylist_lock;
@@ -190,9 +184,6 @@ static bool no_max_check = false;
 		UNLOCK(&statslock); \
 	}
 
-static void
-sign(void *arg);
-
 /*%
  * Store a copy of 'name' in 'fzonecut' and return a pointer to that copy.
  */
@@ -215,14 +206,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	isc_result_t result;
 	unsigned int bufsize = 4096;
 
-	if (outputformat != dns_masterformat_text) {
-		return;
-	}
-
 	if (!output_dnssec_only) {
-		result = dns_master_dumpnodetostream(mctx, gdb, gversion, node,
-						     name, masterstyle, outfp);
-		check_result(result, "dns_master_dumpnodetostream");
 		return;
 	}
 
@@ -271,6 +255,17 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 	isc_buffer_free(&buffer);
 	dns_rdatasetiter_destroy(&iter);
+}
+
+static void
+lock_and_dumpnode(dns_name_t *name, dns_dbnode_t *node) {
+	if (!output_dnssec_only) {
+		return;
+	}
+
+	LOCK(&namelock);
+	dumpnode(name, node);
+	UNLOCK(&namelock);
 }
 
 /*%
@@ -1501,47 +1496,6 @@ cleanup:
 }
 
 /*%
- * Delete any RRSIG records at a node.
- */
-static void
-cleannode(dns_db_t *db, dns_dbversion_t *dbversion, dns_dbnode_t *node) {
-	dns_rdatasetiter_t *rdsiter = NULL;
-	dns_rdataset_t set;
-	isc_result_t result, dresult;
-
-	if (outputformat != dns_masterformat_text || !disable_zone_check) {
-		return;
-	}
-
-	dns_rdataset_init(&set);
-	result = dns_db_allrdatasets(db, node, dbversion, 0, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets");
-	result = dns_rdatasetiter_first(rdsiter);
-	while (result == ISC_R_SUCCESS) {
-		bool destroy = false;
-		dns_rdatatype_t covers = 0;
-		dns_rdatasetiter_current(rdsiter, &set);
-		if (set.type == dns_rdatatype_rrsig) {
-			covers = set.covers;
-			destroy = true;
-		}
-		dns_rdataset_disassociate(&set);
-		result = dns_rdatasetiter_next(rdsiter);
-		if (destroy) {
-			dresult = dns_db_deleterdataset(db, node, dbversion,
-							dns_rdatatype_rrsig,
-							covers);
-			check_result(dresult, "dns_db_deleterdataset");
-		}
-	}
-	if (result != ISC_R_NOMORE) {
-		fatal("rdataset iteration failed: %s",
-		      isc_result_totext(result));
-	}
-	dns_rdatasetiter_destroy(&rdsiter);
-}
-
-/*%
  * Set up the iterator and global state before starting the tasks.
  */
 static void
@@ -1579,10 +1533,7 @@ signapex(void) {
 	result = dns_dbiterator_current(gdbiter, &node, name);
 	check_dns_dbiterator_current(result);
 	signname(node, name);
-	LOCK(&namelock);
 	dumpnode(name, node);
-	UNLOCK(&namelock);
-	cleannode(gdb, gversion, node);
 	dns_db_detachnode(gdb, &node);
 	result = dns_dbiterator_first(gdbiter);
 	if (result == ISC_R_NOMORE) {
@@ -1599,7 +1550,7 @@ signapex(void) {
  */
 static void
 assignwork(void *arg) {
-	dns_fixedname_t *fname = NULL;
+	dns_fixedname_t fname;
 	dns_name_t *name = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t nsec;
@@ -1608,7 +1559,6 @@ assignwork(void *arg) {
 	static dns_name_t *zonecut = NULL; /* Protected by namelock. */
 	static dns_fixedname_t fzonecut;   /* Protected by namelock. */
 	static unsigned int ended = 0;	   /* Protected by namelock. */
-	swork_t *swork = NULL;
 
 	UNUSED(arg);
 
@@ -1622,11 +1572,11 @@ assignwork(void *arg) {
 		if (ended == nloops) {
 			isc_loopmgr_shutdown(loopmgr);
 		}
-		goto unlock;
+		UNLOCK(&namelock);
+		return;
 	}
 
-	fname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
-	name = dns_fixedname_initname(fname);
+	name = dns_fixedname_initname(&fname);
 	node = NULL;
 	found = false;
 	while (!found) {
@@ -1698,50 +1648,21 @@ assignwork(void *arg) {
 		if (ended == nloops) {
 			isc_loopmgr_shutdown(loopmgr);
 		}
-		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
-		goto unlock;
+		UNLOCK(&namelock);
+		return;
 	}
 
-	swork = isc_mem_get(mctx, sizeof(*swork));
-	*swork = (swork_t){
-		.node = node,
-		.fname = fname,
-	};
-unlock:
 	UNLOCK(&namelock);
-	if (swork != NULL) {
-		sign(swork);
-	}
-}
 
-/*%
- * Write a node to the output file, and restart the worker task.
- */
-static void
-writenode(swork_t *swork) {
-	LOCK(&namelock);
-	dumpnode(dns_fixedname_name(swork->fname), swork->node);
-	UNLOCK(&namelock);
-	cleannode(gdb, gversion, swork->node);
-	dns_db_detachnode(gdb, &swork->node);
-	isc_mem_put(mctx, swork->fname, sizeof(dns_fixedname_t));
-	isc_mem_put(mctx, swork, sizeof(*swork));
+	signname(node, dns_fixedname_name(&fname));
+
+	/*%
+	 * Write a node to the output file, and restart the worker task.
+	 */
+	lock_and_dumpnode(dns_fixedname_name(&fname), node);
+	dns_db_detachnode(gdb, &node);
+
 	isc_job_run(loopmgr, assignwork, NULL);
-}
-
-/*%
- *  Sign a database node.
- */
-static void
-sign(void *arg) {
-	swork_t *swork = (swork_t *)arg;
-	dns_fixedname_t *fname = swork->fname;
-	dns_dbnode_t *node = swork->node;
-
-	signname(node, dns_fixedname_name(fname));
-	swork->node = node;
-	swork->fname = fname;
-	writenode(swork);
 }
 
 /*%
@@ -4039,7 +3960,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	if (outputformat != dns_masterformat_text) {
+	if (!output_dnssec_only) {
 		dns_masterrawheader_t header;
 		dns_master_initrawheader(&header);
 		if (rawversion == 0U) {
@@ -4051,7 +3972,7 @@ main(int argc, char *argv[]) {
 		result = dns_master_dumptostream(mctx, gdb, gversion,
 						 masterstyle, outputformat,
 						 &header, outfp);
-		check_result(result, "dns_master_dumptostream3");
+		check_result(result, "dns_master_dumptostream");
 	}
 
 	if (!output_stdout) {
