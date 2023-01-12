@@ -10701,6 +10701,8 @@ fail:
 void
 dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	fetchctx_t *fctx = NULL;
+	dns_fetchevent_t *event_trystale = NULL;
+	dns_fetchevent_t *event_fetchdone = NULL;
 
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
@@ -10711,22 +10713,67 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	LOCK(&fctx->lock);
 
 	/*
-	 * Find the completion event for this fetch (as opposed
-	 * to those for other fetches that have joined the same
-	 * fctx) and send it with result = ISC_R_CANCELED.
+	 * Find all the events associated with the provided 'fetch' (as opposed
+	 * to those for other fetches that have joined the same fctx).  The
+	 * event(s) found are only sent and removed from the fctx->events list
+	 * after this loop is finished (i.e. the fctx->events list is not
+	 * modified during iteration).
 	 */
 	for (dns_fetchevent_t *event = ISC_LIST_HEAD(fctx->events);
 	     event != NULL; event = ISC_LIST_NEXT(event, ev_link))
 	{
-		if (event->fetch == fetch) {
-			isc_task_t *task = event->ev_sender;
-			ISC_LIST_UNLINK(fctx->events, event, ev_link);
-			event->ev_sender = fctx;
-			event->result = ISC_R_CANCELED;
+		/*
+		 * Only process events associated with the provided 'fetch'.
+		 */
+		if (event->fetch != fetch) {
+			continue;
+		}
 
-			isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
+		/*
+		 * Track various events associated with the provided 'fetch' in
+		 * separate variables as they will need to be sent in a
+		 * specific order.
+		 */
+		switch (event->ev_type) {
+		case DNS_EVENT_TRYSTALE:
+			INSIST(event_trystale == NULL);
+			event_trystale = event;
+			break;
+		case DNS_EVENT_FETCHDONE:
+			INSIST(event_fetchdone == NULL);
+			event_fetchdone = event;
+			break;
+		default:
+			UNREACHABLE();
+		}
+
+		/*
+		 * Break out of the loop once all possible types of events
+		 * associated with the provided 'fetch' are found.
+		 */
+		if (event_trystale != NULL && event_fetchdone != NULL) {
 			break;
 		}
+	}
+
+	/*
+	 * The "trystale" event must be sent before the "fetchdone" event,
+	 * because the latter clears the "recursing" query attribute, which is
+	 * required by both events (handled by the same callback function).
+	 */
+	if (event_trystale != NULL) {
+		isc_task_t *etask = event_trystale->ev_sender;
+		ISC_LIST_UNLINK(fctx->events, event_trystale, ev_link);
+		event_trystale->ev_sender = fctx;
+		event_trystale->result = ISC_R_CANCELED;
+		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event_trystale));
+	}
+	if (event_fetchdone != NULL) {
+		isc_task_t *etask = event_fetchdone->ev_sender;
+		ISC_LIST_UNLINK(fctx->events, event_fetchdone, ev_link);
+		event_fetchdone->ev_sender = fctx;
+		event_fetchdone->result = ISC_R_CANCELED;
+		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event_fetchdone));
 	}
 
 	/*
