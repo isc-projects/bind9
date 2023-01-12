@@ -137,6 +137,7 @@ options {\n\
 	trust-anchor-telemetry yes;\n\
 	udp-receive-buffer 0;\n\
 	udp-send-buffer 0;\n\
+	update-quota 100;\n\
 \n\
 	/* view */\n\
 	allow-new-zones no;\n\
