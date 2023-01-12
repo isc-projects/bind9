@@ -952,7 +952,9 @@
 			when the resent query's result was SERVFAIL. [GL #3020]
 
 5830.	[func]		Implement incremental resizing of isc_ht hash tables to
-			perform the rehashing gradually. [GL #3212]
+			perform the rehashing gradually. The catalog zone
+			implementation has been optimized to work with hundreds
+			of thousands of member zones. [GL #3212] [GL #3744]
 
 5829.	[func]		Refactor and simplify isc_timer API in preparation
 			for further refactoring on top of network manager
