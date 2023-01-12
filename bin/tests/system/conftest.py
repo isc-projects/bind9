@@ -66,6 +66,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
 
     # ----------------------- Globals definition -----------------------------
 
+    FIXTURE_OK = pytest.StashKey[bool]()  # pylint: disable=no-member
     LOG_FORMAT = "%(asctime)s %(levelname)7s:%(name)s  %(message)s"
     XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
     FILE_DIR = os.path.abspath(Path(__file__).parent)
@@ -313,6 +314,10 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
                 logger.debug("--noclean requested, keeping temporary directory")
             elif result == "failed":
                 logger.debug("test failure detected, keeping temporary directory")
+            elif not request.node.stash[FIXTURE_OK]:
+                logger.debug(
+                    "test setup/teardown issue detected, keeping temporary directory"
+                )
             else:
                 logger.debug("deleting temporary directory")
                 shutil.rmtree(testdir)
@@ -453,9 +458,16 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         port = int(env["PORT"])
         logger.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)
 
+        request.node.stash[FIXTURE_OK] = True
+
         # Perform checks which may skip this test.
         check_net_interfaces()
         check_prerequisites()
+
+        # Store the fact that this fixture hasn't successfully finished yet.
+        # This is checked before temporary directory teardown to decide whether
+        # it's okay to remove the directory.
+        request.node.stash[FIXTURE_OK] = False
 
         setup_test()
         try:
@@ -466,3 +478,4 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             logger.debug("test(s) finished")
             stop_servers()
             get_core_dumps()
+            request.node.stash[FIXTURE_OK] = True
