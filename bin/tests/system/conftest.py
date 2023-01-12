@@ -55,7 +55,9 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     import logging
     from pathlib import Path
     import re
+    import shutil
     import subprocess
+    import tempfile
     import time
     from typing import Any, Dict, List, Optional
 
@@ -64,6 +66,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
 
     # ----------------------- Globals definition -----------------------------
 
+    LOG_FORMAT = "%(asctime)s %(levelname)7s:%(name)s  %(message)s"
     XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
     FILE_DIR = os.path.abspath(Path(__file__).parent)
     ENV_RE = re.compile("([^=]+)=(.*)")
@@ -216,6 +219,48 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     def logger(system_test_name):
         """Logging facility specific to this test."""
         return logging.getLogger(system_test_name)
+
+    @pytest.fixture(scope="module")
+    def system_test_dir(request, env, system_test_name, logger):
+        """
+        Temporary directory for executing the test.
+
+        This fixture is responsible for creating (and potentially removing) a
+        copy of the system test directory which is used as a temporary
+        directory for the test execution.
+
+        FUTURE: This removes the need to have clean.sh scripts.
+        """
+
+        # Create a temporary directory with a copy of the original system test dir contents
+        system_test_root = Path(f"{env['TOP_BUILDDIR']}/bin/tests/system")
+        testdir = Path(
+            tempfile.mkdtemp(prefix=f"{system_test_name}_tmp_", dir=system_test_root)
+        )
+        shutil.rmtree(testdir)
+        shutil.copytree(system_test_root / system_test_name, testdir)
+
+        # Configure logger to write to a file inside the temporary test directory
+        logger.handlers.clear()
+        logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(testdir / "pytest.log.txt", mode="w")
+        formatter = logging.Formatter(LOG_FORMAT)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+        # System tests are meant to be executed from their directory - switch to it.
+        old_cwd = os.getcwd()
+        os.chdir(testdir)
+        logger.info("switching to tmpdir: %s", testdir)
+        try:
+            yield testdir  # other fixtures / tests will execute here
+        finally:
+            os.chdir(old_cwd)
+            logger.debug("changed workdir to: %s", old_cwd)
+
+            # cases when tempdir should be kept are handled in follow-up commits
+            logger.debug("deleting temporary directory")
+            shutil.rmtree(testdir)
 
     def _run_script(  # pylint: disable=too-many-arguments
         env,
