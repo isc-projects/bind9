@@ -44,8 +44,8 @@ Feature Changes
 
 - Setting alternate local addresses for inbound zone transfers has been
   deprecated. The relevant options (``alt-transfer-source``,
-  ``alt-transfer-source-v6``, and ``use-alt-transfer-source``)
-  will be removed in a future BIND 9.19.x release. :gl:`#3694`
+  ``alt-transfer-source-v6``, and ``use-alt-transfer-source``) will be
+  removed in a future BIND 9.19.x release. :gl:`#3694`
 
 - On startup, :iscman:`named` now sets the limit on the number of open
   files to the maximum allowed by the operating system, instead of

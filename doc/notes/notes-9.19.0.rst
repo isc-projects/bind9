@@ -56,3 +56,6 @@ Feature Changes
   threads. This should increase the responsiveness of :iscman:`named`
   when RPZ updates are being applied after an RPZ zone has been
   successfully transferred. :gl:`#3190`
+
+- The catalog zone implementation has been optimized to work with
+  hundreds of thousands of member zones. :gl:`#3212` :gl:`#3744`
