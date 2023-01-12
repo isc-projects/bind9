@@ -1,3 +1,5 @@
+	--- 9.16.37 released ---
+
 6067.	[security]	Fix serve-stale crash when recursive clients soft quota
 			is reached. (CVE-2022-3924) [GL #3619]
 
