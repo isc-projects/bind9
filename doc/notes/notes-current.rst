@@ -64,7 +64,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The catalog zone implementation has been optimized to work with
+  hundreds of thousands of member zones. :gl:`#3212` :gl:`#3744`
 
 Bug Fixes
 ~~~~~~~~~
