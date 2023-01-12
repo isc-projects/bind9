@@ -156,6 +156,14 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
                 raise exc
             logging.debug(proc.stdout)
 
+    def pytest_ignore_collect(path):
+        # System tests are executed in temporary directories inside
+        # bin/tests/system. These temporary directories contain all files
+        # needed for the system tests - including tests_*.py files. Make sure to
+        # ignore these during test collection phase. Otherwise, test artifacts
+        # from previous runs could mess with the runner.
+        return "_tmp_" in str(path)
+
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
     def pytest_runtest_makereport(item):
         """Hook that is used to expose test results to session (for use in fixtures)."""
