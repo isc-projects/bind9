@@ -55,10 +55,10 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The Differentiated Services Code Point (DSCP) feature in BIND
-  is now deprecated. Configuring DSCP values in ``named.conf`` will
-  cause a warning to be logged. Note that this feature has only been
-  partly operational since the Network Manager was introduced in
+- The Differentiated Services Code Point (DSCP) feature in BIND has been
+  deprecated. Configuring DSCP values in ``named.conf`` now causes a
+  warning to be logged. Note that this feature has only been partly
+  operational since the new Network Manager was introduced in BIND
   9.16.0. :gl:`#3773`
 
 Bug Fixes
