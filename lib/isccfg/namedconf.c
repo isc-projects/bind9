@@ -1349,6 +1349,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "treat-cr-as-space", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "udp-receive-buffer", &cfg_type_uint32, 0 },
 	{ "udp-send-buffer", &cfg_type_uint32, 0 },
+	{ "update-quota", &cfg_type_uint32, 0 },
 	{ "use-id-pool", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "use-ixfr", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },

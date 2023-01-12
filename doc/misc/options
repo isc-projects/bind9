@@ -303,6 +303,7 @@ options {
 	udp-receive-buffer <integer>;
 	udp-send-buffer <integer>;
 	update-check-ksk <boolean>;
+	update-quota <integer>;
 	use-v4-udp-ports { <portrange>; ... };
 	use-v6-udp-ports { <portrange>; ... };
 	v6-bias <integer>;
