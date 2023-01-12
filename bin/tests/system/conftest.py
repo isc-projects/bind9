@@ -56,6 +56,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
 
     # ----------------------- Globals definition -----------------------------
 
+    XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
     FILE_DIR = os.path.abspath(Path(__file__).parent)
     ENV_RE = re.compile("([^=]+)=(.*)")
 
@@ -90,3 +91,31 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     CONF_ENV = get_env(". ./conf.sh && env")
     os.environ.update(CONF_ENV)
     logging.debug("conf.sh env: %s", CONF_ENV)
+
+    # --------------------------- pytest hooks -------------------------------
+
+    def pytest_configure():
+        # Ensure this hook only runs on the main pytest instance if xdist is
+        # used to spawn other workers.
+        if not XDIST_WORKER:
+            logging.debug("compiling required files")
+            env = os.environ.copy()
+            env["TESTS"] = ""  # disable automake test framework - compile-only
+            try:
+                # FUTURE: Remove the need to run this compilation command
+                # before executing tests. Currently it's only here to have
+                # on-par functionality with the legacy test framework.
+                proc = subprocess.run(
+                    "make -e check",
+                    shell=True,
+                    check=True,
+                    cwd=FILE_DIR,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    env=env,
+                )
+            except subprocess.CalledProcessError as exc:
+                logging.debug(exc.stdout)
+                logging.error("failed to compile test files: %s", exc)
+                raise exc
+            logging.debug(proc.stdout)
