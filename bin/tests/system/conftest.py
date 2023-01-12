@@ -142,6 +142,27 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
                 raise exc
             logging.debug(proc.stdout)
 
+    @pytest.hookimpl(tryfirst=True, hookwrapper=True)
+    def pytest_runtest_makereport(item):
+        """Hook that is used to expose test results to session (for use in fixtures)."""
+        # execute all other hooks to obtain the report object
+        outcome = yield
+        report = outcome.get_result()
+
+        # Set the test outcome in session, so we can access it from module-level
+        # fixture using nodeid. Note that this hook is called three times: for
+        # setup, call and teardown. We only care about the overall result so we
+        # merge the results together and preserve the information whether a test
+        # passed.
+        test_results = {}
+        try:
+            test_results = getattr(item.session, "test_results")
+        except AttributeError:
+            setattr(item.session, "test_results", test_results)
+        node_result = test_results.get(item.nodeid)
+        if node_result is None or report.outcome != "passed":
+            test_results[item.nodeid] = report.outcome
+
     # --------------------------- Fixtures -----------------------------------
 
     @pytest.fixture(scope="session")
@@ -240,6 +261,25 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         FUTURE: This removes the need to have clean.sh scripts.
         """
 
+        def get_test_result():
+            """Aggregate test results from all individual tests from this module
+            into a single result: failed > skipped > passed."""
+            test_results = {
+                node.nodeid: request.session.test_results[node.nodeid]
+                for node in request.node.collect()
+                if node.nodeid in request.session.test_results
+            }
+            logger.debug(test_results)
+            assert len(test_results)
+            failed = any(res == "failed" for res in test_results.values())
+            skipped = any(res == "skipped" for res in test_results.values())
+            if failed:
+                return "failed"
+            if skipped:
+                return "skipped"
+            assert all(res == "passed" for res in test_results.values())
+            return "passed"
+
         # Create a temporary directory with a copy of the original system test dir contents
         system_test_root = Path(f"{env['TOP_BUILDDIR']}/bin/tests/system")
         testdir = Path(
@@ -266,9 +306,13 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             os.chdir(old_cwd)
             logger.debug("changed workdir to: %s", old_cwd)
 
+            result = get_test_result()
+
             # Clean temporary dir unless it should be kept
             if request.config.getoption("--noclean"):
                 logger.debug("--noclean requested, keeping temporary directory")
+            elif result == "failed":
+                logger.debug("test failure detected, keeping temporary directory")
             else:
                 logger.debug("deleting temporary directory")
                 shutil.rmtree(testdir)
