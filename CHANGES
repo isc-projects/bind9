@@ -13,9 +13,6 @@
 			exceeded, and the XML and JSON statistics version
 			numbers have been updated. (CVE-2022-3094) [GL #3523]
 
-6063.	[bug]		Revert a change that limited to honour single
-			read for TLSDNS as it broke XoT. [GL #3772]
-
 6062.	[func]		The DSCP implementation, which has been
 			nonfunctional for some time, is now marked as
 			obsolete and the implementation has been removed.
