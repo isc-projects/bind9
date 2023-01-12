@@ -108,6 +108,14 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
 
     # --------------------------- pytest hooks -------------------------------
 
+    def pytest_addoption(parser):
+        parser.addoption(
+            "--noclean",
+            action="store_true",
+            default=False,
+            help="don't remove the temporary test directories with artifacts",
+        )
+
     def pytest_configure():
         # Ensure this hook only runs on the main pytest instance if xdist is
         # used to spawn other workers.
@@ -258,9 +266,12 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             os.chdir(old_cwd)
             logger.debug("changed workdir to: %s", old_cwd)
 
-            # cases when tempdir should be kept are handled in follow-up commits
-            logger.debug("deleting temporary directory")
-            shutil.rmtree(testdir)
+            # Clean temporary dir unless it should be kept
+            if request.config.getoption("--noclean"):
+                logger.debug("--noclean requested, keeping temporary directory")
+            else:
+                logger.debug("deleting temporary directory")
+                shutil.rmtree(testdir)
 
     def _run_script(  # pylint: disable=too-many-arguments
         env,
