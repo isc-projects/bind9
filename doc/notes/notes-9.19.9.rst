@@ -89,6 +89,11 @@ Bug Fixes
   including any configured forwarders, resulting in SERVFAIL answers
   being sent to clients. This has been fixed. :gl:`#3752`
 
+- In certain query resolution scenarios (e.g. when following CNAME
+  records), :iscman:`named` configured to answer from stale cache could
+  return a SERVFAIL response despite a usable, non-stale answer being
+  present in the cache. This has been fixed. :gl:`#3678`
+
 - When an outgoing request timed out, :iscman:`named` would retry up to
   three times with the same server instead of trying the next available
   name server. This has been fixed. :gl:`#3637`
