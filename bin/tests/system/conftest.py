@@ -51,11 +51,13 @@ def control_port():
 # don't branch the code.
 
 if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
+    from functools import partial
     import logging
     from pathlib import Path
     import re
     import subprocess
     import time
+    from typing import List, Optional
 
     # Silence warnings caused by passing a pytest fixture to another fixture.
     # pylint: disable=redefined-outer-name
@@ -203,3 +205,69 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         env["builddir"] = f"{env['TOP_BUILDDIR']}/bin/tests/system"
         env["srcdir"] = f"{env['TOP_SRCDIR']}/bin/tests/system"
         return env
+
+    @pytest.fixture(scope="module")
+    def system_test_name(request):
+        """Name of the system test directory."""
+        path = Path(request.fspath)
+        return path.parent.name
+
+    @pytest.fixture(scope="module")
+    def logger(system_test_name):
+        """Logging facility specific to this test."""
+        return logging.getLogger(system_test_name)
+
+    def _run_script(  # pylint: disable=too-many-arguments
+        env,
+        logger,
+        system_test_dir: Path,
+        interpreter: str,
+        script: str,
+        args: Optional[List[str]] = None,
+    ):
+        """Helper function for the shell / perl script invocations (through fixtures below)."""
+        if args is None:
+            args = []
+        path = Path(script)
+        if not path.is_absolute():
+            # make sure relative paths are always relative to system_dir
+            path = system_test_dir.parent / path
+        script = str(path)
+        cwd = os.getcwd()
+        if not path.exists():
+            raise FileNotFoundError(f"script {script} not found in {cwd}")
+        logger.debug("running script: %s %s %s", interpreter, script, " ".join(args))
+        logger.debug("  workdir: %s", cwd)
+        stdout = b""
+        returncode = 1
+        try:
+            proc = subprocess.run(
+                [interpreter, script] + args,
+                env=env,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+        except subprocess.CalledProcessError as exc:
+            stdout = exc.stdout
+            returncode = exc.returncode
+            raise exc
+        else:
+            stdout = proc.stdout
+            returncode = proc.returncode
+        finally:
+            if stdout:
+                for line in stdout.decode().splitlines():
+                    logger.debug("    %s", line)
+            logger.debug("  exited with %d", returncode)
+        return proc
+
+    @pytest.fixture(scope="module")
+    def shell(env, system_test_dir, logger):
+        """Function to call a shell script with arguments."""
+        return partial(_run_script, env, logger, system_test_dir, env["SHELL"])
+
+    @pytest.fixture(scope="module")
+    def perl(env, system_test_dir, logger):
+        """Function to call a perl script with arguments."""
+        return partial(_run_script, env, logger, system_test_dir, env["PERL"])
