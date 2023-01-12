@@ -57,7 +57,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     import re
     import subprocess
     import time
-    from typing import List, Optional
+    from typing import Any, Dict, List, Optional
 
     # Silence warnings caused by passing a pytest fixture to another fixture.
     # pylint: disable=redefined-outer-name
@@ -271,3 +271,98 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     def perl(env, system_test_dir, logger):
         """Function to call a perl script with arguments."""
         return partial(_run_script, env, logger, system_test_dir, env["PERL"])
+
+    @pytest.fixture(scope="module", autouse=True)
+    def system_test(  # pylint: disable=too-many-arguments,too-many-statements
+        request,
+        env: Dict[str, str],
+        logger,
+        system_test_dir,
+        shell,
+        perl,
+    ):
+        """
+        Driver of the test setup/teardown process. Used automatically for every test module.
+
+        This is the most important one-fixture-to-rule-them-all. Note the
+        autouse=True which causes this fixture to be loaded by every test
+        module without the need to explicitly specify it.
+
+        When this fixture is used, it utilizes other fixtures, such as
+        system_test_dir, which handles the creation of the temporary test
+        directory.
+
+        Afterwards, it checks the test environment and takes care of starting
+        the servers. When everything is ready, that's when the actual tests are
+        executed. Once that is done, this fixture stops the servers and checks
+        for any artifacts indicating an issue (e.g. coredumps).
+
+        Finally, when this fixture reaches an end (or encounters an exception,
+        which may be caused by fail/skip invocations), any fixtures which is
+        used by this one are finalized - e.g. system_test_dir performs final
+        checks and cleans up the temporary test directory.
+        """
+
+        def check_net_interfaces():
+            try:
+                perl("testsock.pl", ["-p", env["PORT"]])
+            except subprocess.CalledProcessError as exc:
+                logger.error("testsock.pl: exited with code %d", exc.returncode)
+                pytest.skip("Network interface aliases not set up.")
+
+        def check_prerequisites():
+            try:
+                shell(f"{system_test_dir}/prereq.sh")
+            except FileNotFoundError:
+                pass  # prereq.sh is optional
+            except subprocess.CalledProcessError:
+                pytest.skip("Prerequisites missing.")
+
+        def setup_test():
+            try:
+                shell(f"{system_test_dir}/setup.sh")
+            except FileNotFoundError:
+                pass  # setup.sh is optional
+            except subprocess.CalledProcessError as exc:
+                logger.error("Failed to run test setup")
+                pytest.fail(f"setup.sh exited with {exc.returncode}")
+
+        def start_servers():
+            try:
+                perl("start.pl", ["--port", env["PORT"], system_test_dir.name])
+            except subprocess.CalledProcessError as exc:
+                logger.error("Failed to start servers")
+                pytest.fail(f"start.pl exited with {exc.returncode}")
+
+        def stop_servers():
+            try:
+                perl("stop.pl", [system_test_dir.name])
+            except subprocess.CalledProcessError as exc:
+                logger.error("Failed to stop servers")
+                pytest.fail(f"stop.pl exited with {exc.returncode}")
+
+        def get_core_dumps():
+            try:
+                shell("get_core_dumps.sh", [system_test_dir.name])
+            except subprocess.CalledProcessError as exc:
+                logger.error("Found core dumps")
+                pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
+
+        os.environ.update(env)  # Ensure pytests have the same env vars as shell tests.
+        logger.info(f"test started: {request.node.name}")
+        port = int(env["PORT"])
+        logger.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)
+
+        # Perform checks which may skip this test.
+        check_net_interfaces()
+        check_prerequisites()
+
+        setup_test()
+        try:
+            start_servers()
+            logger.debug("executing test(s)")
+            yield
+        finally:
+            logger.debug("test(s) finished")
+            stop_servers()
+            get_core_dumps()
