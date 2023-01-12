@@ -53,9 +53,9 @@ class AlgorithmSet(NamedTuple):
     "disable-algorithms" configuration option."""
 
 
-RSASHA1 = Algorithm("RSASHA1", 5, 1280)
-RSASHA256 = Algorithm("RSASHA256", 8, 1280)
-RSASHA512 = Algorithm("RSASHA512", 10, 1280)
+RSASHA1 = Algorithm("RSASHA1", 5, 2048)
+RSASHA256 = Algorithm("RSASHA256", 8, 2048)
+RSASHA512 = Algorithm("RSASHA512", 10, 2048)
 ECDSAP256SHA256 = Algorithm("ECDSAP256SHA256", 13, 256)
 ECDSAP384SHA384 = Algorithm("ECDSAP384SHA384", 14, 384)
 ED25519 = Algorithm("ED25519", 15, 256)
