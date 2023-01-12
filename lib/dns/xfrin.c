@@ -1234,6 +1234,8 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	CHECK(result);
 
 	if (!isc_nm_xfr_allowed(handle)) {
+		/* set the error code so that XFER will fail */
+		result = ISC_R_NOPERM;
 		goto failure;
 	}
 
