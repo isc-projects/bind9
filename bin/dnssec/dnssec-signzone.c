@@ -1544,6 +1544,13 @@ signapex(void) {
 	}
 }
 
+static void
+abortwork(void *arg) {
+	UNUSED(arg);
+
+	atomic_store(&shuttingdown, true);
+}
+
 /*%
  * Assigns a node to a worker thread.  This is protected by the main task's
  * lock.
@@ -3937,13 +3944,13 @@ main(int argc, char *argv[]) {
 		 * processors if possible.
 		 */
 		isc_loopmgr_setup(loopmgr, assignwork, NULL);
+		isc_loopmgr_teardown(loopmgr, abortwork, NULL);
 		isc_loopmgr_run(loopmgr);
 
 		if (!atomic_load(&finished)) {
 			fatal("process aborted by user");
 		}
 	}
-	atomic_store(&shuttingdown, true);
 	postsign();
 	TIME_NOW(&sign_finish);
 
