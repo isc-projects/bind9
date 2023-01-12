@@ -1,3 +1,7 @@
+6068.	[bug]		Downloading a zone via TLS from a server which does
+			not negotiate "dot" ALPN token could crash BIND
+			on shutdown. That has been fixed. [GL #3767]
+
 6067.	[placeholder]
 
 6066.	[placeholder]
