@@ -24,6 +24,14 @@ Security Fixes
   ISC would like to thank Rob Schulhof from Infoblox for bringing this
   vulnerability to our attention. :gl:`#3523`
 
+- :iscman:`named` could crash with an assertion failure when an RRSIG
+  query was received and :any:`stale-answer-client-timeout` was set to a
+  non-zero value. This has been fixed. (CVE-2022-3736)
+
+  ISC would like to thank Borja Marcos from Sarenet (with assistance by
+  Iratxe Niño from Fundación Sarenet) for bringing this vulnerability to
+  our attention. :gl:`#3622`
+
 New Features
 ~~~~~~~~~~~~
 
