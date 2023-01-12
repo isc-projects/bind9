@@ -61,6 +61,9 @@ Feature Changes
   operational since the new Network Manager was introduced in BIND
   9.16.0. :gl:`#3773`
 
+- The catalog zone implementation has been optimized to work with
+  hundreds of thousands of member zones. :gl:`#3744`
+
 Bug Fixes
 ~~~~~~~~~
 
