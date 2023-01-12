@@ -81,9 +81,13 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Previously, TLS session resumption could have led to handshake
-  failures when client certificates were used for authentication (Mutual
-  TLS). This has been fixed. :gl:`#3725`
+- A rare assertion failure was fixed in outgoing TCP DNS connection
+  handling. :gl:`#3178` :gl:`#3636`
+
+- In addition to a previously fixed bug, another similar issue was
+  discovered where quotas could be erroneously reached for servers,
+  including any configured forwarders, resulting in SERVFAIL answers
+  being sent to clients. This has been fixed. :gl:`#3752`
 
 - When an outgoing request timed out, :iscman:`named` would retry up to
   three times with the same server instead of trying the next available
@@ -96,16 +100,12 @@ Bug Fixes
   seconds) ADB names and entries are excluded from the overmem memory
   cleaner. :gl:`#3739`
 
-- A rare assertion failure was fixed in outgoing TCP DNS connection
-  handling. :gl:`#3178` :gl:`#3636`
-
-- In addition to a previously fixed bug, another similar issue was
-  discovered where quotas could be erroneously reached for servers,
-  including any configured forwarders, resulting in SERVFAIL answers
-  being sent to clients. This has been fixed. :gl:`#3752`
-
 - The "Prohibited" Extended DNS Error was inadvertently set in some
   NOERROR responses. This has been fixed. :gl:`#3743`
+
+- Previously, TLS session resumption could have led to handshake
+  failures when client certificates were used for authentication (Mutual
+  TLS). This has been fixed. :gl:`#3725`
 
 Known Issues
 ~~~~~~~~~~~~
