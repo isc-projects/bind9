@@ -49,4 +49,44 @@ def control_port():
 # don't branch the code.
 
 if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
-    pass  # will be implemented in followup commits
+    import logging
+    from pathlib import Path
+    import re
+    import subprocess
+
+    # ----------------------- Globals definition -----------------------------
+
+    FILE_DIR = os.path.abspath(Path(__file__).parent)
+    ENV_RE = re.compile("([^=]+)=(.*)")
+
+    # ---------------------- Module initialization ---------------------------
+
+    def parse_env(env_text):
+        """Parse the POSIX env format into Python dictionary."""
+        out = {}
+        for line in env_text.splitlines():
+            match = ENV_RE.match(line)
+            if match:
+                out[match.groups()[0]] = match.groups()[1]
+        return out
+
+    def get_env(cmd):
+        try:
+            proc = subprocess.run(
+                [cmd],
+                shell=True,
+                check=True,
+                cwd=FILE_DIR,
+                stdout=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as exc:
+            logging.error("failed to get shell env: %s", exc)
+            raise exc
+        env_text = proc.stdout.decode("utf-8")
+        return parse_env(env_text)
+
+    # Read common environment variables for running tests from conf.sh.
+    # FUTURE: Remove conf.sh entirely and define all variables in pytest only.
+    CONF_ENV = get_env(". ./conf.sh && env")
+    os.environ.update(CONF_ENV)
+    logging.debug("conf.sh env: %s", CONF_ENV)
