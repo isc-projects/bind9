@@ -64,7 +64,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- In certain query resolution scenarios (e.g. when following CNAME
+  records), :iscman:`named` configured to answer from stale cache could
+  return a SERVFAIL response despite a usable, non-stale answer being
+  present in the cache. This has been fixed. :gl:`#3678`
 
 Known Issues
 ~~~~~~~~~~~~
