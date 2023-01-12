@@ -1288,6 +1288,34 @@ END
 grep "NSEC3PARAM has excessive iterations (> 150)" nsupdate.out-$n >/dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
+n=$((n + 1))
+ret=0
+echo_i "check that update is rejected if query is not allowed ($n)"
+{
+  $NSUPDATE -d <<END
+  local 10.53.0.2
+  server 10.53.0.1 ${PORT}
+  update add reject.other.nil 3600 IN TXT Whatever
+  send
+END
+} > nsupdate.out.test$n 2>&1
+grep 'failed: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that update is rejected if quota is exceeded ($n)"
+for loop in 1 2 3 4 5 6 7 8 9 10; do
+{
+  $NSUPDATE -4 -l -p ${PORT} -k ns1/session.key > /dev/null 2>&1 <<END
+  update add txt-$loop.other.nil 3600 IN TXT Whatever
+  send
+END
+} &
+done
+wait_for_log 10 "too many DNS UPDATEs queued" ns1/named.run || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
 if ! $FEATURETEST --gssapi ; then
   echo_i "SKIPPED: GSSAPI tests"
 else
