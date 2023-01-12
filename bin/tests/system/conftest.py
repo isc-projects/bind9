@@ -64,9 +64,22 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     # Silence warnings caused by passing a pytest fixture to another fixture.
     # pylint: disable=redefined-outer-name
 
+    # ----------------- Older pytest / xdist compatibility -------------------
+    # As of 2023-01-11, the minimal supported pytest / xdist versions are
+    # determined by what is available in EL8/EPEL8:
+    # - pytest 3.4.2
+    # - pytest-xdist 1.24.1
+    _pytest_ver = pytest.__version__.split(".")
+    _pytest_major_ver = int(_pytest_ver[0])
+    if _pytest_major_ver < 7:
+        # pytest.Stash/pytest.StashKey mechanism has been added in 7.0.0
+        # for older versions, use regular dictionary with string keys instead
+        FIXTURE_OK = "fixture_ok"  # type: Any
+    else:
+        FIXTURE_OK = pytest.StashKey[bool]()  # pylint: disable=no-member
+
     # ----------------------- Globals definition -----------------------------
 
-    FIXTURE_OK = pytest.StashKey[bool]()  # pylint: disable=no-member
     LOG_FORMAT = "%(asctime)s %(levelname)7s:%(name)s  %(message)s"
     XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
     FILE_DIR = os.path.abspath(Path(__file__).parent)
@@ -458,6 +471,8 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         port = int(env["PORT"])
         logger.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)
 
+        if not hasattr(request.node, "stash"):  # compatibility with pytest<7.0.0
+            request.node.stash = {}  # use regular dict instead of pytest.Stash
         request.node.stash[FIXTURE_OK] = True
 
         # Perform checks which may skip this test.
