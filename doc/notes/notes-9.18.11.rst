@@ -55,46 +55,54 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The Differentiated Services Code Point (DSCP) feature in BIND
-  has been non-operational since the new Network Manager was introduced
-  in BIND 9.16. It is now marked as obsolete, and vestigial code
-  implementing it has been removed. Configuring DSCP values in
-  ``named.conf`` will cause a warning to be logged. :gl:`#3773`
+- The Differentiated Services Code Point (DSCP) feature in BIND has been
+  non-operational since the new Network Manager was introduced in BIND
+  9.16. It is now marked as obsolete, and vestigial code implementing it
+  has been removed. Configuring DSCP values in ``named.conf`` now causes
+  a warning to be logged. :gl:`#3773`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The catalog zone implementation has been optimized to work with
+  hundreds of thousands of member zones. :gl:`#3212` :gl:`#3744`
 
 Bug Fixes
 ~~~~~~~~~
 
-- TLS session resumption might lead to handshake failures when client
-  certificates are used for authentication (Mutual TLS).  This has
-  been fixed. :gl:`#3725`
+- A rare assertion failure was fixed in outgoing TCP DNS connection
+  handling. :gl:`#3178` :gl:`#3636`
 
-- When an outgoing request timed out, the ``named`` would retry up to three
-  times with the same server instead of trying a next available name server.
-  This has been fixed. :gl:`#3637`
+- Large zone transfers over TLS (XoT) could fail. This has been fixed.
+  :gl:`#3772`
 
-- Recently used ADB names and ADB entries (IP addresses) could get cleaned when
-  ADB would be under memory pressure.  To mitigate this, count only actual ADB
-  names and ADB entries into the overmem memory limit (exclude internal memory
-  structures used for "housekeeping") and exclude recently used (<= 10 seconds)
-  ADB names and entries from the overmem memory cleaner. :gl:`#3739`
+- In addition to a previously fixed bug, another similar issue was
+  discovered where quotas could be erroneously reached for servers,
+  including any configured forwarders, resulting in SERVFAIL answers
+  being sent to clients. This has been fixed. :gl:`#3752`
 
-- Fix a rare assertion failure in the outgoing TCP DNS connection handling.
-  :gl:`#3178` :gl:`#3636`
+- In certain query resolution scenarios (e.g. when following CNAME
+  records), :iscman:`named` configured to answer from stale cache could
+  return a SERVFAIL response despite a usable, non-stale answer being
+  present in the cache. This has been fixed. :gl:`#3678`
 
-- In addition to a previously fixed bug, another similar issue was discovered
-  where quotas could be erroneously reached for servers, including any
-  configured forwarders, resulting in SERVFAIL answers being sent to clients.
-  This has been fixed. :gl:`#3752`
+- When an outgoing request timed out, :iscman:`named` would retry up to
+  three times with the same server instead of trying the next available
+  name server. This has been fixed. :gl:`#3637`
 
-- Clients may see an unexpected "Prohibited" extended DNS error when ``named``
-  is configured with :any:`allow-recursion`). :gl:`#3743`
+- Recently used ADB names and ADB entries (IP addresses) could get
+  cleaned when ADB was under memory pressure. To mitigate this, only
+  actual ADB names and ADB entries are now counted (excluding internal
+  memory structures used for "housekeeping") and recently used (<= 10
+  seconds) ADB names and entries are excluded from the overmem memory
+  cleaner. :gl:`#3739`
 
-- Fix a TLS error that occured with large transfers over XoT. :gl:`#3772`
+- The "Prohibited" Extended DNS Error was inadvertently set in some
+  NOERROR responses. This has been fixed. :gl:`#3743`
+
+- Previously, TLS session resumption could have led to handshake
+  failures when client certificates were used for authentication (Mutual
+  TLS). This has been fixed. :gl:`#3725`
 
 Known Issues
 ~~~~~~~~~~~~

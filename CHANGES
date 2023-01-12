@@ -13,9 +13,6 @@
 			exceeded, and the XML and JSON statistics version
 			numbers have been updated. (CVE-2022-3094) [GL #3523]
 
-6063.	[bug]		Revert a change that limited to honour single
-			read for TLSDNS as it broke XoT. [GL #3772]
-
 6062.	[func]		The DSCP implementation, which has been
 			nonfunctional for some time, is now marked as
 			obsolete and the implementation has been removed.
@@ -74,7 +71,9 @@
 			[GL !7206]
 
 5830.	[func]		Implement incremental resizing of isc_ht hash tables to
-			perform the rehashing gradually. [GL #3212]
+			perform the rehashing gradually. The catalog zone
+			implementation has been optimized to work with hundreds
+			of thousands of member zones. [GL #3212] [GL #3744]
 
 	--- 9.18.10 released ---
 
