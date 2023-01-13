@@ -20826,10 +20826,22 @@ checkds_done(isc_task_t *task, isc_event_t *event) {
 	/* Validate response. */
 	CHECK(validate_ds(zone, message));
 
+	/* Check RCODE. */
 	if (message->rcode != dns_rcode_noerror) {
 		dns_zone_log(zone, ISC_LOG_NOTICE,
 			     "checkds: bad DS response from %s: %.*s", addrbuf,
 			     (int)buf.used, rcode);
+		goto failure;
+	}
+
+	/* Make sure that either AA or RA bit is set. */
+	if ((message->flags & DNS_MESSAGEFLAG_AA) == 0 &&
+	    (message->flags & DNS_MESSAGEFLAG_RA) == 0)
+	{
+		dns_zone_log(zone, ISC_LOG_NOTICE,
+			     "checkds: bad DS response from %s: expected AA or "
+			     "RA bit set",
+			     addrbuf);
 		goto failure;
 	}
 
@@ -21055,6 +21067,7 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
+	message->flags |= DNS_MESSAGEFLAG_RD;
 
 	result = dns_message_gettempname(message, &tempname);
 	if (result != ISC_R_SUCCESS) {
