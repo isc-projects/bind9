@@ -708,8 +708,81 @@ completed.  To enable this, set the USE_VALGRIND environment variable to
 "helgrind" to run the Helgrind tool, or any other value to run the Memcheck
 tool.  To use "helgrind" effectively, build BIND with --disable-atomic.
 
+Developer Notes for pytest runner
+===
 
-Maintenance Notes
+Test discovery and collection
+---
+There are two distinct types of system tests. The first is a shell script
+tests.sh containing individual test cases executed sequentially and the
+success/failure is determined by return code. The second type is a regular
+pytest file which contains test functions.
+
+Dealing with the regular pytest files doesn't require any special consideration
+as long as the naming conventions are met. Discovering the tests.sh tests is
+more complicated.
+
+The chosen solution is to add a bit of glue for each system test. For every
+tests.sh, there is an accompanying tests_sh_*.py file that contains a test
+function which utilizes a custom run_tests_sh fixture to call the tests.sh
+script. Other solutions were tried and eventually rejected. While this
+introduces a bit of extra glue, it is the most portable, compatible and least
+complex solution.
+
+Module scope
+---
+Pytest fixtures can have a scope. The "module" scope is the most important for
+our use. A module is a python file which contains test functions. Every system
+test directory may contain multiple modules (i.e. tests_*.py files)!
+
+The server setup/teardown is done for a module. Bundling test cases together
+inside a single module may save some resources. However, test cases inside a
+single module can't be executed in parallel.
+
+It is possible to execute different modules defined within a single system test
+directory in parallel. This is possible thanks to executing the tests inside a
+temporary directory and proper port assignment to ensure there won't be any
+conflicts.
+
+Parallel execution
+---
+As mentioned in the previous section, test cases inside a single module can't
+be executed in parallel. To put it differently, all tests cases inside the same
+module must be performed by the same worker/thread. Otherwise, server
+setup/teardown fixtures won't be shared and runtime issues due to port
+collisions are likely to occur.
+
+Pytest-xdist is used for executing pytest test cases in parallel using the `-n
+N_WORKERS` option. By default, xdist will distribute any test case to any
+worker, which would lead to the issue described above. Therefore, it is vital
+to use the `--dist loadscope` option which ensures that test cases within the
+same (module) scope will be handled by the same worker.
+
+$ pytest -n auto --dist loadscope
+
+Test selection
+---
+It is possible to run just a single pytest test case from any module. Use
+standard pytest facility to select the desired test case(s), i.e. pass a
+sufficiently unique identifier for `-k` parameter. You can also check which
+tests will be executed by using the `--collect-only` flag to debug your `-k`
+expression.
+
+Compatibility with older pytest version
+---
+Keep in mind that the pytest runner must work with ancient versions of pytest.
+When implementing new features, it is advisable to check feature support in
+pytest and pytest-xdist in older distributions first.
+
+As a general rule, any changes to the pytest runner need to keep working on all
+platforms in CI that use the pytest runner. As of 2023-01-13, the oldest
+supported version is whatever is available in EL8.
+
+We may need to add more compat code eventually to handle breaking upstream
+changes. For example, using request.fspath attribute is already deprecatred in
+latest pytest.
+
+Maintenance Notes for legacy runner
 ===
 This section is aimed at developers maintaining BIND's system test framework.
 
