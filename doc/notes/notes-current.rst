@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.37
+Notes for BIND 9.16.38
 ----------------------
 
 Security Fixes
@@ -25,11 +25,7 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The Differentiated Services Code Point (DSCP) feature in BIND
-  is now deprecated. Configuring DSCP values in ``named.conf`` will
-  cause a warning to be logged. Note that this feature has only been
-  partly operational since the Network Manager was introduced in
-  9.16.0. :gl:`#3773`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
