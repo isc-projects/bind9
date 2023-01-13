@@ -17,7 +17,7 @@ parallel.mk
 /*.log
 /*.trs
 /resolve
-/run.sh
+/legacy.run.sh
 /run.log
 /start.sh
 /stop.sh

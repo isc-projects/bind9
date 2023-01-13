@@ -1591,8 +1591,8 @@ AC_CONFIG_FILES([bin/tests/Makefile
 
 AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
 		[chmod +x bin/tests/system/ifconfig.sh])
-AC_CONFIG_FILES([bin/tests/system/run.sh],
-		[chmod +x bin/tests/system/run.sh])
+AC_CONFIG_FILES([bin/tests/system/legacy.run.sh],
+		[chmod +x bin/tests/system/legacy.run.sh])
 AC_CONFIG_FILES([bin/tests/system/start.sh],
 		[chmod +x bin/tests/system/start.sh])
 AC_CONFIG_FILES([bin/tests/system/stop.sh],
