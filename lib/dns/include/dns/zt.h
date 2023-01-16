@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/rwlock.h>
 
 #include <dns/types.h>
 
