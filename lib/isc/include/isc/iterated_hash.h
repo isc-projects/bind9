@@ -35,4 +35,13 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 		  const int saltlength, const unsigned char *in,
 		  const int inlength);
 
+/*
+ * Private
+ */
+
+void
+isc__iterated_hash_initialize(void);
+void
+isc__iterated_hash_shutdown(void);
+
 ISC_LANG_ENDDECLS

@@ -65,11 +65,25 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	return (SHA_DIGEST_LENGTH);
 }
 
-#else
+void
+isc__iterated_hash_initialize(void) {
+	/* empty */
+}
+
+void
+isc__iterated_hash_shutdown(void) {
+	/* empty */
+}
+
+#else /* HAVE_SHA1_INIT */
 
 #include <openssl/evp.h>
 
 #include <isc/md.h>
+
+static thread_local bool initialized = false;
+static thread_local EVP_MD_CTX *mdctx = NULL;
+static thread_local EVP_MD_CTX *basectx = NULL;
 
 int
 isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
@@ -77,14 +91,13 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 		  const int saltlength, const unsigned char *in,
 		  const int inlength) {
 	REQUIRE(out != NULL);
+	REQUIRE(mdctx != NULL);
+	REQUIRE(basectx != NULL);
 
 	int n = 0;
 	size_t len;
 	unsigned int outlength = 0;
 	const unsigned char *buf;
-	EVP_MD_CTX *ctx = EVP_MD_CTX_create();
-
-	RUNTIME_CHECK(ctx != NULL);
 
 	if (hashalg != 1) {
 		return (0);
@@ -92,21 +105,20 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 
 	buf = in;
 	len = inlength;
-
 	do {
-		if (EVP_DigestInit_ex(ctx, ISC_MD_SHA1, NULL) != 1) {
+		if (EVP_MD_CTX_copy_ex(mdctx, basectx) != 1) {
 			goto fail;
 		}
 
-		if (EVP_DigestUpdate(ctx, buf, len) != 1) {
+		if (EVP_DigestUpdate(mdctx, buf, len) != 1) {
 			goto fail;
 		}
 
-		if (EVP_DigestUpdate(ctx, salt, saltlength) != 1) {
+		if (EVP_DigestUpdate(mdctx, salt, saltlength) != 1) {
 			goto fail;
 		}
 
-		if (EVP_DigestFinal_ex(ctx, out, &outlength) != 1) {
+		if (EVP_DigestFinal_ex(mdctx, out, &outlength) != 1) {
 			goto fail;
 		}
 
@@ -114,13 +126,41 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 		len = outlength;
 	} while (n++ < iterations);
 
-	EVP_MD_CTX_free(ctx);
-
 	return (outlength);
 
 fail:
-	EVP_MD_CTX_free(ctx);
 	return (0);
 }
 
-#endif
+void
+isc__iterated_hash_initialize(void) {
+	if (initialized) {
+		return;
+	}
+
+	basectx = EVP_MD_CTX_new();
+	INSIST(basectx != NULL);
+	mdctx = EVP_MD_CTX_new();
+	INSIST(mdctx != NULL);
+
+	RUNTIME_CHECK(EVP_DigestInit_ex(basectx, ISC_MD_SHA1, NULL) == 1);
+	initialized = true;
+}
+
+void
+isc__iterated_hash_shutdown(void) {
+	if (!initialized) {
+		return;
+	}
+
+	REQUIRE(mdctx != NULL);
+	EVP_MD_CTX_free(mdctx);
+	mdctx = NULL;
+	REQUIRE(basectx != NULL);
+	EVP_MD_CTX_free(basectx);
+	basectx = NULL;
+
+	initialized = false;
+}
+
+#endif /* HAVE_SHA1_INIT */
