@@ -55,6 +55,9 @@ Bug Fixes
   cause increased memory consumption due to delayed cleaning of view memory.
   This has been fixed. :gl:`#3801`
 
+- Improve the speed of the message digest algorithms (MD5, SHA-1,
+  SHA-2) and NSEC3 hashing. :gl:`#3795`
+
 Known Issues
 ~~~~~~~~~~~~
 
