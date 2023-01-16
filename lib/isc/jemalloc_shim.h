@@ -41,7 +41,15 @@ sallocx(void *ptr, int flags) {
 
 #elif HAVE_MALLOC_USABLE_SIZE
 
+#ifdef __DragonFly__
+/*
+ * On DragonFly BSD 'man 3 malloc' advises us to include the following
+ * header to have access to malloc_usable_size().
+ */
+#include <malloc_np.h>
+#else
 #include <malloc.h>
+#endif
 
 static inline size_t
 sallocx(void *ptr, int flags) {
