@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 
+#include <openssl/evp.h>
+
 #include <isc/iterated_hash.h>
 #include <isc/md.h>
 #include <isc/util.h>
@@ -22,55 +24,48 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 		  const int iterations, const unsigned char *salt,
 		  const int saltlength, const unsigned char *in,
 		  const int inlength) {
-	isc_md_t *md;
-	isc_result_t result;
-	int n = 0;
-	unsigned int outlength = 0;
-	size_t len;
-	const unsigned char *buf;
-
 	REQUIRE(out != NULL);
 
-	if (hashalg != 1) {
-		return (0);
-	}
+	int n = 0;
+	size_t len;
+	unsigned int outlength = 0;
+	const unsigned char *buf;
+	EVP_MD_CTX *ctx = EVP_MD_CTX_create();
 
-	if ((md = isc_md_new()) == NULL) {
+	RUNTIME_CHECK(ctx != NULL);
+
+	if (hashalg != 1) {
 		return (0);
 	}
 
 	len = inlength;
 	buf = in;
 	do {
-		result = isc_md_init(md, ISC_MD_SHA1);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+		if (EVP_DigestInit_ex(ctx, ISC_MD_SHA1, NULL) != 1) {
+			goto fail;
 		}
-		result = isc_md_update(md, buf, len);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestUpdate(ctx, buf, len) != 1) {
+			goto fail;
 		}
-		result = isc_md_update(md, salt, saltlength);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestUpdate(ctx, salt, saltlength) != 1) {
+			goto fail;
 		}
-		result = isc_md_final(md, out, &outlength);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestFinal_ex(ctx, out, &outlength) != 1) {
+			goto fail;
 		}
-		result = isc_md_reset(md);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
-		}
+
 		buf = out;
 		len = outlength;
 	} while (n++ < iterations);
 
-	isc_md_free(md);
+	EVP_MD_CTX_free(ctx);
 
 	return (outlength);
-md_fail:
-	isc_md_free(md);
+
+fail:
+	EVP_MD_CTX_free(ctx);
 	return (0);
 }
-#undef RETERR
