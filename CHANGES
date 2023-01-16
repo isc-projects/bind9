@@ -1,3 +1,9 @@
+6072.	[bug]		Avoid the OpenSSL lock contention when initializing
+			Message Digest Contexts by using explicit algorithm
+			fetching, initializing static contexts for every
+			supported algorithms, and initializing the new context
+			by copying the static copy. [GL #3795]
+
 6069.	[bug]		Detach from the view in zone_shutdown() to
 			release the memory held by the dead view
 			early. [GL #3801]
