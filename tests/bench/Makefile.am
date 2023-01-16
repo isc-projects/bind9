@@ -12,6 +12,7 @@ LDADD +=			\
 noinst_PROGRAMS =		\
 	ascii			\
 	compress		\
+	iterated_hash		\
 	dns_name_fromwire	\
 	siphash
 
