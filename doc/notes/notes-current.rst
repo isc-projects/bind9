@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- A constant stream of zone additions and deletions via ``rndc reconfig`` could
+  cause increased memory consumption due to delayed cleaning of view memory.
+  This has been fixed. :gl:`#3801`
 
 Known Issues
 ~~~~~~~~~~~~
