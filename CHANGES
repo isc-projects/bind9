@@ -1,3 +1,7 @@
+6069.	[bug]		Detach from the view in zone_shutdown() to
+			release the memory held by the dead view
+			early. [GL #3801]
+
 6062.	[func]		The DSCP implementation, which has only been
 			partly operational since 9.16.0, is now marked as
 			deprecated. Configuring DSCP values in named.conf

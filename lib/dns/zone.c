@@ -1246,18 +1246,14 @@ zone_free(dns_zone_t *zone) {
 	INSIST(zone->readio == NULL);
 	INSIST(zone->statelist == NULL);
 	INSIST(zone->writeio == NULL);
+	INSIST(zone->view == NULL);
+	INSIST(zone->prev_view == NULL);
 
 	if (zone->task != NULL) {
 		isc_task_detach(&zone->task);
 	}
 	if (zone->loadtask != NULL) {
 		isc_task_detach(&zone->loadtask);
-	}
-	if (zone->view != NULL) {
-		dns_view_weakdetach(&zone->view);
-	}
-	if (zone->prev_view != NULL) {
-		dns_view_weakdetach(&zone->prev_view);
 	}
 
 	/* Unmanaged objects */
@@ -14971,6 +14967,15 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
+
+	/* Detach the views early, we don't need them anymore */
+	if (zone->view != NULL) {
+		dns_view_weakdetach(&zone->view);
+	}
+	if (zone->prev_view != NULL) {
+		dns_view_weakdetach(&zone->prev_view);
+	}
+
 	if (linked) {
 		isc_refcount_decrement(&zone->irefs);
 	}
