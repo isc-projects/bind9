@@ -54,7 +54,7 @@ extern ns_server_t	 *sctx;
 extern atomic_uint_fast32_t client_refs[32];
 extern atomic_uintptr_t	    client_addrs[32];
 
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 #define FLARG                                              \
 	, const char	    *file __attribute__((unused)), \
 		unsigned int line __attribute__((unused)), \

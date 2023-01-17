@@ -21,7 +21,7 @@
 
 #include <ns/client.h>
 
-#ifdef NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 #define FLARG                                              \
 	, const char *file __attribute__((unused)),        \
 		unsigned int line __attribute__((unused)), \

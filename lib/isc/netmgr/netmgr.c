@@ -632,11 +632,11 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 	sock->statichandle = NULL;
 
 	if (sock->outerhandle != NULL) {
-		isc__nmhandle_detach(&sock->outerhandle FLARG_PASS);
+		isc_nmhandle_detach(&sock->outerhandle);
 	}
 
 	if (sock->outer != NULL) {
-		isc___nmsocket_detach(&sock->outer FLARG_PASS);
+		isc__nmsocket_detach(&sock->outer);
 	}
 
 	while ((handle = ISC_LIST_HEAD(sock->inactive_handles)) != NULL) {
