@@ -1,3 +1,6 @@
+6075.	[bug]		Add missing node lock when setting node->wild in
+			add_wildcard_magic. [GL #3799]
+
 6074.	[func]		Refactor the isc_nm_xfr_allowed() function to return
 			isc_result_t instead of boolean. [GL #3808]
 
