@@ -3640,9 +3640,10 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 	}
 }
 
-bool
-isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock;
+isc_result_t
+isc_nm_xfr_checkperm(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+	isc_result_t result = ISC_R_NOPERM;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
@@ -3651,16 +3652,16 @@ isc_nm_xfr_allowed(isc_nmhandle_t *handle) {
 
 	switch (sock->type) {
 	case isc_nm_tcpdnssocket:
-		return (true);
+		result = ISC_R_SUCCESS;
+		break;
 	case isc_nm_tlsdnssocket:
-		return (isc__nm_tlsdns_xfr_allowed(sock));
+		result = isc__nm_tlsdns_xfr_checkperm(sock);
+		break;
 	default:
-		return (false);
+		break;
 	}
 
-	UNREACHABLE();
-
-	return (false);
+	return (result);
 }
 
 bool

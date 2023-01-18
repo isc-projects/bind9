@@ -1715,11 +1715,16 @@ isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
  * Callback handlers for asynchronous TLSDNS events.
  */
 
-bool
-isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
+isc_result_t
+isc__nm_tlsdns_xfr_checkperm(isc_nmsocket_t *sock);
 /*%<
- * Check if it is possible to do a zone transfer over the given TLSDNS
+ * Check if it is permitted to do a zone transfer over the given TLSDNS
  * socket.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS		Success, permission check passed successfully
+ * \li	#ISC_R_DOTALPNERROR	No permission because of ALPN tag mismatch
+ * \li  any other result indicates failure (i.e. no permission)
  *
  * Requires:
  * \li	'sock' is a valid TLSDNS socket.

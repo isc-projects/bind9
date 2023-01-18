@@ -2216,12 +2216,16 @@ isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
  * The ones requiring strict compatibility with the specification
  * could disable TLSv1.2 in the configuration file.
  */
-bool
-isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock) {
+isc_result_t
+isc__nm_tlsdns_xfr_checkperm(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlsdnssocket);
 
-	return (sock->tls.alpn_negotiated);
+	if (!sock->tls.alpn_negotiated) {
+		return (ISC_R_DOTALPNERROR);
+	}
+
+	return (ISC_R_SUCCESS);
 }
 
 const char *

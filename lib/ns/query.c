@@ -12251,17 +12251,25 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 				query_error(client, DNS_R_NOTIMP, __LINE__);
 				return;
 			}
-			if (isc_nm_socket_type(handle) == isc_nm_tlsdnssocket &&
-			    !isc_nm_xfr_allowed(handle))
-			{
+			if (isc_nm_socket_type(handle) == isc_nm_tlsdnssocket) {
 				/*
 				 * Currently this code is here for DoT, which
 				 * has more complex requirements for zone
 				 * transfers compared to other stream
 				 * protocols. See RFC 9103 for details.
 				 */
-				query_error(client, DNS_R_REFUSED, __LINE__);
-				return;
+				switch (isc_nm_xfr_checkperm(handle)) {
+				case ISC_R_SUCCESS:
+					break;
+				case ISC_R_DOTALPNERROR:
+					query_error(client, DNS_R_NOALPN,
+						    __LINE__);
+					return;
+				default:
+					query_error(client, DNS_R_REFUSED,
+						    __LINE__);
+					return;
+				}
 			}
 			ns_xfr_start(client, rdataset->type);
 			return;
