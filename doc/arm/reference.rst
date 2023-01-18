@@ -1599,14 +1599,6 @@ default is used.
    setting it to 0 removes the limit. Once the limit is exceeded, the
    server finishes the HTTP session.
 
-.. namedconf:statement:: dscp
-   :tags: server, query
-   :short: Sets the Differentiated Services Code Point (DSCP) value (obsolete).
-
-   This option used to set the global Differentiated Services Code Point
-   (DSCP) value to classify outgoing DNS traffic. It is now obsolete and
-   has no effect.
-
 .. namedconf:statement:: preferred-glue
    :tags: query
    :short: Controls the order of glue records in an A or AAAA response.

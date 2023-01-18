@@ -169,18 +169,14 @@ struct cfg_rep {
 struct cfg_obj {
 	const cfg_type_t *type;
 	union {
-		uint32_t	 uint32;
-		uint64_t	 uint64;
-		isc_textregion_t string; /*%< null terminated, too */
-		bool		 boolean;
-		cfg_map_t	 map;
-		cfg_list_t	 list;
-		cfg_obj_t      **tuple;
-		isc_sockaddr_t	 sockaddr;
-		struct {
-			isc_sockaddr_t sockaddr;
-			int32_t	       dscp;
-		} sockaddrdscp;
+		uint32_t	  uint32;
+		uint64_t	  uint64;
+		isc_textregion_t  string; /*%< null terminated, too */
+		bool		  boolean;
+		cfg_map_t	  map;
+		cfg_list_t	  list;
+		cfg_obj_t	**tuple;
+		isc_sockaddr_t	  sockaddr;
 		cfg_netprefix_t	  netprefix;
 		isccfg_duration_t duration;
 	} value;
@@ -269,7 +265,6 @@ struct cfg_parser {
 #define CFG_ADDR_V4PREFIXOK 0x00000002
 #define CFG_ADDR_V6OK	    0x00000004
 #define CFG_ADDR_WILDOK	    0x00000008
-#define CFG_ADDR_DSCPOK	    0x00000010
 #define CFG_ADDR_MASK	    (CFG_ADDR_V6OK | CFG_ADDR_V4OK)
 /*@}*/
 
@@ -308,7 +303,6 @@ extern cfg_type_t cfg_type_bracketed_text;
 extern cfg_type_t cfg_type_optional_bracketed_text;
 extern cfg_type_t cfg_type_keyref;
 extern cfg_type_t cfg_type_sockaddr;
-extern cfg_type_t cfg_type_sockaddrdscp;
 extern cfg_type_t cfg_type_netaddr;
 extern cfg_type_t cfg_type_netaddr4;
 extern cfg_type_t cfg_type_netaddr4wild;

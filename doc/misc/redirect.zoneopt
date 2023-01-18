@@ -8,6 +8,6 @@ zone <string> [ <class> ] {
 	masterfile-style ( full | relative );
 	max-records <integer>;
 	max-zone-ttl ( unlimited | <duration> ); // deprecated
-	primaries [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	zone-statistics ( full | terse | none | <boolean> );
 };

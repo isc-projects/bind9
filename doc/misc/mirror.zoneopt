@@ -5,7 +5,7 @@ zone <string> [ <class> ] {
 	allow-query-on { <address_match_element>; ... };
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
-	also-notify [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	check-names ( fail | warn | ignore );
 	database <string>;
 	file <quoted_string>;
@@ -29,7 +29,7 @@ zone <string> [ <class> ] {
 	notify-delay <integer>;
 	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
 	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
-	primaries [ port <integer> ]  [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];

@@ -1,3 +1,7 @@
+6070.	[func]		DSCP parsing has now been fully removed, and
+			configuration of DSCP values in named.conf is a
+			configuration error. [GL #3789]
+
 6069.	[bug]		Detach from the view in zone_shutdown() to
 			release the memory held by the dead view
 			early. [GL #3801]

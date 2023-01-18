@@ -25,7 +25,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The Differentiated Services Code Point (DSCP) feature has been removed:
+  configuring DSCP values in ``named.conf``` is now a configuration error.
+  :gl:`#3789`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

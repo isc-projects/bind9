@@ -1388,12 +1388,6 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			}
 			strlcpy(domainopt, value, sizeof(domainopt));
 			break;
-		case 's': /* dscp */
-			/* obsolete */
-			FULLCHECK("dscp");
-			fprintf(stderr, ";; +dscp option is obsolete "
-					"and has no effect");
-			break;
 		default:
 			goto invalid_option;
 		}

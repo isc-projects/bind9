@@ -1314,12 +1314,6 @@ plus_option(char *option, struct query *query, bool global) {
 			}
 			query->dnssec = state;
 			break;
-		case 's': /* dscp */
-			/* obsolete */
-			FULLCHECK("dscp");
-			fprintf(stderr, ";; +dscp option is obsolete "
-					"and has no effect");
-			break;
 		default:
 			goto invalid_option;
 		}
