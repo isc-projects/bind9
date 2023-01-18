@@ -1277,29 +1277,21 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "parental-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setparentalsrc4(zone, cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "parental-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setparentalsrc6(zone, cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "notify-source", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc4(zone, cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "notify-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setnotifysrc6(zone, cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "notify-to-soa", &obj);
@@ -1921,16 +1913,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource4(mayberaw,
 					      cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		result = named_config_get(maps, "transfer-source-v6", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		RETERR(dns_zone_setxfrsource6(mayberaw,
 					      cfg_obj_assockaddr(obj)));
-		named_add_reserved_dispatch(named_g_server,
-					    cfg_obj_assockaddr(obj));
 
 		obj = NULL;
 		(void)named_config_get(maps, "try-tcp-refresh", &obj);
