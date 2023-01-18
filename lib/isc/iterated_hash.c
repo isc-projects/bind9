@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <openssl/opensslv.h>
@@ -79,11 +80,10 @@ isc__iterated_hash_shutdown(void) {
 
 #include <openssl/evp.h>
 
-#include <isc/md.h>
-
 static thread_local bool initialized = false;
 static thread_local EVP_MD_CTX *mdctx = NULL;
 static thread_local EVP_MD_CTX *basectx = NULL;
+static thread_local EVP_MD *md = NULL;
 
 int
 isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
@@ -142,8 +142,10 @@ isc__iterated_hash_initialize(void) {
 	INSIST(basectx != NULL);
 	mdctx = EVP_MD_CTX_new();
 	INSIST(mdctx != NULL);
+	md = EVP_MD_fetch(NULL, "SHA1", NULL);
+	INSIST(md != NULL);
 
-	RUNTIME_CHECK(EVP_DigestInit_ex(basectx, ISC_MD_SHA1, NULL) == 1);
+	RUNTIME_CHECK(EVP_DigestInit_ex(basectx, md, NULL) == 1);
 	initialized = true;
 }
 
@@ -159,6 +161,8 @@ isc__iterated_hash_shutdown(void) {
 	REQUIRE(basectx != NULL);
 	EVP_MD_CTX_free(basectx);
 	basectx = NULL;
+	EVP_MD_free(md);
+	md = NULL;
 
 	initialized = false;
 }
