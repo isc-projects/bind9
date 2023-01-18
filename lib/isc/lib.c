@@ -14,6 +14,8 @@
 /*! \file */
 
 #include <isc/bind9.h>
+#include <isc/iterated_hash.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/tls.h>
@@ -49,11 +51,15 @@ isc__initialize(void) {
 	isc__trampoline_initialize();
 	isc__uv_initialize();
 	isc__xml_initialize();
+	isc__md_initialize();
+	isc__iterated_hash_initialize();
 	(void)isc_os_ncpus();
 }
 
 void
 isc__shutdown(void) {
+	isc__iterated_hash_shutdown();
+	isc__md_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();
 	isc__trampoline_shutdown();

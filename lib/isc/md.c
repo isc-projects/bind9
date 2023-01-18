@@ -164,12 +164,56 @@ end:
 	return (res);
 }
 
-#define md_register_algorithm(alg) \
-	const isc_md_type_t *isc__md_##alg(void) { return (EVP_##alg()); }
+#ifndef UNIT_TESTING
+const isc_md_type_t *isc__md_md5 = NULL;
+const isc_md_type_t *isc__md_sha1 = NULL;
+const isc_md_type_t *isc__md_sha224 = NULL;
+const isc_md_type_t *isc__md_sha256 = NULL;
+const isc_md_type_t *isc__md_sha384 = NULL;
+const isc_md_type_t *isc__md_sha512 = NULL;
 
-md_register_algorithm(md5);
-md_register_algorithm(sha1);
-md_register_algorithm(sha224);
-md_register_algorithm(sha256);
-md_register_algorithm(sha384);
-md_register_algorithm(sha512);
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#define md_register_algorithm(alg, algname)                        \
+	{                                                          \
+		REQUIRE(isc__md_##alg == NULL);                    \
+		isc__md_##alg = EVP_MD_fetch(NULL, algname, NULL); \
+		RUNTIME_CHECK(isc__md_##alg != NULL);              \
+	}
+
+#define md_unregister_algorithm(alg)                            \
+	{                                                       \
+		REQUIRE(isc__md_##alg != NULL);                 \
+		EVP_MD_free(*(isc_md_type_t **)&isc__md_##alg); \
+		isc__md_##alg = NULL;                           \
+	}
+
+#else
+#define md_register_algorithm(alg, algname)           \
+	{                                             \
+		isc__md_##alg = EVP_##alg();          \
+		RUNTIME_CHECK(isc__md_##alg != NULL); \
+	}
+#define md_unregister_algorithm(alg)
+#endif
+
+void
+isc__md_initialize(void) {
+	md_register_algorithm(md5, "MD5");
+	md_register_algorithm(sha1, "SHA1");
+	md_register_algorithm(sha224, "SHA224");
+	md_register_algorithm(sha256, "SHA256");
+	md_register_algorithm(sha384, "SHA384");
+	md_register_algorithm(sha512, "SHA512");
+}
+
+void
+isc__md_shutdown(void) {
+	md_unregister_algorithm(sha512);
+	md_unregister_algorithm(sha384);
+	md_unregister_algorithm(sha256);
+	md_unregister_algorithm(sha224);
+	md_unregister_algorithm(sha1);
+	md_unregister_algorithm(md5);
+}
+
+#endif /* UNIT_TESTING */

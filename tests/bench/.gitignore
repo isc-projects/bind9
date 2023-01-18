@@ -1,4 +1,5 @@
 /ascii
 /compress
+/iterated_hash
 /dns_name_fromwire
 /siphash

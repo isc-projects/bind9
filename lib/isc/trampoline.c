@@ -16,6 +16,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
+#include <isc/iterated_hash.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/thread.h>
@@ -194,8 +196,12 @@ isc__trampoline_run(isc_threadarg_t arg) {
 
 	isc__trampoline_attach(trampoline);
 
+	isc__iterated_hash_initialize();
+
 	/* Run the main function */
 	result = (trampoline->start)(trampoline->arg);
+
+	isc__iterated_hash_shutdown();
 
 	isc__trampoline_detach(trampoline);
 

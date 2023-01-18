@@ -13,64 +13,154 @@
 
 #include <stdio.h>
 
+#include <openssl/opensslv.h>
+
 #include <isc/iterated_hash.h>
-#include <isc/md.h>
 #include <isc/util.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+
+#include <openssl/sha.h>
 
 int
 isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 		  const int iterations, const unsigned char *salt,
 		  const int saltlength, const unsigned char *in,
 		  const int inlength) {
-	isc_md_t *md;
-	isc_result_t result;
+	REQUIRE(out != NULL);
+
 	int n = 0;
-	unsigned int outlength = 0;
 	size_t len;
 	const unsigned char *buf;
-
-	REQUIRE(out != NULL);
+	SHA_CTX ctx;
 
 	if (hashalg != 1) {
 		return (0);
 	}
 
-	if ((md = isc_md_new()) == NULL) {
+	buf = in;
+	len = inlength;
+
+	do {
+		if (SHA1_Init(&ctx) != 1) {
+			return (0);
+		}
+
+		if (SHA1_Update(&ctx, buf, len) != 1) {
+			return (0);
+		}
+
+		if (SHA1_Update(&ctx, salt, saltlength) != 1) {
+			return (0);
+		}
+
+		if (SHA1_Final(out, &ctx) != 1) {
+			return (0);
+		}
+
+		buf = out;
+		len = SHA_DIGEST_LENGTH;
+	} while (n++ < iterations);
+
+	return (SHA_DIGEST_LENGTH);
+}
+
+void
+isc__iterated_hash_initialize(void) {
+	/* empty */
+}
+
+void
+isc__iterated_hash_shutdown(void) {
+	/* empty */
+}
+
+#else /* HAVE_SHA1_INIT */
+
+#include <openssl/evp.h>
+
+#include <isc/md.h>
+
+static thread_local bool initialized = false;
+static thread_local EVP_MD_CTX *mdctx = NULL;
+static thread_local EVP_MD_CTX *basectx = NULL;
+
+int
+isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
+		  const int iterations, const unsigned char *salt,
+		  const int saltlength, const unsigned char *in,
+		  const int inlength) {
+	REQUIRE(out != NULL);
+	REQUIRE(mdctx != NULL);
+	REQUIRE(basectx != NULL);
+
+	int n = 0;
+	size_t len;
+	unsigned int outlength = 0;
+	const unsigned char *buf;
+
+	if (hashalg != 1) {
 		return (0);
 	}
 
-	len = inlength;
 	buf = in;
+	len = inlength;
 	do {
-		result = isc_md_init(md, ISC_MD_SHA1);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+		if (EVP_MD_CTX_copy_ex(mdctx, basectx) != 1) {
+			goto fail;
 		}
-		result = isc_md_update(md, buf, len);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestUpdate(mdctx, buf, len) != 1) {
+			goto fail;
 		}
-		result = isc_md_update(md, salt, saltlength);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestUpdate(mdctx, salt, saltlength) != 1) {
+			goto fail;
 		}
-		result = isc_md_final(md, out, &outlength);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
+
+		if (EVP_DigestFinal_ex(mdctx, out, &outlength) != 1) {
+			goto fail;
 		}
-		result = isc_md_reset(md);
-		if (result != ISC_R_SUCCESS) {
-			goto md_fail;
-		}
+
 		buf = out;
 		len = outlength;
 	} while (n++ < iterations);
 
-	isc_md_free(md);
-
 	return (outlength);
-md_fail:
-	isc_md_free(md);
+
+fail:
 	return (0);
 }
-#undef RETERR
+
+void
+isc__iterated_hash_initialize(void) {
+	if (initialized) {
+		return;
+	}
+
+	basectx = EVP_MD_CTX_new();
+	INSIST(basectx != NULL);
+	mdctx = EVP_MD_CTX_new();
+	INSIST(mdctx != NULL);
+
+	RUNTIME_CHECK(EVP_DigestInit_ex(basectx, ISC_MD_SHA1, NULL) == 1);
+	initialized = true;
+}
+
+void
+isc__iterated_hash_shutdown(void) {
+	if (!initialized) {
+		return;
+	}
+
+	REQUIRE(mdctx != NULL);
+	EVP_MD_CTX_free(mdctx);
+	mdctx = NULL;
+	REQUIRE(basectx != NULL);
+	EVP_MD_CTX_free(basectx);
+	basectx = NULL;
+
+	initialized = false;
+}
+
+#endif /* HAVE_SHA1_INIT */
