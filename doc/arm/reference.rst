@@ -3261,11 +3261,11 @@ Query Address
 
 .. namedconf:statement:: query-source
    :tags: query
-   :short: Controls the IPv4 address and port from which queries are issued.
+   :short: Controls the IPv4 address from which queries are issued.
 
 .. namedconf:statement:: query-source-v6
    :tags: query
-   :short: Controls the IPv6 address and port from which queries are issued.
+   :short: Controls the IPv6 address from which queries are issued.
 
    If the server does not know the answer to a question, it queries other
    name servers. :any:`query-source` specifies the address and port used for
@@ -3281,20 +3281,24 @@ Query Address
       query-source address * port *;
       query-source-v6 address * port *;
 
-   .. note:: The address specified in the :any:`query-source` option is used for both
-      UDP and TCP queries, but the port applies only to UDP queries. TCP
-      queries always use a random unprivileged port.
+   .. note:: ``port`` configuration is deprecated. A warning will be logged
+      when this parameter is used.
+
+   .. note:: The address specified in the :any:`query-source` option is
+      used for both UDP and TCP queries, but the port applies only to UDP
+      queries. TCP queries always use a random unprivileged port.
 
 .. namedconf:statement:: use-v4-udp-ports
-   :tags: query
+   :tags: deprecated
    :short: Specifies a list of ports that are valid sources for UDP/IPv4 messages.
 
 .. namedconf:statement:: use-v6-udp-ports
-   :tags: query
+   :tags: deprecated
    :short: Specifies a list of ports that are valid sources for UDP/IPv6 messages.
 
-   These statements specify a list of IPv4 and IPv6 UDP ports that
-   are used as source ports for UDP messages.
+   These statements, which are deprecated and will be removed in a future
+   release, specify a list of IPv4 and IPv6 UDP ports that are used as
+   source ports for UDP messages.
 
    If :term:`port` is ``*`` or is omitted, a random port number from a
    pre-configured range is selected and used for each query. The
@@ -3313,15 +3317,16 @@ Query Address
       use-v6-udp-ports { range 1024 65535; };
 
 .. namedconf:statement:: avoid-v4-udp-ports
-   :tags: query
+   :tags: deprecated
    :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv4 messages.
 
 .. namedconf:statement:: avoid-v6-udp-ports
-   :tags: query
+   :tags: deprecated
    :short: Specifies the range(s) of ports to be excluded from use as sources for UDP/IPv6 messages.
 
-   These ranges are excluded from those
-   specified in the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
+   These statements, which are deprecated and will be removed in a future
+   release, specific ranges of port numbers to exclude from those specified
+   in the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
    options, respectively.
 
    The defaults of the :any:`avoid-v4-udp-ports` and :any:`avoid-v6-udp-ports`
@@ -3553,6 +3558,9 @@ options apply to zone transfers.
    :any:`transfer-source` statement within the :any:`view` or :any:`zone` block
    in the configuration file.
 
+   .. note:: ``port`` configuration is deprecated. A warning will be logged
+      when this parameter is used.
+
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
 
@@ -3562,8 +3570,8 @@ options apply to zone transfers.
    :tags: transfer
    :short: Defines which local IPv6 address(es) are bound to TCP connections used to fetch zones transferred inbound by the server.
 
-   This option is the same as :any:`transfer-source`, except zone transfers are performed
-   using IPv6.
+   This option is the same as :any:`transfer-source`, except zone transfers
+   are performed using IPv6.
 
 .. namedconf:statement:: notify-source
    :tags: transfer
@@ -3576,6 +3584,9 @@ options apply to zone transfers.
    :any:`notify-source` for all zones, but can be overridden on a per-zone
    or per-view basis by including a :any:`notify-source` statement within
    the :any:`zone` or :any:`view` block in the configuration file.
+
+   .. note:: ``port`` configuration is deprecated. A warning will be logged
+      when this parameter is used.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.
@@ -6467,6 +6478,9 @@ The following options apply to DS queries sent to :any:`parental-agents`:
    :any:`parental-source` for all zones, but can be overridden on a per-zone or
    per-view basis by including a :any:`parental-source` statement within the
    :any:`zone` or :any:`view` block in the configuration file.
+
+   .. note:: ``port`` configuration is deprecated. A warning will be logged
+      when this parameter is used.
 
    .. warning:: Specifying a single port is discouraged, as it removes a layer of
       protection against spoofing errors.

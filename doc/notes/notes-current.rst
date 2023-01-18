@@ -29,6 +29,20 @@ Removed Features
   configuring DSCP values in ``named.conf``` is now a configuration error.
   :gl:`#3789`
 
+- Specifying a ``port`` when configuring source addresses (i.e., as
+  a parameter to ``query-source``, ``query-source-v6``,
+  ``transfer-source``, ``transfer-source-v6``, ``notify-source``,
+  ``notify-source-v6``, ``parental-source``, and
+  ``parental-source-v6``, or in the ``source`` or ``source-v6``
+  parameters to ``primaries``, ``parental-agents``, ``also-notify``,
+  or ``catalog-zones``) has been deprecated.  In addition, the
+  ``use-v4-udp-ports``, ``use-v6-udp-ports``, ``avoid-v4-udp-ports``,
+  and ``avoid-v6-udp-ports`` options have also been deprecated.
+
+  Warnings will be logged when any of these options are encountered
+  in ``named.conf``.  In a future release, they will be made
+  nonfunctional. :gl:`#3781`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

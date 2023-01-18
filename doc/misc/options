@@ -69,17 +69,17 @@ options {
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
-	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	also-notify [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	answer-cookie <boolean>;
 	attach-cache <string>;
 	auth-nxdomain <boolean>;
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	automatic-interface-scan <boolean>;
-	avoid-v4-udp-ports { <portrange>; ... };
-	avoid-v6-udp-ports { <portrange>; ... };
+	avoid-v4-udp-ports { <portrange>; ... }; // deprecated
+	avoid-v6-udp-ports { <portrange>; ... }; // deprecated
 	bindkeys-file <quoted_string>;
 	blackhole { <address_match_element>; ... };
-	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
+	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <boolean>;
 	check-mx ( fail | warn | ignore );
@@ -202,23 +202,23 @@ options {
 	notify ( explicit | master-only | primary-only | <boolean> );
 	notify-delay <integer>;
 	notify-rate <integer>;
-	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	notify-source ( <ipv4_address> | * ) ;
+	notify-source-v6 ( <ipv6_address> | * ) ;
 	notify-to-soa <boolean>;
 	nsec3-test-zone <boolean>; // test only
 	nta-lifetime <duration>;
 	nta-recheck <duration>;
 	nxdomain-redirect <string>;
-	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	parental-source ( <ipv4_address> | * ) ;
+	parental-source-v6 ( <ipv6_address> | * ) ;
 	pid-file ( <quoted_string> | none );
 	port <integer>;
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
-	query-source ( ( [ address ] ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ] port ( <integer> | * ) ) );
-	query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ] port ( <integer> | * ) ) );
+	query-source [ address ] ( <ipv4_address> | * );
+	query-source-v6 [ address ] ( <ipv6_address> | * );
 	querylog <boolean>;
 	rate-limit {
 		all-per-second <integer>;
@@ -292,8 +292,8 @@ options {
 	tls-port <integer>;
 	transfer-format ( many-answers | one-answer );
 	transfer-message-size <integer>;
-	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	transfer-source ( <ipv4_address> | * ) ;
+	transfer-source-v6 ( <ipv6_address> | * ) ;
 	transfers-in <integer>;
 	transfers-out <integer>;
 	transfers-per-ns <integer>;
@@ -302,8 +302,8 @@ options {
 	udp-receive-buffer <integer>;
 	udp-send-buffer <integer>;
 	update-check-ksk <boolean>;
-	use-v4-udp-ports { <portrange>; ... };
-	use-v6-udp-ports { <portrange>; ... };
+	use-v4-udp-ports { <portrange>; ... }; // deprecated
+	use-v6-udp-ports { <portrange>; ... }; // deprecated
 	v6-bias <integer>;
 	validate-except { <string>; ... };
 	version ( <quoted_string> | none );
@@ -312,11 +312,11 @@ options {
 	zone-statistics ( full | terse | none | <boolean> );
 };
 
-parental-agents <string> [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... }; // may occur multiple times
+parental-agents <string> [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... }; // may occur multiple times
 
 plugin ( query ) <string> [ { <unspecified-text> } ]; // may occur multiple times
 
-primaries <string> [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... }; // may occur multiple times
+primaries <string> [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... }; // may occur multiple times
 
 server <netprefix> {
 	bogus <boolean>;
@@ -325,12 +325,12 @@ server <netprefix> {
 	edns-version <integer>;
 	keys <server_key>;
 	max-udp-size <integer>;
-	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	notify-source ( <ipv4_address> | * ) ;
+	notify-source-v6 ( <ipv6_address> | * ) ;
 	padding <integer>;
 	provide-ixfr <boolean>;
-	query-source ( ( [ address ] ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ] port ( <integer> | * ) ) );
-	query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ] port ( <integer> | * ) ) );
+	query-source [ address ] ( <ipv4_address> | * );
+	query-source-v6 [ address ] ( <ipv6_address> | * );
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	request-nsid <boolean>;
@@ -339,8 +339,8 @@ server <netprefix> {
 	tcp-keepalive <boolean>;
 	tcp-only <boolean>;
 	transfer-format ( many-answers | one-answer );
-	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	transfer-source ( <ipv4_address> | * ) ;
+	transfer-source-v6 ( <ipv6_address> | * ) ;
 	transfers <integer>;
 }; // may occur multiple times
 
@@ -376,11 +376,11 @@ view <string> [ <class> ] {
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
-	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	also-notify [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	attach-cache <string>;
 	auth-nxdomain <boolean>;
 	auto-dnssec ( allow | maintain | off ); // deprecated
-	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
+	catalog-zones { zone <string> [ default-primaries [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... } ] [ zone-directory <quoted_string> ] [ in-memory <boolean> ] [ min-update-interval <duration> ]; ... };
 	check-dup-records ( fail | warn | ignore );
 	check-integrity <boolean>;
 	check-mx ( fail | warn | ignore );
@@ -483,22 +483,22 @@ view <string> [ <class> ] {
 	nocookie-udp-size <integer>;
 	notify ( explicit | master-only | primary-only | <boolean> );
 	notify-delay <integer>;
-	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	notify-source ( <ipv4_address> | * ) ;
+	notify-source-v6 ( <ipv6_address> | * ) ;
 	notify-to-soa <boolean>;
 	nsec3-test-zone <boolean>; // test only
 	nta-lifetime <duration>;
 	nta-recheck <duration>;
 	nxdomain-redirect <string>;
-	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	parental-source ( <ipv4_address> | * ) ;
+	parental-source-v6 ( <ipv6_address> | * ) ;
 	plugin ( query ) <string> [ { <unspecified-text> } ]; // may occur multiple times
 	preferred-glue <string>;
 	prefetch <integer> [ <integer> ];
 	provide-ixfr <boolean>;
 	qname-minimization ( strict | relaxed | disabled | off );
-	query-source ( ( [ address ] ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ] port ( <integer> | * ) ) );
-	query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ] port ( <integer> | * ) ) );
+	query-source [ address ] ( <ipv4_address> | * );
+	query-source-v6 [ address ] ( <ipv6_address> | * );
 	rate-limit {
 		all-per-second <integer>;
 		errors-per-second <integer>;
@@ -538,12 +538,12 @@ view <string> [ <class> ] {
 		edns-version <integer>;
 		keys <server_key>;
 		max-udp-size <integer>;
-		notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-		notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+		notify-source ( <ipv4_address> | * ) ;
+		notify-source-v6 ( <ipv6_address> | * ) ;
 		padding <integer>;
 		provide-ixfr <boolean>;
-		query-source ( ( [ address ] ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv4_address> | * ) ] port ( <integer> | * ) ) );
-		query-source-v6 ( ( [ address ] ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ) | ( [ [ address ] ( <ipv6_address> | * ) ] port ( <integer> | * ) ) );
+		query-source [ address ] ( <ipv4_address> | * );
+		query-source-v6 [ address ] ( <ipv6_address> | * );
 		request-expire <boolean>;
 		request-ixfr <boolean>;
 		request-nsid <boolean>;
@@ -552,8 +552,8 @@ view <string> [ <class> ] {
 		tcp-keepalive <boolean>;
 		tcp-only <boolean>;
 		transfer-format ( many-answers | one-answer );
-		transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-		transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+		transfer-source ( <ipv4_address> | * ) ;
+		transfer-source-v6 ( <ipv6_address> | * ) ;
 		transfers <integer>;
 	}; // may occur multiple times
 	servfail-ttl <duration>;
@@ -570,8 +570,8 @@ view <string> [ <class> ] {
 	suppress-initial-notify <boolean>; // obsolete
 	synth-from-dnssec <boolean>;
 	transfer-format ( many-answers | one-answer );
-	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	transfer-source ( <ipv4_address> | * ) ;
+	transfer-source-v6 ( <ipv6_address> | * ) ;
 	trust-anchor-telemetry <boolean>; // experimental
 	trust-anchors { <string> ( static-key | initial-key | static-ds | initial-ds ) <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times
 	trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times, deprecated

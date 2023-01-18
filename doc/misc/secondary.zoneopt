@@ -5,7 +5,7 @@ zone <string> [ <class> ] {
 	allow-query-on { <address_match_element>; ... };
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
-	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	also-notify [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
 	database <string>;
@@ -39,22 +39,22 @@ zone <string> [ <class> ] {
 	multi-master <boolean>;
 	notify ( explicit | master-only | primary-only | <boolean> );
 	notify-delay <integer>;
-	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	notify-source ( <ipv4_address> | * ) ;
+	notify-source-v6 ( <ipv6_address> | * ) ;
 	notify-to-soa <boolean>;
 	nsec3-test-zone <boolean>; // test only
-	parental-agents [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
-	primaries [ port <integer> ] [ source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] ] [ source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	parental-agents [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
+	parental-source ( <ipv4_address> | * ) ;
+	parental-source-v6 ( <ipv6_address> | * ) ;
+	primaries [ port <integer> ] [ source ( <ipv4_address> | * )  ] [ source-v6 ( <ipv6_address> | * )  ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	sig-signing-nodes <integer>;
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ];
-	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	transfer-source ( <ipv4_address> | * ) ;
+	transfer-source-v6 ( <ipv6_address> | * ) ;
 	try-tcp-refresh <boolean>;
 	update-check-ksk <boolean>;
 	zero-no-soa-ttl <boolean>;
