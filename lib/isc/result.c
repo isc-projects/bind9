@@ -93,6 +93,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[ISC_R_TLSERROR] = "TLS error",
 	[ISC_R_TLSBADPEERCERT] = "TLS peer certificate verification failed",
 	[ISC_R_HTTP2ALPNERROR] = "ALPN for HTTP/2 failed",
+	[ISC_R_DOTALPNERROR] = "ALPN for DoT failed",
 
 	[DNS_R_LABELTOOLONG] = "label too long",
 	[DNS_R_BADESCAPE] = "bad escape",
@@ -343,6 +344,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[ISC_R_TLSERROR] = "ISC_R_TLSERROR",
 	[ISC_R_TLSBADPEERCERT] = "ISC_R_TLSBADPEERCERT",
 	[ISC_R_HTTP2ALPNERROR] = "ISC_R_HTTP2ALPNERROR",
+	[ISC_R_DOTALPNERROR] = "ISC_R_DOTALPNERROR",
 	[DNS_R_LABELTOOLONG] = "DNS_R_LABELTOOLONG",
 	[DNS_R_BADESCAPE] = "DNS_R_BADESCAPE",
 	[DNS_R_EMPTYLABEL] = "DNS_R_EMPTYLABEL",

@@ -1666,8 +1666,8 @@ isc__nm_streamdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 void
 isc__nm_streamdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx);
 
-bool
-isc__nm_streamdns_xfr_allowed(isc_nmsocket_t *sock);
+isc_result_t
+isc__nm_streamdns_xfr_checkperm(isc_nmsocket_t *sock);
 
 void
 isc__nmsocket_streamdns_reset(isc_nmsocket_t *sock);
