@@ -10119,10 +10119,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		isc_mem_put(server->mctx, nsc, sizeof(*nsc));
 	}
 
-	isc_timer_detach(&server->interface_timer);
-	isc_timer_detach(&server->heartbeat_timer);
-	isc_timer_detach(&server->pps_timer);
-	isc_timer_detach(&server->tat_timer);
+	isc_timer_destroy(&server->interface_timer);
+	isc_timer_destroy(&server->heartbeat_timer);
+	isc_timer_destroy(&server->pps_timer);
+	isc_timer_destroy(&server->tat_timer);
 
 	ns_interfacemgr_detach(&server->interfacemgr);
 

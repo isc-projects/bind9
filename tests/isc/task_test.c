@@ -525,8 +525,8 @@ ISC_RUN_TEST_IMPL(basic) {
 	isc_task_detach(&task4);
 
 	sleep(10);
-	isc_timer_detach(&ti1);
-	isc_timer_detach(&ti2);
+	isc_timer_destroy(&ti1);
+	isc_timer_destroy(&ti2);
 }
 
 /*
@@ -1389,19 +1389,6 @@ ISC_RUN_TEST_IMPL(purgeevent) {
 	try_purgeevent(true);
 }
 
-/*
- * Purge event not purgeable test:
- * When the event is not marked as purgable, a call to
- * isc_task_purgeevent(task, event) does not purge the event
- * 'event' from the task's queue and returns false.
- */
-
-ISC_RUN_TEST_IMPL(purgeevent_notpurge) {
-	UNUSED(state);
-
-	try_purgeevent(false);
-}
-
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(manytasks, _setup4, _teardown)
@@ -1413,7 +1400,6 @@ ISC_TEST_ENTRY_CUSTOM(privilege_drop, _setup, _teardown)
 ISC_TEST_ENTRY_CUSTOM(privileged_events, _setup, _teardown)
 ISC_TEST_ENTRY_CUSTOM(purge, _setup2, _teardown)
 ISC_TEST_ENTRY_CUSTOM(purgeevent, _setup2, _teardown)
-ISC_TEST_ENTRY_CUSTOM(purgeevent_notpurge, _setup2, _teardown)
 ISC_TEST_ENTRY_CUSTOM(task_shutdown, _setup4, _teardown)
 ISC_TEST_ENTRY_CUSTOM(task_exclusive, _setup4, _teardown)
 

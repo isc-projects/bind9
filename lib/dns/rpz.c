@@ -2231,7 +2231,7 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 
 		isc_timer_reset(rpz->updatetimer, isc_timertype_inactive, NULL,
 				NULL, true);
-		isc_timer_detach(&rpz->updatetimer);
+		isc_timer_destroy(&rpz->updatetimer);
 
 		isc_ht_destroy(&rpz->nodes);
 
