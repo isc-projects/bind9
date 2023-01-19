@@ -271,13 +271,6 @@ isc_mem_inuse(isc_mem_t *mctx);
  * allocated from the system but not yet used.
  */
 
-size_t
-isc_mem_total(isc_mem_t *mctx);
-/*%<
- * Get the total amount of memory in 'mctx', in bytes, including memory
- * not yet used.
- */
-
 bool
 isc_mem_isovermem(isc_mem_t *mctx);
 /*%<

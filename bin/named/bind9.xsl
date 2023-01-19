@@ -1039,7 +1039,6 @@
               <th>ID</th>
               <th>Name</th>
               <th>References</th>
-              <th>TotalUse</th>
               <th>InUse</th>
               <th>BlockSize</th>
               <th>Pools</th>
@@ -1063,9 +1062,6 @@
                 </td>
                 <td>
                   <xsl:value-of select="references"/>
-                </td>
-                <td>
-                  <xsl:value-of select="total"/>
                 </td>
                 <td>
                   <xsl:value-of select="inuse"/>
