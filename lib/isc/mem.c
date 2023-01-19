@@ -119,12 +119,6 @@ static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
 static isc_mutex_t contextslock;
 
-/*%
- * Total size of lost memory due to a bug of external library.
- * Locked by the global lock.
- */
-static uint64_t totallost;
-
 struct isc_mem {
 	unsigned int magic;
 	unsigned int flags;
@@ -401,7 +395,6 @@ mem_initialize(void) {
 
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
-	totallost = 0;
 }
 
 void
@@ -477,7 +470,6 @@ static void
 destroy(isc_mem_t *ctx) {
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
-	totallost += isc_mem_inuse(ctx);
 	UNLOCK(&contextslock);
 
 	ctx->magic = 0;
@@ -1404,14 +1396,12 @@ int
 isc_mem_renderxml(void *writer0) {
 	isc_mem_t *ctx;
 	summarystat_t summary = { 0 };
-	uint64_t lost;
 	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "contexts"));
 
 	LOCK(&contextslock);
-	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
@@ -1436,10 +1426,6 @@ isc_mem_renderxml(void *writer0) {
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
 					    summary.contextsize));
 	TRY0(xmlTextWriterEndElement(writer)); /* ContextSize */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Lost"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "", lost));
-	TRY0(xmlTextWriterEndElement(writer)); /* Lost */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
 error:
@@ -1518,7 +1504,6 @@ isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_mem_t *ctx;
 	summarystat_t summary = { 0 };
-	uint64_t lost;
 	json_object *ctxarray, *obj;
 	json_object *memobj = (json_object *)memobj0;
 
@@ -1526,7 +1511,6 @@ isc_mem_renderjson(void *memobj0) {
 	CHECKMEM(ctxarray);
 
 	LOCK(&contextslock);
-	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
@@ -1545,10 +1529,6 @@ isc_mem_renderjson(void *memobj0) {
 	obj = json_object_new_int64(summary.contextsize);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "ContextSize", obj);
-
-	obj = json_object_new_int64(lost);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "Lost", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
 	return (ISC_R_SUCCESS);
