@@ -34,7 +34,7 @@ Y="now-1y"
 
 # DS Publication.
 for zn in dspublished reference missing-dspublished bad-dspublished \
-	  multiple-dspublished incomplete-dspublished bad2-dspublished
+	  multiple-dspublished incomplete-dspublished bad2-dspublished resolver-dspublished
 do
 	setup "${zn}.checkds"
 	cp template.db.in "$zonefile"
@@ -49,7 +49,7 @@ done
 
 # DS Withdrawal.
 for zn in dswithdrawn missing-dswithdrawn bad-dswithdrawn multiple-dswithdrawn \
-	  incomplete-dswithdrawn bad2-dswithdrawn
+	  incomplete-dswithdrawn bad2-dswithdrawn resolver-dswithdrawn
 do
 	setup "${zn}.checkds"
 	cp template.db.in "$zonefile"

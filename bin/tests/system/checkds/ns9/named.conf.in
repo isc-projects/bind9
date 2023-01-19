@@ -145,6 +145,19 @@ zone "bad2-dspublished.checkds" {
 	};
 };
 
+/*
+ * Zone with resolver parental agent configured, due for DS checking.
+ */
+zone "resolver-dspublished.checkds" {
+	type primary;
+	file "resolver-dspublished.checkds.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	parental-agents {
+		10.53.0.3 port @PORT@;
+	};
+};
+
 // TODO: Other test cases:
 // - Test with bogus response
 // - check with TSIG
@@ -214,5 +227,15 @@ zone "bad2-dswithdrawn.checkds" {
 		10.53.0.5 port @PORT@;
 		10.53.0.7 port @PORT@;
 		10.53.0.6 port @PORT@; // bad
+	};
+};
+
+zone "resolver-dswithdrawn.checkds" {
+	type primary;
+	file "resolver-dswithdrawn.checkds.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	parental-agents {
+		10.53.0.8 port @PORT@;
 	};
 };
