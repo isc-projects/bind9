@@ -58,6 +58,9 @@ Bug Fixes
 - Improve the speed of the message digest algorithms (MD5, SHA-1,
   SHA-2) and NSEC3 hashing. :gl:`#3795`
 
+- Setting :any:`parental-agents` to a resolver did not work because the RD bit
+  was not set on DS requests. This has been fixed. :gl:`#3783`
+
 Known Issues
 ~~~~~~~~~~~~
 
