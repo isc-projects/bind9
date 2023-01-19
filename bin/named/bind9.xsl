@@ -1040,7 +1040,6 @@
               <th>Name</th>
               <th>References</th>
               <th>InUse</th>
-              <th>BlockSize</th>
               <th>Pools</th>
               <th>HiWater</th>
               <th>LoWater</th>
@@ -1065,9 +1064,6 @@
                 </td>
                 <td>
                   <xsl:value-of select="inuse"/>
-                </td>
-                <td>
-                  <xsl:value-of select="blocksize"/>
                 </td>
                 <td>
                   <xsl:value-of select="pools"/>
