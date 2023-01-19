@@ -44,7 +44,8 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
-#if defined(HAVE_MALLOC_NP_H)
+/* On DragonFly BSD the header does not provide jemalloc API */
+#if defined(HAVE_MALLOC_NP_H) && !defined(__DragonFly__)
 #include <malloc_np.h>
 #elif defined(HAVE_JEMALLOC)
 #include <jemalloc/jemalloc.h>
