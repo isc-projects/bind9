@@ -1,0 +1,55 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ "v9_16", "v9_18", "main" ]
+  schedule:
+    - cron: '39 8 * * 3'
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install build dependencies
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libuv1-dev libssl-dev libnghttp2-dev libxml2-dev liblmdb-dev libjson-c-dev pkg-config autoconf automake autotools-dev libtool-bin libjemalloc-dev libedit-dev libcap-dev libidn2-dev libkrb5-dev libmaxminddb-dev zlib1g-dev
+        version: 1.0
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+
+    # ℹ️ Command-line programs to run using the OS shell.
+    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+
+    #   If the Autobuild fails above, remove it and uncomment the following three lines.
+    #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
+
+    # - run: |
+    #   echo "Run, Build Application using script"
+    #   ./location_of_script_within_repo/buildscript.sh
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
