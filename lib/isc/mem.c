@@ -361,7 +361,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
  */
 static void
 mem_getstats(isc_mem_t *ctx, size_t size) {
-	atomic_fetch_add_release(&ctx->inuse, size);
+	atomic_fetch_add_relaxed(&ctx->inuse, size);
 }
 
 /*!
@@ -369,7 +369,7 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
  */
 static void
 mem_putstats(isc_mem_t *ctx, size_t size) {
-	atomic_size_t s = atomic_fetch_sub_release(&ctx->inuse, size);
+	atomic_size_t s = atomic_fetch_sub_relaxed(&ctx->inuse, size);
 	INSIST(s >= size);
 }
 
@@ -621,7 +621,7 @@ hi_water(isc_mem_t *ctx) {
 		return (false);
 	}
 
-	inuse = atomic_load_acquire(&ctx->inuse);
+	inuse = atomic_load_relaxed(&ctx->inuse);
 	if (inuse <= hiwater) {
 		return (false);
 	}
@@ -645,7 +645,7 @@ lo_water(isc_mem_t *ctx) {
 		return (false);
 	}
 
-	inuse = atomic_load_acquire(&ctx->inuse);
+	inuse = atomic_load_relaxed(&ctx->inuse);
 	if (inuse >= lowater) {
 		return (false);
 	}
@@ -693,9 +693,9 @@ isc_mem_waterack(isc_mem_t *ctx, int flag) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	if (flag == ISC_MEM_LOWATER) {
-		atomic_store(&ctx->hi_called, false);
+		atomic_store_release(&ctx->hi_called, false);
 	} else if (flag == ISC_MEM_HIWATER) {
-		atomic_store(&ctx->hi_called, true);
+		atomic_store_release(&ctx->hi_called, true);
 	}
 }
 
@@ -939,7 +939,7 @@ size_t
 isc_mem_inuse(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->inuse));
+	return (atomic_load_relaxed(&ctx->inuse));
 }
 
 void
@@ -968,13 +968,13 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	if (oldwater == NULL) {
 		REQUIRE(water != NULL && lowater > 0);
 
-		INSIST(atomic_load(&ctx->hi_water) == 0);
-		INSIST(atomic_load(&ctx->lo_water) == 0);
+		INSIST(atomic_load_acquire(&ctx->hi_water) == 0);
+		INSIST(atomic_load_acquire(&ctx->lo_water) == 0);
 
 		ctx->water = water;
 		ctx->water_arg = water_arg;
-		atomic_store(&ctx->hi_water, hiwater);
-		atomic_store(&ctx->lo_water, lowater);
+		atomic_store_release(&ctx->hi_water, hiwater);
+		atomic_store_release(&ctx->lo_water, lowater);
 
 		return;
 	}
@@ -982,8 +982,8 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	REQUIRE((water == oldwater && water_arg == oldwater_arg) ||
 		(water == NULL && water_arg == NULL && hiwater == 0));
 
-	atomic_store(&ctx->hi_water, hiwater);
-	atomic_store(&ctx->lo_water, lowater);
+	atomic_store_release(&ctx->hi_water, hiwater);
+	atomic_store_release(&ctx->lo_water, lowater);
 
 	if (atomic_load_acquire(&ctx->hi_called) &&
 	    (atomic_load_acquire(&ctx->inuse) < lowater || lowater == 0U))
