@@ -94,6 +94,7 @@ typedef enum isc_result {
 	ISC_R_TLSERROR,		      /*%< TLS error */
 	ISC_R_TLSBADPEERCERT, /*%< TLS peer certificate verification failed */
 	ISC_R_HTTP2ALPNERROR, /*%< ALPN for HTTP/2 failed */
+	ISC_R_DOTALPNERROR,   /*%< ALPN for DoT failed */
 
 	DNS_R_LABELTOOLONG = 1 << 16,
 	DNS_R_BADESCAPE,
@@ -221,6 +222,7 @@ typedef enum isc_result {
 	DNS_R_NSEC3BADALG,
 	DNS_R_NSEC3RESALT,
 	DNS_R_INCONSISTENTRR,
+	DNS_R_NOALPN,
 
 	DST_R_UNSUPPORTEDALG = 2 << 16,
 	DST_R_CRYPTOFAILURE,

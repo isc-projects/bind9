@@ -692,10 +692,16 @@ isc_nm_bad_request(isc_nmhandle_t *handle);
  *  \li 'handle' is a valid netmgr handle object.
  */
 
-bool
-isc_nm_xfr_allowed(isc_nmhandle_t *handle);
+isc_result_t
+isc_nm_xfr_checkperm(isc_nmhandle_t *handle);
 /*%<
- * Check if it is possible to do a zone transfer over the given handle.
+ * Check if it is permitted to do a zone transfer over the given handle.
+ *
+ * Returns:
+ * \li	#ISC_R_SUCCESS		Success, permission check passed successfully
+ * \li	#ISC_R_DOTALPNERROR	No permission because of ALPN tag mismatch
+ * \li	#ISC_R_NOPERM		No permission because of other restrictions
+ * \li  any other result indicates failure (i.e. no permission)
  *
  * Requires:
  * \li	'handle' is a valid connection handle.
