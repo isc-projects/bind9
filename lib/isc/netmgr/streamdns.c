@@ -1099,18 +1099,24 @@ isc__nm_streamdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	}
 }
 
-bool
-isc__nm_streamdns_xfr_allowed(isc_nmsocket_t *sock) {
+isc_result_t
+isc__nm_streamdns_xfr_checkperm(isc_nmsocket_t *sock) {
+	isc_result_t result = ISC_R_NOPERM;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_streamdnssocket);
 
-	if (sock->outerhandle == NULL) {
-		return (false);
-	} else if (!isc_nm_has_encryption(sock->outerhandle)) {
-		return (true);
+	if (sock->outerhandle != NULL) {
+		if (isc_nm_has_encryption(sock->outerhandle) &&
+		    !sock->streamdns.dot_alpn_negotiated)
+		{
+			result = ISC_R_DOTALPNERROR;
+		} else {
+			result = ISC_R_SUCCESS;
+		}
 	}
 
-	return (sock->streamdns.dot_alpn_negotiated);
+	return (result);
 }
 
 void

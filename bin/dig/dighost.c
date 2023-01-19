@@ -3452,19 +3452,20 @@ launch_next_query(dig_query_t *query) {
 	      query->lookup->rdtype == dns_rdatatype_axfr;
 	if (xfr &&
 	    isc_nm_socket_type(query->handle) == isc_nm_streamdnssocket &&
-	    query->lookup->tls_mode && !isc_nm_xfr_allowed(query->handle))
+	    query->lookup->tls_mode)
 	{
-		dighost_error("zone transfers over the "
-			      "established TLS connection are not allowed");
-		dighost_error("as the "
-			      "connection does not meet the requirements "
-			      "enforced by the RFC 9103");
-		isc_refcount_decrement0(&recvcount);
-		isc_nmhandle_detach(&query->readhandle);
-		cancel_lookup(l);
-		lookup_detach(&l);
-		clear_current_lookup();
-		return;
+		isc_result_t result = isc_nm_xfr_checkperm(query->handle);
+		if (result != ISC_R_SUCCESS) {
+			dighost_error("zone transfers over the established TLS "
+				      "connection are not allowed: %s",
+				      isc_result_totext(result));
+			isc_refcount_decrement0(&recvcount);
+			isc_nmhandle_detach(&query->readhandle);
+			cancel_lookup(l);
+			lookup_detach(&l);
+			clear_current_lookup();
+			return;
+		}
 	}
 
 	query_attach(query, &readquery);
