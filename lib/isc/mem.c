@@ -45,10 +45,13 @@
 #include <json_object.h>
 #endif /* HAVE_JSON_C */
 
-#if defined(HAVE_MALLOC_NP_H)
+/* On DragonFly BSD the header does not provide jemalloc API */
+#if defined(HAVE_MALLOC_NP_H) && !defined(__DragonFly__)
 #include <malloc_np.h>
+#define JEMALLOC_API_SUPPORTED 1
 #elif defined(HAVE_JEMALLOC)
 #include <jemalloc/jemalloc.h>
+#define JEMALLOC_API_SUPPORTED 1
 
 #if JEMALLOC_VERSION_MAJOR < 4
 #define sdallocx(ptr, size, flags) dallocx(ptr, flags)
@@ -437,12 +440,12 @@ mem_initialize(void) {
 /*
  * Check if the values copied from jemalloc still match
  */
-#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
+#ifdef JEMALLOC_API_SUPPORTED
 	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
 	RUNTIME_CHECK(ISC_MEM_ALIGN(0) == MALLOCX_ALIGN(0));
 	RUNTIME_CHECK(ISC_MEM_ALIGN(sizeof(void *)) ==
 		      MALLOCX_ALIGN(sizeof(void *)));
-#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
+#endif /* JEMALLOC_API_SUPPORTED */
 
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
