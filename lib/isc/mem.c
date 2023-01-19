@@ -80,8 +80,6 @@ unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 #define ALIGNMENT	     8U /*%< must be a power of 2 */
 #define ALIGNMENT_SIZE	     sizeof(size_info)
 #define DEBUG_TABLE_COUNT    512U
-#define STATS_BUCKETS	     512U
-#define STATS_BUCKET_SIZE    32U
 
 /*
  * Types.
@@ -110,10 +108,6 @@ struct element {
 	element *next;
 };
 
-struct stats {
-	atomic_size_t gets;
-};
-
 #define MEM_MAGIC	 ISC_MAGIC('M', 'e', 'm', 'C')
 #define VALID_CONTEXT(c) ISC_MAGIC_VALID(c, MEM_MAGIC)
 
@@ -137,7 +131,6 @@ struct isc_mem {
 	unsigned int debugging;
 	isc_mutex_t lock;
 	bool checkfree;
-	struct stats stats[STATS_BUCKETS + 1];
 	isc_refcount_t references;
 	char name[16];
 	atomic_size_t inuse;
@@ -374,11 +367,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
  */
 static void
 mem_getstats(isc_mem_t *ctx, size_t size) {
-	struct stats *stats = stats_bucket(ctx, size);
-
 	atomic_fetch_add_release(&ctx->inuse, size);
-
-	atomic_fetch_add_relaxed(&stats->gets, 1);
 }
 
 /*!
@@ -386,16 +375,12 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
  */
 static void
 mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
-	struct stats *stats = stats_bucket(ctx, size);
-	atomic_size_t s, g;
+	atomic_size_t s;
 
 	UNUSED(ptr);
 
 	s = atomic_fetch_sub_release(&ctx->inuse, size);
 	INSIST(s >= size);
-
-	g = atomic_fetch_sub_release(&stats->gets, 1);
-	INSIST(g >= 1);
 }
 
 /*
@@ -461,9 +446,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	atomic_init(&ctx->hi_called, false);
 	atomic_init(&ctx->is_overmem, false);
 
-	for (size_t i = 0; i < STATS_BUCKETS + 1; i++) {
-		atomic_init(&ctx->stats[i].gets, 0);
-	}
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_TRACKLINES
@@ -493,8 +475,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 static void
 destroy(isc_mem_t *ctx) {
-	unsigned int i;
-
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	totallost += isc_mem_inuse(ctx);
@@ -507,7 +487,7 @@ destroy(isc_mem_t *ctx) {
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
 		debuglink_t *dl;
-		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
+		for (size_t i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			for (dl = ISC_LIST_HEAD(ctx->debuglist[i]); dl != NULL;
 			     dl = ISC_LIST_HEAD(ctx->debuglist[i]))
 			{
@@ -525,24 +505,6 @@ destroy(isc_mem_t *ctx) {
 			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
 	}
 #endif /* if ISC_MEM_TRACKLINES */
-
-	if (ctx->checkfree) {
-		for (i = 0; i <= STATS_BUCKETS; i++) {
-			struct stats *stats = &ctx->stats[i];
-			size_t gets = atomic_load_acquire(&stats->gets);
-			if (gets != 0U) {
-				fprintf(stderr,
-					"Failing assertion due to probable "
-					"leaked memory in context %p (\"%s\") "
-					"(stats[%u].gets == %zu).\n",
-					ctx, ctx->name, i, gets);
-#if ISC_MEM_TRACKLINES
-				print_active(ctx, stderr);
-#endif /* if ISC_MEM_TRACKLINES */
-				INSIST(gets == 0U);
-			}
-		}
-	}
 
 	isc_mutex_destroy(&ctx->lock);
 
@@ -797,19 +759,6 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	MCTXLOCK(ctx);
-
-	for (size_t i = 0; i <= STATS_BUCKETS; i++) {
-		size_t gets;
-		struct stats *stats = &ctx->stats[i];
-
-		gets = atomic_load_acquire(&stats->gets);
-
-		if (gets != 0U) {
-			fprintf(out, "%s%5zu: %11zu rem",
-				(i == STATS_BUCKETS) ? ">=" : "  ", i, gets);
-			fputc('\n', out);
-		}
-	}
 
 	/*
 	 * Note that since a pool can be locked now, these stats might
