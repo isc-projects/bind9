@@ -14,6 +14,7 @@
 /*! \file */
 
 #include <isc/bind9.h>
+#include <isc/iterated_hash.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/util.h>
