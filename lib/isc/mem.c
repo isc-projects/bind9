@@ -1313,7 +1313,6 @@ isc_mem_references(isc_mem_t *ctx) {
 
 typedef struct summarystat {
 	uint64_t inuse;
-	uint64_t contextsize;
 } summarystat_t;
 
 #ifdef HAVE_LIBXML2
@@ -1343,14 +1342,6 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 		TRY0(xmlTextWriterEndElement(writer)); /* name */
 	}
 
-	summary->contextsize += sizeof(*ctx);
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize += DEBUG_TABLE_COUNT *
-						sizeof(debuglist_t) +
-					ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif /* if ISC_MEM_TRACKLINES */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
 	TRY0(xmlTextWriterWriteFormatString(
 		writer, "%" PRIuFAST32,
@@ -1366,7 +1357,6 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt));
 	TRY0(xmlTextWriterEndElement(writer)); /* pools */
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(
@@ -1418,11 +1408,6 @@ isc_mem_renderxml(void *writer0) {
 					    summary.inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ContextSize"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.contextsize));
-	TRY0(xmlTextWriterEndElement(writer)); /* ContextSize */
-
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
 error:
 	return (xmlrc);
@@ -1444,15 +1429,7 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	MCTXLOCK(ctx);
 
-	summary->contextsize += sizeof(*ctx);
 	summary->inuse += isc_mem_inuse(ctx);
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize += DEBUG_TABLE_COUNT *
-						sizeof(debuglist_t) +
-					ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif /* if ISC_MEM_TRACKLINES */
 
 	ctxobj = json_object_new_object();
 	CHECKMEM(ctxobj);
@@ -1479,8 +1456,6 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 	obj = json_object_new_int64(ctx->poolcnt);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "pools", obj);
-
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
 	obj = json_object_new_int64(atomic_load_relaxed(&ctx->hi_water));
 	CHECKMEM(obj);
@@ -1521,10 +1496,6 @@ isc_mem_renderjson(void *memobj0) {
 	obj = json_object_new_int64(summary.inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "InUse", obj);
-
-	obj = json_object_new_int64(summary.contextsize);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "ContextSize", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
 	return (ISC_R_SUCCESS);
