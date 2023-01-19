@@ -211,7 +211,7 @@ static void
 print_active(isc_mem_t *ctx, FILE *out);
 #endif /* ISC_MEM_TRACKLINES */
 
-static size_t
+static void
 increment_malloced(isc_mem_t *ctx, size_t size) {
 	size_t malloced = atomic_fetch_add_relaxed(&ctx->malloced, size) + size;
 	size_t maxmalloced = atomic_load_relaxed(&ctx->maxmalloced);
@@ -220,15 +220,11 @@ increment_malloced(isc_mem_t *ctx, size_t size) {
 		atomic_compare_exchange_strong(&ctx->maxmalloced, &maxmalloced,
 					       malloced);
 	}
-
-	return (malloced);
 }
 
-static size_t
+static void
 decrement_malloced(isc_mem_t *ctx, size_t size) {
-	size_t malloced = atomic_fetch_sub_relaxed(&ctx->malloced, size) - size;
-
-	return (malloced);
+	(void)atomic_fetch_sub_relaxed(&ctx->malloced, size);
 }
 
 #if ISC_MEM_TRACKLINES
@@ -534,7 +530,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 static void
 destroy(isc_mem_t *ctx) {
 	unsigned int i;
-	size_t malloced;
 
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
@@ -590,10 +585,8 @@ destroy(isc_mem_t *ctx) {
 
 	isc_mutex_destroy(&ctx->lock);
 
-	malloced = decrement_malloced(ctx, sizeof(*ctx));
-
 	if (ctx->checkfree) {
-		INSIST(malloced == 0);
+		INSIST(atomic_load(&ctx->malloced) == 0);
 	}
 	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
 }
