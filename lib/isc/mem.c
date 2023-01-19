@@ -368,12 +368,8 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
  * Update internal counters after a memory put.
  */
 static void
-mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
-	atomic_size_t s;
-
-	UNUSED(ptr);
-
-	s = atomic_fetch_sub_release(&ctx->inuse, size);
+mem_putstats(isc_mem_t *ctx, size_t size) {
+	atomic_size_t s = atomic_fetch_sub_release(&ctx->inuse, size);
 	INSIST(s >= size);
 }
 
@@ -561,7 +557,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
@@ -686,7 +682,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, int flags FLARG) {
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
@@ -813,7 +809,7 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 		isc__mem_put(ctx, old_ptr, old_size, flags FLARG_PASS);
 	} else {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
-		mem_putstats(ctx, old_ptr, old_size);
+		mem_putstats(ctx, old_size);
 
 		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
@@ -847,7 +843,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
 		size_t old_size = sallocx(old_ptr, flags);
 
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
-		mem_putstats(ctx, old_ptr, old_size);
+		mem_putstats(ctx, old_size);
 
 		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
@@ -880,7 +876,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr, int flags FLARG) {
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
@@ -1118,7 +1114,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 		item = mpctx->items;
 		mpctx->items = item->next;
 
-		mem_putstats(mctx, item, mpctx->size);
+		mem_putstats(mctx, mpctx->size);
 		mem_put(mctx, item, mpctx->size, 0);
 	}
 
@@ -1201,7 +1197,7 @@ isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	 * If our free list is full, return this to the mctx directly.
 	 */
 	if (freecount >= freemax) {
-		mem_putstats(mctx, mem, mpctx->size);
+		mem_putstats(mctx, mpctx->size);
 		mem_put(mctx, mem, mpctx->size, 0);
 		return;
 	}
