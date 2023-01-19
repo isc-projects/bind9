@@ -1158,8 +1158,8 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 		}
 	}
 
+	INSIST(mpctx->items != NULL);
 	item = mpctx->items;
-	INSIST(item != NULL);
 
 	mpctx->items = item->next;
 
@@ -1311,10 +1311,6 @@ isc_mem_references(isc_mem_t *ctx) {
 	return (isc_refcount_current(&ctx->references));
 }
 
-typedef struct summarystat {
-	uint64_t inuse;
-} summarystat_t;
-
 #ifdef HAVE_LIBXML2
 #define TRY0(a)                     \
 	do {                        \
@@ -1323,7 +1319,7 @@ typedef struct summarystat {
 			goto error; \
 	} while (0)
 static int
-xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
+xml_renderctx(isc_mem_t *ctx, size_t *inuse, xmlTextWriterPtr writer) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	int xmlrc;
@@ -1348,11 +1344,16 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 		isc_refcount_current(&ctx->references)));
 	TRY0(xmlTextWriterEndElement(writer)); /* references */
 
-	summary->inuse += isc_mem_inuse(ctx);
+	*inuse += isc_mem_inuse(ctx);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "inuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
 					    (uint64_t)isc_mem_inuse(ctx)));
 	TRY0(xmlTextWriterEndElement(writer)); /* inuse */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
+					    (uint64_t)isc_mem_inuse(ctx)));
+	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt));
@@ -1381,7 +1382,7 @@ error:
 int
 isc_mem_renderxml(void *writer0) {
 	isc_mem_t *ctx;
-	summarystat_t summary = { 0 };
+	size_t inuse = 0;
 	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
@@ -1391,7 +1392,7 @@ isc_mem_renderxml(void *writer0) {
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		xmlrc = xml_renderctx(ctx, &summary, writer);
+		xmlrc = xml_renderctx(ctx, &inuse, writer);
 		if (xmlrc < 0) {
 			UNLOCK(&contextslock);
 			goto error;
@@ -1403,9 +1404,14 @@ isc_mem_renderxml(void *writer0) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "summary"));
 
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
+					    (uint64_t)inuse));
+	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
+
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "InUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.inuse));
+					    (uint64_t)inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
@@ -1419,9 +1425,8 @@ error:
 #define CHECKMEM(m) RUNTIME_CHECK(m != NULL)
 
 static isc_result_t
-json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
+json_renderctx(isc_mem_t *ctx, size_t *inuse, json_object *array) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(summary != NULL);
 	REQUIRE(array != NULL);
 
 	json_object *ctxobj, *obj;
@@ -1429,7 +1434,7 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	MCTXLOCK(ctx);
 
-	summary->inuse += isc_mem_inuse(ctx);
+	*inuse += isc_mem_inuse(ctx);
 
 	ctxobj = json_object_new_object();
 	CHECKMEM(ctxobj);
@@ -1448,6 +1453,10 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 	obj = json_object_new_int64(isc_refcount_current(&ctx->references));
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "references", obj);
+
+	obj = json_object_new_int64(isc_mem_inuse(ctx));
+	CHECKMEM(obj);
+	json_object_object_add(ctxobj, "malloced", obj);
 
 	obj = json_object_new_int64(isc_mem_inuse(ctx));
 	CHECKMEM(obj);
@@ -1474,7 +1483,7 @@ isc_result_t
 isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_mem_t *ctx;
-	summarystat_t summary = { 0 };
+	size_t inuse = 0;
 	json_object *ctxarray, *obj;
 	json_object *memobj = (json_object *)memobj0;
 
@@ -1485,7 +1494,7 @@ isc_mem_renderjson(void *memobj0) {
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		result = json_renderctx(ctx, &summary, ctxarray);
+		result = json_renderctx(ctx, &inuse, ctxarray);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&contextslock);
 			goto error;
@@ -1493,9 +1502,13 @@ isc_mem_renderjson(void *memobj0) {
 	}
 	UNLOCK(&contextslock);
 
-	obj = json_object_new_int64(summary.inuse);
+	obj = json_object_new_int64(inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "InUse", obj);
+
+	obj = json_object_new_int64(inuse);
+	CHECKMEM(obj);
+	json_object_object_add(memobj, "Malloced", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
 	return (ISC_R_SUCCESS);
