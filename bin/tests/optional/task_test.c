@@ -194,8 +194,8 @@ main(int argc, char *argv[]) {
 	Sleep(10000);
 #endif /* ifndef WIN32 */
 	printf("destroy\n");
-	isc_timer_detach(&ti1);
-	isc_timer_detach(&ti2);
+	isc_timer_destroy(&ti1);
+	isc_timer_destroy(&ti2);
 	isc_timermgr_destroy(&timgr);
 	isc_managers_destroy(&netmgr, &taskmgr);
 	printf("destroyed\n");

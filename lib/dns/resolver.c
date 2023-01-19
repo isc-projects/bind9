@@ -4706,9 +4706,9 @@ fctx_destroy(fetchctx_t *fctx) {
 
 	isc_counter_detach(&fctx->qc);
 	fcount_decr(fctx);
-	isc_timer_detach(&fctx->timer);
+	isc_timer_destroy(&fctx->timer);
 	if (fctx->timer_try_stale != NULL) {
-		isc_timer_detach(&fctx->timer_try_stale);
+		isc_timer_destroy(&fctx->timer_try_stale);
 	}
 	dns_message_detach(&fctx->qmessage);
 	if (dns_name_countlabels(&fctx->domain) > 0) {
@@ -5483,8 +5483,8 @@ cleanup_mctx:
 	isc_mem_detach(&fctx->mctx);
 	dns_adb_detach(&fctx->adb);
 	dns_db_detach(&fctx->cache);
-	isc_timer_detach(&fctx->timer);
-	isc_timer_detach(&fctx->timer_try_stale);
+	isc_timer_destroy(&fctx->timer);
+	isc_timer_destroy(&fctx->timer_try_stale);
 
 cleanup_qmessage:
 	dns_message_detach(&fctx->qmessage);
@@ -10486,7 +10486,7 @@ destroy(dns_resolver_t *res) {
 #if USE_MBSLOCK
 	isc_rwlock_destroy(&res->mbslock);
 #endif /* if USE_MBSLOCK */
-	isc_timer_detach(&res->spillattimer);
+	isc_timer_destroy(&res->spillattimer);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof(*res));
 }

@@ -808,7 +808,7 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 			isc_ht_destroy(&zone->entries);
 		}
 		zone->magic = 0;
-		isc_timer_detach(&zone->updatetimer);
+		isc_timer_destroy(&zone->updatetimer);
 		if (zone->db_registered) {
 			dns_db_updatenotify_unregister(
 				zone->db, dns_catz_dbupdate_callback,

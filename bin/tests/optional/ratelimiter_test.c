@@ -86,7 +86,7 @@ shutdown_all(isc_task_t *task, isc_event_t *event) {
 	UNUSED(event);
 	printf("shutdown all\n");
 	for (i = 0; i < NEVENTS; i++) {
-		isc_timer_detach(&timers[i]);
+		isc_timer_destroy(&timers[i]);
 	}
 
 	isc_app_shutdown();

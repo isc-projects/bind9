@@ -73,7 +73,7 @@ shutdown_action(isc_task_t *task, isc_event_t *event) {
 
 	printf("task %s (%p) shutdown\n", info->name, task);
 	if (strcmp(info->name, "0") == 0) {
-		isc_timer_detach(&info->timer);
+		isc_timer_destroy(&info->timer);
 		nevent = isc_event_allocate(info->mctx, info, T2_SHUTDOWNOK,
 					    t2_shutdown, &tasks[1],
 					    sizeof(*event));
@@ -104,7 +104,7 @@ tick(isc_task_t *task, isc_event_t *event) {
 		if (info->ticks == 10) {
 			isc_app_shutdown();
 		} else if (info->ticks >= 15 && info->exiting) {
-			isc_timer_detach(&info->timer);
+			isc_timer_destroy(&info->timer);
 			isc_task_detach(&info->task);
 			nevent = isc_event_allocate(
 				info->mctx, info, T2_SHUTDOWNDONE, t1_shutdown,
@@ -114,7 +114,7 @@ tick(isc_task_t *task, isc_event_t *event) {
 			isc_task_detach(&info->peer);
 		}
 	} else if (strcmp(info->name, "foo") == 0) {
-		isc_timer_detach(&info->timer);
+		isc_timer_destroy(&info->timer);
 		nevent = isc_event_allocate(info->mctx, info, FOO_EVENT,
 					    foo_event, task, sizeof(*event));
 		RUNTIME_CHECK(nevent != NULL);

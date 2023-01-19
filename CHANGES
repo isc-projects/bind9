@@ -41,6 +41,13 @@
 6044.	[bug]		There was an "RSASHA236" typo in a log message.
 			[GL !7206]
 
+5845.	[bug]		Refactor the timer to keep track of posted events
+			as to use isc_task_purgeevent() instead of using
+			isc_task_purgerange().  The isc_task_purgeevent()
+			has been refactored to purge a single event instead
+			of walking through the list of posted events.
+			[GL #3252]
+
 	--- 9.16.36 released ---
 
 6043.	[bug]		The key file IO locks objects would never get
