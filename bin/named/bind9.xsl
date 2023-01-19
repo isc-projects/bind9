@@ -1041,7 +1041,6 @@
               <th>References</th>
               <th>TotalUse</th>
               <th>InUse</th>
-              <th>MaxUse</th>
               <th>BlockSize</th>
               <th>Pools</th>
               <th>HiWater</th>
@@ -1070,9 +1069,6 @@
                 </td>
                 <td>
                   <xsl:value-of select="inuse"/>
-                </td>
-                <td>
-                  <xsl:value-of select="maxinuse"/>
                 </td>
                 <td>
                   <xsl:value-of select="blocksize"/>

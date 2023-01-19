@@ -272,13 +272,6 @@ isc_mem_inuse(isc_mem_t *mctx);
  */
 
 size_t
-isc_mem_maxinuse(isc_mem_t *mctx);
-/*%<
- * Get an estimate of the largest amount of memory that has been in
- * use in 'mctx' at any time.
- */
-
-size_t
 isc_mem_total(isc_mem_t *mctx);
 /*%<
  * Get the total amount of memory in 'mctx', in bytes, including memory
