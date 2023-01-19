@@ -112,7 +112,6 @@ struct element {
 
 struct stats {
 	atomic_size_t gets;
-	atomic_size_t totalgets;
 };
 
 #define MEM_MAGIC	 ISC_MAGIC('M', 'e', 'm', 'C')
@@ -380,7 +379,6 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
 	atomic_fetch_add_release(&ctx->inuse, size);
 
 	atomic_fetch_add_relaxed(&stats->gets, 1);
-	atomic_fetch_add_relaxed(&stats->totalgets, 1);
 }
 
 /*!
@@ -465,7 +463,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 	for (size_t i = 0; i < STATS_BUCKETS + 1; i++) {
 		atomic_init(&ctx->stats[i].gets, 0);
-		atomic_init(&ctx->stats[i].totalgets, 0);
 	}
 	ISC_LIST_INIT(ctx->pools);
 
@@ -802,17 +799,14 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	MCTXLOCK(ctx);
 
 	for (size_t i = 0; i <= STATS_BUCKETS; i++) {
-		size_t totalgets;
 		size_t gets;
 		struct stats *stats = &ctx->stats[i];
 
-		totalgets = atomic_load_acquire(&stats->totalgets);
 		gets = atomic_load_acquire(&stats->gets);
 
-		if (totalgets != 0U && gets != 0U) {
-			fprintf(out, "%s%5zu: %11zu gets, %11zu rem",
-				(i == STATS_BUCKETS) ? ">=" : "  ", i,
-				totalgets, gets);
+		if (gets != 0U) {
+			fprintf(out, "%s%5zu: %11zu rem",
+				(i == STATS_BUCKETS) ? ">=" : "  ", i, gets);
 			fputc('\n', out);
 		}
 	}
