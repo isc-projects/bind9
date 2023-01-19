@@ -14689,6 +14689,7 @@ zone_shutdown(void *arg) {
 	dns_zone_t *zone = (dns_zone_t *)arg;
 	bool free_needed, linked = false;
 	dns_zone_t *raw = NULL, *secure = NULL;
+	dns_view_t *view = NULL, *prev_view = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	INSIST(isc_refcount_current(&zone->erefs) == 0);
@@ -14734,13 +14735,15 @@ zone_shutdown(void *arg) {
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
 
-	/* Detach the views early, we don't need them anymore */
-	if (zone->view != NULL) {
-		dns_view_weakdetach(&zone->view);
-	}
-	if (zone->prev_view != NULL) {
-		dns_view_weakdetach(&zone->prev_view);
-	}
+	/*
+	 * Detach the views early, we don't need them anymore.  However, we need
+	 * to detach them outside of the zone lock to break the lock loop
+	 * between view, adb and zone locks.
+	 */
+	view = zone->view;
+	zone->view = NULL;
+	prev_view = zone->prev_view;
+	zone->prev_view = NULL;
 
 	if (linked) {
 		isc_refcount_decrement(&zone->irefs);
@@ -14802,6 +14805,14 @@ zone_shutdown(void *arg) {
 		zone->secure = NULL;
 	}
 	UNLOCK_ZONE(zone);
+
+	if (view != NULL) {
+		dns_view_weakdetach(&view);
+	}
+	if (prev_view != NULL) {
+		dns_view_weakdetach(&prev_view);
+	}
+
 	if (raw != NULL) {
 		dns_zone_detach(&raw);
 	}
