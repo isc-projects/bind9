@@ -1042,8 +1042,6 @@
               <th>TotalUse</th>
               <th>InUse</th>
               <th>MaxUse</th>
-              <th>Malloced</th>
-              <th>MaxMalloced</th>
               <th>BlockSize</th>
               <th>Pools</th>
               <th>HiWater</th>
@@ -1075,12 +1073,6 @@
                 </td>
                 <td>
                   <xsl:value-of select="maxinuse"/>
-                </td>
-                <td>
-                  <xsl:value-of select="malloced"/>
-                </td>
-                <td>
-                  <xsl:value-of select="maxmalloced"/>
                 </td>
                 <td>
                   <xsl:value-of select="blocksize"/>

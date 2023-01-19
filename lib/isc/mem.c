@@ -144,8 +144,6 @@ struct isc_mem {
 	atomic_size_t total;
 	atomic_size_t inuse;
 	atomic_size_t maxinuse;
-	atomic_size_t malloced;
-	atomic_size_t maxmalloced;
 	atomic_bool hi_called;
 	atomic_bool is_overmem;
 	isc_mem_water_t water;
@@ -211,22 +209,6 @@ static void
 print_active(isc_mem_t *ctx, FILE *out);
 #endif /* ISC_MEM_TRACKLINES */
 
-static void
-increment_malloced(isc_mem_t *ctx, size_t size) {
-	size_t malloced = atomic_fetch_add_relaxed(&ctx->malloced, size) + size;
-	size_t maxmalloced = atomic_load_relaxed(&ctx->maxmalloced);
-
-	if (malloced > maxmalloced) {
-		atomic_compare_exchange_strong(&ctx->maxmalloced, &maxmalloced,
-					       malloced);
-	}
-}
-
-static void
-decrement_malloced(isc_mem_t *ctx, size_t size) {
-	(void)atomic_fetch_sub_relaxed(&ctx->malloced, size);
-}
-
 #if ISC_MEM_TRACKLINES
 /*!
  * mctx must not be locked.
@@ -261,7 +243,6 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 
 	dl = mallocx(sizeof(debuglink_t), 0);
 	INSIST(dl != NULL);
-	increment_malloced(mctx, sizeof(debuglink_t));
 
 	ISC_LINK_INIT(dl, link);
 	dl->ptr = ptr;
@@ -308,7 +289,6 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 	while (dl != NULL) {
 		if (dl->ptr == ptr) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
-			decrement_malloced(mctx, sizeof(*dl));
 			sdallocx(dl, sizeof(*dl), 0);
 			goto unlock;
 		}
@@ -404,8 +384,6 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
 
 	atomic_fetch_add_relaxed(&stats->gets, 1);
 	atomic_fetch_add_relaxed(&stats->totalgets, 1);
-
-	increment_malloced(ctx, size);
 }
 
 /*!
@@ -423,8 +401,6 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 
 	g = atomic_fetch_sub_release(&stats->gets, 1);
 	INSIST(g >= 1);
-
-	decrement_malloced(ctx, size);
 }
 
 /*
@@ -487,8 +463,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	atomic_init(&ctx->total, 0);
 	atomic_init(&ctx->inuse, 0);
 	atomic_init(&ctx->maxinuse, 0);
-	atomic_init(&ctx->malloced, sizeof(*ctx));
-	atomic_init(&ctx->maxmalloced, sizeof(*ctx));
 	atomic_init(&ctx->hi_water, 0);
 	atomic_init(&ctx->lo_water, 0);
 	atomic_init(&ctx->hi_called, false);
@@ -511,8 +485,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			ISC_LIST_INIT(ctx->debuglist[i]);
 		}
-		increment_malloced(ctx,
-				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -554,14 +526,11 @@ destroy(isc_mem_t *ctx) {
 
 				ISC_LIST_UNLINK(ctx->debuglist[i], dl, link);
 				sdallocx(dl, sizeof(*dl), 0);
-				decrement_malloced(ctx, sizeof(*dl));
 			}
 		}
 
 		sdallocx(ctx->debuglist,
 			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
-		decrement_malloced(ctx,
-				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -586,7 +555,7 @@ destroy(isc_mem_t *ctx) {
 	isc_mutex_destroy(&ctx->lock);
 
 	if (ctx->checkfree) {
-		INSIST(atomic_load(&ctx->malloced) == 0);
+		INSIST(atomic_load(&ctx->inuse) == 0);
 	}
 	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
 }
@@ -1073,20 +1042,6 @@ isc_mem_total(isc_mem_t *ctx) {
 	return (atomic_load_acquire(&ctx->total));
 }
 
-size_t
-isc_mem_malloced(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->malloced));
-}
-
-size_t
-isc_mem_maxmalloced(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->maxmalloced));
-}
-
 void
 isc_mem_clearwater(isc_mem_t *mctx) {
 	isc_mem_setwater(mctx, NULL, NULL, 0, 0);
@@ -1459,7 +1414,6 @@ isc_mem_references(isc_mem_t *ctx) {
 typedef struct summarystat {
 	uint64_t total;
 	uint64_t inuse;
-	uint64_t malloced;
 	uint64_t contextsize;
 } summarystat_t;
 
@@ -1520,17 +1474,6 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
 					    (uint64_t)isc_mem_maxinuse(ctx)));
 	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
-
-	summary->malloced += isc_mem_malloced(ctx);
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    (uint64_t)isc_mem_malloced(ctx)));
-	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxmalloced"));
-	TRY0(xmlTextWriterWriteFormatString(
-		writer, "%" PRIu64 "", (uint64_t)isc_mem_maxmalloced(ctx)));
-	TRY0(xmlTextWriterEndElement(writer)); /* maxmalloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt));
@@ -1594,11 +1537,6 @@ isc_mem_renderxml(void *writer0) {
 					    summary.inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.malloced));
-	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
-
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ContextSize"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
 					    summary.contextsize));
@@ -1632,7 +1570,6 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 	summary->contextsize += sizeof(*ctx);
 	summary->total += isc_mem_total(ctx);
 	summary->inuse += isc_mem_inuse(ctx);
-	summary->malloced += isc_mem_malloced(ctx);
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
 		summary->contextsize += DEBUG_TABLE_COUNT *
@@ -1670,14 +1607,6 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 	obj = json_object_new_int64(isc_mem_maxinuse(ctx));
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "maxinuse", obj);
-
-	obj = json_object_new_int64(isc_mem_malloced(ctx));
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "malloced", obj);
-
-	obj = json_object_new_int64(isc_mem_maxmalloced(ctx));
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "maxmalloced", obj);
 
 	obj = json_object_new_int64(ctx->poolcnt);
 	CHECKMEM(obj);
@@ -1730,10 +1659,6 @@ isc_mem_renderjson(void *memobj0) {
 	obj = json_object_new_int64(summary.inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "InUse", obj);
-
-	obj = json_object_new_int64(summary.malloced);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "Malloced", obj);
 
 	obj = json_object_new_int64(summary.contextsize);
 	CHECKMEM(obj);

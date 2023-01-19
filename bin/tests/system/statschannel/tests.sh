@@ -119,16 +119,14 @@ if [ $PERL_XML ]; then
     file=`$PERL fetch.pl -p ${EXTRAPORT1} xml/v3/mem`
     mv $file xml.mem
     $PERL mem-xml.pl $file > xml.fmtmem
-    grep "'Malloced' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
-    grep "'malloced' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
-    grep "'maxmalloced' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
+    grep "'InUse' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
+    grep "'inuse' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
 fi
 if [ $PERL_JSON ]; then
     file=`$PERL fetch.pl -p ${EXTRAPORT1} json/v1/mem`
     mv $file json.mem
-    grep '"malloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
-    grep '"maxmalloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
-    grep '"Malloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
+    grep '"inuse":[0-9][0-9]*,' json.mem > /dev/null || ret=1
+    grep '"InUse":[0-9][0-9]*,' json.mem > /dev/null || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

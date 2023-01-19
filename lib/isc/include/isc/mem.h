@@ -285,19 +285,6 @@ isc_mem_total(isc_mem_t *mctx);
  * not yet used.
  */
 
-size_t
-isc_mem_malloced(isc_mem_t *ctx);
-/*%<
- * Get an estimate of the amount of memory allocated in 'mctx', in bytes.
- */
-
-size_t
-isc_mem_maxmalloced(isc_mem_t *ctx);
-/*%<
- * Get an estimate of the largest amount of memory that has been
- * allocated in 'mctx' at any time.
- */
-
 bool
 isc_mem_isovermem(isc_mem_t *mctx);
 /*%<
