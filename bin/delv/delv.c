@@ -41,6 +41,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
@@ -84,6 +85,9 @@ static isc_log_t *lctx = NULL;
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
 static isc_taskmgr_t *taskmgr = NULL;
+
+/* TLS */
+static isc_tlsctx_cache_t *tlsctx_client_cache = NULL;
 
 /* Configurables */
 static char *server = NULL;
@@ -1835,8 +1839,10 @@ main(int argc, char *argv[]) {
 	setup_logging(stderr);
 
 	/* Create client */
-	result = dns_client_create(mctx, loopmgr, taskmgr, netmgr, 0, &client,
-				   srcaddr4, srcaddr6);
+	isc_tlsctx_cache_create(mctx, &tlsctx_client_cache);
+	result = dns_client_create(mctx, loopmgr, taskmgr, netmgr, 0,
+				   tlsctx_client_cache, &client, srcaddr4,
+				   srcaddr6);
 	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
 			 isc_result_totext(result));
@@ -1868,6 +1874,9 @@ cleanup:
 	}
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
+	}
+	if (tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&tlsctx_client_cache);
 	}
 
 	isc_log_destroy(&lctx);

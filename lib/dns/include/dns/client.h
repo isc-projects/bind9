@@ -91,6 +91,7 @@ typedef struct dns_clientresevent {
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		  isc_taskmgr_t *taskmgr, isc_nm_t *nm, unsigned int options,
+		  isc_tlsctx_cache_t *tlsctx_client_cache,
 		  dns_client_t **clientp, const isc_sockaddr_t *localaddr4,
 		  const isc_sockaddr_t *localaddr6);
 /*%<
@@ -113,7 +114,7 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
  *
  *\li	'nm' is a valid network manager.
  *
- *\li	'timermgr' is a valid timer manager.
+ *\li	'tlsctx_client_cache' is a valid TLS context cache.
  *
  *\li	clientp != NULL && *clientp == NULL.
  *

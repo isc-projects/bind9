@@ -89,8 +89,8 @@ cfg_doc_kv_tuple(cfg_printer_t *pctx, const cfg_type_t *type);
 static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
 static cfg_type_t cfg_type_bracketed_netaddrlist;
-static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
+static cfg_type_t cfg_type_bracketed_sockaddrtlslist;
 static cfg_type_t cfg_type_bracketed_http_endpoint_list;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
@@ -285,11 +285,12 @@ static cfg_type_t cfg_type_namesockaddrkeylist = {
 
 /*%
  * A list of socket addresses with an optional default port, as used
- * in the 'listen-on' option.  E.g., "{ 10.0.0.1; 1::2 port 69; }"
+ * in the 'forwarders' option.  E.g., "{ 10.0.0.1; 1::2 port 69; }"
  */
 static cfg_tuplefielddef_t portiplist_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
-	{ "addresses", &cfg_type_bracketed_sockaddrlist, 0 },
+	{ "tls", &cfg_type_optional_tls, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrtlslist, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_portiplist = { "portiplist",	   cfg_parse_tuple,
@@ -732,12 +733,14 @@ static cfg_type_t cfg_type_bracketed_netaddrlist = { "bracketed_netaddrlist",
 						     &cfg_rep_list,
 						     &cfg_type_netaddr };
 
-static cfg_type_t cfg_type_bracketed_sockaddrlist = { "bracketed_sockaddrlist",
-						      cfg_parse_bracketed_list,
-						      cfg_print_bracketed_list,
-						      cfg_doc_bracketed_list,
-						      &cfg_rep_list,
-						      &cfg_type_sockaddr };
+static cfg_type_t cfg_type_bracketed_sockaddrtlslist = {
+	"bracketed_sockaddrtlslist",
+	cfg_parse_bracketed_list,
+	cfg_print_bracketed_list,
+	cfg_doc_bracketed_list,
+	&cfg_rep_list,
+	&cfg_type_sockaddrtls
+};
 
 static const char *autodnssec_enums[] = { "allow", "maintain", "off", NULL };
 static cfg_type_t cfg_type_autodnssec = {
@@ -1085,7 +1088,7 @@ static cfg_type_t cfg_type_portrange = { "portrange", parse_portrange,
 					 NULL,	      cfg_doc_terminal,
 					 NULL,	      NULL };
 
-static cfg_type_t cfg_type_bracketed_portlist = { "bracketed_sockaddrlist",
+static cfg_type_t cfg_type_bracketed_portlist = { "bracketed_portlist",
 						  cfg_parse_bracketed_list,
 						  cfg_print_bracketed_list,
 						  cfg_doc_bracketed_list,
@@ -3169,6 +3172,7 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	in_port_t port = 0;
 	unsigned int have_address = 0;
 	unsigned int have_port = 0;
+	unsigned int have_tls = 0;
 	const unsigned int *flagp = type->of;
 
 	if ((*flagp & CFG_ADDR_V4OK) != 0) {
@@ -3201,7 +3205,12 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 				CHECK(cfg_parse_rawport(pctx, CFG_ADDR_WILDOK,
 							&port));
 				have_port++;
-			} else if (have_port == 0 && have_address == 0) {
+			} else if (strcasecmp(TOKEN_STRING(pctx), "tls") == 0) {
+				/* We do not expect TLS here, not parsing. */
+				++have_tls;
+			} else if (have_port == 0 && have_tls == 0 &&
+				   have_address == 0)
+			{
 				return (cfg_parse_sockaddr(pctx, type, ret));
 			} else {
 				cfg_parser_error(pctx, CFG_LOG_NEAR,
@@ -3213,9 +3222,15 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			break;
 		}
 	}
+
 	if (have_address > 1 || have_port > 1 || have_address + have_port == 0)
 	{
 		cfg_parser_error(pctx, 0, "expected one address and/or port");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
+	if (have_tls > 0) {
+		cfg_parser_error(pctx, 0, "unexpected tls");
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 

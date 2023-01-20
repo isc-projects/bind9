@@ -25,6 +25,7 @@ ISC_LANG_BEGINDECLS
 
 struct dns_forwarder {
 	isc_sockaddr_t addr;
+	dns_name_t    *tlsname;
 	ISC_LINK(dns_forwarder_t) link;
 };
 

@@ -26,6 +26,7 @@
 #include <isc/print.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/tls.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
@@ -38,6 +39,7 @@
 static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_dispatch_t *dispatch = NULL;
 static dns_view_t *view = NULL;
+static isc_tlsctx_cache_t *tlsctx_cache = NULL;
 
 static int
 setup_test(void **state) {
@@ -73,8 +75,10 @@ static void
 mkres(dns_resolver_t **resolverp) {
 	isc_result_t result;
 
+	isc_tlsctx_cache_create(mctx, &tlsctx_cache);
 	result = dns_resolver_create(view, loopmgr, taskmgr, 1, netmgr, 0,
-				     dispatchmgr, dispatch, NULL, resolverp);
+				     tlsctx_cache, dispatchmgr, dispatch, NULL,
+				     resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 
@@ -82,6 +86,9 @@ static void
 destroy_resolver(dns_resolver_t **resolverp) {
 	dns_resolver_shutdown(*resolverp);
 	dns_resolver_detach(resolverp);
+	if (tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&tlsctx_cache);
+	}
 }
 
 /* dns_resolver_create */

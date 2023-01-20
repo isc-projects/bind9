@@ -1,3 +1,6 @@
+6077.	[func]		Implement query forwarding to DoT-enabled upstream
+			servers. [GL #3726]
+
 6076.	[bug]		Handle OS errors when creating UDP and TCP sockets
 			more gracefully. [GL #3800]
 

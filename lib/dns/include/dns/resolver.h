@@ -52,6 +52,7 @@
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
+#include <isc/types.h>
 
 #include <dns/fixedname.h>
 #include <dns/types.h>
@@ -171,9 +172,9 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		    isc_taskmgr_t *taskmgr, unsigned int ndisp, isc_nm_t *nm,
-		    unsigned int options, dns_dispatchmgr_t *dispatchmgr,
-		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
-		    dns_resolver_t **resp);
+		    unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
+		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
 
 /*%<
  * Create a resolver.
@@ -192,6 +193,10 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *\li	'ntasks' > 0.
  *
  *\li	'nm' is a valid network manager.
+ *
+ *\li	'tlsctx_cache' != NULL.
+ *
+ *\li	'dispatchmgr' != NULL.
  *
  *\li	'dispatchv4' is a dispatch with an IPv4 UDP socket, or is NULL.
  *	If not NULL, 'ndisp' clones of it will be created by the resolver.

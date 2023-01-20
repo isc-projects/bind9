@@ -655,6 +655,7 @@ isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 			isc_taskmgr_t *taskmgr, unsigned int ndisp,
 			isc_nm_t *netmgr, unsigned int options,
+			isc_tlsctx_cache_t *tlsctx_cache,
 			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
@@ -672,8 +673,8 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	isc_task_setname(view->task, "view", view);
 
 	result = dns_resolver_create(view, loopmgr, taskmgr, ndisp, netmgr,
-				     options, dispatchmgr, dispatchv4,
-				     dispatchv6, &view->resolver);
+				     options, tlsctx_cache, dispatchmgr,
+				     dispatchv4, dispatchv6, &view->resolver);
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&view->task);
 		return (result);
