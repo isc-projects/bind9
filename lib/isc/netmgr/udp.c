@@ -110,7 +110,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	} else {
 		csock->fd = dup(fd);
 	}
-	REQUIRE(csock->fd >= 0);
+	INSIST(csock->fd >= 0);
 
 	ievent = isc__nm_get_netievent_udplisten(worker, csock);
 
@@ -177,8 +177,16 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		isc__nm_closesocket(fd);
 	}
 
+	/*
+	 * If any of the child sockets have failed then isc_nm_listenudp
+	 * fails.
+	 */
 	for (size_t i = 1; i < sock->nchildren; i++) {
-		INSIST(result == sock->children[i].result);
+		if (result == ISC_R_SUCCESS &&
+		    sock->children[i].result != ISC_R_SUCCESS)
+		{
+			result = sock->children[i].result;
+		}
 	}
 
 	atomic_store(&sock->active, true);
@@ -190,7 +198,7 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 		return (result);
 	}
-	REQUIRE(atomic_load(&sock->rchildren) == sock->nchildren);
+	INSIST(atomic_load(&sock->rchildren) == sock->nchildren);
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
 }
