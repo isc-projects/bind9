@@ -509,7 +509,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					  received_data->length, &len);
 			if (rv <= 0 || len != received_data->length) {
 				result = ISC_R_TLSERROR;
-#if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
+#if ISC_NETMGR_TRACE
 				saved_errno = errno;
 #endif
 				goto error;
@@ -744,7 +744,7 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 	}
 
 error:
-#if defined(NETMGR_TRACE) && defined(NETMGR_TRACE_VERBOSE)
+#if ISC_NETMGR_TRACE
 	isc__nmsocket_log(sock, ISC_LOG_NOTICE,
 			  "SSL error in BIO: %d %s (errno: %d). Arguments: "
 			  "received_data: %p, "

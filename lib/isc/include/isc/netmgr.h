@@ -148,15 +148,20 @@ isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
  * \li	'listener' is a pointer to a valid network manager listener socket.
  */
 
-#ifdef ISC_NETMGR_TRACE
+#if ISC_NETMGR_TRACE
 #define isc_nmhandle_attach(handle, dest) \
 	isc__nmhandle_attach(handle, dest, __FILE__, __LINE__, __func__)
 #define isc_nmhandle_detach(handlep) \
 	isc__nmhandle_detach(handlep, __FILE__, __LINE__, __func__)
-#define FLARG , const char *file, unsigned int line, const char *func
+#define FLARG_PASS , file, line, func
+#define FLARG                                              \
+	, const char	    *file __attribute__((unused)), \
+		unsigned int line __attribute__((unused)), \
+		const char  *func __attribute__((unused))
 #else
 #define isc_nmhandle_attach(handle, dest) isc__nmhandle_attach(handle, dest)
 #define isc_nmhandle_detach(handlep)	  isc__nmhandle_detach(handlep)
+#define FLARG_PASS
 #define FLARG
 #endif
 

@@ -129,11 +129,11 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	fprintf(stderr, "%" PRIu32 ":%d:%s:%u:%s:" format, gettid(), \
 		isc_tid(), file, line, func, __VA_ARGS__)
 
-#define FLARG_PASS , file, line, func
 #define FLARG                                              \
 	, const char *file __attribute__((unused)),        \
 		unsigned int line __attribute__((unused)), \
 		const char *func __attribute__((unused))
+#define FLARG_PASS , file, line, func
 #define FLARG_IEVENT(ievent)              \
 	const char *file = ievent->file;  \
 	unsigned int line = ievent->line; \
@@ -164,8 +164,8 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 #else
 #define NETMGR_TRACE_LOG(format, ...)
 
-#define FLARG_PASS
 #define FLARG
+#define FLARG_PASS
 #define FLARG_IEVENT(ievent)
 #define FLARG_IEVENT_PASS(ievent)
 #define isc__nm_uvreq_get(req, sock) isc___nm_uvreq_get(req, sock)
