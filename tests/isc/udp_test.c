@@ -1176,8 +1176,6 @@ ISC_LOOP_TEST_IMPL(udp_double_read) {
 
 ISC_TEST_LIST_START
 
-/* Mock tests are unreliable on OpenBSD */
-#if !defined(__OpenBSD__)
 ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_open, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_bind, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_listenudp_uv_udp_recv_start, setup_test,
@@ -1189,8 +1187,6 @@ ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_recv_buffer_size, setup_test,
 		      teardown_test)
 ISC_TEST_ENTRY_CUSTOM(mock_udpconnect_uv_send_buffer_size, setup_test,
 		      teardown_test)
-#endif /* !defined(__OpenBSD__) */
-
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_noop)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_noresponse)
 ISC_TEST_ENTRY_SETUP_TEARDOWN(udp_shutdown_connect)
