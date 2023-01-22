@@ -2608,7 +2608,7 @@ isc__networker_destroy(isc__networker_t *worker) {
 	worker->netmgr = NULL;
 
 	isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
-			"Destroying down network manager worker on loop %p(%d)",
+			"Destroying network manager worker on loop %p(%d)",
 			worker->loop, isc_tid());
 
 	isc_loop_detach(&worker->loop);

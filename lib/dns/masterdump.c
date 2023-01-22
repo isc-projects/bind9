@@ -151,9 +151,8 @@ const dns_master_style_t dns_master_style_full = {
 
 const dns_master_style_t dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
-		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
-		DNS_STYLEFLAG_COMMENT | DNS_STYLEFLAG_RRCOMMENT |
-		DNS_STYLEFLAG_MULTILINE,
+		DNS_STYLEFLAG_CLASS_PERNAME | DNS_STYLEFLAG_COMMENT |
+		DNS_STYLEFLAG_RRCOMMENT | DNS_STYLEFLAG_MULTILINE,
 	24,
 	32,
 	32,
@@ -1064,6 +1063,10 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 		isc_buffer_usedregion(buffer, &r);
 		fprintf(f, "$ORIGIN %.*s\n", (int)r.length, (char *)r.base);
 		ctx->neworigin = NULL;
+	}
+
+	if ((ctx->style.flags & DNS_STYLEFLAG_CLASS_PERNAME) != 0) {
+		ctx->class_printed = false;
 	}
 
 again:

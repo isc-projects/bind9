@@ -114,6 +114,12 @@ typedef struct dns_master_style dns_master_style_t;
 /*% Print expired cache entries. */
 #define DNS_STYLEFLAG_EXPIRED 0x200000000ULL
 
+/*%
+ * If set concurrently with DNS_STYLEFLAG_OMIT_CLASS, the class will
+ * be included when printing a new name.
+ */
+#define DNS_STYLEFLAG_CLASS_PERNAME 0x400000000ULL
+
 ISC_LANG_BEGINDECLS
 
 /***
