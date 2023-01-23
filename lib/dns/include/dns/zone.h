@@ -1641,14 +1641,6 @@ dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
  */
 
 void
-dns__zonemgr_run(isc_task_t *task, isc_event_t *event);
-/*%<
- * Event handler to call dns_zonemgr_forcemaint(); used to start
- * zone operations from a unit test.  Not intended for use outside
- * libdns or related tests.
- */
-
-void
 dns_zonemgr_resumexfrs(dns_zonemgr_t *zmgr);
 /*%<
  * Attempt to start any stalled zone transfers.
@@ -1739,27 +1731,6 @@ uint32_t
 dns_zonemgr_gettransfersperns(dns_zonemgr_t *zmgr);
 /*%<
  *	Return the number of transfers allowed per nameserver.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- */
-
-void
-dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, uint32_t iolimit);
-/*%<
- *	Set the number of simultaneous file descriptors available for
- *	reading and writing masterfiles.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- *\li	'iolimit' to be positive.
- */
-
-uint32_t
-dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
-/*%<
- *	Get the number of simultaneous file descriptors available for
- *	reading and writing masterfiles.
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
@@ -2346,7 +2317,7 @@ dns_zone_setserialupdatemethod(dns_zone_t *zone, dns_updatemethod_t method);
 
 dns_updatemethod_t
 dns_zone_getserialupdatemethod(dns_zone_t *zone);
-/*%
+/*%<
  * Returns the update method to be used when incrementing the zone serial
  * number due to a DDNS update.
  *
@@ -2362,12 +2333,20 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
 
 isc_result_t
 dns_zone_keydone(dns_zone_t *zone, const char *data);
+/*%<
+ * Delete the private-type record from the top of the zone
+ * which indicates that signing is complete with the key matching
+ * 'data'; this is invoked by 'rndc signing -clear'.
+ *
+ * Requires:
+ * \li	'zone' to be valid.
+ */
 
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		       uint16_t iter, uint8_t saltlen, unsigned char *salt,
 		       bool replace, bool resalt);
-/*%
+/*%<
  * Set the NSEC3 parameters for the zone.
  *
  * If 'replace' is true, then the existing NSEC3 chain, if any, will
