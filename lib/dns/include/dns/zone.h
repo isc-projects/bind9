@@ -1737,27 +1737,6 @@ dns_zonemgr_gettransfersperns(dns_zonemgr_t *zmgr);
  */
 
 void
-dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, uint32_t iolimit);
-/*%<
- *	Set the number of simultaneous file descriptors available for
- *	reading and writing masterfiles.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- *\li	'iolimit' to be positive.
- */
-
-uint32_t
-dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
-/*%<
- *	Get the number of simultaneous file descriptors available for
- *	reading and writing masterfiles.
- *
- * Requires:
- *\li	'zmgr' to be a valid zone manager.
- */
-
-void
 dns_zonemgr_setcheckdsrate(dns_zonemgr_t *zmgr, unsigned int value);
 /*%<
  *	Set the number of parental DS queries sent per second.
