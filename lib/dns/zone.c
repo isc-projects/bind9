@@ -481,8 +481,6 @@ struct dns_zone {
 	 * Inline zone signing state.
 	 */
 	dns_diff_t rss_diff;
-	ISC_LIST(struct rss) rss_events;
-	ISC_LIST(struct np3) rss_post;
 	dns_dbversion_t *rss_newver;
 	dns_dbversion_t *rss_oldver;
 	dns_db_t *rss_db;
@@ -1105,8 +1103,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 		.nsec3chain = ISC_LIST_INITIALIZER,
 		.setnsec3param_queue = ISC_LIST_INITIALIZER,
 		.forwards = ISC_LIST_INITIALIZER,
-		.rss_events = ISC_LIST_INITIALIZER,
-		.rss_post = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
 		.statelink = ISC_LINK_INITIALIZER,
 	};
@@ -1203,12 +1199,6 @@ zone_free(dns_zone_t *zone) {
 	     npe != NULL; npe = ISC_LIST_HEAD(zone->setnsec3param_queue))
 	{
 		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-		isc_mem_put(zone->mctx, npe, sizeof(*npe));
-	}
-	for (struct np3 *npe = ISC_LIST_HEAD(zone->rss_post); npe != NULL;
-	     npe = ISC_LIST_HEAD(zone->rss_post))
-	{
-		ISC_LIST_UNLINK(zone->rss_post, npe, link);
 		isc_mem_put(zone->mctx, npe, sizeof(*npe));
 	}
 
@@ -4709,6 +4699,16 @@ zone_unchanged(dns_db_t *db1, dns_db_t *db2, isc_mem_t *mctx) {
 	return (answer);
 }
 
+static void
+process_zone_setnsec3param(dns_zone_t *zone) {
+	struct np3 *npe = NULL;
+	while ((npe = ISC_LIST_HEAD(zone->setnsec3param_queue)) != NULL) {
+		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
+		zone_iattach(zone, &npe->zone);
+		isc_async_run(zone->loop, setnsec3param, npe);
+	}
+}
+
 /*
  * The zone is presumed to be locked.
  * If this is a inline_raw zone the secure version is also locked.
@@ -4842,13 +4842,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	 */
 	is_dynamic = dns_zone_isdynamic(zone, true);
 	if (is_dynamic) {
-		while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
-			struct np3 *npe =
-				ISC_LIST_HEAD(zone->setnsec3param_queue);
-			ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-			zone_iattach(zone, &npe->zone);
-			isc_async_run(zone->loop, setnsec3param, npe);
-		}
+		process_zone_setnsec3param(zone);
 	}
 
 	/*
@@ -16061,16 +16055,12 @@ receive_secure_serial(void *arg) {
 	LOCK_ZONE(zone);
 
 	/*
-	 * If we are already processing a receive secure serial event
-	 * for the zone, just queue the new one and exit.
+	 * The receive_secure_serial() is loop-serialized for the zone.  Make
+	 * sure there's no processing currently running.
 	 */
-	if (zone->rss != NULL && zone->rss != rss) {
-		ISC_LIST_APPEND(zone->rss_events, rss, link);
-		UNLOCK_ZONE(zone);
-		return;
-	}
 
-nextevent:
+	INSIST(zone->rss == NULL || zone->rss == rss);
+
 	if (zone->rss != NULL) {
 		INSIST(zone->rss == rss);
 		UNLOCK_ZONE(zone);
@@ -16287,21 +16277,6 @@ failure:
 		dns_journal_destroy(&rjournal);
 	}
 	dns_diff_clear(&zone->rss_diff);
-
-	rss = ISC_LIST_HEAD(zone->rss_events);
-	if (rss != NULL) {
-		LOCK_ZONE(zone);
-		isc_refcount_decrement(&zone->irefs);
-		ISC_LIST_UNLINK(zone->rss_events, rss, link);
-		goto nextevent;
-	}
-
-	for (struct np3 *npe = ISC_LIST_HEAD(zone->rss_post); npe != NULL;
-	     npe = ISC_LIST_HEAD(zone->rss_post))
-	{
-		ISC_LIST_UNLINK(zone->rss_post, npe, link);
-		rss_post(npe);
-	}
 
 	dns_zone_idetach(&zone);
 }
@@ -16758,12 +16733,7 @@ receive_secure_db(void *arg) {
 	/*
 	 * Process any queued NSEC3PARAM change requests.
 	 */
-	while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
-		struct np3 *npe = ISC_LIST_HEAD(zone->setnsec3param_queue);
-		ISC_LIST_UNLINK(zone->setnsec3param_queue, npe, link);
-		zone_iattach(zone, &npe->zone);
-		isc_async_run(zone->loop, setnsec3param, npe);
-	}
+	process_zone_setnsec3param(zone);
 
 failure:
 	UNLOCK_ZONE(zone);
@@ -21833,33 +21803,30 @@ setnsec3param(void *arg) {
 	UNLOCK_ZONE(zone);
 
 	/*
-	 * If receive_secure_serial is still processing or we have a
-	 * queued event, append to rss_post queue.
+	 * The receive_secure_serial() and setnsec3param() calls are
+	 * loop-serialized for the zone. Make sure there's no processing
+	 * currently running.
 	 */
-	if (zone->rss_newver != NULL || ISC_LIST_HEAD(zone->rss_post) != NULL) {
-		/*
-		 * Wait for receive_secure_serial() to finish processing.
-		 */
-		ISC_LIST_APPEND(zone->rss_post, npe, link);
-	} else {
-		bool rescheduled = false;
-		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-		/*
-		 * The zone is not yet fully loaded. Reschedule the event to
-		 * be picked up later. This turns this function into a busy
-		 * wait, but it only happens at startup.
-		 */
-		if (zone->db == NULL && loadpending) {
-			rescheduled = true;
-			isc_async_run(zone->loop, setnsec3param, npe);
-		}
-		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-		if (rescheduled) {
-			return;
-		}
+	INSIST(zone->rss_newver == NULL);
 
-		rss_post(npe);
+	bool rescheduled = false;
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	/*
+	 * The zone is not yet fully loaded. Reschedule the event to
+	 * be picked up later. This turns this function into a busy
+	 * wait, but it only happens at startup.
+	 */
+	if (zone->db == NULL && loadpending) {
+		rescheduled = true;
+		isc_async_run(zone->loop, setnsec3param, npe);
 	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (rescheduled) {
+		return;
+	}
+
+	rss_post(npe);
+
 	dns_zone_idetach(&zone);
 }
 
