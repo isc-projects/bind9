@@ -59,6 +59,12 @@
  */
 #define UNUSED(x) (void)(x)
 
+#if __has_c_attribute(maybe_unused)
+#define ISC_ATTR_UNUSED [[maybe_unused]]
+#else
+#define ISC_ATTR_UNUSED __attribute__((__unused__))
+#endif
+
 #if __GNUC__ >= 8 && !defined(__clang__)
 #define ISC_NONSTRING __attribute__((nonstring))
 #else /* if __GNUC__ >= 8 && !defined(__clang__) */
