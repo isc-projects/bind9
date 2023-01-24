@@ -48,7 +48,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The memory statistics were reduced to a single counter InUse (with Malloced as
+  alias).  Most of the counters were useful with the old BIND 9 internal memory
+  allocator that has been removed.  The InUse/Malloced counter is the only one
+  that bears any real value in production. :gl:`#3718`
 
 Bug Fixes
 ~~~~~~~~~

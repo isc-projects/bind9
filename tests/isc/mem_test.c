@@ -242,50 +242,6 @@ ISC_RUN_TEST_IMPL(isc_mem_allocate_zero) {
 	isc_mem_free(mctx, ptr);
 }
 
-/* test TotalUse calculation */
-ISC_RUN_TEST_IMPL(isc_mem_total) {
-	isc_mem_t *mctx2 = NULL;
-	size_t before, after;
-	ssize_t diff;
-	int i;
-
-	/* Local alloc, free */
-	mctx2 = NULL;
-	isc_mem_create(&mctx2);
-
-	before = isc_mem_total(mctx2);
-
-	for (i = 0; i < 100000; i++) {
-		void *ptr;
-
-		ptr = isc_mem_get(mctx2, 2048);
-		isc_mem_put(mctx2, ptr, 2048);
-	}
-
-	after = isc_mem_total(mctx2);
-	diff = after - before;
-
-	assert_int_equal(diff, (2048) * 100000);
-
-	/* ISC_MEMFLAG_INTERNAL */
-
-	before = isc_mem_total(mctx);
-
-	for (i = 0; i < 100000; i++) {
-		void *ptr;
-
-		ptr = isc_mem_get(mctx, 2048);
-		isc_mem_put(mctx, ptr, 2048);
-	}
-
-	after = isc_mem_total(mctx);
-	diff = after - before;
-
-	assert_int_equal(diff, (2048) * 100000);
-
-	isc_mem_destroy(&mctx2);
-}
-
 /* test InUse calculation */
 ISC_RUN_TEST_IMPL(isc_mem_inuse) {
 	isc_mem_t *mctx2 = NULL;
@@ -598,7 +554,6 @@ ISC_TEST_ENTRY(isc_mem_allocate_align)
 #endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
 ISC_TEST_ENTRY(isc_mem_get_zero)
 ISC_TEST_ENTRY(isc_mem_allocate_zero)
-ISC_TEST_ENTRY(isc_mem_total)
 ISC_TEST_ENTRY(isc_mem_inuse)
 ISC_TEST_ENTRY(isc_mem_zeroget)
 ISC_TEST_ENTRY(isc_mem_reget)

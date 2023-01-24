@@ -80,8 +80,6 @@ unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 #define ALIGNMENT	     8U /*%< must be a power of 2 */
 #define ALIGNMENT_SIZE	     sizeof(size_info)
 #define DEBUG_TABLE_COUNT    512U
-#define STATS_BUCKETS	     512U
-#define STATS_BUCKET_SIZE    32U
 
 /*
  * Types.
@@ -110,11 +108,6 @@ struct element {
 	element *next;
 };
 
-struct stats {
-	atomic_size_t gets;
-	atomic_size_t totalgets;
-};
-
 #define MEM_MAGIC	 ISC_MAGIC('M', 'e', 'm', 'C')
 #define VALID_CONTEXT(c) ISC_MAGIC_VALID(c, MEM_MAGIC)
 
@@ -126,26 +119,15 @@ static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_once_t shut_once = ISC_ONCE_INIT;
 static isc_mutex_t contextslock;
 
-/*%
- * Total size of lost memory due to a bug of external library.
- * Locked by the global lock.
- */
-static uint64_t totallost;
-
 struct isc_mem {
 	unsigned int magic;
 	unsigned int flags;
 	unsigned int debugging;
 	isc_mutex_t lock;
 	bool checkfree;
-	struct stats stats[STATS_BUCKETS + 1];
 	isc_refcount_t references;
 	char name[16];
-	atomic_size_t total;
 	atomic_size_t inuse;
-	atomic_size_t maxinuse;
-	atomic_size_t malloced;
-	atomic_size_t maxmalloced;
 	atomic_bool hi_called;
 	atomic_bool is_overmem;
 	isc_mem_water_t water;
@@ -211,26 +193,6 @@ static void
 print_active(isc_mem_t *ctx, FILE *out);
 #endif /* ISC_MEM_TRACKLINES */
 
-static size_t
-increment_malloced(isc_mem_t *ctx, size_t size) {
-	size_t malloced = atomic_fetch_add_relaxed(&ctx->malloced, size) + size;
-	size_t maxmalloced = atomic_load_relaxed(&ctx->maxmalloced);
-
-	if (malloced > maxmalloced) {
-		atomic_compare_exchange_strong(&ctx->maxmalloced, &maxmalloced,
-					       malloced);
-	}
-
-	return (malloced);
-}
-
-static size_t
-decrement_malloced(isc_mem_t *ctx, size_t size) {
-	size_t malloced = atomic_fetch_sub_relaxed(&ctx->malloced, size) - size;
-
-	return (malloced);
-}
-
 #if ISC_MEM_TRACKLINES
 /*!
  * mctx must not be locked.
@@ -265,7 +227,6 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 
 	dl = mallocx(sizeof(debuglink_t), 0);
 	INSIST(dl != NULL);
-	increment_malloced(mctx, sizeof(debuglink_t));
 
 	ISC_LINK_INIT(dl, link);
 	dl->ptr = ptr;
@@ -312,7 +273,6 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 	while (dl != NULL) {
 		if (dl->ptr == ptr) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
-			decrement_malloced(mctx, sizeof(*dl));
 			sdallocx(dl, sizeof(*dl), 0);
 			goto unlock;
 		}
@@ -401,34 +361,16 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
  */
 static void
 mem_getstats(isc_mem_t *ctx, size_t size) {
-	struct stats *stats = stats_bucket(ctx, size);
-
-	atomic_fetch_add_relaxed(&ctx->total, size);
-	atomic_fetch_add_release(&ctx->inuse, size);
-
-	atomic_fetch_add_relaxed(&stats->gets, 1);
-	atomic_fetch_add_relaxed(&stats->totalgets, 1);
-
-	increment_malloced(ctx, size);
+	atomic_fetch_add_relaxed(&ctx->inuse, size);
 }
 
 /*!
  * Update internal counters after a memory put.
  */
 static void
-mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
-	struct stats *stats = stats_bucket(ctx, size);
-	atomic_size_t s, g;
-
-	UNUSED(ptr);
-
-	s = atomic_fetch_sub_release(&ctx->inuse, size);
+mem_putstats(isc_mem_t *ctx, size_t size) {
+	atomic_size_t s = atomic_fetch_sub_relaxed(&ctx->inuse, size);
 	INSIST(s >= size);
-
-	g = atomic_fetch_sub_release(&stats->gets, 1);
-	INSIST(g >= 1);
-
-	decrement_malloced(ctx, size);
 }
 
 /*
@@ -449,7 +391,6 @@ mem_initialize(void) {
 
 	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
-	totallost = 0;
 }
 
 void
@@ -488,20 +429,12 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	isc_mutex_init(&ctx->lock);
 	isc_refcount_init(&ctx->references, 1);
 
-	atomic_init(&ctx->total, 0);
 	atomic_init(&ctx->inuse, 0);
-	atomic_init(&ctx->maxinuse, 0);
-	atomic_init(&ctx->malloced, sizeof(*ctx));
-	atomic_init(&ctx->maxmalloced, sizeof(*ctx));
 	atomic_init(&ctx->hi_water, 0);
 	atomic_init(&ctx->lo_water, 0);
 	atomic_init(&ctx->hi_called, false);
 	atomic_init(&ctx->is_overmem, false);
 
-	for (size_t i = 0; i < STATS_BUCKETS + 1; i++) {
-		atomic_init(&ctx->stats[i].gets, 0);
-		atomic_init(&ctx->stats[i].totalgets, 0);
-	}
 	ISC_LIST_INIT(ctx->pools);
 
 #if ISC_MEM_TRACKLINES
@@ -515,8 +448,6 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			ISC_LIST_INIT(ctx->debuglist[i]);
 		}
-		increment_malloced(ctx,
-				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -533,12 +464,8 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 static void
 destroy(isc_mem_t *ctx) {
-	unsigned int i;
-	size_t malloced;
-
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
-	totallost += isc_mem_inuse(ctx);
 	UNLOCK(&contextslock);
 
 	ctx->magic = 0;
@@ -548,7 +475,7 @@ destroy(isc_mem_t *ctx) {
 #if ISC_MEM_TRACKLINES
 	if (ctx->debuglist != NULL) {
 		debuglink_t *dl;
-		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
+		for (size_t i = 0; i < DEBUG_TABLE_COUNT; i++) {
 			for (dl = ISC_LIST_HEAD(ctx->debuglist[i]); dl != NULL;
 			     dl = ISC_LIST_HEAD(ctx->debuglist[i]))
 			{
@@ -559,41 +486,18 @@ destroy(isc_mem_t *ctx) {
 
 				ISC_LIST_UNLINK(ctx->debuglist[i], dl, link);
 				sdallocx(dl, sizeof(*dl), 0);
-				decrement_malloced(ctx, sizeof(*dl));
 			}
 		}
 
 		sdallocx(ctx->debuglist,
 			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
-		decrement_malloced(ctx,
-				   DEBUG_TABLE_COUNT * sizeof(debuglist_t));
 	}
 #endif /* if ISC_MEM_TRACKLINES */
-
-	if (ctx->checkfree) {
-		for (i = 0; i <= STATS_BUCKETS; i++) {
-			struct stats *stats = &ctx->stats[i];
-			size_t gets = atomic_load_acquire(&stats->gets);
-			if (gets != 0U) {
-				fprintf(stderr,
-					"Failing assertion due to probable "
-					"leaked memory in context %p (\"%s\") "
-					"(stats[%u].gets == %zu).\n",
-					ctx, ctx->name, i, gets);
-#if ISC_MEM_TRACKLINES
-				print_active(ctx, stderr);
-#endif /* if ISC_MEM_TRACKLINES */
-				INSIST(gets == 0U);
-			}
-		}
-	}
 
 	isc_mutex_destroy(&ctx->lock);
 
-	malloced = decrement_malloced(ctx, sizeof(*ctx));
-
 	if (ctx->checkfree) {
-		INSIST(malloced == 0);
+		INSIST(atomic_load(&ctx->inuse) == 0);
 	}
 	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
 }
@@ -653,7 +557,7 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
@@ -711,27 +615,15 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 static bool
 hi_water(isc_mem_t *ctx) {
 	size_t inuse;
-	size_t maxinuse;
 	size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
 
 	if (hiwater == 0) {
 		return (false);
 	}
 
-	inuse = atomic_load_acquire(&ctx->inuse);
+	inuse = atomic_load_relaxed(&ctx->inuse);
 	if (inuse <= hiwater) {
 		return (false);
-	}
-
-	maxinuse = atomic_load_acquire(&ctx->maxinuse);
-	if (inuse > maxinuse) {
-		(void)atomic_compare_exchange_strong(&ctx->maxinuse, &maxinuse,
-						     inuse);
-
-		if ((ctx->debugging & ISC_MEM_DEBUGUSAGE) != 0) {
-			fprintf(stderr, "maxinuse = %lu\n",
-				(unsigned long)inuse);
-		}
 	}
 
 	if (atomic_load_acquire(&ctx->hi_called)) {
@@ -753,7 +645,7 @@ lo_water(isc_mem_t *ctx) {
 		return (false);
 	}
 
-	inuse = atomic_load_acquire(&ctx->inuse);
+	inuse = atomic_load_relaxed(&ctx->inuse);
 	if (inuse >= lowater) {
 		return (false);
 	}
@@ -790,7 +682,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, int flags FLARG) {
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
@@ -801,9 +693,9 @@ isc_mem_waterack(isc_mem_t *ctx, int flag) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	if (flag == ISC_MEM_LOWATER) {
-		atomic_store(&ctx->hi_called, false);
+		atomic_store_release(&ctx->hi_called, false);
 	} else if (flag == ISC_MEM_HIWATER) {
-		atomic_store(&ctx->hi_called, true);
+		atomic_store_release(&ctx->hi_called, true);
 	}
 }
 
@@ -855,22 +747,6 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	MCTXLOCK(ctx);
-
-	for (size_t i = 0; i <= STATS_BUCKETS; i++) {
-		size_t totalgets;
-		size_t gets;
-		struct stats *stats = &ctx->stats[i];
-
-		totalgets = atomic_load_acquire(&stats->totalgets);
-		gets = atomic_load_acquire(&stats->gets);
-
-		if (totalgets != 0U && gets != 0U) {
-			fprintf(out, "%s%5zu: %11zu gets, %11zu rem",
-				(i == STATS_BUCKETS) ? ">=" : "  ", i,
-				totalgets, gets);
-			fputc('\n', out);
-		}
-	}
 
 	/*
 	 * Note that since a pool can be locked now, these stats might
@@ -933,7 +809,7 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 		isc__mem_put(ctx, old_ptr, old_size, flags FLARG_PASS);
 	} else {
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
-		mem_putstats(ctx, old_ptr, old_size);
+		mem_putstats(ctx, old_size);
 
 		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
@@ -967,7 +843,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
 		size_t old_size = sallocx(old_ptr, flags);
 
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
-		mem_putstats(ctx, old_ptr, old_size);
+		mem_putstats(ctx, old_size);
 
 		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
@@ -1000,7 +876,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr, int flags FLARG) {
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
-	mem_putstats(ctx, ptr, size);
+	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
 
 	CALL_LO_WATER(ctx);
@@ -1063,35 +939,7 @@ size_t
 isc_mem_inuse(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_acquire(&ctx->inuse));
-}
-
-size_t
-isc_mem_maxinuse(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->maxinuse));
-}
-
-size_t
-isc_mem_total(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->total));
-}
-
-size_t
-isc_mem_malloced(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->malloced));
-}
-
-size_t
-isc_mem_maxmalloced(isc_mem_t *ctx) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	return (atomic_load_acquire(&ctx->maxmalloced));
+	return (atomic_load_relaxed(&ctx->inuse));
 }
 
 void
@@ -1120,13 +968,13 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	if (oldwater == NULL) {
 		REQUIRE(water != NULL && lowater > 0);
 
-		INSIST(atomic_load(&ctx->hi_water) == 0);
-		INSIST(atomic_load(&ctx->lo_water) == 0);
+		INSIST(atomic_load_acquire(&ctx->hi_water) == 0);
+		INSIST(atomic_load_acquire(&ctx->lo_water) == 0);
 
 		ctx->water = water;
 		ctx->water_arg = water_arg;
-		atomic_store(&ctx->hi_water, hiwater);
-		atomic_store(&ctx->lo_water, lowater);
+		atomic_store_release(&ctx->hi_water, hiwater);
+		atomic_store_release(&ctx->lo_water, lowater);
 
 		return;
 	}
@@ -1134,8 +982,8 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	REQUIRE((water == oldwater && water_arg == oldwater_arg) ||
 		(water == NULL && water_arg == NULL && hiwater == 0));
 
-	atomic_store(&ctx->hi_water, hiwater);
-	atomic_store(&ctx->lo_water, lowater);
+	atomic_store_release(&ctx->hi_water, hiwater);
+	atomic_store_release(&ctx->lo_water, lowater);
 
 	if (atomic_load_acquire(&ctx->hi_called) &&
 	    (atomic_load_acquire(&ctx->inuse) < lowater || lowater == 0U))
@@ -1266,7 +1114,7 @@ isc__mempool_destroy(isc_mempool_t **restrict mpctxp FLARG) {
 		item = mpctx->items;
 		mpctx->items = item->next;
 
-		mem_putstats(mctx, item, mpctx->size);
+		mem_putstats(mctx, mpctx->size);
 		mem_put(mctx, item, mpctx->size, 0);
 	}
 
@@ -1310,8 +1158,8 @@ isc__mempool_get(isc_mempool_t *restrict mpctx FLARG) {
 		}
 	}
 
+	INSIST(mpctx->items != NULL);
 	item = mpctx->items;
-	INSIST(item != NULL);
 
 	mpctx->items = item->next;
 
@@ -1349,7 +1197,7 @@ isc__mempool_put(isc_mempool_t *restrict mpctx, void *mem FLARG) {
 	 * If our free list is full, return this to the mctx directly.
 	 */
 	if (freecount >= freemax) {
-		mem_putstats(mctx, mem, mpctx->size);
+		mem_putstats(mctx, mpctx->size);
 		mem_put(mctx, mem, mpctx->size, 0);
 		return;
 	}
@@ -1463,13 +1311,6 @@ isc_mem_references(isc_mem_t *ctx) {
 	return (isc_refcount_current(&ctx->references));
 }
 
-typedef struct summarystat {
-	uint64_t total;
-	uint64_t inuse;
-	uint64_t malloced;
-	uint64_t contextsize;
-} summarystat_t;
-
 #ifdef HAVE_LIBXML2
 #define TRY0(a)                     \
 	do {                        \
@@ -1478,7 +1319,7 @@ typedef struct summarystat {
 			goto error; \
 	} while (0)
 static int
-xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
+xml_renderctx(isc_mem_t *ctx, size_t *inuse, xmlTextWriterPtr writer) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
 	int xmlrc;
@@ -1497,52 +1338,26 @@ xml_renderctx(isc_mem_t *ctx, summarystat_t *summary, xmlTextWriterPtr writer) {
 		TRY0(xmlTextWriterEndElement(writer)); /* name */
 	}
 
-	summary->contextsize += sizeof(*ctx);
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize += DEBUG_TABLE_COUNT *
-						sizeof(debuglist_t) +
-					ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif /* if ISC_MEM_TRACKLINES */
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
 	TRY0(xmlTextWriterWriteFormatString(
 		writer, "%" PRIuFAST32,
 		isc_refcount_current(&ctx->references)));
 	TRY0(xmlTextWriterEndElement(writer)); /* references */
 
-	summary->total += isc_mem_total(ctx);
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "total"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    (uint64_t)isc_mem_total(ctx)));
-	TRY0(xmlTextWriterEndElement(writer)); /* total */
-
-	summary->inuse += isc_mem_inuse(ctx);
+	*inuse += isc_mem_inuse(ctx);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "inuse"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
 					    (uint64_t)isc_mem_inuse(ctx)));
 	TRY0(xmlTextWriterEndElement(writer)); /* inuse */
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxinuse"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    (uint64_t)isc_mem_maxinuse(ctx)));
-	TRY0(xmlTextWriterEndElement(writer)); /* maxinuse */
-
-	summary->malloced += isc_mem_malloced(ctx);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "malloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    (uint64_t)isc_mem_malloced(ctx)));
+					    (uint64_t)isc_mem_inuse(ctx)));
 	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxmalloced"));
-	TRY0(xmlTextWriterWriteFormatString(
-		writer, "%" PRIu64 "", (uint64_t)isc_mem_maxmalloced(ctx)));
-	TRY0(xmlTextWriterEndElement(writer)); /* maxmalloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt));
 	TRY0(xmlTextWriterEndElement(writer)); /* pools */
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(
@@ -1567,19 +1382,17 @@ error:
 int
 isc_mem_renderxml(void *writer0) {
 	isc_mem_t *ctx;
-	summarystat_t summary = { 0 };
-	uint64_t lost;
+	size_t inuse = 0;
 	int xmlrc;
 	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "contexts"));
 
 	LOCK(&contextslock);
-	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		xmlrc = xml_renderctx(ctx, &summary, writer);
+		xmlrc = xml_renderctx(ctx, &inuse, writer);
 		if (xmlrc < 0) {
 			UNLOCK(&contextslock);
 			goto error;
@@ -1591,29 +1404,15 @@ isc_mem_renderxml(void *writer0) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "summary"));
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "TotalUse"));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.total));
-	TRY0(xmlTextWriterEndElement(writer)); /* TotalUse */
+					    (uint64_t)inuse));
+	TRY0(xmlTextWriterEndElement(writer)); /* malloced */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "InUse"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.inuse));
+					    (uint64_t)inuse));
 	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Malloced"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.malloced));
-	TRY0(xmlTextWriterEndElement(writer)); /* InUse */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ContextSize"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "",
-					    summary.contextsize));
-	TRY0(xmlTextWriterEndElement(writer)); /* ContextSize */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "Lost"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64 "", lost));
-	TRY0(xmlTextWriterEndElement(writer)); /* Lost */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* summary */
 error:
@@ -1626,9 +1425,8 @@ error:
 #define CHECKMEM(m) RUNTIME_CHECK(m != NULL)
 
 static isc_result_t
-json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
+json_renderctx(isc_mem_t *ctx, size_t *inuse, json_object *array) {
 	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(summary != NULL);
 	REQUIRE(array != NULL);
 
 	json_object *ctxobj, *obj;
@@ -1636,17 +1434,7 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	MCTXLOCK(ctx);
 
-	summary->contextsize += sizeof(*ctx);
-	summary->total += isc_mem_total(ctx);
-	summary->inuse += isc_mem_inuse(ctx);
-	summary->malloced += isc_mem_malloced(ctx);
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize += DEBUG_TABLE_COUNT *
-						sizeof(debuglist_t) +
-					ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif /* if ISC_MEM_TRACKLINES */
+	*inuse += isc_mem_inuse(ctx);
 
 	ctxobj = json_object_new_object();
 	CHECKMEM(ctxobj);
@@ -1666,31 +1454,17 @@ json_renderctx(isc_mem_t *ctx, summarystat_t *summary, json_object *array) {
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "references", obj);
 
-	obj = json_object_new_int64(isc_mem_total(ctx));
+	obj = json_object_new_int64(isc_mem_inuse(ctx));
 	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "total", obj);
+	json_object_object_add(ctxobj, "malloced", obj);
 
 	obj = json_object_new_int64(isc_mem_inuse(ctx));
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "inuse", obj);
 
-	obj = json_object_new_int64(isc_mem_maxinuse(ctx));
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "maxinuse", obj);
-
-	obj = json_object_new_int64(isc_mem_malloced(ctx));
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "malloced", obj);
-
-	obj = json_object_new_int64(isc_mem_maxmalloced(ctx));
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "maxmalloced", obj);
-
 	obj = json_object_new_int64(ctx->poolcnt);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "pools", obj);
-
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
 
 	obj = json_object_new_int64(atomic_load_relaxed(&ctx->hi_water));
 	CHECKMEM(obj);
@@ -1709,8 +1483,7 @@ isc_result_t
 isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_mem_t *ctx;
-	summarystat_t summary = { 0 };
-	uint64_t lost;
+	size_t inuse = 0;
 	json_object *ctxarray, *obj;
 	json_object *memobj = (json_object *)memobj0;
 
@@ -1718,11 +1491,10 @@ isc_mem_renderjson(void *memobj0) {
 	CHECKMEM(ctxarray);
 
 	LOCK(&contextslock);
-	lost = totallost;
 	for (ctx = ISC_LIST_HEAD(contexts); ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		result = json_renderctx(ctx, &summary, ctxarray);
+		result = json_renderctx(ctx, &inuse, ctxarray);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&contextslock);
 			goto error;
@@ -1730,25 +1502,13 @@ isc_mem_renderjson(void *memobj0) {
 	}
 	UNLOCK(&contextslock);
 
-	obj = json_object_new_int64(summary.total);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "TotalUse", obj);
-
-	obj = json_object_new_int64(summary.inuse);
+	obj = json_object_new_int64(inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "InUse", obj);
 
-	obj = json_object_new_int64(summary.malloced);
+	obj = json_object_new_int64(inuse);
 	CHECKMEM(obj);
 	json_object_object_add(memobj, "Malloced", obj);
-
-	obj = json_object_new_int64(summary.contextsize);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "ContextSize", obj);
-
-	obj = json_object_new_int64(lost);
-	CHECKMEM(obj);
-	json_object_object_add(memobj, "Lost", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
 	return (ISC_R_SUCCESS);

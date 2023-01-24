@@ -1,3 +1,6 @@
+6078.	[func]		Cleanup the memory statistic counters to a bare
+			minumum - InUse with Malloced as alias. [GL #3718]
+
 6077.	[func]		Implement query forwarding to DoT-enabled upstream
 			servers. [GL #3726]
 

@@ -644,21 +644,11 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
-	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)isc_mem_total(cache->mctx),
-		"cache tree memory total");
 	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)isc_mem_inuse(cache->mctx),
 		"cache tree memory in use");
-	fprintf(fp, "%20" PRIu64 " %s\n",
-		(uint64_t)isc_mem_maxinuse(cache->mctx),
-		"cache tree highest memory in use");
 
-	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)isc_mem_total(cache->hmctx),
-		"cache heap memory total");
 	fprintf(fp, "%20" PRIu64 " %s\n", (uint64_t)isc_mem_inuse(cache->hmctx),
 		"cache heap memory in use");
-	fprintf(fp, "%20" PRIu64 " %s\n",
-		(uint64_t)isc_mem_maxinuse(cache->hmctx),
-		"cache heap highest memory in use");
 }
 
 #ifdef HAVE_LIBXML2
@@ -714,13 +704,9 @@ dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 			dns_db_nodecount(cache->db, dns_dbtree_nsec), writer));
 	TRY0(renderstat("CacheBuckets", dns_db_hashsize(cache->db), writer));
 
-	TRY0(renderstat("TreeMemTotal", isc_mem_total(cache->mctx), writer));
 	TRY0(renderstat("TreeMemInUse", isc_mem_inuse(cache->mctx), writer));
-	TRY0(renderstat("TreeMemMax", isc_mem_maxinuse(cache->mctx), writer));
 
-	TRY0(renderstat("HeapMemTotal", isc_mem_total(cache->hmctx), writer));
 	TRY0(renderstat("HeapMemInUse", isc_mem_inuse(cache->hmctx), writer));
-	TRY0(renderstat("HeapMemMax", isc_mem_maxinuse(cache->hmctx), writer));
 error:
 	return (xmlrc);
 }
@@ -790,29 +776,13 @@ dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "CacheBuckets", obj);
 
-	obj = json_object_new_int64(isc_mem_total(cache->mctx));
-	CHECKMEM(obj);
-	json_object_object_add(cstats, "TreeMemTotal", obj);
-
 	obj = json_object_new_int64(isc_mem_inuse(cache->mctx));
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "TreeMemInUse", obj);
 
-	obj = json_object_new_int64(isc_mem_maxinuse(cache->mctx));
-	CHECKMEM(obj);
-	json_object_object_add(cstats, "TreeMemMax", obj);
-
-	obj = json_object_new_int64(isc_mem_total(cache->hmctx));
-	CHECKMEM(obj);
-	json_object_object_add(cstats, "HeapMemTotal", obj);
-
 	obj = json_object_new_int64(isc_mem_inuse(cache->hmctx));
 	CHECKMEM(obj);
 	json_object_object_add(cstats, "HeapMemInUse", obj);
-
-	obj = json_object_new_int64(isc_mem_maxinuse(cache->hmctx));
-	CHECKMEM(obj);
-	json_object_object_add(cstats, "HeapMemMax", obj);
 
 	result = ISC_R_SUCCESS;
 error:
