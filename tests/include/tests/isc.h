@@ -17,6 +17,9 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
@@ -166,18 +169,39 @@ teardown_managers(void **state);
 
 #define ISC_TEST_MAIN ISC_TEST_MAIN_CUSTOM(NULL, NULL)
 
-#define ISC_TEST_MAIN_CUSTOM(setup, teardown)                       \
-	int main(void) {                                            \
-		int r;                                              \
-                                                                    \
-		signal(SIGPIPE, SIG_IGN);                           \
-                                                                    \
-		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;           \
-		isc_mem_create(&mctx);                              \
-                                                                    \
-		r = cmocka_run_group_tests(tests, setup, teardown); \
-                                                                    \
-		isc_mem_destroy(&mctx);                             \
-                                                                    \
-		return (r);                                         \
+#define ISC_TEST_MAIN_CUSTOM(setup, teardown)                                \
+	static int  __child = 0;                                             \
+	static void __alarm(int sig ISC_ATTR_UNUSED) {                       \
+		kill(__child, SIGABRT);                                      \
+	}                                                                    \
+	int main(void) {                                                     \
+		int r, status;                                               \
+                                                                             \
+		switch ((__child = fork())) {                                \
+		case 0:                                                      \
+			break;                                               \
+		case -1:                                                     \
+			exit(1);                                             \
+		default:                                                     \
+			signal(SIGALRM, __alarm);                            \
+			alarm(1200);                                         \
+			if ((r = waitpid(__child, &status, 0)) == __child) { \
+				/* Pass the exit status to the caller. */    \
+				if (WIFEXITED(status)) {                     \
+					exit(WEXITSTATUS(status));           \
+				}                                            \
+			}                                                    \
+			exit(1);                                             \
+		}                                                            \
+                                                                             \
+		signal(SIGPIPE, SIG_IGN);                                    \
+                                                                             \
+		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;                    \
+		isc_mem_create(&mctx);                                       \
+                                                                             \
+		r = cmocka_run_group_tests(tests, setup, teardown);          \
+                                                                             \
+		isc_mem_destroy(&mctx);                                      \
+                                                                             \
+		return (r);                                                  \
 	}
