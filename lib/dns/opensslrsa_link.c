@@ -61,13 +61,26 @@ opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 	if (private && priv == NULL) {
 		return (DST_R_INVALIDPRIVATEKEY);
 	}
+	/*
+	 * NOTE: Errors regarding private compoments are ignored.
+	 *
+	 * OpenSSL allows omitting the parameters for CRT based calculations
+	 * (factors, exponents, coefficients). Only the 'd'  parameter is
+	 * mandatory for software keys.
+	 *
+	 * However, for a label based keys, all private key component queries
+	 * can fail if they key is e.g. on a hardware device.
+	 */
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_E,
 				  (BIGNUM **)&c->e) == 1)
 	{
 		c->bnfree = true;
-		(void)EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
-					    (BIGNUM **)&c->n);
+		if (EVP_PKEY_get_bn_param(pub, OSSL_PKEY_PARAM_RSA_N,
+					  (BIGNUM **)&c->n) != 1)
+		{
+			return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+		}
 		if (!private) {
 			return (ISC_R_SUCCESS);
 		}
