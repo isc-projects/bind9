@@ -343,6 +343,50 @@ stages:
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
 
+cross-version-config-tests:
+  stage: system
+  <<: *base_image
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    # Disable option checking to prevent problems with new default options in
+    # the &configure anchor.
+    EXTRA_CONFIGURE: "--disable-option-checking"
+  script:
+    - *configure
+    - *setup_interfaces
+    - make -j${BUILD_PARALLEL_JOBS:-1}
+    # Build system test binaries.
+    - make -C bin/tests/system -j${TEST_PARALLEL_JOBS:-1} check TESTS=""
+    - export BIND_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
+    # When testing a .0 release, compare it against the previous development
+    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
+    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BRANCH=$((BIND_BRANCH - 1 - (BIND_BRANCH % 2))); fi
+    - BASELINE="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BRANCH}&order_by=version" | jq -r ".[0].name")"
+    - git clone --branch "${BASELINE}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BASELINE}"
+    - cd "bind-${BASELINE}"
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1}
+    - *find_pytest
+    - cd bin/tests/system
+    # Run the setup phase of all system tests in the most recently tagged BIND 9
+    # release using the binaries built for the current BIND 9 version.  This
+    # intends to detect obvious backward compatibility issues with the latter.
+    - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
+    - >
+      "$PYTEST" --setup-only -n "${TEST_PARALLEL_JOBS:-1}"
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    paths:
+      - bind-*
+    untracked: true
+    expire_in: "1 day"
+    when: on_failure
+
 .display_pytest_failures: &display_pytest_failures
     - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
     - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
