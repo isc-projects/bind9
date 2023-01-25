@@ -20,8 +20,22 @@
 			not negotiate "dot" ALPN token could crash BIND
 			on shutdown. That has been fixed. [GL #3767]
 
-6063.	[bug]		Revert a change that limited to honour single
-			read for TLSDNS as it broke XoT. [GL #3772]
+	--- 9.18.11 released ---
+
+6067.	[security]	Fix serve-stale crash when recursive clients soft quota
+			is reached. (CVE-2022-3924) [GL #3619]
+
+6066.	[security]	Handle RRSIG lookups when serve-stale is active.
+			(CVE-2022-3736) [GL #3622]
+
+6064.	[security]	An UPDATE message flood could cause named to exhaust all
+			available memory. This flaw was addressed by adding a
+			new "update-quota" statement that controls the number of
+			simultaneous UPDATE messages that can be processed or
+			forwarded. The default is 100. A stats counter has been
+			added to record events when the update quota is
+			exceeded, and the XML and JSON statistics version
+			numbers have been updated. (CVE-2022-3094) [GL #3523]
 
 6062.	[func]		The DSCP implementation, which has been
 			nonfunctional for some time, is now marked as
@@ -88,7 +102,9 @@
 			[GL #3252]
 
 5830.	[func]		Implement incremental resizing of isc_ht hash tables to
-			perform the rehashing gradually. [GL #3212]
+			perform the rehashing gradually. The catalog zone
+			implementation has been optimized to work with hundreds
+			of thousands of member zones. [GL #3212] [GL #3744]
 
 	--- 9.18.10 released ---
 

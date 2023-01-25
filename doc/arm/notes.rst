@@ -36,6 +36,7 @@ information about each release, and source code.
 .. include:: ../notes/notes-known-issues.rst
 
 .. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.18.11.rst
 .. include:: ../notes/notes-9.18.10.rst
 .. include:: ../notes/notes-9.18.9.rst
 .. include:: ../notes/notes-9.18.8.rst

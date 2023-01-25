@@ -5237,6 +5237,15 @@ qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	qctx->result = ISC_R_SUCCESS;
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
 
+	/*
+	 * If it's an RRSIG or SIG query, we'll iterate the node.
+	 */
+	if (qctx->qtype == dns_rdatatype_rrsig ||
+	    qctx->qtype == dns_rdatatype_sig)
+	{
+		qctx->type = dns_rdatatype_any;
+	}
+
 	CALL_HOOK_NORETURN(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
@@ -5423,15 +5432,6 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	query_trace(&qctx);
 
 	CALL_HOOK(NS_QUERY_SETUP, &qctx);
-
-	/*
-	 * If it's a SIG query, we'll iterate the node.
-	 */
-	if (qctx.qtype == dns_rdatatype_rrsig ||
-	    qctx.qtype == dns_rdatatype_sig)
-	{
-		qctx.type = dns_rdatatype_any;
-	}
 
 	/*
 	 * Check SERVFAIL cache
@@ -6236,7 +6236,9 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
 
 	if (event->ev_type == DNS_EVENT_TRYSTALE) {
-		query_lookup_stale(client);
+		if (devent->result != ISC_R_CANCELED) {
+			query_lookup_stale(client);
+		}
 		isc_event_free(ISC_EVENT_PTR(&event));
 		return;
 	}
