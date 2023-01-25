@@ -20,7 +20,7 @@
   	also-notify [ port <integer> ] [ dscp <integer> ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ]; ... };
   	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
   	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
-  	auto-dnssec ( allow | maintain | off );
+  	auto-dnssec ( allow | maintain | off ); // deprecated
   	check-dup-records ( fail | warn | ignore );
   	check-integrity <boolean>;
   	check-mx ( fail | warn | ignore );

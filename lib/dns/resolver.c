@@ -11275,8 +11275,9 @@ void
 dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	fetchctx_t *fctx;
 	dns_resolver_t *res;
-	dns_fetchevent_t *event, *next_event;
-	isc_task_t *etask;
+	dns_fetchevent_t *event = NULL;
+	dns_fetchevent_t *event_trystale = NULL;
+	dns_fetchevent_t *event_fetchdone = NULL;
 
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
@@ -11288,33 +11289,60 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
 	/*
-	 * Find the completion event for this fetch (as opposed
+	 * Find the events for this fetch (as opposed
 	 * to those for other fetches that have joined the same
-	 * fctx) and send it with result = ISC_R_CANCELED.
+	 * fctx) and send them with result = ISC_R_CANCELED.
 	 */
-	event = NULL;
 	if (fctx->state != fetchstate_done) {
+		dns_fetchevent_t *next_event = NULL;
 		for (event = ISC_LIST_HEAD(fctx->events); event != NULL;
 		     event = next_event)
 		{
 			next_event = ISC_LIST_NEXT(event, ev_link);
 			if (event->fetch == fetch) {
 				ISC_LIST_UNLINK(fctx->events, event, ev_link);
-				break;
+				switch (event->ev_type) {
+				case DNS_EVENT_TRYSTALE:
+					INSIST(event_trystale == NULL);
+					event_trystale = event;
+					break;
+				case DNS_EVENT_FETCHDONE:
+					INSIST(event_fetchdone == NULL);
+					event_fetchdone = event;
+					break;
+				default:
+					UNREACHABLE();
+				}
+				if (event_trystale != NULL &&
+				    event_fetchdone != NULL)
+				{
+					break;
+				}
 			}
 		}
 	}
-	if (event != NULL) {
-		etask = event->ev_sender;
-		event->ev_sender = fctx;
-		event->result = ISC_R_CANCELED;
-		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event));
+	/*
+	 * The "trystale" event must be sent before the "fetchdone" event,
+	 * because the latter clears the "recursing" query attribute, which is
+	 * required by both events (handled by the same callback function).
+	 */
+	if (event_trystale != NULL) {
+		isc_task_t *etask = event_trystale->ev_sender;
+		event_trystale->ev_sender = fctx;
+		event_trystale->result = ISC_R_CANCELED;
+		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event_trystale));
 	}
+	if (event_fetchdone != NULL) {
+		isc_task_t *etask = event_fetchdone->ev_sender;
+		event_fetchdone->ev_sender = fctx;
+		event_fetchdone->result = ISC_R_CANCELED;
+		isc_task_sendanddetach(&etask, ISC_EVENT_PTR(&event_fetchdone));
+	}
+
 	/*
 	 * The fctx continues running even if no fetches remain;
 	 * the answer is still cached.
 	 */
-
 	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 }
 

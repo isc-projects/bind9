@@ -363,6 +363,7 @@ options {
         trust-anchor-telemetry <boolean>; // experimental
         try-tcp-refresh <boolean>;
         update-check-ksk <boolean>;
+        update-quota <integer>;
         use-alt-transfer-source <boolean>;
         use-v4-udp-ports { <portrange>; ... };
         use-v6-udp-ports { <portrange>; ... };
