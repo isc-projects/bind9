@@ -3903,6 +3903,14 @@ system.
    value as :any:`tcp-keepalive-timeout`. This value can be updated at
    runtime by using :option:`rndc tcp-timeouts`.
 
+.. namedconf:statement:: update-quota
+   :tags: server
+   :short: Specifies the maximum number of concurrent DNS UPDATE messages that can be processed by the server.
+
+   This is the maximum number of simultaneous DNS UPDATE messages that
+   the server will accept for updating local authoritiative zones or
+   forwarding to a primary server. The default is ``100``.
+
 .. _intervals:
 
 Periodic Task Intervals
@@ -7847,6 +7855,11 @@ Name Server Statistics Counters
 
 ``UpdateBadPrereq``
     This indicates the number of dynamic updates rejected due to a prerequisite failure.
+
+``UpdateQuota``
+    This indicates the number of times a dynamic update or update
+    forwarding request was rejected because the number of pending
+    requests exceeded :any:`update-quota`.
 
 ``RateDropped``
     This indicates the number of responses dropped due to rate limits.
