@@ -378,15 +378,9 @@ opensslrsa_generate_pkey(unsigned int key_size, BIGNUM *e,
 	ret = ISC_R_SUCCESS;
 
 err:
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
-	}
-	if (rsa != NULL) {
-		RSA_free(rsa);
-	}
-	if (cb != NULL) {
-		BN_GENCB_free(cb);
-	}
+	EVP_PKEY_free(pkey);
+	RSA_free(rsa);
+	BN_GENCB_free(cb);
 	return (ret);
 }
 
@@ -511,9 +505,7 @@ opensslrsa_generate_pkey(unsigned int key_size, BIGNUM *e,
 	}
 	ret = ISC_R_SUCCESS;
 err:
-	if (ctx != NULL) {
-		EVP_PKEY_CTX_free(ctx);
-	}
+	EVP_PKEY_CTX_free(ctx);
 	return (ret);
 }
 
@@ -668,12 +660,8 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	ret = ISC_R_SUCCESS;
 
 err:
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
-	}
-	if (e != NULL) {
-		BN_free(e);
-	}
+	EVP_PKEY_free(pkey);
+	BN_free(e);
 	return (ret);
 }
 
