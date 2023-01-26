@@ -286,7 +286,7 @@ elif not approved:
 # * The merge request adds a new CHANGES entry that is not a placeholder and
 #   does not contain any GitLab/RT issue/MR identifiers.
 
-changes_modified = "CHANGES" in modified_files
+changes_modified = "CHANGES" in modified_files or "CHANGES.SE" in modified_files
 no_changes_label_set = "No CHANGES" in mr_labels
 if not changes_modified and not no_changes_label_set:
     fail(
@@ -299,7 +299,7 @@ if changes_modified and no_changes_label_set:
         "Revert `CHANGES` modifications or unset the *No Changes* label."
     )
 
-changes_added_lines = added_lines(target_branch, ["CHANGES"])
+changes_added_lines = added_lines(target_branch, ["CHANGES", "CHANGES.SE"])
 placeholders_added = lines_containing(changes_added_lines, "[placeholder]")
 identifiers_found = filter(changes_issue_or_mr_id_regex.search, changes_added_lines)
 if changes_added_lines:
