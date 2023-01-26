@@ -677,23 +677,6 @@ err:
 	return (ret);
 }
 
-static bool
-opensslrsa_isprivate(const dst_key_t *key) {
-	REQUIRE(opensslrsa_valid_key_alg(key->key_alg));
-
-	return (key->keydata.pkeypair.priv != NULL);
-}
-
-static void
-opensslrsa_destroy(dst_key_t *key) {
-	if (key->keydata.pkeypair.pub != key->keydata.pkeypair.priv) {
-		EVP_PKEY_free(key->keydata.pkeypair.priv);
-	}
-	EVP_PKEY_free(key->keydata.pkeypair.pub);
-	key->keydata.pkeypair.pub = NULL;
-	key->keydata.pkeypair.priv = NULL;
-}
-
 static isc_result_t
 opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_region_t r;
@@ -1103,11 +1086,11 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_verify,
 	opensslrsa_verify2,
 	NULL, /*%< computesecret */
-	dst__openssl_compare_keypair,
+	dst__openssl_keypair_compare,
 	NULL, /*%< paramcompare */
 	opensslrsa_generate,
-	opensslrsa_isprivate,
-	opensslrsa_destroy,
+	dst__openssl_keypair_isprivate,
+	dst__openssl_keypair_destroy,
 	opensslrsa_todns,
 	opensslrsa_fromdns,
 	opensslrsa_tofile,

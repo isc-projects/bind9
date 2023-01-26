@@ -357,11 +357,11 @@ dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 }
 
 bool
-dst__openssl_compare_keypair(const dst_key_t *key1, const dst_key_t *key2) {
+dst__openssl_keypair_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	EVP_PKEY *pkey1 = key1->keydata.pkeypair.pub;
 	EVP_PKEY *pkey2 = key2->keydata.pkeypair.pub;
 
-	if (pkey1 == NULL && pkey2 == NULL) {
+	if (pkey1 == pkey2) {
 		return (true);
 	} else if (pkey1 == NULL || pkey2 == NULL) {
 		return (false);
@@ -378,6 +378,21 @@ dst__openssl_compare_keypair(const dst_key_t *key1, const dst_key_t *key2) {
 		return (false);
 	}
 	return (true);
+}
+
+bool
+dst__openssl_keypair_isprivate(const dst_key_t *key) {
+	return (key->keydata.pkeypair.priv != NULL);
+}
+
+void
+dst__openssl_keypair_destroy(dst_key_t *key) {
+	if (key->keydata.pkeypair.priv != key->keydata.pkeypair.pub) {
+		EVP_PKEY_free(key->keydata.pkeypair.priv);
+	}
+	EVP_PKEY_free(key->keydata.pkeypair.pub);
+	key->keydata.pkeypair.pub = NULL;
+	key->keydata.pkeypair.priv = NULL;
 }
 
 /*! \file */

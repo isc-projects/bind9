@@ -46,6 +46,12 @@ dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv);
 
 bool
-dst__openssl_compare_keypair(const dst_key_t *key1, const dst_key_t *key2);
+dst__openssl_keypair_compare(const dst_key_t *key1, const dst_key_t *key2);
+
+bool
+dst__openssl_keypair_isprivate(const dst_key_t *key);
+
+void
+dst__openssl_keypair_destroy(dst_key_t *key);
 
 ISC_LANG_ENDDECLS
