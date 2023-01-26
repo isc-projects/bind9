@@ -57,6 +57,7 @@
  - [ ] ***(QA)*** Prepare and merge MRs resetting the release notes and updating the version string for each maintained branch.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
  - [ ] ***(QA)*** Request signatures for the tarballs, providing their location and checksums.
+ - [ ] ***(Signers)*** Ensure that the contents of tarballs and tags are identical.
  - [ ] ***(Signers)*** Validate tarball checksums, sign tarballs, and upload signatures.
  - [ ] ***(QA)*** Verify tarball signatures and check tarball checksums again.
  - [ ] ***(Support)*** Pre-publish ASN and/or Subscription Edition tarballs so that packages can be built.
