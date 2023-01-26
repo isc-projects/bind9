@@ -123,8 +123,9 @@ for commit in danger.git.commits:
     if (
         len(message_lines) < 3
         and "fixup! " not in subject
-        and " CHANGES " not in subject
-        and " release note" not in subject
+        and "CHANGES " not in subject
+        and "release note" not in subject.lower()
+        and "GL #" not in subject
     ):
         warn(f"Please write a log message for commit {commit.sha}.")
     for line in message_lines[2:]:
