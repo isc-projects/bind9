@@ -17225,13 +17225,6 @@ zone_loaddone(void *arg, isc_result_t result) {
 		dns_zone_catz_disable_db(zone, load->db);
 	}
 
-	tresult = dns_db_endload(load->db, &load->callbacks);
-	if (tresult != ISC_R_SUCCESS &&
-	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
-	{
-		result = tresult;
-	}
-
 	/*
 	 * Lock hierarchy: zmgr, zone, raw.
 	 */
@@ -17250,9 +17243,13 @@ again:
 			goto again;
 		}
 	}
-	(void)zone_postload(zone, load->db, load->loadtime, result);
+	tresult = zone_postload(zone, load->db, load->loadtime, result);
+	if (tresult != ISC_R_SUCCESS &&
+	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
+	{
+		result = tresult;
+	}
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADING);
-	zone_idetach(&load->callbacks.zone);
 	/*
 	 * Leave the zone frozen if the reload fails.
 	 */
@@ -17267,6 +17264,12 @@ again:
 	} else if (secure != NULL) {
 		UNLOCK_ZONE(secure);
 	}
+	UNLOCK_ZONE(zone);
+
+	(void)dns_db_endload(load->db, &load->callbacks);
+
+	LOCK_ZONE(zone);
+	zone_idetach(&load->callbacks.zone);
 	UNLOCK_ZONE(zone);
 
 	dns_db_detach(&load->db);
