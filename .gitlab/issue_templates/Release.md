@@ -52,7 +52,7 @@
 
  - [ ] ***(QA)*** Check that the formatting is correct for HTML and PDF versions of release notes.
  - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
- - [ ] ***(QA)*** Verify GitLab CI results for the tags created and prepare a QA report for the releases to be published.
+ - [ ] ***(QA)*** Verify GitLab CI results for the tags created and sign off on the releases to be published.
  - [ ] ***(QA)*** Update GitLab settings for all maintained branches to allow merging to them again.
  - [ ] ***(QA)*** Prepare and merge MRs resetting the release notes and updating the version string for each maintained branch.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
@@ -62,6 +62,7 @@
  - [ ] ***(QA)*** Verify tarball signatures and check tarball checksums again.
  - [ ] ***(Support)*** Pre-publish ASN and/or Subscription Edition tarballs so that packages can be built.
  - [ ] ***(QA)*** Build and test ASN and/or Subscription Edition packages.
+ - [ ] ***(QA)*** Prepare the `patches/` subdirectory for each security release (if applicable).
  - [ ] ***(QA)*** Notify Support that the releases have been prepared.
  - [ ] ***(Support)*** Send out ASNs (if applicable).
 
@@ -87,7 +88,7 @@
  - [ ] ***(QA)*** Merge published release tags (non-linearly) back into the their relevant development/maintenance branches.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
- - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint) by modifying the relevant `Dockerfile`.
+ - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint, Sphinx) by modifying the relevant `Dockerfile`.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
 [^2]: As a rule of thumb, security vulnerabilities which have reproducers merged to the public repository are considered okay for full disclosure.
