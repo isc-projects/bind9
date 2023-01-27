@@ -4730,8 +4730,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	}
 
 failure:
-	if (result != ISC_R_SUCCESS && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
-	{
+	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
 			   "unable to synchronize managed keys: %s",
 			   dns_result_totext(result));
@@ -5196,10 +5195,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		break;
 
 	case dns_zone_key:
-		result = sync_keyzone(zone, db);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		/* Nothing needs to be done now */
 		break;
 
 	default:
@@ -5357,13 +5353,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	goto done;
 
 cleanup:
-	if (zone->type == dns_zone_key && result != ISC_R_SUCCESS) {
-		dnssec_log(zone, ISC_LOG_ERROR,
-			   "failed to initialize managed-keys (%s): "
-			   "DNSSEC validation is at risk",
-			   isc_result_totext(result));
-	}
-
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_rpz_disable_db(zone, db);
 		dns_zone_catz_disable_db(zone, db);
