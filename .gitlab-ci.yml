@@ -1321,7 +1321,7 @@ release:
   artifacts:
     paths:
       - "*.tar.gz"
-    expire_in: "1 day"
+    expire_in: never
 
 # Coverity Scan analysis upload
 
@@ -1482,7 +1482,7 @@ respdiff-long-third-party:
       artifacts: true
   artifacts:
     untracked: true
-    expire_in: "1 day"
+    expire_in: "1 week"
     when: always
   timeout: 2h
 
