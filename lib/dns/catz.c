@@ -1763,6 +1763,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		if (zone->dbversion != NULL) {
 			dns_db_closeversion(zone->db, &zone->dbversion, false);
 		}
+		dns_db_updatenotify_unregister(
+			zone->db, dns_catz_dbupdate_callback, zone->catzs);
 		dns_db_detach(&zone->db);
 		/*
 		 * We're not registering db update callback, it will be
