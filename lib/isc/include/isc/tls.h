@@ -594,3 +594,6 @@ isc__tls_shutdown(void);
 
 void
 isc__tls_setdestroycheck(bool check);
+
+void
+isc__tls_setfatalmode(void);

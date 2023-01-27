@@ -10301,6 +10301,7 @@ fatal(const char *msg, isc_result_t result) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
 		      "exiting (due to fatal error)");
 	named_os_shutdown();
+	isc__tls_setfatalmode();
 	exit(1);
 }
 

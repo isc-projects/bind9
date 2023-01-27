@@ -32,6 +32,7 @@
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/tls.h>
 #include <isc/tm.h>
 #include <isc/util.h>
 
@@ -82,6 +83,7 @@ fatal(const char *format, ...) {
 	if (fatalcallback != NULL) {
 		(*fatalcallback)();
 	}
+	isc__tls_setfatalmode();
 	exit(1);
 }
 
