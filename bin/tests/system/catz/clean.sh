@@ -29,6 +29,7 @@ rm -f ns2/catalog-bad*.db
 rm -f ns2/named.conf.tmp
 rm -f ns3/dom2.example.db ns3/dom13.example.db ns3/dom14.example.db ns3/dom17.example.db ns3/dom18.example.db
 rm -f ns4/__catz__*db
+rm -f ns4/catalog-self.example.db
 rm -f ns[123]/catalog[1234].example.db
 rm -f ns[14]/catalog-tls.example.db
 rm -f nsupdate.out.*
