@@ -60,7 +60,7 @@ mr = proj.mergerequests.get(os.environ["CI_MERGE_REQUEST_IID"])
 #
 # - FAIL if any of the following is true for any commit on the MR branch:
 #
-#     * The subject line starts with "fixup!" or "Apply suggestion".
+#     * The subject line starts with "fixup!", "amend!" or "Apply suggestion".
 #
 #     * The subject line starts with a prohibited word indicating a work in
 #       progress commit (e.g. "WIP").
@@ -98,7 +98,9 @@ for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
     subject = message_lines[0]
     if not fixup_error_logged and (
-        subject.startswith("fixup!") or subject.startswith("Apply suggestion")
+        subject.startswith("fixup!")
+        or subject.startswith("amend!")
+        or subject.startswith("Apply suggestion")
     ):
         fail(
             "Fixup commits are still present in this merge request. "
