@@ -97,7 +97,6 @@ struct dst_key {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;
 		dst_hmac_key_t *hmac_key;
-		EVP_PKEY *pkey;
 		struct {
 			EVP_PKEY *pub;
 			EVP_PKEY *priv;

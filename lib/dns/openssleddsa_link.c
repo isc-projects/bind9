@@ -21,9 +21,6 @@
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/x509.h>
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
-#include <openssl/engine.h>
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 
 #include <isc/mem.h>
 #include <isc/result.h>
@@ -179,7 +176,7 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	dst_key_t *key = dctx->key;
 	isc_region_t tbsreg;
 	isc_region_t sigreg;
-	EVP_PKEY *pkey = key->keydata.pkey;
+	EVP_PKEY *pkey = key->keydata.pkeypair.priv;
 	EVP_MD_CTX *ctx = EVP_MD_CTX_new();
 	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
@@ -226,7 +223,7 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	dst_key_t *key = dctx->key;
 	int status;
 	isc_region_t tbsreg;
-	EVP_PKEY *pkey = key->keydata.pkey;
+	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
 	EVP_MD_CTX *ctx = EVP_MD_CTX_new();
 	isc_buffer_t *buf = (isc_buffer_t *)dctx->ctxdata.generic;
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
@@ -272,25 +269,6 @@ err:
 	return (ret);
 }
 
-static bool
-openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
-	int status;
-	EVP_PKEY *pkey1 = key1->keydata.pkey;
-	EVP_PKEY *pkey2 = key2->keydata.pkey;
-
-	if (pkey1 == NULL && pkey2 == NULL) {
-		return (true);
-	} else if (pkey1 == NULL || pkey2 == NULL) {
-		return (false);
-	}
-
-	status = EVP_PKEY_eq(pkey1, pkey2);
-	if (status == 1) {
-		return (true);
-	}
-	return (false);
-}
-
 static isc_result_t
 openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
@@ -322,7 +300,8 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	}
 
 	key->key_size = alginfo->key_size * 8;
-	key->keydata.pkey = pkey;
+	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.pub = pkey;
 	ret = ISC_R_SUCCESS;
 
 err:
@@ -330,38 +309,10 @@ err:
 	return (ret);
 }
 
-static bool
-openssleddsa_isprivate(const dst_key_t *key) {
-	EVP_PKEY *pkey = key->keydata.pkey;
-	size_t len;
-
-	if (pkey == NULL) {
-		return (false);
-	}
-
-	if (EVP_PKEY_get_raw_private_key(pkey, NULL, &len) == 1 && len > 0) {
-		return (true);
-	}
-	/* can check if first error is EC_R_INVALID_PRIVATE_KEY */
-	while (ERR_get_error() != 0) {
-		/**/
-	}
-
-	return (false);
-}
-
-static void
-openssleddsa_destroy(dst_key_t *key) {
-	EVP_PKEY *pkey = key->keydata.pkey;
-
-	EVP_PKEY_free(pkey);
-	key->keydata.pkey = NULL;
-}
-
 static isc_result_t
 openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
-	EVP_PKEY *pkey = key->keydata.pkey;
+	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
 	isc_region_t r;
 	size_t len;
 
@@ -404,7 +355,7 @@ openssleddsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	}
 
 	isc_buffer_forward(data, len);
-	key->keydata.pkey = pkey;
+	key->keydata.pkeypair.pub = pkey;
 	key->key_size = len * 8;
 	return (ISC_R_SUCCESS);
 }
@@ -420,7 +371,7 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 
 	REQUIRE(alginfo != NULL);
 
-	if (key->keydata.pkey == NULL) {
+	if (key->keydata.pkeypair.pub == NULL) {
 		return (DST_R_NULLKEY);
 	}
 
@@ -431,11 +382,11 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 
 	i = 0;
 
-	if (openssleddsa_isprivate(key)) {
+	if (dst__openssl_keypair_isprivate(key)) {
 		len = alginfo->key_size;
 		buf = isc_mem_get(key->mctx, len);
-		if (EVP_PKEY_get_raw_private_key(key->keydata.pkey, buf,
-						 &len) != 1)
+		if (EVP_PKEY_get_raw_private_key(key->keydata.pkeypair.priv,
+						 buf, &len) != 1)
 		{
 			DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
 		}
@@ -470,24 +421,13 @@ err:
 }
 
 static isc_result_t
-eddsa_check(EVP_PKEY *pkey, EVP_PKEY *pubpkey) {
-	if (pubpkey == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-	if (EVP_PKEY_eq(pkey, pubpkey) == 1) {
-		return (ISC_R_SUCCESS);
-	}
-	return (ISC_R_FAILURE);
-}
-
-static isc_result_t
 openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
 	dst_private_t priv;
 	isc_result_t ret;
 	int i, privkey_index = -1;
 	const char *engine = NULL, *label = NULL;
-	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
+	EVP_PKEY *pkey = NULL;
 	size_t len;
 	isc_mem_t *mctx = key->mctx;
 
@@ -506,15 +446,11 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (pub == NULL) {
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		}
-		key->keydata.pkey = pub->keydata.pkey;
-		pub->keydata.pkey = NULL;
-		dst__privstruct_free(&priv, mctx);
-		isc_safe_memwipe(&priv, sizeof(priv));
-		return (ISC_R_SUCCESS);
-	}
-
-	if (pub != NULL) {
-		pubpkey = pub->keydata.pkey;
+		key->keydata.pkeypair.priv = pub->keydata.pkeypair.priv;
+		key->keydata.pkeypair.pub = pub->keydata.pkeypair.pub;
+		pub->keydata.pkeypair.priv = NULL;
+		pub->keydata.pkeypair.pub = NULL;
+		DST_RET(ISC_R_SUCCESS);
 	}
 
 	for (i = 0; i < priv.nelements; i++) {
@@ -538,7 +474,10 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		if (ret != ISC_R_SUCCESS) {
 			goto err;
 		}
-		if (eddsa_check(key->keydata.pkey, pubpkey) != ISC_R_SUCCESS) {
+		/* Check that the public component matches if given */
+		if (pub != NULL && EVP_PKEY_eq(key->keydata.pkeypair.pub,
+					       pub->keydata.pkeypair.pub) != 1)
+		{
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		}
 		DST_RET(ISC_R_SUCCESS);
@@ -554,15 +493,19 @@ openssleddsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}
-	if (eddsa_check(pkey, pubpkey) != ISC_R_SUCCESS) {
-		EVP_PKEY_free(pkey);
+	/* Check that the public component matches if given */
+	if (pub != NULL && EVP_PKEY_eq(pkey, pub->keydata.pkeypair.pub) != 1) {
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 	}
-	key->keydata.pkey = pkey;
+
+	key->keydata.pkeypair.priv = pkey;
+	key->keydata.pkeypair.pub = pkey;
 	key->key_size = len * 8;
+	pkey = NULL;
 	ret = ISC_R_SUCCESS;
 
 err:
+	EVP_PKEY_free(pkey);
 	dst__privstruct_free(&priv, mctx);
 	isc_safe_memwipe(&priv, sizeof(priv));
 	return (ret);
@@ -571,58 +514,31 @@ err:
 static isc_result_t
 openssleddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		       const char *pin) {
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	const eddsa_alginfo_t *alginfo = openssleddsa_alg_info(key->key_alg);
+	EVP_PKEY *privpkey = NULL, *pubpkey = NULL;
 	isc_result_t ret;
-	ENGINE *e;
-	EVP_PKEY *pkey = NULL, *pubpkey = NULL;
 
-	UNUSED(pin);
 	REQUIRE(alginfo != NULL);
+	UNUSED(pin);
 
-	if (engine == NULL) {
-		return (DST_R_NOENGINE);
-	}
-	e = dst__openssl_getengine(engine);
-	if (e == NULL) {
-		return (DST_R_NOENGINE);
-	}
-	pkey = ENGINE_load_private_key(e, label, NULL, NULL);
-	if (pkey == NULL) {
-		return (dst__openssl_toresult2("ENGINE_load_private_key",
-					       ISC_R_NOTFOUND));
-	}
-	if (EVP_PKEY_base_id(pkey) != alginfo->pkey_type) {
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
-	}
-
-	pubpkey = ENGINE_load_public_key(e, label, NULL, NULL);
-	if (eddsa_check(pkey, pubpkey) != ISC_R_SUCCESS) {
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
+	ret = dst__openssl_fromlabel(alginfo->pkey_type, engine, label, pin,
+				     &pubpkey, &privpkey);
+	if (ret != ISC_R_SUCCESS) {
+		goto err;
 	}
 
 	key->engine = isc_mem_strdup(key->mctx, engine);
 	key->label = isc_mem_strdup(key->mctx, label);
-	key->key_size = EVP_PKEY_bits(pkey);
-	key->keydata.pkey = pkey;
-	pkey = NULL;
-	ret = ISC_R_SUCCESS;
+	key->key_size = EVP_PKEY_bits(privpkey);
+	key->keydata.pkeypair.priv = privpkey;
+	key->keydata.pkeypair.pub = pubpkey;
+	privpkey = NULL;
+	pubpkey = NULL;
 
 err:
-	if (pubpkey != NULL) {
-		EVP_PKEY_free(pubpkey);
-	}
-	if (pkey != NULL) {
-		EVP_PKEY_free(pkey);
-	}
+	EVP_PKEY_free(privpkey);
+	EVP_PKEY_free(pubpkey);
 	return (ret);
-#else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	UNUSED(key);
-	UNUSED(engine);
-	UNUSED(label);
-	UNUSED(pin);
-	return (DST_R_NOENGINE);
-#endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 }
 
 static dst_func_t openssleddsa_functions = {
@@ -634,11 +550,11 @@ static dst_func_t openssleddsa_functions = {
 	openssleddsa_verify,
 	NULL, /*%< verify2 */
 	NULL, /*%< computesecret */
-	openssleddsa_compare,
+	dst__openssl_keypair_compare,
 	NULL, /*%< paramcompare */
 	openssleddsa_generate,
-	openssleddsa_isprivate,
-	openssleddsa_destroy,
+	dst__openssl_keypair_isprivate,
+	dst__openssl_keypair_destroy,
 	openssleddsa_todns,
 	openssleddsa_fromdns,
 	openssleddsa_tofile,
