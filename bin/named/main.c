@@ -643,6 +643,7 @@ printversion(bool verbose) {
 		isc_buffer_init(&b, buf, sizeof(buf));
 		format_supported_algorithms(printit);
 		printf("\n");
+		dst_lib_destroy();
 	} else {
 		printf("DST initialization failure: %s\n",
 		       isc_result_totext(result));
