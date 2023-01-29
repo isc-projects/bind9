@@ -247,6 +247,9 @@ clear_current_lookup(void);
 static bool
 next_origin(dig_lookup_t *oldlookup);
 
+static void
+cleanup_openssl_refs(void);
+
 static int
 count_dots(char *string) {
 	char *s;
@@ -2361,6 +2364,7 @@ setup_lookup(dig_lookup_t *lookup) {
 			clear_current_lookup();
 			return (false);
 #else  /* if TARGET_OS_IPHONE */
+			cleanup_openssl_refs();
 			digexit();
 #endif /* if TARGET_OS_IPHONE */
 		}
@@ -4708,6 +4712,25 @@ cancel_all(void) {
 	UNLOCK_LOOKUP;
 }
 
+static void
+cleanup_openssl_refs(void) {
+	if (tsigkey != NULL) {
+		debug("freeing TSIG key %p", tsigkey);
+		dns_tsigkey_detach(&tsigkey);
+	}
+
+	if (sig0key != NULL) {
+		debug("freeing SIG(0) key %p", sig0key);
+		dst_key_free(&sig0key);
+	}
+
+	if (is_dst_up) {
+		debug("destroy DST lib");
+		dst_lib_destroy();
+		is_dst_up = false;
+	}
+}
+
 /*%
  * Destroy all of the libs we are using, and get everything ready for a
  * clean shutdown.
@@ -4739,29 +4762,16 @@ destroy_libs(void) {
 
 	clear_searchlist();
 
-	if (tsigkey != NULL) {
-		debug("freeing TSIG key %p", tsigkey);
-		dns_tsigkey_detach(&tsigkey);
-	}
-
-	if (sig0key != NULL) {
-		debug("freeing SIG(0) key %p", sig0key);
-		dst_key_free(&sig0key);
-	}
+	cleanup_openssl_refs();
 
 	if (namebuf != NULL) {
 		debug("freeing key %p", tsigkey);
 		isc_buffer_free(&namebuf);
 	}
 
-	if (is_dst_up) {
-		debug("destroy DST lib");
-		dst_lib_destroy();
-		is_dst_up = false;
-	}
-
 	UNLOCK_LOOKUP;
 	isc_mutex_destroy(&lookup_lock);
+
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
 
