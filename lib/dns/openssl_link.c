@@ -301,19 +301,23 @@ dst__openssl_fromlabel_provider(int key_base_id, const char *engine,
 		switch (OSSL_STORE_INFO_get_type(info)) {
 		case OSSL_STORE_INFO_PKEY:
 			if (*ppriv != NULL) {
+				OSSL_STORE_INFO_free(info);
 				DST_RET(DST_R_INVALIDPRIVATEKEY);
 			}
 			*ppriv = OSSL_STORE_INFO_get1_PKEY(info);
 			if (EVP_PKEY_get_base_id(*ppriv) != key_base_id) {
+				OSSL_STORE_INFO_free(info);
 				DST_RET(DST_R_BADKEYTYPE);
 			}
 			break;
 		case OSSL_STORE_INFO_PUBKEY:
 			if (*ppub != NULL) {
+				OSSL_STORE_INFO_free(info);
 				DST_RET(DST_R_INVALIDPUBLICKEY);
 			}
 			*ppub = OSSL_STORE_INFO_get1_PUBKEY(info);
 			if (EVP_PKEY_get_base_id(*ppub) != key_base_id) {
+				OSSL_STORE_INFO_free(info);
 				DST_RET(DST_R_BADKEYTYPE);
 			}
 			break;
