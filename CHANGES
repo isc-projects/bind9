@@ -1,3 +1,6 @@
+6082.	[test]		fuzz/dns_message_checksig leaked memory when shutting
+			down. [GL #3828]
+
 6081.	[bug]		Handle primary server address lookup failures in
 			nsupdate more gracefully. [GL #3830]
 
