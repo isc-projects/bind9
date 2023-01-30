@@ -27,6 +27,8 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 
+#include <dst/dst.h>
+
 isc_result_t
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	dns_kasp_t *kasp;
@@ -186,6 +188,24 @@ dns_kasp_setdnskeyttl(dns_kasp_t *kasp, dns_ttl_t ttl) {
 	REQUIRE(!kasp->frozen);
 
 	kasp->dnskey_ttl = ttl;
+}
+
+unsigned int
+dns_kasp_cdsdigesttype(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(kasp->frozen);
+
+	return (kasp->cds_digesttype);
+}
+
+void
+dns_kasp_setcdsdigesttype(dns_kasp_t *kasp, unsigned int digesttype) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(!kasp->frozen);
+
+	if (dst_ds_digest_supported(digesttype)) {
+		kasp->cds_digesttype = digesttype;
+	}
 }
 
 uint32_t

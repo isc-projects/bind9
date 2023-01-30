@@ -82,6 +82,7 @@ struct dns_kasp {
 	/* Configuration: Keys */
 	dns_kasp_keylist_t keys;
 	dns_ttl_t	   dnskey_ttl;
+	unsigned int	   cds_digesttype;
 
 	/* Configuration: Denial of existence */
 	bool		      nsec3;
@@ -303,6 +304,31 @@ void
 dns_kasp_setdnskeyttl(dns_kasp_t *kasp, dns_ttl_t ttl);
 /*%<
  * Set DNSKEY TTL.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
+unsigned int
+dns_kasp_cdsdigesttype(dns_kasp_t *kasp);
+/*%<
+ * Get CDS digest-type.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   CDS digest-type.
+ */
+
+void
+dns_kasp_setcdsdigesttype(dns_kasp_t *kasp, unsigned int digesttype);
+/*%<
+ * Set CDS digest-type.
+ * If 'digesttype' is not supported, this will not change the digest-type.
  *
  * Requires:
  *
