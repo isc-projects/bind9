@@ -227,9 +227,6 @@ clear_current_lookup(void);
 static bool
 next_origin(dig_lookup_t *oldlookup);
 
-static void
-cleanup_openssl_refs(void);
-
 static int
 count_dots(char *string) {
 	char *s;
@@ -4664,7 +4661,7 @@ cancel_all(void) {
 	}
 }
 
-static void
+void
 cleanup_openssl_refs(void) {
 	if (tsigkey != NULL) {
 		debug("freeing TSIG key %p", tsigkey);
