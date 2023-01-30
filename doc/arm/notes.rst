@@ -68,8 +68,8 @@ BIND 9.19 is an unstable development branch. When its development is
 complete, it will be renamed to BIND 9.20, which will be a stable
 branch. The end-of-life date for BIND 9.20 has not yet been determined.
 For those needing long-term stability, the current Extended Support
-Version (ESV) is BIND 9.16, which will be supported until at least
-December 2023. See https://kb.isc.org/docs/aa-00896 for details of
+Version (ESV) is BIND 9.18, which will be supported until at least
+December 2025. See https://kb.isc.org/docs/aa-00896 for details of
 ISC's software support policy.
 
 Thank You
