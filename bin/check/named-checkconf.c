@@ -575,10 +575,10 @@ cleanup:
 
 static void
 output(void *closure, const char *text, int textlen) {
-	UNUSED(closure);
 	if (fwrite(text, 1, textlen, stdout) != (size_t)textlen) {
+		isc_result_t *result = closure;
 		perror("fwrite");
-		exit(1);
+		*result = ISC_R_FAILURE;
 	}
 }
 
@@ -590,8 +590,8 @@ main(int argc, char **argv) {
 	cfg_obj_t *config = NULL;
 	const char *conffile = NULL;
 	isc_mem_t *mctx = NULL;
-	isc_result_t result;
-	int exit_status = 0;
+	isc_result_t result = ISC_R_SUCCESS;
+	bool cleanup_dst = true;
 	bool load_zones = false;
 	bool list_zones = false;
 	bool print = false;
@@ -663,7 +663,7 @@ main(int argc, char **argv) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "isc_dir_chroot: %s\n",
 					isc_result_totext(result));
-				exit(1);
+				CHECK(result);
 			}
 			break;
 
@@ -673,7 +673,8 @@ main(int argc, char **argv) {
 
 		case 'v':
 			printf("%s\n", PACKAGE_VERSION);
-			exit(0);
+			result = ISC_R_SUCCESS;
+			goto cleanup;
 
 		case 'x':
 			flags |= CFG_PRINTER_XKEY;
@@ -693,25 +694,27 @@ main(int argc, char **argv) {
 			}
 			FALLTHROUGH;
 		case 'h':
+			isc_mem_detach(&mctx);
 			usage();
 
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", program,
 				isc_commandline_option);
-			exit(1);
+			CHECK(ISC_R_FAILURE);
 		}
 	}
 
 	if (((flags & CFG_PRINTER_XKEY) != 0) && !print) {
 		fprintf(stderr, "%s: -x cannot be used without -p\n", program);
-		exit(1);
+		CHECK(ISC_R_FAILURE);
 	}
 	if (print && list_zones) {
 		fprintf(stderr, "%s: -l cannot be used with -p\n", program);
-		exit(1);
+		CHECK(ISC_R_FAILURE);
 	}
 
 	if (isc_commandline_index + 1 < argc) {
+		isc_mem_detach(&mctx);
 		usage();
 	}
 	if (argv[isc_commandline_index] != NULL) {
@@ -721,48 +724,48 @@ main(int argc, char **argv) {
 		conffile = NAMED_CONFFILE;
 	}
 
-	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
+	CHECK(setup_logging(mctx, stdout, &logc));
 
-	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
+	CHECK(dst_lib_init(mctx, NULL));
+	cleanup_dst = true;
 
-	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
+	CHECK(cfg_parser_create(mctx, logc, &parser));
 
 	if (nodeprecate) {
 		cfg_parser_setflags(parser, CFG_PCTX_NODEPRECATED, true);
 	}
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 
-	if (cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config) !=
-	    ISC_R_SUCCESS)
-	{
-		exit(1);
+	CHECK(cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config));
+	CHECK(isccfg_check_namedconf(config, checkflags, logc, mctx));
+	if (load_zones || list_zones) {
+		CHECK(load_zones_fromconfig(config, mctx, list_zones));
 	}
 
-	result = isccfg_check_namedconf(config, checkflags, logc, mctx);
-	if (result != ISC_R_SUCCESS) {
-		exit_status = 1;
+	if (print) {
+		cfg_printx(config, flags, output, &result);
 	}
 
-	if (result == ISC_R_SUCCESS && (load_zones || list_zones)) {
-		result = load_zones_fromconfig(config, mctx, list_zones);
-		if (result != ISC_R_SUCCESS) {
-			exit_status = 1;
-		}
+cleanup:
+	if (config != NULL) {
+		cfg_obj_destroy(parser, &config);
 	}
 
-	if (print && exit_status == 0) {
-		cfg_printx(config, flags, output, NULL);
+	if (parser != NULL) {
+		cfg_parser_destroy(&parser);
 	}
 
-	cfg_obj_destroy(parser, &config);
+	if (cleanup_dst) {
+		dst_lib_destroy();
+	}
 
-	cfg_parser_destroy(&parser);
+	if (logc != NULL) {
+		isc_log_destroy(&logc);
+	}
 
-	isc_log_destroy(&logc);
+	if (mctx != NULL) {
+		isc_mem_destroy(&mctx);
+	}
 
-	dst_lib_destroy();
-
-	isc_mem_destroy(&mctx);
-
-	return (exit_status);
+	return (result == ISC_R_SUCCESS ? 0 : 1);
 }
