@@ -2615,6 +2615,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	isc_mutex_init(&adb->namescntlock);
 
 	isc_mem_create(&adb->hmctx);
+	isc_mem_setname(adb->hmctx, "ADB_hashmaps");
 
 #define ALLOCENTRY(adb, el)                                                    \
 	do {                                                                   \
