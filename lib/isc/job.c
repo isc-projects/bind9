@@ -35,6 +35,7 @@
 
 #include "job_p.h"
 #include "loop_p.h"
+#include "probes.h"
 
 /*
  * Public: #include <isc/job.h>
@@ -70,8 +71,12 @@ isc__job_cb(uv_idle_t *handle) {
 	     job != NULL;
 	     job = next, next = job ? ISC_LIST_NEXT(job, link) : NULL)
 	{
+		isc_job_cb cb = job->cb;
+		void *cbarg = job->cbarg;
 		ISC_LIST_UNLINK(jobs, job, link);
-		job->cb(job->cbarg);
+		LIBISC_JOB_CB_BEFORE(job, cb, cbarg);
+		cb(cbarg);
+		LIBISC_JOB_CB_AFTER(job, cb, cbarg);
 	}
 
 	if (ISC_LIST_EMPTY(loop->run_jobs)) {

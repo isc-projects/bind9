@@ -12,16 +12,19 @@
  */
 
 provider libisc {
-	probe rwlock_init(void *);
-	probe rwlock_rdlock_req(void *);
-	probe rwlock_rdlock_acq(void *);
-	probe rwlock_wrlock_req(void *);
-	probe rwlock_wrlock_acq(void *);
-	probe rwlock_tryrdlock(void *, int);
-	probe rwlock_trywrlock(void *, int);
-	probe rwlock_rdunlock(void *);
-	probe rwlock_wrunlock(void *);
-	probe rwlock_downgrade(void *);
-	probe rwlock_tryupgrade(void *, int);
+	probe job_cb_after(void *, void *, void *);
+	probe job_cb_before(void *, void *, void *);
+
 	probe rwlock_destroy(void *);
+	probe rwlock_downgrade(void *);
+	probe rwlock_init(void *);
+	probe rwlock_rdlock_acq(void *);
+	probe rwlock_rdlock_req(void *);
+	probe rwlock_rdunlock(void *);
+	probe rwlock_tryrdlock(void *, int);
+	probe rwlock_tryupgrade(void *, int);
+	probe rwlock_trywrlock(void *, int);
+	probe rwlock_wrlock_acq(void *);
+	probe rwlock_wrlock_req(void *);
+	probe rwlock_wrunlock(void *);
 };

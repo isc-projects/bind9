@@ -31,8 +31,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include "job.c"
-
 #include <tests/isc.h>
 
 static atomic_uint scheduled;
