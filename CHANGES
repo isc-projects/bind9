@@ -1,3 +1,5 @@
+6080.	[bug]		'named -V' leaked memory. [GL #3829]
+
 6079.	[bug]		Force set the DS state after a 'rdnc dnssec -checkds'
 			command. [GL #3822]
 
