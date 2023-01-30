@@ -60,6 +60,7 @@ named_log_init(bool safe) {
 	 * Setup a logging context.
 	 */
 	isc_mem_create(&log_mctx);
+	isc_mem_setname(log_mctx, "named_log");
 	isc_log_create(log_mctx, &named_g_lctx, &lcfg);
 	isc_mem_detach(&log_mctx);
 
