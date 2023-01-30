@@ -307,10 +307,12 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	const cfg_obj_t *koptions = NULL;
 	const cfg_obj_t *keys = NULL;
 	const cfg_obj_t *nsec3 = NULL;
+	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *element = NULL;
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
+	unsigned int cds_digesttype = DNS_DSDIGEST_SHA256;
 	uint32_t sigrefresh = 0, sigvalidity = 0;
 	uint32_t dnskeyttl = 0, dsttl = 0, maxttl = 0;
 	uint32_t publishsafety = 0, retiresafety = 0;
@@ -408,6 +410,34 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	dns_kasp_setparentpropagationdelay(kasp, parentpropdelay);
 
 	/* Configuration: Keys */
+	(void)confget(maps, "cds-digest-type", &obj);
+	if (obj != NULL) {
+		isc_textregion_t r;
+		dns_dsdigest_t alg;
+		const char *str = cfg_obj_asstring(obj);
+
+		DE_CONST(str, r.base);
+		r.length = strlen(str);
+		result = dns_dsdigest_fromtext(&alg, &r);
+		if (result != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy: bad cds digest-type %s",
+				    str);
+			result = DNS_R_BADALG;
+			goto cleanup;
+		}
+		if (!dst_ds_digest_supported(alg)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy: unsupported cds "
+				    "digest-type %s",
+				    str);
+			result = DST_R_UNSUPPORTEDALG;
+			goto cleanup;
+		}
+		cds_digesttype = (unsigned int)alg;
+	}
+	dns_kasp_setcdsdigesttype(kasp, cds_digesttype);
+
 	dnskeyttl = get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL);
 	dns_kasp_setdnskeyttl(kasp, dnskeyttl);
 

@@ -11,6 +11,7 @@ dlz <string> {
 }; // may occur multiple times
 
 dnssec-policy <string> {
+	cds-digest-type <string>;
 	dnskey-ttl <duration>;
 	keys { ( csk | ksk | zsk ) [ ( key-directory ) ] lifetime <duration_or_unlimited> algorithm <string> [ <integer> ]; ... };
 	max-zone-ttl <duration>;
