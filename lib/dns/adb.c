@@ -1952,6 +1952,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	isc_mem_attach(mem, &adb->mctx);
 
 	isc_mem_create(&adb->hmctx);
+	isc_mem_setname(adb->hmctx, "ADB_hashmaps");
 
 	isc_hashmap_create(adb->hmctx, ADB_HASH_BITS,
 			   ISC_HASHMAP_CASE_INSENSITIVE, &adb->names);
