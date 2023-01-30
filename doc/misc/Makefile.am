@@ -37,7 +37,7 @@ cfg_test_LDADD =			\
 	$(LIBDNS_LIBS)			\
 	$(LIBISCCFG_LIBS)
 
-BUILT_SOURCES =				\
+BUILT_SOURCES +=				\
 	$(OPTIONS_FILES)
 
 rndc.grammar: cfg_test
