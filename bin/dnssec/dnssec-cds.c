@@ -125,10 +125,14 @@ typedef isc_result_t
 ds_maker_func_t(isc_buffer_t *buf, dns_rdata_t *ds, dns_dsdigest_t dt,
 		dns_rdata_t *crdata);
 
-static dns_rdataset_t cdnskey_set, cdnskey_sig;
-static dns_rdataset_t cds_set, cds_sig;
-static dns_rdataset_t dnskey_set, dnskey_sig;
-static dns_rdataset_t old_ds_set, new_ds_set;
+static dns_rdataset_t cdnskey_set = DNS_RDATASET_INIT;
+static dns_rdataset_t cdnskey_sig = DNS_RDATASET_INIT;
+static dns_rdataset_t cds_set = DNS_RDATASET_INIT;
+static dns_rdataset_t cds_sig = DNS_RDATASET_INIT;
+static dns_rdataset_t dnskey_set = DNS_RDATASET_INIT;
+static dns_rdataset_t dnskey_sig = DNS_RDATASET_INIT;
+static dns_rdataset_t old_ds_set = DNS_RDATASET_INIT;
+static dns_rdataset_t new_ds_set = DNS_RDATASET_INIT;
 
 static keyinfo_t *old_key_tbl, *new_key_tbl;
 
@@ -1243,7 +1247,7 @@ main(int argc, char *argv[]) {
 		vbprintf(1, "%s has neither CDS nor CDNSKEY records\n",
 			 namestr);
 		write_parent_set(ds_path, inplace, nsupdate, &old_ds_set);
-		exit(0);
+		goto cleanup;
 	}
 
 	/*
@@ -1309,6 +1313,7 @@ main(int argc, char *argv[]) {
 
 	write_parent_set(ds_path, inplace, nsupdate, &new_ds_set);
 
+cleanup:
 	free_all_sets();
 	cleanup_logging(&lctx);
 	dst_lib_destroy();
