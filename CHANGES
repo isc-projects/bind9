@@ -1,3 +1,5 @@
+6092.	[bug]		dnssec-cds failed to cleanup properly. [GL #3831]
+
 6091.	[cleanup]	Drop RHEL 7 and clones support. [GL #3729]
 
 6090.	[bug]		Fix a bug in resolver's resume_dslookup() function by
