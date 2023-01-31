@@ -921,7 +921,7 @@ req_connected(isc_result_t eresult, isc_region_t *region, void *arg) {
 		req_send(request);
 	} else {
 		request_cancel(request);
-		req_sendevent(request, ISC_R_CANCELED);
+		req_sendevent(request, eresult);
 	}
 	UNLOCK(&request->requestmgr->locks[request->hash]);
 
