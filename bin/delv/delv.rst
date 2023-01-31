@@ -230,6 +230,20 @@ assign values to options like the timeout interval. They have the form
    This option controls whether to display the CLASS when printing a record. The
    default is to display the CLASS.
 
+.. option:: +ns, +nons
+
+   This option toggles name server mode. When this option is in use,
+   the ``delv`` process instantiates a full recursive resolver, and uses
+   that to look up the requested query name and type. Turning on this
+   option also activates ``+mtrace`` and ``+rtrace``, so that every
+   iterative query will be logged, including the full response messages
+   from each authoritatve server.
+
+   This is intended to be similar to the behavior of ``dig +trace``, but
+   because it uses the same code as ``named``, it much more accurately
+   replicates the behavior of a recursive name server with a cold cache
+   processing a recursive query.
+
 .. option:: +ttl, +nottl
 
    This option controls whether to display the TTL when printing a record. The

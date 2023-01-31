@@ -35,6 +35,7 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/parseint.h>
+#include <isc/random.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
@@ -42,26 +43,38 @@
 #include <isc/tls.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/byaddr.h>
+#include <dns/cache.h>
 #include <dns/client.h>
+#include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
+#include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
+#include <dns/request.h>
+#include <dns/result.h>
+#include <dns/rootns.h>
 #include <dns/secalg.h>
+#include <dns/stats.h>
 #include <dns/view.h>
 
 #include <dst/dst.h>
 
 #include <isccfg/log.h>
 #include <isccfg/namedconf.h>
+
+#include <ns/client.h>
+#include <ns/interfacemgr.h>
+#include <ns/server.h>
 
 #include <irs/resconf.h>
 
@@ -78,10 +91,20 @@
 char *progname;
 static isc_mem_t *mctx = NULL;
 static isc_log_t *lctx = NULL;
+static dns_view_t *view = NULL;
+static ns_server_t *sctx = NULL;
+static ns_interface_t *ifp = NULL;
+static dns_dispatch_t *dispatch = NULL;
+static dns_db_t *roothints = NULL;
+static isc_stats_t *resstats = NULL;
+static dns_stats_t *resquerystats = NULL;
 
 /* Managers */
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
+static dns_dispatchmgr_t *dispatchmgr = NULL;
+static dns_requestmgr_t *requestmgr = NULL;
+static ns_interfacemgr_t *interfacemgr = NULL;
 
 /* TLS */
 static isc_tlsctx_cache_t *tlsctx_client_cache = NULL;
@@ -89,6 +112,7 @@ static isc_tlsctx_cache_t *tlsctx_client_cache = NULL;
 /* Configurables */
 static char *server = NULL;
 static const char *port = "53";
+static uint32_t destport = 53;
 static isc_sockaddr_t *srcaddr4 = NULL, *srcaddr6 = NULL;
 static isc_sockaddr_t a4, a6;
 static char *curqname = NULL, *qname = NULL;
@@ -101,7 +125,7 @@ static uint32_t splitwidth = 0xffffffff;
 static bool showcomments = true, showdnssec = true, showtrust = true,
 	    rrcomments = true, noclass = false, nocrypto = false, nottl = false,
 	    multiline = false, short_form = false, print_unknown_format = false,
-	    yaml = false;
+	    yaml = false, fulltrace = false;
 
 static bool resolve_trace = false, validator_trace = false,
 	    message_trace = false;
@@ -189,6 +213,8 @@ usage(void) {
 		"records)\n"
 		"                 +[no]mtrace         (Trace messages "
 		"received)\n"
+		"                 +[no]ns             (Run internal name "
+		"server)\n"
 		"                 +[no]multiline      (Print records in an "
 		"expanded format)\n"
 		"                 +[no]root           (DNSSEC validation trust "
@@ -424,7 +450,7 @@ print_status(dns_rdataset_t *rdataset) {
 	}
 }
 
-static isc_result_t
+static void
 printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	isc_result_t result = ISC_R_SUCCESS;
 	static dns_trust_t trust;
@@ -437,12 +463,13 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner) {
 	if (!dns_rdataset_isassociated(rdataset)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(owner, namebuf, sizeof(namebuf));
-		delv_log(ISC_LOG_DEBUG(4), "WARN: empty rdataset %s", namebuf);
-		return (ISC_R_SUCCESS);
+		delv_log(ISC_LOG_DEBUG(4), "warning: empty rdataset %s",
+			 namebuf);
+		return;
 	}
 
 	if (!showdnssec && rdataset->type == dns_rdatatype_rrsig) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	if (first || rdataset->trust != trust) {
@@ -516,8 +543,6 @@ cleanup:
 	if (t != NULL) {
 		isc_mem_put(mctx, t, len);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -570,7 +595,7 @@ static isc_result_t
 convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 	isc_result_t result;
 	isc_buffer_t b;
-	dns_name_t *n;
+	dns_name_t *n = NULL;
 	unsigned int len;
 
 	REQUIRE(fn != NULL && name != NULL && text != NULL);
@@ -582,7 +607,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 
 	result = dns_name_fromtext(n, &b, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		delv_log(ISC_LOG_ERROR, "failed to convert QNAME %s: %s", text,
+		delv_log(ISC_LOG_ERROR, "failed to convert name %s: %s", text,
 			 isc_result_totext(result));
 		return (result);
 	}
@@ -592,7 +617,7 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 }
 
 static isc_result_t
-key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
+key_fromconfig(const cfg_obj_t *key, dns_client_t *client, dns_view_t *toview) {
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_ds_t ds;
 	uint32_t rdata1, rdata2, rdata3;
@@ -614,6 +639,8 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 		TRUSTED
 	} anchortype;
 	const cfg_obj_t *obj;
+
+	REQUIRE(client != NULL || toview != NULL);
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
@@ -708,9 +735,15 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 		CHECK(dns_rdata_fromstruct(NULL, dnskey.common.rdclass,
 					   dnskey.common.rdtype, &dnskey,
 					   &rrdatabuf));
-		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
-					       dns_rdatatype_dnskey, keyname,
-					       &rrdatabuf));
+		if (client != NULL) {
+			CHECK(dns_client_addtrustedkey(
+				client, dns_rdataclass_in, dns_rdatatype_dnskey,
+				keyname, &rrdatabuf));
+		} else if (toview != NULL) {
+			CHECK(dns_view_addtrustedkey(toview,
+						     dns_rdatatype_dnskey,
+						     keyname, &rrdatabuf));
+		}
 		break;
 	case INITIAL_DS:
 	case STATIC_DS:
@@ -751,9 +784,14 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 
 		CHECK(dns_rdata_fromstruct(NULL, ds.common.rdclass,
 					   ds.common.rdtype, &ds, &rrdatabuf));
-		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
-					       dns_rdatatype_ds, keyname,
-					       &rrdatabuf));
+		if (client != NULL) {
+			CHECK(dns_client_addtrustedkey(
+				client, dns_rdataclass_in, dns_rdatatype_ds,
+				keyname, &rrdatabuf));
+		} else if (toview != NULL) {
+			CHECK(dns_view_addtrustedkey(toview, dns_rdatatype_ds,
+						     keyname, &rrdatabuf));
+		}
 	}
 
 	num_keys++;
@@ -777,7 +815,7 @@ cleanup:
 }
 
 static isc_result_t
-load_keys(const cfg_obj_t *keys, dns_client_t *client) {
+load_keys(const cfg_obj_t *keys, dns_client_t *client, dns_view_t *toview) {
 	const cfg_listelt_t *elt, *elt2;
 	const cfg_obj_t *key, *keylist;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -790,7 +828,7 @@ load_keys(const cfg_obj_t *keys, dns_client_t *client) {
 		     elt2 = cfg_list_next(elt2))
 		{
 			key = cfg_listelt_value(elt2);
-			CHECK(key_fromconfig(key, client));
+			CHECK(key_fromconfig(key, client, toview));
 		}
 	}
 
@@ -802,7 +840,7 @@ cleanup:
 }
 
 static isc_result_t
-setup_dnsseckeys(dns_client_t *client) {
+setup_dnsseckeys(dns_client_t *client, dns_view_t *toview) {
 	isc_result_t result;
 	cfg_parser_t *parser = NULL;
 	const cfg_obj_t *trusted_keys = NULL;
@@ -853,13 +891,13 @@ setup_dnsseckeys(dns_client_t *client) {
 	cfg_map_get(bindkeys, "trust-anchors", &trust_anchors);
 
 	if (trusted_keys != NULL) {
-		CHECK(load_keys(trusted_keys, client));
+		CHECK(load_keys(trusted_keys, client, toview));
 	}
 	if (managed_keys != NULL) {
-		CHECK(load_keys(managed_keys, client));
+		CHECK(load_keys(managed_keys, client, toview));
 	}
 	if (trust_anchors != NULL) {
-		CHECK(load_keys(trust_anchors, client));
+		CHECK(load_keys(trust_anchors, client, toview));
 	}
 	result = ISC_R_SUCCESS;
 
@@ -883,20 +921,14 @@ cleanup:
 
 static isc_result_t
 addserver(dns_client_t *client) {
-	struct addrinfo hints, *res, *cur;
+	struct addrinfo hints, *res = NULL, *cur = NULL;
 	int gaierror;
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_sockaddr_t *sa;
+	isc_sockaddr_t *sa = NULL;
 	isc_sockaddrlist_t servers;
-	uint32_t destport;
 	isc_result_t result;
 	dns_name_t *name = NULL;
-
-	result = parse_uint(&destport, port, 0xffff, "port");
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't parse port number");
-	}
 
 	ISC_LIST_INIT(servers);
 
@@ -975,13 +1007,7 @@ findserver(dns_client_t *client) {
 	isc_result_t result;
 	irs_resconf_t *resconf = NULL;
 	isc_sockaddrlist_t *nameservers;
-	isc_sockaddr_t *sa, *next;
-	uint32_t destport;
-
-	result = parse_uint(&destport, port, 0xffff, "port");
-	if (result != ISC_R_SUCCESS) {
-		fatal("Couldn't parse port number");
-	}
+	isc_sockaddr_t *sa = NULL, *next = NULL;
 
 	result = irs_resconf_load(mctx, "/etc/resolv.conf", &resconf);
 	if (result != ISC_R_SUCCESS && result != ISC_R_FILENOTFOUND) {
@@ -1151,6 +1177,20 @@ plus_option(char *option) {
 			goto invalid_option;
 		}
 		break;
+	case 'n':
+		switch (cmd[1]) {
+		case 's': /* ns */
+			FULLCHECK("ns");
+			fulltrace = state;
+			if (state) {
+				message_trace = state;
+				resolve_trace = state;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
 	case 'r':
 		switch (cmd[1]) {
 		case 'o': /* root */
@@ -1234,7 +1274,7 @@ plus_option(char *option) {
 			FULLCHECK("tcp");
 			use_tcp = state;
 			break;
-		case 'r': /* trust */
+		case 'r':
 			FULLCHECK("trust");
 			showtrust = state;
 			break;
@@ -1420,6 +1460,10 @@ dash_option(char *option, char *next, bool *open_type_class) {
 		return (value_from_next);
 	case 'p':
 		port = value;
+		result = parse_uint(&destport, port, 0xffff, "port");
+		if (result != ISC_R_SUCCESS) {
+			fatal("Couldn't parse port number");
+		}
 		return (value_from_next);
 	case 'q':
 		if (curqname != NULL) {
@@ -1735,10 +1779,7 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 		for (rdataset = ISC_LIST_HEAD(response_name->list);
 		     rdataset != NULL; rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
-			result = printdata(rdataset, response_name);
-			if (result != ISC_R_SUCCESS) {
-				delv_log(ISC_LOG_ERROR, "print data failed");
-			}
+			printdata(rdataset, response_name);
 		}
 	}
 
@@ -1751,12 +1792,14 @@ resolve_cb(dns_client_t *client, const dns_name_t *query_name,
 }
 
 static void
-resolve(void *arg) {
-	dns_client_t *client = arg;
-	dns_namelist_t *namelist;
+run_resolve(void *arg) {
+	dns_client_t *client = NULL;
+	dns_namelist_t *namelist = NULL;
 	unsigned int resopt;
 	isc_result_t result;
-	dns_name_t *query_name;
+	dns_name_t *query_name = NULL;
+
+	UNUSED(arg);
 
 	namelist = isc_mem_get(mctx, sizeof(*namelist));
 	ISC_LIST_INIT(*namelist);
@@ -1779,14 +1822,22 @@ resolve(void *arg) {
 		resopt |= DNS_CLIENTRESOPT_TCP;
 	}
 
-	/* Perform resolution */
-	result = dns_client_resolve(client, query_name, dns_rdataclass_in,
-				    qtype, resopt, namelist, resolve_cb);
+	/* Create client */
+	CHECK(dns_client_create(mctx, loopmgr, netmgr, 0, tlsctx_client_cache,
+				&client, srcaddr4, srcaddr6));
 
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+	/* Set the nameserver */
+	if (server != NULL) {
+		addserver(client);
+	} else {
+		findserver(client);
 	}
 
+	CHECK(setup_dnsseckeys(client, NULL));
+
+	/* Perform resolution */
+	CHECK(dns_client_resolve(client, query_name, dns_rdataclass_in, qtype,
+				 resopt, namelist, resolve_cb));
 	return;
 cleanup:
 	if (!yaml) {
@@ -1800,10 +1851,261 @@ cleanup:
 	dns_client_detach(&client);
 }
 
+static void
+shutdown_server(void) {
+	if (requestmgr != NULL) {
+		dns_requestmgr_detach(&requestmgr);
+	}
+	if (interfacemgr != NULL) {
+		ns_interfacemgr_shutdown(interfacemgr);
+		ns_interfacemgr_detach(&interfacemgr);
+	}
+	if (dispatch != NULL) {
+		dns_dispatch_detach(&dispatch);
+	}
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_detach(&dispatchmgr);
+	}
+	if (sctx != NULL) {
+		ns_server_detach(&sctx);
+	}
+
+	isc_loopmgr_shutdown(loopmgr);
+}
+
+static void
+recvresponse(void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
+	dns_message_t *query = dns_request_getarg(request);
+	isc_result_t result = dns_request_getresult(request);
+	;
+	dns_message_t *response = NULL;
+
+	if (result != ISC_R_SUCCESS) {
+		fatal("request event result: %s", isc_result_totext(result));
+	}
+
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
+
+	result = dns_request_getresponse(request, response,
+					 DNS_MESSAGEPARSE_PRESERVEORDER);
+	if (result != ISC_R_SUCCESS) {
+		fatal("request response failed: %s", isc_result_totext(result));
+	}
+	if (response->rcode != dns_rcode_noerror) {
+		result = dns_result_fromrcode(response->rcode);
+		delv_log(ISC_LOG_INFO, "response code: %s",
+			 isc_result_totext(result));
+		goto cleanup;
+	}
+
+	for (result = dns_message_firstname(response, DNS_SECTION_ANSWER);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(response, DNS_SECTION_ANSWER))
+	{
+		dns_name_t *name = NULL;
+		dns_rdataset_t *rdataset = NULL;
+
+		dns_message_currentname(response, DNS_SECTION_ANSWER, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link))
+		{
+			dns_rdataset_t rds, sigs;
+			int options = 0;
+
+			/*
+			 * The response message contains the answer the
+			 * resolver found, but it doesn't contain the
+			 * trust status; so if we're displaying that, we
+			 * need to look up each rdataset in the cache and
+			 * print that version instead. but if not, we
+			 * can just print the rdatasets from the message.
+			 */
+			if (!showtrust) {
+				printdata(rdataset, name);
+				continue;
+			}
+
+			/* do the cache lookup */
+			if (rdataset->type == dns_rdatatype_rrsig) {
+				continue;
+			}
+
+			dns_rdataset_init(&rds);
+			dns_rdataset_init(&sigs);
+
+			if (cdflag) {
+				options |= DNS_DBFIND_PENDINGOK;
+			}
+			result = dns_view_simplefind(view, name, rdataset->type,
+						     0, options, false, &rds,
+						     &sigs);
+			if (result == ISC_R_SUCCESS) {
+				printdata(&rds, name);
+				dns_rdataset_disassociate(&rds);
+				if (dns_rdataset_isassociated(&sigs)) {
+					printdata(&sigs, name);
+					dns_rdataset_disassociate(&sigs);
+				}
+			}
+		}
+	}
+
+cleanup:
+	dns_message_detach(&query);
+	dns_message_detach(&response);
+	dns_request_destroy(&request);
+
+	view = NULL;
+	shutdown_server();
+}
+
+static isc_result_t
+accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+	UNUSED(handle);
+	UNUSED(arg);
+
+	return (result);
+}
+
+static void
+sendquery(void *arg) {
+	isc_nmsocket_t *sock = (isc_nmsocket_t *)arg;
+	isc_sockaddr_t peer = isc_nmsocket_getaddr(sock);
+	isc_result_t result;
+	dns_message_t *message = NULL;
+	dns_name_t *query_name = NULL, *mname = NULL;
+	dns_rdataset_t *mrdataset = NULL;
+	dns_rdataset_t *opt = NULL;
+	dns_request_t *request = NULL;
+
+	/* Construct query message */
+	CHECK(convert_name(&qfn, &query_name, qname));
+
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	message->opcode = dns_opcode_query;
+	message->flags = DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_AD;
+	if (cdflag) {
+		message->flags |= DNS_MESSAGEFLAG_CD;
+	}
+	message->rdclass = dns_rdataclass_in;
+	message->id = (dns_messageid_t)isc_random16();
+
+	dns_message_gettempname(message, &mname);
+	dns_message_gettemprdataset(message, &mrdataset);
+	dns_name_clone(query_name, mname);
+	dns_rdataset_makequestion(mrdataset, dns_rdataclass_in, qtype);
+	ISC_LIST_APPEND(mname->list, mrdataset, link);
+	dns_message_addname(message, mname, DNS_SECTION_QUESTION);
+	mrdataset = NULL;
+	mname = NULL;
+
+	CHECK(dns_message_buildopt(message, &opt, 0, 0, DNS_MESSAGEEXTFLAG_DO,
+				   NULL, 0));
+	CHECK(dns_message_setopt(message, opt));
+
+	CHECK(dns_requestmgr_create(mctx, dispatchmgr, NULL, NULL,
+				    &requestmgr));
+
+	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
+				 DNS_REQUESTOPT_TCP, NULL, 1, 0, 0,
+				 isc_loop_current(loopmgr), recvresponse,
+				 message, &request));
+	return;
+
+cleanup:
+	if (message != NULL) {
+		if (mname != NULL) {
+			dns_message_puttempname(message, &mname);
+		}
+		if (mrdataset != NULL) {
+			dns_message_puttemprdataset(message, &mrdataset);
+		}
+		dns_message_detach(&message);
+	}
+
+	shutdown_server();
+}
+
+static isc_result_t
+matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
+	  dns_message_t *message, dns_aclenv_t *env, isc_result_t *sigresultp,
+	  dns_view_t **viewp) {
+	UNUSED(srcaddr);
+	UNUSED(destaddr);
+	UNUSED(message);
+	UNUSED(env);
+	UNUSED(sigresultp);
+
+	*viewp = view;
+	return (ISC_R_SUCCESS);
+}
+
+static void
+run_server(void *arg) {
+	isc_result_t result;
+	dns_cache_t *cache = NULL;
+	isc_sockaddr_t addr, any;
+	struct in_addr in;
+
+	UNUSED(arg);
+
+	inet_pton(AF_INET, "127.0.0.1", &in);
+	isc_sockaddr_fromin(&addr, &in, 0);
+
+	CHECK(ns_server_create(mctx, matchview, &sctx));
+
+	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	isc_sockaddr_any(&any);
+	CHECK(dns_dispatch_createudp(dispatchmgr, &any, &dispatch));
+	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,
+				     NULL, false, &interfacemgr));
+
+	CHECK(dns_view_create(mctx, dns_rdataclass_in, "_default", &view));
+	CHECK(dns_cache_create(loopmgr, dns_rdataclass_in, "", &cache));
+	dns_view_setcache(view, cache, false);
+	dns_cache_detach(&cache);
+	dns_view_setdstport(view, destport);
+
+	CHECK(dns_rootns_create(mctx, dns_rdataclass_in, NULL, &roothints));
+	dns_view_sethints(view, roothints);
+	dns_db_detach(&roothints);
+
+	CHECK(dns_view_initsecroots(view, mctx));
+	CHECK(setup_dnsseckeys(NULL, view));
+
+	dns_view_setdispatchmgr(view, dispatchmgr);
+	CHECK(dns_view_createresolver(view, loopmgr, 1, netmgr, 0,
+				      tlsctx_client_cache, dispatch, NULL));
+
+	CHECK(isc_stats_create(mctx, &resstats, dns_resstatscounter_max));
+	dns_resolver_setstats(view->resolver, resstats);
+	isc_stats_detach(&resstats);
+
+	CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	dns_resolver_setquerystats(view->resolver, resquerystats);
+	dns_stats_detach(&resquerystats);
+
+	dns_view_freeze(view);
+
+	ns_interface_create(interfacemgr, &addr, NULL, &ifp);
+
+	CHECK(isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE, &addr,
+				     ns_client_request, ifp, accept_cb, ifp, 10,
+				     NULL, NULL, &ifp->tcplistensocket));
+	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
+	isc_job_run(loopmgr, sendquery, ifp->tcplistensocket);
+
+	return;
+
+cleanup:
+	shutdown_server();
+}
+
 int
 main(int argc, char *argv[]) {
-	dns_client_t *client = NULL;
 	isc_result_t result;
+	isc_loop_t *loop = NULL;
 
 	progname = argv[0];
 	preparse_args(argc, argv);
@@ -1812,6 +2114,7 @@ main(int argc, char *argv[]) {
 	argv++;
 
 	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
+	loop = isc_loop_main(loopmgr);
 
 	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -1824,31 +2127,22 @@ main(int argc, char *argv[]) {
 
 	setup_logging(stderr);
 
-	/* Create client */
+	if (fulltrace && server != NULL) {
+		delv_log(ISC_LOG_WARNING,
+			 "WARNING: using internal name server mode: "
+			 "'@%s' will be ignored",
+			 server);
+	}
+
 	isc_tlsctx_cache_create(mctx, &tlsctx_client_cache);
-	result = dns_client_create(mctx, loopmgr, netmgr, 0,
-				   tlsctx_client_cache, &client, srcaddr4,
-				   srcaddr6);
-	if (result != ISC_R_SUCCESS) {
-		delv_log(ISC_LOG_ERROR, "dns_client_create: %s",
-			 isc_result_totext(result));
-		goto cleanup;
-	}
 
-	/* Set the nameserver */
-	if (server != NULL) {
-		addserver(client);
-	} else {
-		findserver(client);
-	}
-
-	CHECK(setup_dnsseckeys(client));
-
-	isc_loop_setup(isc_loop_main(loopmgr), resolve, client);
-
+	isc_loop_setup(loop, fulltrace ? run_server : run_resolve, NULL);
 	isc_loopmgr_run(loopmgr);
 
 cleanup:
+	if (tlsctx_client_cache != NULL) {
+		isc_tlsctx_cache_detach(&tlsctx_client_cache);
+	}
 	if (trust_anchor != NULL) {
 		isc_mem_free(mctx, trust_anchor);
 	}
@@ -1861,12 +2155,8 @@ cleanup:
 	if (style != NULL) {
 		dns_master_styledestroy(&style, mctx);
 	}
-	if (tlsctx_client_cache != NULL) {
-		isc_tlsctx_cache_detach(&tlsctx_client_cache);
-	}
 
 	isc_log_destroy(&lctx);
-
 	dst_lib_destroy();
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
