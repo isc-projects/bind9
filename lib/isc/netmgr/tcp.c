@@ -353,6 +353,7 @@ start_tcp_child_job(void *arg) {
 	int r, flags = 0;
 	isc_result_t result = ISC_R_UNSET;
 	isc_loop_t *loop = sock->worker->loop;
+	struct sockaddr_storage ss;
 
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
@@ -417,8 +418,25 @@ start_tcp_child_job(void *arg) {
 
 	atomic_store(&sock->listening, true);
 
+	if (sock->tid == 0) {
+		r = uv_tcp_getsockname(&sock->uv_handle.tcp,
+				       (struct sockaddr *)&ss,
+				       &(int){ sizeof(ss) });
+		if (r != 0) {
+			goto done;
+		}
+
+		result = isc_sockaddr_fromsockaddr(&sock->parent->iface,
+						   (struct sockaddr *)&ss);
+		if (result != ISC_R_SUCCESS) {
+			goto done_result;
+		}
+	}
+
 done:
 	result = isc_uverr2result(r);
+
+done_result:
 	atomic_fetch_add(&sock->parent->rchildren, 1);
 
 	if (result != ISC_R_SUCCESS) {

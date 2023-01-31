@@ -748,6 +748,11 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		return (result);
 	}
 
+	/* copy the actual port we're listening on into sock->iface */
+	if (isc_sockaddr_getport(iface) == 0) {
+		listener->iface = listener->outer->iface;
+	}
+
 	listener->result = result;
 	atomic_store(&listener->active, true);
 	atomic_store(&listener->listening, true);

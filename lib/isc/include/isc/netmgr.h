@@ -729,3 +729,9 @@ isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value);
  *
  * \li 'handle' is a valid netmgr handle object.
  */
+
+isc_sockaddr_t
+isc_nmsocket_getaddr(isc_nmsocket_t *sock);
+/*%<
+ * Return the local address of 'sock'.
+ */
