@@ -1262,4 +1262,29 @@ dns_view_getdispatchmgr(dns_view_t *view);
  * by the resolver and request managers to send and receive DNS
  * messages.
  */
+
+isc_result_t
+dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
+		       const dns_name_t *keyname, isc_buffer_t *databuf);
+/*%<
+ * Add a DNSSEC trusted key to a view of class 'IN'.  'rdtype' is the type
+ * of the RR data for the key, either DNSKEY or DS.  'keyname' is the DNS
+ * name of the key, and 'databuf' stores the RR data.
+
+ * Requires:
+ *
+ *\li	'view' is a valid view.
+
+ *\li	'view' is class 'IN'.
+ *
+ *\li	'keyname' is a valid name.
+ *
+ *\li	'keydatabuf' is a valid buffer.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS				On success.
+ *
+ *\li	Anything else				Failure.
+ */
 ISC_LANG_ENDDECLS

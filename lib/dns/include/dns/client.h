@@ -279,10 +279,11 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, const dns_name_t *keyname,
 			 isc_buffer_t *keydatabuf);
 /*%<
- * Add a DNSSEC trusted key for the 'rdclass' class.  A view for the 'rdclass'
- * class must be created beforehand.  'rdtype' is the type of the RR data
- * for the key, either DNSKEY or DS.  'keyname' is the DNS name of the key,
- * and 'keydatabuf' stores the RR data.
+ * Add a DNSSEC trusted key for the 'rdclass' class (only class 'IN' is
+ * currently supported).  A view for the 'rdclass' class must be created
+ * beforehand.  'rdtype' is the type of the RR data for the key, either
+ * DNSKEY or DS.  'keyname' is the DNS name of the key, and 'keydatabuf'
+ * stores the RR data.
  *
  * Requires:
  *
