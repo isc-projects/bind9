@@ -121,6 +121,7 @@ dnssec-policy "csk-roll2" {
 	retire-safety 1h;
 	purge-keys 0;
 
+	cds-digest-type "sha-384"; // use a different digest type for testing purposes
 	keys {
 		csk key-directory lifetime P6M algorithm @DEFAULT_ALGORITHM@;
 	};

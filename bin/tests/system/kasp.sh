@@ -209,11 +209,13 @@ set_dynamic() {
 	DYNAMIC="yes"
 }
 
-# Set policy settings (name $1, number of keys $2, dnskey ttl $3) for testing keys.
+# Set policy settings (name $1, number of keys $2, dnskey ttl $3),
+# and digest type ($4) for testing keys.
 set_policy() {
 	POLICY=$1
 	NUM_KEYS=$2
 	DNSKEY_TTL=$3
+	DIGEST_TYPE=$4
 	CDS_DELETE="no"
 }
 # By default policies are considered to be secure.
@@ -945,7 +947,7 @@ response_has_cds_for_key() (
 	    -v qtype="CDS" \
 	    -v keyid="$(key_get "${1}" ID)" \
 	    -v keyalg="$(key_get "${1}" ALG_NUM)" \
-	    -v hashalg="2" \
+	    -v hashalg="${DIGEST_TYPE}" \
 	    'BEGIN { ret=1; }
 	     $1 == zone && $2 == ttl && $4 == qtype && $5 == keyid && $6 == keyalg && $7 == hashalg { ret=0; exit; }
 	     END { exit ret; }' \
