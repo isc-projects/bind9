@@ -35,6 +35,7 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/soa.h>
+#include <dns/trace.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
@@ -42,6 +43,8 @@
 #include <dns/zone.h>
 
 #include <dst/dst.h>
+
+#include "probes.h"
 
 /*
  * Incoming AXFR and IXFR.
@@ -360,10 +363,10 @@ static isc_result_t
 axfr_finalize(dns_xfrin_t *xfr) {
 	isc_result_t result;
 
-	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, true));
+	LIBDNS_XFRIN_AXFR_FINALIZE_BEGIN(xfr);
+	result = dns_zone_replacedb(xfr->zone, xfr->db, true);
+	LIBDNS_XFRIN_AXFR_FINALIZE_END(xfr, result);
 
-	result = ISC_R_SUCCESS;
-failure:
 	return (result);
 }
 
@@ -956,6 +959,8 @@ xfrin_start(dns_xfrin_t *xfr) {
 		CHECK(result);
 	}
 
+	LIBDNS_XFRIN_START(xfr);
+
 	/* Set the maximum timer */
 	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
 	isc_timer_start(xfr->max_time_timer, isc_timertype_once, &interval);
@@ -1026,6 +1031,8 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region ISC_ATTR_UNUSED,
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
+
+	LIBDNS_XFRIN_CONNECTED(xfr, result);
 
 	if (result != ISC_R_SUCCESS) {
 		xfrin_fail(xfr, result, "failed to connect");
@@ -1155,6 +1162,8 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
 
+	LIBDNS_XFRIN_RECV_SEND_REQUEST(xfr);
+
 	/* Create the request message */
 	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
@@ -1245,6 +1254,8 @@ xfrin_send_done(isc_result_t result, isc_region_t *region, void *arg) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
 
+	LIBDNS_XFRIN_SENT(xfr, result);
+
 	CHECK(result);
 
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request data");
@@ -1273,6 +1284,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 	/* Stop the idle timer */
 	isc_timer_stop(xfr->max_idle_timer);
+
+	LIBDNS_XFRIN_RECV_START(xfr, result);
 
 	CHECK(result);
 
@@ -1307,6 +1320,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			  isc_result_totext(result));
 	}
 
+	LIBDNS_XFRIN_RECV_PARSED(xfr, result);
+
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass)
 	{
@@ -1334,6 +1349,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 			  isc_result_totext(result));
 	try_axfr:
+		LIBDNS_XFRIN_RECV_TRY_AXFR(xfr, result);
 		dns_message_detach(&msg);
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
@@ -1373,6 +1389,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
 	{
 		dns_rdataset_t *rds = NULL;
+
+		LIBDNS_XFRIN_RECV_QUESTION(xfr, msg);
 
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
@@ -1434,6 +1452,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
 	{
 		dns_rdataset_t *rds = NULL;
+
+		LIBDNS_XFRIN_RECV_ANSWER(xfr, msg);
 
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
@@ -1513,15 +1533,19 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		 * Close the journal.
 		 */
 		if (xfr->ixfr.journal != NULL) {
+			LIBDNS_XFRIN_JOURNAL_DESTROY_BEGIN(xfr, result);
 			dns_journal_destroy(&xfr->ixfr.journal);
+			LIBDNS_XFRIN_JOURNAL_DESTROY_END(xfr, result);
 		}
 
 		/*
 		 * Inform the caller we succeeded.
 		 */
 		if (xfr->done != NULL) {
+			LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, result);
 			(xfr->done)(xfr->zone, ISC_R_SUCCESS);
 			xfr->done = NULL;
+			LIBDNS_XFRIN_DONE_CALLBACK_END(xfr, result);
 		}
 
 		atomic_store(&xfr->shuttingdown, true);
@@ -1539,6 +1563,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
 		isc_timer_start(xfr->max_idle_timer, isc_timertype_once,
 				&interval);
+
+		LIBDNS_XFRIN_READ(xfr, result);
 		return;
 	}
 
@@ -1551,6 +1577,7 @@ failure:
 		dns_message_detach(&msg);
 	}
 	dns_xfrin_detach(&xfr);
+	LIBDNS_XFRIN_RECV_DONE(xfr, result);
 }
 
 static void
