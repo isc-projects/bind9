@@ -2790,7 +2790,7 @@ build_final_keylist(void) {
 	 * Update keylist with sync records.
 	 */
 	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset, now,
-			      keyttl, &diff, mctx);
+			      DNS_DSDIGEST_SHA256, keyttl, &diff, mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 
