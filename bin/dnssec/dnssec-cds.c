@@ -134,9 +134,19 @@ static dns_rdataset_t dnskey_sig = DNS_RDATASET_INIT;
 static dns_rdataset_t old_ds_set = DNS_RDATASET_INIT;
 static dns_rdataset_t new_ds_set = DNS_RDATASET_INIT;
 
-static keyinfo_t *old_key_tbl, *new_key_tbl;
+static keyinfo_t *old_key_tbl = NULL, *new_key_tbl = NULL;
 
 isc_buffer_t *new_ds_buf = NULL; /* backing store for new_ds_set */
+
+static dns_db_t *child_db = NULL;
+static dns_dbnode_t *child_node = NULL;
+static dns_db_t *parent_db = NULL;
+static dns_dbnode_t *parent_node = NULL;
+static dns_db_t *update_db = NULL;
+static dns_dbnode_t *update_node = NULL;
+static dns_dbversion_t *update_version = NULL;
+static bool cleanup_dst = false;
+static bool print_mem_stats = false;
 
 static void
 verbose_time(int level, const char *msg, isc_stdtime_t time) {
@@ -255,21 +265,27 @@ load_db(const char *filename, dns_db_t **dbp, dns_dbnode_t **nodep) {
 }
 
 static void
-free_db(dns_db_t **dbp, dns_dbnode_t **nodep) {
-	dns_db_detachnode(*dbp, nodep);
-	dns_db_detach(dbp);
+free_db(dns_db_t **dbp, dns_dbnode_t **nodep, dns_dbversion_t **versionp) {
+	if (*dbp != NULL) {
+		if (*nodep != NULL) {
+			dns_db_detachnode(*dbp, nodep);
+		}
+		if (versionp != NULL && *versionp != NULL) {
+			dns_db_closeversion(*dbp, versionp, false);
+		}
+		dns_db_detach(dbp);
+	}
 }
 
 static void
 load_child_sets(const char *file) {
-	dns_db_t *db = NULL;
-	dns_dbnode_t *node = NULL;
-
-	load_db(file, &db, &node);
-	findset(db, node, dns_rdatatype_dnskey, &dnskey_set, &dnskey_sig);
-	findset(db, node, dns_rdatatype_cdnskey, &cdnskey_set, &cdnskey_sig);
-	findset(db, node, dns_rdatatype_cds, &cds_set, &cds_sig);
-	free_db(&db, &node);
+	load_db(file, &child_db, &child_node);
+	findset(child_db, child_node, dns_rdatatype_dnskey, &dnskey_set,
+		&dnskey_sig);
+	findset(child_db, child_node, dns_rdatatype_cdnskey, &cdnskey_set,
+		&cdnskey_sig);
+	findset(child_db, child_node, dns_rdatatype_cds, &cds_set, &cds_sig);
+	free_db(&child_db, &child_node, NULL);
 }
 
 static void
@@ -318,8 +334,6 @@ get_dsset_name(char *filename, size_t size, const char *path,
 static void
 load_parent_set(const char *path) {
 	isc_result_t result;
-	dns_db_t *db = NULL;
-	dns_dbnode_t *node = NULL;
 	isc_time_t modtime;
 	char filename[PATH_MAX + 1];
 
@@ -338,15 +352,15 @@ load_parent_set(const char *path) {
 	}
 	verbose_time(1, "child records must not be signed before", notbefore);
 
-	load_db(filename, &db, &node);
-	findset(db, node, dns_rdatatype_ds, &old_ds_set, NULL);
+	load_db(filename, &parent_db, &parent_node);
+	findset(parent_db, parent_node, dns_rdatatype_ds, &old_ds_set, NULL);
 
 	if (!dns_rdataset_isassociated(&old_ds_set)) {
 		fatal("could not find DS records for %s in %s", namestr,
 		      filename);
 	}
 
-	free_db(&db, &node);
+	free_db(&parent_db, &parent_node, NULL);
 }
 
 #define MAX_CDS_RDATA_TEXT_SIZE DNS_RDATA_MAXLENGTH * 2
@@ -371,17 +385,18 @@ formatset(dns_rdataset_t *rdataset) {
 
 	isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
 	result = dns_master_rdatasettotext(name, rdataset, style, NULL, buf);
+	dns_master_styledestroy(&style, mctx);
 
 	if ((result == ISC_R_SUCCESS) && isc_buffer_availablelength(buf) < 1) {
 		result = ISC_R_NOSPACE;
 	}
 
-	check_result(result, "dns_rdataset_totext()");
+	if (result != ISC_R_SUCCESS) {
+		isc_buffer_free(&buf);
+		check_result(result, "dns_rdataset_totext()");
+	}
 
 	isc_buffer_putuint8(buf, 0);
-
-	dns_master_styledestroy(&style, mctx);
-
 	return (buf);
 }
 
@@ -424,6 +439,7 @@ write_parent_set(const char *path, const char *inplace, bool nsupdate,
 
 	result = isc_file_openunique(tmpname, &fp);
 	if (result != ISC_R_SUCCESS) {
+		isc_buffer_free(&buf);
 		fatal("open %s: %s", tmpname, isc_result_totext(result));
 	}
 	fprintf(fp, "%s", (char *)r.base);
@@ -518,23 +534,22 @@ static keyinfo_t *
 match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 		   strictness_t strictness) {
 	isc_result_t result;
-	keyinfo_t *keytable;
+	keyinfo_t *keytable, *ki;
 	int i;
 
 	nkey = dns_rdataset_count(keyset);
 
 	keytable = isc_mem_getx(mctx, sizeof(keytable[0]) * nkey, ISC_MEM_ZERO);
 
-	for (result = dns_rdataset_first(keyset), i = 0;
-	     result == ISC_R_SUCCESS; result = dns_rdataset_next(keyset), i++)
+	for (result = dns_rdataset_first(keyset), i = 0, ki = keytable;
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(keyset), i++, ki++)
 	{
-		keyinfo_t *ki;
 		dns_rdata_dnskey_t dnskey;
 		dns_rdata_t *keyrdata;
 		isc_region_t r;
 
 		INSIST(i < nkey);
-		ki = &keytable[i];
 		keyrdata = &ki->rdata;
 
 		dns_rdata_init(keyrdata);
@@ -572,8 +587,9 @@ free_keytable(keyinfo_t **keytable_p) {
 	keyinfo_t *ki;
 	int i;
 
-	for (i = 0; i < nkey; i++) {
-		ki = &keytable[i];
+	REQUIRE(keytable != NULL);
+
+	for (i = 0, ki = keytable; i < nkey; i++, ki++) {
 		if (ki->dst != NULL) {
 			dst_key_free(&ki->dst);
 		}
@@ -597,6 +613,8 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	isc_result_t result;
 	dns_secalg_t *algo;
 	int i;
+
+	REQUIRE(keytbl != NULL);
 
 	algo = isc_mem_getx(mctx, nkey * sizeof(algo[0]), ISC_MEM_ZERO);
 
@@ -802,6 +820,7 @@ append_new_ds_set(ds_maker_func_t *ds_from_rdata, isc_buffer_t *buf,
 			isc_mem_put(mctx, ds, sizeof(*ds));
 			return (result);
 		default:
+			isc_mem_put(mctx, ds, sizeof(*ds));
 			check_result(result, "ds_from_rdata()");
 		}
 	}
@@ -959,32 +978,27 @@ static void
 update_diff(const char *cmd, uint32_t ttl, dns_rdataset_t *addset,
 	    dns_rdataset_t *delset) {
 	isc_result_t result;
-	dns_db_t *db;
-	dns_dbnode_t *node;
-	dns_dbversion_t *ver;
 	dns_rdataset_t diffset;
 	uint32_t save;
 
-	db = NULL;
 	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone, rdclass, 0,
-			       NULL, &db);
+			       NULL, &update_db);
 	check_result(result, "dns_db_create()");
 
-	ver = NULL;
-	result = dns_db_newversion(db, &ver);
+	result = dns_db_newversion(update_db, &update_version);
 	check_result(result, "dns_db_newversion()");
 
-	node = NULL;
-	result = dns_db_findnode(db, name, true, &node);
+	result = dns_db_findnode(update_db, name, true, &update_node);
 	check_result(result, "dns_db_findnode()");
 
 	dns_rdataset_init(&diffset);
 
-	result = dns_db_addrdataset(db, node, ver, 0, addset, DNS_DBADD_MERGE,
-				    NULL);
+	result = dns_db_addrdataset(update_db, update_node, update_version, 0,
+				    addset, DNS_DBADD_MERGE, NULL);
 	check_result(result, "dns_db_addrdataset()");
 
-	result = dns_db_subtractrdataset(db, node, ver, delset, 0, &diffset);
+	result = dns_db_subtractrdataset(update_db, update_node, update_version,
+					 delset, 0, &diffset);
 	if (result == DNS_R_UNCHANGED) {
 		save = addset->ttl;
 		addset->ttl = ttl;
@@ -997,9 +1011,7 @@ update_diff(const char *cmd, uint32_t ttl, dns_rdataset_t *addset,
 		dns_rdataset_disassociate(&diffset);
 	}
 
-	dns_db_detachnode(db, &node);
-	dns_db_closeversion(db, &ver, false);
-	dns_db_detach(&db);
+	free_db(&update_db, &update_node, &update_version);
 }
 
 static void
@@ -1049,6 +1061,32 @@ usage(void) {
 	exit(1);
 }
 
+static void
+cleanup(void) {
+	free_db(&child_db, &child_node, NULL);
+	free_db(&parent_db, &parent_node, NULL);
+	free_db(&update_db, &update_node, &update_version);
+	if (old_key_tbl != NULL) {
+		free_keytable(&old_key_tbl);
+	}
+	if (new_key_tbl != NULL) {
+		free_keytable(&new_key_tbl);
+	}
+	free_all_sets();
+	if (lctx != NULL) {
+		cleanup_logging(&lctx);
+	}
+	if (cleanup_dst) {
+		dst_lib_destroy();
+	}
+	if (mctx != NULL) {
+		if (print_mem_stats && verbose > 10) {
+			isc_mem_stats(mctx, stdout);
+		}
+		isc_mem_destroy(&mctx);
+	}
+}
+
 int
 main(int argc, char *argv[]) {
 	const char *child_path = NULL;
@@ -1060,6 +1098,8 @@ main(int argc, char *argv[]) {
 	uint32_t ttl = 0;
 	int ch;
 	char *endp;
+
+	setfatalcallback(cleanup);
 
 	isc_mem_create(&mctx);
 
@@ -1147,6 +1187,7 @@ main(int argc, char *argv[]) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
 	}
+	cleanup_dst = true;
 
 	if (ds_path == NULL) {
 		fatal("missing -d DS pathname");
@@ -1313,13 +1354,7 @@ main(int argc, char *argv[]) {
 	write_parent_set(ds_path, inplace, nsupdate, &new_ds_set);
 
 cleanup:
-	free_all_sets();
-	cleanup_logging(&lctx);
-	dst_lib_destroy();
-	if (verbose > 10) {
-		isc_mem_stats(mctx, stdout);
-	}
-	isc_mem_destroy(&mctx);
-
+	print_mem_stats = true;
+	cleanup();
 	exit(0);
 }
