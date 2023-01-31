@@ -2657,8 +2657,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_request_destroy(&request);
 		dns_message_detach(&soaquery);
 		ddebug("Out of recvsoa");
-		done_update();
 		seenerror = true;
+		done_update();
 		return;
 	}
 
@@ -2765,7 +2765,14 @@ lookforsoa:
 		primary_total = get_addresses(serverstr, dnsport,
 					      primary_servers, primary_alloc);
 		if (primary_total == 0) {
-			exit(1);
+			seenerror = true;
+			dns_rdata_freestruct(&soa);
+			dns_message_detach(&soaquery);
+			dns_request_destroy(&request);
+			dns_message_detach(&rcvmsg);
+			ddebug("Out of recvsoa");
+			done_update();
+			return;
 		}
 		primary_inuse = 0;
 	} else {
