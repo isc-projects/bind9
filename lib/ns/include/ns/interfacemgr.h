@@ -193,3 +193,11 @@ ns_interfacemgr_dynamic_updates_are_reliable(void);
  * disabled. That is the case on the platforms where kernel-based
  * mechanisms for tracking networking interface states is reliable enough.
  */
+
+void
+ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
+		    const char *name, ns_interface_t **ifpret);
+/*%<
+ * Create an interface 'name' associated with address 'addr'. If
+ * 'name' is NULL then it is set to "default".
+ */

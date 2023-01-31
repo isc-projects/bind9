@@ -479,7 +479,6 @@ struct isc_nmsocket {
 	isc_nmsocket_type type;
 	isc__networker_t *worker;
 
-	isc_mutex_t lock;
 	isc_barrier_t listen_barrier;
 	isc_barrier_t stop_barrier;
 

@@ -443,16 +443,20 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	}
 }
 
-static void
-interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
-		 ns_interface_t **ifpret) {
+void
+ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
+		    const char *name, ns_interface_t **ifpret) {
 	ns_interface_t *ifp = NULL;
+	const char *default_name = "default";
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
 	*ifp = (ns_interface_t){ .generation = mgr->generation, .addr = *addr };
 
+	if (name == NULL) {
+		name = default_name;
+	}
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 
 	isc_mutex_init(&ifp->lock);
@@ -651,7 +655,7 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	ifp = *ifpret;
 
 	if (ifp == NULL) {
-		interface_create(mgr, addr, name, &ifp);
+		ns_interface_create(mgr, addr, name, &ifp);
 	} else {
 		REQUIRE(!LISTENING(ifp));
 	}
@@ -1193,8 +1197,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 					    mgr->aclenv, &match, NULL);
 			if (match <= 0) {
 				ns_interface_t *new = NULL;
-				interface_create(mgr, &listen_sockaddr,
-						 interface.name, &new);
+				ns_interface_create(mgr, &listen_sockaddr,
+						    interface.name, &new);
 				continue;
 			}
 

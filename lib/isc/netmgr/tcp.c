@@ -350,8 +350,7 @@ start_tcp_child_job(void *arg) {
 	REQUIRE(sock->tid == isc_tid());
 
 	sa_family_t sa_family = sock->iface.type.sa.sa_family;
-	int r;
-	int flags = 0;
+	int r, flags = 0;
 	isc_result_t result = ISC_R_UNSET;
 	isc_loop_t *loop = sock->worker->loop;
 

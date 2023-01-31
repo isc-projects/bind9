@@ -247,19 +247,15 @@ typedef struct {
 	dns_rdatatype_t qtype;	      /* QTYPE */
 	unsigned int qflags;	      /* query flags */
 	bool disable_name_checks;     /* if set to true, owner
-				       * name
-				       *          checks will
+				       * name checks will
 				       * be disabled for the
-				       *          view created
-				       * */
+				       * view created
+				       */
 	bool recursive_service;	      /* if set to true, the view
-				       *          created will
-				       * have a cache
-				       *          database
-				       * attached */
+				       * created will have a cache
+				       * database attached */
 	const char *auth_zone_origin; /* origin name of the zone
-				       * the
-				       * created view will be
+				       * the created view will be
 				       * authoritative for */
 	const char *auth_zone_path;   /* path to load the
 				       * authoritative
