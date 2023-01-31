@@ -1,3 +1,7 @@
+6118.	[func]		Add 'cds-digest-types' configuration option. Also allow
+			dnssec-signzone to create multple CDS records.
+			[GL #3837]
+
 6117.	[func]		Add a qp-trie data structure. This is a foundation for
 			our plan to replace, in stages, BIND's red-black tree.
 			The qp-trie has lock-free multithreaded reads, using

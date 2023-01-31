@@ -22,6 +22,11 @@ New Features
 
 - None.
 
+- When using :any:`dnssec-policy`, you can now configure the digest type to
+  use when ``CDS`` records need to be published with `cds-digest-types`. Also,
+  with ``dnssec-signzone -G`` you can set which CDNSKEY/CDS records you want to
+  publish. :gl:`#3837`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
