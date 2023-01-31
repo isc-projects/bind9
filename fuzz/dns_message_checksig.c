@@ -123,6 +123,8 @@ static char c3[] = "sig0key. 0 IN SOA . . 0 0 0 0 0\n\
 sig0key. 0 IN NS .\n\
 sig0key. 0 IN KEY 512 3 8 AwEAAa22lgHi1vAbQvu5ETdTrm2H8rwga9tvyMa6LFiSDyevLvSv0Uo5 uvfrXnxaLdtBMts6e1Ly2piSH9JRbOGMNibOK4EXWhWAn8MII4SWgQAs bFwtiz4HyPn2wScrUQdo8DocKiQJBanesr7vDO8fdA6Rg1e0yAtSeNti e8avx46/HJa6CFs3CoE0sf6oOFSxM954AgCBTXOGNBt1Nt3Bhfqt2qyA TLFii5K1jLDTZDVkoiyDXL1M7wcTwKf9METgj1eQmH3GGlRM/OJ/j8xk ZiFGbL3cipWdiH48031jiV2hlc92mKn8Ya0d9AN6c44piza/JSFydZXw sY32nxzjDbs=\n";
 
+static bool destroy_dst = false;
+
 static void
 cleanup(void) {
 	char pathbuf[PATH_MAX];
@@ -139,6 +141,9 @@ cleanup(void) {
 	}
 	if (emptyring != NULL) {
 		dns_tsigkeyring_detach(&emptyring);
+	}
+	if (destroy_dst) {
+		dst_lib_destroy();
 	}
 	if (mctx != NULL) {
 		isc_mem_detach(&mctx);
@@ -228,6 +233,7 @@ LLVMFuzzerInitialize(int *argc __attribute__((unused)),
 			isc_result_totext(result));
 		return (1);
 	}
+	destroy_dst = true;
 
 	result = dns_view_create(mctx, dns_rdataclass_in, "view", &view);
 	if (result != ISC_R_SUCCESS) {
