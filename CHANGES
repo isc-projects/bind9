@@ -1,3 +1,8 @@
+6090.	[bug]		Fix a bug in resolver's resume_dslookup() function by
+			making sure that dns_resolver_createfetch() is called
+			with valid parameters, as required by the function.
+			[GL #3839]
+
 6089.	[bug]		Source ports configured for query-source,
 			transfer-source, etc, were being ignored. (This
 			feature is deprecated, but it is not yet removed,
