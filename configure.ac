@@ -1497,10 +1497,7 @@ AC_COMPILE_IFELSE(
     AC_MSG_RESULT([no])
   ])
 
-# DNSRPS is not included in pairwise testing as the librpz library is not
-# present in the relevant Docker image.
-#
-# [pairwise: skip]
+# [pairwise: --enable-dnsrps --enable-dnsrps-dl, --disable-dnsrps]
 AC_ARG_ENABLE([dnsrps-dl],
 	      [AS_HELP_STRING([--enable-dnsrps-dl],
 			      [DNS Response Policy Service delayed link

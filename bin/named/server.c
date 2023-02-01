@@ -9720,7 +9720,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Start and connect to the DNS Response Policy Service
 	 * daemon, dnsrpzd, for each view that uses DNSRPS.
 	 */
-	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
+	for (dns_view_t *view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		result = dns_dnsrps_connect(view->rpzs);
