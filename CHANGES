@@ -1,3 +1,6 @@
+6083.	[bug]		Fix DNSRPS-enabled builds as they were inadvertently
+			broken by change 6042. [GL #3827]
+
 6082.	[test]		fuzz/dns_message_checksig leaked memory when shutting
 			down. [GL #3828]
 
