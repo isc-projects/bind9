@@ -939,7 +939,12 @@ PKCS11_MANS=
 #
 # was --enable-native-pkcs11 specified?
 #
-# [pairwise: --enable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --with-dlopen, --disable-native-pkcs11 --without-dlopen]
+# DNSRPS builds are included in pairwise testing here and not later because both
+# --enable-native-pkcs11 and --enable-dnsrps-dl require --with-dlopen and the
+# ordering of the set of ./configure arguments generated during pairwise testing
+# is random.
+#
+# [pairwise: --enable-native-pkcs11 --enable-dnsrps --enable-dnsrps-dl --with-dlopen, --disable-native-pkcs11 --enable-dnsrps --enable-dnsrps-dl --with-dlopen, --disable-native-pkcs11 --enable-dnsrps --enable-dnsrps-dl --with-dlopen, --disable-native-pkcs11 --disable-dnsrps --without-dlopen]
 AC_ARG_ENABLE(native-pkcs11,
 	      AS_HELP_STRING([--enable-native-pkcs11],
 			     [use native PKCS11 for public-key crypto [default=no]]),
@@ -2583,8 +2588,9 @@ AC_COMPILE_IFELSE(
     AC_MSG_RESULT([no])
   ])
 
-# DNSRPS is not included in pairwise testing as the librpz library is not
-# present in the relevant Docker image.
+# DNSRPS builds are included in pairwise testing along --enable-native-pkcs11
+# tests above as both of these features require --with-dlopen (see also the
+# relevant comment there).
 #
 # [pairwise: skip]
 AC_ARG_ENABLE([dnsrps-dl],
