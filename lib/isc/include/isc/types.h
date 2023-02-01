@@ -71,6 +71,7 @@ typedef struct isc_portset	 isc_portset_t;	 /*%< Port Set */
 typedef struct isc_quota	 isc_quota_t;	 /*%< Quota */
 typedef struct isc_ratelimiter	 isc_ratelimiter_t;  /*%< Rate Limiter */
 typedef struct isc_region	 isc_region_t;	     /*%< Region */
+typedef struct isc_rlevent	 isc_rlevent_t;	     /*%< Rate Limiter Event */
 typedef struct isc_signal	 isc_signal_t;	     /*%< Signal handler */
 typedef struct isc_sockaddr	 isc_sockaddr_t;     /*%< Socket Address */
 typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List
