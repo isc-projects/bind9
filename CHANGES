@@ -1,3 +1,8 @@
+6089.	[bug]		Source ports configured for query-source,
+			transfer-source, etc, were being ignored. (This
+			feature is deprecated, but it is not yet removed,
+			so the bug still needed fixing.) [GL #3790]
+
 6083.	[bug]		Fix DNSRPS-enabled builds as they were inadvertently
 			broken by change 6042. [GL #3827]
 
