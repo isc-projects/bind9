@@ -3221,6 +3221,14 @@ parse_sockaddrsub(cfg_parser_t *pctx, const cfg_type_t *type, int flags,
 		CHECK(cfg_peektoken(pctx, 0));
 		if (pctx->token.type == isc_tokentype_string) {
 			if (strcasecmp(TOKEN_STRING(pctx), "port") == 0) {
+				if ((pctx->flags & CFG_PCTX_NODEPRECATED) ==
+					    0 &&
+				    (flags & CFG_ADDR_PORTOK) == 0)
+				{
+					cfg_parser_warning(
+						pctx, 0,
+						"token 'port' is deprecated");
+				}
 				CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
 				CHECK(cfg_parse_rawport(pctx, flags, &port));
 				++have_port;
@@ -3263,13 +3271,14 @@ cleanup:
 	return (result);
 }
 
-static unsigned int sockaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK;
+static unsigned int sockaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
+				     CFG_ADDR_PORTOK;
 cfg_type_t cfg_type_sockaddr = { "sockaddr",	     cfg_parse_sockaddr,
 				 cfg_print_sockaddr, cfg_doc_sockaddr,
 				 &cfg_rep_sockaddr,  &sockaddr_flags };
 
 static unsigned int sockaddrdscp_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
-					 CFG_ADDR_DSCPOK;
+					 CFG_ADDR_DSCPOK | CFG_ADDR_PORTOK;
 cfg_type_t cfg_type_sockaddrdscp = { "sockaddr",	 cfg_parse_sockaddr,
 				     cfg_print_sockaddr, cfg_doc_sockaddr,
 				     &cfg_rep_sockaddr,	 &sockaddrdscp_flags };
@@ -3342,10 +3351,12 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 		POST(n);
 	}
 	cfg_print_cstr(pctx, " ) ");
-	if ((*flagp & CFG_ADDR_WILDOK) != 0) {
-		cfg_print_cstr(pctx, "[ port ( <integer> | * ) ]");
-	} else {
-		cfg_print_cstr(pctx, "[ port <integer> ]");
+	if ((*flagp & CFG_ADDR_PORTOK) != 0) {
+		if ((*flagp & CFG_ADDR_WILDOK) != 0) {
+			cfg_print_cstr(pctx, "[ port ( <integer> | * ) ]");
+		} else {
+			cfg_print_cstr(pctx, "[ port <integer> ]");
+		}
 	}
 }
 

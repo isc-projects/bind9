@@ -26,6 +26,15 @@
 			supported algorithms, and initializing the new context
 			by copying the static copy. [GL #3795]
 
+6071.	[func]		The use of "port" when configuring query-source,
+			transfer-source, notify-source and parental-source
+			addresses has been deprecated, along with the
+			use-v[46]-udp-ports and avoid-v[46]-udp-ports
+			options. A warning will be logged when these
+			options are used. In a future release, they
+			will be removed. [GL #3781]
+
+
 6069.	[bug]		Detach from the view in zone_shutdown() to
 			release the memory held by the dead view
 			early. [GL #3801]

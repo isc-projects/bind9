@@ -6,8 +6,8 @@ zone <string> [ <class> ] {
 	allow-transfer [ port <integer> ] [ transport <string> ] { <address_match_element>; ... };
 	allow-update-forwarding { <address_match_element>; ... };
 	also-notify [ port <integer> ]  { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	alt-transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ]; // deprecated
-	alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ]; // deprecated
+	alt-transfer-source ( <ipv4_address> | * ) ; // deprecated
+	alt-transfer-source-v6 ( <ipv6_address> | * ) ; // deprecated
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
 	database <string>;
@@ -41,13 +41,13 @@ zone <string> [ <class> ] {
 	multi-master <boolean>;
 	notify ( explicit | master-only | primary-only | <boolean> );
 	notify-delay <integer>;
-	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	notify-source ( <ipv4_address> | * ) ;
+	notify-source-v6 ( <ipv6_address> | * ) ;
 	notify-to-soa <boolean>;
 	nsec3-test-zone <boolean>; // test only
 	parental-agents [ port <integer> ]  { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
-	parental-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	parental-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	parental-source ( <ipv4_address> | * ) ;
+	parental-source-v6 ( <ipv6_address> | * ) ;
 	primaries [ port <integer> ]  { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	request-expire <boolean>;
 	request-ixfr <boolean>;
@@ -55,8 +55,8 @@ zone <string> [ <class> ] {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ];
-	transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
-	transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+	transfer-source ( <ipv4_address> | * ) ;
+	transfer-source-v6 ( <ipv6_address> | * ) ;
 	try-tcp-refresh <boolean>;
 	update-check-ksk <boolean>;
 	use-alt-transfer-source <boolean>; // deprecated

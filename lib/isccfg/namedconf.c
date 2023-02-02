@@ -1214,8 +1214,10 @@ static cfg_type_t cfg_type_fstrm_model = {
 static cfg_clausedef_t options_clauses[] = {
 	{ "answer-cookie", &cfg_type_boolean, 0 },
 	{ "automatic-interface-scan", &cfg_type_boolean, 0 },
-	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
-	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
+	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist,
+	  CFG_CLAUSEFLAG_DEPRECATED },
+	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist,
+	  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "bindkeys-file", &cfg_type_qstring, 0 },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "cookie-algorithm", &cfg_type_cookiealg, 0 },
@@ -1345,8 +1347,10 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "update-quota", &cfg_type_uint32, 0 },
 	{ "use-id-pool", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "use-ixfr", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
-	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
+	{ "use-v4-udp-ports", &cfg_type_bracketed_portlist,
+	  CFG_CLAUSEFLAG_DEPRECATED },
+	{ "use-v6-udp-ports", &cfg_type_bracketed_portlist,
+	  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -3194,6 +3198,12 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
 			{
 				/* read "port" */
+				if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0)
+				{
+					cfg_parser_warning(
+						pctx, 0,
+						"token 'port' is deprecated");
+				}
 				CHECK(cfg_gettoken(pctx, 0));
 				CHECK(cfg_parse_rawport(pctx, CFG_ADDR_WILDOK,
 							&port));
@@ -3264,7 +3274,7 @@ static void
 doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const unsigned int *flagp = type->of;
 
-	cfg_print_cstr(pctx, "( ( [ address ] ( ");
+	cfg_print_cstr(pctx, "[ address ] ( ");
 	if ((*flagp & CFG_ADDR_V4OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv4_address>");
 	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
@@ -3272,16 +3282,7 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 	} else {
 		UNREACHABLE();
 	}
-	cfg_print_cstr(pctx, " | * ) [ port ( <integer> | * ) ] ) | "
-			     "( [ [ address ] ( ");
-	if ((*flagp & CFG_ADDR_V4OK) != 0) {
-		cfg_print_cstr(pctx, "<ipv4_address>");
-	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
-		cfg_print_cstr(pctx, "<ipv6_address>");
-	} else {
-		UNREACHABLE();
-	}
-	cfg_print_cstr(pctx, " | * ) ] port ( <integer> | * ) ) )");
+	cfg_print_cstr(pctx, " | * )");
 }
 
 static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK |
@@ -3309,7 +3310,7 @@ static cfg_type_t cfg_type_querysource = { "querysource",     NULL,
  * which is gratuitously interpreted as the IPv4 wildcard address.
  */
 static unsigned int controls_sockaddr_flags = CFG_ADDR_V4OK | CFG_ADDR_V6OK |
-					      CFG_ADDR_WILDOK;
+					      CFG_ADDR_WILDOK | CFG_ADDR_PORTOK;
 static cfg_type_t cfg_type_controls_sockaddr = {
 	"controls_sockaddr", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr,    &cfg_rep_sockaddr,	 &controls_sockaddr_flags
@@ -3562,13 +3563,13 @@ static cfg_type_t cfg_type_logfile = { "log_file",     parse_logfile,
 				       print_logfile,  doc_logfile,
 				       &cfg_rep_tuple, logfile_fields };
 
-/*% An IPv4 address with optional port, "*" accepted as wildcard. */
+/*% An IPv4 address, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr4wild = {
 	"sockaddr4wild",  cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr4wild_flags
 };
 
-/*% An IPv6 address with optional port, "*" accepted as wildcard. */
+/*% An IPv6 address, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr6wild = {
 	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr,  &sockaddr6wild_flags

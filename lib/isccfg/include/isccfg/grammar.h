@@ -270,6 +270,7 @@ struct cfg_parser {
 #define CFG_ADDR_V6OK	    0x00000004
 #define CFG_ADDR_WILDOK	    0x00000008
 #define CFG_ADDR_DSCPOK	    0x00000010
+#define CFG_ADDR_PORTOK	    0x00000020
 #define CFG_ADDR_MASK	    (CFG_ADDR_V6OK | CFG_ADDR_V4OK)
 /*@}*/
 
