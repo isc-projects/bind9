@@ -385,7 +385,7 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	dns_dispatchmgr_t *mgr = disp->mgr;
 	unsigned int nports;
 	in_port_t *ports = NULL;
-	in_port_t port;
+	in_port_t port = *portp;
 
 	if (resp->retries++ > 5) {
 		return (ISC_R_FAILURE);
@@ -405,11 +405,12 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 	resp->local = disp->local;
 	resp->peer = *dest;
 
-	port = ports[isc_random_uniform(nports)];
-	isc_sockaddr_setport(&resp->local, port);
+	if (port == 0) {
+		port = ports[isc_random_uniform(nports)];
+		isc_sockaddr_setport(&resp->local, port);
+		*portp = port;
+	}
 	resp->port = port;
-
-	*portp = port;
 
 	return (ISC_R_SUCCESS);
 }
@@ -1449,7 +1450,7 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 		 dns_dispentry_t **respp) {
 	dns_dispentry_t *resp = NULL;
 	dns_qid_t *qid = NULL;
-	in_port_t localport = 0;
+	in_port_t dispport, localport = 0;
 	dns_messageid_t id;
 	unsigned int bucket;
 	bool ok = false;
@@ -1474,8 +1475,12 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 
 	qid = disp->mgr->qid;
 
-	resp = isc_mem_get(disp->mgr->mctx, sizeof(*resp));
+	dispport = isc_sockaddr_getport(&disp->local);
+	if (dispport != 0) {
+		localport = dispport;
+	}
 
+	resp = isc_mem_get(disp->mgr->mctx, sizeof(*resp));
 	*resp = (dns_dispentry_t){
 		.port = localport,
 		.timeout = timeout,
