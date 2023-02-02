@@ -202,6 +202,10 @@ grep "sending notify to 10.53.0.5#[0-9]* : TSIG (b)" ns5/named.run > /dev/null |
 grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null || ret=1
 test_end
 
+test_start "checking notify-source uses port option correctly"
+grep "10.53.0.2#${EXTRAPORT2}: received notify for zone 'x1'" ns3/named.run > /dev/null || ret=1
+test_end
+
 # notify messages were sent to unresponsive 10.53.10.53 during the tests
 # above, which should time out at some point; we need to wait for them to
 # appear in the logs in case the tests run faster than the notify timeouts
