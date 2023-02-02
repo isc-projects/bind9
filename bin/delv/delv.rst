@@ -235,8 +235,8 @@ assign values to options like the timeout interval. They have the form
    This option toggles name server mode. When this option is in use,
    the ``delv`` process instantiates a full recursive resolver, and uses
    that to look up the requested query name and type. Turning on this
-   option also activates ``+mtrace`` and ``+rtrace``, so that every
-   iterative query will be logged, including the full response messages
+   option also activates ``+mtrace``, ``+strace`` and ``+rtrace``, so that
+   every iterative query will be logged, including the full response messages
    from each authoritatve server.  These logged messages will be written
    to ``stdout`` rather than ``stderr`` as usual, so that the full trace
    can be captured more easily.
@@ -253,11 +253,11 @@ assign values to options like the timeout interval. They have the form
 
 .. option:: +rtrace, +nortrace
 
-   This option toggles resolver fetch logging. This reports the name and type of each
-   query sent by :program:`delv` in the process of carrying out the resolution
-   and validation process, including the original query
-   and all subsequent queries to follow CNAMEs and to establish a chain
-   of trust for DNSSEC validation.
+   This option toggles resolver fetch logging. This reports the name and
+   type of each query sent by :program:`delv` in the process of carrying
+   out the resolution and validation process, including the original query
+   and all subsequent queries to follow CNAMEs and to establish a chain of
+   trust for DNSSEC validation.
 
    This is equivalent to setting the debug level to 1 in the "resolver"
    logging category. Setting the systemwide debug level to 1 using the
@@ -266,13 +266,25 @@ assign values to options like the timeout interval. They have the form
 
 .. option:: +mtrace, +nomtrace
 
-   This option toggles message logging. This produces a detailed dump of the
-   responses received by :program:`delv` in the process of carrying out the
-   resolution and validation process.
+   This option toggles logging of messages received. This produces
+   a detailed dump of the responses received by :program:`delv` in the
+   process of carrying out the resolution and validation process.
 
    This is equivalent to setting the debug level to 10 for the "packets"
    module of the "resolver" logging category. Setting the systemwide
    debug level to 10 using the :option:`-d` option produces the same
+   output, but affects other logging categories as well.
+
+.. option:: +strace, +nostrace
+
+   This option toggles logging of messages sent. This produces a detailed
+   dump of the queries sent by :program:`delv` in the process of carrying
+   out the resolution and validation process. Turning on this option 
+   also activates ``+mtrace``.
+
+   This is equivalent to setting the debug level to 11 for the "packets"
+   module of the "resolver" logging category. Setting the systemwide
+   debug level to 11 using the :option:`-d` option produces the same
    output, but affects other logging categories as well.
 
 .. option:: +vtrace, +novtrace

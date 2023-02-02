@@ -129,7 +129,7 @@ static bool showcomments = true, showdnssec = true, showtrust = true,
 	    yaml = false, fulltrace = false;
 
 static bool resolve_trace = false, validator_trace = false,
-	    message_trace = false;
+	    message_trace = false, send_trace = false;
 
 static bool use_ipv4 = true, use_ipv6 = true;
 
@@ -228,6 +228,8 @@ usage(void) {
 		"                 +[no]short          (Short form answer)\n"
 		"                 +[no]split=##       (Split hex/base64 fields "
 		"into chunks)\n"
+		"                 +[no]strace         (Trace messages "
+		"sent)\n"
 		"                 +[no]tcp            (TCP mode)\n"
 		"                 +[no]ttl            (Control display of ttls "
 		"in records)\n"
@@ -307,6 +309,7 @@ setup_logging(FILE *errout) {
 	isc_result_t result;
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;
+	int packetlevel = 10;
 
 	isc_log_create(mctx, &lctx, &logconfig);
 	isc_log_registercategories(lctx, categories);
@@ -359,9 +362,12 @@ setup_logging(FILE *errout) {
 		}
 	}
 
-	if (message_trace && loglevel < 10) {
+	if (send_trace) {
+		packetlevel = 11;
+	}
+	if ((message_trace || send_trace) && loglevel < packetlevel) {
 		isc_log_createchannel(logconfig, "messages", ISC_LOG_TOFILEDESC,
-				      ISC_LOG_DEBUG(10), &destination,
+				      ISC_LOG_DEBUG(packetlevel), &destination,
 				      ISC_LOG_PRINTPREFIX);
 
 		result = isc_log_usechannel(logconfig, "messages",
@@ -1165,6 +1171,7 @@ plus_option(char *option) {
 	case 'm':
 		switch (cmd[1]) {
 		case 't': /* mtrace */
+			FULLCHECK("mtrace");
 			message_trace = state;
 			if (state) {
 				resolve_trace = state;
@@ -1185,6 +1192,7 @@ plus_option(char *option) {
 			fulltrace = state;
 			if (state) {
 				message_trace = state;
+				send_trace = state;
 				resolve_trace = state;
 				logfp = stdout;
 			}
@@ -1260,6 +1268,13 @@ plus_option(char *option) {
 			}
 			if (result != ISC_R_SUCCESS) {
 				fatal("Couldn't parse split");
+			}
+			break;
+		case 't': /* strace */
+			FULLCHECK("strace");
+			send_trace = state;
+			if (state) {
+				message_trace = state;
 			}
 			break;
 		default:
