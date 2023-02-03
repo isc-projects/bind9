@@ -62,6 +62,9 @@ Bug Fixes
 - Pointing :any:`parental-agents` to a resolver did not work because the
   RD bit was not set on DS requests. This has been fixed. :gl:`#3783`
 
+- Building BIND 9 failed when the ``--enable-dnsrps`` switch for
+  ``./configure`` was used. This has been fixed. :gl:`#3827`
+
 Known Issues
 ~~~~~~~~~~~~
 
