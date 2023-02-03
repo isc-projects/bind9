@@ -15,12 +15,12 @@ Notes for BIND 9.16.38
 Bug Fixes
 ~~~~~~~~~
 
-- A constant stream of zone additions and deletions via ``rndc reconfig`` could
-  cause increased memory consumption due to delayed cleaning of view memory.
-  This has been fixed. :gl:`#3801`
+- A constant stream of zone additions and deletions via ``rndc
+  reconfig`` could cause increased memory consumption due to delayed
+  cleaning of view memory. This has been fixed. :gl:`#3801`
 
-- Improve the speed of the message digest algorithms (MD5, SHA-1,
-  SHA-2) and NSEC3 hashing. :gl:`#3795`
+- The speed of the message digest algorithms (MD5, SHA-1, SHA-2), and of
+  NSEC3 hashing, has been improved. :gl:`#3795`
 
 Known Issues
 ~~~~~~~~~~~~
