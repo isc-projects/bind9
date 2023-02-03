@@ -1,3 +1,9 @@
+6094.	[bug]		Building against (or running with) libuv versions
+			1.35.0 and 1.36.0 is now a fatal error.  The rules for
+			mixing and matching compile-time and run-time libuv
+			versions have been tightened for libuv versions between
+			1.35.0 and 1.40.0. [GL #3840]
+
 6092.	[bug]		dnssec-cds failed to cleanup properly. [GL #3831]
 
 6089.	[bug]		Source ports configured for query-source,
