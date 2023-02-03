@@ -1212,7 +1212,7 @@ static cfg_clausedef_t options_clauses[] = {
 	  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist,
 	  CFG_CLAUSEFLAG_DEPRECATED },
-	{ "bindkeys-file", &cfg_type_qstring, 0 },
+	{ "bindkeys-file", &cfg_type_qstring, CFG_CLAUSEFLAG_TESTONLY },
 	{ "blackhole", &cfg_type_bracketed_aml, 0 },
 	{ "cookie-algorithm", &cfg_type_cookiealg, 0 },
 	{ "cookie-secret", &cfg_type_sstring, CFG_CLAUSEFLAG_MULTI },

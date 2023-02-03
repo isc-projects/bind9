@@ -184,7 +184,6 @@ rst_epilog = """
 .. |rndc_conf| replace:: ``/etc/rndc.conf``
 .. |rndc_key| replace:: ``/etc/rndc.key``
 .. |named_conf| replace:: ``/etc/named.conf``
-.. |bind_keys| replace:: ``/etc/bind.keys``
 .. |named_pid| replace:: ``/run/named.pid``
 .. |session_key| replace:: ``/run/session.key``
 """

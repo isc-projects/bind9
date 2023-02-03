@@ -14,7 +14,6 @@ LF = \n
 RNDC_CONF = .. |rndc_conf| replace:: ``$(sysconfdir)/rndc.conf``
 RNDC_KEY = .. |rndc_key| replace:: ``$(sysconfdir)/rndc.key``
 NAMED_CONF = .. |named_conf| replace:: ``$(sysconfdir)/named.conf``
-BIND_KEYS = .. |bind_keys| replace:: ``$(sysconfdir)/bind.keys``
 NAMED_PID = .. |named_pid| replace:: ``$(runstatedir)/named.pid``
 SESSION_KEY = .. |session_key| replace:: ``$(runstatedir)/session.key``
 

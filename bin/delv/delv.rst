@@ -102,20 +102,21 @@ Options
 
 .. option:: -a anchor-file
 
-   This option specifies a file from which to read DNSSEC trust anchors. The default
-   is |bind_keys|, which is included with BIND 9 and contains one
-   or more trust anchors for the root zone (".").
+   This option specifies a file from which to read an alternate
+   DNSSEC root zone trust anchor.
 
-   Keys that do not match the root zone name are ignored. An alternate
-   key name can be specified using the :option:`+root` option.
+   By default, keys that do not match the root zone name (`.`) are
+   ignored. If an alternate key name is desired, it can be
+   specified using the :option:`+root` option.
 
-   Note: When reading the trust anchor file, :program:`delv` treats ``trust-anchors``,
-   ``initial-key``, and ``static-key`` identically. That is, for a managed key,
-   it is the *initial* key that is trusted; :rfc:`5011` key management is not
-   supported. :program:`delv` does not consult the managed-keys database maintained by
-   :iscman:`named`, which means that if either of the keys in |bind_keys| is
-   revoked and rolled over, |bind_keys| must be updated to
-   use DNSSEC validation in :program:`delv`.
+   Note: When reading trust anchors, :program:`delv` treats
+   ``trust-anchors``, ``initial-key``, and ``static-key`` identically. That
+   is, for a managed key, it is the *initial* key that is trusted;
+   :rfc:`5011` key management is not supported. :program:`delv` does not
+   consult the managed-keys database maintained by :iscman:`named`. This
+   means that if the default key built in to :program:`delv` is revoked,
+   :program:`delv` must be updated to a newer version in order to continue
+   validating.
 
 .. option:: -b address
 
@@ -353,8 +354,6 @@ assign values to options like the timeout interval. They have the form
 
 Files
 ~~~~~
-
-|bind_keys|
 
 ``/etc/resolv.conf``
 

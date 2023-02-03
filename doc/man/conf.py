@@ -201,7 +201,6 @@ rst_epilog = """
 .. |rndc_conf| replace:: ``@sysconfdir@/rndc.conf``
 .. |rndc_key| replace:: ``@sysconfdir@/rndc.key``
 .. |named_conf| replace:: ``@sysconfdir@/named.conf``
-.. |bind_keys| replace:: ``@sysconfdir@/bind.keys``
 .. |named_pid| replace:: ``@runstatedir@/named.pid``
 .. |session_key| replace:: ``@runstatedir@/session.key``
 """

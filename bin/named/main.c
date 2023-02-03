@@ -667,7 +667,6 @@ printversion(bool verbose) {
 	printf("default paths:\n");
 	printf("  named configuration:  %s\n", named_g_conffile);
 	printf("  rndc configuration:   %s\n", rndcconf);
-	printf("  DNSSEC root key:      %s\n", named_g_defaultbindkeys);
 	printf("  nsupdate session key: %s\n", named_g_defaultsessionkeyfile);
 	printf("  named PID file:       %s\n", named_g_defaultpidfile);
 	printf("  named lock file:      %s\n", named_g_defaultlockfile);

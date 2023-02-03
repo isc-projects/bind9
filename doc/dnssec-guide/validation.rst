@@ -562,12 +562,6 @@ validated and the authenticated data (``ad``) bit is set, and the response
 is sent to the client; if it does not verify, a SERVFAIL is returned to
 the client.
 
-.. [#]
-   BIND technically includes two copies of the root key: one is in
-   ``bind.keys.h`` and is built into the executable, and one is in
-   ``bind.keys`` as a :any:`trust-anchors` statement. The two copies of the
-   key are identical.
-
 .. _trust_anchors_description:
 
 Trust Anchors
@@ -650,9 +644,8 @@ anchor) configured. How did it get here, and how do we maintain it?
 If you followed the recommendation in
 :ref:`easy_start_guide_for_recursive_servers`, by setting
 :any:`dnssec-validation` to *auto*, there is nothing left to do.
-BIND already includes a copy of the root key (in the file
-``bind.keys``), and automatically updates it when the root key
-changes. [#]_ It looks something like this:
+BIND already includes a copy of the root key, and automatically updates it
+when the root key changes. [#]_ It looks something like this:
 
 ::
 
@@ -677,10 +670,8 @@ to *yes* rather than *auto*:
        dnssec-validation yes;
    };
 
-Then, download the root key manually from a trustworthy source, such as
-`<https://www.isc.org/bind-keys>`__. Finally, take the root key you
-manually downloaded and put it into a :any:`trust-anchors` statement as
-shown below:
+Then, download the root key manually from a trustworthy source,
+and put it into a :any:`trust-anchors` statement as shown below:
 
 ::
 
@@ -695,16 +686,15 @@ shown below:
                    R1AkUTV74bU=";
    };
 
-While this :any:`trust-anchors` statement and the one in the ``bind.keys``
-file appear similar, the definition of the key in ``bind.keys`` has the
-``initial-key`` modifier, whereas in the statement in the configuration
-file, that is replaced by ``static-key``. There is an important
-difference between the two: a key defined with ``static-key`` is always
-trusted until it is deleted from the configuration file. With the
-``initial-key`` modified, keys are only trusted once: for as long as it
-takes to load the managed key database and start the key maintenance
-process. Thereafter, BIND uses the managed keys database
-(``managed-keys.bind.jnl``) as the source of key information.
+While this :any:`trust-anchors` statement looks similar to the built-in
+version above, the built-in key has the ``initial-key`` modifier, whereas
+in the statement in the configuration file, that is replaced by
+``static-key``. There is an important difference between the two: a key
+defined with ``static-key`` is always trusted until it is deleted from the
+configuration file. With the ``initial-key`` modifier, keys are only
+trusted once: for as long as it takes to load the managed key database and
+start the key maintenance process. Thereafter, BIND uses the managed keys
+database (``managed-keys.bind.jnl``) as the source of key information.
 
 .. warning::
 
