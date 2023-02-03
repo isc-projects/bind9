@@ -205,8 +205,6 @@ isc__nm_threadpool_initialize(uint32_t workers) {
 #define MINIMAL_UV_VERSION UV_VERSION(1, 40, 0)
 #elif HAVE_DECL_UV_UDP_RECVMMSG
 #define MINIMAL_UV_VERSION UV_VERSION(1, 37, 0)
-#elif HAVE_DECL_UV_UDP_MMSG_CHUNK
-#define MINIMAL_UV_VERSION UV_VERSION(1, 35, 0)
 #else
 #define MINIMAL_UV_VERSION UV_VERSION(1, 0, 0)
 #endif
