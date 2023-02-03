@@ -22,6 +22,9 @@ Bug Fixes
 - The speed of the message digest algorithms (MD5, SHA-1, SHA-2), and of
   NSEC3 hashing, has been improved. :gl:`#3795`
 
+- Building BIND 9 failed when the ``--enable-dnsrps`` switch for
+  ``./configure`` was used. This has been fixed. :gl:`#3827`
+
 Known Issues
 ~~~~~~~~~~~~
 
