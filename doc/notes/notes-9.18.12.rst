@@ -12,20 +12,8 @@
 Notes for BIND 9.18.12
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- None.
 
 - Specifying a ``port`` when configuring source addresses (i.e., as
   a parameter to ``query-source``, ``query-source-v6``,
@@ -40,11 +28,6 @@ Removed Features
   Warnings will be logged when any of these options are encountered
   in ``named.conf``.  In a future release, they will be made
   nonfunctional. :gl:`#3781`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
