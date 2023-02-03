@@ -15,7 +15,7 @@
   <xsl:output method="html" indent="yes" version="4.0"/>
   <!-- the version number **below** must match version in bin/named/statschannel.c -->
   <!-- don't forget to update "/xml/v<STATS_XML_VERSION_MAJOR>" in the HTTP endpoints listed below -->
-  <xsl:template match="statistics[@version=&quot;3.13&quot;]">
+  <xsl:template match="statistics[@version=&quot;3.14&quot;]">
     <html>
       <head>
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
