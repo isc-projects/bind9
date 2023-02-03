@@ -15,32 +15,33 @@ Notes for BIND 9.18.12
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- Specifying a ``port`` when configuring source addresses (i.e., as
-  a parameter to ``query-source``, ``query-source-v6``,
-  ``transfer-source``, ``transfer-source-v6``, ``notify-source``,
-  ``notify-source-v6``, ``parental-source``, and
-  ``parental-source-v6``, or in the ``source`` or ``source-v6``
-  parameters to ``primaries``, ``parental-agents``, ``also-notify``,
-  or ``catalog-zones``) has been deprecated.  In addition, the
-  ``use-v4-udp-ports``, ``use-v6-udp-ports``, ``avoid-v4-udp-ports``,
-  and ``avoid-v6-udp-ports`` options have also been deprecated.
+- Specifying a ``port`` when configuring source addresses (i.e., as an
+  argument to :any:`query-source`, :any:`query-source-v6`,
+  :any:`transfer-source`, :any:`transfer-source-v6`,
+  :any:`notify-source`, :any:`notify-source-v6`, :any:`parental-source`,
+  or :any:`parental-source-v6`, or in the ``source`` or ``source-v6``
+  arguments to :any:`primaries`, :any:`parental-agents`,
+  :any:`also-notify`, or :any:`catalog-zones`) has been deprecated. In
+  addition, the :any:`use-v4-udp-ports`, :any:`use-v6-udp-ports`,
+  :any:`avoid-v4-udp-ports`, and :any:`avoid-v6-udp-ports` options have
+  also been deprecated.
 
-  Warnings will be logged when any of these options are encountered
-  in ``named.conf``.  In a future release, they will be made
-  nonfunctional. :gl:`#3781`
+  Warnings are now logged when any of these options are encountered in
+  ``named.conf``. In a future release, they will be made nonfunctional.
+  :gl:`#3781`
 
 Bug Fixes
 ~~~~~~~~~
 
-- A constant stream of zone additions and deletions via ``rndc reconfig`` could
-  cause increased memory consumption due to delayed cleaning of view memory.
-  This has been fixed. :gl:`#3801`
+- A constant stream of zone additions and deletions via ``rndc
+  reconfig`` could cause increased memory consumption due to delayed
+  cleaning of view memory. This has been fixed. :gl:`#3801`
 
-- Improve the speed of the message digest algorithms (MD5, SHA-1,
-  SHA-2) and NSEC3 hashing. :gl:`#3795`
+- The speed of the message digest algorithms (MD5, SHA-1, SHA-2), and of
+  NSEC3 hashing, has been improved. :gl:`#3795`
 
-- Setting :any:`parental-agents` to a resolver did not work because the RD bit
-  was not set on DS requests. This has been fixed. :gl:`#3783`
+- Pointing :any:`parental-agents` to a resolver did not work because the
+  RD bit was not set on DS requests. This has been fixed. :gl:`#3783`
 
 Known Issues
 ~~~~~~~~~~~~
