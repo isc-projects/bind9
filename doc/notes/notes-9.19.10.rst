@@ -21,10 +21,6 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The Differentiated Services Code Point (DSCP) feature has been
-  removed: configuring DSCP values in ``named.conf`` is now a
-  configuration error. :gl:`#3789`
-
 - Specifying a ``port`` when configuring source addresses (i.e., as an
   argument to :any:`query-source`, :any:`query-source-v6`,
   :any:`transfer-source`, :any:`transfer-source-v6`,
@@ -39,6 +35,10 @@ Removed Features
   Warnings are now logged when any of these options are encountered in
   ``named.conf``. In a future release, they will be made nonfunctional.
   :gl:`#3781`
+
+- The Differentiated Services Code Point (DSCP) feature has been
+  removed: configuring DSCP values in ``named.conf`` is now a
+  configuration error. :gl:`#3789`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
