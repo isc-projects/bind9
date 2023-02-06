@@ -211,15 +211,13 @@ typedef void (*dns_rbtdeleter_t)(void *, void *);
  */
 
 /*%
- * The number of level blocks to allocate at a time.  Currently the maximum
- * number of levels is allocated directly in the structure, but future
- * revisions of this code might have a static initial block with dynamic
- * growth.  Allocating space for 256 levels when the tree is almost never that
- * deep is wasteful, but it's not clear that it matters, since the waste is
- * only 2MB for 1000 concurrently active chains on a system with 64-bit
- * pointers.
+ * The number of level blocks to allocate at a time, same as the maximum
+ * number of labels. Allocating space for 128 levels when the tree is
+ * almost never that deep is wasteful, but it's not clear that it matters,
+ * since the waste is only 1MB for 1000 concurrently active chains on a
+ * system with 64-bit pointers.
  */
-#define DNS_RBT_LEVELBLOCK 254
+#define DNS_RBT_LEVELBLOCK 127
 
 typedef struct dns_rbtnodechain {
 	unsigned int magic;
@@ -231,12 +229,9 @@ typedef struct dns_rbtnodechain {
 	 */
 	dns_rbtnode_t *end;
 	/*%
-	 * The maximum number of labels in a name is 128; bitstrings mean
-	 * a conceptually very large number (which I have not bothered to
-	 * compute) of logical levels because splitting can potentially occur
-	 * at each bit.  However, DNSSEC restricts the number of "logical"
-	 * labels in a name to 255, meaning only 254 pointers are needed
-	 * in the worst case.
+	 * Currently the maximum number of levels is allocated directly in
+	 * the structure, but future revisions of this code might have a
+	 * static initial block with dynamic growth.
 	 */
 	dns_rbtnode_t *levels[DNS_RBT_LEVELBLOCK];
 	/*%

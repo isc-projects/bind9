@@ -1,3 +1,5 @@
+6086.	[cleanup]	Remove some remnants of bitstring labels. [GL !7196]
+
 6085.	[func]		Add isc_time_monotonic() to simplify time measurements.
 			[GL !7468]
 

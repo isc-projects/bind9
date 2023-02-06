@@ -44,14 +44,12 @@ dns_result_torcode(isc_result_t result) {
 	case ISC_R_RANGE:
 	case ISC_R_UNEXPECTEDEND:
 	case DNS_R_BADAAAA:
-	/* case DNS_R_BADBITSTRING: deprecated */
 	case DNS_R_BADCKSUM:
 	case DNS_R_BADCLASS:
 	case DNS_R_BADLABELTYPE:
 	case DNS_R_BADPOINTER:
 	case DNS_R_BADTTL:
 	case DNS_R_BADZONE:
-	/* case DNS_R_BITSTRINGTOOLONG: deprecated */
 	case DNS_R_EXTRADATA:
 	case DNS_R_LABELTOOLONG:
 	case DNS_R_NOREDATA:
