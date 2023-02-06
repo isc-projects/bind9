@@ -125,7 +125,7 @@ static dns_name_t *anchor_name = NULL;
 static dns_master_style_t *style = NULL;
 static dns_fixedname_t qfn;
 
-/* Default bind.keys contents */
+/* Default trust anchors */
 static char anchortext[] = TRUST_ANCHORS;
 
 /*
@@ -812,14 +812,9 @@ setup_dnsseckeys(dns_client_t *client) {
 	const cfg_obj_t *managed_keys = NULL;
 	const cfg_obj_t *trust_anchors = NULL;
 	cfg_obj_t *bindkeys = NULL;
-	const char *filename = anchorfile;
 
 	if (!root_validation) {
 		return (ISC_R_SUCCESS);
-	}
-
-	if (filename == NULL) {
-		filename = SYSCONFDIR "/bind.keys";
 	}
 
 	if (trust_anchor == NULL) {
@@ -832,22 +827,17 @@ setup_dnsseckeys(dns_client_t *client) {
 
 	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
 
-	if (access(filename, R_OK) != 0) {
-		if (anchorfile != NULL) {
+	if (anchorfile != NULL) {
+		if (access(anchorfile, R_OK) != 0) {
 			fatal("Unable to read key file '%s'", anchorfile);
 		}
-	} else {
-		result = cfg_parse_file(parser, filename, &cfg_type_bindkeys,
+
+		result = cfg_parse_file(parser, anchorfile, &cfg_type_bindkeys,
 					&bindkeys);
 		if (result != ISC_R_SUCCESS) {
-			if (anchorfile != NULL) {
-				fatal("Unable to load keys from '%s'",
-				      anchorfile);
-			}
+			fatal("Unable to load keys from '%s'", anchorfile);
 		}
-	}
-
-	if (bindkeys == NULL) {
+	} else {
 		isc_buffer_t b;
 
 		isc_buffer_init(&b, anchortext, sizeof(anchortext) - 1);

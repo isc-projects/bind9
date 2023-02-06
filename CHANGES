@@ -1,3 +1,8 @@
+6088.	[cleanup]	/etc/bind.keys is no longer needed and has been
+			removed from the distribution. named and delv can
+			still load keys from a file for testing purposes,
+			but they no longer do so by default. [GL #3850]
+
 6087.	[cleanup]	Remove support for the `DNS_NAME_DOWNCASE` option to
 			the various dns_*_fromwire() functions. It has long
 			been unused and is unsupported since change 6022.

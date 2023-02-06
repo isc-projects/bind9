@@ -116,20 +116,21 @@ supplied, \fBdelv\fP performs a lookup for an A record.
 .INDENT 0.0
 .TP
 .B \-a anchor\-file
-This option specifies a file from which to read DNSSEC trust anchors. The default
-is \fB@sysconfdir@/bind.keys\fP, which is included with BIND 9 and contains one
-or more trust anchors for the root zone (".").
+This option specifies a file from which to read an alternate
+DNSSEC root zone trust anchor.
 .sp
-Keys that do not match the root zone name are ignored. An alternate
-key name can be specified using the \fI\%+root\fP option.
+By default, keys that do not match the root zone name (\fI\&.\fP) are
+ignored. If an alternate key name is desired, it can be
+specified using the \fI\%+root\fP option.
 .sp
-Note: When reading the trust anchor file, \fBdelv\fP treats \fBtrust\-anchors\fP,
-\fBinitial\-key\fP, and \fBstatic\-key\fP identically. That is, for a managed key,
-it is the \fIinitial\fP key that is trusted; \fI\%RFC 5011\fP key management is not
-supported. \fBdelv\fP does not consult the managed\-keys database maintained by
-\fI\%named\fP, which means that if either of the keys in \fB@sysconfdir@/bind.keys\fP is
-revoked and rolled over, \fB@sysconfdir@/bind.keys\fP must be updated to
-use DNSSEC validation in \fBdelv\fP\&.
+Note: When reading trust anchors, \fBdelv\fP treats
+\fBtrust\-anchors\fP, \fBinitial\-key\fP, and \fBstatic\-key\fP identically. That
+is, for a managed key, it is the \fIinitial\fP key that is trusted;
+\fI\%RFC 5011\fP key management is not supported. \fBdelv\fP does not
+consult the managed\-keys database maintained by \fI\%named\fP\&. This
+means that if the default key built in to \fBdelv\fP is revoked,
+\fBdelv\fP must be updated to a newer version in order to continue
+validating.
 .UNINDENT
 .INDENT 0.0
 .TP
@@ -396,8 +397,6 @@ presentation format.
 This option prints response data in YAML format.
 .UNINDENT
 .SH FILES
-.sp
-\fB@sysconfdir@/bind.keys\fP
 .sp
 \fB/etc/resolv.conf\fP
 .SH SEE ALSO

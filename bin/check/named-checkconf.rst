@@ -32,10 +32,11 @@ errors. If no file is specified,
 |named_conf| is read by default.
 
 Note: files that :iscman:`named` reads in separate parser contexts, such as
-``rndc.key`` and ``bind.keys``, are not automatically read by
-:program:`named-checkconf`. Configuration errors in these files may cause
-:iscman:`named` to fail to run, even if :program:`named-checkconf` was successful.
-However, :program:`named-checkconf` can be run on these files explicitly.
+``rndc.conf`` or ``rndc.key``, are not automatically read by
+:program:`named-checkconf`.  Configuration errors in these files may cause
+:iscman:`named` to fail to run, even if :program:`named-checkconf` was
+successful.  However, :program:`named-checkconf` can be run on these files
+explicitly.
 
 Options
 ~~~~~~~

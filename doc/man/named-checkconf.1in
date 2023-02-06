@@ -41,10 +41,11 @@ errors. If no file is specified,
 \fB@sysconfdir@/named.conf\fP is read by default.
 .sp
 Note: files that \fI\%named\fP reads in separate parser contexts, such as
-\fBrndc.key\fP and \fBbind.keys\fP, are not automatically read by
-\fBnamed\-checkconf\fP\&. Configuration errors in these files may cause
-\fI\%named\fP to fail to run, even if \fBnamed\-checkconf\fP was successful.
-However, \fBnamed\-checkconf\fP can be run on these files explicitly.
+\fBrndc.conf\fP or \fBrndc.key\fP, are not automatically read by
+\fBnamed\-checkconf\fP\&.  Configuration errors in these files may cause
+\fI\%named\fP to fail to run, even if \fBnamed\-checkconf\fP was
+successful.  However, \fBnamed\-checkconf\fP can be run on these files
+explicitly.
 .SH OPTIONS
 .INDENT 0.0
 .TP

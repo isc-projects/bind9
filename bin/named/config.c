@@ -49,7 +49,6 @@ static char defaultconf[] = "\
 options {\n\
 	answer-cookie true;\n\
 	automatic-interface-scan yes;\n\
-	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n\
 	cookie-algorithm siphash24;\n\
 #	directory <none>\n\

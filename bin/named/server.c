@@ -8510,45 +8510,45 @@ load_configuration(const char *filename, named_server_t *server,
 #endif
 
 	/*
-	 * If bind.keys exists, load it.  If "dnssec-validation auto"
-	 * is turned on, the root key found there will be used as a
-	 * default trust anchor.
+	 * If "dnssec-validation auto" is turned on, the root key
+	 * will be used as a default trust anchor. The root key
+	 * is built in, but if bindkeys-file is set, then it will
+	 * be overridden with the key in that file.
 	 */
 	obj = NULL;
-	result = named_config_get(maps, "bindkeys-file", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	setstring(server, &server->bindkeysfile, cfg_obj_asstring(obj));
-	INSIST(server->bindkeysfile != NULL);
-
-	if (access(server->bindkeysfile, R_OK) == 0) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "reading built-in trust anchors "
-			      "from file '%s'",
-			      server->bindkeysfile);
-
-		result = cfg_parser_create(named_g_mctx, named_g_lctx,
-					   &bindkeys_parser);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_config;
-		}
-
-		result = cfg_parse_file(bindkeys_parser, server->bindkeysfile,
-					&cfg_type_bindkeys, &bindkeys);
-		if (result != ISC_R_SUCCESS) {
+	(void)named_config_get(maps, "bindkeys-file", &obj);
+	if (obj != NULL) {
+		setstring(server, &server->bindkeysfile, cfg_obj_asstring(obj));
+		INSIST(server->bindkeysfile != NULL);
+		if (access(server->bindkeysfile, R_OK) != 0) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "unable to parse '%s' error '%s'; using "
-				      "built-in keys instead",
-				      server->bindkeysfile,
-				      isc_result_totext(result));
+				      "unable to open '%s'; using built-in "
+				      "keys instead",
+				      server->bindkeysfile);
+		} else {
+			result = cfg_parser_create(named_g_mctx, named_g_lctx,
+						   &bindkeys_parser);
+			if (result != ISC_R_SUCCESS) {
+				goto cleanup_config;
+			}
+
+			result = cfg_parse_file(bindkeys_parser,
+						server->bindkeysfile,
+						&cfg_type_bindkeys, &bindkeys);
+			if (result != ISC_R_SUCCESS) {
+				isc_log_write(
+					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+					NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+					"unable to parse '%s' "
+					"error '%s'; using "
+					"built-in keys instead",
+					server->bindkeysfile,
+					isc_result_totext(result));
+			}
 		}
 	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "unable to open '%s'; using built-in keys "
-			      "instead",
-			      server->bindkeysfile);
+		setstring(server, &server->bindkeysfile, NULL);
 	}
 
 	/*
@@ -10270,7 +10270,6 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	*server = (named_server_t){
 		.mctx = mctx,
 		.statsfile = isc_mem_strdup(mctx, "named.stats"),
-		.bindkeysfile = isc_mem_strdup(mctx, named_g_defaultbindkeys),
 		.dumpfile = isc_mem_strdup(mctx, "named_dump.db"),
 		.secrootsfile = isc_mem_strdup(mctx, "named.secroots"),
 		.recfile = isc_mem_strdup(mctx, "named.recursing"),
@@ -10382,10 +10381,13 @@ named_server_destroy(named_server_t **serverp) {
 	}
 
 	isc_mem_free(server->mctx, server->statsfile);
-	isc_mem_free(server->mctx, server->bindkeysfile);
 	isc_mem_free(server->mctx, server->dumpfile);
 	isc_mem_free(server->mctx, server->secrootsfile);
 	isc_mem_free(server->mctx, server->recfile);
+
+	if (server->bindkeysfile != NULL) {
+		isc_mem_free(server->mctx, server->bindkeysfile);
+	}
 
 	if (server->version != NULL) {
 		isc_mem_free(server->mctx, server->version);

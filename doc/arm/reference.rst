@@ -1323,7 +1323,7 @@ default is used.
    found when performing a dynamic update of secure zones, if different
    than the current working directory. (Note that this option has no
    effect on the paths for files containing non-DNSSEC keys such as
-   ``bind.keys``, ``rndc.key``, or ``session.key``.)
+   ``rndc.key``, or ``session.key``.)
 
 .. namedconf:statement:: lmdb-mapsize
    :tags: server
@@ -1515,7 +1515,7 @@ default is used.
 
    This is the pathname of a file to override the built-in trusted keys provided
    by :iscman:`named`. See the discussion of :any:`dnssec-validation` for
-   details. If not specified, the default is |bind_keys|.
+   details. This is intended for server testing.
 
 .. namedconf:statement:: secroots-file
    :tags: dnssec
@@ -2609,32 +2609,19 @@ Boolean Options
    :any:`managed-keys` or :any:`trusted-keys` statements, both deprecated). If
    there is no configured trust anchor, validation does not take place.
 
-   If set to ``no``, DNSSEC validation is disabled.
+   If set to ``no``, DNSSEC validation is disabled. (Note: the resolver
+   will still set the DO bit in outgoing queries indicating that it can
+   accept DNSSEC responses, even if :any:`dnssec-validation` is disabled.)
 
    The default is ``auto``, unless BIND is built with
    ``configure --disable-auto-validation``, in which case the default is
    ``yes``.
 
-   The default root trust anchor is stored in the file ``bind.keys``.
-   :iscman:`named` loads that key at startup if :any:`dnssec-validation` is
-   set to ``auto``. A copy of the file is installed along with BIND 9,
-   and is current as of the release date. If the root key expires, a new
-   copy of ``bind.keys`` can be downloaded from
-   https://www.isc.org/bind-keys.
-
-   (To prevent problems if ``bind.keys`` is not found, the current trust
-   anchor is also compiled in :iscman:`named`. Relying on this is not
-   recommended, however, as it requires :iscman:`named` to be recompiled with
-   a new key when the root key expires.)
-
-   .. note:: :iscman:`named` loads *only* the root key from ``bind.keys``. The file
-         cannot be used to store keys for other zones. The root key in
-         ``bind.keys`` is ignored if ``dnssec-validation auto`` is not in
-         use.
-
-         Whenever the resolver sends out queries to an EDNS-compliant
-         server, it always sets the DO bit indicating it can support DNSSEC
-         responses, even if :any:`dnssec-validation` is off.
+   The default root trust anchor is compiled into :iscman:`named` 
+   and is current as of the release date. If the root key changes, a
+   running BIND server will detect this and roll smoothly to the new
+   key, but newly-installed servers will be unable to start validation,
+   so BIND must be upgraded to a newer version.
 
 .. namedconf:statement:: validate-except
    :tags: dnssec
@@ -6164,10 +6151,11 @@ simply moves on. The key specified in the :any:`trust-anchors` statement is
 not used to validate answers; it is superseded by the key or keys stored
 in the managed-keys database.
 
-The next time :iscman:`named` runs after an ``initial-key`` or ``initial-ds`` has been *removed*
-from the :any:`trust-anchors` statement (or changed to a ``static-key`` or ``static-ds``), the
-corresponding zone is removed from the managed-keys database, and
-:rfc:`5011` key maintenance is no longer used for that domain.
+The next time :iscman:`named` runs after an ``initial-key`` or
+``initial-ds`` has been *removed* from the :any:`trust-anchors` statement
+(or changed to a ``static-key`` or ``static-ds``), the corresponding zone
+is removed from the managed-keys database, and :rfc:`5011` key maintenance
+is no longer used for that domain.
 
 In the current implementation, the managed-keys database is stored as a
 master-format zone file.
@@ -6189,12 +6177,12 @@ others, the working directory should be always be writable by
 :iscman:`named`.)
 
 If the :any:`dnssec-validation` option is set to ``auto``, :iscman:`named`
-automatically initializes an ``initial-key`` for the root zone. The key
-that is used to initialize the key-maintenance process is stored in
-``bind.keys``; the location of this file can be overridden with the
-:any:`bindkeys-file` option. As a fallback in the event no ``bind.keys``
-can be found, the initializing key is also compiled directly into
-:iscman:`named`.
+automatically sets up an ``initial-key`` for the root zone. This
+initializing key is built in to :iscman:`named`, and is current as of the
+release date.  When the root zone key changes, a running server will detect
+the change and roll to the new key, but newly-installed servers being run
+for the first time will need to be from a recent enough version of BIND to
+have been built with the current key.
 
 :any:`dnssec-policy` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
