@@ -9865,6 +9865,7 @@ view_loaded(void *arg) {
 	if (isc_refcount_decrement(&zl->refs) == 1) {
 		named_server_t *server = zl->server;
 		bool reconfig = zl->reconfig;
+		dns_view_t *view = NULL;
 
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
@@ -9883,6 +9884,28 @@ view_loaded(void *arg) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
 				      "all zones loaded");
+		}
+
+		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
+		     view = ISC_LIST_NEXT(view, link))
+		{
+			if (view->managed_keys != NULL) {
+				result = dns_zone_synckeyzone(
+					view->managed_keys);
+				if (result != ISC_R_SUCCESS) {
+					isc_log_write(
+						named_g_lctx,
+						DNS_LOGCATEGORY_DNSSEC,
+						DNS_LOGMODULE_DNSSEC,
+						ISC_LOG_ERROR,
+						"failed to initialize "
+						"managed-keys for view %s "
+						"(%s): DNSSEC validation is "
+						"at risk",
+						view->name,
+						isc_result_totext(result));
+				}
+			}
 		}
 
 		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
