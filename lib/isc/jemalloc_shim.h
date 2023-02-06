@@ -66,7 +66,7 @@ mallocx(size_t size, int flags) {
 	INSIST(ptr != NULL);
 
 	if ((flags & MALLOCX_ZERO) != 0) {
-		memset(ptr, 0, size);
+		memset(ptr, 0, sallocx(ptr, flags));
 	}
 
 	return (ptr);
@@ -83,7 +83,7 @@ sdallocx(void *ptr, size_t size, int flags) {
 static inline void *
 rallocx(void *ptr, size_t size, int flags) {
 	void *new_ptr;
-	size_t old_size;
+	size_t old_size, new_size;
 
 	REQUIRE(size != 0);
 
@@ -94,8 +94,12 @@ rallocx(void *ptr, size_t size, int flags) {
 	new_ptr = realloc(ptr, size);
 	INSIST(new_ptr != NULL);
 
-	if ((flags & MALLOCX_ZERO) != 0 && size > old_size) {
-		memset((uint8_t *)new_ptr + old_size, 0, size - old_size);
+	if ((flags & MALLOCX_ZERO) != 0) {
+		new_size = sallocx(new_ptr, flags);
+		if (new_size > old_size) {
+			memset((uint8_t *)new_ptr + old_size, 0,
+			       new_size - old_size);
+		}
 	}
 
 	return (new_ptr);
