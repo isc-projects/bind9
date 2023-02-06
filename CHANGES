@@ -1,3 +1,6 @@
+6085.	[func]		Add isc_time_monotonic() to simplify time measurements.
+			[GL !7468]
+
 6084.	[bug]		When BIND was built without jemalloc, the allocator flag
 			ISC_MEM_ZERO could return non-zero memory. [GL #3845]
 

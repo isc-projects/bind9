@@ -120,6 +120,18 @@ isc_time_now(isc_time_t *t) {
 	return time_now(t, CLOCKSOURCE);
 }
 
+isc_nanosecs_t
+isc_time_monotonic(void) {
+	struct timespec ts;
+
+	RUNTIME_CHECK(clock_gettime(CLOCK_MONOTONIC, &ts) != -1);
+
+	return (isc_nanosecs_fromtime(((isc_time_t){
+		.seconds = ts.tv_sec,
+		.nanoseconds = ts.tv_nsec,
+	})));
+}
+
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	struct timespec ts;

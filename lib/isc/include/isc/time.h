@@ -76,9 +76,34 @@ ISC_LANG_BEGINDECLS
  *\li	'i' is a valid pointer.
  */
 
+#define isc_interval_fromnanosecs(ns) isc_time_fromnanosecs(ns)
+#define isc_interval_tonanosecs(i)    isc_time_tonanosecs(i)
+
 /***
  *** Absolute Times
  ***/
+
+/*%
+ * A linear count of nanoseconds.
+ *
+ * 64 bits of nanoseconds is more than 500 years.
+ */
+typedef uint64_t isc_nanosecs_t;
+
+/*%
+ * Convert linear nanoseconds to an isc_time_t
+ */
+#define isc_nanosecs_fromtime(time) \
+	(NS_PER_SEC * (isc_nanosecs_t)(time).seconds + (time).nanoseconds)
+
+/*%
+ * Construct an isc_time_t from linear nanoseconds
+ */
+#define isc_time_fromnanosecs(ns)                 \
+	((isc_time_t){                            \
+		.seconds = (ns) / NS_PER_SEC,     \
+		.nanoseconds = (ns) % NS_PER_SEC, \
+	})
 
 /*%
  * The contents of this structure are private, and MUST NOT be accessed
@@ -134,6 +159,12 @@ isc_time_isepoch(const isc_time_t *t);
  * Requires:
  *
  *\li	't' is a valid pointer.
+ */
+
+isc_nanosecs_t
+isc_time_monotonic(void);
+/*%<
+ * Returns the system's monotonic time in linear nanoseconds.
  */
 
 isc_result_t
