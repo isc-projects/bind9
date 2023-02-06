@@ -1,3 +1,8 @@
+6089.	[bug]		Source ports configured for query-source,
+			transfer-source, etc, were being ignored. (This
+			feature is deprecated, but it is not yet removed,
+			so the bug still needed fixing.) [GL #3790]
+
 6088.	[cleanup]	/etc/bind.keys is no longer needed and has been
 			removed from the distribution. named and delv can
 			still load keys from a file for testing purposes,

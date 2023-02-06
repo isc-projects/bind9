@@ -573,5 +573,12 @@ retry_quiet 10 check_xfer_stats || tmp=1
 if test $tmp != 0 ; then echo_i "failed"; fi
 status=$((status+tmp))
 
+n=$((n+1))
+echo_i "test that transfer-source uses port option correctly ($n)"
+tmp=0
+grep "10.53.0.3#${EXTRAPORT1} (primary): query 'primary/SOA/IN' approved" ns6/named.run > /dev/null || ret=1
+if test $tmp != 0 ; then echo_i "failed"; fi
+status=$((status+tmp))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
