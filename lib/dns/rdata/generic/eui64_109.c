@@ -77,7 +77,6 @@ fromwire_eui64(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_eui64);
 
 	UNUSED(type);
-	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 

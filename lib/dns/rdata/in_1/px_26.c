@@ -136,12 +136,12 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	/*
 	 * MAP822.
 	 */
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	/*
 	 * MAPX400.
 	 */
-	return (dns_name_fromwire(&name, source, dctx, options, target));
+	return (dns_name_fromwire(&name, source, dctx, target));
 }
 
 static isc_result_t

@@ -75,7 +75,6 @@ fromwire_openpgpkey(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(options);
 
 	/*
 	 * Keyring.

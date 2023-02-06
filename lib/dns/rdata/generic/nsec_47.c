@@ -88,7 +88,7 @@ fromwire_nsec(ARGS_FROMWIRE) {
 	dctx = dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
 	RETERR(typemap_test(&sr, false));

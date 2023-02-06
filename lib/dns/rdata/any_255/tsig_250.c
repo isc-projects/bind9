@@ -270,7 +270,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Algorithm Name.
 	 */
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, target));
 
 	isc_buffer_activeregion(source, &sr);
 	/*

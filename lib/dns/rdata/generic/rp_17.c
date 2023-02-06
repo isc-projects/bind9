@@ -104,8 +104,8 @@ fromwire_rp(ARGS_FROMWIRE) {
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
 
-	RETERR(dns_name_fromwire(&rmail, source, dctx, options, target));
-	return (dns_name_fromwire(&email, source, dctx, options, target));
+	RETERR(dns_name_fromwire(&rmail, source, dctx, target));
+	return (dns_name_fromwire(&email, source, dctx, target));
 }
 
 static isc_result_t

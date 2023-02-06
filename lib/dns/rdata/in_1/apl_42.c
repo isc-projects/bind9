@@ -193,7 +193,6 @@ fromwire_in_apl(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_availableregion(target, &tr);
@@ -277,7 +276,7 @@ fromstruct_in_apl(ARGS_FROMSTRUCT) {
 	isc_buffer_add(&b, apl->apl_len);
 	isc_buffer_setactive(&b, apl->apl_len);
 	return (fromwire_in_apl(rdclass, type, &b, DNS_DECOMPRESS_DEFAULT,
-				false, target));
+				target));
 }
 
 static isc_result_t

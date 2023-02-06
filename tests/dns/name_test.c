@@ -180,13 +180,13 @@ compress_test(const dns_name_t *name1, const dns_name_t *name2,
 
 	dns_name_init(&name, NULL);
 	RUNTIME_CHECK(isc_buffer_getuint16(&source) == 0xEAD);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, &target) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, &target) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, &target) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0, &target) ==
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, &target) ==
 		      ISC_R_SUCCESS);
 
 	assert_int_equal(target.used, expanded_length);
@@ -863,7 +863,7 @@ ISC_RUN_TEST_IMPL(fromwire_thread(void *arg) {
 		isc_buffer_setactive(&source, sizeof(data));
 
 		dns_name_init(&name, NULL);
-		(void)dns_name_fromwire(&name, &source, &dctx, 0, &target);
+		(void)dns_name_fromwire(&name, &source, &dctx, &target);
 	}
 
 	return (NULL);

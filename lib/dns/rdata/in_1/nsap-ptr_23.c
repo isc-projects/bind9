@@ -78,7 +78,7 @@ fromwire_in_nsap_ptr(ARGS_FROMWIRE) {
 	dctx = dns_decompress_setpermitted(dctx, false);
 
 	dns_name_init(&name, NULL);
-	return (dns_name_fromwire(&name, source, dctx, options, target));
+	return (dns_name_fromwire(&name, source, dctx, target));
 }
 
 static isc_result_t

@@ -229,7 +229,7 @@ fromwire_hip(ARGS_FROMWIRE) {
 	dctx = dns_decompress_setpermitted(dctx, false);
 	while (isc_buffer_activelength(source) > 0) {
 		dns_name_init(&name, NULL);
-		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
+		RETERR(dns_name_fromwire(&name, source, dctx, target));
 	}
 	return (ISC_R_SUCCESS);
 }

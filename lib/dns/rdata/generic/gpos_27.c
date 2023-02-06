@@ -70,7 +70,6 @@ fromwire_gpos(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(options);
 
 	for (i = 0; i < 3; i++) {
 		RETERR(txt_fromwire(source, target));

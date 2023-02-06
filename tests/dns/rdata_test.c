@@ -150,7 +150,7 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	 * Try converting input data into uncompressed wire form.
 	 */
 	result = dns_rdata_fromwire(rdata, rdclass, type, &source,
-				    DNS_DECOMPRESS_ALWAYS, 0, &target);
+				    DNS_DECOMPRESS_ALWAYS, &target);
 
 	return (result);
 }

@@ -131,7 +131,6 @@ fromwire_doa(ARGS_FROMWIRE) {
 
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(options);
 
 	REQUIRE(type == dns_rdatatype_doa);
 

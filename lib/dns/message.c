@@ -877,7 +877,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 	 */
 	tries = 0;
 	while (tries < 2) {
-		result = dns_name_fromwire(name, source, dctx, 0, scratch);
+		result = dns_name_fromwire(name, source, dctx, scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			tries++;
@@ -922,7 +922,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 	/* XXX possibly change this to a while (tries < 2) loop */
 	for (;;) {
 		result = dns_rdata_fromwire(rdata, rdclass, rdtype, source,
-					    dctx, 0, scratch);
+					    dctx, scratch);
 
 		if (result == ISC_R_NOSPACE) {
 			if (tries == 0) {

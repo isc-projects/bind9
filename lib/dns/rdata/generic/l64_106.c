@@ -83,7 +83,6 @@ fromwire_l64(ARGS_FROMWIRE) {
 	REQUIRE(type == dns_rdatatype_l64);
 
 	UNUSED(type);
-	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(dctx);
 

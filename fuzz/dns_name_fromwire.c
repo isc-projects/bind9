@@ -72,7 +72,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	isc_buffer_add(&new_buf, size);
 	isc_buffer_setactive(&new_buf, size);
 	isc_buffer_forward(&new_buf, size / 2);
-	new_result = dns_name_fromwire(new_name, &new_buf, dctx, 0, NULL);
+	new_result = dns_name_fromwire(new_name, &new_buf, dctx, NULL);
 
 	isc_buffer_constinit(&old_buf, data, size);
 	isc_buffer_add(&old_buf, size);

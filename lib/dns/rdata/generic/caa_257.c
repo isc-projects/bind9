@@ -371,7 +371,6 @@ fromwire_caa(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(options);
 
 	/*
 	 * Flags

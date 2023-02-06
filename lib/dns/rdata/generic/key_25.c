@@ -234,7 +234,6 @@ generic_fromwire_key(ARGS_FROMWIRE) {
 
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 4) {

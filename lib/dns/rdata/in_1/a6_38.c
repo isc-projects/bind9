@@ -196,7 +196,7 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 	}
 
 	dns_name_init(&name, NULL);
-	return (dns_name_fromwire(&name, source, dctx, options, target));
+	return (dns_name_fromwire(&name, source, dctx, target));
 }
 
 static isc_result_t

@@ -89,7 +89,6 @@ fromwire_csync(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
-	UNUSED(options);
 	UNUSED(dctx);
 
 	/*

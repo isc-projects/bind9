@@ -1521,8 +1521,7 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 
 isc_result_t
 dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
-		  const dns_decompress_t dctx, unsigned int options,
-		  isc_buffer_t *target) {
+		  const dns_decompress_t dctx, isc_buffer_t *target) {
 	/*
 	 * Copy the name at source into target, decompressing it.
 	 *
@@ -1574,7 +1573,6 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	 * correct way to set our "consumed" variable.
 	 */
 
-	REQUIRE((options & DNS_NAME_DOWNCASE) == 0);
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(BINDABLE(name));
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
