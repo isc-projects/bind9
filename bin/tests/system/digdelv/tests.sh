@@ -1396,6 +1396,14 @@ if [ -x "$DELV" ] ; then
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
   fi
+
+  n=$((n+1))
+  echo_i "check that delv handles REFUSED when chasing DS records ($n)"
+  delv_with_opts @10.53.0.2 +root xxx.example.tld A > delv.out.test$n 2>&1 || ret=1
+  grep ";; resolution failed: broken trust chain" delv.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
 else
   echo_i "$DELV is needed, so skipping these delv tests"
 fi

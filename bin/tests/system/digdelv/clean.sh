@@ -29,7 +29,9 @@ rm -f ./host.out.test*
 rm -f ./ns*/managed-keys.bind*
 rm -f ./ns*/named.lock
 rm -f ./ns2/dsset-example.
+rm -f ./ns2/dsset-example.tld.
 rm -f ./ns2/example.db ./ns2/K* ./ns2/keyid ./ns2/keydata
+rm -f ./ns2/example.tld.db
 rm -f ./nslookup.out.test*
-rm -f ./yamlget.out.*
 rm -f ./nsupdate.out.test*
+rm -f ./yamlget.out.*
