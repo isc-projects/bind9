@@ -52,6 +52,17 @@ usage(void) {
 	exit(0);
 }
 
+static void
+cleanup(void) {
+	if (lex != NULL) {
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+	}
+	if (mctx != NULL) {
+		isc_mem_destroy(&mctx);
+	}
+}
+
 noreturn static void
 fatal(const char *format, ...);
 
@@ -64,6 +75,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fputc('\n', stderr);
+	cleanup();
 	exit(1);
 }
 
@@ -329,8 +341,6 @@ main(int argc, char *argv[]) {
 		fflush(stdout);
 	}
 
-	isc_lex_close(lex);
-	isc_lex_destroy(&lex);
-	isc_mem_destroy(&mctx);
+	cleanup();
 	return (0);
 }
