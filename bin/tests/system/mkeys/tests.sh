@@ -680,8 +680,12 @@ rndccmd 10.53.0.2 managed-keys destroy | sed 's/^/ns2 /' | cat_i
 mkeys_status_on 2 > rndc.out.1.$n 2>&1 || ret=1
 grep "no views with managed keys" rndc.out.1.$n > /dev/null || ret=1
 mkeys_reconfig_on 2 || ret=1
-mkeys_status_on 2 > rndc.out.2.$n 2>&1 || ret=1
-grep "name: \." rndc.out.2.$n > /dev/null || ret=1
+check_root_trust_anchor_is_present_in_status() {
+	mkeys_status_on 2 > rndc.out.2.$n 2>&1 || return 1
+	grep "name: \." rndc.out.2.$n > /dev/null || return 1
+	return 0
+}
+retry_quiet 5 check_root_trust_anchor_is_present_in_status || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
