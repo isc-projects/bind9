@@ -1575,7 +1575,7 @@ grep 'failed: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
 n=$((n + 1))
 ret=0
 echo_i "check that update is rejected if quota is exceeded ($n)"
-for loop in 1 2 3 4 5 6 7 8 9 10; do
+for loop in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
 {
   $NSUPDATE -4 -l -p ${PORT} -k ns1/session.key > /dev/null 2>&1 <<END
   update add txt-$loop.other.nil 3600 IN TXT Whatever
