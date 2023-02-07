@@ -1487,6 +1487,7 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		case DST_ALG_HMACSHA256:
 		case DST_ALG_HMACSHA384:
 		case DST_ALG_HMACSHA512:
+		case DST_ALG_DH:
 			if (result == DST_R_BADKEYTYPE) {
 				continue;
 			}
