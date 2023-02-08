@@ -1,3 +1,6 @@
+6091.	[performance]	Reduce the size of each rdataset header object
+			by 16 bytes. [GL !7505]
+
 6092.	[bug]		dnssec-cds failed to cleanup properly. [GL #3831]
 
 6091.	[cleanup]	Drop RHEL 7 and clones support. [GL #3729]

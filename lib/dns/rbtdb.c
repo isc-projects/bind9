@@ -239,10 +239,26 @@ typedef struct rdatasetheader {
 	rbtdb_rdatatype_t type;
 	atomic_uint_least16_t attributes;
 	dns_trust_t trust;
+
+	uint16_t heap_index;
+	/*%<
+	 * Used for TTL-based cache cleaning. Matches type of dns_rbt_t->locknum
+	 */
+
+	unsigned int resign_lsb : 1;
+	isc_stdtime_t resign;
+
 	atomic_uint_fast32_t last_refresh_fail_ts;
+
+	atomic_uint_fast32_t count;
+	/*%<
+	 * Monotonically increased every time this rdataset is bound so that
+	 * it is used as the base of the starting point in DNS responses
+	 * when the "cyclic" rrset-order is required.
+	 */
+
 	struct noqname *noqname;
 	struct noqname *closest;
-	unsigned int resign_lsb : 1;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -262,23 +278,11 @@ typedef struct rdatasetheader {
 	 * this rdataset.
 	 */
 
-	atomic_uint_fast32_t count;
-	/*%<
-	 * Monotonously increased every time this rdataset is bound so that
-	 * it is used as the base of the starting point in DNS responses
-	 * when the "cyclic" rrset-order is required.
-	 */
-
 	dns_rbtnode_t *node;
 	isc_stdtime_t last_used;
 	ISC_LINK(struct rdatasetheader) link;
 
-	unsigned int heap_index;
-	/*%<
-	 * Used for TTL-based cache cleaning.
-	 */
-	isc_stdtime_t resign;
-	/*%<
+	/*%
 	 * Case vector.  If the bit is set then the corresponding
 	 * character in the owner name needs to be AND'd with 0x20,
 	 * rendering that character upper case.
