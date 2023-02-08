@@ -2823,11 +2823,9 @@ Boolean Options
    ``yes``.
 
 .. namedconf:statement:: dnssec-secure-to-insecure
-   :tags: dnssec
-   :short: Allows a dynamic zone to transition from secure to insecure by deleting all DNSKEY records (obsoleted).
+   :tags: obsolete
 
-   This option used to allow a dynamic zone to transition from secure to insecure by deleting all DNSKEY records.
-   It has been obsoleted because DNSSEC key operations triggered by dynamic updates are no longer supported.
+   This option no longer has any effect.
 
 .. namedconf:statement:: synth-from-dnssec
    :tags: dnssec
@@ -3773,11 +3771,6 @@ system.
    heavily, smoothing out short-term blips in the timeout ratio. These
    arguments are all fixed-point numbers with precision of 1/100; at
    most two places after the decimal point are significant.
-
-.. namedconf:statement:: reserved-sockets
-   :tags: deprecated
-
-   This option is deprecated and no longer has any effect.
 
 .. namedconf:statement:: max-cache-size
    :tags: server
@@ -7213,9 +7206,6 @@ Zone Options
    See the description of :any:`max-zone-ttl` in :namedconf:ref:`options`.
    The use of this option in :any:`zone` blocks is deprecated and
    will be rendered nonoperational in a future release.
-
-:any:`dnssec-secure-to-insecure`
-   See the description of :any:`dnssec-secure-to-insecure` in :ref:`boolean_options`.
 
 .. _dynamic_update_policies:
 
