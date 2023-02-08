@@ -46,8 +46,6 @@ dns_trust_totext(dns_trust_t trust) {
 	return (trustnames[trust]);
 }
 
-#define DNS_RDATASET_COUNT_UNDEFINED UINT32_MAX
-
 void
 dns_rdataset_init(dns_rdataset_t *rdataset) {
 	/*
