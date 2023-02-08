@@ -181,7 +181,7 @@ netmgr_teardown(void *arg) {
 #define MINIMAL_UV_VERSION UV_VERSION(1, 37, 0)
 #else
 #define MAXIMAL_UV_VERSION UV_VERSION(1, 34, 99)
-#define MINIMAL_UV_VERSION UV_VERSION(1, 0, 0)
+#define MINIMAL_UV_VERSION UV_VERSION(1, 34, 0)
 #endif
 
 void
