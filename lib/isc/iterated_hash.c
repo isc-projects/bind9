@@ -17,6 +17,7 @@
 #include <openssl/opensslv.h>
 
 #include <isc/iterated_hash.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000

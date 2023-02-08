@@ -309,12 +309,47 @@ AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sy
 		 ])
 
 #
-# Check for thread local storage
+# Check for C11 thread local storage
+#
+# NOTE: OpenBSD doesn't ship <threads.h>, so we can't require it (yet).
 #
 AC_CHECK_HEADERS([threads.h])
-AX_TLS([AS_IF([test "$ac_cv_tls" != "thread_local"],
-	      [AC_DEFINE_UNQUOTED([thread_local], [$ac_cv_tls], [Define if the compiler uses a different keyword than thread_local for TLS variables])])],
-       [AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])])
+
+#
+# C11 Atomic Operations
+#
+
+AC_CHECK_HEADERS([stdatomic.h],
+		 [],
+		 [AC_MSG_ERROR([C11 Atomic Operations required, update your toolchain to build BIND 9])])
+
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <stdatomic.h>]],
+     [[atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
+   )],
+  [AC_MSG_CHECKING([whether -latomic is needed for 64-bit stdatomic.h functions])
+   AC_LINK_IFELSE(
+     [AC_LANG_PROGRAM(
+	[[#include <stdatomic.h>]],
+	[[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
+      )],
+     [AC_MSG_RESULT([no])],
+     [LIBS="$LIBS -latomic"
+      AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM(
+	   [[#include <stdatomic.h>]],
+	   [[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
+	 )],
+	[AC_MSG_RESULT([yes])],
+	[AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
+     ])
+  ],
+  [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])])
+
+AC_CHECK_HEADERS([stdalign.h stdnoreturn.h],
+		 [],
+		 [AC_MSG_ERROR([C11 standard headers not found, update your toolchain.])])
 
 AC_C_CONST
 AC_C_INLINE
@@ -1099,73 +1134,6 @@ AC_COMPILE_IFELSE(
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
 AC_CHECK_FUNCS([if_nametoindex])
-
-ISC_ATOMIC_LIBS=""
-AC_CHECK_HEADERS(
-  [stdatomic.h],
-  [AC_MSG_CHECKING([for memory model aware atomic operations])
-   AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[#include <stdatomic.h>]],
-	[[atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
-      )],
-     [AC_MSG_RESULT([stdatomic.h])
-      AC_MSG_CHECKING([whether -latomic is needed for 64-bit stdatomic.h functions])
-      AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM(
-	   [[#include <stdatomic.h>]],
-	   [[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
-	 )],
-	[AC_MSG_RESULT([no])],
-	[ISC_ATOMIC_LIBS="-latomic"
-	 AX_SAVE_FLAGS([atomic])
-	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
-	 AC_LINK_IFELSE(
-	   [AC_LANG_PROGRAM(
-	      [[#include <stdatomic.h>]],
-	      [[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
-	    )],
-	   [AC_MSG_RESULT([yes])],
-	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
-	 AX_RESTORE_FLAGS([atomic])
-	])
-     ],
-     [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])]
-   )],
-  [AC_MSG_CHECKING([for memory model aware atomic operations])
-   AC_COMPILE_IFELSE(
-     [AC_LANG_PROGRAM(
-	[[#include <inttypes.h>]],
-	[[int32_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
-      )],
-     [AC_MSG_RESULT([__atomic builtins])
-      AC_DEFINE([HAVE___ATOMIC], [1], [define if __atomic builtins are not available])
-      AC_MSG_CHECKING([whether -latomic is needed for 64-bit __atomic builtins])
-      AC_LINK_IFELSE(
-	[AC_LANG_PROGRAM(
-	   [[#include <inttypes.h>]],
-	   [[int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
-	 )],
-	[AC_MSG_RESULT([no])],
-	[ISC_ATOMIC_LIBS="-latomic"
-	 AX_SAVE_FLAGS([atomic])
-	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
-	 AC_LINK_IFELSE(
-	   [AC_LANG_PROGRAM(
-	      [[#include <inttypes.h>]],
-	      [[int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
-	    )],
-	   [AC_MSG_RESULT([yes])],
-	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
-	 AX_RESTORE_FLAGS([atomic])
-	])
-     ],
-     [AC_MSG_FAILURE([not found])
-     ])
-  ])
-LIBS="$LIBS $ISC_ATOMIC_LIBS"
-
-AC_CHECK_HEADERS([stdalign.h stdnoreturn.h])
 
 AC_CHECK_HEADERS([uchar.h])
 

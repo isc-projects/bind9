@@ -86,7 +86,6 @@ libisc_la_HEADERS =			\
 	include/isc/sockaddr.h		\
 	include/isc/stat.h		\
 	include/isc/stats.h		\
-	include/isc/stdatomic.h		\
 	include/isc/stdio.h		\
 	include/isc/stdtime.h		\
 	include/isc/strerr.h		\

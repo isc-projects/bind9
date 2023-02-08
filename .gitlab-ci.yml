@@ -111,10 +111,6 @@ stages:
 
 # Oracle Linux
 
-.oraclelinux-7-amd64: &oraclelinux_7_amd64_image
-  image: "$CI_REGISTRY_IMAGE:oraclelinux-7-amd64"
-  <<: *linux_amd64
-
 .oraclelinux-8-amd64: &oraclelinux_8_amd64_image
   image: "$CI_REGISTRY_IMAGE:oraclelinux-8-amd64"
   <<: *linux_amd64
@@ -589,30 +585,6 @@ unit:gcc:alpine3.16:amd64:
   <<: *unit_test_job
   needs:
     - job: gcc:alpine3.16:amd64
-      artifacts: true
-
-# Jobs for regular GCC builds on Oracle Linux 7 (amd64)
-
-gcc:oraclelinux7:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *oraclelinux_7_amd64_image
-  <<: *build_job
-
-system:gcc:oraclelinux7:amd64:
-  <<: *oraclelinux_7_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:oraclelinux7:amd64
-      artifacts: true
-
-unit:gcc:oraclelinux7:amd64:
-  <<: *oraclelinux_7_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:oraclelinux7:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Oracle Linux 8 (amd64)
