@@ -452,7 +452,7 @@ sleep 5
 
 n=$((n + 1))
 echo_i "check to 'out of sync' message ($n)"
-if grep "out of sync" ns2/named.run
+if grep "out of sync" ns2/named.run > /dev/null
 then
 	echo_i "failed (found 'out of sync')"
 	status=1
@@ -1374,7 +1374,7 @@ grep "attempt to add more records than permitted by policy" nextpart.out.test$n 
 c1=$(awk '$4 == "A" { print }' dig.out.ns6.test$n | wc -l)
 c2=$(awk '$4 == "AAAA" { print }' dig.out.ns6.test$n | wc -l)
 test "$c1" -eq 3 -a "$c2" -eq 2 || ret=1
-grep "::ffff:1.2.3.2" dig.out.ns6.test$n && ret=1
+grep "::ffff:1.2.3.2" dig.out.ns6.test$n > /dev/null && ret=1
 if test $ret -ne 0
 then
 echo_i "failed"; status=1
@@ -1525,7 +1525,7 @@ update add _dns.ns.relaxed 0 in SVCB 1 ns.relaxed dohpath=/{?dns}
 send
 END
 $DIG $DIGOPTS +tcp @10.53.0.3 _dns.ns.relaxed SVCB > dig.out.ns3.test$n
-grep '1 ns.relaxed. key7="/{?dns}"' dig.out.ns3.test$n || ret=1
+grep '1 ns.relaxed. key7="/{?dns}"' dig.out.ns3.test$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
@@ -1555,7 +1555,7 @@ update add _dns.ns.relaxed 0 in SVCB 1 ns.relaxed alpn=h2
 send
 END
 $DIG $DIGOPTS +tcp @10.53.0.3 _dns.ns.relaxed SVCB > dig.out.ns3.test$n
-grep '1 ns.relaxed. alpn="h2"' dig.out.ns3.test$n || ret=1
+grep '1 ns.relaxed. alpn="h2"' dig.out.ns3.test$n > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
