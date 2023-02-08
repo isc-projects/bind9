@@ -600,7 +600,7 @@ foreach_rrset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 * different from the current version
 	 */
 	dns_db_currentversion(db, &oldver);
-	dns_clientinfo_init(&ci, NULL, NULL, (ver != oldver) ? ver : NULL);
+	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
 	dns_db_closeversion(db, &oldver, false);
 
 	node = NULL;
@@ -691,7 +691,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 * different from the current version
 	 */
 	dns_db_currentversion(db, &oldver);
-	dns_clientinfo_init(&ci, NULL, NULL, (ver != oldver) ? ver : NULL);
+	dns_clientinfo_init(&ci, NULL, (ver != oldver) ? ver : NULL);
 	dns_db_closeversion(db, &oldver, false);
 
 	if (type == dns_rdatatype_any) {
