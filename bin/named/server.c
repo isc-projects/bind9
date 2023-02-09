@@ -3163,8 +3163,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods, view->mctx,
-			   named_g_loopmgr);
+	dns_catz_new_zones(view->mctx, named_g_loopmgr, &view->catzs,
+			   &ns_catz_zonemodmethods);
 
 	if (pview != NULL) {
 		old = pview->catzs;

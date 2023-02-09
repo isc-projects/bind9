@@ -144,7 +144,7 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
  */
 
 void
-dns_catz_entry_copy(dns_catz_zone_t *zone, const dns_catz_entry_t *entry,
+dns_catz_entry_copy(dns_catz_zone_t *catz, const dns_catz_entry_t *entry,
 		    dns_catz_entry_t **nentryp);
 /*%<
  * Allocate a new catz_entry and deep copy 'entry' into 'nentryp'.
@@ -170,7 +170,7 @@ dns_catz_entry_attach(dns_catz_entry_t *entry, dns_catz_entry_t **entryp);
  */
 
 void
-dns_catz_entry_detach(dns_catz_zone_t *zone, dns_catz_entry_t **entryp);
+dns_catz_entry_detach(dns_catz_zone_t *catz, dns_catz_entry_t **entryp);
 /*%<
  * Detach an entry, free if no further references
  *
@@ -209,14 +209,14 @@ ISC_REFCOUNT_DECL(dns_catz_zone);
  */
 
 isc_result_t
-dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
+dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 		  const dns_name_t *name);
 /*%<
  * Allocate a new catz zone on catzs mctx
  *
  * Requires:
  * \li	'catzs' is a valid dns_catz_zones_t.
- * \li	'zonep' is not NULL and '*zonep' is NULL.
+ * \li	'catzp' is not NULL and '*catzp' is NULL.
  * \li	'name' is a valid dns_name_t.
  *
  */
@@ -318,13 +318,15 @@ struct dns_catz_zonemodmethods {
 };
 
 void
-dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
-		   isc_mem_t *mctx, isc_loopmgr_t *loopmgr);
+dns_catz_new_zones(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		   dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm);
 /*%<
  * Allocate a new catz_zones object, a collection storing all catalog zones
  * for a view.
  *
  * Requires:
+ * \li 'mctx' is not NULL.
+ * \li 'loopmgr' is not NULL.
  * \li 'catzsp' is not NULL and '*catzsp' is NULL.
  * \li 'zmm' is not NULL.
  *
