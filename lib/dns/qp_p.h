@@ -379,11 +379,13 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
  */
 
 #define QP_MAGIC       ISC_MAGIC('t', 'r', 'i', 'e')
+#define QPITER_MAGIC   ISC_MAGIC('q', 'p', 'i', 't')
 #define QPMULTI_MAGIC  ISC_MAGIC('q', 'p', 'm', 'v')
 #define QPREADER_MAGIC ISC_MAGIC('q', 'p', 'r', 'x')
 
-#define QP_VALID(qp)	  ISC_MAGIC_VALID(qp, QP_MAGIC)
-#define QPMULTI_VALID(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
+#define QP_VALID(p)	 ISC_MAGIC_VALID(p, QP_MAGIC)
+#define QPITER_VALID(p)	 ISC_MAGIC_VALID(p, QPITER_MAGIC)
+#define QPMULTI_VALID(p) ISC_MAGIC_VALID(p, QPMULTI_MAGIC)
 
 /*
  * Polymorphic initialization of the `dns_qpreader_t` prefix.

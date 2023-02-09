@@ -154,10 +154,7 @@ typedef union dns_qpreadable {
 #define dns_qpreader(qpr) ((qpr).qp)
 
 /*%
- * A trie lookup key is a small array, allocated on the stack during trie
- * searches. Keys are usually created on demand from DNS names using
- * `dns_qpkey_fromname()`, but in principle you can define your own
- * functions to convert other types to trie lookup keys.
+ * The maximum size of a key is also the maximum depth of a trie.
  *
  * A domain name can be up to 255 bytes. When converted to a key, each
  * character in the name corresponds to one byte in the key if it is a
@@ -165,7 +162,29 @@ typedef union dns_qpreadable {
  * using two bytes in the key. So we allow keys to be up to 512 bytes.
  * (The actual max is (255 - 5) * 2 + 6 == 506)
  */
-typedef uint8_t dns_qpkey_t[512];
+#define DNS_QP_MAXKEY 512
+
+/*%
+ * A trie lookup key is a small array, allocated on the stack during trie
+ * searches. Keys are usually created on demand from DNS names using
+ * `dns_qpkey_fromname()`, but in principle you can define your own
+ * functions to convert other types to trie lookup keys.
+ */
+typedef uint8_t dns_qpkey_t[DNS_QP_MAXKEY];
+
+/*%
+ * A trie iterator describes a path through the trie from the root to
+ * a leaf node, for use with `dns_qpiter_init()` and `dns_qpiter_next()`.
+ */
+typedef struct dns_qpiter {
+	unsigned int	magic;
+	dns_qpreader_t *qp;
+	uint16_t	sp;
+	struct __attribute__((__packed__)) {
+		uint32_t ref;
+		uint8_t	 more;
+	} stack[DNS_QP_MAXKEY];
+} dns_qpiter_t;
 
 /*%
  * These leaf methods allow the qp-trie code to call back to the code
@@ -376,16 +395,13 @@ dns_qpmulti_memusage(dns_qpmulti_t *multi);
 /*
  * XXXFANF todo, based on what we discover BIND needs
  *
- * fancy searches: longest match, lexicographic predecessor,
- * etc.
+ * fancy searches: longest match, lexicographic predecessor
+ * (for NSEC), successor (for modification-safe iteration), etc.
  *
  * do we need specific lookup functions to find out if the
  * returned value is readonly or mutable?
  *
  * richer modification such as dns_qp_replace{key,name}
- *
- * iteration - probably best to put an explicit stack in the iterator,
- * cf. rbtnodechain
  */
 
 size_t
@@ -482,6 +498,48 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name);
  * Returns:
  * \li  ISC_R_NOTFOUND if the trie has no leaf with a matching name
  * \li  ISC_R_SUCCESS if the leaf was deleted from the trie
+ */
+
+void
+dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi);
+/*%<
+ * Initialize an iterator
+ *
+ * SAFETY NOTE: If `qpr` is a `dns_qp_t`, it is not safe to modify the
+ * trie during iteration. If `qpr` is a `dns_qpread_t` or `dns_qpsnap_t`
+ * then (like any other read-only access) modifications will not affect
+ * iteration.
+ *
+ * Requires:
+ * \li  `qp` is a pointer to a valid qp-trie
+ * \li  `qpi` is a pointer to a qp iterator
+ */
+
+isc_result_t
+dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
+/*%<
+ * Get the next leaf object of a trie in lexicographic order of its keys.
+ *
+ * NOTE: see the safety note under `dns_qpiter_init()`.
+ *
+ * For example,
+ *
+ *	dns_qpiter_t qpi;
+ *	void *pval;
+ *	uint32_t ival;
+ *	dns_qpiter_init(qp, &qpi);
+ *	while (dns_qpiter_next(&qpi, &pval, &ival)) {
+ *		// do something with pval and ival
+ *	}
+ *
+ * Requires:
+ * \li  `qpi` is a pointer to a valid qp iterator
+ * \li  `pval_r != NULL`
+ * \li  `ival_r != NULL`
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
+ * \li  ISC_R_NOMORE otherwise
  */
 
 /***********************************************************************

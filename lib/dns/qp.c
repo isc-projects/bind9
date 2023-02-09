@@ -1683,6 +1683,72 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name) {
 
 /***********************************************************************
  *
+ *  iterate
+ */
+
+void
+dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi) {
+	dns_qpreader_t *qp = dns_qpreader(qpr);
+	REQUIRE(QP_VALID(qp));
+	REQUIRE(qpi != NULL);
+	qpi->magic = QPITER_MAGIC;
+	qpi->qp = qp;
+	qpi->sp = 0;
+	qpi->stack[qpi->sp].ref = qp->root_ref;
+	qpi->stack[qpi->sp].more = 0;
+}
+
+/*
+ * note: this function can go wrong when the iterator refers to
+ * a mutable view of the trie which is altered while iterating
+ */
+isc_result_t
+dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r) {
+	REQUIRE(QPITER_VALID(qpi));
+	REQUIRE(QP_VALID(qpi->qp));
+	REQUIRE(pval_r != NULL);
+	REQUIRE(ival_r != NULL);
+
+	dns_qpreader_t *qp = qpi->qp;
+
+	if (qpi->stack[qpi->sp].ref == INVALID_REF) {
+		INSIST(qpi->sp == 0);
+		qpi->magic = 0;
+		return (ISC_R_NOMORE);
+	}
+
+	/* push branch nodes onto the stack until we reach a leaf */
+	for (;;) {
+		qp_node_t *n = ref_ptr(qp, qpi->stack[qpi->sp].ref);
+		if (node_tag(n) == LEAF_TAG) {
+			*pval_r = leaf_pval(n);
+			*ival_r = leaf_ival(n);
+			break;
+		}
+		qpi->sp++;
+		INSIST(qpi->sp < DNS_QP_MAXKEY);
+		qpi->stack[qpi->sp].ref = branch_twigs_ref(n);
+		qpi->stack[qpi->sp].more = branch_twigs_size(n) - 1;
+	}
+
+	/* pop the stack until we find a twig with a successor */
+	while (qpi->sp > 0 && qpi->stack[qpi->sp].more == 0) {
+		qpi->sp--;
+	}
+
+	/* move across to the next twig */
+	if (qpi->stack[qpi->sp].more > 0) {
+		qpi->stack[qpi->sp].more--;
+		qpi->stack[qpi->sp].ref++;
+	} else {
+		INSIST(qpi->sp == 0);
+		qpi->stack[qpi->sp].ref = INVALID_REF;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+/***********************************************************************
+ *
  *  search
  */
 

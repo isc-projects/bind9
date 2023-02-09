@@ -22,12 +22,17 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/qsbr.h>
+#include <isc/random.h>
+#include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
 #include <dns/qp.h>
+
+#include "qp_p.h"
 
 #include <tests/dns.h>
 #include <tests/qp.h>
@@ -129,9 +134,92 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 	}
 }
 
+#define ITER_ITEMS 100
+
+static uint32_t
+check_leaf(void *uctx, void *pval, uint32_t ival) {
+	uint32_t *items = uctx;
+	assert_in_range(ival, 1, ITER_ITEMS - 1);
+	assert_ptr_equal(items + ival, pval);
+	return (1);
+}
+
+static size_t
+qpiter_makekey(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
+	check_leaf(uctx, pval, ival);
+
+	char str[8];
+	snprintf(str, sizeof(str), "%03u", ival);
+
+	size_t i = 0;
+	while (str[i] != '\0') {
+		key[i] = str[i] - '0' + SHIFT_BITMAP;
+		i++;
+	}
+	key[i++] = SHIFT_NOBYTE;
+
+	return (i);
+}
+
+static void
+getname(void *uctx, char *buf, size_t size) {
+	strlcpy(buf, "test", size);
+	UNUSED(uctx);
+	UNUSED(size);
+}
+
+const struct dns_qpmethods qpiter_methods = {
+	check_leaf,
+	check_leaf,
+	qpiter_makekey,
+	getname,
+};
+
+ISC_RUN_TEST_IMPL(qpiter) {
+	dns_qp_t *qp = NULL;
+	uint32_t item[ITER_ITEMS] = { 0 };
+
+	dns_qp_create(mctx, &qpiter_methods, item, &qp);
+	for (size_t tests = 0; tests < 1234; tests++) {
+		uint32_t ival = isc_random_uniform(ITER_ITEMS - 1) + 1;
+		void *pval = &item[ival];
+		item[ival] = ival;
+
+		/* randomly insert or remove */
+		dns_qpkey_t key;
+		size_t len = qpiter_makekey(key, item, pval, ival);
+		if (dns_qp_insert(qp, pval, ival) == ISC_R_EXISTS) {
+			dns_qp_deletekey(qp, key, len);
+			item[ival] = 0;
+		}
+
+		/* check that we see only valid items in the correct order */
+		uint32_t prev = 0;
+		dns_qpiter_t qpi;
+		dns_qpiter_init(qp, &qpi);
+		while (dns_qpiter_next(&qpi, &pval, &ival) == ISC_R_SUCCESS) {
+			assert_in_range(ival, prev + 1, ITER_ITEMS - 1);
+			assert_int_equal(ival, item[ival]);
+			assert_ptr_equal(pval, &item[ival]);
+			item[ival] = ~ival;
+			prev = ival;
+		}
+
+		/* ensure we saw every item */
+		for (ival = 0; ival < ITER_ITEMS; ival++) {
+			if (item[ival] != 0) {
+				assert_int_equal(item[ival], ~ival);
+				item[ival] = ival;
+			}
+		}
+	}
+	dns_qp_destroy(&qp);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(qpkey_name)
 ISC_TEST_ENTRY(qpkey_sort)
+ISC_TEST_ENTRY(qpiter)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
