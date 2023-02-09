@@ -1,3 +1,5 @@
+6092.	[bug]		dnssec-cds failed to cleanup properly. [GL #3831]
+
 6089.	[bug]		Source ports configured for query-source,
 			transfer-source, etc, were being ignored. (This
 			feature is deprecated, but it is not yet removed,

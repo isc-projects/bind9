@@ -146,6 +146,14 @@ struct dns_rdataset {
 	/*@}*/
 };
 
+#define DNS_RDATASET_COUNT_UNDEFINED UINT32_MAX
+
+#define DNS_RDATASET_INIT                                                  \
+	{                                                                  \
+		.magic = DNS_RDATASET_MAGIC, .link = ISC_LINK_INITIALIZER, \
+		.count = DNS_RDATASET_COUNT_UNDEFINED                      \
+	}
+
 /*!
  * \def DNS_RDATASETATTR_RENDERED
  *	Used by message.c to indicate that the rdataset was rendered.
