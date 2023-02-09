@@ -203,7 +203,7 @@ grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null |
 test_end
 
 test_start "checking notify-source uses port option correctly"
-grep "10.53.0.2#${EXTRAPORT2}: received notify for zone 'x1'" ns3/named.run > /dev/null || ret=1
+grep "10.53.0.3#${EXTRAPORT2}: received notify for zone 'notify-source-port-test'" ns2/named.run > /dev/null || ret=1
 test_end
 
 # notify messages were sent to unresponsive 10.53.10.53 during the tests
