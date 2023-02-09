@@ -663,8 +663,7 @@ dns_name_fromregion(dns_name_t *name, const isc_region_t *r);
  *	so far converted.  A maximum of 255 bytes is converted.
  *
  * Requires:
- * \li	The data in 'r' is a sequence of one or more type 00 or type 01000001
- *	labels.
+ * \li	The data in 'r' is a sequence of one or more type 00 labels.
  */
 
 void
