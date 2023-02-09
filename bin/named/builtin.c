@@ -379,9 +379,8 @@ do_hostname_lookup(dns_sdblookup_t *lookup) {
 		}
 	} else {
 		char buf[256];
-		isc_result_t result = named_os_gethostname(buf, sizeof(buf));
-		if (result != ISC_R_SUCCESS) {
-			return (result);
+		if (gethostname(buf, sizeof(buf)) != 0) {
+			return (ISC_R_FAILURE);
 		}
 		return (put_txt(lookup, buf));
 	}
@@ -419,13 +418,10 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 
 static isc_result_t
 do_id_lookup(dns_sdblookup_t *lookup) {
-	if (named_g_server->sctx->gethostname != NULL) {
+	if (named_g_server->sctx->usehostname) {
 		char buf[256];
-		isc_result_t result;
-
-		result = named_g_server->sctx->gethostname(buf, sizeof(buf));
-		if (result != ISC_R_SUCCESS) {
-			return (result);
+		if (gethostname(buf, sizeof(buf)) != 0) {
+			return (ISC_R_FAILURE);
 		}
 		return (put_txt(lookup, buf));
 	} else if (named_g_server->sctx->server_id != NULL) {
