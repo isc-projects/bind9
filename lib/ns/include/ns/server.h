@@ -99,8 +99,8 @@ struct ns_server {
 	dns_tkeyctx_t *tkeyctx;
 
 	/*% Server id for NSID */
-	char	       *server_id;
-	ns_hostnamecb_t gethostname;
+	char *server_id;
+	bool  usehostname;
 
 	/*% Fuzzer callback */
 	isc_fuzztype_t fuzztype;

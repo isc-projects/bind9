@@ -3921,8 +3921,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
 		/* "hostname" is interpreted as boolean true */
 		char buf[256];
-		result = named_os_gethostname(buf, sizeof(buf));
-		if (result == ISC_R_SUCCESS) {
+		if (gethostname(buf, sizeof(buf)) == 0) {
 			dns_dt_setidentity(named_g_server->dtenv, buf);
 		}
 	} else if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
@@ -9605,10 +9604,10 @@ load_configuration(const char *filename, named_server_t *server,
 
 	obj = NULL;
 	result = named_config_get(maps, "server-id", &obj);
-	server->sctx->gethostname = NULL;
+	server->sctx->usehostname = false;
 	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
 		/* The parser translates "hostname" to true */
-		server->sctx->gethostname = named_os_gethostname;
+		server->sctx->usehostname = true;
 		result = ns_server_setserverid(server->sctx, NULL);
 	} else if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
 		/* Found a quoted string */
@@ -12331,8 +12330,7 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		 cb);
 	CHECK(putstr(text, line));
 
-	result = named_os_gethostname(hostname, sizeof(hostname));
-	if (result != ISC_R_SUCCESS) {
+	if (gethostname(hostname, sizeof(hostname)) == 0) {
 		strlcpy(hostname, "localhost", sizeof(hostname));
 	}
 	snprintf(line, sizeof(line), "running on %s: %s\n", hostname,

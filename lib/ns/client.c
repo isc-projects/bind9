@@ -988,8 +988,8 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	if (WANTNSID(client)) {
 		if (client->sctx->server_id != NULL) {
 			nsidp = client->sctx->server_id;
-		} else if (client->sctx->gethostname != NULL) {
-			result = client->sctx->gethostname(nsid, sizeof(nsid));
+		} else if (client->sctx->usehostname) {
+			result = gethostname(nsid, sizeof(nsid));
 			if (result != ISC_R_SUCCESS) {
 				goto no_nsid;
 			}
