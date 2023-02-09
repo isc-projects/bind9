@@ -177,21 +177,30 @@ netmgr_teardown(void *arg) {
 #elif HAVE_DECL_UV_UDP_MMSG_FREE
 #define MINIMAL_UV_VERSION UV_VERSION(1, 40, 0)
 #elif HAVE_DECL_UV_UDP_RECVMMSG
+#define MAXIMAL_UV_VERSION UV_VERSION(1, 39, 99)
 #define MINIMAL_UV_VERSION UV_VERSION(1, 37, 0)
-#elif HAVE_DECL_UV_UDP_MMSG_CHUNK
-#define MINIMAL_UV_VERSION UV_VERSION(1, 35, 0)
 #else
-#define MINIMAL_UV_VERSION UV_VERSION(1, 0, 0)
+#define MAXIMAL_UV_VERSION UV_VERSION(1, 34, 99)
+#define MINIMAL_UV_VERSION UV_VERSION(1, 34, 0)
 #endif
 
 void
 isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	isc_nm_t *netmgr = NULL;
 
+#ifdef MAXIMAL_UV_VERSION
+	if (uv_version() > MAXIMAL_UV_VERSION) {
+		FATAL_ERROR("libuv version too new: running with libuv %s "
+			    "when compiled with libuv %s will lead to "
+			    "libuv failures",
+			    uv_version_string(), UV_VERSION_STRING);
+	}
+#endif /* MAXIMAL_UV_VERSION */
+
 	if (uv_version() < MINIMAL_UV_VERSION) {
 		FATAL_ERROR("libuv version too old: running with libuv %s "
 			    "when compiled with libuv %s will lead to "
-			    "libuv failures because of unknown flags",
+			    "libuv failures",
 			    uv_version_string(), UV_VERSION_STRING);
 	}
 
