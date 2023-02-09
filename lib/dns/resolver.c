@@ -319,14 +319,18 @@ struct fctxkey {
 	};
 } __attribute__((__packed__));
 
+#define FCTXCOUNT_MAGIC		 ISC_MAGIC('F', 'C', 'n', 't')
+#define VALID_FCTXCOUNT(counter) ISC_MAGIC_VALID(counter, FCTXCOUNT_MAGIC)
+
 typedef struct fctxcount fctxcount_t;
 struct fctxcount {
+	unsigned int magic;
 	dns_fixedname_t dfname;
 	dns_name_t *domain;
-	atomic_uint_fast32_t count;
-	atomic_uint_fast32_t allowed;
-	atomic_uint_fast32_t dropped;
-	atomic_uint_fast32_t logged;
+	uint_fast32_t count;
+	uint_fast32_t allowed;
+	uint_fast32_t dropped;
+	isc_stdtime_t logged;
 };
 
 struct fetchctx {
@@ -1587,18 +1591,14 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 		return;
 	}
 
-	uint_fast32_t allowed = atomic_load_relaxed(&counter->allowed);
-	uint_fast32_t dropped = atomic_load_relaxed(&counter->dropped);
-	isc_stdtime_t logged = atomic_load_relaxed(&counter->logged);
-
 	/* Do not log a message if there were no dropped fetches. */
-	if (dropped == 0) {
+	if (counter->dropped == 0) {
 		return;
 	}
 
 	/* Do not log the cumulative message if the previous log is recent. */
 	isc_stdtime_get(&now);
-	if (!final && logged > now - 60) {
+	if (!final && counter->logged > now - 60) {
 		return;
 	}
 
@@ -1610,20 +1610,20 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 			      "too many simultaneous fetches for %s "
 			      "(allowed %" PRIuFAST32 " spilled %" PRIuFAST32
 			      "; %s)",
-			      dbuf, allowed, dropped,
-			      dropped == 1 ? "initial trigger event"
-					   : "cumulative since "
-					     "initial trigger event");
+			      dbuf, counter->allowed, counter->dropped,
+			      counter->dropped == 1 ? "initial trigger event"
+						    : "cumulative since "
+						      "initial trigger event");
 	} else {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SPILL,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 			      "fetch counters for %s now being discarded "
 			      "(allowed %" PRIuFAST32 " spilled %" PRIuFAST32
 			      "; cumulative since initial trigger event)",
-			      dbuf, allowed, dropped);
+			      dbuf, counter->allowed, counter->dropped);
 	}
 
-	atomic_store_release(&counter->logged, now);
+	counter->logged = now;
 }
 
 static isc_result_t
@@ -1632,13 +1632,17 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	dns_resolver_t *res = NULL;
 	fctxcount_t *counter = NULL;
 	uint32_t hashval;
-	uint_fast32_t count;
 	uint_fast32_t spill;
 
 	REQUIRE(fctx != NULL);
 	res = fctx->res;
 	REQUIRE(res != NULL);
 	INSIST(fctx->counter == NULL);
+
+	spill = atomic_load_acquire(&res->zspill);
+	if (force || spill == 0) {
+		return (ISC_R_SUCCESS);
+	}
 
 	hashval = isc_hashmap_hash(res->counters, fctx->domain->ndata,
 				   fctx->domain->length);
@@ -1652,6 +1656,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	case ISC_R_NOTFOUND:
 		counter = isc_mem_get(fctx->mctx, sizeof(*counter));
 		*counter = (fctxcount_t){
+			.magic = FCTXCOUNT_MAGIC,
 			.count = 0,
 			.allowed = 0,
 		};
@@ -1666,22 +1671,22 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	default:
 		UNREACHABLE();
 	}
-	count = atomic_fetch_add_relaxed(&counter->count, 1) + 1;
+	INSIST(VALID_FCTXCOUNT(counter));
+
+	INSIST(spill > 0);
+	if (++counter->count > spill) {
+		counter->count--;
+		INSIST(counter->count > 0);
+		counter->dropped++;
+		fcount_logspill(fctx, counter, false);
+		result = ISC_R_QUOTA;
+	} else {
+		counter->allowed++;
+		fctx->counter = counter;
+	}
 	UNLOCK(&res->counters_lock);
 
-	spill = atomic_load_acquire(&res->zspill);
-	if (!force && spill != 0 && count > spill) {
-		atomic_fetch_sub_release(&counter->count, 1);
-		atomic_fetch_add_relaxed(&counter->dropped, 1);
-		fcount_logspill(fctx, counter, false);
-		return (ISC_R_QUOTA);
-	}
-
-	(void)atomic_fetch_add_relaxed(&counter->allowed, 1);
-
-	fctx->counter = counter;
-
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 static void
@@ -1694,14 +1699,10 @@ fcount_decr(fetchctx_t *fctx) {
 	}
 	fctx->counter = NULL;
 
-	uint_fast32_t count = atomic_fetch_sub_release(&counter->count, 1) - 1;
-	if (count == 0) {
-		LOCK(&fctx->res->counters_lock);
-		if (atomic_load_acquire(&counter->count) > 0) {
-			/* Other thread reacquired the counter */
-			goto unlock;
-		}
-
+	LOCK(&fctx->res->counters_lock);
+	INSIST(VALID_FCTXCOUNT(counter));
+	INSIST(counter->count > 0);
+	if (--counter->count == 0) {
 		isc_result_t result = isc_hashmap_delete(
 			fctx->res->counters, NULL, counter->domain->ndata,
 			counter->domain->length);
@@ -1709,9 +1710,8 @@ fcount_decr(fetchctx_t *fctx) {
 
 		fcount_logspill(fctx, counter, true);
 		isc_mem_put(fctx->mctx, counter, sizeof(*counter));
-	unlock:
-		UNLOCK(&fctx->res->counters_lock);
 	}
+	UNLOCK(&fctx->res->counters_lock);
 }
 
 static void
@@ -4408,7 +4408,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	dns_name_copy(fname, fctx->domain);
 
-	result = fcount_incr(fctx, false);
+	result = fcount_incr(fctx, true);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -11395,15 +11395,12 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 	{
 		fctxcount_t *counter = NULL;
 		isc_hashmap_iter_current(it, (void **)&counter);
-		uint_fast32_t count = atomic_load_relaxed(&counter->count);
-		uint_fast32_t dropped = atomic_load_relaxed(&counter->dropped);
-		uint_fast32_t allowed = atomic_load_relaxed(&counter->allowed);
 
 		dns_name_print(counter->domain, fp);
 		fprintf(fp,
 			": %" PRIuFAST32 " active (%" PRIuFAST32
 			" spilled, %" PRIuFAST32 " allowed)\n",
-			count, dropped, allowed);
+			counter->count, counter->dropped, counter->allowed);
 	}
 	UNLOCK(&res->counters_lock);
 	isc_hashmap_iter_destroy(&it);
@@ -11432,11 +11429,7 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 		char nb[DNS_NAME_FORMATSIZE],
 			text[DNS_NAME_FORMATSIZE + BUFSIZ];
 
-		uint_fast32_t count = atomic_load_relaxed(&counter->count);
-		uint_fast32_t allowed = atomic_load_relaxed(&counter->allowed);
-		uint_fast32_t dropped = atomic_load_relaxed(&counter->dropped);
-
-		if (count < spill) {
+		if (counter->count < spill) {
 			continue;
 		}
 
@@ -11444,7 +11437,8 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 		snprintf(text, sizeof(text),
 			 "\n- %s: %" PRIuFAST32 " active (allowed %" PRIuFAST32
 			 " spilled %" PRIuFAST32 ")",
-			 nb, count, allowed, dropped);
+			 nb, counter->count, counter->allowed,
+			 counter->dropped);
 
 		result = isc_buffer_reserve(*buf, strlen(text));
 		if (result != ISC_R_SUCCESS) {
