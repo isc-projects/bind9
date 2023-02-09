@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <isc/bind9.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/tls.h>

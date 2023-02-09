@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <isc/bind9.h>
 #include <isc/result.h>
 
 /*! \file isc/types.h
