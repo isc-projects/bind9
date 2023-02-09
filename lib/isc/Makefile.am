@@ -15,7 +15,6 @@ libisc_la_HEADERS =			\
 	include/isc/barrier.h		\
 	include/isc/base32.h		\
 	include/isc/base64.h		\
-	include/isc/bind9.h		\
 	include/isc/buffer.h		\
 	include/isc/cmocka.h		\
 	include/isc/commandline.h	\
@@ -120,7 +119,6 @@ libisc_la_SOURCES =		\
 	backtrace.c		\
 	base32.c		\
 	base64.c		\
-	bind9.c			\
 	buffer.c		\
 	commandline.c		\
 	condition.c		\
