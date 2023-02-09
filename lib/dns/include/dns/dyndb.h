@@ -41,7 +41,7 @@ struct dns_dyndbctx {
 	dns_zonemgr_t *zmgr;
 	isc_task_t    *task;
 	isc_loopmgr_t *loopmgr;
-	const bool    *refvar;
+	const bool    *refvar; /* unused, but retained for API compatibility */
 };
 
 #define DNS_DYNDBCTX_MAGIC    ISC_MAGIC('D', 'd', 'b', 'c')
