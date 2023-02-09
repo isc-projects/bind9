@@ -279,7 +279,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 		.loopmgr = loopmgr,
 		.hashinit = hashinit,
 		.lctx = lctx,
-		.refvar = &isc_bind9,
 	};
 
 	if (view != NULL) {

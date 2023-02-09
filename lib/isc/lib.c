@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <isc/bind9.h>
 #include <isc/iterated_hash.h>
 #include <isc/md.h>
 #include <isc/mem.h>
