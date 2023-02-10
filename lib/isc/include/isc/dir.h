@@ -68,13 +68,4 @@ isc_dir_chdir(const char *dirname);
 isc_result_t
 isc_dir_chroot(const char *dirname);
 
-isc_result_t
-isc_dir_createunique(char *templet);
-/*!<
- * Use a templet (such as from isc_file_mktemplate()) to create a uniquely
- * named, empty directory.  The templet string is modified in place.
- * If result == ISC_R_SUCCESS, it is the name of the directory that was
- * created.
- */
-
 ISC_LANG_ENDDECLS

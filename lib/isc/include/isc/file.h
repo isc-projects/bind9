@@ -102,16 +102,8 @@ isc_result_t
 isc_file_openuniqueprivate(char *templet, FILE **fp);
 isc_result_t
 isc_file_openuniquemode(char *templet, int mode, FILE **fp);
-isc_result_t
-isc_file_bopenunique(char *templet, FILE **fp);
-isc_result_t
-isc_file_bopenuniqueprivate(char *templet, FILE **fp);
-isc_result_t
-isc_file_bopenuniquemode(char *templet, int mode, FILE **fp);
 /*!<
  * \brief Create and open a file with a unique name based on 'templet'.
- *	isc_file_bopen*() open the file in binary mode in Windows.
- *	isc_file_open*() open the file in text mode in Windows.
  *
  * Notes:
  *\li	'template' is a reserved work in C++.  If you want to complain
@@ -312,8 +304,8 @@ isc_result_t
 isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 		   char const **basename);
 /*%<
- * Split a path into dirname and basename.  If 'path' contains no slash
- * (or, on windows, backslash), then '*dirname' is set to ".".
+ * Split a path into dirname and basename.  If 'path' contains no slash,
+ * then '*dirname' is set to ".".
  *
  * Allocates memory for '*dirname', which can be freed with isc_mem_free().
  *

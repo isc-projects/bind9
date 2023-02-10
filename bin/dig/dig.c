@@ -3046,11 +3046,6 @@ dig_startup(void) {
 }
 
 void
-dig_query_start(void) {
-	start_lookup();
-}
-
-void
 dig_shutdown(void) {
 	destroy_lookup(default_lookup);
 	cancel_all();

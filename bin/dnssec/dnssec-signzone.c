@@ -3913,11 +3913,7 @@ main(int argc, char *argv[]) {
 		result = isc_file_mktemplate(output, tempfile, tempfilelen);
 		check_result(result, "isc_file_mktemplate");
 
-		if (outputformat == dns_masterformat_text) {
-			result = isc_file_openunique(tempfile, &outfp);
-		} else {
-			result = isc_file_bopenunique(tempfile, &outfp);
-		}
+		result = isc_file_openunique(tempfile, &outfp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to open temporary output file: %s",
 			      isc_result_totext(result));
