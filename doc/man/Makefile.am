@@ -70,7 +70,6 @@ MANPAGES_RST =				\
 	../../bin/tools/named-rrchecker.rst \
 	../../bin/tools/nsec3hash.rst
 
-
 man_MANS =				\
 	arpaname.1			\
 	ddns-confgen.8			\
@@ -105,7 +104,7 @@ man_MANS =				\
 	tsig-keygen.8
 
 if HAVE_DNSTAP
-man_MANS += 				\
+man_MANS +=				\
 	dnstap-read.1
 endif HAVE_DNSTAP
 
@@ -157,13 +156,16 @@ doc-local: man
 clean-local::
 	-rm -rf $(SPHINXBUILDDIR)
 
-if MAINTAINER_MODE
 
 CLEANFILES +=				\
 	manpages.stamp
 
+if MAINTAINER_MODE
+
 MAINTAINERCLEANFILES =			\
 	$(MANPAGES_IN)
+
+endif MAINTAINER_MODE
 
 #
 # Build rules for generating pre-generated manpages
@@ -208,6 +210,5 @@ $(MANPAGES_IN): manpages.stamp
             $$dry test -f manpages.stamp; exit $$?; \
           fi; \
         fi
-endif HAVE_SPHINX_BUILD
 
-endif MAINTAINER_MODE
+endif HAVE_SPHINX_BUILD
