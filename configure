@@ -686,6 +686,7 @@ PDFTARGET
 HTMLTARGET
 PDFLATEX
 RELEASE_DATE
+BUILD_MANPAGES
 HAVE_XELATEX_FALSE
 HAVE_XELATEX_TRUE
 LATEXMK
@@ -21596,6 +21597,16 @@ fi
 else
   HAVE_XELATEX_TRUE='#'
   HAVE_XELATEX_FALSE=
+fi
+
+
+#
+# Build the man pages only if we have prebuilt manpages or we can build them from RST sources
+#
+BUILD_MANPAGES=
+if test -e doc/man/named.conf.5in || test "$SPHINX_BUILD" != ":"
+then :
+  BUILD_MANPAGES=man
 fi
 
 

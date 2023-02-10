@@ -2159,6 +2159,14 @@ AC_PATH_PROG([LATEXMK], [latexmk], [:])
 AM_CONDITIONAL([HAVE_XELATEX], [test "$XELATEX" != ":" && test "$LATEXMK" != ":"])
 
 #
+# Build the man pages only if we have prebuilt manpages or we can build them from RST sources
+#
+BUILD_MANPAGES=
+AS_IF([test -e doc/man/named.conf.5in || test "$SPHINX_BUILD" != ":"],
+      [BUILD_MANPAGES=man])
+AC_SUBST([BUILD_MANPAGES])
+
+#
 # Pull release date from CHANGES file last modification date
 # for reproducible builds
 #
