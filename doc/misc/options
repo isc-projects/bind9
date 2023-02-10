@@ -17,7 +17,6 @@ dnssec-policy <string> {
 	nsec3param [ iterations <integer> ] [ optout <boolean> ] [ salt-length <integer> ];
 	parent-ds-ttl <duration>;
 	parent-propagation-delay <duration>;
-	parent-registration-delay <duration>; // obsolete
 	publish-safety <duration>;
 	purge-keys <duration>;
 	retire-safety <duration>;
@@ -244,7 +243,6 @@ options {
 	request-ixfr <boolean>;
 	request-nsid <boolean>;
 	require-server-cookie <boolean>;
-	reserved-sockets <integer>; // deprecated
 	resolver-nonbackoff-tries <integer>;
 	resolver-query-timeout <integer>;
 	resolver-retry-interval <integer>;
@@ -275,7 +273,6 @@ options {
 	stale-refresh-time <duration>;
 	startup-notify-rate <integer>;
 	statistics-file <quoted_string>;
-	suppress-initial-notify <boolean>; // obsolete
 	synth-from-dnssec <boolean>;
 	tcp-advertised-timeout <integer>;
 	tcp-clients <integer>;
@@ -568,7 +565,6 @@ view <string> [ <class> ] {
 	stale-answer-ttl <duration>;
 	stale-cache-enable <boolean>;
 	stale-refresh-time <duration>;
-	suppress-initial-notify <boolean>; // obsolete
 	synth-from-dnssec <boolean>;
 	transfer-format ( many-answers | one-answer );
 	transfer-source ( <ipv4_address> | * );

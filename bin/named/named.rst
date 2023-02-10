@@ -143,22 +143,6 @@ Options
       This option is mainly of interest to BIND 9 developers and may be
       removed or changed in a future release.
 
-.. option:: -S #max-socks
-
-   This option is deprecated and no longer has any function.
-
-.. warning::
-
-      This option should be unnecessary for the vast majority of users.
-      The use of this option could even be harmful, because the specified
-      value may exceed the limitation of the underlying system API. It
-      is therefore set only when the default configuration causes
-      exhaustion of file descriptors and the operational environment is
-      known to support the specified number of sockets. Note also that
-      the actual maximum number is normally slightly fewer than the
-      specified value, because :program:`named` reserves some file descriptors
-      for its internal use.
-
 .. option:: -t directory
 
    This option tells :program:`named` to chroot to ``directory`` after processing the command-line arguments, but

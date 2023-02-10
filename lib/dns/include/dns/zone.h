@@ -90,16 +90,15 @@ typedef enum {
 					      */
 	DNS_ZONEOPT_NOTIFYTOSOA = 1 << 21,   /*%< Notify the SOA MNAME */
 	DNS_ZONEOPT_NSEC3TESTZONE = 1 << 22, /*%< nsec3-test-zone */
-	DNS_ZONEOPT_SECURETOINSECURE = 1 << 23, /*%< dnssec-secure-to-insecure,
-						 * obsoleted */
-	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24,	/*%< dnssec-dnskey-kskonly */
-	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,	/*%< check-dup-records */
-	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 26,	/*%< fatal check-dup-records
-						 * failures */
-	DNS_ZONEOPT_CHECKSPF = 1 << 27,		/*%< check SPF records */
-	DNS_ZONEOPT_CHECKTTL = 1 << 28,		/*%< check max-zone-ttl */
-	DNS_ZONEOPT_AUTOEMPTY = 1 << 29,	/*%< automatic empty zone */
-	DNS_ZONEOPT_CHECKSVCB = 1 << 30,	/*%< check SVBC records */
+	/* DNS_ZONEOPT_SECURETOINSECURE = 1 << 23, */
+	DNS_ZONEOPT_DNSKEYKSKONLY = 1 << 24,  /*%< dnssec-dnskey-kskonly */
+	DNS_ZONEOPT_CHECKDUPRR = 1 << 25,     /*%< check-dup-records */
+	DNS_ZONEOPT_CHECKDUPRRFAIL = 1 << 26, /*%< fatal check-dup-records
+					       * failures */
+	DNS_ZONEOPT_CHECKSPF = 1 << 27,	      /*%< check SPF records */
+	DNS_ZONEOPT_CHECKTTL = 1 << 28,	      /*%< check max-zone-ttl */
+	DNS_ZONEOPT_AUTOEMPTY = 1 << 29,      /*%< automatic empty zone */
+	DNS_ZONEOPT_CHECKSVCB = 1 << 30,      /*%< check SVBC records */
 	DNS_ZONEOPT___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneopt_t;
 
