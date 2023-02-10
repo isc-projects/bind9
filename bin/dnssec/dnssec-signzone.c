@@ -65,6 +65,7 @@
 #include <dns/dnssec.h>
 #include <dns/ds.h>
 #include <dns/fixedname.h>
+#include <dns/kasp.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/master.h>
@@ -172,6 +173,7 @@ static bool output_stdout = false;
 static bool set_maxttl = false;
 static dns_ttl_t maxttl = 0;
 static bool no_max_check = false;
+static bool ignore_sync = false;
 
 #define INCSTAT(counter)            \
 	if (printstats) {           \
@@ -2740,9 +2742,19 @@ build_final_keylist(void) {
 	dns_dnsseckeylist_t rmkeys, matchkeys;
 	char name[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t cdsset, cdnskeyset, soaset;
+	dns_kasp_digestlist_t digests;
+	dns_kasp_digest_t digest = {
+		.digest = DNS_DSDIGEST_SHA256,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
 	ISC_LIST_INIT(rmkeys);
 	ISC_LIST_INIT(matchkeys);
+
+	ISC_LIST_INIT(digests);
+	if (!ignore_sync) {
+		ISC_LIST_APPEND(digests, &digest, link);
+	}
 
 	dns_rdataset_init(&soaset);
 	dns_rdataset_init(&cdsset);
@@ -2789,8 +2801,9 @@ build_final_keylist(void) {
 	/*
 	 * Update keylist with sync records.
 	 */
+
 	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset, now,
-			      DNS_DSDIGEST_SHA256, keyttl, &diff, mctx);
+			      &digests, keyttl, &diff, mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 
@@ -2814,6 +2827,11 @@ build_final_keylist(void) {
 
 	clear_keylist(&rmkeys);
 	clear_keylist(&matchkeys);
+
+	if (!ignore_sync) {
+		ISC_LIST_UNLINK(digests, &digest, link);
+	}
+	INSIST(ISC_LIST_EMPTY(digests));
 }
 
 static void
@@ -3285,8 +3303,8 @@ main(int argc, char *argv[]) {
 	atomic_init(&finished, false);
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
-#define CMDLINE_FLAGS                                                        \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
+#define CMDLINE_FLAGS                                                         \
+	"3:AaCc:Dd:E:e:f:FgGhH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
 	"VX:xzZ:"
 
 	/*
@@ -3390,6 +3408,10 @@ main(int argc, char *argv[]) {
 
 		case 'g':
 			generateds = true;
+			break;
+
+		case 'G':
+			ignore_sync = true;
 			break;
 
 		case 'H':
