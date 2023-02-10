@@ -126,7 +126,7 @@ init_migration_states() {
 # Testing a good migration.
 #
 set_zone "migrate.kasp"
-set_policy "none" "2" "7200" "2"
+set_policy "none" "2" "7200"
 set_server "ns3" "10.53.0.3"
 
 init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
@@ -149,7 +149,7 @@ _migrate_zsk=$(key_get KEY2 ID)
 # Testing a good migration (CSK).
 #
 set_zone "csk.kasp"
-set_policy "none" "1" "7200" "2"
+set_policy "none" "1" "7200"
 set_server "ns3" "10.53.0.3"
 
 key_clear        "KEY1"
@@ -192,7 +192,7 @@ _migrate_csk=$(key_get KEY1 ID)
 # Testing a good migration (CSK, no SEP).
 #
 set_zone "csk-nosep.kasp"
-set_policy "none" "1" "7200" "2"
+set_policy "none" "1" "7200"
 set_server "ns3" "10.53.0.3"
 
 key_clear        "KEY1"
@@ -235,7 +235,7 @@ _migrate_csk_nosep=$(key_get KEY1 ID)
 # Testing key states derived from key timing metadata (rumoured).
 #
 set_zone "rumoured.kasp"
-set_policy "none" "2" "300" "2"
+set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
@@ -255,7 +255,7 @@ _rumoured_zsk=$(key_get KEY2 ID)
 # Testing key states derived from key timing metadata (omnipresent).
 #
 set_zone "omnipresent.kasp"
-set_policy "none" "2" "300" "2"
+set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 init_migration_keys "$DEFAULT_ALGORITHM_NUMBER" "$DEFAULT_ALGORITHM" "$DEFAULT_BITS" "$DEFAULT_BITS"
@@ -275,7 +275,7 @@ _omnipresent_zsk=$(key_get KEY2 ID)
 # Testing migration with unmatched existing keys (different algorithm).
 #
 set_zone "migrate-nomatch-algnum.kasp"
-set_policy "none" "2" "300" "2"
+set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 init_migration_keys "8" "RSASHA256" "2048" "2048"
@@ -312,7 +312,7 @@ _migratenomatch_algnum_zsk=$(key_get KEY2 ID)
 # Testing migration with unmatched existing keys (different length).
 #
 set_zone "migrate-nomatch-alglen.kasp"
-set_policy "none" "2" "300" "2"
+set_policy "none" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 init_migration_keys "8" "RSASHA256" "2048" "2048"
@@ -411,7 +411,7 @@ IretZSK=867900
 # Testing good migration.
 #
 set_zone "migrate.kasp"
-set_policy "migrate" "2" "7200" "2"
+set_policy "migrate" "2" "7200"
 set_server "ns3" "10.53.0.3"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
@@ -462,7 +462,7 @@ status=$((status+ret))
 # Testing a good migration (CSK).
 #
 set_zone "csk.kasp"
-set_policy "default" "1" "7200" "2"
+set_policy "default" "1" "7200"
 set_server "ns3" "10.53.0.3"
 
 key_clear        "KEY1"
@@ -512,7 +512,7 @@ status=$((status+ret))
 # Testing a good migration (CSK, no SEP).
 #
 set_zone "csk-nosep.kasp"
-set_policy "default" "1" "7200" "2"
+set_policy "default" "1" "7200"
 set_server "ns3" "10.53.0.3"
 
 key_clear        "KEY1"
@@ -563,7 +563,7 @@ status=$((status+ret))
 # Test migration to dnssec-policy, existing keys do not match key algorithm.
 #
 set_zone "migrate-nomatch-algnum.kasp"
-set_policy "migrate-nomatch-algnum" "4" "300" "2"
+set_policy "migrate-nomatch-algnum" "4" "300"
 set_server "ns3" "10.53.0.3"
 # The legacy keys need to be retired, but otherwise stay present until the
 # new keys are omnipresent, and can be used to construct a chain of trust.
@@ -678,7 +678,7 @@ status=$((status+ret))
 # Test migration to dnssec-policy, existing keys do not match key length.
 #
 set_zone "migrate-nomatch-alglen.kasp"
-set_policy "migrate-nomatch-alglen" "4" "300" "2"
+set_policy "migrate-nomatch-alglen" "4" "300"
 set_server "ns3" "10.53.0.3"
 
 # The legacy keys need to be retired, but otherwise stay present until the
@@ -811,7 +811,7 @@ IretZSK=651600
 # Testing rumoured state.
 #
 set_zone "rumoured.kasp"
-set_policy "timing-metadata" "2" "300" "2"
+set_policy "timing-metadata" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
@@ -861,7 +861,7 @@ status=$((status+ret))
 # Testing omnipresent state.
 #
 set_zone "omnipresent.kasp"
-set_policy "timing-metadata" "2" "300" "2"
+set_policy "timing-metadata" "2" "300"
 set_server "ns3" "10.53.0.3"
 
 # Key properties, timings and metadata should be the same as legacy keys above.
@@ -952,7 +952,7 @@ set_keytimes_view_migration() {
 
 # Zone view.rsasha256.kasp (external)
 set_zone "view-rsasha256.kasp"
-set_policy "rsasha256" "2" "300" "2"
+set_policy "rsasha256" "2" "300"
 set_server "ns4" "10.53.0.4"
 init_view_migration
 set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
@@ -982,7 +982,7 @@ _migrate_ext8_zsk=$(key_get KEY2 ID)
 
 # Zone view.rsasha256.kasp (internal)
 set_zone "view-rsasha256.kasp"
-set_policy "rsasha256" "2" "300" "2"
+set_policy "rsasha256" "2" "300"
 set_server "ns4" "10.53.0.4"
 init_view_migration
 set_keyalgorithm "KEY1" "8" "RSASHA256" "2048"
@@ -1024,7 +1024,7 @@ echo_i "${time_passed} seconds passed between start of tests and reconfig"
 # Testing migration (RSASHA256, views).
 #
 set_zone "view-rsasha256.kasp"
-set_policy "rsasha256" "3" "300" "2"
+set_policy "rsasha256" "3" "300"
 set_server "ns4" "10.53.0.4"
 init_migration_keys "8" "RSASHA256" "2048" "2048"
 init_migration_states "omnipresent" "rumoured"

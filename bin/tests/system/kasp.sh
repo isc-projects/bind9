@@ -209,14 +209,14 @@ set_dynamic() {
 	DYNAMIC="yes"
 }
 
-# Set policy settings (name $1, number of keys $2, dnskey ttl $3),
-# and digest type ($4) for testing keys.
+# Set policy settings (name $1, number of keys $2, dnskey ttl $3).
 set_policy() {
 	POLICY=$1
 	NUM_KEYS=$2
 	DNSKEY_TTL=$3
-	DIGEST_TYPE=$4
 	CDS_DELETE="no"
+	CDS_SHA256="yes"
+	CDS_SHA384="no"
 }
 # By default policies are considered to be secure.
 # If a zone sets its policy to "insecure", call 'set_cdsdelete' to tell the
@@ -941,18 +941,18 @@ check_signatures() {
 	retry_quiet 3 _check_signatures $1 $2 $3 || _log_error "RRset $1 in zone $ZONE incorrectly signed"
 }
 
-response_has_cds_for_key() (
+response_has_cds_for_key() {
 	awk -v zone="${ZONE%%.}." \
 	    -v ttl="${DNSKEY_TTL}" \
 	    -v qtype="CDS" \
-	    -v keyid="$(key_get "${1}" ID)" \
-	    -v keyalg="$(key_get "${1}" ALG_NUM)" \
-	    -v hashalg="${DIGEST_TYPE}" \
+	    -v keyid="$(key_get "${2}" ID)" \
+	    -v keyalg="$(key_get "${2}" ALG_NUM)" \
+	    -v hashalg="$1" \
 	    'BEGIN { ret=1; }
 	     $1 == zone && $2 == ttl && $4 == qtype && $5 == keyid && $6 == keyalg && $7 == hashalg { ret=0; exit; }
 	     END { exit ret; }' \
-	    "$2"
-)
+	    "$3"
+}
 
 response_has_cdnskey_for_key() (
 
@@ -966,6 +966,25 @@ response_has_cdnskey_for_key() (
 	     END { exit ret; }' \
 	    "$2"
 )
+
+check_cds_digests() {
+	if [ "$CDS_SHA256" = "yes" ]; then
+		response_has_cds_for_key 2 $1 $2 || _log_error "missing CDS 2 record in response for key $(key_get $1 ID)"
+	else
+		response_has_cds_for_key 2 $1 $2 && _log_error "unexpected CDS 2 record in response for key $(key_get $1 ID)"
+	fi
+
+	if [ "$CDS_SHA384" = "yes" ]; then
+		response_has_cds_for_key 4 $1 $2 || _log_error "missing CDS 4 record in response for key $(key_get $1 ID)"
+	else
+		response_has_cds_for_key 4 $1 $2 && _log_error "unexpected CDS 4 record in response for key $(key_get $1 ID)"
+	fi
+}
+
+check_cds_digests_invert() {
+	response_has_cds_for_key 2 $1 $2 && _log_error "unexpected CDS 2 record in response for key $(key_get $1 ID)"
+	response_has_cds_for_key 4 $1 $2 && _log_error "unexpected CDS 4 record in response for key $(key_get $1 ID)"
+}
 
 # Test CDS and CDNSKEY publication.
 check_cds() {
@@ -992,11 +1011,11 @@ check_cds() {
 	fi
 
 	if [ "$(key_get KEY1 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY1 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY1 ID)"
+		check_cds_digests KEY1 "dig.out.$DIR.test$n.cds"
 		response_has_cdnskey_for_key KEY1 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY1 ID)"
 		_checksig=1
 	elif [ "$(key_get KEY1 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY1 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY1 ID)"
+		check_cds_digests_invert KEY1 "dig.out.$DIR.test$n.cds"
 		# KEY1 should not have an associated CDNSKEY, but there may be
 		# one for another key.  Since the CDNSKEY has no field for key
 		# id, it is hard to check what key the CDNSKEY may belong to
@@ -1004,11 +1023,11 @@ check_cds() {
 	fi
 
 	if [ "$(key_get KEY2 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY2 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY2 ID)"
+		check_cds_digests KEY2 "dig.out.$DIR.test$n.cds"
 		response_has_cdnskey_for_key KEY2 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY2 ID)"
 		_checksig=1
 	elif [ "$(key_get KEY2 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY2 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY2 ID)"
+		check_cds_digests_invert KEY2 "dig.out.$DIR.test$n.cds"
 		# KEY2 should not have an associated CDNSKEY, but there may be
 		# one for another key.  Since the CDNSKEY has no field for key
 		# id, it is hard to check what key the CDNSKEY may belong to
@@ -1016,11 +1035,11 @@ check_cds() {
 	fi
 
 	if [ "$(key_get KEY3 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY3 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY3 ID)"
+		check_cds_digests KEY3 "dig.out.$DIR.test$n.cds"
 		response_has_cdnskey_for_key KEY3 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY3 ID)"
 		_checksig=1
 	elif [ "$(key_get KEY3 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY3 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY3 ID)"
+		check_cds_digests_invert KEY3 "dig.out.$DIR.test$n.cds"
 		# KEY3 should not have an associated CDNSKEY, but there may be
 		# one for another key.  Since the CDNSKEY has no field for key
 		# id, it is hard to check what key the CDNSKEY may belong to
@@ -1028,11 +1047,11 @@ check_cds() {
 	fi
 
 	if [ "$(key_get KEY4 STATE_DS)" = "rumoured" ] || [ "$(key_get KEY4 STATE_DS)" = "omnipresent" ]; then
-		response_has_cds_for_key KEY4 "dig.out.$DIR.test$n.cds" || _log_error "missing CDS record in response for key $(key_get KEY4 ID)"
+		check_cds_digests KEY4 "dig.out.$DIR.test$n.cds"
 		response_has_cdnskey_for_key KEY4 "dig.out.$DIR.test$n.cdnskey" || _log_error "missing CDNSKEY record in response for key $(key_get KEY4 ID)"
 		_checksig=1
 	elif [ "$(key_get KEY4 EXPECT)" = "yes" ]; then
-		response_has_cds_for_key KEY4 "dig.out.$DIR.test$n.cds" && _log_error "unexpected CDS record in response for key $(key_get KEY4 ID)"
+		check_cds_digests_invert KEY4 "dig.out.$DIR.test$n.cds"
 		# KEY4 should not have an associated CDNSKEY, but there may be
 		# one for another key.  Since the CDNSKEY has no field for key
 		# id, it is hard to check what key the CDNSKEY may belong to
@@ -1174,7 +1193,12 @@ check_cdslog() {
 	echo_i "check CDS/CDNSKEY publication is logged in ${_dir}/named.run for key ${_zone}/${_alg}/${_id} ($n)"
 	ret=0
 
-	grep "CDS for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
+	if [ "$CDS_SHA256" = "yes" ]; then
+		grep "CDS (SHA-256) for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
+	fi
+	if [ "$CDS_SHA384" = "yes" ]; then
+		grep "CDS (SHA-384) for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
+	fi
 	grep "CDNSKEY for key ${_zone}/${_alg}/${_id} is now published" "${_dir}/named.run" > /dev/null || ret=1
 
 	test "$ret" -eq 0 || echo_i "failed"

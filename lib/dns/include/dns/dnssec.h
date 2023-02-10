@@ -351,7 +351,7 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
-		      isc_stdtime_t now, unsigned int digesttype,
+		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
 		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_mem_t *mctx);
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.

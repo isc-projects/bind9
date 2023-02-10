@@ -1960,6 +1960,41 @@ exists(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static isc_result_t
+add_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
+	dns_rdataset_t *cds, unsigned int digesttype, dns_ttl_t ttl,
+	dns_diff_t *diff, isc_mem_t *mctx) {
+	isc_result_t r = ISC_R_SUCCESS;
+	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+	dns_rdata_t cdsrdata = DNS_RDATA_INIT;
+	dns_name_t *origin = dst_key_name(key->key);
+
+	r = dns_ds_buildrdata(origin, keyrdata, digesttype, dsbuf, &cdsrdata);
+	if (r != ISC_R_SUCCESS) {
+		char algbuf[DNS_DSDIGEST_FORMATSIZE];
+		dns_dsdigest_format(digesttype, algbuf,
+				    DNS_DSDIGEST_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+			      "build rdata CDS (%s) for key %s failed", algbuf,
+			      keystr);
+		return (r);
+	}
+
+	cdsrdata.type = dns_rdatatype_cds;
+	if (!dns_rdataset_isassociated(cds) || !exists(cds, &cdsrdata)) {
+		char algbuf[DNS_DSDIGEST_FORMATSIZE];
+		dns_dsdigest_format(digesttype, algbuf,
+				    DNS_DSDIGEST_FORMATSIZE);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+			      "CDS (%s) for key %s is now published", algbuf,
+			      keystr);
+		r = addrdata(&cdsrdata, diff, origin, ttl, mctx);
+	}
+	return (r);
+}
+
+static isc_result_t
 delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 	   dns_rdataset_t *cds, unsigned int digesttype, dns_diff_t *diff,
 	   isc_mem_t *mctx) {
@@ -1990,35 +2025,35 @@ delete_cds(dns_dnsseckey_t *key, dns_rdata_t *keyrdata, const char *keystr,
 isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
-		      isc_stdtime_t now, unsigned int digesttype, dns_ttl_t ttl,
-		      dns_diff_t *diff, isc_mem_t *mctx) {
-	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
+		      dns_ttl_t ttl, dns_diff_t *diff, isc_mem_t *mctx) {
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	isc_result_t result;
 	dns_dnsseckey_t *key;
 
+	REQUIRE(digests != NULL);
+
 	for (key = ISC_LIST_HEAD(*keys); key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
 	{
-		dns_rdata_t cdsrdata = DNS_RDATA_INIT;
 		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
 		dns_name_t *origin = dst_key_name(key->key);
 
 		RETERR(make_dnskey(key->key, keybuf, sizeof(keybuf),
 				   &cdnskeyrdata));
-		RETERR(dns_ds_buildrdata(origin, &cdnskeyrdata, digesttype,
-					 dsbuf, &cdsrdata));
-
-		/*
-		 * Now that the we have created the DS records convert
-		 * the rdata to CDNSKEY and CDS for comparison.
-		 */
 		cdnskeyrdata.type = dns_rdatatype_cdnskey;
-		cdsrdata.type = dns_rdatatype_cds;
 
 		if (syncpublish(key->key, now)) {
 			char keystr[DST_KEY_FORMATSIZE];
 			dst_key_format(key->key, keystr, sizeof(keystr));
+
+			for (dns_kasp_digest_t *alg = ISC_LIST_HEAD(*digests);
+			     alg != NULL; alg = ISC_LIST_NEXT(alg, link))
+			{
+				RETERR(add_cds(key, &cdnskeyrdata,
+					       (const char *)keystr, cds,
+					       alg->digest, ttl, diff, mctx));
+			}
 
 			if (!dns_rdataset_isassociated(cdnskey) ||
 			    !exists(cdnskey, &cdnskeyrdata))
@@ -2030,18 +2065,6 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 					keystr);
 				RETERR(addrdata(&cdnskeyrdata, diff, origin,
 						ttl, mctx));
-			}
-
-			if (!dns_rdataset_isassociated(cds) ||
-			    !exists(cds, &cdsrdata))
-			{
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_DNSSEC,
-					      ISC_LOG_INFO,
-					      "CDS for key %s is now published",
-					      keystr);
-				RETERR(addrdata(&cdsrdata, diff, origin, ttl,
-						mctx));
 			}
 		}
 

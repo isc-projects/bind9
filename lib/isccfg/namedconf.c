@@ -2193,7 +2193,7 @@ static cfg_type_t cfg_type_validityinterval = {
  * Clauses that can be found in a 'dnssec-policy' statement.
  */
 static cfg_clausedef_t dnssecpolicy_clauses[] = {
-	{ "cds-digest-type", &cfg_type_astring, 0 },
+	{ "cds-digest-types", &cfg_type_algorithmlist, 0 },
 	{ "dnskey-ttl", &cfg_type_duration, 0 },
 	{ "keys", &cfg_type_kaspkeys, 0 },
 	{ "max-zone-ttl", &cfg_type_duration, 0 },

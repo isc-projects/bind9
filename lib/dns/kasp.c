@@ -34,6 +34,9 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	dns_kasp_t *kasp;
 	dns_kasp_t k = {
 		.magic = DNS_KASP_MAGIC,
+		.digests = ISC_LIST_INITIALIZER,
+		.keys = ISC_LIST_INITIALIZER,
+		.link = ISC_LINK_INITIALIZER,
 	};
 
 	REQUIRE(name != NULL);
@@ -47,9 +50,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	kasp->name = isc_mem_strdup(mctx, name);
 	isc_mutex_init(&kasp->lock);
 	isc_refcount_init(&kasp->references, 1);
-
-	ISC_LINK_INIT(kasp, link);
-	ISC_LIST_INIT(kasp->keys);
 
 	*kaspp = kasp;
 	return (ISC_R_SUCCESS);
@@ -66,8 +66,8 @@ dns_kasp_attach(dns_kasp_t *source, dns_kasp_t **targetp) {
 
 static void
 destroy(dns_kasp_t *kasp) {
-	dns_kasp_key_t *key;
-	dns_kasp_key_t *key_next;
+	dns_kasp_key_t *key, *key_next;
+	dns_kasp_digest_t *digest, *digest_next;
 
 	REQUIRE(!ISC_LINK_LINKED(kasp, link));
 
@@ -77,6 +77,15 @@ destroy(dns_kasp_t *kasp) {
 		dns_kasp_key_destroy(key);
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->keys));
+
+	for (digest = ISC_LIST_HEAD(kasp->digests); digest != NULL;
+	     digest = digest_next)
+	{
+		digest_next = ISC_LIST_NEXT(digest, link);
+		ISC_LIST_UNLINK(kasp->digests, digest, link);
+		isc_mem_put(kasp->mctx, digest, sizeof(*digest));
+	}
+	INSIST(ISC_LIST_EMPTY(kasp->digests));
 
 	isc_mutex_destroy(&kasp->lock);
 	isc_mem_free(kasp->mctx, kasp->name);
@@ -188,24 +197,6 @@ dns_kasp_setdnskeyttl(dns_kasp_t *kasp, dns_ttl_t ttl) {
 	REQUIRE(!kasp->frozen);
 
 	kasp->dnskey_ttl = ttl;
-}
-
-unsigned int
-dns_kasp_cdsdigesttype(dns_kasp_t *kasp) {
-	REQUIRE(DNS_KASP_VALID(kasp));
-	REQUIRE(kasp->frozen);
-
-	return (kasp->cds_digesttype);
-}
-
-void
-dns_kasp_setcdsdigesttype(dns_kasp_t *kasp, unsigned int digesttype) {
-	REQUIRE(DNS_KASP_VALID(kasp));
-	REQUIRE(!kasp->frozen);
-
-	if (dst_ds_digest_supported(digesttype)) {
-		kasp->cds_digesttype = digesttype;
-	}
 }
 
 uint32_t
@@ -526,4 +517,26 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
 	kasp->nsec3param.iterations = iter;
 	kasp->nsec3param.optout = optout;
 	kasp->nsec3param.saltlen = saltlen;
+}
+
+dns_kasp_digestlist_t
+dns_kasp_digests(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(kasp->frozen);
+
+	return (kasp->digests);
+}
+
+void
+dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(!kasp->frozen);
+
+	if (dst_ds_digest_supported(alg)) {
+		dns_kasp_digest_t *digest = isc_mem_get(kasp->mctx,
+							sizeof(*digest));
+		digest->digest = alg;
+		ISC_LINK_INIT(digest, link);
+		ISC_LIST_APPEND(kasp->digests, digest, link);
+	}
 }

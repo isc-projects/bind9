@@ -41,7 +41,8 @@ set_zone_policy() {
 	DNSKEY_TTL=$4
 	# The CDS digest type in these tests are all the default,
 	# which is SHA-256 (2).
-	DIGEST_TYPE=2
+	CDS_SHA256="yes"
+	CDS_SHA384="no"
 }
 # Set expected NSEC3 parameters: flags ($1), iterations ($2), and
 # salt length ($3).
