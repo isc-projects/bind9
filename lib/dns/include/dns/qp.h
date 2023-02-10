@@ -19,7 +19,11 @@
  *
  * Keys are `dns_qpkey_t`, which is a string-like thing, usually created
  * from a DNS name. You can use both relative and absolute DNS names as
- * keys.
+ * keys, even in the same trie, except for one caveat: if a trie contains
+ * names relative to the zone apex, the natural way to represent the apex
+ * itself (spelled `@` in zone files) is a zero-length name; but a
+ * zero-length name has the same qpkey representation as the root zone
+ * (apart from its length), so they collide.
  *
  * Leaf values are a pair of a `void *` pointer and a `uint32_t`
  * (because that is what fits inside an internal qp-trie leaf node).
@@ -259,6 +263,13 @@ typedef enum dns_qpgc {
 	DNS_QPGC_ALL,
 } dns_qpgc_t;
 
+/*%
+ * Options for fancy searches such as `dns_qp_findname_parent()`
+ */
+typedef enum dns_qpfind {
+	DNS_QPFIND_NOEXACT = 1 << 0,
+} dns_qpfind_t;
+
 /***********************************************************************
  *
  *  functions - create, destory, enquire
@@ -395,8 +406,8 @@ dns_qpmulti_memusage(dns_qpmulti_t *multi);
 /*
  * XXXFANF todo, based on what we discover BIND needs
  *
- * fancy searches: longest match, lexicographic predecessor
- * (for NSEC), successor (for modification-safe iteration), etc.
+ * more fancy searches: lexicographic predecessor (for NSEC),
+ * successor (for modification-safe iteration), etc.
  *
  * do we need specific lookup functions to find out if the
  * returned value is readonly or mutable?
@@ -455,6 +466,30 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
  * Returns:
  * \li  ISC_R_NOTFOUND if the trie has no leaf with a matching key
  * \li  ISC_R_SUCCESS if the leaf was found
+ */
+
+isc_result_t
+dns_qp_findname_parent(dns_qpreadable_t qpr, const dns_name_t *name,
+		       dns_qpfind_t options, void **pval_r, uint32_t *ival_r);
+/*%<
+ * Find a leaf in a qp-trie that is a parent domain of or equal to the
+ * given DNS name.
+ *
+ * If the DNS_QPFIND_NOEXACT option is set, find a strict parent
+ * domain not equal to the search name.
+ *
+ * The leaf values are assigned to `*pval_r` and `*ival_r`
+ *
+ * Requires:
+ * \li  `qpr` is a pointer to a readable qp-trie
+ * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `pval_r != NULL`
+ * \li  `ival_r != NULL`
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if an exact match was found
+ * \li  ISC_R_PARTIALMATCH if a parent domain was found
+ * \li  ISC_R_NOTFOUND if no match was found
  */
 
 isc_result_t

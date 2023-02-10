@@ -278,6 +278,25 @@ qpkey_compare(const dns_qpkey_t key_a, const size_t keylen_a,
 	return (QPKEY_EQUAL);
 }
 
+/*
+ * Given a key constructed by dns_qpkey_fromname(), trim it down to the last
+ * label boundary before the `max` length.
+ *
+ * This is used when searching a trie for the best match for a name.
+ */
+static size_t
+qpkey_trim_label(dns_qpkey_t key, size_t len, size_t max) {
+	size_t stop = 0;
+	for (size_t offset = 0; offset < max; offset++) {
+		if (qpkey_bit(key, len, offset) == SHIFT_NOBYTE &&
+		    qpkey_bit(key, len, offset + 1) != SHIFT_NOBYTE)
+		{
+			stop = offset + 1;
+		}
+	}
+	return (stop);
+}
+
 /***********************************************************************
  *
  *  allocator wrappers
@@ -1798,6 +1817,103 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 	dns_qpkey_t key;
 	size_t keylen = dns_qpkey_fromname(key, name);
 	return (dns_qp_getkey(qpr, key, keylen, pval_r, ival_r));
+}
+
+isc_result_t
+dns_qp_findname_parent(dns_qpreadable_t qpr, const dns_name_t *name,
+		       dns_qpfind_t options, void **pval_r, uint32_t *ival_r) {
+	dns_qpreader_t *qp = dns_qpreader(qpr);
+	dns_qpkey_t search, found;
+	size_t searchlen, foundlen;
+	size_t offset;
+	qp_shift_t bit;
+	qp_node_t *n, *twigs;
+	isc_result_t result;
+	unsigned int labels = 0;
+	struct offref {
+		uint32_t off;
+		qp_ref_t ref;
+	} label[DNS_NAME_MAXLABELS];
+
+	REQUIRE(QP_VALID(qp));
+	REQUIRE(pval_r != NULL);
+	REQUIRE(ival_r != NULL);
+
+	searchlen = dns_qpkey_fromname(search, name);
+	if ((options & DNS_QPFIND_NOEXACT) != 0) {
+		searchlen = qpkey_trim_label(search, searchlen, searchlen);
+		result = DNS_R_PARTIALMATCH;
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+
+	n = get_root(qp);
+	if (n == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	/*
+	 * Like `dns_qp_insert()`, we must find a leaf. However, we don't make a
+	 * second pass: instead, we keep track of any leaves with shorter keys
+	 * that we discover along the way. (In general, qp-trie searches can be
+	 * one-pass, by recording their traversal, or two-pass, for less stack
+	 * memory usage.)
+	 *
+	 * A shorter key that can be a parent domain always has a leaf node at
+	 * SHIFT_NOBYTE (indicating end of its key) where our search key has a
+	 * normal character immediately after a label separator. Note 1: It is
+	 * OK if `offset - 1` underflows: it will become SIZE_MAX, which is
+	 * greater than `searchlen`, so `qpkey_bit()` will return SHIFT_NOBYTE,
+	 * which is what we want when `offset == 0`. Note 2: Any SHIFT_NOBYTE
+	 * twig is always `twigs[0]`.
+	 */
+	while (is_branch(n)) {
+		prefetch_twigs(qp, n);
+		twigs = branch_twigs_vector(qp, n);
+		offset = branch_key_offset(n);
+		bit = qpkey_bit(search, searchlen, offset);
+		if (bit != SHIFT_NOBYTE && branch_has_twig(n, SHIFT_NOBYTE) &&
+		    qpkey_bit(search, searchlen, offset - 1) == SHIFT_NOBYTE &&
+		    !is_branch(&twigs[0]))
+		{
+			label[labels].off = offset;
+			label[labels].ref = branch_twigs_ref(n);
+			labels++;
+			INSIST(labels <= DNS_NAME_MAXLABELS);
+		}
+		if (branch_has_twig(n, bit)) {
+			n = branch_twig_ptr(qp, n, bit);
+		} else if (labels == 0) {
+			/* any twig will do */
+			n = &twigs[0];
+		} else {
+			n = ref_ptr(qp, label[labels - 1].ref);
+			break;
+		}
+	}
+
+	/* do the keys differ, and if so, where? */
+	foundlen = leaf_qpkey(qp, n, found);
+	offset = qpkey_compare(search, searchlen, found, foundlen);
+
+	if (offset == QPKEY_EQUAL || offset == foundlen) {
+		*pval_r = leaf_pval(n);
+		*ival_r = leaf_ival(n);
+		if (offset == QPKEY_EQUAL) {
+			return (result);
+		} else {
+			return (DNS_R_PARTIALMATCH);
+		}
+	}
+	while (labels-- > 0) {
+		if (offset > label[labels].off) {
+			n = ref_ptr(qp, label[labels].ref);
+			*pval_r = leaf_pval(n);
+			*ival_r = leaf_ival(n);
+			return (DNS_R_PARTIALMATCH);
+		}
+	}
+	return (ISC_R_NOTFOUND);
 }
 
 /**********************************************************************/
