@@ -540,14 +540,12 @@ tarball-create:
   script:
     - source version
     - export BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
-    - export BIND9_VERSIONSTRING="${PRODUCT} ${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}${DESCRIPTION:+ }${DESCRIPTION}"
-    - export RELEASE_DATE=$(date -u -r CHANGES +%Y-%m-%d)
     - export BIND_DIRECTORY="bind-${BIND9_VERSION}"
     - git archive --prefix="${BIND_DIRECTORY}/" --output="${BIND_DIRECTORY}.tar" HEAD
     - mkdir "${BIND_DIRECTORY}"
     - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
     - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
-    - sphinx-build -b man -d "${BIND_DIRECTORY}/tmp/.doctrees/" -W -a -v -c doc/man/ -D version="${BIND9_VERSION}" -D today="${RELEASEDATE}" -D release="${BIND9_VERSIONSTRING}" doc/man "${BIND_DIRECTORY}/doc/man"
+    - sphinx-build -b man -d "${BIND_DIRECTORY}/tmp/.doctrees/" -W -a -v -c doc/man/ -D version="@BIND9_VERSION@" -D today="@RELEASEDATE@" -D release="@BIND9_VERSIONSTRING@" doc/man "${BIND_DIRECTORY}/doc/man"
     - rm -rf "${BIND_DIRECTORY}/tmp/.doctrees/"
     - for man in "${BIND_DIRECTORY}/doc/man/"*; do mv "$man" "$man"in; done
     - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/doc/man/"*in
