@@ -722,11 +722,30 @@ ret=0
 stop_server --use-rndc --port "${CONTROLPORT}" ns5
 nextpart ns5/named.run > /dev/null
 start_server --noclean --restart --port "${PORT}" ns5
-wait_for_log 20 "Returned from key fetch in keyfetch_done()" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for '.':" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.tld':" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.foo':" ns5/named.run || ret=1
 # ns5/named.run will contain logs from both the old instance and the new
 # instance.  In order for the test to pass, both must attempt a fetch.
 count=$(grep -c "Creating key fetch" ns5/named.run) || true
 [ "$count" -lt 2 ] && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check 'rndc managed-keys' and islands of trust root unreachable ($n)"
+ret=0
+mkeys_sync_on 5
+mkeys_status_on 5 > rndc.out.$n 2>&1 || ret=1
+# there should be three keys listed now
+count=$(grep -c "keyid: " rndc.out.$n) || true
+[ "$count" -eq 3 ] || ret=1
+# three lines indicating trust status
+count=$(grep -c "trust" rndc.out.$n) || true
+[ "$count" -eq 3 ] || ret=1
+# one indicates current trust
+count=$(grep -c "trusted since" rndc.out.$n) || true
+[ "$count" -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -741,7 +760,9 @@ rm -f ns5/managed-keys.bind*
 cp ns5/named2.args ns5/named.args
 nextpart ns5/named.run > /dev/null
 start_server --noclean --restart --port "${PORT}" ns5
-wait_for_log 20 "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for '.': failure" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.tld': failure" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.foo': success" ns5/named.run || ret=1
 mkeys_secroots_on 5 || ret=1
 grep '; initializing managed' ns5/named.secroots > /dev/null 2>&1 || ret=1
 # ns1 should still REFUSE queries from ns5, so resolving should be impossible
@@ -754,7 +775,9 @@ copy_setports ns1/named3.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
 nextpart ns5/named.run > /dev/null
 mkeys_reconfig_on 1 || ret=1
-wait_for_log 20 "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.tld': success" ns5/named.run || ret=1
+wait_for_log_peek 20 "Returned from key fetch in keyfetch_done() for 'sub.foo': success" ns5/named.run || ret=1
 mkeys_secroots_on 5 || ret=1
 grep '; managed' ns5/named.secroots > /dev/null || ret=1
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
@@ -832,6 +855,23 @@ lines=$(wc -l < rndc.out.ns7.view2.test$n)
 grep "refreshing managed keys for 'view1'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
 grep "refreshing managed keys for 'view2'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
 [ "$lines" -eq 2 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check 'rndc managed-keys' and islands of trust now that root is reachable ($n)"
+ret=0
+mkeys_sync_on 5
+mkeys_status_on 5 > rndc.out.$n 2>&1 || ret=1
+# there should be three keys listed now
+count=$(grep -c "keyid: " rndc.out.$n) || true
+[ "$count" -eq 3 ] || ret=1
+# theee lines indicating trust status
+count=$(grep -c "trust" rndc.out.$n) || true
+[ "$count" -eq 3 ] || ret=1
+# three indicates current trust
+count=$(grep -c "trusted since" rndc.out.$n) || true
+[ "$count" -eq 3 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
