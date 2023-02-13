@@ -960,7 +960,7 @@ do
 	sleep 1
 done
 # Sanity check: the SOA record should be unchanged
-$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA | grep -v '^;' > dig.out.ns3.test$n.2
 diff dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -984,7 +984,7 @@ _includefile_loaded() {
 }
 retry_quiet 10 _includefile_loaded
 # Sanity check: the SOA record should be changed
-$DIG $DIGOPTS +short @10.53.0.3 primary SOA > dig.out.ns3.test$n.2 || ret=1
+$DIG $DIGOPTS +short @10.53.0.3 primary SOA | grep -v '^;' > dig.out.ns3.test$n.2
 diff dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
