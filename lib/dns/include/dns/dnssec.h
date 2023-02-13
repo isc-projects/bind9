@@ -356,6 +356,22 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
  *
+ * For each key in 'keys', check if corresponding CDS and CDNSKEY records
+ * need to be published. If needed, there will be one CDNSKEY record added to
+ * the 'cdnskey' RRset and one CDS record to the 'cds' RRset for each digest
+ * type in 'digests'.
+ *
+ * For each key in 'rmkeys', remove any associated CDS and CDNSKEY records from
+ * the RRsets 'cds' and 'cdnskey'.
+ *
+ * 'hint_ttl' is the TTL to use for the CDS and CDNSKEY RRsets if there is no
+ * existing RRset.
+ *
+ * Any changes made also cause a dns_difftuple to be added to 'diff'.
+ *
+ * Requires:
+ *\li	'digests' is not NULL.
+ *
  * Returns:
  *\li   ISC_R_SUCCESS
  *\li   Other values indicate error
