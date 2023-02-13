@@ -1945,8 +1945,6 @@ dns__rpz_timer_cb(void *arg) {
 	REQUIRE(rpz->updb == NULL);
 	REQUIRE(rpz->updbversion == NULL);
 
-	dns_rpz_ref_rpzs(rpz->rpzs);
-
 	LOCK(&rpz->rpzs->maint_lock);
 
 	if (rpz->rpzs->shuttingdown) {
@@ -1966,6 +1964,7 @@ dns__rpz_timer_cb(void *arg) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
+	dns_rpz_ref_rpzs(rpz->rpzs);
 	isc_work_enqueue(rpz->loop, update_rpz_cb, update_rpz_done_cb, rpz);
 
 	isc_timer_destroy(&rpz->updatetimer);
