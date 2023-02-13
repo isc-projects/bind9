@@ -1957,8 +1957,6 @@ dns__rpz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(isc_nm_tid() >= 0);
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	dns_rpz_ref_rpzs(rpz->rpzs);
-
 	LOCK(&rpz->rpzs->maint_lock);
 
 	if (rpz->rpzs->shuttingdown) {
@@ -1981,6 +1979,7 @@ dns__rpz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
+	dns_rpz_ref_rpzs(rpz->rpzs);
 	isc_nm_work_offload(isc_task_getnetmgr(rpz->rpzs->updater),
 			    update_rpz_cb, update_rpz_done_cb, rpz);
 
