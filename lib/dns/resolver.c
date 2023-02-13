@@ -30,6 +30,7 @@
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
+#include <isc/rwlock.h>
 #include <isc/siphash.h>
 #include <isc/stats.h>
 #include <isc/string.h>
@@ -325,6 +326,7 @@ struct fctxkey {
 typedef struct fctxcount fctxcount_t;
 struct fctxcount {
 	unsigned int magic;
+	isc_mutex_t lock;
 	dns_fixedname_t dfname;
 	dns_name_t *domain;
 	uint_fast32_t count;
@@ -558,10 +560,10 @@ struct dns_resolver {
 	dns_dispatchset_t *dispatches6;
 
 	isc_hashmap_t *fctxs;
-	isc_mutex_t fctxs_lock;
+	isc_rwlock_t fctxs_lock;
 
 	isc_hashmap_t *counters;
-	isc_mutex_t counters_lock;
+	isc_rwlock_t counters_lock;
 
 	unsigned int ntasks;
 	isc_task_t **tasks;
@@ -1633,6 +1635,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	fctxcount_t *counter = NULL;
 	uint32_t hashval;
 	uint_fast32_t spill;
+	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	REQUIRE(fctx != NULL);
 	res = fctx->res;
@@ -1647,7 +1650,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	hashval = isc_hashmap_hash(res->counters, fctx->domain->ndata,
 				   fctx->domain->length);
 
-	LOCK(&res->counters_lock);
+	RWLOCK(&res->counters_lock, locktype);
 	result = isc_hashmap_find(res->counters, &hashval, fctx->domain->ndata,
 				  fctx->domain->length, (void **)&counter);
 	switch (result) {
@@ -1660,12 +1663,24 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			.count = 0,
 			.allowed = 0,
 		};
+		isc_mutex_init(&counter->lock);
 		counter->domain = dns_fixedname_initname(&counter->dfname);
 		dns_name_copy(fctx->domain, counter->domain);
+
+		UPGRADELOCK(&res->counters_lock, locktype);
 
 		result = isc_hashmap_add(res->counters, &hashval,
 					 counter->domain->ndata,
 					 counter->domain->length, counter);
+		if (result == ISC_R_EXISTS) {
+			isc_mutex_destroy(&counter->lock);
+			isc_mem_put(fctx->mctx, counter, sizeof(*counter));
+			counter = NULL;
+			result = isc_hashmap_find(
+				res->counters, &hashval, fctx->domain->ndata,
+				fctx->domain->length, (void **)&counter);
+		}
+
 		INSIST(result == ISC_R_SUCCESS);
 		break;
 	default:
@@ -1674,6 +1689,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	INSIST(VALID_FCTXCOUNT(counter));
 
 	INSIST(spill > 0);
+	LOCK(&counter->lock);
 	if (++counter->count > spill) {
 		counter->count--;
 		INSIST(counter->count > 0);
@@ -1684,7 +1700,8 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 		counter->allowed++;
 		fctx->counter = counter;
 	}
-	UNLOCK(&res->counters_lock);
+	UNLOCK(&counter->lock);
+	RWUNLOCK(&res->counters_lock, locktype);
 
 	return (result);
 }
@@ -1699,19 +1716,35 @@ fcount_decr(fetchctx_t *fctx) {
 	}
 	fctx->counter = NULL;
 
-	LOCK(&fctx->res->counters_lock);
+	/*
+	 * FIXME: This should not require a write lock, but should be
+	 * implemented using reference counting later, otherwise we would could
+	 * encounter ABA problem here - the count could go up and down when we
+	 * switch from read to write lock.
+	 */
+	RWLOCK(&fctx->res->counters_lock, isc_rwlocktype_write);
+
+	LOCK(&counter->lock);
 	INSIST(VALID_FCTXCOUNT(counter));
 	INSIST(counter->count > 0);
-	if (--counter->count == 0) {
-		isc_result_t result = isc_hashmap_delete(
-			fctx->res->counters, NULL, counter->domain->ndata,
-			counter->domain->length);
-		INSIST(result == ISC_R_SUCCESS);
-
-		fcount_logspill(fctx, counter, true);
-		isc_mem_put(fctx->mctx, counter, sizeof(*counter));
+	if (--counter->count > 0) {
+		UNLOCK(&counter->lock);
+		RWUNLOCK(&fctx->res->counters_lock, isc_rwlocktype_write);
+		return;
 	}
-	UNLOCK(&fctx->res->counters_lock);
+
+	isc_result_t result = isc_hashmap_delete(fctx->res->counters, NULL,
+						 counter->domain->ndata,
+						 counter->domain->length);
+	INSIST(result == ISC_R_SUCCESS);
+
+	fcount_logspill(fctx, counter, true);
+	UNLOCK(&counter->lock);
+
+	isc_mutex_destroy(&counter->lock);
+	isc_mem_put(fctx->mctx, counter, sizeof(*counter));
+
+	RWUNLOCK(&fctx->res->counters_lock, isc_rwlocktype_write);
 }
 
 static void
@@ -7201,12 +7234,12 @@ release_fctx(fetchctx_t *fctx) {
 		return;
 	}
 
-	LOCK(&res->fctxs_lock);
+	RWLOCK(&res->fctxs_lock, isc_rwlocktype_write);
 	result = isc_hashmap_delete(res->fctxs, &hashval, fctx->key.key,
 				    fctx->key.size);
 	INSIST(result == ISC_R_SUCCESS);
 	fctx->hashed = false;
-	UNLOCK(&res->fctxs_lock);
+	RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
 }
 
 static void
@@ -10072,11 +10105,11 @@ dns_resolver__destroy(dns_resolver_t *res) {
 
 	INSIST(isc_hashmap_count(res->fctxs) == 0);
 	isc_hashmap_destroy(&res->fctxs);
-	isc_mutex_destroy(&res->fctxs_lock);
+	isc_rwlock_destroy(&res->fctxs_lock);
 
 	INSIST(isc_hashmap_count(res->counters) == 0);
 	isc_hashmap_destroy(&res->counters);
-	isc_mutex_destroy(&res->counters_lock);
+	isc_rwlock_destroy(&res->counters_lock);
 
 	if (res->dispatches4 != NULL) {
 		dns_dispatchset_destroy(&res->dispatches4);
@@ -10206,11 +10239,11 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	/* This needs to be case sensitive to not lowercase options and type */
 	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS,
 			   ISC_HASHMAP_CASE_SENSITIVE, &res->fctxs);
-	isc_mutex_init(&res->fctxs_lock);
+	isc_rwlock_init(&res->fctxs_lock);
 
 	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS,
 			   ISC_HASHMAP_CASE_INSENSITIVE, &res->counters);
-	isc_mutex_init(&res->counters_lock);
+	isc_rwlock_init(&res->counters_lock);
 
 	if (dispatchv4 != NULL) {
 		dns_dispatchset_create(res->mctx, dispatchv4, &res->dispatches4,
@@ -10370,7 +10403,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 
 		RTRACE("exiting");
 
-		LOCK(&res->fctxs_lock);
+		RWLOCK(&res->fctxs_lock, isc_rwlocktype_write);
 		isc_hashmap_iter_create(res->fctxs, &it);
 		for (result = isc_hashmap_iter_first(it);
 		     result == ISC_R_SUCCESS;
@@ -10386,7 +10419,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 				      fctx);
 		}
 		isc_hashmap_iter_destroy(&it);
-		UNLOCK(&res->fctxs_lock);
+		RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
 
 		LOCK(&res->lock);
 		if (res->spillattimer != NULL) {
@@ -10525,6 +10558,7 @@ get_attached_fctx(dns_resolver_t *res, const dns_name_t *name,
 			name->length,
 	};
 	fetchctx_t *fctx = NULL;
+	isc_rwlocktype_t locktype = isc_rwlocktype_read;
 
 	STATIC_ASSERT(sizeof(key.options) == sizeof(options),
 		      "key options size mismatch");
@@ -10538,7 +10572,7 @@ get_attached_fctx(dns_resolver_t *res, const dns_name_t *name,
 	hashval = isc_hashmap_hash(res->fctxs, key.key, key.size);
 
 again:
-	LOCK(&res->fctxs_lock);
+	RWLOCK(&res->fctxs_lock, locktype);
 	result = isc_hashmap_find(res->fctxs, &hashval, key.key, key.size,
 				  (void **)&fctx);
 	switch (result) {
@@ -10552,13 +10586,17 @@ again:
 			goto unlock;
 		}
 
-		*new_fctx = true;
-
+		UPGRADELOCK(&res->fctxs_lock, locktype);
 		result = isc_hashmap_add(res->fctxs, &hashval, fctx->key.key,
 					 fctx->key.size, fctx);
-
-		fctx->hashed = true;
-
+		if (result == ISC_R_SUCCESS) {
+			*new_fctx = true;
+			fctx->hashed = true;
+		} else {
+			fctx_done_detach(&fctx, result);
+			result = isc_hashmap_find(res->fctxs, &hashval, key.key,
+						  key.size, (void **)&fctx);
+		}
 		INSIST(result == ISC_R_SUCCESS);
 		break;
 	default:
@@ -10566,8 +10604,7 @@ again:
 	}
 	fetchctx_ref(fctx);
 unlock:
-	UNLOCK(&res->fctxs_lock);
-
+	RWUNLOCK(&res->fctxs_lock, locktype);
 	if (result == ISC_R_SUCCESS) {
 		LOCK(&fctx->lock);
 		if (SHUTTINGDOWN(fctx) || fctx->cloned) {
@@ -11388,7 +11425,7 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 	REQUIRE(fp != NULL);
 	REQUIRE(format == isc_statsformat_file);
 
-	LOCK(&res->counters_lock);
+	RWLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_create(res->counters, &it);
 	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(it))
@@ -11402,7 +11439,7 @@ dns_resolver_dumpfetches(dns_resolver_t *res, isc_statsformat_t format,
 			" spilled, %" PRIuFAST32 " allowed)\n",
 			counter->count, counter->dropped, counter->allowed);
 	}
-	UNLOCK(&res->counters_lock);
+	RWUNLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_destroy(&it);
 }
 
@@ -11419,7 +11456,7 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 		return (ISC_R_SUCCESS);
 	}
 
-	LOCK(&res->counters_lock);
+	RWLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_create(res->counters, &it);
 	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(it))
@@ -11451,7 +11488,7 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 	}
 
 cleanup:
-	UNLOCK(&res->counters_lock);
+	RWUNLOCK(&res->counters_lock, isc_rwlocktype_read);
 	isc_hashmap_iter_destroy(&it);
 	return (result);
 }
