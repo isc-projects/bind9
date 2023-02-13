@@ -153,29 +153,3 @@ ns_sortlist_addrorder1(const isc_netaddr_t *addr, const void *arg) {
 
 	return (INT_MAX);
 }
-
-void
-ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, dns_aclenv_t *env,
-			isc_netaddr_t *client_addr,
-			dns_addressorderfunc_t *orderp, void **argp) {
-	ns_sortlisttype_t sortlisttype;
-
-	sortlisttype = ns_sortlist_setup(sortlist_acl, env, client_addr, argp);
-
-	switch (sortlisttype) {
-	case NS_SORTLISTTYPE_1ELEMENT:
-		*orderp = ns_sortlist_addrorder1;
-		break;
-	case NS_SORTLISTTYPE_2ELEMENT:
-		*orderp = ns_sortlist_addrorder2;
-		break;
-	case NS_SORTLISTTYPE_NONE:
-		*orderp = NULL;
-		break;
-	default:
-		UNEXPECTED_ERROR(
-			"unexpected return from ns_sortlist_setup(): %d",
-			sortlisttype);
-		break;
-	}
-}

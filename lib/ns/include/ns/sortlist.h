@@ -66,15 +66,3 @@ ns_sortlist_addrorder2(const isc_netaddr_t *addr, const void *arg);
  * ACL forming the second element in a 2-element top-level
  * sortlist statement.
  */
-
-void
-ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, dns_aclenv_t *env,
-			isc_netaddr_t	       *client_addr,
-			dns_addressorderfunc_t *orderp, void **argp);
-/*%<
- * Find the sortlist statement in 'acl' that applies to 'clientaddr', if any.
- * If a sortlist statement applies, return in '*orderp' a pointer to a function
- * for ranking network addresses based on that sortlist statement, and in
- * '*argp' an argument to pass to said function.  If no sortlist statement
- * applies, set '*orderp' and '*argp' to NULL.
- */

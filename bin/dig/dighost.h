@@ -445,12 +445,6 @@ void
 dig_startup(void);
 
 /*%
- * Initiates the next lookup cycle
- */
-void
-dig_query_start(void);
-
-/*%
  * Activate/deactivate IDN filtering of output.
  */
 void

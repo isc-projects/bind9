@@ -127,13 +127,6 @@ ns_interfacemgr_setbacklog(ns_interfacemgr_t *mgr, int backlog);
  * Set the size of the listen() backlog queue.
  */
 
-bool
-ns_interfacemgr_islistening(ns_interfacemgr_t *mgr);
-/*%<
- * Return if the manager is listening on any interface. It can be called
- * after a scan or adjust.
- */
-
 isc_result_t
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config);
 /*%<

@@ -1349,13 +1349,6 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	return (result);
 }
 
-bool
-ns_interfacemgr_islistening(ns_interfacemgr_t *mgr) {
-	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
-
-	return (ISC_LIST_EMPTY(mgr->interfaces) ? false : true);
-}
-
 void
 ns_interfacemgr_setlistenon4(ns_interfacemgr_t *mgr, ns_listenlist_t *value) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));

@@ -384,23 +384,6 @@ isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
 }
 
 isc_result_t
-isc_file_bopenunique(char *templet, FILE **fp) {
-	int mode = S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-	return (isc_file_openuniquemode(templet, mode, fp));
-}
-
-isc_result_t
-isc_file_bopenuniqueprivate(char *templet, FILE **fp) {
-	int mode = S_IWUSR | S_IRUSR;
-	return (isc_file_openuniquemode(templet, mode, fp));
-}
-
-isc_result_t
-isc_file_bopenuniquemode(char *templet, int mode, FILE **fp) {
-	return (isc_file_openuniquemode(templet, mode, fp));
-}
-
-isc_result_t
 isc_file_remove(const char *filename) {
 	int r;
 
