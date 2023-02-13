@@ -529,14 +529,27 @@ dns_kasp_digests(dns_kasp_t *kasp) {
 
 void
 dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg) {
+	dns_kasp_digest_t *digest;
+
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(!kasp->frozen);
 
-	if (dst_ds_digest_supported(alg)) {
-		dns_kasp_digest_t *digest = isc_mem_get(kasp->mctx,
-							sizeof(*digest));
-		digest->digest = alg;
-		ISC_LINK_INIT(digest, link);
-		ISC_LIST_APPEND(kasp->digests, digest, link);
+	/* Suppress unsupported algorithms */
+	if (!dst_ds_digest_supported(alg)) {
+		return;
 	}
+
+	/* Suppress duplicates */
+	for (dns_kasp_digest_t *d = ISC_LIST_HEAD(kasp->digests); d != NULL;
+	     d = ISC_LIST_NEXT(d, link))
+	{
+		if (d->digest == alg) {
+			return;
+		}
+	}
+
+	digest = isc_mem_get(kasp->mctx, sizeof(*digest));
+	digest->digest = alg;
+	ISC_LINK_INIT(digest, link);
+	ISC_LIST_APPEND(kasp->digests, digest, link);
 }
