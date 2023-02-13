@@ -381,7 +381,6 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	test_node_t lower = { .key = "isc_hashmap_case" };
 	test_node_t upper = { .key = "ISC_HASHMAP_CASE" };
 	test_node_t mixed = { .key = "IsC_hAsHmAp_CaSe" };
-	test_node_t *value;
 
 	isc_hashmap_create(mctx, 1, ISC_HASHMAP_CASE_SENSITIVE, &hashmap);
 
@@ -398,7 +397,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_hashmap_find(hashmap, NULL, mixed.key, strlen(mixed.key),
-				  (void *)&value);
+				  &(void *){ NULL });
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	isc_hashmap_destroy(&hashmap);
@@ -418,7 +417,7 @@ ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	assert_int_equal(result, ISC_R_EXISTS);
 
 	result = isc_hashmap_find(hashmap, NULL, mixed.key, strlen(mixed.key),
-				  (void *)&value);
+				  &(void *){ NULL });
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_hashmap_destroy(&hashmap);

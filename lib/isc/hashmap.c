@@ -332,8 +332,9 @@ isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t *hashvalp,
 		 const void *key, uint32_t keysize, void **valuep) {
 	REQUIRE(ISC_HASHMAP_VALID(hashmap));
 	REQUIRE(key != NULL && keysize <= UINT16_MAX);
+	REQUIRE(valuep == NULL || *valuep == NULL);
 
-	hashmap_node_t *node;
+	hashmap_node_t *node = NULL;
 	uint8_t idx = hashmap->hindex;
 	uint32_t hashval = (hashvalp != NULL)
 				   ? *hashvalp
