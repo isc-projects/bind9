@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
