@@ -240,22 +240,22 @@ typedef struct rdatasetheader {
 	atomic_uint_least16_t attributes;
 	dns_trust_t trust;
 
-	uint16_t heap_index;
+	unsigned int heap_index;
 	/*%<
-	 * Used for TTL-based cache cleaning. Matches type of dns_rbt_t->locknum
+	 * Used for TTL-based cache cleaning.
 	 */
 
-	unsigned int resign_lsb : 1;
 	isc_stdtime_t resign;
+	unsigned int resign_lsb : 1;
 
-	atomic_uint_fast32_t last_refresh_fail_ts;
-
-	atomic_uint_fast32_t count;
+	atomic_uint_fast16_t count;
 	/*%<
 	 * Monotonically increased every time this rdataset is bound so that
 	 * it is used as the base of the starting point in DNS responses
 	 * when the "cyclic" rrset-order is required.
 	 */
+
+	atomic_uint_fast32_t last_refresh_fail_ts;
 
 	struct noqname *noqname;
 	struct noqname *closest;
@@ -781,14 +781,8 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name);
  * 'init_count' is used to initialize 'newheader->count' which inturn
  * is used to determine where in the cycle rrset-order cyclic starts.
  * We don't lock this as we don't care about simultaneous updates.
- *
- * Note:
- *      Both init_count and header->count can be UINT32_MAX.
- *      The count on the returned rdataset however can't be as
- *      that indicates that the database does not implement cyclic
- *      processing.
  */
-static atomic_uint_fast32_t init_count = 0;
+static atomic_uint_fast16_t init_count = 0;
 
 /*
  * Locking
@@ -3112,9 +3106,6 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
 	rdataset->count = atomic_fetch_add_relaxed(&header->count, 1);
-	if (rdataset->count == UINT32_MAX) {
-		rdataset->count = 0;
-	}
 
 	/*
 	 * Reset iterator state.
