@@ -64,8 +64,8 @@ ISC_LOOP_TEST_IMPL(apply) {
 	assert_non_null(view->zonetable);
 
 	assert_int_equal(nzones, 0);
-	result = dns_zt_apply(view->zonetable, isc_rwlocktype_read, false, NULL,
-			      count_zone, &nzones);
+	result = dns_zt_apply(view->zonetable, false, NULL, count_zone,
+			      &nzones);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 
@@ -83,11 +83,9 @@ ISC_LOOP_TEST_IMPL(apply) {
 }
 
 static isc_result_t
-load_done_last(dns_zt_t *zt, dns_zone_t *zone) {
+load_done_last(void *uap) {
+	dns_zone_t *zone = uap;
 	isc_result_t result;
-
-	UNUSED(zt);
-	UNUSED(zone);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -110,28 +108,24 @@ load_done_last(dns_zt_t *zt, dns_zone_t *zone) {
 }
 
 static isc_result_t
-load_done_new_only(dns_zt_t *zt, dns_zone_t *zone) {
+load_done_new_only(void *uap) {
+	dns_zone_t *zone = uap;
 	isc_result_t result;
-
-	UNUSED(zt);
-	UNUSED(zone);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_db_detach(&db);
 
-	dns_zone_asyncload(zone, true, load_done_last, NULL);
+	dns_zone_asyncload(zone, true, load_done_last, zone);
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
-load_done_first(dns_zt_t *zt, dns_zone_t *zone) {
-	atomic_bool *done = (atomic_bool *)zt;
+load_done_first(void *uap) {
+	dns_zone_t *zone = uap;
 	isc_result_t result;
-
-	UNUSED(zone);
 
 	/* The zone should now be loaded; test it */
 	result = dns_zone_getdb(zone, &db);
@@ -146,7 +140,7 @@ load_done_first(dns_zt_t *zt, dns_zone_t *zone) {
 	fflush(zonefile);
 	fclose(zonefile);
 
-	dns_zone_asyncload(zone, true, load_done_new_only, &done);
+	dns_zone_asyncload(zone, true, load_done_new_only, zone);
 
 	return (ISC_R_SUCCESS);
 }
@@ -157,9 +151,6 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	int n;
 	dns_zone_t *zone = NULL;
 	char buf[4096];
-	atomic_bool done;
-
-	atomic_init(&done, false);
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -172,7 +163,6 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	assert_non_null(view->zonetable);
 
 	assert_false(dns__zone_loadpending(zone));
-	assert_false(atomic_load(&done));
 	zonefile = fopen("./zone.data", "wb");
 	assert_non_null(zonefile);
 	origfile = fopen(TESTS_DIR "/testdata/zt/zone1.db", "r+b");
@@ -185,7 +175,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	dns_zone_setfile(zone, "./zone.data", dns_masterformat_text,
 			 &dns_master_style_default);
 
-	dns_zone_asyncload(zone, false, load_done_first, &done);
+	dns_zone_asyncload(zone, false, load_done_first, zone);
 }
 
 dns_zone_t *zone1 = NULL, *zone2 = NULL, *zone3 = NULL;

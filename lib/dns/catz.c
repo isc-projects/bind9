@@ -526,7 +526,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 	     result = delcur ? isc_ht_iter_delcurrent_next(iter1)
 			     : isc_ht_iter_next(iter1))
 	{
-		isc_result_t zt_find_result;
+		isc_result_t find_result;
 		dns_catz_zone_t *parentcatz = NULL;
 		dns_catz_entry_t *nentry = NULL;
 		dns_catz_entry_t *oentry = NULL;
@@ -559,10 +559,10 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 					    &catz->zoneoptions, &nentry->opts);
 
 		/* Try to find the zone in the view */
-		zt_find_result = dns_zt_find(catz->catzs->view->zonetable,
-					     dns_catz_entry_getname(nentry), 0,
-					     NULL, &zone);
-		if (zt_find_result == ISC_R_SUCCESS) {
+		find_result = dns_view_findzone(catz->catzs->view,
+						dns_catz_entry_getname(nentry),
+						&zone);
+		if (find_result == ISC_R_SUCCESS) {
 			dns_catz_coo_t *coo = NULL;
 			char pczname[DNS_NAME_FORMATSIZE];
 			bool parentcatz_locked = false;
@@ -606,10 +606,6 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 				UNLOCK(&parentcatz->lock);
 				LOCK(&catz->lock);
 			}
-		}
-		if (zt_find_result == ISC_R_SUCCESS ||
-		    zt_find_result == DNS_R_PARTIALMATCH)
-		{
 			dns_zone_detach(&zone);
 		}
 
@@ -617,8 +613,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		result = isc_ht_find(catz->entries, key, (uint32_t)keysize,
 				     (void **)&oentry);
 		if (result != ISC_R_SUCCESS) {
-			if (zt_find_result == ISC_R_SUCCESS &&
-			    parentcatz == catz)
+			if (find_result == ISC_R_SUCCESS && parentcatz == catz)
 			{
 				/*
 				 * This means that the zone's unique label
@@ -645,7 +640,7 @@ dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 			continue;
 		}
 
-		if (zt_find_result != ISC_R_SUCCESS) {
+		if (find_result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
 				      "catz: zone '%s' was expected to exist "

@@ -2708,7 +2708,7 @@ catz_addmodzone_cb(void *arg) {
 		goto cleanup;
 	}
 
-	result = dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone);
+	result = dns_view_findzone(cz->view, name, &zone);
 
 	if (cz->mod) {
 		dns_catz_zone_t *parentcatz;
@@ -2780,19 +2780,8 @@ catz_addmodzone_cb(void *arg) {
 					nameb);
 			}
 			goto cleanup;
-		} else if (result != ISC_R_NOTFOUND &&
-			   result != DNS_R_PARTIALMATCH)
-		{
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: error \"%s\" while trying to "
-				      "add zone '%s'",
-				      isc_result_totext(result), nameb);
-			goto cleanup;
-		} else { /* this can happen in case of DNS_R_PARTIALMATCH */
-			if (zone != NULL) {
-				dns_zone_detach(&zone);
-			}
+		} else {
+			RUNTIME_CHECK(result == ISC_R_NOTFOUND);
 		}
 	}
 	RUNTIME_CHECK(zone == NULL);
@@ -2845,7 +2834,7 @@ catz_addmodzone_cb(void *arg) {
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone));
+	CHECK(dns_view_findzone(cz->view, name, &zone));
 
 	/*
 	 * Load the zone from the master file.	If this fails, we'll
@@ -2901,8 +2890,8 @@ catz_delzone_cb(void *arg) {
 
 	dns_name_format(dns_catz_entry_getname(cz->entry), cname,
 			DNS_NAME_FORMATSIZE);
-	result = dns_zt_find(cz->view->zonetable,
-			     dns_catz_entry_getname(cz->entry), 0, NULL, &zone);
+	result = dns_view_findzone(cz->view, dns_catz_entry_getname(cz->entry),
+				   &zone);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -6448,7 +6437,8 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	}
 	INSIST(view == NULL);
 
-	result = dns_view_create(named_g_mctx, viewclass, viewname, &view);
+	result = dns_view_create(named_g_mctx, named_g_loopmgr, viewclass,
+				 viewname, &view);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -9734,8 +9724,8 @@ cleanup_viewlist:
 		if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0)
 		{
 			dns_view_setviewrevert(view);
-			(void)dns_zt_apply(view->zonetable, isc_rwlocktype_read,
-					   false, NULL, removed, view);
+			(void)dns_zt_apply(view->zonetable, false, NULL,
+					   removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -10564,8 +10554,7 @@ zone_from_args(named_server_t *server, isc_lex_t *lex, const char *zonetxt,
 				result = ISC_R_NOTFOUND;
 			}
 		} else {
-			result = dns_zt_find(view->zonetable, name, 0, NULL,
-					     zonep);
+			result = dns_view_findzone(view, name, zonep);
 		}
 		if (result != ISC_R_SUCCESS) {
 			snprintf(problem, sizeof(problem),
@@ -11304,8 +11293,8 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones) {
-		result = dns_zt_apply(view->zonetable, isc_rwlocktype_read,
-				      true, NULL, add_zone_tolist, dctx);
+		result = dns_zt_apply(view->zonetable, true, NULL,
+				      add_zone_tolist, dctx);
 	}
 	return (result);
 }
@@ -12402,8 +12391,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			result = dns_zt_apply(view->zonetable,
-					      isc_rwlocktype_none, false, NULL,
+			result = dns_zt_apply(view->zonetable, false, NULL,
 					      synczone, &cleanup);
 			if (result != ISC_R_SUCCESS && tresult == ISC_R_SUCCESS)
 			{
@@ -13430,19 +13418,15 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 	/* Zone shouldn't already exist */
 	if (redirect) {
-		result = (view->redirect != NULL) ? ISC_R_SUCCESS
-						  : ISC_R_NOTFOUND;
+		result = (view->redirect == NULL) ? ISC_R_NOTFOUND
+						  : ISC_R_EXISTS;
 	} else {
-		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+		result = dns_view_findzone(view, name, &zone);
+		if (result == ISC_R_SUCCESS) {
+			result = ISC_R_EXISTS;
+		}
 	}
-	if (result == ISC_R_SUCCESS) {
-		result = ISC_R_EXISTS;
-		goto cleanup;
-	} else if (result == DNS_R_PARTIALMATCH) {
-		/* Create our sub-zone anyway */
-		dns_zone_detach(&zone);
-		zone = NULL;
-	} else if (result != ISC_R_NOTFOUND) {
+	if (result != ISC_R_NOTFOUND) {
 		goto cleanup;
 	}
 
@@ -13501,7 +13485,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 		dns_zone_attach(view->redirect, &zone);
 	} else {
-		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+		result = dns_view_findzone(view, name, &zone);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -13617,7 +13601,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 			result = ISC_R_NOTFOUND;
 		}
 	} else {
-		result = dns_zt_find(view->zonetable, name, 0, NULL, &zone);
+		result = dns_view_findzone(view, name, &zone);
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -13686,7 +13670,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 		dns_zone_attach(view->redirect, &zone);
 	} else {
-		CHECK(dns_zt_find(view->zonetable, name, 0, NULL, &zone));
+		CHECK(dns_view_findzone(view, name, &zone));
 	}
 
 #ifndef HAVE_LMDB

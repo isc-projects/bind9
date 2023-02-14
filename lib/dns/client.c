@@ -206,7 +206,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
-	result = dns_view_create(mctx, rdclass, DNS_CLIENTVIEW_NAME, &view);
+	result = dns_view_create(mctx, loopmgr, rdclass, DNS_CLIENTVIEW_NAME,
+				 &view);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

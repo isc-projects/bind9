@@ -1776,8 +1776,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 		if ((flags & STATS_XML_ZONES) != 0) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "zones"));
-			CHECK(dns_zt_apply(view->zonetable, isc_rwlocktype_read,
-					   true, NULL, zone_xmlrender, writer));
+			CHECK(dns_zt_apply(view->zonetable, true, NULL,
+					   zone_xmlrender, writer));
 			TRY0(xmlTextWriterEndElement(writer)); /* /zones */
 		}
 
@@ -2490,9 +2490,8 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 			CHECKMEM(za);
 
 			if ((flags & STATS_JSON_ZONES) != 0) {
-				CHECK(dns_zt_apply(view->zonetable,
-						   isc_rwlocktype_read, true,
-						   NULL, zone_jsonrender, za));
+				CHECK(dns_zt_apply(view->zonetable, true, NULL,
+						   zone_jsonrender, za));
 			}
 
 			if (json_object_array_length(za) != 0) {

@@ -79,7 +79,8 @@
 #define DEFAULT_EDNS_BUFSIZE 1232
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
+dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -134,13 +135,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	isc_rwlock_init(&view->sfd_lock);
 
 	view->zonetable = NULL;
-	result = dns_zt_create(mctx, rdclass, &view->zonetable);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR("dns_zt_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_mutex;
-	}
+	dns_zt_create(mctx, loopmgr, view, &view->zonetable);
 
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {
@@ -214,11 +209,8 @@ cleanup_weakrefs:
 	}
 
 cleanup_zt:
-	if (view->zonetable != NULL) {
-		dns_zt_detach(&view->zonetable);
-	}
+	dns_zt_detach(&view->zonetable);
 
-cleanup_mutex:
 	isc_rwlock_destroy(&view->sfd_lock);
 	isc_mutex_destroy(&view->lock);
 
@@ -572,8 +564,7 @@ dns_view_dialup(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	(void)dns_zt_apply(view->zonetable, isc_rwlocktype_read, false, NULL,
-			   dialup, NULL);
+	(void)dns_zt_apply(view->zonetable, false, NULL, dialup, NULL);
 }
 
 void
@@ -600,15 +591,6 @@ dns_view_weakdetach(dns_view_t **viewp) {
 	if (isc_refcount_decrement(&view->weakrefs) == 1) {
 		destroy(view);
 	}
-}
-
-isc_result_t
-dns_view_createzonetable(dns_view_t *view) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(!view->frozen);
-	REQUIRE(view->zonetable == NULL);
-
-	return (dns_zt_create(view->mctx, view->rdclass, &view->zonetable));
 }
 
 isc_result_t
@@ -784,7 +766,6 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
-	REQUIRE(view->zonetable != NULL);
 
 	result = dns_zt_mount(view->zonetable, zone);
 
@@ -794,23 +775,9 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  dns_zone_t **zonep) {
-	isc_result_t result;
-
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	LOCK(&view->lock);
-	if (view->zonetable != NULL) {
-		result = dns_zt_find(view->zonetable, name, 0, NULL, zonep);
-		if (result == DNS_R_PARTIALMATCH) {
-			dns_zone_detach(zonep);
-			result = ISC_R_NOTFOUND;
-		}
-	} else {
-		result = ISC_R_NOTFOUND;
-	}
-	UNLOCK(&view->lock);
-
-	return (result);
+	return (dns_zt_find(view->zonetable, name, DNS_ZTFIND_EXACT, zonep));
 }
 
 isc_result_t
@@ -820,11 +787,11 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      dns_name_t *foundname, dns_rdataset_t *rdataset,
 	      dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
-	dns_db_t *db, *zdb;
-	dns_dbnode_t *node, *znode;
+	dns_db_t *db = NULL, *zdb = NULL;
+	dns_dbnode_t *node = NULL, *znode = NULL;
 	bool is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
-	dns_zone_t *zone;
+	dns_zone_t *zone = NULL;
 
 	/*
 	 * Find an rdataset whose owner name is 'name', and whose type is
@@ -842,24 +809,12 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	 */
 	dns_rdataset_init(&zrdataset);
 	dns_rdataset_init(&zsigrdataset);
-	zdb = NULL;
-	znode = NULL;
 
 	/*
 	 * Find a database to answer the query.
 	 */
-	db = NULL;
-	node = NULL;
 	is_staticstub_zone = false;
-	zone = NULL;
-	LOCK(&view->lock);
-	if (view->zonetable != NULL) {
-		result = dns_zt_find(view->zonetable, name, DNS_ZTFIND_MIRROR,
-				     NULL, &zone);
-	} else {
-		result = ISC_R_NOTFOUND;
-	}
-	UNLOCK(&view->lock);
+	result = dns_zt_find(view->zonetable, name, DNS_ZTFIND_MIRROR, &zone);
 	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
 	    !use_static_stub)
 	{
@@ -1109,21 +1064,16 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		     unsigned int options, bool use_hints, bool use_cache,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	isc_result_t result;
-	dns_db_t *db;
-	bool is_cache, use_zone, try_hints;
-	dns_zone_t *zone;
-	dns_name_t *zfname;
+	dns_db_t *db = NULL;
+	bool is_cache, use_zone = false, try_hints = false;
+	dns_zone_t *zone = NULL;
+	dns_name_t *zfname = NULL;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
 	unsigned int ztoptions = DNS_ZTFIND_MIRROR;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->frozen);
-
-	db = NULL;
-	use_zone = false;
-	try_hints = false;
-	zfname = NULL;
 
 	/*
 	 * Initialize.
@@ -1135,18 +1085,10 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 	/*
 	 * Find the right database.
 	 */
-	zone = NULL;
-	LOCK(&view->lock);
-	if (view->zonetable != NULL) {
-		if ((options & DNS_DBFIND_NOEXACT) != 0) {
-			ztoptions |= DNS_ZTFIND_NOEXACT;
-		}
-		result = dns_zt_find(view->zonetable, name, ztoptions, NULL,
-				     &zone);
-	} else {
-		result = ISC_R_NOTFOUND;
+	if ((options & DNS_DBFIND_NOEXACT) != 0) {
+		ztoptions |= DNS_ZTFIND_NOEXACT;
 	}
-	UNLOCK(&view->lock);
+	result = dns_zt_find(view->zonetable, name, ztoptions, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
 	}
@@ -1339,7 +1281,6 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 	dns_view_t *view;
 	isc_result_t result;
 	dns_zone_t *zone1 = NULL, *zone2 = NULL;
-	dns_zone_t **zp = NULL;
 
 	REQUIRE(list != NULL);
 	REQUIRE(zonep != NULL && *zonep == NULL);
@@ -1350,30 +1291,9 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 		if (!allclasses && view->rdclass != rdclass) {
 			continue;
 		}
-
-		/*
-		 * If the zone is defined in more than one view,
-		 * treat it as not found.
-		 */
-		zp = (zone1 == NULL) ? &zone1 : &zone2;
-		LOCK(&view->lock);
-		if (view->zonetable != NULL) {
-			result = dns_zt_find(view->zonetable, name, 0, NULL,
-					     zp);
-		} else {
-			result = ISC_R_NOTFOUND;
-		}
-		UNLOCK(&view->lock);
-		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND ||
-		       result == DNS_R_PARTIALMATCH);
-
-		/* Treat a partial match as no match */
-		if (result == DNS_R_PARTIALMATCH) {
-			dns_zone_detach(zp);
-			result = ISC_R_NOTFOUND;
-			POST(result);
-		}
-
+		result = dns_zt_find(view->zonetable, name, DNS_ZTFIND_EXACT,
+				     (zone1 == NULL) ? &zone1 : &zone2);
+		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
 		if (zone2 != NULL) {
 			dns_zone_detach(&zone1);
 			dns_zone_detach(&zone2);
@@ -1393,17 +1313,13 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 isc_result_t
 dns_view_load(dns_view_t *view, bool stop, bool newonly) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->zonetable != NULL);
-
 	return (dns_zt_load(view->zonetable, stop, newonly));
 }
 
 isc_result_t
-dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_allloaded_t callback,
+dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_callback_t *callback,
 		   void *arg) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->zonetable != NULL);
-
 	return (dns_zt_asyncload(view->zonetable, newonly, callback, arg));
 }
 

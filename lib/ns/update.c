@@ -1988,15 +1988,8 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 				     "RRs");
 	}
 
-	result = dns_zt_find(client->view->zonetable, zonename, 0, NULL, &zone);
+	result = dns_view_findzone(client->view, zonename, &zone);
 	if (result != ISC_R_SUCCESS) {
-		/*
-		 * If we found a zone that is a parent of the update zonename,
-		 * detach it so it isn't mentioned in log - it is irrelevant.
-		 */
-		if (zone != NULL) {
-			dns_zone_detach(&zone);
-		}
 		FAILN(DNS_R_NOTAUTH, zonename,
 		      "not authoritative for update zone");
 	}

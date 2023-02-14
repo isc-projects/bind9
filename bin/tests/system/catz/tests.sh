@@ -294,7 +294,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run "zone_shutdown: zone dom1.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run "catz: catz_delzone_cb: zone 'dom1.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -929,7 +929,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "zone_shutdown: zone dom5.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom5.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -987,7 +987,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "zone_shutdown: zone dom6.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom6.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1483,7 +1483,7 @@ END
     n=$((n+1))
     echo_i "waiting for secondary to sync up ($n)"
     ret=0
-    wait_for_message ns2/named.run  "zone_shutdown: zone ${special}/IN/default: shutting down" || ret=1
+    wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone '${special}' deleted" || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 
@@ -1621,7 +1621,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "zone_shutdown: zone dom11.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom11.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1653,7 +1653,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "zone_shutdown: zone subdomain.of.dom11.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'subdomain.of.dom11.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2424,10 +2424,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "catz: deleting zone 'dom17.example' from catalog 'catalog1.example' - success" &&
-wait_for_message ns2/named.run  "catz: deleting zone 'dom18.example' from catalog 'catalog1.example' - success" &&
-wait_for_message ns2/named.run  "zone_shutdown: zone dom17.example/IN/default: shutting down" &&
-wait_for_message ns2/named.run  "zone_shutdown: zone dom18.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom17.example' deleted" &&
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom18.example' deleted" &&
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2515,10 +2513,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
-wait_for_message ns2/named.run  "catz: deleting zone 'dom17.example' from catalog 'catalog2.example' - success" &&
-wait_for_message ns2/named.run  "catz: deleting zone 'dom18.example' from catalog 'catalog2.example' - success" &&
-wait_for_message ns2/named.run  "zone_shutdown: zone dom17.example/IN/default: shutting down" &&
-wait_for_message ns2/named.run  "zone_shutdown: zone dom18.example/IN/default: shutting down" || ret=1
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom17.example' deleted" &&
+wait_for_message ns2/named.run  "catz: catz_delzone_cb: zone 'dom18.example' deleted" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

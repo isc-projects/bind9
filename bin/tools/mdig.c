@@ -2141,7 +2141,7 @@ main(int argc, char *argv[]) {
 		mctx, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
-	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
+	RUNCHECK(dns_view_create(mctx, loopmgr, 0, "_mdig", &view));
 
 	query = ISC_LIST_HEAD(queries);
 	isc_loopmgr_setup(loopmgr, sendqueries, query);

@@ -166,7 +166,7 @@ syncptr_find_zone(sample_instance_t *inst, dns_rdata_t *rdata, dns_name_t *name,
 	}
 
 	/* Find a zone containing owner name of the PTR record. */
-	result = dns_zt_find(inst->view->zonetable, name, 0, NULL, zone);
+	result = dns_zt_find(inst->view->zonetable, name, 0, zone);
 	if (result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_SUCCESS;
 	} else if (result != ISC_R_SUCCESS) {

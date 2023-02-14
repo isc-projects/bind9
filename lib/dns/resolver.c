@@ -6544,9 +6544,8 @@ static inline bool
 name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_forwarders_t *forwarders = NULL;
-	dns_fixedname_t fixed, zfixed;
+	dns_fixedname_t fixed;
 	dns_name_t *fname = dns_fixedname_initname(&fixed);
-	dns_name_t *zfname = dns_fixedname_initname(&zfixed);
 	dns_name_t *apex = NULL;
 	dns_name_t suffix;
 	dns_zone_t *zone = NULL;
@@ -6584,25 +6583,17 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	 * If there is a locally served zone between 'apex' and 'name'
 	 * then don't cache.
 	 */
-	LOCK(&fctx->res->view->lock);
-	if (fctx->res->view->zonetable != NULL) {
-		unsigned int options = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_MIRROR;
-		result = dns_zt_find(fctx->res->view->zonetable, name, options,
-				     zfname, &zone);
-		if (zone != NULL) {
-			dns_zone_detach(&zone);
-		}
-		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			if (dns_name_fullcompare(zfname, apex, &(int){ 0 },
-						 &(unsigned int){ 0U }) ==
-			    dns_namereln_subdomain)
-			{
-				UNLOCK(&fctx->res->view->lock);
-				return (true);
-			}
+	dns_ztfind_t options = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_MIRROR;
+	result = dns_zt_find(fctx->res->view->zonetable, name, options, &zone);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		dns_name_t *zname = dns_zone_getorigin(zone);
+		dns_namereln_t reln = dns_name_fullcompare(
+			zname, apex, &(int){ 0 }, &(unsigned int){ 0U });
+		dns_zone_detach(&zone);
+		if (reln == dns_namereln_subdomain) {
+			return (true);
 		}
 	}
-	UNLOCK(&fctx->res->view->lock);
 
 	/*
 	 * Look for a forward declaration below 'name'.
