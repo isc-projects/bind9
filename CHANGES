@@ -59,6 +59,9 @@
 			not negotiate "dot" ALPN token could crash BIND
 			on shutdown. That has been fixed. [GL #3767]
 
+6057.	[bug]		Fix shutdown and error path bugs in the rpz unit.
+			[GL #3735]
+
 5850.	[func]		Run the RPZ update process on the offload threads.
 			[GL #3190]
 
