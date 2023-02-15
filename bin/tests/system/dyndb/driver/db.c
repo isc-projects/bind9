@@ -575,8 +575,6 @@ static dns_dbmethods_t sampledb_methods = {
 	getoriginnode,	transfernode,	getnsec3parameters,
 	findnsec3node,	setsigningtime, getsigningtime,
 	resigned,	isdnssec,	getrrsetstats,
-	NULL, /* rpz_attach */
-	NULL, /* rpz_ready */
 	findnodeext,	findext,	setcachestats,
 	hashsize,	NULL, /* nodefullname */
 	NULL,		      /* getsize */
