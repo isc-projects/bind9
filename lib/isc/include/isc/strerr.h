@@ -26,4 +26,8 @@
 #if defined(strerror_r)
 #undef strerror_r
 #endif /* if defined(strerror_r) */
+
+/*
+ * Ensure we use a consistent implementation of strerror_r()
+ */
 #define strerror_r isc_string_strerror_r
