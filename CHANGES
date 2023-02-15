@@ -1,3 +1,7 @@
+6099.	[performance]	Change the internal read-write lock to modified C-RW-WP
+			algorithm that is more reader-writer fair and has better
+			performance for our workloads. [GL #1609]
+
 6098.	[test]		Don't test HMAC-MD5 when not supported by libcrypto.
 			[GL #3871]
 

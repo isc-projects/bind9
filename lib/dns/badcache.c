@@ -16,6 +16,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -82,7 +83,7 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	};
 
 	isc_mem_attach(mctx, &bc->mctx);
-	isc_rwlock_init(&bc->lock, 0, 0);
+	isc_rwlock_init(&bc->lock);
 
 	bc->table = isc_mem_getx(bc->mctx, sizeof(bc->table[0]) * size,
 				 ISC_MEM_ZERO);

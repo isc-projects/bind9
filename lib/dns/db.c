@@ -70,7 +70,7 @@ static dns_dbimplementation_t rbtimp;
 
 static void
 initialize(void) {
-	isc_rwlock_init(&implock, 0, 0);
+	isc_rwlock_init(&implock);
 
 	rbtimp.name = "rbt";
 	rbtimp.create = dns_rbtdb_create;

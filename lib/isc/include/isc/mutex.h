@@ -23,6 +23,8 @@
 #include <isc/result.h> /* for ISC_R_ codes */
 #include <isc/util.h>
 
+#define ISC_MUTEX_INITIALIZER PTHREAD_MUTEX_INITIALIZER
+
 ISC_LANG_BEGINDECLS
 
 /*

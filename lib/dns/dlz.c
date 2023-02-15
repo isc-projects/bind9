@@ -83,7 +83,7 @@ static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 dlz_initialize(void) {
-	isc_rwlock_init(&dlz_implock, 0, 0);
+	isc_rwlock_init(&dlz_implock);
 	ISC_LIST_INIT(dlz_implementations);
 }
 

@@ -95,7 +95,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 		goto cleanup_zt;
 	}
 
-	isc_rwlock_init(&zt->rwlock, 0, 0);
+	isc_rwlock_init(&zt->rwlock);
 	zt->mctx = NULL;
 	isc_mem_attach(mctx, &zt->mctx);
 	isc_refcount_init(&zt->references, 1);

@@ -214,7 +214,7 @@ typedef struct dns_include dns_include_t;
 	} while (0)
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 
-#define ZONEDB_INITLOCK(l)    isc_rwlock_init((l), 0, 0)
+#define ZONEDB_INITLOCK(l)    isc_rwlock_init((l))
 #define ZONEDB_DESTROYLOCK(l) isc_rwlock_destroy(l)
 #define ZONEDB_LOCK(l, t)     RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
@@ -17942,7 +17942,7 @@ zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 	};
 
 	isc_mem_attach(zmgr->mctx, &mgmt->mctx);
-	isc_rwlock_init(&mgmt->lock, 0, 0);
+	isc_rwlock_init(&mgmt->lock);
 	isc_hashmap_create(mgmt->mctx, DNS_KEYMGMT_HASH_BITS,
 			   ISC_HASHMAP_CASE_SENSITIVE, &mgmt->table);
 
@@ -18074,10 +18074,10 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	for (size_t i = 0; i < UNREACH_CACHE_SIZE; i++) {
 		atomic_init(&zmgr->unreachable[i].expire, 0);
 	}
-	isc_rwlock_init(&zmgr->rwlock, 0, 0);
+	isc_rwlock_init(&zmgr->rwlock);
 
 	/* Unreachable lock. */
-	isc_rwlock_init(&zmgr->urlock, 0, 0);
+	isc_rwlock_init(&zmgr->urlock);
 
 	isc_ratelimiter_create(loop, &zmgr->checkdsrl);
 	isc_ratelimiter_create(loop, &zmgr->notifyrl);

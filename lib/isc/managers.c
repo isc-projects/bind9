@@ -12,7 +12,9 @@
  */
 
 #include <isc/managers.h>
+#include <isc/rwlock.h>
 #include <isc/util.h>
+#include <isc/uv.h>
 
 void
 isc_managers_create(isc_mem_t **mctxp, uint32_t workers,
@@ -33,6 +35,8 @@ isc_managers_create(isc_mem_t **mctxp, uint32_t workers,
 	REQUIRE(taskmgrp != NULL && *taskmgrp == NULL);
 	isc_taskmgr_create(*mctxp, *loopmgrp, taskmgrp);
 	INSIST(*taskmgrp != NULL);
+
+	isc_rwlock_setworkers(workers);
 }
 
 void

@@ -652,7 +652,7 @@ dns_transport_list_new(isc_mem_t *mctx) {
 
 	*list = (dns_transport_list_t){ 0 };
 
-	isc_rwlock_init(&list->lock, 0, 0);
+	isc_rwlock_init(&list->lock);
 
 	isc_mem_attach(mctx, &list->mctx);
 	isc_refcount_init(&list->references, 1);
