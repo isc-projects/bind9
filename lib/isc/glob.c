@@ -18,7 +18,6 @@
 
 #include <isc/errno.h>
 #include <isc/glob.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>

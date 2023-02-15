@@ -19,10 +19,10 @@
  * \brief
  * OS-specific types, from the OS-specific include directories.
  */
-#include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
-
-#include <isc/offset.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*
  * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other

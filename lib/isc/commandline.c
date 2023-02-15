@@ -52,7 +52,6 @@
 
 #include <isc/commandline.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

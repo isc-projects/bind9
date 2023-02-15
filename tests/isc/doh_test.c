@@ -32,7 +32,6 @@
 #include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/thread.h>

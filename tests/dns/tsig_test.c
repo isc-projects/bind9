@@ -23,7 +23,6 @@
 #include <cmocka.h>
 
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/rdatalist.h>

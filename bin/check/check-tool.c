@@ -14,6 +14,7 @@
 /*! \file */
 
 #include <inttypes.h>
+#include <netdb.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -21,8 +22,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/net.h>
-#include <isc/netdb.h>
-#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/stdio.h>

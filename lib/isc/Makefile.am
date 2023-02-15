@@ -58,17 +58,14 @@ libisc_la_HEADERS =			\
 	include/isc/mutexblock.h	\
 	include/isc/net.h		\
 	include/isc/netaddr.h		\
-	include/isc/netdb.h		\
 	include/isc/netmgr.h		\
 	include/isc/netscope.h		\
 	include/isc/nonce.h		\
-	include/isc/offset.h		\
 	include/isc/once.h		\
 	include/isc/os.h		\
 	include/isc/parseint.h		\
 	include/isc/pause.h		\
 	include/isc/portset.h		\
-	include/isc/print.h		\
 	include/isc/quota.h		\
 	include/isc/radix.h		\
 	include/isc/random.h		\
@@ -83,7 +80,6 @@ libisc_la_HEADERS =			\
 	include/isc/signal.h\
 	include/isc/siphash.h		\
 	include/isc/sockaddr.h		\
-	include/isc/stat.h		\
 	include/isc/stats.h		\
 	include/isc/stdio.h		\
 	include/isc/stdtime.h		\

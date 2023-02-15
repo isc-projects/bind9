@@ -20,7 +20,6 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
@@ -184,7 +183,7 @@ typedef struct {
 	unsigned char serial[4]; /*%< SOA serial before update. */
 	/*
 	 * XXXRTH  Should offset be 8 bytes?
-	 * XXXDCL ... probably, since isc_offset_t is 8 bytes on many OSs.
+	 * XXXDCL ... probably, since off_t is 8 bytes on many OSs.
 	 * XXXAG  ... but we will not be able to seek >2G anyway on many
 	 *            platforms as long as we are using fseek() rather
 	 *            than lseek().
@@ -259,7 +258,7 @@ typedef struct {
  */
 typedef struct {
 	uint32_t serial;
-	isc_offset_t offset;
+	off_t offset;
 } journal_pos_t;
 
 #define POS_VALID(pos)	    ((pos).offset != 0)
@@ -330,7 +329,7 @@ struct dns_journal {
 				      *   while reading the journal */
 	char *filename;		     /*%< Journal file name */
 	FILE *fp;		     /*%< File handle */
-	isc_offset_t offset;	     /*%< Current file offset */
+	off_t offset;		     /*%< Current file offset */
 	journal_xhdr_t curxhdr;	     /*%< Current transaction header */
 	journal_header_t header;     /*%< In-core journal header */
 	unsigned char *rawindex;     /*%< In-core buffer for journal index
@@ -441,7 +440,7 @@ journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 			      isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	j->offset += (isc_offset_t)nbytes;
+	j->offset += (off_t)nbytes;
 	return (ISC_R_SUCCESS);
 }
 
@@ -456,7 +455,7 @@ journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 			      isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	j->offset += (isc_offset_t)nbytes;
+	j->offset += (off_t)nbytes;
 	return (ISC_R_SUCCESS);
 }
 
@@ -857,7 +856,7 @@ ixfr_order(const void *av, const void *bv) {
 
 static isc_result_t
 maybe_fixup_xhdr(dns_journal_t *j, journal_xhdr_t *xhdr, uint32_t serial,
-		 isc_offset_t offset) {
+		 off_t offset) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	/*
@@ -990,7 +989,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 			  ? sizeof(journal_rawxhdr_t)
 			  : sizeof(journal_rawxhdr_ver1_t);
 
-	if ((isc_offset_t)(pos->offset + hdrsize + xhdr.size) < pos->offset) {
+	if ((off_t)(pos->offset + hdrsize + xhdr.size) < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: offset too large", j->filename);
 		return (ISC_R_UNEXPECTED);
@@ -1367,7 +1366,7 @@ dns_journal_commit(dns_journal_t *j) {
 	CHECK(journal_fsync(j));
 
 	if (j->state == JOURNAL_STATE_TRANSACTION) {
-		isc_offset_t offset;
+		off_t offset;
 		offset = (j->x.pos[1].offset - j->x.pos[0].offset) -
 			 (j->header_ver1 ? sizeof(journal_rawxhdr_ver1_t)
 					 : sizeof(journal_rawxhdr_t));
@@ -2621,7 +2620,7 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		 */
 		while (rewrite && len > 0) {
 			journal_xhdr_t xhdr;
-			isc_offset_t offset = j1->offset;
+			off_t offset = j1->offset;
 			uint32_t count;
 
 			result = journal_read_xhdr(j1, &xhdr);

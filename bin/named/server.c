@@ -50,12 +50,10 @@
 #include <isc/nonce.h>
 #include <isc/parseint.h>
 #include <isc/portset.h>
-#include <isc/print.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/signal.h>
 #include <isc/siphash.h>
-#include <isc/stat.h>
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>

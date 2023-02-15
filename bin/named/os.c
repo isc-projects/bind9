@@ -37,7 +37,6 @@
 
 #include <isc/buffer.h>
 #include <isc/file.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/strerr.h>
 #include <isc/string.h>

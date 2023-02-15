@@ -38,7 +38,6 @@
 
 #include <isc/assertions.h>
 #include <isc/hmac.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/safe.h>
 

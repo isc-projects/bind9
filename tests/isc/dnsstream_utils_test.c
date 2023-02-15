@@ -28,7 +28,6 @@
 #include <isc/dnsstream.h>
 #include <isc/mem.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/random.h>
 
 #include "dnsstream_utils_test_data.h"

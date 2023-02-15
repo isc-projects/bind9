@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <locale.h>
+#include <netdb.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,10 +43,8 @@
 #include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/netaddr.h>
-#include <isc/netdb.h>
 #include <isc/nonce.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/safe.h>

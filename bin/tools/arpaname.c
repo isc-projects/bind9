@@ -14,7 +14,6 @@
 #include <stdio.h>
 
 #include <isc/net.h>
-#include <isc/print.h>
 
 #define UNUSED(x) (void)(x)
 

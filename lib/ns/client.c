@@ -25,7 +25,6 @@
 #include <isc/mutex.h>
 #include <isc/nonce.h>
 #include <isc/once.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/safe.h>
 #include <isc/serial.h>

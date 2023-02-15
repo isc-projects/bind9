@@ -62,7 +62,6 @@
 #include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -584,7 +583,7 @@ isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 }
 
 isc_result_t
-isc_file_truncate(const char *filename, isc_offset_t size) {
+isc_file_truncate(const char *filename, off_t size) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (truncate(filename, size) < 0) {

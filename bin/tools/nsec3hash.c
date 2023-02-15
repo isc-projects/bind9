@@ -22,7 +22,6 @@
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/iterated_hash.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/types.h>

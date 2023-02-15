@@ -22,7 +22,6 @@
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>

@@ -12,9 +12,9 @@
  */
 
 #include <errno.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
-#include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/util.h>
 

@@ -18,8 +18,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <isc/print.h>
-
 #define USAGE "usage: gencheck <filename>\n"
 
 static int

@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <isc/print.h>
-
 #include <dns/view.h>
 
 int

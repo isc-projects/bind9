@@ -21,7 +21,6 @@
 #include <isc/managers.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>

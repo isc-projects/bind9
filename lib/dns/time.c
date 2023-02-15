@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/serial.h>

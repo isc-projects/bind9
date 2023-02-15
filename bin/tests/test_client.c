@@ -31,7 +31,6 @@
 #include <isc/netaddr.h>
 #include <isc/netmgr.h>
 #include <isc/os.h>
-#include <isc/print.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>

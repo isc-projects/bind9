@@ -14,12 +14,12 @@
 /*! \file */
 
 #include <inttypes.h>
+#include <netdb.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include <isc/net.h>
 #include <isc/netaddr.h>
-#include <isc/netdb.h>
 #include <isc/netscope.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>

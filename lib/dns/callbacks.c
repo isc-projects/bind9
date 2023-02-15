@@ -13,7 +13,6 @@
 
 /*! \file */
 
-#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>

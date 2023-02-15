@@ -13,13 +13,13 @@
 
 /*! \file */
 
+#include <netdb.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/netaddr.h>
-#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>

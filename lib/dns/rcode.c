@@ -19,7 +19,6 @@
 #include <isc/ascii.h>
 #include <isc/buffer.h>
 #include <isc/parseint.h>
-#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/stdio.h>

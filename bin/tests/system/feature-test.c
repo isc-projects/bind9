@@ -19,7 +19,6 @@
 
 #include <isc/md.h>
 #include <isc/net.h>
-#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/edns.h>

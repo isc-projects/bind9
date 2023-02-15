@@ -26,7 +26,6 @@
 #include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
-#include <isc/print.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
 #include <isc/refcount.h>
