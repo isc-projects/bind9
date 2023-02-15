@@ -1275,8 +1275,19 @@ plus_option(char *option) {
 			use_tcp = state;
 			break;
 		case 'r':
-			FULLCHECK("trust");
-			showtrust = state;
+			switch (cmd[2]) {
+			case 'a': /* trace */
+				FULLCHECK("trace");
+				fatal("Invalid argument +trace. For "
+				      "delegation path tracing, use +ns.");
+				break;
+			case 'u': /* trust */
+				FULLCHECK("trust");
+				showtrust = state;
+				break;
+			default:
+				goto invalid_option;
+			}
 			break;
 		case 't': /* ttl */
 			FULLCHECK("ttl");
