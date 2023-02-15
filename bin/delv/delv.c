@@ -88,7 +88,7 @@
 #define MAXNAME (DNS_NAME_MAXTEXT + 1)
 
 /* Variables used internally by delv. */
-char *progname;
+char *progname = NULL;
 static isc_mem_t *mctx = NULL;
 static isc_log_t *lctx = NULL;
 static dns_view_t *view = NULL;
@@ -98,6 +98,7 @@ static dns_dispatch_t *dispatch = NULL;
 static dns_db_t *roothints = NULL;
 static isc_stats_t *resstats = NULL;
 static dns_stats_t *resquerystats = NULL;
+static FILE *logfp = NULL;
 
 /* Managers */
 static isc_nm_t *netmgr = NULL;
@@ -1185,6 +1186,7 @@ plus_option(char *option) {
 			if (state) {
 				message_trace = state;
 				resolve_trace = state;
+				logfp = stdout;
 			}
 			break;
 		default:
@@ -1889,7 +1891,6 @@ recvresponse(void *arg) {
 	dns_request_t *request = (dns_request_t *)arg;
 	dns_message_t *query = dns_request_getarg(request);
 	isc_result_t result = dns_request_getresult(request);
-	;
 	dns_message_t *response = NULL;
 
 	if (result != ISC_R_SUCCESS) {
@@ -1967,7 +1968,7 @@ cleanup:
 	dns_message_detach(&response);
 	dns_request_destroy(&request);
 
-	view = NULL;
+	dns_view_detach(&view);
 	shutdown_server();
 }
 
@@ -2018,6 +2019,7 @@ sendquery(void *arg) {
 	CHECK(dns_requestmgr_create(mctx, dispatchmgr, NULL, NULL,
 				    &requestmgr));
 
+	dns_view_attach(view, &(dns_view_t *){ NULL });
 	CHECK(dns_request_create(requestmgr, message, NULL, &peer, NULL, NULL,
 				 DNS_REQUESTOPT_TCP, NULL, 1, 0, 0,
 				 isc_loop_current(loopmgr), recvresponse,
@@ -2119,6 +2121,8 @@ main(int argc, char *argv[]) {
 	isc_loop_t *loop = NULL;
 
 	progname = argv[0];
+	logfp = stderr;
+
 	preparse_args(argc, argv);
 
 	argc--;
@@ -2136,7 +2140,7 @@ main(int argc, char *argv[]) {
 
 	CHECK(setup_style());
 
-	setup_logging(stderr);
+	setup_logging(logfp);
 
 	if (fulltrace && server != NULL) {
 		delv_log(ISC_LOG_WARNING,

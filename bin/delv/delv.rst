@@ -237,12 +237,14 @@ assign values to options like the timeout interval. They have the form
    that to look up the requested query name and type. Turning on this
    option also activates ``+mtrace`` and ``+rtrace``, so that every
    iterative query will be logged, including the full response messages
-   from each authoritatve server.
+   from each authoritatve server.  These logged messages will be written
+   to ``stdout`` rather than ``stderr`` as usual, so that the full trace
+   can be captured more easily.
 
    This is intended to be similar to the behavior of ``dig +trace``, but
    because it uses the same code as ``named``, it much more accurately
    replicates the behavior of a recursive name server with a cold cache
-   processing a recursive query.
+   that is processing a recursive query.
 
 .. option:: +ttl, +nottl
 
