@@ -1,3 +1,6 @@
+6098.	[test]		Don't test HMAC-MD5 when not supported by libcrypto.
+			[GL #3871]
+
 6097.	[port]		Improve support for yield / pause instructions in spin
 			loops on AArch64 platforms. [GL !7469]
 
