@@ -5312,8 +5312,7 @@ has_000_label(dns_rdataset_t *nsecset) {
  */
 static void
 validated(void *arg) {
-	dns_valstatus_t *vstat = (dns_valstatus_t *)arg;
-	dns_validator_t *val = vstat->validator;
+	dns_validator_t *val = (dns_validator_t *)arg;
 	dns_adbaddrinfo_t *addrinfo = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbnode_t *nsnode = NULL;
@@ -5354,8 +5353,8 @@ validated(void *arg) {
 	res = fctx->res;
 	addrinfo = valarg->addrinfo;
 
-	message = vstat->message;
-	fctx->vresult = vstat->result;
+	message = val->message;
+	fctx->vresult = val->result;
 
 	LOCK(&fctx->lock);
 	ISC_LIST_UNLINK(fctx->validators, val, link);
@@ -5366,14 +5365,14 @@ validated(void *arg) {
 	 * Destroy the validator early so that we can
 	 * destroy the fctx if necessary.  Save the wildcard name.
 	 */
-	if (vstat->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
+	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		wild = dns_fixedname_initname(&fwild);
 		dns_name_copy(dns_fixedname_name(&val->wild), wild);
 	}
 
 	isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
 
-	negative = (vstat->rdataset == NULL);
+	negative = (val->rdataset == NULL);
 
 	LOCK(&fctx->lock);
 	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
@@ -5394,13 +5393,13 @@ validated(void *arg) {
 	 * If chaining, we need to make sure that the right result code
 	 * is returned, and that the rdatasets are bound.
 	 */
-	if (vstat->result == ISC_R_SUCCESS && !negative &&
-	    vstat->rdataset != NULL && CHAINING(vstat->rdataset))
+	if (val->result == ISC_R_SUCCESS && !negative &&
+	    val->rdataset != NULL && CHAINING(val->rdataset))
 	{
-		if (vstat->rdataset->type == dns_rdatatype_cname) {
+		if (val->rdataset->type == dns_rdatatype_cname) {
 			eresult = DNS_R_CNAME;
 		} else {
-			INSIST(vstat->rdataset->type == dns_rdatatype_dname);
+			INSIST(val->rdataset->type == dns_rdatatype_dname);
 			eresult = DNS_R_DNAME;
 		}
 		chaining = true;
@@ -5431,28 +5430,26 @@ validated(void *arg) {
 		}
 	}
 
-	if (vstat->result != ISC_R_SUCCESS) {
+	if (val->result != ISC_R_SUCCESS) {
 		FCTXTRACE("validation failed");
 		inc_stats(res, dns_resstatscounter_valfail);
 		fctx->valfail++;
-		fctx->vresult = vstat->result;
+		fctx->vresult = val->result;
 		if (fctx->vresult != DNS_R_BROKENCHAIN) {
 			result = ISC_R_NOTFOUND;
-			if (vstat->rdataset != NULL) {
-				result = dns_db_findnode(
-					fctx->cache, vstat->name, true, &node);
+			if (val->rdataset != NULL) {
+				result = dns_db_findnode(fctx->cache, val->name,
+							 true, &node);
 			}
 			if (result == ISC_R_SUCCESS) {
 				(void)dns_db_deleterdataset(fctx->cache, node,
-							    NULL, vstat->type,
-							    0);
+							    NULL, val->type, 0);
 			}
-			if (result == ISC_R_SUCCESS &&
-			    vstat->sigrdataset != NULL)
+			if (result == ISC_R_SUCCESS && val->sigrdataset != NULL)
 			{
 				(void)dns_db_deleterdataset(
 					fctx->cache, node, NULL,
-					dns_rdatatype_rrsig, vstat->type);
+					dns_rdatatype_rrsig, val->type);
 			}
 			if (result == ISC_R_SUCCESS) {
 				dns_db_detachnode(fctx->cache, &node);
@@ -5464,21 +5461,20 @@ validated(void *arg) {
 			 * validation.
 			 */
 			result = ISC_R_NOTFOUND;
-			if (vstat->rdataset != NULL) {
-				result = dns_db_findnode(
-					fctx->cache, vstat->name, true, &node);
+			if (val->rdataset != NULL) {
+				result = dns_db_findnode(fctx->cache, val->name,
+							 true, &node);
 			}
 			if (result == ISC_R_SUCCESS) {
 				(void)dns_db_addrdataset(
 					fctx->cache, node, NULL, now,
-					vstat->rdataset, 0, NULL);
+					val->rdataset, 0, NULL);
 			}
-			if (result == ISC_R_SUCCESS &&
-			    vstat->sigrdataset != NULL)
+			if (result == ISC_R_SUCCESS && val->sigrdataset != NULL)
 			{
 				(void)dns_db_addrdataset(
 					fctx->cache, node, NULL, now,
-					vstat->sigrdataset, 0, NULL);
+					val->sigrdataset, 0, NULL);
 			}
 			if (result == ISC_R_SUCCESS) {
 				dns_db_detachnode(fctx->cache, &node);
@@ -5539,7 +5535,7 @@ validated(void *arg) {
 			covers = fctx->type;
 		}
 
-		result = dns_db_findnode(fctx->cache, vstat->name, true, &node);
+		result = dns_db_findnode(fctx->cache, val->name, true, &node);
 		if (result != ISC_R_SUCCESS) {
 			/* fctx->lock unlocked in noanswer_response */
 			goto noanswer_response;
@@ -5559,7 +5555,7 @@ validated(void *arg) {
 
 		result = ncache_adderesult(message, fctx->cache, node, covers,
 					   now, fctx->res->view->minncachettl,
-					   ttl, vstat->optout, vstat->secure,
+					   ttl, val->optout, val->secure,
 					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS) {
 			goto noanswer_response;
@@ -5571,28 +5567,27 @@ validated(void *arg) {
 
 	FCTXTRACE("validation OK");
 
-	if (vstat->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
+	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		result = dns_rdataset_addnoqname(
-			vstat->rdataset,
-			vstat->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
+			val->rdataset, val->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		INSIST(vstat->sigrdataset != NULL);
-		vstat->sigrdataset->ttl = vstat->rdataset->ttl;
-		if (vstat->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
+		INSIST(val->sigrdataset != NULL);
+		val->sigrdataset->ttl = val->rdataset->ttl;
+		if (val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER] != NULL) {
 			result = dns_rdataset_addclosest(
-				vstat->rdataset,
-				vstat->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
+				val->rdataset,
+				val->proofs[DNS_VALIDATOR_CLOSESTENCLOSER]);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		}
-	} else if (vstat->rdataset->trust == dns_trust_answer &&
-		   vstat->rdataset->type != dns_rdatatype_rrsig)
+	} else if (val->rdataset->trust == dns_trust_answer &&
+		   val->rdataset->type != dns_rdatatype_rrsig)
 	{
 		isc_result_t tresult;
 		dns_name_t *noqname = NULL;
-		tresult = findnoqname(fctx, message, vstat->name,
-				      vstat->rdataset->type, &noqname);
+		tresult = findnoqname(fctx, message, val->name,
+				      val->rdataset->type, &noqname);
 		if (tresult == ISC_R_SUCCESS && noqname != NULL) {
-			tresult = dns_rdataset_addnoqname(vstat->rdataset,
+			tresult = dns_rdataset_addnoqname(val->rdataset,
 							  noqname);
 			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 		}
@@ -5604,7 +5599,7 @@ validated(void *arg) {
 	 * rdatasets to the first event on the fetch
 	 * event list.
 	 */
-	result = dns_db_findnode(fctx->cache, vstat->name, true, &node);
+	result = dns_db_findnode(fctx->cache, val->name, true, &node);
 	if (result != ISC_R_SUCCESS) {
 		goto noanswer_response;
 	}
@@ -5613,8 +5608,8 @@ validated(void *arg) {
 	if ((fctx->options & DNS_FETCHOPT_PREFETCH) != 0) {
 		options = DNS_DBADD_PREFETCH;
 	}
-	result = dns_db_addrdataset(fctx->cache, node, NULL, now,
-				    vstat->rdataset, options, ardataset);
+	result = dns_db_addrdataset(fctx->cache, node, NULL, now, val->rdataset,
+				    options, ardataset);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
 		goto noanswer_response;
 	}
@@ -5624,9 +5619,9 @@ validated(void *arg) {
 		} else {
 			eresult = DNS_R_NCACHENXRRSET;
 		}
-	} else if (vstat->sigrdataset != NULL) {
+	} else if (val->sigrdataset != NULL) {
 		result = dns_db_addrdataset(fctx->cache, node, NULL, now,
-					    vstat->sigrdataset, options,
+					    val->sigrdataset, options,
 					    asigrdataset);
 		if (result != ISC_R_SUCCESS && result != DNS_R_UNCHANGED) {
 			goto noanswer_response;
@@ -5760,25 +5755,24 @@ answer_response:
 	/*
 	 * Add the wild card entry.
 	 */
-	if (vstat->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL &&
-	    vstat->rdataset != NULL &&
-	    dns_rdataset_isassociated(vstat->rdataset) &&
-	    vstat->rdataset->trust == dns_trust_secure &&
-	    vstat->sigrdataset != NULL &&
-	    dns_rdataset_isassociated(vstat->sigrdataset) &&
-	    vstat->sigrdataset->trust == dns_trust_secure && wild != NULL)
+	if (val->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL &&
+	    val->rdataset != NULL && dns_rdataset_isassociated(val->rdataset) &&
+	    val->rdataset->trust == dns_trust_secure &&
+	    val->sigrdataset != NULL &&
+	    dns_rdataset_isassociated(val->sigrdataset) &&
+	    val->sigrdataset->trust == dns_trust_secure && wild != NULL)
 	{
 		dns_dbnode_t *wnode = NULL;
 
 		result = dns_db_findnode(fctx->cache, wild, true, &wnode);
 		if (result == ISC_R_SUCCESS) {
 			result = dns_db_addrdataset(fctx->cache, wnode, NULL,
-						    now, vstat->rdataset, 0,
+						    now, val->rdataset, 0,
 						    NULL);
 		}
 		if (result == ISC_R_SUCCESS) {
 			(void)dns_db_addrdataset(fctx->cache, wnode, NULL, now,
-						 vstat->sigrdataset, 0, NULL);
+						 val->sigrdataset, 0, NULL);
 		}
 		if (wnode != NULL) {
 			dns_db_detachnode(fctx->cache, &wnode);
@@ -5796,7 +5790,7 @@ answer_response:
 
 	if (hresp != NULL) {
 		/*
-		 * Negative results must be indicated in vstat->result.
+		 * Negative results must be indicated in val->result.
 		 */
 		INSIST(hresp->rdataset != NULL);
 		if (dns_rdataset_isassociated(hresp->rdataset) &&
@@ -5807,7 +5801,7 @@ answer_response:
 		}
 
 		hresp->result = eresult;
-		dns_name_copy(vstat->name, hresp->foundname);
+		dns_name_copy(val->name, hresp->foundname);
 		dns_db_attach(fctx->cache, &hresp->db);
 		dns_db_transfernode(fctx->cache, &node, &hresp->node);
 		clone_results(fctx);

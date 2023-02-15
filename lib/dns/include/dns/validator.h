@@ -58,31 +58,62 @@
 
 #include <dst/dst.h>
 
+#define DNS_VALIDATOR_NOQNAMEPROOF    0
+#define DNS_VALIDATOR_NODATAPROOF     1
+#define DNS_VALIDATOR_NOWILDCARDPROOF 2
+#define DNS_VALIDATOR_CLOSESTENCLOSER 3
+
 /*%
- * A dns_valstatus_t is sent when a 'validation' completes.
+ * A validator object represents a validation in progress.
  * \brief
- * 'name', 'rdataset', 'sigrdataset', and 'message' are the values that were
- * supplied when dns_validator_create() was called.  They are returned to the
- * caller so that they may be freed.
- *
- * If the RESULT is ISC_R_SUCCESS and the answer is secure then
- * proofs[] will contain the names of the NSEC records that hold the
- * various proofs.  Note the same name may appear multiple times.
- *
- * The structure is freed by dns_validator_destroy().
+ * Clients are strongly discouraged from using this type directly, with
+ * the exception of the 'link' field, which may be used directly for
+ * whatever purpose the client desires.
  */
-typedef struct dns_valstatus {
-	dns_validator_t *validator;
-	isc_result_t	 result;
+struct dns_validator {
+	/* Unlocked. */
+	unsigned int magic;
+	isc_mutex_t  lock;
+	dns_view_t  *view;
 
-	isc_mem_t *mctx;
-
-	/*
-	 * Name and type of the response to be validated.
-	 */
-	dns_fixedname_t fname;
+	/* Name and type of the response to be validated. */
 	dns_name_t     *name;
 	dns_rdatatype_t type;
+
+	/* Locked by lock. */
+	unsigned int	   options;
+	unsigned int	   attributes;
+	dns_fetch_t	  *fetch;
+	dns_validator_t	  *subvalidator;
+	dns_validator_t	  *parent;
+	dns_keytable_t	  *keytable;
+	dst_key_t	  *key;
+	dns_rdata_rrsig_t *siginfo;
+	isc_loop_t	  *loop;
+	isc_job_cb	   cb;
+	void		  *arg;
+	unsigned int	   labels;
+	dns_rdataset_t	  *nxset;
+	dns_rdataset_t	  *keyset;
+	dns_rdataset_t	  *dsset;
+	dns_rdataset_t	   fdsset;
+	dns_rdataset_t	   frdataset;
+	dns_rdataset_t	   fsigrdataset;
+	dns_fixedname_t	   fname;
+	dns_fixedname_t	   wild;
+	dns_fixedname_t	   closest;
+	ISC_LINK(dns_validator_t) link;
+	bool	      mustbesecure;
+	unsigned int  depth;
+	unsigned int  authcount;
+	unsigned int  authfail;
+	isc_stdtime_t start;
+
+	/*
+	 * Results of a completed validation.
+	 */
+	isc_result_t result;
+
 	/*
 	 * Rdata and RRSIG (if any) for positive responses.
 	 */
@@ -105,54 +136,6 @@ typedef struct dns_valstatus {
 	 * Answer is secure.
 	 */
 	bool secure;
-} dns_valstatus_t;
-
-#define DNS_VALIDATOR_NOQNAMEPROOF    0
-#define DNS_VALIDATOR_NODATAPROOF     1
-#define DNS_VALIDATOR_NOWILDCARDPROOF 2
-#define DNS_VALIDATOR_CLOSESTENCLOSER 3
-
-/*%
- * A validator object represents a validation in progress.
- * \brief
- * Clients are strongly discouraged from using this type directly, with
- * the exception of the 'link' field, which may be used directly for
- * whatever purpose the client desires.
- */
-struct dns_validator {
-	/* Unlocked. */
-	unsigned int magic;
-	isc_mutex_t  lock;
-	dns_view_t  *view;
-	/* Locked by lock. */
-	unsigned int	   options;
-	unsigned int	   attributes;
-	dns_valstatus_t	  *vstat;
-	dns_fetch_t	  *fetch;
-	dns_validator_t	  *subvalidator;
-	dns_validator_t	  *parent;
-	dns_keytable_t	  *keytable;
-	dst_key_t	  *key;
-	dns_rdata_rrsig_t *siginfo;
-	isc_loop_t	  *loop;
-	isc_job_cb	   cb;
-	void		  *arg;
-	unsigned int	   labels;
-	dns_rdataset_t	  *currentset;
-	dns_rdataset_t	  *keyset;
-	dns_rdataset_t	  *dsset;
-	dns_rdataset_t	   fdsset;
-	dns_rdataset_t	   frdataset;
-	dns_rdataset_t	   fsigrdataset;
-	dns_fixedname_t	   fname;
-	dns_fixedname_t	   wild;
-	dns_fixedname_t	   closest;
-	ISC_LINK(dns_validator_t) link;
-	bool	      mustbesecure;
-	unsigned int  depth;
-	unsigned int  authcount;
-	unsigned int  authfail;
-	isc_stdtime_t start;
 };
 
 /*%
