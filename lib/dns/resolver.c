@@ -961,8 +961,7 @@ set_stats(dns_resolver_t *res, isc_statscounter_t counter, uint64_t val) {
 static isc_result_t
 valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	  dns_name_t *name, dns_rdatatype_t type, dns_rdataset_t *rdataset,
-	  dns_rdataset_t *sigrdataset, unsigned int valoptions,
-	  isc_loop_t *loop) {
+	  dns_rdataset_t *sigrdataset, unsigned int valoptions) {
 	dns_validator_t *validator = NULL;
 	dns_valarg_t *valarg = NULL;
 	isc_result_t result;
@@ -980,9 +979,9 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 		valoptions &= ~DNS_VALIDATOR_DEFER;
 	}
 
-	result = dns_validator_create(fctx->res->view, name, type, rdataset,
-				      sigrdataset, message, valoptions, loop,
-				      validated, valarg, &validator);
+	result = dns_validator_create(
+		fctx->res->view, name, type, rdataset, sigrdataset, message,
+		valoptions, fctx->res->loopmgr, validated, valarg, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
@@ -6314,8 +6313,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 					result = valcreate(
 						fctx, message, addrinfo, name,
 						rdataset->type, rdataset,
-						sigrdataset, valoptions,
-						fctx->loop);
+						sigrdataset, valoptions);
 				}
 			} else if (CHAINING(rdataset)) {
 				if (rdataset->type == dns_rdatatype_cname) {
@@ -6423,8 +6421,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_message_t *message,
 		}
 
 		result = valcreate(fctx, message, addrinfo, name, vtype,
-				   valrdataset, valsigrdataset, valoptions,
-				   fctx->loop);
+				   valrdataset, valsigrdataset, valoptions);
 	}
 
 	if (result == ISC_R_SUCCESS && have_answer) {
@@ -6646,7 +6643,7 @@ ncache_message(fetchctx_t *fctx, dns_message_t *message,
 		 * Do negative response validation.
 		 */
 		result = valcreate(fctx, message, addrinfo, name, fctx->type,
-				   NULL, NULL, valoptions, fctx->loop);
+				   NULL, NULL, valoptions);
 		/*
 		 * If validation is necessary, return now.  Otherwise
 		 * continue to process the message, letting the

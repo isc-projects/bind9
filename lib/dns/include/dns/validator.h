@@ -48,8 +48,10 @@
 
 #include <stdbool.h>
 
+#include <isc/job.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
+#include <isc/refcount.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdataset.h>
@@ -71,43 +73,28 @@
  * whatever purpose the client desires.
  */
 struct dns_validator {
-	/* Unlocked. */
-	unsigned int magic;
-	isc_mutex_t  lock;
-	dns_view_t  *view;
+	/* Unlocked: */
+	unsigned int   magic;
+	isc_mutex_t    lock;
+	dns_view_t    *view;
+	isc_loopmgr_t *loopmgr;
+
+	isc_refcount_t references;
 
 	/* Name and type of the response to be validated. */
 	dns_name_t     *name;
 	dns_rdatatype_t type;
 
-	/* Locked by lock. */
-	unsigned int	   options;
-	unsigned int	   attributes;
-	dns_fetch_t	  *fetch;
-	dns_validator_t	  *subvalidator;
-	dns_validator_t	  *parent;
-	dns_keytable_t	  *keytable;
-	dst_key_t	  *key;
-	dns_rdata_rrsig_t *siginfo;
-	isc_loop_t	  *loop;
-	isc_job_cb	   cb;
-	void		  *arg;
-	unsigned int	   labels;
-	dns_rdataset_t	  *nxset;
-	dns_rdataset_t	  *keyset;
-	dns_rdataset_t	  *dsset;
-	dns_rdataset_t	   fdsset;
-	dns_rdataset_t	   frdataset;
-	dns_rdataset_t	   fsigrdataset;
-	dns_fixedname_t	   fname;
-	dns_fixedname_t	   wild;
-	dns_fixedname_t	   closest;
-	ISC_LINK(dns_validator_t) link;
-	bool	      mustbesecure;
-	unsigned int  depth;
-	unsigned int  authcount;
-	unsigned int  authfail;
-	isc_stdtime_t start;
+	/*
+	 * Callback and argument to use to inform the caller
+	 * that validation is complete.
+	 */
+	isc_job_cb cb;
+	void	  *arg;
+
+	/* Locked by 'lock': */
+	/* Validation options (_DEFER, _NONTA, etc). */
+	unsigned int options;
 
 	/*
 	 * Results of a completed validation.
@@ -136,6 +123,31 @@ struct dns_validator {
 	 * Answer is secure.
 	 */
 	bool secure;
+
+	/* Internal validator state */
+	unsigned int	   attributes;
+	dns_fetch_t	  *fetch;
+	dns_validator_t	  *subvalidator;
+	dns_validator_t	  *parent;
+	dns_keytable_t	  *keytable;
+	dst_key_t	  *key;
+	dns_rdata_rrsig_t *siginfo;
+	unsigned int	   labels;
+	dns_rdataset_t	  *nxset;
+	dns_rdataset_t	  *keyset;
+	dns_rdataset_t	  *dsset;
+	dns_rdataset_t	   fdsset;
+	dns_rdataset_t	   frdataset;
+	dns_rdataset_t	   fsigrdataset;
+	dns_fixedname_t	   fname;
+	dns_fixedname_t	   wild;
+	dns_fixedname_t	   closest;
+	ISC_LINK(dns_validator_t) link;
+	bool	      mustbesecure;
+	unsigned int  depth;
+	unsigned int  authcount;
+	unsigned int  authfail;
+	isc_stdtime_t start;
 };
 
 /*%
@@ -152,7 +164,7 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     isc_loopmgr_t *loop, isc_job_cb cb, void *arg,
 		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
@@ -221,10 +233,24 @@ dns_validator_destroy(dns_validator_t **validatorp);
  * Requires:
  *\li	'*validatorp' points to a valid DNSSEC validator.
  * \li	The validator must have completed and sent its completion
- * 	event.
+ *	event.
  *
  * Ensures:
  *\li	All resources used by the validator are freed.
  */
+
+#if DNS_VALIDATOR_TRACE
+#define dns_validator_ref(ptr) \
+	dns_validator__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_validator_unref(ptr) \
+	dns_validator__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_validator_attach(ptr, ptrp) \
+	dns_validator__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_validator_detach(ptrp) \
+	dns_validator__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_validator);
+#else
+ISC_REFCOUNT_DECL(dns_validator);
+#endif
 
 ISC_LANG_ENDDECLS

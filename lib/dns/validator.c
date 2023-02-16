@@ -16,8 +16,10 @@
 
 #include <isc/async.h>
 #include <isc/base32.h>
+#include <isc/job.h>
 #include <isc/md.h>
 #include <isc/mem.h>
+#include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -63,7 +65,6 @@
 #define VALIDATOR_MAGIC	   ISC_MAGIC('V', 'a', 'l', '?')
 #define VALID_VALIDATOR(v) ISC_MAGIC_VALID(v, VALIDATOR_MAGIC)
 
-#define VALATTR_SHUTDOWN 0x0001 /*%< Shutting down. */
 #define VALATTR_CANCELED 0x0002 /*%< Canceled. */
 #define VALATTR_TRIEDVERIFY                                    \
 	0x0004			  /*%< We have found a key and \
@@ -97,7 +98,6 @@
 #define FOUNDCLOSEST(val)    ((val->attributes & VALATTR_FOUNDCLOSEST) != 0)
 #define FOUNDOPTOUT(val)     ((val->attributes & VALATTR_FOUNDOPTOUT) != 0)
 
-#define SHUTDOWN(v) (((v)->attributes & VALATTR_SHUTDOWN) != 0)
 #define CANCELED(v) (((v)->attributes & VALATTR_CANCELED) != 0)
 #define COMPLETE(v) (((v)->attributes & VALATTR_COMPLETE) != 0)
 
@@ -105,7 +105,7 @@
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 static void
-destroy(dns_validator_t *val);
+destroy_validator(dns_validator_t *val);
 
 static isc_result_t
 select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset);
@@ -203,6 +203,13 @@ marksecure(dns_validator_t *val) {
 	val->secure = true;
 }
 
+static void
+validator_done_cb(void *arg) {
+	dns_validator_t *val = arg;
+	val->cb(val);
+	dns_validator_detach(&val);
+}
+
 /*
  * Validator 'val' is finished; send the completion event to the loop
  * that called dns_validator_create(), with result `result`.
@@ -217,26 +224,9 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 
 	val->attributes |= VALATTR_COMPLETE;
 	val->result = result;
-	isc_async_run(val->loop, val->cb, val);
-}
 
-/*
- * Called when deciding whether to destroy validator 'val'.
- */
-static bool
-exit_check(dns_validator_t *val) {
-	/*
-	 * Caller must be holding the lock.
-	 */
-	if (!SHUTDOWN(val)) {
-		return (false);
-	}
-
-	if (val->fetch != NULL || val->subvalidator != NULL) {
-		return (false);
-	}
-
-	return (true);
+	dns_validator_ref(val);
+	isc_job_run(val->loopmgr, validator_done_cb, val);
 }
 
 /*%
@@ -372,7 +362,6 @@ fetch_callback_dnskey(void *arg) {
 	isc_result_t result;
 	isc_result_t saved_result;
 	dns_fetch_t *fetch = NULL;
-	bool want_destroy;
 
 	INSIST(resp->type == FETCHDONE);
 
@@ -439,17 +428,13 @@ fetch_callback_dnskey(void *arg) {
 			validator_done(val, DNS_R_BROKENCHAIN);
 		}
 	}
-
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
 	}
 
-	if (want_destroy) {
-		destroy(val);
-	}
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -464,7 +449,7 @@ fetch_callback_ds(void *arg) {
 	isc_result_t eresult = resp->result;
 	isc_result_t result;
 	dns_fetch_t *fetch = NULL;
-	bool want_destroy, trustchain;
+	bool trustchain;
 
 	INSIST(resp->type == FETCHDONE);
 
@@ -592,16 +577,13 @@ fetch_callback_ds(void *arg) {
 done:
 
 	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
 	}
 
-	if (want_destroy) {
-		destroy(val);
-	}
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -616,9 +598,9 @@ validator_callback_dnskey(void *arg) {
 	isc_result_t result;
 	isc_result_t eresult = subvalidator->result;
 	isc_result_t saved_result;
-	bool want_destroy;
 
 	val->subvalidator = NULL;
+	subvalidator->parent = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_dnskey");
 	LOCK(&val->lock);
@@ -658,13 +640,10 @@ validator_callback_dnskey(void *arg) {
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
 
-	dns_validator_destroy(&subvalidator);
-
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+
+	dns_validator_destroy(&subvalidator);
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -678,9 +657,9 @@ validator_callback_ds(void *arg) {
 	dns_validator_t *val = subvalidator->parent;
 	isc_result_t result;
 	isc_result_t eresult = subvalidator->result;
-	bool want_destroy;
 
 	val->subvalidator = NULL;
+	subvalidator->parent = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_ds");
 	LOCK(&val->lock);
@@ -720,14 +699,10 @@ validator_callback_ds(void *arg) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
+	UNLOCK(&val->lock);
 
 	dns_validator_destroy(&subvalidator);
-
-	want_destroy = exit_check(val);
-	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -741,7 +716,6 @@ validator_callback_cname(void *arg) {
 	dns_validator_t *val = subvalidator->parent;
 	isc_result_t result;
 	isc_result_t eresult = subvalidator->result;
-	bool want_destroy;
 
 	INSIST((val->attributes & VALATTR_INSECURITY) != 0);
 
@@ -768,13 +742,10 @@ validator_callback_cname(void *arg) {
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
 
-	dns_validator_destroy(&subvalidator);
-
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+
+	dns_validator_destroy(&subvalidator);
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -791,7 +762,6 @@ validator_callback_nsec(void *arg) {
 	dns_rdataset_t *rdataset = subvalidator->rdataset;
 	isc_result_t result = subvalidator->result;
 	bool exists, data;
-	bool want_destroy;
 
 	val->subvalidator = NULL;
 
@@ -871,13 +841,10 @@ validator_callback_nsec(void *arg) {
 		}
 	}
 
-	dns_validator_destroy(&subvalidator);
-
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+
+	dns_validator_destroy(&subvalidator);
+	dns_validator_detach(&val);
 }
 
 /*%
@@ -993,10 +960,12 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	}
 
 	validator_logcreate(val, name, type, caller, "fetch");
+
+	dns_validator_ref(val);
 	return (dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
-		fopts, 0, NULL, val->loop, callback, val, &val->frdataset,
-		&val->fsigrdataset, &val->fetch));
+		fopts, 0, NULL, isc_loop_current(val->loopmgr), callback, val,
+		&val->frdataset, &val->fsigrdataset, &val->fetch));
 }
 
 /*%
@@ -1026,10 +995,10 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type, rdataset, sig,
-				      NULL, vopts, val->loop, cb, val,
+				      NULL, vopts, val->loopmgr, cb, val,
 				      &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
-		val->subvalidator->parent = val;
+		dns_validator_attach(val, &val->subvalidator->parent);
 		val->subvalidator->depth = val->depth + 1;
 	}
 	return (result);
@@ -1239,6 +1208,7 @@ seek_dnskey(dns_validator_t *val) {
 				      dns_rdatatype_dnskey,
 				      fetch_callback_dnskey, "seek_dnskey");
 		if (result != ISC_R_SUCCESS) {
+			dns_validator_detach(&val);
 			return (result);
 		}
 		return (DNS_R_WAIT);
@@ -1668,6 +1638,7 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 				      fetch_callback_ds, "validate_dnskey");
 		*resp = DNS_R_WAIT;
 		if (result != ISC_R_SUCCESS) {
+			dns_validator_detach(&val);
 			*resp = result;
 		}
 		return (ISC_R_COMPLETE);
@@ -2923,7 +2894,6 @@ out:
 static void
 validator_start(void *arg) {
 	dns_validator_t *val = (dns_validator_t *)arg;
-	bool want_destroy = false;
 	isc_result_t result = ISC_R_FAILURE;
 
 	if (CANCELED(val)) {
@@ -3014,21 +2984,19 @@ validator_start(void *arg) {
 	}
 
 	if (result != DNS_R_WAIT) {
-		want_destroy = exit_check(val);
 		validator_done(val, result);
 	}
 
 	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+
+	dns_validator_detach(&val);
 }
 
 isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     isc_loopmgr_t *loopmgr, isc_job_cb cb, void *arg,
 		     dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
@@ -3046,9 +3014,12 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				  .type = type,
 				  .options = options,
 				  .link = ISC_LINK_INITIALIZER,
-				  .loop = loop,
+				  .loopmgr = loopmgr,
 				  .cb = cb,
 				  .arg = arg };
+
+	isc_refcount_init(&val->references, 1);
+
 	if (message != NULL) {
 		dns_message_attach(message, &val->message);
 	}
@@ -3070,7 +3041,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->magic = VALIDATOR_MAGIC;
 
 	if ((options & DNS_VALIDATOR_DEFER) == 0) {
-		isc_async_run(loop, validator_start, val);
+		dns_validator_ref(val);
+		isc_job_run(val->loopmgr, validator_start, val);
 	}
 
 	*validatorp = val;
@@ -3098,7 +3070,8 @@ dns_validator_send(dns_validator_t *validator) {
 	validator->options &= ~DNS_VALIDATOR_DEFER;
 	UNLOCK(&validator->lock);
 
-	isc_async_run(validator->loop, validator_start, validator);
+	dns_validator_ref(validator);
+	isc_job_run(validator->loopmgr, validator_start, validator);
 }
 
 void
@@ -3127,11 +3100,11 @@ dns_validator_cancel(dns_validator_t *validator) {
 }
 
 static void
-destroy(dns_validator_t *val) {
+destroy_validator(dns_validator_t *val) {
 	isc_mem_t *mctx = NULL;
 
-	REQUIRE(SHUTDOWN(val));
 	REQUIRE(val->fetch == NULL);
+	REQUIRE(val->subvalidator == NULL);
 
 	val->magic = 0;
 	if (val->key != NULL) {
@@ -3159,7 +3132,6 @@ destroy(dns_validator_t *val) {
 void
 dns_validator_destroy(dns_validator_t **validatorp) {
 	dns_validator_t *val = NULL;
-	bool want_destroy = false;
 
 	REQUIRE(validatorp != NULL);
 
@@ -3169,15 +3141,10 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 	REQUIRE(VALID_VALIDATOR(val));
 
 	LOCK(&val->lock);
-
-	val->attributes |= VALATTR_SHUTDOWN;
 	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_destroy");
-
-	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
-	if (want_destroy) {
-		destroy(val);
-	}
+
+	dns_validator_detach(&val);
 }
 
 static void
@@ -3256,3 +3223,9 @@ validator_logcreate(dns_validator_t *val, dns_name_t *name,
 	validator_log(val, ISC_LOG_DEBUG(9), "%s: creating %s for %s %s",
 		      caller, operation, namestr, typestr);
 }
+
+#if DNS_VALIDATOR_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_validator, destroy_validator);
+#else
+ISC_REFCOUNT_IMPL(dns_validator, destroy_validator);
+#endif
