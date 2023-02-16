@@ -2432,6 +2432,7 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	manager->taskmgr = taskmgr;
 	manager->loopmgr = loopmgr;
 	manager->tid = tid;
+	manager->loop = isc_loop_get(loopmgr, tid);
 
 	dns_aclenv_attach(aclenv, &manager->aclenv);
 
