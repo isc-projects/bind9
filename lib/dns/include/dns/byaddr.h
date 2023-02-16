@@ -40,7 +40,6 @@
  *\li	Drafts:	TBS
  */
 
-#include <isc/event.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>

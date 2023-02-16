@@ -480,7 +480,7 @@ dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
  * 	object from being freed but not from shutting down.
  *
  * Require:
- *\li	The caller is running in the context of the zone's task.
+ *\li	The caller is running in the context of the zone's loop.
  *\li	'zone' to be a valid zone.
  *\li	'target' to be non NULL and '*target' to be NULL.
  */
@@ -493,7 +493,7 @@ dns_zone_idetach(dns_zone_t **zonep);
  * 	zone, it will be freed.
  *
  * Require:
- *\li	The caller is running in the context of the zone's task.
+ *\li	The caller is running in the context of the zone's loop.
  *\li	'zonep' to point to a valid zone.
  */
 
@@ -1587,16 +1587,14 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
  *\li	Error
  */
 
-isc_result_t
-dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   isc_taskmgr_t *taskmgr, isc_nm_t *netmgr,
+void
+dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
 		   dns_zonemgr_t **zmgrp);
 /*%<
  * Create a zone manager.
  *
  * Requires:
  *\li	'mctx' to be a valid memory context.
- *\li	'taskmgr' to be a valid task manager.
  *\li	'zmgrp'	to point to a NULL pointer.
  */
 
@@ -1679,12 +1677,6 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
  *
  * Ensures:
  *\li	'zone->zmgr' == NULL;
- */
-
-isc_taskmgr_t *
-dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr);
-/*%
- * Get the tasmkgr object attached to 'zmgr'.
  */
 
 void

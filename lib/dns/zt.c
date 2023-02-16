@@ -22,7 +22,6 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -78,7 +77,7 @@ static isc_result_t
 freezezones(dns_zone_t *zone, void *uap);
 
 static isc_result_t
-doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
+doneloading(dns_zt_t *zt, dns_zone_t *zone);
 
 isc_result_t
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
@@ -585,11 +584,10 @@ cleanup:
  * dns_zt_asyncload().
  */
 static isc_result_t
-doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
-	UNUSED(zone);
-	UNUSED(task);
-
+doneloading(dns_zt_t *zt, dns_zone_t *zone) {
 	REQUIRE(VALID_ZT(zt));
+
+	UNUSED(zone);
 
 	if (isc_refcount_decrement(&zt->loads_pending) == 1) {
 		call_loaddone(zt);

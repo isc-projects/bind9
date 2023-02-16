@@ -38,7 +38,6 @@
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/tls.h>
 #include <isc/util.h>
@@ -83,7 +82,6 @@ static isc_log_t *lctx = NULL;
 /* Managers */
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
-static isc_taskmgr_t *taskmgr = NULL;
 
 /* TLS */
 static isc_tlsctx_cache_t *tlsctx_client_cache = NULL;
@@ -1813,7 +1811,7 @@ main(int argc, char *argv[]) {
 	argc--;
 	argv++;
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
 	result = dst_lib_init(mctx, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -1871,7 +1869,7 @@ cleanup:
 
 	dst_lib_destroy();
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
 	return (0);
 }

@@ -38,14 +38,6 @@
 
 #include <named/types.h>
 
-#define NAMED_EVENTCLASS     ISC_EVENTCLASS(0x4E43)
-#define NAMED_EVENT_RELOAD   (NAMED_EVENTCLASS + 0)
-#define NAMED_EVENT_DELZONE  (NAMED_EVENTCLASS + 1)
-#define NAMED_EVENT_COMMAND  (NAMED_EVENTCLASS + 2)
-#define NAMED_EVENT_TATSEND  (NAMED_EVENTCLASS + 3)
-#define NAMED_EVENT_RUN	     (NAMED_EVENTCLASS + 4)
-#define NAMED_EVENT_SHUTDOWN (NAMED_EVENTCLASS + 5)
-
 /*%
  * Name server state.  Better here than in lots of separate global variables.
  */
@@ -54,8 +46,6 @@ struct named_server {
 	isc_mem_t   *mctx;
 
 	ns_server_t *sctx;
-
-	isc_task_t *task;
 
 	char *statsfile;    /*%< Statistics file name */
 	char *dumpfile;	    /*%< Dump file name */

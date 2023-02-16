@@ -29,13 +29,11 @@
 #include <isc/rwlock.h>
 #include <isc/stats.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
 #include <dns/db.h>
-#include <dns/events.h>
 #include <dns/log.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -378,6 +376,8 @@ static void
 destroy(dns_adb_t *);
 static void
 shutdown_names(dns_adb_t *);
+static void
+shutdown_entries(dns_adb_t *);
 static void
 water(void *, int);
 static void

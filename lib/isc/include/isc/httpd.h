@@ -17,10 +17,7 @@
 
 #include <stdbool.h>
 
-#include <isc/event.h>
-#include <isc/eventclass.h>
 #include <isc/mutex.h>
-#include <isc/task.h>
 #include <isc/time.h>
 #include <isc/types.h>
 #include <isc/url.h>

@@ -69,7 +69,6 @@
 #include <isc/util.h>
 
 #include <dns/dnstap.h>
-#include <dns/events.h>
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>

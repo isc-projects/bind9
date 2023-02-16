@@ -31,7 +31,6 @@
 #include <dns/client.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
-#include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
 #include <dns/message.h>

@@ -36,7 +36,6 @@
 #include <isc/sockaddr.h>
 #include <isc/stats.h>
 #include <isc/strerr.h>
-#include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/tls.h>

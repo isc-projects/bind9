@@ -19,12 +19,10 @@
 #include <isc/netaddr.h>
 #include <isc/result.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/byaddr.h>
 #include <dns/db.h>
-#include <dns/events.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>

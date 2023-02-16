@@ -293,20 +293,6 @@ isc_nm_stoplistening(isc_nmsocket_t *sock);
  */
 
 void
-isc_nm_pause(isc_nm_t *mgr);
-/*%<
- * Pause all processing, equivalent to taskmgr exclusive tasks.
- * It won't return until all workers have been paused.
- */
-
-void
-isc_nm_resume(isc_nm_t *mgr);
-/*%<
- * Resume paused processing. It will return immediately after signalling
- * workers to resume.
- */
-
-void
 isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
 /*
  * Begin (or continue) reading on the socket associated with 'handle', and

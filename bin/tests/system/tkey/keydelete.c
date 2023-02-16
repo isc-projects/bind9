@@ -24,7 +24,6 @@
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
-#include <isc/task.h>
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
@@ -127,7 +126,6 @@ int
 main(int argc, char **argv) {
 	char *keyname = NULL;
 	isc_nm_t *netmgr = NULL;
-	isc_taskmgr_t *taskmgr = NULL;
 	isc_sockaddr_t bind_any;
 	dns_dispatchmgr_t *dispatchmgr = NULL;
 	dns_dispatch_t *dispatchv4 = NULL;
@@ -151,7 +149,7 @@ main(int argc, char **argv) {
 	port = atoi(argv[2]);
 	keyname = argv[3];
 
-	isc_managers_create(&mctx, 1, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_create(&mctx, 1, &loopmgr, &netmgr);
 
 	isc_log_create(mctx, &log, &logconfig);
 
@@ -198,7 +196,7 @@ main(int argc, char **argv) {
 
 	dst_lib_destroy();
 
-	isc_managers_destroy(&mctx, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
 	return (0);
 }

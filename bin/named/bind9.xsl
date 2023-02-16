@@ -156,29 +156,6 @@
       background-color: #99ddff;
      }
 
-     table.tasks {
-      border: 1px solid grey;
-      width: 500px;
-     }
-     table.tasks th {
-      text-align: center;
-      border: 1px solid grey;
-      width: 150px;
-     }
-     table.tasks td {
-      text-align: right;
-      font-family: monospace;
-     }
-     table.tasks td:nth-child(2) {
-      text-align: center;
-     }
-     table.tasks td:nth-child(4) {
-      text-align: center;
-     }
-     table.tasks tr:hover{
-      background-color: #99ddff;
-     }
-
      table.netstat {
       border: 1px solid grey;
       width: 500px;
@@ -327,7 +304,6 @@
 	<a href="/xml/v3/server">Server</a>,
 	<a href="/xml/v3/zones">Zones</a>,
 	<a href="/xml/v3/net">Network</a>,
-	<a href="/xml/v3/tasks">Tasks</a>,
 	<a href="/xml/v3/mem">Memory</a> and
 	<a href="/xml/v3/traffic">Traffic Size</a></p>
         <hr/>
@@ -930,85 +906,6 @@
               </xsl:if>
             </xsl:for-each>
           </xsl:for-each>
-        </xsl:if>
-        <xsl:if test="taskmgr/thread-model/type">
-          <h2>Task Manager Configuration</h2>
-          <table class="counters">
-            <tr>
-              <th class="even">Thread-Model</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/type"/>
-              </td>
-            </tr>
-            <tr class="odd">
-              <th>Worker Threads</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/worker-threads"/>
-              </td>
-            </tr>
-            <tr class="even">
-              <th>Default Quantum</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/default-quantum"/>
-              </td>
-            </tr>
-            <tr class="odd">
-              <th>Tasks Running</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/tasks-running"/>
-              </td>
-            </tr>
-            <tr class="even">
-              <th>Tasks Ready</th>
-              <td>
-                <xsl:value-of select="taskmgr/thread-model/tasks-ready"/>
-              </td>
-            </tr>
-          </table>
-          <br/>
-        </xsl:if>
-        <xsl:if test="taskmgr/tasks/task">
-          <h2>Tasks</h2>
-          <table class="tasks">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>References</th>
-              <th>State</th>
-              <th>Quantum</th>
-              <th>Events</th>
-            </tr>
-            <xsl:for-each select="taskmgr/tasks/task">
-              <xsl:sort select="name"/>
-              <xsl:variable name="css-class14">
-                <xsl:choose>
-                  <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                  <xsl:otherwise>odd</xsl:otherwise>
-                </xsl:choose>
-              </xsl:variable>
-              <tr class="{$css-class14}">
-                <td>
-                  <xsl:value-of select="id"/>
-                </td>
-                <td>
-                  <xsl:value-of select="name"/>
-                </td>
-                <td>
-                  <xsl:value-of select="references"/>
-                </td>
-                <td>
-                  <xsl:value-of select="state"/>
-                </td>
-                <td>
-                  <xsl:value-of select="quantum"/>
-                </td>
-                <td>
-                  <xsl:value-of select="events"/>
-                </td>
-              </tr>
-            </xsl:for-each>
-          </table>
-          <br/>
         </xsl:if>
         <xsl:if test="memory/summary">
           <h2>Memory Usage Summary</h2>

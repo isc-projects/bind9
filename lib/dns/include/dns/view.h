@@ -57,7 +57,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/event.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>

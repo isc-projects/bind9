@@ -34,8 +34,7 @@ typedef isc_result_t (*dns_zt_allloaded_t)(void *arg);
  * this signature.
  */
 
-typedef isc_result_t (*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone,
-					    isc_task_t *task);
+typedef isc_result_t (*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone);
 /*%<
  * Method prototype: when a zone finishes loading, the zt object
  * can be informed via a callback function with this signature.

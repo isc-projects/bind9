@@ -27,8 +27,6 @@ libisc_la_HEADERS =			\
 	include/isc/entropy.h		\
 	include/isc/errno.h		\
 	include/isc/error.h		\
-	include/isc/event.h		\
-	include/isc/eventclass.h	\
 	include/isc/file.h		\
 	include/isc/formatcheck.h	\
 	include/isc/fsaccess.h		\
@@ -87,7 +85,6 @@ libisc_la_HEADERS =			\
 	include/isc/string.h		\
 	include/isc/symtab.h		\
 	include/isc/syslog.h		\
-	include/isc/task.h		\
 	include/isc/thread.h		\
 	include/isc/tid.h		\
 	include/isc/time.h		\
@@ -129,7 +126,6 @@ libisc_la_SOURCES =		\
 	errno2result.c		\
 	errno2result.h		\
 	error.c			\
-	event.c			\
 	file.c			\
 	fsaccess.c		\
 	fsaccess_common.c	\
@@ -191,7 +187,6 @@ libisc_la_SOURCES =		\
 	string.c		\
 	symtab.c		\
 	syslog.c		\
-	task.c			\
 	thread.c		\
 	tid.c			\
 	time.c			\

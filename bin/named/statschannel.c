@@ -77,13 +77,12 @@ struct named_statschannel {
 	isc_mem_t *mctx;
 
 	/*
-	 * Locked by channel lock: can be referenced and modified by both
-	 * the server task and the channel task.
+	 * Locked by channel lock
 	 */
 	isc_mutex_t lock;
 	dns_acl_t *acl;
 
-	/* Locked by server task */
+	/* Locked by main loop. */
 	ISC_LINK(struct named_statschannel) link;
 };
 
@@ -1778,7 +1777,6 @@ cleanup:
 #define STATS_XML_STATUS  0x00 /* display only common statistics */
 #define STATS_XML_SERVER  0x01
 #define STATS_XML_ZONES	  0x02
-#define STATS_XML_TASKS	  0x04
 #define STATS_XML_NET	  0x08
 #define STATS_XML_MEM	  0x10
 #define STATS_XML_TRAFFIC 0x20
@@ -2334,12 +2332,6 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* /views */
 
-	if ((flags & STATS_XML_TASKS) != 0) {
-		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
-		TRY0(isc_taskmgr_renderxml(named_g_taskmgr, writer));
-		TRY0(xmlTextWriterEndElement(writer)); /* /taskmgr */
-	}
-
 	if ((flags & STATS_XML_MEM) != 0) {
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "memory"));
 		TRY0(isc_mem_renderxml(writer));
@@ -2462,17 +2454,6 @@ render_xml_net(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
-render_xml_tasks(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
-		 void *arg, unsigned int *retcode, const char **retmsg,
-		 const char **mimetype, isc_buffer_t *b,
-		 isc_httpdfree_t **freecb, void **freecb_args) {
-	UNUSED(httpd);
-	UNUSED(urlinfo);
-	return (render_xml(STATS_XML_TASKS, arg, retcode, retmsg, mimetype, b,
-			   freecb, freecb_args));
-}
-
-static isc_result_t
 render_xml_mem(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 	       void *arg, unsigned int *retcode, const char **retmsg,
 	       const char **mimetype, isc_buffer_t *b, isc_httpdfree_t **freecb,
@@ -2503,7 +2484,6 @@ render_xml_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 #define STATS_JSON_STATUS  0x00 /* display only common statistics */
 #define STATS_JSON_SERVER  0x01
 #define STATS_JSON_ZONES   0x02
-#define STATS_JSON_TASKS   0x04
 #define STATS_JSON_NET	   0x08
 #define STATS_JSON_MEM	   0x10
 #define STATS_JSON_TRAFFIC 0x20
@@ -3138,19 +3118,6 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 		}
 	}
 
-	if ((flags & STATS_JSON_TASKS) != 0) {
-		json_object *tasks = json_object_new_object();
-		CHECKMEM(tasks);
-
-		result = isc_taskmgr_renderjson(named_g_taskmgr, tasks);
-		if (result != ISC_R_SUCCESS) {
-			json_object_put(tasks);
-			goto cleanup;
-		}
-
-		json_object_object_add(bindstats, "taskmgr", tasks);
-	}
-
 	if ((flags & STATS_JSON_MEM) != 0) {
 		json_object *memory = json_object_new_object();
 		CHECKMEM(memory);
@@ -3404,17 +3371,6 @@ render_json_mem(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
-render_json_tasks(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
-		  void *arg, unsigned int *retcode, const char **retmsg,
-		  const char **mimetype, isc_buffer_t *b,
-		  isc_httpdfree_t **freecb, void **freecb_args) {
-	UNUSED(httpd);
-	UNUSED(urlinfo);
-	return (render_json(STATS_JSON_TASKS, arg, retcode, retmsg, mimetype, b,
-			    freecb, freecb_args));
-}
-
-static isc_result_t
 render_json_net(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 		void *arg, unsigned int *retcode, const char **retmsg,
 		const char **mimetype, isc_buffer_t *b,
@@ -3612,9 +3568,6 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 			    "/xml/v" STATS_XML_VERSION_MAJOR "/net", false,
 			    render_xml_net, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
-			    "/xml/v" STATS_XML_VERSION_MAJOR "/tasks", false,
-			    render_xml_tasks, server);
-	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/xml/v" STATS_XML_VERSION_MAJOR "/mem", false,
 			    render_xml_mem, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
@@ -3636,9 +3589,6 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/json/v" STATS_JSON_VERSION_MAJOR "/zones", false,
 			    render_json_zones, server);
-	isc_httpdmgr_addurl(listener->httpdmgr,
-			    "/json/v" STATS_JSON_VERSION_MAJOR "/tasks", false,
-			    render_json_tasks, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/json/v" STATS_JSON_VERSION_MAJOR "/net", false,
 			    render_json_net, server);

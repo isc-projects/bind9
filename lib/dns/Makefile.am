@@ -73,7 +73,6 @@ libdns_la_HEADERS =			\
 	include/dns/dyndb.h		\
 	include/dns/ecs.h		\
 	include/dns/edns.h		\
-	include/dns/events.h		\
 	include/dns/fixedname.h		\
 	include/dns/forward.h		\
 	include/dns/geoip.h		\

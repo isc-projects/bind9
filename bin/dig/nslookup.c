@@ -20,13 +20,11 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
-#include <isc/event.h>
 #include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 #include <isc/work.h>
 

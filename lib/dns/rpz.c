@@ -28,14 +28,12 @@
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/util.h>
 #include <isc/work.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dnsrps.h>
-#include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/rbt.h>

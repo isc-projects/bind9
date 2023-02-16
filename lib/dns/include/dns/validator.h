@@ -48,7 +48,6 @@
 
 #include <stdbool.h>
 
-#include <isc/event.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 

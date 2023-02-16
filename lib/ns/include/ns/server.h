@@ -29,7 +29,6 @@
 #include <dns/acl.h>
 #include <dns/types.h>
 
-#include <ns/events.h>
 #include <ns/types.h>
 
 #define NS_SERVER_LOGQUERIES   0x00000001U /*%< log queries */

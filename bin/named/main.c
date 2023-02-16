@@ -38,7 +38,6 @@
 #include <isc/signal.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -1026,7 +1025,7 @@ create_managers(void) {
 		      named_g_udpdisp == 1 ? "" : "s");
 
 	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
-			    &named_g_netmgr, &named_g_taskmgr);
+			    &named_g_netmgr);
 
 	isc_nm_maxudp(named_g_netmgr, maxudp);
 
@@ -1543,8 +1542,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr,
-			     &named_g_taskmgr);
+	isc_managers_destroy(&named_g_mctx, &named_g_loopmgr, &named_g_netmgr);
 
 #if ENABLE_LEAK_DETECTION
 	isc__tls_setdestroycheck(true);

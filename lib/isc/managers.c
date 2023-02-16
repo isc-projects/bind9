@@ -18,8 +18,7 @@
 
 void
 isc_managers_create(isc_mem_t **mctxp, uint32_t workers,
-		    isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp,
-		    isc_taskmgr_t **taskmgrp) {
+		    isc_loopmgr_t **loopmgrp, isc_nm_t **netmgrp) {
 	REQUIRE(mctxp != NULL && *mctxp == NULL);
 	isc_mem_create(mctxp);
 	INSIST(*mctxp != NULL);
@@ -32,26 +31,20 @@ isc_managers_create(isc_mem_t **mctxp, uint32_t workers,
 	isc_netmgr_create(*mctxp, *loopmgrp, netmgrp);
 	INSIST(*netmgrp != NULL);
 
-	REQUIRE(taskmgrp != NULL && *taskmgrp == NULL);
-	isc_taskmgr_create(*mctxp, *loopmgrp, taskmgrp);
-	INSIST(*taskmgrp != NULL);
-
 	isc_rwlock_setworkers(workers);
 }
 
 void
 isc_managers_destroy(isc_mem_t **mctxp, isc_loopmgr_t **loopmgrp,
-		     isc_nm_t **netmgrp, isc_taskmgr_t **taskmgrp) {
+		     isc_nm_t **netmgrp) {
 	REQUIRE(mctxp != NULL && *mctxp != NULL);
 	REQUIRE(loopmgrp != NULL && *loopmgrp != NULL);
 	REQUIRE(netmgrp != NULL && *netmgrp != NULL);
-	REQUIRE(taskmgrp != NULL && *taskmgrp != NULL);
 
 	/*
 	 * The sequence of operations here is important:
 	 */
 
-	isc_taskmgr_destroy(taskmgrp);
 	isc_netmgr_destroy(netmgrp);
 	isc_loopmgr_destroy(loopmgrp);
 	isc_mem_destroy(mctxp);

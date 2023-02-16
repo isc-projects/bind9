@@ -38,12 +38,9 @@ typedef struct isc_constregion	   isc_constregion_t;	  /*%< Const region */
 typedef struct isc_consttextregion isc_consttextregion_t; /*%< Const Text Region
 							   */
 typedef struct isc_counter isc_counter_t;		  /*%< Counter */
-typedef struct isc_event   isc_event_t;			  /*%< Event */
-typedef ISC_LIST(isc_event_t) isc_eventlist_t;		  /*%< Event List */
-typedef unsigned int	 isc_eventtype_t;		  /*%< Event Type */
-typedef uint32_t	 isc_fsaccess_t;		  /*%< FS Access */
-typedef struct isc_hash	 isc_hash_t;			  /*%< Hash */
-typedef struct isc_httpd isc_httpd_t;			  /*%< HTTP client */
+typedef uint32_t	   isc_fsaccess_t;		  /*%< FS Access */
+typedef struct isc_hash	   isc_hash_t;			  /*%< Hash */
+typedef struct isc_httpd   isc_httpd_t;			  /*%< HTTP client */
 typedef void(isc_httpdfree_t)(isc_buffer_t *, void *); /*%< HTTP free function
 							*/
 typedef struct isc_httpdmgr isc_httpdmgr_t;	       /*%< HTTP manager */
@@ -78,8 +75,6 @@ typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t; /*%< Socket Address List
 typedef struct isc_stats      isc_stats_t;	     /*%< Statistics */
 typedef int_fast64_t	      isc_statscounter_t;
 typedef struct isc_symtab     isc_symtab_t;	/*%< Symbol Table */
-typedef struct isc_task	      isc_task_t;	/*%< Task */
-typedef struct isc_taskmgr    isc_taskmgr_t;	/*%< Task Manager */
 typedef struct isc_textregion isc_textregion_t; /*%< Text Region */
 typedef struct isc_time	      isc_time_t;	/*%< Time */
 typedef struct isc_timer      isc_timer_t;	/*%< Timer */
@@ -90,8 +85,6 @@ typedef struct isc_work	      isc_work_t;	/*%< Work offloaded to an
 typedef struct isc_nm_http_endpoints isc_nm_http_endpoints_t;
 /*%< HTTP endpoints set */
 #endif /* HAVE_LIBNGHTTP2 */
-
-typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 
 /*% Statistics formats (text file or XML) */
 typedef enum {

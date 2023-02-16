@@ -125,7 +125,6 @@ static bool use_win2k_gsstsig = false;
 static bool tried_other_gsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
-static isc_taskmgr_t *taskmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
 static isc_log_t *glctx = NULL;
 static isc_mem_t *gmctx = NULL;
@@ -3443,9 +3442,6 @@ cleanup(void) {
 	}
 
 #ifdef HAVE_GSSAPI
-	/*
-	 * Cleanup GSSAPI resources after taskmgr has been destroyed.
-	 */
 	if (kserver != NULL) {
 		isc_mem_put(gmctx, kserver, sizeof(isc_sockaddr_t));
 		kserver = NULL;
@@ -3479,7 +3475,7 @@ cleanup(void) {
 	}
 
 	ddebug("Shutting down managers");
-	isc_managers_destroy(&gmctx, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_destroy(&gmctx, &loopmgr, &netmgr);
 }
 
 static void
@@ -3526,7 +3522,7 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr, &taskmgr);
+	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr);
 
 	parse_args(argc, argv);
 
