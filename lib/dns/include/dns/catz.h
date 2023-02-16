@@ -309,9 +309,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 /* xxxwpk TODO config! */
 typedef isc_result_t (*dns_catz_zoneop_fn_t)(dns_catz_entry_t *entry,
 					     dns_catz_zone_t  *origin,
-					     dns_view_t	      *view,
-					     isc_taskmgr_t    *taskmgr,
-					     void	      *udata);
+					     dns_view_t *view, void *udata);
 struct dns_catz_zonemodmethods {
 	dns_catz_zoneop_fn_t addzone;
 	dns_catz_zoneop_fn_t modzone;
@@ -319,10 +317,9 @@ struct dns_catz_zonemodmethods {
 	void		    *udata;
 };
 
-isc_result_t
+void
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
-		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_loopmgr_t *loopmgr);
+		   isc_mem_t *mctx, isc_loopmgr_t *loopmgr);
 /*%<
  * Allocate a new catz_zones object, a collection storing all catalog zones
  * for a view.
@@ -390,8 +387,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
 /*%<
  * Callback for update of catalog zone database.
  * If there was no catalog zone update recently it launches an
- * update_taskaction immediately.
- * If there was an update recently it schedules update_taskaction for some time
+ * update action immediately.
+ * If there was an update recently it schedules update for some time
  * in the future.
  * If there is an update scheduled it replaces old db version with a new one.
  *
@@ -401,7 +398,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
  */
 
 void
-dns_catz_update_taskaction(void *arg);
+dns_catz_update_action(void *arg);
 /*%<
  * Task that launches dns_catz_update_from_db.
  *

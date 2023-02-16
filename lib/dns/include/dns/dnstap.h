@@ -117,7 +117,7 @@ struct dns_dtdata {
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
-	      struct fstrm_iothr_options **foptp, isc_task_t *reopen_task,
+	      struct fstrm_iothr_options **foptp, isc_loop_t *loop,
 	      dns_dtenv_t **envp);
 /*%<
  * Create and initialize the dnstap environment.
@@ -138,10 +138,10 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  *	should also be set.  Other options may be set if desired.
  *	If dns_dt_create succeeds the *foptp is set to NULL.
  *
- *\li	'reopen_task' needs to be set to the task in the context of which
+ *\li	'loop' needs to be set to the loop in which
  *	dns_dt_reopen() will be called.  This is not an optional parameter:
- *	using dns_dt_create() (which sets 'reopen_task' to NULL) is only
- *	allowed in unit tests.
+ *	using dns_dt_create() with 'loop' set to NULL is only allowed in
+ *	unit tests.
  *
  * Requires:
  *

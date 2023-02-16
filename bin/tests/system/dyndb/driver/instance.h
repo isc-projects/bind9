@@ -47,7 +47,7 @@ struct sample_instance {
 	/* These are needed for zone creation. */
 	dns_view_t *view;
 	dns_zonemgr_t *zmgr;
-	isc_task_t *task;
+	isc_loopmgr_t *loopmgr;
 	bool exiting;
 
 	dns_zone_t *zone1;

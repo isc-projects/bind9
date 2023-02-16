@@ -192,12 +192,21 @@ void
 isc_loopmgr_blocking(isc_loopmgr_t *loopmgr);
 void
 isc_loopmgr_nonblocking(isc_loopmgr_t *loopmgr);
-/*%
+/*%<
  * isc_loopmgr_blocking() stops the SIGINT and SIGTERM signal handlers
  * during blocking operations, for example while waiting for user
  * interaction; isc_loopmgr_nonblocking() restarts them.
  *
  * Requires:
  *\li	'loopmgr' is a valid loop manager.
+ */
+
+isc_loopmgr_t *
+isc_loop_getloopmgr(isc_loop_t *loop);
+/*%<
+ * Return the loopmgr associated with 'loop'.
+ *
+ * Requires:
+ *\li	'loop' is a valid loop.
  */
 ISC_LANG_ENDDECLS

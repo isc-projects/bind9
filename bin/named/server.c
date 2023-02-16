@@ -313,14 +313,20 @@ typedef struct {
 	named_server_t *server;
 } catz_cb_data_t;
 
-typedef struct catz_chgzone_event {
-	ISC_EVENT_COMMON(struct catz_chgzone_event);
+typedef struct catz_chgzone {
+	isc_mem_t *mctx;
 	dns_catz_entry_t *entry;
 	dns_catz_zone_t *origin;
 	dns_view_t *view;
 	catz_cb_data_t *cbd;
 	bool mod;
-} catz_chgzone_event_t;
+} catz_chgzone_t;
+
+typedef enum {
+	CATZ_ADDZONE,
+	CATZ_MODZONE,
+	CATZ_DELZONE,
+} catz_type_t;
 
 typedef struct {
 	unsigned int magic;
@@ -401,7 +407,7 @@ noreturn static void
 fatal(named_server_t *server, const char *msg, isc_result_t result);
 
 static void
-named_server_reload(isc_task_t *task, isc_event_t *event);
+named_server_reload(void *arg);
 
 #ifdef HAVE_LIBNGHTTP2
 static isc_result_t
@@ -2659,21 +2665,21 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 }
 
 static void
-catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
-	catz_chgzone_event_t *ev = (catz_chgzone_event_t *)event0;
+catz_addmodzone_cb(void *arg) {
+	catz_chgzone_t *cz = (catz_chgzone_t *)arg;
 	isc_result_t result;
 	dns_forwarders_t *dnsforwarders = NULL;
 	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
-	isc_buffer_t *confbuf;
+	isc_buffer_t *confbuf = NULL;
 	char nameb[DNS_NAME_FORMATSIZE];
 	const cfg_obj_t *zlist = NULL;
 	cfg_obj_t *zoneconf = NULL;
 	cfg_obj_t *zoneobj = NULL;
-	ns_cfgctx_t *cfg;
+	ns_cfgctx_t *cfg = NULL;
 	dns_zone_t *zone = NULL;
 
-	cfg = (ns_cfgctx_t *)ev->view->new_zone_config;
+	cfg = (ns_cfgctx_t *)cz->view->new_zone_config;
 	if (cfg == NULL) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -2682,29 +2688,29 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
-	name = dns_catz_entry_getname(ev->entry);
+	name = dns_catz_entry_getname(cz->entry);
 
 	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
 	dns_name_totext(name, true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	result = dns_fwdtable_find(ev->view->fwdtable, name, NULL,
+	result = dns_fwdtable_find(cz->view->fwdtable, name, NULL,
 				   &dnsforwarders);
 	if (result == ISC_R_SUCCESS &&
 	    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 	{
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_addmodzone_taskaction: "
+			      "catz: catz_addmodzone_cb: "
 			      "zone '%s' will not be processed because of the "
 			      "explicitly configured forwarding for that zone",
 			      nameb);
 		goto cleanup;
 	}
 
-	result = dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone);
+	result = dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone);
 
-	if (ev->mod) {
+	if (cz->mod) {
 		dns_catz_zone_t *parentcatz;
 
 		if (result != ISC_R_SUCCESS) {
@@ -2719,7 +2725,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (!dns_zone_getadded(zone)) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' is not a dynamically "
 				      "added zone",
 				      nameb);
@@ -2731,16 +2737,16 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		if (parentcatz == NULL) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' exists and is not added by "
 				      "a catalog zone, so won't be modified",
 				      nameb);
 			goto cleanup;
 		}
-		if (parentcatz != ev->origin) {
+		if (parentcatz != cz->origin) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "catz: catz_addmodzone_taskaction: "
+				      "catz: catz_addmodzone_cb: "
 				      "zone '%s' exists in multiple "
 				      "catalog zones",
 				      nameb);
@@ -2756,7 +2762,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
-					"catz_addmodzone_taskaction: "
+					"catz_addmodzone_cb: "
 					"zone '%s' will not be added "
 					"because it is an explicitly "
 					"configured zone",
@@ -2766,7 +2772,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 					named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 					NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 					"catz: "
-					"catz_addmodzone_taskaction: "
+					"catz_addmodzone_cb: "
 					"zone '%s' will not be added "
 					"because another catalog zone "
 					"already contains an entry with "
@@ -2792,7 +2798,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	RUNTIME_CHECK(zone == NULL);
 	/* Create a config for new zone */
 	confbuf = NULL;
-	result = dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
+	result = dns_catz_generate_zonecfg(cz->origin, cz->entry, &confbuf);
 	if (result == ISC_R_SUCCESS) {
 		cfg_parser_reset(cfg->add_parser);
 		result = cfg_parse_buffer(cfg->add_parser, confbuf, "catz", 0,
@@ -2821,14 +2827,14 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	/* Mark view unfrozen so that zone can be added */
 
-	isc_task_beginexclusive(task);
-	dns_view_thaw(ev->view);
-	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, ev->view,
-				&ev->cbd->server->viewlist,
-				&ev->cbd->server->kasplist, cfg->actx, true,
-				false, ev->mod);
-	dns_view_freeze(ev->view);
-	isc_task_endexclusive(task);
+	isc_loopmgr_pause(named_g_loopmgr);
+	dns_view_thaw(cz->view);
+	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, cz->view,
+				&cz->cbd->server->viewlist,
+				&cz->cbd->server->kasplist, cfg->actx, true,
+				false, cz->mod);
+	dns_view_freeze(cz->view);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -2839,7 +2845,7 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_zt_find(ev->view->zonetable, name, 0, NULL, &zone));
+	CHECK(dns_zt_find(cz->view->zonetable, name, 0, NULL, &zone));
 
 	/*
 	 * Load the zone from the master file.	If this fails, we'll
@@ -2861,13 +2867,13 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(ev->view->zonetable, zone);
+		dns_zt_unmount(cz->view->zonetable, zone);
 		goto cleanup;
 	}
 
 	/* Flag the zone as having been added at runtime */
 	dns_zone_setadded(zone, true);
-	dns_zone_set_parentcatz(zone, ev->origin);
+	dns_zone_set_parentcatz(zone, cz->origin);
 
 cleanup:
 	if (zone != NULL) {
@@ -2876,31 +2882,31 @@ cleanup:
 	if (zoneconf != NULL) {
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
 	}
-	dns_catz_entry_detach(ev->origin, &ev->entry);
-	dns_catz_zone_detach(&ev->origin);
-	dns_view_detach(&ev->view);
-	isc_event_free(ISC_EVENT_PTR(&ev));
+	dns_catz_entry_detach(cz->origin, &cz->entry);
+	dns_catz_zone_detach(&cz->origin);
+	dns_view_detach(&cz->view);
+	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
 static void
-catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
-	catz_chgzone_event_t *ev = (catz_chgzone_event_t *)event0;
+catz_delzone_cb(void *arg) {
+	catz_chgzone_t *cz = (catz_chgzone_t *)arg;
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_db_t *dbp = NULL;
 	char cname[DNS_NAME_FORMATSIZE];
-	const char *file;
+	const char *file = NULL;
 
-	isc_task_beginexclusive(task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
-	dns_name_format(dns_catz_entry_getname(ev->entry), cname,
+	dns_name_format(dns_catz_entry_getname(cz->entry), cname,
 			DNS_NAME_FORMATSIZE);
-	result = dns_zt_find(ev->view->zonetable,
-			     dns_catz_entry_getname(ev->entry), 0, NULL, &zone);
+	result = dns_zt_find(cz->view->zonetable,
+			     dns_catz_entry_getname(cz->entry), 0, NULL, &zone);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: "
+			      "catz: catz_delzone_cb: "
 			      "zone '%s' not found",
 			      cname);
 		goto cleanup;
@@ -2909,16 +2915,16 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	if (!dns_zone_getadded(zone)) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: "
+			      "catz: catz_delzone_cb: "
 			      "zone '%s' is not a dynamically added zone",
 			      cname);
 		goto cleanup;
 	}
 
-	if (dns_zone_get_parentcatz(zone) != ev->origin) {
+	if (dns_zone_get_parentcatz(zone) != cz->origin) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "catz: catz_delzone_taskaction: zone "
+			      "catz: catz_delzone_cb: zone "
 			      "'%s' exists in multiple catalog zones",
 			      cname);
 		goto cleanup;
@@ -2930,7 +2936,7 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		dns_zone_unload(zone);
 	}
 
-	CHECK(dns_zt_unmount(ev->view->zonetable, zone));
+	CHECK(dns_zt_unmount(cz->view->zonetable, zone));
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
@@ -2942,85 +2948,71 @@ catz_delzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-		      "catz: catz_delzone_taskaction: "
+		      "catz: catz_delzone_cb: "
 		      "zone '%s' deleted",
 		      cname);
 cleanup:
-	isc_task_endexclusive(task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
-	dns_catz_entry_detach(ev->origin, &ev->entry);
-	dns_catz_zone_detach(&ev->origin);
-	dns_view_detach(&ev->view);
-	isc_event_free(ISC_EVENT_PTR(&ev));
+	dns_catz_entry_detach(cz->origin, &cz->entry);
+	dns_catz_zone_detach(&cz->origin);
+	dns_view_detach(&cz->view);
+	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
 
 static isc_result_t
-catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
-		     dns_view_t *view, isc_taskmgr_t *taskmgr, void *udata,
-		     isc_eventtype_t type) {
-	catz_chgzone_event_t *event = NULL;
-	isc_task_t *task = NULL;
-	isc_result_t result;
-	isc_taskaction_t action = NULL;
-
-	result = isc_taskmgr_excltask(taskmgr, &task);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+catz_run(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
+	 void *udata, catz_type_t type) {
+	catz_chgzone_t *cz = NULL;
+	isc_job_cb action = NULL;
 
 	switch (type) {
-	case DNS_EVENT_CATZADDZONE:
-	case DNS_EVENT_CATZMODZONE:
-		action = catz_addmodzone_taskaction;
+	case CATZ_ADDZONE:
+	case CATZ_MODZONE:
+		action = catz_addmodzone_cb;
 		break;
-	case DNS_EVENT_CATZDELZONE:
-		action = catz_delzone_taskaction;
+	case CATZ_DELZONE:
+		action = catz_delzone_cb;
 		break;
 	default:
 		REQUIRE(0);
 		UNREACHABLE();
 	}
 
-	event = (catz_chgzone_event_t *)isc_event_allocate(
-		view->mctx, origin, type, action, NULL, sizeof(*event));
+	cz = isc_mem_get(view->mctx, sizeof(*cz));
+	*cz = (catz_chgzone_t){
+		.cbd = (catz_cb_data_t *)udata,
+		.mod = (type == CATZ_MODZONE),
+	};
+	isc_mem_attach(view->mctx, &cz->mctx);
 
-	event->cbd = (catz_cb_data_t *)udata;
-	event->entry = NULL;
-	event->origin = NULL;
-	event->view = NULL;
-	event->mod = (type == DNS_EVENT_CATZMODZONE);
+	dns_catz_entry_attach(entry, &cz->entry);
+	dns_catz_zone_attach(origin, &cz->origin);
+	dns_view_attach(view, &cz->view);
 
-	dns_catz_entry_attach(entry, &event->entry);
-	dns_catz_zone_attach(origin, &event->origin);
-	dns_view_attach(view, &event->view);
-
-	isc_task_send(task, ISC_EVENT_PTR(&event));
-	isc_task_detach(&task);
+	isc_async_run(named_g_mainloop, action, cz);
 
 	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
 catz_addzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZADDZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_ADDZONE));
 }
 
 static isc_result_t
 catz_delzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZDELZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_DELZONE));
 }
 
 static isc_result_t
 catz_modzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
-	     isc_taskmgr_t *taskmgr, void *udata) {
-	return (catz_create_chg_task(entry, origin, view, taskmgr, udata,
-				     DNS_EVENT_CATZMODZONE));
+	     void *udata) {
+	return (catz_run(entry, origin, view, udata, CATZ_MODZONE));
 }
 
 static isc_result_t
@@ -3173,8 +3165,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
-				 view->mctx, named_g_taskmgr, named_g_loopmgr));
+	dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods, view->mctx,
+			   named_g_loopmgr);
 
 	if (pview != NULL) {
 		old = pview->catzs;
@@ -3892,8 +3884,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		}
 
 		CHECKM(dns_dt_create(named_g_mctx, dmode, dpath, &fopt,
-				     named_g_server->task,
-				     &named_g_server->dtenv),
+				     named_g_mainloop, &named_g_server->dtenv),
 		       "unable to create dnstap environment");
 
 		CHECKM(dns_dt_setupfile(named_g_server->dtenv, max_size, rolls,
@@ -5648,7 +5639,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			const void *hashinit = isc_hash_get_initializer();
 			CHECK(dns_dyndb_createctx(mctx, hashinit, named_g_lctx,
 						  view, named_g_server->zonemgr,
-						  named_g_server->task,
 						  named_g_loopmgr, &dctx));
 		}
 
@@ -8378,7 +8368,7 @@ load_configuration(const char *filename, named_server_t *server,
 	ISC_LIST_INIT(altsecrets);
 
 	/* Ensure exclusive access to configuration data. */
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 	/* Create the ACL configuration context */
 	if (named_g_aclconfctx != NULL) {
@@ -8993,15 +8983,14 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 
 	if (first_time) {
-		isc_task_endexclusive(server->task);
-
 		/*
 		 * Rescan the interface list to pick up changes in the
-		 * listen-on option.
+		 * listen-on option. This requires the loopmgr to be
+		 * temporarily resumed.
 		 */
+		isc_loopmgr_resume(named_g_loopmgr);
 		result = ns_interfacemgr_scan(server->interfacemgr, true, true);
-
-		isc_task_beginexclusive(server->task);
+		isc_loopmgr_pause(named_g_loopmgr);
 
 		/*
 		 * Check that named is able to TCP listen on at least one
@@ -9722,7 +9711,7 @@ load_configuration(const char *filename, named_server_t *server,
 				      isc_result_totext(result));
 	}
 
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	exclusive = false;
 
 	/* Configure the statistics channel(s) */
@@ -9821,7 +9810,7 @@ cleanup_conf_parser:
 
 cleanup_exclusive:
 	if (exclusive) {
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 	}
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -9930,7 +9919,7 @@ load_zones(named_server_t *server, bool reconfig) {
 	zl->server = server;
 	zl->reconfig = reconfig;
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 	isc_refcount_init(&zl->refs, 1);
 
@@ -9977,20 +9966,16 @@ cleanup:
 		isc_mem_put(server->mctx, zl, sizeof(*zl));
 	}
 
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	return (result);
 }
 
 static void
-run_server(isc_task_t *task, isc_event_t *event) {
+run_server(void *arg) {
 	isc_result_t result;
-	named_server_t *server = (named_server_t *)event->ev_arg;
+	named_server_t *server = (named_server_t *)arg;
 	dns_geoip_databases_t *geoip = NULL;
-
-	INSIST(task == server->task);
-
-	isc_event_free(&event);
 
 	CHECKFATAL(dns_zonemgr_create(named_g_mctx, named_g_loopmgr,
 				      named_g_taskmgr, named_g_netmgr,
@@ -10058,15 +10043,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 #endif /* ifdef ENABLE_AFL */
 }
 
-static void
-launch_server(void *arg) {
-	named_server_t *server = (named_server_t *)arg;
-	isc_event_t *event = isc_event_allocate(named_g_mctx, server->task,
-						NAMED_EVENT_RUN, run_server,
-						server, sizeof(*event));
-	isc_task_send(server->task, &event);
-}
-
 void
 named_server_flushonshutdown(named_server_t *server, bool flush) {
 	REQUIRE(NAMED_SERVER_VALID(server));
@@ -10075,20 +10051,19 @@ named_server_flushonshutdown(named_server_t *server, bool flush) {
 }
 
 static void
-shutdown_server(isc_task_t *task, isc_event_t *event) {
-	dns_view_t *view, *view_next = NULL;
-	dns_kasp_t *kasp, *kasp_next = NULL;
-	named_server_t *server = (named_server_t *)event->ev_arg;
+shutdown_server(void *arg) {
+	named_server_t *server = (named_server_t *)arg;
+	dns_view_t *view = NULL, *view_next = NULL;
+	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
 	bool flush = server->flushonshutdown;
-	named_cache_t *nsc;
-
-	INSIST(task == server->task);
-
-	isc_event_free(&event);
+	named_cache_t *nsc = NULL;
 
 #if HAVE_LIBSYSTEMD
 	sd_notify(0, "STOPPING=1\n");
 #endif /* HAVE_LIBSYSTEMD */
+
+	isc_signal_stop(server->sighup);
+	isc_signal_destroy(&server->sighup);
 
 	/*
 	 * We need to shutdown the interface before going
@@ -10100,7 +10075,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	named_statschannels_shutdown(server);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO, "shutting down%s",
@@ -10169,34 +10144,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_db_detach(&server->in_roothints);
 
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	isc_task_detach(&server->task);
-}
-
-static void
-close_server(void *arg) {
-	named_server_t *server = arg;
-
-	/*
-	 * Cleanup loopmgr resources directly, because shuttingdown the server
-	 * happens on async task
-	 */
-	isc_signal_stop(server->sighup);
-	isc_signal_destroy(&server->sighup);
-
-	isc_event_t *event = isc_event_allocate(
-		named_g_mctx, server->task, NAMED_EVENT_SHUTDOWN,
-		shutdown_server, server, sizeof(*event));
-	isc_task_send(server->task, &event);
-}
-
-void
-named_server_shutdown(named_server_t *server) {
-	isc_event_t *event =
-		isc_event_allocate(named_g_mctx, server, NAMED_EVENT_SHUTDOWN,
-				   shutdown_server, server, sizeof(*event));
-	isc_task_send(server->task, &event);
 }
 
 /*%
@@ -10305,8 +10255,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	named_g_mainloop = isc_loop_main(named_g_loopmgr);
 
-	isc_loop_setup(named_g_mainloop, launch_server, server);
-	isc_loop_teardown(named_g_mainloop, close_server, server);
+	isc_loop_setup(named_g_mainloop, run_server, server);
+	isc_loop_teardown(named_g_mainloop, shutdown_server, server);
 
 	/* Add SIGHUP reload handler  */
 	server->sighup = isc_signal_new(
@@ -10412,7 +10362,7 @@ fatal(named_server_t *server, const char *msg, isc_result_t result) {
 		 * function and any other OpenSSL calls from other tasks
 		 * by requesting exclusive access to the task manager.
 		 */
-		isc_task_beginexclusive(server->task);
+		isc_loopmgr_pause(named_g_loopmgr);
 	}
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL, "%s: %s", msg,
@@ -10481,17 +10431,13 @@ cleanup:
  * Handle a reload event (from SIGHUP).
  */
 static void
-named_server_reload(isc_task_t *task, isc_event_t *event) {
-	named_server_t *server = (named_server_t *)event->ev_sender;
-
-	INSIST(task == server->task);
+named_server_reload(void *arg) {
+	named_server_t *server = (named_server_t *)arg;
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "received SIGHUP signal to reload zones");
 	(void)reload(server);
-
-	isc_event_free(&event);
 }
 
 void
@@ -10500,10 +10446,7 @@ named_server_reloadwanted(void *arg, int signum) {
 
 	REQUIRE(signum == SIGHUP);
 
-	isc_event_t *event = isc_event_allocate(
-		named_g_mctx, server, NAMED_EVENT_RELOAD, named_server_reload,
-		NULL, sizeof(isc_event_t));
-	isc_task_send(server->task, &event);
+	isc_async_run(named_g_mainloop, named_server_reload, server);
 }
 
 void
@@ -11961,7 +11904,7 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 	/* Look for the view name. */
 	ptr = next_token(lex, text);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
@@ -11999,7 +11942,7 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 		result = ISC_R_FAILURE;
 	}
 cleanup:
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	return (result);
 }
 
@@ -12021,7 +11964,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 	/* Look for the view name. */
 	ptr = next_token(lex, NULL);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	flushed = true;
 	found = false;
 
@@ -12143,7 +12086,7 @@ named_server_flushcache(named_server_t *server, isc_lex_t *lex) {
 			result = ISC_R_FAILURE;
 		}
 	}
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	return (result);
 }
 
@@ -12183,7 +12126,7 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 	/* Look for the view name. */
 	viewname = next_token(lex, NULL);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	flushed = true;
 	found = false;
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
@@ -12234,7 +12177,7 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 		}
 		result = ISC_R_FAILURE;
 	}
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	return (result);
 }
 
@@ -12486,7 +12429,7 @@ named_server_tsigdelete(named_server_t *server, isc_lex_t *lex,
 
 	viewname = next_token(lex, text);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
@@ -12498,11 +12441,12 @@ named_server_tsigdelete(named_server_t *server, isc_lex_t *lex,
 				 isc_rwlocktype_write);
 			if (result != ISC_R_SUCCESS) {
 				isc_task_endexclusive(server->task);
+				isc_loopmgr_resume(named_g_loopmgr);
 				return (result);
 			}
 		}
 	}
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	snprintf(fbuf, sizeof(fbuf), "%u", foundkeys);
 
@@ -12723,11 +12667,11 @@ synczone(dns_zone_t *zone, void *uap) {
 isc_result_t
 named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	isc_result_t result, tresult;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 	dns_zone_t *zone = NULL;
 	char classstr[DNS_RDATACLASS_FORMATSIZE];
 	char zonename[DNS_NAME_FORMATSIZE];
-	const char *vname, *sep, *arg;
+	const char *vname = NULL, *sep = NULL, *arg = NULL;
 	bool cleanup = false;
 
 	REQUIRE(text != NULL);
@@ -12750,7 +12694,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	}
 
 	if (zone == NULL) {
-		isc_task_beginexclusive(server->task);
+		isc_loopmgr_pause(named_g_loopmgr);
 		tresult = ISC_R_SUCCESS;
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
@@ -12763,7 +12707,7 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 				tresult = result;
 			}
 		}
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "dumping all zones%s: %s",
@@ -12772,9 +12716,9 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		return (tresult);
 	}
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	result = synczone(zone, &cleanup);
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	view = dns_zone_getview(zone);
 	if (strcmp(view->name, "_default") == 0 ||
@@ -12821,7 +12765,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 		return (result);
 	}
 	if (mayberaw == NULL) {
-		isc_task_beginexclusive(server->task);
+		isc_loopmgr_pause(named_g_loopmgr);
 		tresult = ISC_R_SUCCESS;
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
@@ -12832,7 +12776,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 				tresult = result;
 			}
 		}
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "%s all zones: %s",
@@ -12857,7 +12801,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 		return (DNS_R_NOTDYNAMIC);
 	}
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	frozen = dns_zone_getupdatedisabled(mayberaw);
 	if (freeze) {
 		if (frozen) {
@@ -12896,7 +12840,7 @@ named_server_freeze(named_server_t *server, bool freeze, isc_lex_t *lex,
 			}
 		}
 	}
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (msg != NULL) {
 		(void)putstr(text, msg);
@@ -13800,7 +13744,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		goto cleanup;
 	}
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 #ifndef HAVE_LMDB
 	/*
@@ -13808,7 +13752,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	 */
 	result = isc_stdio_open(view->new_zone_file, "a", &fp);
 	if (result != ISC_R_SUCCESS) {
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		TCHECK(putstr(text, "unable to create '"));
 		TCHECK(putstr(text, view->new_zone_file));
 		TCHECK(putstr(text, "': "));
@@ -13824,7 +13768,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Make sure we can open the NZD database */
 	result = nzd_writable(view);
 	if (result != ISC_R_SUCCESS) {
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		TCHECK(putstr(text, "unable to open NZD database for '"));
 		TCHECK(putstr(text, view->new_zone_db));
 		TCHECK(putstr(text, "'"));
@@ -13840,7 +13784,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 				true, false, false);
 	dns_view_freeze(view);
 
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (result != ISC_R_SUCCESS) {
 		TCHECK(putstr(text, "configure_zone failed: "));
@@ -13989,7 +13933,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	}
 #endif /* ifndef HAVE_LMDB */
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 #ifndef HAVE_LMDB
 	/* Make sure we can open the configuration save file */
@@ -13999,7 +13943,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		TCHECK(putstr(text, view->new_zone_file));
 		TCHECK(putstr(text, "': "));
 		TCHECK(putstr(text, isc_result_totext(result)));
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		goto cleanup;
 	}
 	(void)isc_stdio_close(fp);
@@ -14014,7 +13958,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		TCHECK(putstr(text, view->new_zone_db));
 		TCHECK(putstr(text, "'"));
 		result = ISC_R_FAILURE;
-		isc_task_endexclusive(server->task);
+		isc_loopmgr_resume(named_g_loopmgr);
 		goto cleanup;
 	}
 #endif /* HAVE_LMDB */
@@ -14026,7 +13970,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 				true, false, true);
 	dns_view_freeze(view);
 
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (result != ISC_R_SUCCESS) {
 		TCHECK(putstr(text, "configure_zone failed: "));
@@ -14288,8 +14232,8 @@ typedef struct {
  * Carry out a zone deletion scheduled by named_server_delzone().
  */
 static void
-rmzone(isc_task_t *task, isc_event_t *event) {
-	ns_dzctx_t *dz = (ns_dzctx_t *)event->ev_arg;
+rmzone(void *arg) {
+	ns_dzctx_t *dz = (ns_dzctx_t *)arg;
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw = NULL;
 	dns_catz_zone_t *catz = NULL;
 	char zonename[DNS_NAME_FORMATSIZE];
@@ -14304,8 +14248,6 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 #endif /* ifdef HAVE_LMDB */
 
 	REQUIRE(dz != NULL);
-
-	isc_event_free(&event);
 
 	/* Dig out configuration for this zone */
 	zone = dz->zone;
@@ -14442,7 +14384,6 @@ rmzone(isc_task_t *task, isc_event_t *event) {
 	}
 	dns_zone_detach(&zone);
 	isc_mem_put(named_g_mctx, dz, sizeof(*dz));
-	isc_task_detach(&task);
 }
 
 /*
@@ -14461,8 +14402,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	const char *ptr;
 	bool added;
 	ns_dzctx_t *dz = NULL;
-	isc_event_t *dzevent = NULL;
-	isc_task_t *task = NULL;
 
 	REQUIRE(text != NULL);
 
@@ -14510,16 +14449,11 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 
 	/* Send cleanup event */
 	dz = isc_mem_get(named_g_mctx, sizeof(*dz));
-
-	dz->cleanup = cleanup;
-	dz->zone = NULL;
+	*dz = (ns_dzctx_t){
+		.cleanup = cleanup,
+	};
 	dns_zone_attach(zone, &dz->zone);
-	dzevent = isc_event_allocate(named_g_mctx, server, NAMED_EVENT_DELZONE,
-				     rmzone, dz, sizeof(isc_event_t));
-
-	dns_zone_gettask(zone, &task);
-	isc_task_send(task, &dzevent);
-	dz = NULL;
+	isc_async_run(dns_zone_getloop(zone), rmzone, dz);
 
 	/* Inform user about cleaning up stub/secondary zone files */
 	dns_zone_getraw(zone, &raw);
@@ -15808,7 +15742,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 
 	isc_stdtime_get(&now);
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
@@ -15920,7 +15854,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 	}
 
 cleanup_exclusive:
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 cleanup:
 
@@ -15995,7 +15929,7 @@ cleanup:
 }
 
 static isc_result_t
-mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
+mkey_destroy(dns_view_t *view, isc_buffer_t **text) {
 	isc_result_t result;
 	char msg[DNS_NAME_FORMATSIZE + 500] = "";
 	const char *file = NULL;
@@ -16011,7 +15945,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 		 view->name);
 	CHECK(putstr(text, msg));
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 	/* Remove and clean up managed keys zone from view */
 	mkzone = view->managed_keys;
@@ -16056,7 +15990,7 @@ mkey_destroy(named_server_t *server, dns_view_t *view, isc_buffer_t **text) {
 	result = ISC_R_SUCCESS;
 
 cleanup:
-	isc_task_endexclusive(server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 	return (result);
 }
 
@@ -16304,7 +16238,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 			if (!first) {
 				CHECK(putstr(text, "\n"));
 			}
-			CHECK(mkey_destroy(server, view, text));
+			CHECK(mkey_destroy(view, text));
 			break;
 		default:
 			UNREACHABLE();
@@ -16452,12 +16386,8 @@ named_server_tcptimeouts(isc_lex_t *lex, isc_buffer_t **text) {
 			CHECK(ISC_R_RANGE);
 		}
 
-		isc_task_beginexclusive(named_g_server->task);
-
 		isc_nm_settimeouts(named_g_netmgr, initial, idle, keepalive,
 				   advertised);
-
-		isc_task_endexclusive(named_g_server->task);
 	}
 
 	snprintf(msg, sizeof(msg), "tcp-initial-timeout=%u\n", initial / 100);
@@ -16547,7 +16477,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		}
 	}
 
-	isc_task_beginexclusive(server->task);
+	isc_loopmgr_pause(named_g_loopmgr);
 
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -16636,7 +16566,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 	}
 
 cleanup:
-	isc_task_endexclusive(named_g_server->task);
+	isc_loopmgr_resume(named_g_loopmgr);
 
 	if (isc_buffer_usedlength(*text) > 0) {
 		(void)putnull(text);
