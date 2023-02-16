@@ -592,10 +592,12 @@ recycle(dns_qp_t *qp) {
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	atomic_fetch_add_relaxed(&recycle_time, time);
 
-	LOG_STATS("qp recycle" PRItime "free %u chunks", time, free);
-	LOG_STATS("qp recycle after leaf %u live %u used %u free %u hold %u",
-		  qp->leaf_count, qp->used_count - qp->free_count,
-		  qp->used_count, qp->free_count, qp->hold_count);
+	if (free > 0) {
+		LOG_STATS("qp recycle" PRItime "free %u chunks", time, free);
+		LOG_STATS("qp recycle leaf %u live %u used %u free %u hold %u",
+			  qp->leaf_count, qp->used_count - qp->free_count,
+			  qp->used_count, qp->free_count, qp->hold_count);
+	}
 }
 
 /*
@@ -617,7 +619,10 @@ defer_chunk_reclamation(dns_qp_t *qp, isc_qsbr_phase_t phase) {
 		}
 	}
 
-	LOG_STATS("qp will reclaim %u chunks in phase %u", reclaim, phase);
+	if (reclaim > 0) {
+		LOG_STATS("qp will reclaim %u chunks in phase %u", reclaim,
+			  phase);
+	}
 
 	return (reclaim > 0);
 }
@@ -650,11 +655,13 @@ reclaim_chunks(dns_qp_t *qp, isc_qsbr_phase_t phase) {
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	recycle_time += time;
 
-	LOG_STATS("qp reclaim" PRItime "phase %u free %u chunks", time, phase,
-		  free);
-	LOG_STATS("qp reclaim after leaf %u live %u used %u free %u hold %u",
-		  qp->leaf_count, qp->used_count - qp->free_count,
-		  qp->used_count, qp->free_count, qp->hold_count);
+	if (free > 0) {
+		LOG_STATS("qp reclaim" PRItime "phase %u free %u chunks", time,
+			  phase, free);
+		LOG_STATS("qp reclaim leaf %u live %u used %u free %u hold %u",
+			  qp->leaf_count, qp->used_count - qp->free_count,
+			  qp->used_count, qp->free_count, qp->hold_count);
+	}
 
 	return (more);
 }
@@ -735,10 +742,13 @@ marksweep_chunks(dns_qpmulti_t *multi) {
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	recycle_time += time;
 
-	LOG_STATS("qp marksweep" PRItime "free %u chunks", time, free);
-	LOG_STATS("qp marksweep after leaf %u live %u used %u free %u hold %u",
-		  qpw->leaf_count, qpw->used_count - qpw->free_count,
-		  qpw->used_count, qpw->free_count, qpw->hold_count);
+	if (free > 0) {
+		LOG_STATS("qp marksweep" PRItime "free %u chunks", time, free);
+		LOG_STATS(
+			"qp marksweep leaf %u live %u used %u free %u hold %u",
+			qpw->leaf_count, qpw->used_count - qpw->free_count,
+			qpw->used_count, qpw->free_count, qpw->hold_count);
+	}
 }
 
 /***********************************************************************
