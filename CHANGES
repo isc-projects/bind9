@@ -10,6 +10,8 @@
 			versions have been tightened for libuv versions between
 			1.35.0 and 1.40.0. [GL #3840]
 
+	--- 9.16.38 released ---
+
 6083.	[bug]		Fix DNSRPS-enabled builds as they were inadvertently
 			broken by change 6042. [GL #3827]
 
