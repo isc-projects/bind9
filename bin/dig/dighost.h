@@ -297,6 +297,9 @@ noreturn void
 digexit(void);
 
 void
+cleanup_openssl_refs(void);
+
+void
 debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void
