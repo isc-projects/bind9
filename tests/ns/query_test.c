@@ -611,7 +611,7 @@ typedef struct hookasync_data {
 				       * asynchronous process */
 	bool canceled;		      /* true if the query has been canceled  */
 	isc_result_t start_result;    /* result of 'runasync' */
-	ns_hook_resevent_t *rev;      /* resume event sent on completion */
+	ns_hook_resume_t *rev;	      /* resume state sent on completion */
 	query_ctx_t qctx;	      /* shallow copy of qctx passed to hook */
 	ns_hookpoint_t hookpoint;     /* specifies where to resume */
 	ns_hookpoint_t lasthookpoint; /* remember the last hook point called */
@@ -640,31 +640,36 @@ cancel_hookactx(ns_hookasync_t *ctx) {
 /* 'runasync' callback passed to ns_query_hookasync */
 static isc_result_t
 test_hookasync(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
-	       isc_task_t *task, isc_taskaction_t action, void *evarg,
+	       isc_loop_t *loop, isc_job_cb cb, void *evarg,
 	       ns_hookasync_t **ctxp) {
 	hookasync_data_t *asdata = arg;
 	ns_hookasync_t *ctx = NULL;
-	ns_hook_resevent_t *rev = NULL;
+	ns_hook_resume_t *rev = NULL;
 
 	if (asdata->start_result != ISC_R_SUCCESS) {
 		return (asdata->start_result);
 	}
 
 	ctx = isc_mem_get(memctx, sizeof(*ctx));
-	rev = (ns_hook_resevent_t *)isc_event_allocate(
-		memctx, task, NS_EVENT_HOOKASYNCDONE, action, evarg,
-		sizeof(*rev));
+	rev = isc_mem_get(memctx, sizeof(*rev));
+	*rev = (ns_hook_resume_t){
+		.hookpoint = asdata->hookpoint,
+		.origresult = DNS_R_NXDOMAIN,
+		.saved_qctx = qctx,
+		.ctx = ctx,
+		.loop = loop,
+		.cb = cb,
+		.arg = evarg,
+	};
 
-	rev->hookpoint = asdata->hookpoint;
-	rev->origresult = DNS_R_NXDOMAIN;
-	rev->saved_qctx = qctx;
-	rev->ctx = ctx;
 	asdata->rev = rev;
 
-	*ctx = (ns_hookasync_t){ .private = asdata };
+	*ctx = (ns_hookasync_t){
+		.destroy = destroy_hookactx,
+		.cancel = cancel_hookactx,
+		.private = asdata,
+	};
 	isc_mem_attach(memctx, &ctx->mctx);
-	ctx->destroy = destroy_hookactx;
-	ctx->cancel = cancel_hookactx;
 
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -948,8 +953,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	/* If async event has started, manually invoke the 'done' event. */
 	if (asdata.async) {
 		qctx->client->now = 0; /* set to sentinel before resume */
-		asdata.rev->ev_action(asdata.rev->ev_sender,
-				      (isc_event_t *)asdata.rev);
+		asdata.rev->cb(asdata.rev);
 
 		/* Confirm necessary cleanup has been performed. */
 		INSIST(qctx->client->query.hookactx == NULL);
@@ -1266,7 +1270,7 @@ typedef struct {
 typedef struct hookasync_e2e_data {
 	bool async;		   /* true if in a hook-triggered
 				    * asynchronous process */
-	ns_hook_resevent_t *rev;   /* resume event sent on completion */
+	ns_hook_resume_t *rev;	   /* resume state sent on completion */
 	ns_hookpoint_t hookpoint;  /* specifies where to resume */
 	isc_result_t start_result; /* result of 'runasync' */
 	dns_rcode_t expected_rcode;
@@ -1282,10 +1286,10 @@ cancel_e2ehookactx(ns_hookasync_t *ctx) {
 /* 'runasync' callback passed to ns_query_hookasync */
 static isc_result_t
 test_hookasync_e2e(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
-		   isc_task_t *task, isc_taskaction_t action, void *evarg,
+		   isc_loop_t *loop, isc_job_cb cb, void *evarg,
 		   ns_hookasync_t **ctxp) {
 	ns_hookasync_t *ctx = NULL;
-	ns_hook_resevent_t *rev = NULL;
+	ns_hook_resume_t *rev = NULL;
 	hookasync_e2e_data_t *asdata = arg;
 
 	if (asdata->start_result != ISC_R_SUCCESS) {
@@ -1293,19 +1297,24 @@ test_hookasync_e2e(query_ctx_t *qctx, isc_mem_t *memctx, void *arg,
 	}
 
 	ctx = isc_mem_get(memctx, sizeof(*ctx));
-	rev = (ns_hook_resevent_t *)isc_event_allocate(
-		memctx, task, NS_EVENT_HOOKASYNCDONE, action, evarg,
-		sizeof(*rev));
+	rev = isc_mem_get(memctx, sizeof(*rev));
+	*rev = (ns_hook_resume_t){
+		.hookpoint = asdata->hookpoint,
+		.saved_qctx = qctx,
+		.ctx = ctx,
+		.loop = loop,
+		.cb = cb,
+		.arg = evarg,
+	};
 
-	rev->hookpoint = asdata->hookpoint;
-	rev->saved_qctx = qctx;
-	rev->ctx = ctx;
 	asdata->rev = rev;
 
-	*ctx = (ns_hookasync_t){ .private = asdata };
+	*ctx = (ns_hookasync_t){
+		.destroy = destroy_hookactx,
+		.cancel = cancel_e2ehookactx,
+		.private = asdata,
+	};
 	isc_mem_attach(memctx, &ctx->mctx);
-	ctx->destroy = destroy_hookactx;
-	ctx->cancel = cancel_e2ehookactx;
 
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -1413,8 +1422,7 @@ run_hookasync_e2e_test(const ns__query_hookasync_e2e_test_params_t *test) {
 		 * If async event has started, manually invoke the done event.
 		 */
 		INSIST(asdata.async);
-		asdata.rev->ev_action(asdata.rev->ev_sender,
-				      (isc_event_t *)asdata.rev);
+		asdata.rev->cb(asdata.rev);
 
 		/*
 		 * Usually 'async' is reset to false on the 2nd call to

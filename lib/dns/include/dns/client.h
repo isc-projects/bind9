@@ -40,6 +40,7 @@
  */
 
 #include <isc/event.h>
+#include <isc/loop.h>
 #include <isc/sockaddr.h>
 
 #include <dns/tsig.h>
@@ -73,20 +74,27 @@ ISC_LANG_BEGINDECLS
 #define DNS_CLIENTVIEW_NAME "_dnsclient"
 
 /*%
- * A dns_clientresevent_t is sent when name resolution performed by a client
- * completes.  'result' stores the result code of the entire resolution
+ * A dns_clientresume_t holds state for resolution performed by a client,
+ * and is sent to the callback when the resolution completes.
+ * 'result' stores the result code of the entire resolution
  * procedure.  'vresult' specifically stores the result code of DNSSEC
  * validation if it is performed.  When name resolution successfully completes,
  * 'answerlist' is typically non empty, containing answer names along with
- * RRsets.  It is the receiver's responsibility to free this list by calling
- * dns_client_freeresanswer() before freeing the event structure.
+ * RRsets. 'cb' is the callback function and 'arg' is the callback argument
+ * that was specified by the caller.
+ *
+ * It is the receiver's responsibility to free 'answerlist' by
+ * calling dns_client_freeresanswer(), and to free the dns_clientresume
+ * structure itself.
  */
-typedef struct dns_clientresevent {
-	ISC_EVENT_COMMON(struct dns_clientresevent);
+typedef struct dns_clientresume {
+	isc_mem_t     *mctx;
 	isc_result_t   result;
 	isc_result_t   vresult;
 	dns_namelist_t answerlist;
-} dns_clientresevent_t; /* too long? */
+	isc_job_cb     cb;
+	void	      *arg;
+} dns_clientresume_t; /* too long? */
 
 isc_result_t
 dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
@@ -110,6 +118,8 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
  *
  *\li	'mctx' is a valid memory context.
  *
+ *\li	'loopmgr' is a valid loop manager.
+
  *\li	'taskmgr' is a valid task manager.
  *
  *\li	'nm' is a valid network manager.
@@ -202,8 +212,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 isc_result_t
 dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 			dns_rdataclass_t rdclass, dns_rdatatype_t type,
-			unsigned int options, isc_task_t *task,
-			isc_taskaction_t action, void *arg,
+			unsigned int options, isc_job_cb cb, void *arg,
 			dns_clientrestrans_t **transp);
 /*%<
  * Perform name resolution for 'name', 'rdclass', and 'type'.
@@ -231,11 +240,11 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  * created via dns_client_create() and has external managers and contexts.
  *
  * dns_client_startresolve() is an asynchronous version of dns_client_resolve()
- * and does not block.  When name resolution is completed, 'action' will be
- * called with the argument of a 'dns_clientresevent_t' object, which contains
- * the resulting list of answer names (on success).  On return, '*transp' is
- * set to an opaque transaction ID so that the caller can cancel this
- * resolution process.
+ * and does not block.  When name resolution is completed, 'cb' will be
+ * called with the argument of a 'dns_clientresume_t' object, which contains
+ * the resulting list of answer names (on success), and a also contains
+ * a pointer to 'arg'.  On return, '*transp' is set to an opaque transaction
+ * ID so that the caller can cancel this resolution process.
  *
  * Requires:
  *
@@ -246,8 +255,6 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  *\li	'name' is a valid name.
  *
  *\li	'namelist' != NULL and is not empty.
- *
- *\li	'task' is a valid task.
  *
  *\li	'transp' != NULL && *transp == NULL;
  *
