@@ -134,8 +134,9 @@ STD_LDFLAGS=""
 # ... except in test code
 TEST_CFLAGS="-Wno-vla"
 
-# Fortify the sources by default
-STD_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+# Fortify the sources by default (we undefine the macro first in case
+# the compiler has a different built-in setting)
+STD_CPPFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
 
 #
 # Additional compiler settings.
