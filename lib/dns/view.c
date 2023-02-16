@@ -522,36 +522,15 @@ dns_view_detach(dns_view_t **viewp) {
 		if (view->resolver != NULL) {
 			resolver = view->resolver;
 			view->resolver = NULL;
-			UNLOCK(&view->lock);
-
-			dns_resolver_shutdown(resolver);
-			dns_resolver_detach(&resolver);
-
-			LOCK(&view->lock);
 		}
-
 		if (view->adb != NULL) {
 			adb = view->adb;
 			view->adb = NULL;
-			UNLOCK(&view->lock);
-
-			dns_adb_shutdown(adb);
-			dns_adb_detach(&adb);
-
-			LOCK(&view->lock);
 		}
-
 		if (view->requestmgr != NULL) {
 			requestmgr = view->requestmgr;
 			view->requestmgr = NULL;
-			UNLOCK(&view->lock);
-
-			dns_requestmgr_shutdown(requestmgr);
-			dns_requestmgr_detach(&requestmgr);
-
-			LOCK(&view->lock);
 		}
-
 		if (view->zonetable != NULL) {
 			zt = view->zonetable;
 			view->zonetable = NULL;
@@ -559,7 +538,6 @@ dns_view_detach(dns_view_t **viewp) {
 				dns_zt_flush(zt);
 			}
 		}
-
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
@@ -582,15 +560,25 @@ dns_view_detach(dns_view_t **viewp) {
 		}
 		UNLOCK(&view->lock);
 
-		/* Need to detach zt and zones outside view lock */
+		/* Detach outside view lock */
+		if (resolver != NULL) {
+			dns_resolver_shutdown(resolver);
+			dns_resolver_detach(&resolver);
+		}
+		if (adb != NULL) {
+			dns_adb_shutdown(adb);
+			dns_adb_detach(&adb);
+		}
+		if (requestmgr != NULL) {
+			dns_requestmgr_shutdown(requestmgr);
+			dns_requestmgr_detach(&requestmgr);
+		}
 		if (zt != NULL) {
 			dns_zt_detach(&zt);
 		}
-
 		if (mkzone != NULL) {
 			dns_zone_detach(&mkzone);
 		}
-
 		if (rdzone != NULL) {
 			dns_zone_detach(&rdzone);
 		}
