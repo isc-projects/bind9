@@ -358,7 +358,6 @@ stages:
          --output kyua_html > /dev/null
 
 .windows_system_test: &windows_system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
   stage: system
   script:
     - 'Push-Location bin/tests/system'
@@ -1275,6 +1274,7 @@ msvc:windows:amd64:
 system:msvc:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_system_test_job
+  <<: *default_triggering_rules
   variables:
     VSCONF: Release
   needs:
@@ -1291,6 +1291,7 @@ msvc-debug:windows:amd64:
 system:msvc-debug:windows:amd64:
   <<: *windows_server_2016_amd64_image
   <<: *windows_system_test_job
+  <<: *api_schedules_tags_triggers_web_triggering_rules
   variables:
     VSCONF: Debug
   needs:
