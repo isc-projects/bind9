@@ -9973,11 +9973,11 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
  * local trust anchors according to RFC5011.
  */
 static void
-keyfetch_done(isc_task_t *task, isc_event_t *event) {
+keyfetch_done(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
 	isc_result_t result, eresult;
-	dns_fetchevent_t *devent;
-	dns_keyfetch_t *kfetch;
-	dns_zone_t *zone;
+	dns_keyfetch_t *kfetch = NULL;
+	dns_zone_t *zone = NULL;
 	isc_mem_t *mctx = NULL;
 	dns_keytable_t *secroots = NULL;
 	dns_dbversion_t *ver = NULL;
@@ -10004,11 +10004,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_rdataset_t *dnskeys = NULL, *dnskeysigs = NULL;
 	dns_rdataset_t *keydataset = NULL, dsset;
 
-	UNUSED(task);
-	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
-	INSIST(event->ev_arg != NULL);
+	INSIST(resp != NULL && resp->type == FETCHDONE);
 
-	kfetch = event->ev_arg;
+	kfetch = resp->arg;
+
+	INSIST(kfetch != NULL);
+
 	zone = kfetch->zone;
 	mctx = kfetch->mctx;
 	keyname = dns_fixedname_name(&kfetch->name);
@@ -10016,17 +10017,16 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dnskeysigs = &kfetch->dnskeysigset;
 	keydataset = &kfetch->keydataset;
 
-	devent = (dns_fetchevent_t *)event;
-	eresult = devent->result;
+	eresult = resp->result;
 
 	/* Free resources which are not of interest */
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
 	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
 	}
-	isc_event_free(&event);
+
 	dns_resolver_destroyfetch(&kfetch->fetch);
 
 	LOCK_ZONE(zone);
@@ -10621,6 +10621,7 @@ cleanup:
 
 	dns_name_free(keyname, mctx);
 	isc_mem_putanddetach(&kfetch->mctx, kfetch, sizeof(dns_keyfetch_t));
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
@@ -10710,15 +10711,13 @@ do_keyfetch(void *arg) {
 	 */
 	result = dns_resolver_createfetch(
 		resolver, kname, dns_rdatatype_dnskey, NULL, NULL, NULL, NULL,
-		0, options, 0, NULL, zone->task, keyfetch_done, kfetch,
+		0, options, 0, NULL, zone->loop, keyfetch_done, kfetch,
 		&kfetch->dnskeyset, &kfetch->dnskeysigset, &kfetch->fetch);
 
 	dns_resolver_detach(&resolver);
-	if (result != ISC_R_SUCCESS) {
-		goto retry;
+	if (result == ISC_R_SUCCESS) {
+		return;
 	}
-
-	return;
 retry:
 	retry_keyfetch(kfetch, kname);
 }

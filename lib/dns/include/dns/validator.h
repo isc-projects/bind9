@@ -135,7 +135,6 @@ struct dns_validator {
 	dns_keytable_t	  *keytable;
 	dst_key_t	  *key;
 	dns_rdata_rrsig_t *siginfo;
-	isc_task_t	  *task;
 	isc_loop_t	  *loop;
 	isc_job_cb	   cb;
 	void		  *arg;
@@ -171,8 +170,8 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_task_t *task, isc_loop_t *loop, isc_job_cb cb,
-		     void *arg, dns_validator_t **validatorp);
+		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
  *

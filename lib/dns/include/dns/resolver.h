@@ -48,8 +48,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/event.h>
 #include <isc/lang.h>
+#include <isc/loop.h>
 #include <isc/refcount.h>
 #include <isc/stats.h>
 #include <isc/tls.h>
@@ -65,18 +65,23 @@
 ISC_LANG_BEGINDECLS
 
 /*%
- * A dns_fetchevent_t is sent when a 'fetch' completes.  Any of 'db',
- * 'node', 'rdataset', and 'sigrdataset' may be bound.  It is the
- * receiver's responsibility to detach before freeing the event.
+ * A dns_fetchresponse_t is sent to the caller when a fetch completes.
+ * Any of 'db', 'node', 'rdataset', and 'sigrdataset' may be bound; it
+ * is the receiver's responsibility to detach them, and also free the
+ * structure.
+ *
  * \brief
  * 'rdataset', 'sigrdataset', 'client' and 'id' are the values that were
  * supplied when dns_resolver_createfetch() was called.  They are returned
  *  to the caller so that they may be freed.
  */
-typedef struct dns_fetchevent {
-	ISC_EVENT_COMMON(struct dns_fetchevent);
+typedef struct dns_fetchresponse dns_fetchresponse_t;
+
+struct dns_fetchresponse {
 	dns_fetch_t	     *fetch;
+	isc_mem_t	     *mctx;
 	isc_result_t	      result;
+	isc_result_t	      vresult;
 	dns_rdatatype_t	      qtype;
 	dns_db_t	     *db;
 	dns_dbnode_t	     *node;
@@ -86,8 +91,12 @@ typedef struct dns_fetchevent {
 	dns_name_t	     *foundname;
 	const isc_sockaddr_t *client;
 	dns_messageid_t	      id;
-	isc_result_t	      vresult;
-} dns_fetchevent_t;
+	isc_loop_t	     *loop;
+	isc_job_cb	      cb;
+	void		     *arg;
+	enum { FETCHDONE, TRYSTALE } type;
+	ISC_LINK(dns_fetchresponse_t) link;
+};
 
 /*%
  * The two quota types (fetches-per-zone and fetches-per-server)
@@ -172,8 +181,8 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		    isc_taskmgr_t *taskmgr, unsigned int ndisp, isc_nm_t *nm,
-		    unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+		    unsigned int ndisp, isc_nm_t *nm, unsigned int options,
+		    isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
 		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
 
@@ -189,9 +198,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *
  *\li	'view' is a valid view.
  *
- *\li	'taskmgr' is a valid task manager.
- *
- *\li	'ntasks' > 0.
+ *\li	'ndisp' > 0.
  *
  *\li	'nm' is a valid network manager.
  *
@@ -285,10 +292,9 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 dns_forwarders_t     *forwarders,
 			 const isc_sockaddr_t *client, dns_messageid_t id,
 			 unsigned int options, unsigned int depth,
-			 isc_counter_t *qc, isc_task_t *task,
-			 isc_taskaction_t action, void *arg,
-			 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-			 dns_fetch_t **fetchp);
+			 isc_counter_t *qc, isc_loop_t *loop, isc_job_cb cb,
+			 void *arg, dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset, dns_fetch_t **fetchp);
 /*%<
  * Recurse to answer a question.
  *
@@ -305,8 +311,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *	we figure out how selective forwarding will work.
  *
  *\li	When the fetch completes (successfully or otherwise), a
- *	#DNS_EVENT_FETCHDONE event with action 'action' and arg 'arg' will be
- *	posted to 'task'.
+ *	dns_fetchresponse_t option is sent to callback 'cb' with
+ *	'type' set to FETCHDONE.
  *
  *\li	The values of 'rdataset' and 'sigrdataset' will be returned in
  *	the FETCHDONE event.

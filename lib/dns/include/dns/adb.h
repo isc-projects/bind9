@@ -251,7 +251,7 @@ struct dns_adbaddrinfo {
 
 isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
-	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
+	       dns_adb_t **newadb);
 /*%<
  * Create a new ADB.
  *
@@ -266,7 +266,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
  *
  *\li	'view' be a pointer to a valid view.
  *
- *\li	'taskmgr' be a pointer to a valid task manager.
+ *\li	'loopmgr' be a valid loop manager.
  *
  *\li	'newadb' != NULL && '*newadb' == NULL.
  *

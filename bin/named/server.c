@@ -1120,7 +1120,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = dns_view_initntatable(view, named_g_taskmgr, named_g_loopmgr);
+	result = dns_view_initntatable(view, named_g_loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -4756,9 +4756,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
-		view, named_g_loopmgr, named_g_taskmgr, ndisp, named_g_netmgr,
-		resopts, named_g_server->tlsctx_client_cache,
-		named_g_dispatchmgr, dispatch4, dispatch6));
+		view, named_g_loopmgr, ndisp, named_g_netmgr, resopts,
+		named_g_server->tlsctx_client_cache, named_g_dispatchmgr,
+		dispatch4, dispatch6));
 
 	if (resstats == NULL) {
 		CHECK(isc_stats_create(mctx, &resstats,
@@ -7113,7 +7113,7 @@ heartbeat_timer_tick(void *arg) {
 
 typedef struct {
 	isc_mem_t *mctx;
-	isc_task_t *task;
+	isc_loop_t *loop;
 	dns_fetch_t *fetch;
 	dns_view_t *view;
 	dns_fixedname_t tatname;
@@ -7136,26 +7136,24 @@ cid(const void *a, const void *b) {
 }
 
 static void
-tat_done(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *devent;
-	ns_tat_t *tat;
+tat_done(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	ns_tat_t *tat = NULL;
 
-	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
-	INSIST(event->ev_arg != NULL);
+	INSIST(resp != NULL && resp->type == FETCHDONE);
 
-	UNUSED(task);
+	tat = resp->arg;
 
-	tat = event->ev_arg;
-	devent = (dns_fetchevent_t *)event;
+	INSIST(tat != NULL);
 
 	/* Free resources which are not of interest */
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
 	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
 	}
-	isc_event_free(&event);
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 	dns_resolver_destroyfetch(&tat->fetch);
 	if (dns_rdataset_isassociated(&tat->rdataset)) {
 		dns_rdataset_disassociate(&tat->rdataset);
@@ -7164,13 +7162,12 @@ tat_done(isc_task_t *task, isc_event_t *event) {
 		dns_rdataset_disassociate(&tat->sigrdataset);
 	}
 	dns_view_detach(&tat->view);
-	isc_task_detach(&tat->task);
 	isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
 }
 
 struct dotat_arg {
 	dns_view_t *view;
-	isc_task_t *task;
+	isc_loop_t *loop;
 };
 
 /*%
@@ -7295,7 +7292,7 @@ tat_send(void *arg) {
 		result = dns_resolver_createfetch(
 			tat->view->resolver, tatname, dns_rdatatype_null,
 			domain, &nameservers, NULL, NULL, 0, 0, 0, NULL,
-			tat->task, tat_done, tat, &tat->rdataset,
+			tat->loop, tat_done, tat, &tat->rdataset,
 			&tat->sigrdataset, &tat->fetch);
 	}
 
@@ -7316,7 +7313,6 @@ tat_send(void *arg) {
 
 	if (result != ISC_R_SUCCESS) {
 		dns_view_detach(&tat->view);
-		isc_task_detach(&tat->task);
 		isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
 	}
 }
@@ -7348,7 +7344,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, dns_name_t *keyname,
 		return;
 	}
 	isc_mem_attach(view->mctx, &tat->mctx);
-	isc_task_attach(dotat_arg->task, &tat->task);
+	tat->loop = dotat_arg->loop;
 	dns_view_attach(view, &tat->view);
 
 	/*
@@ -7389,7 +7385,7 @@ tat_timer_tick(void *arg) {
 		}
 
 		dotat_arg.view = view;
-		dotat_arg.task = server->task;
+		dotat_arg.loop = named_g_mainloop;
 		(void)dns_keytable_forall(secroots, dotat, &dotat_arg);
 		dns_keytable_detach(&secroots);
 	}

@@ -33,7 +33,6 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
-#include <isc/task.h>
 #include <isc/timer.h>
 
 #include <dns/rdataset.h>
@@ -47,8 +46,8 @@ ISC_LANG_BEGINDECLS
 #define VALID_NTATABLE(nt) ISC_MAGIC_VALID(nt, NTATABLE_MAGIC)
 
 isc_result_t
-dns_ntatable_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    isc_loopmgr_t *loopmgr, dns_ntatable_t **ntatablep);
+dns_ntatable_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
+		    dns_ntatable_t **ntatablep);
 /*%<
  * Create an NTA table in view 'view'.
  *

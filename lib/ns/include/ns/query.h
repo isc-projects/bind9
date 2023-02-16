@@ -220,7 +220,7 @@ struct query_ctx {
 	ns_client_t *client;	    /* client object */
 	bool	     detach_client; /* client needs detaching */
 
-	dns_fetchevent_t *event; /* recursion event */
+	dns_fetchresponse_t *fresp; /* recursion response */
 
 	dns_db_t	*db;	  /* zone or cache database */
 	dns_dbversion_t *version; /* DB version */

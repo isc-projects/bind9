@@ -104,7 +104,7 @@ struct dns_view {
 
 	isc_mutex_t lock;
 	bool	    frozen;
-	isc_task_t *task;
+	isc_loop_t *loop;
 	bool	    cacheshared;
 
 	/* Configurable data. */
@@ -388,10 +388,9 @@ dns_view_createzonetable(dns_view_t *view);
 
 isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
-			isc_taskmgr_t *taskmgr, unsigned int ndisp,
-			isc_nm_t *netmgr, unsigned int options,
-			isc_tlsctx_cache_t *tlsctx_cache,
-			dns_dispatchmgr_t  *dispatchmgr,
+			unsigned int ndisp, isc_nm_t *netmgr,
+			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6);
 /*%<
  * Create a resolver and address database for the view.
@@ -402,9 +401,8 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *
  *\li	'view' does not have a resolver already.
  *
- *\li	The requirements of dns_resolver_create() apply to 'taskmgr',
- *	'ndisp', 'netmgr', 'options', 'tlsctx_cache', 'dispatchv4', and
- *	'dispatchv6'.
+ *\li	The requirements of dns_resolver_create() apply to 'ndisp',
+ *	'netmgr', 'options', 'tlsctx_cache', 'dispatchv4', and 'dispatchv6'.
  *
  * Returns:
  *
@@ -1008,8 +1006,7 @@ dns_view_iscacheshared(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_initntatable(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		      isc_loopmgr_t *loopmgr);
+dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr);
 /*%<
  * Initialize the negative trust anchor table for the view.
  *
