@@ -2207,6 +2207,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 
 #if !TARGET_OS_IPHONE
 exit_or_usage:
+	cleanup_openssl_refs();
 	digexit();
 #endif /* if !TARGET_OS_IPHONE */
 }
