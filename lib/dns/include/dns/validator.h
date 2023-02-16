@@ -50,7 +50,6 @@
 
 #include <isc/job.h>
 #include <isc/lang.h>
-#include <isc/mutex.h>
 #include <isc/refcount.h>
 
 #include <dns/fixedname.h>
@@ -73,12 +72,10 @@
  * whatever purpose the client desires.
  */
 struct dns_validator {
-	/* Unlocked: */
 	unsigned int   magic;
-	isc_mutex_t    lock;
 	dns_view_t    *view;
 	isc_loopmgr_t *loopmgr;
-
+	uint32_t       tid;
 	isc_refcount_t references;
 
 	/* Name and type of the response to be validated. */
@@ -92,7 +89,6 @@ struct dns_validator {
 	isc_job_cb cb;
 	void	  *arg;
 
-	/* Locked by 'lock': */
 	/* Validation options (_DEFER, _NONTA, etc). */
 	unsigned int options;
 

@@ -22,6 +22,7 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/client.h>
@@ -378,7 +379,6 @@ fetch_callback_dnskey(void *arg) {
 	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_dnskey");
-	LOCK(&val->lock);
 	fetch = val->fetch;
 	val->fetch = NULL;
 	if (CANCELED(val)) {
@@ -428,7 +428,6 @@ fetch_callback_dnskey(void *arg) {
 			validator_done(val, DNS_R_BROKENCHAIN);
 		}
 	}
-	UNLOCK(&val->lock);
 
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
@@ -471,7 +470,6 @@ fetch_callback_ds(void *arg) {
 	}
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_ds");
-	LOCK(&val->lock);
 	fetch = val->fetch;
 	val->fetch = NULL;
 
@@ -577,7 +575,6 @@ fetch_callback_ds(void *arg) {
 done:
 
 	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
-	UNLOCK(&val->lock);
 
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
@@ -603,7 +600,6 @@ validator_callback_dnskey(void *arg) {
 	subvalidator->parent = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_dnskey");
-	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -640,8 +636,6 @@ validator_callback_dnskey(void *arg) {
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
 
-	UNLOCK(&val->lock);
-
 	dns_validator_destroy(&subvalidator);
 	dns_validator_detach(&val);
 }
@@ -662,7 +656,6 @@ validator_callback_ds(void *arg) {
 	subvalidator->parent = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_ds");
-	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -699,7 +692,6 @@ validator_callback_ds(void *arg) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
-	UNLOCK(&val->lock);
 
 	dns_validator_destroy(&subvalidator);
 	dns_validator_detach(&val);
@@ -722,7 +714,6 @@ validator_callback_cname(void *arg) {
 	val->subvalidator = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_cname");
-	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (eresult == ISC_R_SUCCESS) {
@@ -741,8 +732,6 @@ validator_callback_cname(void *arg) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
-
-	UNLOCK(&val->lock);
 
 	dns_validator_destroy(&subvalidator);
 	dns_validator_detach(&val);
@@ -766,7 +755,6 @@ validator_callback_nsec(void *arg) {
 	val->subvalidator = NULL;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_nsec");
-	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (result != ISC_R_SUCCESS) {
@@ -840,8 +828,6 @@ validator_callback_nsec(void *arg) {
 			validator_done(val, result);
 		}
 	}
-
-	UNLOCK(&val->lock);
 
 	dns_validator_destroy(&subvalidator);
 	dns_validator_detach(&val);
@@ -2902,8 +2888,6 @@ validator_start(void *arg) {
 
 	validator_log(val, ISC_LOG_DEBUG(3), "starting");
 
-	LOCK(&val->lock);
-
 	if (val->rdataset != NULL && val->sigrdataset != NULL) {
 		isc_result_t saved_result;
 
@@ -2987,8 +2971,6 @@ validator_start(void *arg) {
 		validator_done(val, result);
 	}
 
-	UNLOCK(&val->lock);
-
 	dns_validator_detach(&val);
 }
 
@@ -3007,7 +2989,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
-	*val = (dns_validator_t){ .result = ISC_R_FAILURE,
+	*val = (dns_validator_t){ .tid = isc_tid(),
+				  .result = ISC_R_FAILURE,
 				  .rdataset = rdataset,
 				  .sigrdataset = sigrdataset,
 				  .name = name,
@@ -3024,7 +3007,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		dns_message_attach(message, &val->message);
 	}
 	dns_view_attach(view, &val->view);
-	isc_mutex_init(&val->lock);
 
 	result = dns_view_getsecroots(val->view, &val->keytable);
 	if (result != ISC_R_SUCCESS) {
@@ -3050,7 +3032,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	isc_mutex_destroy(&val->lock);
 	if (val->message != NULL) {
 		dns_message_detach(&val->message);
 	}
@@ -3063,12 +3044,10 @@ cleanup:
 void
 dns_validator_send(dns_validator_t *validator) {
 	REQUIRE(VALID_VALIDATOR(validator));
-
-	LOCK(&validator->lock);
+	REQUIRE(validator->tid == isc_tid());
 
 	INSIST((validator->options & DNS_VALIDATOR_DEFER) != 0);
 	validator->options &= ~DNS_VALIDATOR_DEFER;
-	UNLOCK(&validator->lock);
 
 	dns_validator_ref(validator);
 	isc_job_run(validator->loopmgr, validator_start, validator);
@@ -3077,8 +3056,7 @@ dns_validator_send(dns_validator_t *validator) {
 void
 dns_validator_cancel(dns_validator_t *validator) {
 	REQUIRE(VALID_VALIDATOR(validator));
-
-	LOCK(&validator->lock);
+	REQUIRE(validator->tid == isc_tid());
 
 	validator_log(validator, ISC_LOG_DEBUG(3), "dns_validator_cancel");
 
@@ -3096,7 +3074,6 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 		validator->attributes |= VALATTR_CANCELED;
 	}
-	UNLOCK(&validator->lock);
 }
 
 static void
@@ -3121,7 +3098,6 @@ destroy_validator(dns_validator_t *val) {
 	if (val->siginfo != NULL) {
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
 	}
-	isc_mutex_destroy(&val->lock);
 	dns_view_detach(&val->view);
 	if (val->message != NULL) {
 		dns_message_detach(&val->message);
@@ -3139,10 +3115,9 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 	*validatorp = NULL;
 
 	REQUIRE(VALID_VALIDATOR(val));
+	REQUIRE(val->tid == isc_tid());
 
-	LOCK(&val->lock);
 	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_destroy");
-	UNLOCK(&val->lock);
 
 	dns_validator_detach(&val);
 }
