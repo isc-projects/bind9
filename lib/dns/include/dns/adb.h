@@ -97,6 +97,15 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_adbname dns_adbname_t;
 
+typedef enum {
+	DNS_ADB_UNSET = 0,
+	DNS_ADB_MOREADDRESSES,
+	DNS_ADB_NOMOREADDRESSES,
+	DNS_ADB_EXPIRED,
+	DNS_ADB_CANCELED,
+	DNS_ADB_SHUTTINGDOWN
+} dns_adbstatus_t;
+
 /*!
  *\brief
  * Represents a lookup for a single name.
@@ -117,12 +126,15 @@ struct dns_adbfind {
 	ISC_LINK(dns_adbfind_t) publink;      /*%< RW: client use */
 
 	/* Private */
-	isc_mutex_t    lock; /* locks all below */
-	in_port_t      port;
-	unsigned int   flags;
-	dns_adbname_t *adbname;
-	dns_adb_t     *adb;
-	isc_event_t    event;
+	isc_mutex_t	lock; /* locks all below */
+	in_port_t	port;
+	unsigned int	flags;
+	dns_adbname_t  *adbname;
+	dns_adb_t      *adb;
+	isc_loop_t     *loop;
+	dns_adbstatus_t status;
+	isc_job_cb	cb;
+	void	       *cbarg;
 	ISC_LINK(dns_adbfind_t) plink;
 };
 
@@ -214,23 +226,20 @@ struct dns_adbaddrinfo {
 };
 
 /*!<
- * The event sent to the caller task is just a plain old isc_event_t.  It
- * contains no data other than a simple status, passed in the "type" field
- * to indicate that another address resolved, or all partially resolved
- * addresses have failed to resolve.
+ * When the caller recieves a callback from dns_adb_createfind(), the
+ * argument will a pointer to the dns_adbfind_t structure, which includes
+ * this includes a copy of the callback function and argument passed to
+ * dns_adb_createfind(), and a dns_adbstatus_t in the 'status' field,
+ * which indicates one of the following:
  *
- * "sender" is the dns_adbfind_t used to issue this query.
- *
- * This is simply a standard event, with the "type" set to:
- *
- *\li	#DNS_EVENT_ADBMOREADDRESSES   -- another address resolved.
- *\li	#DNS_EVENT_ADBNOMOREADDRESSES -- all pending addresses failed,
- *					were canceled, or otherwise will
- *					not be usable.
- *\li	#DNS_EVENT_ADBCANCELED	     -- The request was canceled by a
- *					3rd party.
- *\li	#DNS_EVENT_ADBNAMEDELETED     -- The name was deleted, so this request
- *					was canceled.
+ *\li	#DNS_ADB_MOREADDRESSES   -- another address resolved.
+ *\li	#DNS_ADB_NOMOREADDRESSES -- all pending addresses failed,
+ *				    were canceled, or otherwise will
+ *				    not be usable.
+ *\li	#DNS_ADB_CANCELED	 -- The request was canceled by a
+ *				    3rd party.
+ *\li	#DNS_ADB_EXPIRED	 -- The name was expired, so this request
+ *				    was canceled.
  *
  * In each of these cases, the addresses returned by the initial call
  * to dns_adb_createfind() can still be used until they are no longer needed.
@@ -289,8 +298,8 @@ dns_adb_shutdown(dns_adb_t *adb);
  */
 
 isc_result_t
-dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		   void *arg, const dns_name_t *name, const dns_name_t *qname,
+dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
+		   const dns_name_t *name, const dns_name_t *qname,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		   unsigned int depth, isc_counter_t *qc, dns_adbfind_t **find);
@@ -299,9 +308,10 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * "name" and will build up a list of found addresses, and perhaps start
  * internal fetches to resolve names that are unknown currently.
  *
- * If other addresses resolve after this call completes, an event will
- * be sent to the <task, taskaction, arg> with the sender of that event
- * set to a pointer to the dns_adbfind_t returned by this function.
+ * If other addresses resolve after this call completes, the 'cb' callback
+ * will be called with a pointer to the dns_adbfind_t returned by this
+ * structure, which in turn has a pointer to the callback argument passed
+ * in as 'cbarg'. The caller is responsible for freeing the find object.
  *
  * If no events will be generated, the *find->result_v4 and/or result_v6
  * members may be examined for address lookup status.  The usual #ISC_R_SUCCESS,
@@ -334,15 +344,12 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * The caller may change them directly in the dns_adbaddrinfo_t since
  * they are copies of the internal address only.
  *
- * XXXMLG  Document options, especially the flags which control how
- *         events are sent.
- *
  * Requires:
  *
  *\li	*adb be a valid isc_adb_t object.
  *
- *\li	If events are to be sent, *task be a valid task,
- *	and isc_taskaction_t != NULL.
+ *\li	If events are to be sent, *loop be a valid loop,
+ *	and cb != NULL.
  *
  *\li	*name is a valid dns_name_t.
  *
@@ -401,6 +408,16 @@ dns_adb_cancelfind(dns_adbfind_t *find);
  */
 
 void
+dns_adbfind_done(dns_adbfind_t find);
+/*%<
+ * Marks a find as ready to free.
+ *
+ * Requires:
+ *
+ *\li	'find' != NULL and *find be valid dns_adbfind_t pointer.
+ */
+
+void
 dns_adb_destroyfind(dns_adbfind_t **find);
 /*%<
  * Destroys the find reference.
@@ -408,8 +425,7 @@ dns_adb_destroyfind(dns_adbfind_t **find);
  * Note:
  *
  *\li	This can only be called after the event was delivered for a
- *	find.  Additionally, the event MUST have been freed via
- *	isc_event_free() BEFORE this function is called.
+ *	find.
  *
  * Requires:
  *

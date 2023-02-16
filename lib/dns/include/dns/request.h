@@ -46,17 +46,10 @@
 #define DNS_REQUESTOPT_FIXEDID 0x00000004U
 #define DNS_REQUESTOPT_LARGE   0x00000008U
 
-typedef struct dns_requestevent {
-	ISC_EVENT_COMMON(struct dns_requestevent);
-	isc_result_t   result;
-	dns_request_t *request;
-} dns_requestevent_t;
-
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		      dns_dispatchmgr_t *dispatchmgr,
+dns_requestmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp);
 /*%<
@@ -65,8 +58,6 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  * Requires:
  *
  *\li	'mctx' is a valid memory context.
- *
- *\li	'taskmgr' is a valid task manager.
  *
  *\li	'dispatchv4' is a valid dispatcher with an IPv4 UDP socket, or is NULL.
  *
@@ -135,7 +126,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
 		   dns_tsigkey_t *key, unsigned int timeout,
 		   unsigned int udptimeout, unsigned int udpretries,
-		   isc_task_t *task, isc_taskaction_t action, void *arg,
+		   isc_loop_t *loop, isc_job_cb cb, void *arg,
 		   dns_request_t **requestp);
 /*%<
  * Create and send a request.
@@ -156,7 +147,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  *	compression context to accommodate more names.
  *
  *\li	When the request completes, successfully, due to a timeout, or
- *	because it was canceled, a completion event will be sent to 'task'.
+ *	because it was canceled, a completion callback will run on 'loop'.
  *
  * Requires:
  *
@@ -170,7 +161,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
  *
  *\li	'timeout' > 0
  *
- *\li	'task' is a valid task.
+ *\li	'loop' is a valid loop.
  *
  *\li	requestp != NULL && *requestp == NULL
  */
@@ -182,9 +173,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      dns_transport_t	   *transport,
 		      isc_tlsctx_cache_t *tlsctx_cache, unsigned int options,
 		      unsigned int timeout, unsigned int udptimeout,
-		      unsigned int udpretries, isc_task_t *task,
-		      isc_taskaction_t action, void *arg,
-		      dns_request_t **requestp);
+		      unsigned int udpretries, isc_loop_t *loop, isc_job_cb cb,
+		      void *arg, dns_request_t **requestp);
 /*!<
  * \brief Create and send a request.
  *
@@ -198,7 +188,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *	at 'udptimeout' intervals if non-zero or if 'udpretries' is not zero.
  *
  *\li	When the request completes, successfully, due to a timeout, or
- *	because it was canceled, a completion event will be sent to 'task'.
+ *	because it was canceled, a completion callback will run in 'loop'.
  *
  * Requires:
  *
@@ -212,7 +202,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
  *
  *\li	'timeout' > 0
  *
- *\li	'task' is a valid task.
+ *\li	'loop' is a valid loop.
  *
  *\li	requestp != NULL && *requestp == NULL
  */
@@ -299,4 +289,19 @@ dns_request_destroy(dns_request_t **requestp);
  *\li	*requestp == NULL
  */
 
+void *
+dns_request_getarg(dns_request_t *request);
+/*%<
+ * Return the value of 'arg' that was passed in when 'request' was
+ * created.
+ */
+
+isc_result_t
+dns_request_getresult(dns_request_t *request);
+/*%<
+ * Get the result code of 'request'. (This is to be called by the
+ * completion handler.)
+ */
+
+ISC_REFCOUNT_DECL(dns_request);
 ISC_LANG_ENDDECLS

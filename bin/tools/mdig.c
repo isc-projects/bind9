@@ -85,7 +85,6 @@
 #define MAXTRIES   0xffffffff
 
 static isc_mem_t *mctx = NULL;
-static isc_task_t *global_task = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
 static dns_requestmgr_t *requestmgr = NULL;
 static const char *batchname = NULL;
@@ -186,8 +185,8 @@ rcode_totext(dns_rcode_t rcode) {
 }
 
 static void
-recvresponse(isc_task_t *task, isc_event_t *event) {
-	dns_requestevent_t *reqev = (dns_requestevent_t *)event;
+recvresponse(void *arg) {
+	dns_request_t *request = (dns_request_t *)arg;
 	isc_result_t result;
 	dns_message_t *query = NULL, *response = NULL;
 	unsigned int parseflags = 0;
@@ -197,14 +196,12 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	unsigned int styleflags = 0;
 	dns_messagetextflag_t flags;
 
-	UNUSED(task);
+	query = dns_request_getarg(request);
 
-	REQUIRE(reqev != NULL);
-	query = reqev->ev_arg;
-
-	if (reqev->result != ISC_R_SUCCESS) {
+	result = dns_request_getresult(request);
+	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "response failed with %s\n",
-			isc_result_totext(reqev->result));
+			isc_result_totext(result));
 		if (continue_on_error) {
 			goto cleanup;
 		} else {
@@ -220,8 +217,8 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		parseflags |= DNS_MESSAGEPARSE_IGNORETRUNCATION;
 	}
 
-	msgbuf = dns_request_getanswer(reqev->request);
-	result = dns_request_getresponse(reqev->request, response, parseflags);
+	msgbuf = dns_request_getanswer(request);
+	result = dns_request_getresponse(request, response, parseflags);
 	CHECK("dns_request_getresponse", result);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
@@ -541,11 +538,9 @@ cleanup:
 	if (response != NULL) {
 		dns_message_detach(&response);
 	}
-	dns_request_destroy(&reqev->request);
-	isc_event_free(&event);
+	dns_request_destroy(&request);
 
 	if (--onfly == 0) {
-		isc_task_detach(&global_task);
 		isc_loopmgr_shutdown(loopmgr);
 	}
 	return;
@@ -754,8 +749,8 @@ sendquery(struct query *query) {
 	result = dns_request_create(
 		requestmgr, message, have_src ? &srcaddr : NULL, &dstaddr, NULL,
 		NULL, options, NULL, query->timeout, query->udptimeout,
-		query->udpretries, global_task, recvresponse, message,
-		&request);
+		query->udpretries, isc_loop_main(loopmgr), recvresponse,
+		message, &request);
 	CHECK("dns_request_create", result);
 
 	return (ISC_R_SUCCESS);
@@ -773,7 +768,6 @@ sendqueries(void *arg) {
 	}
 
 	if (onfly == 0) {
-		isc_task_detach(&global_task);
 		isc_loopmgr_shutdown(loopmgr);
 	}
 }
@@ -2135,7 +2129,6 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 	}
 
-	RUNCHECK(isc_task_create(taskmgr, &global_task, 0));
 	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 
 	set_source_ports(dispatchmgr);
@@ -2149,7 +2142,7 @@ main(int argc, char *argv[]) {
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchvx));
 
 	RUNCHECK(dns_requestmgr_create(
-		mctx, taskmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
+		mctx, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
