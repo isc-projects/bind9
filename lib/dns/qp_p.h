@@ -171,9 +171,11 @@ STATIC_ASSERT(6 <= QP_CHUNK_LOG && QP_CHUNK_LOG <= 20,
  * commits. But they cannot be recovered immediately so they are also
  * counted as on hold, and discounted when we decide whether to compact.
  */
-#define QP_MAX_GARBAGE(qp)                                            \
-	(((qp)->free_count - (qp)->hold_count) > QP_CHUNK_SIZE * 4 && \
-	 ((qp)->free_count - (qp)->hold_count) > (qp)->used_count / 2)
+#define QP_GC_HEURISTIC(qp, free) \
+	((free) > QP_CHUNK_SIZE * 4 && (free) > (qp)->used_count / 2)
+
+#define QP_NEEDGC(qp) QP_GC_HEURISTIC(qp, (qp)->free_count)
+#define QP_AUTOGC(qp) QP_GC_HEURISTIC(qp, (qp)->free_count - (qp)->hold_count)
 
 /*
  * The chunk base and usage arrays are resized geometically and start off

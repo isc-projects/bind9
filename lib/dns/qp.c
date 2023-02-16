@@ -877,9 +877,14 @@ compact(dns_qp_t *qp) {
 }
 
 void
-dns_qp_compact(dns_qp_t *qp, bool all) {
+dns_qp_compact(dns_qp_t *qp, dns_qpgc_t mode) {
 	REQUIRE(QP_VALID(qp));
-	qp->compact_all = all;
+	if (mode == DNS_QPGC_MAYBE && !QP_NEEDGC(qp)) {
+		return;
+	}
+	if (mode == DNS_QPGC_ALL) {
+		qp->compact_all = true;
+	}
 	compact(qp);
 	recycle(qp);
 }
@@ -907,7 +912,7 @@ dns_qp_compact(dns_qp_t *qp, bool all) {
 static inline bool
 squash_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 	bool destroyed = free_twigs(qp, twigs, size);
-	if (destroyed && QP_MAX_GARBAGE(qp)) {
+	if (destroyed && QP_AUTOGC(qp)) {
 		compact(qp);
 		recycle(qp);
 		/*
@@ -916,7 +921,7 @@ squash_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 		 * time and space, but recovery should be cheaper than
 		 * letting compact+recycle fail repeatedly.
 		 */
-		if (QP_MAX_GARBAGE(qp)) {
+		if (QP_AUTOGC(qp)) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_QP, ISC_LOG_NOTICE,
 				      "qp %p uctx \"%s\" compact/recycle "
@@ -947,15 +952,8 @@ dns_qp_memusage(dns_qp_t *qp) {
 		.free = qp->free_count,
 		.node_size = sizeof(qp_node_t),
 		.chunk_size = QP_CHUNK_SIZE,
+		.fragmented = QP_NEEDGC(qp),
 	};
-
-	/*
-	 * tell the caller about fragmentation of the whole trie
-	 * without discounting immutable chunks
-	 */
-	qp->hold_count = 0;
-	memusage.fragmented = QP_MAX_GARBAGE(qp);
-	qp->hold_count = memusage.hold;
 
 	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
 		if (qp->base->ptr[chunk] != NULL) {
@@ -1037,7 +1035,7 @@ transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	}
 
 	/*
-	 * Ensure QP_MAX_GARBAGE() ignores free space in immutable chunks.
+	 * Ensure QP_AUTOGC() ignores free space in immutable chunks.
 	 */
 	qp->hold_count = qp->free_count;
 
@@ -1144,15 +1142,15 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 		free_twigs(qp, multi->reader_ref, READER_SIZE);
 	}
 
-	if (qp->transaction_mode == QP_WRITE) {
-		multi->reader_ref = alloc_twigs(qp, READER_SIZE);
-	} else {
+	if (qp->transaction_mode == QP_UPDATE) {
 		/* minimize memory overhead */
 		compact(qp);
 		multi->reader_ref = alloc_twigs(qp, READER_SIZE);
 		qp->base->ptr[qp->bump] = chunk_shrink_raw(
 			qp, qp->base->ptr[qp->bump],
 			qp->usage[qp->bump].used * sizeof(qp_node_t));
+	} else {
+		multi->reader_ref = alloc_twigs(qp, READER_SIZE);
 	}
 
 	/* anchor a new version of the trie */
@@ -1165,7 +1163,9 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	atomic_store_release(&multi->reader, reader); /* COMMIT */
 
 	/* clean up what we can right now */
-	recycle(qp);
+	if (qp->transaction_mode == QP_UPDATE || QP_NEEDGC(qp)) {
+		recycle(qp);
+	}
 
 	/* the reclamation phase must be sampled after the commit */
 	isc_qsbr_phase_t phase = isc_qsbr_phase(multi->loopmgr);

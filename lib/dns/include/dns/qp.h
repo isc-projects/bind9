@@ -230,6 +230,15 @@ typedef struct dns_qp_memusage {
 	bool   fragmented;  /*%< trie needs compaction */
 } dns_qp_memusage_t;
 
+/*%
+ * Choice of mode for `dns_qp_compact()`
+ */
+typedef enum dns_qpgc {
+	DNS_QPGC_MAYBE,
+	DNS_QPGC_NOW,
+	DNS_QPGC_ALL,
+} dns_qpgc_t;
+
 /***********************************************************************
  *
  *  functions - create, destory, enquire
@@ -298,23 +307,28 @@ dns_qpmulti_destroy(dns_qpmulti_t **qpmp);
  */
 
 void
-dns_qp_compact(dns_qp_t *qp, bool all);
+dns_qp_compact(dns_qp_t *qp, dns_qpgc_t mode);
 /*%<
  * Defragment the qp-trie and release unused memory.
  *
  * When modifications make a trie too fragmented, it is automatically
  * compacted. However, automatic compaction is limited when a
  * multithreaded trie has lots of immutable memory from past
- * transactions, and lightweight write transactions do not do
+ * transactions, and lightweight write transactions do not compact on
+ * commit like heavyweight update transactions.
  *
  * This function can be used with a single-threaded qp-trie and during a
  * transaction on a multi-threaded trie.
  *
+ * \li	If `mode == DNS_QPGC_MAYBE`, the trie is cleaned if it is fragmented
+ *
+ * \li	If `mode == DNS_QPGC_NOW`, the trie is cleaned while avoiding
+ *	unnecessary work
+ *
+ * \li	If `mode == DNS_QPGC_ALL`, the entire trie is compacted
+ *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
- * \li  `all` is true, to compact the whole trie
- * \li  `all` is false, to save time by not compacting
- *            chunk that are not fragmented
  */
 
 void
