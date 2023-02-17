@@ -48,8 +48,9 @@
 
 #include <stdbool.h>
 
+#include <isc/job.h>
 #include <isc/lang.h>
-#include <isc/mutex.h>
+#include <isc/refcount.h>
 
 #include <dns/fixedname.h>
 #include <dns/rdataset.h>
@@ -58,31 +59,44 @@
 
 #include <dst/dst.h>
 
+#define DNS_VALIDATOR_NOQNAMEPROOF    0
+#define DNS_VALIDATOR_NODATAPROOF     1
+#define DNS_VALIDATOR_NOWILDCARDPROOF 2
+#define DNS_VALIDATOR_CLOSESTENCLOSER 3
+
 /*%
- * A dns_valstatus_t is sent when a 'validation' completes.
+ * A validator object represents a validation in progress.
  * \brief
- * 'name', 'rdataset', 'sigrdataset', and 'message' are the values that were
- * supplied when dns_validator_create() was called.  They are returned to the
- * caller so that they may be freed.
- *
- * If the RESULT is ISC_R_SUCCESS and the answer is secure then
- * proofs[] will contain the names of the NSEC records that hold the
- * various proofs.  Note the same name may appear multiple times.
- *
- * The structure is freed by dns_validator_destroy().
+ * Clients are strongly discouraged from using this type directly, with
+ * the exception of the 'link' field, which may be used directly for
+ * whatever purpose the client desires.
  */
-typedef struct dns_valstatus {
-	dns_validator_t *validator;
-	isc_result_t	 result;
+struct dns_validator {
+	unsigned int   magic;
+	dns_view_t    *view;
+	isc_loopmgr_t *loopmgr;
+	uint32_t       tid;
+	isc_refcount_t references;
 
-	isc_mem_t *mctx;
-
-	/*
-	 * Name and type of the response to be validated.
-	 */
-	dns_fixedname_t fname;
+	/* Name and type of the response to be validated. */
 	dns_name_t     *name;
 	dns_rdatatype_t type;
+
+	/*
+	 * Callback and argument to use to inform the caller
+	 * that validation is complete.
+	 */
+	isc_job_cb cb;
+	void	  *arg;
+
+	/* Validation options (_DEFER, _NONTA, etc). */
+	unsigned int options;
+
+	/*
+	 * Results of a completed validation.
+	 */
+	isc_result_t result;
+
 	/*
 	 * Rdata and RRSIG (if any) for positive responses.
 	 */
@@ -105,40 +119,17 @@ typedef struct dns_valstatus {
 	 * Answer is secure.
 	 */
 	bool secure;
-} dns_valstatus_t;
 
-#define DNS_VALIDATOR_NOQNAMEPROOF    0
-#define DNS_VALIDATOR_NODATAPROOF     1
-#define DNS_VALIDATOR_NOWILDCARDPROOF 2
-#define DNS_VALIDATOR_CLOSESTENCLOSER 3
-
-/*%
- * A validator object represents a validation in progress.
- * \brief
- * Clients are strongly discouraged from using this type directly, with
- * the exception of the 'link' field, which may be used directly for
- * whatever purpose the client desires.
- */
-struct dns_validator {
-	/* Unlocked. */
-	unsigned int magic;
-	isc_mutex_t  lock;
-	dns_view_t  *view;
-	/* Locked by lock. */
-	unsigned int	   options;
+	/* Internal validator state */
 	unsigned int	   attributes;
-	dns_valstatus_t	  *vstat;
 	dns_fetch_t	  *fetch;
 	dns_validator_t	  *subvalidator;
 	dns_validator_t	  *parent;
 	dns_keytable_t	  *keytable;
 	dst_key_t	  *key;
 	dns_rdata_rrsig_t *siginfo;
-	isc_loop_t	  *loop;
-	isc_job_cb	   cb;
-	void		  *arg;
 	unsigned int	   labels;
-	dns_rdataset_t	  *currentset;
+	dns_rdataset_t	  *nxset;
 	dns_rdataset_t	  *keyset;
 	dns_rdataset_t	  *dsset;
 	dns_rdataset_t	   fdsset;
@@ -169,7 +160,7 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     isc_loopmgr_t *loop, isc_job_cb cb, void *arg,
 		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
@@ -238,10 +229,24 @@ dns_validator_destroy(dns_validator_t **validatorp);
  * Requires:
  *\li	'*validatorp' points to a valid DNSSEC validator.
  * \li	The validator must have completed and sent its completion
- * 	event.
+ *	event.
  *
  * Ensures:
  *\li	All resources used by the validator are freed.
  */
+
+#if DNS_VALIDATOR_TRACE
+#define dns_validator_ref(ptr) \
+	dns_validator__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_validator_unref(ptr) \
+	dns_validator__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_validator_attach(ptr, ptrp) \
+	dns_validator__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_validator_detach(ptrp) \
+	dns_validator__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_validator);
+#else
+ISC_REFCOUNT_DECL(dns_validator);
+#endif
 
 ISC_LANG_ENDDECLS

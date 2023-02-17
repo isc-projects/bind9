@@ -1,3 +1,7 @@
+6103.	[func]		All uses of the isc_task and isc_event APIs have
+			been refactored to use isc_loop instead, and the
+			original APIs have been removed. [GL #3797]
+
 6102.	[cleanup]	Several nugatory headers have been removed from libisc.
 			[GL !7464]
 
