@@ -1,3 +1,7 @@
+6105.	[bug]		Detach 'rpzs' and 'catzs' from the previous view in
+			configure_rpz() and configure_catz(), respectively,
+			just after attaching it to the new view. [GL #3880]
+
 6098.	[test]		Don't test HMAC-MD5 when not supported by libcrypto.
 			[GL #3871]
 
