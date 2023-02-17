@@ -41,8 +41,6 @@
 #include <dns/sdb.h>
 #include <dns/types.h>
 
-#include "rdatalist_p.h"
-
 struct dns_sdbimplementation {
 	const dns_sdbmethods_t *methods;
 	void *driverdata;
@@ -1382,7 +1380,7 @@ disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = (dns_db_t *)sdbnode->sdb;
 
 	detachnode(db, &node);
-	isc__rdatalist_disassociate(rdataset);
+	dns_rdatalist_disassociate(rdataset);
 }
 
 static void
@@ -1392,20 +1390,20 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_db_t *db = (dns_db_t *)sdbnode->sdb;
 	dns_dbnode_t *tempdb = NULL;
 
-	isc__rdatalist_clone(source, target);
+	dns_rdatalist_clone(source, target);
 	attachnode(db, node, &tempdb);
 	source->private5 = tempdb;
 }
 
 static dns_rdatasetmethods_t sdb_rdataset_methods = {
 	disassociate,
-	isc__rdatalist_first,
-	isc__rdatalist_next,
-	isc__rdatalist_current,
+	dns_rdatalist_first,
+	dns_rdatalist_next,
+	dns_rdatalist_current,
 	rdataset_clone,
-	isc__rdatalist_count,
-	isc__rdatalist_addnoqname,
-	isc__rdatalist_getnoqname,
+	dns_rdatalist_count,
+	dns_rdatalist_addnoqname,
+	dns_rdatalist_getnoqname,
 	NULL, /* addclosest */
 	NULL, /* getclosest */
 	NULL, /* settrust */

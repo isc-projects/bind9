@@ -239,7 +239,6 @@ libdns_la_SOURCES =			\
 	zonekey.c			\
 	zt.c				\
 	client.c			\
-	rdatalist_p.h			\
 	tsig_p.h			\
 	zone_p.h
 
