@@ -165,6 +165,7 @@ hmac_createctx(const isc_md_type_t *type, const dst_key_t *key,
 	result = isc_hmac_init(ctx, hkey->key, isc_md_type_get_block_size(type),
 			       type);
 	if (result != ISC_R_SUCCESS) {
+		isc_hmac_free(ctx);
 		return (DST_R_UNSUPPORTEDALG);
 	}
 
