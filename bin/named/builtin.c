@@ -312,7 +312,7 @@ dns64_cname(const dns_name_t *zone, const dns_name_t *name,
 }
 
 static isc_result_t
-builtin_lookup(const char *zone, const char *name, void *dbdata,
+builtin_lookup(const dns_name_t *zone, const dns_name_t *name, void *dbdata,
 	       dns_sdblookup_t *lookup, dns_clientinfomethods_t *methods,
 	       dns_clientinfo_t *clientinfo) {
 	builtin_t *b = (builtin_t *)dbdata;
@@ -321,7 +321,7 @@ builtin_lookup(const char *zone, const char *name, void *dbdata,
 	UNUSED(methods);
 	UNUSED(clientinfo);
 
-	if (strcmp(name, "@") == 0) {
+	if (name->labels == 0 && name->length == 0) {
 		return (b->do_lookup(lookup));
 	} else {
 		return (ISC_R_NOTFOUND);
@@ -624,24 +624,19 @@ static dns_sdbmethods_t builtin_methods = {
 };
 
 static dns_sdbmethods_t dns64_methods = {
+	.lookup = dns64_lookup,
 	.authority = builtin_authority,
 	.create = builtin_create,
 	.destroy = builtin_destroy,
-	.lookup2 = dns64_lookup,
 };
 
 isc_result_t
 named_builtin_init(void) {
-	RUNTIME_CHECK(dns_sdb_register("_builtin", &builtin_methods, NULL,
-				       DNS_SDBFLAG_RELATIVEOWNER |
-					       DNS_SDBFLAG_RELATIVERDATA,
+	RUNTIME_CHECK(dns_sdb_register("_builtin", &builtin_methods, NULL, 0,
 				       named_g_mctx,
 				       &builtin_impl) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(dns_sdb_register("_dns64", &dns64_methods, NULL,
-				       DNS_SDBFLAG_RELATIVEOWNER |
-					       DNS_SDBFLAG_RELATIVERDATA |
-					       DNS_SDBFLAG_DNS64,
-				       named_g_mctx,
+				       DNS_SDBFLAG_DNS64, named_g_mctx,
 				       &dns64_impl) == ISC_R_SUCCESS);
 	return (ISC_R_SUCCESS);
 }

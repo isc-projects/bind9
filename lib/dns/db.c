@@ -688,7 +688,10 @@ dns_db_createiterator(dns_db_t *db, unsigned int flags,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
 
-	return (db->methods->createiterator(db, flags, iteratorp));
+	if (db->methods->createiterator != NULL) {
+		return (db->methods->createiterator(db, flags, iteratorp));
+	}
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /***

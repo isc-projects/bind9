@@ -47,28 +47,15 @@ typedef struct dns_sdb dns_sdb_t;
  */
 typedef struct dns_sdblookup dns_sdblookup_t;
 
-/*%
- * A simple database traversal in progress.  This is an opaque type.
- */
-typedef struct dns_sdballnodes dns_sdballnodes_t;
-
-typedef isc_result_t (*dns_sdblookupfunc_t)(const char *zone, const char *name,
+typedef isc_result_t (*dns_sdblookupfunc_t)(const dns_name_t	    *zone,
+					    const dns_name_t	    *name,
 					    void		    *dbdata,
 					    dns_sdblookup_t	    *lookup,
 					    dns_clientinfomethods_t *methods,
 					    dns_clientinfo_t *clientinfo);
-typedef isc_result_t (*dns_sdblookup2func_t)(const dns_name_t	     *zone,
-					     const dns_name_t	     *name,
-					     void		     *dbdata,
-					     dns_sdblookup_t	     *lookup,
-					     dns_clientinfomethods_t *methods,
-					     dns_clientinfo_t *clientinfo);
 
 typedef isc_result_t (*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata,
 					       dns_sdblookup_t *);
-
-typedef isc_result_t (*dns_sdballnodesfunc_t)(const char *zone, void *dbdata,
-					      dns_sdballnodes_t *allnodes);
 
 typedef isc_result_t (*dns_sdbcreatefunc_t)(const char *zone, int argc,
 					    char **argv, void *driverdata,
@@ -80,10 +67,8 @@ typedef void (*dns_sdbdestroyfunc_t)(const char *zone, void *driverdata,
 typedef struct dns_sdbmethods {
 	dns_sdblookupfunc_t    lookup;
 	dns_sdbauthorityfunc_t authority;
-	dns_sdballnodesfunc_t  allnodes;
 	dns_sdbcreatefunc_t    create;
 	dns_sdbdestroyfunc_t   destroy;
-	dns_sdblookup2func_t   lookup2;
 } dns_sdbmethods_t;
 
 /***
@@ -92,10 +77,7 @@ typedef struct dns_sdbmethods {
 
 ISC_LANG_BEGINDECLS
 
-#define DNS_SDBFLAG_RELATIVEOWNER 0x00000001U
-#define DNS_SDBFLAG_RELATIVERDATA 0x00000002U
-#define DNS_SDBFLAG_THREADSAFE	  0x00000004U
-#define DNS_SDBFLAG_DNS64	  0x00000008U
+#define DNS_SDBFLAG_DNS64 0x00000008U
 
 isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
@@ -128,12 +110,6 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * these records.  The 'authority' function may be NULL if invoking
  * the 'lookup' function on the zone apex will return SOA and NS records.
  *
- * The allnodes function, if non-NULL, fills in an opaque structure to be
- * used by a database iterator.  This allows the zone to be transferred.
- * This may use a considerable amount of memory for large zones, and the
- * zone transfer may not be fully RFC1035 compliant if the zone is
- * frequently changed.
- *
  * The create function will be called for each zone configured
  * into the name server using this database type.  It can be used
  * to create a "database object" containing zone specific data,
@@ -145,18 +121,11 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  *
  * The create and destroy functions may be NULL.
  *
- * If flags includes DNS_SDBFLAG_RELATIVEOWNER, the lookup and authority
- * functions will be called with relative names rather than absolute names.
- * The string "@" represents the zone apex in this case.
+ * The lookup and authority functions are called with relative names
+ * rather than absolute names. The string "@" represents the zone apex.
  *
- * If flags includes DNS_SDBFLAG_RELATIVERDATA, the rdata strings may
- * include relative names.  Otherwise, all names in the rdata string must
- * be absolute.  Be aware that if relative names are allowed, any
- * absolute names must contain a trailing dot.
- *
- * If flags includes DNS_SDBFLAG_THREADSAFE, the driver must be able to
- * handle multiple lookups in parallel.  Otherwise, calls into the driver
- * are serialized.
+ * Rdata strings may include relative names.  Be aware that absolute names
+ * must contain a trailing dot.
  */
 
 void
@@ -180,20 +149,6 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t type, dns_ttl_t ttl,
  * resource record in master file text format as a null-terminated
  * string, and dns_sdb_putrdata() takes the raw RDATA in
  * uncompressed wire format.
- */
-
-/*% See dns_sdb_putnamerdata() */
-isc_result_t
-dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
-		   const char *type, dns_ttl_t ttl, const char *data);
-isc_result_t
-dns_sdb_putnamedrdata(dns_sdballnodes_t *allnodes, const char *name,
-		      dns_rdatatype_t type, dns_ttl_t ttl, const void *rdata,
-		      unsigned int rdlen);
-/*%<
- * Add a single resource record to the allnodes structure to be
- * included in a zone transfer response, in text or wire
- * format as above.
  */
 
 isc_result_t
