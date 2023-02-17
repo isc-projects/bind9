@@ -99,9 +99,6 @@ struct dns_sdlz_db {
 	void *dbdata;
 	dns_sdlzimplementation_t *dlzimp;
 
-	/* Atomic */
-	isc_refcount_t references;
-
 	/* Locked */
 	dns_dbversion_t *future_version;
 	int dummy_version;
@@ -300,38 +297,16 @@ static dns_rdatasetitermethods_t rdatasetiter_methods = {
  */
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)source;
+destroy(dns_db_t *db) {
+	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 
-	REQUIRE(VALID_SDLZDB(sdlz));
-
-	isc_refcount_increment(&sdlz->references);
-
-	*targetp = source;
-}
-
-static void
-destroy(dns_sdlz_db_t *sdlz) {
 	sdlz->common.magic = 0;
 	sdlz->common.impmagic = 0;
 
 	dns_name_free(&sdlz->common.origin, sdlz->common.mctx);
 
-	isc_refcount_destroy(&sdlz->references);
+	isc_refcount_destroy(&sdlz->common.references);
 	isc_mem_putanddetach(&sdlz->common.mctx, sdlz, sizeof(dns_sdlz_db_t));
-}
-
-static void
-detach(dns_db_t **dbp) {
-	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)(*dbp);
-
-	REQUIRE(VALID_SDLZDB(sdlz));
-
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&sdlz->references) == 1) {
-		destroy(sdlz);
-	}
 }
 
 static void
@@ -418,7 +393,7 @@ createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	node = isc_mem_get(sdlz->common.mctx, sizeof(dns_sdlznode_t));
 
 	node->sdlz = NULL;
-	attach((dns_db_t *)sdlz, (dns_db_t **)&node->sdlz);
+	dns_db_attach((dns_db_t *)sdlz, (dns_db_t **)&node->sdlz);
 	ISC_LIST_INIT(node->lists);
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
@@ -471,7 +446,7 @@ destroynode(dns_sdlznode_t *node) {
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdlznode_t));
 	db = &sdlz->common;
-	detach(&db);
+	dns_db_detach(&db);
 }
 
 static isc_result_t
@@ -1179,8 +1154,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	.attach = attach,
-	.detach = detach,
+	.destroy = destroy,
 	.currentversion = currentversion,
 	.newversion = newversion,
 	.attachversion = attachversion,
@@ -1414,7 +1388,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		goto mem_cleanup;
 	}
 
-	isc_refcount_init(&sdlzdb->references, 1);
+	isc_refcount_init(&sdlzdb->common.references, 1);
 
 	/* attach to the memory context */
 	isc_mem_attach(mctx, &sdlzdb->common.mctx);

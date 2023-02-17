@@ -47,6 +47,9 @@
 ***** Imports
 *****/
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_DB_TRACE
+
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -74,8 +77,7 @@ extern unsigned int dns_pps;
 *****/
 
 typedef struct dns_dbmethods {
-	void (*attach)(dns_db_t *source, dns_db_t **targetp);
-	void (*detach)(dns_db_t **dbp);
+	void (*destroy)(dns_db_t *db);
 	isc_result_t (*beginload)(dns_db_t	       *db,
 				  dns_rdatacallbacks_t *callbacks);
 	isc_result_t (*endload)(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
@@ -213,6 +215,7 @@ struct dns_db {
 	dns_rdataclass_t rdclass;
 	dns_name_t	 origin;
 	isc_mem_t	*mctx;
+	isc_refcount_t	 references;
 	ISC_LIST(dns_dbonupdatelistener_t) update_listeners;
 };
 
@@ -310,6 +313,17 @@ struct dns_dbonupdatelistener {
  *** Basic DB Methods
  ***/
 
+#if DNS_DB_TRACE
+#define dns_db_ref(ptr)	  dns_db__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_db_unref(ptr) dns_db__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_db_attach(ptr, ptrp) \
+	dns_db__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_db_detach(ptrp) dns_db__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_db);
+#else
+ISC_REFCOUNT_DECL(dns_db);
+#endif
+
 isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	      dns_dbtype_t type, dns_rdataclass_t rdclass, unsigned int argc,
@@ -347,39 +361,6 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
  *
  * \li	Many other errors are possible, depending on what db_type was
  *	specified.
- */
-
-void
-dns_db_attach(dns_db_t *source, dns_db_t **targetp);
-/*%<
- * Attach *targetp to source.
- *
- * Requires:
- *
- * \li	'source' is a valid database.
- *
- * \li	'targetp' points to a NULL dns_db_t *.
- *
- * Ensures:
- *
- * \li	*targetp is attached to source.
- */
-
-void
-dns_db_detach(dns_db_t **dbp);
-/*%<
- * Detach *dbp from its database.
- *
- * Requires:
- *
- * \li	'dbp' points to a valid database.
- *
- * Ensures:
- *
- * \li	*dbp is NULL.
- *
- * \li	If '*dbp' is the last reference to the database,
- *		all resources used by the database will be freed
  */
 
 bool

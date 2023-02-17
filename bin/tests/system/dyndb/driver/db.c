@@ -64,7 +64,6 @@
 
 struct sampledb {
 	dns_db_t common;
-	isc_refcount_t refs;
 	sample_instance_t *inst;
 
 	/*
@@ -93,34 +92,15 @@ sample_name_fromnode(dns_dbnode_t *node, dns_name_t *name) {
 }
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	sampledb_t *sampledb = (sampledb_t *)source;
+destroy(dns_db_t *db) {
+	sampledb_t *sampledb = (sampledb_t *)db;
 
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	isc_refcount_increment(&sampledb->refs);
-	*targetp = source;
-}
-
-static void
-free_sampledb(sampledb_t *sampledb) {
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
 	dns_db_detach(&sampledb->rbtdb);
 	dns_name_free(&sampledb->common.origin, sampledb->common.mctx);
 	isc_mem_putanddetach(&sampledb->common.mctx, sampledb,
 			     sizeof(*sampledb));
-}
-
-static void
-detach(dns_db_t **dbp) {
-	REQUIRE(dbp != NULL && VALID_SAMPLEDB((sampledb_t *)(*dbp)));
-	sampledb_t *sampledb = (sampledb_t *)(*dbp);
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&sampledb->refs) == 1) {
-		free_sampledb(sampledb);
-	}
 }
 
 static void
@@ -506,8 +486,7 @@ hashsize(dns_db_t *db) {
  * determine which implementation of dns_db_*() function to call.
  */
 static dns_dbmethods_t sampledb_methods = {
-	.attach = attach,
-	.detach = detach,
+	.destroy = destroy,
 	.currentversion = currentversion,
 	.newversion = newversion,
 	.attachversion = attachversion,
@@ -699,7 +678,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	CHECK(dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin));
 
-	isc_refcount_init(&sampledb->refs, 1);
+	isc_refcount_init(&sampledb->common.references, 1);
 
 	/* Translate instance name to instance pointer. */
 	sampledb->inst = driverarg;

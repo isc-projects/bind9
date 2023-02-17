@@ -104,7 +104,7 @@ isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	      dns_dbtype_t type, dns_rdataclass_t rdclass, unsigned int argc,
 	      char *argv[], dns_db_t **dbp) {
-	dns_dbimplementation_t *impinfo;
+	dns_dbimplementation_t *impinfo = NULL;
 
 	isc_once_do(&once, initialize);
 
@@ -122,6 +122,11 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 		result = ((impinfo->create)(mctx, origin, type, rdclass, argc,
 					    argv, impinfo->driverarg, dbp));
 		RWUNLOCK(&implock, isc_rwlocktype_read);
+
+#if DNS_DB_TRACE
+		fprintf(stderr, "dns_db_create:%s:%s:%d:%p->references = 1\n",
+			__func__, __FILE__, __LINE__ + 1, *dbp);
+#endif
 		return (result);
 	}
 
@@ -133,33 +138,16 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	return (ISC_R_NOTFOUND);
 }
 
-void
-dns_db_attach(dns_db_t *source, dns_db_t **targetp) {
-	/*
-	 * Attach *targetp to source.
-	 */
-
-	REQUIRE(DNS_DB_VALID(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	(source->methods->attach)(source, targetp);
-
-	ENSURE(*targetp == source);
+static void
+dns__db_destroy(dns_db_t *db) {
+	(db->methods->destroy)(db);
 }
 
-void
-dns_db_detach(dns_db_t **dbp) {
-	/*
-	 * Detach *dbp from its database.
-	 */
-
-	REQUIRE(dbp != NULL);
-	REQUIRE(DNS_DB_VALID(*dbp));
-
-	((*dbp)->methods->detach)(dbp);
-
-	ENSURE(*dbp == NULL);
-}
+#if DNS_DB_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_db, dns__db_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_db, dns__db_destroy);
+#endif
 
 bool
 dns_db_iscache(dns_db_t *db) {

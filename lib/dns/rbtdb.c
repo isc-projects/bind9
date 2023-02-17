@@ -501,7 +501,6 @@ struct dns_rbtdb {
 	isc_stats_t *gluecachestats; /* zone DB only */
 	/* Locked by lock. */
 	unsigned int active;
-	isc_refcount_t references;
 	unsigned int attributes;
 	rbtdb_serial_t current_serial;
 	rbtdb_serial_t least_serial;
@@ -810,17 +809,6 @@ static atomic_uint_fast16_t init_count = 0;
 /*
  * DB Routines
  */
-
-static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)source;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	isc_refcount_increment(&rbtdb->references);
-
-	*targetp = source;
-}
 
 static void
 free_rbtdb_callback(void *arg) {
@@ -1170,7 +1158,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 	TREE_DESTROYLOCK(&rbtdb->tree_lock);
-	isc_refcount_destroy(&rbtdb->references);
+	isc_refcount_destroy(&rbtdb->common.references);
 	if (rbtdb->loop != NULL) {
 		isc_loop_detach(&rbtdb->loop);
 	}
@@ -1248,14 +1236,8 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 }
 
 static void
-detach(dns_db_t **dbp) {
-	REQUIRE(dbp != NULL && VALID_RBTDB((dns_rbtdb_t *)(*dbp)));
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&rbtdb->references) == 1) {
-		maybe_free_rbtdb(rbtdb);
-	}
+destroy(dns_db_t *db) {
+	maybe_free_rbtdb((dns_rbtdb_t *)db);
 }
 
 static void
@@ -1871,7 +1853,7 @@ send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
 	*prune = (prune_t){ .node = node };
 
-	attach((dns_db_t *)rbtdb, &prune->db);
+	dns_db_attach((dns_db_t *)rbtdb, &prune->db);
 	new_reference(rbtdb, node, locktype);
 
 	isc_async_run(rbtdb->loop, prune_tree, prune);
@@ -2198,7 +2180,7 @@ prune_tree(void *arg) {
 	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
 	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 
-	detach((dns_db_t **)&rbtdb);
+	dns_db_detach((dns_db_t **)&rbtdb);
 }
 
 static void
@@ -2409,8 +2391,7 @@ cleanup_dead_nodes_callback(void *arg) {
 	if (again) {
 		isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback, rbtdb);
 	} else {
-		if (isc_refcount_decrement(&rbtdb->references) == 1) {
-			(void)isc_refcount_current(&rbtdb->references);
+		if (isc_refcount_decrement(&rbtdb->common.references) == 1) {
 			maybe_free_rbtdb(rbtdb);
 		}
 	}
@@ -2671,7 +2652,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 				    sizeof(*changed));
 		}
 		if (rbtdb->loop != NULL) {
-			isc_refcount_increment(&rbtdb->references);
+			isc_refcount_increment(&rbtdb->common.references);
 			isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback,
 				      rbtdb);
 		} else {
@@ -8065,8 +8046,7 @@ getservestalerefresh(dns_db_t *db, uint32_t *interval) {
 }
 
 static dns_dbmethods_t zone_methods = {
-	.attach = attach,
-	.detach = detach,
+	.destroy = destroy,
 	.beginload = beginload,
 	.endload = endload,
 	.dump = dump,
@@ -8104,8 +8084,7 @@ static dns_dbmethods_t zone_methods = {
 };
 
 static dns_dbmethods_t cache_methods = {
-	.attach = attach,
-	.detach = detach,
+	.destroy = destroy,
 	.beginload = beginload,
 	.endload = endload,
 	.dump = dump,
@@ -8350,7 +8329,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Misc. Initialization.
 	 */
-	isc_refcount_init(&rbtdb->references, 1);
+	isc_refcount_init(&rbtdb->common.references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->loop = NULL;
 	rbtdb->serve_stale_ttl = 0;

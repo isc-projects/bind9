@@ -255,7 +255,7 @@ isc_result_t
 dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 			dns_rpz_zones_t *rpzs, const dns_name_t *qname,
 			isc_mem_t *mctx, bool have_rd) {
-	rpsdb_t *rpsdb;
+	rpsdb_t *rpsdb = NULL;
 
 	rpsdb = isc_mem_get(mctx, sizeof(*rpsdb));
 	*rpsdb = (rpsdb_t){
@@ -263,9 +263,9 @@ dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 			.methods = &rpsdb_db_methods,
 			.rdclass = dns_rdataclass_in,
 		},
-		.ref_cnt = 1,
 		.qname = qname,
 	};
+	isc_refcount_init(&rpsdb->common.refcount, 1);
 
 	if (!librpz->rsp_create(emsg, &rpsdb->rsp, NULL, rpzs->rps_client,
 				have_rd, false))
@@ -362,35 +362,15 @@ dns_dnsrps_type2trig(dns_rpz_type_t type) {
 }
 
 static void
-rpsdb_attach(dns_db_t *source, dns_db_t **targetp) {
-	rpsdb_t *rpsdb = (rpsdb_t *)source;
+rpsdb_destroy(dns_db_t *db) {
+	rpsdb_t *rpsdb = (rpsdb_t *)db;
 
 	REQUIRE(VALID_RPSDB(rpsdb));
-
-	/*
-	 * Use a simple count because only one thread uses any single rpsdb_t
-	 */
-	++rpsdb->ref_cnt;
-	*targetp = source;
-}
-
-static void
-rpsdb_detach(dns_db_t **dbp) {
-	rpsdb_t *rpsdb = (rpsdb_t *)*dbp;
-
-	REQUIRE(VALID_RPSDB(rpsdb));
-	REQUIRE(rpsdb->ref_cnt > 0);
 
 	*dbp = NULL;
 
-	/*
-	 * Simple count because only one thread uses a rpsdb_t.
-	 */
-	if (--rpsdb->ref_cnt != 0) {
-		return;
-	}
-
 	librpz->rsp_detach(&rpsdb->rsp);
+	isc_refcount_destroy(&rpsdb->common.refcount);
 	rpsdb->common.impmagic = 0;
 	isc_mem_putanddetach(&rpsdb->common.mctx, rpsdb, sizeof(*rpsdb));
 }
@@ -403,10 +383,7 @@ rpsdb_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp == NULL);
 	REQUIRE(source == &rpsdb->origin_node || source == &rpsdb->data_node);
 
-	/*
-	 * Simple count because only one thread uses a rpsdb_t.
-	 */
-	++rpsdb->ref_cnt;
+	isc_refcount_increment(&rpsdb->common.refcount);
 	*targetp = source;
 }
 
@@ -419,14 +396,14 @@ rpsdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 		*targetp == &rpsdb->data_node);
 
 	*targetp = NULL;
-	rpsdb_detach(&db);
+	dns_db_detach(&db);
 }
 
 static isc_result_t
 rpsdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	       dns_dbnode_t **nodep) {
 	rpsdb_t *rpsdb = (rpsdb_t *)db;
-	dns_db_t *dbp;
+	dns_db_t *dbp = NULL;
 
 	REQUIRE(VALID_RPSDB(rpsdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -442,8 +419,8 @@ rpsdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	} else {
 		*nodep = &rpsdb->data_node;
 	}
-	dbp = NULL;
-	rpsdb_attach(db, &dbp);
+
+	dns_db_attach(db, &dbp);
 
 	return (ISC_R_SUCCESS);
 }
@@ -931,8 +908,7 @@ rpsdb_rdatasetiter_current(dns_rdatasetiter_t *iterator,
 }
 
 static dns_dbmethods_t rpsdb_db_methods = {
-	.attach = rpsdb_attach,
-	.detach = rpsdb_detach,
+	.destroy = rpsdb_destroy,
 	.findnode = rpsdb_findnode,
 	.find = rpsdb_finddb,
 	.attachnode = rpsdb_attachnode,

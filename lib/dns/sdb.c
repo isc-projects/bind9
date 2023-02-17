@@ -56,9 +56,6 @@ struct dns_sdb {
 	char *zone;
 	dns_sdbimplementation_t *implementation;
 	void *dbdata;
-
-	/* Atomic */
-	isc_refcount_t references;
 };
 
 struct dns_sdblookup {
@@ -360,21 +357,11 @@ dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
  */
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	dns_sdb_t *sdb = (dns_sdb_t *)source;
-
-	REQUIRE(VALID_SDB(sdb));
-
-	isc_refcount_increment(&sdb->references);
-
-	*targetp = source;
-}
-
-static void
-destroy(dns_sdb_t *sdb) {
+destroy(dns_db_t *db) {
+	dns_sdb_t *sdb = (dns_sdb_t *)db;
 	dns_sdbimplementation_t *imp = sdb->implementation;
 
-	isc_refcount_destroy(&sdb->references);
+	isc_refcount_destroy(&sdb->common.references);
 
 	if (imp != NULL && imp->methods->destroy != NULL) {
 		LOCK(&sdb->implementation->driverlock);
@@ -390,19 +377,6 @@ destroy(dns_sdb_t *sdb) {
 	dns_name_free(&sdb->common.origin, sdb->common.mctx);
 
 	isc_mem_putanddetach(&sdb->common.mctx, sdb, sizeof(dns_sdb_t));
-}
-
-static void
-detach(dns_db_t **dbp) {
-	dns_sdb_t *sdb = (dns_sdb_t *)(*dbp);
-
-	REQUIRE(VALID_SDB(sdb));
-
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&sdb->references) == 1) {
-		destroy(sdb);
-	}
 }
 
 static void
@@ -444,7 +418,7 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	node = isc_mem_get(sdb->common.mctx, sizeof(dns_sdbnode_t));
 
 	node->sdb = NULL;
-	attach((dns_db_t *)sdb, (dns_db_t **)&node->sdb);
+	dns_db_attach((dns_db_t *)sdb, (dns_db_t **)&node->sdb);
 	ISC_LIST_INIT(node->lists);
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
@@ -494,7 +468,7 @@ destroynode(dns_sdbnode_t *node) {
 
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdbnode_t));
-	detach((dns_db_t **)(void *)&sdb);
+	dns_db_detach((dns_db_t **)(void *)&sdb);
 }
 
 static isc_result_t
@@ -878,8 +852,7 @@ ispersistent(dns_db_t *db) {
 }
 
 static dns_dbmethods_t sdb_methods = {
-	.attach = attach,
-	.detach = detach,
+	.destroy = destroy,
 	.currentversion = currentversion,
 	.attachversion = attachversion,
 	.closeversion = closeversion,
@@ -945,7 +918,7 @@ create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		}
 	}
 
-	isc_refcount_init(&sdb->references, 1);
+	isc_refcount_init(&sdb->common.references, 1);
 
 	sdb->common.magic = DNS_DB_MAGIC;
 	sdb->common.impmagic = SDB_MAGIC;
