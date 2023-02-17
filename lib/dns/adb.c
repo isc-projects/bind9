@@ -1143,6 +1143,8 @@ destroy_adbentry(dns_adbentry_t *entry) {
 
 	entry->magic = 0;
 
+	INSIST(!ISC_LINK_LINKED(entry, link));
+
 	INSIST(ISC_LIST_EMPTY(entry->nhs));
 
 	active = atomic_load_acquire(&entry->active);
@@ -1381,6 +1383,16 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 	return (adbname);
 }
 
+static void
+upgrade_entries_lock(dns_adb_t *adb, isc_rwlocktype_t *locktypep,
+		     isc_stdtime_t now) {
+	if (*locktypep == isc_rwlocktype_read) {
+		UPGRADELOCK(&adb->entries_lock, *locktypep);
+		purge_stale_entries(adb, now);
+		adb->entries_last_update = now;
+	}
+}
+
 /*
  * Find the entry in the adb->entries hashtable.
  */
@@ -1405,20 +1417,17 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 	{
 		last_update = now;
 
-		UPGRADELOCK(&adb->entries_lock, locktype);
-
-		purge_stale_entries(adb, now);
-		adb->entries_last_update = now;
+		upgrade_entries_lock(adb, &locktype, now);
 	}
 
-again:
 	result = isc_hashmap_find(adb->entries, &hashval,
 				  (const unsigned char *)addr, sizeof(*addr),
 				  (void **)&adbentry);
-	switch (result) {
-	case ISC_R_NOTFOUND: {
+	if (result == ISC_R_NOTFOUND) {
+		upgrade_entries_lock(adb, &locktype, now);
+
 	create:
-		UPGRADELOCK(&adb->entries_lock, locktype);
+		INSIST(locktype == isc_rwlocktype_write);
 
 		/* Allocate a new entry and add it to the hash table. */
 		adbentry = new_adbentry(adb, addr);
@@ -1426,26 +1435,18 @@ again:
 		result = isc_hashmap_add(adb->entries, &hashval,
 					 &adbentry->sockaddr,
 					 sizeof(adbentry->sockaddr), adbentry);
-		if (result == ISC_R_EXISTS) {
+		if (result == ISC_R_SUCCESS) {
+			ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
+		} else if (result == ISC_R_EXISTS) {
 			dns_adbentry_detach(&adbentry);
 
 			result = isc_hashmap_find(adb->entries, &hashval,
 						  (const unsigned char *)addr,
 						  sizeof(*addr),
 						  (void **)&adbentry);
-			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
 		}
-		INSIST(result == ISC_R_SUCCESS);
-		break;
 	}
-	case ISC_R_SUCCESS:
-		if (locktype == isc_rwlocktype_write) {
-			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
-		}
-		break;
-	default:
-		UNREACHABLE();
-	}
+	INSIST(result == ISC_R_SUCCESS);
 
 	/*
 	 * The dns_adbentry_ref() must stay here before trying to expire
@@ -1455,14 +1456,17 @@ again:
 	LOCK(&adbentry->lock); /* Must be unlocked by the caller */
 	switch (locktype) {
 	case isc_rwlocktype_read:
-		if (entry_expired(adbentry, now)) {
-			UNLOCK(&adbentry->lock);
-			dns_adbentry_detach(&adbentry);
-			goto again;
+		if (!entry_expired(adbentry, now)) {
+			break;
 		}
-		break;
+
+		/* We need to upgrade the LRU lock */
+		UNLOCK(&adbentry->lock);
+		upgrade_entries_lock(adb, &locktype, now);
+		LOCK(&adbentry->lock);
+		FALLTHROUGH;
 	case isc_rwlocktype_write:
-		if (maybe_expire_entry(adbentry, now)) {
+		if (ENTRY_DEAD(adbentry) || maybe_expire_entry(adbentry, now)) {
 			UNLOCK(&adbentry->lock);
 			dns_adbentry_detach(&adbentry);
 			goto create;
@@ -1472,11 +1476,13 @@ again:
 		UNREACHABLE();
 	}
 
+	/* Did enough time pass to update the LRU? */
 	if (adbentry->last_used + ADB_CACHE_MINIMUM <= last_update) {
 		adbentry->last_used = now;
-	}
-	if (locktype == isc_rwlocktype_write) {
-		ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
+		if (locktype == isc_rwlocktype_write) {
+			ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
+			ISC_LIST_PREPEND(adb->entries_lru, adbentry, link);
+		}
 	}
 
 	RWUNLOCK(&adb->entries_lock, locktype);
@@ -1653,12 +1659,15 @@ expire_entry(dns_adbentry_t *adbentry) {
 	isc_result_t result;
 	dns_adb_t *adb = adbentry->adb;
 
-	adbentry->flags |= ENTRY_IS_DEAD;
+	if (!ENTRY_DEAD(adbentry)) {
+		adbentry->flags |= ENTRY_IS_DEAD;
 
-	result = isc_hashmap_delete(adb->entries, NULL, &adbentry->sockaddr,
-				    sizeof(adbentry->sockaddr));
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
+		result = isc_hashmap_delete(adb->entries, NULL,
+					    &adbentry->sockaddr,
+					    sizeof(adbentry->sockaddr));
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		ISC_LIST_UNLINK(adb->entries_lru, adbentry, link);
+	}
 
 	dns_adbentry_detach(&adbentry);
 }
