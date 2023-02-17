@@ -2671,6 +2671,7 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 	if (*old_rpz_okp) {
 		dns_rpz_detach_rpzs(&view->rpzs);
 		dns_rpz_attach_rpzs(pview->rpzs, &view->rpzs);
+		dns_rpz_detach_rpzs(&pview->rpzs);
 	} else if (old != NULL && pview != NULL) {
 		++pview->rpzs->rpz_ver;
 		view->rpzs->rpz_ver = pview->rpzs->rpz_ver;
@@ -3173,6 +3174,7 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	if (old != NULL) {
 		dns_catz_catzs_detach(&view->catzs);
 		dns_catz_catzs_attach(pview->catzs, &view->catzs);
+		dns_catz_catzs_detach(&pview->catzs);
 		dns_catz_prereconfig(view->catzs);
 	}
 
@@ -5878,9 +5880,6 @@ cleanup:
 			    named_config_get(maps, "catalog-zones", &obj) ==
 				    ISC_R_SUCCESS)
 			{
-				if (pview->catzs != NULL) {
-					dns_catz_catzs_detach(&pview->catzs);
-				}
 				/*
 				 * We are swapping the places of the `view` and
 				 * `pview` in the function's parameters list
