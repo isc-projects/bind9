@@ -4485,27 +4485,6 @@ tree_exit:
 	return (result);
 }
 
-static isc_result_t
-zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-		 isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-		 dns_name_t *dcname, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset) {
-	UNUSED(db);
-	UNUSED(name);
-	UNUSED(options);
-	UNUSED(now);
-	UNUSED(nodep);
-	UNUSED(foundname);
-	UNUSED(dcname);
-	UNUSED(rdataset);
-	UNUSED(sigrdataset);
-
-	FATAL_ERROR("zone_findzonecut() called!");
-
-	UNREACHABLE();
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
 static bool
 check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		   isc_rwlocktype_t *nlocktypep, nodelock_t *lock,
@@ -7737,12 +7716,6 @@ setloop(dns_db_t *db, isc_loop_t *loop) {
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
 
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-	return (false);
-}
-
 static isc_result_t
 getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8112,7 +8085,7 @@ static dns_dbmethods_t zone_methods = { attach,
 					closeversion,
 					findnode,
 					zone_find,
-					zone_findzonecut,
+					NULL, /* findzonecut */
 					attachnode,
 					detachnode,
 					expirenode,
@@ -8125,7 +8098,7 @@ static dns_dbmethods_t zone_methods = { attach,
 					deleterdataset,
 					issecure,
 					nodecount,
-					ispersistent,
+					NULL,
 					overmem,
 					setloop,
 					getoriginnode,
@@ -8173,7 +8146,7 @@ static dns_dbmethods_t cache_methods = { attach,
 					 deleterdataset,
 					 issecure,
 					 nodecount,
-					 ispersistent,
+					 NULL,
 					 overmem,
 					 setloop,
 					 getoriginnode,

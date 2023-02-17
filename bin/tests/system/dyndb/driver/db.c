@@ -123,52 +123,6 @@ detach(dns_db_t **dbp) {
 	}
 }
 
-/*
- * This method should never be called, because DB is "persistent".
- * See ispersistent() function. It means that database do not need to be
- * loaded in the usual sense.
- */
-static isc_result_t
-beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-
-	FATAL_ERROR("current implementation should never call beginload()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * This method should never be called, because DB is "persistent".
- * See ispersistent() function. It means that database do not need to be
- * loaded in the usual sense.
- */
-static isc_result_t
-endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-
-	FATAL_ERROR("current implementation should never call endload()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-     dns_masterformat_t masterformat) {
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-
-	FATAL_ERROR("current implementation should never call dump()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
-}
-
 static void
 currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	sampledb_t *sampledb = (sampledb_t *)db;
@@ -399,17 +353,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return (dns_db_nodecount(sampledb->rbtdb, tree));
 }
 
-/*
- * The database does not need to be loaded from disk or written to disk.
- * Always return true.
- */
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-
-	return (true);
-}
-
 static void
 overmem(dns_db_t *db, bool over) {
 	sampledb_t *sampledb = (sampledb_t *)db;
@@ -571,7 +514,7 @@ static dns_dbmethods_t sampledb_methods = {
 	printnode,	createiterator, findrdataset,
 	allrdatasets,	addrdataset,	subtractrdataset,
 	deleterdataset, issecure,	nodecount,
-	ispersistent,	overmem,	setloop,
+	NULL,		overmem,	setloop,
 	getoriginnode,	transfernode,	getnsec3parameters,
 	findnsec3node,	setsigningtime, getsigningtime,
 	resigned,	isdnssec,	getrrsetstats,

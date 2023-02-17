@@ -134,9 +134,9 @@ typedef struct sdb_rdatasetiter {
 static int dummy;
 
 static isc_result_t
-dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
-	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-	       void *driverarg, dns_db_t **dbp);
+create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+       void *driverarg, dns_db_t **dbp);
 
 static isc_result_t
 findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
@@ -203,7 +203,7 @@ isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 		 void *driverdata, unsigned int flags, isc_mem_t *mctx,
 		 dns_sdbimplementation_t **sdbimp) {
-	dns_sdbimplementation_t *imp;
+	dns_sdbimplementation_t *imp = NULL;
 	isc_result_t result;
 
 	REQUIRE(drivername != NULL);
@@ -224,8 +224,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	isc_mutex_init(&imp->driverlock);
 
 	imp->dbimp = NULL;
-	result = dns_db_register(drivername, dns_sdb_create, imp, mctx,
-				 &imp->dbimp);
+	result = dns_db_register(drivername, create, imp, mctx, &imp->dbimp);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_mutex;
 	}
@@ -241,7 +240,7 @@ cleanup_mutex:
 
 void
 dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
-	dns_sdbimplementation_t *imp;
+	dns_sdbimplementation_t *imp = NULL;
 
 	REQUIRE(sdbimp != NULL && *sdbimp != NULL);
 
@@ -269,10 +268,10 @@ isc_result_t
 dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 		 dns_ttl_t ttl, const unsigned char *rdatap,
 		 unsigned int rdlen) {
-	dns_rdatalist_t *rdatalist;
-	dns_rdata_t *rdata;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdata_t *rdata = NULL;
 	isc_buffer_t *rdatabuf = NULL;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = NULL;
 	isc_region_t region;
 
 	mctx = lookup->sdb->common.mctx;
@@ -322,9 +321,9 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	isc_result_t result;
 	unsigned char *p = NULL;
 	unsigned int size = 0; /* Init to suppress compiler warning */
-	isc_mem_t *mctx;
-	dns_sdbimplementation_t *imp;
-	const dns_name_t *origin;
+	isc_mem_t *mctx = NULL;
+	dns_sdbimplementation_t *imp = NULL;
+	const dns_name_t *origin = NULL;
 	isc_buffer_t b;
 	isc_buffer_t rb;
 
@@ -402,12 +401,12 @@ failure:
 
 static isc_result_t
 getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
-	dns_name_t *newname;
-	const dns_name_t *origin;
+	dns_name_t *newname = NULL;
+	const dns_name_t *origin = NULL;
 	dns_fixedname_t fnewname;
 	dns_sdb_t *sdb = (dns_sdb_t *)allnodes->common.db;
 	dns_sdbimplementation_t *imp = sdb->implementation;
-	dns_sdbnode_t *sdbnode;
+	dns_sdbnode_t *sdbnode = NULL;
 	isc_mem_t *mctx = sdb->common.mctx;
 	isc_buffer_t b;
 	isc_result_t result;
@@ -547,30 +546,6 @@ detach(dns_db_t **dbp) {
 	}
 }
 
-static isc_result_t
-beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-     dns_masterformat_t masterformat) {
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
 static void
 currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	REQUIRE(versionp != NULL && *versionp == NULL);
@@ -579,14 +554,6 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 	*versionp = (void *)&dummy;
 	return;
-}
-
-static isc_result_t
-newversion(dns_db_t *db, dns_dbversion_t **versionp) {
-	UNUSED(db);
-	UNUSED(versionp);
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static void
@@ -613,7 +580,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 
 static isc_result_t
 createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
-	dns_sdbnode_t *node;
+	dns_sdbnode_t *node = NULL;
 
 	node = isc_mem_get(sdb->common.mctx, sizeof(dns_sdbnode_t));
 
@@ -635,11 +602,11 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 
 static void
 destroynode(dns_sdbnode_t *node) {
-	dns_rdatalist_t *list;
-	dns_rdata_t *rdata;
-	isc_buffer_t *b;
-	dns_sdb_t *sdb;
-	isc_mem_t *mctx;
+	dns_rdatalist_t *list = NULL;
+	dns_rdata_t *rdata = NULL;
+	isc_buffer_t *b = NULL;
+	dns_sdb_t *sdb = NULL;
+	isc_mem_t *mctx = NULL;
 
 	sdb = node->sdb;
 	mctx = sdb->common.mctx;
@@ -678,9 +645,9 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	isc_result_t result;
 	isc_buffer_t b;
 	char namestr[DNS_NAME_MAXTEXT + 1];
-	dns_sdbimplementation_t *imp;
+	dns_sdbimplementation_t *imp = NULL;
 	dns_name_t relname;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 
 	REQUIRE(VALID_SDB(sdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
@@ -755,7 +722,7 @@ findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 	isc_buffer_t b;
 	char namestr[DNS_NAME_MAXTEXT + 1];
 	bool isorigin;
-	dns_sdbimplementation_t *imp;
+	dns_sdbimplementation_t *imp = NULL;
 	dns_name_t relname;
 	unsigned int labels;
 
@@ -843,7 +810,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	dns_dbnode_t *node = NULL;
 	dns_fixedname_t fname;
 	dns_rdataset_t xrdataset;
-	dns_name_t *xname;
+	dns_name_t *xname = NULL;
 	unsigned int nlabels, olabels;
 	isc_result_t result;
 	unsigned int i;
@@ -1009,24 +976,6 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	return (result);
 }
 
-static isc_result_t
-findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_name_t *dcname, dns_rdataset_t *rdataset,
-	    dns_rdataset_t *sigrdataset) {
-	UNUSED(db);
-	UNUSED(name);
-	UNUSED(options);
-	UNUSED(now);
-	UNUSED(nodep);
-	UNUSED(foundname);
-	UNUSED(dcname);
-	UNUSED(rdataset);
-	UNUSED(sigrdataset);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
 static void
 attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
@@ -1044,7 +993,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
-	dns_sdbnode_t *node;
+	dns_sdbnode_t *node = NULL;
 
 	REQUIRE(VALID_SDB(sdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
@@ -1061,28 +1010,12 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 }
 
 static isc_result_t
-expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(now);
-	UNREACHABLE();
-}
-
-static void
-printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(out);
-	return;
-}
-
-static isc_result_t
 createiterator(dns_db_t *db, unsigned int options,
 	       dns_dbiterator_t **iteratorp) {
 	dns_sdb_t *sdb = (dns_sdb_t *)db;
 	REQUIRE(VALID_SDB(sdb));
 
-	sdb_dbiterator_t *sdbiter;
+	sdb_dbiterator_t *sdbiter = NULL;
 	isc_result_t result;
 	dns_sdbimplementation_t *imp = sdb->implementation;
 
@@ -1132,7 +1065,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 	REQUIRE(VALID_SDBNODE(node));
 
-	dns_rdatalist_t *list;
+	dns_rdatalist_t *list = NULL;
 	dns_sdbnode_t *sdbnode = (dns_sdbnode_t *)node;
 
 	UNUSED(db);
@@ -1165,7 +1098,7 @@ static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     unsigned int options, isc_stdtime_t now,
 	     dns_rdatasetiter_t **iteratorp) {
-	sdb_rdatasetiter_t *iterator;
+	sdb_rdatasetiter_t *iterator = NULL;
 
 	REQUIRE(version == NULL || version == &dummy);
 
@@ -1188,125 +1121,58 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
-	    dns_rdataset_t *addedrdataset) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(version);
-	UNUSED(now);
-	UNUSED(rdataset);
-	UNUSED(options);
-	UNUSED(addedrdataset);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 dns_rdataset_t *rdataset, unsigned int options,
-		 dns_rdataset_t *newrdataset) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(version);
-	UNUSED(rdataset);
-	UNUSED(options);
-	UNUSED(newrdataset);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	       dns_rdatatype_t type, dns_rdatatype_t covers) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(version);
-	UNUSED(type);
-	UNUSED(covers);
-
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static bool
-issecure(dns_db_t *db) {
-	UNUSED(db);
-
-	return (false);
-}
-
-static unsigned int
-nodecount(dns_db_t *db, dns_dbtree_t tree) {
-	UNUSED(db);
-	UNUSED(tree);
-
-	return (0);
-}
-
 static bool
 ispersistent(dns_db_t *db) {
 	UNUSED(db);
 	return (true);
 }
 
-static void
-overmem(dns_db_t *db, bool over) {
-	UNUSED(db);
-	UNUSED(over);
-}
-
-static void
-setloop(dns_db_t *db, isc_loop_t *loop) {
-	UNUSED(db);
-	UNUSED(loop);
-}
-
 static dns_dbmethods_t sdb_methods = {
-	attach,		detach,
-	beginload,	endload,
-	dump,		currentversion,
-	newversion,	attachversion,
-	closeversion,	NULL, /* findnode */
-	NULL,		      /* find */
-	findzonecut,	attachnode,
-	detachnode,	expirenode,
-	printnode,	createiterator,
-	findrdataset,	allrdatasets,
-	addrdataset,	subtractrdataset,
-	deleterdataset, issecure,
-	nodecount,	ispersistent,
-	overmem,	setloop,
-	getoriginnode, /* getoriginnode */
-	NULL,	       /* transfernode */
-	NULL,	       /* getnsec3parameters */
-	NULL,	       /* findnsec3node */
-	NULL,	       /* setsigningtime */
-	NULL,	       /* getsigningtime */
-	NULL,	       /* resigned */
-	NULL,	       /* isdnssec */
-	NULL,	       /* getrrsetstats */
-	findnodeext,	findext,
-	NULL, /* setcachestats */
-	NULL, /* hashsize */
-	NULL, /* nodefullname */
-	NULL, /* getsize */
-	NULL, /* setservestalettl */
-	NULL, /* getservestalettl */
-	NULL, /* setservestalerefresh */
-	NULL, /* getservestalerefresh */
-	NULL, /* setgluecachestats */
+	attach,		detach,	      NULL,		  /* beginload */
+	NULL,						  /* endload */
+	NULL,						  /* dump */
+	currentversion, NULL,				  /* newversion */
+	attachversion,	closeversion, NULL,		  /* findnode */
+	NULL,						  /* find */
+	NULL,						  /* findzonecut */
+	attachnode,	detachnode,   NULL,		  /* expirenode */
+	NULL,						  /* printnode */
+	createiterator, findrdataset, allrdatasets, NULL, /* addrdataset */
+	NULL,						  /* subtractrdataset */
+	NULL,						  /* deleterdataset */
+	NULL,						  /* issecure */
+	NULL,						  /* nodecount */
+	ispersistent,	NULL,				  /* overmem */
+	NULL,						  /* setloop */
+	getoriginnode,					  /* getoriginnode */
+	NULL,						  /* transfernode */
+	NULL,				    /* getnsec3parameters */
+	NULL,				    /* findnsec3node */
+	NULL,				    /* setsigningtime */
+	NULL,				    /* getsigningtime */
+	NULL,				    /* resigned */
+	NULL,				    /* isdnssec */
+	NULL,				    /* getrrsetstats */
+	findnodeext,	findext,      NULL, /* setcachestats */
+	NULL,				    /* hashsize */
+	NULL,				    /* nodefullname */
+	NULL,				    /* getsize */
+	NULL,				    /* setservestalettl */
+	NULL,				    /* getservestalettl */
+	NULL,				    /* setservestalerefresh */
+	NULL,				    /* getservestalerefresh */
+	NULL,				    /* setgluecachestats */
 };
 
 static isc_result_t
-dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
-	       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-	       void *driverarg, dns_db_t **dbp) {
-	dns_sdb_t *sdb;
+create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
+       dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+       void *driverarg, dns_db_t **dbp) {
+	dns_sdb_t *sdb = NULL;
 	isc_result_t result;
 	char zonestr[DNS_NAME_MAXTEXT + 1];
 	isc_buffer_t b;
-	dns_sdbimplementation_t *imp;
+	dns_sdbimplementation_t *imp = NULL;
 
 	REQUIRE(driverarg != NULL);
 

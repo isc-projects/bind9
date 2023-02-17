@@ -334,30 +334,6 @@ detach(dns_db_t **dbp) {
 	}
 }
 
-static isc_result_t
-beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-     dns_masterformat_t masterformat) {
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
 static void
 currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
@@ -665,24 +641,6 @@ static isc_result_t
 findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	 dns_dbnode_t **nodep) {
 	return (getnodedata(db, name, create, 0, NULL, NULL, nodep));
-}
-
-static isc_result_t
-findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_name_t *dcname, dns_rdataset_t *rdataset,
-	    dns_rdataset_t *sigrdataset) {
-	UNUSED(db);
-	UNUSED(name);
-	UNUSED(options);
-	UNUSED(now);
-	UNUSED(nodep);
-	UNUSED(foundname);
-	UNUSED(dcname);
-	UNUSED(rdataset);
-	UNUSED(sigrdataset);
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static void
@@ -1185,12 +1143,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return (0);
 }
 
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-	return (true);
-}
-
 static void
 overmem(dns_db_t *db, bool over) {
 	UNUSED(db);
@@ -1227,15 +1179,17 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	attach,		detach,		beginload,
-	endload,	dump,		currentversion,
-	newversion,	attachversion,	closeversion,
-	findnode,	find,		findzonecut,
+	attach,		detach,		NULL, /* beginload */
+	NULL,				      /* endload */
+	NULL,				      /* dump */
+	currentversion, newversion,	attachversion,
+	closeversion,	findnode,	find,
+	NULL, /* findzonecut */
 	attachnode,	detachnode,	expirenode,
 	printnode,	createiterator, findrdataset,
 	allrdatasets,	addrdataset,	subtractrdataset,
 	deleterdataset, issecure,	nodecount,
-	ispersistent,	overmem,	setloop,
+	NULL,		overmem,	setloop,
 	getoriginnode,	NULL,		      /* transfernode */
 	NULL,				      /* getnsec3parameters */
 	NULL,				      /* findnsec3node */

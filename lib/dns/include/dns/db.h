@@ -1388,7 +1388,7 @@ dns_db_hashsize(dns_db_t *db);
 void
 dns_db_setloop(dns_db_t *db, isc_loop_t *loop);
 /*%<
- * If loop is set then the final detach maybe performed asynchronously.
+ * If loop is set then the final detach may be performed asynchronously.
  *
  * Requires:
  * \li	'db' is a valid database.
@@ -1400,6 +1400,10 @@ dns_db_ispersistent(dns_db_t *db);
 /*%<
  * Is 'db' persistent?  A persistent database does not need to be loaded
  * from disk or written to disk.
+ *
+ * By default, return false if the database implementation has an
+ * 'endload' function and true if it doesn't. This default can be overridden
+ * by including an 'ispersistent function in the database implementation.
  *
  * Requires:
  *
