@@ -232,9 +232,8 @@ def main():
         # later by run.sh
         print("export ALGORITHM_SET=error")
         raise
-    else:
-        for name, value in algs_env.items():
-            print(f"export {name}={value}")
+    for name, value in algs_env.items():
+        print(f"export {name}={value}")
 
 
 if __name__ == "__main__":

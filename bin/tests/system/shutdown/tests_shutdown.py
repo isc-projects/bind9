@@ -70,7 +70,6 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
     # We're going to execute queries in parallel by means of a thread pool.
     # dnspython functions block, so we need to circunvent that.
     with ThreadPoolExecutor(n_workers + 1) as executor:
-
         # Helper dict, where keys=Future objects and values are tags used
         # to process results later.
         futures = {}
