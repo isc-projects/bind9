@@ -37,10 +37,11 @@ struct {
 	dns_fixedname_t fixed;
 } item[1024 * 1024];
 
-static void
+static uint32_t
 item_check(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	assert(pval == &item[ival]);
+	return (1);
 }
 
 static size_t

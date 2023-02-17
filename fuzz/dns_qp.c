@@ -57,18 +57,19 @@ static struct {
 	dns_qpkey_t ascii;
 } item[256 * 256 / 4];
 
-static void
+static uint32_t
 fuzz_attach(void *ctx, void *pval, uint32_t ival) {
 	assert(ctx == NULL);
 	assert(pval == &item[ival]);
-	item[ival].refcount++;
+	return (item[ival].refcount++);
 }
 
-static void
+static uint32_t
 fuzz_detach(void *ctx, void *pval, uint32_t ival) {
 	assert(ctx == NULL);
 	assert(pval == &item[ival]);
-	item[ival].refcount--;
+	assert(item[ival].refcount > 0);
+	return (item[ival].refcount--);
 }
 
 static size_t

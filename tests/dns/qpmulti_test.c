@@ -104,18 +104,19 @@ static struct {
 	dns_qpkey_t ascii;
 } item[ITEM_COUNT];
 
-static void
+static uint32_t
 item_attach(void *ctx, void *pval, uint32_t ival) {
-	INSIST(ctx == NULL);
-	INSIST(pval == &item[ival]);
-	item[ival].refcount++;
+	assert_null(ctx);
+	assert_ptr_equal(pval, &item[ival]);
+	return (item[ival].refcount++);
 }
 
-static void
+static uint32_t
 item_detach(void *ctx, void *pval, uint32_t ival) {
 	assert_null(ctx);
 	assert_ptr_equal(pval, &item[ival]);
-	item[ival].refcount--;
+	assert_int_not_equal(item[ival].refcount, 0);
+	return (item[ival].refcount--);
 }
 
 static size_t

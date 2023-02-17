@@ -95,17 +95,19 @@ qpkey_from_smallname(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	return (dns_qpkey_fromname(key, &name));
 }
 
-static void
+static uint32_t
 smallname_attach(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
-	isc_refcount_increment0(smallname_refcount(pval, ival));
+	return (isc_refcount_increment0(smallname_refcount(pval, ival)));
 }
 
-static void
+static uint32_t
 smallname_detach(void *ctx, void *pval, uint32_t ival) {
-	if (isc_refcount_decrement(smallname_refcount(pval, ival)) == 1) {
+	uint32_t refs = isc_refcount_decrement(smallname_refcount(pval, ival));
+	if (refs == 1) {
 		isc_mem_free(ctx, pval);
 	}
+	return (refs);
 }
 
 static void

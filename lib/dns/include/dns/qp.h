@@ -180,8 +180,9 @@ typedef uint8_t dns_qpkey_t[512];
  * The `attach` and `detach` methods adjust reference counts on value
  * objects. They support copy-on-write and safe memory reclamation
  * needed for multi-version concurrency. The methods are only called
- * when the `dns_qpmulti_t` mutex is held, so they only need to use
- * atomic ops if the refcounts are used by code other than the qp-trie.
+ * when the `dns_qpmulti_t` mutex is held. For tracing purposes, they
+ * should return the same value as `isc_refcount_increment()` or
+ * `isc_refcount_decrement()`, respectively
  *
  * Note: When a value object reference count is greater than one, the
  * object is in use by concurrent readers so it must not be modified. A
@@ -199,8 +200,8 @@ typedef uint8_t dns_qpkey_t[512];
  * readable identifier into `buf` which has max length `size`.
  */
 typedef struct dns_qpmethods {
-	void (*attach)(void *uctx, void *pval, uint32_t ival);
-	void (*detach)(void *uctx, void *pval, uint32_t ival);
+	uint32_t (*attach)(void *uctx, void *pval, uint32_t ival);
+	uint32_t (*detach)(void *uctx, void *pval, uint32_t ival);
 	size_t (*makekey)(dns_qpkey_t key, void *uctx, void *pval,
 			  uint32_t ival);
 	void (*triename)(void *uctx, char *buf, size_t size);

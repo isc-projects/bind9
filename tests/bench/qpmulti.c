@@ -89,11 +89,12 @@ static struct {
 	dns_qpkey_t key;
 } *item;
 
-static void
+static uint32_t
 item_refcount(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	UNUSED(pval);
 	UNUSED(ival);
+	return (1);
 }
 
 static size_t
