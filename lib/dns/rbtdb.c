@@ -653,40 +653,30 @@ free_gluetable(rbtdb_version_t *version);
 static isc_result_t
 nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
-static dns_rdatasetmethods_t rdataset_methods = { rdataset_disassociate,
-						  rdataset_first,
-						  rdataset_next,
-						  rdataset_current,
-						  rdataset_clone,
-						  rdataset_count,
-						  NULL, /* addnoqname */
-						  rdataset_getnoqname,
-						  NULL, /* addclosest */
-						  rdataset_getclosest,
-						  rdataset_settrust,
-						  rdataset_expire,
-						  rdataset_clearprefetch,
-						  rdataset_setownercase,
-						  rdataset_getownercase,
-						  rdataset_addglue };
+static dns_rdatasetmethods_t rdataset_methods = {
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
+	.getnoqname = rdataset_getnoqname,
+	.getclosest = rdataset_getclosest,
+	.settrust = rdataset_settrust,
+	.expire = rdataset_expire,
+	.clearprefetch = rdataset_clearprefetch,
+	.setownercase = rdataset_setownercase,
+	.getownercase = rdataset_getownercase,
+	.addglue = rdataset_addglue
+};
 
 static dns_rdatasetmethods_t slab_methods = {
-	rdataset_disassociate,
-	rdataset_first,
-	rdataset_next,
-	rdataset_current,
-	rdataset_clone,
-	rdataset_count,
-	NULL, /* addnoqname */
-	NULL, /* getnoqname */
-	NULL, /* addclosest */
-	NULL, /* getclosest */
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL, /* setownercase */
-	NULL, /* getownercase */
-	NULL  /* addglue */
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
 };
 
 static void
@@ -8074,101 +8064,83 @@ getservestalerefresh(dns_db_t *db, uint32_t *interval) {
 	return (ISC_R_SUCCESS);
 }
 
-static dns_dbmethods_t zone_methods = { attach,
-					detach,
-					beginload,
-					endload,
-					dump,
-					currentversion,
-					newversion,
-					attachversion,
-					closeversion,
-					findnode,
-					zone_find,
-					NULL, /* findzonecut */
-					attachnode,
-					detachnode,
-					expirenode,
-					printnode,
-					createiterator,
-					zone_findrdataset,
-					allrdatasets,
-					addrdataset,
-					subtractrdataset,
-					deleterdataset,
-					issecure,
-					nodecount,
-					NULL,
-					overmem,
-					setloop,
-					getoriginnode,
-					NULL, /* transfernode */
-					getnsec3parameters,
-					findnsec3node,
-					setsigningtime,
-					getsigningtime,
-					resigned,
-					isdnssec,
-					NULL, /* getrrsetstats */
-					NULL, /* findnodeext */
-					NULL, /* findext */
-					NULL, /* setcachestats */
-					hashsize,
-					nodefullname,
-					getsize,
-					NULL, /* setservestalettl */
-					NULL, /* getservestalettl */
-					NULL, /* setservestalerefresh */
-					NULL, /* getservestalerefresh */
-					setgluecachestats };
+static dns_dbmethods_t zone_methods = {
+	.attach = attach,
+	.detach = detach,
+	.beginload = beginload,
+	.endload = endload,
+	.dump = dump,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = zone_find,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = zone_findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.getnsec3parameters = getnsec3parameters,
+	.findnsec3node = findnsec3node,
+	.setsigningtime = setsigningtime,
+	.getsigningtime = getsigningtime,
+	.resigned = resigned,
+	.isdnssec = isdnssec,
+	.hashsize = hashsize,
+	.nodefullname = nodefullname,
+	.getsize = getsize,
+	.setgluecachestats = setgluecachestats
+};
 
-static dns_dbmethods_t cache_methods = { attach,
-					 detach,
-					 beginload,
-					 endload,
-					 dump,
-					 currentversion,
-					 newversion,
-					 attachversion,
-					 closeversion,
-					 findnode,
-					 cache_find,
-					 cache_findzonecut,
-					 attachnode,
-					 detachnode,
-					 expirenode,
-					 printnode,
-					 createiterator,
-					 cache_findrdataset,
-					 allrdatasets,
-					 addrdataset,
-					 subtractrdataset,
-					 deleterdataset,
-					 issecure,
-					 nodecount,
-					 NULL,
-					 overmem,
-					 setloop,
-					 getoriginnode,
-					 NULL, /* transfernode */
-					 NULL, /* getnsec3parameters */
-					 NULL, /* findnsec3node */
-					 NULL, /* setsigningtime */
-					 NULL, /* getsigningtime */
-					 NULL, /* resigned */
-					 isdnssec,
-					 getrrsetstats,
-					 NULL, /* findnodeext */
-					 NULL, /* findext */
-					 setcachestats,
-					 hashsize,
-					 nodefullname,
-					 NULL, /* getsize */
-					 setservestalettl,
-					 getservestalettl,
-					 setservestalerefresh,
-					 getservestalerefresh,
-					 NULL };
+static dns_dbmethods_t cache_methods = {
+	.attach = attach,
+	.detach = detach,
+	.beginload = beginload,
+	.endload = endload,
+	.dump = dump,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = cache_find,
+	.findzonecut = cache_findzonecut,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = cache_findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.isdnssec = isdnssec,
+	.getrrsetstats = getrrsetstats,
+	.setcachestats = setcachestats,
+	.hashsize = hashsize,
+	.nodefullname = nodefullname,
+	.setservestalettl = setservestalettl,
+	.getservestalettl = getservestalettl,
+	.setservestalerefresh = setservestalerefresh,
+	.getservestalerefresh = getservestalerefresh,
+};
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,

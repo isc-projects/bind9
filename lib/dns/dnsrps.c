@@ -931,72 +931,25 @@ rpsdb_rdatasetiter_current(dns_rdatasetiter_t *iterator,
 }
 
 static dns_dbmethods_t rpsdb_db_methods = {
-	rpsdb_attach,
-	rpsdb_detach,
-	NULL, /* beginload */
-	NULL, /* endload */
-	NULL, /* dump */
-	NULL, /* currentversion */
-	NULL, /* newversion */
-	NULL, /* attachversion */
-	NULL, /* closeversion */
-	rpsdb_findnode,
-	rpsdb_finddb,
-	NULL, /* findzonecut*/
-	rpsdb_attachnode,
-	rpsdb_detachnode,
-	NULL, /* expirenode */
-	NULL, /* printnode */
-	NULL, /* createiterator */
-	rpsdb_findrdataset,
-	rpsdb_allrdatasets,
-	NULL, /* addrdataset */
-	NULL, /* subtractrdataset */
-	NULL, /* deleterdataset */
-	rpsdb_issecure,
-	NULL, /* nodecount */
-	NULL, /* ispersistent */
-	NULL, /* overmem */
-	NULL, /* setloop */
-	rpsdb_getoriginnode,
-	NULL, /* transfernode */
-	NULL, /* getnsec3parameters */
-	NULL, /* findnsec3node */
-	NULL, /* setsigningtime */
-	NULL, /* getsigningtime */
-	NULL, /* resigned */
-	NULL, /* isdnssec */
-	NULL, /* getrrsetstats */
-	NULL, /* findnodeext */
-	NULL, /* findext */
-	NULL, /* setcachestats */
-	NULL, /* hashsize */
-	NULL, /* nodefullname */
-	NULL, /* getsize */
-	NULL, /* setservestalettl */
-	NULL, /* getservestalettl */
-	NULL, /* setservestalerefresh */
-	NULL, /* getservestalerefresh */
-	NULL, /* setgluecachestats */
+	.attach = rpsdb_attach,
+	.detach = rpsdb_detach,
+	.findnode = rpsdb_findnode,
+	.find = rpsdb_finddb,
+	.attachnode = rpsdb_attachnode,
+	.detachnode = rpsdb_detachnode,
+	.findrdataset = rpsdb_findrdataset,
+	.allrdatasets = rpsdb_allrdatasets,
+	.issecure = rpsdb_issecure,
+	.getoriginnode = rpsdb_getoriginnode,
 };
 
 static dns_rdatasetmethods_t rpsdb_rdataset_methods = {
-	rpsdb_rdataset_disassociate,
-	rpsdb_rdataset_first,
-	rpsdb_rdataset_next,
-	rpsdb_rdataset_current,
-	rpsdb_rdataset_clone,
-	rpsdb_rdataset_count,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.disassociate = rpsdb_rdataset_disassociate,
+	first = rpsdb_rdataset_first,
+	.next = rpsdb_rdataset_next,
+	.current = rpsdb_rdataset_current,
+	.clone = rpsdb_rdataset_clone,
+	.count = rpsdb_rdataset_count,
 };
 
 static dns_rdatasetitermethods_t rpsdb_rdatasetiter_methods = {

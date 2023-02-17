@@ -1179,34 +1179,31 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	attach,		detach,		NULL, /* beginload */
-	NULL,				      /* endload */
-	NULL,				      /* dump */
-	currentversion, newversion,	attachversion,
-	closeversion,	findnode,	find,
-	NULL, /* findzonecut */
-	attachnode,	detachnode,	expirenode,
-	printnode,	createiterator, findrdataset,
-	allrdatasets,	addrdataset,	subtractrdataset,
-	deleterdataset, issecure,	nodecount,
-	NULL,		overmem,	setloop,
-	getoriginnode,	NULL,		      /* transfernode */
-	NULL,				      /* getnsec3parameters */
-	NULL,				      /* findnsec3node */
-	NULL,				      /* setsigningtime */
-	NULL,				      /* getsigningtime */
-	NULL,				      /* resigned */
-	NULL,				      /* isdnssec */
-	NULL,				      /* getrrsetstats */
-	findnodeext,	findext,	NULL, /* setcachestats */
-	NULL,				      /* hashsize */
-	NULL,				      /* nodefullname */
-	NULL,				      /* getsize */
-	NULL,				      /* setservestalettl */
-	NULL,				      /* getservestalettl */
-	NULL,				      /* setservestalerefresh */
-	NULL,				      /* getservestalerefresh */
-	NULL,				      /* setgluecachestats */
+	.attach = attach,
+	.detach = detach,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = find,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.findnodeext = findnodeext,
+	.findext = findext,
 };
 
 /*
@@ -1349,22 +1346,14 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
-	disassociate,
-	dns_rdatalist_first,
-	dns_rdatalist_next,
-	dns_rdatalist_current,
-	rdataset_clone,
-	dns_rdatalist_count,
-	dns_rdatalist_addnoqname,
-	dns_rdatalist_getnoqname,
-	NULL, /* addclosest */
-	NULL, /* getclosest */
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL, /* setownercase */
-	NULL, /* getownercase */
-	NULL  /* addglue */
+	.disassociate = disassociate,
+	.first = dns_rdatalist_first,
+	.next = dns_rdatalist_next,
+	.current = dns_rdatalist_current,
+	.clone = rdataset_clone,
+	.count = dns_rdatalist_count,
+	.addnoqname = dns_rdatalist_addnoqname,
+	.getnoqname = dns_rdatalist_getnoqname,
 };
 
 static void

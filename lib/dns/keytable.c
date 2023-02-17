@@ -74,22 +74,11 @@ static void
 keynode_clone(dns_rdataset_t *source, dns_rdataset_t *target);
 
 static dns_rdatasetmethods_t methods = {
-	keynode_disassociate,
-	keynode_first,
-	keynode_next,
-	keynode_current,
-	keynode_clone,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL,
-	NULL,
-	NULL /* addglue */
+	.disassociate = keynode_disassociate,
+	.first = keynode_first,
+	.next = keynode_next,
+	.current = keynode_current,
+	.clone = keynode_clone,
 };
 
 static void

@@ -25,22 +25,18 @@
 #include <dns/rdataset.h>
 
 static dns_rdatasetmethods_t methods = {
-	dns_rdatalist_disassociate,
-	dns_rdatalist_first,
-	dns_rdatalist_next,
-	dns_rdatalist_current,
-	dns_rdatalist_clone,
-	dns_rdatalist_count,
-	dns_rdatalist_addnoqname,
-	dns_rdatalist_getnoqname,
-	dns_rdatalist_addclosest,
-	dns_rdatalist_getclosest,
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	dns_rdatalist_setownercase,
-	dns_rdatalist_getownercase,
-	NULL /* addglue */
+	.disassociate = dns_rdatalist_disassociate,
+	.first = dns_rdatalist_first,
+	.next = dns_rdatalist_next,
+	.current = dns_rdatalist_current,
+	.clone = dns_rdatalist_clone,
+	.count = dns_rdatalist_count,
+	.addnoqname = dns_rdatalist_addnoqname,
+	.getnoqname = dns_rdatalist_getnoqname,
+	.addclosest = dns_rdatalist_addclosest,
+	.getclosest = dns_rdatalist_getclosest,
+	.setownercase = dns_rdatalist_setownercase,
+	.getownercase = dns_rdatalist_getownercase,
 };
 
 void

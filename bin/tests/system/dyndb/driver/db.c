@@ -506,26 +506,42 @@ hashsize(dns_db_t *db) {
  * determine which implementation of dns_db_*() function to call.
  */
 static dns_dbmethods_t sampledb_methods = {
-	attach,		detach,		beginload,
-	endload,	dump,		currentversion,
-	newversion,	attachversion,	closeversion,
-	findnode,	find,		findzonecut,
-	attachnode,	detachnode,	expirenode,
-	printnode,	createiterator, findrdataset,
-	allrdatasets,	addrdataset,	subtractrdataset,
-	deleterdataset, issecure,	nodecount,
-	NULL,		overmem,	setloop,
-	getoriginnode,	transfernode,	getnsec3parameters,
-	findnsec3node,	setsigningtime, getsigningtime,
-	resigned,	isdnssec,	getrrsetstats,
-	findnodeext,	findext,	setcachestats,
-	hashsize,	NULL, /* nodefullname */
-	NULL,		      /* getsize */
-	NULL,		      /* setservestalettl */
-	NULL,		      /* getservestalettl */
-	NULL,		      /* setservestalerefresh */
-	NULL,		      /* getservestalerefresh */
-	NULL,		      /* setgluecachestats */
+	.attach = attach,
+	.detach = detach,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = find,
+	.findzonecut = findzonecut,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.transfernode = transfernode,
+	.getnsec3parameters = getnsec3parameters,
+	.findnsec3node = findnsec3node,
+	.setsigningtime = setsigningtime,
+	.getsigningtime = getsigningtime,
+	.resigned = resigned,
+	.isdnssec = isdnssec,
+	.getrrsetstats = getrrsetstats,
+	.findnodeext = findnodeext,
+	.findext = findext,
+	.setcachestats = setcachestats,
+	.hashsize = hashsize,
 };
 
 /* Auxiliary driver functions. */

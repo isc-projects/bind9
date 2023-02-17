@@ -617,13 +617,17 @@ builtin_destroy(const char *zone, void *driverdata, void **dbdata) {
 }
 
 static dns_sdbmethods_t builtin_methods = {
-	builtin_lookup, builtin_authority, NULL, /* allnodes */
-	builtin_create, builtin_destroy,   NULL
+	.lookup = builtin_lookup,
+	.authority = builtin_authority,
+	.create = builtin_create,
+	.destroy = builtin_destroy,
 };
 
 static dns_sdbmethods_t dns64_methods = {
-	NULL,		builtin_authority, NULL, /* allnodes */
-	builtin_create, builtin_destroy,   dns64_lookup,
+	.authority = builtin_authority,
+	.create = builtin_create,
+	.destroy = builtin_destroy,
+	.lookup2 = dns64_lookup,
 };
 
 isc_result_t
