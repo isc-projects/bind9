@@ -36,10 +36,9 @@
 #include <dns/rootns.h>
 #include <dns/zone.h>
 
+#include <isccfg/check.h>
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
-
-#include <bind9/check.h>
 
 #include "check-tool.h"
 
@@ -734,7 +733,7 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	result = bind9_check_namedconf(config, loadplugins, logc, mctx);
+	result = isccfg_check_namedconf(config, loadplugins, logc, mctx);
 	if (result != ISC_R_SUCCESS) {
 		exit_status = 1;
 	}

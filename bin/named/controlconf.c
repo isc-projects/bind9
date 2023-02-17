@@ -39,9 +39,8 @@
 #include <isccc/symtab.h>
 #include <isccc/util.h>
 
+#include <isccfg/check.h>
 #include <isccfg/namedconf.h>
-
-#include <bind9/check.h>
 
 #include <named/config.h>
 #include <named/control.h>
@@ -839,7 +838,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 		CHECK(ISC_R_NOMEMORY);
 	}
 
-	CHECK(bind9_check_key(key, named_g_lctx));
+	CHECK(isccfg_check_key(key, named_g_lctx));
 
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);

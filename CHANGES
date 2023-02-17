@@ -1,3 +1,7 @@
+6104.	[cleanup]	Move libbind9's configuration checking code into
+			libisccfg alongside the other configuration code.
+			[GL !7461]
+
 6103.	[func]		All uses of the isc_task and isc_event APIs have
 			been refactored to use isc_loop instead, and the
 			original APIs have been removed. [GL #3797]

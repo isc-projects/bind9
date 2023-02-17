@@ -62,13 +62,12 @@
 
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
+#include <isccfg/check.h>
 #include <isccfg/grammar.h>
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 
 #include <ns/hooks.h>
-
-#include <bind9/check.h>
 
 static in_port_t dnsport = 53;
 
@@ -2012,9 +2011,9 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
  * Check "remote-servers" style list.
  */
 static isc_result_t
-bind9_check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
-			     isc_log_t *logctx, isc_symtab_t *symtab,
-			     isc_mem_t *mctx) {
+check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
+		       isc_log_t *logctx, isc_symtab_t *symtab,
+		       isc_mem_t *mctx) {
 	isc_symvalue_t symvalue;
 	isc_result_t result, tresult;
 	const cfg_obj_t *obj = NULL;
@@ -2072,8 +2071,7 @@ bind9_check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
  * Check primaries lists for duplicates.
  */
 static isc_result_t
-bind9_check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx,
-			 isc_mem_t *mctx) {
+check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	isc_symtab_t *symtab = NULL;
 
@@ -2081,13 +2079,12 @@ bind9_check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	tresult = bind9_check_remoteserverlist(cctx, "primaries", logctx,
-					       symtab, mctx);
+	tresult = check_remoteserverlist(cctx, "primaries", logctx, symtab,
+					 mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
-	tresult = bind9_check_remoteserverlist(cctx, "masters", logctx, symtab,
-					       mctx);
+	tresult = check_remoteserverlist(cctx, "masters", logctx, symtab, mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -2099,8 +2096,8 @@ bind9_check_primarylists(const cfg_obj_t *cctx, isc_log_t *logctx,
  * Check parental-agents lists for duplicates.
  */
 static isc_result_t
-bind9_check_parentalagentlists(const cfg_obj_t *cctx, isc_log_t *logctx,
-			       isc_mem_t *mctx) {
+check_parentalagentlists(const cfg_obj_t *cctx, isc_log_t *logctx,
+			 isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	isc_symtab_t *symtab = NULL;
 
@@ -2108,8 +2105,8 @@ bind9_check_parentalagentlists(const cfg_obj_t *cctx, isc_log_t *logctx,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	tresult = bind9_check_remoteserverlist(cctx, "parental-agents", logctx,
-					       symtab, mctx);
+	tresult = check_remoteserverlist(cctx, "parental-agents", logctx,
+					 symtab, mctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -2119,8 +2116,8 @@ bind9_check_parentalagentlists(const cfg_obj_t *cctx, isc_log_t *logctx,
 
 #if HAVE_LIBNGHTTP2
 static isc_result_t
-bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
-		       isc_symtab_t *symtab) {
+check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
+		 isc_symtab_t *symtab) {
 	isc_result_t result, tresult;
 	const char *name = cfg_obj_asstring(cfg_map_getname(http));
 	const cfg_obj_t *eps = NULL;
@@ -2182,8 +2179,7 @@ bind9_check_httpserver(const cfg_obj_t *http, isc_log_t *logctx,
 }
 
 static isc_result_t
-bind9_check_httpservers(const cfg_obj_t *config, isc_log_t *logctx,
-			isc_mem_t *mctx) {
+check_httpservers(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
@@ -2202,7 +2198,7 @@ bind9_check_httpservers(const cfg_obj_t *config, isc_log_t *logctx,
 
 	for (elt = cfg_list_first(obj); elt != NULL; elt = cfg_list_next(elt)) {
 		obj = cfg_listelt_value(elt);
-		tresult = bind9_check_httpserver(obj, logctx, symtab);
+		tresult = check_httpserver(obj, logctx, symtab);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -2215,8 +2211,8 @@ done:
 #endif /* HAVE_LIBNGHTTP2 */
 
 static isc_result_t
-bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
-			  isc_log_t *logctx, isc_symtab_t *symtab) {
+check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
+		    isc_log_t *logctx, isc_symtab_t *symtab) {
 	isc_result_t result, tresult;
 	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
 			*tls_cert = NULL, *tls_ciphers = NULL;
@@ -2338,8 +2334,8 @@ bind9_check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 }
 
 static isc_result_t
-bind9_check_tls_definitions(const cfg_obj_t *config, isc_log_t *logctx,
-			    isc_mem_t *mctx) {
+check_tls_definitions(const cfg_obj_t *config, isc_log_t *logctx,
+		      isc_mem_t *mctx) {
 	isc_result_t result, tresult;
 	const cfg_obj_t *obj = NULL;
 	const cfg_listelt_t *elt = NULL;
@@ -2360,7 +2356,7 @@ bind9_check_tls_definitions(const cfg_obj_t *config, isc_log_t *logctx,
 		const char *name;
 		obj = cfg_listelt_value(elt);
 		name = cfg_obj_asstring(cfg_map_getname(obj));
-		tresult = bind9_check_tls_defintion(obj, name, logctx, symtab);
+		tresult = check_tls_defintion(obj, name, logctx, symtab);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3889,7 +3885,7 @@ typedef struct keyalgorithms {
 } algorithmtable;
 
 isc_result_t
-bind9_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
+isccfg_check_key(const cfg_obj_t *key, isc_log_t *logctx) {
 	const cfg_obj_t *algobj = NULL;
 	const cfg_obj_t *secretobj = NULL;
 	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
@@ -4111,7 +4107,7 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab, isc_mem_t *mctx,
 			result = tresult;
 			continue;
 		}
-		tresult = bind9_check_key(key, logctx);
+		tresult = isccfg_check_key(key, logctx);
 		if (tresult != ISC_R_SUCCESS) {
 			return (tresult);
 		}
@@ -5662,8 +5658,7 @@ static const char *default_channels[] = { "default_syslog", "default_stderr",
 					  "default_debug", "null", NULL };
 
 static isc_result_t
-bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
-		    isc_mem_t *mctx) {
+check_logging(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *categories = NULL;
 	const cfg_obj_t *category;
 	const cfg_obj_t *channels = NULL;
@@ -5775,8 +5770,8 @@ bind9_check_logging(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 static isc_result_t
-bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
-			 isc_log_t *logctx) {
+check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
+		   isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *control_keylist;
 	const cfg_listelt_t *element;
@@ -5804,8 +5799,7 @@ bind9_check_controlskeys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 }
 
 static isc_result_t
-bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
-		     isc_mem_t *mctx) {
+check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	cfg_aclconfctx_t *actx = NULL;
 	const cfg_listelt_t *element, *element2;
@@ -5856,8 +5850,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			}
-			tresult = bind9_check_controlskeys(control, keylist,
-							   logctx);
+			tresult = check_controlskeys(control, keylist, logctx);
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			}
@@ -5896,8 +5889,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 					    "to nobody",
 					    path);
 			}
-			tresult = bind9_check_controlskeys(control, keylist,
-							   logctx);
+			tresult = check_controlskeys(control, keylist, logctx);
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			}
@@ -5908,8 +5900,8 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 isc_result_t
-bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
-		      isc_log_t *logctx, isc_mem_t *mctx) {
+isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
+		       isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *acls = NULL;
@@ -5932,32 +5924,29 @@ bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		result = ISC_R_FAILURE;
 	}
 
-	if (bind9_check_logging(config, logctx, mctx) != ISC_R_SUCCESS) {
+	if (check_logging(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
-	if (bind9_check_controls(config, logctx, mctx) != ISC_R_SUCCESS) {
+	if (check_controls(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
-	if (bind9_check_primarylists(config, logctx, mctx) != ISC_R_SUCCESS) {
+	if (check_primarylists(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
-	if (bind9_check_parentalagentlists(config, logctx, mctx) !=
-	    ISC_R_SUCCESS)
-	{
+	if (check_parentalagentlists(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
 #if HAVE_LIBNGHTTP2
-	if (bind9_check_httpservers(config, logctx, mctx) != ISC_R_SUCCESS) {
+	if (check_httpservers(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 #endif /* HAVE_LIBNGHTTP2 */
 
-	if (bind9_check_tls_definitions(config, logctx, mctx) != ISC_R_SUCCESS)
-	{
+	if (check_tls_definitions(config, logctx, mctx) != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
 
