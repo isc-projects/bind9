@@ -97,7 +97,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	sctx->fuzztype = isc_fuzz_none;
 	sctx->fuzznotify = NULL;
-	sctx->gethostname = NULL;
 
 	sctx->matchingview = matchingview;
 	sctx->answercookie = true;

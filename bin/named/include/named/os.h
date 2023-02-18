@@ -62,9 +62,6 @@ named_os_issingleton(const char *filename);
 void
 named_os_shutdown(void);
 
-isc_result_t
-named_os_gethostname(char *buf, size_t len);
-
 void
 named_os_shutdownmsg(char *command, isc_buffer_t *text);
 

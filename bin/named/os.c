@@ -869,14 +869,6 @@ named_os_shutdown(void) {
 	cleanup_lockfile();
 }
 
-isc_result_t
-named_os_gethostname(char *buf, size_t len) {
-	int n;
-
-	n = gethostname(buf, len);
-	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
-}
-
 void
 named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 	char *last, *ptr;
