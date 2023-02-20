@@ -23,6 +23,7 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/signal.h>
+#include <isc/stack.h>
 #include <isc/thread.h>
 #include <isc/types.h>
 #include <isc/uv.h>
@@ -35,6 +36,7 @@
 #define VALID_LOOP(t) ISC_MAGIC_VALID(t, LOOP_MAGIC)
 
 typedef ISC_LIST(isc_job_t) isc_joblist_t;
+typedef ISC_ASTACK(isc_job_t) isc_jobstack_t;
 
 struct isc_loop {
 	int magic;
@@ -55,8 +57,7 @@ struct isc_loop {
 
 	/* Async queue */
 	uv_async_t queue_trigger;
-	isc_mutex_t queue_lock;
-	isc_joblist_t queue_jobs;
+	isc_jobstack_t queue_jobs;
 
 	/* Pause */
 	uv_async_t pause_trigger;
@@ -127,7 +128,7 @@ struct isc_job {
 	isc_loop_t *loop;
 	isc_job_cb cb;
 	void *cbarg;
-	LINK(isc_job_t) link;
+	ISC_LINK(isc_job_t) link;
 };
 
 /*
