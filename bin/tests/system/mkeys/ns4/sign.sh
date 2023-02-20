@@ -11,7 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ../../conf.sh
+SYSTEMTESTTOP=../..
+. $SYSTEMTESTTOP/conf.sh
 
 zone=sub.foo
 zonefile=sub.foo.db
