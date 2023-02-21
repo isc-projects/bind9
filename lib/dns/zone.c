@@ -20576,8 +20576,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * Update CDS / CDNSKEY records.
 		 */
 		result = dns_dnssec_syncupdate(&dnskeys, &rmkeys, &cdsset,
-					       &cdnskeyset, now, &digests, ttl,
-					       &diff, mctx);
+					       &cdnskeyset, now, &digests, true,
+					       ttl, &diff, mctx);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY: %s",

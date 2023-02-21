@@ -2026,7 +2026,8 @@ isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
-		      dns_ttl_t ttl, dns_diff_t *diff, isc_mem_t *mctx) {
+		      bool gencdnskey, dns_ttl_t ttl, dns_diff_t *diff,
+		      isc_mem_t *mctx) {
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	isc_result_t result;
 	dns_dnsseckey_t *key;
@@ -2055,8 +2056,9 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 					       alg->digest, ttl, diff, mctx));
 			}
 
-			if (!dns_rdataset_isassociated(cdnskey) ||
-			    !exists(cdnskey, &cdnskeyrdata))
+			if (gencdnskey &&
+			    (!dns_rdataset_isassociated(cdnskey) ||
+			     !exists(cdnskey, &cdnskeyrdata)))
 			{
 				isc_log_write(
 					dns_lctx, DNS_LOGCATEGORY_GENERAL,

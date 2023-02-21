@@ -2803,7 +2803,7 @@ build_final_keylist(void) {
 	 */
 
 	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset, now,
-			      &digests, keyttl, &diff, mctx);
+			      &digests, cdnskey, keyttl, &diff, mctx);
 
 	dns_name_format(gorigin, name, sizeof(name));
 

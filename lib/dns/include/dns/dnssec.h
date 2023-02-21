@@ -352,14 +352,15 @@ isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
-		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_mem_t *mctx);
+		      bool gencdnskey, dns_ttl_t hint_ttl, dns_diff_t *diff,
+		      isc_mem_t *mctx);
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
  *
  * For each key in 'keys', check if corresponding CDS and CDNSKEY records
- * need to be published. If needed, there will be one CDNSKEY record added to
- * the 'cdnskey' RRset and one CDS record to the 'cds' RRset for each digest
- * type in 'digests'.
+ * need to be published. If needed and 'gencdnskey' is true, there will be one
+ * CDNSKEY record added to the 'cdnskey' RRset. Also one CDS record will be
+ * added to the 'cds' RRset for each digest type in 'digests'.
  *
  * For each key in 'rmkeys', remove any associated CDS and CDNSKEY records from
  * the RRsets 'cds' and 'cdnskey'.
