@@ -69,6 +69,7 @@ struct dns_catz_entry {
  */
 struct dns_catz_zone {
 	unsigned int magic;
+	isc_loop_t *loop;
 	dns_name_t name;
 	dns_catz_zones_t *catzs;
 	dns_rdata_t soa;
@@ -101,6 +102,8 @@ struct dns_catz_zone {
 
 static void
 dns__catz_timer_start(dns_catz_zone_t *catz);
+static void
+dns__catz_timer_stop(void *arg);
 
 static isc_result_t
 catz_process_zones_entry(dns_catz_zone_t *catz, dns_rdataset_t *value,
@@ -126,6 +129,7 @@ struct dns_catz_zones {
 	dns_catz_zonemodmethods_t *zmm;
 	isc_loopmgr_t *loopmgr;
 	dns_view_t *view;
+	atomic_bool shuttingdown;
 };
 
 void
@@ -820,9 +824,24 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 		isc_interval_set(&interval, 0, 0);
 	}
 
-	isc_timer_create(isc_loop_current(catz->catzs->loopmgr),
-			 dns_catz_update_action, catz, &catz->updatetimer);
+	catz->loop = isc_loop_current(catz->catzs->loopmgr);
+
+	isc_timer_create(catz->loop, dns_catz_update_action, catz,
+			 &catz->updatetimer);
 	isc_timer_start(catz->updatetimer, isc_timertype_once, &interval);
+}
+
+static void
+dns__catz_timer_stop(void *arg) {
+	dns_catz_zone_t *catz = arg;
+	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
+
+	isc_timer_stop(catz->updatetimer);
+	isc_timer_destroy(&catz->updatetimer);
+	catz->loop = NULL;
+
+	dns_catz_unref_catzs(catz->catzs);
+	dns_catz_detach_catz(&catz);
 }
 
 isc_result_t
@@ -886,6 +905,20 @@ dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name) {
 	}
 
 	return (found);
+}
+
+static void
+dns__catz_shutdown(dns_catz_zone_t *catz) {
+	/* lock must be locked */
+	if (catz->updatetimer != NULL) {
+		/* Don't wait for timer to trigger for shutdown */
+		INSIST(catz->loop != NULL);
+
+		dns_catz_ref_catzs(catz->catzs);
+		isc_async_run(catz->loop, dns__catz_timer_stop, catz);
+	} else {
+		dns_catz_detach_catz(&catz);
+	}
 }
 
 static void
@@ -959,27 +992,44 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 
 static void
 dns__catz_zones_destroy(dns_catz_zones_t *catzs) {
+	REQUIRE(atomic_load(&catzs->shuttingdown));
+	REQUIRE(catzs->zones == NULL);
+
+	catzs->magic = 0;
+	isc_mutex_destroy(&catzs->lock);
+	isc_refcount_destroy(&catzs->references);
+
+	isc_mem_putanddetach(&catzs->mctx, catzs, sizeof(*catzs));
+}
+
+void
+dns_catz_shutdown_catzs(dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	if (!atomic_compare_exchange_strong(&catzs->shuttingdown,
+					    &(bool){ false }, true))
+	{
+		return;
+	}
+
+	LOCK(&catzs->lock);
 	if (catzs->zones != NULL) {
 		isc_ht_iter_t *iter = NULL;
 		isc_result_t result;
 		isc_ht_iter_create(catzs->zones, &iter);
 		for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;)
 		{
-			dns_catz_zone_t *zone = NULL;
-			isc_ht_iter_current(iter, (void **)&zone);
+			dns_catz_zone_t *catz = NULL;
+			isc_ht_iter_current(iter, (void **)&catz);
 			result = isc_ht_iter_delcurrent_next(iter);
-			dns_catz_detach_catz(&zone);
+			dns__catz_shutdown(catz);
 		}
 		INSIST(result == ISC_R_NOMORE);
 		isc_ht_iter_destroy(&iter);
 		INSIST(isc_ht_count(catzs->zones) == 0);
 		isc_ht_destroy(&catzs->zones);
 	}
-	catzs->magic = 0;
-	isc_mutex_destroy(&catzs->lock);
-	isc_refcount_destroy(&catzs->references);
-
-	isc_mem_putanddetach(&catzs->mctx, catzs, sizeof(*catzs));
+	UNLOCK(&catzs->lock);
 }
 
 #ifdef DNS_CATZ_TRACE
@@ -1991,6 +2041,7 @@ dns_catz_update_action(void *arg) {
 	dns_catz_update_from_db(catz->db, catz->catzs);
 	isc_timer_stop(catz->updatetimer);
 	isc_timer_destroy(&catz->updatetimer);
+	catz->loop = NULL;
 	result = isc_time_now(&catz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&catz->catzs->lock);
@@ -2082,6 +2133,10 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	if (atomic_load(&catzs->shuttingdown)) {
+		return;
+	}
 
 	dns_name_format(&db->origin, bname, DNS_NAME_FORMATSIZE);
 
