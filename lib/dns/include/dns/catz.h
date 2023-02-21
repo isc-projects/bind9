@@ -386,28 +386,6 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
  */
 
 void
-dns_catz_update_action(void *arg);
-/*%<
- * Task that launches dns_catz_update_from_db.
- *
- * Requires:
- * \li	'event' is not NULL.
- */
-
-void
-dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs);
-/*%<
- * Process an updated database for a catalog zone.
- * It creates a new catz, iterates over database to fill it with content, and
- * then merges new catz into old catz.
- *
- * Requires:
- * \li	'db' is a valid DB.
- * \li	'catzs' is a valid dns_catz_zones_t.
- *
- */
-
-void
 dns_catz_prereconfig(dns_catz_zones_t *catzs);
 /*%<
  * Called before reconfig, clears 'active' flag on all the zones in set
