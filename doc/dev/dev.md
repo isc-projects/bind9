@@ -32,7 +32,7 @@ information regarding copyright ownership.
     * [Iterators](#iterators)
     * [Logging](#logging)
     * [Adding a new RR type](#rrtype)
-    * [Task and timer model](#tasks)
+    * [Asynchronous operations](#async)
 
 ### <a name="reviews"></a>The code review process
 
@@ -1366,86 +1366,10 @@ In nearly all cases, this is simply a wrapper around the `compare()`
 function, except where DNSSEC comparisons are specified as
 case-sensitive. Unknown RR types are always compared case-sensitively.
 
-#### <a name="tasks"></a>Task and timer model
+#### <a name="async"></a>Asynchronous operations
 
-The BIND task/timer management system can be thought of as comparable to a
-simple non-preemptive multitasking operating system.
-
-In this model, what BIND calls a "task" (or an `isc_task_t` object) is the
-equivalent of what is usually called a "process" in an operating system:
-a persistent execution context in which functions run when action is
-required.  When the action is complete, the task goes to sleep, and
-wakes up again when more work arrives.  A "worker thread" is comparable
-to an operating system's CPU; when a task is ready to run, a worker
-thread will run it.  By default, BIND creates one worker thread for each
-system CPU.
-
-An "event" object can be associated with a task, and triggered when a a
-specific condition occurs.  Each event object contains a pointer to a
-specific function and arguments to be passed to it.  When the event
-triggers, the task is placed onto a "ready queue" in the task manager.  As
-each running task finishes, the worker threads pull new tasks off the ready
-queue.  When the task associated with a given event reaches the head of the
-queue, the specified function will be called.
-
-Examples:
-
-A timer is set for a specified time in the future, and the event will
-be triggered at that time.
-
-        /*
-         * Function to handle a timeout
-         */
-        static void
-        timeout(isc_task_t *task, isc_event_t *event) {
-               /* do things */
-         }
-
-         ...
-
-         /*
-          * Set up a timer in timer manager 'timermgr', to run
-          * once, with a NULL expiration time, after 'interval'
-          * has passed; it will run the function 'timeout' with
-          * 'arg' as its argument in task 'task'.
-          */
-         isc_timer_t *timer = NULL;
-         result = isc_timer_create(timermgr, task, timeout, arg, &timer);
-         result = isc_timer_reset(timermgr, isc_timertype_once, NULL,
-                                  interval, false);
-
-An event can also be explicitly triggered via `isc_task_send()`.  
-
-        static void
-        do_things(isc_task_t *task, isc_event_t *event) {
-                /* this function does things */
-        }
-
-        ...
-
-        /*
-         * Allocate an event that calls 'do_things' with a 
-         * NULL argument, using 'myself' as ev_sender.
-         *
-         * DNS_EVENT_DOTHINGS must be defined in <dns/events.h>.
-         *
-         * (Note that 'size' must be specified because there are
-         * event objects that inherit from isc_event_t, incorporating
-         * common members via the ISC_EVENT_COMMON member and then
-         * following them with other members.)
-         */
-        isc_event_t *event;
-        event = isc_event_allocate(mctx, myself, DNS_EVENT_DOTHINGS,
-                                   do_things, NULL, sizeof(isc_event_t));
-        if (event == NULL)
-                return (ISC_R_NOMEMORY);
-
-        ...
-
-        /*
-         * Send the allocated event to task 'task'
-         */
-        isc_task_send(task, event);
+Asynchronous operations are processed using the event loop manager;
+see the [Loop Manager](loopmgr.md) document for details.
 
 #### More...
 

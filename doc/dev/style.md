@@ -764,24 +764,18 @@ described for the public interfaces, except `{library}` and `{module}` are
 separated by a double-underscore.  This indicates that the name is
 internal, its API is not as formal as the public API, and thus it might
 change without any sort of notice.  Examples of this usage include
-`dns__zone_loadpending()` and `isc__taskmgr_ready()`.
+`dns__zone_loadpending()` and `isc__mem_printallactive()`.
 
-In many cases, a public interface is instantiated by a private back-end
-implementation.  The double-underscore naming style is sometimes used in
-that situation; for example, `isc_task_attach()` calls the `attach`
-function provided by a task API implementation; in BIND 9, this function
-is provided by `isc__task_attach()`.
-
-Other times, private interface implementations are static functions
-that are pointed to by "method" tables.  For example, the `dns_db`
-interface is implemented in several places, including `lib/dns/rbtdb.c`
-(the red-black tree database used for internal storage of zones and
-cache data) and `lib/dns/sdlz.c` (an interface to DLZ modules).
+In some cases, a public interface is instantiated by a private back-end
+implementation.  The private interface implementations are typically
+static functions that are pointed to by "method" tables.  For example,
+the `dns_db` interface is implemented in several places, including
+`lib/dns/rbtdb.c` (the red-black tree database used for internal storage of
+zones and cache data) and `lib/dns/sdlz.c` (an interface to DLZ modules).
 An object of type `dns_dbmethods_t` is created for each of these,
-containing function pointers to the local implementations of each
-of the `dns_db` API functions.  The `dns_db_findnode()` function
-is provided by static functions called `findnode()` in each file,
-and so on.
+containing function pointers to the local implementations of each of the
+`dns_db` API functions.  The `dns_db_findnode()` function is provided by
+static functions called `findnode()` in each file, and so on.
 
 #### Initialization
 

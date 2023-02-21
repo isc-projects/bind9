@@ -46,7 +46,7 @@ result information as the return value of the function.  E.g.
 
 	isc_result_t result;
 
-	result = isc_task_send(task, &event);
+        result = isc_stdio_open(filename, 0644, &fp);
 
 Note that an explicit result type is used, instead of mixing the error result
 type with the normal result type.  E.g. the C library routine getc() can

@@ -79,38 +79,25 @@ need to run the event on a different thread.
 manager, uses locked list to collect new jobs and uv_async() primitive to
 enqueue the collected jobs onto the event loop.
 
-## Tasks
-
-The ``isc_task`` API has been modified to run the tasks directly on the loop
-manager.  The new ``isc_job`` and ``isc_async`` APIs are preferred for simple
-events; the ``isc_task`` API is provided for backward-compatibility purposes
-and thus is also thread-safe because it uses locking and uv_async() to enqueue
-events onto the event loop.
-
 ## Timers
 
-The ``isc_timer`` API is now built on top of the ``uv_timer_t`` object.  It has
-been changed to support only ``ticker`` and ``once`` timers, and now uses
-``isc_timer_start()`` and ``isc_timer_stop()`` instead of changing the timer
-type to ``inactive``.  The ``isc_timer_t`` object is not thread-safe.
+The ``isc_timer`` API is built on top of the ``uv_timer_t`` object.
+It supports ``ticker`` and ``once`` timers, and uses ``isc_timer_start()``
+and ``isc_timer_stop()`` to start and stop timers. The ``isc_timer_t``
+object is not thread-safe.
 
 ## Network Manager
 
-The network manager has been changed to use the loop manager event loops
-instead of managing its own event loops.
-
-The new network manager calls are not thread-safe; all connect/read/write
-functions MUST be called from the thread that created the network manager
-socket.
+The network manager is built on top loop manager event loops rather than
+managing its own event loops.  Network manager calls are not thread-safe:
+all connect/read/write functions MUST be called from the thread that created
+the network manager socket.
 
 The ``isc_nm_listen*()`` functions MUST be called from the ``main`` loop.
 
-The general design of Network Manager is based on callbacks.  An extra care must
-be taken when implementing new functions because the callbacks MUST be called
-asynchronously because the caller might be inside a lock and the same lock must
-be acquired in the callback.  This doesn't mean that the callback must be always
-called asynchronously, because sometimes we are already in the libuv callback
-and thus we can just call the callback directly, but in other places, especially
-when returning an error, the control hasn't been returned to the caller yet and
-in such case, the callback must be scheduled onto the event loop instead of
-executing it directly.
+The general design of Network Manager is based on callbacks.  Callback
+functions should always be called asynchronously by the network manager,
+because the caller might be holding a lock, and the callback may try to
+acquire the same lock.  So even if a network manager function is able to
+determine a result immediately, the callback must be scheduled onto the
+event loop instead of executed directly.
