@@ -1,3 +1,6 @@
+6114.	[func]		Run the catalog zone update process on the offload
+			threads. [GL #3881]
+
 6113.	[func]		Add shutdown signaling for catalog zones. [GL !7571]
 
 6112.	[func]		Add reference count tracing for dns_catz_zone_t and
