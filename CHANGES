@@ -1,6 +1,9 @@
 6116.	[bug]		Fix error path cleanup issues in dns_catz_new_zones()
 			and dns_catz_new_zone() functions. [GL #3900]
 
+6112.	[func]		Add reference count tracing for dns_catz_zone_t and
+			dns_catz_zones_t. [GL !7570]
+
 6105.	[bug]		Detach 'rpzs' and 'catzs' from the previous view in
 			configure_rpz() and configure_catz(), respectively,
 			just after attaching it to the new view. [GL #3880]
