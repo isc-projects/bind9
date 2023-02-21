@@ -1,3 +1,5 @@
+6113.	[func]		Add shutdown signaling for catalog zones. [GL !7571]
+
 6112.	[func]		Add reference count tracing for dns_catz_zone_t and
 			dns_catz_zones_t. [GL !7570]
 
