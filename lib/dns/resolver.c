@@ -10613,11 +10613,10 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		}
 
 		/* On success, the fctx is locked in get_attached_fctx() */
-
 		INSIST(!SHUTTINGDOWN(fctx));
 
 		/* Is this a duplicate? */
-		if (fctx != NULL && client != NULL) {
+		if (client != NULL) {
 			dns_fetchresponse_t *resp = NULL;
 			for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL;
 			     resp = ISC_LIST_NEXT(resp, link))
@@ -10632,7 +10631,6 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			}
 		}
 		if (count >= spillatmin && spillatmin != 0) {
-			INSIST(fctx != NULL);
 			if (count >= spillat) {
 				fctx->spilled = true;
 			}
