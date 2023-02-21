@@ -849,6 +849,16 @@ EOF
     restart 3 "rebuild-bl-rpz"
 
     t=`expr $t + 1`
+    echo_i "checking if rpz survives a certain class of failed reconfiguration attempts (${t})"
+    sed -e "s/^#BAD//" < ns3/named.conf.in > ns3/named.conf.tmp
+    copy_setports ns3/named.conf.tmp ns3/named.conf
+    rm ns3/named.conf.tmp
+    $RNDCCMD $ns3 reconfig > /dev/null 2>&1 && setret "failed"
+    sleep 1
+    copy_setports ns3/named.conf.in ns3/named.conf
+    $RNDCCMD $ns3 reconfig || setret "failed"
+
+    t=`expr $t + 1`
     echo_i "checking the configured extended DNS error code (EDE) (${t})"
     $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t
     grep -F "EDE: 4 (Forged Answer)" dig.out.$t > /dev/null || setret "failed"
