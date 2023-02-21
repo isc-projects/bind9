@@ -5706,11 +5706,11 @@ dns_zone_setkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 
 	LOCK_ZONE(zone);
 	if (zone->kasp != NULL) {
-		dns_kasp_t *oldkasp = zone->kasp;
-		zone->kasp = NULL;
-		dns_kasp_detach(&oldkasp);
+		dns_kasp_detach(&zone->kasp);
 	}
-	zone->kasp = kasp;
+	if (kasp != NULL) {
+		dns_kasp_attach(kasp, &zone->kasp);
+	}
 	UNLOCK_ZONE(zone);
 }
 
