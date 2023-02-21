@@ -268,11 +268,8 @@ libraries.
     * `bind9/lib/dns`: implements higher-level DNS functionality:
       red-black trees, rdatasets, views, zones, ACLs, resolver, validator, etc
         * `bind9/lib/dns/tests`: unit tests for libdns
-    * `bind9/lib/bind9`: library implementing bind9-specific functionality,
-      principally configuration validity checking (used in `named` and
-      `named-checkconf` when reading `named.conf`).
     * `bind9/lib/isccfg`: library implementing the `named.conf`
-      configuration parser.
+      configuration parser and checker.
     * `bind9/lib/isccc`: library implementing the control channel used
       by `rndc`
     * `bind9/lib/irs`: provides mechanisms for reading `/etc/resolv.conf`

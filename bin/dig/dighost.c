@@ -37,6 +37,7 @@
 
 #include <isc/base64.h>
 #include <isc/file.h>
+#include <isc/getaddresses.h>
 #include <isc/hex.h>
 #include <isc/lang.h>
 #include <isc/log.h>
@@ -78,8 +79,6 @@
 #include <isccfg/namedconf.h>
 
 #include <irs/resconf.h>
-
-#include <bind9/getaddresses.h>
 
 #include "dighost.h"
 
@@ -534,8 +533,7 @@ set_nameserver(char *opt) {
 	}
 
 	isc_loopmgr_blocking(loopmgr);
-	result = bind9_getaddresses(opt, 0, sockaddrs, DIG_MAX_ADDRESSES,
-				    &count);
+	result = isc_getaddresses(opt, 0, sockaddrs, DIG_MAX_ADDRESSES, &count);
 	isc_loopmgr_nonblocking(loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		fatal("couldn't get address for '%s': %s", opt,
@@ -4528,7 +4526,7 @@ get_address(char *host, in_port_t myport, isc_sockaddr_t *sockaddr) {
 	isc_result_t result;
 
 	isc_loopmgr_blocking(loopmgr);
-	result = bind9_getaddresses(host, myport, sockaddr, 1, &count);
+	result = isc_getaddresses(host, myport, sockaddr, 1, &count);
 	isc_loopmgr_nonblocking(loopmgr);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
@@ -4549,8 +4547,8 @@ getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp) {
 	char tmp[ISC_NETADDR_FORMATSIZE];
 
 	isc_loopmgr_blocking(loopmgr);
-	result = bind9_getaddresses(host, 0, sockaddrs, DIG_MAX_ADDRESSES,
-				    &count);
+	result = isc_getaddresses(host, 0, sockaddrs, DIG_MAX_ADDRESSES,
+				  &count);
 	isc_loopmgr_nonblocking(loopmgr);
 	if (resultp != NULL) {
 		*resultp = result;

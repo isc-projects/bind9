@@ -57,9 +57,3 @@ LIBISCCC_CFLAGS = \
 
 LIBISCCC_LIBS = \
 	$(top_builddir)/lib/isccc/libisccc.la
-
-LIBBIND9_CFLAGS = \
-	-I$(top_srcdir)/lib/bind9/include
-
-LIBBIND9_LIBS = \
-	$(top_builddir)/lib/bind9/libbind9.la

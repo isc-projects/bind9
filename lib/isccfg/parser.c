@@ -2926,7 +2926,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 			}
 		}
 		if ((flags & CFG_ADDR_V6OK) != 0 && strlen(s) <= 127U) {
-			char buf[128];	   /* see lib/bind9/getaddresses.c */
+			char buf[128];	   /* see isc_getaddresses() */
 			char *d;	   /* zone delimiter */
 			uint32_t zone = 0; /* scope zone ID */
 

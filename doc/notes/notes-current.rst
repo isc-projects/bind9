@@ -29,6 +29,10 @@ Removed Features
   A C11 compliant compiler (or better) is now required to compile BIND 9.
   :gl:`#3729`
 
+- The functions that were in the ``libbind9`` shared library have been
+  moved to the ``libisc`` and ``libisccfg`` libraries, and the
+  now-empty ``libbind9`` has been removed and is no longer installed.
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

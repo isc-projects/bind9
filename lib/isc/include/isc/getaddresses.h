@@ -22,8 +22,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
-		   int addrsize, int *addrcount);
+isc_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
+		 int addrsize, int *addrcount);
 /*%<
  * Use the system resolver to get the addresses associated with a hostname.
  * If successful, the number of addresses found is returned in 'addrcount'.

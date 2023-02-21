@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <isc/getaddresses.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/netscope.h>
@@ -26,11 +27,9 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <bind9/getaddresses.h>
-
 isc_result_t
-bind9_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
-		   int addrsize, int *addrcount) {
+isc_getaddresses(const char *hostname, in_port_t port, isc_sockaddr_t *addrs,
+		 int addrsize, int *addrcount) {
 	struct in_addr in4;
 	struct in6_addr in6;
 	bool have_ipv4, have_ipv6;
