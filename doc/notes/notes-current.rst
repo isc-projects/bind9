@@ -56,6 +56,12 @@ Feature Changes
   failure when receiving multiple UDP messages in a single system call.
   :gl:`#3840`
 
+- Run catalog zone updates on the specialized "offload" threads to reduce the
+  amount of time they block query processing on the main networking
+  threads. This should increase the responsiveness of :iscman:`named`
+  when catalog zone updates are being applied after a catalog zone has been
+  successfully transferred. :gl:`#3881`
+
 Bug Fixes
 ~~~~~~~~~
 
