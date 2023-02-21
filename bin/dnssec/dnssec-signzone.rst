@@ -21,7 +21,7 @@ dnssec-signzone - DNSSEC zone signing tool
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-signzone` [**-a**] [**-c** class] [**-d** directory] [**-D**] [**-E** engine] [**-e** end-time] [**-f** output-file] [**-g**] [**-G**] [**-h**] [**-i** interval] [**-I** input-format] [**-j** jitter] [**-K** directory] [**-k** key] [**-L** serial] [**-M** maxttl] [**-N** soa-serial-format] [**-o** origin] [**-O** output-format] [**-P**] [**-Q**] [**-q**] [**-R**] [**-S**] [**-s** start-time] [**-T** ttl] [**-t**] [**-u**] [**-v** level] [**-V**] [**-X** extended end-time] [**-x**] [**-z**] [**-3** salt] [**-H** iterations] [**-A**] {zonefile} [key...]
+:program:`dnssec-signzone` [**-a**] [**-c** class] [**-d** directory] [**-D**] [**-E** engine] [**-e** end-time] [**-f** output-file] [**-g**] [**-G sync-records**] [**-h**] [**-i** interval] [**-I** input-format] [**-j** jitter] [**-K** directory] [**-k** key] [**-L** serial] [**-M** maxttl] [**-N** soa-serial-format] [**-o** origin] [**-O** output-format] [**-P**] [**-Q**] [**-q**] [**-R**] [**-S**] [**-s** start-time] [**-T** ttl] [**-t**] [**-u**] [**-v** level] [**-V**] [**-X** extended end-time] [**-x**] [**-z**] [**-3** salt] [**-H** iterations] [**-A**] {zonefile} [key...]
 
 Description
 ~~~~~~~~~~~
@@ -76,9 +76,12 @@ Options
    This option indicates that DS records for child zones should be generated from a ``dsset-`` or ``keyset-``
    file. Existing DS records are removed.
 
-.. option:: -G
+.. option:: -G sync-records
 
-   This option indicates that CDS and CDNSKEY records should not be generated from the given key set.
+   This option indicates which CDS and CDNSKEY records should be generated. ``sync-records`` is a
+   comma-separated string with the following allowed items: ``cdnskey``, and ``cds:<digest-type>``,
+   where ``digest-type`` is an allowed algorithm such as SHA-256 (2), or SHA-384 (4).
+   Only works in combination with smart signing (``-S``).
 
 .. option:: -K directory
 

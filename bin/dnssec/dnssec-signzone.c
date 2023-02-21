@@ -173,7 +173,7 @@ static bool output_stdout = false;
 static bool set_maxttl = false;
 static dns_ttl_t maxttl = 0;
 static bool no_max_check = false;
-static bool ignore_sync = false;
+static const char *sync_records = "cdnskey,cds:sha-256";
 
 #define INCSTAT(counter)            \
 	if (printstats) {           \
@@ -2734,6 +2734,51 @@ clear_keylist(dns_dnsseckeylist_t *list) {
 }
 
 static void
+add_digest(char *str, size_t dlen, dns_kasp_digestlist_t *digests,
+	   bool *cdnskey) {
+	isc_result_t result;
+	isc_textregion_t r;
+	dns_dsdigest_t alg;
+	dns_kasp_digest_t *digest;
+
+	if (dlen == 7 && strncmp(str, "cdnskey", dlen) == 0) {
+		*cdnskey = true;
+		return;
+	}
+
+	if (dlen < 5 || strncmp(str, "cds:", 4) != 0) {
+		fatal("digest must specify cds:algorithm ('%.*s')", (int)dlen,
+		      str);
+	}
+
+	r.base = str + 4;
+	r.length = dlen - 4;
+	result = dns_dsdigest_fromtext(&alg, &r);
+	if (result == DNS_R_UNKNOWN) {
+		fatal("bad digest '%.*s'", (int)dlen, str);
+	} else if (result != ISC_R_SUCCESS) {
+		fatal("bad digest '%.*s': %s", (int)dlen, str,
+		      isc_result_totext(result));
+	} else if (!dst_ds_digest_supported(alg)) {
+		fatal("unsupported digest '%.*s'", (int)dlen, str);
+	}
+
+	/* Suppress duplicates */
+	for (dns_kasp_digest_t *d = ISC_LIST_HEAD(*digests); d != NULL;
+	     d = ISC_LIST_NEXT(d, link))
+	{
+		if (d->digest == alg) {
+			return;
+		}
+	}
+
+	digest = isc_mem_get(mctx, sizeof(*digest));
+	digest->digest = alg;
+	ISC_LINK_INIT(digest, link);
+	ISC_LIST_APPEND(*digests, digest, link);
+}
+
+static void
 build_final_keylist(void) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -2743,23 +2788,38 @@ build_final_keylist(void) {
 	char name[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t cdsset, cdnskeyset, soaset;
 	dns_kasp_digestlist_t digests;
-	dns_kasp_digest_t digest = {
-		.digest = DNS_DSDIGEST_SHA256,
-		.link = ISC_LINK_INITIALIZER,
-	};
+	dns_kasp_digest_t *d, *d_next;
+	bool cdnskey = false;
 
 	ISC_LIST_INIT(rmkeys);
 	ISC_LIST_INIT(matchkeys);
-
 	ISC_LIST_INIT(digests);
-	if (!ignore_sync) {
-		ISC_LIST_APPEND(digests, &digest, link);
-	}
 
 	dns_rdataset_init(&soaset);
 	dns_rdataset_init(&cdsset);
 	dns_rdataset_init(&cdnskeyset);
 
+	if (strlen(sync_records) > 0) {
+		const char delim = ',';
+		char *digest;
+		char *s;
+		size_t dlen;
+
+		DE_CONST(sync_records, digest);
+	next_digest:
+		s = strchr(digest, delim);
+		if (s == NULL) {
+			dlen = strlen(digest);
+			add_digest(digest, dlen, &digests, &cdnskey);
+			goto findkeys;
+		}
+		dlen = s - digest;
+		add_digest(digest, dlen, &digests, &cdnskey);
+		digest = s + 1;
+		goto next_digest;
+	}
+
+findkeys:
 	/*
 	 * Find keys that match this zone in the key repository.
 	 */
@@ -2828,8 +2888,10 @@ build_final_keylist(void) {
 	clear_keylist(&rmkeys);
 	clear_keylist(&matchkeys);
 
-	if (!ignore_sync) {
-		ISC_LIST_UNLINK(digests, &digest, link);
+	for (d = ISC_LIST_HEAD(digests); d != NULL; d = d_next) {
+		d_next = ISC_LIST_NEXT(d, link);
+		ISC_LIST_UNLINK(digests, d, link);
+		isc_mem_put(mctx, d, sizeof(*d));
 	}
 	INSIST(ISC_LIST_EMPTY(digests));
 }
@@ -3162,6 +3224,8 @@ usage(void) {
 	fprintf(stderr, "\t-g:\t");
 	fprintf(stderr, "update DS records based on child zones' "
 			"dsset-* files\n");
+	fprintf(stderr, "\t-G sync-records:\t");
+	fprintf(stderr, "what CDNSKEY and CDS to publish\n");
 	fprintf(stderr, "\t-s [YYYYMMDDHHMMSS|+offset]:\n");
 	fprintf(stderr, "\t\tRRSIG start time "
 			"- absolute|offset (now - 1 hour)\n");
@@ -3303,8 +3367,8 @@ main(int argc, char *argv[]) {
 	atomic_init(&finished, false);
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
-#define CMDLINE_FLAGS                                                         \
-	"3:AaCc:Dd:E:e:f:FgGhH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
+#define CMDLINE_FLAGS                                                          \
+	"3:AaCc:Dd:E:e:f:FgG:hH:i:I:j:J:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:" \
 	"VX:xzZ:"
 
 	/*
@@ -3411,7 +3475,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'G':
-			ignore_sync = true;
+			sync_records = isc_commandline_argument;
 			break;
 
 		case 'H':
