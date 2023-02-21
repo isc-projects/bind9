@@ -1202,9 +1202,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = dns_kasplist_find(kasplist, "default", &kasp);
 		INSIST(result == ISC_R_SUCCESS && kasp != NULL);
 		dns_zone_setdefaultkasp(zone, kasp);
+		dns_kasp_detach(&kasp);
 
 		obj = NULL;
-		kasp = NULL;
 		result = named_config_get(maps, "dnssec-policy", &obj);
 		if (result == ISC_R_SUCCESS) {
 			kaspname = cfg_obj_asstring(obj);

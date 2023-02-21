@@ -5725,11 +5725,11 @@ dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 
 	LOCK_ZONE(zone);
 	if (zone->defaultkasp != NULL) {
-		dns_kasp_t *oldkasp = zone->defaultkasp;
-		zone->defaultkasp = NULL;
-		dns_kasp_detach(&oldkasp);
+		dns_kasp_detach(&zone->defaultkasp);
 	}
-	zone->defaultkasp = kasp;
+	if (kasp != NULL) {
+		dns_kasp_attach(kasp, &zone->defaultkasp);
+	}
 	UNLOCK_ZONE(zone);
 }
 
