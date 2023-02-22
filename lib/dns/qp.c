@@ -522,7 +522,7 @@ alloc_twigs(dns_qp_t *qp, qp_weight_t size) {
  * NOTE: the caller is responsible for attaching or detaching any
  * leaves as required.
  */
-static inline void
+static inline bool
 free_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 	qp_chunk_t chunk = ref_chunk(twigs);
 
@@ -533,9 +533,25 @@ free_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
 
 	if (twigs_mutable(qp, twigs)) {
 		zero_twigs(ref_ptr(qp, twigs), size);
+		return (true);
 	} else {
 		qp->hold_count += size;
 		ENSURE(qp->free_count >= qp->hold_count);
+		return (false);
+	}
+}
+
+/*
+ * When some twigs have been copied, and free_twigs() could not
+ * immediately destroy the old copy, we need to update the refcount
+ * on any leaves that were duplicated.
+ */
+static void
+attach_twigs(dns_qp_t *qp, qp_node_t *twigs, qp_weight_t size) {
+	for (qp_weight_t pos = 0; pos < size; pos++) {
+		if (!is_branch(&twigs[pos])) {
+			attach_leaf(qp, &twigs[pos]);
+		}
 	}
 }
 
@@ -640,19 +656,8 @@ evacuate_twigs(dns_qp_t *qp, qp_node_t *n) {
 	qp_node_t *new_twigs = ref_ptr(qp, new_ref);
 
 	move_twigs(new_twigs, old_twigs, size);
-	free_twigs(qp, old_ref, size);
-
-	/*
-	 * free_twigs() could not zero out the old twigs,
-	 * so we have to re-attach to any leaves
-	 */
-	if (!twigs_mutable(qp, old_ref)) {
-		for (qp_weight_t pos = 0; pos < size; pos++) {
-			qp_node_t *twig = &new_twigs[pos];
-			if (!is_branch(twig)) {
-				attach_leaf(qp, twig);
-			}
-		}
+	if (!free_twigs(qp, old_ref, size)) {
+		attach_twigs(qp, new_twigs, size);
 	}
 
 	return (new_ref);
@@ -795,12 +800,13 @@ auto_compact_recycle(dns_qp_t *qp) {
  * XXXFANF: If we need to avoid latency outliers caused by compaction in
  * write transactions, we can check qp->transaction_mode here.
  */
-static inline void
+static inline bool
 squash_twigs(dns_qp_t *qp, qp_ref_t twigs, qp_weight_t size) {
-	free_twigs(qp, twigs, size);
-	if (twigs_mutable(qp, twigs) && QP_MAX_GARBAGE(qp)) {
+	bool destroyed = free_twigs(qp, twigs, size);
+	if (destroyed && QP_MAX_GARBAGE(qp)) {
 		auto_compact_recycle(qp);
 	}
+	return (destroyed);
 }
 
 /*
@@ -1321,12 +1327,13 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	qp_node_t new_leaf, old_node;
 	qp_node_t *new_twigs, *old_twigs;
 	qp_shift_t new_bit, old_bit;
+	qp_weight_t old_size, new_size;
 	dns_qpkey_t new_key, old_key;
 	size_t new_keylen, old_keylen;
 	size_t offset;
 	uint64_t index;
 	qp_shift_t bit;
-	qp_weight_t pos, size;
+	qp_weight_t pos;
 	qp_node_t *n;
 
 	REQUIRE(VALID_QP(qp));
@@ -1367,9 +1374,6 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	new_bit = qpkey_bit(new_key, new_keylen, offset);
 	old_bit = qpkey_bit(old_key, old_keylen, offset);
 
-	qp->leaf_count++;
-	attach_leaf(qp, &new_leaf);
-
 	/* find where to insert a branch or grow an existing branch. */
 	n = &qp->root;
 	while (is_branch(n)) {
@@ -1402,15 +1406,19 @@ newbranch:
 	new_twigs[old_bit > new_bit] = old_node;
 	new_twigs[new_bit > old_bit] = new_leaf;
 
+	attach_leaf(qp, &new_leaf);
+	qp->leaf_count++;
+
 	return (ISC_R_SUCCESS);
 
 growbranch:
 	INSIST(!branch_has_twig(n, new_bit));
 
 	/* locate twigs vectors */
-	size = branch_twigs_size(n);
+	old_size = branch_twigs_size(n);
+	new_size = old_size + 1;
 	old_ref = branch_twigs_ref(n);
-	new_ref = alloc_twigs(qp, size + 1);
+	new_ref = alloc_twigs(qp, new_size);
 	old_twigs = ref_ptr(qp, old_ref);
 	new_twigs = ref_ptr(qp, new_ref);
 
@@ -1422,10 +1430,16 @@ growbranch:
 	pos = branch_twig_pos(n, new_bit);
 	move_twigs(new_twigs, old_twigs, pos);
 	new_twigs[pos] = new_leaf;
-	move_twigs(new_twigs + pos + 1, old_twigs + pos, size - pos);
+	move_twigs(new_twigs + pos + 1, old_twigs + pos, old_size - pos);
 
-	/* clean up */
-	squash_twigs(qp, old_ref, size);
+	if (squash_twigs(qp, old_ref, old_size)) {
+		/* old twigs destroyed, only attach to new leaf */
+		attach_leaf(qp, &new_leaf);
+	} else {
+		/* old twigs duplicated, attach to all leaves */
+		attach_twigs(qp, new_twigs, new_size);
+	}
+	qp->leaf_count++;
 
 	return (ISC_R_SUCCESS);
 }
