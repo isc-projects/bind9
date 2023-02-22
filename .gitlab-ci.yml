@@ -1172,7 +1172,6 @@ system:clang:freebsd12:amd64:
   <<: *system_test_job
   variables:
     USER: gitlab-runner
-    TEST_PARALLEL_JOBS: 4
   needs:
     - job: clang:freebsd12:amd64
       artifacts: true
@@ -1199,7 +1198,6 @@ system:clang:freebsd13:amd64:
   <<: *system_test_job
   variables:
     USER: gitlab-runner
-    TEST_PARALLEL_JOBS: 4
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
