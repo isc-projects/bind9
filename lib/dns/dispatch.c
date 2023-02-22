@@ -193,9 +193,6 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 static void
 tcp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	 void *arg);
-static void
-tcp_recv_done(dns_dispentry_t *resp, isc_result_t eresult,
-	      isc_region_t *region);
 static uint32_t
 dns_hash(dns_qid_t *, const isc_sockaddr_t *, dns_messageid_t, in_port_t);
 static void
@@ -210,8 +207,7 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static void
 udp_startrecv(isc_nmhandle_t *handle, dns_dispentry_t *resp);
 static void
-tcp_startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp,
-	      dns_dispentry_t *resp);
+tcp_startrecv(dns_dispatch_t *disp, dns_dispentry_t *resp);
 static void
 tcp_dispatch_getnext(dns_dispatch_t *disp, dns_dispentry_t *resp,
 		     int32_t timeout);
@@ -770,23 +766,17 @@ tcp_recv_shutdown(dns_dispatch_t *disp, dns_displist_t *resps,
 }
 
 static void
-tcp_recv_done(dns_dispentry_t *resp, isc_result_t eresult,
-	      isc_region_t *region) {
-	dispentry_log(resp, LVL(90), "read callback: %s",
-		      isc_result_totext(eresult));
-
-	resp->response(eresult, region, resp->arg);
-	dns_dispentry_detach(&resp); /* DISPENTRY009 */
-}
-
-static void
 tcp_recv_processall(dns_displist_t *resps, isc_region_t *region) {
 	dns_dispentry_t *resp = NULL, *next = NULL;
 
 	for (resp = ISC_LIST_HEAD(*resps); resp != NULL; resp = next) {
 		next = ISC_LIST_NEXT(resp, rlink);
 		ISC_LIST_UNLINK(*resps, resp, rlink);
-		tcp_recv_done(resp, resp->result, region);
+
+		dispentry_log(resp, LVL(90), "read callback: %s",
+			      isc_result_totext(resp->result));
+		resp->response(resp->result, region, resp->arg);
+		dns_dispentry_detach(&resp); /* DISPENTRY009 */
 	}
 }
 
@@ -864,7 +854,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 
 	/*
 	 * Phase 3: Trigger timeouts.  It's possible that the responses would
-	 * have been timedout out already, but non-matching TCP reads have
+	 * have been timed out out already, but non-matching TCP reads have
 	 * prevented this.
 	 */
 	dns_dispentry_t *next = NULL;
@@ -910,7 +900,7 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	 * Phase 5: Resume reading if there are still active responses
 	 */
 	if (!ISC_LIST_EMPTY(disp->active)) {
-		tcp_startrecv(NULL, disp, ISC_LIST_HEAD(disp->active));
+		tcp_startrecv(disp, ISC_LIST_HEAD(disp->active));
 	}
 
 	UNLOCK(&disp->lock);
@@ -1739,7 +1729,7 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 				dispentry_log(resp, LVL(90),
 					      "final 1 second timeout on %p",
 					      disp->handle);
-				tcp_startrecv(NULL, disp, NULL);
+				tcp_startrecv(disp, NULL);
 			}
 #else
 			if (disp->reading) {
@@ -1825,14 +1815,10 @@ udp_startrecv(isc_nmhandle_t *handle, dns_dispentry_t *resp) {
 }
 
 static void
-tcp_startrecv(isc_nmhandle_t *handle, dns_dispatch_t *disp,
-	      dns_dispentry_t *resp) {
+tcp_startrecv(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(disp->socktype == isc_socktype_tcp);
 
-	if (handle != NULL) {
-		isc_nmhandle_attach(handle, &disp->handle);
-	}
 	dns_dispatch_ref(disp); /* DISPATCH002 */
 	if (resp != NULL) {
 		dispentry_log(resp, LVL(90), "reading from %p", disp->handle);
@@ -1904,7 +1890,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		disp->state = DNS_DISPATCHSTATE_CANCELED;
 	} else if (eresult == ISC_R_SUCCESS) {
 		disp->state = DNS_DISPATCHSTATE_CONNECTED;
-		tcp_startrecv(handle, disp, resp);
+		isc_nmhandle_attach(handle, &disp->handle);
+		tcp_startrecv(disp, resp);
 	} else {
 		disp->state = DNS_DISPATCHSTATE_NONE;
 	}
@@ -2043,16 +2030,9 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      "connecting from %s to %s, timeout %u", localbuf,
 			      peerbuf, resp->timeout);
 
-		if (transport_type == DNS_TRANSPORT_TLS) {
-			isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
-						&disp->peer, tcp_connected,
-						disp, resp->timeout, tlsctx,
-						sess_cache);
-		} else {
-			isc_nm_streamdnsconnect(
-				disp->mgr->nm, &disp->local, &disp->peer,
-				tcp_connected, disp, resp->timeout, NULL, NULL);
-		}
+		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
+					&disp->peer, tcp_connected, disp,
+					resp->timeout, tlsctx, sess_cache);
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:
@@ -2073,7 +2053,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		if (!disp->reading) {
 			/* Restart the reading */
-			tcp_startrecv(NULL, disp, resp);
+			tcp_startrecv(disp, resp);
 		}
 
 		UNLOCK(&disp->lock);

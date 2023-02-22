@@ -387,5 +387,4 @@ dns_dispatch_getnext(dns_dispentry_t *resp);
  * Requires:
  *\li	resp is valid
  */
-
 ISC_LANG_ENDDECLS
