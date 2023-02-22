@@ -1733,6 +1733,7 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "check stale nodata.example TXT comes from cache (stale-answer-client-timeout 1.8) ($n)"
+ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (client timeout)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
@@ -1746,9 +1747,12 @@ status=$((status+ret))
 
 nextpart ns3/named.run > /dev/null
 
-echo_i "sending queries for tests $((n+2))-$((n+3))..."
-# first dig runs in background for 3 seconds, second in foreground for 3
+echo_i "sending queries for tests $((n+2))-$((n+4))..."
+# first dig runs in background for 10 seconds, second in background for 3
+# seconds and the last for 3 seconds in the foreground.
+# the second RRSIG lookup triggers the issue in [GL #3622]
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 longttl.example TXT > dig.out.test$((n+3)) &
+$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example RRSIG > dig.out.test$((n+4)) &
 $DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2))
 
 # Enable the authoritative name server after stale-answer-client-timeout.
@@ -1778,6 +1782,14 @@ ret=0
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE" dig.out.test$n > /dev/null && ret=1
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check not in cache longttl.example RRSIG times out (stale-answer-client-timeout 1.8) ($n)"
+ret=0
+grep "timed out" dig.out.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
