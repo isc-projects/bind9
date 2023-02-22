@@ -180,31 +180,17 @@ shutdown_cb(uv_async_t *handle) {
 static void
 queue_cb(uv_async_t *handle) {
 	isc_loop_t *loop = uv_handle_get_data(handle);
-	isc_job_t *job = NULL;
-	ISC_LIST(isc_job_t) list;
 
 	REQUIRE(VALID_LOOP(loop));
 
-	ISC_LIST_INIT(list);
+	ISC_STACK(isc_job_t) drain = ISC_ASTACK_TO_STACK(loop->queue_jobs);
+	isc_job_t *job = ISC_STACK_POP(drain, link);
 
-	LOCK(&loop->queue_lock);
-	ISC_LIST_MOVE(list, loop->queue_jobs);
-	UNLOCK(&loop->queue_lock);
-
-	/*
-	 * The ISC_LIST_TAIL is counterintuitive here, but uv_idle
-	 * drains its queue backwards, so if there's more than one event to
-	 * be processed then they need to be in reverse order.
-	 */
-	job = ISC_LIST_TAIL(list);
 	while (job != NULL) {
-		isc_job_t *next = ISC_LIST_PREV(job, link);
-		ISC_LIST_UNLINK(list, job, link);
-
 		isc__job_init(loop, job);
 		isc__job_run(job);
 
-		job = next;
+		job = ISC_STACK_POP(drain, link);
 	}
 }
 
@@ -213,6 +199,9 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	*loop = (isc_loop_t){
 		.tid = tid,
 		.loopmgr = loopmgr,
+		.queue_jobs = ISC_ASTACK_INITIALIZER,
+		.setup_jobs = ISC_LIST_INITIALIZER,
+		.teardown_jobs = ISC_LIST_INITIALIZER,
 	};
 
 	int r = uv_loop_init(&loop->loop);
@@ -238,12 +227,6 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	snprintf(name, sizeof(name), "loop-%08" PRIx32, tid);
 	isc_mem_create(&loop->mctx);
 	isc_mem_setname(loop->mctx, name);
-
-	isc_mutex_init(&loop->queue_lock);
-
-	ISC_LIST_INIT(loop->queue_jobs);
-	ISC_LIST_INIT(loop->setup_jobs);
-	ISC_LIST_INIT(loop->teardown_jobs);
 
 	isc_refcount_init(&loop->references, 1);
 
@@ -278,8 +261,7 @@ loop_close(isc_loop_t *loop) {
 	int r = uv_loop_close(&loop->loop);
 	UV_RUNTIME_CHECK(uv_loop_close, r);
 
-	isc_mutex_destroy(&loop->queue_lock);
-	INSIST(ISC_LIST_EMPTY(loop->queue_jobs));
+	INSIST(ISC_ASTACK_EMPTY(loop->queue_jobs));
 
 	loop->magic = 0;
 

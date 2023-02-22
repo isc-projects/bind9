@@ -108,11 +108,10 @@ isc__job_new(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 		.magic = JOB_MAGIC,
 		.cb = cb,
 		.cbarg = cbarg,
+		.link = ISC_LINK_INITIALIZER,
 	};
 
 	isc_loop_attach(loop, &job->loop);
-
-	ISC_LINK_INIT(job, link);
 
 	return (job);
 }

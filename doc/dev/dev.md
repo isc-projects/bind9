@@ -646,7 +646,7 @@ More macros are provided for iterating the list:
 
         isc_foo_t *foo;
         for (foo = ISC_LIST_HEAD(foolist);
-             foo != NULL; 
+             foo != NULL;
              foo = ISC_LIST_NEXT(foo, link))
         {
                 /* do things */
@@ -658,6 +658,45 @@ list in reverse order.
 Items can be removed from the list using `ISC_LIST_UNLINK`:
 
         ISC_LIST_UNLINK(foolist, foo, link);
+
+##### Atomic stacks
+
+In `<isc/stack.h>`, there are also similar macros for singly-linked
+stacks (`ISC_STACK`) and atomic stacks (`ISC_ASTACK`).
+
+Lock-free linked data structures have pitfalls that the `ISC_ASTACK`
+macros avoid by having a restricted API. Firstly, it is difficult to
+implement atomic doubly-linked lists without at least a double-width
+compare-exchange, which is not a widely supported primitive, so this
+stack is singly-linked. Secondly, when individual elements can be
+removed from a list (whether doubly-linked or singly-linked), we run
+into the ABA problem, where removes and (re-)inserts race and as a
+result the links get in a tangle. Safe support for removing individual
+elements requires some kind of garbage collection, or extending link
+pointers with generation counters. Instead the ASTACK macros only
+provide a function for emptying the entire stack in one go,
+`ISC_ASTACK_TO_STACK()`. This only requires setting the `top` pointer to
+`NULL`, which cannot cause `ISC_ASTACK_PUSH()` to go wrong.
+
+The `ISC_ASTACK` macros are used the same way as the non-atomic
+doubly-linked lists described above, except that not all of the
+`ISC_LIST` macros have `ISC_ASTACK` equivalents, and stacks have a
+`TOP` instead of a `HEAD`.
+
+As well as read-only iteration similar to `ISC_LIST` described above,
+there is an idiom for emptying an atomic stack into a regular stack,
+and processing its contents:
+
+        ISC_STACK(isc_foo_t) drain = ISC_ASTACK_TO_STACK(foo_work);
+        while (!ISC_STACK_EMPTY(drain)) {
+                isc_foo_t *foo = ISC_STACK_POP(drain, link);
+                /* do things */
+                /* maybe again? ISC_ASTACK_PUSH(foo_work, foo, link) */
+        }
+
+There is also an `ISC_ASTACK_ADD()` macro, which is a convenience
+wrapper for pushing an element onto a stack if it has not already been
+added.
 
 #### <a name="names"></a>Names
 
