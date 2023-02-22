@@ -52,6 +52,8 @@ setup_test(void **state) {
 	result = dns_test_makeview("view", false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	dns_view_setdispatchmgr(view, dispatchmgr);
+
 	isc_sockaddr_any(&local);
 	result = dns_dispatch_createudp(dispatchmgr, &local, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -75,7 +77,7 @@ mkres(dns_resolver_t **resolverp) {
 
 	isc_tlsctx_cache_create(mctx, &tlsctx_cache);
 	result = dns_resolver_create(view, loopmgr, 1, netmgr, 0, tlsctx_cache,
-				     dispatchmgr, dispatch, NULL, resolverp);
+				     dispatch, NULL, resolverp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 }
 

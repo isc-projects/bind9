@@ -82,17 +82,18 @@ ISC_LANG_BEGINDECLS
 
 struct dns_view {
 	/* Unlocked. */
-	unsigned int	  magic;
-	isc_mem_t	 *mctx;
-	dns_rdataclass_t  rdclass;
-	char		 *name;
-	dns_zt_t	 *zonetable;
-	dns_resolver_t	 *resolver;
-	dns_adb_t	 *adb;
-	dns_requestmgr_t *requestmgr;
-	dns_cache_t	 *cache;
-	dns_db_t	 *cachedb;
-	dns_db_t	 *hints;
+	unsigned int	   magic;
+	isc_mem_t	  *mctx;
+	dns_rdataclass_t   rdclass;
+	char		  *name;
+	dns_zt_t	  *zonetable;
+	dns_resolver_t	  *resolver;
+	dns_adb_t	  *adb;
+	dns_requestmgr_t  *requestmgr;
+	dns_dispatchmgr_t *dispatchmgr;
+	dns_cache_t	  *cache;
+	dns_db_t	  *cachedb;
+	dns_db_t	  *hints;
 
 	/*
 	 * security roots and negative trust anchors.
@@ -389,7 +390,6 @@ isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 			unsigned int ndisp, isc_nm_t *netmgr,
 			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
-			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6);
 /*%<
  * Create a resolver and address database for the view.
@@ -399,6 +399,9 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *\li	'view' is a valid, unfrozen view.
  *
  *\li	'view' does not have a resolver already.
+ *
+ *\li	A dispatch manager has been associated with the view by calling
+ *	dns_view_setdispatchmgr().
  *
  *\li	The requirements of dns_resolver_create() apply to 'ndisp',
  *	'netmgr', 'options', 'tlsctx_cache', 'dispatchv4', and 'dispatchv6'.
@@ -1316,4 +1319,13 @@ dns_view_getudpsize(dns_view_t *view);
  * Get the current EDNS UDP buffer size.
  */
 
+void
+dns_view_setdispatchmgr(dns_view_t *view, dns_dispatchmgr_t *dispatchmgr);
+dns_dispatchmgr_t *
+dns_view_getdispatchmgr(dns_view_t *view);
+/*%<
+ * Set/get the dispatch manager for the view; this wil be used
+ * by the resolver and request managers to send and receive DNS
+ * messages.
+ */
 ISC_LANG_ENDDECLS

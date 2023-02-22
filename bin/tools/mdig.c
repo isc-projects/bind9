@@ -48,7 +48,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 #include <dns/request.h>
-#include <dns/resolver.h>
 #include <dns/types.h>
 #include <dns/view.h>
 

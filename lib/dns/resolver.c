@@ -549,7 +549,6 @@ struct dns_resolver {
 	bool frozen;
 	unsigned int options;
 	isc_tlsctx_cache_t *tlsctx_cache;
-	dns_dispatchmgr_t *dispatchmgr;
 	dns_dispatchset_t *dispatches4;
 	dns_dispatchset_t *dispatches6;
 
@@ -2191,7 +2190,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query = isc_mem_get(fctx->mctx, sizeof(*query));
 	*query = (resquery_t){ .options = options,
 			       .addrinfo = addrinfo,
-			       .dispatchmgr = res->dispatchmgr };
+			       .dispatchmgr = res->view->dispatchmgr };
 
 #if DNS_RESOLVER_TRACE
 	fprintf(stderr, "rctx_init:%s:%s:%d:%p->references = 1\n", __func__,
@@ -2256,7 +2255,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		}
 		isc_sockaddr_setport(&addr, 0);
 
-		result = dns_dispatch_createtcp(res->dispatchmgr, &addr,
+		result = dns_dispatch_createtcp(res->view->dispatchmgr, &addr,
 						&addrinfo->sockaddr,
 						&query->dispatch);
 		if (result != ISC_R_SUCCESS) {
@@ -2266,7 +2265,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		FCTXTRACE("connecting via TCP");
 	} else {
 		if (have_addr) {
-			result = dns_dispatch_createudp(res->dispatchmgr, &addr,
+			result = dns_dispatch_createudp(res->view->dispatchmgr,
+							&addr,
 							&query->dispatch);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_query;
@@ -3914,20 +3914,17 @@ out:
 static void
 possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr) {
 	isc_netaddr_t na;
-	isc_sockaddr_t *sa;
+	isc_sockaddr_t *sa = &addr->sockaddr;
 	bool aborted = false;
 	bool bogus;
 	dns_acl_t *blackhole;
 	isc_netaddr_t ipaddr;
 	dns_peer_t *peer = NULL;
-	dns_resolver_t *res;
+	dns_resolver_t *res = fctx->res;
 	const char *msg = NULL;
 
-	sa = &addr->sockaddr;
-
-	res = fctx->res;
 	isc_netaddr_fromsockaddr(&ipaddr, sa);
-	blackhole = dns_dispatchmgr_getblackhole(res->dispatchmgr);
+	blackhole = dns_dispatchmgr_getblackhole(res->view->dispatchmgr);
 	(void)dns_peerlist_peerbyaddr(res->view->peers, &ipaddr, &peer);
 
 	if (blackhole != NULL) {
@@ -10116,8 +10113,8 @@ isc_result_t
 dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		    unsigned int ndisp, isc_nm_t *nm, unsigned int options,
 		    isc_tlsctx_cache_t *tlsctx_cache,
-		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
-		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp) {
+		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
+		    dns_resolver_t **resp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_resolver_t *res = NULL;
 
@@ -10129,7 +10126,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(ndisp > 0);
 	REQUIRE(resp != NULL && *resp == NULL);
 	REQUIRE(tlsctx_cache != NULL);
-	REQUIRE(dispatchmgr != NULL);
 	REQUIRE(dispatchv4 != NULL || dispatchv6 != NULL);
 
 	RTRACE("create");
@@ -10139,7 +10135,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		.loopmgr = loopmgr,
 		.rdclass = view->rdclass,
 		.nm = nm,
-		.dispatchmgr = dispatchmgr,
 		.options = options,
 		.tlsctx_cache = tlsctx_cache,
 		.spillatmin = 10,
@@ -10846,12 +10841,6 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 	}
 
 	UNLOCK(&fctx->lock);
-}
-
-dns_dispatchmgr_t *
-dns_resolver_dispatchmgr(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	return (resolver->dispatchmgr);
 }
 
 dns_dispatch_t *

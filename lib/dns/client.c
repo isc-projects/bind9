@@ -211,6 +211,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 		return (result);
 	}
 
+	dns_view_setdispatchmgr(view, dispatchmgr);
+
 	/* Initialize view security roots */
 	result = dns_view_initsecroots(view, mctx);
 	if (result != ISC_R_SUCCESS) {
@@ -218,8 +220,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	}
 
 	result = dns_view_createresolver(view, loopmgr, 1, nm, 0,
-					 tlsctx_client_cache, dispatchmgr,
-					 dispatchv4, dispatchv6);
+					 tlsctx_client_cache, dispatchv4,
+					 dispatchv6);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_view;
 	}

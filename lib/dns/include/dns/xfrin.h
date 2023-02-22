@@ -63,6 +63,14 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  * 'zone' and a result code as arguments when the transfer finishes.
  *
  * Requires:
+ *\li	'xfrp' != NULL and '*xfrp' == NULL.
+ *
+ *\li	'done' != NULL.
+ *
+ *\li	'primaryaddr' has a non-zero port number.
+ *
+ *\li	'zone' is a valid zone and is associated with a view.
+ *
  *\li	'xfrtype' is dns_rdatatype_axfr, dns_rdatatype_ixfr
  *	or dns_rdatatype_soa (soa query followed by axfr if
  *	serial is greater than current serial).
