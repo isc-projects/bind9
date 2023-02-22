@@ -41,6 +41,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <glob.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -50,7 +51,6 @@
 #include <isc/dir.h>
 #include <isc/errno.h>
 #include <isc/formatcheck.h>
-#include <isc/glob.h>
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -2257,6 +2257,9 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 		 * clause can occur.
 		 */
 		if (strcasecmp(TOKEN_STRING(pctx), "include") == 0) {
+			glob_t g;
+			int rc;
+
 			/*
 			 * Turn the file name into a temporary configuration
 			 * object just so that it is not overwritten by the
@@ -2266,19 +2269,39 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 					    &includename));
 			CHECK(parse_semicolon(pctx));
 
-			/* Allow include to specify a pattern that follows
-			 * the same rules as the shell e.g "/path/zone*.conf" */
-			glob_t glob_obj;
-			CHECK(isc_glob(includename->value.string.base,
-				       &glob_obj));
-			cfg_obj_destroy(pctx, &includename);
-
-			for (size_t i = 0; i < glob_obj.gl_pathc; ++i) {
-				CHECK(parser_openfile(pctx,
-						      glob_obj.gl_pathv[i]));
+			if (includename->value.string.length == 0) {
+				CHECK(ISC_R_FILENOTFOUND);
 			}
 
-			isc_globfree(&glob_obj);
+			/*
+			 * Allow include to specify a pattern that follows
+			 * the same rules as the shell e.g "/path/zone*.conf"
+			 */
+			rc = glob(cfg_obj_asstring(includename), GLOB_ERR, NULL,
+				  &g);
+
+			switch (rc) {
+			case 0:
+				break;
+			case GLOB_NOMATCH:
+				CHECK(ISC_R_FILENOTFOUND);
+				break;
+			case GLOB_NOSPACE:
+				CHECK(ISC_R_NOMEMORY);
+				break;
+			default:
+				if (errno == 0) {
+					CHECK(ISC_R_IOERROR);
+				}
+				CHECK(isc_errno_toresult(errno));
+			}
+
+			for (size_t i = 0; i < g.gl_pathc; ++i) {
+				CHECK(parser_openfile(pctx, g.gl_pathv[i]));
+			}
+
+			cfg_obj_destroy(pctx, &includename);
+			globfree(&g);
 
 			goto redo;
 		}
