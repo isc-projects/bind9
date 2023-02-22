@@ -561,7 +561,6 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_mem_t *mctx = NULL;
 	dns_messageid_t id;
 	bool tcp = false;
-	bool connected = false;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -672,21 +671,14 @@ again:
 	UNLOCK(&requestmgr->lock);
 
 	request->destaddr = *destaddr;
-	if (tcp && connected) {
-		req_send(request);
+	request->flags |= DNS_REQUEST_F_CONNECTING;
+	if (tcp) {
+		request->flags |= DNS_REQUEST_F_TCP;
+	}
 
-		/* no need to call req_connected(), unref here */
-		dns_request_unref(request);
-	} else {
-		request->flags |= DNS_REQUEST_F_CONNECTING;
-		if (tcp) {
-			request->flags |= DNS_REQUEST_F_TCP;
-		}
-
-		result = dns_dispatch_connect(request->dispentry);
-		if (result != ISC_R_SUCCESS) {
-			goto unlink;
-		}
+	result = dns_dispatch_connect(request->dispentry);
+	if (result != ISC_R_SUCCESS) {
+		goto unlink;
 	}
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_create: request %p", request);
