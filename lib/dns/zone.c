@@ -14583,7 +14583,7 @@ zone_timer(void *arg) {
 
 static void
 zone_timer_stop(dns_zone_t *zone) {
-	zone_debuglog(zone, __func__, 10, "settimer inactive");
+	zone_debuglog(zone, __func__, 10, "stop zone timer");
 	if (zone->timer != NULL) {
 		isc_timer_stop(zone->timer);
 	}

@@ -530,8 +530,8 @@ void
 dns_view_thaw(dns_view_t *view);
 /*%<
  * Thaw view.  This allows zones to be added or removed at runtime.  This is
- * NOT thread-safe; the caller MUST have run isc_task_exclusive() prior to
- * thawing the view.
+ * NOT thread-safe; the caller MUST have paused the loopmgr prior to thawing
+ * the view.
  *
  * Requires:
  *

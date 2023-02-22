@@ -170,16 +170,12 @@ isc__nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest FLARG);
 void
 isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG);
 /*%<
- * Increment/decrement the reference counter in a netmgr handle,
- * but (unlike the attach/detach functions) do not change the pointer
- * value. If reference counters drop to zero, the handle can be
- * marked inactive, possibly triggering deletion of its associated
- * socket.
+ * Increment/decrement the reference counter in a netmgr handle.
  *
- * (This will be used to prevent a client from being cleaned up when
- * it's passed to an isc_task event handler. The libuv code would not
- * otherwise know that the handle was in use and might free it, along
- * with the client.)
+ * When the detach function is called on a thread other than the one that
+ * created the handle, it is scheduled to asynchronously by the handle's
+ * event loop. When references go to zero, the associated socket will be
+ * closed and deleted.
  */
 #undef FLARG
 

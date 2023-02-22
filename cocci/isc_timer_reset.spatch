@@ -1,6 +1,0 @@
-@@
-expression E1, E2, E3, E4;
-@@
-
-- isc_timer_reset(E1, E2, NULL, E3, E4)
-+ isc_timer_reset(E1, E2, E3, E4)

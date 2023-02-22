@@ -1133,17 +1133,17 @@ dns_zone_clearxfracl(dns_zone_t *zone);
 bool
 dns_zone_getupdatedisabled(dns_zone_t *zone);
 /*%<
- * Return update disabled.
- * Transient unless called when running in isc_task_exclusive() mode.
+ * Return true if updates are disabled.
  */
 
 void
 dns_zone_setupdatedisabled(dns_zone_t *zone, bool state);
 /*%<
- * Set update disabled.
- * Should only be called only when running in isc_task_exclusive() mode.
- * Failure to do so may result in updates being committed after the
- * call has been made.
+ * Enable or disable updates.
+ *
+ * This should only be called when running in exclusive mode;
+ * otherwise, updates that were already in progress could be
+ * committed after disabling.
  */
 
 bool
