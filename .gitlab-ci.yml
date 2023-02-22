@@ -1232,9 +1232,11 @@ system:clang:openbsd:amd64:
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
+    TEST_PARALLEL_JOBS: 1
   needs:
     - job: clang:openbsd:amd64
       artifacts: true
+  timeout: 2h
 
 # Jobs with libtool disabled
 
