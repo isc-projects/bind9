@@ -251,12 +251,9 @@ static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
-	   const char *fmt, va_list ap) ISC_FORMAT_PRINTF(4, 0);
-
-static void
-xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
-	   const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
+xfrin_logv(dns_xfrin_t *xff, int level, const char *zonetext,
+	   const isc_sockaddr_t *primaryaddr, const char *fmt, va_list ap)
+	ISC_FORMAT_PRINTF(5, 0);
 
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
@@ -746,10 +743,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		char zonetext[DNS_NAME_MAXTEXT + 32];
-		dns_zone_name(zone, zonetext, sizeof(zonetext));
-		xfrin_log1(ISC_LOG_ERROR, zonetext, primaryaddr,
-			   "zone transfer setup failed");
+		xfrin_log(xfr, ISC_LOG_ERROR, "zone transfer setup failed");
 	}
 
 	return (result);
@@ -1635,8 +1629,8 @@ xfrin_destroy(dns_xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message>
  */
 static void
-xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
-	   const char *fmt, va_list ap) {
+xfrin_logv(dns_xfrin_t *xfr, int level, const char *zonetext,
+	   const isc_sockaddr_t *primaryaddr, const char *fmt, va_list ap) {
 	char primarytext[ISC_SOCKADDR_FORMATSIZE];
 	char msgtext[2048];
 
@@ -1644,26 +1638,8 @@ xfrin_logv(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
 	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
-		      level, "transfer of '%s' from %s: %s", zonetext,
+		      level, "%p: transfer of '%s' from %s: %s", xfr, zonetext,
 		      primarytext, msgtext);
-}
-
-/*
- * Logging function for use when a xfrin_ctx_t has not yet been created.
- */
-
-static void
-xfrin_log1(int level, const char *zonetext, const isc_sockaddr_t *primaryaddr,
-	   const char *fmt, ...) {
-	va_list ap;
-
-	if (!isc_log_wouldlog(dns_lctx, level)) {
-		return;
-	}
-
-	va_start(ap, fmt);
-	xfrin_logv(level, zonetext, primaryaddr, fmt, ap);
-	va_end(ap);
 }
 
 /*
@@ -1682,6 +1658,6 @@ xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...) {
 	dns_zone_name(xfr->zone, zonetext, sizeof(zonetext));
 
 	va_start(ap, fmt);
-	xfrin_logv(level, zonetext, &xfr->primaryaddr, fmt, ap);
+	xfrin_logv(xfr, level, zonetext, &xfr->primaryaddr, fmt, ap);
 	va_end(ap);
 }
