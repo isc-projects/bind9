@@ -507,22 +507,13 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
-	rdataset_disassociate,
-	rdataset_first,
-	rdataset_next,
-	rdataset_current,
-	rdataset_clone,
-	rdataset_count,
-	NULL,		   /* addnoqname */
-	NULL,		   /* getnoqname */
-	NULL,		   /* addclosest */
-	NULL,		   /* getclosest */
-	rdataset_settrust, /* settrust */
-	NULL,		   /* expire */
-	NULL,		   /* clearprefetch */
-	NULL,		   /* setownercase */
-	NULL,		   /* getownercase */
-	NULL		   /* addglue */
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
+	.settrust = rdataset_settrust,
 };
 
 isc_result_t

@@ -64,7 +64,6 @@
 
 struct sampledb {
 	dns_db_t common;
-	isc_refcount_t refs;
 	sample_instance_t *inst;
 
 	/*
@@ -93,80 +92,15 @@ sample_name_fromnode(dns_dbnode_t *node, dns_name_t *name) {
 }
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	sampledb_t *sampledb = (sampledb_t *)source;
+destroy(dns_db_t *db) {
+	sampledb_t *sampledb = (sampledb_t *)db;
 
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	isc_refcount_increment(&sampledb->refs);
-	*targetp = source;
-}
-
-static void
-free_sampledb(sampledb_t *sampledb) {
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
 	dns_db_detach(&sampledb->rbtdb);
 	dns_name_free(&sampledb->common.origin, sampledb->common.mctx);
 	isc_mem_putanddetach(&sampledb->common.mctx, sampledb,
 			     sizeof(*sampledb));
-}
-
-static void
-detach(dns_db_t **dbp) {
-	REQUIRE(dbp != NULL && VALID_SAMPLEDB((sampledb_t *)(*dbp)));
-	sampledb_t *sampledb = (sampledb_t *)(*dbp);
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&sampledb->refs) == 1) {
-		free_sampledb(sampledb);
-	}
-}
-
-/*
- * This method should never be called, because DB is "persistent".
- * See ispersistent() function. It means that database do not need to be
- * loaded in the usual sense.
- */
-static isc_result_t
-beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-
-	FATAL_ERROR("current implementation should never call beginload()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * This method should never be called, because DB is "persistent".
- * See ispersistent() function. It means that database do not need to be
- * loaded in the usual sense.
- */
-static isc_result_t
-endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-
-	FATAL_ERROR("current implementation should never call endload()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-     dns_masterformat_t masterformat) {
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-
-	FATAL_ERROR("current implementation should never call dump()");
-
-	/* Not reached */
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -399,17 +333,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return (dns_db_nodecount(sampledb->rbtdb, tree));
 }
 
-/*
- * The database does not need to be loaded from disk or written to disk.
- * Always return true.
- */
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-
-	return (true);
-}
-
 static void
 overmem(dns_db_t *db, bool over) {
 	sampledb_t *sampledb = (sampledb_t *)db;
@@ -563,26 +486,41 @@ hashsize(dns_db_t *db) {
  * determine which implementation of dns_db_*() function to call.
  */
 static dns_dbmethods_t sampledb_methods = {
-	attach,		detach,		beginload,
-	endload,	dump,		currentversion,
-	newversion,	attachversion,	closeversion,
-	findnode,	find,		findzonecut,
-	attachnode,	detachnode,	expirenode,
-	printnode,	createiterator, findrdataset,
-	allrdatasets,	addrdataset,	subtractrdataset,
-	deleterdataset, issecure,	nodecount,
-	ispersistent,	overmem,	setloop,
-	getoriginnode,	transfernode,	getnsec3parameters,
-	findnsec3node,	setsigningtime, getsigningtime,
-	resigned,	isdnssec,	getrrsetstats,
-	findnodeext,	findext,	setcachestats,
-	hashsize,	NULL, /* nodefullname */
-	NULL,		      /* getsize */
-	NULL,		      /* setservestalettl */
-	NULL,		      /* getservestalettl */
-	NULL,		      /* setservestalerefresh */
-	NULL,		      /* getservestalerefresh */
-	NULL,		      /* setgluecachestats */
+	.destroy = destroy,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = find,
+	.findzonecut = findzonecut,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.transfernode = transfernode,
+	.getnsec3parameters = getnsec3parameters,
+	.findnsec3node = findnsec3node,
+	.setsigningtime = setsigningtime,
+	.getsigningtime = getsigningtime,
+	.resigned = resigned,
+	.isdnssec = isdnssec,
+	.getrrsetstats = getrrsetstats,
+	.findnodeext = findnodeext,
+	.findext = findext,
+	.setcachestats = setcachestats,
+	.hashsize = hashsize,
 };
 
 /* Auxiliary driver functions. */
@@ -740,7 +678,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	CHECK(dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin));
 
-	isc_refcount_init(&sampledb->refs, 1);
+	isc_refcount_init(&sampledb->common.references, 1);
 
 	/* Translate instance name to instance pointer. */
 	sampledb->inst = driverarg;

@@ -1,3 +1,7 @@
+6107.	[cleanup]	Remove the dns_sdb API and rewrite the named
+			builtin databases to implement dns_db directly.
+			[GL #3882]
+
 6106.	[cleanup]	Move bind9_getaddresses() to isc_getaddresses()
 			and remove the now empty libbind9. [GL !7462]
 

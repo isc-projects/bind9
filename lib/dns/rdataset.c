@@ -181,22 +181,12 @@ question_count(dns_rdataset_t *rdataset) {
 }
 
 static dns_rdatasetmethods_t question_methods = {
-	question_disassociate,
-	question_cursor,
-	question_cursor,
-	question_current,
-	question_clone,
-	question_count,
-	NULL, /* addnoqname */
-	NULL, /* getnoqname */
-	NULL, /* addclosest */
-	NULL, /* getclosest */
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL, /* setownercase */
-	NULL, /* getownercase */
-	NULL  /* addglue */
+	.disassociate = question_disassociate,
+	.first = question_cursor,
+	.next = question_cursor,
+	.current = question_current,
+	.clone = question_clone,
+	.count = question_count,
 };
 
 void

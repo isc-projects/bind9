@@ -501,7 +501,6 @@ struct dns_rbtdb {
 	isc_stats_t *gluecachestats; /* zone DB only */
 	/* Locked by lock. */
 	unsigned int active;
-	isc_refcount_t references;
 	unsigned int attributes;
 	rbtdb_serial_t current_serial;
 	rbtdb_serial_t least_serial;
@@ -653,40 +652,30 @@ free_gluetable(rbtdb_version_t *version);
 static isc_result_t
 nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
-static dns_rdatasetmethods_t rdataset_methods = { rdataset_disassociate,
-						  rdataset_first,
-						  rdataset_next,
-						  rdataset_current,
-						  rdataset_clone,
-						  rdataset_count,
-						  NULL, /* addnoqname */
-						  rdataset_getnoqname,
-						  NULL, /* addclosest */
-						  rdataset_getclosest,
-						  rdataset_settrust,
-						  rdataset_expire,
-						  rdataset_clearprefetch,
-						  rdataset_setownercase,
-						  rdataset_getownercase,
-						  rdataset_addglue };
+static dns_rdatasetmethods_t rdataset_methods = {
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
+	.getnoqname = rdataset_getnoqname,
+	.getclosest = rdataset_getclosest,
+	.settrust = rdataset_settrust,
+	.expire = rdataset_expire,
+	.clearprefetch = rdataset_clearprefetch,
+	.setownercase = rdataset_setownercase,
+	.getownercase = rdataset_getownercase,
+	.addglue = rdataset_addglue
+};
 
 static dns_rdatasetmethods_t slab_methods = {
-	rdataset_disassociate,
-	rdataset_first,
-	rdataset_next,
-	rdataset_current,
-	rdataset_clone,
-	rdataset_count,
-	NULL, /* addnoqname */
-	NULL, /* getnoqname */
-	NULL, /* addclosest */
-	NULL, /* getclosest */
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL, /* setownercase */
-	NULL, /* getownercase */
-	NULL  /* addglue */
+	.disassociate = rdataset_disassociate,
+	.first = rdataset_first,
+	.next = rdataset_next,
+	.current = rdataset_current,
+	.clone = rdataset_clone,
+	.count = rdataset_count,
 };
 
 static void
@@ -820,17 +809,6 @@ static atomic_uint_fast16_t init_count = 0;
 /*
  * DB Routines
  */
-
-static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)source;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-
-	isc_refcount_increment(&rbtdb->references);
-
-	*targetp = source;
-}
 
 static void
 free_rbtdb_callback(void *arg) {
@@ -1180,7 +1158,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 	TREE_DESTROYLOCK(&rbtdb->tree_lock);
-	isc_refcount_destroy(&rbtdb->references);
+	isc_refcount_destroy(&rbtdb->common.references);
 	if (rbtdb->loop != NULL) {
 		isc_loop_detach(&rbtdb->loop);
 	}
@@ -1258,14 +1236,8 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 }
 
 static void
-detach(dns_db_t **dbp) {
-	REQUIRE(dbp != NULL && VALID_RBTDB((dns_rbtdb_t *)(*dbp)));
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&rbtdb->references) == 1) {
-		maybe_free_rbtdb(rbtdb);
-	}
+destroy(dns_db_t *db) {
+	maybe_free_rbtdb((dns_rbtdb_t *)db);
 }
 
 static void
@@ -1881,7 +1853,7 @@ send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
 	*prune = (prune_t){ .node = node };
 
-	attach((dns_db_t *)rbtdb, &prune->db);
+	dns_db_attach((dns_db_t *)rbtdb, &prune->db);
 	new_reference(rbtdb, node, locktype);
 
 	isc_async_run(rbtdb->loop, prune_tree, prune);
@@ -2208,7 +2180,7 @@ prune_tree(void *arg) {
 	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
 	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 
-	detach((dns_db_t **)&rbtdb);
+	dns_db_detach((dns_db_t **)&rbtdb);
 }
 
 static void
@@ -2419,8 +2391,7 @@ cleanup_dead_nodes_callback(void *arg) {
 	if (again) {
 		isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback, rbtdb);
 	} else {
-		if (isc_refcount_decrement(&rbtdb->references) == 1) {
-			(void)isc_refcount_current(&rbtdb->references);
+		if (isc_refcount_decrement(&rbtdb->common.references) == 1) {
 			maybe_free_rbtdb(rbtdb);
 		}
 	}
@@ -2681,7 +2652,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 				    sizeof(*changed));
 		}
 		if (rbtdb->loop != NULL) {
-			isc_refcount_increment(&rbtdb->references);
+			isc_refcount_increment(&rbtdb->common.references);
 			isc_async_run(rbtdb->loop, cleanup_dead_nodes_callback,
 				      rbtdb);
 		} else {
@@ -4483,27 +4454,6 @@ tree_exit:
 	dns_rbtnodechain_reset(&search.chain);
 
 	return (result);
-}
-
-static isc_result_t
-zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-		 isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-		 dns_name_t *dcname, dns_rdataset_t *rdataset,
-		 dns_rdataset_t *sigrdataset) {
-	UNUSED(db);
-	UNUSED(name);
-	UNUSED(options);
-	UNUSED(now);
-	UNUSED(nodep);
-	UNUSED(foundname);
-	UNUSED(dcname);
-	UNUSED(rdataset);
-	UNUSED(sigrdataset);
-
-	FATAL_ERROR("zone_findzonecut() called!");
-
-	UNREACHABLE();
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static bool
@@ -7737,12 +7687,6 @@ setloop(dns_db_t *db, isc_loop_t *loop) {
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
 
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-	return (false);
-}
-
 static isc_result_t
 getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -8101,101 +8045,81 @@ getservestalerefresh(dns_db_t *db, uint32_t *interval) {
 	return (ISC_R_SUCCESS);
 }
 
-static dns_dbmethods_t zone_methods = { attach,
-					detach,
-					beginload,
-					endload,
-					dump,
-					currentversion,
-					newversion,
-					attachversion,
-					closeversion,
-					findnode,
-					zone_find,
-					zone_findzonecut,
-					attachnode,
-					detachnode,
-					expirenode,
-					printnode,
-					createiterator,
-					zone_findrdataset,
-					allrdatasets,
-					addrdataset,
-					subtractrdataset,
-					deleterdataset,
-					issecure,
-					nodecount,
-					ispersistent,
-					overmem,
-					setloop,
-					getoriginnode,
-					NULL, /* transfernode */
-					getnsec3parameters,
-					findnsec3node,
-					setsigningtime,
-					getsigningtime,
-					resigned,
-					isdnssec,
-					NULL, /* getrrsetstats */
-					NULL, /* findnodeext */
-					NULL, /* findext */
-					NULL, /* setcachestats */
-					hashsize,
-					nodefullname,
-					getsize,
-					NULL, /* setservestalettl */
-					NULL, /* getservestalettl */
-					NULL, /* setservestalerefresh */
-					NULL, /* getservestalerefresh */
-					setgluecachestats };
+static dns_dbmethods_t zone_methods = {
+	.destroy = destroy,
+	.beginload = beginload,
+	.endload = endload,
+	.dump = dump,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = zone_find,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = zone_findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.getnsec3parameters = getnsec3parameters,
+	.findnsec3node = findnsec3node,
+	.setsigningtime = setsigningtime,
+	.getsigningtime = getsigningtime,
+	.resigned = resigned,
+	.isdnssec = isdnssec,
+	.hashsize = hashsize,
+	.nodefullname = nodefullname,
+	.getsize = getsize,
+	.setgluecachestats = setgluecachestats
+};
 
-static dns_dbmethods_t cache_methods = { attach,
-					 detach,
-					 beginload,
-					 endload,
-					 dump,
-					 currentversion,
-					 newversion,
-					 attachversion,
-					 closeversion,
-					 findnode,
-					 cache_find,
-					 cache_findzonecut,
-					 attachnode,
-					 detachnode,
-					 expirenode,
-					 printnode,
-					 createiterator,
-					 cache_findrdataset,
-					 allrdatasets,
-					 addrdataset,
-					 subtractrdataset,
-					 deleterdataset,
-					 issecure,
-					 nodecount,
-					 ispersistent,
-					 overmem,
-					 setloop,
-					 getoriginnode,
-					 NULL, /* transfernode */
-					 NULL, /* getnsec3parameters */
-					 NULL, /* findnsec3node */
-					 NULL, /* setsigningtime */
-					 NULL, /* getsigningtime */
-					 NULL, /* resigned */
-					 isdnssec,
-					 getrrsetstats,
-					 NULL, /* findnodeext */
-					 NULL, /* findext */
-					 setcachestats,
-					 hashsize,
-					 nodefullname,
-					 NULL, /* getsize */
-					 setservestalettl,
-					 getservestalettl,
-					 setservestalerefresh,
-					 getservestalerefresh,
-					 NULL };
+static dns_dbmethods_t cache_methods = {
+	.destroy = destroy,
+	.beginload = beginload,
+	.endload = endload,
+	.dump = dump,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = cache_find,
+	.findzonecut = cache_findzonecut,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = cache_findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.isdnssec = isdnssec,
+	.getrrsetstats = getrrsetstats,
+	.setcachestats = setcachestats,
+	.hashsize = hashsize,
+	.nodefullname = nodefullname,
+	.setservestalettl = setservestalettl,
+	.getservestalettl = getservestalettl,
+	.setservestalerefresh = setservestalerefresh,
+	.getservestalerefresh = getservestalerefresh,
+};
 
 isc_result_t
 dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
@@ -8405,7 +8329,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Misc. Initialization.
 	 */
-	isc_refcount_init(&rbtdb->references, 1);
+	isc_refcount_init(&rbtdb->common.references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->loop = NULL;
 	rbtdb->serve_stale_ttl = 0;

@@ -80,8 +80,6 @@
 #include <dns/sdlz.h>
 #include <dns/types.h>
 
-#include "rdatalist_p.h"
-
 /*
  * Private Types
  */
@@ -100,9 +98,6 @@ struct dns_sdlz_db {
 	dns_db_t common;
 	void *dbdata;
 	dns_sdlzimplementation_t *dlzimp;
-
-	/* Atomic */
-	isc_refcount_t references;
 
 	/* Locked */
 	dns_dbversion_t *future_version;
@@ -302,62 +297,16 @@ static dns_rdatasetitermethods_t rdatasetiter_methods = {
  */
 
 static void
-attach(dns_db_t *source, dns_db_t **targetp) {
-	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)source;
+destroy(dns_db_t *db) {
+	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 
-	REQUIRE(VALID_SDLZDB(sdlz));
-
-	isc_refcount_increment(&sdlz->references);
-
-	*targetp = source;
-}
-
-static void
-destroy(dns_sdlz_db_t *sdlz) {
 	sdlz->common.magic = 0;
 	sdlz->common.impmagic = 0;
 
 	dns_name_free(&sdlz->common.origin, sdlz->common.mctx);
 
-	isc_refcount_destroy(&sdlz->references);
+	isc_refcount_destroy(&sdlz->common.references);
 	isc_mem_putanddetach(&sdlz->common.mctx, sdlz, sizeof(dns_sdlz_db_t));
-}
-
-static void
-detach(dns_db_t **dbp) {
-	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)(*dbp);
-
-	REQUIRE(VALID_SDLZDB(sdlz));
-
-	*dbp = NULL;
-
-	if (isc_refcount_decrement(&sdlz->references) == 1) {
-		destroy(sdlz);
-	}
-}
-
-static isc_result_t
-beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	UNUSED(db);
-	UNUSED(callbacks);
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
-     dns_masterformat_t masterformat) {
-	UNUSED(db);
-	UNUSED(version);
-	UNUSED(filename);
-	UNUSED(masterformat);
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static void
@@ -444,7 +393,7 @@ createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	node = isc_mem_get(sdlz->common.mctx, sizeof(dns_sdlznode_t));
 
 	node->sdlz = NULL;
-	attach((dns_db_t *)sdlz, (dns_db_t **)&node->sdlz);
+	dns_db_attach((dns_db_t *)sdlz, (dns_db_t **)&node->sdlz);
 	ISC_LIST_INIT(node->lists);
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
@@ -497,7 +446,7 @@ destroynode(dns_sdlznode_t *node) {
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdlznode_t));
 	db = &sdlz->common;
-	detach(&db);
+	dns_db_detach(&db);
 }
 
 static isc_result_t
@@ -667,24 +616,6 @@ static isc_result_t
 findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	 dns_dbnode_t **nodep) {
 	return (getnodedata(db, name, create, 0, NULL, NULL, nodep));
-}
-
-static isc_result_t
-findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_name_t *dcname, dns_rdataset_t *rdataset,
-	    dns_rdataset_t *sigrdataset) {
-	UNUSED(db);
-	UNUSED(name);
-	UNUSED(options);
-	UNUSED(now);
-	UNUSED(nodep);
-	UNUSED(foundname);
-	UNUSED(dcname);
-	UNUSED(rdataset);
-	UNUSED(sigrdataset);
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static void
@@ -1187,12 +1118,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	return (0);
 }
 
-static bool
-ispersistent(dns_db_t *db) {
-	UNUSED(db);
-	return (true);
-}
-
 static void
 overmem(dns_db_t *db, bool over) {
 	UNUSED(db);
@@ -1229,32 +1154,30 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	attach,		detach,		beginload,
-	endload,	dump,		currentversion,
-	newversion,	attachversion,	closeversion,
-	findnode,	find,		findzonecut,
-	attachnode,	detachnode,	expirenode,
-	printnode,	createiterator, findrdataset,
-	allrdatasets,	addrdataset,	subtractrdataset,
-	deleterdataset, issecure,	nodecount,
-	ispersistent,	overmem,	setloop,
-	getoriginnode,	NULL,		      /* transfernode */
-	NULL,				      /* getnsec3parameters */
-	NULL,				      /* findnsec3node */
-	NULL,				      /* setsigningtime */
-	NULL,				      /* getsigningtime */
-	NULL,				      /* resigned */
-	NULL,				      /* isdnssec */
-	NULL,				      /* getrrsetstats */
-	findnodeext,	findext,	NULL, /* setcachestats */
-	NULL,				      /* hashsize */
-	NULL,				      /* nodefullname */
-	NULL,				      /* getsize */
-	NULL,				      /* setservestalettl */
-	NULL,				      /* getservestalettl */
-	NULL,				      /* setservestalerefresh */
-	NULL,				      /* getservestalerefresh */
-	NULL,				      /* setgluecachestats */
+	.destroy = destroy,
+	.currentversion = currentversion,
+	.newversion = newversion,
+	.attachversion = attachversion,
+	.closeversion = closeversion,
+	.findnode = findnode,
+	.find = find,
+	.attachnode = attachnode,
+	.detachnode = detachnode,
+	.expirenode = expirenode,
+	.printnode = printnode,
+	.createiterator = createiterator,
+	.findrdataset = findrdataset,
+	.allrdatasets = allrdatasets,
+	.addrdataset = addrdataset,
+	.subtractrdataset = subtractrdataset,
+	.deleterdataset = deleterdataset,
+	.issecure = issecure,
+	.nodecount = nodecount,
+	.overmem = overmem,
+	.setloop = setloop,
+	.getoriginnode = getoriginnode,
+	.findnodeext = findnodeext,
+	.findext = findext,
 };
 
 /*
@@ -1381,7 +1304,7 @@ disassociate(dns_rdataset_t *rdataset) {
 	dns_db_t *db = (dns_db_t *)sdlznode->sdlz;
 
 	detachnode(db, &node);
-	isc__rdatalist_disassociate(rdataset);
+	dns_rdatalist_disassociate(rdataset);
 }
 
 static void
@@ -1391,28 +1314,20 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_db_t *db = (dns_db_t *)sdlznode->sdlz;
 	dns_dbnode_t *tempdb = NULL;
 
-	isc__rdatalist_clone(source, target);
+	dns_rdatalist_clone(source, target);
 	attachnode(db, node, &tempdb);
 	source->private5 = tempdb;
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
-	disassociate,
-	isc__rdatalist_first,
-	isc__rdatalist_next,
-	isc__rdatalist_current,
-	rdataset_clone,
-	isc__rdatalist_count,
-	isc__rdatalist_addnoqname,
-	isc__rdatalist_getnoqname,
-	NULL, /* addclosest */
-	NULL, /* getclosest */
-	NULL, /* settrust */
-	NULL, /* expire */
-	NULL, /* clearprefetch */
-	NULL, /* setownercase */
-	NULL, /* getownercase */
-	NULL  /* addglue */
+	.disassociate = disassociate,
+	.first = dns_rdatalist_first,
+	.next = dns_rdatalist_next,
+	.current = dns_rdatalist_current,
+	.clone = rdataset_clone,
+	.count = dns_rdatalist_count,
+	.addnoqname = dns_rdatalist_addnoqname,
+	.getnoqname = dns_rdatalist_getnoqname,
 };
 
 static void
@@ -1473,7 +1388,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		goto mem_cleanup;
 	}
 
-	isc_refcount_init(&sdlzdb->references, 1);
+	isc_refcount_init(&sdlzdb->common.references, 1);
 
 	/* attach to the memory context */
 	isc_mem_attach(mctx, &sdlzdb->common.mctx);

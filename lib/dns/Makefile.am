@@ -116,7 +116,6 @@ libdns_la_HEADERS =			\
 	include/dns/rpz.h		\
 	include/dns/rriterator.h	\
 	include/dns/rrl.h		\
-	include/dns/sdb.h		\
 	include/dns/sdlz.h		\
 	include/dns/secalg.h		\
 	include/dns/secproto.h		\
@@ -219,7 +218,6 @@ libdns_la_SOURCES =			\
 	rpz.c				\
 	rrl.c				\
 	rriterator.c			\
-	sdb.c				\
 	sdlz.c				\
 	soa.c				\
 	ssu.c				\
@@ -239,7 +237,6 @@ libdns_la_SOURCES =			\
 	zonekey.c			\
 	zt.c				\
 	client.c			\
-	rdatalist_p.h			\
 	tsig_p.h			\
 	zone_p.h
 
