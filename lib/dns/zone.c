@@ -17537,7 +17537,7 @@ got_transfer_quota(void *arg) {
 	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
 			       zone->tsigkey, zone->transport,
 			       zone->zmgr->tlsctx_cache, zone->mctx,
-			       zone->zmgr->netmgr, zone_xfrdone, &zone->xfr));
+			       zone_xfrdone, &zone->xfr));
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&primaryaddr) == PF_INET) {

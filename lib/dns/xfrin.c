@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #include <isc/mem.h>
-#include <isc/netmgr.h>
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/string.h>
@@ -27,6 +26,7 @@
 #include <dns/catz.h>
 #include <dns/db.h>
 #include <dns/diff.h>
+#include <dns/dispatch.h>
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>
@@ -94,14 +94,9 @@ struct dns_xfrin {
 	unsigned int magic;
 	isc_mem_t *mctx;
 	dns_zone_t *zone;
+	dns_view_t *view;
 
 	isc_refcount_t references;
-
-	isc_nm_t *netmgr;
-
-	isc_refcount_t connects; /*%< Connect in progress */
-	isc_refcount_t sends;	 /*%< Send in progress */
-	isc_refcount_t recvs;	 /*%< Receive in progress */
 
 	atomic_bool shuttingdown;
 
@@ -122,9 +117,8 @@ struct dns_xfrin {
 	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
 
-	isc_nmhandle_t *handle;
-	isc_nmhandle_t *readhandle;
-	isc_nmhandle_t *sendhandle;
+	dns_dispatch_t *disp;
+	dns_dispentry_t *dispentry;
 
 	/*% Buffer for IXFR/AXFR request message */
 	isc_buffer_t qbuffer;
@@ -194,7 +188,7 @@ struct dns_xfrin {
  */
 
 static void
-xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
+xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
@@ -232,14 +226,13 @@ static isc_result_t
 xfrin_start(dns_xfrin_t *xfr);
 
 static void
-xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg);
+xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg);
 static isc_result_t
 xfrin_send_request(dns_xfrin_t *xfr);
 static void
-xfrin_send_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg);
+xfrin_send_done(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
-xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
-		isc_region_t *region, void *cbarg);
+xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg);
 
 static void
 xfrin_destroy(dns_xfrin_t *xfr);
@@ -689,8 +682,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
-		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
-		 dns_xfrin_t **xfrp) {
+		 isc_mem_t *mctx, dns_xfrindone_t done, dns_xfrin_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
 	dns_xfrin_t *xfr = NULL;
 	isc_result_t result;
@@ -708,9 +700,9 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		REQUIRE(db != NULL);
 	}
 
-	xfrin_create(mctx, zone, db, netmgr, zonename, dns_zone_getclass(zone),
-		     xfrtype, primaryaddr, sourceaddr, tsigkey, transport,
-		     tlsctx_cache, &xfr);
+	xfrin_create(mctx, zone, db, zonename, dns_zone_getclass(zone), xfrtype,
+		     primaryaddr, sourceaddr, tsigkey, transport, tlsctx_cache,
+		     &xfr);
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
@@ -721,11 +713,9 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	isc_refcount_init(&xfr->references, 1);
 
 	/*
-	 * Set *xfrp now, before calling xfrin_start(). Asynchronous
-	 * netmgr processing could cause the 'done' callback to run in
-	 * another thread before we reached the end of the present
-	 * function. In that case, if *xfrp hadn't already been
-	 * attached, the 'done' function would be unable to detach it.
+	 * Set *xfrp now, before calling xfrin_start(), otherwise it's
+	 * possible the 'done' callback could be run before *xfrp
+	 * was attached.
 	 */
 	*xfrp = xfr;
 
@@ -752,6 +742,9 @@ dns_xfrin_shutdown(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
+
+	/* we won't reach xfrin_recv_done(), so dereference xfr here */
+	dns_xfrin_unref(xfr);
 }
 
 #if DNS_XFRIN_TRACE
@@ -762,12 +755,8 @@ ISC_REFCOUNT_IMPL(dns_xfrin, xfrin_destroy);
 
 static void
 xfrin_cancelio(dns_xfrin_t *xfr) {
-	if (xfr->readhandle == NULL) {
-		return;
-	}
-
-	isc_nm_cancelread(xfr->readhandle);
-	/* The xfr->readhandle detach will happen in xfrin_recv_done callback */
+	dns_dispatch_done(&xfr->dispentry);
+	dns_dispatch_detach(&xfr->disp);
 }
 
 static void
@@ -775,9 +764,6 @@ xfrin_reset(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	xfrin_log(xfr, ISC_LOG_INFO, "resetting");
-
-	REQUIRE(xfr->readhandle == NULL);
-	REQUIRE(xfr->sendhandle == NULL);
 
 	if (xfr->lasttsig != NULL) {
 		isc_buffer_free(&xfr->lasttsig);
@@ -801,6 +787,8 @@ xfrin_reset(dns_xfrin_t *xfr) {
 
 static void
 xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
+	dns_xfrin_ref(xfr);
+
 	/* Make sure only the first xfrin_fail() trumps */
 	if (atomic_compare_exchange_strong(&xfr->shuttingdown, &(bool){ false },
 					   true))
@@ -810,12 +798,14 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 			xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s", msg,
 				  isc_result_totext(result));
 			if (xfr->is_ixfr) {
-				/* Pass special result code to force AXFR retry
+				/*
+				 * Pass special result code to force AXFR retry
 				 */
 				result = DNS_R_BADIXFR;
 			}
 		}
 		xfrin_cancelio(xfr);
+
 		/*
 		 * Close the journal.
 		 */
@@ -828,10 +818,12 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 		}
 		xfr->shutdown_result = result;
 	}
+
+	dns_xfrin_detach(&xfr);
 }
 
 static void
-xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
+xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
@@ -840,11 +832,9 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 	dns_xfrin_t *xfr = NULL;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
-	*xfr = (dns_xfrin_t){ .netmgr = netmgr,
-			      .shutdown_result = ISC_R_UNSET,
+	*xfr = (dns_xfrin_t){ .shutdown_result = ISC_R_UNSET,
 			      .rdclass = rdclass,
 			      .reqtype = reqtype,
-			      .id = (dns_messageid_t)isc_random16(),
 			      .maxrecords = dns_zone_getmaxrecords(zone),
 			      .primaryaddr = *primaryaddr,
 			      .sourceaddr = *sourceaddr,
@@ -852,11 +842,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 
 	isc_mem_attach(mctx, &xfr->mctx);
 	dns_zone_iattach(zone, &xfr->zone);
+	dns_view_weakattach(dns_zone_getview(zone), &xfr->view);
 	dns_name_init(&xfr->name, NULL);
-
-	isc_refcount_init(&xfr->connects, 0);
-	isc_refcount_init(&xfr->sends, 0);
-	isc_refcount_init(&xfr->recvs, 0);
 
 	atomic_init(&xfr->shuttingdown, false);
 
@@ -902,50 +889,53 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_nm_t *netmgr,
 
 static isc_result_t
 xfrin_start(dns_xfrin_t *xfr) {
-	isc_result_t result;
-	dns_xfrin_t *connect_xfr = NULL;
-	dns_transport_type_t transport_type = DNS_TRANSPORT_TCP;
-	isc_tlsctx_t *tlsctx = NULL;
-	isc_tlsctx_client_session_cache_t *sess_cache = NULL;
+	isc_result_t result = ISC_R_FAILURE;
 
-	(void)isc_refcount_increment0(&xfr->connects);
-	dns_xfrin_attach(xfr, &connect_xfr);
+	dns_xfrin_ref(xfr);
 
-	if (xfr->transport != NULL) {
-		transport_type = dns_transport_get_type(xfr->transport);
+	/*
+	 * Reuse an existing TCP connection if possible.  For XoT, we can't
+	 * do this because other connections could be using a different
+	 * certificate, so we just create a new dispatch every time.
+	 */
+	if (xfr->transport == NULL ||
+	    dns_transport_get_type(xfr->transport) == DNS_TRANSPORT_TCP)
+	{
+		result = dns_dispatch_gettcp(dns_view_getdispatchmgr(xfr->view),
+					     &xfr->primaryaddr,
+					     &xfr->sourceaddr, &xfr->disp);
+	}
+	if (result == ISC_R_SUCCESS) {
+		char peer[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_format(&xfr->primaryaddr, peer, sizeof(peer));
+		xfrin_log(xfr, ISC_LOG_DEBUG(1),
+			  "attached to TCP connection to %s", peer);
+	} else {
+		CHECK(dns_dispatch_createtcp(dns_view_getdispatchmgr(xfr->view),
+					     &xfr->sourceaddr,
+					     &xfr->primaryaddr, &xfr->disp));
 	}
 
 	/*
 	 * XXX: timeouts are hard-coded to 30 seconds; this needs to be
 	 * configurable.
 	 */
-	switch (transport_type) {
-	case DNS_TRANSPORT_TCP:
-		isc_nm_streamdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-					&xfr->primaryaddr, xfrin_connect_done,
-					connect_xfr, 30000, NULL, NULL);
-		break;
-	case DNS_TRANSPORT_TLS: {
-		result = dns_transport_get_tlsctx(
-			xfr->transport, &xfr->primaryaddr, xfr->tlsctx_cache,
-			xfr->mctx, &tlsctx, &sess_cache);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
-		INSIST(tlsctx != NULL);
-		isc_nm_streamdnsconnect(xfr->netmgr, &xfr->sourceaddr,
-					&xfr->primaryaddr, xfrin_connect_done,
-					connect_xfr, 30000, tlsctx, sess_cache);
-	} break;
-	default:
-		UNREACHABLE();
-	}
-
+	CHECK(dns_dispatch_add(
+		xfr->disp, 0, 30000, &xfr->primaryaddr, xfr->transport,
+		xfr->tlsctx_cache, xfrin_connect_done, xfrin_send_done,
+		xfrin_recv_done, xfr, &xfr->id, &xfr->dispentry));
+	CHECK(dns_dispatch_connect(xfr->dispentry));
 	return (ISC_R_SUCCESS);
 
 failure:
-	isc_refcount_decrement0(&xfr->connects);
-	dns_xfrin_detach(&connect_xfr);
+	if (xfr->dispentry != NULL) {
+		dns_dispatch_done(&xfr->dispentry);
+	}
+	if (xfr->disp != NULL) {
+		dns_dispatch_detach(&xfr->disp);
+	}
+	dns_xfrin_detach(&xfr);
+
 	return (result);
 }
 
@@ -973,26 +963,29 @@ failure:
  * A connection has been established.
  */
 static void
-xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	dns_xfrin_t *xfr = (dns_xfrin_t *)cbarg;
-	char sourcetext[ISC_SOCKADDR_FORMATSIZE];
+xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg) {
+	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
+	char addrtext[ISC_SOCKADDR_FORMATSIZE];
 	char signerbuf[DNS_NAME_FORMATSIZE];
 	const char *signer = "", *sep = "";
-	isc_sockaddr_t sockaddr;
 	dns_zonemgr_t *zmgr = NULL;
 	isc_time_t now;
 
-	REQUIRE(VALID_XFRIN(xfr));
+	UNUSED(region);
 
-	isc_refcount_decrement0(&xfr->connects);
+	REQUIRE(VALID_XFRIN(xfr));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
 
-	CHECK(result);
+	if (result != ISC_R_SUCCESS) {
+		xfrin_fail(xfr, result, "failed to connect");
+		dns_xfrin_unref(xfr);
+		return;
+	}
 
-	CHECK(isc_nm_xfr_checkperm(handle));
+	CHECK(dns_dispatch_checkperm(xfr->disp));
 
 	zmgr = dns_zone_getmgr(xfr->zone);
 	if (zmgr != NULL) {
@@ -1007,10 +1000,6 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		}
 	}
 
-	xfr->handle = handle;
-	sockaddr = isc_nmhandle_peeraddr(handle);
-	isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));
-
 	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
 		dns_name_format(dst_key_name(xfr->tsigkey->key), signerbuf,
 				sizeof(signerbuf));
@@ -1018,17 +1007,16 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		signer = signerbuf;
 	}
 
-	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s%s%s", sourcetext, sep,
+	isc_sockaddr_format(&xfr->primaryaddr, addrtext, sizeof(addrtext));
+	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s%s%s", addrtext, sep,
 		  signer);
 
 	CHECK(xfrin_send_request(xfr));
 
 failure:
 	if (result != ISC_R_SUCCESS) {
-		xfrin_fail(xfr, result, "failed to connect");
+		xfrin_fail(xfr, result, "connected but unable to transfer");
 	}
-
-	dns_xfrin_detach(&xfr); /* connect_xfr */
 }
 
 /*
@@ -1065,6 +1053,20 @@ tuple2msgname(dns_difftuple_t *tuple, dns_message_t *msg, dns_name_t **target) {
 	*target = name;
 }
 
+static const char *
+request_type(dns_xfrin_t *xfr) {
+	switch (xfr->reqtype) {
+	case dns_rdatatype_soa:
+		return "SOA";
+	case dns_rdatatype_axfr:
+		return "AXFR";
+	case dns_rdatatype_ixfr:
+		return "IXFR";
+	default:
+		ISC_UNREACHABLE();
+	}
+}
+
 /*
  * Build an *XFR request and send its length prefix.
  */
@@ -1078,7 +1080,6 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_name_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
-	dns_xfrin_t *send_xfr = NULL;
 
 	/* Create the request message */
 	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg);
@@ -1099,7 +1100,6 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 
 	if (xfr->reqtype == dns_rdatatype_ixfr) {
 		/* Get the SOA and add it to the authority section. */
-		/* XXX is using the current version the right thing? */
 		dns_db_currentversion(xfr->db, &ver);
 		CHECK(dns_db_createsoatuple(xfr->db, ver, xfr->mctx,
 					    DNS_DIFFOP_EXISTS, &soatuple));
@@ -1116,7 +1116,6 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 					  &xfr->ixfr.request_serial));
 	}
 
-	xfr->id++;
 	xfr->nmsg = 0;
 	xfr->nrecs = 0;
 	xfr->nbytes = 0;
@@ -1143,10 +1142,10 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	isc_buffer_usedregion(&xfr->qbuffer, &region);
 	INSIST(region.length <= 65535);
 
-	dns_xfrin_attach(xfr, &send_xfr);
-	isc_nmhandle_attach(send_xfr->handle, &xfr->sendhandle);
-	isc_refcount_increment0(&send_xfr->sends);
-	isc_nm_send(xfr->handle, &region, xfrin_send_done, send_xfr);
+	dns_xfrin_ref(xfr);
+	dns_dispatch_send(xfr->dispentry, &region);
+	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sending %s request, QID %d",
+		  request_type(xfr), xfr->id);
 
 failure:
 	dns_message_detach(&msg);
@@ -1161,13 +1160,13 @@ failure:
 }
 
 static void
-xfrin_send_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	dns_xfrin_t *xfr = (dns_xfrin_t *)cbarg;
-	dns_xfrin_t *recv_xfr = NULL;
+xfrin_send_done(isc_result_t result, isc_region_t *region, void *arg) {
+	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
+
+	UNUSED(region);
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	isc_refcount_decrement0(&xfr->sends);
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
@@ -1176,33 +1175,23 @@ xfrin_send_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request data");
 
-	dns_xfrin_attach(xfr, &recv_xfr);
-	isc_nmhandle_attach(handle, &recv_xfr->readhandle);
-	isc_refcount_increment0(&recv_xfr->recvs);
-	isc_nm_read(recv_xfr->handle, xfrin_recv_done, recv_xfr);
-
 failure:
 	if (result != ISC_R_SUCCESS) {
 		xfrin_fail(xfr, result, "failed sending request data");
 	}
 
-	isc_nmhandle_detach(&xfr->sendhandle);
-	dns_xfrin_detach(&xfr); /* send_xfr */
+	dns_xfrin_detach(&xfr);
 }
 
 static void
-xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
-		isc_region_t *region, void *cbarg) {
-	dns_xfrin_t *xfr = (dns_xfrin_t *)cbarg;
+xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
+	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	dns_message_t *msg = NULL;
 	dns_name_t *name = NULL;
 	const dns_name_t *tsigowner = NULL;
 	isc_buffer_t buffer;
-	isc_sockaddr_t peer;
 
 	REQUIRE(VALID_XFRIN(xfr));
-
-	isc_refcount_decrement0(&xfr->recvs);
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -1228,23 +1217,21 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 
 	isc_buffer_init(&buffer, region->base, region->length);
 	isc_buffer_add(&buffer, region->length);
-	peer = isc_nmhandle_peeraddr(handle);
 
 	result = dns_message_parse(msg, &buffer,
 				   DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == ISC_R_SUCCESS) {
-		dns_message_logpacket(msg, "received message from", &peer,
-				      DNS_LOGCATEGORY_XFER_IN,
-				      DNS_LOGMODULE_XFER_IN, ISC_LOG_DEBUG(10),
-				      xfr->mctx);
+		dns_message_logpacket(
+			msg, "received message from", &xfr->primaryaddr,
+			DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
+			ISC_LOG_DEBUG(10), xfr->mctx);
 	} else {
 		xfrin_log(xfr, ISC_LOG_DEBUG(10), "dns_message_parse: %s",
 			  isc_result_totext(result));
 	}
 
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
-	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass ||
-	    msg->id != xfr->id)
+	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass)
 	{
 		if (result == ISC_R_SUCCESS && msg->rcode != dns_rcode_noerror)
 		{
@@ -1270,7 +1257,6 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 			  isc_result_totext(result));
 	try_axfr:
-		isc_nmhandle_detach(&xfr->readhandle);
 		dns_message_detach(&msg);
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
@@ -1279,7 +1265,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		if (result != ISC_R_SUCCESS) {
 			xfrin_fail(xfr, result, "failed setting up socket");
 		}
-		dns_xfrin_detach(&xfr); /* recv_xfr */
+		dns_xfrin_detach(&xfr);
 		return;
 	}
 
@@ -1359,7 +1345,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		FAIL(DNS_R_NOTAUTHORITATIVE);
 	}
 
-	result = dns_message_checksig(msg, dns_zone_getview(xfr->zone));
+	result = dns_message_checksig(msg, xfr->view);
 	if (result != ISC_R_SUCCESS) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "TSIG check failed: %s",
 			  isc_result_totext(result));
@@ -1468,11 +1454,8 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		/*
 		 * Read the next message.
 		 */
-		/* The readhandle is still attached */
-		/* The recv_xfr is still attached */
 		dns_message_detach(&msg);
-		isc_refcount_increment0(&xfr->recvs);
-		isc_nm_read(xfr->handle, xfrin_recv_done, xfr);
+		dns_dispatch_getnext(xfr->dispentry);
 		return;
 	}
 
@@ -1484,24 +1467,18 @@ failure:
 	if (msg != NULL) {
 		dns_message_detach(&msg);
 	}
-	isc_nmhandle_detach(&xfr->readhandle);
-	dns_xfrin_detach(&xfr); /* recv_xfr */
+	dns_xfrin_detach(&xfr);
 }
 
 static void
 xfrin_destroy(dns_xfrin_t *xfr) {
-	uint64_t msecs;
-	uint64_t persec;
-	const char *result_str;
+	uint64_t msecs, persec;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
 	/* Safe-guards */
 	REQUIRE(atomic_load(&xfr->shuttingdown));
 	isc_refcount_destroy(&xfr->references);
-	isc_refcount_destroy(&xfr->connects);
-	isc_refcount_destroy(&xfr->recvs);
-	isc_refcount_destroy(&xfr->sends);
 
 	INSIST(xfr->shutdown_result != ISC_R_UNSET);
 
@@ -1510,8 +1487,8 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 	 * shutting down, we can't know what the transfer status is as
 	 * we are only called when the last reference is lost.
 	 */
-	result_str = isc_result_totext(xfr->shutdown_result);
-	xfrin_log(xfr, ISC_LOG_INFO, "Transfer status: %s", result_str);
+	xfrin_log(xfr, ISC_LOG_INFO, "Transfer status: %s",
+		  isc_result_totext(xfr->shutdown_result));
 
 	/*
 	 * Calculate the length of time the transfer took,
@@ -1531,11 +1508,11 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 		  (unsigned int)(msecs / 1000), (unsigned int)(msecs % 1000),
 		  (unsigned int)persec, xfr->end_serial);
 
-	if (xfr->readhandle != NULL) {
-		isc_nmhandle_detach(&xfr->readhandle);
+	if (xfr->dispentry != NULL) {
+		dns_dispatch_done(&xfr->dispentry);
 	}
-	if (xfr->sendhandle != NULL) {
-		isc_nmhandle_detach(&xfr->sendhandle);
+	if (xfr->disp != NULL) {
+		dns_dispatch_detach(&xfr->disp);
 	}
 
 	if (xfr->transport != NULL) {
@@ -1589,6 +1566,10 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 		 * xfr->zone must not be detached before xfrin_log() is called.
 		 */
 		dns_zone_idetach(&xfr->zone);
+	}
+
+	if (xfr->view != NULL) {
+		dns_view_weakdetach(&xfr->view);
 	}
 
 	if (xfr->firstsoa_data != NULL) {

@@ -387,4 +387,15 @@ dns_dispatch_getnext(dns_dispentry_t *resp);
  * Requires:
  *\li	resp is valid
  */
+
+isc_result_t
+dns_dispatch_checkperm(dns_dispatch_t *disp);
+/*%<
+ * Check whether it is permitted to do a zone transfer over a dispatch.
+ * See isc_nm_xfr_checkperm().
+ *
+ * Requires:
+ *\li	disp is valid
+ */
+
 ISC_LANG_ENDDECLS

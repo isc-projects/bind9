@@ -2328,3 +2328,14 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
 	isc_mutex_destroy(&dset->lock);
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 }
+
+isc_result_t
+dns_dispatch_checkperm(dns_dispatch_t *disp) {
+	REQUIRE(VALID_DISPATCH(disp));
+
+	if (disp->handle == NULL || disp->socktype == isc_socktype_udp) {
+		return (ISC_R_NOPERM);
+	}
+
+	return (isc_nm_xfr_checkperm(disp->handle));
+}

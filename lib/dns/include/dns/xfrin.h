@@ -55,8 +55,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
-		 isc_mem_t *mctx, isc_nm_t *netmgr, dns_xfrindone_t done,
-		 dns_xfrin_t **xfrp);
+		 isc_mem_t *mctx, dns_xfrindone_t done, dns_xfrin_t **xfrp);
 /*%<
  * Attempt to start an incoming zone transfer of 'zone'
  * from 'primaryaddr', creating a dns_xfrin_t object to
