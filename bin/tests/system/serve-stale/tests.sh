@@ -1781,6 +1781,25 @@ grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+# CVE-2022-3924, GL #3619
+n=$((n+1))
+echo_i "check that named survives reaching recursive-clients quota (stale-answer-client-timeout 1.8) ($n)"
+ret=0
+num=0
+# Make sure to exceed the configured value of 'recursive-clients 10;' by running
+# 20 parallel queries with simulated network latency.
+while [ $num -lt 20 ]; do
+    $DIG +tries=1 -p ${PORT} @10.53.0.3 "latency${num}.data.example" TXT >/dev/null 2>&1 &
+    num=$((num+1))
+done;
+_dig_data() {
+    $DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || return 1
+    grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
+}
+retry_quiet 5 _dig_data || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 #############################################
 # Test for stale-answer-client-timeout off. #
 #############################################
