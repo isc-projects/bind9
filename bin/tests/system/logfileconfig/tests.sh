@@ -272,7 +272,7 @@ n=`expr $n + 1`
 echo_i "testing default logfile using named -L file ($n)"
 # Now stop the server again and test the -L option
 rm -f $DLFILE
-stop_server --use-rndc --port ${CONTROLPORT} ns1
+stop_server ns1
 if ! test -f $PIDFILE; then
 	copy_setports $PLAINCONF named.conf
 	$myNAMED -L $DLFILE > /dev/null 2>&1
