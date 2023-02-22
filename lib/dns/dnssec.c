@@ -2033,6 +2033,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 	dns_dnsseckey_t *key;
 
 	REQUIRE(digests != NULL);
+	REQUIRE(keys != NULL);
+	REQUIRE(rmkeys != NULL);
 
 	for (key = ISC_LIST_HEAD(*keys); key != NULL;
 	     key = ISC_LIST_NEXT(key, link))

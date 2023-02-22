@@ -371,6 +371,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
  * Any changes made also cause a dns_difftuple to be added to 'diff'.
  *
  * Requires:
+ *\li	'keys' is not NULL.
+ *\li	'rmkeys' is not NULL.
  *\li	'digests' is not NULL.
  *
  * Returns:
