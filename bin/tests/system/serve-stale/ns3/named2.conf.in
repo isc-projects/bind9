@@ -39,6 +39,7 @@ options {
 	stale-answer-ttl 3;
 	stale-refresh-time 0;
 	stale-answer-client-timeout 1800;
+	recursive-clients 10; # CVE-2022-3924
 	max-stale-ttl 3600;
 	resolver-query-timeout 10;
 };
