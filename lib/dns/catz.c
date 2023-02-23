@@ -2306,6 +2306,9 @@ dns__catz_update_cb(void *data) {
 			break;
 		}
 
+		result = dns_dbiterator_pause(it);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
 		if (!is_vers_processed) {
 			/* Keep the version node to skip it later in the loop */
 			vers_node = node;
