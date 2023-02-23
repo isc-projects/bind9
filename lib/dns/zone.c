@@ -323,7 +323,7 @@ struct dns_zone {
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t sourceaddr;
-	dns_xfrin_ctx_t *xfr;	    /* loop locked */
+	dns_xfrin_t *xfr;	    /* loop locked */
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
