@@ -124,7 +124,6 @@ struct dns_catz_zones {
 	dns_catz_zonemodmethods_t *zmm;
 	isc_loopmgr_t *loopmgr;
 	dns_view_t *view;
-	isc_loop_t *loop;
 };
 
 void
@@ -757,7 +756,6 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	isc_mem_attach(mctx, &new_zones->mctx);
 	new_zones->zmm = zmm;
 	new_zones->loopmgr = loopmgr;
-	new_zones->loop = isc_loop_get(new_zones->loopmgr, 0);
 
 	new_zones->magic = DNS_CATZ_ZONES_MAGIC;
 
