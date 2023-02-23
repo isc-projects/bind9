@@ -3163,9 +3163,6 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	dns_catz_new_zones(view->mctx, named_g_loopmgr, &view->catzs,
-			   &ns_catz_zonemodmethods);
-
 	if (pview != NULL) {
 		old = pview->catzs;
 	} else {
@@ -3178,10 +3175,12 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	}
 
 	if (old != NULL) {
-		dns_catz_detach_catzs(&view->catzs);
 		dns_catz_attach_catzs(pview->catzs, &view->catzs);
 		dns_catz_detach_catzs(&pview->catzs);
 		dns_catz_prereconfig(view->catzs);
+	} else {
+		dns_catz_new_zones(view->mctx, named_g_loopmgr, &view->catzs,
+				   &ns_catz_zonemodmethods);
 	}
 
 	while (zone_element != NULL) {
