@@ -20,6 +20,7 @@
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/qsbr.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/signal.h>
@@ -52,7 +53,6 @@ struct isc_loop {
 
 	/* states */
 	bool paused;
-	atomic_bool finished;
 	bool shuttingdown;
 
 	/* Async queue */
@@ -69,6 +69,11 @@ struct isc_loop {
 
 	/* Destroy */
 	uv_async_t destroy_trigger;
+
+	/* safe memory reclamation */
+	uv_async_t wakeup_trigger;
+	uv_prepare_t quiescent;
+	isc_qsbr_phase_t qsbr_phase;
 };
 
 /*
@@ -103,6 +108,9 @@ struct isc_loopmgr {
 
 	/* per-thread objects */
 	isc_loop_t *loops;
+
+	/* safe memory reclamation */
+	isc_qsbr_t qsbr;
 };
 
 /*
