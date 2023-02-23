@@ -1269,9 +1269,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				zone, ipkl.addrs, ipkl.dscps, ipkl.keys,
 				ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
+			CHECK(result);
 		} else {
-			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
+			CHECK(dns_zone_setalsonotify(zone, NULL, 0));
 		}
 
 		obj = NULL;
@@ -1719,9 +1719,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			result = dns_zone_setparentals(zone, ipkl.addrs,
 						       ipkl.keys, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
+			CHECK(result);
 		} else {
-			RETERR(dns_zone_setparentals(zone, NULL, NULL, 0));
+			CHECK(dns_zone_setparentals(zone, NULL, NULL, 0));
 		}
 	}
 
@@ -1929,11 +1929,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				mayberaw, ipkl.addrs, ipkl.keys, ipkl.count);
 			count = ipkl.count;
 			dns_ipkeylist_clear(mctx, &ipkl);
-			RETERR(result);
+			CHECK(result);
 		} else {
 			result = dns_zone_setprimaries(mayberaw, NULL, 0);
 		}
-		RETERR(result);
+		CHECK(result);
 
 		multi = false;
 		if (count > 1) {
