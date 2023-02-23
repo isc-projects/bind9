@@ -166,8 +166,8 @@ isc_refcount_decrement(isc_refcount_t *target) {
 		uint_fast32_t refs =                                          \
 			isc_refcount_increment(&ptr->references) + 1;         \
 		fprintf(stderr,                                               \
-			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
-			__func__, func, file, line, ptr, refs);               \
+			"%s:%s:%s:%u:t%u:%p->references = %" PRIuFAST32 "\n", \
+			__func__, func, file, line, isc_tid(), ptr, refs);    \
 		return (ptr);                                                 \
 	}                                                                     \
                                                                               \
@@ -180,8 +180,8 @@ isc_refcount_decrement(isc_refcount_t *target) {
 			destroy(ptr);                                         \
 		}                                                             \
 		fprintf(stderr,                                               \
-			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
-			__func__, func, file, line, ptr, refs);               \
+			"%s:%s:%s:%u:t%u:%p->references = %" PRIuFAST32 "\n", \
+			__func__, func, file, line, isc_tid(), ptr, refs);    \
 	}                                                                     \
 	void name##__attach(name##_t *ptr, name##_t **ptrp, const char *func, \
 			    const char *file, unsigned int line) {            \
@@ -189,8 +189,8 @@ isc_refcount_decrement(isc_refcount_t *target) {
 		uint_fast32_t refs =                                          \
 			isc_refcount_increment(&ptr->references) + 1;         \
 		fprintf(stderr,                                               \
-			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
-			__func__, func, file, line, ptr, refs);               \
+			"%s:%s:%s:%u:t%u:%p->references = %" PRIuFAST32 "\n", \
+			__func__, func, file, line, isc_tid(), ptr, refs);    \
 		*ptrp = ptr;                                                  \
 	}                                                                     \
                                                                               \
@@ -205,8 +205,8 @@ isc_refcount_decrement(isc_refcount_t *target) {
 			destroy(ptr);                                         \
 		}                                                             \
 		fprintf(stderr,                                               \
-			"%s:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",     \
-			__func__, func, file, line, ptr, refs);               \
+			"%s:%s:%s:%u:t%u:%p->references = %" PRIuFAST32 "\n", \
+			__func__, func, file, line, isc_tid(), ptr, refs);    \
 	}
 
 #define ISC_REFCOUNT_DECL(name)                                  \
