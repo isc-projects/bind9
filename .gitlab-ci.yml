@@ -1553,6 +1553,7 @@ gcov:
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude-directories lib/samples --exclude tests --html-details -o coverage.html
     - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude-directories lib/samples --exclude tests -o coverage.txt
     - tail -n 3 coverage.txt
+  coverage: /^TOTAL.*\s+(\d+\%)$/
   artifacts:
     paths:
       - coverage*.html
