@@ -267,15 +267,14 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
  */
 
 isc_result_t
-dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
-			const dns_name_t *src_name, dns_rdataset_t *rdataset);
+dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
+			dns_rdataset_t *rdataset);
 /*%<
  * Process a single rdataset from a catalog zone 'zone' update, src_name is the
  * record name.
  *
  * Requires:
- * \li	'catzs' is a valid dns_catz_zones_t.
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'src_name' is a valid dns_name_t.
  * \li	'rdataset' is valid rdataset.
  */
@@ -383,28 +382,6 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
  * Requires:
  * \li	'db' is a valid database.
  * \li	'fn_arg' is not NULL (casted to dns_catz_zones_t*).
- */
-
-void
-dns_catz_update_action(void *arg);
-/*%<
- * Task that launches dns_catz_update_from_db.
- *
- * Requires:
- * \li	'event' is not NULL.
- */
-
-void
-dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs);
-/*%<
- * Process an updated database for a catalog zone.
- * It creates a new catz, iterates over database to fill it with content, and
- * then merges new catz into old catz.
- *
- * Requires:
- * \li	'db' is a valid DB.
- * \li	'catzs' is a valid dns_catz_zones_t.
- *
  */
 
 void
