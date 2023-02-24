@@ -4746,8 +4746,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
 		view, named_g_loopmgr, ndisp, named_g_netmgr, resopts,
-		named_g_server->tlsctx_client_cache, named_g_dispatchmgr,
-		dispatch4, dispatch6));
+		named_g_server->tlsctx_client_cache, dispatch4, dispatch6));
 
 	if (resstats == NULL) {
 		CHECK(isc_stats_create(mctx, &resstats,
@@ -6466,6 +6465,8 @@ create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
+	dns_view_setdispatchmgr(view, named_g_dispatchmgr);
 
 	isc_nonce_buf(view->secret, sizeof(view->secret));
 

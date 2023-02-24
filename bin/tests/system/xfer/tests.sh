@@ -431,7 +431,7 @@ $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
 sleep 2
 
-nextpart ns4/named.run | grep "unexpected message id" > /dev/null || {
+nextpart ns4/named.run | grep "Transfer status: unexpected error" > /dev/null || {
     echo_i "failed: expected status was not logged"
     status=$((status+1))
 }

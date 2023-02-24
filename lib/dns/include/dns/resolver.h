@@ -183,8 +183,8 @@ isc_result_t
 dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		    unsigned int ndisp, isc_nm_t *nm, unsigned int options,
 		    isc_tlsctx_cache_t *tlsctx_cache,
-		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
-		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
+		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
+		    dns_resolver_t **resp);
 
 /*%<
  * Create a resolver.
@@ -203,8 +203,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *\li	'nm' is a valid network manager.
  *
  *\li	'tlsctx_cache' != NULL.
- *
- *\li	'dispatchmgr' != NULL.
  *
  *\li	'dispatchv4' is a dispatch with an IPv4 UDP socket, or is NULL.
  *	If not NULL, 'ndisp' clones of it will be created by the resolver.
@@ -403,9 +401,6 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
  *
  *\li	'fetch' is a valid fetch, and has completed.
  */
-
-dns_dispatchmgr_t *
-dns_resolver_dispatchmgr(dns_resolver_t *resolver);
 
 dns_dispatch_t *
 dns_resolver_dispatchv4(dns_resolver_t *resolver);

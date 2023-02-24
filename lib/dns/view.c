@@ -637,7 +637,6 @@ isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 			unsigned int ndisp, isc_nm_t *netmgr,
 			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
-			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
 			dns_dispatch_t *dispatchv6) {
 	isc_result_t result;
@@ -646,12 +645,13 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
+	REQUIRE(view->dispatchmgr != NULL);
 
 	view->loop = isc_loop_current(loopmgr);
 
 	result = dns_resolver_create(view, loopmgr, ndisp, netmgr, options,
-				     tlsctx_cache, dispatchmgr, dispatchv4,
-				     dispatchv6, &view->resolver);
+				     tlsctx_cache, dispatchv4, dispatchv6,
+				     &view->resolver);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -664,9 +664,9 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		goto cleanup_resolver;
 	}
 
-	result = dns_requestmgr_create(
-		view->mctx, dns_resolver_dispatchmgr(view->resolver),
-		dispatchv4, dispatchv6, &view->requestmgr);
+	result = dns_requestmgr_create(view->mctx, view->dispatchmgr,
+				       dispatchv4, dispatchv6,
+				       &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_adb;
 	}
@@ -2444,4 +2444,16 @@ uint16_t
 dns_view_getudpsize(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->udpsize);
+}
+
+void
+dns_view_setdispatchmgr(dns_view_t *view, dns_dispatchmgr_t *dispatchmgr) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->dispatchmgr = dispatchmgr;
+}
+
+dns_dispatchmgr_t *
+dns_view_getdispatchmgr(dns_view_t *view) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	return (view->dispatchmgr);
 }

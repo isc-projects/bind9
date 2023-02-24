@@ -323,7 +323,7 @@ struct dns_zone {
 	isc_sockaddr_t xfrsource4;
 	isc_sockaddr_t xfrsource6;
 	isc_sockaddr_t sourceaddr;
-	dns_xfrin_ctx_t *xfr;	    /* loop locked */
+	dns_xfrin_t *xfr;	    /* loop locked */
 	dns_tsigkey_t *tsigkey;	    /* key used for xfr */
 	dns_transport_t *transport; /* transport used for xfr */
 	/* Access Control Lists */
@@ -17537,7 +17537,7 @@ got_transfer_quota(void *arg) {
 	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
 			       zone->tsigkey, zone->transport,
 			       zone->zmgr->tlsctx_cache, zone->mctx,
-			       zone->zmgr->netmgr, zone_xfrdone, &zone->xfr));
+			       zone_xfrdone, &zone->xfr));
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&primaryaddr) == PF_INET) {

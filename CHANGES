@@ -1,3 +1,7 @@
+6110.	[cleanup]	Refactor the dns_xfrin module to use dns_dispatch
+			to set up TCP connections and send and receive
+			messages. [GL #3886]
+
 6109.	[func]		Infrastructure for QSBR, asynchronous safe memory
 			reclamation for lock-free data structures. [GL !7471]
 
