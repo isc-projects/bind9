@@ -2881,7 +2881,7 @@ cleanup:
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
-	dns_catz_zone_detach(&cz->origin);
+	dns_catz_detach_catz(&cz->origin);
 	dns_view_detach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
@@ -2955,7 +2955,7 @@ cleanup:
 		dns_zone_detach(&zone);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
-	dns_catz_zone_detach(&cz->origin);
+	dns_catz_detach_catz(&cz->origin);
 	dns_view_detach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
@@ -2987,7 +2987,7 @@ catz_run(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
 	isc_mem_attach(view->mctx, &cz->mctx);
 
 	dns_catz_entry_attach(entry, &cz->entry);
-	dns_catz_zone_attach(origin, &cz->origin);
+	dns_catz_attach_catz(origin, &cz->origin);
 	dns_view_attach(view, &cz->view);
 
 	isc_async_run(named_g_mainloop, action, cz);
@@ -3150,7 +3150,7 @@ static dns_catz_zonemodmethods_t ns_catz_zonemodmethods = {
 static isc_result_t
 configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	       const cfg_obj_t *catz_obj) {
-	const cfg_listelt_t *zone_element;
+	const cfg_listelt_t *zone_element = NULL;
 	const dns_catz_zones_t *old = NULL;
 	bool pview_must_detach = false;
 	isc_result_t result;
@@ -3162,9 +3162,6 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	if (zone_element == NULL) {
 		return (ISC_R_SUCCESS);
 	}
-
-	dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods, view->mctx,
-			   named_g_loopmgr);
 
 	if (pview != NULL) {
 		old = pview->catzs;
@@ -3178,10 +3175,12 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	}
 
 	if (old != NULL) {
-		dns_catz_catzs_detach(&view->catzs);
-		dns_catz_catzs_attach(pview->catzs, &view->catzs);
-		dns_catz_catzs_detach(&pview->catzs);
+		dns_catz_attach_catzs(pview->catzs, &view->catzs);
+		dns_catz_detach_catzs(&pview->catzs);
 		dns_catz_prereconfig(view->catzs);
+	} else {
+		dns_catz_new_zones(view->mctx, named_g_loopmgr, &view->catzs,
+				   &ns_catz_zonemodmethods);
 	}
 
 	while (zone_element != NULL) {
