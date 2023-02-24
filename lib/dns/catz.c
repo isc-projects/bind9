@@ -844,14 +844,16 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 static void
 dns__catz_timer_stop(void *arg) {
 	dns_catz_zone_t *catz = arg;
+	dns_catz_zones_t *catzs = NULL;
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 
 	isc_timer_stop(catz->updatetimer);
 	isc_timer_destroy(&catz->updatetimer);
 	catz->loop = NULL;
+	catzs = catz->catzs;
 
-	dns_catz_unref_catzs(catz->catzs);
 	dns_catz_detach_catz(&catz);
+	dns_catz_unref_catzs(catzs);
 }
 
 isc_result_t
