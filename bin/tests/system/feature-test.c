@@ -198,17 +198,15 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--md5") == 0) {
-		unsigned char digest[ISC_MAX_MD_SIZE];
-		const unsigned char test[] = "test";
-		unsigned int size = sizeof(digest);
+		isc_mem_t *mctx = NULL;
+		int answer;
 
-		if (isc_md(ISC_MD_MD5, test, sizeof(test), digest, &size) ==
-		    ISC_R_SUCCESS)
-		{
-			return (0);
-		} else {
-			return (1);
-		}
+		isc_mem_create(&mctx);
+		dst_lib_init(mctx, NULL);
+		answer = dst_algorithm_supported(DST_ALG_HMACMD5) ? 0 : 1;
+		dst_lib_destroy();
+		isc_mem_detach(&mctx);
+		return (answer);
 	}
 
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
