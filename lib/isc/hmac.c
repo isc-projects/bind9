@@ -59,6 +59,7 @@ isc_hmac_init(isc_hmac_t *hmac, const void *key, const size_t keylen,
 	}
 
 	if (EVP_DigestSignInit(hmac, NULL, md_type, NULL, pkey) != 1) {
+		EVP_PKEY_free(pkey);
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
