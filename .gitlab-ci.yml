@@ -1107,7 +1107,6 @@ system:clang:freebsd12:amd64:
   <<: *system_test_job
   variables:
     USER: gitlab-runner
-    TEST_PARALLEL_JOBS: 4
   needs:
     - job: clang:freebsd12:amd64
       artifacts: true
@@ -1134,7 +1133,6 @@ system:clang:freebsd13:amd64:
   <<: *system_test_job
   variables:
     USER: gitlab-runner
-    TEST_PARALLEL_JOBS: 4
   needs:
     - job: clang:freebsd13:amd64
       artifacts: true
@@ -1162,9 +1160,11 @@ system:clang:openbsd:amd64:
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
+    TEST_PARALLEL_JOBS: 1
   needs:
     - job: clang:openbsd:amd64
       artifacts: true
+  timeout: 2h
 
 unit:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
