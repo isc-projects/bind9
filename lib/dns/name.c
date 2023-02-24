@@ -149,7 +149,9 @@ dns_name_isvalid(const dns_name_t *name) {
 		return (false);
 	}
 
-	if (name->length > 255U || name->labels > 127U) {
+	if (name->length > DNS_NAME_MAXWIRE ||
+	    name->labels > DNS_NAME_MAXLABELS)
+	{
 		return (false);
 	}
 
@@ -161,7 +163,7 @@ dns_name_isvalid(const dns_name_t *name) {
 
 	while (offset != length) {
 		count = *ndata;
-		if (count > 63U) {
+		if (count > DNS_NAME_LABELLEN) {
 			return (false);
 		}
 		if (offsets != NULL && offsets[nlabels] != offset) {
@@ -253,7 +255,7 @@ dns_name_ismailbox(const dns_name_t *name) {
 
 	ndata = name->ndata;
 	n = *ndata++;
-	INSIST(n <= 63);
+	INSIST(n <= DNS_NAME_LABELLEN);
 	while (n--) {
 		ch = *ndata++;
 		if (!domainchar(ch)) {
@@ -270,7 +272,7 @@ dns_name_ismailbox(const dns_name_t *name) {
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
-		INSIST(n <= 63);
+		INSIST(n <= DNS_NAME_LABELLEN);
 		first = true;
 		while (n--) {
 			ch = *ndata++;
@@ -319,7 +321,7 @@ dns_name_ishostname(const dns_name_t *name, bool wildcard) {
 	 */
 	while (ndata < (name->ndata + name->length)) {
 		n = *ndata++;
-		INSIST(n <= 63);
+		INSIST(n <= DNS_NAME_LABELLEN);
 		first = true;
 		while (n--) {
 			ch = *ndata++;
@@ -377,7 +379,7 @@ dns_name_internalwildcard(const dns_name_t *name) {
 	 */
 	ndata = name->ndata;
 	count = *ndata++;
-	INSIST(count <= 63);
+	INSIST(count <= DNS_NAME_LABELLEN);
 	ndata += count;
 	label = 1;
 	/*
@@ -385,7 +387,7 @@ dns_name_internalwildcard(const dns_name_t *name) {
 	 */
 	while (label + 1 < name->labels) {
 		count = *ndata++;
-		INSIST(count <= 63);
+		INSIST(count <= DNS_NAME_LABELLEN);
 		if (count == 1 && *ndata == '*') {
 			return (true);
 		}
@@ -687,7 +689,7 @@ dns_name_countlabels(const dns_name_t *name) {
 
 	REQUIRE(VALID_NAME(name));
 
-	ENSURE(name->labels <= 128);
+	ENSURE(name->labels <= DNS_NAME_MAXLABELS);
 
 	return (name->labels);
 }
@@ -920,8 +922,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	tused = 0;
 	ndata = isc_buffer_used(target);
 	nrem = isc_buffer_availablelength(target);
-	if (nrem > 255) {
-		nrem = 255;
+	if (nrem > DNS_NAME_MAXWIRE) {
+		nrem = DNS_NAME_MAXWIRE;
 	}
 	nused = 0;
 	labels = 0;
@@ -977,7 +979,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				}
 				*label = count;
 				labels++;
-				INSIST(labels <= 127);
+				INSIST(labels <= DNS_NAME_MAXLABELS);
 				offsets[labels] = nused;
 				if (tlen == 0) {
 					labels++;
@@ -990,7 +992,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			} else if (c == '\\') {
 				state = ft_escape;
 			} else {
-				if (count >= 63) {
+				if (count >= DNS_NAME_LABELLEN) {
 					return (DNS_R_LABELTOOLONG);
 				}
 				count++;
@@ -1015,7 +1017,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			FALLTHROUGH;
 		case ft_escape:
 			if (!isdigit((unsigned char)c)) {
-				if (count >= 63) {
+				if (count >= DNS_NAME_LABELLEN) {
 					return (DNS_R_LABELTOOLONG);
 				}
 				count++;
@@ -1042,7 +1044,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				if (value > 255) {
 					return (DNS_R_BADESCAPE);
 				}
-				if (count >= 63) {
+				if (count >= DNS_NAME_LABELLEN) {
 					return (DNS_R_LABELTOOLONG);
 				}
 				count++;
@@ -1074,7 +1076,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			INSIST(label != NULL);
 			*label = count;
 			labels++;
-			INSIST(labels <= 127);
+			INSIST(labels <= DNS_NAME_MAXLABELS);
 			offsets[labels] = nused;
 		}
 		if (origin != NULL) {
@@ -1087,7 +1089,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			POST(nrem);
 			while (n1 > 0) {
 				n2 = *label++;
-				INSIST(n2 <= 63); /* no bitstring support */
+				INSIST(n2 <= DNS_NAME_LABELLEN);
 				*ndata++ = n2;
 				n1 -= n2 + 1;
 				nused += n2 + 1;
@@ -1101,7 +1103,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				}
 				labels++;
 				if (n1 > 0) {
-					INSIST(labels <= 127);
+					INSIST(labels <= DNS_NAME_MAXLABELS);
 					offsets[labels] = nused;
 				}
 			}
@@ -1220,7 +1222,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 			saw_root = true;
 			break;
 		}
-		if (count < 64) {
+		if (count <= DNS_NAME_LABELLEN) {
 			INSIST(nlen >= count);
 			while (count > 0) {
 				c = *ndata;
@@ -1365,7 +1367,7 @@ dns_name_tofilenametext(const dns_name_t *name, bool omit_final_dot,
 		if (count == 0) {
 			break;
 		}
-		if (count < 64) {
+		if (count <= DNS_NAME_LABELLEN) {
 			INSIST(nlen >= count);
 			while (count > 0) {
 				c = *ndata;
@@ -1495,10 +1497,10 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 	nlabels = 0;
 	absolute = false;
 	while (offset != length) {
-		INSIST(nlabels < 128);
+		INSIST(nlabels <= DNS_NAME_MAXLABELS);
 		offsets[nlabels++] = offset;
 		count = *ndata;
-		INSIST(count <= 63);
+		INSIST(count <= DNS_NAME_LABELLEN);
 		offset += count + 1;
 		ndata += count + 1;
 		INSIST(offset <= length);
@@ -1622,7 +1624,7 @@ dns_name_fromwire(dns_name_t *const name, isc_buffer_t *const source,
 	 */
 	while (cursor < source_max) {
 		const uint8_t label_len = *cursor++;
-		if (label_len < 64) {
+		if (label_len <= DNS_NAME_LABELLEN) {
 			/*
 			 * Normal label: record its offset, and check bounds on
 			 * the name length, which also ensures we don't overrun
