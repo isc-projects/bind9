@@ -127,7 +127,13 @@
 	isc_result_t dst__hmac##alg##_init(dst_func_t **funcp) {               \
 		REQUIRE(funcp != NULL);                                        \
 		if (*funcp == NULL) {                                          \
-			*funcp = &hmac##alg##_functions;                       \
+			isc_hmac_t *ctx = isc_hmac_new();                      \
+			if (isc_hmac_init(ctx, "test", 4, ISC_MD_##alg) ==     \
+			    ISC_R_SUCCESS)                                     \
+			{                                                      \
+				*funcp = &hmac##alg##_functions;               \
+			}                                                      \
+			isc_hmac_free(ctx);                                    \
 		}                                                              \
 		return (ISC_R_SUCCESS);                                        \
 	}

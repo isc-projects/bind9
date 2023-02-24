@@ -199,9 +199,7 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__openssl_init(engine)); /* Sets FIPS mode. */
-	if (!isc_fips_mode()) {
-		RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
-	}
+	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
 	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
 	RETERR(dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]));
 	RETERR(dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]));
