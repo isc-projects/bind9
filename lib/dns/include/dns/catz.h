@@ -438,6 +438,16 @@ dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
  *
  */
 
+void
+dns_catz_shutdown_catzs(dns_catz_zones_t *catzs);
+/*%<
+ * Shut down the catalog zones.
+ *
+ * Requires:
+ * \li	'catzs' is a valid dns_catz_zones_t.
+ *
+ */
+
 #ifdef DNS_CATZ_TRACE
 /* Compatibility macros */
 #define dns_catz_attach_catz(catz, catzp) \
