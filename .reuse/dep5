@@ -178,6 +178,7 @@ Files: **/.clang-format
        tsan-suppressions.txt
        util/suppressions.txt
        version
+       sonar-project.properties
 Copyright: Internet Systems Consortium, Inc. ("ISC")
 License: CC0-1.0
 
