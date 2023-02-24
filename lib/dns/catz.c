@@ -1769,8 +1769,8 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 }
 
 isc_result_t
-dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *catz,
-			const dns_name_t *src_name, dns_rdataset_t *rdataset) {
+dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
+			dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	int order;
 	unsigned int nlabels;
@@ -1779,7 +1779,6 @@ dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *catz,
 	dns_rdata_soa_t soa;
 	dns_name_t prefix;
 
-	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 	REQUIRE(ISC_MAGIC_VALID(src_name, DNS_NAME_MAGIC));
 
@@ -2049,11 +2048,11 @@ dns__catz_timer_cb(void *arg) {
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 
-	LOCK(&catz->catzs->lock);
-
-	if (catz->catzs->shuttingdown) {
-		goto unlock;
+	if (atomic_load(&catz->catzs->shuttingdown)) {
+		return;
 	}
+
+	LOCK(&catz->catzs->lock);
 
 	INSIST(DNS_DB_VALID(catz->db));
 	INSIST(catz->dbversion != NULL);
@@ -2075,7 +2074,7 @@ dns__catz_timer_cb(void *arg) {
 
 	result = isc_time_now(&catz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-unlock:
+
 	UNLOCK(&catz->catzs->lock);
 }
 
@@ -2178,8 +2177,6 @@ dns__catz_update_cb(void *data) {
 	db = catz->db;
 	catzs = catz->catzs;
 
-	LOCK(&catzs->lock);
-
 	if (atomic_load(&catzs->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto exit;
@@ -2191,7 +2188,9 @@ dns__catz_update_cb(void *data) {
 	 * Create a new catz in the same context as current catz.
 	 */
 	dns_name_toregion(&db->origin, &r);
+	LOCK(&catzs->lock);
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&oldcatz);
+	UNLOCK(&catzs->lock);
 	if (result != ISC_R_SUCCESS) {
 		/* This can happen if we remove the zone in the meantime. */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -2272,6 +2271,11 @@ dns__catz_update_cb(void *data) {
 	 * Iterate over database to fill the new zone.
 	 */
 	while (result == ISC_R_SUCCESS) {
+		if (atomic_load(&catzs->shuttingdown)) {
+			result = ISC_R_SHUTTINGDOWN;
+			break;
+		}
+
 		result = dns_dbiterator_current(it, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -2317,7 +2321,7 @@ dns__catz_update_cb(void *data) {
 				goto next;
 			}
 
-			result = dns_catz_update_process(catzs, newcatz, name,
+			result = dns_catz_update_process(newcatz, name,
 							 &rdataset);
 			if (result != ISC_R_SUCCESS) {
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -2359,7 +2363,8 @@ dns__catz_update_cb(void *data) {
 	dns_db_closeversion(db, &oldcatz->dbversion, false);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
-		      "catz: update_from_db: iteration finished");
+		      "catz: update_from_db: iteration finished: %s",
+		      isc_result_totext(result));
 
 	/*
 	 * Check catalog zone version compatibilites.
@@ -2430,8 +2435,6 @@ final:
 
 exit:
 	catz->updateresult = result;
-
-	UNLOCK(&catzs->lock);
 }
 
 static void
@@ -2446,7 +2449,7 @@ dns__catz_done_cb(void *data) {
 
 	dns_name_format(&catz->name, dname, DNS_NAME_FORMATSIZE);
 
-	if (catz->updatepending && !catz->catzs->shuttingdown) {
+	if (catz->updatepending && !atomic_load(&catz->catzs->shuttingdown)) {
 		/* Restart the timer */
 		dns__catz_timer_start(catz);
 	}
