@@ -272,8 +272,6 @@ libraries.
       configuration parser and checker.
     * `bind9/lib/isccc`: library implementing the control channel used
       by `rndc`
-    * `bind9/lib/irs`: provides mechanisms for reading `/etc/resolv.conf`
-      and other configuration files.
 
 #### Namespace
 

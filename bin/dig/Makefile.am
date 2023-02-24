@@ -4,7 +4,6 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)	\
 	$(LIBISCCFG_CFLAGS)	\
-	$(LIBIRS_CFLAGS)	\
 	$(LIBIDN2_CFLAGS)	\
 	$(LIBUV_CFLAGS)
 
@@ -13,7 +12,6 @@ LDADD +=			\
 	$(LIBISC_LIBS)		\
 	$(LIBDNS_LIBS)		\
 	$(LIBISCCFG_LIBS)	\
-	$(LIBIRS_LIBS)		\
 	$(LIBIDN2_LIBS)
 
 noinst_LTLIBRARIES = libdighost.la
