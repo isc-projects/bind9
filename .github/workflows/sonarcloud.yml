@@ -1,0 +1,50 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [ "v9_16", "v9_18", "main" ]
+  schedule:
+    - cron: '39 8 * * 3'
+
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+
+    env:
+      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install build dependencies
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libuv1-dev libssl-dev libnghttp2-dev libxml2-dev liblmdb-dev libjson-c-dev pkg-config autoconf automake autotools-dev libtool-bin libjemalloc-dev libedit-dev libcap-dev libidn2-dev libkrb5-dev libmaxminddb-dev zlib1g-dev python3-ply
+        version: 1.0
+
+    - name: Install sonar-scanner and build-wrapper
+      uses: SonarSource/sonarcloud-github-c-cpp@v1
+
+    - name: Run build-wrapper
+      run: |
+        autoreconf -fi
+        ./configure
+        build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make clean all
+
+    - name: Run sonar-scanner
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: |
+        sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
