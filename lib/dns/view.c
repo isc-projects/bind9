@@ -423,6 +423,7 @@ destroy(dns_view_t *view) {
 		dns_rpz_detach_rpzs(&view->rpzs);
 	}
 	if (view->catzs != NULL) {
+		dns_catz_shutdown_catzs(view->catzs);
 		dns_catz_detach_catzs(&view->catzs);
 	}
 	for (dlzdb = ISC_LIST_HEAD(view->dlz_searched); dlzdb != NULL;
@@ -680,6 +681,7 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 			}
 		}
 		if (view->catzs != NULL) {
+			dns_catz_shutdown_catzs(view->catzs);
 			dns_catz_detach_catzs(&view->catzs);
 		}
 		if (view->ntatable_priv != NULL) {
