@@ -262,15 +262,14 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
  */
 
 isc_result_t
-dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
-			const dns_name_t *src_name, dns_rdataset_t *rdataset);
+dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
+			dns_rdataset_t *rdataset);
 /*%<
  * Process a single rdataset from a catalog zone 'zone' update, src_name is the
  * record name.
  *
  * Requires:
- * \li	'catzs' is a valid dns_catz_zones_t.
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'src_name' is a valid dns_name_t.
  * \li	'rdataset' is valid rdataset.
  */
