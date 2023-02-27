@@ -180,7 +180,7 @@ dns_catz_entry_detach(dns_catz_zone_t *catz, dns_catz_entry_t **entryp);
  * Detach an entry, free if no further references
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'entryp' is not NULL and '*entryp' is not NULL.
  */
 
@@ -222,42 +222,42 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
  */
 
 dns_name_t *
-dns_catz_zone_getname(dns_catz_zone_t *zone);
+dns_catz_zone_getname(dns_catz_zone_t *catz);
 /*%<
  * Get catalog zone name
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  */
 
 dns_catz_options_t *
-dns_catz_zone_getdefoptions(dns_catz_zone_t *zone);
+dns_catz_zone_getdefoptions(dns_catz_zone_t *catz);
 /*%<
- * Get default member zone options for catalog zone 'zone'
+ * Get default member zone options for catalog zone 'catz'
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  */
 
 void
-dns_catz_zone_resetdefoptions(dns_catz_zone_t *zone);
+dns_catz_zone_resetdefoptions(dns_catz_zone_t *catz);
 /*%<
- * Reset the default member zone options for catalog zone 'zone' to
+ * Reset the default member zone options for catalog zone 'catz' to
  * the default values.
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  */
 
 isc_result_t
-dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
+dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz);
 /*%<
- * Merge 'newzone' into 'target', calling addzone/delzone/modzone
- * (from zone->catzs->zmm) for appropriate member zones.
+ * Merge 'newcatz' into 'catz', calling addzone/delzone/modzone
+ * (from catz->catzs->zmm) for appropriate member zones.
  *
  * Requires:
- * \li	'orig' is a valid dns_catz_zone_t.
- * \li	'newzone' is not NULL and '*newzone' is not NULL.
+ * \li	'catz' is a valid dns_catz_zone_t.
+ * \li	'newcatz' is a valid dns_catz_zone_t.
  *
  */
 
@@ -265,7 +265,7 @@ isc_result_t
 dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
 			dns_rdataset_t *rdataset);
 /*%<
- * Process a single rdataset from a catalog zone 'zone' update, src_name is the
+ * Process a single rdataset from a catalog zone 'catz' update, src_name is the
  * record name.
  *
  * Requires:
@@ -275,7 +275,7 @@ dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
  */
 
 isc_result_t
-dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
+dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 				 isc_buffer_t **buffer);
 /*%<
  * Generate master file name and put it into *buffer (might be reallocated).
@@ -285,20 +285,20 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
  * __catz__unique_hash_generated_from_the_above.db
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'entry' is a valid dns_catz_entry_t.
  * \li	'buffer' is not NULL and '*buffer' is not NULL.
  */
 
 isc_result_t
-dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
+dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 			  isc_buffer_t **buf);
 /*%<
  * Generate a zone config entry (in text form) from dns_catz_entry and puts
  * it into *buf. buf might be reallocated.
  *
  * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
+ * \li	'catz' is a valid dns_catz_zone_t.
  * \li	'entry' is a valid dns_catz_entry_t.
  * \li	'buf' is not NULL and '*buf' is NULL.
  *
@@ -340,7 +340,7 @@ dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
  * Requires:
  * \li	'catzs' is a valid dns_catz_zones_t.
  * \li	'name' is a valid dns_name_t.
- * \li	'zonep' is not NULL and *zonep is NULL.
+ * \li	'catzp' is not NULL and *catzp is NULL.
  *
  */
 
