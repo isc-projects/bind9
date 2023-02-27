@@ -779,7 +779,7 @@ cleanup_ht:
 	isc_ht_destroy(&new_zones->zones);
 	isc_refcount_destroy(&new_zones->refs);
 	isc_mutex_destroy(&new_zones->lock);
-	isc_mem_put(mctx, new_zones, sizeof(*new_zones));
+	isc_mem_putanddetach(&new_zones->mctx, new_zones, sizeof(*new_zones));
 
 	return (result);
 }
