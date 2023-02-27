@@ -73,6 +73,7 @@ struct dns_catz_zone {
 	dns_name_t name;
 	dns_catz_zones_t *catzs;
 	dns_rdata_t soa;
+	uint32_t version;
 	/* key in entries is 'mhash', not domain name! */
 	isc_ht_t *entries;
 	/* key in coos is domain name */
@@ -85,11 +86,12 @@ struct dns_catz_zone {
 	dns_catz_options_t defoptions;
 	dns_catz_options_t zoneoptions;
 	isc_time_t lastupdated;
-	bool updatepending;
-	uint32_t version;
 
-	dns_db_t *db;
-	dns_dbversion_t *dbversion;
+	bool updatepending;	    /* there is an update pending */
+	bool updaterunning;	    /* there is an update running */
+	isc_result_t updateresult;  /* result from the offloaded work */
+	dns_db_t *db;		    /* zones database */
+	dns_dbversion_t *dbversion; /* zones database version */
 
 	isc_timer_t *updatetimer;
 	isc_event_t updateevent;
@@ -100,6 +102,14 @@ struct dns_catz_zone {
 
 	isc_refcount_t references;
 };
+
+static void
+dns__catz_timer_cb(isc_task_t *task, isc_event_t *event);
+
+static void
+dns__catz_update_cb(void *data);
+static void
+dns__catz_done_cb(void *data, isc_result_t result);
 
 static isc_result_t
 catz_process_zones_entry(dns_catz_zone_t *catz, dns_rdataset_t *value,
@@ -754,7 +764,7 @@ dns_catz_new_zones(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 				     .zmm = zmm,
 				     .magic = DNS_CATZ_ZONES_MAGIC };
 
-	result = isc_task_create(taskmgr, 0, &catzs->updater);
+	result = isc_task_create_bound(taskmgr, 0, &catzs->updater, 0);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
 	}
@@ -801,9 +811,8 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 				   .magic = DNS_CATZ_ZONE_MAGIC };
 
 	result = isc_timer_create(catzs->timermgr, isc_timertype_inactive, NULL,
-				  NULL, catzs->updater,
-				  dns_catz_update_taskaction, catz,
-				  &catz->updatetimer);
+				  NULL, catzs->updater, dns__catz_timer_cb,
+				  catz, &catz->updatetimer);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_timer;
 	}
@@ -960,6 +969,8 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 	if (catz->db != NULL) {
 		dns_db_detach(&catz->db);
 	}
+
+	INSIST(!catz->updaterunning);
 
 	dns_name_free(&catz->name, mctx);
 	dns_catz_options_free(&catz->defoptions, mctx);
@@ -2013,25 +2024,46 @@ cleanup:
 	return (result);
 }
 
-void
-dns_catz_update_taskaction(isc_task_t *task, isc_event_t *event) {
+static void
+dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
+	char domain[DNS_NAME_FORMATSIZE];
 	isc_result_t result;
-	dns_catz_zone_t *catz;
-	(void)task;
+	dns_catz_zone_t *catz = NULL;
 
+	UNUSED(task);
 	REQUIRE(event != NULL);
-	catz = event->ev_arg;
+	REQUIRE(event->ev_arg != NULL);
+
+	catz = (dns_catz_zone_t *)event->ev_arg;
+	isc_event_free(&event);
+
+	REQUIRE(isc_nm_tid() >= 0);
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 
 	LOCK(&catz->catzs->lock);
+
+	if (catz->catzs->shuttingdown) {
+		goto unlock;
+	}
+
+	INSIST(DNS_DB_VALID(catz->db));
+	INSIST(catz->dbversion != NULL);
+
 	catz->updatepending = false;
-	dns_catz_update_from_db(catz->db, catz->catzs);
-	result = isc_timer_reset(catz->updatetimer, isc_timertype_inactive,
-				 NULL, NULL, true);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_event_free(&event);
+	catz->updaterunning = true;
+	catz->updateresult = ISC_R_UNSET;
+
+	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		      ISC_LOG_INFO, "catz: %s: reload start", domain);
+
+	dns_catz_ref_catzs(catz->catzs);
+	isc_nm_work_offload(isc_task_getnetmgr(catz->catzs->updater),
+			    dns__catz_update_cb, dns__catz_done_cb, catz);
+
 	result = isc_time_now(&catz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+unlock:
 	UNLOCK(&catz->catzs->lock);
 }
 
@@ -2063,7 +2095,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		dns_db_detach(&catz->db);
 		/*
 		 * We're not registering db update callback, it will be
-		 * registered at the end of update_from_db
+		 * registered at the end of dns__catz_update_cb()
 		 */
 		catz->db_registered = false;
 	}
@@ -2073,7 +2105,7 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 	dns_name_format(&catz->name, dname, DNS_NAME_FORMATSIZE);
 
-	if (!catz->updatepending) {
+	if (!catz->updatepending && !catz->updaterunning) {
 		uint64_t tdiff;
 
 		catz->updatepending = true;
@@ -2103,18 +2135,19 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 			isc_event_t *event;
 
 			dns_db_currentversion(db, &catz->dbversion);
-			ISC_EVENT_INIT(&catz->updateevent,
-				       sizeof(catz->updateevent), 0, NULL,
-				       DNS_EVENT_CATZUPDATED,
-				       dns_catz_update_taskaction, catz, catz,
-				       NULL, NULL);
+			ISC_EVENT_INIT(
+				&catz->updateevent, sizeof(catz->updateevent),
+				0, NULL, DNS_EVENT_CATZUPDATED,
+				dns__catz_timer_cb, catz, catz, NULL, NULL);
 			event = &catz->updateevent;
 			isc_task_send(catzs->updater, &event);
 		}
 	} else {
+		catz->updatepending = true;
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
-			      "catz: update already queued");
+			      "catz: %s: update already queued or running",
+			      dname);
 		if (catz->dbversion != NULL) {
 			dns_db_closeversion(catz->db, &catz->dbversion, false);
 		}
@@ -2133,8 +2166,16 @@ catz_rdatatype_is_processable(const dns_rdatatype_t type) {
 		type != dns_rdatatype_cdnskey && type != dns_rdatatype_zonemd);
 }
 
-void
-dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
+/*
+ * Process an updated database for a catalog zone.
+ * It creates a new catz, iterates over database to fill it with content, and
+ * then merges new catz into old catz.
+ */
+static void
+dns__catz_update_cb(void *data) {
+	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
+	dns_db_t *db = NULL;
+	dns_catz_zones_t *catzs = NULL;
 	dns_catz_zone_t *oldcatz = NULL, *newcatz = NULL;
 	isc_result_t result;
 	isc_region_t r;
@@ -2151,11 +2192,18 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	uint32_t vers;
 	uint32_t catz_vers;
 
-	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
+	REQUIRE(DNS_DB_VALID(catz->db));
+	REQUIRE(DNS_CATZ_ZONES_VALID(catz->catzs));
+
+	db = catz->db;
+	catzs = catz->catzs;
+
+	LOCK(&catzs->lock);
 
 	if (atomic_load(&catzs->shuttingdown)) {
-		return;
+		result = ISC_R_SHUTTINGDOWN;
+		goto exit;
 	}
 
 	dns_name_format(&db->origin, bname, DNS_NAME_FORMATSIZE);
@@ -2170,7 +2218,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' not in config", bname);
-		return;
+		goto exit;
 	}
 
 	result = dns_db_getsoaserial(db, oldcatz->dbversion, &vers);
@@ -2180,7 +2228,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' has no SOA record (%s)", bname,
 			      isc_result_totext(result));
-		return;
+		goto exit;
 	}
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
@@ -2195,7 +2243,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create new zone - %s",
 			      isc_result_totext(result));
-		return;
+		goto exit;
 	}
 
 	result = dns_db_createiterator(db, DNS_DB_NONSEC3, &it);
@@ -2206,7 +2254,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create DB iterator - %s",
 			      isc_result_totext(result));
-		return;
+		goto exit;
 	}
 
 	name = dns_fixedname_initname(&fixname);
@@ -2225,7 +2273,7 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
-		return;
+		goto exit;
 	}
 	result = dns_dbiterator_seek(it, name);
 	if (result != ISC_R_SUCCESS) {
@@ -2365,7 +2413,8 @@ final:
 			      "will not be processed",
 			      bname);
 		dns_catz_detach_catz(&newcatz);
-		return;
+		result = ISC_R_FAILURE;
+		goto exit;
 	}
 
 	/*
@@ -2379,7 +2428,7 @@ final:
 			      "catz: failed merging zones: %s",
 			      isc_result_totext(result));
 
-		return;
+		goto exit;
 	}
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
@@ -2399,6 +2448,66 @@ final:
 			oldcatz->db_registered = true;
 		}
 	}
+
+exit:
+	catz->updateresult = result;
+
+	UNLOCK(&catzs->lock);
+}
+
+static void
+dns__catz_done_cb(void *data, isc_result_t result) {
+	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
+	char dname[DNS_NAME_FORMATSIZE];
+
+	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
+
+	if (result == ISC_R_SUCCESS && catz->updateresult != ISC_R_SUCCESS) {
+		result = catz->updateresult;
+	}
+
+	LOCK(&catz->catzs->lock);
+	catz->updaterunning = false;
+
+	dns_name_format(&catz->name, dname, DNS_NAME_FORMATSIZE);
+
+	/* If there's no update pending, or if shutting down, finish. */
+	if (!catz->updatepending || catz->catzs->shuttingdown) {
+		goto done;
+	}
+
+	/* If there's an update pending, schedule it */
+	if (catz->defoptions.min_update_interval > 0) {
+		uint64_t defer = catz->defoptions.min_update_interval;
+		isc_interval_t interval;
+
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: %s: new zone version came "
+			      "too soon, deferring update for "
+			      "%" PRIu64 " seconds",
+			      dname, defer);
+		isc_interval_set(&interval, (unsigned int)defer, 0);
+		(void)isc_timer_reset(catz->updatetimer, isc_timertype_once,
+				      NULL, &interval, true);
+	} else {
+		isc_event_t *event = NULL;
+		INSIST(!ISC_LINK_LINKED(&catz->updateevent, ev_link));
+		ISC_EVENT_INIT(&catz->updateevent, sizeof(catz->updateevent), 0,
+			       NULL, DNS_EVENT_CATZUPDATED, dns__catz_timer_cb,
+			       catz, catz, NULL, NULL);
+		event = &catz->updateevent;
+		isc_task_send(catz->catzs->updater, &event);
+	}
+
+done:
+	UNLOCK(&catz->catzs->lock);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
+		      ISC_LOG_INFO, "catz: %s: reload done: %s", dname,
+		      isc_result_totext(result));
+
+	dns_catz_unref_catzs(catz->catzs);
 }
 
 void
