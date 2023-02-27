@@ -3174,9 +3174,8 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 		return (ISC_R_SUCCESS);
 	}
 
-	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
-				 view->mctx, named_g_taskmgr,
-				 named_g_timermgr));
+	CHECK(dns_catz_new_zones(view->mctx, named_g_taskmgr, named_g_timermgr,
+				 &view->catzs, &ns_catz_zonemodmethods));
 
 	if (pview != NULL) {
 		old = pview->catzs;
