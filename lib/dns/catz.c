@@ -779,7 +779,7 @@ cleanup_ht:
 	isc_ht_destroy(&new_zones->zones);
 	isc_refcount_destroy(&new_zones->refs);
 	isc_mutex_destroy(&new_zones->lock);
-	isc_mem_put(mctx, new_zones, sizeof(*new_zones));
+	isc_mem_putanddetach(&new_zones->mctx, new_zones, sizeof(*new_zones));
 
 	return (result);
 }
@@ -842,6 +842,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 
 cleanup_ht:
 	isc_ht_destroy(&new_zone->entries);
+	isc_ht_destroy(&new_zone->coos);
 	dns_name_free(&new_zone->name, catzs->mctx);
 	isc_mem_put(catzs->mctx, new_zone, sizeof(*new_zone));
 
