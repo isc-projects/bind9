@@ -30,11 +30,15 @@ options {
 	notify-delay 0;
 	recursion no;
 	serial-query-rate 100;
+	ixfr-from-differences yes; // GL #3777
 
 	catalog-zones {
 		zone "catalog-tls.example"
 			min-update-interval 1s
 			default-primaries { 10.53.0.1 key tsig_key tls ephemeral; };
+		zone "catalog-self.example"
+			min-update-interval 1s
+			default-primaries { 10.53.0.4; };
 	};
 };
 
@@ -42,6 +46,12 @@ zone "catalog-tls.example" {
 	type secondary;
 	file "catalog-tls.example.db";
 	primaries { 10.53.0.1 key tsig_key tls ephemeral; };
+};
+
+zone "catalog-self.example" {
+	type primary;
+	file "catalog-self.example.db";
+	notify explicit;
 };
 
 key tsig_key. {

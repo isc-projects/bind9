@@ -910,8 +910,10 @@ dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name) {
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
+	LOCK(&catzs->lock);
 	result = isc_ht_find(catzs->zones, name->ndata, name->length,
 			     (void **)&found);
+	UNLOCK(&catzs->lock);
 	if (result != ISC_R_SUCCESS) {
 		return (NULL);
 	}
@@ -2104,6 +2106,8 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		if (catz->dbversion != NULL) {
 			dns_db_closeversion(catz->db, &catz->dbversion, false);
 		}
+		dns_db_updatenotify_unregister(
+			catz->db, dns_catz_dbupdate_callback, catz->catzs);
 		dns_db_detach(&catz->db);
 		/*
 		 * We're not registering db update callback, it will be
