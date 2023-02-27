@@ -13,6 +13,11 @@
 
 #pragma once
 
+/*
+ * Define this for reference count tracing in the unit
+ */
+#undef DNS_CATZ_TRACE
+
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -203,25 +208,6 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
  * \li 'false' if the entries differ.
  */
 
-void
-dns_catz_zone_attach(dns_catz_zone_t *zone, dns_catz_zone_t **zonep);
-/*%<
- * Attach a catzone
- *
- * Requires:
- * \li	'zone' is a valid dns_catz_zone_t.
- * \li	'zonep' is not NULL and '*zonep' is NULL.
- */
-
-void
-dns_catz_zone_detach(dns_catz_zone_t **zonep);
-/*%<
- * Detach a zone, free if no further references
- *
- * Requires:
- * \li	'zonep' is not NULL and '*zonep' is not NULL.
- */
-
 isc_result_t
 dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 		  const dns_name_t *name);
@@ -374,25 +360,6 @@ dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name);
  */
 
 void
-dns_catz_catzs_attach(dns_catz_zones_t *catzs, dns_catz_zones_t **catzsp);
-/*%<
- * Attach 'catzs' to 'catzsp'.
- *
- * Requires:
- * \li	'catzs' is a valid dns_catz_zones_t.
- * \li	'catzsp' is not NULL and *catzsp is NULL.
- */
-
-void
-dns_catz_catzs_detach(dns_catz_zones_t **catzsp);
-/*%<
- * Detach 'catzsp', free if no further references.
- *
- * Requires:
- * \li	'catzsp' is not NULL and *catzsp is not NULL.
- */
-
-void
 dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view);
 /*%<
  * Set a view for 'catzs'.
@@ -469,5 +436,44 @@ dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
  * \li	'itp' is not NULL and '*itp' is NULL.
  *
  */
+
+#ifdef DNS_CATZ_TRACE
+/* Compatibility macros */
+#define dns_catz_attach_catz(catz, catzp) \
+	dns_catz_zone__attach(catz, catzp, __func__, __FILE__, __LINE__)
+#define dns_catz_detach_catz(catzp) \
+	dns_catz_zone__detach(catzp, __func__, __FILE__, __LINE__)
+#define dns_catz_ref_catz(ptr) \
+	dns_catz_zone__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_catz_unref_catz(ptr) \
+	dns_catz_zone__unref(ptr, __func__, __FILE__, __LINE__)
+
+#define dns_catz_attach_catzs(catzs, catzsp) \
+	dns_catz_zones__attach(catzs, catzsp, __func__, __FILE__, __LINE__)
+#define dns_catz_detach_catzs(catzsp) \
+	dns_catz_zones__detach(catzsp, __func__, __FILE__, __LINE__)
+#define dns_catz_ref_catzs(ptr) \
+	dns_catz_zones__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_catz_unref_catzs(ptr) \
+	dns_catz_zones__unref(ptr, __func__, __FILE__, __LINE__)
+
+ISC_REFCOUNT_TRACE_DECL(dns_catz_zone);
+ISC_REFCOUNT_TRACE_DECL(dns_catz_zones);
+#else
+/* Compatibility macros */
+#define dns_catz_attach_catz(catz, catzp) dns_catz_zone_attach(catz, catzp)
+#define dns_catz_detach_catz(catzp)	  dns_catz_zone_detach(catzp)
+#define dns_catz_ref_catz(ptr)		  dns_catz_zone_ref(ptr)
+#define dns_catz_unref_catz(ptr)	  dns_catz_zone_unref(ptr)
+
+#define dns_catz_attach_catzs(catzs, catzsp) \
+	dns_catz_zones_attach(catzs, catzsp)
+#define dns_catz_detach_catzs(catzsp) dns_catz_zones_detach(catzsp)
+#define dns_catz_ref_catzs(ptr)	      dns_catz_zones_ref(ptr)
+#define dns_catz_unref_catzs(ptr)     dns_catz_zones_unref(ptr)
+
+ISC_REFCOUNT_DECL(dns_catz_zone);
+ISC_REFCOUNT_DECL(dns_catz_zones);
+#endif /* DNS_CATZ_TRACE */
 
 ISC_LANG_ENDDECLS
