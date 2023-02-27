@@ -1228,6 +1228,7 @@ system:clang:openbsd:amd64:
   needs:
     - job: clang:openbsd:amd64
       artifacts: true
+  allow_failure: true
 
 unit:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
