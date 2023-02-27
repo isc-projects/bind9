@@ -27,17 +27,11 @@
  * ISC_ or isc_ to the name.
  */
 
+#include <isc/attributes.h>
+
 /***
  *** Clang Compatibility Macros
  ***/
-
-#if !defined(__has_attribute)
-#define __has_attribute(x) 0
-#endif /* if !defined(__has_attribute) */
-
-#if !defined(__has_c_attribute)
-#define __has_c_attribute(x) 0
-#endif /* if !defined(__has_c_attribute) */
 
 #if !defined(__has_feature)
 #define __has_feature(x) 0
