@@ -1,10 +1,14 @@
 include $(top_srcdir)/Makefile.top
 
-SUBDIRS = . lib doc bin fuzz
+SUBDIRS = . lib doc
 
+# build libtest before fuzz/* and bin/tests
 if HAVE_CMOCKA
 SUBDIRS += tests
 endif HAVE_CMOCKA
+
+# run fuzz tests before system tests
+SUBDIRS += fuzz bin
 
 BUILT_SOURCES = bind.keys.h
 CLEANFILES = bind.keys.h

@@ -99,6 +99,7 @@ libdns_la_HEADERS =			\
 	include/dns/order.h		\
 	include/dns/peer.h		\
 	include/dns/private.h		\
+	include/dns/qp.h		\
 	include/dns/rbt.h		\
 	include/dns/rcode.h		\
 	include/dns/rdata.h		\
@@ -157,6 +158,7 @@ libdns_la_SOURCES =			\
 	cache.c				\
 	callbacks.c			\
 	catz.c				\
+	client.c			\
 	clientinfo.c			\
 	compress.c			\
 	db.c				\
@@ -206,6 +208,8 @@ libdns_la_SOURCES =			\
 	order.c				\
 	peer.c				\
 	private.c			\
+	qp.c				\
+	qp_p.h				\
 	rbt.c				\
 	rbtdb.h				\
 	rbtdb.c				\
@@ -233,18 +237,17 @@ libdns_la_SOURCES =			\
 	transport.c			\
 	tkey.c				\
 	tsig.c				\
+	tsig_p.h			\
 	ttl.c				\
 	update.c			\
 	validator.c			\
 	view.c				\
 	xfrin.c				\
 	zone.c				\
+	zone_p.h			\
 	zoneverify.c			\
 	zonekey.c			\
-	zt.c				\
-	client.c			\
-	tsig_p.h			\
-	zone_p.h
+	zt.c
 
 if HAVE_GSSAPI
 libdns_la_SOURCES +=			\

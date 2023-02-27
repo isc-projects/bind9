@@ -1,3 +1,8 @@
+6117.	[func]		Add a qp-trie data structure. This is a foundation for
+			our plan to replace, in stages, BIND's red-black tree.
+			The qp-trie has lock-free multithreaded reads, using
+			QSBR for safe memory reclamation. [GL !7130]
+
 6116.	[placeholder]
 
 6115.	[bug]		Unregister db update notify callback before detaching

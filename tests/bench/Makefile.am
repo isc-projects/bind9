@@ -1,19 +1,30 @@
 include $(top_srcdir)/Makefile.top
 
-AM_CPPFLAGS +=			\
-	$(LIBISC_CFLAGS)	\
-	$(LIBDNS_CFLAGS)	\
-	-I$(top_srcdir)/fuzz
+AM_CFLAGS += -Wno-vla
 
-LDADD +=			\
-	$(LIBISC_LIBS)		\
-	$(LIBDNS_LIBS)
+AM_CPPFLAGS +=				\
+	$(LIBUV_CFLAGS)			\
+	$(LIBISC_CFLAGS)		\
+	$(LIBDNS_CFLAGS)		\
+	-I$(top_srcdir)/fuzz		\
+	-I$(top_srcdir)/lib/dns		\
+	-I$(top_srcdir)/lib/isc		\
+	-I$(top_srcdir)/tests/include
 
-noinst_PROGRAMS =		\
-	ascii			\
-	compress		\
-	iterated_hash		\
-	dns_name_fromwire	\
+LDADD +=				\
+	$(LIBUV_LIBS)			\
+	$(LIBISC_LIBS)			\
+	$(LIBDNS_LIBS)			\
+	$(top_builddir)/tests/libtest/libtest.la
+
+noinst_PROGRAMS =			\
+	ascii				\
+	compress			\
+	dns_name_fromwire		\
+	iterated_hash			\
+	load-names			\
+	qp-dump				\
+	qpmulti				\
 	siphash
 
 dns_name_fromwire_SOURCES =		\

@@ -79,9 +79,9 @@ typedef struct {
  * contains "." which is not included in this list).
  */
 static const char *const domain_names[] = {
-	"c",	     "b",	    "a",	   "x.d.e.f",
-	"z.d.e.f",   "g.h",	    "i.g.h",	   "o.w.y.d.e.f",
-	"j.z.d.e.f", "p.w.y.d.e.f", "q.w.y.d.e.f", "k.g.h"
+	"c.",	      "b.",	      "a.",	      "x.d.e.f.",
+	"z.d.e.f.",   "g.h.",	      "i.g.h.",	      "o.w.y.d.e.f.",
+	"j.z.d.e.f.", "p.w.y.d.e.f.", "q.w.y.d.e.f.", "k.g.h."
 };
 
 static const size_t domain_names_count =
@@ -114,9 +114,10 @@ static const int node_distances[] = { 3, 1, 2, 2, 2, 3, 1, 2, 1, 1, 2, 2 };
  */
 
 static const char *const ordered_names[] = {
-	"a",	     "b",	    "c",	   "d.e.f",	  "x.d.e.f",
-	"w.y.d.e.f", "o.w.y.d.e.f", "p.w.y.d.e.f", "q.w.y.d.e.f", "z.d.e.f",
-	"j.z.d.e.f", "g.h",	    "i.g.h",	   "k.g.h"
+	"a.",		"b.",	      "c.",	      "d.e.f.",
+	"x.d.e.f.",	"w.y.d.e.f.", "o.w.y.d.e.f.", "p.w.y.d.e.f.",
+	"q.w.y.d.e.f.", "z.d.e.f.",   "j.z.d.e.f.",   "g.h.",
+	"i.g.h.",	"k.g.h."
 };
 
 static const size_t ordered_names_count =
@@ -240,7 +241,7 @@ ISC_RUN_TEST_IMPL(rbt_nodecount) {
 ISC_RUN_TEST_IMPL(rbtnode_get_distance) {
 	isc_result_t result;
 	test_context_t *ctx;
-	const char *name_str = "a";
+	const char *name_str = "a.";
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	dns_rbtnode_t *node = NULL;
@@ -463,7 +464,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Try to insert a node that already exists. */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "d.e.f", &node);
+	result = insert_helper(ctx->rbt, "d.e.f.", &node);
 	assert_int_equal(result, ISC_R_EXISTS);
 
 	/* Node count must not have changed. */
@@ -471,7 +472,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Try to insert a node that doesn't exist. */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "0", &node);
+	result = insert_helper(ctx->rbt, "0.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "0"));
 
@@ -480,7 +481,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Another. */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "example.com", &node);
+	result = insert_helper(ctx->rbt, "example.com.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(node);
 	assert_null(node->data);
@@ -490,7 +491,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Re-adding it should return EXISTS */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "example.com", &node);
+	result = insert_helper(ctx->rbt, "example.com.", &node);
 	assert_int_equal(result, ISC_R_EXISTS);
 
 	/* Node count must not have changed. */
@@ -498,7 +499,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Fission the node d.e.f */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "k.e.f", &node);
+	result = insert_helper(ctx->rbt, "k.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "k"));
 
@@ -509,7 +510,7 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 
 	/* Fission the node "g.h" */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "h", &node);
+	result = insert_helper(ctx->rbt, "h.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "h"));
 
@@ -521,80 +522,80 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
 	/* Add child domains */
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "m.p.w.y.d.e.f", &node);
+	result = insert_helper(ctx->rbt, "m.p.w.y.d.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "m"));
 	assert_int_equal(21, dns_rbt_nodecount(ctx->rbt));
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "n.p.w.y.d.e.f", &node);
+	result = insert_helper(ctx->rbt, "n.p.w.y.d.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "n"));
 	assert_int_equal(22, dns_rbt_nodecount(ctx->rbt));
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "l.a", &node);
+	result = insert_helper(ctx->rbt, "l.a.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(compare_labelsequences(node, "l"));
 	assert_int_equal(23, dns_rbt_nodecount(ctx->rbt));
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "r.d.e.f", &node);
+	result = insert_helper(ctx->rbt, "r.d.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	node = NULL;
-	result = insert_helper(ctx->rbt, "s.d.e.f", &node);
+	result = insert_helper(ctx->rbt, "s.d.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(25, dns_rbt_nodecount(ctx->rbt));
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "h.w.y.d.e.f", &node);
+	result = insert_helper(ctx->rbt, "h.w.y.d.e.f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* Add more nodes one by one to cover left and right rotation
 	 * functions.
 	 */
 	node = NULL;
-	result = insert_helper(ctx->rbt, "f", &node);
+	result = insert_helper(ctx->rbt, "f.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "m", &node);
+	result = insert_helper(ctx->rbt, "m.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "nm", &node);
+	result = insert_helper(ctx->rbt, "nm.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "om", &node);
+	result = insert_helper(ctx->rbt, "om.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "k", &node);
+	result = insert_helper(ctx->rbt, "k.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "l", &node);
+	result = insert_helper(ctx->rbt, "l.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "fe", &node);
+	result = insert_helper(ctx->rbt, "fe.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "ge", &node);
+	result = insert_helper(ctx->rbt, "ge.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "i", &node);
+	result = insert_helper(ctx->rbt, "i.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "ae", &node);
+	result = insert_helper(ctx->rbt, "ae.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "n", &node);
+	result = insert_helper(ctx->rbt, "n.", &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	test_context_teardown(ctx);
@@ -973,7 +974,7 @@ ISC_RUN_TEST_IMPL(rbt_findname) {
 	ctx = test_context_setup();
 
 	/* Try to find a name that exists. */
-	dns_test_namefromstring("d.e.f", &fname);
+	dns_test_namefromstring("d.e.f.", &fname);
 	name = dns_fixedname_name(&fname);
 
 	foundname = dns_fixedname_initname(&found);
@@ -988,14 +989,14 @@ ISC_RUN_TEST_IMPL(rbt_findname) {
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	/* Now one that partially matches */
-	dns_test_namefromstring("d.e.f.g.h.i.j", &fname);
+	dns_test_namefromstring("d.e.f.g.h.i.j.", &fname);
 	name = dns_fixedname_name(&fname);
 	result = dns_rbt_findname(ctx->rbt, name, DNS_RBTFIND_EMPTYDATA,
 				  foundname, (void *)&n);
 	assert_int_equal(result, DNS_R_PARTIALMATCH);
 
 	/* Now one that doesn't match */
-	dns_test_namefromstring("1.2", &fname);
+	dns_test_namefromstring("1.2.", &fname);
 	name = dns_fixedname_name(&fname);
 	result = dns_rbt_findname(ctx->rbt, name, DNS_RBTFIND_EMPTYDATA,
 				  foundname, (void *)&n);
@@ -1021,7 +1022,7 @@ ISC_RUN_TEST_IMPL(rbt_addname) {
 	assert_non_null(n);
 	*n = 1;
 
-	dns_test_namefromstring("d.e.f.g.h.i.j.k", &fname);
+	dns_test_namefromstring("d.e.f.g.h.i.j.k.", &fname);
 	name = dns_fixedname_name(&fname);
 
 	/* Add a name that doesn't exist */
@@ -1051,13 +1052,13 @@ ISC_RUN_TEST_IMPL(rbt_deletename) {
 	ctx = test_context_setup();
 
 	/* Delete a name that doesn't exist */
-	dns_test_namefromstring("z.x.y.w", &fname);
+	dns_test_namefromstring("z.x.y.w.", &fname);
 	name = dns_fixedname_name(&fname);
 	result = dns_rbt_deletename(ctx->rbt, name, false);
 	assert_int_equal(result, ISC_R_NOTFOUND);
 
 	/* Now one that does */
-	dns_test_namefromstring("d.e.f", &fname);
+	dns_test_namefromstring("d.e.f.", &fname);
 	name = dns_fixedname_name(&fname);
 	result = dns_rbt_deletename(ctx->rbt, name, false);
 	assert_int_equal(result, ISC_R_NOTFOUND);
@@ -1080,7 +1081,7 @@ ISC_RUN_TEST_IMPL(rbt_nodechain) {
 
 	dns_rbtnodechain_init(&chain);
 
-	dns_test_namefromstring("a", &fname);
+	dns_test_namefromstring("a.", &fname);
 	name = dns_fixedname_name(&fname);
 
 	result = dns_rbt_findnode(ctx->rbt, name, NULL, &node, &chain, 0, NULL,
@@ -1089,7 +1090,7 @@ ISC_RUN_TEST_IMPL(rbt_nodechain) {
 
 	foundname = dns_fixedname_initname(&found);
 
-	dns_test_namefromstring("a", &expect);
+	dns_test_namefromstring("a.", &expect);
 	expected = dns_fixedname_name(&expect);
 	UNUSED(expected);
 
@@ -1141,19 +1142,19 @@ ISC_RUN_TEST_IMPL(rbtnode_namelen) {
 	assert_int_equal(len, 1);
 	node = NULL;
 
-	result = insert_helper(ctx->rbt, "a.b.c.d.e.f.g.h.i.j.k.l.m", &node);
+	result = insert_helper(ctx->rbt, "a.b.c.d.e.f.g.h.i.j.k.l.m.", &node);
 	len = dns__rbtnode_namelen(node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(len, 27);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "isc.org", &node);
+	result = insert_helper(ctx->rbt, "isc.org.", &node);
 	len = dns__rbtnode_namelen(node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(len, 9);
 
 	node = NULL;
-	result = insert_helper(ctx->rbt, "example.com", &node);
+	result = insert_helper(ctx->rbt, "example.com.", &node);
 	len = dns__rbtnode_namelen(node);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(len, 13);

@@ -309,7 +309,7 @@ ISC_RUN_TEST_IMPL(version) {
 
 	/* Open current version for reading */
 	dns_db_currentversion(db, &ver);
-	dns_test_namefromstring("b.test.test", &fname);
+	dns_test_namefromstring("b.test.test.", &fname);
 	name = dns_fixedname_name(&fname);
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
@@ -322,7 +322,7 @@ ISC_RUN_TEST_IMPL(version) {
 
 	/* Open new version for writing */
 	dns_db_currentversion(db, &ver);
-	dns_test_namefromstring("b.test.test", &fname);
+	dns_test_namefromstring("b.test.test.", &fname);
 	name = dns_fixedname_name(&fname);
 	foundname = dns_fixedname_initname(&ffound);
 	dns_rdataset_init(&rdataset);
