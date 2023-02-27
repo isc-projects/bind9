@@ -177,7 +177,6 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 
 #define DNS_QMIN_MAXLABELS	   7
 #define DNS_QMIN_MAX_NO_DELEGATION 3
-#define DNS_MAX_LABELS		   127
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
