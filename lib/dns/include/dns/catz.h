@@ -208,11 +208,6 @@ dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
  * \li 'false' if the entries differ.
  */
 
-ISC_REFCOUNT_DECL(dns_catz_zone);
-/*%<
- * Declare reference counting functions for dns_catz_zone_t.
- */
-
 isc_result_t
 dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 		  const dns_name_t *name);
