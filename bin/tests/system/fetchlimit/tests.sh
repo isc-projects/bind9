@@ -165,7 +165,7 @@ touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
     $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$try
-    stat 100 400 || exceeded=$((exceeded + 1))
+    stat 1 400 || exceeded=$((exceeded + 1))
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=$((success+1))
     grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
