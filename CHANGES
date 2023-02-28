@@ -1,6 +1,11 @@
 6116.	[bug]		Fix error path cleanup issue in the dns_catz_new_zones()
 			function. [GL #3900]
 
+6115.	[bug]		Unregister db update notify callback before detaching
+			from the previous db inside the catz update notify
+			callback. Also, call the db notify callbacks only after
+			zone_postload() returns successfully. [GL #3777]
+
 6105.	[bug]		Detach 'rpzs' and 'catzs' from the previous view in
 			configure_rpz() and configure_catz(), respectively,
 			just after attaching it to the new view. [GL #3880]
