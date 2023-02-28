@@ -1387,6 +1387,7 @@ stress:authoritative:fedora:37:amd64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: authoritative
     RATE: 10000
@@ -1401,6 +1402,7 @@ stress:recursive:fedora:37:amd64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: recursive
     RATE: 10000
@@ -1415,6 +1417,7 @@ stress:rpz:fedora:37:amd64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: rpz
     RATE: 1500
@@ -1429,6 +1432,7 @@ stress:authoritative:fedora:37:arm64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: authoritative
     RATE: 10000
@@ -1443,6 +1447,7 @@ stress:recursive:fedora:37:arm64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: recursive
     RATE: 10000
@@ -1457,6 +1462,7 @@ stress:rpz:fedora:37:arm64:
   <<: *stress_job
   variables:
     CC: gcc
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/bin/flame
     MODE: rpz
     RATE: 1500
@@ -1471,6 +1477,7 @@ stress:authoritative:freebsd12:amd64:
   <<: *stress_job
   variables:
     CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: authoritative
     RATE: 10000
@@ -1485,6 +1492,7 @@ stress:recursive:freebsd12:amd64:
   <<: *stress_job
   variables:
     CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: recursive
     RATE: 10000
@@ -1499,6 +1507,7 @@ stress:rpz:freebsd12:amd64:
   <<: *stress_job
   variables:
     CC: clang
+    CFLAGS: "${CFLAGS_COMMON} -Og"
     FLAME: /usr/local/bin/flame
     MODE: rpz
     RATE: 1500
