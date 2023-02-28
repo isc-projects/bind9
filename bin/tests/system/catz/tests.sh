@@ -2605,5 +2605,23 @@ wait_for_soa @10.53.0.4 tls1.example. dig.out.test$n || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+##########################################################################
+# GL #3777
+nextpart ns4/named.run >/dev/null
+
+n=$((n+1))
+echo_i "Adding domain self.example. to catalog-self zone without updating the serial ($n)"
+ret=0
+echo "self.zones.catalog-self.example. 3600 IN PTR self.example." >> ns4/catalog-self.example.db
+rndccmd 10.53.0.4 reload || ret=1
+
+n=$((n+1))
+echo_i "Issuing another rndc reload command after 1 second ($n)"
+sleep 1
+rndccmd 10.53.0.4 reload || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+##########################################################################
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
