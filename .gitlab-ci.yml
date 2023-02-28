@@ -923,7 +923,15 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_READLINE}"
+    # NOTE: Testing DNSRPS-enabled builds currently requires an
+    # operating system with glibc 2.34+.  This requirement will go away
+    # once the DNSRPS dynamic loading code gets reworked to use libuv's
+    # dlopen() API.
+    #
+    # NOTE: This does *not* enable testing of the DNSRPS feature itself.
+    # Doing that requires a DNSRPS provider library to be present on the
+    # test host.
+    EXTRA_CONFIGURE: "--enable-dnsrps --enable-dnsrps-dl --with-libidn2 ${WITH_READLINE_READLINE}"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
