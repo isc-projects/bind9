@@ -265,7 +265,7 @@ dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 		},
 		.qname = qname,
 	};
-	isc_refcount_init(&rpsdb->common.refcount, 1);
+	isc_refcount_init(&rpsdb->common.references, 1);
 
 	if (!librpz->rsp_create(emsg, &rpsdb->rsp, NULL, rpzs->rps_client,
 				have_rd, false))
@@ -367,10 +367,8 @@ rpsdb_destroy(dns_db_t *db) {
 
 	REQUIRE(VALID_RPSDB(rpsdb));
 
-	*dbp = NULL;
-
 	librpz->rsp_detach(&rpsdb->rsp);
-	isc_refcount_destroy(&rpsdb->common.refcount);
+	isc_refcount_destroy(&rpsdb->common.references);
 	rpsdb->common.impmagic = 0;
 	isc_mem_putanddetach(&rpsdb->common.mctx, rpsdb, sizeof(*rpsdb));
 }
@@ -383,7 +381,7 @@ rpsdb_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp == NULL);
 	REQUIRE(source == &rpsdb->origin_node || source == &rpsdb->data_node);
 
-	isc_refcount_increment(&rpsdb->common.refcount);
+	isc_refcount_increment(&rpsdb->common.references);
 	*targetp = source;
 }
 
@@ -921,7 +919,7 @@ static dns_dbmethods_t rpsdb_db_methods = {
 
 static dns_rdatasetmethods_t rpsdb_rdataset_methods = {
 	.disassociate = rpsdb_rdataset_disassociate,
-	first = rpsdb_rdataset_first,
+	.first = rpsdb_rdataset_first,
 	.next = rpsdb_rdataset_next,
 	.current = rpsdb_rdataset_current,
 	.clone = rpsdb_rdataset_clone,
