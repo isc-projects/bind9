@@ -57,6 +57,14 @@ resolve_CPPFLAGS =		\
 
 resolve_LDADD = $(LIBISC_LIBS) $(LIBIRS_LIBS) $(LIBDNS_LIBS)
 
+rpz_dnsrps_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBDNS_CFLAGS)
+
+rpz_dnsrps_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)
+
 tkey_keycreate_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
