@@ -3189,6 +3189,7 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	}
 
 	if (old != NULL) {
+		dns_catz_shutdown_catzs(view->catzs);
 		dns_catz_detach_catzs(&view->catzs);
 		dns_catz_attach_catzs(pview->catzs, &view->catzs);
 		dns_catz_detach_catzs(&pview->catzs);
