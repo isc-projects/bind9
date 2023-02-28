@@ -288,12 +288,12 @@ destroy(dns_view_t *view) {
 	if (view->statickeys != NULL) {
 		dns_tsigkeyring_detach(&view->statickeys);
 	}
-	if (view->adb != NULL) {
-		dns_adb_detach(&view->adb);
-	}
-	if (view->resolver != NULL) {
-		dns_resolver_detach(&view->resolver);
-	}
+
+	/* These must have been detached in dns_view_detach() */
+	INSIST(view->adb == NULL);
+	INSIST(view->resolver == NULL);
+	INSIST(view->requestmgr == NULL);
+
 	dns_rrl_view_destroy(view);
 	if (view->rpzs != NULL) {
 		dns_rpz_shutdown_rpzs(view->rpzs);
@@ -314,9 +314,6 @@ destroy(dns_view_t *view) {
 	{
 		ISC_LIST_UNLINK(view->dlz_unsearched, dlzdb, link);
 		dns_dlzdestroy(&dlzdb);
-	}
-	if (view->requestmgr != NULL) {
-		dns_requestmgr_detach(&view->requestmgr);
 	}
 	if (view->hints != NULL) {
 		dns_db_detach(&view->hints);
@@ -513,20 +510,35 @@ dns_view_detach(dns_view_t **viewp) {
 
 		isc_refcount_destroy(&view->references);
 
+		/* Shutdown the attached objects first */
+		if (view->resolver != NULL) {
+			dns_resolver_shutdown(view->resolver);
+		}
+		if (view->adb != NULL) {
+			dns_adb_shutdown(view->adb);
+		}
+		if (view->requestmgr != NULL) {
+			dns_requestmgr_shutdown(view->requestmgr);
+		}
+
 		/* Swap the pointers under the lock */
 		LOCK(&view->lock);
+
 		if (view->resolver != NULL) {
 			resolver = view->resolver;
 			view->resolver = NULL;
 		}
+
 		if (view->adb != NULL) {
 			adb = view->adb;
 			view->adb = NULL;
 		}
+
 		if (view->requestmgr != NULL) {
 			requestmgr = view->requestmgr;
 			view->requestmgr = NULL;
 		}
+
 		if (view->zonetable != NULL) {
 			zt = view->zonetable;
 			view->zonetable = NULL;
@@ -559,17 +571,15 @@ dns_view_detach(dns_view_t **viewp) {
 
 		/* Detach outside view lock */
 		if (resolver != NULL) {
-			dns_resolver_shutdown(resolver);
 			dns_resolver_detach(&resolver);
 		}
 		if (adb != NULL) {
-			dns_adb_shutdown(adb);
 			dns_adb_detach(&adb);
 		}
 		if (requestmgr != NULL) {
-			dns_requestmgr_shutdown(requestmgr);
 			dns_requestmgr_detach(&requestmgr);
 		}
+
 		if (zt != NULL) {
 			dns_zt_detach(&zt);
 		}
@@ -648,8 +658,6 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	REQUIRE(view->dispatchmgr != NULL);
-
-	view->loop = isc_loop_current(loopmgr);
 
 	result = dns_resolver_create(view, loopmgr, ndisp, netmgr, options,
 				     tlsctx_cache, dispatchv4, dispatchv6,
