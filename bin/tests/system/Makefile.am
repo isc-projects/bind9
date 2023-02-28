@@ -48,6 +48,14 @@ pipelined_pipequeries_LDADD =	\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
+rpz_dnsrps_CPPFLAGS =		\
+	$(AM_CPPFLAGS)		\
+	$(LIBDNS_CFLAGS)
+
+rpz_dnsrps_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)
+
 tkey_keycreate_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
 	$(LIBDNS_CFLAGS)
