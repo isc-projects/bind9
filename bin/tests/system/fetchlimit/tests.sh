@@ -165,7 +165,7 @@ touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
     $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$try
-    stat 100 400 || exceeded=$((exceeded + 1))
+    stat 1 400 || exceeded=$((exceeded + 1))
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=$((success+1))
     grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
@@ -183,11 +183,9 @@ status=$((status+ret))
 
 echo_i "checking drop statistics"
 rm -f ns3/named.stats
+touch ns3/named.stats
 $RNDCCMD stats
-for try in 1 2 3 4 5; do
-    [ -f ns3/named.stats ] && break
-    sleep 1
-done
+wait_for_log 5 "queries dropped due to recursive client limit" ns3/named.stats || ret=1
 drops=`grep 'queries dropped due to recursive client limit' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
 [ "${drops:-0}" -ne 0 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi

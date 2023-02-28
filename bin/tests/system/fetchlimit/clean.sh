@@ -12,8 +12,8 @@
 # information regarding copyright ownership.
 
 rm -f */named.conf */named.memstats */ans.run */named.recursing */named.run
-rm -f dig.out*
 rm -f ans4/norespond
-rm -f ns3/named.stats ns3/named_dump.db
 rm -f burst.input.*
+rm -f dig.out*
 rm -f ns*/managed-keys.bind*
+rm -f ns3/named.stats ns3/named.stats.prev ns3/named_dump.db
