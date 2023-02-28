@@ -145,18 +145,6 @@ static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
 
-/*% tkey-dhkey */
-
-static cfg_tuplefielddef_t tkey_dhkey_fields[] = {
-	{ "name", &cfg_type_qstring, 0 },
-	{ "keyid", &cfg_type_uint32, 0 },
-	{ NULL, NULL, 0 }
-};
-
-static cfg_type_t cfg_type_tkey_dhkey = { "tkey-dhkey",	   cfg_parse_tuple,
-					  cfg_print_tuple, cfg_doc_tuple,
-					  &cfg_rep_tuple,  tkey_dhkey_fields };
-
 /*% listen-on */
 
 static cfg_tuplefielddef_t listenon_tuple_fields[] = {
@@ -1327,7 +1315,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "tcp-listen-queue", &cfg_type_uint32, 0 },
 	{ "tcp-receive-buffer", &cfg_type_uint32, 0 },
 	{ "tcp-send-buffer", &cfg_type_uint32, 0 },
-	{ "tkey-dhkey", &cfg_type_tkey_dhkey, 0 },
+	{ "tkey-dhkey", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "tkey-domain", &cfg_type_qstring, 0 },
 	{ "tkey-gssapi-credential", &cfg_type_qstring, 0 },
 	{ "tkey-gssapi-keytab", &cfg_type_qstring, 0 },

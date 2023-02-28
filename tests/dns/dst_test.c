@@ -416,34 +416,6 @@ ISC_RUN_TEST_IMPL(cmp_test) {
 		/* EdDSA Public Key: different key */
 		{ "example.", 63663, "example2.", 37529, DST_ALG_ED25519,
 		  DST_TYPE_PUBLIC, false },
-
-		/* DH Keypair: self */
-		{ "example.", 65316, "example.", 65316, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY, true },
-
-		/* DH Keypair: different key */
-		{ "example.", 65316, "example2.", 19823, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY, false },
-
-		/* DH Keypair: different key (with generator=5) */
-		{ "example.", 65316, "example3.", 17187, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY, false },
-
-		/* DH Keypair: different private key */
-		{ "example.", 65316, "example-private.", 65316, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY, false },
-
-		/* DH Public Key: self */
-		{ "example.", 65316, "example.", 65316, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_KEY, true },
-
-		/* DH Public Key: different key */
-		{ "example.", 65316, "example2.", 19823, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_KEY, false },
-
-		/* DH Public Key: different key (with generator=5) */
-		{ "example.", 65316, "example3.", 17187, DST_ALG_DH,
-		  DST_TYPE_PUBLIC | DST_TYPE_KEY, false },
 	};
 	unsigned int i;
 

@@ -387,9 +387,6 @@ main(int argc, char **argv) {
 		if (ret != ISC_R_SUCCESS) {
 			fatal("unknown algorithm %s", algname);
 		}
-		if (alg == DST_ALG_DH) {
-			options |= DST_TYPE_KEY;
-		}
 
 		if (use_nsec3) {
 			switch (alg) {
@@ -595,13 +592,6 @@ main(int argc, char **argv) {
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0) {
 			fatal("specified null key with signing authority");
 		}
-	}
-
-	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    alg == DNS_KEYALG_DH)
-	{
-		fatal("a key with algorithm '%s' cannot be a zone key",
-		      algname);
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);

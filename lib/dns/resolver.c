@@ -11016,9 +11016,6 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	/*
-	 * DH is unsupported for DNSKEYs, see RFC 4034 sec. A.1.
-	 */
 	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
 		return (false);
 	}

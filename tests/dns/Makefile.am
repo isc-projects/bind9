@@ -21,7 +21,6 @@ check_PROGRAMS =		\
 	dbdiff_test		\
 	dbiterator_test		\
 	dbversion_test		\
-	dh_test			\
 	dispatch_test		\
 	dns64_test		\
 	dst_test		\

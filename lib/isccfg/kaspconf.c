@@ -246,8 +246,8 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		}
 
 		/* NSEC3 cannot be used with certain key algorithms. */
-		if (keyalg == DNS_KEYALG_RSAMD5 || keyalg == DNS_KEYALG_DH ||
-		    keyalg == DNS_KEYALG_DSA || keyalg == DNS_KEYALG_RSASHA1)
+		if (keyalg == DNS_KEYALG_RSAMD5 || keyalg == DNS_KEYALG_DSA ||
+		    keyalg == DNS_KEYALG_RSASHA1)
 		{
 			badalg = keyalg;
 		}
