@@ -57,7 +57,6 @@ EXTRA_DIST =					\
 	rpz.inc.rst				\
 	security.inc.rst			\
 	sig0.inc.rst				\
-	tkey.inc.rst				\
 	troubleshooting.inc.rst			\
 	tsig.inc.rst				\
 	zones.inc.rst				\

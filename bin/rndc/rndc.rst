@@ -616,17 +616,6 @@ Currently supported commands are:
 
 .. program:: rndc
 
-.. option:: tsig-delete keyname [view]
-
-   This command deletes a given TKEY-negotiated key from the server. This does not
-   apply to statically configured TSIG keys.
-
-.. option:: tsig-list
-
-   This command lists the names of all TSIG keys currently configured for use by
-   :iscman:`named` in each view. The list includes both statically configured keys and
-   dynamic TKEY-negotiated keys.
-
 .. option:: validation (on | off | status) [view ...]
 
    This command enables, disables, or checks the current status of DNSSEC validation. By

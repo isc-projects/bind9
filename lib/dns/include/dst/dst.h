@@ -631,10 +631,6 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
  * 	RSA:	exponent
  * 		0	use exponent 3
  * 		!0	use Fermat4 (2^16 + 1)
- * 	DH:	generator
- * 		0	default - use well known prime if bits == 768 or 1024,
- * 			otherwise use 2 as the generator.
- * 		!0	use this value as the generator.
  * 	DSA:	unused
  * 	HMACMD5: entropy
  *		0	default - require good entropy

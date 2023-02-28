@@ -276,10 +276,6 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_freeze(named_g_server, false, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_TRACE)) {
 		result = named_server_setdebuglevel(named_g_server, lex);
-	} else if (command_compare(command, NAMED_COMMAND_TSIGDELETE)) {
-		result = named_server_tsigdelete(named_g_server, lex, text);
-	} else if (command_compare(command, NAMED_COMMAND_TSIGLIST)) {
-		result = named_server_tsiglist(named_g_server, text);
 	} else if (command_compare(command, NAMED_COMMAND_VALIDATION)) {
 		result = named_server_validation(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_ZONESTATUS)) {

@@ -113,50 +113,6 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
  */
 
 isc_result_t
-dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
-/*%<
- *	Builds a query containing a TKEY record that will delete the
- *	specified shared secret from the server.
- *
- *	Requires:
- *\li		'msg' is a valid message
- *\li		'key' is a valid TSIG key
- *
- *	Returns:
- *\li		#ISC_R_SUCCESS	msg was successfully updated to include the
- *				query to be sent
- *\li		other		an error occurred while building the message
- */
-
-isc_result_t
-dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			    const dns_name_t *gname, dns_gss_ctx_id_t *context,
-			    isc_buffer_t *outtoken, dns_tsigkey_t **outkey,
-			    dns_tsig_keyring_t *ring, char **err_message);
-/*%<
- * XXX
- */
-
-isc_result_t
-dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			       dns_tsig_keyring_t *ring);
-/*%<
- *	Processes a response to a query containing a TKEY that was
- *	designed to delete a shared secret.  If the query was successful,
- *	the shared key is deleted from the list of shared keys.
- *
- *	Requires:
- *\li		'qmsg' is a valid message (the query)
- *\li		'rmsg' is a valid message (the response)
- *\li		'ring' is not NULL
- *
- *	Returns:
- *\li		#ISC_R_SUCCESS	the shared key was successfully deleted
- *\li		#ISC_R_NOTFOUND	an error occurred while looking for a
- *				component of the query or response
- */
-
-isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, dns_gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,

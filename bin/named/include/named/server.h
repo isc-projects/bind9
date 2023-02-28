@@ -251,19 +251,6 @@ isc_result_t
 named_server_status(named_server_t *server, isc_buffer_t **text);
 
 /*%
- * Report a list of dynamic and static tsig keys, per view.
- */
-isc_result_t
-named_server_tsiglist(named_server_t *server, isc_buffer_t **text);
-
-/*%
- * Delete a specific key (with optional view).
- */
-isc_result_t
-named_server_tsigdelete(named_server_t *server, isc_lex_t *lex,
-			isc_buffer_t **text);
-
-/*%
  * Enable or disable updates for a zone.
  */
 isc_result_t

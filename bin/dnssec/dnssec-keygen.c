@@ -850,8 +850,8 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS                                           \
-	"3A:a:b:Cc:D:d:E:eFf:Gg:hI:i:K:k:L:l:m:n:P:p:qR:r:S:s:" \
+#define CMDLINE_FLAGS                                        \
+	"3A:a:b:Cc:D:d:E:Ff:GhI:i:K:k:L:l:m:n:P:p:qR:r:S:s:" \
 	"T:t:v:V"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -907,10 +907,6 @@ main(int argc, char **argv) {
 		case 'E':
 			engine = isc_commandline_argument;
 			break;
-		case 'e':
-			fprintf(stderr, "phased-out option -e "
-					"(was 'use (RSA) large exponent')\n");
-			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
 			if (toupper(c) == 'K') {
@@ -921,11 +917,6 @@ main(int argc, char **argv) {
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
 			}
-			break;
-		case 'g':
-			fprintf(stderr,
-				"phased-out option -e "
-				"(was 'use specified generator (DH only)')\n");
 			break;
 		case 'K':
 			ctx.directory = isc_commandline_argument;
