@@ -715,6 +715,8 @@ dns_zone_getkasp(dns_zone_t *zone);
 
 void
 dns_zone_setkasp(dns_zone_t *zone, dns_kasp_t *kasp);
+void
+dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp);
 /*%<
  *	Set kasp for zone.  If a kasp is already set, it will be detached.
  *

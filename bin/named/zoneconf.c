@@ -1198,6 +1198,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (ztype != dns_zone_stub && ztype != dns_zone_staticstub &&
 	    ztype != dns_zone_redirect)
 	{
+		/* Make a reference to the default policy. */
+		result = dns_kasplist_find(kasplist, "default", &kasp);
+		INSIST(result == ISC_R_SUCCESS && kasp != NULL);
+		dns_zone_setdefaultkasp(zone, kasp);
+		dns_kasp_detach(&kasp);
+
 		obj = NULL;
 		result = named_config_get(maps, "dnssec-policy", &obj);
 		if (result == ISC_R_SUCCESS) {

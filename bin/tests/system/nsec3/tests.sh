@@ -33,11 +33,16 @@ rndccmd() {
 }
 
 # Set zone name ($1) and policy ($2) for testing nsec3.
+# Also set the expected number of keys ($3) and DNSKEY TTL ($4).
 set_zone_policy() {
 	ZONE=$1
 	POLICY=$2
 	NUM_KEYS=$3
 	DNSKEY_TTL=$4
+	# The CDS digest type in these tests are all the default,
+	# which is SHA-256 (2).
+	CDS_SHA256="yes"
+	CDS_SHA384="no"
 }
 # Set expected NSEC3 parameters: flags ($1), iterations ($2), and
 # salt length ($3).

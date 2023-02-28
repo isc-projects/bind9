@@ -352,6 +352,7 @@ struct dns_zone {
 	dns_view_t *view;
 	dns_view_t *prev_view;
 	dns_kasp_t *kasp;
+	dns_kasp_t *defaultkasp;
 	dns_checkmxfunc_t checkmx;
 	dns_checksrvfunc_t checksrv;
 	dns_checknsfunc_t checkns;
@@ -1118,6 +1119,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	zone->primaries = r;
 	zone->parentals = r;
 	zone->notify = r;
+	zone->defaultkasp = NULL;
 
 	result = isc_stats_create(mctx, &zone->gluecachestats,
 				  dns_gluecachestatscounter_max);
@@ -1229,6 +1231,9 @@ zone_free(dns_zone_t *zone) {
 	zone->keydirectory = NULL;
 	if (zone->kasp != NULL) {
 		dns_kasp_detach(&zone->kasp);
+	}
+	if (zone->defaultkasp != NULL) {
+		dns_kasp_detach(&zone->defaultkasp);
 	}
 	if (!ISC_LIST_EMPTY(zone->checkds_ok)) {
 		clear_keylist(&zone->checkds_ok, zone->mctx);
@@ -5710,6 +5715,20 @@ dns_zone_setkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 	}
 	if (kasp != NULL) {
 		dns_kasp_attach(kasp, &zone->kasp);
+	}
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->defaultkasp != NULL) {
+		dns_kasp_detach(&zone->defaultkasp);
+	}
+	if (kasp != NULL) {
+		dns_kasp_attach(kasp, &zone->defaultkasp);
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -20462,6 +20481,7 @@ zone_rekey(dns_zone_t *zone) {
 	KASP_UNLOCK(kasp);
 
 	if (result == ISC_R_SUCCESS) {
+		dns_kasp_digestlist_t digests;
 		bool cdsdel = false;
 		bool cdnskeydel = false;
 		bool sane_diff, sane_dnskey;
@@ -20476,6 +20496,7 @@ zone_rekey(dns_zone_t *zone) {
 				cdsdel = true;
 				cdnskeydel = true;
 			}
+			digests = dns_kasp_digests(kasp);
 		} else {
 			/* Check if there is a CDS DELETE record. */
 			if (dns_rdataset_isassociated(&cdsset)) {
@@ -20526,6 +20547,8 @@ zone_rekey(dns_zone_t *zone) {
 					}
 				}
 			}
+
+			digests = dns_kasp_digests(zone->defaultkasp);
 		}
 
 		/*
@@ -20553,8 +20576,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * Update CDS / CDNSKEY records.
 		 */
 		result = dns_dnssec_syncupdate(&dnskeys, &rmkeys, &cdsset,
-					       &cdnskeyset, now, ttl, &diff,
-					       mctx);
+					       &cdnskeyset, now, &digests, true,
+					       ttl, &diff, mctx);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY: %s",

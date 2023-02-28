@@ -6257,6 +6257,13 @@ retired when the existing key's lifetime ends.
 
 The following options can be specified in a :any:`dnssec-policy` statement:
 
+.. namedconf:statement:: cds-digest-types
+   :tags: dnssec
+   :short: Specifies the digest types to use for CDS resource records.
+
+    This indicates the digest types to use when generating CDS resource
+    records. The default is SHA-256 only.
+
 .. namedconf:statement:: dnskey-ttl
    :tags: dnssec
    :short: Specifies the time to live (TTL) for DNSKEY resource records.

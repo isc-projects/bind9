@@ -27,11 +27,16 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 
+#include <dst/dst.h>
+
 isc_result_t
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	dns_kasp_t *kasp;
 	dns_kasp_t k = {
 		.magic = DNS_KASP_MAGIC,
+		.digests = ISC_LIST_INITIALIZER,
+		.keys = ISC_LIST_INITIALIZER,
+		.link = ISC_LINK_INITIALIZER,
 	};
 
 	REQUIRE(name != NULL);
@@ -45,9 +50,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	kasp->name = isc_mem_strdup(mctx, name);
 	isc_mutex_init(&kasp->lock);
 	isc_refcount_init(&kasp->references, 1);
-
-	ISC_LINK_INIT(kasp, link);
-	ISC_LIST_INIT(kasp->keys);
 
 	*kaspp = kasp;
 	return (ISC_R_SUCCESS);
@@ -64,8 +66,8 @@ dns_kasp_attach(dns_kasp_t *source, dns_kasp_t **targetp) {
 
 static void
 destroy(dns_kasp_t *kasp) {
-	dns_kasp_key_t *key;
-	dns_kasp_key_t *key_next;
+	dns_kasp_key_t *key, *key_next;
+	dns_kasp_digest_t *digest, *digest_next;
 
 	REQUIRE(!ISC_LINK_LINKED(kasp, link));
 
@@ -75,6 +77,15 @@ destroy(dns_kasp_t *kasp) {
 		dns_kasp_key_destroy(key);
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->keys));
+
+	for (digest = ISC_LIST_HEAD(kasp->digests); digest != NULL;
+	     digest = digest_next)
+	{
+		digest_next = ISC_LIST_NEXT(digest, link);
+		ISC_LIST_UNLINK(kasp->digests, digest, link);
+		isc_mem_put(kasp->mctx, digest, sizeof(*digest));
+	}
+	INSIST(ISC_LIST_EMPTY(kasp->digests));
 
 	isc_mutex_destroy(&kasp->lock);
 	isc_mem_free(kasp->mctx, kasp->name);
@@ -506,4 +517,39 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
 	kasp->nsec3param.iterations = iter;
 	kasp->nsec3param.optout = optout;
 	kasp->nsec3param.saltlen = saltlen;
+}
+
+dns_kasp_digestlist_t
+dns_kasp_digests(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(kasp->frozen);
+
+	return (kasp->digests);
+}
+
+void
+dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg) {
+	dns_kasp_digest_t *digest;
+
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(!kasp->frozen);
+
+	/* Suppress unsupported algorithms */
+	if (!dst_ds_digest_supported(alg)) {
+		return;
+	}
+
+	/* Suppress duplicates */
+	for (dns_kasp_digest_t *d = ISC_LIST_HEAD(kasp->digests); d != NULL;
+	     d = ISC_LIST_NEXT(d, link))
+	{
+		if (d->digest == alg) {
+			return;
+		}
+	}
+
+	digest = isc_mem_get(kasp->mctx, sizeof(*digest));
+	digest->digest = alg;
+	ISC_LINK_INIT(digest, link);
+	ISC_LIST_APPEND(kasp->digests, digest, link);
 }

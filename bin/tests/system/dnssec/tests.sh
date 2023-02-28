@@ -1842,6 +1842,140 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking dnssec-signzone -G ($n)"
+ret=0
+(
+cd signer || exit 1
+$SETTIME -P ds now -P sync now "$key1" > /dev/null
+$SIGNER -G "cdnskey,cds:sha384" -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (default) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (empty) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "" -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (no CDNSKEY) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cds:sha-256,cds:sha384" -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (no CDS) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey" -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (suppress duplicates) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,cds:sha256,cds:sha256,cdnskey" -O full -S -f signer.out.$n -o example example2.db > /dev/null
+) || ret=1
+test $(awk '$4 == "CDNSKEY" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "2" { print }' signer/signer.out.$n | wc -l) -eq 1 || ret=1
+test $(awk '$4 == "CDS" && $7 == "4" { print }' signer/signer.out.$n | wc -l) -eq 0 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (bad argument) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,foobar" -O full -S -f signer.out.$n -o example example2.db 2> signer.err.$n && ret=1
+grep "digest must specify cds:algorithm ('foobar')" signer.err.$n > /dev/null || ret=1
+)
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (bad digest - name) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,cds:foobar" -O full -S -f signer.out.$n -o example example2.db 2> signer.err.$n && ret=1
+grep "bad digest 'cds:foobar'" signer.err.$n > /dev/null || ret=1
+)
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (bad digest - number) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,cds:256" -O full -S -f signer.out.$n -o example example2.db 2> signer.err.$n && ret=1
+grep "bad digest 'cds:256': out of range" signer.err.$n > /dev/null || ret=1
+)
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (unsupported digest - name) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,cds:gost" -O full -S -f signer.out.$n -o example example2.db 2> signer.err.$n && ret=1
+grep "unsupported digest 'cds:gost'" signer.err.$n > /dev/null || ret=1
+)
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking dnssec-signzone -G (unsupported digest - number) ($n)"
+ret=0
+(
+cd signer || exit 1
+$SIGNER -G "cdnskey,cds:200" -O full -S -f signer.out.$n -o example example2.db 2> signer.err.$n && ret=1
+grep "unsupported digest 'cds:200'" signer.err.$n > /dev/null || ret=1
+)
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking validated data are not cached longer than originalttl ($n)"
 ret=0
 dig_with_opts +ttl +noauth a.ttlpatch.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1

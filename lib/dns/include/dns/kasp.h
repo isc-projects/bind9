@@ -34,6 +34,12 @@
 
 ISC_LANG_BEGINDECLS
 
+/* For storing a list of digest types */
+struct dns_kasp_digest {
+	dns_dsdigest_t digest;
+	ISC_LINK(dns_kasp_digest_t) link;
+};
+
 /* Stores a KASP key */
 struct dns_kasp_key {
 	isc_mem_t *mctx;
@@ -80,8 +86,9 @@ struct dns_kasp {
 	uint32_t signatures_validity_dnskey;
 
 	/* Configuration: Keys */
-	dns_kasp_keylist_t keys;
-	dns_ttl_t	   dnskey_ttl;
+	dns_kasp_digestlist_t digests;
+	dns_kasp_keylist_t    keys;
+	dns_ttl_t	      dnskey_ttl;
 
 	/* Configuration: Denial of existence */
 	bool		      nsec3;
@@ -709,6 +716,33 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
  *\li  'kasp' is a valid, unfrozen kasp.
  *\li  'kasp->nsec3' is true.
  *
+ */
+
+dns_kasp_digestlist_t
+dns_kasp_digests(dns_kasp_t *kasp);
+/*%<
+ * Get the list of kasp CDS digest types.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li  #ISC_R_SUCCESS
+ *\li  #ISC_R_NOMEMORY
+ *
+ *\li  Other errors are possible.
+ */
+
+void
+dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg);
+/*%<
+ * Add a digest type.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 ISC_LANG_ENDDECLS

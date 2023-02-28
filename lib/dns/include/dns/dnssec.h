@@ -351,10 +351,29 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
-		      isc_stdtime_t now, dns_ttl_t hint_ttl, dns_diff_t *diff,
+		      isc_stdtime_t now, dns_kasp_digestlist_t *digests,
+		      bool gencdnskey, dns_ttl_t hint_ttl, dns_diff_t *diff,
 		      isc_mem_t *mctx);
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
+ *
+ * For each key in 'keys', check if corresponding CDS and CDNSKEY records
+ * need to be published. If needed and 'gencdnskey' is true, there will be one
+ * CDNSKEY record added to the 'cdnskey' RRset. Also one CDS record will be
+ * added to the 'cds' RRset for each digest type in 'digests'.
+ *
+ * For each key in 'rmkeys', remove any associated CDS and CDNSKEY records from
+ * the RRsets 'cds' and 'cdnskey'.
+ *
+ * 'hint_ttl' is the TTL to use for the CDS and CDNSKEY RRsets if there is no
+ * existing RRset.
+ *
+ * Any changes made also cause a dns_difftuple to be added to 'diff'.
+ *
+ * Requires:
+ *\li	'keys' is not NULL.
+ *\li	'rmkeys' is not NULL.
+ *\li	'digests' is not NULL.
  *
  * Returns:
  *\li   ISC_R_SUCCESS

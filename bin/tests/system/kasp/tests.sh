@@ -2921,6 +2921,8 @@ csk_rollover_predecessor_keytimes() {
 #
 set_zone "step1.csk-roll.autosign"
 set_policy "csk-roll" "1" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # Key properties.
 key_clear        "KEY1"
@@ -2961,6 +2963,8 @@ check_next_key_event 16059600
 #
 set_zone "step2.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # New CSK (KEY2) is prepublished (signs DNSKEY RRset, but not yet other RRsets).
 key_clear        "KEY2"
@@ -3010,6 +3014,8 @@ check_next_key_event 10800
 #
 set_zone "step3.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # Swap zone signing role.
 set_zonesigning  "KEY1" "no"
@@ -3071,6 +3077,8 @@ check_next_key_event 14400
 #
 set_zone "step4.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is no longer signing the DNSKEY RRset.
 set_keysigning "KEY1" "no"
@@ -3112,6 +3120,8 @@ check_next_key_event 7200
 #
 set_zone "step5.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) KRRSIG records are now all hidden.
 set_keystate "KEY1" "STATE_KRRSIG" "hidden"
@@ -3149,6 +3159,8 @@ check_next_key_event 2235600
 #
 set_zone "step6.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) ZRRSIG records are now all hidden (so the DNSKEY can
 # be removed).
@@ -3188,6 +3200,8 @@ check_next_key_event 7200
 #
 set_zone "step7.csk-roll.autosign"
 set_policy "csk-roll" "2" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is now completely HIDDEN.
 set_keystate "KEY1" "STATE_DNSKEY" "hidden"
@@ -3226,6 +3240,8 @@ check_next_key_event 13795200
 #
 set_zone "step8.csk-roll.autosign"
 set_policy "csk-roll" "1" "3600"
+CDS_SHA256="no"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is purged.
 key_clear "KEY1"
@@ -3258,6 +3274,7 @@ IretCSK=$IretKSK
 #
 set_zone "step1.csk-roll2.autosign"
 set_policy "csk-roll2" "1" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # Key properties.
 key_clear        "KEY1"
@@ -3299,6 +3316,7 @@ check_next_key_event 16059600
 #
 set_zone "step2.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # New CSK (KEY2) is prepublished (signs DNSKEY RRset, but not yet other RRsets).
 key_clear        "KEY2"
@@ -3347,6 +3365,7 @@ check_next_key_event 10800
 #
 set_zone "step3.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # CSK (KEY1) can be removed, so move to UNRETENTIVE.
 set_zonesigning  "KEY1" "no"
@@ -3413,6 +3432,7 @@ check_next_key_event $next_time
 #
 set_zone "step4.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) ZRRSIG is now HIDDEN.
 set_keystate "KEY1" "STATE_ZRRSIG" "hidden"
@@ -3454,6 +3474,7 @@ check_next_key_event 475200
 #
 set_zone "step5.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) DNSKEY can be removed.
 set_keysigning   "KEY1" "no"
@@ -3494,6 +3515,7 @@ check_next_key_event 7200
 #
 set_zone "step6.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) is now completely HIDDEN.
 set_keystate "KEY1" "STATE_DNSKEY" "hidden"
@@ -3531,6 +3553,7 @@ check_next_key_event 15440400
 #
 set_zone "step7.csk-roll2.autosign"
 set_policy "csk-roll2" "2" "3600"
+CDS_SHA384="yes"
 set_server "ns3" "10.53.0.3"
 # The old CSK (KEY1) could have been purged, but purge-keys is disabled.
 
