@@ -649,8 +649,6 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(view->resolver == NULL);
 	REQUIRE(view->dispatchmgr != NULL);
 
-	view->loop = isc_loop_current(loopmgr);
-
 	result = dns_resolver_create(view, loopmgr, ndisp, netmgr, options,
 				     tlsctx_cache, dispatchv4, dispatchv6,
 				     &view->resolver);
