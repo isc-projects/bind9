@@ -62,7 +62,8 @@ static void
 rawdata_callback(dns_zone_t *zone, dns_masterrawheader_t *header);
 
 static isc_result_t
-add_callback(void *arg, const dns_name_t *owner, dns_rdataset_t *dataset) {
+add_callback(void *arg, const dns_name_t *owner,
+	     dns_rdataset_t *dataset DNS__DB_FLARG) {
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;

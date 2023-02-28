@@ -517,7 +517,8 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			rds.trust = dns_trust_ultimate;
 
 			INSIST(op == DNS_DIFFOP_ADD);
-			result = (*addfunc)(add_private, name, &rds);
+			result = (*addfunc)(add_private, name,
+					    &rds DNS__DB_FILELINE);
 			if (result == DNS_R_UNCHANGED) {
 				isc_log_write(DIFF_COMMON_LOGARGS,
 					      ISC_LOG_WARNING,

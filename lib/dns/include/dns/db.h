@@ -89,24 +89,25 @@ typedef struct dns_dbmethods {
 	void (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
 			      dns_dbversion_t **targetp);
 	void (*closeversion)(dns_db_t *db, dns_dbversion_t **versionp,
-			     bool commit);
+			     bool commit DNS__DB_FLARG);
 	isc_result_t (*findnode)(dns_db_t *db, const dns_name_t *name,
-				 bool create, dns_dbnode_t **nodep);
+				 bool		      create,
+				 dns_dbnode_t **nodep DNS__DB_FLARG);
 	isc_result_t (*find)(dns_db_t *db, const dns_name_t *name,
 			     dns_dbversion_t *version, dns_rdatatype_t type,
 			     unsigned int options, isc_stdtime_t now,
 			     dns_dbnode_t **nodep, dns_name_t *foundname,
-			     dns_rdataset_t *rdataset,
-			     dns_rdataset_t *sigrdataset);
+			     dns_rdataset_t		*rdataset,
+			     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 	isc_result_t (*findzonecut)(dns_db_t *db, const dns_name_t *name,
 				    unsigned int options, isc_stdtime_t now,
 				    dns_dbnode_t **nodep, dns_name_t *foundname,
-				    dns_name_t	   *dcname,
-				    dns_rdataset_t *rdataset,
-				    dns_rdataset_t *sigrdataset);
+				    dns_name_t		       *dcname,
+				    dns_rdataset_t	       *rdataset,
+				    dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 	void (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
-			   dns_dbnode_t **targetp);
-	void (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp);
+			   dns_dbnode_t **targetp DNS__DB_FLARG);
+	void (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
 	isc_result_t (*expirenode)(dns_db_t *db, dns_dbnode_t *node,
 				   isc_stdtime_t now);
 	void (*printnode)(dns_db_t *db, dns_dbnode_t *node, FILE *out);
@@ -116,32 +117,32 @@ typedef struct dns_dbmethods {
 				     dns_dbversion_t *version,
 				     dns_rdatatype_t  type,
 				     dns_rdatatype_t covers, isc_stdtime_t now,
-				     dns_rdataset_t *rdataset,
-				     dns_rdataset_t *sigrdataset);
-	isc_result_t (*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
-				     dns_dbversion_t *version,
-				     unsigned int options, isc_stdtime_t now,
-				     dns_rdatasetiter_t **iteratorp);
+				     dns_rdataset_t		*rdataset,
+				     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
+	isc_result_t (*allrdatasets)(
+		dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		unsigned int options, isc_stdtime_t now,
+		dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
 	isc_result_t (*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				    dns_dbversion_t *version, isc_stdtime_t now,
 				    dns_rdataset_t *rdataset,
 				    unsigned int    options,
-				    dns_rdataset_t *addedrdataset);
-	isc_result_t (*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
-					 dns_dbversion_t *version,
-					 dns_rdataset_t	 *rdataset,
-					 unsigned int	  options,
-					 dns_rdataset_t	 *newrdataset);
+				    dns_rdataset_t *addedrdataset DNS__DB_FLARG);
+	isc_result_t (*subtractrdataset)(
+		dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		dns_rdataset_t *rdataset, unsigned int options,
+		dns_rdataset_t *newrdataset DNS__DB_FLARG);
 	isc_result_t (*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
-				       dns_dbversion_t *version,
-				       dns_rdatatype_t	type,
-				       dns_rdatatype_t	covers);
+				       dns_dbversion_t	     *version,
+				       dns_rdatatype_t	      type,
+				       dns_rdatatype_t covers DNS__DB_FLARG);
 	bool (*issecure)(dns_db_t *db);
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
 	bool (*ispersistent)(dns_db_t *db);
 	void (*overmem)(dns_db_t *db, bool overmem);
 	void (*setloop)(dns_db_t *db, isc_loop_t *);
-	isc_result_t (*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
+	isc_result_t (*getoriginnode)(dns_db_t		  *db,
+				      dns_dbnode_t **nodep DNS__DB_FLARG);
 	void (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 			     dns_dbnode_t **targetp);
 	isc_result_t (*getnsec3parameters)(dns_db_t	   *db,
@@ -151,28 +152,29 @@ typedef struct dns_dbmethods {
 					   unsigned char *salt,
 					   size_t	 *salt_len);
 	isc_result_t (*findnsec3node)(dns_db_t *db, const dns_name_t *name,
-				      bool create, dns_dbnode_t **nodep);
+				      bool		   create,
+				      dns_dbnode_t **nodep DNS__DB_FLARG);
 	isc_result_t (*setsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
 				       isc_stdtime_t resign);
 	isc_result_t (*getsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
-				       dns_name_t *name);
+				       dns_name_t *name DNS__DB_FLARG);
 	void (*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
-			 dns_dbversion_t *version);
+			 dns_dbversion_t *version DNS__DB_FLARG);
 	bool (*isdnssec)(dns_db_t *db);
 	dns_stats_t *(*getrrsetstats)(dns_db_t *db);
 	isc_result_t (*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				    bool		     create,
 				    dns_clientinfomethods_t *methods,
 				    dns_clientinfo_t	    *clientinfo,
-				    dns_dbnode_t	   **nodep);
+				    dns_dbnode_t **nodep     DNS__DB_FLARG);
 	isc_result_t (*findext)(dns_db_t *db, const dns_name_t *name,
 				dns_dbversion_t *version, dns_rdatatype_t type,
 				unsigned int options, isc_stdtime_t now,
 				dns_dbnode_t **nodep, dns_name_t *foundname,
-				dns_clientinfomethods_t *methods,
-				dns_clientinfo_t	*clientinfo,
-				dns_rdataset_t		*rdataset,
-				dns_rdataset_t		*sigrdataset);
+				dns_clientinfomethods_t	   *methods,
+				dns_clientinfo_t	   *clientinfo,
+				dns_rdataset_t		   *rdataset,
+				dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 	isc_result_t (*setcachestats)(dns_db_t *db, isc_stats_t *stats);
 	size_t (*hashsize)(dns_db_t *db);
 	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
@@ -633,8 +635,11 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
  * \li	'*targetp' is attached to source.
  */
 
+#define dns_db_closeversion(db, versionp, commit) \
+	dns__db_closeversion(db, versionp, commit DNS__DB_FILELINE)
 void
-dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit);
+dns__db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
+		     bool commit DNS__DB_FLARG);
 /*%<
  * Close version '*versionp'.
  *
@@ -667,14 +672,20 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit);
  *** Node Methods
  ***/
 
+#define dns_db_findnode(db, name, create, nodep) \
+	dns__db_findnode(db, name, create, nodep DNS__DB_FILELINE)
 isc_result_t
-dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
-		dns_dbnode_t **nodep);
+dns__db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
+		 dns_dbnode_t **nodep DNS__DB_FLARG);
 
+#define dns_db_findnodeext(db, name, create, methods, clientinfo, nodep) \
+	dns__db_findnodeext(db, name, create, methods, clientinfo,       \
+			    nodep DNS__DB_FILELINE)
 isc_result_t
-dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
-		   dns_clientinfomethods_t *methods,
-		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep);
+dns__db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
+		    dns_clientinfomethods_t *methods,
+		    dns_clientinfo_t	    *clientinfo,
+		    dns_dbnode_t **nodep     DNS__DB_FLARG);
 /*%<
  * Find the node with name 'name'.
  *
@@ -714,18 +725,29 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
  *	implementation used.
  */
 
+#define dns_db_find(db, name, version, type, options, now, nodep, foundname,  \
+		    rdataset, sigrdataset)                                    \
+	dns__db_find(db, name, version, type, options, now, nodep, foundname, \
+		     rdataset, sigrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	     dns_dbnode_t **nodep, dns_name_t *foundname,
+	     dns_rdataset_t		*rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 
+#define dns_db_findext(db, name, version, type, options, now, nodep,          \
+		       foundname, methods, clientinfo, rdataset, sigrdataset) \
+	dns__db_findext(db, name, version, type, options, now, nodep,         \
+			foundname, methods, clientinfo, rdataset,             \
+			sigrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-	       dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	       dns_dbnode_t **nodep, dns_name_t *foundname,
-	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+dns__db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+		dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+		dns_dbnode_t **nodep, dns_name_t *foundname,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
+		dns_rdataset_t		   *rdataset,
+		dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 /*%<
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
  *
@@ -910,11 +932,16 @@ dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  *		errors.
  */
 
+#define dns_db_findzonecut(db, name, options, now, nodep, foundname, dcname,  \
+			   rdataset, sigrdataset)                             \
+	dns__db_findzonecut(db, name, options, now, nodep, foundname, dcname, \
+			    rdataset, sigrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-		   isc_stdtime_t now, dns_dbnode_t **nodep,
-		   dns_name_t *foundname, dns_name_t *dcname,
-		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+dns__db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
+		    isc_stdtime_t now, dns_dbnode_t **nodep,
+		    dns_name_t *foundname, dns_name_t *dcname,
+		    dns_rdataset_t	       *rdataset,
+		    dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 /*%<
  * Find the deepest known zonecut which encloses 'name' in 'db'.
  *
@@ -960,8 +987,11 @@ dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
  *	errors.
  */
 
+#define dns_db_attachnode(db, source, targetp) \
+	dns__db_attachnode(db, source, targetp DNS__DB_FILELINE)
 void
-dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
+dns__db_attachnode(dns_db_t *db, dns_dbnode_t *source,
+		   dns_dbnode_t **targetp DNS__DB_FLARG);
 /*%<
  * Attach *targetp to source.
  *
@@ -978,8 +1008,10 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
  * \li	*targetp is attached to source.
  */
 
+#define dns_db_detachnode(db, nodep) \
+	dns__db_detachnode(db, nodep DNS__DB_FILELINE)
 void
-dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
+dns__db_detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
 /*%<
  * Detach *nodep from its node.
  *
@@ -1085,11 +1117,15 @@ dns_db_createiterator(dns_db_t *db, unsigned int options,
  * XXXRTH  Should we check for glue and pending data in dns_db_findrdataset()?
  */
 
+#define dns_db_findrdataset(db, node, version, type, covers, now, rdataset,  \
+			    sigrdataset)                                     \
+	dns__db_findrdataset(db, node, version, type, covers, now, rdataset, \
+			     sigrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatatype_t type, dns_rdatatype_t covers,
-		    isc_stdtime_t now, dns_rdataset_t *rdataset,
-		    dns_rdataset_t *sigrdataset);
+dns__db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     dns_rdatatype_t type, dns_rdatatype_t covers,
+		     isc_stdtime_t now, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 
 /*%<
  * Search for an rdataset of type 'type' at 'node' that are in version
@@ -1135,10 +1171,13 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
+#define dns_db_allrdatasets(db, node, version, options, now, iteratorp) \
+	dns__db_allrdatasets(db, node, version, options, now,           \
+			     iteratorp DNS__DB_FILELINE)
 isc_result_t
-dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    unsigned int options, isc_stdtime_t now,
-		    dns_rdatasetiter_t **iteratorp);
+dns__db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     unsigned int options, isc_stdtime_t now,
+		     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
 /*%<
  * Make '*iteratorp' an rdataset iterator for all rdatasets at 'node' in
  * version 'version' of 'db'.
@@ -1180,10 +1219,15 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
+#define dns_db_addrdataset(db, node, version, now, rdataset, options,  \
+			   addedrdataset)                              \
+	dns__db_addrdataset(db, node, version, now, rdataset, options, \
+			    addedrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   unsigned int options, dns_rdataset_t *addedrdataset);
+dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    unsigned int		  options,
+		    dns_rdataset_t *addedrdataset DNS__DB_FLARG);
 /*%<
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
  *
@@ -1238,10 +1282,15 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	implementation used.
  */
 
+#define dns_db_subtractrdataset(db, node, version, rdataset, options,  \
+				newrdataset)                           \
+	dns__db_subtractrdataset(db, node, version, rdataset, options, \
+				 newrdataset DNS__DB_FILELINE)
 isc_result_t
-dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
-			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			unsigned int options, dns_rdataset_t *newrdataset);
+dns__db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
+			 dns_dbversion_t *version, dns_rdataset_t *rdataset,
+			 unsigned int		     options,
+			 dns_rdataset_t *newrdataset DNS__DB_FLARG);
 /*%<
  * Remove any rdata in 'rdataset' from 'node' in version 'version' of
  * 'db'.
@@ -1283,10 +1332,12 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	implementation used.
  */
 
+#define dns_db_deleterdataset(db, node, version, type, covers) \
+	dns__db_deleterdataset(db, node, version, type, covers DNS__DB_FILELINE)
 isc_result_t
-dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
-		      dns_dbversion_t *version, dns_rdatatype_t type,
-		      dns_rdatatype_t covers);
+dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
+		       dns_dbversion_t *version, dns_rdatatype_t type,
+		       dns_rdatatype_t covers DNS__DB_FLARG);
 /*%<
  * Make it so that no rdataset of type 'type' exists at 'node' in version
  * version 'version' of 'db'.
@@ -1436,8 +1487,10 @@ dns_db_unregister(dns_dbimplementation_t **dbimp);
  * \li	Any memory allocated in *dbimp will be freed.
  */
 
+#define dns_db_getoriginnode(db, nodep) \
+	dns__db_getoriginnode(db, nodep DNS__DB_FILELINE)
 isc_result_t
-dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
+dns__db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
 /*%<
  * Get the origin DB node corresponding to the DB's zone.  This function
  * should typically succeed unless the underlying DB implementation doesn't
@@ -1495,9 +1548,11 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
  * \li	#ISC_R_NOTIMPLEMENTED
  */
 
+#define dns_db_findnsec3node(db, name, create, nodep) \
+	dns__db_findnsec3node(db, name, create, nodep DNS__DB_FILELINE)
 isc_result_t
-dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
-		     dns_dbnode_t **nodep);
+dns__db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
+		      dns_dbnode_t **nodep DNS__DB_FLARG);
 /*%<
  * Find the NSEC3 node with name 'name'.
  *
@@ -1545,8 +1600,11 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  * \li	#ISC_R_NOTIMPLEMENTED - Not supported by this DB implementation.
  */
 
+#define dns_db_getsigningtime(db, rdataset, name) \
+	dns__db_getsigningtime(db, rdataset, name DNS__DB_FILELINE)
 isc_result_t
-dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name);
+dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
+		       dns_name_t *name DNS__DB_FLARG);
 /*%<
  * Return the rdataset with the earliest signing time in the zone.
  * Note: the rdataset is version agnostic.
@@ -1561,9 +1619,11 @@ dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name);
  * \li	#ISC_R_NOTFOUND - No dataset exists.
  */
 
+#define dns_db_resigned(db, rdataset, version) \
+	dns__db_resigned(db, rdataset, version DNS__DB_FILELINE)
 void
-dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-		dns_dbversion_t *version);
+dns__db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
+		 dns_dbversion_t *version DNS__DB_FLARG);
 /*%<
  * Mark 'rdataset' as not being available to be returned by
  * dns_db_getsigningtime().  If the changes associated with 'version'

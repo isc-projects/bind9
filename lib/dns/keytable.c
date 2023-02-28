@@ -63,7 +63,7 @@ new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
 	    bool initial);
 
 static void
-keynode_disassociate(dns_rdataset_t *rdataset);
+keynode_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG);
 static isc_result_t
 keynode_first(dns_rdataset_t *rdataset);
 static isc_result_t
@@ -71,7 +71,7 @@ keynode_next(dns_rdataset_t *rdataset);
 static void
 keynode_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void
-keynode_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+keynode_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG);
 
 static dns_rdatasetmethods_t methods = {
 	.disassociate = keynode_disassociate,
@@ -805,7 +805,8 @@ dns_keynode_dsset(dns_keynode_t *keynode, dns_rdataset_t *rdataset) {
 	RWLOCK(&keynode->rwlock, isc_rwlocktype_read);
 	if (keynode->dslist != NULL) {
 		if (rdataset != NULL) {
-			keynode_clone(&keynode->dsset, rdataset);
+			keynode_clone(&keynode->dsset,
+				      rdataset DNS__DB_FILELINE);
 		}
 		result = true;
 	} else {
@@ -851,7 +852,7 @@ dns_keynode_trust(dns_keynode_t *keynode) {
 }
 
 static void
-keynode_disassociate(dns_rdataset_t *rdataset) {
+keynode_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_keynode_t *keynode;
 
 	REQUIRE(rdataset != NULL);
@@ -922,7 +923,7 @@ keynode_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-keynode_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+keynode_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
 	dns_keynode_t *keynode;
 
 	REQUIRE(source != NULL);

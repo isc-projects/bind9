@@ -621,7 +621,7 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0) {
-		return ((add)(arg, &name, atype, NULL));
+		return ((add)(arg, &name, atype, NULL DNS__DB_FILELINE));
 	}
 
 	return (ISC_R_SUCCESS);

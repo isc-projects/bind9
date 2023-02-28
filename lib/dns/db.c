@@ -26,6 +26,7 @@
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
+#include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -411,7 +412,8 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 }
 
 void
-dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
+dns__db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
+		     bool commit DNS__DB_FLARG) {
 	dns_dbonupdatelistener_t *listener;
 
 	/*
@@ -422,7 +424,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(versionp != NULL && *versionp != NULL);
 
-	(db->methods->closeversion)(db, versionp, commit);
+	(db->methods->closeversion)(db, versionp, commit DNS__DB_FLARG_PASS);
 
 	if (commit) {
 		for (listener = ISC_LIST_HEAD(db->update_listeners);
@@ -440,8 +442,8 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
  ***/
 
 isc_result_t
-dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
-		dns_dbnode_t **nodep) {
+dns__db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
+		 dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/*
 	 * Find the node with name 'name'.
 	 */
@@ -450,17 +452,19 @@ dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->findnode != NULL) {
-		return ((db->methods->findnode)(db, name, create, nodep));
+		return ((db->methods->findnode)(db, name, create,
+						nodep DNS__DB_FLARG_PASS));
 	} else {
 		return ((db->methods->findnodeext)(db, name, create, NULL, NULL,
-						   nodep));
+						   nodep DNS__DB_FLARG_PASS));
 	}
 }
 
 isc_result_t
-dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
-		   dns_clientinfomethods_t *methods,
-		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep) {
+dns__db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
+		    dns_clientinfomethods_t *methods,
+		    dns_clientinfo_t *clientinfo,
+		    dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/*
 	 * Find the node with name 'name', passing 'arg' to the database
 	 * implementation.
@@ -471,15 +475,17 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 
 	if (db->methods->findnodeext != NULL) {
 		return ((db->methods->findnodeext)(db, name, create, methods,
-						   clientinfo, nodep));
+						   clientinfo,
+						   nodep DNS__DB_FLARG_PASS));
 	} else {
-		return ((db->methods->findnode)(db, name, create, nodep));
+		return ((db->methods->findnode)(db, name, create,
+						nodep DNS__DB_FLARG_PASS));
 	}
 }
 
 isc_result_t
-dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
-		     dns_dbnode_t **nodep) {
+dns__db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
+		      dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/*
 	 * Find the node with name 'name'.
 	 */
@@ -487,14 +493,16 @@ dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
-	return ((db->methods->findnsec3node)(db, name, create, nodep));
+	return ((db->methods->findnsec3node)(db, name, create,
+					     nodep DNS__DB_FLARG_PASS));
 }
 
 isc_result_t
-dns_db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+dns__db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+	     dns_dbnode_t **nodep, dns_name_t *foundname,
+	     dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
 	 * of 'db'.
@@ -513,20 +521,21 @@ dns_db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	if (db->methods->find != NULL) {
 		return ((db->methods->find)(db, name, version, type, options,
 					    now, nodep, foundname, rdataset,
-					    sigrdataset));
+					    sigrdataset DNS__DB_FLARG_PASS));
 	} else {
-		return ((db->methods->findext)(db, name, version, type, options,
-					       now, nodep, foundname, NULL,
-					       NULL, rdataset, sigrdataset));
+		return ((db->methods->findext)(
+			db, name, version, type, options, now, nodep, foundname,
+			NULL, NULL, rdataset, sigrdataset DNS__DB_FLARG_PASS));
 	}
 }
 
 isc_result_t
-dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
-	       dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
-	       dns_dbnode_t **nodep, dns_name_t *foundname,
-	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+dns__db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
+		dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
+		dns_dbnode_t **nodep, dns_name_t *foundname,
+		dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
+		dns_rdataset_t *rdataset,
+		dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	/*
 	 * Find the best match for 'name' and 'type' in version 'version'
 	 * of 'db', passing in 'arg'.
@@ -543,21 +552,23 @@ dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	if (db->methods->findext != NULL) {
-		return ((db->methods->findext)(
-			db, name, version, type, options, now, nodep, foundname,
-			methods, clientinfo, rdataset, sigrdataset));
+		return ((db->methods->findext)(db, name, version, type, options,
+					       now, nodep, foundname, methods,
+					       clientinfo, rdataset,
+					       sigrdataset DNS__DB_FLARG_PASS));
 	} else {
 		return ((db->methods->find)(db, name, version, type, options,
 					    now, nodep, foundname, rdataset,
-					    sigrdataset));
+					    sigrdataset DNS__DB_FLARG_PASS));
 	}
 }
 
 isc_result_t
-dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
-		   isc_stdtime_t now, dns_dbnode_t **nodep,
-		   dns_name_t *foundname, dns_name_t *dcname,
-		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+dns__db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
+		    isc_stdtime_t now, dns_dbnode_t **nodep,
+		    dns_name_t *foundname, dns_name_t *dcname,
+		    dns_rdataset_t *rdataset,
+		    dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	/*
 	 * Find the deepest known zonecut which encloses 'name' in 'db'.
 	 * foundname is the zonecut, dcname is the deepest name we have
@@ -573,15 +584,16 @@ dns_db_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	if (db->methods->findzonecut != NULL) {
-		return ((db->methods->findzonecut)(db, name, options, now,
-						   nodep, foundname, dcname,
-						   rdataset, sigrdataset));
+		return ((db->methods->findzonecut)(
+			db, name, options, now, nodep, foundname, dcname,
+			rdataset, sigrdataset DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 void
-dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
+dns__db_attachnode(dns_db_t *db, dns_dbnode_t *source,
+		   dns_dbnode_t **targetp DNS__DB_FLARG) {
 	/*
 	 * Attach *targetp to source.
 	 */
@@ -590,11 +602,11 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	REQUIRE(source != NULL);
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	(db->methods->attachnode)(db, source, targetp);
+	(db->methods->attachnode)(db, source, targetp DNS__DB_FLARG_PASS);
 }
 
 void
-dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
+dns__db_detachnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	/*
 	 * Detach *nodep from its node.
 	 */
@@ -602,7 +614,7 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(nodep != NULL && *nodep != NULL);
 
-	(db->methods->detachnode)(db, nodep);
+	(db->methods->detachnode)(db, nodep DNS__DB_FLARG_PASS);
 
 	ENSURE(*nodep == NULL);
 }
@@ -687,10 +699,10 @@ dns_db_createiterator(dns_db_t *db, unsigned int flags,
  ***/
 
 isc_result_t
-dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    dns_rdatatype_t type, dns_rdatatype_t covers,
-		    isc_stdtime_t now, dns_rdataset_t *rdataset,
-		    dns_rdataset_t *sigrdataset) {
+dns__db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     dns_rdatatype_t type, dns_rdatatype_t covers,
+		     isc_stdtime_t now, dns_rdataset_t *rdataset,
+		     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(node != NULL);
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
@@ -702,13 +714,14 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(sigrdataset)));
 
 	return ((db->methods->findrdataset)(db, node, version, type, covers,
-					    now, rdataset, sigrdataset));
+					    now, rdataset,
+					    sigrdataset DNS__DB_FLARG_PASS));
 }
 
 isc_result_t
-dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    unsigned int options, isc_stdtime_t now,
-		    dns_rdatasetiter_t **iteratorp) {
+dns__db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		     unsigned int options, isc_stdtime_t now,
+		     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	/*
 	 * Make '*iteratorp' an rdataset iteratator for all rdatasets at
 	 * 'node' in version 'version' of 'db'.
@@ -718,13 +731,14 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
 
 	return ((db->methods->allrdatasets)(db, node, version, options, now,
-					    iteratorp));
+					    iteratorp DNS__DB_FLARG_PASS));
 }
 
 isc_result_t
-dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   unsigned int options, dns_rdataset_t *addedrdataset) {
+dns__db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		    isc_stdtime_t now, dns_rdataset_t *rdataset,
+		    unsigned int options,
+		    dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
 	/*
 	 * Add 'rdataset' to 'node' in version 'version' of 'db'.
 	 */
@@ -744,17 +758,18 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 !dns_rdataset_isassociated(addedrdataset)));
 
 	if (db->methods->addrdataset != NULL) {
-		return ((db->methods->addrdataset)(db, node, version, now,
-						   rdataset, options,
-						   addedrdataset));
+		return ((db->methods->addrdataset)(
+			db, node, version, now, rdataset, options,
+			addedrdataset DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t
-dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
-			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			unsigned int options, dns_rdataset_t *newrdataset) {
+dns__db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
+			 dns_dbversion_t *version, dns_rdataset_t *rdataset,
+			 unsigned int options,
+			 dns_rdataset_t *newrdataset DNS__DB_FLARG) {
 	/*
 	 * Remove any rdata in 'rdataset' from 'node' in version 'version' of
 	 * 'db'.
@@ -772,15 +787,16 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	if (db->methods->subtractrdataset != NULL) {
 		return ((db->methods->subtractrdataset)(
-			db, node, version, rdataset, options, newrdataset));
+			db, node, version, rdataset, options,
+			newrdataset DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 isc_result_t
-dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
-		      dns_dbversion_t *version, dns_rdatatype_t type,
-		      dns_rdatatype_t covers) {
+dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
+		       dns_dbversion_t *version, dns_rdatatype_t type,
+		       dns_rdatatype_t covers DNS__DB_FLARG) {
 	/*
 	 * Make it so that no rdataset of type 'type' exists at 'node' in
 	 * version version 'version' of 'db'.
@@ -792,8 +808,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		((db->attributes & DNS_DBATTR_CACHE) != 0 && version == NULL));
 
 	if (db->methods->deleterdataset != NULL) {
-		return ((db->methods->deleterdataset)(db, node, version, type,
-						      covers));
+		return ((db->methods->deleterdataset)(
+			db, node, version, type, covers DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -933,13 +949,14 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 }
 
 isc_result_t
-dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
+dns__db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(dns_db_iszone(db));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->getoriginnode != NULL) {
-		return ((db->methods->getoriginnode)(db, nodep));
+		return ((db->methods->getoriginnode)(db,
+						     nodep DNS__DB_FLARG_PASS));
 	}
 
 	return (ISC_R_NOTFOUND);
@@ -1007,19 +1024,21 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 }
 
 isc_result_t
-dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-		      dns_name_t *name) {
+dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
+		       dns_name_t *name DNS__DB_FLARG) {
 	if (db->methods->getsigningtime != NULL) {
-		return ((db->methods->getsigningtime)(db, rdataset, name));
+		return ((db->methods->getsigningtime)(db, rdataset,
+						      name DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTFOUND);
 }
 
 void
-dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-		dns_dbversion_t *version) {
+dns__db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
+		 dns_dbversion_t *version DNS__DB_FLARG) {
 	if (db->methods->resigned != NULL) {
-		(db->methods->resigned)(db, rdataset, version);
+		(db->methods->resigned)(db, rdataset,
+					version DNS__DB_FLARG_PASS);
 	}
 }
 

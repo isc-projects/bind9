@@ -202,11 +202,11 @@ additionaldata_lp(ARGS_ADDLDATA) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	result = (add)(arg, &name, dns_rdatatype_l32, NULL);
+	result = (add)(arg, &name, dns_rdatatype_l32, NULL DNS__DB_FILELINE);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	return ((add)(arg, &name, dns_rdatatype_l64, NULL));
+	return ((add)(arg, &name, dns_rdatatype_l64, NULL DNS__DB_FILELINE));
 }
 
 static isc_result_t

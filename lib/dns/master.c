@@ -2919,7 +2919,7 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 			dataset.resign = resign_fromlist(this, lctx);
 		}
 		result = ((*callbacks->add)(callbacks->add_private, owner,
-					    &dataset));
+					    &dataset DNS__DB_FILELINE));
 		if (result == ISC_R_NOMEMORY) {
 			(*error)(callbacks, "dns_master_load: %s",
 				 isc_result_totext(result));

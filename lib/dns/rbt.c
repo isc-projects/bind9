@@ -741,10 +741,10 @@ dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data) {
  * Find the node for "name" in the tree of trees.
  */
 isc_result_t
-dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
-		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
-		 unsigned int options, dns_rbtfindcallback_t callback,
-		 void *callback_arg) {
+dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
+		  dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
+		  unsigned int options, dns_rbtfindcallback_t callback,
+		  void *callback_arg DNS__DB_FLARG) {
 	dns_rbtnode_t *current, *last_compared;
 	dns_rbtnodechain_t localchain;
 	dns_name_t *search_name, current_name, *callback_name;
@@ -1004,9 +1004,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 						return (result);
 					}
 
-					result = (callback)(current,
-							    callback_name,
-							    callback_arg);
+					result =
+						(callback)(current,
+							   callback_name,
+							   callback_arg
+								   DNS__DB_FLARG_PASS);
 					if (result != DNS_R_CONTINUE) {
 						saved_result = result;
 						/*
@@ -1270,15 +1272,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
  * Get the data pointer associated with 'name'.
  */
 isc_result_t
-dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
-		 dns_name_t *foundname, void **data) {
+dns__rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
+		  dns_name_t *foundname, void **data DNS__DB_FLARG) {
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
 
 	REQUIRE(data != NULL && *data == NULL);
 
-	result = dns_rbt_findnode(rbt, name, foundname, &node, NULL, options,
-				  NULL, NULL);
+	result = dns__rbt_findnode(rbt, name, foundname, &node, NULL, options,
+				   NULL, NULL DNS__DB_FLARG_PASS);
 
 	if (node != NULL && WANTEMPTYDATA_OR_DATA(options, node)) {
 		*data = node->data;
@@ -1293,7 +1295,8 @@ dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
  * Delete a name from the tree of trees.
  */
 isc_result_t
-dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name, bool recurse) {
+dns__rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
+		    bool recurse DNS__DB_FLARG) {
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
 
@@ -1314,8 +1317,9 @@ dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name, bool recurse) {
 	 * ->dirty, ->locknum and ->references are ignored; they are
 	 * solely the province of rbtdb.c.
 	 */
-	result = dns_rbt_findnode(rbt, name, NULL, &node, NULL,
-				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
+	result = dns__rbt_findnode(rbt, name, NULL, &node, NULL,
+				   DNS_RBTFIND_NOOPTIONS, NULL,
+				   NULL DNS__DB_FLARG_PASS);
 
 	if (result == ISC_R_SUCCESS) {
 		if (node->data != NULL) {

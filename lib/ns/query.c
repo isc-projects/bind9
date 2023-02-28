@@ -1670,7 +1670,7 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 
 static isc_result_t
 query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
-		    dns_rdataset_t *found) {
+		    dns_rdataset_t *found DNS__DB_FLARG) {
 	query_ctx_t *qctx = arg;
 	ns_client_t *client = qctx->client;
 	isc_result_t result, eresult = ISC_R_SUCCESS;
