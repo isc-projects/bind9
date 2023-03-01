@@ -101,6 +101,7 @@ struct dns_catz_zone {
 	bool broken;
 
 	isc_refcount_t references;
+	isc_mutex_t lock;
 };
 
 static void
@@ -460,8 +461,17 @@ dns_catz_zone_resetdefoptions(dns_catz_zone_t *catz) {
 	dns_catz_options_init(&catz->defoptions);
 }
 
-isc_result_t
-dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
+/*%<
+ * Merge 'newcatz' into 'catz', calling addzone/delzone/modzone
+ * (from catz->catzs->zmm) for appropriate member zones.
+ *
+ * Requires:
+ * \li	'catz' is a valid dns_catz_zone_t.
+ * \li	'newcatz' is a valid dns_catz_zone_t.
+ *
+ */
+static isc_result_t
+dns__catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 	isc_result_t result;
 	isc_ht_iter_t *iter1 = NULL, *iter2 = NULL;
 	isc_ht_iter_t *iteradd = NULL, *itermod = NULL;
@@ -473,6 +483,8 @@ dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 	REQUIRE(DNS_CATZ_ZONE_VALID(newcatz));
+
+	LOCK(&catz->lock);
 
 	/* TODO verify the new zone first! */
 
@@ -549,12 +561,18 @@ dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 		if (zt_find_result == ISC_R_SUCCESS) {
 			dns_catz_coo_t *coo = NULL;
 			char pczname[DNS_NAME_FORMATSIZE];
+			bool parentcatz_locked = false;
 
 			/*
 			 * Change of ownership (coo) processing, if required
 			 */
 			parentcatz = dns_zone_get_parentcatz(zone);
-			if (parentcatz != NULL && parentcatz != catz &&
+			if (parentcatz != NULL && parentcatz != catz) {
+				UNLOCK(&catz->lock);
+				LOCK(&parentcatz->lock);
+				parentcatz_locked = true;
+			}
+			if (parentcatz_locked &&
 			    isc_ht_find(parentcatz->coos, nentry->name.ndata,
 					nentry->name.length,
 					(void **)&coo) == ISC_R_SUCCESS &&
@@ -580,6 +598,10 @@ dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 					      "from catalog '%s' - %s",
 					      zname, pczname,
 					      isc_result_totext(result));
+			}
+			if (parentcatz_locked) {
+				UNLOCK(&parentcatz->lock);
+				LOCK(&catz->lock);
 			}
 		}
 		if (zt_find_result == ISC_R_SUCCESS ||
@@ -742,6 +764,8 @@ dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz) {
 	isc_ht_destroy(&toadd);
 	isc_ht_destroy(&tomod);
 
+	UNLOCK(&catz->lock);
+
 	return (result);
 }
 
@@ -817,6 +841,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 		goto cleanup_timer;
 	}
 
+	isc_mutex_init(&catz->lock);
 	isc_refcount_init(&catz->references, 1);
 	isc_ht_init(&catz->entries, catzs->mctx, 4, ISC_HT_CASE_SENSITIVE);
 	isc_ht_init(&catz->coos, catzs->mctx, 4, ISC_HT_CASE_INSENSITIVE);
@@ -960,6 +985,8 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 		isc_ht_destroy(&catz->coos);
 	}
 	catz->magic = 0;
+
+	isc_mutex_destroy(&catz->lock);
 	isc_timer_destroy(&catz->updatetimer);
 	if (catz->db_registered) {
 		dns_db_updatenotify_unregister(
@@ -1752,9 +1779,18 @@ catz_process_value(dns_catz_zone_t *catz, dns_name_t *name,
 	}
 }
 
-isc_result_t
-dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
-			dns_rdataset_t *rdataset) {
+/*%<
+ * Process a single rdataset from a catalog zone 'catz' update, src_name is the
+ * record name.
+ *
+ * Requires:
+ * \li	'catz' is a valid dns_catz_zone_t.
+ * \li	'src_name' is a valid dns_name_t.
+ * \li	'rdataset' is valid rdataset.
+ */
+static isc_result_t
+dns__catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
+			 dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	int order;
 	unsigned int nlabels;
@@ -2349,8 +2385,16 @@ dns__catz_update_cb(void *data) {
 				goto next;
 			}
 
-			result = dns_catz_update_process(newcatz, name,
-							 &rdataset);
+			/*
+			 * Although newcatz->coos is accessed in
+			 * catz_process_coo() in the call-chain below, we don't
+			 * need to hold the newcatz->lock, because the newcatz
+			 * is still local to this thread and function and
+			 * newcatz->coos can't be accessed from the outside
+			 * until dns__catz_zones_merge() has been called.
+			 */
+			result = dns__catz_update_process(newcatz, name,
+							  &rdataset);
 			if (result != ISC_R_SUCCESS) {
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 				char classbuf[DNS_RDATACLASS_FORMATSIZE];
@@ -2432,7 +2476,7 @@ final:
 	/*
 	 * Finally merge new zone into old zone.
 	 */
-	result = dns_catz_zones_merge(oldcatz, newcatz);
+	result = dns__catz_zones_merge(oldcatz, newcatz);
 	dns_catz_detach_catz(&newcatz);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -2568,7 +2612,7 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 			result = dns_catz_new_zone(catzs, &newcatz,
 						   &catz->name);
 			INSIST(result == ISC_R_SUCCESS);
-			dns_catz_zones_merge(catz, newcatz);
+			dns__catz_zones_merge(catz, newcatz);
 			dns_catz_detach_catz(&newcatz);
 
 			/* Make sure that we have an empty catalog zone. */
