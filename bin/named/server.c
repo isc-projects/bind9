@@ -3979,7 +3979,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	const cfg_obj_t *dyndb_list, *plugin_list;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj, *obj2;
-	const cfg_listelt_t *element;
+	const cfg_listelt_t *element = NULL;
+	const cfg_listelt_t *zone_element_latest = NULL;
 	in_port_t port;
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
@@ -3996,7 +3997,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	dns_dispatch_t *dispatch6 = NULL;
 	bool rpz_configured = false;
 	bool catz_configured = false;
-	bool zones_configured = false;
 	bool reused_cache = false;
 	bool shared_cache = false;
 	int i = 0, j = 0, k = 0;
@@ -4100,8 +4100,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
 				     viewlist, kasplist, actx, false,
 				     old_rpz_ok, false));
+		zone_element_latest = element;
 	}
-	zones_configured = true;
 
 	/*
 	 * Check that a master or slave zone was found for each
@@ -5907,7 +5907,7 @@ cleanup:
 			dns_view_detach(&pview);
 		}
 
-		if (zones_configured) {
+		if (zone_element_latest != NULL) {
 			for (element = cfg_list_first(zonelist);
 			     element != NULL; element = cfg_list_next(element))
 			{
@@ -5915,6 +5915,13 @@ cleanup:
 					cfg_listelt_value(element);
 				configure_zone_setviewcommit(result, zconfig,
 							     view);
+				if (element == zone_element_latest) {
+					/*
+					 * This was the latest element that was
+					 * successfully configured earlier.
+					 */
+					break;
+				}
 			}
 		}
 	}
