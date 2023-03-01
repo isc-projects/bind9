@@ -250,31 +250,6 @@ dns_catz_zone_resetdefoptions(dns_catz_zone_t *catz);
  */
 
 isc_result_t
-dns_catz_zones_merge(dns_catz_zone_t *catz, dns_catz_zone_t *newcatz);
-/*%<
- * Merge 'newcatz' into 'catz', calling addzone/delzone/modzone
- * (from catz->catzs->zmm) for appropriate member zones.
- *
- * Requires:
- * \li	'catz' is a valid dns_catz_zone_t.
- * \li	'newcatz' is a valid dns_catz_zone_t.
- *
- */
-
-isc_result_t
-dns_catz_update_process(dns_catz_zone_t *catz, const dns_name_t *src_name,
-			dns_rdataset_t *rdataset);
-/*%<
- * Process a single rdataset from a catalog zone 'catz' update, src_name is the
- * record name.
- *
- * Requires:
- * \li	'catz' is a valid dns_catz_zone_t.
- * \li	'src_name' is a valid dns_name_t.
- * \li	'rdataset' is valid rdataset.
- */
-
-isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 				 isc_buffer_t **buffer);
 /*%<
