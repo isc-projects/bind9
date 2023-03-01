@@ -150,7 +150,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 		strlcpy(namestr, "<null>", sizeof(namestr));
 	}
 
-	if (key != NULL && key->generated && key->creator) {
+	if (key != NULL && key->generated && key->creator != NULL) {
 		dns_name_format(key->creator, creatorstr, sizeof(creatorstr));
 	} else {
 		strlcpy(creatorstr, "<null>", sizeof(creatorstr));
@@ -239,11 +239,11 @@ keyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 
 isc_result_t
 dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
-			  dst_key_t *dstkey, bool generated,
+			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key) {
-	dns_tsigkey_t *tkey;
+	dns_tsigkey_t *tkey = NULL;
 	isc_result_t ret;
 	unsigned int refs = 0;
 	unsigned int dstalg = 0;
@@ -255,8 +255,16 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	REQUIRE(key != NULL || ring != NULL);
 
 	tkey = isc_mem_get(mctx, sizeof(dns_tsigkey_t));
+	*tkey = (dns_tsigkey_t){
+		.generated = generated,
+		.restored = restored,
+		.ring = ring,
+		.inception = inception,
+		.expire = expire,
+		.name = DNS_NAME_INITEMPTY,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
-	dns_name_init(&tkey->name, NULL);
 	dns_name_dup(name, mctx, &tkey->name);
 	(void)dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
@@ -273,7 +281,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			goto cleanup_name;
 		}
 	} else {
-		dns_name_t *tmpname;
+		dns_name_t *tmpname = NULL;
 		if (dstkey != NULL) {
 			ret = DNS_R_BADALG;
 			goto cleanup_name;
@@ -289,15 +297,11 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(tkey->creator, NULL);
 		dns_name_dup(creator, mctx, tkey->creator);
-	} else {
-		tkey->creator = NULL;
 	}
 
-	tkey->key = NULL;
 	if (dstkey != NULL) {
 		dst_key_attach(dstkey, &tkey->key);
 	}
-	tkey->ring = ring;
 
 	if (key != NULL) {
 		refs = 1;
@@ -307,13 +311,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	}
 
 	isc_refcount_init(&tkey->refs, refs);
-
-	tkey->generated = generated;
-	tkey->inception = inception;
-	tkey->expire = expire;
-	tkey->mctx = NULL;
 	isc_mem_attach(mctx, &tkey->mctx);
-	ISC_LINK_INIT(tkey, link);
 
 	tkey->magic = TSIG_MAGIC;
 
@@ -340,6 +338,14 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 
 	if (key != NULL) {
 		*key = tkey;
+	}
+
+	if (tkey->restored) {
+		tsig_log(tkey, ISC_LOG_DEBUG(3), "restored from file");
+	} else if (tkey->generated) {
+		tsig_log(tkey, ISC_LOG_DEBUG(3), "generated");
+	} else {
+		tsig_log(tkey, ISC_LOG_DEBUG(3), "statically configured");
 	}
 
 	return (ISC_R_SUCCESS);
@@ -553,7 +559,7 @@ restore_key(dns_tsig_keyring_t *ring, isc_stdtime_t now, FILE *fp) {
 		return (result);
 	}
 
-	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, true,
+	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, true, true,
 					   creator, inception, expire,
 					   ring->mctx, ring, NULL);
 	if (dstkey != NULL) {
@@ -658,9 +664,10 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		   unsigned char *secret, int length, bool generated,
-		   const dns_name_t *creator, isc_stdtime_t inception,
-		   isc_stdtime_t expire, isc_mem_t *mctx,
-		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key) {
+		   bool restored, const dns_name_t *creator,
+		   isc_stdtime_t inception, isc_stdtime_t expire,
+		   isc_mem_t *mctx, dns_tsig_keyring_t *ring,
+		   dns_tsigkey_t **key) {
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 	unsigned int dstalg = 0;
@@ -690,8 +697,8 @@ dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 	}
 
 	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, generated,
-					   creator, inception, expire, mctx,
-					   ring, key);
+					   restored, creator, inception, expire,
+					   mctx, ring, key);
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
 	}
@@ -1170,9 +1177,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 		if (ret != ISC_R_SUCCESS) {
 			msg->tsigstatus = dns_tsigerror_badkey;
-			ret = dns_tsigkey_create(keyname, &tsig.algorithm, NULL,
-						 0, false, NULL, now, now, mctx,
-						 NULL, &msg->tsigkey);
+			ret = dns_tsigkey_create(
+				keyname, &tsig.algorithm, NULL, 0, false, false,
+				NULL, now, now, mctx, NULL, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS) {
 				return (ret);
 			}

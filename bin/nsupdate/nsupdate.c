@@ -542,7 +542,8 @@ setup_keystr(void) {
 
 	debug("keycreate");
 	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    false, NULL, 0, 0, gmctx, NULL, &tsigkey);
+				    false, false, NULL, 0, 0, gmctx, NULL,
+				    &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s: %s\n", keystr,
 			isc_result_totext(result));
@@ -676,8 +677,8 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(
-			dst_key_name(dstkey), hmacname, dstkey, false, NULL, 0,
-			0, mctx, NULL, &tsigkey);
+			dst_key_name(dstkey), hmacname, dstkey, false, false,
+			NULL, 0, 0, mctx, NULL, &tsigkey);
 		dst_key_free(&dstkey);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "could not create key from %s: %s\n",
@@ -1710,7 +1711,8 @@ evaluate_key(char *cmdline) {
 		dns_tsigkey_detach(&tsigkey);
 	}
 	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    false, NULL, 0, 0, gmctx, NULL, &tsigkey);
+				    false, false, NULL, 0, 0, gmctx, NULL,
+				    &tsigkey);
 	isc_mem_free(gmctx, secret);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s %s: %s\n",

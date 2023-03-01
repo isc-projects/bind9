@@ -269,8 +269,8 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		}
 #endif /* HAVE_GSSAPI */
 		RETERR(dns_tsigkey_createfromkey(
-			name, &tkeyin->algorithm, dstkey, true, principal, now,
-			expire, ring->mctx, ring, &tsigkey));
+			name, &tkeyin->algorithm, dstkey, true, false,
+			principal, now, expire, ring->mctx, ring, &tsigkey));
 		dst_key_free(&dstkey);
 		tkeyout->inception = now;
 		tkeyout->expire = expire;
@@ -861,8 +861,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_tsigkey_createfromkey(
 		tkeyname,
 		(win2k ? DNS_TSIG_GSSAPIMS_NAME : DNS_TSIG_GSSAPI_NAME), dstkey,
-		true, NULL, rtkey.inception, rtkey.expire, ring->mctx, ring,
-		outkey));
+		true, false, NULL, rtkey.inception, rtkey.expire, ring->mctx,
+		ring, outkey));
 	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return (result);
