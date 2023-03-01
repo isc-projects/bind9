@@ -1,3 +1,8 @@
+6119.	[bug]		Make sure to revert the reconfigured zones to the
+			previous version of the view, when the new view
+			reconfiguration fails during the configuration of
+			one of the configured zones. [GL #3911]
+
 6118.	[func]		Add 'cds-digest-types' configuration option. Also allow
 			dnssec-signzone to create multple CDS records.
 			[GL #3837]

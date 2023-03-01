@@ -75,7 +75,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- :iscman:`named` could crash with an assertion failure when adding a new zone
+  into the configuration file for a name, which is already configured as a
+  member zone for a catalog zone. This has been fixed. :gl:`#3911`
 
 Known Issues
 ~~~~~~~~~~~~
