@@ -90,6 +90,7 @@
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint, Sphinx) by modifying the relevant `Dockerfile`.
  - [ ] ***(QA)*** Run a pipeline to rebuild all [images](https://gitlab.isc.org/isc-projects/images) used in GitLab CI.
+ - [ ] ***(QA)*** Update [`metadata.json`](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/metadata.json) with the upcoming release information.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
 [^2]: As a rule of thumb, security vulnerabilities which have reproducers merged to the public repository are considered okay for full disclosure.
