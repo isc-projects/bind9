@@ -12,15 +12,8 @@
 Notes for BIND 9.19.11
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - When using :any:`dnssec-policy`, you can now configure the digest type to
   use when ``CDS`` records need to be published with `cds-digest-types`. Also,
@@ -82,4 +75,6 @@ Bug Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
