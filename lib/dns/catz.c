@@ -2086,6 +2086,7 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	LOCK(&catz->catzs->lock);
 
 	INSIST(DNS_DB_VALID(catz->db));
+	INSIST(catz->dbversion != NULL);
 	INSIST(catz->updb == NULL);
 	INSIST(catz->updbversion == NULL);
 
@@ -2093,12 +2094,22 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	catz->updaterunning = true;
 	catz->updateresult = ISC_R_UNSET;
 
+	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
+
+	if (!catz->active) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: %s: no longer active, reload is canceled",
+			      domain);
+		catz->updaterunning = false;
+		catz->updateresult = ISC_R_CANCELED;
+		goto exit;
+	}
+
 	dns_db_attach(catz->db, &catz->updb);
-	INSIST(catz->dbversion != NULL);
 	catz->updbversion = catz->dbversion;
 	catz->dbversion = NULL;
 
-	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
@@ -2106,6 +2117,7 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	isc_nm_work_offload(isc_task_getnetmgr(catz->catzs->updater),
 			    dns__catz_update_cb, dns__catz_done_cb, catz);
 
+exit:
 	result = isc_time_now(&catz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
