@@ -2480,6 +2480,7 @@ final:
 	 * update callback in zone_startload or axfr_makedb, but we will
 	 * call onupdate() artificially so we can register the callback here.
 	 */
+	LOCK(&catzs->lock);
 	if (!oldcatz->db_registered) {
 		result = dns_db_updatenotify_register(
 			updb, dns_catz_dbupdate_callback, oldcatz->catzs);
@@ -2487,6 +2488,7 @@ final:
 			oldcatz->db_registered = true;
 		}
 	}
+	UNLOCK(&catzs->lock);
 
 exit:
 	catz->updateresult = result;
