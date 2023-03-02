@@ -1,3 +1,8 @@
+6120.	[bug]		Use two pairs of dns_db_t and dns_dbversion_t in a
+			catalog zone structure to avoid a race between the
+			dns__catz_update_cb() and dns_catz_dbupdate_callback()
+			functions. [GL #3907]
+
 6119.	[bug]		Make sure to revert the reconfigured zones to the
 			previous version of the view, when the new view
 			reconfiguration fails during the configuration of
@@ -8,8 +13,7 @@
 
 6115.	[bug]		Unregister db update notify callback before detaching
 			from the previous db inside the catz update notify
-			callback. Also, call the db notify callbacks only after
-			zone_postload() returns successfully. [GL #3777]
+			callback. [GL #3777]
 
 6114.	[func]		Run the catalog zone update process on the offload
 			threads. [GL #3881]

@@ -87,11 +87,13 @@ struct dns_catz_zone {
 	dns_catz_options_t zoneoptions;
 	isc_time_t lastupdated;
 
-	bool updatepending;	    /* there is an update pending */
-	bool updaterunning;	    /* there is an update running */
-	isc_result_t updateresult;  /* result from the offloaded work */
-	dns_db_t *db;		    /* zones database */
-	dns_dbversion_t *dbversion; /* zones database version */
+	bool updatepending;	      /* there is an update pending */
+	bool updaterunning;	      /* there is an update running */
+	isc_result_t updateresult;    /* result from the offloaded work */
+	dns_db_t *db;		      /* zones database */
+	dns_dbversion_t *dbversion;   /* version we will be updating to */
+	dns_db_t *updb;		      /* zones database we're working on */
+	dns_dbversion_t *updbversion; /* version we're working on */
 
 	isc_timer_t *updatetimer;
 	isc_event_t updateevent;
@@ -2085,12 +2087,29 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(DNS_DB_VALID(catz->db));
 	INSIST(catz->dbversion != NULL);
+	INSIST(catz->updb == NULL);
+	INSIST(catz->updbversion == NULL);
 
 	catz->updatepending = false;
 	catz->updaterunning = true;
 	catz->updateresult = ISC_R_UNSET;
 
 	dns_name_format(&catz->name, domain, DNS_NAME_FORMATSIZE);
+
+	if (!catz->active) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: %s: no longer active, reload is canceled",
+			      domain);
+		catz->updaterunning = false;
+		catz->updateresult = ISC_R_CANCELED;
+		goto exit;
+	}
+
+	dns_db_attach(catz->db, &catz->updb);
+	catz->updbversion = catz->dbversion;
+	catz->dbversion = NULL;
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
@@ -2098,6 +2117,7 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	isc_nm_work_offload(isc_task_getnetmgr(catz->catzs->updater),
 			    dns__catz_update_cb, dns__catz_done_cb, catz);
 
+exit:
 	result = isc_time_now(&catz->lastupdated);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -2213,14 +2233,14 @@ catz_rdatatype_is_processable(const dns_rdatatype_t type) {
 static void
 dns__catz_update_cb(void *data) {
 	dns_catz_zone_t *catz = (dns_catz_zone_t *)data;
-	dns_db_t *db = NULL;
+	dns_db_t *updb = NULL;
 	dns_catz_zones_t *catzs = NULL;
 	dns_catz_zone_t *oldcatz = NULL, *newcatz = NULL;
 	isc_result_t result;
 	isc_region_t r;
 	dns_dbnode_t *node = NULL;
 	const dns_dbnode_t *vers_node = NULL;
-	dns_dbiterator_t *it = NULL;
+	dns_dbiterator_t *updbit = NULL;
 	dns_fixedname_t fixname;
 	dns_name_t *name;
 	dns_rdatasetiter_t *rdsiter = NULL;
@@ -2228,6 +2248,7 @@ dns__catz_update_cb(void *data) {
 	char bname[DNS_NAME_FORMATSIZE];
 	char cname[DNS_NAME_FORMATSIZE];
 	bool is_vers_processed = false;
+	bool is_active;
 	uint32_t vers;
 	uint32_t catz_vers;
 
@@ -2235,7 +2256,7 @@ dns__catz_update_cb(void *data) {
 	REQUIRE(DNS_DB_VALID(catz->db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catz->catzs));
 
-	db = catz->db;
+	updb = catz->updb;
 	catzs = catz->catzs;
 
 	if (atomic_load(&catzs->shuttingdown)) {
@@ -2243,14 +2264,15 @@ dns__catz_update_cb(void *data) {
 		goto exit;
 	}
 
-	dns_name_format(&db->origin, bname, DNS_NAME_FORMATSIZE);
+	dns_name_format(&updb->origin, bname, DNS_NAME_FORMATSIZE);
 
 	/*
 	 * Create a new catz in the same context as current catz.
 	 */
-	dns_name_toregion(&db->origin, &r);
+	dns_name_toregion(&updb->origin, &r);
 	LOCK(&catzs->lock);
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&oldcatz);
+	is_active = (result == ISC_R_SUCCESS && oldcatz->active);
 	UNLOCK(&catzs->lock);
 	if (result != ISC_R_SUCCESS) {
 		/* This can happen if we remove the zone in the meantime. */
@@ -2260,7 +2282,16 @@ dns__catz_update_cb(void *data) {
 		goto exit;
 	}
 
-	result = dns_db_getsoaserial(db, oldcatz->dbversion, &vers);
+	if (!is_active) {
+		/* This can happen during a reconfiguration. */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: zone '%s' is no longer active", bname);
+		result = ISC_R_CANCELED;
+		goto exit;
+	}
+
+	result = dns_db_getsoaserial(updb, oldcatz->updbversion, &vers);
 	if (result != ISC_R_SUCCESS) {
 		/* A zone without SOA record?!? */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
@@ -2275,9 +2306,8 @@ dns__catz_update_cb(void *data) {
 		      "catz: updating catalog zone '%s' with serial %" PRIu32,
 		      bname, vers);
 
-	result = dns_catz_new_zone(catzs, &newcatz, &db->origin);
+	result = dns_catz_new_zone(catzs, &newcatz, &updb->origin);
 	if (result != ISC_R_SUCCESS) {
-		dns_db_closeversion(db, &oldcatz->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create new zone - %s",
@@ -2285,10 +2315,9 @@ dns__catz_update_cb(void *data) {
 		goto exit;
 	}
 
-	result = dns_db_createiterator(db, DNS_DB_NONSEC3, &it);
+	result = dns_db_createiterator(updb, DNS_DB_NONSEC3, &updbit);
 	if (result != ISC_R_SUCCESS) {
 		dns_catz_detach_catz(&newcatz);
-		dns_db_closeversion(db, &oldcatz->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create DB iterator - %s",
@@ -2303,21 +2332,19 @@ dns__catz_update_cb(void *data) {
 	 * records might be processed differently depending on the version of
 	 * the catalog zone's schema.
 	 */
-	result = dns_name_fromstring2(name, "version", &db->origin, 0, NULL);
+	result = dns_name_fromstring2(name, "version", &updb->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
-		dns_dbiterator_destroy(&it);
+		dns_dbiterator_destroy(&updbit);
 		dns_catz_detach_catz(&newcatz);
-		dns_db_closeversion(db, &oldcatz->dbversion, false);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: failed to create name from string - %s",
 			      isc_result_totext(result));
 		goto exit;
 	}
-	result = dns_dbiterator_seek(it, name);
+	result = dns_dbiterator_seek(updbit, name);
 	if (result != ISC_R_SUCCESS) {
-		dns_dbiterator_destroy(&it);
-		dns_db_closeversion(db, &oldcatz->dbversion, false);
+		dns_dbiterator_destroy(&updbit);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' has no 'version' record (%s)",
@@ -2337,7 +2364,7 @@ dns__catz_update_cb(void *data) {
 			break;
 		}
 
-		result = dns_dbiterator_current(it, &node, name);
+		result = dns_dbiterator_current(updbit, &node, name);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
@@ -2346,7 +2373,7 @@ dns__catz_update_cb(void *data) {
 			break;
 		}
 
-		result = dns_dbiterator_pause(it);
+		result = dns_dbiterator_pause(updbit);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!is_vers_processed) {
@@ -2354,19 +2381,19 @@ dns__catz_update_cb(void *data) {
 			vers_node = node;
 		} else if (node == vers_node) {
 			/* Skip the already processed version node */
-			dns_db_detachnode(db, &node);
-			result = dns_dbiterator_next(it);
+			dns_db_detachnode(updb, &node);
+			result = dns_dbiterator_next(updbit);
 			continue;
 		}
 
-		result = dns_db_allrdatasets(db, node, oldcatz->dbversion, 0, 0,
-					     &rdsiter);
+		result = dns_db_allrdatasets(updb, node, oldcatz->updbversion,
+					     0, 0, &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 				      "catz: failed to fetch rrdatasets - %s",
 				      isc_result_totext(result));
-			dns_db_detachnode(db, &node);
+			dns_db_detachnode(updb, &node);
 			break;
 		}
 
@@ -2421,18 +2448,17 @@ dns__catz_update_cb(void *data) {
 
 		dns_rdatasetiter_destroy(&rdsiter);
 
-		dns_db_detachnode(db, &node);
+		dns_db_detachnode(updb, &node);
 
 		if (!is_vers_processed) {
 			is_vers_processed = true;
-			result = dns_dbiterator_first(it);
+			result = dns_dbiterator_first(updbit);
 		} else {
-			result = dns_dbiterator_next(it);
+			result = dns_dbiterator_next(updbit);
 		}
 	}
 
-	dns_dbiterator_destroy(&it);
-	dns_db_closeversion(db, &oldcatz->dbversion, false);
+	dns_dbiterator_destroy(&updbit);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: iteration finished: %s",
@@ -2497,13 +2523,15 @@ final:
 	 * update callback in zone_startload or axfr_makedb, but we will
 	 * call onupdate() artificially so we can register the callback here.
 	 */
+	LOCK(&catzs->lock);
 	if (!oldcatz->db_registered) {
 		result = dns_db_updatenotify_register(
-			db, dns_catz_dbupdate_callback, oldcatz->catzs);
+			updb, dns_catz_dbupdate_callback, oldcatz->catzs);
 		if (result == ISC_R_SUCCESS) {
 			oldcatz->db_registered = true;
 		}
 	}
+	UNLOCK(&catzs->lock);
 
 exit:
 	catz->updateresult = result;
@@ -2555,6 +2583,9 @@ dns__catz_done_cb(void *data, isc_result_t result) {
 	}
 
 done:
+	dns_db_closeversion(catz->updb, &catz->updbversion, false);
+	dns_db_detach(&catz->updb);
+
 	UNLOCK(&catz->catzs->lock);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
@@ -2571,6 +2602,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 
+	LOCK(&catzs->lock);
 	isc_ht_iter_create(catzs->zones, &iter);
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
@@ -2579,6 +2611,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 		isc_ht_iter_current(iter, (void **)&catz);
 		catz->active = false;
 	}
+	UNLOCK(&catzs->lock);
 	INSIST(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter);
 }
