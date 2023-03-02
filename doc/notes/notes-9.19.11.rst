@@ -15,35 +15,35 @@ Notes for BIND 9.19.11
 New Features
 ~~~~~~~~~~~~
 
-- When using :any:`dnssec-policy`, you can now configure the digest type to
-  use when ``CDS`` records need to be published with `cds-digest-types`. Also,
-  with ``dnssec-signzone -G`` you can set which CDNSKEY/CDS records you want to
-  publish. :gl:`#3837`
+- When using :any:`dnssec-policy`, it is now possible to configure the
+  digest type to use when ``CDS`` records need to be published with
+  :any:`cds-digest-types`. Also, publication of specific CDNSKEY/CDS
+  records can now be set with :option:`dnssec-signzone -G`. :gl:`#3837`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- Support for Red Hat Enterprise Linux version 7 (and clones) has been dropped.
-  A C11 compliant compiler (or better) is now required to compile BIND 9.
+- Support for Red Hat Enterprise Linux version 7 (and clones) has been
+  dropped. A C11-compliant compiler is now required to compile BIND 9.
   :gl:`#3729`
 
 - The functions that were in the ``libbind9`` shared library have been
-  moved to the ``libisc`` and ``libisccfg`` libraries, and the
-  now-empty ``libbind9`` has been removed and is no longer installed.
+  moved to the ``libisc`` and ``libisccfg`` libraries. The now-empty
+  ``libbind9`` has been removed and is no longer installed. :gl:`#3903`
 
 - The ``irs_resconf`` module has been moved to the ``libdns`` shared
-  library and the now-empty ``libirs`` library has been removed and is
-  no longer installed.
+  library. The now-empty ``libirs`` library has been removed and is no
+  longer installed. :gl:`#3904`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- libuv support for receiving multiple UDP messages in a single system
-  call (``recvmmsg()``) has been tweaked several times between libuv
-  versions 1.35.0 and 1.40.0; the recommended libuv version is 1.40.0 or
-  higher. New rules are now in effect for running with a different
-  version of libuv than the one used at compilation time. These rules
-  may trigger a fatal error at startup:
+- libuv support for receiving multiple UDP messages in a single
+  ``recvmmsg()`` system call has been tweaked several times between
+  libuv versions 1.35.0 and 1.40.0; the current recommended libuv
+  version is 1.40.0 or higher. New rules are now in effect for running
+  with a different version of libuv than the one used at compilation
+  time. These rules may trigger a fatal error at startup:
 
   - Building against or running with libuv versions 1.35.0 and 1.36.0 is
     now a fatal error.
@@ -59,18 +59,19 @@ Feature Changes
   failure when receiving multiple UDP messages in a single system call.
   :gl:`#3840`
 
-- Run catalog zone updates on the specialized "offload" threads to reduce the
-  amount of time they block query processing on the main networking
-  threads. This should increase the responsiveness of :iscman:`named`
-  when catalog zone updates are being applied after a catalog zone has been
-  successfully transferred. :gl:`#3881`
+- Catalog zone updates are now run on specialized "offload" threads to
+  reduce the amount of time they block query processing on the main
+  networking threads. This increases the responsiveness of
+  :iscman:`named` when catalog zone updates are being applied after a
+  catalog zone has been successfully transferred. :gl:`#3881`
 
 Bug Fixes
 ~~~~~~~~~
 
-- :iscman:`named` could crash with an assertion failure when adding a new zone
-  into the configuration file for a name, which is already configured as a
-  member zone for a catalog zone. This has been fixed. :gl:`#3911`
+- :iscman:`named` could crash with an assertion failure when adding a
+  new zone into the configuration file for a name which was already
+  configured as a member zone for a catalog zone. This has been fixed.
+  :gl:`#3911`
 
 Known Issues
 ~~~~~~~~~~~~
