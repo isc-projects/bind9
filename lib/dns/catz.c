@@ -1862,6 +1862,14 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 		return;
 	}
 
+	if (!oldzone->active) {
+		/* This can happen during a reconfiguration. */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: zone '%s' is no longer active", bname);
+		return;
+	}
+
 	isc_buffer_init(&ibname, bname, DNS_NAME_FORMATSIZE);
 	result = dns_name_totext(&db->origin, true, &ibname);
 	INSIST(result == ISC_R_SUCCESS);
@@ -2030,6 +2038,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 
+	LOCK(&catzs->lock);
 	isc_ht_iter_create(catzs->zones, &iter);
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
@@ -2038,6 +2047,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 		isc_ht_iter_current(iter, (void **)&zone);
 		zone->active = false;
 	}
+	UNLOCK(&catzs->lock);
 	INSIST(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter);
 }
