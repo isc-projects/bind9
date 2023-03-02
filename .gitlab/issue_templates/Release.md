@@ -36,7 +36,6 @@
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding merge requests in the private repository[^1] (Subscription Edition only).
  - [ ] ***(QA)*** Ensure all merge requests marked for backporting have been indeed backported.
- - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is in effect.
 
 ### Before the Tagging Deadline
@@ -46,6 +45,7 @@
  - [ ] ***(QA)*** Add a release marker to `CHANGES.SE` (Subscription Edition only).
  - [ ] ***(QA)*** Update BIND 9 version in `configure.ac` (9.18+) or `version` (9.16).
  - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org` (9.16).
+ - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
  - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
