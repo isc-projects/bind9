@@ -2030,6 +2030,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 
+	LOCK(&catzs->lock);
 	isc_ht_iter_create(catzs->zones, &iter);
 	for (result = isc_ht_iter_first(iter); result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
@@ -2038,6 +2039,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 		isc_ht_iter_current(iter, (void **)&zone);
 		zone->active = false;
 	}
+	UNLOCK(&catzs->lock);
 	INSIST(result == ISC_R_NOMORE);
 	isc_ht_iter_destroy(&iter);
 }
