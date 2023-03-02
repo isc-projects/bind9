@@ -2228,6 +2228,7 @@ dns__catz_update_cb(void *data) {
 	char bname[DNS_NAME_FORMATSIZE];
 	char cname[DNS_NAME_FORMATSIZE];
 	bool is_vers_processed = false;
+	bool is_active;
 	uint32_t vers;
 	uint32_t catz_vers;
 
@@ -2251,12 +2252,22 @@ dns__catz_update_cb(void *data) {
 	dns_name_toregion(&updb->origin, &r);
 	LOCK(&catzs->lock);
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&oldcatz);
+	is_active = (result == ISC_R_SUCCESS && oldcatz->active);
 	UNLOCK(&catzs->lock);
 	if (result != ISC_R_SUCCESS) {
 		/* This can happen if we remove the zone in the meantime. */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
 			      "catz: zone '%s' not in config", bname);
+		goto exit;
+	}
+
+	if (!is_active) {
+		/* This can happen during a reconfiguration. */
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+			      "catz: zone '%s' is no longer active", bname);
+		result = ISC_R_CANCELED;
 		goto exit;
 	}
 
