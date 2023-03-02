@@ -1282,12 +1282,31 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qp != NULL);
 
-	dns_qpmulti_t *whence = reader_open(multi, qp);
-	INSIST(whence == multi);
-
-	/* we must be in an isc_loop thread */
+	/* we MUST be in an isc_loop thread */
 	qp->tid = isc_tid();
 	REQUIRE(qp->tid != ISC_TID_UNKNOWN);
+
+	dns_qpmulti_t *whence = reader_open(multi, qp);
+	INSIST(whence == multi);
+}
+
+/*
+ * a locked read takes the mutex
+ */
+
+void
+dns_qpmulti_lockedread(dns_qpmulti_t *multi, dns_qpread_t *qp) {
+	REQUIRE(QPMULTI_VALID(multi));
+	REQUIRE(qp != NULL);
+
+	/* we MUST NOT be in an isc_loop thread */
+	qp->tid = isc_tid();
+	REQUIRE(qp->tid == ISC_TID_UNKNOWN);
+
+	LOCK(&multi->mutex);
+
+	dns_qpmulti_t *whence = reader_open(multi, qp);
+	INSIST(whence == multi);
 }
 
 void
@@ -1295,6 +1314,9 @@ dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(qp->tid == isc_tid());
+	if (qp->tid == ISC_TID_UNKNOWN) {
+		UNLOCK(&multi->mutex);
+	}
 	*qp = (dns_qpread_t){};
 }
 

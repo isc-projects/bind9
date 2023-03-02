@@ -53,6 +53,12 @@
  * lifetime of a `dns_qpread_t`, instead of using locks. Readers are
  * not blocked by any write activity, and vice versa.
  *
+ * For read-only access outside the scope of a loop, such as from an
+ * isc_work callback, `dns_qpmulti_lockedread()`. This looks like a
+ * query transaction; the difference is that a locked read transaction
+ * takes the `dns_qpmulti_t` mutex. When you have finished with a
+ * `dns_qpread_t`, call `dns_qpread_destroy()` to release the mutex.
+ *
  * For reads that need a stable view of the trie for multiple cycles
  * of an isc_loop, or which can be used from any thread, call
  * `dns_qpmulti_snapshot()` to get a `dns_qpsnap_t`. A snapshot is for
@@ -599,9 +605,26 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qpr);
  */
 
 void
+dns_qpmulti_lockedread(dns_qpmulti_t *multi, dns_qpread_t *qpr);
+/*%<
+ * Start a read-only transaction that takes the `dns_qpmulti_t` mutex.
+ *
+ * The `dns_qpmulti_lockedread()` function must NOT be called from an
+ * isc_loop thread. We keep query and read transactions separate to
+ * avoid accidentally taking or failing to take the mutex.
+ *
+ * Requires:
+ * \li  `multi` is a pointer to a valid multi-threaded qp-trie
+ * \li  `qpr != NULL`
+ *
+ * Returns:
+ * \li  `qpr` is a valid read-only qp-trie handle
+ */
+
+void
 dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qpr);
 /*%<
- * End a lightweight read transaction.
+ * End a lightweight query or read transaction.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie
