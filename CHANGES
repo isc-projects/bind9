@@ -1,3 +1,5 @@
+	--- 9.16.39 released ---
+
 6119.	[bug]		Make sure to revert the reconfigured zones to the
 			previous version of the view, when the new view
 			reconfiguration fails during the configuration of
