@@ -36,7 +36,6 @@
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding merge requests in the private repository[^1] (Subscription Edition only).
  - [ ] ***(QA)*** Ensure all merge requests marked for backporting have been indeed backported.
- - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is in effect.
 
 ### Before the Tagging Deadline
@@ -46,6 +45,7 @@
  - [ ] ***(QA)*** Add a release marker to `CHANGES.SE` (Subscription Edition only).
  - [ ] ***(QA)*** Update BIND 9 version in `configure.ac` (9.18+) or `version` (9.16).
  - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org` (9.16).
+ - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
  - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
@@ -90,6 +90,7 @@
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint, Sphinx) by modifying the relevant `Dockerfile`.
  - [ ] ***(QA)*** Run a pipeline to rebuild all [images](https://gitlab.isc.org/isc-projects/images) used in GitLab CI.
+ - [ ] ***(QA)*** Update [`metadata.json`](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/metadata.json) with the upcoming release information.
 
 [^1]: If not, use the time remaining until the tagging deadline to ensure all outstanding issues are either resolved or moved to a different milestone.
 [^2]: As a rule of thumb, security vulnerabilities which have reproducers merged to the public repository are considered okay for full disclosure.
