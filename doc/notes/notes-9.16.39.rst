@@ -15,12 +15,12 @@ Notes for BIND 9.16.39
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- libuv support for receiving multiple UDP messages in a single system
-  call (``recvmmsg()``) has been tweaked several times between libuv
-  versions 1.35.0 and 1.40.0; the recommended libuv version is 1.40.0 or
-  higher. New rules are now in effect for running with a different
-  version of libuv than the one used at compilation time. These rules
-  may trigger a fatal error at startup:
+- libuv support for receiving multiple UDP messages in a single
+  ``recvmmsg()`` system call has been tweaked several times between
+  libuv versions 1.35.0 and 1.40.0; the current recommended libuv
+  version is 1.40.0 or higher. New rules are now in effect for running
+  with a different version of libuv than the one used at compilation
+  time. These rules may trigger a fatal error at startup:
 
   - Building against or running with libuv versions 1.35.0 and 1.36.0 is
     now a fatal error.
@@ -39,9 +39,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- :iscman:`named` could crash with an assertion failure when adding a new zone
-  into the configuration file for a name, which is already configured as a
-  member zone for a catalog zone. This has been fixed. :gl:`#3911`
+- :iscman:`named` could crash with an assertion failure when adding a
+  new zone into the configuration file for a name which was already
+  configured as a member zone for a catalog zone. This has been fixed.
+  :gl:`#3911`
 
 Known Issues
 ~~~~~~~~~~~~
