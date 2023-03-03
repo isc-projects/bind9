@@ -88,11 +88,15 @@ dnssec_verify
 # Check that the ZSKs from the other provider are published.
 zsks_are_published() {
 	dig_with_opts "$ZONE" "@${SERVER}" DNSKEY > "dig.out.$DIR.test$n" || return 1
+	cat dig.out.$DIR.test$n | tr [:blank:] ' ' > dig.out.$DIR.test$n.tr || return 1
 	# We should have two ZSKs.
-	lines=$(grep "256 3 13" dig.out.$DIR.test$n | wc -l)
+	lines=$(grep "256 3 13" dig.out.$DIR.test$n.tr | wc -l)
 	test "$lines" -eq 2 || return 1
+	# Both ZSKs are published.
+	grep "$(cat ns3/${ZONE}.zsk | tr [:blank:] ' ')" dig.out.$DIR.test$n.tr > /dev/null || return 1
+	grep "$(cat ns4/${ZONE}.zsk | tr [:blank:] ' ')" dig.out.$DIR.test$n.tr > /dev/null || return 1
 	# And one KSK.
-	lines=$(grep "257 3 13" dig.out.$DIR.test$n | wc -l)
+	lines=$(grep "257 3 13" dig.out.$DIR.test$n.tr | wc -l)
 	test "$lines" -eq 1 || return 1
 }
 
@@ -119,7 +123,7 @@ rrset_exists() (
 )
 
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns3 with ZSK from provider ns4"
+echo_i "add dnskey record: update zone ${ZONE} at ns3 with ZSK from provider ns4 ($n)"
 ret=0
 set_server "ns3" "10.53.0.3"
 (
@@ -135,9 +139,8 @@ status=$((status+ret))
 # Verify again.
 dnssec_verify
 
-
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns4 with ZSK from provider ns3"
+echo_i "add dnskey record: - update zone ${ZONE} at ns4 with ZSK from provider ns3 ($n)"
 ret=0
 set_server "ns4" "10.53.0.4"
 (
@@ -152,17 +155,66 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Verify again.
 dnssec_verify
-# No DNSSEC in raw journal.
+no_dnssec_in_journal
+
 n=$((n+1))
-echo_i "check zone ${ZONE} raw journal has no DNSSEC ($n)"
+echo_i "remove dnskey record: - try to remove ns3 ZSK from provider ns3 (should fail) ($n)"
 ret=0
-$JOURNALPRINT "${DIR}/${ZONE}.db.jnl" > "${DIR}/${ZONE}.journal.out.test$n"
-rrset_exists "NSEC" "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists "NSEC3" "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists "NSEC3PARAM" "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists "RRSIG" "${DIR}/${ZONE}.journal.out.test$n" && ret=1
+set_server "ns3" "10.53.0.3"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "ns3/${ZONE}.zsk")
+echo send
+) | $NSUPDATE
+# Both ZSKs should still be published.
+retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
+
+n=$((n+1))
+echo_i "remove dnskey record: remove ns4 ZSK from provider ns3 ($n)"
+ret=0
+set_server "ns3" "10.53.0.3"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "ns4/${ZONE}.zsk")
+echo send
+) | $NSUPDATE
+check_keys
+check_apex
+dnssec_verify
+
+n=$((n+1))
+echo_i "remove dnskey record: try to remove ns4 ZSK from provider ns4 (should fail) ($n)"
+ret=0
+set_server "ns4" "10.53.0.4"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "ns4/${ZONE}.zsk")
+echo send
+) | $NSUPDATE
+# Both ZSKs should still be published.
+retry_quiet 10 zsks_are_published || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "remove dnskey record: remove ns3 ZSK from provider ns4 ($n)"
+ret=0
+set_server "ns4" "10.53.0.4"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "ns3/${ZONE}.zsk")
+echo send
+) | $NSUPDATE
+check_keys
+check_apex
+dnssec_verify
+no_dnssec_in_journal
 
 #
 # Update CDNSKEY RRset.
@@ -185,7 +237,7 @@ dig_with_opts ${ZONE} @10.53.0.4 CDNSKEY > dig.out.ns4.cdnskey
 awk '$4 == "CDNSKEY" {print}' dig.out.ns4.cdnskey > cdnskey.ns4
 
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns3 with CDNSKEY from provider ns4"
+echo_i "add cdnskey record: update zone ${ZONE} at ns3 with CDNSKEY from provider ns4 ($n)"
 ret=0
 set_server "ns3" "10.53.0.3"
 # Initially there should be one CDNSKEY.
@@ -204,7 +256,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns4 with CDNSKEY from provider ns3"
+echo_i "add cdnskey record: update zone ${ZONE} at ns4 with CDNSKEY from provider ns3 ($n)"
 ret=0
 set_server "ns4" "10.53.0.4"
 # Initially there should be one CDNSKEY.
@@ -222,17 +274,45 @@ retry_quiet 10 records_published CDNSKEY 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # No DNSSEC in raw journal.
+no_dnssec_in_journal
+
 n=$((n+1))
-echo_i "check zone ${ZONE} raw journal has no DNSSEC ($n)"
+echo_i "remove cdnskey record: remove ns4 CDNSKEY from provider ns3 ($n)"
 ret=0
-$JOURNALPRINT "${DIR}/${ZONE}.db.jnl" > "${DIR}/${ZONE}.journal.out.test$n"
-rrset_exists NSEC "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists NSEC3 "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists NSEC3PARAM "${DIR}/${ZONE}.journal.out.test$n" && ret=1
-rrset_exists RRSIG "${DIR}/${ZONE}.journal.out.test$n" && ret=1
+set_server "ns3" "10.53.0.3"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "cdnskey.ns4")
+echo send
+) | $NSUPDATE
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Now there should be one CDNSKEY record again.
+echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+retry_quiet 10 records_published CDNSKEY 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+n=$((n+1))
+echo_i "remove cdnskey record: remove ns3 CDNSKEY from provider ns4 ($n)"
+ret=0
+set_server "ns4" "10.53.0.4"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "cdnskey.ns3")
+echo send
+) | $NSUPDATE
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Now there should be one CDNSKEY record again.
+echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+retry_quiet 10 records_published CDNSKEY 1 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# No DNSSEC in raw journal.
+no_dnssec_in_journal
 
 #
 # Update CDS RRset.
@@ -245,7 +325,7 @@ dig_with_opts ${ZONE} @10.53.0.4 CDS > dig.out.ns4.cds
 awk '$4 == "CDS" {print}' dig.out.ns4.cds > cds.ns4
 
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns3 with CDS from provider ns4"
+echo_i "add cds record: update zone ${ZONE} at ns3 with CDS from provider ns4 ($n)"
 ret=0
 set_server "ns3" "10.53.0.3"
 # Initially there should be one CDS.
@@ -263,9 +343,8 @@ retry_quiet 10 records_published CDS 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-
 n=$((n+1))
-echo_i "update zone ${ZONE} at ns4 with CDS from provider ns3"
+echo_i "add cds record: update zone ${ZONE} at ns4 with CDS from provider ns3 ($n)"
 ret=0
 set_server "ns4" "10.53.0.4"
 # Initially there should be one CDS.
@@ -280,6 +359,44 @@ echo send
 # skip it during DNSSEC maintenance).
 echo_i "check zone ${ZONE} CDS RRset after update ($n)"
 retry_quiet 10 records_published CDS 2 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# No DNSSEC in raw journal.
+no_dnssec_in_journal
+
+n=$((n+1))
+echo_i "remove cds record: remove ns4 CDS from provider ns3 ($n)"
+ret=0
+set_server "ns3" "10.53.0.3"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "cds.ns4")
+echo send
+) | $NSUPDATE
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Now there should be one CDS record again.
+echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+retry_quiet 10 records_published CDS 1 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "remove cds record: remove ns3 CDS from provider ns4 ($n)"
+ret=0
+set_server "ns4" "10.53.0.4"
+(
+echo zone "${ZONE}"
+echo server "${SERVER}" "${PORT}"
+echo update del $(cat "cds.ns3")
+echo send
+) | $NSUPDATE
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Now there should be one CDS record again.
+echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+retry_quiet 10 records_published CDS 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # No DNSSEC in raw journal.
