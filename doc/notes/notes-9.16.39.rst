@@ -12,21 +12,6 @@
 Notes for BIND 9.16.39
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -61,4 +46,6 @@ Bug Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
