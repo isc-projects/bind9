@@ -1846,9 +1846,9 @@ failure:
 	return (result);
 }
 
-static isc_result_t
-make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
-	    dns_rdata_t *target) {
+isc_result_t
+dns_dnssec_make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
+		       dns_rdata_t *target) {
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_region_t r;
@@ -1904,7 +1904,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 
 	dns_rdata_reset(&dnskey);
-	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
+	RETERR(dns_dnssec_make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 	dst_key_format(key->key, keystr, sizeof(keystr));
 
 	report("Fetching %s (%s) from key %s.", keystr,
@@ -1944,7 +1944,7 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	report("Removing %s key %s/%d/%s from DNSKEY RRset.", reason, namebuf,
 	       dst_key_id(key->key), alg);
 
-	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
+	RETERR(dns_dnssec_make_dnskey(key->key, buf, sizeof(buf), &dnskey));
 	result = delrdata(&dnskey, diff, origin, ttl, mctx);
 
 failure:
@@ -2005,8 +2005,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
 		dns_name_t *origin = dst_key_name(key->key);
 
-		RETERR(make_dnskey(key->key, keybuf, sizeof(keybuf),
-				   &cdnskeyrdata));
+		RETERR(dns_dnssec_make_dnskey(key->key, keybuf, sizeof(keybuf),
+					      &cdnskeyrdata));
 
 		/*
 		 * We construct the SHA-1 version of the record so we can
@@ -2127,8 +2127,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		char keystr[DST_KEY_FORMATSIZE];
 		dst_key_format(key->key, keystr, sizeof(keystr));
 
-		RETERR(make_dnskey(key->key, keybuf, sizeof(keybuf),
-				   &cdnskeyrdata));
+		RETERR(dns_dnssec_make_dnskey(key->key, keybuf, sizeof(keybuf),
+					      &cdnskeyrdata));
 
 		if (dns_rdataset_isassociated(cds)) {
 			RETERR(dns_ds_buildrdata(origin, &cdnskeyrdata,
