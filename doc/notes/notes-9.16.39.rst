@@ -44,6 +44,14 @@ Bug Fixes
   configured as a member zone for a catalog zone. This has been fixed.
   :gl:`#3911`
 
+- When :iscman:`named` starts up, it sends a query for the DNSSEC key
+  for each configured trust anchor to determine whether the key has
+  changed. In some unusual cases, the query might depend on a zone for
+  which the server is itself authoritative, and would have failed if it
+  were sent before the zone was fully loaded. This has now been fixed by
+  delaying the key queries until all zones have finished loading.
+  :gl:`#3673`
+
 Known Issues
 ~~~~~~~~~~~~
 
