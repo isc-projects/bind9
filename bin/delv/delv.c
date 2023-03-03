@@ -134,6 +134,7 @@ static bool resolve_trace = false, validator_trace = false,
 static bool use_ipv4 = true, use_ipv6 = true;
 
 static bool cdflag = false, no_sigs = false, root_validation = true;
+static bool qmin = false, qmin_strict = false;
 
 static bool use_tcp = false;
 
@@ -218,6 +219,8 @@ usage(void) {
 		"server)\n"
 		"                 +[no]multiline      (Print records in an "
 		"expanded format)\n"
+		"                 +[no]qmin[=mode]    (QNAME minimization: "
+		"relaxed or strict)\n"
 		"                 +[no]root           (DNSSEC validation trust "
 		"anchor)\n"
 		"                 +[no]rrcomments     (Control display of "
@@ -1201,6 +1204,25 @@ plus_option(char *option) {
 			goto invalid_option;
 		}
 		break;
+	case 'q': /* qmin */
+		FULLCHECK("qmin");
+		if (state) {
+			if (value == NULL || strcasecmp(value, "relaxed") == 0)
+			{
+				qmin = true;
+			} else if (strcasecmp(value, "strict") == 0) {
+				qmin = true;
+				qmin_strict = true;
+			} else {
+				fatal("Invalid qmin option '%s': "
+				      "use 'relaxed' or 'strict'\n",
+				      value);
+			}
+		} else {
+			qmin = false;
+			qmin_strict = false;
+		}
+		break;
 	case 'r':
 		switch (cmd[1]) {
 		case 'o': /* root */
@@ -1336,6 +1358,10 @@ plus_option(char *option) {
 		 */
 		fprintf(stderr, "Invalid option: +%s\n", option);
 		usage();
+	}
+
+	if (qmin && !fulltrace) {
+		fatal("'+qmin' cannot be used without '+ns'");
 	}
 	return;
 }
@@ -2098,6 +2124,9 @@ run_server(void *arg) {
 	CHECK(dns_rootns_create(mctx, dns_rdataclass_in, NULL, &roothints));
 	dns_view_sethints(view, roothints);
 	dns_db_detach(&roothints);
+
+	view->qminimization = qmin;
+	view->qmin_strict = qmin_strict;
 
 	CHECK(dns_view_initsecroots(view, mctx));
 	CHECK(setup_dnsseckeys(NULL, view));

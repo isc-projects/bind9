@@ -246,6 +246,13 @@ assign values to options like the timeout interval. They have the form
    replicates the behavior of a recursive name server with a cold cache
    that is processing a recursive query.
 
+.. option:: +qmin[=MODE], +noqmin
+
+   When used with ``+ns``, this option enables QNAME minimization mode.
+   Valid options of MODE are ``relaxed`` and ``strict``. By default,
+   QNAME minimization is disabled.  If ``+qmin`` is specified but MODE
+   is omitted, then ``relaxed`` mode will be used.
+
 .. option:: +ttl, +nottl
 
    This option controls whether to display the TTL when printing a record. The
