@@ -24,6 +24,12 @@ New Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- Catalog zone updates are now run on specialized "offload" threads to
+  reduce the amount of time they block query processing on the main
+  networking threads. This increases the responsiveness of
+  :iscman:`named` when catalog zone updates are being applied after a
+  catalog zone has been successfully transferred. :gl:`#3881`
+
 - libuv support for receiving multiple UDP messages in a single
   ``recvmmsg()`` system call has been tweaked several times between
   libuv versions 1.35.0 and 1.40.0; the current recommended libuv
@@ -44,12 +50,6 @@ Feature Changes
   This prevents the use of libuv versions that may trigger an assertion
   failure when receiving multiple UDP messages in a single system call.
   :gl:`#3840`
-
-- Catalog zone updates are now run on specialized "offload" threads to
-  reduce the amount of time they block query processing on the main
-  networking threads. This increases the responsiveness of
-  :iscman:`named` when catalog zone updates are being applied after a
-  catalog zone has been successfully transferred. :gl:`#3881`
 
 Bug Fixes
 ~~~~~~~~~
