@@ -396,6 +396,24 @@ dns_zone_unlock_keyfiles(dns_zone_t *zone);
  */
 
 isc_result_t
+dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse);
+/*%<
+ *	Check if the DNSKEY record 'rdata' is used by 'zone' for zone signing.
+ *	Store the result in 'inuse'.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'rdata' to represent a DNSKEY, CDNSKEY, or CDS record.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	Any error result from dns_dnssec_keyfromrdata, dns_rdata_tostruct,
+ *	dns_dnssec_make_dnskey, dns_ds_buildrdata, or
+ *	dns_dnssec_findmatchingkeys.
+ *
+ */
+
+isc_result_t
 dns_zone_load(dns_zone_t *zone, bool newonly);
 
 isc_result_t

@@ -15851,6 +15851,185 @@ update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
 }
 
 static isc_result_t
+dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, isc_mem_t *mctx,
+	     dns_dnsseckeylist_t *keylist, bool *inuse) {
+	isc_result_t result;
+	dst_key_t *dstkey = NULL;
+
+	result = dns_dnssec_keyfromrdata(dns_zone_getorigin(zone), rdata, mctx,
+					 &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_dnssec_keyfromrdata() failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		if (dst_key_pubcompare(k->key, dstkey, false)) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	dst_key_free(&dstkey);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+cdnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata,
+	      dns_dnsseckeylist_t *keylist, bool *inuse) {
+	isc_result_t result;
+	dns_rdata_cdnskey_t cdnskey;
+
+	result = dns_rdata_tostruct(rdata, &cdnskey, NULL);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_rdata_tostruct(cdnskey) failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
+		unsigned char keybuf[DST_KEY_MAXSIZE];
+
+		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
+						&cdnskeyrdata);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_dnssec_make_dnskey() failed: %s",
+				     isc_result_totext(result));
+			return (result);
+		}
+
+		cdnskeyrdata.type = dns_rdatatype_cdnskey;
+		if (dns_rdata_compare(rdata, &cdnskeyrdata) == 0) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
+	  bool *inuse) {
+	isc_result_t result;
+	dns_rdata_ds_t cds;
+
+	result = dns_rdata_tostruct(rdata, &cds, NULL);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_rdata_tostruct(cds) failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		dns_rdata_t dnskey = DNS_RDATA_INIT;
+		dns_rdata_t cdsrdata = DNS_RDATA_INIT;
+		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
+
+		if (dst_key_id(k->key) != cds.key_tag ||
+		    dst_key_alg(k->key) != cds.algorithm)
+		{
+			continue;
+		}
+		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
+						&dnskey);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_dnssec_make_dnskey() failed: %s",
+				     isc_result_totext(result));
+			return (result);
+		}
+		result = dns_ds_buildrdata(dns_zone_getorigin(zone), &dnskey,
+					   cds.digest_type, cdsbuf, &cdsrdata);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_ds_buildrdata(keytag=%d, algo=%d, "
+				     "digest=%d) failed: %s",
+				     cds.key_tag, cds.algorithm,
+				     cds.digest_type,
+				     isc_result_totext(result));
+			return (result);
+		}
+
+		cdsrdata.type = dns_rdatatype_cds;
+		if (dns_rdata_compare(rdata, &cdsrdata) == 0) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
+	dns_dnsseckeylist_t keylist;
+	dns_dnsseckey_t *key = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_stdtime_t now = isc_stdtime_now();
+	isc_mem_t *mctx;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(dns_rdatatype_iskeymaterial(rdata->type));
+
+	mctx = zone->mctx;
+
+	ISC_LIST_INIT(keylist);
+
+	*inuse = false;
+
+	dns_zone_lock_keyfiles(zone);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
+					     dns_zone_getkeydirectory(zone),
+					     now, mctx, &keylist);
+	dns_zone_unlock_keyfiles(zone);
+	if (result == ISC_R_NOTFOUND) {
+		return (ISC_R_SUCCESS);
+	} else if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_dnssec_findmatchingkeys() failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	switch (rdata->type) {
+	case dns_rdatatype_dnskey:
+		result = dnskey_inuse(zone, rdata, mctx, &keylist, inuse);
+		break;
+	case dns_rdatatype_cdnskey:
+		result = cdnskey_inuse(zone, rdata, &keylist, inuse);
+		break;
+	case dns_rdatatype_cds:
+		result = cds_inuse(zone, rdata, &keylist, inuse);
+		break;
+	default:
+		UNREACHABLE();
+		break;
+	}
+
+out:
+	while (!ISC_LIST_EMPTY(keylist)) {
+		key = ISC_LIST_HEAD(keylist);
+		ISC_LIST_UNLINK(keylist, key, link);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+	return (result);
+}
+
+static isc_result_t
 sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		    uint32_t start, uint32_t end, dns_difftuple_t **soatuplep,
 		    dns_diff_t *diff) {
