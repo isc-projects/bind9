@@ -12,25 +12,13 @@
 Notes for BIND 9.18.13
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
-
-- None.
 
 - Run RPZ updates on the specialized "offload" threads to reduce the amount
   of time they block query processing on the main networking threads.  This
   should increase the responsiveness of ``named`` when RPZ updates are being
   applied after an RPZ zone has been successfully transfered.  :gl:`#3190`
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -72,4 +60,6 @@ Bug Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- None.
+- There are no new known issues with this release. See :ref:`above
+  <relnotes_known_issues>` for a list of all known issues affecting this
+  BIND 9 branch.
