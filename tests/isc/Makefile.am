@@ -34,6 +34,7 @@ check_PROGRAMS =	\
 	mutex_test	\
 	netaddr_test	\
 	parse_test	\
+	proxyheader_test	\
 	quota_test	\
 	radix_test	\
 	random_test	\
@@ -100,6 +101,16 @@ md_test_CPPFLAGS =	\
 md_test_LDADD =		\
 	$(LDADD)	\
 	$(OPENSSL_LIBS)
+
+proxyheader_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)
+
+proxyheader_test_LDADD =	\
+	$(LDADD)
+
+proxyheader_test_SOURCES =	\
+	proxyheader_test.c \
+	proxyheader_test_data.h
 
 random_test_LDADD =	\
 	$(LDADD)	\
