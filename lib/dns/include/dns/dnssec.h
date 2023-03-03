@@ -96,6 +96,23 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
  */
 
 isc_result_t
+dns_dnssec_make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
+		       dns_rdata_t *target);
+/*%<
+ *	Convert a DST key into a DNS record.
+ *
+ *	Requires:
+ *\li		'key' is not NULL
+ *\li		'buf' is not NULL
+ *\li		'bufsize' equals DST_KEY_MAXSIZE
+ *\li		'target' is not NULL
+ *
+ *	Returns:
+ *\li		#ISC_R_SUCCESS
+ *\li		various errors from dst_key_todns
+ */
+
+isc_result_t
 dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
 		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata);
