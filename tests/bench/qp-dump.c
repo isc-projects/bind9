@@ -224,7 +224,7 @@ main(int argc, char *argv[]) {
 		labels += name->labels;
 		names += 1;
 	}
-	dns_qp_compact(qp, true);
+	dns_qp_compact(qp, DNS_QPGC_ALL);
 
 	size_t smallbytes = wirebytes + labels + names * sizeof(isc_refcount_t);
 	dns_qp_memusage_t memusage = dns_qp_memusage(qp);

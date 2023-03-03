@@ -323,8 +323,12 @@ mutate_transactions(uv_idle_t *idle) {
 				args->absent++;
 			}
 		}
+		/*
+		 * We would normally use DNS_QPGC_MAYBE, but here we do the
+		 * fragmented check ourself so we can count compactions
+		 */
 		if (dns_qp_memusage(qp).fragmented) {
-			dns_qp_compact(qp, false);
+			dns_qp_compact(qp, DNS_QPGC_NOW);
 			args->compactions++;
 		}
 		dns_qpmulti_commit(args->multi, &qp);
@@ -392,7 +396,7 @@ load_multi(struct bench_state *bctx) {
 		item[i].present = true;
 		count++;
 	}
-	dns_qp_compact(qp, true);
+	dns_qp_compact(qp, DNS_QPGC_ALL);
 	dns_qpmulti_commit(bctx->multi, &qp);
 
 	bctx->load_time = isc_time_monotonic() - start;

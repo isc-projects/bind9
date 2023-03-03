@@ -903,6 +903,7 @@ dns_qp_compact(dns_qp_t *qp, dns_qpgc_t mode) {
 		return;
 	}
 	if (mode == DNS_QPGC_ALL) {
+		alloc_reset(qp);
 		qp->compact_all = true;
 	}
 	compact(qp);
