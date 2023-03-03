@@ -1279,6 +1279,13 @@ setup(void) {
 		      "linked to OpenSSL version: %s",
 		      SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled with libuv version: %d.%d.%d", UV_VERSION_MAJOR,
+		      UV_VERSION_MINOR, UV_VERSION_PATCH);
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "linked to libuv version: %s", uv_version_string());
 #ifdef HAVE_LIBXML2
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
