@@ -80,6 +80,7 @@ libisc_la_HEADERS =			\
 	include/isc/signal.h		\
 	include/isc/siphash.h		\
 	include/isc/sockaddr.h		\
+	include/isc/spinlock.h		\
 	include/isc/stack.h		\
 	include/isc/stats.h		\
 	include/isc/stdio.h		\
