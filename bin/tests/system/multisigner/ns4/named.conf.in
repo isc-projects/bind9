@@ -44,3 +44,11 @@ zone "model2.multisigner." {
 	dnssec-policy model2;
 	inline-signing yes;
 };
+
+zone "model2.secondary." {
+	type secondary;
+	primaries { 10.53.0.5; };
+	file "model2.secondary.db";
+	dnssec-policy model2;
+	inline-signing yes;
+};

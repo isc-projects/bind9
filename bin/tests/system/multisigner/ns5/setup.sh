@@ -12,25 +12,11 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../conf.sh
+. ../../conf.sh
 
-set -e
+echo_i "ns5/setup.sh"
 
-$SHELL clean.sh
-
-copy_setports ns3/named.conf.in ns3/named.conf
-copy_setports ns4/named.conf.in ns4/named.conf
-copy_setports ns5/named.conf.in ns5/named.conf
-
-(
-	cd ns3
-	$SHELL setup.sh
-)
-(
-	cd ns4
-	$SHELL setup.sh
-)
-(
-	cd ns5
-	$SHELL setup.sh
-)
+zone="model2.secondary"
+echo_i "setting up zone: $zone"
+zonefile="${zone}.db"
+cp "${zonefile}.in" "$zonefile"

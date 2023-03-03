@@ -16,6 +16,8 @@ set -e
 rm -f *.created
 rm -f cdnskey.ns*
 rm -f cds.ns*
+rm -f secondary.cdnskey.ns*
+rm -f secondary.cds.ns*
 rm -f created.key-*
 rm -f dig.out.*
 rm -f python.out.*
@@ -29,9 +31,12 @@ rm -f ns*/*.journal.out.test*
 rm -f ns*/*.signed
 rm -f ns*/*.signed.jnl
 rm -f ns*/*.zsk
+rm -f ns*/db-*
 rm -f ns*/K*
 rm -f ns*/keygen.out.*
 rm -f ns*/managed-keys*
+rm -f ns*/model2.secondary.db
+rm -f ns*/model2.secondary.db
 rm -f ns*/named.conf
 rm -f ns*/named.memstats
 rm -f ns*/named.run
