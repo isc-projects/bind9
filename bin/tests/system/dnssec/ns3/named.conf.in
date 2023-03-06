@@ -209,6 +209,7 @@ zone "expired.example" {
 
 zone "update-nsec3.example" {
 	type primary;
+	auto-dnssec maintain;
 	allow-update { any; };
 	file "update-nsec3.example.db.signed";
 };
