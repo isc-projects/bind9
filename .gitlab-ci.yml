@@ -546,7 +546,7 @@ tarball-create:
     - mkdir "${BIND_DIRECTORY}"
     - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
     - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
-    - sphinx-build -b man -d "${BIND_DIRECTORY}/tmp/.doctrees/" -W -a -v -c doc/man/ -D version="@BIND9_VERSION@" -D today="@RELEASEDATE@" -D release="@BIND9_VERSIONSTRING@" doc/man "${BIND_DIRECTORY}/doc/man"
+    - sphinx-build -b man -d "${BIND_DIRECTORY}/tmp/.doctrees/" -W -a -v -c doc/man/ -D version="@BIND9_VERSION@" -D today="@RELEASE_DATE@" -D release="@BIND9_VERSIONSTRING@" doc/man "${BIND_DIRECTORY}/doc/man"
     - rm -rf "${BIND_DIRECTORY}/tmp/.doctrees/"
     - for man in "${BIND_DIRECTORY}/doc/man/"*; do mv "$man" "$man"in; done
     - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/doc/man/"*in
