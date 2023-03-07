@@ -34,6 +34,10 @@ PointerAlignment: Right
 PointerBindsToType: false
 IncludeBlocks: Regroup
 IncludeCategories:
+  - Regex:           '^<(urcu\.h|urcu/urcu-|urcu-)'
+    Priority:        2
+  - Regex:           '^<urcu/'
+    Priority:        3
   - Regex:           '^<isc/'
     Priority:        5
   - Regex:           '^<(pk11|pkcs11)/'
@@ -59,9 +63,9 @@ IncludeCategories:
   - Regex:           '^<tests/'
     Priority:        100
   - Regex:           '<openssl/'
-    Priority:        1
+    Priority:        4
   - Regex:           '<(mysql|protobuf-c)/'
-    Priority:        1
+    Priority:        4
   - Regex:           '.*'
     Priority:        0
 IndentExternBlock: NoIndent
@@ -74,3 +78,4 @@ PenaltyBreakString: 80
 PenaltyExcessCharacter: 100
 Standard: Cpp11
 ContinuationIndentWidth: 8
+ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each_entry_safe' ]
