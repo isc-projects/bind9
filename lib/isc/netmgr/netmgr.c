@@ -2017,11 +2017,6 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 
 	isc__nmsocket_timer_stop(sock);
 
-	if (sock->tls.pending_req != NULL) {
-		REQUIRE(req == sock->tls.pending_req);
-		sock->tls.pending_req = NULL;
-	}
-
 	/*
 	 * Mark the connection as timed out and shutdown the socket.
 	 */
