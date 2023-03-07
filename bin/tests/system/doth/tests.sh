@@ -111,7 +111,7 @@ if [ -n "$run_san_tests" ]; then
 	ret=0
 	if retry_quiet 10 wait_for_tls_xfer 2 example3; then
 		grep "^;" "dig.out.ns2.example3.test$n" | cat_i
-		test -f "ns2/example3.db" && ret=1
+		ret=1
 	else
 		echo_i "timed out waiting for zone transfer"
 	fi
@@ -163,7 +163,7 @@ echo_i "testing incoming XoT functionality (from the first secondary, wrong host
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example7; then
 	grep "^;" "dig.out.ns2.example7.test$n" | cat_i
-	test -f "ns2/example7.db" && ret=1
+	ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 fi
@@ -175,7 +175,7 @@ echo_i "testing incoming XoT functionality (from the first secondary, expired ce
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example8; then
 	grep "^;" "dig.out.ns2.example8.test$n" | cat_i
-	test -f "ns2/example8.db" && ret=1
+	ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 fi
@@ -200,7 +200,7 @@ echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS,
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example10; then
 	grep "^;" "dig.out.ns2.example10.test$n" | cat_i
-	test -f "ns2/example10.db" && ret=1
+	ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 fi
@@ -212,7 +212,7 @@ echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS,
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example11; then
 	grep "^;" "dig.out.ns2.example11.test$n" | cat_i
-	test -f "ns2/example11.db" && ret=1
+	ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 fi
@@ -237,7 +237,7 @@ echo_i "testing incoming XoT functionality (from the second secondary, mismatchi
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 3 example2; then
 	grep "^;" "dig.out.ns3.example2.test$n" | cat_i
-	test -f "ns3/example2.db" && ret=1
+	ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 fi
