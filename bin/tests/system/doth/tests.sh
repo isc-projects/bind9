@@ -122,7 +122,7 @@ n=$((n + 1))
 echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via implicit IP) ($n)"
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example4; then
-	test -f "ns2/example4.db" || ret=1
+	retry_quiet 5 test -f "ns2/example4.db" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	grep "^;" "dig.out.ns2.example4.test$n" | cat_i
@@ -135,7 +135,7 @@ n=$((n + 1))
 echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via specified IPv4) ($n)"
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example5; then
-	test -f "ns2/example5.db" || ret=1
+	retry_quiet 5 test -f "ns2/example5.db" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	grep "^;" "dig.out.ns2.example5.test$n" | cat_i
@@ -148,7 +148,7 @@ n=$((n + 1))
 echo_i "testing incoming XoT functionality (from the first secondary, StrictTLS via specified IPv6) ($n)"
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example6; then
-	test -f "ns2/example6.db" || ret=1
+	retry_quiet 5 test -f "ns2/example6.db" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	grep "^;" "dig.out.ns2.example6.test$n" | cat_i
@@ -183,7 +183,7 @@ n=$((n + 1))
 echo_i "testing incoming XoT functionality (from the first secondary, MutualTLS) ($n)"
 ret=0
 if retry_quiet 10 wait_for_tls_xfer 2 example9; then
-	test -f "ns2/example9.db" || ret=1
+	retry_quiet 5 test -f "ns2/example9.db" || ret=1
 else
 	echo_i "timed out waiting for zone transfer"
 	grep "^;" "dig.out.ns2.example9.test$n" | cat_i
