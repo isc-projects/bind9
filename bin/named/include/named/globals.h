@@ -26,10 +26,11 @@
 #include <dns/acl.h>
 #include <dns/zone.h>
 
+#include <dst/dst.h>
+
 #include <isccfg/aclconf.h>
 #include <isccfg/cfg.h>
 
-#include <dst/dst.h>
 #include <named/fuzz.h>
 #include <named/types.h>
 

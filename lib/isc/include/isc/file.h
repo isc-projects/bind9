@@ -17,11 +17,10 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
-
-#include <sys/stat.h>
 
 ISC_LANG_BEGINDECLS
 

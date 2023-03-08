@@ -25,13 +25,12 @@
 
 #pragma once
 
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdlib.h>
-
 #include <arpa/inet.h>
+#include <inttypes.h>
 #include <net/if.h>
 #include <netinet/in.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
