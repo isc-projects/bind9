@@ -22,6 +22,7 @@ check_PROGRAMS =	\
 	hash_test	\
 	hashmap_test	\
 	heap_test	\
+	histo_test	\
 	hmac_test	\
 	ht_test		\
 	job_test	\
