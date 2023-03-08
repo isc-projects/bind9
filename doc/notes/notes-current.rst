@@ -20,12 +20,11 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- BIND now depends on ``liburcu``, Userspace RCU, for lock-free data
+  structures. :gl:`#3934`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- None.
 
 - The TKEY Mode 2 (Diffie-Hellman Exchanged Keying Mode) has been removed and
   using TKEY Mode 2 is now a fatal error.  Users are advised to switch to TKEY
