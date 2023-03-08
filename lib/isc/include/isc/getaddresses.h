@@ -13,7 +13,7 @@
 
 #pragma once
 
-/*! \file bind9/getaddresses.h */
+/*! \file isc/getaddresses.h */
 
 #include <isc/lang.h>
 #include <isc/net.h>

@@ -50,8 +50,6 @@ IncludeCategories:
     Priority:        35
   - Regex:           '^<irs/'
     Priority:        40
-  - Regex:           '^<bind9/'
-    Priority:        45
   - Regex:           '^<(dig|named|rndc|confgen|dlz)/'
     Priority:        50
   - Regex:           '^<dlz_'
