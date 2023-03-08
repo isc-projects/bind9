@@ -66,7 +66,6 @@ libisc_la_HEADERS =			\
 	include/isc/pause.h		\
 	include/isc/portset.h		\
 	include/isc/quota.h		\
-	include/isc/qsbr.h		\
 	include/isc/radix.h		\
 	include/isc/random.h		\
 	include/isc/ratelimiter.h	\
@@ -174,7 +173,6 @@ libisc_la_SOURCES =		\
 	picohttpparser.h	\
 	portset.c		\
 	quota.c			\
-	qsbr.c			\
 	radix.c			\
 	random.c		\
 	ratelimiter.c		\
