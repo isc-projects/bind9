@@ -16,6 +16,7 @@ zone <string> [ <class> ] {
 	check-srv-cname ( fail | warn | ignore );
 	check-svcb <boolean>;
 	check-wildcard <boolean>;
+	checkds ( explicit | <boolean> );
 	database <string>;
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	dlz <string>;

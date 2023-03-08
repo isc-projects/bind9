@@ -8,6 +8,7 @@ zone <string> [ <class> ] {
 	also-notify [ port <integer> ] [ source ( <ipv4_address> | * ) ] [ source-v6 ( <ipv6_address> | * ) ] { ( <remote-servers> | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key <string> ] [ tls <string> ]; ... };
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
+	checkds ( explicit | <boolean> );
 	database <string>;
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	dlz <string>;

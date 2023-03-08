@@ -194,6 +194,12 @@ typedef enum {
 } dns_dbtree_t;
 
 typedef enum {
+	dns_checkdstype_no = 0,
+	dns_checkdstype_yes = 1,
+	dns_checkdstype_explicit = 2
+} dns_checkdstype_t;
+
+typedef enum {
 	dns_notifytype_no = 0,
 	dns_notifytype_yes = 1,
 	dns_notifytype_explicit = 2,

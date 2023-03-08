@@ -91,6 +91,7 @@ static cfg_type_t cfg_type_bracketed_netaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_bracketed_sockaddrtlslist;
 static cfg_type_t cfg_type_bracketed_http_endpoint_list;
+static cfg_type_t cfg_type_checkdstype;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
@@ -2183,6 +2184,24 @@ static cfg_type_t cfg_type_validityinterval = {
 };
 
 /*%
+ * Checkds type.
+ */
+static const char *checkds_enums[] = { "explicit", NULL };
+static isc_result_t
+parse_checkds_type(cfg_parser_t *pctx, const cfg_type_t *type,
+		   cfg_obj_t **ret) {
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static void
+doc_checkds_type(cfg_printer_t *pctx, const cfg_type_t *type) {
+	cfg_doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
+static cfg_type_t cfg_type_checkdstype = {
+	"checkdstype",	  parse_checkds_type, cfg_print_ustring,
+	doc_checkds_type, &cfg_rep_string,    checkds_enums,
+};
+
+/*%
  * Clauses that can be found in a 'dnssec-policy' statement.
  */
 static cfg_clausedef_t dnssecpolicy_clauses[] = {
@@ -2375,6 +2394,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	{ "check-names", &cfg_type_checkmode,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_HINT | CFG_ZONE_STUB },
+	{ "checkds", &cfg_type_checkdstype,
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "database", &cfg_type_astring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_STUB },

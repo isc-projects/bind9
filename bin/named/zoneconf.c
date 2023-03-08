@@ -877,6 +877,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *filename = NULL;
 	const char *kaspname = NULL;
 	const char *dupcheck;
+	dns_checkdstype_t checkdstype = dns_checkdstype_explicit;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
 	uint32_t count;
 	unsigned int dbargc;
@@ -1226,6 +1227,29 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (!use_kasp) {
 			dns_zone_setkasp(zone, NULL);
 		}
+
+		obj = NULL;
+		result = named_config_get(maps, "checkds", &obj);
+		if (result == ISC_R_SUCCESS) {
+			if (cfg_obj_isboolean(obj)) {
+				if (cfg_obj_asboolean(obj)) {
+					checkdstype = dns_checkdstype_yes;
+				} else {
+					checkdstype = dns_checkdstype_no;
+				}
+			} else {
+				const char *str = cfg_obj_asstring(obj);
+				if (strcasecmp(str, "explicit") == 0) {
+					checkdstype = dns_checkdstype_explicit;
+				} else {
+					UNREACHABLE();
+				}
+			}
+		}
+		if (raw != NULL) {
+			dns_zone_setcheckdstype(raw, dns_checkdstype_no);
+		}
+		dns_zone_setcheckdstype(zone, checkdstype);
 
 		obj = NULL;
 		result = named_config_get(maps, "notify", &obj);

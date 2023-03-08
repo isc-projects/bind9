@@ -312,6 +312,7 @@ struct dns_zone {
 
 	dns_remote_t parentals;
 	dns_dnsseckeylist_t checkds_ok;
+	dns_checkdstype_t checkdstype;
 
 	dns_remote_t notify;
 	dns_notifytype_t notifytype;
@@ -1062,6 +1063,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 		.minrefresh = DNS_ZONE_MINREFRESH,
 		.maxretry = DNS_ZONE_MAXRETRY,
 		.minretry = DNS_ZONE_MINRETRY,
+		.checkdstype = dns_checkdstype_explicit,
 		.notifytype = dns_notifytype_yes,
 		.zero_no_soa_ttl = true,
 		.check_names = dns_severity_ignore,
@@ -1392,6 +1394,15 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
 
 	LOCK_ZONE(zone);
 	zone->notifytype = notifytype;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setcheckdstype(dns_zone_t *zone, dns_checkdstype_t checkdstype) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->checkdstype = checkdstype;
 	UNLOCK_ZONE(zone);
 }
 
