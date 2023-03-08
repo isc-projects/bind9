@@ -766,23 +766,6 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ret);
 }
 
-static bool
-opensslecdsa_isprivate(const dst_key_t *key) {
-	REQUIRE(opensslecdsa_valid_key_alg(key->key_alg));
-
-	return (key->keydata.pkeypair.priv != NULL);
-}
-
-static void
-opensslecdsa_destroy(dst_key_t *key) {
-	if (key->keydata.pkeypair.priv != key->keydata.pkeypair.pub) {
-		EVP_PKEY_free(key->keydata.pkeypair.priv);
-	}
-	EVP_PKEY_free(key->keydata.pkeypair.pub);
-	key->keydata.pkeypair.pub = NULL;
-	key->keydata.pkeypair.priv = NULL;
-}
-
 static isc_result_t
 opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	isc_result_t ret;
@@ -1039,11 +1022,11 @@ static dst_func_t opensslecdsa_functions = {
 	opensslecdsa_verify,
 	NULL, /*%< verify2 */
 	NULL, /*%< computesecret */
-	dst__openssl_compare_keypair,
+	dst__openssl_keypair_compare,
 	NULL, /*%< paramcompare */
 	opensslecdsa_generate,
-	opensslecdsa_isprivate,
-	opensslecdsa_destroy,
+	dst__openssl_keypair_isprivate,
+	dst__openssl_keypair_destroy,
 	opensslecdsa_todns,
 	opensslecdsa_fromdns,
 	opensslecdsa_tofile,
