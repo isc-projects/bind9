@@ -919,6 +919,7 @@ presence. Let's look at the following configuration excerpt:
        dnssec-policy standard;
        inline-signing yes;
        parental-agents { "net"; };
+       checkds explicit;
        ...
    };
 
@@ -932,12 +933,19 @@ includes the DS record identifying the key that is being rolled. If one or
 both don't have the DS included yet the rollover is paused, and the check for
 DS presence is retried after an hour. The same applies for DS withdrawal.
 
+The example also has :any:`checkds` set to `explicit`. This means that only
+the addresses defined in :any:`parental-agents` are being queried. If set to
+`yes`, the parental agents are being looked up by querying for the parent NS
+records.
+
 Alternatively, you can use the :iscman:`rndc` tool to tell :iscman:`named` that the DS
 record has been published or withdrawn. For example:
 
 ::
 
    # rndc dnssec -checkds published example.net
+
+This command should also be used when :any:`checkds` is set to `no`.
 
 If your parent zone doesn't support CDS/CDNSKEY, you will have to supply
 the DNSKEY or DS record to the parent zone manually when a new KSK appears in
