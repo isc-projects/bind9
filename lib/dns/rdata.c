@@ -2435,6 +2435,7 @@ dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata) {
 
 	REQUIRE(owner != NULL);
 	REQUIRE(rdata != NULL);
+	REQUIRE(rdata->type == dns_rdatatype_svcb);
 	REQUIRE(DNS_RDATA_VALIDFLAGS(rdata));
 
 	result = dns_rdata_tostruct(rdata, &svcb, NULL);
