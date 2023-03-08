@@ -1003,12 +1003,14 @@ isccc_cc_checkdup(isccc_symtab_t *symtab, isccc_sexpr_t *message,
 		_frm = "";
 	} else {
 		_frm = tmp;
+		INSIST(_frm != NULL);
 	}
 	tmp = NULL;
 	if (isccc_cc_lookupstring(_ctrl, "_to", &tmp) != ISC_R_SUCCESS) {
 		_to = "";
 	} else {
 		_to = tmp;
+		INSIST(_to != NULL);
 	}
 	/*
 	 * Ensure there is no newline in any of the strings.  This is so
