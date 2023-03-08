@@ -18,9 +18,9 @@
 #include <isc/buffer.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
-#include <isc/qsbr.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
@@ -255,10 +255,10 @@ qp_test_dumpchunks(dns_qp_t *qp) {
 	dumpqp(qp, "qp");
 	for (qp_chunk_t c = 0; c < qp->chunk_max; c++) {
 		printf("qp %p chunk %u base %p "
-		       "used %u free %u immutable %u phase %u\n",
+		       "used %u free %u immutable %u discounted %u\n",
 		       qp, c, qp->base->ptr[c], qp->usage[c].used,
 		       qp->usage[c].free, qp->usage[c].immutable,
-		       qp->usage[c].phase);
+		       qp->usage[c].discounted);
 		used += qp->usage[c].used;
 		free += qp->usage[c].free;
 	}

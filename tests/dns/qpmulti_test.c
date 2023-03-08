@@ -27,10 +27,10 @@
 #include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/qsbr.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -373,8 +373,7 @@ many_transactions(void *arg) {
 	for (size_t n = 0; n < TRANSACTION_COUNT; n++) {
 		TRACE("transaction %zu", n);
 		one_transaction(qpm);
-		isc__qsbr_quiescent_state(isc_loop_current(loopmgr));
-		isc_loopmgr_wakeup(loopmgr);
+		rcu_quiescent_state();
 	}
 
 	dns_qpmulti_destroy(&qpm);
@@ -387,6 +386,7 @@ ISC_RUN_TEST_IMPL(qpmulti) {
 	setup_items();
 	isc_loop_setup(isc_loop_main(loopmgr), many_transactions, NULL);
 	isc_loopmgr_run(loopmgr);
+	rcu_barrier();
 	isc_loopmgr_destroy(&loopmgr);
 	isc_log_destroy(&dns_lctx);
 }

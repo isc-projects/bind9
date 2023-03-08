@@ -22,11 +22,11 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/qsbr.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
