@@ -44,8 +44,6 @@ IncludeCategories:
     Priority:        5
   - Regex:           '^<ns/'
     Priority:        6
-  - Regex:           '^<bind9/)'
-    Priority:        7
   - Regex:           '^(<[^/]*)/)'
     Priority:        8
   - Regex:           '^<tests/'
