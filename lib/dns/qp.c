@@ -28,17 +28,16 @@
 
 #include <isc/atomic.h>
 #include <isc/buffer.h>
-#include <isc/loop.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
-#include <isc/qsbr.h>
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/tid.h>
 #include <isc/time.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
@@ -437,6 +436,7 @@ realloc_chunk_arrays(dns_qp_t *qp, qp_chunk_t newmax) {
 	}
 	memset(&qp->base->ptr[qp->chunk_max], 0, newptrs - oldptrs);
 	isc_refcount_init(&qp->base->refcount, 1);
+	qp->base->magic = QPBASE_MAGIC;
 
 	/* usage array is exclusive to the writer */
 	size_t oldusage = sizeof(qp->usage[0]) * qp->chunk_max;
@@ -555,12 +555,14 @@ chunk_usage(dns_qp_t *qp, qp_chunk_t chunk) {
  */
 static void
 chunk_discount(dns_qp_t *qp, qp_chunk_t chunk) {
-	if (qp->usage[chunk].phase == 0) {
-		INSIST(qp->used_count >= qp->usage[chunk].used);
-		INSIST(qp->free_count >= qp->usage[chunk].free);
-		qp->used_count -= qp->usage[chunk].used;
-		qp->free_count -= qp->usage[chunk].free;
+	if (qp->usage[chunk].discounted) {
+		return;
 	}
+	INSIST(qp->used_count >= qp->usage[chunk].used);
+	INSIST(qp->free_count >= qp->usage[chunk].free);
+	qp->used_count -= qp->usage[chunk].used;
+	qp->free_count -= qp->usage[chunk].free;
+	qp->usage[chunk].discounted = true;
 }
 
 /*
@@ -622,109 +624,97 @@ recycle(dns_qp_t *qp) {
 }
 
 /*
- * At the end of a transaction, mark empty but immutable chunks for
- * reclamation later. Returns true when chunks need reclaiming later.
+ * asynchronous cleanup
  */
-static bool
-defer_chunk_reclamation(dns_qp_t *qp, isc_qsbr_phase_t phase) {
-	unsigned int reclaim = 0;
+static void
+reclaim_chunks_cb(struct rcu_head *rcu_head) {
+	qp_rcuctx_t *rcuctx = caa_container_of(rcu_head, qp_rcuctx_t, rcu_head);
+	__tsan_acquire(rcuctx);
+	REQUIRE(QPRCU_VALID(rcuctx));
+	dns_qpmulti_t *multi = rcuctx->multi;
+	REQUIRE(QPMULTI_VALID(multi));
 
-	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
-		if (chunk != qp->bump && chunk_usage(qp, chunk) == 0 &&
-		    qp->usage[chunk].exists && qp->usage[chunk].immutable &&
-		    qp->usage[chunk].phase == 0)
-		{
-			chunk_discount(qp, chunk);
-			qp->usage[chunk].phase = phase;
-			reclaim++;
-		}
-	}
+	LOCK(&multi->mutex);
 
-	if (reclaim > 0) {
-		LOG_STATS("qp will reclaim %u chunks in phase %u", reclaim,
-			  phase);
-	}
+	dns_qp_t *qp = &multi->writer;
+	REQUIRE(QP_VALID(qp));
 
-	return (reclaim > 0);
-}
-
-static bool
-reclaim_chunks(dns_qp_t *qp, isc_qsbr_phase_t phase) {
 	unsigned int free = 0;
-	bool more = false;
-
 	isc_nanosecs_t start = isc_time_monotonic();
 
-	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
-		if (qp->usage[chunk].phase == phase) {
-			if (qp->usage[chunk].snapshot) {
-				/* cleanup when snapshot is destroyed */
-				qp->usage[chunk].snapfree = true;
-			} else {
-				chunk_free(qp, chunk);
-				free++;
-			}
-		} else if (qp->usage[chunk].phase != 0) {
-			/*
-			 * We need to reclaim more of this trie's memory
-			 * on a later qsbr callback.
-			 */
-			more = true;
+	for (unsigned int i = 0; i < rcuctx->count; i++) {
+		qp_chunk_t chunk = rcuctx->chunk[i];
+		if (qp->usage[chunk].snapshot) {
+			/* cleanup when snapshot is destroyed */
+			qp->usage[chunk].snapfree = true;
+		} else {
+			chunk_free(qp, chunk);
+			free++;
 		}
 	}
+
+	isc_mem_putanddetach(&rcuctx->mctx, rcuctx,
+			     STRUCT_FLEX_SIZE(rcuctx, chunk, rcuctx->count));
 
 	isc_nanosecs_t time = isc_time_monotonic() - start;
 	recycle_time += time;
 
 	if (free > 0) {
-		LOG_STATS("qp reclaim" PRItime "phase %u free %u chunks", time,
-			  phase, free);
+		LOG_STATS("qp reclaim" PRItime "free %u chunks", time, free);
 		LOG_STATS("qp reclaim leaf %u live %u used %u free %u hold %u",
 			  qp->leaf_count, qp->used_count - qp->free_count,
 			  qp->used_count, qp->free_count, qp->hold_count);
 	}
 
-	return (more);
+	UNLOCK(&multi->mutex);
 }
 
 /*
- * List of `dns_qpmulti_t`s that have chunks to be reclaimed.
- */
-static ISC_ASTACK(dns_qpmulti_t) qsbr_work;
-
-/*
- * When a grace period has passed, this function reclaims any unused memory.
+ * At the end of a transaction, schedule empty but immutable chunks
+ * for reclamation later.
  */
 static void
-qp_qsbr_reclaimer(isc_qsbr_phase_t phase) {
-	ISC_STACK(dns_qpmulti_t) drain = ISC_ASTACK_TO_STACK(qsbr_work);
-	while (!ISC_STACK_EMPTY(drain)) {
-		/* lock before pop */
-		dns_qpmulti_t *multi = ISC_STACK_TOP(drain);
-		INSIST(QPMULTI_VALID(multi));
-		LOCK(&multi->mutex);
-		ISC_STACK_POP(drain, cleanup);
-		if (multi->writer.destroy) {
-			UNLOCK(&multi->mutex);
-			dns_qpmulti_destroy(&multi);
-		} else {
-			if (reclaim_chunks(&multi->writer, phase)) {
-				/* more to do next time */
-				ISC_ASTACK_PUSH(qsbr_work, multi, cleanup);
-			}
-			UNLOCK(&multi->mutex);
+reclaim_chunks(dns_qpmulti_t *multi) {
+	dns_qp_t *qp = &multi->writer;
+
+	unsigned int count = 0;
+	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
+		if (chunk != qp->bump && chunk_usage(qp, chunk) == 0 &&
+		    qp->usage[chunk].exists && qp->usage[chunk].immutable &&
+		    !qp->usage[chunk].discounted)
+		{
+			count++;
 		}
 	}
-}
 
-/*
- * Register `qp_qsbr_reclaimer()` with QSBR at startup.
- */
-static void
-qp_qsbr_register(void) ISC_CONSTRUCTOR;
-static void
-qp_qsbr_register(void) {
-	isc_qsbr_register(qp_qsbr_reclaimer);
+	if (count == 0) {
+		return;
+	}
+
+	qp_rcuctx_t *rcuctx =
+		isc_mem_get(qp->mctx, STRUCT_FLEX_SIZE(rcuctx, chunk, count));
+	*rcuctx = (qp_rcuctx_t){
+		.magic = QPRCU_MAGIC,
+		.multi = multi,
+		.count = count,
+	};
+	isc_mem_attach(qp->mctx, &rcuctx->mctx);
+
+	unsigned int i = 0;
+	for (qp_chunk_t chunk = 0; chunk < qp->chunk_max; chunk++) {
+		if (chunk != qp->bump && chunk_usage(qp, chunk) == 0 &&
+		    qp->usage[chunk].exists && qp->usage[chunk].immutable &&
+		    !qp->usage[chunk].discounted)
+		{
+			rcuctx->chunk[i++] = chunk;
+			chunk_discount(qp, chunk);
+		}
+	}
+
+	__tsan_release(rcuctx);
+	call_rcu(&rcuctx->rcu_head, reclaim_chunks_cb);
+
+	LOG_STATS("qp will reclaim %u chunks", count);
 }
 
 /*
@@ -1121,6 +1111,8 @@ dns_qpmulti_update(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	memmove(rollback, qp, sizeof(*rollback));
 	/* can be uninitialized on the first transaction */
 	if (rollback->base != NULL) {
+		INSIST(QPBASE_VALID(rollback->base));
+		INSIST(qp->usage != NULL && qp->chunk_max > 0);
 		/* paired with either _commit() or _rollback() */
 		isc_refcount_increment(&rollback->base->refcount);
 		size_t usage_bytes = sizeof(qp->usage[0]) * qp->chunk_max;
@@ -1187,12 +1179,8 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 		recycle(qp);
 	}
 
-	/* the reclamation phase must be sampled after the commit */
-	isc_qsbr_phase_t phase = isc_qsbr_phase(multi->loopmgr);
-	if (defer_chunk_reclamation(qp, phase)) {
-		ISC_ASTACK_ADD(qsbr_work, multi, cleanup);
-		isc_qsbr_activate(multi->loopmgr, phase);
-	}
+	/* schedule the rest for later */
+	reclaim_chunks(multi);
 
 	*qptp = NULL;
 	UNLOCK(&multi->mutex);
@@ -1282,31 +1270,11 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qp != NULL);
 
-	/* we MUST be in an isc_loop thread */
-	qp->tid = isc_tid();
-	REQUIRE(qp->tid != ISC_TID_UNKNOWN);
-
 	dns_qpmulti_t *whence = reader_open(multi, qp);
 	INSIST(whence == multi);
-}
 
-/*
- * a locked read takes the mutex
- */
-
-void
-dns_qpmulti_lockedread(dns_qpmulti_t *multi, dns_qpread_t *qp) {
-	REQUIRE(QPMULTI_VALID(multi));
-	REQUIRE(qp != NULL);
-
-	/* we MUST NOT be in an isc_loop thread */
 	qp->tid = isc_tid();
-	REQUIRE(qp->tid == ISC_TID_UNKNOWN);
-
-	LOCK(&multi->mutex);
-
-	dns_qpmulti_t *whence = reader_open(multi, qp);
-	INSIST(whence == multi);
+	rcu_read_lock();
 }
 
 void
@@ -1314,10 +1282,8 @@ dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(qp->tid == isc_tid());
-	if (qp->tid == ISC_TID_UNKNOWN) {
-		UNLOCK(&multi->mutex);
-	}
 	*qp = (dns_qpread_t){};
+	rcu_read_unlock();
 }
 
 /*
@@ -1406,8 +1372,7 @@ dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 }
 
 void
-dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   const dns_qpmethods_t *methods, void *uctx,
+dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp) {
 	REQUIRE(qpmp != NULL && *qpmp == NULL);
 
@@ -1415,8 +1380,6 @@ dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	*multi = (dns_qpmulti_t){
 		.magic = QPMULTI_MAGIC,
 		.reader_ref = INVALID_REF,
-		.loopmgr = loopmgr,
-		.cleanup = ISC_SLINK_INITIALIZER,
 	};
 	isc_mutex_init(&multi->mutex);
 	ISC_LIST_INIT(multi->snapshots);
@@ -1468,29 +1431,50 @@ dns_qp_destroy(dns_qp_t **qptp) {
 	isc_mem_putanddetach(&qp->mctx, qp, sizeof(*qp));
 }
 
+static void
+qpmulti_destroy_cb(struct rcu_head *rcu_head) {
+	qp_rcuctx_t *rcuctx = caa_container_of(rcu_head, qp_rcuctx_t, rcu_head);
+	__tsan_acquire(rcuctx);
+	REQUIRE(QPRCU_VALID(rcuctx));
+	dns_qpmulti_t *multi = rcuctx->multi;
+	REQUIRE(QPMULTI_VALID(multi));
+	dns_qp_t *qp = &multi->writer;
+	REQUIRE(QP_VALID(qp));
+
+	REQUIRE(rcuctx->count == 0);
+
+	destroy_guts(qp);
+	isc_mutex_destroy(&multi->mutex);
+	isc_mem_putanddetach(&rcuctx->mctx, rcuctx,
+			     STRUCT_FLEX_SIZE(rcuctx, chunk, rcuctx->count));
+	isc_mem_putanddetach(&qp->mctx, multi, sizeof(*multi));
+}
+
 void
 dns_qpmulti_destroy(dns_qpmulti_t **qpmp) {
+	dns_qp_t *qp = NULL;
+	dns_qpmulti_t *multi = NULL;
+	qp_rcuctx_t *rcuctx = NULL;
+
 	REQUIRE(qpmp != NULL);
 	REQUIRE(QPMULTI_VALID(*qpmp));
 
-	dns_qpmulti_t *multi = *qpmp;
-	dns_qp_t *qp = &multi->writer;
+	multi = *qpmp;
+	qp = &multi->writer;
 	*qpmp = NULL;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(multi->rollback == NULL);
 	REQUIRE(ISC_LIST_EMPTY(multi->snapshots));
 
-	LOCK(&multi->mutex);
-	if (ISC_SLINK_LINKED(multi, cleanup)) {
-		qp->destroy = true;
-		UNLOCK(&multi->mutex);
-	} else {
-		destroy_guts(qp);
-		UNLOCK(&multi->mutex);
-		isc_mutex_destroy(&multi->mutex);
-		isc_mem_putanddetach(&qp->mctx, multi, sizeof(*multi));
-	}
+	rcuctx = isc_mem_get(qp->mctx, STRUCT_FLEX_SIZE(rcuctx, chunk, 0));
+	*rcuctx = (qp_rcuctx_t){
+		.magic = QPRCU_MAGIC,
+		.multi = multi,
+	};
+	isc_mem_attach(qp->mctx, &rcuctx->mctx);
+	__tsan_release(rcuctx);
+	call_rcu(&rcuctx->rcu_head, qpmulti_destroy_cb);
 }
 
 /***********************************************************************
