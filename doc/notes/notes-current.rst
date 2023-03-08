@@ -27,6 +27,10 @@ Removed Features
 
 - None.
 
+- The TKEY Mode 2 (Diffie-Hellman Exchanged Keying Mode) has been removed and
+  using TKEY Mode 2 is now a fatal error.  Users are advised to switch to TKEY
+  Mode 3 (GSS-API). :gl:`#3905`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

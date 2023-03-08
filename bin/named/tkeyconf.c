@@ -48,30 +48,14 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;
 	const char *s;
-	uint32_t n;
 	dns_fixedname_t fname;
 	dns_name_t *name;
 	isc_buffer_t b;
 	const cfg_obj_t *obj;
-	int type;
 
 	result = dns_tkeyctx_create(mctx, &tctx);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
-	}
-
-	obj = NULL;
-	result = cfg_map_get(options, "tkey-dhkey", &obj);
-	if (result == ISC_R_SUCCESS) {
-		s = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		n = cfg_obj_asuint32(cfg_tuple_get(obj, "keyid"));
-		isc_buffer_constinit(&b, s, strlen(s));
-		isc_buffer_add(&b, strlen(s));
-		name = dns_fixedname_initname(&fname);
-		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-		type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
-		RETERR(dst_key_fromfile(name, (dns_keytag_t)n, DNS_KEYALG_DH,
-					type, NULL, mctx, &tctx->dhkey));
 	}
 
 	obj = NULL;

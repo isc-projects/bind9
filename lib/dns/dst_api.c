@@ -201,7 +201,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 	RETERR(dst__openssl_init(engine));
-	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
 				    DST_ALG_RSASHA1));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
@@ -1381,7 +1380,6 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(n != NULL);
 
-	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
@@ -1422,24 +1420,10 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_GSSAPI:
 		*n = 128; /*%< XXX */
 		break;
-	case DST_ALG_DH:
 	default:
 		return (DST_R_UNSUPPORTEDALG);
 	}
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
-	REQUIRE(dst_initialized);
-	REQUIRE(VALID_KEY(key));
-	REQUIRE(n != NULL);
-
-	if (key->key_alg == DST_ALG_DH) {
-		*n = (key->key_size + 7) / 8;
-		return (ISC_R_SUCCESS);
-	}
-	return (DST_R_UNSUPPORTEDALG);
 }
 
 /*%
@@ -1897,13 +1881,11 @@ issymmetric(const dst_key_t *key) {
 	REQUIRE(dst_initialized);
 	REQUIRE(VALID_KEY(key));
 
-	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
-	case DST_ALG_DH:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:

@@ -56,7 +56,7 @@ usage(void) {
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -a algorithm: \n"
-			"        DH | RSASHA1 |\n"
+			"        RSASHA1 |\n"
 			"        NSEC3RSASHA1 |\n"
 			"        RSASHA256 | RSASHA512 |\n"
 			"        ECDSAP256SHA256 | ECDSAP384SHA384 |\n"
@@ -387,9 +387,6 @@ main(int argc, char **argv) {
 		if (ret != ISC_R_SUCCESS) {
 			fatal("unknown algorithm %s", algname);
 		}
-		if (alg == DST_ALG_DH) {
-			options |= DST_TYPE_KEY;
-		}
 
 		if (use_nsec3) {
 			switch (alg) {
@@ -595,13 +592,6 @@ main(int argc, char **argv) {
 		if ((flags & DNS_KEYFLAG_SIGNATORYMASK) != 0) {
 			fatal("specified null key with signing authority");
 		}
-	}
-
-	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    alg == DNS_KEYALG_DH)
-	{
-		fatal("a key with algorithm '%s' cannot be a zone key",
-		      algname);
 	}
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);

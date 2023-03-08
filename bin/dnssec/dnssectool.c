@@ -490,8 +490,6 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	uint16_t id, oldid;
 	uint32_t rid, roldid;
 	dns_secalg_t alg;
-	char filename[NAME_MAX];
-	isc_buffer_t fileb;
 	isc_stdtime_t now;
 
 	if (exact != NULL) {
@@ -501,21 +499,6 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	id = dst_key_id(dstkey);
 	rid = dst_key_rid(dstkey);
 	alg = dst_key_alg(dstkey);
-
-	/*
-	 * For Diffie Hellman just check if there is a direct collision as
-	 * they can't be revoked.  Additionally dns_dnssec_findmatchingkeys
-	 * only handles DNSKEY which is not used for HMAC.
-	 */
-	if (alg == DST_ALG_DH) {
-		isc_buffer_init(&fileb, filename, sizeof(filename));
-		result = dst_key_buildfilename(dstkey, DST_TYPE_PRIVATE, dir,
-					       &fileb);
-		if (result != ISC_R_SUCCESS) {
-			return (true);
-		}
-		return (isc_file_exists(filename));
-	}
 
 	ISC_LIST_INIT(matchkeys);
 	isc_stdtime_get(&now);

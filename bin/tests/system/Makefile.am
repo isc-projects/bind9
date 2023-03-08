@@ -24,9 +24,7 @@ check_PROGRAMS =		\
 	makejournal		\
 	pipelined/pipequeries	\
 	rndc/gencheck		\
-	rpz/dnsrps		\
-	tkey/keycreate		\
-	tkey/keydelete
+	rpz/dnsrps
 
 feature_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
@@ -53,22 +51,6 @@ rpz_dnsrps_CPPFLAGS =		\
 	$(LIBDNS_CFLAGS)
 
 rpz_dnsrps_LDADD =		\
-	$(LDADD)		\
-	$(LIBDNS_LIBS)
-
-tkey_keycreate_CPPFLAGS =	\
-	$(AM_CPPFLAGS)		\
-	$(LIBDNS_CFLAGS)
-
-tkey_keycreate_LDADD =		\
-	$(LDADD)		\
-	$(LIBDNS_LIBS)
-
-tkey_keydelete_CPPFLAGS =	\
-	$(AM_CPPFLAGS)		\
-	$(LIBDNS_CFLAGS)
-
-tkey_keydelete_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
@@ -158,7 +140,6 @@ TESTS +=			\
 	staticstub		\
 	stub			\
 	synthfromdnssec		\
-	tkey			\
 	tools			\
 	transport-acl		\
 	tsig			\

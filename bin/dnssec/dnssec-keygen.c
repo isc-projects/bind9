@@ -80,7 +80,6 @@ struct keygen_ctx {
 	char *algname;
 	char *nametype;
 	char *type;
-	int generator;
 	int protocol;
 	int size;
 	int signatory;
@@ -143,14 +142,13 @@ usage(void) {
 	fprintf(stderr, "        RSASHA1 | NSEC3RSASHA1 |\n");
 	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        ECDSAP256SHA256 | ECDSAP384SHA384 |\n");
-	fprintf(stderr, "        ED25519 | ED448 | DH\n");
+	fprintf(stderr, "        ED25519 | ED448\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -b <key size in bits>:\n");
 	fprintf(stderr, "        RSASHA1:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        NSEC3RSASHA1:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA256:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA512:\t[1024..%d]\n", MAX_RSA);
-	fprintf(stderr, "        DH:\t\t[128..4096]\n");
 	fprintf(stderr, "        ECDSAP256SHA256:\tignored\n");
 	fprintf(stderr, "        ECDSAP384SHA384:\tignored\n");
 	fprintf(stderr, "        ED25519:\tignored\n");
@@ -165,8 +163,6 @@ usage(void) {
 	fprintf(stderr, "    -E <engine>:\n");
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
-	fprintf(stderr, "    -g <generator>: use specified generator "
-			"(DH only)\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
 	fprintf(stderr, "    -s <strength>: strength value this key signs DNS "
@@ -320,10 +316,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 		if (!dst_algorithm_supported(ctx->alg)) {
 			fatal("unsupported algorithm: %s", algstr);
-		}
-
-		if (ctx->alg == DST_ALG_DH) {
-			ctx->options |= DST_TYPE_KEY;
 		}
 
 		if (ctx->use_nsec3) {
@@ -535,11 +527,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			fatal("RSA key size %d out of range", ctx->size);
 		}
 		break;
-	case DNS_KEYALG_DH:
-		if (ctx->size != 0 && (ctx->size < 128 || ctx->size > 4096)) {
-			fatal("DH key size %d out of range", ctx->size);
-		}
-		break;
 	case DST_ALG_ECDSA256:
 		ctx->size = 256;
 		break;
@@ -552,10 +539,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	case DST_ALG_ED448:
 		ctx->size = 456;
 		break;
-	}
-
-	if (ctx->alg != DNS_KEYALG_DH && ctx->generator != 0) {
-		fatal("specified DH generator for a non-DH key");
 	}
 
 	if (ctx->nametype == NULL) {
@@ -607,22 +590,12 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		}
 	}
 
-	if ((flags & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE &&
-	    ctx->alg == DNS_KEYALG_DH)
-	{
-		fatal("a key with algorithm %s cannot be a zone key", algstr);
-	}
-
 	switch (ctx->alg) {
 	case DNS_KEYALG_RSASHA1:
 	case DNS_KEYALG_NSEC3RSASHA1:
 	case DNS_KEYALG_RSASHA256:
 	case DNS_KEYALG_RSASHA512:
 		show_progress = true;
-		break;
-
-	case DNS_KEYALG_DH:
-		param = ctx->generator;
 		break;
 
 	case DST_ALG_ECDSA256:
@@ -877,8 +850,8 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS                                           \
-	"3A:a:b:Cc:D:d:E:eFf:Gg:hI:i:K:k:L:l:m:n:P:p:qR:r:S:s:" \
+#define CMDLINE_FLAGS                                        \
+	"3A:a:b:Cc:D:d:E:Ff:GhI:i:K:k:L:l:m:n:P:p:qR:r:S:s:" \
 	"T:t:v:V"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -934,10 +907,6 @@ main(int argc, char **argv) {
 		case 'E':
 			engine = isc_commandline_argument;
 			break;
-		case 'e':
-			fprintf(stderr, "phased-out option -e "
-					"(was 'use (RSA) large exponent')\n");
-			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
 			if (toupper(c) == 'K') {
@@ -947,13 +916,6 @@ main(int argc, char **argv) {
 			} else {
 				fatal("unknown flag '%s'",
 				      isc_commandline_argument);
-			}
-			break;
-		case 'g':
-			ctx.generator = strtol(isc_commandline_argument, &endp,
-					       10);
-			if (*endp != '\0' || ctx.generator <= 0) {
-				fatal("-g requires a positive number");
 			}
 			break;
 		case 'K':

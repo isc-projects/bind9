@@ -202,7 +202,6 @@ libdns_la_SOURCES =			\
 	openssl_link.c			\
 	openssl_shim.c			\
 	openssl_shim.h			\
-	openssldh_link.c		\
 	opensslecdsa_link.c		\
 	openssleddsa_link.c		\
 	opensslrsa_link.c		\

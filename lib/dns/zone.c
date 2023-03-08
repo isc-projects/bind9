@@ -9006,8 +9006,8 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
 			}
 
 			alg = tuple->rdata.data[3];
-			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DH ||
-			    alg == DNS_KEYALG_DSA || alg == DNS_KEYALG_RSASHA1)
+			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DSA ||
+			    alg == DNS_KEYALG_RSASHA1)
 			{
 				nseconly = true;
 			}
@@ -9017,8 +9017,8 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
 	if (keys != NULL && !nseconly) {
 		for (unsigned int i = 0; i < numkeys; i++) {
 			alg = dst_key_alg(keys[i]);
-			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DH ||
-			    alg == DNS_KEYALG_DSA || alg == DNS_KEYALG_RSASHA1)
+			if (alg == DNS_KEYALG_RSAMD5 || alg == DNS_KEYALG_DSA ||
+			    alg == DNS_KEYALG_RSASHA1)
 			{
 				nseconly = true;
 				break;

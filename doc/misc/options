@@ -283,7 +283,6 @@ options {
 	tcp-listen-queue <integer>;
 	tcp-receive-buffer <integer>;
 	tcp-send-buffer <integer>;
-	tkey-dhkey <quoted_string> <integer>;
 	tkey-domain <quoted_string>;
 	tkey-gssapi-credential <quoted_string>;
 	tkey-gssapi-keytab <quoted_string>;

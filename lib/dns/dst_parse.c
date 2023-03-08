@@ -82,11 +82,6 @@ static struct parse_map map[] = { { TAG_RSA_MODULUS, "Modulus:" },
 				  { TAG_RSA_ENGINE, "Engine:" },
 				  { TAG_RSA_LABEL, "Label:" },
 
-				  { TAG_DH_PRIME, "Prime(p):" },
-				  { TAG_DH_GENERATOR, "Generator(g):" },
-				  { TAG_DH_PRIVATE, "Private_value(x):" },
-				  { TAG_DH_PUBLIC, "Public_value(y):" },
-
 				  { TAG_ECDSA_PRIVATEKEY, "PrivateKey:" },
 				  { TAG_ECDSA_ENGINE, "Engine:" },
 				  { TAG_ECDSA_LABEL, "Label:" },
@@ -209,25 +204,6 @@ check_rsa(const dst_private_t *priv, bool external) {
 		     have[TAG_RSA_COEFFICIENT & mask];
 	}
 	return (ok ? 0 : -1);
-}
-
-static int
-check_dh(const dst_private_t *priv) {
-	int i, j;
-	if (priv->nelements != DH_NTAGS) {
-		return (-1);
-	}
-	for (i = 0; i < DH_NTAGS; i++) {
-		for (j = 0; j < priv->nelements; j++) {
-			if (priv->elements[j].tag == TAG(DST_ALG_DH, i)) {
-				break;
-			}
-		}
-		if (j == priv->nelements) {
-			return (-1);
-		}
-	}
-	return (0);
 }
 
 static int
@@ -357,7 +333,6 @@ check_hmac_sha(const dst_private_t *priv, unsigned int ntags,
 static int
 check_data(const dst_private_t *priv, const unsigned int alg, bool old,
 	   bool external) {
-	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (alg) {
 	case DST_ALG_RSA:
 	case DST_ALG_RSASHA1:
@@ -365,8 +340,6 @@ check_data(const dst_private_t *priv, const unsigned int alg, bool old,
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
 		return (check_rsa(priv, external));
-	case DST_ALG_DH:
-		return (check_dh(priv));
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 		return (check_ecdsa(priv, external));
@@ -679,11 +652,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 	fprintf(fp, "%s %u ", ALGORITHM_STR, dst_key_alg(key));
 
-	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (dst_key_alg(key)) {
-	case DST_ALG_DH:
-		fprintf(fp, "(DH)\n");
-		break;
 	case DST_ALG_RSASHA1:
 		fprintf(fp, "(RSASHA1)\n");
 		break;

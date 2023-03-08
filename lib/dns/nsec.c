@@ -284,7 +284,6 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version, dns_diff_t *diff,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dnskey.algorithm == DST_ALG_RSAMD5 ||
-		    dnskey.algorithm == DST_ALG_DH ||
 		    dnskey.algorithm == DST_ALG_DSA ||
 		    dnskey.algorithm == DST_ALG_RSASHA1)
 		{

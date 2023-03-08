@@ -43,8 +43,6 @@
 #define NAMED_COMMAND_FLUSHNAME	   "flushname"
 #define NAMED_COMMAND_FLUSHTREE	   "flushtree"
 #define NAMED_COMMAND_STATUS	   "status"
-#define NAMED_COMMAND_TSIGLIST	   "tsig-list"
-#define NAMED_COMMAND_TSIGDELETE   "tsig-delete"
 #define NAMED_COMMAND_FREEZE	   "freeze"
 #define NAMED_COMMAND_UNFREEZE	   "unfreeze"
 #define NAMED_COMMAND_THAW	   "thaw"

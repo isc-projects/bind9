@@ -1,3 +1,6 @@
+6121.	[cleanup]	Remove support for TKEY Mode 2 (Diffie-Hellman Exchanged
+			Keying). [GL #3905]
+
 6120.	[bug]		Use two pairs of dns_db_t and dns_dbversion_t in a
 			catalog zone structure to avoid a race between the
 			dns__catz_update_cb() and dns_catz_dbupdate_callback()

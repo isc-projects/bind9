@@ -465,7 +465,7 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 static void
 list_dnssec_algorithms(isc_buffer_t *b) {
 	for (dst_algorithm_t i = DST_ALG_UNKNOWN; i < DST_MAX_ALGS; i++) {
-		if (i == DST_ALG_DH || i == DST_ALG_GSSAPI ||
+		if (i == DST_ALG_GSSAPI ||
 		    (i >= DST_ALG_HMAC_FIRST && i <= DST_ALG_HMAC_LAST))
 		{
 			continue;
@@ -540,11 +540,7 @@ format_supported_algorithms(void (*emit)(isc_buffer_t *b)) {
 	(*emit)(&b);
 
 	isc_buffer_init(&b, buf, sizeof(buf));
-	isc_buffer_printf(&b, "TKEY mode 2 support (Diffie-Hellman): %s",
-			  (dst_algorithm_supported(DST_ALG_DH) &&
-			   dst_algorithm_supported(DST_ALG_HMACMD5))
-				  ? "yes"
-				  : "non");
+	isc_buffer_printf(&b, "TKEY mode 2 support (Diffie-Hellman): %s", "no");
 	(*emit)(&b);
 
 	isc_buffer_init(&b, buf, sizeof(buf));

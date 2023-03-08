@@ -1439,16 +1439,6 @@ default is used.
    this variable must be defined, unless a specific keytab
    is specified using :any:`tkey-gssapi-keytab`.
 
-.. namedconf:statement:: tkey-dhkey
-   :tags: security
-   :short: Sets the Diffie-Hellman key used by the server to generate shared keys.
-
-   This is the Diffie-Hellman key used by the server to generate shared keys
-   with clients using the Diffie-Hellman mode of ``TKEY``. The server
-   must be able to load the public and private keys from files in the
-   working directory. In most cases, the ``key_name`` should be the
-   server's host name.
-
 .. namedconf:statement:: dump-file
    :tags: logging
    :short: Indicates the pathname of the file where the server dumps the database after :option:`rndc dumpdb`.

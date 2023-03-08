@@ -217,10 +217,6 @@ command is one of the following:\n\
 		Enable updates to a frozen dynamic zone and reload it.\n\
   trace		Increment debugging level by one.\n\
   trace level	Change the debugging level.\n\
-  tsig-delete keyname [view]\n\
-		Delete a TKEY-negotiated TSIG key.\n\
-  tsig-list	List all currently active TSIG keys, including both statically\n\
-		configured and TKEY-negotiated keys.\n\
   validation [ on | off | status ] [view]\n\
 		Enable / disable DNSSEC validation.\n\
   zonestatus zone [class [view]]\n\

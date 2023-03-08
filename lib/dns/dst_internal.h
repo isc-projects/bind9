@@ -32,7 +32,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <openssl/dh.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
@@ -97,7 +96,6 @@ struct dst_key {
 	union {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;
-		DH *dh;
 		dst_hmac_key_t *hmac_key;
 		EVP_PKEY *pkey;
 		struct {
@@ -212,8 +210,6 @@ isc_result_t
 dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t
 dst__hmacsha512_init(struct dst_func **funcp);
-isc_result_t
-dst__openssldh_init(struct dst_func **funcp);
 isc_result_t
 dst__opensslrsa_init(struct dst_func **funcp, unsigned char algorithm);
 isc_result_t
