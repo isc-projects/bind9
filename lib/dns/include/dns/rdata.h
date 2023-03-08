@@ -806,7 +806,7 @@ dns_rdata_checksvcb(const dns_name_t *owner, const dns_rdata_t *rdata);
  *
  * Requires:
  *\li	'owner' is a valid name.
- *\li	'rdata' is a valid, non-empty rdata.
+ *\li	'rdata' is a valid, non-empty SVCB rdata.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- success, the data is valid
