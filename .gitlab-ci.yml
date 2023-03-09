@@ -33,11 +33,11 @@ variables:
 
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
-# Allow all running CI jobs to be automatically canceled when a new
-# version of a branch is pushed.
-#
-# See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
 default:
+  # Allow all running CI jobs to be automatically canceled when a new
+  # version of a branch is pushed.
+  #
+  # See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
   interruptible: true
 
   # AWS can interrupt the spot instance anytime, so let's retry the job when
