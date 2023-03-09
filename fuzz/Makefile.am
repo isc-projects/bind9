@@ -6,15 +6,19 @@ AM_CFLAGS +=				\
 AM_CPPFLAGS +=				\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
-	$(LIBUV_CFLAGS)		\
-	-DFUZZDIR=\"$(abs_srcdir)\"
+	$(LIBUV_CFLAGS)			\
+	-DFUZZDIR=\"$(abs_srcdir)\"	\
+	-I$(top_srcdir)/lib/dns		\
+	-I$(top_srcdir)/lib/isc		\
+	-I$(top_srcdir)/tests/include
 
 AM_LDFLAGS +=				\
 	$(FUZZ_LDFLAGS)
 
-LDADD +=				\
-	libfuzzmain.la			\
-	$(LIBDNS_LIBS)			\
+LDADD +=						\
+	libfuzzmain.la					\
+	$(top_builddir)/tests/libtest/libtest.la	\
+	$(LIBDNS_LIBS)					\
 	$(LIBISC_LIBS)
 
 check_LTLIBRARIES = libfuzzmain.la
@@ -28,6 +32,8 @@ check_PROGRAMS =			\
 	dns_message_parse		\
 	dns_name_fromtext_target	\
 	dns_name_fromwire		\
+	dns_qp				\
+	dns_qpkey_name			\
 	dns_rdata_fromtext		\
 	dns_rdata_fromwire_text		\
 	isc_lex_getmastertoken		\
@@ -50,24 +56,6 @@ dns_name_fromwire_SOURCES =		\
 	dns_name_fromwire.c		\
 	old.c				\
 	old.h
-
-if HAVE_CMOCKA
-
-check_PROGRAMS +=			\
-	dns_qp				\
-	dns_qpkey_name
-
-AM_CPPFLAGS +=				\
-	-I$(top_srcdir)/lib/dns		\
-	-I$(top_srcdir)/lib/isc		\
-	-I$(top_srcdir)/tests/include
-
-# libisc needs to appear after libtest
-LDADD +=						\
-	$(top_builddir)/tests/libtest/libtest.la	\
-	$(LIBISC_LIBS)
-
-endif HAVE_CMOCKA
 
 TESTS = $(check_PROGRAMS)
 
