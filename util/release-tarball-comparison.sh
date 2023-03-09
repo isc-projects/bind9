@@ -62,6 +62,10 @@ run_in_container "apt-get update &&			\
 		xz-utils				\
 "
 
+run_in_container "apt-get -y install --no-install-recommends python3-pip && \
+	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
+	pip3 install docutils==0.17.1 sphinx-rtd-theme==1.1.1 sphinx==5.3.0"
+
 # Retrieve the release-ready BIND 9 tarball.
 docker cp "${BIND_TARBALL}" "${CONTAINER_ID}:/usr/src"
 
@@ -76,6 +80,10 @@ run_in_container "git -c advice.detachedHead=false clone --branch $(echo "v${BIN
 		mkdir ${BIND_DIRECTORY} && \
 		echo SRCID=\$(git rev-list --max-count=1 HEAD | cut -b1-7) > ${BIND_DIRECTORY}/srcid && \
 		tar --append --file=${BIND_DIRECTORY}.tar ${BIND_DIRECTORY}/srcid && \
+		sphinx-build -b man -d ${BIND_DIRECTORY}/tmp/.doctrees/ -W -a -v -c doc/man/ -D version=@BIND9_VERSION@ -D today=@RELEASE_DATE@ -D release=@BIND9_VERSIONSTRING@ doc/man ${BIND_DIRECTORY}/doc/man && \
+		rm -rf ${BIND_DIRECTORY}/tmp/.doctrees/ && \
+		for man in ${BIND_DIRECTORY}/doc/man/*; do mv \${man} \${man}in; done && \
+		tar --append --file=${BIND_DIRECTORY}.tar ${BIND_DIRECTORY}/doc/man/*in && \
 		xz ${BIND_DIRECTORY}.tar; \
 	else \
 		autoreconf -fi && \
