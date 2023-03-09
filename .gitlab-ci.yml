@@ -234,7 +234,6 @@ stages:
     - autoreconf -fi
   artifacts:
     untracked: true
-    expire_in: "1 day"
 
 .configure: &configure
     - ${CONFIGURE}
@@ -278,7 +277,6 @@ stages:
       artifacts: true
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .windows_build: &windows_build_job
@@ -304,7 +302,6 @@ stages:
   needs: []
   artifacts:
     untracked: true
-    expire_in: "1 day"
 
 .setup_interfaces: &setup_interfaces
     - if [ "$(id -u)" -eq "0" ]; then
@@ -333,14 +330,12 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .system_test_tsan: &system_test_tsan_job
@@ -348,7 +343,6 @@ stages:
   after_script:
     - *parse_tsan
   artifacts:
-    expire_in: "1 day"
     untracked: true
     when: on_failure
 
@@ -373,7 +367,6 @@ stages:
     - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .unit_test_common: &unit_test_common
@@ -390,14 +383,12 @@ stages:
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .unit_test_gcov: &unit_test_gcov_job
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .unit_test_tsan: &unit_test_tsan_job
@@ -407,7 +398,6 @@ stages:
     - *parse_tsan
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .respdiff: &respdiff_job
@@ -426,7 +416,6 @@ stages:
     exclude:
       - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
     untracked: true
-    expire_in: "1 day"
     when: always
 
 ### Job Definitions
@@ -458,7 +447,6 @@ misc:
   artifacts:
     paths:
       - checklibs.out
-    expire_in: "1 day"
     when: on_failure
 
 black:
@@ -827,7 +815,6 @@ scan-build:
   artifacts:
     paths:
       - scan-build.reports/
-    expire_in: "1 day"
     when: on_failure
 
 # Jobs for regular GCC builds on Debian "sid" (amd64)
