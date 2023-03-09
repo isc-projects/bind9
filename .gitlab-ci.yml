@@ -153,7 +153,6 @@ stages:
     - autoreconf -fi
   artifacts:
     untracked: true
-    expire_in: "1 day"
 
 .configure: &configure
     - ${CONFIGURE}
@@ -191,7 +190,6 @@ stages:
       artifacts: true
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .setup_interfaces: &setup_interfaces
@@ -223,14 +221,12 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .kyua_report: &kyua_report_html
@@ -254,14 +250,12 @@ stages:
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: on_failure
 
 .unit_test_gcov: &unit_test_gcov_job
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .respdiff: &respdiff_job
@@ -283,7 +277,6 @@ stages:
     exclude:
       - bind9-qa/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
     untracked: true
-    expire_in: "1 day"
     when: always
 
 ### Job Definitions
@@ -307,7 +300,6 @@ misc:
     paths:
       - util/newcopyrights
       - checklibs.out
-    expire_in: "1 day"
     when: on_failure
 
 changes:
