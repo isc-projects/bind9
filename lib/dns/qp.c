@@ -426,13 +426,13 @@ static void
 realloc_chunk_arrays(dns_qp_t *qp, qp_chunk_t newmax) {
 	size_t oldptrs = sizeof(qp->base->ptr[0]) * qp->chunk_max;
 	size_t newptrs = sizeof(qp->base->ptr[0]) * newmax;
-	size_t allbytes = sizeof(dns_qpbase_t) + newptrs;
+	size_t size = STRUCT_FLEX_SIZE(qp->base, ptr, newmax);
 
 	if (qp->base == NULL || qpbase_unref(qp)) {
-		qp->base = isc_mem_reallocate(qp->mctx, qp->base, allbytes);
+		qp->base = isc_mem_reallocate(qp->mctx, qp->base, size);
 	} else {
 		dns_qpbase_t *oldbase = qp->base;
-		qp->base = isc_mem_allocate(qp->mctx, allbytes);
+		qp->base = isc_mem_allocate(qp->mctx, size);
 		memmove(&qp->base->ptr[0], &oldbase->ptr[0], oldptrs);
 	}
 	memset(&qp->base->ptr[qp->chunk_max], 0, newptrs - oldptrs);

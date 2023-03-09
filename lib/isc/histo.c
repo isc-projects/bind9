@@ -28,13 +28,6 @@
 #include <isc/tid.h>
 
 /*
- * XXXFANF to be added to <isc/util.h> by a commmit in a qp-trie
- * feature branch
- */
-#define STRUCT_FLEX_SIZE(pointer, member, count) \
-	(sizeof(*(pointer)) + sizeof(*(pointer)->member) * (count))
-
-/*
  * XXXFANF this should probably be in <isc/util.h> too
  */
 #define OUTARG(ptr, val)                \

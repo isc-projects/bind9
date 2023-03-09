@@ -97,6 +97,14 @@
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 /*%
+ * Get the allocation size for a struct with a flexible array member
+ * containing `count` elements. The struct is identified by a pointer,
+ * typically the one that points to (or will point to) the allocation.
+ */
+#define STRUCT_FLEX_SIZE(pointer, member, count) \
+	(sizeof(*(pointer)) + sizeof(*(pointer)->member) * (count))
+
+/*%
  * Use this in translation units that would otherwise be empty, to
  * suppress compiler warnings.
  */

@@ -287,7 +287,7 @@ isc__ht_add(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 
 	hash = hash_32(hashval, ht->hashbits[idx]);
 
-	node = isc_mem_get(ht->mctx, sizeof(*node) + keysize);
+	node = isc_mem_get(ht->mctx, STRUCT_FLEX_SIZE(node, key, keysize));
 	*node = (isc_ht_node_t){
 		.keysize = keysize,
 		.hashval = hashval,
@@ -396,7 +396,7 @@ isc__ht_delete(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 				prev->next = node->next;
 			}
 			isc_mem_put(ht->mctx, node,
-				    sizeof(*node) + node->keysize);
+				    STRUCT_FLEX_SIZE(node, key, node->keysize));
 			ht->count--;
 
 			return (ISC_R_SUCCESS);
