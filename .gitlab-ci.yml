@@ -1490,13 +1490,17 @@ respdiff-long-third-party:
 
 # "Stress" tests
 
+# Parallel build in the "make" step is avoided since multiple jobs can be
+# executed concurrently on the same runner. This may present problems when one
+# job runs a performance-sensitive task of replying to queries while another
+# takes all cores to build BIND.
 .stress: &stress_job
   stage: performance
   script:
     - *configure
     - *setup_interfaces
     - *setup_softhsm
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - make -k all V=1
     - make DESTDIR="${INSTALL_PATH}" install
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - cd bind-qa/bind9/stress
