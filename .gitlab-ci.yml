@@ -44,11 +44,11 @@ variables:
   BIND_STRESS_TEST_OS: linux
   BIND_STRESS_TEST_ARCH: amd64
 
-# Allow all running CI jobs to be automatically canceled when a new
-# version of a branch is pushed.
-#
-# See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
 default:
+  # Allow all running CI jobs to be automatically canceled when a new
+  # version of a branch is pushed.
+  #
+  # See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
   interruptible: true
 
 stages:
