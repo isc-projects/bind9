@@ -109,7 +109,9 @@ typedef struct dns_qpmulti dns_qpmulti_t;
  * Read-only parts of a qp-trie.
  *
  * A `dns_qpreader_t` is the common prefix of the `dns_qpreadable`
- * types, containing just the fields neded for the hot path.
+ * types, containing just the fields neded for the hot path. The
+ * internals of a `dns_qpreader_t` are private; they are only exposed
+ * so that callers can allocate a `dns_qpread_t` on the stack.
  *
  * Ranty aside: annoyingly, C doesn't allow us to use a predeclared
  * structure type as an anonymous struct member, so we have to use a
@@ -135,6 +137,9 @@ typedef struct dns_qpreader {
  * The caller provides space for it on the stack; it can be
  * used by only one thread. As well as the `DNS_QPREADER_FIELDS`,
  * it contains a thread ID to check for incorrect usage.
+ *
+ * The internals of a `dns_qpread_t` are private; they are only
+ * exposed so that callers can allocate an instance on the stack.
  */
 typedef struct dns_qpread {
 	DNS_QPREADER_FIELDS;
@@ -209,9 +214,7 @@ typedef struct dns_qpiter {
  * The `attach` and `detach` methods adjust reference counts on value
  * objects. They support copy-on-write and safe memory reclamation
  * needed for multi-version concurrency. The methods are only called
- * when the `dns_qpmulti_t` mutex is held. For tracing purposes, they
- * should return the same value as `isc_refcount_increment()` or
- * `isc_refcount_decrement()`, respectively
+ * when the `dns_qpmulti_t` mutex is held.
  *
  * Note: When a value object reference count is greater than one, the
  * object is in use by concurrent readers so it must not be modified. A
@@ -230,8 +233,8 @@ typedef struct dns_qpiter {
  * readable identifier into `buf` which has max length `size`.
  */
 typedef struct dns_qpmethods {
-	uint32_t (*attach)(void *uctx, void *pval, uint32_t ival);
-	uint32_t (*detach)(void *uctx, void *pval, uint32_t ival);
+	void (*attach)(void *uctx, void *pval, uint32_t ival);
+	void (*detach)(void *uctx, void *pval, uint32_t ival);
 	size_t (*makekey)(dns_qpkey_t key, void *uctx, void *pval,
 			  uint32_t ival);
 	void (*triename)(void *uctx, char *buf, size_t size);

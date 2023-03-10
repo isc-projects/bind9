@@ -136,12 +136,11 @@ ISC_RUN_TEST_IMPL(qpkey_sort) {
 
 #define ITER_ITEMS 100
 
-static uint32_t
+static void
 check_leaf(void *uctx, void *pval, uint32_t ival) {
 	uint32_t *items = uctx;
 	assert_in_range(ival, 1, ITER_ITEMS - 1);
 	assert_ptr_equal(items + ival, pval);
-	return (1);
 }
 
 static size_t
@@ -168,7 +167,7 @@ getname(void *uctx, char *buf, size_t size) {
 	UNUSED(size);
 }
 
-const struct dns_qpmethods qpiter_methods = {
+const dns_qpmethods_t qpiter_methods = {
 	check_leaf,
 	check_leaf,
 	qpiter_makekey,
@@ -216,12 +215,11 @@ ISC_RUN_TEST_IMPL(qpiter) {
 	dns_qp_destroy(&qp);
 }
 
-static uint32_t
+static void
 no_op(void *uctx, void *pval, uint32_t ival) {
 	UNUSED(uctx);
 	UNUSED(pval);
 	UNUSED(ival);
-	return (1);
 }
 
 static size_t
@@ -237,7 +235,7 @@ qpkey_fromstring(dns_qpkey_t key, void *uctx, void *pval, uint32_t ival) {
 	return (dns_qpkey_fromname(key, dns_fixedname_name(&fixed)));
 }
 
-const struct dns_qpmethods string_methods = {
+const dns_qpmethods_t string_methods = {
 	no_op,
 	no_op,
 	qpkey_fromstring,

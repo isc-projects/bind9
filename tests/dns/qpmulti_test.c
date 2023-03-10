@@ -104,19 +104,19 @@ static struct {
 	dns_qpkey_t ascii;
 } item[ITEM_COUNT];
 
-static uint32_t
+static void
 item_attach(void *ctx, void *pval, uint32_t ival) {
-	assert_null(ctx);
-	assert_ptr_equal(pval, &item[ival]);
-	return (item[ival].refcount++);
+	INSIST(ctx == NULL);
+	INSIST(pval == &item[ival]);
+	item[ival].refcount++;
 }
 
-static uint32_t
+static void
 item_detach(void *ctx, void *pval, uint32_t ival) {
 	assert_null(ctx);
 	assert_ptr_equal(pval, &item[ival]);
 	assert_int_not_equal(item[ival].refcount, 0);
-	return (item[ival].refcount--);
+	item[ival].refcount--;
 }
 
 static size_t
@@ -144,7 +144,7 @@ testname(void *ctx, char *buf, size_t size) {
 	strlcpy(buf, "test", size);
 }
 
-const struct dns_qpmethods test_methods = {
+const dns_qpmethods_t test_methods = {
 	item_attach,
 	item_detach,
 	item_makekey,

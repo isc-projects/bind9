@@ -57,19 +57,18 @@ static struct {
 	dns_qpkey_t ascii;
 } item[256 * 256 / 4];
 
-static uint32_t
+static void
 fuzz_attach(void *ctx, void *pval, uint32_t ival) {
 	assert(ctx == NULL);
 	assert(pval == &item[ival]);
-	return (item[ival].refcount++);
+	item[ival].refcount++;
 }
 
-static uint32_t
+static void
 fuzz_detach(void *ctx, void *pval, uint32_t ival) {
 	assert(ctx == NULL);
 	assert(pval == &item[ival]);
-	assert(item[ival].refcount > 0);
-	return (item[ival].refcount--);
+	item[ival].refcount--;
 }
 
 static size_t
@@ -86,7 +85,7 @@ fuzz_triename(void *ctx, char *buf, size_t size) {
 	strlcpy(buf, "fuzz", size);
 }
 
-const struct dns_qpmethods fuzz_methods = {
+const dns_qpmethods_t fuzz_methods = {
 	fuzz_attach,
 	fuzz_detach,
 	fuzz_makekey,

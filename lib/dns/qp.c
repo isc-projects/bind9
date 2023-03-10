@@ -482,6 +482,7 @@ static inline qp_ref_t
 alloc_twigs(dns_qp_t *qp, qp_weight_t size) {
 	qp_chunk_t chunk = qp->bump;
 	qp_cell_t cell = qp->usage[chunk].used;
+
 	if (cell + size <= QP_CHUNK_SIZE) {
 		qp->usage[chunk].used += size;
 		qp->used_count += size;
@@ -843,6 +844,7 @@ compact_recursive(dns_qp_t *qp, qp_node_t *parent) {
 	qp_weight_t size = branch_twigs_size(parent);
 	qp_ref_t twigs_ref = branch_twigs_ref(parent);
 	qp_chunk_t chunk = ref_chunk(twigs_ref);
+
 	if (qp->compact_all ||
 	    (chunk != qp->bump && chunk_usage(qp, chunk) < QP_MIN_USED))
 	{
@@ -1027,15 +1029,12 @@ dns_qp_gctime(isc_nanosecs_t *compact_p, isc_nanosecs_t *recycle_p,
 
 static dns_qp_t *
 transaction_open(dns_qpmulti_t *multi, dns_qp_t **qptp) {
-	dns_qp_t *qp;
-
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qptp != NULL && *qptp == NULL);
 
 	LOCK(&multi->mutex);
 
-	qp = &multi->writer;
-
+	dns_qp_t *qp = &multi->writer;
 	INSIST(QP_VALID(qp));
 
 	/*
@@ -1396,11 +1395,9 @@ dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 void
 dns_qp_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 	      dns_qp_t **qptp) {
-	dns_qp_t *qp;
-
 	REQUIRE(qptp != NULL && *qptp == NULL);
 
-	qp = isc_mem_get(mctx, sizeof(*qp));
+	dns_qp_t *qp = isc_mem_get(mctx, sizeof(*qp));
 	QP_INIT(qp, methods, uctx);
 	isc_mem_attach(mctx, &qp->mctx);
 	alloc_reset(qp);
@@ -1412,12 +1409,9 @@ void
 dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 		   const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp) {
-	dns_qpmulti_t *multi;
-	dns_qp_t *qp;
-
 	REQUIRE(qpmp != NULL && *qpmp == NULL);
 
-	multi = isc_mem_get(mctx, sizeof(*multi));
+	dns_qpmulti_t *multi = isc_mem_get(mctx, sizeof(*multi));
 	*multi = (dns_qpmulti_t){
 		.magic = QPMULTI_MAGIC,
 		.reader_ref = INVALID_REF,
@@ -1432,7 +1426,7 @@ dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	 * allocates; to ensure dns_qpmulti_write() does too, pretend the
 	 * previous transaction was an update
 	 */
-	qp = &multi->writer;
+	dns_qp_t *qp = &multi->writer;
 	QP_INIT(qp, methods, uctx);
 	isc_mem_attach(mctx, &qp->mctx);
 	qp->transaction_mode = QP_UPDATE;
@@ -1460,12 +1454,10 @@ destroy_guts(dns_qp_t *qp) {
 
 void
 dns_qp_destroy(dns_qp_t **qptp) {
-	dns_qp_t *qp;
-
 	REQUIRE(qptp != NULL);
 	REQUIRE(QP_VALID(*qptp));
 
-	qp = *qptp;
+	dns_qp_t *qp = *qptp;
 	*qptp = NULL;
 
 	/* do not try to destroy part of a dns_qpmulti_t */
@@ -1478,14 +1470,11 @@ dns_qp_destroy(dns_qp_t **qptp) {
 
 void
 dns_qpmulti_destroy(dns_qpmulti_t **qpmp) {
-	dns_qp_t *qp = NULL;
-	dns_qpmulti_t *multi = NULL;
-
 	REQUIRE(qpmp != NULL);
 	REQUIRE(QPMULTI_VALID(*qpmp));
 
-	multi = *qpmp;
-	qp = &multi->writer;
+	dns_qpmulti_t *multi = *qpmp;
+	dns_qp_t *qp = &multi->writer;
 	*qpmp = NULL;
 
 	REQUIRE(QP_VALID(qp));
@@ -1513,7 +1502,7 @@ isc_result_t
 dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	qp_ref_t new_ref, old_ref;
 	qp_node_t new_leaf, old_node;
-	qp_node_t *new_twigs, *old_twigs;
+	qp_node_t *new_twigs = NULL, *old_twigs = NULL;
 	qp_shift_t new_bit, old_bit;
 	qp_weight_t old_size, new_size;
 	dns_qpkey_t new_key, old_key;
@@ -1522,7 +1511,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	uint64_t index;
 	qp_shift_t bit;
 	qp_weight_t pos;
-	qp_node_t *n;
+	qp_node_t *n = NULL;
 
 	REQUIRE(QP_VALID(qp));
 
@@ -1639,15 +1628,6 @@ growbranch:
 isc_result_t
 dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		 size_t search_keylen) {
-	dns_qpkey_t found_key;
-	size_t found_keylen;
-	qp_shift_t bit = 0; /* suppress warning */
-	qp_weight_t pos, size;
-	qp_ref_t ref;
-	qp_node_t *twigs;
-	qp_node_t *parent;
-	qp_node_t *n;
-
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(search_keylen < sizeof(dns_qpkey_t));
 
@@ -1655,8 +1635,9 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		return (ISC_R_NOTFOUND);
 	}
 
-	parent = NULL;
-	n = make_root_mutable(qp);
+	qp_shift_t bit = 0; /* suppress warning */
+	qp_node_t *parent = NULL;
+	qp_node_t *n = make_root_mutable(qp);
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
 		bit = branch_keybit(n, search_key, search_keylen);
@@ -1668,7 +1649,8 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 		n = branch_twig_ptr(qp, n, bit);
 	}
 
-	found_keylen = leaf_qpkey(qp, n, found_key);
+	dns_qpkey_t found_key;
+	size_t found_keylen = leaf_qpkey(qp, n, found_key);
 	if (qpkey_compare(search_key, search_keylen, found_key, found_keylen) !=
 	    QPKEY_EQUAL)
 	{
@@ -1692,10 +1674,10 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 	parent = NULL;
 
 	INSIST(bit != 0);
-	size = branch_twigs_size(n);
-	pos = branch_twig_pos(n, bit);
-	ref = branch_twigs_ref(n);
-	twigs = ref_ptr(qp, ref);
+	qp_weight_t size = branch_twigs_size(n);
+	qp_weight_t pos = branch_twig_pos(n, bit);
+	qp_ref_t ref = branch_twigs_ref(n);
+	qp_node_t *twigs = ref_ptr(qp, ref);
 
 	if (size == 2) {
 		/*
@@ -1801,7 +1783,7 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	dns_qpkey_t found_key;
 	size_t found_keylen;
 	qp_shift_t bit;
-	qp_node_t *n;
+	qp_node_t *n = NULL;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(pval_r != NULL);
@@ -1850,7 +1832,7 @@ dns_qp_findname_parent(dns_qpreadable_t qpr, const dns_name_t *name,
 	size_t searchlen, foundlen;
 	size_t offset;
 	qp_shift_t bit;
-	qp_node_t *n, *twigs;
+	qp_node_t *n = NULL, *twigs = NULL;
 	isc_result_t result;
 	unsigned int labels = 0;
 	struct offref {

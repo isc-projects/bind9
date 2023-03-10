@@ -95,19 +95,17 @@ qpkey_from_smallname(dns_qpkey_t key, void *ctx, void *pval, uint32_t ival) {
 	return (dns_qpkey_fromname(key, &name));
 }
 
-static uint32_t
+static void
 smallname_attach(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
-	return (isc_refcount_increment0(smallname_refcount(pval, ival)));
+	isc_refcount_increment0(smallname_refcount(pval, ival));
 }
 
-static uint32_t
+static void
 smallname_detach(void *ctx, void *pval, uint32_t ival) {
-	uint32_t refs = isc_refcount_decrement(smallname_refcount(pval, ival));
-	if (refs == 1) {
+	if (isc_refcount_decrement(smallname_refcount(pval, ival)) == 1) {
 		isc_mem_free(ctx, pval);
 	}
-	return (refs);
 }
 
 static void
@@ -116,7 +114,7 @@ testname(void *ctx, char *buf, size_t size) {
 	strlcpy(buf, "test", size);
 }
 
-const struct dns_qpmethods methods = {
+const dns_qpmethods_t methods = {
 	smallname_attach,
 	smallname_detach,
 	qpkey_from_smallname,
@@ -126,15 +124,23 @@ const struct dns_qpmethods methods = {
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: qp_dump [-drt] <filename>\n"
+		"usage: qp_dump [-dt] <filename>\n"
 		"	-d	output in graphviz dot format\n"
 		"	-t	output in ad-hoc indented text format\n");
 }
 
 int
 main(int argc, char *argv[]) {
-	bool dumpdot = false;
-	bool dumptxt = false;
+	isc_result_t result;
+	dns_qp_t *qp = NULL;
+	const char *filename = NULL;
+	char *filetext = NULL;
+	size_t filesize;
+	off_t fileoff;
+	FILE *fp = NULL;
+	size_t wirebytes = 0, labels = 0, names = 0;
+	char *pos = NULL, *file_end = NULL;
+	bool dumpdot = false, dumptxt = false;
 	int opt;
 
 	while ((opt = isc_commandline_parse(argc, argv, "dt")) != -1) {
@@ -162,18 +168,17 @@ main(int argc, char *argv[]) {
 
 	isc_mem_create(&mctx);
 
-	const char *filename = argv[0];
-	off_t fileoff;
-	isc_result_t result = isc_file_getsize(filename, &fileoff);
+	filename = argv[0];
+	result = isc_file_getsize(filename, &fileoff);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
 			isc_result_totext(result));
 		exit(1);
 	}
-	size_t filesize = (size_t)fileoff;
 
-	char *filetext = isc_mem_get(mctx, filesize + 1);
-	FILE *fp = fopen(filename, "r");
+	filesize = (size_t)fileoff;
+	filetext = isc_mem_get(mctx, filesize + 1);
+	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
 		exit(1);
@@ -181,31 +186,30 @@ main(int argc, char *argv[]) {
 	fclose(fp);
 	filetext[filesize] = '\0';
 
-	dns_qp_t *qp = NULL;
 	dns_qp_create(mctx, &methods, NULL, &qp);
 
-	size_t wirebytes = 0;
-	size_t labels = 0;
-	size_t names = 0;
-	char *pos = filetext;
-	char *file_end = pos + filesize;
+	pos = filetext;
+	file_end = pos + filesize;
 	while (pos < file_end) {
-		char *domain = pos;
-		pos += strcspn(pos, "\r\n");
-		char *newline = pos;
-		pos += strspn(pos, "\r\n");
-		size_t len = newline - domain;
-		domain[len] = '\0';
-
+		void *pval = NULL;
+		uint32_t ival = 0;
 		dns_fixedname_t fixed;
 		dns_name_t *name = dns_fixedname_initname(&fixed);
 		isc_buffer_t buffer;
+		char *newline = NULL, *domain = pos;
+		size_t len;
+
+		pos += strcspn(pos, "\r\n");
+		newline = pos;
+		pos += strspn(pos, "\r\n");
+
+		len = newline - domain;
+		domain[len] = '\0';
+
 		isc_buffer_init(&buffer, domain, len);
 		isc_buffer_add(&buffer, len);
 		result = dns_name_fromtext(name, &buffer, dns_rootname, 0,
 					   NULL);
-		void *pval = NULL;
-		uint32_t ival = 0;
 		if (result == ISC_R_SUCCESS) {
 			smallname_from_name(name, &pval, &ival);
 			result = dns_qp_insert(qp, pval, ival);
@@ -226,15 +230,16 @@ main(int argc, char *argv[]) {
 	}
 	dns_qp_compact(qp, DNS_QPGC_ALL);
 
-	size_t smallbytes = wirebytes + labels + names * sizeof(isc_refcount_t);
-	dns_qp_memusage_t memusage = dns_qp_memusage(qp);
-	uint64_t compaction_us, recovery_us, rollback_us;
-	dns_qp_gctime(&compaction_us, &recovery_us, &rollback_us);
-
 #define print_megabytes(label, value) \
 	printf("%6.2f MiB - " label "\n", (double)(value) / 1048576.0)
 
 	if (!dumptxt && !dumpdot) {
+		size_t smallbytes = wirebytes + labels +
+				    names * sizeof(isc_refcount_t);
+		dns_qp_memusage_t memusage = dns_qp_memusage(qp);
+		uint64_t compaction_us, recovery_us, rollback_us;
+		dns_qp_gctime(&compaction_us, &recovery_us, &rollback_us);
+
 		printf("leaves %zu\n"
 		       " nodes %zu\n"
 		       "  used %zu\n"
@@ -264,10 +269,12 @@ main(int argc, char *argv[]) {
 		printf("%6zu - max key len\n", qp_test_maxkeylen(qp));
 	}
 
-	if (dumptxt)
+	if (dumptxt) {
 		qp_test_dumptrie(qp);
-	if (dumpdot)
+	}
+	if (dumpdot) {
 		qp_test_dumpdot(qp);
+	}
 
 	return (0);
 }

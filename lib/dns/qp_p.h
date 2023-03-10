@@ -894,34 +894,6 @@ unpack_reader(dns_qpreader_t *qp, qp_node_t *reader) {
  *  method invocation helpers
  */
 
-#if 0
-
-#define attach_leaf(qp, n)                                                  \
-	do {                                                                \
-		uint32_t iv = leaf_ival(n);                                 \
-		void *pv = leaf_pval(n);                                    \
-		uint32_t r = qp->methods->attach(qp->uctx, pv, iv);         \
-		fprintf(stderr,                                             \
-			"%s:%u:%s():t%u qp %p node %p leaf %p %u "          \
-			"(%u -> %u)\n",                                     \
-			__FILE__, __LINE__, __func__, isc_tid(), qp, n, pv, \
-			iv, r, r + 1);                                      \
-	} while (0)
-
-#define detach_leaf(qp, n)                                                  \
-	do {                                                                \
-		uint32_t iv = leaf_ival(n);                                 \
-		void *pv = leaf_pval(n);                                    \
-		uint32_t r = qp->methods->detach(qp->uctx, pv, iv);         \
-		fprintf(stderr,                                             \
-			"%s:%u:%s():t%u qp %p node %p leaf %p %u "          \
-			"(%u -> %u)\n",                                     \
-			__FILE__, __LINE__, __func__, isc_tid(), qp, n, pv, \
-			iv, r, r - 1);                                      \
-	} while (0)
-
-#else
-
 static inline void
 attach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
@@ -933,8 +905,6 @@ detach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	qp->methods->detach(qp->uctx, leaf_pval(n), leaf_ival(n));
 }
-
-#endif
 
 static inline size_t
 leaf_qpkey(dns_qpreadable_t qpr, qp_node_t *n, dns_qpkey_t key) {
