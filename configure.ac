@@ -611,6 +611,9 @@ AC_CHECK_DECLS([UV_UDP_LINUX_RECVERR], [], [], [[#include <uv.h>]])
 
 AX_RESTORE_FLAGS([libuv])
 
+# userspace-rcu (QSBR variant)
+PKG_CHECK_MODULES([LIBURCU], [liburcu-qsbr liburcu-cds])
+
 # [pairwise: --enable-doh --with-libnghttp2=auto, --enable-doh --with-libnghttp2=yes, --disable-doh]
 AC_ARG_ENABLE([doh],
 	      [AS_HELP_STRING([--disable-doh], [disable DNS over HTTPS, removes dependency on libnghttp2 (default is --enable-doh)])],

@@ -18,9 +18,10 @@
  * The statistics channels built-in the name server.
  */
 
+#include <isccc/types.h>
+
 #include <isccfg/aclconf.h>
 
-#include <isccc/types.h>
 #include <named/types.h>
 
 #define NAMED_STATSCHANNEL_HTTPPORT 80

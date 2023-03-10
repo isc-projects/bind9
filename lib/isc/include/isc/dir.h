@@ -17,11 +17,10 @@
 
 #include <dirent.h>
 #include <limits.h>
+#include <sys/types.h> /* Required on some systems. */
 
 #include <isc/lang.h>
 #include <isc/result.h>
-
-#include <sys/types.h> /* Required on some systems. */
 
 #ifndef NAME_MAX
 #define NAME_MAX 256

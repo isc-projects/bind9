@@ -56,6 +56,7 @@ Required Libraries
 To build BIND 9, the following packages must be installed:
 
 - ``libcrypto``, ``libssl``
+- ``liburcu``
 - ``libuv``
 - ``perl``
 - ``pkg-config`` / ``pkgconfig`` / ``pkgconf``
@@ -72,6 +73,9 @@ in a nonstandard location, specify the prefix using
 ``--with-openssl=<PREFIX>`` on the ``configure`` command line. To use a
 PKCS#11 hardware service module for cryptographic operations,
 ``engine_pkcs11`` from the OpenSC project must be compiled and used.
+
+The Userspace RCU library ``liburcu`` (https://liburcu.org/) is used
+for lock-free data structures and concurrent safe memory reclamation.
 
 On Linux, process capabilities are managed in user space using the
 ``libcap`` library

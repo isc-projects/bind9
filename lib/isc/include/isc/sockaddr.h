@@ -16,12 +16,11 @@
 /*! \file isc/sockaddr.h */
 
 #include <stdbool.h>
+#include <sys/un.h>
 
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
-
-#include <sys/un.h>
 
 /*
  * Any updates to this structure should also be applied in

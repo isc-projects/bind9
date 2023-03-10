@@ -17,13 +17,12 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <sys/types.h>
+#include <sys/un.h>
 
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
-
-#include <sys/types.h>
-#include <sys/un.h>
 
 ISC_LANG_BEGINDECLS
 

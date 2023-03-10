@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <isc/mem.h>
@@ -20,9 +22,6 @@
 #include <isc/result.h>
 #include <isc/tls.h>
 #include <isc/types.h>
-
-#include <sys/socket.h>
-#include <sys/types.h>
 
 #undef ISC_NETMGR_TRACE
 

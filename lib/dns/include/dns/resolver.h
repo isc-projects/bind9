@@ -46,6 +46,7 @@
  */
 
 #include <inttypes.h>
+#include <netinet/in.h>
 #include <stdbool.h>
 
 #include <isc/lang.h>
@@ -57,8 +58,6 @@
 
 #include <dns/fixedname.h>
 #include <dns/types.h>
-
-#include <netinet/in.h>
 
 #undef DNS_RESOLVER_TRACE
 

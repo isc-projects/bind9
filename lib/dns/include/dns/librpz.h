@@ -36,13 +36,12 @@
 
 #pragma once
 
+#include <arpa/nameser.h>
 #include <inttypes.h>
+#include <netinet/in.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-#include <arpa/nameser.h>
-#include <netinet/in.h>
 #include <sys/types.h>
 
 /*
