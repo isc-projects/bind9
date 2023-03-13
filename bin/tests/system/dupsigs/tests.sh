@@ -30,13 +30,14 @@ fully_signed () {
              $4 == "RRSIG" {lines++}
              END { if (lines != 1008) exit(1) }' < "dig.out.ns1.axfr"
 }
-retry_quiet 30 fully_signed || ret=1
+retry_quiet 30 fully_signed || status=1
+if [ $status != 0 ]; then echo_i "failed"; fi
 
 start=`date +%s`
 now=$start
 end=$((start + 140))
 
-while [ $now -lt $end ]; do
+while [ $now -lt $end ] && [ $status -eq 0 ]; do
         et=$((now - start))
 	echo_i "............... $et ............"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl | cat_i
