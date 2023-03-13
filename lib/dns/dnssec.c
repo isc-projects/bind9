@@ -1896,7 +1896,8 @@ failure:
 
 static isc_result_t
 publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
-	    dns_ttl_t ttl, isc_mem_t *mctx, void (*report)(const char *, ...)) {
+	    dns_ttl_t ttl, isc_mem_t *mctx,
+	    void (*report)(const char *, ...) ISC_FORMAT_PRINTF(1, 2)) {
 	isc_result_t result;
 	unsigned char buf[DST_KEY_MAXSIZE];
 	char keystr[DST_KEY_FORMATSIZE];
@@ -1913,7 +1914,8 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	if (key->prepublish && ttl > key->prepublish) {
 		isc_stdtime_t now;
 
-		report("Key %s: Delaying activation to match the DNSKEY TTL.",
+		report("Key %s: Delaying activation to match the DNSKEY TTL "
+		       "(%u).",
 		       keystr, ttl);
 
 		isc_stdtime_get(&now);
@@ -1930,7 +1932,7 @@ failure:
 static isc_result_t
 remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	   dns_ttl_t ttl, isc_mem_t *mctx, const char *reason,
-	   void (*report)(const char *, ...)) {
+	   void (*report)(const char *, ...) ISC_FORMAT_PRINTF(1, 2)) {
 	isc_result_t result;
 	unsigned char buf[DST_KEY_MAXSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
@@ -2250,7 +2252,8 @@ isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, const dns_name_t *origin,
 		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_mem_t *mctx,
-		      void (*report)(const char *, ...)) {
+		      void (*report)(const char *, ...)
+			      ISC_FORMAT_PRINTF(1, 2)) {
 	isc_result_t result;
 	dns_dnsseckey_t *key, *key1, *key2, *next;
 	bool found_ttl = false;
