@@ -30,7 +30,19 @@ fully_signed () {
              $4 == "RRSIG" {lines++}
              END { if (lines != 1008) exit(1) }' < "dig.out.ns1.axfr"
 }
-retry_quiet 30 fully_signed || status=1
+
+# Wait for the last NSEC record in the zone to be signed. This is a lightweight
+# alternative to avoid many AXFR requests while waiting for the zone to be
+# fully signed.
+_wait_for_last_nsec_signed() {
+        $DIG +dnssec a0499.signing.test -p ${PORT} @10.53.0.1 nsec > "dig.out.ns1.wait" || return 1
+        grep "signing.test\..*IN.*RRSIG.*signing.test" "dig.out.ns1.wait" > /dev/null || return 1
+        return 0
+}
+
+echo_i "wait for the zone to be fully signed"
+retry_quiet 60 _wait_for_last_nsec_signed
+retry_quiet 10 fully_signed || status=1
 if [ $status != 0 ]; then echo_i "failed"; fi
 
 start=`date +%s`
