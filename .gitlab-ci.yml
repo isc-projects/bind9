@@ -321,6 +321,7 @@ stages:
     - REALSOURCEDIR="$PWD"
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - cat bin/tests/system/test-suite.log
+    - find bin/tests/system -name "*dig.*" | xargs grep "error"
     - *find_python
     - >
       "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
@@ -343,6 +344,7 @@ stages:
   <<: *system_test_common
   after_script:
     - cat bin/tests/system/test-suite.log
+    - find bin/tests/system -name "*dig.*" | xargs grep "error"
     - *find_python
     - *parse_tsan
     - >
