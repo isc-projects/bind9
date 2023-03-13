@@ -1926,9 +1926,11 @@ remove_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	unsigned char buf[DST_KEY_MAXSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
 	char alg[80];
+	char namebuf[DNS_NAME_FORMATSIZE];
 
 	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Removing %s key %d/%s from DNSKEY RRset.", reason,
+	dns_name_format(dst_key_name(key->key), namebuf, sizeof(namebuf));
+	report("Removing %s key %s/%d/%s from DNSKEY RRset.", reason, namebuf,
 	       dst_key_id(key->key), alg);
 
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
