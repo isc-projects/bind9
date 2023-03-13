@@ -36,7 +36,6 @@
 #include <isc/util.h>
 
 #ifdef USE_DNSRPS
-#define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN
 #include <dns/librpz.h>
 
 librpz_t *librpz;

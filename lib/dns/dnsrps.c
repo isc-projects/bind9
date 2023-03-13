@@ -98,12 +98,6 @@ dnsrps_log_fnc(librpz_log_level_t level, void *ctxt, const char *buf) {
 	}
 
 	switch (level) {
-	case LIBRPZ_LOG_FATAL:
-	case LIBRPZ_LOG_ERROR: /* errors */
-	default:
-		isc_level = DNS_RPZ_ERROR_LEVEL;
-		break;
-
 	case LIBRPZ_LOG_TRACE1: /* big events such as dnsrpzd starts */
 		isc_level = DNS_RPZ_INFO_LEVEL;
 		break;
@@ -118,6 +112,12 @@ dnsrps_log_fnc(librpz_log_level_t level, void *ctxt, const char *buf) {
 
 	case LIBRPZ_LOG_TRACE4: /* librpz lookups */
 		isc_level = DNS_RPZ_DEBUG_LEVEL3;
+		break;
+
+	case LIBRPZ_LOG_FATAL:
+	case LIBRPZ_LOG_ERROR: /* errors */
+	default:
+		isc_level = DNS_RPZ_ERROR_LEVEL;
 		break;
 	}
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ, DNS_LOGMODULE_RBTDB,
@@ -319,9 +319,6 @@ dns_dnsrps_2policy(librpz_policy_t rps_policy) {
 dns_rpz_type_t
 dns_dnsrps_trig2type(librpz_trig_t trig) {
 	switch (trig) {
-	case LIBRPZ_TRIG_BAD:
-	default:
-		return (DNS_RPZ_TYPE_BAD);
 	case LIBRPZ_TRIG_CLIENT_IP:
 		return (DNS_RPZ_TYPE_CLIENT_IP);
 	case LIBRPZ_TRIG_QNAME:
@@ -332,6 +329,9 @@ dns_dnsrps_trig2type(librpz_trig_t trig) {
 		return (DNS_RPZ_TYPE_NSDNAME);
 	case LIBRPZ_TRIG_NSIP:
 		return (DNS_RPZ_TYPE_NSIP);
+	case LIBRPZ_TRIG_BAD:
+	default:
+		return (DNS_RPZ_TYPE_BAD);
 	}
 }
 
@@ -341,9 +341,6 @@ dns_dnsrps_trig2type(librpz_trig_t trig) {
 librpz_trig_t
 dns_dnsrps_type2trig(dns_rpz_type_t type) {
 	switch (type) {
-	case DNS_RPZ_TYPE_BAD:
-	default:
-		return (LIBRPZ_TRIG_BAD);
 	case DNS_RPZ_TYPE_CLIENT_IP:
 		return (LIBRPZ_TRIG_CLIENT_IP);
 	case DNS_RPZ_TYPE_QNAME:
@@ -354,6 +351,9 @@ dns_dnsrps_type2trig(dns_rpz_type_t type) {
 		return (LIBRPZ_TRIG_NSDNAME);
 	case DNS_RPZ_TYPE_NSIP:
 		return (LIBRPZ_TRIG_NSIP);
+	case DNS_RPZ_TYPE_BAD:
+	default:
+		return (LIBRPZ_TRIG_BAD);
 	}
 }
 
@@ -493,6 +493,16 @@ rpsdb_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(node == &rpsdb->data_node);
 
 	switch (rpsdb->result.policy) {
+	case LIBRPZ_POLICY_NXDOMAIN:
+		return (DNS_R_NXDOMAIN);
+
+	case LIBRPZ_POLICY_NODATA:
+		return (DNS_R_NXRRSET);
+
+	case LIBRPZ_POLICY_RECORD:
+	case LIBRPZ_POLICY_CNAME:
+		break;
+
 	case LIBRPZ_POLICY_UNDEFINED:
 	case LIBRPZ_POLICY_DELETED:
 	case LIBRPZ_POLICY_PASSTHRU:
@@ -505,16 +515,6 @@ rpsdb_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			    "impossible dnsrps policy %d at %s:%d",
 			    rpsdb->result.policy, __FILE__, __LINE__);
 		return (DNS_R_SERVFAIL);
-
-	case LIBRPZ_POLICY_NXDOMAIN:
-		return (DNS_R_NXDOMAIN);
-
-	case LIBRPZ_POLICY_NODATA:
-		return (DNS_R_NXRRSET);
-
-	case LIBRPZ_POLICY_RECORD:
-	case LIBRPZ_POLICY_CNAME:
-		break;
 	}
 
 	if (type == dns_rdatatype_soa) {

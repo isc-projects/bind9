@@ -1430,7 +1430,7 @@ no)
 	AC_MSG_RESULT(no)
 	;;
 *)
-	AC_MSG_ERROR("--enable-querytrace requires yes or no (not $enable_querytrace)")
+	AC_MSG_ERROR(["--enable-querytrace requires yes or no (not $enable_querytrace)"])
 	;;
 esac
 
@@ -1522,6 +1522,8 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
       ])
 
+AM_CONDITIONAL([DNSRPS], [test "$enable_dnsrps" != "no"])
+
 AC_CHECK_HEADERS([glob.h])
 
 #
@@ -1590,7 +1592,9 @@ AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/conf.sh
 		 bin/tests/system/dyndb/driver/Makefile
 		 bin/tests/system/dlzexternal/driver/Makefile
-		 bin/tests/system/hooks/driver/Makefile])
+		 bin/tests/system/hooks/driver/Makefile
+		 bin/tests/system/rpz/testlib/Makefile
+                 ])
 
 AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
 		[chmod +x bin/tests/system/ifconfig.sh])

@@ -55,6 +55,8 @@
 #define LIBDEF_F(f)
 #endif /* ifdef LIBRPZ_INTERNAL */
 
+#define LIBRPZ_MAXDOMAIN 255
+
 /*
  * Response Policy Zone triggers.
  *	Comparisons of trigger precedences require
@@ -125,7 +127,7 @@ typedef struct librpz_prefix {
 typedef uint8_t librpz_dsize_t;
 typedef struct librpz_domain {
 	librpz_dsize_t size; /* of only .d */
-	uint8_t	       d[0]; /* variable length wire format */
+	uint8_t	       d[];  /* variable length wire format */
 } librpz_domain_t;
 
 /*
@@ -133,7 +135,7 @@ typedef struct librpz_domain {
  */
 typedef struct librpz_domain_buf {
 	librpz_dsize_t size;
-	uint8_t	       d[NS_MAXCDNAME];
+	uint8_t	       d[LIBRPZ_MAXDOMAIN];
 } librpz_domain_buf_t;
 
 /*
@@ -145,7 +147,7 @@ typedef struct {
 	uint16_t class;	   /* network byte order */
 	uint32_t ttl;	   /* network byte order */
 	uint16_t rdlength; /* network byte order */
-	uint8_t	 rdata[0]; /* variable length */
+	uint8_t	 rdata[];  /* variable length */
 } librpz_rr_t;
 
 /*
@@ -169,8 +171,7 @@ typedef struct librpz_result {
 	librpz_dznum_t	   dznum;   /* dnsrpzd zone number */
 	librpz_cznum_t	   cznum;   /* librpz client zone number */
 	librpz_trig_t	   trig : LIBRPZ_TRIG_SIZE;
-	bool		   log : 1; /* log rewrite given librpz_log_level
-				     * */
+	bool		   log : 1; /* log rewrite at given log level */
 } librpz_result_t;
 
 /**
