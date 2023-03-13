@@ -1206,6 +1206,11 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "datasize", &cfg_type_size, CFG_CLAUSEFLAG_ANCIENT },
 	{ "deallocate-on-exit", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "directory", &cfg_type_qstring, CFG_CLAUSEFLAG_CALLBACK },
+#ifdef USE_DNSRPS
+	{ "dnsrps-library", &cfg_type_qstring, 0 },
+#else  /* ifdef USE_DNSRPS */
+	{ "dnsrps-library", &cfg_type_qstring, CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif /* ifdef USE_DNSRPS */
 #ifdef HAVE_DNSTAP
 	{ "dnstap-output", &cfg_type_dnstapoutput, 0 },
 	{ "dnstap-identity", &cfg_type_serverid, 0 },

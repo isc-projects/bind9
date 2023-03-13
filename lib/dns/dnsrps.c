@@ -33,9 +33,9 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rpz.h>
 
-librpz_t *librpz;
+librpz_t *librpz = NULL;
 librpz_emsg_t librpz_lib_open_emsg;
-static void *librpz_handle;
+static void *librpz_handle = NULL;
 
 #define RPSDB_MAGIC	   ISC_MAGIC('R', 'P', 'Z', 'F')
 #define VALID_RPSDB(rpsdb) ((rpsdb)->common.impmagic == RPSDB_MAGIC)
@@ -129,7 +129,7 @@ dnsrps_log_fnc(librpz_log_level_t level, void *ctxt, const char *buf) {
  *	This is not thread safe, but it is called by a single thread.
  */
 isc_result_t
-dns_dnsrps_server_create(void) {
+dns_dnsrps_server_create(const char *librpz_path) {
 	librpz_emsg_t emsg;
 
 	INSIST(clist == NULL);
@@ -140,14 +140,9 @@ dns_dnsrps_server_create(void) {
 	 * Notice if librpz is available.
 	 */
 	librpz = librpz_lib_open(&librpz_lib_open_emsg, &librpz_handle,
-				 DNSRPS_LIBRPZ_PATH);
-	/*
-	 * Stop now without complaining if librpz is not available.
-	 * Complain later if and when librpz is needed for a view with
-	 * "dnsrps-enable yes" (including the default view).
-	 */
+				 librpz_path);
 	if (librpz == NULL) {
-		return (ISC_R_SUCCESS);
+		return (ISC_R_FILENOTFOUND);
 	}
 
 	isc_mutex_init(&dnsrps_mutex);
@@ -176,7 +171,7 @@ dns_dnsrps_server_destroy(void) {
 		librpz->clist_detach(&clist);
 	}
 
-#ifdef LIBRPZ_USE_DLOPEN
+#if DNSRPS_LIB_OPEN == 2
 	if (librpz != NULL) {
 		INSIST(librpz_handle != NULL);
 		if (dlclose(librpz_handle) != 0) {
@@ -185,8 +180,9 @@ dns_dnsrps_server_destroy(void) {
 				      "dnsrps: dlclose(): %s", dlerror());
 		}
 		librpz_handle = NULL;
+		librpz = NULL;
 	}
-#endif /* ifdef LIBRPZ_USE_DLOPEN */
+#endif
 }
 
 /*

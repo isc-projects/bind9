@@ -2025,7 +2025,7 @@ conf_dnsrps_sadd(conf_dnsrps_ctx_t *ctx, const char *p, ...) {
 }
 
 /*
- * Get an DNSRPS configuration value using the global and view options
+ * Get a DNSRPS configuration value using the global and view options
  * for the default.  Return false upon failure.
  */
 static bool
@@ -9079,6 +9079,35 @@ load_configuration(const char *filename, named_server_t *server,
 	server->kasplist = kasplist;
 	kasplist = tmpkasplist;
 
+#ifdef USE_DNSRPS
+	/*
+	 * Find the path to the DNSRPS implementation library.
+	 */
+	obj = NULL;
+	if (named_config_get(maps, "dnsrps-library", &obj) == ISC_R_SUCCESS) {
+		if (server->dnsrpslib != NULL) {
+			dns_dnsrps_server_destroy();
+			isc_mem_free(server->mctx, server->dnsrpslib);
+			server->dnsrpslib = NULL;
+		}
+		setstring(server, &server->dnsrpslib, cfg_obj_asstring(obj));
+		result = dns_dnsrps_server_create(server->dnsrpslib);
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+			      "initializing DNSRPS RPZ provider '%s': %s",
+			      server->dnsrpslib, isc_result_totext(result));
+		/*
+		 * It's okay if librpz isn't available. We'll complain
+		 * later if it turns out to be needed for a view with
+		 * "dnsrps-enable yes".
+		 */
+		if (result == ISC_R_FILENOTFOUND) {
+			result = ISC_R_SUCCESS;
+		}
+		CHECKFATAL(result, "initializing RPZ service interface");
+	}
+#endif /* ifdef USE_DNSRPS */
+
 	/*
 	 * Configure the views.
 	 */
@@ -10135,18 +10164,13 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 		.recfile = isc_mem_strdup(mctx, "named.recursing"),
 	};
 
-#ifdef USE_DNSRPS
-	CHECKFATAL(dns_dnsrps_server_create(), "initializing RPZ service "
-					       "interface");
-#endif /* ifdef USE_DNSRPS */
-
 	/* Initialize server data structures. */
 	ISC_LIST_INIT(server->kasplist);
 	ISC_LIST_INIT(server->viewlist);
 
 	/* Must be first. */
-	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_engine), "initializing "
-							       "DST");
+	CHECKFATAL(dst_lib_init(named_g_mctx, named_g_engine),
+		   "initializing DST");
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
 				     &server->in_roothints),
@@ -10218,6 +10242,7 @@ named_server_destroy(named_server_t **serverp) {
 
 #ifdef USE_DNSRPS
 	dns_dnsrps_server_destroy();
+	isc_mem_free(server->mctx, server->dnsrpslib);
 #endif /* ifdef USE_DNSRPS */
 
 	named_controls_destroy(&server->controls);

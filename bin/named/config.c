@@ -149,6 +149,9 @@ options {\n\
 	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
 	dnssec-validation " VALIDATION_DEFAULT "; \n"
+#ifdef USE_DNSRPS
+			    "	dnsrps-library \"" DNSRPS_LIBRPZ_PATH "\";\n"
+#endif /* ifdef USE_DNSRPS */
 #ifdef HAVE_DNSTAP
 			    "	dnstap-identity hostname;\n"
 #endif /* ifdef HAVE_DNSTAP */

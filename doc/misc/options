@@ -112,6 +112,7 @@ options {
 	dns64-server <string>;
 	dnskey-sig-validity <integer>;
 	dnsrps-enable <boolean>; // not configured
+	dnsrps-library <quoted_string>; // not configured
 	dnsrps-options { <unspecified-text> }; // not configured
 	dnssec-accept-expired <boolean>;
 	dnssec-dnskey-kskonly <boolean>;

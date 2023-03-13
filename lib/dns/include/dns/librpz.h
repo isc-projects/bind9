@@ -845,7 +845,7 @@ extern librpz_0_t librpz_def_0;
 typedef librpz_0_t librpz_t;
 extern librpz_t	  *librpz;
 
-#if LIBRPZ_LIB_OPEN == 2
+#if DNSRPS_LIB_OPEN == 2
 #include <dlfcn.h>
 
 /**
@@ -932,13 +932,13 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 		*dl_handle = NULL;
 	}
 
-#if LIBRPZ_LIB_OPEN == 1
+#if DNSRPS_LIB_OPEN == 1
 	emsg->c[0] = '\0';
 	return (&LIBRPZ_DEF);
-#else  /* if LIBRPZ_LIB_OPEN == 1 */
+#else  /* if DNSRPS_LIB_OPEN == 1 */
 	snprintf(emsg->c, sizeof(librpz_emsg_t),
 		 "librpz not available via ./configure");
 	return (NULL);
-#endif /* LIBRPZ_LIB_OPEN */
+#endif /* DNSRPS_LIB_OPEN */
 }
 #endif /* LIBRPZ_LIB_OPEN */

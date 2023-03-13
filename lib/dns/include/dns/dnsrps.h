@@ -79,7 +79,7 @@ dns_dnsrps_type2trig(dns_rpz_type_t type);
  * Start dnsrps for the entire server.
  */
 isc_result_t
-dns_dnsrps_server_create(void);
+dns_dnsrps_server_create(const char *librpz_path);
 
 /*
  * Stop dnsrps for the entire server.
