@@ -1,3 +1,7 @@
+6124.	[bug]		When changing from a NSEC3 capable DNSSEC algorithm to
+			an NSEC3 incapable DNSSEC algorithm using KASP the zone
+			could sometimes be incompletely signed. [GL #3937]
+
 6119.	[bug]		Make sure to revert the reconfigured zones to the
 			previous version of the view, when the new view
 			reconfiguration fails during the configuration of
