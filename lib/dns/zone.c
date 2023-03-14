@@ -9599,14 +9599,14 @@ zone_sign(dns_zone_t *zone) {
 		   use_kasp ? "yes" : "no");
 
 	/* Determine which type of chain to build */
-	if (use_kasp) {
-		build_nsec3 = dns_kasp_nsec3(kasp);
-		build_nsec = !build_nsec3;
-	} else {
-		CHECK(dns_private_chains(db, version, zone->privatetype,
-					 &build_nsec, &build_nsec3));
-		/* If neither chain is found, default to NSEC */
-		if (!build_nsec && !build_nsec3) {
+	CHECK(dns_private_chains(db, version, zone->privatetype, &build_nsec,
+				 &build_nsec3));
+	if (!build_nsec && !build_nsec3) {
+		if (use_kasp) {
+			build_nsec3 = dns_kasp_nsec3(kasp);
+			build_nsec = !build_nsec3;
+		} else {
+			/* If neither chain is found, default to NSEC */
 			build_nsec = true;
 		}
 	}
