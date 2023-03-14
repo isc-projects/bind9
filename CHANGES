@@ -2,6 +2,10 @@
 			an NSEC3 incapable DNSSEC algorithm using KASP the zone
 			could sometimes be incompletely signed. [GL #3937]
 
+6121.	[bug]		Fix BIND and dig zone transfer hanging when
+			downloading large zones over TLS from a primary server,
+			especially over unstable connections. [GL #3867]
+
 6120.	[bug]		Use two pairs of dns_db_t and dns_dbversion_t in a
 			catalog zone structure to avoid a race between the
 			dns__catz_update_cb() and dns_catz_dbupdate_callback()
