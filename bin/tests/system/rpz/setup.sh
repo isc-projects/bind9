@@ -55,13 +55,13 @@ copy_setports ns8/named.conf.in ns8/named.conf
 copy_setports ns9/named.conf.in ns9/named.conf
 copy_setports ns10/named.conf.in ns10/named.conf
 
-copy_setports dnsrpzd.conf.in dnsrpzd.conf
+copy_setports dnsrps.zones.in dnsrps.zones
 
 # decide whether to test DNSRPS
-# Note that dnsrps.conf and dnsrps-secondary.conf are included in named.conf
-# and differ from dnsrpz.conf which is used by dnsrpzd.
-$SHELL ../ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
-test -z "$(grep 'dnsrps-enable yes' dnsrps.conf)" && TEST_DNSRPS=
+# Note that dnsrps.conf is included in named.conf
+$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
+test -z "$(grep 'testing with DNSRPS' dnsrps.conf)" && TEST_DNSRPS=
+touch dnsrps.cache
 
 # set up test policy zones.
 #   bl is the main test zone
@@ -169,11 +169,3 @@ cp ns2/bl.tld2.db.in ns2/bl.tld2.db
 cp ns5/empty.db.in ns5/empty.db
 cp ns5/empty.db.in ns5/policy2.db
 cp ns6/bl.tld2s.db.in ns6/bl.tld2s.db
-
-# Run dnsrpzd to get the license and prime the static policy zones
-if test -n "$TEST_DNSRPS"; then
-   DNSRPZD="$(../rpz/dnsrps -p)"
-   cd ns3
-   "$DNSRPZ" -D../dnsrpzd.rpzf -S../dnsrpzd.sock -C../dnsrpzd.conf \
-             -w 0 -dddd -L stdout >./dnsrpzd.run 2>&1
-fi

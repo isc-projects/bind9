@@ -35,6 +35,7 @@ HAVE_CORE=
 status=0
 t=0
 
+export DNSRPS_TEST_UPDATE_FILE=$(pwd)/dnsrps.cache
 DEBUG=
 SAVE_RESULTS=
 ARGS=
@@ -67,7 +68,6 @@ DNSRPSCMD=./dnsrps
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 if test -x $DNSRPSCMD; then
-    # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
     WAIT_CMD="$DNSRPSCMD -w 0.1"
     TEN_SECS=100
 else
@@ -129,10 +129,10 @@ get_sn_fast () {
     fi
 }
 
-# check that dnsrpzd has loaded its zones
+# check that dnsrps provider has zones loaded
 # $1=domain
 # $2=DNS server IP address
-FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
+FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrps.zones`
 dnsrps_loaded() {
     test "$mode" = dnsrps || return
     n=0
@@ -182,7 +182,15 @@ ck_soa() {
 # (re)load the response policy zones with the rules in the file $TEST_FILE
 load_db () {
     if test -n "$TEST_FILE"; then
-        copy_setports $TEST_FILE tmp
+	copy_setports $TEST_FILE tmp
+
+	for ZONE in bl0 bl1 bl2 bl3 bl4 bl5 bl6 bl7 bl8 bl9 bl10 bl11 bl12 bl13 bl14 bl15 bl16 bl17 bl18 bl19; do
+	   produce_librpz_rules ns5 $ZONE bl
+	done
+
+	produce_librpz_rules ns2 bl.tld2 bl.tld2
+	cat tmp >> $DNSRPS_TEST_UPDATE_FILE
+
 	if $NSUPDATE -v tmp; then :
 	    $RNDCCMD $ns3 sync
 	else
@@ -190,7 +198,7 @@ load_db () {
 	    $RNDCCMD $ns3 sync
 	    exit 1
 	fi
-        rm -f tmp
+	rm -f tmp
     fi
 }
 
@@ -213,11 +221,11 @@ restart () {
     fi
     rm -f ns$1/*.jnl
     if [ "$2" = "rebuild-bl-rpz" ]; then
-        if test -f ns$1/base.db; then
+	if test -f ns$1/base.db; then
 	    for NM in ns$1/bl*.db; do
-	        cp -f ns$1/base.db $NM
-            done
-        fi
+		cp -f ns$1/base.db $NM
+	    done
+	fi
     fi
     start_server --noclean --restart --port ${PORT} ns$1
     load_db
@@ -242,8 +250,8 @@ ckalive () {
 }
 
 resetstats () {
-        NSDIR=$1
-        eval "${NSDIR}_CNT=''"
+	NSDIR=$1
+	eval "${NSDIR}_CNT=''"
 }
 
 ckstats () {
@@ -279,6 +287,16 @@ ckstatsrange () {
     eval "${NSDIR}_CNT=$NEW_CNT"
 }
 
+add_librpz_rule() {
+    echo $1 >> $DNSRPS_TEST_UPDATE_FILE
+}
+
+produce_librpz_rules() {
+    # echo "Producing rules for $1"
+    ZONEFILE=$1/$3.db
+    cat $ZONEFILE | egrep -v '^;' | egrep '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
+}
+
 # $1=message
 # $2=optional test file name
 start_group () {
@@ -299,9 +317,10 @@ start_group () {
 end_group () {
     if test -n "$TEST_FILE"; then
 	# remove the previous set of test rules
-        copy_setports $TEST_FILE tmp
+	copy_setports $TEST_FILE tmp
+	add_librpz_rule "rollback"
 	sed -e 's/[	 ]add[	 ]/ delete /' tmp | $NSUPDATE
-        rm -f tmp
+	rm -f tmp
 	TEST_FILE=
     fi
     ckalive $ns3 "failed; ns3 server crashed and restarted"
@@ -510,6 +529,7 @@ for mode in native dnsrps; do
   retry_quiet 10 make_proto_nodata
 
   start_group "QNAME rewrites" test1
+
   nochange .					# 1 do not crash or rewrite root
   nxdomain a0-1.tld2				# 2
   nodata a3-1.tld2				# 3
@@ -600,13 +620,18 @@ EOF
   # updating an response zone policy
   cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
   rndc_reload ns2 $ns2 bl.tld2
+  add_librpz_rule "update zone bl.tld2 1 inc"
   ck_soa 2 bl.tld2 $ns3
+  add_librpz_rule "wipe"
+  produce_librpz_rules ns2 bl.tld2 bl.tld2
   nochange a7-1.tld2				# 19 PASSTHRU
   # ensure that a clock tick has occurred so that named will do the reload
   sleep 1
   cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
   rndc_reload ns2 $ns2 bl.tld2
+  add_librpz_rule "update zone bl.tld2 1 inc"
   ck_soa 3 bl.tld2 $ns3
+  produce_librpz_rules ns2 bl.tld2 bl.tld2
   nxdomain a7-1.tld2				# 20 secondary policy zone (RT34450)
   end_group
   ckstats $ns3 test2 ns3 12
@@ -647,17 +672,10 @@ EOF
   nxdomain a3-1.static-stub			# 14
   nochange_ns10 a3-1.stub-nomatch		# 15
   nochange_ns10 a3-1.static-stub-nomatch	# 16
-  if [ "$mode" = dnsrps ]; then
-    addr 12.12.12.12 as-ns.tld5.		# 17 qname-as-ns
-  fi
   nextpart ns3/named.run | grep -q "unrecognized NS rpz_rrset_find() failed: glue" &&
   setret "seen: unrecognized NS rpz_rrset_find() failed: glue"
   end_group
-  if [ "$mode" = dnsrps ]; then
-    ckstats $ns3 test3 ns3 10
-  else
-    ckstats $ns3 test3 ns3 9
-  fi
+  ckstats $ns3 test3 ns3 9
 
   # these tests assume "min-ns-dots 0"
   start_group "NSIP rewrites" test4
@@ -670,9 +688,6 @@ EOF
   nxdomain a4-1.static-stub			# 6
   nochange_ns10 a4-1.stub-nomatch		# 7
   nochange_ns10 a4-1.static-stub-nomatch	# 8
-  if [ "$mode" = dnsrps ]; then
-      addr 12.12.12.12 as-ns.tld5.		# 9 ip-as-ns
-  fi
   nextpart ns3/named.run | grep -q "unrecognized NS rpz_rrset_find() failed: glue" &&
   setret "seen: unrecognized NS rpz_rrset_find() failed: glue"
   end_group
@@ -685,11 +700,7 @@ EOF
     a3-1.tld2.	    x	IN	TXT   "NSIP walled garden"
 EOF
   end_group
-  if [ "$mode" = dnsrps ]; then
-    ckstats $ns3 test4 ns3 7
-  else
-    ckstats $ns3 test4 ns3 6
-  fi
+  ckstats $ns3 test4 ns3 6
 
   # policies in ./test5 overridden by response-policy{} in ns3/named.conf
   # and in ns5/named.conf
@@ -722,6 +733,7 @@ EOF
   ckstats $ns5 test5 ns5 4
 
   # check that miscellaneous bugs are still absent
+  add_librpz_rule "wipe"
   start_group "crashes" test6
   for Q in RRSIG SIG ANY 'ANY +dnssec'; do
     nocrash a3-1.tld2 -t$Q
@@ -789,27 +801,6 @@ EOF
     echo_i "performance not checked; queryperf not available"
   fi
 
-  if [ "$mode" = dnsrps ]; then
-    echo_i "checking that dnsrpzd is automatically restarted"
-    OLD_PID=`cat dnsrpzd.pid`
-    kill "$OLD_PID"
-    n=0
-    while true; do
-	NEW_PID=`cat dnsrpzd.pid 2>/dev/null`
-	if test -n "$NEW_PID" -a "0$OLD_PID" -ne "0$NEW_PID"; then
-	    #echo "OLD_PID=$OLD_PID  NEW_PID=$NEW_PID"
-	    break;
-	fi
-	$DIG -p ${PORT} +short +norecurse a0-1.tld2 @$ns3 >/dev/null
-	n=`expr $n + 1`
-	if test "$n" -gt $TEN_SECS; then
-	    setret "dnsrpzd did not restart"
-	    break
-	fi
-	$WAIT_CMD
-    done
-  fi
-
   # Ensure ns3 manages to transfer the fast-expire zone before shutdown.
   nextpartreset ns3/named.run
   wait_for_log 20 "zone fast-expire/IN: transferred serial 1" ns3/named.run
@@ -822,6 +813,7 @@ EOF
   # restart the main test RPZ server to see if that creates a core file
   if test -z "$HAVE_CORE"; then
     stop_server --use-rndc --port ${CONTROLPORT} ns3
+    add_librpz_rule "restart"
     restart 3 "rebuild-bl-rpz"
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
@@ -833,7 +825,7 @@ EOF
     if test -n "$EMSGS"; then
       setret "error messages in $runfile starting with:"
       grep -E 'invalid rpz|rpz.*failed' ns*/named.run | \
-              sed -e '10,$d' -e 's/^//' | cat_i
+	      sed -e '10,$d' -e 's/^//' | cat_i
     fi
   done
 
@@ -918,9 +910,11 @@ EOF
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
   done
 
+
   t=`expr $t + 1`
   echo_i "checking that going from an empty policy zone works (${t})"
   nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
+  add_librpz_rule "update add *.x.servfail.policy2 300 CNAME ."
   sleep 1
   rndc_reload ns7 $ns7 policy2
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
@@ -977,6 +971,7 @@ EOF
   fi
 
   # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 scenarios.
+  produce_librpz_rules ns9 rpz rpz
   for label in a-only no-a-no-aaaa a-plus-aaaa
   do
     for type in AAAA A

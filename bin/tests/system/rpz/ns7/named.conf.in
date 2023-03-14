@@ -32,7 +32,7 @@ options {
 	nsdname-enable yes
 	min-update-interval 0;
 
-	include "../dnsrps-secondary.conf";
+	include "../dnsrps.conf";
 };
 
 logging { category rpz { default_debug; }; };
@@ -54,6 +54,6 @@ zone "policy2" {
 	file "policy2.db";
 	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
 	notify-delay 0;
-	allow-transfer  { any; };
+	allow-transfer	{ any; };
 	request-ixfr no; // force axfr on rndc reload
 };

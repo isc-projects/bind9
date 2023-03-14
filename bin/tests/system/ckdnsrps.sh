@@ -14,9 +14,9 @@
 set -e
 
 # Say on stdout whether to test DNSRPS
-#	and create dnsrps.conf and dnsrps-secondary.conf
-# Note that dnsrps.conf and dnsrps-secondary.conf are included in named.conf
-#	and differ from dnsrpz.conf which is used by dnsrpzd.
+#	and creates dnsrps.conf
+# Note that dnsrps.conf is included in named.conf
+#	and differs from dnsrpz.conf which is used by dnsrpzd.
 
 
 . ../conf.sh
@@ -26,15 +26,13 @@ DNSRPS_CMD=../rpz/dnsrps
 AS_NS=
 TEST_DNSRPS=
 MCONF=dnsrps.conf
-SCONF=dnsrps-secondary.conf
-USAGE="$0: [-xAD] [-M dnsrps.conf] [-S dnsrps-secondary.conf]"
+USAGE="$0: [-xAD] [-M dnsrps.conf]"
 while getopts "xADM:S:" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
 	A) AS_NS=yes;;
 	D) TEST_DNSRPS=yes;;
 	M) MCONF="$OPTARG";;
-	S) SCONF="$OPTARG";;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -46,11 +44,9 @@ fi
 
 # erase any existing conf files
 cat /dev/null > $MCONF
-cat /dev/null > $SCONF
 
 add_conf () {
     echo "$*" >>$MCONF
-    echo "$*" >>$SCONF
 }
 
 if ! $FEATURETEST --enable-dnsrps; then
@@ -82,86 +78,6 @@ else
     exit 0
 fi
 
-CMN="	dnsrps-options { dnsrpzd-conf ../dnsrpzd.conf
-			 dnsrpzd-sock ../dnsrpzd.sock
-			 dnsrpzd-rpzf ../dnsrpzd.rpzf
-			 dnsrpzd-args '-dddd -L stdout'
-			 log-level 3"
-
-PRIMARY="$CMN"
-if [ -n "$AS_NS" ]; then
-    PRIMARY="$PRIMARY
-			qname-as-ns yes
-			ip-as-ns yes"
-fi
-
-# write dnsrps settings for primary resolver
-cat <<EOF >>$MCONF
-$PRIMARY };
-EOF
-
-# write dnsrps settings for resolvers that should not start dnsrpzd
-cat <<EOF >>$SCONF
-$CMN
-			dnsrpzd '' };	# do not start dnsrpzd
-EOF
-
-
-# DNSRPS is available.
-# The test should fail if the license is bad.
-add_conf "dnsrps-enable yes;"
-
-# Use alt-dnsrpzd-license.conf if it exists
-CUR_L=dnsrpzd-license-cur.conf
-ALT_L=alt-dnsrpzd-license.conf
-# try ../rpz/alt-dnsrpzd-license.conf if alt-dnsrpzd-license.conf does not exist
-[ -s $ALT_L ] || ALT_L=../rpz/alt-dnsrpzd-license.conf
-if [ -s $ALT_L ]; then
-    SRC_L=$ALT_L
-    USE_ALT=
-else
-    SRC_L=../rpz/dnsrpzd-license.conf
-    USE_ALT="## consider installing alt-dnsrpzd-license.conf"
-fi
-cp $SRC_L $CUR_L
-
-# parse $CUR_L for the license zone name, primary IP addresses, and optional
-#   transfer-source IP addresses
-eval `sed -n -e 'y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'\
-    -e 's/.*zone *\([-a-z0-9]*.license.fastrpz.com\).*/NAME=\1/p'	\
-    -e 's/.*farsight_fastrpz_license *\([0-9.]*\);.*/IPV4=\1/p'		\
-    -e 's/.*farsight_fastrpz_license *\([0-9a-f:]*\);.*/IPV6=\1/p'	\
-    -e 's/.*transfer-source *\([0-9.]*\);.*/TS4=-b\1/p'			\
-    -e 's/.*transfer-source *\([0-9a-f:]*\);.*/TS6=-b\1/p'		\
-    -e 's/.*transfer-source-v6 *\([0-9a-f:]*\);.*/TS6=-b\1/p'		\
-	$CUR_L`
-if [ -z "$NAME" ]; then
-    add_conf "## no DNSRPS tests; no license domain name in $SRC_L"
-    add_conf '#fail'
-    exit 0
-fi
-if [ -z "$IPV4" ]; then
-    IPV4=license1.fastrpz.com
-    TS4=
-fi
-if [ -z "$IPV6" ]; then
-    IPV6=license1.fastrpz.com
-    TS6=
-fi
-
-# This TSIG key is common and NOT a secret
-KEY='hmac-sha256:farsight_fastrpz_license:f405d02b4c8af54855fcebc1'
-
-# Try IPv4 and then IPv6 to deal with IPv6 tunnel and connectivity problems
-if `$DIG -4 -t axfr -y$KEY $TS4 $NAME @$IPV4				\
-	    | grep -i "^$NAME.*TXT" >/dev/null`; then
-    exit 0
-fi
-if `$DIG -6 -t axfr -y$KEY $TS6 $NAME @$IPV6				\
-	    | grep -i "^$NAME.*TXT" >/dev/null`; then
-    exit 0
-fi
-
-add_conf "## DNSRPS lacks a valid license via $SRC_L"
-[ -z "$USE_ALT" ] || add_conf "$USE_ALT"
-add_conf '#fail'
+add_conf 'dnsrps-options { log-level 3 };'
+add_conf 'dnsrps-enable yes;'
+add_conf 'dnsrps-library "../../rpz/testlib/.libs/libdummyrpz.so";'

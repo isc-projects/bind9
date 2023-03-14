@@ -40,19 +40,19 @@ options {
 
 logging {
      channel rpz_passthru {
-          file "rpz_passthru.txt" versions 3 size 5m;
-          print-time yes;
-          print-category yes;
-          print-severity yes;
-          severity info;
+	  file "rpz_passthru.txt" versions 3 size 5m;
+	  print-time yes;
+	  print-category yes;
+	  print-severity yes;
+	  severity info;
      };
 
      channel rpz_log {
-          file "rpz.txt" versions 3 size 20m;
-          print-time yes;
-          print-category yes;
-          print-severity yes;
-          severity info;
+	  file "rpz.txt" versions 3 size 20m;
+	  print-time yes;
+	  print-category yes;
+	  print-severity yes;
+	  severity info;
      };
 
      category rpz { rpz_log; default_debug; };
