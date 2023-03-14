@@ -26,10 +26,10 @@ status=0
 #
 # for a total of 1009.
 fully_signed () {
-        $DIG axfr signing.test -p ${PORT} @10.53.0.1 |
-                awk 'BEGIN { lines = 0 }
-                     $4 == "RRSIG" {lines++}
-                     END { if (lines != 1009) exit(1) }'
+        $DIG axfr signing.test -p ${PORT} @10.53.0.1 > "dig.out.ns1.axfr"
+        awk 'BEGIN { lines = 0 }
+             $4 == "RRSIG" {lines++}
+             END { if (lines != 1009) exit(1) }' < "dig.out.ns1.axfr"
 }
 retry_quiet 30 fully_signed || ret=1
 
