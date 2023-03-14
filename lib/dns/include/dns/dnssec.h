@@ -326,7 +326,8 @@ isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, const dns_name_t *origin,
 		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_mem_t *mctx,
-		      void (*report)(const char *, ...));
+		      void (*report)(const char *, ...)
+			      ISC_FORMAT_PRINTF(1, 2));
 /*%<
  * Update the list of keys in 'keys' with new key information in 'newkeys'.
  *
