@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Previously, downloading large zones over TLS (XoT) from a primary
+  could hang the transfer on the secondary, especially when the
+  connection is unstable. This has been fixed. :gl:`#3867`
 
 Known Issues
 ~~~~~~~~~~~~
