@@ -1,3 +1,7 @@
+6124.	[bug]		When changing from a NSEC3 capable DNSSEC algorithm to
+			an NSEC3 incapable DNSSEC algorithm using KASP the zone
+			could sometimes be incompletely signed. [GL #3937]
+
 6123.	[placeholder]
 
 6122.	[func]		BIND now requires liburcu for lock-free data structures

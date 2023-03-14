@@ -421,12 +421,6 @@ then
 	set_key_states "KEY1" "hidden" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
 	set_key_default_values "KEY2"
 	echo_i "check zone ${ZONE} after reconfig"
-
-	ret=0
-	wait_for_log 10 "zone $ZONE/IN (signed): wait building NSEC3 chain until NSEC only DNSKEYs are removed" ns3/named.run || ret=1
-	test "$ret" -eq 0 || echo_i "failed"
-	status=$((status+ret))
-
 	check_nsec
 
 	# Zone: nsec3-to-rsasha1.kasp.
