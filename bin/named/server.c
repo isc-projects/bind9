@@ -15851,7 +15851,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 	dns_view_t *view = NULL;
 	dns_rdataclass_t rdclass;
 	char msg[DNS_NAME_FORMATSIZE + 500] = "";
-	enum { NONE, STATUS, REFRESH, SYNC, DESTROY } opt = NONE;
+	enum { NONE, STAT, REFRESH, SYNC, DESTROY } opt = NONE;
 	bool found = false;
 	bool first = true;
 
@@ -15870,7 +15870,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 	}
 
 	if (strcasecmp(cmd, "status") == 0) {
-		opt = STATUS;
+		opt = STAT;
 	} else if (strcasecmp(cmd, "refresh") == 0) {
 		opt = REFRESH;
 	} else if (strcasecmp(cmd, "sync") == 0) {
@@ -15929,7 +15929,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 			}
 			CHECK(mkey_refresh(view, text));
 			break;
-		case STATUS:
+		case STAT:
 			if (!first) {
 				CHECK(putstr(text, "\n\n"));
 			}

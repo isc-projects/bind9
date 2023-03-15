@@ -226,6 +226,7 @@ stages:
       --enable-developer
       --enable-option-checking=fatal
       --enable-dnstap
+      --enable-dnsrps
       --with-cmocka
       --with-libxml2
       --with-json-c
