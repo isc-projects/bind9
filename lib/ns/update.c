@@ -3386,10 +3386,7 @@ update_action(void *arg) {
 				 * Don't remove DNSKEY, CDNSKEY, CDS records
 				 * that are in use (under our control).
 				 */
-				if (rdata.type == dns_rdatatype_dnskey ||
-				    rdata.type == dns_rdatatype_cdnskey ||
-				    rdata.type == dns_rdatatype_cds)
-				{
+				if (dns_rdatatype_iskeymaterial(rdata.type)) {
 					isc_result_t r;
 					bool inuse = false;
 					r = dns_zone_dnskey_inuse(zone, &rdata,
