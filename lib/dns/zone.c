@@ -6777,9 +6777,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (type != dns_rdatatype_dnskey && type != dns_rdatatype_cds &&
-		    type != dns_rdatatype_cdnskey)
-		{
+		if (!dns_rdatatype_iskeymaterial(type)) {
 			bool warn = false, deleted = false;
 			if (delsig_ok(&rrsig, keys, nkeys, kasp, &warn)) {
 				result = update_one_rr(db, ver, zonediff->diff,
@@ -7097,10 +7095,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				both = have_ksk && have_zsk;
 			}
 
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				/*
 				 * DNSKEY RRset is signed with KSK.
 				 * CDS and CDNSKEY RRsets too (RFC 7344, 4.1).
@@ -7140,10 +7135,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 			/*
 			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
 			 */
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				if (!KSK(keys[i]) && keyset_kskonly) {
 					continue;
 				}
@@ -7545,9 +7537,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		}
 		KASP_UNLOCK(kasp);
 
-		if (type == dns_rdatatype_dnskey ||
-		    type == dns_rdatatype_cdnskey || type == dns_rdatatype_cds)
-		{
+		if (dns_rdatatype_iskeymaterial(type)) {
 			/*
 			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
 			 * (RFC 7344, section 4.1 specifies that they must
@@ -7723,10 +7713,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		{
 			goto next_rdataset;
 		}
-		if (rdataset.type == dns_rdatatype_dnskey ||
-		    rdataset.type == dns_rdatatype_cdnskey ||
-		    rdataset.type == dns_rdatatype_cds)
-		{
+		if (dns_rdatatype_iskeymaterial(rdataset.type)) {
 			/*
 			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
 			 * (RFC 7344, section 4.1 specifies that they must
@@ -8324,9 +8311,7 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		isc_stdtime_t exp = expire;
 
 		if (keyexpire != 0 &&
-		    (tuple->rdata.type == dns_rdatatype_dnskey ||
-		     tuple->rdata.type == dns_rdatatype_cdnskey ||
-		     tuple->rdata.type == dns_rdatatype_cds))
+		    dns_rdatatype_iskeymaterial(tuple->rdata.type))
 		{
 			exp = keyexpire;
 		}

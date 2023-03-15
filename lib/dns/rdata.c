@@ -2263,6 +2263,12 @@ dns_rdatatype_isdnssec(dns_rdatatype_t type) {
 }
 
 bool
+dns_rdatatype_iskeymaterial(dns_rdatatype_t type) {
+	return (type == dns_rdatatype_dnskey || type == dns_rdatatype_cdnskey ||
+		type == dns_rdatatype_cds);
+}
+
+bool
 dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ZONECUTAUTH) !=
 	    0)
