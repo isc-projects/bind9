@@ -1346,88 +1346,6 @@ isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
 void
 isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
 
-/*%<
- * Callback handlers for asynchronous TLS events.
- */
-
-void
-isc__nm_tlsdns_send(isc_nmhandle_t *handle, isc_region_t *region,
-		    isc_nm_cb_t cb, void *cbarg);
-
-void
-isc__nm_tlsdns_shutdown(isc_nmsocket_t *sock);
-
-void
-isc__nm_tlsdns_close(isc_nmsocket_t *sock);
-/*%<
- * Close a TLSDNS socket.
- */
-
-void
-isc__nm_tlsdns_stoplistening(isc_nmsocket_t *sock);
-/*%<
- * Stop listening on 'sock'.
- */
-
-void
-isc__nm_tlsdns_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
-/*%<
- * Set the read timeout and reset the timer for the TLSDNS socket
- * associated with 'handle', and the TCP socket it wraps around.
- */
-
-void
-isc__nm_tlsdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
-/*
- * Back-end implementation of isc_nm_read() for TLSDNS handles.
- */
-
-void
-isc__nm_tlsdns_cancelread(isc_nmhandle_t *handle);
-/*%<
- * Stop reading on a connected TLSDNS handle.
- */
-
-const char *
-isc__nm_tlsdns_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
-
-void
-isc__nm_async_tlsdnscycle(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsaccept(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsconnect(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnslisten(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnscancel(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsclose(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnssend(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsshutdown(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tlsdns_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx,
-				const int tid);
-/*%<
- * Callback handlers for asynchronous TLSDNS events.
- */
-
-bool
-isc__nm_tlsdns_xfr_allowed(isc_nmsocket_t *sock);
-/*%<
- * Check if it is possible to do a zone transfer over the given TLSDNS
- * socket.
- *
- * Requires:
- * \li	'sock' is a valid TLSDNS socket.
- */
-
 void
 isc__nm_tls_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
@@ -1812,17 +1730,6 @@ NETIEVENT_SOCKET_TYPE(tlsdobio);
 NETIEVENT_SOCKET_TYPE(udplisten);
 NETIEVENT_SOCKET_TYPE(udpstop);
 
-NETIEVENT_SOCKET_TYPE(tlsdnsclose);
-NETIEVENT_SOCKET_TYPE(tlsdnsread);
-NETIEVENT_SOCKET_TYPE(tlsdnsstop);
-NETIEVENT_SOCKET_TYPE(tlsdnsshutdown);
-NETIEVENT_SOCKET_TYPE(tlsdnslisten);
-NETIEVENT_SOCKET_REQ_TYPE(tlsdnsconnect);
-NETIEVENT_SOCKET_REQ_TYPE(tlsdnssend);
-NETIEVENT_SOCKET_HANDLE_TYPE(tlsdnscancel);
-NETIEVENT_SOCKET_QUOTA_TYPE(tlsdnsaccept);
-NETIEVENT_SOCKET_TYPE(tlsdnscycle);
-
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
 NETIEVENT_SOCKET_TYPE(httpclose);
@@ -1855,17 +1762,6 @@ NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
 NETIEVENT_SOCKET_DECL(udplisten);
 NETIEVENT_SOCKET_DECL(udpstop);
-
-NETIEVENT_SOCKET_DECL(tlsdnsclose);
-NETIEVENT_SOCKET_DECL(tlsdnsread);
-NETIEVENT_SOCKET_DECL(tlsdnsstop);
-NETIEVENT_SOCKET_DECL(tlsdnsshutdown);
-NETIEVENT_SOCKET_DECL(tlsdnslisten);
-NETIEVENT_SOCKET_REQ_DECL(tlsdnsconnect);
-NETIEVENT_SOCKET_REQ_DECL(tlsdnssend);
-NETIEVENT_SOCKET_HANDLE_DECL(tlsdnscancel);
-NETIEVENT_SOCKET_QUOTA_DECL(tlsdnsaccept);
-NETIEVENT_SOCKET_DECL(tlsdnscycle);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
@@ -1908,8 +1804,6 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 		    const struct sockaddr *addr, unsigned int flags);
 void
 isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-void
-isc__nm_tlsdns_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
 isc_result_t
 isc__nm_start_reading(isc_nmsocket_t *sock);

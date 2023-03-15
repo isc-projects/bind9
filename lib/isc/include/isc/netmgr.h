@@ -55,7 +55,7 @@ typedef void (*isc_nm_recv_cb_t)(isc_nmhandle_t *handle, isc_result_t eresult,
  * 'region' contains the received data, if any. It will be freed
  *          after return by caller.
  * 'cbarg'  the callback argument passed to isc_nm_listenudp(),
- *          isc_nm_listentcpdns(), or isc_nm_read().
+ *          isc_nm_listenstreamdns(), or isc_nm_read().
  */
 typedef isc_result_t (*isc_nm_accept_cb_t)(isc_nmhandle_t *handle,
 					   isc_result_t result, void *cbarg);
@@ -66,7 +66,7 @@ typedef isc_result_t (*isc_nm_accept_cb_t)(isc_nmhandle_t *handle,
  * 'handle' the handle that can be used to send back the answer.
  * 'eresult' the result of the event.
  * 'cbarg'  the callback argument passed to isc_nm_listentcp() or
- * isc_nm_listentcpdns().
+ * isc_nm_listenstreamdns().
  */
 
 typedef void (*isc_nm_cb_t)(isc_nmhandle_t *handle, isc_result_t result,
@@ -365,10 +365,11 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
  */
 
 isc_result_t
-isc_nm_listentcpdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
-		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		    int backlog, isc_quota_t *quota, isc_nmsocket_t **sockp);
+isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
+		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+		       int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
+		       isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -382,28 +383,14 @@ isc_nm_listentcpdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  * When a complete DNS message is received on the socket, 'cb' will be
  * called with 'cbarg' as its argument.
  *
- * When a new TCPDNS connection is accepted, 'accept_cb' will be called
- * with 'accept_cbarg' as its argument.
+ * When a new connection is accepted, 'accept_cb' will be called with
+ * 'accept_cbarg' as its argument.
+ *
+ * Passing a non-NULL value as 'tlsctx' instructs the underlying code
+ * to create a DNS over TLS listener.
  *
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
-
-isc_result_t
-isc_nm_listentlsdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		    isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
-		    isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		    int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
-		    isc_nmsocket_t **sockp);
-/*%<
- * Same as isc_nm_listentcpdns but for an SSL (DoT) socket.
- */
-
-isc_result_t
-isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
-		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
-		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-		       int backlog, isc_quota_t *quota, isc_tlsctx_t *sslctx,
-		       isc_nmsocket_t **sockp);
 
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
@@ -483,14 +470,6 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
  *\li	'addr' is not NULL.
  */
 
-void
-isc_nm_tcpdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
-void
-isc_nm_tlsdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		     isc_nm_cb_t cb, void *cbarg, unsigned int timeout,
-		     isc_tlsctx_t		       *sslctx,
-		     isc_tlsctx_client_session_cache_t *client_sess_cache);
 void
 isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
