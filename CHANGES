@@ -1,3 +1,7 @@
+6131.	[test]		Add a minimal test-only library to allow testing
+			of the DNSRPS API without FastRPZ installed.
+			Thanks to Farsight Securty. [GL !7693]
+
 6130.	[func]		The new "delv +ns" option activates name server mode,
 			in which delv sets up an internal recursive
 			resolver and uses that, rather than an external
