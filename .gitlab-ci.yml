@@ -50,11 +50,11 @@ variables:
   BIND_STRESS_TEST_OS: linux
   BIND_STRESS_TEST_ARCH: amd64
 
-# Allow all running CI jobs to be automatically canceled when a new
-# version of a branch is pushed.
-#
-# See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
 default:
+  # Allow all running CI jobs to be automatically canceled when a new
+  # version of a branch is pushed.
+  #
+  # See: https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-redundant-pipelines
   interruptible: true
 
 stages:
@@ -230,7 +230,6 @@ stages:
     - autoreconf -fi
   artifacts:
     untracked: true
-    expire_in: "1 day"
 
 .configure: &configure
     - ${CONFIGURE}
@@ -298,7 +297,6 @@ stages:
       artifacts: true
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .setup_interfaces: &setup_interfaces
@@ -332,7 +330,6 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
     reports:
       junit: junit.xml
@@ -341,7 +338,6 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .system_test_tsan: &system_test_tsan_job
@@ -354,7 +350,6 @@ stages:
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
     reports:
       junit: junit.xml
@@ -378,7 +373,6 @@ stages:
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
     reports:
       junit: junit.xml
@@ -387,7 +381,6 @@ stages:
   <<: *unit_test_common
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
 
 .unit_test_tsan: &unit_test_tsan_job
@@ -399,7 +392,6 @@ stages:
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
     untracked: true
-    expire_in: "1 day"
     when: always
     reports:
       junit: junit.xml
@@ -429,7 +421,6 @@ stages:
     exclude:
       - bind-qa/bind9/respdiff/rspworkdir/data.mdb # Exclude a 10 GB file.
     untracked: true
-    expire_in: "1 day"
     when: always
 
 ### Job Definitions
@@ -461,7 +452,6 @@ misc:
   artifacts:
     paths:
       - checklibs.out
-    expire_in: "1 day"
     when: on_failure
 
 black:
@@ -811,7 +801,6 @@ scan-build:
   artifacts:
     paths:
       - scan-build.reports/
-    expire_in: "1 day"
     when: on_failure
 
 # Jobs for regular GCC builds on Debian "sid" (amd64)
