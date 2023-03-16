@@ -618,31 +618,3 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
 	arg.arg = arg0;
 	isc_stats_dump(stats->counters, rcode_dumpcb, &arg, options);
 }
-
-/***
- *** Obsolete variables and functions follow:
- ***/
-const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] = {
-	"success",   "referral", "nxrrset",   "nxdomain",
-	"recursion", "failure",	 "duplicate", "dropped"
-};
-
-isc_result_t
-dns_stats_alloccounters(isc_mem_t *mctx, uint64_t **ctrp) {
-	int i;
-	uint64_t *p = isc_mem_get(mctx, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
-	if (p == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
-	for (i = 0; i < DNS_STATS_NCOUNTERS; i++) {
-		p[i] = 0;
-	}
-	*ctrp = p;
-	return (ISC_R_SUCCESS);
-}
-
-void
-dns_stats_freecounters(isc_mem_t *mctx, uint64_t **ctrp) {
-	isc_mem_put(mctx, *ctrp, DNS_STATS_NCOUNTERS * sizeof(uint64_t));
-	*ctrp = NULL;
-}

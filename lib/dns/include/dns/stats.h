@@ -444,22 +444,6 @@ enum {
 	dns_sizecounter_out_max = 257
 };
 
-#define DNS_STATS_NCOUNTERS 8
-
-#if 0
-/*%<
- * Flag(s) for dns_xxxstats_dump().  DNS_STATSDUMP_VERBOSE is obsolete.
- * ISC_STATSDUMP_VERBOSE should be used instead.  These two values are
- * intentionally defined to be the same value to ensure binary compatibility.
- */
-#define DNS_STATSDUMP_VERBOSE 0x00000001 /*%< dump 0-value counters */
-#endif					 /* if 0 */
-
-/*%<
- * (Obsoleted)
- */
-extern const char *dns_statscounter_names[];
-
 /*%
  * Attributes for statistics counters of RRset and Rdatatype types.
  *
@@ -801,24 +785,6 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
  *
  * Requires:
  *\li	'stats' is a valid dns_stats_t created by dns_generalstats_create().
- */
-
-isc_result_t
-dns_stats_alloccounters(isc_mem_t *mctx, uint64_t **ctrp);
-/*%<
- * Allocate an array of query statistics counters from the memory
- * context 'mctx'.
- *
- * This function is obsoleted.  Use dns_xxxstats_create() instead.
- */
-
-void
-dns_stats_freecounters(isc_mem_t *mctx, uint64_t **ctrp);
-/*%<
- * Free an array of query statistics counters allocated from the memory
- * context 'mctx'.
- *
- * This function is obsoleted.  Use dns_stats_destroy() instead.
  */
 
 ISC_LANG_ENDDECLS
