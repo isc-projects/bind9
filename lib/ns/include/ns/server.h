@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <isc/fuzz.h>
+#include <isc/histo.h>
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/quota.h>
@@ -113,15 +114,15 @@ struct ns_server {
 	dns_stats_t *opcodestats;
 	dns_stats_t *rcodestats;
 
-	isc_stats_t *udpinstats4;
-	isc_stats_t *udpoutstats4;
-	isc_stats_t *udpinstats6;
-	isc_stats_t *udpoutstats6;
+	isc_histomulti_t *udpinstats4;
+	isc_histomulti_t *udpoutstats4;
+	isc_histomulti_t *udpinstats6;
+	isc_histomulti_t *udpoutstats6;
 
-	isc_stats_t *tcpinstats4;
-	isc_stats_t *tcpoutstats4;
-	isc_stats_t *tcpinstats6;
-	isc_stats_t *tcpoutstats6;
+	isc_histomulti_t *tcpinstats4;
+	isc_histomulti_t *tcpoutstats4;
+	isc_histomulti_t *tcpinstats6;
+	isc_histomulti_t *tcpoutstats6;
 };
 
 struct ns_altsecret {

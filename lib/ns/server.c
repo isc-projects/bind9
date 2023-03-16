@@ -75,29 +75,29 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	CHECKFATAL(dns_rcodestats_create(mctx, &sctx->rcodestats));
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpinstats4,
-				    dns_sizecounter_in_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSIN,
+			      &sctx->udpinstats4);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpoutstats4,
-				    dns_sizecounter_out_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSOUT,
+			      &sctx->udpoutstats4);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpinstats6,
-				    dns_sizecounter_in_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSIN,
+			      &sctx->udpinstats6);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpoutstats6,
-				    dns_sizecounter_out_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSOUT,
+			      &sctx->udpoutstats6);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpinstats4,
-				    dns_sizecounter_in_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSIN,
+			      &sctx->tcpinstats4);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats4,
-				    dns_sizecounter_out_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSOUT,
+			      &sctx->tcpoutstats4);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpinstats6,
-				    dns_sizecounter_in_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSIN,
+			      &sctx->tcpinstats6);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
-				    dns_sizecounter_out_max));
+	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSOUT,
+			      &sctx->tcpoutstats6);
 
 	ISC_LIST_INIT(sctx->altsecrets);
 
@@ -178,29 +178,29 @@ ns_server_detach(ns_server_t **sctxp) {
 		}
 
 		if (sctx->udpinstats4 != NULL) {
-			isc_stats_detach(&sctx->udpinstats4);
+			isc_histomulti_destroy(&sctx->udpinstats4);
 		}
 		if (sctx->tcpinstats4 != NULL) {
-			isc_stats_detach(&sctx->tcpinstats4);
+			isc_histomulti_destroy(&sctx->tcpinstats4);
 		}
 		if (sctx->udpoutstats4 != NULL) {
-			isc_stats_detach(&sctx->udpoutstats4);
+			isc_histomulti_destroy(&sctx->udpoutstats4);
 		}
 		if (sctx->tcpoutstats4 != NULL) {
-			isc_stats_detach(&sctx->tcpoutstats4);
+			isc_histomulti_destroy(&sctx->tcpoutstats4);
 		}
 
 		if (sctx->udpinstats6 != NULL) {
-			isc_stats_detach(&sctx->udpinstats6);
+			isc_histomulti_destroy(&sctx->udpinstats6);
 		}
 		if (sctx->tcpinstats6 != NULL) {
-			isc_stats_detach(&sctx->tcpinstats6);
+			isc_histomulti_destroy(&sctx->tcpinstats6);
 		}
 		if (sctx->udpoutstats6 != NULL) {
-			isc_stats_detach(&sctx->udpoutstats6);
+			isc_histomulti_destroy(&sctx->udpoutstats6);
 		}
 		if (sctx->tcpoutstats6 != NULL) {
-			isc_stats_detach(&sctx->tcpoutstats6);
+			isc_histomulti_destroy(&sctx->tcpoutstats6);
 		}
 
 		sctx->magic = 0;
