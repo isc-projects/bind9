@@ -90,6 +90,21 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
 
     # ---------------------- Module initialization ---------------------------
 
+    def avoid_duplicated_logs():
+        """
+        Remove direct root logger output to file descriptors.
+        This default is causing duplicates because all our messages go through
+        regular logging as well and are thus displayed twice.
+        """
+        todel = []
+        for handler in logging.root.handlers:
+            if handler.__class__ == logging.StreamHandler:
+                # Beware: As for pytest 7.2.2, LiveLogging and LogCapture
+                # handlers inherit from logging.StreamHandler
+                todel.append(handler)
+        for handler in todel:
+            logging.root.handlers.remove(handler)
+
     def parse_env(env_text):
         """Parse the POSIX env format into Python dictionary."""
         out = {}
@@ -283,6 +298,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     @pytest.fixture(scope="module")
     def logger(system_test_name):
         """Logging facility specific to this test."""
+        avoid_duplicated_logs()
         return logging.getLogger(system_test_name)
 
     @pytest.fixture(scope="module")
@@ -378,29 +394,26 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             raise FileNotFoundError(f"script {script} not found in {cwd}")
         logger.debug("running script: %s %s %s", interpreter, script, " ".join(args))
         logger.debug("  workdir: %s", cwd)
-        stdout = b""
         returncode = 1
-        try:
-            proc = subprocess.run(
-                [interpreter, script] + args,
-                env=env,
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
-        except subprocess.CalledProcessError as exc:
-            stdout = exc.stdout
-            returncode = exc.returncode
-            raise exc
-        else:
-            stdout = proc.stdout
+
+        cmd = [interpreter, script] + args
+        with subprocess.Popen(
+            cmd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            bufsize=1,
+            universal_newlines=True,
+            errors="backslashreplace",
+        ) as proc:
+            if proc.stdout:
+                for line in proc.stdout:
+                    logger.info("    %s", line.rstrip("\n"))
+            proc.communicate()
             returncode = proc.returncode
-        finally:
-            if stdout:
-                for line in stdout.decode().splitlines():
-                    logger.debug("    %s", line)
+            if returncode:
+                raise subprocess.CalledProcessError(returncode, cmd)
             logger.debug("  exited with %d", returncode)
-        return proc
 
     @pytest.fixture(scope="module")
     def shell(env, system_test_dir, logger):
