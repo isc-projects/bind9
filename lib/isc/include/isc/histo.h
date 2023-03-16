@@ -72,6 +72,7 @@
 
 typedef struct isc_histo	isc_histo_t;
 typedef struct isc_histosummary isc_histosummary_t;
+typedef struct isc_histomulti	isc_histomulti_t;
 
 /*
  * For functions that can take either type.
@@ -156,6 +157,8 @@ isc_histo_digits_to_bits(uint digits);
  *\li	`digits >= ISC_HISTO_MINDIGS`
  *\li	`digits <= ISC_HISTO_MAXDIGS`
  */
+
+/**********************************************************************/
 
 void
 isc_histo_inc(isc_histo_t *hg, uint64_t value);
@@ -265,6 +268,76 @@ isc_histo_merge(isc_histo_t **targetp, isc_historead_t source);
  *
  * Ensures:
  *\li	`*targetp` is a pointer to a valid histogram
+ */
+
+/**********************************************************************/
+
+void
+isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp);
+/*%<
+ * Create a multithreaded sharded histogram.
+ *
+ * Although an `isc_histo_t` is thread-safe, it can suffer
+ * from cache contention under heavy load. To avoid this,
+ * an `isc_histomulti_t` contains a histogram per thread,
+ * so updates are local and low-contention.
+ *
+ * Requires:
+ *\li	`sigbits >= ISC_HISTO_MINBITS`
+ *\li	`sigbits <= ISC_HISTO_MAXBITS`
+ *\li	`hmp != NULL`
+ *\li	`*hmp == NULL`
+ *
+ * Ensures:
+ *\li	`*hmp` is a pointer to a multithreaded sharded histogram.
+ */
+
+void
+isc_histomulti_destroy(isc_histomulti_t **hmp);
+/*%<
+ * Destroy a multithreaded sharded histogram
+ *
+ * Requires:
+ *\li	`hmp != NULL`
+ *\li	`*hmp` is a pointer to a valid multithreaded sharded histogram
+ *
+ * Ensures:
+ *\li	all memory allocated by the histogram has been released
+ *\li	`*hmp == NULL`
+ */
+
+void
+isc_histomulti_merge(isc_histo_t **targetp, isc_histomulti_t *source);
+/*%<
+ * Increase the counts in `*targetp` by the counts recorded in `source`
+ *
+ * The target histogram is created if `*targetp` is NULL.
+ *
+ * Requires:
+ *\li	`targetp != NULL`
+ *\li	`*targetp` is NULL or a pointer to a valid histogram
+ *\li	`source` is a pointer to a valid multithreaded sharded histogram
+ *
+ * Ensures:
+ *\li	`*targetp` is a pointer to a valid histogram
+ */
+
+void
+isc_histomulti_inc(isc_histomulti_t *hm, uint64_t value);
+/*%<
+ * Add 1 to the value's bucket
+ *
+ * Requires:
+ *\li	`hm` is a pointer to a valid histomulti
+ */
+
+void
+isc_histomulti_add(isc_histomulti_t *hm, uint64_t value, uint64_t inc);
+/*%<
+ * Add an arbitrary increment to the value's bucket
+ *
+ * Requires:
+ *\li	`hm` is a pointer to a valid histomulti
  */
 
 /**********************************************************************/
@@ -406,3 +479,5 @@ isc_histo_cdf(const isc_histosummary_t *hs, uint64_t value,
  *\li	`hs` is a pointer to a valid histogram summary
  *\li	`proportionp != NULL`
  */
+
+/**********************************************************************/

@@ -25,6 +25,7 @@
 #include <isc/histo.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/tid.h>
 
 /*
  * XXXFANF to be added to isc/util.h by a commmit in a qp-trie
@@ -33,8 +34,10 @@
 #define STRUCT_FLEX_SIZE(pointer, member, count) \
 	(sizeof(*(pointer)) + sizeof(*(pointer)->member) * (count))
 
-#define HISTO_MAGIC    ISC_MAGIC('H', 's', 't', 'o')
-#define HISTO_VALID(p) ISC_MAGIC_VALID(p, HISTO_MAGIC)
+#define HISTO_MAGIC	    ISC_MAGIC('H', 's', 't', 'o')
+#define HISTO_VALID(p)	    ISC_MAGIC_VALID(p, HISTO_MAGIC)
+#define HISTOMULTI_MAGIC    ISC_MAGIC('H', 'g', 'M', 't')
+#define HISTOMULTI_VALID(p) ISC_MAGIC_VALID(p, HISTOMULTI_MAGIC)
 
 /*
  * Natural logarithms of 2 and 10 for converting precisions between
@@ -99,6 +102,12 @@ struct isc_histosummary {
 	uint64_t maximum;
 	size_t size;
 	uint64_t buckets[];
+};
+
+struct isc_histomulti {
+	uint magic;
+	uint size;
+	isc_histo_t *hg[];
 };
 
 /**********************************************************************/
@@ -398,6 +407,67 @@ isc_histo_merge(isc_histo_t **targetp, isc_historead_t source) {
 	{
 		isc_histo_put(*targetp, min, max, count);
 	}
+}
+
+/**********************************************************************/
+
+void
+isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp) {
+	REQUIRE(hmp != NULL);
+	REQUIRE(*hmp == NULL);
+
+	uint size = isc_tid_count();
+	INSIST(size > 0);
+
+	isc_histomulti_t *hm = isc_mem_getx(
+		mctx, STRUCT_FLEX_SIZE(hm, hg, size), ISC_MEM_ZERO);
+	*hm = (isc_histomulti_t){
+		.magic = HISTOMULTI_MAGIC,
+		.size = size,
+	};
+
+	for (uint i = 0; i < hm->size; i++) {
+		isc_histo_create(mctx, sigbits, &hm->hg[i]);
+	}
+
+	*hmp = hm;
+}
+
+void
+isc_histomulti_destroy(isc_histomulti_t **hmp) {
+	REQUIRE(hmp != NULL);
+	REQUIRE(HISTOMULTI_VALID(*hmp));
+
+	isc_histomulti_t *hm = *hmp;
+	isc_mem_t *mctx = hm->hg[0]->mctx;
+	*hmp = NULL;
+
+	for (uint i = 0; i < hm->size; i++) {
+		isc_histo_destroy(&hm->hg[i]);
+	}
+
+	isc_mem_put(mctx, hm, STRUCT_FLEX_SIZE(hm, hg, hm->size));
+}
+
+void
+isc_histomulti_merge(isc_histo_t **hgp, isc_histomulti_t *hm) {
+	REQUIRE(HISTOMULTI_VALID(hm));
+
+	for (uint i = 0; i < hm->size; i++) {
+		isc_histo_merge(hgp, hm->hg[i]);
+	}
+}
+
+void
+isc_histomulti_add(isc_histomulti_t *hm, uint64_t value, uint64_t inc) {
+	REQUIRE(HISTOMULTI_VALID(hm));
+	isc_histo_t *hg = hm->hg[isc_tid()];
+	add_key_count(hg, value_to_key(hg, value), inc);
+}
+
+void
+isc_histomulti_inc(isc_histomulti_t *hm, uint64_t value) {
+	isc_histomulti_add(hm, value, 1);
 }
 
 /**********************************************************************/

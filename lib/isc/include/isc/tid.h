@@ -22,6 +22,12 @@ ISC_LANG_BEGINDECLS
 #define ISC_TID_UNKNOWN UINT32_MAX
 
 uint32_t
+isc_tid_count(void);
+/*%<
+ * Returns the number of threads.
+ */
+
+uint32_t
 isc_tid(void);
 /*%<
  * Returns the thread ID of the currently-running loop.
@@ -31,5 +37,8 @@ isc_tid(void);
 
 void
 isc__tid_init(uint32_t tid);
+
+void
+isc__tid_initcount(uint32_t count);
 
 ISC_LANG_ENDDECLS
