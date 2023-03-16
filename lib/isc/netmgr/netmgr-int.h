@@ -26,6 +26,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
+#include <isc/proxy2.h>
 #include <isc/quota.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
@@ -110,6 +111,9 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  */
 #define ISC_NM_NMHANDLES_MAX 64
 #define ISC_NM_UVREQS_MAX    64
+
+/*% ISC_PROXY2_MIN_AF_UNIX_SIZE is the largest type when TLVs are not used */
+#define ISC_NM_PROXY2_DEFAULT_BUFFER_SIZE (ISC_PROXY2_MIN_AF_UNIX_SIZE)
 
 /*
  * Define ISC_NETMGR_TRACE to activate tracing of handles and sockets.
@@ -244,6 +248,7 @@ struct isc_nmhandle {
 
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
+	bool proxy_is_unspec;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
 	isc_nm_opaquecb_t dofree;  /* free extra callback, external */
 #if ISC_NETMGR_TRACE
@@ -536,6 +541,20 @@ struct isc_nmsocket {
 		bool dot_alpn_negotiated;
 		const char *tls_verify_error;
 	} streamdns;
+
+	struct {
+		isc_nmsocket_t *sock;
+		bool reading;
+		size_t nsending;
+		void *send_req;
+		union {
+			isc_proxy2_handler_t *handler; /* server */
+			isc_buffer_t *outbuf;	       /* client */
+		} proxy2;
+		bool header_processed;
+		bool extra_processed; /* data arrived past header processed */
+	} proxy;
+
 	/*%
 	 * pquota is a non-attached pointer to the TCP client quota, stored in
 	 * listening sockets.
@@ -1136,6 +1155,71 @@ void
 isc__nm_streamdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 				 bool async);
 
+bool
+isc__nm_valid_proxy_addresses(const isc_sockaddr_t *src,
+			      const isc_sockaddr_t *dst);
+
+void
+isc__nm_proxystream_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
+				   bool async);
+
+void
+isc__nm_proxystream_stoplistening(isc_nmsocket_t *sock);
+
+void
+isc__nm_proxystream_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nmhandle_proxystream_cleartimeout(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_proxystream_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+
+void
+isc__nmhandle_proxystream_keepalive(isc_nmhandle_t *handle, bool value);
+
+void
+isc__nmhandle_proxystream_setwritetimeout(isc_nmhandle_t *handle,
+					  uint64_t write_timeout);
+
+void
+isc__nmsocket_proxystream_reset(isc_nmsocket_t *sock);
+
+bool
+isc__nmsocket_proxystream_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_proxystream_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_proxystream_timer_stop(isc_nmsocket_t *sock);
+
+void
+isc__nmhandle_proxystream_set_manual_timer(isc_nmhandle_t *handle,
+					   const bool manual);
+
+isc_result_t
+isc__nmhandle_proxystream_set_tcp_nodelay(isc_nmhandle_t *handle,
+					  const bool value);
+
+void
+isc__nm_proxystream_read_stop(isc_nmhandle_t *handle);
+
+void
+isc__nm_proxystream_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_proxystream_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
+			 void *cbarg);
+
+void
+isc__nm_proxystream_send(isc_nmhandle_t *handle, isc_region_t *region,
+			 isc_nm_cb_t cb, void *cbarg);
+
+void
+isc__nm_proxystream_senddns(isc_nmhandle_t *handle, isc_region_t *region,
+			    isc_nm_cb_t cb, void *cbarg);
+
 void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
@@ -1322,6 +1406,14 @@ isc__nmsocket_log(const isc_nmsocket_t *sock, int level, const char *fmt, ...)
 void
 isc__nmhandle_log(const isc_nmhandle_t *handle, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+
+void
+isc__nm_received_proxy_header_log(isc_nmhandle_t *handle,
+				  const isc_proxy2_command_t cmd,
+				  const int socktype,
+				  const isc_sockaddr_t *restrict src_addr,
+				  const isc_sockaddr_t *restrict dst_addr,
+				  const isc_region_t *restrict tlvs);
 
 void
 isc__nmhandle_set_manual_timer(isc_nmhandle_t *handle, const bool manual);

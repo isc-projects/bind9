@@ -106,6 +106,7 @@ libisc_la_SOURCES =		\
 	$(libisc_la_HEADERS)	\
 	netmgr/netmgr-int.h	\
 	netmgr/netmgr.c		\
+	netmgr/proxystream.c	\
 	netmgr/socket.c		\
 	netmgr/streamdns.c	\
 	netmgr/tcp.c		\

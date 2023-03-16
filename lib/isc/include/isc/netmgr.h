@@ -21,6 +21,7 @@
 #include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
+#include <isc/sockaddr.h>
 #include <isc/tls.h>
 #include <isc/types.h>
 
@@ -85,6 +86,21 @@ typedef void (*isc_nm_opaquecb_t)(void *arg);
 /*%<
  * Opaque callback function, used for isc_nmhandle 'reset' and 'free'
  * callbacks.
+ */
+
+typedef struct isc_nm_proxyheader_info {
+	bool complete;
+	union {
+		isc_region_t complete_header; /* complete header data */
+		struct {
+			isc_sockaddr_t src_addr;
+			isc_sockaddr_t dst_addr;
+			isc_region_t   tlv_data;
+		} proxy_info; /* information to put into the new header */
+	};
+} isc_nm_proxyheader_info_t;
+/*%<
+ * Information to put into the PROXYv2 header when establishing a connection.
  */
 
 void
@@ -227,6 +243,29 @@ isc_sockaddr_t
 isc_nmhandle_localaddr(isc_nmhandle_t *handle);
 /*%<
  * Return the local address for the given handle.
+ */
+
+isc_sockaddr_t
+isc_nmhandle_real_peeraddr(isc_nmhandle_t *handle);
+/*%<
+ * Return the real (as seen by the OS) peer address for the given
+ * handle even when PROXY protocol is used.
+ *
+ * NOTE: This function is intended mostly for a) implementing PROXYv2
+ * access control facilities and b) logging. Using it for anything
+ * else WILL break PROXYv2 support. Please consider using
+ * 'isc_nmhandle_peeraddr()' instead.
+ */
+isc_sockaddr_t
+isc_nmhandle_real_localaddr(isc_nmhandle_t *handle);
+/*%<
+ * Return the real (as seen by the OS) local address for the given
+ * handle even when PROXY protocol is used.
+ *
+ * NOTE: This function is intended mostly for a) implementing PROXYv2
+ * access control facilities and b) logging. Using it for anything
+ * else WILL break PROXYv2 support. Please consider using
+ * 'isc_nmhandle_localaddr()' instead.
  */
 
 isc_nm_t *
@@ -391,6 +430,68 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  * 'quota' is passed to isc_nm_listentcp() when opening the raw TCP socket.
  */
 
+isc_result_t
+isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+			 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
+			 int backlog, isc_quota_t *quota,
+			 isc_nmsocket_t **sockp);
+/*%<
+ * Start listening for data preceded by a PROXYv2 header over the
+ * TCP on interface 'iface', using net manager 'mgr'.
+ *
+ * On success, 'sockp' will be updated to contain a new listening TCP
+ * socket.
+ *
+ * When connection is accepted on the socket, 'accept_cb' will be called with
+ * 'accept_cbarg' as its argument. The callback is expected to start a read.
+ *
+ * If 'quota' is not NULL, then the socket is attached to the specified
+ * quota. This allows us to enforce TCP client quota limits.
+ */
+
+void
+isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
+			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
+			  unsigned int		     timeout,
+			  isc_nm_proxyheader_info_t *proxy_info);
+/*%<
+ * Create a TCP socket using netmgr 'mgr', bind it to the address
+ * 'local', and connect it to the address 'peer'. Right after the
+ * connection has been established, send PROXYv2 header using the
+ * information provided via the 'proxy_info' to the remote peer. Then
+ * the connection is considered established.
+ *
+ * If 'proxy_info' is omitted, then a LOCAL PROXYv2 header is sent.
+ *
+ * When the connection is established or has timed out, call 'cb' with
+ * argument 'cbarg'.
+ *
+ * 'timeout' specifies the timeout interval in milliseconds.
+ *
+ * The connected socket can only be accessed via the handle passed to
+ * 'cb'.
+ */
+
+void
+isc_nm_proxyheader_info_init(isc_nm_proxyheader_info_t *restrict info,
+			     isc_sockaddr_t *restrict src_addr,
+			     isc_sockaddr_t *restrict dst_addr,
+			     isc_region_t *restrict tlv_data);
+/*%<
+ * Initialize a 'isc_nm_proxyheader_info_t' object with user
+ * provided addresses and a TLVs blob, that can be omitted (the rest
+ * of the data is REQUIRE()d).
+ */
+
+void
+isc_nm_proxyheader_info_init_complete(isc_nm_proxyheader_info_t *restrict info,
+				      isc_region_t *restrict header_data);
+/*%<
+ * Initialize a 'isc_nm_proxyheader_info_t' with user provided data
+ * blob (e.g. a pre-rendered PROXYv2 header for forwarding or
+ * testing).
+ */
+
 void
 isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised);
@@ -497,6 +598,19 @@ isc_nm_is_http_handle(isc_nmhandle_t *handle);
 /*%<
  * Returns 'true' iff 'handle' is associated with a socket of type
  * 'isc_nm_httpsocket'.
+ */
+
+bool
+isc_nm_is_proxy_unspec(isc_nmhandle_t *handle);
+/*%<
+ * Returns 'true' iff 'handle' is associated with a peer who send
+ * a PROXYv2 header with unsupported address type.
+ */
+
+bool
+isc_nm_is_proxy_handle(isc_nmhandle_t *handle);
+/*%< Returns 'true' iff 'handle' is associated is with a PROXYv2
+ * connection.
  */
 
 isc_result_t
