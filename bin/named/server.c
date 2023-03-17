@@ -7548,7 +7548,8 @@ generate_session_key(const char *filename, const char *keynamestr,
 	/* Store the key in tsigkey. */
 	isc_stdtime_get(&now);
 	CHECK(dns_tsigkey_createfromkey(dst_key_name(key), algname, key, false,
-					NULL, now, now, mctx, NULL, &tsigkey));
+					false, NULL, now, now, mctx, NULL,
+					&tsigkey));
 
 	/* Dump the key to the key file. */
 	fp = named_os_openfile(filename, S_IRUSR | S_IWUSR, first_time);

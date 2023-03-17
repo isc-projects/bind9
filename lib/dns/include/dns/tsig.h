@@ -72,15 +72,16 @@ struct dns_tsigkey {
 	/* Unlocked */
 	unsigned int	    magic; /*%< Magic number. */
 	isc_mem_t	   *mctx;
-	dst_key_t	   *key;       /*%< Key */
-	dns_name_t	    name;      /*%< Key name */
-	const dns_name_t   *algorithm; /*%< Algorithm name */
-	dns_name_t	   *creator;   /*%< name that created secret */
-	bool		    generated; /*%< was this generated? */
-	isc_stdtime_t	    inception; /*%< start of validity period */
-	isc_stdtime_t	    expire;    /*%< end of validity period */
-	dns_tsig_keyring_t *ring;      /*%< the enclosing keyring */
-	isc_refcount_t	    refs;      /*%< reference counter */
+	dst_key_t	   *key;	   /*%< Key */
+	dns_name_t	    name;	   /*%< Key name */
+	const dns_name_t   *algorithm;	   /*%< Algorithm name */
+	dns_name_t	   *creator;	   /*%< name that created secret */
+	bool		    generated : 1; /*%< key was auto-generated */
+	bool		    restored  : 1; /*%< key was restored at startup */
+	isc_stdtime_t	    inception;	   /*%< start of validity period */
+	isc_stdtime_t	    expire;	   /*%< end of validity period */
+	dns_tsig_keyring_t *ring;	   /*%< the enclosing keyring */
+	isc_refcount_t	    refs;	   /*%< reference counter */
 	ISC_LINK(dns_tsigkey_t) link;
 };
 
@@ -102,13 +103,14 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey);
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		   unsigned char *secret, int length, bool generated,
-		   const dns_name_t *creator, isc_stdtime_t inception,
-		   isc_stdtime_t expire, isc_mem_t *mctx,
-		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
+		   bool restored, const dns_name_t *creator,
+		   isc_stdtime_t inception, isc_stdtime_t expire,
+		   isc_mem_t *mctx, dns_tsig_keyring_t *ring,
+		   dns_tsigkey_t **key);
 
 isc_result_t
 dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
-			  dst_key_t *dstkey, bool generated,
+			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);

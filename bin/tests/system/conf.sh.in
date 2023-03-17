@@ -56,8 +56,6 @@ export WIRETEST=$TOP_BUILDDIR/bin/tests/wire_test
 
 export BIGKEY=$TOP_BUILDDIR/bin/tests/system/rsabigexponent/bigkey
 export GENCHECK=$TOP_BUILDDIR/bin/tests/system/rndc/gencheck
-export KEYCREATE=$TOP_BUILDDIR/bin/tests/system/tkey/keycreate
-export KEYDELETE=$TOP_BUILDDIR/bin/tests/system/tkey/keydelete
 export MAKEJOURNAL=$TOP_BUILDDIR/bin/tests/system/makejournal
 export PIPEQUERIES=$TOP_BUILDDIR/bin/tests/system/pipelined/pipequeries
 

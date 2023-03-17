@@ -884,8 +884,8 @@ setup_text_key(void) {
 	}
 
 	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
-				    (int)secretsize, false, NULL, 0, 0, mctx,
-				    NULL, &tsigkey);
+				    (int)secretsize, false, false, NULL, 0, 0,
+				    mctx, NULL, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n", keynametext,
@@ -1186,8 +1186,8 @@ setup_file_key(void) {
 
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(
-			dst_key_name(dstkey), hmacname, dstkey, false, NULL, 0,
-			0, mctx, NULL, &tsigkey);
+			dst_key_name(dstkey), hmacname, dstkey, false, false,
+			NULL, 0, 0, mctx, NULL, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't create key %s: %s\n", keynametext,
 			       isc_result_totext(result));
