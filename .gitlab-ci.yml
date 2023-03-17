@@ -1345,7 +1345,6 @@ respdiff-short:asan:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  allow_failure: true
 
 respdiff-short:tsan:
   <<: *respdiff_job
@@ -1362,7 +1361,6 @@ respdiff-short:tsan:
   after_script:
     - *find_python
     - *parse_tsan
-  allow_failure: true
 
 respdiff-long:
   <<: *respdiff_job
@@ -1385,7 +1383,6 @@ respdiff-long:asan:
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
-  allow_failure: true
 
 respdiff-long:tsan:
   <<: *respdiff_job
@@ -1402,7 +1399,6 @@ respdiff-long:tsan:
   after_script:
     - *find_python
     - *parse_tsan
-  allow_failure: true
 
 respdiff-long-third-party:
   <<: *respdiff_job
