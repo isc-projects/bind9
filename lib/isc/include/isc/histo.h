@@ -28,17 +28,16 @@
  * The bits <-> digits functions convert betwen decimal significant
  * digits (as in scientific notation) and binary significant bits.
  *
- * At the low end (near zero) there is one value per bucket, then two
- * values, four, etc.
- *
  * You can use the `isc_histo_get()` function to export data from the
  * histogram. The range of a bucket is returned as its minimum and
- * maximum values, inclusive, i.e. a closed interval. Closed intervals
- * are more inconvenient than half-open intervals, and half-open
- * intervals are more common in C. We use closed intervals so we are
- * able to express the maximum of the last bucket, UINT64_MAX, and
- * because OpenMetrics histograms describe buckets as
- * less-than-or-equal to a particular value.
+ * maximum values, inclusive, i.e. a closed interval. We use closed
+ * intervals so we are able to express the maximum of the last bucket,
+ * UINT64_MAX, although half-open intervals are more common in C.
+ *
+ * You can calculate some basic statistics directly from a histogram.
+ * The `isc_histo_quantiles()` function can get a histogram's median,
+ * 99th percentile, etc. The `isc_histo_moments()` function gets a
+ * histogram's population, mean, and standard deviation.
  *
  * The size of a histogram depends on the range of values in the
  * stream of samples, not the number of samples. Bucket counters are
@@ -47,45 +46,32 @@
  * most 64 chunks, one for each bit of a 64 bit value. Histograms with
  * greater precision have larger chunks.
  *
- * The number of values that map to a bucket (1, 2, 4, 8, ...) is the
- * same in each chunk. Chunks 0 and 1 have one value per bucket, (see
- * `ISC_HISTO_UNITBUCKETS()` below), chunk 2 has 2 values per bucket,
- * and they increase by a factor of 2 in each successive bucket.
+ * At the low end (values near zero) there is one value per bucket,
+ * then two values, four, eight, etc. The number of values that map to
+ * a bucket is the same in each chunk. Chunks 0 and 1 have one value
+ * per bucket, (see `ISC_HISTO_UNITBUCKETS()` below), chunk 2 has 2
+ * values per bucket, chunk 3 has 4, etc.
  *
  * The update cost is roughly constant and very small (not much more
  * than an atomic increment). It mostly depends on cache locality and
  * thread contention.
  *
- * To get statistical properties of a histogram (population, mean,
- * standard deviation, CDF, quantiles, ranks) you must first construct
- * an `isc_histosummary_t`. A summary is a read-only snapshot of a
- * histogram augmented with information for calculating statistics
- * more efficiently.
- *
- * There is no overflow checking for bucket counters. It takes a few
- * nanoseconds to add a sample to the histogram, so it would take at
- * least a few CPU-centuries to cause an overflow. Aggregate
- * statistics from a quarter of a million CPUs might overflow in a
- * day. (Provided that in both examples the CPUs are doing nothing
- * apart from repeatedly adding 1 to histogram buckets.)
+ * There is no overflow checking for the 64 bit bucket counters. It
+ * takes a few nanoseconds to add a sample to the histogram, so it
+ * would take at least a few CPU-centuries to cause an overflow.
+ * Aggregate statistics from a quarter of a million CPUs might
+ * overflow in a day. (Provided that in both examples the CPUs are
+ * doing nothing apart from repeatedly adding 1 to histogram buckets.)
  */
 
-typedef struct isc_histo	isc_histo_t;
-typedef struct isc_histosummary isc_histosummary_t;
-typedef struct isc_histomulti	isc_histomulti_t;
+typedef struct isc_histo      isc_histo_t;
+typedef struct isc_histomulti isc_histomulti_t;
 
-/*
- * For functions that can take either type.
- */
-typedef union isc_historead {
-	const isc_histo_t	 *hg;
-	const isc_histosummary_t *hs;
-} isc_historead_t __attribute__((__transparent_union__));
-
-#define ISC_HISTO_MINBITS   1
-#define ISC_HISTO_MAXBITS   18
-#define ISC_HISTO_MINDIGITS 1
-#define ISC_HISTO_MAXDIGITS 6
+#define ISC_HISTO_MINBITS      1
+#define ISC_HISTO_MAXBITS      18
+#define ISC_HISTO_MINDIGITS    1
+#define ISC_HISTO_MAXDIGITS    6
+#define ISC_HISTO_MAXQUANTILES 101 /* enough for all the percentiles */
 
 /*
  * How many values map 1:1 to buckets for a given number of sigbits?
@@ -126,7 +112,7 @@ isc_histo_destroy(isc_histo_t **hgp);
  */
 
 uint
-isc_histo_sigbits(isc_historead_t hr);
+isc_histo_sigbits(isc_histo_t *hg);
 /*%<
  * Get the histogram's `sigbits` setting
  *
@@ -195,7 +181,7 @@ isc_histo_put(isc_histo_t *hg, uint64_t min, uint64_t max, uint64_t count);
  */
 
 isc_result_t
-isc_histo_get(isc_historead_t hr, uint key, uint64_t *minp, uint64_t *maxp,
+isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
 	      uint64_t *countp);
 /*%<
  * Export information about a bucket.
@@ -218,7 +204,7 @@ isc_histo_get(isc_historead_t hr, uint key, uint64_t *minp, uint64_t *maxp,
  * which can be zero.
  *
  * Requires:
- *\li	`hr` is a pointer to a valid histogram or summary
+ *\li	`hg` is a pointer to a valid histogram
  *
  * Returns:
  *\li	ISC_R_SUCCESS, if `key` is valid
@@ -226,7 +212,7 @@ isc_histo_get(isc_historead_t hr, uint key, uint64_t *minp, uint64_t *maxp,
  */
 
 void
-isc_histo_next(isc_historead_t hr, uint *keyp);
+isc_histo_next(const isc_histo_t *hg, uint *keyp);
 /*%<
  * Skip to the next key, omitting chunks of unallocated buckets.
  *
@@ -245,12 +231,12 @@ isc_histo_next(isc_historead_t hr, uint *keyp);
  *	}
  *
  * Requires:
- *\li	`hr` is a pointer to a valid histogram or summary
+ *\li	`hg` is a pointer to a valid histogram
  *\li	`keyp != NULL`
  */
 
 void
-isc_histo_merge(isc_histo_t **targetp, isc_historead_t source);
+isc_histo_merge(isc_histo_t **targetp, const isc_histo_t *source);
 /*%<
  * Increase the counts in `*ptarget` by the counts recorded in `source`
  *
@@ -264,7 +250,7 @@ isc_histo_merge(isc_histo_t **targetp, isc_historead_t source);
  * Requires:
  *\li	`targetp != NULL`
  *\li	`*targetp` is NULL or a pointer to a valid histogram
- *\li	`source` is a pointer to a valid histogram or summary
+ *\li	`source` is a pointer to a valid histogram
  *
  * Ensures:
  *\li	`*targetp` is a pointer to a valid histogram
@@ -307,7 +293,7 @@ isc_histomulti_destroy(isc_histomulti_t **hmp);
  */
 
 void
-isc_histomulti_merge(isc_histo_t **targetp, isc_histomulti_t *source);
+isc_histomulti_merge(isc_histo_t **targetp, const isc_histomulti_t *source);
 /*%<
  * Increase the counts in `*targetp` by the counts recorded in `source`
  *
@@ -343,37 +329,9 @@ isc_histomulti_add(isc_histomulti_t *hm, uint64_t value, uint64_t inc);
 /**********************************************************************/
 
 void
-isc_histosummary_create(const isc_histo_t *hg, isc_histosummary_t **hsp);
+isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1, double *pm2);
 /*%<
- * Summarize a histogram for rank and quantile calculations.
- *
- * Requires:
- *\li	`hg` is a pointer to a valid histogram
- *\li	`hsp != NULL`
- *\li	`*hsp == NULL`
- *
- * Ensures:
- *\li	`*hsp` is a pointer to a histogram summary
- */
-
-void
-isc_histosummary_destroy(isc_histosummary_t **hsp);
-/*%<
- * Destroy a histogram summary
- *
- * Requires:
- *\li	`hsp != NULL`
- *\li	`*hsp` is a pointer to a valid histogram summary
- *
- * Ensures:
- *\li	all memory allocated by the summary has been released
- *\li	`*hsp == NULL`
- */
-
-void
-isc_histo_moments(isc_historead_t hr, double *pm0, double *pm1, double *pm2);
-/*%<
- * Get the population, mean, and standard deviation of a histogram
+ * Get the population, mean, and standard deviation of a histogram.
  *
  * If `pm0` is non-NULL it is set to the population of the histogram.
  * (Strictly speaking, the zeroth moment is `pop / pop == 1`.)
@@ -385,99 +343,49 @@ isc_histo_moments(isc_historead_t hr, double *pm0, double *pm1, double *pm2);
  * recorded data. The standard deviation is the square root of the
  * variance, which is the second moment about the mean.
  *
+ * It is safe if the histogram is concurrently modified.
+ *
  * Requires:
- *\li	`hr` is a pointer to a valid histogram or summary
+ *\li	`hg` is a pointer to a valid histogram
  */
 
 isc_result_t
-isc_histo_value_at_rank(const isc_histosummary_t *hs, uint64_t rank,
-			uint64_t *valuep);
-/*%<
- * Get the approximate value at a given rank in the recorded data.
- *
- * The value at rank 0 is the minimum of the bucket containing the
- * smallest value added to the histogram.
- *
- * The value at rank equal to the population is the maximum of the
- * bucket containing the largest value added to the histogram.
- *
- * Greater ranks return a range error.
- *
- * Note: this function is slow for high-precision histograms
- * (more than 3 significant digits).
- *
- * Requires:
- *\li	`hs` is a pointer to a valid histogram summary
- *\li	`valuep != NULL`
- *
- * Returns:
- *\li	ISC_R_SUCCESS, if `rank` is within bounds
- *\li	ISC_R_RANGE, otherwise
- */
-
-void
-isc_histo_rank_of_value(const isc_histosummary_t *hs, uint64_t value,
-			uint64_t *rankp);
-/*%<
- * Get the approximate rank of a value in the recorded data.
- *
- * You can query the rank of any value.
- *
- * Note: this function is slow for high-precision histograms
- * (more than 3 significant digits).
- *
- * Requires:
- *\li	`hs` is a pointer to a valid histogram summary
- *\li	`rankp != NULL`
- */
-
-isc_result_t
-isc_histo_quantile(const isc_histosummary_t *hs, double proportion,
-		   uint64_t *valuep);
+isc_histo_quantiles(const isc_histo_t *hg, uint size, const double *fraction,
+		    uint64_t *value);
 /*%<
  * The quantile function (aka inverse cumulative distribution function)
- * of the histogram. What value is greater than the given proportion of
+ * of the histogram. What value is greater than the given fraction of
  * the population?
  *
- * A proportion of 0.5 gets the median value: it is greater than half
+ * A fraction of 0.5 gets the median value: it is greater than half
  * the population. 0.75 gets the third quartile value, and 0.99 gets
- * the 99th percentile value. The proportion should be between 0.0 and
- * 1.0 inclusive.
+ * the 99th percentile value. The fraction must be between 0.0 and 1.0
+ * inclusive.
  *
  * https://enwp.org/Quantile_function
  *
- * Note: this function is slow for high-precision histograms
- * (more than 3 significant digits).
+ * This implementation allows you to query quantile values for
+ * multiple fractions in one function call. Internally, it makes one
+ * linear scan over the histogram's buckets to find all the fractions.
+ * Buckets are scanned from high to low, so that querying large
+ * quantiles is more efficient. The `fraction` array must be sorted in
+ * decreasing order. The results are stored in the `value` array. Both
+ * arrays have `size` elements.
+ *
+ * The results may be nonsense if the histogram is concurrently
+ * modified. To get a stable copy you can call `isc_histo_merge()`.
  *
  * Requires:
- *\li	`hs` is a pointer to a valid histogram summary
- *\li	`valuep != NULL`
+ *\li	`hg` is a pointer to a valid histogram
+ *\li	`0 < size && size <= ISC_HISTO_MAXQUANTILES`
+ *\li	`fraction != NULL`
+ *\li	`value != NULL`
+ *\li	`0.0 <= fraction[i] && fraction[i] <= 1.0` for every element
+ *\li	`fraction[i - 1] > fraction[i]` for every pair of elements
  *
  * Returns:
- *\li	ISC_R_SUCCESS, if the proportion is in bounds
- *\li	ISC_R_RANGE, otherwise
- */
-
-void
-isc_histo_cdf(const isc_histosummary_t *hs, uint64_t value,
-	      double *proportionp);
-/*%<
- * The cumulative distribution function of the histogram. Given a
- * value, what proportion of the population have smaller values?
- * You can query any value.
- *
- * If the value is the median, the proportion is 0.5. The proportion
- * of the third quartile value is 0.75, and the proportion of the 99th
- * percentile value is 0.99.
- *
- * https://enwp.org/Cumulative_distribution_function
- *
- * Note: this function is slow for high-precision histograms
- * (more than 3 significant digits).
- *
- * Requires:
- *\li	`hs` is a pointer to a valid histogram summary
- *\li	`proportionp != NULL`
+ *\li	ISC_R_SUCCESS, if results were stored in the `value` array
+ *\li	ISC_R_UNSET, if the histogram is empty
  */
 
 /**********************************************************************/

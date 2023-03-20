@@ -32,6 +32,8 @@
 
 #define TIME_LIMIT (123 * NS_PER_MS)
 
+#define SUBRANGE 69
+
 #if VERBOSE
 
 #define TRACE(fmt, ...)                                                        \
@@ -117,18 +119,106 @@ ISC_RUN_TEST_IMPL(basics) {
 			prev_max = max;
 			key++;
 			result = isc_histo_get(hg, key, &min, &max, &count);
+
+			/* these tests can be slow */
+			if (isc_time_monotonic() > start + TIME_LIMIT) {
+				break;
+			}
 		}
 
-		/* last bucket goes up to last possible value */
-		assert_int_equal(max, UINT64_MAX);
+		/* if we did not stop early */
+		if (result != ISC_R_SUCCESS) {
+			/* last bucket goes up to last possible value */
+			assert_int_equal(max, UINT64_MAX);
 
-		double pop;
-		isc_histo_moments(hg, &pop, NULL, NULL);
-		assert_int_equal((uint64_t)pop, key * 8);
+			double pop;
+			isc_histo_moments(hg, &pop, NULL, NULL);
+			assert_int_equal((uint64_t)pop, key * 8);
+		}
 
 		isc_histo_destroy(&hg);
 
 		TRACETIME("%u keys", key);
+	}
+}
+
+ISC_RUN_TEST_IMPL(quantiles) {
+	for (uint bits = ISC_HISTO_MINBITS; bits <= ISC_HISTO_MAXBITS; bits++) {
+		isc_result_t result;
+		uint64_t min, max, count;
+		double pop;
+		uint key;
+
+		isc_nanosecs_t start = isc_time_monotonic();
+
+		isc_histo_t *hg = NULL;
+		isc_histo_create(mctx, bits, &hg);
+
+		for (key = 0; isc_histo_get(hg, key, &min, &max, &count) ==
+			      ISC_R_SUCCESS;
+		     key++)
+		{
+			/* inc twice so we can check bucket's midpoint */
+			assert_int_equal(count, 0);
+			isc_histo_inc(hg, min);
+			isc_histo_inc(hg, max);
+		}
+
+		const uint buckets = key;
+
+		/* no incs were lost */
+		isc_histo_moments(hg, &pop, NULL, NULL);
+		assert_float_equal(pop, buckets * 2, 0.5);
+
+		/* two ranks per bucket */
+		const uint quantum = ISC_HISTO_MAXQUANTILES / 2 - 1;
+		uint64_t value[ISC_HISTO_MAXQUANTILES];
+		double frac[ISC_HISTO_MAXQUANTILES];
+		uint base = 0;
+
+		for (key = 0; key < buckets; key++) {
+			/* fill in the values one quantum at a time */
+			if (key == 0 || key % quantum == buckets % quantum) {
+				base = key;
+				for (uint k = 0; k < quantum; k++) {
+					double rank = (base + k) * 2;
+					uint i = (quantum - k) * 2;
+					frac[i - 1] = (rank + 1.0) / pop;
+					frac[i - 0] = rank / pop;
+				}
+				frac[0] = (base + quantum) * 2 / pop;
+				result = isc_histo_quantiles(
+					hg, quantum * 2 + 1, frac, value);
+				assert_int_equal(result, ISC_R_SUCCESS);
+			}
+
+			result = isc_histo_get(hg, key, &min, &max, &count);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_int_equal(count, 2);
+
+			uint64_t lomin = min == 0 ? min : min - 1;
+			uint64_t himin = min;
+			uint64_t lomid = floor(min / 2.0 + max / 2.0);
+			uint64_t himid = ceil(min / 2.0 + max / 2.0);
+			uint64_t lomax = max;
+			uint64_t himax = max == UINT64_MAX ? max : max + 1;
+
+			uint i = (quantum + base - key) * 2;
+
+			/* check fenceposts */
+			assert_in_range(value[i - 0], lomin, himin);
+			assert_in_range(value[i - 1], lomid, himid);
+			assert_in_range(value[i - 2], lomax, himax);
+
+			/* these tests can be slow */
+			if (isc_time_monotonic() > start + TIME_LIMIT) {
+				break;
+			}
+		}
+
+		isc_histo_destroy(&hg);
+
+		TRACETIME("");
 	}
 }
 
@@ -183,106 +273,26 @@ ISC_RUN_TEST_IMPL(sigfigs) {
 	}
 }
 
-ISC_RUN_TEST_IMPL(summary) {
-	for (uint bits = ISC_HISTO_MINBITS; bits <= ISC_HISTO_MAXBITS; bits++) {
-		isc_result_t result;
-		uint64_t min, max, count, value, rank, lorank, hirank;
-		double pop;
-		uint key;
-
-		isc_nanosecs_t start = isc_time_monotonic();
-
-		isc_histo_t *hg = NULL;
-		isc_histo_create(mctx, bits, &hg);
-
-		for (key = 0; isc_histo_get(hg, key, &min, &max, &count) ==
-			      ISC_R_SUCCESS;
-		     key++)
-		{
-			/* inc twice so we can check bucket's midpoint */
-			assert_int_equal(count, 0);
-			isc_histo_inc(hg, min);
-			isc_histo_inc(hg, max);
-		}
-
-		isc_histosummary_t *hs = NULL;
-		isc_histosummary_create(hg, &hs);
-
-		/* no incs were lost */
-		isc_histo_moments(hg, &pop, NULL, NULL);
-		assert_float_equal(pop, 2 * key, 0.5);
-
-		isc_histo_destroy(&hg);
-
-		for (key = 0; isc_histo_get(hs, key, &min, &max, &count) ==
-			      ISC_R_SUCCESS;
-		     isc_histo_next(hs, &key))
-		{
-			uint64_t lomin = min == 0 ? min : min - 1;
-			uint64_t himin = min;
-			uint64_t lomid = floor(min / 2.0 + max / 2.0);
-			uint64_t himid = ceil(min / 2.0 + max / 2.0);
-			uint64_t lomax = max;
-			uint64_t himax = max == UINT64_MAX ? max : max + 1;
-
-			assert_int_equal(count, 2);
-
-			rank = key * 2;
-
-			/* check fenceposts */
-			result = isc_histo_value_at_rank(hs, rank, &value);
-			assert_int_equal(result, ISC_R_SUCCESS);
-			assert_in_range(value, lomin, himin);
-			result = isc_histo_value_at_rank(hs, rank + 1, &value);
-			assert_int_equal(result, ISC_R_SUCCESS);
-			assert_in_range(value, lomid, himid);
-			result = isc_histo_value_at_rank(hs, rank + 2, &value);
-			assert_int_equal(result, ISC_R_SUCCESS);
-			assert_in_range(value, lomax, himax);
-
-			isc_histo_rank_of_value(hs, min, &rank);
-			assert_int_equal(rank, key * 2);
-
-			/* only if the bucket covers enough distinct values */
-
-			if (min < lomid) {
-				rank = key * 2 + 1;
-				isc_histo_rank_of_value(hs, lomid, &lorank);
-				isc_histo_rank_of_value(hs, himid, &hirank);
-				assert_in_range(rank, lorank, hirank);
-			}
-
-			if (himid < max) {
-				rank = key * 2 + 2;
-				isc_histo_rank_of_value(hs, lomax, &lorank);
-				isc_histo_rank_of_value(hs, himax, &hirank);
-				assert_in_range(rank, lorank, hirank);
-			}
-
-			/* these tests can be slow */
-			if (isc_time_monotonic() > start + TIME_LIMIT) {
-				break;
-			}
-		}
-
-		isc_histosummary_destroy(&hs);
-
-		TRACETIME("");
-	}
-}
-
 ISC_RUN_TEST_IMPL(subrange) {
 	for (uint bits = ISC_HISTO_MINBITS; bits <= ISC_HISTO_MAXBITS; bits++) {
 		isc_result_t result;
-		uint64_t min, max, count, value;
+		uint64_t min, max, count;
 
 		isc_nanosecs_t start = isc_time_monotonic();
 
 		isc_histo_t *hg = NULL;
 		isc_histo_create(mctx, bits, &hg);
 
-		uint buckets = 64;
-		for (uint key = 0, top = buckets - 1;; key++, top++) {
+		uint64_t value[SUBRANGE + 1];
+		double frac[SUBRANGE + 1];
+		for (uint i = 0; i <= SUBRANGE; i++) {
+			frac[i] = (double)(SUBRANGE - i) / (double)(SUBRANGE);
+		}
+
+		result = isc_histo_quantiles(hg, ARRAY_SIZE(frac), frac, value);
+		assert_int_equal(result, ISC_R_UNSET);
+
+		for (uint key = 0, top = SUBRANGE - 1;; key++, top++) {
 			if (isc_histo_get(hg, key, &min, NULL, NULL) !=
 			    ISC_R_SUCCESS)
 			{
@@ -293,27 +303,28 @@ ISC_RUN_TEST_IMPL(subrange) {
 			{
 				break;
 			}
-			isc_histo_put(hg, min, max, buckets);
+			/*
+			 * If we try adding more than one sample per bucket
+			 * here, the test fails when buckets have different
+			 * sizes because [min,max] spans multiple chunks.
+			 */
+			isc_histo_put(hg, min, max, SUBRANGE);
 
-			isc_histosummary_t *hs = NULL;
-			isc_histosummary_create(hg, &hs);
+			result = isc_histo_quantiles(hg, ARRAY_SIZE(frac), frac,
+						     value);
+			assert_int_equal(result, ISC_R_SUCCESS);
 
-			for (uint bucket = 0; bucket < buckets; bucket++) {
+			for (uint bucket = 0; bucket < SUBRANGE; bucket++) {
 				result = isc_histo_get(hg, key + bucket, &min,
 						       &max, &count);
 				assert_int_equal(result, ISC_R_SUCCESS);
 				/* did isc_histo_put() spread evenly? */
 				assert_int_equal(count, 1);
-				result = isc_histo_value_at_rank(hs, bucket,
-								 &value);
-				assert_int_equal(result, ISC_R_SUCCESS);
-				assert_int_equal(value, min);
+				/* do the quantile values match? */
+				assert_int_equal(value[SUBRANGE - bucket], min);
 			}
-			result = isc_histo_value_at_rank(hs, buckets, &value);
-			assert_int_equal(result, ISC_R_SUCCESS);
-			assert_int_equal(value, max);
+			assert_int_equal(value[0], max);
 
-			isc_histosummary_destroy(&hs);
 			isc_histo_destroy(&hg);
 			isc_histo_create(mctx, bits, &hg);
 
@@ -331,8 +342,8 @@ ISC_RUN_TEST_IMPL(subrange) {
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(basics)
+ISC_TEST_ENTRY(quantiles)
 ISC_TEST_ENTRY(sigfigs)
-ISC_TEST_ENTRY(summary)
 ISC_TEST_ENTRY(subrange)
 
 ISC_TEST_LIST_END
