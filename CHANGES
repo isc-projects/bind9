@@ -1,3 +1,9 @@
+6125.	[bug]		Hold a catz reference while the update process is
+			running, so that the catalog zone is not destroyed
+			during shutdown until the update process is finished or
+			properly canceled by the activated 'shuttingdown' flag.
+			[GL #3955]
+
 6124.	[bug]		When changing from a NSEC3 capable DNSSEC algorithm to
 			an NSEC3 incapable DNSSEC algorithm using KASP the zone
 			could sometimes be incompletely signed. [GL #3937]
