@@ -77,7 +77,11 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 }
 #endif
 
+#ifdef ISC_TEST_OPENSSL_MEMORY_LEAKS
 static atomic_bool handle_fatal = false;
+#else
+static atomic_bool handle_fatal = true;
+#endif
 
 #if !defined(LIBRESSL_VERSION_NUMBER)
 /*
