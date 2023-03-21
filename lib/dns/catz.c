@@ -2114,6 +2114,7 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
 	dns_catz_ref_catzs(catz->catzs);
+	dns_catz_ref_catz(catz);
 	isc_nm_work_offload(isc_task_getnetmgr(catz->catzs->updater),
 			    dns__catz_update_cb, dns__catz_done_cb, catz);
 
@@ -2592,6 +2593,7 @@ done:
 		      ISC_LOG_INFO, "catz: %s: reload done: %s", dname,
 		      isc_result_totext(result));
 
+	dns_catz_unref_catz(catz);
 	dns_catz_unref_catzs(catz->catzs);
 }
 
