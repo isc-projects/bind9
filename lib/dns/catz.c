@@ -2124,6 +2124,7 @@ dns__catz_timer_cb(void *arg) {
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
 	dns_catz_ref_catzs(catz->catzs);
+	dns_catz_ref_catz(catz);
 	isc_work_enqueue(catz->loop, dns__catz_update_cb, dns__catz_done_cb,
 			 catz);
 
@@ -2543,6 +2544,7 @@ dns__catz_done_cb(void *data) {
 		      ISC_LOG_INFO, "catz: %s: reload done: %s", dname,
 		      isc_result_totext(catz->updateresult));
 
+	dns_catz_unref_catz(catz);
 	dns_catz_unref_catzs(catz->catzs);
 }
 
