@@ -68,7 +68,6 @@ EXTRA_DIST =					\
 	../dnssec-guide				\
 	../misc/options				\
 	../misc/rndc.grammar			\
-	../misc/delegation-only.zoneopt		\
 	../misc/forward.zoneopt			\
 	../misc/hint.zoneopt			\
 	../misc/in-view.zoneopt			\

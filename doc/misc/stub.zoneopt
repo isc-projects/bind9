@@ -4,7 +4,6 @@ zone <string> [ <class> ] {
 	allow-query-on { <address_match_element>; ... };
 	check-names ( fail | warn | ignore );
 	database <string>;
-	delegation-only <boolean>; // deprecated
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	file <quoted_string>;
 	forward ( first | only );

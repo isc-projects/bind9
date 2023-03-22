@@ -1598,46 +1598,6 @@ default is used.
    is to prefer A records when responding to queries that arrived via
    IPv4 and AAAA when responding to queries that arrived via IPv6.
 
-.. namedconf:statement:: root-delegation-only
-   :tags: deprecated
-   :short: Turns on enforcement of delegation-only in top-level domains (TLDs) and root zones with an optional exclude list.
-
-   This turns on enforcement of delegation-only in top-level domains (TLDs)
-   and root zones with an
-   optional exclude list.
-
-   DS queries are expected to be made to and be answered by delegation-only
-   zones. Such queries and responses are treated as an exception to
-   delegation-only processing and are not converted to NXDOMAIN
-   responses, provided a CNAME is not discovered at the query name.
-
-   If a delegation-only zone server also serves a child zone, it is not
-   always possible to determine whether an answer comes from the
-   delegation-only zone or the child zone. SOA NS and DNSKEY records are
-   apex-only records and a matching response that contains these records
-   or DS is treated as coming from a child zone. RRSIG records are also
-   examined to see whether they are signed by a child zone, and the
-   authority section is examined to see if there is evidence that
-   the answer is from the child zone. Answers that are determined to be
-   from a child zone are not converted to NXDOMAIN responses. Despite
-   all these checks, there is still a possibility of false negatives when
-   a child zone is being served.
-
-   Similarly, false positives can arise from empty nodes (no records at
-   the name) in the delegation-only zone when the query type is not ``ANY``.
-
-   Note that some TLDs are not delegation-only; e.g., "DE", "LV", "US", and
-   "MUSEUM". This list is not exhaustive.
-
-   ::
-
-      options {
-          root-delegation-only exclude { "de"; "lv"; "us"; "museum"; };
-      };
-
-   This option is deprecated, and will be rendered non-operational in a
-   future release.
-
 .. namedconf:statement:: disable-algorithms
    :tags: dnssec
    :short: Disables DNSSEC algorithms from a specified zone.
@@ -6646,8 +6606,7 @@ Zone Types
    :any:`primary <type primary>` (or ``master``), :any:`secondary <type
    secondary>` (or ``slave``), :any:`mirror <type mirror>`, :any:`hint <type
    hint>`, :any:`stub <type stub>`, :any:`static-stub <type static-stub>`,
-   :any:`forward <type forward>`, :any:`redirect <type redirect>`, or
-   :any:`delegation-only <type delegation-only>`.
+   :any:`forward <type forward>`, or :any:`redirect <type redirect>`.
 
 .. namedconf:statement:: type primary
    :tags: zone
@@ -6872,23 +6831,6 @@ Zone Types
    When using :option:`rndc reload` without specifying a zone name, redirect
    zones are reloaded along with other zones.
 
-.. namedconf:statement:: type delegation-only
-   :tags: deprecated
-   :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.).
-
-   This zone type is used to enforce the delegation-only status of
-   infrastructure zones (e.g., COM, NET, ORG). Any answer that is received
-   without an explicit or implicit delegation in the authority section is
-   treated as NXDOMAIN. This does not apply to the zone apex, and should
-   not be applied to leaf zones.
-
-   :any:`delegation-only` has no effect on answers received from forwarders.
-
-   See caveats in :any:`root-delegation-only`.
-
-   This zone type is deprecated, and will be rendered non-operational in a
-   future release.
-
 .. namedconf:statement:: in-view
    :tags: view, zone
    :short: Specifies the view in which a given zone is defined.
@@ -7015,19 +6957,6 @@ Zone Options
 
 :any:`dialup`
    See the description of :any:`dialup` in :ref:`boolean_options`.
-
-.. namedconf:statement:: delegation-only
-   :tags: deprecated
-   :short: Indicates that a forward, hint, or stub zone is to be treated as a delegation-only type zone.
-
-   This flag only applies to forward, hint, and stub zones. If set to
-   ``yes``, then the zone is treated as if it is also a
-   delegation-only type zone.
-
-   See caveats in :any:`root-delegation-only`.
-
-   This option is deprecated, and will be rendered non-operational in a
-   future release.
 
 .. namedconf:statement:: file
    :tags: zone

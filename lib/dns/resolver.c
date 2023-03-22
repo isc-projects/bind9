@@ -728,7 +728,6 @@ release_fctx(fetchctx_t *fctx);
  *    - Check the parsed response for an OPT record and handle
  *      EDNS (rctx_opt(), rctx_edns()).
  *    - Check for a bad or lame server (rctx_badserver(), rctx_lameserver()).
- *    - Handle delegation-only zones (rctx_delonly_zone()).
  *    - If RCODE and ANCOUNT suggest this is a positive answer, and
  *      if so, call rctx_answer(): go to step 2.
  *    - If RCODE and NSCOUNT suggest this is a negative answer or a
@@ -929,9 +928,6 @@ static isc_result_t
 rctx_timedout(respctx_t *rctx);
 
 static void
-rctx_delonly_zone(respctx_t *rctx);
-
-static void
 rctx_ncache(respctx_t *rctx);
 
 /*%
@@ -990,208 +986,6 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 	}
 	ISC_LIST_APPEND(fctx->validators, validator, link);
 	return (ISC_R_SUCCESS);
-}
-
-static bool
-rrsig_fromchildzone(fetchctx_t *fctx, dns_rdataset_t *rdataset) {
-	dns_namereln_t namereln;
-	dns_rdata_rrsig_t rrsig;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	int order;
-	isc_result_t result;
-	unsigned int labels;
-
-	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		namereln = dns_name_fullcompare(&rrsig.signer, fctx->domain,
-						&order, &labels);
-		if (namereln == dns_namereln_subdomain) {
-			return (true);
-		}
-		dns_rdata_reset(&rdata);
-	}
-	return (false);
-}
-
-static bool
-fix_mustbedelegationornxdomain(dns_message_t *message, fetchctx_t *fctx) {
-	dns_name_t *name;
-	dns_name_t *domain = fctx->domain;
-	dns_rdataset_t *rdataset;
-	dns_rdatatype_t type;
-	isc_result_t result;
-	bool keep_auth = false;
-
-	if (message->rcode == dns_rcode_nxdomain) {
-		return (false);
-	}
-
-	/*
-	 * A DS RRset can appear anywhere in a zone, even for a delegation-only
-	 * zone.  So a response to an explicit query for this type should be
-	 * excluded from delegation-only fixup.
-	 *
-	 * SOA, NS, and DNSKEY can only exist at a zone apex, so a positive
-	 * response to a query for these types can never violate the
-	 * delegation-only assumption: if the query name is below a
-	 * zone cut, the response should normally be a referral, which should
-	 * be accepted; if the query name is below a zone cut but the server
-	 * happens to have authority for the zone of the query name, the
-	 * response is a (non-referral) answer.  But this does not violate
-	 * delegation-only because the query name must be in a different zone
-	 * due to the "apex-only" nature of these types.  Note that if the
-	 * remote server happens to have authority for a child zone of a
-	 * delegation-only zone, we may still incorrectly "fix" the response
-	 * with NXDOMAIN for queries for other types.  Unfortunately it's
-	 * generally impossible to differentiate this case from violation of
-	 * the delegation-only assumption.  Once the resolver learns the
-	 * correct zone cut, possibly via a separate query for an "apex-only"
-	 * type, queries for other types will be resolved correctly.
-	 *
-	 * A query for type ANY will be accepted if it hits an exceptional
-	 * type above in the answer section as it should be from a child
-	 * zone.
-	 *
-	 * Also accept answers with RRSIG records from the child zone.
-	 * Direct queries for RRSIG records should not be answered from
-	 * the parent zone.
-	 */
-
-	if (message->counts[DNS_SECTION_ANSWER] != 0 &&
-	    (fctx->type == dns_rdatatype_ns || fctx->type == dns_rdatatype_ds ||
-	     fctx->type == dns_rdatatype_soa ||
-	     fctx->type == dns_rdatatype_any ||
-	     fctx->type == dns_rdatatype_rrsig ||
-	     fctx->type == dns_rdatatype_dnskey))
-	{
-		result = dns_message_firstname(message, DNS_SECTION_ANSWER);
-		while (result == ISC_R_SUCCESS) {
-			name = NULL;
-			dns_message_currentname(message, DNS_SECTION_ANSWER,
-						&name);
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link))
-			{
-				if (!dns_name_equal(name, fctx->name)) {
-					continue;
-				}
-				type = rdataset->type;
-				/*
-				 * RRsig from child?
-				 */
-				if (type == dns_rdatatype_rrsig &&
-				    rrsig_fromchildzone(fctx, rdataset))
-				{
-					return (false);
-				}
-				/*
-				 * Direct query for apex records or DS.
-				 */
-				if (fctx->type == type &&
-				    (type == dns_rdatatype_ds ||
-				     type == dns_rdatatype_ns ||
-				     type == dns_rdatatype_soa ||
-				     type == dns_rdatatype_dnskey))
-				{
-					return (false);
-				}
-				/*
-				 * Indirect query for apex records or DS.
-				 */
-				if (fctx->type == dns_rdatatype_any &&
-				    (type == dns_rdatatype_ns ||
-				     type == dns_rdatatype_ds ||
-				     type == dns_rdatatype_soa ||
-				     type == dns_rdatatype_dnskey))
-				{
-					return (false);
-				}
-			}
-			result = dns_message_nextname(message,
-						      DNS_SECTION_ANSWER);
-		}
-	}
-
-	/*
-	 * A NODATA response to a DS query?
-	 */
-	if (fctx->type == dns_rdatatype_ds &&
-	    message->counts[DNS_SECTION_ANSWER] == 0)
-	{
-		return (false);
-	}
-
-	/* Look for referral or indication of answer from child zone? */
-	if (message->counts[DNS_SECTION_AUTHORITY] == 0) {
-		goto munge;
-	}
-
-	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-	while (result == ISC_R_SUCCESS) {
-		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			type = rdataset->type;
-			if (type == dns_rdatatype_soa &&
-			    dns_name_equal(name, domain))
-			{
-				keep_auth = true;
-			}
-
-			if (type != dns_rdatatype_ns &&
-			    type != dns_rdatatype_soa &&
-			    type != dns_rdatatype_rrsig)
-			{
-				continue;
-			}
-
-			if (type == dns_rdatatype_rrsig) {
-				if (rrsig_fromchildzone(fctx, rdataset)) {
-					return (false);
-				} else {
-					continue;
-				}
-			}
-
-			/* NS or SOA records. */
-			if (dns_name_equal(name, domain)) {
-				/*
-				 * If a query for ANY causes a negative
-				 * response, we can be sure that this is
-				 * an empty node.  For other type of queries
-				 * we cannot differentiate an empty node
-				 * from a node that just doesn't have that
-				 * type of record.  We only accept the former
-				 * case.
-				 */
-				if (message->counts[DNS_SECTION_ANSWER] == 0 &&
-				    fctx->type == dns_rdatatype_any)
-				{
-					return (false);
-				}
-			} else if (dns_name_issubdomain(name, domain)) {
-				/* Referral or answer from child zone. */
-				return (false);
-			}
-		}
-		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
-	}
-
-munge:
-	message->rcode = dns_rcode_nxdomain;
-	message->counts[DNS_SECTION_ANSWER] = 0;
-	if (!keep_auth) {
-		message->counts[DNS_SECTION_AUTHORITY] = 0;
-	}
-	message->counts[DNS_SECTION_ADDITIONAL] = 0;
-	return (true);
 }
 
 static void
@@ -7800,11 +7594,6 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	}
 
 	/*
-	 * Handle delegation-only zones like NET or COM.
-	 */
-	rctx_delonly_zone(&rctx);
-
-	/*
 	 * Optionally call dns_rdata_checkowner() and
 	 * dns_rdata_checknames() to validate the names in the response
 	 * message.
@@ -9994,40 +9783,6 @@ rctx_lameserver(respctx_t *rctx) {
 	rctx_done(rctx, result);
 
 	return (ISC_R_COMPLETE);
-}
-
-/*
- * rctx_delonly_zone():
- * Handle delegation-only zones like NET and COM.
- */
-static void
-rctx_delonly_zone(respctx_t *rctx) {
-	fetchctx_t *fctx = rctx->fctx;
-	char namebuf[DNS_NAME_FORMATSIZE];
-	char domainbuf[DNS_NAME_FORMATSIZE];
-	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	char classbuf[64];
-	char typebuf[64];
-
-	if (ISFORWARDER(rctx->query->addrinfo) ||
-	    !dns_view_isdelegationonly(fctx->res->view, fctx->domain) ||
-	    dns_name_equal(fctx->domain, fctx->name) ||
-	    !fix_mustbedelegationornxdomain(rctx->query->rmessage, fctx))
-	{
-		return;
-	}
-
-	dns_name_format(fctx->name, namebuf, sizeof(namebuf));
-	dns_name_format(fctx->domain, domainbuf, sizeof(domainbuf));
-	dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
-	dns_rdataclass_format(fctx->res->rdclass, classbuf, sizeof(classbuf));
-	isc_sockaddr_format(&rctx->query->addrinfo->sockaddr, addrbuf,
-			    sizeof(addrbuf));
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DELEGATION_ONLY,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
-		      "enforced delegation-only for '%s' (%s/%s/%s) from %s",
-		      domainbuf, namebuf, typebuf, classbuf, addrbuf);
 }
 
 /***

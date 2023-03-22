@@ -469,14 +469,6 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "check that zone type 'delegation-only' is properly rejected ($n)"
-ret=0
-$RNDCCMD 10.53.0.2 addzone 'delegation-only.example { type delegation-only; };' > rndc.out.ns2.$n 2>&1 && ret=1
-grep "zones not supported by addzone" rndc.out.ns2.$n > /dev/null || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
 echo_i "check that 'in-view' zones are properly rejected ($n)"
 ret=0
 $RNDCCMD 10.53.0.2 addzone 'in-view.example { in-view "_default"; };' > rndc.out.ns2.$n 2>&1 && ret=1

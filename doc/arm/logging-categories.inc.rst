@@ -24,9 +24,6 @@
 ``default``
     Logging options for those categories where no specific configuration has been defined.
 
-``delegation-only``
-    Queries that have been forced to NXDOMAIN as the result of a delegation-only zone or a :any:`delegation-only` in a forward, hint, or stub zone declaration.
-
 ``dispatch``
     Dispatching of incoming packets to the server modules where they are to be processed.
 
