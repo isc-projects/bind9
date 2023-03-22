@@ -11,33 +11,7 @@
  * information regarding copyright ownership.
  */
 
-tls tls-forward-secrecy {
-    protocols { TLSv1.2; };
-    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
-    prefer-server-ciphers yes;
-    key-file "../CA/certs/srv02.crt01.example.nil.key";
-    cert-file "../CA/certs/srv02.crt01.example.nil.pem";
-    dhparam-file "../dhparam3072.pem";
-};
-
-tls tls-forward-secrecy-mutual-tls {
-    protocols { TLSv1.2; };
-    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
-    prefer-server-ciphers yes;
-    key-file "../CA/certs/srv02.crt01.example.nil.key";
-    cert-file "../CA/certs/srv02.crt01.example.nil.pem";
-    dhparam-file "../dhparam3072.pem";
-    ca-file "../CA/CA.pem";
-};
-
-tls tls-expired {
-    protocols { TLSv1.2; };
-    ciphers "HIGH:!kRSA:!aNULL:!eNULL:!RC4:!3DES:!MD5:!EXP:!PSK:!SRP:!DSS:!SHA1:!SHA256:!SHA384";
-    prefer-server-ciphers yes;
-    key-file "../CA/certs/srv02.crt02-expired.example.nil.key";
-    cert-file "../CA/certs/srv02.crt02-expired.example.nil.pem";
-    dhparam-file "../dhparam3072.pem";
-};
+include "named-tls.conf";
 
 options {
 	query-source address 10.53.0.2;
@@ -47,13 +21,9 @@ options {
 	transfer-source 10.53.0.2;
 	transfer-source-v6 fd92:7065:b8e:ffff::2;
 	port @PORT@;
-	tls-port @TLSPORT@;
 	pid-file "named.pid";
 	listen-on { 10.53.0.2; };
-	listen-on tls ephemeral { 10.53.0.2; };
-	listen-on port @EXTRAPORT1@ tls tls-forward-secrecy { 10.53.0.2; };
-	listen-on port @EXTRAPORT2@ tls tls-forward-secrecy-mutual-tls { 10.53.0.2; };
-	listen-on port @EXTRAPORT3@ tls tls-expired { 10.53.0.2; };
+	include "options-tls.conf";
 	listen-on-v6 { fd92:7065:b8e:ffff::2; };
 	recursion no;
 	dnssec-validation no;

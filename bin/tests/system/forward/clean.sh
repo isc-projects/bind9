@@ -14,14 +14,18 @@
 #
 # Clean up after forward tests.
 #
-rm -f ./dig.out.*
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
 rm -f ./*/named.run ./*/named.run.prev ./*/ans.run
 rm -f ./*/named_dump.db
 rm -f ./ans*/query.log
-rm -f ./ns*/named.lock
+rm -f ./dig.out.*
 rm -f ./ns*/managed-keys.bind*
-rm -f ./ns1/root.db ./ns1/root.db.signed
+rm -f ./ns*/named.lock
 rm -f ./ns*/trusted.conf
 rm -f ./ns1/K* ./ns1/dsset-*
+rm -f ./ns1/root.db ./ns1/root.db.signed
+rm -f ns2/named-tls.conf
+rm -f ns2/options-tls.conf
+rm -f ns4/named-tls.conf
+rm -f ns4/options-tls.conf
