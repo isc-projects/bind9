@@ -10,18 +10,18 @@
 ; information regarding copyright ownership.
 
 $TTL 300
-. 			IN SOA	gson.nominum.com. a.root.servers.nil. (
-				2000042100   	; serial
-				600         	; refresh
-				600         	; retry
-				1200    	; expire
-				600       	; minimum
-				)
-.			    NS ns1.allowed
 
+@	IN	SOA ns1	root.gooddomain. (
+	2020040101
+	4h
+	1h
+	1w
+	60
+)
 
-allowed.		NS	ns1.allowed.
-ns1.allowed.	A	10.53.0.2
+            IN	NS    ns1
 
-baddomain.		NS	ns1.baddomain.
-ns1.baddomain.	A	10.53.0.2
+ns1         IN	A     10.53.0.2
+
+gooddomain. IN A     10.53.0.2
+www         IN A     10.53.0.3

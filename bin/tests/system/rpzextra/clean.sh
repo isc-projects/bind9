@@ -18,3 +18,4 @@ rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns*/rpz*.txt
 rm -rf __pycache__
+rm -f ns3/*-rpz-external.local.db
