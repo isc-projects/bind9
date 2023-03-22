@@ -20,16 +20,16 @@ status=0
 #
 # We expect the zone to have the following:
 #
-# - 5 signatures for signing.test.
+# - 6 signatures for signing.test.
 # - 3 signatures for ns.signing.test.
 # - 2 x 500 signatures for a{0000-0499}.signing.test.
 #
-# for a total of 1008.
+# for a total of 1009.
 fully_signed () {
         $DIG axfr signing.test -p ${PORT} @10.53.0.1 |
                 awk 'BEGIN { lines = 0 }
                      $4 == "RRSIG" {lines++}
-                     END { if (lines != 1008) exit(1) }'
+                     END { if (lines != 1009) exit(1) }'
 }
 retry_quiet 30 fully_signed || ret=1
 
