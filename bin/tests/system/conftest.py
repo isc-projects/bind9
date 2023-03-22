@@ -316,10 +316,17 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         def get_test_result():
             """Aggregate test results from all individual tests from this module
             into a single result: failed > skipped > passed."""
+            try:
+                all_test_results = request.session.test_results
+            except AttributeError:
+                # This may happen if pytest execution is interrupted and
+                # pytest_runtest_makereport() is never called.
+                logger.debug("can't obtain test results, test run was interrupted")
+                return "error"
             test_results = {
-                node.nodeid: request.session.test_results[node.nodeid]
+                node.nodeid: all_test_results[node.nodeid]
                 for node in request.node.collect()
-                if node.nodeid in request.session.test_results
+                if node.nodeid in all_test_results
             }
             logger.debug(test_results)
             assert len(test_results)
