@@ -565,7 +565,6 @@ docs:
   needs:
     - job: autoreconf
       artifacts: true
-  allow_failure: false
   artifacts:
     paths:
       - doc/arm/
