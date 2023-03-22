@@ -250,7 +250,7 @@ options {
 	response-padding { <address_match_element>; ... } block-size <integer>;
 	response-policy { zone <string> [ add-soa <boolean> ] [ log <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only <quoted_string> ) ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ ede <string> ]; ... } [ add-soa <boolean> ] [ break-dnssec <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [ nsdname-wait-recurse <boolean> ] [ qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text> } ];
 	reuseport <boolean>;
-	root-delegation-only [ exclude { <string>; ... } ];
+	root-delegation-only [ exclude { <string>; ... } ]; // deprecated
 	root-key-sentinel <boolean>;
 	rrset-order { [ class <string> ] [ type <string> ] [ name <quoted_string> ] <string> <string>; ... };
 	secroots-file <quoted_string>;
@@ -524,7 +524,7 @@ view <string> [ <class> ] {
 	resolver-retry-interval <integer>;
 	response-padding { <address_match_element>; ... } block-size <integer>;
 	response-policy { zone <string> [ add-soa <boolean> ] [ log <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only <quoted_string> ) ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ ede <string> ]; ... } [ add-soa <boolean> ] [ break-dnssec <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [ nsdname-wait-recurse <boolean> ] [ qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text> } ];
-	root-delegation-only [ exclude { <string>; ... } ];
+	root-delegation-only [ exclude { <string>; ... } ]; // deprecated
 	root-key-sentinel <boolean>;
 	rrset-order { [ class <string> ] [ type <string> ] [ name <quoted_string> ] <string> <string>; ... };
 	send-cookie <boolean>;

@@ -1,6 +1,6 @@
 zone <string> [ <class> ] {
 	type forward;
-	delegation-only <boolean>;
+	delegation-only <boolean>; // deprecated
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
 };
