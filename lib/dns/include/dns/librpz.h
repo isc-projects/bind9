@@ -227,14 +227,15 @@ typedef struct {
 typedef bool(librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
 LIBDEF_F(parse_log_opt)
 
-typedef void(librpz_vpemsg_t)(librpz_emsg_t *emsg, const char *p, va_list args);
+typedef void(librpz_vpemsg_t)(librpz_emsg_t *emsg, const char *p, va_list args)
+	LIBRPZ_PF(2, 0);
 LIBDEF_F(vpemsg)
 typedef void(librpz_pemsg_t)(librpz_emsg_t *emsg, const char *p, ...)
 	LIBRPZ_PF(2, 3);
 LIBDEF_F(pemsg)
 
 typedef void(librpz_vlog_t)(librpz_log_level_t level, void *ctx, const char *p,
-			    va_list args);
+			    va_list args) LIBRPZ_PF(3, 0);
 LIBDEF_F(vlog)
 typedef void(librpz_log_t)(librpz_log_level_t level, void *ctx, const char *p,
 			   ...) LIBRPZ_PF(3, 4);

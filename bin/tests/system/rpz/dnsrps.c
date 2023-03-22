@@ -54,9 +54,9 @@ int
 main(int argc, char **argv) {
 #ifdef USE_DNSRPS
 	char cstr[sizeof("zone ") + 1024 + 10];
-	librpz_clist_t *clist;
-	librpz_client_t *client;
-	librpz_rsp_t *rsp;
+	librpz_clist_t *clist = NULL;
+	librpz_client_t *client = NULL;
+	librpz_rsp_t *rsp = NULL;
 	uint32_t serial;
 #endif /* ifdef USE_DNSRPS */
 	double seconds;
@@ -110,6 +110,7 @@ main(int argc, char **argv) {
 						       true);
 			if (client == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 
@@ -120,16 +121,20 @@ main(int argc, char **argv) {
 			{
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->client_detach(&client);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 
 			if (!librpz->soa_serial(&emsg, &serial, optarg, rsp)) {
 				fprintf(stderr, "## %s\n", emsg.c);
+				librpz->rsp_detach(&rsp);
 				librpz->client_detach(&client);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
+			librpz->clist_detach(&clist);
 			printf("%u\n", serial);
 #else  /* ifdef USE_DNSRPS */
 			UNREACHABLE();

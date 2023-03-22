@@ -83,7 +83,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 	unsigned int prefix = 0, values[16] = { 0 }, hex_values[16] = { 0 };
 	bool is_ipv6 = false;
 
-	if (!astr || !pfamily || !pbuf) {
+	if (astr == NULL || pfamily == NULL || pbuf == NULL) {
 		return (-1);
 	}
 
@@ -164,7 +164,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 	 */
 	if (*pfamily == AF_INET) {
 		if (prefix > 32) {
-			if (errp) {
+			if (errp != NULL) {
 				*errp = str_printf(
 					"invalid rpz IP address \"%s\"; "
 					"invalid prefix length of %u",
@@ -182,7 +182,7 @@ get_address_info(const char *astr, int *pfamily, char *pbuf,
 		size_t n;
 
 		if (prefix > 128) {
-			if (errp) {
+			if (errp != NULL) {
 				*errp = str_printf(
 					"invalid rpz IP address \"%s\"; "
 					"invalid prefix length of %u",
@@ -255,7 +255,7 @@ wdns_domain_to_str(const uint8_t *src, size_t src_len, char *dst) {
 	size_t bytes_remaining = src_len;
 	uint8_t oclen;
 
-	if (!src) {
+	if (src == NULL) {
 		return (0);
 	}
 
@@ -499,6 +499,7 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 		    rptr->ttl == nrec.ttl && rptr->rdlength == nrec.rdlength &&
 		    !memcmp(rptr->rdata, nrec.rdata, nrec.rdlength))
 		{
+			free(nrec.rdata);
 			return (n + 1);
 		}
 	}
@@ -522,7 +523,7 @@ void
 reverse_labels(const char *str, char *pbuf) {
 	const char *sptr = str, *end = NULL;
 
-	if (!sptr || !*sptr) {
+	if (sptr == NULL || *sptr == 0) {
 		return;
 	}
 
@@ -565,7 +566,7 @@ parse_zone_options(const char *str) {
 	char *tok = NULL, *sptr = NULL;
 	unsigned long result = 0;
 
-	if (!str || !*str) {
+	if (str == NULL || *str == 0) {
 		return (0);
 	}
 
@@ -1053,11 +1054,10 @@ static void
 free_nodes(trpz_result_t **presults, size_t *pnresults) {
 	size_t n, tot;
 
-	if ((!presults || !*presults) && pnresults) {
-		*pnresults = 0;
-	}
-
-	if (!presults || !*presults) {
+	if (presults == NULL || *presults == NULL) {
+		if (pnresults != NULL) {
+			*pnresults = 0;
+		}
 		return;
 	}
 
@@ -1067,21 +1067,21 @@ free_nodes(trpz_result_t **presults, size_t *pnresults) {
 		trpz_result_t *res = &((*presults)[n - 1]);
 		size_t m;
 
-		if (res->canonical) {
+		if (res->canonical != NULL) {
 			free(res->canonical);
 		}
 
-		if (res->dname) {
+		if (res->dname != NULL) {
 			free(res->dname);
 		}
 
 		for (m = 0; m < res->nrrs; m++) {
-			if (res->rrs[m].rdata) {
+			if (res->rrs[m].rdata != NULL) {
 				free(res->rrs[m].rdata);
 			}
 		}
 
-		if (res->rrs) {
+		if (res->rrs != NULL) {
 			free(res->rrs);
 		}
 	}
@@ -1113,7 +1113,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 	FILE *f = NULL;
 	int result = -1;
 
-	if (errp) {
+	if (errp != NULL) {
 		*errp = NULL;
 	}
 
@@ -1163,7 +1163,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 		} else if (strcasecmp(line, "static") &&
 			   strcasecmp(line, "update"))
 		{
-			if (errp) {
+			if (errp != NULL) {
 				*errp = str_printf("Found unknown instruction "
 						   "directive: \"%s\"\n",
 						   line);
@@ -1192,7 +1192,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 		    strcasecmp(rrbuf, "TXT") && strcasecmp(rrbuf, "DNAME") &&
 		    strcasecmp(rrbuf, "AAAA"))
 		{
-			if (errp) {
+			if (errp != NULL) {
 				*errp = str_printf("Target \"%s\" is not "
 						   "currently supported!\n",
 						   rrbuf);
@@ -1378,12 +1378,20 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 
 	if (slen == 1 && *p == '.') {
 		*pbuf = malloc(1);
+		if (*pbuf == NULL) {
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
 		*pbuf[0] = 0;
 		return (1);
 	}
 
 	res = 0;
 	*pbuf = malloc(WDNS_MAXLEN_NAME);
+	if (*pbuf == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 
 	data = *pbuf;
 	label_len = 0;
@@ -1394,20 +1402,17 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 		c = *p++;
 		label_len++;
 
+		/* Will the wire name become too long? */
+		if (res >= WDNS_MAXLEN_NAME) {
+			goto out;
+		}
+
 		if (slen == 0) {
 			/* end of input */
-			if (res == WDNS_MAXLEN_NAME) {
-				res = -1;
-				goto out;
-			}
 			*oclen = --label_len;
 			*data++ = '\0';
 			res++;
 			break;
-		}
-
-		if (res >= WDNS_MAXLEN_NAME) {
-			res = -1;
 		}
 
 		if (c >= 'A' && c <= 'Z') {
@@ -1420,7 +1425,6 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 		} else if (c == '\\' && !isdigit(*p)) {
 			/* an escaped character */
 			if (slen <= 0) {
-				res = -1;
 				goto out;
 			}
 			*data++ = *p;
@@ -1480,5 +1484,6 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 
 out:
 	free(*pbuf);
+	*pbuf = NULL;
 	return (-1);
 }

@@ -42,6 +42,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <isc/endian.h>
 #include <isc/util.h>
 
 #include <dns/librpz.h>
@@ -65,8 +66,6 @@ typedef struct {
 	char *cstr;
 	bool uses_expired;
 	trpz_clist_t *pclist;
-	ssize_t *base_zones;
-	size_t nbase_zones;
 } trpz_client_t;
 
 typedef struct {
@@ -82,6 +81,8 @@ typedef struct {
 	trpz_result_t *all_nodes;
 	size_t num_zones, num_nodes;
 	ssize_t last_zone;
+	ssize_t *base_zones;
+	size_t nbase_zones;
 } trpz_rsp_t;
 
 librpz_log_level_t g_log_level = LIBRPZ_LOG_TRACE2;
@@ -92,24 +93,26 @@ apply_all_updates(trpz_rsp_t *trsp);
 static void
 clear_all_updates(trpz_rsp_t *trsp);
 
-static int
+static bool
 domain_ntop(const u_char *src, char *dst, size_t dstsiz);
-static int
+static bool
 domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	     bool lower);
 
 void
 trpz_set_log(librpz_log_fnc_t *new_log, const char *prog_nm);
 void
-trpz_vlog(librpz_log_level_t level, void *ctx, const char *p, va_list args);
+trpz_vlog(librpz_log_level_t level, void *ctx, const char *p, va_list args)
+	LIBRPZ_PF(3, 0);
 void
-trpz_log(librpz_log_level_t level, void *ctx, const char *p, ...);
+trpz_log(librpz_log_level_t level, void *ctx, const char *p, ...)
+	LIBRPZ_PF(3, 4);
 librpz_log_level_t
 trpz_log_level_val(librpz_log_level_t level);
 void
-trpz_vpemsg(librpz_emsg_t *emsg, const char *p, va_list args);
+trpz_vpemsg(librpz_emsg_t *emsg, const char *p, va_list args) LIBRPZ_PF(2, 0);
 void
-trpz_pemsg(librpz_emsg_t *emsg, const char *fmt, ...);
+trpz_pemsg(librpz_emsg_t *emsg, const char *fmt, ...) LIBRPZ_PF(2, 3);
 librpz_clist_t *
 trpz_clist_create(librpz_emsg_t *emsg, librpz_mutex_t *lock,
 		  librpz_mutex_t *unlock, librpz_mutex_t *mutex_destroy,
@@ -212,16 +215,17 @@ librpz_0_t LIBRPZ_DEF = {
  * zones.
  */
 static bool
-has_base_zone(trpz_client_t *cli, ssize_t zone) {
+has_base_zone(trpz_rsp_t *trsp, ssize_t zone) {
 	size_t n;
 
-	if (cli == NULL || cli->base_zones == NULL || cli->nbase_zones == 0) {
+	if (trsp == NULL || trsp->base_zones == NULL || trsp->nbase_zones == 0)
+	{
 		return (false);
 	}
 
-	for (n = 0; n < cli->nbase_zones; n++) {
-		if (cli->base_zones[n] == BASE_ZONE_ANY ||
-		    cli->base_zones[n] == zone)
+	for (n = 0; n < trsp->nbase_zones; n++) {
+		if (trsp->base_zones[n] == BASE_ZONE_ANY ||
+		    trsp->base_zones[n] == zone)
 		{
 			return (true);
 		}
@@ -233,7 +237,6 @@ has_base_zone(trpz_client_t *cli, ssize_t zone) {
 static bool
 pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 		const rpz_soa_t *psoa) {
-	uint32_t *uptr = NULL;
 	size_t needed = (sizeof(uint32_t) * 5) + strlen(psoa->mname) + 2 +
 			strlen(psoa->rname) + 2;
 	size_t mlen = 0, rlen = 0, used = 0;
@@ -254,22 +257,29 @@ pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 
 	used = rlen + mlen;
 
-	uptr = (uint32_t *)(rdatap + rlen + mlen);
-	*uptr++ = htonl(psoa->serial);
-	*uptr++ = htonl(psoa->refresh);
-	*uptr++ = htonl(psoa->retry);
-	*uptr++ = htonl(psoa->expire);
-	*uptr++ = htonl(psoa->minimum);
+	rdatap += rlen + mlen;
+	ISC_U32TO8_BE(rdatap, psoa->serial);
+	rdatap += 4;
+	ISC_U32TO8_BE(rdatap, psoa->refresh);
+	rdatap += 4;
+	ISC_U32TO8_BE(rdatap, psoa->retry);
+	rdatap += 4;
+	ISC_U32TO8_BE(rdatap, psoa->expire);
+	rdatap += 4;
+	ISC_U32TO8_BE(rdatap, psoa->minimum);
+	rdatap += 4;
+	used += (4 * 5);
 
-	used += (sizeof(uint32_t) * 5);
-
-	if (rdlenp) {
+	if (rdlenp != NULL) {
 		*rdlenp = used;
 	}
 
 	return (true);
 }
 
+static void
+do_log(librpz_log_level_t level, void *ctx, const char *fmt, va_list args)
+	LIBRPZ_PF(3, 0);
 static void
 do_log(librpz_log_level_t level, void *ctx, const char *fmt, va_list args) {
 	if (level > g_log_level) {
@@ -363,13 +373,19 @@ trpz_pemsg(librpz_emsg_t *emsg, const char *fmt, ...) {
 static void
 scan_data_file_for_errors(void *lctx) {
 	char *updfile = NULL, *fname = NULL, *last = NULL;
+	char *tmp = NULL;
 
 	updfile = getenv("DNSRPS_TEST_UPDATE_FILE");
 	if (updfile == NULL) {
 		return;
 	}
 
-	fname = strtok_r(updfile, ":", &last);
+	tmp = strdup(updfile);
+	if (tmp == NULL) {
+		return;
+	}
+
+	fname = strtok_r(tmp, ":", &last);
 
 	while (fname) {
 		char *errp = NULL;
@@ -378,12 +394,13 @@ scan_data_file_for_errors(void *lctx) {
 		ret = sanity_check_data_file(fname, &errp);
 
 		if ((ret < 0) && errp) {
-			trpz_log(LIBRPZ_LOG_ERROR, lctx, errp);
+			trpz_log(LIBRPZ_LOG_ERROR, lctx, "%s", errp);
 			free(errp);
 		}
 
 		fname = strtok_r(NULL, ":", &last);
 	}
+	free(tmp);
 
 	return;
 }
@@ -683,8 +700,10 @@ trpz_client_create(librpz_emsg_t *emsg, librpz_clist_t *clist, const char *cstr,
 void
 trpz_client_detach(librpz_client_t **clientp) {
 	if (clientp != NULL && *clientp != NULL) {
-		librpz_client_t *client = *clientp;
-		*clientp = NULL;
+		trpz_client_t *client = (trpz_client_t *)(*clientp);
+		if (client->cstr != NULL) {
+			free(client->cstr);
+		}
 		free(client);
 	}
 
@@ -700,10 +719,16 @@ trpz_client_detach(librpz_client_t **clientp) {
 static int
 apply_all_updates(trpz_rsp_t *trsp) {
 	char *updfile = NULL, *fname = NULL, *last = NULL;
+	char *tmp = NULL;
 
 	updfile = getenv("DNSRPS_TEST_UPDATE_FILE");
 	if (updfile == NULL) {
 		return (0);
+	}
+
+	tmp = strdup(updfile);
+	if (tmp == NULL) {
+		return (-1);
 	}
 
 	fname = strtok_r(updfile, ":", &last);
@@ -715,17 +740,19 @@ apply_all_updates(trpz_rsp_t *trsp) {
 				       &trsp->num_nodes, &trsp->all_zones,
 				       &trsp->num_zones, &errp);
 
-		if (errp) {
+		if (errp != NULL) {
 			fprintf(stderr, "Error loading updates: %s\n", errp);
 			free(errp);
 		}
 
 		if (ret < 0) {
+			free(tmp);
 			return (-1);
 		}
 
 		fname = strtok_r(NULL, ":", &last);
 	}
+	free(tmp);
 
 	return (0);
 }
@@ -747,6 +774,12 @@ clear_all_updates(trpz_rsp_t *trsp) {
 		size_t n;
 
 		for (n = 0; n < trsp->num_nodes; n++) {
+			if (trsp->all_nodes[n].canonical != NULL) {
+				free(trsp->all_nodes[n].canonical);
+			}
+			if (trsp->all_nodes[n].dname != NULL) {
+				free(trsp->all_nodes[n].dname);
+			}
 			if (trsp->all_nodes[n].rrs) {
 				size_t m;
 
@@ -806,23 +839,28 @@ trpz_rsp_create(librpz_emsg_t *emsg, librpz_rsp_t **rspp, int *min_ns_dotsp,
 	result->stack_idx = 1;
 	result->last_zone = -1;
 
-	*rspp = (librpz_rsp_t *)result;
+	assert(*rspp == NULL);
 
 	clear_all_updates(result);
-	cli->base_zones = get_cstr_zones(cli->cstr, result,
-					 &(cli->nbase_zones));
+	result->base_zones = get_cstr_zones(cli->cstr, result,
+					    &(result->nbase_zones));
 
-	if (cli->base_zones == NULL) {
+	if (result->base_zones == NULL) {
 		trpz_pemsg(emsg, "no valid policy zone specified");
-		free(*rspp);
-		*rspp = NULL;
+		clear_all_updates(result);
+		free(result);
 		return (false);
 	}
 
 	if (apply_all_updates(result) < 0) {
 		trpz_pemsg(emsg, "internal error loading test data 1");
+		clear_all_updates(result);
+		free(result->base_zones);
+		free(result);
 		return (false);
 	}
+
+	*rspp = (librpz_rsp_t *)result;
 
 	return (true);
 }
@@ -890,13 +928,14 @@ trpz_rsp_pop_discard(librpz_emsg_t *emsg, librpz_rsp_t *rsp) {
 
 void
 trpz_rsp_detach(librpz_rsp_t **rspp) {
-	if (rspp && *rspp) {
+	if (rspp != NULL && *rspp != NULL) {
 		trpz_rsp_t *trsp = (trpz_rsp_t *)*rspp;
-
-		clear_all_updates(trsp);
-
-		free(*rspp);
 		*rspp = NULL;
+		clear_all_updates(trsp);
+		if (trsp->base_zones != NULL) {
+			free(trsp->base_zones);
+		}
+		free(trsp);
 	}
 
 	return;
@@ -1059,11 +1098,7 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 
 	rres->rdlength = htons(rdlen);
 
-	if (rrp) {
-		*rrp = rres;
-	}
-
-	if (origin) {
+	if (origin != NULL) {
 		uint8_t *buf = NULL;
 		int nbytes;
 
@@ -1077,6 +1112,12 @@ trpz_rsp_soa(librpz_emsg_t *emsg, uint32_t *ttlp, librpz_rr_t **rrp,
 		memmove(origin->d, buf, nbytes);
 		origin->size = nbytes;
 		free(buf);
+	}
+
+	if (rrp != NULL) {
+		*rrp = rres;
+	} else {
+		free(rdbuf);
 	}
 
 	return (true);
@@ -1285,7 +1326,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 			     trsp->all_zones[trsp->all_nodes[n].result.dznum]
 				     .not_recursive_only ||
 			     recursed) &&
-			    has_base_zone(trsp->client,
+			    has_base_zone(trsp,
 					  trsp->all_nodes[n].result.dznum) &&
 			    !trsp->all_zones[trsp->all_nodes[n].result.dznum]
 				     .forgotten)
@@ -1316,7 +1357,7 @@ trpz_ck_domain(librpz_emsg_t *emsg, const uint8_t *domain, size_t domain_size,
 			{
 				if (recursed &&
 				    has_base_zone(
-					    trsp->client,
+					    trsp,
 					    trsp->all_nodes[n].result.dznum) &&
 				    !trsp->all_zones[trsp->all_nodes[n]
 							     .result.dznum]
@@ -1508,7 +1549,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 	unsigned int nmask = 32;
 
 	if (family == AF_INET6) {
-		if (!inet_ntop(AF_INET6, addr, abuf, sizeof(abuf))) {
+		if (inet_ntop(AF_INET6, addr, abuf, sizeof(abuf)) == 0) {
 			return (-1);
 		}
 
@@ -1525,14 +1566,16 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 				return (-1);
 			}
 		} else if (sscanf(addrstr, "%d.%d.%d.%d", &ipstr[1], &ipstr[2],
-					  &ipstr[3], &ipstr[4]) != 4)
+				  &ipstr[3], &ipstr[4]) != 4)
 		{
 			perror("bad address format");
 			return (-1);
 		}
 
 		if (ipstr[1] > 255 || ipstr[2] > 255 || ipstr[3] > 255 ||
-		    ipstr[4] > 255) {
+		    ipstr[4] > 255 || ipstr[1] < 0 || ipstr[2] < 0 ||
+		    ipstr[3] < 0 || ipstr[4] < 0)
+		{
 			perror("bad address format");
 			return (-1);
 		}
@@ -1550,7 +1593,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 			memmove(&a2, addr, sizeof(uint32_t));
 			m = get_mask(nmask);
 
-			if (pmask) {
+			if (pmask != NULL) {
 				*pmask = nmask;
 			}
 
@@ -1562,7 +1605,7 @@ address_cmp(const char *addrstr, const void *addr, uint family,
 	}
 
 	if (strcmp(addrstr, abuf) == 0) {
-		if (pmask) {
+		if (pmask != NULL) {
 			*pmask = nmask;
 		}
 
@@ -1629,7 +1672,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 			     trsp->all_zones[trsp->all_nodes[n].result.dznum]
 				     .not_recursive_only ||
 			     recursed) &&
-			    has_base_zone(trsp->client,
+			    has_base_zone(trsp,
 					  trsp->all_nodes[n].result.dznum) &&
 			    !trsp->all_zones[trsp->all_nodes[n].result.dznum]
 				     .forgotten)
@@ -1641,7 +1684,7 @@ trpz_ck_ip(librpz_emsg_t *emsg, const void *addr, uint family,
 
 			} else if ((nfidx < 0) && !recursed &&
 				   has_base_zone(
-					   trsp->client,
+					   trsp,
 					   trsp->all_nodes[n].result.dznum) &&
 				   !trsp->all_zones[trsp->all_nodes[n]
 							    .result.dznum]
@@ -1767,14 +1810,14 @@ trpz_soa_serial(librpz_emsg_t *emsg, uint32_t *serialp, const char *domain_nm,
 
 	dlen = strlen(domain_nm);
 
-	if (dlen > 0 && domain_nm[dlen - 1] == '.') {
+	if (dlen > 0U && domain_nm[dlen - 1] == '.') {
 		dlen--;
 	}
 
 	for (n = 0; n < trsp->num_zones; n++) {
 		if (dlen != strlen(trsp->all_zones[n].name)) {
 			continue;
-		} else if (!has_base_zone(trsp->client, n)) {
+		} else if (!has_base_zone(trsp, n)) {
 			continue;
 		}
 
@@ -1794,20 +1837,20 @@ trpz_soa_serial(librpz_emsg_t *emsg, uint32_t *serialp, const char *domain_nm,
 	return (false);
 }
 
-static int
+static bool
 domain_ntop(const u_char *src, char *dst, size_t dstsiz) {
 	const unsigned char *sptr = src;
 	char *dptr = dst, *dend = dst + dstsiz;
 
 	if (dst == NULL || dstsiz == 0) {
-		return (0);
+		return (false);
 	}
 
 	memset(dst, 0, dstsiz);
 
 	while (*sptr) {
 		if (((dptr + *sptr) > dend)) {
-			return (0);
+			return (false);
 		}
 
 		if (sptr != src) {
@@ -1820,10 +1863,10 @@ domain_ntop(const u_char *src, char *dst, size_t dstsiz) {
 		sptr++;
 	}
 
-	return (1);
+	return (true);
 }
 
-static int
+static bool
 domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	     bool lower) {
 	unsigned char *dptr = dst;
@@ -1841,12 +1884,12 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 	tmps = strdup(src);
 	if (tmps == NULL) {
 		perror("strdup");
-		return (0);
+		return (false);
 	}
 
 	tptr = tmps;
 
-	if (dstlen) {
+	if (dstlen != NULL) {
 		*dstlen = 0;
 	}
 
@@ -1854,31 +1897,33 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 		tok = strsep(&tptr, ".");
 
 		if (((dptr + strlen(tok) + 1) > dend)) {
-			return (0);
+			free(tmps);
+			return (false);
 		}
 
 		*dptr++ = strlen(tok);
 		memmove(dptr, tok, strlen(tok));
 		dptr += strlen(tok);
 
-		if (dstlen) {
+		if (dstlen != NULL) {
 			(*dstlen) += (1 + strlen(tok));
 		}
 	}
 
 	if (dptr >= dend) {
-		return (0);
+		free(tmps);
+		return (false);
 	}
 
 	*dptr = 0;
 
-	if (dstlen) {
+	if (dstlen != NULL) {
 		(*dstlen)++;
 	}
 
 	free(tmps);
 
-	return (1);
+	return (true);
 }
 
 /* XXX: needs IPv6 support. */
@@ -2107,7 +2152,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 					}
 
 					if (strncmp(tmpexp, "*.", 2) == 0) {
-						size_t nrd;
+						int nrd;
 						uint32_t n = snprintf(
 							tmpexp3,
 							sizeof(tmpexp3),
@@ -2122,6 +2167,13 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 						}
 						nrd = wdns_str_to_name(
 							tmpexp3, &nrdata, 1);
+						if (nrd < 0) {
+							trpz_pemsg(
+								emsg,
+								"Error packing "
+								"domain");
+							return (false);
+						}
 						to_copy = nrd;
 						copy_src = nrdata;
 					}
@@ -2133,6 +2185,9 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 			*rrp = calloc(1, needed);
 			if (*rrp == NULL) {
 				trpz_pemsg(emsg, "calloc: %s", strerror(errno));
+				if (nrdata != NULL) {
+					free(nrdata);
+				}
 				return (false);
 			}
 
@@ -2141,6 +2196,9 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 			(*rrp)->ttl = htonl(this_rr->ttl);
 			(*rrp)->rdlength = htons(to_copy);
 			memmove((*rrp)->rdata, copy_src, to_copy);
+			if (nrdata != NULL) {
+				free(nrdata);
+			}
 		}
 
 		result->next_rr = this_rr->rrn;
