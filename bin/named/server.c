@@ -8552,7 +8552,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	CHECK(bind9_check_namedconf(config, false, named_g_lctx, named_g_mctx));
+	CHECK(bind9_check_namedconf(config, false, false, named_g_lctx,
+				    named_g_mctx));
 
 	/* Let's recreate the TLS context cache */
 	if (server->tlsctx_server_cache != NULL) {

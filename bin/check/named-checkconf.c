@@ -726,7 +726,8 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	result = bind9_check_namedconf(config, loadplugins, logc, mctx);
+	result = bind9_check_namedconf(config, loadplugins, nodeprecate, logc,
+				       mctx);
 	if (result != ISC_R_SUCCESS) {
 		exit_status = 1;
 	}

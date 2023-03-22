@@ -2143,7 +2143,8 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "response-padding", &cfg_type_resppadding, 0 },
 	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "root-delegation-only", &cfg_type_optional_exclude, 0 },
+	{ "root-delegation-only", &cfg_type_optional_exclude,
+	  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
@@ -2388,7 +2389,8 @@ static cfg_clausedef_t zone_only_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_ZONE_STUB },
 	{ "delegation-only", &cfg_type_boolean,
-	  CFG_ZONE_HINT | CFG_ZONE_STUB | CFG_ZONE_FORWARD },
+	  CFG_ZONE_HINT | CFG_ZONE_STUB | CFG_ZONE_FORWARD |
+		  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "dlz", &cfg_type_astring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_REDIRECT },
 	{ "file", &cfg_type_qstring,
