@@ -73,7 +73,7 @@ BIND_VERSION=$(basename "${BIND_TARBALL}" | sed -E "s|bind-(.*)\.tar\.xz|\1|")
 BIND_DIRECTORY="bind-${BIND_VERSION}"
 
 # Prepare a temporary "release" tarball from upstream BIND 9 project.
-run_in_container "git -c advice.detachedHead=false clone --branch $(echo "v${BIND_VERSION}" | tr ".-" "_") --depth 1 https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.isc.org/isc-private/bind9.git && \
+run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSION} --depth 1 https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.isc.org/isc-private/bind9.git && \
 	cd bind9 && \
 	if [ $(echo "${BIND_VERSION}" | cut -b 1-5) = 9.16. ]; then \
 		git archive --prefix=${BIND_DIRECTORY}/ --output=${BIND_DIRECTORY}.tar HEAD && \
