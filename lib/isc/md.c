@@ -177,21 +177,20 @@ const isc_md_type_t *isc__md_sha512 = NULL;
 	{                                                          \
 		REQUIRE(isc__md_##alg == NULL);                    \
 		isc__md_##alg = EVP_MD_fetch(NULL, algname, NULL); \
-		RUNTIME_CHECK(isc__md_##alg != NULL);              \
 	}
 
-#define md_unregister_algorithm(alg)                            \
-	{                                                       \
-		REQUIRE(isc__md_##alg != NULL);                 \
-		EVP_MD_free(*(isc_md_type_t **)&isc__md_##alg); \
-		isc__md_##alg = NULL;                           \
+#define md_unregister_algorithm(alg)                                    \
+	{                                                               \
+		if (isc__md_##alg != NULL) {                            \
+			EVP_MD_free(*(isc_md_type_t **)&isc__md_##alg); \
+			isc__md_##alg = NULL;                           \
+		}                                                       \
 	}
 
 #else
-#define md_register_algorithm(alg, algname)           \
-	{                                             \
-		isc__md_##alg = EVP_##alg();          \
-		RUNTIME_CHECK(isc__md_##alg != NULL); \
+#define md_register_algorithm(alg, algname)  \
+	{                                    \
+		isc__md_##alg = EVP_##alg(); \
 	}
 #define md_unregister_algorithm(alg)
 #endif
