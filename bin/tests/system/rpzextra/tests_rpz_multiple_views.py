@@ -15,7 +15,7 @@ import time
 
 import pytest
 
-pytest.importorskip("dns")
+pytest.importorskip("dns", minversion="2.0.0")
 import dns.resolver
 
 
@@ -53,8 +53,7 @@ def test_rpz_multiple_views(named_port):
         resolver.resolve("baddomain.", "A", source="10.53.0.1")
 
     ans = resolver.resolve("gooddomain.", "A", source="10.53.0.1")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     ans = resolver.resolve("allowed.", "A", source="10.53.0.1")
     assert ans[0].address == "10.53.0.2"
@@ -64,12 +63,10 @@ def test_rpz_multiple_views(named_port):
     # - baddomain.com is allowed
     # - gooddomain.com is allowed
     ans = resolver.resolve("baddomain.", "A", source="10.53.0.2")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     ans = resolver.resolve("gooddomain.", "A", source="10.53.0.2")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     with pytest.raises(dns.resolver.NXDOMAIN):
         resolver.resolve("allowed.", "A", source="10.53.0.2")
@@ -79,12 +76,10 @@ def test_rpz_multiple_views(named_port):
     # - baddomain.com is allowed
     # - allowed. is allowed
     ans = resolver.resolve("baddomain.", "A", source="10.53.0.3")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     ans = resolver.resolve("gooddomain.", "A", source="10.53.0.3")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     ans = resolver.resolve("allowed.", "A", source="10.53.0.3")
     assert ans[0].address == "10.53.0.2"
@@ -107,8 +102,7 @@ def test_rpz_multiple_views(named_port):
     # - gooddomain.com isn't allowed (CNAME .), should return NXDOMAIN
     # - allowed.com isn't allowed (CNAME .), should return NXDOMAIN
     ans = resolver.resolve("baddomain.", "A", source="10.53.0.5")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     with pytest.raises(dns.resolver.NXDOMAIN):
         resolver.resolve("gooddomain.", "A", source="10.53.0.5")

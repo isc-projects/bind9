@@ -15,7 +15,7 @@ import os
 
 import pytest
 
-pytest.importorskip("dns")
+pytest.importorskip("dns", minversion="2.0.0")
 import dns.resolver
 
 
@@ -26,8 +26,7 @@ def test_rpz_passthru_logging(named_port):
 
     # Should generate a log entry into rpz_passthru.txt
     ans = resolver.resolve("allowed.", "A", source="10.53.0.1")
-    for rd in ans:
-        assert rd.address == "10.53.0.2"
+    assert ans[0].address == "10.53.0.2"
 
     # baddomain.com isn't allowed (CNAME .), should return NXDOMAIN
     # Should generate a log entry into rpz.txt
