@@ -268,8 +268,6 @@ typedef enum isc__netievent_type {
 
 	netievent_settlsctx,
 	netievent_sockstop, /* for multilayer sockets */
-
-	netievent_tcpstop,
 } isc__netievent_type;
 
 typedef union {
@@ -1293,8 +1291,6 @@ isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
 
 void
 isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0);
-void
-isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous TCP events (connect, listen,
  * stoplisten, send, read, pause, close).
@@ -1692,7 +1688,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
  * typedef all the netievent types
  */
 
-NETIEVENT_SOCKET_TYPE(tcpstop);
 NETIEVENT_SOCKET_TYPE(tlsclose);
 /* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
 					  */
@@ -1720,7 +1715,6 @@ NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
 
-NETIEVENT_SOCKET_DECL(tcpstop);
 NETIEVENT_SOCKET_DECL(tlsclose);
 NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);

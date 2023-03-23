@@ -583,22 +583,51 @@ done:
 }
 
 static void
+stop_tcp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(sock->parent != NULL);
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+
+	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
+						     &(bool){ false }, true));
+
+	/*
+	 * The order of the close operation is important here, the uv_close()
+	 * gets scheduled in the reverse order, so we need to close the timer
+	 * last, so its gone by the time we destroy the socket
+	 */
+
+	/* 2. close the listening socket */
+	isc__nmsocket_clearcb(sock);
+	isc__nm_stop_reading(sock);
+	uv_close(&sock->uv_handle.handle, tcp_stop_cb);
+
+	/* 1. close the read timer */
+	isc__nmsocket_timer_stop(sock);
+	uv_close(&sock->read_timer, NULL);
+
+	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
+
+	REQUIRE(!sock->worker->loop->paused);
+	isc_barrier_wait(&sock->parent->stop_barrier);
+}
+
+static void
 stop_tcp_child(isc_nmsocket_t *sock, uint32_t tid) {
 	isc_nmsocket_t *csock = NULL;
-	isc__netievent_tcpstop_t *ievent = NULL;
 
 	csock = &sock->children[tid];
 	REQUIRE(VALID_NMSOCK(csock));
 
 	atomic_store(&csock->active, false);
-	ievent = isc__nm_get_netievent_tcpstop(csock->worker, csock);
 
 	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		stop_tcp_child_job(csock);
 	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(csock->worker->loop, stop_tcp_child_job, csock);
 	}
 }
 
@@ -646,42 +675,6 @@ tcp_stop_cb(uv_handle_t *handle) {
 	atomic_store(&sock->listening, false);
 
 	isc__nmsocket_detach(&sock);
-}
-
-void
-isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->parent != NULL);
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-
-	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
-						     &(bool){ false }, true));
-
-	/*
-	 * The order of the close operation is important here, the uv_close()
-	 * gets scheduled in the reverse order, so we need to close the timer
-	 * last, so its gone by the time we destroy the socket
-	 */
-
-	/* 2. close the listening socket */
-	isc__nmsocket_clearcb(sock);
-	isc__nm_stop_reading(sock);
-	uv_close(&sock->uv_handle.handle, tcp_stop_cb);
-
-	/* 1. close the read timer */
-	isc__nmsocket_timer_stop(sock);
-	uv_close(&sock->read_timer, NULL);
-
-	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
-
-	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->stop_barrier);
 }
 
 void
