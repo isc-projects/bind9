@@ -7696,7 +7696,9 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 
 	rctx_respinit(query, fctx, eresult, region, &rctx);
 
-	if (atomic_load_acquire(&fctx->res->exiting)) {
+	if (eresult == ISC_R_SHUTTINGDOWN ||
+	    atomic_load_acquire(&fctx->res->exiting))
+	{
 		result = ISC_R_SHUTTINGDOWN;
 		FCTXTRACE("resolver shutting down");
 		rctx.finish = NULL;
@@ -8080,8 +8082,13 @@ rctx_respinit(resquery_t *query, fetchctx_t *fctx, isc_result_t result,
 			     .fctx = fctx,
 			     .broken_type = badns_response,
 			     .retryopts = query->options };
-	isc_buffer_init(&rctx->buffer, region->base, region->length);
-	isc_buffer_add(&rctx->buffer, region->length);
+	if (result == ISC_R_SUCCESS) {
+		REQUIRE(region != NULL);
+		isc_buffer_init(&rctx->buffer, region->base, region->length);
+		isc_buffer_add(&rctx->buffer, region->length);
+	} else {
+		isc_buffer_initnull(&rctx->buffer);
+	}
 	TIME_NOW(&rctx->tnow);
 	rctx->finish = &rctx->tnow;
 	rctx->now = (isc_stdtime_t)isc_time_seconds(&rctx->tnow);
