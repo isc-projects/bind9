@@ -14,6 +14,7 @@
 #include <libgen.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
@@ -340,9 +341,103 @@ isc__nm_tcp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 }
 
 static void
+start_tcp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(sock->parent));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	sa_family_t sa_family = sock->iface.type.sa.sa_family;
+	int r;
+	int flags = 0;
+	isc_result_t result = ISC_R_UNSET;
+	isc_loop_t *loop = sock->worker->loop;
+
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
+
+	r = uv_tcp_init(&loop->loop, &sock->uv_handle.tcp);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
+	/* This keeps the socket alive after everything else is gone */
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+
+	r = uv_timer_init(&loop->loop, &sock->read_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
+	if (r < 0) {
+		isc__nm_closesocket(sock->fd);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
+		goto done;
+	}
+	isc__nm_incstats(sock, STATID_OPEN);
+
+	if (sa_family == AF_INET6) {
+		flags = UV_TCP_IPV6ONLY;
+	}
+
+	if (sock->worker->netmgr->load_balance_sockets) {
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+	} else if (sock->tid == 0) {
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
+	} else {
+		/* The socket is already bound, just copy the flags */
+		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
+	}
+
+	isc__nm_set_network_buffers(sock->worker->netmgr,
+				    &sock->uv_handle.handle);
+
+	/*
+	 * The callback will run in the same thread uv_listen() was called
+	 * from, so a race with tcp_connection_cb() isn't possible.
+	 */
+	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
+		      tcp_connection_cb);
+	if (r != 0) {
+		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
+				  isc_result_totext(isc_uverr2result(r)));
+		isc__nm_incstats(sock, STATID_BINDFAIL);
+		goto done;
+	}
+
+	atomic_store(&sock->listening, true);
+
+done:
+	result = isc_uverr2result(r);
+	atomic_fetch_add(&sock->parent->rchildren, 1);
+
+	if (result != ISC_R_SUCCESS) {
+		sock->pquota = NULL;
+	}
+
+	sock->result = result;
+
+	REQUIRE(!loop->paused);
+
+	if (sock->tid != 0) {
+		isc_barrier_wait(&sock->parent->listen_barrier);
+	}
+}
+
+static void
 start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 		uv_os_sock_t fd, int tid) {
-	isc__netievent_tcplisten_t *ievent = NULL;
 	isc_nmsocket_t *csock = &sock->children[tid];
 	isc__networker_t *worker = &mgr->workers[tid];
 
@@ -367,14 +462,10 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	}
 	REQUIRE(csock->fd >= 0);
 
-	ievent = isc__nm_get_netievent_tcplisten(csock->worker, csock);
-
 	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		start_tcp_child_job(csock);
 	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(worker->loop, start_tcp_child_job, csock);
 	}
 }
 
@@ -456,104 +547,6 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	REQUIRE(atomic_load(&sock->rchildren) == sock->nchildren);
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
-}
-
-void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcplisten_t *ievent = (isc__netievent_tcplisten_t *)ev0;
-	sa_family_t sa_family;
-	int r;
-	int flags = 0;
-	isc_nmsocket_t *sock = NULL;
-	isc_result_t result = ISC_R_UNSET;
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(VALID_NMSOCK(ievent->sock->parent));
-
-	sock = ievent->sock;
-	sa_family = sock->iface.type.sa.sa_family;
-
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->tid == isc_tid());
-
-	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
-	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
-
-	r = uv_tcp_init(&worker->loop->loop, &sock->uv_handle.tcp);
-	UV_RUNTIME_CHECK(uv_tcp_init, r);
-	uv_handle_set_data(&sock->uv_handle.handle, sock);
-	/* This keeps the socket alive after everything else is gone */
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-
-	r = uv_timer_init(&worker->loop->loop, &sock->read_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
-	if (r < 0) {
-		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock, STATID_OPENFAIL);
-		goto done;
-	}
-	isc__nm_incstats(sock, STATID_OPEN);
-
-	if (sa_family == AF_INET6) {
-		flags = UV_TCP_IPV6ONLY;
-	}
-
-	if (sock->worker->netmgr->load_balance_sockets) {
-		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
-					 &sock->iface.type.sa, flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-	} else if (sock->tid == 0) {
-		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
-					 &sock->iface.type.sa, flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
-	} else {
-		/* The socket is already bound, just copy the flags */
-		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
-	}
-
-	isc__nm_set_network_buffers(sock->worker->netmgr,
-				    &sock->uv_handle.handle);
-
-	/*
-	 * The callback will run in the same thread uv_listen() was called
-	 * from, so a race with tcp_connection_cb() isn't possible.
-	 */
-	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
-		      tcp_connection_cb);
-	if (r != 0) {
-		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
-				  isc_result_totext(isc_uverr2result(r)));
-		isc__nm_incstats(sock, STATID_BINDFAIL);
-		goto done;
-	}
-
-	atomic_store(&sock->listening, true);
-
-done:
-	result = isc_uverr2result(r);
-	atomic_fetch_add(&sock->parent->rchildren, 1);
-
-	if (result != ISC_R_SUCCESS) {
-		sock->pquota = NULL;
-	}
-
-	sock->result = result;
-
-	REQUIRE(!worker->loop->paused);
-
-	if (sock->tid != 0) {
-		isc_barrier_wait(&sock->parent->listen_barrier);
-	}
 }
 
 static void

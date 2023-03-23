@@ -442,7 +442,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(udpcancel);
 
 		NETIEVENT_CASE(tcpaccept);
-		NETIEVENT_CASE(tcplisten);
 		NETIEVENT_CASE(tcpstop);
 
 		NETIEVENT_CASE(tlssend);
@@ -482,7 +481,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc__networker_unref(worker);
 }
 
-NETIEVENT_SOCKET_DEF(tcplisten);
 NETIEVENT_SOCKET_DEF(tcpstop);
 NETIEVENT_SOCKET_DEF(tlsclose);
 NETIEVENT_SOCKET_DEF(tlsconnect);
