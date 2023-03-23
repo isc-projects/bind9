@@ -761,8 +761,8 @@ unit:gcc:bullseye:unstable:amd64:
     - job: gcc:bullseye:amd64
       artifacts: true
 
-# Jobs for cross-compiled GCC builds on Debian 11 "bullseye" (amd64) with
-# 32-bit libraries
+# Build job for cross-compiled GCC builds on 64-bit Debian 11 "bullseye"
+# (amd64) with 32-bit BIND 9.
 
 gcc:bullseye:amd64cross32:
   variables:
@@ -773,20 +773,6 @@ gcc:bullseye:amd64cross32:
     EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2"
   <<: *debian_bullseye_amd64cross32_image
   <<: *build_job
-
-system:gcc:bullseye:amd64cross32:
-  <<: *debian_bullseye_amd64cross32_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:bullseye:amd64cross32
-      artifacts: true
-
-unit:gcc:bullseye:amd64cross32:
-  <<: *debian_bullseye_amd64cross32_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:bullseye:amd64cross32
-      artifacts: true
 
 # Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
 
