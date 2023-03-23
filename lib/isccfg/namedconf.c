@@ -826,11 +826,10 @@ static cfg_type_t cfg_type_forwardtype = {
 	cfg_doc_enum,  &cfg_rep_string, &forwardtype_enums
 };
 
-static const char *zonetype_enums[] = {
-	"primary",  "master",	       "secondary", "slave",
-	"mirror",   "delegation-only", "forward",   "hint",
-	"redirect", "static-stub",     "stub",	    NULL
-};
+static const char *zonetype_enums[] = { "primary", "master",   "secondary",
+					"slave",   "mirror",   "forward",
+					"hint",	   "redirect", "static-stub",
+					"stub",	   NULL };
 static cfg_type_t cfg_type_zonetype = { "zonetype",	   cfg_parse_enum,
 					cfg_print_ustring, cfg_doc_enum,
 					&cfg_rep_string,   &zonetype_enums };
@@ -2127,7 +2126,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "response-policy", &cfg_type_rpz, 0 },
 	{ "rfc2308-type1", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "root-delegation-only", &cfg_type_optional_exclude,
-	  CFG_CLAUSEFLAG_DEPRECATED },
+	  CFG_CLAUSEFLAG_ANCIENT },
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
@@ -2376,7 +2375,7 @@ static cfg_clausedef_t zone_only_clauses[] = {
 		  CFG_ZONE_STUB },
 	{ "delegation-only", &cfg_type_boolean,
 	  CFG_ZONE_HINT | CFG_ZONE_STUB | CFG_ZONE_FORWARD |
-		  CFG_CLAUSEFLAG_DEPRECATED },
+		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "dlz", &cfg_type_astring,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_REDIRECT },
 	{ "file", &cfg_type_qstring,
@@ -3877,10 +3876,6 @@ cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 	case CFG_ZONE_REDIRECT:
 		cfg_print_indent(&pctx);
 		cfg_print_cstr(&pctx, "type redirect;\n");
-		break;
-	case CFG_ZONE_DELEGATION:
-		cfg_print_indent(&pctx);
-		cfg_print_cstr(&pctx, "type delegation-only;\n");
 		break;
 	case CFG_ZONE_INVIEW:
 		/* no zone type is specified for these */

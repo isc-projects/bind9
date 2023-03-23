@@ -733,8 +733,7 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 
-	result = isccfg_check_namedconf(config, loadplugins, nodeprecate, logc,
-					mctx);
+	result = isccfg_check_namedconf(config, loadplugins, logc, mctx);
 	if (result != ISC_R_SUCCESS) {
 		exit_status = 1;
 	}

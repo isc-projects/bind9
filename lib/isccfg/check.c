@@ -1468,28 +1468,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 		}
 	}
 
-	obj = NULL;
-	(void)cfg_map_get(options, "root-delegation-only", &obj);
-	if (obj != NULL) {
-		if (!cfg_obj_isvoid(obj)) {
-			for (element = cfg_list_first(obj); element != NULL;
-			     element = cfg_list_next(element))
-			{
-				const cfg_obj_t *exclude;
-
-				exclude = cfg_listelt_value(element);
-				str = cfg_obj_asstring(exclude);
-				tresult = check_name(str);
-				if (tresult != ISC_R_SUCCESS) {
-					cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-						    "bad domain name '%s'",
-						    str);
-					result = tresult;
-				}
-			}
-		}
-	}
-
 	/*
 	 * Set supported DNSSEC algorithms.
 	 */
@@ -2886,8 +2864,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
 	       isc_symtab_t *files, isc_symtab_t *keydirs, isc_symtab_t *inview,
 	       const char *viewname, dns_rdataclass_t defclass,
-	       bool nodeprecate, cfg_aclconfctx_t *actx, isc_log_t *logctx,
-	       isc_mem_t *mctx) {
+	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx) {
 	const char *znamestr;
 	const char *typestr = NULL;
 	const char *target = NULL;
@@ -2971,13 +2948,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			ztype = CFG_ZONE_FORWARD;
 		} else if (strcasecmp(typestr, "hint") == 0) {
 			ztype = CFG_ZONE_HINT;
-		} else if (strcasecmp(typestr, "delegation-only") == 0) {
-			ztype = CFG_ZONE_DELEGATION;
-			if (!nodeprecate) {
-				cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-					    "'type delegation-only' is "
-					    "deprecated");
-			}
 		} else if (strcasecmp(typestr, "redirect") == 0) {
 			ztype = CFG_ZONE_REDIRECT;
 		} else {
@@ -5236,8 +5206,7 @@ static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
 	       isc_symtab_t *files, isc_symtab_t *keydirs, bool check_plugins,
-	       bool nodeprecate, isc_symtab_t *inview, isc_log_t *logctx,
-	       isc_mem_t *mctx) {
+	       isc_symtab_t *inview, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
 	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
@@ -5295,7 +5264,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 		tresult = check_zoneconf(zone, voptions, config, symtab, files,
 					 keydirs, inview, viewname, vclass,
-					 nodeprecate, actx, logctx, mctx);
+					 actx, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -5908,7 +5877,7 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 isc_result_t
 isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
-		       bool nodeprecate, isc_log_t *logctx, isc_mem_t *mctx) {
+		       isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
 	const cfg_obj_t *acls = NULL;
@@ -5997,8 +5966,8 @@ isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-					 files, keydirs, check_plugins,
-					 nodeprecate, inview, logctx, mctx);
+					 files, keydirs, check_plugins, inview,
+					 logctx, mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -6090,8 +6059,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		if (tresult == ISC_R_SUCCESS) {
 			tresult = check_viewconf(config, voptions, key, vclass,
 						 files, keydirs, check_plugins,
-						 nodeprecate, inview, logctx,
-						 mctx);
+						 inview, logctx, mctx);
 		}
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;

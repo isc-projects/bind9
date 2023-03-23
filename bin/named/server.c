@@ -5593,29 +5593,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		view->preferred_glue = 0;
 	}
 
-	obj = NULL;
-	result = named_config_get(maps, "root-delegation-only", &obj);
-	if (result == ISC_R_SUCCESS) {
-		dns_view_setrootdelonly(view, true);
-	}
-	if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
-		const cfg_obj_t *exclude;
-		dns_fixedname_t fixed;
-		dns_name_t *name;
-
-		name = dns_fixedname_initname(&fixed);
-		for (element = cfg_list_first(obj); element != NULL;
-		     element = cfg_list_next(element))
-		{
-			exclude = cfg_listelt_value(element);
-			CHECK(dns_name_fromstring(
-				name, cfg_obj_asstring(exclude), 0, NULL));
-			dns_view_excludedelegationonly(view, name);
-		}
-	} else {
-		dns_view_setrootdelonly(view, false);
-	}
-
 	/*
 	 * Load DynDB modules.
 	 */
@@ -6500,7 +6477,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	const cfg_obj_t *forwarders = NULL;
 	const cfg_obj_t *forwardtype = NULL;
 	const cfg_obj_t *ixfrfromdiffs = NULL;
-	const cfg_obj_t *only = NULL;
 	const cfg_obj_t *viewobj = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
@@ -6629,17 +6605,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			const char *hintsfile = cfg_obj_asstring(fileobj);
 
 			CHECK(configure_hints(view, hintsfile));
-
-			/*
-			 * Hint zones may also refer to delegation only points.
-			 */
-			only = NULL;
-			tresult = cfg_map_get(zoptions, "delegation-only",
-					      &only);
-			if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only))
-			{
-				dns_view_adddelegationonly(view, origin);
-			}
 		} else {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -6663,23 +6628,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		(void)cfg_map_get(zoptions, "forwarders", &forwarders);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
-
-		/*
-		 * Forward zones may also set delegation only.
-		 */
-		only = NULL;
-		tresult = cfg_map_get(zoptions, "delegation-only", &only);
-		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only)) {
-			dns_view_adddelegationonly(view, origin);
-		}
-		goto cleanup;
-	}
-
-	/*
-	 * "delegation-only zones" aren't zones either.
-	 */
-	if (strcasecmp(ztypestr, "delegation-only") == 0) {
-		dns_view_adddelegationonly(view, origin);
 		goto cleanup;
 	}
 
@@ -6839,16 +6787,6 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		(void)cfg_map_get(zoptions, "forward", &forwardtype);
 		CHECK(configure_forward(config, view, origin, forwarders,
 					forwardtype));
-	}
-
-	/*
-	 * Stub and forward zones may also refer to delegation only points.
-	 */
-	only = NULL;
-	if (cfg_map_get(zoptions, "delegation-only", &only) == ISC_R_SUCCESS) {
-		if (cfg_obj_asboolean(only)) {
-			dns_view_adddelegationonly(view, origin);
-		}
 	}
 
 	/*
@@ -8428,7 +8366,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	result = isccfg_check_namedconf(config, false, false, named_g_lctx,
+	result = isccfg_check_namedconf(config, false, named_g_lctx,
 					named_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_config;
@@ -13337,8 +13275,7 @@ newzone_parse(named_server_t *server, char *command, dns_view_t **viewp,
 	}
 
 	if (strcasecmp(cfg_obj_asstring(obj), "hint") == 0 ||
-	    strcasecmp(cfg_obj_asstring(obj), "forward") == 0 ||
-	    strcasecmp(cfg_obj_asstring(obj), "delegation-only") == 0)
+	    strcasecmp(cfg_obj_asstring(obj), "forward") == 0)
 	{
 		(void)putstr(text, "'");
 		(void)putstr(text, cfg_obj_asstring(obj));

@@ -12,7 +12,6 @@ OPTIONS_FILES =				\
 	stub.zoneopt			\
 	static-stub.zoneopt		\
 	redirect.zoneopt		\
-	delegation-only.zoneopt		\
 	in-view.zoneopt
 
 EXTRA_DIST =			\
@@ -70,9 +69,6 @@ static-stub.zoneopt: cfg_test
 
 redirect.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar redirect > $@
-
-delegation-only.zoneopt: cfg_test
-	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar delegation-only > $@
 
 in-view.zoneopt: cfg_test
 	$(AM_V_CFG_TEST)$(builddir)/cfg_test --zonegrammar in-view > $@

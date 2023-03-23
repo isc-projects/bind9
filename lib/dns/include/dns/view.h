@@ -162,9 +162,6 @@ struct dns_view {
 	dns_aclenv_t	     *aclenv;
 	dns_rdatatype_t	      preferred_glue;
 	bool		      flush;
-	dns_namelist_t	     *delonly;
-	bool		      rootdelonly;
-	dns_namelist_t	     *rootexclude;
 	bool		      checknames;
 	uint16_t	      maxudp;
 	dns_ttl_t	      staleanswerttl;
@@ -920,68 +917,6 @@ dns_view_flushname(dns_view_t *view, const dns_name_t *name);
  * Returns:
  *\li	#ISC_R_SUCCESS
  *	other returns are failures.
- */
-
-void
-dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
-/*%<
- * Add the given name to the delegation only table.
- *
- * Requires:
- *\li	'view' is valid.
- *\li	'name' is valid.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- */
-
-void
-dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
-/*%<
- * Add the given name to be excluded from the root-delegation-only.
- *
- *
- * Requires:
- *\li	'view' is valid.
- *\li	'name' is valid.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- */
-
-bool
-dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name);
-/*%<
- * Check if 'name' is in the delegation only table or if
- * rootdelonly is set that name is not being excluded.
- *
- * Requires:
- *\li	'view' is valid.
- *\li	'name' is valid.
- *
- * Returns:
- *\li	#true if the name is the table.
- *\li	#false otherwise.
- */
-
-void
-dns_view_setrootdelonly(dns_view_t *view, bool value);
-/*%<
- * Set the root delegation only flag.
- *
- * Requires:
- *\li	'view' is valid.
- */
-
-bool
-dns_view_getrootdelonly(dns_view_t *view);
-/*%<
- * Get the root delegation only flag.
- *
- * Requires:
- *\li	'view' is valid.
  */
 
 isc_result_t
