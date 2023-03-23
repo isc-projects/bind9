@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/result.h>
 #include <isc/thread.h>
@@ -797,26 +798,26 @@ isc__nm_streamdns_cleanup_data(isc_nmsocket_t *sock) {
 	}
 }
 
-void
-isc__nm_async_streamdnsread(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_streamdnsread_t *ievent =
-		(isc__netievent_streamdnsread_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
+static void
+streamdns_read_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	UNUSED(worker);
 
 	if (streamdns_closing(sock)) {
 		streamdns_failed_read_cb(sock, ISC_R_CANCELED, false);
-		return;
+		goto detach;
 	}
 
 	if (sock->streamdns.reading) {
-		return;
+		goto detach;
 	}
 
 	INSIST(VALID_NMHANDLE(sock->outerhandle));
 	streamdns_handle_incoming_data(sock, sock->outerhandle, NULL, 0);
+detach:
+	isc__nmsocket_detach(&sock);
 }
 
 void
@@ -847,9 +848,8 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	if (!closing && isc_dnsstream_assembler_result(sock->streamdns.input) ==
 				ISC_R_UNSET)
 	{
-		isc__netievent_streamdnsread_t event = { .sock = sock };
-		isc__nm_async_streamdnsread(sock->worker,
-					    (isc__netievent_t *)&event);
+		isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+		streamdns_read_cb(sock);
 		return;
 	}
 
@@ -863,9 +863,9 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	 * 2. Due to the above, we need to make the operation
 	 *    asynchronous to keep the socket state consistent.
 	 */
-	isc__netievent_streamdnsread_t *ievent =
-		isc__nm_get_netievent_streamdnsread(sock->worker, sock);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, streamdns_read_cb, sock);
 }
 
 void

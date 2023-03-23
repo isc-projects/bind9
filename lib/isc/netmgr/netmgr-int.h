@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_streamdnsread,
 	netievent_streamdnscancel,
 
 	netievent_settlsctx,
@@ -1452,9 +1451,6 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 #endif
 
 void
-isc__nm_async_streamdnsread(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 		       void *cbarg);
 
@@ -1638,7 +1634,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_TYPE(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_TYPE(streamdnscancel);
 
 NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
@@ -1648,7 +1643,6 @@ NETIEVENT_SOCKET_TYPE(sockstop);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
-NETIEVENT_SOCKET_DECL(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_DECL(streamdnscancel);
 
 NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
