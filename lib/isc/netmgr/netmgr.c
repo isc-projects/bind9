@@ -440,7 +440,6 @@ process_netievent(void *arg) {
 
 	switch (ievent->type) {
 		NETIEVENT_CASE(tlssend);
-		NETIEVENT_CASE(tlsclose);
 		NETIEVENT_CASE(tlsdobio);
 #if HAVE_LIBNGHTTP2
 		NETIEVENT_CASE(httpsend);
@@ -476,7 +475,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc__networker_unref(worker);
 }
 
-NETIEVENT_SOCKET_DEF(tlsclose);
 NETIEVENT_SOCKET_DEF(tlsconnect);
 NETIEVENT_SOCKET_DEF(tlsdobio);
 

@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_tlsclose,
 	netievent_tlssend,
 	netievent_tlsconnect,
 	netievent_tlsdobio,
@@ -1288,9 +1287,6 @@ isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
  */
 
 void
-isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1671,7 +1667,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
  * typedef all the netievent types
  */
 
-NETIEVENT_SOCKET_TYPE(tlsclose);
 /* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
 					  */
 NETIEVENT_SOCKET_TYPE(tlsdobio);
@@ -1694,7 +1689,6 @@ NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
 
-NETIEVENT_SOCKET_DECL(tlsclose);
 NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
 
