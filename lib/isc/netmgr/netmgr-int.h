@@ -274,8 +274,6 @@ typedef enum isc__netievent_type {
 
 	netievent_tcplisten,
 	netievent_tcpstop,
-
-	netievent_detach,
 } isc__netievent_type;
 
 typedef union {
@@ -1728,7 +1726,6 @@ NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_HANDLE_TYPE(detach);
 NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
@@ -1760,7 +1757,6 @@ NETIEVENT_SOCKET_REQ_DECL(tlssend);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
 NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
-NETIEVENT_SOCKET_DECL(detach);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 

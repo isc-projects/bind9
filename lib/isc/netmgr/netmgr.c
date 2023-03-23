@@ -22,6 +22,7 @@
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/errno.h>
+#include <isc/job.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/loop.h>
@@ -129,15 +130,9 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
 static void
 process_netievent(void *arg);
 
-static void
-isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0);
-
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
-
-static void
-nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG);
 
 static void
 shutdown_walk_cb(uv_handle_t *handle, void *arg);
@@ -465,8 +460,6 @@ process_netievent(void *arg) {
 
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
-
-		NETIEVENT_CASE(detach);
 	default:
 		UNREACHABLE();
 	}
@@ -507,8 +500,6 @@ NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DEF(tlssend);
-
-NETIEVENT_SOCKET_DEF(detach);
 
 NETIEVENT_SOCKET_QUOTA_DEF(tcpaccept);
 
@@ -1123,60 +1114,19 @@ nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	}
 }
 
-void
-isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
-	isc_nmsocket_t *sock = NULL;
-	isc_nmhandle_t *handle = NULL;
+static void
+isc__nm_closehandle_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
-	REQUIRE(handlep != NULL);
-	REQUIRE(VALID_NMHANDLE(*handlep));
+	sock->closehandle_cb(sock);
 
-	handle = *handlep;
-	*handlep = NULL;
-
-	/*
-	 * If the closehandle_cb is set, it needs to run asynchronously to
-	 * ensure correct ordering of the isc__nm_process_sock_buffer().
-	 */
-	sock = handle->sock;
-	if (sock->tid == isc_tid() && sock->closehandle_cb == NULL) {
-		nmhandle_detach_cb(&handle FLARG_PASS);
-	} else {
-		isc__netievent_detach_t *event =
-			isc__nm_get_netievent_detach(sock->worker, sock);
-		/*
-		 * we are using implicit "attach" as the last reference
-		 * need to be destroyed explicitly in the async callback
-		 */
-		event->handle = handle;
-		FLARG_IEVENT_PASS(event);
-		isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)event);
-	}
+	isc__nmsocket_detach(&sock);
 }
 
 static void
-nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
-	isc_nmsocket_t *sock = NULL;
-	isc_nmhandle_t *handle = NULL;
+nmhandle_destroy(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = handle->sock;
 
-	REQUIRE(handlep != NULL);
-	REQUIRE(VALID_NMHANDLE(*handlep));
-
-	handle = *handlep;
-	*handlep = NULL;
-
-	NETMGR_TRACE_LOG("isc__nmhandle_detach():%p->references = %" PRIuFAST32
-			 "\n",
-			 handle, isc_refcount_current(&handle->references) - 1);
-
-	if (isc_refcount_decrement(&handle->references) > 1) {
-		return;
-	}
-
-	/* We need an acquire memory barrier here */
-	(void)isc_refcount_current(&handle->references);
-
-	sock = handle->sock;
 	handle->sock = NULL;
 
 	if (handle->doreset != NULL) {
@@ -1199,13 +1149,35 @@ nmhandle_detach_cb(isc_nmhandle_t **handlep FLARG) {
 	/*
 	 * The handle is gone now. If the socket has a callback configured
 	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now..
+	 * call it now asynchronously.
 	 */
 	if (sock->closehandle_cb != NULL) {
-		sock->closehandle_cb(sock);
+		isc_job_run(sock->worker->netmgr->loopmgr,
+			    isc__nm_closehandle_job, sock);
+	} else {
+		isc___nmsocket_detach(&sock FLARG_PASS);
 	}
+}
 
-	isc___nmsocket_detach(&sock FLARG_PASS);
+void
+isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
+	isc_nmhandle_t *handle = NULL;
+
+	REQUIRE(handlep != NULL);
+	REQUIRE(VALID_NMHANDLE(*handlep));
+
+	handle = *handlep;
+	*handlep = NULL;
+
+	REQUIRE(handle->sock->tid == isc_tid());
+
+	NETMGR_TRACE_LOG("isc__nmhandle_detach():%p->references = %" PRIuFAST32
+			 "\n",
+			 handle, isc_refcount_current(&handle->references) - 1);
+
+	if (isc_refcount_decrement(&handle->references) == 1) {
+		nmhandle_destroy(handle);
+	}
 }
 
 void *
@@ -2085,20 +2057,6 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	}
 
 	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_sendcb_job, uvreq);
-}
-
-void
-isc__nm_async_detach(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_detach_t *ievent = (isc__netievent_detach_t *)ev0;
-	FLARG_IEVENT(ievent);
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(VALID_NMHANDLE(ievent->handle));
-	REQUIRE(ievent->sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	nmhandle_detach_cb(&ievent->handle FLARG_PASS);
 }
 
 static void
