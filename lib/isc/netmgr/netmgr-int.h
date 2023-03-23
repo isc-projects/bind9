@@ -266,10 +266,6 @@ typedef enum isc__netievent_type {
 	netievent_streamdnsread,
 	netievent_streamdnscancel,
 
-	netievent_connectcb,
-	netievent_readcb,
-	netievent_sendcb,
-
 	netievent_settlsctx,
 	netievent_sockstop, /* for multilayer sockets */
 
@@ -311,6 +307,7 @@ struct isc__nm_uvreq {
 	void *cbarg;	       /* callback argument */
 	isc_nm_timer_t *timer; /* TCP write timer */
 	int connect_tries;     /* connect retries */
+	isc_result_t result;
 
 	union {
 		uv_handle_t handle;
@@ -1178,17 +1175,8 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		  isc_result_t eresult, bool async);
 
 void
-isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Issue a connect callback on the socket, used to call the callback
- */
-
-void
 isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	       isc_result_t eresult, bool async);
-void
-isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0);
-
 /*%<
  * Issue a read callback on the socket, used to call the callback
  * on failed conditions when the event can't be scheduled on the uv loop.
@@ -1738,8 +1726,6 @@ NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
 
 NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 
-NETIEVENT_SOCKET_REQ_RESULT_TYPE(connectcb);
-NETIEVENT_SOCKET_REQ_RESULT_TYPE(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
 NETIEVENT_SOCKET_HANDLE_TYPE(detach);
@@ -1771,8 +1757,6 @@ NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
 
-NETIEVENT_SOCKET_REQ_RESULT_DECL(connectcb);
-NETIEVENT_SOCKET_REQ_RESULT_DECL(readcb);
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
 NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);

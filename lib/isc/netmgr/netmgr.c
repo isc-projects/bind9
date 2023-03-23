@@ -466,10 +466,6 @@ process_netievent(void *arg) {
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
 
-		NETIEVENT_CASE(connectcb);
-		NETIEVENT_CASE(readcb);
-		NETIEVENT_CASE(sendcb);
-
 		NETIEVENT_CASE(detach);
 	default:
 		UNREACHABLE();
@@ -511,9 +507,6 @@ NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_DEF(tlssend);
-NETIEVENT_SOCKET_REQ_RESULT_DEF(connectcb);
-NETIEVENT_SOCKET_REQ_RESULT_DEF(readcb);
-NETIEVENT_SOCKET_REQ_RESULT_DEF(sendcb);
 
 NETIEVENT_SOCKET_DEF(detach);
 
@@ -2005,6 +1998,19 @@ isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0) {
 	isc_barrier_wait(&listener->stop_barrier);
 }
 
+static void
+isc__nm_connectcb_job(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
+	isc_result_t eresult = uvreq->result;
+
+	REQUIRE(VALID_UVREQ(uvreq));
+	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	REQUIRE(uvreq->cb.connect != NULL);
+
+	uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
+	isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
+}
+
 void
 isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 		  isc_result_t eresult, bool async) {
@@ -2012,76 +2018,23 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
-	if (!async) {
-		isc__netievent_connectcb_t ievent = { .sock = sock,
-						      .req = uvreq,
-						      .result = eresult };
-		isc__nm_async_connectcb(NULL, (isc__netievent_t *)&ievent);
-	} else {
-		isc__netievent_connectcb_t *ievent =
-			isc__nm_get_netievent_connectcb(sock->worker, sock,
-							uvreq, eresult);
-		isc__nm_enqueue_ievent(sock->worker,
-				       (isc__netievent_t *)ievent);
-	}
-}
-
-void
-isc__nm_async_connectcb(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_connectcb_t *ievent = (isc__netievent_connectcb_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *uvreq = ievent->req;
-	isc_result_t eresult = ievent->result;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(ievent->sock->tid == isc_tid());
-	REQUIRE(uvreq->cb.connect != NULL);
-
-	uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
-
-	isc__nm_uvreq_put(&uvreq, sock);
-}
-
-void
-isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
-	       isc_result_t eresult, bool async) {
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	uvreq->result = eresult;
 
 	if (!async) {
-		isc__netievent_readcb_t ievent = { .type = netievent_readcb,
-						   .sock = sock,
-						   .req = uvreq,
-						   .result = eresult };
-
-		isc__nm_async_readcb(NULL, (isc__netievent_t *)&ievent);
+		isc__nm_connectcb_job(uvreq);
 		return;
 	}
 
-	isc__netievent_readcb_t *ievent = isc__nm_get_netievent_readcb(
-		sock->worker, sock, uvreq, eresult);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_connectcb_job,
+		    uvreq);
 }
 
-void
-isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_readcb_t *ievent = (isc__netievent_readcb_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *uvreq = ievent->req;
-	isc_result_t eresult = ievent->result;
+static void
+isc__nm_readcb_job(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
+	isc_result_t eresult = uvreq->result;
+	isc_nmsocket_t *sock = uvreq->handle->sock;
 	isc_region_t region;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(sock->tid == isc_tid());
 
 	region.base = (unsigned char *)uvreq->uvbuf.base;
 	region.length = uvreq->uvbuf.len;
@@ -2092,42 +2045,46 @@ isc__nm_async_readcb(isc__networker_t *worker, isc__netievent_t *ev0) {
 }
 
 void
+isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
+	       isc_result_t eresult, bool async) {
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_UVREQ(uvreq));
+	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	uvreq->result = eresult;
+
+	if (!async) {
+		isc__nm_readcb_job(uvreq);
+		return;
+	}
+
+	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_readcb_job, uvreq);
+}
+
+static void
+isc__nm_sendcb_job(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
+	isc_result_t eresult = uvreq->result;
+	isc_nmsocket_t *sock = uvreq->handle->sock;
+
+	uvreq->cb.send(uvreq->handle, eresult, uvreq->cbarg);
+
+	isc__nm_uvreq_put(&uvreq, sock);
+}
+
+void
 isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	       isc_result_t eresult, bool async) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	uvreq->result = eresult;
 
 	if (!async) {
-		isc__netievent_sendcb_t ievent = { .sock = sock,
-						   .req = uvreq,
-						   .result = eresult };
-		isc__nm_async_sendcb(NULL, (isc__netievent_t *)&ievent);
+		isc__nm_sendcb_job(uvreq);
 		return;
 	}
 
-	isc__netievent_sendcb_t *ievent = isc__nm_get_netievent_sendcb(
-		sock->worker, sock, uvreq, eresult);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_sendcb(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_sendcb_t *ievent = (isc__netievent_sendcb_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *uvreq = ievent->req;
-	isc_result_t eresult = ievent->result;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(sock->tid == isc_tid());
-
-	uvreq->cb.send(uvreq->handle, eresult, uvreq->cbarg);
-
-	isc__nm_uvreq_put(&uvreq, sock);
+	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_sendcb_job, uvreq);
 }
 
 void
