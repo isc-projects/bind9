@@ -27,6 +27,16 @@ Removed Features
 
 - None.
 
+- Zone type ``delegation-only``, and the ``delegation-only`` and
+  ``root-delegation-only`` options, have been deprecated; a warning will
+  be logged when they are used.
+
+  These options were created to address the SiteFinder controversy, in
+  which certain top-level domains redirected misspelled queries to other
+  sites instead of returning NXDOMAIN responses. Since top-level domains are
+  now DNSSEC signed, and DNSSEC validation is active by default, the
+  options are no longer needed. :gl:`#3953`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

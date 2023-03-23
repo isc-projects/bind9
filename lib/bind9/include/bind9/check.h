@@ -36,13 +36,15 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
-		      isc_log_t *logctx, isc_mem_t *mctx);
+		      bool nodeprecate, isc_log_t *logctx, isc_mem_t *mctx);
 /*%<
  * Check the syntactic validity of a configuration parse tree generated from
  * a named.conf file.
  *
  * If 'check_plugins' is true, load plugins and check the validity of their
  * parameters as well.
+ *
+ * If 'nodeprecate' is true, do not warn about deprecated configuration.
  *
  * Requires:
  *\li	config is a valid parse tree

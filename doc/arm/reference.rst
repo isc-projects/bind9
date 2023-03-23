@@ -1624,7 +1624,7 @@ default is used.
    IPv4 and AAAA when responding to queries that arrived via IPv6.
 
 .. namedconf:statement:: root-delegation-only
-   :tags: query
+   :tags: deprecated
    :short: Turns on enforcement of delegation-only in top-level domains (TLDs) and root zones with an optional exclude list.
 
    This turns on enforcement of delegation-only in top-level domains (TLDs)
@@ -1659,6 +1659,9 @@ default is used.
       options {
           root-delegation-only exclude { "de"; "lv"; "us"; "museum"; };
       };
+
+   This option is deprecated, and will be rendered non-operational in a
+   future release.
 
 .. namedconf:statement:: disable-algorithms
    :tags: dnssec
@@ -6953,18 +6956,21 @@ Zone Types
    zones are reloaded along with other zones.
 
 .. namedconf:statement:: type delegation-only
-   :tags: query
+   :tags: deprecated
    :short: Enforces the delegation-only status of infrastructure zones (COM, NET, ORG, etc.).
 
-   This zone type is used to enforce the delegation-only status of infrastructure
-   zones (e.g., COM, NET, ORG). Any answer that is received without an
-   explicit or implicit delegation in the authority section is treated
-   as NXDOMAIN. This does not apply to the zone apex, and should not be
-   applied to leaf zones.
+   This zone type is used to enforce the delegation-only status of
+   infrastructure zones (e.g., COM, NET, ORG). Any answer that is received
+   without an explicit or implicit delegation in the authority section is
+   treated as NXDOMAIN. This does not apply to the zone apex, and should
+   not be applied to leaf zones.
 
    :any:`delegation-only` has no effect on answers received from forwarders.
 
    See caveats in :any:`root-delegation-only`.
+
+   This zone type is deprecated, and will be rendered non-operational in a
+   future release.
 
 .. namedconf:statement:: in-view
    :tags: view, zone
@@ -7094,7 +7100,7 @@ Zone Options
    See the description of :any:`dialup` in :ref:`boolean_options`.
 
 .. namedconf:statement:: delegation-only
-   :tags: zone
+   :tags: deprecated
    :short: Indicates that a forward, hint, or stub zone is to be treated as a delegation-only type zone.
 
    This flag only applies to forward, hint, and stub zones. If set to
@@ -7102,6 +7108,9 @@ Zone Options
    delegation-only type zone.
 
    See caveats in :any:`root-delegation-only`.
+
+   This option is deprecated, and will be rendered non-operational in a
+   future release.
 
 .. namedconf:statement:: file
    :tags: zone
