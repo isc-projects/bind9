@@ -2956,6 +2956,29 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
 }
 
+typedef struct http_endpoints_data {
+	isc_nmsocket_t *listener;
+	isc_nm_http_endpoints_t *endpoints;
+} http_endpoints_data_t;
+
+static void
+http_set_endpoints_cb(void *arg) {
+	http_endpoints_data_t *data = arg;
+	const int tid = isc_tid();
+	isc_nmsocket_t *listener = data->listener;
+	isc_nm_http_endpoints_t *endpoints = data->endpoints;
+	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
+
+	isc_mem_put(worker->loop->mctx, data, sizeof(*data));
+
+	isc_nm_http_endpoints_detach(&listener->h2.listener_endpoints[tid]);
+	isc_nm_http_endpoints_attach(endpoints,
+				     &listener->h2.listener_endpoints[tid]);
+
+	isc_nm_http_endpoints_detach(&endpoints);
+	isc__nmsocket_detach(&listener);
+}
+
 void
 isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 			  isc_nm_http_endpoints_t *eps) {
@@ -2970,27 +2993,16 @@ isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 	atomic_store(&eps->in_use, true);
 
 	for (size_t i = 0; i < isc_loopmgr_nloops(loopmgr); i++) {
-		isc__netievent__http_eps_t *ievent =
-			isc__nm_get_netievent_httpendpoints(
-				&listener->worker->netmgr->workers[i], listener,
-				eps);
-		isc__nm_enqueue_ievent(&listener->worker->netmgr->workers[i],
-				       (isc__netievent_t *)ievent);
+		isc__networker_t *worker =
+			&listener->worker->netmgr->workers[i];
+		http_endpoints_data_t *data = isc_mem_getx(
+			worker->loop->mctx, sizeof(*data), ISC_MEM_ZERO);
+
+		isc__nmsocket_attach(listener, &data->listener);
+		isc_nm_http_endpoints_attach(eps, &data->endpoints);
+
+		isc_async_run(worker->loop, http_set_endpoints_cb, data);
 	}
-}
-
-void
-isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent__http_eps_t *ievent = (isc__netievent__http_eps_t *)ev0;
-	const int tid = isc_tid();
-	isc_nmsocket_t *listener = ievent->sock;
-	isc_nm_http_endpoints_t *eps = ievent->endpoints;
-
-	UNUSED(worker);
-
-	isc_nm_http_endpoints_detach(&listener->h2.listener_endpoints[tid]);
-	isc_nm_http_endpoints_attach(eps,
-				     &listener->h2.listener_endpoints[tid]);
 }
 
 static void

@@ -439,9 +439,6 @@ process_netievent(void *arg) {
 	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-#if HAVE_LIBNGHTTP2
-		NETIEVENT_CASE(httpendpoints);
-#endif
 		NETIEVENT_CASE(streamdnsread);
 		NETIEVENT_CASE(streamdnscancel);
 
@@ -470,10 +467,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
 	isc__networker_unref(worker);
 }
-
-#ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
-#endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_DEF(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_DEF(streamdnscancel);

@@ -250,8 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_httpendpoints,
-
 	netievent_streamdnsread,
 	netievent_streamdnscancel,
 
@@ -1426,9 +1424,6 @@ isc__nm_http_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl);
 const char *
 isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
 
-void
-isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0);
-
 bool
 isc__nm_parse_httpquery(const char *query_string, const char **start,
 			size_t *len);
@@ -1641,10 +1636,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
  * typedef all the netievent types
  */
 
-#ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
-#endif /* HAVE_LIBNGHTTP2 */
-
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
 NETIEVENT_SOCKET_TYPE(streamdnsread);
@@ -1654,10 +1645,6 @@ NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
-
-#ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
-#endif /* HAVE_LIBNGHTTP2 */
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
