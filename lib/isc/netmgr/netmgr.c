@@ -439,7 +439,6 @@ process_netievent(void *arg) {
 	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
 	default:
 		UNREACHABLE();
@@ -465,7 +464,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc__networker_unref(worker);
 }
 
-NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
 NETIEVENT_SOCKET_DEF(sockstop);
 
 void
@@ -2380,23 +2378,27 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	return (NULL);
 }
 
-void
-isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent__tlsctx_t *ev_tlsctx = (isc__netievent__tlsctx_t *)ev0;
-	const int tid = isc_tid();
-	isc_nmsocket_t *listener = ev_tlsctx->sock;
-	isc_tlsctx_t *tlsctx = ev_tlsctx->tlsctx;
+typedef struct settlsctx_data {
+	isc_nmsocket_t *listener;
+	isc_tlsctx_t *tlsctx;
+} settlsctx_data_t;
 
-	UNUSED(worker);
+static void
+settlsctx_cb(void *arg) {
+	settlsctx_data_t *data = arg;
+	const uint32_t tid = isc_tid();
+	isc_nmsocket_t *listener = data->listener;
+	isc_tlsctx_t *tlsctx = data->tlsctx;
+	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
 
-	switch (listener->type) {
-	case isc_nm_tlslistener:
-		isc__nm_async_tls_set_tlsctx(listener, tlsctx, tid);
-		break;
-	default:
-		UNREACHABLE();
-		break;
-	};
+	isc_mem_put(worker->loop->mctx, data, sizeof(*data));
+
+	REQUIRE(listener->type == isc_nm_tlslistener);
+
+	isc__nm_async_tls_set_tlsctx(listener, tlsctx, tid);
+
+	isc__nmsocket_detach(&listener);
+	isc_tlsctx_free(&tlsctx);
 }
 
 static void
@@ -2407,10 +2409,13 @@ set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	for (size_t i = 0; i < nworkers; i++) {
 		isc__networker_t *worker =
 			&listener->worker->netmgr->workers[i];
-		isc__netievent__tlsctx_t *ievent =
-			isc__nm_get_netievent_settlsctx(worker, listener,
-							tlsctx);
-		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ievent);
+		settlsctx_data_t *data = isc_mem_getx(
+			worker->loop->mctx, sizeof(*data), ISC_MEM_ZERO);
+
+		isc__nmsocket_attach(listener, &data->listener);
+		isc_tlsctx_attach(tlsctx, &data->tlsctx);
+
+		isc_async_run(worker->loop, settlsctx_cb, data);
 	}
 }
 

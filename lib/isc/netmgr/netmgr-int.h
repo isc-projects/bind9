@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_settlsctx,
 	netievent_sockstop, /* for multilayer sockets */
 } isc__netievent_type;
 
@@ -1510,9 +1509,6 @@ isc__nm_streamdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 				 bool async);
 
 void
-isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1629,14 +1625,12 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_TLSCTX_TYPE(settlsctx);
 NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 
-NETIEVENT_SOCKET_TLSCTX_DECL(settlsctx);
 NETIEVENT_SOCKET_DECL(sockstop);
 
 void
