@@ -474,7 +474,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc__networker_unref(worker);
 }
 
-NETIEVENT_SOCKET_DEF(tlsconnect);
 NETIEVENT_SOCKET_DEF(tlsdobio);
 
 #ifdef HAVE_LIBNGHTTP2

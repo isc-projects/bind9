@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_tlsconnect,
 	netievent_tlsdobio,
 
 	netievent_httpclose,
@@ -518,13 +517,6 @@ typedef struct isc__netievent__socket_quota {
 		isc__nm_put_netievent(worker, ievent);                         \
 	}
 
-typedef struct isc__netievent_tlsconnect {
-	NETIEVENT__SOCKET;
-	SSL_CTX *ctx;
-	isc_sockaddr_t local; /* local address */
-	isc_sockaddr_t peer;  /* peer address */
-} isc__netievent_tlsconnect_t;
-
 typedef struct isc__netievent {
 	isc__netievent_type type;
 	ISC_LINK(isc__netievent_t) link;
@@ -628,7 +620,6 @@ typedef union {
 	isc__netievent__socket_t nis;
 	isc__netievent__socket_req_t nisr;
 	isc__netievent__socket_quota_t nisq;
-	isc__netievent_tlsconnect_t nitc;
 	isc__netievent__tlsctx_t nitls;
 #ifdef HAVE_LIBNGHTTP2
 	isc__netievent__http_eps_t nihttpeps;
@@ -1663,8 +1654,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
  * typedef all the netievent types
  */
 
-/* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
-					  */
 NETIEVENT_SOCKET_TYPE(tlsdobio);
 
 #ifdef HAVE_LIBNGHTTP2
@@ -1683,7 +1672,6 @@ NETIEVENT_SOCKET_TYPE(sockstop);
 
 /* Now declared the helper functions */
 
-NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
 
 #ifdef HAVE_LIBNGHTTP2
