@@ -587,7 +587,9 @@ isc___nmsocket_attach(isc_nmsocket_t *sock, isc_nmsocket_t **target FLARG) {
  * Free all resources inside a socket (including its children if any).
  */
 static void
-nmsocket_cleanup(isc_nmsocket_t *sock) {
+nmsocket_cleanup(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(!isc__nmsocket_active(sock));
 
@@ -666,11 +668,26 @@ nmsocket_cleanup(isc_nmsocket_t *sock) {
 	isc__networker_detach(&worker);
 }
 
+static bool
+nmsocket_has_active_handles(isc_nmsocket_t *sock) {
+	if (!ISC_LIST_EMPTY(sock->active_handles)) {
+		return (true);
+	}
+
+	if (sock->children != NULL) {
+		for (size_t i = 0; i < sock->nchildren; i++) {
+			isc_nmsocket_t *csock = &sock->children[i];
+			if (!ISC_LIST_EMPTY(csock->active_handles)) {
+				return (true);
+			}
+		}
+	}
+
+	return (false);
+}
+
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
-	int active_handles;
-	bool destroy = false;
-
 	NETMGR_TRACE_LOG("%s():%p->references = %" PRIuFAST32 "\n", __func__,
 			 sock, isc_refcount_current(&sock->references));
 
@@ -684,39 +701,29 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 		return;
 	}
 
-	/*
-	 * This is a parent socket (or a standalone). See whether the
-	 * children have active handles before deciding whether to
-	 * accept destruction.
-	 */
 	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
 	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0)
 	{
 		return;
 	}
 
-	active_handles = atomic_load(&sock->ah);
-	if (sock->children != NULL) {
-		for (size_t i = 0; i < sock->nchildren; i++) {
-			active_handles += atomic_load(&sock->children[i].ah);
-		}
+	NETMGR_TRACE_LOG("%s:%p->statichandle = %p\n", __func__, sock,
+			 sock->statichandle);
+
+	/*
+	 * This is a parent socket (or a standalone). See whether the
+	 * children have active handles before deciding whether to
+	 * accept destruction.
+	 */
+	if (sock->statichandle == NULL && nmsocket_has_active_handles(sock)) {
+		return;
 	}
 
-	if (active_handles == 0 || sock->statichandle != NULL) {
-		destroy = true;
-	}
-
-	NETMGR_TRACE_LOG("%s:%p->active_handles = %d, .statichandle = %p\n",
-			 __func__, sock, active_handles, sock->statichandle);
-
-	if (destroy) {
-		atomic_store(&sock->destroying, true);
-		if (sock->tid == isc_tid()) {
-			nmsocket_cleanup(sock);
-		} else {
-			isc_async_run(sock->worker->loop,
-				      (isc_job_cb)nmsocket_cleanup, sock);
-		}
+	atomic_store(&sock->destroying, true);
+	if (sock->tid == isc_tid()) {
+		nmsocket_cleanup(sock);
+	} else {
+		isc_async_run(sock->worker->loop, nmsocket_cleanup, sock);
 	}
 }
 
@@ -921,7 +928,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 	atomic_init(&sock->listening, 0);
 	atomic_init(&sock->closed, 0);
 	atomic_init(&sock->destroying, 0);
-	atomic_init(&sock->ah, 0);
 	atomic_init(&sock->client, 0);
 	atomic_init(&sock->connecting, false);
 	atomic_init(&sock->keepalive, false);
@@ -1025,8 +1031,6 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 		handle->local = sock->iface;
 	}
 
-	(void)atomic_fetch_add(&sock->ah, 1);
-
 	ISC_LIST_APPEND(sock->active_handles, handle, active_link);
 
 	switch (sock->type) {
@@ -1088,30 +1092,13 @@ static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	isc_refcount_destroy(&handle->references);
 
+	handle->magic = 0;
+
 	if (handle->dofree != NULL) {
 		handle->dofree(handle->opaque);
 	}
 
-	*handle = (isc_nmhandle_t){ .magic = 0 };
-
 	isc_mem_put(sock->worker->mctx, handle, sizeof(isc_nmhandle_t));
-}
-
-static void
-nmhandle_deactivate(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
-	uint_fast32_t ah = atomic_fetch_sub(&sock->ah, 1);
-	INSIST(ah > 0);
-
-	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
-
-#if !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__
-	if (atomic_load(&sock->active)) {
-		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
-	} else
-#endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
-	{
-		nmhandle_free(sock, handle);
-	}
 }
 
 static void
@@ -1144,7 +1131,17 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 		sock->statichandle = NULL;
 	}
 
-	nmhandle_deactivate(sock, handle);
+	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
+
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
+	nmhandle_free(sock, handle);
+#else
+	if (atomic_load(&sock->active)) {
+		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
+	} else {
+		nmhandle_free(sock, handle);
+	}
+#endif
 
 	/*
 	 * The handle is gone now. If the socket has a callback configured

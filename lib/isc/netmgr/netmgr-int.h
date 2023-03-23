@@ -992,11 +992,6 @@ struct isc_nmsocket {
 	isc_result_t result;
 
 	/*%
-	 * Current number of active handles.
-	 */
-	atomic_int_fast32_t ah;
-
-	/*%
 	 * This function will be called with handle->sock
 	 * as the argument whenever a handle's references drop
 	 * to zero, after its reset callback has been called.

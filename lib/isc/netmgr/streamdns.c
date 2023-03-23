@@ -101,7 +101,9 @@ streamdns_resumeread(isc_nmsocket_t *sock, isc_nmhandle_t *transphandle) {
 static void
 streamdns_readmore(isc_nmsocket_t *sock, isc_nmhandle_t *transphandle) {
 	streamdns_resumeread(sock, transphandle);
-	if (sock->streamdns.reading && atomic_load(&sock->ah) == 1) {
+
+	isc_nmhandle_t *handle = ISC_LIST_HEAD(sock->active_handles);
+	if (handle != NULL && ISC_LIST_NEXT(handle, active_link) == NULL) {
 		isc__nmsocket_timer_start(sock);
 	}
 }
