@@ -962,6 +962,15 @@ isc__nm_streamdns_stoplistening(isc_nmsocket_t *sock) {
 	isc__nmsocket_stop(sock);
 }
 
+static void
+streamdns_cancelread_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	streamdns_failed_read_cb(sock, ISC_R_EOF, false);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_streamdns_cancelread(isc_nmhandle_t *handle) {
 	isc_nmsocket_t *sock = NULL;
@@ -972,24 +981,8 @@ isc__nm_streamdns_cancelread(isc_nmhandle_t *handle) {
 
 	sock = handle->sock;
 
-	isc__netievent_streamdnscancel_t *ievent =
-		isc__nm_get_netievent_streamdnscancel(sock->worker,
-						      handle->sock, handle);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_streamdnscancel(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_streamdnscancel_t *ievent =
-		(isc__netievent_streamdnscancel_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-
-	streamdns_failed_read_cb(sock, ISC_R_EOF, false);
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, streamdns_cancelread_cb, sock);
 }
 
 void

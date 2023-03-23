@@ -439,8 +439,6 @@ process_netievent(void *arg) {
 	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		NETIEVENT_CASE(streamdnscancel);
-
 		NETIEVENT_CASE(settlsctx);
 		NETIEVENT_CASE(sockstop);
 	default:
@@ -466,8 +464,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
 	isc__networker_unref(worker);
 }
-
-NETIEVENT_SOCKET_HANDLE_DEF(streamdnscancel);
 
 NETIEVENT_SOCKET_TLSCTX_DEF(settlsctx);
 NETIEVENT_SOCKET_DEF(sockstop);
