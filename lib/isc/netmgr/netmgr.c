@@ -436,10 +436,8 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 static void
 process_netievent(void *arg) {
 	isc__netievent_t *ievent = (isc__netievent_t *)arg;
-	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		NETIEVENT_CASE(sockstop);
 	default:
 		UNREACHABLE();
 	}
@@ -463,8 +461,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
 	isc__networker_unref(worker);
 }
-
-NETIEVENT_SOCKET_DEF(sockstop);
 
 void
 isc__nm_process_ievent(isc__networker_t *worker, isc__netievent_t *event) {
@@ -1862,10 +1858,16 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	}
 }
 
+static void
+nmsocket_stop_cb(void *arg) {
+	isc_nmsocket_t *listener = arg;
+
+	(void)atomic_fetch_sub(&listener->rchildren, 1);
+	isc_barrier_wait(&listener->stop_barrier);
+}
+
 void
 isc__nmsocket_stop(isc_nmsocket_t *listener) {
-	isc__netievent_sockstop_t ievent = { .sock = listener };
-
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->tid == isc_tid());
 	REQUIRE(listener->tid == 0);
@@ -1879,12 +1881,10 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	for (size_t i = 1; i < listener->nchildren; i++) {
 		isc__networker_t *worker =
 			&listener->worker->netmgr->workers[i];
-		isc__netievent_sockstop_t *ev =
-			isc__nm_get_netievent_sockstop(worker, listener);
-		isc__nm_enqueue_ievent(worker, (isc__netievent_t *)ev);
+		isc_async_run(worker->loop, nmsocket_stop_cb, listener);
 	}
 
-	isc__nm_async_sockstop(listener->worker, (isc__netievent_t *)&ievent);
+	nmsocket_stop_cb(listener);
 	INSIST(atomic_load(&listener->rchildren) == 0);
 
 	if (!atomic_compare_exchange_strong(&listener->listening,
@@ -1912,16 +1912,6 @@ isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
 	isc_barrier_init(&listener->listen_barrier, listener->nchildren);
 	isc_barrier_init(&listener->stop_barrier, listener->nchildren);
 	listener->barriers_initialised = true;
-}
-
-void
-isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_sockstop_t *ievent = (isc__netievent_sockstop_t *)ev0;
-	isc_nmsocket_t *listener = ievent->sock;
-	UNUSED(worker);
-
-	(void)atomic_fetch_sub(&listener->rchildren, 1);
-	isc_barrier_wait(&listener->stop_barrier);
 }
 
 static void

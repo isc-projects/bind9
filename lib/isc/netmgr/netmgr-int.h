@@ -250,7 +250,7 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_sockstop, /* for multilayer sockets */
+	netievent_nonempty,
 } isc__netievent_type;
 
 typedef union {
@@ -1509,9 +1509,6 @@ isc__nm_streamdns_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 				 bool async);
 
 void
-isc__nm_async_sockstop(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
  * Increment socket-related statistics counters.
@@ -1625,13 +1622,9 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_TYPE(sockstop);
-
 /* Now declared the helper functions */
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
-
-NETIEVENT_SOCKET_DECL(sockstop);
 
 void
 isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
