@@ -31,8 +31,8 @@ Removed Features
   Mode 3 (GSS-API). :gl:`#3905`
 
 - Zone type ``delegation-only``, and the ``delegation-only`` and
-  ``root-delegation-only`` options, have been deprecated; a warning will
-  be logged when they are used.
+  ``root-delegation-only`` options, have been removed. Using them
+  is a configuration error.
 
   These options were created to address the SiteFinder controversy, in
   which certain top-level domains redirected misspelled queries to other

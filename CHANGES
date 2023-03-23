@@ -1,4 +1,4 @@
-6126.	[cleanup]	Deprecate zone type "delegation-only" and the
+6126.	[func]		Remove zone type "delegation-only" and the
 			"delegation-only" and "root-delegation-only"
 			options. [GL #3953]
 
