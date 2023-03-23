@@ -70,10 +70,10 @@ static void
 tcp_close_cb(uv_handle_t *uvhandle);
 
 static isc_result_t
-accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota);
+accept_connection(isc_nmsocket_t *ssock);
 
 static void
-quota_accept_cb(isc_quota_t *quota, void *sock0);
+quota_accept_cb(isc_quota_t *quota, void *arg);
 
 static void
 failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
@@ -451,7 +451,6 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	 * increasing quota unnecessarily.
 	 */
 	csock->pquota = sock->pquota;
-	isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
 
 	if (mgr->load_balance_sockets) {
 		UNUSED(fd);
@@ -553,7 +552,6 @@ static void
 tcp_connection_cb(uv_stream_t *server, int status) {
 	isc_nmsocket_t *ssock = uv_handle_get_data((uv_handle_t *)server);
 	isc_result_t result;
-	isc_quota_t *quota = NULL;
 
 	if (status != 0) {
 		result = isc_uverr2result(status);
@@ -569,6 +567,8 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	}
 
 	if (ssock->pquota != NULL) {
+		isc_quota_t *quota = NULL;
+		isc_quota_cb_init(&ssock->quotacb, quota_accept_cb, ssock);
 		result = isc_quota_attach_cb(ssock->pquota, &quota,
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
@@ -577,7 +577,7 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 		}
 	}
 
-	result = accept_connection(ssock, quota);
+	result = accept_connection(ssock);
 done:
 	isc__nm_accept_connection_log(ssock, result, can_log_tcp_quota());
 }
@@ -834,42 +834,40 @@ free:
 	isc__nm_free_uvbuf(sock, buf);
 }
 
-static void
-quota_accept_cb(isc_quota_t *quota, void *sock0) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *)sock0;
-	isc__netievent_tcpaccept_t *ievent = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-
-	/*
-	 * Create a tcpaccept event and pass it using the async channel.  This
-	 * needs to be asynchronous, because the quota might have been released
-	 * by a different child socket.
-	 */
-	ievent = isc__nm_get_netievent_tcpaccept(sock->worker, sock, quota);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
 /*
  * This is called after we get a quota_accept_cb() callback.
  */
-void
-isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpaccept_t *ievent = (isc__netievent_tcpaccept_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc_result_t result;
-
-	UNUSED(worker);
+static void
+tcpaccept_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	result = accept_connection(sock, ievent->quota);
+	isc_result_t result = accept_connection(sock);
 	isc__nm_accept_connection_log(sock, result, can_log_tcp_quota());
+	sock->pquota = NULL;
+	isc__nmsocket_detach(&sock);
+}
+
+static void
+quota_accept_cb(isc_quota_t *quota, void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	UNUSED(quota);
+
+	/*
+	 * This needs to be asynchronous, because the quota might have been
+	 * released by a different child socket.
+	 */
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, tcpaccept_cb, sock);
 }
 
 static isc_result_t
-accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
+accept_connection(isc_nmsocket_t *ssock) {
 	isc_nmsocket_t *csock = NULL;
 	isc__networker_t *worker = NULL;
 	int r;
@@ -882,9 +880,10 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	REQUIRE(ssock->tid == isc_tid());
 
 	if (isc__nmsocket_closing(ssock)) {
-		if (quota != NULL) {
-			isc_quota_detach(&quota);
+		if (ssock->pquota != NULL) {
+			isc_quota_detach(&ssock->pquota);
 		}
+
 		return (ISC_R_CANCELED);
 	}
 
@@ -896,8 +895,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	isc__nmsocket_attach(ssock, &csock->server);
 	csock->recv_cb = ssock->recv_cb;
 	csock->recv_cbarg = ssock->recv_cbarg;
-	csock->quota = quota;
 	atomic_init(&csock->accepting, true);
+	csock->quota = ssock->pquota;
 
 	worker = csock->worker;
 

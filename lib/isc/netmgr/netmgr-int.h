@@ -250,8 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_tcpaccept,
-
 	netievent_tlsclose,
 	netievent_tlssend,
 	netievent_tlsconnect,
@@ -1282,13 +1280,6 @@ void
 isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual);
 
 void
-isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Callback handlers for asynchronous TCP events (connect, listen,
- * stoplisten, send, read, pause, close).
- */
-
-void
 isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
 		    isc_nm_cb_t cb, void *cbarg);
 /*%<
@@ -1695,8 +1686,6 @@ NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
-
 NETIEVENT_SOCKET_TYPE(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_TYPE(streamdnscancel);
 
@@ -1718,8 +1707,6 @@ NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
-
-NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 
 NETIEVENT_SOCKET_DECL(streamdnsread);
 NETIEVENT_SOCKET_HANDLE_DECL(streamdnscancel);
