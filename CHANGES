@@ -1,3 +1,7 @@
+6126.	[cleanup]	Deprecate zone type "delegation-only" and the
+			"delegation-only" and "root-delegation-only"
+			options. [GL #3953]
+
 6125.	[bug]		Hold a catz reference while the update process is
 			running, so that the catalog zone is not destroyed
 			during shutdown until the update process is finished or
