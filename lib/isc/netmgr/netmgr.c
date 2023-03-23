@@ -127,9 +127,6 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG);
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
 
-static void
-process_netievent(void *arg);
-
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
@@ -416,78 +413,6 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 	if (advertised != NULL) {
 		*advertised = atomic_load(&mgr->advertised);
 	}
-}
-
-/*
- * The two macros here generate the individual cases for the process_netievent()
- * function.  The NETIEVENT_CASE(type) macro is the common case, and
- * NETIEVENT_CASE_NOMORE(type) is a macro that causes the loop in the
- * process_queue() to stop, e.g. it's only used for the netievent that
- * stops/pauses processing the enqueued netievents.
- */
-#define NETIEVENT_CASE(type)                                          \
-	case netievent_##type: {                                      \
-		isc__nm_async_##type(worker, ievent);                 \
-		isc__nm_put_netievent_##type(                         \
-			worker, (isc__netievent_##type##_t *)ievent); \
-		return;                                               \
-	}
-
-static void
-process_netievent(void *arg) {
-	isc__netievent_t *ievent = (isc__netievent_t *)arg;
-
-	switch (ievent->type) {
-	default:
-		UNREACHABLE();
-	}
-}
-
-void *
-isc__nm_get_netievent(isc__networker_t *worker, isc__netievent_type type) {
-	isc__netievent_storage_t *event = isc_mem_get(worker->mctx,
-						      sizeof(*event));
-
-	*event = (isc__netievent_storage_t){ .ni.type = type };
-	ISC_LINK_INIT(&(event->ni), link);
-
-	isc__networker_ref(worker);
-
-	return (event);
-}
-
-void
-isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
-	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
-	isc__networker_unref(worker);
-}
-
-void
-isc__nm_process_ievent(isc__networker_t *worker, isc__netievent_t *event) {
-	event->worker = worker;
-	process_netievent(event);
-}
-
-void
-isc__nm_maybe_enqueue_ievent(isc__networker_t *worker,
-			     isc__netievent_t *event) {
-	/*
-	 * If we are already in the matching nmthread, process the ievent
-	 * directly.
-	 */
-	if (worker->loop == isc_loop_current(worker->netmgr->loopmgr)) {
-		isc__nm_process_ievent(worker, event);
-		return;
-	}
-
-	isc__nm_enqueue_ievent(worker, event);
-}
-
-void
-isc__nm_enqueue_ievent(isc__networker_t *worker, isc__netievent_t *event) {
-	event->worker = worker;
-
-	isc_async_run(worker->loop, process_netievent, event);
 }
 
 bool
