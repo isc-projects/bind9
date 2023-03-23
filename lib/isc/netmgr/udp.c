@@ -415,31 +415,34 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 #endif /* USE_ROUTE_SOCKET */
 }
 
+/*
+ * Asynchronous 'udpstop' call handler: stop listening on a UDP socket.
+ */
 static void
-stop_udp_child(isc_nmsocket_t *sock, uint32_t tid) {
-	isc_nmsocket_t *csock = NULL;
-	isc__netievent_udpstop_t *ievent = NULL;
+stop_udp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(sock->parent != NULL);
 
-	csock = &sock->children[tid];
-	REQUIRE(VALID_NMSOCK(csock));
+	isc__nm_udp_close(sock);
 
-	atomic_store(&csock->active, false);
-	ievent = isc__nm_get_netievent_udpstop(csock->worker, csock);
+	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
 
-	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
-	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
-	}
+	REQUIRE(!sock->worker->loop->paused);
+	isc_barrier_wait(&sock->parent->stop_barrier);
 }
 
 static void
-stop_udp_parent(isc_nmsocket_t *sock) {
-	/* Stop the parent */
-	atomic_store(&sock->closed, true);
-	isc__nmsocket_prep_destroy(sock);
+stop_udp_child(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+
+	atomic_store(&sock->active, false);
+	if (sock->tid == 0) {
+		stop_udp_child_job(sock);
+	} else {
+		isc_async_run(sock->worker->loop, stop_udp_child_job, sock);
+	}
 }
 
 void
@@ -452,36 +455,20 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
 						     &(bool){ false }, true));
 
-	/* Stop all the children */
+	/* Mark the parent socket inactive */
+	atomic_store(&sock->active, false);
+
+	/* Stop all the other threads' children */
 	for (size_t i = 1; i < sock->nchildren; i++) {
-		stop_udp_child(sock, i);
+		stop_udp_child(&sock->children[i]);
 	}
 
-	stop_udp_child(sock, 0);
+	/* Stop the child for the main thread */
+	stop_udp_child(&sock->children[0]);
 
-	stop_udp_parent(sock);
-}
-
-/*
- * Asynchronous 'udpstop' call handler: stop listening on a UDP socket.
- */
-void
-isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udpstop_t *ievent = (isc__netievent_udpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->parent != NULL);
-
-	isc__nm_udp_close(sock);
-
-	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
-
-	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->stop_barrier);
+	/* Stop the parent */
+	atomic_store(&sock->closed, true);
+	isc__nmsocket_prep_destroy(sock);
 }
 
 /*

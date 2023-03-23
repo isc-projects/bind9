@@ -269,8 +269,6 @@ typedef enum isc__netievent_type {
 	netievent_settlsctx,
 	netievent_sockstop, /* for multilayer sockets */
 
-	netievent_udpstop,
-
 	netievent_tcplisten,
 	netievent_tcpstop,
 } isc__netievent_type;
@@ -1237,8 +1235,6 @@ isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
  */
 
 void
-isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0);
-void
 isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0);
 /*%<
  * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
@@ -1705,7 +1701,6 @@ NETIEVENT_SOCKET_TYPE(tlsclose);
 /* NETIEVENT_SOCKET_TYPE(tlsconnect); */ /* unique type, defined independently
 					  */
 NETIEVENT_SOCKET_TYPE(tlsdobio);
-NETIEVENT_SOCKET_TYPE(udpstop);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
@@ -1734,7 +1729,6 @@ NETIEVENT_SOCKET_DECL(tcpstop);
 NETIEVENT_SOCKET_DECL(tlsclose);
 NETIEVENT_SOCKET_DECL(tlsconnect);
 NETIEVENT_SOCKET_DECL(tlsdobio);
-NETIEVENT_SOCKET_DECL(udpstop);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
