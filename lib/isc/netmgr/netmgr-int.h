@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_tlssend,
 	netievent_tlsconnect,
 	netievent_tlsdobio,
 
@@ -1287,9 +1286,6 @@ isc__nm_tcp_senddns(isc_nmhandle_t *handle, const isc_region_t *region,
  */
 
 void
-isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
@@ -1677,8 +1673,6 @@ NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
-NETIEVENT_SOCKET_REQ_TYPE(tlssend);
-
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
 NETIEVENT_SOCKET_TYPE(streamdnsread);
@@ -1697,8 +1691,6 @@ NETIEVENT_SOCKET_REQ_DECL(httpsend);
 NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
-
-NETIEVENT_SOCKET_REQ_DECL(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
 

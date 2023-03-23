@@ -948,18 +948,16 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	return (result);
 }
 
-void
-isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tlssend_t *ievent = (isc__netievent_tlssend_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *req = ievent->req;
+static void
+tls_send_direct(void *arg) {
+	isc__nm_uvreq_t *req = arg;
 
 	REQUIRE(VALID_UVREQ(req));
+
+	isc_nmsocket_t *sock = req->sock;
+
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	ievent->req = NULL;
 
 	if (inactive(sock)) {
 		req->cb.send(req->handle, ISC_R_CANCELED, req->cbarg);
@@ -975,7 +973,6 @@ done:
 static void
 tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 	 void *cbarg, const bool dnsmsg) {
-	isc__netievent_tlssend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	isc_nmsocket_t *sock = NULL;
 
@@ -996,11 +993,7 @@ tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 		*(uint16_t *)uvreq->tcplen = htons(region->length);
 	}
 
-	/*
-	 * We need to create an event and pass it using async channel
-	 */
-	ievent = isc__nm_get_netievent_tlssend(sock->worker, sock, uvreq);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc_async_run(sock->worker->loop, tls_send_direct, uvreq);
 }
 
 void
