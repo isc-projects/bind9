@@ -250,7 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_httpclose,
 	netievent_httpsend,
 	netievent_httpendpoints,
 
@@ -1432,9 +1431,6 @@ void
 isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0);
 
 void
-isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0);
-
-void
 isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0);
 
 bool
@@ -1651,7 +1647,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_TYPE(httpsend);
-NETIEVENT_SOCKET_TYPE(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_TYPE(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
@@ -1667,7 +1662,6 @@ NETIEVENT_SOCKET_TYPE(sockstop);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DECL(httpsend);
-NETIEVENT_SOCKET_DECL(httpclose);
 NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 

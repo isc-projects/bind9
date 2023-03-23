@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <string.h>
 
+#include <isc/async.h>
 #include <isc/base64.h>
 #include <isc/log.h>
 #include <isc/netmgr.h>
@@ -2725,6 +2726,15 @@ http_close_direct(isc_nmsocket_t *sock) {
 	}
 }
 
+static void
+http_close_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	http_close_direct(sock);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_http_close(isc_nmsocket_t *sock) {
 	bool destroy = false;
@@ -2753,23 +2763,8 @@ isc__nm_http_close(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	isc__netievent_httpclose_t *ievent =
-		isc__nm_get_netievent_httpclose(sock->worker, sock);
-
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpclose_t *ievent = (isc__netievent_httpclose_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	http_close_direct(sock);
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, http_close_cb, sock);
 }
 
 static void
