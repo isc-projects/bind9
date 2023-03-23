@@ -311,6 +311,10 @@ stages:
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
 
+.display_pytest_failures: &display_pytest_failures
+    - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+    - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
   stage: system
@@ -324,8 +328,7 @@ stages:
       "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
     - '( ! grep -F "grep: warning:" pytest.out.txt )'
   after_script:
-    - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
-    - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+    - *display_pytest_failures
 
 .system_test_legacy: &system_test_legacy
   script:
@@ -364,8 +367,7 @@ stages:
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   after_script:
-    - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
-    - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+    - *display_pytest_failures
     - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
     - *find_python
     - *parse_tsan
@@ -888,6 +890,9 @@ system:gcc:tarball:
   before_script:
     - cd bind-*
     - *setup_interfaces
+  after_script:
+    - cd bind-*
+    - *display_pytest_failures
   needs:
     - job: gcc:tarball
       artifacts: true
