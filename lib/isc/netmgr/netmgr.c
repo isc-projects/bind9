@@ -439,7 +439,6 @@ process_netievent(void *arg) {
 	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		NETIEVENT_CASE(tlsdobio);
 #if HAVE_LIBNGHTTP2
 		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpclose);
@@ -473,8 +472,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 	isc_mem_put(worker->mctx, ievent, sizeof(isc__netievent_storage_t));
 	isc__networker_unref(worker);
 }
-
-NETIEVENT_SOCKET_DEF(tlsdobio);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DEF(httpsend);

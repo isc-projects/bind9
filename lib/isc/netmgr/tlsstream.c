@@ -270,10 +270,20 @@ isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 }
 
 static void
+tls_do_bio_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	tls_do_bio(sock, NULL, NULL, false);
+
+	isc__nmsocket_detach(&sock);
+}
+
+static void
 async_tls_do_bio(isc_nmsocket_t *sock) {
-	isc__netievent_tlsdobio_t *ievent =
-		isc__nm_get_netievent_tlsdobio(sock->worker, sock);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, tls_do_bio_cb, sock);
 }
 
 static int
@@ -1204,15 +1214,6 @@ error:
 	tls_call_connect_cb(tlssock, tlshandle, result);
 	isc_nmhandle_detach(&tlshandle);
 	isc__nmsocket_detach(&tlssock);
-}
-
-void
-isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tlsdobio_t *ievent = (isc__netievent_tlsdobio_t *)ev0;
-
-	UNUSED(worker);
-
-	tls_do_bio(ievent->sock, NULL, NULL, false);
 }
 
 void
