@@ -2157,11 +2157,13 @@ error:
 	return (0);
 }
 
+static void
+http_send_cb(void *arg);
+
 void
 isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		  isc_nm_cb_t cb, void *cbarg) {
 	isc_nmsocket_t *sock = NULL;
-	isc__netievent_httpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -2179,8 +2181,7 @@ isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
-	ievent = isc__nm_get_netievent_httpsend(sock->worker, sock, uvreq);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc_async_run(sock->worker->loop, http_send_cb, uvreq);
 }
 
 static void
@@ -2270,26 +2271,22 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc__nm_uvreq_put(&req, sock);
 }
 
-void
-isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpsend_t *ievent = (isc__netievent_httpsend_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *req = ievent->req;
-	isc_nmhandle_t *handle = NULL;
-	isc_nm_http_session_t *session = NULL;
+static void
+http_send_cb(void *arg) {
+	isc__nm_uvreq_t *req = arg;
 
-	UNUSED(worker);
+	REQUIRE(VALID_UVREQ(req));
+
+	isc_nmsocket_t *sock = req->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
 
-	ievent->req = NULL;
-	handle = req->handle;
+	isc_nmhandle_t *handle = req->handle;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	session = sock->h2.session;
+	isc_nm_http_session_t *session = sock->h2.session;
 	if (session != NULL && session->client) {
 		client_httpsend(handle, sock, req);
 	} else {

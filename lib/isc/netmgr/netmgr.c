@@ -440,7 +440,6 @@ process_netievent(void *arg) {
 
 	switch (ievent->type) {
 #if HAVE_LIBNGHTTP2
-		NETIEVENT_CASE(httpsend);
 		NETIEVENT_CASE(httpendpoints);
 #endif
 		NETIEVENT_CASE(streamdnsread);
@@ -473,7 +472,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 }
 
 #ifdef HAVE_LIBNGHTTP2
-NETIEVENT_SOCKET_REQ_DEF(httpsend);
 NETIEVENT_SOCKET_HTTP_EPS_DEF(httpendpoints);
 #endif /* HAVE_LIBNGHTTP2 */
 
