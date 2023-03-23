@@ -1064,36 +1064,27 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	isc__nmsocket_prep_destroy(sock);
 }
 
-void
-isc__nm_udp_cancelread(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-	isc__netievent_udpcancel_t *ievent = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	sock = handle->sock;
+static void
+udp_cancelread_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_udpsocket);
-
-	ievent = isc__nm_get_netievent_udpcancel(sock->worker, sock, handle);
-
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udpcancel_t *ievent = (isc__netievent_udpcancel_t *)ev0;
-	isc_nmsocket_t *sock = NULL;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-
-	sock = ievent->sock;
-
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->client));
 
 	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
+	isc__nmsocket_detach(&sock);
+}
+
+void
+isc__nm_udp_cancelread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	isc_nmsocket_t *sock = handle->sock;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_udpsocket);
+
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, udp_cancelread_cb, sock);
 }

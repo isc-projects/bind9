@@ -250,8 +250,6 @@ struct isc_nmhandle {
 };
 
 typedef enum isc__netievent_type {
-	netievent_udpcancel,
-
 	netievent_tcpaccept,
 
 	netievent_tlsclose,
@@ -1232,12 +1230,6 @@ isc__nm_udp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
  */
 
 void
-isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0);
-/*%<
- * Callback handlers for asynchronous UDP events (listen, stoplisten, send).
- */
-
-void
 isc__nm_tcp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg);
 /*%<
@@ -1703,8 +1695,6 @@ NETIEVENT_SOCKET_REQ_TYPE(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_TYPE(sendcb);
 
-NETIEVENT_SOCKET_HANDLE_TYPE(udpcancel);
-
 NETIEVENT_SOCKET_QUOTA_TYPE(tcpaccept);
 
 NETIEVENT_SOCKET_TYPE(streamdnsread);
@@ -1728,8 +1718,6 @@ NETIEVENT_SOCKET_HTTP_EPS_DECL(httpendpoints);
 NETIEVENT_SOCKET_REQ_DECL(tlssend);
 
 NETIEVENT_SOCKET_REQ_RESULT_DECL(sendcb);
-
-NETIEVENT_SOCKET_HANDLE_DECL(udpcancel);
 
 NETIEVENT_SOCKET_QUOTA_DECL(tcpaccept);
 

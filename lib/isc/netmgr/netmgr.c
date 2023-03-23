@@ -439,8 +439,6 @@ process_netievent(void *arg) {
 	isc__networker_t *worker = ievent->worker;
 
 	switch (ievent->type) {
-		NETIEVENT_CASE(udpcancel);
-
 		NETIEVENT_CASE(tcpaccept);
 
 		NETIEVENT_CASE(tlssend);
@@ -483,7 +481,6 @@ isc__nm_put_netievent(isc__networker_t *worker, void *ievent) {
 NETIEVENT_SOCKET_DEF(tlsclose);
 NETIEVENT_SOCKET_DEF(tlsconnect);
 NETIEVENT_SOCKET_DEF(tlsdobio);
-NETIEVENT_SOCKET_HANDLE_DEF(udpcancel);
 
 #ifdef HAVE_LIBNGHTTP2
 NETIEVENT_SOCKET_REQ_DEF(httpsend);
