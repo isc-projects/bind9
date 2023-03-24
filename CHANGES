@@ -1,3 +1,12 @@
+6133.	[cleanup]	Refactor the isc_job_run() to not make any allocations
+			by embedding isc_job_t into callback argument, and
+			running it directly.  As a side-effect, isc_async_run
+			and isc_job_run now executes jobs in the natural order.
+
+			Use the new improved API to execute connect, read and
+			send callbacks from netmgr in more straightforward
+			manner, speeding up the networking. [GL #3961]
+
 6132.	[doc]		Remove a dead link in the DNSSEC guide. [GL #3967]
 
 6131.	[test]		Add a minimal test-only library to allow testing
