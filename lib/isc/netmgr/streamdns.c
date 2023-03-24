@@ -103,8 +103,10 @@ static void
 streamdns_readmore(isc_nmsocket_t *sock, isc_nmhandle_t *transphandle) {
 	streamdns_resumeread(sock, transphandle);
 
+	/* Restart the timer only if there's a last single active handle */
 	isc_nmhandle_t *handle = ISC_LIST_HEAD(sock->active_handles);
-	if (handle != NULL && ISC_LIST_NEXT(handle, active_link) == NULL) {
+	INSIST(handle != NULL);
+	if (ISC_LIST_NEXT(handle, active_link) == NULL) {
 		isc__nmsocket_timer_start(sock);
 	}
 }
