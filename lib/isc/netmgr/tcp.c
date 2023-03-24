@@ -415,8 +415,6 @@ start_tcp_child_job(void *arg) {
 		goto done;
 	}
 
-	sock->listening = true;
-
 	if (sock->tid == 0) {
 		r = uv_tcp_getsockname(&sock->uv_handle.tcp,
 				       (struct sockaddr *)&ss,
@@ -675,7 +673,6 @@ tcp_stop_cb(uv_handle_t *handle) {
 	REQUIRE(!sock->closed);
 
 	sock->closed = true;
-	sock->listening = false;
 
 	isc__nm_incstats(sock, STATID_CLOSE);
 

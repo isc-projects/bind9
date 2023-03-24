@@ -642,25 +642,21 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *listensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *nsock;
 	isc_sockaddr_t iface;
-	int tid;
+	int tid = isc_tid();
 	uint32_t initial = 0;
 
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
-	INSIST(VALID_NMHANDLE(handle));
-	INSIST(VALID_NMSOCK(handle->sock));
-	INSIST(VALID_NMSOCK(listensock));
-	INSIST(listensock->type == isc_nm_streamdnslistener);
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
 
 	if (isc__nm_closing(handle->sock->worker)) {
 		return (ISC_R_SHUTTINGDOWN);
-	} else if (isc__nmsocket_closing(handle->sock) || listensock->closing) {
-		return (ISC_R_CANCELED);
+	} else if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
-	tid = isc_tid();
+	REQUIRE(VALID_NMSOCK(listensock));
+	REQUIRE(listensock->type == isc_nm_streamdnslistener);
+
 	iface = isc_nmhandle_localaddr(handle);
 	nsock = streamdns_sock_new(handle->sock->worker, isc_nm_streamdnssocket,
 				   &iface, true);
@@ -675,7 +671,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	nsock->accepting = true;
 	nsock->active = true;
 
-	isc__nmsocket_attach(listensock, &nsock->listener);
+	isc__nmsocket_attach(handle->sock, &nsock->listener);
 	isc_nmhandle_attach(handle, &nsock->outerhandle);
 	handle->sock->streamdns.sock = nsock;
 
@@ -753,10 +749,8 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 	listener->result = result;
 	listener->active = true;
-	listener->listening = true;
 	INSIST(listener->outer->streamdns.listener == NULL);
 	listener->nchildren = listener->outer->nchildren;
-	isc__nmsocket_barrier_init(listener);
 	isc__nmsocket_attach(listener, &listener->outer->streamdns.listener);
 
 	*sockp = listener;

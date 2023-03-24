@@ -168,8 +168,6 @@ start_udp_child_job(void *arg) {
 	}
 
 	sock->reading = true;
-	sock->listening = true;
-
 done:
 	result = isc_uverr2result(r);
 
@@ -950,9 +948,6 @@ udp_close_cb(uv_handle_t *handle) {
 		/* server socket (accept) */
 		isc__nmsocket_detach(&sock->server);
 	}
-
-	/* All sockets */
-	sock->listening = false;
 
 	if (sock->parent != NULL) {
 		/* listening socket (listen) */

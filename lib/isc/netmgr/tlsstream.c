@@ -111,8 +111,6 @@ inactive(isc_nmsocket_t *sock) {
 		sock->outerhandle == NULL ||
 		!isc__nmsocket_active(sock->outerhandle->sock) ||
 		sock->outerhandle->sock->closing ||
-		(sock->listener != NULL &&
-		 !isc__nmsocket_active(sock->listener)) ||
 		isc__nm_closing(sock->worker));
 }
 
@@ -384,53 +382,42 @@ tls_process_outgoing(isc_nmsocket_t *sock, bool finish,
 
 static int
 tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
-	int rv = 0;
-	isc_nmhandle_t *tlshandle = NULL;
-
 	REQUIRE(sock->tlsstream.state == TLS_HANDSHAKE);
 
 	if (SSL_is_init_finished(sock->tlsstream.tls) == 1) {
 		return (0);
 	}
 
-	rv = SSL_do_handshake(sock->tlsstream.tls);
+	int rv = SSL_do_handshake(sock->tlsstream.tls);
 	if (rv == 1) {
+		isc_nmhandle_t *tlshandle = NULL;
 		isc_result_t result = ISC_R_SUCCESS;
+
+		REQUIRE(sock->statichandle == NULL);
 		INSIST(SSL_is_init_finished(sock->tlsstream.tls) == 1);
-		INSIST(sock->statichandle == NULL);
+
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
 		tls_read_stop(sock);
+
+		if (isc__nm_closing(sock->worker)) {
+			result = ISC_R_SHUTTINGDOWN;
+		}
+
 		if (sock->tlsstream.server) {
 			/*
-			 * We need to check for 'sock->listener->closing' to
-			 * make sure that we are not breaking the contract by
-			 * calling an accept callback after the listener socket
-			 * was shot down. Also, in this case the accept callback
-			 * can be 'NULL'. That can happen as calling the accept
-			 * callback in TLS is deferred until handshake is done.
-			 * There is a possibility for that to happen *after* the
-			 * underlying TCP connection was accepted. That is, a
-			 * situation possible when the underlying TCP connection
-			 * was accepted, handshake related data transmission
-			 * took place, but in the middle of that the socket is
-			 * being shot down before the TLS accept callback could
-			 * have been called.
+			 * The listening sockets are now closed from outer
+			 * to inner order, which means that this function
+			 * will never be called when the outer socket has
+			 * stopped listening.
 			 *
 			 * Also see 'isc__nmsocket_stop()' - the function used
 			 * to shut down the listening TLS socket - for more
 			 * details.
 			 */
-			if (isc__nm_closing(sock->worker)) {
-				result = ISC_R_SHUTTINGDOWN;
-			} else if (isc__nmsocket_closing(sock) ||
-				   sock->listener->closing)
-			{
-				result = ISC_R_CANCELED;
-			} else {
-				result = sock->listener->accept_cb(
-					tlshandle, result,
-					sock->listener->accept_cbarg);
+			if (result == ISC_R_SUCCESS) {
+				result = sock->accept_cb(tlshandle, result,
+							 sock->accept_cbarg);
 			}
 		} else {
 			tls_call_connect_cb(sock, tlshandle, result);
@@ -873,7 +860,9 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (ISC_R_TLSERROR);
 	}
 
-	isc__nmsocket_attach(tlslistensock, &tlssock->listener);
+	tlssock->accept_cb = tlslistensock->accept_cb;
+	tlssock->accept_cbarg = tlslistensock->accept_cbarg;
+	isc__nmsocket_attach(handle->sock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
 	tlssock->read_timeout =
@@ -952,10 +941,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	INSIST(result != ISC_R_UNSET);
 	tlssock->nchildren = tlssock->outer->nchildren;
 
-	isc__nmsocket_barrier_init(tlssock);
-
 	if (result == ISC_R_SUCCESS) {
-		tlssock->listening = true;
 		*sockp = tlssock;
 	}
 

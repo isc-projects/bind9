@@ -1688,11 +1688,9 @@ find_server_request_handler(const char *request_path,
 
 	REQUIRE(VALID_NMSOCK(serversocket));
 
-	if (serversocket->listening) {
-		handler = http_endpoints_find(
-			request_path,
-			http_get_listener_endpoints(serversocket, tid));
-	}
+	handler = http_endpoints_find(
+		request_path, http_get_listener_endpoints(serversocket, tid));
+
 	return (handler);
 }
 
@@ -2430,57 +2428,31 @@ http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
 
 static isc_result_t
 httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	isc_nmsocket_t *httplistensock = (isc_nmsocket_t *)cbarg;
+	isc_nmsocket_t *httpserver = (isc_nmsocket_t *)cbarg;
 	isc_nm_http_session_t *session = NULL;
-	isc_nmsocket_t *listener = NULL, *httpserver = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	if (handle->sock->type == isc_nm_tlssocket) {
-		REQUIRE(VALID_NMSOCK(handle->sock->listener));
-		listener = handle->sock->listener;
-		httpserver = listener->h2.httpserver;
-	} else {
-		REQUIRE(VALID_NMSOCK(handle->sock->server));
-		listener = handle->sock->server;
-		REQUIRE(VALID_NMSOCK(listener->parent));
-		httpserver = listener->parent->h2.httpserver;
-	}
-
-	/*
-	 * NOTE: HTTP listener socket might be destroyed by the time this
-	 * function gets invoked, so we need to do extra sanity checks to
-	 * detect this case.
-	 */
 	if (isc__nm_closing(handle->sock->worker)) {
 		return (ISC_R_SHUTTINGDOWN);
-	} else if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
-		return (ISC_R_CANCELED);
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		/* XXXWPK do nothing? */
+	} else if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	REQUIRE(VALID_NMSOCK(httplistensock));
-	INSIST(httplistensock == httpserver);
-
-	if (httplistensock->closing) {
-		return (ISC_R_CANCELED);
-	}
+	REQUIRE(VALID_NMSOCK(httpserver));
+	REQUIRE(httpserver->type == isc_nm_httplistener);
 
 	http_transpost_tcp_nodelay(handle);
 
 	new_session(handle->sock->worker->mctx, NULL, &session);
 	session->max_concurrent_streams =
-		atomic_load_relaxed(&httplistensock->h2.max_concurrent_streams);
+		atomic_load_relaxed(&httpserver->h2.max_concurrent_streams);
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
 	isc_nmhandle_attach(handle, &session->handle);
-	isc__nmsocket_attach(httplistensock, &session->serversocket);
+	isc__nmsocket_attach(httpserver, &session->serversocket);
 	server_send_connection_header(session);
 
 	/* TODO H2 */
@@ -2528,14 +2500,9 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		return (result);
 	}
 
-	isc__nmsocket_attach(sock, &sock->outer->h2.httpserver);
-
 	sock->nchildren = sock->outer->nchildren;
 	sock->fd = (uv_os_sock_t)-1;
 
-	isc__nmsocket_barrier_init(sock);
-
-	sock->listening = true;
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
 }
@@ -3204,13 +3171,6 @@ isc__nm_http_initsocket(isc_nmsocket_t *sock) {
 
 void
 isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
-	if ((sock->type == isc_nm_tcplistener ||
-	     sock->type == isc_nm_tlslistener) &&
-	    sock->h2.httpserver != NULL)
-	{
-		isc__nmsocket_detach(&sock->h2.httpserver);
-	}
-
 	if (sock->type == isc_nm_httplistener ||
 	    sock->type == isc_nm_httpsocket)
 	{

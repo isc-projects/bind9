@@ -430,8 +430,6 @@ typedef struct isc_nmsocket_h2 {
 	int32_t stream_id;
 	isc_nm_http_session_t *session;
 
-	isc_nmsocket_t *httpserver;
-
 	/* maximum concurrent streams (server-side) */
 	atomic_uint_fast32_t max_concurrent_streams;
 
@@ -486,8 +484,6 @@ struct isc_nmsocket {
 
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
-	/*% Listener socket this connection was accepted on */
-	isc_nmsocket_t *listener;
 
 	/*% TLS stuff */
 	struct tlsstream {
@@ -562,6 +558,9 @@ struct isc_nmsocket {
 	/*% server socket for connections */
 	isc_nmsocket_t *server;
 
+	/*% client socket for connections */
+	isc_nmsocket_t *listener;
+
 	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t *children;
 	uint_fast32_t nchildren;
@@ -597,7 +596,6 @@ struct isc_nmsocket {
 	 */
 	bool closing;
 	bool closed;
-	bool listening;
 	bool connecting;
 	bool connected;
 	bool accepting;

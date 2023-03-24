@@ -942,7 +942,7 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 		handle->dofree(handle->opaque);
 	}
 
-	isc_mem_put(sock->worker->mctx, handle, sizeof(isc_nmhandle_t));
+	isc_mem_put(sock->worker->mctx, handle, sizeof(*handle));
 }
 
 static void
@@ -1438,7 +1438,7 @@ isc__nm_closing(isc__networker_t *worker) {
 
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock) {
-	return (!isc__nmsocket_active(sock) || sock->closing ||
+	return (!sock->active || sock->closing ||
 		isc__nm_closing(sock->worker) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
 }
@@ -1746,42 +1746,27 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	}
 }
 
-static void
-nmsocket_stop_cb(void *arg) {
-	isc_nmsocket_t *listener = arg;
-
-	isc_barrier_wait(&listener->stop_barrier);
-}
-
 void
 isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->tid == isc_tid());
 	REQUIRE(listener->tid == 0);
-	REQUIRE(listener->listening);
+	REQUIRE(listener->type == isc_nm_httplistener ||
+		listener->type == isc_nm_tlslistener ||
+		listener->type == isc_nm_streamdnslistener);
 	REQUIRE(!listener->closing);
 
 	listener->closing = true;
 
-	for (size_t i = 1; i < listener->nchildren; i++) {
-		isc__networker_t *worker =
-			&listener->worker->netmgr->workers[i];
-		isc_async_run(worker->loop, nmsocket_stop_cb, listener);
-	}
-
-	nmsocket_stop_cb(listener);
-
-	listener->listening = false;
+	REQUIRE(listener->outer != NULL);
+	isc_nm_stoplistening(listener->outer);
 
 	listener->accept_cb = NULL;
 	listener->accept_cbarg = NULL;
 	listener->recv_cb = NULL;
 	listener->recv_cbarg = NULL;
 
-	if (listener->outer != NULL) {
-		isc_nm_stoplistening(listener->outer);
-		isc__nmsocket_detach(&listener->outer);
-	}
+	isc__nmsocket_detach(&listener->outer);
 
 	listener->closed = true;
 }
