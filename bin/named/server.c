@@ -9292,8 +9292,8 @@ load_configuration(const char *filename, named_server_t *server,
 		logobj = NULL;
 		(void)cfg_map_get(config, "logging", &logobj);
 		if (logobj != NULL) {
-			CHECKM(named_logconfig(logc, logobj), "configuring "
-							      "logging");
+			CHECKM(named_logconfig(logc, logobj),
+			       "configuring logging");
 		} else {
 			named_log_setdefaultchannels(logc);
 			CHECKM(named_log_setunmatchedcategory(logc),

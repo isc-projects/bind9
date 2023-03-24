@@ -12,15 +12,23 @@
  */
 
 options {
-	default-server 127.0.0.1;
+	query-source address 10.53.0.1;
+	notify-source 10.53.0.1;
+	transfer-source 10.53.0.1;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.1; };
+	listen-on-v6 { none; };
+	dnssec-validation no;
+	recursion no;
+	notify yes;
 };
 
-server 127.0.0.1 {
-	key "rndc-key";
-	addresses   { 127.0.0.1 port @CONTROLPORT@; };
+controls {
+	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { "rndc-key"; };
 };
 
-key "rndc-key" {
+key rndc-key {
+	secret "1234abcd8765";
 	algorithm hmac-sha256;
-	secret "Am9vCg==";
 };
