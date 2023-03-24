@@ -388,7 +388,7 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 	sock->route_sock = true;
 	sock->fd = fd;
 
-	req = isc__nm_uvreq_get(worker, sock);
+	req = isc__nm_uvreq_get(sock);
 	req->cb.connect = cb;
 	req->cbarg = cbarg;
 	req->handle = isc__nmhandle_get(sock, NULL, NULL);
@@ -681,7 +681,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		return;
 	}
 
-	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	uvreq = isc__nm_uvreq_get(sock);
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
@@ -827,7 +827,7 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 
 	/* Initialize the request */
-	req = isc__nm_uvreq_get(worker, sock);
+	req = isc__nm_uvreq_get(sock);
 	req->cb.connect = cb;
 	req->cbarg = cbarg;
 	req->peer = *peer;

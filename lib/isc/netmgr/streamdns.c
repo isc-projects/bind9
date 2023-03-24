@@ -893,7 +893,7 @@ isc__nm_streamdns_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	REQUIRE(sock->type == isc_nm_streamdnssocket);
 	REQUIRE(sock->tid == isc_tid());
 
-	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	uvreq = isc__nm_uvreq_get(sock);
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
@@ -917,7 +917,7 @@ isc__nm_streamdns_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	isc__nm_senddns(sock->outerhandle, &data, streamdns_writecb,
 			(void *)send_req);
 
-	isc__nm_uvreq_put(&uvreq, sock);
+	isc__nm_uvreq_put(&uvreq);
 }
 
 static void
