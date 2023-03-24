@@ -289,6 +289,7 @@ struct isc__nm_uvreq {
 		uv_connect_t connect;
 		uv_udp_send_t udp_send;
 		uv_fs_t fs;
+		uv_idle_t idle;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
 	ISC_LINK(isc__nm_uvreq_t) inactive_link;

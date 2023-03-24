@@ -1594,7 +1594,6 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
 	return (handle->sock->worker->netmgr);
 }
 
-/* FIXME: Use per-worker mempool */
 isc__nm_uvreq_t *
 isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG) {
 	isc__nm_uvreq_t *req = NULL;
@@ -1840,16 +1839,20 @@ isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
 }
 
 static void
-isc__nm_connectcb_job(void *arg) {
-	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
+isc__nm_uvreq_free(uv_handle_t *handle) {
+	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
 
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(uvreq->cb.connect != NULL);
-
-	uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
 	isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
+}
+
+static void
+isc___nm_connectcb(uv_idle_t *handle) {
+	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
+
+	uvreq->cb.connect(uvreq->handle, uvreq->result, uvreq->cbarg);
+
+	uv_idle_stop(handle);
+	uv_close(handle, isc__nm_uvreq_free);
 }
 
 void
@@ -1858,31 +1861,33 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-
-	uvreq->result = eresult;
+	REQUIRE(uvreq->cb.connect != NULL);
 
 	if (!async) {
-		isc__nm_connectcb_job(uvreq);
+		uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
+		isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_connectcb_job,
-		    uvreq);
+	uvreq->result = eresult;
+
+	uv_idle_init(&sock->worker->loop->loop, &uvreq->uv_req.idle);
+	uv_idle_start(&uvreq->uv_req.idle, isc___nm_connectcb);
+	uv_handle_set_data(&uvreq->uv_req.idle, uvreq);
 }
 
 static void
-isc__nm_readcb_job(void *arg) {
-	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
-	isc_nmsocket_t *sock = uvreq->handle->sock;
+isc___nm_readcb(uv_idle_t *handle) {
+	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
 	isc_region_t region;
 
 	region.base = (unsigned char *)uvreq->uvbuf.base;
 	region.length = uvreq->uvbuf.len;
 
-	uvreq->cb.recv(uvreq->handle, eresult, &region, uvreq->cbarg);
+	uvreq->cb.recv(uvreq->handle, uvreq->result, &region, uvreq->cbarg);
 
-	isc__nm_uvreq_put(&uvreq, sock);
+	uv_idle_stop(handle);
+	uv_close(handle, isc__nm_uvreq_free);
 }
 
 void
@@ -1891,25 +1896,33 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	uvreq->result = eresult;
 
 	if (!async) {
-		isc__nm_readcb_job(uvreq);
+		isc_region_t region;
+
+		region.base = (unsigned char *)uvreq->uvbuf.base;
+		region.length = uvreq->uvbuf.len;
+
+		uvreq->cb.recv(uvreq->handle, eresult, &region, uvreq->cbarg);
+		isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_readcb_job, uvreq);
+	uvreq->result = eresult;
+
+	uv_idle_init(&sock->worker->loop->loop, &uvreq->uv_req.idle);
+	uv_idle_start(&uvreq->uv_req.idle, isc___nm_readcb);
+	uv_handle_set_data(&uvreq->uv_req.idle, uvreq);
 }
 
 static void
-isc__nm_sendcb_job(void *arg) {
-	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
-	isc_nmsocket_t *sock = uvreq->handle->sock;
+isc___nm_sendcb(uv_idle_t *handle) {
+	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
 
-	uvreq->cb.send(uvreq->handle, eresult, uvreq->cbarg);
+	uvreq->cb.send(uvreq->handle, uvreq->result, uvreq->cbarg);
 
-	isc__nm_uvreq_put(&uvreq, sock);
+	uv_idle_stop(handle);
+	uv_close(handle, isc__nm_uvreq_free);
 }
 
 void
@@ -1921,11 +1934,14 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	uvreq->result = eresult;
 
 	if (!async) {
-		isc__nm_sendcb_job(uvreq);
+		uvreq->cb.send(uvreq->handle, uvreq->result, uvreq->cbarg);
+		isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_sendcb_job, uvreq);
+	uv_idle_init(&sock->worker->loop->loop, &uvreq->uv_req.idle);
+	uv_idle_start(&uvreq->uv_req.idle, isc___nm_sendcb);
+	uv_handle_set_data(&uvreq->uv_req.idle, uvreq);
 }
 
 static void
