@@ -18,6 +18,7 @@
 #include <openssl/err.h>
 #include <openssl/ssl.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/condition.h>
@@ -76,7 +77,7 @@ tls_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 	   void *cbarg);
 
 static void
-tls_close_direct(isc_nmsocket_t *sock);
+tls_close_direct(void *arg);
 
 static void
 async_tls_do_bio(isc_nmsocket_t *sock);
@@ -269,10 +270,20 @@ isc__nm_tls_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 }
 
 static void
+tls_do_bio_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	tls_do_bio(sock, NULL, NULL, false);
+
+	isc__nmsocket_detach(&sock);
+}
+
+static void
 async_tls_do_bio(isc_nmsocket_t *sock) {
-	isc__netievent_tlsdobio_t *ievent =
-		isc__nm_get_netievent_tlsdobio(sock->worker, sock);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, tls_do_bio_cb, sock);
 }
 
 static int
@@ -947,18 +958,16 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	return (result);
 }
 
-void
-isc__nm_async_tlssend(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tlssend_t *ievent = (isc__netievent_tlssend_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *req = ievent->req;
+static void
+tls_send_direct(void *arg) {
+	isc__nm_uvreq_t *req = arg;
 
 	REQUIRE(VALID_UVREQ(req));
+
+	isc_nmsocket_t *sock = req->sock;
+
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	ievent->req = NULL;
 
 	if (inactive(sock)) {
 		req->cb.send(req->handle, ISC_R_CANCELED, req->cbarg);
@@ -974,7 +983,6 @@ done:
 static void
 tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 	 void *cbarg, const bool dnsmsg) {
-	isc__netievent_tlssend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	isc_nmsocket_t *sock = NULL;
 
@@ -995,11 +1003,7 @@ tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 		*(uint16_t *)uvreq->tcplen = htons(region->length);
 	}
 
-	/*
-	 * We need to create an event and pass it using async channel
-	 */
-	ievent = isc__nm_get_netievent_tlssend(sock->worker, sock, uvreq);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc_async_run(sock->worker->loop, tls_send_direct, uvreq);
 }
 
 void
@@ -1056,7 +1060,8 @@ isc__nm_tls_read_stop(isc_nmhandle_t *handle) {
 }
 
 static void
-tls_close_direct(isc_nmsocket_t *sock) {
+tls_close_direct(void *arg) {
+	isc_nmsocket_t *sock = arg;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 	/*
@@ -1096,23 +1101,8 @@ isc__nm_tls_close(isc_nmsocket_t *sock) {
 		/* no point in attempting to make the call asynchronous */
 		tls_close_direct(sock);
 	} else {
-		isc__netievent_tlsclose_t *ievent =
-			isc__nm_get_netievent_tlsclose(sock->worker, sock);
-		isc__nm_enqueue_ievent(sock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(sock->worker->loop, tls_close_direct, sock);
 	}
-}
-
-void
-isc__nm_async_tlsclose(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tlsclose_t *ievent = (isc__netievent_tlsclose_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(ievent->sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	tls_close_direct(sock);
 }
 
 void
@@ -1224,15 +1214,6 @@ error:
 	tls_call_connect_cb(tlssock, tlshandle, result);
 	isc_nmhandle_detach(&tlshandle);
 	isc__nmsocket_detach(&tlssock);
-}
-
-void
-isc__nm_async_tlsdobio(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tlsdobio_t *ievent = (isc__netievent_tlsdobio_t *)ev0;
-
-	UNUSED(worker);
-
-	tls_do_bio(ievent->sock, NULL, NULL, false);
 }
 
 void

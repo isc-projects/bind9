@@ -14,6 +14,7 @@
 #include <libgen.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
@@ -69,10 +70,10 @@ static void
 tcp_close_cb(uv_handle_t *uvhandle);
 
 static isc_result_t
-accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota);
+accept_connection(isc_nmsocket_t *ssock);
 
 static void
-quota_accept_cb(isc_quota_t *quota, void *sock0);
+quota_accept_cb(isc_quota_t *quota, void *arg);
 
 static void
 failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
@@ -340,9 +341,103 @@ isc__nm_tcp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 }
 
 static void
+start_tcp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(sock->parent));
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	sa_family_t sa_family = sock->iface.type.sa.sa_family;
+	int r;
+	int flags = 0;
+	isc_result_t result = ISC_R_UNSET;
+	isc_loop_t *loop = sock->worker->loop;
+
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
+
+	r = uv_tcp_init(&loop->loop, &sock->uv_handle.tcp);
+	UV_RUNTIME_CHECK(uv_tcp_init, r);
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
+	/* This keeps the socket alive after everything else is gone */
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+
+	r = uv_timer_init(&loop->loop, &sock->read_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
+	if (r < 0) {
+		isc__nm_closesocket(sock->fd);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
+		goto done;
+	}
+	isc__nm_incstats(sock, STATID_OPEN);
+
+	if (sa_family == AF_INET6) {
+		flags = UV_TCP_IPV6ONLY;
+	}
+
+	if (sock->worker->netmgr->load_balance_sockets) {
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+	} else if (sock->tid == 0) {
+		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
+					 &sock->iface.type.sa, flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
+	} else {
+		/* The socket is already bound, just copy the flags */
+		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
+	}
+
+	isc__nm_set_network_buffers(sock->worker->netmgr,
+				    &sock->uv_handle.handle);
+
+	/*
+	 * The callback will run in the same thread uv_listen() was called
+	 * from, so a race with tcp_connection_cb() isn't possible.
+	 */
+	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
+		      tcp_connection_cb);
+	if (r != 0) {
+		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
+				  isc_result_totext(isc_uverr2result(r)));
+		isc__nm_incstats(sock, STATID_BINDFAIL);
+		goto done;
+	}
+
+	atomic_store(&sock->listening, true);
+
+done:
+	result = isc_uverr2result(r);
+	atomic_fetch_add(&sock->parent->rchildren, 1);
+
+	if (result != ISC_R_SUCCESS) {
+		sock->pquota = NULL;
+	}
+
+	sock->result = result;
+
+	REQUIRE(!loop->paused);
+
+	if (sock->tid != 0) {
+		isc_barrier_wait(&sock->parent->listen_barrier);
+	}
+}
+
+static void
 start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 		uv_os_sock_t fd, int tid) {
-	isc__netievent_tcplisten_t *ievent = NULL;
 	isc_nmsocket_t *csock = &sock->children[tid];
 	isc__networker_t *worker = &mgr->workers[tid];
 
@@ -356,7 +451,6 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	 * increasing quota unnecessarily.
 	 */
 	csock->pquota = sock->pquota;
-	isc_quota_cb_init(&csock->quotacb, quota_accept_cb, csock);
 
 	if (mgr->load_balance_sockets) {
 		UNUSED(fd);
@@ -367,14 +461,10 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	}
 	REQUIRE(csock->fd >= 0);
 
-	ievent = isc__nm_get_netievent_tcplisten(csock->worker, csock);
-
 	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		start_tcp_child_job(csock);
 	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(worker->loop, start_tcp_child_job, csock);
 	}
 }
 
@@ -458,109 +548,10 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	return (ISC_R_SUCCESS);
 }
 
-void
-isc__nm_async_tcplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcplisten_t *ievent = (isc__netievent_tcplisten_t *)ev0;
-	sa_family_t sa_family;
-	int r;
-	int flags = 0;
-	isc_nmsocket_t *sock = NULL;
-	isc_result_t result = ISC_R_UNSET;
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(VALID_NMSOCK(ievent->sock->parent));
-
-	sock = ievent->sock;
-	sa_family = sock->iface.type.sa.sa_family;
-
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-	REQUIRE(sock->tid == isc_tid());
-
-	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
-	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
-
-	r = uv_tcp_init(&worker->loop->loop, &sock->uv_handle.tcp);
-	UV_RUNTIME_CHECK(uv_tcp_init, r);
-	uv_handle_set_data(&sock->uv_handle.handle, sock);
-	/* This keeps the socket alive after everything else is gone */
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-
-	r = uv_timer_init(&worker->loop->loop, &sock->read_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	r = uv_tcp_open(&sock->uv_handle.tcp, sock->fd);
-	if (r < 0) {
-		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock, STATID_OPENFAIL);
-		goto done;
-	}
-	isc__nm_incstats(sock, STATID_OPEN);
-
-	if (sa_family == AF_INET6) {
-		flags = UV_TCP_IPV6ONLY;
-	}
-
-	if (sock->worker->netmgr->load_balance_sockets) {
-		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
-					 &sock->iface.type.sa, flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-	} else if (sock->tid == 0) {
-		r = isc__nm_tcp_freebind(&sock->uv_handle.tcp,
-					 &sock->iface.type.sa, flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-		sock->parent->uv_handle.tcp.flags = sock->uv_handle.tcp.flags;
-	} else {
-		/* The socket is already bound, just copy the flags */
-		sock->uv_handle.tcp.flags = sock->parent->uv_handle.tcp.flags;
-	}
-
-	isc__nm_set_network_buffers(sock->worker->netmgr,
-				    &sock->uv_handle.handle);
-
-	/*
-	 * The callback will run in the same thread uv_listen() was called
-	 * from, so a race with tcp_connection_cb() isn't possible.
-	 */
-	r = uv_listen((uv_stream_t *)&sock->uv_handle.tcp, sock->backlog,
-		      tcp_connection_cb);
-	if (r != 0) {
-		isc__nmsocket_log(sock, ISC_LOG_ERROR, "uv_listen failed: %s",
-				  isc_result_totext(isc_uverr2result(r)));
-		isc__nm_incstats(sock, STATID_BINDFAIL);
-		goto done;
-	}
-
-	atomic_store(&sock->listening, true);
-
-done:
-	result = isc_uverr2result(r);
-	atomic_fetch_add(&sock->parent->rchildren, 1);
-
-	if (result != ISC_R_SUCCESS) {
-		sock->pquota = NULL;
-	}
-
-	sock->result = result;
-
-	REQUIRE(!worker->loop->paused);
-
-	if (sock->tid != 0) {
-		isc_barrier_wait(&sock->parent->listen_barrier);
-	}
-}
-
 static void
 tcp_connection_cb(uv_stream_t *server, int status) {
 	isc_nmsocket_t *ssock = uv_handle_get_data((uv_handle_t *)server);
 	isc_result_t result;
-	isc_quota_t *quota = NULL;
 
 	if (status != 0) {
 		result = isc_uverr2result(status);
@@ -576,6 +567,8 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	}
 
 	if (ssock->pquota != NULL) {
+		isc_quota_t *quota = NULL;
+		isc_quota_cb_init(&ssock->quotacb, quota_accept_cb, ssock);
 		result = isc_quota_attach_cb(ssock->pquota, &quota,
 					     &ssock->quotacb);
 		if (result == ISC_R_QUOTA) {
@@ -584,28 +577,57 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 		}
 	}
 
-	result = accept_connection(ssock, quota);
+	result = accept_connection(ssock);
 done:
 	isc__nm_accept_connection_log(ssock, result, can_log_tcp_quota());
 }
 
 static void
+stop_tcp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(sock->parent != NULL);
+	REQUIRE(sock->type == isc_nm_tcpsocket);
+
+	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
+						     &(bool){ false }, true));
+
+	/*
+	 * The order of the close operation is important here, the uv_close()
+	 * gets scheduled in the reverse order, so we need to close the timer
+	 * last, so its gone by the time we destroy the socket
+	 */
+
+	/* 2. close the listening socket */
+	isc__nmsocket_clearcb(sock);
+	isc__nm_stop_reading(sock);
+	uv_close(&sock->uv_handle.handle, tcp_stop_cb);
+
+	/* 1. close the read timer */
+	isc__nmsocket_timer_stop(sock);
+	uv_close(&sock->read_timer, NULL);
+
+	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
+
+	REQUIRE(!sock->worker->loop->paused);
+	isc_barrier_wait(&sock->parent->stop_barrier);
+}
+
+static void
 stop_tcp_child(isc_nmsocket_t *sock, uint32_t tid) {
 	isc_nmsocket_t *csock = NULL;
-	isc__netievent_tcpstop_t *ievent = NULL;
 
 	csock = &sock->children[tid];
 	REQUIRE(VALID_NMSOCK(csock));
 
 	atomic_store(&csock->active, false);
-	ievent = isc__nm_get_netievent_tcpstop(csock->worker, csock);
 
 	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		stop_tcp_child_job(csock);
 	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(csock->worker->loop, stop_tcp_child_job, csock);
 	}
 }
 
@@ -653,42 +675,6 @@ tcp_stop_cb(uv_handle_t *handle) {
 	atomic_store(&sock->listening, false);
 
 	isc__nmsocket_detach(&sock);
-}
-
-void
-isc__nm_async_tcpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpstop_t *ievent = (isc__netievent_tcpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->parent != NULL);
-	REQUIRE(sock->type == isc_nm_tcpsocket);
-
-	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
-						     &(bool){ false }, true));
-
-	/*
-	 * The order of the close operation is important here, the uv_close()
-	 * gets scheduled in the reverse order, so we need to close the timer
-	 * last, so its gone by the time we destroy the socket
-	 */
-
-	/* 2. close the listening socket */
-	isc__nmsocket_clearcb(sock);
-	isc__nm_stop_reading(sock);
-	uv_close(&sock->uv_handle.handle, tcp_stop_cb);
-
-	/* 1. close the read timer */
-	isc__nmsocket_timer_stop(sock);
-	uv_close(&sock->read_timer, NULL);
-
-	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
-
-	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->stop_barrier);
 }
 
 void
@@ -848,42 +834,40 @@ free:
 	isc__nm_free_uvbuf(sock, buf);
 }
 
-static void
-quota_accept_cb(isc_quota_t *quota, void *sock0) {
-	isc_nmsocket_t *sock = (isc_nmsocket_t *)sock0;
-	isc__netievent_tcpaccept_t *ievent = NULL;
-
-	REQUIRE(VALID_NMSOCK(sock));
-
-	/*
-	 * Create a tcpaccept event and pass it using the async channel.  This
-	 * needs to be asynchronous, because the quota might have been released
-	 * by a different child socket.
-	 */
-	ievent = isc__nm_get_netievent_tcpaccept(sock->worker, sock, quota);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
 /*
  * This is called after we get a quota_accept_cb() callback.
  */
-void
-isc__nm_async_tcpaccept(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_tcpaccept_t *ievent = (isc__netievent_tcpaccept_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc_result_t result;
-
-	UNUSED(worker);
+static void
+tcpaccept_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	result = accept_connection(sock, ievent->quota);
+	isc_result_t result = accept_connection(sock);
 	isc__nm_accept_connection_log(sock, result, can_log_tcp_quota());
+	sock->pquota = NULL;
+	isc__nmsocket_detach(&sock);
+}
+
+static void
+quota_accept_cb(isc_quota_t *quota, void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+
+	UNUSED(quota);
+
+	/*
+	 * This needs to be asynchronous, because the quota might have been
+	 * released by a different child socket.
+	 */
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, tcpaccept_cb, sock);
 }
 
 static isc_result_t
-accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
+accept_connection(isc_nmsocket_t *ssock) {
 	isc_nmsocket_t *csock = NULL;
 	isc__networker_t *worker = NULL;
 	int r;
@@ -896,9 +880,10 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	REQUIRE(ssock->tid == isc_tid());
 
 	if (isc__nmsocket_closing(ssock)) {
-		if (quota != NULL) {
-			isc_quota_detach(&quota);
+		if (ssock->pquota != NULL) {
+			isc_quota_detach(&ssock->pquota);
 		}
+
 		return (ISC_R_CANCELED);
 	}
 
@@ -910,8 +895,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	isc__nmsocket_attach(ssock, &csock->server);
 	csock->recv_cb = ssock->recv_cb;
 	csock->recv_cbarg = ssock->recv_cbarg;
-	csock->quota = quota;
 	atomic_init(&csock->accepting, true);
+	csock->quota = ssock->pquota;
 
 	worker = csock->worker;
 

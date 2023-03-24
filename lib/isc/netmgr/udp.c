@@ -13,6 +13,7 @@
 
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/barrier.h>
 #include <isc/buffer.h>
@@ -88,23 +89,112 @@ isc__nm_udp_lb_socket(isc_nm_t *mgr, sa_family_t sa_family) {
 	return (sock);
 }
 
+/*
+ * Asynchronous 'udplisten' call handler: start listening on a UDP socket.
+ */
+static void
+start_udp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(VALID_NMSOCK(sock->parent));
+	REQUIRE(sock->type == isc_nm_udpsocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	int r, uv_bind_flags = 0;
+	int uv_init_flags = 0;
+	sa_family_t sa_family = sock->iface.type.sa.sa_family;
+	isc_result_t result = ISC_R_UNSET;
+	isc_nm_t *mgr = sock->worker->netmgr;
+	isc_loop_t *loop = sock->worker->loop;
+
+	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+
+#if HAVE_DECL_UV_UDP_RECVMMSG
+	uv_init_flags |= UV_UDP_RECVMMSG;
+#endif
+	r = uv_udp_init_ex(&loop->loop, &sock->uv_handle.udp, uv_init_flags);
+	UV_RUNTIME_CHECK(uv_udp_init_ex, r);
+	uv_handle_set_data(&sock->uv_handle.handle, sock);
+	/* This keeps the socket alive after everything else is gone */
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+
+	r = uv_timer_init(&loop->loop, &sock->read_timer);
+	UV_RUNTIME_CHECK(uv_timer_init, r);
+	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
+
+	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
+	if (r < 0) {
+		isc__nm_closesocket(sock->fd);
+		isc__nm_incstats(sock, STATID_OPENFAIL);
+		goto done;
+	}
+	isc__nm_incstats(sock, STATID_OPEN);
+
+	if (sa_family == AF_INET6) {
+		uv_bind_flags |= UV_UDP_IPV6ONLY;
+	}
+
+	if (mgr->load_balance_sockets) {
+		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
+					 &sock->parent->iface.type.sa,
+					 uv_bind_flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+	} else if (sock->tid == 0) {
+		/* This thread is first, bind the socket */
+		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
+					 &sock->parent->iface.type.sa,
+					 uv_bind_flags);
+		if (r < 0) {
+			isc__nm_incstats(sock, STATID_BINDFAIL);
+			goto done;
+		}
+		sock->parent->uv_handle.udp.flags = sock->uv_handle.udp.flags;
+	} else {
+		/* The socket is already bound, just copy the flags */
+		sock->uv_handle.udp.flags = sock->parent->uv_handle.udp.flags;
+	}
+
+	isc__nm_set_network_buffers(mgr, &sock->uv_handle.handle);
+
+	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
+			      isc__nm_udp_read_cb);
+	if (r != 0) {
+		isc__nm_incstats(sock, STATID_BINDFAIL);
+		goto done;
+	}
+
+	sock->reading = true;
+
+	atomic_store(&sock->listening, true);
+
+done:
+	result = isc_uverr2result(r);
+	atomic_fetch_add(&sock->parent->rchildren, 1);
+
+	sock->result = result;
+
+	REQUIRE(!loop->paused);
+
+	if (sock->tid != 0) {
+		isc_barrier_wait(&sock->parent->listen_barrier);
+	}
+}
+
 static void
 start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 		uv_os_sock_t fd, int tid) {
-	isc_nmsocket_t *csock;
-	isc__netievent_udplisten_t *ievent = NULL;
 	isc__networker_t *worker = &mgr->workers[tid];
-
-	csock = &sock->children[tid];
+	isc_nmsocket_t *csock = &sock->children[tid];
 
 	isc__nmsocket_init(csock, worker, isc_nm_udpsocket, iface, sock);
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
 
-	csock->reading = true;
-
 	if (mgr->load_balance_sockets) {
-		UNUSED(fd);
 		csock->fd = isc__nm_udp_lb_socket(mgr,
 						  iface->type.sa.sa_family);
 	} else {
@@ -112,14 +202,10 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	}
 	INSIST(csock->fd >= 0);
 
-	ievent = isc__nm_get_netievent_udplisten(worker, csock);
-
 	if (tid == 0) {
-		isc__nm_process_ievent(&mgr->workers[tid],
-				       (isc__netievent_t *)ievent);
+		start_udp_child_job(csock);
 	} else {
-		isc__nm_enqueue_ievent(&mgr->workers[tid],
-				       (isc__netievent_t *)ievent);
+		isc_async_run(worker->loop, start_udp_child_job, csock);
 	}
 }
 
@@ -330,128 +416,33 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 }
 
 /*
- * Asynchronous 'udplisten' call handler: start listening on a UDP socket.
+ * Asynchronous 'udpstop' call handler: stop listening on a UDP socket.
  */
-void
-isc__nm_async_udplisten(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udplisten_t *ievent = (isc__netievent_udplisten_t *)ev0;
-	isc_nmsocket_t *sock = NULL;
-	int r, uv_bind_flags = 0;
-	int uv_init_flags = 0;
-	sa_family_t sa_family;
-	isc_result_t result = ISC_R_UNSET;
-	isc_nm_t *mgr = NULL;
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-	REQUIRE(VALID_NMSOCK(ievent->sock->parent));
-
-	sock = ievent->sock;
-	sa_family = sock->iface.type.sa.sa_family;
-	mgr = sock->worker->netmgr;
-
-	REQUIRE(sock->type == isc_nm_udpsocket);
+static void
+stop_udp_child_job(void *arg) {
+	isc_nmsocket_t *sock = arg;
+	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(sock->parent != NULL);
 
-	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
+	isc__nm_udp_close(sock);
 
-#if HAVE_DECL_UV_UDP_RECVMMSG
-	uv_init_flags |= UV_UDP_RECVMMSG;
-#endif
-	r = uv_udp_init_ex(&worker->loop->loop, &sock->uv_handle.udp,
-			   uv_init_flags);
-	UV_RUNTIME_CHECK(uv_udp_init_ex, r);
-	uv_handle_set_data(&sock->uv_handle.handle, sock);
-	/* This keeps the socket alive after everything else is gone */
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
 
-	r = uv_timer_init(&worker->loop->loop, &sock->read_timer);
-	UV_RUNTIME_CHECK(uv_timer_init, r);
-	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	r = uv_udp_open(&sock->uv_handle.udp, sock->fd);
-	if (r < 0) {
-		isc__nm_closesocket(sock->fd);
-		isc__nm_incstats(sock, STATID_OPENFAIL);
-		goto done;
-	}
-	isc__nm_incstats(sock, STATID_OPEN);
-
-	if (sa_family == AF_INET6) {
-		uv_bind_flags |= UV_UDP_IPV6ONLY;
-	}
-
-	if (mgr->load_balance_sockets) {
-		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
-					 &sock->parent->iface.type.sa,
-					 uv_bind_flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-	} else if (sock->tid == 0) {
-		/* This thread is first, bind the socket */
-		r = isc__nm_udp_freebind(&sock->uv_handle.udp,
-					 &sock->parent->iface.type.sa,
-					 uv_bind_flags);
-		if (r < 0) {
-			isc__nm_incstats(sock, STATID_BINDFAIL);
-			goto done;
-		}
-		sock->parent->uv_handle.udp.flags = sock->uv_handle.udp.flags;
-	} else {
-		/* The socket is already bound, just copy the flags */
-		sock->uv_handle.udp.flags = sock->parent->uv_handle.udp.flags;
-	}
-
-	isc__nm_set_network_buffers(mgr, &sock->uv_handle.handle);
-
-	r = uv_udp_recv_start(&sock->uv_handle.udp, isc__nm_alloc_cb,
-			      isc__nm_udp_read_cb);
-	if (r != 0) {
-		isc__nm_incstats(sock, STATID_BINDFAIL);
-		goto done;
-	}
-
-	atomic_store(&sock->listening, true);
-
-done:
-	result = isc_uverr2result(r);
-	atomic_fetch_add(&sock->parent->rchildren, 1);
-
-	sock->result = result;
-
-	REQUIRE(!worker->loop->paused);
-
-	if (sock->tid != 0) {
-		isc_barrier_wait(&sock->parent->listen_barrier);
-	}
+	REQUIRE(!sock->worker->loop->paused);
+	isc_barrier_wait(&sock->parent->stop_barrier);
 }
 
 static void
-stop_udp_child(isc_nmsocket_t *sock, uint32_t tid) {
-	isc_nmsocket_t *csock = NULL;
-	isc__netievent_udpstop_t *ievent = NULL;
+stop_udp_child(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
 
-	csock = &sock->children[tid];
-	REQUIRE(VALID_NMSOCK(csock));
-
-	atomic_store(&csock->active, false);
-	ievent = isc__nm_get_netievent_udpstop(csock->worker, csock);
-
-	if (tid == 0) {
-		isc__nm_process_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+	atomic_store(&sock->active, false);
+	if (sock->tid == 0) {
+		stop_udp_child_job(sock);
 	} else {
-		isc__nm_enqueue_ievent(csock->worker,
-				       (isc__netievent_t *)ievent);
+		isc_async_run(sock->worker->loop, stop_udp_child_job, sock);
 	}
-}
-
-static void
-stop_udp_parent(isc_nmsocket_t *sock) {
-	/* Stop the parent */
-	atomic_store(&sock->closed, true);
-	isc__nmsocket_prep_destroy(sock);
 }
 
 void
@@ -464,36 +455,20 @@ isc__nm_udp_stoplistening(isc_nmsocket_t *sock) {
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&sock->closing,
 						     &(bool){ false }, true));
 
-	/* Stop all the children */
+	/* Mark the parent socket inactive */
+	atomic_store(&sock->active, false);
+
+	/* Stop all the other threads' children */
 	for (size_t i = 1; i < sock->nchildren; i++) {
-		stop_udp_child(sock, i);
+		stop_udp_child(&sock->children[i]);
 	}
 
-	stop_udp_child(sock, 0);
+	/* Stop the child for the main thread */
+	stop_udp_child(&sock->children[0]);
 
-	stop_udp_parent(sock);
-}
-
-/*
- * Asynchronous 'udpstop' call handler: stop listening on a UDP socket.
- */
-void
-isc__nm_async_udpstop(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udpstop_t *ievent = (isc__netievent_udpstop_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->parent != NULL);
-
-	isc__nm_udp_close(sock);
-
-	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
-
-	REQUIRE(!worker->loop->paused);
-	isc_barrier_wait(&sock->parent->stop_barrier);
+	/* Stop the parent */
+	atomic_store(&sock->closed, true);
+	isc__nmsocket_prep_destroy(sock);
 }
 
 /*
@@ -1089,36 +1064,27 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	isc__nmsocket_prep_destroy(sock);
 }
 
-void
-isc__nm_udp_cancelread(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-	isc__netievent_udpcancel_t *ievent = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	sock = handle->sock;
+static void
+udp_cancelread_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_udpsocket);
-
-	ievent = isc__nm_get_netievent_udpcancel(sock->worker, sock, handle);
-
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_udpcancel(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_udpcancel_t *ievent = (isc__netievent_udpcancel_t *)ev0;
-	isc_nmsocket_t *sock = NULL;
-
-	UNUSED(worker);
-
-	REQUIRE(VALID_NMSOCK(ievent->sock));
-
-	sock = ievent->sock;
-
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(atomic_load(&sock->client));
 
 	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
+	isc__nmsocket_detach(&sock);
+}
+
+void
+isc__nm_udp_cancelread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+
+	isc_nmsocket_t *sock = handle->sock;
+
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_udpsocket);
+
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, udp_cancelread_cb, sock);
 }

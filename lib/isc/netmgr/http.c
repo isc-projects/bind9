@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <string.h>
 
+#include <isc/async.h>
 #include <isc/base64.h>
 #include <isc/log.h>
 #include <isc/netmgr.h>
@@ -2156,11 +2157,13 @@ error:
 	return (0);
 }
 
+static void
+http_send_cb(void *arg);
+
 void
 isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		  isc_nm_cb_t cb, void *cbarg) {
 	isc_nmsocket_t *sock = NULL;
-	isc__netievent_httpsend_t *ievent = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -2178,8 +2181,7 @@ isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
-	ievent = isc__nm_get_netievent_httpsend(sock->worker, sock, uvreq);
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
+	isc_async_run(sock->worker->loop, http_send_cb, uvreq);
 }
 
 static void
@@ -2269,26 +2271,22 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	isc__nm_uvreq_put(&req, sock);
 }
 
-void
-isc__nm_async_httpsend(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpsend_t *ievent = (isc__netievent_httpsend_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-	isc__nm_uvreq_t *req = ievent->req;
-	isc_nmhandle_t *handle = NULL;
-	isc_nm_http_session_t *session = NULL;
+static void
+http_send_cb(void *arg) {
+	isc__nm_uvreq_t *req = arg;
 
-	UNUSED(worker);
+	REQUIRE(VALID_UVREQ(req));
+
+	isc_nmsocket_t *sock = req->sock;
 
 	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
 
-	ievent->req = NULL;
-	handle = req->handle;
+	isc_nmhandle_t *handle = req->handle;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 
-	session = sock->h2.session;
+	isc_nm_http_session_t *session = sock->h2.session;
 	if (session != NULL && session->client) {
 		client_httpsend(handle, sock, req);
 	} else {
@@ -2725,6 +2723,15 @@ http_close_direct(isc_nmsocket_t *sock) {
 	}
 }
 
+static void
+http_close_cb(void *arg) {
+	isc_nmsocket_t *sock = arg;
+	REQUIRE(VALID_NMSOCK(sock));
+
+	http_close_direct(sock);
+	isc__nmsocket_detach(&sock);
+}
+
 void
 isc__nm_http_close(isc_nmsocket_t *sock) {
 	bool destroy = false;
@@ -2753,23 +2760,8 @@ isc__nm_http_close(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	isc__netievent_httpclose_t *ievent =
-		isc__nm_get_netievent_httpclose(sock->worker, sock);
-
-	isc__nm_enqueue_ievent(sock->worker, (isc__netievent_t *)ievent);
-}
-
-void
-isc__nm_async_httpclose(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent_httpclose_t *ievent = (isc__netievent_httpclose_t *)ev0;
-	isc_nmsocket_t *sock = ievent->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-
-	UNUSED(worker);
-
-	http_close_direct(sock);
+	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+	isc_async_run(sock->worker->loop, http_close_cb, sock);
 }
 
 static void
@@ -2964,6 +2956,29 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
 }
 
+typedef struct http_endpoints_data {
+	isc_nmsocket_t *listener;
+	isc_nm_http_endpoints_t *endpoints;
+} http_endpoints_data_t;
+
+static void
+http_set_endpoints_cb(void *arg) {
+	http_endpoints_data_t *data = arg;
+	const int tid = isc_tid();
+	isc_nmsocket_t *listener = data->listener;
+	isc_nm_http_endpoints_t *endpoints = data->endpoints;
+	isc__networker_t *worker = &listener->worker->netmgr->workers[tid];
+
+	isc_mem_put(worker->loop->mctx, data, sizeof(*data));
+
+	isc_nm_http_endpoints_detach(&listener->h2.listener_endpoints[tid]);
+	isc_nm_http_endpoints_attach(endpoints,
+				     &listener->h2.listener_endpoints[tid]);
+
+	isc_nm_http_endpoints_detach(&endpoints);
+	isc__nmsocket_detach(&listener);
+}
+
 void
 isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 			  isc_nm_http_endpoints_t *eps) {
@@ -2978,27 +2993,16 @@ isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 	atomic_store(&eps->in_use, true);
 
 	for (size_t i = 0; i < isc_loopmgr_nloops(loopmgr); i++) {
-		isc__netievent__http_eps_t *ievent =
-			isc__nm_get_netievent_httpendpoints(
-				&listener->worker->netmgr->workers[i], listener,
-				eps);
-		isc__nm_enqueue_ievent(&listener->worker->netmgr->workers[i],
-				       (isc__netievent_t *)ievent);
+		isc__networker_t *worker =
+			&listener->worker->netmgr->workers[i];
+		http_endpoints_data_t *data = isc_mem_getx(
+			worker->loop->mctx, sizeof(*data), ISC_MEM_ZERO);
+
+		isc__nmsocket_attach(listener, &data->listener);
+		isc_nm_http_endpoints_attach(eps, &data->endpoints);
+
+		isc_async_run(worker->loop, http_set_endpoints_cb, data);
 	}
-}
-
-void
-isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0) {
-	isc__netievent__http_eps_t *ievent = (isc__netievent__http_eps_t *)ev0;
-	const int tid = isc_tid();
-	isc_nmsocket_t *listener = ievent->sock;
-	isc_nm_http_endpoints_t *eps = ievent->endpoints;
-
-	UNUSED(worker);
-
-	isc_nm_http_endpoints_detach(&listener->h2.listener_endpoints[tid]);
-	isc_nm_http_endpoints_attach(eps,
-				     &listener->h2.listener_endpoints[tid]);
 }
 
 static void
