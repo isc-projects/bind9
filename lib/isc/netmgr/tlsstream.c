@@ -107,10 +107,10 @@ tls_try_to_enable_tcp_nodelay(isc_nmsocket_t *tlssock);
  */
 static bool
 inactive(isc_nmsocket_t *sock) {
-	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
+	return (!isc__nmsocket_active(sock) || sock->closing ||
 		sock->outerhandle == NULL ||
 		!isc__nmsocket_active(sock->outerhandle->sock) ||
-		atomic_load(&sock->outerhandle->sock->closing) ||
+		sock->outerhandle->sock->closing ||
 		(sock->listener != NULL &&
 		 !isc__nmsocket_active(sock->listener)) ||
 		isc__nm_closing(sock->worker));
@@ -424,7 +424,7 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 			if (isc__nm_closing(sock->worker)) {
 				result = ISC_R_SHUTTINGDOWN;
 			} else if (isc__nmsocket_closing(sock) ||
-				   atomic_load(&sock->listener->closing))
+				   sock->listener->closing)
 			{
 				result = ISC_R_CANCELED;
 			} else {
@@ -544,13 +544,13 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					INSIST(SSL_is_init_finished(
 						       sock->tlsstream.tls) ==
 					       1);
-					INSIST(!atomic_load(&sock->client));
+					INSIST(!sock->client);
 					finish = true;
 				} else if (sock->tlsstream.state == TLS_IO &&
 					   hs_result == ISC_R_SUCCESS &&
 					   !sock->tlsstream.server)
 				{
-					INSIST(atomic_load(&sock->client));
+					INSIST(sock->client);
 				}
 			}
 		} else if (send_data != NULL) {
@@ -867,7 +867,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_tlsctx_attach(tlsctx, &tlssock->tlsstream.ctx);
 	tlssock->tlsstream.tls = isc_tls_create(tlssock->tlsstream.ctx);
 	if (tlssock->tlsstream.tls == NULL) {
-		atomic_store(&tlssock->closed, true);
+		tlssock->closed = true;
 		isc_tlsctx_free(&tlssock->tlsstream.ctx);
 		isc__nmsocket_detach(&tlssock);
 		return (ISC_R_TLSERROR);
@@ -877,7 +877,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
 	tlssock->peer = handle->sock->peer;
 	tlssock->read_timeout =
-		atomic_load(&handle->sock->worker->netmgr->init);
+		atomic_load_relaxed(&handle->sock->worker->netmgr->init);
 
 	/*
 	 * Hold a reference to tlssock in the TCP socket: it will
@@ -932,7 +932,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	result = isc_nm_listentcp(mgr, workers, iface, tlslisten_acceptcb,
 				  tlssock, backlog, quota, &tlssock->outer);
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&tlssock->closed, true);
+		tlssock->closed = true;
 		isc__nmsocket_detach(&tlssock);
 		return (result);
 	}
@@ -945,7 +945,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	/* wait for listen result */
 	isc__nmsocket_attach(tlssock->outer, &tsock);
 	tlssock->result = result;
-	atomic_store(&tlssock->active, true);
+	atomic_store_release(&tlssock->active, true);
 	INSIST(tlssock->outer->tlsstream.tlslistener == NULL);
 	isc__nmsocket_attach(tlssock, &tlssock->outer->tlsstream.tlslistener);
 	isc__nmsocket_detach(&tsock);
@@ -956,7 +956,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	atomic_init(&tlssock->rchildren, tlssock->nchildren);
 
 	if (result == ISC_R_SUCCESS) {
-		atomic_store(&tlssock->listening, true);
+		tlssock->listening = true;
 		*sockp = tlssock;
 	}
 
@@ -1086,8 +1086,8 @@ tls_close_direct(void *arg) {
 	}
 
 	/* Further cleanup performed in isc__nm_tls_cleanup_data() */
-	atomic_store(&sock->closed, true);
-	atomic_store(&sock->active, false);
+	sock->closed = true;
+	atomic_store_release(&sock->active, false);
 	sock->tlsstream.state = TLS_CLOSED;
 }
 
@@ -1095,12 +1095,9 @@ void
 isc__nm_tls_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_tlssocket);
+	REQUIRE(!sock->closing);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true))
-	{
-		return;
-	}
+	sock->closing = true;
 
 	if (sock->tid == isc_tid()) {
 		/* no point in attempting to make the call asynchronous */
@@ -1144,7 +1141,7 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
 	isc_tlsctx_attach(ctx, &nsock->tlsstream.ctx);
-	atomic_init(&nsock->client, true);
+	nsock->client = true;
 	if (client_sess_cache != NULL) {
 		INSIST(isc_tlsctx_client_session_cache_getctx(
 			       client_sess_cache) == ctx);
@@ -1194,7 +1191,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	}
 	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
-	atomic_store(&tlssock->active, true);
+	atomic_store_release(&tlssock->active, true);
 
 	if (tlssock->tlsstream.client_sess_cache != NULL) {
 		isc_tlsctx_client_session_cache_reuse_sockaddr(
@@ -1215,7 +1212,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	return;
 error:
 	tlshandle = isc__nmhandle_get(tlssock, NULL, NULL);
-	atomic_store(&tlssock->closed, true);
+	tlssock->closed = true;
 	tls_call_connect_cb(tlssock, tlshandle, result);
 	isc_nmhandle_detach(&tlshandle);
 	isc__nmsocket_detach(&tlssock);
@@ -1246,7 +1243,7 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 			isc_tlsctx_free(&sock->tlsstream.ctx);
 		}
 		if (sock->tlsstream.client_sess_cache != NULL) {
-			INSIST(atomic_load(&sock->client));
+			INSIST(sock->client);
 			isc_tlsctx_client_session_cache_detach(
 				&sock->tlsstream.client_sess_cache);
 		}
@@ -1468,7 +1465,7 @@ tls_keep_client_tls_session(isc_nmsocket_t *sock) {
 	if (sock->tlsstream.client_sess_cache != NULL &&
 	    sock->tlsstream.client_session_saved == false)
 	{
-		INSIST(atomic_load(&sock->client));
+		INSIST(sock->client);
 		isc_tlsctx_client_session_cache_keep_sockaddr(
 			sock->tlsstream.client_sess_cache, &sock->peer,
 			sock->tlsstream.tls);

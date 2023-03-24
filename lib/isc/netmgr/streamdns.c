@@ -124,18 +124,16 @@ streamdns_on_complete_dnsmessage(isc_dnsstream_assembler_t *dnsasm,
 				 isc_region_t *restrict region,
 				 isc_nmsocket_t *sock,
 				 isc_nmhandle_t *transphandle) {
-	const bool client = atomic_load(&sock->client);
 	const bool last_datum = isc_dnsstream_assembler_remaininglength(
 					dnsasm) == region->length;
 	/*
-	 * Stop after one message if a client
-	 * connection.
+	 * Stop after one message if a client connection.
 	 */
-	bool stop = client;
+	bool stop = sock->client;
 
 	sock->recv_read = false;
 	if (sock->recv_cb != NULL) {
-		if (!client) {
+		if (!sock->client) {
 			/*
 			 * We must allocate a new handle object, as we
 			 * need to ensure that after processing of this
@@ -259,8 +257,8 @@ streamdns_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 		uint32_t initial = 0;
 		isc_nm_gettimeouts(worker->netmgr, &initial, NULL, NULL, NULL);
 		sock->read_timeout = initial;
-		atomic_init(&sock->client, !is_server);
-		atomic_init(&sock->connecting, !is_server);
+		sock->client = !is_server;
+		sock->connecting = !is_server;
 		sock->streamdns.input = isc_dnsstream_assembler_new(
 			sock->worker->mctx, streamdns_on_dnsmessage_data_cb,
 			sock);
@@ -272,7 +270,7 @@ streamdns_sock_new(isc__networker_t *worker, const isc_nmsocket_type_t type,
 static void
 streamdns_call_connect_cb(isc_nmsocket_t *sock, isc_nmhandle_t *handle,
 			  const isc_result_t result) {
-	atomic_store(&sock->connecting, false);
+	sock->connecting = false;
 	if (sock->connect_cb == NULL) {
 		return;
 	}
@@ -280,7 +278,7 @@ streamdns_call_connect_cb(isc_nmsocket_t *sock, isc_nmhandle_t *handle,
 	if (result != ISC_R_SUCCESS) {
 		isc__nmsocket_clearcb(handle->sock);
 	} else {
-		atomic_store(&sock->connected, true);
+		sock->connected = true;
 	}
 	streamdns_try_close_unused(sock);
 }
@@ -341,7 +339,7 @@ streamdns_transport_connected(isc_nmhandle_t *handle, isc_result_t result,
 	}
 
 	isc_nmhandle_attach(handle, &sock->outerhandle);
-	atomic_store(&sock->active, true);
+	atomic_store_release(&sock->active, true);
 
 	handle->sock->streamdns.sock = sock;
 
@@ -364,7 +362,7 @@ error:
 			isc_nm_verify_tls_peer_result_string(handle);
 	}
 	streamhandle = isc__nmhandle_get(sock, NULL, NULL);
-	atomic_store(&sock->closed, true);
+	sock->closed = true;
 	streamdns_call_connect_cb(sock, streamhandle, result);
 	isc_nmhandle_detach(&streamhandle);
 	isc__nmsocket_detach(&sock);
@@ -482,7 +480,7 @@ streamdns_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result,
 			sock->recv_read = false;
 			isc_dnsstream_assembler_clear(sock->streamdns.input);
 			isc__nmsocket_clearcb(sock);
-		} else if (atomic_load(&sock->client)) {
+		} else if (sock->client) {
 			sock->recv_read = false;
 		}
 		isc__nm_readcb(sock, req, result, async);
@@ -630,7 +628,7 @@ streamdns_resume_processing(void *arg) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(!atomic_load(&sock->client));
+	REQUIRE(!sock->client);
 
 	if (streamdns_closing(sock)) {
 		return;
@@ -658,9 +656,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	if (isc__nm_closing(handle->sock->worker)) {
 		return (ISC_R_SHUTTINGDOWN);
-	} else if (isc__nmsocket_closing(handle->sock) ||
-		   atomic_load(&listensock->closing))
-	{
+	} else if (isc__nmsocket_closing(handle->sock) || listensock->closing) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -676,8 +672,8 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nm_gettimeouts(handle->sock->worker->netmgr, &initial, NULL, NULL,
 			   NULL);
 	nsock->read_timeout = initial;
-	atomic_init(&nsock->accepting, true);
-	atomic_store(&nsock->active, true);
+	nsock->accepting = true;
+	atomic_store_release(&nsock->active, true);
 
 	isc__nmsocket_attach(listensock, &nsock->listener);
 	isc_nmhandle_attach(handle, &nsock->outerhandle);
@@ -693,7 +689,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		isc_nmhandle_detach(&nsock->recv_handle);
 		isc__nmsocket_detach(&nsock->listener);
 		isc_nmhandle_detach(&nsock->outerhandle);
-		atomic_store(&nsock->closed, true);
+		nsock->closed = true;
 		goto exit;
 	}
 
@@ -706,7 +702,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	streamdns_handle_incoming_data(nsock, nsock->outerhandle, NULL, 0);
 
 exit:
-	atomic_store(&nsock->accepting, false);
+	nsock->accepting = false;
 
 	return (result);
 }
@@ -745,7 +741,7 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 			backlog, quota, tlsctx, &listener->outer);
 	}
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&listener->closed, true);
+		listener->closed = true;
 		isc__nmsocket_detach(&listener);
 		return (result);
 	}
@@ -756,8 +752,8 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	listener->result = result;
-	atomic_store(&listener->active, true);
-	atomic_store(&listener->listening, true);
+	atomic_store_release(&listener->active, true);
+	listener->listening = true;
 	INSIST(listener->outer->streamdns.listener == NULL);
 	listener->nchildren = listener->outer->nchildren;
 	isc__nmsocket_barrier_init(listener);
@@ -942,8 +938,8 @@ streamdns_close_direct(isc_nmsocket_t *sock) {
 
 	/* Further cleanup performed in isc__nm_streamdns_cleanup_data() */
 	isc_dnsstream_assembler_clear(sock->streamdns.input);
-	atomic_store(&sock->closed, true);
-	atomic_store(&sock->active, false);
+	sock->closed = true;
+	atomic_store_release(&sock->active, false);
 }
 
 void
@@ -951,12 +947,9 @@ isc__nm_streamdns_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_streamdnssocket);
 	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(!sock->closing);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true))
-	{
-		return;
-	}
+	sock->closing = true;
 
 	streamdns_close_direct(sock);
 }

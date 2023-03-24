@@ -588,9 +588,12 @@ struct isc_nmsocket {
 	 * Socket is active if it's listening, working, etc. If it's
 	 * closing, then it doesn't make a sense, for example, to
 	 * push handles or reqs for reuse.
+	 *
+	 * We might be accessing sock->parent->active from a different
+	 * thread, so .active has to be atomic.
 	 */
 	atomic_bool active;
-	atomic_bool destroying;
+	bool destroying;
 
 	bool route_sock;
 
@@ -600,20 +603,20 @@ struct isc_nmsocket {
 	 * If active==false but closed==false, that means the socket
 	 * is closing.
 	 */
-	atomic_bool closing;
-	atomic_bool closed;
-	atomic_bool listening;
-	atomic_bool connecting;
-	atomic_bool connected;
-	atomic_bool accepting;
+	bool closing;
+	bool closed;
+	bool listening;
+	bool connecting;
+	bool connected;
+	bool accepting;
 	bool reading;
-	atomic_bool timedout;
+	bool timedout;
 	isc_refcount_t references;
 
 	/*%
 	 * Established an outgoing connection, as client not server.
 	 */
-	atomic_bool client;
+	bool client;
 
 	/*%
 	 * The socket is processing read callback, this is guard to not read
@@ -625,7 +628,7 @@ struct isc_nmsocket {
 	 * A TCP or TCPDNS socket has been set to use the keepalive
 	 * timeout instead of the default idle timeout.
 	 */
-	atomic_bool keepalive;
+	bool keepalive;
 
 	/*%
 	 * 'spare' handles for that can be reused to avoid allocations, for UDP.

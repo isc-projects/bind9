@@ -147,8 +147,8 @@ static void
 netmgr_teardown(void *arg) {
 	isc_nm_t *netmgr = (void *)arg;
 
-	if (atomic_compare_exchange_strong(&netmgr->shuttingdown,
-					   &(bool){ false }, true))
+	if (atomic_compare_exchange_strong_acq_rel(&netmgr->shuttingdown,
+						   &(bool){ false }, true))
 	{
 		isc__netmgr_log(netmgr, ISC_LOG_DEBUG(1),
 				"Shutting down network manager");
@@ -318,7 +318,7 @@ void
 isc_nm_maxudp(isc_nm_t *mgr, uint32_t maxudp) {
 	REQUIRE(VALID_NM(mgr));
 
-	atomic_store(&mgr->maxudp, maxudp);
+	atomic_store_relaxed(&mgr->maxudp, maxudp);
 }
 
 void
@@ -349,10 +349,10 @@ isc_nm_settimeouts(isc_nm_t *mgr, uint32_t init, uint32_t idle,
 		   uint32_t keepalive, uint32_t advertised) {
 	REQUIRE(VALID_NM(mgr));
 
-	atomic_store(&mgr->init, init);
-	atomic_store(&mgr->idle, idle);
-	atomic_store(&mgr->keepalive, keepalive);
-	atomic_store(&mgr->advertised, advertised);
+	atomic_store_relaxed(&mgr->init, init);
+	atomic_store_relaxed(&mgr->idle, idle);
+	atomic_store_relaxed(&mgr->keepalive, keepalive);
+	atomic_store_relaxed(&mgr->advertised, advertised);
 }
 
 void
@@ -360,10 +360,10 @@ isc_nm_setnetbuffers(isc_nm_t *mgr, int32_t recv_tcp, int32_t send_tcp,
 		     int32_t recv_udp, int32_t send_udp) {
 	REQUIRE(VALID_NM(mgr));
 
-	atomic_store(&mgr->recv_tcp_buffer_size, recv_tcp);
-	atomic_store(&mgr->send_tcp_buffer_size, send_tcp);
-	atomic_store(&mgr->recv_udp_buffer_size, recv_udp);
-	atomic_store(&mgr->send_udp_buffer_size, send_udp);
+	atomic_store_relaxed(&mgr->recv_tcp_buffer_size, recv_tcp);
+	atomic_store_relaxed(&mgr->send_tcp_buffer_size, send_tcp);
+	atomic_store_relaxed(&mgr->recv_udp_buffer_size, recv_udp);
+	atomic_store_relaxed(&mgr->send_udp_buffer_size, send_udp);
 }
 
 bool
@@ -390,19 +390,19 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 	REQUIRE(VALID_NM(mgr));
 
 	if (initial != NULL) {
-		*initial = atomic_load(&mgr->init);
+		*initial = atomic_load_relaxed(&mgr->init);
 	}
 
 	if (idle != NULL) {
-		*idle = atomic_load(&mgr->idle);
+		*idle = atomic_load_relaxed(&mgr->idle);
 	}
 
 	if (keepalive != NULL) {
-		*keepalive = atomic_load(&mgr->keepalive);
+		*keepalive = atomic_load_relaxed(&mgr->keepalive);
 	}
 
 	if (advertised != NULL) {
-		*advertised = atomic_load(&mgr->advertised);
+		*advertised = atomic_load_relaxed(&mgr->advertised);
 	}
 }
 
@@ -410,10 +410,10 @@ bool
 isc__nmsocket_active(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	if (sock->parent != NULL) {
-		return (atomic_load(&sock->parent->active));
+		return (atomic_load_acquire(&sock->parent->active));
 	}
 
-	return (atomic_load(&sock->active));
+	return (atomic_load_acquire(&sock->active));
 }
 
 bool
@@ -421,12 +421,12 @@ isc__nmsocket_deactivate(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	if (sock->parent != NULL) {
-		return (atomic_compare_exchange_strong(&sock->parent->active,
-						       &(bool){ true }, false));
+		return (atomic_compare_exchange_strong_acq_rel(
+			&sock->parent->active, &(bool){ true }, false));
 	}
 
-	return (atomic_compare_exchange_strong(&sock->active, &(bool){ true },
-					       false));
+	return (atomic_compare_exchange_strong_acq_rel(&sock->active,
+						       &(bool){ true }, false));
 }
 
 void
@@ -469,7 +469,8 @@ nmsocket_cleanup(void *arg) {
 
 	isc__nm_decstats(sock, STATID_ACTIVE);
 
-	atomic_store(&sock->destroying, true);
+	REQUIRE(!sock->destroying);
+	sock->destroying = true;
 
 	if (sock->parent == NULL && sock->children != NULL) {
 		/*
@@ -477,7 +478,6 @@ nmsocket_cleanup(void *arg) {
 		 * so we can clean up and free the children.
 		 */
 		for (size_t i = 0; i < sock->nchildren; i++) {
-			REQUIRE(!atomic_load(&sock->children[i].destroying));
 			isc_refcount_decrementz(&sock->children[i].references);
 			nmsocket_cleanup(&sock->children[i]);
 		}
@@ -570,9 +570,18 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 		return;
 	}
 
-	if (atomic_load(&sock->active) || atomic_load(&sock->destroying) ||
-	    !atomic_load(&sock->closed) || atomic_load(&sock->references) != 0)
-	{
+	REQUIRE(!sock->destroying);
+	REQUIRE(!atomic_load_acquire(&sock->active));
+
+	if (!sock->closed) {
+		return;
+	}
+
+	if (isc_refcount_current(&sock->references) != 0) {
+		/*
+		 * Using such check is valid only if we don't use
+		 * isc_refcount_increment0() on the same variable.
+		 */
 		return;
 	}
 
@@ -588,7 +597,6 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 		return;
 	}
 
-	atomic_store(&sock->destroying, true);
 	if (sock->tid == isc_tid()) {
 		nmsocket_cleanup(sock);
 	} else {
@@ -618,7 +626,7 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	 * destroying the socket, but we have to wait for all the inflight
 	 * handles to finish first.
 	 */
-	atomic_store(&sock->active, false);
+	atomic_store_release(&sock->active, false);
 
 	/*
 	 * If the socket has children, they'll need to be marked inactive
@@ -626,7 +634,7 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	 */
 	if (sock->children != NULL) {
 		for (size_t i = 0; i < sock->nchildren; i++) {
-			atomic_store(&sock->children[i].active, false);
+			atomic_store_relaxed(&sock->children[i].active, false);
 		}
 	}
 
@@ -636,7 +644,7 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	 *
 	 * If it's a regular socket we may need to close it.
 	 */
-	if (!atomic_load(&sock->closing) && !atomic_load(&sock->closed)) {
+	if (!sock->closing && !sock->closed) {
 		switch (sock->type) {
 		case isc_nm_udpsocket:
 			isc__nm_udp_close(sock);
@@ -793,15 +801,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 			 sock, isc_refcount_current(&sock->references));
 
 	atomic_init(&sock->active, true);
-	atomic_init(&sock->closing, false);
-	atomic_init(&sock->listening, 0);
-	atomic_init(&sock->closed, 0);
-	atomic_init(&sock->destroying, 0);
-	atomic_init(&sock->client, 0);
-	atomic_init(&sock->connecting, false);
-	atomic_init(&sock->keepalive, false);
-	atomic_init(&sock->connected, false);
-	atomic_init(&sock->timedout, false);
 
 	atomic_init(&sock->active_child_connections, 0);
 
@@ -904,7 +903,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
-		if (!atomic_load(&sock->client)) {
+		if (!sock->client) {
 			break;
 		}
 		FALLTHROUGH;
@@ -1005,7 +1004,7 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 #if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
 	nmhandle_free(sock, handle);
 #else
-	if (atomic_load(&sock->active)) {
+	if (atomic_load_acquire(&sock->active)) {
 		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
 	} else {
 		nmhandle_free(sock, handle);
@@ -1078,7 +1077,7 @@ isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 
 void
 isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
-	REQUIRE(atomic_load(&sock->accepting));
+	REQUIRE(sock->accepting);
 	REQUIRE(sock->server);
 
 	/*
@@ -1092,7 +1091,7 @@ isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
 
 	isc__nmsocket_detach(&sock->server);
 
-	atomic_store(&sock->accepting, false);
+	sock->accepting = false;
 
 	switch (eresult) {
 	case ISC_R_NOTCONNECTED:
@@ -1112,14 +1111,14 @@ isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(req->cb.connect != NULL);
+	REQUIRE(sock->connecting);
+
+	sock->connecting = false;
 
 	isc__nm_incstats(sock, STATID_CONNECTFAIL);
 
 	isc__nmsocket_timer_stop(sock);
 	uv_handle_set_data((uv_handle_t *)&sock->read_timer, sock);
-
-	atomic_compare_exchange_enforced(&sock->connecting, &(bool){ true },
-					 false);
 
 	isc__nmsocket_clearcb(sock);
 	isc__nm_connectcb(sock, req, eresult, async);
@@ -1157,17 +1156,17 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(atomic_load(&sock->connecting));
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
+	REQUIRE(sock->connecting);
 
 	isc__nmsocket_timer_stop(sock);
 
 	/*
 	 * Mark the connection as timed out and shutdown the socket.
 	 */
-	atomic_compare_exchange_enforced(&sock->timedout, &(bool){ false },
-					 true);
+	REQUIRE(!sock->timedout);
+	sock->timedout = true;
 	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_shutdown(sock);
 }
@@ -1221,7 +1220,7 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(sock->reading);
 
-	if (atomic_load(&sock->client)) {
+	if (sock->client) {
 		uv_timer_stop(timer);
 
 		sock->recv_read = false;
@@ -1259,7 +1258,7 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (atomic_load(&sock->connecting)) {
+	if (sock->connecting) {
 		int r;
 
 		if (sock->connect_timeout == 0) {
@@ -1352,7 +1351,7 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 		isc_nmhandle_attach(sock->recv_handle, &req->handle);
 		break;
 	default:
-		if (atomic_load(&sock->client) && sock->statichandle != NULL) {
+		if (sock->client && sock->statichandle != NULL) {
 			isc_nmhandle_attach(sock->statichandle, &req->handle);
 		} else {
 			req->handle = isc__nmhandle_get(sock, sockaddr, NULL);
@@ -1463,7 +1462,7 @@ isc__nm_closing(isc__networker_t *worker) {
 
 bool
 isc__nmsocket_closing(isc_nmsocket_t *sock) {
-	return (!isc__nmsocket_active(sock) || atomic_load(&sock->closing) ||
+	return (!isc__nmsocket_active(sock) || sock->closing ||
 		isc__nm_closing(sock->worker) ||
 		(sock->server != NULL && !isc__nmsocket_active(sock->server)));
 }
@@ -1528,13 +1527,17 @@ isc_nmhandle_keepalive(isc_nmhandle_t *handle, bool value) {
 	sock = handle->sock;
 	netmgr = sock->worker->netmgr;
 
+	REQUIRE(sock->tid == isc_tid());
+
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
-		atomic_store(&sock->keepalive, value);
-		sock->read_timeout = value ? atomic_load(&netmgr->keepalive)
-					   : atomic_load(&netmgr->idle);
-		sock->write_timeout = value ? atomic_load(&netmgr->keepalive)
-					    : atomic_load(&netmgr->idle);
+		sock->keepalive = value;
+		sock->read_timeout =
+			value ? atomic_load_relaxed(&netmgr->keepalive)
+			      : atomic_load_relaxed(&netmgr->idle);
+		sock->write_timeout =
+			value ? atomic_load_relaxed(&netmgr->keepalive)
+			      : atomic_load_relaxed(&netmgr->idle);
 		break;
 	case isc_nm_streamdnssocket:
 		isc__nmhandle_streamdns_keepalive(handle, value);
@@ -1780,12 +1783,10 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->tid == isc_tid());
 	REQUIRE(listener->tid == 0);
+	REQUIRE(listener->listening);
+	REQUIRE(!listener->closing);
 
-	if (!atomic_compare_exchange_strong(&listener->closing,
-					    &(bool){ false }, true))
-	{
-		UNREACHABLE();
-	}
+	listener->closing = true;
 
 	for (size_t i = 1; i < listener->nchildren; i++) {
 		isc__networker_t *worker =
@@ -1796,11 +1797,7 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	nmsocket_stop_cb(listener);
 	INSIST(atomic_load(&listener->rchildren) == 0);
 
-	if (!atomic_compare_exchange_strong(&listener->listening,
-					    &(bool){ true }, false))
-	{
-		UNREACHABLE();
-	}
+	listener->listening = false;
 
 	listener->accept_cb = NULL;
 	listener->accept_cbarg = NULL;
@@ -1812,7 +1809,7 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 		isc__nmsocket_detach(&listener->outer);
 	}
 
-	atomic_store(&listener->closed, true);
+	listener->closed = true;
 }
 
 void
@@ -2186,7 +2183,7 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(!atomic_load(&handle->sock->client));
+	REQUIRE(!handle->sock->client);
 
 #if !HAVE_LIBNGHTTP2
 	UNUSED(ttl);
@@ -2569,7 +2566,7 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 
 	fprintf(stderr, "\n=================\n");
 	fprintf(stderr, "Active %s socket %p, type %s, refs %" PRIuFAST32 "\n",
-		atomic_load(&sock->client) ? "client" : "server", sock,
+		sock->client ? "client" : "server", sock,
 		nmsocket_type_totext(sock->type),
 		isc_refcount_current(&sock->references));
 	fprintf(stderr,
@@ -2577,11 +2574,11 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 		"%p\n",
 		sock->parent, sock->listener, sock->server, sock->statichandle);
 	fprintf(stderr, "Flags:%s%s%s%s%s\n",
-		atomic_load(&sock->active) ? " active" : "",
-		atomic_load(&sock->closing) ? " closing" : "",
-		atomic_load(&sock->destroying) ? " destroying" : "",
-		atomic_load(&sock->connecting) ? " connecting" : "",
-		atomic_load(&sock->accepting) ? " accepting" : "");
+		atomic_load_acquire(&sock->active) ? " active" : "",
+		sock->closing ? " closing" : "",
+		sock->destroying ? " destroying" : "",
+		sock->connecting ? " connecting" : "",
+		sock->accepting ? " accepting" : "");
 	fprintf(stderr, "Created by:\n");
 	isc_backtrace_symbols_fd(sock->backtrace, sock->backtrace_size,
 				 STDERR_FILENO);

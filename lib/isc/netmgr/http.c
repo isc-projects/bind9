@@ -1479,7 +1479,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->connect_timeout = timeout;
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
-	atomic_init(&sock->client, true);
+	sock->client = true;
 
 	if (isc__nm_closing(worker)) {
 		isc__nm_uvreq_t *req = isc__nm_uvreq_get(sock);
@@ -1609,7 +1609,7 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->tid == isc_tid());
-	REQUIRE(atomic_load(&handle->sock->client));
+	REQUIRE(handle->sock->client);
 
 	REQUIRE(cb != NULL);
 
@@ -1688,7 +1688,7 @@ find_server_request_handler(const char *request_path,
 
 	REQUIRE(VALID_NMSOCK(serversocket));
 
-	if (atomic_load(&serversocket->listening)) {
+	if (serversocket->listening) {
 		handler = http_endpoints_find(
 			request_path,
 			http_get_listener_endpoints(serversocket, tid));
@@ -2069,7 +2069,7 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	sock = handle->sock;
 	REQUIRE(sock->type == isc_nm_httpsocket);
-	REQUIRE(!atomic_load(&sock->client));
+	REQUIRE(!sock->client);
 	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
 
 	(void)server_send_error_response(ISC_HTTP_ERROR_BAD_REQUEST,
@@ -2467,7 +2467,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(httplistensock));
 	INSIST(httplistensock == httpserver);
 
-	if (atomic_load(&httplistensock->closing)) {
+	if (httplistensock->closing) {
 		return (ISC_R_CANCELED);
 	}
 
@@ -2475,7 +2475,7 @@ httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	new_session(handle->sock->worker->mctx, NULL, &session);
 	session->max_concurrent_streams =
-		atomic_load(&httplistensock->h2.max_concurrent_streams);
+		atomic_load_relaxed(&httplistensock->h2.max_concurrent_streams);
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
@@ -2523,7 +2523,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&sock->closed, true);
+		sock->closed = true;
 		isc__nmsocket_detach(&sock);
 		return (result);
 	}
@@ -2536,7 +2536,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	isc__nmsocket_barrier_init(sock);
 	atomic_init(&sock->rchildren, sock->nchildren);
 
-	atomic_store(&sock->listening, true);
+	sock->listening = true;
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
 }
@@ -2711,8 +2711,8 @@ http_close_direct(isc_nmsocket_t *sock) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	atomic_store(&sock->closed, true);
-	atomic_store(&sock->active, false);
+	sock->closed = true;
+	atomic_store_release(&sock->active, false);
 	session = sock->h2.session;
 
 	if (session != NULL && session->sending == 0 && !session->reading) {
@@ -2742,12 +2742,9 @@ isc__nm_http_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httpsocket);
 	REQUIRE(!isc__nmsocket_active(sock));
+	REQUIRE(!sock->closing);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true))
-	{
-		return;
-	}
+	sock->closing = true;
 
 	if (sock->h2.session != NULL && sock->h2.session->closed &&
 	    sock->tid == isc_tid())
@@ -2843,8 +2840,8 @@ server_call_failed_read_cb(isc_result_t result,
 		isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
 		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
 		/* Cleanup socket in place */
-		atomic_store(&h2data->psock->active, false);
-		atomic_store(&h2data->psock->closed, true);
+		atomic_store_release(&h2data->psock->active, false);
+		h2data->psock->closed = true;
 		isc__nmsocket_detach(&h2data->psock);
 
 		h2data = next;
@@ -2957,7 +2954,7 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 		max_streams = max_concurrent_streams;
 	}
 
-	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
+	atomic_store_relaxed(&listener->h2.max_concurrent_streams, max_streams);
 }
 
 typedef struct http_endpoints_data {
