@@ -21,19 +21,14 @@ $TTL 300
 				NS	ns2
 ns2				A	10.53.0.2
 
-dspublished			NS	ns9.dspublished
+$ORIGIN explicit.dspublish.ns2.
+good				NS	ns9.good
 reference			NS	ns9.reference
-missing-dspublished		NS	ns9.missing-dspublished
-bad-dspublished			NS	ns9.bad-dspublished
-multiple-dspublished		NS	ns9.multiple-dspublished
-incomplete-dspublished		NS	ns9.incomplete-dspublished
-bad2-dspublished		NS	ns9.bad2-dspublished
-resolver-dspublished		NS	ns9.resolver-dspublished
+resolver			NS	ns9.resolver
+ns9.good			A	10.53.0.9
+ns9.reference			A	10.53.0.9
+ns9.resolver			A	10.53.0.9
 
-dswithdrawn			NS	ns9.dswithdrawn
-missing-dswithdrawn		NS	ns9.missing-dswithdrawn
-bad-dswithdrawn			NS	ns9.bad-dswithdrawn
-multiple-dswithdrawn		NS	ns9.multiple-dswithdrawn
-incomplete-dswithdrawn		NS	ns9.incomplete-dswithdrawn
-bad2-dswithdrawn		NS	ns9.bad2-dswithdrawn
-resolver-dswithdrawn		NS	ns9.resolver-dswithdrawn
+$ORIGIN explicit.dsremoved.ns2.
+still-there			NS	ns9.still-there
+ns9.still-there			A	10.53.0.9

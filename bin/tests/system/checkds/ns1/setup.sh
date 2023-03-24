@@ -22,8 +22,6 @@ zonefile=root.db
 
 echo_i "ns1/setup.sh"
 
-cp "../ns2/dsset-checkds." .
-
 ksk=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 cp "$ksk.key" "../ns10/"
@@ -44,3 +42,4 @@ cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
 keyfile_to_static_ds "$ksk" > trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns8/trusted.conf
+cp trusted.conf ../ns9/trusted.conf

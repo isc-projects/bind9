@@ -17,6 +17,7 @@ rm -f dig.out*
 rm -f ns*/named.conf ns*/named.memstats ns*/named.run*
 rm -f ns*/*.jnl ns*/*.jbk
 rm -f ns*/K*.private ns*/K*.key ns*/K*.state
+rm -f ns*/*.keyname
 rm -f ns*/dsset-*
 rm -f ns*/*.db ns*/*.jnl ns*/*.jbk ns*/*.db.signed ns*/*.db.infile
 rm -f ns*/keygen.out.* ns*/settime.out.* ns*/signer.out.*
@@ -24,4 +25,4 @@ rm -f ns*/managed-keys.bind*
 rm -f ns*/trusted.conf
 rm -f ns*/*.mkeys
 rm -f ns*/zones
-rm -f *.checkds.out
+rm -f ./*.out
