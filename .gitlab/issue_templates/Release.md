@@ -46,7 +46,7 @@
  - [ ] ***(QA)*** Update BIND 9 version in `configure.ac` (9.18+) or `version` (9.16).
  - [ ] ***(QA)*** Rebuild `configure` using Autoconf on `docs.isc.org` (9.16).
  - [ ] ***(QA)*** Update GitLab settings for all maintained branches to disallow merging to them.
- - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9_x_y`).
+ - [ ] ***(QA)*** Tag the releases in the private repository (`git tag -s -m "BIND 9.x.y" v9.x.y`).
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 

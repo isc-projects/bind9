@@ -179,9 +179,8 @@ resume() {
 	LABEL_VERSION=""
 	LABEL_BACKPORT=""
 
-	if ! $DONT_TAG && [[ $TARGET_BRANCH == v9_[0-9][0-9] ]]; then
-
-		version="9.${TARGET_BRANCH#v9_}"
+	if ! $DONT_TAG && [[ $TARGET_BRANCH == bind-9.[0-9][0-9] ]]; then
+		version="${TARGET_BRANCH#bind-}"
 
 		TITLE="$(git show --format=%b ${SOURCE_COMMIT} | head -n 1)"
 		TITLE="merge_request.title=[${version}] ${TITLE}"
