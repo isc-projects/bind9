@@ -230,6 +230,13 @@ assign values to options like the timeout interval. They have the form
    This option controls whether to display the CLASS when printing a record. The
    default is to display the CLASS.
 
+.. option:: +hint=FILE, +nohint
+
+   This option specifies a filename from which to load root hints;
+   this will be used to find the root name servers when name server
+   mode (``delv +ns``) is in use. If the option is not specified,
+   built-in root hints will be used.
+
 .. option:: +ns, +nons
 
    This option toggles name server mode. When this option is in use,

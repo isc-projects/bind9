@@ -120,6 +120,7 @@ static char *curqname = NULL, *qname = NULL;
 static bool classset = false;
 static dns_rdatatype_t qtype = dns_rdatatype_none;
 static bool typeset = false;
+static const char *hintfile = NULL;
 
 static unsigned int styleflags = 0;
 static uint32_t splitwidth = 0xffffffff;
@@ -1171,6 +1172,22 @@ plus_option(char *option) {
 			goto invalid_option;
 		}
 		break;
+	case 'h':
+		switch (cmd[1]) {
+		case 'i': /* hint */
+			if (state) {
+				if (value == NULL) {
+					fatal("+hint: must specify hint file");
+				}
+				hintfile = value;
+			} else {
+				hintfile = NULL;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
+		break;
 	case 'm':
 		switch (cmd[1]) {
 		case 't': /* mtrace */
@@ -2121,7 +2138,7 @@ run_server(void *arg) {
 	dns_cache_detach(&cache);
 	dns_view_setdstport(view, destport);
 
-	CHECK(dns_rootns_create(mctx, dns_rdataclass_in, NULL, &roothints));
+	CHECK(dns_rootns_create(mctx, dns_rdataclass_in, hintfile, &roothints));
 	dns_view_sethints(view, roothints);
 	dns_db_detach(&roothints);
 
@@ -2156,6 +2173,9 @@ run_server(void *arg) {
 	return;
 
 cleanup:
+	if (view != NULL) {
+		dns_view_detach(&view);
+	}
 	shutdown_server();
 }
 
@@ -2185,6 +2205,12 @@ main(int argc, char *argv[]) {
 	CHECK(setup_style());
 
 	setup_logging(logfp);
+
+	if (!fulltrace && hintfile != NULL) {
+		delv_log(ISC_LOG_WARNING,
+			 "WARNING: not using internal name server mode, "
+			 "hint file will be ignored");
+	}
 
 	if (fulltrace && server != NULL) {
 		delv_log(ISC_LOG_WARNING,
