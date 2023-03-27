@@ -34,28 +34,62 @@
 #include <isc/uv.h>
 #include <isc/work.h>
 
+#include "async_p.h"
 #include "job_p.h"
 #include "loop_p.h"
 
 void
 isc_async_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
-	int r;
-	isc_job_t *job = NULL;
-
 	REQUIRE(VALID_LOOP(loop));
 	REQUIRE(cb != NULL);
 
-	job = isc__job_new(loop, cb, cbarg);
+	isc_job_t *job = isc_mem_get(loop->mctx, sizeof(*job));
+	*job = (isc_job_t){
+		.link = ISC_LINK_INITIALIZER,
+		.cb = cb,
+		.cbarg = cbarg,
+	};
 
 	/*
 	 * Now send the half-initialized job to the loop queue.
-	 *
-	 * The ISC_ASTACK_PUSH is counterintuitive here, but uv_idle
-	 * drains its queue backwards, so if there's more than one event
-	 * to be processed then they need to be in reverse order.
 	 */
-	ISC_ASTACK_PUSH(loop->queue_jobs, job, link);
+	ISC_ASTACK_PUSH(loop->async_jobs, job, link);
 
-	r = uv_async_send(&loop->queue_trigger);
+	int r = uv_async_send(&loop->async_trigger);
 	UV_RUNTIME_CHECK(uv_async_send, r);
+}
+
+void
+isc__async_cb(uv_async_t *handle) {
+	isc_loop_t *loop = uv_handle_get_data(handle);
+
+	REQUIRE(VALID_LOOP(loop));
+
+	ISC_STACK(isc_job_t) drain = ISC_ASTACK_TO_STACK(loop->async_jobs);
+	ISC_LIST(isc_job_t) jobs = ISC_LIST_INITIALIZER;
+
+	isc_job_t *job = ISC_STACK_POP(drain, link);
+	isc_job_t *next = NULL;
+	while (job != NULL) {
+		ISC_LIST_PREPEND(jobs, job, link);
+
+		job = ISC_STACK_POP(drain, link);
+	}
+
+	for (job = ISC_LIST_HEAD(jobs),
+	    next = (job ? ISC_LIST_NEXT(job, link) : NULL);
+	     job != NULL;
+	     job = next, next = (job ? ISC_LIST_NEXT(job, link) : NULL))
+	{
+		job->cb(job->cbarg);
+
+		isc_mem_put(loop->mctx, job, sizeof(*job));
+	}
+}
+
+void
+isc__async_close(uv_handle_t *handle) {
+	isc_loop_t *loop = uv_handle_get_data(handle);
+
+	isc__async_cb(&loop->async_trigger);
 }

@@ -977,7 +977,7 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
-		valoptions, fctx->res->loopmgr, validated, valarg, &validator);
+		valoptions, fctx->loop, validated, valarg, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
@@ -10420,7 +10420,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	if (new_fctx) {
 		fetchctx_ref(fctx);
-		isc_job_run(res->loopmgr, (isc_job_cb)fctx_start, fctx);
+		isc_async_run(fctx->loop, (isc_job_cb)fctx_start, fctx);
 	}
 
 unlock:

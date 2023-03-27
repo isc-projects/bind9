@@ -120,9 +120,6 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG);
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle);
 
-static void
-uvreq_free(uv_handle_t *handle);
-
 /*%<
  * Issue a 'handle closed' callback on the socket.
  */
@@ -1021,8 +1018,8 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 	 * call it now asynchronously.
 	 */
 	if (sock->closehandle_cb != NULL) {
-		isc_job_run(sock->worker->netmgr->loopmgr,
-			    isc__nm_closehandle_job, sock);
+		isc_async_run(sock->worker->loop, isc__nm_closehandle_job,
+			      sock);
 	} else {
 		isc___nmsocket_detach(&sock FLARG_PASS);
 	}
@@ -1600,29 +1597,16 @@ isc___nm_uvreq_get(isc_nmsocket_t *sock FLARG) {
 		.connect_tries = 3,
 		.link = ISC_LINK_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
+		.job = ISC_JOB_INITIALIZER,
 		.magic = UVREQ_MAGIC,
 	};
 	uv_handle_set_data(&req->uv_req.handle, req);
-
-	int r = uv_idle_init(&worker->loop->loop, &req->idle);
-	UV_RUNTIME_CHECK(uv_idle_init, r);
-	uv_handle_set_data(&req->idle, req);
 
 	isc___nmsocket_attach(sock, &req->sock FLARG_PASS);
 
 	ISC_LIST_APPEND(sock->active_uvreqs, req, active_link);
 
 	return (req);
-}
-
-static void
-uvreq_free(uv_handle_t *handle) {
-	isc__nm_uvreq_t *req = uv_handle_get_data(handle);
-	isc_nmsocket_t *sock = req->sock;
-
-	isc_mempool_put(sock->worker->uvreq_pool, req);
-
-	isc___nmsocket_detach(&sock FLARG_PASS);
 }
 
 void
@@ -1644,7 +1628,9 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **reqp FLARG) {
 		isc__nmhandle_detach(&handle FLARG_PASS);
 	}
 
-	uv_close(&req->idle, uvreq_free);
+	isc_mempool_put(sock->worker->uvreq_pool, req);
+
+	isc___nmsocket_detach(&sock FLARG_PASS);
 }
 
 void
@@ -1838,12 +1824,10 @@ isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
 }
 
 static void
-isc___nm_connectcb(uv_idle_t *handle) {
-	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
+isc___nm_connectcb(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
 
 	uvreq->cb.connect(uvreq->handle, uvreq->result, uvreq->cbarg);
-
-	uv_idle_stop(handle);
 	isc__nm_uvreq_put(&uvreq);
 }
 
@@ -1855,28 +1839,25 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 	REQUIRE(uvreq->cb.connect != NULL);
 
+	uvreq->result = eresult;
+
 	if (!async) {
-		uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
-		isc__nm_uvreq_put(&uvreq);
+		isc___nm_connectcb(uvreq);
 		return;
 	}
 
-	uvreq->result = eresult;
-
-	uv_idle_start(&uvreq->idle, isc___nm_connectcb);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_connectcb, uvreq);
 }
 
 static void
-isc___nm_readcb(uv_idle_t *handle) {
-	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
+isc___nm_readcb(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
 	isc_region_t region;
 
 	region.base = (unsigned char *)uvreq->uvbuf.base;
 	region.length = uvreq->uvbuf.len;
-
 	uvreq->cb.recv(uvreq->handle, uvreq->result, &region, uvreq->cbarg);
 
-	uv_idle_stop(handle);
 	isc__nm_uvreq_put(&uvreq);
 }
 
@@ -1887,29 +1868,21 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
 
+	uvreq->result = eresult;
+
 	if (!async) {
-		isc_region_t region;
-
-		region.base = (unsigned char *)uvreq->uvbuf.base;
-		region.length = uvreq->uvbuf.len;
-
-		uvreq->cb.recv(uvreq->handle, eresult, &region, uvreq->cbarg);
-		isc__nm_uvreq_put(&uvreq);
+		isc___nm_readcb(uvreq);
 		return;
 	}
 
-	uvreq->result = eresult;
-
-	uv_idle_start(&uvreq->idle, isc___nm_readcb);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_readcb, uvreq);
 }
 
 static void
-isc___nm_sendcb(uv_idle_t *handle) {
-	isc__nm_uvreq_t *uvreq = uv_handle_get_data(handle);
+isc___nm_sendcb(void *arg) {
+	isc__nm_uvreq_t *uvreq = arg;
 
 	uvreq->cb.send(uvreq->handle, uvreq->result, uvreq->cbarg);
-
-	uv_idle_stop(handle);
 	isc__nm_uvreq_put(&uvreq);
 }
 
@@ -1919,15 +1892,15 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+
 	uvreq->result = eresult;
 
 	if (!async) {
-		uvreq->cb.send(uvreq->handle, uvreq->result, uvreq->cbarg);
-		isc__nm_uvreq_put(&uvreq);
+		isc___nm_sendcb(uvreq);
 		return;
 	}
 
-	uv_idle_start(&uvreq->idle, isc___nm_sendcb);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_sendcb, uvreq);
 }
 
 static void

@@ -252,7 +252,6 @@ typedef union {
 	isc_nm_recv_cb_t recv;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
-	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
 
 /*
@@ -278,7 +277,6 @@ struct isc__nm_uvreq {
 	isc_nm_timer_t *timer; /* TCP write timer */
 	int connect_tries;     /* connect retries */
 	isc_result_t result;
-	uv_idle_t idle;
 
 	union {
 		uv_handle_t handle;
@@ -293,6 +291,8 @@ struct isc__nm_uvreq {
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
 	ISC_LINK(isc__nm_uvreq_t) active_link;
+
+	isc_job_t job;
 };
 
 /*

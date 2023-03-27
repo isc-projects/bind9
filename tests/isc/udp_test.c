@@ -540,7 +540,8 @@ ISC_TEARDOWN_TEST_IMPL(udp_shutdown_connect) {
 ISC_LOOP_TEST_IMPL(udp_shutdown_connect) {
 	isc_loopmgr_shutdown(loopmgr);
 	isc_refcount_increment0(&active_cconnects);
-	isc_job_run(loopmgr, udp_connect_udpconnect, netmgr);
+	isc_async_run(isc_loop_current(loopmgr), udp_connect_udpconnect,
+		      netmgr);
 }
 
 static void
@@ -864,7 +865,8 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		{
 			do_cconnects_shutdown(loopmgr);
 		} else if (do_send) {
-			isc_job_run(loopmgr, udp__connect, cbarg);
+			isc_async_run(isc_loop_current(loopmgr), udp__connect,
+				      cbarg);
 		}
 
 		isc_refcount_increment0(&active_creads);

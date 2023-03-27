@@ -227,7 +227,7 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->result = result;
 
 	dns_validator_ref(val);
-	isc_job_run(val->loopmgr, validator_done_cb, val);
+	isc_async_run(val->loop, validator_done_cb, val);
 }
 
 /*%
@@ -950,8 +950,8 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	dns_validator_ref(val);
 	return (dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
-		fopts, 0, NULL, isc_loop_current(val->loopmgr), callback, val,
-		&val->frdataset, &val->fsigrdataset, &val->fetch));
+		fopts, 0, NULL, val->loop, callback, val, &val->frdataset,
+		&val->fsigrdataset, &val->fetch));
 }
 
 /*%
@@ -981,7 +981,7 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 
 	validator_logcreate(val, name, type, caller, "validator");
 	result = dns_validator_create(val->view, name, type, rdataset, sig,
-				      NULL, vopts, val->loopmgr, cb, val,
+				      NULL, vopts, val->loop, cb, val,
 				      &val->subvalidator);
 	if (result == ISC_R_SUCCESS) {
 		dns_validator_attach(val, &val->subvalidator->parent);
@@ -2978,7 +2978,7 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_loopmgr_t *loopmgr, isc_job_cb cb, void *arg,
+		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
@@ -2997,7 +2997,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				  .type = type,
 				  .options = options,
 				  .link = ISC_LINK_INITIALIZER,
-				  .loopmgr = loopmgr,
+				  .loop = loop,
 				  .cb = cb,
 				  .arg = arg };
 
@@ -3024,7 +3024,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	if ((options & DNS_VALIDATOR_DEFER) == 0) {
 		dns_validator_ref(val);
-		isc_job_run(val->loopmgr, validator_start, val);
+		isc_async_run(val->loop, validator_start, val);
 	}
 
 	*validatorp = val;
@@ -3050,7 +3050,7 @@ dns_validator_send(dns_validator_t *validator) {
 	validator->options &= ~DNS_VALIDATOR_DEFER;
 
 	dns_validator_ref(validator);
-	isc_job_run(validator->loopmgr, validator_start, validator);
+	isc_async_run(validator->loop, validator_start, validator);
 }
 
 void

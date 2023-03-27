@@ -115,6 +115,7 @@ libisc_la_SOURCES =		\
 	ascii.c			\
 	assertions.c		\
 	async.c			\
+	async_p.h		\
 	backtrace.c		\
 	base32.c		\
 	base64.c		\

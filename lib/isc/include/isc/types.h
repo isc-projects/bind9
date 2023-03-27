@@ -48,19 +48,18 @@ typedef struct isc_httpdurl isc_httpdurl_t;	       /*%< HTTP URL */
 typedef void(isc_httpdondestroy_t)(void *); /*%< Callback on destroying httpd */
 typedef struct isc_interface	 isc_interface_t;     /*%< Interface */
 typedef struct isc_interfaceiter isc_interfaceiter_t; /*%< Interface Iterator */
-typedef struct isc_job		 isc_job_t;
-typedef struct isc_lex		 isc_lex_t;	    /*%< Lex */
-typedef struct isc_log		 isc_log_t;	    /*%< Log */
-typedef struct isc_logcategory	 isc_logcategory_t; /*%< Log Category */
-typedef struct isc_logconfig	 isc_logconfig_t;   /*%< Log Configuration */
-typedef struct isc_logmodule	 isc_logmodule_t;   /*%< Log Module */
-typedef struct isc_loop		 isc_loop_t;	    /*%< Event loop */
-typedef struct isc_loopmgr	 isc_loopmgr_t;	    /*%< Event loop manager */
-typedef struct isc_mem		 isc_mem_t;	    /*%< Memory */
-typedef struct isc_mempool	 isc_mempool_t;	    /*%< Memory Pool */
-typedef struct isc_netaddr	 isc_netaddr_t;	    /*%< Net Address */
-typedef struct isc_netprefix	 isc_netprefix_t;   /*%< Net Prefix */
-typedef struct isc_nm		 isc_nm_t;	    /*%< Network manager */
+typedef struct isc_lex		 isc_lex_t;	      /*%< Lex */
+typedef struct isc_log		 isc_log_t;	      /*%< Log */
+typedef struct isc_logcategory	 isc_logcategory_t;   /*%< Log Category */
+typedef struct isc_logconfig	 isc_logconfig_t;     /*%< Log Configuration */
+typedef struct isc_logmodule	 isc_logmodule_t;     /*%< Log Module */
+typedef struct isc_loop		 isc_loop_t;	      /*%< Event loop */
+typedef struct isc_loopmgr	 isc_loopmgr_t;	      /*%< Event loop manager */
+typedef struct isc_mem		 isc_mem_t;	      /*%< Memory */
+typedef struct isc_mempool	 isc_mempool_t;	      /*%< Memory Pool */
+typedef struct isc_netaddr	 isc_netaddr_t;	      /*%< Net Address */
+typedef struct isc_netprefix	 isc_netprefix_t;     /*%< Net Prefix */
+typedef struct isc_nm		 isc_nm_t;	      /*%< Network manager */
 typedef struct isc_nmsocket	 isc_nmsocket_t; /*%< Network manager socket */
 typedef struct isc_nmhandle	 isc_nmhandle_t; /*%< Network manager handle */
 typedef struct isc_portset	 isc_portset_t;	 /*%< Port Set */
