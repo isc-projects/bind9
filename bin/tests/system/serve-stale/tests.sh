@@ -1963,8 +1963,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 wait_for_rrset_refresh() {
-	nextpart ns3/named.run | grep 'data.example.*2.*TXT.*"A text record with a 2 second ttl"' > /dev/null && return 0
-	return 1
+	$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
+	grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
+	grep "ANSWER: 1," dig.out.test$n > /dev/null || return 1
+	grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || return 1
 }
 
 # This test ensures that after we get stale data due to
@@ -1974,10 +1976,6 @@ n=$((n+1))
 ret=0
 echo_i "check stale data.example TXT was refreshed (stale-answer-client-timeout 0) ($n)"
 retry_quiet 10 wait_for_rrset_refresh || ret=1
-$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2157,10 +2155,6 @@ n=$((n+1))
 ret=0
 echo_i "check stale data.example TXT was refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 retry_quiet 10 wait_for_rrset_refresh || ret=1
-$DIG -p ${PORT} @10.53.0.3 data.example TXT > dig.out.test$n
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
-grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
