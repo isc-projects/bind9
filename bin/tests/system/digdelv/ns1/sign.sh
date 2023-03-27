@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -12,12 +12,20 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-. ../conf.sh
+. ../../conf.sh
 
 set -e
 
-copy_setports ns1/named.conf.in ns1/named.conf
-copy_setports ns2/named.conf.in ns2/named.conf
-copy_setports ns3/named.conf.in ns3/named.conf
+(cd ../ns2 && $SHELL sign.sh )
 
-cd ns1 && $SHELL sign.sh
+cp "../ns2/dsset-example." .
+
+ksk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone .)
+
+cp root.db.in root.db
+
+"$SIGNER" -Sgz -f root.db -o . root.db.in > /dev/null 2>&1
+
+keyfile_to_key_id "$ksk" > keyid
+grep -Ev '^;' < "$ksk.key" | cut -f 7- -d ' ' > keydata
+keyfile_to_initial_keys "$ksk" > anchor.dnskey
