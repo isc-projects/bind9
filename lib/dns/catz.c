@@ -2254,7 +2254,7 @@ dns__catz_update_cb(void *data) {
 	uint32_t catz_vers;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
-	REQUIRE(DNS_DB_VALID(catz->db));
+	REQUIRE(DNS_DB_VALID(catz->updb));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catz->catzs));
 
 	updb = catz->updb;

@@ -1,3 +1,7 @@
+6128.	[bug]		Fix an omission in an earlier commit to avoid a race
+			between the 'dns__catz_update_cb()' and
+			'dns_catz_dbupdate_callback()' functions. [GL #3968]
+
 6126.	[cleanup]	Deprecate zone type "delegation-only" and the
 			"delegation-only" and "root-delegation-only"
 			options. [GL #3953]
