@@ -5610,7 +5610,6 @@ any top-level :namedconf:ref:`server` statements are used as defaults.
 .. namedconf:statement:: keys
    :tags: server, security
    :short: Specifies one or more :any:`server_key` s to be used with a remote server.
-
    :suppress_grammar:
 
    .. warning::
@@ -6593,7 +6592,6 @@ Here is an example of a typical split DNS setup implemented using
 .. namedconf:statement:: zone
    :tags: zone
    :short: Specifies the zone in a BIND 9 configuration.
-
    :suppress_grammar:
 
 :any:`zone` Block Definition and Usage
@@ -6604,7 +6602,6 @@ Zone Types
 .. namedconf:statement:: type
    :tags: zone
    :short: Specifies the kind of zone in a given configuration.
-
    :suppress_grammar:
 
    The :any:`type` keyword is required for the :any:`zone` configuration unless
