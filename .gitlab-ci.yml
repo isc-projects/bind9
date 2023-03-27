@@ -12,6 +12,7 @@ variables:
   KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
 
   GIT_DEPTH: 1
+  GIT_CLEAN_FLAGS: -ffdxq
 
   # The following values may be overwritten in GitLab's CI/CD Variables Settings.
   BUILD_PARALLEL_JOBS: 6
