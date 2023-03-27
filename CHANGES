@@ -1,3 +1,7 @@
+6128.	[bug]		Fix an omission in an earlier commit to avoid a race
+			between the 'dns__catz_update_cb()' and
+			'dns_catz_dbupdate_callback()' functions. [GL #3968]
+
 6127.	[cleanup]	Refactor network manager netievent callbacks to
 			use isc_job_run()/isc_async_run(). [GL #3964]
 
