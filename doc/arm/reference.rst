@@ -1160,14 +1160,20 @@ default is used.
    effective user ID of the ``named`` process.
 
 ``qname-minimization``
-   This option controls QNAME minimization behavior in the BIND
-   resolver. When set to ``strict``, BIND follows the QNAME
+   When this is set to ``strict``, BIND follows the QNAME
    minimization algorithm to the letter, as specified in :rfc:`7816`.
+
    Setting this option to ``relaxed`` causes BIND to fall back to
    normal (non-minimized) query mode when it receives either NXDOMAIN or
    other unexpected responses (e.g., SERVFAIL, improper zone cut,
-   REFUSED) to a minimized query. ``disabled`` disables QNAME
-   minimization completely. The current default is ``relaxed``, but it
+   REFUSED) to a minimized query. A resolver can use a leading
+   underscore, like ``_.example.com``, in an attempt to improve
+   interoperability. (See :rfc:`7816` section 3.)
+
+   ``disabled`` disables QNAME minimization completely.
+   ``off`` is a synonym for ``disabled``.
+
+   The current default is ``relaxed``, but it
    may be changed to ``strict`` in a future release.
 
 ``tkey-gssapi-keytab``
