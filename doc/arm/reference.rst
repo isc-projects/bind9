@@ -6548,6 +6548,7 @@ This example generates A and AAAA records using modifiers; the AAAA
 is equivalent to:
 
 ::
+
    HOST-0000.EXAMPLE.   A      1.2.3.1
    HOST-0001.EXAMPLE.   A      1.2.3.2
    HOST-0002.EXAMPLE.   A      1.2.3.3
