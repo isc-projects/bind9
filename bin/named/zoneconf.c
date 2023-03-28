@@ -877,7 +877,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *filename = NULL;
 	const char *kaspname = NULL;
 	const char *dupcheck;
-	dns_checkdstype_t checkdstype = dns_checkdstype_explicit;
+	dns_checkdstype_t checkdstype = dns_checkdstype_yes;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
 	uint32_t count;
 	unsigned int dbargc;

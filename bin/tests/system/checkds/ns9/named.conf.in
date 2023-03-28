@@ -87,7 +87,6 @@ zone "good.yes.dspublish.ns2" {
 	file "good.yes.dspublish.ns2.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /* Same as above, but with checkds disabled. */
@@ -105,7 +104,6 @@ zone "no-ent.ns2" {
 	file "no-ent.ns2.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -129,7 +127,6 @@ zone "not-yet.yes.dspublish.ns5" {
 	file "not-yet.yes.dspublish.ns5.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -153,7 +150,6 @@ zone "bad.yes.dspublish.ns6" {
 	file "bad.yes.dspublish.ns6.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -185,7 +181,6 @@ zone "good.yes.dspublish.ns2-4" {
 	file "good.yes.dspublish.ns2-4.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 zone "good.no.dspublish.ns2-4" {
@@ -219,7 +214,6 @@ zone "incomplete.yes.dspublish.ns2-4-5" {
 	file "incomplete.yes.dspublish.ns2-4-5.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -245,7 +239,6 @@ zone "bad.yes.dspublish.ns2-4-6" {
 	file "bad.yes.dspublish.ns2-4-6.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -289,7 +282,6 @@ zone "good.yes.dsremoved.ns5" {
 	file "good.yes.dsremoved.ns5.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 zone "good.no.dsremoved.ns5" {
@@ -305,7 +297,6 @@ zone "no-ent.ns5" {
 	file "no-ent.ns5.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	checkds yes;
 };
 
 /*
@@ -329,7 +320,6 @@ zone "still-there.yes.dsremoved.ns2" {
 	file "still-there.yes.dsremoved.ns2.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 /*
@@ -353,7 +343,6 @@ zone "bad.yes.dsremoved.ns6" {
 	file "bad.yes.dsremoved.ns6.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 /*
@@ -385,7 +374,6 @@ zone "good.yes.dsremoved.ns5-7" {
 	file "good.yes.dsremoved.ns5-7.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 zone "good.no.dsremoved.ns5-7" {
@@ -419,7 +407,6 @@ zone "incomplete.yes.dsremoved.ns2-5-7" {
 	file "incomplete.yes.dsremoved.ns2-5-7.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 /*
@@ -445,7 +432,6 @@ zone "bad.yes.dsremoved.ns5-6-7" {
 	file "bad.yes.dsremoved.ns5-6-7.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	checkds yes;
 };
 
 /*

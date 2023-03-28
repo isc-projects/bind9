@@ -1084,7 +1084,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 		.minrefresh = DNS_ZONE_MINREFRESH,
 		.maxretry = DNS_ZONE_MAXRETRY,
 		.minretry = DNS_ZONE_MINRETRY,
-		.checkdstype = dns_checkdstype_explicit,
+		.checkdstype = dns_checkdstype_yes,
 		.notifytype = dns_notifytype_yes,
 		.zero_no_soa_ttl = true,
 		.check_names = dns_severity_ignore,
