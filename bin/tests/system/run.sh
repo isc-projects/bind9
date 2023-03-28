@@ -26,8 +26,13 @@ import pytest
 def into_pytest_args(in_args):
     args = []
     if in_args.expression is None:
-        # running all tests - execute in parallel
-        args.extend(["-n", "auto"])
+        try:
+            import xdist
+        except ImportError:
+            pass
+        else:
+            # running all tests - execute in parallel
+            args.extend(["-n", "auto"])
     else:
         args.extend(["-k", in_args.expression])
     if in_args.noclean:
