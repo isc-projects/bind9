@@ -6439,10 +6439,12 @@ The following options apply to DS queries sent to :any:`parental-agents`:
 
    If set to ``yes``, DS queries are sent when a KSK rollover is in progress.
    The queries are sent to the servers listed in the parent zone's NS records.
-   This is the default.
+   This is the default if there are no :any:`parental-agents` configured for
+   the zone.
 
    If set to ``explicit``, DS queries are sent only to servers explicitly listed
-   using :any:`parental-agents`.
+   using :any:`parental-agents`. This is the default if there are parental
+   agents configured.
 
    If set to ``no``, no DS queries are sent. Users should manually run
    :option:`rndc dnssec -checkds <rndc dnssec>` with the appropriate parameters

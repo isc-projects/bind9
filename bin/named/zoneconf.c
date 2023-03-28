@@ -1229,29 +1229,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 
 		obj = NULL;
-		result = named_config_get(maps, "checkds", &obj);
-		if (result == ISC_R_SUCCESS) {
-			if (cfg_obj_isboolean(obj)) {
-				if (cfg_obj_asboolean(obj)) {
-					checkdstype = dns_checkdstype_yes;
-				} else {
-					checkdstype = dns_checkdstype_no;
-				}
-			} else {
-				const char *str = cfg_obj_asstring(obj);
-				if (strcasecmp(str, "explicit") == 0) {
-					checkdstype = dns_checkdstype_explicit;
-				} else {
-					UNREACHABLE();
-				}
-			}
-		}
-		if (raw != NULL) {
-			dns_zone_setcheckdstype(raw, dns_checkdstype_no);
-		}
-		dns_zone_setcheckdstype(zone, checkdstype);
-
-		obj = NULL;
 		result = named_config_get(maps, "notify", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (cfg_obj_isboolean(obj)) {
@@ -1711,19 +1688,47 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Configure parental agents, applies to primary and secondary zones.
 	 */
 	if (ztype == dns_zone_primary || ztype == dns_zone_secondary) {
-		obj = NULL;
-		(void)cfg_map_get(zoptions, "parental-agents", &obj);
-		if (obj != NULL) {
+		const cfg_obj_t *parentals = NULL;
+		(void)cfg_map_get(zoptions, "parental-agents", &parentals);
+		if (parentals != NULL) {
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
 			CHECK(named_config_getipandkeylist(
-				config, "parental-agents", obj, mctx, &ipkl));
+				config, "parental-agents", parentals, mctx,
+				&ipkl));
 			dns_zone_setparentals(zone, ipkl.addrs, ipkl.sources,
 					      ipkl.keys, ipkl.tlss, ipkl.count);
 			dns_ipkeylist_clear(mctx, &ipkl);
 		} else {
 			dns_zone_setparentals(zone, NULL, NULL, NULL, NULL, 0);
 		}
+
+		obj = NULL;
+		result = named_config_get(maps, "checkds", &obj);
+		if (result == ISC_R_SUCCESS) {
+			if (cfg_obj_isboolean(obj)) {
+				if (cfg_obj_asboolean(obj)) {
+					checkdstype = dns_checkdstype_yes;
+				} else {
+					checkdstype = dns_checkdstype_no;
+				}
+			} else {
+				const char *str = cfg_obj_asstring(obj);
+				if (strcasecmp(str, "explicit") == 0) {
+					checkdstype = dns_checkdstype_explicit;
+				} else {
+					UNREACHABLE();
+				}
+			}
+		} else if (parentals != NULL) {
+			checkdstype = dns_checkdstype_explicit;
+		} else {
+			checkdstype = dns_checkdstype_yes;
+		}
+		if (raw != NULL) {
+			dns_zone_setcheckdstype(raw, dns_checkdstype_no);
+		}
+		dns_zone_setcheckdstype(zone, checkdstype);
 	}
 
 	/*%
