@@ -21,6 +21,9 @@ $TTL 300
 				NS	ns5
 ns5				A	10.53.0.5
 
+no-ent				NS	ns9.no-ent
+ns9.no-ent			A	10.53.0.9
+
 $ORIGIN explicit.dspublish.ns5.
 not-yet				NS	ns9.not-yet
 ns9.not-yet			A	10.53.0.9

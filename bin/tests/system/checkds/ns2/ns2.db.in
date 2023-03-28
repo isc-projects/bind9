@@ -21,6 +21,9 @@ $TTL 300
 				NS	ns2
 ns2				A	10.53.0.2
 
+no-ent				NS	ns9.no-ent
+ns9.no-ent			A	10.53.0.9
+
 $ORIGIN explicit.dspublish.ns2.
 good				NS	ns9.good
 reference			NS	ns9.reference

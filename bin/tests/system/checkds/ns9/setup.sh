@@ -24,6 +24,30 @@ setup() {
 	echo "$zone" >> zones
 }
 
+sign_dspublish() {
+	cp template.db.in "$zonefile"
+	keytimes="-P $T -P sync $T -A $T"
+	CSK=$($KEYGEN -k default $keytimes $zone 2> keygen.out.$zone)
+	$SETTIME -s -g $O -k $O $T -r $O $T -z $O $T -d $R $T "$CSK" > settime.out.$zone 2>&1
+	cat "$zonefile" "${CSK}.key" > "$infile"
+	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
+	cp $infile $zonefile
+	$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
+        cp "dsset-${zone}." ../ns2/
+}
+
+sign_dsremoved() {
+	cp template.db.in "$zonefile"
+	keytimes="-P $Y -P sync $Y -A $Y"
+	CSK=$($KEYGEN -k default $keytimes $zone 2> keygen.out.$zone)
+	$SETTIME -s -g $H -k $O $T -r $O $T -z $O $T -d $U $T "$CSK" > settime.out.$zone 2>&1
+	cat "$zonefile" "${CSK}.key" > "$infile"
+	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
+	cp $infile $zonefile
+	$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
+        cp "dsset-${zone}." ../ns2/
+}
+
 # Short environment variable names for key states and times.
 H="HIDDEN"
 R="RUMOURED"
@@ -46,16 +70,7 @@ do
 		bad.${checkds}.dspublish.ns2-4-6
 	do
 		setup "${zn}"
-		cp template.db.in "$zonefile"
-		keytimes="-P $T -P sync $T -A $T"
-		CSK=$($KEYGEN -k default $keytimes $zone 2> keygen.out.$zone)
-		$SETTIME -s -g $O -k $O $T -r $O $T -z $O $T -d $R $T "$CSK" > settime.out.$zone 2>&1
-		cat "$zonefile" "${CSK}.key" > "$infile"
-		private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-		cp $infile $zonefile
-		$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
-
-	        cp "dsset-${zone}." ../ns2/
+		sign_dspublish
 	done
 done
 
@@ -72,15 +87,12 @@ do
 		bad.${checkds}.dsremoved.ns5-6-7
 	do
 		setup "${zn}"
-		cp template.db.in "$zonefile"
-		keytimes="-P $Y -P sync $Y -A $Y"
-		CSK=$($KEYGEN -k default $keytimes $zone 2> keygen.out.$zone)
-		$SETTIME -s -g $H -k $O $T -r $O $T -z $O $T -d $U $T "$CSK" > settime.out.$zone 2>&1
-		cat "$zonefile" "${CSK}.key" > "$infile"
-		private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-		cp $infile $zonefile
-		$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
-
-	        cp "dsset-${zone}." ../ns2/
+		sign_dsremoved
 	done
 done
+
+setup "no-ent.ns2"
+sign_dspublish
+
+setup "no-ent.ns5"
+sign_dsremoved

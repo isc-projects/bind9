@@ -555,6 +555,31 @@ def test_checkds_resolver(named_port):
     keystate_check(parent, "resolver.explicit.dsremoved.ns5.", "DSRemoved")
 
 
+def test_checkds_no_ent(named_port):
+    # We create resolver instances that will be used to send queries.
+    server = dns.resolver.Resolver()
+    server.nameservers = ["10.53.0.9"]
+    server.port = named_port
+
+    parent = dns.resolver.Resolver()
+    parent.nameservers = ["10.53.0.2"]
+    parent.port = named_port
+
+    zone_check(server, "no-ent.ns2.")
+    wait_for_log(
+        "ns9/named.run",
+        "zone no-ent.ns2/IN (signed): checkds: DS response from 10.53.0.2",
+    )
+    keystate_check(parent, "no-ent.ns2.", "DSPublish")
+
+    zone_check(server, "no-ent.ns5.")
+    wait_for_log(
+        "ns9/named.run",
+        "zone no-ent.ns5/IN (signed): checkds: DS response from 10.53.0.5",
+    )
+    keystate_check(parent, "no-ent.ns5.", "DSRemoved")
+
+
 def test_checkds_dspublished(named_port):
     checkds_dspublished(named_port, "explicit")
     checkds_dspublished(named_port, "yes")

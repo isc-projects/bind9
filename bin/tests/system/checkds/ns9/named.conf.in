@@ -96,6 +96,15 @@ zone "good.no.dspublish.ns2" {
 	checkds no;
 };
 
+/* Same as auto parental agents, but now without empty non-terminals. */
+zone "no-ent.ns2" {
+	type primary;
+	file "no-ent.ns2.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	checkds yes;
+};
+
 /*
  * 1.     Enabling DNSSEC
  * 1.1    - With one parental agent
@@ -279,6 +288,14 @@ zone "good.no.dsremoved.ns5" {
 	inline-signing yes;
 	dnssec-policy "insecure";
 	checkds no;
+};
+
+zone "no-ent.ns5" {
+	type primary;
+	file "no-ent.ns5.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	checkds yes;
 };
 
 /*
