@@ -28,7 +28,6 @@ def into_pytest_args(in_args):
     if in_args.expression is None:
         # running all tests - execute in parallel
         args.extend(["-n", "auto"])
-        args.extend(["--dist", "loadscope"])
     else:
         args.extend(["-k", in_args.expression])
     if in_args.noclean:
@@ -48,7 +47,7 @@ def main():
         "Using pytest system test runner\n\n"
         'Please consider invoking "pytest" directly for more control:\n'
         "  single test:     pytest -k dns64\n"
-        "  parallel tests:  pytest -n auto --dist loadscope\n\n"
+        "  parallel tests:  pytest -n auto\n\n"
         "Alternately, use ./legacy.run.sh for the legacy system test runner.\n"
     )
 

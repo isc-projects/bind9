@@ -130,7 +130,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             help="don't remove the temporary test directories with artifacts",
         )
 
-    def pytest_configure():
+    def pytest_configure(config):
         # Ensure this hook only runs on the main pytest instance if xdist is
         # used to spawn other workers.
         if not XDIST_WORKER:
@@ -155,6 +155,20 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
                 logging.error("failed to compile test files: %s", exc)
                 raise exc
             logging.debug(proc.stdout)
+
+            if config.pluginmanager.has_plugin("xdist") and config.option.numprocesses:
+                # system tests depend on module scope for setup & teardown
+                # enforce use "loadscope" scheduler or disable paralelism
+                try:
+                    import xdist.scheduler.loadscope  # pylint: disable=unused-import
+                except ImportError:
+                    logging.debug(
+                        "xdist is too old and does not have "
+                        "scheduler.loadscope, disabling parallelism"
+                    )
+                    config.option.dist = "no"
+                else:
+                    config.option.dist = "loadscope"
 
     def pytest_ignore_collect(path):
         # System tests are executed in temporary directories inside
