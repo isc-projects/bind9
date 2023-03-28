@@ -1464,6 +1464,11 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	REQUIRE(uri != NULL);
 	REQUIRE(*uri != '\0');
 
+	if (isc__nm_closing(worker)) {
+		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
+		return;
+	}
+
 	if (local == NULL) {
 		isc_sockaddr_anyofpf(&local_interface, peer->type.sa.sa_family);
 		local = &local_interface;
