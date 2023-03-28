@@ -30,3 +30,7 @@ ns9.good			A	10.53.0.9
 $ORIGIN yes.dspublish.ns2-4.
 good				NS	ns9.good
 ns9.good			A	10.53.0.9
+
+$ORIGIN no.dspublish.ns2-4.
+good				NS	ns9.good
+ns9.good			A	10.53.0.9

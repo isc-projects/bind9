@@ -30,3 +30,7 @@ ns9.good			A	10.53.0.9
 $ORIGIN yes.dsremoved.ns5-7.
 good				NS	ns9.good
 ns9.good			A	10.53.0.9
+
+$ORIGIN no.dsremoved.ns5-7.
+good				NS	ns9.good
+ns9.good			A	10.53.0.9

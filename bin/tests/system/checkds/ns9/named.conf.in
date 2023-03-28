@@ -87,6 +87,15 @@ zone "good.yes.dspublish.ns2" {
 	checkds yes;
 };
 
+/* Same as above, but with checkds disabled. */
+zone "good.no.dspublish.ns2" {
+	type primary;
+	file "good.no.dspublish.ns2.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	checkds no;
+};
+
 /*
  * 1.     Enabling DNSSEC
  * 1.1    - With one parental agent
@@ -162,6 +171,14 @@ zone "good.yes.dspublish.ns2-4" {
 	inline-signing yes;
 	dnssec-policy "default";
 	checkds yes;
+};
+
+zone "good.no.dspublish.ns2-4" {
+	type primary;
+	file "good.no.dspublish.ns2-4.db";
+	inline-signing yes;
+	dnssec-policy "default";
+	checkds no;
 };
 
 /*
@@ -256,6 +273,14 @@ zone "good.yes.dsremoved.ns5" {
 	checkds yes;
 };
 
+zone "good.no.dsremoved.ns5" {
+	type primary;
+	file "good.no.dsremoved.ns5.db";
+	inline-signing yes;
+	dnssec-policy "insecure";
+	checkds no;
+};
+
 /*
  * 2.     Going insecure
  * 2.1    - With one parental agent
@@ -331,6 +356,14 @@ zone "good.yes.dsremoved.ns5-7" {
 	inline-signing yes;
 	dnssec-policy "insecure";
 	checkds yes;
+};
+
+zone "good.no.dsremoved.ns5-7" {
+	type primary;
+	file "good.no.dsremoved.ns5-7.db";
+	inline-signing yes;
+	dnssec-policy "insecure";
+	checkds no;
 };
 
 /*

@@ -563,3 +563,26 @@ def test_checkds_dspublished(named_port):
 def test_checkds_dswithdrawn(named_port):
     checkds_dswithdrawn(named_port, "explicit")
     checkds_dswithdrawn(named_port, "yes")
+
+
+def test_checkds_no(named_port):
+    # We create resolver instances that will be used to send queries.
+    server = dns.resolver.Resolver()
+    server.nameservers = ["10.53.0.9"]
+    server.port = named_port
+
+    parent = dns.resolver.Resolver()
+    parent.nameservers = ["10.53.0.2"]
+    parent.port = named_port
+
+    zone_check(server, "good.no.dspublish.ns2.")
+    keystate_check(parent, "good.no.dspublish.ns2.", "!DSPublish")
+
+    zone_check(server, "good.no.dspublish.ns2-4.")
+    keystate_check(parent, "good.no.dspublish.ns2-4.", "!DSPublish")
+
+    zone_check(server, "good.no.dsremoved.ns5.")
+    keystate_check(parent, "good.no.dsremoved.ns5.", "!DSRemoved")
+
+    zone_check(server, "good.no.dsremoved.ns5-7.")
+    keystate_check(parent, "good.no.dsremoved.ns5-7.", "!DSRemoved")

@@ -40,3 +40,7 @@ good				NS	ns9.good
 resolver			NS	ns9.resolver
 ns9.good			A	10.53.0.9
 ns9.resolver			A	10.53.0.9
+
+$ORIGIN no.dsremoved.ns5.
+good				NS	ns9.good
+ns9.good			A	10.53.0.9
