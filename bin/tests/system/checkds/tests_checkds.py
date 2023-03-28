@@ -346,7 +346,8 @@ def checkds_dspublished(named_port, checkds):
         "zone incomplete.{}.dspublish.ns2-4-5/IN (signed): checkds: "
         "empty DS response from 10.53.0.5".format(checkds),
     )
-    keystate_check(parent, "incomplete.{}.dspublish.ns2-4-5.".format(checkds), "!DSPublish")
+    keystate_check(
+        parent, "incomplete.{}.dspublish.ns2-4-5.".format(checkds), "!DSPublish")
 
     #
     # 1.2.3: One parental agent is badly configured.
@@ -413,7 +414,8 @@ def checkds_dswithdrawn(named_port, checkds):
         "zone still-there.{}.dsremoved.ns2/IN (signed): checkds: "
         "DS response from 10.53.0.2".format(checkds),
     )
-    keystate_check(parent, "still-there.{}.dsremoved.ns2.".format(checkds), "!DSRemoved")
+    keystate_check(
+        parent, "still-there.{}.dsremoved.ns2.".format(checkds), "!DSRemoved")
 
     #
     # 2.1.3: The parental agent is badly configured.
@@ -476,7 +478,8 @@ def checkds_dswithdrawn(named_port, checkds):
         "zone incomplete.{}.dsremoved.ns2-5-7/IN (signed): checkds: "
         "empty DS response from 10.53.0.7".format(checkds),
     )
-    keystate_check(parent, "incomplete.{}.dsremoved.ns2-5-7.".format(checkds), "!DSRemoved")
+    keystate_check(
+        parent, "incomplete.{}.dsremoved.ns2-5-7.".format(checkds), "!DSRemoved")
 
     #
     # 2.2.3: One parental agent is badly configured.
