@@ -1,3 +1,5 @@
+6132.	[doc]		Remove a dead link in the DNSSEC guide. [GL #3967]
+
 6131.	[test]		Add a minimal test-only library to allow testing
 			of the DNSRPS API without FastRPZ installed.
 			Thanks to Farsight Securty. [GL !7693]
