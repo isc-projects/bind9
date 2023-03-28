@@ -29,6 +29,14 @@ ns9.good			A	10.53.0.9
 ns9.reference			A	10.53.0.9
 ns9.resolver			A	10.53.0.9
 
+$ORIGIN yes.dspublish.ns2.
+good				NS	ns9.good
+ns9.good			A	10.53.0.9
+
 $ORIGIN explicit.dsremoved.ns2.
+still-there			NS	ns9.still-there
+ns9.still-there			A	10.53.0.9
+
+$ORIGIN yes.dsremoved.ns2.
 still-there			NS	ns9.still-there
 ns9.still-there			A	10.53.0.9

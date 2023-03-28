@@ -28,3 +28,7 @@ ns7				A	10.53.0.7
 $ORIGIN explicit.dsremoved.ns2-5-7.
 incomplete			NS	ns9.incomplete
 ns9.incomplete			A	10.53.0.9
+
+$ORIGIN yes.dsremoved.ns2-5-7.
+incomplete			NS	ns9.incomplete
+ns9.incomplete			A	10.53.0.9

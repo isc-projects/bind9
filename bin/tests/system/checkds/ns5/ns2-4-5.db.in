@@ -28,3 +28,7 @@ ns5				A	10.53.0.5
 $ORIGIN explicit.dspublish.ns2-4-5.
 incomplete			NS	ns9.incomplete
 ns9.imcomplete			A	10.53.0.9
+
+$ORIGIN yes.dspublish.ns2-4-5.
+incomplete			NS	ns9.incomplete
+ns9.imcomplete			A	10.53.0.9

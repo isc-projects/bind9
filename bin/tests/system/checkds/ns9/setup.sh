@@ -33,7 +33,7 @@ T="now-30d"
 Y="now-1y"
 
 # DS Publication.
-for checkds in explicit
+for checkds in explicit yes
 do
 	for zn in \
 		good.${checkds}.dspublish.ns2 \
@@ -60,7 +60,7 @@ do
 done
 
 # DS Withdrawal.
-for checkds in explicit
+for checkds in explicit yes
 do
 	for zn in \
 		good.${checkds}.dsremoved.ns5 \

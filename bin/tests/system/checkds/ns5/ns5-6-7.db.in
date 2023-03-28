@@ -28,3 +28,7 @@ ns7				A	10.53.0.7
 $ORIGIN explicit.dsremoved.ns5-6-7.
 bad				NS	ns9.bad
 ns9.bad				A	10.53.0.9
+
+$ORIGIN yes.dsremoved.ns5-6-7.
+bad				NS	ns9.bad
+ns9.bad				A	10.53.0.9

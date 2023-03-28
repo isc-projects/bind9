@@ -25,7 +25,17 @@ $ORIGIN explicit.dspublish.ns5.
 not-yet				NS	ns9.not-yet
 ns9.not-yet			A	10.53.0.9
 
+$ORIGIN yes.dspublish.ns5.
+not-yet				NS	ns9.not-yet
+ns9.not-yet			A	10.53.0.9
+
 $ORIGIN explicit.dsremoved.ns5.
+good				NS	ns9.good
+resolver			NS	ns9.resolver
+ns9.good			A	10.53.0.9
+ns9.resolver			A	10.53.0.9
+
+$ORIGIN yes.dsremoved.ns5.
 good				NS	ns9.good
 resolver			NS	ns9.resolver
 ns9.good			A	10.53.0.9

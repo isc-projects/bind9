@@ -28,3 +28,7 @@ ns6				A	10.53.0.6
 $ORIGIN explicit.dspublish.ns2-4-6.
 bad				NS	ns9.bad
 ns9.bad				A	10.53.0.9
+
+$ORIGIN yes.dspublish.ns2-4-6.
+bad				NS	ns9.bad
+ns9.bad				A	10.53.0.9

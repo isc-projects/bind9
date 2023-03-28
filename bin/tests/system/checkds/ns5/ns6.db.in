@@ -28,3 +28,11 @@ ns9.bad				A	10.53.0.9
 $ORIGIN explicit.dsremoved.ns6.
 bad				NS	ns9.bad
 ns9.bad				A	10.53.0.9
+
+$ORIGIN yes.dspublish.ns6.
+bad				NS	ns9.bad
+ns9.bad				A	10.53.0.9
+
+$ORIGIN yes.dsremoved.ns6.
+bad				NS	ns9.bad
+ns9.bad				A	10.53.0.9
