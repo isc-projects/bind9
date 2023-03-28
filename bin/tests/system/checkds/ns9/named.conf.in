@@ -36,8 +36,8 @@ controls {
 	inet 10.53.0.9 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-parental-agents "ns2" port @PORT@ {
-	10.53.0.2;
+parental-agents "ns8" port @PORT@ {
+	10.53.0.8;
 };
 
 zone "." {
@@ -55,7 +55,8 @@ zone "good.explicit.dspublish.ns2" {
 	file "good.explicit.dspublish.ns2.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	parental-agents { 10.53.0.2 port @PORT@; };
+	parental-agents { 10.53.0.8 port @PORT@; };
+	checkds explicit;
 };
 
 /* Same as above, but now with a reference to parental-agents. */
@@ -64,7 +65,8 @@ zone "reference.explicit.dspublish.ns2" {
 	file "reference.explicit.dspublish.ns2.db";
 	inline-signing yes;
 	dnssec-policy "default";
-	parental-agents { "ns2"; };
+	parental-agents { "ns8"; };
+	checkds explicit;
 };
 
 /* Same as above, but now with resolver parental agent configured. */
@@ -76,6 +78,7 @@ zone "resolver.explicit.dspublish.ns2" {
 	parental-agents {
 		10.53.0.3 port @PORT@;
 	};
+	checkds explicit;
 };
 
 /* Same as above, but now with auto parental agents. */
@@ -118,6 +121,7 @@ zone "not-yet.explicit.dspublish.ns5" {
 	parental-agents {
 		10.53.0.5 port @PORT@; // missing
 	};
+	checkds explicit;
 };
 
 zone "not-yet.yes.dspublish.ns5" {
@@ -141,6 +145,7 @@ zone "bad.explicit.dspublish.ns6" {
 	parental-agents {
 		10.53.0.6 port @PORT@; // bad
 	};
+	checkds explicit;
 };
 
 zone "bad.yes.dspublish.ns6" {
@@ -169,9 +174,10 @@ zone "good.explicit.dspublish.ns2-4" {
 	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
-		10.53.0.2 port @PORT@;
+		10.53.0.8 port @PORT@;
 		10.53.0.4 port @PORT@;
 	};
+	checkds explicit;
 };
 
 zone "good.yes.dspublish.ns2-4" {
@@ -201,10 +207,11 @@ zone "incomplete.explicit.dspublish.ns2-4-5" {
 	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
-		10.53.0.2 port @PORT@;
+		10.53.0.8 port @PORT@;
 		10.53.0.4 port @PORT@;
 		10.53.0.5 port @PORT@; // missing
 	};
+	checkds explicit;
 };
 
 zone "incomplete.yes.dspublish.ns2-4-5" {
@@ -226,10 +233,11 @@ zone "bad.explicit.dspublish.ns2-4-6" {
 	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
-		10.53.0.2 port @PORT@;
+		10.53.0.8 port @PORT@;
 		10.53.0.4 port @PORT@;
 		10.53.0.6 port @PORT@; // bad
 	};
+	checkds explicit;
 };
 
 zone "bad.yes.dspublish.ns2-4-6" {
@@ -261,7 +269,8 @@ zone "good.explicit.dsremoved.ns5" {
 	file "good.explicit.dsremoved.ns5.db";
 	inline-signing yes;
 	dnssec-policy "insecure";
-	parental-agents { 10.53.0.5 port @PORT@; };
+	parental-agents { 10.53.0.10 port @PORT@; };
+	checkds explicit;
 };
 
 zone "resolver.explicit.dsremoved.ns5" {
@@ -272,6 +281,7 @@ zone "resolver.explicit.dsremoved.ns5" {
 	parental-agents {
 		10.53.0.3 port @PORT@;
 	};
+	checkds explicit;
 };
 
 zone "good.yes.dsremoved.ns5" {
@@ -311,6 +321,7 @@ zone "still-there.explicit.dsremoved.ns2" {
 	parental-agents {
 		10.53.0.2 port @PORT@; // still published
 	};
+	checkds explicit;
 };
 
 zone "still-there.yes.dsremoved.ns2" {
@@ -334,6 +345,7 @@ zone "bad.explicit.dsremoved.ns6" {
 	parental-agents {
 		10.53.0.6 port @PORT@; // bad
 	};
+	checkds explicit;
 };
 
 zone "bad.yes.dsremoved.ns6" {
@@ -362,9 +374,10 @@ zone "good.explicit.dsremoved.ns5-7" {
 	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
-		10.53.0.5 port @PORT@;
+		10.53.0.10 port @PORT@;
 		10.53.0.7 port @PORT@;
 	};
+	checkds explicit;
 };
 
 zone "good.yes.dsremoved.ns5-7" {
@@ -395,9 +408,10 @@ zone "incomplete.explicit.dsremoved.ns2-5-7" {
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.2 port @PORT@; // still published
-		10.53.0.5 port @PORT@;
+		10.53.0.10 port @PORT@;
 		10.53.0.7 port @PORT@;
 	};
+	checkds explicit;
 };
 
 zone "incomplete.yes.dsremoved.ns2-5-7" {
@@ -419,10 +433,11 @@ zone "bad.explicit.dsremoved.ns5-6-7" {
 	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
-		10.53.0.5 port @PORT@;
+		10.53.0.10 port @PORT@;
 		10.53.0.7 port @PORT@;
 		10.53.0.6 port @PORT@; // bad
 	};
+	checkds explicit;
 };
 
 zone "bad.yes.dsremoved.ns5-6-7" {

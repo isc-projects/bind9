@@ -249,7 +249,7 @@ def wait_for_log(filename, log):
     assert found
 
 
-def checkds_dspublished(named_port, checkds):
+def checkds_dspublished(named_port, checkds, addr):
     # We create resolver instances that will be used to send queries.
     server = dns.resolver.Resolver()
     server.nameservers = ["10.53.0.9"]
@@ -269,7 +269,7 @@ def checkds_dspublished(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone good.{}.dspublish.ns2/IN (signed): checkds: "
-	"DS response from 10.53.0.2".format(checkds),
+        "DS response from {}".format(checkds, addr),
     )
     keystate_check(parent, "good.{}.dspublish.ns2.".format(checkds), "DSPublish")
 
@@ -317,7 +317,7 @@ def checkds_dspublished(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone good.{}.dspublish.ns2-4/IN (signed): checkds: "
-        "DS response from 10.53.0.2".format(checkds),
+        "DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -334,7 +334,7 @@ def checkds_dspublished(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone incomplete.{}.dspublish.ns2-4-5/IN (signed): checkds: "
-        "DS response from 10.53.0.2".format(checkds),
+        "DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -357,7 +357,7 @@ def checkds_dspublished(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone bad.{}.dspublish.ns2-4-6/IN (signed): checkds: "
-        "DS response from 10.53.0.2".format(checkds),
+        "DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -380,7 +380,7 @@ def checkds_dspublished(named_port, checkds):
     # TBD: Check with TLS
 
 
-def checkds_dswithdrawn(named_port, checkds):
+def checkds_dswithdrawn(named_port, checkds, addr):
     # We create resolver instances that will be used to send queries.
     server = dns.resolver.Resolver()
     server.nameservers = ["10.53.0.9"]
@@ -400,7 +400,7 @@ def checkds_dswithdrawn(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone good.{}.dsremoved.ns5/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        "empty DS response from {}".format(checkds, addr),
     )
     keystate_check(parent, "good.{}.dsremoved.ns5.".format(checkds), "DSRemoved")
 
@@ -449,7 +449,7 @@ def checkds_dswithdrawn(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone good.{}.dsremoved.ns5-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        "empty DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -471,7 +471,7 @@ def checkds_dswithdrawn(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone incomplete.{}.dsremoved.ns2-5-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        "empty DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -489,7 +489,7 @@ def checkds_dswithdrawn(named_port, checkds):
     wait_for_log(
         "ns9/named.run",
         "zone bad.{}.dsremoved.ns5-6-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        "empty DS response from {}".format(checkds, addr),
     )
     wait_for_log(
         "ns9/named.run",
@@ -524,7 +524,7 @@ def test_checkds_reference(named_port):
     wait_for_log(
         "ns9/named.run",
         "zone reference.explicit.dspublish.ns2/IN (signed): "
-        "checkds: DS response from 10.53.0.2",
+        "checkds: DS response from 10.53.0.8",
     )
     keystate_check(parent, "reference.explicit.dspublish.ns2.", "DSPublish")
 
@@ -584,13 +584,13 @@ def test_checkds_no_ent(named_port):
 
 
 def test_checkds_dspublished(named_port):
-    checkds_dspublished(named_port, "explicit")
-    checkds_dspublished(named_port, "yes")
+    checkds_dspublished(named_port, "explicit", "10.53.0.8")
+    checkds_dspublished(named_port, "yes", "10.53.0.2")
 
 
 def test_checkds_dswithdrawn(named_port):
-    checkds_dswithdrawn(named_port, "explicit")
-    checkds_dswithdrawn(named_port, "yes")
+    checkds_dswithdrawn(named_port, "explicit", "10.53.0.10")
+    checkds_dswithdrawn(named_port, "yes", "10.53.0.5")
 
 
 def test_checkds_no(named_port):
