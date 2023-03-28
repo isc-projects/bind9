@@ -83,7 +83,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     LOG_FORMAT = "%(asctime)s %(levelname)7s:%(name)s  %(message)s"
     XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
     FILE_DIR = os.path.abspath(Path(__file__).parent)
-    ENV_RE = re.compile("([^=]+)=(.*)")
+    ENV_RE = re.compile(b"([^=]+)=(.*)")
     PORT_MIN = 5001
     PORT_MAX = 32767
     PORTS_PER_TEST = 20
@@ -105,16 +105,16 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         for handler in todel:
             logging.root.handlers.remove(handler)
 
-    def parse_env(env_text):
+    def parse_env(env_bytes):
         """Parse the POSIX env format into Python dictionary."""
         out = {}
-        for line in env_text.splitlines():
+        for line in env_bytes.splitlines():
             match = ENV_RE.match(line)
             if match:
                 out[match.groups()[0]] = match.groups()[1]
         return out
 
-    def get_env(cmd):
+    def get_env_bytes(cmd):
         try:
             proc = subprocess.run(
                 [cmd],
@@ -126,13 +126,13 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         except subprocess.CalledProcessError as exc:
             logging.error("failed to get shell env: %s", exc)
             raise exc
-        env_text = proc.stdout.decode("utf-8")
-        return parse_env(env_text)
+        env_bytes = proc.stdout
+        return parse_env(env_bytes)
 
     # Read common environment variables for running tests from conf.sh.
     # FUTURE: Remove conf.sh entirely and define all variables in pytest only.
-    CONF_ENV = get_env(". ./conf.sh && env")
-    os.environ.update(CONF_ENV)
+    CONF_ENV = get_env_bytes(". ./conf.sh && env")
+    os.environb.update(CONF_ENV)
     logging.debug("conf.sh env: %s", CONF_ENV)
 
     # --------------------------- pytest hooks -------------------------------
@@ -283,7 +283,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     @pytest.fixture(scope="module")
     def env(ports):
         """Dictionary containing environment variables for the test."""
-        env = CONF_ENV.copy()
+        env = os.environ.copy()
         env.update(ports)
         env["builddir"] = f"{env['TOP_BUILDDIR']}/bin/tests/system"
         env["srcdir"] = f"{env['TOP_SRCDIR']}/bin/tests/system"
