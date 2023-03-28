@@ -97,12 +97,7 @@ Issuing plain `pytest` command without any argument will execute all tests
 sequenatially. To execute them in parallel, ensure you have pytest-xdist
 installed and run:
 
-pytest --dist loadscope -n <number-of-workers>
-
-It is vital to provide the `--dist loadscope` option when running the tests in
-parallel to ensure tests from a single module are executed from the same
-thread. Otherwise, there's a risk of port contention and inefficient use of
-resources.
+pytest -n <number-of-workers>
 
 
 Running the System Tests Using the Legacy Runner
@@ -704,11 +699,13 @@ collisions are likely to occur.
 
 Pytest-xdist is used for executing pytest test cases in parallel using the `-n
 N_WORKERS` option. By default, xdist will distribute any test case to any
-worker, which would lead to the issue described above. Therefore, it is vital
-to use the `--dist loadscope` option which ensures that test cases within the
-same (module) scope will be handled by the same worker.
+worker, which would lead to the issue described above. Therefore, conftest.py
+enforces equivalent of `--dist loadscope` option which ensures that test cases
+within the same (module) scope will be handled by the same worker. Parallelism
+is automatically disabled when xdist.scheduler.loadscope library is not
+available.
 
-$ pytest -n auto --dist loadscope
+$ pytest -n auto
 
 Test selection
 ---
