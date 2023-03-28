@@ -1043,7 +1043,7 @@ load_text(dns_loadctx_t *lctx) {
 	char *lhs = NULL;
 	char *gtype = NULL;
 	char *rhs = NULL;
-	const char *source = "";
+	const char *source;
 	unsigned long line = 0;
 	bool explicit_ttl;
 	char classname1[DNS_RDATACLASS_FORMATSIZE];
