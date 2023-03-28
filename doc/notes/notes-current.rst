@@ -23,6 +23,17 @@ New Features
 - BIND now depends on ``liburcu``, Userspace RCU, for lock-free data
   structures. :gl:`#3934`
 
+- The new ``delv +ns`` option activates name server mode, in which ``delv``
+  sets up an internal recursive resolver and uses that, rather than an
+  external server, to look up the requested query name and type. All messages
+  sent and received during the resolution and validation process are logged.
+  This can be used in place of ``dig +trace``: it more accurately
+  reproduces the behavior of ``named`` when resolving a query.
+
+  The log message ``resolver priming query complete`` was moved from the
+  INFO log level to the DEBUG(1) log level, to prevent ``delv`` from
+  emitting that message when setting up its internal resolver. :gl:`#3842`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

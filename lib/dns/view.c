@@ -26,6 +26,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
+#include <isc/md.h>
 #include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h>
@@ -2322,4 +2323,45 @@ dns_dispatchmgr_t *
 dns_view_getdispatchmgr(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (view->dispatchmgr);
+}
+
+isc_result_t
+dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
+		       const dns_name_t *keyname, isc_buffer_t *databuf) {
+	isc_result_t result;
+	dns_name_t *name = NULL;
+	char rdatabuf[DST_KEY_MAXSIZE];
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	dns_rdata_ds_t ds;
+	dns_rdata_t rdata;
+	isc_buffer_t b;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(view->rdclass == dns_rdataclass_in);
+
+	DE_CONST(keyname, name);
+
+	if (rdtype != dns_rdatatype_dnskey && rdtype != dns_rdatatype_ds) {
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
+
+	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
+	dns_rdata_init(&rdata);
+	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
+	CHECK(dns_rdata_fromwire(&rdata, view->rdclass, rdtype, databuf,
+				 DNS_DECOMPRESS_NEVER, &b));
+
+	if (rdtype == dns_rdatatype_ds) {
+		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
+	} else {
+		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
+					  digest, &ds));
+	}
+
+	CHECK(dns_keytable_add(view->secroots_priv, false, false, name, &ds,
+			       NULL, NULL));
+
+cleanup:
+	return (result);
 }

@@ -9974,7 +9974,7 @@ prime_done(void *arg) {
 	REQUIRE(VALID_RESOLVER(res));
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(1),
 		      "resolver priming query complete: %s",
 		      isc_result_totext(resp->result));
 

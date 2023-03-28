@@ -2538,6 +2538,12 @@ isc_nmhandle_set_tcp_nodelay(isc_nmhandle_t *handle, const bool value) {
 	return (result);
 }
 
+isc_sockaddr_t
+isc_nmsocket_getaddr(isc_nmsocket_t *sock) {
+	REQUIRE(VALID_NMSOCK(sock));
+	return (sock->iface);
+}
+
 #if ISC_NETMGR_TRACE
 /*
  * Dump all active sockets in netmgr. We output to stderr

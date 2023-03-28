@@ -54,7 +54,7 @@ check_ttl_range() {
    return $result
 }
 
-# using delv insecure mode as not testing dnssec here
+# use delv insecure mode by default, as we're mostly not testing dnssec
 delv_with_opts() {
     "$DELV" +noroot -p "$PORT" "$@"
 }
@@ -1401,6 +1401,42 @@ if [ -x "$DELV" ] ; then
   echo_i "check that delv handles REFUSED when chasing DS records ($n)"
   delv_with_opts @10.53.0.2 +root xxx.example.tld A > delv.out.test$n 2>&1 || ret=1
   grep ";; resolution failed: broken trust chain" delv.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking delv +ns (no validation) ($n)"
+  ret=0
+  delv_with_opts -i +ns +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  grep -q '; authoritative' delv.out.test$n || ret=1
+  grep -q '_.example' delv.out.test$n && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking delv +ns +qmin (no validation) ($n)"
+  ret=0
+  delv_with_opts -i +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  grep -q '; authoritative' delv.out.test$n || ret=1
+  grep -q '_.example' delv.out.test$n || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking delv +ns (with validation) ($n)"
+  ret=0
+  delv_with_opts -a ns1/anchor.dnskey +root +ns +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  grep -q '; fully validated' delv.out.test$n || ret=1
+  grep -q '_.example' delv.out.test$n && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking delv +ns +qmin (with validation) ($n)"
+  ret=0
+  delv_with_opts -a ns1/anchor.dnskey +root +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  grep -q '; fully validated' delv.out.test$n || ret=1
+  grep -q '_.example' delv.out.test$n || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 

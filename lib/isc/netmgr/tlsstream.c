@@ -937,6 +937,11 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		return (result);
 	}
 
+	/* copy the actual port we're listening on into sock->iface */
+	if (isc_sockaddr_getport(iface) == 0) {
+		tlssock->iface = tlssock->outer->iface;
+	}
+
 	/* wait for listen result */
 	isc__nmsocket_attach(tlssock->outer, &tsock);
 	tlssock->result = result;

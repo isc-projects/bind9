@@ -1074,45 +1074,8 @@ isc_result_t
 dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, const dns_name_t *keyname,
 			 isc_buffer_t *databuf) {
-	isc_result_t result;
-	dns_keytable_t *secroots = NULL;
-	dns_name_t *name = NULL;
-	char rdatabuf[DST_KEY_MAXSIZE];
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	dns_rdata_ds_t ds;
-	dns_rdata_t rdata;
-	isc_buffer_t b;
-
 	REQUIRE(DNS_CLIENT_VALID(client));
 	REQUIRE(rdclass == dns_rdataclass_in);
 
-	CHECK(dns_view_getsecroots(client->view, &secroots));
-
-	DE_CONST(keyname, name);
-
-	if (rdtype != dns_rdatatype_dnskey && rdtype != dns_rdatatype_ds) {
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
-
-	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
-	dns_rdata_init(&rdata);
-	isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
-	CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype, databuf,
-				 DNS_DECOMPRESS_NEVER, &b));
-
-	if (rdtype == dns_rdatatype_ds) {
-		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
-	} else {
-		CHECK(dns_ds_fromkeyrdata(name, &rdata, DNS_DSDIGEST_SHA256,
-					  digest, &ds));
-	}
-
-	CHECK(dns_keytable_add(secroots, false, false, name, &ds, NULL, NULL));
-
-cleanup:
-	if (secroots != NULL) {
-		dns_keytable_detach(&secroots);
-	}
-	return (result);
+	return (dns_view_addtrustedkey(client->view, rdtype, keyname, databuf));
 }

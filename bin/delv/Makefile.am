@@ -4,6 +4,7 @@ AM_CPPFLAGS +=				\
 	-I$(top_builddir)/include	\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
+	$(LIBNS_CFLAGS)			\
 	$(LIBISCCFG_CFLAGS)
 
 AM_CPPFLAGS +=				\
@@ -17,4 +18,5 @@ delv_SOURCES =				\
 delv_LDADD =				\
 	$(LIBISC_LIBS)			\
 	$(LIBDNS_LIBS)			\
+	$(LIBNS_LIBS)			\
 	$(LIBISCCFG_LIBS)

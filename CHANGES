@@ -1,3 +1,13 @@
+6130.	[func]		The new "delv +ns" option activates name server mode,
+			in which delv sets up an internal recursive
+			resolver and uses that, rather than an external
+			server, to look up the requested data. All messages
+			sent and received during the resolution and
+			validation process are logged. This can be used in
+			place of "dig +trace"; it more accurately
+			replicates the behavior of named when resolving
+			a query. [GL #3842]
+
 6129.	[cleanup]	Value stored to 'source' during its initialization is
 			never read. [GL #3965]
 

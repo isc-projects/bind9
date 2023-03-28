@@ -456,7 +456,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 
 	/*
 	 * Allow recursion for the client.  As NS_CLIENTATTR_RA normally gets
-	 * set in ns__client_request(), i.e. earlier than the unit tests hook
+	 * set in ns_client_request(), i.e. earlier than the unit tests hook
 	 * into the call chain, just set it manually.
 	 */
 	client->attributes |= NS_CLIENTATTR_RA;

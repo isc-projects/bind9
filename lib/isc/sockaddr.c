@@ -491,9 +491,9 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa) {
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
-	memset(isa, 0, sizeof(isc_sockaddr_t));
+	*isa = (isc_sockaddr_t){ .length = length,
+				 .link = ISC_LINK_INITIALIZER };
 	memmove(isa, sa, length);
-	isa->length = length;
 
 	return (ISC_R_SUCCESS);
 }

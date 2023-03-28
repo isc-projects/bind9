@@ -443,16 +443,20 @@ ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	}
 }
 
-static void
-interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
-		 ns_interface_t **ifpret) {
+void
+ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
+		    const char *name, ns_interface_t **ifpret) {
 	ns_interface_t *ifp = NULL;
+	const char *default_name = "default";
 
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
 	*ifp = (ns_interface_t){ .generation = mgr->generation, .addr = *addr };
 
+	if (name == NULL) {
+		name = default_name;
+	}
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 
 	isc_mutex_init(&ifp->lock);
@@ -478,7 +482,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 
 	/* Reserve space for an ns_client_t with the netmgr handle */
 	result = isc_nm_listenudp(ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
-				  ns__client_request, ifp,
+				  ns_client_request, ifp,
 				  &ifp->udplistensocket);
 	return (result);
 }
@@ -488,7 +492,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, NULL, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
@@ -521,7 +525,7 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	isc_result_t result;
 
 	result = isc_nm_listenstreamdns(
-		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns__client_request,
+		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
 
@@ -555,7 +559,7 @@ load_http_endpoints(isc_nm_http_endpoints_t *epset, ns_interface_t *ifp,
 
 	for (size_t i = 0; i < neps; i++) {
 		result = isc_nm_http_endpoints_add(epset, eps[i],
-						   ns__client_request, ifp);
+						   ns_client_request, ifp);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
@@ -651,7 +655,7 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 	ifp = *ifpret;
 
 	if (ifp == NULL) {
-		interface_create(mgr, addr, name, &ifp);
+		ns_interface_create(mgr, addr, name, &ifp);
 	} else {
 		REQUIRE(!LISTENING(ifp));
 	}
@@ -1193,8 +1197,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 					    mgr->aclenv, &match, NULL);
 			if (match <= 0) {
 				ns_interface_t *new = NULL;
-				interface_create(mgr, &listen_sockaddr,
-						 interface.name, &new);
+				ns_interface_create(mgr, &listen_sockaddr,
+						    interface.name, &new);
 				continue;
 			}
 
