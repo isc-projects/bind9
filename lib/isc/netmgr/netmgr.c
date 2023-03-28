@@ -409,24 +409,8 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 bool
 isc__nmsocket_active(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
-	if (sock->parent != NULL) {
-		return (atomic_load_acquire(&sock->parent->active));
-	}
 
-	return (atomic_load_acquire(&sock->active));
-}
-
-bool
-isc__nmsocket_deactivate(isc_nmsocket_t *sock) {
-	REQUIRE(VALID_NMSOCK(sock));
-
-	if (sock->parent != NULL) {
-		return (atomic_compare_exchange_strong_acq_rel(
-			&sock->parent->active, &(bool){ true }, false));
-	}
-
-	return (atomic_compare_exchange_strong_acq_rel(&sock->active,
-						       &(bool){ true }, false));
+	return (sock->active);
 }
 
 void
@@ -571,7 +555,7 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 	}
 
 	REQUIRE(!sock->destroying);
-	REQUIRE(!atomic_load_acquire(&sock->active));
+	REQUIRE(!sock->active);
 
 	if (!sock->closed) {
 		return;
@@ -626,17 +610,12 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	 * destroying the socket, but we have to wait for all the inflight
 	 * handles to finish first.
 	 */
-	atomic_store_release(&sock->active, false);
+	sock->active = false;
 
 	/*
-	 * If the socket has children, they'll need to be marked inactive
-	 * so they can be cleaned up too.
+	 * If the socket has children, they have been marked inactive by the
+	 * shutdown uv_walk
 	 */
-	if (sock->children != NULL) {
-		for (size_t i = 0; i < sock->nchildren; i++) {
-			atomic_store_relaxed(&sock->children[i].active, false);
-		}
-	}
 
 	/*
 	 * If we're here then we already stopped listening; otherwise
@@ -729,6 +708,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.result = ISC_R_UNSET,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
+		.active = true,
 	};
 
 	if (iface != NULL) {
@@ -799,10 +779,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
-
-	atomic_init(&sock->active, true);
-
-	atomic_init(&sock->active_child_connections, 0);
 
 #if HAVE_LIBNGHTTP2
 	isc__nm_http_initsocket(sock);
@@ -1004,7 +980,7 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 #if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
 	nmhandle_free(sock, handle);
 #else
-	if (atomic_load_acquire(&sock->active)) {
+	if (sock->active) {
 		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
 	} else {
 		nmhandle_free(sock, handle);
@@ -1774,7 +1750,6 @@ static void
 nmsocket_stop_cb(void *arg) {
 	isc_nmsocket_t *listener = arg;
 
-	(void)atomic_fetch_sub(&listener->rchildren, 1);
 	isc_barrier_wait(&listener->stop_barrier);
 }
 
@@ -1795,7 +1770,6 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	}
 
 	nmsocket_stop_cb(listener);
-	INSIST(atomic_load(&listener->rchildren) == 0);
 
 	listener->listening = false;
 

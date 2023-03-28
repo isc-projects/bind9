@@ -339,7 +339,7 @@ streamdns_transport_connected(isc_nmhandle_t *handle, isc_result_t result,
 	}
 
 	isc_nmhandle_attach(handle, &sock->outerhandle);
-	atomic_store_release(&sock->active, true);
+	sock->active = true;
 
 	handle->sock->streamdns.sock = sock;
 
@@ -673,7 +673,7 @@ streamdns_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 			   NULL);
 	nsock->read_timeout = initial;
 	nsock->accepting = true;
-	atomic_store_release(&nsock->active, true);
+	nsock->active = true;
 
 	isc__nmsocket_attach(listensock, &nsock->listener);
 	isc_nmhandle_attach(handle, &nsock->outerhandle);
@@ -752,12 +752,11 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	listener->result = result;
-	atomic_store_release(&listener->active, true);
+	listener->active = true;
 	listener->listening = true;
 	INSIST(listener->outer->streamdns.listener == NULL);
 	listener->nchildren = listener->outer->nchildren;
 	isc__nmsocket_barrier_init(listener);
-	atomic_init(&listener->rchildren, listener->outer->nchildren);
 	isc__nmsocket_attach(listener, &listener->outer->streamdns.listener);
 
 	*sockp = listener;
@@ -939,7 +938,7 @@ streamdns_close_direct(isc_nmsocket_t *sock) {
 	/* Further cleanup performed in isc__nm_streamdns_cleanup_data() */
 	isc_dnsstream_assembler_clear(sock->streamdns.input);
 	sock->closed = true;
-	atomic_store_release(&sock->active, false);
+	sock->active = false;
 }
 
 void

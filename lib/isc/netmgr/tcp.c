@@ -300,11 +300,11 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	(void)isc__nm_socket_min_mtu(sock->fd, sa_family);
 	(void)isc__nm_socket_tcp_maxseg(sock->fd, NM_MAXSEG);
 
-	atomic_store_release(&sock->active, true);
+	sock->active = true;
 
 	result = tcp_connect_direct(sock, req);
 	if (result != ISC_R_SUCCESS) {
-		atomic_store_release(&sock->active, false);
+		sock->active = false;
 		isc__nm_tcp_close(sock);
 		isc__nm_connectcb(sock, req, result, true);
 	}
@@ -436,8 +436,6 @@ done:
 	result = isc_uverr2result(r);
 
 done_result:
-	atomic_fetch_add(&sock->parent->rchildren, 1);
-
 	if (result != ISC_R_SUCCESS) {
 		sock->pquota = NULL;
 	}
@@ -505,7 +503,6 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, worker, isc_nm_tcplistener, iface, NULL);
 
-	atomic_init(&sock->rchildren, 0);
 	sock->nchildren = (workers == ISC_NM_LISTEN_ALL) ? (uint32_t)mgr->nloops
 							 : workers;
 	children_size = sock->nchildren * sizeof(sock->children[0]);
@@ -550,15 +547,15 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		atomic_store_release(&sock->active, false);
+		sock->active = false;
 		isc__nm_tcp_stoplistening(sock);
 		isc_nmsocket_close(&sock);
 
 		return (result);
 	}
 
-	atomic_store_release(&sock->active, true);
-	REQUIRE(atomic_load(&sock->rchildren) == sock->nchildren);
+	sock->active = true;
+
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
 }
@@ -607,6 +604,7 @@ stop_tcp_child_job(void *arg) {
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(!sock->closing);
 
+	sock->active = false;
 	sock->closing = true;
 
 	/*
@@ -624,8 +622,6 @@ stop_tcp_child_job(void *arg) {
 	isc__nmsocket_timer_stop(sock);
 	uv_close(&sock->read_timer, NULL);
 
-	(void)atomic_fetch_sub(&sock->parent->rchildren, 1);
-
 	REQUIRE(!sock->worker->loop->paused);
 	isc_barrier_wait(&sock->parent->stop_barrier);
 }
@@ -634,7 +630,6 @@ static void
 stop_tcp_child(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
-	atomic_store_release(&sock->active, false);
 	if (sock->tid == 0) {
 		stop_tcp_child_job(sock);
 	} else {
@@ -653,7 +648,7 @@ isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
 	sock->closing = true;
 
 	/* Mark the parent socket inactive */
-	atomic_store_release(&sock->active, false);
+	sock->active = false;
 
 	/* Stop all the other threads' children */
 	for (size_t i = 1; i < sock->nchildren; i++) {
@@ -979,7 +974,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 	return (ISC_R_SUCCESS);
 
 failure:
-	atomic_store_release(&csock->active, false);
+	csock->active = false;
 
 	failed_accept_cb(csock, result);
 
@@ -1237,9 +1232,10 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	 * If the socket is active, mark it inactive and
 	 * continue. If it isn't active, stop now.
 	 */
-	if (!isc__nmsocket_deactivate(sock)) {
+	if (!sock->active) {
 		return;
 	}
+	sock->active = false;
 
 	if (sock->accepting) {
 		return;
@@ -1261,11 +1257,15 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	/*
-	 * Otherwise, we just send the socket to abyss...
-	 */
+	/* Destroy the non-listening socket */
 	if (sock->parent == NULL) {
 		isc__nmsocket_prep_destroy(sock);
+		return;
+	}
+
+	/* Destroy the listening socket if on the same loop */
+	if (sock->tid == sock->parent->tid) {
+		isc__nmsocket_prep_destroy(sock->parent);
 	}
 }
 

@@ -477,6 +477,7 @@ struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
 	uint32_t tid;
+	isc_refcount_t references;
 	isc_nmsocket_type type;
 	isc__networker_t *worker;
 
@@ -487,8 +488,6 @@ struct isc_nmsocket {
 	isc_nmsocket_t *parent;
 	/*% Listener socket this connection was accepted on */
 	isc_nmsocket_t *listener;
-	/*% Self socket */
-	isc_nmsocket_t *self;
 
 	/*% TLS stuff */
 	struct tlsstream {
@@ -580,19 +579,12 @@ struct isc_nmsocket {
 	/*% Peer address */
 	isc_sockaddr_t peer;
 
-	/* Atomic */
-	/*% Number of running (e.g. listening) child sockets */
-	atomic_uint_fast32_t rchildren;
-
 	/*%
 	 * Socket is active if it's listening, working, etc. If it's
 	 * closing, then it doesn't make a sense, for example, to
 	 * push handles or reqs for reuse.
-	 *
-	 * We might be accessing sock->parent->active from a different
-	 * thread, so .active has to be atomic.
 	 */
-	atomic_bool active;
+	bool active;
 	bool destroying;
 
 	bool route_sock;
@@ -611,7 +603,6 @@ struct isc_nmsocket {
 	bool accepting;
 	bool reading;
 	bool timedout;
-	isc_refcount_t references;
 
 	/*%
 	 * Established an outgoing connection, as client not server.
@@ -663,8 +654,6 @@ struct isc_nmsocket {
 
 	isc_nm_accept_cb_t accept_cb;
 	void *accept_cbarg;
-
-	atomic_int_fast32_t active_child_connections;
 
 	bool barriers_initialised;
 	bool manual_read_timer;
@@ -765,18 +754,6 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
  * Determine whether 'sock' is active by checking 'sock->active'
  * or, for child sockets, 'sock->parent->active'.
- */
-
-bool
-isc__nmsocket_deactivate(isc_nmsocket_t *sock);
-/*%<
- * @brief Deactivate active socket
- *
- * Atomically deactive the socket by setting @p sock->active or, for child
- * sockets, @p sock->parent->active to @c false
- *
- * @param[in] sock - valid nmsocket
- * @return @c false if the socket was already inactive, @c true otherwise
  */
 
 void

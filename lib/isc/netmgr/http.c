@@ -2534,7 +2534,6 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	sock->fd = (uv_os_sock_t)-1;
 
 	isc__nmsocket_barrier_init(sock);
-	atomic_init(&sock->rchildren, sock->nchildren);
 
 	sock->listening = true;
 	*sockp = sock;
@@ -2712,7 +2711,7 @@ http_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
 	sock->closed = true;
-	atomic_store_release(&sock->active, false);
+	sock->active = false;
 	session = sock->h2.session;
 
 	if (session != NULL && session->sending == 0 && !session->reading) {
@@ -2840,7 +2839,7 @@ server_call_failed_read_cb(isc_result_t result,
 		isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
 		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
 		/* Cleanup socket in place */
-		atomic_store_release(&h2data->psock->active, false);
+		h2data->psock->active = false;
 		h2data->psock->closed = true;
 		isc__nmsocket_detach(&h2data->psock);
 
