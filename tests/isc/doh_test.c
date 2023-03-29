@@ -134,14 +134,14 @@ static void
 connect_send_cb(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	csdata_t data;
 
-	REQUIRE(VALID_NMHANDLE(handle));
-
 	(void)atomic_fetch_sub(&active_cconnects, 1);
 	memmove(&data, arg, sizeof(data));
 	isc_mem_put(data.mctx, arg, sizeof(data));
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
+
+	REQUIRE(VALID_NMHANDLE(handle));
 
 	result = isc__nm_http_request(handle, &data.region, data.reply_cb,
 				      data.cb_arg);
@@ -675,39 +675,38 @@ doh_connect_thread(void *arg);
 static void
 doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			  isc_region_t *region, void *cbarg) {
-	isc_nmhandle_t *thandle = NULL;
 	isc_nm_t *connect_nm = (isc_nm_t *)cbarg;
+
+	if (eresult != ISC_R_SUCCESS) {
+		return;
+	}
 
 	assert_non_null(handle);
 	UNUSED(region);
 
-	isc_nmhandle_attach(handle, &thandle);
-	if (eresult == ISC_R_SUCCESS) {
-		int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
-		atomic_fetch_add(&csends, 1);
-		atomic_fetch_add(&creads, 1);
-		if (sends > 0 && connect_nm != NULL) {
-			size_t i;
-			for (i = 0; i < NWRITES / 2; i++) {
-				eresult = isc__nm_http_request(
-					handle,
-					&(isc_region_t){
-						.base = (uint8_t *)send_msg.base,
-						.length = send_msg.len },
-					doh_receive_send_reply_cb, NULL);
-				if (eresult == ISC_R_CANCELED) {
-					break;
-				}
-				assert_true(eresult == ISC_R_SUCCESS);
+	int_fast64_t sends = atomic_fetch_sub(&nsends, 1);
+	atomic_fetch_add(&csends, 1);
+	atomic_fetch_add(&creads, 1);
+	if (sends > 0 && connect_nm != NULL) {
+		size_t i;
+		for (i = 0; i < NWRITES / 2; i++) {
+			eresult = isc__nm_http_request(
+				handle,
+				&(isc_region_t){
+					.base = (uint8_t *)send_msg.base,
+					.length = send_msg.len },
+				doh_receive_send_reply_cb, NULL);
+			if (eresult == ISC_R_CANCELED) {
+				break;
 			}
+			assert_true(eresult == ISC_R_SUCCESS);
+		}
 
-			isc_job_run(loopmgr, doh_connect_thread, connect_nm);
-		}
-		if (sends <= 0) {
-			isc_loopmgr_shutdown(loopmgr);
-		}
+		isc_job_run(loopmgr, doh_connect_thread, connect_nm);
 	}
-	isc_nmhandle_detach(&thandle);
+	if (sends <= 0) {
+		isc_loopmgr_shutdown(loopmgr);
+	}
 }
 
 static void
