@@ -2424,7 +2424,7 @@ static void
 done_update(void) {
 	ddebug("done_update()");
 
-	isc_async_run(isc_loop_main(loopmgr), getinput, NULL);
+	isc_async_current(loopmgr, getinput, NULL);
 }
 
 static void

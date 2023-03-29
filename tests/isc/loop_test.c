@@ -66,11 +66,10 @@ ISC_RUN_TEST_IMPL(isc_loopmgr) {
 
 static void
 runjob(void *arg __attribute__((__unused__))) {
-	isc_async_run(isc_loop_current(loopmgr), count, loopmgr);
+	isc_async_current(loopmgr, count, loopmgr);
 
 	if (isc_tid() == 0) {
-		isc_async_run(isc_loop_current(loopmgr), shutdown_loopmgr,
-			      loopmgr);
+		isc_async_current(loopmgr, shutdown_loopmgr, loopmgr);
 	}
 }
 

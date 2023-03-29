@@ -100,25 +100,21 @@ ISC_LOOP_TEST_IMPL(tcpdns_timeout_recovery) {
 	connect_readcb = timeout_retry_cb;
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 
-	isc_async_run(isc_loop_current(loopmgr), stream_recv_send_connect,
-		      tcpdns_connect);
+	isc_async_current(loopmgr, stream_recv_send_connect, tcpdns_connect);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_recv_one) {
 	start_listening(ISC_NM_LISTEN_ONE, listen_accept_cb, listen_read_cb);
 
-	isc_async_run(isc_loop_current(loopmgr), stream_recv_send_connect,
-		      tcpdns_connect);
+	isc_async_current(loopmgr, stream_recv_send_connect, tcpdns_connect);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_recv_two) {
 	start_listening(ISC_NM_LISTEN_ONE, listen_accept_cb, listen_read_cb);
 
-	isc_async_run(isc_loop_current(loopmgr), stream_recv_send_connect,
-		      tcpdns_connect);
+	isc_async_current(loopmgr, stream_recv_send_connect, tcpdns_connect);
 
-	isc_async_run(isc_loop_current(loopmgr), stream_recv_send_connect,
-		      tcpdns_connect);
+	isc_async_current(loopmgr, stream_recv_send_connect, tcpdns_connect);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_recv_send) {
