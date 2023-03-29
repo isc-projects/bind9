@@ -95,8 +95,8 @@ isc_assertion_typetotext(isc_assertiontype_t type) {
 static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond) {
-	void *tracebuf[BACKTRACE_MAXFRAME];
-	int nframes = isc_backtrace(tracebuf, BACKTRACE_MAXFRAME);
+	void *tracebuf[ISC_BACKTRACE_MAXFRAME];
+	int nframes = isc_backtrace(tracebuf, ISC_BACKTRACE_MAXFRAME);
 
 	fprintf(stderr, "%s:%d: %s(%s) failed%s\n", file, line,
 		isc_assertion_typetotext(type), cond,
