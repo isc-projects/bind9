@@ -16,13 +16,16 @@ LDADD +=			\
 noinst_LTLIBRARIES = libtest.la
 
 libtest_la_SOURCES =			\
-	../include/tests/dns.h		\
 	../include/tests/isc.h		\
 	../include/tests/ns.h		\
 	../include/tests/qp.h		\
-	dns.c				\
 	isc.c				\
 	ns.c				\
 	qp.c
+if HAVE_CMOCKA
+libtest_la_SOURCES +=			\
+	../include/tests/dns.h		\
+        dns.c
+endif HAVE_CMOCKA
 
 include $(top_srcdir)/Makefile.tests
