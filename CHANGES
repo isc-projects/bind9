@@ -1,3 +1,5 @@
+6132.	[doc]		Remove a dead link in the DNSSEC guide. [GL #3967]
+
 6129.	[cleanup]	Value stored to 'source' during its initialization is
 			never read. [GL #3965]
 
