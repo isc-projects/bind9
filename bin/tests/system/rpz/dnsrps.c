@@ -13,11 +13,8 @@
 
 /*
  * -a		exit(0) if dnsrps is available or dlopen() msg if not
- * -p		print the path to dnsrpzd configured in dnsrps so that
- *		    dnsrpzd can be run by a setup.sh script.
- *		    Exit(1) if dnsrps is not available
  * -n domain	print the serial number of a domain to check if a new
- *		    version of a policy zone has been transferred to dnsrpzd.
+ *		    version of a policy zone is ready.
  *		    Exit(1) if dnsrps is not available
  * -w sec.ond	wait for seconds, because `sleep 0.1` is not portable
  */
@@ -36,10 +33,7 @@
 #include <isc/util.h>
 
 #ifdef USE_DNSRPS
-#define LIBRPZ_LIB_OPEN DNSRPS_LIB_OPEN
 #include <dns/librpz.h>
-
-librpz_t *librpz;
 #else  /* ifdef USE_DNSRPS */
 typedef struct {
 	char c[120];
@@ -49,15 +43,15 @@ typedef struct {
 static bool
 link_dnsrps(librpz_emsg_t *emsg);
 
-#define USAGE "usage: [-ap] [-n domain] [-w sec.onds]\n"
+#define USAGE "usage: [-a] [-n domain] [-w sec.onds]\n"
 
 int
 main(int argc, char **argv) {
 #ifdef USE_DNSRPS
 	char cstr[sizeof("zone ") + 1024 + 10];
-	librpz_clist_t *clist;
-	librpz_client_t *client;
-	librpz_rsp_t *rsp;
+	librpz_clist_t *clist = NULL;
+	librpz_client_t *client = NULL;
+	librpz_rsp_t *rsp = NULL;
 	uint32_t serial;
 #endif /* ifdef USE_DNSRPS */
 	double seconds;
@@ -65,25 +59,13 @@ main(int argc, char **argv) {
 	char *p;
 	int i;
 
-	while ((i = getopt(argc, argv, "apn:w:")) != -1) {
+	while ((i = getopt(argc, argv, "an:w:")) != -1) {
 		switch (i) {
 		case 'a':
 			if (!link_dnsrps(&emsg)) {
 				printf("I:%s\n", emsg.c);
 				return (1);
 			}
-			return (0);
-
-		case 'p':
-			if (!link_dnsrps(&emsg)) {
-				fprintf(stderr, "## %s\n", emsg.c);
-				return (1);
-			}
-#ifdef USE_DNSRPS
-			printf("%s\n", librpz->dnsrpzd_path);
-#else  /* ifdef USE_DNSRPS */
-			UNREACHABLE();
-#endif /* ifdef USE_DNSRPS */
 			return (0);
 
 		case 'n':
@@ -93,8 +75,7 @@ main(int argc, char **argv) {
 			}
 #ifdef USE_DNSRPS
 			/*
-			 * Get the serial number of a policy zone from
-			 * a running dnsrpzd daemon.
+			 * Get the serial number of a policy zone.
 			 */
 			clist = librpz->clist_create(&emsg, NULL, NULL, NULL,
 						     NULL, NULL);
@@ -102,15 +83,12 @@ main(int argc, char **argv) {
 				fprintf(stderr, "## %s: %s\n", optarg, emsg.c);
 				return (1);
 			}
-			snprintf(cstr, sizeof(cstr),
-				 "zone %s; dnsrpzd \"\";"
-				 " dnsrpzd-sock dnsrpzd.sock;"
-				 " dnsrpzd-rpzf dnsrpzd.rpzf",
-				 optarg);
+			snprintf(cstr, sizeof(cstr), "zone %s;", optarg);
 			client = librpz->client_create(&emsg, clist, cstr,
 						       true);
 			if (client == NULL) {
 				fprintf(stderr, "## %s\n", emsg.c);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 
@@ -121,16 +99,20 @@ main(int argc, char **argv) {
 			{
 				fprintf(stderr, "## %s\n", emsg.c);
 				librpz->client_detach(&client);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 
 			if (!librpz->soa_serial(&emsg, &serial, optarg, rsp)) {
 				fprintf(stderr, "## %s\n", emsg.c);
+				librpz->rsp_detach(&rsp);
 				librpz->client_detach(&client);
+				librpz->clist_detach(&clist);
 				return (1);
 			}
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
+			librpz->clist_detach(&clist);
 			printf("%u\n", serial);
 #else  /* ifdef USE_DNSRPS */
 			UNREACHABLE();
@@ -158,7 +140,7 @@ main(int argc, char **argv) {
 static bool
 link_dnsrps(librpz_emsg_t *emsg) {
 #ifdef USE_DNSRPS
-	librpz = librpz_lib_open(emsg, NULL, DNSRPS_LIBRPZ_PATH);
+	librpz = librpz_lib_open(emsg, NULL, LIBRPZ_LIB_OPEN);
 	if (librpz == NULL) {
 		return (false);
 	}

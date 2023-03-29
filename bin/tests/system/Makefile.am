@@ -11,11 +11,17 @@ dist-hook:
 
 SUBDIRS = dyndb/driver dlzexternal/driver hooks/driver
 
+if DNSRPS
+SUBDIRS += rpz/testlib
+endif
+
 AM_CPPFLAGS +=			\
-	$(LIBISC_CFLAGS)
+	$(LIBISC_CFLAGS) 	\
+	$(LIBDNS_CFLAGS)
 
 LDADD +=			\
-	$(LIBISC_LIBS)
+	$(LIBISC_LIBS)		\
+	$(LIBDNS_LIBS)
 
 if HAVE_PERL
 
@@ -48,11 +54,13 @@ pipelined_pipequeries_LDADD =	\
 
 rpz_dnsrps_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
-	$(LIBDNS_CFLAGS)
+	$(LIBDNS_CFLAGS)	\
+	-DLIBRPZ_LIB_OPEN=\"$(abs_builddir)/rpz/testlib/.libs/libdummyrpz.so\"
 
 rpz_dnsrps_LDADD =		\
 	$(LDADD)		\
-	$(LIBDNS_LIBS)
+	$(LIBDNS_LIBS)		\
+	-ldl
 
 TESTS =
 

@@ -15,8 +15,6 @@
 
 pid-file ../dnsrpzd.pid
 
-include ../dnsrpzd-license-cur.conf
-
 # configure NOTIFY and zone transfers
 port @EXTRAPORT1@;
 listen-on port @EXTRAPORT1@ { 10.53.0.3; };

@@ -5110,6 +5110,15 @@ done to discover problems at the authoritative server.
    (DNSRPS) interface, if it has been compiled in :iscman:`named` using
    ``configure --enable-dnsrps``.
 
+.. namedconf:statement:: dnsrps-library
+   :tags: server, security
+   :short: Turns on the DNS Response Policy Service (DNSRPS) interface.
+
+   This option specifies the path to the DNSRPS provider library. Typically
+   this library is detected when building with ``configure --enable-dnsrps``
+   and does not need to be specified in ``named.conf``; the option exists
+   to override the default library for testing purposes.
+
 .. namedconf:statement:: dnsrps-options
    :tags: server, security
    :short: Provides additional RPZ configuration settings, which are passed to the DNS Response Policy Service (DNSRPS) provider library.
@@ -5117,7 +5126,7 @@ done to discover problems at the authoritative server.
    The block provides additional RPZ configuration
    settings, which are passed through to the DNSRPS provider library.
    Multiple DNSRPS settings in an :any:`dnsrps-options` string should be
-   separated with semi-colons (;). The DNSRPS provider, librpz, is passed a
+   separated with semi-colons (;). The DNSRPS provider library is passed a
    configuration string consisting of the :any:`dnsrps-options` text,
    concatenated with settings derived from the :any:`response-policy`
    statement.

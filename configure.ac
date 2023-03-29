@@ -1430,7 +1430,7 @@ no)
 	AC_MSG_RESULT(no)
 	;;
 *)
-	AC_MSG_ERROR("--enable-querytrace requires yes or no (not $enable_querytrace)")
+	AC_MSG_ERROR(["--enable-querytrace requires yes or no (not $enable_querytrace)"])
 	;;
 esac
 
@@ -1478,10 +1478,10 @@ AC_COMPILE_IFELSE(
 AC_ARG_ENABLE([dnsrps-dl],
 	      [AS_HELP_STRING([--enable-dnsrps-dl],
 			      [DNS Response Policy Service delayed link
-			       [default=$librpz_dl]])],
-	      [enable_librpz_dl="$enableval"], [enable_librpz_dl="$with_dlopen"])
+			       [default=yes]])],
+	      [enable_dnsprs_dl="$enableval"], [enable_dnsrps_dl="yes"])
 
-AS_IF([test "$enable_librpz_dl" = "yes" -a "$with_dlopen" = "no"],
+AS_IF([test "$enable_dnsprs_dl" = "yes" -a "$with_dlopen" = "no"],
       [AC_MSG_ERROR([DNS Response Policy Service delayed link requires dlopen to be enabled])])
 
 # [pairwise: skip]
@@ -1497,7 +1497,7 @@ AC_ARG_WITH([dnsrps-dir],
 	    [librpz_path="$withval/$librpz_name"], [librpz_path="$librpz_name"])
 AC_DEFINE_UNQUOTED([DNSRPS_LIBRPZ_PATH], ["$librpz_path"],
 		   [dnsrps $librpz_name])
-AS_IF([test "$enable_librpz_dl" = "yes"],
+AS_IF([test "$enable_dnsrps_dl" = "yes"],
       [
 	dnsrps_lib_open=2
       ],[
@@ -1517,12 +1517,12 @@ AC_ARG_ENABLE([dnsrps],
 	      [enable_dnsrps=$enableval], [enable_dnsrps=no])
 
 AS_IF([test "$enable_dnsrps" != "no"],[
-	AS_IF([test "$dnsrps_avail" != "yes"],
-	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
 	AS_IF([test "$dnsrps_lib_open" = "0"],
 	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
 	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
       ])
+
+AM_CONDITIONAL([DNSRPS], [test "$enable_dnsrps" != "no"])
 
 AC_CHECK_HEADERS([glob.h])
 
@@ -1592,7 +1592,9 @@ AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/conf.sh
 		 bin/tests/system/dyndb/driver/Makefile
 		 bin/tests/system/dlzexternal/driver/Makefile
-		 bin/tests/system/hooks/driver/Makefile])
+		 bin/tests/system/hooks/driver/Makefile
+		 bin/tests/system/rpz/testlib/Makefile
+                 ])
 
 AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
 		[chmod +x bin/tests/system/ifconfig.sh])

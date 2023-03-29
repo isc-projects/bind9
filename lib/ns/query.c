@@ -3348,6 +3348,8 @@ dnsrps_ck(librpz_emsg_t *emsg, ns_client_t *client, rpsdb_t *rpsdb,
 	isc_region_t region;
 	librpz_domain_buf_t pname_buf;
 
+	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_ck");
+
 	if (!librpz->rsp_result(emsg, &rpsdb->result, recursed, rpsdb->rsp)) {
 		return (-1);
 	}
@@ -3396,17 +3398,17 @@ static bool
 dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 	     dns_rdatatype_t qtype, dns_rdataset_t **p_rdatasetp,
 	     bool recursed) {
-	rpsdb_t *rpsdb;
+	rpsdb_t *rpsdb = NULL;
 	librpz_domain_buf_t pname_buf;
 	isc_region_t region;
-	dns_zone_t *p_zone;
-	dns_db_t *p_db;
-	dns_dbnode_t *p_node;
+	dns_zone_t *p_zone = NULL;
+	dns_db_t *p_db = NULL;
+	dns_dbnode_t *p_node = NULL;
 	dns_rpz_policy_t policy;
-	dns_fixedname_t foundf;
-	dns_name_t *found;
 	dns_rdatatype_t foundtype, searchtype;
 	isc_result_t result;
+
+	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_set_p");
 
 	rpsdb = (rpsdb_t *)st->rpsdb;
 
@@ -3437,9 +3439,6 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 	region.length = pname_buf.size;
 	dns_name_fromregion(st->p_name, &region);
 
-	p_zone = NULL;
-	p_db = NULL;
-	p_node = NULL;
 	rpz_ready(client, p_rdatasetp);
 	dns_db_attach(st->rpsdb, &p_db);
 	policy = dns_dnsrps_2policy(rpsdb->result.policy);
@@ -3453,6 +3452,9 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 		result = DNS_R_NXRRSET;
 		policy = DNS_RPZ_POLICY_NODATA;
 	} else {
+		dns_fixedname_t foundf;
+		dns_name_t *found = NULL;
+
 		/*
 		 * Get the next (and so first) RR from the policy node.
 		 * If it is a CNAME, then look for it regardless of the
@@ -3464,6 +3466,7 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 		{
 			return (false);
 		}
+
 		if (foundtype == dns_rdatatype_cname) {
 			searchtype = dns_rdatatype_cname;
 		} else {
@@ -3510,6 +3513,8 @@ dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 	int res;
 	librpz_emsg_t emsg;
 	isc_result_t result;
+
+	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_ip");
 
 	st = client->query.rpz_st;
 	rpsdb = (rpsdb_t *)st->rpsdb;
@@ -3566,6 +3571,8 @@ dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name, bool recursed,
 	int res;
 	librpz_emsg_t emsg;
 	isc_result_t result;
+
+	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_name");
 
 	st = client->query.rpz_st;
 	rpsdb = (rpsdb_t *)st->rpsdb;
@@ -4201,6 +4208,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype, isc_result_t qresult,
 			if (st->rpsdb != NULL) {
 				dns_db_detach(&st->rpsdb);
 			}
+			CTRACE(ISC_LOG_DEBUG(3), "dns_dnsrps_rewrite_init");
 			result = dns_dnsrps_rewrite_init(
 				&emsg, st, rpzs, client->query.qname,
 				client->manager->mctx, RECURSIONOK(client));

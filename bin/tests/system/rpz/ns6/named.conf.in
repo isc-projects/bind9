@@ -36,7 +36,7 @@ options {
 	nsip-enable yes
 	nsdname-enable yes;
 
-	include "../dnsrps-secondary.conf";
+	include "../dnsrps.conf";
 };
 
 logging { category rpz { default_debug; }; };
@@ -58,7 +58,7 @@ zone "policy1" {
 	file "empty.db";
 	also-notify { 10.53.0.3 port @EXTRAPORT1@; };
 	notify-delay 0;
-	allow-transfer  { any; };
+	allow-transfer	{ any; };
 };
 
 zone "bl.tld2s." {

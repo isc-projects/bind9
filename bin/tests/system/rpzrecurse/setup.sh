@@ -46,6 +46,11 @@ copy_setports ns3/named1.conf.in ns3/named.conf
 
 copy_setports ns4/named.conf.in ns4/named.conf
 
+# decide whether to test DNSRPS
+$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
+test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
+touch dnsrps.cache
+
 # setup policy zones for a 64-zone test
 i=1
 while test $i -le 64
@@ -63,25 +68,3 @@ do
     done
     i=`expr $i + 1`
 done
-
-# decide whether to test DNSRPS
-$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
-
-CWD=`pwd`
-cat <<EOF >dnsrpzd.conf
-PID-FILE $CWD/dnsrpzd.pid;
-
-include $CWD/dnsrpzd-license-cur.conf
-
-zone "policy" { type primary; file "`pwd`/ns3/policy.db"; };
-EOF
-sed -n -e 's/^ *//' -e "/zone.*.*primary/s@file \"@&$CWD/ns2/@p" ns2/*.conf \
-    >>dnsrpzd.conf
-
-# Run dnsrpzd to get the license and prime the static policy zones
-if test -n "$TEST_DNSRPS"; then
-    DNSRPZD="`../rpz/dnsrps -p`"
-    "$DNSRPZD" -D./dnsrpzd.rpzf -S./dnsrpzd.sock -C./dnsrpzd.conf \
-		-w 0 -dddd -L stdout >./dnsrpzd.run 2>&1
-fi
