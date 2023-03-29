@@ -157,19 +157,20 @@ def read_statefile(server, zone):
 
 def zone_check(server, zone):
     addr = server.nameservers[0]
+    fqdn = "{}.".format(zone)
 
     # wait until zone is fully signed.
     signed = False
     for _ in range(10):
-        response = do_query(server, zone, "NSEC")
+        response = do_query(server, fqdn, "NSEC")
         if not isinstance(response, dns.message.Message):
-            print("error: no response for {} NSEC from {}".format(zone, addr))
+            print("error: no response for {} NSEC from {}".format(fqdn, addr))
         elif response.rcode() == dns.rcode.NOERROR:
-            signed = has_signed_apex_nsec(zone, response)
+            signed = has_signed_apex_nsec(fqdn, response)
         else:
             print(
                 "error: {} response for {} NSEC from {}".format(
-                    dns.rcode.to_text(response.rcode()), zone, addr
+                    dns.rcode.to_text(response.rcode()), fqdn, addr
                 )
             )
 
@@ -182,15 +183,15 @@ def zone_check(server, zone):
 
     # check if zone if DNSSEC valid.
     verified = False
-    transfer = do_query(server, zone, "AXFR", tcp=True)
+    transfer = do_query(server, fqdn, "AXFR", tcp=True)
     if not isinstance(transfer, dns.message.Message):
-        print("error: no response for {} AXFR from {}".format(zone, addr))
+        print("error: no response for {} AXFR from {}".format(fqdn, addr))
     elif transfer.rcode() == dns.rcode.NOERROR:
-        verified = verify_zone(zone, transfer)
+        verified = verify_zone(fqdn, transfer)
     else:
         print(
             "error: {} response for {} AXFR from {}".format(
-                dns.rcode.to_text(transfer.rcode()), zone, addr
+                dns.rcode.to_text(transfer.rcode()), fqdn, addr
             )
         )
 
@@ -198,6 +199,7 @@ def zone_check(server, zone):
 
 
 def keystate_check(server, zone, key):
+    fqdn = "{}.".format(zone)
     val = 0
     deny = False
 
@@ -207,7 +209,7 @@ def keystate_check(server, zone, key):
         search = key[1:]
 
     for _ in range(10):
-        state = read_statefile(server, zone)
+        state = read_statefile(server, fqdn)
         try:
             val = state[search]
         except KeyError:
@@ -226,7 +228,35 @@ def keystate_check(server, zone, key):
         assert val != 0
 
 
-def wait_for_log(filename, log):
+def rekey(zone):
+    rndc = os.getenv("RNDC")
+    assert rndc is not None
+
+    port = os.getenv("CONTROLPORT")
+    assert port is not None
+
+    # rndc loadkeys.
+    rndc_cmd = [
+        rndc,
+        "-c",
+        "../common/rndc.conf",
+        "-p",
+        port,
+        "-s",
+        "10.53.0.9",
+        "loadkeys",
+        zone,
+    ]
+    controller = subprocess.run(rndc_cmd, capture_output=True, check=True)
+
+    if controller.returncode != 0:
+        print("error: rndc loadkeys {} failed".format(zone))
+        sys.stderr.buffer.write(controller.stderr)
+
+    assert controller.returncode == 0
+
+
+def wait_for_log(filename, zone, log):
     found = False
 
     for _ in range(10):
@@ -242,6 +272,9 @@ def wait_for_log(filename, log):
 
         if found:
             break
+
+        print("rekey")
+        rekey(zone)
 
         print("sleep")
         time.sleep(1)
@@ -265,44 +298,49 @@ def checkds_dspublished(named_port, checkds, addr):
     #
 
     # The simple case.
-    zone_check(server, "good.{}.dspublish.ns2.".format(checkds))
+    zone = "good.{}.dspublish.ns2".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dspublish.ns2/IN (signed): checkds: "
-        "DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from {}".format(zone, addr),
     )
-    keystate_check(parent, "good.{}.dspublish.ns2.".format(checkds), "DSPublish")
+    keystate_check(parent, zone, "DSPublish")
 
     #
     # 1.1.2: DS is not published in parent.
     # parental-agents: ns5
     #
-    zone_check(server, "not-yet.{}.dspublish.ns5.".format(checkds))
+    zone = "not-yet.{}.dspublish.ns5".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone not-yet.{}.dspublish.ns5/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.5".format(zone),
     )
-    keystate_check(parent, "not-yet.{}.dspublish.ns5.".format(checkds), "!DSPublish")
+    keystate_check(parent, zone, "!DSPublish")
 
     #
     # 1.1.3: The parental agent is badly configured.
     # parental-agents: ns6
     #
-    zone_check(server, "bad.{}.dspublish.ns6.".format(checkds))
+    zone = "bad.{}.dspublish.ns6".format(checkds)
+    zone_check(server, zone)
     if checkds == "explicit":
         wait_for_log(
             "ns9/named.run",
-            "zone bad.{}.dspublish.ns6/IN (signed): checkds: "
-            "bad DS response from 10.53.0.6".format(checkds),
+            zone,
+            "zone {}/IN (signed): checkds: bad DS response from 10.53.0.6".format(zone),
         )
     elif checkds == "yes":
         wait_for_log(
             "ns9/named.run",
-            "zone bad.{}.dspublish.ns6/IN (signed): checkds: "
-            "error during parental-agents processing".format(checkds),
+            zone,
+            "zone {}/IN (signed): checkds: error during parental-agents processing".format(
+                zone
+            ),
         )
-    keystate_check(parent, "bad.{}.dspublish.ns6.".format(checkds), "!DSPublish")
+    keystate_check(parent, zone, "!DSPublish")
 
     #
     # 1.1.4: DS is published, but has bogus signature.
@@ -313,63 +351,65 @@ def checkds_dspublished(named_port, checkds, addr):
     # 1.2.1: DS is correctly published in all parents.
     # parental-agents: ns2, ns4
     #
-    zone_check(server, "good.{}.dspublish.ns2-4.".format(checkds))
+    zone = "good.{}.dspublish.ns2-4".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dspublish.ns2-4/IN (signed): checkds: "
-        "DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dspublish.ns2-4/IN (signed): checkds: "
-        "DS response from 10.53.0.4".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.4".format(zone),
     )
-    keystate_check(parent, "good.{}.dspublish.ns2-4.".format(checkds), "DSPublish")
+    keystate_check(parent, zone, "DSPublish")
 
     #
     # 1.2.2: DS is not published in some parents.
     # parental-agents: ns2, ns4, ns5
     #
-    zone_check(server, "incomplete.{}.dspublish.ns2-4-5.".format(checkds))
+    zone = "incomplete.{}.dspublish.ns2-4-5".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dspublish.ns2-4-5/IN (signed): checkds: "
-        "DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dspublish.ns2-4-5/IN (signed): checkds: "
-        "DS response from 10.53.0.4".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.4".format(zone),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dspublish.ns2-4-5/IN (signed): checkds: "
-        "empty DS response from 10.53.0.5".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.5".format(zone),
     )
-    keystate_check(
-        parent, "incomplete.{}.dspublish.ns2-4-5.".format(checkds), "!DSPublish")
+    keystate_check(parent, zone, "!DSPublish")
 
     #
     # 1.2.3: One parental agent is badly configured.
     # parental-agents: ns2, ns4, ns6
     #
-    zone_check(server, "bad.{}.dspublish.ns2-4-6.".format(checkds))
+    zone = "bad.{}.dspublish.ns2-4-6".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dspublish.ns2-4-6/IN (signed): checkds: "
-        "DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dspublish.ns2-4-6/IN (signed): checkds: "
-        "DS response from 10.53.0.4".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.4".format(zone),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dspublish.ns2-4-6/IN (signed): checkds: "
-        "bad DS response from 10.53.0.6".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: bad DS response from 10.53.0.6".format(zone),
     )
-    keystate_check(parent, "bad.{}.dspublish.ns2-4-6.".format(checkds), "!DSPublish")
+    keystate_check(parent, zone, "!DSPublish")
 
     #
     # 1.2.4: DS is completely published, bogus signature.
@@ -396,45 +436,49 @@ def checkds_dswithdrawn(named_port, checkds, addr):
     #
 
     # The simple case.
-    zone_check(server, "good.{}.dsremoved.ns5.".format(checkds))
+    zone = "good.{}.dsremoved.ns5".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dsremoved.ns5/IN (signed): checkds: "
-        "empty DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from {}".format(zone, addr),
     )
-    keystate_check(parent, "good.{}.dsremoved.ns5.".format(checkds), "DSRemoved")
+    keystate_check(parent, zone, "DSRemoved")
 
     #
     # 2.1.2: DS is published in the parent.
     # parental-agents: ns2
     #
-    zone_check(server, "still-there.{}.dsremoved.ns2.".format(checkds))
+    zone = "still-there.{}.dsremoved.ns2".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone still-there.{}.dsremoved.ns2/IN (signed): checkds: "
-        "DS response from 10.53.0.2".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.2".format(zone),
     )
-    keystate_check(
-        parent, "still-there.{}.dsremoved.ns2.".format(checkds), "!DSRemoved")
+    keystate_check(parent, zone, "!DSRemoved")
 
     #
     # 2.1.3: The parental agent is badly configured.
     # parental-agents: ns6
     #
-    zone_check(server, "bad.{}.dsremoved.ns6.".format(checkds))
+    zone = "bad.{}.dsremoved.ns6".format(checkds)
+    zone_check(server, zone)
     if checkds == "explicit":
         wait_for_log(
             "ns9/named.run",
-            "zone bad.{}.dsremoved.ns6/IN (signed): checkds: "
-            "bad DS response from 10.53.0.6".format(checkds),
+            zone,
+            "zone {}/IN (signed): checkds: bad DS response from 10.53.0.6".format(zone),
         )
     elif checkds == "yes":
         wait_for_log(
             "ns9/named.run",
-            "zone bad.{}.dsremoved.ns6/IN (signed): checkds: "
-            "error during parental-agents processing".format(checkds),
+            zone,
+            "zone {}/IN (signed): checkds: error during parental-agents processing".format(
+                zone
+            ),
         )
-    keystate_check(parent, "bad.{}.dsremoved.ns6.".format(checkds), "!DSRemoved")
+    keystate_check(parent, zone, "!DSRemoved")
 
     #
     # 2.1.4: DS is withdrawn, but has bogus signature.
@@ -445,63 +489,65 @@ def checkds_dswithdrawn(named_port, checkds, addr):
     # 2.2.1: DS is correctly withdrawn from all parents.
     # parental-agents: ns5, ns7
     #
-    zone_check(server, "good.{}.dsremoved.ns5-7.".format(checkds))
+    zone = "good.{}.dsremoved.ns5-7".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dsremoved.ns5-7/IN (signed): checkds: "
-        "empty DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone good.{}.dsremoved.ns5-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.7".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.7".format(zone),
     )
-    keystate_check(parent, "good.{}.dsremoved.ns5-7.".format(checkds), "DSRemoved")
+    keystate_check(parent, zone, "DSRemoved")
 
     #
     # 2.2.2: DS is not withdrawn from some parents.
     # parental-agents: ns2, ns5, ns7
     #
-    zone_check(server, "incomplete.{}.dsremoved.ns2-5-7.".format(checkds))
+    zone = "incomplete.{}.dsremoved.ns2-5-7".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dsremoved.ns2-5-7/IN (signed): checkds: "
-        "DS response from 10.53.0.2".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.2".format(zone),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dsremoved.ns2-5-7/IN (signed): checkds: "
-        "empty DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone incomplete.{}.dsremoved.ns2-5-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.7".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.7".format(zone),
     )
-    keystate_check(
-        parent, "incomplete.{}.dsremoved.ns2-5-7.".format(checkds), "!DSRemoved")
+    keystate_check(parent, zone, "!DSRemoved")
 
     #
     # 2.2.3: One parental agent is badly configured.
     # parental-agents: ns5, ns6, ns7
     #
-    zone_check(server, "bad.{}.dsremoved.ns5-6-7.".format(checkds))
+    zone = "bad.{}.dsremoved.ns5-6-7".format(checkds)
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dsremoved.ns5-6-7/IN (signed): checkds: "
-        "empty DS response from {}".format(checkds, addr),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from {}".format(zone, addr),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dsremoved.ns5-6-7/IN (signed): checkds: "
-        "empty DS response from 10.53.0.7".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.7".format(zone),
     )
     wait_for_log(
         "ns9/named.run",
-        "zone bad.{}.dsremoved.ns5-6-7/IN (signed): checkds: "
-        "bad DS response from 10.53.0.6".format(checkds),
+        zone,
+        "zone {}/IN (signed): checkds: bad DS response from 10.53.0.6".format(zone),
     )
-    keystate_check(parent, "bad.{}.dsremoved.ns5-6-7.".format(checkds), "!DSRemoved")
+    keystate_check(parent, zone, "!DSRemoved")
 
     #
     # 2.2.4:: DS is removed completely, bogus signature.
@@ -520,13 +566,14 @@ def test_checkds_reference(named_port):
     parent.port = named_port
 
     # Using a reference to parental-agents.
-    zone_check(server, "reference.explicit.dspublish.ns2.")
+    zone = "reference.explicit.dspublish.ns2"
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone reference.explicit.dspublish.ns2/IN (signed): "
-        "checkds: DS response from 10.53.0.8",
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.8".format(zone),
     )
-    keystate_check(parent, "reference.explicit.dspublish.ns2.", "DSPublish")
+    keystate_check(parent, zone, "DSPublish")
 
 
 def test_checkds_resolver(named_port):
@@ -540,22 +587,24 @@ def test_checkds_resolver(named_port):
     parent.port = named_port
 
     # Using a resolver as parental-agent (ns3).
-    zone_check(server, "resolver.explicit.dspublish.ns2.")
+    zone = "resolver.explicit.dspublish.ns2"
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone resolver.explicit.dspublish.ns2/IN (signed): checkds: "
-        "DS response from 10.53.0.3",
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.3".format(zone),
     )
-    keystate_check(parent, "resolver.explicit.dspublish.ns2.", "DSPublish")
+    keystate_check(parent, zone, "DSPublish")
 
     # Using a resolver as parental-agent (ns3).
-    zone_check(server, "resolver.explicit.dsremoved.ns5.")
+    zone = "resolver.explicit.dsremoved.ns5"
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone resolver.explicit.dsremoved.ns5/IN (signed): checkds: "
-        "empty DS response from 10.53.0.3",
+        zone,
+        "zone {}/IN (signed): checkds: empty DS response from 10.53.0.3".format(zone),
     )
-    keystate_check(parent, "resolver.explicit.dsremoved.ns5.", "DSRemoved")
+    keystate_check(parent, zone, "DSRemoved")
 
 
 def test_checkds_no_ent(named_port):
@@ -568,19 +617,23 @@ def test_checkds_no_ent(named_port):
     parent.nameservers = ["10.53.0.2"]
     parent.port = named_port
 
-    zone_check(server, "no-ent.ns2.")
+    zone = "no-ent.ns2"
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone no-ent.ns2/IN (signed): checkds: DS response from 10.53.0.2",
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.2".format(zone),
     )
-    keystate_check(parent, "no-ent.ns2.", "DSPublish")
+    keystate_check(parent, zone, "DSPublish")
 
-    zone_check(server, "no-ent.ns5.")
+    zone = "no-ent.ns5"
+    zone_check(server, zone)
     wait_for_log(
         "ns9/named.run",
-        "zone no-ent.ns5/IN (signed): checkds: DS response from 10.53.0.5",
+        zone,
+        "zone {}/IN (signed): checkds: DS response from 10.53.0.5".format(zone),
     )
-    keystate_check(parent, "no-ent.ns5.", "DSRemoved")
+    keystate_check(parent, zone, "DSRemoved")
 
 
 def test_checkds_dspublished(named_port):
@@ -603,14 +656,14 @@ def test_checkds_no(named_port):
     parent.nameservers = ["10.53.0.2"]
     parent.port = named_port
 
-    zone_check(server, "good.no.dspublish.ns2.")
-    keystate_check(parent, "good.no.dspublish.ns2.", "!DSPublish")
+    zone_check(server, "good.no.dspublish.ns2")
+    keystate_check(parent, "good.no.dspublish.ns2", "!DSPublish")
 
-    zone_check(server, "good.no.dspublish.ns2-4.")
-    keystate_check(parent, "good.no.dspublish.ns2-4.", "!DSPublish")
+    zone_check(server, "good.no.dspublish.ns2-4")
+    keystate_check(parent, "good.no.dspublish.ns2-4", "!DSPublish")
 
-    zone_check(server, "good.no.dsremoved.ns5.")
-    keystate_check(parent, "good.no.dsremoved.ns5.", "!DSRemoved")
+    zone_check(server, "good.no.dsremoved.ns5")
+    keystate_check(parent, "good.no.dsremoved.ns5", "!DSRemoved")
 
-    zone_check(server, "good.no.dsremoved.ns5-7.")
-    keystate_check(parent, "good.no.dsremoved.ns5-7.", "!DSRemoved")
+    zone_check(server, "good.no.dsremoved.ns5-7")
+    keystate_check(parent, "good.no.dsremoved.ns5-7", "!DSRemoved")
