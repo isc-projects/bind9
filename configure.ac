@@ -1479,9 +1479,9 @@ AC_ARG_ENABLE([dnsrps-dl],
 	      [AS_HELP_STRING([--enable-dnsrps-dl],
 			      [DNS Response Policy Service delayed link
 			       [default=yes]])],
-	      [enable_dnsprs_dl="$enableval"], [enable_dnsrps_dl="yes"])
+	      [enable_dnsrps_dl="$enableval"], [enable_dnsrps_dl="yes"])
 
-AS_IF([test "$enable_dnsprs_dl" = "yes" -a "$with_dlopen" = "no"],
+AS_IF([test "$enable_dnsrps_dl" = "yes" -a "$with_dlopen" = "no"],
       [AC_MSG_ERROR([DNS Response Policy Service delayed link requires dlopen to be enabled])])
 
 # [pairwise: skip]
