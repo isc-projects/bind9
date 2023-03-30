@@ -52,6 +52,24 @@ adjustnofile(void) {
 }
 
 int
+setup_workers(void **state ISC_ATTR_UNUSED) {
+	char *env_workers = getenv("ISC_TASK_WORKERS");
+	if (env_workers != NULL) {
+		workers = atoi(env_workers);
+	} else {
+		workers = isc_os_ncpus();
+
+		/* We always need at least two loops for some of the tests */
+		if (workers < 2) {
+			workers = 2;
+		}
+	}
+	INSIST(workers != 0);
+
+	return (0);
+}
+
+int
 setup_mctx(void **state ISC_ATTR_UNUSED) {
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	isc_mem_create(&mctx);
@@ -68,23 +86,9 @@ teardown_mctx(void **state ISC_ATTR_UNUSED) {
 
 int
 setup_loopmgr(void **state ISC_ATTR_UNUSED) {
-	char *env_workers = NULL;
-
 	REQUIRE(mctx != NULL);
 
-	env_workers = getenv("ISC_TASK_WORKERS");
-	if (env_workers != NULL) {
-		workers = atoi(env_workers);
-	}
-
-	if (workers == 0) {
-		workers = isc_os_ncpus();
-
-		/* We always need at least two loops for some of the tests */
-		if (workers < 2) {
-			workers = 2;
-		}
-	}
+	setup_workers(state);
 
 	isc_loopmgr_create(mctx, workers, &loopmgr);
 	mainloop = isc_loop_main(loopmgr);
