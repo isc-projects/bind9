@@ -96,6 +96,7 @@ libisc_la_HEADERS =			\
 	include/isc/tls.h		\
 	include/isc/tm.h		\
 	include/isc/types.h		\
+	include/isc/urcu.h		\
 	include/isc/url.h		\
 	include/isc/utf8.h		\
 	include/isc/util.h		\

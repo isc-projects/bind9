@@ -34,6 +34,7 @@
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 #include <isc/work.h>
@@ -41,6 +42,7 @@
 #include "async_p.h"
 #include "job_p.h"
 #include "loop_p.h"
+#include "random_p.h"
 
 /**
  * Private
@@ -90,6 +92,8 @@ static void
 pause_loop(isc_loop_t *loop) {
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
 
+	rcu_thread_offline();
+
 	loop->paused = true;
 	(void)isc_barrier_wait(&loopmgr->pausing);
 }
@@ -100,6 +104,7 @@ resume_loop(isc_loop_t *loop) {
 
 	(void)isc_barrier_wait(&loopmgr->resuming);
 	loop->paused = false;
+	rcu_thread_online();
 }
 
 static void
@@ -261,16 +266,53 @@ setup_jobs_cb(void *arg) {
 }
 
 static void
+quiescent_cb(uv_prepare_t *handle) {
+	isc__qsbr_quiescent_cb(handle);
+
+#ifndef RCU_QSBR
+	INSIST(!rcu_read_ongoing());
+#else
+	/* safe memory reclamation */
+	rcu_quiescent_state();
+
+	/* mark the thread offline when polling */
+	rcu_thread_offline();
+#endif
+}
+
+static void
+loop_call_rcu_init(struct rcu_head *rcu_head __attribute__((__unused__))) {
+	/* Work around the jemalloc bug, see trampoline.c for details */
+	void *ptr = malloc(8);
+	free(ptr);
+
+	/* Initialize the random generator in the call_rcu thread */
+	isc__random_initialize();
+}
+
+static void
 loop_run(isc_loop_t *loop) {
-	int r = uv_prepare_start(&loop->quiescent, isc__qsbr_quiescent_cb);
+	int r = uv_prepare_start(&loop->quiescent, quiescent_cb);
 	UV_RUNTIME_CHECK(uv_prepare_start, r);
 
 	isc_barrier_wait(&loop->loopmgr->starting);
 
 	isc_async_run(loop, setup_jobs_cb, loop);
 
+	rcu_register_thread();
+
+	struct call_rcu_data *crdp = create_call_rcu_data(0, -1);
+	set_thread_call_rcu_data(crdp);
+
+	call_rcu(&loop->rcu_head, loop_call_rcu_init);
+
 	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
 	UV_RUNTIME_CHECK(uv_run, r);
+
+	rcu_unregister_thread();
+
+	set_thread_call_rcu_data(NULL);
+	call_rcu_data_free(crdp);
 
 	isc_barrier_wait(&loop->loopmgr->stopping);
 }
