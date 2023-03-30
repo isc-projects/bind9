@@ -29,7 +29,6 @@ libisc_la_HEADERS =			\
 	include/isc/error.h		\
 	include/isc/file.h		\
 	include/isc/formatcheck.h	\
-	include/isc/fsaccess.h		\
 	include/isc/fuzz.h		\
 	include/isc/getaddresses.h	\
 	include/isc/hash.h		\
@@ -130,9 +129,6 @@ libisc_la_SOURCES =		\
 	errno2result.h		\
 	error.c			\
 	file.c			\
-	fsaccess.c		\
-	fsaccess_common.c	\
-	fsaccess_common_p.h	\
 	getaddresses.c		\
 	hash.c			\
 	hashmap.c		\

@@ -119,10 +119,11 @@ typedef enum dst_algorithm {
 #define DST_KEY_MAXTEXTSIZE 2048
 
 /*% 'Type' for dst_read_key() */
-#define DST_TYPE_KEY	 0x1000000 /* KEY key */
-#define DST_TYPE_PRIVATE 0x2000000
-#define DST_TYPE_PUBLIC	 0x4000000
-#define DST_TYPE_STATE	 0x8000000
+#define DST_TYPE_KEY	  0x1000000 /* KEY key */
+#define DST_TYPE_PRIVATE  0x2000000
+#define DST_TYPE_PUBLIC	  0x4000000
+#define DST_TYPE_STATE	  0x8000000
+#define DST_TYPE_TEMPLATE 0x10000000
 
 /* Key timing metadata definitions */
 #define DST_TIME_CREATED     0
@@ -772,11 +773,13 @@ dst_key_buildfilename(const dst_key_t *key, int type, const char *directory,
 /*%<
  * Generates the filename used by dst to store the specified key.
  * If directory is NULL, the current directory is assumed.
+ * If tmp is not NULL, generates a template for mkstemp().
  *
  * Requires:
  *\li	"key" is a valid key
  *\li	"type" is either DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or 0 for no suffix.
  *\li	"out" is a valid buffer
+ *\li	"tmp" is a valid buffer or NULL
  *
  * Ensures:
  *\li	the file name will be written to "out", and the used pointer will

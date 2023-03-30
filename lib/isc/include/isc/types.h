@@ -38,7 +38,6 @@ typedef struct isc_constregion	   isc_constregion_t;	  /*%< Const region */
 typedef struct isc_consttextregion isc_consttextregion_t; /*%< Const Text Region
 							   */
 typedef struct isc_counter isc_counter_t;		  /*%< Counter */
-typedef uint32_t	   isc_fsaccess_t;		  /*%< FS Access */
 typedef struct isc_hash	   isc_hash_t;			  /*%< Hash */
 typedef struct isc_httpd   isc_httpd_t;			  /*%< HTTP client */
 typedef void(isc_httpdfree_t)(isc_buffer_t *, void *); /*%< HTTP free function
