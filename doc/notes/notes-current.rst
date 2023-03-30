@@ -22,6 +22,9 @@ New Features
 
 - None.
 
+- The system test suite can now be executed with pytest (along with
+  pytest-xdist for parallel execution). :gl:`#3978`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

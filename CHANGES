@@ -1,3 +1,6 @@
+6176.	[test]		Add support for using pytest & pytest-xdist to
+			execute the system test suite. [GL #3978]
+
 6174.	[bug]		BIND could get stuck on reconfiguration when a
 			'listen' statement for HTTP is removed from the
 			configuration. That has been fixed. [GL #4071]
