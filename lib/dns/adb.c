@@ -388,6 +388,9 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 static void
 log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
+static bool
+adbentry_overquota(dns_adbentry_t *entry);
+
 /*
  * MUST NOT overlap DNS_ADBFIND_* flags!
  */
@@ -1567,7 +1570,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			entry = namehook->entry;
 			LOCK(&entry->lock);
 
-			if (dns_adbentry_overquota(entry)) {
+			if (adbentry_overquota(entry)) {
 				find->options |= (DNS_ADBFIND_LAMEPRUNED |
 						  DNS_ADBFIND_OVERQUOTA);
 				goto nextv4;
@@ -1599,7 +1602,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			entry = namehook->entry;
 			LOCK(&entry->lock);
 
-			if (dns_adbentry_overquota(entry)) {
+			if (adbentry_overquota(entry)) {
 				find->options |= (DNS_ADBFIND_LAMEPRUNED |
 						  DNS_ADBFIND_OVERQUOTA);
 				goto nextv6;
@@ -3714,16 +3717,21 @@ dns_adb_getquota(dns_adb_t *adb, uint32_t *quotap, uint32_t *freqp,
 	}
 }
 
-bool
-dns_adbentry_overquota(dns_adbentry_t *entry) {
-	uint_fast32_t quota, active;
-
+static bool
+adbentry_overquota(dns_adbentry_t *entry) {
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
-	quota = atomic_load_relaxed(&entry->quota);
-	active = atomic_load_acquire(&entry->active);
+	uint_fast32_t quota = atomic_load_relaxed(&entry->quota);
+	uint_fast32_t active = atomic_load_acquire(&entry->active);
 
 	return (quota != 0 && active >= quota);
+}
+
+bool
+dns_adb_overquota(dns_adb_t *adb ISC_ATTR_UNUSED, dns_adbaddrinfo_t *addrinfo) {
+	REQUIRE(DNS_ADBADDRINFO_VALID(addrinfo));
+
+	return (adbentry_overquota(addrinfo->entry));
 }
 
 void
