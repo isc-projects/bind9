@@ -49,13 +49,6 @@
 #include "trampoline_p.h"
 
 /*%
- * How many isc_nmhandles and isc_nm_uvreqs will we be
- * caching for reuse in a socket.
- */
-#define ISC_NM_HANDLES_STACK_SIZE 600
-#define ISC_NM_REQS_STACK_SIZE	  600
-
-/*%
  * Shortcut index arrays to get access to statistics counters.
  */
 
@@ -249,8 +242,6 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
 				   &worker->uvreq_pool);
-		isc_mempool_setfreemax(worker->uvreq_pool,
-				       ISC_NM_REQS_STACK_SIZE);
 
 		isc_loop_attach(loop, &worker->loop);
 		isc_loop_teardown(loop, networker_teardown, worker);
@@ -872,7 +863,7 @@ dequeue_handle(isc_nmsocket_t *sock) {
 		return (handle);
 	}
 #else
-	UNUSED(sock);
+	INSIST(ISC_LIST_EMPTY(sock->inactive_handles));
 #endif /* !__SANITIZE_ADDRESS__ && !__SANITIZE_THREAD__ */
 	return (NULL);
 }
@@ -1027,8 +1018,8 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 	 * call it now asynchronously.
 	 */
 	if (sock->closehandle_cb != NULL) {
-		isc_job_run(sock->worker->netmgr->loopmgr,
-			    isc__nm_closehandle_job, sock);
+		isc_async_run(sock->worker->loop, isc__nm_closehandle_job,
+			      sock);
 	} else {
 		isc___nmsocket_detach(&sock FLARG_PASS);
 	}
@@ -1081,7 +1072,7 @@ isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	if (req->cb.send != NULL) {
 		isc__nm_sendcb(sock, req, eresult, async);
 	} else {
-		isc__nm_uvreq_put(&req, sock);
+		isc__nm_uvreq_put(&req);
 	}
 }
 
@@ -1348,7 +1339,7 @@ isc__nm_uvreq_t *
 isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	isc__nm_uvreq_t *req = NULL;
 
-	req = isc__nm_uvreq_get(sock->worker, sock);
+	req = isc__nm_uvreq_get(sock);
 	req->cb.recv = sock->recv_cb;
 	req->cbarg = sock->recv_cbarg;
 
@@ -1594,57 +1585,50 @@ isc_nmhandle_netmgr(isc_nmhandle_t *handle) {
 	return (handle->sock->worker->netmgr);
 }
 
-/* FIXME: Use per-worker mempool */
 isc__nm_uvreq_t *
-isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG) {
-	isc__nm_uvreq_t *req = NULL;
-
-	REQUIRE(worker != NULL);
+isc___nm_uvreq_get(isc_nmsocket_t *sock FLARG) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	req = isc_mempool_get(worker->uvreq_pool);
+	isc__networker_t *worker = sock->worker;
+
+	isc__nm_uvreq_t *req = isc_mempool_get(worker->uvreq_pool);
 	*req = (isc__nm_uvreq_t){
 		.connect_tries = 3,
 		.link = ISC_LINK_INITIALIZER,
-		.inactive_link = ISC_LINK_INITIALIZER,
-		.uv_req.req.data = req,
+		.active_link = ISC_LINK_INITIALIZER,
+		.job = ISC_JOB_INITIALIZER,
 		.magic = UVREQ_MAGIC,
 	};
+	uv_handle_set_data(&req->uv_req.handle, req);
+
 	isc___nmsocket_attach(sock, &req->sock FLARG_PASS);
+
+	ISC_LIST_APPEND(sock->active_uvreqs, req, active_link);
 
 	return (req);
 }
 
 void
-isc___nm_uvreq_put(isc__nm_uvreq_t **req0, isc_nmsocket_t *sock FLARG) {
-	REQUIRE(req0 != NULL);
-	REQUIRE(VALID_UVREQ(*req0));
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
+isc___nm_uvreq_put(isc__nm_uvreq_t **reqp FLARG) {
+	REQUIRE(reqp != NULL && VALID_UVREQ(*reqp));
 
-	isc__nm_uvreq_t *req = NULL;
-	isc_nmhandle_t *handle = NULL;
-	isc__networker_t *worker = sock->worker;
+	isc__nm_uvreq_t *req = *reqp;
+	isc_nmhandle_t *handle = req->handle;
+	isc_nmsocket_t *sock = req->sock;
 
-	req = *req0;
-	*req0 = NULL;
+	*reqp = NULL;
+	req->handle = NULL;
 
-	INSIST(sock == req->sock);
+	REQUIRE(VALID_UVREQ(req));
 
-	req->magic = 0;
-
-	/*
-	 * We need to save this first to make sure that handle,
-	 * sock, and the netmgr won't all disappear.
-	 */
-	ISC_SWAP(handle, req->handle);
-
-	isc_mempool_put(worker->uvreq_pool, req);
+	ISC_LIST_UNLINK(sock->active_uvreqs, req, active_link);
 
 	if (handle != NULL) {
 		isc__nmhandle_detach(&handle FLARG_PASS);
 	}
+
+	isc_mempool_put(sock->worker->uvreq_pool, req);
 
 	isc___nmsocket_detach(&sock FLARG_PASS);
 }
@@ -1840,16 +1824,11 @@ isc__nmsocket_barrier_init(isc_nmsocket_t *listener) {
 }
 
 static void
-isc__nm_connectcb_job(void *arg) {
+isc___nm_connectcb(void *arg) {
 	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
 
-	REQUIRE(VALID_UVREQ(uvreq));
-	REQUIRE(VALID_NMHANDLE(uvreq->handle));
-	REQUIRE(uvreq->cb.connect != NULL);
-
-	uvreq->cb.connect(uvreq->handle, eresult, uvreq->cbarg);
-	isc__nm_uvreq_put(&uvreq, uvreq->handle->sock);
+	uvreq->cb.connect(uvreq->handle, uvreq->result, uvreq->cbarg);
+	isc__nm_uvreq_put(&uvreq);
 }
 
 void
@@ -1858,31 +1837,28 @@ isc__nm_connectcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+	REQUIRE(uvreq->cb.connect != NULL);
 
 	uvreq->result = eresult;
 
 	if (!async) {
-		isc__nm_connectcb_job(uvreq);
+		isc___nm_connectcb(uvreq);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_connectcb_job,
-		    uvreq);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_connectcb, uvreq);
 }
 
 static void
-isc__nm_readcb_job(void *arg) {
+isc___nm_readcb(void *arg) {
 	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
-	isc_nmsocket_t *sock = uvreq->handle->sock;
 	isc_region_t region;
 
 	region.base = (unsigned char *)uvreq->uvbuf.base;
 	region.length = uvreq->uvbuf.len;
+	uvreq->cb.recv(uvreq->handle, uvreq->result, &region, uvreq->cbarg);
 
-	uvreq->cb.recv(uvreq->handle, eresult, &region, uvreq->cbarg);
-
-	isc__nm_uvreq_put(&uvreq, sock);
+	isc__nm_uvreq_put(&uvreq);
 }
 
 void
@@ -1891,25 +1867,23 @@ isc__nm_readcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+
 	uvreq->result = eresult;
 
 	if (!async) {
-		isc__nm_readcb_job(uvreq);
+		isc___nm_readcb(uvreq);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_readcb_job, uvreq);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_readcb, uvreq);
 }
 
 static void
-isc__nm_sendcb_job(void *arg) {
+isc___nm_sendcb(void *arg) {
 	isc__nm_uvreq_t *uvreq = arg;
-	isc_result_t eresult = uvreq->result;
-	isc_nmsocket_t *sock = uvreq->handle->sock;
 
-	uvreq->cb.send(uvreq->handle, eresult, uvreq->cbarg);
-
-	isc__nm_uvreq_put(&uvreq, sock);
+	uvreq->cb.send(uvreq->handle, uvreq->result, uvreq->cbarg);
+	isc__nm_uvreq_put(&uvreq);
 }
 
 void
@@ -1918,14 +1892,15 @@ isc__nm_sendcb(isc_nmsocket_t *sock, isc__nm_uvreq_t *uvreq,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(VALID_UVREQ(uvreq));
 	REQUIRE(VALID_NMHANDLE(uvreq->handle));
+
 	uvreq->result = eresult;
 
 	if (!async) {
-		isc__nm_sendcb_job(uvreq);
+		isc___nm_sendcb(uvreq);
 		return;
 	}
 
-	isc_job_run(sock->worker->netmgr->loopmgr, isc__nm_sendcb_job, uvreq);
+	isc_job_run(sock->worker->loop, &uvreq->job, isc___nm_sendcb, uvreq);
 }
 
 static void

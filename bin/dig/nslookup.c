@@ -16,11 +16,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/condition.h>
-#include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
@@ -889,12 +889,13 @@ start_next_command(void);
 
 static void
 process_next_command(void *arg __attribute__((__unused__))) {
+	isc_loop_t *loop = isc_loop_main(loopmgr);
 	if (cmdline == NULL) {
 		in_use = false;
 	} else {
 		do_next_command(cmdline);
 		if (ISC_LIST_HEAD(lookup_list) != NULL) {
-			isc_job_run(loopmgr, run_loop, NULL);
+			isc_async_run(loop, run_loop, NULL);
 			return;
 		}
 	}

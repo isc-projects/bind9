@@ -16,6 +16,7 @@
 #include <inttypes.h>
 
 #include <isc/barrier.h>
+#include <isc/job.h>
 #include <isc/lang.h>
 #include <isc/loop.h>
 #include <isc/magic.h>
@@ -30,14 +31,14 @@
 #include <isc/uv.h>
 #include <isc/work.h>
 
+#include "async_p.h"
+#include "job_p.h"
+
 /*
  * Per-thread loop
  */
 #define LOOP_MAGIC    ISC_MAGIC('L', 'O', 'O', 'P')
 #define VALID_LOOP(t) ISC_MAGIC_VALID(t, LOOP_MAGIC)
-
-typedef ISC_LIST(isc_job_t) isc_joblist_t;
-typedef ISC_ASTACK(isc_job_t) isc_jobstack_t;
 
 struct isc_loop {
 	int magic;
@@ -56,8 +57,12 @@ struct isc_loop {
 	bool shuttingdown;
 
 	/* Async queue */
-	uv_async_t queue_trigger;
-	isc_jobstack_t queue_jobs;
+	uv_async_t async_trigger;
+	isc_asyncstack_t async_jobs;
+
+	/* Jobs queue */
+	uv_idle_t run_trigger;
+	isc_joblist_t run_jobs;
 
 	/* Pause */
 	uv_async_t pause_trigger;
@@ -129,15 +134,6 @@ struct isc_signal {
  */
 #define JOB_MAGIC    ISC_MAGIC('J', 'O', 'B', ' ')
 #define VALID_JOB(t) ISC_MAGIC_VALID(t, JOB_MAGIC)
-
-struct isc_job {
-	int magic;
-	uv_idle_t idle;
-	isc_loop_t *loop;
-	isc_job_cb cb;
-	void *cbarg;
-	ISC_LINK(isc_job_t) link;
-};
 
 /*
  * Work to be offloaded to an external thread.

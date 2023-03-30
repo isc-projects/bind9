@@ -38,6 +38,7 @@
 #include <isc/uv.h>
 #include <isc/work.h>
 
+#include "async_p.h"
 #include "job_p.h"
 #include "loop_p.h"
 
@@ -140,8 +141,10 @@ static void
 destroy_cb(uv_async_t *handle) {
 	isc_loop_t *loop = uv_handle_get_data(handle);
 
+	/* Again, the first close callback here is called last */
+	uv_close(&loop->async_trigger, isc__async_close);
+	uv_close(&loop->run_trigger, isc__job_close);
 	uv_close(&loop->destroy_trigger, NULL);
-	uv_close(&loop->queue_trigger, NULL);
 	uv_close(&loop->pause_trigger, NULL);
 	uv_close(&loop->wakeup_trigger, NULL);
 	uv_close(&loop->quiescent, NULL);
@@ -175,26 +178,11 @@ shutdown_cb(uv_async_t *handle) {
 		isc_job_t *prev = ISC_LIST_PREV(job, link);
 		ISC_LIST_UNLINK(loop->teardown_jobs, job, link);
 
-		isc__job_run(job);
+		job->cb(job->cbarg);
+
+		isc_mem_put(loop->mctx, job, sizeof(*job));
 
 		job = prev;
-	}
-}
-
-static void
-queue_cb(uv_async_t *handle) {
-	isc_loop_t *loop = uv_handle_get_data(handle);
-
-	REQUIRE(VALID_LOOP(loop));
-
-	ISC_STACK(isc_job_t) drain = ISC_ASTACK_TO_STACK(loop->queue_jobs);
-	isc_job_t *job = ISC_STACK_POP(drain, link);
-
-	while (job != NULL) {
-		isc__job_init(loop, job);
-		isc__job_run(job);
-
-		job = ISC_STACK_POP(drain, link);
 	}
 }
 
@@ -209,7 +197,8 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	*loop = (isc_loop_t){
 		.tid = tid,
 		.loopmgr = loopmgr,
-		.queue_jobs = ISC_ASTACK_INITIALIZER,
+		.async_jobs = ISC_ASTACK_INITIALIZER,
+		.run_jobs = ISC_LIST_INITIALIZER,
 		.setup_jobs = ISC_LIST_INITIALIZER,
 		.teardown_jobs = ISC_LIST_INITIALIZER,
 	};
@@ -225,9 +214,13 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	UV_RUNTIME_CHECK(uv_async_init, r);
 	uv_handle_set_data(&loop->shutdown_trigger, loop);
 
-	r = uv_async_init(&loop->loop, &loop->queue_trigger, queue_cb);
+	r = uv_async_init(&loop->loop, &loop->async_trigger, isc__async_cb);
 	UV_RUNTIME_CHECK(uv_async_init, r);
-	uv_handle_set_data(&loop->queue_trigger, loop);
+	uv_handle_set_data(&loop->async_trigger, loop);
+
+	r = uv_idle_init(&loop->loop, &loop->run_trigger);
+	UV_RUNTIME_CHECK(uv_idle_init, r);
+	uv_handle_set_data(&loop->run_trigger, loop);
 
 	r = uv_async_init(&loop->loop, &loop->destroy_trigger, destroy_cb);
 	UV_RUNTIME_CHECK(uv_async_init, r);
@@ -251,24 +244,30 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 }
 
 static void
-loop_run(isc_loop_t *loop) {
-	int r;
-	isc_job_t *job;
+setup_jobs_cb(void *arg) {
+	isc_loop_t *loop = arg;
+	isc_job_t *job = ISC_LIST_HEAD(loop->setup_jobs);
 
-	job = ISC_LIST_HEAD(loop->setup_jobs);
 	while (job != NULL) {
 		isc_job_t *next = ISC_LIST_NEXT(job, link);
 		ISC_LIST_UNLINK(loop->setup_jobs, job, link);
 
-		isc__job_run(job);
+		job->cb(job->cbarg);
+
+		isc_mem_put(loop->mctx, job, sizeof(*job));
 
 		job = next;
 	}
+}
 
-	r = uv_prepare_start(&loop->quiescent, isc__qsbr_quiescent_cb);
+static void
+loop_run(isc_loop_t *loop) {
+	int r = uv_prepare_start(&loop->quiescent, isc__qsbr_quiescent_cb);
 	UV_RUNTIME_CHECK(uv_prepare_start, r);
 
 	isc_barrier_wait(&loop->loopmgr->starting);
+
+	isc_async_run(loop, setup_jobs_cb, loop);
 
 	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
 	UV_RUNTIME_CHECK(uv_run, r);
@@ -281,7 +280,8 @@ loop_close(isc_loop_t *loop) {
 	int r = uv_loop_close(&loop->loop);
 	UV_RUNTIME_CHECK(uv_loop_close, r);
 
-	INSIST(ISC_ASTACK_EMPTY(loop->queue_jobs));
+	INSIST(ISC_ASTACK_EMPTY(loop->async_jobs));
+	INSIST(ISC_LIST_EMPTY(loop->run_jobs));
 
 	loop->magic = 0;
 
@@ -382,53 +382,41 @@ isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {
 
 isc_job_t *
 isc_loop_setup(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
-	isc_loopmgr_t *loopmgr = NULL;
-	isc_job_t *job = NULL;
-
 	REQUIRE(VALID_LOOP(loop));
 	REQUIRE(cb != NULL);
 
-	loopmgr = loop->loopmgr;
+	isc_loopmgr_t *loopmgr = loop->loopmgr;
+	isc_job_t *job = isc_mem_get(loop->mctx, sizeof(*job));
+	*job = (isc_job_t){
+		.cb = cb,
+		.cbarg = cbarg,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
 	REQUIRE(loop->tid == isc_tid() || !atomic_load(&loopmgr->running) ||
 		atomic_load(&loopmgr->paused));
 
-	job = isc__job_new(loop, cb, cbarg);
-	isc__job_init(loop, job);
-
-	/*
-	 * The ISC_LIST_PREPEND is counterintuitive here, but actually, the
-	 * uv_idle_start() puts the item on the HEAD of the internal list, so we
-	 * want to store items here in reverse order, so on the uv_loop, they
-	 * are scheduled in the correct order
-	 */
-	ISC_LIST_PREPEND(loop->setup_jobs, job, link);
+	ISC_LIST_APPEND(loop->setup_jobs, job, link);
 
 	return (job);
 }
 
 isc_job_t *
 isc_loop_teardown(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
-	isc_loopmgr_t *loopmgr = NULL;
-	isc_job_t *job = NULL;
-
 	REQUIRE(VALID_LOOP(loop));
 
-	loopmgr = loop->loopmgr;
+	isc_loopmgr_t *loopmgr = loop->loopmgr;
+	isc_job_t *job = isc_mem_get(loop->mctx, sizeof(*job));
+	*job = (isc_job_t){
+		.cb = cb,
+		.cbarg = cbarg,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
 	REQUIRE(loop->tid == isc_tid() || !atomic_load(&loopmgr->running) ||
 		atomic_load(&loopmgr->paused));
 
-	job = isc__job_new(loop, cb, cbarg);
-	isc__job_init(loop, job);
-
-	/*
-	 * The ISC_LIST_PREPEND is counterintuitive here, but actually, the
-	 * uv_idle_start() puts the item on the HEAD of the internal list, so we
-	 * want to store items here in reverse order, so on the uv_loop, they
-	 * are scheduled in the correct order
-	 */
-	ISC_LIST_PREPEND(loop->teardown_jobs, job, link);
+	ISC_LIST_APPEND(loop->teardown_jobs, job, link);
 
 	return (job);
 }

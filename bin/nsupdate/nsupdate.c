@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -28,7 +29,6 @@
 #include <isc/file.h>
 #include <isc/getaddresses.h>
 #include <isc/hash.h>
-#include <isc/job.h>
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/loop.h>
@@ -2424,7 +2424,7 @@ static void
 done_update(void) {
 	ddebug("done_update()");
 
-	isc_job_run(loopmgr, getinput, NULL);
+	isc_async_current(loopmgr, getinput, NULL);
 }
 
 static void

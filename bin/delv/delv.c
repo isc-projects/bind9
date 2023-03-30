@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
@@ -2168,7 +2169,7 @@ run_server(void *arg) {
 				     ns_client_request, ifp, accept_cb, ifp, 10,
 				     NULL, NULL, &ifp->tcplistensocket));
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
-	isc_job_run(loopmgr, sendquery, ifp->tcplistensocket);
+	isc_async_current(loopmgr, sendquery, ifp->tcplistensocket);
 
 	return;
 

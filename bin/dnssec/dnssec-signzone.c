@@ -33,6 +33,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/attributes.h>
 #include <isc/base32.h>
@@ -41,7 +42,6 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
-#include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/managers.h>
 #include <isc/md.h>
@@ -1667,7 +1667,7 @@ assignwork(void *arg) {
 	lock_and_dumpnode(dns_fixedname_name(&fname), node);
 	dns_db_detachnode(gdb, &node);
 
-	isc_job_run(loopmgr, assignwork, NULL);
+	isc_async_current(loopmgr, assignwork, NULL);
 }
 
 /*%

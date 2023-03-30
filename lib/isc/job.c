@@ -36,100 +36,51 @@
 #include "job_p.h"
 #include "loop_p.h"
 
-#define JOB_MAGIC    ISC_MAGIC('J', 'O', 'B', ' ')
-#define VALID_JOB(t) ISC_MAGIC_VALID(t, JOB_MAGIC)
-
-/*
- * Private: static
- */
-
-static void
-isc__job_close_cb(uv_handle_t *handle) {
-	isc_job_t *job = uv_handle_get_data(handle);
-	isc_loop_t *loop = job->loop;
-
-	REQUIRE(loop == isc_loop_current(job->loop->loopmgr));
-
-	isc_mem_put(loop->mctx, job, sizeof(*job));
-
-	isc_loop_detach(&loop);
-}
-
-static void
-isc__job_destroy(isc_job_t *job) {
-	REQUIRE(VALID_JOB(job));
-	REQUIRE(job->loop == isc_loop_current(job->loop->loopmgr));
-
-	job->magic = 0;
-
-	uv_close(&job->idle, isc__job_close_cb);
-}
-
-static void
-isc__job_cb(uv_idle_t *idle) {
-	isc_job_t *job = uv_handle_get_data(idle);
-	int r;
-
-	REQUIRE(job->loop == isc_loop_current(job->loop->loopmgr));
-
-	job->cb(job->cbarg);
-
-	r = uv_idle_stop(idle);
-	UV_RUNTIME_CHECK(uv_idle_stop, r);
-
-	isc__job_destroy(job);
-}
-
 /*
  * Public: #include <isc/job.h>
  */
 
 void
-isc_job_run(isc_loopmgr_t *loopmgr, isc_job_cb cb, void *cbarg) {
-	isc_loop_t *loop = isc_loop_current(loopmgr);
-	isc_job_t *job = isc__job_new(loop, cb, cbarg);
-	isc__job_init(loop, job);
-	isc__job_run(job);
+isc_job_run(isc_loop_t *loop, isc_job_t *job, isc_job_cb cb, void *cbarg) {
+	if (ISC_LIST_EMPTY(loop->run_jobs)) {
+		uv_idle_start(&loop->run_trigger, isc__job_cb);
+	}
+
+	job->cb = cb;
+	job->cbarg = cbarg;
+
+	ISC_LIST_APPEND(loop->run_jobs, job, link);
 }
 
 /*
  * Protected: #include <job_p.h>
  */
 
-isc_job_t *
-isc__job_new(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
-	isc_job_t *job = NULL;
+void
+isc__job_cb(uv_idle_t *handle) {
+	isc_loop_t *loop = uv_handle_get_data(handle);
+	ISC_LIST(isc_job_t) jobs = ISC_LIST_INITIALIZER;
 
-	REQUIRE(VALID_LOOP(loop));
-	REQUIRE(cb != NULL);
+	ISC_LIST_MOVE(jobs, loop->run_jobs);
 
-	job = isc_mem_get(loop->mctx, sizeof(*job));
-	*job = (isc_job_t){
-		.magic = JOB_MAGIC,
-		.cb = cb,
-		.cbarg = cbarg,
-		.link = ISC_LINK_INITIALIZER,
-	};
+	isc_job_t *job, *next;
+	for (job = ISC_LIST_HEAD(jobs),
+	    next = (job != NULL) ? ISC_LIST_NEXT(job, link) : NULL;
+	     job != NULL;
+	     job = next, next = job ? ISC_LIST_NEXT(job, link) : NULL)
+	{
+		ISC_LIST_UNLINK(jobs, job, link);
+		job->cb(job->cbarg);
+	}
 
-	isc_loop_attach(loop, &job->loop);
-
-	return (job);
+	if (ISC_LIST_EMPTY(loop->run_jobs)) {
+		uv_idle_stop(&loop->run_trigger);
+	}
 }
 
 void
-isc__job_init(isc_loop_t *loop, isc_job_t *job) {
-	int r = uv_idle_init(&loop->loop, &job->idle);
-	UV_RUNTIME_CHECK(uv_idle_init, r);
-	uv_handle_set_data(&job->idle, job);
-}
+isc__job_close(uv_handle_t *handle) {
+	isc_loop_t *loop = uv_handle_get_data(handle);
 
-void
-isc__job_run(isc_job_t *job) {
-	int r;
-
-	REQUIRE(VALID_JOB(job));
-	REQUIRE(job->loop == isc_loop_current(job->loop->loopmgr));
-
-	r = uv_idle_start(&job->idle, isc__job_cb);
-	UV_RUNTIME_CHECK(uv_idle_start, r);
+	isc__job_cb(&loop->run_trigger);
 }

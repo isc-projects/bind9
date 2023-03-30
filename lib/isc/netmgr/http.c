@@ -1156,8 +1156,7 @@ http_send_outgoing(isc_nm_http_session_t *session, isc_nmhandle_t *httphandle,
 
 			INSIST(VALID_NMHANDLE(httphandle));
 
-			newcb = isc__nm_uvreq_get(httphandle->sock->worker,
-						  httphandle->sock);
+			newcb = isc__nm_uvreq_get(httphandle->sock);
 			newcb->cb.send = cb;
 			newcb->cbarg = cbarg;
 			isc_nmhandle_attach(httphandle, &newcb->handle);
@@ -1483,7 +1482,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	atomic_init(&sock->client, true);
 
 	if (isc__nm_closing(worker)) {
-		isc__nm_uvreq_t *req = isc__nm_uvreq_get(worker, sock);
+		isc__nm_uvreq_t *req = isc__nm_uvreq_get(sock);
 
 		req->cb.connect = cb;
 		req->cbarg = cbarg;
@@ -2178,7 +2177,7 @@ isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	uvreq = isc__nm_uvreq_get(sock);
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;
@@ -2198,7 +2197,7 @@ failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 	if (req->cb.send != NULL) {
 		isc__nm_sendcb(sock, req, eresult, true);
 	} else {
-		isc__nm_uvreq_put(&req, sock);
+		isc__nm_uvreq_put(&req);
 	}
 }
 
@@ -2218,7 +2217,7 @@ client_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	}
 
 	http_do_bio(sock->h2.session, handle, cb, cbarg);
-	isc__nm_uvreq_put(&req, sock);
+	isc__nm_uvreq_put(&req);
 }
 
 static void
@@ -2273,7 +2272,7 @@ server_httpsend(isc_nmhandle_t *handle, isc_nmsocket_t *sock,
 	} else {
 		cb(handle, result, cbarg);
 	}
-	isc__nm_uvreq_put(&req, sock);
+	isc__nm_uvreq_put(&req);
 }
 
 static void

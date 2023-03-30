@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 
+#include <isc/job.h>
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/refcount.h>

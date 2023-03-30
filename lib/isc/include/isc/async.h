@@ -15,7 +15,7 @@
  * \brief The isc_async unit provides a way to schedule jobs on any isc
  * event loop (isc_loop unit)
  *
- * The unit is built around the uv_async_t primitive and locked list with
+ * The unit is built around the uv_async_t primitive and lock-free stack with
  * isc_job_cb.  Jobs are first scheduled onto the locked list, then the
  * uv_async_send() is called and the uv_async_t callback processes the enqueued
  * jobs are scheduled to be run on the isc event loop.
@@ -43,6 +43,12 @@ isc_async_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg);
  *\li	'loop' is a valid isc event loop
  *\li	'cb' is a callback function, must be non-NULL
  *\li	'cbarg' is passed to the 'cb' as the only argument, may be NULL
+ */
+
+#define isc_async_current(loopmgr, cb, cbarg) \
+	isc_async_run(isc_loop_current(loopmgr), cb, cbarg)
+/*%<
+ * Helper macro to run the job on the current loop
  */
 
 ISC_LANG_ENDDECLS

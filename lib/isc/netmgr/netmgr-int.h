@@ -142,10 +142,10 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	ievent->file = file;      \
 	ievent->line = line;      \
 	ievent->func = func;
-#define isc__nm_uvreq_get(req, sock) \
-	isc___nm_uvreq_get(req, sock, __FILE__, __LINE__, __func__)
-#define isc__nm_uvreq_put(req, sock) \
-	isc___nm_uvreq_put(req, sock, __FILE__, __LINE__, __func__)
+#define isc__nm_uvreq_get(sock) \
+	isc___nm_uvreq_get(sock, __FILE__, __LINE__, __func__)
+#define isc__nm_uvreq_put(req) \
+	isc___nm_uvreq_put(req, __FILE__, __LINE__, __func__)
 #define isc__nmsocket_init(sock, mgr, type, iface, parent)            \
 	isc___nmsocket_init(sock, mgr, type, iface, parent, __FILE__, \
 			    __LINE__, __func__)
@@ -168,8 +168,8 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 #define FLARG_PASS
 #define FLARG_IEVENT(ievent)
 #define FLARG_IEVENT_PASS(ievent)
-#define isc__nm_uvreq_get(req, sock) isc___nm_uvreq_get(req, sock)
-#define isc__nm_uvreq_put(req, sock) isc___nm_uvreq_put(req, sock)
+#define isc__nm_uvreq_get(sock) isc___nm_uvreq_get(sock)
+#define isc__nm_uvreq_put(req)	isc___nm_uvreq_put(req)
 #define isc__nmsocket_init(sock, mgr, type, iface, parent) \
 	isc___nmsocket_init(sock, mgr, type, iface, parent)
 #define isc__nmsocket_put(sockp)	   isc___nmsocket_put(sockp)
@@ -252,7 +252,6 @@ typedef union {
 	isc_nm_recv_cb_t recv;
 	isc_nm_cb_t send;
 	isc_nm_cb_t connect;
-	isc_nm_accept_cb_t accept;
 } isc__nm_cb_t;
 
 /*
@@ -291,7 +290,9 @@ struct isc__nm_uvreq {
 		uv_fs_t fs;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
-	ISC_LINK(isc__nm_uvreq_t) inactive_link;
+	ISC_LINK(isc__nm_uvreq_t) active_link;
+
+	isc_job_t job;
 };
 
 /*
@@ -627,10 +628,15 @@ struct isc_nmsocket {
 	atomic_bool keepalive;
 
 	/*%
-	 * 'spare' handles for that can be reused to avoid allocations,
-	 * for UDP.
+	 * 'spare' handles for that can be reused to avoid allocations, for UDP.
 	 */
 	ISC_LIST(isc_nmhandle_t) inactive_handles;
+
+	/*%
+	 * 'active' handles and uvreqs, mostly for debugging purposes.
+	 */
+	ISC_LIST(isc_nmhandle_t) active_handles;
+	ISC_LIST(isc__nm_uvreq_t) active_uvreqs;
 
 	/*%
 	 * Used to pass a result back from listen or connect events.
@@ -664,7 +670,6 @@ struct isc_nmsocket {
 	int backtrace_size;
 #endif
 	LINK(isc_nmsocket_t) active_link;
-	ISC_LIST(isc_nmhandle_t) active_handles;
 };
 
 void
@@ -695,14 +700,14 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
  */
 
 isc__nm_uvreq_t *
-isc___nm_uvreq_get(isc__networker_t *worker, isc_nmsocket_t *sock FLARG);
+isc___nm_uvreq_get(isc_nmsocket_t *sock FLARG);
 /*%<
  * Get a UV request structure for the socket 'sock', allocating a
  * new one if there isn't one available in 'sock->inactivereqs'.
  */
 
 void
-isc___nm_uvreq_put(isc__nm_uvreq_t **req, isc_nmsocket_t *sock FLARG);
+isc___nm_uvreq_put(isc__nm_uvreq_t **req FLARG);
 /*%<
  * Completes the use of a UV request structure, setting '*req' to NULL.
  *

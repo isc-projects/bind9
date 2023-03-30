@@ -702,7 +702,7 @@ doh_receive_send_reply_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			assert_true(eresult == ISC_R_SUCCESS);
 		}
 
-		isc_job_run(loopmgr, doh_connect_thread, connect_nm);
+		isc_async_current(loopmgr, doh_connect_thread, connect_nm);
 	}
 	if (sends <= 0) {
 		isc_loopmgr_shutdown(loopmgr);

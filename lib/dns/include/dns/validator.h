@@ -74,7 +74,7 @@
 struct dns_validator {
 	unsigned int   magic;
 	dns_view_t    *view;
-	isc_loopmgr_t *loopmgr;
+	isc_loop_t    *loop;
 	uint32_t       tid;
 	isc_refcount_t references;
 
@@ -160,7 +160,7 @@ isc_result_t
 dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
-		     isc_loopmgr_t *loop, isc_job_cb cb, void *arg,
+		     isc_loop_t *loop, isc_job_cb cb, void *arg,
 		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.

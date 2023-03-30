@@ -981,7 +981,7 @@ tls_send_direct(void *arg) {
 
 	tls_do_bio(sock, NULL, req, false);
 done:
-	isc__nm_uvreq_put(&req, sock);
+	isc__nm_uvreq_put(&req);
 	return;
 }
 
@@ -998,7 +998,7 @@ tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 
 	REQUIRE(sock->type == isc_nm_tlssocket);
 
-	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	uvreq = isc__nm_uvreq_get(sock);
 	isc_nmhandle_attach(handle, &uvreq->handle);
 	uvreq->cb.send = cb;
 	uvreq->cbarg = cbarg;

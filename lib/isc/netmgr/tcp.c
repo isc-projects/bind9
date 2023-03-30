@@ -197,7 +197,7 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 		 * The connect was cancelled from timeout; just clean up
 		 * the req.
 		 */
-		isc__nm_uvreq_put(&req, sock);
+		isc__nm_uvreq_put(&req);
 		return;
 	} else if (isc__nm_closing(worker)) {
 		/* Network manager shutting down */
@@ -291,7 +291,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->fd = fd;
 	atomic_init(&sock->client, true);
 
-	req = isc__nm_uvreq_get(worker, sock);
+	req = isc__nm_uvreq_get(sock);
 	req->cb.connect = cb;
 	req->cbarg = cbarg;
 	req->peer = *peer;
@@ -1009,7 +1009,7 @@ tcp_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(sock->tid == isc_tid());
 
-	uvreq = isc__nm_uvreq_get(sock->worker, sock);
+	uvreq = isc__nm_uvreq_get(sock);
 	if (dnsmsg) {
 		*(uint16_t *)uvreq->tcplen = htons(region->length);
 	}
