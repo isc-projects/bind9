@@ -1192,10 +1192,8 @@ dns_name_settotextfilter(dns_name_totextfilter_t *proc);
  * Set / clear a thread specific function 'proc' to be called at the
  * end of dns_name_totext().
  *
- * Note: Under Windows you need to call "dns_name_settotextfilter(NULL);"
- * prior to exiting the thread otherwise memory will be leaked.
- * For other platforms, which are pthreads based, this is still a good
- * idea but not required.
+ * Note: It's a good practice to call "dns_name_settotextfilter(NULL);"
+ * prior to exiting the thread.
  *
  * Returns
  *\li	#ISC_R_SUCCESS

@@ -540,11 +540,6 @@ typedef enum {
 						      * notify due to the zone
 						      * just being loaded for
 						      * the first time. */
-	/*
-	 * DO NOT add any new zone flags here until all platforms
-	 * support 64-bit enum values. Currently they fail on
-	 * Windows.
-	 */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;
 

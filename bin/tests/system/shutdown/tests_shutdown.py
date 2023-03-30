@@ -40,7 +40,7 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
     if kill_method=="rndc" named will be asked to shutdown by
     means of rndc stop.
     if kill_method=="sigterm" named will be killed by SIGTERM on
-    POSIX systems or by TerminateProcess() on Windows systems.
+    POSIX systems.
 
     :param named_proc: named process instance
     :type named_proc: subprocess.Popen

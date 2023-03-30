@@ -128,8 +128,7 @@ While :iscman:`nslookup` is popular, partly because it comes pre-installed on
 most systems, it is not DNSSEC-aware. :iscman:`dig`, on the other hand, fully
 supports the DNSSEC standard and comes as a part of BIND. If you do not
 have :iscman:`dig` already installed on your system, install it by downloading
-it from ISC's `website <https://www.isc.org/download>`__. ISC provides pre-compiled
-Windows versions on its website.
+it from ISC's `website <https://www.isc.org/download>`__.
 
 :iscman:`dig` is a flexible tool for interrogating DNS name servers. It
 performs DNS lookups and displays the answers that are returned from the
