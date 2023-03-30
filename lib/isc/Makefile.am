@@ -30,7 +30,6 @@ libisc_la_HEADERS =			\
 	include/isc/eventclass.h	\
 	include/isc/file.h		\
 	include/isc/formatcheck.h	\
-	include/isc/fsaccess.h		\
 	include/isc/fuzz.h		\
 	include/isc/glob.h		\
 	include/isc/hash.h		\
@@ -133,9 +132,6 @@ libisc_la_SOURCES =		\
 	error.c			\
 	event.c			\
 	file.c			\
-	fsaccess.c		\
-	fsaccess_common.c	\
-	fsaccess_common_p.h	\
 	glob.c			\
 	hash.c			\
 	heap.c			\

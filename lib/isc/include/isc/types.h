@@ -43,7 +43,6 @@ typedef struct isc_counter isc_counter_t;		  /*%< Counter */
 typedef struct isc_event   isc_event_t;			  /*%< Event */
 typedef ISC_LIST(isc_event_t) isc_eventlist_t;		  /*%< Event List */
 typedef unsigned int	 isc_eventtype_t;		  /*%< Event Type */
-typedef uint32_t	 isc_fsaccess_t;		  /*%< FS Access */
 typedef struct isc_hash	 isc_hash_t;			  /*%< Hash */
 typedef struct isc_httpd isc_httpd_t;			  /*%< HTTP client */
 typedef void(isc_httpdfree_t)(isc_buffer_t *, void *); /*%< HTTP free function
