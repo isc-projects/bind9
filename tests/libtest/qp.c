@@ -242,7 +242,8 @@ qp_test_dumpmulti(dns_qpmulti_t *multi) {
 	unsigned int snapshots = 0;
 	for (dns_qpsnap_t *snap = ISC_LIST_HEAD(multi->snapshots); //
 	     snap != NULL; snap = ISC_LIST_NEXT(snap, link), snapshots++)
-	{}
+	{
+	}
 	printf("qpmulti %p snapshots %u\n", multi, snapshots);
 	fflush(stdout);
 }
