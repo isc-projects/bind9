@@ -281,7 +281,7 @@ main(int argc, char *argv[]) {
 		      isc_result_totext(result));
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	rdclass = strtoclass(classname);
 

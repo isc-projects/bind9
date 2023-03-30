@@ -2017,7 +2017,7 @@ dns_view_loadnta(dns_view_t *view) {
 	dns_ntatable_t *ntatable = NULL;
 	isc_lex_t *lex = NULL;
 	isc_token_t token;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2028,7 +2028,6 @@ dns_view_loadnta(dns_view_t *view) {
 	isc_lex_create(view->mctx, 1025, &lex);
 	CHECK(isc_lex_openfile(lex, view->nta_file));
 	CHECK(dns_view_getntatable(view, &ntatable));
-	isc_stdtime_get(&now);
 
 	for (;;) {
 		int options = (ISC_LEXOPT_EOL | ISC_LEXOPT_EOF);

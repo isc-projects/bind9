@@ -4003,12 +4003,11 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdata_keydata_t kd;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(keynode != NULL);
 
 	ENTER;
-	isc_stdtime_get(&now);
 
 	/*
 	 * If the keynode has no trust anchor set, we shouldn't be here.
@@ -4169,10 +4168,8 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
 	int trusted = 0, revoked = 0, pending = 0;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_keytable_t *sr = NULL;
-
-	isc_stdtime_get(&now);
 
 	result = dns_view_getsecroots(zone->view, &sr);
 	if (result == ISC_R_SUCCESS) {
@@ -4513,12 +4510,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		dns_rdataset_t *rdataset = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_keydata_t keydata;
-		isc_stdtime_t now;
+		isc_stdtime_t now = isc_stdtime_now();
 		bool load = true;
 		dns_name_t *rrname = NULL;
 		uint32_t ttl;
-
-		isc_stdtime_get(&now);
 
 		dns_rriterator_current(&rrit, &rrname, &ttl, &rdataset, NULL);
 		if (!dns_rdataset_isassociated(rdataset)) {
@@ -5158,11 +5153,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 			result = dns_db_getsigningtime(db, &next, name);
 			if (result == ISC_R_SUCCESS) {
-				isc_stdtime_t timenow;
+				isc_stdtime_t timenow = isc_stdtime_now();
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
-				isc_stdtime_get(&timenow);
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				dns_rdatatype_format(next.covers, typebuf,
 						     sizeof(typebuf));
@@ -6832,7 +6826,7 @@ zone_resigninc(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
@@ -8048,7 +8042,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
@@ -9136,7 +9130,7 @@ zone_sign(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
@@ -9792,9 +9786,7 @@ refresh_time(dns_keyfetch_t *kfetch, bool retry) {
 	dns_rdataset_t *rdset;
 	dns_rdata_t sigrr = DNS_RDATA_INIT;
 	dns_rdata_sig_t sig;
-	isc_stdtime_t now;
-
-	isc_stdtime_get(&now);
+	isc_stdtime_t now = isc_stdtime_now();
 
 	if (dns_rdataset_isassociated(&kfetch->dnskeysigset)) {
 		rdset = &kfetch->dnskeysigset;
@@ -9864,10 +9856,9 @@ minimal_update(dns_keyfetch_t *kfetch, dns_dbversion_t *ver, dns_diff_t *diff) {
 	dns_rdata_keydata_t keydata;
 	dns_name_t *name;
 	dns_zone_t *zone = kfetch->zone;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	name = dns_fixedname_name(&kfetch->name);
-	isc_stdtime_get(&now);
 
 	for (result = dns_rdataset_first(&kfetch->keydataset);
 	     result == ISC_R_SUCCESS;
@@ -10041,7 +10032,7 @@ keyfetch_done(void *arg) {
 		goto cleanup;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 	dns_name_format(keyname, namebuf, sizeof(namebuf));
 
 	result = dns_view_getsecroots(zone->view, &secroots);
@@ -10742,15 +10733,13 @@ zone_refreshkeys(dns_zone_t *zone) {
 	dns_diff_t diff;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_keydata_t kd;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	bool commit = false;
 	bool fetching = false;
 	bool timerset = false;
 
 	ENTER;
 	REQUIRE(zone->db != NULL);
-
-	isc_stdtime_get(&now);
 
 	LOCK_ZONE(zone);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {

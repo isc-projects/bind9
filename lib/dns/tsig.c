@@ -389,14 +389,13 @@ cleanup_ring(dns_tsig_keyring_t *ring) {
 	dns_name_t foundname;
 	dns_fixedname_t fixedorigin;
 	dns_name_t *origin;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_rbtnode_t *node;
 	dns_tsigkey_t *tkey;
 
 	/*
 	 * Start up a new iterator each time.
 	 */
-	isc_stdtime_get(&now);
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);
 
@@ -601,7 +600,7 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	dns_name_t foundname;
 	dns_fixedname_t fixedorigin;
 	dns_name_t *origin;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_rbtnode_t *node;
 	dns_tsigkey_t *tkey;
 	dns_tsig_keyring_t *ring;
@@ -615,7 +614,6 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 		return (DNS_R_CONTINUE);
 	}
 
-	isc_stdtime_get(&now);
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);
 	dns_rbtnodechain_init(&chain);
@@ -805,7 +803,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (msg->fuzzing) {
 		now = msg->fuzztime;
 	} else {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	tsig.timesigned = now + msg->timeadjust;
@@ -1159,7 +1157,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	if (msg->fuzzing) {
 		now = msg->fuzztime;
 	} else {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	/*
@@ -1659,7 +1657,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (msg->fuzzing) {
 			now = msg->fuzztime;
 		} else {
-			isc_stdtime_get(&now);
+			now = isc_stdtime_now();
 		}
 
 		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
@@ -1738,7 +1736,7 @@ isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring) {
 	dns_tsigkey_t *key;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
 
 	REQUIRE(tsigkey != NULL);
@@ -1750,7 +1748,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 	cleanup_ring(ring);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 
-	isc_stdtime_get(&now);
 	RWLOCK(&ring->lock, isc_rwlocktype_read);
 	key = NULL;
 	result = dns_rbt_findname(ring->keys, name, 0, NULL, (void *)&key);
@@ -1880,10 +1877,9 @@ dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp) {
 
 void
 dns_keyring_restore(dns_tsig_keyring_t *ring, FILE *fp) {
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
 
-	isc_stdtime_get(&now);
 	do {
 		result = restore_key(ring, now, fp);
 		if (result == ISC_R_NOMORE) {

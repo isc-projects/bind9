@@ -67,9 +67,9 @@ set_mystdtime(int year, int month, int day) {
 	mystdtime = timegm(&tm);
 }
 
-void
-isc_stdtime_get(isc_stdtime_t *now) {
-	*now = mystdtime;
+isc_stdtime_t
+isc_stdtime_now(void) {
+	return (mystdtime);
 }
 
 /* simple increment by 1 */

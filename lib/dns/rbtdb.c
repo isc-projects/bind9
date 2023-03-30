@@ -5016,7 +5016,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(version == NULL);
 
 	if (now == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	search.rbtversion = NULL;
@@ -5417,7 +5417,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	REQUIRE(VALID_RBTDB(search.rbtdb));
 
 	if (now == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	search.rbtversion = NULL;
@@ -5667,7 +5667,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	 */
 
 	if (now == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	if (isc_mem_isovermem(rbtdb->common.mctx)) {
@@ -5950,7 +5950,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	result = ISC_R_SUCCESS;
 
 	if (now == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	lock = &rbtdb->node_locks[rbtnode->locknum].lock;
@@ -6058,7 +6058,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		}
 	} else {
 		if (now == 0) {
-			isc_stdtime_get(&now);
+			now = isc_stdtime_now();
 		}
 		rbtversion = NULL;
 	}
@@ -6923,7 +6923,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	if (rbtversion == NULL) {
 		if (now == 0) {
-			isc_stdtime_get(&now);
+			now = isc_stdtime_now();
 		}
 	} else {
 		now = 0;
@@ -7623,11 +7623,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	loadctx = isc_mem_get(rbtdb->common.mctx, sizeof(*loadctx));
 
 	loadctx->rbtdb = rbtdb;
-	if (IS_CACHE(rbtdb)) {
-		isc_stdtime_get(&loadctx->now);
-	} else {
-		loadctx->now = 0;
-	}
+	loadctx->now = IS_CACHE(rbtdb) ? isc_stdtime_now() : 0;
 
 	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
 

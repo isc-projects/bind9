@@ -2087,7 +2087,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 	}
 
 	if (now == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	/*
@@ -2456,7 +2456,7 @@ dns_adb_cancelfind(dns_adbfind_t *find) {
 
 void
 dns_adb_dump(dns_adb_t *adb, FILE *f) {
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(f != NULL);
@@ -2465,7 +2465,6 @@ dns_adb_dump(dns_adb_t *adb, FILE *f) {
 		return;
 	}
 
-	isc_stdtime_get(&now);
 	cleanup_names(adb, now);
 	cleanup_entries(adb, now);
 	dump_adb(adb, f, false, now);
@@ -2956,7 +2955,7 @@ fetch_callback(void *arg) {
 		goto out;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	/*
 	 * If we got a negative cache response, remember it.
@@ -3197,7 +3196,7 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int rtt,
 	LOCK(&entry->lock);
 
 	if (entry->expires == 0 || factor == DNS_ADB_RTTADJAGE) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 	adjustsrtt(addr, rtt, factor, now);
 
@@ -3258,7 +3257,7 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 
 	entry->flags = (entry->flags & ~mask) | (bits & mask);
 	if (entry->expires == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		entry->expires = now + ADB_ENTRY_WINDOW;
 	}
 
@@ -3555,7 +3554,7 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
 	if (entry->expires == 0) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		entry->expires = now + ADB_ENTRY_WINDOW;
 	}
 

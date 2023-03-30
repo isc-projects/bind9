@@ -3680,7 +3680,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	if (startstr != NULL) {
 		starttime = strtotime(startstr, now, now, NULL);

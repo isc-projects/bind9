@@ -190,7 +190,7 @@ main(int argc, char **argv) {
 
 	flags = dst_key_flags(key);
 	if ((flags & DNS_KEYFLAG_REVOKE) == 0) {
-		isc_stdtime_t now;
+		isc_stdtime_t now = isc_stdtime_now();
 
 		if ((flags & DNS_KEYFLAG_KSK) == 0) {
 			fprintf(stderr,
@@ -200,7 +200,6 @@ main(int argc, char **argv) {
 				program);
 		}
 
-		isc_stdtime_get(&now);
 		dst_key_settime(key, DST_TIME_REVOKE, now);
 
 		dst_key_setflags(key, flags | DNS_KEYFLAG_REVOKE);

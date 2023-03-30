@@ -408,7 +408,7 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 
 	if (!ignoretime) {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 
 		/*
 		 * Is SIG temporally valid?
@@ -971,7 +971,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	if (msg->fuzzing) {
 		now = msg->fuzztime;
 	} else {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 	sig.timesigned = now - DNS_TSIG_FUDGE;
 	sig.timeexpire = now + DNS_TSIG_FUDGE;
@@ -1119,7 +1119,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	if (msg->fuzzing) {
 		now = msg->fuzztime;
 	} else {
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 	}
 
 	if (isc_serial_lt((uint32_t)now, sig.timesigned)) {
@@ -1907,7 +1907,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 		       "(%u).",
 		       keystr, ttl);
 
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		dst_key_settime(key->key, DST_TIME_ACTIVATE, now + ttl);
 	}
 

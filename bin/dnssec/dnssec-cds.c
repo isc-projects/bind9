@@ -345,8 +345,7 @@ load_parent_set(const char *path) {
 	}
 	notbefore = isc_time_seconds(&modtime);
 	if (startstr != NULL) {
-		isc_stdtime_t now;
-		isc_stdtime_get(&now);
+		isc_stdtime_t now = isc_stdtime_now();
 		notbefore = strtotime(startstr, now, notbefore, NULL);
 	}
 	verbose_time(1, "child records must not be signed before", notbefore);

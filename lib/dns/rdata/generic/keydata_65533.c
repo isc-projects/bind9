@@ -207,9 +207,7 @@ totext_keydata(ARGS_TOTEXT) {
 		RETERR(str_totext(buf, target));
 
 		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
-			isc_stdtime_t now;
-
-			isc_stdtime_get(&now);
+			isc_stdtime_t now = isc_stdtime_now();
 
 			RETERR(str_totext(tctx->linebreak, target));
 			RETERR(str_totext("; next refresh: ", target));

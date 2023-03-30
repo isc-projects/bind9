@@ -42,9 +42,8 @@ static atomic_uint_fast32_t last_tcpquota_log = 0;
 
 static bool
 can_log_tcp_quota(void) {
-	isc_stdtime_t now, last;
-
-	isc_stdtime_get(&now);
+	isc_stdtime_t last;
+	isc_stdtime_t now = isc_stdtime_now();
 	last = atomic_exchange_relaxed(&last_tcpquota_log, now);
 	if (now != last) {
 		return (true);

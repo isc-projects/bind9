@@ -302,10 +302,9 @@ main(int argc, char **argv) {
 	isc_log_t *log = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	dns_rdata_init(&rdata);
-	isc_stdtime_get(&now);
 
 	if (argc == 1) {
 		usage();

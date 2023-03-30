@@ -1545,7 +1545,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		goto cleanup;
 	}
 
-	isc_stdtime_get(&dctx->now);
+	dctx->now = isc_stdtime_now();
 	dns_db_attach(db, &dctx->db);
 
 	dctx->do_date = dns_db_iscache(dctx->db);
@@ -1913,7 +1913,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 	isc_result_t result;
 	isc_buffer_t buffer;
 	char *bufmem;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_totext_ctx_t ctx;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	unsigned int options = DNS_DB_STALEOK;
@@ -1927,8 +1927,6 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
-
-	isc_stdtime_get(&now);
 
 	bufmem = isc_mem_get(mctx, initial_buffer_length);
 

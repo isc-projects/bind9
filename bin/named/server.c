@@ -7456,7 +7456,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 	char key_txtsecret[256];
 	char key_rawsecret[64];
 	isc_region_t key_rawregion;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_tsigkey_t *tsigkey = NULL;
 	FILE *fp = NULL;
 
@@ -7484,7 +7484,6 @@ generate_session_key(const char *filename, const char *keynamestr,
 	CHECK(isc_base64_totext(&key_rawregion, -1, "", &key_txtbuffer));
 
 	/* Store the key in tsigkey. */
-	isc_stdtime_get(&now);
 	CHECK(dns_tsigkey_createfromkey(dst_key_name(key), algname, key, false,
 					false, NULL, now, now, mctx, NULL,
 					&tsigkey));
@@ -15140,11 +15139,9 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 		result = dns_db_getsigningtime(db, &next, name);
 		if (result == ISC_R_SUCCESS) {
-			isc_stdtime_t timenow;
 			char namebuf[DNS_NAME_FORMATSIZE];
 			char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
-			isc_stdtime_get(&timenow);
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			dns_rdatatype_format(next.covers, typebuf,
 					     sizeof(typebuf));
@@ -15444,7 +15441,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 		CHECK(DNS_R_SYNTAX);
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	isc_loopmgr_pause(named_g_loopmgr);
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
@@ -15704,10 +15701,8 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_rriterator_t rrit;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_name_t *prevname = NULL;
-
-	isc_stdtime_get(&now);
 
 	CHECK(dns_zone_getdb(view->managed_keys, &db));
 	dns_db_currentversion(db, &ver);

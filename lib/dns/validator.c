@@ -3019,7 +3019,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_fixedname_init(&val->wild);
 	dns_fixedname_init(&val->closest);
-	isc_stdtime_get(&val->start);
+	val->start = isc_stdtime_now();
 	val->magic = VALIDATOR_MAGIC;
 
 	if ((options & DNS_VALIDATOR_DEFER) == 0) {

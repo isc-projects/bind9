@@ -3826,7 +3826,6 @@ named_statschannels_shutdown(named_server_t *server) {
 
 isc_result_t
 named_stats_dump(named_server_t *server, FILE *fp) {
-	isc_stdtime_t now;
 	isc_result_t result;
 	dns_view_t *view;
 	dns_zone_t *zone, *next;
@@ -3837,6 +3836,7 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	uint64_t zonestat_values[dns_zonestatscounter_max];
 	uint64_t sockstat_values[isc_sockstatscounter_max];
 	uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
+	isc_stdtime_t now = isc_stdtime_now();
 
 	isc_once_do(&once, init_desc);
 
@@ -3844,7 +3844,6 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	dumparg.type = isc_statsformat_file;
 	dumparg.arg = fp;
 
-	isc_stdtime_get(&now);
 	fprintf(fp, "+++ Statistics Dump +++ (%lu)\n", (unsigned long)now);
 
 	fprintf(fp, "++ Incoming Requests ++\n");

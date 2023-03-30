@@ -1342,7 +1342,7 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 	rrl = isc_mem_getx(view->mctx, sizeof(*rrl), ISC_MEM_ZERO);
 	isc_mem_attach(view->mctx, &rrl->mctx);
 	isc_mutex_init(&rrl->lock);
-	isc_stdtime_get(&rrl->ts_bases[0]);
+	rrl->ts_bases[0] = isc_stdtime_now();
 
 	view->rrl = rrl;
 
