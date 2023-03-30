@@ -985,7 +985,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	if (pps < 100) {
 		pps = 100;
 	}
-	isc_time_now(&end);
+	end = isc_time_now();
 
 	interval = 1000000 / pps; /* interval in usec */
 	if (interval == 0) {
@@ -1082,7 +1082,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 			}
 		}
 
-		isc_time_now(&start);
+		start = isc_time_now();
 		result = dns_rbt_destroy2(treep, rbtdb->quantum);
 		if (result == ISC_R_QUOTA) {
 			INSIST(rbtdb->loop != NULL);

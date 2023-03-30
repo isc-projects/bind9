@@ -3824,7 +3824,7 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_master_stylecreate");
 
 	gdb = NULL;
-	TIME_NOW(&timer_start);
+	timer_start = isc_time_now();
 	loadzone(file, origin, rdclass, &gdb);
 	if (journal != NULL) {
 		loadjournal(mctx, gdb, journal);
@@ -4014,7 +4014,7 @@ main(int argc, char *argv[]) {
 	}
 
 	presign();
-	TIME_NOW(&sign_start);
+	sign_start = isc_time_now();
 	signapex();
 	if (!atomic_load(&finished)) {
 		/*
@@ -4030,7 +4030,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 	postsign();
-	TIME_NOW(&sign_finish);
+	sign_finish = isc_time_now();
 
 	if (disable_zone_check) {
 		vresult = ISC_R_SUCCESS;
@@ -4107,7 +4107,7 @@ main(int argc, char *argv[]) {
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 
 	if (printstats) {
-		TIME_NOW(&timer_finish);
+		timer_finish = isc_time_now();
 		print_stats(&timer_start, &timer_finish, &sign_start,
 			    &sign_finish);
 		isc_mutex_destroy(&statslock);

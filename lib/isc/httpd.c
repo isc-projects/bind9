@@ -762,7 +762,7 @@ prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
 	REQUIRE(VALID_HTTPD(httpd));
 	REQUIRE(reqp != NULL && *reqp == NULL);
 
-	isc_time_now(&now);
+	now = isc_time_now();
 	isc_time_formathttptimestamp(&now, datebuf, sizeof(datebuf));
 
 	if (httpd->up.field_set & (1 << ISC_UF_PATH)) {
@@ -1080,7 +1080,7 @@ isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url, bool isstatic,
 	item->action = func;
 	item->action_arg = arg;
 	item->isstatic = isstatic;
-	isc_time_now(&item->loadtime);
+	item->loadtime = isc_time_now();
 
 	ISC_LINK_INIT(item, link);
 

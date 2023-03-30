@@ -278,7 +278,7 @@ main(int argc, char *argv[]) {
 
 	for (struct fun *fun = fun_list; fun->name != NULL; fun++) {
 		isc_time_t t0;
-		isc_time_now_hires(&t0);
+		t0 = isc_time_now_hires();
 
 		isc_mem_t *mem = NULL;
 		isc_mem_create(&mem);
@@ -291,7 +291,7 @@ main(int argc, char *argv[]) {
 		fun->sqz(map);
 
 		isc_time_t t1;
-		isc_time_now_hires(&t1);
+		t1 = isc_time_now_hires();
 
 		for (count = 0; count < lines; count++) {
 			void *pval = NULL;
@@ -301,7 +301,7 @@ main(int argc, char *argv[]) {
 		}
 
 		isc_time_t t2;
-		isc_time_now_hires(&t2);
+		t2 = isc_time_now_hires();
 
 		printf("%f sec to load %s\n",
 		       (double)isc_time_microdiff(&t1, &t0) / (1000.0 * 1000.0),

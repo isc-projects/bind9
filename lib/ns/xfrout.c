@@ -1248,7 +1248,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	dns_db_attach(db, &xfr->db);
 	dns_db_attachversion(db, ver, &xfr->ver);
 
-	isc_time_now(&xfr->stats.start);
+	xfr->stats.start = isc_time_now();
 
 	isc_nm_timer_create(xfr->client->handle, xfrout_client_timeout, xfr,
 			    &xfr->maxtime_timer);
@@ -1659,7 +1659,7 @@ xfrout_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		uint64_t msecs, persec;
 
 		inc_stats(xfr->client, xfr->zone, ns_statscounter_xfrdone);
-		isc_time_now(&xfr->stats.end);
+		xfr->stats.end = isc_time_now();
 		msecs = isc_time_microdiff(&xfr->stats.end, &xfr->stats.start);
 		msecs /= 1000;
 		if (msecs == 0) {

@@ -753,7 +753,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 		check_file_size_and_maybe_reopen(view->dtenv);
 	}
 
-	TIME_NOW(&now);
+	now = isc_time_now();
 	t = &now;
 
 	init_msg(view->dtenv, &dm, dnstap_type(msgtype));

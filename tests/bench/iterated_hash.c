@@ -32,14 +32,14 @@ time_it(const int count, const int iterations, const unsigned char *salt,
 	       saltlen, inlen);
 	fflush(stdout);
 
-	isc_time_now_hires(&start);
+	start = isc_time_now_hires();
 
 	int i = 0;
 	while (i++ < count) {
 		isc_iterated_hash(out, 1, iterations, salt, saltlen, in, inlen);
 	}
 
-	isc_time_now_hires(&finish);
+	finish = isc_time_now_hires();
 
 	uint64_t microseconds = isc_time_microdiff(&finish, &start);
 	printf("%0.2f us per iterated_hash()\n", (double)microseconds / count);

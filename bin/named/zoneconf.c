@@ -1954,10 +1954,7 @@ isc_result_t
 named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 				   dns_rdataclass_t rdclass, dns_name_t *name) {
 	dns_db_t *db = NULL;
-	isc_time_t now;
 	isc_result_t result;
-
-	TIME_NOW(&now);
 
 	dns_zone_settype(zone, dns_zone_dlz);
 	result = dns_sdlz_setdb(dlzdatabase, rdclass, name, &db);

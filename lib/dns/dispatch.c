@@ -501,7 +501,7 @@ dispentry_runtime(dns_dispentry_t *resp) {
 		return (0);
 	}
 
-	TIME_NOW(&now);
+	now = isc_time_now();
 	return (isc_time_microdiff(&now, &resp->start) / 1000);
 }
 
@@ -1804,7 +1804,7 @@ static void
 udp_startrecv(isc_nmhandle_t *handle, dns_dispentry_t *resp) {
 	REQUIRE(VALID_RESPONSE(resp));
 
-	TIME_NOW(&resp->start);
+	resp->start = isc_time_now();
 	dispentry_log(resp, LVL(90), "attaching handle %p to %p", handle,
 		      &resp->handle);
 	isc_nmhandle_attach(handle, &resp->handle);

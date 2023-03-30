@@ -516,12 +516,10 @@ ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
 	isc_thread_t threads[32];
 	isc_time_t ts1, ts2;
 	double t;
-	isc_result_t result;
 
 	atomic_init(&mem_size, ITEM_SIZE);
 
-	result = isc_time_now(&ts1);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	ts1 = isc_time_now();
 
 	for (int i = 0; i < nthreads; i++) {
 		isc_thread_create(mem_thread, mctx, &threads[i]);
@@ -530,8 +528,7 @@ ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	result = isc_time_now(&ts2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	ts2 = isc_time_now();
 
 	t = isc_time_microdiff(&ts2, &ts1);
 

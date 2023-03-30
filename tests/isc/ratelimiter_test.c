@@ -81,7 +81,7 @@ tick(void *arg) {
 
 	ticks++;
 
-	assert_int_equal(isc_time_now(&tick_time), ISC_R_SUCCESS);
+	tick_time = isc_time_now();
 
 	isc_ratelimiter_shutdown(rl);
 	isc_ratelimiter_detach(&rl);
@@ -92,7 +92,7 @@ tick(void *arg) {
 ISC_LOOP_SETUP_IMPL(ratelimiter_common) {
 	assert_null(rl);
 	isc_time_set(&tick_time, 0, 0);
-	assert_int_equal(isc_time_now(&start_time), ISC_R_SUCCESS);
+	start_time = isc_time_now();
 	isc_ratelimiter_create(mainloop, &rl);
 }
 
@@ -191,7 +191,7 @@ tock(void *arg) {
 	isc_mem_put(mctx, rlstat, sizeof(*rlstat));
 
 	ticks++;
-	assert_int_equal(isc_time_now(&tock_time), ISC_R_SUCCESS);
+	tock_time = isc_time_now();
 }
 
 ISC_LOOP_SETUP_IMPL(ratelimiter_pertick_interval) {
