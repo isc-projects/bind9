@@ -872,7 +872,7 @@ dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 			dns_name_getlabelsequence(name, nlabels - tlabels,
 						  hlabels + tlabels,
 						  &hash_name);
-			hashval = dns_name_fullhash(&hash_name, false);
+			hashval = dns_name_hash(&hash_name);
 
 			dns_name_getlabelsequence(search_name,
 						  nlabels - tlabels, tlabels,
@@ -1569,7 +1569,7 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 
 	REQUIRE(name != NULL);
 
-	node->hashval = dns_name_fullhash(name, false);
+	node->hashval = dns_name_hash(name);
 
 	hash = isc_hash_bits32(node->hashval, rbt->hashbits[rbt->hindex]);
 	node->hashnext = rbt->hashtable[rbt->hindex][hash];

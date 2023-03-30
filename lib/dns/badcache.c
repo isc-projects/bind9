@@ -229,7 +229,7 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		isc_time_settoepoch(&now);
 	}
 
-	hashval = dns_name_hash(name, false);
+	hashval = dns_name_hash(name);
 	hash = hashval % bc->size;
 	LOCK(&bc->tlocks[hash]);
 	prev = NULL;
@@ -318,7 +318,7 @@ dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		goto skip;
 	}
 
-	hash = dns_name_hash(name, false) % bc->size;
+	hash = dns_name_hash(name) % bc->size;
 	prev = NULL;
 	LOCK(&bc->tlocks[hash]);
 	for (bad = bc->table[hash]; bad != NULL; bad = next) {
@@ -402,7 +402,7 @@ dns_badcache_flushname(dns_badcache_t *bc, const dns_name_t *name) {
 	if (result != ISC_R_SUCCESS) {
 		isc_time_settoepoch(&now);
 	}
-	hash = dns_name_hash(name, false) % bc->size;
+	hash = dns_name_hash(name) % bc->size;
 	LOCK(&bc->tlocks[hash]);
 	prev = NULL;
 	for (bad = bc->table[hash]; bad != NULL; bad = next) {
