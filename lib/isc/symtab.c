@@ -243,7 +243,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 	 * truly const coming in and then the caller modified it anyway ...
 	 * well, don't do that!
 	 */
-	DE_CONST(key, elt->key);
+	elt->key = UNCONST(key);
 	elt->type = type;
 	elt->value = value;
 

@@ -63,7 +63,7 @@ parse_duration(const char *str) {
 	isc_result_t result;
 	isc_textregion_t tr;
 
-	DE_CONST(str, tr.base);
+	tr.base = UNCONST(str);
 	tr.length = strlen(tr.base);
 	result = isccfg_parse_duration(&tr, &duration);
 	if (result == ISC_R_SUCCESS) {
@@ -332,7 +332,7 @@ add_digest(dns_kasp_t *kasp, const cfg_obj_t *digest, isc_log_t *logctx) {
 	dns_dsdigest_t alg;
 	const char *str = cfg_obj_asstring(digest);
 
-	DE_CONST(str, r.base);
+	r.base = UNCONST(str);
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
 	if (result != ISC_R_SUCCESS) {

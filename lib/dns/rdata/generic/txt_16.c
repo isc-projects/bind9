@@ -30,7 +30,7 @@ generic_fromtext_txt(ARGS_FROMTEXT) {
 	strings = 0;
 	if ((options & DNS_RDATA_UNKNOWNESCAPE) != 0) {
 		isc_textregion_t r;
-		DE_CONST("#", r.base);
+		r.base = UNCONST("#");
 		r.length = 1;
 		RETERR(txt_fromtext(&r, target));
 		strings++;

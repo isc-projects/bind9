@@ -365,8 +365,7 @@ cleanup_refs:
 		isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
 	}
 	if (dns__tsig_algallocated(tkey->algorithm)) {
-		dns_name_t *tmpname;
-		DE_CONST(tkey->algorithm, tmpname);
+		dns_name_t *tmpname = UNCONST(tkey->algorithm);
 		if (dns_name_dynamic(tmpname)) {
 			dns_name_free(tmpname, mctx);
 		}
@@ -719,8 +718,7 @@ tsigkey_free(dns_tsigkey_t *key) {
 	key->magic = 0;
 	dns_name_free(&key->name, key->mctx);
 	if (dns__tsig_algallocated(key->algorithm)) {
-		dns_name_t *name;
-		DE_CONST(key->algorithm, name);
+		dns_name_t *name = UNCONST(key->algorithm);
 		dns_name_free(name, key->mctx);
 		isc_mem_put(key->mctx, name, sizeof(dns_name_t));
 	}

@@ -855,7 +855,7 @@ isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str) {
 	isccc_region_t r;
 
 	len = strlen(str);
-	DE_CONST(str, r.rstart);
+	r.rstart = UNCONST(str);
 	r.rend = r.rstart + len;
 
 	return (isccc_alist_definebinary(alist, key, &r));

@@ -376,7 +376,7 @@ strtoclass(const char *str) {
 	if (str == NULL) {
 		return (dns_rdataclass_in);
 	}
-	DE_CONST(str, r.base);
+	r.base = UNCONST(str);
 	r.length = strlen(str);
 	result = dns_rdataclass_fromtext(&rdclass, &r);
 	if (result != ISC_R_SUCCESS) {
@@ -391,7 +391,7 @@ strtodsdigest(const char *str) {
 	dns_dsdigest_t alg;
 	isc_result_t result;
 
-	DE_CONST(str, r.base);
+	r.base = UNCONST(str);
 	r.length = strlen(str);
 	result = dns_dsdigest_fromtext(&alg, &r);
 	if (result != ISC_R_SUCCESS) {

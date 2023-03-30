@@ -104,7 +104,7 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 	dns_fixedname_init(&fixed);
 	obj = cfg_tuple_get(ent, "class");
 	if (cfg_obj_isstring(obj)) {
-		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.base = UNCONST(cfg_obj_asstring(obj));
 		r.length = strlen(r.base);
 		tresult = dns_rdataclass_fromtext(&rdclass, &r);
 		if (tresult != ISC_R_SUCCESS) {
@@ -118,7 +118,7 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 
 	obj = cfg_tuple_get(ent, "type");
 	if (cfg_obj_isstring(obj)) {
-		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.base = UNCONST(cfg_obj_asstring(obj));
 		r.length = strlen(r.base);
 		tresult = dns_rdatatype_fromtext(&rdtype, &r);
 		if (tresult != ISC_R_SUCCESS) {
@@ -389,7 +389,7 @@ disabled_algorithms(const cfg_obj_t *disabled, isc_log_t *logctx) {
 		isc_textregion_t r;
 		dns_secalg_t alg;
 
-		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
 
 		tresult = dns_secalg_fromtext(&alg, &r);
@@ -434,7 +434,7 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 		isc_textregion_t r;
 		dns_dsdigest_t digest;
 
-		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
 
 		/* works with a numeric argument too */
@@ -2402,7 +2402,7 @@ validate_remotes(const char *list, const cfg_obj_t *obj,
 	isc_symtab_t *symtab = NULL;
 	isc_symvalue_t symvalue;
 	const cfg_listelt_t *element;
-	const cfg_listelt_t **stack = NULL;
+	cfg_listelt_t **stack = NULL;
 	uint32_t stackcount = 0, pushed = 0;
 	const cfg_obj_t *listobj;
 
@@ -2519,16 +2519,13 @@ resume:
 			oldsize = stackcount * sizeof(*stack);
 			newstack = isc_mem_get(mctx, newsize);
 			if (stackcount != 0) {
-				void *ptr;
-
-				DE_CONST(stack, ptr);
 				memmove(newstack, stack, oldsize);
-				isc_mem_put(mctx, ptr, oldsize);
+				isc_mem_put(mctx, stack, oldsize);
 			}
 			stack = newstack;
 			stackcount = newlen;
 		}
-		stack[pushed++] = cfg_list_next(element);
+		stack[pushed++] = UNCONST(cfg_list_next(element));
 		goto newlist;
 	}
 	if (pushed != 0) {
@@ -2536,10 +2533,7 @@ resume:
 		goto resume;
 	}
 	if (stack != NULL) {
-		void *ptr;
-
-		DE_CONST(stack, ptr);
-		isc_mem_put(mctx, ptr, stackcount * sizeof(*stack));
+		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
 	}
 	isc_symtab_destroy(&symtab);
 	*countp = count;
@@ -2665,7 +2659,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		case dns_ssumatchtype_external:
 		case dns_ssumatchtype_local:
 			if (tresult == ISC_R_SUCCESS) {
-				DE_CONST(str, r.base);
+				r.base = UNCONST(str);
 				r.length = strlen(str);
 				tresult = dns_rdatatype_fromtext(&type, &r);
 			}
@@ -2689,7 +2683,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			const char *bracket;
 
 			typeobj = cfg_listelt_value(element2);
-			DE_CONST(cfg_obj_asstring(typeobj), r.base);
+			r.base = UNCONST(cfg_obj_asstring(typeobj));
 
 			bracket = strchr(r.base, '(' /*)*/);
 			if (bracket != NULL) {
@@ -2969,7 +2963,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (cfg_obj_isstring(obj)) {
 		isc_textregion_t r;
 
-		DE_CONST(cfg_obj_asstring(obj), r.base);
+		r.base = UNCONST(cfg_obj_asstring(obj));
 		r.length = strlen(r.base);
 		result = dns_rdataclass_fromtext(&zclass, &r);
 		if (result != ISC_R_SUCCESS) {
@@ -6019,7 +6013,7 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		if (cfg_obj_isstring(vclassobj)) {
 			isc_textregion_t r;
 
-			DE_CONST(cfg_obj_asstring(vclassobj), r.base);
+			r.base = UNCONST(cfg_obj_asstring(vclassobj));
 			r.length = strlen(r.base);
 			tresult = dns_rdataclass_fromtext(&vclass, &r);
 			if (tresult != ISC_R_SUCCESS) {

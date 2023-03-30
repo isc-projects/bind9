@@ -456,7 +456,7 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 			 * but in isc_log_createchannel it gets copied
 			 * into writable memory and is not longer truly const.
 			 */
-			DE_CONST(FILE_NAME(channel), filename);
+			filename = UNCONST(FILE_NAME(channel));
 			isc_mem_free(mctx, filename);
 
 			if (FILE_STREAM(channel) != NULL) {
@@ -522,7 +522,7 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]) {
 				 * The name pointer points to the next array.
 				 * Ick.
 				 */
-				DE_CONST(catp->name, catp);
+				catp = UNCONST(catp->name);
 			} else {
 				catp++;
 			}
@@ -553,7 +553,7 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name) {
 			 * catp is neither modified nor returned to the
 			 * caller, so removing its const qualifier is ok.
 			 */
-			DE_CONST(catp->name, catp);
+			catp = UNCONST(catp->name);
 		} else {
 			if (strcmp(catp->name, name) == 0) {
 				return (catp);
@@ -593,7 +593,7 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]) {
 				 * The name pointer points to the next array.
 				 * Ick.
 				 */
-				DE_CONST(modp->name, modp);
+				modp = UNCONST(modp->name);
 			} else {
 				modp++;
 			}
@@ -624,7 +624,7 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name) {
 			 * modp is neither modified nor returned to the
 			 * caller, so removing its const qualifier is ok.
 			 */
-			DE_CONST(modp->name, modp);
+			modp = UNCONST(modp->name);
 		} else {
 			if (strcmp(modp->name, name) == 0) {
 				return (modp);
@@ -1020,7 +1020,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	char sep = '/';
 
 	/*
-	 * It is safe to DE_CONST the file.name because it was copied
+	 * It is safe to UNCONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
@@ -1028,7 +1028,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 		*bname++ = '\0';
 		dirname = file->name;
 	} else {
-		DE_CONST(file->name, bname);
+		bname = UNCONST(file->name);
 		dirname = ".";
 	}
 	bnamelen = strlen(bname);
@@ -1152,7 +1152,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	char sep = '/';
 
 	/*
-	 * It is safe to DE_CONST the file.name because it was copied
+	 * It is safe to UNCONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
@@ -1160,7 +1160,7 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 		*bname++ = '\0';
 		dirname = file->name;
 	} else {
-		DE_CONST(file->name, bname);
+		bname = UNCONST(file->name);
 		dirname = ".";
 	}
 	bnamelen = strlen(bname);

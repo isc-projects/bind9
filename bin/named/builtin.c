@@ -126,7 +126,7 @@ putrdata(bdbnode_t *node, dns_rdatatype_t typeval, dns_ttl_t ttl,
 	rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 
 	isc_buffer_allocate(mctx, &rdatabuf, rdlen);
-	DE_CONST(rdatap, region.base);
+	region.base = UNCONST(rdatap);
 	region.length = rdlen;
 	isc_buffer_copyregion(rdatabuf, &region);
 	isc_buffer_usedregion(rdatabuf, &region);

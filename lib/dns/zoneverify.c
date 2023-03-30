@@ -1079,21 +1079,21 @@ _checknext(const vctx_t *vctx, const struct nsec3_chain_fixed *first,
 		return (true);
 	}
 
-	DE_CONST(d1 - first->next_length, sr.base);
+	sr.base = UNCONST(d1 - first->next_length);
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);
 	zoneverify_log_error(vctx, "Break in NSEC3 chain at: %.*s",
 			     (int)isc_buffer_usedlength(&b), buf);
 
-	DE_CONST(d1, sr.base);
+	sr.base = UNCONST(d1);
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);
 	zoneverify_log_error(vctx, "Expected: %.*s",
 			     (int)isc_buffer_usedlength(&b), buf);
 
-	DE_CONST(d2, sr.base);
+	sr.base = UNCONST(d2);
 	sr.length = first->next_length;
 	isc_buffer_init(&b, buf, sizeof(buf));
 	isc_base32hex_totext(&sr, 1, "", &b);

@@ -152,7 +152,7 @@ convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 	 */
 	memset(&loop, 0, sizeof(loop));
 	ISC_LINK_INIT(&loop, nextincache);
-	DE_CONST(aclname, loop.name);
+	loop.name = UNCONST(aclname);
 	loop.magic = LOOP_MAGIC;
 	ISC_LIST_APPEND(ctx->named_acl_cache, &loop, nextincache);
 	result = cfg_acl_fromconfig(cacl, cctx, lctx, ctx, mctx, nest_level,

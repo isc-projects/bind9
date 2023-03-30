@@ -2595,8 +2595,7 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 
 		return (DNS_R_CONTINUE);
 	} else if (zone->stream != NULL) {
-		FILE *stream = NULL;
-		DE_CONST(zone->stream, stream);
+		FILE *stream = UNCONST(zone->stream);
 		result = dns_master_loadstream(
 			stream, &zone->origin, &zone->origin, zone->rdclass,
 			options, &load->callbacks, zone->mctx);
@@ -21567,7 +21566,7 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 
 		n = sscanf(algstr, "%hhu", &alg);
 		if (n == 0U) {
-			DE_CONST(algstr, r.base);
+			r.base = UNCONST(algstr);
 			r.length = strlen(algstr);
 			CHECK(dns_secalg_fromtext(&alg, &r));
 		}
@@ -22011,7 +22010,7 @@ setparam:
 	}
 
 	if (param->salt_length == 0) {
-		DE_CONST("-", param->salt);
+		param->salt = (unsigned char *)"-";
 	} else if (resalt || param->salt == NULL) {
 		unsigned char *newsalt;
 		unsigned char salttext[255 * 2 + 1];

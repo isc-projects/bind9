@@ -305,7 +305,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 			typeobj = cfg_listelt_value(element2);
 			str = cfg_obj_asstring(typeobj);
-			DE_CONST(str, r.base);
+			r.base = UNCONST(str);
 
 			bracket = strchr(str, '(' /*)*/);
 			if (bracket != NULL) {
