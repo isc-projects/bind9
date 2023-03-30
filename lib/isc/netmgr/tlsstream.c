@@ -344,10 +344,15 @@ tls_try_handshake(isc_nmsocket_t *sock, isc_result_t *presult) {
 		INSIST(sock->statichandle == NULL);
 		isc__nmsocket_log_tls_session_reuse(sock, sock->tlsstream.tls);
 		tlshandle = isc__nmhandle_get(sock, &sock->peer, &sock->iface);
+
+		if (isc__nm_closing(sock)) {
+			result = ISC_R_SHUTTINGDOWN;
+		}
+
 		if (sock->tlsstream.server) {
 			if (isc__nmsocket_closing(sock->listener)) {
 				result = ISC_R_CANCELED;
-			} else {
+			} else if (result == ISC_R_SUCCESS) {
 				result = sock->listener->accept_cb(
 					tlshandle, result,
 					sock->listener->accept_cbarg);
@@ -466,7 +471,6 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 					INSIST(SSL_is_init_finished(
 						       sock->tlsstream.tls) ==
 					       1);
-					INSIST(!atomic_load(&sock->client));
 					finish = true;
 				}
 			}
