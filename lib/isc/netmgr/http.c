@@ -1479,7 +1479,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->connect_timeout = timeout;
 	sock->connect_cb = cb;
 	sock->connect_cbarg = cbarg;
-	atomic_init(&sock->client, true);
+	sock->client = true;
 
 	if (isc__nm_closing(worker)) {
 		isc__nm_uvreq_t *req = isc__nm_uvreq_get(sock);
@@ -1609,7 +1609,7 @@ isc__nm_http_request(isc_nmhandle_t *handle, isc_region_t *region,
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	REQUIRE(handle->sock->tid == isc_tid());
-	REQUIRE(atomic_load(&handle->sock->client));
+	REQUIRE(handle->sock->client);
 
 	REQUIRE(cb != NULL);
 
@@ -1688,11 +1688,9 @@ find_server_request_handler(const char *request_path,
 
 	REQUIRE(VALID_NMSOCK(serversocket));
 
-	if (atomic_load(&serversocket->listening)) {
-		handler = http_endpoints_find(
-			request_path,
-			http_get_listener_endpoints(serversocket, tid));
-	}
+	handler = http_endpoints_find(
+		request_path, http_get_listener_endpoints(serversocket, tid));
+
 	return (handler);
 }
 
@@ -2069,7 +2067,7 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMSOCK(handle->sock));
 	sock = handle->sock;
 	REQUIRE(sock->type == isc_nm_httpsocket);
-	REQUIRE(!atomic_load(&sock->client));
+	REQUIRE(!sock->client);
 	REQUIRE(VALID_HTTP2_SESSION(sock->h2.session));
 
 	(void)server_send_error_response(ISC_HTTP_ERROR_BAD_REQUEST,
@@ -2430,57 +2428,31 @@ http_transpost_tcp_nodelay(isc_nmhandle_t *transphandle) {
 
 static isc_result_t
 httplisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
-	isc_nmsocket_t *httplistensock = (isc_nmsocket_t *)cbarg;
+	isc_nmsocket_t *httpserver = (isc_nmsocket_t *)cbarg;
 	isc_nm_http_session_t *session = NULL;
-	isc_nmsocket_t *listener = NULL, *httpserver = NULL;
 
 	REQUIRE(VALID_NMHANDLE(handle));
 	REQUIRE(VALID_NMSOCK(handle->sock));
 
-	if (handle->sock->type == isc_nm_tlssocket) {
-		REQUIRE(VALID_NMSOCK(handle->sock->listener));
-		listener = handle->sock->listener;
-		httpserver = listener->h2.httpserver;
-	} else {
-		REQUIRE(VALID_NMSOCK(handle->sock->server));
-		listener = handle->sock->server;
-		REQUIRE(VALID_NMSOCK(listener->parent));
-		httpserver = listener->parent->h2.httpserver;
-	}
-
-	/*
-	 * NOTE: HTTP listener socket might be destroyed by the time this
-	 * function gets invoked, so we need to do extra sanity checks to
-	 * detect this case.
-	 */
 	if (isc__nm_closing(handle->sock->worker)) {
 		return (ISC_R_SHUTTINGDOWN);
-	} else if (isc__nmsocket_closing(handle->sock) || httpserver == NULL) {
-		return (ISC_R_CANCELED);
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		/* XXXWPK do nothing? */
+	} else if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
-	REQUIRE(VALID_NMSOCK(httplistensock));
-	INSIST(httplistensock == httpserver);
-
-	if (atomic_load(&httplistensock->closing)) {
-		return (ISC_R_CANCELED);
-	}
+	REQUIRE(VALID_NMSOCK(httpserver));
+	REQUIRE(httpserver->type == isc_nm_httplistener);
 
 	http_transpost_tcp_nodelay(handle);
 
 	new_session(handle->sock->worker->mctx, NULL, &session);
 	session->max_concurrent_streams =
-		atomic_load(&httplistensock->h2.max_concurrent_streams);
+		atomic_load_relaxed(&httpserver->h2.max_concurrent_streams);
 	initialize_nghttp2_server_session(session);
 	handle->sock->h2.session = session;
 
 	isc_nmhandle_attach(handle, &session->handle);
-	isc__nmsocket_attach(httplistensock, &session->serversocket);
+	isc__nmsocket_attach(httpserver, &session->serversocket);
 	server_send_connection_header(session);
 
 	/* TODO H2 */
@@ -2523,20 +2495,14 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		atomic_store(&sock->closed, true);
+		sock->closed = true;
 		isc__nmsocket_detach(&sock);
 		return (result);
 	}
 
-	isc__nmsocket_attach(sock, &sock->outer->h2.httpserver);
-
 	sock->nchildren = sock->outer->nchildren;
 	sock->fd = (uv_os_sock_t)-1;
 
-	isc__nmsocket_barrier_init(sock);
-	atomic_init(&sock->rchildren, sock->nchildren);
-
-	atomic_store(&sock->listening, true);
 	*sockp = sock;
 	return (ISC_R_SUCCESS);
 }
@@ -2711,8 +2677,8 @@ http_close_direct(isc_nmsocket_t *sock) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 
-	atomic_store(&sock->closed, true);
-	atomic_store(&sock->active, false);
+	sock->closed = true;
+	sock->active = false;
 	session = sock->h2.session;
 
 	if (session != NULL && session->sending == 0 && !session->reading) {
@@ -2742,12 +2708,9 @@ isc__nm_http_close(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_httpsocket);
 	REQUIRE(!isc__nmsocket_active(sock));
+	REQUIRE(!sock->closing);
 
-	if (!atomic_compare_exchange_strong(&sock->closing, &(bool){ false },
-					    true))
-	{
-		return;
-	}
+	sock->closing = true;
 
 	if (sock->h2.session != NULL && sock->h2.session->closed &&
 	    sock->tid == isc_tid())
@@ -2843,8 +2806,8 @@ server_call_failed_read_cb(isc_result_t result,
 		isc_nmsocket_h2_t *next = ISC_LIST_NEXT(h2data, link);
 		ISC_LIST_DEQUEUE(session->sstreams, h2data, link);
 		/* Cleanup socket in place */
-		atomic_store(&h2data->psock->active, false);
-		atomic_store(&h2data->psock->closed, true);
+		h2data->psock->active = false;
+		h2data->psock->closed = true;
 		isc__nmsocket_detach(&h2data->psock);
 
 		h2data = next;
@@ -2957,7 +2920,7 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 		max_streams = max_concurrent_streams;
 	}
 
-	atomic_store(&listener->h2.max_concurrent_streams, max_streams);
+	atomic_store_relaxed(&listener->h2.max_concurrent_streams, max_streams);
 }
 
 typedef struct http_endpoints_data {
@@ -3208,13 +3171,6 @@ isc__nm_http_initsocket(isc_nmsocket_t *sock) {
 
 void
 isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
-	if ((sock->type == isc_nm_tcplistener ||
-	     sock->type == isc_nm_tlslistener) &&
-	    sock->h2.httpserver != NULL)
-	{
-		isc__nmsocket_detach(&sock->h2.httpserver);
-	}
-
 	if (sock->type == isc_nm_httplistener ||
 	    sock->type == isc_nm_httpsocket)
 	{

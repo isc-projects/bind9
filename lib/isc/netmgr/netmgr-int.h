@@ -430,8 +430,6 @@ typedef struct isc_nmsocket_h2 {
 	int32_t stream_id;
 	isc_nm_http_session_t *session;
 
-	isc_nmsocket_t *httpserver;
-
 	/* maximum concurrent streams (server-side) */
 	atomic_uint_fast32_t max_concurrent_streams;
 
@@ -477,6 +475,7 @@ struct isc_nmsocket {
 	/*% Unlocked, RO */
 	int magic;
 	uint32_t tid;
+	isc_refcount_t references;
 	isc_nmsocket_type type;
 	isc__networker_t *worker;
 
@@ -485,10 +484,6 @@ struct isc_nmsocket {
 
 	/*% Parent socket for multithreaded listeners */
 	isc_nmsocket_t *parent;
-	/*% Listener socket this connection was accepted on */
-	isc_nmsocket_t *listener;
-	/*% Self socket */
-	isc_nmsocket_t *self;
 
 	/*% TLS stuff */
 	struct tlsstream {
@@ -563,6 +558,9 @@ struct isc_nmsocket {
 	/*% server socket for connections */
 	isc_nmsocket_t *server;
 
+	/*% client socket for connections */
+	isc_nmsocket_t *listener;
+
 	/*% Child sockets for multi-socket setups */
 	isc_nmsocket_t *children;
 	uint_fast32_t nchildren;
@@ -580,17 +578,13 @@ struct isc_nmsocket {
 	/*% Peer address */
 	isc_sockaddr_t peer;
 
-	/* Atomic */
-	/*% Number of running (e.g. listening) child sockets */
-	atomic_uint_fast32_t rchildren;
-
 	/*%
 	 * Socket is active if it's listening, working, etc. If it's
 	 * closing, then it doesn't make a sense, for example, to
 	 * push handles or reqs for reuse.
 	 */
-	atomic_bool active;
-	atomic_bool destroying;
+	bool active;
+	bool destroying;
 
 	bool route_sock;
 
@@ -600,20 +594,18 @@ struct isc_nmsocket {
 	 * If active==false but closed==false, that means the socket
 	 * is closing.
 	 */
-	atomic_bool closing;
-	atomic_bool closed;
-	atomic_bool listening;
-	atomic_bool connecting;
-	atomic_bool connected;
-	atomic_bool accepting;
+	bool closing;
+	bool closed;
+	bool connecting;
+	bool connected;
+	bool accepting;
 	bool reading;
-	atomic_bool timedout;
-	isc_refcount_t references;
+	bool timedout;
 
 	/*%
 	 * Established an outgoing connection, as client not server.
 	 */
-	atomic_bool client;
+	bool client;
 
 	/*%
 	 * The socket is processing read callback, this is guard to not read
@@ -625,7 +617,7 @@ struct isc_nmsocket {
 	 * A TCP or TCPDNS socket has been set to use the keepalive
 	 * timeout instead of the default idle timeout.
 	 */
-	atomic_bool keepalive;
+	bool keepalive;
 
 	/*%
 	 * 'spare' handles for that can be reused to avoid allocations, for UDP.
@@ -660,8 +652,6 @@ struct isc_nmsocket {
 
 	isc_nm_accept_cb_t accept_cb;
 	void *accept_cbarg;
-
-	atomic_int_fast32_t active_child_connections;
 
 	bool barriers_initialised;
 	bool manual_read_timer;
@@ -762,18 +752,6 @@ isc__nmsocket_active(isc_nmsocket_t *sock);
 /*%<
  * Determine whether 'sock' is active by checking 'sock->active'
  * or, for child sockets, 'sock->parent->active'.
- */
-
-bool
-isc__nmsocket_deactivate(isc_nmsocket_t *sock);
-/*%<
- * @brief Deactivate active socket
- *
- * Atomically deactive the socket by setting @p sock->active or, for child
- * sockets, @p sock->parent->active to @c false
- *
- * @param[in] sock - valid nmsocket
- * @return @c false if the socket was already inactive, @c true otherwise
  */
 
 void
