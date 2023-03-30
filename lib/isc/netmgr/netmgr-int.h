@@ -129,10 +129,9 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 	fprintf(stderr, "%" PRIu32 ":%d:%s:%u:%s:" format, gettid(), \
 		isc_tid(), file, line, func, __VA_ARGS__)
 
-#define FLARG                                              \
-	, const char *file __attribute__((unused)),        \
-		unsigned int line __attribute__((unused)), \
-		const char *func __attribute__((unused))
+#define FLARG                                                                  \
+	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
+		const char *func ISC_ATTR_UNUSED
 #define FLARG_PASS , file, line, func
 #define FLARG_IEVENT(ievent)              \
 	const char *file = ievent->file;  \

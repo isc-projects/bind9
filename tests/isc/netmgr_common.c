@@ -195,7 +195,7 @@ setup_netmgr_test(void **state) {
 }
 
 int
-teardown_netmgr_test(void **state __attribute__((__unused__))) {
+teardown_netmgr_test(void **state ISC_ATTR_UNUSED) {
 	UNUSED(state);
 
 	isc_tlsctx_client_session_cache_detach(&tcp_tlsctx_client_sess_cache);
@@ -221,7 +221,7 @@ teardown_netmgr_test(void **state __attribute__((__unused__))) {
 }
 
 static void
-stop_listening(void *arg __attribute__((__unused__))) {
+stop_listening(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
 	assert_null(listen_sock);
@@ -628,14 +628,14 @@ connect_success_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 }
 
 int
-stream_noop_setup(void **state __attribute__((__unused__))) {
+stream_noop_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 	expected_cconnects = 1;
 	return (r);
 }
 
 void
-stream_noop(void **state __attribute__((__unused__))) {
+stream_noop(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = stream_listen(noop_accept_cb, NULL, 128, NULL, &listen_sock);
@@ -647,7 +647,7 @@ stream_noop(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_noop_teardown(void **state __attribute__((__unused__))) {
+stream_noop_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(cconnects, 1);
 	atomic_assert_int_eq(csends, 0);
 	atomic_assert_int_eq(creads, 0);
@@ -713,7 +713,7 @@ noresponse_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 }
 
 int
-stream_noresponse_setup(void **state __attribute__((__unused__))) {
+stream_noresponse_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 	expected_cconnects = 1;
 	expected_saccepts = 1;
@@ -721,7 +721,7 @@ stream_noresponse_setup(void **state __attribute__((__unused__))) {
 }
 
 void
-stream_noresponse(void **state __attribute__((__unused__))) {
+stream_noresponse(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	result = stream_listen(noop_accept_cb, NULL, 128, NULL, &listen_sock);
@@ -732,7 +732,7 @@ stream_noresponse(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_noresponse_teardown(void **state __attribute__((__unused__))) {
+stream_noresponse_teardown(void **state ISC_ATTR_UNUSED) {
 	X(cconnects);
 	X(csends);
 	X(creads);
@@ -748,7 +748,7 @@ stream_noresponse_teardown(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_timeout_recovery_setup(void **state __attribute__((__unused__))) {
+stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 
 	expected_ctimeouts = 4;
@@ -761,7 +761,7 @@ stream_timeout_recovery_setup(void **state __attribute__((__unused__))) {
 }
 
 void
-stream_timeout_recovery(void **state __attribute__((__unused__))) {
+stream_timeout_recovery(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	/*
@@ -782,13 +782,13 @@ stream_timeout_recovery(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_timeout_recovery_teardown(void **state __attribute__((__unused__))) {
+stream_timeout_recovery_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(ctimeouts, expected_ctimeouts);
 	return (teardown_netmgr_test(state));
 }
 
 int
-stream_recv_one_setup(void **state __attribute__((__unused__))) {
+stream_recv_one_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 
 	expected_cconnects = 1;
@@ -813,7 +813,7 @@ stream_recv_one_setup(void **state __attribute__((__unused__))) {
 }
 
 void
-stream_recv_one(void **state __attribute__((__unused__))) {
+stream_recv_one(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_quota_t *quotap = tcp_listener_init_quota(1);
 
@@ -828,7 +828,7 @@ stream_recv_one(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_recv_one_teardown(void **state __attribute__((__unused__))) {
+stream_recv_one_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(cconnects, expected_cconnects);
 	atomic_assert_int_eq(csends, expected_csends);
 	atomic_assert_int_eq(saccepts, expected_saccepts);
@@ -840,7 +840,7 @@ stream_recv_one_teardown(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_recv_two_setup(void **state __attribute__((__unused__))) {
+stream_recv_two_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 
 	expected_cconnects = 2;
@@ -865,7 +865,7 @@ stream_recv_two_setup(void **state __attribute__((__unused__))) {
 }
 
 void
-stream_recv_two(void **state __attribute__((__unused__))) {
+stream_recv_two(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_quota_t *quotap = tcp_listener_init_quota(1);
 
@@ -882,7 +882,7 @@ stream_recv_two(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_recv_two_teardown(void **state __attribute__((__unused__))) {
+stream_recv_two_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(cconnects, expected_cconnects);
 	atomic_assert_int_eq(csends, expected_csends);
 	atomic_assert_int_eq(sreads, expected_saccepts);
@@ -894,7 +894,7 @@ stream_recv_two_teardown(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_recv_send_setup(void **state __attribute__((__unused__))) {
+stream_recv_send_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
 	expected_cconnects = workers;
 	cconnects_shutdown = false;
@@ -905,7 +905,7 @@ stream_recv_send_setup(void **state __attribute__((__unused__))) {
 }
 
 void
-stream_recv_send(void **state __attribute__((__unused__))) {
+stream_recv_send(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_quota_t *quotap = tcp_listener_init_quota(workers);
 
@@ -922,7 +922,7 @@ stream_recv_send(void **state __attribute__((__unused__))) {
 }
 
 int
-stream_recv_send_teardown(void **state __attribute__((__unused__))) {
+stream_recv_send_teardown(void **state ISC_ATTR_UNUSED) {
 	X(cconnects);
 	X(csends);
 	X(creads);

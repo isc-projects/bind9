@@ -31,8 +31,7 @@ ISC_LANG_BEGINDECLS
 extern bool debug;
 
 int
-LLVMFuzzerInitialize(int *argc __attribute__((unused)),
-		     char ***argv __attribute__((unused)));
+LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED);
 
 int
 LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);

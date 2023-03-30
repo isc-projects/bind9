@@ -76,17 +76,17 @@ teardown_managers(void **state);
 /* clang-format on */
 
 #define ISC_SETUP_TEST_DECLARE(name) \
-	int setup_test_##name(void **state __attribute__((unused)));
+	int setup_test_##name(void **state ISC_ATTR_UNUSED);
 
 #define ISC_RUN_TEST_DECLARE(name) \
-	void run_test_##name(void **state __attribute__((unused)));
+	void run_test_##name(void **state ISC_ATTR_UNUSED);
 
 #define ISC_TEARDOWN_TEST_DECLARE(name) \
-	int teardown_test_##name(void **state __attribute__((unused)))
+	int teardown_test_##name(void **state ISC_ATTR_UNUSED)
 
-#define ISC_LOOP_TEST_CUSTOM_DECLARE(name, setup, teardown)             \
-	void run_test_##name(void **state __attribute__((__unused__))); \
-	void loop_test_##name(void *arg __attribute__((__unused__)));
+#define ISC_LOOP_TEST_CUSTOM_DECLARE(name, setup, teardown) \
+	void run_test_##name(void **state ISC_ATTR_UNUSED); \
+	void loop_test_##name(void *arg ISC_ATTR_UNUSED);
 
 #define ISC_LOOP_TEST_DECLARE(name) \
 	ISC_LOOP_TEST_CUSTOM_DECLARE(name, NULL, NULL)
@@ -102,41 +102,41 @@ teardown_managers(void **state);
 	ISC_LOOP_TEST_CUSTOM_DECLARE(name, NULL, teardown_loop_##name)
 
 #define ISC_LOOP_SETUP_DECLARE(name) \
-	void setup_loop_##name(void *arg __attribute__((__unused__)));
+	void setup_loop_##name(void *arg ISC_ATTR_UNUSED);
 
-#define ISC_SETUP_TEST_IMPL(name)                                    \
-	int setup_test_##name(void **state __attribute__((unused))); \
-	int setup_test_##name(void **state __attribute__((unused)))
+#define ISC_SETUP_TEST_IMPL(name)                            \
+	int setup_test_##name(void **state ISC_ATTR_UNUSED); \
+	int setup_test_##name(void **state ISC_ATTR_UNUSED)
 
-#define ISC_RUN_TEST_IMPL(name)                                     \
-	void run_test_##name(void **state __attribute__((unused))); \
-	void run_test_##name(void **state __attribute__((unused)))
+#define ISC_RUN_TEST_IMPL(name)                             \
+	void run_test_##name(void **state ISC_ATTR_UNUSED); \
+	void run_test_##name(void **state ISC_ATTR_UNUSED)
 
-#define ISC_TEARDOWN_TEST_IMPL(name)                                    \
-	int teardown_test_##name(void **state __attribute__((unused))); \
-	int teardown_test_##name(void **state __attribute__((unused)))
+#define ISC_TEARDOWN_TEST_IMPL(name)                            \
+	int teardown_test_##name(void **state ISC_ATTR_UNUSED); \
+	int teardown_test_##name(void **state ISC_ATTR_UNUSED)
 
 #define ISC_TEST_LIST_START const struct CMUnitTest tests[] = {
 #define ISC_TEST_LIST_END \
 	}                 \
 	;
 
-#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)                 \
-	void run_test_##name(void **state __attribute__((__unused__)));  \
-	void loop_test_##name(void *arg __attribute__((__unused__)));    \
-	void run_test_##name(void **state __attribute__((__unused__))) { \
-		isc_job_cb setup_loop = setup;                           \
-		isc_job_cb teardown_loop = teardown;                     \
-		if (setup_loop != NULL) {                                \
-			setup_loop(state);                               \
-		}                                                        \
-		isc_loop_setup(mainloop, loop_test_##name, state);       \
-		isc_loopmgr_run(loopmgr);                                \
-		if (teardown_loop != NULL) {                             \
-			teardown_loop(state);                            \
-		}                                                        \
-	}                                                                \
-	void loop_test_##name(void *arg __attribute__((__unused__)))
+#define ISC_LOOP_TEST_CUSTOM_IMPL(name, setup, teardown)           \
+	void run_test_##name(void **state ISC_ATTR_UNUSED);        \
+	void loop_test_##name(void *arg ISC_ATTR_UNUSED);          \
+	void run_test_##name(void **state ISC_ATTR_UNUSED) {       \
+		isc_job_cb setup_loop = setup;                     \
+		isc_job_cb teardown_loop = teardown;               \
+		if (setup_loop != NULL) {                          \
+			setup_loop(state);                         \
+		}                                                  \
+		isc_loop_setup(mainloop, loop_test_##name, state); \
+		isc_loopmgr_run(loopmgr);                          \
+		if (teardown_loop != NULL) {                       \
+			teardown_loop(state);                      \
+		}                                                  \
+	}                                                          \
+	void loop_test_##name(void *arg ISC_ATTR_UNUSED)
 
 #define ISC_LOOP_TEST_IMPL(name) ISC_LOOP_TEST_CUSTOM_IMPL(name, NULL, NULL)
 
@@ -149,13 +149,13 @@ teardown_managers(void **state);
 #define ISC_LOOP_TEST_TEARDOWN_IMPL(name) \
 	ISC_LOOP_TEST_CUSTOM_IMPL(name, NULL, teardown_loop_##name)
 
-#define ISC_LOOP_SETUP_IMPL(name)                                      \
-	void setup_loop_##name(void *arg __attribute__((__unused__))); \
-	void setup_loop_##name(void *arg __attribute__((__unused__)))
+#define ISC_LOOP_SETUP_IMPL(name)                          \
+	void setup_loop_##name(void *arg ISC_ATTR_UNUSED); \
+	void setup_loop_##name(void *arg ISC_ATTR_UNUSED)
 
-#define ISC_LOOP_TEARDOWN_IMPL(name)                                      \
-	void teardown_loop_##name(void *arg __attribute__((__unused__))); \
-	void teardown_loop_##name(void *arg __attribute__((__unused__)))
+#define ISC_LOOP_TEARDOWN_IMPL(name)                          \
+	void teardown_loop_##name(void *arg ISC_ATTR_UNUSED); \
+	void teardown_loop_##name(void *arg ISC_ATTR_UNUSED)
 
 #define ISC_TEST_DECLARE(name) void run_test_##name(void **state);
 

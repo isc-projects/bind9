@@ -22,10 +22,9 @@
 #include <ns/client.h>
 
 #if ISC_NETMGR_TRACE
-#define FLARG                                              \
-	, const char *file __attribute__((unused)),        \
-		unsigned int line __attribute__((unused)), \
-		const char *func __attribute__((unused))
+#define FLARG                                                                  \
+	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
+		const char *func ISC_ATTR_UNUSED
 #else
 #define FLARG
 #endif

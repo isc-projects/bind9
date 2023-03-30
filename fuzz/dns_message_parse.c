@@ -35,8 +35,7 @@ static size_t output_len = 1024;
 static uint8_t render_buf[64 * 1024 - 1];
 
 int
-LLVMFuzzerInitialize(int *argc __attribute__((unused)),
-		     char ***argv __attribute__((unused))) {
+LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_mem_create(&mctx);
 	output = isc_mem_get(mctx, output_len);
 

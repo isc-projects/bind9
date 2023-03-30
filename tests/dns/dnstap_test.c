@@ -44,7 +44,7 @@
 #define TAPTEXT	 TESTS_DIR "/testdata/dnstap/dnstap.text"
 
 static int
-cleanup(void **state __attribute__((__unused__))) {
+cleanup(void **state ISC_ATTR_UNUSED) {
 	(void)isc_file_remove(TAPFILE);
 	(void)isc_file_remove(TAPSOCK);
 

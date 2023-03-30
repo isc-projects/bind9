@@ -54,10 +54,9 @@ extern atomic_uint_fast32_t client_refs[32];
 extern atomic_uintptr_t	    client_addrs[32];
 
 #if ISC_NETMGR_TRACE
-#define FLARG                                              \
-	, const char	    *file __attribute__((unused)), \
-		unsigned int line __attribute__((unused)), \
-		const char  *func __attribute__((unused))
+#define FLARG                                                                  \
+	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
+		const char *func ISC_ATTR_UNUSED
 #else
 #define FLARG
 #endif
@@ -67,7 +66,7 @@ setup_server(void **state);
 int
 teardown_server(void **state);
 void
-shutdown_interfacemgr(void *arg __attribute__((unused)));
+shutdown_interfacemgr(void *arg ISC_ATTR_UNUSED);
 
 /*%
  * Load data for zone "zonename" from file "filename" and start serving it to

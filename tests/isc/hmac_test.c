@@ -166,8 +166,8 @@ ISC_RUN_TEST_IMPL(isc_hmac_update) {
 ISC_RUN_TEST_IMPL(isc_hmac_reset) {
 	isc_hmac_t *hmac = *state;
 #if 0
-	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
-	unsigned int digestlen __attribute((unused));
+	unsigned char digest[ISC_MAX_MD_SIZE] ISC_ATTR_UNUSED;
+	unsigned int digestlen ISC_ATTR_UNUSED;
 #endif /* if 0 */
 
 	assert_non_null(hmac);

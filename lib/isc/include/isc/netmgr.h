@@ -153,10 +153,9 @@ isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
 #define isc_nmhandle_detach(handlep) \
 	isc__nmhandle_detach(handlep, __FILE__, __LINE__, __func__)
 #define FLARG_PASS , file, line, func
-#define FLARG                                              \
-	, const char	    *file __attribute__((unused)), \
-		unsigned int line __attribute__((unused)), \
-		const char  *func __attribute__((unused))
+#define FLARG                                                                  \
+	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
+		const char *func ISC_ATTR_UNUSED
 #else
 #define isc_nmhandle_attach(handle, dest) isc__nmhandle_attach(handle, dest)
 #define isc_nmhandle_detach(handlep)	  isc__nmhandle_detach(handlep)

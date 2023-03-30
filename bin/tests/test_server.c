@@ -39,7 +39,7 @@ static isc_nm_t *netmgr = NULL;
 static protocol_t protocol;
 static in_port_t port;
 static isc_netaddr_t netaddr;
-static isc_sockaddr_t sockaddr __attribute__((unused));
+static isc_sockaddr_t sockaddr ISC_ATTR_UNUSED;
 static int workers;
 
 static isc_tlsctx_t *tls_ctx = NULL;

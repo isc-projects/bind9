@@ -131,7 +131,7 @@ ISC_TEST_ENTRY_CUSTOM(tcp_recv_send_quota_sendback, stream_recv_send_setup,
 ISC_TEST_LIST_END
 
 static int
-tcp_setup(void **state __attribute__((__unused__))) {
+tcp_setup(void **state ISC_ATTR_UNUSED) {
 	stream_port = TCP_TEST_PORT;
 	stream_use_TLS = false;
 	stream = true;

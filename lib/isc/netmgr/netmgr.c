@@ -374,13 +374,11 @@ isc_nm_getloadbalancesockets(isc_nm_t *mgr) {
 }
 
 void
-isc_nm_setloadbalancesockets(isc_nm_t *mgr, bool enabled) {
+isc_nm_setloadbalancesockets(isc_nm_t *mgr, ISC_ATTR_UNUSED bool enabled) {
 	REQUIRE(VALID_NM(mgr));
 
 #if HAVE_SO_REUSEPORT_LB
 	mgr->load_balance_sockets = enabled;
-#else
-	UNUSED(enabled);
 #endif
 }
 

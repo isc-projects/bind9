@@ -115,7 +115,7 @@ cleanup:
 }
 
 void
-shutdown_interfacemgr(void *arg __attribute__((__unused__))) {
+shutdown_interfacemgr(void *arg ISC_ATTR_UNUSED) {
 	if (interfacemgr != NULL) {
 		ns_interfacemgr_shutdown(interfacemgr);
 		ns_interfacemgr_detach(&interfacemgr);
