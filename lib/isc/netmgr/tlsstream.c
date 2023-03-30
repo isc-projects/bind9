@@ -524,20 +524,15 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				    hs_result != ISC_R_SUCCESS)
 				{
 					/*
-					 * The accept callback has been called
-					 * unsuccessfully. Let's try to shut
-					 * down the TLS connection gracefully.
+					 * The accept/connect callback has been
+					 * called unsuccessfully. Let's try to
+					 * shut down the TLS connection
+					 * gracefully.
 					 */
 					INSIST(SSL_is_init_finished(
 						       sock->tlsstream.tls) ==
 					       1);
-					INSIST(!sock->client);
 					finish = true;
-				} else if (sock->tlsstream.state == TLS_IO &&
-					   hs_result == ISC_R_SUCCESS &&
-					   !sock->tlsstream.server)
-				{
-					INSIST(sock->client);
 				}
 			}
 		} else if (send_data != NULL) {
