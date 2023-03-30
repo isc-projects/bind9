@@ -121,7 +121,11 @@ struct isc_loopmgr {
 /*
  * Signal Handler
  */
+#define SIGNAL_MAGIC	ISC_MAGIC('S', 'I', 'G', ' ')
+#define VALID_SIGNAL(t) ISC_MAGIC_VALID(t, SIGNAL_MAGIC)
+
 struct isc_signal {
+	int magic;
 	uv_signal_t signal;
 	isc_loop_t *loop;
 	isc_signal_cb cb;

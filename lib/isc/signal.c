@@ -30,6 +30,7 @@ isc_signal_new(isc_loopmgr_t *loopmgr, isc_signal_cb cb, void *cbarg,
 
 	signal = isc_mem_get(isc_loop_getmctx(loop), sizeof(*signal));
 	*signal = (isc_signal_t){
+		.magic = SIGNAL_MAGIC,
 		.cb = cb,
 		.cbarg = cbarg,
 		.signum = signum,
@@ -48,18 +49,22 @@ isc_signal_new(isc_loopmgr_t *loopmgr, isc_signal_cb cb, void *cbarg,
 static void
 isc__signal_destroy_cb(uv_handle_t *handle) {
 	isc_signal_t *signal = uv_handle_get_data(handle);
-	isc_loop_t *loop = signal->loop;
+	isc_loop_t *loop = NULL;
 
+	REQUIRE(VALID_SIGNAL(signal));
+
+	loop = signal->loop;
 	isc_mem_put(loop->mctx, signal, sizeof(*signal));
-
 	isc_loop_detach(&loop);
 }
 
 void
 isc_signal_destroy(isc_signal_t **signalp) {
-	isc_signal_t *signal;
+	isc_signal_t *signal = NULL;
 
-	REQUIRE(signalp != NULL && *signalp != NULL);
+	REQUIRE(signalp != NULL);
+	REQUIRE(VALID_SIGNAL(*signalp));
+
 	signal = *signalp;
 	*signalp = NULL;
 
@@ -68,7 +73,10 @@ isc_signal_destroy(isc_signal_t **signalp) {
 
 void
 isc_signal_stop(isc_signal_t *signal) {
-	int r = uv_signal_stop(&signal->signal);
+	int r;
+
+	REQUIRE(VALID_SIGNAL(signal));
+	r = uv_signal_stop(&signal->signal);
 	UV_RUNTIME_CHECK(uv_signal_stop, r);
 }
 
@@ -76,6 +84,7 @@ static void
 isc__signal_cb(uv_signal_t *handle, int signum) {
 	isc_signal_t *signal = uv_handle_get_data((uv_handle_t *)handle);
 
+	REQUIRE(VALID_SIGNAL(signal));
 	REQUIRE(signum == signal->signum);
 
 	signal->cb(signal->cbarg, signum);
@@ -83,7 +92,9 @@ isc__signal_cb(uv_signal_t *handle, int signum) {
 
 void
 isc_signal_start(isc_signal_t *signal) {
-	int r = uv_signal_start(&signal->signal, isc__signal_cb,
-				signal->signum);
+	int r;
+
+	REQUIRE(VALID_SIGNAL(signal));
+	r = uv_signal_start(&signal->signal, isc__signal_cb, signal->signum);
 	UV_RUNTIME_CHECK(uv_signal_start, r);
 }
