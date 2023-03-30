@@ -29,19 +29,12 @@
 typedef uint32_t isc_stdtime_t;
 
 ISC_LANG_BEGINDECLS
-/* */
+
 isc_stdtime_t
 isc_stdtime_now(void);
 /*%<
  * Return the number of seconds since 00:00:00 UTC, January 1, 1970.
  */
-
-/* Compatibility macro */
-#define isc_stdtime_get(tp)              \
-	{                                \
-		REQUIRE(tp != NULL);     \
-		*tp = isc_stdtime_now(); \
-	}
 
 void
 isc_stdtime_tostring(isc_stdtime_t t, char *out, size_t outlen);

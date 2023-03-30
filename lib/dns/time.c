@@ -107,7 +107,7 @@ dns_time64_from32(uint32_t value) {
 
 	/*
 	 * Adjust the time to the closest epoch.  This should be changed
-	 * to use a 64-bit counterpart to isc_stdtime_get() if one ever
+	 * to use a 64-bit counterpart to isc_stdtime_now() if one ever
 	 * is defined, but even the current code is good until the year
 	 * 2106.
 	 */
