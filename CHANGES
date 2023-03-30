@@ -1,3 +1,6 @@
+6135.	[cleanup]	Change isc_stdtime_get(&t) to t = isc_stdtime_now().
+			[GL !7757]
+
 6134.	[bug]		Fix a crash when dig or host receive a signal.
 			[GL #3970]
 
