@@ -629,8 +629,8 @@ ISC_RUN_TEST_IMPL(hash) {
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		/* Check case-insensitive hashing first */
-		h1 = dns_name_hash(n1, false);
-		h2 = dns_name_hash(n2, false);
+		h1 = dns_name_hash(n1);
+		h2 = dns_name_hash(n2);
 
 		if (verbose) {
 			print_message("# %s hashes to %u, "
@@ -642,8 +642,8 @@ ISC_RUN_TEST_IMPL(hash) {
 		assert_int_equal((h1 == h2), testcases[i].expect);
 
 		/* Now case-sensitive */
-		h1 = dns_name_hash(n1, false);
-		h2 = dns_name_hash(n2, false);
+		h1 = dns_name_hash(n1);
+		h2 = dns_name_hash(n2);
 
 		if (verbose) {
 			print_message("# %s hashes to %u, "

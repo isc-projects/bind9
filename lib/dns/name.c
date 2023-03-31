@@ -397,39 +397,11 @@ dns_name_internalwildcard(const dns_name_t *name) {
 	return (false);
 }
 
-unsigned int
-dns_name_hash(const dns_name_t *name, bool case_sensitive) {
-	unsigned int length;
-
-	/*
-	 * Provide a hash value for 'name'.
-	 */
+uint32_t
+dns_name_hash(const dns_name_t *name) {
 	REQUIRE(VALID_NAME(name));
 
-	if (name->labels == 0) {
-		return (0);
-	}
-
-	length = name->length;
-	if (length > 16) {
-		length = 16;
-	}
-
-	return (isc_hash32(name->ndata, length, case_sensitive));
-}
-
-unsigned int
-dns_name_fullhash(const dns_name_t *name, bool case_sensitive) {
-	/*
-	 * Provide a hash value for 'name'.
-	 */
-	REQUIRE(VALID_NAME(name));
-
-	if (name->labels == 0) {
-		return (0);
-	}
-
-	return (isc_hash32(name->ndata, name->length, case_sensitive));
+	return (isc_hash32(name->ndata, name->length, false));
 }
 
 dns_namereln_t

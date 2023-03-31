@@ -341,29 +341,14 @@ dns_name_iswildcard(const dns_name_t *name);
  * \li	FALSE		The least significant label of 'name' is not '*'.
  */
 
-unsigned int
-dns_name_hash(const dns_name_t *name, bool case_sensitive);
+uint32_t
+dns_name_hash(const dns_name_t *name);
 /*%<
  * Provide a hash value for 'name'.
  *
- * Note: if 'case_sensitive' is false, then names which differ only in
- * case will have the same hash value.
- *
- * Requires:
- * \li	'name' is a valid name
- *
- * Returns:
- * \li	A hash value
- */
-
-unsigned int
-dns_name_fullhash(const dns_name_t *name, bool case_sensitive);
-/*%<
- * Provide a hash value for 'name'.  Unlike dns_name_hash(), this function
- * always takes into account of the entire name to calculate the hash value.
- *
- * Note: if 'case_sensitive' is false, then names which differ only in
- * case will have the same hash value.
+ * Note: This function always takes into account of the entire name to calculate
+ * the hash value. The names which differ only in case will have the same hash
+ * value.
  *
  * Requires:
  *\li	'name' is a valid name

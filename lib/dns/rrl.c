@@ -459,9 +459,9 @@ make_key(const dns_rrl_t *rrl, dns_rrl_key_t *key,
 				 */
 				wild = origin;
 			}
-			key->s.qname_hash = dns_name_fullhash(wild, false);
+			key->s.qname_hash = dns_name_hash(wild);
 		} else {
-			key->s.qname_hash = dns_name_fullhash(qname, false);
+			key->s.qname_hash = dns_name_hash(qname);
 		}
 	}
 
