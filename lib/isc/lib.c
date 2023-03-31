@@ -26,7 +26,7 @@
 #include "mem_p.h"
 #include "mutex_p.h"
 #include "os_p.h"
-#include "trampoline_p.h"
+#include "random_p.h"
 
 #ifndef ISC_CONSTRUCTOR
 #error Either __attribute__((constructor|destructor))__ or DllMain support needed to compile BIND 9.
@@ -46,8 +46,8 @@ isc__initialize(void) {
 	isc__os_initialize();
 	isc__mutex_initialize();
 	isc__mem_initialize();
+	isc__random_initialize();
 	isc__tls_initialize();
-	isc__trampoline_initialize();
 	isc__uv_initialize();
 	isc__xml_initialize();
 	isc__md_initialize();
@@ -61,7 +61,6 @@ isc__shutdown(void) {
 	isc__md_shutdown();
 	isc__xml_shutdown();
 	isc__uv_shutdown();
-	isc__trampoline_shutdown();
 	isc__tls_shutdown();
 	isc__mem_shutdown();
 	isc__mutex_shutdown();

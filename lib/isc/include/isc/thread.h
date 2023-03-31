@@ -30,8 +30,6 @@
 #include <isc/lang.h>
 #include <isc/result.h>
 
-extern thread_local size_t isc_tid_v;
-
 ISC_LANG_BEGINDECLS
 
 typedef pthread_t isc_thread_t;

@@ -46,7 +46,6 @@
 #include "../loop_p.h"
 #include "netmgr-int.h"
 #include "openssl_shim.h"
-#include "trampoline_p.h"
 
 /*%
  * Shortcut index arrays to get access to statistics counters.
