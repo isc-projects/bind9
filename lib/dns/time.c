@@ -101,17 +101,17 @@ dns_time64_totext(int64_t t, isc_buffer_t *target) {
 
 int64_t
 dns_time64_from32(uint32_t value) {
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	int64_t start;
 	int64_t t;
 
 	/*
 	 * Adjust the time to the closest epoch.  This should be changed
-	 * to use a 64-bit counterpart to isc_stdtime_get() if one ever
+	 * to use a 64-bit counterpart to isc_stdtime_now() if one ever
 	 * is defined, but even the current code is good until the year
 	 * 2106.
 	 */
-	isc_stdtime_get(&now);
+
 	start = (int64_t)now;
 	if (isc_serial_gt(value, now)) {
 		t = start + (value - now);

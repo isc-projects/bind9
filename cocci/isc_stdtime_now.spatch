@@ -1,0 +1,6 @@
+@@
+expression t;
+@@
+
+- isc_stdtime_get(&t);
++ t = isc_stdtime_now();

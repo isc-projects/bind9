@@ -474,8 +474,7 @@ set_keyversion(dst_key_t *key) {
 	 * set the creation date
 	 */
 	if (major < 1 || (major == 1 && minor <= 2)) {
-		isc_stdtime_t now;
-		isc_stdtime_get(&now);
+		isc_stdtime_t now = isc_stdtime_now();
 		dst_key_settime(key, DST_TIME_CREATED, now);
 	}
 }
@@ -490,7 +489,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	uint16_t id, oldid;
 	uint32_t rid, roldid;
 	dns_secalg_t alg;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	if (exact != NULL) {
 		*exact = false;
@@ -501,7 +500,6 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	alg = dst_key_alg(dstkey);
 
 	ISC_LIST_INIT(matchkeys);
-	isc_stdtime_get(&now);
 	result = dns_dnssec_findmatchingkeys(name, dir, now, mctx, &matchkeys);
 	if (result == ISC_R_NOTFOUND) {
 		return (false);

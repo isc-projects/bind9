@@ -554,7 +554,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx, unsigned int options,
 		isc_lex_setcomments(lctx->lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	}
 
-	isc_stdtime_get(&lctx->now);
+	lctx->now = isc_stdtime_now();
 
 	lctx->top = dns_fixedname_initname(&lctx->fixed_top);
 	dns_name_toregion(top, &r);
@@ -1227,9 +1227,9 @@ load_text(dns_loadctx_t *lctx) {
 			} else if (strcasecmp(DNS_AS_STR(token), "$DATE") == 0)
 			{
 				int64_t dump_time64;
-				isc_stdtime_t dump_time, current_time;
+				isc_stdtime_t dump_time;
+				isc_stdtime_t current_time = isc_stdtime_now();
 				GETTOKEN(lctx->lex, 0, &token, false);
-				isc_stdtime_get(&current_time);
 				result = dns_time64_fromtext(DNS_AS_STR(token),
 							     &dump_time64);
 				if (MANYERRS(lctx, result)) {

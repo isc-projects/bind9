@@ -294,7 +294,7 @@ ISC_RUN_TEST_IMPL(updatesigs_next) {
 	dns_db_t *db = NULL;
 	isc_result_t result;
 	unsigned int nkeys;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	size_t i;
 
 	UNUSED(state);
@@ -313,7 +313,6 @@ ISC_RUN_TEST_IMPL(updatesigs_next) {
 	result = dns_zone_setkeydirectory(zone, TESTS_DIR "/testkeys");
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_stdtime_get(&now);
 	result = dns__zone_findkeys(zone, db, NULL, now, mctx, DNS_MAXZONEKEYS,
 				    zone_keys, &nkeys);
 	assert_int_equal(result, ISC_R_SUCCESS);

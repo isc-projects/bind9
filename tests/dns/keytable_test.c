@@ -170,7 +170,7 @@ create_tables(void) {
 	dns_rdata_ds_t ds;
 	dns_fixedname_t fn;
 	dns_name_t *keyname = dns_fixedname_name(&fn);
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	assert_int_equal(dns_test_makeview("view", false, &view),
 			 ISC_R_SUCCESS);
@@ -199,7 +199,6 @@ create_tables(void) {
 		ISC_R_SUCCESS);
 
 	/* Add a negative trust anchor, duration 1 hour */
-	isc_stdtime_get(&now);
 	assert_int_equal(dns_ntatable_add(ntatable,
 					  str2name("insecure.example"), false,
 					  now, 3600),
@@ -604,7 +603,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
 	dns_view_t *myview = NULL;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	result = dns_test_makeview("view", false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -625,7 +624,6 @@ ISC_LOOP_TEST_IMPL(nta) {
 				  NULL),
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_stdtime_get(&now);
 	result = dns_ntatable_add(ntatable, str2name("insecure.example"), false,
 				  now, 1);
 	assert_int_equal(result, ISC_R_SUCCESS);

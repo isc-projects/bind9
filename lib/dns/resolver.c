@@ -1093,7 +1093,7 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	fetchctx_t *fctx = NULL;
 	dns_adbfind_t *find = NULL;
 	dns_adbaddrinfo_t *addrinfo;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(queryp != NULL);
 
@@ -1217,7 +1217,6 @@ fctx_cancelquery(resquery_t **queryp, isc_time_t *finish, bool no_response,
 	/*
 	 * Age RTTs of servers not tried.
 	 */
-	isc_stdtime_get(&now);
 	if (finish != NULL || age_untried) {
 		for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
 		     addrinfo != NULL;
@@ -1374,7 +1373,7 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 	}
 
 	/* Do not log the cumulative message if the previous log is recent. */
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 	if (!final && counter->logged > now - 60) {
 		return;
 	}
@@ -3556,7 +3555,7 @@ normal_nses:
 		return (DNS_R_SERVFAIL);
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
@@ -5178,7 +5177,7 @@ validated(void *arg) {
 		goto cleanup_fetchctx;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 
 	/*
 	 * If chaining, we need to make sure that the right result code

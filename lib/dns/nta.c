@@ -161,7 +161,7 @@ fetch_done(void *arg) {
 	isc_result_t eresult = resp->result;
 	dns_ntatable_t *ntatable = nta->ntatable;
 	dns_view_t *view = ntatable->view;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	if (dns_rdataset_isassociated(&nta->rdataset)) {
 		dns_rdataset_disassociate(&nta->rdataset);
@@ -182,7 +182,6 @@ fetch_done(void *arg) {
 	}
 
 	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
-	isc_stdtime_get(&now);
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
@@ -478,11 +477,9 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
 	bool first = true;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(VALID_NTATABLE(ntatable));
-
-	isc_stdtime_get(&now);
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain);
@@ -557,12 +554,10 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 	isc_result_t result;
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	bool written = false;
 
 	REQUIRE(VALID_NTATABLE(ntatable));
-
-	isc_stdtime_get(&now);
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain);

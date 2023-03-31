@@ -180,7 +180,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	dns_tsigkey_t *tsigkey = NULL;
 	dns_fixedname_t fixed;
 	dns_name_t *principal;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	isc_region_t intoken;
 	isc_buffer_t *outtoken = NULL;
 	dns_gss_ctx_id_t gss_ctx = NULL;
@@ -242,8 +242,6 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	/*
 	 * XXXDCL Section 4.1.3: Limit GSS_S_CONTINUE_NEEDED to 10 times.
 	 */
-
-	isc_stdtime_get(&now);
 
 	if (dns_name_countlabels(principal) == 0U) {
 		if (tsigkey != NULL) {
@@ -685,7 +683,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       isc_mem_t *mctx, char **err_message) {
 	dns_rdata_tkey_t tkey;
 	isc_result_t result;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	isc_buffer_t token;
 	unsigned char array[TEMP_BUFFER_SZ];
 
@@ -716,7 +714,6 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
 	}
 
-	isc_stdtime_get(&now);
 	tkey.inception = now;
 	tkey.expire = now + lifetime;
 	tkey.mode = DNS_TKEYMODE_GSSAPI;

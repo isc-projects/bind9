@@ -447,7 +447,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		goto cleanup;
 	}
 
-	isc_stdtime_get(&conn->now);
+	conn->now = isc_stdtime_now();
 
 	/*
 	 * Limit exposure to replay attacks.

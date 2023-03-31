@@ -369,10 +369,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
  *\li	#ISC_R_NOMEMORY	insufficient resources
  *\li	#DNS_R_ALIAS	'name' is an alias for another name.
  *
- * Calls, and returns error codes from:
- *
- *\li	isc_stdtime_get()
- *
  * Notes:
  *
  *\li	No internal reference to "name" exists after this function

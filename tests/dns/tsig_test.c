@@ -104,7 +104,6 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	isc_buffer_t sigbuf;
 	isc_region_t r;
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_stdtime_t now;
 	unsigned char tsigbuf[1024];
 	unsigned int count;
 	unsigned int sigsize = 0;
@@ -119,8 +118,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	dns_name_init(&tsig.algorithm, NULL);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
-	isc_stdtime_get(&now);
-	tsig.timesigned = now;
+	tsig.timesigned = isc_stdtime_now();
 	tsig.fudge = DNS_TSIG_FUDGE;
 	tsig.originalid = 50;
 	tsig.error = dns_rcode_noerror;

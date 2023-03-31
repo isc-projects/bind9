@@ -141,7 +141,8 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 	isc_sockaddr_t qaddr;
 	isc_sockaddr_t raddr;
 	struct in_addr in;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
+
 	isc_time_t p, f;
 	struct fstrm_iothr_options *fopt;
 
@@ -182,7 +183,6 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 	in.s_addr = inet_addr("10.53.0.2");
 	isc_sockaddr_fromin(&raddr, &in, 2112);
 
-	isc_stdtime_get(&now);
 	isc_time_set(&p, now - 3600, 0); /* past */
 	isc_time_set(&f, now + 3600, 0); /* future */
 

@@ -2286,7 +2286,7 @@ mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		return;
 	}
 
-	isc_stdtime_get(&now);
+	now = isc_stdtime_now();
 	dns_rdataset_trimttl(rdataset, sigrdataset, rrsig, now,
 			     client->view->acceptexpired);
 
@@ -2583,7 +2583,7 @@ stale_refresh_aftermath(ns_client_t *client, isc_result_t result) {
 		 * database, starting the stale-refresh-time window for it.
 		 * This is a condensed form of query_lookup().
 		 */
-		isc_stdtime_get(&client->now);
+		client->now = isc_stdtime_now();
 		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 		qctx_init(client, NULL, 0, &qctx);
 
@@ -6280,7 +6280,7 @@ fetch_callback(void *arg) {
 		/*
 		 * Update client->now.
 		 */
-		isc_stdtime_get(&client->now);
+		client->now = isc_stdtime_now();
 	} else {
 		/*
 		 * This is a fetch completion event for a canceled fetch.
@@ -6412,9 +6412,7 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 static void
 recursionquota_log(ns_client_t *client, atomic_uint_fast32_t *last_log_time,
 		   const char *format, isc_quota_t *quota) {
-	isc_stdtime_t now;
-
-	isc_stdtime_get(&now);
+	isc_stdtime_t now = isc_stdtime_now();
 	if (now == atomic_load_relaxed(last_log_time)) {
 		return;
 	}
@@ -6757,7 +6755,7 @@ query_hookresume(void *arg) {
 		INSIST(rev->ctx == client->query.hookactx);
 		client->query.hookactx = NULL;
 		canceled = false;
-		isc_stdtime_get(&client->now);
+		client->now = isc_stdtime_now();
 	} else {
 		canceled = true;
 	}

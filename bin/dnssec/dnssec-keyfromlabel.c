@@ -135,7 +135,6 @@ main(int argc, char **argv) {
 	dns_ttl_t ttl = 0;
 	isc_stdtime_t publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t inactive = 0, deltime = 0;
-	isc_stdtime_t now;
 	int prepub = -1;
 	bool setpub = false, setact = false;
 	bool setrev = false, setinact = false;
@@ -151,6 +150,7 @@ main(int argc, char **argv) {
 	isc_stdtime_t syncadd = 0, syncdel = 0;
 	bool unsetsyncadd = false, setsyncadd = false;
 	bool unsetsyncdel = false, setsyncdel = false;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	if (argc == 1) {
 		usage();
@@ -159,8 +159,6 @@ main(int argc, char **argv) {
 	isc_mem_create(&mctx);
 
 	isc_commandline_errprint = false;
-
-	isc_stdtime_get(&now);
 
 #define CMDLINE_FLAGS "3A:a:Cc:D:E:Ff:GhI:i:kK:L:l:n:P:p:R:S:t:v:Vy"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {

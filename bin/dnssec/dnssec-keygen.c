@@ -839,6 +839,7 @@ main(int argc, char **argv) {
 		.prepub = -1,
 		.protocol = -1,
 		.size = -1,
+		.now = isc_stdtime_now(),
 	};
 
 	if (argc == 1) {
@@ -876,7 +877,6 @@ main(int argc, char **argv) {
 	isc_commandline_reset = true;
 
 	isc_mem_create(&mctx);
-	isc_stdtime_get(&ctx.now);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {

@@ -1059,12 +1059,11 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       isc_mem_t *mctx, unsigned int maxkeys, dst_key_t **keys,
 	       unsigned int *nkeys) {
 	isc_result_t result;
-	isc_stdtime_t now;
+	isc_stdtime_t now = isc_stdtime_now();
 	dns_dbnode_t *node = NULL;
 	const char *directory = dns_zone_getkeydirectory(zone);
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), false, &node));
-	isc_stdtime_get(&now);
 
 	dns_zone_lock_keyfiles(zone);
 	result = dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
@@ -1561,7 +1560,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			goto failure;
 		}
 
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		state->inception = now - 3600; /* Allow for some clock skew. */
 		state->expire = now +
 				dns__jitter_expire(zone, sigvalidityinterval);
@@ -2221,10 +2220,10 @@ dns__update_soaserial(uint32_t serial, dns_updatemethod_t method) {
 	case dns_updatemethod_none:
 		return (serial);
 	case dns_updatemethod_unixtime:
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		return (now);
 	case dns_updatemethod_date:
-		isc_stdtime_get(&now);
+		now = isc_stdtime_now();
 		return (epoch_to_yyyymmdd((time_t)now) * 100);
 	case dns_updatemethod_increment:
 		/* RFC1982 */
