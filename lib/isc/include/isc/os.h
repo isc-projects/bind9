@@ -14,9 +14,10 @@
 #pragma once
 
 /*! \file isc/os.h */
-
 #include <isc/lang.h>
 #include <isc/types.h>
+
+#include <sys/stat.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -37,9 +38,15 @@ isc_os_ncpus(void);
 unsigned long
 isc_os_cacheline(void);
 /*%<
- * Return L1 caheline size of the CPU.
+ * Return L1 cacheline size of the CPU.
  * If L1 cache is greater than ISC_OS_CACHELINE_SIZE, ensure it is used
  * instead of constant. Is common on ppc64le architecture.
+ */
+
+mode_t
+isc_os_umask(void);
+/*%<
+ * Return umask of the current process as initialized at the program start
  */
 
 ISC_LANG_ENDDECLS
