@@ -67,7 +67,7 @@ main(void) {
 	unsigned int repeat = 100;
 
 	isc_time_t start;
-	isc_time_now_hires(&start);
+	start = isc_time_now_hires();
 
 	for (unsigned int n = 0; n < repeat; n++) {
 		static uint8_t wire[4 * 1024];
@@ -91,7 +91,7 @@ main(void) {
 	}
 
 	isc_time_t finish;
-	isc_time_now_hires(&finish);
+	finish = isc_time_now_hires();
 
 	uint64_t microseconds = isc_time_microdiff(&finish, &start);
 	printf("time %f / %u\n", (double)microseconds / 1000000.0, repeat);

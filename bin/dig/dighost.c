@@ -422,7 +422,7 @@ debug(const char *format, ...) {
 	if (debugging) {
 		fflush(stdout);
 		if (debugtiming) {
-			TIME_NOW(&t);
+			t = isc_time_now();
 			fprintf(stderr, "%u.%06u: ", isc_time_seconds(&t),
 				isc_time_nanoseconds(&t) / 1000);
 		}
@@ -3104,9 +3104,9 @@ send_udp(dig_query_t *query) {
 	isc_buffer_usedregion(&query->sendbuf, &r);
 	debug("sending a request");
 	if (query->lookup->use_usec) {
-		TIME_NOW_HIRES(&query->time_sent);
+		query->time_sent = isc_time_now_hires();
 	} else {
-		TIME_NOW(&query->time_sent);
+		query->time_sent = isc_time_now();
 	}
 
 	isc_nmhandle_attach(query->handle, &query->sendhandle);
@@ -3471,9 +3471,9 @@ launch_next_query(dig_query_t *query) {
 		dig_query_t *sendquery = NULL;
 		debug("sending a request in launch_next_query");
 		if (query->lookup->use_usec) {
-			TIME_NOW_HIRES(&query->time_sent);
+			query->time_sent = isc_time_now_hires();
 		} else {
-			TIME_NOW(&query->time_sent);
+			query->time_sent = isc_time_now();
 		}
 
 		query_attach(query, &sendquery);
@@ -3926,9 +3926,9 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	}
 
 	if (query->lookup->use_usec) {
-		TIME_NOW_HIRES(&query->time_recv);
+		query->time_recv = isc_time_now_hires();
 	} else {
-		TIME_NOW(&query->time_recv);
+		query->time_recv = isc_time_now();
 	}
 
 	if ((!l->pending && !l->ns_search_only) || cancel_now) {

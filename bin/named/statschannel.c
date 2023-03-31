@@ -1969,7 +1969,7 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
 	char configtime[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
 	char nowstr[sizeof "yyyy-mm-ddThh:mm:ss.sssZ"];
-	isc_time_t now;
+	isc_time_t now = isc_time_now();
 	xmlTextWriterPtr writer = NULL;
 	xmlDocPtr doc = NULL;
 	int xmlrc;
@@ -1990,7 +1990,6 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 #endif /* ifdef HAVE_DNSTAP */
 	isc_result_t result;
 
-	isc_time_now(&now);
 	isc_time_formatISO8601ms(&named_g_boottime, boottime, sizeof boottime);
 	isc_time_formatISO8601ms(&named_g_configtime, configtime,
 				 sizeof configtime);
@@ -2779,7 +2778,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 	CHECKMEM(obj);
 	json_object_object_add(bindstats, "json-stats-version", obj);
 
-	isc_time_now(&now);
+	now = isc_time_now();
 	isc_time_formatISO8601ms(&named_g_boottime, boottime, sizeof(boottime));
 	isc_time_formatISO8601ms(&named_g_configtime, configtime,
 				 sizeof configtime);

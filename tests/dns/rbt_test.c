@@ -1246,8 +1246,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 		node->data = (void *)(intptr_t)i;
 	}
 
-	result = isc_time_now(&ts1);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	ts1 = isc_time_now();
 
 	nthreads = ISC_MIN(isc_os_ncpus(), 32);
 	nthreads = ISC_MAX(nthreads, 1);
@@ -1259,8 +1258,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 		isc_thread_join(threads[i], NULL);
 	}
 
-	result = isc_time_now(&ts2);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	ts2 = isc_time_now();
 
 	t = isc_time_microdiff(&ts2, &ts1);
 

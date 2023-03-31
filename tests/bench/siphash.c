@@ -39,7 +39,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint64_t hash;
@@ -50,7 +50,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us wide-lower len %3zu, %7.0f kh/s (%llx)\n",
@@ -64,7 +64,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint64_t hash;
@@ -74,7 +74,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us wide-icase len %3zu, %7.0f kh/s (%llx)\n",
@@ -87,7 +87,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint64_t hash;
@@ -97,7 +97,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us wide-bytes len %3zu, %7.0f kh/s (%llx)\n",
@@ -111,7 +111,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint32_t hash;
@@ -122,7 +122,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us half-lower len %3zu, %7.0f kh/s (%llx)\n",
@@ -136,7 +136,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint32_t hash;
@@ -146,7 +146,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us half-icase len %3zu, %7.0f kh/s (%llx)\n",
@@ -160,7 +160,7 @@ main(void) {
 		uint64_t sum = 0;
 		uint64_t us;
 
-		isc_time_now_hires(&start);
+		start = isc_time_now_hires();
 
 		for (size_t end = len; end < SIZE; end += len) {
 			uint32_t hash;
@@ -170,7 +170,7 @@ main(void) {
 			count++;
 		}
 
-		isc_time_now_hires(&finish);
+		finish = isc_time_now_hires();
 
 		us = isc_time_microdiff(&finish, &start);
 		printf("%f us half-bytes len %3zu, %7.0f kh/s (%llx)\n",

@@ -76,13 +76,13 @@ new_bench(const uint8_t *data, size_t size) {
 static void
 oldnew_bench(const uint8_t *data, size_t size) {
 	isc_time_t t0;
-	isc_time_now_hires(&t0);
+	t0 = isc_time_now_hires();
 	uint32_t n1 = old_bench(data, size);
 	isc_time_t t1;
-	isc_time_now_hires(&t1);
+	t1 = isc_time_now_hires();
 	uint32_t n2 = new_bench(data, size);
 	isc_time_t t2;
-	isc_time_now_hires(&t2);
+	t2 = isc_time_now_hires();
 
 	double t01 = (double)isc_time_microdiff(&t1, &t0);
 	double t12 = (double)isc_time_microdiff(&t2, &t1);

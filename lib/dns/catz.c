@@ -843,7 +843,7 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 
-	isc_time_now(&now);
+	now = isc_time_now();
 	tdiff = isc_time_microdiff(&now, &catz->lastupdated) / 1000000;
 	if (tdiff < catz->defoptions.min_update_interval) {
 		uint64_t defer = catz->defoptions.min_update_interval - tdiff;
@@ -2084,7 +2084,6 @@ cleanup:
 static void
 dns__catz_timer_cb(void *arg) {
 	char domain[DNS_NAME_FORMATSIZE];
-	isc_result_t result;
 	dns_catz_zone_t *catz = (dns_catz_zone_t *)arg;
 
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
@@ -2132,8 +2131,7 @@ exit:
 	isc_timer_destroy(&catz->updatetimer);
 	catz->loop = NULL;
 
-	result = isc_time_now(&catz->lastupdated);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	catz->lastupdated = isc_time_now();
 
 	UNLOCK(&catz->catzs->lock);
 }

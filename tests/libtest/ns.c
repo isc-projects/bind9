@@ -434,7 +434,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	TIME_NOW(&client->tnow);
+	client->tnow = isc_time_now();
 
 	/*
 	 * Every client needs to belong to a view.

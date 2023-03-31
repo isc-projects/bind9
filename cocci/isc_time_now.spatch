@@ -1,0 +1,75 @@
+@@
+statement S;
+expression V, E;
+@@
+
+- V = isc_time_now(&E);
+- if (V != ISC_R_SUCCESS) S
++ E = isc_time_now();
+
+@@
+expression V, E;
+@@
+
+- V = isc_time_now(&E);
+- RUNTIME_CHECK(V == ISC_R_SUCCESS);
++ E = isc_time_now();
+
+@@
+expression V, E;
+@@
+
+- V = isc_time_now(&E);
+- assert_int_equal(V, ISC_R_SUCCESS);
++ E = isc_time_now();
+
+@@
+expression E;
+@@
+
+- assert_int_equal(isc_time_now(&E), ISC_R_SUCCESS);
++ E = isc_time_now();
+
+@@
+expression E;
+@@
+
+- TIME_NOW(&E);
++ E = isc_time_now();
+
+@@
+expression E;
+@@
+
+- CHECK(isc_time_now(&E));
++ E = isc_time_now();
+
+@@
+statement S;
+expression V, E;
+@@
+
+- V = isc_time_now_hires(&E);
+- if (V != ISC_R_SUCCESS) S
++ E = isc_time_now_hires();
+
+@@
+expression E;
+@@
+
+- isc_time_now(&E);
++ E = isc_time_now();
+
+@@
+expression E;
+@@
+
+- isc_time_now_hires(&E);
++ E = isc_time_now_hires();
+
+@@
+expression E;
+@@
+
+- TIME_NOW_HIRES(&E);
++ E = isc_time_now_hires();

@@ -28,12 +28,12 @@ copy_fn(void *a, void *b, unsigned int len);
 static void
 time_it(copy_fn *copier, void *a, void *b, const char *name) {
 	isc_time_t start;
-	isc_time_now_hires(&start);
+	start = isc_time_now_hires();
 
 	copier(a, b, SIZE);
 
 	isc_time_t finish;
-	isc_time_now_hires(&finish);
+	finish = isc_time_now_hires();
 
 	uint64_t microseconds = isc_time_microdiff(&finish, &start);
 	printf("%f for %s\n", (double)microseconds / 1000000.0, name);

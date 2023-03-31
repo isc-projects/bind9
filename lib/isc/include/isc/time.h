@@ -166,8 +166,8 @@ isc_time_monotonic(void);
  * Returns the system's monotonic time in linear nanoseconds.
  */
 
-isc_result_t
-isc_time_now(isc_time_t *t);
+isc_time_t
+isc_time_now(void);
 /*%<
  * Set 't' to the current absolute time.
  *
@@ -185,8 +185,8 @@ isc_time_now(isc_time_t *t);
  *		in the current definition of isc_time_t.
  */
 
-isc_result_t
-isc_time_now_hires(isc_time_t *t);
+isc_time_t
+isc_time_now_hires(void);
 /*%<
  * Set 't' to the current absolute time. Uses higher resolution clocks
  * recommended when microsecond accuracy is required.

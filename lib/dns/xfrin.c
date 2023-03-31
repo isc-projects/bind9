@@ -859,7 +859,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		xfr->state = XFRST_INITIALSOA;
 	}
 
-	isc_time_now(&xfr->start);
+	xfr->start = isc_time_now();
 
 	if (tsigkey != NULL) {
 		dns_tsigkey_attach(tsigkey, &xfr->tsigkey);
@@ -990,7 +990,7 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg) {
 	zmgr = dns_zone_getmgr(xfr->zone);
 	if (zmgr != NULL) {
 		if (result != ISC_R_SUCCESS) {
-			TIME_NOW(&now);
+			now = isc_time_now();
 			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
 						   &xfr->sourceaddr, &now);
 			CHECK(result);
@@ -1119,7 +1119,7 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	xfr->nmsg = 0;
 	xfr->nrecs = 0;
 	xfr->nbytes = 0;
-	isc_time_now(&xfr->start);
+	xfr->start = isc_time_now();
 	msg->id = xfr->id;
 	if (xfr->tsigctx != NULL) {
 		dst_context_destroy(&xfr->tsigctx);
@@ -1494,7 +1494,7 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 	 * Calculate the length of time the transfer took,
 	 * and print a log message with the bytes and rate.
 	 */
-	isc_time_now(&xfr->end);
+	xfr->end = isc_time_now();
 	msecs = isc_time_microdiff(&xfr->end, &xfr->start) / 1000;
 	if (msecs == 0) {
 		msecs = 1;

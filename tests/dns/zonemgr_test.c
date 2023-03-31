@@ -133,7 +133,7 @@ ISC_LOOP_TEST_IMPL(zonemgr_unreachable) {
 
 	UNUSED(arg);
 
-	TIME_NOW(&now);
+	now = isc_time_now();
 
 	dns_zonemgr_create(mctx, loopmgr, netmgr, &myzonemgr);
 

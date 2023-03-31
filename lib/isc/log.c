@@ -1324,7 +1324,7 @@ roll_timestamp(isc_logfile_t *file) {
 	}
 
 	/* Then just rename the current logfile */
-	isc_time_now(&now);
+	now = isc_time_now();
 	isc_time_formatshorttimestamp(&now, newts, PATH_MAX + 1);
 	n = snprintf(newpath, sizeof(newpath), "%s.%s", path, newts);
 	if (n >= (int)sizeof(newpath) || n < 0) {
@@ -1590,7 +1590,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		{
 			isc_time_t isctime;
 
-			TIME_NOW(&isctime);
+			isctime = isc_time_now();
 
 			isc_time_formattimestamp(&isctime, local_time,
 						 sizeof(local_time));
@@ -1640,7 +1640,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				 * messages which fall within the
 				 * duplicate_interval range.
 				 */
-				TIME_NOW(&oldest);
+				oldest = isc_time_now();
 				if (isc_time_subtract(&oldest, &interval,
 						      &oldest) != ISC_R_SUCCESS)
 				{
@@ -1718,7 +1718,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				message->text = (char *)(message + 1);
 				size -= sizeof(isc_logmessage_t);
 				strlcpy(message->text, lctx->buffer, size);
-				TIME_NOW(&message->time);
+				message->time = isc_time_now();
 				ISC_LINK_INIT(message, link);
 				ISC_LIST_APPEND(lctx->messages, message, link);
 			}

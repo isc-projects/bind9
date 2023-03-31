@@ -1071,7 +1071,7 @@ fctx_starttimer(fetchctx_t *fctx) {
 	isc_interval_set(&interval, 2, 0);
 	isc_time_add(&fctx->expires, &interval, &expires);
 
-	isc_time_now(&now);
+	now = isc_time_now();
 	if (isc_time_compare(&expires, &now) <= 0) {
 		isc_interval_set(&interval, 0, 1);
 	} else {
@@ -1547,7 +1547,7 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	 * Keep some record of fetch result for logging later (if required).
 	 */
 	fctx->result = result;
-	TIME_NOW(&now);
+	now = isc_time_now();
 	fctx->duration = isc_time_microdiff(&now, &fctx->start);
 
 	for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL; resp = next) {
@@ -1802,7 +1802,7 @@ fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	/*
 	 * Has this fetch already expired?
 	 */
-	isc_time_now(&now);
+	now = isc_time_now();
 	limit = isc_time_microdiff(&fctx->expires, &now);
 	if (limit < US_PER_MS) {
 		FCTXTRACE("fetch already expired");
@@ -1888,7 +1888,7 @@ resquery_timeout(resquery_t *query) {
 	 * (Note that netmgr timeouts have millisecond accuracy, so
 	 * anything less than 1000 microseconds is close enough to zero.)
 	 */
-	isc_time_now(&now);
+	now = isc_time_now();
 	timeleft = isc_time_microdiff(&fctx->expires_try_stale, &now);
 	if (timeleft >= US_PER_MS) {
 		return (ISC_R_SUCCESS);
@@ -1999,7 +1999,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	dns_message_create(fctx->mctx, DNS_MESSAGE_INTENTPARSE,
 			   &query->rmessage);
-	TIME_NOW(&query->start);
+	query->start = isc_time_now();
 
 	/*
 	 * If this is a TCP query, then we need to make a socket and
@@ -4533,7 +4533,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&fctx->qminrrset);
 	dns_rdataset_init(&fctx->nsrrset);
 
-	TIME_NOW(&fctx->start);
+	fctx->start = isc_time_now();
 	fctx->now = (isc_stdtime_t)fctx->start.seconds;
 
 	if (client != NULL) {
@@ -7711,7 +7711,7 @@ rctx_respinit(resquery_t *query, fetchctx_t *fctx, isc_result_t result,
 	} else {
 		isc_buffer_initnull(&rctx->buffer);
 	}
-	TIME_NOW(&rctx->tnow);
+	rctx->tnow = isc_time_now();
 	rctx->finish = &rctx->tnow;
 	rctx->now = (isc_stdtime_t)isc_time_seconds(&rctx->tnow);
 }
@@ -7832,7 +7832,7 @@ rctx_timedout(respctx_t *rctx) {
 		fctx->timeout = true;
 		fctx->timeouts++;
 
-		isc_time_now(&now);
+		now = isc_time_now();
 		/* netmgr timeouts are accurate to the millisecond */
 		if (isc_time_microdiff(&fctx->expires, &now) < US_PER_MS) {
 			FCTXTRACE("query timed out; stopped trying to make "

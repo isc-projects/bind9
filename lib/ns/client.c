@@ -1779,7 +1779,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	client->state = NS_CLIENTSTATE_WORKING;
 
-	TIME_NOW(&client->requesttime);
+	client->requesttime = isc_time_now();
 	client->tnow = client->requesttime;
 	client->now = isc_time_seconds(&client->tnow);
 

@@ -1632,7 +1632,7 @@ dns__rpz_timer_start(dns_rpz_zone_t *rpz) {
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
 
-	isc_time_now(&now);
+	now = isc_time_now();
 	tdiff = isc_time_microdiff(&now, &rpz->lastupdated) / 1000000;
 	if (tdiff < rpz->min_update_interval) {
 		uint64_t defer = rpz->min_update_interval - tdiff;
@@ -1934,7 +1934,6 @@ shuttingdown:
 static void
 dns__rpz_timer_cb(void *arg) {
 	char domain[DNS_NAME_FORMATSIZE];
-	isc_result_t result;
 	dns_rpz_zone_t *rpz = (dns_rpz_zone_t *)arg;
 
 	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
@@ -1967,8 +1966,7 @@ dns__rpz_timer_cb(void *arg) {
 	isc_timer_destroy(&rpz->updatetimer);
 	rpz->loop = NULL;
 
-	result = isc_time_now(&rpz->lastupdated);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	rpz->lastupdated = isc_time_now();
 unlock:
 	UNLOCK(&rpz->rpzs->maint_lock);
 }

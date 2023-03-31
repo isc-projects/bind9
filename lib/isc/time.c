@@ -79,44 +79,34 @@ isc_time_isepoch(const isc_time_t *t) {
 	return (false);
 }
 
-static isc_result_t
-time_now(isc_time_t *t, clockid_t clock) {
+static isc_time_t
+time_now(clockid_t clock) {
+	isc_time_t t;
 	struct timespec ts;
 
-	REQUIRE(t != NULL);
-
-	if (clock_gettime(clock, &ts) == -1) {
-		UNEXPECTED_SYSERROR(errno, "clock_gettime()");
-		return (ISC_R_UNEXPECTED);
-	}
-
-	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= NS_PER_SEC) {
-		return (ISC_R_UNEXPECTED);
-	}
+	RUNTIME_CHECK(clock_gettime(clock, &ts) == 0);
+	INSIST(ts.tv_sec >= 0 && ts.tv_nsec >= 0 && ts.tv_nsec < NS_PER_SEC);
 
 	/*
 	 * Ensure the tv_sec value fits in t->seconds.
 	 */
-	if (sizeof(ts.tv_sec) > sizeof(t->seconds) &&
-	    ((ts.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0U)
-	{
-		return (ISC_R_RANGE);
-	}
+	INSIST(sizeof(ts.tv_sec) <= sizeof(t.seconds) ||
+	       ((ts.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) == 0U);
 
-	t->seconds = ts.tv_sec;
-	t->nanoseconds = ts.tv_nsec;
+	t.seconds = ts.tv_sec;
+	t.nanoseconds = ts.tv_nsec;
 
-	return (ISC_R_SUCCESS);
+	return (t);
 }
 
-isc_result_t
-isc_time_now_hires(isc_time_t *t) {
-	return time_now(t, CLOCKSOURCE_HIRES);
+isc_time_t
+isc_time_now_hires(void) {
+	return (time_now(CLOCKSOURCE_HIRES));
 }
 
-isc_result_t
-isc_time_now(isc_time_t *t) {
-	return time_now(t, CLOCKSOURCE);
+isc_time_t
+isc_time_now(void) {
+	return (time_now(CLOCKSOURCE));
 }
 
 isc_nanosecs_t
