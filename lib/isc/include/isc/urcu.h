@@ -15,6 +15,10 @@
 
 #include <isc/util.h>
 
+/* when urcu is not installed in a system header location */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 /* Inline small (less than 10 lines) functions */
 #define URCU_INLINE_SMALL_FUNCTIONS
 
@@ -29,6 +33,8 @@
 #include <urcu/compiler.h>
 #include <urcu/rculfhash.h>
 #include <urcu/rculist.h>
+
+#pragma GCC diagnostic pop
 
 #if defined(RCU_QSBR)
 
