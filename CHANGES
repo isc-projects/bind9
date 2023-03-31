@@ -1,3 +1,7 @@
+6142.	[bug]		Reduce the number of dns_dnssec_verify calls made
+			determining if revoked keys needs to be removed from
+			the trust anchors. [GL #3981]
+
 6138.	[doc]		Fix the DF-flag documentation on the outgoing
 			UDP packets. [GL #3710]
 
