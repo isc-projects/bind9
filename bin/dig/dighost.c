@@ -3911,7 +3911,9 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	lookup_attach(query->lookup, &l);
 
-	if (eresult == ISC_R_CANCELED || query->canceled) {
+	if (eresult == ISC_R_CANCELED || eresult == ISC_R_SHUTTINGDOWN ||
+	    query->canceled)
+	{
 		debug("recv_done: cancel");
 		isc_nmhandle_detach(&query->readhandle);
 		if (!query->canceled) {
