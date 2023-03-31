@@ -28,7 +28,6 @@
 #include <isc/stack.h>
 #include <isc/thread.h>
 #include <isc/types.h>
-#include <isc/urcu.h>
 #include <isc/uv.h>
 #include <isc/work.h>
 
@@ -80,8 +79,6 @@ struct isc_loop {
 	uv_async_t wakeup_trigger;
 	uv_prepare_t quiescent;
 	isc_qsbr_phase_t qsbr_phase;
-
-	struct rcu_head rcu_head;
 };
 
 /*

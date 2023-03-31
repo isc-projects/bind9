@@ -35,6 +35,13 @@ ISC_LANG_BEGINDECLS
 typedef pthread_t isc_thread_t;
 typedef void *(*isc_threadfunc_t)(void *);
 
+/*%
+ * like isc_thread_create(), but run the function on the current
+ * thread which must be the main thread.
+ */
+void
+isc_thread_main(isc_threadfunc_t, void *);
+
 void
 isc_thread_create(isc_threadfunc_t, void *, isc_thread_t *);
 

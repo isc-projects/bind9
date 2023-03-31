@@ -30,9 +30,12 @@
 
 #include <stdlib.h>
 
+#include <isc/atomic.h>
 #include <isc/iterated_hash.h>
 #include <isc/strerr.h>
 #include <isc/thread.h>
+#include <isc/tid.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #ifndef THREAD_MINSTACKSIZE
@@ -46,18 +49,15 @@
  */
 
 struct thread_wrap {
+	struct rcu_head rcu_head;
 	isc_threadfunc_t func;
 	void *arg;
-	void (*free)(void *);
 };
 
 static struct thread_wrap *
 thread_wrap(isc_threadfunc_t func, void *arg) {
 	struct thread_wrap *wrap = malloc(sizeof(*wrap));
-
-	RUNTIME_CHECK(wrap != NULL);
 	*wrap = (struct thread_wrap){
-		.free = free, /* from stdlib */
 		.func = func,
 		.arg = arg,
 	};
@@ -66,30 +66,56 @@ thread_wrap(isc_threadfunc_t func, void *arg) {
 }
 
 static void *
-thread_run(void *arg) {
-	struct thread_wrap *wrap = arg;
-	isc_threadfunc_t wrap_func = wrap->func;
-	void *wrap_arg = wrap->arg;
-	void *result = NULL;
+thread_body(struct thread_wrap *wrap) {
+	isc_threadfunc_t func = wrap->func;
+	void *arg = wrap->arg;
+	void *ret = NULL;
 
 	/*
 	 * Every thread starts with a malloc() call to prevent memory bloat
-	 * caused by a jemalloc quirk. To stop an optimizing compiler from
-	 * stripping out free(malloc(1)), we call free via a function pointer.
+	 * caused by a jemalloc quirk.  We use CMM_ACCESS_ONCE() To stop an
+	 * optimizing compiler from stripping out free(malloc(1)).
 	 */
-	wrap->free(malloc(1));
-	wrap->free(wrap);
+	void *jemalloc_enforce_init = NULL;
+	CMM_ACCESS_ONCE(jemalloc_enforce_init) = malloc(1);
+	free(jemalloc_enforce_init);
 
-	/* Get a thread-local digest context. */
+	/* Reassure Thread Sanitizer that it is safe to free the wrapper */
+	__tsan_acquire(wrap);
+	free(wrap);
+
+	rcu_register_thread();
+
+	ret = func(arg);
+
+	rcu_unregister_thread();
+
+	return (ret);
+}
+
+static void *
+thread_run(void *wrap) {
+	/*
+	 * Get a thread-local digest context only in new threads.
+	 * The main thread is handled by isc__initialize().
+	 */
 	isc__iterated_hash_initialize();
 
-	/* Run the main function */
-	result = wrap_func(wrap_arg);
+	void *ret = thread_body(wrap);
 
-	/* Cleanup */
 	isc__iterated_hash_shutdown();
 
-	return (result);
+	return (ret);
+}
+
+void
+isc_thread_main(isc_threadfunc_t func, void *arg) {
+	/*
+	 * Either this thread has not yet been started, so it can become the
+	 * main thread, or it has already been annointed as the chosen zero
+	 */
+	REQUIRE(isc_tid() == ISC_TID_UNKNOWN || isc_tid() == 0);
+	thread_body(thread_wrap(func, arg));
 }
 
 void
