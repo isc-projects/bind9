@@ -2021,6 +2021,9 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	result = client->manager->sctx->matchingview(
 		&netaddr, &client->destaddr, client->message, env, &sigresult,
 		&client->view);
+	if(!client->manager->sctx->fuzznotify) {
+		client->manager->sctx->fuzznotify();
+	}
 	if (result != ISC_R_SUCCESS) {
 		char classname[DNS_RDATACLASS_FORMATSIZE];
 

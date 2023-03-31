@@ -100,7 +100,7 @@ fuzz_thread_client(void *arg) {
 	 * the app.
 	 */
 #ifdef __AFL_LOOP
-	for (int loop = 0; loop < 100000; loop++) {
+	while (__AFL_LOOP(1000)) {
 #else  /* ifdef __AFL_LOOP */
 	{
 #endif /* ifdef __AFL_LOOP */
@@ -129,7 +129,6 @@ fuzz_thread_client(void *arg) {
 				isc_loopmgr_shutdown(named_g_loopmgr);
 				return (NULL);
 			}
-			raise(SIGSTOP);
 			goto next;
 		}
 
@@ -171,7 +170,7 @@ fuzz_thread_client(void *arg) {
  * named(resolver).  When named(resolver) connects to this authoritative
  * server, this thread writes the fuzzed reply message from AFL to it.
  *
- * -A resolver:<saddress>:<sport>:<raddress>:<rport>
+ * -A resolver:<qtype>:<saddress>:<sport>:<raddress>:<rport>
  *
  * Here, <saddress>:<sport> is where named(resolver) is listening on.
  * <raddress>:<rport> is where the thread is supposed to setup the
@@ -269,7 +268,6 @@ fuzz_thread_resolver(void *arg) {
 
 	int sockfd;
 	int listenfd;
-	int loop;
 	uint16_t qtype;
 	char *buf, *rbuf;
 	char *nameptr;
@@ -353,7 +351,11 @@ fuzz_thread_resolver(void *arg) {
 	 * Processing fuzzed packets 100,000 times before shutting down
 	 * the app.
 	 */
-	for (loop = 0; loop < 100000; loop++) {
+#ifdef __AFL_LOOP
+	while (__AFL_LOOP(1000)) {
+#else
+	{
+#endif
 		ssize_t length;
 		ssize_t sent;
 		unsigned short id;
@@ -363,7 +365,11 @@ fuzz_thread_resolver(void *arg) {
 		length = read(0, buf, 65536);
 		if (length <= 0) {
 			usleep(1000000);
+#ifdef __AFL_LOOP
 			continue;
+#else
+			return (NULL);
+#endif
 		}
 
 		if (length > 4096) {
@@ -377,8 +383,11 @@ fuzz_thread_resolver(void *arg) {
 				isc_loopmgr_shutdown(named_g_loopmgr);
 				return (NULL);
 			}
-			raise(SIGSTOP);
+#ifdef __AFL_LOOP
 			continue;
+#else
+			return (NULL);
+#endif
 		}
 
 		if (length < 12) {
@@ -605,7 +614,6 @@ fuzz_thread_tcp(void *arg) {
 	struct sockaddr_in servaddr;
 	int sockfd;
 	char *buf;
-	int loop;
 
 	UNUSED(arg);
 
@@ -643,7 +651,11 @@ fuzz_thread_tcp(void *arg) {
 	 * Processing fuzzed packets 100,000 times before shutting down
 	 * the app.
 	 */
-	for (loop = 0; loop < 100000; loop++) {
+#ifdef __AFL_LOOP
+	while (__AFL_LOOP(1000)) {
+#else
+	{
+#endif
 		ssize_t length;
 		ssize_t sent;
 		int yes;
@@ -666,7 +678,11 @@ fuzz_thread_tcp(void *arg) {
 		}
 		if (length <= 0) {
 			usleep(1000000);
+#ifdef __AFL_LOOP
 			continue;
+#else
+			return (NULL);
+#endif
 		}
 		if (named_g_fuzz_type == isc_fuzz_http) {
 			/*
@@ -737,21 +753,19 @@ named_fuzz_notify(void) {
 		return;
 	}
 
-	raise(SIGSTOP);
-
 	RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
 	ready = true;
 
-	RUNTIME_CHECK(pthread_cond_signal(&cond) == 0);
 	RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);
+	RUNTIME_CHECK(pthread_cond_signal(&cond) == 0);
 #endif /* ENABLE_AFL */
 }
 
 void
 named_fuzz_setup(void) {
 #ifdef ENABLE_AFL
-	if (getenv("__AFL_PERSISTENT") || getenv("AFL_CMIN")) {
+	if (getenv("AFL_PERSISTENT") || getenv("AFL_CMIN")) {
 		pthread_t thread;
 		void *(fn) = NULL;
 
