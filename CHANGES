@@ -1,3 +1,7 @@
+6142.	[bug]		Reduce the number of dns_dnssec_verify calls made
+			determining if revoked keys needs to be removed from
+			the trust anchors. [GL #3981]
+
 6141.	[bug]		Fix several issues in nsupdate timeout handling and
 			update the -t option's documentation. [GL #3674]
 
