@@ -29,18 +29,21 @@
 
 /*! \file */
 
+#include <errno.h>
+#include <fcntl.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fsaccess.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
+#include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
@@ -897,6 +900,66 @@ out:
 	return (result);
 }
 
+FILE *
+dst_key_open(char *tmpname, mode_t mode) {
+	/* Create public key file. */
+	int fd = mkstemp(tmpname);
+	if (fd == -1) {
+		return (NULL);
+	}
+
+	if (fchmod(fd, mode & ~isc_os_umask()) != 0) {
+		goto error;
+	}
+
+	FILE *fp = fdopen(fd, "w");
+	if (fp == NULL) {
+		goto error;
+	}
+
+	return (fp);
+error:
+	(void)close(fd);
+	(void)unlink(tmpname);
+	return (NULL);
+}
+
+isc_result_t
+dst_key_close(char *tmpname, FILE *fp, char *filename) {
+	if ((fflush(fp) != 0) || (ferror(fp) != 0)) {
+		return (dst_key_cleanup(tmpname, fp));
+	}
+
+	if (rename(tmpname, filename) != 0) {
+		return (dst_key_cleanup(tmpname, fp));
+	}
+
+	if (fclose(fp) != 0) {
+		/*
+		 * This is in fact error, but we don't care at this point,
+		 * as the file has been already flushed to disk.
+		 */
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dst_key_cleanup(char *tmpname, FILE *fp) {
+	if (ftruncate(fileno(fp), 0) != 0) {
+		/*
+		 * ftruncate() result can't be ignored, but we don't care, as
+		 * any sensitive data are protected by the permissions, and
+		 * unlinked in the next step, this is just a good practice.
+		 */
+	}
+
+	(void)unlink(tmpname);
+	(void)fclose(fp);
+
+	return (DST_R_WRITEERROR);
+}
+
 isc_result_t
 dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 		      unsigned int bits, unsigned int flags,
@@ -1372,7 +1435,8 @@ dst_key_buildfilename(const dst_key_t *key, int type, const char *directory,
 		      isc_buffer_t *out) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type == DST_TYPE_PRIVATE || type == DST_TYPE_PUBLIC ||
-		type == DST_TYPE_STATE || type == 0);
+		type == DST_TYPE_STATE || type == DST_TYPE_TEMPLATE ||
+		type == 0);
 
 	return (buildfilename(key->key_name, key->key_id, key->key_alg, type,
 			      directory, out));
@@ -2023,9 +2087,10 @@ static isc_result_t
 write_key_state(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
 	isc_buffer_t fileb;
+	isc_buffer_t tmpb;
 	char filename[NAME_MAX];
-	isc_result_t ret;
-	isc_fsaccess_t access;
+	char tmpname[NAME_MAX];
+	isc_result_t result;
 
 	REQUIRE(VALID_KEY(key));
 
@@ -2033,33 +2098,33 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 	 * Make the filename.
 	 */
 	isc_buffer_init(&fileb, filename, sizeof(filename));
-	ret = dst_key_buildfilename(key, DST_TYPE_STATE, directory, &fileb);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dst_key_buildfilename(key, DST_TYPE_STATE, directory, &fileb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
-	/*
-	 * Create public key file.
-	 */
-	if ((fp = fopen(filename, "w")) == NULL) {
+	isc_buffer_init(&tmpb, tmpname, sizeof(tmpname));
+	result = dst_key_buildfilename(key, DST_TYPE_TEMPLATE, directory,
+				       &tmpb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	mode_t mode = issymmetric(key) ? S_IRUSR | S_IWUSR
+				       : S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+	/* Create temporary public key file. */
+	fp = dst_key_open(tmpname, mode);
+	if (fp == NULL) {
 		return (DST_R_WRITEERROR);
-	}
-
-	if (issymmetric(key)) {
-		access = 0;
-		isc_fsaccess_add(ISC_FSACCESS_OWNER,
-				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
-				 &access);
-		(void)isc_fsaccess_set(filename, access);
 	}
 
 	/* Write key state */
 	if ((type & DST_TYPE_KEY) == 0) {
 		fprintf(fp, "; This is the state of key %d, for ", key->key_id);
-		ret = dns_name_print(key->key_name, fp);
-		if (ret != ISC_R_SUCCESS) {
-			fclose(fp);
-			return (ret);
+		result = dns_name_print(key->key_name, fp);
+		if (result != ISC_R_SUCCESS) {
+			return (dst_key_cleanup(tmpname, fp));
 		}
 		fputc('\n', fp);
 
@@ -2099,13 +2164,11 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printstate(key, DST_KEY_GOAL, "GoalState", fp);
 	}
 
-	fflush(fp);
-	if (ferror(fp)) {
-		ret = DST_R_WRITEERROR;
+	if (result != ISC_R_SUCCESS) {
+		return (dst_key_cleanup(tmpname, fp));
 	}
-	fclose(fp);
 
-	return (ret);
+	return (dst_key_close(tmpname, fp, filename));
 }
 
 /*%
@@ -2114,15 +2177,15 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 static isc_result_t
 write_public_key(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
-	isc_buffer_t keyb, textb, fileb, classb;
+	isc_buffer_t keyb, tmpb, textb, fileb, classb;
 	isc_region_t r;
+	char tmpname[NAME_MAX];
 	char filename[NAME_MAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXTEXTSIZE];
 	char class_array[10];
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_fsaccess_t access;
 
 	REQUIRE(VALID_KEY(key));
 
@@ -2157,19 +2220,19 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 		return (ret);
 	}
 
-	/*
-	 * Create public key file.
-	 */
-	if ((fp = fopen(filename, "w")) == NULL) {
-		return (DST_R_WRITEERROR);
+	isc_buffer_init(&tmpb, tmpname, sizeof(tmpname));
+	ret = dst_key_buildfilename(key, DST_TYPE_TEMPLATE, directory, &tmpb);
+	if (ret != ISC_R_SUCCESS) {
+		return (ret);
 	}
 
-	if (issymmetric(key)) {
-		access = 0;
-		isc_fsaccess_add(ISC_FSACCESS_OWNER,
-				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
-				 &access);
-		(void)isc_fsaccess_set(filename, access);
+	/* Create temporary public key file. */
+	mode_t mode = issymmetric(key) ? S_IRUSR | S_IWUSR
+				       : S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+	fp = dst_key_open(tmpname, mode);
+	if (fp == NULL) {
+		return (DST_R_WRITEERROR);
 	}
 
 	/* Write key information in comments */
@@ -2199,6 +2262,9 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	/* Now print the actual key */
 	ret = dns_name_print(key->key_name, fp);
+	if (ret != ISC_R_SUCCESS) {
+		return (dst_key_cleanup(tmpname, fp));
+	}
 	fprintf(fp, " ");
 
 	if (key->key_ttl != 0) {
@@ -2207,7 +2273,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&classb, &r);
 	if ((unsigned)fwrite(r.base, 1, r.length, fp) != r.length) {
-		ret = DST_R_WRITEERROR;
+		return (dst_key_cleanup(tmpname, fp));
 	}
 
 	if ((type & DST_TYPE_KEY) != 0) {
@@ -2218,17 +2284,16 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 
 	isc_buffer_usedregion(&textb, &r);
 	if ((unsigned)fwrite(r.base, 1, r.length, fp) != r.length) {
-		ret = DST_R_WRITEERROR;
+		return (dst_key_cleanup(tmpname, fp));
 	}
 
 	fputc('\n', fp);
-	fflush(fp);
-	if (ferror(fp)) {
-		ret = DST_R_WRITEERROR;
-	}
-	fclose(fp);
 
-	return (ret);
+	if (ret != ISC_R_SUCCESS) {
+		return (dst_key_cleanup(tmpname, fp));
+	}
+
+	return (dst_key_close(tmpname, fp, filename));
 }
 
 static isc_result_t
@@ -2238,12 +2303,15 @@ buildfilename(dns_name_t *name, dns_keytag_t id, unsigned int alg,
 	isc_result_t result;
 
 	REQUIRE(out != NULL);
+
 	if ((type & DST_TYPE_PRIVATE) != 0) {
 		suffix = ".private";
 	} else if ((type & DST_TYPE_PUBLIC) != 0) {
 		suffix = ".key";
 	} else if ((type & DST_TYPE_STATE) != 0) {
 		suffix = ".state";
+	} else if ((type & DST_TYPE_TEMPLATE) != 0) {
+		suffix = ".XXXXXX";
 	}
 
 	if (directory != NULL) {

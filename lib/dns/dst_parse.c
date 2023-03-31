@@ -30,11 +30,11 @@
 #include "dst_parse.h"
 #include <inttypes.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <isc/base64.h>
 #include <isc/dir.h>
 #include <isc/file.h>
-#include <isc/fsaccess.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -621,11 +621,13 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	FILE *fp;
 	isc_result_t result;
 	char filename[NAME_MAX];
+	char tmpname[NAME_MAX];
 	char buffer[MAXFIELDSIZE * 2];
-	isc_fsaccess_t access;
 	isc_stdtime_t when;
 	uint32_t value;
 	isc_buffer_t b;
+	isc_buffer_t fileb;
+	isc_buffer_t tmpb;
 	isc_region_t r;
 	int major, minor;
 	mode_t mode;
@@ -640,14 +642,15 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		return (ret);
 	}
 
-	isc_buffer_init(&b, filename, sizeof(filename));
-	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory, &b);
+	isc_buffer_init(&fileb, filename, sizeof(filename));
+	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory,
+				       &fileb);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
 
 	result = isc_file_mode(filename, &mode);
-	if (result == ISC_R_SUCCESS && mode != 0600) {
+	if (result == ISC_R_SUCCESS && mode != (S_IRUSR | S_IWUSR)) {
 		/* File exists; warn that we are changing its permissions */
 		int level;
 
@@ -660,14 +663,17 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			      filename, (unsigned int)mode);
 	}
 
-	if ((fp = fopen(filename, "w")) == NULL) {
-		return (DST_R_WRITEERROR);
+	isc_buffer_init(&tmpb, tmpname, sizeof(tmpname));
+	result = dst_key_buildfilename(key, DST_TYPE_TEMPLATE, directory,
+				       &tmpb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
-	access = 0;
-	isc_fsaccess_add(ISC_FSACCESS_OWNER,
-			 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE, &access);
-	(void)isc_fsaccess_set(filename, access);
+	fp = dst_key_open(tmpname, S_IRUSR | S_IWUSR);
+	if (fp == NULL) {
+		return (DST_R_WRITEERROR);
+	}
 
 	dst_key_getprivateformat(key, &major, &minor);
 	if (major == 0 && minor == 0) {
@@ -742,8 +748,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		isc_buffer_init(&b, buffer, sizeof(buffer));
 		result = isc_base64_totext(&r, sizeof(buffer), "", &b);
 		if (result != ISC_R_SUCCESS) {
-			fclose(fp);
-			return (DST_R_INVALIDPRIVATEKEY);
+			return (dst_key_cleanup(tmpname, fp));
 		}
 		isc_buffer_usedregion(&b, &r);
 
@@ -774,8 +779,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			isc_buffer_init(&b, buffer, sizeof(buffer));
 			result = dns_time32_totext(when, &b);
 			if (result != ISC_R_SUCCESS) {
-				fclose(fp);
-				return (DST_R_INVALIDPRIVATEKEY);
+				return (dst_key_cleanup(tmpname, fp));
 			}
 
 			isc_buffer_usedregion(&b, &r);
@@ -787,9 +791,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		}
 	}
 
-	fflush(fp);
-	result = ferror(fp) ? DST_R_WRITEERROR : ISC_R_SUCCESS;
-	fclose(fp);
+	result = dst_key_close(tmpname, fp, filename);
 	return (result);
 }
 
