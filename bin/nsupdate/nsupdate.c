@@ -3394,6 +3394,8 @@ getinput(isc_task_t *task, isc_event_t *event) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
+	uint32_t timeoutms;
+
 	style = &dns_master_style_debug;
 
 	input = stdin;
@@ -3419,6 +3421,10 @@ main(int argc, char **argv) {
 	parse_args(argc, argv);
 
 	setup_system();
+
+	/* Set the network manager timeouts in milliseconds. */
+	timeoutms = timeout * 1000;
+	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
 
 	result = isc_app_onrun(gmctx, global_task, getinput, NULL);
 	check_result(result, "isc_app_onrun");
