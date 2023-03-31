@@ -12,6 +12,7 @@
  */
 
 #include <inttypes.h>
+#include <sys/stat.h>
 
 #include <isc/os.h>
 #include <isc/types.h>
@@ -21,6 +22,7 @@
 
 static unsigned int isc__os_ncpus = 0;
 static unsigned long isc__os_cacheline = ISC_OS_CACHELINE_SIZE;
+static mode_t isc__os_umask = 0;
 
 #ifdef HAVE_SYSCONF
 
@@ -72,6 +74,12 @@ ncpus_initialize(void) {
 	}
 }
 
+static void
+umask_initialize(void) {
+	isc__os_umask = umask(0);
+	(void)umask(isc__os_umask);
+}
+
 unsigned int
 isc_os_ncpus(void) {
 	return (isc__os_ncpus);
@@ -82,8 +90,14 @@ isc_os_cacheline(void) {
 	return (isc__os_cacheline);
 }
 
+mode_t
+isc_os_umask(void) {
+	return (isc__os_umask);
+}
+
 void
 isc__os_initialize(void) {
+	umask_initialize();
 	ncpus_initialize();
 #if defined(HAVE_SYSCONF) && defined(_SC_LEVEL1_DCACHE_LINESIZE)
 	long s = sysconf(_SC_LEVEL1_DCACHE_LINESIZE);

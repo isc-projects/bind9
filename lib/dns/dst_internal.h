@@ -238,6 +238,16 @@ dst__mem_free(void *ptr);
 void *
 dst__mem_realloc(void *ptr, size_t size);
 
+/*%
+ * Secure private file handling
+ */
+FILE *
+dst_key_open(char *tmpname, mode_t mode);
+isc_result_t
+dst_key_close(char *tmpname, FILE *fp, char *filename);
+isc_result_t
+dst_key_cleanup(char *tmpname, FILE *fp);
+
 ISC_LANG_ENDDECLS
 
 /*! \file */

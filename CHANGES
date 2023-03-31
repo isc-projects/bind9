@@ -1,3 +1,7 @@
+6136.	[cleanup]	Remove the isc_fsaccess API in favor of creating
+			temporary file first and atomically replace the key
+			with non-truncated content. [GL #3982]
+
 6135.	[cleanup]	Change isc_stdtime_get(&t) to t = isc_stdtime_now().
 			[GL !7757]
 
