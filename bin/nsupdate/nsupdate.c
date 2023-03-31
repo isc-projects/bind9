@@ -3501,6 +3501,8 @@ getinput(void *arg) {
 
 int
 main(int argc, char **argv) {
+	uint32_t timeoutms;
+
 	style = &dns_master_style_debug;
 
 	input = stdin;
@@ -3522,6 +3524,10 @@ main(int argc, char **argv) {
 	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr);
 
 	parse_args(argc, argv);
+
+	/* Set the network manager timeouts in milliseconds. */
+	timeoutms = timeout * 1000;
+	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
 
 	setup_system();
 
