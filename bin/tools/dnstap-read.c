@@ -231,13 +231,13 @@ print_yaml(dns_dtdata_t *dt) {
 
 	if (!isc_time_isepoch(&dt->qtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&dt->qtime, buf, sizeof(buf));
+		isc_time_formatISO8601ms(&dt->qtime, buf, sizeof(buf));
 		printf("  query_time: !!timestamp %s\n", buf);
 	}
 
 	if (!isc_time_isepoch(&dt->rtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&dt->rtime, buf, sizeof(buf));
+		isc_time_formatISO8601ms(&dt->rtime, buf, sizeof(buf));
 		printf("  response_time: !!timestamp %s\n", buf);
 	}
 
