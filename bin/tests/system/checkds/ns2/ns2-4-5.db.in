@@ -19,21 +19,16 @@ $TTL 300
 				)
 
 				NS	ns2
+				NS	ns4
+				NS	ns5
 ns2				A	10.53.0.2
+ns4				A	10.53.0.4
+ns5				A	10.53.0.5
 
-dspublished			NS	ns9.dspublished
-reference			NS	ns9.reference
-missing-dspublished		NS	ns9.missing-dspublished
-bad-dspublished			NS	ns9.bad-dspublished
-multiple-dspublished		NS	ns9.multiple-dspublished
-incomplete-dspublished		NS	ns9.incomplete-dspublished
-bad2-dspublished		NS	ns9.bad2-dspublished
-resolver-dspublished		NS	ns9.resolver-dspublished
+$ORIGIN explicit.dspublish.ns2-4-5.
+incomplete			NS	ns9.incomplete
+ns9.imcomplete			A	10.53.0.9
 
-dswithdrawn			NS	ns9.dswithdrawn
-missing-dswithdrawn		NS	ns9.missing-dswithdrawn
-bad-dswithdrawn			NS	ns9.bad-dswithdrawn
-multiple-dswithdrawn		NS	ns9.multiple-dswithdrawn
-incomplete-dswithdrawn		NS	ns9.incomplete-dswithdrawn
-bad2-dswithdrawn		NS	ns9.bad2-dswithdrawn
-resolver-dswithdrawn		NS	ns9.resolver-dswithdrawn
+$ORIGIN yes.dspublish.ns2-4-5.
+incomplete			NS	ns9.incomplete
+ns9.imcomplete			A	10.53.0.9

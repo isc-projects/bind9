@@ -176,11 +176,14 @@ by configuring parental agents:
         dnssec-policy default;
         inline-signing yes;
         parental-agents { 192.0.2.1; };
+        checkds explicit;
     };
 
 Here one server, ``192.0.2.1``, is configured for BIND to send DS queries to,
 to check the DS RRset for ``dnssec-example`` during key rollovers. This needs
-to be a trusted server, because BIND does not validate the response.
+to be a trusted server, because BIND does not validate the response. The
+``checkds`` option makes BIND use the explicitly configured parental agents,
+rather than looking them up by querying for the parent NS records.
 
 If setting up a parental agent is undesirable, it is also possible to tell BIND that the
 DS is published in the parent with:

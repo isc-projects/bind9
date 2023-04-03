@@ -1492,6 +1492,12 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
  * Sets zone notify method to "notifytype"
  */
 
+void
+dns_zone_setcheckdstype(dns_zone_t *zone, dns_checkdstype_t checkdstype);
+/*%<
+ * Sets zone checkds method to "checkdstype"
+ */
+
 isc_result_t
 dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		       dns_updatecallback_t callback, void *callback_arg);

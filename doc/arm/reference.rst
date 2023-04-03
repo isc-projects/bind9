@@ -6433,6 +6433,23 @@ old DNSSEC key.
 
 The following options apply to DS queries sent to :any:`parental-agents`:
 
+.. namedconf:statement:: checkds
+   :tags: dnssec
+   :short: Controls whether ``DS`` queries are sent to parental agents.
+
+   If set to ``yes``, DS queries are sent when a KSK rollover is in progress.
+   The queries are sent to the servers listed in the parent zone's NS records.
+   This is the default if there are no :any:`parental-agents` configured for
+   the zone.
+
+   If set to ``explicit``, DS queries are sent only to servers explicitly listed
+   using :any:`parental-agents`. This is the default if there are parental
+   agents configured.
+
+   If set to ``no``, no DS queries are sent. Users should manually run
+   :option:`rndc dnssec -checkds <rndc dnssec>` with the appropriate parameters
+   to signal that specific DS records are published and/or withdrawn.
+
 .. namedconf:statement:: parental-source
    :tags: dnssec
    :short: Specifies which local IPv4 source address is used to send parental DS queries.

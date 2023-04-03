@@ -175,6 +175,7 @@ typedef struct dns_signing dns_signing_t;
 typedef ISC_LIST(dns_signing_t) dns_signinglist_t;
 typedef struct dns_nsec3chain dns_nsec3chain_t;
 typedef ISC_LIST(dns_nsec3chain_t) dns_nsec3chainlist_t;
+typedef struct dns_nsfetch dns_nsfetch_t;
 typedef struct dns_keyfetch dns_keyfetch_t;
 typedef struct dns_asyncload dns_asyncload_t;
 typedef struct dns_include dns_include_t;
@@ -312,6 +313,9 @@ struct dns_zone {
 
 	dns_remote_t parentals;
 	dns_dnsseckeylist_t checkds_ok;
+	dns_checkdstype_t checkdstype;
+	uint32_t nsfetchcount;
+	uint32_t parent_nscount;
 
 	dns_remote_t notify;
 	dns_notifytype_t notifytype;
@@ -646,7 +650,9 @@ struct dns_checkds {
 	unsigned int flags;
 	isc_mem_t *mctx;
 	dns_zone_t *zone;
+	dns_adbfind_t *find;
 	dns_request_t *request;
+	dns_name_t ns;
 	isc_sockaddr_t src;
 	isc_sockaddr_t dst;
 	dns_tsigkey_t *key;
@@ -756,6 +762,16 @@ struct dns_keyfetch {
 	dns_rdataset_t dnskeysigset;
 	dns_zone_t *zone;
 	dns_db_t *db;
+	dns_fetch_t *fetch;
+};
+
+struct dns_nsfetch {
+	isc_mem_t *mctx;
+	dns_fixedname_t name;
+	dns_name_t pname;
+	dns_rdataset_t nsrrset;
+	dns_rdataset_t nssigset;
+	dns_zone_t *zone;
 	dns_fetch_t *fetch;
 };
 
@@ -879,13 +895,19 @@ message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type);
 static void
 checkds_cancel(dns_zone_t *zone);
 static void
+checkds_find_address(dns_checkds_t *checkds);
+static void
 checkds_send(dns_zone_t *zone);
 static void
 checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep);
 static void
 checkds_done(void *arg);
 static void
+checkds_send_tons(dns_checkds_t *checkds);
+static void
 checkds_send_toaddr(void *arg);
+static void
+nsfetch_levelup(dns_nsfetch_t *nsfetch);
 static void
 notify_cancel(dns_zone_t *zone);
 static void
@@ -1062,6 +1084,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 		.minrefresh = DNS_ZONE_MINREFRESH,
 		.maxretry = DNS_ZONE_MAXRETRY,
 		.minretry = DNS_ZONE_MINRETRY,
+		.checkdstype = dns_checkdstype_yes,
 		.notifytype = dns_notifytype_yes,
 		.zero_no_soa_ttl = true,
 		.check_names = dns_severity_ignore,
@@ -1392,6 +1415,15 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
 
 	LOCK_ZONE(zone);
 	zone->notifytype = notifytype;
+	UNLOCK_ZONE(zone);
+}
+
+void
+dns_zone_setcheckdstype(dns_zone_t *zone, dns_checkdstype_t checkdstype) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->checkdstype = checkdstype;
 	UNLOCK_ZONE(zone);
 }
 
@@ -11823,6 +11855,9 @@ checkds_cancel(dns_zone_t *zone) {
 	for (checkds = ISC_LIST_HEAD(zone->checkds_requests); checkds != NULL;
 	     checkds = ISC_LIST_NEXT(checkds, link))
 	{
+		if (checkds->find != NULL) {
+			dns_adb_cancelfind(checkds->find);
+		}
 		if (checkds->request != NULL) {
 			dns_request_cancel(checkds->request);
 		}
@@ -12092,7 +12127,7 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
  * XXXAG should check for DNS_ZONEFLG_EXITING
  */
 static void
-process_adb_event(void *arg) {
+process_notify_adb_event(void *arg) {
 	dns_adbfind_t *find = (dns_adbfind_t *)arg;
 	dns_notify_t *notify = (dns_notify_t *)find->cbarg;
 	dns_adbstatus_t astat = find->status;
@@ -12132,10 +12167,11 @@ notify_find_address(dns_notify_t *notify) {
 		goto destroy;
 	}
 
-	result = dns_adb_createfind(
-		notify->zone->view->adb, notify->zone->loop, process_adb_event,
-		notify, &notify->ns, dns_rootname, 0, options, 0, NULL,
-		notify->zone->view->dstport, 0, NULL, &notify->find);
+	result = dns_adb_createfind(notify->zone->view->adb, notify->zone->loop,
+				    process_notify_adb_event, notify,
+				    &notify->ns, dns_rootname, 0, options, 0,
+				    NULL, notify->zone->view->dstport, 0, NULL,
+				    &notify->find);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {
@@ -19588,8 +19624,14 @@ checkds_destroy(dns_checkds_t *checkds, bool locked) {
 			dns_zone_idetach(&checkds->zone);
 		}
 	}
+	if (checkds->find != NULL) {
+		dns_adb_destroyfind(&checkds->find);
+	}
 	if (checkds->request != NULL) {
 		dns_request_destroy(&checkds->request);
+	}
+	if (dns_name_dynamic(&checkds->ns)) {
+		dns_name_free(&checkds->ns, checkds->mctx);
 	}
 	if (checkds->key != NULL) {
 		dns_tsigkey_detach(&checkds->key);
@@ -19628,6 +19670,21 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 	const char *dir = dns_zone_getkeydirectory(zone);
 	isc_result_t result;
 	uint32_t count = 0;
+	uint32_t num;
+
+	switch (zone->checkdstype) {
+	case dns_checkdstype_yes:
+		num = zone->parent_nscount;
+		break;
+	case dns_checkdstype_explicit:
+		num = dns_remote_count(&zone->parentals);
+		break;
+	case dns_checkdstype_no:
+	default:
+		dns_zone_log(zone, ISC_LOG_WARNING,
+			     "checkds: option is disabled");
+		return (false);
+	}
 
 	if (dspublish) {
 		(void)dst_key_getnum(key, DST_NUM_DSPUBCOUNT, &count);
@@ -19638,7 +19695,7 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 			     "for key %u",
 			     count, dst_key_id(key));
 
-		if (count != dns_remote_count(&zone->parentals)) {
+		if (count != num) {
 			return false;
 		}
 	} else {
@@ -19650,7 +19707,7 @@ do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 			     "for key %u",
 			     count, dst_key_id(key));
 
-		if (count != dns_remote_count(&zone->parentals)) {
+		if (count != num) {
 			return false;
 		}
 	}
@@ -19931,8 +19988,8 @@ failure:
 }
 
 static bool
-checkds_isqueued(dns_zone_t *zone, isc_sockaddr_t *addr, dns_tsigkey_t *key,
-		 dns_transport_t *transport) {
+checkds_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr,
+		 dns_tsigkey_t *key, dns_transport_t *transport) {
 	dns_checkds_t *checkds;
 
 	for (checkds = ISC_LIST_HEAD(zone->checkds_requests); checkds != NULL;
@@ -19940,6 +19997,9 @@ checkds_isqueued(dns_zone_t *zone, isc_sockaddr_t *addr, dns_tsigkey_t *key,
 	{
 		if (checkds->request != NULL) {
 			continue;
+		}
+		if (name != NULL && dns_name_equal(name, &checkds->ns)) {
+			return (true);
 		}
 		if (addr != NULL && isc_sockaddr_equal(addr, &checkds->dst) &&
 		    checkds->key == key && checkds->transport == transport)
@@ -19963,6 +20023,7 @@ checkds_create(isc_mem_t *mctx, unsigned int flags, dns_checkds_t **checkdsp) {
 
 	isc_mem_attach(mctx, &checkds->mctx);
 	isc_sockaddr_any(&checkds->dst);
+	dns_name_init(&checkds->ns, NULL);
 	ISC_LINK_INIT(checkds, link);
 	checkds->magic = CHECKDS_MAGIC;
 	*checkdsp = checkds;
@@ -20002,6 +20063,75 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	temprdataset = NULL;
 
 	*messagep = message;
+}
+
+/*
+ * XXXAG should check for DNS_ZONEFLG_EXITING
+ */
+static void
+process_checkds_adb_event(void *arg) {
+	dns_adbfind_t *find = (dns_adbfind_t *)arg;
+	dns_checkds_t *checkds = (dns_checkds_t *)find->cbarg;
+	dns_adbstatus_t astat = find->status;
+
+	REQUIRE(DNS_CHECKDS_VALID(checkds));
+	REQUIRE(find == checkds->find);
+
+	switch (astat) {
+	case DNS_ADB_MOREADDRESSES:
+		dns_adb_destroyfind(&checkds->find);
+		checkds_find_address(checkds);
+		return;
+
+	case DNS_ADB_NOMOREADDRESSES:
+		LOCK_ZONE(checkds->zone);
+		checkds_send_tons(checkds);
+		UNLOCK_ZONE(checkds->zone);
+		break;
+
+	default:
+		break;
+	}
+
+	checkds_destroy(checkds, false);
+}
+
+static void
+checkds_find_address(dns_checkds_t *checkds) {
+	isc_result_t result;
+	unsigned int options;
+
+	REQUIRE(DNS_CHECKDS_VALID(checkds));
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
+		  DNS_ADBFIND_RETURNLAME;
+
+	if (checkds->zone->view->adb == NULL) {
+		goto destroy;
+	}
+
+	result = dns_adb_createfind(
+		checkds->zone->view->adb, checkds->zone->loop,
+		process_checkds_adb_event, checkds, &checkds->ns, dns_rootname,
+		0, options, 0, NULL, checkds->zone->view->dstport, 0, NULL,
+		&checkds->find);
+
+	/* Something failed? */
+	if (result != ISC_R_SUCCESS) {
+		goto destroy;
+	}
+
+	/* More addresses pending? */
+	if ((checkds->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+		return;
+	}
+
+	/* We have as many addresses as we can get. */
+	LOCK_ZONE(checkds->zone);
+	checkds_send_tons(checkds);
+	UNLOCK_ZONE(checkds->zone);
+
+destroy:
+	checkds_destroy(checkds, false);
 }
 
 static void
@@ -20152,6 +20282,76 @@ cleanup:
 }
 
 static void
+checkds_send_tons(dns_checkds_t *checkds) {
+	dns_adbaddrinfo_t *ai;
+	isc_sockaddr_t dst;
+	isc_result_t result;
+	dns_checkds_t *newcheckds = NULL;
+	dns_zone_t *zone = NULL;
+
+	/*
+	 * Zone lock held by caller.
+	 */
+	REQUIRE(DNS_CHECKDS_VALID(checkds));
+	REQUIRE(LOCKED_ZONE(checkds->zone));
+
+	zone = checkds->zone;
+
+	if (DNS_ZONE_FLAG(checkds->zone, DNS_ZONEFLG_EXITING)) {
+		return;
+	}
+
+	for (ai = ISC_LIST_HEAD(checkds->find->list); ai != NULL;
+	     ai = ISC_LIST_NEXT(ai, publink))
+	{
+		dst = ai->sockaddr;
+		if (checkds_isqueued(zone, NULL, &dst, NULL, NULL)) {
+			continue;
+		}
+
+		newcheckds = NULL;
+		result = checkds_create(checkds->mctx, 0, &newcheckds);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		zone_iattach(zone, &newcheckds->zone);
+		ISC_LIST_APPEND(newcheckds->zone->checkds_requests, newcheckds,
+				link);
+		newcheckds->dst = dst;
+		dns_name_dup(&checkds->ns, checkds->mctx, &newcheckds->ns);
+		switch (isc_sockaddr_pf(&newcheckds->dst)) {
+		case PF_INET:
+			isc_sockaddr_any(&newcheckds->src);
+			break;
+		case PF_INET6:
+			isc_sockaddr_any6(&newcheckds->src);
+			break;
+		default:
+			UNREACHABLE();
+		}
+		/*
+		 * XXXWMM: Should we attach key and transport here?
+		 * Probably not, because we expect the name servers to be
+		 * publicly available on the default transport protocol.
+		 */
+
+		result = isc_ratelimiter_enqueue(
+			newcheckds->zone->zmgr->checkdsrl,
+			newcheckds->zone->loop, checkds_send_toaddr, newcheckds,
+			&newcheckds->rlevent);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		newcheckds = NULL;
+	}
+
+cleanup:
+	if (newcheckds != NULL) {
+		checkds_destroy(newcheckds, true);
+	}
+}
+
+static void
 checkds_send(dns_zone_t *zone) {
 	dns_view_t *view = dns_zone_getview(zone);
 	isc_result_t result;
@@ -20204,7 +20404,7 @@ checkds_send(dns_zone_t *zone) {
 
 		/* TODO: glue the transport to the checkds request */
 
-		if (checkds_isqueued(zone, &dst, key, transport)) {
+		if (checkds_isqueued(zone, NULL, &dst, key, transport)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(3),
 				     "checkds: DS query to parent "
 				     "%d is queued",
@@ -20232,6 +20432,7 @@ checkds_send(dns_zone_t *zone) {
 			goto next;
 		}
 		zone_iattach(zone, &checkds->zone);
+		dns_name_dup(dns_rootname, checkds->mctx, &checkds->ns);
 		checkds->src = src;
 		checkds->dst = dst;
 
@@ -20264,9 +20465,301 @@ checkds_send(dns_zone_t *zone) {
 	}
 }
 
+/*
+ * An NS RRset has been fetched from the parent of a zone whose DS RRset needs
+ * to be checked; scan the RRset and start sending queries to the parental
+ * agents.
+ */
+static void
+nsfetch_done(void *arg) {
+	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
+	isc_result_t result, eresult;
+	dns_nsfetch_t *nsfetch = NULL;
+	dns_zone_t *zone = NULL;
+	isc_mem_t *mctx = NULL;
+	dns_name_t *zname = NULL;
+	dns_name_t *pname = NULL;
+	char pnamebuf[DNS_NAME_FORMATSIZE];
+	bool free_needed, levelup = false;
+	dns_rdataset_t *nsrrset = NULL;
+	dns_rdataset_t *nssigset = NULL;
+
+	INSIST(resp != NULL && resp->type == FETCHDONE);
+
+	nsfetch = resp->arg;
+
+	INSIST(nsfetch != NULL);
+
+	zone = nsfetch->zone;
+	mctx = nsfetch->mctx;
+	zname = dns_fixedname_name(&nsfetch->name);
+	pname = &nsfetch->pname;
+	nsrrset = &nsfetch->nsrrset;
+	nssigset = &nsfetch->nssigset;
+	eresult = resp->result;
+
+	/* Free resources which are not of interest */
+	if (resp->node != NULL) {
+		dns_db_detachnode(resp->db, &resp->node);
+	}
+	if (resp->db != NULL) {
+		dns_db_detach(&resp->db);
+	}
+	dns_resolver_destroyfetch(&nsfetch->fetch);
+
+	LOCK_ZONE(zone);
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING) || zone->view == NULL) {
+		goto cleanup;
+	}
+
+	zone->nsfetchcount--;
+
+	dns_name_format(pname, pnamebuf, sizeof(pnamebuf));
+	dnssec_log(zone, ISC_LOG_DEBUG(3),
+		   "Returned from '%s' NS fetch in nsfetch_done(): %s",
+		   pnamebuf, isc_result_totext(eresult));
+
+	if (eresult == DNS_R_NCACHENXRRSET || eresult == DNS_R_NXRRSET) {
+		dnssec_log(zone, ISC_LOG_DEBUG(3),
+			   "NODATA response for NS '%s', level up", pnamebuf);
+		levelup = true;
+		goto cleanup;
+
+	} else if (eresult != ISC_R_SUCCESS) {
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "Unable to fetch NS set '%s': %s", pnamebuf,
+			   isc_result_totext(eresult));
+		result = eresult;
+		goto done;
+	}
+
+	/* No NS records found */
+	if (!dns_rdataset_isassociated(nsrrset)) {
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "No NS records found for '%s'", pnamebuf);
+		result = ISC_R_NOTFOUND;
+		goto done;
+	}
+
+	/* No RRSIGs found */
+	if (!dns_rdataset_isassociated(nssigset)) {
+		dnssec_log(zone, ISC_LOG_WARNING, "No NS RRSIGs found for '%s'",
+			   pnamebuf);
+		result = DNS_R_MUSTBESECURE;
+		goto done;
+	}
+
+	/* Check trust level */
+	if (nsrrset->trust < dns_trust_secure) {
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "Invalid NS RRset for '%s' trust level %u", pnamebuf,
+			   nsrrset->trust);
+		result = DNS_R_MUSTBESECURE;
+		goto done;
+	}
+
+	/* Record the number of NS records we found. */
+	zone->parent_nscount = dns_rdataset_count(nsrrset);
+
+	UNLOCK_ZONE(zone);
+
+	/* Look up the addresses for the found parental name servers. */
+	for (result = dns_rdataset_first(nsrrset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(nsrrset))
+	{
+		dns_checkds_t *checkds = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		dns_rdata_ns_t ns;
+		bool isqueued;
+
+		dns_rdataset_current(nsrrset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		dns_rdata_reset(&rdata);
+
+		LOCK_ZONE(zone);
+		isqueued = checkds_isqueued(zone, &ns.name, NULL, NULL, NULL);
+		UNLOCK_ZONE(zone);
+		if (isqueued) {
+			continue;
+		}
+		result = checkds_create(zone->mctx, 0, &checkds);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+				     "checkds: checkds_create() failed: %s",
+				     isc_result_totext(result));
+			break;
+		}
+
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			char nsnamebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(&ns.name, nsnamebuf, sizeof(nsnamebuf));
+			dns_zone_log(zone, ISC_LOG_DEBUG(3),
+				     "checkds: send DS query to NS %s",
+				     nsnamebuf);
+		}
+
+		LOCK_ZONE(zone);
+		zone_iattach(zone, &checkds->zone);
+		dns_name_dup(&ns.name, zone->mctx, &checkds->ns);
+		ISC_LIST_APPEND(zone->checkds_requests, checkds, link);
+		UNLOCK_ZONE(zone);
+
+		checkds_find_address(checkds);
+	}
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_SUCCESS;
+	}
+
+	LOCK_ZONE(zone);
+
+done:
+	if (result != ISC_R_SUCCESS) {
+		dnssec_log(
+			zone, ISC_LOG_ERROR,
+			"checkds: error during parental-agents processing: %s",
+			isc_result_totext(result));
+	}
+
+cleanup:
+	/* The zone must be managed */
+	INSIST(nsfetch->zone->loop != NULL);
+	isc_refcount_decrement(&zone->irefs);
+
+	if (dns_rdataset_isassociated(nsrrset)) {
+		dns_rdataset_disassociate(nsrrset);
+	}
+	if (dns_rdataset_isassociated(nssigset)) {
+		dns_rdataset_disassociate(nssigset);
+	}
+	isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
+
+	if (levelup) {
+		UNLOCK_ZONE(zone);
+		nsfetch_levelup(nsfetch);
+		return;
+	}
+
+	dns_name_free(zname, mctx);
+	isc_mem_putanddetach(&nsfetch->mctx, nsfetch, sizeof(dns_nsfetch_t));
+
+	free_needed = exit_check(zone);
+	UNLOCK_ZONE(zone);
+
+	if (free_needed) {
+		zone_free(zone);
+	}
+}
+
+static void
+do_nsfetch(void *arg) {
+	dns_nsfetch_t *nsfetch = (dns_nsfetch_t *)arg;
+	isc_result_t result;
+	unsigned int nlabels = 1;
+	dns_resolver_t *resolver = NULL;
+	dns_zone_t *zone = nsfetch->zone;
+	unsigned int options = DNS_FETCHOPT_UNSHARED | DNS_FETCHOPT_NOCACHED;
+
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
+		return;
+	}
+
+	result = dns_view_getresolver(zone->view, &resolver);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(&nsfetch->pname, namebuf, sizeof(namebuf));
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "Create fetch for '%s' NS request", namebuf);
+	}
+
+	/* Derive parent domain. XXXWMM: Check for root domain */
+	dns_name_split(&nsfetch->pname,
+		       dns_name_countlabels(&nsfetch->pname) - nlabels, NULL,
+		       &nsfetch->pname);
+
+	/*
+	 * Use of DNS_FETCHOPT_NOCACHED is essential here.  If it is not
+	 * set and the cache still holds a non-expired, validated version
+	 * of the RRset being queried for by the time the response is
+	 * received, the cached RRset will be passed to nsfetch_done()
+	 * instead of the one received in the response as the latter will
+	 * have a lower trust level due to not being validated until
+	 * nsfetch_done() is called.
+	 */
+	result = dns_resolver_createfetch(
+		resolver, &nsfetch->pname, dns_rdatatype_ns, NULL, NULL, NULL,
+		NULL, 0, options, 0, NULL, zone->loop, nsfetch_done, nsfetch,
+		&nsfetch->nsrrset, &nsfetch->nssigset, &nsfetch->fetch);
+
+	dns_resolver_detach(&resolver);
+
+	if (result != ISC_R_SUCCESS) {
+		dns_name_t *zname = dns_fixedname_name(&nsfetch->name);
+		bool free_needed;
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(&nsfetch->pname, namebuf, sizeof(namebuf));
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "Failed to create fetch for '%s' NS request",
+			   namebuf);
+		LOCK_ZONE(zone);
+		zone->nsfetchcount--;
+		isc_refcount_decrement(&zone->irefs);
+
+		dns_name_free(zname, zone->mctx);
+		isc_mem_putanddetach(&nsfetch->mctx, nsfetch, sizeof(*nsfetch));
+
+		free_needed = exit_check(zone);
+		UNLOCK_ZONE(zone);
+		if (free_needed) {
+			zone_free(zone);
+		}
+	}
+}
+
+/*
+ * Retry an NS RRset lookup, one level up. In other words, this function should
+ * be called on an dns_nsfetch structure where the response yielded in a NODATA
+ * response. This must be because there is an empty non-terminal inbetween the
+ * child and parent zone.
+ */
+static void
+nsfetch_levelup(dns_nsfetch_t *nsfetch) {
+	dns_zone_t *zone = nsfetch->zone;
+
+#ifdef ENABLE_AFL
+	if (!dns_fuzzing_resolver) {
+#endif /* ifdef ENABLE_AFL */
+		LOCK_ZONE(zone);
+		zone->nsfetchcount++;
+		isc_refcount_increment0(&zone->irefs);
+
+		dns_rdataset_init(&nsfetch->nsrrset);
+		dns_rdataset_init(&nsfetch->nssigset);
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "Creating parent NS fetch in "
+				   "nsfetch_levelup()");
+		}
+		isc_async_run(zone->loop, do_nsfetch, nsfetch);
+		UNLOCK_ZONE(zone);
+#ifdef ENABLE_AFL
+	}
+#endif /* ifdef ENABLE_AFL */
+}
+
 static void
 zone_checkds(dns_zone_t *zone) {
 	bool cdscheck = false;
+	dns_checkdstype_t checkdstype = zone->checkdstype;
+
+	if (checkdstype == dns_checkdstype_no) {
+		return;
+	}
 
 	for (dns_dnsseckey_t *key = ISC_LIST_HEAD(zone->checkds_ok);
 	     key != NULL; key = ISC_LIST_NEXT(key, link))
@@ -20297,12 +20790,48 @@ zone_checkds(dns_zone_t *zone) {
 		}
 	}
 
-	if (cdscheck) {
+	if (!cdscheck) {
+		return;
+	}
+
+	if (checkdstype == dns_checkdstype_explicit) {
 		/* Request the DS RRset. */
 		LOCK_ZONE(zone);
 		checkds_send(zone);
 		UNLOCK_ZONE(zone);
+		return;
 	}
+
+	INSIST(checkdstype == dns_checkdstype_yes);
+
+#ifdef ENABLE_AFL
+	if (!dns_fuzzing_resolver) {
+#endif /* ifdef ENABLE_AFL */
+		dns_nsfetch_t *nsfetch;
+		dns_name_t *name = NULL;
+
+		nsfetch = isc_mem_get(zone->mctx, sizeof(dns_nsfetch_t));
+		*nsfetch = (dns_nsfetch_t){ .zone = zone };
+		isc_mem_attach(zone->mctx, &nsfetch->mctx);
+		LOCK_ZONE(zone);
+		zone->nsfetchcount++;
+		isc_refcount_increment0(&zone->irefs);
+		name = dns_fixedname_initname(&nsfetch->name);
+		dns_name_init(&nsfetch->pname, NULL);
+		dns_name_clone(&zone->origin, &nsfetch->pname);
+		dns_name_dup(&zone->origin, zone->mctx, name);
+		dns_rdataset_init(&nsfetch->nsrrset);
+		dns_rdataset_init(&nsfetch->nssigset);
+		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
+			dnssec_log(
+				zone, ISC_LOG_DEBUG(3),
+				"Creating parent NS fetch in zone_checkds()");
+		}
+		isc_async_run(zone->loop, do_nsfetch, nsfetch);
+		UNLOCK_ZONE(zone);
+#ifdef ENABLE_AFL
+	}
+#endif /* ifdef ENABLE_AFL */
 }
 
 static void

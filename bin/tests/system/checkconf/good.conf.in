@@ -182,6 +182,7 @@ view "third" {
 view "fourth" {
 	zone "dnssec-test" {
 		type primary;
+		checkds explicit;
 		file "dnssec-test.db";
 		inline-signing yes;
 		parental-agents {
@@ -202,6 +203,7 @@ view "fourth" {
 	};
 	zone "dnssec-inherit" {
 		type primary;
+		checkds no;
 		file "dnssec-inherit.db";
 		inline-signing yes;
 	};
@@ -212,6 +214,7 @@ view "fourth" {
 	};
 	zone "dnssec-view1" {
 		type primary;
+		checkds yes;
 		file "dnssec-view41.db";
 		inline-signing yes;
 		dnssec-policy "test";

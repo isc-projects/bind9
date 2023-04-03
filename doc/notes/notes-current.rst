@@ -34,6 +34,11 @@ New Features
   INFO log level to the DEBUG(1) log level, to prevent ``delv`` from
   emitting that message when setting up its internal resolver. :gl:`#3842`
 
+- A new configuration option :any:`checkds` is introduced that when set to
+  ``yes`` will detect :any:`parental-agents` automatically by resolving the
+  parent NS records. These name servers will be used to check the DS RRset
+  during a KSK rollover initiated by :any:`dnssec-policy`. :gl:`#3901`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
