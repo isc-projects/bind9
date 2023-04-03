@@ -3300,7 +3300,7 @@ render_json(uint32_t flags, void *arg, unsigned int *retcode,
 		*retcode = 200;
 		*retmsg = "OK";
 		*mimetype = "application/json";
-		DE_CONST(msg, p);
+		p = UNCONST(msg);
 		isc_buffer_reinit(b, p, msglen);
 		isc_buffer_add(b, msglen);
 		*freecb = wrap_jsonfree;
@@ -3442,7 +3442,7 @@ render_xsl(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo, void *args,
 send:
 	*retcode = 200;
 	*retmsg = "OK";
-	DE_CONST(xslmsg, p);
+	p = UNCONST(xslmsg);
 	isc_buffer_reinit(b, p, strlen(xslmsg));
 	isc_buffer_add(b, strlen(xslmsg));
 end:

@@ -44,16 +44,6 @@
 #include <dlz_list.h>
 #include <dlz_minimal.h>
 
-#define DE_CONST(konst, var)           \
-	do {                           \
-		union {                \
-			const void *k; \
-			void *v;       \
-		} _u;                  \
-		_u.k = konst;          \
-		var = _u.v;            \
-	} while (0)
-
 /* fnmatch() return values. */
 #define FNM_NOMATCH 1 /* Match failed. */
 
@@ -119,7 +109,7 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	nrr_t *nrec;
 	int i = 0;
 
-	DE_CONST(zone, cd->zone);
+	cd->zone = UNCONST(zone);
 
 	/* Write info message to log */
 	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard allnodes called for zone '%s'",
@@ -235,8 +225,8 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
 		return (ISC_R_NOTFOUND);
 	}
 
-	DE_CONST(name, cd->record);
-	DE_CONST(p, cd->zone);
+	cd->record = UNCONST(name);
+	cd->zone = UNCONST(p);
 
 	if ((p != zone) && (strcmp(name, "@") == 0 || strcmp(name, zone) == 0))
 	{
@@ -315,7 +305,7 @@ dlz_authority(const char *zone, void *dbdata, dns_sdlzlookup_t *lookup) {
 		return (ISC_R_NOTFOUND);
 	}
 
-	DE_CONST(p, cd->zone);
+	cd->zone = UNCONST(p);
 
 	/* Write info message to log */
 	cd->log(ISC_LOG_DEBUG(1), "dlz_wildcard_dynamic: authority for '%s'",

@@ -616,7 +616,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 		CHECK(dns_zone_setjournal(zone, journal));
 	}
 
-	DE_CONST(classname, region.base);
+	region.base = UNCONST(classname);
 	region.length = strlen(classname);
 	CHECK(dns_rdataclass_fromtext(&rdclass, &region));
 

@@ -997,7 +997,7 @@ dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep) {
 		if (data == NULL) {
 			return (ISC_R_FAILURE);
 		}
-		DE_CONST(data, *bufp);
+		*bufp = UNCONST(data);
 		return (ISC_R_SUCCESS);
 	case fstrm_res_stop:
 		return (ISC_R_NOMORE);

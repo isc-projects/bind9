@@ -1674,7 +1674,7 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 		isc_textregion_t r;
 		dns_secalg_t alg;
 
-		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
 
 		result = dns_secalg_fromtext(&alg, &r);
@@ -1717,7 +1717,7 @@ disable_ds_digests(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 		isc_textregion_t r;
 		dns_dsdigest_t digest;
 
-		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
+		r.base = UNCONST(cfg_obj_asstring(cfg_listelt_value(element)));
 		r.length = strlen(r.base);
 
 		/* disable_ds_digests handles numeric values. */
@@ -8488,8 +8488,7 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "geoip-directory", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (cfg_obj_isstring(obj)) {
-		char *dir;
-		DE_CONST(cfg_obj_asstring(obj), dir);
+		char *dir = UNCONST(cfg_obj_asstring(obj));
 		named_geoip_load(dir);
 	}
 	named_g_aclconfctx->geoip = named_g_geoip;
@@ -12683,7 +12682,7 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	DE_CONST(&zl->value.list, list);
+	list = UNCONST(&zl->value.list);
 
 	CHECK(add_comment(fp, view->name)); /* force a comment */
 
@@ -13371,7 +13370,7 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx, const cfg_obj_t *config,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	DE_CONST(&zl->value.list, list);
+	list = UNCONST(&zl->value.list);
 
 	myname = dns_fixedname_initname(&myfixed);
 
@@ -13388,7 +13387,7 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx, const cfg_obj_t *config,
 			continue;
 		}
 
-		DE_CONST(elt, e);
+		e = UNCONST(elt);
 		ISC_LIST_UNLINK(*list, e, link);
 		cfg_obj_destroy(pctx, &e->obj);
 		isc_mem_put(pctx->mctx, e, sizeof(*e));
@@ -13517,8 +13516,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	if (cfg->nzf_config == NULL) {
 		cfg_obj_attach(zoneconf, &cfg->nzf_config);
 	} else {
-		cfg_obj_t *z;
-		DE_CONST(zoneobj, z);
+		cfg_obj_t *z = UNCONST(zoneobj);
 		CHECK(cfg_parser_mapadd(cfg->add_parser, cfg->nzf_config, z,
 					"zone"));
 	}
@@ -13761,7 +13759,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 #ifndef HAVE_LMDB
 	/* Store the new zone configuration; also in NZF if applicable */
-	DE_CONST(zoneobj, z);
+	z = UNCONST(zoneobj);
 	CHECK(cfg_parser_mapadd(cfg->add_parser, cfg->nzf_config, z, "zone"));
 #endif /* HAVE_LMDB */
 

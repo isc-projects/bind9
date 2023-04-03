@@ -441,7 +441,7 @@ named_config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		*classp = defclass;
 		return (ISC_R_SUCCESS);
 	}
-	DE_CONST(cfg_obj_asstring(classobj), r.base);
+	r.base = UNCONST(cfg_obj_asstring(classobj));
 	r.length = strlen(r.base);
 	result = dns_rdataclass_fromtext(classp, &r);
 	if (result != ISC_R_SUCCESS) {
@@ -461,7 +461,7 @@ named_config_gettype(const cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 		*typep = deftype;
 		return (ISC_R_SUCCESS);
 	}
-	DE_CONST(cfg_obj_asstring(typeobj), r.base);
+	r.base = UNCONST(cfg_obj_asstring(typeobj));
 	r.length = strlen(r.base);
 	result = dns_rdatatype_fromtext(typep, &r);
 	if (result != ISC_R_SUCCESS) {

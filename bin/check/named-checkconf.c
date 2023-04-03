@@ -155,7 +155,7 @@ configure_hint(const char *zfile, const char *zclass, isc_mem_t *mctx) {
 		return (ISC_R_FAILURE);
 	}
 
-	DE_CONST(zclass, r.base);
+	r.base = UNCONST(zclass);
 	r.length = strlen(zclass);
 	result = dns_rdataclass_fromtext(&rdclass, &r);
 	if (result != ISC_R_SUCCESS) {
@@ -510,7 +510,7 @@ config_getclass(const cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		*classp = defclass;
 		return (ISC_R_SUCCESS);
 	}
-	DE_CONST(cfg_obj_asstring(classobj), r.base);
+	r.base = UNCONST(cfg_obj_asstring(classobj));
 	r.length = strlen(r.base);
 	return (dns_rdataclass_fromtext(classp, &r));
 }

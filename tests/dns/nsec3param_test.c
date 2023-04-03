@@ -78,7 +78,7 @@ copy_params(nsec3param_rdata_test_params_t from, dns_rdata_nsec3param_t *to,
 	if (from.salt == NULL) {
 		to->salt = NULL;
 	} else if (strcmp(from.salt, "-") == 0) {
-		DE_CONST("-", to->salt);
+		to->salt = (unsigned char *)"-";
 	} else {
 		decode_salt(from.salt, saltbuf, saltlen);
 		to->salt = saltbuf;

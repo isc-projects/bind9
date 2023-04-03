@@ -80,22 +80,19 @@
 #define ISC_CLAMP(v, x, y) ((v) < (x) ? (x) : ((v) > (y) ? (y) : (v)))
 
 /*%
- * Use this to remove the const qualifier of a variable to assign it to
- * a non-const variable or pass it as a non-const function argument ...
- * but only when you are sure it won't then be changed!
- * This is necessary to sometimes shut up some compilers
- * (as with gcc -Wcast-qual) when there is just no other good way to avoid the
- * situation.
+ * The UNCONST() macro can be used to omit warnings produced by certain
+ * compilers when operating with pointers declared with the const type qual-
+ * ifier in a context without such qualifier.  Examples include passing a
+ * pointer declared with the const qualifier to a function without such
+ * qualifier, and variable assignment from a const pointer to a non-const
+ * pointer.
+ *
+ * As the macro may hide valid errors, their usage is not recommended
+ * unless there is a well-thought reason for a cast.  A typical use case for
+ * __UNCONST() involve an API that does not follow the so-called ``const
+ * correctness'' even if it would be appropriate.
  */
-#define DE_CONST(konst, var)           \
-	do {                           \
-		union {                \
-			const void *k; \
-			void	   *v; \
-		} _u;                  \
-		_u.k = konst;          \
-		var = _u.v;            \
-	} while (0)
+#define UNCONST(ptr) ((void *)(uintptr_t)(ptr))
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 

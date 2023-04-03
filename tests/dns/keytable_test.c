@@ -91,11 +91,9 @@ str2name(const char *namestr) {
 	static dns_fixedname_t fname;
 	static dns_name_t *name;
 	static isc_buffer_t namebuf;
-	void *deconst_namestr;
 
 	name = dns_fixedname_initname(&fname);
-	DE_CONST(namestr, deconst_namestr); /* OK, since we don't modify it */
-	isc_buffer_init(&namebuf, deconst_namestr, strlen(deconst_namestr));
+	isc_buffer_init(&namebuf, UNCONST(namestr), strlen(namestr));
 	isc_buffer_add(&namebuf, strlen(namestr));
 	assert_int_equal(
 		dns_name_fromtext(name, &namebuf, dns_rootname, 0, NULL),

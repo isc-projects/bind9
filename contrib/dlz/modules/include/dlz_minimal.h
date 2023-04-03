@@ -75,15 +75,8 @@ typedef uint32_t     dns_ttl_t;
 
 /* other useful definitions */
 #define UNUSED(x) (void)(x)
-#define DE_CONST(konst, var)           \
-	do {                           \
-		union {                \
-			const void *k; \
-			void	   *v; \
-		} _u;                  \
-		_u.k = konst;          \
-		var = _u.v;            \
-	} while (0)
+
+#define UNCONST(ptr) ((void *)(uintptr_t)(ptr))
 
 #if !defined(__has_c_attribute)
 #define __has_c_attribute(x) 0

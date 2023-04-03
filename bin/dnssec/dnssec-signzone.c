@@ -1962,7 +1962,7 @@ addnsec3param(const unsigned char *salt, size_t salt_len,
 	nsec3param.hash = unknownalg ? DNS_NSEC3_UNKNOWNALG : dns_hash_sha1;
 	nsec3param.iterations = iterations;
 	nsec3param.salt_length = (unsigned char)salt_len;
-	DE_CONST(salt, nsec3param.salt);
+	nsec3param.salt = UNCONST(salt);
 
 	isc_buffer_init(&b, nsec3parambuf, sizeof(nsec3parambuf));
 	result = dns_rdata_fromstruct(&rdata, gclass, dns_rdatatype_nsec3param,
@@ -2811,7 +2811,7 @@ build_final_keylist(void) {
 		char *s;
 		size_t dlen;
 
-		DE_CONST(sync_records, digest);
+		digest = UNCONST(sync_records);
 	next_digest:
 		s = strchr(digest, delim);
 		if (s == NULL) {

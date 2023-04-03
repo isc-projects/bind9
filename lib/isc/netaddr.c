@@ -439,9 +439,8 @@ isc_netaddr_isnetzero(const isc_netaddr_t *na) {
 
 void
 isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s) {
-	isc_netaddr_t *src;
-
-	DE_CONST(s, src); /* Must come before IN6_IS_ADDR_V4MAPPED. */
+	isc_netaddr_t *src = UNCONST(s); /* Must come before
+					    IN6_IS_ADDR_V4MAPPED. */
 
 	REQUIRE(s->family == AF_INET6);
 	REQUIRE(IN6_IS_ADDR_V4MAPPED(&src->type.in6));
