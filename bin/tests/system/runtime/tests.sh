@@ -245,7 +245,7 @@ if [ "$(id -u)" -eq 0 ]; then
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 else
-    echo_i "skipped, not running as root or running on Windows"
+    echo_i "skipped, not running as root"
 fi
 
 echo_i "exit status: $status"

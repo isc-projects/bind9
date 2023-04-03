@@ -170,9 +170,6 @@ isc__nm_socket_reuse(uv_os_sock_t fd) {
 	 * On Linux, SO_REUSEPORT has different semantics: it _shares_ the port
 	 * rather than steal it from the current listener, so we don't use it
 	 * here, but rather in isc__nm_socket_reuse_lb().
-	 *
-	 * On Windows, it also allows a socket to forcibly bind to a port in use
-	 * by another socket.
 	 */
 
 #if defined(SO_REUSEPORT) && !defined(__linux__)

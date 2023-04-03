@@ -160,9 +160,8 @@ cleanup(void) {
 		/*
 		 * Restore working directory if possible before cleaning
 		 * up the key directory.  This will help with any other
-		 * cleanup routines and if this code is ever run under
-		 * Windows as the directory should not be in use when
-		 * rmdir() is called.
+		 * cleanup routines as the directory should not be in use
+		 * when rmdir() is called.
 		 */
 		if (pwd != NULL && chdir(pwd) != 0) {
 			fprintf(stderr, "can't restore working directory: %s\n",

@@ -571,9 +571,6 @@ printversion(bool verbose) {
 #endif /* ifdef __GNUC__ */
 #endif /* if defined(__ICC) || defined(__INTEL_COMPILER) */
 #endif /* ifdef __clang__ */
-#ifdef _MSC_VER
-	printf("compiled by MSVC %d\n", _MSC_VER);
-#endif /* ifdef _MSC_VER */
 #ifdef __SUNPRO_C
 	printf("compiled by Solaris Studio %x\n", __SUNPRO_C);
 #endif /* ifdef __SUNPRO_C */
@@ -1139,11 +1136,6 @@ setup(void) {
 #endif /* ifdef __GNUC__ */
 #endif /* if defined(__ICC) || defined(__INTEL_COMPILER) */
 #endif /* ifdef __clang__ */
-#ifdef _MSC_VER
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled by MSVC %d", _MSC_VER);
-#endif /* ifdef _MSC_VER */
 #ifdef __SUNPRO_C
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,

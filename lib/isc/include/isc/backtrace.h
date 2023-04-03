@@ -79,7 +79,6 @@ isc_backtrace_symbols(void *const *buffer, int size);
  *
  * Notes:
  *
- *\li	On Windows, this is shim implementation using SymFromAddr()
  *\li	On systems with backtrace_symbols(), it's just a thin wrapper
  *\li	Otherwise, it returns NULL
  *\li	See platform NOTES for backtrace_symbols
