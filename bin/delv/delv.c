@@ -2088,12 +2088,6 @@ sendquery(void *arg) {
 
 cleanup:
 	if (message != NULL) {
-		if (mname != NULL) {
-			dns_message_puttempname(message, &mname);
-		}
-		if (mrdataset != NULL) {
-			dns_message_puttemprdataset(message, &mrdataset);
-		}
 		dns_message_detach(&message);
 	}
 
@@ -2123,7 +2117,7 @@ run_server(void *arg) {
 
 	UNUSED(arg);
 
-	inet_pton(AF_INET, "127.0.0.1", &in);
+	RUNTIME_CHECK(inet_pton(AF_INET, "127.0.0.1", &in));
 	isc_sockaddr_fromin(&addr, &in, 0);
 
 	CHECK(ns_server_create(mctx, matchview, &sctx));
