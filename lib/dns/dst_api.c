@@ -2133,10 +2133,6 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printstate(key, DST_KEY_GOAL, "GoalState", fp);
 	}
 
-	if (result != ISC_R_SUCCESS) {
-		return (dst_key_cleanup(tmpname, fp));
-	}
-
 	return (dst_key_close(tmpname, fp, filename));
 }
 
@@ -2153,7 +2149,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXTEXTSIZE];
 	char class_array[10];
-	isc_result_t ret;
+	isc_result_t result;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 
 	REQUIRE(VALID_KEY(key));
@@ -2162,21 +2158,21 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	isc_buffer_init(&textb, text_array, sizeof(text_array));
 	isc_buffer_init(&classb, class_array, sizeof(class_array));
 
-	ret = dst_key_todns(key, &keyb);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dst_key_todns(key, &keyb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	isc_buffer_usedregion(&keyb, &r);
 	dns_rdata_fromregion(&rdata, key->key_class, dns_rdatatype_dnskey, &r);
 
-	ret = dns_rdata_totext(&rdata, (dns_name_t *)NULL, &textb);
-	if (ret != ISC_R_SUCCESS) {
+	result = dns_rdata_totext(&rdata, (dns_name_t *)NULL, &textb);
+	if (result != ISC_R_SUCCESS) {
 		return (DST_R_INVALIDPUBLICKEY);
 	}
 
-	ret = dns_rdataclass_totext(key->key_class, &classb);
-	if (ret != ISC_R_SUCCESS) {
+	result = dns_rdataclass_totext(key->key_class, &classb);
+	if (result != ISC_R_SUCCESS) {
 		return (DST_R_INVALIDPUBLICKEY);
 	}
 
@@ -2184,15 +2180,16 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	 * Make the filename.
 	 */
 	isc_buffer_init(&fileb, filename, sizeof(filename));
-	ret = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory, &fileb);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory, &fileb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	isc_buffer_init(&tmpb, tmpname, sizeof(tmpname));
-	ret = dst_key_buildfilename(key, DST_TYPE_TEMPLATE, directory, &tmpb);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dst_key_buildfilename(key, DST_TYPE_TEMPLATE, directory,
+				       &tmpb);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	/* Create temporary public key file. */
@@ -2212,10 +2209,9 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 			(key->key_flags & DNS_KEYFLAG_KSK) != 0 ? "key"
 								: "zone",
 			key->key_id);
-		ret = dns_name_print(key->key_name, fp);
-		if (ret != ISC_R_SUCCESS) {
-			fclose(fp);
-			return (ret);
+		result = dns_name_print(key->key_name, fp);
+		if (result != ISC_R_SUCCESS) {
+			return (dst_key_cleanup(tmpname, fp));
 		}
 		fputc('\n', fp);
 
@@ -2230,8 +2226,8 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	/* Now print the actual key */
-	ret = dns_name_print(key->key_name, fp);
-	if (ret != ISC_R_SUCCESS) {
+	result = dns_name_print(key->key_name, fp);
+	if (result != ISC_R_SUCCESS) {
 		return (dst_key_cleanup(tmpname, fp));
 	}
 	fprintf(fp, " ");
@@ -2257,10 +2253,6 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	fputc('\n', fp);
-
-	if (ret != ISC_R_SUCCESS) {
-		return (dst_key_cleanup(tmpname, fp));
-	}
 
 	return (dst_key_close(tmpname, fp, filename));
 }
