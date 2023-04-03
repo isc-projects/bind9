@@ -64,7 +64,8 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Performance of DNSSEC validation in zones with many DNSKEY records
+  has been improved. :gl:`#3981`
 
 Known Issues
 ~~~~~~~~~~~~
