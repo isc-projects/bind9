@@ -118,8 +118,7 @@ cleanup_zt:
 isc_result_t
 dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 	isc_result_t result;
-	dns_zone_t *dummy = NULL;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 
 	REQUIRE(VALID_ZT(zt));
 
@@ -129,7 +128,7 @@ dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone) {
 
 	result = dns_rbt_addname(zt->table, name, zone);
 	if (result == ISC_R_SUCCESS) {
-		dns_zone_attach(zone, &dummy);
+		dns_zone_ref(zone);
 	}
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
@@ -171,7 +170,7 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, unsigned int options,
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
 
 	result = dns_rbt_findname(zt->table, name, rbtoptions, foundname,
-				  (void **)(void *)&dummy);
+				  (void **)&dummy);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		/*
 		 * If DNS_ZTFIND_MIRROR is set and the zone which was
