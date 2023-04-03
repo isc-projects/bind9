@@ -1,3 +1,6 @@
+6141.	[bug]		Fix several issues in nsupdate timeout handling and
+			update the -t option's documentation. [GL #3674]
+
 6140.	[func]		Implement automatic parental-agents ('checkds yes').
 			[GL #3901]
 

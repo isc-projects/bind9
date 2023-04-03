@@ -94,12 +94,11 @@
 
 #include "../dig/readline.h"
 
-#define MAXCMD	     (128 * 1024)
-#define MAXWIRE	     (64 * 1024)
-#define INITTEXT     (2 * 1024)
-#define MAXTEXT	     (128 * 1024)
-#define FIND_TIMEOUT 5
-#define TTL_MAX	     2147483647U /* Maximum signed 32 bit integer. */
+#define MAXCMD	 (128 * 1024)
+#define MAXWIRE	 (64 * 1024)
+#define INITTEXT (2 * 1024)
+#define MAXTEXT	 (128 * 1024)
+#define TTL_MAX	 2147483647U /* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -1242,9 +1241,6 @@ parse_args(int argc, char **argv) {
 				fprintf(stderr, "bad udp timeout '%s'\n",
 					isc_commandline_argument);
 				exit(1);
-			}
-			if (udp_timeout == 0) {
-				udp_timeout = UINT_MAX;
 			}
 			break;
 		case 'r':
@@ -2721,11 +2717,11 @@ recvsoa(void *arg) {
 			srcaddr = localaddr4;
 		}
 
-		result = dns_request_create(
-			requestmgr, soaquery, srcaddr, addr, req_transport,
-			req_tls_ctx_cache, options, NULL, FIND_TIMEOUT * 20,
-			FIND_TIMEOUT, 3, isc_loop_main(loopmgr), recvsoa,
-			reqinfo, &request);
+		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
+					    req_transport, req_tls_ctx_cache,
+					    options, NULL, timeout, udp_timeout,
+					    udp_retries, isc_loop_main(loopmgr),
+					    recvsoa, reqinfo, &request);
 		check_result(result, "dns_request_create");
 		requests++;
 		return;
@@ -2961,7 +2957,7 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	result = dns_request_create(
 		requestmgr, msg, srcaddr, destaddr, req_transport,
 		req_tls_ctx_cache, options, default_servers ? NULL : tsigkey,
-		FIND_TIMEOUT * 20, FIND_TIMEOUT, 3, isc_loop_main(loopmgr),
+		timeout, udp_timeout, udp_retries, isc_loop_main(loopmgr),
 		recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 	requests++;
@@ -3168,11 +3164,10 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr,
-				    req_transport, req_tls_ctx_cache, options,
-				    tsigkey, FIND_TIMEOUT * 20, FIND_TIMEOUT, 3,
-				    isc_loop_main(loopmgr), recvgss, reqinfo,
-				    request);
+	result = dns_request_create(
+		requestmgr, msg, srcaddr, destaddr, req_transport,
+		req_tls_ctx_cache, options, tsigkey, timeout, udp_timeout,
+		udp_retries, isc_loop_main(loopmgr), recvgss, reqinfo, request);
 	check_result(result, "dns_request_create");
 	if (debugging) {
 		show_message(stdout, msg, "Outgoing update query:");
@@ -3506,6 +3501,8 @@ getinput(void *arg) {
 
 int
 main(int argc, char **argv) {
+	uint32_t timeoutms;
+
 	style = &dns_master_style_debug;
 
 	input = stdin;
@@ -3527,6 +3524,10 @@ main(int argc, char **argv) {
 	isc_managers_create(&gmctx, 1, &loopmgr, &netmgr);
 
 	parse_args(argc, argv);
+
+	/* Set the network manager timeouts in milliseconds. */
+	timeoutms = timeout * 1000;
+	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
 
 	setup_system();
 

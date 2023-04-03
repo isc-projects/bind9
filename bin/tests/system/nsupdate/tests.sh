@@ -1276,15 +1276,97 @@ grep "records in zone (4) exceeds max-records (3)" ns3/named.run > /dev/null || 
 
 n=$((n + 1))
 ret=0
-echo_i "check whether valid addresses are used for primary failover ($n)"
-$NSUPDATE -t 1 <<END > nsupdate.out.test$n 2>&1 && ret=1
+echo_i "check whether valid addresses are used for primary failover (UDP with defaults) ($n)"
+t1=$($PERL -e 'print time()')
+$NSUPDATE <<END > nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.4 ${PORT}
 zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
+t2=`$PERL -e 'print time()'`
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
+elapsed=$((t2 - t1))
+# Check that default timeout value is respected, there should be 4 tries with 3 seconds each.
+test $elapsed -lt 12 && ret=1
+test $elapsed -gt 15 && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check whether valid addresses are used for primary failover (UDP with -u udptimeout) ($n)"
+t1=$($PERL -e 'print time()')
+$NSUPDATE -u 4 -r 1 <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.4 ${PORT}
+zone unreachable.
+update add unreachable. 600 A 192.0.2.1
+send
+END
+t2=`$PERL -e 'print time()'`
+grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
+grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
+elapsed=$((t2 - t1))
+# Check that given timeout value is respected, there should be 2 tries with 4 seconds each.
+test $elapsed -lt 8 && ret=1
+test $elapsed -gt 12 && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check whether valid addresses are used for primary failover (UDP with -t timeout) ($n)"
+t1=$($PERL -e 'print time()')
+$NSUPDATE -u 0 -t 8 -r 1 <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.4 ${PORT}
+zone unreachable.
+update add unreachable. 600 A 192.0.2.1
+send
+END
+t2=`$PERL -e 'print time()'`
+grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
+grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
+elapsed=$((t2 - t1))
+# Check that given timeout value is respected, there should be 2 tries with 4 seconds each.
+test $elapsed -lt 8 && ret=1
+test $elapsed -gt 12 && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check whether valid addresses are used for primary failover (UDP with -u udptimeout -t timeout) ($n)"
+t1=$($PERL -e 'print time()')
+$NSUPDATE -u 4 -t 30 -r 1 <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.4 ${PORT}
+zone unreachable.
+update add unreachable. 600 A 192.0.2.1
+send
+END
+t2=`$PERL -e 'print time()'`
+grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
+grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
+elapsed=$((t2 - t1))
+# Check that given timeout value is respected, there should be 2 tries with 4 seconds each, as -u takes precedence over -t.
+test $elapsed -lt 8 && ret=1
+test $elapsed -gt 12 && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check whether valid addresses are used for primary failover (TCP with -t timeout) ($n)"
+t1=$($PERL -e 'print time()')
+$NSUPDATE -t 8 -v <<END > nsupdate.out.test$n 2>&1 && ret=1
+server 10.53.0.4 ${PORT}
+zone unreachable.
+update add unreachable. 600 A 192.0.2.1
+send
+END
+t2=`$PERL -e 'print time()'`
+grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
+grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
+elapsed=$((t2 - t1))
+# Check that given timeout value is respected, there should be 1 try with 8 seconds.
+test $elapsed -lt 8 && ret=1
+test $elapsed -gt 12 && ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
