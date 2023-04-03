@@ -1,3 +1,6 @@
+6138.	[doc]		Fix the DF-flag documentation on the outgoing
+			UDP packets. [GL #3710]
+
 6132.	[doc]		Remove a dead link in the DNSSEC guide. [GL #3967]
 
 6129.	[cleanup]	Value stored to 'source' during its initialization is
