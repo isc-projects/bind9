@@ -887,6 +887,7 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 		if (new_librpz != NULL) {
 			if (dl_handle != NULL) {
 				*dl_handle = handle;
+				handle = NULL;
 			}
 			return (new_librpz);
 		}
@@ -914,6 +915,7 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path) {
 	if (new_librpz != NULL) {
 		if (dl_handle != NULL) {
 			*dl_handle = handle;
+			handle = NULL;
 		}
 		return (new_librpz);
 	}
