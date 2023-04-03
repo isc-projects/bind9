@@ -937,8 +937,10 @@ detach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
 static inline size_t
 leaf_qpkey(dns_qpreadable_t qpr, qp_node_t *n, dns_qpkey_t key) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
-	return (qp->methods->makekey(key, qp->uctx, leaf_pval(n),
-				     leaf_ival(n)));
+	size_t len = qp->methods->makekey(key, qp->uctx, leaf_pval(n),
+					  leaf_ival(n));
+	INSIST(len < sizeof(dns_qpkey_t));
+	return (len);
 }
 
 static inline char *

@@ -193,8 +193,9 @@ typedef uint8_t dns_qpkey_t[512];
  *
  * The `makekey` method fills in a `dns_qpkey_t` corresponding to a
  * value object stored in the qp-trie. It returns the length of the
- * key. This method will typically call dns_qpkey_fromname() with a
- * name stored in the value object.
+ * key, which must be less than `sizeof(dns_qpkey_t)`. This method
+ * will typically call dns_qpkey_fromname() with a name stored in the
+ * value object.
  *
  * For logging and tracing, the `triename` method copies a human-
  * readable identifier into `buf` which has max length `size`.
@@ -395,15 +396,18 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name);
  * Requires:
  * \li  `name` is a pointer to a valid `dns_name_t`
  *
+ * Ensures:
+ * \li	returned length is less than `sizeof(dns_qpkey_t)`
+ *
  * Returns:
  * \li  the length of the key
  */
 
 isc_result_t
-dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t searchk, size_t searchl,
-	      void **pval_r, uint32_t *ival_r);
+dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
+	      size_t search_keylen, void **pval_r, uint32_t *ival_r);
 /*%<
- * Find a leaf in a qp-trie that matches the given key
+ * Find a leaf in a qp-trie that matches the given search key
  *
  * The leaf values are assigned to `*pval_r` and `*ival_r`
  *
@@ -411,6 +415,7 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t searchk, size_t searchl,
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `pval_r != NULL`
  * \li  `ival_r != NULL`
+ * \li	`search_keylen < sizeof(dns_qpkey_t)`
  *
  * Returns:
  * \li  ISC_R_NOTFOUND if the trie has no leaf with a matching key
@@ -452,12 +457,13 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival);
  */
 
 isc_result_t
-dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t len);
+dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t keylen);
 /*%<
  * Delete a leaf from a qp-trie that matches the given key
  *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
+ * \li	`keylen < sizeof(dns_qpkey_t)`
  *
  * Returns:
  * \li  ISC_R_NOTFOUND if the trie has no leaf with a matching key
