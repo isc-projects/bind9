@@ -66,7 +66,7 @@ rpz_dnsrps_CPPFLAGS =		\
 rpz_dnsrps_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)		\
-	-ldl
+	$(DLOPEN_LIBS)
 
 TESTS =
 
