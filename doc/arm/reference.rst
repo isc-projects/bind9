@@ -651,7 +651,7 @@ by the channel (the default is ``info``), and whether to include a
    allowed to become before it is rolled to a backup file (``size``), how
    many backup versions of the file are saved each time this happens
    (``versions``), and the format to use for naming backup versions
-   (:any:`suffix`).
+   (``suffix``).
 
    The ``size`` option is used to limit log file growth. If the file ever
    exceeds the specified size, then :iscman:`named` stops writing to the file
@@ -667,18 +667,18 @@ by the channel (the default is ``info``), and whether to include a
    how many backup versions of the file should be kept. If set to
    ``unlimited``, there is no limit.
 
-   The :any:`suffix` option can be set to either ``increment`` or
+   The ``suffix`` option can be set to either ``increment`` or
    ``timestamp``. If set to ``timestamp``, then when a log file is rolled,
    it is saved with the current timestamp as a file suffix. If set to
    ``increment``, then backup files are saved with incrementing numbers as
    suffixes; older files are renamed when rolling. For example, if
-   ``versions`` is set to 3 and :any:`suffix` to ``increment``, then when
+   ``versions`` is set to 3 and ``suffix`` to ``increment``, then when
    ``filename.log`` reaches the size specified by ``size``,
    ``filename.log.1`` is renamed to ``filename.log.2``, ``filename.log.0``
    is renamed to ``filename.log.1``, and ``filename.log`` is renamed to
    ``filename.log.0``, whereupon a new ``filename.log`` is opened.
 
-   Here is an example using the ``size``, ``versions``, and :any:`suffix` options:
+   Here is an example using the ``size``, ``versions``, and ``suffix`` options:
 
    ::
 
@@ -1284,10 +1284,10 @@ default is used.
    options can be added: ``size`` indicates the size to which a
    :any:`dnstap` log file can grow before being rolled to a new file;
    ``versions`` specifies the number of rolled log files to retain; and
-   :any:`suffix` indicates whether to retain rolled log files with an
+   ``suffix`` indicates whether to retain rolled log files with an
    incrementing counter as the suffix (``increment``) or with the
    current timestamp (``timestamp``). These are similar to the ``size``,
-   ``versions``, and :any:`suffix` options in a :any:`logging` channel. The
+   ``versions``, and ``suffix`` options in a :any:`logging` channel. The
    default is to allow :any:`dnstap` log files to grow to any size without
    rolling.
 
