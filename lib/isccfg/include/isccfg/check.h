@@ -32,10 +32,20 @@
 #define MAX_MAX_NCACHE_TTL 7 * 24 * 3600
 #endif /* MAX_MAX_NCACHE_TTL */
 
+#define BIND_CHECK_PLUGINS 0x00000001
+/*%<
+ * Check the plugin configuration.
+ */
+#define BIND_CHECK_ALGORITHMS 0x00000002
+/*%<
+ * Check the dnssec-policy DNSSEC algorithms against those
+ * supported by the crypto provider.
+ */
+
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
+isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		       isc_log_t *logctx, isc_mem_t *mctx);
 /*%<
  * Check the syntactic validity of a configuration parse tree generated from

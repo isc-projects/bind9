@@ -24,6 +24,7 @@
 #include <isc/iterated_hash.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/tls.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
@@ -46,6 +47,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
+	isc__tls_setfatalmode();
 	exit(1);
 }
 

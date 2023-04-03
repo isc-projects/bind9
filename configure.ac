@@ -673,8 +673,8 @@ PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [],
 
 AX_SAVE_FLAGS([openssl])
 
-CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
-LIBS="$LIBS $OPENSSL_LIBS"
+CFLAGS="$OPENSSL_CFLAGS $CFLAGS"
+LIBS="$OPENSSL_LIBS $LIBS"
 
 AC_MSG_CHECKING([for OpenSSL >= 1.0.0 or LibreSSL >= 2.7.0])
 AC_COMPILE_IFELSE(
@@ -776,7 +776,9 @@ AC_CHECK_FUNCS([TLS_server_method TLS_client_method])
 # FIPS is not included in pairwise testing as the relevant Docker image
 # does not support FIPS mode.
 #
-# [pairwise: skip]
+# [pairwise: --enable-fips-mode, --disable-fips-mode]
+AC_CHECK_FUNCS(EVP_default_properties_enable_fips FIPS_mode)
+
 AC_ARG_ENABLE([fips-mode],
 	      [AS_HELP_STRING([--enable-fips-mode],
 			      [enable FIPS mode in OpenSSL library [default=no]])],
@@ -785,8 +787,9 @@ AC_ARG_ENABLE([fips-mode],
 AC_MSG_CHECKING([whether to enable FIPS mode in OpenSSL library])
 AS_CASE([$enable_fips_mode],
 	[yes], [AC_MSG_RESULT([yes])
-		AC_CHECK_FUNCS([FIPS_mode],
-			       [], [AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.])])],
+	        AC_DEFINE([ENABLE_FIPS_MODE], [1], [Define to 1 if you want FIPS mode to be enabled])
+		AS_IF([test "x$ac_cv_func_FIPS_mode" != xyes -a "x$ac_cv_func_EVP_default_properties_enable_fips" != xyes],
+		      AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.]))],
 	[no], [AC_MSG_RESULT([no])])
 
 AX_RESTORE_FLAGS([openssl])
@@ -1653,6 +1656,9 @@ report() {
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed_rrset" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
+    test "yes" = "$enable_fips_mode" && \
+        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
+
     test "yes" = "$enable_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
     test "yes" = "$enable_singletrace" && \
@@ -1692,6 +1698,9 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
+
+    test "yes" = "$enable_fips_mode" || \
+        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
 
     test "yes" = "$enable_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"

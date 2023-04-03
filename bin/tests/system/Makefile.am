@@ -34,7 +34,13 @@ check_PROGRAMS =		\
 
 feature_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
-	$(LIBDNS_CFLAGS)
+	$(LIBDNS_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+feature_test_LDADD =		\
+	$(LDADD)		\
+	$(LIBDNS_LIBS)		\
+	$(OPENSSL_LIBS)
 
 makejournal_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\

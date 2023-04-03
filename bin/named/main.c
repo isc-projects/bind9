@@ -29,6 +29,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
 #include <isc/managers.h>
@@ -85,7 +86,11 @@
 #endif /* ifdef HAVE_LIBSCF */
 
 #include <openssl/crypto.h>
+#include <openssl/evp.h>
 #include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/provider.h>
+#endif
 #ifdef HAVE_LIBXML2
 #include <libxml/parser.h>
 #include <libxml/xmlversion.h>
@@ -96,6 +101,7 @@
 #ifdef HAVE_LIBNGHTTP2
 #include <nghttp2/nghttp2.h>
 #endif
+
 /*
  * Include header files for database drivers here.
  */
@@ -133,6 +139,10 @@ static bool sigvalinsecs = false;
  */
 static bool disable6 = false;
 static bool disable4 = false;
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+static OSSL_PROVIDER *fips = NULL, *base = NULL;
+#endif
 
 void
 named_main_earlywarning(const char *format, ...) {
@@ -939,8 +949,27 @@ parse_command_line(int argc, char *argv[]) {
 			}
 			break;
 		case 'F':
-			/* Reserved for FIPS mode */
-			FALLTHROUGH;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+			fips = OSSL_PROVIDER_load(NULL, "fips");
+			if (fips == NULL) {
+				named_main_earlyfatal(
+					"Failed to load FIPS provider");
+			}
+			base = OSSL_PROVIDER_load(NULL, "base");
+			if (base == NULL) {
+				OSSL_PROVIDER_unload(fips);
+				named_main_earlyfatal(
+					"Failed to load base provider");
+			}
+#endif
+			if (isc_fips_mode()) { /* Already in FIPS mode. */
+				break;
+			}
+			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+				named_main_earlyfatal(
+					"setting FIPS mode failed");
+			}
+			break;
 		case '?':
 			usage();
 			if (isc_commandline_option == '?') {
@@ -1534,6 +1563,15 @@ main(int argc, char *argv[]) {
 	named_os_closedevnull();
 
 	named_os_shutdown();
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif
 
 #ifdef HAVE_GPERFTOOLS_PROFILER
 	ProfilerStop();

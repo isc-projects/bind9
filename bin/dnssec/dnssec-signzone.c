@@ -33,6 +33,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <openssl/opensslv.h>
+
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/attributes.h>
@@ -40,6 +42,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/loop.h>
@@ -85,6 +88,9 @@
 #include <dns/zoneverify.h>
 
 #include <dst/dst.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/provider.h>
+#endif
 
 #include "dnssectool.h"
 
@@ -3221,6 +3227,7 @@ usage(void) {
 	fprintf(stderr, "\t\tdirectory to find key files (.)\n");
 	fprintf(stderr, "\t-d directory:\n");
 	fprintf(stderr, "\t\tdirectory to find dsset-* files (.)\n");
+	fprintf(stderr, "\t-F:\tFIPS mode\n");
 	fprintf(stderr, "\t-g:\t");
 	fprintf(stderr, "update DS records based on child zones' "
 			"dsset-* files\n");
@@ -3362,6 +3369,10 @@ main(int argc, char *argv[]) {
 	bool set_optout = false;
 	bool set_iter = false;
 	bool nonsecify = false;
+	bool set_fips_mode = false;
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+	OSSL_PROVIDER *fips = NULL, *base = NULL;
+#endif
 
 	atomic_init(&shuttingdown, false);
 	atomic_init(&finished, false);
@@ -3651,8 +3662,9 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'F':
-			/* Reserved for FIPS mode */
-			FALLTHROUGH;
+			set_fips_mode = true;
+			break;
+
 		case '?':
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
@@ -3720,6 +3732,25 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_managers_create(&mctx, nloops, &loopmgr, &netmgr);
+
+	if (set_fips_mode) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+		fips = OSSL_PROVIDER_load(NULL, "fips");
+		if (fips == NULL) {
+			fatal("Failed to load FIPS provider");
+		}
+		base = OSSL_PROVIDER_load(NULL, "base");
+		if (base == NULL) {
+			OSSL_PROVIDER_unload(fips);
+			fatal("Failed to load base provider");
+		}
+#endif
+		if (!isc_fips_mode()) {
+			if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
+				fatal("setting FIPS mode failed");
+			}
+		}
+	}
 
 	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS) {
@@ -4103,6 +4134,15 @@ main(int argc, char *argv[]) {
 	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
 	}
+
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+	if (base != NULL) {
+		OSSL_PROVIDER_unload(base);
+	}
+	if (fips != NULL) {
+		OSSL_PROVIDER_unload(fips);
+	}
+#endif
 
 	isc_managers_destroy(&mctx, &loopmgr, &netmgr);
 

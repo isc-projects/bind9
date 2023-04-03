@@ -13,10 +13,11 @@
 
 set -e
 
+rm -f created.key-* *.created unused.key-*
 rm -f dig.out.* rndc.reload.* rndc.signing.* update.out.* verify.out.*
-rm -f ns*/named.conf ns*/named.memstats ns*/named.run*
 rm -f ns*/*.jnl ns*/*.jbk ns*/managed-keys.bind
 rm -f ns*/K*.private ns*/K*.key ns*/K*.state
 rm -f ns*/dsset-* ns*/*.db ns*/*.db.signed
 rm -f ns*/keygen.out.* ns*/settime.out.*
-rm -f created.key-* *.created unused.key-*
+rm -f ns*/named.conf ns*/named.memstats ns*/named.run*
+rm -f ns3/named-fips.conf

@@ -39,7 +39,14 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.rrset
 
-pytest.importorskip("hypothesis")
+# in FIPs mode md5 fails so we need 4.41.2 or later which does not use md5
+try:
+    import hashlib
+
+    hashlib.md5(b"1234")
+    pytest.importorskip("hypothesis")
+except ValueError:
+    pytest.importorskip("hypothesis", minversion="4.41.2")
 from hypothesis import given
 from hypothesis.strategies import binary, integers
 

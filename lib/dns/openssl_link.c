@@ -27,6 +27,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <isc/fips.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>
@@ -63,19 +64,19 @@ static ENGINE *global_engine = NULL;
 
 static void
 enable_fips_mode(void) {
-#ifdef HAVE_FIPS_MODE
-	if (FIPS_mode() != 0) {
+#if defined(ENABLE_FIPS_MODE)
+	if (isc_fips_mode()) {
 		/*
 		 * FIPS mode is already enabled.
 		 */
 		return;
 	}
 
-	if (FIPS_mode_set(1) == 0) {
+	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
 		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
 		exit(1);
 	}
-#endif /* HAVE_FIPS_MODE */
+#endif
 }
 
 isc_result_t
@@ -174,24 +175,26 @@ dst__openssl_toresult(isc_result_t fallback) {
 }
 
 isc_result_t
-dst__openssl_toresult2(const char *funcname, isc_result_t fallback) {
-	return (dst__openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
-				       fallback));
+dst___openssl_toresult2(const char *funcname, isc_result_t fallback,
+			const char *file, int line) {
+	return (dst___openssl_toresult3(DNS_LOGCATEGORY_GENERAL, funcname,
+					fallback, file, line));
 }
 
 isc_result_t
-dst__openssl_toresult3(isc_logcategory_t *category, const char *funcname,
-		       isc_result_t fallback) {
+dst___openssl_toresult3(isc_logcategory_t *category, const char *funcname,
+			isc_result_t fallback, const char *file, int line) {
 	isc_result_t result;
 	unsigned long err;
-	const char *file, *func, *data;
-	int line, flags;
+	const char *func, *data;
+	int flags;
 	char buf[256];
 
 	result = toresult(fallback);
 
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,
-		      "%s failed (%s)", funcname, isc_result_totext(result));
+		      "%s (%s:%d) failed (%s)", funcname, file, line,
+		      isc_result_totext(result));
 
 	if (result == ISC_R_NOMEMORY) {
 		goto done;

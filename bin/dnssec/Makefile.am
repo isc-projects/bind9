@@ -12,7 +12,8 @@ noinst_LTLIBRARIES = libdnssectool.la
 LDADD +=			\
 	libdnssectool.la	\
 	$(LIBISC_LIBS)		\
-	$(LIBDNS_LIBS)
+	$(LIBDNS_LIBS)		\
+	$(OPENSSL_LIBS)
 
 bin_PROGRAMS = \
 	dnssec-cds		\
@@ -31,8 +32,20 @@ libdnssectool_la_SOURCES =	\
 
 dnssec_keygen_CPPFLAGS =	\
 	$(AM_CPPFLAGS)		\
-	$(LIBISCCFG_CFLAGS)
+	$(LIBISCCFG_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
 
 dnssec_keygen_LDADD =		\
 	$(LDADD)		\
-	$(LIBISCCFG_LIBS)
+	$(LIBISCCFG_LIBS)	\
+	$(OPENSSL_LIBS)
+
+dnssec_signzone_CPPFLAGS =	\
+	$(AM_CPPFLAGS)		\
+	$(LIBISCCFG_CFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+dnssec_signzone_LDADD =		\
+	$(LDADD)		\
+	$(LIBISCCFG_LIBS)	\
+	$(OPENSSL_LIBS)

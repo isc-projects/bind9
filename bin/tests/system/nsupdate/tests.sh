@@ -783,177 +783,232 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check DoT (opportunistic-tls) ($n)"
-$NSUPDATE -D -S -O -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
-server 10.53.0.1 ${TLSPORT}
-update add dot-non-auth-client-o.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -O -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${TLSPORT}
+    update add dot-non-auth-client-o.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-non-auth-client-o.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-non-auth-client-o.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (strict-tls) with an implicit hostname (by IP address) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
-server 10.53.0.1 ${EXTRAPORT1}
-update add dot-non-auth-client.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${EXTRAPORT1}
+    update add dot-non-auth-client.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-non-auth-client.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-non-auth-client.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (strict-tls) with an implicit hostname (by IP address) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
-server 10.53.0.1 ${EXTRAPORT1}
-update add dot-fs.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${EXTRAPORT1}
+    update add dot-fs.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fs.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fs.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (strict-tls) with a correct hostname ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -H srv01.crt01.example.nil -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
-server 10.53.0.1 ${EXTRAPORT1}
-update add dot-fs-h.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -H srv01.crt01.example.nil -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${EXTRAPORT1}
+    update add dot-fs-h.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fs-h.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fs-h.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (strict-tls) with an incorrect hostname (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -H srv01.crt01.example.bad -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT1}
-update add dot-fs-h-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -H srv01.crt01.example.bad -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT1}
+    update add dot-fs-h-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fs-h-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fs-h-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (strict-tls) with a wrong authority (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA-other.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT1}
-update add dot-fs-auth-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA-other.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT1}
+    update add dot-fs-auth-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fs-auth-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fs-auth-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (mutual-tls) with a valid client certificate ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
-server 10.53.0.1 ${EXTRAPORT2}
-update add dot-fsmt.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 || ret=1
+    server 10.53.0.1 ${EXTRAPORT2}
+    update add dot-fsmt.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fsmt.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fsmt.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 || ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (mutual-tls) with a valid client certificate but with an incorrect hostname (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -H srv01.crt01.example.bad -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT2}
-update add dot-fsmt-h-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -H srv01.crt01.example.bad -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT2}
+    update add dot-fsmt-h-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-h-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-h-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (mutual-tls) with a valid client certificate but with a wrong authority (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA-other.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/client01.crt01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT2}
-update add dot-fsmt-auth-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA-other.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/client01.crt01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT2}
+    update add dot-fsmt-auth-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-auth-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-auth-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (mutual-tls) with an expired client certificate (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client02-expired.example.nil.key -E CA/certs/srv01.client02-expired.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT2}
-update add dot-fsmt-exp-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+    then
+    $NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client02-expired.example.nil.key -E CA/certs/srv01.client02-expired.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT2}
+    update add dot-fsmt-exp-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-exp-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-exp-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
 ret=0
 echo_i "check DoT (mutual-tls) with a valid client certificate and an expired server certificate (failure expected) ($n)"
-$NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
-server 10.53.0.1 ${EXTRAPORT3}
-update add dot-fsmt-exp-bad.example.nil. 600 A 10.10.10.3
-send
+if $FEATURETEST --have-fips-dh
+then
+    $NSUPDATE -D -S -A CA/CA.pem -K CA/certs/srv01.client01.example.nil.key -E CA/certs/srv01.client01.example.nil.pem -k ns1/ddns.key <<END >nsupdate.out.test$n 2>&1 && ret=1
+    server 10.53.0.1 ${EXTRAPORT3}
+    update add dot-fsmt-exp-bad.example.nil. 600 A 10.10.10.3
+    send
 END
-sleep 2
-$DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-exp-bad.example.nil >dig.out.test$n 2>&1 || ret=1
-grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
-if [ $ret -ne 0 ]; then
-    echo_i "failed"
-    status=1
+    sleep 2
+    $DIG $DIGOPTS +short @10.53.0.1 dot-fsmt-exp-bad.example.nil >dig.out.test$n 2>&1 || ret=1
+    grep -F "10.10.10.3" dig.out.test$n >/dev/null 2>&1 && ret=1
+    if [ $ret -ne 0 ]; then
+        echo_i "failed"
+        status=1
+    fi
+else
+    echo_i "skipped: DH not supported in FIPS mode"
 fi
 
 n=$((n + 1))
@@ -985,7 +1040,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check TSIG key algorithms (nsupdate -y) ($n)"
-for alg in md5 sha1 sha224 sha256 sha384 sha512; do
+for alg in $ALGS; do
     secret=$(sed -n 's/.*secret "\(.*\)";.*/\1/p' ns1/${alg}.key)
     $NSUPDATE -y "hmac-${alg}:${alg}-key:$secret" <<END > /dev/null || ret=1
 server 10.53.0.1 ${PORT}
@@ -994,7 +1049,7 @@ send
 END
 done
 sleep 2
-for alg in md5 sha1 sha224 sha256 sha384 sha512; do
+for alg in $ALGS; do
     $DIG $DIGOPTS +short @10.53.0.1 ${alg}.keytests.nil | grep 10.10.10.50 > /dev/null 2>&1 || ret=1
 done
 if [ $ret -ne 0 ]; then

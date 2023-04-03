@@ -18,6 +18,14 @@
 #
 $SHELL clean.sh
 
+if $FEATURETEST --have-fips-dh
+then
+	copy_setports ns1/tls.conf.in ns1/tls.conf
+	copy_setports ns1/tls.options.in ns1/tls.options
+else
+	: > ns1/tls.conf
+	: > ns1/tls.options
+fi
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
@@ -76,7 +84,7 @@ $TSIGKEYGEN ddns-key.example.nil > ns1/ddns.key
 if $FEATURETEST --md5; then
 	$TSIGKEYGEN -a hmac-md5 md5-key > ns1/md5.key
 else
-	echo -n > ns1/md5.key
+	echo "/* MD5 NOT SUPPORTED */" > ns1/md5.key
 fi
 $TSIGKEYGEN -a hmac-sha1 sha1-key > ns1/sha1.key
 $TSIGKEYGEN -a hmac-sha224 sha224-key > ns1/sha224.key

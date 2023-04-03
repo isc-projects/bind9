@@ -1100,6 +1100,38 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+# Should work with FIPS mode as we are only validating
+echo_i "checking positive validation RSASHA1 NSEC ($n)"
+ret=0
+if $FEATURETEST --rsasha1
+then
+    dig_with_opts +noauth a.rsasha1.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+    dig_with_opts +noauth a.rsasha1.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+    digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+    grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+else
+    echo_i "skip: RSASHA1 not supported by OS"
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Should work with FIPS mode as we are only validating
+echo_i "checking positive validation RSASHA1 (1024 bits) NSEC ($n)"
+ret=0
+if $FEATURETEST --rsasha1
+then
+    dig_with_opts +noauth a.rsasha1-1024.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
+    dig_with_opts +noauth a.rsasha1-1024.example. @10.53.0.4 a > dig.out.ns4.test$n || ret=1
+    digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+    grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+else
+    echo_i "skip: RSASHA1 not supported by OS"
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking positive validation RSASHA256 NSEC ($n)"
 ret=0
 dig_with_opts +noauth a.rsasha256.example. @10.53.0.3 a > dig.out.ns3.test$n || ret=1
@@ -1390,6 +1422,43 @@ rm -f signed.zone
 $SIGNER -f signed.zone -o example.com. test8.zone > signer.out.$n
 test -f signed.zone
 ) && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_ic "check that 'dnssec-signzone -F' works with allowed algorithm ($n)"
+ret=0
+if $FEATURETEST --fips-provider
+then
+    (
+	cd signer/general || exit 1
+	rm -f signed.zone
+	$SIGNER -F -f signed.zone -o example.com. test1.zone > signer.out.$n
+	test -f signed.zone
+    ) || ret=1
+else
+    echo_i "skipped no FIPS provider available"
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_ic "check that 'dnssec-signzone -F' failed with disallowed algorithm ($n)"
+ret=0
+if ! $FEATURETEST --fips-provider
+then
+    echo_i "skipped no FIPS provider available"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    (
+	cd signer/general || exit 1
+	rm -f signed.zone
+	$SIGNER -F -f signed.zone -o example.com. test11.zone > signer.out.$n 2>&1 && exit 1
+	grep "fatal: dnskey 'example.com/RSASHA1/19857' failed to sign data" signer.out.$n > /dev/null
+    ) || ret=1
+fi
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3473,7 +3542,7 @@ do
 	    alg=$((alg+1))
 	    continue;;
 	1|5|7|8|10) # RSA algorithms
-	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone "$zone" 2> "keygen-$alg.err" || true)
+	    key1=$($KEYGEN -a "$alg" -b "2048" -n zone "$zone" 2> "keygen-$alg.err" || true)
 	    ;;
 	15|16)
 	    key1=$($KEYGEN -a "$alg" -n zone "$zone" 2> "keygen-$alg.err" || true)
@@ -3502,6 +3571,44 @@ do
     }
     alg=$((alg+1))
 done
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check that 'dnssec-keygen -F' disables rsasha1 ($n)"
+ret=0
+if $FEATURETEST --have-fips-mode
+then
+    echo_i "skipped: already in FIPS mode"
+elif ! $FEATURETEST --fips-provider
+then
+	echo_i "skipped no FIPS provider available"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    $KEYGEN -F -a rsasha1 example.fips 2> keygen.err$n || true
+    grep "unsupported algorithm: RSASHA1" "keygen.err$n" > /dev/null || ret=1
+fi
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "check that 'dnssec-keygen -F' disables nsec3rsasha1 ($n)"
+ret=0
+if $FEATURETEST --have-fips-mode
+then
+    echo_i "skipped: already in FIPS mode"
+elif ! $FEATURETEST --fips-provider
+then
+    echo_i "skipped: cannot switch to FIPS mode"
+elif ! $SHELL ../testcrypto.sh -q RSASHA1
+then
+    echo_i "skipped: RSASHA1 is not supported"
+else
+    $KEYGEN -F -a nsec3rsasha1 example.fips 2> keygen.err$n || true
+    grep "unsupported algorithm: NSEC3RSASHA1" "keygen.err$n" > /dev/null || ret=1
+fi
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

@@ -17,11 +17,21 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <openssl/crypto.h>
+#include <openssl/opensslv.h>
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/provider.h>
+#endif
+
+#include <isc/fips.h>
 #include <isc/md.h>
+#include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/util.h>
 
 #include <dns/edns.h>
+
+#include <dst/dst.h>
 
 static void
 usage(void) {
@@ -31,13 +41,17 @@ usage(void) {
 	fprintf(stderr, "\t--enable-dnsrps\n");
 	fprintf(stderr, "\t--enable-dnstap\n");
 	fprintf(stderr, "\t--enable-querytrace\n");
+	fprintf(stderr, "\t--fips-provider\n");
 	fprintf(stderr, "\t--gethostname\n");
 	fprintf(stderr, "\t--gssapi\n");
+	fprintf(stderr, "\t--have-fips-dh\n");
+	fprintf(stderr, "\t--have-fips-mode\n");
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--md5\n");
+	fprintf(stderr, "\t--rsasha1\n");
 	fprintf(stderr, "\t--tsan\n");
 	fprintf(stderr, "\t--with-dlz-filesystem\n");
 	fprintf(stderr, "\t--with-libidn2\n");
@@ -86,6 +100,18 @@ main(int argc, char **argv) {
 #endif /* ifdef WANT_QUERYTRACE */
 	}
 
+	if (strcasecmp(argv[1], "--fips-provider") == 0) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+		OSSL_PROVIDER *fips = OSSL_PROVIDER_load(NULL, "fips");
+		if (fips != NULL) {
+			OSSL_PROVIDER_unload(fips);
+		}
+		return (fips != NULL ? 0 : 1);
+#else
+		return (1);
+#endif
+	}
+
 	if (strcmp(argv[1], "--gethostname") == 0) {
 		char hostname[_POSIX_HOST_NAME_MAX + 1];
 		int n;
@@ -105,6 +131,33 @@ main(int argc, char **argv) {
 #else  /* HAVE_GSSAPI */
 		return (1);
 #endif /* HAVE_GSSAPI */
+	}
+
+	if (strcmp(argv[1], "--have-fips-dh") == 0) {
+#if defined(ENABLE_FIPS_MODE)
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+		return (0);
+#else
+		return (1);
+#endif
+#else
+		if (isc_fips_mode()) {
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+			return (0);
+#else
+			return (1);
+#endif
+		}
+		return (0);
+#endif
+	}
+
+	if (strcmp(argv[1], "--have-fips-mode") == 0) {
+#if defined(ENABLE_FIPS_MODE)
+		return (0);
+#else
+		return (isc_fips_mode() ? 0 : 1);
+#endif
 	}
 
 	if (strcmp(argv[1], "--have-geoip2") == 0) {
@@ -145,17 +198,15 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--md5") == 0) {
-		unsigned char digest[ISC_MAX_MD_SIZE];
-		const unsigned char test[] = "test";
-		unsigned int size = sizeof(digest);
+		isc_mem_t *mctx = NULL;
+		int answer;
 
-		if (isc_md(ISC_MD_MD5, test, sizeof(test), digest, &size) ==
-		    ISC_R_SUCCESS)
-		{
-			return (0);
-		} else {
-			return (1);
-		}
+		isc_mem_create(&mctx);
+		dst_lib_init(mctx, NULL);
+		answer = dst_algorithm_supported(DST_ALG_HMACMD5) ? 0 : 1;
+		dst_lib_destroy();
+		isc_mem_detach(&mctx);
+		return (answer);
 	}
 
 	if (strcmp(argv[1], "--ipv6only=no") == 0) {
@@ -175,6 +226,17 @@ main(int argc, char **argv) {
 #else  /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
 		return (1);
 #endif /* defined(IPPROTO_IPV6) && defined(IPV6_V6ONLY) */
+	}
+
+	if (strcasecmp(argv[1], "--rsasha1") == 0) {
+		int answer;
+		isc_mem_t *mctx = NULL;
+		isc_mem_create(&mctx);
+		dst_lib_init(mctx, NULL);
+		answer = dst_algorithm_supported(DST_ALG_RSASHA1) ? 0 : 1;
+		dst_lib_destroy();
+		isc_mem_detach(&mctx);
+		return (answer);
 	}
 
 	if (strcmp(argv[1], "--with-dlz-filesystem") == 0) {

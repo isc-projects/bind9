@@ -39,6 +39,7 @@
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
+#include <isc/fips.h>
 #include <isc/hash.h>
 #include <isc/hex.h>
 #include <isc/hmac.h>
@@ -8365,8 +8366,8 @@ load_configuration(const char *filename, named_server_t *server,
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */
-	result = isccfg_check_namedconf(config, false, named_g_lctx,
-					named_g_mctx);
+	result = isccfg_check_namedconf(config, BIND_CHECK_ALGORITHMS,
+					named_g_lctx, named_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_config;
 	}
@@ -9033,7 +9034,7 @@ load_configuration(const char *filename, named_server_t *server,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 
 		kasp = NULL;
-		result = cfg_kasp_fromconfig(kconfig, default_kasp,
+		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
 					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
@@ -9062,7 +9063,7 @@ load_configuration(const char *filename, named_server_t *server,
 	{
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		kasp = NULL;
-		result = cfg_kasp_fromconfig(kconfig, default_kasp,
+		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
 					     &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
@@ -9840,12 +9841,10 @@ view_loaded(void *arg) {
 
 		named_os_started();
 
-#ifdef HAVE_FIPS_MODE
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
 			      "FIPS mode is %s",
-			      FIPS_mode() ? "enabled" : "disabled");
-#endif /* ifdef HAVE_FIPS_MODE */
+			      isc_fips_mode() ? "enabled" : "disabled");
 
 #if HAVE_LIBSYSTEMD
 		sd_notifyf(0,
@@ -10302,6 +10301,7 @@ fatal(const char *msg, isc_result_t result) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
 		      "exiting (due to fatal error)");
 	named_os_shutdown();
+	isc__tls_setfatalmode();
 	exit(1);
 }
 

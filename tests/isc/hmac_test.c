@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/buffer.h>
+#include <isc/fips.h>
 #include <isc/hex.h>
 #include <isc/hmac.h>
 #include <isc/region.h>
@@ -120,15 +121,18 @@ ISC_RUN_TEST_IMPL(isc_hmac_init) {
 	isc_hmac_t *hmac = *state;
 	assert_non_null(hmac);
 
-	expect_assert_failure(isc_hmac_init(NULL, "", 0, ISC_MD_MD5));
-
 	assert_int_equal(isc_hmac_init(hmac, "", 0, NULL),
 			 ISC_R_NOTIMPLEMENTED);
 
-	expect_assert_failure(isc_hmac_init(hmac, NULL, 0, ISC_MD_MD5));
+	if (!isc_fips_mode()) {
+		expect_assert_failure(isc_hmac_init(NULL, "", 0, ISC_MD_MD5));
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_MD5), ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+		expect_assert_failure(isc_hmac_init(hmac, NULL, 0, ISC_MD_MD5));
+
+		assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_MD5),
+				 ISC_R_SUCCESS);
+		assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	}
 
 	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA1),
 			 ISC_R_SUCCESS);
@@ -211,6 +215,11 @@ ISC_RUN_TEST_IMPL(isc_hmac_final) {
 
 ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 	isc_hmac_t *hmac = *state;
+
+	if (isc_fips_mode()) {
+		skip();
+		return;
+	}
 
 	/* Test 0 */
 	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_MD5, TEST_INPUT(""),

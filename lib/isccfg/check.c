@@ -1152,7 +1152,8 @@ check_port(const cfg_obj_t *options, isc_log_t *logctx, const char *type,
 
 static isc_result_t
 check_options(const cfg_obj_t *options, const cfg_obj_t *config,
-	      isc_log_t *logctx, isc_mem_t *mctx, optlevel_t optlevel) {
+	      bool check_algorithms, isc_log_t *logctx, isc_mem_t *mctx,
+	      optlevel_t optlevel) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
@@ -1328,9 +1329,9 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 						continue;
 					}
 
-					ret = cfg_kasp_fromconfig(kconfig, NULL,
-								  mctx, logctx,
-								  &list, &kasp);
+					ret = cfg_kasp_fromconfig(
+						kconfig, NULL, check_algorithms,
+						mctx, logctx, &list, &kasp);
 					if (ret != ISC_R_SUCCESS) {
 						if (result == ISC_R_SUCCESS) {
 							result = ret;
@@ -3789,7 +3790,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	/*
 	 * Check various options.
 	 */
-	tresult = check_options(zoptions, config, logctx, mctx, optlevel_zone);
+	tresult = check_options(zoptions, config, false, logctx, mctx,
+				optlevel_zone);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
@@ -5205,7 +5207,7 @@ check_dnstap(const cfg_obj_t *voptions, const cfg_obj_t *config,
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_symtab_t *files, isc_symtab_t *keydirs, bool check_plugins,
+	       isc_symtab_t *files, isc_symtab_t *keydirs, unsigned int flags,
 	       isc_symtab_t *inview, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *zones = NULL;
 	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
@@ -5225,6 +5227,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	bool autovalidation = false;
 	unsigned int tflags = 0, dflags = 0;
 	int i;
+	bool check_plugins = (flags & BIND_CHECK_PLUGINS) != 0;
+	bool check_algorithms = (flags & BIND_CHECK_ALGORITHMS) != 0;
 
 	/*
 	 * Get global options block
@@ -5420,7 +5424,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	check_keys[1] = global_tkeys;
 	for (i = 0; i < 2; i++) {
 		if (check_keys[i] != NULL) {
-			unsigned int flags = 0;
+			unsigned int taflags = 0;
 
 			for (element = cfg_list_first(check_keys[i]);
 			     element != NULL; element = cfg_list_next(element))
@@ -5433,14 +5437,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				{
 					obj = cfg_listelt_value(element2);
 					tresult = check_trust_anchor(
-						obj, false, &flags, logctx);
+						obj, false, &taflags, logctx);
 					if (tresult != ISC_R_SUCCESS) {
 						result = tresult;
 					}
 				}
 			}
 
-			if ((flags & ROOT_KSK_STATIC) != 0) {
+			if ((taflags & ROOT_KSK_STATIC) != 0) {
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
 					    "trusted-keys entry for the root "
@@ -5450,7 +5454,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "or initial-ds instead.");
 			}
 
-			tflags |= flags;
+			tflags |= taflags;
 		}
 	}
 
@@ -5477,7 +5481,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	check_keys[1] = global_ta;
 	for (i = 0; i < 2; i++) {
 		if (check_keys[i] != NULL) {
-			unsigned int flags = 0;
+			unsigned int taflags = 0;
 
 			for (element = cfg_list_first(check_keys[i]);
 			     element != NULL; element = cfg_list_next(element))
@@ -5490,14 +5494,14 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 				{
 					obj = cfg_listelt_value(element2);
 					tresult = check_trust_anchor(
-						obj, true, &flags, logctx);
+						obj, true, &taflags, logctx);
 					if (tresult != ISC_R_SUCCESS) {
 						result = tresult;
 					}
 				}
 			}
 
-			if ((flags & ROOT_KSK_STATIC) != 0) {
+			if ((taflags & ROOT_KSK_STATIC) != 0) {
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
 					    "static entry for the root "
@@ -5507,8 +5511,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "or initial-ds instead.");
 			}
 
-			if ((flags & ROOT_KSK_2010) != 0 &&
-			    (flags & ROOT_KSK_2017) == 0)
+			if ((taflags & ROOT_KSK_2010) != 0 &&
+			    (taflags & ROOT_KSK_2017) == 0)
 			{
 				cfg_obj_log(check_keys[i], logctx,
 					    ISC_LOG_WARNING,
@@ -5517,7 +5521,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "the updated 2017 key");
 			}
 
-			dflags |= flags;
+			dflags |= taflags;
 		}
 	}
 
@@ -5556,11 +5560,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check options.
 	 */
 	if (voptions != NULL) {
-		tresult = check_options(voptions, NULL, logctx, mctx,
-					optlevel_view);
+		tresult = check_options(voptions, NULL, check_algorithms,
+					logctx, mctx, optlevel_view);
 	} else {
-		tresult = check_options(config, config, logctx, mctx,
-					optlevel_config);
+		tresult = check_options(config, config, check_algorithms,
+					logctx, mctx, optlevel_config);
 	}
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -5876,7 +5880,7 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 }
 
 isc_result_t
-isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
+isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 		       isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
@@ -5888,14 +5892,16 @@ isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 	isc_symtab_t *files = NULL;
 	isc_symtab_t *keydirs = NULL;
 	isc_symtab_t *inview = NULL;
+	bool check_algorithms = (flags & BIND_CHECK_ALGORITHMS) != 0;
 
 	static const char *builtin[] = { "localhost", "localnets", "any",
 					 "none" };
 
 	(void)cfg_map_get(config, "options", &options);
 
-	if (options != NULL && check_options(options, config, logctx, mctx,
-					     optlevel_options) != ISC_R_SUCCESS)
+	if (options != NULL &&
+	    check_options(options, config, check_algorithms, logctx, mctx,
+			  optlevel_options) != ISC_R_SUCCESS)
 	{
 		result = ISC_R_FAILURE;
 	}
@@ -5966,8 +5972,8 @@ isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-					 files, keydirs, check_plugins, inview,
-					 logctx, mctx);
+					 files, keydirs, flags, inview, logctx,
+					 mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
@@ -6058,8 +6064,8 @@ isccfg_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		}
 		if (tresult == ISC_R_SUCCESS) {
 			tresult = check_viewconf(config, voptions, key, vclass,
-						 files, keydirs, check_plugins,
-						 inview, logctx, mctx);
+						 files, keydirs, flags, inview,
+						 logctx, mctx);
 		}
 		if (tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
