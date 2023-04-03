@@ -49,6 +49,9 @@ Bug Fixes
   could hang the transfer on the secondary, especially when the
   connection is unstable. This has been fixed. :gl:`#3867`
 
+- Performance of DNSSEC validation in zones with many DNSKEY records
+  has been improved. :gl:`#3981`
+
 Known Issues
 ~~~~~~~~~~~~
 
