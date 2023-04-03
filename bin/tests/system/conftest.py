@@ -193,6 +193,19 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         # from previous runs could mess with the runner.
         return "_tmp_" in str(path)
 
+    class NodeResult:
+        def __init__(self, report=None):
+            self.outcome = None
+            self.messages = []
+            if report is not None:
+                self.update(report)
+
+        def update(self, report):
+            if self.outcome is None or report.outcome != "passed":
+                self.outcome = report.outcome
+            if report.longreprtext:
+                self.messages.append(report.longreprtext)
+
     @pytest.hookimpl(tryfirst=True, hookwrapper=True)
     def pytest_runtest_makereport(item):
         """Hook that is used to expose test results to session (for use in fixtures)."""
@@ -210,9 +223,8 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             test_results = getattr(item.session, "test_results")
         except AttributeError:
             setattr(item.session, "test_results", test_results)
-        node_result = test_results.get(item.nodeid)
-        if node_result is None or report.outcome != "passed":
-            test_results[item.nodeid] = report.outcome
+        node_result = test_results.setdefault(item.nodeid, NodeResult())
+        node_result.update(report)
 
     # --------------------------- Fixtures -----------------------------------
 
@@ -328,15 +340,20 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
                 for node in request.node.collect()
                 if node.nodeid in all_test_results
             }
-            logger.debug(test_results)
             assert len(test_results)
-            failed = any(res == "failed" for res in test_results.values())
-            skipped = any(res == "skipped" for res in test_results.values())
+            messages = []
+            for node, result in test_results.items():
+                logger.debug("%s %s", result.outcome.upper(), node)
+                messages.extend(result.messages)
+            for message in messages:
+                logger.debug("\n" + message)
+            failed = any(res.outcome == "failed" for res in test_results.values())
+            skipped = any(res.outcome == "skipped" for res in test_results.values())
             if failed:
                 return "failed"
             if skipped:
                 return "skipped"
-            assert all(res == "passed" for res in test_results.values())
+            assert all(res.outcome == "passed" for res in test_results.values())
             return "passed"
 
         # Create a temporary directory with a copy of the original system test dir contents
