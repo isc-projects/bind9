@@ -346,6 +346,7 @@ isc_loopmgr_create(isc_mem_t *mctx, uint32_t nloops, isc_loopmgr_t **loopmgrp) {
 	REQUIRE(nloops > 0);
 
 	threadpool_initialize(nloops);
+	isc__tid_initcount(nloops);
 
 	loopmgr = isc_mem_get(mctx, sizeof(*loopmgr));
 	*loopmgr = (isc_loopmgr_t){

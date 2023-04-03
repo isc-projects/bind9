@@ -452,6 +452,11 @@ AC_COMPILE_IFELSE(
 AX_GCC_FUNC_ATTRIBUTE([returns_nonnull])
 
 #
+# how to link math functions?
+#
+AC_SEARCH_LIBS([sqrt],[m])
+
+#
 # check if we have kqueue
 #
 # [pairwise: --enable-kqueue, --disable-kqueue]

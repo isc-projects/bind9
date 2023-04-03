@@ -655,12 +655,12 @@ renderend:
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
-			isc_stats_increment(client->manager->sctx->tcpoutstats4,
-					    ISC_MIN((int)respsize / 16, 256));
+			isc_histomulti_inc(client->manager->sctx->tcpoutstats4,
+					   DNS_SIZEHISTO_BUCKETOUT(respsize));
 			break;
 		case AF_INET6:
-			isc_stats_increment(client->manager->sctx->tcpoutstats6,
-					    ISC_MIN((int)respsize / 16, 256));
+			isc_histomulti_inc(client->manager->sctx->tcpoutstats6,
+					   DNS_SIZEHISTO_BUCKETOUT(respsize));
 			break;
 		default:
 			UNREACHABLE();
@@ -684,12 +684,12 @@ renderend:
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
-			isc_stats_increment(client->manager->sctx->udpoutstats4,
-					    ISC_MIN((int)respsize / 16, 256));
+			isc_histomulti_inc(client->manager->sctx->udpoutstats4,
+					   DNS_SIZEHISTO_BUCKETOUT(respsize));
 			break;
 		case AF_INET6:
-			isc_stats_increment(client->manager->sctx->udpoutstats6,
-					    ISC_MIN((int)respsize / 16, 256));
+			isc_histomulti_inc(client->manager->sctx->udpoutstats6,
+					   DNS_SIZEHISTO_BUCKETOUT(respsize));
 			break;
 		default:
 			UNREACHABLE();
@@ -1861,12 +1861,12 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 				   ns_statscounter_requesttcp);
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
-			isc_stats_increment(client->manager->sctx->tcpinstats4,
-					    ISC_MIN((int)reqsize / 16, 18));
+			isc_histomulti_inc(client->manager->sctx->tcpinstats4,
+					   DNS_SIZEHISTO_BUCKETIN(reqsize));
 			break;
 		case AF_INET6:
-			isc_stats_increment(client->manager->sctx->tcpinstats6,
-					    ISC_MIN((int)reqsize / 16, 18));
+			isc_histomulti_inc(client->manager->sctx->tcpinstats6,
+					   DNS_SIZEHISTO_BUCKETIN(reqsize));
 			break;
 		default:
 			UNREACHABLE();
@@ -1874,12 +1874,12 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	} else {
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
-			isc_stats_increment(client->manager->sctx->udpinstats4,
-					    ISC_MIN((int)reqsize / 16, 18));
+			isc_histomulti_inc(client->manager->sctx->udpinstats4,
+					   DNS_SIZEHISTO_BUCKETIN(reqsize));
 			break;
 		case AF_INET6:
-			isc_stats_increment(client->manager->sctx->udpinstats6,
-					    ISC_MIN((int)reqsize / 16, 18));
+			isc_histomulti_inc(client->manager->sctx->udpinstats6,
+					   DNS_SIZEHISTO_BUCKETIN(reqsize));
 			break;
 		default:
 			UNREACHABLE();

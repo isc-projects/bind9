@@ -1,3 +1,6 @@
+6139.	[func]		Add isc_histo_t general-purpose log-linear histograms,
+			and use them for message size statistics. [GL !7696]
+
 6138.	[doc]		Fix the DF-flag documentation on the outgoing
 			UDP packets. [GL #3710]
 
