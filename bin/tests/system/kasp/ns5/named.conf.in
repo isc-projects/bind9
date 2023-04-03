@@ -67,7 +67,6 @@ view "inherit" {
 	zone "override.inherit.unsigned" {
 		type primary;
 		file "override.inherit.unsigned.db";
-		inline-signing yes;
 		dnssec-policy "default";
 	};
 
@@ -87,14 +86,12 @@ view "override" {
 	zone "inherit.override.unsigned" {
 		type primary;
 		file "inherit.override.unsigned.db";
-		inline-signing yes;
 	};
 
 	/* Override dnssec-policy */
 	zone "override.override.unsigned" {
 		type primary;
 		file "override.override.unsigned.db";
-		inline-signing yes;
 		dnssec-policy "test";
 	};
 
@@ -120,7 +117,6 @@ view "none" {
 	zone "override.none.unsigned" {
 		type primary;
 		file "override.none.unsigned.db";
-		inline-signing yes;
 		dnssec-policy "test";
 	};
 

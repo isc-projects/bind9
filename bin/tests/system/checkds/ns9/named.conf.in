@@ -54,7 +54,6 @@ zone "." {
 zone "good.explicit.dspublish.ns2" {
 	type primary;
 	file "good.explicit.dspublish.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents { 10.53.0.8 port @PORT@; };
 };
@@ -63,7 +62,6 @@ zone "good.explicit.dspublish.ns2" {
 zone "reference.explicit.dspublish.ns2" {
 	type primary;
 	file "reference.explicit.dspublish.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents { "ns8"; };
 };
@@ -72,7 +70,6 @@ zone "reference.explicit.dspublish.ns2" {
 zone "resolver.explicit.dspublish.ns2" {
 	type primary;
 	file "resolver.explicit.dspublish.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.3 port @PORT@;
@@ -83,7 +80,6 @@ zone "resolver.explicit.dspublish.ns2" {
 zone "good.yes.dspublish.ns2" {
 	type primary;
 	file "good.yes.dspublish.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -91,7 +87,6 @@ zone "good.yes.dspublish.ns2" {
 zone "good.no.dspublish.ns2" {
 	type primary;
 	file "good.no.dspublish.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	checkds no;
 };
@@ -100,7 +95,6 @@ zone "good.no.dspublish.ns2" {
 zone "no-ent.ns2" {
 	type primary;
 	file "no-ent.ns2.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -112,7 +106,6 @@ zone "no-ent.ns2" {
 zone "not-yet.explicit.dspublish.ns5" {
 	type primary;
 	file "not-yet.explicit.dspublish.ns5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.5 port @PORT@; // missing
@@ -122,7 +115,6 @@ zone "not-yet.explicit.dspublish.ns5" {
 zone "not-yet.yes.dspublish.ns5" {
 	type primary;
 	file "not-yet.yes.dspublish.ns5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -134,7 +126,6 @@ zone "not-yet.yes.dspublish.ns5" {
 zone "bad.explicit.dspublish.ns6" {
 	type primary;
 	file "bad.explicit.dspublish.ns6.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.6 port @PORT@; // bad
@@ -144,7 +135,6 @@ zone "bad.explicit.dspublish.ns6" {
 zone "bad.yes.dspublish.ns6" {
 	type primary;
 	file "bad.yes.dspublish.ns6.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -163,7 +153,6 @@ zone "bad.yes.dspublish.ns6" {
 zone "good.explicit.dspublish.ns2-4" {
 	type primary;
 	file "good.explicit.dspublish.ns2-4.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.8 port @PORT@;
@@ -174,14 +163,12 @@ zone "good.explicit.dspublish.ns2-4" {
 zone "good.yes.dspublish.ns2-4" {
 	type primary;
 	file "good.yes.dspublish.ns2-4.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
 zone "good.no.dspublish.ns2-4" {
 	type primary;
 	file "good.no.dspublish.ns2-4.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	checkds no;
 };
@@ -194,7 +181,6 @@ zone "good.no.dspublish.ns2-4" {
 zone "incomplete.explicit.dspublish.ns2-4-5" {
 	type primary;
 	file "incomplete.explicit.dspublish.ns2-4-5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.8 port @PORT@;
@@ -206,7 +192,6 @@ zone "incomplete.explicit.dspublish.ns2-4-5" {
 zone "incomplete.yes.dspublish.ns2-4-5" {
 	type primary;
 	file "incomplete.yes.dspublish.ns2-4-5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -218,7 +203,6 @@ zone "incomplete.yes.dspublish.ns2-4-5" {
 zone "bad.explicit.dspublish.ns2-4-6" {
 	type primary;
 	file "bad.explicit.dspublish.ns2-4-6.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.8 port @PORT@;
@@ -230,7 +214,6 @@ zone "bad.explicit.dspublish.ns2-4-6" {
 zone "bad.yes.dspublish.ns2-4-6" {
 	type primary;
 	file "bad.yes.dspublish.ns2-4-6.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -253,7 +236,6 @@ zone "bad.yes.dspublish.ns2-4-6" {
 zone "good.explicit.dsremoved.ns5" {
 	type primary;
 	file "good.explicit.dsremoved.ns5.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents { 10.53.0.10 port @PORT@; };
 };
@@ -261,7 +243,6 @@ zone "good.explicit.dsremoved.ns5" {
 zone "resolver.explicit.dsremoved.ns5" {
 	type primary;
 	file "resolver.explicit.dsremoved.ns5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 	parental-agents {
 		10.53.0.3 port @PORT@;
@@ -271,14 +252,12 @@ zone "resolver.explicit.dsremoved.ns5" {
 zone "good.yes.dsremoved.ns5" {
 	type primary;
 	file "good.yes.dsremoved.ns5.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 
 zone "good.no.dsremoved.ns5" {
 	type primary;
 	file "good.no.dsremoved.ns5.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	checkds no;
 };
@@ -286,7 +265,6 @@ zone "good.no.dsremoved.ns5" {
 zone "no-ent.ns5" {
 	type primary;
 	file "no-ent.ns5.db";
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -298,7 +276,6 @@ zone "no-ent.ns5" {
 zone "still-there.explicit.dsremoved.ns2" {
 	type primary;
 	file "still-there.explicit.dsremoved.ns2.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.2 port @PORT@; // still published
@@ -308,7 +285,6 @@ zone "still-there.explicit.dsremoved.ns2" {
 zone "still-there.yes.dsremoved.ns2" {
 	type primary;
 	file "still-there.yes.dsremoved.ns2.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 
@@ -320,7 +296,6 @@ zone "still-there.yes.dsremoved.ns2" {
 zone "bad.explicit.dsremoved.ns6" {
 	type primary;
 	file "bad.explicit.dsremoved.ns6.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.6 port @PORT@; // bad
@@ -330,7 +305,6 @@ zone "bad.explicit.dsremoved.ns6" {
 zone "bad.yes.dsremoved.ns6" {
 	type primary;
 	file "bad.yes.dsremoved.ns6.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 
@@ -349,7 +323,6 @@ zone "bad.yes.dsremoved.ns6" {
 zone "good.explicit.dsremoved.ns5-7" {
 	type primary;
 	file "good.explicit.dsremoved.ns5-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.10 port @PORT@;
@@ -360,14 +333,12 @@ zone "good.explicit.dsremoved.ns5-7" {
 zone "good.yes.dsremoved.ns5-7" {
 	type primary;
 	file "good.yes.dsremoved.ns5-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 
 zone "good.no.dsremoved.ns5-7" {
 	type primary;
 	file "good.no.dsremoved.ns5-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	checkds no;
 };
@@ -380,7 +351,6 @@ zone "good.no.dsremoved.ns5-7" {
 zone "incomplete.explicit.dsremoved.ns2-5-7" {
 	type primary;
 	file "incomplete.explicit.dsremoved.ns2-5-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.2 port @PORT@; // still published
@@ -392,7 +362,6 @@ zone "incomplete.explicit.dsremoved.ns2-5-7" {
 zone "incomplete.yes.dsremoved.ns2-5-7" {
 	type primary;
 	file "incomplete.yes.dsremoved.ns2-5-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 
@@ -404,7 +373,6 @@ zone "incomplete.yes.dsremoved.ns2-5-7" {
 zone "bad.explicit.dsremoved.ns5-6-7" {
 	type primary;
 	file "bad.explicit.dsremoved.ns5-6-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 	parental-agents {
 		10.53.0.10 port @PORT@;
@@ -416,7 +384,6 @@ zone "bad.explicit.dsremoved.ns5-6-7" {
 zone "bad.yes.dsremoved.ns5-6-7" {
 	type primary;
 	file "bad.yes.dsremoved.ns5-6-7.db";
-	inline-signing yes;
 	dnssec-policy "insecure";
 };
 

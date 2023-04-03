@@ -43,7 +43,6 @@ zone "dynamic2inline.kasp" {
 	type primary;
 	file "dynamic2inline.kasp.db";
 	allow-update { any; };
-	inline-signing yes;
 	dnssec-policy "default";
 };
 
@@ -51,14 +50,12 @@ zone "dynamic2inline.kasp" {
 zone "step1.going-insecure.kasp" {
         type primary;
         file "step1.going-insecure.kasp.db";
-	inline-signing yes;
         dnssec-policy "insecure";
 };
 
 zone "step2.going-insecure.kasp" {
         type primary;
         file "step2.going-insecure.kasp.db";
-	inline-signing yes;
         dnssec-policy "insecure";
 };
 
@@ -98,42 +95,36 @@ zone "step1.going-straight-to-none-dynamic.kasp" {
 zone "step1.algorithm-roll.kasp" {
 	type primary;
 	file "step1.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
 zone "step2.algorithm-roll.kasp" {
 	type primary;
 	file "step2.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
 zone "step3.algorithm-roll.kasp" {
 	type primary;
 	file "step3.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
 zone "step4.algorithm-roll.kasp" {
 	type primary;
 	file "step4.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
 zone "step5.algorithm-roll.kasp" {
 	type primary;
 	file "step5.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
 zone "step6.algorithm-roll.kasp" {
 	type primary;
 	file "step6.algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "ecdsa256";
 };
 
@@ -143,42 +134,36 @@ zone "step6.algorithm-roll.kasp" {
 zone "step1.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step1.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
 zone "step2.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step2.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
 zone "step3.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step3.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
 zone "step4.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step4.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
 zone "step5.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step5.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
 zone "step6.csk-algorithm-roll.kasp" {
 	type primary;
 	file "step6.csk-algorithm-roll.kasp.db";
-	inline-signing yes;
 	dnssec-policy "csk-algoroll";
 };
 
@@ -191,6 +176,5 @@ dnssec-policy "modified" {
 zone example {
 	type primary;
 	file "example.db";
-	inline-signing yes;
 	dnssec-policy modified;
 };
