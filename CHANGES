@@ -2,6 +2,9 @@
 			determining if revoked keys needs to be removed from
 			the trust anchors. [GL #3981]
 
+6141.	[bug]		Fix several issues in nsupdate timeout handling and
+			update the -t option's documentation. [GL #3674]
+
 6138.	[doc]		Fix the DF-flag documentation on the outgoing
 			UDP packets. [GL #3710]
 

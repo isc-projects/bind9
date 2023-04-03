@@ -488,6 +488,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	REQUIRE(action != NULL);
 	REQUIRE(requestp != NULL && *requestp == NULL);
 	REQUIRE(timeout > 0);
+	REQUIRE(udpretries != UINT_MAX);
+
 	if (srcaddr != NULL) {
 		REQUIRE(isc_sockaddr_pf(srcaddr) == isc_sockaddr_pf(destaddr));
 	}
@@ -510,7 +512,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		return (result);
 	}
 
-	request->udpcount = udpretries;
+	request->udpcount = udpretries + 1;
 
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
@@ -531,7 +533,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		request->timeout = timeout * 1000;
 	} else {
 		if (udptimeout == 0) {
-			udptimeout = timeout / (udpretries + 1);
+			udptimeout = timeout / request->udpcount;
 		}
 		if (udptimeout == 0) {
 			udptimeout = 1;
@@ -642,6 +644,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	REQUIRE(action != NULL);
 	REQUIRE(requestp != NULL && *requestp == NULL);
 	REQUIRE(timeout > 0);
+	REQUIRE(udpretries != UINT_MAX);
 
 	mctx = requestmgr->mctx;
 
@@ -667,7 +670,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		return (result);
 	}
 
-	request->udpcount = udpretries;
+	request->udpcount = udpretries + 1;
 
 	request->event = (dns_requestevent_t *)isc_event_allocate(
 		mctx, task, DNS_EVENT_REQUESTDONE, action, arg,
@@ -690,8 +693,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		tcp = true;
 		request->timeout = timeout * 1000;
 	} else {
-		if (udptimeout == 0 && udpretries != 0) {
-			udptimeout = timeout / (udpretries + 1);
+		if (udptimeout == 0) {
+			udptimeout = timeout / request->udpcount;
 		}
 		if (udptimeout == 0) {
 			udptimeout = 1;
@@ -1054,9 +1057,13 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
 		isc_result_totext(result));
 
+	REQUIRE(VALID_REQUEST(request));
+
 	if (result == ISC_R_TIMEDOUT) {
 		LOCK(&request->requestmgr->locks[request->hash]);
-		if (request->udpcount != 0) {
+		if (request->udpcount > 1 &&
+		    (request->flags & DNS_REQUEST_F_TCP) == 0)
+		{
 			request->udpcount -= 1;
 			dns_dispatch_resume(request->dispentry,
 					    request->timeout);
@@ -1070,8 +1077,6 @@ req_response(isc_result_t result, isc_region_t *region, void *arg) {
 		/* The lock is unlocked below */
 		goto done;
 	}
-
-	REQUIRE(VALID_REQUEST(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
 
