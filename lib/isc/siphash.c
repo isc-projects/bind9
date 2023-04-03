@@ -90,51 +90,52 @@ isc_siphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 
 	uint64_t b = ((uint64_t)inlen) << 56;
 
-	const uint8_t *end = (in == NULL)
-				     ? NULL
-				     : in + inlen - (inlen % sizeof(uint64_t));
-	const size_t left = inlen & 7;
+	if (in != NULL && inlen != 0) {
+		const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
+		const size_t left = inlen & 7;
 
-	for (; in != end; in += 8) {
-		uint64_t m = case_sensitive
-				     ? ISC_U8TO64_LE(in)
-				     : isc_ascii_tolower8(ISC_U8TO64_LE(in));
+		for (; in != end; in += 8) {
+			uint64_t m =
+				case_sensitive
+					? ISC_U8TO64_LE(in)
+					: isc_ascii_tolower8(ISC_U8TO64_LE(in));
 
-		v3 ^= m;
+			v3 ^= m;
 
-		for (size_t i = 0; i < cROUNDS; ++i) {
-			SIPROUND(v0, v1, v2, v3);
+			for (size_t i = 0; i < cROUNDS; ++i) {
+				SIPROUND(v0, v1, v2, v3);
+			}
+
+			v0 ^= m;
 		}
 
-		v0 ^= m;
-	}
-
-	switch (left) {
-	case 7:
-		b |= U8TO64_ONE(case_sensitive, in[6]) << 48;
-		FALLTHROUGH;
-	case 6:
-		b |= U8TO64_ONE(case_sensitive, in[5]) << 40;
-		FALLTHROUGH;
-	case 5:
-		b |= U8TO64_ONE(case_sensitive, in[4]) << 32;
-		FALLTHROUGH;
-	case 4:
-		b |= U8TO64_ONE(case_sensitive, in[3]) << 24;
-		FALLTHROUGH;
-	case 3:
-		b |= U8TO64_ONE(case_sensitive, in[2]) << 16;
-		FALLTHROUGH;
-	case 2:
-		b |= U8TO64_ONE(case_sensitive, in[1]) << 8;
-		FALLTHROUGH;
-	case 1:
-		b |= U8TO64_ONE(case_sensitive, in[0]);
-		FALLTHROUGH;
-	case 0:
-		break;
-	default:
-		UNREACHABLE();
+		switch (left) {
+		case 7:
+			b |= U8TO64_ONE(case_sensitive, in[6]) << 48;
+			FALLTHROUGH;
+		case 6:
+			b |= U8TO64_ONE(case_sensitive, in[5]) << 40;
+			FALLTHROUGH;
+		case 5:
+			b |= U8TO64_ONE(case_sensitive, in[4]) << 32;
+			FALLTHROUGH;
+		case 4:
+			b |= U8TO64_ONE(case_sensitive, in[3]) << 24;
+			FALLTHROUGH;
+		case 3:
+			b |= U8TO64_ONE(case_sensitive, in[2]) << 16;
+			FALLTHROUGH;
+		case 2:
+			b |= U8TO64_ONE(case_sensitive, in[1]) << 8;
+			FALLTHROUGH;
+		case 1:
+			b |= U8TO64_ONE(case_sensitive, in[0]);
+			FALLTHROUGH;
+		case 0:
+			break;
+		default:
+			UNREACHABLE();
+		}
 	}
 
 	v3 ^= b;
@@ -173,39 +174,40 @@ isc_halfsiphash24(const uint8_t *k, const uint8_t *in, const size_t inlen,
 
 	uint32_t b = ((uint32_t)inlen) << 24;
 
-	const uint8_t *end = (in == NULL)
-				     ? NULL
-				     : in + inlen - (inlen % sizeof(uint32_t));
-	const int left = inlen & 3;
+	if (in != NULL && inlen != 0) {
+		const uint8_t *end = in + inlen - (inlen % sizeof(uint32_t));
+		const int left = inlen & 3;
 
-	for (; in != end; in += 4) {
-		uint32_t m = case_sensitive
-				     ? ISC_U8TO32_LE(in)
-				     : isc_ascii_tolower4(ISC_U8TO32_LE(in));
+		for (; in != end; in += 4) {
+			uint32_t m =
+				case_sensitive
+					? ISC_U8TO32_LE(in)
+					: isc_ascii_tolower4(ISC_U8TO32_LE(in));
 
-		v3 ^= m;
+			v3 ^= m;
 
-		for (size_t i = 0; i < cROUNDS; ++i) {
-			HALFSIPROUND(v0, v1, v2, v3);
+			for (size_t i = 0; i < cROUNDS; ++i) {
+				HALFSIPROUND(v0, v1, v2, v3);
+			}
+
+			v0 ^= m;
 		}
 
-		v0 ^= m;
-	}
-
-	switch (left) {
-	case 3:
-		b |= U8TO32_ONE(case_sensitive, in[2]) << 16;
-		FALLTHROUGH;
-	case 2:
-		b |= U8TO32_ONE(case_sensitive, in[1]) << 8;
-		FALLTHROUGH;
-	case 1:
-		b |= U8TO32_ONE(case_sensitive, in[0]);
-		FALLTHROUGH;
-	case 0:
-		break;
-	default:
-		UNREACHABLE();
+		switch (left) {
+		case 3:
+			b |= U8TO32_ONE(case_sensitive, in[2]) << 16;
+			FALLTHROUGH;
+		case 2:
+			b |= U8TO32_ONE(case_sensitive, in[1]) << 8;
+			FALLTHROUGH;
+		case 1:
+			b |= U8TO32_ONE(case_sensitive, in[0]);
+			FALLTHROUGH;
+		case 0:
+			break;
+		default:
+			UNREACHABLE();
+		}
 	}
 
 	v3 ^= b;
