@@ -1,2 +1,3 @@
 # Uninstrumented library.
 called_from_lib:libfstrm.so
+called_from_lib:libdummyrpz.so
