@@ -4506,9 +4506,8 @@ Tuning
    dropping patterns, the query is retried over TCP.  Per-server EDNS statistics
    are only retained in memory for the lifetime of a given server's ADB entry.
 
-   The :iscman:`named` now sets the DON'T FRAGMENT flag on outgoing UDP packets.
-   According to the measurements done by multiple parties this should not be
-   causing any operational problems as most of the Internet "core" is able to
+   According to the measurements done by multiple parties the default value
+   should not be causing the fragmentation as most of the Internet "core" is able to
    cope with IP message sizes between 1400-1500 bytes, the 1232 size was picked
    as a conservative minimal number that could be changed by the DNS operator to
    a estimated path MTU minus the estimated header space. In practice, the

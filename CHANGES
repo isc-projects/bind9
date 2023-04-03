@@ -1,3 +1,6 @@
+6138.	[doc]		Fix the DF-flag documentation on the outgoing
+			UDP packets. [GL #3710]
+
 6136.	[cleanup]	Remove the isc_fsaccess API in favor of creating
 			temporary file first and atomically replace the key
 			with non-truncated content. [GL #3982]
