@@ -12,6 +12,7 @@
 # information regarding copyright ownership.
 
 import time
+import os
 
 import pytest
 
@@ -34,7 +35,8 @@ def wait_for_transfer(ip, port, client_ip, name, rrtype):
     else:
         raise RuntimeError(
             "zone transfer failed: "
-            f"client {client_ip} got NXDOMAIN for {name} {rrtype} from @{ip}:{port}")
+            f"client {client_ip} got NXDOMAIN for {name} {rrtype} from @{ip}:{port}"
+        )
 
 
 def test_rpz_multiple_views(named_port):
@@ -109,3 +111,33 @@ def test_rpz_multiple_views(named_port):
 
     with pytest.raises(dns.resolver.NXDOMAIN):
         resolver.resolve("allowed.", "A", source="10.53.0.5")
+
+
+def test_rpz_passthru_logging(named_port):
+    resolver = dns.resolver.Resolver()
+    resolver.nameservers = ["10.53.0.3"]
+    resolver.port = named_port
+
+    # Should generate a log entry into rpz_passthru.txt
+    ans = resolver.resolve("allowed.", "A", source="10.53.0.1")
+    assert ans[0].address == "10.53.0.2"
+
+    # baddomain.com isn't allowed (CNAME .), should return NXDOMAIN
+    # Should generate a log entry into rpz.txt
+    with pytest.raises(dns.resolver.NXDOMAIN):
+        resolver.resolve("baddomain.", "A", source="10.53.0.1")
+
+    rpz_passthru_logfile = os.path.join("ns3", "rpz_passthru.txt")
+    rpz_logfile = os.path.join("ns3", "rpz.txt")
+
+    assert os.path.isfile(rpz_passthru_logfile)
+    assert os.path.isfile(rpz_logfile)
+
+    with open(rpz_passthru_logfile, encoding="utf-8") as log_file:
+        line = log_file.read()
+        assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" in line
+
+    with open(rpz_logfile, encoding="utf-8") as log_file:
+        line = log_file.read()
+        assert "rpz QNAME PASSTHRU rewrite allowed/A/IN" not in line
+        assert "rpz QNAME NXDOMAIN rewrite baddomain/A/IN" in line
