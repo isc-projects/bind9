@@ -75,11 +75,11 @@ setup_loopmgr(void **state ISC_ATTR_UNUSED) {
 	env_workers = getenv("ISC_TASK_WORKERS");
 	if (env_workers != NULL) {
 		workers = atoi(env_workers);
-	} else {
+	}
+	if (workers < 2 || workers > 1000) {
 		/* We always need at least two loops for some of the tests */
 		workers = isc_os_ncpus() + 1;
 	}
-	INSIST(workers != 0);
 
 	isc_loopmgr_create(mctx, workers, &loopmgr);
 	mainloop = isc_loop_main(loopmgr);

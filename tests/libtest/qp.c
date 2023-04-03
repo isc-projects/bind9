@@ -62,8 +62,8 @@ qp_test_keytoascii(dns_qpkey_t key, size_t len) {
 }
 
 void
-qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name) {
-	size_t locs[128];
+qp_test_keytoname(const dns_qpkey_t key, size_t keylen, dns_name_t *name) {
+	size_t locs[DNS_NAME_MAXLABELS];
 	size_t loc = 0, opos = 0;
 	size_t offset;
 
@@ -74,14 +74,15 @@ qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name) {
 	isc_buffer_clear(name->buffer);
 
 	/* Scan the key looking for label boundaries */
-	for (offset = 0; offset < 512; offset++) {
+	for (offset = 0; offset <= keylen; offset++) {
 		INSIST(key[offset] >= SHIFT_NOBYTE &&
 		       key[offset] < SHIFT_OFFSET);
-		INSIST(loc < 128);
-		if (key[offset] == SHIFT_NOBYTE) {
-			if (key[offset + 1] == SHIFT_NOBYTE) {
+		INSIST(loc < DNS_NAME_MAXLABELS);
+		if (qpkey_bit(key, keylen, offset) == SHIFT_NOBYTE) {
+			if (qpkey_bit(key, keylen, offset + 1) == SHIFT_NOBYTE)
+			{
 				locs[loc] = offset + 1;
-				break;
+				goto scanned;
 			}
 			locs[loc++] = offset + 1;
 		} else if (offset == 0) {
@@ -89,6 +90,8 @@ qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name) {
 			locs[loc++] = offset;
 		}
 	}
+	UNREACHABLE();
+scanned:
 
 	/*
 	 * In the key the labels are encoded in reverse order, so
@@ -106,7 +109,8 @@ qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name) {
 
 		/* Convert from escaped byte ranges to ASCII */
 		for (offset = locs[loc]; offset < locs[loc + 1] - 1; offset++) {
-			uint8_t byte = dns_qp_byte_for_bit[key[offset]];
+			uint8_t bit = qpkey_bit(key, keylen, offset);
+			uint8_t byte = dns_qp_byte_for_bit[bit];
 			if (qp_common_character(byte)) {
 				isc_buffer_putuint8(name->buffer, byte);
 			} else {

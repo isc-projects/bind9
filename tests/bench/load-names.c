@@ -127,7 +127,7 @@ get_ht(void *ht, size_t count, void **pval) {
 static void *
 new_rbt(isc_mem_t *mem) {
 	dns_rbt_t *rbt = NULL;
-	dns_rbt_create(mem, NULL, NULL, &rbt);
+	(void)dns_rbt_create(mem, NULL, NULL, &rbt);
 	return (rbt);
 }
 

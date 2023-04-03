@@ -34,7 +34,7 @@ qp_test_keytoascii(dns_qpkey_t key, size_t len);
  * functions, this is a complete inverse of dns_qpkey_fromname().
  */
 void
-qp_test_keytoname(const dns_qpkey_t key, dns_name_t *name);
+qp_test_keytoname(const dns_qpkey_t key, size_t len, dns_name_t *name);
 
 /*
  * The maximum height of the trie

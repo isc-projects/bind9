@@ -242,6 +242,7 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 	}
 	/* mark end with a double NOBYTE */
 	key[len] = SHIFT_NOBYTE;
+	ENSURE(len < sizeof(dns_qpkey_t));
 	return (len);
 }
 
@@ -1606,6 +1607,7 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t search_key,
 	qp_node_t *n;
 
 	REQUIRE(QP_VALID(qp));
+	REQUIRE(search_keylen < sizeof(dns_qpkey_t));
 
 	if (get_root(qp) == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -1696,6 +1698,7 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(pval_r != NULL);
 	REQUIRE(ival_r != NULL);
+	REQUIRE(search_keylen < sizeof(dns_qpkey_t));
 
 	n = get_root(qp);
 	if (n == NULL) {

@@ -56,7 +56,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
 	/* verify round-trip conversion of first name */
 	size_t keylen = dns_qpkey_fromname(key, namein);
-	qp_test_keytoname(key, nameout);
+	qp_test_keytoname(key, keylen, nameout);
 
 	assert(dns_name_equal(namein, nameout));
 

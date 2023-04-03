@@ -82,7 +82,7 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		assert_memory_equal(testcases[i].key, key, len);
 
 		out = dns_fixedname_initname(&fn2);
-		qp_test_keytoname(key, out);
+		qp_test_keytoname(key, len, out);
 		assert_true(dns_name_equal(in, out));
 	}
 }
