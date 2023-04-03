@@ -155,6 +155,7 @@ view "example1" {
 
 	zone "example.net" {
 		type primary;
+		inline-signing no;
 		file "example1.db";
 	};
 };

@@ -133,7 +133,7 @@ zone "secondary.kasp" {
 zone "dynamic.kasp" {
 	type primary;
 	file "dynamic.kasp.db";
-	dnssec-policy "default";
+	dnssec-policy "default-dynamic";
 	allow-update { any; };
 };
 

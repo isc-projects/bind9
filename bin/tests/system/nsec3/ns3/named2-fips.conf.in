@@ -97,6 +97,7 @@ zone "nsec3-dynamic-change.kasp" {
 	type primary;
 	file "nsec3-dynamic-change.kasp.db";
 	//dnssec-policy "nsec3";
+	inline-signing no;
 	dnssec-policy "nsec3-other";
 	allow-update { any; };
 };

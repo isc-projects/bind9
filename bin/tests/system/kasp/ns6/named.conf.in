@@ -59,6 +59,7 @@ zone "step1.going-insecure-dynamic.kasp" {
 	type primary;
 	file "step1.going-insecure-dynamic.kasp.db";
 	dnssec-policy "unsigning";
+	inline-signing no;
 	allow-update { any; };
 };
 

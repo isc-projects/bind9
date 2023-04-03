@@ -19,6 +19,10 @@ dnssec-policy "unlimited" {
 	};
 };
 
+dnssec-policy "default-dynamic" {
+	inline-signing no;
+};
+
 dnssec-policy "manual-rollover" {
 	dnskey-ttl 3600;
 

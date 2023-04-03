@@ -1917,7 +1917,9 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
 }
 
 bool
-named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
+named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig,
+		    const cfg_obj_t *vconfig, const cfg_obj_t *config,
+		    dns_kasplist_t *kasplist) {
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *obj = NULL;
 	const char *cfilename;
@@ -1951,7 +1953,8 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 		has_raw = false;
 	}
 
-	inline_signing = named_zone_inlinesigning(zconfig);
+	inline_signing = named_zone_inlinesigning(zconfig, vconfig, config,
+						  kasplist);
 	if (!inline_signing && has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was inline-signing");
@@ -1988,15 +1991,53 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 }
 
 bool
-named_zone_inlinesigning(const cfg_obj_t *zconfig) {
-	const cfg_obj_t *zoptions = NULL;
+named_zone_inlinesigning(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
+			 const cfg_obj_t *config, dns_kasplist_t *kasplist) {
+	const cfg_obj_t *maps[4];
 	const cfg_obj_t *signing = NULL;
+	const cfg_obj_t *policy = NULL;
+	dns_kasp_t *kasp = NULL;
+	isc_result_t res;
 	bool inline_signing = false;
+	int i = 0;
 
-	zoptions = cfg_tuple_get(zconfig, "options");
-	inline_signing = (cfg_map_get(zoptions, "inline-signing", &signing) ==
-				  ISC_R_SUCCESS &&
-			  cfg_obj_asboolean(signing));
+	maps[i++] = cfg_tuple_get(zconfig, "options");
+	if (vconfig != NULL) {
+		maps[i++] = cfg_tuple_get(vconfig, "options");
+	}
+	if (config != NULL) {
+		const cfg_obj_t *options = NULL;
+		(void)cfg_map_get(config, "options", &options);
+		if (options != NULL) {
+			maps[i++] = options;
+		}
+	}
+	maps[i] = NULL;
+
+	/* "inline-signing" is a zone-only clause, so look in maps[0] only. */
+	res = cfg_map_get(maps[0], "inline-signing", &signing);
+	if (res == ISC_R_SUCCESS && cfg_obj_isboolean(signing)) {
+		return (cfg_obj_asboolean(signing));
+	}
+
+	/* If inline-signing is not set, check the value in dnssec-policy. */
+	policy = NULL;
+	res = named_config_get(maps, "dnssec-policy", &policy);
+	/* If no dnssec-policy found, then zone is not using inline-signing. */
+	if (res != ISC_R_SUCCESS ||
+	    strcmp(cfg_obj_asstring(policy), "none") == 0)
+	{
+		return (false);
+	}
+
+	/* Lookup the policy. */
+	res = dns_kasplist_find(kasplist, cfg_obj_asstring(policy), &kasp);
+	if (res != ISC_R_SUCCESS) {
+		return (false);
+	}
+
+	inline_signing = dns_kasp_inlinesigning(kasp);
+	dns_kasp_detach(&kasp);
 
 	return (inline_signing);
 }

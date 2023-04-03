@@ -141,6 +141,7 @@ zone "secure.example" {
 	type primary;
 	file "secure.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -154,6 +155,7 @@ zone "nsec3.example" {
 	type primary;
 	file "nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -161,6 +163,7 @@ zone "autonsec3.example" {
 	type primary;
 	file "autonsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -168,6 +171,7 @@ zone "optout.nsec3.example" {
 	type primary;
 	file "optout.nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 
@@ -175,6 +179,7 @@ zone "nsec3.nsec3.example" {
 	type primary;
 	file "nsec3.nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -182,6 +187,7 @@ zone "jitter.nsec3.example" {
 	type primary;
 	file "jitter.nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy jitter-nsec3;
 	sig-signing-nodes 1000;
 	sig-signing-signatures 100;
@@ -191,6 +197,7 @@ zone "secure.nsec3.example" {
 	type primary;
 	file "secure.nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -205,6 +212,7 @@ zone "secure.optout.example" {
 	type primary;
 	file "secure.optout.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 
@@ -212,6 +220,7 @@ zone "nsec3.optout.example" {
 	type primary;
 	file "nsec3.optout.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 
@@ -219,6 +228,7 @@ zone "optout.optout.example" {
 	type primary;
 	file "optout.optout.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 
@@ -226,6 +236,7 @@ zone "rsasha256.example" {
 	type primary;
 	file "rsasha256.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy rsasha256;
 };
 
@@ -233,6 +244,7 @@ zone "rsasha512.example" {
 	type primary;
 	file "rsasha512.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy rsasha512;
 };
 
@@ -240,6 +252,7 @@ zone "nsec-only.example" {
 	type primary;
 	file "nsec-only.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -247,6 +260,7 @@ zone "nsec3-to-nsec.example" {
 	type primary;
 	file "nsec3-to-nsec.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -254,6 +268,7 @@ zone "oldsigs.example" {
 	type primary;
 	file "oldsigs.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy jitter;
 	sig-signing-nodes 1000;
 	sig-signing-signatures 100;
@@ -263,6 +278,7 @@ zone "prepub.example" {
 	type primary;
 	file "prepub.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -270,6 +286,7 @@ zone "ttl1.example" {
 	type primary;
 	file "ttl1.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -277,6 +294,7 @@ zone "ttl2.example" {
 	type primary;
 	file "ttl2.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -284,6 +302,7 @@ zone "ttl3.example" {
 	type primary;
 	file "ttl3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -291,6 +310,7 @@ zone "ttl4.example" {
 	type primary;
 	file "ttl4.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -303,6 +323,7 @@ zone "nozsk.example" {
 	type primary;
 	file "nozsk.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -310,6 +331,7 @@ zone "inaczsk.example" {
 	type primary;
 	file "inaczsk.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -317,6 +339,7 @@ zone "noksk.example" {
 	type primary;
 	file "noksk.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -324,6 +347,7 @@ zone "sync.example" {
 	type primary;
 	file "sync.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy sync;
 };
 
@@ -338,6 +362,7 @@ zone "inaczsk2.example" {
 	type primary;
 	file "inaczsk2.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -345,6 +370,7 @@ zone "delzsk.example." {
 	type primary;
 	file "delzsk.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -352,6 +378,7 @@ zone "dname-at-apex-nsec3.example" {
 	type primary;
 	file "dname-at-apex-nsec3.example.db";
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 

@@ -294,6 +294,7 @@ dnssec-policy \"default\" {\n\
 	cdnskey yes;\n\
 	cds-digest-types { 2; };\n\
 	dnskey-ttl " DNS_KASP_KEY_TTL ";\n\
+	inline-signing yes;\n\
 	publish-safety " DNS_KASP_PUBLISH_SAFETY "; \n\
 	retire-safety " DNS_KASP_RETIRE_SAFETY "; \n\
 	purge-keys " DNS_KASP_PURGE_KEYS "; \n\
@@ -308,6 +309,7 @@ dnssec-policy \"default\" {\n\
 \n\
 dnssec-policy \"insecure\" {\n\
 	keys { };\n\
+	inline-signing yes;\n\
 };\n\
 \n\
 "

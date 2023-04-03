@@ -81,6 +81,7 @@ zone "example" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 	sig-signing-type 65280;
 };
@@ -99,6 +100,7 @@ zone "private.secure.example" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy private;
 };
 
@@ -108,6 +110,7 @@ zone "insecure.secure.example" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy autosign;
 };
 
@@ -117,6 +120,7 @@ zone "child.nsec3.example" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy nsec3;
 };
 
@@ -126,6 +130,7 @@ zone "child.optout.example" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 
@@ -135,6 +140,7 @@ zone "optout-with-ent" {
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
+	inline-signing no;
 	dnssec-policy optout;
 };
 

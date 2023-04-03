@@ -247,6 +247,22 @@ dns_kasp_setretiresafety(dns_kasp_t *kasp, uint32_t value) {
 	kasp->retire_safety = value;
 }
 
+bool
+dns_kasp_inlinesigning(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(kasp->frozen);
+
+	return (kasp->inline_signing);
+}
+
+void
+dns_kasp_setinlinesigning(dns_kasp_t *kasp, bool value) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(!kasp->frozen);
+
+	kasp->inline_signing = value;
+}
+
 dns_ttl_t
 dns_kasp_zonemaxttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
