@@ -1221,7 +1221,6 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	const char *signer = "", *sep = "";
 	isc_sockaddr_t sockaddr;
 	dns_zonemgr_t *zmgr = NULL;
-	isc_time_t now;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -1231,21 +1230,21 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
 
-	CHECK(result);
+	if (result != ISC_R_SUCCESS) {
+		xfrin_fail(xfr, result, "failed to connect");
+		goto failure;
+	}
 
-	CHECK(isc_nm_xfr_checkperm(handle));
+	result = isc_nm_xfr_checkperm(handle);
+	if (result != ISC_R_SUCCESS) {
+		xfrin_fail(xfr, result, "connected but unable to transfer");
+		goto failure;
+	}
 
 	zmgr = dns_zone_getmgr(xfr->zone);
 	if (zmgr != NULL) {
-		if (result != ISC_R_SUCCESS) {
-			TIME_NOW(&now);
-			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
-						   &xfr->sourceaddr, &now);
-			CHECK(result);
-		} else {
-			dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
-						   &xfr->sourceaddr);
-		}
+		dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
+					   &xfr->sourceaddr);
 	}
 
 	xfr->handle = handle;
@@ -1262,14 +1261,40 @@ xfrin_connect_done(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s%s%s", sourcetext, sep,
 		  signer);
 
-	CHECK(xfrin_send_request(xfr));
-
-failure:
+	result = xfrin_send_request(xfr);
 	if (result != ISC_R_SUCCESS) {
-		xfrin_fail(xfr, result, "failed to connect");
+		xfrin_fail(xfr, result, "connected but unable to send");
 	}
 
-	dns_xfrin_detach(&xfr); /* connect_xfr */
+failure:
+	switch (result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_NETDOWN:
+	case ISC_R_HOSTDOWN:
+	case ISC_R_NETUNREACH:
+	case ISC_R_HOSTUNREACH:
+	case ISC_R_CONNREFUSED:
+		/*
+		 * Add the server to unreachable primaries table only if
+		 * the server has a permanent networking error.
+		 */
+		zmgr = dns_zone_getmgr(xfr->zone);
+		if (zmgr != NULL) {
+			isc_time_t now;
+
+			TIME_NOW(&now);
+
+			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
+						   &xfr->sourceaddr, &now);
+		}
+		break;
+	default:
+		/* Retry sooner than in 10 minutes */
+		break;
+	}
+
+	dns_xfrin_detach(&xfr);
 }
 
 /*
