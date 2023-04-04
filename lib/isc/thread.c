@@ -49,23 +49,38 @@
 
 struct thread_wrap {
 	isc_threadfunc_t func;
-	isc_threadarg_t arg;
-	isc_threadresult_t result;
-	void *jemalloc_enforce_init;
+	void *arg;
+	void (*free)(void *);
 };
 
-static isc_threadresult_t
-thread_run(isc_threadarg_t arg) {
+static struct thread_wrap *
+thread_wrap(isc_threadfunc_t func, void *arg) {
+	struct thread_wrap *wrap = malloc(sizeof(*wrap));
+
+	RUNTIME_CHECK(wrap != NULL);
+	*wrap = (struct thread_wrap){
+		.free = free, /* from stdlib */
+		.func = func,
+		.arg = arg,
+	};
+
+	return (wrap);
+}
+
+static void *
+thread_run(void *arg) {
 	struct thread_wrap *wrap = arg;
+	isc_threadfunc_t wrap_func = wrap->func;
+	void *wrap_arg = wrap->arg;
+	void *result = NULL;
 
 	/*
-	 * Ensure every thread starts with a malloc() call to prevent memory
-	 * bloat caused by a jemalloc quirk.  While this dummy allocation is
-	 * not used for anything, free() must not be immediately called for it
-	 * so that an optimizing compiler does not strip away such a pair of
-	 * malloc() + free() calls altogether, as it would foil the fix.
+	 * Every thread starts with a malloc() call to prevent memory bloat
+	 * caused by a jemalloc quirk. To stop an optimizing compiler from
+	 * stripping out free(malloc(1)), we call free via a function pointer.
 	 */
-	wrap->jemalloc_enforce_init = malloc(8);
+	wrap->free(malloc(1));
+	wrap->free(wrap);
 
 	/* Re-seed the random number generator in each thread. */
 	isc__random_initialize();
@@ -74,38 +89,24 @@ thread_run(isc_threadarg_t arg) {
 	isc__iterated_hash_initialize();
 
 	/* Run the main function */
-	wrap->result = wrap->func(wrap->arg);
+	result = wrap_func(wrap_arg);
 
 	/* Cleanup */
 	isc__iterated_hash_shutdown();
 
-	/* Return the wrapper struct for jemalloc cleanup */
-	return (wrap);
+	return (result);
 }
 
 void
-isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
-		  isc_thread_t *thread) {
-	pthread_attr_t attr;
-	struct thread_wrap *wrap = malloc(sizeof(*wrap));
-	RUNTIME_CHECK(wrap != NULL);
-
-	*wrap = (struct thread_wrap){
-		.func = func,
-		.arg = arg,
-	};
-
-#if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
-	size_t stacksize;
-#endif /* if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
-	* defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE) */
+isc_thread_create(isc_threadfunc_t func, void *arg, isc_thread_t *thread) {
 	int ret;
+	pthread_attr_t attr;
 
 	pthread_attr_init(&attr);
 
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
+	size_t stacksize;
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
 	PTHREADS_RUNTIME_CHECK(pthread_attr_getstacksize, ret);
 
@@ -116,27 +117,17 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 #endif /* if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
 	* defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE) */
 
-	ret = pthread_create(thread, &attr, thread_run, wrap);
+	ret = pthread_create(thread, &attr, thread_run, thread_wrap(func, arg));
 	PTHREADS_RUNTIME_CHECK(pthread_create, ret);
 
 	pthread_attr_destroy(&attr);
-
-	return;
 }
 
 void
-isc_thread_join(isc_thread_t thread, isc_threadresult_t *result) {
-	void *wrap_v;
-	int ret = pthread_join(thread, &wrap_v);
+isc_thread_join(isc_thread_t thread, void **resultp) {
+	int ret = pthread_join(thread, resultp);
 
 	PTHREADS_RUNTIME_CHECK(pthread_join, ret);
-
-	struct thread_wrap *wrap = wrap_v;
-	if (result != NULL) {
-		*result = wrap->result;
-	}
-	free(wrap->jemalloc_enforce_init);
-	free(wrap);
 }
 
 void

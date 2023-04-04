@@ -232,7 +232,7 @@ static void *
 quota_release(void *arg) {
 	uv_sleep(10);
 	isc_quota_release((isc_quota_t *)arg);
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 static void
@@ -243,7 +243,7 @@ quota_callback(void *data) {
 	isc_thread_create(quota_release, &quota, &g_threads[tnum]);
 }
 
-static isc_threadresult_t
+static void *
 quota_thread(void *qtip) {
 	qthreadinfo_t *qti = (qthreadinfo_t *)qtip;
 	for (int i = 0; i < 100; i++) {
@@ -257,7 +257,7 @@ quota_thread(void *qtip) {
 					  &g_threads[tnum]);
 		}
 	}
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_quota_callback_mt) {

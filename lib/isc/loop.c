@@ -330,8 +330,8 @@ loop_close(isc_loop_t *loop) {
 	isc_mem_detach(&loop->mctx);
 }
 
-static isc_threadresult_t
-loop_thread(isc_threadarg_t arg) {
+static void *
+loop_thread(void *arg) {
 	isc_loop_t *loop = (isc_loop_t *)arg;
 
 	/* Initialize the thread_local variable */
@@ -340,7 +340,7 @@ loop_thread(isc_threadarg_t arg) {
 
 	loop_run(loop);
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 void

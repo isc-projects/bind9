@@ -87,8 +87,8 @@ static size_t expected_counter = SIZE_MAX;
 #if HAD_PTHREAD_SPIN_INIT
 static pthread_spinlock_t spin;
 
-static isc_threadresult_t
-pthread_spin_thread(isc_threadarg_t arg) {
+static void *
+pthread_spin_thread(void *arg) {
 	size_t cont = *(size_t *)arg;
 
 	for (size_t i = 0; i < loops; i++) {
@@ -100,14 +100,14 @@ pthread_spin_thread(isc_threadarg_t arg) {
 		isc_pause_n(cont);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 #endif
 
 static isc_spinlock_t lock;
 
-static isc_threadresult_t
-isc_spinlock_thread(isc_threadarg_t arg) {
+static void *
+isc_spinlock_thread(void *arg) {
 	size_t cont = *(size_t *)arg;
 
 	for (size_t i = 0; i < loops; i++) {
@@ -119,7 +119,7 @@ isc_spinlock_thread(isc_threadarg_t arg) {
 		isc_pause_n(cont);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_spinlock_benchmark) {

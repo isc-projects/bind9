@@ -490,8 +490,8 @@ ISC_RUN_TEST_IMPL(isc_mem_traceflag) {
 
 static atomic_size_t mem_size;
 
-static isc_threadresult_t
-mem_thread(isc_threadarg_t arg) {
+static void *
+mem_thread(void *arg) {
 	isc_mem_t *mctx2 = (isc_mem_t *)arg;
 	void *items[NUM_ITEMS];
 	size_t size = atomic_load(&mem_size);
@@ -508,7 +508,7 @@ mem_thread(isc_threadarg_t arg) {
 		}
 	}
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
