@@ -252,7 +252,7 @@ struct dns_zone {
 	bool locked;
 #endif /* ifdef DNS_ZONE_CHECKLOCK */
 	isc_mem_t *mctx;
-	isc_refcount_t erefs;
+	isc_refcount_t references;
 
 	isc_rwlock_t dblock;
 	dns_db_t *db; /* Locked by dblock */
@@ -1124,7 +1124,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_mutex_init(&zone->lock);
 	ZONEDB_INITLOCK(&zone->dblock);
 
-	isc_refcount_init(&zone->erefs, 1);
+	isc_refcount_init(&zone->references, 1);
 	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin, NULL);
 	isc_sockaddr_any(&zone->notifysrc4);
@@ -1154,8 +1154,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	return (ISC_R_SUCCESS);
 
 free_refs:
-	isc_refcount_decrement0(&zone->erefs);
-	isc_refcount_destroy(&zone->erefs);
+	isc_refcount_decrement0(&zone->references);
+	isc_refcount_destroy(&zone->references);
 	isc_refcount_destroy(&zone->irefs);
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	isc_mutex_destroy(&zone->lock);
@@ -1188,7 +1188,7 @@ zone_free(dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	isc_refcount_destroy(&zone->erefs);
+	isc_refcount_destroy(&zone->references);
 	isc_refcount_destroy(&zone->irefs);
 
 	/*
@@ -5326,9 +5326,9 @@ exit_check(dns_zone_t *zone) {
 	    isc_refcount_current(&zone->irefs) == 0)
 	{
 		/*
-		 * DNS_ZONEFLG_SHUTDOWN can only be set if erefs == 0.
+		 * DNS_ZONEFLG_SHUTDOWN can only be set if references == 0.
 		 */
-		INSIST(isc_refcount_current(&zone->erefs) == 0);
+		INSIST(isc_refcount_current(&zone->references) == 0);
 		return (true);
 	}
 	return (false);
@@ -5602,40 +5602,17 @@ closeversion:
 	return (answer);
 }
 
-void
-dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
-	REQUIRE(DNS_ZONE_VALID(source));
-	REQUIRE(target != NULL && *target == NULL);
-	isc_refcount_increment(&source->erefs);
-	*target = source;
-}
+static void
+zone_destroy(dns_zone_t *zone) {
+	isc_refcount_destroy(&zone->references);
 
-void
-dns_zone_detach(dns_zone_t **zonep) {
-	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	/*
+	 * Stop things being restarted after we cancel them below.
+	 */
+	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "final reference detached");
 
-	dns_zone_t *zone = *zonep;
-	*zonep = NULL;
-
-	if (isc_refcount_decrement(&zone->erefs) == 1) {
-		isc_refcount_destroy(&zone->erefs);
-
-		/*
-		 * Stop things being restarted after we cancel them below.
-		 */
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_EXITING);
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "final reference detached");
-
-		if (zone->loop != NULL) {
-			/*
-			 * This zone has a loop; it can clean
-			 * itself up asynchronously.
-			 */
-			isc_async_run(zone->loop, zone_shutdown, zone);
-			return;
-		}
-
+	if (zone->loop == NULL) {
 		/*
 		 * This zone is unmanaged; we're probably running in
 		 * named-checkzone or a unit test. There's no loop, so we
@@ -5650,8 +5627,20 @@ dns_zone_detach(dns_zone_t **zonep) {
 		INSIST(zone->view == NULL);
 
 		zone_shutdown(zone);
+	} else {
+		/*
+		 * This zone has a loop; it can clean
+		 * itself up asynchronously.
+		 */
+		isc_async_run(zone->loop, zone_shutdown, zone);
 	}
 }
+
+#if DNS_ZONE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_zone, zone_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_zone, zone_destroy);
+#endif
 
 void
 dns_zone_iattach(dns_zone_t *source, dns_zone_t **target) {
@@ -5668,7 +5657,7 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(target != NULL && *target == NULL);
 	INSIST(isc_refcount_increment0(&source->irefs) +
-		       isc_refcount_current(&source->erefs) >
+		       isc_refcount_current(&source->references) >
 	       0);
 	*target = source;
 }
@@ -5687,7 +5676,7 @@ zone_idetach(dns_zone_t **zonep) {
 	*zonep = NULL;
 
 	INSIST(isc_refcount_decrement(&zone->irefs) - 1 +
-		       isc_refcount_current(&zone->erefs) >
+		       isc_refcount_current(&zone->references) >
 	       0);
 }
 
@@ -14486,7 +14475,7 @@ zone_shutdown(void *arg) {
 	dns_view_t *view = NULL, *prev_view = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	INSIST(isc_refcount_current(&zone->erefs) == 0);
+	INSIST(isc_refcount_current(&zone->references) == 0);
 
 	zone_debuglog(zone, __func__, 3, "shutting down");
 
@@ -21888,7 +21877,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	raw->loop = zone->loop;
 
 	/* dns_zone_attach(raw, &zone->raw); */
-	isc_refcount_increment(&raw->erefs);
+	isc_refcount_increment(&raw->references);
 	zone->raw = raw;
 
 	/* dns_zone_iattach(zone, &raw->secure); */

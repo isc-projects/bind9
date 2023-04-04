@@ -37,6 +37,9 @@
 #include <dns/types.h>
 #include <dns/zt.h>
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_ZONE_TRACE
+
 typedef enum {
 	dns_zone_none,
 	dns_zone_primary,
@@ -447,28 +450,6 @@ dns__zone_loadpending(dns_zone_t *zone);
  * Indicates whether the zone is waiting to be loaded asynchronously.
  * (Not currently intended for use outside of this module and associated
  * tests.)
- */
-
-void
-dns_zone_attach(dns_zone_t *source, dns_zone_t **target);
-/*%<
- *	Attach '*target' to 'source' incrementing its external
- * 	reference count.
- *
- * Require:
- *\li	'zone' to be a valid zone.
- *\li	'target' to be non NULL and '*target' to be NULL.
- */
-
-void
-dns_zone_detach(dns_zone_t **zonep);
-/*%<
- *	Detach from a zone decrementing its external reference count.
- *	If this was the last external reference to the zone it will be
- * 	shut down and eventually freed.
- *
- * Require:
- *\li	'zonep' to point to a valid zone.
  */
 
 void
@@ -2584,3 +2565,15 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
  * \li	'true' if the check passes, that is the zone remains consistent,
  *	'false' if the zone would have NSEC only DNSKEYs and an NSEC3 chain.
  */
+
+#if DNS_ZONE_TRACE
+#define dns_zone_ref(ptr)   dns_zone__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_zone_unref(ptr) dns_zone__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_zone_attach(ptr, ptrp) \
+	dns_zone__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_zone_detach(ptrp) \
+	dns_zone__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_zone);
+#else
+ISC_REFCOUNT_DECL(dns_zone);
+#endif
