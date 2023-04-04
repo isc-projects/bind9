@@ -963,15 +963,13 @@ failure:
  * A connection has been established.
  */
 static void
-xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg) {
+xfrin_connect_done(isc_result_t result, isc_region_t *region ISC_ATTR_UNUSED,
+		   void *arg) {
 	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	char addrtext[ISC_SOCKADDR_FORMATSIZE];
 	char signerbuf[DNS_NAME_FORMATSIZE];
 	const char *signer = "", *sep = "";
 	dns_zonemgr_t *zmgr = NULL;
-	isc_time_t now;
-
-	UNUSED(region);
 
 	REQUIRE(VALID_XFRIN(xfr));
 
@@ -981,23 +979,19 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 	if (result != ISC_R_SUCCESS) {
 		xfrin_fail(xfr, result, "failed to connect");
-		dns_xfrin_unref(xfr);
-		return;
+		goto failure;
 	}
 
-	CHECK(dns_dispatch_checkperm(xfr->disp));
+	result = dns_dispatch_checkperm(xfr->disp);
+	if (result != ISC_R_SUCCESS) {
+		xfrin_fail(xfr, result, "connected but unable to transfer");
+		goto failure;
+	}
 
 	zmgr = dns_zone_getmgr(xfr->zone);
 	if (zmgr != NULL) {
-		if (result != ISC_R_SUCCESS) {
-			now = isc_time_now();
-			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
-						   &xfr->sourceaddr, &now);
-			CHECK(result);
-		} else {
-			dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
-						   &xfr->sourceaddr);
-		}
+		dns_zonemgr_unreachabledel(zmgr, &xfr->primaryaddr,
+					   &xfr->sourceaddr);
 	}
 
 	if (xfr->tsigkey != NULL && xfr->tsigkey->key != NULL) {
@@ -1011,12 +1005,40 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region, void *arg) {
 	xfrin_log(xfr, ISC_LOG_INFO, "connected using %s%s%s", addrtext, sep,
 		  signer);
 
-	CHECK(xfrin_send_request(xfr));
+	result = xfrin_send_request(xfr);
+	if (result != ISC_R_SUCCESS) {
+		xfrin_fail(xfr, result, "connected but unable to send");
+		goto detach;
+	}
+
+	return;
 
 failure:
-	if (result != ISC_R_SUCCESS) {
-		xfrin_fail(xfr, result, "connected but unable to transfer");
+	switch (result) {
+	case ISC_R_NETDOWN:
+	case ISC_R_HOSTDOWN:
+	case ISC_R_NETUNREACH:
+	case ISC_R_HOSTUNREACH:
+	case ISC_R_CONNREFUSED:
+		/*
+		 * Add the server to unreachable primaries table only if
+		 * the server has a permanent networking error.
+		 */
+		zmgr = dns_zone_getmgr(xfr->zone);
+		if (zmgr != NULL) {
+			isc_time_t now = isc_time_now();
+
+			dns_zonemgr_unreachableadd(zmgr, &xfr->primaryaddr,
+						   &xfr->sourceaddr, &now);
+		}
+		break;
+	default:
+		/* Retry sooner than in 10 minutes */
+		break;
 	}
+
+detach:
+	dns_xfrin_unref(xfr);
 }
 
 /*
