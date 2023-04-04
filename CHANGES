@@ -1,3 +1,8 @@
+6144.	[bug]		A reference counting problem (double detach) might
+			occur when shutting down zone transfer early after
+			switching the dns_xfrin to use dns_dispatch API.
+			[GL #3984]
+
 6143.	[bug]		A reference counting problem on the error path in
 			the xfrin_connect_done() might cause an assertion
 			failure on shutdown.  [GL #3989]
