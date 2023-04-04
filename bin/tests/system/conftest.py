@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import logging
 import os
 import pytest
 
@@ -40,19 +41,25 @@ def control_port():
     return int(os.environ.get("CONTROLPORT", default=9953))
 
 
-# ======================= PYTEST SYSTEM TEST RUNNER ==========================
-# From this point onward, any setting, fixtures or functions only apply to the
-# new pytest runner. Ideally, these would be in a separate file. However, due
-# to how pytest works and how it's used by the legacy runner, the best approach
-# is to have everything in this file to avoid duplication and set the
-# LEGACY_TEST_RUNNER if pytest is executed from the legacy framework.
-#
-# FUTURE: Once legacy runner is no longer supported, remove the env var and
-# don't branch the code.
+if os.getenv("LEGACY_TEST_RUNNER", "0") != "0":
 
-if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
+    @pytest.fixture
+    def logger(request):
+        """Logging facility specific to a particular test."""
+        return logging.getLogger(request.node.name)
+
+else:
+    # ======================= PYTEST SYSTEM TEST RUNNER ==========================
+    # From this point onward, any setting, fixtures or functions only apply to the
+    # new pytest runner. Ideally, these would be in a separate file. However, due
+    # to how pytest works and how it's used by the legacy runner, the best approach
+    # is to have everything in this file to avoid duplication and set the
+    # LEGACY_TEST_RUNNER if pytest is executed from the legacy framework.
+    #
+    # FUTURE: Once legacy runner is no longer supported, remove the env var and
+    # don't branch the code.
+
     from functools import partial
-    import logging
     from pathlib import Path
     import re
     import shutil
@@ -308,13 +315,18 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         return path.parent.name
 
     @pytest.fixture(scope="module")
-    def logger(system_test_name):
-        """Logging facility specific to this test."""
+    def mlogger(system_test_name):
+        """Logging facility specific to this test module."""
         avoid_duplicated_logs()
         return logging.getLogger(system_test_name)
 
+    @pytest.fixture
+    def logger(request, system_test_name):
+        """Logging facility specific to a particular test."""
+        return logging.getLogger(f"{system_test_name}.{request.node.name}")
+
     @pytest.fixture(scope="module")
-    def system_test_dir(request, env, system_test_name, logger):
+    def system_test_dir(request, env, system_test_name, mlogger):
         """
         Temporary directory for executing the test.
 
@@ -333,7 +345,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             except AttributeError:
                 # This may happen if pytest execution is interrupted and
                 # pytest_runtest_makereport() is never called.
-                logger.debug("can't obtain test results, test run was interrupted")
+                mlogger.debug("can't obtain test results, test run was interrupted")
                 return "error"
             test_results = {
                 node.nodeid: all_test_results[node.nodeid]
@@ -343,10 +355,10 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             assert len(test_results)
             messages = []
             for node, result in test_results.items():
-                logger.debug("%s %s", result.outcome.upper(), node)
+                mlogger.debug("%s %s", result.outcome.upper(), node)
                 messages.extend(result.messages)
             for message in messages:
-                logger.debug("\n" + message)
+                mlogger.debug("\n" + message)
             failed = any(res.outcome == "failed" for res in test_results.values())
             skipped = any(res.outcome == "skipped" for res in test_results.values())
             if failed:
@@ -365,41 +377,41 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         shutil.copytree(system_test_root / system_test_name, testdir)
 
         # Configure logger to write to a file inside the temporary test directory
-        logger.handlers.clear()
-        logger.setLevel(logging.DEBUG)
+        mlogger.handlers.clear()
+        mlogger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(testdir / "pytest.log.txt", mode="w")
         formatter = logging.Formatter(LOG_FORMAT)
         handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        mlogger.addHandler(handler)
 
         # System tests are meant to be executed from their directory - switch to it.
         old_cwd = os.getcwd()
         os.chdir(testdir)
-        logger.info("switching to tmpdir: %s", testdir)
+        mlogger.info("switching to tmpdir: %s", testdir)
         try:
             yield testdir  # other fixtures / tests will execute here
         finally:
             os.chdir(old_cwd)
-            logger.debug("changed workdir to: %s", old_cwd)
+            mlogger.debug("changed workdir to: %s", old_cwd)
 
             result = get_test_result()
 
             # Clean temporary dir unless it should be kept
             if request.config.getoption("--noclean"):
-                logger.debug("--noclean requested, keeping temporary directory")
+                mlogger.debug("--noclean requested, keeping temporary directory")
             elif result == "failed":
-                logger.debug("test failure detected, keeping temporary directory")
+                mlogger.debug("test failure detected, keeping temporary directory")
             elif not request.node.stash[FIXTURE_OK]:
-                logger.debug(
+                mlogger.debug(
                     "test setup/teardown issue detected, keeping temporary directory"
                 )
             else:
-                logger.debug("deleting temporary directory")
+                mlogger.debug("deleting temporary directory")
                 shutil.rmtree(testdir)
 
     def _run_script(  # pylint: disable=too-many-arguments
         env,
-        logger,
+        mlogger,
         system_test_dir: Path,
         interpreter: str,
         script: str,
@@ -416,8 +428,8 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         cwd = os.getcwd()
         if not path.exists():
             raise FileNotFoundError(f"script {script} not found in {cwd}")
-        logger.debug("running script: %s %s %s", interpreter, script, " ".join(args))
-        logger.debug("  workdir: %s", cwd)
+        mlogger.debug("running script: %s %s %s", interpreter, script, " ".join(args))
+        mlogger.debug("  workdir: %s", cwd)
         returncode = 1
 
         cmd = [interpreter, script] + args
@@ -432,22 +444,22 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         ) as proc:
             if proc.stdout:
                 for line in proc.stdout:
-                    logger.info("    %s", line.rstrip("\n"))
+                    mlogger.info("    %s", line.rstrip("\n"))
             proc.communicate()
             returncode = proc.returncode
             if returncode:
                 raise subprocess.CalledProcessError(returncode, cmd)
-            logger.debug("  exited with %d", returncode)
+            mlogger.debug("  exited with %d", returncode)
 
     @pytest.fixture(scope="module")
-    def shell(env, system_test_dir, logger):
+    def shell(env, system_test_dir, mlogger):
         """Function to call a shell script with arguments."""
-        return partial(_run_script, env, logger, system_test_dir, env["SHELL"])
+        return partial(_run_script, env, mlogger, system_test_dir, env["SHELL"])
 
     @pytest.fixture(scope="module")
-    def perl(env, system_test_dir, logger):
+    def perl(env, system_test_dir, mlogger):
         """Function to call a perl script with arguments."""
-        return partial(_run_script, env, logger, system_test_dir, env["PERL"])
+        return partial(_run_script, env, mlogger, system_test_dir, env["PERL"])
 
     @pytest.fixture(scope="module")
     def run_tests_sh(system_test_dir, shell):
@@ -462,7 +474,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
     def system_test(  # pylint: disable=too-many-arguments,too-many-statements
         request,
         env: Dict[str, str],
-        logger,
+        mlogger,
         system_test_dir,
         shell,
         perl,
@@ -493,7 +505,7 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             try:
                 perl("testsock.pl", ["-p", env["PORT"]])
             except subprocess.CalledProcessError as exc:
-                logger.error("testsock.pl: exited with code %d", exc.returncode)
+                mlogger.error("testsock.pl: exited with code %d", exc.returncode)
                 pytest.skip("Network interface aliases not set up.")
 
         def check_prerequisites():
@@ -510,34 +522,34 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
             except FileNotFoundError:
                 pass  # setup.sh is optional
             except subprocess.CalledProcessError as exc:
-                logger.error("Failed to run test setup")
+                mlogger.error("Failed to run test setup")
                 pytest.fail(f"setup.sh exited with {exc.returncode}")
 
         def start_servers():
             try:
                 perl("start.pl", ["--port", env["PORT"], system_test_dir.name])
             except subprocess.CalledProcessError as exc:
-                logger.error("Failed to start servers")
+                mlogger.error("Failed to start servers")
                 pytest.fail(f"start.pl exited with {exc.returncode}")
 
         def stop_servers():
             try:
                 perl("stop.pl", [system_test_dir.name])
             except subprocess.CalledProcessError as exc:
-                logger.error("Failed to stop servers")
+                mlogger.error("Failed to stop servers")
                 pytest.fail(f"stop.pl exited with {exc.returncode}")
 
         def get_core_dumps():
             try:
                 shell("get_core_dumps.sh", [system_test_dir.name])
             except subprocess.CalledProcessError as exc:
-                logger.error("Found core dumps")
+                mlogger.error("Found core dumps")
                 pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
 
         os.environ.update(env)  # Ensure pytests have the same env vars as shell tests.
-        logger.info(f"test started: {request.node.name}")
+        mlogger.info(f"test started: {request.node.name}")
         port = int(env["PORT"])
-        logger.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)
+        mlogger.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)
 
         if not hasattr(request.node, "stash"):  # compatibility with pytest<7.0.0
             request.node.stash = {}  # use regular dict instead of pytest.Stash
@@ -555,10 +567,10 @@ if os.getenv("LEGACY_TEST_RUNNER", "0") == "0":
         setup_test()
         try:
             start_servers()
-            logger.debug("executing test(s)")
+            mlogger.debug("executing test(s)")
             yield
         finally:
-            logger.debug("test(s) finished")
+            mlogger.debug("test(s) finished")
             stop_servers()
             get_core_dumps()
             request.node.stash[FIXTURE_OK] = True

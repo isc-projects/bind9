@@ -739,6 +739,17 @@ directory in parallel. This is possible thanks to executing the tests inside a
 temporary directory and proper port assignment to ensure there won't be any
 conflicts.
 
+Test logging
+---
+Each module has a separate log which will be saved as pytest.log.txt in the
+temporary directory in which the test is executed. This log includes messages
+for this module setup/teardown as well as any logging from the tests using the
+`logger` fixture. Logging level DEBUG and above will be present in this log.
+
+In general, any log messages using INFO or above will also be printed out
+during pytest execution. In CI, the pytest output is also saved to
+pytest.out.txt in the bin/tests/system directory.
+
 Parallel execution
 ---
 As mentioned in the previous section, test cases inside a single module can't
