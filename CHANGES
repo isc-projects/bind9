@@ -1,3 +1,6 @@
+6145.	[bug]		Fix a possible use-after-free bug in the
+			dns__catz_done_cb() function. [GL #3997]
+
 6144.	[bug]		A reference counting problem (double detach) might
 			occur when shutting down zone transfer early after
 			switching the dns_xfrin to use dns_dispatch API.
