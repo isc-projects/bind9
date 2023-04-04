@@ -815,11 +815,11 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	catz = isc_mem_get(catzs->mctx, sizeof(*catz));
-	*catz = (dns_catz_zone_t){ .catzs = catzs,
-				   .active = true,
+	*catz = (dns_catz_zone_t){ .active = true,
 				   .version = DNS_CATZ_VERSION_UNDEFINED,
 				   .magic = DNS_CATZ_ZONE_MAGIC };
 
+	dns_catz_zones_attach(catzs, &catz->catzs);
 	isc_mutex_init(&catz->lock);
 	isc_refcount_init(&catz->references, 1);
 	isc_ht_init(&catz->entries, catzs->mctx, 4, ISC_HT_CASE_SENSITIVE);
@@ -871,16 +871,13 @@ dns__catz_timer_start(dns_catz_zone_t *catz) {
 static void
 dns__catz_timer_stop(void *arg) {
 	dns_catz_zone_t *catz = arg;
-	dns_catz_zones_t *catzs = NULL;
 	REQUIRE(DNS_CATZ_ZONE_VALID(catz));
 
 	isc_timer_stop(catz->updatetimer);
 	isc_timer_destroy(&catz->updatetimer);
 	catz->loop = NULL;
-	catzs = catz->catzs;
 
 	dns_catz_detach_catz(&catz);
-	dns_catz_unref_catzs(catzs);
 }
 
 isc_result_t
@@ -955,7 +952,6 @@ dns__catz_shutdown(dns_catz_zone_t *catz) {
 		/* Don't wait for timer to trigger for shutdown */
 		INSIST(catz->loop != NULL);
 
-		dns_catz_ref_catzs(catz->catzs);
 		isc_async_run(catz->loop, dns__catz_timer_stop, catz);
 	} else {
 		dns_catz_detach_catz(&catz);
@@ -1028,7 +1024,7 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 	dns_catz_options_free(&catz->defoptions, mctx);
 	dns_catz_options_free(&catz->zoneoptions, mctx);
 
-	catz->catzs = NULL;
+	dns_catz_zones_detach(&catz->catzs);
 	isc_refcount_destroy(&catz->references);
 
 	isc_mem_put(mctx, catz, sizeof(*catz));
@@ -2122,7 +2118,6 @@ dns__catz_timer_cb(void *arg) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
-	dns_catz_ref_catzs(catz->catzs);
 	dns_catz_ref_catz(catz);
 	isc_work_enqueue(catz->loop, dns__catz_update_cb, dns__catz_done_cb,
 			 catz);
@@ -2543,7 +2538,6 @@ dns__catz_done_cb(void *data) {
 		      isc_result_totext(catz->updateresult));
 
 	dns_catz_unref_catz(catz);
-	dns_catz_unref_catzs(catz->catzs);
 }
 
 void
