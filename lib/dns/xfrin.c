@@ -742,9 +742,6 @@ dns_xfrin_shutdown(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
 	xfrin_fail(xfr, ISC_R_CANCELED, "shut down");
-
-	/* we won't reach xfrin_recv_done(), so dereference xfr here */
-	dns_xfrin_unref(xfr);
 }
 
 #if DNS_XFRIN_TRACE
