@@ -44,3 +44,14 @@ zone "baddomain" {
     allow-transfer { none; };
 };
 
+zone "gooddomain" {
+    type primary;
+    file "gooddomain.db";
+    allow-transfer { none; };
+};
+
+zone "rpz-external.local" {
+    type primary;
+    file "rpz-external.local.db";
+    allow-transfer { any; };
+};
