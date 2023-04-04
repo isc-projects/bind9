@@ -831,8 +831,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	catz = isc_mem_get(catzs->mctx, sizeof(*catz));
-	*catz = (dns_catz_zone_t){ .catzs = catzs,
-				   .active = true,
+	*catz = (dns_catz_zone_t){ .active = true,
 				   .version = DNS_CATZ_VERSION_UNDEFINED,
 				   .magic = DNS_CATZ_ZONE_MAGIC };
 
@@ -843,6 +842,7 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **catzp,
 		goto cleanup_timer;
 	}
 
+	dns_catz_zones_attach(catzs, &catz->catzs);
 	isc_mutex_init(&catz->lock);
 	isc_refcount_init(&catz->references, 1);
 	isc_ht_init(&catz->entries, catzs->mctx, 4, ISC_HT_CASE_SENSITIVE);
@@ -1007,7 +1007,7 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 	dns_catz_options_free(&catz->defoptions, mctx);
 	dns_catz_options_free(&catz->zoneoptions, mctx);
 
-	catz->catzs = NULL;
+	dns_catz_zones_detach(&catz->catzs);
 	isc_refcount_destroy(&catz->references);
 
 	isc_mem_put(mctx, catz, sizeof(*catz));
@@ -2113,7 +2113,6 @@ dns__catz_timer_cb(isc_task_t *task, isc_event_t *event) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "catz: %s: reload start", domain);
 
-	dns_catz_ref_catzs(catz->catzs);
 	dns_catz_ref_catz(catz);
 	isc_nm_work_offload(isc_task_getnetmgr(catz->catzs->updater),
 			    dns__catz_update_cb, dns__catz_done_cb, catz);
@@ -2594,7 +2593,6 @@ done:
 		      isc_result_totext(result));
 
 	dns_catz_unref_catz(catz);
-	dns_catz_unref_catzs(catz->catzs);
 }
 
 void
