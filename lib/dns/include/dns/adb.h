@@ -75,6 +75,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
 #include <isc/sockaddr.h>
 
 #include <dns/types.h>
@@ -743,7 +744,7 @@ dns_adb_getquota(dns_adb_t *adb, uint32_t *quotap, uint32_t *freqp,
  */
 
 bool
-dns_adbentry_overquota(dns_adbentry_t *entry);
+dns_adb_overquota(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 /*%<
  * Returns true if the specified ADB has too many active fetches.
  *

@@ -2100,7 +2100,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->magic = QUERY_MAGIC;
 
 	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
-		if (dns_adbentry_overquota(addrinfo->entry)) {
+		if (dns_adb_overquota(fctx->adb, addrinfo)) {
 			UNLOCK(&fctx->lock);
 			result = ISC_R_QUOTA;
 			goto cleanup_dispatch;
@@ -3964,7 +3964,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	addrinfo = fctx_nextaddress(fctx);
 
 	/* Try to find an address that isn't over quota */
-	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry)) {
+	while (addrinfo != NULL && dns_adb_overquota(fctx->adb, addrinfo)) {
 		addrinfo = fctx_nextaddress(fctx);
 	}
 
@@ -3988,7 +3988,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		addrinfo = fctx_nextaddress(fctx);
 
 		while (addrinfo != NULL &&
-		       dns_adbentry_overquota(addrinfo->entry))
+		       dns_adb_overquota(fctx->adb, addrinfo))
 		{
 			addrinfo = fctx_nextaddress(fctx);
 		}
