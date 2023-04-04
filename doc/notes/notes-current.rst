@@ -39,6 +39,9 @@ Bug Fixes
   removed when the number of files exceeded the limit set by ``versions``.
   :gl:`#828` :gl:`#3959`
 
+- Performance of DNSSEC validation in zones with many DNSKEY records
+  has been improved. :gl:`#3981`
+
 Known Issues
 ~~~~~~~~~~~~
 
