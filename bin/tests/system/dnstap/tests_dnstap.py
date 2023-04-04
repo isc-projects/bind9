@@ -17,7 +17,7 @@ import subprocess
 
 import pytest
 
-pytest.importorskip("dns")
+pytest.importorskip("dns", minversion="2.0.0")
 import dns.resolver
 
 
