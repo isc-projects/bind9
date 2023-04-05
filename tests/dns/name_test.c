@@ -509,7 +509,7 @@ name_attr_zero(struct dns_name_attrs attributes) {
 		  attributes.update | attributes.hasupdaterec));
 }
 
-/* dns_nane_init */
+/* dns_name_init */
 ISC_RUN_TEST_IMPL(init) {
 	dns_name_t name;
 	unsigned char offsets[1];
@@ -526,7 +526,7 @@ ISC_RUN_TEST_IMPL(init) {
 	assert_true(name_attr_zero(name.attributes));
 }
 
-/* dns_nane_invalidate */
+/* dns_name_invalidate */
 ISC_RUN_TEST_IMPL(invalidate) {
 	dns_name_t name;
 	unsigned char offsets[1];
@@ -544,7 +544,7 @@ ISC_RUN_TEST_IMPL(invalidate) {
 	assert_true(name_attr_zero(name.attributes));
 }
 
-/* dns_nane_setbuffer/hasbuffer */
+/* dns_name_setbuffer/hasbuffer */
 ISC_RUN_TEST_IMPL(buffer) {
 	dns_name_t name;
 	unsigned char buf[BUFSIZ];
@@ -559,7 +559,7 @@ ISC_RUN_TEST_IMPL(buffer) {
 	assert_true(dns_name_hasbuffer(&name));
 }
 
-/* dns_nane_isabsolute */
+/* dns_name_isabsolute */
 ISC_RUN_TEST_IMPL(isabsolute) {
 	struct {
 		const char *namestr;
@@ -593,7 +593,7 @@ ISC_RUN_TEST_IMPL(isabsolute) {
 	}
 }
 
-/* dns_nane_hash */
+/* dns_name_hash */
 ISC_RUN_TEST_IMPL(hash) {
 	struct {
 		const char *name1;
@@ -656,7 +656,7 @@ ISC_RUN_TEST_IMPL(hash) {
 	}
 }
 
-/* dns_nane_issubdomain */
+/* dns_name_issubdomain */
 ISC_RUN_TEST_IMPL(issubdomain) {
 	struct {
 		const char *name1;
@@ -699,7 +699,7 @@ ISC_RUN_TEST_IMPL(issubdomain) {
 	}
 }
 
-/* dns_nane_countlabels */
+/* dns_name_countlabels */
 ISC_RUN_TEST_IMPL(countlabels) {
 	struct {
 		const char *namestr;
@@ -734,7 +734,7 @@ ISC_RUN_TEST_IMPL(countlabels) {
 	}
 }
 
-/* dns_nane_getlabel */
+/* dns_name_getlabel */
 ISC_RUN_TEST_IMPL(getlabel) {
 	struct {
 		const char *name1;
@@ -777,7 +777,7 @@ ISC_RUN_TEST_IMPL(getlabel) {
 	}
 }
 
-/* dns_nane_getlabelsequence */
+/* dns_name_getlabelsequence */
 ISC_RUN_TEST_IMPL(getlabelsequence) {
 	struct {
 		const char *name1;
