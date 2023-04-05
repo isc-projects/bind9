@@ -19,7 +19,11 @@
  *
  * Keys are `dns_qpkey_t`, which is a string-like thing, usually created
  * from a DNS name. You can use both relative and absolute DNS names as
- * keys.
+ * keys, even in the same trie, except for one caveat: if a trie contains
+ * names relative to the zone apex, the natural way to represent the apex
+ * itself (spelled `@` in zone files) is a zero-length name; but a
+ * zero-length name has the same qpkey representation as the root zone
+ * (apart from its length), so they collide.
  *
  * Leaf values are a pair of a `void *` pointer and a `uint32_t`
  * (because that is what fits inside an internal qp-trie leaf node).
@@ -48,6 +52,12 @@
  * thread (NOT an isc_work thread). We rely on the loop to bound the
  * lifetime of a `dns_qpread_t`, instead of using locks. Readers are
  * not blocked by any write activity, and vice versa.
+ *
+ * For read-only access outside the scope of a loop, such as from an
+ * isc_work callback, `dns_qpmulti_lockedread()`. This looks like a
+ * query transaction; the difference is that a locked read transaction
+ * takes the `dns_qpmulti_t` mutex. When you have finished with a
+ * `dns_qpread_t`, call `dns_qpread_destroy()` to release the mutex.
  *
  * For reads that need a stable view of the trie for multiple cycles
  * of an isc_loop, or which can be used from any thread, call
@@ -99,7 +109,9 @@ typedef struct dns_qpmulti dns_qpmulti_t;
  * Read-only parts of a qp-trie.
  *
  * A `dns_qpreader_t` is the common prefix of the `dns_qpreadable`
- * types, containing just the fields neded for the hot path.
+ * types, containing just the fields neded for the hot path. The
+ * internals of a `dns_qpreader_t` are private; they are only exposed
+ * so that callers can allocate a `dns_qpread_t` on the stack.
  *
  * Ranty aside: annoyingly, C doesn't allow us to use a predeclared
  * structure type as an anonymous struct member, so we have to use a
@@ -125,6 +137,9 @@ typedef struct dns_qpreader {
  * The caller provides space for it on the stack; it can be
  * used by only one thread. As well as the `DNS_QPREADER_FIELDS`,
  * it contains a thread ID to check for incorrect usage.
+ *
+ * The internals of a `dns_qpread_t` are private; they are only
+ * exposed so that callers can allocate an instance on the stack.
  */
 typedef struct dns_qpread {
 	DNS_QPREADER_FIELDS;
@@ -154,10 +169,7 @@ typedef union dns_qpreadable {
 #define dns_qpreader(qpr) ((qpr).qp)
 
 /*%
- * A trie lookup key is a small array, allocated on the stack during trie
- * searches. Keys are usually created on demand from DNS names using
- * `dns_qpkey_fromname()`, but in principle you can define your own
- * functions to convert other types to trie lookup keys.
+ * The maximum size of a key is also the maximum depth of a trie.
  *
  * A domain name can be up to 255 bytes. When converted to a key, each
  * character in the name corresponds to one byte in the key if it is a
@@ -165,7 +177,29 @@ typedef union dns_qpreadable {
  * using two bytes in the key. So we allow keys to be up to 512 bytes.
  * (The actual max is (255 - 5) * 2 + 6 == 506)
  */
-typedef uint8_t dns_qpkey_t[512];
+#define DNS_QP_MAXKEY 512
+
+/*%
+ * A trie lookup key is a small array, allocated on the stack during trie
+ * searches. Keys are usually created on demand from DNS names using
+ * `dns_qpkey_fromname()`, but in principle you can define your own
+ * functions to convert other types to trie lookup keys.
+ */
+typedef uint8_t dns_qpkey_t[DNS_QP_MAXKEY];
+
+/*%
+ * A trie iterator describes a path through the trie from the root to
+ * a leaf node, for use with `dns_qpiter_init()` and `dns_qpiter_next()`.
+ */
+typedef struct dns_qpiter {
+	unsigned int	magic;
+	dns_qpreader_t *qp;
+	uint16_t	sp;
+	struct __attribute__((__packed__)) {
+		uint32_t ref;
+		uint8_t	 more;
+	} stack[DNS_QP_MAXKEY];
+} dns_qpiter_t;
 
 /*%
  * These leaf methods allow the qp-trie code to call back to the code
@@ -180,9 +214,7 @@ typedef uint8_t dns_qpkey_t[512];
  * The `attach` and `detach` methods adjust reference counts on value
  * objects. They support copy-on-write and safe memory reclamation
  * needed for multi-version concurrency. The methods are only called
- * when the `dns_qpmulti_t` mutex is held. For tracing purposes, they
- * should return the same value as `isc_refcount_increment()` or
- * `isc_refcount_decrement()`, respectively
+ * when the `dns_qpmulti_t` mutex is held.
  *
  * Note: When a value object reference count is greater than one, the
  * object is in use by concurrent readers so it must not be modified. A
@@ -201,8 +233,8 @@ typedef uint8_t dns_qpkey_t[512];
  * readable identifier into `buf` which has max length `size`.
  */
 typedef struct dns_qpmethods {
-	uint32_t (*attach)(void *uctx, void *pval, uint32_t ival);
-	uint32_t (*detach)(void *uctx, void *pval, uint32_t ival);
+	void (*attach)(void *uctx, void *pval, uint32_t ival);
+	void (*detach)(void *uctx, void *pval, uint32_t ival);
 	size_t (*makekey)(dns_qpkey_t key, void *uctx, void *pval,
 			  uint32_t ival);
 	void (*triename)(void *uctx, char *buf, size_t size);
@@ -239,6 +271,13 @@ typedef enum dns_qpgc {
 	DNS_QPGC_NOW,
 	DNS_QPGC_ALL,
 } dns_qpgc_t;
+
+/*%
+ * Options for fancy searches such as `dns_qp_findname_parent()`
+ */
+typedef enum dns_qpfind {
+	DNS_QPFIND_NOEXACT = 1 << 0,
+} dns_qpfind_t;
 
 /***********************************************************************
  *
@@ -376,16 +415,13 @@ dns_qpmulti_memusage(dns_qpmulti_t *multi);
 /*
  * XXXFANF todo, based on what we discover BIND needs
  *
- * fancy searches: longest match, lexicographic predecessor,
- * etc.
+ * more fancy searches: lexicographic predecessor (for NSEC),
+ * successor (for modification-safe iteration), etc.
  *
  * do we need specific lookup functions to find out if the
  * returned value is readonly or mutable?
  *
  * richer modification such as dns_qp_replace{key,name}
- *
- * iteration - probably best to put an explicit stack in the iterator,
- * cf. rbtnodechain
  */
 
 size_t
@@ -442,6 +478,30 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
  */
 
 isc_result_t
+dns_qp_findname_parent(dns_qpreadable_t qpr, const dns_name_t *name,
+		       dns_qpfind_t options, void **pval_r, uint32_t *ival_r);
+/*%<
+ * Find a leaf in a qp-trie that is a parent domain of or equal to the
+ * given DNS name.
+ *
+ * If the DNS_QPFIND_NOEXACT option is set, find a strict parent
+ * domain not equal to the search name.
+ *
+ * The leaf values are assigned to `*pval_r` and `*ival_r`
+ *
+ * Requires:
+ * \li  `qpr` is a pointer to a readable qp-trie
+ * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `pval_r != NULL`
+ * \li  `ival_r != NULL`
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if an exact match was found
+ * \li  ISC_R_PARTIALMATCH if a parent domain was found
+ * \li  ISC_R_NOTFOUND if no match was found
+ */
+
+isc_result_t
 dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival);
 /*%<
  * Insert a leaf into a qp-trie
@@ -484,6 +544,48 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name);
  * \li  ISC_R_SUCCESS if the leaf was deleted from the trie
  */
 
+void
+dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi);
+/*%<
+ * Initialize an iterator
+ *
+ * SAFETY NOTE: If `qpr` is a `dns_qp_t`, it is not safe to modify the
+ * trie during iteration. If `qpr` is a `dns_qpread_t` or `dns_qpsnap_t`
+ * then (like any other read-only access) modifications will not affect
+ * iteration.
+ *
+ * Requires:
+ * \li  `qp` is a pointer to a valid qp-trie
+ * \li  `qpi` is a pointer to a qp iterator
+ */
+
+isc_result_t
+dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
+/*%<
+ * Get the next leaf object of a trie in lexicographic order of its keys.
+ *
+ * NOTE: see the safety note under `dns_qpiter_init()`.
+ *
+ * For example,
+ *
+ *	dns_qpiter_t qpi;
+ *	void *pval;
+ *	uint32_t ival;
+ *	dns_qpiter_init(qp, &qpi);
+ *	while (dns_qpiter_next(&qpi, &pval, &ival)) {
+ *		// do something with pval and ival
+ *	}
+ *
+ * Requires:
+ * \li  `qpi` is a pointer to a valid qp iterator
+ * \li  `pval_r != NULL`
+ * \li  `ival_r != NULL`
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
+ * \li  ISC_R_NOMORE otherwise
+ */
+
 /***********************************************************************
  *
  *  functions - transactions
@@ -506,9 +608,26 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qpr);
  */
 
 void
+dns_qpmulti_lockedread(dns_qpmulti_t *multi, dns_qpread_t *qpr);
+/*%<
+ * Start a read-only transaction that takes the `dns_qpmulti_t` mutex.
+ *
+ * The `dns_qpmulti_lockedread()` function must NOT be called from an
+ * isc_loop thread. We keep query and read transactions separate to
+ * avoid accidentally taking or failing to take the mutex.
+ *
+ * Requires:
+ * \li  `multi` is a pointer to a valid multi-threaded qp-trie
+ * \li  `qpr != NULL`
+ *
+ * Returns:
+ * \li  `qpr` is a valid read-only qp-trie handle
+ */
+
+void
 dns_qpread_destroy(dns_qpmulti_t *multi, dns_qpread_t *qpr);
 /*%<
- * End a lightweight read transaction.
+ * End a lightweight query or read transaction.
  *
  * Requires:
  * \li  `multi` is a pointer to a valid multi-threaded qp-trie

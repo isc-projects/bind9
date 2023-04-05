@@ -781,7 +781,7 @@ struct dns_nsfetch {
 struct dns_asyncload {
 	dns_zone_t *zone;
 	unsigned int flags;
-	dns_zt_zoneloaded_t loaded;
+	dns_zt_callback_t *loaded;
 	void *loaded_arg;
 };
 
@@ -2371,7 +2371,7 @@ zone_asyncload(void *arg) {
 
 	/* Inform the zone table we've finished loading */
 	if (asl->loaded != NULL) {
-		(asl->loaded)(asl->loaded_arg, zone);
+		asl->loaded(asl->loaded_arg);
 	}
 
 	isc_mem_put(zone->mctx, asl, sizeof(*asl));
@@ -2379,7 +2379,7 @@ zone_asyncload(void *arg) {
 }
 
 isc_result_t
-dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_zoneloaded_t done,
+dns_zone_asyncload(dns_zone_t *zone, bool newonly, dns_zt_callback_t *done,
 		   void *arg) {
 	dns_asyncload_t *asl = NULL;
 
@@ -5617,15 +5617,7 @@ zone_destroy(dns_zone_t *zone) {
 		 * This zone is unmanaged; we're probably running in
 		 * named-checkzone or a unit test. There's no loop, so we
 		 * need to free it immediately.
-		 *
-		 * Unmanaged zones must not have null views; we have no way
-		 * of detaching from the view here without causing deadlock
-		 * because this code is called with the view already
-		 * locked.
 		 */
-		INSIST(isc_tid() == ISC_TID_UNKNOWN);
-		INSIST(zone->view == NULL);
-
 		zone_shutdown(zone);
 	} else {
 		/*

@@ -1116,8 +1116,7 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 		ztoptions |= DNS_ZTFIND_NOEXACT;
 	}
 
-	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
-			     &zone);
+	result = dns_zt_find(client->view->zonetable, name, ztoptions, &zone);
 
 	if (result == DNS_R_PARTIALMATCH) {
 		partial = true;

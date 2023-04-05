@@ -259,8 +259,8 @@ struct dns_view {
 #endif /* HAVE_LMDB */
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
-		dns_view_t **viewp);
+dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		dns_rdataclass_t rdclass, const char *name, dns_view_t **viewp);
 /*%<
  * Create a view.
  *
@@ -362,24 +362,6 @@ dns_view_weakdetach(dns_view_t **targetp);
  * Ensures:
  *
  *\li	*viewp is NULL.
- */
-
-isc_result_t
-dns_view_createzonetable(dns_view_t *view);
-/*%<
- * Create a zonetable for the view.
- *
- * Requires:
- *
- *\li	'view' is a valid, unfrozen view.
- *
- *\li	'view' does not have a zonetable already.
- *
- * Returns:
- *
- *\li   	#ISC_R_SUCCESS
- *
- *\li	Any error that dns_zt_create() can return.
  */
 
 isc_result_t
@@ -782,14 +764,13 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name, dns_zone_t **zonep);
  * Returns:
  *\li	#ISC_R_SUCCESS		A matching zone was found.
  *\li	#ISC_R_NOTFOUND		No matching zone was found.
- *\li	others			An error occurred.
  */
 
 isc_result_t
 dns_view_load(dns_view_t *view, bool stop, bool newonly);
 
 isc_result_t
-dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_allloaded_t callback,
+dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_callback_t *callback,
 		   void *arg);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads

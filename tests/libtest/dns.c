@@ -64,7 +64,7 @@ dns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	dns_cache_t *cache = NULL;
 
-	result = dns_view_create(mctx, dns_rdataclass_in, name, &view);
+	result = dns_view_create(mctx, loopmgr, dns_rdataclass_in, name, &view);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

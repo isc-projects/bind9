@@ -22,6 +22,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/tid.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
@@ -85,6 +86,7 @@ static isc_mem_t *mctx = NULL;
 #define HMACSHA256 "\x0bhmac-sha256"
 
 static isc_stdtime_t fuzztime = 0x622acce1;
+static isc_loopmgr_t *loopmgr = NULL;
 static dns_view_t *view = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dns_tsig_keyring_t *ring = NULL;
@@ -232,7 +234,10 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	}
 	destroy_dst = true;
 
-	result = dns_view_create(mctx, dns_rdataclass_in, "view", &view);
+	isc_loopmgr_create(mctx, 1, &loopmgr);
+
+	result = dns_view_create(mctx, loopmgr, dns_rdataclass_in, "view",
+				 &view);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_view_create failed: %s\n",
 			isc_result_totext(result));
@@ -322,6 +327,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
+	dns_zone_setview(zone, view);
 	dns_view_freeze(view);
 
 	dns_zone_detach(&zone);

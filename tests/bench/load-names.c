@@ -37,11 +37,10 @@ struct {
 	dns_fixedname_t fixed;
 } item[1024 * 1024];
 
-static uint32_t
+static void
 item_check(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	assert(pval == &item[ival]);
-	return (1);
 }
 
 static size_t
@@ -57,7 +56,7 @@ testname(void *ctx, char *buf, size_t size) {
 	strlcpy(buf, "test", size);
 }
 
-const struct dns_qpmethods qpmethods = {
+const dns_qpmethods_t qpmethods = {
 	item_check,
 	item_check,
 	item_makekey,
@@ -164,7 +163,7 @@ add_qp(void *qp, size_t count) {
 
 static void
 sqz_qp(void *qp) {
-	dns_qp_compact(qp, true);
+	dns_qp_compact(qp, DNS_QPGC_ALL);
 }
 
 static isc_result_t
@@ -201,7 +200,7 @@ static struct fun {
 #define FILE_CHECK(check, msg)                                                 \
 	do {                                                                   \
 		if (!(check)) {                                                \
-			fprintf(stderr, "%s:%zu: %s\n", filename, count, msg); \
+			fprintf(stderr, "%s:%zu: %s\n", filename, lines, msg); \
 			exit(1);                                               \
 		}                                                              \
 	} while (0)
@@ -209,6 +208,12 @@ static struct fun {
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+	const char *filename = NULL;
+	char *filetext = NULL;
+	off_t fileoff;
+	FILE *fp = NULL;
+	size_t filesize, lines = 0, wirebytes = 0, labels = 0;
+	char *pos = NULL, *file_end = NULL;
 
 	isc_mem_create(&mctx);
 
@@ -217,18 +222,17 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	const char *filename = argv[1];
-	off_t fileoff;
+	filename = argv[1];
 	result = isc_file_getsize(filename, &fileoff);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
 			isc_result_totext(result));
 		exit(1);
 	}
-	size_t filesize = (size_t)fileoff;
+	filesize = (size_t)fileoff;
 
-	char *filetext = isc_mem_get(mctx, filesize + 1);
-	FILE *fp = fopen(filename, "r");
+	filetext = isc_mem_get(mctx, filesize + 1);
+	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
 		exit(1);
@@ -236,29 +240,28 @@ main(int argc, char *argv[]) {
 	fclose(fp);
 	filetext[filesize] = '\0';
 
-	size_t count = 0;
-	size_t wirebytes = 0;
-	size_t labels = 0;
-
-	char *pos = filetext;
-	char *file_end = pos + filesize;
+	pos = filetext;
+	file_end = pos + filesize;
 	while (pos < file_end) {
-		FILE_CHECK(count < ARRAY_SIZE(item), "too many lines");
+		char *domain = NULL, *newline = NULL;
+		size_t len;
+
+		FILE_CHECK(lines < ARRAY_SIZE(item), "too many lines");
 		pos += strspn(pos, "0123456789");
 
 		FILE_CHECK(*pos++ == ',', "missing comma");
 
-		char *domain = pos;
+		domain = pos;
 		pos += strcspn(pos, "\r\n");
 		FILE_CHECK(*pos != '\0', "missing newline");
-		char *newline = pos;
+		newline = pos;
 		pos += strspn(pos, "\r\n");
-		size_t len = newline - domain;
+		len = newline - domain;
 
-		item[count].text = domain;
+		item[lines].text = domain;
 		domain[len] = '\0';
 
-		dns_name_t *name = dns_fixedname_initname(&item[count].fixed);
+		dns_name_t *name = dns_fixedname_initname(&item[lines].fixed);
 		isc_buffer_t buffer;
 		isc_buffer_init(&buffer, domain, len);
 		isc_buffer_add(&buffer, len);
@@ -268,41 +271,35 @@ main(int argc, char *argv[]) {
 
 		wirebytes += name->length;
 		labels += name->labels;
-		count++;
+		lines++;
 	}
 
 	printf("names %g MB labels %g MB\n", (double)wirebytes / 1048576.0,
 	       (double)labels / 1048576.0);
 
-	size_t lines = count;
-
 	for (struct fun *fun = fun_list; fun->name != NULL; fun++) {
-		isc_time_t t0;
-		t0 = isc_time_now_hires();
-
 		isc_mem_t *mem = NULL;
-		isc_mem_create(&mem);
-		void *map = fun->new (mem);
+		void *map = NULL;
 
-		for (count = 0; count < lines; count++) {
-			result = fun->add(map, count);
+		isc_mem_create(&mem);
+		map = fun->new (mem);
+
+		isc_time_t t0 = isc_time_now_hires();
+		for (size_t n = 0; n < lines; n++) {
+			result = fun->add(map, n);
 			CHECK(result);
 		}
 		fun->sqz(map);
 
-		isc_time_t t1;
-		t1 = isc_time_now_hires();
-
-		for (count = 0; count < lines; count++) {
+		isc_time_t t1 = isc_time_now_hires();
+		for (size_t n = 0; n < lines; n++) {
 			void *pval = NULL;
-			result = fun->get(map, count, &pval);
+			result = fun->get(map, n, &pval);
 			CHECK(result);
-			assert(pval == &item[count]);
+			assert(pval == &item[n]);
 		}
 
-		isc_time_t t2;
-		t2 = isc_time_now_hires();
-
+		isc_time_t t2 = isc_time_now_hires();
 		printf("%f sec to load %s\n",
 		       (double)isc_time_microdiff(&t1, &t0) / (1000.0 * 1000.0),
 		       fun->name);

@@ -89,12 +89,11 @@ static struct {
 	dns_qpkey_t key;
 } *item;
 
-static uint32_t
+static void
 item_refcount(void *ctx, void *pval, uint32_t ival) {
 	UNUSED(ctx);
 	UNUSED(pval);
 	UNUSED(ival);
-	return (1);
 }
 
 static size_t
@@ -111,7 +110,7 @@ benchname(void *ctx, char *buf, size_t size) {
 	strlcpy(buf, "bench", size);
 }
 
-const struct dns_qpmethods item_methods = {
+const dns_qpmethods_t item_methods = {
 	item_refcount,
 	item_refcount,
 	item_makekey,
@@ -128,12 +127,11 @@ init_items(isc_mem_t *mctx) {
 	void *pval = NULL;
 	uint32_t ival = ~0U;
 	dns_qp_t *qp = NULL;
-
 	size_t bytes = ITEM_COUNT * sizeof(*item);
+	uint64_t start;
 
+	start = isc_time_monotonic();
 	item = isc_mem_allocatex(mctx, bytes, ISC_MEM_ZERO);
-
-	uint64_t start = isc_time_monotonic();
 
 	/* ensure there are no duplicate names */
 	dns_qp_create(mctx, &item_methods, NULL, &qp);
@@ -224,6 +222,7 @@ first_loop(void *varg) {
 static void
 next_loop(struct thread_args *args, isc_nanosecs_t start) {
 	isc_nanosecs_t stop = isc_time_monotonic();
+
 	args->worked += stop - start;
 	args->stop = stop;
 	if (args->stop - args->start < RUNTIME) {
@@ -238,6 +237,9 @@ next_loop(struct thread_args *args, isc_nanosecs_t start) {
 static void
 read_zipf(uv_idle_t *idle) {
 	struct thread_args *args = idle->data;
+	isc_nanosecs_t start;
+	void *pval = NULL;
+	uint32_t ival;
 
 	/* outside time because it is v slow */
 	uint32_t r[args->tx_per_loop][args->ops_per_tx];
@@ -247,10 +249,7 @@ read_zipf(uv_idle_t *idle) {
 		}
 	}
 
-	isc_nanosecs_t start = isc_time_monotonic();
-	void *pval;
-	uint32_t ival;
-
+	start = isc_time_monotonic();
 	for (uint32_t tx = 0; tx < args->tx_per_loop; tx++) {
 		args->transactions++;
 		dns_qpread_t qp;
@@ -277,7 +276,7 @@ static void
 read_transactions(uv_idle_t *idle) {
 	struct thread_args *args = idle->data;
 	isc_nanosecs_t start = isc_time_monotonic();
-	void *pval;
+	void *pval = NULL;
 	uint32_t ival;
 
 	for (uint32_t tx = 0; tx < args->tx_per_loop; tx++) {
@@ -323,8 +322,12 @@ mutate_transactions(uv_idle_t *idle) {
 				args->absent++;
 			}
 		}
+		/*
+		 * We would normally use DNS_QPGC_MAYBE, but here we do the
+		 * fragmented check ourself so we can count compactions
+		 */
 		if (dns_qp_memusage(qp).fragmented) {
-			dns_qp_compact(qp, false);
+			dns_qp_compact(qp, DNS_QPGC_NOW);
 			args->compactions++;
 		}
 		dns_qpmulti_commit(args->multi, &qp);
@@ -375,13 +378,13 @@ static void
 load_multi(struct bench_state *bctx) {
 	dns_qp_t *qp = NULL;
 	size_t count = 0;
-
-	uint64_t start = isc_time_monotonic();
+	uint64_t start;
 
 	dns_qpmulti_create(bctx->mctx, bctx->loopmgr, &item_methods, NULL,
 			   &bctx->multi);
 
 	/* initial contents of the trie */
+	start = isc_time_monotonic();
 	dns_qpmulti_update(bctx->multi, &qp);
 	for (size_t i = 0; i < bctx->max_item; i++) {
 		if (isc_random_uniform(2) == 0) {
@@ -392,7 +395,7 @@ load_multi(struct bench_state *bctx) {
 		item[i].present = true;
 		count++;
 	}
-	dns_qp_compact(qp, true);
+	dns_qp_compact(qp, DNS_QPGC_ALL);
 	dns_qpmulti_commit(bctx->multi, &qp);
 
 	bctx->load_time = isc_time_monotonic() - start;
@@ -741,11 +744,18 @@ dispatch(struct bench_state *bctx) {
 
 static void
 collect(void *varg) {
-	TRACE("");
-
 	struct thread_args *args = varg;
 	struct bench_state *bctx = args->bctx;
 	struct thread_args *thread = bctx->thread;
+	struct {
+		uint64_t worked, txns, ops, compactions;
+	} stats[2] = {};
+	double load_time = bctx->load_time;
+	double elapsed = 0, mut_work, readers, read_work, elapsed_ms;
+	uint32_t nloops;
+	bool zipf;
+
+	TRACE("collect");
 
 	bctx->waiting--;
 	if (bctx->waiting > 0) {
@@ -753,20 +763,15 @@ collect(void *varg) {
 	}
 	isc_barrier_destroy(&bctx->barrier);
 
-	struct {
-		uint64_t worked, txns, ops, compactions;
-	} stats[2] = {};
-
-	double load_time = bctx->load_time;
 	load_time = load_time > 0 ? load_time / (double)NS_PER_SEC : NAN;
 
-	double elapsed = 0;
-	bool zipf = bctx->mutate == 0 && bctx->readers == 0;
-	uint32_t nloops = zipf ? bctx->nloops : bctx->readers + bctx->mutate;
+	zipf = bctx->mutate == 0 && bctx->readers == 0;
+	nloops = zipf ? bctx->nloops : bctx->readers + bctx->mutate;
 	for (uint32_t t = 0; t < nloops; t++) {
 		struct thread_args *tp = &thread[t];
 		elapsed = ISC_MAX(elapsed, (tp->stop - tp->start));
 		bool mut = t < bctx->mutate;
+
 		stats[mut].worked += tp->worked;
 		stats[mut].txns += tp->transactions;
 		stats[mut].ops += tp->transactions * tp->ops_per_tx;
@@ -779,7 +784,7 @@ collect(void *varg) {
 	printf("%7.2f\t", (double)bctx->qp_bytes / bctx->qp_items);
 	printf("%7u\t", bctx->max_item);
 
-	double mut_work = stats[1].worked / (double)US_PER_MS;
+	mut_work = stats[1].worked / (double)US_PER_MS;
 	printf("%7u\t", bctx->mutate);
 	printf("%7u\t", bctx->mut_tx_per_loop);
 	printf("%7u\t", bctx->mut_ops_per_tx);
@@ -790,9 +795,9 @@ collect(void *varg) {
 	printf("%7.2f\t", stats[1].txns / mut_work);
 	printf("%7.2f\t", stats[1].ops / mut_work);
 
-	double readers = zipf ? bctx->nloops - bctx->mutate : bctx->readers;
-	double read_work = stats[0].worked / (double)US_PER_MS;
-	double elapsed_ms = elapsed / (double)US_PER_MS;
+	readers = zipf ? bctx->nloops - bctx->mutate : bctx->readers;
+	read_work = stats[0].worked / (double)US_PER_MS;
+	elapsed_ms = elapsed / (double)US_PER_MS;
 	printf("%7u\t", bctx->readers);
 	printf("%7u\t", bctx->read_tx_per_loop);
 	printf("%7u\t", bctx->read_ops_per_tx);
@@ -813,10 +818,8 @@ startup(void *arg) {
 	isc_loop_t *loop = isc_loop_current(loopmgr);
 	isc_mem_t *mctx = isc_loop_getmctx(loop);
 	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
-
 	size_t bytes = sizeof(struct bench_state) +
 		       sizeof(struct thread_args) * nloops;
-
 	struct bench_state *bctx = isc_mem_getx(mctx, bytes, ISC_MEM_ZERO);
 
 	*bctx = (struct bench_state){
@@ -881,9 +884,9 @@ int
 main(void) {
 	isc_loopmgr_t *loopmgr = NULL;
 	isc_mem_t *mctx = NULL;
-
 	uint32_t nloops;
 	const char *env_workers = getenv("ISC_TASK_WORKERS");
+
 	if (env_workers != NULL) {
 		nloops = atoi(env_workers);
 	} else {
