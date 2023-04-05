@@ -633,6 +633,7 @@ check_algorithm(unsigned char algorithm) {
 		DST_RET(ISC_R_NOTIMPLEMENTED);
 	}
 
+	INSIST(alginfo != NULL);
 	ret = raw_key_to_ossl(alginfo, 0, key, &key_len, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
