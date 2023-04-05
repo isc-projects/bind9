@@ -8178,6 +8178,7 @@ rctx_dispfail(respctx_t *rctx) {
 	case ISC_R_NETUNREACH:
 	case ISC_R_CONNREFUSED:
 	case ISC_R_CONNECTIONRESET:
+	case ISC_R_INVALIDPROTO:
 	case ISC_R_CANCELED:
 	case ISC_R_SHUTTINGDOWN:
 		rctx->broken_server = rctx->result;
