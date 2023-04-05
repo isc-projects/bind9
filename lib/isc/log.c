@@ -1045,17 +1045,10 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	result = isc_dir_open(&dir, dirname);
 
 	/*
-	 * Replace the file separator if it was taken out.
-	 */
-	if (bname != file->name) {
-		*(bname - 1) = sep;
-	}
-
-	/*
 	 * Return if the directory open failed.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		goto out;
 	}
 
 	while (isc_dir_read(&dir) == ISC_R_SUCCESS) {
@@ -1069,14 +1062,25 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 			 * Remove any backup files that exceed versions.
 			 */
 			if (*digit_end == '\0' && version >= versions) {
-				result = isc_file_remove(dir.entry.name);
+				char rmfile[PATH_MAX + 1];
+				int n = snprintf(rmfile, sizeof(rmfile),
+						 "%s/%s", dirname,
+						 dir.entry.name);
+				if (n >= (int)sizeof(rmfile) || n < 0) {
+					result = ISC_R_NOSPACE;
+					syslog(LOG_ERR,
+					       "unable to remove log files: %s",
+					       isc_result_totext(result));
+					break;
+				}
+				result = isc_file_remove(rmfile);
 				if (result != ISC_R_SUCCESS &&
-				    result != ISC_R_FILENOTFOUND)
+				    result != ISC_R_NOTFOUND)
 				{
 					syslog(LOG_ERR,
-					       "unable to remove "
-					       "log file '%s': %s",
-					       dir.entry.name,
+					       "unable to remove log file "
+					       "'%s': %s",
+					       rmfile,
 					       isc_result_totext(result));
 				}
 			} else if (*digit_end == '\0' && version > greatest) {
@@ -1087,8 +1091,16 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	isc_dir_close(&dir);
 
 	*greatestp = greatest;
+	result = ISC_R_SUCCESS;
 
-	return (ISC_R_SUCCESS);
+out:
+	/*
+	 * Replace the file separator if it was taken out.
+	 */
+	if (bname != file->name) {
+		*(bname - 1) = sep;
+	}
+	return (result);
 }
 
 static void
@@ -1177,17 +1189,10 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	result = isc_dir_open(&dir, dirname);
 
 	/*
-	 * Replace the file separator if it was taken out.
-	 */
-	if (bname != file->name) {
-		*(bname - 1) = sep;
-	}
-
-	/*
 	 * Return if the directory open failed.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		return (result);
+		goto out;
 	}
 
 	last = last_to_keep(versions, &dir, bname, bnamelen);
@@ -1206,14 +1211,25 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 			 * Remove any backup files that exceed versions.
 			 */
 			if (*digit_end == '\0' && version < last) {
-				result = isc_file_remove(dir.entry.name);
+				char rmfile[PATH_MAX + 1];
+				int n = snprintf(rmfile, sizeof(rmfile),
+						 "%s/%s", dirname,
+						 dir.entry.name);
+				if (n >= (int)sizeof(rmfile) || n < 0) {
+					result = ISC_R_NOSPACE;
+					syslog(LOG_ERR,
+					       "unable to remove log files: %s",
+					       isc_result_totext(result));
+					break;
+				}
+				result = isc_file_remove(rmfile);
 				if (result != ISC_R_SUCCESS &&
-				    result != ISC_R_FILENOTFOUND)
+				    result != ISC_R_NOTFOUND)
 				{
 					syslog(LOG_ERR,
-					       "unable to remove "
-					       "log file '%s': %s",
-					       dir.entry.name,
+					       "unable to remove log file "
+					       "'%s': %s",
+					       rmfile,
 					       isc_result_totext(result));
 				}
 			}
@@ -1221,8 +1237,16 @@ remove_old_tsversions(isc_logfile_t *file, int versions) {
 	}
 
 	isc_dir_close(&dir);
+	result = ISC_R_SUCCESS;
 
-	return (ISC_R_SUCCESS);
+out:
+	/*
+	 * Replace the file separator if it was taken out.
+	 */
+	if (bname != file->name) {
+		*(bname - 1) = sep;
+	}
+	return (result);
 }
 
 static isc_result_t
