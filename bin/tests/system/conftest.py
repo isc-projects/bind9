@@ -94,6 +94,16 @@ else:
     PORT_MIN = 5001
     PORT_MAX = 32767
     PORTS_PER_TEST = 20
+    PRIORITY_TESTS = [
+        # Tests that are scheduled first. Speeds up parallel execution.
+        "dupsigs/",
+        "rpz/",
+        "rpzrecurse/",
+        "serve-stale/",
+        "timeouts/",
+        "upforwd/",
+    ]
+    PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
 
     # ---------------------- Module initialization ---------------------------
 
@@ -199,6 +209,17 @@ else:
         # ignore these during test collection phase. Otherwise, test artifacts
         # from previous runs could mess with the runner.
         return "_tmp_" in str(path)
+
+    def pytest_collection_modifyitems(items):
+        """Schedule long-running tests first to get more benefit from parallelism."""
+        priority = []
+        other = []
+        for item in items:
+            if PRIORITY_TESTS_RE.search(item.nodeid):
+                priority.append(item)
+            else:
+                other.append(item)
+        items[:] = priority + other
 
     class NodeResult:
         def __init__(self, report=None):
