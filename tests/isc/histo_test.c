@@ -146,13 +146,19 @@ ISC_RUN_TEST_IMPL(quantiles) {
 	for (uint bits = ISC_HISTO_MINBITS; bits <= ISC_HISTO_MAXBITS; bits++) {
 		isc_result_t result;
 		uint64_t min, max, count;
-		double pop;
+		double pop, mean, sd;
 		uint key;
 
 		isc_nanosecs_t start = isc_time_monotonic();
 
 		isc_histo_t *hg = NULL;
 		isc_histo_create(mctx, bits, &hg);
+
+		/* ensure empty histogram does not divide by zero */
+		isc_histo_moments(hg, &pop, &mean, &sd);
+		assert_true(pop == 0.0);
+		assert_true(mean == 0.0);
+		assert_true(sd == 0.0);
 
 		for (key = 0; isc_histo_get(hg, key, &min, &max, &count) ==
 			      ISC_R_SUCCESS;
