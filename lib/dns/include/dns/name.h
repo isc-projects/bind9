@@ -185,8 +185,10 @@ extern const dns_name_t *dns_wildcardname;
  * Standard sizes of a wire format name
  */
 #define DNS_NAME_MAXWIRE   255
-#define DNS_NAME_MAXLABELS 127
+#define DNS_NAME_MAXLABELS 128
 #define DNS_NAME_LABELLEN  63
+
+typedef unsigned char dns_offsets_t[DNS_NAME_MAXLABELS];
 
 /*
  * Text output filter procedure.

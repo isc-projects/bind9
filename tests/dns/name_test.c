@@ -824,6 +824,29 @@ ISC_RUN_TEST_IMPL(getlabelsequence) {
 	}
 }
 
+ISC_RUN_TEST_IMPL(maxlabels) {
+	isc_result_t result;
+	dns_fixedname_t fixed;
+	dns_name_t *name = NULL;
+
+	const char one_too_many[] =
+		"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		"a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		"a.b.c.";
+
+	name = dns_fixedname_initname(&fixed);
+	result = dns_name_fromstring(name, one_too_many, 0, NULL);
+	assert_int_equal(result, ISC_R_NOSPACE);
+
+	name = dns_fixedname_initname(&fixed);
+	result = dns_name_fromstring(name, one_too_many + 2, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(dns_name_isvalid(name));
+}
+
 #ifdef DNS_BENCHMARK_TESTS
 
 /*
@@ -919,6 +942,7 @@ ISC_TEST_ENTRY(issubdomain)
 ISC_TEST_ENTRY(countlabels)
 ISC_TEST_ENTRY(getlabel)
 ISC_TEST_ENTRY(getlabelsequence)
+ISC_TEST_ENTRY(maxlabels)
 #ifdef DNS_BENCHMARK_TESTS
 ISC_TEST_ENTRY(benchmark)
 #endif /* DNS_BENCHMARK_TESTS */

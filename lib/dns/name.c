@@ -951,7 +951,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				}
 				*label = count;
 				labels++;
-				INSIST(labels <= DNS_NAME_MAXLABELS);
+				INSIST(labels < DNS_NAME_MAXLABELS);
 				offsets[labels] = nused;
 				if (tlen == 0) {
 					labels++;
@@ -1048,7 +1048,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			INSIST(label != NULL);
 			*label = count;
 			labels++;
-			INSIST(labels <= DNS_NAME_MAXLABELS);
+			INSIST(labels < DNS_NAME_MAXLABELS);
 			offsets[labels] = nused;
 		}
 		if (origin != NULL) {
@@ -1075,7 +1075,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				}
 				labels++;
 				if (n1 > 0) {
-					INSIST(labels <= DNS_NAME_MAXLABELS);
+					INSIST(labels < DNS_NAME_MAXLABELS);
 					offsets[labels] = nused;
 				}
 			}
@@ -1469,7 +1469,7 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 	nlabels = 0;
 	absolute = false;
 	while (offset != length) {
-		INSIST(nlabels <= DNS_NAME_MAXLABELS);
+		INSIST(nlabels < DNS_NAME_MAXLABELS);
 		offsets[nlabels++] = offset;
 		count = *ndata;
 		INSIST(count <= DNS_NAME_LABELLEN);
