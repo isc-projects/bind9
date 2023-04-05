@@ -4155,7 +4155,7 @@ resume_qmin(void *arg) {
 	case ISC_R_FAILURE:
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			/* Disable minimization in relaxed mode */
-			fctx->qmin_labels = DNS_NAME_MAXLABELS + 1;
+			fctx->qmin_labels = DNS_NAME_MAXLABELS;
 			/*
 			 * We store the result. If we succeed in the end
 			 * we'll issue a warning that the server is
@@ -10167,7 +10167,7 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 			fctx->qmin_labels = nlabels;
 		}
 	} else if (fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
-		fctx->qmin_labels = DNS_NAME_MAXLABELS + 1;
+		fctx->qmin_labels = DNS_NAME_MAXLABELS;
 	}
 
 	if (fctx->qmin_labels < nlabels) {
