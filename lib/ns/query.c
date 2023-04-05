@@ -3439,7 +3439,10 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 	region.length = pname_buf.size;
 	dns_name_fromregion(st->p_name, &region);
 
-	rpz_ready(client, p_rdatasetp);
+	result = rpz_ready(client, p_rdatasetp);
+	if (result != ISC_R_SUCCESS) {
+		return (false);
+	}
 	dns_db_attach(st->rpsdb, &p_db);
 	policy = dns_dnsrps_2policy(rpsdb->result.policy);
 	if (policy != DNS_RPZ_POLICY_RECORD) {
