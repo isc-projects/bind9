@@ -37,6 +37,12 @@ Bug Fixes
 
 - None.
 
+- When the same ``notify-source`` address and port number was configured for
+  multiple destinations and zones, an unresponsive server could tie up the
+  socket until it timed out; in the meantime, NOTIFY messages for other servers
+  silently failed.``named`` will now retry these failing messages over TCP.
+  NOTIFY failures are now logged at level INFO. :gl:`#4001` :gl:`#4002`
+
 Known Issues
 ~~~~~~~~~~~~
 
