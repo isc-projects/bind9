@@ -1,3 +1,10 @@
+6152.	[bug]		In dispatch, honour the configured source-port
+			selection when UDP connection fails with address
+			in use error.
+
+			Also treat ISC_R_NOPERM same as ISC_R_ADDRINUSE.
+			[GL #3986]
+
 6151.	[bug]		When the same ``notify-source`` address and port number
 			was configured for multiple destinations and zones, an
 			unresponsive server could tie up the socket until it
