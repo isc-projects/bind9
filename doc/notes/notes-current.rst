@@ -39,6 +39,12 @@ Bug Fixes
   libuv, treat it as a network failure, mark the server as broken and don't
   try again. :gl:`#4005`
 
+- The :any:`max-transfer-time-in` and :any:`max-transfer-idle-in` options
+  were not implemented when the BIND 9 networking stack was refactored
+  in 9.16. The missing functionality has been re-implemented and
+  incoming zone transfers now time out properly when not progressing.
+  :gl:`#4004`
+
 Known Issues
 ~~~~~~~~~~~~
 
