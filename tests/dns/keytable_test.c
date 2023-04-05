@@ -174,8 +174,7 @@ create_tables(void) {
 			 ISC_R_SUCCESS);
 
 	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
-	assert_int_equal(dns_ntatable_create(view, loopmgr, &ntatable),
-			 ISC_R_SUCCESS);
+	dns_ntatable_create(view, loopmgr, &ntatable);
 
 	/* Add a normal key */
 	dns_test_namefromstring("example.com.", &fn);
@@ -611,8 +610,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initntatable(myview, loopmgr);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_view_initntatable(myview, loopmgr);
 	result = dns_view_getntatable(myview, &ntatable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -686,12 +684,12 @@ ISC_LOOP_TEST_IMPL(nta) {
 	assert_false(covered);
 	assert_true(issecure);
 
+	isc_loopmgr_shutdown(loopmgr);
+
 	/* Clean up */
 	dns_ntatable_detach(&ntatable);
 	dns_keytable_detach(&keytable);
 	dns_view_detach(&myview);
-
-	isc_loopmgr_shutdown(loopmgr);
 }
 
 ISC_TEST_LIST_START

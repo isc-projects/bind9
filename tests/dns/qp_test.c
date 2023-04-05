@@ -325,6 +325,8 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 		  "foo.bar." },
 		{ "my.web.foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH,
 		  "web.foo.bar." },
+		{ "my.other.foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH,
+		  "foo.bar." },
 		{ NULL, 0, 0, NULL },
 	};
 	check_partialmatch(qp, check1);

@@ -1564,13 +1564,13 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 	return (result);
 }
 
-isc_result_t
+void
 dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL) {
 		dns_ntatable_detach(&view->ntatable_priv);
 	}
-	return (dns_ntatable_create(view, loopmgr, &view->ntatable_priv));
+	dns_ntatable_create(view, loopmgr, &view->ntatable_priv);
 }
 
 isc_result_t
