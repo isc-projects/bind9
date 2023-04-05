@@ -474,7 +474,7 @@ isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1,
 
 	OUTARG(pm0, pop);
 	OUTARG(pm1, mean);
-	OUTARG(pm2, sqrt(sigma / pop));
+	OUTARG(pm2, (pop > 0) ? sqrt(sigma / pop) : 0.0);
 }
 
 /*
