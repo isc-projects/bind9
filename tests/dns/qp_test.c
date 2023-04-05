@@ -268,8 +268,8 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[]) {
 			check[i].found);
 #endif
 		dns_test_namefromstring(check[i].query, &fixed);
-		result = dns_qp_findname_parent(qp, name, check[i].options,
-						&pval, NULL);
+		result = dns_qp_findname_ancestor(qp, name, check[i].options,
+						  &pval, NULL);
 		assert_int_equal(result, check[i].result);
 		if (check[i].found == NULL) {
 			assert_null(pval);
