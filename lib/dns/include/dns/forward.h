@@ -74,22 +74,6 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
  */
 
 isc_result_t
-dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name);
-/*%<
- * Removes an entry for 'name' from the forwarding table.  If an entry
- * that exactly matches 'name' does not exist, ISC_R_NOTFOUND will be returned.
- *
- * Requires:
- * \li	fwdtable is a valid forwarding table.
- * \li	name is a valid name
- *
- * Returns:
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOTFOUND
- * \li	#ISC_R_NOSPACE
- */
-
-isc_result_t
 dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		  dns_name_t *foundname, dns_forwarders_t **forwardersp);
 /*%<

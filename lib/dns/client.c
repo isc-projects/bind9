@@ -396,23 +396,6 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-isc_result_t
-dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
-			const dns_name_t *name_space) {
-	isc_result_t result;
-
-	REQUIRE(DNS_CLIENT_VALID(client));
-	REQUIRE(rdclass == dns_rdataclass_in);
-
-	if (name_space == NULL) {
-		name_space = dns_rootname;
-	}
-
-	result = dns_fwdtable_delete(client->view->fwdtable, name_space);
-
-	return (result);
-}
-
 static isc_result_t
 getrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 	dns_rdataset_t *rdataset;

@@ -168,19 +168,6 @@ cleanup:
 }
 
 isc_result_t
-dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name) {
-	isc_result_t result;
-
-	REQUIRE(VALID_FWDTABLE(fwdtable));
-
-	RWLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
-	result = dns_rbt_deletename(fwdtable->table, name, false);
-	RWUNLOCK(&fwdtable->rwlock, isc_rwlocktype_write);
-
-	return (result);
-}
-
-isc_result_t
 dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 		  dns_name_t *foundname, dns_forwarders_t **forwardersp) {
 	isc_result_t result;
