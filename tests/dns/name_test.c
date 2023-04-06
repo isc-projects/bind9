@@ -705,8 +705,19 @@ ISC_RUN_TEST_IMPL(countlabels) {
 		const char *namestr;
 		unsigned int expect;
 	} testcases[] = {
-		{ "c.d", 2 },	  { "c.d.", 3 },  { "a.b.c.d.", 5 },
-		{ "a.b.c.d", 4 }, { "a.b.c", 3 }, { ".", 1 },
+		{ "c.d", 2 },
+		{ "c.d.", 3 },
+		{ "a.b.c.d.", 5 },
+		{ "a.b.c.d", 4 },
+		{ "a.b.c", 3 },
+		{ ".", 1 },
+		{ "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		  "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		  "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		  "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		  "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y."
+		  "a.b.",
+		  128 },
 	};
 	unsigned int i;
 
@@ -845,6 +856,7 @@ ISC_RUN_TEST_IMPL(maxlabels) {
 	result = dns_name_fromstring(name, one_too_many + 2, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(dns_name_isvalid(name));
+	assert_int_equal(dns_name_countlabels(name), DNS_NAME_MAXLABELS);
 }
 
 #ifdef DNS_BENCHMARK_TESTS
