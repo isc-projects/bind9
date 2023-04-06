@@ -17,7 +17,9 @@ Bug Fixes
 
 - Logfiles using ``timestamp``-style suffixes were not always correctly
   removed when the number of files exceeded the limit set by ``versions``.
-  :gl:`#828` :gl:`#3959`
+  This has been fixed for configurations which do not explicitly specify
+  a directory path as part of the ``file`` argument in the ``channel``
+  specification. :gl:`#3959` :gl:`#3991`
 
 - Performance of DNSSEC validation in zones with many DNSKEY records
   has been improved. :gl:`#3981`
