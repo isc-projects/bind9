@@ -1,3 +1,8 @@
+6149.	[test]		As a workaround, include an OpenSSL header file before
+			including cmocka.h in the unit tests, because OpenSSL
+			3.1.0 uses __attribute__(malloc), conflicting with a
+			redefined malloc in cmocka.h. [GL #4000]
+
 6145.	[bug]		Fix a possible use-after-free bug in the
 			dns__catz_done_cb() function. [GL #3997]
 
