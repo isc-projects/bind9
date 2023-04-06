@@ -15,7 +15,10 @@ Notes for BIND 9.19.12
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- An error in DNS message processing introduced in development version
+  9.19.11 could cause BIND and its utilities to crash if the maximum
+  permissible number of DNS labels were present. This has been fixed.
+  :gl:`#3998`
 
 New Features
 ~~~~~~~~~~~~
