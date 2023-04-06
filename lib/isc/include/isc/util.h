@@ -96,6 +96,14 @@
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
+/*
+ * Optional return values, or out-arguments
+ */
+#define SET_IF_NOT_NULL(obj, val) \
+	if ((obj) != NULL) {      \
+		*(obj) = (val);   \
+	}
+
 /*%
  * Get the allocation size for a struct with a flexible array member
  * containing `count` elements. The struct is identified by a pointer,

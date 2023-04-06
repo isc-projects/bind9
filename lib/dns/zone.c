@@ -125,7 +125,7 @@
  */
 #define RANGE(a, min, max) (((a) < (min)) ? (min) : ((a) < (max) ? (a) : (max)))
 
-#define NSEC3REMOVE(x) (((x)&DNS_NSEC3FLAG_REMOVE) != 0)
+#define NSEC3REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
 
 /*%
  * Key flags
@@ -5473,11 +5473,6 @@ invalidate_rdataset:
 
 	return (result);
 }
-
-#define SET_IF_NOT_NULL(obj, val) \
-	if (obj != NULL) {        \
-		*obj = val;       \
-	}
 
 #define SET_SOA_VALUES(soattl_v, serial_v, refresh_v, retry_v, expire_v, \
 		       minimum_v)                                        \

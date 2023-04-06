@@ -13,6 +13,8 @@
 
 #include "openssl_shim.h"
 
+#include <isc/util.h>
+
 #if !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L
 /* From OpenSSL 1.1.0 */
 int
