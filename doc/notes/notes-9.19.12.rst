@@ -86,5 +86,8 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- Several bugs which could cause :iscman:`named` to crash during catalog
+  zone processing have been fixed. :gl:`#3955` :gl:`#3968` :gl:`#3997`
+
 - Performance of DNSSEC validation in zones with many DNSKEY records has
   been improved. :gl:`#3981`
