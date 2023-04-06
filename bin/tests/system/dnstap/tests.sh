@@ -787,28 +787,42 @@ lines=`$DNSTAPREAD -y large-answer.fstrm | grep -c "opcode: QUERY"`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-test_dnstap_roll() (
+_test_dnstap_roll() (
     ip="$1"
     ns="$2"
     n="$3"
+
     $RNDCCMD -s "${ip}" dnstap -roll "${n}" | sed "s/^/${ns} /" | cat_i &&
     files=$(find "$ns" -name "dnstap.out.[0-9]" | wc -l) &&
-    test "$files" -le "${n}" && test "$files" -ge "1"
+    test "$files" -eq "${n}" && test "$files" -ge "1"
 )
 
-echo_i "checking 'rndc -roll <value>' (no versions)"
-ret=0
-start_server --noclean --restart --port "${PORT}" ns3
-_repeat 5 test_dnstap_roll 10.53.0.3 ns3 3 || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
 
-echo_i "checking 'rndc -roll <value>' (versions)"
-ret=0
+test_dnstap_roll() {
+	echo_i "checking 'rndc -roll $4' ($1)"
+	ret=0
+
+	try=0
+	while test $try -lt 12
+	do
+		touch "$3/dnstap.out.$try"
+		try=`expr $try + 1`
+	done
+
+	_repeat 10 _test_dnstap_roll $2 $3 $4 || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+}
+
+start_server --noclean --restart --port "${PORT}" ns3
+test_dnstap_roll "no versions" 10.53.0.3 ns3 6
+test_dnstap_roll "no versions" 10.53.0.3 ns3 3
+test_dnstap_roll "no versions" 10.53.0.3 ns3 1
+
 start_server --noclean --restart --port "${PORT}" ns2
-_repeat 5 test_dnstap_roll 10.53.0.2 ns2 3 || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
+test_dnstap_roll "versions" 10.53.0.2 ns2 6
+test_dnstap_roll "versions" 10.53.0.2 ns2 3
+test_dnstap_roll "versions" 10.53.0.2 ns2 1
 
 echo_i "exit status: $status"
 [ "$status" -eq 0 ] || exit 1
