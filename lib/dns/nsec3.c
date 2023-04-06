@@ -271,9 +271,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 		return (DNS_R_BADALG);
 	}
 
-	if (hash_length != NULL) {
-		*hash_length = len;
-	}
+	SET_IF_NOT_NULL(hash_length, len);
 
 	/* convert the hash to base32hex non-padded */
 	region.base = rethash;

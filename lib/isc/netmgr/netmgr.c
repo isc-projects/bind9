@@ -384,21 +384,13 @@ isc_nm_gettimeouts(isc_nm_t *mgr, uint32_t *initial, uint32_t *idle,
 		   uint32_t *keepalive, uint32_t *advertised) {
 	REQUIRE(VALID_NM(mgr));
 
-	if (initial != NULL) {
-		*initial = atomic_load_relaxed(&mgr->init);
-	}
+	SET_IF_NOT_NULL(initial, atomic_load_relaxed(&mgr->init));
 
-	if (idle != NULL) {
-		*idle = atomic_load_relaxed(&mgr->idle);
-	}
+	SET_IF_NOT_NULL(idle, atomic_load_relaxed(&mgr->idle));
 
-	if (keepalive != NULL) {
-		*keepalive = atomic_load_relaxed(&mgr->keepalive);
-	}
+	SET_IF_NOT_NULL(keepalive, atomic_load_relaxed(&mgr->keepalive));
 
-	if (advertised != NULL) {
-		*advertised = atomic_load_relaxed(&mgr->advertised);
-	}
+	SET_IF_NOT_NULL(advertised, atomic_load_relaxed(&mgr->advertised));
 }
 
 bool

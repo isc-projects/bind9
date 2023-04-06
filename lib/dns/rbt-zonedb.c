@@ -1956,13 +1956,9 @@ getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	}
 
 	RWLOCK(&rbtversion->rwlock, isc_rwlocktype_read);
-	if (records != NULL) {
-		*records = rbtversion->records;
-	}
+	SET_IF_NOT_NULL(records, rbtversion->records);
 
-	if (xfrsize != NULL) {
-		*xfrsize = rbtversion->xfrsize;
-	}
+	SET_IF_NOT_NULL(xfrsize, rbtversion->xfrsize);
 	RWUNLOCK(&rbtversion->rwlock, isc_rwlocktype_read);
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 

@@ -527,9 +527,7 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	}
 	dns_qpread_destroy(zt->multi, &qpr);
 
-	if (sub != NULL) {
-		*sub = tresult;
-	}
+	SET_IF_NOT_NULL(sub, tresult);
 
 	return (result);
 }

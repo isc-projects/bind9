@@ -851,9 +851,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 	if (result == ISC_R_SUCCESS || result == DNS_R_EMPTYNAME) {
 		*flag = true;
 		*cut = false;
-		if (unsecure != NULL) {
-			*unsecure = false;
-		}
+		SET_IF_NOT_NULL(unsecure, false);
 		return (ISC_R_SUCCESS);
 	} else if (result == DNS_R_ZONECUT) {
 		*flag = true;
@@ -879,9 +877,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 	{
 		*flag = false;
 		*cut = false;
-		if (unsecure != NULL) {
-			*unsecure = false;
-		}
+		SET_IF_NOT_NULL(unsecure, false);
 		return (ISC_R_SUCCESS);
 	} else {
 		/*
@@ -889,9 +885,7 @@ is_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, bool *flag,
 		 */
 		*flag = false;
 		*cut = false;
-		if (unsecure != NULL) {
-			*unsecure = false;
-		}
+		SET_IF_NOT_NULL(unsecure, false);
 		return (result);
 	}
 }
@@ -2231,9 +2225,7 @@ dns_update_soaserial(uint32_t serial, dns_updatemethod_t method,
 		UNREACHABLE();
 	}
 
-	if (used != NULL) {
-		*used = method;
-	}
+	SET_IF_NOT_NULL(used, method);
 
 	return (new_serial);
 }

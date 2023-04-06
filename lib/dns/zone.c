@@ -125,7 +125,7 @@
  */
 #define RANGE(a, min, max) (((a) < (min)) ? (min) : ((a) < (max) ? (a) : (max)))
 
-#define NSEC3REMOVE(x) (((x) & DNS_NSEC3FLAG_REMOVE) != 0)
+#define NSEC3REMOVE(x) (((x)&DNS_NSEC3FLAG_REMOVE) != 0)
 
 /*%
  * Key flags
@@ -5459,12 +5459,8 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 	dns_rdataset_disassociate(&rdataset);
 
 success:
-	if (nscount != NULL) {
-		*nscount = count;
-	}
-	if (errors != NULL) {
-		*errors = ecount;
-	}
+	SET_IF_NOT_NULL(nscount, count);
+	SET_IF_NOT_NULL(errors, ecount);
 
 	result = ISC_R_SUCCESS;
 

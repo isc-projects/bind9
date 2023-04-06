@@ -212,12 +212,8 @@ dst_key_have_ksk_and_zsk(dst_key_t **keys, unsigned int nkeys, unsigned int i,
 		}
 	}
 
-	if (have_ksk != NULL) {
-		*have_ksk = hksk;
-	}
-	if (have_zsk != NULL) {
-		*have_zsk = hzsk;
-	}
+	SET_IF_NOT_NULL(have_ksk, hksk);
+	SET_IF_NOT_NULL(have_zsk, hzsk);
 	return (hksk && hzsk);
 }
 

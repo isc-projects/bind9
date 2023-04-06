@@ -2633,12 +2633,8 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
 	flags = isc_buffer_getuint16(&buffer);
 	flags &= DNS_MESSAGE_FLAG_MASK;
 
-	if (flagsp != NULL) {
-		*flagsp = flags;
-	}
-	if (idp != NULL) {
-		*idp = id;
-	}
+	SET_IF_NOT_NULL(flagsp, flags);
+	SET_IF_NOT_NULL(idp, id);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2786,9 +2782,7 @@ dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(owner == NULL || *owner == NULL);
 
-	if (owner != NULL) {
-		*owner = msg->tsigname;
-	}
+	SET_IF_NOT_NULL(owner, msg->tsigname);
 	return (msg->tsig);
 }
 

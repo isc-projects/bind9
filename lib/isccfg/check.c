@@ -1144,9 +1144,7 @@ check_port(const cfg_obj_t *options, isc_log_t *logctx, const char *type,
 		return (ISC_R_RANGE);
 	}
 
-	if (portp != NULL) {
-		*portp = (in_port_t)cfg_obj_asuint32(portobj);
-	}
+	SET_IF_NOT_NULL(portp, (in_port_t)cfg_obj_asuint32(portobj));
 	return (ISC_R_SUCCESS);
 }
 

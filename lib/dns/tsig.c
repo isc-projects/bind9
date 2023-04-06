@@ -290,9 +290,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 		tsig_log(tkey, ISC_LOG_DEBUG(3), "statically configured");
 	}
 
-	if (keyp != NULL) {
-		*keyp = tkey;
-	}
+	SET_IF_NOT_NULL(keyp, tkey);
 	return (ISC_R_SUCCESS);
 
 cleanup_name:

@@ -1092,9 +1092,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 
 approved:
 	/* Transfer ownership, if necessary. */
-	if (versionp != NULL) {
-		*versionp = dbversion->version;
-	}
+	SET_IF_NOT_NULL(versionp, dbversion->version);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1495,9 +1493,7 @@ query_isduplicate(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		mname = NULL;
 	}
 
-	if (mnamep != NULL) {
-		*mnamep = mname;
-	}
+	SET_IF_NOT_NULL(mnamep, mname);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_isduplicate: false: done");
 	return (false);
