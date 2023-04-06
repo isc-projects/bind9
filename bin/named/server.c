@@ -2681,8 +2681,7 @@ catz_addmodzone_cb(void *arg) {
 	dns_name_totext(name, true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	result = dns_fwdtable_find(cz->view->fwdtable, name, NULL,
-				   &dnsforwarders);
+	result = dns_fwdtable_find(cz->view->fwdtable, name, &dnsforwarders);
 	if (result == ISC_R_SUCCESS &&
 	    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 	{
@@ -2857,6 +2856,9 @@ cleanup:
 	}
 	if (zoneconf != NULL) {
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
+	}
+	if (dnsforwarders != NULL) {
+		dns_forwarders_detach(&dnsforwarders);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
 	dns_catz_zone_detach(&cz->origin);
@@ -5701,6 +5703,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		     empty = empty_zones[++empty_zone])
 		{
 			dns_forwarders_t *dnsforwarders = NULL;
+			dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 
 			/*
 			 * Look for zone on drop list.
@@ -5726,12 +5729,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * If we would forward this name don't add a
 			 * empty zone for it.
 			 */
-			result = dns_fwdtable_find(view->fwdtable, name, NULL,
+			result = dns_fwdtable_find(view->fwdtable, name,
 						   &dnsforwarders);
-			if ((result == ISC_R_SUCCESS ||
-			     result == DNS_R_PARTIALMATCH) &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			if (result == ISC_R_SUCCESS ||
+			    result == DNS_R_PARTIALMATCH)
 			{
+				fwdpolicy = dnsforwarders->fwdpolicy;
+				dns_forwarders_detach(&dnsforwarders);
+			}
+			if (fwdpolicy == dns_fwdpolicy_only) {
 				continue;
 			}
 
@@ -5803,6 +5809,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		     ipv4only_zone++)
 		{
 			dns_forwarders_t *dnsforwarders = NULL;
+			dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 
 			CHECK(dns_name_fromstring(
 				name, zones[ipv4only_zone].name, 0, NULL));
@@ -5817,12 +5824,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			/*
 			 * If we would forward this name don't add it.
 			 */
-			result = dns_fwdtable_find(view->fwdtable, name, NULL,
+			result = dns_fwdtable_find(view->fwdtable, name,
 						   &dnsforwarders);
-			if ((result == ISC_R_SUCCESS ||
-			     result == DNS_R_PARTIALMATCH) &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			if (result == ISC_R_SUCCESS ||
+			    result == DNS_R_PARTIALMATCH)
 			{
+				fwdpolicy = dnsforwarders->fwdpolicy;
+				dns_forwarders_detach(&dnsforwarders);
+			}
+			if (fwdpolicy == dns_fwdpolicy_only) {
 				continue;
 			}
 

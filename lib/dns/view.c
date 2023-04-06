@@ -135,13 +135,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	dns_zt_create(mctx, view, &view->zonetable);
 
-	result = dns_fwdtable_create(mctx, &view->fwdtable);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR("dns_fwdtable_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_zt;
-	}
+	dns_fwdtable_create(mctx, view, &view->fwdtable);
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
@@ -193,11 +187,7 @@ cleanup_new_zone_lock:
 	isc_refcount_decrementz(&view->references);
 	isc_refcount_destroy(&view->references);
 
-	if (view->fwdtable != NULL) {
-		dns_fwdtable_destroy(&view->fwdtable);
-	}
-
-cleanup_zt:
+	dns_fwdtable_destroy(&view->fwdtable);
 	dns_zt_detach(&view->zonetable);
 
 	isc_rwlock_destroy(&view->sfd_lock);
