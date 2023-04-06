@@ -95,7 +95,7 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
                     )
 
                 qname = relname + ".test"
-                futures[executor.submit(resolver.query, qname, "A")] = tag
+                futures[executor.submit(resolver.resolve, qname, "A")] = tag
             elif shutdown:  # We attempt to stop named in the middle
                 shutdown = False
                 if kill_method == "rndc":
