@@ -1,3 +1,6 @@
+6161.	[bug]		Fix log file rotation when using absolute path as
+			file. [GL #3991]
+
 6160.	[bug]		'delv +ns' could print duplicate output. [GL #4020]
 
 6159.	[bug]		Fix use-after-free bug in TCP accept connection
