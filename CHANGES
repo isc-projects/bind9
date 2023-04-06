@@ -1,3 +1,8 @@
+6149.	[test]		As a workaround, include an OpenSSL header file before
+			including cmocka.h in the unit tests, because OpenSSL
+			3.1.0 uses __attribute__(malloc), conflicting with a
+			redefined malloc in cmocka.h. [GL #4000]
+
 6148.	[bug]		Fix a use-after-free bug in dns_xfrin_create().
 			[GL !7832]
 
