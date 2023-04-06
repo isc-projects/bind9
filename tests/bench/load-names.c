@@ -373,10 +373,7 @@ sqz_qp(void *qp) {
 
 static isc_result_t
 get_qp(void *qp, size_t count, void **pval) {
-	uint32_t ival = 0;
-	isc_result_t result = dns_qp_getname(qp, &item[count].fixed.name, pval,
-					     &ival);
-	return (result);
+	return (dns_qp_getname(qp, &item[count].fixed.name, pval, NULL));
 }
 
 static void *

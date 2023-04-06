@@ -179,7 +179,8 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 				UNREACHABLE();
 			}
 		} else {
-			result = dns_qp_deletekey(qp, item[i].key, item[i].len);
+			result = dns_qp_deletekey(qp, item[i].key, item[i].len,
+						  NULL, NULL);
 			TRACE("count %zu del %s %zu >%s<", count,
 			      isc_result_toid(result), i, item[i].ascii);
 			if (result == ISC_R_SUCCESS) {

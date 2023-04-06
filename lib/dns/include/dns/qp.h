@@ -437,12 +437,11 @@ dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 /*%<
  * Find a leaf in a qp-trie that matches the given search key
  *
- * The leaf values are assigned to `*pval_r` and `*ival_r`
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie
- * \li  `pval_r != NULL`
- * \li  `ival_r != NULL`
  * \li	`search_keylen < sizeof(dns_qpkey_t)`
  *
  * Returns:
@@ -456,13 +455,12 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 /*%<
  * Find a leaf in a qp-trie that matches the given DNS name
  *
- * The leaf values are assigned to `*pval_r` and `*ival_r`
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `name` is a pointer to a valid `dns_name_t`
- * \li  `pval_r != NULL`
- * \li  `ival_r != NULL`
  *
  * Returns:
  * \li  ISC_R_NOTFOUND if the trie has no leaf with a matching key
@@ -479,13 +477,12 @@ dns_qp_findname_parent(dns_qpreadable_t qpr, const dns_name_t *name,
  * If the DNS_QPFIND_NOEXACT option is set, find a strict parent
  * domain not equal to the search name.
  *
- * The leaf values are assigned to `*pval_r` and `*ival_r`
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `name` is a pointer to a valid `dns_name_t`
- * \li  `pval_r != NULL`
- * \li  `ival_r != NULL`
  *
  * Returns:
  * \li  ISC_R_SUCCESS if an exact match was found
@@ -509,9 +506,13 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival);
  */
 
 isc_result_t
-dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t keylen);
+dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t keylen,
+		 void **pval_r, uint32_t *ival_r);
 /*%<
  * Delete a leaf from a qp-trie that matches the given key
+ *
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
@@ -523,9 +524,13 @@ dns_qp_deletekey(dns_qp_t *qp, const dns_qpkey_t key, size_t keylen);
  */
 
 isc_result_t
-dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name);
+dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, void **pval_r,
+		  uint32_t *ival_r);
 /*%<
  * Delete a leaf from a qp-trie that matches the given DNS name
+ *
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qp` is a pointer to a valid qp-trie
@@ -556,6 +561,9 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
 /*%<
  * Get the next leaf object of a trie in lexicographic order of its keys.
  *
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null, unless the return value is ISC_R_NOMORE.
+ *
  * NOTE: see the safety note under `dns_qpiter_init()`.
  *
  * For example,
@@ -570,8 +578,6 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
  *
  * Requires:
  * \li  `qpi` is a pointer to a valid qp iterator
- * \li  `pval_r != NULL`
- * \li  `ival_r != NULL`
  *
  * Returns:
  * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
