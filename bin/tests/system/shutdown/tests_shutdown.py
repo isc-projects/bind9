@@ -192,15 +192,18 @@ def test_named_shutdown(named_port, control_port):
     for kill_method in ("rndc", "sigterm"):
         named_cmdline = [named, "-c", cfg_file, "-f"]
         with subprocess.Popen(named_cmdline, cwd=cfg_dir) as named_proc:
-            assert named_proc.poll() is None, "named isn't running"
-            assert wait_for_named_loaded(resolver)
-            do_work(
-                named_proc,
-                resolver,
-                rndc_cmd,
-                kill_method,
-                n_workers=12,
-                n_queries=16,
-            )
-            assert wait_for_proc_termination(named_proc)
-            assert named_proc.returncode == 0, "named crashed"
+            try:
+                assert named_proc.poll() is None, "named isn't running"
+                assert wait_for_named_loaded(resolver)
+                do_work(
+                    named_proc,
+                    resolver,
+                    rndc_cmd,
+                    kill_method,
+                    n_workers=12,
+                    n_queries=16,
+                )
+                assert wait_for_proc_termination(named_proc)
+                assert named_proc.returncode == 0, "named crashed"
+            finally:  # Ensure named is terminated in case of an exception
+                named_proc.kill()
