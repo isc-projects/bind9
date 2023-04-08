@@ -865,8 +865,15 @@ quota_accept_cb(isc_quota_t *quota, void *arg) {
 	 * This needs to be asynchronous, because the quota might have been
 	 * released by a different child socket.
 	 */
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-	isc_async_run(sock->worker->loop, tcpaccept_cb, sock);
+	if (sock->tid == isc_tid()) {
+		isc_result_t result = accept_connection(sock);
+		isc__nm_accept_connection_log(sock, result,
+					      can_log_tcp_quota());
+		sock->pquota = NULL;
+	} else {
+		isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
+		isc_async_run(sock->worker->loop, tcpaccept_cb, sock);
+	}
 }
 
 static isc_result_t
