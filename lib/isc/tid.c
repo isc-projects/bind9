@@ -23,10 +23,7 @@
 /**
  * Private
  */
-
-#define ISC_TID_UNKNOWN UINT32_MAX
-
-static thread_local uint32_t tid_local = ISC_TID_UNKNOWN;
+thread_local uint32_t tid_local = ISC_TID_UNKNOWN;
 
 /*
  * Zero is a better nonsense value in this case than ISC_TID_UNKNOWN;
@@ -53,11 +50,6 @@ isc__tid_initcount(uint32_t count) {
 /**
  * Public
  */
-
-uint32_t
-isc_tid(void) {
-	return (tid_local);
-}
 
 uint32_t
 isc_tid_count(void) {
