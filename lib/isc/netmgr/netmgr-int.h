@@ -245,6 +245,8 @@ struct isc_nmhandle {
 	LINK(isc_nmhandle_t) active_link;
 	LINK(isc_nmhandle_t) inactive_link;
 	void *opaque;
+
+	isc_job_t job;
 };
 
 typedef union {

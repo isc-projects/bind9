@@ -817,6 +817,7 @@ alloc_handle(isc_nmsocket_t *sock) {
 		.magic = NMHANDLE_MAGIC,
 		.active_link = ISC_LINK_INITIALIZER,
 		.inactive_link = ISC_LINK_INITIALIZER,
+		.job = ISC_JOB_INITIALIZER,
 	};
 	isc_refcount_init(&handle->references, 1);
 
@@ -943,19 +944,36 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 }
 
 static void
-isc__nm_closehandle_job(void *arg) {
-	isc_nmsocket_t *sock = arg;
+nmhandle__destroy(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = handle->sock;
+	handle->sock = NULL;
 
-	sock->closehandle_cb(sock);
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
+	nmhandle_free(sock, handle);
+#else
+	if (sock->active) {
+		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
+	} else {
+		nmhandle_free(sock, handle);
+	}
+#endif
 
 	isc__nmsocket_detach(&sock);
 }
 
 static void
-nmhandle_destroy(isc_nmhandle_t *handle) {
+isc__nm_closehandle_job(void *arg) {
+	isc_nmhandle_t *handle = arg;
 	isc_nmsocket_t *sock = handle->sock;
 
-	handle->sock = NULL;
+	sock->closehandle_cb(sock);
+
+	nmhandle__destroy(handle);
+}
+
+static void
+nmhandle_destroy(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = handle->sock;
 
 	if (handle->doreset != NULL) {
 		handle->doreset(handle->opaque);
@@ -974,27 +992,18 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 
-#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
-	nmhandle_free(sock, handle);
-#else
-	if (sock->active) {
-		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
-	} else {
-		nmhandle_free(sock, handle);
+	if (sock->closehandle_cb == NULL) {
+		nmhandle__destroy(handle);
+		return;
 	}
-#endif
 
 	/*
-	 * The handle is gone now. If the socket has a callback configured
-	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now asynchronously.
+	 * If the socket has a callback configured for that (e.g.,
+	 * to perform cleanup after request processing), call it
+	 * now asynchronously.
 	 */
-	if (sock->closehandle_cb != NULL) {
-		isc_async_run(sock->worker->loop, isc__nm_closehandle_job,
-			      sock);
-	} else {
-		isc___nmsocket_detach(&sock FLARG_PASS);
-	}
+	isc_job_run(sock->worker->loop, &handle->job, isc__nm_closehandle_job,
+		    handle);
 }
 
 void
