@@ -706,6 +706,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
 		.active = true,
+		.job = ISC_JOB_INITIALIZER,
 	};
 
 	if (iface != NULL) {

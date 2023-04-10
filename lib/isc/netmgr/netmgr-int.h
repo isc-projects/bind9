@@ -661,6 +661,8 @@ struct isc_nmsocket {
 	int backtrace_size;
 #endif
 	LINK(isc_nmsocket_t) active_link;
+
+	isc_job_t job;
 };
 
 void
