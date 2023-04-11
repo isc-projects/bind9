@@ -28,6 +28,9 @@ Removed Features
 Bug Fixes
 ~~~~~~~~~
 
+- Several bugs which could cause :iscman:`named` to crash during catalog
+  zone processing have been fixed. :gl:`#3955` :gl:`#3968` :gl:`#3997`
+
 - Previously, downloading large zones over TLS (XoT) from a primary
   could hang the transfer on the secondary, especially when the
   connection was unstable. This has been fixed. :gl:`#3867`
