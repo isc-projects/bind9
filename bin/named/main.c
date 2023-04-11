@@ -1506,6 +1506,10 @@ main(int argc, char *argv[]) {
 	 */
 	isc_signal_start(named_g_server->sighup);
 
+	/*
+	 * Pause the loop manager in fatal.
+	 */
+	named_g_loopmgr_running = true;
 	isc_loopmgr_run(named_g_loopmgr);
 
 #ifdef HAVE_LIBSCF

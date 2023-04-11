@@ -53,6 +53,7 @@ EXTERN unsigned int named_g_cpus	      INIT(0);
 EXTERN unsigned int named_g_udpdisp	      INIT(0);
 EXTERN isc_loop_t *named_g_mainloop	      INIT(NULL);
 EXTERN isc_loopmgr_t *named_g_loopmgr	      INIT(NULL);
+EXTERN bool named_g_loopmgr_running	      INIT(false);
 EXTERN dns_dispatchmgr_t *named_g_dispatchmgr INIT(NULL);
 EXTERN unsigned int named_g_cpus_detected     INIT(1);
 
