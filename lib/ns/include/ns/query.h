@@ -81,21 +81,6 @@ typedef enum {
 	((client)->query.recursions[RECTYPE_HOOK].fetch)
 
 /*%
- * Helper macros for accessing isc_quota_t pointers for a specific recursion a
- * given client is associated with.
- */
-#define QUOTA_RECTYPE_NORMAL(client) \
-	((client)->query.recursions[RECTYPE_NORMAL].quota)
-#define QUOTA_RECTYPE_PREFETCH(client) \
-	((client)->query.recursions[RECTYPE_PREFETCH].quota)
-#define QUOTA_RECTYPE_RPZ(client) \
-	((client)->query.recursions[RECTYPE_RPZ].quota)
-#define QUOTA_RECTYPE_STALE_REFRESH(client) \
-	((client)->query.recursions[RECTYPE_STALE_REFRESH].quota)
-#define QUOTA_RECTYPE_HOOK(client) \
-	((client)->query.recursions[RECTYPE_HOOK].quota)
-
-/*%
  * nameserver recursion parameters, to uniquely identify a recursion
  * query; this is used to detect a recursion loop
  */
@@ -152,7 +137,6 @@ struct ns_query {
 	struct {
 		isc_nmhandle_t *handle;
 		dns_fetch_t    *fetch;
-		isc_quota_t    *quota;
 	} recursions[RECTYPE_COUNT];
 
 	ns_query_recparam_t recparam;

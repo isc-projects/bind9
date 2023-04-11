@@ -487,10 +487,7 @@ nmsocket_cleanup(void *arg) {
 		nmhandle_free(sock, handle);
 	}
 
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
+	INSIST(sock->server == NULL);
 	sock->pquota = NULL;
 
 	isc__nm_tls_cleanup_data(sock);
@@ -707,6 +704,7 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.active_link = ISC_LINK_INITIALIZER,
 		.active = true,
 		.job = ISC_JOB_INITIALIZER,
+		.quotacb = ISC_JOB_INITIALIZER,
 	};
 
 	if (iface != NULL) {
@@ -1055,35 +1053,6 @@ isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		isc__nm_sendcb(sock, req, eresult, async);
 	} else {
 		isc__nm_uvreq_put(&req);
-	}
-}
-
-void
-isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
-	REQUIRE(sock->accepting);
-	REQUIRE(sock->server);
-
-	/*
-	 * Detach the quota early to make room for other connections;
-	 * otherwise it'd be detached later asynchronously, and clog
-	 * the quota unnecessarily.
-	 */
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
-	isc__nmsocket_detach(&sock->server);
-
-	sock->accepting = false;
-
-	switch (eresult) {
-	case ISC_R_NOTCONNECTED:
-		/* IGNORE: The client disconnected before we could accept */
-		break;
-	default:
-		isc__nmsocket_log(sock, ISC_LOG_ERROR,
-				  "Accepting TCP connection failed: %s",
-				  isc_result_totext(eresult));
 	}
 }
 

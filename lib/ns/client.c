@@ -255,13 +255,6 @@ ns_client_endrequest(ns_client_t *client) {
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
 	/*
-	 * Ensure there are no recursions that still need to be cleaned up.
-	 */
-	for (int i = 0; i < RECTYPE_COUNT; i++) {
-		INSIST(client->query.recursions[i].quota == NULL);
-	}
-
-	/*
 	 * Clear all client attributes that are specific to the request
 	 */
 	client->attributes = 0;
@@ -1758,10 +1751,6 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	if (isc_nmhandle_is_stream(handle)) {
 		client->attributes |= NS_CLIENTATTR_TCP;
-	}
-
-	for (int i = 0; i < RECTYPE_COUNT; i++) {
-		INSIST(client->query.recursions[i].quota == NULL);
 	}
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);

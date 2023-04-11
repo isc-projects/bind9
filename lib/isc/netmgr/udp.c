@@ -944,11 +944,6 @@ udp_close_cb(uv_handle_t *handle) {
 
 	isc__nm_incstats(sock, STATID_CLOSE);
 
-	if (sock->server != NULL) {
-		/* server socket (accept) */
-		isc__nmsocket_detach(&sock->server);
-	}
-
 	if (sock->parent != NULL) {
 		/* listening socket (listen) */
 		isc__nmsocket_detach(&sock);
