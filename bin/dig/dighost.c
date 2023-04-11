@@ -1187,7 +1187,7 @@ setup_file_key(void) {
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(
 			dst_key_name(dstkey), hmacname, dstkey, false, false,
-			NULL, 0, 0, mctx, NULL, &tsigkey);
+			NULL, 0, 0, mctx, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't create key %s: %s\n", keynametext,
 			       isc_result_totext(result));

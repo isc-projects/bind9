@@ -250,11 +250,8 @@ destroy(dns_view_t *view) {
 		if (result == ISC_R_SUCCESS) {
 			(void)isc_file_openuniqueprivate(template, &fp);
 		}
-		if (fp == NULL) {
-			dns_tsigkeyring_detach(&view->dynamickeys);
-		} else {
-			result = dns_tsigkeyring_dumpanddetach(
-				&view->dynamickeys, fp);
+		if (fp != NULL) {
+			result = dns_tsigkeyring_dump(view->dynamickeys, fp);
 			if (result == ISC_R_SUCCESS) {
 				if (fclose(fp) == 0) {
 					result = isc_file_sanitize(
@@ -273,6 +270,7 @@ destroy(dns_view_t *view) {
 				(void)remove(template);
 			}
 		}
+		dns_tsigkeyring_detach(&view->dynamickeys);
 	}
 	if (view->transports != NULL) {
 		dns_transport_list_detach(&view->transports);

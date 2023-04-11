@@ -54,7 +54,15 @@ extern const dns_name_t *dns_tsig_hmacsha512_name;
  */
 #define DNS_TSIG_FUDGE 300
 
+/*%
+ * Default maximum quota for generated keys.
+ */
+#ifndef DNS_TSIG_MAXGENERATEDKEYS
+#define DNS_TSIG_MAXGENERATEDKEYS 4096
+#endif /* ifndef DNS_TSIG_MAXGENERATEDKEYS */
+
 struct dns_tsigkeyring {
+	unsigned int magic; /*%< Magic number. */
 	dns_rbt_t   *keys;
 	unsigned int writecount;
 	isc_rwlock_t lock;
@@ -64,7 +72,6 @@ struct dns_tsigkeyring {
 	 * list and a maximum size.
 	 */
 	unsigned int generated;
-	unsigned int maxgenerated;
 	ISC_LIST(dns_tsigkey_t) lru;
 	isc_refcount_t references;
 };
@@ -111,19 +118,31 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
-			  dns_tsigkeyring_t *ring, dns_tsigkey_t **key);
+			  dns_tsigkey_t **key);
 /*%<
- *	Creates a tsig key structure and saves it in the keyring.  If key is
- *	not NULL, *key will contain a copy of the key.  The keys validity
- *	period is specified by (inception, expire), and will not expire if
- *	inception == expire.  If the key was generated, the creating identity,
- *	if there is one, should be in the creator parameter.  Specifying an
- *	unimplemented algorithm will cause failure only if dstkey != NULL; this
- *	allows a transient key with an invalid algorithm to exist long enough
- *	to generate a BADKEY response.
+ *	Creates a tsig key structure and stores it in *keyp.
+ *	The key's validity period is specified by (inception, expire),
+ *	and will not expire if inception == expire.
  *
- *	If dns_tsigkey_createfromkey is successful a new reference to 'dstkey'
- *	will have been made.
+ *	If generated is true (meaning the key was generated
+ *	via TKEY negotation), the creating identity (if any), should
+ *	be specified in the creator parameter.
+ *
+ *	If restored is true, this indicates the key was restored from
+ *	a dump file created by dns_tsigkeyring_dumpanddetach(). This is
+ *	used only for logging purposes and doesn't affect the key any
+ *	other way.
+ *
+ *	Specifying an unimplemented algorithm will cause failure only if
+ *	dstkey != NULL; this allows a transient key with an invalid
+ *	algorithm to exist long enough to generate a BADKEY response.
+ *
+ *	If dns_tsigkey_createfromkey() is successful, a new reference to
+ *	'dstkey' will have been made.
+ *
+ *	dns_tsigkey_create() is a simplified interface that omits
+ *	dstkey, generated, restored, inception, and expired (defaulting
+ *	to NULL, false, false, 0, and 0).
  *
  *	Requires:
  *\li		'name' is a valid dns_name_t
@@ -201,15 +220,15 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
  */
 
 isc_result_t
-dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
+dns_tsigkey_find(dns_tsigkey_t **tsigkeyp, const dns_name_t *name,
 		 const dns_name_t *algorithm, dns_tsigkeyring_t *ring);
 /*%<
  *	Returns the TSIG key corresponding to this name and (possibly)
  *	algorithm.  Also increments the key's reference counter.
  *
  *	Requires:
- *\li		'tsigkey' is not NULL
- *\li		'*tsigkey' is NULL
+ *\li		'tsigkeyp' is not NULL
+ *\li		'*tsigkeyp' is NULL
  *\li		'name' is a valid dns_name_t
  *\li		'algorithm' is a valid dns_name_t or NULL
  *\li		'ring' is a valid keyring
@@ -239,6 +258,11 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 /*%<
  *      Place a TSIG key onto a key ring.
  *
+ *      If the key is generated, it is also placed into an LRU queue.
+ *      There is a maximum quota of 4096 generated keys per keyring;
+ *      if this quota is exceeded, the oldest key in the LRU queue is
+ *      deleted.
+ *
  *	Requires:
  *\li		'name' and 'ring' are not NULL
  *\li		'tkey' is a valid TSIG key, which has not been
@@ -250,12 +274,12 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
  */
 
 isc_result_t
-dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, FILE *fp);
+dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp);
 /*%<
- *	Dump a TSIG key ring to 'fp' and destroy it.
+ *	Dump a TSIG key ring to 'fp'.
  *
  *	Requires:
- *\li		'ringp' is not NULL
+ *\li		'ring' is a valid keyring.
  */
 
 void

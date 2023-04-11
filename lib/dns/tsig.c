@@ -39,12 +39,11 @@
 
 #include "tsig_p.h"
 
-#define TSIG_MAGIC	  ISC_MAGIC('T', 'S', 'I', 'G')
-#define VALID_TSIG_KEY(x) ISC_MAGIC_VALID(x, TSIG_MAGIC)
+#define TSIGKEYRING_MAGIC    ISC_MAGIC('T', 'K', 'R', 'g')
+#define VALID_TSIGKEYRING(x) ISC_MAGIC_VALID(x, TSIGKEYRING_MAGIC)
 
-#ifndef DNS_TSIG_MAXGENERATEDKEYS
-#define DNS_TSIG_MAXGENERATEDKEYS 4096
-#endif /* ifndef DNS_TSIG_MAXGENERATEDKEYS */
+#define TSIG_MAGIC	 ISC_MAGIC('T', 'S', 'I', 'G')
+#define VALID_TSIGKEY(x) ISC_MAGIC_VALID(x, TSIG_MAGIC)
 
 #define is_response(msg) ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
 
@@ -160,6 +159,9 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 
 static void
 remove_fromring(dns_tsigkey_t *tkey) {
+	REQUIRE(VALID_TSIGKEY(tkey));
+	REQUIRE(VALID_TSIGKEYRING(tkey->ring));
+
 	if (tkey->generated && ISC_LINK_LINKED(tkey, link)) {
 		ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 		tkey->ring->generated--;
@@ -190,22 +192,20 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
-			  dns_tsigkeyring_t *ring, dns_tsigkey_t **keyp) {
+			  dns_tsigkey_t **keyp) {
 	dns_tsigkey_t *tkey = NULL;
 	isc_result_t ret;
 	unsigned int dstalg = 0;
 
-	REQUIRE(keyp == NULL || *keyp == NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(keyp != NULL || ring != NULL);
 
 	tkey = isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	*tkey = (dns_tsigkey_t){
 		.generated = generated,
 		.restored = restored,
-		.ring = ring,
 		.inception = inception,
 		.expire = expire,
 		.name = DNS_NAME_INITEMPTY,
@@ -253,21 +253,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	isc_refcount_init(&tkey->references, 1);
 	isc_mem_attach(mctx, &tkey->mctx);
 
-	if (ring != NULL) {
-		ret = dns_tsigkeyring_add(ring, name, tkey);
-		if (ret != ISC_R_SUCCESS) {
-			goto cleanup_refs;
-		}
-
-		/*
-		 * If we won't be passing the key back to the caller
-		 * then we we can release a reference now.
-		 */
-		if (keyp == NULL) {
-			dns_tsigkey_unref(tkey);
-		}
-	}
-
 	/*
 	 * Ignore this if it's a GSS key, since the key size is meaningless.
 	 */
@@ -297,24 +282,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	}
 	return (ISC_R_SUCCESS);
 
-cleanup_refs:
-	tkey->magic = 0;
-	isc_refcount_destroy(&tkey->references);
-
-	if (tkey->key != NULL) {
-		dst_key_free(&tkey->key);
-	}
-	if (tkey->creator != NULL) {
-		dns_name_free(tkey->creator, mctx);
-		isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
-	}
-	if (dns__tsig_algallocated(tkey->algorithm)) {
-		dns_name_t *tmpname = UNCONST(tkey->algorithm);
-		if (dns_name_dynamic(tmpname)) {
-			dns_name_free(tmpname, mctx);
-		}
-		isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
-	}
 cleanup_name:
 	dns_name_free(&tkey->name, mctx);
 	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
@@ -377,6 +344,7 @@ again:
 
 static void
 destroyring(dns_tsigkeyring_t *ring) {
+	ring->magic = 0;
 	isc_refcount_destroy(&ring->references);
 	dns_rbt_destroy(&ring->keys);
 	isc_rwlock_destroy(&ring->lock);
@@ -457,6 +425,7 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	dns_fixedname_t fname, fcreator, falgorithm;
 	isc_result_t result;
 	unsigned int dstalg;
+	dns_tsigkey_t *tkey = NULL;
 
 	n = fscanf(fp, "%1023s %1023s %u %u %1023s %4095s\n", namestr,
 		   creatorstr, &inception, &expire, algorithmstr, keystr);
@@ -509,7 +478,11 @@ restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 
 	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, true, true,
 					   creator, inception, expire,
-					   ring->mctx, ring, NULL);
+					   ring->mctx, &tkey);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_tsigkeyring_add(ring, name, tkey);
+	}
+	dns_tsigkey_detach(&tkey);
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
 	}
@@ -543,23 +516,15 @@ dump_key(dns_tsigkey_t *tkey, FILE *fp) {
 }
 
 isc_result_t
-dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, FILE *fp) {
+dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp) {
 	isc_result_t result;
 	dns_rbtnodechain_t chain;
 	dns_name_t foundname;
 	dns_fixedname_t fixedorigin;
 	dns_name_t *origin = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_tsigkeyring_t *ring = NULL;
 
-	REQUIRE(ringp != NULL && *ringp != NULL);
-
-	ring = *ringp;
-	*ringp = NULL;
-
-	if (isc_refcount_decrement(&ring->references) > 1) {
-		return (DNS_R_CONTINUE);
-	}
+	REQUIRE(VALID_TSIGKEYRING(ring));
 
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);
@@ -590,13 +555,12 @@ dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, FILE *fp) {
 	}
 
 destroy:
-	destroyring(ring);
 	return (result);
 }
 
 const dns_name_t *
 dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
-	REQUIRE(tsigkey == NULL || VALID_TSIG_KEY(tsigkey));
+	REQUIRE(tsigkey == NULL || VALID_TSIGKEY(tsigkey));
 
 	if (tsigkey == NULL) {
 		return (NULL);
@@ -641,7 +605,7 @@ dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 	}
 
 	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, false,
-					   false, NULL, 0, 0, mctx, NULL, key);
+					   false, NULL, 0, 0, mctx, key);
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
 	}
@@ -650,7 +614,7 @@ dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 
 static void
 destroy_tsigkey(dns_tsigkey_t *key) {
-	REQUIRE(VALID_TSIG_KEY(key));
+	REQUIRE(VALID_TSIGKEY(key));
 
 	key->magic = 0;
 	dns_name_free(&key->name, key->mctx);
@@ -677,8 +641,7 @@ ISC_REFCOUNT_IMPL(dns_tsigkey, destroy_tsigkey);
 
 void
 dns_tsigkey_delete(dns_tsigkey_t *key) {
-	REQUIRE(VALID_TSIG_KEY(key));
-	REQUIRE(key->ring != NULL);
+	REQUIRE(VALID_TSIGKEY(key));
 
 	RWLOCK(&key->ring->lock, isc_rwlocktype_write);
 	remove_fromring(key);
@@ -707,7 +670,7 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	REQUIRE(msg != NULL);
 	key = dns_message_gettsigkey(msg);
-	REQUIRE(VALID_TSIG_KEY(key));
+	REQUIRE(VALID_TSIGKEY(key));
 
 	/*
 	 * If this is a response, there should be a TSIG in the query with the
@@ -1009,7 +972,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	tsigkey = dns_message_gettsigkey(msg);
 	response = is_response(msg);
 
-	REQUIRE(tsigkey == NULL || VALID_TSIG_KEY(tsigkey));
+	REQUIRE(tsigkey == NULL || VALID_TSIGKEY(tsigkey));
 
 	msg->verify_attempted = 1;
 	msg->verified_sig = 0;
@@ -1667,10 +1630,9 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
 
-	REQUIRE(tsigkey != NULL);
-	REQUIRE(*tsigkey == NULL);
 	REQUIRE(name != NULL);
-	REQUIRE(ring != NULL);
+	REQUIRE(VALID_TSIGKEYRING(ring));
+	REQUIRE(tsigkey != NULL && *tsigkey == NULL);
 
 	RWLOCK(&ring->lock, isc_rwlocktype_write);
 	cleanup_ring(ring);
@@ -1709,7 +1671,7 @@ free_tsignode(void *node, void *arg ISC_ATTR_UNUSED) {
 
 	REQUIRE(key != NULL);
 
-	if (key->generated && ISC_LINK_LINKED(key, link)) {
+	if (key->ring != NULL && key->generated && ISC_LINK_LINKED(key, link)) {
 		ISC_LIST_UNLINK(key->ring->lru, key, link);
 		dns_tsigkey_unref(key);
 	}
@@ -1722,12 +1684,10 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsigkeyring_t **ringp) {
 	dns_tsigkeyring_t *ring = NULL;
 
 	REQUIRE(mctx != NULL);
-	REQUIRE(ringp != NULL);
-	REQUIRE(*ringp == NULL);
+	REQUIRE(ringp != NULL && *ringp == NULL);
 
 	ring = isc_mem_get(mctx, sizeof(dns_tsigkeyring_t));
 	*ring = (dns_tsigkeyring_t){
-		.maxgenerated = DNS_TSIG_MAXGENERATEDKEYS,
 		.lru = ISC_LIST_INITIALIZER,
 	};
 
@@ -1741,6 +1701,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsigkeyring_t **ringp) {
 	isc_rwlock_init(&ring->lock);
 	isc_mem_attach(mctx, &ring->mctx);
 	isc_refcount_init(&ring->references, 1);
+	ring->magic = TSIGKEYRING_MAGIC;
 
 	*ringp = ring;
 	return (ISC_R_SUCCESS);
@@ -1751,8 +1712,8 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 		    dns_tsigkey_t *tkey) {
 	isc_result_t result;
 
-	REQUIRE(VALID_TSIG_KEY(tkey));
-	REQUIRE(tkey->ring == NULL);
+	REQUIRE(VALID_TSIGKEY(tkey));
+	REQUIRE(VALID_TSIGKEYRING(ring));
 	REQUIRE(name != NULL);
 
 	RWLOCK(&ring->lock, isc_rwlocktype_write);
@@ -1770,6 +1731,7 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 	result = dns_rbt_addname(ring->keys, name, tkey);
 	if (result == ISC_R_SUCCESS) {
 		dns_tsigkey_ref(tkey);
+		tkey->ring = ring;
 
 		/*
 		 * If this is a TKEY-generated key, add it to the LRU list,
@@ -1780,7 +1742,7 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 		if (tkey->generated) {
 			ISC_LIST_APPEND(ring->lru, tkey, link);
 			dns_tsigkey_ref(tkey);
-			if (ring->generated++ > ring->maxgenerated) {
+			if (ring->generated++ > DNS_TSIG_MAXGENERATEDKEYS) {
 				remove_fromring(ISC_LIST_HEAD(ring->lru));
 			}
 		}

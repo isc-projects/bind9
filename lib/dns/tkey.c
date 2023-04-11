@@ -265,7 +265,8 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 #endif /* HAVE_GSSAPI */
 		RETERR(dns_tsigkey_createfromkey(
 			name, &tkeyin->algorithm, dstkey, true, false,
-			principal, now, expire, ring->mctx, ring, &tsigkey));
+			principal, now, expire, ring->mctx, &tsigkey));
+		RETERR(dns_tsigkeyring_add(ring, name, tsigkey));
 		dst_key_free(&dstkey);
 		tkeyout->inception = now;
 		tkeyout->expire = expire;
@@ -732,13 +733,14 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      dns_tsigkey_t **outkey, dns_tsigkeyring_t *ring,
 		      char **err_message) {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
-	dns_name_t *tkeyname;
+	dns_name_t *tkeyname = NULL;
 	dns_rdata_tkey_t rtkey, qtkey, tkey;
 	isc_buffer_t intoken, outtoken;
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 	unsigned char array[TEMP_BUFFER_SZ];
 	bool freertkey = false;
+	dns_tsigkey_t *tsigkey = NULL;
 
 	REQUIRE(qmsg != NULL);
 	REQUIRE(rmsg != NULL);
@@ -814,9 +816,16 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	 * anything yet.
 	 */
 
-	RETERR(dns_tsigkey_createfromkey(
-		tkeyname, DNS_TSIG_GSSAPI_NAME, dstkey, true, false, NULL,
-		rtkey.inception, rtkey.expire, ring->mctx, ring, outkey));
+	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME, dstkey,
+					 true, false, NULL, rtkey.inception,
+					 rtkey.expire, ring->mctx, &tsigkey));
+	RETERR(dns_tsigkeyring_add(ring, tkeyname, tsigkey));
+	if (outkey == NULL) {
+		dns_tsigkey_detach(&tsigkey);
+	} else {
+		*outkey = tsigkey;
+	}
+
 	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return (result);
@@ -825,6 +834,9 @@ failure:
 	/*
 	 * XXXSRA This probably leaks memory from qtkey.
 	 */
+	if (tsigkey != NULL) {
+		dns_tsigkey_detach(&tsigkey);
+	}
 	if (freertkey) {
 		dns_rdata_freestruct(&rtkey);
 	}

@@ -674,7 +674,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(
 			dst_key_name(dstkey), hmacname, dstkey, false, false,
-			NULL, 0, 0, mctx, NULL, &tsigkey);
+			NULL, 0, 0, mctx, &tsigkey);
 		dst_key_free(&dstkey);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "could not create key from %s: %s\n",
@@ -3038,9 +3038,8 @@ start_gssrequest(dns_name_t *primary) {
 	if (gssring != NULL) {
 		dns_tsigkeyring_detach(&gssring);
 	}
-	gssring = NULL;
-	result = dns_tsigkeyring_create(gmctx, &gssring);
 
+	result = dns_tsigkeyring_create(gmctx, &gssring);
 	if (result != ISC_R_SUCCESS) {
 		fatal("dns_tsigkeyring_create failed: %s",
 		      isc_result_totext(result));
@@ -3234,7 +3233,6 @@ recvgss(void *arg) {
 	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 
-	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname, &context,
 				       &tsigkey, gssring, &err_message);
 	switch (result) {
@@ -3262,18 +3260,6 @@ recvgss(void *arg) {
 		 * the TSIG -- this too is a spec violation, but it's
 		 * the least insane thing to do.
 		 */
-#if 0
-		/*
-		 * Verify the signature.
-		 */
-		rcvmsg->state = DNS_SECTION_ANY;
-		dns_message_setquerytsig(rcvmsg, NULL);
-		result = dns_message_settsigkey(rcvmsg, tsigkey);
-		check_result(result, "dns_message_settsigkey");
-		result = dns_message_checksig(rcvmsg, NULL);
-		ddebug("tsig verification: %s", isc_result_totext(result));
-		check_result(result, "dns_message_checksig");
-#endif /* 0 */
 
 		send_update(&tmpzonename, &primary_servers[primary_inuse]);
 		setzoneclass(dns_rdataclass_none);
