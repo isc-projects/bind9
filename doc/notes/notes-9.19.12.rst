@@ -30,11 +30,6 @@ New Features
   and received during the resolution and validation process are logged.
   This can be used in place of :option:`dig +trace`. :gl:`#3842`
 
-- The log message ``resolver priming query complete`` has been moved
-  from the INFO log level to the DEBUG(1) log level, to prevent
-  :iscman:`delv` from emitting that message when setting up its internal
-  resolver. :gl:`#3842`
-
 - A new configuration option, :any:`checkds`, has been introduced. When
   set to ``yes``, it detects :any:`parental-agents` automatically by
   resolving the parent NS records. These name servers are queried to
@@ -63,7 +58,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The log message ``resolver priming query complete`` has been moved
+  from the INFO log level to the DEBUG(1) log level, to prevent
+  :iscman:`delv` from emitting that message when setting up its internal
+  resolver. :gl:`#3842`
 
 Bug Fixes
 ~~~~~~~~~
