@@ -734,7 +734,7 @@ dns_view_restorekeyring(dns_view_t *view) {
 		if (result == ISC_R_SUCCESS) {
 			fp = fopen(keyfile, "r");
 			if (fp != NULL) {
-				dns_keyring_restore(view->dynamickeys, fp);
+				dns_tsigkeyring_restore(view->dynamickeys, fp);
 				(void)fclose(fp);
 			}
 		}

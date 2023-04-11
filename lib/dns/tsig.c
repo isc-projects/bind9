@@ -382,10 +382,8 @@ cleanup_ring(dns_tsig_keyring_t *ring) {
 	dns_rbtnodechain_t chain;
 	dns_name_t foundname;
 	dns_fixedname_t fixedorigin;
-	dns_name_t *origin;
+	dns_name_t *origin = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_rbtnode_t *node;
-	dns_tsigkey_t *tkey;
 
 	/*
 	 * Start up a new iterator each time.
@@ -402,7 +400,9 @@ again:
 	}
 
 	for (;;) {
-		node = NULL;
+		dns_rbtnode_t *node = NULL;
+		dns_tsigkey_t *tkey = NULL;
+
 		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
 		tkey = node->data;
 		if (tkey != NULL) {
@@ -498,7 +498,7 @@ restore_key(dns_tsig_keyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	unsigned int inception, expire;
 	int n;
 	isc_buffer_t b;
-	dns_name_t *name, *creator, *algorithm;
+	dns_name_t *name = NULL, *creator = NULL, *algorithm = NULL;
 	dns_fixedname_t fname, fcreator, falgorithm;
 	isc_result_t result;
 	unsigned int dstalg;
@@ -593,11 +593,9 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	dns_rbtnodechain_t chain;
 	dns_name_t foundname;
 	dns_fixedname_t fixedorigin;
-	dns_name_t *origin;
+	dns_name_t *origin = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
-	dns_rbtnode_t *node;
-	dns_tsigkey_t *tkey;
-	dns_tsig_keyring_t *ring;
+	dns_tsig_keyring_t *ring = NULL;
 
 	REQUIRE(ringp != NULL && *ringp != NULL);
 
@@ -618,7 +616,9 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	}
 
 	for (;;) {
-		node = NULL;
+		dns_rbtnode_t *node = NULL;
+		dns_tsigkey_t *tkey = NULL;
+
 		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
 		tkey = node->data;
 		if (tkey != NULL && tkey->generated && tkey->expire >= now) {
@@ -655,10 +655,7 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
 
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
-		   unsigned char *secret, int length, bool generated,
-		   bool restored, const dns_name_t *creator,
-		   isc_stdtime_t inception, isc_stdtime_t expire,
-		   isc_mem_t *mctx, dns_tsig_keyring_t *ring,
+		   unsigned char *secret, int length, isc_mem_t *mctx,
 		   dns_tsigkey_t **key) {
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
@@ -688,9 +685,8 @@ dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		return (DNS_R_BADALG);
 	}
 
-	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, generated,
-					   restored, creator, inception, expire,
-					   mctx, ring, key);
+	result = dns_tsigkey_createfromkey(name, algorithm, dstkey, false,
+					   false, NULL, 0, 0, mctx, NULL, key);
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
 	}
@@ -762,7 +758,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_rdataset_t *dataset = NULL;
 	isc_region_t r;
 	isc_stdtime_t now;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = NULL;
 	dst_context_t *ctx = NULL;
 	isc_result_t ret;
 	unsigned char badtimedata[BADTIMELEN];
@@ -1054,15 +1050,15 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	isc_region_t r, source_r, header_r, sig_r;
 	isc_buffer_t databuf;
 	unsigned char data[32];
-	dns_name_t *keyname;
+	dns_name_t *keyname = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
 	isc_result_t ret;
-	dns_tsigkey_t *tsigkey;
+	dns_tsigkey_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dst_context_t *ctx = NULL;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = NULL;
 	uint16_t addcount, id;
 	unsigned int siglen;
 	unsigned int alg;
@@ -1168,9 +1164,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		}
 		if (ret != ISC_R_SUCCESS) {
 			msg->tsigstatus = dns_tsigerror_badkey;
-			ret = dns_tsigkey_create(
-				keyname, &tsig.algorithm, NULL, 0, false, false,
-				NULL, now, now, mctx, NULL, &msg->tsigkey);
+			ret = dns_tsigkey_create(keyname, &tsig.algorithm, NULL,
+						 0, mctx, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS) {
 				return (ret);
 			}
@@ -1410,16 +1405,16 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	isc_region_t r, source_r, header_r, sig_r;
 	isc_buffer_t databuf;
 	unsigned char data[32];
-	dns_name_t *keyname;
+	dns_name_t *keyname = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
 	isc_result_t ret;
-	dns_tsigkey_t *tsigkey;
+	dns_tsigkey_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	uint16_t addcount, id;
 	bool has_tsig = false;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = NULL;
 	unsigned int siglen;
 	unsigned int alg;
 
@@ -1728,7 +1723,7 @@ cleanup_querystruct:
 isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring) {
-	dns_tsigkey_t *key;
+	dns_tsigkey_t *key = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
 
@@ -1742,7 +1737,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 
 	RWLOCK(&ring->lock, isc_rwlocktype_read);
-	key = NULL;
 	result = dns_rbt_findname(ring->keys, name, 0, NULL, (void *)&key);
 	if (result == DNS_R_PARTIALMATCH || result == ISC_R_NOTFOUND) {
 		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
@@ -1762,17 +1756,6 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 		return (ISC_R_NOTFOUND);
 	}
-#if 0
-	/*
-	 * MPAXXX We really should look at the inception time.
-	 */
-	if (key->inception != key->expire &&
-	    isc_serial_lt(key->inception, now)) {
-		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-		adjust_lru(key);
-		return (ISC_R_NOTFOUND);
-	}
-#endif /* if 0 */
 	isc_refcount_increment(&key->refs);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 	adjust_lru(key);
@@ -1781,14 +1764,11 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 }
 
 static void
-free_tsignode(void *node, void *_unused) {
-	dns_tsigkey_t *key;
+free_tsignode(void *node, void *arg ISC_ATTR_UNUSED) {
+	dns_tsigkey_t *key = node;
 
-	REQUIRE(node != NULL);
+	REQUIRE(key != NULL);
 
-	UNUSED(_unused);
-
-	key = node;
 	if (key->generated) {
 		if (ISC_LINK_LINKED(key, link)) {
 			ISC_LIST_UNLINK(key->ring->lru, key, link);
@@ -1800,16 +1780,18 @@ free_tsignode(void *node, void *_unused) {
 isc_result_t
 dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	isc_result_t result;
-	dns_tsig_keyring_t *ring;
+	dns_tsig_keyring_t *ring = NULL;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(ringp != NULL);
 	REQUIRE(*ringp == NULL);
 
 	ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
+	*ring = (dns_tsig_keyring_t){
+		.maxgenerated = DNS_TSIG_MAXGENERATEDKEYS,
+		.lru = ISC_LIST_INITIALIZER,
+	};
 
-	isc_rwlock_init(&ring->lock);
-	ring->keys = NULL;
 	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);
 	if (result != ISC_R_SUCCESS) {
 		isc_rwlock_destroy(&ring->lock);
@@ -1817,11 +1799,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 		return (result);
 	}
 
-	ring->writecount = 0;
-	ring->mctx = NULL;
-	ring->generated = 0;
-	ring->maxgenerated = DNS_TSIG_MAXGENERATEDKEYS;
-	ISC_LIST_INIT(ring->lru);
+	isc_rwlock_init(&ring->lock);
 	isc_mem_attach(mctx, &ring->mctx);
 	isc_refcount_init(&ring->references, 1);
 
@@ -1859,7 +1837,7 @@ dns_tsigkeyring_attach(dns_tsig_keyring_t *source,
 
 void
 dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp) {
-	dns_tsig_keyring_t *ring;
+	dns_tsig_keyring_t *ring = NULL;
 
 	REQUIRE(ringp != NULL);
 	REQUIRE(*ringp != NULL);
@@ -1873,7 +1851,7 @@ dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp) {
 }
 
 void
-dns_keyring_restore(dns_tsig_keyring_t *ring, FILE *fp) {
+dns_tsigkeyring_restore(dns_tsig_keyring_t *ring, FILE *fp) {
 	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
 

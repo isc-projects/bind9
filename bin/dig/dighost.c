@@ -885,8 +885,7 @@ setup_text_key(void) {
 	}
 
 	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
-				    (int)secretsize, false, false, NULL, 0, 0,
-				    mctx, NULL, &tsigkey);
+				    (int)secretsize, mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n", keynametext,

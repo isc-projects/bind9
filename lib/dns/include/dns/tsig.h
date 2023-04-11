@@ -100,10 +100,7 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey);
 
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
-		   unsigned char *secret, int length, bool generated,
-		   bool restored, const dns_name_t *creator,
-		   isc_stdtime_t inception, isc_stdtime_t expire,
-		   isc_mem_t *mctx, dns_tsig_keyring_t *ring,
+		   unsigned char *secret, int length, isc_mem_t *mctx,
 		   dns_tsigkey_t **key);
 
 isc_result_t
@@ -290,6 +287,6 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp);
  */
 
 void
-dns_keyring_restore(dns_tsig_keyring_t *ring, FILE *fp);
+dns_tsigkeyring_restore(dns_tsig_keyring_t *ring, FILE *fp);
 
 ISC_LANG_ENDDECLS

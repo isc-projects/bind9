@@ -294,8 +294,9 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacsha256_name, secret,
-				    sizeof(secret), false, false, NULL, 0, 0,
-				    mctx, ring, &key);
+				    sizeof(secret), mctx, &key);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_tsigkeyring_add(ring, keyname, key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(key);
 
