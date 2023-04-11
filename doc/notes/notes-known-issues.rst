@@ -38,3 +38,14 @@ Known Issues
   have ``subjectAltName`` set. In such cases, the ``Subject`` field is
   ignored. Only old platforms are affected by this, e.g. those supplied
   with OpenSSL versions older than 1.1.1. :gl:`#3163`
+
+- Loading a large number of zones is significantly slower in BIND
+  9.19.12 than in the previous development releases due to a new data
+  structure being used for storing information about the zones to serve.
+  This slowdown is considered to be a bug and will be addressed in a
+  future BIND 9.19.x development release. :gl:`#4006`
+
+- A flaw in reworked code responsible for accepting TCP connections may
+  cause a visible performance drop for TCP queries on some platforms,
+  notably FreeBSD.  This issue will be fixed in a future BIND 9.19.x
+  development release. :gl:`#3985`

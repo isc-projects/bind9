@@ -20,6 +20,23 @@ Security Fixes
   permissible number of DNS labels were present. This has been fixed.
   :gl:`#3998`
 
+Known Issues
+~~~~~~~~~~~~
+
+- Loading a large number of zones is significantly slower in BIND
+  9.19.12 than in the previous development releases due to a new data
+  structure being used for storing information about the zones to serve.
+  This slowdown is considered to be a bug and will be addressed in a
+  future BIND 9.19.x development release. :gl:`#4006`
+
+- A flaw in reworked code responsible for accepting TCP connections may
+  cause a visible performance drop for TCP queries on some platforms,
+  notably FreeBSD.  This issue will be fixed in a future BIND 9.19.x
+  development release. :gl:`#3985`
+
+- See :ref:`above <relnotes_known_issues>` for a list of all known issues
+  affecting this BIND 9 branch.
+
 New Features
 ~~~~~~~~~~~~
 
@@ -71,10 +88,3 @@ Bug Fixes
 
 - Performance of DNSSEC validation in zones with many DNSKEY records has
   been improved. :gl:`#3981`
-
-Known Issues
-~~~~~~~~~~~~
-
-- There are no new known issues with this release. See :ref:`above
-  <relnotes_known_issues>` for a list of all known issues affecting this
-  BIND 9 branch.
