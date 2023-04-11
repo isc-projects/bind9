@@ -160,9 +160,10 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 
 static void
 remove_fromring(dns_tsigkey_t *tkey) {
-	if (tkey->generated) {
+	if (tkey->generated && ISC_LINK_LINKED(tkey, link)) {
 		ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 		tkey->ring->generated--;
+		dns_tsigkey_unref(tkey);
 	}
 	(void)dns_rbt_deletename(tkey->ring->keys, &tkey->name, false);
 }
@@ -184,68 +185,21 @@ adjust_lru(dns_tsigkey_t *tkey) {
 	}
 }
 
-/*
- * A supplemental routine just to add a key to ring.  Note that reference
- * counter should be counted separately because we may be adding the key
- * as part of creation of the key, in which case the reference counter was
- * already initialized.  Also note we don't need RWLOCK for the reference
- * counter: it's protected by a separate lock.
- */
-static isc_result_t
-keyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
-	    dns_tsigkey_t *tkey) {
-	isc_result_t result;
-
-	RWLOCK(&ring->lock, isc_rwlocktype_write);
-	ring->writecount++;
-
-	/*
-	 * Do on the fly cleaning.  Find some nodes we might not
-	 * want around any more.
-	 */
-	if (ring->writecount > 10) {
-		cleanup_ring(ring);
-		ring->writecount = 0;
-	}
-
-	result = dns_rbt_addname(ring->keys, name, tkey);
-	if (result == ISC_R_SUCCESS) {
-		if (tkey->generated) {
-			/*
-			 * Add the new key to the LRU list and remove the
-			 * least recently used key if there are too many
-			 * keys on the list.
-			 */
-			ISC_LIST_APPEND(ring->lru, tkey, link);
-			if (ring->generated++ > ring->maxgenerated) {
-				remove_fromring(ISC_LIST_HEAD(ring->lru));
-			}
-		}
-
-		tkey->ring = ring;
-	}
-
-	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-
-	return (result);
-}
-
 isc_result_t
 dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
-			  dns_tsigkeyring_t *ring, dns_tsigkey_t **key) {
+			  dns_tsigkeyring_t *ring, dns_tsigkey_t **keyp) {
 	dns_tsigkey_t *tkey = NULL;
 	isc_result_t ret;
-	unsigned int refs = 0;
 	unsigned int dstalg = 0;
 
-	REQUIRE(key == NULL || *key == NULL);
+	REQUIRE(keyp == NULL || *keyp == NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
 	REQUIRE(mctx != NULL);
-	REQUIRE(key != NULL || ring != NULL);
+	REQUIRE(keyp != NULL || ring != NULL);
 
 	tkey = isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	*tkey = (dns_tsigkey_t){
@@ -296,22 +250,21 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		dst_key_attach(dstkey, &tkey->key);
 	}
 
-	if (key != NULL) {
-		refs = 1;
-	}
-	if (ring != NULL) {
-		refs++;
-	}
-
-	isc_refcount_init(&tkey->references, refs);
+	isc_refcount_init(&tkey->references, 1);
 	isc_mem_attach(mctx, &tkey->mctx);
 
-	tkey->magic = TSIG_MAGIC;
-
 	if (ring != NULL) {
-		ret = keyring_add(ring, name, tkey);
+		ret = dns_tsigkeyring_add(ring, name, tkey);
 		if (ret != ISC_R_SUCCESS) {
 			goto cleanup_refs;
+		}
+
+		/*
+		 * If we won't be passing the key back to the caller
+		 * then we we can release a reference now.
+		 */
+		if (keyp == NULL) {
+			dns_tsigkey_unref(tkey);
 		}
 	}
 
@@ -329,9 +282,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			      namestr);
 	}
 
-	if (key != NULL) {
-		*key = tkey;
-	}
+	tkey->magic = TSIG_MAGIC;
 
 	if (tkey->restored) {
 		tsig_log(tkey, ISC_LOG_DEBUG(3), "restored from file");
@@ -341,13 +292,13 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		tsig_log(tkey, ISC_LOG_DEBUG(3), "statically configured");
 	}
 
+	if (keyp != NULL) {
+		*keyp = tkey;
+	}
 	return (ISC_R_SUCCESS);
 
 cleanup_refs:
 	tkey->magic = 0;
-	while (refs-- > 0) {
-		isc_refcount_decrement0(&tkey->references);
-	}
 	isc_refcount_destroy(&tkey->references);
 
 	if (tkey->key != NULL) {
@@ -1745,9 +1696,9 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 		return (ISC_R_NOTFOUND);
 	}
-	isc_refcount_increment(&key->references);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 	adjust_lru(key);
+	dns_tsigkey_ref(key);
 	*tsigkey = key;
 	return (ISC_R_SUCCESS);
 }
@@ -1758,10 +1709,9 @@ free_tsignode(void *node, void *arg ISC_ATTR_UNUSED) {
 
 	REQUIRE(key != NULL);
 
-	if (key->generated) {
-		if (ISC_LINK_LINKED(key, link)) {
-			ISC_LIST_UNLINK(key->ring->lru, key, link);
-		}
+	if (key->generated && ISC_LINK_LINKED(key, link)) {
+		ISC_LIST_UNLINK(key->ring->lru, key, link);
+		dns_tsigkey_unref(key);
 	}
 	dns_tsigkey_detach(&key);
 }
@@ -1805,10 +1755,39 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 	REQUIRE(tkey->ring == NULL);
 	REQUIRE(name != NULL);
 
-	result = keyring_add(ring, name, tkey);
-	if (result == ISC_R_SUCCESS) {
-		isc_refcount_increment(&tkey->references);
+	RWLOCK(&ring->lock, isc_rwlocktype_write);
+	ring->writecount++;
+
+	/*
+	 * Do on the fly cleaning.  Find some nodes we might not
+	 * want around any more.
+	 */
+	if (ring->writecount > 10) {
+		cleanup_ring(ring);
+		ring->writecount = 0;
 	}
+
+	result = dns_rbt_addname(ring->keys, name, tkey);
+	if (result == ISC_R_SUCCESS) {
+		dns_tsigkey_ref(tkey);
+
+		/*
+		 * If this is a TKEY-generated key, add it to the LRU list,
+		 * and if we've exceeded the quota for generated keys,
+		 * remove the least recently used one from the both the
+		 * list and the RBT.
+		 */
+		if (tkey->generated) {
+			ISC_LIST_APPEND(ring->lru, tkey, link);
+			dns_tsigkey_ref(tkey);
+			if (ring->generated++ > ring->maxgenerated) {
+				remove_fromring(ISC_LIST_HEAD(ring->lru));
+			}
+		}
+
+		tkey->ring = ring;
+	}
+	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 
 	return (result);
 }

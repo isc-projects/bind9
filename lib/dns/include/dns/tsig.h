@@ -251,9 +251,8 @@ dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 
 isc_result_t
 dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, FILE *fp);
-
 /*%<
- *	Destroy a TSIG key ring.
+ *	Dump a TSIG key ring to 'fp' and destroy it.
  *
  *	Requires:
  *\li		'ringp' is not NULL
