@@ -28,6 +28,9 @@
 
 #include <dst/dst.h>
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_TSIG_TRACE
+
 /*
  * Algorithms.
  */
@@ -51,7 +54,7 @@ extern const dns_name_t *dns_tsig_hmacsha512_name;
  */
 #define DNS_TSIG_FUDGE 300
 
-struct dns_tsig_keyring {
+struct dns_tsigkeyring {
 	dns_rbt_t   *keys;
 	unsigned int writecount;
 	isc_rwlock_t lock;
@@ -68,18 +71,18 @@ struct dns_tsig_keyring {
 
 struct dns_tsigkey {
 	/* Unlocked */
-	unsigned int	    magic; /*%< Magic number. */
-	isc_mem_t	   *mctx;
-	dst_key_t	   *key;	   /*%< Key */
-	dns_name_t	    name;	   /*%< Key name */
-	const dns_name_t   *algorithm;	   /*%< Algorithm name */
-	dns_name_t	   *creator;	   /*%< name that created secret */
-	bool		    generated : 1; /*%< key was auto-generated */
-	bool		    restored  : 1; /*%< key was restored at startup */
-	isc_stdtime_t	    inception;	   /*%< start of validity period */
-	isc_stdtime_t	    expire;	   /*%< end of validity period */
-	dns_tsig_keyring_t *ring;	   /*%< the enclosing keyring */
-	isc_refcount_t	    refs;	   /*%< reference counter */
+	unsigned int	   magic; /*%< Magic number. */
+	isc_mem_t	  *mctx;
+	dst_key_t	  *key;		  /*%< Key */
+	dns_name_t	   name;	  /*%< Key name */
+	const dns_name_t  *algorithm;	  /*%< Algorithm name */
+	dns_name_t	  *creator;	  /*%< name that created secret */
+	bool		   generated : 1; /*%< key was auto-generated */
+	bool		   restored  : 1; /*%< key was restored at startup */
+	isc_stdtime_t	   inception;	  /*%< start of validity period */
+	isc_stdtime_t	   expire;	  /*%< end of validity period */
+	dns_tsigkeyring_t *ring;	  /*%< the enclosing keyring */
+	isc_refcount_t	   references;	  /*%< reference counter */
 	ISC_LINK(dns_tsigkey_t) link;
 };
 
@@ -108,7 +111,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
-			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
+			  dns_tsigkeyring_t *ring, dns_tsigkey_t **key);
 /*%<
  *	Creates a tsig key structure and saves it in the keyring.  If key is
  *	not NULL, *key will contain a copy of the key.  The keys validity
@@ -141,31 +144,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
  */
 
 void
-dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp);
-/*%<
- *	Attach '*targetp' to 'source'.
- *
- *	Requires:
- *\li		'key' is a valid TSIG key
- *
- *	Ensures:
- *\li		*targetp is attached to source.
- */
-
-void
-dns_tsigkey_detach(dns_tsigkey_t **keyp);
-/*%<
- *	Detaches from the tsig key structure pointed to by '*key'.
- *
- *	Requires:
- *\li		'keyp' is not NULL and '*keyp' is a valid TSIG key
- *
- *	Ensures:
- *\li		'keyp' points to NULL
- */
-
-void
-dns_tsigkey_setdeleted(dns_tsigkey_t *key);
+dns_tsigkey_delete(dns_tsigkey_t *key);
 /*%<
  *	Prevents this key from being used again.  It will be deleted when
  *	no references exist.
@@ -194,7 +173,7 @@ dns_tsig_sign(dns_message_t *msg);
 
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
-		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2);
+		dns_tsigkeyring_t *ring1, dns_tsigkeyring_t *ring2);
 /*%<
  *	Verifies the TSIG record in this message
  *
@@ -223,7 +202,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
-		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring);
+		 const dns_name_t *algorithm, dns_tsigkeyring_t *ring);
 /*%<
  *	Returns the TSIG key corresponding to this name and (possibly)
  *	algorithm.  Also increments the key's reference counter.
@@ -241,7 +220,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
  */
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsigkeyring_t **ringp);
 /*%<
  *	Create an empty TSIG key ring.
  *
@@ -255,7 +234,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
  */
 
 isc_result_t
-dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
+dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
 		    dns_tsigkey_t *tkey);
 /*%<
  *      Place a TSIG key onto a key ring.
@@ -270,14 +249,8 @@ dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
  *\li		Any other value indicates failure.
  */
 
-void
-dns_tsigkeyring_attach(dns_tsig_keyring_t *source, dns_tsig_keyring_t **target);
-
-void
-dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp);
-
 isc_result_t
-dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp);
+dns_tsigkeyring_dumpanddetach(dns_tsigkeyring_t **ringp, FILE *fp);
 
 /*%<
  *	Destroy a TSIG key ring.
@@ -287,6 +260,33 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp);
  */
 
 void
-dns_tsigkeyring_restore(dns_tsig_keyring_t *ring, FILE *fp);
+dns_tsigkeyring_restore(dns_tsigkeyring_t *ring, FILE *fp);
+/*%<
+ *	Restore a TSIG keyring from a dump file 'fp'.
+ */
+
+#if DNS_TSIG_TRACE
+#define dns_tsigkey_ref(ptr) dns_tsigkey__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_tsigkey_unref(ptr) \
+	dns_tsigkey__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_tsigkey_attach(ptr, ptrp) \
+	dns_tsigkey__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_tsigkey_detach(ptrp) \
+	dns_tsigkey__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_tsigkey);
+
+#define dns_tsigkeyring_ref(ptr) \
+	dns_tsigkeyring__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_tsigkeyring_unref(ptr) \
+	dns_tsigkeyring__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_tsigkeyring_attach(ptr, ptrp) \
+	dns_tsigkeyring__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_tsigkeyring_detach(ptrp) \
+	dns_tsigkeyring__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_tsigkeyring);
+#else
+ISC_REFCOUNT_DECL(dns_tsigkey);
+ISC_REFCOUNT_DECL(dns_tsigkeyring);
+#endif
 
 ISC_LANG_ENDDECLS

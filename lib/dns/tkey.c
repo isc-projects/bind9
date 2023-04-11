@@ -174,7 +174,7 @@ free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
 static isc_result_t
 process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		dns_tkeyctx_t *tctx, dns_rdata_tkey_t *tkeyout,
-		dns_tsig_keyring_t *ring) {
+		dns_tsigkeyring_t *ring) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dst_key_t *dstkey = NULL;
 	dns_tsigkey_t *tsigkey = NULL;
@@ -327,7 +327,7 @@ failure:
 static isc_result_t
 process_deletetkey(dns_name_t *signer, dns_name_t *name,
 		   dns_rdata_tkey_t *tkeyin, dns_rdata_tkey_t *tkeyout,
-		   dns_tsig_keyring_t *ring) {
+		   dns_tsigkeyring_t *ring) {
 	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
 	const dns_name_t *identity;
@@ -353,7 +353,7 @@ process_deletetkey(dns_name_t *signer, dns_name_t *name,
 	 * was not generated with TKEY and is in the config file, it may be
 	 * reloaded later.
 	 */
-	dns_tsigkey_setdeleted(tsigkey);
+	dns_tsigkey_delete(tsigkey);
 
 	/* Release the reference */
 	dns_tsigkey_detach(&tsigkey);
@@ -363,7 +363,7 @@ process_deletetkey(dns_name_t *signer, dns_name_t *name,
 
 isc_result_t
 dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
-		      dns_tsig_keyring_t *ring) {
+		      dns_tsigkeyring_t *ring) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_tkey_t tkeyin, tkeyout;
 	bool freetkeyin = false;
@@ -729,7 +729,7 @@ find_tkey(dns_message_t *msg, dns_name_t **name, dns_rdata_t *rdata,
 isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, dns_gss_ctx_id_t *context,
-		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
+		      dns_tsigkey_t **outkey, dns_tsigkeyring_t *ring,
 		      char **err_message) {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;

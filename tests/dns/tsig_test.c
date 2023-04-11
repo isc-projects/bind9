@@ -271,7 +271,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	dns_fixedname_t fkeyname;
 	dns_message_t *msg = NULL;
 	dns_name_t *keyname;
-	dns_tsig_keyring_t *ring = NULL;
+	dns_tsigkeyring_t *ring = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_buffer_t *buf = NULL;
 	isc_buffer_t *querytsig = NULL;

@@ -4087,7 +4087,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	uint32_t lame_ttl, fail_ttl;
 	uint32_t max_stale_ttl = 0;
 	uint32_t stale_refresh_time = 0;
-	dns_tsig_keyring_t *ring = NULL;
+	dns_tsigkeyring_t *ring = NULL;
 	dns_transport_list_t *transports = NULL;
 	dns_view_t *pview = NULL; /* Production view */
 	dns_dispatch_t *dispatch4 = NULL;

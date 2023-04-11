@@ -31,7 +31,7 @@
 #include <named/tsigconf.h>
 
 static isc_result_t
-add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
+add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		 isc_mem_t *mctx) {
 	dns_tsigkey_t *tsigkey = NULL;
 	const cfg_listelt_t *element;
@@ -136,10 +136,10 @@ failure:
 
 isc_result_t
 named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
-			     isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
+			     isc_mem_t *mctx, dns_tsigkeyring_t **ringp) {
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *keylist;
-	dns_tsig_keyring_t *ring = NULL;
+	dns_tsigkeyring_t *ring = NULL;
 	isc_result_t result;
 	int i;
 

@@ -692,7 +692,7 @@ dns_view_settransports(dns_view_t *view, dns_transport_list_t *list) {
 }
 
 void
-dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+dns_view_setkeyring(dns_view_t *view, dns_tsigkeyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL) {
@@ -702,7 +702,7 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 }
 
 void
-dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsigkeyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->dynamickeys != NULL) {
@@ -712,7 +712,7 @@ dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 }
 
 void
-dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp) {
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsigkeyring_t **ringp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ringp != NULL && *ringp == NULL);
 	if (view->dynamickeys != NULL) {

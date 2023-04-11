@@ -89,8 +89,8 @@ static isc_stdtime_t fuzztime = 0x622acce1;
 static isc_loopmgr_t *loopmgr = NULL;
 static dns_view_t *view = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
-static dns_tsig_keyring_t *ring = NULL;
-static dns_tsig_keyring_t *emptyring = NULL;
+static dns_tsigkeyring_t *ring = NULL;
+static dns_tsigkeyring_t *emptyring = NULL;
 static char *wd = NULL;
 static char template[] = "/tmp/dns-message-checksig-XXXXXX";
 

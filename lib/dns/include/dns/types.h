@@ -147,7 +147,7 @@ typedef struct dns_tkeyctx	  dns_tkeyctx_t;
 typedef struct dns_transport	  dns_transport_t;
 typedef struct dns_transport_list dns_transport_list_t;
 typedef uint16_t		  dns_trust_t;
-typedef struct dns_tsig_keyring	  dns_tsig_keyring_t;
+typedef struct dns_tsigkeyring	  dns_tsigkeyring_t;
 typedef struct dns_tsigkey	  dns_tsigkey_t;
 typedef uint32_t		  dns_ttl_t;
 typedef struct dns_update_state	  dns_update_state_t;
