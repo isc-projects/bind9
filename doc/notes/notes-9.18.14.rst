@@ -12,45 +12,31 @@
 Notes for BIND 9.18.14
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
-
 - Zone type ``delegation-only``, and the ``delegation-only`` and
-  ``root-delegation-only`` options, have been deprecated; a warning will
-  be logged when they are used.
+  ``root-delegation-only`` statements, have been deprecated.
+  A warning is now logged when they are used.
 
-  These options were created to address the SiteFinder controversy, in
-  which certain top-level domains redirected misspelled queries to other
-  sites instead of returning NXDOMAIN responses. Since top-level domains are
-  now DNSSEC signed, and DNSSEC validation is active by default, the
-  options are no longer needed. :gl:`#3953`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
+  These statements were created to address the SiteFinder controversy,
+  in which certain top-level domains redirected misspelled queries to
+  other sites instead of returning NXDOMAIN responses. Since top-level
+  domains are now DNSSEC-signed, and DNSSEC validation is active by
+  default, the statements are no longer needed. :gl:`#3953`
 
 Bug Fixes
 ~~~~~~~~~
 
+- Several bugs which could cause :iscman:`named` to crash during catalog
+  zone processing have been fixed. :gl:`#3955` :gl:`#3968` :gl:`#3997`
+
 - Previously, downloading large zones over TLS (XoT) from a primary
   could hang the transfer on the secondary, especially when the
-  connection is unstable. This has been fixed. :gl:`#3867`
+  connection was unstable. This has been fixed. :gl:`#3867`
 
-- Performance of DNSSEC validation in zones with many DNSKEY records
-  has been improved. :gl:`#3981`
+- Performance of DNSSEC validation in zones with many DNSKEY records has
+  been improved. :gl:`#3981`
 
 Known Issues
 ~~~~~~~~~~~~
