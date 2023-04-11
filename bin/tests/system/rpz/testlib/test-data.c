@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <isc/atomic.h>
 #include <isc/util.h>
 
 #include "test-data.h"
@@ -392,13 +393,13 @@ add_other_rr(trpz_result_t *node, const char *rrtype, const char *val,
 	     uint32_t ttl, int *modified) {
 	trpz_rr_t nrec = { 0 };
 	size_t n;
-	static unsigned int rrn = 1;
+	static atomic_uint_fast32_t rrn = 1;
 
 	*modified = 0;
 
 	nrec.class = ns_c_in;
 	nrec.ttl = ttl;
-	nrec.rrn = rrn++;
+	nrec.rrn = atomic_fetch_add_relaxed(&rrn, 1);
 
 	if (!strcasecmp(rrtype, "A")) {
 		uint32_t addr;
