@@ -742,8 +742,8 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			algstr = cfg_obj_asstring(algobj);
 			secretstr = cfg_obj_asstring(secretobj);
 
-			result = named_config_getkeyalgorithm2(algstr, NULL,
-							       &algtype, NULL);
+			result = named_config_getkeyalgorithm(algstr, &algtype,
+							      NULL);
 			if (result != ISC_R_SUCCESS) {
 				cfg_obj_log(control, named_g_lctx,
 					    ISC_LOG_WARNING,
@@ -836,7 +836,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	algstr = cfg_obj_asstring(algobj);
 	secretstr = cfg_obj_asstring(secretobj);
 
-	result = named_config_getkeyalgorithm2(algstr, NULL, &algtype, NULL);
+	result = named_config_getkeyalgorithm(algstr, &algtype, NULL);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "

@@ -47,7 +47,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		const cfg_obj_t *algobj = NULL;
 		const cfg_obj_t *secretobj = NULL;
 		dns_name_t keyname;
-		const dns_name_t *alg = NULL;
+		dst_algorithm_t alg = DST_ALG_UNKNOWN;
 		const char *algstr = NULL;
 		char keynamedata[1024];
 		isc_buffer_t keynamesrc, keynamebuf;

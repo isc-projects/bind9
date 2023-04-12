@@ -264,7 +264,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
-	result = dns_tsigkey_create(name, dns_tsig_hmacsha256_name, secret,
+	result = dns_tsigkey_create(name, DST_ALG_HMACSHA256, secret,
 				    sizeof(secret), mctx, &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkey_create failed: %s\n",

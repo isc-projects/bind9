@@ -109,12 +109,12 @@ dns_tsigkey_identity(const dns_tsigkey_t *tsigkey);
  */
 
 isc_result_t
-dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
+dns_tsigkey_create(const dns_name_t *name, dst_algorithm_t algorithm,
 		   unsigned char *secret, int length, isc_mem_t *mctx,
 		   dns_tsigkey_t **key);
 
 isc_result_t
-dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
+dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 			  dst_key_t *dstkey, bool generated, bool restored,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,

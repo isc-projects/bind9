@@ -66,8 +66,5 @@ named_config_getport(const cfg_obj_t *config, const char *type,
 		     in_port_t *portp);
 
 isc_result_t
-named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
+named_config_getkeyalgorithm(const char *str, unsigned int *typep,
 			     uint16_t *digestbits);
-isc_result_t
-named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
-			      unsigned int *typep, uint16_t *digestbits);

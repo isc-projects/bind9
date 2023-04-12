@@ -259,7 +259,7 @@ extern isc_sockaddr_t localaddr;
 extern char keynametext[MXNAME];
 extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
-extern const dns_name_t *hmacname;
+extern dst_algorithm_t hmac;
 extern unsigned int digestbits;
 extern dns_tsigkey_t *tsigkey;
 extern bool validated;
@@ -341,7 +341,7 @@ isc_result_t
 parse_netprefix(isc_sockaddr_t **sap, const char *value);
 
 void
-parse_hmac(const char *hmacstr);
+parse_hmac(const char *algname);
 
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, bool servers);

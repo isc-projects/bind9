@@ -49,6 +49,7 @@
 #include <dst/gssapi.h>
 
 #include "dst_internal.h"
+#include "tsig_p.h"
 
 #define TEMP_BUFFER_SZ	   8192
 #define TKEY_RANDOM_AMOUNT 16
@@ -264,8 +265,9 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		}
 #endif /* HAVE_GSSAPI */
 		RETERR(dns_tsigkey_createfromkey(
-			name, &tkeyin->algorithm, dstkey, true, false,
-			principal, now, expire, ring->mctx, &tsigkey));
+			name, dns__tsig_algfromname(&tkeyin->algorithm), dstkey,
+			true, false, principal, now, expire, ring->mctx,
+			&tsigkey));
 		RETERR(dns_tsigkeyring_add(ring, name, tsigkey));
 		dst_key_free(&dstkey);
 		tkeyout->inception = now;
@@ -680,20 +682,18 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		return (result);
 	}
 
-	tkey.common.rdclass = dns_rdataclass_any;
-	tkey.common.rdtype = dns_rdatatype_tkey;
-	ISC_LINK_INIT(&tkey.common, link);
-	tkey.mctx = NULL;
+	tkey = (dns_rdata_tkey_t){
+		.common.rdclass = dns_rdataclass_any,
+		.common.rdtype = dns_rdatatype_tkey,
+		.common.link = ISC_LINK_INITIALIZER,
+		.inception = now,
+		.expire = now + lifetime,
+		.mode = DNS_TKEYMODE_GSSAPI,
+		.key = isc_buffer_base(&token),
+		.keylen = isc_buffer_usedlength(&token),
+	};
 	dns_name_init(&tkey.algorithm, NULL);
 	dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
-	tkey.inception = now;
-	tkey.expire = now + lifetime;
-	tkey.mode = DNS_TKEYMODE_GSSAPI;
-	tkey.error = 0;
-	tkey.key = isc_buffer_base(&token);
-	tkey.keylen = isc_buffer_usedlength(&token);
-	tkey.other = NULL;
-	tkey.otherlen = 0;
 
 	return (buildquery(msg, name, &tkey));
 }
@@ -816,8 +816,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	 * anything yet.
 	 */
 
-	RETERR(dns_tsigkey_createfromkey(tkeyname, DNS_TSIG_GSSAPI_NAME, dstkey,
-					 true, false, NULL, rtkey.inception,
+	RETERR(dns_tsigkey_createfromkey(tkeyname, DST_ALG_GSSAPI, dstkey, true,
+					 false, NULL, rtkey.inception,
 					 rtkey.expire, ring->mctx, &tsigkey));
 	RETERR(dns_tsigkeyring_add(ring, tkeyname, tsigkey));
 	if (outkey == NULL) {
