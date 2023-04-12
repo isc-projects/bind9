@@ -294,7 +294,7 @@ add_librpz_rule() {
 produce_librpz_rules() {
     # echo "Producing rules for $1"
     ZONEFILE=$1/$3.db
-    cat $ZONEFILE | egrep -v '^;' | egrep '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
+    cat $ZONEFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
 }
 
 # $1=message

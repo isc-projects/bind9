@@ -66,13 +66,13 @@ start_server_rules() {
     cat $FCONF | grep 'zone ' | grep ' primary' | while read LINE; do
         ZONE=`echo $LINE | sed 's/.*zone "//g' | awk -F '"' '{print $1}'`;
         DBFILE=`echo $LINE | sed 's/.*file "//g' | awk -F '"' '{print $1}'`;
-        cat ns2/$DBFILE | egrep -v '^;' | egrep '\<(A|CNAME)\>' | awk -v zone=$ZONE '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
+        cat ns2/$DBFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$ZONE '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
     done
 }
 
 produce_librpz_rules() {
     ZONEFILE=$1/$3.db
-    cat $ZONEFILE | egrep -v '^;' | egrep '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
+    cat $ZONEFILE | grep -E -v '^;' | grep -E '\<(A|CNAME)\>' | awk -v zone=$2 '{ if (NF == 4) {print "static add "$1"."zone" "$2" "$3" "$4} else if (NF == 3) {print "static add "$1"."zone" 300 "$2" "$3}}' >> $DNSRPS_TEST_UPDATE_FILE
 }
 
 run_query() {
