@@ -268,7 +268,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 			name, dns__tsig_algfromname(&tkeyin->algorithm), dstkey,
 			true, false, principal, now, expire, ring->mctx,
 			&tsigkey));
-		RETERR(dns_tsigkeyring_add(ring, name, tsigkey));
+		RETERR(dns_tsigkeyring_add(ring, tsigkey));
 		dst_key_free(&dstkey);
 		tkeyout->inception = now;
 		tkeyout->expire = expire;
@@ -819,7 +819,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_tsigkey_createfromkey(tkeyname, DST_ALG_GSSAPI, dstkey, true,
 					 false, NULL, rtkey.inception,
 					 rtkey.expire, ring->mctx, &tsigkey));
-	RETERR(dns_tsigkeyring_add(ring, tkeyname, tsigkey));
+	RETERR(dns_tsigkeyring_add(ring, tsigkey));
 	if (outkey == NULL) {
 		dns_tsigkey_detach(&tsigkey);
 	} else {

@@ -17,12 +17,14 @@
 
 #include <stdbool.h>
 
+#include <isc/hashmap.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdio.h>
 #include <isc/stdtime.h>
 
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/types.h>
 
@@ -62,11 +64,11 @@ extern const dns_name_t *dns_tsig_hmacsha512_name;
 #endif /* ifndef DNS_TSIG_MAXGENERATEDKEYS */
 
 struct dns_tsigkeyring {
-	unsigned int magic; /*%< Magic number. */
-	dns_rbt_t   *keys;
-	unsigned int writecount;
-	isc_rwlock_t lock;
-	isc_mem_t   *mctx;
+	unsigned int   magic; /*%< Magic number. */
+	isc_hashmap_t *keys;
+	unsigned int   writecount;
+	isc_rwlock_t   lock;
+	isc_mem_t     *mctx;
 	/*
 	 * LRU list of generated key along with a count of the keys on the
 	 * list and a maximum size.
@@ -80,8 +82,9 @@ struct dns_tsigkey {
 	/* Unlocked */
 	unsigned int	   magic; /*%< Magic number. */
 	isc_mem_t	  *mctx;
-	dst_key_t	  *key;		  /*%< Key */
-	dns_name_t	   name;	  /*%< Key name */
+	dst_key_t	  *key; /*%< Key */
+	dns_fixedname_t	   fn;
+	dns_name_t	  *name;	  /*%< Key name */
 	const dns_name_t  *algorithm;	  /*%< Algorithm name */
 	dns_name_t	  *creator;	  /*%< name that created secret */
 	bool		   generated : 1; /*%< key was auto-generated */
@@ -238,7 +241,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkeyp, const dns_name_t *name,
  *\li		#ISC_R_NOTFOUND
  */
 
-isc_result_t
+void
 dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsigkeyring_t **ringp);
 /*%<
  *	Create an empty TSIG key ring.
@@ -246,15 +249,10 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsigkeyring_t **ringp);
  *	Requires:
  *\li		'mctx' is not NULL
  *\li		'ringp' is not NULL, and '*ringp' is NULL
- *
- *	Returns:
- *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
  */
 
 isc_result_t
-dns_tsigkeyring_add(dns_tsigkeyring_t *ring, const dns_name_t *name,
-		    dns_tsigkey_t *tkey);
+dns_tsigkeyring_add(dns_tsigkeyring_t *ring, dns_tsigkey_t *tkey);
 /*%<
  *      Place a TSIG key onto a key ring.
  *

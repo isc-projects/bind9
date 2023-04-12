@@ -533,7 +533,7 @@ ns_client_send(ns_client_t *client) {
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		if (client->message->tsigkey != NULL) {
-			name = &client->message->tsigkey->name;
+			name = client->message->tsigkey->name;
 		}
 
 		if (client->view->nocasecompress == NULL ||

@@ -5049,8 +5049,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			named_g_server->sessionkey, false, false, NULL, 0, 0,
 			mctx, &tsigkey);
 		if (result == ISC_R_SUCCESS) {
-			result = dns_tsigkeyring_add(
-				ring, named_g_server->session_keyname, tsigkey);
+			result = dns_tsigkeyring_add(ring, tsigkey);
 			dns_tsigkey_detach(&tsigkey);
 		}
 		CHECK(result);

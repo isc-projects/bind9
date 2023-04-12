@@ -108,7 +108,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsigkeyring_t *ring,
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;
 		if (ret == ISC_R_SUCCESS) {
-			ret = dns_tsigkeyring_add(ring, &keyname, tsigkey);
+			ret = dns_tsigkeyring_add(ring, tsigkey);
 		}
 		if (ret != ISC_R_SUCCESS) {
 			if (tsigkey != NULL) {
@@ -154,10 +154,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 	maps[i] = NULL;
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_tsigkeyring_create(mctx, &ring);
 
 	for (i = 0;; i++) {
 		if (maps[i] == NULL) {

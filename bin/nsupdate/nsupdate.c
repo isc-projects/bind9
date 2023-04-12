@@ -3028,11 +3028,7 @@ start_gssrequest(dns_name_t *primary) {
 		dns_tsigkeyring_detach(&gssring);
 	}
 
-	result = dns_tsigkeyring_create(gmctx, &gssring);
-	if (result != ISC_R_SUCCESS) {
-		fatal("dns_tsigkeyring_create failed: %s",
-		      isc_result_totext(result));
-	}
+	dns_tsigkeyring_create(gmctx, &gssring);
 
 	dns_name_format(primary, namestr, sizeof(namestr));
 	if (kserver == NULL) {

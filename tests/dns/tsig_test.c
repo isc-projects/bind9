@@ -148,7 +148,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	dns_rdataset_init(&rdataset);
 	dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	CHECK(dns_rdataset_towire(&rdataset, &key->name, &cctx, target, 0,
+	CHECK(dns_rdataset_towire(&rdataset, key->name, &cctx, target, 0,
 				  &count));
 
 	/*
@@ -290,13 +290,13 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	result = dns_name_fromstring(keyname, "test", 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_tsigkeyring_create(mctx, &ring);
+	assert_non_null(ring);
 
 	result = dns_tsigkey_create(keyname, DST_ALG_HMACSHA256, secret,
 				    sizeof(secret), mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	result = dns_tsigkeyring_add(ring, keyname, key);
+	result = dns_tsigkeyring_add(ring, key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(key);
 

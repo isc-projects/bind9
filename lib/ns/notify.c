@@ -129,7 +129,7 @@ ns_notify_start(ns_client_t *client, isc_nmhandle_t *handle) {
 
 	tsigkey = dns_message_gettsigkey(request);
 	if (tsigkey != NULL) {
-		dns_name_format(&tsigkey->name, namebuf, sizeof(namebuf));
+		dns_name_format(tsigkey->name, namebuf, sizeof(namebuf));
 
 		if (tsigkey->generated) {
 			char cnamebuf[DNS_NAME_FORMATSIZE];

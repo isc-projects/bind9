@@ -243,19 +243,8 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
-			isc_result_totext(result));
-		return (1);
-	}
-
-	result = dns_tsigkeyring_create(mctx, &emptyring);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
-			isc_result_totext(result));
-		return (1);
-	}
+	dns_tsigkeyring_create(mctx, &ring);
+	dns_tsigkeyring_create(mctx, &emptyring);
 
 	result = dns_name_fromstring(name, "tsig-key", 0, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -271,7 +260,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 			isc_result_totext(result));
 		return (1);
 	}
-	result = dns_tsigkeyring_add(ring, name, tsigkey);
+	result = dns_tsigkeyring_add(ring, tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkeyring_add failed: %s\n",
 			isc_result_totext(result));

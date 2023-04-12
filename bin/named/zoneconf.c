@@ -809,7 +809,7 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
 			bool match;
 			isc_result_t result;
 
-			result = dns_view_gettsig(view, &mykey->name, &key);
+			result = dns_view_gettsig(view, mykey->name, &key);
 			if (result != ISC_R_SUCCESS) {
 				continue;
 			}

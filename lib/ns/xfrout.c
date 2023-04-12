@@ -1105,7 +1105,7 @@ have_stream:
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
 	if (xfr->tsigkey != NULL) {
-		dns_name_format(&xfr->tsigkey->name, keyname, sizeof(keyname));
+		dns_name_format(xfr->tsigkey->name, keyname, sizeof(keyname));
 	} else {
 		keyname[0] = '\0';
 	}

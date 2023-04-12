@@ -144,10 +144,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_zt;
 	}
 
-	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_weakrefs;
-	}
+	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
 	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
 				   &view->failcache);
@@ -196,7 +193,6 @@ cleanup_dynkeys:
 		dns_tsigkeyring_detach(&view->dynamickeys);
 	}
 
-cleanup_weakrefs:
 	isc_refcount_decrementz(&view->weakrefs);
 	isc_refcount_destroy(&view->weakrefs);
 
