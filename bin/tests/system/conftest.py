@@ -143,6 +143,10 @@ else:
         for line in env_bytes.splitlines():
             match = ENV_RE.match(line)
             if match:
+                # EL8+ workaround for https://access.redhat.com/solutions/6994985
+                # FUTURE: can be removed when we no longer need to parse env vars
+                if match.groups()[0] in [b"which_declare", b"BASH_FUNC_which%%"]:
+                    continue
                 out[match.groups()[0]] = match.groups()[1]
         return out
 
