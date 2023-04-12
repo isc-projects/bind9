@@ -848,6 +848,7 @@ dump_stats(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 			      values, options));
 }
 
+#if defined(EXTENDED_STATS)
 static isc_result_t
 dump_histo(isc_histomulti_t *hm, isc_statsformat_t type, void *arg,
 	   const char *category, const char **desc, int ncounters, int *indices,
@@ -863,6 +864,7 @@ dump_histo(isc_histomulti_t *hm, isc_statsformat_t type, void *arg,
 	return (dump_counters(type, arg, category, desc, ncounters, indices,
 			      values, options));
 }
+#endif /* defined(EXTENDED_STATS) */
 
 static isc_result_t
 dump_counters(isc_statsformat_t type, void *arg, const char *category,
