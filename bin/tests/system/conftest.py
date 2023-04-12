@@ -104,8 +104,23 @@ else:
         "upforwd/",
     ]
     PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
+    CONFTEST_LOGGER = logging.getLogger("conftest")
 
     # ---------------------- Module initialization ---------------------------
+
+    def init_pytest_conftest_logger(conftest_logger):
+        """
+        This initializes the conftest logger which is used for pytest setup
+        and configuration before tests are executed -- aka any logging in this
+        file that is _not_ module-specific.
+        """
+        conftest_logger.setLevel(logging.DEBUG)
+        file_handler = logging.FileHandler("pytest.conftest.log.txt")
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+        conftest_logger.addHandler(file_handler)
+
+    init_pytest_conftest_logger(CONFTEST_LOGGER)
 
     def avoid_duplicated_logs():
         """
@@ -141,7 +156,7 @@ else:
                 stdout=subprocess.PIPE,
             )
         except subprocess.CalledProcessError as exc:
-            logging.error("failed to get shell env: %s", exc)
+            CONFTEST_LOGGER.error("failed to get shell env: %s", exc)
             raise exc
         env_bytes = proc.stdout
         return parse_env(env_bytes)
@@ -150,7 +165,9 @@ else:
     # FUTURE: Remove conf.sh entirely and define all variables in pytest only.
     CONF_ENV = get_env_bytes(". ./conf.sh && env")
     os.environb.update(CONF_ENV)
-    logging.debug("conf.sh env: %s", CONF_ENV)
+    CONFTEST_LOGGER.debug(
+        "variables in env: %s", ", ".join([str(key) for key in CONF_ENV])
+    )
 
     # --------------------------- pytest hooks -------------------------------
 
@@ -166,7 +183,7 @@ else:
         # Ensure this hook only runs on the main pytest instance if xdist is
         # used to spawn other workers.
         if not XDIST_WORKER:
-            logging.debug("compiling required files")
+            CONFTEST_LOGGER.debug("compiling required files")
             env = os.environ.copy()
             env["TESTS"] = ""  # disable automake test framework - compile-only
             try:
@@ -183,10 +200,10 @@ else:
                     env=env,
                 )
             except subprocess.CalledProcessError as exc:
-                logging.debug(exc.stdout)
-                logging.error("failed to compile test files: %s", exc)
+                CONFTEST_LOGGER.debug(exc.stdout)
+                CONFTEST_LOGGER.error("failed to compile test files: %s", exc)
                 raise exc
-            logging.debug(proc.stdout)
+            CONFTEST_LOGGER.debug(proc.stdout)
 
             if config.pluginmanager.has_plugin("xdist") and config.option.numprocesses:
                 # system tests depend on module scope for setup & teardown
@@ -194,7 +211,7 @@ else:
                 try:
                     import xdist.scheduler.loadscope  # pylint: disable=unused-import
                 except ImportError:
-                    logging.debug(
+                    CONFTEST_LOGGER.debug(
                         "xdist is too old and does not have "
                         "scheduler.loadscope, disabling parallelism"
                     )
