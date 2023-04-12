@@ -378,27 +378,6 @@ dns__tsig_algfromname(const dns_name_t *algorithm) {
 	return (DST_ALG_UNKNOWN);
 }
 
-/*
- * Test whether the passed algorithm is NOT a pointer to one of the
- * pre-defined known algorithms (and therefore one that has been
- * dynamically allocated).
- *
- * This will return an incorrect result if passed a dynamically allocated
- * dns_name_t that happens to match one of the pre-defined names.
- */
-bool
-dns__tsig_algallocated(const dns_name_t *algorithm) {
-	int i;
-	int n = sizeof(known_algs) / sizeof(*known_algs);
-	for (i = 0; i < n; ++i) {
-		const dns_name_t *name = known_algs[i].name;
-		if (algorithm == name) {
-			return (false);
-		}
-	}
-	return (true);
-}
-
 static isc_result_t
 restore_key(dns_tsigkeyring_t *ring, isc_stdtime_t now, FILE *fp) {
 	dst_key_t *dstkey = NULL;
@@ -604,11 +583,6 @@ destroy_tsigkey(dns_tsigkey_t *key) {
 
 	key->magic = 0;
 	dns_name_free(&key->name, key->mctx);
-	if (dns__tsig_algallocated(key->algorithm)) {
-		dns_name_t *name = UNCONST(key->algorithm);
-		dns_name_free(name, key->mctx);
-		isc_mem_put(key->mctx, name, sizeof(dns_name_t));
-	}
 	if (key->key != NULL) {
 		dst_key_free(&key->key);
 	}

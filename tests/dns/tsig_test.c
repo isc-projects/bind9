@@ -485,29 +485,9 @@ ISC_RUN_TEST_IMPL(algvalid) {
 	assert_false(dns__tsig_algvalid(DST_ALG_GSSAPI));
 }
 
-/* Tests the dns__tsig_algallocated function */
-ISC_RUN_TEST_IMPL(algallocated) {
-	UNUSED(state);
-
-	/* test the standard algorithms */
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA384_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-
-	/* try another name that isn't a standard algorithm name */
-	assert_true(dns__tsig_algallocated(dns_rootname));
-}
-
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(tsig_tcp, setup_test, teardown_test)
 ISC_TEST_ENTRY(algvalid)
-ISC_TEST_ENTRY(algallocated)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
