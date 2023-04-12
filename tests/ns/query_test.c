@@ -861,7 +861,6 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 		.action = ns_test_qctx_destroy_hook,
 		.action_data = &asdata,
 	};
-	isc_quota_t *quota = NULL;
 	isc_statscounter_t srvfail_cnt;
 	bool expect_servfail = false;
 
@@ -899,7 +898,7 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	 */
 	isc_quota_max(&sctx->recursionquota, 1);
 	if (!test->quota_ok) {
-		result = isc_quota_attach(&sctx->recursionquota, &quota);
+		result = isc_quota_acquire(&sctx->recursionquota);
 		INSIST(result == ISC_R_SUCCESS);
 	}
 
@@ -953,7 +952,6 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 		/* Confirm necessary cleanup has been performed. */
 		INSIST(qctx->client->query.hookactx == NULL);
 		INSIST(qctx->client->state == NS_CLIENTSTATE_WORKING);
-		INSIST(QUOTA_RECTYPE_HOOK(qctx->client) == NULL);
 		INSIST(ns_stats_get_counter(
 			       qctx->client->manager->sctx->nsstats,
 			       ns_statscounter_recursclients) == 0);
@@ -993,8 +991,8 @@ run_hookasync_test(const ns__query_hookasync_test_params_t *test) {
 	 */
 	ns_test_qctx_destroy(&qctx);
 	ns_hooktable_free(mctx, (void **)&ns__hook_table);
-	if (quota != NULL) {
-		isc_quota_detach(&quota);
+	if (!test->quota_ok) {
+		isc_quota_release(&sctx->recursionquota);
 	}
 }
 

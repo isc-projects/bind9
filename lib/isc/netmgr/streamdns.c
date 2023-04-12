@@ -861,7 +861,7 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	 */
 
 	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-	isc_async_run(sock->worker->loop, streamdns_read_cb, sock);
+	isc_job_run(sock->worker->loop, &sock->job, streamdns_read_cb, sock);
 }
 
 void

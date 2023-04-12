@@ -2183,7 +2183,7 @@ isc__nm_http_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uvreq->uvbuf.base = (char *)region->base;
 	uvreq->uvbuf.len = region->length;
 
-	isc_async_run(sock->worker->loop, http_send_cb, uvreq);
+	isc_job_run(sock->worker->loop, &uvreq->job, http_send_cb, uvreq);
 }
 
 static void

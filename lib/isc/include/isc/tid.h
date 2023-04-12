@@ -16,6 +16,7 @@
 #include <inttypes.h>
 
 #include <isc/lang.h>
+#include <isc/thread.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -27,8 +28,12 @@ isc_tid_count(void);
  * Returns the number of threads.
  */
 
-uint32_t
-isc_tid(void);
+extern thread_local uint32_t tid_local;
+
+static inline uint32_t
+isc_tid(void) {
+	return (tid_local);
+}
 /*%<
  * Returns the thread ID of the currently-running loop.
  */

@@ -245,6 +245,8 @@ struct isc_nmhandle {
 	LINK(isc_nmhandle_t) active_link;
 	LINK(isc_nmhandle_t) inactive_link;
 	void *opaque;
+
+	isc_job_t job;
 };
 
 typedef union {
@@ -525,14 +527,11 @@ struct isc_nmsocket {
 		const char *tls_verify_error;
 	} streamdns;
 	/*%
-	 * quota is the TCP client, attached when a TCP connection
-	 * is established. pquota is a non-attached pointer to the
-	 * TCP client quota, stored in listening sockets but only
-	 * attached in connected sockets.
+	 * pquota is a non-attached pointer to the TCP client quota, stored in
+	 * listening sockets.
 	 */
-	isc_quota_t *quota;
 	isc_quota_t *pquota;
-	isc_quota_cb_t quotacb;
+	isc_job_t quotacb;
 
 	/*%
 	 * Socket statistics
@@ -659,6 +658,8 @@ struct isc_nmsocket {
 	int backtrace_size;
 #endif
 	LINK(isc_nmsocket_t) active_link;
+
+	isc_job_t job;
 };
 
 void
@@ -1277,8 +1278,6 @@ isc__nm_closing(isc__networker_t *worker);
 void
 isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		       isc_result_t eresult, bool async);
-void
-isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
 void
 isc__nm_failed_connect_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 			  isc_result_t eresult, bool async);

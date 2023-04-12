@@ -72,39 +72,7 @@ static isc_result_t
 accept_connection(isc_nmsocket_t *ssock);
 
 static void
-quota_accept_cb(isc_quota_t *quota, void *arg);
-
-static void
-failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult);
-
-static void
-failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
-	REQUIRE(sock->server);
-	REQUIRE(sock->accepting);
-
-	sock->accepting = false;
-
-	/*
-	 * Detach the quota early to make room for other connections;
-	 * otherwise it'd be detached later asynchronously, and clog
-	 * the quota unnecessarily.
-	 */
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
-	isc__nmsocket_detach(&sock->server);
-
-	switch (eresult) {
-	case ISC_R_NOTCONNECTED:
-		/* IGNORE: The client disconnected before we could accept */
-		break;
-	default:
-		isc__nmsocket_log(sock, ISC_LOG_ERROR,
-				  "Accepting TCP connection failed: %s",
-				  isc_result_totext(eresult));
-	}
-}
+quota_accept_cb(void *arg);
 
 static isc_result_t
 tcp_connect_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
@@ -458,8 +426,7 @@ start_tcp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	csock->backlog = sock->backlog;
 
 	/*
-	 * We don't attach to quota, just assign - to avoid
-	 * increasing quota unnecessarily.
+	 * Quota isn't attached, just assigned.
 	 */
 	csock->pquota = sock->pquota;
 
@@ -562,6 +529,8 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 	isc_nmsocket_t *ssock = uv_handle_get_data((uv_handle_t *)server);
 	isc_result_t result;
 
+	REQUIRE(ssock->accept_cb != NULL);
+
 	if (status != 0) {
 		result = isc_uverr2result(status);
 		goto done;
@@ -575,18 +544,24 @@ tcp_connection_cb(uv_stream_t *server, int status) {
 		goto done;
 	}
 
-	if (ssock->pquota != NULL) {
-		isc_quota_t *quota = NULL;
-		isc_quota_cb_init(&ssock->quotacb, quota_accept_cb, ssock);
-		result = isc_quota_attach_cb(ssock->pquota, &quota,
-					     &ssock->quotacb);
+	/* Prepare the child socket */
+	isc_nmsocket_t *csock = isc_mem_get(ssock->worker->mctx,
+					    sizeof(isc_nmsocket_t));
+	isc__nmsocket_init(csock, ssock->worker, isc_nm_tcpsocket,
+			   &ssock->iface, NULL);
+	isc__nmsocket_attach(ssock, &csock->server);
+
+	if (csock->server->pquota != NULL) {
+		result = isc_quota_acquire_cb(csock->server->pquota,
+					      &csock->quotacb, quota_accept_cb,
+					      csock);
 		if (result == ISC_R_QUOTA) {
 			isc__nm_incstats(ssock, STATID_ACCEPTFAIL);
 			goto done;
 		}
 	}
 
-	result = accept_connection(ssock);
+	result = accept_connection(csock);
 done:
 	isc__nm_accept_connection_log(ssock, result, can_log_tcp_quota());
 }
@@ -700,14 +675,6 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 
 destroy:
 	isc__nmsocket_prep_destroy(sock);
-
-	/*
-	 * We need to detach from quota after the read callback function had a
-	 * chance to be executed.
-	 */
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
 }
 
 void
@@ -849,69 +816,67 @@ tcpaccept_cb(void *arg) {
 
 	isc_result_t result = accept_connection(sock);
 	isc__nm_accept_connection_log(sock, result, can_log_tcp_quota());
-	sock->pquota = NULL;
 	isc__nmsocket_detach(&sock);
 }
 
 static void
-quota_accept_cb(isc_quota_t *quota, void *arg) {
-	isc_nmsocket_t *sock = arg;
+quota_accept_cb(void *arg) {
+	isc_nmsocket_t *csock = arg;
 
-	REQUIRE(VALID_NMSOCK(sock));
-
-	UNUSED(quota);
+	REQUIRE(VALID_NMSOCK(csock));
 
 	/*
 	 * This needs to be asynchronous, because the quota might have been
 	 * released by a different child socket.
 	 */
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-	isc_async_run(sock->worker->loop, tcpaccept_cb, sock);
+	if (csock->tid == isc_tid()) {
+		isc_result_t result = accept_connection(csock);
+		isc__nm_accept_connection_log(csock, result,
+					      can_log_tcp_quota());
+	} else {
+		isc__nmsocket_attach(csock, &(isc_nmsocket_t *){ NULL });
+		isc_async_run(csock->worker->loop, tcpaccept_cb, csock);
+	}
 }
 
 static isc_result_t
-accept_connection(isc_nmsocket_t *ssock) {
-	isc_nmsocket_t *csock = NULL;
-	isc__networker_t *worker = NULL;
+accept_connection(isc_nmsocket_t *csock) {
 	int r;
 	isc_result_t result;
 	struct sockaddr_storage ss;
 	isc_sockaddr_t local;
 	isc_nmhandle_t *handle = NULL;
 
-	REQUIRE(VALID_NMSOCK(ssock));
-	REQUIRE(ssock->tid == isc_tid());
+	REQUIRE(VALID_NMSOCK(csock));
+	REQUIRE(VALID_NMSOCK(csock->server));
+	REQUIRE(csock->tid == isc_tid());
 
-	if (isc__nmsocket_closing(ssock)) {
-		if (ssock->pquota != NULL) {
-			isc_quota_detach(&ssock->pquota);
-		}
-
-		return (ISC_R_CANCELED);
-	}
-
-	REQUIRE(ssock->accept_cb != NULL);
-
-	csock = isc_mem_get(ssock->worker->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(csock, ssock->worker, isc_nm_tcpsocket,
-			   &ssock->iface, NULL);
-	isc__nmsocket_attach(ssock, &csock->server);
-	csock->recv_cb = ssock->recv_cb;
-	csock->recv_cbarg = ssock->recv_cbarg;
 	csock->accepting = true;
-	csock->quota = ssock->pquota;
+	csock->accept_cb = csock->server->accept_cb;
+	csock->accept_cbarg = csock->server->accept_cbarg;
+	csock->recv_cb = csock->server->recv_cb;
+	csock->recv_cbarg = csock->server->recv_cbarg;
+	csock->read_timeout = atomic_load_relaxed(&csock->worker->netmgr->init);
 
-	worker = csock->worker;
-
-	r = uv_tcp_init(&worker->loop->loop, &csock->uv_handle.tcp);
+	r = uv_tcp_init(&csock->worker->loop->loop, &csock->uv_handle.tcp);
 	UV_RUNTIME_CHECK(uv_tcp_init, r);
 	uv_handle_set_data(&csock->uv_handle.handle, csock);
 
-	r = uv_timer_init(&worker->loop->loop, &csock->read_timer);
+	r = uv_timer_init(&csock->worker->loop->loop, &csock->read_timer);
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
-	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
+	/*
+	 * We need to initialize the tcp and timer before failing because
+	 * isc__nm_tcp_close() can't handle uninitalized TCP nmsocket.
+	 */
+	if (isc__nmsocket_closing(csock)) {
+		result = ISC_R_CANCELED;
+		goto failure;
+	}
+
+	r = uv_accept(&csock->server->uv_handle.stream,
+		      &csock->uv_handle.stream);
 	if (r != 0) {
 		result = isc_uverr2result(r);
 		goto failure;
@@ -944,7 +909,7 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 	handle = isc__nmhandle_get(csock, NULL, &local);
 
-	result = ssock->accept_cb(handle, ISC_R_SUCCESS, ssock->accept_cbarg);
+	result = csock->accept_cb(handle, ISC_R_SUCCESS, csock->accept_cbarg);
 	if (result != ISC_R_SUCCESS) {
 		isc_nmhandle_detach(&handle);
 		goto failure;
@@ -953,8 +918,6 @@ accept_connection(isc_nmsocket_t *ssock) {
 	csock->accepting = false;
 
 	isc__nm_incstats(csock, STATID_ACCEPT);
-
-	csock->read_timeout = atomic_load_relaxed(&csock->worker->netmgr->init);
 
 	/*
 	 * The acceptcb needs to attach to the handle if it wants to keep the
@@ -971,8 +934,14 @@ accept_connection(isc_nmsocket_t *ssock) {
 
 failure:
 	csock->active = false;
+	csock->accepting = false;
 
-	failed_accept_cb(csock, result);
+	if (result != ISC_R_NOTCONNECTED) {
+		/* IGNORE: The client disconnected before we could accept */
+		isc__nmsocket_log(csock, ISC_LOG_ERROR,
+				  "Accepting TCP connection failed: %s",
+				  isc_result_totext(result));
+	}
 
 	isc__nmsocket_prep_destroy(csock);
 
@@ -1146,6 +1115,9 @@ tcp_close_sock(isc_nmsocket_t *sock) {
 	isc__nm_incstats(sock, STATID_CLOSE);
 
 	if (sock->server != NULL) {
+		if (sock->server->pquota != NULL) {
+			isc_quota_release(sock->server->pquota);
+		}
 		isc__nmsocket_detach(&sock->server);
 	}
 
@@ -1170,10 +1142,6 @@ isc__nm_tcp_close(isc_nmsocket_t *sock) {
 	REQUIRE(!sock->closing);
 
 	sock->closing = true;
-
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
 
 	/*
 	 * The order of the close operation is important here, the uv_close()

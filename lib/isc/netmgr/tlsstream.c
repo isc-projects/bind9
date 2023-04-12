@@ -235,7 +235,8 @@ tls_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result) {
 		tls_call_connect_cb(sock, handle, result);
 		isc__nmsocket_clearcb(sock);
 		isc_nmhandle_detach(&handle);
-	} else if (sock->recv_cb != NULL && sock->statichandle != NULL &&
+	} else if (sock->reading && sock->recv_cb != NULL &&
+		   sock->statichandle != NULL &&
 		   (sock->recv_read || result == ISC_R_TIMEDOUT))
 	{
 		sock->recv_read = false;
@@ -988,7 +989,7 @@ tls_send(isc_nmhandle_t *handle, const isc_region_t *region, isc_nm_cb_t cb,
 		*(uint16_t *)uvreq->tcplen = htons(region->length);
 	}
 
-	isc_async_run(sock->worker->loop, tls_send_direct, uvreq);
+	isc_job_run(sock->worker->loop, &uvreq->job, tls_send_direct, uvreq);
 }
 
 void

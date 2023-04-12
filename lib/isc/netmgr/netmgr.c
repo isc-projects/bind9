@@ -487,10 +487,7 @@ nmsocket_cleanup(void *arg) {
 		nmhandle_free(sock, handle);
 	}
 
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
+	INSIST(sock->server == NULL);
 	sock->pquota = NULL;
 
 	isc__nm_tls_cleanup_data(sock);
@@ -706,6 +703,8 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
 		.active = true,
+		.job = ISC_JOB_INITIALIZER,
+		.quotacb = ISC_JOB_INITIALIZER,
 	};
 
 	if (iface != NULL) {
@@ -817,6 +816,7 @@ alloc_handle(isc_nmsocket_t *sock) {
 		.magic = NMHANDLE_MAGIC,
 		.active_link = ISC_LINK_INITIALIZER,
 		.inactive_link = ISC_LINK_INITIALIZER,
+		.job = ISC_JOB_INITIALIZER,
 	};
 	isc_refcount_init(&handle->references, 1);
 
@@ -943,19 +943,36 @@ nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 }
 
 static void
-isc__nm_closehandle_job(void *arg) {
-	isc_nmsocket_t *sock = arg;
+nmhandle__destroy(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = handle->sock;
+	handle->sock = NULL;
 
-	sock->closehandle_cb(sock);
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
+	nmhandle_free(sock, handle);
+#else
+	if (sock->active) {
+		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
+	} else {
+		nmhandle_free(sock, handle);
+	}
+#endif
 
 	isc__nmsocket_detach(&sock);
 }
 
 static void
-nmhandle_destroy(isc_nmhandle_t *handle) {
+isc__nm_closehandle_job(void *arg) {
+	isc_nmhandle_t *handle = arg;
 	isc_nmsocket_t *sock = handle->sock;
 
-	handle->sock = NULL;
+	sock->closehandle_cb(sock);
+
+	nmhandle__destroy(handle);
+}
+
+static void
+nmhandle_destroy(isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = handle->sock;
 
 	if (handle->doreset != NULL) {
 		handle->doreset(handle->opaque);
@@ -974,27 +991,18 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 
-#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
-	nmhandle_free(sock, handle);
-#else
-	if (sock->active) {
-		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
-	} else {
-		nmhandle_free(sock, handle);
+	if (sock->closehandle_cb == NULL) {
+		nmhandle__destroy(handle);
+		return;
 	}
-#endif
 
 	/*
-	 * The handle is gone now. If the socket has a callback configured
-	 * for that (e.g., to perform cleanup after request processing),
-	 * call it now asynchronously.
+	 * If the socket has a callback configured for that (e.g.,
+	 * to perform cleanup after request processing), call it
+	 * now asynchronously.
 	 */
-	if (sock->closehandle_cb != NULL) {
-		isc_async_run(sock->worker->loop, isc__nm_closehandle_job,
-			      sock);
-	} else {
-		isc___nmsocket_detach(&sock FLARG_PASS);
-	}
+	isc_job_run(sock->worker->loop, &handle->job, isc__nm_closehandle_job,
+		    handle);
 }
 
 void
@@ -1045,35 +1053,6 @@ isc__nm_failed_send_cb(isc_nmsocket_t *sock, isc__nm_uvreq_t *req,
 		isc__nm_sendcb(sock, req, eresult, async);
 	} else {
 		isc__nm_uvreq_put(&req);
-	}
-}
-
-void
-isc__nm_failed_accept_cb(isc_nmsocket_t *sock, isc_result_t eresult) {
-	REQUIRE(sock->accepting);
-	REQUIRE(sock->server);
-
-	/*
-	 * Detach the quota early to make room for other connections;
-	 * otherwise it'd be detached later asynchronously, and clog
-	 * the quota unnecessarily.
-	 */
-	if (sock->quota != NULL) {
-		isc_quota_detach(&sock->quota);
-	}
-
-	isc__nmsocket_detach(&sock->server);
-
-	sock->accepting = false;
-
-	switch (eresult) {
-	case ISC_R_NOTCONNECTED:
-		/* IGNORE: The client disconnected before we could accept */
-		break;
-	default:
-		isc__nmsocket_log(sock, ISC_LOG_ERROR,
-				  "Accepting TCP connection failed: %s",
-				  isc_result_totext(eresult));
 	}
 }
 

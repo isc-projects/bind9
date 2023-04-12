@@ -649,7 +649,6 @@ typedef struct {
 	dns_zone_t *zone; /* (necessary for stats) */
 	dns_db_t *db;
 	dns_dbversion_t *ver;
-	isc_quota_t *quota;
 	rrstream_t *stream;  /* The XFR RR stream */
 	bool question_added; /* QUESTION section sent? */
 	bool end_of_stream;  /* EOS has been reached */
@@ -681,7 +680,7 @@ static void
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_rdataclass_t qclass, dns_zone_t *zone, dns_db_t *db,
-		  dns_dbversion_t *ver, isc_quota_t *quota, rrstream_t *stream,
+		  dns_dbversion_t *ver, rrstream_t *stream,
 		  dns_tsigkey_t *tsigkey, isc_buffer_t *lasttsig,
 		  bool verified_tsig, unsigned int maxtime,
 		  unsigned int idletime, bool many_answers,
@@ -736,7 +735,6 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	isc_mem_t *mctx = client->manager->mctx;
 	dns_message_t *request = client->message;
 	xfrout_ctx_t *xfr = NULL;
-	isc_quota_t *quota = NULL;
 	dns_transfer_format_t format = client->view->transfer_format;
 	isc_netaddr_t na;
 	dns_peer_t *peer = NULL;
@@ -766,12 +764,12 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Apply quota.
 	 */
-	result = isc_quota_attach(&client->manager->sctx->xfroutquota, &quota);
+	result = isc_quota_acquire(&client->manager->sctx->xfroutquota);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(XFROUT_COMMON_LOGARGS, ISC_LOG_WARNING,
 			      "%s request denied: %s", mnemonic,
 			      isc_result_totext(result));
-		goto failure;
+		goto max_quota;
 	}
 
 	/*
@@ -1084,7 +1082,7 @@ have_stream:
 
 	if (is_dlz) {
 		xfrout_ctx_create(mctx, client, request->id, question_name,
-				  reqtype, question_class, zone, db, ver, quota,
+				  reqtype, question_class, zone, db, ver,
 				  stream, dns_message_gettsigkey(request),
 				  tsigbuf, request->verified_sig, 3600, 3600,
 				  (format == dns_many_answers) ? true : false,
@@ -1092,7 +1090,7 @@ have_stream:
 	} else {
 		xfrout_ctx_create(
 			mctx, client, request->id, question_name, reqtype,
-			question_class, zone, db, ver, quota, stream,
+			question_class, zone, db, ver, stream,
 			dns_message_gettsigkey(request), tsigbuf,
 			request->verified_sig, dns_zone_getmaxxfrout(zone),
 			dns_zone_getidleout(zone),
@@ -1102,7 +1100,6 @@ have_stream:
 	xfr->end_serial = current_serial;
 	xfr->mnemonic = mnemonic;
 	stream = NULL;
-	quota = NULL;
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
@@ -1172,9 +1169,6 @@ failure:
 	if (result == DNS_R_REFUSED) {
 		inc_stats(client, zone, ns_statscounter_xfrrej);
 	}
-	if (quota != NULL) {
-		isc_quota_detach(&quota);
-	}
 	if (current_soa_tuple != NULL) {
 		dns_difftuple_free(&current_soa_tuple);
 	}
@@ -1196,10 +1190,12 @@ failure:
 	if (zone != NULL) {
 		dns_zone_detach(&zone);
 	}
-	/* XXX kludge */
+
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up zone transfer");
 	} else if (result != ISC_R_SUCCESS) {
+		isc_quota_release(&client->manager->sctx->xfroutquota);
+	max_quota:
 		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT,
 			      NS_LOGMODULE_XFER_OUT, ISC_LOG_DEBUG(3),
 			      "zone transfer setup failed");
@@ -1212,7 +1208,7 @@ static void
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_rdataclass_t qclass, dns_zone_t *zone, dns_db_t *db,
-		  dns_dbversion_t *ver, isc_quota_t *quota, rrstream_t *stream,
+		  dns_dbversion_t *ver, rrstream_t *stream,
 		  dns_tsigkey_t *tsigkey, isc_buffer_t *lasttsig,
 		  bool verified_tsig, unsigned int maxtime,
 		  unsigned int idletime, bool many_answers,
@@ -1279,7 +1275,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	 * These MUST be after the last "goto failure;" / CHECK to
 	 * prevent a double free by the caller.
 	 */
-	xfr->quota = quota;
 	xfr->stream = stream;
 
 	*xfrp = xfr;
@@ -1608,9 +1603,9 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	if (xfr->lasttsig != NULL) {
 		isc_buffer_free(&xfr->lasttsig);
 	}
-	if (xfr->quota != NULL) {
-		isc_quota_detach(&xfr->quota);
-	}
+
+	isc_quota_release(&xfr->client->manager->sctx->xfroutquota);
+
 	if (xfr->ver != NULL) {
 		dns_db_closeversion(xfr->db, &xfr->ver, false);
 	}

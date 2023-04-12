@@ -1882,8 +1882,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 
 	update_log(client, zone, LOGLEVEL_DEBUG, "update section prescan OK");
 
-	result = isc_quota_attach(&client->manager->sctx->updquota,
-				  &(isc_quota_t *){ NULL });
+	result = isc_quota_acquire(&client->manager->sctx->updquota);
 	if (result != ISC_R_SUCCESS) {
 		update_log(client, zone, LOGLEVEL_PROTOCOL,
 			   "update failed: too many DNS UPDATEs queued (%s)",
@@ -3608,7 +3607,7 @@ updatedone_action(void *arg) {
 
 	respond(client, uev->result);
 
-	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
+	isc_quota_release(&client->manager->sctx->updquota);
 	if (uev->zone != NULL) {
 		dns_zone_detach(&uev->zone);
 	}
@@ -3626,7 +3625,7 @@ forward_fail(void *arg) {
 
 	respond(client, DNS_R_SERVFAIL);
 
-	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
+	isc_quota_release(&client->manager->sctx->updquota);
 	isc_mem_put(client->manager->mctx, uev, sizeof(*uev));
 	isc_nmhandle_detach(&client->updatehandle);
 }
@@ -3658,7 +3657,7 @@ forward_done(void *arg) {
 	ns_client_sendraw(client, uev->answer);
 	dns_message_detach(&uev->answer);
 
-	isc_quota_detach(&(isc_quota_t *){ &client->manager->sctx->updquota });
+	isc_quota_release(&client->manager->sctx->updquota);
 	isc_mem_put(client->manager->mctx, uev, sizeof(*uev));
 	isc_nmhandle_detach(&client->reqhandle);
 	isc_nmhandle_detach(&client->updatehandle);
@@ -3696,9 +3695,11 @@ send_forward(ns_client_t *client, dns_zone_t *zone) {
 		return (result);
 	}
 
-	result = isc_quota_attach(&client->manager->sctx->updquota,
-				  &(isc_quota_t *){ NULL });
+	result = isc_quota_acquire(&client->manager->sctx->updquota);
 	if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_SOFTQUOTA) {
+			isc_quota_release(&client->manager->sctx->updquota);
+		}
 		update_log(client, zone, LOGLEVEL_PROTOCOL,
 			   "update failed: too many DNS UPDATEs queued (%s)",
 			   isc_result_totext(result));
