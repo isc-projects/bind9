@@ -651,9 +651,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 			     pubkey->key_flags, pubkey->key_proto,
 			     pubkey->key_size, pubkey->key_class,
 			     pubkey->key_ttl, mctx);
-	if (key == NULL) {
-		RETERR(ISC_R_NOMEMORY);
-	}
 
 	if (key->func->parse == NULL) {
 		RETERR(DST_R_UNSUPPORTEDALG);
@@ -876,9 +873,6 @@ dst_key_fromgssapi(const dns_name_t *name, dns_gss_ctx_id_t gssctx,
 
 	key = get_key_struct(name, DST_ALG_GSSAPI, 0, DNS_KEYPROTO_DNSSEC, 0,
 			     dns_rdataclass_in, 0, mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	if (intoken != NULL) {
 		/*
@@ -978,9 +972,6 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 
 	key = get_key_struct(name, alg, flags, protocol, bits, rdclass, 0,
 			     mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	key->keydata.generic = data;
 
@@ -1011,9 +1002,6 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 	CHECKALG(alg);
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	if (key->func->fromlabel == NULL) {
 		dst_key_free(&key);
@@ -1053,9 +1041,6 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 
 	key = get_key_struct(name, alg, flags, protocol, bits, rdclass, 0,
 			     mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	if (bits == 0) { /*%< NULL KEY */
 		key->key_flags |= DNS_KEYTYPE_NOKEY;
@@ -1546,9 +1531,6 @@ dst_key_restore(dns_name_t *name, unsigned int alg, unsigned int flags,
 	}
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	result = (dst_t_func[alg]->restore)(key, keystr);
 	if (result == ISC_R_SUCCESS) {
@@ -2330,9 +2312,6 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
-	if (key == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	if (isc_buffer_remaininglength(source) > 0) {
 		ret = algorithm_status(alg);
