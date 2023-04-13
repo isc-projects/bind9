@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include <isc/mem.h>
+#include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/tls.h>
@@ -148,25 +149,18 @@ isc_nmsocket_set_max_streams(isc_nmsocket_t *listener,
  */
 
 #if ISC_NETMGR_TRACE
-#define isc_nmhandle_attach(handle, dest) \
-	isc__nmhandle_attach(handle, dest, __FILE__, __LINE__, __func__)
-#define isc_nmhandle_detach(handlep) \
-	isc__nmhandle_detach(handlep, __FILE__, __LINE__, __func__)
-#define FLARG_PASS , file, line, func
-#define FLARG                                                                  \
-	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
-		const char *func ISC_ATTR_UNUSED
+#define isc_nmhandle_ref(ptr) \
+	isc_nmhandle__ref(ptr, __func__, __FILE__, __LINE__)
+#define isc_nmhandle_unref(ptr) \
+	isc_nmhandle__unref(ptr, __func__, __FILE__, __LINE__)
+#define isc_nmhandle_attach(ptr, ptrp) \
+	isc_nmhandle__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define isc_nmhandle_detach(ptrp) \
+	isc_nmhandle__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(isc_nmhandle);
 #else
-#define isc_nmhandle_attach(handle, dest) isc__nmhandle_attach(handle, dest)
-#define isc_nmhandle_detach(handlep)	  isc__nmhandle_detach(handlep)
-#define FLARG_PASS
-#define FLARG
+ISC_REFCOUNT_DECL(isc_nmhandle);
 #endif
-
-void
-isc__nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **dest FLARG);
-void
-isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG);
 /*%<
  * Increment/decrement the reference counter in a netmgr handle.
  *
@@ -175,7 +169,6 @@ isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG);
  * event loop. When references go to zero, the associated socket will be
  * closed and deleted.
  */
-#undef FLARG
 
 void *
 isc_nmhandle_getdata(isc_nmhandle_t *handle);
@@ -310,12 +303,18 @@ isc_nm_cancelread(isc_nmhandle_t *handle);
  * active handles with a result code of ISC_R_CANCELED.
  *
  * Requires:
- * \li	'sock' is a valid datagram-like netmgr socket
+ * \li	'handle' is a valid netmgr handle
  * \li	...for which a read/recv callback has been defined.
  */
 
 void
 isc_nmhandle_close(isc_nmhandle_t *handle);
+/*%<
+ * Close the active handle - no further read callbacks will happen.
+ *
+ * Requires:
+ * 'li	'handle' is a valid netmgr handle
+ */
 
 void
 isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
@@ -349,7 +348,8 @@ isc_nm_listentcp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
+		  isc_nm_cb_t connect_cb, void *connect_cbarg,
+		  unsigned int timeout);
 /*%<
  * Create a socket using netmgr 'mgr', bind it to the address 'local',
  * and connect it to the address 'peer'.
@@ -507,7 +507,8 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 void
 isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, isc_tlsctx_t *ctx,
+		  isc_nm_cb_t connect_cb, void *connect_cbarg,
+		  isc_tlsctx_t			    *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int			     timeout);
 

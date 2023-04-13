@@ -115,53 +115,58 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 
 #if defined(__linux__)
 #include <syscall.h>
-#define gettid() (uint32_t) syscall(SYS_gettid)
+#define gettid() (uint64_t) syscall(SYS_gettid)
+#elif defined(__FreeBSD__)
+#include <pthread_np.h>
+#define gettid() (uint64_t)(pthread_getthreadid_np())
+#elif defined(__OpenBSD__)
+#include <unistd.h>
+#define gettid() (uint64_t)(getthrid())
+#elif defined(__NetBSD__)
+#include <lwp.h>
+#define gettid() (uint64_t)(_lwp_self())
+#elif defined(__DragonFly__)
+#include <unistd.h>
+#define gettid() (uint64_t)(lwp_gettid())
 #else
-#define gettid() (uint32_t) pthread_self()
+#define gettid() (uint64_t)(pthread_self())
 #endif
 
 #define NETMGR_TRACE_LOG(format, ...)                                \
-	fprintf(stderr, "%" PRIu32 ":%d:%s:%u:%s:" format, gettid(), \
+	fprintf(stderr, "%" PRIu64 ":%d:%s:%u:%s:" format, gettid(), \
 		isc_tid(), file, line, func, __VA_ARGS__)
 
-#define FLARG                                                                  \
-	, const char *file ISC_ATTR_UNUSED, unsigned int line ISC_ATTR_UNUSED, \
-		const char *func ISC_ATTR_UNUSED
-#define FLARG_PASS , file, line, func
-#define FLARG_IEVENT(ievent)              \
-	const char *file = ievent->file;  \
-	unsigned int line = ievent->line; \
-	const char *func = ievent->func;
-#define FLARG_IEVENT_PASS(ievent) \
-	ievent->file = file;      \
-	ievent->line = line;      \
-	ievent->func = func;
+#define FLARG                                                                 \
+	, const char *func ISC_ATTR_UNUSED, const char *file ISC_ATTR_UNUSED, \
+		unsigned int line ISC_ATTR_UNUSED
+
+#define FLARG_PASS , func, file, line
 #define isc__nm_uvreq_get(sock) \
-	isc___nm_uvreq_get(sock, __FILE__, __LINE__, __func__)
+	isc___nm_uvreq_get(sock, __func__, __FILE__, __LINE__)
 #define isc__nm_uvreq_put(req) \
-	isc___nm_uvreq_put(req, __FILE__, __LINE__, __func__)
+	isc___nm_uvreq_put(req, __func__, __FILE__, __LINE__)
 #define isc__nmsocket_init(sock, mgr, type, iface, parent)            \
-	isc___nmsocket_init(sock, mgr, type, iface, parent, __FILE__, \
-			    __LINE__, __func__)
+	isc___nmsocket_init(sock, mgr, type, iface, parent, __func__, \
+			    __FILE__, __LINE__)
 #define isc__nmsocket_put(sockp) \
-	isc___nmsocket_put(sockp, __FILE__, __LINE__, __func__)
+	isc___nmsocket_put(sockp, __func__, __FILE__, __LINE__)
 #define isc__nmsocket_attach(sock, target) \
-	isc___nmsocket_attach(sock, target, __FILE__, __LINE__, __func__)
+	isc___nmsocket_attach(sock, target, __func__, __FILE__, __LINE__)
 #define isc__nmsocket_detach(socketp) \
-	isc___nmsocket_detach(socketp, __FILE__, __LINE__, __func__)
+	isc___nmsocket_detach(socketp, __func__, __FILE__, __LINE__)
 #define isc__nmsocket_close(socketp) \
-	isc___nmsocket_close(socketp, __FILE__, __LINE__, __func__)
+	isc___nmsocket_close(socketp, __func__, __FILE__, __LINE__)
 #define isc__nmhandle_get(sock, peer, local) \
-	isc___nmhandle_get(sock, peer, local, __FILE__, __LINE__, __func__)
+	isc___nmhandle_get(sock, peer, local, __func__, __FILE__, __LINE__)
 #define isc__nmsocket_prep_destroy(sock) \
-	isc___nmsocket_prep_destroy(sock, __FILE__, __LINE__, __func__)
+	isc___nmsocket_prep_destroy(sock, __func__, __FILE__, __LINE__)
+#define isc__nm_get_read_req(sock, sockaddr) \
+	isc___nm_get_read_req(sock, sockaddr, __func__, __FILE__, __LINE__)
 #else
 #define NETMGR_TRACE_LOG(format, ...)
 
 #define FLARG
 #define FLARG_PASS
-#define FLARG_IEVENT(ievent)
-#define FLARG_IEVENT_PASS(ievent)
 #define isc__nm_uvreq_get(sock) isc___nm_uvreq_get(sock)
 #define isc__nm_uvreq_put(req)	isc___nm_uvreq_put(req)
 #define isc__nmsocket_init(sock, mgr, type, iface, parent) \
@@ -173,6 +178,8 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
 #define isc__nmhandle_get(sock, peer, local) \
 	isc___nmhandle_get(sock, peer, local)
 #define isc__nmsocket_prep_destroy(sock) isc___nmsocket_prep_destroy(sock)
+#define isc__nm_get_read_req(sock, sockaddr) \
+	isc___nm_get_read_req(sock, sockaddr)
 #endif
 
 typedef struct isc__nm_uvreq isc__nm_uvreq_t;
@@ -504,6 +511,7 @@ struct isc_nmsocket {
 		size_t nsending;
 		bool tcp_nodelay_value;
 		isc_nmsocket_tls_send_req_t *send_req; /*%< Send req to reuse */
+		bool reading;
 	} tlsstream;
 
 #if HAVE_LIBNGHTTP2
@@ -637,7 +645,6 @@ struct isc_nmsocket {
 	isc_nmhandle_t *recv_handle;
 	isc_nm_recv_cb_t recv_cb;
 	void *recv_cbarg;
-	bool recv_read;
 
 	isc_nm_cb_t connect_cb;
 	void *connect_cbarg;
@@ -807,12 +814,6 @@ isc__nm_udp_close(isc_nmsocket_t *sock);
  */
 
 void
-isc__nm_udp_cancelread(isc_nmhandle_t *handle);
-/*%<
- * Stop reading on a connected UDP handle.
- */
-
-void
 isc__nm_udp_shutdown(isc_nmsocket_t *sock);
 /*%<
  * Called during the shutdown process to close and clean up connected
@@ -860,12 +861,6 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock);
 /*%<
  * Called during the shutdown process to close and clean up connected
  * sockets.
- */
-
-void
-isc__nm_tcp_cancelread(isc_nmhandle_t *handle);
-/*%<
- * Stop reading on a connected TCP handle.
  */
 
 void
@@ -1090,9 +1085,6 @@ void
 isc__nm_streamdns_cleanup_data(isc_nmsocket_t *sock);
 
 void
-isc__nm_streamdns_cancelread(isc_nmhandle_t *handle);
-
-void
 isc__nmhandle_streamdns_cleartimeout(isc_nmhandle_t *handle);
 
 void
@@ -1249,7 +1241,7 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 			   bool async);
 
 isc__nm_uvreq_t *
-isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr);
+isc___nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr FLARG);
 
 void
 isc__nm_alloc_cb(uv_handle_t *handle, size_t size, uv_buf_t *buf);

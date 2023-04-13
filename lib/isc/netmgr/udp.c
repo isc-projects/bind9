@@ -167,7 +167,6 @@ start_udp_child_job(void *arg) {
 		goto done;
 	}
 
-	sock->reading = true;
 done:
 	result = isc_uverr2result(r);
 
@@ -569,7 +568,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	req->uvbuf.base = buf->base;
 	req->uvbuf.len = nrecv;
 
-	sock->recv_read = false;
+	sock->reading = false;
 
 	/*
 	 * The client isc_nm_read() expects just a single message, so we need to
@@ -579,6 +578,7 @@ isc__nm_udp_read_cb(uv_udp_t *handle, ssize_t nrecv, const uv_buf_t *buf,
 	if (sock->client) {
 		isc__nmsocket_timer_stop(sock);
 		isc__nm_stop_reading(sock);
+		isc__nmsocket_clearcb(sock);
 	}
 
 	REQUIRE(!sock->processing);
@@ -844,28 +844,6 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	REQUIRE(result != ISC_R_SUCCESS);
 	REQUIRE(sock->tid == isc_tid());
 
-	if (sock->client) {
-		isc__nmsocket_timer_stop(sock);
-		isc__nm_stop_reading(sock);
-
-		/* Nobody expects the callback if isc_nm_read() wasn't called */
-		if (!sock->recv_read) {
-			goto destroy;
-		}
-
-		if (sock->recv_cb != NULL) {
-			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
-			isc__nmsocket_clearcb(sock);
-			isc__nm_readcb(sock, req, result, async);
-		}
-
-		sock->recv_read = false;
-
-	destroy:
-		isc__nmsocket_prep_destroy(sock);
-		return;
-	}
-
 	/*
 	 * For UDP server socket, we don't have child socket via
 	 * "accept", so we:
@@ -873,14 +851,26 @@ isc__nm_udp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	 * - we don't clear the callbacks
 	 * - we don't destroy it (only stoplistening could do that)
 	 */
-	if (!sock->recv_read) {
-		return;
-	}
-	sock->recv_read = false;
 
-	if (sock->recv_cb != NULL) {
-		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
-		isc__nm_readcb(sock, req, result, async);
+	if (sock->client) {
+		isc__nmsocket_timer_stop(sock);
+		isc__nm_stop_reading(sock);
+	}
+
+	/* Nobody expects the callback if isc_nm_read() wasn't called */
+	if (sock->reading) {
+		sock->reading = false;
+
+		if (sock->recv_cb != NULL) {
+			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
+			isc__nm_readcb(sock, req, result, async);
+		}
+	}
+
+	if (sock->client) {
+		isc__nmsocket_clearcb(sock);
+		isc__nmsocket_prep_destroy(sock);
+		return;
 	}
 }
 
@@ -896,7 +886,6 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_udpsocket);
 	REQUIRE(sock->statichandle == handle);
-	REQUIRE(!sock->recv_read);
 	REQUIRE(sock->tid == isc_tid());
 
 	/*
@@ -905,7 +894,7 @@ isc__nm_udp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	 */
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
-	sock->recv_read = true;
+	sock->reading = true;
 
 	if (isc__nm_closing(sock->worker)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -985,13 +974,9 @@ isc__nm_udp_close(isc_nmsocket_t *sock) {
 
 void
 isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
-	isc__networker_t *worker = NULL;
-
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(sock->type == isc_nm_udpsocket);
-
-	worker = sock->worker;
 
 	/*
 	 * If the socket is active, mark it inactive and
@@ -1011,11 +996,7 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	 * interested in the callback.
 	 */
 	if (sock->statichandle != NULL) {
-		if (isc__nm_closing(worker)) {
-			isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
-		} else {
-			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
-		}
+		isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
 		return;
 	}
 
@@ -1029,29 +1010,4 @@ isc__nm_udp_shutdown(isc_nmsocket_t *sock) {
 	if (sock->tid == sock->parent->tid) {
 		isc__nmsocket_prep_destroy(sock->parent);
 	}
-}
-
-static void
-udp_cancelread_cb(void *arg) {
-	isc_nmsocket_t *sock = arg;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->client);
-
-	isc__nm_failed_read_cb(sock, ISC_R_EOF, false);
-	isc__nmsocket_detach(&sock);
-}
-
-void
-isc__nm_udp_cancelread(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-
-	isc_nmsocket_t *sock = handle->sock;
-
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->type == isc_nm_udpsocket);
-
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-	isc_async_run(sock->worker->loop, udp_cancelread_cb, sock);
 }

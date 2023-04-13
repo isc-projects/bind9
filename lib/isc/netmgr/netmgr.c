@@ -581,15 +581,6 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG) {
 }
 
 void
-isc_nmhandle_close(isc_nmhandle_t *handle) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-
-	isc__nmsocket_clearcb(handle->sock);
-	isc__nm_failed_read_cb(handle->sock, ISC_R_EOF, false);
-}
-
-void
 isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 	REQUIRE(sock->parent == NULL);
 
@@ -904,19 +895,6 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 	return (handle);
 }
 
-void
-isc__nmhandle_attach(isc_nmhandle_t *handle, isc_nmhandle_t **handlep FLARG) {
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(handlep != NULL && *handlep == NULL);
-
-	NETMGR_TRACE_LOG("isc__nmhandle_attach():handle %p->references = "
-			 "%" PRIuFAST32 "\n",
-			 handle, isc_refcount_current(&handle->references) + 1);
-
-	isc_refcount_increment(&handle->references);
-	*handlep = handle;
-}
-
 bool
 isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 	REQUIRE(VALID_NMHANDLE(handle));
@@ -1003,26 +981,11 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 		    handle);
 }
 
-void
-isc__nmhandle_detach(isc_nmhandle_t **handlep FLARG) {
-	isc_nmhandle_t *handle = NULL;
-
-	REQUIRE(handlep != NULL);
-	REQUIRE(VALID_NMHANDLE(*handlep));
-
-	handle = *handlep;
-	*handlep = NULL;
-
-	REQUIRE(handle->sock->tid == isc_tid());
-
-	NETMGR_TRACE_LOG("isc__nmhandle_detach():%p->references = %" PRIuFAST32
-			 "\n",
-			 handle, isc_refcount_current(&handle->references) - 1);
-
-	if (isc_refcount_decrement(&handle->references) == 1) {
-		nmhandle_destroy(handle);
-	}
-}
+#if ISC_NETMGR_TRACE
+ISC_REFCOUNT_TRACE_IMPL(isc_nmhandle, nmhandle_destroy)
+#else
+ISC_REFCOUNT_IMPL(isc_nmhandle, nmhandle_destroy);
+#endif
 
 void *
 isc_nmhandle_getdata(isc_nmhandle_t *handle) {
@@ -1117,7 +1080,6 @@ isc__nmsocket_connecttimeout_cb(uv_timer_t *timer) {
 	 */
 	REQUIRE(!sock->timedout);
 	sock->timedout = true;
-	isc__nmsocket_clearcb(sock);
 	isc__nmsocket_shutdown(sock);
 }
 
@@ -1168,12 +1130,9 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->reading);
 
 	if (sock->client) {
 		uv_timer_stop(timer);
-
-		sock->recv_read = false;
 
 		if (sock->recv_cb != NULL) {
 			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
@@ -1182,7 +1141,7 @@ isc__nmsocket_readtimeout_cb(uv_timer_t *timer) {
 
 		if (!isc__nmsocket_timer_running(sock)) {
 			isc__nmsocket_clearcb(sock);
-			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
+			isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT, false);
 		}
 	} else {
 		isc__nm_failed_read_cb(sock, ISC_R_TIMEDOUT, false);
@@ -1285,7 +1244,7 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 }
 
 isc__nm_uvreq_t *
-isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
+isc___nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr FLARG) {
 	isc__nm_uvreq_t *req = NULL;
 
 	req = isc__nm_uvreq_get(sock);
@@ -1295,16 +1254,32 @@ isc__nm_get_read_req(isc_nmsocket_t *sock, isc_sockaddr_t *sockaddr) {
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
 	case isc_nm_tlssocket:
+#if ISC_NETMGR_TRACE
+		isc_nmhandle__attach(sock->statichandle,
+				     &req->handle FLARG_PASS);
+#else
 		isc_nmhandle_attach(sock->statichandle, &req->handle);
+#endif
 		break;
 	case isc_nm_streamdnssocket:
+#if ISC_NETMGR_TRACE
+		isc_nmhandle__attach(sock->recv_handle,
+				     &req->handle FLARG_PASS);
+#else
 		isc_nmhandle_attach(sock->recv_handle, &req->handle);
+#endif
 		break;
 	default:
 		if (sock->client && sock->statichandle != NULL) {
+#if ISC_NETMGR_TRACE
+			isc_nmhandle__attach(sock->statichandle,
+					     &req->handle FLARG_PASS);
+#else
 			isc_nmhandle_attach(sock->statichandle, &req->handle);
+#endif
 		} else {
-			req->handle = isc__nmhandle_get(sock, sockaddr, NULL);
+			req->handle = isc___nmhandle_get(sock, sockaddr,
+							 NULL FLARG_PASS);
 		}
 		break;
 	}
@@ -1357,7 +1332,7 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int r;
 
-	if (sock->reading) {
+	if (uv_is_active(&sock->uv_handle.handle)) {
 		return (ISC_R_SUCCESS);
 	}
 
@@ -1375,8 +1350,6 @@ isc__nm_start_reading(isc_nmsocket_t *sock) {
 	}
 	if (r != 0) {
 		result = isc_uverr2result(r);
-	} else {
-		sock->reading = true;
 	}
 
 	return (result);
@@ -1386,7 +1359,7 @@ void
 isc__nm_stop_reading(isc_nmsocket_t *sock) {
 	int r;
 
-	if (!sock->reading) {
+	if (!uv_is_active(&sock->uv_handle.handle)) {
 		return;
 	}
 
@@ -1402,7 +1375,6 @@ isc__nm_stop_reading(isc_nmsocket_t *sock) {
 	default:
 		UNREACHABLE();
 	}
-	sock->reading = false;
 }
 
 bool
@@ -1578,7 +1550,11 @@ isc___nm_uvreq_put(isc__nm_uvreq_t **reqp FLARG) {
 	ISC_LIST_UNLINK(sock->active_uvreqs, req, active_link);
 
 	if (handle != NULL) {
-		isc__nmhandle_detach(&handle FLARG_PASS);
+#if ISC_NETMGR_TRACE
+		isc_nmhandle__detach(&handle, func, file, line);
+#else
+		isc_nmhandle_detach(&handle);
+#endif
 	}
 
 	isc_mempool_put(sock->worker->uvreq_pool, req);
@@ -1659,20 +1635,37 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	}
 }
 
-void
-isc_nm_cancelread(isc_nmhandle_t *handle) {
+static void
+cancelread_cb(void *arg) {
+	isc_nmhandle_t *handle = arg;
+
 	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->tid == isc_tid());
+
+	REQUIRE(handle->sock->tid == isc_tid());
 
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
-		isc__nm_udp_cancelread(handle);
-		break;
 	case isc_nm_streamdnssocket:
-		isc__nm_streamdns_cancelread(handle);
+	case isc_nm_httpsocket:
+		isc__nm_failed_read_cb(handle->sock, ISC_R_CANCELED, false);
 		break;
 	default:
 		UNREACHABLE();
 	}
+
+	isc_nmhandle_detach(&handle);
+}
+
+void
+isc_nm_cancelread(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	/* Running this directly could cause a dead-lock */
+	isc_nmhandle_ref(handle);
+	isc_async_run(handle->sock->worker->loop, cancelread_cb, handle);
 }
 
 void
@@ -1691,6 +1684,15 @@ isc_nm_read_stop(isc_nmhandle_t *handle) {
 	default:
 		UNREACHABLE();
 	}
+}
+
+void
+isc_nmhandle_close(isc_nmhandle_t *handle) {
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+
+	isc__nmsocket_clearcb(handle->sock);
+	isc__nmsocket_prep_destroy(handle->sock);
 }
 
 void
@@ -2505,8 +2507,7 @@ nmsocket_dump(isc_nmsocket_t *sock) {
 		"Parent %p, listener %p, server %p, statichandle = "
 		"%p\n",
 		sock->parent, sock->listener, sock->server, sock->statichandle);
-	fprintf(stderr, "Flags:%s%s%s%s%s\n",
-		atomic_load_acquire(&sock->active) ? " active" : "",
+	fprintf(stderr, "Flags:%s%s%s%s%s\n", sock->active ? " active" : "",
 		sock->closing ? " closing" : "",
 		sock->destroying ? " destroying" : "",
 		sock->connecting ? " connecting" : "",

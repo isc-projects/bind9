@@ -55,6 +55,16 @@ ISC_LOOP_TEST_IMPL(tls_noresponse) {
 	return;
 }
 
+ISC_LOOP_TEST_IMPL(tls_shutdownconnect) {
+	stream_shutdownconnect(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(tls_shutdownread) {
+	stream_shutdownread(arg);
+	return;
+}
+
 ISC_LOOP_TEST_IMPL(tls_timeout_recovery) {
 	stream_timeout_recovery(arg);
 	return;
@@ -109,6 +119,10 @@ ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(tls_noop, stream_noop_setup, stream_noop_teardown)
 ISC_TEST_ENTRY_CUSTOM(tls_noresponse, stream_noresponse_setup,
 		      stream_noresponse_teardown)
+ISC_TEST_ENTRY_CUSTOM(tls_shutdownconnect, stream_shutdownconnect_setup,
+		      stream_shutdownconnect_teardown)
+ISC_TEST_ENTRY_CUSTOM(tls_shutdownread, stream_shutdownread_setup,
+		      stream_shutdownread_teardown)
 ISC_TEST_ENTRY_CUSTOM(tls_timeout_recovery, stream_timeout_recovery_setup,
 		      stream_timeout_recovery_teardown)
 ISC_TEST_ENTRY_CUSTOM(tls_recv_one, stream_recv_one_setup,

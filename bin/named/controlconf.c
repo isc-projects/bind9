@@ -27,6 +27,7 @@
 #include <isc/netmgr.h>
 #include <isc/nonce.h>
 #include <isc/random.h>
+#include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
@@ -48,6 +49,8 @@
 #include <named/main.h>
 #include <named/server.h>
 
+#undef NAMED_CONTROLCONF_TRACE
+
 typedef struct controlkey controlkey_t;
 typedef ISC_LIST(controlkey_t) controlkeylist_t;
 
@@ -65,12 +68,8 @@ struct controlkey {
 };
 
 struct controlconnection {
-	isc_nmhandle_t *readhandle;
-	isc_nmhandle_t *sendhandle;
-	isc_nmhandle_t *cmdhandle;
+	isc_refcount_t references;
 	isccc_ccmsg_t ccmsg;
-	bool reading;
-	bool sending;
 	controllistener_t *listener;
 	isccc_sexpr_t *ctrl;
 	isc_buffer_t *buffer;
@@ -83,6 +82,7 @@ struct controlconnection {
 	isc_stdtime_t now;
 	isc_result_t result;
 	ISC_LINK(controlconnection_t) link;
+	bool shuttingdown;
 };
 
 struct controllistener {
@@ -92,7 +92,7 @@ struct controllistener {
 	isc_nmsocket_t *sock;
 	dns_acl_t *acl;
 	bool exiting;
-	isc_refcount_t refs;
+	isc_refcount_t references;
 	controlkeylist_t keys;
 	isc_mutex_t connections_lock;
 	controlconnectionlist_t connections;
@@ -107,7 +107,7 @@ struct controllistener {
 struct named_controls {
 	named_server_t *server;
 	controllistenerlist_t listeners;
-	atomic_bool shuttingdown;
+	bool shuttingdown;
 	isc_mutex_t symtab_lock;
 	isccc_symtab_t *symtab;
 };
@@ -116,6 +116,35 @@ static isc_result_t
 control_newconn(isc_nmhandle_t *handle, isc_result_t result, void *arg);
 static void
 control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg);
+static void
+conn_cleanup(controlconnection_t *conn);
+static void
+conn_free(controlconnection_t *conn);
+
+#if NAMED_CONTROLCONF_TRACE
+#define controllistener_ref(ptr) \
+	controllistener__ref(ptr, __func__, __FILE__, __LINE__)
+#define controllistener_unref(ptr) \
+	controllistener__unref(ptr, __func__, __FILE__, __LINE__)
+#define controllistener_attach(ptr, ptrp) \
+	controllistener__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define controllistener_detach(ptrp) \
+	controllistener__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(controllistener);
+
+#define controlconnection_ref(ptr) \
+	controlconnection__ref(ptr, __func__, __FILE__, __LINE__)
+#define controlconnection_unref(ptr) \
+	controlconnection__unref(ptr, __func__, __FILE__, __LINE__)
+#define controlconnection_attach(ptr, ptrp) \
+	controlconnection__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define controlconnection_detach(ptrp) \
+	controlconnection__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(controlconnection);
+#else
+ISC_REFCOUNT_DECL(controllistener);
+ISC_REFCOUNT_DECL(controlconnection);
+#endif
 
 #define CLOCKSKEW 300
 
@@ -144,7 +173,7 @@ free_listener(controllistener_t *listener) {
 	INSIST(listener->exiting);
 	INSIST(ISC_LIST_EMPTY(listener->connections));
 
-	isc_refcount_destroy(&listener->refs);
+	isc_refcount_destroy(&listener->references);
 
 	REQUIRE(listener->sock == NULL);
 
@@ -158,17 +187,26 @@ free_listener(controllistener_t *listener) {
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
 
-static void
-maybe_free_listener(controllistener_t *listener) {
-	if (isc_refcount_decrement(&listener->refs) == 1) {
-		free_listener(listener);
-	}
-}
+#if NAMED_CONTROLCONF_TRACE
+ISC_REFCOUNT_TRACE_IMPL(controllistener, free_listener);
+ISC_REFCOUNT_TRACE_IMPL(controlconnection, conn_free);
+#else
+ISC_REFCOUNT_IMPL(controllistener, free_listener);
+ISC_REFCOUNT_IMPL(controlconnection, conn_free);
+#endif
 
 static void
 shutdown_listener(controllistener_t *listener) {
 	if (!listener->exiting) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
+
+		for (controlconnection_t *conn =
+			     ISC_LIST_HEAD(listener->connections);
+		     conn != NULL; conn = ISC_LIST_HEAD(listener->connections))
+		{
+			control_recvmessage(conn->ccmsg.handle,
+					    ISC_R_SHUTTINGDOWN, conn);
+		}
 
 		ISC_LIST_UNLINK(listener->controls->listeners, listener, link);
 
@@ -188,7 +226,7 @@ shutdown_listener(controllistener_t *listener) {
 
 	isc_nm_stoplistening(listener->sock);
 	isc_nmsocket_close(&listener->sock);
-	maybe_free_listener(listener);
+	controllistener_detach(&listener);
 }
 
 static bool
@@ -217,18 +255,12 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controllistener_t *listener = conn->listener;
 	isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
-	REQUIRE(conn->sending);
-
-	conn->sending = false;
-
 	if (conn->result == ISC_R_SHUTTINGDOWN) {
 		isc_loopmgr_shutdown(named_g_loopmgr);
 		goto cleanup_sendhandle;
 	}
 
-	if (atomic_load_acquire(&listener->controls->shuttingdown) ||
-	    result == ISC_R_SHUTTINGDOWN)
-	{
+	if (listener->controls->shuttingdown || result == ISC_R_SHUTTINGDOWN) {
 		goto cleanup_sendhandle;
 	} else if (result != ISC_R_SUCCESS) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
@@ -241,16 +273,13 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		goto cleanup_sendhandle;
 	}
 
-	isc_nmhandle_attach(handle, &conn->readhandle);
-	conn->reading = true;
-
-	isc_nmhandle_detach(&conn->sendhandle);
-
 	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
-	return;
 
 cleanup_sendhandle:
-	isc_nmhandle_detach(&conn->sendhandle);
+	if (result != ISC_R_SUCCESS) {
+		control_recvmessage(handle, result, conn);
+	}
+	controlconnection_detach(&conn);
 }
 
 static void
@@ -285,7 +314,7 @@ conn_cleanup(controlconnection_t *conn) {
 }
 
 static void
-control_respond(isc_nmhandle_t *handle, controlconnection_t *conn) {
+control_respond(controlconnection_t *conn) {
 	controllistener_t *listener = conn->listener;
 	isccc_sexpr_t *data = NULL;
 	isc_buffer_t b;
@@ -347,7 +376,7 @@ control_respond(isc_nmhandle_t *handle, controlconnection_t *conn) {
 	result = isccc_cc_towire(conn->response, &conn->buffer, conn->alg,
 				 &conn->secret);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
+		return;
 	}
 
 	isc_buffer_init(&b, conn->buffer->base, 4);
@@ -356,19 +385,11 @@ control_respond(isc_nmhandle_t *handle, controlconnection_t *conn) {
 	r.base = conn->buffer->base;
 	r.length = conn->buffer->used;
 
-	isc_nmhandle_attach(handle, &conn->sendhandle);
-	conn->sending = true;
-	conn_cleanup(conn);
-
-	isc_nmhandle_detach(&conn->cmdhandle);
-
-	isc_nm_send(conn->sendhandle, &r, control_senddone, conn);
-
-	return;
+	controlconnection_ref(conn);
+	isccc_ccmsg_sendmessage(&conn->ccmsg, &r, control_senddone, conn);
 
 cleanup:
 	conn_cleanup(conn);
-	isc_nmhandle_detach(&conn->cmdhandle);
 }
 
 static void
@@ -376,19 +397,17 @@ control_command(void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
 
-	if (atomic_load_acquire(&listener->controls->shuttingdown)) {
-		conn_cleanup(conn);
-		isc_nmhandle_detach(&conn->cmdhandle);
-		return;
+	if (!listener->controls->shuttingdown) {
+		conn->result = named_control_docommand(
+			conn->request, listener->readonly, &conn->text);
+		control_respond(conn);
 	}
-
-	conn->result = named_control_docommand(conn->request,
-					       listener->readonly, &conn->text);
-	control_respond(conn->cmdhandle, conn);
+	controlconnection_detach(&conn);
 }
 
 static void
-control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
+		    void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
 	controllistener_t *listener = conn->listener;
 	controlkey_t *key = NULL;
@@ -396,22 +415,22 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_time_t exp;
 	uint32_t nonce;
 
-	conn->reading = false;
+	if (conn->shuttingdown) {
+		return;
+	}
 
 	/* Is the server shutting down? */
-	if (atomic_load_acquire(&listener->controls->shuttingdown)) {
-		goto cleanup_readhandle;
+	if (listener->controls->shuttingdown) {
+		result = ISC_R_SHUTTINGDOWN;
 	}
 
 	if (result != ISC_R_SUCCESS) {
 		if (result == ISC_R_SHUTTINGDOWN) {
-			atomic_store_release(&listener->controls->shuttingdown,
-					     true);
+			listener->controls->shuttingdown = true;
 		} else if (result != ISC_R_EOF) {
 			log_invalid(&conn->ccmsg, result);
 		}
-
-		goto cleanup_readhandle;
+		goto cleanup;
 	}
 
 	for (key = ISC_LIST_HEAD(listener->keys); key != NULL;
@@ -419,8 +438,7 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	{
 		isccc_region_t ccregion;
 
-		ccregion.rstart = isc_buffer_base(conn->ccmsg.buffer);
-		ccregion.rend = isc_buffer_used(conn->ccmsg.buffer);
+		isccc_ccmsg_toregion(&conn->ccmsg, &ccregion);
 		conn->secret.rstart = isc_mem_get(listener->mctx,
 						  key->secret.length);
 		memmove(conn->secret.rstart, key->secret.base,
@@ -507,9 +525,6 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isc_buffer_allocate(listener->mctx, &conn->text, 2 * 2048);
 
-	isc_nmhandle_attach(handle, &conn->cmdhandle);
-	isc_nmhandle_detach(&conn->readhandle);
-
 	if (conn->nonce == 0) {
 		/*
 		 * Establish nonce.
@@ -518,43 +533,31 @@ control_recvmessage(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			isc_nonce_buf(&conn->nonce, sizeof(conn->nonce));
 		}
 		conn->result = ISC_R_SUCCESS;
-		control_respond(handle, conn);
+		control_respond(conn);
 		return;
 	}
 
 	/*
 	 * Trigger the command.
 	 */
-
+	controlconnection_ref(conn);
 	isc_async_run(named_g_mainloop, control_command, conn);
 
 	return;
 
 cleanup:
-	conn_cleanup(conn);
-
-cleanup_readhandle:
-	/*
-	 * readhandle could be NULL if we're shutting down,
-	 * but if not we need to detach it.
-	 */
-	if (conn->readhandle != NULL) {
-		isc_nmhandle_detach(&conn->readhandle);
-	}
+	conn->shuttingdown = true;
+	controlconnection_detach(&conn);
 }
 
 static void
-conn_reset(void *arg) {
-	controlconnection_t *conn = (controlconnection_t *)arg;
+conn_free(controlconnection_t *conn) {
 	controllistener_t *listener = conn->listener;
+
+	conn_cleanup(conn);
 
 	if (conn->buffer != NULL) {
 		isc_buffer_free(&conn->buffer);
-	}
-
-	if (conn->reading) {
-		isccc_ccmsg_cancelread(&conn->ccmsg);
-		return;
 	}
 
 	LOCK(&listener->connections_lock);
@@ -567,12 +570,6 @@ conn_reset(void *arg) {
 #endif /* ifdef ENABLE_AFL */
 
 	isccc_ccmsg_invalidate(&conn->ccmsg);
-}
-
-static void
-conn_put(void *arg) {
-	controlconnection_t *conn = (controlconnection_t *)arg;
-	controllistener_t *listener = conn->listener;
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
@@ -580,27 +577,22 @@ conn_put(void *arg) {
 
 	isc_mem_put(listener->mctx, conn, sizeof(*conn));
 
-	maybe_free_listener(listener);
+	controllistener_detach(&listener);
 }
 
 static void
 newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
-	controlconnection_t *conn = NULL;
+	controlconnection_t *conn = isc_mem_get(listener->mctx, sizeof(*conn));
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
+		      "allocate new control connection");
 
-	conn = isc_nmhandle_getdata(handle);
-	if (conn == NULL) {
-		conn = isc_mem_get(listener->mctx, sizeof(*conn));
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
-			      "allocate new control connection");
-		isc_nmhandle_setdata(handle, conn, conn_reset, conn_put);
-		isc_refcount_increment(&listener->refs);
-	}
+	*conn = (controlconnection_t){ .alg = DST_ALG_UNKNOWN };
 
-	*conn = (controlconnection_t){ .listener = listener,
-				       .reading = false,
-				       .alg = DST_ALG_UNKNOWN };
+	isc_refcount_init(&conn->references, 1);
+	controllistener_attach(listener, &conn->listener);
 
+	/* isccc_ccmsg_init() attaches to the handle */
 	isccc_ccmsg_init(listener->mctx, handle, &conn->ccmsg);
 
 	/* Set a 32 KiB upper limit on incoming message. */
@@ -609,9 +601,6 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	LOCK(&listener->connections_lock);
 	ISC_LIST_INITANDAPPEND(listener->connections, conn, link);
 	UNLOCK(&listener->connections_lock);
-
-	isc_nmhandle_attach(handle, &conn->readhandle);
-	conn->reading = true;
 
 	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
 }
@@ -663,7 +652,7 @@ controls_shutdown(named_controls_t *controls) {
 void
 named_controls_shutdown(named_controls_t *controls) {
 	controls_shutdown(controls);
-	atomic_store_release(&controls->shuttingdown, true);
+	controls->shuttingdown = true;
 }
 
 static isc_result_t
@@ -1095,7 +1084,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->keys);
 	ISC_LIST_INIT(listener->connections);
-	isc_refcount_init(&listener->refs, 1);
+	isc_refcount_init(&listener->references, 1);
 
 	/*
 	 * Make the ACL.
@@ -1177,7 +1166,7 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	return;
 
 cleanup:
-	isc_refcount_decrement(&listener->refs);
+	isc_refcount_decrement(&listener->references);
 	listener->exiting = true;
 	free_listener(listener);
 
@@ -1193,8 +1182,6 @@ cleanup:
 	}
 
 	*listenerp = NULL;
-
-	/* XXXDCL return error results? fail hard? */
 }
 
 isc_result_t
@@ -1455,7 +1442,6 @@ named_controls_create(named_server_t *server, named_controls_t **ctrlsp) {
 
 	ISC_LIST_INIT(controls->listeners);
 
-	atomic_init(&controls->shuttingdown, false);
 	isc_mutex_init(&controls->symtab_lock);
 	LOCK(&controls->symtab_lock);
 	result = isccc_cc_createsymtab(&controls->symtab);

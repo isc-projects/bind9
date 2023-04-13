@@ -975,14 +975,12 @@ client_submit_request(isc_nm_http_session_t *session, http_cstream_t *stream) {
  * Read callback from TLS socket.
  */
 static void
-http_readcb(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
-	    void *data) {
+http_readcb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
+	    isc_region_t *region, void *data) {
 	isc_nm_http_session_t *session = (isc_nm_http_session_t *)data;
 	ssize_t readlen;
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
-
-	UNUSED(handle);
 
 	if (result != ISC_R_SUCCESS) {
 		if (result != ISC_R_TIMEDOUT) {
