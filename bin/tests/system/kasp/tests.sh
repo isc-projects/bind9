@@ -97,6 +97,7 @@ set_zonesigning "KEY4" "yes"
 
 lines=$(get_keyids "$DIR" "$ZONE" | wc -l)
 test "$lines" -eq $NUM_KEYS || log_error "bad number of key ids"
+status=$((status + ret))
 
 ids=$(get_keyids "$DIR" "$ZONE")
 for id in $ids; do
