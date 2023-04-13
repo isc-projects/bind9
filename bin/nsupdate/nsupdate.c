@@ -3080,8 +3080,8 @@ start_gssrequest(dns_name_t *primary) {
 
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
-	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
-					&context, gmctx, &err_message);
+	result = dns_tkey_buildgssquery(rmsg, keyname, servname, 0, &context,
+					gmctx, &err_message);
 	if (result == ISC_R_FAILURE) {
 		fprintf(stderr, "tkey query failed: %s\n",
 			err_message != NULL ? err_message : "unknown error");

@@ -89,9 +89,9 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
-		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       uint32_t lifetime, dns_gss_ctx_id_t *context,
-		       isc_mem_t *mctx, char **err_message);
+		       const dns_name_t *gname, uint32_t lifetime,
+		       dns_gss_ctx_id_t *context, isc_mem_t *mctx,
+		       char **err_message);
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
  *	The key is requested to have the specified lifetime (in seconds).

@@ -65,8 +65,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	ISC_LIST_INIT(sctx->http_quotas);
 	isc_mutex_init(&sctx->http_quotas_lock);
 
-	CHECKFATAL(dns_tkeyctx_create(mctx, &sctx->tkeyctx));
-
 	CHECKFATAL(ns_stats_create(mctx, ns_statscounter_max, &sctx->nsstats));
 
 	CHECKFATAL(dns_rdatatypestats_create(mctx, &sctx->rcvquerystats));
