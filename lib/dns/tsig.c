@@ -222,7 +222,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsigkey_t **keyp) {
 	dns_tsigkey_t *tkey = NULL;
-	isc_result_t ret;
+	isc_result_t result;
 
 	REQUIRE(keyp != NULL && *keyp == NULL);
 	REQUIRE(name != NULL);
@@ -243,11 +243,11 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 
 	if (algorithm != DST_ALG_UNKNOWN) {
 		if (dstkey != NULL && dst_key_alg(dstkey) != algorithm) {
-			ret = DNS_R_BADALG;
+			result = DNS_R_BADALG;
 			goto cleanup_name;
 		}
 	} else if (dstkey != NULL) {
-		ret = DNS_R_BADALG;
+		result = DNS_R_BADALG;
 		goto cleanup_name;
 	}
 
@@ -298,7 +298,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, dst_algorithm_t algorithm,
 cleanup_name:
 	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
 
-	return (ret);
+	return (result);
 }
 
 static void
@@ -575,7 +575,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	isc_stdtime_t now;
 	isc_mem_t *mctx = NULL;
 	dst_context_t *ctx = NULL;
-	isc_result_t ret;
+	isc_result_t result;
 	unsigned char badtimedata[BADTIMELEN];
 	unsigned int sigsize = 0;
 	bool response;
@@ -636,10 +636,10 @@ dns_tsig_sign(dns_message_t *msg) {
 		 * has validated at this point. This is why we include a
 		 * MAC length > 0 in the reply.
 		 */
-		ret = dst_context_create(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					 true, 0, &ctx);
-		if (ret != ISC_R_SUCCESS) {
-			return (ret);
+		result = dst_context_create(
+			key->key, mctx, DNS_LOGCATEGORY_DNSSEC, true, 0, &ctx);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
 		}
 
 		/*
@@ -656,28 +656,28 @@ dns_tsig_sign(dns_message_t *msg) {
 
 			INSIST(msg->verified_sig);
 
-			ret = dns_rdataset_first(msg->querytsig);
-			if (ret != ISC_R_SUCCESS) {
+			result = dns_rdataset_first(msg->querytsig);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 			dns_rdataset_current(msg->querytsig, &querytsigrdata);
-			ret = dns_rdata_tostruct(&querytsigrdata, &querytsig,
-						 NULL);
-			if (ret != ISC_R_SUCCESS) {
+			result = dns_rdata_tostruct(&querytsigrdata, &querytsig,
+						    NULL);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 			isc_buffer_putuint16(&databuf, querytsig.siglen);
 			if (isc_buffer_availablelength(&databuf) <
 			    querytsig.siglen)
 			{
-				ret = ISC_R_NOSPACE;
+				result = ISC_R_NOSPACE;
 				goto cleanup_context;
 			}
 			isc_buffer_putmem(&databuf, querytsig.signature,
 					  querytsig.siglen);
 			isc_buffer_usedregion(&databuf, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 			querytsig_ok = true;
@@ -689,8 +689,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_init(&headerbuf, header, sizeof(header));
 		dns_message_renderheader(msg, &headerbuf);
 		isc_buffer_usedregion(&headerbuf, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -699,8 +699,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		 */
 		isc_buffer_usedregion(msg->buffer, &r);
 		isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -709,8 +709,8 @@ dns_tsig_sign(dns_message_t *msg) {
 			 * Digest the name, class, ttl, alg.
 			 */
 			dns_name_toregion(key->name, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 
@@ -718,14 +718,14 @@ dns_tsig_sign(dns_message_t *msg) {
 			isc_buffer_putuint16(&databuf, dns_rdataclass_any);
 			isc_buffer_putuint32(&databuf, 0); /* ttl */
 			isc_buffer_usedregion(&databuf, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 
 			dns_name_toregion(&tsig.algorithm, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 		}
@@ -737,8 +737,8 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_putuint48(&databuf, tsig.timesigned);
 		isc_buffer_putuint16(&databuf, tsig.fudge);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -751,8 +751,8 @@ dns_tsig_sign(dns_message_t *msg) {
 			isc_buffer_putuint16(&databuf, tsig.otherlen);
 
 			isc_buffer_usedregion(&databuf, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 
@@ -762,22 +762,22 @@ dns_tsig_sign(dns_message_t *msg) {
 			if (tsig.otherlen > 0) {
 				r.length = tsig.otherlen;
 				r.base = tsig.other;
-				ret = dst_context_adddata(ctx, &r);
-				if (ret != ISC_R_SUCCESS) {
+				result = dst_context_adddata(ctx, &r);
+				if (result != ISC_R_SUCCESS) {
 					goto cleanup_context;
 				}
 			}
 		}
 
-		ret = dst_key_sigsize(key->key, &sigsize);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_key_sigsize(key->key, &sigsize);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 		tsig.signature = isc_mem_get(mctx, sigsize);
 
 		isc_buffer_init(&sigbuf, tsig.signature, sigsize);
-		ret = dst_context_sign(ctx, &sigbuf);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_sign(ctx, &sigbuf);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_signature;
 		}
 		dst_context_destroy(&ctx);
@@ -801,9 +801,9 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	dns_message_gettemprdata(msg, &rdata);
 	isc_buffer_allocate(msg->mctx, &dynbuf, 512);
-	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
-				   dns_rdatatype_tsig, &tsig, dynbuf);
-	if (ret != ISC_R_SUCCESS) {
+	result = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
+				      dns_rdatatype_tsig, &tsig, dynbuf);
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_dynbuf;
 	}
 
@@ -843,7 +843,7 @@ cleanup_context:
 	if (ctx != NULL) {
 		dst_context_destroy(&ctx);
 	}
-	return (ret);
+	return (result);
 }
 
 isc_result_t
@@ -856,7 +856,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	dns_name_t *keyname = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
-	isc_result_t ret;
+	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
@@ -908,25 +908,25 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 */
 
 	keyname = msg->tsigname;
-	ret = dns_rdataset_first(msg->tsig);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dns_rdataset_first(msg->tsig);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 	dns_rdataset_current(msg->tsig, &rdata);
-	ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 	dns_rdata_reset(&rdata);
 	if (response) {
-		ret = dns_rdataset_first(msg->querytsig);
-		if (ret != ISC_R_SUCCESS) {
-			return (ret);
+		result = dns_rdataset_first(msg->querytsig);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
 		}
 		dns_rdataset_current(msg->querytsig, &rdata);
-		ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
-		if (ret != ISC_R_SUCCESS) {
-			return (ret);
+		result = dns_rdata_tostruct(&rdata, &querytsig, NULL);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
 		}
 	}
 
@@ -956,22 +956,22 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 * Find dns_tsigkey_t based on keyname.
 	 */
 	if (tsigkey == NULL) {
-		ret = ISC_R_NOTFOUND;
+		result = ISC_R_NOTFOUND;
 		if (ring1 != NULL) {
-			ret = dns_tsigkey_find(&tsigkey, keyname,
-					       &tsig.algorithm, ring1);
+			result = dns_tsigkey_find(&tsigkey, keyname,
+						  &tsig.algorithm, ring1);
 		}
-		if (ret == ISC_R_NOTFOUND && ring2 != NULL) {
-			ret = dns_tsigkey_find(&tsigkey, keyname,
-					       &tsig.algorithm, ring2);
+		if (result == ISC_R_NOTFOUND && ring2 != NULL) {
+			result = dns_tsigkey_find(&tsigkey, keyname,
+						  &tsig.algorithm, ring2);
 		}
-		if (ret != ISC_R_SUCCESS) {
+		if (result != ISC_R_SUCCESS) {
 			msg->tsigstatus = dns_tsigerror_badkey;
-			ret = dns_tsigkey_create(
+			result = dns_tsigkey_create(
 				keyname, dns__tsig_algfromname(&tsig.algorithm),
 				NULL, 0, mctx, &msg->tsigkey);
-			if (ret != ISC_R_SUCCESS) {
-				return (ret);
+			if (result != ISC_R_SUCCESS) {
+				return (result);
 			}
 			tsig_log(msg->tsigkey, 2, "unknown key");
 			return (DNS_R_TSIGVERIFYFAILURE);
@@ -985,9 +985,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	 * Check digest length.
 	 */
 	alg = dst_key_alg(key);
-	ret = dst_key_sigsize(key, &siglen);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dst_key_sigsize(key, &siglen);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 	if (dns__tsig_algvalid(alg)) {
 		if (tsig.siglen > siglen) {
@@ -1009,25 +1009,25 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
 
-		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					 false, 0, &ctx);
-		if (ret != ISC_R_SUCCESS) {
-			return (ret);
+		result = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+					    false, 0, &ctx);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
 		}
 
 		if (response) {
 			isc_buffer_init(&databuf, data, sizeof(data));
 			isc_buffer_putuint16(&databuf, querytsig.siglen);
 			isc_buffer_usedregion(&databuf, &r);
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 			if (querytsig.siglen > 0) {
 				r.length = querytsig.siglen;
 				r.base = querytsig.signature;
-				ret = dst_context_adddata(ctx, &r);
-				if (ret != ISC_R_SUCCESS) {
+				result = dst_context_adddata(ctx, &r);
+				if (result != ISC_R_SUCCESS) {
 					goto cleanup_context;
 				}
 			}
@@ -1059,8 +1059,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 */
 		header_r.base = (unsigned char *)header;
 		header_r.length = DNS_MESSAGE_HEADERLEN;
-		ret = dst_context_adddata(ctx, &header_r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &header_r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1070,8 +1070,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_usedregion(source, &source_r);
 		r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 		r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1079,8 +1079,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Digest the key name.
 		 */
 		dns_name_toregion(tsigkey->name, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1088,8 +1088,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_putuint16(&databuf, tsig.common.rdclass);
 		isc_buffer_putuint32(&databuf, msg->tsig->ttl);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1097,8 +1097,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 * Digest the key algorithm.
 		 */
 		dns_name_toregion(tsigkey->algorithm, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1108,27 +1108,27 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		isc_buffer_putuint16(&databuf, tsig.error);
 		isc_buffer_putuint16(&databuf, tsig.otherlen);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_context_adddata(ctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(ctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
 		if (tsig.otherlen > 0) {
 			r.base = tsig.other;
 			r.length = tsig.otherlen;
-			ret = dst_context_adddata(ctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(ctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 		}
 
-		ret = dst_context_verify(ctx, &sig_r);
-		if (ret == DST_R_VERIFYFAILURE) {
-			ret = DNS_R_TSIGVERIFYFAILURE;
+		result = dst_context_verify(ctx, &sig_r);
+		if (result == DST_R_VERIFYFAILURE) {
+			result = DNS_R_TSIGVERIFYFAILURE;
 			tsig_log(msg->tsigkey, 2,
 				 "signature failed to verify(1)");
 			goto cleanup_context;
-		} else if (ret != ISC_R_SUCCESS) {
+		} else if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 		msg->verified_sig = 1;
@@ -1152,12 +1152,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		tsig_log(msg->tsigkey, 2, "signature has expired");
-		ret = DNS_R_CLOCKSKEW;
+		result = DNS_R_CLOCKSKEW;
 		goto cleanup_context;
 	} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		tsig_log(msg->tsigkey, 2, "signature is in the future");
-		ret = DNS_R_CLOCKSKEW;
+		result = DNS_R_CLOCKSKEW;
 		goto cleanup_context;
 	}
 
@@ -1170,14 +1170,14 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			msg->tsigstatus = dns_tsigerror_badtrunc;
 			tsig_log(msg->tsigkey, 2,
 				 "truncated signature length too small");
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			result = DNS_R_TSIGVERIFYFAILURE;
 			goto cleanup_context;
 		}
 		if (tsig.siglen > 0 && digestbits == 0 && tsig.siglen < siglen)
 		{
 			msg->tsigstatus = dns_tsigerror_badtrunc;
 			tsig_log(msg->tsigkey, 2, "signature length too small");
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			result = DNS_R_TSIGVERIFYFAILURE;
 			goto cleanup_context;
 		}
 	}
@@ -1185,22 +1185,22 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	if (response && tsig.error != dns_rcode_noerror) {
 		msg->tsigstatus = tsig.error;
 		if (tsig.error == dns_tsigerror_badtime) {
-			ret = DNS_R_CLOCKSKEW;
+			result = DNS_R_CLOCKSKEW;
 		} else {
-			ret = DNS_R_TSIGERRORSET;
+			result = DNS_R_TSIGERRORSET;
 		}
 		goto cleanup_context;
 	}
 
 	msg->tsigstatus = dns_rcode_noerror;
-	ret = ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
 cleanup_context:
 	if (ctx != NULL) {
 		dst_context_destroy(&ctx);
 	}
 
-	return (ret);
+	return (result);
 }
 
 static isc_result_t
@@ -1212,7 +1212,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dns_name_t *keyname = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_stdtime_t now;
-	isc_result_t ret;
+	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
@@ -1243,14 +1243,14 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	/*
 	 * Extract and parse the previous TSIG
 	 */
-	ret = dns_rdataset_first(msg->querytsig);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dns_rdataset_first(msg->querytsig);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 	dns_rdataset_current(msg->querytsig, &rdata);
-	ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
-	if (ret != ISC_R_SUCCESS) {
-		return (ret);
+	result = dns_rdata_tostruct(&rdata, &querytsig, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 	dns_rdata_reset(&rdata);
 
@@ -1261,13 +1261,13 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		has_tsig = true;
 
 		keyname = msg->tsigname;
-		ret = dns_rdataset_first(msg->tsig);
-		if (ret != ISC_R_SUCCESS) {
+		result = dns_rdataset_first(msg->tsig);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}
 		dns_rdataset_current(msg->tsig, &rdata);
-		ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
-		if (ret != ISC_R_SUCCESS) {
+		result = dns_rdata_tostruct(&rdata, &tsig, NULL);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}
 
@@ -1278,7 +1278,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		    !dns_name_equal(&tsig.algorithm, &querytsig.algorithm))
 		{
 			msg->tsigstatus = dns_tsigerror_badkey;
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			result = DNS_R_TSIGVERIFYFAILURE;
 			tsig_log(msg->tsigkey, 2,
 				 "key name and algorithm do not match");
 			goto cleanup_querystruct;
@@ -1288,15 +1288,15 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		 * Check digest length.
 		 */
 		alg = dst_key_alg(key);
-		ret = dst_key_sigsize(key, &siglen);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_key_sigsize(key, &siglen);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}
 		if (dns__tsig_algvalid(alg)) {
 			if (tsig.siglen > siglen) {
 				tsig_log(tsigkey, 2,
 					 "signature length too big");
-				ret = DNS_R_FORMERR;
+				result = DNS_R_FORMERR;
 				goto cleanup_querystruct;
 			}
 			if (tsig.siglen > 0 &&
@@ -1305,16 +1305,16 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			{
 				tsig_log(tsigkey, 2,
 					 "signature length below minimum");
-				ret = DNS_R_FORMERR;
+				result = DNS_R_FORMERR;
 				goto cleanup_querystruct;
 			}
 		}
 	}
 
 	if (msg->tsigctx == NULL) {
-		ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
-					 false, 0, &msg->tsigctx);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+					    false, 0, &msg->tsigctx);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_querystruct;
 		}
 
@@ -1324,8 +1324,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, querytsig.siglen);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_context_adddata(msg->tsigctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(msg->tsigctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1335,8 +1335,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (querytsig.siglen > 0) {
 			r.length = querytsig.siglen;
 			r.base = querytsig.signature;
-			ret = dst_context_adddata(msg->tsigctx, &r);
-			if (ret != ISC_R_SUCCESS) {
+			result = dst_context_adddata(msg->tsigctx, &r);
+			if (result != ISC_R_SUCCESS) {
 				goto cleanup_context;
 			}
 		}
@@ -1375,8 +1375,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 */
 	header_r.base = (unsigned char *)header;
 	header_r.length = DNS_MESSAGE_HEADERLEN;
-	ret = dst_context_adddata(msg->tsigctx, &header_r);
-	if (ret != ISC_R_SUCCESS) {
+	result = dst_context_adddata(msg->tsigctx, &header_r);
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_context;
 	}
 
@@ -1390,8 +1390,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	} else {
 		r.length = source_r.length - DNS_MESSAGE_HEADERLEN;
 	}
-	ret = dst_context_adddata(msg->tsigctx, &r);
-	if (ret != ISC_R_SUCCESS) {
+	result = dst_context_adddata(msg->tsigctx, &r);
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_context;
 	}
 
@@ -1403,8 +1403,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		isc_buffer_putuint48(&databuf, tsig.timesigned);
 		isc_buffer_putuint16(&databuf, tsig.fudge);
 		isc_buffer_usedregion(&databuf, &r);
-		ret = dst_context_adddata(msg->tsigctx, &r);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_context_adddata(msg->tsigctx, &r);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 
@@ -1414,24 +1414,24 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			if (tsig.error != dns_rcode_noerror) {
 				msg->tsigstatus = tsig.error;
 				if (tsig.error == dns_tsigerror_badtime) {
-					ret = DNS_R_CLOCKSKEW;
+					result = DNS_R_CLOCKSKEW;
 				} else {
-					ret = DNS_R_TSIGERRORSET;
+					result = DNS_R_TSIGERRORSET;
 				}
 			} else {
 				tsig_log(msg->tsigkey, 2, "signature is empty");
-				ret = DNS_R_TSIGVERIFYFAILURE;
+				result = DNS_R_TSIGVERIFYFAILURE;
 			}
 			goto cleanup_context;
 		}
 
-		ret = dst_context_verify(msg->tsigctx, &sig_r);
-		if (ret == DST_R_VERIFYFAILURE) {
+		result = dst_context_verify(msg->tsigctx, &sig_r);
+		if (result == DST_R_VERIFYFAILURE) {
 			tsig_log(msg->tsigkey, 2,
 				 "signature failed to verify(2)");
-			ret = DNS_R_TSIGVERIFYFAILURE;
+			result = DNS_R_TSIGVERIFYFAILURE;
 			goto cleanup_context;
-		} else if (ret != ISC_R_SUCCESS) {
+		} else if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 		msg->verified_sig = 1;
@@ -1455,19 +1455,19 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
 			tsig_log(msg->tsigkey, 2, "signature has expired");
-			ret = DNS_R_CLOCKSKEW;
+			result = DNS_R_CLOCKSKEW;
 			goto cleanup_context;
 		} else if (now + msg->timeadjust < tsig.timesigned - tsig.fudge)
 		{
 			msg->tsigstatus = dns_tsigerror_badtime;
 			tsig_log(msg->tsigkey, 2, "signature is in the future");
-			ret = DNS_R_CLOCKSKEW;
+			result = DNS_R_CLOCKSKEW;
 			goto cleanup_context;
 		}
 
 		alg = dst_key_alg(key);
-		ret = dst_key_sigsize(key, &siglen);
-		if (ret != ISC_R_SUCCESS) {
+		result = dst_key_sigsize(key, &siglen);
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup_context;
 		}
 		if (dns__tsig_algvalid(alg)) {
@@ -1480,7 +1480,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 				tsig_log(msg->tsigkey, 2,
 					 "truncated signature length "
 					 "too small");
-				ret = DNS_R_TSIGVERIFYFAILURE;
+				result = DNS_R_TSIGVERIFYFAILURE;
 				goto cleanup_context;
 			}
 			if (tsig.siglen > 0 && digestbits == 0 &&
@@ -1489,7 +1489,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 				msg->tsigstatus = dns_tsigerror_badtrunc;
 				tsig_log(msg->tsigkey, 2,
 					 "signature length too small");
-				ret = DNS_R_TSIGVERIFYFAILURE;
+				result = DNS_R_TSIGVERIFYFAILURE;
 				goto cleanup_context;
 			}
 		}
@@ -1497,16 +1497,16 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		if (tsig.error != dns_rcode_noerror) {
 			msg->tsigstatus = tsig.error;
 			if (tsig.error == dns_tsigerror_badtime) {
-				ret = DNS_R_CLOCKSKEW;
+				result = DNS_R_CLOCKSKEW;
 			} else {
-				ret = DNS_R_TSIGERRORSET;
+				result = DNS_R_TSIGERRORSET;
 			}
 			goto cleanup_context;
 		}
 	}
 
 	msg->tsigstatus = dns_rcode_noerror;
-	ret = ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
 cleanup_context:
 	/*
@@ -1514,14 +1514,14 @@ cleanup_context:
 	 * for unsigned messages; it is a running sum till the next
 	 * TSIG signed message.
 	 */
-	if ((ret != ISC_R_SUCCESS || has_tsig) && msg->tsigctx != NULL) {
+	if ((result != ISC_R_SUCCESS || has_tsig) && msg->tsigctx != NULL) {
 		dst_context_destroy(&msg->tsigctx);
 	}
 
 cleanup_querystruct:
 	dns_rdata_freestruct(&querytsig);
 
-	return (ret);
+	return (result);
 }
 
 isc_result_t
