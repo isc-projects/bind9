@@ -72,11 +72,6 @@
 		 : ISC_NETMGR_TCP_RECVBUF_SIZE)
 
 /*
- * Send buffer
- */
-#define ISC_NETMGR_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
-
-/*
  * Make sure our RECVBUF size is large enough
  */
 
@@ -193,7 +188,6 @@ typedef struct isc__networker {
 	bool shuttingdown;
 
 	char *recvbuf;
-	char *sendbuf;
 	bool recvbuf_inuse;
 
 	ISC_LIST(isc_nmsocket_t) active_sockets;

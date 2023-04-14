@@ -230,8 +230,6 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 		*worker = (isc__networker_t){
 			.recvbuf = isc_mem_get(loop->mctx,
 					       ISC_NETMGR_RECVBUF_SIZE),
-			.sendbuf = isc_mem_get(loop->mctx,
-					       ISC_NETMGR_SENDBUF_SIZE),
 			.active_sockets = ISC_LIST_INITIALIZER,
 		};
 
@@ -2320,7 +2318,6 @@ isc__networker_destroy(isc__networker_t *worker) {
 
 	isc_mempool_destroy(&worker->uvreq_pool);
 
-	isc_mem_put(worker->mctx, worker->sendbuf, ISC_NETMGR_SENDBUF_SIZE);
 	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
 			     ISC_NETMGR_RECVBUF_SIZE);
 	isc_nm_detach(&netmgr);
