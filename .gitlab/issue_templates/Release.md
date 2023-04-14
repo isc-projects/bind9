@@ -30,6 +30,7 @@
 
 ### Before the Code Freeze
 
+ - [ ] ***(QA)*** Rebase -S editions on top of current open-source versions: `git checkout bind-9.18-sub && git rebase origin/bind-9.18`
  - [ ] ***(QA)*** [Inform](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/inform_supp_marketing.py) Support and Marketing of impending release (and give estimated release dates).
  - [ ] ***(QA)*** Ensure there are no permanent test failures on any platform. Check [public](https://gitlab.isc.org/isc-projects/bind9/-/pipelines?scope=all&source=schedule) and [private](https://gitlab.isc.org/isc-private/bind9/-/pipelines?scope=all&source=schedule) scheduled pipelines.
  - [ ] ***(QA)*** Check [Perflab](https://perflab.isc.org/) to ensure there has been no unexplained drop in performance for the versions being released.
