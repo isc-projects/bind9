@@ -5,6 +5,7 @@
 *.la
 *.lo
 *.log
+*.log.txt
 *.o
 *.orig
 *.plist/ # ccc-analyzer store its results in .plist directories
