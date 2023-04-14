@@ -1,3 +1,9 @@
+6150.	[bug]		If the zones have active upstream forwards, the
+			shutting down the server might cause assertion
+			failures as the forward were all canceled from
+			the main loop instead from the loops associated
+			with the zone. [GL #4015]
+
 6149.	[test]		As a workaround, include an OpenSSL header file before
 			including cmocka.h in the unit tests, because OpenSSL
 			3.1.0 uses __attribute__(malloc), conflicting with a
