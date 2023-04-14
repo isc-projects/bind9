@@ -1,3 +1,6 @@
+6148.	[bug]		Fix a use-after-free bug in dns_xfrin_create().
+			[GL !7832]
+
 6147.	[performance]	Fix the TCP server parent quota use. [GL #3985]
 
 6146.	[performance]	Replace the zone table red-black tree and associated

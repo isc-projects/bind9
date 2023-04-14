@@ -723,15 +723,12 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	if (result != ISC_R_SUCCESS) {
 		atomic_store(&xfr->shuttingdown, true);
 		xfr->shutdown_result = result;
+		xfrin_log(xfr, ISC_LOG_ERROR, "zone transfer setup failed");
 		dns_xfrin_detach(xfrp);
 	}
 
 	if (db != NULL) {
 		dns_db_detach(&db);
-	}
-
-	if (result != ISC_R_SUCCESS) {
-		xfrin_log(xfr, ISC_LOG_ERROR, "zone transfer setup failed");
 	}
 
 	return (result);
