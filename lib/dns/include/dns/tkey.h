@@ -90,7 +90,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       uint32_t lifetime, dns_gss_ctx_id_t *context, bool win2k,
+		       uint32_t lifetime, dns_gss_ctx_id_t *context,
 		       isc_mem_t *mctx, char **err_message);
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
@@ -102,8 +102,6 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
  *\li		'gname'	  is a valid name
  *\li		'context' is a pointer to a valid gss_ctx_id_t
  *			  (which may have the value GSS_C_NO_CONTEXT)
- *\li		'win2k'   when true says to turn on some hacks to work
- *			  with the non-standard GSS-TSIG of Windows 2000
  *
  *	Returns:
  *\li		ISC_R_SUCCESS	msg was successfully updated to include the
@@ -116,9 +114,8 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, dns_gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      bool win2k, char **err_message);
-
-/*
+		      char **err_message);
+/*%<
  *	Client side negotiation of GSS-TSIG.  Process the response
  *	to a TKEY, and establish a TSIG key if negotiation was successful.
  *	Build a response to the input TKEY message.  Can take multiple
@@ -134,8 +131,6 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
  *			      if non-NULL must point to NULL
  *		'ring'	  is the keyring in which to establish the key,
  *			      or NULL
- *		'win2k'   when true says to turn on some hacks to work
- *			      with the non-standard GSS-TSIG of Windows 2000
  *
  *	Returns:
  *		ISC_R_SUCCESS	context was successfully established
@@ -144,5 +139,4 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
  *		DNS_R_CONTINUE  additional context negotiation is required;
  *					send the new qmsg to the server
  */
-
 ISC_LANG_ENDDECLS

@@ -149,8 +149,10 @@ Options
 
 .. option:: -o
 
-   This option enables a non-standards-compliant variant of GSS-TSIG
-   used by Windows 2000.
+   This option is deprecated. Previously, it enabled a
+   non-standards-compliant variant of GSS-TSIG that was used by Windows
+   2000. Since that OS is now long past its end of life, this option is
+   now treated as a synonym for :option:`-g`.
 
 .. option:: -O
 
@@ -300,8 +302,9 @@ The command formats and their meanings are as follows:
    :option:`-g` on the command line.
 
 ``oldgsstsig``
-   This command uses the Windows 2000 version of GSS-TSIG to sign the updates. This is
-   equivalent to specifying :option:`-o` on the command line.
+   This command is deprecated and will be removed in a future release.
+   Previously, it caused ``nsupdate`` to use the Windows 2000 version of
+   GSS-TSIG to sign updates. It is now treated as a synonym for ``gsstsig``.
 
 ``realm [realm_name]``
    When using GSS-TSIG, this command specifies the use of ``realm_name`` rather than the default realm

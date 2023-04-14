@@ -197,12 +197,9 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		return (ISC_R_NOPERM);
 	}
 
-	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME) &&
-	    !dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPIMS_NAME))
-	{
+	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME)) {
 		tkeyout->error = dns_tsigerror_badalg;
-		tkey_log("process_gsstkey(): dns_tsigerror_badalg"); /* XXXSRA
-								      */
+		tkey_log("process_gsstkey(): dns_tsigerror_badalg");
 		return (ISC_R_SUCCESS);
 	}
 
@@ -403,20 +400,10 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	result = dns_message_findname(msg, DNS_SECTION_ADDITIONAL, qname,
 				      dns_rdatatype_tkey, 0, &name, &tkeyset);
 	if (result != ISC_R_SUCCESS) {
-		/*
-		 * Try the answer section, since that's where Win2000
-		 * puts it.
-		 */
-		name = NULL;
-		if (dns_message_findname(msg, DNS_SECTION_ANSWER, qname,
-					 dns_rdatatype_tkey, 0, &name,
-					 &tkeyset) != ISC_R_SUCCESS)
-		{
-			result = DNS_R_FORMERR;
-			tkey_log("dns_tkey_processquery: couldn't find a TKEY "
-				 "matching the question");
-			goto failure;
-		}
+		result = DNS_R_FORMERR;
+		tkey_log("dns_tkey_processquery: couldn't find a TKEY "
+			 "matching the question");
+		goto failure;
 	}
 	result = dns_rdataset_first(tkeyset);
 	if (result != ISC_R_SUCCESS) {
@@ -614,8 +601,7 @@ failure:
 }
 
 static isc_result_t
-buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
-	   bool win2k) {
+buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey) {
 	dns_name_t *qname = NULL, *aname = NULL;
 	dns_rdataset_t *question = NULL, *tkeyset = NULL;
 	dns_rdatalist_t *tkeylist = NULL;
@@ -662,16 +648,7 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 	ISC_LIST_APPEND(aname->list, tkeyset, link);
 
 	dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
-
-	/*
-	 * Windows 2000 needs this in the answer section, not the additional
-	 * section where the RFC specifies.
-	 */
-	if (win2k) {
-		dns_message_addname(msg, aname, DNS_SECTION_ANSWER);
-	} else {
-		dns_message_addname(msg, aname, DNS_SECTION_ADDITIONAL);
-	}
+	dns_message_addname(msg, aname, DNS_SECTION_ADDITIONAL);
 
 	return (ISC_R_SUCCESS);
 }
@@ -679,7 +656,7 @@ buildquery(dns_message_t *msg, const dns_name_t *name, dns_rdata_tkey_t *tkey,
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       uint32_t lifetime, dns_gss_ctx_id_t *context, bool win2k,
+		       uint32_t lifetime, dns_gss_ctx_id_t *context,
 		       isc_mem_t *mctx, char **err_message) {
 	dns_rdata_tkey_t tkey;
 	isc_result_t result;
@@ -707,13 +684,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = NULL;
 	dns_name_init(&tkey.algorithm, NULL);
-
-	if (win2k) {
-		dns_name_clone(DNS_TSIG_GSSAPIMS_NAME, &tkey.algorithm);
-	} else {
-		dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
-	}
-
+	dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
 	tkey.inception = now;
 	tkey.expire = now + lifetime;
 	tkey.mode = DNS_TKEYMODE_GSSAPI;
@@ -723,7 +694,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 	tkey.other = NULL;
 	tkey.otherlen = 0;
 
-	return (buildquery(msg, name, &tkey, win2k));
+	return (buildquery(msg, name, &tkey));
 }
 
 static isc_result_t
@@ -759,7 +730,7 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, dns_gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      bool win2k, char **err_message) {
+		      char **err_message) {
 	dns_rdata_t rtkeyrdata = DNS_RDATA_INIT, qtkeyrdata = DNS_RDATA_INIT;
 	dns_name_t *tkeyname;
 	dns_rdata_tkey_t rtkey, qtkey, tkey;
@@ -784,14 +755,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_rdata_tostruct(&rtkeyrdata, &rtkey, NULL));
 	freertkey = true;
 
-	if (win2k) {
-		RETERR(find_tkey(qmsg, &tkeyname, &qtkeyrdata,
-				 DNS_SECTION_ANSWER));
-	} else {
-		RETERR(find_tkey(qmsg, &tkeyname, &qtkeyrdata,
-				 DNS_SECTION_ADDITIONAL));
-	}
-
+	RETERR(find_tkey(qmsg, &tkeyname, &qtkeyrdata, DNS_SECTION_ADDITIONAL));
 	RETERR(dns_rdata_tostruct(&qtkeyrdata, &qtkey, NULL));
 
 	if (rtkey.error != dns_rcode_noerror ||
@@ -825,12 +789,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		ISC_LINK_INIT(&tkey.common, link);
 		tkey.mctx = NULL;
 		dns_name_init(&tkey.algorithm, NULL);
-
-		if (win2k) {
-			dns_name_clone(DNS_TSIG_GSSAPIMS_NAME, &tkey.algorithm);
-		} else {
-			dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
-		}
+		dns_name_clone(DNS_TSIG_GSSAPI_NAME, &tkey.algorithm);
 
 		tkey.inception = qtkey.inception;
 		tkey.expire = qtkey.expire;
@@ -842,7 +801,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		tkey.otherlen = 0;
 
 		dns_message_reset(qmsg, DNS_MESSAGE_INTENTRENDER);
-		RETERR(buildquery(qmsg, tkeyname, &tkey, win2k));
+		RETERR(buildquery(qmsg, tkeyname, &tkey));
 		return (DNS_R_CONTINUE);
 	}
 
@@ -856,10 +815,8 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 	 */
 
 	RETERR(dns_tsigkey_createfromkey(
-		tkeyname,
-		(win2k ? DNS_TSIG_GSSAPIMS_NAME : DNS_TSIG_GSSAPI_NAME), dstkey,
-		true, false, NULL, rtkey.inception, rtkey.expire, ring->mctx,
-		ring, outkey));
+		tkeyname, DNS_TSIG_GSSAPI_NAME, dstkey, true, false, NULL,
+		rtkey.inception, rtkey.expire, ring->mctx, ring, outkey));
 	dst_key_free(&dstkey);
 	dns_rdata_freestruct(&rtkey);
 	return (result);

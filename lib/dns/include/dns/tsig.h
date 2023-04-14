@@ -35,8 +35,6 @@ extern const dns_name_t *dns_tsig_hmacmd5_name;
 #define DNS_TSIG_HMACMD5_NAME dns_tsig_hmacmd5_name
 extern const dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME dns_tsig_gssapi_name
-extern const dns_name_t *dns_tsig_gssapims_name;
-#define DNS_TSIG_GSSAPIMS_NAME dns_tsig_gssapims_name
 extern const dns_name_t *dns_tsig_hmacsha1_name;
 #define DNS_TSIG_HMACSHA1_NAME dns_tsig_hmacsha1_name
 extern const dns_name_t *dns_tsig_hmacsha224_name;
