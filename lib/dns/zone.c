@@ -11846,6 +11846,13 @@ checkds_cancel(dns_zone_t *zone) {
 }
 
 static void
+forward_cancel_cb(void *arg) {
+	dns_request_t *request = arg;
+	dns_request_cancel(request);
+	dns_request_detach(&request);
+}
+
+static void
 forward_cancel(dns_zone_t *zone) {
 	dns_forward_t *forward;
 
@@ -11859,7 +11866,9 @@ forward_cancel(dns_zone_t *zone) {
 	     forward = ISC_LIST_NEXT(forward, link))
 	{
 		if (forward->request != NULL) {
-			dns_request_cancel(forward->request);
+			dns_request_t *request = NULL;
+			dns_request_attach(forward->request, &request);
+			isc_async_run(zone->loop, forward_cancel_cb, request);
 		}
 	}
 }
