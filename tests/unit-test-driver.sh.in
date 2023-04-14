@@ -35,8 +35,8 @@ while [ ${TIMEOUT} -gt 0 ]; do
 	TIMEOUT=$((TIMEOUT - 1))
 done
 if [ ${TIMEOUT} -eq 0 ]; then
-	echo "PID ${TEST_PROGRAM_PID} exceeded run time limit, sending SIGKILL" >&2
-	kill -KILL "${TEST_PROGRAM_PID}" 2>/dev/null
+	echo "PID ${TEST_PROGRAM_PID} exceeded run time limit, sending SIGABRT" >&2
+	kill -ABRT "${TEST_PROGRAM_PID}" 2>/dev/null
 fi
 
 TEST_PROGRAM_NAME=$(basename "${TEST_PROGRAM}")
