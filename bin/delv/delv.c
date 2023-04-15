@@ -2161,7 +2161,7 @@ run_server(void *arg) {
 	view->qminimization = qmin;
 	view->qmin_strict = qmin_strict;
 
-	CHECK(dns_view_initsecroots(view, mctx));
+	dns_view_initsecroots(view);
 	CHECK(setup_dnsseckeys(NULL, view));
 
 	dns_view_setdispatchmgr(view, dispatchmgr);

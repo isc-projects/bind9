@@ -1554,7 +1554,7 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 
 cleanup:
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(vctx->secroots, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 	if (key != NULL) {
 		dst_key_free(&key);

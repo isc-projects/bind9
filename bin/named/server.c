@@ -1044,7 +1044,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 	result = dns_keytable_find(secroots, name, &keynode);
 
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(secroots, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
@@ -1062,7 +1062,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 static isc_result_t
 configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
-			  bool auto_root, isc_mem_t *mctx) {
+			  bool auto_root) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
 	const cfg_obj_t *global_keys = NULL;
@@ -1116,14 +1116,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
-	result = dns_view_initsecroots(view, mctx);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "couldn't create keytable");
-		return (ISC_R_UNEXPECTED);
-	}
-
+	dns_view_initsecroots(view);
 	dns_view_initntatable(view, named_g_loopmgr);
 
 	if (auto_root && view->rdclass == dns_rdataclass_in) {
@@ -5534,7 +5527,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_root, mctx));
+					auto_root));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -7309,7 +7302,7 @@ tat_timer_tick(void *arg) {
 
 		dotat_arg.view = view;
 		dotat_arg.loop = named_g_mainloop;
-		(void)dns_keytable_forall(secroots, dotat, &dotat_arg);
+		dns_keytable_forall(secroots, dotat, &dotat_arg);
 		dns_keytable_detach(&secroots);
 	}
 }

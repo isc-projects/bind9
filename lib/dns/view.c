@@ -1574,13 +1574,13 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx) {
+void
+dns_view_initsecroots(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->secroots_priv != NULL) {
 		dns_keytable_detach(&view->secroots_priv);
 	}
-	return (dns_keytable_create(mctx, &view->secroots_priv));
+	dns_keytable_create(view, &view->secroots_priv);
 }
 
 isc_result_t
@@ -1759,7 +1759,7 @@ finish:
 		dns_rdataset_disassociate(&dsset);
 	}
 	if (knode != NULL) {
-		dns_keytable_detachkeynode(sr, &knode);
+		dns_keynode_detach(&knode);
 	}
 	dns_keytable_detach(&sr);
 	return (answer);

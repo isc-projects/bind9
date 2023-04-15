@@ -214,28 +214,18 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	dns_view_setdispatchmgr(view, dispatchmgr);
 
 	/* Initialize view security roots */
-	result = dns_view_initsecroots(view, mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
+	dns_view_initsecroots(view);
 
-	result = dns_view_createresolver(view, loopmgr, 1, nm, 0,
-					 tlsctx_client_cache, dispatchv4,
-					 dispatchv6);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
-
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
-			       rdclass, 0, NULL, &view->cachedb);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
+	CHECK(dns_view_createresolver(view, loopmgr, 1, nm, 0,
+				      tlsctx_client_cache, dispatchv4,
+				      dispatchv6));
+	CHECK(dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
+			    rdclass, 0, NULL, &view->cachedb));
 
 	*viewp = view;
 	return (ISC_R_SUCCESS);
 
-cleanup_view:
+cleanup:
 	dns_view_detach(&view);
 	return (result);
 }

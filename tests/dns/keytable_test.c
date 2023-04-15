@@ -173,7 +173,7 @@ create_tables(void) {
 	assert_int_equal(dns_test_makeview("view", false, &view),
 			 ISC_R_SUCCESS);
 
-	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
+	dns_keytable_create(view, &keytable);
 	dns_ntatable_create(view, loopmgr, &ntatable);
 
 	/* Add a normal key */
@@ -244,13 +244,13 @@ ISC_LOOP_TEST_IMPL(add) {
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
 			 ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("example.com"), &keynode),
 		ISC_R_SUCCESS);
 
 	/* Add another key (different keydata) */
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 	create_dsstruct(keyname, 257, 3, 5, keystr2, digest, &ds);
 	assert_int_equal(dns_keytable_add(keytable, false, false, keyname, &ds,
 					  NULL, NULL),
@@ -258,7 +258,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("example.com"), &keynode),
 		ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Get the keynode for the managed.com key. Ensure the
@@ -271,7 +271,7 @@ ISC_LOOP_TEST_IMPL(add) {
 	assert_int_equal(dns_keynode_initial(keynode), true);
 	dns_keynode_trust(keynode);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Add a different managed key for managed.com, marking it as an
@@ -287,7 +287,7 @@ ISC_LOOP_TEST_IMPL(add) {
 		dns_keytable_find(keytable, str2name("managed.com"), &keynode),
 		ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Add the same managed key again, but this time mark it as a
@@ -302,7 +302,7 @@ ISC_LOOP_TEST_IMPL(add) {
 		dns_keytable_find(keytable, str2name("managed.com"), &keynode),
 		ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), false);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Add a managed key at a new node, two.com, marking it as an
@@ -317,7 +317,7 @@ ISC_LOOP_TEST_IMPL(add) {
 		dns_keytable_find(keytable, str2name("two.com"), &keynode),
 		ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), true);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Add a different managed key for two.com, marking it as a
@@ -333,7 +333,7 @@ ISC_LOOP_TEST_IMPL(add) {
 		dns_keytable_find(keytable, str2name("two.com"), &keynode),
 		ISC_R_SUCCESS);
 	assert_int_equal(dns_keynode_initial(keynode), true);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * Add a normal key to a name that has a null key.  The null key node
@@ -351,7 +351,7 @@ ISC_LOOP_TEST_IMPL(add) {
 		dns_keytable_find(keytable, str2name("null.example"), &keynode),
 		ISC_R_SUCCESS);
 	assert_ptr_equal(keynode, null_keynode); /* should be the same node */
-	dns_keytable_detachkeynode(keytable, &null_keynode);
+	dns_keynode_detach(&null_keynode);
 
 	/*
 	 * Try to add a null key to a name that already has a key.  It's
@@ -366,9 +366,9 @@ ISC_LOOP_TEST_IMPL(add) {
 					   &null_keynode),
 			 ISC_R_SUCCESS);
 	assert_ptr_equal(keynode, null_keynode);
-	dns_keytable_detachkeynode(keytable, &null_keynode);
+	dns_keynode_detach(&null_keynode);
 
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 	destroy_tables();
 
 	isc_loopmgr_shutdown(loopmgr);
@@ -500,11 +500,11 @@ ISC_LOOP_TEST_IMPL(find) {
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("example.com"), &keynode),
 		ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 	assert_int_equal(
 		dns_keytable_find(keytable, str2name("null.example"), &keynode),
 		ISC_R_SUCCESS);
-	dns_keytable_detachkeynode(keytable, &keynode);
+	dns_keynode_detach(&keynode);
 
 	/*
 	 * dns_keytable_finddeepestmatch() allows partial match.  Also match
@@ -605,8 +605,8 @@ ISC_LOOP_TEST_IMPL(nta) {
 	result = dns_test_makeview("view", false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initsecroots(myview, mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_view_initsecroots(myview);
+
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
