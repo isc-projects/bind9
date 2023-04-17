@@ -15,6 +15,7 @@
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+NS_PARAMS="-X named.lock -m record -c named.conf -d 99 -g -U 4 -T maxcachesize=2097152"
 
 status=0
 n=0
@@ -578,6 +579,46 @@ echo_i "test that transfer-source uses port option correctly ($n)"
 tmp=0
 grep "10.53.0.3#${EXTRAPORT1} (primary): query 'primary/SOA/IN' approved" ns6/named.run > /dev/null || tmp=1
 if test $tmp != 0 ; then echo_i "failed"; fi
+status=$((status+tmp))
+
+wait_for_message() (
+	nextpartpeek ns6/named.run > wait_for_message.$n
+	grep -F "$1" wait_for_message.$n >/dev/null
+)
+
+nextpart ns6/named.run > /dev/null
+
+n=$((n+1))
+echo_i "test max-transfer-time-in with 1 second timeout ($n)"
+stop_server ns1
+copy_setports ns1/named2.conf.in ns1/named.conf
+start_server --noclean --restart --port ${PORT} ns1 -- "-D xfer-ns1 $NS_PARAMS -T transferinsecs -T transferslowly"
+sleep 1
+$RNDCCMD 10.53.0.6 retransfer axfr-max-transfer-time 2>&1 | sed 's/^/ns6 /' | cat_i
+tmp=0
+retry_quiet 10 wait_for_message "maximum transfer time exceeded: timed out" || tmp=1
+status=$((status+tmp))
+
+nextpart ns6/named.run > /dev/null
+
+n=$((n+1))
+echo_i "test max-transfer-idle-in with 50 seconds timeout ($n)"
+stop_server ns1
+copy_setports ns1/named3.conf.in ns1/named.conf
+start_server --noclean --restart --port ${PORT} ns1 -- "-D xfer-ns1 $NS_PARAMS -T transferinsecs -T transferstuck"
+sleep 1
+start=`date +%s`
+$RNDCCMD 10.53.0.6 retransfer axfr-max-idle-time 2>&1 | sed 's/^/ns6 /' | cat_i
+tmp=0
+retry_quiet 60 wait_for_message "maximum idle time exceeded: timed out" || tmp=1
+if [ $tmp -eq 0 ]; then
+	now=`date +%s`
+	diff=$((now - start))
+	# we expect a timeout in 50 seconds
+	test $diff -lt 50 && tmp=1
+	test $diff -ge 59 && tmp=1
+	if test $tmp != 0 ; then echo_i "unexpected diff value: ${diff}"; fi
+fi
 status=$((status+tmp))
 
 echo_i "exit status: $status"

@@ -34,34 +34,7 @@ zone "." {
 	file "root.db";
 };
 
-zone "secondary" {
+zone "axfr-max-transfer-time" {
 	type primary;
-	allow-transfer { 10.53.0.1; 10.53.0.2; 10.53.0.6; 10.53.0.7; };
-	file "sec.db";
-};
-
-zone "edns-expire" {
-	type primary;
-	file "edns-expire.db";
-};
-
-zone "axfr-too-big" {
-	type primary;
-	file "axfr-too-big.db";
-};
-
-zone "ixfr-too-big" {
-	type primary;
-	allow-update { any; };
-	file "ixfr-too-big.db";
-};
-
-zone "xfer-stats" {
-	type primary;
-	file "xfer-stats.db";
-};
-
-zone "dot-fallback" {
-	type primary;
-	file "dot-fallback.db";
+	file "axfr-max-transfer-time.db";
 };
