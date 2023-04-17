@@ -44,13 +44,28 @@
  * Set key state to `target` state and change last changed
  * to `time`, only if key state has not been set before.
  */
-#define INITIALIZE_STATE(key, state, timing, target, time)                    \
-	do {                                                                  \
-		dst_key_state_t s;                                            \
-		if (dst_key_getstate((key), (state), &s) == ISC_R_NOTFOUND) { \
-			dst_key_setstate((key), (state), (target));           \
-			dst_key_settime((key), (timing), time);               \
-		}                                                             \
+#define INITIALIZE_STATE(key, state, timing, target, time)                     \
+	do {                                                                   \
+		dst_key_state_t s;                                             \
+		char keystr[DST_KEY_FORMATSIZE];                               \
+		if (dst_key_getstate((key), (state), &s) == ISC_R_NOTFOUND) {  \
+			dst_key_setstate((key), (state), (target));            \
+			dst_key_settime((key), (timing), time);                \
+                                                                               \
+			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {    \
+				dst_key_format((key), keystr, sizeof(keystr)); \
+				isc_log_write(                                 \
+					dns_lctx, DNS_LOGCATEGORY_DNSSEC,      \
+					DNS_LOGMODULE_DNSSEC,                  \
+					ISC_LOG_DEBUG(3),                      \
+					"keymgr: DNSKEY %s (%s) initialize "   \
+					"%s state to %s (policy %s)",          \
+					keystr, keymgr_keyrole((key)),         \
+					keystatetags[state],                   \
+					keystatestrings[target],               \
+					dns_kasp_getname(kasp));               \
+			}                                                      \
+		}                                                              \
 	} while (0)
 
 /* Shorter keywords for better readability. */
