@@ -1534,6 +1534,22 @@ sendstream(xfrout_ctx_t *xfr) {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8),
 			   "sending TCP message of %d bytes", used.length);
 
+		/* System test helper options to simulate network issues. */
+		if (ns_server_getoption(xfr->client->manager->sctx,
+					NS_SERVER_TRANSFERSLOWLY))
+		{
+			/* Sleep for a bit over a second. */
+			select(0, NULL, NULL, NULL,
+			       &(struct timeval){ 1, 1000 });
+		}
+		if (ns_server_getoption(xfr->client->manager->sctx,
+					NS_SERVER_TRANSFERSTUCK))
+		{
+			/* Sleep for a bit over a minute. */
+			select(0, NULL, NULL, NULL,
+			       &(struct timeval){ 60, 1000 });
+		}
+
 		isc_nmhandle_attach(xfr->client->handle,
 				    &xfr->client->sendhandle);
 		if (xfr->idletime > 0) {
@@ -1546,6 +1562,23 @@ sendstream(xfrout_ctx_t *xfr) {
 		xfr->cbytes = used.length;
 	} else {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8), "sending IXFR UDP response");
+
+		/* System test helper options to simulate network issues. */
+		if (ns_server_getoption(xfr->client->manager->sctx,
+					NS_SERVER_TRANSFERSLOWLY))
+		{
+			/* Sleep for a bit over a second. */
+			select(0, NULL, NULL, NULL,
+			       &(struct timeval){ 1, 1000 });
+		}
+		if (ns_server_getoption(xfr->client->manager->sctx,
+					NS_SERVER_TRANSFERSTUCK))
+		{
+			/* Sleep for a bit over a minute. */
+			select(0, NULL, NULL, NULL,
+			       &(struct timeval){ 60, 1000 });
+		}
+
 		ns_client_send(xfr->client);
 		xfr->stream->methods->pause(xfr->stream);
 		isc_nmhandle_detach(&xfr->client->reqhandle);
