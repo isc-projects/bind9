@@ -10286,7 +10286,9 @@ named_server_destroy(named_server_t **serverp) {
 
 static void
 fatal(const char *msg, isc_result_t result) {
-	isc_loopmgr_pause(named_g_loopmgr);
+	if (named_g_loopmgr_running) {
+		isc_loopmgr_pause(named_g_loopmgr);
+	}
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL, "%s: %s", msg,
 		      isc_result_totext(result));
