@@ -795,19 +795,21 @@ free:
  */
 static void
 tcpaccept_cb(void *arg) {
-	isc_nmsocket_t *sock = arg;
+	isc_nmsocket_t *csock = arg;
+	isc_nmsocket_t *ssock = csock->server;
 
-	REQUIRE(VALID_NMSOCK(sock));
-	REQUIRE(sock->tid == isc_tid());
+	REQUIRE(VALID_NMSOCK(csock));
+	REQUIRE(csock->tid == isc_tid());
 
-	isc_result_t result = accept_connection(sock);
-	isc__nm_accept_connection_log(sock, result, can_log_tcp_quota());
-	isc__nmsocket_detach(&sock);
+	isc_result_t result = accept_connection(csock);
+	isc__nm_accept_connection_log(ssock, result, can_log_tcp_quota());
+	isc__nmsocket_detach(&csock);
 }
 
 static void
 quota_accept_cb(void *arg) {
 	isc_nmsocket_t *csock = arg;
+	isc_nmsocket_t *ssock = csock->server;
 
 	REQUIRE(VALID_NMSOCK(csock));
 
@@ -817,7 +819,7 @@ quota_accept_cb(void *arg) {
 	 */
 	if (csock->tid == isc_tid()) {
 		isc_result_t result = accept_connection(csock);
-		isc__nm_accept_connection_log(csock, result,
+		isc__nm_accept_connection_log(ssock, result,
 					      can_log_tcp_quota());
 	} else {
 		isc__nmsocket_attach(csock, &(isc_nmsocket_t *){ NULL });
