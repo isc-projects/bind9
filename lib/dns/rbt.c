@@ -35,6 +35,7 @@
  * efficient macro calls instead of functions for a few operations.
  */
 #define DNS_NAME_USEINLINE 1
+#define ALIGNMENT_SIZE	   8U /* see lib/isc/mem.c */
 
 #include <unistd.h>
 
@@ -798,8 +799,12 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		return (ISC_R_SUCCESS);
 	}
 
+#define CHECK_ALIGNMENT(n) \
+	(((uintptr_t)n & ~((uintptr_t)ALIGNMENT_SIZE - 1)) == (uintptr_t)n)
+
 	CONFIRM((void *)n >= base);
 	CONFIRM((size_t)((char *)n - (char *)base) <= nodemax);
+	CONFIRM(CHECK_ALIGNMENT(n));
 	CONFIRM(DNS_RBTNODE_VALID(n));
 
 	dns_name_init(&nodename, NULL);
@@ -820,6 +825,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		CONFIRM(n->left <= (dns_rbtnode_t *)nodemax);
 		n->left = getleft(n, rbt->mmap_location);
 		n->left_is_relative = 0;
+		CONFIRM(CHECK_ALIGNMENT(n->left));
 		CONFIRM(DNS_RBTNODE_VALID(n->left));
 	} else {
 		CONFIRM(n->left == NULL);
@@ -829,6 +835,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		CONFIRM(n->right <= (dns_rbtnode_t *)nodemax);
 		n->right = getright(n, rbt->mmap_location);
 		n->right_is_relative = 0;
+		CONFIRM(CHECK_ALIGNMENT(n->right));
 		CONFIRM(DNS_RBTNODE_VALID(n->right));
 	} else {
 		CONFIRM(n->right == NULL);
@@ -839,6 +846,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		n->down = getdown(n, rbt->mmap_location);
 		n->down_is_relative = 0;
 		CONFIRM(n->down > (dns_rbtnode_t *)n);
+		CONFIRM(CHECK_ALIGNMENT(n->down));
 		CONFIRM(DNS_RBTNODE_VALID(n->down));
 	} else {
 		CONFIRM(n->down == NULL);
@@ -849,6 +857,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		n->parent = getparent(n, rbt->mmap_location);
 		n->parent_is_relative = 0;
 		CONFIRM(n->parent < (dns_rbtnode_t *)n);
+		CONFIRM(CHECK_ALIGNMENT(n->parent));
 		CONFIRM(DNS_RBTNODE_VALID(n->parent));
 	} else {
 		CONFIRM(n->parent == NULL);
@@ -859,6 +868,7 @@ treefix(dns_rbt_t *rbt, void *base, size_t filesize, dns_rbtnode_t *n,
 		n->data = getdata(n, rbt->mmap_location);
 		n->data_is_relative = 0;
 		CONFIRM(n->data > (void *)n);
+		CONFIRM(CHECK_ALIGNMENT(n->data));
 	} else {
 		CONFIRM(n->data == NULL);
 	}
