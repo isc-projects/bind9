@@ -37,7 +37,7 @@ isc_log_t *lctx = NULL;
 isc_loop_t *mainloop = NULL;
 isc_loopmgr_t *loopmgr = NULL;
 isc_nm_t *netmgr = NULL;
-unsigned int workers = -1;
+unsigned int workers = 0;
 
 static void
 adjustnofile(void) {
@@ -76,9 +76,14 @@ setup_loopmgr(void **state ISC_ATTR_UNUSED) {
 	if (env_workers != NULL) {
 		workers = atoi(env_workers);
 	}
-	if (workers < 2 || workers > 1000) {
+
+	if (workers == 0) {
+		workers = isc_os_ncpus();
+
 		/* We always need at least two loops for some of the tests */
-		workers = isc_os_ncpus() + 1;
+		if (workers < 2) {
+			workers = 2;
+		}
 	}
 
 	isc_loopmgr_create(mctx, workers, &loopmgr);

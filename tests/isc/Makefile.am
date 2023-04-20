@@ -113,6 +113,7 @@ tcp_test_SOURCES =	\
 	tcp_test.c	\
 	netmgr_common.h \
 	netmgr_common.c \
+	stream_shutdown.c \
 	uv_wrap.h
 
 tcpdns_test_CPPFLAGS =	\
@@ -141,6 +142,7 @@ tls_test_SOURCES =	\
 	tls_test.c	\
 	netmgr_common.h \
 	netmgr_common.c \
+	stream_shutdown.c \
 	uv_wrap.h
 
 tlsdns_test_CPPFLAGS =	\

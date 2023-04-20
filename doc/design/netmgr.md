@@ -79,31 +79,103 @@ inactive-handles stack is full or when the socket is destroyed) then the
 associated object's 'put' callback will be called to free any resources
 it allocated.
 
-## UDP listening
+## Streaming Protocols
 
-UDP listener sockets automatically create an array of 'child' sockets,
-each associated with one networker, and all listening on the same address
-via `SO_REUSEADDR`.  (The parent's reference counter is used for all the
-parent and child sockets together; none are destroyed until there are no
-remaining references to any of tem.)
+Currently, we have two streaming protocols available in Network Manager - TCP
+and TLS.  The underlying premise is that they both expose the same interface to
+the clients.
 
-## TCP listening
+### Servers (Listening)
 
-A TCP listener socket cannot listen on multiple threads in parallel,
-so receiving a TCP connection can cause a context switch, but this is
-expected to be rare enough not to impact performance significantly.
+The users of the API calls ``isc_nm_listentcp()`` or ``isc_nm_listentls()`` with
+the accept callback as argument.
 
-When connected, a TCP socket will attach to the system-wide TCP clients
-quota.
+When connection is accepted, the accept callback is called with a handle and
+status and it can return a non-``ISC_R_RESULT`` to abort the connection.
 
-## TCP listening for DNS
+The accept callback should generally immediately call ``isc_nm_read()`` to setup
+the read callback.  Not doing so, can lead to a data race - if the NM is shut
+down before the ``isc_nm_read()`` call, the socket can become dangling until
+``isc_nm_read()`` is finally called.
 
-A TCPDNS listener is a wrapper around a TCP socket which specifically
-handles DNS traffic, including the two-byte length field that prepends DNS
-messages over TCP.
+When ``isc_nm_read()`` is called, the read callback will receive:
 
-Other wrapper socket types can be added in the future, such as a TLS socket
-wrapper to implement encryption or an HTTP wrapper to implement the HTTP
-protocol. This will enable the system to have a transport-neutral network
-manager socket over which DNS can be sent without knowing anything about
-transport, encryption, etc.
+- 0-<n> calls with ``ISC_R_SUCCESS`` state
+- exactly 1 call with non-``ISC_R_SUCCESS`` state when the connection is
+  interrupted (locally closed, remotely closed, NM shutting down, etc.)
+
+The ``isc_nm_read_stop()`` can be used to pause reading from the socket and only
+the final non-``ISC_R_SUCCESS`` callback will be received in such case.
+
+### Clients (Connecting)
+
+The users of the API calls ``isc_nm_tcpconnect()`` or ``isc_nm_tlsconnect()``
+with the connect callback as argument.
+
+When connection is established, the connect callback is called with a handle and
+status.
+
+The connect callback should generally immediately call ``isc_nm_read()`` - see
+the same caveat in the accepting part.
+
+When ``isc__nm_read()`` is called on the connected socket, the read callback
+will receive:
+
+- 0-<n> calls with ``ISC_R_SUCCESS`` state
+- exactly 1 call with non-``ISC_R_SUCCESS`` state when the connection is
+  interrupted (locally closed, remotely closed, NM shutting down, etc.)
+
+The ``isc_nm_read_stop()`` can be used to pause reading from the socket and only
+the final non-``ISC_R_SUCCESS`` callback will be received in such case.
+
+## DNS Message Protocols
+
+Currently, we have three (four) DNS Message Protocols implemented in the Network Manager:
+
+- UDP
+- StreamDNS (TCPDNS and TLSDNS)
+- HTTP
+
+### Servers (Listening)
+
+The users of the API calls ``isc_nm_listenudp()`` or
+``isc_nm_listenstreamdns()`` with:
+
+- accept callback
+- read callback
+
+The StreamDNS accepts an optional TLS context for DoT (otherwise DNS over TCP
+will be used).
+
+The HTTP listening is more complicated - the users need to setup the endpoints
+with the read callback and pass the 1-<n> endpoints to the
+``isc_nm_listenhttp()`` call.
+
+The accept callback is used only to implement "firewall"-like functionality, it
+could be used to tear down the connection early in the process.
+
+After the connection has been accepted, the read callback will receive:
+
+- 0-<n> calls with ``ISC_R_SUCCESS`` state
+- exactly 1 call with non-``ISC_R_SUCCESS`` state when the connection is
+  interrupted (locally closed, remotely closed, NM shutting down, etc.)
+
+Each read callback will contain a full assembled DNS message.
+
+### Clients (Connecting)
+
+The users of the API calls ``isc_nm_udpconnect()``,
+``isc_nm_streamdnsconnect()``, or ``isc_nm_httpconnect()`` with a connect
+callback.
+
+When connection is established, the connect callback is called with a handle and
+status.
+
+The connect callback should generally immediately call ``isc_nm_read()`` - see
+the caveat in the previous parts.
+
+After the connection has been connected, the read callback will receive exactly
+1 call for each ``isc_nm_read()`` call - either with ``ISC_R_SUCCESS`` if the
+DNS message was successfully read or non-``ISC_R_SUCCESS`` indicating the error
+condition.  The read callback either needs to issue new ``isc_nm_read()`` call
+or detach from the handle if no further messages are required.

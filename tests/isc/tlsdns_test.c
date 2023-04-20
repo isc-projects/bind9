@@ -47,13 +47,6 @@
 #include <tests/isc.h>
 
 static void
-stop_listening(void *arg ISC_ATTR_UNUSED) {
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
-}
-
-static void
 start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 		isc_nm_recv_cb_t recv_cb) {
 	isc_result_t result = isc_nm_listenstreamdns(

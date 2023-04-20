@@ -322,13 +322,14 @@ server_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 static void
 nameserver(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	   void *cbarg) {
+	   void *cbarg ISC_ATTR_UNUSED) {
 	isc_region_t response1, response2;
 	static unsigned char buf1[16];
 	static unsigned char buf2[16];
 
-	UNUSED(eresult);
-	UNUSED(cbarg);
+	if (eresult != ISC_R_SUCCESS) {
+		return;
+	}
 
 	memmove(buf1, region->base, 12);
 	memset(buf1 + 12, 0, 4);

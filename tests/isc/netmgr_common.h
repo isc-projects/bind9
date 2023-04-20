@@ -201,15 +201,15 @@ extern isc_nm_recv_cb_t connect_readcb;
 	fprintf(stderr, "%s:%s:%d:%s = %" PRId64 "\n", __func__, __FILE__, \
 		__LINE__, #v, atomic_load(&v))
 #define P(v) fprintf(stderr, #v " = %" PRId64 "\n", v)
-#define F()                                                   \
-	fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle, \
+#define F()                                                                 \
+	fprintf(stderr, "%u:%s(%p, %s, %p)\n", isc_tid(), __func__, handle, \
 		isc_result_totext(eresult), cbarg)
 
-#define isc_loopmgr_shutdown(loopmgr)                                  \
-	{                                                              \
-		fprintf(stderr, "%s:%s:%d:isc_loopmgr_shutdown(%p)\n", \
-			__func__, __FILE__, __LINE__, loopmgr);        \
-		isc_loopmgr_shutdown(loopmgr);                         \
+#define isc_loopmgr_shutdown(loopmgr)                                      \
+	{                                                                  \
+		fprintf(stderr, "%u:%s:%s:%d:isc_loopmgr_shutdown(%p)\n",  \
+			isc_tid(), __func__, __FILE__, __LINE__, loopmgr); \
+		isc_loopmgr_shutdown(loopmgr);                             \
 	}
 #else
 #define X(v)
@@ -234,8 +234,9 @@ void
 noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	     void *cbarg);
 
-unsigned int
-noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg);
+isc_result_t
+noop_accept_cb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, unsigned int result,
+	       void *cbarg ISC_ATTR_UNUSED);
 
 void
 connect_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg);
@@ -325,3 +326,20 @@ int
 stream_recv_send_teardown(void **state ISC_ATTR_UNUSED);
 void
 stream_recv_send_connect(void *arg);
+
+int
+stream_shutdownconnect_setup(void **state ISC_ATTR_UNUSED);
+void
+stream_shutdownconnect(void **state ISC_ATTR_UNUSED);
+int
+stream_shutdownconnect_teardown(void **state ISC_ATTR_UNUSED);
+
+int
+stream_shutdownread_setup(void **state ISC_ATTR_UNUSED);
+void
+stream_shutdownread(void **state ISC_ATTR_UNUSED);
+int
+stream_shutdownread_teardown(void **state ISC_ATTR_UNUSED);
+
+void
+stop_listening(void *arg ISC_ATTR_UNUSED);

@@ -154,16 +154,12 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	REQUIRE(VALID_UVREQ(req));
 	REQUIRE(VALID_NMHANDLE(req->handle));
 
-	if (sock->timedout) {
+	INSIST(sock->connecting);
+
+	if (sock->timedout || status == UV_ETIMEDOUT) {
+		/* Connection timed-out */
 		result = ISC_R_TIMEDOUT;
 		goto error;
-	} else if (!sock->connecting) {
-		/*
-		 * The connect was cancelled from timeout; just clean up
-		 * the req.
-		 */
-		isc__nm_uvreq_put(&req);
-		return;
 	} else if (isc__nm_closing(worker)) {
 		/* Network manager shutting down */
 		result = ISC_R_SHUTTINGDOWN;
@@ -171,10 +167,6 @@ tcp_connect_cb(uv_connect_t *uvreq, int status) {
 	} else if (isc__nmsocket_closing(sock)) {
 		/* Connection canceled */
 		result = ISC_R_CANCELED;
-		goto error;
-	} else if (status == UV_ETIMEDOUT) {
-		/* Timeout status code here indicates hard error */
-		result = ISC_R_TIMEDOUT;
 		goto error;
 	} else if (status == UV_EADDRINUSE) {
 		/*
@@ -225,7 +217,8 @@ error:
 
 void
 isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
-		  isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
+		  isc_nm_cb_t connect_cb, void *connect_cbarg,
+		  unsigned int timeout) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__nm_uvreq_t *req = NULL;
@@ -238,7 +231,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	REQUIRE(peer != NULL);
 
 	if (isc__nm_closing(worker)) {
-		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
+		connect_cb(NULL, ISC_R_SHUTTINGDOWN, connect_cbarg);
 		return;
 	}
 
@@ -246,7 +239,7 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	result = isc__nm_socket(sa_family, SOCK_STREAM, 0, &fd);
 	if (result != ISC_R_SUCCESS) {
-		cb(NULL, result, cbarg);
+		connect_cb(NULL, result, connect_cbarg);
 		return;
 	}
 
@@ -258,8 +251,8 @@ isc_nm_tcpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	sock->client = true;
 
 	req = isc__nm_uvreq_get(sock);
-	req->cb.connect = cb;
-	req->cbarg = cbarg;
+	req->cb.connect = connect_cb;
+	req->cbarg = connect_cbarg;
 	req->peer = *peer;
 	req->local = *local;
 	req->handle = isc__nmhandle_get(sock, &req->peer, &sock->iface);
@@ -632,6 +625,7 @@ isc__nm_tcp_stoplistening(isc_nmsocket_t *sock) {
 
 	/* Stop the parent */
 	sock->closed = true;
+
 	isc__nmsocket_prep_destroy(sock);
 }
 
@@ -662,18 +656,12 @@ isc__nm_tcp_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 	isc__nmsocket_timer_stop(sock);
 	isc__nm_stop_reading(sock);
 
-	if (!sock->recv_read) {
-		goto destroy;
-	}
-	sock->recv_read = false;
-
 	if (sock->recv_cb != NULL) {
 		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 		isc__nmsocket_clearcb(sock);
 		isc__nm_readcb(sock, req, result, async);
 	}
 
-destroy:
 	isc__nmsocket_prep_destroy(sock);
 }
 
@@ -694,7 +682,6 @@ isc__nm_tcp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
-	sock->recv_read = true;
 
 	/* Initialize the timer */
 	if (sock->read_timeout == 0) {
@@ -745,7 +732,6 @@ isc__nm_tcp_read_cb(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf) {
 
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
-	REQUIRE(sock->reading);
 	REQUIRE(buf != NULL);
 
 	netmgr = sock->worker->netmgr;
@@ -924,6 +910,10 @@ accept_connection(isc_nmsocket_t *csock) {
 	 * connection alive
 	 */
 	isc_nmhandle_detach(&handle);
+
+	if (csock->statichandle != NULL) {
+		INSIST(csock->recv_cb != NULL);
+	}
 
 	/*
 	 * sock is now attached to the handle.
@@ -1184,13 +1174,9 @@ tcp_close_connect_cb(uv_handle_t *handle) {
 
 void
 isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
-	isc__networker_t *worker = NULL;
-
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(sock->type == isc_nm_tcpsocket);
-
-	worker = sock->worker;
 
 	/*
 	 * If the socket is active, mark it inactive and
@@ -1201,9 +1187,7 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 	}
 	sock->active = false;
 
-	if (sock->accepting) {
-		return;
-	}
+	INSIST(!sock->accepting);
 
 	if (sock->connecting) {
 		isc_nmsocket_t *tsock = NULL;
@@ -1212,12 +1196,9 @@ isc__nm_tcp_shutdown(isc_nmsocket_t *sock) {
 		return;
 	}
 
-	if (sock->statichandle != NULL) {
-		if (isc__nm_closing(worker)) {
-			isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
-		} else {
-			isc__nm_failed_read_cb(sock, ISC_R_CANCELED, false);
-		}
+	/* There's a handle attached to the socket (from accept or connect) */
+	if (sock->statichandle) {
+		isc__nm_failed_read_cb(sock, ISC_R_SHUTTINGDOWN, false);
 		return;
 	}
 
@@ -1243,7 +1224,6 @@ isc__nmhandle_tcp_set_manual_timer(isc_nmhandle_t *handle, const bool manual) {
 	REQUIRE(sock->type == isc_nm_tcpsocket);
 	REQUIRE(sock->tid == isc_tid());
 	REQUIRE(!sock->reading);
-	REQUIRE(!sock->recv_read);
 
 	sock->manual_read_timer = manual;
 }

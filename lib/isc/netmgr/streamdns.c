@@ -131,7 +131,7 @@ streamdns_on_complete_dnsmessage(isc_dnsstream_assembler_t *dnsasm,
 	 */
 	bool stop = sock->client;
 
-	sock->recv_read = false;
+	sock->reading = false;
 	if (sock->recv_cb != NULL) {
 		if (!sock->client) {
 			/*
@@ -271,9 +271,7 @@ static void
 streamdns_call_connect_cb(isc_nmsocket_t *sock, isc_nmhandle_t *handle,
 			  const isc_result_t result) {
 	sock->connecting = false;
-	if (sock->connect_cb == NULL) {
-		return;
-	}
+	INSIST(sock->connect_cb != NULL);
 	sock->connect_cb(handle, result, sock->connect_cbarg);
 	if (result != ISC_R_SUCCESS) {
 		isc__nmsocket_clearcb(handle->sock);
@@ -401,12 +399,6 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 	}
 }
 
-static bool
-streamdns_waiting_for_msg(isc_nmsocket_t *sock) {
-	/* There is an unsatisfied read operation pending */
-	return (sock->recv_read);
-}
-
 bool
 isc__nmsocket_streamdns_timer_running(isc_nmsocket_t *sock) {
 	isc_nmsocket_t *transp_sock;
@@ -464,36 +456,45 @@ isc__nmsocket_streamdns_timer_restart(isc_nmsocket_t *sock) {
 static void
 streamdns_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result,
 			 const bool async) {
-	bool destroy = true;
-
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(result != ISC_R_SUCCESS);
 
-	if (sock->recv_cb != NULL && sock->recv_handle != NULL &&
-	    (streamdns_waiting_for_msg(sock) || result == ISC_R_TIMEDOUT))
-	{
-		isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
+	/* Nobody is reading from the socket yet */
+	if (sock->recv_handle == NULL) {
+		goto destroy;
+	}
 
-		INSIST(VALID_NMHANDLE(sock->recv_handle));
+	if (sock->client && result == ISC_R_TIMEDOUT) {
+		if (sock->recv_cb != NULL) {
+			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
+			isc__nm_readcb(sock, req, ISC_R_TIMEDOUT, false);
+		}
 
-		if (result != ISC_R_TIMEDOUT) {
-			sock->recv_read = false;
-			isc_dnsstream_assembler_clear(sock->streamdns.input);
+		if (isc__nmsocket_timer_running(sock)) {
+			/* Timer was restarted, bail-out */
+			return;
+		}
+
+		isc__nmsocket_clearcb(sock);
+
+		goto destroy;
+	}
+
+	isc_dnsstream_assembler_clear(sock->streamdns.input);
+
+	/* Nobody expects the callback if isc_nm_read() wasn't called */
+	if (!sock->client || sock->reading) {
+		sock->reading = false;
+
+		if (sock->recv_cb != NULL) {
+			isc__nm_uvreq_t *req = isc__nm_get_read_req(sock, NULL);
 			isc__nmsocket_clearcb(sock);
-		} else if (sock->client) {
-			sock->recv_read = false;
-		}
-		isc__nm_readcb(sock, req, result, async);
-		if (result == ISC_R_TIMEDOUT &&
-		    isc__nmsocket_streamdns_timer_running(sock))
-		{
-			destroy = false;
+			isc__nm_readcb(sock, req, result, async);
 		}
 	}
 
-	if (destroy) {
-		isc__nmsocket_prep_destroy(sock);
-	}
+destroy:
+	isc__nmsocket_prep_destroy(sock);
 }
 
 void
@@ -533,6 +534,10 @@ streamdns_try_close_unused(isc_nmsocket_t *sock) {
 		 * The socket is unused after calling the callback. Let's close
 		 * the underlying connection.
 		 */
+		/* FIXME: call failed_read_cb(?) */
+		if (sock->outerhandle != NULL) {
+			isc_nmhandle_detach(&sock->outerhandle);
+		}
 		isc__nmsocket_prep_destroy(sock);
 	}
 }
@@ -833,7 +838,7 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
-	sock->recv_read = true;
+	sock->reading = true;
 	isc_nmhandle_attach(handle, &sock->recv_handle);
 
 	/*
@@ -953,29 +958,6 @@ isc__nm_streamdns_stoplistening(isc_nmsocket_t *sock) {
 	REQUIRE(sock->type == isc_nm_streamdnslistener);
 
 	isc__nmsocket_stop(sock);
-}
-
-static void
-streamdns_cancelread_cb(void *arg) {
-	isc_nmsocket_t *sock = arg;
-	REQUIRE(VALID_NMSOCK(sock));
-
-	streamdns_failed_read_cb(sock, ISC_R_EOF, false);
-	isc__nmsocket_detach(&sock);
-}
-
-void
-isc__nm_streamdns_cancelread(isc_nmhandle_t *handle) {
-	isc_nmsocket_t *sock = NULL;
-
-	REQUIRE(VALID_NMHANDLE(handle));
-	REQUIRE(VALID_NMSOCK(handle->sock));
-	REQUIRE(handle->sock->type == isc_nm_streamdnssocket);
-
-	sock = handle->sock;
-
-	isc__nmsocket_attach(sock, &(isc_nmsocket_t *){ NULL });
-	isc_async_run(sock->worker->loop, streamdns_cancelread_cb, sock);
 }
 
 void

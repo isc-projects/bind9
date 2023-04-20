@@ -17,7 +17,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <isc/atomic.h>
 #include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -76,18 +75,12 @@ static isccc_region_t secret;
 static bool failed = false;
 static bool c_flag = false;
 static isc_mem_t *rndc_mctx = NULL;
-static atomic_uint_fast32_t sends = 0;
-static atomic_uint_fast32_t recvs = 0;
-static atomic_uint_fast32_t connects = 0;
 static char *command = NULL;
 static char *args = NULL;
 static char program[256];
 static uint32_t serial;
 static bool quiet = false;
 static bool showresult = false;
-static bool shuttingdown = false;
-static isc_nmhandle_t *recvdone_handle = NULL;
-static isc_nmhandle_t *recvnonce_handle = NULL;
 
 static void
 rndc_startconnect(isc_sockaddr_t *addr);
@@ -285,21 +278,10 @@ get_addresses(const char *host, in_port_t port) {
 }
 
 static void
-rndc_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
-	isc_nmhandle_t *sendhandle = (isc_nmhandle_t *)arg;
-
+rndc_senddone(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
+	      void *arg ISC_ATTR_UNUSED) {
 	if (result != ISC_R_SUCCESS) {
 		fatal("send failed: %s", isc_result_totext(result));
-	}
-
-	REQUIRE(sendhandle == handle);
-	isc_nmhandle_detach(&sendhandle);
-
-	if (atomic_fetch_sub_release(&sends, 1) == 1 &&
-	    atomic_load_acquire(&recvs) == 0)
-	{
-		shuttingdown = true;
-		isc_loopmgr_shutdown(loopmgr);
 	}
 }
 
@@ -312,16 +294,10 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	char *errormsg = NULL;
 	char *textmsg = NULL;
 
+	REQUIRE(handle != NULL);
 	REQUIRE(ccmsg != NULL);
 
-	if (shuttingdown && (result == ISC_R_EOF || result == ISC_R_CANCELED)) {
-		atomic_fetch_sub_release(&recvs, 1);
-		if (handle != NULL) {
-			REQUIRE(recvdone_handle == handle);
-			isc_nmhandle_detach(&recvdone_handle);
-		}
-		return;
-	} else if (result == ISC_R_EOF) {
+	if (result == ISC_R_EOF) {
 		fatal("connection to remote host closed.\n"
 		      "* This may indicate that the\n"
 		      "* remote server is using an older\n"
@@ -377,22 +353,15 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isccc_sexpr_free(&response);
 
-	REQUIRE(recvdone_handle == handle);
-	isc_nmhandle_detach(&recvdone_handle);
-
-	if (atomic_fetch_sub_release(&recvs, 1) == 1 &&
-	    atomic_load_acquire(&sends) == 0)
-	{
-		shuttingdown = true;
-		isc_loopmgr_shutdown(loopmgr);
-	}
+	isccc_ccmsg_invalidate(ccmsg);
+	isc_loopmgr_shutdown(loopmgr);
 }
 
 static void
-rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
+rndc_recvnonce(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
+	       void *arg) {
 	isccc_ccmsg_t *ccmsg = (isccc_ccmsg_t *)arg;
 	isccc_sexpr_t *response = NULL;
-	isc_nmhandle_t *sendhandle = NULL;
 	isccc_sexpr_t *_ctrl = NULL;
 	isccc_region_t source;
 	uint32_t nonce;
@@ -404,14 +373,7 @@ rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	REQUIRE(ccmsg != NULL);
 
-	if (shuttingdown && (result == ISC_R_EOF || result == ISC_R_CANCELED)) {
-		atomic_fetch_sub_release(&recvs, 1);
-		if (handle != NULL) {
-			REQUIRE(recvnonce_handle == handle);
-			isc_nmhandle_detach(&recvnonce_handle);
-		}
-		return;
-	} else if (result == ISC_R_EOF) {
+	if (result == ISC_R_EOF) {
 		fatal("connection to remote host closed.\n"
 		      "* This may indicate that the\n"
 		      "* remote server is using an older\n"
@@ -471,17 +433,8 @@ rndc_recvnonce(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	r.base = databuf->base;
 	r.length = databuf->used;
 
-	isc_nmhandle_attach(handle, &recvdone_handle);
-	atomic_fetch_add_relaxed(&recvs, 1);
 	isccc_ccmsg_readmessage(ccmsg, rndc_recvdone, ccmsg);
-
-	isc_nmhandle_attach(handle, &sendhandle);
-	atomic_fetch_add_relaxed(&sends, 1);
-	isc_nm_send(handle, &r, rndc_senddone, sendhandle);
-
-	REQUIRE(recvnonce_handle == handle);
-	isc_nmhandle_detach(&recvnonce_handle);
-	atomic_fetch_sub_release(&recvs, 1);
+	isccc_ccmsg_sendmessage(ccmsg, &r, rndc_senddone, NULL);
 
 	isccc_sexpr_free(&response);
 	isccc_sexpr_free(&request);
@@ -497,13 +450,10 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	isccc_time_t now = isc_stdtime_now();
 	isc_region_t r;
 	isc_buffer_t b;
-	isc_nmhandle_t *connhandle = NULL;
-	isc_nmhandle_t *sendhandle = NULL;
 
 	REQUIRE(ccmsg != NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		atomic_fetch_sub_release(&connects, 1);
 		isc_sockaddr_format(&serveraddrs[currentaddr], socktext,
 				    sizeof(socktext));
 		if (++currentaddr < nserveraddrs) {
@@ -516,8 +466,6 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		fatal("connect failed: %s: %s", socktext,
 		      isc_result_totext(result));
 	}
-
-	isc_nmhandle_attach(handle, &connhandle);
 
 	DO("create message", isccc_cc_createmessage(1, NULL, NULL, ++serial,
 						    now, now + 60, &request));
@@ -542,19 +490,12 @@ rndc_connected(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	r.base = databuf->base;
 	r.length = databuf->used;
 
+	/* isccc_ccmsg_init() attaches to the handle */
 	isccc_ccmsg_init(rndc_mctx, handle, ccmsg);
 	isccc_ccmsg_setmaxsize(ccmsg, 1024 * 1024);
 
-	isc_nmhandle_attach(handle, &recvnonce_handle);
-	atomic_fetch_add_relaxed(&recvs, 1);
 	isccc_ccmsg_readmessage(ccmsg, rndc_recvnonce, ccmsg);
-
-	isc_nmhandle_attach(handle, &sendhandle);
-	atomic_fetch_add_relaxed(&sends, 1);
-	isc_nm_send(handle, &r, rndc_senddone, sendhandle);
-
-	isc_nmhandle_detach(&connhandle);
-	atomic_fetch_sub_release(&connects, 1);
+	isccc_ccmsg_sendmessage(ccmsg, &r, rndc_senddone, NULL);
 
 	isccc_sexpr_free(&request);
 }
@@ -584,7 +525,6 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 		UNREACHABLE();
 	}
 
-	atomic_fetch_add_relaxed(&connects, 1);
 	isc_nm_tcpconnect(netmgr, local, addr, rndc_connected, &rndc_ccmsg,
 			  60000);
 }
@@ -1061,14 +1001,6 @@ main(int argc, char **argv) {
 	}
 
 	isc_loopmgr_run(loopmgr);
-
-	/*
-	 * Note: when TCP connections are shut down, there will be a final
-	 * call to the isccc callback routine with &rndc_ccmsg as its
-	 * argument. We therefore need to delay invalidating it until
-	 * after the netmgr is closed down.
-	 */
-	isccc_ccmsg_invalidate(&rndc_ccmsg);
 
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);

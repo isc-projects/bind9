@@ -135,6 +135,15 @@ mock_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 }
 
 static void
+udp_listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+		   isc_region_t *region, void *cbarg) {
+	if (eresult != ISC_R_SUCCESS) {
+		isc_refcount_increment0(&active_sreads);
+	}
+	listen_read_cb(handle, eresult, region, cbarg);
+}
+
+static void
 connect_nomemory_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	UNUSED(handle);
 	UNUSED(cbarg);
@@ -143,13 +152,6 @@ connect_nomemory_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	assert_int_equal(eresult, ISC_R_NOMEMORY);
 
 	isc_loopmgr_shutdown(loopmgr);
-}
-
-static void
-stop_listening(void *arg ISC_ATTR_UNUSED) {
-	isc_nm_stoplistening(listen_sock);
-	isc_nmsocket_close(&listen_sock);
-	assert_null(listen_sock);
 }
 
 static void
@@ -616,6 +618,7 @@ udp_shutdown_read_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	isc_refcount_increment0(&active_creads);
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, udp_shutdown_read_read_cb, cbarg);
+	assert_true(handle->sock->reading);
 
 	/* Send */
 	isc_refcount_increment0(&active_csends);
@@ -712,7 +715,7 @@ udp_cancel_read_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 				    udp_cancel_read_send_cb, cbarg);
 		}
 		break;
-	case ISC_R_EOF:
+	case ISC_R_CANCELED:
 		/* The read has been canceled */
 		atomic_fetch_add(&creads, 1);
 		isc_loopmgr_shutdown(loopmgr);
@@ -936,7 +939,7 @@ ISC_TEARDOWN_TEST_IMPL(udp_recv_one) {
 }
 
 ISC_LOOP_TEST_IMPL(udp_recv_one) {
-	start_listening(ISC_NM_LISTEN_ONE, listen_read_cb);
+	start_listening(ISC_NM_LISTEN_ONE, udp_listen_read_cb);
 
 	udp__connect(NULL);
 }
@@ -976,7 +979,7 @@ ISC_TEARDOWN_TEST_IMPL(udp_recv_two) {
 }
 
 ISC_LOOP_TEST_IMPL(udp_recv_two) {
-	start_listening(ISC_NM_LISTEN_ONE, listen_read_cb);
+	start_listening(ISC_NM_LISTEN_ONE, udp_listen_read_cb);
 
 	udp__connect(NULL);
 	udp__connect(NULL);
@@ -1007,7 +1010,7 @@ ISC_TEARDOWN_TEST_IMPL(udp_recv_send) {
 }
 
 ISC_LOOP_TEST_IMPL(udp_recv_send) {
-	start_listening(ISC_NM_LISTEN_ALL, listen_read_cb);
+	start_listening(ISC_NM_LISTEN_ALL, udp_listen_read_cb);
 
 	for (size_t i = 0; i < workers; i++) {
 		isc_async_run(isc_loop_get(loopmgr, i), udp__connect, NULL);

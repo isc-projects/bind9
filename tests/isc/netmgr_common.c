@@ -108,24 +108,13 @@ isc_nm_recv_cb_t connect_readcb = NULL;
 
 int
 setup_netmgr_test(void **state) {
-	char *env_workers = getenv("ISC_TASK_WORKERS");
-	size_t nworkers;
-
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_listen_addr, &in6addr_loopback, stream_port);
 
-	if (env_workers != NULL) {
-		workers = atoi(env_workers);
-	} else {
-		workers = isc_os_ncpus();
-	}
-	INSIST(workers > 0);
-	nworkers = ISC_MAX(ISC_MIN(workers, 32), 1);
-
-	esends = NSENDS * nworkers;
+	esends = NSENDS * workers;
 
 	atomic_store(&nsends, esends);
 
@@ -227,7 +216,7 @@ teardown_netmgr_test(void **state ISC_ATTR_UNUSED) {
 	return (0);
 }
 
-static void
+void
 stop_listening(void *arg ISC_ATTR_UNUSED) {
 	isc_nm_stoplistening(listen_sock);
 	isc_nmsocket_close(&listen_sock);
@@ -237,24 +226,23 @@ stop_listening(void *arg ISC_ATTR_UNUSED) {
 /* Callbacks */
 
 void
-noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
-	     void *cbarg) {
-	UNUSED(handle);
-	UNUSED(eresult);
-	UNUSED(region);
-	UNUSED(cbarg);
+noop_recv_cb(isc_nmhandle_t *handle ISC_ATTR_UNUSED,
+	     isc_result_t eresult ISC_ATTR_UNUSED,
+	     isc_region_t *region ISC_ATTR_UNUSED,
+	     void *cbarg ISC_ATTR_UNUSED) {
+	F();
 }
 
-unsigned int
-noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg) {
-	UNUSED(handle);
-	UNUSED(cbarg);
+isc_result_t
+noop_accept_cb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, unsigned int eresult,
+	       void *cbarg ISC_ATTR_UNUSED) {
+	F();
 
-	if (result == ISC_R_SUCCESS) {
+	if (eresult == ISC_R_SUCCESS) {
 		(void)atomic_fetch_add(&saccepts, 1);
 	}
 
-	return (0);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -278,10 +266,8 @@ connect_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 	case ISC_R_CONNECTIONRESET:
-		/* Send failed, we need to stop reading too */
-		if (stream) {
-			isc_nm_read_stop(handle);
-		} else {
+		/* Abort */
+		if (!stream) {
 			isc_nm_cancelread(handle);
 		}
 		break;
@@ -337,6 +323,10 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 			return;
 		}
 
+		/* This will initiate one more read callback */
+		if (stream) {
+			isc_nmhandle_close(handle);
+		}
 		break;
 	case ISC_R_TIMEDOUT:
 	case ISC_R_EOF:
@@ -352,10 +342,6 @@ connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	isc_refcount_decrement(&active_creads);
-
-	if (stream) {
-		isc_nm_read_stop(handle);
-	}
 	isc_nmhandle_detach(&handle);
 }
 
@@ -399,8 +385,6 @@ listen_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	F();
 
-	isc_refcount_decrement(&active_ssends);
-
 	switch (eresult) {
 	case ISC_R_CANCELED:
 	case ISC_R_CONNECTIONRESET:
@@ -418,6 +402,7 @@ listen_send_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		assert_int_equal(eresult, ISC_R_SUCCESS);
 	}
 
+	isc_refcount_decrement(&active_ssends);
 	isc_nmhandle_detach(&sendhandle);
 }
 
@@ -431,11 +416,6 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	F();
 
 	switch (eresult) {
-	case ISC_R_CANCELED:
-	case ISC_R_CONNECTIONRESET:
-	case ISC_R_EOF:
-	case ISC_R_SHUTTINGDOWN:
-		break;
 	case ISC_R_SUCCESS:
 		memmove(&magic, region->base, sizeof(magic));
 		assert_true(magic == send_magic);
@@ -449,18 +429,21 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 		memmove(&magic, region->base, sizeof(magic));
 		assert_true(magic == send_magic);
 
-		if (magic == send_magic) {
-			if (!noanswer) {
-				isc_nmhandle_t *sendhandle = NULL;
-				isc_nmhandle_attach(handle, &sendhandle);
-				isc_refcount_increment0(&active_ssends);
-				isc_nmhandle_setwritetimeout(sendhandle,
-							     T_IDLE);
-				isc_nm_send(sendhandle, &send_msg,
-					    listen_send_cb, cbarg);
-			}
-			return;
+		if (!noanswer) {
+			/* Answer and continue to listen */
+			isc_nmhandle_t *sendhandle = NULL;
+			isc_nmhandle_attach(handle, &sendhandle);
+			isc_refcount_increment0(&active_ssends);
+			isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
+			isc_nm_send(sendhandle, &send_msg, listen_send_cb,
+				    cbarg);
 		}
+		/* Continue to listen */
+		return;
+	case ISC_R_CANCELED:
+	case ISC_R_CONNECTIONRESET:
+	case ISC_R_EOF:
+	case ISC_R_SHUTTINGDOWN:
 		break;
 	default:
 		fprintf(stderr, "%s(%p, %s, %p)\n", __func__, handle,
@@ -469,7 +452,6 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 	}
 
 	isc_refcount_decrement(&active_sreads);
-
 	isc_nmhandle_detach(&handle);
 }
 
@@ -487,6 +469,9 @@ listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	if (have_expected_saccepts(atomic_fetch_add(&saccepts, 1) + 1)) {
 		do_saccepts_shutdown(loopmgr);
 	}
+
+	isc_nmhandle_attach(handle, &(isc_nmhandle_t *){ NULL });
+	isc_refcount_increment0(&active_sreads);
 
 	return (eresult);
 }
@@ -508,6 +493,7 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	}
 
 	isc_refcount_increment0(&active_sreads);
+
 	isc_nmhandle_attach(handle, &readhandle);
 	isc_nm_read(handle, listen_read_cb, readhandle);
 
@@ -670,11 +656,12 @@ noresponse_readcb(isc_nmhandle_t *handle, isc_result_t eresult,
 	UNUSED(region);
 	UNUSED(cbarg);
 
+	F();
+
 	assert_true(eresult == ISC_R_CANCELED ||
 		    eresult == ISC_R_CONNECTIONRESET || eresult == ISC_R_EOF);
 
 	isc_refcount_decrement(&active_creads);
-
 	isc_nmhandle_detach(&handle);
 
 	isc_loopmgr_shutdown(loopmgr);
@@ -684,6 +671,8 @@ static void
 noresponse_sendcb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 	UNUSED(cbarg);
 	UNUSED(eresult);
+
+	F();
 
 	assert_non_null(handle);
 	atomic_fetch_add(&csends, 1);
@@ -696,8 +685,6 @@ noresponse_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 		     void *cbarg) {
 	isc_nmhandle_t *readhandle = NULL;
 	isc_nmhandle_t *sendhandle = NULL;
-
-	UNUSED(handle);
 
 	F();
 
