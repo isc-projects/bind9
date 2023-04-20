@@ -210,9 +210,15 @@ test_end
 # above, which should time out at some point; we need to wait for them to
 # appear in the logs in case the tests run faster than the notify timeouts
 
-test_start "checking notify retries expire within 45 seconds"
+test_start "checking notify to retry over TCP within 45 seconds"
 nextpartreset ns3/named.run
-wait_for_log 45 'retries exceeded' ns3/named.run || ret=1
+wait_for_log 45 'retrying over TCP' ns3/named.run || ret=1
+test_end
+
+# the TCP timeout is set to 15 seconds, double that for some leeway
+test_start "checking notify retries expire within 30 seconds"
+nextpartreset ns3/named.run
+wait_for_log 30 'retries exceeded' ns3/named.run || ret=1
 test_end
 
 echo_i "exit status: $status"
