@@ -29,6 +29,8 @@
 
 6147.	[performance]	Fix the TCP server parent quota use. [GL #3985]
 
+	--- 9.19.12 released ---
+
 6146.	[performance]	Replace the zone table red-black tree and associated
 			locking with a lock-free qp-trie. [GL !7582]
 
