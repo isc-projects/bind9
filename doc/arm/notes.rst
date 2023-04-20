@@ -47,6 +47,7 @@ for Microsoft Windows operating systems.
 .. include:: ../notes/notes-known-issues.rst
 
 .. include:: ../notes/notes-current.rst
+.. include:: ../notes/notes-9.16.40.rst
 .. include:: ../notes/notes-9.16.39.rst
 .. include:: ../notes/notes-9.16.38.rst
 .. include:: ../notes/notes-9.16.37.rst
