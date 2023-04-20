@@ -1440,7 +1440,7 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 		 dns_dispentry_t **respp) {
 	dns_dispentry_t *resp = NULL;
 	dns_qid_t *qid = NULL;
-	in_port_t dispport, localport = 0;
+	in_port_t localport;
 	dns_messageid_t id;
 	unsigned int bucket;
 	bool ok = false;
@@ -1465,10 +1465,7 @@ dns_dispatch_add(dns_dispatch_t *disp, unsigned int options,
 
 	qid = disp->mgr->qid;
 
-	dispport = isc_sockaddr_getport(&disp->local);
-	if (dispport != 0) {
-		localport = dispport;
-	}
+	localport = isc_sockaddr_getport(&disp->local);
 
 	resp = isc_mem_get(disp->mgr->mctx, sizeof(*resp));
 	*resp = (dns_dispentry_t){
@@ -1943,8 +1940,9 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		resp->state = DNS_DISPATCHSTATE_CONNECTED;
 		udp_startrecv(handle, resp);
 		break;
+	case ISC_R_NOPERM:
 	case ISC_R_ADDRINUSE: {
-		in_port_t localport = 0;
+		in_port_t localport = isc_sockaddr_getport(&disp->local);
 		isc_result_t result;
 
 		/* probably a port collision; try a different one */
