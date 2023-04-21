@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- When ISC_R_INVALIDPROTO (ENOPROTOOPT, EPROTONOSUPPORT) is returned from
+  libuv, treat it as a network failure, mark the server as broken and don't
+  try again. :gl:`#4005`
 
 Known Issues
 ~~~~~~~~~~~~
