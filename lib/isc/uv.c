@@ -87,13 +87,15 @@ isc__uverr2result(int uverr, bool dolog, const char *file, unsigned int line,
 		return (ISC_R_MAXSIZE);
 	case UV_ENOTSUP:
 		return (ISC_R_FAMILYNOSUPPORT);
+	case UV_ENOPROTOOPT:
+	case UV_EPROTONOSUPPORT:
+		return (ISC_R_INVALIDPROTO);
 	default:
 		if (dolog) {
-			UNEXPECTED_ERROR(
-				file, line,
-				"unable to convert libuv "
-				"error code in %s to isc_result: %d: %s",
-				func, uverr, uv_strerror(uverr));
+			UNEXPECTED_ERROR("unable to convert libuv error code "
+					 "in %s (%s:%d) to isc_result: %d: %s",
+					 func, file, line, uverr,
+					 uv_strerror(uverr));
 		}
 		return (ISC_R_UNEXPECTED);
 	}
