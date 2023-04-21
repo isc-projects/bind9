@@ -116,6 +116,21 @@
 
 #include <isc/result.h> /* Contractual promise. */
 
+#define SPINLOCK(sp)                                                           \
+	{                                                                      \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKING %p %s %d\n", (sp), \
+				       __FILE__, __LINE__));                   \
+		isc_spinlock_lock((sp));                                       \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINLOCKED %p %s %d\n", (sp),  \
+				       __FILE__, __LINE__));                   \
+	}
+#define SPINUNLOCK(sp)                                                    \
+	{                                                                 \
+		isc_spinlock_unlock((sp));                                \
+		ISC_UTIL_TRACE(fprintf(stderr, "SPINUNLOCKED %p %s %d\n", \
+				       (sp), __FILE__, __LINE__));        \
+	}
+
 #define LOCK(lp)                                                           \
 	{                                                                  \
 		ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), \

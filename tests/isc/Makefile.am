@@ -41,6 +41,7 @@ check_PROGRAMS =	\
 	safe_test	\
 	siphash_test	\
 	sockaddr_test	\
+	spinlock_test	\
 	stats_test	\
 	symtab_test	\
 	tcp_test	\

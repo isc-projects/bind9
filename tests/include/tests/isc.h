@@ -43,6 +43,9 @@ int
 teardown_mctx(void **state);
 
 int
+setup_workers(void **state);
+
+int
 setup_loopmgr(void **state);
 int
 teardown_loopmgr(void **state);
@@ -172,8 +175,8 @@ teardown_managers(void **state);
                                                                     \
 		signal(SIGPIPE, SIG_IGN);                           \
                                                                     \
-		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;           \
-		isc_mem_create(&mctx);                              \
+		setup_mctx(NULL);                                   \
+		setup_workers(NULL);                                \
                                                                     \
 		r = cmocka_run_group_tests(tests, setup, teardown); \
                                                                     \

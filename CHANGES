@@ -1,3 +1,13 @@
+6154.	[func]		Add spinlock implementation.  The spinlock is much
+			smaller (8 bytes) than pthread_mutex (40 bytes), so
+			it can be easily embedded into objects for more
+			fine-grained locking (per-object vs per-bucket).
+
+			On the other hand, the spinlock is unsuitable for
+			situations where the lock might be held for a long
+			time as it keeps the waiting threads in a spinning
+			busy loop. [GL #3977]
+
 6153.	[bug]		Fix the streaming protocols (TCP, TLS) shutdown
 			sequence. [GL #4011]
 
