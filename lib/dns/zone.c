@@ -19215,6 +19215,13 @@ dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr) {
 	return (zmgr->taskmgr);
 }
 
+isc_timermgr_t *
+dns_zonemgr_gettimermgr(dns_zonemgr_t *zmgr) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->timermgr);
+}
+
 /*
  * Try to start a new incoming zone transfer to fill a quota
  * slot that was just vacated.

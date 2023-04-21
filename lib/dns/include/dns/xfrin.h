@@ -27,6 +27,7 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/refcount.h>
 #include <isc/tls.h>
 
 #include <dns/transport.h>

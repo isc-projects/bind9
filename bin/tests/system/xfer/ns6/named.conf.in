@@ -29,6 +29,7 @@ options {
 	notify yes;
 	ixfr-from-differences primary;
 	check-integrity no;
+	tcp-idle-timeout 600;
 };
 
 zone "." {
@@ -52,6 +53,20 @@ zone "edns-expire" {
 	type secondary;
 	primaries { 10.53.0.1; };
 	file "edns-expire.bk";
+};
+
+zone "axfr-max-transfer-time" {
+	type secondary;
+	max-transfer-time-in 1; # this is tested as seconds, when used with '-T transferinsecs'
+	primaries { 10.53.0.1; };
+	file "axfr-max-transfer-time.bk";
+};
+
+zone "axfr-max-idle-time" {
+	type secondary;
+	max-transfer-idle-in 50;  # this is tested as seconds, when used with '-T transferinsecs'
+	primaries { 10.53.0.1; };
+	file "axfr-max-idle-time.bk";
 };
 
 zone "axfr-too-big" {

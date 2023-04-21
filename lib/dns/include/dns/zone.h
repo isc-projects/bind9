@@ -1769,6 +1769,12 @@ dns_zonemgr_gettaskmgr(dns_zonemgr_t *zmgr);
  * Get the tasmkgr object attached to 'zmgr'.
  */
 
+isc_timermgr_t *
+dns_zonemgr_gettimermgr(dns_zonemgr_t *zmgr);
+/*%
+ * Get the timermgr object attached to 'zmgr'.
+ */
+
 void
 dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, uint32_t value);
 /*%<
