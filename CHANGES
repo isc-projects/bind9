@@ -1,3 +1,7 @@
+6155.	[bug]		Treat ISC_R_INVALIDPROTO as a networking error
+			in the dispatch code to avoid retrying with the
+			same server. [GL #4005]<
+
 6154.	[func]		Add spinlock implementation.  The spinlock is much
 			smaller (8 bytes) than pthread_mutex (40 bytes), so
 			it can be easily embedded into objects for more
