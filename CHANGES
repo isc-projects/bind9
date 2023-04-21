@@ -1,3 +1,7 @@
+6155.	[bug]		Treat ISC_R_INVALIDPROTO as a networking error
+			in the dispatch code to avoid retrying with the
+			same server. [GL #4005]<
+
 6149.	[test]		As a workaround, include an OpenSSL header file before
 			including cmocka.h in the unit tests, because OpenSSL
 			3.1.0 uses __attribute__(malloc), conflicting with a
