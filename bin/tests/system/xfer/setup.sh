@@ -23,7 +23,7 @@ $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 7 >ns7/primary2.db
 cp -f ns4/root.db.in ns4/root.db
 $PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >> ns4/root.db
 
-copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns1/named1.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf

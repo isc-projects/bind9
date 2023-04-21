@@ -905,6 +905,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	int seconds;
 	dns_ttl_t maxttl = 0; /* unlimited */
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
+	bool transferinsecs = ns_server_getoption(named_g_server->sctx,
+						  NS_SERVER_TRANSFERINSECS);
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -1312,12 +1314,16 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-out", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setmaxxfrout(zone, cfg_obj_asuint32(obj) * 60);
+		dns_zone_setmaxxfrout(
+			zone, transferinsecs ? cfg_obj_asuint32(obj)
+					     : cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-idle-out", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setidleout(zone, cfg_obj_asuint32(obj) * 60);
+		dns_zone_setidleout(zone, transferinsecs
+						  ? cfg_obj_asuint32(obj)
+						  : cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = named_config_get(maps, "max-journal-size", &obj);
@@ -1913,12 +1919,16 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setmaxxfrin(mayberaw, cfg_obj_asuint32(obj) * 60);
+		dns_zone_setmaxxfrin(
+			mayberaw, transferinsecs ? cfg_obj_asuint32(obj)
+						 : cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-idle-in", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setidlein(mayberaw, cfg_obj_asuint32(obj) * 60);
+		dns_zone_setidlein(mayberaw,
+				   transferinsecs ? cfg_obj_asuint32(obj)
+						  : cfg_obj_asuint32(obj) * 60);
 
 		obj = NULL;
 		result = named_config_get(maps, "max-refresh-time", &obj);

@@ -38,3 +38,4 @@ rm -f ns6/*.db ns6/*.bk ns6/*.jnl
 rm -f ns7/*.db ns7/*.bk ns7/*.jnl
 rm -f ns8/large.db ns8/small.db
 rm -f stats.*
+rm -f wait_for_message.*

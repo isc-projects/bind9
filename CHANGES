@@ -1,3 +1,6 @@
+6156.	[bug]		Reimplement the maximum and idle timeouts for incoming
+			zone tranfers. [GL #4004]
+
 6155.	[bug]		Treat ISC_R_INVALIDPROTO as a networking error
 			in the dispatch code to avoid retrying with the
 			same server. [GL #4005]<

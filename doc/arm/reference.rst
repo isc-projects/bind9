@@ -3377,6 +3377,12 @@ options apply to zone transfers.
    terminated. The default is 60 minutes (1 hour). The maximum value
    is 28 days (40320 minutes).
 
+   .. note:: The inbound zone transfers are also affected by
+             ``tcp-idle-timeout``, the ``max-transfer-idle-in`` will close the
+             inbound zone transfer if there was no complete AXFR or no complete
+             IXFR chunk. The ``tcp-idle-timeout`` will close the connection if
+             there's no progress on the TCP level.
+
 .. namedconf:statement:: max-transfer-time-out
    :tags: transfer
    :short: Specifies the number of minutes after which outbound zone transfers are terminated.
