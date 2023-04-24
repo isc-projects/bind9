@@ -227,3 +227,17 @@
 		INSIST(ISC_LIST_EMPTY(dest));   \
 		ISC_LIST_MOVEUNSAFE(dest, src); \
 	}
+
+/* clang-format off */
+#define ISC_LIST_FOREACH(list, elt, link)	\
+	for (elt = ISC_LIST_HEAD(list);		\
+	     elt != NULL;			\
+	     elt = ISC_LIST_NEXT(elt, link))
+/* clang-format on */
+
+/* clang-format off */
+#define ISC_LIST_FOREACH_SAFE(list, elt, link, next)						\
+	for (elt = ISC_LIST_HEAD(list), next = (elt != NULL) ? ISC_LIST_NEXT(elt, link) : NULL;	\
+	     elt != NULL;									\
+	     elt = next, next = (elt != NULL) ? ISC_LIST_NEXT(elt, link) : NULL)
+/* clang-format on */

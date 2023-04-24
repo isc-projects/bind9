@@ -78,4 +78,4 @@ PenaltyBreakString: 80
 PenaltyExcessCharacter: 100
 Standard: Cpp11
 ContinuationIndentWidth: 8
-ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each_entry_safe' ]
+ForEachMacros: [ 'cds_lfs_for_each', 'cds_lfs_for_each_safe', 'cds_list_for_each_entry_safe', 'ISC_LIST_FOREACH', 'ISC_LIST_FOREACH_SAFE' ]
