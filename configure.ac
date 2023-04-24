@@ -201,33 +201,42 @@ PKG_PROG_PKG_CONFIG
 AS_IF([test -z "$PKG_CONFIG"],
       [AC_MSG_ERROR([The pkg-config script could not be found or is too old.])])
 
+#
+# Pick Userspace-RCU flavor (developer only option)
+#
+# [pairwise: --with-liburcu=membarrier, --with-liburcu=qsbr, --with-libucru=mb, --with-liburcu=signal, --with-liburcu=bp]
 AC_ARG_WITH([liburcu],
 	    [AS_HELP_STRING([--with-liburcu=FLAVOR],
 			     [Build with Userspace-RCU variant (membarrier|qsbr|mb|signal|bp) [default=membarrier]]))],
 	    [], [with_liburcu=membarrier])
 
-#
-# Pick Userspace-RCU flavor (developer only option)
-#
-
 AC_MSG_CHECKING([liburcu flavor])
 AS_CASE([$with_liburcu],
-	[membarrier],[AC_MSG_RESULT([membarrier])
-		      PKG_CHECK_MODULES([LIBURCU], [liburcu liburcu-cds])
-		      AC_DEFINE([RCU_MEMBARRIER], [1], [Build with membarrier Userspace-RCU flavor])],
-	[qsbr],[AC_MSG_RESULT([qsbr])
-		PKG_CHECK_MODULES([LIBURCU], [liburcu-qsbr liburcu-cds])
-		AC_DEFINE([RCU_QSBR], [1], [Build with QSBR Userspace-RCU flavor])],
-	[mb],[AC_MSG_RESULT([mb])
-	      PKG_CHECK_MODULES([LIBURCU], [liburcu-mb liburcu-cds])
-	      AC_DEFINE([RCU_MB], [1], [Build with mb Userspace-RCU flavor])],
-	[signal],[AC_MSG_RESULT([signal])
-		  PKG_CHECK_MODULES([LIBURCU], [liburcu-signal liburcu-cds])
-		  AC_DEFINE([RCU_SIGNAL], [1], [Build with signal Userspace-RCU flavor])],
-	[bp],[AC_MSG_RESULT([bulletproof])
-	      PKG_CHECK_MODULES([LIBURCU], [liburcu-bp liburcu-cds])
-	      AC_DEFINE([RCU_BP], [1], [Pick bulletproof Userspace-RCU flavor])],
+	[membarrier],
+	[RCU_FLAVOR="liburcu"
+	 AC_DEFINE([RCU_MEMBARRIER], [1], [Build with membarrier Userspace-RCU flavor])],
+	[qsbr],
+	[RCU_FLAVOR="liburcu-qsbr"
+	 AC_DEFINE([RCU_QSBR], [1], [Build with QSBR Userspace-RCU flavor])],
+	[mb],
+	[RCU_FLAVOR="liburcu-mb"
+	 AC_DEFINE([RCU_MB], [1], [Build with mb Userspace-RCU flavor])],
+	[signal],
+	[RCU_FLAVOR="liburcu-signal"
+	 AC_DEFINE([RCU_SIGNAL], [1], [Build with signal Userspace-RCU flavor])],
+	[bp],
+	[RCU_FLAVOR="liburcu-bp"
+	 AC_DEFINE([RCU_BP], [1], [Build with bulletproof Userspace-RCU flavor])],
 	[AC_MSG_ERROR([Invalid Userspace-RCU flavor picked])])
+
+AC_MSG_RESULT([$RCU_FLAVOR])
+
+PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR liburcu-cds])
+
+AC_DEFINE_UNQUOTED([RCU_FLAVOR], ["$RCU_FLAVOR"], [Chosen Userspace-RCU flavor])
+
+PKG_CHECK_VERSION([RCU_VERSION], [$RCU_FLAVOR])
+AC_DEFINE_UNQUOTED([RCU_VERSION], ["$RCU_VERSION"], [Compile-time Userspace-RCU version])
 
 # Fuzzing is not included in pairwise testing as fuzzing tools are
 # not present in the relevant Docker image.
