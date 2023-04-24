@@ -1405,6 +1405,13 @@ if [ -x "$DELV" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
+  echo_i "check NS output from delv +ns ($n)"
+  delv_with_opts -i +ns +nortrace +nostrace +nomtrace +novtrace +hint=../common/root.hint ns example > delv.out.test$n || ret=1
+  lines=$(awk '$1 == "example." && $4 == "NS" {print}' delv.out.test$n | wc -l)
+  [ $lines -eq 2 ] || ret=1
+  status=$((status+ret))
+
+  n=$((n+1))
   echo_i "checking delv +ns (no validation) ($n)"
   ret=0
   delv_with_opts -i +ns +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
