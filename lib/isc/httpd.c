@@ -20,6 +20,7 @@
 
 #include <isc/buffer.h>
 #include <isc/httpd.h>
+#include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/refcount.h>
@@ -278,8 +279,6 @@ httpdmgr_detach(isc_httpdmgr_t **httpdmgrp) {
 
 static void
 destroy_httpdmgr(isc_httpdmgr_t *httpdmgr) {
-	isc_httpdurl_t *url;
-
 	isc_refcount_destroy(&httpdmgr->references);
 
 	LOCK(&httpdmgr->lock);
@@ -297,12 +296,11 @@ destroy_httpdmgr(isc_httpdmgr_t *httpdmgr) {
 	 * Clear out the list of all actions we know about.  Just free the
 	 * memory.
 	 */
-	url = ISC_LIST_HEAD(httpdmgr->urls);
-	while (url != NULL) {
+	isc_httpdurl_t *url, *next;
+	ISC_LIST_FOREACH_SAFE (httpdmgr->urls, url, link, next) {
 		isc_mem_free(httpdmgr->mctx, url->url);
 		ISC_LIST_UNLINK(httpdmgr->urls, url, link);
 		isc_mem_put(httpdmgr->mctx, url, sizeof(isc_httpdurl_t));
-		url = ISC_LIST_HEAD(httpdmgr->urls);
 	}
 
 	UNLOCK(&httpdmgr->lock);
@@ -746,12 +744,10 @@ prepare_response(isc_httpdmgr_t *mgr, isc_httpd_t *httpd,
 	}
 
 	LOCK(&mgr->lock);
-	url = ISC_LIST_HEAD(mgr->urls);
-	while (url != NULL) {
+	ISC_LIST_FOREACH (mgr->urls, url, link) {
 		if (strncmp(path, url->url, path_len) == 0) {
 			break;
 		}
-		url = ISC_LIST_NEXT(url, link);
 	}
 	UNLOCK(&mgr->lock);
 
@@ -934,7 +930,6 @@ close_readhandle:
 void
 isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 	isc_httpdmgr_t *httpdmgr = NULL;
-	isc_httpd_t *httpd = NULL;
 
 	REQUIRE(httpdmgrp != NULL);
 	REQUIRE(VALID_HTTPDMGR(*httpdmgrp));
@@ -947,13 +942,12 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 	LOCK(&httpdmgr->lock);
 	httpdmgr->flags |= ISC_HTTPDMGR_SHUTTINGDOWN;
 
-	httpd = ISC_LIST_HEAD(httpdmgr->running);
-	while (httpd != NULL) {
+	isc_httpd_t *httpd, *next;
+	ISC_LIST_FOREACH_SAFE (httpdmgr->running, httpd, link, next) {
 		if (httpd->handle != NULL) {
 			httpd_request(httpd->handle, ISC_R_SUCCESS, NULL,
 				      httpd);
 		}
-		httpd = ISC_LIST_NEXT(httpd, link);
 	}
 	UNLOCK(&httpdmgr->lock);
 
