@@ -35,8 +35,6 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include "random_p.h"
-
 #ifndef THREAD_MINSTACKSIZE
 #define THREAD_MINSTACKSIZE (1024U * 1024)
 #endif /* ifndef THREAD_MINSTACKSIZE */
@@ -81,9 +79,6 @@ thread_run(void *arg) {
 	 */
 	wrap->free(malloc(1));
 	wrap->free(wrap);
-
-	/* Re-seed the random number generator in each thread. */
-	isc__random_initialize();
 
 	/* Get a thread-local digest context. */
 	isc__iterated_hash_initialize();
