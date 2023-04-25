@@ -54,24 +54,11 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 
 	REQUIRE(rdataset != NULL);
 
-	rdataset->magic = DNS_RDATASET_MAGIC;
-	rdataset->methods = NULL;
-	ISC_LINK_INIT(rdataset, link);
-	rdataset->rdclass = 0;
-	rdataset->type = 0;
-	rdataset->ttl = 0;
-	rdataset->trust = 0;
-	rdataset->covers = 0;
-	rdataset->attributes = 0;
-	rdataset->count = DNS_RDATASET_COUNT_UNDEFINED;
-	rdataset->private1 = NULL;
-	rdataset->private2 = NULL;
-	rdataset->private3 = NULL;
-	rdataset->privateuint4 = 0;
-	rdataset->private5 = NULL;
-	rdataset->private6 = NULL;
-	rdataset->private7 = NULL;
-	rdataset->resign = 0;
+	*rdataset = (dns_rdataset_t){
+		.magic = DNS_RDATASET_MAGIC,
+		.link = ISC_LINK_INITIALIZER,
+		.count = DNS_RDATASET_COUNT_UNDEFINED,
+	};
 }
 
 void
@@ -684,7 +671,9 @@ dns_rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	if (rdataset->methods->setownercase != NULL) {
+	if (rdataset->methods->setownercase != NULL &&
+	    (rdataset->attributes & DNS_RDATASETATTR_KEEPCASE) == 0)
+	{
 		(rdataset->methods->setownercase)(rdataset, name);
 	}
 }
@@ -694,7 +683,9 @@ dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 
-	if (rdataset->methods->getownercase != NULL) {
+	if (rdataset->methods->getownercase != NULL &&
+	    (rdataset->attributes & DNS_RDATASETATTR_KEEPCASE) == 0)
+	{
 		(rdataset->methods->getownercase)(rdataset, name);
 	}
 }
