@@ -24,8 +24,6 @@ get_core_dumps() {
 }
 
 core_dumps=$(get_core_dumps | tr '\n' ' ')
-assertion_failures=$(find "$SYSTESTDIR/" -name named.run -exec grep "assertion failure" {} + | wc -l)
-sanitizer_summaries=$(find "$SYSTESTDIR/" -name 'tsan.*' | wc -l)
 if [ -n "$core_dumps" ]; then
     status=1
     echoinfo "I:$systest:Core dump(s) found: $core_dumps"
@@ -54,13 +52,19 @@ if [ -n "$core_dumps" ]; then
         echoinfo "D:$systest:core dump $coredump archived as $coredump.gz"
         gzip -1 "${coredump}"
     done
-elif [ "$assertion_failures" -ne 0 ]; then
+fi
+
+assertion_failures=$(find "$SYSTESTDIR/" -name named.run -exec grep "assertion failure" {} + | wc -l)
+if [ "$assertion_failures" -ne 0 ]; then
     status=1
     echoinfo "I:$systest:$assertion_failures assertion failure(s) found"
-    find "$SYSTESTDIR/" -name 'tsan.*' -exec grep "SUMMARY: " {} + | sort -u | cat_d
-elif [ "$sanitizer_summaries" -ne 0 ]; then
+fi
+
+tsan_failures=$(find "$SYSTESTDIR/" -name 'tsan.*' | wc -l)
+if [ "$tsan_failures" -ne 0 ]; then
     status=1
-    echoinfo "I:$systest:$sanitizer_summaries sanitizer report(s) found"
+    echoinfo "I:$systest:$tsan_failures TSAN sanitizer report(s) found"
+    find "$SYSTESTDIR/" -name 'tsan.*' -exec grep "SUMMARY: " {} + | sort -u | cat_d
 fi
 
 exit $status
