@@ -17,7 +17,7 @@ dir=$(dirname "$0")
 systest=$1
 status=0
 
-export SYSTESTDIR="${TOP_SRCDIR}/bin/tests/system/${systest}"
+export SYSTESTDIR="${TOP_BUILDDIR}/bin/tests/system/${systest}"
 
 get_core_dumps() {
     find "$SYSTESTDIR/" \( -name 'core' -or -name 'core.*' -or -name '*.core' \) ! -name '*.gz' ! -name '*.txt' | sort
