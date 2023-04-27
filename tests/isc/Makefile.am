@@ -35,6 +35,7 @@ check_PROGRAMS =	\
 	netaddr_test	\
 	parse_test	\
 	proxyheader_test	\
+	proxystream_test	\
 	quota_test	\
 	radix_test	\
 	random_test	\
@@ -111,6 +112,18 @@ proxyheader_test_LDADD =	\
 proxyheader_test_SOURCES =	\
 	proxyheader_test.c \
 	proxyheader_test_data.h
+
+proxystream_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)
+
+proxystream_test_LDADD =	\
+	$(LDADD)
+
+proxystream_test_SOURCES =	\
+	proxystream_test.c \
+	netmgr_common.h \
+	netmgr_common.c \
+	stream_shutdown.c
 
 random_test_LDADD =	\
 	$(LDADD)	\

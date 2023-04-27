@@ -102,18 +102,32 @@ atomic_bool check_listener_quota = false;
 bool allow_send_back = false;
 bool noanswer = false;
 bool stream_use_TLS = false;
+bool stream_use_PROXY = false;
 bool stream = false;
 in_port_t stream_port = 0;
 
 isc_nm_recv_cb_t connect_readcb = NULL;
 
+isc_nm_proxyheader_info_t proxy_info_data;
+isc_nm_proxyheader_info_t *proxy_info = NULL;
+isc_sockaddr_t proxy_src;
+isc_sockaddr_t proxy_dst;
+
 int
 setup_netmgr_test(void **state) {
+	struct in_addr in;
 	tcp_connect_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_connect_addr, &in6addr_loopback, 0);
 
 	tcp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&tcp_listen_addr, &in6addr_loopback, stream_port);
+
+	RUNTIME_CHECK(inet_pton(AF_INET, "1.2.3.4", &in) == 1);
+	isc_sockaddr_fromin(&proxy_src, &in, 1234);
+	RUNTIME_CHECK(inet_pton(AF_INET, "4.3.2.1", &in) == 1);
+	isc_sockaddr_fromin(&proxy_dst, &in, 4321);
+	isc_nm_proxyheader_info_init(&proxy_info_data, &proxy_src, &proxy_dst,
+				     NULL);
 
 	esends = NSENDS * workers;
 
@@ -213,6 +227,8 @@ teardown_netmgr_test(void **state ISC_ATTR_UNUSED) {
 	isc_refcount_destroy(&active_creads);
 	isc_refcount_destroy(&active_ssends);
 	isc_refcount_destroy(&active_sreads);
+
+	proxy_info = NULL;
 
 	return (0);
 }
@@ -358,6 +374,10 @@ connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		return;
 	}
 
+	if (stream_use_PROXY) {
+		assert_true(isc_nm_is_proxy_handle(handle));
+	}
+
 	/* We are finished, initiate the shutdown */
 	if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) + 1)) {
 		do_cconnects_shutdown(loopmgr);
@@ -493,6 +513,10 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 		do_saccepts_shutdown(loopmgr);
 	}
 
+	if (stream_use_PROXY) {
+		assert_true(isc_nm_is_proxy_handle(handle));
+	}
+
 	isc_refcount_increment0(&active_sreads);
 
 	isc_nmhandle_attach(handle, &readhandle);
@@ -563,12 +587,41 @@ tls_connect(isc_nm_t *nm) {
 			  tcp_tlsctx_client_sess_cache, T_CONNECT);
 }
 
+isc_nm_proxyheader_info_t *
+get_proxyheader_info(void) {
+	if (proxy_info != NULL) {
+		return (proxy_info);
+	}
+
+	/*
+	 * There is 50% chance to get the info: so we can test LOCAL headers,
+	 * too.
+	 */
+	if (isc_random_uniform(2)) {
+		return (&proxy_info_data);
+	}
+
+	return (NULL);
+}
+
+static void
+proxystream_connect(isc_nm_t *nm) {
+	isc_nm_proxystreamconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
+				  connect_connect_cb, NULL, T_CONNECT,
+				  get_proxyheader_info());
+}
+
 stream_connect_function
 get_stream_connect_function(void) {
 	if (stream_use_TLS) {
 		return (tls_connect);
+	} else if (stream_use_PROXY) {
+		return (proxystream_connect);
+	} else {
+		return (tcp_connect);
 	}
-	return (tcp_connect);
+
+	UNREACHABLE();
 }
 
 isc_result_t
@@ -582,12 +635,19 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 					  accept_cbarg, backlog, quota,
 					  tcp_listen_tlsctx, sockp);
 		return (result);
+	} else if (stream_use_PROXY) {
+		result = isc_nm_listenproxystream(
+			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
+			accept_cb, accept_cbarg, backlog, quota, sockp);
+		return (result);
+	} else {
+		result = isc_nm_listentcp(listen_nm, ISC_NM_LISTEN_ALL,
+					  &tcp_listen_addr, accept_cb,
+					  accept_cbarg, backlog, quota, sockp);
+		return (result);
 	}
-	result = isc_nm_listentcp(listen_nm, ISC_NM_LISTEN_ALL,
-				  &tcp_listen_addr, accept_cb, accept_cbarg,
-				  backlog, quota, sockp);
 
-	return (result);
+	UNREACHABLE();
 }
 
 void
@@ -600,9 +660,17 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 				  tcp_connect_tlsctx,
 				  tcp_tlsctx_client_sess_cache, timeout);
 		return;
+	} else if (stream_use_PROXY) {
+		isc_nm_proxystreamconnect(connect_nm, &tcp_connect_addr,
+					  &tcp_listen_addr, cb, cbarg, timeout,
+					  get_proxyheader_info());
+		return;
+	} else {
+		isc_nm_tcpconnect(connect_nm, &tcp_connect_addr,
+				  &tcp_listen_addr, cb, cbarg, timeout);
+		return;
 	}
-	isc_nm_tcpconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr, cb,
-			  cbarg, timeout);
+	UNREACHABLE();
 }
 
 void

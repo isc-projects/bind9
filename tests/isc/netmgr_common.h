@@ -23,11 +23,12 @@
  * Pick unused port outside the ephemeral port range, so we don't clash with
  * connected sockets.
  */
-#define UDP_TEST_PORT	 9153
-#define TCP_TEST_PORT	 9154
-#define TLS_TEST_PORT	 9155
-#define TCPDNS_TEST_PORT 9156
-#define TLSDNS_TEST_PORT 9157
+#define UDP_TEST_PORT	      9153
+#define TCP_TEST_PORT	      9154
+#define TLS_TEST_PORT	      9155
+#define TCPDNS_TEST_PORT      9156
+#define TLSDNS_TEST_PORT      9157
+#define PROXYSTREAM_TEST_PORT 9158
 
 typedef void (*stream_connect_function)(isc_nm_t *nm);
 typedef void (*connect_func)(isc_nm_t *);
@@ -129,6 +130,7 @@ extern atomic_bool check_listener_quota;
 extern bool allow_send_back;
 extern bool noanswer;
 extern bool stream_use_TLS;
+extern bool stream_use_PROXY;
 extern bool stream;
 extern in_port_t stream_port;
 
@@ -282,6 +284,9 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 
 void
 stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
+
+isc_nm_proxyheader_info_t *
+get_proxyheader_info(void);
 
 int
 stream_noop_setup(void **state ISC_ATTR_UNUSED);
