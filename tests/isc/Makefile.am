@@ -32,6 +32,7 @@ check_PROGRAMS =	\
 	loop_test	\
 	md_test		\
 	mem_test	\
+	mutex_test	\
 	netaddr_test	\
 	parse_test	\
 	quota_test	\
