@@ -12,21 +12,21 @@
  */
 
 provider libdns {
-	probe xfrin_axfr_finalize_begin(void *);
-	probe xfrin_axfr_finalize_end(void *, int);
-	probe xfrin_connected(void *, int);
-	probe xfrin_done_callback_begin(void *, int);
-	probe xfrin_done_callback_end(void *, int);
-	probe xfrin_journal_destroy_begin(void *, int);
-	probe xfrin_journal_destroy_end(void *, int);
-	probe xfrin_read(void *, int);
-	probe xfrin_recv_answer(void *, void *);
-	probe xfrin_recv_done(void *, int);
-	probe xfrin_recv_parsed(void *, int);
-	probe xfrin_recv_question(void *, void *);
-	probe xfrin_recv_send_request(void *);
-	probe xfrin_recv_start(void *, int);
-	probe xfrin_recv_try_axfr(void *, int);
-	probe xfrin_sent(void *, int);
-	probe xfrin_start(void *);
+	probe xfrin_axfr_finalize_begin(void *, char *);
+	probe xfrin_axfr_finalize_end(void *, char *, int);
+	probe xfrin_connected(void *, char *, int);
+	probe xfrin_done_callback_begin(void *, char *, int);
+	probe xfrin_done_callback_end(void *, char *, int);
+	probe xfrin_journal_destroy_begin(void *, char *, int);
+	probe xfrin_journal_destroy_end(void *, char *, int);
+	probe xfrin_read(void *, char *, int);
+	probe xfrin_recv_answer(void *, char *, void *);
+	probe xfrin_recv_done(void *, char *, int);
+	probe xfrin_recv_parsed(void *, char *, int);
+	probe xfrin_recv_question(void *, char *, void *);
+	probe xfrin_recv_send_request(void *, char *);
+	probe xfrin_recv_start(void *, char *, int);
+	probe xfrin_recv_try_axfr(void *, char *, int);
+	probe xfrin_sent(void *, char *, int);
+	probe xfrin_start(void *, char *);
 };

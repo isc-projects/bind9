@@ -12,4 +12,5 @@
  */
 
 provider libns {
+	probe rrl_drop(const char *, const char *, const char *, int);
 };
