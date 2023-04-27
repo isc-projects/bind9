@@ -1,3 +1,6 @@
+6229.	[func]		Add basic USDT framework for adding static
+			tracing points. [GL #4041]
+
 6228.	[func]		Limit the number of inactive network manager handles
 			and uvreq objects that we keep around for reusing
 			later. [GL #4265]

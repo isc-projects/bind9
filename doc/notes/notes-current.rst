@@ -20,7 +20,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Add support for User Statically Defined Tracing (USDT) probes - static tracing
+  points for user-level software.  This allows a fine-grained application
+  tracing with zero-overhead when the probes are not enabled. :gl:`#4041`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
