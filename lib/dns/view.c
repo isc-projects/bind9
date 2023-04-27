@@ -79,8 +79,7 @@
 #define DEFAULT_EDNS_BUFSIZE 1232
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		dns_rdataclass_t rdclass, const char *name,
+dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -135,7 +134,7 @@ dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	isc_rwlock_init(&view->sfd_lock);
 
 	view->zonetable = NULL;
-	dns_zt_create(mctx, loopmgr, view, &view->zonetable);
+	dns_zt_create(mctx, view, &view->zonetable);
 
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
 	if (result != ISC_R_SUCCESS) {

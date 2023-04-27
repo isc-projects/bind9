@@ -380,8 +380,7 @@ load_multi(struct bench_state *bctx) {
 	size_t count = 0;
 	uint64_t start;
 
-	dns_qpmulti_create(bctx->mctx, bctx->loopmgr, &item_methods, NULL,
-			   &bctx->multi);
+	dns_qpmulti_create(bctx->mctx, &item_methods, NULL, &bctx->multi);
 
 	/* initial contents of the trie */
 	start = isc_time_monotonic();

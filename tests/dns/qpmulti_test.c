@@ -367,7 +367,7 @@ many_transactions(void *arg) {
 	UNUSED(arg);
 
 	dns_qpmulti_t *qpm = NULL;
-	dns_qpmulti_create(mctx, loopmgr, &test_methods, NULL, &qpm);
+	dns_qpmulti_create(mctx, &test_methods, NULL, &qpm);
 	qpm->writer.write_protect = true;
 
 	for (size_t n = 0; n < TRANSACTION_COUNT; n++) {
