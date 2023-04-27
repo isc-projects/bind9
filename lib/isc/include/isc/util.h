@@ -247,9 +247,19 @@
 #endif /* if __has_feature(thread_sanitizer) */
 
 #if __SANITIZE_THREAD__
+/*
+ * We should rather be including <sanitizer/tsan_interface.h>, but GCC 10
+ * header is broken, so we just make the declarations by hand.
+ */
+void
+__tsan_acquire(void *addr);
+void
+__tsan_release(void *addr);
 #define ISC_NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
 #else /* if __SANITIZE_THREAD__ */
 #define ISC_NO_SANITIZE_THREAD
+#define __tsan_acquire(addr)
+#define __tsan_release(addr)
 #endif /* if __SANITIZE_THREAD__ */
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)

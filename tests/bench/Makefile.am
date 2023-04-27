@@ -4,6 +4,7 @@ AM_CFLAGS += -Wno-vla
 
 AM_CPPFLAGS +=				\
 	$(LIBUV_CFLAGS)			\
+	$(LIBURCU_CFLAGS)		\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
 	-I$(top_srcdir)/fuzz		\
@@ -13,6 +14,7 @@ AM_CPPFLAGS +=				\
 
 LDADD +=				\
 	$(LIBUV_LIBS)			\
+	$(LIBURCU_LIBS)			\
 	$(LIBISC_LIBS)			\
 	$(LIBDNS_LIBS)			\
 	$(top_builddir)/tests/libtest/libtest.la

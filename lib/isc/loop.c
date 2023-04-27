@@ -34,6 +34,7 @@
 #include <isc/thread.h>
 #include <isc/tid.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 #include <isc/work.h>
@@ -90,6 +91,8 @@ static void
 pause_loop(isc_loop_t *loop) {
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
 
+	rcu_thread_offline();
+
 	loop->paused = true;
 	(void)isc_barrier_wait(&loopmgr->pausing);
 }
@@ -100,6 +103,8 @@ resume_loop(isc_loop_t *loop) {
 
 	(void)isc_barrier_wait(&loopmgr->resuming);
 	loop->paused = false;
+
+	rcu_thread_online();
 }
 
 static void
@@ -261,18 +266,18 @@ setup_jobs_cb(void *arg) {
 }
 
 static void
-loop_run(isc_loop_t *loop) {
-	int r = uv_prepare_start(&loop->quiescent, isc__qsbr_quiescent_cb);
-	UV_RUNTIME_CHECK(uv_prepare_start, r);
+quiescent_cb(uv_prepare_t *handle) {
+	isc__qsbr_quiescent_cb(handle);
 
-	isc_barrier_wait(&loop->loopmgr->starting);
+#if defined(RCU_QSBR)
+	/* safe memory reclamation */
+	rcu_quiescent_state();
 
-	isc_async_run(loop, setup_jobs_cb, loop);
-
-	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
-	UV_RUNTIME_CHECK(uv_run, r);
-
-	isc_barrier_wait(&loop->loopmgr->stopping);
+	/* mark the thread offline when polling */
+	rcu_thread_offline();
+#else
+	INSIST(!rcu_read_ongoing());
+#endif
 }
 
 static void
@@ -288,17 +293,27 @@ loop_close(isc_loop_t *loop) {
 	isc_mem_detach(&loop->mctx);
 }
 
-static isc_threadresult_t
-loop_thread(isc_threadarg_t arg) {
+static void *
+loop_thread(void *arg) {
 	isc_loop_t *loop = (isc_loop_t *)arg;
 
 	/* Initialize the thread_local variable */
 
 	isc__tid_init(loop->tid);
 
-	loop_run(loop);
+	int r = uv_prepare_start(&loop->quiescent, quiescent_cb);
+	UV_RUNTIME_CHECK(uv_prepare_start, r);
 
-	return ((isc_threadresult_t)0);
+	isc_barrier_wait(&loop->loopmgr->starting);
+
+	isc_async_run(loop, setup_jobs_cb, loop);
+
+	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
+	UV_RUNTIME_CHECK(uv_run, r);
+
+	isc_barrier_wait(&loop->loopmgr->stopping);
+
+	return (NULL);
 }
 
 void
@@ -470,7 +485,7 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr) {
 		isc_thread_setname(loop->thread, name);
 	}
 
-	loop_thread(&loopmgr->loops[0]);
+	isc_thread_main(loop_thread, &loopmgr->loops[0]);
 }
 
 void

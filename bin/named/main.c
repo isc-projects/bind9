@@ -591,6 +591,7 @@ printversion(bool verbose) {
 	printf("compiled with libuv version: %d.%d.%d\n", UV_VERSION_MAJOR,
 	       UV_VERSION_MINOR, UV_VERSION_PATCH);
 	printf("linked to libuv version: %s\n", uv_version_string());
+	printf("compiled with %s version: %s\n", RCU_FLAVOR, RCU_VERSION);
 #if HAVE_LIBNGHTTP2
 	nghttp2_info *nginfo = NULL;
 	printf("compiled with libnghttp2 version: %s\n", NGHTTP2_VERSION);

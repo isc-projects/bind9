@@ -42,8 +42,6 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-#include "random_p.h"
-
 /*
  * Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org)
  *
@@ -63,6 +61,7 @@
  * The state must be seeded so that it is not everywhere zero.
  */
 
+static thread_local bool initialized = false;
 static thread_local uint32_t seed[4] = { 0 };
 
 static uint32_t
@@ -88,8 +87,13 @@ next(void) {
 
 	return (result_starstar);
 }
-void
+
+static void
 isc__random_initialize(void) {
+	if (initialized) {
+		return;
+	}
+
 #if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/*
 	 * A fixed seed helps with problem reproduction when fuzzing. It must be
@@ -97,33 +101,41 @@ isc__random_initialize(void) {
 	 * first result needs to be non-zero as expected by random_test.c
 	 */
 	seed[0] = 1;
-#else  /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
-	isc_entropy_get(seed, sizeof(seed));
 #endif /* if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION */
+
+	while (seed[0] == 0 && seed[1] == 0 && seed[2] == 0 && seed[3] == 0) {
+		isc_entropy_get(seed, sizeof(seed));
+	}
+	initialized = true;
 }
 
 uint8_t
 isc_random8(void) {
+	isc__random_initialize();
 	return ((uint8_t)next());
 }
 
 uint16_t
 isc_random16(void) {
+	isc__random_initialize();
 	return ((uint16_t)next());
 }
 
 uint32_t
 isc_random32(void) {
+	isc__random_initialize();
 	return (next());
 }
 
 void
 isc_random_buf(void *buf, size_t buflen) {
+	REQUIRE(buf != NULL);
+	REQUIRE(buflen > 0);
+
 	int i;
 	uint32_t r;
 
-	REQUIRE(buf != NULL);
-	REQUIRE(buflen > 0);
+	isc__random_initialize();
 
 	for (i = 0; i + sizeof(r) <= buflen; i += sizeof(r)) {
 		r = next();
@@ -136,6 +148,8 @@ isc_random_buf(void *buf, size_t buflen) {
 
 uint32_t
 isc_random_uniform(uint32_t limit) {
+	isc__random_initialize();
+
 	/*
 	 * Daniel Lemire's nearly-divisionless unbiased bounded random numbers.
 	 *
