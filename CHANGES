@@ -1,3 +1,6 @@
+6159.	[bug]		Fix use-after-free bug in TCP accept connection
+			failure. [GL #4018]
+
 6158.	[func]		Add ISC_LIST_FOREACH() and ISC_LIST_FOREACH_SAFE()
 			to walk the ISC_LIST() in a unified manner and use
 			the safe macro to fix the potential UAF when shutting
