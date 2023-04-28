@@ -81,8 +81,8 @@ static size_t expected_counter = SIZE_MAX;
 static isc_mutex_t lock;
 static pthread_mutex_t mutex;
 
-static isc_threadresult_t
-pthread_mutex_thread(isc_threadarg_t arg) {
+static void *
+pthread_mutex_thread(void *arg) {
 	size_t cont = *(size_t *)arg;
 
 	for (size_t i = 0; i < loops; i++) {
@@ -94,11 +94,11 @@ pthread_mutex_thread(isc_threadarg_t arg) {
 		isc_pause_n(cont);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
-static isc_threadresult_t
-isc_mutex_thread(isc_threadarg_t arg) {
+static void *
+isc_mutex_thread(void *arg) {
 	size_t cont = *(size_t *)arg;
 
 	for (size_t i = 0; i < loops; i++) {
@@ -110,7 +110,7 @@ isc_mutex_thread(isc_threadarg_t arg) {
 		isc_pause_n(cont);
 	}
 
-	return ((isc_threadresult_t)0);
+	return (NULL);
 }
 
 ISC_RUN_TEST_IMPL(isc_mutex_benchmark) {
