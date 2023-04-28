@@ -317,6 +317,24 @@ enum {
 	RDATASET_ATTR_STALE_WINDOW = 1 << 13,
 };
 
+/*
+ * Pointer arithmetic to get the address of the raw memory following
+ * an rdatasetheader.
+ */
+static rdatasetheader_t *
+header_from_raw(void *raw) {
+	rdatasetheader_t *header = raw;
+	return (header - 1);
+}
+
+static void *
+raw_from_header(rdatasetheader_t *header) {
+	return (header + 1);
+}
+
+#define RDATASET_RBTDB(r)  ((dns_rbtdb_t *)(r)->slab.db)
+#define RDATASET_DBNODE(r) ((dns_rbtnode_t *)(r)->slab.node)
+
 #define EXISTS(header)                                 \
 	((atomic_load_acquire(&(header)->attributes) & \
 	  RDATASET_ATTR_NONEXISTENT) == 0)
@@ -2361,7 +2379,7 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 			/*
 			 * Find A NSEC3PARAM with a supported algorithm.
 			 */
-			raw = (unsigned char *)header + sizeof(*header);
+			raw = raw_from_header(header);
 			count = raw[0] * 256 + raw[1]; /* count */
 			raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
 			while (count-- > 0U) {
@@ -3039,7 +3057,6 @@ static void
 bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 	      isc_stdtime_t now, isc_rwlocktype_t locktype,
 	      dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	unsigned char *raw; /* RDATASLAB */
 	bool stale = STALE(header);
 	bool ancient = ANCIENT(header);
 
@@ -3120,27 +3137,23 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rdatasetheader_t *header,
 		rdataset->ttl = header->rdh_ttl;
 	}
 
-	rdataset->private1 = rbtdb;
-	rdataset->private2 = node;
-	raw = (unsigned char *)header + sizeof(*header);
-	rdataset->private3 = raw;
 	rdataset->count = atomic_fetch_add_relaxed(&header->count, 1);
 
-	/*
-	 * Reset iterator state.
-	 */
-	rdataset->privateuint4 = 0;
-	rdataset->private5 = NULL;
+	rdataset->slab.db = (dns_db_t *)rbtdb;
+	rdataset->slab.node = (dns_dbnode_t *)node;
+	rdataset->slab.raw = raw_from_header(header);
+	rdataset->slab.iter_pos = NULL;
+	rdataset->slab.iter_count = 0;
 
 	/*
 	 * Add noqname proof.
 	 */
-	rdataset->private6 = header->noqname;
-	if (rdataset->private6 != NULL) {
+	rdataset->slab.noqname = header->noqname;
+	if (header->noqname != NULL) {
 		rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
 	}
-	rdataset->private7 = header->closest;
-	if (rdataset->private7 != NULL) {
+	rdataset->slab.closest = header->closest;
+	if (header->closest != NULL) {
 		rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
 	}
 
@@ -3227,7 +3240,6 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	bool valid = false;
 	dns_offsets_t offsets;
 	isc_region_t region;
-	rdatasetheader_t *header;
 
 	/*
 	 * No additional locking is required.
@@ -3247,8 +3259,7 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 		return (false);
 	}
 
-	header = search->zonecut_rdataset;
-	raw = (unsigned char *)header + sizeof(*header);
+	raw = raw_from_header(search->zonecut_rdataset);
 	count = raw[0] * 256 + raw[1];
 	raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
 
@@ -7890,9 +7901,9 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(!IS_CACHE(rbtdb));
 	REQUIRE(rdataset != NULL);
+	REQUIRE(rdataset->methods == &rdataset_methods);
 
-	header = rdataset->private3;
-	header--;
+	header = header_from_raw(rdataset->slab.raw);
 
 	NODE_WRLOCK(&rbtdb->node_locks[header->node->locknum].lock, &nlocktype);
 
@@ -8026,11 +8037,11 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset,
 	REQUIRE(rbtversion->writer);
 	REQUIRE(rbtversion->rbtdb == rbtdb);
 
-	node = rdataset->private2;
-	INSIST(node != NULL);
-	header = rdataset->private3;
-	INSIST(header != NULL);
-	header--;
+	INSIST(rdataset->slab.node != NULL);
+	INSIST(rdataset->slab.raw != NULL);
+
+	node = (dns_rbtnode_t *)rdataset->slab.node;
+	header = header_from_raw(rdataset->slab.raw);
 
 	if (header->heap_index == 0) {
 		return;
@@ -8485,20 +8496,22 @@ cleanup_tree_lock:
 
 static void
 rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->private1;
-	dns_dbnode_t *node = rdataset->private2;
+	dns_db_t *db = rdataset->slab.db;
+	dns_dbnode_t *node = rdataset->slab.node;
 
 	dns__db_detachnode(db, &node DNS__DB_FLARG_PASS);
 }
 
 static isc_result_t
 rdataset_first(dns_rdataset_t *rdataset) {
-	unsigned char *raw = rdataset->private3; /* RDATASLAB */
+	unsigned char *raw;
 	unsigned int count;
 
+	raw = rdataset->slab.raw;
 	count = raw[0] * 256 + raw[1];
 	if (count == 0) {
-		rdataset->private5 = NULL;
+		rdataset->slab.iter_pos = NULL;
+		rdataset->slab.iter_count = 0;
 		return (ISC_R_NOMORE);
 	}
 
@@ -8506,20 +8519,17 @@ rdataset_first(dns_rdataset_t *rdataset) {
 		raw += DNS_RDATASET_COUNT;
 	}
 
-	raw += DNS_RDATASET_LENGTH;
-
 	/*
-	 * The privateuint4 field is the number of rdata beyond the
-	 * cursor position, so we decrement the total count by one
-	 * before storing it.
+	 * iter_count is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before
+	 * storing it.
 	 *
 	 * If DNS_RDATASETATTR_LOADORDER is not set 'raw' points to the
 	 * first record.  If DNS_RDATASETATTR_LOADORDER is set 'raw' points
 	 * to the first entry in the offset table.
 	 */
-	count--;
-	rdataset->privateuint4 = count;
-	rdataset->private5 = raw;
+	rdataset->slab.iter_pos = raw + DNS_RDATASET_LENGTH;
+	rdataset->slab.iter_count = count - 1;
 
 	return (ISC_R_SUCCESS);
 }
@@ -8528,19 +8538,19 @@ static isc_result_t
 rdataset_next(dns_rdataset_t *rdataset) {
 	unsigned int count;
 	unsigned int length;
-	unsigned char *raw; /* RDATASLAB */
+	unsigned char *raw;
 
-	count = rdataset->privateuint4;
+	count = rdataset->slab.iter_count;
 	if (count == 0) {
+		rdataset->slab.iter_pos = NULL;
 		return (ISC_R_NOMORE);
 	}
-	count--;
-	rdataset->privateuint4 = count;
+	rdataset->slab.iter_count = count - 1;
 
 	/*
 	 * Skip forward one record (length + 4) or one offset (4).
 	 */
-	raw = rdataset->private5;
+	raw = rdataset->slab.iter_pos;
 #if DNS_RDATASET_FIXED
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0)
 #endif /* DNS_RDATASET_FIXED */
@@ -8548,23 +8558,24 @@ rdataset_next(dns_rdataset_t *rdataset) {
 		length = raw[0] * 256 + raw[1];
 		raw += length;
 	}
-
-	rdataset->private5 = raw + DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
+	rdataset->slab.iter_pos = raw + DNS_RDATASET_ORDER +
+				  DNS_RDATASET_LENGTH;
 
 	return (ISC_R_SUCCESS);
 }
 
 static void
 rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
-	unsigned char *raw = rdataset->private5; /* RDATASLAB */
+	unsigned char *raw;
 	unsigned int length;
 	isc_region_t r;
 	unsigned int flags = 0;
 
+	raw = rdataset->slab.iter_pos;
 	REQUIRE(raw != NULL);
 
 	/*
-	 * Find the start of the record if not already in private5
+	 * Find the start of the record if not already in iter_pos
 	 * then skip the length and order fields.
 	 */
 #if DNS_RDATASET_FIXED
@@ -8573,8 +8584,7 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 		offset = ((unsigned int)raw[0] << 24) +
 			 ((unsigned int)raw[1] << 16) +
 			 ((unsigned int)raw[2] << 8) + (unsigned int)raw[3];
-		raw = rdataset->private3;
-		raw += offset;
+		raw = rdataset->slab.raw + offset;
 	}
 #endif /* if DNS_RDATASET_FIXED */
 
@@ -8597,8 +8607,8 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 
 static void
 rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
-	dns_db_t *db = source->private1;
-	dns_dbnode_t *node = source->private2;
+	dns_db_t *db = source->slab.db;
+	dns_dbnode_t *node = source->slab.node;
 	dns_dbnode_t *cloned_node = NULL;
 
 	dns__db_attachnode(db, node, &cloned_node DNS__DB_FLARG_PASS);
@@ -8606,18 +8616,16 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
 	*target = *source;
 	ISC_LINK_INIT(target, link);
 
-	/*
-	 * Reset iterator state.
-	 */
-	target->privateuint4 = 0;
-	target->private5 = NULL;
+	target->slab.iter_pos = NULL;
+	target->slab.iter_count = 0;
 }
 
 static unsigned int
 rdataset_count(dns_rdataset_t *rdataset) {
-	unsigned char *raw = rdataset->private3; /* RDATASLAB */
+	unsigned char *raw;
 	unsigned int count;
 
+	raw = rdataset->slab.raw;
 	count = raw[0] * 256 + raw[1];
 
 	return (count);
@@ -8627,9 +8635,9 @@ static isc_result_t
 rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsec,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->private1;
-	dns_dbnode_t *node = rdataset->private2;
-	const struct noqname *noqname = rdataset->private6;
+	dns_db_t *db = rdataset->slab.db;
+	dns_dbnode_t *node = rdataset->slab.node;
+	const struct noqname *noqname = rdataset->slab.noqname;
 
 	/*
 	 * Usually, rdataset->slab.raw refers the data following an
@@ -8647,9 +8655,9 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.type = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.private1 = rdataset->private1,
-		.private2 = rdataset->private2,
-		.private3 = noqname->neg,
+		.slab.db = db,
+		.slab.node = node,
+		.slab.raw = noqname->neg,
 		.link = nsec->link,
 		.count = nsec->count,
 		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
@@ -8665,9 +8673,9 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		.covers = noqname->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.private1 = rdataset->private1,
-		.private2 = rdataset->private2,
-		.private3 = noqname->negsig,
+		.slab.db = db,
+		.slab.node = node,
+		.slab.raw = noqname->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
 		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
@@ -8683,9 +8691,9 @@ static isc_result_t
 rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsec,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
-	dns_db_t *db = rdataset->private1;
-	dns_dbnode_t *node = rdataset->private2;
-	const struct noqname *closest = rdataset->private7;
+	dns_db_t *db = rdataset->slab.db;
+	dns_dbnode_t *node = rdataset->slab.node;
+	const struct noqname *closest = rdataset->slab.closest;
 
 	/*
 	 * As mentioned above, rdataset->slab.raw usually refers the data
@@ -8700,9 +8708,9 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.type = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.private1 = rdataset->private1,
-		.private2 = rdataset->private2,
-		.private3 = closest->neg,
+		.slab.db = db,
+		.slab.node = node,
+		.slab.raw = closest->neg,
 		.link = nsec->link,
 		.count = nsec->count,
 		.attributes = nsec->attributes | DNS_RDATASETATTR_KEEPCASE,
@@ -8718,9 +8726,9 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		.covers = closest->type,
 		.ttl = rdataset->ttl,
 		.trust = rdataset->trust,
-		.private1 = rdataset->private1,
-		.private2 = rdataset->private2,
-		.private3 = closest->negsig,
+		.slab.db = db,
+		.slab.node = node,
+		.slab.raw = closest->negsig,
 		.link = nsecsig->link,
 		.count = nsecsig->count,
 		.attributes = nsecsig->attributes | DNS_RDATASETATTR_KEEPCASE,
@@ -8738,12 +8746,11 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 static void
 rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *rbtnode = rdataset->private2;
-	rdatasetheader_t *header = rdataset->private3;
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *rbtnode = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-	header--;
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	header->trust = rdataset->trust = trust;
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
@@ -8751,13 +8758,12 @@ rdataset_settrust(dns_rdataset_t *rdataset, dns_trust_t trust) {
 
 static void
 rdataset_expire(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *rbtnode = rdataset->private2;
-	rdatasetheader_t *header = rdataset->private3;
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *rbtnode = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
-	header--;
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	expire_header(rbtdb, header, &nlocktype, &tlocktype,
 		      expire_flush DNS__DB_FLARG_PASS);
@@ -8767,12 +8773,11 @@ rdataset_expire(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 
 static void
 rdataset_clearprefetch(dns_rdataset_t *rdataset) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *rbtnode = rdataset->private2;
-	rdatasetheader_t *header = rdataset->private3;
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *rbtnode = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
-	header--;
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	RDATASET_ATTR_CLR(header, RDATASET_ATTR_PREFETCH);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
@@ -9464,13 +9469,10 @@ setownercase(rdatasetheader_t *header, const dns_name_t *name) {
 
 static void
 rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *rbtnode = rdataset->private2;
-	unsigned char *raw = rdataset->private3; /* RDATASLAB */
-	rdatasetheader_t *header;
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *rbtnode = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-
-	header = (struct rdatasetheader *)(raw - sizeof(*header));
 
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	setownercase(header, name);
@@ -9479,15 +9481,12 @@ rdataset_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 
 static void
 rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *rbtnode = rdataset->private2;
-	unsigned char *raw = rdataset->private3; /* RDATASLAB */
-	rdatasetheader_t *header = NULL;
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *rbtnode = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	uint8_t mask = (1 << 7);
 	uint8_t bits = 0;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-
-	header = (struct rdatasetheader *)(raw - sizeof(*header));
 
 	NODE_RDLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 
@@ -9840,17 +9839,14 @@ rdataset_newglue(dns_rbtdb_t *rbtdb, rbtdb_version_t *rbtversion,
 static isc_result_t
 rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 		 dns_message_t *msg) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *node = rdataset->private2;
-	unsigned char *raw = rdataset->private3; /* RDATASLAB */
+	dns_rbtdb_t *rbtdb = RDATASET_RBTDB(rdataset);
+	dns_rbtnode_t *node = RDATASET_DBNODE(rdataset);
+	rdatasetheader_t *header = header_from_raw(rdataset->slab.raw);
 	rbtdb_version_t *rbtversion = version;
 
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(rbtdb == rbtversion->rbtdb);
 	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
-
-	rdatasetheader_t *header =
-		(struct rdatasetheader *)(raw - sizeof(*header));
 
 	rcu_read_lock();
 

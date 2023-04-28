@@ -46,14 +46,12 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist) {
 	/*
 	 * Initialize rdatalist.
 	 */
-
-	rdatalist->rdclass = 0;
-	rdatalist->type = 0;
-	rdatalist->covers = 0;
-	rdatalist->ttl = 0;
-	ISC_LIST_INIT(rdatalist->rdata);
-	ISC_LINK_INIT(rdatalist, link);
+	*rdatalist = (dns_rdatalist_t){
+		.rdata = ISC_LIST_INITIALIZER,
+		.link = ISC_LINK_INITIALIZER,
+	};
 	memset(rdatalist->upper, 0xeb, sizeof(rdatalist->upper));
+
 	/*
 	 * Clear upper set bit.
 	 */
@@ -73,24 +71,28 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist, dns_rdataset_t *rdataset) {
 	/* Check if dns_rdatalist_init has was called. */
 	REQUIRE(rdatalist->upper[0] == 0xea);
 
-	rdataset->methods = &methods;
-	rdataset->rdclass = rdatalist->rdclass;
-	rdataset->type = rdatalist->type;
-	rdataset->covers = rdatalist->covers;
-	rdataset->ttl = rdatalist->ttl;
-	rdataset->trust = 0;
-	rdataset->private1 = rdatalist;
-	rdataset->private2 = NULL;
-	rdataset->private3 = NULL;
-	rdataset->privateuint4 = 0;
-	rdataset->private5 = NULL;
+	*rdataset = (dns_rdataset_t){
+		.methods = &methods,
+		.rdclass = rdatalist->rdclass,
+		.type = rdatalist->type,
+		.covers = rdatalist->covers,
+		.ttl = rdatalist->ttl,
+		.rdlist.list = rdatalist,
+
+		.link = rdataset->link,
+		.count = rdataset->count,
+		.attributes = rdataset->attributes,
+		.magic = rdataset->magic,
+	};
 }
 
 void
 dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
 			   dns_rdatalist_t **rdatalist) {
 	REQUIRE(rdatalist != NULL && rdataset != NULL);
-	*rdatalist = rdataset->private1;
+	REQUIRE(rdataset->methods == &methods);
+
+	*rdatalist = rdataset->rdlist.list;
 }
 
 void
@@ -100,12 +102,12 @@ dns_rdatalist_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 
 isc_result_t
 dns_rdatalist_first(dns_rdataset_t *rdataset) {
-	dns_rdatalist_t *rdatalist;
+	dns_rdatalist_t *rdatalist = NULL;
 
-	rdatalist = rdataset->private1;
-	rdataset->private2 = ISC_LIST_HEAD(rdatalist->rdata);
+	rdatalist = rdataset->rdlist.list;
+	rdataset->rdlist.iter = ISC_LIST_HEAD(rdatalist->rdata);
 
-	if (rdataset->private2 == NULL) {
+	if (rdataset->rdlist.iter == NULL) {
 		return (ISC_R_NOMORE);
 	}
 
@@ -116,16 +118,14 @@ isc_result_t
 dns_rdatalist_next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 
-	REQUIRE(rdataset != NULL);
-
-	rdata = rdataset->private2;
+	rdata = rdataset->rdlist.iter;
 	if (rdata == NULL) {
 		return (ISC_R_NOMORE);
 	}
 
-	rdataset->private2 = ISC_LIST_NEXT(rdata, link);
+	rdataset->rdlist.iter = ISC_LIST_NEXT(rdata, link);
 
-	if (rdataset->private2 == NULL) {
+	if (rdataset->rdlist.iter == NULL) {
 		return (ISC_R_NOMORE);
 	}
 
@@ -136,9 +136,7 @@ void
 dns_rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	dns_rdata_t *list_rdata;
 
-	REQUIRE(rdataset != NULL);
-
-	list_rdata = rdataset->private2;
+	list_rdata = rdataset->rdlist.iter;
 	INSIST(list_rdata != NULL);
 
 	dns_rdata_clone(list_rdata, rdata);
@@ -152,10 +150,7 @@ dns_rdatalist_clone(dns_rdataset_t *source,
 
 	*target = *source;
 
-	/*
-	 * Reset iterator state.
-	 */
-	target->private2 = NULL;
+	target->rdlist.iter = NULL;
 }
 
 unsigned int
@@ -166,7 +161,7 @@ dns_rdatalist_count(dns_rdataset_t *rdataset) {
 
 	REQUIRE(rdataset != NULL);
 
-	rdatalist = rdataset->private1;
+	rdatalist = rdataset->rdlist.list;
 
 	count = 0;
 	for (rdata = ISC_LIST_HEAD(rdatalist->rdata); rdata != NULL;
@@ -228,7 +223,7 @@ dns_rdatalist_addnoqname(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	}
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
 	rdataset->attributes |= DNS_RDATASETATTR_NOQNAME;
-	rdataset->private6 = name;
+	rdataset->rdlist.noqname = name;
 	return (ISC_R_SUCCESS);
 }
 
@@ -245,7 +240,7 @@ dns_rdatalist_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0);
 
 	rdclass = rdataset->rdclass;
-	noqname = rdataset->private6;
+	noqname = rdataset->rdlist.noqname;
 
 	(void)dns_name_dynamic(noqname); /* Sanity Check. */
 
@@ -334,7 +329,7 @@ dns_rdatalist_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	}
 	rdataset->ttl = neg->ttl = negsig->ttl = ttl;
 	rdataset->attributes |= DNS_RDATASETATTR_CLOSEST;
-	rdataset->private7 = name;
+	rdataset->rdlist.closest = name;
 	return (ISC_R_SUCCESS);
 }
 
@@ -351,7 +346,7 @@ dns_rdatalist_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 	REQUIRE((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0);
 
 	rdclass = rdataset->rdclass;
-	closest = rdataset->private7;
+	closest = rdataset->rdlist.closest;
 
 	(void)dns_name_dynamic(closest); /* Sanity Check. */
 
@@ -399,14 +394,11 @@ dns_rdatalist_setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	 * We do not need to worry about label lengths as they are all
 	 * less than or equal to 63.
 	 */
-	rdatalist = rdataset->private1;
+	rdatalist = rdataset->rdlist.list;
 	memset(rdatalist->upper, 0, sizeof(rdatalist->upper));
 	for (i = 1; i < name->length; i++) {
 		if (name->ndata[i] >= 0x41 && name->ndata[i] <= 0x5a) {
 			rdatalist->upper[i / 8] |= 1 << (i % 8);
-			/*
-			 * Record that upper has been set.
-			 */
 		}
 	}
 	/*
@@ -420,7 +412,7 @@ dns_rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	dns_rdatalist_t *rdatalist;
 	unsigned int i;
 
-	rdatalist = rdataset->private1;
+	rdatalist = rdataset->rdlist.list;
 	if ((rdatalist->upper[0] & 0x01) == 0) {
 		return;
 	}

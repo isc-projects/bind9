@@ -134,19 +134,80 @@ struct dns_rdataset {
 	 */
 	isc_stdtime_t resign;
 
-	/*@{*/
 	/*%
-	 * These are for use by the rdataset implementation, and MUST NOT
-	 * be changed by clients.
+	 * Extra fields used by various rdataset implementations, that is, by
+	 * the code referred to in the rdataset methods table. The names of
+	 * the structures roughly correspond to the file containing the
+	 * implementation, except that `rdlist` is used by `rdatalist.c`,
+	 * `sdb.c`, and `sdlz.c`.
+	 *
+	 * Pointers in these structs use incomplete structure types,
+	 * because the structure definitions and corresponding typedef
+	 * names might not be in scope in this header.
 	 */
-	void	    *private1;
-	void	    *private2;
-	void	    *private3;
-	unsigned int privateuint4;
-	void	    *private5;
-	const void  *private6;
-	const void  *private7;
 	/*@}*/
+	union {
+		struct {
+			struct dns_keynode *node;
+			dns_rdata_t	   *iter;
+		} keytable;
+
+		/*
+		 * An ncache rdataset is a view of memory held elsewhere:
+		 * raw can point to either a buffer on the stack or to an
+		 * rdataslab, such as in an rbtdb database.
+		 */
+		struct {
+			unsigned char *raw;
+			unsigned char *iter_pos;
+			unsigned int   iter_count;
+		} ncache;
+
+		/*
+		 * A slab rdataset provides access to an rdataslab. In
+		 * an rbtdb database, 'raw' will generally point to the
+		 * memory immediately following an rdatasetheader. (There
+		 * is an exception in the case of rdatasets returned by
+		 * the `getnoqname` and `getclosest` methods; see
+		 * comments in rbtdb.c for details.)
+		 */
+		struct {
+			struct dns_db *db;
+			dns_dbnode_t  *node;
+			unsigned char *raw;
+			unsigned char *iter_pos;
+			unsigned int   iter_count;
+			/* struct noqname is declared inside rbtdb.c */
+			struct noqname *noqname, *closest;
+		} slab;
+
+		/*
+		 * A simple rdatalist, plus an optional dbnode used by
+		 * builtin and sdlz.
+		 */
+		struct {
+			struct dns_rdatalist *list;
+			struct dns_rdata     *iter;
+
+			/*
+			 * These refer to names passed in by the caller of
+			 * dns_rdataset_addnoqname() and _addclosest()
+			 */
+			const struct dns_name *noqname, *closest;
+			dns_dbnode_t	      *node;
+		} rdlist;
+
+#ifdef USE_DNSRPS
+		/*
+		 * DNSRPS rdatasets. dns_rpsdb_t is defined in dnsrps.h.
+		 */
+		struct {
+			dns_rpsdb_t *db;
+			void	    *iter_pos;
+			unsigned int iter_count;
+		} rps;
+#endif /* USE_DNSRPS */
+	};
 };
 
 #define DNS_RDATASET_COUNT_UNDEFINED UINT32_MAX

@@ -135,6 +135,7 @@ typedef struct dns_remote	  dns_remote_t;
 typedef struct dns_request	  dns_request_t;
 typedef struct dns_requestmgr	  dns_requestmgr_t;
 typedef struct dns_resolver	  dns_resolver_t;
+typedef struct dns_rpsdb	  dns_rpsdb_t;
 typedef uint8_t			  dns_secalg_t;
 typedef uint8_t			  dns_secproto_t;
 typedef struct dns_signature	  dns_signature_t;
