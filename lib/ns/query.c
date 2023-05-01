@@ -6035,10 +6035,12 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	if (dbfind_stale) {
-		isc_log_write(
-			ns_lctx, NS_LOGCATEGORY_SERVE_STALE, NS_LOGMODULE_QUERY,
-			ISC_LOG_INFO, "%s %s resolver failure, stale answer %s",
-			namebuf, typebuf, stale_found ? "used" : "unavailable");
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "%s %s resolver failure, stale answer %s (%s)",
+			      namebuf, typebuf,
+			      stale_found ? "used" : "unavailable",
+			      isc_result_totext(result));
 		if (stale_found) {
 			ns_client_extendederror(qctx->client, ede,
 						"resolver failure");
@@ -6058,9 +6060,10 @@ query_lookup(query_ctx_t *qctx) {
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "%s %s query within stale refresh time, stale "
-			      "answer %s",
+			      "answer %s (%s)",
 			      namebuf, typebuf,
-			      stale_found ? "used" : "unavailable");
+			      stale_found ? "used" : "unavailable",
+			      isc_result_totext(result));
 
 		if (stale_found) {
 			ns_client_extendederror(
@@ -6121,11 +6124,13 @@ query_lookup(query_ctx_t *qctx) {
 			 * the stale answer if available, otherwise wait until
 			 * the resolver finishes.
 			 */
-			isc_log_write(ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s %s client timeout, stale answer %s",
-				      namebuf, typebuf,
-				      stale_found ? "used" : "unavailable");
+			isc_log_write(
+				ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
+				NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				"%s %s client timeout, stale answer %s (%s)",
+				namebuf, typebuf,
+				stale_found ? "used" : "unavailable",
+				isc_result_totext(result));
 			if (stale_found) {
 				ns_client_extendederror(qctx->client, ede,
 							"client timeout");
