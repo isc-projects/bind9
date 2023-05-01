@@ -1694,6 +1694,24 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "delay responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt slowdown  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "prime cache data.slow TXT (stale-answer-client-timeout) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 data.slow TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
@@ -1707,10 +1725,11 @@ sleep 2
 
 nextpart ns3/named.run > /dev/null
 
-echo_i "sending queries for tests $((n+1))-$((n+2))..."
+echo_i "sending queries for tests $((n+1))-$((n+3))..."
 t1=`$PERL -e 'print time()'`
 $DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2)) &
+$DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 data.slow TXT > dig.out.test$((n+3)) &
 wait
 t2=`$PERL -e 'print time()'`
 
@@ -1738,6 +1757,16 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "EDE: 3 (Stale Answer): (client timeout)" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check stale data.slow TXT comes from cache (stale-answer-client-timeout 1.8) ($n)"
+ret=0
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "EDE: 3 (Stale Answer): (client timeout)" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.slow\..*3.*IN.*TXT.*A slow text record with a 2 second ttl" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
