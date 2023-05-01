@@ -1,3 +1,6 @@
+6183.	[bug]		Fix a serve-stale bug where a delegation from cache
+			could be returned to the client. [GL #3950]
+
 6173.	[bug]		Properly process extra "nameserver" lines in
 			resolv.conf otherwise the next line is not properly
 			processed. [GL #4066]

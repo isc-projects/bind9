@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- It could happen that after the ``stale-answer-client-timeout`` duration,
+  a delegation from cache was returned to the client. This has now been fixed.
+  :gl:`#3950`
 
 Known Issues
 ~~~~~~~~~~~~
