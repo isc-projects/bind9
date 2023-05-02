@@ -55,6 +55,7 @@ run_in_container "apt-get update &&			\
 		libnghttp2-dev				\
 		libssl-dev				\
 		libtool					\
+		liburcu-dev				\
 		libuv1-dev				\
 		make					\
 		pkg-config				\
@@ -64,7 +65,7 @@ run_in_container "apt-get update &&			\
 
 run_in_container "apt-get -y install --no-install-recommends python3-pip && \
 	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
-	pip3 install docutils==0.17.1 sphinx-rtd-theme==1.1.1 sphinx==5.3.0"
+	pip3 install docutils==0.18.1 sphinx-rtd-theme==1.2.0 sphinx==6.1.3"
 
 # Retrieve the release-ready BIND 9 tarball.
 docker cp "${BIND_TARBALL}" "${CONTAINER_ID}:/usr/src"
