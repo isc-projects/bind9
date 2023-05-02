@@ -1247,8 +1247,10 @@ AC_LINK_IFELSE(
 AC_MSG_CHECKING([compiler support for __builtin_mul_overflow()])
 AC_LINK_IFELSE(
   [AC_LANG_PROGRAM(
-     [[#include <limits.h>]],
-     [[return (__builtin_mul_overflow(UINT64_C(UINT64_MAX), UINT64_C(UINT64_MAX), &(uint64_t){ 0 }));]]
+     [[#include <limits.h>
+       #include <stdint.h>
+     ]],
+     [[return (__builtin_mul_overflow(UINT64_MAX, UINT64_MAX, &(uint64_t){ 0 }));]]
    )],
   [AC_MSG_RESULT([yes])
    AC_DEFINE([HAVE_BUILTIN_MUL_OVERFLOW], [1], [define if the compiler supports __builtin_mul_overflow().])
