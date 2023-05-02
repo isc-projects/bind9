@@ -3247,11 +3247,11 @@ udp_ready(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 		if (next != NULL) {
 			start_udp(next);
+			check_if_done();
 		} else {
 			clear_current_lookup();
 		}
 
-		check_if_done();
 		UNLOCK_LOOKUP;
 		return;
 	}
@@ -3652,11 +3652,11 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 
 		if (next != NULL) {
 			start_tcp(next);
+			check_if_done();
 		} else {
 			clear_current_lookup();
 		}
 
-		check_if_done();
 		UNLOCK_LOOKUP;
 		return;
 	}
