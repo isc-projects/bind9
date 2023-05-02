@@ -1,3 +1,5 @@
+6160.	[bug]		'delv +ns' could print duplicate output. [GL #4020]
+
 6159.	[bug]		Fix use-after-free bug in TCP accept connection
 			failure. [GL #4018]
 

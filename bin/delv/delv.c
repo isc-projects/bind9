@@ -1952,6 +1952,7 @@ recvresponse(void *arg) {
 	dns_message_t *query = dns_request_getarg(request);
 	isc_result_t result = dns_request_getresult(request);
 	dns_message_t *response = NULL;
+	dns_name_t *prev = NULL;
 
 	if (result != ISC_R_SUCCESS) {
 		fatal("request event result: %s", isc_result_totext(result));
@@ -1977,8 +1978,10 @@ recvresponse(void *arg) {
 	{
 		dns_name_t *name = NULL;
 		dns_rdataset_t *rdataset = NULL;
+		dns_rdatatype_t prevtype = 0;
 
 		dns_message_currentname(response, DNS_SECTION_ANSWER, &name);
+
 		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
@@ -1988,15 +1991,31 @@ recvresponse(void *arg) {
 			/*
 			 * The response message contains the answer the
 			 * resolver found, but it doesn't contain the
-			 * trust status; so if we're displaying that, we
-			 * need to look up each rdataset in the cache and
-			 * print that version instead. but if not, we
-			 * can just print the rdatasets from the message.
+			 * trust status. if we're not displaying that,
+			 * fine, we can just print that version.
 			 */
 			if (!showtrust) {
 				printdata(rdataset, name);
 				continue;
 			}
+
+			/*
+			 * ... but if we are printing the trust status
+			 * (which is the default behavior)), we'll need
+			 * to retrieve a copy of the rdataset from the cache.
+			 * if we do that for ever record, it will produce
+			 * duplicate output, so we check here whether we've
+			 * already printed this name and type.
+			 */
+			if (prev != NULL && dns_name_equal(prev, name)) {
+				continue;
+			}
+			prev = name;
+
+			if (prevtype == rdataset->type) {
+				continue;
+			}
+			prevtype = rdataset->type;
 
 			/* do the cache lookup */
 			if (rdataset->type == dns_rdatatype_rrsig) {
