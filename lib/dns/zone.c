@@ -10619,8 +10619,6 @@ failure:
 cleanup:
 	dns_db_detach(&kfetch->db);
 
-	/* The zone must be managed */
-	INSIST(kfetch->zone->loop != NULL);
 	isc_refcount_decrement(&zone->irefs);
 
 	if (dns_rdataset_isassociated(keydataset)) {
@@ -14658,12 +14656,15 @@ zone_timer_set(dns_zone_t *zone, isc_time_t *next, isc_time_t *now) {
 		isc_time_subtract(next, now, &interval);
 	}
 
-	if (zone->timer == NULL) {
+	if (zone->loop == NULL) {
+		zone_debuglog(zone, __func__, 10, "zone is not managed");
+	} else if (zone->timer == NULL) {
 		isc_refcount_increment0(&zone->irefs);
 		isc_timer_create(zone->loop, zone_timer, zone, &zone->timer);
 	}
-
-	isc_timer_start(zone->timer, isc_timertype_once, &interval);
+	if (zone->timer != NULL) {
+		isc_timer_start(zone->timer, isc_timertype_once, &interval);
+	}
 }
 
 static void
@@ -18169,7 +18170,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
 
-	zone->loop = isc_loop_get(zmgr->loopmgr, zone->tid);
+	isc_loop_t *loop = isc_loop_get(zmgr->loopmgr, zone->tid);
+	isc_loop_attach(loop, &zone->loop);
 
 	zonemgr_keymgmt_add(zmgr, zone, &zone->kfio);
 	INSIST(zone->kfio != NULL);
@@ -18199,6 +18201,13 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 		zonemgr_keymgmt_delete(zmgr, &zone->kfio);
 		ENSURE(zone->kfio == NULL);
 	}
+
+	if (zone->timer != NULL) {
+		isc_refcount_decrement(&zone->irefs);
+		isc_timer_destroy(&zone->timer);
+	}
+
+	isc_loop_detach(&zone->loop);
 
 	/* Detach below, outside of the write lock. */
 	zone->zmgr = NULL;
@@ -20658,8 +20667,6 @@ done:
 	}
 
 cleanup:
-	/* The zone must be managed */
-	INSIST(nsfetch->zone->loop != NULL);
 	isc_refcount_decrement(&zone->irefs);
 
 	if (dns_rdataset_isassociated(nsrrset)) {
@@ -21922,7 +21929,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	LOCK_ZONE(zone);
 	LOCK_ZONE(raw);
 
-	raw->loop = zone->loop;
+	isc_loop_attach(zone->loop, &raw->loop);
 
 	/* dns_zone_attach(raw, &zone->raw); */
 	isc_refcount_increment(&raw->references);
