@@ -61,7 +61,7 @@ thread_wrap(isc_threadfunc_t func, void *arg) {
 		.func = func,
 		.arg = arg,
 	};
-
+	__tsan_release(wrap);
 	return (wrap);
 }
 
