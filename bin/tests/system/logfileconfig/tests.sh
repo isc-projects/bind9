@@ -209,6 +209,62 @@ if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
+echo_i "testing incremented versions ($n)"
+ret=0
+copy_setports ns1/named.incconf.in ns1/named.conf
+try=0
+while test $try -lt 12
+do
+	touch ns1/named_inc.$try
+	try=`expr $try + 1`
+done
+rndc_reconfig ns1 10.53.0.1 > rndc.out.test$n
+_found2() (
+        $DIG version.bind txt ch @10.53.0.1 -p ${PORT} > dig.out.test$n
+        grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+
+	try=1
+	while test $try -lt 12
+	do
+	        [ -f ns1/named_inc.$try ] && return 1
+		try=`expr $try + 1`
+	done
+        set -- ns1/named_inc.*
+        [ "$#" -eq 1 ] || return 1
+)
+retry_quiet 5 _found2 || ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "testing absolute file path versions ($n)"
+ret=0
+copy_setports ns1/named.abspathconf.in ns1/named.conf
+try=0
+while test $try -lt 12
+do
+	touch $TMPDIR/example.log.$try
+	try=`expr $try + 1`
+done
+rndc_reconfig ns1 10.53.0.1 > rndc.out.test$n
+_found2() (
+        $DIG version.bind txt ch @10.53.0.1 -p ${PORT} > dig.out.test$n
+        grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+
+	try=1
+	while test $try -lt 12
+	do
+		[ -f $TMPDIR/example.log.$try ] && return 1
+		try=`expr $try + 1`
+	done
+	set -- $TMPDIR/example.log.*
+	[ "$#" -eq 1 ] || return 1
+)
+retry_quiet 5 _found2 || ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
 echo_i "testing unlimited versions ($n)"
 ret=0
 copy_setports ns1/named.unlimited.in ns1/named.conf

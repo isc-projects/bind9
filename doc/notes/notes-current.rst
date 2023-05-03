@@ -45,6 +45,10 @@ Bug Fixes
   incoming zone transfers now time out properly when not progressing.
   :gl:`#4004`
 
+- Log file rotation did not clean up older versions of log files when the
+  logging :any:`channel` configured an absolute path as ``file`` destination.
+  This has now been fixed. :gl:`#3991`.
+
 Known Issues
 ~~~~~~~~~~~~
 
