@@ -1,5 +1,3 @@
-#!/bin/sh
-
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
 # SPDX-License-Identifier: MPL-2.0
@@ -11,11 +9,18 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ../conf.sh
+import pytest
 
-$FEATURETEST --tsan && {
-	echo_i "TSAN - skipping hooks test"
-        exit 255
-}
+pytest.importorskip("dns")
+import dns.message
+import dns.query
+import dns.rcode
 
-exit 0
+
+def test_async_hook(named_port):
+    msg = dns.message.make_query(
+        "example.com.",
+        "A",
+    )
+    ans = dns.query.udp(msg, "10.53.0.1", timeout=10, port=named_port)
+    assert ans.rcode() == dns.rcode.NOTIMP
