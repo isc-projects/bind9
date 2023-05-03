@@ -15802,17 +15802,14 @@ notify_done(void *arg) {
 			   (int)buf.used, rcode);
 	}
 
-	dns_message_detach(&message);
-	goto done;
-
 fail:
 	dns_message_detach(&message);
 
 	if (result == ISC_R_SUCCESS) {
-		notify_log(notify->zone, ISC_LOG_INFO,
+		notify_log(notify->zone, ISC_LOG_DEBUG(1),
 			   "notify to %s successful", addrbuf);
 	} else if (result == ISC_R_SHUTTINGDOWN || result == ISC_R_CANCELED) {
-		goto done;
+		/* just destroy the notify */
 	} else if ((notify->flags & DNS_NOTIFY_TCP) == 0) {
 		notify_log(notify->zone, ISC_LOG_NOTICE,
 			   "notify to %s failed: %s: retrying over TCP",
@@ -15830,7 +15827,6 @@ fail:
 			   "notify to %s failed: %s", addrbuf,
 			   isc_result_totext(result));
 	}
-done:
 	notify_destroy(notify, false);
 }
 
