@@ -3,8 +3,8 @@ include $(top_srcdir)/Makefile.top
 AM_CPPFLAGS +=				\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
-	$(LIBUV_CFLAGS)			\
 	$(LIBURCU_CFLAGS)		\
+	$(LIBUV_CFLAGS)			\
 	$(KRB5_CFLAGS)			\
 	-DSRCDIR=\"$(abs_srcdir)\"	\
 	-DBUILDDIR=\"$(abs_builddir)\"	\
@@ -13,8 +13,8 @@ AM_CPPFLAGS +=				\
 
 LDADD +=				\
 	$(LIBISC_LIBS)			\
-	$(LIBUV_LIBS)			\
 	$(LIBURCU_LIBS)			\
+	$(LIBUV_LIBS)			\
 	$(LIBDNS_LIBS)
 
 check_PROGRAMS =		\

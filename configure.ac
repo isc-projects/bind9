@@ -231,7 +231,13 @@ AS_CASE([$with_liburcu],
 
 AC_MSG_RESULT([$RCU_FLAVOR])
 
-PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR liburcu-cds])
+#
+# liburcu << v0.13.0 didn't add -lurcu-common and some toolchains would
+# not add it automatically - we need to add it explicitly in such case.
+#
+PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR >= 0.13.0 liburcu-cds >= 0.13.0], [],
+		  [PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR liburcu-cds],
+				     [LIBURCU_LIBS="$LIBURCU_LIBS -lurcu-common"])])
 
 AC_DEFINE_UNQUOTED([RCU_FLAVOR], ["$RCU_FLAVOR"], [Chosen Userspace-RCU flavor])
 
