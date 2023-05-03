@@ -221,8 +221,10 @@ struct dns_db {
 	ISC_LIST(dns_dbonupdatelistener_t) update_listeners;
 };
 
-#define DNS_DBATTR_CACHE 0x01
-#define DNS_DBATTR_STUB	 0x02
+enum {
+	DNS_DBATTR_CACHE = 1 << 0,
+	DNS_DBATTR_STUB = 1 << 1,
+};
 
 struct dns_dbonupdatelistener {
 	dns_dbupdate_callback_t onupdate;
@@ -234,16 +236,16 @@ struct dns_dbonupdatelistener {
 /*%
  * Options that can be specified for dns_db_find().
  */
-#define DNS_DBFIND_GLUEOK	0x0001
-#define DNS_DBFIND_VALIDATEGLUE 0x0002
-#define DNS_DBFIND_NOWILD	0x0004
-#define DNS_DBFIND_PENDINGOK	0x0008
-#define DNS_DBFIND_NOEXACT	0x0010
-#define DNS_DBFIND_FORCENSEC	0x0020
-#define DNS_DBFIND_COVERINGNSEC 0x0040
-#define DNS_DBFIND_FORCENSEC3	0x0080
-#define DNS_DBFIND_ADDITIONALOK 0x0100
-#define DNS_DBFIND_NOZONECUT	0x0200
+enum {
+	DNS_DBFIND_GLUEOK = 1 << 0,
+	DNS_DBFIND_NOWILD = 1 << 1,
+	DNS_DBFIND_PENDINGOK = 1 << 2,
+	DNS_DBFIND_NOEXACT = 1 << 3,
+	DNS_DBFIND_COVERINGNSEC = 1 << 4,
+	DNS_DBFIND_FORCENSEC3 = 1 << 5,
+	DNS_DBFIND_ADDITIONALOK = 1 << 6,
+	DNS_DBFIND_NOZONECUT = 1 << 7,
+};
 
 /*
  * DNS_DBFIND_STALEOK: This flag is set when BIND fails to refresh a RRset due
@@ -784,11 +786,6 @@ dns__db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
  *	attempted at each node starting at the direct ancestor of 'name'
  *	and working up to the zone origin.  This option is only meaningful
  *	when querying redirect zones.
- *
- * \li	If the #DNS_DBFIND_FORCENSEC option is set, the database is assumed to
- *	have NSEC records, and these will be returned when appropriate.  This
- *	is only necessary when querying a database that was not secure
- *	when created.
  *
  * \li	If the DNS_DBFIND_COVERINGNSEC option is set, then look for a
  *	NSEC record that potentially covers 'name' if a answer cannot

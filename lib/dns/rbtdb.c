@@ -3232,60 +3232,6 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 }
 
 static bool
-valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
-	   dns_rbtnode_t *node) {
-	unsigned char *raw; /* RDATASLAB */
-	unsigned int count, size;
-	dns_name_t ns_name;
-	bool valid = false;
-	dns_offsets_t offsets;
-	isc_region_t region;
-
-	/*
-	 * No additional locking is required.
-	 */
-
-	/*
-	 * Valid glue types are A, AAAA, A6.  NS is also a valid glue type
-	 * if it occurs at a zone cut, but is not valid below it.
-	 */
-	if (type == dns_rdatatype_ns) {
-		if (node != search->zonecut) {
-			return (false);
-		}
-	} else if (type != dns_rdatatype_a && type != dns_rdatatype_aaaa &&
-		   type != dns_rdatatype_a6)
-	{
-		return (false);
-	}
-
-	raw = raw_from_header(search->zonecut_rdataset);
-	count = raw[0] * 256 + raw[1];
-	raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
-
-	while (count > 0) {
-		count--;
-		size = raw[0] * 256 + raw[1];
-		raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
-		region.base = raw;
-		region.length = size;
-		raw += size;
-		/*
-		 * XXX Until we have rdata structures, we have no choice but
-		 * to directly access the rdata format.
-		 */
-		dns_name_init(&ns_name, offsets);
-		dns_name_fromregion(&ns_name, &region);
-		if (dns_name_compare(&ns_name, name) == 0) {
-			valid = true;
-			break;
-		}
-	}
-
-	return (valid);
-}
-
-static bool
 activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
 	    const dns_name_t *name) {
 	dns_fixedname_t fnext;
@@ -4093,7 +4039,6 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 */
 		if ((search.rbtversion->secure == dns_db_secure &&
 		     !search.rbtversion->havensec3) ||
-		    (search.options & DNS_DBFIND_FORCENSEC) != 0 ||
 		    (search.options & DNS_DBFIND_FORCENSEC3) != 0)
 		{
 			result = find_closest_nsec(
@@ -4379,24 +4324,13 @@ found:
 			}
 			goto tree_exit;
 		}
-		if ((search.options & DNS_DBFIND_FORCENSEC) != 0 &&
-		    nsecheader == NULL)
-		{
-			/*
-			 * There's no NSEC record, and we were told
-			 * to find one.
-			 */
-			result = DNS_R_BADDB;
-			goto node_exit;
-		}
 		if (nodep != NULL) {
 			new_reference(search.rbtdb, node,
 				      nlocktype DNS__DB_FLARG_PASS);
 			*nodep = node;
 		}
 		if ((search.rbtversion->secure == dns_db_secure &&
-		     !search.rbtversion->havensec3) ||
-		    (search.options & DNS_DBFIND_FORCENSEC) != 0)
+		     !search.rbtversion->havensec3))
 		{
 			bind_rdataset(search.rbtdb, node, nsecheader, 0,
 				      nlocktype, rdataset DNS__DB_FLARG_PASS);
@@ -4450,23 +4384,6 @@ found:
 			}
 		} else {
 			result = DNS_R_GLUE;
-		}
-		/*
-		 * We might have found data that isn't glue, but was occluded
-		 * by a dynamic update.  If the caller cares about this, they
-		 * will have told us to validate glue.
-		 *
-		 * XXX We should cache the glue validity state!
-		 */
-		if (result == DNS_R_GLUE &&
-		    (search.options & DNS_DBFIND_VALIDATEGLUE) != 0 &&
-		    !valid_glue(&search, foundname, type, node))
-		{
-			NODE_UNLOCK(lock, &nlocktype);
-			result = setup_delegation(
-				&search, nodep, foundname, rdataset,
-				sigrdataset DNS__DB_FLARG_PASS);
-			goto tree_exit;
 		}
 	} else {
 		/*
