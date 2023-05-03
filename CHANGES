@@ -1,3 +1,7 @@
+6164.	[bug]		Set the rndc idle read timeout back to 60 seconds,
+			from the netmgr default of 30 seconds, in order to
+			match the behavior of 9.16 and earlier. [GL #4046]
+
 6161.	[bug]		Fix log file rotation when using absolute path as
 			file. [GL #3991]
 
