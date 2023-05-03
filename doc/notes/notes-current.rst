@@ -24,6 +24,10 @@ New Features
   allows you to enable or disable the publication of CDNSKEY records.
   :gl:`#4050`
 
+- The read timeout in ``rndc`` can now be specified on the command line
+  using the ``-t`` option, allowing commands that take a long time to
+  complete sufficient time to do so. :gl:`#4046`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

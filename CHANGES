@@ -1,3 +1,9 @@
+6170.	[func]		The 'rndc -t' option allows a timeout to be set in
+			seconds, so that commands that take a long time to
+			complete (e.g., reloading a very large configuration)
+			can be given time to do so. The default is 60
+			seconds. [GL #4046]
+
 6169.	[bug]		named could crash when deleting inline-signing zones
 			with "rndc delzone". [GL #4054]
 
