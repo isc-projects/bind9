@@ -97,6 +97,12 @@ Options
    after executing the requested command (e.g., ISC_R_SUCCESS,
    ISC_R_FAILURE, etc.).
 
+.. option:: -t timeout
+
+   This option sets the idle timeout period for :program:`rndc` to
+   ``timeout`` seconds. The default is 60 seconds, and the maximum settable
+   value is 86400 seconds (1 day). If set to 0, there is no timeout.
+
 .. option:: -V
 
    This option enables verbose logging.
