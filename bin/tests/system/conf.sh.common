@@ -702,9 +702,12 @@ get_named_xfer_stats() {
 #   copy_setports infile outfile
 #
 copy_setports() {
-    sed -e "s/@PORT@/${PORT}/g" \
+    dir=$(echo "$TMPDIR" | sed 's/\//\\\//g')
+
+    sed -e "s/@TMPDIR@/${dir}/g" \
+        -e "s/@PORT@/${PORT}/g" \
         -e "s/@TLSPORT@/${TLSPORT}/g" \
-		-e "s/@HTTPPORT@/${HTTPPORT}/g" \
+        -e "s/@HTTPPORT@/${HTTPPORT}/g" \
         -e "s/@HTTPSPORT@/${HTTPSPORT}/g" \
         -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
         -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
