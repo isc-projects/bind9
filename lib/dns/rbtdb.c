@@ -9583,8 +9583,8 @@ new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
 
 static void
 free_gluelist_rcu(struct rcu_head *rcu_head) {
-	rbtdb_glue_t *glue = caa_container_of(rcu_head, rbtdb_glue_t, rcu_head);
-	__tsan_acquire(glue);
+	rbtdb_glue_t *glue = isc_urcu_container(rcu_head, rbtdb_glue_t,
+						rcu_head);
 
 	free_gluelist(glue);
 }
@@ -9600,8 +9600,7 @@ free_gluetable(rbtdb_version_t *rbtversion) {
 			caa_container_of(node, rdatasetheader_t, wfs_node);
 		rbtdb_glue_t *glue = rcu_xchg_pointer(&header->glue_list, NULL);
 
-		__tsan_release(glue);
-		call_rcu(&glue->rcu_head, free_gluelist_rcu);
+		isc_urcu_cleanup(glue, rcu_head, free_gluelist_rcu);
 	}
 	rcu_read_unlock();
 }

@@ -18,14 +18,20 @@ variables:
   CLANG_VERSION: 16
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
-  ASAN_SYMBOLIZER_PATH: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
+  LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
   CLANG_FORMAT: "clang-format-${CLANG_VERSION}"
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
-  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan"
+  ASAN_SYMBOLIZER_PATH: "${LLVM_SYMBOLIZER}"
+
+  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 atexit_sleep_ms=1000 history_size=7 log_exe_name=true log_path=tsan"
+  TSAN_SYMBOLIZER: "external_symbolizer_path=/usr/bin/llvm-symbolizer"
+  TSAN_SUPPRESSIONS: "suppressions=${CI_PROJECT_DIR}/.tsan-suppress"
+  TSAN_OPTIONS_DEFAULT: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} ${TSAN_SYMBOLIZER}"
+
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
   TARBALL_EXTENSION: xz
@@ -1044,7 +1050,7 @@ gcc:tsan:
 
 system:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEFAULT}"
   <<: *fedora_37_amd64_image
   <<: *system_test_tsan_job
   needs:
@@ -1053,7 +1059,7 @@ system:gcc:tsan:
 
 unit:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEFAULT}"
   <<: *fedora_37_amd64_image
   <<: *unit_test_tsan_job
   needs:
@@ -1071,7 +1077,7 @@ clang:tsan:
 
 system:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} external_symbolizer_path=${LLVM_SYMBOLIZER}"
   <<: *base_image
   <<: *system_test_tsan_job
   needs:
@@ -1080,7 +1086,7 @@ system:clang:tsan:
 
 unit:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} suppressions=$CI_PROJECT_DIR/.tsan-suppress-extra  external_symbolizer_path=${LLVM_SYMBOLIZER}"
   <<: *base_image
   <<: *unit_test_tsan_job
   needs:
@@ -1323,7 +1329,7 @@ respdiff-short:tsan:
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEFAULT}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:
@@ -1361,7 +1367,7 @@ respdiff-long:tsan:
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEFAULT}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:

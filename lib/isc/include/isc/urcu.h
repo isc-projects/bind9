@@ -39,6 +39,35 @@
 
 #pragma GCC diagnostic pop
 
+/*
+ * Help thread sanitizer to understand `call_rcu()`:
+ *
+ * The `rcu_head` argument to `call_rcu()` is expected to be embedded
+ * in a structure defined by the caller, which is named `_rcuctx` in
+ * these macros. The callback function uses `caa_container_of()` to
+ * recover the `rcuctx` pointer from the `_rcu_head` pointer that is
+ * passed to the callback.
+ *
+ * We explain the ordering dependency to tsan by releasing `_rcuctx`
+ * pointer before `call_rcu()` and acquiring it in the callback
+ * funtion. We pass the outer `_rcuctx` pointer to the `__tsan_`
+ * barriers, because it should match a pointer that is known by tsan
+ * to have been returned by `malloc()`.
+ */
+
+#define isc_urcu_cleanup(ptr, member, func)     \
+	{                                       \
+		__tsan_release(ptr);            \
+		call_rcu(&(ptr)->member, func); \
+	}
+
+#define isc_urcu_container(ptr, type, member)                     \
+	({                                                        \
+		type *_ptr = caa_container_of(ptr, type, member); \
+		__tsan_acquire(_ptr);                             \
+		_ptr;                                             \
+	})
+
 #if defined(RCU_QSBR)
 
 /*

@@ -1,0 +1,3 @@
+# be more selective with liburcu
+race:rcu_barrier
+race:rcu_memb_barrier
