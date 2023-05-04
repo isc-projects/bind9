@@ -57,6 +57,7 @@ bool memrecord = false;
 bool printmessage = false;
 bool hexmessage = false;
 bool yaml = false;
+bool timestampmillis = false;
 
 const char *program = "dnstap-read";
 
@@ -90,6 +91,8 @@ usage(void) {
 	fprintf(stderr, "dnstap-read [-mpxy] [filename]\n");
 	fprintf(stderr, "\t-m\ttrace memory allocations\n");
 	fprintf(stderr, "\t-p\tprint the full DNS message\n");
+	fprintf(stderr,
+		"\t-t\tprint long timestamps with millisecond precision\n");
 	fprintf(stderr, "\t-x\tuse hex format to print DNS message\n");
 	fprintf(stderr, "\t-y\tprint YAML format (implies -p)\n");
 }
@@ -231,13 +234,21 @@ print_yaml(dns_dtdata_t *dt) {
 
 	if (!isc_time_isepoch(&dt->qtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&dt->qtime, buf, sizeof(buf));
+		if (timestampmillis) {
+			isc_time_formatISO8601ms(&dt->qtime, buf, sizeof(buf));
+		} else {
+			isc_time_formatISO8601(&dt->qtime, buf, sizeof(buf));
+		}
 		printf("  query_time: !!timestamp %s\n", buf);
 	}
 
 	if (!isc_time_isepoch(&dt->rtime)) {
 		char buf[100];
-		isc_time_formatISO8601(&dt->rtime, buf, sizeof(buf));
+		if (timestampmillis) {
+			isc_time_formatISO8601ms(&dt->rtime, buf, sizeof(buf));
+		} else {
+			isc_time_formatISO8601(&dt->rtime, buf, sizeof(buf));
+		}
 		printf("  response_time: !!timestamp %s\n", buf);
 	}
 
@@ -330,7 +341,7 @@ main(int argc, char *argv[]) {
 	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
 
-	while ((ch = isc_commandline_parse(argc, argv, "mpxy")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "mptxy")) != -1) {
 		switch (ch) {
 		case 'm':
 			isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
@@ -338,6 +349,9 @@ main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			printmessage = true;
+			break;
+		case 't':
+			timestampmillis = true;
 			break;
 		case 'x':
 			hexmessage = true;
