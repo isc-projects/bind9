@@ -397,7 +397,8 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 	} else {
 		isc_nm_tlsconnect(mgr, local, peer,
 				  streamdns_transport_connected, nsock, ctx,
-				  client_sess_cache, nsock->connect_timeout);
+				  client_sess_cache, nsock->connect_timeout,
+				  false, NULL);
 	}
 }
 
@@ -743,7 +744,7 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	} else {
 		result = isc_nm_listentls(
 			mgr, workers, iface, streamdns_accept_cb, listener,
-			backlog, quota, tlsctx, &listener->outer);
+			backlog, quota, tlsctx, false, &listener->outer);
 	}
 	if (result != ISC_R_SUCCESS) {
 		listener->closed = true;

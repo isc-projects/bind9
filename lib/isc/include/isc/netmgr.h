@@ -616,7 +616,7 @@ isc_nm_is_proxy_handle(isc_nmhandle_t *handle);
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
-		 isc_quota_t *quota, isc_tlsctx_t *sslctx,
+		 isc_quota_t *quota, isc_tlsctx_t *sslctx, bool proxy,
 		 isc_nmsocket_t **sockp);
 
 void
@@ -624,7 +624,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
 		  isc_tlsctx_t			    *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
-		  unsigned int			     timeout);
+		  unsigned int timeout, bool proxy,
+		  isc_nm_proxyheader_info_t *proxy_info);
 
 #if HAVE_LIBNGHTTP2
 

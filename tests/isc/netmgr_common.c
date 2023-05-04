@@ -584,7 +584,8 @@ static void
 tls_connect(isc_nm_t *nm) {
 	isc_nm_tlsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 			  connect_connect_cb, NULL, tcp_connect_tlsctx,
-			  tcp_tlsctx_client_sess_cache, T_CONNECT);
+			  tcp_tlsctx_client_sess_cache, T_CONNECT,
+			  stream_use_PROXY, NULL);
 }
 
 isc_nm_proxyheader_info_t *
@@ -630,10 +631,10 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (stream_use_TLS) {
-		result = isc_nm_listentls(listen_nm, ISC_NM_LISTEN_ALL,
-					  &tcp_listen_addr, accept_cb,
-					  accept_cbarg, backlog, quota,
-					  tcp_listen_tlsctx, sockp);
+		result = isc_nm_listentls(
+			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
+			accept_cb, accept_cbarg, backlog, quota,
+			tcp_listen_tlsctx, stream_use_PROXY, sockp);
 		return (result);
 	} else if (stream_use_PROXY) {
 		result = isc_nm_listenproxystream(
@@ -655,10 +656,10 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_refcount_increment0(&active_cconnects);
 
 	if (stream_use_TLS) {
-		isc_nm_tlsconnect(connect_nm, &tcp_connect_addr,
-				  &tcp_listen_addr, cb, cbarg,
-				  tcp_connect_tlsctx,
-				  tcp_tlsctx_client_sess_cache, timeout);
+		isc_nm_tlsconnect(
+			connect_nm, &tcp_connect_addr, &tcp_listen_addr, cb,
+			cbarg, tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache,
+			timeout, stream_use_PROXY, NULL);
 		return;
 	} else if (stream_use_PROXY) {
 		isc_nm_proxystreamconnect(connect_nm, &tcp_connect_addr,

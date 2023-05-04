@@ -1510,7 +1510,8 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	if (tlsctx != NULL) {
 		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
-				  tlsctx, client_sess_cache, timeout);
+				  tlsctx, client_sess_cache, timeout, false,
+				  NULL);
 	} else {
 		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
 				  timeout);
@@ -2485,7 +2486,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	if (ctx != NULL) {
 		result = isc_nm_listentls(mgr, workers, iface,
 					  httplisten_acceptcb, sock, backlog,
-					  quota, ctx, &sock->outer);
+					  quota, ctx, false, &sock->outer);
 	} else {
 		result = isc_nm_listentcp(mgr, workers, iface,
 					  httplisten_acceptcb, sock, backlog,

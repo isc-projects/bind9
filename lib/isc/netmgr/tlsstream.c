@@ -943,7 +943,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
-		 isc_quota_t *quota, SSL_CTX *sslctx, isc_nmsocket_t **sockp) {
+		 isc_quota_t *quota, SSL_CTX *sslctx, bool proxy,
+		 isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_nmsocket_t *tsock = NULL;
@@ -975,8 +976,15 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	 * tlssock will be a TLS 'wrapper' around an unencrypted stream.
 	 * We set tlssock->outer to a socket listening for a TCP connection.
 	 */
-	result = isc_nm_listentcp(mgr, workers, iface, tlslisten_acceptcb,
-				  tlssock, backlog, quota, &tlssock->outer);
+	if (proxy) {
+		result = isc_nm_listenproxystream(
+			mgr, workers, iface, tlslisten_acceptcb, tlssock,
+			backlog, quota, &tlssock->outer);
+	} else {
+		result = isc_nm_listentcp(mgr, workers, iface,
+					  tlslisten_acceptcb, tlssock, backlog,
+					  quota, &tlssock->outer);
+	}
 	if (result != ISC_R_SUCCESS) {
 		tlssock->closed = true;
 		isc__nmsocket_detach(&tlssock);
@@ -1171,7 +1179,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
 		  isc_tlsctx_t *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
-		  unsigned int timeout) {
+		  unsigned int timeout, bool proxy,
+		  isc_nm_proxyheader_info_t *proxy_info) {
 	isc_nmsocket_t *sock = NULL;
 	isc__networker_t *worker = NULL;
 
@@ -1198,8 +1207,13 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 			client_sess_cache, &sock->tlsstream.client_sess_cache);
 	}
 
-	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, sock,
-			  sock->connect_timeout);
+	if (proxy) {
+		isc_nm_proxystreamconnect(mgr, local, peer, tcp_connected, sock,
+					  sock->connect_timeout, proxy_info);
+	} else {
+		isc_nm_tcpconnect(mgr, local, peer, tcp_connected, sock,
+				  sock->connect_timeout);
+	}
 }
 
 static void
@@ -1269,7 +1283,8 @@ error:
 
 void
 isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
-	if (sock->type == isc_nm_tcplistener &&
+	if ((sock->type == isc_nm_tcplistener ||
+	     sock->type == isc_nm_proxystreamlistener) &&
 	    sock->tlsstream.tlslistener != NULL)
 	{
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
@@ -1304,7 +1319,8 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 				    sock->tlsstream.send_req,
 				    sizeof(*sock->tlsstream.send_req));
 		}
-	} else if (sock->type == isc_nm_tcpsocket &&
+	} else if ((sock->type == isc_nm_tcpsocket ||
+		    sock->type == isc_nm_proxystreamsocket) &&
 		   sock->tlsstream.tlssocket != NULL)
 	{
 		/*
