@@ -20,7 +20,8 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- ``dnstap-read`` can now print long timestamps with millisecond precision.
+  :gl:`#2360`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
