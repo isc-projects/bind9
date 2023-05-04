@@ -1,3 +1,5 @@
+6162.	[placeholder]
+
 6161.	[bug]		Fix log file rotation when using absolute path as
 			file. [GL #3991]
 
