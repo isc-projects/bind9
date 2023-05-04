@@ -11,7 +11,21 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f ./*/named.conf
-rm -f ./*/named.memstats
-rm -f ./*/named.run
-rm -f ./ns*/managed-keys.bind*
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
+
+if test -n "$PYTHON"
+then
+    if $PYTHON -c "import dns" 2> /dev/null
+    then
+        :
+    else
+        echo_i "This test requires the dnspython module." >&2
+        exit 1
+    fi
+else
+    echo_i "This test requires Python and the dnspython module." >&2
+    exit 1
+fi
+
+exit 0
