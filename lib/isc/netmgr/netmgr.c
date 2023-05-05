@@ -847,6 +847,16 @@ isc__nm_async_task(isc__networker_t *worker, isc__netievent_t *ev0) {
 
 	result = isc_task_run(ievent->task);
 
+	/*
+	 * Tasks can block for a long time, especially when used by tools in
+	 * interactive mode. Update the event loop's time to avoid unexpected
+	 * errors when processing later events during the same callback.
+	 * For example, newly started timers can fire too early, because the
+	 * current time was stale. See the note about uv_update_time() in the
+	 * https://docs.libuv.org/en/v1.x/timer.html#c.uv_timer_start page.
+	 */
+	uv_update_time(&worker->loop);
+
 	switch (result) {
 	case ISC_R_QUOTA:
 		isc_task_ready(ievent->task);
