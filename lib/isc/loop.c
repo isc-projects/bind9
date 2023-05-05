@@ -434,6 +434,10 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr) {
 	 */
 	ignore_signal(SIGPIPE, SIG_IGN);
 
+	bool free_call_rcu_data = !create_all_cpu_call_rcu_data(0);
+
+	rcu_register_thread();
+
 	/*
 	 * The thread 0 is this one.
 	 */
@@ -448,6 +452,14 @@ isc_loopmgr_run(isc_loopmgr_t *loopmgr) {
 	}
 
 	isc_thread_main(loop_thread, &loopmgr->loops[0]);
+
+	rcu_unregister_thread();
+
+	rcu_barrier();
+
+	if (free_call_rcu_data) {
+		free_all_cpu_call_rcu_data();
+	}
 }
 
 void

@@ -84,11 +84,7 @@ thread_body(struct thread_wrap *wrap) {
 	__tsan_acquire(wrap);
 	free(wrap);
 
-	rcu_register_thread();
-
 	ret = func(arg);
-
-	rcu_unregister_thread();
 
 	return (ret);
 }
@@ -101,9 +97,13 @@ thread_run(void *wrap) {
 	 */
 	isc__iterated_hash_initialize();
 
+	rcu_register_thread();
+
 	void *ret = thread_body(wrap);
 
 	isc__iterated_hash_shutdown();
+
+	rcu_unregister_thread();
 
 	return (ret);
 }
