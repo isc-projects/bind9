@@ -56,6 +56,10 @@ Bug Fixes
   logging :any:`channel` configured an absolute path as ``file`` destination.
   This has now been fixed. :gl:`#3991`.
 
+- The read timeout in ``rndc`` is now 60 seconds, matching the behavior
+  in BIND 9.16 and earlier. It had previously been lowered to 30 seconds
+  by mistake. :gl:`#4046`
+
 Known Issues
 ~~~~~~~~~~~~
 
