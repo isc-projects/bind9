@@ -54,7 +54,8 @@
 
 #include "util.h"
 
-#define SERVERADDRS 10
+#define SERVERADDRS  10
+#define RNDC_TIMEOUT 60 * 1000
 
 const char *progname = NULL;
 bool verbose;
@@ -599,7 +600,7 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 
 	atomic_fetch_add_relaxed(&connects, 1);
 	isc_nm_tcpconnect(netmgr, local, addr, rndc_connected, &rndc_ccmsg,
-			  60000, 0);
+			  RNDC_TIMEOUT, 0);
 }
 
 static void
@@ -1035,6 +1036,9 @@ main(int argc, char **argv) {
 	isc_mem_create(&rndc_mctx);
 	isc_managers_create(rndc_mctx, 1, 0, &netmgr, &taskmgr, NULL);
 	DO("create task", isc_task_create(taskmgr, 0, &rndc_task));
+
+	isc_nm_settimeouts(netmgr, RNDC_TIMEOUT, RNDC_TIMEOUT, RNDC_TIMEOUT, 0);
+
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
 	isc_log_settag(logconfig, progname);
