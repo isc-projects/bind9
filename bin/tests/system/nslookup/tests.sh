@@ -44,6 +44,22 @@ grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
+# See [GL #4044]
+n=$((n+1))
+echo_i "Check A only lookup with a delayed stdin input ($n)"
+ret=0
+(sleep 6 && echo "server 10.53.0.1" && echo "a-only.example.net.") | $NSLOOKUP -port=${PORT} 2> nslookup.err${n} > nslookup.out${n} || ret=1
+lines=$(wc -l < nslookup.err${n})
+test $lines -eq 0 || ret=1
+lines=$(grep -c "Server:" nslookup.out${n})
+test $lines -eq 1 || ret=1
+lines=$(grep -c a-only.example.net nslookup.out${n})
+test $lines -eq 1 || ret=1
+grep "1.2.3.4" nslookup.out${n} > /dev/null || ret=1
+grep "timed out" nslookup.out${n} > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
 n=$((n+1))
 echo_i "Check AAAA only lookup ($n)"
 ret=0
