@@ -16,6 +16,13 @@
 			in the dispatch code to avoid retrying with the
 			same server. [GL #4005]<
 
+6152.	[bug]		In dispatch, honour the configured source-port
+			selection when UDP connection fails with address
+			in use error.
+
+			Also treat ISC_R_NOPERM same as ISC_R_ADDRINUSE.
+			[GL #3986]
+
 6149.	[test]		As a workaround, include an OpenSSL header file before
 			including cmocka.h in the unit tests, because OpenSSL
 			3.1.0 uses __attribute__(malloc), conflicting with a
