@@ -672,22 +672,6 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 }
 
 static isc_result_t
-expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(now);
-	UNREACHABLE();
-}
-
-static void
-printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(out);
-	return;
-}
-
-static isc_result_t
 createiterator(dns_db_t *db, unsigned int options,
 	       dns_dbiterator_t **iteratorp) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
@@ -1141,12 +1125,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 }
 
 static void
-overmem(dns_db_t *db, bool over) {
-	UNUSED(db);
-	UNUSED(over);
-}
-
-static void
 setloop(dns_db_t *db, isc_loop_t *loop) {
 	UNUSED(db);
 	UNUSED(loop);
@@ -1185,8 +1163,6 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.find = find,
 	.attachnode = attachnode,
 	.detachnode = detachnode,
-	.expirenode = expirenode,
-	.printnode = printnode,
 	.createiterator = createiterator,
 	.findrdataset = findrdataset,
 	.allrdatasets = allrdatasets,
@@ -1195,7 +1171,6 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.deleterdataset = deleterdataset,
 	.issecure = issecure,
 	.nodecount = nodecount,
-	.overmem = overmem,
 	.setloop = setloop,
 	.getoriginnode = getoriginnode,
 	.findnodeext = findnodeext,

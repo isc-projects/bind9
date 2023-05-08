@@ -201,24 +201,6 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 }
 
 static isc_result_t
-expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	return (dns_db_expirenode(sampledb->rbtdb, node, now));
-}
-
-static void
-printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	dns_db_printnode(sampledb->rbtdb, node, out);
-}
-
-static isc_result_t
 createiterator(dns_db_t *db, unsigned int options,
 	       dns_dbiterator_t **iteratorp) {
 	sampledb_t *sampledb = (sampledb_t *)db;
@@ -343,15 +325,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 }
 
 static void
-overmem(dns_db_t *db, bool over) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	dns_db_overmem(sampledb->rbtdb, over);
-}
-
-static void
 setloop(dns_db_t *db, isc_loop_t *loop) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
@@ -368,15 +341,6 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 
 	return (dns__db_getoriginnode(sampledb->rbtdb,
 				      nodep DNS__DB_FLARG_PASS));
-}
-
-static void
-transfernode(dns_db_t *db, dns_dbnode_t **sourcep, dns_dbnode_t **targetp) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	dns_db_transfernode(sampledb->rbtdb, sourcep, targetp);
 }
 
 static isc_result_t
@@ -420,25 +384,6 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 
 	return (dns__db_getsigningtime(sampledb->rbtdb, rdataset,
 				       name DNS__DB_FLARG_PASS));
-}
-
-static void
-resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-	 dns_dbversion_t *version DNS__DB_FLARG) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	dns__db_resigned(sampledb->rbtdb, rdataset, version DNS__DB_FLARG_PASS);
-}
-
-static bool
-isdnssec(dns_db_t *db) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	return (dns_db_isdnssec(sampledb->rbtdb));
 }
 
 static dns_stats_t *
@@ -486,15 +431,6 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (dns_db_setcachestats(sampledb->rbtdb, stats));
 }
 
-static size_t
-hashsize(dns_db_t *db) {
-	sampledb_t *sampledb = (sampledb_t *)db;
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
-
-	return (dns_db_hashsize(sampledb->rbtdb));
-}
-
 /*
  * DB interface definition. Database driver uses this structure to
  * determine which implementation of dns_db_*() function to call.
@@ -510,8 +446,6 @@ static dns_dbmethods_t sampledb_methods = {
 	.findzonecut = findzonecut,
 	.attachnode = attachnode,
 	.detachnode = detachnode,
-	.expirenode = expirenode,
-	.printnode = printnode,
 	.createiterator = createiterator,
 	.findrdataset = findrdataset,
 	.allrdatasets = allrdatasets,
@@ -520,21 +454,16 @@ static dns_dbmethods_t sampledb_methods = {
 	.deleterdataset = deleterdataset,
 	.issecure = issecure,
 	.nodecount = nodecount,
-	.overmem = overmem,
 	.setloop = setloop,
 	.getoriginnode = getoriginnode,
-	.transfernode = transfernode,
 	.getnsec3parameters = getnsec3parameters,
 	.findnsec3node = findnsec3node,
 	.setsigningtime = setsigningtime,
 	.getsigningtime = getsigningtime,
-	.resigned = resigned,
-	.isdnssec = isdnssec,
 	.getrrsetstats = getrrsetstats,
 	.findnodeext = findnodeext,
 	.findext = findext,
 	.setcachestats = setcachestats,
-	.hashsize = hashsize,
 };
 
 /* Auxiliary driver functions. */

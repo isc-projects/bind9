@@ -16522,7 +16522,7 @@ zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
 
 static isc_result_t
 checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	       dns_rdataset_t *rdataset, uint32_t oldserial) {
+	       dns_name_t *name, dns_rdataset_t *rdataset, uint32_t oldserial) {
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdatalist_t temprdatalist;
@@ -16530,8 +16530,6 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_buffer_t b;
 	isc_result_t result;
 	unsigned char buf[DNS_SOA_BUFFERSIZE];
-	dns_fixedname_t fixed;
-	dns_name_t *name;
 
 	result = dns_rdataset_first(rdataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -16569,9 +16567,6 @@ checkandaddsoa(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdataset_init(&temprdataset);
 	dns_rdatalist_tordataset(&temprdatalist, &temprdataset);
 
-	name = dns_fixedname_initname(&fixed);
-	result = dns_db_nodefullname(db, node, name);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_getownercase(rdataset, name);
 	dns_rdataset_setownercase(&temprdataset, name);
 	return (dns_db_addrdataset(db, node, version, 0, &temprdataset, 0,
@@ -16824,8 +16819,8 @@ copy_non_dnssec_records(dns_db_t *db, dns_db_t *version, dns_db_t *rawdb,
 			continue;
 		}
 		if (rdataset.type == dns_rdatatype_soa && oldserial != NULL) {
-			result = checkandaddsoa(db, node, version, &rdataset,
-						*oldserial);
+			result = checkandaddsoa(db, node, version, name,
+						&rdataset, *oldserial);
 		} else {
 			result = dns_db_addrdataset(db, node, version, 0,
 						    &rdataset, 0, NULL);

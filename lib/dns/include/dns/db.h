@@ -81,9 +81,6 @@ typedef struct dns_dbmethods {
 	isc_result_t (*beginload)(dns_db_t	       *db,
 				  dns_rdatacallbacks_t *callbacks);
 	isc_result_t (*endload)(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
-	isc_result_t (*dump)(dns_db_t *db, dns_dbversion_t *version,
-			     const char	       *filename,
-			     dns_masterformat_t masterformat);
 	void (*currentversion)(dns_db_t *db, dns_dbversion_t **versionp);
 	isc_result_t (*newversion)(dns_db_t *db, dns_dbversion_t **versionp);
 	void (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
@@ -108,9 +105,6 @@ typedef struct dns_dbmethods {
 	void (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
 			   dns_dbnode_t **targetp DNS__DB_FLARG);
 	void (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
-	isc_result_t (*expirenode)(dns_db_t *db, dns_dbnode_t *node,
-				   isc_stdtime_t now);
-	void (*printnode)(dns_db_t *db, dns_dbnode_t *node, FILE *out);
 	isc_result_t (*createiterator)(dns_db_t *db, unsigned int options,
 				       dns_dbiterator_t **iteratorp);
 	isc_result_t (*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
@@ -138,13 +132,9 @@ typedef struct dns_dbmethods {
 				       dns_rdatatype_t covers DNS__DB_FLARG);
 	bool (*issecure)(dns_db_t *db);
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
-	bool (*ispersistent)(dns_db_t *db);
-	void (*overmem)(dns_db_t *db, bool overmem);
 	void (*setloop)(dns_db_t *db, isc_loop_t *);
 	isc_result_t (*getoriginnode)(dns_db_t		  *db,
 				      dns_dbnode_t **nodep DNS__DB_FLARG);
-	void (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
-			     dns_dbnode_t **targetp);
 	isc_result_t (*getnsec3parameters)(dns_db_t	   *db,
 					   dns_dbversion_t *version,
 					   dns_hash_t *hash, uint8_t *flags,
@@ -158,9 +148,6 @@ typedef struct dns_dbmethods {
 				       isc_stdtime_t resign);
 	isc_result_t (*getsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
 				       dns_name_t *name DNS__DB_FLARG);
-	void (*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
-			 dns_dbversion_t *version DNS__DB_FLARG);
-	bool (*isdnssec)(dns_db_t *db);
 	dns_stats_t *(*getrrsetstats)(dns_db_t *db);
 	isc_result_t (*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				    bool		     create,
@@ -177,8 +164,6 @@ typedef struct dns_dbmethods {
 				dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 	isc_result_t (*setcachestats)(dns_db_t *db, isc_stats_t *stats);
 	size_t (*hashsize)(dns_db_t *db);
-	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
-				     dns_name_t *name);
 	isc_result_t (*getsize)(dns_db_t *db, dns_dbversion_t *version,
 				uint64_t *records, uint64_t *bytes);
 	isc_result_t (*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
@@ -216,6 +201,7 @@ struct dns_db {
 	uint16_t	 attributes;
 	dns_rdataclass_t rdclass;
 	dns_name_t	 origin;
+	dns_ttl_t	 serve_stale_ttl; /* for cache DB's only */
 	isc_mem_t	*mctx;
 	isc_refcount_t	 references;
 	ISC_LIST(dns_dbonupdatelistener_t) update_listeners;
@@ -1044,20 +1030,6 @@ dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
  * \li	'*sourcep' is NULL.
  */
 
-isc_result_t
-dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now);
-/*%<
- * Mark as stale all records at 'node' which expire at or before 'now'.
- *
- * Note: if 'now' is zero, then the current time will be used.
- *
- * Requires:
- *
- * \li	'db' is a valid cache database.
- *
- * \li	'node' is a valid node.
- */
-
 void
 dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
 /*%<
@@ -1380,12 +1352,6 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp);
  * \li	'ver' is a valid version.
  */
 
-void
-dns_db_overmem(dns_db_t *db, bool overmem);
-/*%<
- * Enable / disable aggressive cache cleaning.
- */
-
 unsigned int
 dns_db_nodecount(dns_db_t *db, dns_dbtree_t tree);
 /*%<
@@ -1430,9 +1396,8 @@ dns_db_ispersistent(dns_db_t *db);
  * Is 'db' persistent?  A persistent database does not need to be loaded
  * from disk or written to disk.
  *
- * By default, return false if the database implementation has an
- * 'endload' function and true if it doesn't. This default can be overridden
- * by including an 'ispersistent function in the database implementation.
+ * By default, return false if the database implementation has a
+ * 'beginload' function and true if it doesn't.
  *
  * Requires:
  *
@@ -1588,8 +1553,6 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  * Requires:
  * \li	'db' is a valid zone database.
  * \li	'rdataset' is or is to be associated with 'db'.
- * \li  'rdataset' is not pending removed from the heap via an
- *       uncommitted call to dns_db_resigned().
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
@@ -1614,25 +1577,6 @@ dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  * Returns:
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND - No dataset exists.
- */
-
-#define dns_db_resigned(db, rdataset, version) \
-	dns__db_resigned(db, rdataset, version DNS__DB_FILELINE)
-void
-dns__db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-		 dns_dbversion_t *version DNS__DB_FLARG);
-/*%<
- * Mark 'rdataset' as not being available to be returned by
- * dns_db_getsigningtime().  If the changes associated with 'version'
- * are committed this will be permanent.  If the version is not committed
- * this change will be rolled back when the version is closed.  Until
- * 'version' is either committed or rolled back, 'rdataset' can no longer
- * be acted upon by dns_db_setsigningtime().
- *
- * Requires:
- * \li	'db' is a valid zone database.
- * \li	'rdataset' to be associated with 'db'.
- * \li	'version' to be open for writing.
  */
 
 dns_stats_t *
@@ -1690,17 +1634,6 @@ dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
  * \li	'db' is a valid database
  * \li	'db' has update callback registered
  *
- */
-
-isc_result_t
-dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
-/*%<
- * Get the name associated with a database node.
- *
- * Requires:
- *
- * \li	'db' is a valid database
- * \li	'node' and 'name' are not NULL
  */
 
 isc_result_t
