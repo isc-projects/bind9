@@ -123,11 +123,6 @@ isc_loop_teardown(isc_loop_t *loop, isc_job_cb cb, void *cbarg);
  */
 
 void
-isc_loop_nosetup(isc_loop_t *loop, isc_job_t *job);
-void
-isc_loop_noteardown(isc_loop_t *loop, isc_job_t *job);
-
-void
 isc_loopmgr_setup(isc_loopmgr_t *loopmgr, isc_job_cb cb, void *cbarg);
 void
 isc_loopmgr_teardown(isc_loopmgr_t *loopmgr, isc_job_cb cb, void *cbarg);

@@ -48,6 +48,7 @@ isc_job_run(isc_loop_t *loop, isc_job_t *job, isc_job_cb cb, void *cbarg) {
 
 	job->cb = cb;
 	job->cbarg = cbarg;
+	ISC_LINK_INIT(job, link);
 
 	ISC_LIST_APPEND(loop->run_jobs, job, link);
 }

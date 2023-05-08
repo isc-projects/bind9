@@ -25,9 +25,9 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/signal.h>
-#include <isc/stack.h>
 #include <isc/thread.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 #include <isc/uv.h>
 #include <isc/work.h>
 
@@ -58,7 +58,7 @@ struct isc_loop {
 
 	/* Async queue */
 	uv_async_t async_trigger;
-	isc_asyncstack_t async_jobs;
+	isc_jobqueue_t async_jobs;
 
 	/* Jobs queue */
 	uv_idle_t run_trigger;
@@ -69,8 +69,8 @@ struct isc_loop {
 
 	/* Shutdown */
 	uv_async_t shutdown_trigger;
-	isc_joblist_t setup_jobs;
-	isc_joblist_t teardown_jobs;
+	isc_jobqueue_t setup_jobs;
+	isc_jobqueue_t teardown_jobs;
 
 	/* Destroy */
 	uv_async_t destroy_trigger;

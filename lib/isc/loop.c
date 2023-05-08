@@ -159,7 +159,6 @@ destroy_cb(uv_async_t *handle) {
 
 static void
 shutdown_cb(uv_async_t *handle) {
-	isc_job_t *job = NULL;
 	isc_loop_t *loop = uv_handle_get_data(handle);
 	isc_loopmgr_t *loopmgr = loop->loopmgr;
 
@@ -178,17 +177,12 @@ shutdown_cb(uv_async_t *handle) {
 		isc_signal_destroy(&loopmgr->sigint);
 	}
 
-	job = ISC_LIST_TAIL(loop->teardown_jobs);
-	while (job != NULL) {
-		isc_job_t *prev = ISC_LIST_PREV(job, link);
-		ISC_LIST_UNLINK(loop->teardown_jobs, job, link);
-
-		job->cb(job->cbarg);
-
-		isc_mem_put(loop->mctx, job, sizeof(*job));
-
-		job = prev;
-	}
+	enum cds_wfcq_ret ret = __cds_wfcq_splice_blocking(
+		&loop->async_jobs.head, &loop->async_jobs.tail,
+		&loop->teardown_jobs.head, &loop->teardown_jobs.tail);
+	INSIST(ret != CDS_WFCQ_RET_WOULDBLOCK);
+	int r = uv_async_send(&loop->async_trigger);
+	UV_RUNTIME_CHECK(uv_async_send, r);
 }
 
 static void
@@ -202,11 +196,12 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 	*loop = (isc_loop_t){
 		.tid = tid,
 		.loopmgr = loopmgr,
-		.async_jobs = ISC_ASTACK_INITIALIZER,
 		.run_jobs = ISC_LIST_INITIALIZER,
-		.setup_jobs = ISC_LIST_INITIALIZER,
-		.teardown_jobs = ISC_LIST_INITIALIZER,
 	};
+
+	__cds_wfcq_init(&loop->async_jobs.head, &loop->async_jobs.tail);
+	__cds_wfcq_init(&loop->setup_jobs.head, &loop->setup_jobs.tail);
+	__cds_wfcq_init(&loop->teardown_jobs.head, &loop->teardown_jobs.tail);
 
 	int r = uv_loop_init(&loop->loop);
 	UV_RUNTIME_CHECK(uv_loop_init, r);
@@ -249,23 +244,6 @@ loop_init(isc_loop_t *loop, isc_loopmgr_t *loopmgr, uint32_t tid) {
 }
 
 static void
-setup_jobs_cb(void *arg) {
-	isc_loop_t *loop = arg;
-	isc_job_t *job = ISC_LIST_HEAD(loop->setup_jobs);
-
-	while (job != NULL) {
-		isc_job_t *next = ISC_LIST_NEXT(job, link);
-		ISC_LIST_UNLINK(loop->setup_jobs, job, link);
-
-		job->cb(job->cbarg);
-
-		isc_mem_put(loop->mctx, job, sizeof(*job));
-
-		job = next;
-	}
-}
-
-static void
 quiescent_cb(uv_prepare_t *handle) {
 	isc__qsbr_quiescent_cb(handle);
 
@@ -285,7 +263,7 @@ loop_close(isc_loop_t *loop) {
 	int r = uv_loop_close(&loop->loop);
 	UV_RUNTIME_CHECK(uv_loop_close, r);
 
-	INSIST(ISC_ASTACK_EMPTY(loop->async_jobs));
+	INSIST(cds_wfcq_empty(&loop->async_jobs.head, &loop->async_jobs.tail));
 	INSIST(ISC_LIST_EMPTY(loop->run_jobs));
 
 	loop->magic = 0;
@@ -306,7 +284,13 @@ loop_thread(void *arg) {
 
 	isc_barrier_wait(&loop->loopmgr->starting);
 
-	isc_async_run(loop, setup_jobs_cb, loop);
+	enum cds_wfcq_ret ret = __cds_wfcq_splice_blocking(
+		&loop->async_jobs.head, &loop->async_jobs.tail,
+		&loop->setup_jobs.head, &loop->setup_jobs.tail);
+	INSIST(ret != CDS_WFCQ_RET_WOULDBLOCK);
+
+	r = uv_async_send(&loop->async_trigger);
+	UV_RUNTIME_CHECK(uv_async_send, r);
 
 	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
 	UV_RUNTIME_CHECK(uv_run, r);
@@ -314,16 +298,6 @@ loop_thread(void *arg) {
 	isc_barrier_wait(&loop->loopmgr->stopping);
 
 	return (NULL);
-}
-
-void
-isc_loop_nosetup(isc_loop_t *loop, isc_job_t *job) {
-	ISC_LIST_DEQUEUE(loop->setup_jobs, job, link);
-}
-
-void
-isc_loop_noteardown(isc_loop_t *loop, isc_job_t *job) {
-	ISC_LIST_DEQUEUE(loop->teardown_jobs, job, link);
 }
 
 /**
@@ -406,13 +380,15 @@ isc_loop_setup(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	*job = (isc_job_t){
 		.cb = cb,
 		.cbarg = cbarg,
-		.link = ISC_LINK_INITIALIZER,
 	};
+
+	cds_wfcq_node_init(&job->wfcq_node);
 
 	REQUIRE(loop->tid == isc_tid() || !atomic_load(&loopmgr->running) ||
 		atomic_load(&loopmgr->paused));
 
-	ISC_LIST_APPEND(loop->setup_jobs, job, link);
+	cds_wfcq_enqueue(&loop->setup_jobs.head, &loop->setup_jobs.tail,
+			 &job->wfcq_node);
 
 	return (job);
 }
@@ -426,13 +402,14 @@ isc_loop_teardown(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	*job = (isc_job_t){
 		.cb = cb,
 		.cbarg = cbarg,
-		.link = ISC_LINK_INITIALIZER,
 	};
+	cds_wfcq_node_init(&job->wfcq_node);
 
 	REQUIRE(loop->tid == isc_tid() || !atomic_load(&loopmgr->running) ||
 		atomic_load(&loopmgr->paused));
 
-	ISC_LIST_APPEND(loop->teardown_jobs, job, link);
+	cds_wfcq_enqueue(&loop->teardown_jobs.head, &loop->teardown_jobs.tail,
+			 &job->wfcq_node);
 
 	return (job);
 }
