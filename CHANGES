@@ -1,3 +1,7 @@
+6166.	[func]		Retry without DNS COOKIE on FORMERR if it appears that
+			the FORMERR was due to the presence of a DNS COOKIE
+			option. [GL #4049]
+
 6165.	[bug]		Fix a logic error in dighost.c which could call the
 			dighost_shutdown() callback twice and cause problems
 			if the callback function was not idempotent. [GL #4039]
