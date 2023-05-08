@@ -30,13 +30,16 @@
  *** Imports.
  ***/
 
+#include <isc/align.h>
 #include <isc/atomic.h>
 #include <isc/job.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
+#include <isc/os.h>
 #include <isc/refcount.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 
 /*****
 ***** Types.
@@ -46,15 +49,23 @@
 
 ISC_LANG_BEGINDECLS
 
-/*% isc_quota structure */
+/*%
+ * isc_quota structure
+ *
+ * NOTE: We are using struct cds_wfcq_head which has an internal
+ * mutex, because we are using enqueue and dequeue, and dequeues need
+ * synchronization between multiple threads (see urcu/wfcqueue.h for
+ * detailed description).
+ */
 struct isc_quota {
 	int		     magic;
 	atomic_uint_fast32_t max;
 	atomic_uint_fast32_t used;
 	atomic_uint_fast32_t soft;
-	atomic_uint_fast32_t waiting;
-	isc_mutex_t	     cblock;
-	ISC_LIST(isc_job_t) jobs;
+	struct {
+		alignas(ISC_OS_CACHELINE_SIZE) struct cds_wfcq_head head;
+		alignas(ISC_OS_CACHELINE_SIZE) struct cds_wfcq_tail tail;
+	} jobs;
 	ISC_LINK(isc_quota_t) link;
 };
 
