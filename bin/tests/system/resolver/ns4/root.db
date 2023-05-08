@@ -33,3 +33,5 @@ ns.targetns.		A	10.53.0.6
 partial-formerr.	NS	ns.partial-formerr.
 ns.partial-formerr.	A	10.53.0.2
 ns.partial-formerr.	A	10.53.0.3
+options-formerr.	NS	ns.options-formerr.
+ns.options-formerr.	A	10.53.0.10
