@@ -45,6 +45,11 @@ Bug Fixes
   as broken and is not contacted again during a given resolution
   process. :gl:`#4005`
 
+- A flaw in reworked code responsible for accepting TCP connections has
+  been addressed. This issue could cause a visible performance drop for
+  TCP queries on some platforms, notably FreeBSD, and has now been
+  fixed. :gl:`#3985`
+
 - Log file rotation code did not clean up older versions of log files
   when the logging :any:`channel` had an absolute path configured as a
   ``file`` destination. This has been fixed. :gl:`#3991`
