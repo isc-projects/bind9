@@ -15,35 +15,39 @@ Notes for BIND 9.19.13
 New Features
 ~~~~~~~~~~~~
 
-- ``dnstap-read`` can now print long timestamps with millisecond precision.
-  :gl:`#2360`
+- :iscman:`dnstap-read` can now print long timestamps with millisecond
+  precision. :gl:`#2360`
 
 Bug Fixes
 ~~~~~~~~~
 
-- When the same ``notify-source`` address and port number was configured for
-  multiple destinations and zones, an unresponsive server could tie up the
-  socket until it timed out; in the meantime, NOTIFY messages for other servers
-  silently failed.``named`` will now retry these failing messages over TCP.
-  NOTIFY failures are now logged at level INFO. :gl:`#4001` :gl:`#4002`
+- When the same :any:`notify-source` address and port number was
+  configured for multiple destinations and zones, an unresponsive server
+  could tie up the relevant network socket until it timed out; in the
+  meantime, NOTIFY messages for other servers silently failed.
+  :iscman:`named` will now retry sending such NOTIFY messages over TCP.
+  Furthermore, NOTIFY failures are now logged at the INFO level.
+  :gl:`#4001` :gl:`#4002`
 
-- When ISC_R_INVALIDPROTO (ENOPROTOOPT, EPROTONOSUPPORT) is returned from
-  libuv, treat it as a network failure, mark the server as broken and don't
-  try again. :gl:`#4005`
+- When the ``ISC_R_INVALIDPROTO`` (``ENOPROTOOPT``, ``EPROTONOSUPPORT``)
+  error code is returned by libuv, it is now treated as a network
+  failure: the server for which that error code is returned gets marked
+  as broken and is not contacted again during a given resolution
+  process. :gl:`#4005`
 
-- The :any:`max-transfer-time-in` and :any:`max-transfer-idle-in` options
-  were not implemented when the BIND 9 networking stack was refactored
-  in 9.16. The missing functionality has been re-implemented and
+- The :any:`max-transfer-time-in` and :any:`max-transfer-idle-in` have
+  not had any effect since the BIND 9 networking stack was refactored in
+  version 9.16. The missing functionality has been re-implemented and
   incoming zone transfers now time out properly when not progressing.
   :gl:`#4004`
 
-- Log file rotation did not clean up older versions of log files when the
-  logging :any:`channel` configured an absolute path as ``file`` destination.
-  This has now been fixed. :gl:`#3991`.
+- Log file rotation code did not clean up older versions of log files
+  when the logging :any:`channel` had an absolute path configured as a
+  ``file`` destination. This has been fixed. :gl:`#3991`
 
-- The read timeout in ``rndc`` is now 60 seconds, matching the behavior
-  in BIND 9.16 and earlier. It had previously been lowered to 30 seconds
-  by mistake. :gl:`#4046`
+- The read timeout in :iscman:`rndc` is now 60 seconds, matching the
+  behavior in BIND 9.16 and earlier. It had previously been lowered to
+  30 seconds by mistake. :gl:`#4046`
 
 Known Issues
 ~~~~~~~~~~~~
