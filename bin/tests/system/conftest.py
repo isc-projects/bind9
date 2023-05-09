@@ -449,6 +449,8 @@ else:
                 )
             else:
                 mlogger.debug("deleting temporary directory")
+                handler.flush()
+                handler.close()
                 shutil.rmtree(testdir)
 
     def _run_script(  # pylint: disable=too-many-arguments
