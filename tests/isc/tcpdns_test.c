@@ -127,6 +127,24 @@ ISC_LOOP_TEST_IMPL(tcpdns_recv_send) {
 	}
 }
 
+/* PROXY tests */
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_noop) { loop_test_tcpdns_noop(arg); }
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_noresponse) {
+	loop_test_tcpdns_noresponse(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_timeout_recovery) {
+	loop_test_tcpdns_timeout_recovery(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_recv_one) { loop_test_tcpdns_recv_one(arg); }
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_recv_two) { loop_test_tcpdns_recv_two(arg); }
+
+ISC_LOOP_TEST_IMPL(proxy_tcpdns_recv_send) { loop_test_tcpdns_recv_send(arg); }
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(tcpdns_noop, stream_noop_setup, stream_noop_teardown)
@@ -140,6 +158,21 @@ ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_two, stream_recv_two_setup,
 		      stream_recv_two_teardown)
 ISC_TEST_ENTRY_CUSTOM(tcpdns_recv_send, stream_recv_send_setup,
 		      stream_recv_send_teardown)
+/* PROXY */
+
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_noop, proxystream_noop_setup,
+		      proxystream_noop_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_noresponse, proxystream_noresponse_setup,
+		      proxystream_noresponse_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_timeout_recovery,
+		      proxystream_timeout_recovery_setup,
+		      proxystream_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_recv_one, proxystream_recv_one_setup,
+		      proxystream_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_recv_two, proxystream_recv_two_setup,
+		      proxystream_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxy_tcpdns_recv_send, proxystream_recv_send_setup,
+		      proxystream_recv_send_teardown)
 
 ISC_TEST_LIST_END
 
