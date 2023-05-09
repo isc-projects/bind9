@@ -49,3 +49,14 @@ Known Issues
   future release, either by restoring UNIX-domain socket support or by
   formally declaring them to be obsolete in the control channel.
   :gl:`#1759`
+
+- Sending NOTIFY messages silently fails when the source port specified
+  in the :any:`notify-source` statement is already in use. This can
+  happen e.g. when multiple servers are configured as NOTIFY targets for
+  a zone and some of them are unresponsive. This issue can be worked
+  around by not specifying the source port for NOTIFY messages in the
+  :any:`notify-source` statement; note that source port configuration is
+  already `deprecated`_ and will be removed altogether in a future
+  release. :gl:`#4002`
+
+.. _deprecated: https://gitlab.isc.org/isc-projects/bind9/-/issues/3781

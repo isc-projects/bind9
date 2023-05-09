@@ -42,6 +42,16 @@ Bug Fixes
 Known Issues
 ~~~~~~~~~~~~
 
-- There are no new known issues with this release. See :ref:`above
-  <relnotes_known_issues>` for a list of all known issues affecting this
-  BIND 9 branch.
+- Sending NOTIFY messages silently fails when the source port specified
+  in the :any:`notify-source` statement is already in use. This can
+  happen e.g. when multiple servers are configured as NOTIFY targets for
+  a zone and some of them are unresponsive. This issue can be worked
+  around by not specifying the source port for NOTIFY messages in the
+  :any:`notify-source` statement; note that source port configuration is
+  already `deprecated`_ and will be removed altogether in a future
+  release. :gl:`#4002`
+
+- See :ref:`above <relnotes_known_issues>` for a list of all known
+  issues affecting this BIND 9 branch.
+
+.. _deprecated: https://gitlab.isc.org/isc-projects/bind9/-/issues/3781
