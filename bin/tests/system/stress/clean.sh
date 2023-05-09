@@ -11,8 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f reload.pid
-
 rm -f ns?/zones.conf
 rm -f ns?/zone*.bk
 
