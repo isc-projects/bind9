@@ -697,6 +697,12 @@ stream_noop_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+int
+proxystream_noop_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_noop_setup(state));
+}
+
 void
 stream_noop(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -717,6 +723,14 @@ stream_noop_teardown(void **state ISC_ATTR_UNUSED) {
 	atomic_assert_int_eq(sreads, 0);
 	atomic_assert_int_eq(ssends, 0);
 	return (teardown_netmgr_test(state));
+}
+
+int
+proxystream_noop_teardown(void **state) {
+	int r = stream_noop_teardown(state);
+	stream_use_PROXY = false;
+
+	return (r);
 }
 
 static void
@@ -784,6 +798,19 @@ stream_noresponse_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+int
+proxystream_noresponse_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_noresponse_setup(state));
+}
+
+int
+proxystream_noresponse_teardown(void **state) {
+	int r = stream_noresponse_teardown(state);
+	stream_use_PROXY = false;
+	return (r);
+}
+
 void
 stream_noresponse(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -821,6 +848,19 @@ stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED) {
 	expected_sreads = 5;
 	sreads_shutdown = true;
 
+	return (r);
+}
+
+int
+proxystream_timeout_recovery_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_timeout_recovery_setup(state));
+}
+
+int
+proxystream_timeout_recovery_teardown(void **state) {
+	int r = stream_timeout_recovery_teardown(state);
+	stream_use_PROXY = false;
 	return (r);
 }
 
@@ -876,6 +916,19 @@ stream_recv_one_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+int
+proxystream_recv_one_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_recv_one_setup(state));
+}
+
+int
+proxystream_recv_one_teardown(void **state) {
+	int r = stream_recv_one_teardown(state);
+	stream_use_PROXY = false;
+	return (r);
+}
+
 void
 stream_recv_one(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -928,6 +981,19 @@ stream_recv_two_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+int
+proxystream_recv_two_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_recv_two_setup(state));
+}
+
+int
+proxystream_recv_two_teardown(void **state) {
+	int r = stream_recv_two_teardown(state);
+	stream_use_PROXY = false;
+	return (r);
+}
+
 void
 stream_recv_two(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -965,6 +1031,19 @@ stream_recv_send_setup(void **state ISC_ATTR_UNUSED) {
 	nsends = expected_creads = workers;
 	do_send = true;
 
+	return (r);
+}
+
+int
+proxystream_recv_send_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_recv_send_setup(state));
+}
+
+int
+proxystream_recv_send_teardown(void **state) {
+	int r = stream_recv_send_teardown(state);
+	stream_use_PROXY = false;
 	return (r);
 }
 

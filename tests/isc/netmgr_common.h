@@ -296,11 +296,21 @@ int
 stream_noop_teardown(void **state ISC_ATTR_UNUSED);
 
 int
+proxystream_noop_setup(void **state);
+int
+proxystream_noop_teardown(void **state);
+
+int
 stream_noresponse_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_noresponse(void **state ISC_ATTR_UNUSED);
 int
 stream_noresponse_teardown(void **state ISC_ATTR_UNUSED);
+
+int
+proxystream_noresponse_setup(void **state);
+int
+proxystream_noresponse_teardown(void **state);
 
 int
 stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED);
@@ -310,6 +320,11 @@ int
 stream_timeout_recovery_teardown(void **state ISC_ATTR_UNUSED);
 
 int
+proxystream_timeout_recovery_setup(void **state);
+int
+proxystream_timeout_recovery_teardown(void **state);
+
+int
 stream_recv_one_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_recv_one(void **state ISC_ATTR_UNUSED);
@@ -317,11 +332,21 @@ int
 stream_recv_one_teardown(void **state ISC_ATTR_UNUSED);
 
 int
+proxystream_recv_one_setup(void **state);
+int
+proxystream_recv_one_teardown(void **state);
+
+int
 stream_recv_two_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_recv_two(void **state ISC_ATTR_UNUSED);
 int
 stream_recv_two_teardown(void **state ISC_ATTR_UNUSED);
+
+int
+proxystream_recv_two_setup(void **state);
+int
+proxystream_recv_two_teardown(void **state);
 
 int
 stream_recv_send_setup(void **state ISC_ATTR_UNUSED);
@@ -333,6 +358,11 @@ void
 stream_recv_send_connect(void *arg);
 
 int
+proxystream_recv_send_setup(void **state);
+int
+proxystream_recv_send_teardown(void **state);
+
+int
 stream_shutdownconnect_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_shutdownconnect(void **state ISC_ATTR_UNUSED);
@@ -340,11 +370,21 @@ int
 stream_shutdownconnect_teardown(void **state ISC_ATTR_UNUSED);
 
 int
+proxystream_shutdownconnect_setup(void **state);
+int
+proxystream_shutdownconnect_teardown(void **state);
+
+int
 stream_shutdownread_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_shutdownread(void **state ISC_ATTR_UNUSED);
 int
 stream_shutdownread_teardown(void **state ISC_ATTR_UNUSED);
+
+int
+proxystream_shutdownread_setup(void **state);
+int
+proxystream_shutdownread_teardown(void **state);
 
 void
 stop_listening(void *arg ISC_ATTR_UNUSED);

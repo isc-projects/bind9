@@ -121,34 +121,38 @@ ISC_LOOP_TEST_IMPL(proxystream_recv_send_quota_sendback) {
 ISC_TEST_LIST_START
 
 /* Stream */
-ISC_TEST_ENTRY_CUSTOM(proxystream_noop, stream_noop_setup, stream_noop_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_noresponse, stream_noresponse_setup,
-		      stream_noresponse_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_shutdownconnect, stream_shutdownconnect_setup,
-		      stream_shutdownconnect_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_shutdownread, stream_shutdownread_setup,
-		      stream_shutdownread_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_noop, proxystream_noop_setup,
+		      proxystream_noop_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_noresponse, proxystream_noresponse_setup,
+		      proxystream_noresponse_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_shutdownconnect,
+		      proxystream_shutdownconnect_setup,
+		      proxystream_shutdownconnect_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_shutdownread, proxystream_shutdownread_setup,
+		      proxystream_shutdownread_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystream_timeout_recovery,
-		      stream_timeout_recovery_setup,
-		      stream_timeout_recovery_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one, stream_recv_one_setup,
-		      stream_recv_one_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_two, stream_recv_two_setup,
-		      stream_recv_two_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send, stream_recv_send_setup,
-		      stream_recv_send_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_sendback, stream_recv_send_setup,
-		      stream_recv_send_teardown)
+		      proxystream_timeout_recovery_setup,
+		      proxystream_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one, proxystream_recv_one_setup,
+		      proxystream_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_two, proxystream_recv_two_setup,
+		      proxystream_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send, proxystream_recv_send_setup,
+		      proxystream_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_sendback,
+		      proxystream_recv_send_setup,
+		      proxystream_recv_send_teardown)
 
 /* Stream Quota */
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one_quota, stream_recv_one_setup,
-		      stream_recv_one_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_two_quota, stream_recv_two_setup,
-		      stream_recv_two_teardown)
-ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_quota, stream_recv_send_setup,
-		      stream_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one_quota, proxystream_recv_one_setup,
+		      proxystream_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_two_quota, proxystream_recv_two_setup,
+		      proxystream_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_quota, proxystream_recv_send_setup,
+		      proxystream_recv_send_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_quota_sendback,
-		      stream_recv_send_setup, stream_recv_send_teardown)
+		      proxystream_recv_send_setup,
+		      proxystream_recv_send_teardown)
 
 ISC_TEST_LIST_END
 
@@ -156,7 +160,6 @@ static int
 proxystream_setup(void **state ISC_ATTR_UNUSED) {
 	stream_port = PROXYSTREAM_TEST_PORT;
 	stream_use_TLS = false;
-	stream_use_PROXY = true;
 	stream = true;
 
 	return (0);
