@@ -244,6 +244,9 @@ AC_DEFINE_UNQUOTED([RCU_FLAVOR], ["$RCU_FLAVOR"], [Chosen Userspace-RCU flavor])
 PKG_CHECK_VERSION([RCU_VERSION], [$RCU_FLAVOR])
 AC_DEFINE_UNQUOTED([RCU_VERSION], ["$RCU_VERSION"], [Compile-time Userspace-RCU version])
 
+CFLAGS="$CFLAGS $LIBURCU_CFLAGS"
+LIBS="$LIBS $LIBURCU_LIBS"
+
 # Fuzzing is not included in pairwise testing as fuzzing tools are
 # not present in the relevant Docker image.
 #
