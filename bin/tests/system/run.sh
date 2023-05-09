@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/bin/sh
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -12,80 +12,16 @@
 # information regarding copyright ownership.
 
 #
-# Run system test using the pytest runner. This is a simple wrapper around
-# pytest for convenience.
+# Run a single system test using the pytest runner. This is a simple wrapper
+# around pytest for convenience.
 #
 
-import argparse
-import sys
-import time
+if [ -z "$1" ] || [ ! -d "$1" ]; then
+    echo "Usage: $0 system_test_dir [pytest_args]"
+    exit 2
+fi
 
-import pytest
+system_test_dir="$1"
+shift
 
-
-def into_pytest_args(in_args):
-    args = []
-    if in_args.expression is None:
-        try:
-            import xdist
-        except ImportError:
-            pass
-        else:
-            # running all tests - execute in parallel
-            args.extend(["-n", "auto"])
-    else:
-        args.extend(["-k", in_args.expression])
-    if in_args.noclean:
-        args.append("--noclean")
-    if in_args.keep:
-        print(
-            "ERROR -k / --keep option not implemented.\n"
-            "Please contact QA with your use-case and use ./legacy.run.sh in the meantime."
-        )
-        sys.exit(1)
-    return args
-
-
-def main():
-    print(
-        "----- WARNING -----\n"
-        "Using pytest system test runner\n\n"
-        'Please consider invoking "pytest" directly for more control:\n'
-        "  single test:     pytest -k dns64\n"
-        "  parallel tests:  pytest -n auto\n\n"
-        "Alternately, use ./legacy.run.sh for the legacy system test runner.\n"
-    )
-
-    parser = argparse.ArgumentParser(
-        description="Wrapper script for launching system tests"
-    )
-    parser.add_argument(
-        "--noclean",
-        action="store_true",
-        help="don't clean tmpdir after test run",
-    )
-    parser.add_argument(
-        "-k",
-        "--keep",
-        action="store_true",
-        help="unused - not implemented",
-    )
-    parser.add_argument(
-        "expression",
-        type=str,
-        nargs="?",
-        help="select which test(s) to run",
-    )
-
-    args = into_pytest_args(parser.parse_args())
-    print(f"$ pytest {' '.join(args)}\n" "---------------------------\n")
-
-    time.sleep(2)  # force the user to stare at the warning message
-
-    sys.exit(pytest.main(args))
-
-
-if __name__ == "__main__":
-    main()
-
-# vim: set filetype=python :
+(cd "$system_test_dir" || exit 2 ; /usr/bin/env python3 -m pytest "$@")
