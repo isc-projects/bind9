@@ -53,7 +53,7 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 		isc_nm_recv_cb_t recv_cb) {
 	isc_result_t result = isc_nm_listenstreamdns(
 		listen_nm, nworkers, &tcp_listen_addr, recv_cb, NULL, accept_cb,
-		NULL, 128, NULL, NULL, &listen_sock);
+		NULL, 128, NULL, NULL, stream_use_PROXY, &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(mainloop, stop_listening, listen_sock);
@@ -63,7 +63,7 @@ static void
 tcpdns_connect(isc_nm_t *nm) {
 	isc_nm_streamdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL);
+				NULL, NULL, stream_use_PROXY, NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noop) {
@@ -73,7 +73,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noop) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_success_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL);
+				NULL, NULL, stream_use_PROXY, NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
@@ -82,7 +82,7 @@ ISC_LOOP_TEST_IMPL(tcpdns_noresponse) {
 	isc_refcount_increment0(&active_cconnects);
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tcpdns_connect, T_CONNECT,
-				NULL, NULL);
+				NULL, NULL, stream_use_PROXY, NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tcpdns_timeout_recovery) {

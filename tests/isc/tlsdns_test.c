@@ -52,7 +52,8 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 		isc_nm_recv_cb_t recv_cb) {
 	isc_result_t result = isc_nm_listenstreamdns(
 		listen_nm, nworkers, &tcp_listen_addr, recv_cb, NULL, accept_cb,
-		NULL, 128, NULL, tcp_listen_tlsctx, &listen_sock);
+		NULL, 128, NULL, tcp_listen_tlsctx, stream_use_PROXY,
+		&listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(mainloop, stop_listening, listen_sock);
@@ -60,10 +61,10 @@ start_listening(uint32_t nworkers, isc_nm_accept_cb_t accept_cb,
 
 static void
 tlsdns_connect(isc_nm_t *nm) {
-	isc_nm_streamdnsconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
-				connect_connect_cb, tlsdns_connect, T_CONNECT,
-				tcp_connect_tlsctx,
-				tcp_tlsctx_client_sess_cache);
+	isc_nm_streamdnsconnect(
+		nm, &tcp_connect_addr, &tcp_listen_addr, connect_connect_cb,
+		tlsdns_connect, T_CONNECT, tcp_connect_tlsctx,
+		tcp_tlsctx_client_sess_cache, stream_use_PROXY, NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tlsdns_noop) {
@@ -74,7 +75,8 @@ ISC_LOOP_TEST_IMPL(tlsdns_noop) {
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_success_cb, tlsdns_connect, T_CONNECT,
 				tcp_connect_tlsctx,
-				tcp_tlsctx_client_sess_cache);
+				tcp_tlsctx_client_sess_cache, stream_use_PROXY,
+				NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tlsdns_noresponse) {
@@ -84,7 +86,8 @@ ISC_LOOP_TEST_IMPL(tlsdns_noresponse) {
 	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
 				connect_connect_cb, tlsdns_connect, T_CONNECT,
 				tcp_connect_tlsctx,
-				tcp_tlsctx_client_sess_cache);
+				tcp_tlsctx_client_sess_cache, stream_use_PROXY,
+				NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tlsdns_timeout_recovery) {
@@ -103,10 +106,10 @@ ISC_LOOP_TEST_IMPL(tlsdns_timeout_recovery) {
 	connect_readcb = timeout_retry_cb;
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	isc_refcount_increment0(&active_cconnects);
-	isc_nm_streamdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
-				connect_connect_cb, tlsdns_connect, T_SOFT,
-				tcp_connect_tlsctx,
-				tcp_tlsctx_client_sess_cache);
+	isc_nm_streamdnsconnect(
+		connect_nm, &tcp_connect_addr, &tcp_listen_addr,
+		connect_connect_cb, tlsdns_connect, T_SOFT, tcp_connect_tlsctx,
+		tcp_tlsctx_client_sess_cache, stream_use_PROXY, NULL);
 }
 
 ISC_LOOP_TEST_IMPL(tlsdns_recv_one) {

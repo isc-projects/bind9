@@ -488,7 +488,7 @@ ns_interface_listentcp(ns_interface_t *ifp) {
 	result = isc_nm_listenstreamdns(
 		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
-		&ifp->mgr->sctx->tcpquota, NULL, &ifp->tcplistensocket);
+		&ifp->mgr->sctx->tcpquota, NULL, false, &ifp->tcplistensocket);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "creating TCP socket: %s",
@@ -521,7 +521,8 @@ ns_interface_listentls(ns_interface_t *ifp, isc_tlsctx_t *sslctx) {
 	result = isc_nm_listenstreamdns(
 		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
-		&ifp->mgr->sctx->tcpquota, sslctx, &ifp->tcplistensocket);
+		&ifp->mgr->sctx->tcpquota, sslctx, false,
+		&ifp->tcplistensocket);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,

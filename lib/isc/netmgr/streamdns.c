@@ -370,7 +370,8 @@ void
 isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
 			unsigned int timeout, isc_tlsctx_t *ctx,
-			isc_tlsctx_client_session_cache_t *client_sess_cache) {
+			isc_tlsctx_client_session_cache_t *client_sess_cache,
+			bool proxy, isc_nm_proxyheader_info_t *proxy_info) {
 	isc_nmsocket_t *nsock = NULL;
 	isc__networker_t *worker = NULL;
 
@@ -389,16 +390,21 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 	nsock->connect_cbarg = cbarg;
 	nsock->connect_timeout = timeout;
 
-	if (ctx == NULL) {
+	if (ctx == NULL && !proxy) {
 		INSIST(client_sess_cache == NULL);
 		isc_nm_tcpconnect(mgr, local, peer,
 				  streamdns_transport_connected, nsock,
 				  nsock->connect_timeout);
+	} else if (ctx == NULL && proxy) {
+		INSIST(client_sess_cache == NULL);
+		isc_nm_proxystreamconnect(mgr, local, peer,
+					  streamdns_transport_connected, nsock,
+					  nsock->connect_timeout, proxy_info);
 	} else {
 		isc_nm_tlsconnect(mgr, local, peer,
 				  streamdns_transport_connected, nsock, ctx,
 				  client_sess_cache, nsock->connect_timeout,
-				  false, NULL);
+				  proxy, proxy_info);
 	}
 }
 
@@ -716,7 +722,7 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		       int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
-		       isc_nmsocket_t **sockp) {
+		       bool proxy, isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *listener = NULL;
 	isc__networker_t *worker = NULL;
@@ -737,14 +743,18 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	listener->recv_cb = recv_cb;
 	listener->recv_cbarg = recv_cbarg;
 
-	if (tlsctx == NULL) {
+	if (tlsctx == NULL && !proxy) {
 		result = isc_nm_listentcp(mgr, workers, iface,
 					  streamdns_accept_cb, listener,
 					  backlog, quota, &listener->outer);
+	} else if (tlsctx == NULL && proxy) {
+		result = isc_nm_listenproxystream(
+			mgr, workers, iface, streamdns_accept_cb, listener,
+			backlog, quota, &listener->outer);
 	} else {
 		result = isc_nm_listentls(
 			mgr, workers, iface, streamdns_accept_cb, listener,
-			backlog, quota, tlsctx, false, &listener->outer);
+			backlog, quota, tlsctx, proxy, &listener->outer);
 	}
 	if (result != ISC_R_SUCCESS) {
 		listener->closed = true;
@@ -789,12 +799,14 @@ isc__nm_streamdns_cleanup_data(isc_nmsocket_t *sock) {
 		break;
 	case isc_nm_tlslistener:
 	case isc_nm_tcplistener:
+	case isc_nm_proxystreamlistener:
 		if (sock->streamdns.listener != NULL) {
 			isc__nmsocket_detach(&sock->streamdns.listener);
 		}
 		break;
 	case isc_nm_tlssocket:
 	case isc_nm_tcpsocket:
+	case isc_nm_proxystreamsocket:
 		if (sock->streamdns.sock != NULL) {
 			isc__nmsocket_detach(&sock->streamdns.sock);
 		}

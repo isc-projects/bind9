@@ -1970,9 +1970,9 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			      "connecting from %s to %s, timeout %u", localbuf,
 			      peerbuf, resp->timeout);
 
-		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
-					&disp->peer, tcp_connected, disp,
-					resp->timeout, tlsctx, sess_cache);
+		isc_nm_streamdnsconnect(
+			disp->mgr->nm, &disp->local, &disp->peer, tcp_connected,
+			disp, resp->timeout, tlsctx, sess_cache, false, NULL);
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:
