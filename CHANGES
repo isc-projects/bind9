@@ -1,3 +1,8 @@
+6168.	[func]		Refactor the glue cache to store list of the GLUE
+			directly in the rdatasetheader instead of keeping
+			it in the hashtable indexed by the node pointer.
+			[GL #4045]
+
 6167.	[func]		Add 'cdnskey' configuration option. [GL #4050]
 
 6166.	[func]		Retry without DNS COOKIE on FORMERR if it appears that
