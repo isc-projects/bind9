@@ -15,25 +15,25 @@ Notes for BIND 9.18.15
 Bug Fixes
 ~~~~~~~~~
 
-- When the ``ISC_R_INVALIDPROTO`` (``ENOPROTOOPT``, ``EPROTONOSUPPORT``)
-  error code is returned by libuv, it is now treated as a network
-  failure: the server for which that error code is returned gets marked
-  as broken and is not contacted again during a given resolution
-  process. :gl:`#4005`
-
 - The :any:`max-transfer-time-in` and :any:`max-transfer-idle-in`
   statements have not had any effect since the BIND 9 networking stack
   was refactored in version 9.16. The missing functionality has been
   re-implemented and incoming zone transfers now time out properly when
   not progressing. :gl:`#4004`
 
-- Log file rotation code did not clean up older versions of log files
-  when the logging :any:`channel` had an absolute path configured as a
-  ``file`` destination. This has been fixed. :gl:`#3991`
-
 - The read timeout in :iscman:`rndc` is now 60 seconds, matching the
   behavior in BIND 9.16 and earlier. It had previously been lowered to
   30 seconds by mistake. :gl:`#4046`
+
+- When the ``ISC_R_INVALIDPROTO`` (``ENOPROTOOPT``, ``EPROTONOSUPPORT``)
+  error code is returned by libuv, it is now treated as a network
+  failure: the server for which that error code is returned gets marked
+  as broken and is not contacted again during a given resolution
+  process. :gl:`#4005`
+
+- Log file rotation code did not clean up older versions of log files
+  when the logging :any:`channel` had an absolute path configured as a
+  ``file`` destination. This has been fixed. :gl:`#3991`
 
 Known Issues
 ~~~~~~~~~~~~
