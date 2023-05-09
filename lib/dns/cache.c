@@ -45,8 +45,6 @@
 #define ISC_XMLCHAR (const xmlChar *)
 #endif /* HAVE_LIBXML2 */
 
-#include "rbtdb.h"
-
 #define CACHE_MAGIC	   ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache) ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 

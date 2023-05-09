@@ -59,7 +59,7 @@ struct dns_dbimplementation {
  * Built in database implementations are registered here.
  */
 
-#include "rbtdb.h"
+#include "rbtdb_p.h"
 
 unsigned int dns_pps = 0U;
 
@@ -74,7 +74,7 @@ initialize(void) {
 	isc_rwlock_init(&implock);
 
 	rbtimp.name = "rbt";
-	rbtimp.create = dns_rbtdb_create;
+	rbtimp.create = dns__rbtdb_create;
 	rbtimp.mctx = NULL;
 	rbtimp.driverarg = NULL;
 	ISC_LINK_INIT(&rbtimp, link);
