@@ -516,6 +516,9 @@ ISC_LOOP_TEST_IMPL(udp_timeout_recovery) {
 }
 
 static void
+udp_connect_udpconnect(void *arg ISC_ATTR_UNUSED);
+
+static void
 udp_shutdown_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 				void *cbarg) {
 	UNUSED(handle);
@@ -523,20 +526,29 @@ udp_shutdown_connect_connect_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	isc_refcount_decrement(&active_cconnects);
 
-	assert_int_equal(eresult, ISC_R_SHUTTINGDOWN);
-
-	atomic_fetch_add(&cconnects, 1);
+	/*
+	 * The first UDP connect is faster than asynchronous shutdown procedure,
+	 * restart the UDP connect again and expect the failure only in the
+	 * second loop.
+	 */
+	if (atomic_fetch_add(&cconnects, 1) == 0) {
+		assert_int_equal(eresult, ISC_R_SUCCESS);
+		isc_async_current(loopmgr, udp_connect_udpconnect, netmgr);
+	} else {
+		assert_int_equal(eresult, ISC_R_SHUTTINGDOWN);
+	}
 }
 
 static void
 udp_connect_udpconnect(void *arg ISC_ATTR_UNUSED) {
+	isc_refcount_increment0(&active_cconnects);
 	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
 			  udp_shutdown_connect_connect_cb, NULL, T_SOFT);
 }
 
 ISC_SETUP_TEST_IMPL(udp_shutdown_connect) {
 	setup_test(state);
-	expected_cconnects = 1;
+	expected_cconnects = 2;
 	return (0);
 }
 
@@ -548,7 +560,10 @@ ISC_TEARDOWN_TEST_IMPL(udp_shutdown_connect) {
 
 ISC_LOOP_TEST_IMPL(udp_shutdown_connect) {
 	isc_loopmgr_shutdown(loopmgr);
-	isc_refcount_increment0(&active_cconnects);
+	/*
+	 * isc_nm_udpconnect() is synchronous, so we need to launch this on the
+	 * async loop.
+	 */
 	isc_async_current(loopmgr, udp_connect_udpconnect, netmgr);
 }
 
