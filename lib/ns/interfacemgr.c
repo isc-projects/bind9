@@ -581,10 +581,10 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 	if (result == ISC_R_SUCCESS) {
 		quota = isc_mem_get(ifp->mgr->mctx, sizeof(*quota));
 		isc_quota_init(quota, max_clients);
-		result = isc_nm_listenhttp(ifp->mgr->nm, ISC_NM_LISTEN_ALL,
-					   &ifp->addr, ifp->mgr->backlog, quota,
-					   sslctx, epset,
-					   max_concurrent_streams, &sock);
+		result = isc_nm_listenhttp(
+			ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
+			ifp->mgr->backlog, quota, sslctx, epset,
+			max_concurrent_streams, false, &sock);
 	}
 
 	isc_nm_http_endpoints_detach(&epset);

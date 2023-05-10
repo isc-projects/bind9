@@ -2147,15 +2147,20 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 	switch (sock->type) {
 	case isc_nm_proxystreamsocket:
 		return (handle);
+#ifdef HAVE_LIBNGHTTP2
+	case isc_nm_httpsocket:
+		return (get_proxy_handle(
+			isc__nm_httpsession_handle(sock->h2.session)));
+#endif /* HAVE_LIBNGHTTP2 */
 	default:
 		break;
 	}
 
-	if (sock->outerhandle == NULL) {
-		return NULL;
+	if (sock->outerhandle != NULL) {
+		return (get_proxy_handle(sock->outerhandle));
 	}
 
-	return (get_proxy_handle(sock->outerhandle));
+	return (NULL);
 }
 
 bool

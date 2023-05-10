@@ -103,6 +103,8 @@ static atomic_bool check_listener_quota = false;
 
 static isc_nm_http_endpoints_t *endpoints = NULL;
 
+static atomic_bool use_PROXY = false;
+
 static isc_nm_t **nm = NULL;
 
 /* Timeout for soft-timeout tests (0.05 seconds) */
@@ -184,7 +186,7 @@ connect_send_request(isc_nm_t *mgr, const char *uri, bool post,
 
 	isc_nm_httpconnect(mgr, NULL, &tcp_listen_addr, uri, post,
 			   connect_send_cb, data, ctx, client_sess_cache,
-			   timeout);
+			   timeout, atomic_load(&use_PROXY), NULL);
 }
 
 static int
@@ -472,7 +474,7 @@ ISC_LOOP_TEST_IMPL(mock_doh_uv_tcp_bind) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
-				   0, &listen_sock);
+				   0, false, &listen_sock);
 	assert_int_not_equal(result, ISC_R_SUCCESS);
 	assert_null(listen_sock);
 
@@ -504,7 +506,7 @@ doh_noop(void *arg ISC_ATTR_UNUSED) {
 
 	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
-				   0, &listen_sock);
+				   0, atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
@@ -547,7 +549,7 @@ doh_noresponse(void *arg ISC_ATTR_UNUSED) {
 
 	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
-				   0, &listen_sock);
+				   0, atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
@@ -639,7 +641,7 @@ doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 
 	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
 				   &tcp_listen_addr, 0, NULL, NULL, endpoints,
-				   0, &listen_sock);
+				   0, atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 
@@ -658,7 +660,8 @@ doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 			ISC_NM_HTTP_DEFAULT_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
-			   client_sess_cache, T_SOFT);
+			   client_sess_cache, T_SOFT, atomic_load(&use_PROXY),
+			   NULL);
 }
 
 static int
@@ -765,10 +768,10 @@ doh_recv_one(void *arg ISC_ATTR_UNUSED) {
 					   doh_receive_request_cb, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
+	result = isc_nm_listenhttp(
+		listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr, 0, quotap,
+		atomic_load(&use_TLS) ? server_tlsctx : NULL, endpoints, 0,
+		atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
@@ -892,10 +895,10 @@ doh_recv_two(void *arg ISC_ATTR_UNUSED) {
 					   doh_receive_request_cb, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
+	result = isc_nm_listenhttp(
+		listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr, 0, quotap,
+		atomic_load(&use_TLS) ? server_tlsctx : NULL, endpoints, 0,
+		atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	sockaddr_to_url(&tcp_listen_addr, atomic_load(&use_TLS), req_url,
@@ -907,7 +910,8 @@ doh_recv_two(void *arg ISC_ATTR_UNUSED) {
 
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), doh_connect_send_two_requests_cb,
-			   NULL, ctx, client_sess_cache, 5000);
+			   NULL, ctx, client_sess_cache, 5000,
+			   atomic_load(&use_PROXY), NULL);
 
 	isc_loop_teardown(mainloop, listen_sock_close, listen_sock);
 }
@@ -992,10 +996,10 @@ doh_recv_send(void *arg ISC_ATTR_UNUSED) {
 					   doh_receive_request_cb, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
-				   &tcp_listen_addr, 0, quotap,
-				   atomic_load(&use_TLS) ? server_tlsctx : NULL,
-				   endpoints, 0, &listen_sock);
+	result = isc_nm_listenhttp(
+		listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr, 0, quotap,
+		atomic_load(&use_TLS) ? server_tlsctx : NULL, endpoints, 0,
+		atomic_load(&use_PROXY), &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (size_t i = 0; i < nthreads; i++) {
@@ -1108,7 +1112,8 @@ ISC_LOOP_TEST_IMPL(doh_bad_connect_uri) {
 
 	result = isc_nm_listenhttp(listen_nm, ISC_NM_LISTEN_ALL,
 				   &tcp_listen_addr, 0, quotap, server_tlsctx,
-				   endpoints, 0, &listen_sock);
+				   endpoints, 0, atomic_load(&use_PROXY),
+				   &listen_sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

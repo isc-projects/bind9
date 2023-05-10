@@ -275,7 +275,7 @@ run(void) {
 		if (result == ISC_R_SUCCESS) {
 			result = isc_nm_listenhttp(netmgr, ISC_NM_LISTEN_ALL,
 						   &sockaddr, 0, NULL, tls_ctx,
-						   eps, 0, &sock);
+						   eps, 0, false, &sock);
 		}
 		isc_nm_http_endpoints_detach(&eps);
 	} break;

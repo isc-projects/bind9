@@ -344,6 +344,13 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp) {
 			     sizeof(isc_nm_http_session_t));
 }
 
+isc_nmhandle_t *
+isc__nm_httpsession_handle(isc_nm_http_session_t *session) {
+	REQUIRE(VALID_HTTP2_SESSION(session));
+
+	return (session->handle);
+}
+
 static http_cstream_t *
 find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
 	http_cstream_t *cstream = NULL;
@@ -1446,7 +1453,8 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t *tlsctx,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
-		   unsigned int timeout) {
+		   unsigned int timeout, bool proxy,
+		   isc_nm_proxyheader_info_t *proxy_info) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 	isc__networker_t *worker = NULL;
@@ -1510,8 +1518,12 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	if (tlsctx != NULL) {
 		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
-				  tlsctx, client_sess_cache, timeout, false,
+				  tlsctx, client_sess_cache, timeout, proxy,
 				  NULL);
+	} else if (proxy) {
+		isc_nm_proxystreamconnect(mgr, local, peer,
+					  transport_connect_cb, sock, timeout,
+					  proxy_info);
 	} else {
 		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
 				  timeout);
@@ -2461,7 +2473,7 @@ isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
-		  isc_nmsocket_t **sockp) {
+		  bool proxy, isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
 	isc__networker_t *worker = NULL;
@@ -2486,7 +2498,11 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	if (ctx != NULL) {
 		result = isc_nm_listentls(mgr, workers, iface,
 					  httplisten_acceptcb, sock, backlog,
-					  quota, ctx, false, &sock->outer);
+					  quota, ctx, proxy, &sock->outer);
+	} else if (proxy) {
+		result = isc_nm_listenproxystream(mgr, workers, iface,
+						  httplisten_acceptcb, sock,
+						  backlog, quota, &sock->outer);
 	} else {
 		result = isc_nm_listentcp(mgr, workers, iface,
 					  httplisten_acceptcb, sock, backlog,
@@ -3201,8 +3217,8 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 
 	if ((sock->type == isc_nm_httplistener ||
 	     sock->type == isc_nm_httpsocket ||
-	     sock->type == isc_nm_tcpsocket ||
-	     sock->type == isc_nm_tlssocket) &&
+	     sock->type == isc_nm_tcpsocket || sock->type == isc_nm_tlssocket ||
+	     sock->type == isc_nm_proxystreamsocket) &&
 	    sock->h2.session != NULL)
 	{
 		if (sock->h2.connect.uri != NULL) {

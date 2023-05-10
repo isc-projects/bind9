@@ -3045,7 +3045,7 @@ start_tcp(dig_query_t *query) {
 		isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr, uri,
 				   !query->lookup->https_get, tcp_connected,
 				   connectquery, tlsctx, sess_cache,
-				   local_timeout);
+				   local_timeout, false, NULL);
 #endif
 	} else {
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,

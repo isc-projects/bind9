@@ -408,7 +408,7 @@ run(void) {
 		}
 		isc_nm_httpconnect(netmgr, &sockaddr_local, &sockaddr_remote,
 				   req_url, is_post, connect_cb, NULL, tls_ctx,
-				   NULL, timeout);
+				   NULL, timeout, false, NULL);
 	} break;
 #endif
 	default:
