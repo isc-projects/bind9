@@ -287,6 +287,7 @@ struct dns_rbtdb {
 	 */
 	isc_mem_t *hmctx;
 	isc_heap_t **heaps;
+	isc_heapcompare_t sooner;
 
 	/* Locked by tree_lock. */
 	dns_rbt_t *tree;
@@ -436,23 +437,41 @@ dns__rbtdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
 
 isc_result_t
 dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+
 void
 dns__rbtdb_freeglue(dns_glue_t *glue_list);
+
 bool
 dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
 		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
 		  bool pruning DNS__DB_FLARG);
-void
-dns__rbtdb_resigninsert(dns_rbtdb_t *rbtdb, int idx,
-			dns_slabheader_t *newheader);
-void
-dns__rbtdb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
-			dns_slabheader_t *header DNS__DB_FLARG);
+
 isc_result_t
-dns__rbtdb_add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
-		 const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
-		 dns_slabheader_t *newheader, unsigned int options,
-		 bool loading, dns_rdataset_t *addedrdataset,
-		 isc_stdtime_t now DNS__DB_FLARG);
+dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
+	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
+	       dns_slabheader_t *newheader, unsigned int options, bool loading,
+	       dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
+
+void
+dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
+		     dns_dbnode_t *origin);
+
+/*
+ * Functions specific to zone databases that are also called from rbtdb.c.
+ */
+void
+dns__zonedb_resigninsert(dns_rbtdb_t *rbtdb, int idx,
+			 dns_slabheader_t *newheader);
+void
+dns__zonedb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
+			 dns_slabheader_t *header DNS__DB_FLARG);
+
+isc_result_t
+dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
+			  bool lock);
+
+isc_result_t
+dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name, bool lock);
+
 ISC_LANG_ENDDECLS

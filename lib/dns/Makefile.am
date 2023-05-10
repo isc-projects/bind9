@@ -211,6 +211,7 @@ libdns_la_SOURCES =			\
 	qp.c				\
 	qp_p.h				\
 	rbt.c				\
+	rbt-zonedb.c			\
 	rbtdb_p.h			\
 	rbtdb.c				\
 	rcode.c				\
