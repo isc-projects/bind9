@@ -13,8 +13,12 @@
 
 #pragma once
 
+#include <isc/heap.h>
 #include <isc/lang.h>
+#include <isc/urcu.h>
 
+#include <dns/nsec3.h>
+#include <dns/rbt.h>
 #include <dns/types.h>
 
 /*%
@@ -135,6 +139,15 @@
 		TREE_UNLOCK(l, tp);                    \
 		TREE_WRLOCK(l, tp);                    \
 	}
+
+#define RDATASET_RBTDB(r)  ((dns_rbtdb_t *)(r)->slab.db)
+#define RDATASET_DBNODE(r) ((dns_rbtnode_t *)(r)->slab.node)
+
+#define HEADER_NODE(h) ((dns_rbtnode_t *)((h)->node))
+
+#define IS_STUB(rbtdb)	(((rbtdb)->common.attributes & DNS_DBATTR_STUB) != 0)
+#define IS_CACHE(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_CACHE) != 0)
+
 /*****
 ***** Module Info
 *****/
@@ -145,6 +158,179 @@
  */
 
 ISC_LANG_BEGINDECLS
+
+typedef struct {
+	isc_rwlock_t lock;
+	/* Protected in the refcount routines. */
+	isc_refcount_t references;
+	/* Locked by lock. */
+	bool exiting;
+} rbtdb_nodelock_t;
+
+typedef struct rbtdb_changed {
+	dns_rbtnode_t *node;
+	bool dirty;
+	ISC_LINK(struct rbtdb_changed) link;
+} rbtdb_changed_t;
+
+typedef ISC_LIST(rbtdb_changed_t) rbtdb_changedlist_t;
+
+struct dns_glue {
+	struct dns_glue *next;
+	dns_fixedname_t fixedname;
+	dns_rdataset_t rdataset_a;
+	dns_rdataset_t sigrdataset_a;
+	dns_rdataset_t rdataset_aaaa;
+	dns_rdataset_t sigrdataset_aaaa;
+
+	isc_mem_t *mctx;
+	struct rcu_head rcu_head;
+};
+
+typedef struct {
+	dns_glue_t *glue_list;
+	dns_rbtdb_t *rbtdb;
+	dns_rbtdb_version_t *rbtversion;
+	dns_name_t *nodename;
+} dns_glue_additionaldata_ctx_t;
+
+struct dns_rbtdb_version {
+	/* Not locked */
+	uint32_t serial;
+	dns_rbtdb_t *rbtdb;
+	/*
+	 * Protected in the refcount routines.
+	 * XXXJT: should we change the lock policy based on the refcount
+	 * performance?
+	 */
+	isc_refcount_t references;
+	/* Locked by database lock. */
+	bool writer;
+	bool commit_ok;
+	rbtdb_changedlist_t changed_list;
+	dns_slabheaderlist_t resigned_list;
+	ISC_LINK(dns_rbtdb_version_t) link;
+	bool secure;
+	bool havensec3;
+	/* NSEC3 parameters */
+	dns_hash_t hash;
+	uint8_t flags;
+	uint16_t iterations;
+	uint8_t salt_length;
+	unsigned char salt[DNS_NSEC3_SALTSIZE];
+
+	/*
+	 * records and xfrsize are covered by rwlock.
+	 */
+	isc_rwlock_t rwlock;
+	uint64_t records;
+	uint64_t xfrsize;
+
+	struct cds_wfs_stack glue_stack;
+};
+
+typedef ISC_LIST(dns_rbtdb_version_t) rbtdb_versionlist_t;
+
+struct dns_rbtdb {
+	/* Unlocked. */
+	dns_db_t common;
+	/* Locks the data in this struct */
+	isc_rwlock_t lock;
+	/* Locks the tree structure (prevents nodes appearing/disappearing) */
+	isc_rwlock_t tree_lock;
+	/* Locks for individual tree nodes */
+	unsigned int node_lock_count;
+	rbtdb_nodelock_t *node_locks;
+	dns_rbtnode_t *origin_node;
+	dns_rbtnode_t *nsec3_origin_node;
+	dns_stats_t *rrsetstats;     /* cache DB only */
+	isc_stats_t *cachestats;     /* cache DB only */
+	isc_stats_t *gluecachestats; /* zone DB only */
+	/* Locked by lock. */
+	unsigned int active;
+	unsigned int attributes;
+	uint32_t current_serial;
+	uint32_t least_serial;
+	uint32_t next_serial;
+	dns_rbtdb_version_t *current_version;
+	dns_rbtdb_version_t *future_version;
+	rbtdb_versionlist_t open_versions;
+	isc_loop_t *loop;
+	dns_dbnode_t *soanode;
+	dns_dbnode_t *nsnode;
+
+	/*
+	 * The time after a failed lookup, where stale answers from cache
+	 * may be used directly in a DNS response without attempting a
+	 * new iterative lookup.
+	 */
+	uint32_t serve_stale_refresh;
+
+	/*
+	 * This is a linked list used to implement the LRU cache.  There will
+	 * be node_lock_count linked lists here.  Nodes in bucket 1 will be
+	 * placed on the linked list lru[1].
+	 */
+	dns_slabheaderlist_t *lru;
+
+	/*%
+	 * Temporary storage for stale cache nodes and dynamically deleted
+	 * nodes that await being cleaned up.
+	 */
+	dns_rbtnodelist_t *deadnodes;
+
+	/*
+	 * Heaps.  These are used for TTL based expiry in a cache,
+	 * or for zone resigning in a zone DB.  hmctx is the memory
+	 * context to use for the heap (which differs from the main
+	 * database memory context in the case of a cache).
+	 */
+	isc_mem_t *hmctx;
+	isc_heap_t **heaps;
+
+	/* Locked by tree_lock. */
+	dns_rbt_t *tree;
+	dns_rbt_t *nsec;
+	dns_rbt_t *nsec3;
+
+	/* Unlocked */
+	unsigned int quantum;
+};
+
+/*%
+ * Search Context
+ */
+typedef struct {
+	dns_rbtdb_t *rbtdb;
+	dns_rbtdb_version_t *rbtversion;
+	uint32_t serial;
+	unsigned int options;
+	dns_rbtnodechain_t chain;
+	bool copy_name;
+	bool need_cleanup;
+	bool wild;
+	dns_rbtnode_t *zonecut;
+	dns_slabheader_t *zonecut_header;
+	dns_slabheader_t *zonecut_sigheader;
+	dns_fixedname_t zonecut_name;
+	isc_stdtime_t now;
+} rbtdb_search_t;
+
+/*%
+ * Load Context
+ */
+typedef struct {
+	dns_rbtdb_t *rbtdb;
+	isc_stdtime_t now;
+} rbtdb_load_t;
+
+/*%
+ * Prune context
+ */
+typedef struct {
+	dns_db_t *db;
+	dns_rbtnode_t *node;
+} prune_t;
 
 extern dns_dbmethods_t dns__rbtdb_zonemethods;
 extern dns_dbmethods_t dns__rbtdb_cachemethods;
@@ -187,7 +373,10 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 isc_result_t
 dns__rbtdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 		    dns_dbnode_t **nodep DNS__DB_FLARG);
-
+isc_result_t
+dns__rbtdb_findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree,
+			  const dns_name_t *name, bool create,
+			  dns_dbnode_t **nodep DNS__DB_FLARG);
 void
 dns__rbtdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
 		      dns_dbnode_t **targetp DNS__DB_FLARG);
@@ -237,8 +426,33 @@ dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			dns_rdataset_t *rdataset DNS__DB_FLARG);
 
 void
-dns__rbtdb_expireheader(dns_rbtdb_t *rbtdb, dns_slabheader_t *header,
-			isc_rwlocktype_t *nlocktypep,
-			isc_rwlocktype_t *tlocktypep,
+dns__rbtdb_expireheader(dns_slabheader_t *header, isc_rwlocktype_t *tlocktypep,
 			dns_expire_t reason DNS__DB_FLARG);
+
+void
+dns__rbtdb_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+void
+dns__rbtdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+
+isc_result_t
+dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+void
+dns__rbtdb_freeglue(dns_glue_t *glue_list);
+bool
+dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
+		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
+		  bool pruning DNS__DB_FLARG);
+void
+dns__rbtdb_resigninsert(dns_rbtdb_t *rbtdb, int idx,
+			dns_slabheader_t *newheader);
+void
+dns__rbtdb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
+			dns_slabheader_t *header DNS__DB_FLARG);
+isc_result_t
+dns__rbtdb_add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
+		 const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
+		 dns_slabheader_t *newheader, unsigned int options,
+		 bool loading, dns_rdataset_t *addedrdataset,
+		 isc_stdtime_t now DNS__DB_FLARG);
 ISC_LANG_ENDDECLS

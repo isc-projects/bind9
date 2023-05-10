@@ -2140,15 +2140,15 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 	if (rdataset->type == dns_rdatatype_ns &&
 	    client->query.gluedb != NULL && dns_db_iszone(client->query.gluedb))
 	{
-		ns_dbversion_t *dbversion;
+		ns_dbversion_t *dbversion = NULL;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
 		if (dbversion == NULL) {
 			goto regular;
 		}
 
-		result = dns_rdataset_addglue(rdataset, dbversion->version,
-					      client->message);
+		result = dns_db_addglue(qctx->db, dbversion->version, rdataset,
+					client->message);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}

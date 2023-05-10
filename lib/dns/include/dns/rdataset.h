@@ -54,6 +54,18 @@
 #include <dns/rdatastruct.h>
 #include <dns/types.h>
 
+/* Fixed RRSet helper macros */
+
+#define DNS_RDATASET_LENGTH 2;
+
+#if DNS_RDATASET_FIXED
+#define DNS_RDATASET_ORDER 2
+#define DNS_RDATASET_COUNT (count * 4)
+#else /* !DNS_RDATASET_FIXED */
+#define DNS_RDATASET_ORDER 0
+#define DNS_RDATASET_COUNT 0
+#endif /* DNS_RDATASET_FIXED */
+
 ISC_LANG_BEGINDECLS
 
 typedef enum {
@@ -646,28 +658,6 @@ dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
  * If the CASESET attribute is set, retrieve the case bitfield that was
  * previously stored by dns_rdataset_getownername(), and capitalize 'name'
  * according to it. If CASESET is not set, do nothing.
- */
-
-isc_result_t
-dns_rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
-		     dns_message_t *msg);
-/*%<
- * Add glue records for rdataset to the additional section of message in
- * 'msg'. 'rdataset' must be of type NS.
- *
- * In case a successful result is not returned, the caller should try to
- * add glue directly to the message by iterating for additional data.
- *
- * Requires:
- * \li	'rdataset' is a valid NS rdataset.
- * \li	'version' is the DB version.
- * \li	'msg' is the DNS message to which the glue should be added.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTIMPLEMENTED
- *\li	#ISC_R_FAILURE
- *\li	Any error that dns_rdata_additionaldata() can return.
  */
 
 void

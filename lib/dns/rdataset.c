@@ -671,17 +671,3 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	rdataset->ttl = ttl;
 	sigrdataset->ttl = ttl;
 }
-
-isc_result_t
-dns_rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
-		     dns_message_t *msg) {
-	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	REQUIRE(rdataset->methods != NULL);
-	REQUIRE(rdataset->type == dns_rdatatype_ns);
-
-	if (rdataset->methods->addglue == NULL) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
-
-	return ((rdataset->methods->addglue)(rdataset, version, msg));
-}

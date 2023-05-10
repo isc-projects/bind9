@@ -55,6 +55,7 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
+#include <isc/rwlock.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
 
@@ -171,6 +172,13 @@ typedef struct dns_dbmethods {
 	isc_result_t (*setservestalerefresh)(dns_db_t *db, uint32_t interval);
 	isc_result_t (*getservestalerefresh)(dns_db_t *db, uint32_t *interval);
 	isc_result_t (*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
+	void (*locknode)(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t t);
+	void (*unlocknode)(dns_db_t *db, dns_dbnode_t *node,
+			   isc_rwlocktype_t t);
+	isc_result_t (*addglue)(dns_db_t *db, dns_dbversion_t *version,
+				dns_rdataset_t *rdataset, dns_message_t *msg);
+	void (*expiredata)(dns_db_t *db, dns_dbnode_t *node, void *data);
+	void (*deletedata)(dns_db_t *db, dns_dbnode_t *node, void *data);
 } dns_dbmethods_t;
 
 typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t	    *mctx,
@@ -1715,4 +1723,50 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
  *	dns_rdatasetstats_create(); otherwise NULL.
  */
 
+void
+dns_db_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+void
+dns_db_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+/*%<
+ * Lock/unlock a single node within a database so that data stored
+ * there can be manipulated directly.
+ */
+
+isc_result_t
+dns_db_addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
+	       dns_message_t *msg);
+/*%<
+ * Add glue records for rdataset to the additional section of message in
+ * 'msg'. 'rdataset' must be of type NS.
+ *
+ * Requires:
+ * \li	'db' is a database with 'zone' semantics.
+ * \li	'version' is the DB version.
+ * \li	'rdataset' is a valid NS rdataset.
+ * \li	'msg' is the DNS message to which the glue should be added.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOTIMPLEMENTED
+ *\li	#ISC_R_FAILURE
+ *\li	Any error that dns_rdata_additionaldata() can return.
+ */
+
+void
+dns_db_expiredata(dns_db_t *db, dns_dbnode_t *node, void *data);
+/*%<
+ * Tell the database 'db' to mark a block of data 'data' stored at
+ * node 'node' as expired.
+ */
+
+void
+dns_db_deletedata(dns_db_t *db, dns_dbnode_t *node, void *data);
+/*%<
+ * Tell the database 'db' to prepare to delete the block of data 'data'
+ * stored at node 'node. This may include, for example, removing the
+ * data from an LRU list or a heap.
+ */
+
+void
+dns_db_expiredata(dns_db_t *db, dns_dbnode_t *node, void *data);
 ISC_LANG_ENDDECLS

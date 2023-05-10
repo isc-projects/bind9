@@ -1061,3 +1061,47 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+isc_result_t
+dns_db_addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
+	       dns_message_t *msg) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+	REQUIRE(rdataset->type == dns_rdatatype_ns);
+
+	if (db->methods->addglue != NULL) {
+		return ((db->methods->addglue)(db, version, rdataset, msg));
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+dns_db_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
+	if (db->methods->locknode != NULL) {
+		(db->methods->locknode)(db, node, type);
+	}
+}
+
+void
+dns_db_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
+	if (db->methods->unlocknode != NULL) {
+		(db->methods->unlocknode)(db, node, type);
+	}
+}
+
+void
+dns_db_expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
+	if (db->methods->expiredata != NULL) {
+		(db->methods->expiredata)(db, node, data);
+	}
+}
+
+void
+dns_db_deletedata(dns_db_t *db, dns_dbnode_t *node, void *data) {
+	if (db->methods->deletedata != NULL) {
+		(db->methods->deletedata)(db, node, data);
+	}
+}

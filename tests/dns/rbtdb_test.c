@@ -96,16 +96,23 @@ static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
+	dns_rbtdb_t rbtdb = {
+		.common.methods = &dns__rbtdb_zonemethods,
+		.common.mctx = mctx,
+		.node_locks = node_locks,
+	};
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	dns_slabheader_t header = { 0 };
+	dns_slabheader_t header = {
+		.node = &rbtnode,
+		.db = (dns_db_t *)&rbtdb,
+	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
 		.slab = { .db = (dns_db_t *)&rbtdb,
 			  .node = &rbtnode,
 			  .raw = raw },
-		.methods = &rdataset_methods,
+		.methods = &dns_rdataslab_rdatasetmethods,
 	};
 	isc_buffer_t b;
 	dns_fixedname_t fname1, fname2;
@@ -156,16 +163,23 @@ ISC_RUN_TEST_IMPL(ownercase) {
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
+	dns_rbtdb_t rbtdb = {
+		.common.methods = &dns__rbtdb_zonemethods,
+		.common.mctx = mctx,
+		.node_locks = node_locks,
+	};
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	dns_slabheader_t header = { 0 };
+	dns_slabheader_t header = {
+		.node = &rbtnode,
+		.db = (dns_db_t *)&rbtdb,
+	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
 		.slab = { .db = (dns_db_t *)&rbtdb,
 			  .node = &rbtnode,
 			  .raw = raw },
-		.methods = &rdataset_methods,
+		.methods = &dns_rdataslab_rdatasetmethods,
 	};
 	const char *str1 =
 		"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
