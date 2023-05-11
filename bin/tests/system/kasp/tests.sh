@@ -2651,6 +2651,7 @@ IretZSK=867600
 #
 set_zone "step1.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "2" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 # Key properties.
 key_clear        "KEY1"
@@ -2700,6 +2701,7 @@ check_next_key_event 5086800
 #
 set_zone "step2.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 # New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
 key_clear        "KEY3"
@@ -2751,6 +2753,7 @@ check_next_key_event 97200
 #
 set_zone "step3.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 
 # The DNSKEY RRset has become omnipresent.
@@ -2801,6 +2804,7 @@ check_next_key_event 180000
 #
 set_zone "step4.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DNSKEY can be removed.
 set_keysigning "KEY1" "no"
@@ -2842,6 +2846,7 @@ check_next_key_event 10800
 #
 set_zone "step5.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "3" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DNSKEY is now HIDDEN.
 set_keystate "KEY1" "STATE_DNSKEY" "hidden"
@@ -2880,6 +2885,7 @@ check_next_key_event 4899600
 #
 set_zone "step6.ksk-doubleksk.autosign"
 set_policy "ksk-doubleksk" "2" "7200"
+CDNSKEY="no"
 set_server "ns3" "10.53.0.3"
 # KSK (KEY1) DNSKEY is purged.
 key_clear "KEY1"
