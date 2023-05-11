@@ -1,3 +1,6 @@
+6169.	[bug]		named could crash when deleting inline-signing zones
+			with "rndc delzone". [GL #4054]
+
 6165.	[bug]		Fix a logic error in dighost.c which could call the
 			dighost_shutdown() callback twice and cause problems
 			if the callback function was not idempotent. [GL #4039]
