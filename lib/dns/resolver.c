@@ -7996,10 +7996,15 @@ rctx_opt(respctx_t *rctx) {
 			}
 
 			/* Cookie OK */
-			query->rmessage->cc_ok = 1;
-			inc_stats(fctx->res, dns_resstatscounter_cookieok);
-			dns_adb_setcookie(fctx->adb, query->addrinfo, optvalue,
-					  optlen);
+			if (optlen == CLIENT_COOKIE_SIZE) {
+				query->rmessage->cc_echoed = 1;
+			} else {
+				query->rmessage->cc_ok = 1;
+				inc_stats(fctx->res,
+					  dns_resstatscounter_cookieok);
+				dns_adb_setcookie(fctx->adb, query->addrinfo,
+						  optvalue, optlen);
+			}
 			break;
 		default:
 			break;
@@ -9663,13 +9668,23 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		add_bad_edns(fctx, &query->addrinfo->sockaddr);
 		inc_stats(fctx->res, dns_resstatscounter_edns0fail);
 	} else if (rcode == dns_rcode_formerr) {
-		/*
-		 * The server (or forwarder) doesn't understand us,
-		 * but others might.
-		 */
-		rctx->next_server = true;
-		rctx->broken_server = DNS_R_REMOTEFORMERR;
-		log_formerr(fctx, "server sent FORMERR");
+		if (query->rmessage->cc_echoed) {
+			/*
+			 * Retry without DNS COOKIE.
+			 */
+			query->addrinfo->flags |= FCTX_ADDRINFO_NOCOOKIE;
+			rctx->resend = true;
+			log_formerr(fctx, "server sent FORMERR with echoed DNS "
+					  "COOKIE");
+		} else {
+			/*
+			 * The server (or forwarder) doesn't understand us,
+			 * but others might.
+			 */
+			rctx->next_server = true;
+			rctx->broken_server = DNS_R_REMOTEFORMERR;
+			log_formerr(fctx, "server sent FORMERR");
+		}
 	} else if (rcode == dns_rcode_badvers) {
 		unsigned int version;
 #if DNS_EDNS_VERSION > 0

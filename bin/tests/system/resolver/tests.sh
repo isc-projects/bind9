@@ -781,6 +781,18 @@ grep "ANSWER: [12]," dig.out.2.${n} > /dev/null || ret=1
 lines=$(awk '$1 == "mixedttl.tld." && $2 > 30 { print }' dig.out.2.${n} | wc -l)
 test ${lines:-1} -ne 0 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
+
+n=$((n+1))
+echo_i "check resolver behavior when FORMERR for EDNS options happens (${n})"
+ret=0
+msg="resolving options-formerr/A .* server sent FORMERR with echoed DNS COOKIE"
+if [ $ret != 0 ]; then echo_i "failed"; fi
+nextpart ns5/named.run >/dev/null
+dig_with_opts +tcp @10.53.0.5 options-formerr A > dig.out.${n} || ret=1
+grep "status: NOERROR" dig.out.${n} > /dev/null || ret=1
+nextpart ns5/named.run | grep "$msg" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
 status=$((status + ret))
 
 echo_i "exit status: $status"
