@@ -20,7 +20,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- A new option to :any:`dnssec-policy` has been added, :any:`cdnskey`, that
+  allows you to enable or disable the publication of CDNSKEY records.
+  :gl:`#4050`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
