@@ -296,6 +296,7 @@ dnssec-policy \"default\" {\n\
 		csk key-directory lifetime unlimited algorithm 13;\n\
 	};\n\
 \n\
+	cdnskey yes;\n\
 	cds-digest-types { 2; };\n\
 	dnskey-ttl " DNS_KASP_KEY_TTL ";\n\
 	publish-safety " DNS_KASP_PUBLISH_SAFETY "; \n\
