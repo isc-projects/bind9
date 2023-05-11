@@ -57,7 +57,6 @@ ISC_LANG_BEGINDECLS
  * appended to this structure.  Allocating a contiguous block of memory for
  * multiple dns_rbtnode structures will not work.
  */
-typedef struct dns_rbtnode dns_rbtnode_t;
 enum {
 	DNS_RBT_NSEC_NORMAL = 0,   /* in main tree */
 	DNS_RBT_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */

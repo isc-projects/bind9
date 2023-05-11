@@ -166,7 +166,7 @@ struct dns_rdataset {
 		/*
 		 * A slab rdataset provides access to an rdataslab. In
 		 * an rbtdb database, 'raw' will generally point to the
-		 * memory immediately following an rdatasetheader. (There
+		 * memory immediately following a slabheader. (There
 		 * is an exception in the case of rdatasets returned by
 		 * the `getnoqname` and `getclosest` methods; see
 		 * comments in rbtdb.c for details.)
@@ -177,8 +177,7 @@ struct dns_rdataset {
 			unsigned char *raw;
 			unsigned char *iter_pos;
 			unsigned int   iter_count;
-			/* struct noqname is declared inside rbtdb.c */
-			struct noqname *noqname, *closest;
+			dns_proof_t   *noqname, *closest;
 		} slab;
 
 		/*

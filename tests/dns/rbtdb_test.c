@@ -98,7 +98,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	rbtdb_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	rdatasetheader_t header = { 0 };
+	dns_slabheader_t header = { 0 };
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
@@ -158,7 +158,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	rbtdb_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	rdatasetheader_t header = { 0 };
+	dns_slabheader_t header = { 0 };
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
