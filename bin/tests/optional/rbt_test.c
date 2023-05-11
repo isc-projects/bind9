@@ -184,8 +184,8 @@ iterate(dns_rbt_t *rbt, bool forward) {
 	dns_rbtnodechain_t chain;
 	dns_fixedname_t fixedorigin;
 	isc_result_t result;
-	isc_result_t (*move)(dns_rbtnodechain_t * chain, dns_name_t * name,
-			     dns_name_t * origin);
+	isc_result_t (*move)(dns_rbtnodechain_t *chain, dns_name_t *name,
+			     dns_name_t *origin);
 
 	dns_rbtnodechain_init(&chain);
 

@@ -1356,7 +1356,8 @@ ai_concat(struct addrinfo *ai1, struct addrinfo *ai2) {
 
 	for (ai_tmp = ai1; ai_tmp != NULL && ai_tmp->ai_next != NULL;
 	     ai_tmp = ai_tmp->ai_next)
-	{}
+	{
+	}
 
 	ai_tmp->ai_next = ai2;
 
