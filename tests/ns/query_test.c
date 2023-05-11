@@ -20,12 +20,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <isc/util.h>
-
 #define UNIT_TESTING
 #include <cmocka.h>
 
 #include <isc/quota.h>
+#include <isc/util.h>
 
 #include <dns/badcache.h>
 #include <dns/view.h>
