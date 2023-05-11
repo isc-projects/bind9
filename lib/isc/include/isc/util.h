@@ -242,6 +242,12 @@
 #define __SANITIZE_ADDRESS__ 1
 #endif /* if __has_feature(address_sanitizer) */
 
+#if __SANITIZE_ADDRESS__
+#define ISC_NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
+#else /* if __SANITIZE_ADDRESS__ */
+#define ISC_NO_SANITIZE_ADDRESS
+#endif /* if __SANITIZE_ADDRESS__ */
+
 #if __has_feature(thread_sanitizer)
 #define __SANITIZE_THREAD__ 1
 #endif /* if __has_feature(thread_sanitizer) */
