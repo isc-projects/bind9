@@ -519,6 +519,22 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
 	kasp->nsec3param.saltlen = saltlen;
 }
 
+bool
+dns_kasp_cdnskey(dns_kasp_t *kasp) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(kasp->frozen);
+
+	return kasp->cdnskey;
+}
+
+void
+dns_kasp_setcdnskey(dns_kasp_t *kasp, bool cdnskey) {
+	REQUIRE(kasp != NULL);
+	REQUIRE(!kasp->frozen);
+
+	kasp->cdnskey = cdnskey;
+}
+
 dns_kasp_digestlist_t
 dns_kasp_digests(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
