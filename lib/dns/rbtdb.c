@@ -24,6 +24,7 @@
 #include <isc/crc64.h>
 #include <isc/file.h>
 #include <isc/hash.h>
+#include <isc/hashmap.h>
 #include <isc/heap.h>
 #include <isc/hex.h>
 #include <isc/loop.h>
@@ -38,6 +39,7 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -222,6 +224,8 @@ typedef isc_rwlock_t treelock_t;
  */
 #define RBTDB_VIRTUAL 300
 
+typedef struct rbtdb_glue rbtdb_glue_t;
+
 struct noqname {
 	dns_name_t name;
 	void *neg;
@@ -287,6 +291,10 @@ typedef struct rdatasetheader {
 	 * rendering that character upper case.
 	 */
 	unsigned char upper[32];
+
+	rbtdb_glue_t *glue_list;
+
+	struct cds_wfs_node wfs_node;
 } rdatasetheader_t;
 
 typedef ISC_LIST(rdatasetheader_t) rdatasetheaderlist_t;
@@ -430,14 +438,6 @@ typedef struct dns_rbtdb dns_rbtdb_t;
 /* Reason for expiring a record from cache */
 typedef enum { expire_lru, expire_ttl, expire_flush } expire_t;
 
-typedef struct rbtdb_glue rbtdb_glue_t;
-
-typedef struct rbtdb_glue_table_node {
-	struct rbtdb_glue_table_node *next;
-	dns_rbtnode_t *node;
-	rbtdb_glue_t *glue_list;
-} rbtdb_glue_table_node_t;
-
 typedef enum {
 	rdataset_ttl_fresh,
 	rdataset_ttl_stale,
@@ -476,10 +476,7 @@ typedef struct rbtdb_version {
 	uint64_t records;
 	uint64_t xfrsize;
 
-	isc_rwlock_t glue_rwlock;
-	size_t glue_table_bits;
-	size_t glue_table_nodecount;
-	rbtdb_glue_table_node_t **glue_table;
+	struct cds_wfs_stack glue_stack;
 } rbtdb_version_t;
 
 typedef ISC_LIST(rbtdb_version_t) rbtdb_versionlist_t;
@@ -1040,12 +1037,13 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 
 	if (rbtdb->current_version != NULL) {
 		isc_refcount_decrementz(&rbtdb->current_version->references);
-		UNLINK(rbtdb->open_versions, rbtdb->current_version, link);
-		isc_rwlock_destroy(&rbtdb->current_version->glue_rwlock);
+
 		isc_refcount_destroy(&rbtdb->current_version->references);
+		UNLINK(rbtdb->open_versions, rbtdb->current_version, link);
+		cds_wfs_destroy(&rbtdb->current_version->glue_stack);
 		isc_rwlock_destroy(&rbtdb->current_version->rwlock);
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
-			    sizeof(rbtdb_version_t));
+			    sizeof(*rbtdb->current_version));
 	}
 
 	/*
@@ -1260,27 +1258,18 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 static rbtdb_version_t *
 allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 		 unsigned int references, bool writer) {
-	rbtdb_version_t *version;
-	size_t size;
+	rbtdb_version_t *version = isc_mem_get(mctx, sizeof(*version));
+	*version = (rbtdb_version_t){
+		.serial = serial,
+		.writer = writer,
+		.changed_list = ISC_LIST_INITIALIZER,
+		.resigned_list = ISC_LIST_INITIALIZER,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
-	version = isc_mem_get(mctx, sizeof(*version));
-	version->serial = serial;
+	cds_wfs_init(&version->glue_stack);
 
 	isc_refcount_init(&version->references, references);
-	isc_rwlock_init(&version->glue_rwlock);
-
-	version->glue_table_bits = ISC_HASH_MIN_BITS;
-	version->glue_table_nodecount = 0U;
-
-	size = ISC_HASHSIZE(version->glue_table_bits) *
-	       sizeof(version->glue_table[0]);
-	version->glue_table = isc_mem_getx(mctx, size, ISC_MEM_ZERO);
-
-	version->writer = writer;
-	version->commit_ok = false;
-	ISC_LIST_INIT(version->changed_list);
-	ISC_LIST_INIT(version->resigned_list);
-	ISC_LINK_INIT(version, link);
 
 	return (version);
 }
@@ -1402,8 +1391,11 @@ static void
 init_rdataset(dns_rbtdb_t *rbtdb, rdatasetheader_t *h) {
 	ISC_LINK_INIT(h, link);
 	h->heap_index = 0;
+	h->glue_list = NULL;
 	atomic_init(&h->attributes, 0);
 	atomic_init(&h->last_refresh_fail_ts, 0);
+
+	cds_wfs_node_init(&h->wfs_node);
 
 	STATIC_ASSERT((sizeof(h->attributes) == 2),
 		      "The .attributes field of rdatasetheader_t needs to be "
@@ -1429,12 +1421,14 @@ update_newheader(rdatasetheader_t *newh, rdatasetheader_t *old) {
 	}
 }
 
+static void
+free_gluelist(rbtdb_glue_t *glue_list);
+
 static rdatasetheader_t *
 new_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx) {
 	rdatasetheader_t *h;
 
 	h = isc_mem_get(mctx, sizeof(*h));
-
 #if TRACE_HEADER
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in) {
 		fprintf(stderr, "allocated header: %p\n", h);
@@ -1447,39 +1441,42 @@ new_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx) {
 }
 
 static void
-free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
+free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *header) {
 	unsigned int size;
 	int idx;
 
-	update_rrsetstats(rbtdb, rdataset->type,
-			  atomic_load_acquire(&rdataset->attributes), false);
+	update_rrsetstats(rbtdb, header->type,
+			  atomic_load_acquire(&header->attributes), false);
 
-	idx = rdataset->node->locknum;
-	if (ISC_LINK_LINKED(rdataset, link)) {
+	idx = header->node->locknum;
+	if (ISC_LINK_LINKED(header, link)) {
 		INSIST(IS_CACHE(rbtdb));
-		ISC_LIST_UNLINK(rbtdb->rdatasets[idx], rdataset, link);
+		ISC_LIST_UNLINK(rbtdb->rdatasets[idx], header, link);
 	}
 
-	if (rdataset->heap_index != 0) {
-		isc_heap_delete(rbtdb->heaps[idx], rdataset->heap_index);
+	if (header->heap_index != 0) {
+		isc_heap_delete(rbtdb->heaps[idx], header->heap_index);
 	}
-	rdataset->heap_index = 0;
+	header->heap_index = 0;
 
-	if (rdataset->noqname != NULL) {
-		free_noqname(mctx, &rdataset->noqname);
+	if (header->noqname != NULL) {
+		free_noqname(mctx, &header->noqname);
 	}
-	if (rdataset->closest != NULL) {
-		free_noqname(mctx, &rdataset->closest);
+	if (header->closest != NULL) {
+		free_noqname(mctx, &header->closest);
+	}
+	if (header->glue_list) {
+		free_gluelist(header->glue_list);
 	}
 
-	if (NONEXISTENT(rdataset)) {
-		size = sizeof(*rdataset);
+	if (NONEXISTENT(header)) {
+		size = sizeof(*header);
 	} else {
-		size = dns_rdataslab_size((unsigned char *)rdataset,
-					  sizeof(*rdataset));
+		size = dns_rdataslab_size((unsigned char *)header,
+					  sizeof(*header));
 	}
 
-	isc_mem_put(mctx, rdataset, size);
+	isc_mem_put(mctx, header, size);
 }
 
 static void
@@ -2638,9 +2635,10 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 
 	if (cleanup_version != NULL) {
+		isc_refcount_destroy(&cleanup_version->references);
 		INSIST(EMPTY(cleanup_version->changed_list));
 		free_gluetable(cleanup_version);
-		isc_rwlock_destroy(&cleanup_version->glue_rwlock);
+		cds_wfs_destroy(&cleanup_version->glue_stack);
 		isc_rwlock_destroy(&cleanup_version->rwlock);
 		isc_mem_put(rbtdb->common.mctx, cleanup_version,
 			    sizeof(*cleanup_version));
@@ -9525,6 +9523,9 @@ struct rbtdb_glue {
 	dns_rdataset_t sigrdataset_a;
 	dns_rdataset_t rdataset_aaaa;
 	dns_rdataset_t sigrdataset_aaaa;
+
+	isc_mem_t *mctx;
+	struct rcu_head rcu_head;
 };
 
 typedef struct {
@@ -9535,142 +9536,74 @@ typedef struct {
 } rbtdb_glue_additionaldata_ctx_t;
 
 static void
-free_gluelist(rbtdb_glue_t *glue_list, dns_rbtdb_t *rbtdb) {
-	rbtdb_glue_t *cur, *cur_next;
-
+free_gluelist(rbtdb_glue_t *glue_list) {
 	if (glue_list == (void *)-1) {
 		return;
 	}
 
-	cur = glue_list;
-	while (cur != NULL) {
-		cur_next = cur->next;
+	rbtdb_glue_t *glue = glue_list;
+	while (glue != NULL) {
+		rbtdb_glue_t *next = glue->next;
 
-		if (dns_rdataset_isassociated(&cur->rdataset_a)) {
-			dns_rdataset_disassociate(&cur->rdataset_a);
+		if (dns_rdataset_isassociated(&glue->rdataset_a)) {
+			dns_rdataset_disassociate(&glue->rdataset_a);
 		}
-		if (dns_rdataset_isassociated(&cur->sigrdataset_a)) {
-			dns_rdataset_disassociate(&cur->sigrdataset_a);
-		}
-
-		if (dns_rdataset_isassociated(&cur->rdataset_aaaa)) {
-			dns_rdataset_disassociate(&cur->rdataset_aaaa);
-		}
-		if (dns_rdataset_isassociated(&cur->sigrdataset_aaaa)) {
-			dns_rdataset_disassociate(&cur->sigrdataset_aaaa);
+		if (dns_rdataset_isassociated(&glue->sigrdataset_a)) {
+			dns_rdataset_disassociate(&glue->sigrdataset_a);
 		}
 
-		dns_rdataset_invalidate(&cur->rdataset_a);
-		dns_rdataset_invalidate(&cur->sigrdataset_a);
-		dns_rdataset_invalidate(&cur->rdataset_aaaa);
-		dns_rdataset_invalidate(&cur->sigrdataset_aaaa);
+		if (dns_rdataset_isassociated(&glue->rdataset_aaaa)) {
+			dns_rdataset_disassociate(&glue->rdataset_aaaa);
+		}
+		if (dns_rdataset_isassociated(&glue->sigrdataset_aaaa)) {
+			dns_rdataset_disassociate(&glue->sigrdataset_aaaa);
+		}
 
-		isc_mem_put(rbtdb->common.mctx, cur, sizeof(*cur));
-		cur = cur_next;
+		dns_rdataset_invalidate(&glue->rdataset_a);
+		dns_rdataset_invalidate(&glue->sigrdataset_a);
+		dns_rdataset_invalidate(&glue->rdataset_aaaa);
+		dns_rdataset_invalidate(&glue->sigrdataset_aaaa);
+
+		isc_mem_putanddetach(&glue->mctx, glue, sizeof(*glue));
+
+		glue = next;
 	}
+}
+
+static rbtdb_glue_t *
+new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
+	rbtdb_glue_t *glue = isc_mem_getx(mctx, sizeof(*glue), ISC_MEM_ZERO);
+	dns_name_t *gluename = dns_fixedname_initname(&glue->fixedname);
+
+	isc_mem_attach(mctx, &glue->mctx);
+	dns_name_copy(name, gluename);
+
+	return (glue);
 }
 
 static void
-free_gluetable(rbtdb_version_t *version) {
-	dns_rbtdb_t *rbtdb;
-	size_t size, i;
+free_gluelist_rcu(struct rcu_head *rcu_head) {
+	rbtdb_glue_t *glue = caa_container_of(rcu_head, rbtdb_glue_t, rcu_head);
+	__tsan_acquire(glue);
 
-	RWLOCK(&version->glue_rwlock, isc_rwlocktype_write);
-
-	rbtdb = version->rbtdb;
-
-	for (i = 0; i < ISC_HASHSIZE(version->glue_table_bits); i++) {
-		rbtdb_glue_table_node_t *cur, *cur_next;
-
-		cur = version->glue_table[i];
-		while (cur != NULL) {
-			cur_next = cur->next;
-			/* isc_refcount_decrement(&cur->node->references); */
-			cur->node = NULL;
-			free_gluelist(cur->glue_list, rbtdb);
-			cur->glue_list = NULL;
-			isc_mem_put(rbtdb->common.mctx, cur, sizeof(*cur));
-			cur = cur_next;
-		}
-		version->glue_table[i] = NULL;
-	}
-
-	size = ISC_HASHSIZE(version->glue_table_bits) *
-	       sizeof(*version->glue_table);
-	isc_mem_put(rbtdb->common.mctx, version->glue_table, size);
-
-	RWUNLOCK(&version->glue_rwlock, isc_rwlocktype_write);
-}
-
-static uint32_t
-rehash_bits(rbtdb_version_t *version, size_t newcount) {
-	uint32_t oldbits = version->glue_table_bits;
-	uint32_t newbits = oldbits;
-
-	while (newcount >= ISC_HASHSIZE(newbits) &&
-	       newbits <= ISC_HASH_MAX_BITS)
-	{
-		newbits += 1;
-	}
-
-	return (newbits);
-}
-
-/*%
- * Write lock (version->glue_rwlock) must be held.
- */
-static void
-rehash_gluetable(rbtdb_version_t *version) {
-	uint32_t oldbits, newbits;
-	size_t newsize, oldcount, i;
-	rbtdb_glue_table_node_t **oldtable;
-
-	oldbits = version->glue_table_bits;
-	oldcount = ISC_HASHSIZE(oldbits);
-	oldtable = version->glue_table;
-
-	newbits = rehash_bits(version, version->glue_table_nodecount);
-	newsize = ISC_HASHSIZE(newbits) * sizeof(version->glue_table[0]);
-
-	version->glue_table = isc_mem_getx(version->rbtdb->common.mctx, newsize,
-					   ISC_MEM_ZERO);
-	version->glue_table_bits = newbits;
-
-	for (i = 0; i < oldcount; i++) {
-		rbtdb_glue_table_node_t *gluenode;
-		rbtdb_glue_table_node_t *nextgluenode;
-		for (gluenode = oldtable[i]; gluenode != NULL;
-		     gluenode = nextgluenode)
-		{
-			uint32_t hash = isc_hash32(
-				&gluenode->node, sizeof(gluenode->node), true);
-			uint32_t idx = isc_hash_bits32(hash, newbits);
-			nextgluenode = gluenode->next;
-			gluenode->next = version->glue_table[idx];
-			version->glue_table[idx] = gluenode;
-		}
-	}
-
-	isc_mem_put(version->rbtdb->common.mctx, oldtable,
-		    oldcount * sizeof(*version->glue_table));
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ZONE,
-		      ISC_LOG_DEBUG(3),
-		      "rehash_gluetable(): "
-		      "resized glue table from %zu to "
-		      "%zu",
-		      oldcount, newsize / sizeof(version->glue_table[0]));
+	free_gluelist(glue);
 }
 
 static void
-maybe_rehash_gluetable(rbtdb_version_t *version) {
-	size_t overcommit = ISC_HASHSIZE(version->glue_table_bits) *
-			    ISC_HASH_OVERCOMMIT;
-	if (version->glue_table_nodecount < overcommit) {
-		return;
-	}
+free_gluetable(rbtdb_version_t *rbtversion) {
+	struct cds_wfs_head *head = __cds_wfs_pop_all(&rbtversion->glue_stack);
+	struct cds_wfs_node *node, *next;
 
-	rehash_gluetable(version);
+	rcu_read_lock();
+	cds_wfs_for_each_blocking_safe(head, node, next) {
+		rdatasetheader_t *header =
+			caa_container_of(node, rdatasetheader_t, wfs_node);
+		rbtdb_glue_t *glue = rcu_xchg_pointer(&header->glue_list, NULL);
+
+		__tsan_release(glue);
+		call_rcu(&glue->rcu_head, free_gluelist_rcu);
+	}
+	rcu_read_unlock();
 }
 
 static isc_result_t
@@ -9687,7 +9620,6 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 	dns_rdataset_t rdataset_aaaa, sigrdataset_aaaa;
 	dns_rbtnode_t *node_aaaa = NULL;
 	rbtdb_glue_t *glue = NULL;
-	dns_name_t *gluename = NULL;
 
 	UNUSED(unused);
 
@@ -9711,10 +9643,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 			   (dns_dbnode_t **)&node_a, name_a, &rdataset_a,
 			   &sigrdataset_a DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {
-		glue = isc_mem_get(ctx->rbtdb->common.mctx, sizeof(*glue));
-
-		gluename = dns_fixedname_initname(&glue->fixedname);
-		dns_name_copy(name_a, gluename);
+		glue = new_gluelist(ctx->rbtdb->common.mctx, name_a);
 
 		dns_rdataset_init(&glue->rdataset_a);
 		dns_rdataset_init(&glue->sigrdataset_a);
@@ -9735,11 +9664,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 			   &sigrdataset_aaaa DNS__DB_FLARG_PASS);
 	if (result == DNS_R_GLUE) {
 		if (glue == NULL) {
-			glue = isc_mem_get(ctx->rbtdb->common.mctx,
-					   sizeof(*glue));
-
-			gluename = dns_fixedname_initname(&glue->fixedname);
-			dns_name_copy(name_aaaa, gluename);
+			glue = new_gluelist(ctx->rbtdb->common.mctx, name_aaaa);
 
 			dns_rdataset_init(&glue->rdataset_a);
 			dns_rdataset_init(&glue->sigrdataset_a);
@@ -9811,83 +9736,8 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
 
 #define IS_REQUIRED_GLUE(r) (((r)->attributes & DNS_RDATASETATTR_REQUIRED) != 0)
 
-static isc_result_t
-rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
-		 dns_message_t *msg) {
-	dns_rbtdb_t *rbtdb = rdataset->private1;
-	dns_rbtnode_t *node = rdataset->private2;
-	rbtdb_version_t *rbtversion = version;
-	dns_fixedname_t nodename;
-	uint32_t idx;
-	rbtdb_glue_table_node_t *cur;
-	bool found = false;
-	bool restarted = false;
-	rbtdb_glue_t *ge;
-	rbtdb_glue_additionaldata_ctx_t ctx;
-	uint64_t hash;
-
-	REQUIRE(rdataset->type == dns_rdatatype_ns);
-	REQUIRE(rbtdb == rbtversion->rbtdb);
-	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
-
-	/*
-	 * The glue table cache that forms a part of the DB version
-	 * structure is not explicitly bounded and there's no cache
-	 * cleaning. The zone data size itself is an implicit bound.
-	 *
-	 * The key into the glue hashtable is the node pointer. This is
-	 * because the glue hashtable is a property of the DB version,
-	 * and the glue is keyed for the ownername/NS tuple. We don't
-	 * bother with using an expensive dns_name_t comparison here as
-	 * the node pointer is a fixed value that won't change for a DB
-	 * version and can be compared directly.
-	 */
-	hash = isc_hash_function(&node, sizeof(node), true);
-
-restart:
-	/*
-	 * First, check if we have the additional entries already cached
-	 * in the glue table.
-	 */
-	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
-
-	idx = isc_hash_bits32(hash, rbtversion->glue_table_bits);
-
-	for (cur = rbtversion->glue_table[idx]; cur != NULL; cur = cur->next) {
-		if (cur->node == node) {
-			break;
-		}
-	}
-
-	if (cur == NULL) {
-		goto no_glue;
-	}
-	/*
-	 * We found a cached result. Add it to the message and
-	 * return.
-	 */
-	found = true;
-	ge = cur->glue_list;
-
-	/*
-	 * (void *) -1 is a special value that means no glue is
-	 * present in the zone.
-	 */
-	if (ge == (void *)-1) {
-		if (!restarted && (rbtdb->gluecachestats != NULL)) {
-			isc_stats_increment(
-				rbtdb->gluecachestats,
-				dns_gluecachestatscounter_hits_absent);
-		}
-		goto no_glue;
-	} else {
-		if (!restarted && (rbtdb->gluecachestats != NULL)) {
-			isc_stats_increment(
-				rbtdb->gluecachestats,
-				dns_gluecachestatscounter_hits_present);
-		}
-	}
-
+static void
+addglue_to_message(rbtdb_glue_t *ge, dns_message_t *msg) {
 	for (; ge != NULL; ge = ge->next) {
 		dns_name_t *name = NULL;
 		dns_rdataset_t *rdataset_a = NULL;
@@ -9962,86 +9812,90 @@ restart:
 					 name, link);
 		}
 	}
+}
 
-no_glue:
-	RWUNLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_read);
-
-	if (found) {
-		return (ISC_R_SUCCESS);
-	}
-
-	if (restarted) {
-		return (ISC_R_FAILURE);
-	}
-
-	/*
-	 * No cached glue was found in the table. Cache it and restart
-	 * this function.
-	 *
-	 * Due to the gap between the read lock and the write lock, it's
-	 * possible that we may cache a duplicate glue table entry, but
-	 * we don't care.
-	 */
-
-	ctx.glue_list = NULL;
-	ctx.rbtdb = rbtdb;
-	ctx.rbtversion = rbtversion;
+static rbtdb_glue_t *
+rdataset_newglue(dns_rbtdb_t *rbtdb, rbtdb_version_t *rbtversion,
+		 dns_rbtnode_t *node, dns_rdataset_t *rdataset) {
+	dns_fixedname_t nodename;
+	rbtdb_glue_additionaldata_ctx_t ctx = {
+		.rbtdb = rbtdb,
+		.rbtversion = rbtversion,
+		.nodename = dns_fixedname_initname(&nodename),
+	};
 
 	/*
 	 * Get the owner name of the NS RRset - it will be necessary for
-	 * identifying required glue in glue_nsdname_cb() (by determining which
-	 * NS records in the delegation are in-bailiwick).
+	 * identifying required glue in glue_nsdname_cb() (by
+	 * determining which NS records in the delegation are
+	 * in-bailiwick).
 	 */
-	ctx.nodename = dns_fixedname_initname(&nodename);
 	nodefullname((dns_db_t *)rbtdb, node, ctx.nodename);
-
-	RWLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
-
-	maybe_rehash_gluetable(rbtversion);
-	idx = isc_hash_bits32(hash, rbtversion->glue_table_bits);
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
 					  glue_nsdname_cb, &ctx);
 
-	cur = isc_mem_get(rbtdb->common.mctx, sizeof(*cur));
+	return (ctx.glue_list);
+}
 
-	/*
-	 * XXXMUKS: it looks like the dns_dbversion is not destroyed
-	 * when named is terminated by a keyboard break. This doesn't
-	 * cleanup the node reference and keeps the process dangling.
-	 */
-	/* isc_refcount_increment0(&node->references); */
-	cur->node = node;
+static isc_result_t
+rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
+		 dns_message_t *msg) {
+	dns_rbtdb_t *rbtdb = rdataset->private1;
+	dns_rbtnode_t *node = rdataset->private2;
+	unsigned char *raw = rdataset->private3; /* RDATASLAB */
+	rbtdb_version_t *rbtversion = version;
 
-	if (ctx.glue_list == NULL) {
-		/*
-		 * No glue was found. Cache it so.
-		 */
-		cur->glue_list = (void *)-1;
-		if (rbtdb->gluecachestats != NULL) {
-			isc_stats_increment(
-				rbtdb->gluecachestats,
-				dns_gluecachestatscounter_inserts_absent);
-		}
-	} else {
-		cur->glue_list = ctx.glue_list;
-		if (rbtdb->gluecachestats != NULL) {
-			isc_stats_increment(
-				rbtdb->gluecachestats,
-				dns_gluecachestatscounter_inserts_present);
+	REQUIRE(rdataset->type == dns_rdatatype_ns);
+	REQUIRE(rbtdb == rbtversion->rbtdb);
+	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
+
+	rdatasetheader_t *header =
+		(struct rdatasetheader *)(raw - sizeof(*header));
+
+	rcu_read_lock();
+
+	rbtdb_glue_t *glue = rcu_dereference(header->glue_list);
+	if (glue == NULL) {
+		/* No cached glue was found in the table. Get new glue. */
+		glue = rdataset_newglue(rbtdb, rbtversion, node, rdataset);
+
+		/* Cache the glue or (void *)-1 if no glue was found. */
+		rbtdb_glue_t *old_glue = rcu_cmpxchg_pointer(
+			&header->glue_list, NULL, (glue) ? glue : (void *)-1);
+		if (old_glue != NULL) {
+			/* Somebody else was faster */
+			free_gluelist(glue);
+			glue = old_glue;
+		} else if (glue != NULL) {
+			__tsan_release(glue);
+			cds_wfs_push(&rbtversion->glue_stack,
+				     &header->wfs_node);
 		}
 	}
 
-	cur->next = rbtversion->glue_table[idx];
-	rbtversion->glue_table[idx] = cur;
-	rbtversion->glue_table_nodecount++;
+	/* We have a cached result. Add it to the message and return. */
 
-	RWUNLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
+	if (rbtdb->gluecachestats != NULL) {
+		isc_stats_increment(
+			rbtdb->gluecachestats,
+			(glue == (void *)-1)
+				? dns_gluecachestatscounter_hits_absent
+				: dns_gluecachestatscounter_hits_present);
+	}
 
-	restarted = true;
-	goto restart;
+	/*
+	 * (void *)-1 is a special value that means no glue is present in the
+	 * zone.
+	 */
+	if (glue != (void *)-1) {
+		__tsan_acquire(glue);
+		addglue_to_message(glue, msg);
+	}
 
-	/* UNREACHABLE */
+	rcu_read_unlock();
+
+	return (ISC_R_SUCCESS);
 }
 
 /*%

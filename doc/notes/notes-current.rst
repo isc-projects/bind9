@@ -32,7 +32,9 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Improve the responsiveness of the ``named`` serving as an authoritative DNS
+  server for a delegation-heavy zone(s) shortly after loading such zone(s).
+  :gl:`#4045`
 
 Bug Fixes
 ~~~~~~~~~

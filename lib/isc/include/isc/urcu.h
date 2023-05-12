@@ -30,9 +30,12 @@
 #include <urcu-bp.h>
 #endif
 
+#include <urcu-pointer.h>
+
 #include <urcu/compiler.h>
 #include <urcu/rculfhash.h>
 #include <urcu/rculist.h>
+#include <urcu/wfstack.h>
 
 #pragma GCC diagnostic pop
 
