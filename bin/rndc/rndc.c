@@ -82,6 +82,7 @@ static char program[256];
 static uint32_t serial;
 static bool quiet = false;
 static bool showresult = false;
+static int32_t timeout = RNDC_TIMEOUT;
 
 static void
 rndc_startconnect(isc_sockaddr_t *addr);
@@ -222,7 +223,7 @@ Version: %s\n",
 	exit(status);
 }
 
-#define CMDLINE_FLAGS "46b:c:hk:Mmp:qrs:Vy:"
+#define CMDLINE_FLAGS "46b:c:hk:Mmp:qrs:t:Vy:"
 
 static void
 preparse_args(int argc, char **argv) {
@@ -527,7 +528,7 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 	}
 
 	isc_nm_tcpconnect(netmgr, local, addr, rndc_connected, &rndc_ccmsg,
-			  RNDC_TIMEOUT);
+			  timeout);
 }
 
 static void
@@ -827,7 +828,7 @@ main(int argc, char **argv) {
 	const char *keyname = NULL;
 	struct in_addr in;
 	struct in6_addr in6;
-	char *p;
+	char *p = NULL;
 	size_t argslen;
 	int ch;
 	int i;
@@ -913,6 +914,15 @@ main(int argc, char **argv) {
 			servername = isc_commandline_argument;
 			break;
 
+		case 't':
+			timeout = strtol(isc_commandline_argument, &p, 10);
+			if (*p != '\0' || timeout < 0 || timeout > 86400) {
+				fatal("invalid timeout '%s'",
+				      isc_commandline_argument);
+			}
+			timeout *= 1000;
+			break;
+
 		case 'V':
 			verbose = true;
 			break;
@@ -956,7 +966,7 @@ main(int argc, char **argv) {
 	isc_managers_create(&rndc_mctx, 1, &loopmgr, &netmgr);
 	isc_loopmgr_setup(loopmgr, rndc_start, NULL);
 
-	isc_nm_settimeouts(netmgr, RNDC_TIMEOUT, RNDC_TIMEOUT, RNDC_TIMEOUT, 0);
+	isc_nm_settimeouts(netmgr, timeout, timeout, timeout, 0);
 
 	isc_log_create(rndc_mctx, &log, &logconfig);
 	isc_log_setcontext(log);
