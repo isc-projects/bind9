@@ -17,10 +17,7 @@
 #include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/mem.h>
-#include <isc/stack.h>
 #include <isc/uv.h>
-
-typedef ISC_ASTACK(isc_job_t) isc_asyncstack_t;
 
 void
 isc__async_cb(uv_async_t *handle);

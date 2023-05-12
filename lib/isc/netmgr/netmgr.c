@@ -692,8 +692,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 		.active_handles = ISC_LIST_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
 		.active = true,
-		.job = ISC_JOB_INITIALIZER,
-		.quotacb = ISC_JOB_INITIALIZER,
 	};
 
 	if (iface != NULL) {
@@ -715,8 +713,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 
 	isc__networker_attach(worker, &sock->worker);
 	sock->uv_handle.handle.data = sock;
-
-	ISC_LINK_INIT(&sock->quotacb, link);
 
 	switch (type) {
 	case isc_nm_udpsocket:
@@ -805,7 +801,6 @@ alloc_handle(isc_nmsocket_t *sock) {
 		.magic = NMHANDLE_MAGIC,
 		.active_link = ISC_LINK_INITIALIZER,
 		.inactive_link = ISC_LINK_INITIALIZER,
-		.job = ISC_JOB_INITIALIZER,
 	};
 	isc_refcount_init(&handle->references, 1);
 
@@ -1522,7 +1517,6 @@ isc___nm_uvreq_get(isc_nmsocket_t *sock FLARG) {
 		.connect_tries = 3,
 		.link = ISC_LINK_INITIALIZER,
 		.active_link = ISC_LINK_INITIALIZER,
-		.job = ISC_JOB_INITIALIZER,
 		.magic = UVREQ_MAGIC,
 	};
 	uv_handle_set_data(&req->uv_req.handle, req);
