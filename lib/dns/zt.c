@@ -94,15 +94,14 @@ static dns_qpmethods_t ztqpmethods = {
 };
 
 void
-dns_zt_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, dns_view_t *view,
-	      dns_zt_t **ztp) {
+dns_zt_create(isc_mem_t *mctx, dns_view_t *view, dns_zt_t **ztp) {
 	dns_qpmulti_t *multi = NULL;
 	dns_zt_t *zt = NULL;
 
 	REQUIRE(ztp != NULL && *ztp == NULL);
 	REQUIRE(view != NULL);
 
-	dns_qpmulti_create(mctx, loopmgr, &ztqpmethods, view, &multi);
+	dns_qpmulti_create(mctx, &ztqpmethods, view, &multi);
 
 	zt = isc_mem_get(mctx, sizeof(*zt));
 	*zt = (dns_zt_t){
@@ -177,11 +176,8 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(exactopts != exactmask);
 
-	if (isc_tid() == ISC_TID_UNKNOWN) {
-		dns_qpmulti_lockedread(zt->multi, &qpr);
-	} else {
-		dns_qpmulti_query(zt->multi, &qpr);
-	}
+	dns_qpmulti_query(zt->multi, &qpr);
+
 	if (exactopts == DNS_ZTFIND_EXACT) {
 		result = dns_qp_getname(&qpr, name, &pval, &ival);
 	} else if (exactopts == DNS_ZTFIND_NOEXACT) {

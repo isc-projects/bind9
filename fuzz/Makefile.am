@@ -6,6 +6,7 @@ AM_CFLAGS +=				\
 AM_CPPFLAGS +=				\
 	$(LIBISC_CFLAGS)		\
 	$(LIBDNS_CFLAGS)		\
+	$(LIBURCU_CFLAGS)		\
 	$(LIBUV_CFLAGS)			\
 	-DFUZZDIR=\"$(abs_srcdir)\"	\
 	-I$(top_srcdir)/lib/dns		\

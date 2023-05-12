@@ -18,8 +18,8 @@
 #include <isc/hashmap.h>
 #include <isc/ht.h>
 #include <isc/list.h>
-#include <isc/qsbr.h>
 #include <isc/rwlock.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>

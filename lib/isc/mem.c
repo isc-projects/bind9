@@ -32,6 +32,7 @@
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #ifdef HAVE_LIBXML2
@@ -577,6 +578,12 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 
 	ctx = *ctxp;
 	*ctxp = NULL;
+
+	/*
+	 * wait for asynchronous memory reclamation to complete
+	 * before checking for memory leaks
+	 */
+	rcu_barrier();
 
 #if ISC_MEM_TRACKLINES
 	if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {

@@ -163,11 +163,12 @@ Files: **/.clang-format
        .gitlab-ci.yml
        .lgtm.yml
        .pylintrc
+       .tsan-suppress
+       .tsan-suppress-extra
        .uncrustify.cfg
        doc/misc/*.zoneopt
        doc/misc/options
        doc/misc/rndc.grammar
-       tsan-suppressions.txt
        sonar-project.properties
 Copyright: Internet Systems Consortium, Inc. ("ISC")
 License: CC0-1.0

@@ -79,8 +79,7 @@ isc_quota_release(isc_quota_t *quota) {
 		return;
 	}
 
-	isc_job_t *job = caa_container_of(node, isc_job_t, wfcq_node);
-	__tsan_acquire(job);
+	isc_job_t *job = isc_urcu_container(node, isc_job_t, wfcq_node);
 	job->cb(job->cbarg);
 }
 

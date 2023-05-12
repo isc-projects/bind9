@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include <isc/async.h>
+#include <isc/barrier.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/loop.h>
@@ -25,7 +26,6 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/os.h>
-#include <isc/qsbr.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -33,6 +33,7 @@
 #include <isc/tid.h>
 #include <isc/time.h>
 #include <isc/timer.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 
@@ -380,8 +381,7 @@ load_multi(struct bench_state *bctx) {
 	size_t count = 0;
 	uint64_t start;
 
-	dns_qpmulti_create(bctx->mctx, bctx->loopmgr, &item_methods, NULL,
-			   &bctx->multi);
+	dns_qpmulti_create(bctx->mctx, &item_methods, NULL, &bctx->multi);
 
 	/* initial contents of the trie */
 	start = isc_time_monotonic();
@@ -884,6 +884,9 @@ int
 main(void) {
 	isc_loopmgr_t *loopmgr = NULL;
 	isc_mem_t *mctx = NULL;
+
+	setlinebuf(stdout);
+
 	uint32_t nloops;
 	const char *env_workers = getenv("ISC_TASK_WORKERS");
 

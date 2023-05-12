@@ -1,3 +1,10 @@
+6172.	[cleanup]	Refactor the loop manager and qp-trie code to remove
+			isc_qsbr and use liburcu instead. [GL #3936]
+
+6171.	[cleanup]	Remove the stack implementation added in change 6108:
+			we are using the liburcu concurrent data structures
+			instead. [GL !7920]
+
 6170.	[func]		The 'rndc -t' option allows a timeout to be set in
 			seconds, so that commands that take a long time to
 			complete (e.g., reloading a very large configuration)

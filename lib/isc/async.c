@@ -107,8 +107,7 @@ isc__async_cb(uv_async_t *handle) {
 	 */
 	struct cds_wfcq_node *node, *next;
 	__cds_wfcq_for_each_blocking_safe(&jobs.head, &jobs.tail, node, next) {
-		isc_job_t *job = caa_container_of(node, isc_job_t, wfcq_node);
-		__tsan_acquire(job);
+		isc_job_t *job = isc_urcu_container(node, isc_job_t, wfcq_node);
 
 		job->cb(job->cbarg);
 

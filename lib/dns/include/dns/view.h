@@ -259,8 +259,8 @@ struct dns_view {
 #endif /* HAVE_LMDB */
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		dns_rdataclass_t rdclass, const char *name, dns_view_t **viewp);
+dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
+		dns_view_t **viewp);
 /*%<
  * Create a view.
  *

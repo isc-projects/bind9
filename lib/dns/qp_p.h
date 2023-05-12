@@ -301,11 +301,9 @@ ref_cell(qp_ref_t ref) {
  * transactions, but it must become immutable when an update
  * transaction is opened.)
  *
- * When a chunk becomes empty (wrt the latest version of the trie), we
- * note the QSBR phase after which no old versions of the trie will
- * need the chunk and it will be safe to free(). There are a few flags
- * used to mark which chunks are still needed by snapshots after the
- * chunks have passed their normal reclamation phase.
+ * There are a few flags used to mark which chunks are still needed by
+ * snapshots after the chunks have passed their normal reclamation
+ * phase.
  */
 typedef struct qp_usage {
 	/*% the allocation point, increases monotonically */
@@ -316,14 +314,14 @@ typedef struct qp_usage {
 	bool exists : 1;
 	/*% is this chunk shared? [MT] */
 	bool immutable : 1;
+	/*% already subtracted from multi->*_count [MT] */
+	bool discounted : 1;
 	/*% is a snapshot using this chunk? [MT] */
 	bool snapshot : 1;
 	/*% tried to free it but a snapshot needs it [MT] */
 	bool snapfree : 1;
 	/*% for mark/sweep snapshot flag updates [MT] */
 	bool snapmark : 1;
-	/*% in which phase did this chunk become unused? [MT] */
-	isc_qsbr_phase_t phase : ISC_QSBR_PHASE_BITS;
 } qp_usage_t;
 
 /*
@@ -335,7 +333,7 @@ typedef struct qp_usage {
  * A `dns_qpbase_t` counts references from `dns_qp_t` objects and
  * from packed readers, but not from `dns_qpread_t` nor from
  * `dns_qpsnap_t` objects. Refcount adjustments for `dns_qpread_t`
- * would wreck multicore scalability; instead we rely on QSBR.
+ * would wreck multicore scalability; instead we rely on RCU.
  *
  * The `usage` array determines when a chunk is no longer needed: old
  * chunk pointers in old `base` arrays are ignored. (They can become
@@ -349,9 +347,24 @@ typedef struct qp_usage {
  * busy slots that are in use by readers.
  */
 struct dns_qpbase {
+	unsigned int magic;
 	isc_refcount_t refcount;
 	qp_node_t *ptr[];
 };
+
+/*
+ * Chunks that may be in use by readers are reclaimed asynchronously.
+ * When a transaction commits, immutable chunks that are now empty are
+ * listed in a `qp_rcuctx_t` structure and passed to `call_rcu()`.
+ */
+typedef struct qp_rcuctx {
+	unsigned int magic;
+	struct rcu_head rcu_head;
+	isc_mem_t *mctx;
+	dns_qpmulti_t *multi;
+	qp_chunk_t count;
+	qp_chunk_t chunk[];
+} qp_rcuctx_t;
 
 /*
  * Returns true when the base array can be free()d.
@@ -382,10 +395,14 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 #define QPITER_MAGIC   ISC_MAGIC('q', 'p', 'i', 't')
 #define QPMULTI_MAGIC  ISC_MAGIC('q', 'p', 'm', 'v')
 #define QPREADER_MAGIC ISC_MAGIC('q', 'p', 'r', 'x')
+#define QPBASE_MAGIC   ISC_MAGIC('q', 'p', 'b', 'p')
+#define QPRCU_MAGIC    ISC_MAGIC('q', 'p', 'c', 'b')
 
-#define QP_VALID(p)	 ISC_MAGIC_VALID(p, QP_MAGIC)
-#define QPITER_VALID(p)	 ISC_MAGIC_VALID(p, QPITER_MAGIC)
-#define QPMULTI_VALID(p) ISC_MAGIC_VALID(p, QPMULTI_MAGIC)
+#define QP_VALID(qp)	  ISC_MAGIC_VALID(qp, QP_MAGIC)
+#define QPITER_VALID(qp)  ISC_MAGIC_VALID(qp, QPITER_MAGIC)
+#define QPMULTI_VALID(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
+#define QPBASE_VALID(qp)  ISC_MAGIC_VALID(qp, QPBASE_MAGIC)
+#define QPRCU_VALID(qp)	  ISC_MAGIC_VALID(qp, QPRCU_MAGIC)
 
 /*
  * Polymorphic initialization of the `dns_qpreader_t` prefix.
@@ -504,8 +521,6 @@ struct dns_qp {
 	enum { QP_NONE, QP_WRITE, QP_UPDATE } transaction_mode : 2;
 	/*% compact the entire trie [MT] */
 	bool compact_all : 1;
-	/*% destroy the trie asynchronously [MT] */
-	bool destroy : 1;
 	/*% optionally when compiled with fuzzing support [MT] */
 	bool write_protect : 1;
 };
@@ -516,9 +531,6 @@ struct dns_qp {
  * The `reader` pointer provides wait-free access to the current version
  * of the trie. See the "packed reader nodes" section below for a
  * description of what it points to.
- *
- * We need access to the loopmgr to hook into QSBR safe memory reclamation.
- * It is constant after initialization.
  *
  * The main object under the protection of the mutex is the `writer`
  * containing all the allocator state. There can be a backup copy when
@@ -537,8 +549,6 @@ struct dns_qp {
  */
 struct dns_qpmulti {
 	uint32_t magic;
-	/*% safe memory reclamation context (const) */
-	isc_loopmgr_t *loopmgr;
 	/*% pointer to current packed reader */
 	atomic_ptr(qp_node_t) reader;
 	/*% the mutex protects the rest of this structure */
@@ -551,8 +561,6 @@ struct dns_qpmulti {
 	dns_qp_t *rollback;
 	/*% all snapshots of this trie */
 	ISC_LIST(dns_qpsnap_t) snapshots;
-	/*% safe memory reclamation work list */
-	ISC_SLINK(dns_qpmulti_t) cleanup;
 };
 
 /***********************************************************************
@@ -878,13 +886,15 @@ static inline dns_qpmulti_t *
 unpack_reader(dns_qpreader_t *qp, qp_node_t *reader) {
 	INSIST(reader_valid(reader));
 	dns_qpmulti_t *multi = node_pointer(&reader[0]);
+	dns_qpbase_t *base = node_pointer(&reader[1]);
 	INSIST(QPMULTI_VALID(multi));
+	INSIST(QPBASE_VALID(base));
 	*qp = (dns_qpreader_t){
 		.magic = QP_MAGIC,
 		.uctx = multi->writer.uctx,
 		.methods = multi->writer.methods,
 		.root_ref = node32(&reader[1]),
-		.base = node_pointer(&reader[1]),
+		.base = base,
 	};
 	return (multi);
 }

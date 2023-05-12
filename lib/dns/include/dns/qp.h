@@ -47,17 +47,11 @@
  * version of the trie.
  *
  * For fast concurrent reads, call `dns_qpmulti_query()` to fill in a
- * `dns_qpread_t`, which must be allocated on the stack. Readers can
- * access a single version of the trie within the scope of an isc_loop
- * thread (NOT an isc_work thread). We rely on the loop to bound the
- * lifetime of a `dns_qpread_t`, instead of using locks. Readers are
- * not blocked by any write activity, and vice versa.
- *
- * For read-only access outside the scope of a loop, such as from an
- * isc_work callback, `dns_qpmulti_lockedread()`. This looks like a
- * query transaction; the difference is that a locked read transaction
- * takes the `dns_qpmulti_t` mutex. When you have finished with a
- * `dns_qpread_t`, call `dns_qpread_destroy()` to release the mutex.
+ * `dns_qpread_t`, which must be allocated on the stack. This gives
+ * the reader access to a single version of the trie. The reader's
+ * thread must be registered with `liburcu`, which is normally taken
+ * care of by `libisc`. Readers are not blocked by any write activity,
+ * and vice versa.
  *
  * For reads that need a stable view of the trie for multiple cycles
  * of an isc_loop, or which can be used from any thread, call
@@ -314,17 +308,15 @@ dns_qp_destroy(dns_qp_t **qptp);
  */
 
 void
-dns_qpmulti_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
-		   const dns_qpmethods_t *methods, void *uctx,
+dns_qpmulti_create(isc_mem_t *mctx, const dns_qpmethods_t *methods, void *uctx,
 		   dns_qpmulti_t **qpmp);
 /*%<
  * Create a multi-threaded qp-trie.
  *
  * Requires:
  * \li  `mctx` is a pointer to a valid memory context.
- * \li  'loopmgr' is a valid loop manager.
- * \li  `qpmp != NULL && *qpmp == NULL`
  * \li  all the methods are non-NULL
+ * \li  `qpmp != NULL && *qpmp == NULL`
  *
  * Ensures:
  * \li  `*qpmp` is a pointer to a valid multi-threaded qp-trie

@@ -4,6 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)	\
 	$(LIBNS_CFLAGS)		\
+	$(LIBURCU_CFLAGS)	\
 	$(LIBUV_CFLAGS)		\
 	-I$(top_srcdir)/lib/isc	\
 	-I$(top_srcdir)/lib/dns
