@@ -6229,6 +6229,14 @@ retired when the existing key's lifetime ends.
 
 The following options can be specified in a :any:`dnssec-policy` statement:
 
+.. namedconf:statement:: cdnskey
+   :tags: dnssec
+   :short: Specifies whether a CDNSKEY record should be published during KSK rollover.
+
+    When set to the default value of ``yes``, a CDNSKEY record is published
+    during KSK rollovers when the DS of the successor key may be submitted to
+    the parent.
+
 .. namedconf:statement:: cds-digest-types
    :tags: dnssec
    :short: Specifies the digest types to use for CDS resource records.

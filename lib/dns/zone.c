@@ -21022,6 +21022,7 @@ zone_rekey(dns_zone_t *zone) {
 		dns_kasp_digestlist_t digests;
 		bool cdsdel = false;
 		bool cdnskeydel = false;
+		bool cdnskeypub = true;
 		bool sane_diff, sane_dnskey;
 		isc_stdtime_t when;
 
@@ -21035,6 +21036,7 @@ zone_rekey(dns_zone_t *zone) {
 				cdnskeydel = true;
 			}
 			digests = dns_kasp_digests(kasp);
+			cdnskeypub = dns_kasp_cdnskey(kasp);
 		} else {
 			/* Check if there is a CDS DELETE record. */
 			if (dns_rdataset_isassociated(&cdsset)) {
@@ -21114,8 +21116,8 @@ zone_rekey(dns_zone_t *zone) {
 		 * Update CDS / CDNSKEY records.
 		 */
 		result = dns_dnssec_syncupdate(&dnskeys, &rmkeys, &cdsset,
-					       &cdnskeyset, now, &digests, true,
-					       ttl, &diff, mctx);
+					       &cdnskeyset, now, &digests,
+					       cdnskeypub, ttl, &diff, mctx);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "zone_rekey:couldn't update CDS/CDNSKEY: %s",

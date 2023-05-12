@@ -1,3 +1,5 @@
+6167.	[func]		Add 'cdnskey' configuration option. [GL #4050]
+
 6166.	[func]		Retry without DNS COOKIE on FORMERR if it appears that
 			the FORMERR was due to the presence of a DNS COOKIE
 			option. [GL #4049]

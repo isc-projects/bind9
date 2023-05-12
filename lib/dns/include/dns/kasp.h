@@ -86,6 +86,7 @@ struct dns_kasp {
 	uint32_t signatures_validity_dnskey;
 
 	/* Configuration: Keys */
+	bool		      cdnskey;
 	dns_kasp_digestlist_t digests;
 	dns_kasp_keylist_t    keys;
 	dns_ttl_t	      dnskey_ttl;
@@ -718,10 +719,33 @@ dns_kasp_setnsec3param(dns_kasp_t *kasp, uint8_t iter, bool optout,
  *
  */
 
+bool
+dns_kasp_cdnskey(dns_kasp_t *kasp);
+/*%<
+ * Do we need to publish a CDNSKEY?
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, frozen kasp.
+ *
+ */
+
+void
+dns_kasp_setcdnskey(dns_kasp_t *kasp, bool cdnskey);
+/*%<
+ * Set to enable publication of CDNSKEY records.
+ *
+ * Requires:
+ *
+ *\li  'kasp' is a valid, unfrozen kasp.
+ *
+ */
+
 dns_kasp_digestlist_t
 dns_kasp_digests(dns_kasp_t *kasp);
 /*%<
- * Get the list of kasp CDS digest types.
+ * Get the list of kasp CDS digest types. This determines which CDS records
+ * should be published.
  *
  * Requires:
  *
@@ -738,7 +762,8 @@ dns_kasp_digests(dns_kasp_t *kasp);
 void
 dns_kasp_adddigest(dns_kasp_t *kasp, dns_dsdigest_t alg);
 /*%<
- * Add a digest type.
+ * Add a CDS digest type, this will enable publication of a CDS record with
+ * digest type 'alg'.
  *
  * Requires:
  *

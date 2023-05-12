@@ -462,6 +462,15 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	dns_kasp_setparentpropagationdelay(kasp, parentpropdelay);
 
 	/* Configuration: Keys */
+	obj = NULL;
+	(void)confget(maps, "cdnskey", &obj);
+	if (obj != NULL) {
+		dns_kasp_setcdnskey(kasp, cfg_obj_asboolean(obj));
+	} else {
+		dns_kasp_setcdnskey(kasp, true);
+	}
+
+	obj = NULL;
 	(void)confget(maps, "cds-digest-types", &obj);
 	if (obj != NULL) {
 		for (element = cfg_list_first(obj); element != NULL;
