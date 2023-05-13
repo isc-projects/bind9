@@ -148,6 +148,12 @@
 #define IS_STUB(rbtdb)	(((rbtdb)->common.attributes & DNS_DBATTR_STUB) != 0)
 #define IS_CACHE(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_CACHE) != 0)
 
+/*
+ * Allow clients with a virtual time of up to 5 minutes in the past to see
+ * records that would have otherwise have expired.
+ */
+#define RBTDB_VIRTUAL 300
+
 /*****
 ***** Module Info
 *****/
@@ -336,11 +342,15 @@ typedef struct {
 extern dns_dbmethods_t dns__rbtdb_zonemethods;
 extern dns_dbmethods_t dns__rbtdb_cachemethods;
 
+/*
+ * Common DB implementation methods shared by both cache and zone RBT
+ * databases:
+ */
+
 isc_result_t
 dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
 		  dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
 		  void *driverarg, dns_db_t **dbp);
-
 /*%<
  * Create a new database of type "rbt". Called via dns_db_create();
  * see documentation for that function for more details.
@@ -356,20 +366,26 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
 
 void
 dns__rbtdb_destroy(dns_db_t *arg);
+/*%<
+ * Implement dns_db_destroy() for RBT databases, see documentation
+ * for that function for more details.
+ */
 
 void
 dns__rbtdb_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
-
 isc_result_t
 dns__rbtdb_newversion(dns_db_t *db, dns_dbversion_t **versionp);
-
 void
 dns__rbtdb_attachversion(dns_db_t *db, dns_dbversion_t *source,
 			 dns_dbversion_t **targetp);
-
 void
 dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 			bool commit DNS__DB_FLARG);
+/*%<
+ * Implement the dns_db_currentversion(), _newversion(),
+ * _attachversion() and _closeversion() methods for RBT databases;
+ * see documentation of those functions for more details.
+ */
 
 isc_result_t
 dns__rbtdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
@@ -378,62 +394,106 @@ isc_result_t
 dns__rbtdb_findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree,
 			  const dns_name_t *name, bool create,
 			  dns_dbnode_t **nodep DNS__DB_FLARG);
+/*%<
+ * Implement the dns_db_findnode() and _findnodeintree() methods for
+ * RBT databases; see documentation of those functions for more details.
+ */
+
 void
 dns__rbtdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
 		      dns_dbnode_t **targetp DNS__DB_FLARG);
 void
 dns__rbtdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
+/*%<
+ * Implement the dns_db_attachnode() and _detachnode() methods for
+ * RBT databases; see documentation of those functions for more details.
+ */
 
 isc_result_t
 dns__rbtdb_createiterator(dns_db_t *db, unsigned int options,
 			  dns_dbiterator_t **iteratorp);
+/*%<
+ * Implement dns_db_createiterator() for RBT databases; see documentation of
+ * that function for more details.
+ */
 
 isc_result_t
 dns__rbtdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, unsigned int options,
 			isc_stdtime_t now,
 			dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
-
+/*%<
+ * Implement dns_db_allrdatasets() for RBT databases; see documentation of
+ * that function for more details.
+ */
 isc_result_t
 dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		       dns_dbversion_t *version, isc_stdtime_t now,
 		       dns_rdataset_t *rdataset, unsigned int options,
 		       dns_rdataset_t *addedrdataset DNS__DB_FLARG);
-
 isc_result_t
 dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			    dns_dbversion_t *version, dns_rdataset_t *rdataset,
 			    unsigned int options,
 			    dns_rdataset_t *newrdataset DNS__DB_FLARG);
-
 isc_result_t
 dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 			  dns_dbversion_t *version, dns_rdatatype_t type,
 			  dns_rdatatype_t covers DNS__DB_FLARG);
+/*%<
+ * Implement the dns_db_addrdataset(), _subtractrdataset() and
+ * _deleterdataset() methods for RBT databases; see documentation of
+ * those functions for more details.
+ */
 
 unsigned int
 dns__rbtdb_nodecount(dns_db_t *db, dns_dbtree_t tree);
+/*%<
+ * Implement dns_db_nodecount() for RBT databases; see documentation of
+ * that function for more details.
+ */
 
 void
 dns__rbtdb_setloop(dns_db_t *db, isc_loop_t *loop);
+/*%<
+ * Implement dns_db_setloop() for RBT databases; see documentation of
+ * that function for more details.
+ */
 
 isc_result_t
 dns__rbtdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
+/*%<
+ * Implement dns_db_getoriginnode() for RBT databases; see documentation of
+ * that function for more details.
+ */
 
 void
-dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-			dns_slabheader_t *header, isc_stdtime_t now,
-			isc_rwlocktype_t locktype,
-			dns_rdataset_t *rdataset DNS__DB_FLARG);
-
-void
-dns__rbtdb_expireheader(dns_slabheader_t *header, isc_rwlocktype_t *tlocktypep,
-			dns_expire_t reason DNS__DB_FLARG);
+dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
+		      dns_dbnode_t *node ISC_ATTR_UNUSED, void *data);
+/*%<
+ * Implement dns_db_deletedata() for RBT databases; see documentation of
+ * that function for more details.
+ */
 
 void
 dns__rbtdb_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
 void
 dns__rbtdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+/*%<
+ * Implement the dns_db_locknode() and _unlocknode() methods for
+ * RBT databases; see documentation of those functions for more details.
+ */
+
+/*%
+ * Functions used for the RBT implementation which are defined and
+ * used in rbtdb.c but may also be called from rbt-zonedb.c or
+ * rbt-cachedb.c:
+ */
+void
+dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+			dns_slabheader_t *header, isc_stdtime_t now,
+			isc_rwlocktype_t locktype,
+			dns_rdataset_t *rdataset DNS__DB_FLARG);
 
 isc_result_t
 dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
@@ -441,21 +501,64 @@ dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 void
 dns__rbtdb_freeglue(dns_glue_t *glue_list);
 
+void
+dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		  isc_rwlocktype_t locktype DNS__DB_FLARG);
+/*%<
+ * Increment the reference counter to a node in an RBT database.
+ * If the caller holds a node lock then its lock type is specified
+ * as 'locktype'. If the node is write-locked, then the node can
+ * be removed from the dead nodes list. If not, the list can be
+ * cleaned up later.
+ */
+
 bool
 dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
 		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
 		  bool pruning DNS__DB_FLARG);
+/*%<
+ * Decrement the reference counter to a node in an RBT database.
+ * 'nlocktypep' and 'tlocktypep' are pointers to the current status
+ * of the node lock and tree lock.
+ *
+ * If references go to 0, the node will be cleaned up, which may
+ * necessitate upgrading the locks.
+ */
 
 isc_result_t
 dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
 	       dns_slabheader_t *newheader, unsigned int options, bool loading,
 	       dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
+/*%<
+ * Add a slab header 'newheader' to a node in an RBT database.
+ * The caller must have the node write-locked.
+ */
 
 void
 dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
 		     dns_dbnode_t *origin);
+/*%<
+ * Update the secure status for an RBT database version 'version'.
+ * The version will be marked secure if it is fully signed and
+ * and contains a complete NSEC/NSEC3 chain.
+ */
+
+void
+dns__rbtdb_mark(dns_slabheader_t *header, uint_least16_t flag);
+/*%<
+ * Set attribute 'flag' in a slab header 'header' - for example,
+ * DNS_SLABHEADERATTR_STALE or DNS_SLABHEADERATTR_ANCIENT - and,
+ * in a cache database, update the rrset stats accordingly.
+ */
+
+void
+dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
+/*%<
+ * Set the TTL in a slab header 'header'. In a cache database,
+ * also update the TTL heap accordingly.
+ */
 
 /*
  * Functions specific to zone databases that are also called from rbtdb.c.
@@ -466,12 +569,45 @@ dns__zonedb_resigninsert(dns_rbtdb_t *rbtdb, int idx,
 void
 dns__zonedb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
 			 dns_slabheader_t *header DNS__DB_FLARG);
+/*%<
+ * Insert/delete a node from the zone database's resigning heap.
+ */
 
 isc_result_t
 dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 			  bool lock);
-
+/*%<
+ * Add the necessary magic for the wildcard name 'name'
+ * to be found in 'rbtdb'.
+ *
+ * In order for wildcard matching to work correctly in
+ * zone_find(), we must ensure that a node for the wildcarding
+ * level exists in the database, and has its 'find_callback'
+ * and 'wild' bits set.
+ *
+ * E.g. if the wildcard name is "*.sub.example." then we
+ * must ensure that "sub.example." exists and is marked as
+ * a wildcard level.
+ *
+ * The tree must be write-locked.
+ */
 isc_result_t
 dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name, bool lock);
+/*%<
+ * If 'name' is or contains a wildcard name, create a node for it in the
+ * database. The tree must be write-locked.
+ */
+
+/*
+ * Cache-specific functions that are called from rbtdb.c
+ */
+void
+dns__cachedb_expireheader(dns_slabheader_t *header,
+			  isc_rwlocktype_t *tlocktypep,
+			  dns_expire_t reason DNS__DB_FLARG);
+void
+dns__cachedb_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
+		     unsigned int locknum_start,
+		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
 
 ISC_LANG_ENDDECLS

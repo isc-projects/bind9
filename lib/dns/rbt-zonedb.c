@@ -89,44 +89,6 @@
 #define RBTDB_ATTR_LOADED  0x01
 #define RBTDB_ATTR_LOADING 0x02
 
-/*
- * Caller must be holding the node lock.
- */
-static void
-new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-	      isc_rwlocktype_t locktype DNS__DB_FLARG) {
-	uint_fast32_t refs;
-
-	if (locktype == isc_rwlocktype_write && ISC_LINK_LINKED(node, deadlink))
-	{
-		ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum], node,
-				deadlink);
-	}
-
-	refs = isc_refcount_increment0(&node->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs + 1);
-#else
-	UNUSED(refs);
-#endif
-
-	if (refs == 0) {
-		/* this is the first reference to the node */
-		refs = isc_refcount_increment0(
-			&rbtdb->node_locks[node->locknum].references);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"incr:nodelock:%s:%s:%u:%p:%p->references = "
-			"%" PRIuFAST32 "\n",
-			func, file, line, node,
-			&rbtdb->node_locks[node->locknum], refs + 1);
-#else
-		UNUSED(refs);
-#endif
-	}
-}
-
 static isc_result_t
 findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 	      dns_dbnode_t **nodep DNS__DB_FLARG) {
@@ -236,8 +198,8 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 		 * We increment the reference count on node to ensure that
 		 * search->zonecut_header will still be valid later.
 		 */
-		new_reference(search->rbtdb, node,
-			      isc_rwlocktype_read DNS__DB_FLARG_PASS);
+		dns__rbtdb_newref(search->rbtdb, node,
+				  isc_rwlocktype_read DNS__DB_FLARG_PASS);
 		search->zonecut = node;
 		search->zonecut_header = found;
 		search->need_cleanup = true;
@@ -963,7 +925,7 @@ again:
 							      foundname, NULL);
 				if (result == ISC_R_SUCCESS) {
 					if (nodep != NULL) {
-						new_reference(
+						dns__rbtdb_newref(
 							search->rbtdb, node,
 							isc_rwlocktype_read
 								DNS__DB_FLARG_PASS);
@@ -1256,8 +1218,8 @@ found:
 				 * ensure that search->zonecut_header will
 				 * still be valid later.
 				 */
-				new_reference(search.rbtdb, node,
-					      nlocktype DNS__DB_FLARG_PASS);
+				dns__rbtdb_newref(search.rbtdb, node,
+						  nlocktype DNS__DB_FLARG_PASS);
 				search.zonecut = node;
 				search.zonecut_header = header;
 				search.zonecut_sigheader = NULL;
@@ -1431,8 +1393,8 @@ found:
 			goto tree_exit;
 		}
 		if (nodep != NULL) {
-			new_reference(search.rbtdb, node,
-				      nlocktype DNS__DB_FLARG_PASS);
+			dns__rbtdb_newref(search.rbtdb, node,
+					  nlocktype DNS__DB_FLARG_PASS);
 			*nodep = node;
 		}
 		if ((search.rbtversion->secure &&
@@ -1502,8 +1464,8 @@ found:
 
 	if (nodep != NULL) {
 		if (!at_zonecut) {
-			new_reference(search.rbtdb, node,
-				      nlocktype DNS__DB_FLARG_PASS);
+			dns__rbtdb_newref(search.rbtdb, node,
+					  nlocktype DNS__DB_FLARG_PASS);
 		} else {
 			search.need_cleanup = false;
 		}
@@ -2156,21 +2118,6 @@ setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
-deletedata(dns_db_t *db ISC_ATTR_UNUSED, dns_dbnode_t *node ISC_ATTR_UNUSED,
-	   void *data) {
-	dns_slabheader_t *header = data;
-
-	if (header->heap != NULL && header->heap_index != 0) {
-		isc_heap_delete(header->heap, header->heap_index);
-	}
-	header->heap_index = 0;
-
-	if (header->glue_list) {
-		dns__rbtdb_freeglue(header->glue_list);
-	}
-}
-
 static dns_glue_t *
 new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
 	dns_glue_t *glue = isc_mem_getx(mctx, sizeof(*glue), ISC_MEM_ZERO);
@@ -2504,7 +2451,7 @@ dns_dbmethods_t dns__rbtdb_zonemethods = {
 	.locknode = dns__rbtdb_locknode,
 	.unlocknode = dns__rbtdb_unlocknode,
 	.addglue = addglue,
-	.deletedata = deletedata,
+	.deletedata = dns__rbtdb_deletedata,
 };
 
 void
@@ -2529,28 +2476,14 @@ dns__zonedb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
 				header->heap_index);
 		header->heap_index = 0;
 		if (version != NULL) {
-			new_reference(rbtdb, HEADER_NODE(header),
-				      isc_rwlocktype_write DNS__DB_FLARG_PASS);
+			dns__rbtdb_newref(
+				rbtdb, HEADER_NODE(header),
+				isc_rwlocktype_write DNS__DB_FLARG_PASS);
 			ISC_LIST_APPEND(version->resigned_list, header, link);
 		}
 	}
 }
 
-/*
- * Add the necessary magic for the wildcard name 'name'
- * to be found in 'rbtdb'.
- *
- * In order for wildcard matching to work correctly in
- * zone_find(), we must ensure that a node for the wildcarding
- * level exists in the database, and has its 'find_callback'
- * and 'wild' bits set.
- *
- * E.g. if the wildcard name is "*.sub.example." then we
- * must ensure that "sub.example." exists and is marked as
- * a wildcard level.
- *
- * tree_lock(write) must be held.
- */
 isc_result_t
 dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 			  bool lock) {
@@ -2584,9 +2517,6 @@ dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * tree_lock(write) must be held.
- */
 isc_result_t
 dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 			 bool lock) {
@@ -2600,7 +2530,7 @@ dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 	l = dns_name_countlabels(&rbtdb->common.origin);
 	i = l + 1;
 	while (i < n) {
-		dns_rbtnode_t *node = NULL; /* dummy */
+		dns_rbtnode_t *node = NULL;
 		dns_name_getlabelsequence(name, n - i, i, &foundname);
 		if (dns_name_iswildcard(&foundname)) {
 			result = dns__zonedb_wildcardmagic(rbtdb, &foundname,
