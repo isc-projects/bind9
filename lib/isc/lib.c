@@ -18,6 +18,7 @@
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/tls.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 #include <isc/uv.h>
 #include <isc/xml.h>
@@ -51,6 +52,7 @@ isc__initialize(void) {
 	isc__md_initialize();
 	isc__iterated_hash_initialize();
 	(void)isc_os_ncpus();
+	rcu_register_thread();
 }
 
 void
@@ -63,4 +65,6 @@ isc__shutdown(void) {
 	isc__mem_shutdown();
 	isc__mutex_shutdown();
 	isc__os_shutdown();
+	/* should be after isc__mem_shutdown() which calls rcu_barrier() */
+	rcu_unregister_thread();
 }

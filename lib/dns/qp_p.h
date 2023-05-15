@@ -549,8 +549,8 @@ struct dns_qp {
  */
 struct dns_qpmulti {
 	uint32_t magic;
-	/*% pointer to current packed reader */
-	atomic_ptr(qp_node_t) reader;
+	/*% RCU-protected pointer to current packed reader */
+	qp_node_t *reader;
 	/*% the mutex protects the rest of this structure */
 	isc_mutex_t mutex;
 	/*% ref_ptr(writer, reader_ref) == reader */

@@ -109,12 +109,12 @@
 #define synchronize_rcu() isc_qsbr_syncronize_rcu()
 
 #define isc_qsbr_rcu_dereference(ptr)              \
-	{                                          \
+	({                                         \
 		if (!urcu_qsbr_read_ongoing()) {   \
 			urcu_qsbr_thread_online(); \
 		}                                  \
-		urcu_qsbr_dereference(ptr);        \
-	}
+		_rcu_dereference(ptr);             \
+	})
 
 #undef rcu_dereference
 #define rcu_dereference(ptr) isc_qsbr_rcu_dereference(ptr)
