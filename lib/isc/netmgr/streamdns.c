@@ -831,7 +831,7 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	sock = handle->sock;
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->type == isc_nm_streamdnssocket);
-	REQUIRE(sock->recv_handle == NULL);
+	REQUIRE(sock->recv_handle == handle || sock->recv_handle == NULL);
 	REQUIRE(sock->tid == isc_tid());
 
 	closing = streamdns_closing(sock);
@@ -839,7 +839,9 @@ isc__nm_streamdns_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb,
 	sock->recv_cb = cb;
 	sock->recv_cbarg = cbarg;
 	sock->reading = true;
-	isc_nmhandle_attach(handle, &sock->recv_handle);
+	if (sock->recv_handle == NULL) {
+		isc_nmhandle_attach(handle, &sock->recv_handle);
+	}
 
 	/*
 	 * In some cases there is little sense in making the operation
