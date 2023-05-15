@@ -1169,8 +1169,7 @@ dns_qpmulti_commit(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 	/* paired with chunk_free() */
 	isc_refcount_increment(&qp->base->refcount);
 
-	/* reader_open() below has the matching atomic_load_acquire() */
-	atomic_store_release(&multi->reader, reader); /* COMMIT */
+	rcu_assign_pointer(multi->reader, reader); /* COMMIT */
 
 	/* clean up what we can right now */
 	if (qp->transaction_mode == QP_UPDATE || QP_NEEDGC(qp)) {
@@ -1249,8 +1248,7 @@ dns_qpmulti_rollback(dns_qpmulti_t *multi, dns_qp_t **qptp) {
 static dns_qpmulti_t *
 reader_open(dns_qpmulti_t *multi, dns_qpreadable_t qpr) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
-	/* dns_qpmulti_commit() has the matching atomic_store_release() */
-	qp_node_t *reader = atomic_load_acquire(&multi->reader);
+	qp_node_t *reader = rcu_dereference(multi->reader);
 	if (reader == NULL) {
 		QP_INIT(qp, multi->writer.methods, multi->writer.uctx);
 	} else {
