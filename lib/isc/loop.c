@@ -480,7 +480,8 @@ isc_loopmgr_pause(isc_loopmgr_t *loopmgr) {
 			continue;
 		}
 
-		uv_async_send(&loop->pause_trigger);
+		int r = uv_async_send(&loop->pause_trigger);
+		UV_RUNTIME_CHECK(uv_async_send, r);
 	}
 
 	RUNTIME_CHECK(atomic_compare_exchange_strong(&loopmgr->paused,
