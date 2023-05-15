@@ -20,6 +20,19 @@
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
+nextpart_thrice() {
+	nextpart ns1/named.run >/dev/null
+	nextpart ns2/named.run >/dev/null
+	nextpart ns3/named.run >/dev/null
+}
+
+wait_for_log_thrice() {
+	echo_i "waiting for servers to incorporate changes"
+	wait_for_log 10 "committing update transaction" ns1/named.run
+	wait_for_log 10 "zone transfer finished" ns2/named.run
+	wait_for_log 10 "zone transfer finished" ns3/named.run
+}
+
 status=0
 n=1
 capture_dnstap() {
@@ -79,6 +92,7 @@ digcomp knowngood.before dig.out.ns3.example.before || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "checking update forwarding of a zone (signed) (Do53 -> DoT) ($n)"
+nextpart_thrice
 ret=0
 $NSUPDATE -y "${DEFAULT_HMAC}:update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K" -- - <<EOF || ret=1
 local 10.53.0.1
@@ -89,9 +103,7 @@ send
 EOF
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
-
-echo_i "sleeping 15 seconds for server to incorporate changes"
-sleep 15
+wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
@@ -121,6 +133,7 @@ digcomp knowngood.after1 dig.out.ns3.example.after1 || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "checking update forwarding of a zone (signed) (DoT -> DoT) ($n)"
+nextpart_thrice
 ret=0
 $NSUPDATE -y "${DEFAULT_HMAC}:update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K" -S -O -- - <<EOF || ret=1
 local 10.53.0.1
@@ -131,9 +144,7 @@ send
 EOF
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
-
-echo_i "sleeping 15 seconds for server to incorporate changes"
-sleep 15
+wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
@@ -181,6 +192,7 @@ then
 fi
 
 echo_i "updating zone (unsigned) ($n)"
+nextpart_thrice
 ret=0
 $NSUPDATE -- - <<EOF || ret=1
 local 10.53.0.1
@@ -191,9 +203,7 @@ send
 EOF
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
-
-echo_i "sleeping 15 seconds for server to incorporate changes"
-sleep 15
+wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
@@ -249,6 +259,7 @@ digcomp knowngood.before.example3 dig.out.ns3.example3.before || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "checking update forwarding of a zone (signed) (Do53 -> DoT) ($n)"
+nextpart_thrice
 ret=0
 $NSUPDATE -y "${DEFAULT_HMAC}:update.example:c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K" -- - <<EOF || ret=1
 local 10.53.0.1
@@ -259,9 +270,7 @@ send
 EOF
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
-
-echo_i "sleeping 15 seconds for server to incorporate changes"
-sleep 15
+wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update, first primary fails ($n)"
 ret=0
@@ -317,11 +326,15 @@ update add unsigned.noprimary. 600 TXT Foo
 send
 EOF
 ) > /dev/null 2>&1 &
-	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3 || ret=1
-	grep "status: NOERROR" dig.out.ns3 > /dev/null || ret=1
+	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3.test$n.$count || ret=1
+	grep "status: NOERROR" dig.out.ns3.test$n.$count > /dev/null || ret=1
 	count=`expr $count + 1`
 done
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+n=`expr $n + 1`
+
+echo_i "waiting for nsupdate to finish ($n)"
+wait
 n=`expr $n + 1`
 
 if $FEATURETEST --enable-dnstap
@@ -338,9 +351,10 @@ fi
 if test -f keyname
 then
 	echo_i "checking update forwarding with sig0 (Do53 -> Do53) ($n)"
+	nextpart_thrice
 	ret=0
 	keyname=`cat keyname`
-	$NSUPDATE -k $keyname.private -- - <<EOF
+	$NSUPDATE -k $keyname.private -- - <<EOF || ret=1
 	local 10.53.0.1
 	server 10.53.0.3 ${PORT}
 	zone example2
@@ -348,6 +362,10 @@ then
 	update add unsigned.example2. 600 TXT Foo
 	send
 EOF
+	if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+	n=`expr $n + 1`
+	wait_for_log_thrice
+
 	$DIG -p ${PORT} unsigned.example2 A @10.53.0.1 > dig.out.ns1.test$n
 	grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
@@ -366,9 +384,10 @@ EOF
 	fi
 
 	echo_i "checking update forwarding with sig0 (DoT -> Do53) ($n)"
+	nextpart_thrice
 	ret=0
 	keyname=`cat keyname`
-	$NSUPDATE -k $keyname.private -S -O -- - <<EOF
+	$NSUPDATE -k $keyname.private -S -O -- - <<EOF || ret=1
         local 10.53.0.1
 	server 10.53.0.3 ${TLSPORT}
 	zone example2
@@ -376,6 +395,10 @@ EOF
 	update add unsigned-dot.example2. 600 TXT Foo
 	send
 EOF
+	if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+	n=`expr $n + 1`
+	wait_for_log_thrice
+
 	$DIG -p ${PORT} unsigned-dot.example2 A @10.53.0.1 > dig.out.ns1.test$n
 	grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
