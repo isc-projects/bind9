@@ -1456,7 +1456,8 @@ else
 	cd signer/general || exit 1
 	rm -f signed.zone
 	$SIGNER -F -f signed.zone -o example.com. test11.zone > signer.out.$n 2>&1 && exit 1
-	grep "fatal: dnskey 'example.com/RSASHA1/19857' failed to sign data" signer.out.$n > /dev/null
+	grep -F -e "fatal: No signing keys specified or found" \
+	        -e "fatal: dnskey 'example.com/RSASHA1/19857' failed to sign data" signer.out.$n > /dev/null
     ) || ret=1
 fi
 n=$((n+1))
@@ -3588,7 +3589,7 @@ then
     echo_i "skipped: RSASHA1 is not supported"
 else
     $KEYGEN -F -a rsasha1 example.fips 2> keygen.err$n || true
-    grep "unsupported algorithm: RSASHA1" "keygen.err$n" > /dev/null || ret=1
+    grep -i "unsupported algorithm: RSASHA1" "keygen.err$n" > /dev/null || ret=1
 fi
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -3607,7 +3608,7 @@ then
     echo_i "skipped: RSASHA1 is not supported"
 else
     $KEYGEN -F -a nsec3rsasha1 example.fips 2> keygen.err$n || true
-    grep "unsupported algorithm: NSEC3RSASHA1" "keygen.err$n" > /dev/null || ret=1
+    grep -i "unsupported algorithm: NSEC3RSASHA1" "keygen.err$n" > /dev/null || ret=1
 fi
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
