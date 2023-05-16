@@ -288,10 +288,6 @@ resconf_parsenameserver(irs_resconf_t *conf, FILE *fp) {
 	int cp;
 	isc_result_t result;
 
-	if (conf->numns == RESCONFMAXNAMESERVERS) {
-		return (ISC_R_SUCCESS);
-	}
-
 	cp = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0U) {
 		return (ISC_R_UNEXPECTEDEND); /* Nothing on line. */
@@ -301,6 +297,10 @@ resconf_parsenameserver(irs_resconf_t *conf, FILE *fp) {
 
 	if (cp != EOF && cp != '\n') {
 		return (ISC_R_UNEXPECTEDTOKEN); /* Extra junk on line. */
+	}
+
+	if (conf->numns == RESCONFMAXNAMESERVERS) {
+		return (ISC_R_SUCCESS);
 	}
 
 	result = add_server(conf->mctx, word, &conf->nameservers);
