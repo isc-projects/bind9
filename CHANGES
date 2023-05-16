@@ -1,3 +1,7 @@
+6174.	[bug]		BIND could get stuck on reconfiguration when a
+			'listen' statement for HTTP is removed from the
+			configuration. That has been fixed. [GL #4071]
+
 6173.	[bug]		Properly process extra "nameserver" lines in
 			resolv.conf otherwise the next line is not properly
 			processed. [GL #4066]
