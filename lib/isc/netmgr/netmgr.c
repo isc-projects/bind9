@@ -2756,7 +2756,7 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	}
 
 	if (isc__nm_in_netthread()) {
-		isc__nm_async_sockstop(&listener->mgr->workers[0],
+		isc__nm_async_sockstop(&listener->mgr->workers[isc_nm_tid()],
 				       (isc__netievent_t *)&ievent);
 	}
 }
