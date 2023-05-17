@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- BIND could get stuck on reconfiguration when a `listen` statement
+  for HTTP is removed from the configuration. That has been fixed.
+  :gl:`#4071`
 
 Known Issues
 ~~~~~~~~~~~~
