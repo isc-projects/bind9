@@ -1,5 +1,7 @@
-6174.	[test]		Fix the `upforwd` system test to be more reliable,
+6175.	[test]		Fix the `upforwd` system test to be more reliable,
 			especially when using thread sanitizer. [GL #4069]
+
+6174.	[placeholder]
 
 6173.	[bug]		Properly process extra "nameserver" lines in
 			resolv.conf otherwise the next line is not properly
