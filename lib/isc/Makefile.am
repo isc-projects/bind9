@@ -16,7 +16,6 @@ libisc_la_HEADERS =			\
 	include/isc/base32.h		\
 	include/isc/base64.h		\
 	include/isc/buffer.h		\
-	include/isc/cmocka.h		\
 	include/isc/commandline.h	\
 	include/isc/condition.h		\
 	include/isc/counter.h		\

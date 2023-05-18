@@ -23,7 +23,8 @@
 
 #define UNIT_TESTING
 
-#include <isc/cmocka.h>
+#include <cmocka.h>
+
 #include <isc/commandline.h>
 #include <isc/hex.h>
 #include <isc/lex.h>
