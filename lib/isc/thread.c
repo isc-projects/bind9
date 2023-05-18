@@ -57,6 +57,7 @@ struct thread_wrap {
 static struct thread_wrap *
 thread_wrap(isc_threadfunc_t func, void *arg) {
 	struct thread_wrap *wrap = malloc(sizeof(*wrap));
+	RUNTIME_CHECK(wrap != NULL);
 	*wrap = (struct thread_wrap){
 		.func = func,
 		.arg = arg,
