@@ -979,7 +979,7 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	if (proxy) {
 		result = isc_nm_listenproxystream(
 			mgr, workers, iface, tlslisten_acceptcb, tlssock,
-			backlog, quota, &tlssock->outer);
+			backlog, quota, NULL, &tlssock->outer);
 	} else {
 		result = isc_nm_listentcp(mgr, workers, iface,
 					  tlslisten_acceptcb, tlssock, backlog,
@@ -1209,7 +1209,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 
 	if (proxy) {
 		isc_nm_proxystreamconnect(mgr, local, peer, tcp_connected, sock,
-					  sock->connect_timeout, proxy_info);
+					  sock->connect_timeout, NULL, NULL,
+					  proxy_info);
 	} else {
 		isc_nm_tcpconnect(mgr, local, peer, tcp_connected, sock,
 				  sock->connect_timeout);
