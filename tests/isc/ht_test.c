@@ -66,7 +66,7 @@ test_ht_full(int bits, uintptr_t count) {
 		strlcat((char *)key, " key of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
-		assert_ptr_equal((void *)i, (uintptr_t)f);
+		assert_ptr_equal((void *)i, (void *)f);
 	}
 
 	for (i = 1; i < count; i++) {
@@ -161,7 +161,7 @@ test_ht_full(int bits, uintptr_t count) {
 		strlcat((char *)key, " KEY of a raw hashtable!!", sizeof(key));
 		result = isc_ht_find(ht, key, 16, &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
-		assert_ptr_equal((void *)i, (uintptr_t)f);
+		assert_ptr_equal((void *)i, (void *)f);
 	}
 
 	for (i = 1; i < count; i++) {
