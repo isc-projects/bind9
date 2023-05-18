@@ -13,6 +13,7 @@
 
 #if HAVE_CMOCKA
 
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>

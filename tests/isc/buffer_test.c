@@ -12,6 +12,7 @@
  */
 
 #include <fcntl.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
