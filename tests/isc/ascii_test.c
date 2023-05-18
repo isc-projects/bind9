@@ -12,10 +12,10 @@
  */
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <setjmp.h>
 #include <stdarg.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 #define UNIT_TESTING
