@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <sched.h>
 #include <setjmp.h>
