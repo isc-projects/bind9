@@ -275,9 +275,9 @@ run(void) {
 			eps, ISC_NM_HTTP_DEFAULT_PATH, read_cb, NULL);
 
 		if (result == ISC_R_SUCCESS) {
-			result = isc_nm_listenhttp(netmgr, ISC_NM_LISTEN_ALL,
-						   &sockaddr, 0, NULL, tls_ctx,
-						   eps, 0, false, &sock);
+			result = isc_nm_listenhttp(
+				netmgr, ISC_NM_LISTEN_ALL, &sockaddr, 0, NULL,
+				tls_ctx, eps, 0, ISC_NM_PROXY_NONE, &sock);
 		}
 		isc_nm_http_endpoints_detach(&eps);
 	} break;

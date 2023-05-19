@@ -585,7 +585,7 @@ ns_interface_listenhttp(ns_interface_t *ifp, isc_tlsctx_t *sslctx, char **eps,
 		result = isc_nm_listenhttp(
 			ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr,
 			ifp->mgr->backlog, quota, sslctx, epset,
-			max_concurrent_streams, false, &sock);
+			max_concurrent_streams, ISC_NM_PROXY_NONE, &sock);
 	}
 
 	isc_nm_http_endpoints_detach(&epset);

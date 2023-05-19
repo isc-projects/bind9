@@ -660,14 +660,14 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool POST, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t			     *ctx,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
-		   unsigned int timeout, bool proxy,
+		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
 		   isc_nm_proxyheader_info_t *proxy_info);
 
 isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
-		  bool proxy, isc_nmsocket_t **sockp);
+		  isc_nm_proxy_type_t proxy_type, isc_nmsocket_t **sockp);
 
 isc_nm_http_endpoints_t *
 isc_nm_http_endpoints_new(isc_mem_t *mctx);
