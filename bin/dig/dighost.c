@@ -3025,7 +3025,7 @@ start_tcp(dig_query_t *query) {
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
 					local_timeout, tlsctx, sess_cache,
-					false, NULL);
+					ISC_NM_PROXY_NONE, NULL);
 #if HAVE_LIBNGHTTP2
 	} else if (query->lookup->https_mode) {
 		char uri[4096] = { 0 };
@@ -3050,7 +3050,8 @@ start_tcp(dig_query_t *query) {
 	} else {
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
-					local_timeout, NULL, NULL, false, NULL);
+					local_timeout, NULL, NULL,
+					ISC_NM_PROXY_NONE, NULL);
 	}
 
 	return;

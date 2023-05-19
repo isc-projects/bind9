@@ -378,16 +378,16 @@ run(void) {
 				  connect_cb, NULL, timeout);
 		break;
 	case TCP:
-		isc_nm_streamdnsconnect(netmgr, &sockaddr_local,
-					&sockaddr_remote, connect_cb, NULL,
-					timeout, NULL, NULL, false, NULL);
+		isc_nm_streamdnsconnect(
+			netmgr, &sockaddr_local, &sockaddr_remote, connect_cb,
+			NULL, timeout, NULL, NULL, ISC_NM_PROXY_NONE, NULL);
 		break;
 	case DOT: {
 		isc_tlsctx_createclient(&tls_ctx);
 
-		isc_nm_streamdnsconnect(netmgr, &sockaddr_local,
-					&sockaddr_remote, connect_cb, NULL,
-					timeout, tls_ctx, NULL, false, NULL);
+		isc_nm_streamdnsconnect(
+			netmgr, &sockaddr_local, &sockaddr_remote, connect_cb,
+			NULL, timeout, tls_ctx, NULL, ISC_NM_PROXY_NONE, NULL);
 		break;
 	}
 #if HAVE_LIBNGHTTP2

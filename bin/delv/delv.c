@@ -2184,7 +2184,8 @@ run_server(void *arg) {
 
 	CHECK(isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE, &addr,
 				     ns_client_request, ifp, accept_cb, ifp, 10,
-				     NULL, NULL, false, &ifp->tcplistensocket));
+				     NULL, NULL, ISC_NM_PROXY_NONE,
+				     &ifp->tcplistensocket));
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
 	isc_async_current(loopmgr, sendquery, ifp->tcplistensocket);
 

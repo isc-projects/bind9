@@ -103,6 +103,20 @@ typedef struct isc_nm_proxyheader_info {
  * Information to put into the PROXYv2 header when establishing a connection.
  */
 
+typedef enum isc_nm_proxy_type {
+	ISC_NM_PROXY_NONE = 0,
+	ISC_NM_PROXY_PLAIN = 1,
+	ISC_NM_PROXY_ENCRYPTED = 2
+} isc_nm_proxy_type_t;
+/*%<
+ * PROXYv2 support type:
+ *
+ * - ISC_NM_PROXY_NONE - no PROXY headers are expected;
+ * - ISC_NM_PROXY_PLAIN - PROXY headers are sent ahead of any encryption, right
+ *                        after TCP connection establishment;
+ * - ISC_NM_PROXY_ENCRYPTED - PROXY headers are sent after TLS handshakes.
+ */
+
 void
 isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netgmrp);
 /*%<
@@ -407,7 +421,7 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		       isc_nm_recv_cb_t recv_cb, void *recv_cbarg,
 		       isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
 		       int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
-		       bool proxy, isc_nmsocket_t **sockp);
+		       isc_nm_proxy_type_t proxy_type, isc_nmsocket_t **sockp);
 /*%<
  * Start listening for DNS messages over the TCP interface 'iface', using
  * net manager 'mgr'.
@@ -581,9 +595,10 @@ isc_nm_checkaddr(const isc_sockaddr_t *addr, isc_socktype_t type);
 void
 isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			unsigned int timeout, isc_tlsctx_t *sslctx,
+			unsigned int timeout, isc_tlsctx_t *tlsctx,
 			isc_tlsctx_client_session_cache_t *client_sess_cache,
-			bool proxy, isc_nm_proxyheader_info_t *proxy_info);
+			isc_nm_proxy_type_t		   proxy_type,
+			isc_nm_proxyheader_info_t		  *proxy_info);
 /*%<
  * Establish a DNS client connection via a TCP or TLS connection, bound to
  * the address 'local' and connected to the address 'peer'.
