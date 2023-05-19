@@ -9651,6 +9651,12 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
 
+	if (dns_name_equal(qctx->client->query.qname, &cname.cname)) {
+		dns_message_puttempname(qctx->client->message, &tname);
+		dns_rdata_freestruct(&cname);
+		return (ISC_R_SUCCESS);
+	}
+
 	dns_name_copynf(&cname.cname, tname);
 
 	dns_rdata_freestruct(&cname);
