@@ -398,11 +398,19 @@ switches_added = lines_containing(
     configure_added_lines, "AC_ARG_ENABLE"
 ) + lines_containing(configure_added_lines, "AC_ARG_WITH")
 annotations_added = lines_containing(configure_added_lines, "# [pairwise: ")
-if len(switches_added) > len(annotations_added):
-    fail(
-        "This merge request adds at least one new `./configure` switch that "
-        "is not annotated for pairwise testing purposes."
-    )
+if switches_added:
+    if len(switches_added) > len(annotations_added):
+        fail(
+            "This merge request adds at least one new `./configure` switch that "
+            "is not annotated for pairwise testing purposes."
+        )
+    else:
+        message(
+            "**Before merging**, please start a full CI pipeline for this "
+            "branch with the `PAIRWISE_TESTING` variable set to any "
+            "non-empty value (e.g. `1`). This will cause the `pairwise` "
+            "job to exercise the new `./configure` switches."
+        )
 
 ###############################################################################
 # USER-VISIBLE LOG LEVELS
