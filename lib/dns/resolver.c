@@ -7615,7 +7615,8 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 			break;
 		case DNS_R_DELEGATION:
 			/*
-			 * With NOFOLLOW we want to pass the result code.
+			 * With NOFOLLOW we want to pass return
+			 * DNS_R_DELEGATION to resume_qmin.
 			 */
 			if ((fctx->options & DNS_FETCHOPT_NOFOLLOW) == 0) {
 				result = ISC_R_SUCCESS;
@@ -8156,6 +8157,14 @@ rctx_answer(respctx_t *rctx) {
 		}
 
 		if (result == DNS_R_DELEGATION) {
+			/*
+			 * With NOFOLLOW we want to return DNS_R_DELEGATION to
+			 * resume_qmin.
+			 */
+			if ((rctx->fctx->options & DNS_FETCHOPT_NOFOLLOW) != 0)
+			{
+				return (result);
+			}
 			result = ISC_R_SUCCESS;
 		} else {
 			/*
@@ -8197,7 +8206,7 @@ rctx_answer_positive(respctx_t *rctx) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
 
-	FCTXTRACE("rctx_answer");
+	FCTXTRACE("rctx_answer_positive");
 
 	rctx_answer_init(rctx);
 	rctx_answer_scan(rctx);
