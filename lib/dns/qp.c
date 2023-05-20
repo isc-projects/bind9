@@ -1431,14 +1431,22 @@ static void
 qpmulti_destroy_cb(struct rcu_head *arg) {
 	qp_rcuctx_t *rcuctx = isc_urcu_container(arg, qp_rcuctx_t, rcu_head);
 	REQUIRE(QPRCU_VALID(rcuctx));
+	/* only nonzero for reclaim_chunks_cb() */
+	REQUIRE(rcuctx->count == 0);
+
 	dns_qpmulti_t *multi = rcuctx->multi;
 	REQUIRE(QPMULTI_VALID(multi));
+
+	/* reassure thread sanitizer */
+	LOCK(&multi->mutex);
+
 	dns_qp_t *qp = &multi->writer;
 	REQUIRE(QP_VALID(qp));
 
-	REQUIRE(rcuctx->count == 0);
-
 	destroy_guts(qp);
+
+	UNLOCK(&multi->mutex);
+
 	isc_mutex_destroy(&multi->mutex);
 	isc_mem_putanddetach(&rcuctx->mctx, rcuctx,
 			     STRUCT_FLEX_SIZE(rcuctx, chunk, rcuctx->count));
