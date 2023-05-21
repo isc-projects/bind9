@@ -223,16 +223,22 @@ keyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 	}
 
 	result = dns_rbt_addname(ring->keys, name, tkey);
-	if (result == ISC_R_SUCCESS && tkey->generated) {
-		/*
-		 * Add the new key to the LRU list and remove the least
-		 * recently used key if there are too many keys on the list.
-		 */
-		ISC_LIST_APPEND(ring->lru, tkey, link);
-		if (ring->generated++ > ring->maxgenerated) {
-			remove_fromring(ISC_LIST_HEAD(ring->lru));
+	if (result == ISC_R_SUCCESS) {
+		if (tkey->generated) {
+			/*
+			 * Add the new key to the LRU list and remove the
+			 * least recently used key if there are too many
+			 * keys on the list.
+			 */
+			ISC_LIST_APPEND(ring->lru, tkey, link);
+			if (ring->generated++ > ring->maxgenerated) {
+				remove_fromring(ISC_LIST_HEAD(ring->lru));
+			}
 		}
+
+		tkey->ring = ring;
 	}
+
 	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
 
 	return (result);
@@ -1856,6 +1862,10 @@ isc_result_t
 dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 		    dns_tsigkey_t *tkey) {
 	isc_result_t result;
+
+	REQUIRE(VALID_TSIG_KEY(tkey));
+	REQUIRE(tkey->ring == NULL);
+	REQUIRE(name != NULL);
 
 	result = keyring_add(ring, name, tkey);
 	if (result == ISC_R_SUCCESS) {
