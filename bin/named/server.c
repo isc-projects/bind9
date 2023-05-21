@@ -4023,6 +4023,28 @@ minimal_cache_allowed(const cfg_obj_t *maps[4],
 
 static const char *const response_synonyms[] = { "response", NULL };
 
+static const dns_name_t *
+algorithm_name(unsigned int alg) {
+	switch (alg) {
+	case DST_ALG_HMACMD5:
+		return (dns_tsig_hmacmd5_name);
+	case DST_ALG_HMACSHA1:
+		return (dns_tsig_hmacsha1_name);
+	case DST_ALG_HMACSHA224:
+		return (dns_tsig_hmacsha224_name);
+	case DST_ALG_HMACSHA256:
+		return (dns_tsig_hmacsha256_name);
+	case DST_ALG_HMACSHA384:
+		return (dns_tsig_hmacsha384_name);
+	case DST_ALG_HMACSHA512:
+		return (dns_tsig_hmacsha512_name);
+	case DST_ALG_GSSAPI:
+		return (dns_tsig_gssapi_name);
+	default:
+		UNREACHABLE();
+	}
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from
  * 'config' where values are missing in 'vconfig'.
@@ -5040,8 +5062,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	CHECK(named_tsigkeyring_fromconfig(config, vconfig, view->mctx, &ring));
 	if (named_g_server->sessionkey != NULL) {
-		CHECK(dns_tsigkeyring_add(ring, named_g_server->session_keyname,
-					  named_g_server->sessionkey));
+		dns_tsigkey_t *tsigkey = NULL;
+		result = dns_tsigkey_createfromkey(
+			named_g_server->session_keyname,
+			algorithm_name(named_g_server->session_keyalg),
+			named_g_server->sessionkey, false, false, NULL, 0, 0,
+			mctx, NULL, &tsigkey);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_tsigkeyring_add(
+				ring, named_g_server->session_keyname, tsigkey);
+			dns_tsigkey_detach(&tsigkey);
+		}
+		CHECK(result);
 	}
 	dns_view_setkeyring(view, ring);
 	dns_tsigkeyring_detach(&ring);
@@ -7430,7 +7462,7 @@ cleanup_session_key(named_server_t *server, isc_mem_t *mctx) {
 	}
 
 	if (server->sessionkey != NULL) {
-		dns_tsigkey_detach(&server->sessionkey);
+		dst_key_free(&server->sessionkey);
 	}
 
 	server->session_keyalg = DST_ALG_UNKNOWN;
@@ -7440,9 +7472,8 @@ cleanup_session_key(named_server_t *server, isc_mem_t *mctx) {
 static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
 		     const dns_name_t *keyname, const char *algstr,
-		     const dns_name_t *algname, unsigned int algtype,
-		     uint16_t bits, isc_mem_t *mctx, bool first_time,
-		     dns_tsigkey_t **tsigkeyp) {
+		     unsigned int algtype, uint16_t bits, isc_mem_t *mctx,
+		     bool first_time, dst_key_t **keyp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dst_key_t *key = NULL;
 	isc_buffer_t key_txtbuffer;
@@ -7450,8 +7481,6 @@ generate_session_key(const char *filename, const char *keynamestr,
 	char key_txtsecret[256];
 	char key_rawsecret[64];
 	isc_region_t key_rawregion;
-	isc_stdtime_t now = isc_stdtime_now();
-	dns_tsigkey_t *tsigkey = NULL;
 	FILE *fp = NULL;
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -7467,8 +7496,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 	}
 
 	/*
-	 * Dump the key to the buffer for later use.  Should be done before
-	 * we transfer the ownership of key to tsigkey.
+	 * Dump the key to the buffer for later use.
 	 */
 	isc_buffer_init(&key_rawbuffer, &key_rawsecret, sizeof(key_rawsecret));
 	CHECK(dst_key_tobuffer(key, &key_rawbuffer));
@@ -7476,11 +7504,6 @@ generate_session_key(const char *filename, const char *keynamestr,
 	isc_buffer_usedregion(&key_rawbuffer, &key_rawregion);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 	CHECK(isc_base64_totext(&key_rawregion, -1, "", &key_txtbuffer));
-
-	/* Store the key in tsigkey. */
-	CHECK(dns_tsigkey_createfromkey(dst_key_name(key), algname, key, false,
-					false, NULL, now, now, mctx, NULL,
-					&tsigkey));
 
 	/* Dump the key to the key file. */
 	fp = named_os_openfile(filename, S_IRUSR | S_IWUSR, first_time);
@@ -7506,10 +7529,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 		goto cleanup;
 	}
 
-	dst_key_free(&key);
-
-	*tsigkeyp = tsigkey;
-
+	*keyp = key;
 	return (ISC_R_SUCCESS);
 
 cleanup:
@@ -7521,9 +7541,6 @@ cleanup:
 	if (fp != NULL) {
 		(void)isc_stdio_close(fp);
 		(void)isc_file_remove(filename);
-	}
-	if (tsigkey != NULL) {
-		dns_tsigkey_detach(&tsigkey);
 	}
 	if (key != NULL) {
 		dst_key_free(&key);
@@ -7629,8 +7646,8 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		server->session_keybits = bits;
 
 		CHECK(generate_session_key(keyfile, keynamestr, keyname, algstr,
-					   algname, algtype, bits, mctx,
-					   first_time, &server->sessionkey));
+					   algtype, bits, mctx, first_time,
+					   &server->sessionkey));
 	}
 
 	return (result);
