@@ -28,7 +28,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- TKEY mode 2 (Diffie-Hellman Exchanged Keying) is now deprecated, and
+  will be removed in a future release. A warning will be logged when
+  the ``tkey-dhkey`` option is used in ``named.conf``. :gl:`#3905`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
