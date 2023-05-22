@@ -28,6 +28,9 @@ New Features
   using the ``-t`` option, allowing commands that take a long time to
   complete sufficient time to do so. :gl:`#4046`
 
+- The system test suite can now be executed with pytest (along with
+  pytest-xdist for parallel execution). :gl:`#3978`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

@@ -7,3 +7,4 @@ disable=
     C0209, # consider-using-f-string
     C0415, # import-outside-toplevel
     R0801, # duplicate-code
+    R0903, # too-few-public-methods

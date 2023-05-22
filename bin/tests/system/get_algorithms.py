@@ -230,7 +230,7 @@ def main():
     except Exception:
         # if anything goes wrong, the conf.sh ignores error codes, so make sure
         # we set an environment variable to an error value that can be checked
-        # later by run.sh
+        # later by the test runner and/or tests themselves
         print("export ALGORITHM_SET=error")
         raise
     for name, value in algs_env.items():

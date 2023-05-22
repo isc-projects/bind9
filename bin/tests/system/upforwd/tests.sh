@@ -313,43 +313,6 @@ then
 fi
 n=`expr $n + 1`
 
-echo_i "checking update forwarding to dead primary ($n)"
-count=0
-ret=0
-while [ $count -lt 5 -a $ret -eq 0 ]
-do
-(
-$NSUPDATE -- - <<EOF 
-local 10.53.0.1
-server 10.53.0.3 ${PORT}
-zone noprimary
-update add unsigned.noprimary. 600 A 10.10.10.1
-update add unsigned.noprimary. 600 TXT Foo
-send
-EOF
-) > /dev/null 2>&1 &
-	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3.test$n.$count || ret=1
-	grep "status: NOERROR" dig.out.ns3.test$n.$count > /dev/null || ret=1
-	count=`expr $count + 1`
-done
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
-
-echo_i "waiting for nsupdate to finish ($n)"
-wait
-n=`expr $n + 1`
-
-if $FEATURETEST --enable-dnstap
-then
-	echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
-	ret=0
-	capture_dnstap
-	uq_equals_ur noprimary && ret=1
-	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
-fi
-
 if test -f keyname
 then
 	echo_i "checking update forwarding with sig0 (Do53 -> Do53) ($n)"
@@ -433,6 +396,43 @@ EOF
 grep REFUSED nsupdate.out.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 n=`expr $n + 1`
+
+echo_i "checking update forwarding to dead primary ($n)"
+count=0
+ret=0
+while [ $count -lt 5 -a $ret -eq 0 ]
+do
+(
+$NSUPDATE -- - <<EOF
+local 10.53.0.1
+server 10.53.0.3 ${PORT}
+zone noprimary
+update add unsigned.noprimary. 600 A 10.10.10.1
+update add unsigned.noprimary. 600 TXT Foo
+send
+EOF
+) > /dev/null 2>&1 &
+	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3.test$n.$count || ret=1
+	grep "status: NOERROR" dig.out.ns3.test$n.$count > /dev/null || ret=1
+	count=`expr $count + 1`
+done
+if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+n=`expr $n + 1`
+
+echo_i "waiting for nsupdate to finish ($n)"
+wait
+n=`expr $n + 1`
+
+if $FEATURETEST --enable-dnstap
+then
+	echo_i "checking DNSTAP logging of UPDATE forwarded update replies ($n)"
+	ret=0
+	capture_dnstap
+	uq_equals_ur noprimary && ret=1
+	if [ $ret != 0 ] ; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+	n=`expr $n + 1`
+fi
 
 n=$((n + 1))
 ret=0

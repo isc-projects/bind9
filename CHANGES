@@ -1,3 +1,6 @@
+6176.	[test]		Add support for using pytest & pytest-xdist to
+			execute the system test suite. [GL #3978]
+
 6175.	[test]		Fix the `upforwd` system test to be more reliable,
 			especially when using thread sanitizer. [GL #4069]
 
