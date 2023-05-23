@@ -5739,9 +5739,19 @@ dns_zone_setdefaultkasp(dns_zone_t *zone, dns_kasp_t *kasp) {
 
 dns_kasp_t *
 dns_zone_getkasp(dns_zone_t *zone) {
+	dns_kasp_t *kasp;
+
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->kasp);
+	LOCK_ZONE(zone);
+	if (inline_raw(zone) && zone->secure != NULL) {
+		kasp = zone->secure->kasp;
+	} else {
+		kasp = zone->kasp;
+	}
+	UNLOCK_ZONE(zone);
+
+	return (kasp);
 }
 
 void
@@ -6108,7 +6118,7 @@ dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_dnsseckey_t *key, *key_next;
 	dns_dnsseckeylist_t dnskeys;
 	dns_name_t *origin = dns_zone_getorigin(zone);
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 	dns_rdataset_t keyset;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -6335,7 +6345,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	unsigned int i;
 	dns_rdata_rrsig_t rrsig;
-	bool kasp = (dns_zone_getkasp(zone) != NULL);
+	bool kasp = zone->kasp;
 	bool found;
 	int64_t timewarn = 0, timemaybe = 0;
 
@@ -6374,9 +6384,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (type != dns_rdatatype_dnskey && type != dns_rdatatype_cds &&
-		    type != dns_rdatatype_cdnskey)
-		{
+		if (!dns_rdatatype_iskeymaterial(type)) {
 			bool warn = false, deleted = false;
 			if (delsig_ok(&rrsig, keys, nkeys, kasp, &warn)) {
 				result = update_one_rr(db, ver, zonediff->diff,
@@ -6536,7 +6544,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	unsigned int i, j;
 	bool use_kasp = false;
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (zone->kasp != NULL) {
 		check_ksk = false;
 		keyset_kskonly = true;
 		use_kasp = true;
@@ -6693,10 +6701,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				both = have_ksk && have_zsk;
 			}
 
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				/*
 				 * DNSKEY RRset is signed with KSK.
 				 * CDS and CDNSKEY RRsets too (RFC 7344, 4.1).
@@ -6736,10 +6741,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 			/*
 			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
 			 */
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				if (!KSK(keys[i]) && keyset_kskonly) {
 					continue;
 				}
@@ -7095,7 +7097,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
 	int count = 0;
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_rrsig,
@@ -7122,7 +7124,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdata_reset(&rdata);
 	}
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (zone->kasp != NULL) {
 		dns_kasp_key_t *kkey;
 		int zsk_count = 0;
 		bool approved;
@@ -7140,9 +7142,7 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		}
 		KASP_UNLOCK(kasp);
 
-		if (type == dns_rdatatype_dnskey ||
-		    type == dns_rdatatype_cdnskey || type == dns_rdatatype_cds)
-		{
+		if (dns_rdatatype_iskeymaterial(type)) {
 			/*
 			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
 			 * (RFC 7344, section 4.1 specifies that they must
@@ -7317,10 +7317,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		{
 			goto next_rdataset;
 		}
-		if (rdataset.type == dns_rdatatype_dnskey ||
-		    rdataset.type == dns_rdatatype_cdnskey ||
-		    rdataset.type == dns_rdatatype_cds)
-		{
+		if (dns_rdatatype_iskeymaterial(rdataset.type)) {
 			/*
 			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
 			 * (RFC 7344, section 4.1 specifies that they must
@@ -7336,7 +7333,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 							 inception, &when))
 		{
 			/* Only applies to dnssec-policy. */
-			if (dns_zone_getkasp(zone) != NULL) {
+			if (zone->kasp != NULL) {
 				goto next_rdataset;
 			}
 		}
@@ -7934,9 +7931,7 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 		isc_stdtime_t exp = expire;
 
 		if (keyexpire != 0 &&
-		    (tuple->rdata.type == dns_rdatatype_dnskey ||
-		     tuple->rdata.type == dns_rdatatype_cdnskey ||
-		     tuple->rdata.type == dns_rdatatype_cds))
+		    dns_rdatatype_iskeymaterial(tuple->rdata.type))
 		{
 			exp = keyexpire;
 		}
@@ -9057,7 +9052,7 @@ dns_zone_check_dnskey_nsec3(dns_zone_t *zone, dns_db_t *db,
 
 	/* Check kasp for NSEC3PARAM settings */
 	if (!nsec3) {
-		dns_kasp_t *kasp = dns_zone_getkasp(zone);
+		dns_kasp_t *kasp = zone->kasp;
 		if (kasp != NULL) {
 			nsec3 = dns_kasp_nsec3(kasp);
 		}
@@ -9157,7 +9152,7 @@ zone_sign(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	kasp = dns_zone_getkasp(zone);
+	kasp = zone->kasp;
 	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600; /* Allow for clock skew. */
 	soaexpire = now + sigvalidityinterval;
@@ -9194,7 +9189,7 @@ zone_sign(dns_zone_t *zone) {
 	signing = ISC_LIST_HEAD(zone->signing);
 	first = true;
 
-	if (dns_zone_getkasp(zone) != NULL) {
+	if (kasp != NULL) {
 		check_ksk = false;
 		keyset_kskonly = true;
 		use_kasp = true;
@@ -15851,6 +15846,184 @@ update_log_cb(void *arg, dns_zone_t *zone, int level, const char *message) {
 }
 
 static isc_result_t
+dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, isc_mem_t *mctx,
+	     dns_dnsseckeylist_t *keylist, bool *inuse) {
+	isc_result_t result;
+	dst_key_t *dstkey = NULL;
+
+	result = dns_dnssec_keyfromrdata(dns_zone_getorigin(zone), rdata, mctx,
+					 &dstkey);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_dnssec_keyfromrdata() failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		if (dst_key_pubcompare(k->key, dstkey, false)) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	dst_key_free(&dstkey);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+cdnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata,
+	      dns_dnsseckeylist_t *keylist, bool *inuse) {
+	isc_result_t result;
+	dns_rdata_cdnskey_t cdnskey;
+
+	result = dns_rdata_tostruct(rdata, &cdnskey, NULL);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_rdata_tostruct(cdnskey) failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		dns_rdata_t cdnskeyrdata = DNS_RDATA_INIT;
+		unsigned char keybuf[DST_KEY_MAXSIZE];
+
+		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
+						&cdnskeyrdata);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_dnssec_make_dnskey() failed: %s",
+				     isc_result_totext(result));
+			return (result);
+		}
+
+		cdnskeyrdata.type = dns_rdatatype_cdnskey;
+		if (dns_rdata_compare(rdata, &cdnskeyrdata) == 0) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+cds_inuse(dns_zone_t *zone, dns_rdata_t *rdata, dns_dnsseckeylist_t *keylist,
+	  bool *inuse) {
+	isc_result_t result;
+	dns_rdata_ds_t cds;
+
+	result = dns_rdata_tostruct(rdata, &cds, NULL);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_rdata_tostruct(cds) failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	for (dns_dnsseckey_t *k = ISC_LIST_HEAD(*keylist); k != NULL;
+	     k = ISC_LIST_NEXT(k, link))
+	{
+		dns_rdata_t dnskey = DNS_RDATA_INIT;
+		dns_rdata_t cdsrdata = DNS_RDATA_INIT;
+		unsigned char keybuf[DST_KEY_MAXSIZE];
+		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
+
+		if (dst_key_id(k->key) != cds.key_tag ||
+		    dst_key_alg(k->key) != cds.algorithm)
+		{
+			continue;
+		}
+		result = dns_dnssec_make_dnskey(k->key, keybuf, sizeof(keybuf),
+						&dnskey);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_dnssec_make_dnskey() failed: %s",
+				     isc_result_totext(result));
+			return (result);
+		}
+		result = dns_ds_buildrdata(dns_zone_getorigin(zone), &dnskey,
+					   cds.digest_type, cdsbuf, &cdsrdata);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "dns_ds_buildrdata(keytag=%d, algo=%d, "
+				     "digest=%d) failed: %s",
+				     cds.key_tag, cds.algorithm,
+				     cds.digest_type,
+				     isc_result_totext(result));
+			return (result);
+		}
+
+		cdsrdata.type = dns_rdatatype_cds;
+		if (dns_rdata_compare(rdata, &cdsrdata) == 0) {
+			*inuse = true;
+			break;
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_zone_dnskey_inuse(dns_zone_t *zone, dns_rdata_t *rdata, bool *inuse) {
+	dns_dnsseckeylist_t keylist;
+	dns_dnsseckey_t *key = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_stdtime_t now = isc_stdtime_now();
+	isc_mem_t *mctx;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(dns_rdatatype_iskeymaterial(rdata->type));
+
+	mctx = zone->mctx;
+
+	ISC_LIST_INIT(keylist);
+
+	*inuse = false;
+
+	dns_zone_lock_keyfiles(zone);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
+					     dns_zone_getkeydirectory(zone),
+					     now, mctx, &keylist);
+	dns_zone_unlock_keyfiles(zone);
+	if (result == ISC_R_NOTFOUND) {
+		return (ISC_R_SUCCESS);
+	} else if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR,
+			     "dns_dnssec_findmatchingkeys() failed: %s",
+			     isc_result_totext(result));
+		return (result);
+	}
+
+	switch (rdata->type) {
+	case dns_rdatatype_dnskey:
+		result = dnskey_inuse(zone, rdata, mctx, &keylist, inuse);
+		break;
+	case dns_rdatatype_cdnskey:
+		result = cdnskey_inuse(zone, rdata, &keylist, inuse);
+		break;
+	case dns_rdatatype_cds:
+		result = cds_inuse(zone, rdata, &keylist, inuse);
+		break;
+	default:
+		UNREACHABLE();
+		break;
+	}
+
+	while (!ISC_LIST_EMPTY(keylist)) {
+		key = ISC_LIST_HEAD(keylist);
+		ISC_LIST_UNLINK(keylist, key, link);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+	return (result);
+}
+
+static isc_result_t
 sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 		    uint32_t start, uint32_t end, dns_difftuple_t **soatuplep,
 		    dns_diff_t *diff) {
@@ -15906,13 +16079,28 @@ sync_secure_journal(dns_zone_t *zone, dns_zone_t *raw, dns_journal_t *journal,
 			continue;
 		}
 
+		/*
+		 * Skip DNSSEC records that BIND maintains with inline-signing.
+		 */
 		if (rdata->type == dns_rdatatype_nsec ||
 		    rdata->type == dns_rdatatype_rrsig ||
 		    rdata->type == dns_rdatatype_nsec3 ||
-		    rdata->type == dns_rdatatype_dnskey ||
 		    rdata->type == dns_rdatatype_nsec3param)
 		{
 			continue;
+		}
+		/*
+		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
+		 * update the zone with these records from a different provider,
+		 * but skip records that are under our control.
+		 */
+		if (dns_rdatatype_iskeymaterial(rdata->type)) {
+			bool inuse = false;
+			isc_result_t r = dns_zone_dnskey_inuse(zone, rdata,
+							       &inuse);
+			if (r == ISC_R_SUCCESS && inuse) {
+				continue;
+			}
 		}
 
 		op = (n_soa == 1) ? DNS_DIFFOP_DEL : DNS_DIFFOP_ADD;
@@ -15959,9 +16147,11 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
 		next = ISC_LIST_NEXT(tuple, link);
+		/*
+		 * Skip DNSSEC records that BIND maintains with inline-signing.
+		 */
 		if (tuple->rdata.type == dns_rdatatype_nsec ||
 		    tuple->rdata.type == dns_rdatatype_rrsig ||
-		    tuple->rdata.type == dns_rdatatype_dnskey ||
 		    tuple->rdata.type == dns_rdatatype_nsec3 ||
 		    tuple->rdata.type == dns_rdatatype_nsec3param)
 		{
@@ -15969,6 +16159,23 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 			dns_difftuple_free(&tuple);
 			continue;
 		}
+
+		/*
+		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
+		 * update the zone with these records from a different provider,
+		 * but skip records that are under our control.
+		 */
+		if (dns_rdatatype_iskeymaterial(tuple->rdata.type)) {
+			bool inuse = false;
+			isc_result_t r = dns_zone_dnskey_inuse(
+				seczone, &tuple->rdata, &inuse);
+			if (r == ISC_R_SUCCESS && inuse) {
+				ISC_LIST_UNLINK(diff->tuples, tuple, link);
+				dns_difftuple_free(&tuple);
+				continue;
+			}
+		}
+
 		if (tuple->rdata.type == dns_rdatatype_soa) {
 			if (tuple->op == DNS_DIFFOP_DEL) {
 				INSIST(oldtuple == NULL);
@@ -19710,7 +19917,7 @@ make_dnskey(dst_key_t *key, unsigned char *buf, int bufsize,
 static bool
 do_checkds(dns_zone_t *zone, dst_key_t *key, isc_stdtime_t now,
 	   bool dspublish) {
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dns_kasp_t *kasp = zone->kasp;
 	const char *dir = dns_zone_getkeydirectory(zone);
 	isc_result_t result;
 	uint32_t count = 0;
@@ -20923,7 +21130,7 @@ zone_rekey(dns_zone_t *zone) {
 	timenow = isc_time_now();
 	now = isc_time_seconds(&timenow);
 
-	kasp = dns_zone_getkasp(zone);
+	kasp = zone->kasp;
 
 	dnssec_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
@@ -21959,6 +22166,26 @@ dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw) {
 		dns_zone_attach(zone->raw, raw);
 	}
 	UNLOCK(&zone->lock);
+}
+
+bool
+dns_zone_israw(dns_zone_t *zone) {
+	bool israw;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	israw = zone->secure != NULL;
+	UNLOCK(&zone->lock);
+	return (israw);
+}
+
+bool
+dns_zone_issecure(dns_zone_t *zone) {
+	bool issecure;
+	REQUIRE(DNS_ZONE_VALID(zone));
+	LOCK(&zone->lock);
+	issecure = zone->raw != NULL;
+	UNLOCK(&zone->lock);
+	return (issecure);
 }
 
 struct keydone {

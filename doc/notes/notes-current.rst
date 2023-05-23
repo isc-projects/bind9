@@ -20,6 +20,9 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
+- Add support for multi-signer model 2 (RFC 8901) when using
+  ``inline-signing``. :gl:`#2710`
+
 - A new option to :any:`dnssec-policy` has been added, :any:`cdnskey`, that
   allows you to enable or disable the publication of CDNSKEY records.
   :gl:`#4050`

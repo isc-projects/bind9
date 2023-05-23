@@ -11989,9 +11989,7 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 	/*
 	 * Turn on minimal response for (C)DNSKEY and (C)DS queries.
 	 */
-	if (qtype == dns_rdatatype_dnskey || qtype == dns_rdatatype_ds ||
-	    qtype == dns_rdatatype_cdnskey || qtype == dns_rdatatype_cds)
-	{
+	if (dns_rdatatype_iskeymaterial(qtype) || qtype == dns_rdatatype_ds) {
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
 	} else if (qtype == dns_rdatatype_ns) {

@@ -2900,6 +2900,7 @@ update_action(void *arg) {
 	dns_ttl_t maxttl = 0;
 	uint32_t maxrecords;
 	uint64_t records;
+	bool is_inline, is_maintain, is_signing;
 
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
@@ -2909,6 +2910,10 @@ update_action(void *arg) {
 	zoneclass = dns_db_class(db);
 	dns_zone_getssutable(zone, &ssutable);
 	options = dns_zone_getoptions(zone);
+
+	is_inline = (!dns_zone_israw(zone) && dns_zone_issecure(zone));
+	is_maintain = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0);
+	is_signing = is_inline || (!is_inline && is_maintain);
 
 	/*
 	 * Get old and new versions now that queryacl has been checked.
@@ -3377,6 +3382,27 @@ update_action(void *arg) {
 						continue;
 					}
 				}
+				/*
+				 * Don't remove DNSKEY, CDNSKEY, CDS records
+				 * that are in use (under our control).
+				 */
+				if (dns_rdatatype_iskeymaterial(rdata.type)) {
+					isc_result_t r;
+					bool inuse = false;
+					r = dns_zone_dnskey_inuse(zone, &rdata,
+								  &inuse);
+					if (r != ISC_R_SUCCESS) {
+						FAIL(r);
+					}
+					if (inuse) {
+						update_log(client, zone,
+							   LOGLEVEL_PROTOCOL,
+							   "attempt to "
+							   "delete in use "
+							   "DNSKEY ignored");
+						continue;
+					}
+				}
 			}
 			dns_name_format(name, namestr, sizeof(namestr));
 			dns_rdatatype_format(rdata.type, typestr,
@@ -3411,7 +3437,7 @@ update_action(void *arg) {
 			goto failure;
 		}
 	}
-	if (!ISC_LIST_EMPTY(diff.tuples)) {
+	if (!ISC_LIST_EMPTY(diff.tuples) && is_signing) {
 		result = dns_zone_cdscheck(zone, db, ver);
 		if (result == DNS_R_BADCDS || result == DNS_R_BADCDNSKEY) {
 			update_log(client, zone, LOGLEVEL_PROTOCOL,
@@ -3457,11 +3483,13 @@ update_action(void *arg) {
 
 		CHECK(rollback_private(db, privatetype, ver, &diff));
 
-		CHECK(add_signing_records(db, privatetype, ver, &diff));
+		if (is_signing) {
+			CHECK(add_signing_records(db, privatetype, ver, &diff));
+		}
 
 		CHECK(add_nsec3param_records(client, zone, db, ver, &diff));
 
-		if (had_dnskey && !has_dnskey) {
+		if (is_signing && had_dnskey && !has_dnskey) {
 			/*
 			 * We are transitioning from secure to insecure.
 			 * Cause all NSEC3 chains to be deleted.  When the

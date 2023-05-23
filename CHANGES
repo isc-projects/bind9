@@ -1,10 +1,12 @@
+6178.	[func]		Add support for the multi-signer model 2 (RFC 8901) when
+			using inline-signing. [GL #2710]
+
 6177.	[placeholder]
 
 6176.	[test]		Add support for using pytest & pytest-xdist to
 			execute the system test suite. [GL #3978]
 
 6175.	[test]		Fix the `upforwd` system test to be more reliable,
-			especially when using thread sanitizer. [GL #4069]
 
 6174.	[placeholder]
 
