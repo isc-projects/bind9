@@ -661,7 +661,7 @@ static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
 static void
 fctx_shutdown(fetchctx_t *fctx);
-static isc_result_t
+static void
 fctx_minimize_qname(fetchctx_t *fctx);
 static void
 fctx_destroy(fetchctx_t *fctx, bool exiting);
@@ -4379,10 +4379,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	fctx->ns_ttl = fctx->nameservers.ttl;
 	fctx->ns_ttl_ok = true;
 
-	result = fctx_minimize_qname(fctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	fctx_minimize_qname(fctx);
 
 	if (!fctx->minimized) {
 		/*
@@ -5032,10 +5029,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 		fctx->ip6arpaskip = (options & DNS_FETCHOPT_QMIN_SKIP_IP6A) !=
 					    0 &&
 				    dns_name_issubdomain(fctx->name, &ip6_arpa);
-		result = fctx_minimize_qname(fctx);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_mctx;
-		}
+		fctx_minimize_qname(fctx);
 	}
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
@@ -5048,12 +5042,6 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	*fctxp = fctx;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_mctx:
-	fctx->magic = 0;
-	isc_mem_detach(&fctx->mctx);
-	dns_adb_detach(&fctx->adb);
-	dns_db_detach(&fctx->cache);
 
 cleanup_timer:
 	isc_timer_destroy(&fctx->timer);
@@ -9650,11 +9638,7 @@ rctx_referral(respctx_t *rctx) {
 	if ((fctx->options & DNS_FETCHOPT_QMINIMIZE) != 0) {
 		dns_name_copy(rctx->ns_name, fctx->qmindcname);
 
-		result = fctx_minimize_qname(fctx);
-		if (result != ISC_R_SUCCESS) {
-			rctx->result = result;
-			return (ISC_R_COMPLETE);
-		}
+		fctx_minimize_qname(fctx);
 	}
 
 	result = fcount_incr(fctx, true);
@@ -10751,12 +10735,15 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 		      typebuf);
 }
 
-static isc_result_t
+static void
 fctx_minimize_qname(fetchctx_t *fctx) {
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 	unsigned int dlabels, nlabels;
+	dns_name_t name;
 
 	REQUIRE(VALID_FCTX(fctx));
+
+	dns_name_init(&name, NULL);
 
 	dlabels = dns_name_countlabels(fctx->qmindcname);
 	nlabels = dns_name_countlabels(fctx->name);
@@ -10796,19 +10783,50 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	}
 
 	if (fctx->qmin_labels < nlabels) {
-		/*
-		 * We want to query for qmin_labels from fctx->name
-		 */
-		dns_fixedname_t fname;
-		dns_name_t *name = dns_fixedname_initname(&fname);
-		dns_name_split(fctx->name, fctx->qmin_labels, NULL, name);
-		dns_name_copy(name, fctx->qminname);
+		dns_rdataset_t rdataset;
+		dns_fixedname_t fixed;
+		dns_name_t *fname = dns_fixedname_initname(&fixed);
+		dns_rdataset_init(&rdataset);
+		do {
+			/*
+			 * We want to query for qmin_labels from fctx->name.
+			 */
+			dns_name_split(fctx->name, fctx->qmin_labels, NULL,
+				       &name);
+			/*
+			 * Look to see if we have anything cached about NS
+			 * RRsets at this name and if so skip this name and
+			 * try with an additional label prepended.
+			 */
+			result = dns_db_find(fctx->cache, &name, NULL,
+					     dns_rdatatype_ns, 0, 0, NULL,
+					     fname, &rdataset, NULL);
+			if (dns_rdataset_isassociated(&rdataset)) {
+				dns_rdataset_disassociate(&rdataset);
+			}
+			switch (result) {
+			case ISC_R_SUCCESS:
+			case DNS_R_CNAME:
+			case DNS_R_DNAME:
+			case DNS_R_NCACHENXDOMAIN:
+			case DNS_R_NCACHENXRRSET:
+				fctx->qmin_labels++;
+				continue;
+			default:
+				break;
+			}
+			break;
+		} while (fctx->qmin_labels < nlabels);
+	}
+
+	if (fctx->qmin_labels < nlabels) {
+		dns_name_copy(&name, fctx->qminname);
 		fctx->qmintype = dns_rdatatype_ns;
 		fctx->minimized = true;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
-		fctx->qmintype = fctx->type;
 		dns_name_copy(fctx->name, fctx->qminname);
+		fctx->qmintype = fctx->type;
 		fctx->minimized = false;
 	}
 
@@ -10819,8 +10837,6 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		      "QNAME minimization - %s minimized, qmintype %d "
 		      "qminname %s",
 		      fctx->minimized ? "" : "not", fctx->qmintype, domainbuf);
-
-	return (result);
 }
 
 isc_result_t
