@@ -30,7 +30,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Use NS records for relaxed QNAME-minimization mode.  This reduces the
+  number of queries ``named`` makes when resolving, as it allows the
+  non-existence of NS RRsets at non-referral nodes to be cached in
+  addition to the normally cached referrals. :gl:`#3325`
 
 Bug Fixes
 ~~~~~~~~~
