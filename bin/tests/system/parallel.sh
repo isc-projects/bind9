@@ -30,5 +30,5 @@ echo "test check: $PARALLELS"
 for directory in $PARALLELDIRS ; do
         echo
         echo "test-$(echo "$directory" | tr _ -): check_interfaces"
-        echo "	@${SHELL} ./run.sh -r $directory 2>&1 | tee test.output.$directory"
+        echo "	@${SHELL} ./legacy.run.sh -r $directory 2>&1 | tee test.output.$directory"
 done

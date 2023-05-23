@@ -249,6 +249,10 @@ stages:
   - PYTHON="$(source bin/tests/system/conf.sh; echo $PYTHON)"
   - test -x "$PYTHON"
 
+.find_pytest: &find_pytest
+  - PYTEST="$(source bin/tests/system/conf.sh; echo $PYTEST)"
+  - test -x "$PYTEST"
+
 .parse_tsan: &parse_tsan
     - find -name 'tsan.*' -exec "$PYTHON" util/parse_tsan.py {} \;
 
@@ -307,12 +311,26 @@ stages:
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
 
+.display_pytest_failures: &display_pytest_failures
+    - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+    - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
   stage: system
   before_script:
     - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
+  script:
+    - *find_pytest
+    - cd bin/tests/system
+    - >
+      "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
+    - '( ! grep -F "grep: warning:" pytest.out.txt )'
+  after_script:
+    - *display_pytest_failures
+
+.system_test_legacy: &system_test_legacy
   script:
     - cd bin/tests/system
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
@@ -332,6 +350,8 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
+    exclude:
+      - "**/__pycache__/**/*"
     when: always
     reports:
       junit: junit.xml
@@ -340,12 +360,14 @@ stages:
   <<: *system_test_common
   artifacts:
     untracked: true
+    exclude:
+      - "**/__pycache__/**/*"
     when: always
 
 .system_test_tsan: &system_test_tsan_job
   <<: *system_test_common
   after_script:
-    - cat bin/tests/system/test-suite.log
+    - *display_pytest_failures
     - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
     - *find_python
     - *parse_tsan
@@ -353,6 +375,8 @@ stages:
       "$PYTHON" bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
   artifacts:
     untracked: true
+    exclude:
+      - "**/__pycache__/**/*"
     when: always
     reports:
       junit: junit.xml
@@ -604,6 +628,7 @@ gcc:oraclelinux7:amd64:
 system:gcc:oraclelinux7:amd64:
   <<: *oraclelinux_7_amd64_image
   <<: *system_test_job
+  <<: *system_test_legacy
   needs:
     - job: gcc:oraclelinux7:amd64
       artifacts: true
@@ -830,6 +855,7 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
+  <<: *system_test_legacy
   <<: *api_schedules_tags_triggers_web_triggering_rules
 
 unit:gcc:out-of-tree:
@@ -864,6 +890,9 @@ system:gcc:tarball:
   before_script:
     - cd bind-*
     - *setup_interfaces
+  after_script:
+    - cd bind-*
+    - *display_pytest_failures
   needs:
     - job: gcc:tarball
       artifacts: true
@@ -1191,6 +1220,7 @@ clang:openbsd:amd64:
 system:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *system_test_job
+  <<: *system_test_legacy
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner

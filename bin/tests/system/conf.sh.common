@@ -702,7 +702,7 @@ get_named_xfer_stats() {
 #
 # Convenience function to copy a configuration file, replacing the tokens
 # QUERYPORT, CONTROLPORT and EXTRAPORT[1-8] with the values of the equivalent
-# environment variables. (These values are set by "run.sh", which calls the
+# environment variables. (These values are set by test runner, which calls the
 # scripts invoking this function.)
 #
 # Usage:

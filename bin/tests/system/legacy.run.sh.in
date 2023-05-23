@@ -225,12 +225,12 @@ fi
 
 if [ $status -eq 0 ]; then
     if [ -n "$PYTEST" ]; then
-        for test in $(cd "${systest}" && find . -name "tests*.py"); do
+        for test in $(cd "${systest}" && find . -name "tests*.py" ! -name "tests_sh_*.py"); do
             rm -f "$systest/$test.status"
             if start_servers; then
                 run=$((run+1))
                 test_status=0
-                (cd "$systest" && "$PYTEST" -rsxX -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
+                (cd "$systest" && LEGACY_TEST_RUNNER=1 "$PYTEST" -rsxX -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
                 if [ -f "$systest/$test.status" ]; then
                     if [ "$(cat "$systest/$test.status")" = "5" ]; then
                         echowarn "R:$systest:SKIPPED"

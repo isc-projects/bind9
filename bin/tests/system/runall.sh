@@ -88,7 +88,7 @@ else
     (
 	status=0
         for testdir in $SUBDIRS; do
-            $SHELL run.sh -r "$testdir" || status=1
+            $SHELL legacy.run.sh -r "$testdir" || status=1
         done
 	echo "$status" > systests.status
     ) 2>&1 | tee "systests.output"
