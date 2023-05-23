@@ -1399,21 +1399,22 @@ default is used.
    :tags: query
    :short: Controls QNAME minimization behavior in the BIND 9 resolver.
 
-   When this is set to ``strict``, BIND follows the QNAME
-   minimization algorithm to the letter, as specified in :rfc:`7816`.
+   When this is set to ``strict``, BIND follows the QNAME minimization
+   algorithm to the letter, as specified in :rfc:`7816`.
 
    Setting this option to ``relaxed`` causes BIND to fall back to
-   normal (non-minimized) query mode when it receives either NXDOMAIN or
-   other unexpected responses (e.g., SERVFAIL, improper zone cut,
-   REFUSED) to a minimized query. A resolver can use a leading
-   underscore, like ``_.example.com``, in an attempt to improve
-   interoperability. (See :rfc:`7816` section 3.)
+   normal (non-minimized) query mode when it receives either NXDOMAIN
+   or other unexpected responses (e.g., SERVFAIL, improper zone
+   cut, REFUSED) to a minimized query.
+
+   In ``relaxed`` mode ``named`` makes NS queries for ``<domain>`` as it
+   walks down the tree.
 
    ``disabled`` disables QNAME minimization completely.
    ``off`` is a synonym for ``disabled``.
 
-   The current default is ``relaxed``, but it
-   may be changed to ``strict`` in a future release.
+   The current default is ``relaxed``, but it may be changed to
+   ``strict`` in a future release.
 
 .. namedconf:statement:: tkey-gssapi-keytab
    :tags: security

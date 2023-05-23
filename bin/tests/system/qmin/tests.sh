@@ -154,20 +154,20 @@ grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /
 sleep 1
 sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
-ADDR _.boing.good.
-ADDR _.zoop.boing.good.
 ADDR a.bit.longer.ns.name.good.
 ADDR a.bit.longer.ns.name.good.
 ADDR ns2.good.
 ADDR ns3.good.
 ADDR ns3.good.
+NS boing.good.
+NS zoop.boing.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
-ADDR _.ptang.zoop.boing.good.
-ADDR _.icky.ptang.zoop.boing.good.
+NS ptang.zoop.boing.good.
+NS icky.ptang.zoop.boing.good.
 __EOF
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
-ADDR _.icky.icky.ptang.zoop.boing.good.
+NS icky.icky.ptang.zoop.boing.good.
 ADDR icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
@@ -203,20 +203,18 @@ grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /d
 sleep 1
 sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
-ADDR _.boing.bad.
-ADDR _.zoop.boing.bad.
 ADDR a.bit.longer.ns.name.bad.
 ADDR a.bit.longer.ns.name.bad.
+ADDR icky.icky.icky.ptang.zoop.boing.bad.
 ADDR ns2.bad.
 ADDR ns3.bad.
 ADDR ns3.bad.
+NS boing.bad.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
-ADDR _.ptang.zoop.boing.bad.
-ADDR _.icky.ptang.zoop.boing.bad.
+ADDR icky.icky.icky.ptang.zoop.boing.bad.
 __EOF
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
-ADDR _.icky.icky.ptang.zoop.boing.bad.
 ADDR icky.icky.icky.ptang.zoop.boing.bad.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
@@ -251,16 +249,15 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.7 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.ugly. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
-
 sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
-ADDR _.boing.ugly.
 ADDR a.bit.longer.ns.name.ugly.
 ADDR a.bit.longer.ns.name.ugly.
 ADDR icky.icky.icky.ptang.zoop.boing.ugly.
 ADDR ns2.ugly.
 ADDR ns3.ugly.
 ADDR ns3.ugly.
+NS boing.ugly.
 __EOF
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans3/query.log - > /dev/null || ret=1
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans4/query.log - > /dev/null || ret=1
@@ -270,7 +267,7 @@ status=$((status+ret))
 $RNDCCMD 10.53.0.7 flush
 
 n=$((n+1))
-echo_i "information that minimization was unsuccessful for .ugly is logged ($n)"
+echo_i "information that minimization was unsuccessful for .ugly is logged in relaxed mode ($n)"
 ret=0
 wait_for_log 5 "success resolving 'icky.icky.icky.ptang.zoop.boing.ugly/A' after disabling qname minimization" ns7/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -458,9 +455,9 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
 sleep 1
 sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
-ADDR _.b.stale.
 ADDR ns.b.stale.
 ADDR ns2.stale.
+NS b.stale.
 __EOF
 test -f  ans3/query.log && ret=1
 sort ans4/query.log > ans4/query.log.sorted
@@ -523,7 +520,7 @@ grep "a\.b\.stale\..*1.*IN.*TXT.*hooray" dig.out.test$n > /dev/null || ret=1
 sleep 1
 sort ans2/query.log > ans2/query.log.sorted
 cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
-ADDR _.b.stale.
+NS b.stale.
 __EOF
 test -f  ans3/query.log && ret=1
 sort ans4/query.log > ans4/query.log.sorted

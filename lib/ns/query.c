@@ -12389,8 +12389,6 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 					      DNS_FETCHOPT_QMIN_SKIP_IP6A;
 		if (client->view->qmin_strict) {
 			client->query.fetchoptions |= DNS_FETCHOPT_QMIN_STRICT;
-		} else {
-			client->query.fetchoptions |= DNS_FETCHOPT_QMIN_USE_A;
 		}
 	}
 
