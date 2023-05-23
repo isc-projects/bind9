@@ -35,6 +35,11 @@ Feature Changes
   the query, :iscman:`named` now retries sending the query to the
   same server without an EDNS COOKIE option. :gl:`#4049`
 
+- Use NS records for relaxed QNAME-minimization mode.  This reduces the
+  number of queries ``named`` makes when resolving, as it allows the
+  non-existence of NS RRsets at non-referral nodes to be cached in
+  addition to the normally cached referrals. :gl:`#3325`
+
 Bug Fixes
 ~~~~~~~~~
 
