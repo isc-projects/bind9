@@ -940,15 +940,17 @@ isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdmgrp) {
 	isc_nm_stoplistening(httpdmgr->sock);
 
 	LOCK(&httpdmgr->lock);
-	httpdmgr->flags |= ISC_HTTPDMGR_SHUTTINGDOWN;
 
-	isc_httpd_t *httpd, *next;
+	isc_httpd_t *httpd = NULL, *next = NULL;
 	ISC_LIST_FOREACH_SAFE (httpdmgr->running, httpd, link, next) {
 		if (httpd->handle != NULL) {
 			httpd_request(httpd->handle, ISC_R_SUCCESS, NULL,
 				      httpd);
 		}
 	}
+
+	httpdmgr->flags |= ISC_HTTPDMGR_SHUTTINGDOWN;
+
 	UNLOCK(&httpdmgr->lock);
 
 	isc_nmsocket_close(&httpdmgr->sock);
