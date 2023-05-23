@@ -1150,14 +1150,13 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
 
-		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
 		isc_buffer_putuint8(buf, NS_COOKIE_VERSION_1);
 		isc_buffer_putuint8(buf, 0);  /* Reserved */
 		isc_buffer_putuint16(buf, 0); /* Reserved */
 		isc_buffer_putuint32(buf, when);
 
-		memmove(input, cp, 16);
+		memmove(input, (unsigned char *)isc_buffer_used(buf) - 16, 16);
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		switch (netaddr.family) {
@@ -1185,11 +1184,10 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		unsigned char *cp;
 		unsigned int i;
 
-		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
 		isc_buffer_putuint32(buf, nonce);
 		isc_buffer_putuint32(buf, when);
-		memmove(input, cp, 16);
+		memmove(input, (unsigned char *)isc_buffer_used(buf) - 16, 16);
 		isc_aes128_crypt(secret, input, digest);
 		for (i = 0; i < 8; i++) {
 			input[i] = digest[i] ^ digest[i + 8];
