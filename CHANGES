@@ -1,3 +1,6 @@
+6179.	[bug]		Fix an interfacemgr use-after-free error in
+			zoneconf.c:isself(). [GL #3765]
+
 6176.	[test]		Add support for using pytest & pytest-xdist to
 			execute the system test suite. [GL #3978]
 
