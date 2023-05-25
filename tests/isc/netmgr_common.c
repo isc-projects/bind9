@@ -103,6 +103,7 @@ bool allow_send_back = false;
 bool noanswer = false;
 bool stream_use_TLS = false;
 bool stream_use_PROXY = false;
+bool stream_PROXY_over_TLS = false;
 bool stream = false;
 in_port_t stream_port = 0;
 
@@ -607,14 +608,19 @@ get_proxyheader_info(void) {
 
 static void
 proxystream_connect(isc_nm_t *nm) {
+	isc_tlsctx_t *tlsctx = stream_PROXY_over_TLS ? tcp_connect_tlsctx
+						     : NULL;
+	isc_tlsctx_client_session_cache_t *sess_cache =
+		stream_PROXY_over_TLS ? tcp_tlsctx_client_sess_cache : NULL;
+
 	isc_nm_proxystreamconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
-				  connect_connect_cb, NULL, T_CONNECT, NULL,
-				  NULL, get_proxyheader_info());
+				  connect_connect_cb, NULL, T_CONNECT, tlsctx,
+				  sess_cache, get_proxyheader_info());
 }
 
 stream_connect_function
 get_stream_connect_function(void) {
-	if (stream_use_TLS) {
+	if (stream_use_TLS && !stream_PROXY_over_TLS) {
 		return (tls_connect);
 	} else if (stream_use_PROXY) {
 		return (proxystream_connect);
@@ -630,16 +636,18 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 	      isc_quota_t *quota, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	if (stream_use_TLS) {
+	if (stream_use_TLS && !stream_PROXY_over_TLS) {
 		result = isc_nm_listentls(
 			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
 			accept_cb, accept_cbarg, backlog, quota,
 			tcp_listen_tlsctx, stream_use_PROXY, sockp);
 		return (result);
 	} else if (stream_use_PROXY) {
+		isc_tlsctx_t *tlsctx = stream_PROXY_over_TLS ? tcp_listen_tlsctx
+							     : NULL;
 		result = isc_nm_listenproxystream(
 			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
-			accept_cb, accept_cbarg, backlog, quota, NULL, sockp);
+			accept_cb, accept_cbarg, backlog, quota, tlsctx, sockp);
 		return (result);
 	} else {
 		result = isc_nm_listentcp(listen_nm, ISC_NM_LISTEN_ALL,
@@ -655,16 +663,23 @@ void
 stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	isc_refcount_increment0(&active_cconnects);
 
-	if (stream_use_TLS) {
+	if (stream_use_TLS && !stream_PROXY_over_TLS) {
 		isc_nm_tlsconnect(
 			connect_nm, &tcp_connect_addr, &tcp_listen_addr, cb,
 			cbarg, tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache,
 			timeout, stream_use_PROXY, NULL);
 		return;
 	} else if (stream_use_PROXY) {
+		isc_tlsctx_t *tlsctx = stream_PROXY_over_TLS
+					       ? tcp_connect_tlsctx
+					       : NULL;
+		isc_tlsctx_client_session_cache_t *sess_cache =
+			stream_PROXY_over_TLS ? tcp_tlsctx_client_sess_cache
+					      : NULL;
 		isc_nm_proxystreamconnect(connect_nm, &tcp_connect_addr,
 					  &tcp_listen_addr, cb, cbarg, timeout,
-					  NULL, NULL, get_proxyheader_info());
+					  tlsctx, sess_cache,
+					  get_proxyheader_info());
 		return;
 	} else {
 		isc_nm_tcpconnect(connect_nm, &tcp_connect_addr,
@@ -672,6 +687,17 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 		return;
 	}
 	UNREACHABLE();
+}
+
+isc_nm_proxy_type_t
+get_proxy_type(void) {
+	if (!stream_use_PROXY) {
+		return (ISC_NM_PROXY_NONE);
+	} else if (stream_PROXY_over_TLS) {
+		return (ISC_NM_PROXY_ENCRYPTED);
+	}
+
+	return (ISC_NM_PROXY_PLAIN);
 }
 
 void
@@ -703,6 +729,12 @@ proxystream_noop_setup(void **state) {
 	return (stream_noop_setup(state));
 }
 
+int
+proxystreamtls_noop_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_noop_setup(state));
+}
+
 void
 stream_noop(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -729,6 +761,14 @@ int
 proxystream_noop_teardown(void **state) {
 	int r = stream_noop_teardown(state);
 	stream_use_PROXY = false;
+
+	return (r);
+}
+
+int
+proxystreamtls_noop_teardown(void **state) {
+	int r = proxystream_noop_teardown(state);
+	stream_PROXY_over_TLS = false;
 
 	return (r);
 }
@@ -811,6 +851,19 @@ proxystream_noresponse_teardown(void **state) {
 	return (r);
 }
 
+int
+proxystreamtls_noresponse_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_noresponse_setup(state));
+}
+
+int
+proxystreamtls_noresponse_teardown(void **state) {
+	int r = proxystream_noresponse_teardown(state);
+	stream_PROXY_over_TLS = false;
+	return (r);
+}
+
 void
 stream_noresponse(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -861,6 +914,19 @@ int
 proxystream_timeout_recovery_teardown(void **state) {
 	int r = stream_timeout_recovery_teardown(state);
 	stream_use_PROXY = false;
+	return (r);
+}
+
+int
+proxystreamtls_timeout_recovery_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_timeout_recovery_setup(state));
+}
+
+int
+proxystreamtls_timeout_recovery_teardown(void **state) {
+	int r = proxystream_timeout_recovery_teardown(state);
+	stream_PROXY_over_TLS = false;
 	return (r);
 }
 
@@ -929,6 +995,19 @@ proxystream_recv_one_teardown(void **state) {
 	return (r);
 }
 
+int
+proxystreamtls_recv_one_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_recv_one_setup(state));
+}
+
+int
+proxystreamtls_recv_one_teardown(void **state) {
+	int r = proxystream_recv_one_teardown(state);
+	stream_PROXY_over_TLS = false;
+	return (r);
+}
+
 void
 stream_recv_one(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -994,6 +1073,19 @@ proxystream_recv_two_teardown(void **state) {
 	return (r);
 }
 
+int
+proxystreamtls_recv_two_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_recv_two_setup(state));
+}
+
+int
+proxystreamtls_recv_two_teardown(void **state) {
+	int r = proxystream_recv_two_teardown(state);
+	stream_PROXY_over_TLS = false;
+	return (r);
+}
+
 void
 stream_recv_two(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1044,6 +1136,19 @@ int
 proxystream_recv_send_teardown(void **state) {
 	int r = stream_recv_send_teardown(state);
 	stream_use_PROXY = false;
+	return (r);
+}
+
+int
+proxystreamtls_recv_send_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_recv_send_setup(state));
+}
+
+int
+proxystreamtls_recv_send_teardown(void **state) {
+	int r = proxystream_recv_send_teardown(state);
+	stream_PROXY_over_TLS = false;
 	return (r);
 }
 

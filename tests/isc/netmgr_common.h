@@ -131,6 +131,7 @@ extern bool allow_send_back;
 extern bool noanswer;
 extern bool stream_use_TLS;
 extern bool stream_use_PROXY;
+extern bool stream_PROXY_over_TLS;
 extern bool stream;
 extern in_port_t stream_port;
 
@@ -288,6 +289,9 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 isc_nm_proxyheader_info_t *
 get_proxyheader_info(void);
 
+isc_nm_proxy_type_t
+get_proxy_type(void);
+
 int
 stream_noop_setup(void **state ISC_ATTR_UNUSED);
 void
@@ -299,6 +303,11 @@ int
 proxystream_noop_setup(void **state);
 int
 proxystream_noop_teardown(void **state);
+
+int
+proxystreamtls_noop_setup(void **state);
+int
+proxystreamtls_noop_teardown(void **state);
 
 int
 stream_noresponse_setup(void **state ISC_ATTR_UNUSED);
@@ -313,6 +322,11 @@ int
 proxystream_noresponse_teardown(void **state);
 
 int
+proxystreamtls_noresponse_setup(void **state);
+int
+proxystreamtls_noresponse_teardown(void **state);
+
+int
 stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_timeout_recovery(void **state ISC_ATTR_UNUSED);
@@ -323,6 +337,11 @@ int
 proxystream_timeout_recovery_setup(void **state);
 int
 proxystream_timeout_recovery_teardown(void **state);
+
+int
+proxystreamtls_timeout_recovery_setup(void **state);
+int
+proxystreamtls_timeout_recovery_teardown(void **state);
 
 int
 stream_recv_one_setup(void **state ISC_ATTR_UNUSED);
@@ -337,6 +356,11 @@ int
 proxystream_recv_one_teardown(void **state);
 
 int
+proxystreamtls_recv_one_setup(void **state);
+int
+proxystreamtls_recv_one_teardown(void **state);
+
+int
 stream_recv_two_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_recv_two(void **state ISC_ATTR_UNUSED);
@@ -347,6 +371,11 @@ int
 proxystream_recv_two_setup(void **state);
 int
 proxystream_recv_two_teardown(void **state);
+
+int
+proxystreamtls_recv_two_setup(void **state);
+int
+proxystreamtls_recv_two_teardown(void **state);
 
 int
 stream_recv_send_setup(void **state ISC_ATTR_UNUSED);
@@ -363,6 +392,11 @@ int
 proxystream_recv_send_teardown(void **state);
 
 int
+proxystreamtls_recv_send_setup(void **state);
+int
+proxystreamtls_recv_send_teardown(void **state);
+
+int
 stream_shutdownconnect_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_shutdownconnect(void **state ISC_ATTR_UNUSED);
@@ -375,6 +409,11 @@ int
 proxystream_shutdownconnect_teardown(void **state);
 
 int
+proxystreamtls_shutdownconnect_setup(void **state);
+int
+proxystreamtls_shutdownconnect_teardown(void **state);
+
+int
 stream_shutdownread_setup(void **state ISC_ATTR_UNUSED);
 void
 stream_shutdownread(void **state ISC_ATTR_UNUSED);
@@ -385,6 +424,11 @@ int
 proxystream_shutdownread_setup(void **state);
 int
 proxystream_shutdownread_teardown(void **state);
+
+int
+proxystreamtls_shutdownread_setup(void **state);
+int
+proxystreamtls_shutdownread_teardown(void **state);
 
 void
 stop_listening(void *arg ISC_ATTR_UNUSED);
