@@ -608,8 +608,8 @@ get_proxyheader_info(void) {
 static void
 proxystream_connect(isc_nm_t *nm) {
 	isc_nm_proxystreamconnect(nm, &tcp_connect_addr, &tcp_listen_addr,
-				  connect_connect_cb, NULL, T_CONNECT,
-				  get_proxyheader_info());
+				  connect_connect_cb, NULL, T_CONNECT, NULL,
+				  NULL, get_proxyheader_info());
 }
 
 stream_connect_function
@@ -639,7 +639,7 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 	} else if (stream_use_PROXY) {
 		result = isc_nm_listenproxystream(
 			listen_nm, ISC_NM_LISTEN_ALL, &tcp_listen_addr,
-			accept_cb, accept_cbarg, backlog, quota, sockp);
+			accept_cb, accept_cbarg, backlog, quota, NULL, sockp);
 		return (result);
 	} else {
 		result = isc_nm_listentcp(listen_nm, ISC_NM_LISTEN_ALL,
@@ -664,7 +664,7 @@ stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
 	} else if (stream_use_PROXY) {
 		isc_nm_proxystreamconnect(connect_nm, &tcp_connect_addr,
 					  &tcp_listen_addr, cb, cbarg, timeout,
-					  get_proxyheader_info());
+					  NULL, NULL, get_proxyheader_info());
 		return;
 	} else {
 		isc_nm_tcpconnect(connect_nm, &tcp_connect_addr,
