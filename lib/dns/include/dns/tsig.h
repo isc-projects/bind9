@@ -264,7 +264,9 @@ dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
  *      Place a TSIG key onto a key ring.
  *
  *	Requires:
- *\li		'ring', 'name' and 'tkey' are not NULL
+ *\li		'name' and 'ring' are not NULL
+ *\li		'tkey' is a valid TSIG key, which has not been
+ *		       added to any other keyrings
  *
  *	Returns:
  *\li		#ISC_R_SUCCESS

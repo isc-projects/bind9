@@ -100,7 +100,7 @@ struct named_server {
 
 	named_statschannellist_t statschannels;
 
-	dns_tsigkey_t *sessionkey;
+	dst_key_t     *sessionkey;
 	char	      *session_keyfile;
 	dns_name_t    *session_keyname;
 	unsigned int   session_keyalg;
