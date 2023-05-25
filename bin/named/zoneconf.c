@@ -770,24 +770,27 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
  */
 static bool
 isself(dns_view_t *myview, dns_tsigkey_t *mykey, const isc_sockaddr_t *srcaddr,
-       const isc_sockaddr_t *dstaddr, dns_rdataclass_t rdclass, void *arg) {
-	ns_interfacemgr_t *interfacemgr = (ns_interfacemgr_t *)arg;
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(interfacemgr);
-	dns_view_t *view;
+       const isc_sockaddr_t *dstaddr, dns_rdataclass_t rdclass,
+       void *arg ISC_ATTR_UNUSED) {
+	dns_aclenv_t *env = NULL;
+	dns_view_t *view = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 
-	if (interfacemgr == NULL) {
+	/* interfacemgr can be destroyed only in exclusive mode. */
+	if (named_g_server->interfacemgr == NULL) {
 		return (true);
 	}
 
-	if (!ns_interfacemgr_listeningon(interfacemgr, dstaddr)) {
+	if (!ns_interfacemgr_listeningon(named_g_server->interfacemgr, dstaddr))
+	{
 		return (false);
 	}
 
 	isc_netaddr_fromsockaddr(&netsrc, srcaddr);
 	isc_netaddr_fromsockaddr(&netdst, dstaddr);
+	env = ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
 
 	for (view = ISC_LIST_HEAD(named_g_server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
@@ -1305,7 +1308,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFYTOSOA,
 				   cfg_obj_asboolean(obj));
 
-		dns_zone_setisself(zone, isself, named_g_server->interfacemgr);
+		dns_zone_setisself(zone, isself, NULL);
 
 		CHECK(configure_zone_acl(
 			zconfig, vconfig, config, allow_transfer, ac, zone,
