@@ -355,11 +355,14 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 	size_t len = 0;
 	bool new_send_req = false;
 	isc_region_t used_region = { 0 };
+	bool shutting_down = isc__nm_closing(sock->worker);
 
-	if (inactive(sock)) {
+	if (shutting_down || inactive(sock)) {
 		if (cb != NULL) {
+			isc_result_t result = shutting_down ? ISC_R_SHUTTINGDOWN
+							    : ISC_R_CANCELED;
 			INSIST(VALID_NMHANDLE(tlshandle));
-			cb(tlshandle, ISC_R_CANCELED, cbarg);
+			cb(tlshandle, result, cbarg);
 		}
 		return (0);
 	}
@@ -1024,7 +1027,10 @@ tls_send_direct(void *arg) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	if (inactive(sock)) {
+	if (isc__nm_closing(sock->worker)) {
+		req->cb.send(req->handle, ISC_R_SHUTTINGDOWN, req->cbarg);
+		goto done;
+	} else if (inactive(sock)) {
 		req->cb.send(req->handle, ISC_R_CANCELED, req->cbarg);
 		goto done;
 	}
@@ -1084,7 +1090,10 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(sock->statichandle == handle);
 	REQUIRE(sock->tid == isc_tid());
 
-	if (inactive(sock)) {
+	if (isc__nm_closing(sock->worker)) {
+		cb(handle, ISC_R_SHUTTINGDOWN, NULL, cbarg);
+		return;
+	} else if (inactive(sock)) {
 		cb(handle, ISC_R_CANCELED, NULL, cbarg);
 		return;
 	}
@@ -1237,6 +1246,9 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->peer = handle->sock->peer;
 	if (isc__nm_closing(worker)) {
 		result = ISC_R_SHUTTINGDOWN;
+		goto error;
+	} else if (isc__nmsocket_closing(handle->sock)) {
+		result = ISC_R_CANCELED;
 		goto error;
 	}
 
