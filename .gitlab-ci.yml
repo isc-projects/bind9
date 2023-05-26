@@ -82,10 +82,24 @@ stages:
     - libvirt
     - amd64
 
+# Jobs with these tags do not run on AWS but on permanent OVH systems.
+
+.linux-respdiff-amd64: &linux_respdiff_amd64
+  tags:
+    - linux
+    - ovh
+    - amd64
+
+# Autoscaling GitLab Runner on AWS EC2
+
 .linux-amd64: &linux_amd64
   tags:
     - linux
+    - aws
+    - runner-manager
     - amd64
+
+# Stress-testing runners
 
 .linux-stress-amd64: &linux_stress_amd64
   tags:
@@ -135,6 +149,10 @@ stages:
   <<: *libvirt_amd64
 
 # Debian
+
+.respdiff-debian-bullseye-amd64: &respdiff_debian_bullseye_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
+  <<: *linux_respdiff_amd64
 
 .debian-bullseye-amd64: &debian_bullseye_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
@@ -436,7 +454,6 @@ stages:
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
 
 .respdiff: &respdiff_job
-  <<: *base_image
   stage: system
   before_script:
     - autoreconf -fi
@@ -1331,6 +1348,7 @@ coverity:
 respdiff-short:
   <<: *respdiff_job
   <<: *default_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
@@ -1341,6 +1359,7 @@ respdiff-short:
 respdiff-short:asan:
   <<: *respdiff_job
   <<: *default_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
@@ -1353,6 +1372,7 @@ respdiff-short:asan:
 respdiff-short:tsan:
   <<: *respdiff_job
   <<: *default_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
@@ -1369,6 +1389,7 @@ respdiff-short:tsan:
 respdiff-long:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *respdiff_debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DISC_TRACK_PTHREADS_OBJECTS"
@@ -1379,6 +1400,7 @@ respdiff-long:
 respdiff-long:asan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
@@ -1391,6 +1413,7 @@ respdiff-long:asan:
 respdiff-long:tsan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
@@ -1407,6 +1430,7 @@ respdiff-long:tsan:
 respdiff-long-third-party:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
