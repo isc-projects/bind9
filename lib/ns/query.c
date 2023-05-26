@@ -6533,7 +6533,7 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (recparam_match(&client->query.recparam, qtype, qname, qdomain)) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
 			      ISC_LOG_INFO, "recursion loop detected");
-		return (ISC_R_FAILURE);
+		return (ISC_R_ALREADYRUNNING);
 	}
 
 	recparam_update(&client->query.recparam, qtype, qname, qdomain);
@@ -7650,10 +7650,21 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 		return (false);
 	}
 
-	if (result == DNS_R_DUPLICATE || result == DNS_R_DROP) {
+	if (qctx->refresh_rrset) {
+		/*
+		 * This is a refreshing query, we have already prioritized
+		 * stale data, so don't enable serve-stale again.
+		 */
+		return (false);
+	}
+
+	if (result == DNS_R_DUPLICATE || result == DNS_R_DROP ||
+	    result == ISC_R_ALREADYRUNNING)
+	{
 		/*
 		 * Don't enable serve-stale if the result signals a duplicate
-		 * query or query that is being dropped.
+		 * query or a query that is being dropped or can't proceed
+		 * because of a recursion loop.
 		 */
 		return (false);
 	}
