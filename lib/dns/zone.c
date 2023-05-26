@@ -618,6 +618,7 @@ struct dns_zonemgr {
 	dns_keymgmt_t *keymgmt;
 
 	isc_tlsctx_cache_t *tlsctx_cache;
+	isc_rwlock_t tlsctx_cache_rwlock;
 };
 
 /*%
@@ -976,6 +977,20 @@ zone_journal_rollforward(dns_zone_t *zone, dns_db_t *db, bool *needdump,
 			 bool *fixjournal);
 static void
 setnsec3param(void *arg);
+
+static void
+zmgr_tlsctx_attach(dns_zonemgr_t *zmgr, isc_tlsctx_cache_t **ptlsctx_cache);
+/*%<
+ *	Attach to TLS client context cache used for zone transfers via
+ *	encrypted transports (e.g. XoT).
+ *
+ * The obtained reference needs to be detached by a call to
+ * 'isc_tlsctx_cache_detach()' when not needed anymore.
+ *
+ * Requires:
+ *\li	'zmgr' is a valid zone manager.
+ *\li	'ptlsctx_cache' is not 'NULL' and points to 'NULL'.
+ */
 
 #define ENTER zone_debuglog(zone, __func__, 1, "enter")
 
@@ -17682,6 +17697,7 @@ got_transfer_quota(void *arg) {
 	isc_time_t now;
 	const char *soa_before = "";
 	bool loaded;
+	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		CHECK(ISC_R_CANCELED);
@@ -17815,10 +17831,15 @@ got_transfer_quota(void *arg) {
 		dns_xfrin_detach(&zone->xfr);
 	}
 
+	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
+
 	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
 			       zone->tsigkey, zone->transport,
-			       zone->zmgr->tlsctx_cache, zone->mctx,
-			       zone_xfrdone, &zone->xfr));
+			       zmgr_tlsctx_cache, zone->mctx, zone_xfrdone,
+			       &zone->xfr));
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&primaryaddr) == PF_INET) {
@@ -17843,6 +17864,10 @@ failure:
 	 */
 	if (result != ISC_R_SUCCESS) {
 		zone_xfrdone(zone, result);
+	}
+
+	if (zmgr_tlsctx_cache != NULL) {
+		isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 	}
 }
 
@@ -17879,6 +17904,7 @@ sendtoprimary(dns_forward_t *forward) {
 	isc_sockaddr_t src, any;
 	dns_zone_t *zone = forward->zone;
 	bool tls_transport_invalid = false;
+	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	LOCK_ZONE(zone);
 
@@ -17939,11 +17965,16 @@ sendtoprimary(dns_forward_t *forward) {
 		}
 	}
 
+	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
+
 	result = dns_request_createraw(
 		forward->zone->view->requestmgr, forward->msgbuf, &src,
-		&forward->addr, forward->transport, zone->zmgr->tlsctx_cache,
+		&forward->addr, forward->transport, zmgr_tlsctx_cache,
 		forward->options, 15 /* XXX */, 0, 0, forward->zone->loop,
 		forward_callback, forward, &forward->request);
+
+	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LINK_LINKED(forward, link)) {
 			ISC_LIST_APPEND(zone->forwards, forward, link);
@@ -18331,6 +18362,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
 	isc_ratelimiter_setpushpop(zmgr->startuprefreshrl, true);
 
 	zmgr->tlsctx_cache = NULL;
+	isc_rwlock_init(&zmgr->tlsctx_cache_rwlock);
 
 	zmgr->magic = ZONEMGR_MAGIC;
 
@@ -18532,6 +18564,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);
+	isc_rwlock_destroy(&zmgr->tlsctx_cache_rwlock);
 
 	zonemgr_keymgmt_destroy(zmgr);
 
@@ -23300,7 +23333,7 @@ dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t *zmgr,
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 	REQUIRE(tlsctx_cache != NULL);
 
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	RWLOCK(&zmgr->tlsctx_cache_rwlock, isc_rwlocktype_write);
 
 	if (zmgr->tlsctx_cache != NULL) {
 		isc_tlsctx_cache_detach(&zmgr->tlsctx_cache);
@@ -23308,7 +23341,20 @@ dns_zonemgr_set_tlsctx_cache(dns_zonemgr_t *zmgr,
 
 	isc_tlsctx_cache_attach(tlsctx_cache, &zmgr->tlsctx_cache);
 
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	RWUNLOCK(&zmgr->tlsctx_cache_rwlock, isc_rwlocktype_write);
+}
+
+static void
+zmgr_tlsctx_attach(dns_zonemgr_t *zmgr, isc_tlsctx_cache_t **ptlsctx_cache) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+	REQUIRE(ptlsctx_cache != NULL && *ptlsctx_cache == NULL);
+
+	RWLOCK(&zmgr->tlsctx_cache_rwlock, isc_rwlocktype_read);
+
+	INSIST(zmgr->tlsctx_cache != NULL);
+	isc_tlsctx_cache_attach(zmgr->tlsctx_cache, ptlsctx_cache);
+
+	RWUNLOCK(&zmgr->tlsctx_cache_rwlock, isc_rwlocktype_read);
 }
 
 isc_mem_t *
