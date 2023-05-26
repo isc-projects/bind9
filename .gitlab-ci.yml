@@ -22,6 +22,7 @@ variables:
   CLANG_VERSION: 16
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
+  LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
   ASAN_SYMBOLIZER_PATH: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
   CLANG_FORMAT: "clang-format-${CLANG_VERSION}"
 
@@ -29,7 +30,12 @@ variables:
 
   # Pass run-time flags to AddressSanitizer to get core dumps on error.
   ASAN_OPTIONS: abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
-  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan"
+
+  TSAN_OPTIONS_COMMON: "disable_coredump=0 second_deadlock_stack=1 atexit_sleep_ms=1000 history_size=7 log_exe_name=true log_path=tsan"
+  TSAN_SUPPRESSIONS: "suppressions=${CI_PROJECT_DIR}/.tsan-suppress"
+  TSAN_OPTIONS_DEBIAN: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} external_symbolizer_path=${LLVM_SYMBOLIZER}"
+  TSAN_OPTIONS_FEDORA: "${TSAN_OPTIONS_COMMON} ${TSAN_SUPPRESSIONS} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
   TARBALL_COMPRESSOR: xz
@@ -150,6 +156,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
   <<: *linux_amd64
 
+.tsan-debian-bullseye-amd64: &tsan_debian_bullseye_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-debian-bullseye-amd64"
+  <<: *linux_amd64
+
 .debian-bullseye-amd64cross32: &debian_bullseye_amd64cross32_image
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64cross32"
   <<: *linux_amd64
@@ -165,6 +175,10 @@ stages:
   <<: *linux_amd64
 
 # Fedora
+
+.tsan-fedora-38-amd64: &tsan_fedora_38_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-fedora-38-amd64"
+  <<: *linux_amd64
 
 .fedora-38-amd64: &fedora_38_amd64_image
   image: "$CI_REGISTRY_IMAGE:fedora-38-amd64"
@@ -1037,13 +1051,13 @@ gcc:tsan:
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
-  <<: *fedora_38_amd64_image
+  <<: *tsan_fedora_38_amd64_image
   <<: *build_job
 
 system:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
-  <<: *fedora_38_amd64_image
+    TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
+  <<: *tsan_fedora_38_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: gcc:tsan
@@ -1051,15 +1065,15 @@ system:gcc:tsan:
 
 unit:gcc:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
-  <<: *fedora_38_amd64_image
+    TSAN_OPTIONS: "${TSAN_OPTIONS_FEDORA}"
+  <<: *tsan_fedora_38_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: gcc:tsan
       artifacts: true
 
 clang:tsan:
-  <<: *base_image
+  <<: *tsan_debian_bullseye_amd64_image
   <<: *build_job
   variables:
     CC: "${CLANG}"
@@ -1069,8 +1083,8 @@ clang:tsan:
 
 system:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
-  <<: *base_image
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
+  <<: *tsan_debian_bullseye_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: clang:tsan
@@ -1078,8 +1092,8 @@ system:clang:tsan:
 
 unit:clang:tsan:
   variables:
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer suppressions=$CI_PROJECT_DIR/tsan-suppressions.txt"
-  <<: *base_image
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
+  <<: *tsan_debian_bullseye_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
@@ -1401,14 +1415,14 @@ respdiff-short:asan:
 respdiff-short:tsan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *tsan_debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--enable-pthread-rwlock"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:
@@ -1440,14 +1454,14 @@ respdiff-long:asan:
 respdiff-long:tsan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *tsan_debian_bullseye_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
     EXTRA_CONFIGURE: "--enable-pthread-rwlock"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
-    TSAN_OPTIONS: "${TSAN_OPTIONS_COMMON} external_symbolizer_path=/usr/bin/llvm-symbolizer"
+    TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:
