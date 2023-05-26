@@ -1,7 +1,0 @@
-# Uninstrumented libraries
-called_from_lib:libfstrm.so
-called_from_lib:libdummyrpz.so
-# be more selective with liburcu
-race:rcu_barrier
-race:rcu_*_barrier
-thread:*
