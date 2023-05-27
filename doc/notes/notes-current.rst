@@ -54,7 +54,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- When the :any:`stale-answer-enable` option was enabled and the
+  :any:`stale-answer-client-timeout` option was enabled and larger than 0,
+  ``named`` was taking two places from the :any:`clients-per-query` limit for
+  each client and was failing to gradually auto-tune its value, as configured.
+  This has been fixed. :gl:`#4074`
 
 - It could happen that after the :any:`stale-answer-client-timeout` duration,
   a delegation from cache was returned to the client. This has now been fixed.
