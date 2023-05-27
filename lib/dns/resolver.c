@@ -1748,6 +1748,16 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 	{
 		next_event = ISC_LIST_NEXT(event, ev_link);
 		ISC_LIST_UNLINK(fctx->events, event, ev_link);
+
+		/*
+		 * Only the regular fetch events should be counted for the
+		 * clients-per-query limit, in case if there are multiple events
+		 * registered for a single client.
+		 */
+		if (event->ev_type == DNS_EVENT_FETCHDONE) {
+			count++;
+		}
+
 		if (event->ev_type == DNS_EVENT_TRYSTALE) {
 			/*
 			 * Not applicable to TRY STALE events, this function is
@@ -1783,7 +1793,6 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result, int line) {
 
 		FCTXTRACE("event");
 		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
-		count++;
 	}
 
 	if (HAVE_ANSWER(fctx) && fctx->spilled &&
@@ -10902,7 +10911,16 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 				result = DNS_R_DUPLICATE;
 				goto unlock;
 			}
-			count++;
+
+			/*
+			 * Only the regular fetch events should be
+			 * counted for the clients-per-query limit, in
+			 * case if there are multiple events registered
+			 * for a single client.
+			 */
+			if (fevent->ev_type == DNS_EVENT_FETCHDONE) {
+				count++;
+			}
 		}
 	}
 	if (count >= spillatmin && spillatmin != 0) {
