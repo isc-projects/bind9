@@ -32,6 +32,7 @@
 #include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/tid.h>
+#include <isc/time.h>
 #include <isc/urcu.h>
 #include <isc/util.h>
 #include <isc/uv.h>
@@ -597,4 +598,17 @@ isc_loop_getloopmgr(isc_loop_t *loop) {
 	REQUIRE(VALID_LOOP(loop));
 
 	return (loop->loopmgr);
+}
+
+isc_time_t
+isc_loop_now(isc_loop_t *loop) {
+	REQUIRE(VALID_LOOP(loop));
+
+	uint64_t msec = uv_now(&loop->loop);
+	isc_time_t t = {
+		.seconds = msec / MS_PER_SEC,
+		.nanoseconds = (msec % MS_PER_SEC) * NS_PER_MS,
+	};
+
+	return (t);
 }
