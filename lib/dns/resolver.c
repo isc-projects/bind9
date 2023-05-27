@@ -1553,6 +1553,16 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	for (resp = ISC_LIST_HEAD(fctx->resps); resp != NULL; resp = next) {
 		next = ISC_LIST_NEXT(resp, link);
 		ISC_LIST_UNLINK(fctx->resps, resp, link);
+
+		/*
+		 * Only the regular fetch events should be counted for the
+		 * clients-per-query limit, in case if there are multiple events
+		 * registered for a single client.
+		 */
+		if (resp->type == FETCHDONE) {
+			count++;
+		}
+
 		if (resp->type == TRYSTALE) {
 			/*
 			 * Not applicable to TRYSTALE resps; this function is
@@ -1586,7 +1596,6 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 
 		FCTXTRACE("post response event");
 		isc_async_run(resp->loop, resp->cb, resp);
-		count++;
 	}
 	UNLOCK(&fctx->lock);
 
@@ -10391,7 +10400,16 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 					result = DNS_R_DUPLICATE;
 					goto unlock;
 				}
-				count++;
+
+				/*
+				 * Only the regular fetch events should be
+				 * counted for the clients-per-query limit, in
+				 * case if there are multiple events registered
+				 * for a single client.
+				 */
+				if (resp->type == FETCHDONE) {
+					count++;
+				}
 			}
 		}
 		if (count >= spillatmin && spillatmin != 0) {
