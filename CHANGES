@@ -1,3 +1,8 @@
+6181.	[func]		The "tkey-dhkey" option has been deprecated; a
+			warning will be logged when it is used. In a future
+			release, Diffie-Hellman TKEY mode will be removed.
+			[GL #3905]
+
 6180.	[bug]		The session key object could be incorrectly added
 			to multiple different views' keyrings. [GL #4079]
 

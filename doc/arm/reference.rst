@@ -1453,7 +1453,7 @@ default is used.
    is specified using :any:`tkey-gssapi-keytab`.
 
 .. namedconf:statement:: tkey-dhkey
-   :tags: security
+   :tags: deprecated
    :short: Sets the Diffie-Hellman key used by the server to generate shared keys.
 
    This is the Diffie-Hellman key used by the server to generate shared keys
@@ -1461,6 +1461,9 @@ default is used.
    must be able to load the public and private keys from files in the
    working directory. In most cases, the ``key_name`` should be the
    server's host name.
+
+   This option is deprecated, and will be rendered non-operational in a
+   future release.
 
 .. namedconf:statement:: dump-file
    :tags: logging
