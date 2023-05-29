@@ -37,9 +37,11 @@ stat() {
     return 0
 }
 
+n=0
 status=0
 
-echo_i "checking recursing clients are dropped at the per-server limit"
+n=$((n + 1))
+echo_i "checking recursing clients are dropped at the per-server limit ($n)"
 ret=0
 # make the server lame and restart
 $RNDCCMD flush
@@ -57,14 +59,19 @@ done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "dumping ADB data"
+n=$((n + 1))
+echo_i "dumping ADB data ($n)"
+ret=0
 info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
 quota=$2
 [ ${quota:-200} -lt 200 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
-echo_i "checking servfail statistics"
+n=$((n + 1))
+echo_i "checking servfail statistics ($n)"
 ret=0
 rm -f ns3/named.stats
 $RNDCCMD stats
@@ -80,7 +87,8 @@ fails=`grep 'queries resulted in SERVFAIL' ns3/named.stats | sed 's/\([0-9][0-9]
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "checking lame server recovery"
+n=$((n + 1))
+echo_i "checking lame server recovery ($n)"
 ret=0
 rm -f ans4/norespond
 for try in 1 2 3 4 5; do
@@ -89,22 +97,35 @@ for try in 1 2 3 4 5; do
     [ $ret -eq 1 ] && break
     sleep 1
 done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
-echo_i "dumping ADB data"
+n=$((n + 1))
+echo_i "dumping ADB data ($n)"
+ret=0
 info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
 [ ${2:-${quota}} -lt $quota ] || ret=1
 quota=$2
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
+n=$((n + 1))
+echo_i "checking lame server recovery (continued) ($n)"
+ret=0
 for try in 1 2 3 4 5 6 7 8 9 10; do
     burst c $try
     stat 0 20 || ret=1
     [ $ret -eq 1 ] && break
     sleep 1
 done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
-echo_i "dumping ADB data"
+n=$((n + 1))
+echo_i "dumping ADB data ($n)"
+ret=0
 info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
@@ -116,17 +137,18 @@ status=$((status+ret))
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 
-echo_i "checking lame server clients are dropped at the per-domain limit"
+n=$((n + 1))
+echo_i "checking lame server clients are dropped at the per-domain limit ($n)"
 ret=0
 fail=0
 success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 300
-    $DIGCMD a ${try}.example > dig.out.ns3.$try
-    grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
+    $DIGCMD a ${try}.example > dig.out.ns3.$n.$try
+    grep "status: NOERROR" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             success=$((success+1))
-    grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
+    grep "status: SERVFAIL" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             fail=$(($fail+1))
     stat 40 40 || ret=1
     allowed=$($RNDCCMD fetchlimit | awk '/lamesub/ { print $6 }')
@@ -138,7 +160,9 @@ echo_i "$success successful valid queries, $fail SERVFAIL"
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "checking drop statistics"
+n=$((n + 1))
+echo_i "checking drop statistics ($n)"
+ret=0
 rm -f ns3/named.stats
 $RNDCCMD stats
 for try in 1 2 3 4 5; do
@@ -156,7 +180,8 @@ status=$((status+ret))
 copy_setports ns3/named3.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 
-echo_i "checking lame server clients are dropped below the hard limit"
+n=$((n + 1))
+echo_i "checking lame server clients are dropped below the hard limit ($n)"
 ret=0
 fail=0
 exceeded=0
@@ -164,11 +189,11 @@ success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
-    $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$try
+    $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$n.$try
     stat 1 400 || exceeded=$((exceeded + 1))
-    grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
+    grep "status: NOERROR" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             success=$((success+1))
-    grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
+    grep "status: SERVFAIL" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             fail=$(($fail+1))
     sleep 1
 done
@@ -181,7 +206,9 @@ echo_i "clients count exceeded 400 on $exceeded trials (expected 0)"
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "checking drop statistics"
+n=$((n + 1))
+echo_i "checking drop statistics ($n)"
+ret=0
 rm -f ns3/named.stats
 touch ns3/named.stats
 $RNDCCMD stats
