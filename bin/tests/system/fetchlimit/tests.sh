@@ -14,26 +14,36 @@
 . ../conf.sh
 
 DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tcp +tries=1 +time=1"
-RNDCCMD="$RNDC -p ${CONTROLPORT} -s 10.53.0.3 -c ../common/rndc.conf"
+
+rndccmd() (
+    "$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
+)
 
 burst() {
-    num=${3:-20}
+    server=${1}
+    num=${4:-20}
     rm -f burst.input.$$
     while [ $num -gt 0 ]; do
         num=$((num-1))
-        echo "${num}${1}${2}.lamesub.example A" >> burst.input.$$
+        if [ "${5}" == "dup" ]; then
+            # burst with duplicate queries
+            echo "${2}${3}.lamesub.example A" >> burst.input.$$
+        else
+            # burst with unique queries
+            echo "${num}${2}${3}.lamesub.example A" >> burst.input.$$
+        fi
     done
-    $PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
+    $PERL ../ditch.pl -p ${PORT} -s ${server} burst.input.$$
     rm -f burst.input.$$
 }
 
 stat() {
-    clients=`$RNDCCMD status | grep "recursive clients" | 
+    clients=`rndccmd ${1} status | grep "recursive clients" | 
             sed 's;.*: \([^/][^/]*\)/.*;\1;'`
     echo_i "clients: $clients"
     [ "$clients" = "" ] && return 1
-    [ "$clients" -ge $1 ] || return 1
-    [ "$clients" -le $2 ] || return 1
+    [ "$clients" -ge $2 ] || return 1
+    [ "$clients" -le $3 ] || return 1
     return 0
 }
 
@@ -44,15 +54,15 @@ n=$((n + 1))
 echo_i "checking recursing clients are dropped at the per-server limit ($n)"
 ret=0
 # make the server lame and restart
-$RNDCCMD flush
+rndccmd 10.53.0.3 flush
 touch ans4/norespond
 for try in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-    burst a $try
+    burst 10.53.0.3 a $try
     # fetches-per-server is at 400, but at 20qps against a lame server,
     # we'll reach 200 at the tenth second, and the quota should have been
     # tuned to less than that by then.
     [ $try -le 5 ] && low=$((try*10))
-    stat 20 200 || ret=1
+    stat 10.53.0.3 20 200 || ret=1
     [ $ret -eq 1 ] && break
     sleep 1
 done
@@ -62,7 +72,7 @@ status=$((status+ret))
 n=$((n + 1))
 echo_i "dumping ADB data ($n)"
 ret=0
-info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
+info=$(rndccmd 10.53.0.3 fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
 quota=$2
@@ -74,7 +84,7 @@ n=$((n + 1))
 echo_i "checking servfail statistics ($n)"
 ret=0
 rm -f ns3/named.stats
-$RNDCCMD stats
+rndccmd 10.53.0.3 stats
 for try in 1 2 3 4 5; do
     [ -f ns3/named.stats ] && break
     sleep 1
@@ -90,10 +100,10 @@ status=$((status+ret))
 n=$((n + 1))
 echo_i "checking lame server recovery ($n)"
 ret=0
-rm -f ans4/norespond
+test -f ans4/norespond && rm -f ans4/norespond
 for try in 1 2 3 4 5; do
-    burst b $try
-    stat 0 200 || ret=1
+    burst 10.53.0.3 b $try
+    stat 10.53.0.3 0 200 || ret=1
     [ $ret -eq 1 ] && break
     sleep 1
 done
@@ -103,7 +113,7 @@ status=$((status+ret))
 n=$((n + 1))
 echo_i "dumping ADB data ($n)"
 ret=0
-info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
+info=$(rndccmd 10.53.0.3 fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
 [ ${2:-${quota}} -lt $quota ] || ret=1
@@ -115,8 +125,8 @@ n=$((n + 1))
 echo_i "checking lame server recovery (continued) ($n)"
 ret=0
 for try in 1 2 3 4 5 6 7 8 9 10; do
-    burst c $try
-    stat 0 20 || ret=1
+    burst 10.53.0.3 c $try
+    stat 10.53.0.3 0 20 || ret=1
     [ $ret -eq 1 ] && break
     sleep 1
 done
@@ -126,7 +136,7 @@ status=$((status+ret))
 n=$((n + 1))
 echo_i "dumping ADB data ($n)"
 ret=0
-info=$($RNDCCMD fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
+info=$(rndccmd 10.53.0.3 fetchlimit | grep 10.53.0.4 | sed 's/.*quota .*(\([0-9]*\).*atr \([.0-9]*\).*/\2 \1/')
 echo_i $info
 set -- $info
 [ ${2:-${quota}} -gt $quota ] || ret=1
@@ -144,14 +154,14 @@ fail=0
 success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
-    burst b $try 300
+    burst 10.53.0.3 b $try 300
     $DIGCMD a ${try}.example > dig.out.ns3.$n.$try
     grep "status: NOERROR" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             success=$((success+1))
     grep "status: SERVFAIL" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             fail=$(($fail+1))
-    stat 40 40 || ret=1
-    allowed=$($RNDCCMD fetchlimit | awk '/lamesub/ { print $6 }')
+    stat 10.53.0.3 40 40 || ret=1
+    allowed=$(rndccmd 10.53.0.3 fetchlimit | awk '/lamesub/ { print $6 }')
     [ "${allowed:-0}" -eq 40 ] || ret=1
     [ $ret -eq 1 ] && break
     sleep 1
@@ -164,7 +174,7 @@ n=$((n + 1))
 echo_i "checking drop statistics ($n)"
 ret=0
 rm -f ns3/named.stats
-$RNDCCMD stats
+rndccmd 10.53.0.3 stats
 for try in 1 2 3 4 5; do
     [ -f ns3/named.stats ] && break
     sleep 1
@@ -188,9 +198,9 @@ exceeded=0
 success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
-    burst b $try 400
+    burst 10.53.0.3 b $try 400
     $DIGCMD +time=2 a ${try}.example > dig.out.ns3.$n.$try
-    stat 1 400 || exceeded=$((exceeded + 1))
+    stat 10.53.0.3 1 400 || exceeded=$((exceeded + 1))
     grep "status: NOERROR" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
             success=$((success+1))
     grep "status: SERVFAIL" dig.out.ns3.$n.$try > /dev/null 2>&1 && \
@@ -211,7 +221,7 @@ echo_i "checking drop statistics ($n)"
 ret=0
 rm -f ns3/named.stats
 touch ns3/named.stats
-$RNDCCMD stats
+rndccmd 10.53.0.3 stats
 wait_for_log 5 "queries dropped due to recursive client limit" ns3/named.stats || ret=1
 drops=`grep 'queries dropped due to recursive client limit' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
 [ "${drops:-0}" -ne 0 ] || ret=1
