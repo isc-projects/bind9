@@ -441,6 +441,8 @@ init_desc(void) {
 	SET_RESSTATDESC(zonequota, "spilled due to zone quota", "ZoneQuota");
 	SET_RESSTATDESC(serverquota, "spilled due to server quota",
 			"ServerQuota");
+	SET_RESSTATDESC(clientquota, "spilled due to clients per query quota",
+			"ClientQuota");
 	SET_RESSTATDESC(nextitem, "waited for next item", "NextItem");
 	SET_RESSTATDESC(priming, "priming queries", "Priming");
 
