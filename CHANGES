@@ -1,3 +1,6 @@
+6182.	[cleanup]	Remove configure checks for epoll, kqueue and
+			/dev/poll. [GL #4098]
+
 6181.	[func]		The "tkey-dhkey" option has been deprecated; a
 			warning will be logged when it is used. In a future
 			release, Diffie-Hellman TKEY mode will be removed.
