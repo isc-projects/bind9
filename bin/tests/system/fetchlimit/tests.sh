@@ -25,7 +25,7 @@ burst() {
     rm -f burst.input.$$
     while [ $num -gt 0 ]; do
         num=$((num-1))
-        if [ "${5}" == "dup" ]; then
+        if [ "${5}" = "dup" ]; then
             # burst with duplicate queries
             echo "${2}${3}.lamesub.example A" >> burst.input.$$
         else
@@ -46,6 +46,15 @@ stat() {
     [ "$clients" -le $3 ] || return 1
     return 0
 }
+
+_wait_for_message() (
+	nextpartpeek "$1" > wait_for_message.$n
+	grep -F "$2" wait_for_message.$n >/dev/null
+)
+
+wait_for_message() (
+	retry_quiet 20 _wait_for_message "$@"
+)
 
 n=0
 status=0
@@ -227,6 +236,86 @@ rndccmd 10.53.0.3 stats
 wait_for_log 5 "queries dropped due to recursive client limit" ns3/named.stats || ret=1
 drops=`grep 'queries dropped due to recursive client limit' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
 [ "${drops:-0}" -ne 0 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+nextpart ns5/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "checking clients are dropped at the clients-per-query limit ($n)"
+ret=0
+test -f ans4/norespond && rm -f ans4/norespond
+for try in 1 2 3 4 5; do
+    burst 10.53.0.5 latency $try 20 "dup"
+    sleep 1
+done
+wait_for_message ns5/named.run "clients-per-query increased to 10" || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n + 1))
+echo_i "checking drop statistics ($n)"
+ret=0
+rm -f ns5/named.stats
+rndccmd 10.53.0.5 stats
+for try in 1 2 3 4 5; do
+    [ -f ns5/named.stats ] && break
+    sleep 1
+done
+zspill=`grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/'`
+[ -z "$zspill" ] && zspill=0
+# ns5 configuration:
+#   clients-per-query 5
+#   max-clients-per-query 10
+# expected spills:
+#   15 (out of 20) spilled for the first burst, and 10 (out of 20) spilled for
+#   the next 4 bursts (because of auto-tuning): 15 + (4 * 10) == 55
+expected=55
+[ "$zspill" -eq "$expected" ] || ret=1
+echo_i "$zspill clients spilled (expected $expected)"
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+echo_i "stop ns5"
+stop_server --use-rndc --port ${CONTROLPORT} ns5
+copy_setports ns5/named2.conf.in ns5/named.conf
+echo_i "start ns5"
+start_server --noclean --restart --port ${PORT} ns5
+
+nextpart ns5/named.run >/dev/null
+
+n=$((n + 1))
+echo_i "checking clients are dropped at the clients-per-query limit with stale-answer-client-timeout ($n)"
+ret=0
+test -f ans4/norespond && rm -f ans4/norespond
+for try in 1 2 3 4 5; do
+    burst 10.53.0.5 latency $try 20 "dup"
+    sleep 1
+done
+wait_for_message ns5/named.run "clients-per-query increased to 10" || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n + 1))
+echo_i "checking drop statistics ($n)"
+ret=0
+rm -f ns5/named.stats
+rndccmd 10.53.0.5 stats
+for try in 1 2 3 4 5; do
+    [ -f ns5/named.stats ] && break
+    sleep 1
+done
+zspill=`grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/'`
+[ -z "$zspill" ] && zspill=0
+# ns5 configuration:
+#   clients-per-query 5
+#   max-clients-per-query 10
+# expected spills:
+#   15 (out of 20) spilled for the first burst, and 10 (out of 20) spilled for
+#   the next 4 bursts (because of auto-tuning): 15 + (4 * 10) == 55
+expected=55
+[ "$zspill" -eq "$expected" ] || ret=1
+echo_i "$zspill clients spilled (expected $expected)"
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
