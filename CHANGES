@@ -1,5 +1,7 @@
-6181.	[cleanup]	Remove configure checks for epoll, kqueue and
+6182.	[cleanup]	Remove configure checks for epoll, kqueue and
 			/dev/poll. [GL #4098]
+
+6181.	[placeholder]
 
 6180.	[bug]		The session key object could be incorrectly added
 			to multiple different views' keyrings. [GL #4079]
