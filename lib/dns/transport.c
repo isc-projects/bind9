@@ -94,49 +94,49 @@ list_add(dns_transport_list_t *list, const dns_name_t *name,
 }
 
 dns_transport_type_t
-dns_transport_get_type(dns_transport_t *transport) {
+dns_transport_get_type(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->type);
 }
 
 char *
-dns_transport_get_certfile(dns_transport_t *transport) {
+dns_transport_get_certfile(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.certfile);
 }
 
 char *
-dns_transport_get_keyfile(dns_transport_t *transport) {
+dns_transport_get_keyfile(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.keyfile);
 }
 
 char *
-dns_transport_get_cafile(dns_transport_t *transport) {
+dns_transport_get_cafile(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.cafile);
 }
 
 char *
-dns_transport_get_remote_hostname(dns_transport_t *transport) {
+dns_transport_get_remote_hostname(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.remote_hostname);
 }
 
 char *
-dns_transport_get_endpoint(dns_transport_t *transport) {
+dns_transport_get_endpoint(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->doh.endpoint);
 }
 
 dns_http_mode_t
-dns_transport_get_mode(dns_transport_t *transport) {
+dns_transport_get_mode(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->doh.mode);
@@ -294,14 +294,14 @@ dns_transport_set_tlsname(dns_transport_t *transport, const char *tlsname) {
 }
 
 char *
-dns_transport_get_ciphers(dns_transport_t *transport) {
+dns_transport_get_ciphers(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.ciphers);
 }
 
 char *
-dns_transport_get_tlsname(dns_transport_t *transport) {
+dns_transport_get_tlsname(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
 
 	return (transport->tls.tlsname);
