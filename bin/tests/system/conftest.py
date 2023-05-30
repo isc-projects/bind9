@@ -312,7 +312,7 @@ else:
         # worker threads, multiple tests may have same port values assigned. If
         # these tests are then executed simultaneously, the test results will
         # be misleading.
-        base_port = int(time.time() // 3600) % (port_max - port_min)
+        base_port = int(time.time() // 3600) % (port_max - port_min) + port_min
 
         return {mod: base_port + i * PORTS_PER_TEST for i, mod in enumerate(modules)}
 
