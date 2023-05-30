@@ -164,7 +164,6 @@ Files: **/.clang-format
        .lgtm.yml
        .pylintrc
        .tsan-suppress
-       .tsan-suppress-extra
        .uncrustify.cfg
        doc/misc/*.zoneopt
        doc/misc/options
