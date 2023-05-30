@@ -20,7 +20,8 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The statstics channel now includes information about incoming zone transfers
+  currently in progress. :gl:`#3883`
 
 - The new :any:`resolver-use-dns64` option enables ``named`` to apply
   :any:`dns64` rules to IPv4 server addresses when sending recursive
