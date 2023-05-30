@@ -5745,6 +5745,27 @@ query_refresh_rrset(query_ctx_t *orig_qctx) {
 }
 
 /*%
+ * Depending on the db lookup result, we can respond to the
+ * client this stale answer.
+ */
+static bool
+stale_client_answer(isc_result_t result) {
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_EMPTYNAME:
+	case DNS_R_NXRRSET:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		return (true);
+	default:
+		return (false);
+	}
+
+	UNREACHABLE();
+}
+
+/*%
  * Perform a local database lookup, in either an authoritative or
  * cache database. If unable to answer, call ns_query_done(); otherwise
  * hand off processing to query_gotanswer().
@@ -5873,7 +5894,6 @@ query_lookup(query_ctx_t *qctx) {
 	{
 		/* Found non-stale usable rdataset. */
 		answer_found = true;
-		goto gotanswer;
 	}
 
 	if (dbfind_stale || stale_refresh_window || stale_timeout) {
@@ -5899,7 +5919,7 @@ query_lookup(query_ctx_t *qctx) {
 			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 			      "%s resolver failure, stale answer %s", namebuf,
 			      stale_found ? "used" : "unavailable");
-		if (!stale_found) {
+		if (!stale_found && !answer_found) {
 			/*
 			 * Resolver failure, no stale data, nothing more we
 			 * can do, return SERVFAIL.
@@ -5918,7 +5938,7 @@ query_lookup(query_ctx_t *qctx) {
 			      "answer %s",
 			      namebuf, stale_found ? "used" : "unavailable");
 
-		if (!stale_found) {
+		if (!stale_found && !answer_found) {
 			/*
 			 * During the stale refresh window explicitly do not try
 			 * to refresh the data, because a recent lookup failed.
@@ -5928,7 +5948,7 @@ query_lookup(query_ctx_t *qctx) {
 		}
 	} else if (stale_timeout) {
 		if ((qctx->options & DNS_GETDB_STALEFIRST) != 0) {
-			if (!stale_found) {
+			if (!stale_found && !answer_found) {
 				/*
 				 * We have nothing useful in cache to return
 				 * immediately.
@@ -5945,7 +5965,7 @@ query_lookup(query_ctx_t *qctx) {
 						&qctx->client->query.fetch);
 				}
 				return (query_lookup(qctx));
-			} else {
+			} else if (stale_client_answer(result)) {
 				/*
 				 * Immediately return the stale answer, start a
 				 * resolver fetch to refresh the data in cache.
@@ -5969,7 +5989,11 @@ query_lookup(query_ctx_t *qctx) {
 				      "%s client timeout, stale answer %s",
 				      namebuf,
 				      stale_found ? "used" : "unavailable");
-			if (!stale_found) {
+			if (!stale_found && !answer_found) {
+				return (result);
+			}
+
+			if (!stale_client_answer(result)) {
 				return (result);
 			}
 
@@ -5982,7 +6006,6 @@ query_lookup(query_ctx_t *qctx) {
 		}
 	}
 
-gotanswer:
 	if (stale_timeout && (answer_found || stale_found)) {
 		/*
 		 * Mark RRsets that we are adding to the client message on a
