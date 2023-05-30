@@ -762,6 +762,108 @@ xfrin_idledout(void *xfr) {
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "maximum idle time exceeded");
 }
 
+isc_time_t
+dns_xfrin_getstarttime(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (xfr->start);
+}
+
+void
+dns_xfrin_getstate(const dns_xfrin_t *xfr, const char **statestr,
+		   bool *is_first_data_received, bool *is_ixfr) {
+	xfrin_state_t state;
+
+	REQUIRE(VALID_XFRIN(xfr));
+	REQUIRE(statestr != NULL && *statestr == NULL);
+	REQUIRE(is_ixfr != NULL);
+
+	state = xfr->state;
+	*statestr = "";
+	*is_first_data_received = (state > XFRST_FIRSTDATA);
+	*is_ixfr = xfr->is_ixfr;
+
+	switch (state) {
+	case XFRST_SOAQUERY:
+		*statestr = "SOA Query";
+		break;
+	case XFRST_GOTSOA:
+		*statestr = "Got SOA";
+		break;
+	case XFRST_INITIALSOA:
+		*statestr = "Initial SOA";
+		break;
+	case XFRST_FIRSTDATA:
+		*statestr = "First Data";
+		break;
+	case XFRST_IXFR_DELSOA:
+	case XFRST_IXFR_DEL:
+	case XFRST_IXFR_ADDSOA:
+	case XFRST_IXFR_ADD:
+		*statestr = "Receiving IXFR Data";
+		break;
+	case XFRST_IXFR_END:
+		*statestr = "Finalizing IXFR";
+		break;
+	case XFRST_AXFR:
+		*statestr = "Receiving AXFR Data";
+		break;
+	case XFRST_AXFR_END:
+		*statestr = "Finalizing AXFR";
+		break;
+	}
+}
+
+uint32_t
+dns_xfrin_getendserial(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (xfr->end_serial);
+}
+
+void
+dns_xfrin_getstats(const dns_xfrin_t *xfr, unsigned int *nmsgp,
+		   unsigned int *nrecsp, uint64_t *nbytesp) {
+	REQUIRE(VALID_XFRIN(xfr));
+	REQUIRE(nmsgp != NULL && nrecsp != NULL && nbytesp != NULL);
+
+	*nmsgp = xfr->nmsg;
+	*nrecsp = xfr->nrecs;
+	*nbytesp = xfr->nbytes;
+}
+
+const isc_sockaddr_t *
+dns_xfrin_getsourceaddr(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (&xfr->sourceaddr);
+}
+
+const isc_sockaddr_t *
+dns_xfrin_getprimaryaddr(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (&xfr->primaryaddr);
+}
+
+const dns_transport_t *
+dns_xfrin_gettransport(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (xfr->transport);
+}
+
+const dns_name_t *
+dns_xfrin_gettsigkeyname(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	if (xfr->tsigkey == NULL || xfr->tsigkey->key == NULL) {
+		return (NULL);
+	}
+
+	return (dst_key_name(xfr->tsigkey->key));
+}
+
 void
 dns_xfrin_shutdown(dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
