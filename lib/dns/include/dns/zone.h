@@ -35,6 +35,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rpz.h>
 #include <dns/types.h>
+#include <dns/xfrin.h>
 #include <dns/zt.h>
 
 /* Define to 1 for detailed reference tracing */
@@ -1787,6 +1788,28 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
  *\li	'state' to be a valid DNS_ZONESTATE_ constant.
+ */
+
+isc_result_t
+dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
+		bool *is_deferred, bool *is_pending, bool *needs_refresh);
+/*%<
+ *	Returns the xfrin associated with the zone (if any) with the current
+ * 	transfer states (as booleans). When no longer needed, the returned xfrin
+ * 	must be detached.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ *\li	'xfrp' to be non NULL and '*xfrp' to be NULL.
+ *\li	'is_running' to be non NULL.
+ *\li	'is_deferred' to be non NULL.
+ *\li	'is_pending' to be non NULL.
+ *\li	'needs_refresh' to be non NULL.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	xfrin exists and the information was returned.
+ *	ISC_R_NOTFOUND	no xfrin was found for the zone.
+ *	ISC_R_FAILED	error while trying to get the xfrin information
  */
 
 void
