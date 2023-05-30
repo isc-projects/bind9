@@ -161,6 +161,7 @@ Files: **/.clang-format
        .gitlab-ci.yml
        .lgtm.yml
        .pylintrc
+       .tsan-suppress
        .uncrustify.cfg
        config.guess
        config.h.in
@@ -175,7 +176,6 @@ Files: **/.clang-format
        install-sh
        lib/dns/mapapi
        mkinstalldirs
-       tsan-suppressions.txt
        util/suppressions.txt
        version
        sonar-project.properties
