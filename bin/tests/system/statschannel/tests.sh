@@ -18,6 +18,7 @@ set -e
 
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
 RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
+NS_PARAMS="-X named.lock -m record -c named.conf -d 99 -g -U 4 -T maxcachesize=2097152"
 
 if ! $FEATURETEST --have-json-c
 then
@@ -48,6 +49,32 @@ if [ ! "$PERL_JSON" ] && [ ! "$PERL_XML" ]; then
     exit 0
 fi
 
+retry_quiet_fast() {
+	__retries="${1}"
+	shift
+
+	while :; do
+		if "$@"; then
+			return 0
+		fi
+		__retries=$((__retries-1))
+		if [ "${__retries}" -gt 0 ]; then
+			# sleep for 0.1 seconds
+			perl -e 'select(undef, undef, undef, .1)'
+		else
+			return 1
+		fi
+	done
+}
+
+wait_for_log_fast() (
+	timeout="$1"
+	msg="$2"
+	file="$3"
+	retry_quiet_fast "$timeout" _search_log "$msg" "$file" && return 0
+	echo_i "exceeded time limit waiting for literal '$msg' in $file"
+        return 1
+)
 
 getzones() {
     sleep 1
@@ -60,6 +87,19 @@ getzones() {
     file=$($PERL fetch.pl -p ${EXTRAPORT1} $path)
     cp $file $file.$1.$3
     { $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3; result=$?; } || true
+    return $result
+}
+
+getxfrins() {
+    echo_i "... using $1"
+    case $1 in
+        xml) path='xml/v3/xfrins' ;;
+        json) path='json/v1/xfrins' ;;
+        *) return 1 ;;
+    esac
+    file=`$PERL fetch.pl -s 10.53.0.3 -p ${EXTRAPORT1} $path`
+    cp $file $file.$1.$3
+    result=$?
     return $result
 }
 
@@ -651,6 +691,32 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] ; then
 else
     echo_i "skipping test: requires libxml2 and curl"
 fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Retransfering 'example' from ns1 to ns3 in slow mode ($n)"
+ret=0
+i=0
+# Restart ns1 with '-T transferslowly' to see the xfrins information in ns3's statschannel while it's ongoing
+stop_server ns1
+start_server --noclean --restart --port ${PORT} ns1 -- "-D statschannel-ns1 $NS_PARAMS -T transferslowly"
+# Request a retransfer of the "example" zone
+nextpart ns3/named.run > /dev/null
+$RNDCCMD 10.53.0.3 retransfer example | sed "s/^/ns3 /" | cat_i
+wait_for_log_fast 200 "zone example/IN: Transfer started" ns3/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+# We have now less than one second to catch the zone transfer in process
+echo_i "Checking zone transfer information in the statistics channel ($n)"
+ret=0
+i=0
+getxfrins xml example x$n || ret=1
+getxfrins json example j$n || ret=1
+grep -F '<state>Initial SOA</state>' xfrins.xml.x$n >/dev/null || ret=1
+grep -F '"state":"Initial SOA"' xfrins.json.j$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))

@@ -32,4 +32,5 @@ rm -f traffic traffic.out.* traffic.json.* traffic.xml.*
 rm -f xml.*mem json.*mem
 rm -f xml.*stats json.*stats
 rm -f zones zones.out.* zones.json.* zones.xml.* zones.expect.*
+rm -f xfrins xfrins.json.* xfrins.xml.*
 rm -rf ./__pycache__
