@@ -8052,6 +8052,12 @@ Resolver Statistics Counters
 ``QuerySockFail``
     This indicates the number of failures in opening query sockets. One common reason for such failures is due to a limitation on file descriptors.
 
+``QueryCurUDP``
+    This indicates the number of UDP queries in progress.
+
+``QueryCurTCP``
+    This indicates the number of TCP queries in progress.
+
 ``QueryTimeout``
     This indicates the number of query timeouts.
 
@@ -8081,6 +8087,48 @@ Resolver Statistics Counters
 
 ``QryRTTnn``
     This provides a frequency table on query round-trip times (RTTs). Each ``nn`` specifies the corresponding frequency. In the sequence of ``nn_1``, ``nn_2``, ..., ``nn_m``, the value of ``nn_i`` is the number of queries whose RTTs are between ``nn_(i-1)`` (inclusive) and ``nn_i`` (exclusive) milliseconds. For the sake of convenience, we define ``nn_0`` to be 0. The last entry should be represented as ``nn_m+``, which means the number of queries whose RTTs are equal to or greater than ``nn_m`` milliseconds.
+
+``NumFetch``
+    This indicates the number of active fetches.
+
+``BucketSize``
+    This indicates the number the resolver's internal buckets (a static number).
+
+``REFUSED``
+    This indicates the number of REFUSED responses received.
+
+``ClientCookieOut``
+    This indicates the number of COOKIE sent with client cookie only.
+
+``ServerCookieOut``
+    This indicates the number of COOKIE sent with client and server cookie.
+
+``CookieIn``
+    This indicates the number of COOKIE replies received.
+
+``CookieClientOk``
+    This indicates the number of COOKIE client ok.
+
+``BadEDNSVersion``
+    This indicates the number of bad EDNS version replies received.
+
+``BadCookieRcode``
+    This indicates the number of bad cookie rcode replies received.
+
+``ZoneQuota``
+    This indicates the number of queries spilled due to zone quota.
+
+``ServerQuota``
+    This indicates the number of queries spilled due to server quota.
+
+``ClientQuota``
+    This indicates the number of queries spilled due to clients per query quota.
+
+``NextItem``
+    This indicates the number of waits for next item, when an invalid response is received.
+
+``Priming``
+    This indicates the number of priming fetches performed by the resolver.
 
 .. _socket_stats:
 
