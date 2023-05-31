@@ -1423,6 +1423,7 @@ respdiff-short:tsan:
     EXTRA_CONFIGURE: "--enable-pthread-rwlock"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
+    RESPDIFF_JOBS: 32
   script:
     - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:
@@ -1462,6 +1463,7 @@ respdiff-long:tsan:
     EXTRA_CONFIGURE: "--enable-pthread-rwlock"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
+    RESPDIFF_JOBS: 32
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   after_script:
