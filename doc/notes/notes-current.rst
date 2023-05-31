@@ -37,7 +37,12 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- Special-case code that was originally added to allow GSS-TSIG to work
+  around bugs in the Windows 2000 version of Active Directory has now
+  been removed since Windows 2000 is long past end-of-life.
+  The ``nsupdate -o`` option and the ``oldgsstsig`` command to ``nsupdate``
+  have been deprecated, and are now treated as synonyms for ``nsupdate -g``
+  and ``gsstsig`` respectively. :gl:`#4012`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

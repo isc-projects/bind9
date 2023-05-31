@@ -119,8 +119,6 @@ static bool is_dst_up = false;
 static bool use_tls = false;
 static bool usevc = false;
 static bool usegsstsig = false;
-static bool use_win2k_gsstsig = false;
-static bool tried_other_gsstsig = false;
 static bool local_only = false;
 static isc_nm_t *netmgr = NULL;
 static isc_loopmgr_t *loopmgr = NULL;
@@ -376,7 +374,6 @@ reset_system(void) {
 		if (gssring != NULL) {
 			dns_tsigkeyring_detach(&gssring);
 		}
-		tried_other_gsstsig = false;
 	}
 }
 
@@ -1196,11 +1193,9 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'g':
 			usegsstsig = true;
-			use_win2k_gsstsig = false;
 			break;
 		case 'o':
 			usegsstsig = true;
-			use_win2k_gsstsig = true;
 			break;
 		case 'O':
 			use_tls = true;
@@ -2303,7 +2298,6 @@ do_next_command(char *cmdline) {
 	if (strcasecmp(word, "gsstsig") == 0) {
 #if HAVE_GSSAPI
 		usegsstsig = true;
-		use_win2k_gsstsig = false;
 #else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
 #endif /* HAVE_GSSAPI */
@@ -2312,7 +2306,6 @@ do_next_command(char *cmdline) {
 	if (strcasecmp(word, "oldgsstsig") == 0) {
 #if HAVE_GSSAPI
 		usegsstsig = true;
-		use_win2k_gsstsig = true;
 #else  /* HAVE_GSSAPI */
 		fprintf(stderr, "gsstsig not supported\n");
 #endif /* HAVE_GSSAPI */
@@ -2338,8 +2331,6 @@ do_next_command(char *cmdline) {
 				"the request)\n"
 				"gsstsig                   (use GSS_TSIG to "
 				"sign the request)\n"
-				"oldgsstsig                (use Microsoft's "
-				"GSS_TSIG to sign the request)\n"
 				"zone name                 (set the zone to be "
 				"updated)\n"
 				"class CLASS               (set the zone's DNS "
@@ -3108,8 +3099,7 @@ start_gssrequest(dns_name_t *primary) {
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
 	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
-					&context, use_win2k_gsstsig, gmctx,
-					&err_message);
+					&context, gmctx, &err_message);
 	if (result == ISC_R_FAILURE) {
 		fprintf(stderr, "tkey query failed: %s\n",
 			err_message != NULL ? err_message : "unknown error");
@@ -3234,19 +3224,6 @@ recvgss(void *arg) {
 		fatal("invalid OPCODE in response to GSS-TSIG query");
 	}
 
-	if (rcvmsg->rcode == dns_rcode_formerr && !tried_other_gsstsig) {
-		ddebug("recvgss trying %s GSS-TSIG",
-		       use_win2k_gsstsig ? "Standard" : "Win2k");
-		if (use_win2k_gsstsig) {
-			use_win2k_gsstsig = false;
-		} else {
-			use_win2k_gsstsig = true;
-		}
-		tried_other_gsstsig = true;
-		start_gssrequest(&restart_primary);
-		goto done;
-	}
-
 	if (rcvmsg->rcode != dns_rcode_noerror &&
 	    rcvmsg->rcode != dns_rcode_nxdomain)
 	{
@@ -3261,8 +3238,7 @@ recvgss(void *arg) {
 
 	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname, &context,
-				       &tsigkey, gssring, use_win2k_gsstsig,
-				       &err_message);
+				       &tsigkey, gssring, &err_message);
 	switch (result) {
 	case DNS_R_CONTINUE:
 		dns_message_detach(&rcvmsg);
@@ -3310,7 +3286,6 @@ recvgss(void *arg) {
 		      err_message != NULL ? err_message : "");
 	}
 
-done:
 	dns_request_destroy(&request);
 	dns_message_detach(&tsigquery);
 

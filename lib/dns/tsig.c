@@ -63,16 +63,6 @@ static dns_name_t const gsstsig = DNS_NAME_INITABSOLUTE(gsstsig_ndata,
 							gsstsig_offsets);
 const dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
-/*
- * Since Microsoft doesn't follow its own standard, we will use this
- * alternate name as a second guess.
- */
-static unsigned char gsstsigms_ndata[] = "\003gss\011microsoft\003com";
-static unsigned char gsstsigms_offsets[] = { 0, 4, 14, 18 };
-static dns_name_t const gsstsigms = DNS_NAME_INITABSOLUTE(gsstsigms_ndata,
-							  gsstsigms_offsets);
-const dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
-
 static unsigned char hmacsha1_ndata[] = "\011hmac-sha1";
 static unsigned char hmacsha1_offsets[] = { 0, 10 };
 static dns_name_t const hmacsha1 = DNS_NAME_INITABSOLUTE(hmacsha1_ndata,
@@ -108,7 +98,6 @@ static const struct {
 	unsigned int dstalg;
 } known_algs[] = { { &hmacmd5, DST_ALG_HMACMD5 },
 		   { &gsstsig, DST_ALG_GSSAPI },
-		   { &gsstsigms, DST_ALG_GSSAPI },
 		   { &hmacsha1, DST_ALG_HMACSHA1 },
 		   { &hmacsha224, DST_ALG_HMACSHA224 },
 		   { &hmacsha256, DST_ALG_HMACSHA256 },

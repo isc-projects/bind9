@@ -1,3 +1,10 @@
+6184.	[func]		Special-case code that was added to allow GSS-TSIG
+			to work around bugs in the Windows 2000 version of
+			Active Directory has been removed. The 'nsupdate -o'
+			option and 'oldgsstsig' command have been
+			deprecated, and are now treated as synonyms for
+			'nsupdate -g' and 'gsstsig' respectively. [GL #4012]
+
 6183.	[bug]		Fix a serve-stale bug where a delegation from cache
 			could be returned to the client. [GL #3950]
 

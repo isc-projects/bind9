@@ -503,8 +503,6 @@ ISC_RUN_TEST_IMPL(algfromname) {
 
 	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_GSSAPI_NAME),
 			 DST_ALG_GSSAPI);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_GSSAPIMS_NAME),
-			 DST_ALG_GSSAPI);
 
 	assert_int_equal(dns__tsig_algfromname(dns_rootname), 0);
 }
@@ -538,7 +536,6 @@ ISC_RUN_TEST_IMPL(algnamefromname) {
 	test_name("hmac-sha512", DNS_TSIG_HMACSHA512_NAME);
 
 	test_name("gss-tsig", DNS_TSIG_GSSAPI_NAME);
-	test_name("gss.microsoft.com", DNS_TSIG_GSSAPIMS_NAME);
 
 	/* try another name that isn't a standard algorithm name */
 	assert_null(dns__tsig_algnamefromname(dns_rootname));
