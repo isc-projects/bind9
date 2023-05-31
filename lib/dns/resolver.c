@@ -10399,6 +10399,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 				fctx->spilled = true;
 			}
 			if (fctx->spilled) {
+				inc_stats(res, dns_resstatscounter_clientquota);
 				result = DNS_R_DROP;
 				goto unlock;
 			}

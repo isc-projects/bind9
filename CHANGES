@@ -1,3 +1,7 @@
+6185.	[func]		Add "ClientQuota" statistics channel counter, which
+			indicates the number of the resolver's spilled queries
+			due to reaching the clients per query quota. [GL !7978]
+
 6184.	[func]		Special-case code that was added to allow GSS-TSIG
 			to work around bugs in the Windows 2000 version of
 			Active Directory has been removed. The 'nsupdate -o'
