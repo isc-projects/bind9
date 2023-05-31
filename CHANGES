@@ -1,3 +1,10 @@
+6192.	[security]	A query that prioritizes stale data over lookup
+			triggers a fetch to refresh the stale data in cache.
+			If the fetch is aborted for exceeding the recursion
+			quota, it was possible for 'named' to enter an infinite
+			callback loop and crash due to stack overflow. This has
+			been fixed. (CVE-2023-2911) [GL #4089]
+
 6190.	[security]	Improve the overmem cleaning process to prevent the
 			cache going over the configured limit. (CVE-2023-2828)
 			[GL #4055]
