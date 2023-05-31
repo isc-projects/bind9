@@ -808,7 +808,7 @@ dns_view_delzone(dns_view_t *view, dns_zone_t *zone) {
 
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
-		  dns_zone_t **zonep) {
+		  unsigned int options, dns_zone_t **zonep) {
 	isc_result_t result;
 	dns_zt_t *zonetable = NULL;
 
@@ -817,7 +817,7 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 	rcu_read_lock();
 	zonetable = rcu_dereference(view->zonetable);
 	if (zonetable != NULL) {
-		result = dns_zt_find(zonetable, name, DNS_ZTFIND_EXACT, zonep);
+		result = dns_zt_find(zonetable, name, options, zonep);
 	} else {
 		result = ISC_R_NOTFOUND;
 	}

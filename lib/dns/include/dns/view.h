@@ -761,11 +761,11 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
  */
 
 isc_result_t
-dns_view_findzone(dns_view_t *view, const dns_name_t *name, dns_zone_t **zonep);
+dns_view_findzone(dns_view_t *view, const dns_name_t *name,
+		  unsigned int options, dns_zone_t **zonep);
 /*%<
  * Search for the zone 'name' in the zone table of 'view'.
- * If found, 'zonep' is (strongly) attached to it.  There
- * are no partial matches.
+ * If found, 'zonep' is (strongly) attached to it.
  *
  * Requires:
  *

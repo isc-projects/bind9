@@ -441,7 +441,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	}
 
 	/* See if the zone already exists */
-	result = dns_view_findzone(view, origin, &dupzone);
+	result = dns_view_findzone(view, origin, DNS_ZTFIND_EXACT, &dupzone);
 	if (result == ISC_R_SUCCESS) {
 		dns_zone_detach(&dupzone);
 		result = ISC_R_EXISTS;
