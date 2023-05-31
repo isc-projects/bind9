@@ -1291,4 +1291,20 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
  *
  *\li	Anything else				Failure.
  */
+
+isc_result_t
+dns_view_apply(dns_view_t *view, bool stop, isc_result_t *sub,
+	       isc_result_t (*action)(dns_zone_t *, void *), void *uap);
+/*%<
+ * Call dns_zt_apply on the view's zonetable.
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if action was applied to all nodes.  If 'stop' is
+ *	false and 'sub' is non NULL then the first error (if any)
+ *	reported by 'action' is returned in '*sub'. If 'stop' is true,
+ *	the first error code from 'action' is returned.
+ *
+ * \li ISC_R_SHUTTINGDOWN if the view is in the process of shutting down.
+ */
+
 ISC_LANG_ENDDECLS

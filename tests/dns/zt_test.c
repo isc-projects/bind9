@@ -71,8 +71,7 @@ ISC_LOOP_TEST_IMPL(apply) {
 	assert_non_null(zt);
 
 	assert_int_equal(nzones, 0);
-	result = dns_zt_apply(view->zonetable, false, NULL, count_zone,
-			      &nzones);
+	result = dns_view_apply(view, false, NULL, count_zone, &nzones);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 

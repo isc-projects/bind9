@@ -2474,3 +2474,22 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
 cleanup:
 	return (result);
 }
+
+isc_result_t
+dns_view_apply(dns_view_t *view, bool stop, isc_result_t *sub,
+	       isc_result_t (*action)(dns_zone_t *, void *), void *uap) {
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_apply(zonetable, stop, sub, action, uap);
+	} else {
+		result = ISC_R_SHUTTINGDOWN;
+	}
+	rcu_read_unlock();
+	return (result);
+}
