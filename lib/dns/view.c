@@ -30,6 +30,7 @@
 #include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/string.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -133,7 +134,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	isc_rwlock_init(&view->sfd_lock);
 
-	view->zonetable = NULL;
 	dns_zt_create(mctx, view, &view->zonetable);
 
 	result = dns_fwdtable_create(mctx, &view->fwdtable);
@@ -460,7 +460,7 @@ dns_view_detach(dns_view_t **viewp) {
 
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
-		dns_zt_t *zt = NULL;
+		dns_zt_t *zonetable = NULL;
 		dns_resolver_t *resolver = NULL;
 		dns_adb_t *adb = NULL;
 		dns_requestmgr_t *requestmgr = NULL;
@@ -481,6 +481,15 @@ dns_view_detach(dns_view_t **viewp) {
 		/* Swap the pointers under the lock */
 		LOCK(&view->lock);
 
+		rcu_read_lock();
+		zonetable = rcu_xchg_pointer(&view->zonetable, NULL);
+		if (zonetable != NULL) {
+			if (view->flush) {
+				dns_zt_flush(zonetable);
+			}
+		}
+		rcu_read_unlock();
+
 		if (view->resolver != NULL) {
 			resolver = view->resolver;
 			view->resolver = NULL;
@@ -494,14 +503,6 @@ dns_view_detach(dns_view_t **viewp) {
 		if (view->requestmgr != NULL) {
 			requestmgr = view->requestmgr;
 			view->requestmgr = NULL;
-		}
-
-		if (view->zonetable != NULL) {
-			zt = view->zonetable;
-			view->zonetable = NULL;
-			if (view->flush) {
-				dns_zt_flush(zt);
-			}
 		}
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
@@ -537,8 +538,9 @@ dns_view_detach(dns_view_t **viewp) {
 			dns_requestmgr_detach(&requestmgr);
 		}
 
-		if (zt != NULL) {
-			dns_zt_detach(&zt);
+		if (zonetable != NULL) {
+			synchronize_rcu();
+			dns_zt_detach(&zonetable);
 		}
 		if (mkzone != NULL) {
 			dns_zone_detach(&mkzone);
@@ -560,10 +562,16 @@ dialup(dns_zone_t *zone, void *dummy) {
 
 void
 dns_view_dialup(dns_view_t *view) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->zonetable != NULL);
+	dns_zt_t *zonetable = NULL;
 
-	(void)dns_zt_apply(view->zonetable, false, NULL, dialup, NULL);
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		(void)dns_zt_apply(zonetable, false, NULL, dialup, NULL);
+	}
+	rcu_read_unlock();
 }
 
 void
@@ -762,11 +770,19 @@ dns_view_thaw(dns_view_t *view) {
 isc_result_t
 dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 
-	result = dns_zt_mount(view->zonetable, zone);
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_mount(zonetable, zone);
+	} else {
+		result = ISC_R_SHUTTINGDOWN;
+	}
+	rcu_read_unlock();
 
 	return (result);
 }
@@ -774,9 +790,21 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  dns_zone_t **zonep) {
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
+
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	return (dns_zt_find(view->zonetable, name, DNS_ZTFIND_EXACT, zonep));
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_find(zonetable, name, DNS_ZTFIND_EXACT, zonep);
+	} else {
+		result = ISC_R_NOTFOUND;
+	}
+	rcu_read_unlock();
+
+	return (result);
 }
 
 isc_result_t
@@ -791,6 +819,7 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	bool is_cache, is_staticstub_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_zone_t *zone = NULL;
+	dns_zt_t *zonetable = NULL;
 
 	/*
 	 * Find an rdataset whose owner name is 'name', and whose type is
@@ -813,7 +842,14 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	 * Find a database to answer the query.
 	 */
 	is_staticstub_zone = false;
-	result = dns_zt_find(view->zonetable, name, DNS_ZTFIND_MIRROR, &zone);
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_find(zonetable, name, DNS_ZTFIND_MIRROR, &zone);
+	} else {
+		result = ISC_R_SHUTTINGDOWN;
+	}
+	rcu_read_unlock();
 	if (zone != NULL && dns_zone_gettype(zone) == dns_zone_staticstub &&
 	    !use_static_stub)
 	{
@@ -1067,6 +1103,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 	bool is_cache, use_zone = false, try_hints = false;
 	dns_zone_t *zone = NULL;
 	dns_name_t *zfname = NULL;
+	dns_zt_t *zonetable = NULL;
 	dns_rdataset_t zrdataset, zsigrdataset;
 	dns_fixedname_t zfixedname;
 	unsigned int ztoptions = DNS_ZTFIND_MIRROR;
@@ -1087,7 +1124,14 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 	if ((options & DNS_DBFIND_NOEXACT) != 0) {
 		ztoptions |= DNS_ZTFIND_NOEXACT;
 	}
-	result = dns_zt_find(view->zonetable, name, ztoptions, &zone);
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_find(zonetable, name, ztoptions, &zone);
+	} else {
+		result = ISC_R_SHUTTINGDOWN;
+	}
+	rcu_read_unlock();
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		result = dns_zone_getdb(zone, &db);
 	}
@@ -1287,11 +1331,19 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 	for (view = ISC_LIST_HEAD(*list); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
+		dns_zt_t *zonetable = NULL;
 		if (!allclasses && view->rdclass != rdclass) {
 			continue;
 		}
-		result = dns_zt_find(view->zonetable, name, DNS_ZTFIND_EXACT,
-				     (zone1 == NULL) ? &zone1 : &zone2);
+		rcu_read_lock();
+		zonetable = rcu_dereference(view->zonetable);
+		if (zonetable != NULL) {
+			result = dns_zt_find(zonetable, name, DNS_ZTFIND_EXACT,
+					     (zone1 == NULL) ? &zone1 : &zone2);
+		} else {
+			result = ISC_R_NOTFOUND;
+		}
+		rcu_read_unlock();
 		INSIST(result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND);
 		if (zone2 != NULL) {
 			dns_zone_detach(&zone1);
@@ -1311,15 +1363,39 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 
 isc_result_t
 dns_view_load(dns_view_t *view, bool stop, bool newonly) {
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
+
 	REQUIRE(DNS_VIEW_VALID(view));
-	return (dns_zt_load(view->zonetable, stop, newonly));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_load(zonetable, stop, newonly);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+	rcu_read_unlock();
+	return (result);
 }
 
 isc_result_t
 dns_view_asyncload(dns_view_t *view, bool newonly, dns_zt_callback_t *callback,
 		   void *arg) {
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
+
 	REQUIRE(DNS_VIEW_VALID(view));
-	return (dns_zt_asyncload(view->zonetable, newonly, callback, arg));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_asyncload(zonetable, newonly, callback, arg);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+	rcu_read_unlock();
+	return (result);
 }
 
 isc_result_t
@@ -1455,10 +1531,21 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 
 isc_result_t
 dns_view_freezezones(dns_view_t *view, bool value) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(view->zonetable != NULL);
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
 
-	return (dns_zt_freezezones(view->zonetable, view, value));
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_freezezones(zonetable, view, value);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+	rcu_read_unlock();
+
+	return (result);
 }
 
 isc_result_t
@@ -2119,6 +2206,7 @@ cleanup:
 void
 dns_view_setviewcommit(dns_view_t *view) {
 	dns_zone_t *redirect = NULL, *managed_keys = NULL;
+	dns_zt_t *zonetable = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2133,9 +2221,13 @@ dns_view_setviewcommit(dns_view_t *view) {
 
 	UNLOCK(&view->lock);
 
-	if (view->zonetable != NULL) {
-		dns_zt_setviewcommit(view->zonetable);
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		dns_zt_setviewcommit(zonetable);
 	}
+	rcu_read_unlock();
+
 	if (redirect != NULL) {
 		dns_zone_setviewcommit(redirect);
 		dns_zone_detach(&redirect);
@@ -2149,7 +2241,7 @@ dns_view_setviewcommit(dns_view_t *view) {
 void
 dns_view_setviewrevert(dns_view_t *view) {
 	dns_zone_t *redirect = NULL, *managed_keys = NULL;
-	dns_zt_t *zonetable;
+	dns_zt_t *zonetable = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -2164,7 +2256,6 @@ dns_view_setviewrevert(dns_view_t *view) {
 	if (view->managed_keys != NULL) {
 		dns_zone_attach(view->managed_keys, &managed_keys);
 	}
-	zonetable = view->zonetable;
 	UNLOCK(&view->lock);
 
 	if (redirect != NULL) {
@@ -2175,9 +2266,12 @@ dns_view_setviewrevert(dns_view_t *view) {
 		dns_zone_setviewrevert(managed_keys);
 		dns_zone_detach(&managed_keys);
 	}
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
 	if (zonetable != NULL) {
 		dns_zt_setviewrevert(zonetable);
 	}
+	rcu_read_unlock();
 }
 
 bool
