@@ -788,6 +788,25 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 }
 
 isc_result_t
+dns_view_delzone(dns_view_t *view, dns_zone_t *zone) {
+	isc_result_t result;
+	dns_zt_t *zonetable = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	rcu_read_lock();
+	zonetable = rcu_dereference(view->zonetable);
+	if (zonetable != NULL) {
+		result = dns_zt_unmount(zonetable, zone);
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+	rcu_read_unlock();
+
+	return (result);
+}
+
+isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
 		  dns_zone_t **zonep) {
 	isc_result_t result;

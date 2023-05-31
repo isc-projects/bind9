@@ -493,6 +493,16 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
  *\li	'zone' is a valid zone.
  */
 
+isc_result_t
+dns_view_delzone(dns_view_t *view, dns_zone_t *zone);
+/*%<
+ * Removes zone 'zone' from 'view'.
+ *
+ * Requires:
+ *
+ *\li	'zone' is a valid zone.
+ */
+
 void
 dns_view_freeze(dns_view_t *view);
 /*%<

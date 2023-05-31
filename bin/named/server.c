@@ -2856,7 +2856,7 @@ catz_addmodzone_cb(void *arg) {
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(cz->view->zonetable, zone);
+		dns_view_delzone(cz->view, zone);
 		goto cleanup;
 	}
 
@@ -2925,7 +2925,7 @@ catz_delzone_cb(void *arg) {
 		dns_zone_unload(zone);
 	}
 
-	CHECK(dns_zt_unmount(cz->view->zonetable, zone));
+	CHECK(dns_view_delzone(cz->view, zone));
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
@@ -13551,7 +13551,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		dns_view_delzone(view, zone);
 		goto cleanup;
 	}
 
@@ -13759,7 +13759,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		dns_view_delzone(view, zone);
 		goto cleanup;
 	}
 
@@ -14147,7 +14147,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	if (dns_zone_gettype(zone) == dns_zone_redirect) {
 		dns_zone_detach(&view->redirect);
 	} else {
-		CHECK(dns_zt_unmount(view->zonetable, zone));
+		CHECK(dns_view_delzone(view, zone));
 	}
 
 	/* Send cleanup event */
