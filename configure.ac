@@ -623,6 +623,8 @@ PKG_CHECK_MODULES([LIBUV], [libuv >= 1.37.0], [],
 		  [PKG_CHECK_MODULES([LIBUV], [libuv >= 1.34.0 libuv < 1.35.0], [],
 				     [AC_MSG_ERROR([libuv >= 1.34.0 (except 1.35.0 and 1.36.0) not found])])])
 
+PKG_CHECK_VERSION([LIBUV_VERSION], [libuv])
+
 AX_SAVE_FLAGS([libuv])
 CFLAGS="$CFLAGS $LIBUV_CFLAGS"
 LIBS="$LIBS $LIBUV_LIBS"
@@ -697,8 +699,8 @@ CRYPTO=OpenSSL
 #
 # OpenSSL/LibreSSL is mandatory
 #
-PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [],
-		  [AX_CHECK_OPENSSL([:],[AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])])
+PKG_CHECK_MODULES([OPENSSL], [libssl libcrypto], [PKG_CHECK_VERSION([OPENSSL_VERSION], [openssl])],
+		  [AX_CHECK_OPENSSL([:], [AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])])
 
 AX_SAVE_FLAGS([openssl])
 
@@ -1688,7 +1690,7 @@ report() {
     test "yes" = "$enable_fixed_rrset" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
     test "yes" = "$enable_fips_mode" && \
-        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
+	echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
 
     test "yes" = "$enable_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
@@ -1698,6 +1700,11 @@ report() {
 
     test "auto" = "$validation_default" && echo "    DNSSEC validation active by default (--enable-auto-validation)"
 
+    echo "-------------------------------------------------------------------------------"
+    echo "    Library versions:"
+    echo "      OpenSSL:		$OPENSSL_VERSION"
+    echo "      libuv:		$LIBUV_VERSION"
+    echo "      Userspace-RCU:	$RCU_VERSION"
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
@@ -1731,7 +1738,7 @@ report() {
     test "yes" = "$validation_default" && echo "    DNSSEC validation requires configuration (--enable-auto-validation)"
 
     test "yes" = "$enable_fips_mode" || \
-        echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
+	echo "    FIPS mode in OpenSSL (--enable-fips-mode)"
 
     test "yes" = "$enable_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
