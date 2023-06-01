@@ -5827,6 +5827,7 @@ query_refresh_rrset(query_ctx_t *orig_qctx) {
 	qctx.client->query.dboptions &= ~(DNS_DBFIND_STALETIMEOUT |
 					  DNS_DBFIND_STALEOK |
 					  DNS_DBFIND_STALEENABLED);
+	qctx.client->nodetach = false;
 
 	/*
 	 * We'll need some resources...
@@ -6100,7 +6101,14 @@ query_lookup(query_ctx_t *qctx) {
 					"%s stale answer used, an attempt to "
 					"refresh the RRset will still be made",
 					namebuf);
+
 				qctx->refresh_rrset = STALE(qctx->rdataset);
+				/*
+				 * If we are refreshing the RRSet, we must not
+				 * detach from the client in query_send().
+				 */
+				qctx->client->nodetach = qctx->refresh_rrset;
+
 				if (stale_found) {
 					ns_client_extendederror(
 						qctx->client, ede,
@@ -11961,12 +11969,7 @@ ns_query_done(query_ctx_t *qctx) {
 	/*
 	 * Client may have been detached after query_send(), so
 	 * we test and store the flag state here, for safety.
-	 * If we are refreshing the RRSet, we must not detach from the client
-	 * in the query_send(), so we need to override the flag.
 	 */
-	if (qctx->refresh_rrset) {
-		qctx->client->nodetach = true;
-	}
 	nodetach = qctx->client->nodetach;
 	query_send(qctx->client);
 
