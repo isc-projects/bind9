@@ -1,3 +1,7 @@
+6190.	[security]	Improve the overmem cleaning process to prevent the
+			cache going over the configured limit. (CVE-2023-2828)
+			[GL #4055]
+
 5962.	[security]	Fix memory leak in EdDSA verify processing.
 			(CVE-2022-38178) [GL #3487]
 
