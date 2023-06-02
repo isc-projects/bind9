@@ -55,6 +55,11 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- If a response from an authoritative server has its RCODE set to
+  FORMERR and contains an echoed EDNS COOKIE option that was present in
+  the query, :iscman:`named` now retries sending the query to the
+  same server without an EDNS COOKIE option. :gl:`#4049`
+
 - The responsiveness of :iscman:`named` was improved, when serving as an
   authoritative DNS server for a delegation-heavy zone(s) shortly after
   loading such zone(s). :gl:`#4045`
