@@ -48,6 +48,10 @@ Bug Fixes
   a delegation from cache was returned to the client. This has now been fixed.
   :gl:`#3950`
 
+- BIND could allocate too big buffers when sending data via
+  stream-based DNS transports, leading to increased memory usage.
+  This has been fixed. :gl:`#4038`
+
 Known Issues
 ~~~~~~~~~~~~
 
