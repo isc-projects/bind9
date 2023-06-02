@@ -41,28 +41,28 @@ Removed Features
 
 - TKEY mode 2 (Diffie-Hellman Exchanged Keying) is now deprecated, and
   will be removed in a future release. A warning will be logged when
-  the ``tkey-dhkey`` option is used in ``named.conf``. :gl:`#3905`
+  the :any:`tkey-dhkey` option is used in ``named.conf``. :gl:`#3905`
 
 Bug Fixes
 ~~~~~~~~~
 
-- BIND could get stuck on reconfiguration when a `listen` statement
-  for HTTP is removed from the configuration. That has been fixed.
-  :gl:`#4071`
+- BIND could get stuck on reconfiguration when a :any:`listen-on`
+  statement for HTTP is removed from the configuration. That has been
+  fixed. :gl:`#4071`
 
-- It could happen that after the :any:`stale-answer-client-timeout` duration,
-  a delegation from cache was returned to the client. This has now been fixed.
-  :gl:`#3950`
+- Previously, it was possible for a delegation from cache to be returned
+  to the client after the :any:`stale-answer-client-timeout` duration.
+  This has been fixed. :gl:`#3950`
 
 - BIND could allocate too big buffers when sending data via
   stream-based DNS transports, leading to increased memory usage.
   This has been fixed. :gl:`#4038`
 
 - When the :any:`stale-answer-enable` option was enabled and the
-  :any:`stale-answer-client-timeout` option was enabled and larger than 0,
-  ``named`` was taking two places from the :any:`clients-per-query` limit for
-  each client and was failing to gradually auto-tune its value, as configured.
-  This has been fixed. :gl:`#4074`
+  :any:`stale-answer-client-timeout` option was enabled and larger than
+  0, :iscman:`named` previously allocated two slots from the
+  :any:`clients-per-query` limit for each client and failed to gradually
+  auto-tune its value, as configured. This has been fixed. :gl:`#4074`
 
 Known Issues
 ~~~~~~~~~~~~
