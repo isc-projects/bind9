@@ -27,16 +27,16 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
+- The read timeout in :iscman:`rndc` can now be specified on the command
+  line using the :option:`-t <rndc -t>` option, allowing commands that
+  take a long time to complete sufficient time to do so. :gl:`#4046`
+
 - Support for multi-signer model 2 (:rfc:`8901`) when using
   :any:`inline-signing` was added. :gl:`#2710`
 
 - A new option to :any:`dnssec-policy` has been added, :any:`cdnskey`,
   that allows users to enable or disable the publication of CDNSKEY
   records. :gl:`#4050`
-
-- The read timeout in :iscman:`rndc` can now be specified on the command
-  line using the :option:`-t <rndc -t>` option, allowing commands that
-  take a long time to complete sufficient time to do so. :gl:`#4046`
 
 - The system test suite can now be executed with pytest (along with
   pytest-xdist for parallel execution). :gl:`#3978`
