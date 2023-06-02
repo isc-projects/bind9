@@ -348,6 +348,7 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		INSIST(client->tcpbuf == NULL);
 		client->tcpbuf = isc_mem_get(client->mctx,
 					     NS_CLIENT_TCP_BUFFER_SIZE);
+		client->tcpbuf_size = NS_CLIENT_TCP_BUFFER_SIZE;
 		data = client->tcpbuf;
 		isc_buffer_init(buffer, data, NS_CLIENT_TCP_BUFFER_SIZE);
 	} else {
@@ -380,7 +381,17 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	REQUIRE(client->sendhandle == NULL);
 
-	isc_buffer_usedregion(buffer, &r);
+	if (isc_buffer_base(buffer) == client->tcpbuf) {
+		size_t used = isc_buffer_usedlength(buffer);
+		client->tcpbuf = isc_mem_reget(client->manager->mctx,
+					       client->tcpbuf,
+					       client->tcpbuf_size, used);
+		client->tcpbuf_size = used;
+		r.base = client->tcpbuf;
+		r.length = used;
+	} else {
+		isc_buffer_usedregion(buffer, &r);
+	}
 	isc_nmhandle_attach(client->handle, &client->sendhandle);
 
 	if (isc_nm_is_http_handle(client->handle)) {
@@ -450,9 +461,7 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	return;
 done:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf,
-			    NS_CLIENT_TCP_BUFFER_SIZE);
-		client->tcpbuf = NULL;
+		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
 	}
 
 	ns_client_drop(client, result);
@@ -736,9 +745,7 @@ renderend:
 
 cleanup:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf,
-			    NS_CLIENT_TCP_BUFFER_SIZE);
-		client->tcpbuf = NULL;
+		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
 	}
 
 	if (cleanup_cctx) {
@@ -1620,8 +1627,7 @@ ns__client_reset_cb(void *client0) {
 
 	ns_client_endrequest(client);
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf,
-			    NS_CLIENT_TCP_BUFFER_SIZE);
+		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
 	}
 
 	if (client->keytag != NULL) {
