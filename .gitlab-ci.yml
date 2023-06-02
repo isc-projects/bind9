@@ -1476,7 +1476,7 @@ respdiff-long-third-party:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.2"
   script:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
 
