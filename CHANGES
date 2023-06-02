@@ -1,3 +1,7 @@
+6188.	[performance]	Reduce memory consumption by allocating properly
+			sized send buffers for stream-based transports.
+			[GL #4038]
+
 6187.	[bug]		Address view shutdown INSIST when accessing the
 			zonetable. [GL #4093]
 
