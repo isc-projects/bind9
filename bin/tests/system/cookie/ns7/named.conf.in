@@ -23,6 +23,7 @@ options {
 	answer-cookie no;
 	send-cookie yes;
 	nocookie-udp-size 512;
+	dnssec-validation no;
 };
 
 zone "." {

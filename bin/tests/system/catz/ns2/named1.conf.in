@@ -29,6 +29,7 @@ options {
 	notify-delay 0;
 	recursion no;
 	serial-query-rate 100;
+	dnssec-validation no;
 };
 
 /*

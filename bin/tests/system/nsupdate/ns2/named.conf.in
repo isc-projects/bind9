@@ -22,6 +22,7 @@ options {
 	recursion yes;
 	notify yes;
 	serial-query-rate 1; // workaround for KB AA-01213
+	dnssec-validation no;
 };
 
 key rndc_key {

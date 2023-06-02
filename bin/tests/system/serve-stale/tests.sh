@@ -116,8 +116,8 @@ rndc_dumpdb ns1 || ret=1
 awk '/; stale/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
     grep "; stale data\.example.*3[56]...*TXT.*A text record with a 2 second ttl" > /dev/null 2>&1 || ret=1
 # Also make sure the not expired data does not have a stale comment.
-awk '/; answer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
-    grep "; answer longttl\.example.*[56]...*TXT.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
+awk '/; authanswer/ { x=$0; getline; print x, $0}' ns1/named_dump.db.test$n |
+    grep "; authanswer longttl\.example.*[56]...*TXT.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1600,8 +1600,8 @@ awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
 awk '/; expired/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
     grep "; expired since .* (awaiting cleanup) othertype\.example\." > /dev/null 2>&1 || ret=1
 # Also make sure the not expired data does not have an expired comment.
-awk '/; answer/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
-    grep "; answer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
+awk '/; authanswer/ { x=$0; getline; print x, $0}' ns5/named_dump.db.test$n |
+    grep "; authanswer longttl\.example.*A text record with a 600 second ttl" > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

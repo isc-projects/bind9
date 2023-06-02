@@ -27,4 +27,5 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	notify no;
+	dnssec-validation no;
 };
