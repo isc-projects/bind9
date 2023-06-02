@@ -1,3 +1,6 @@
+6187.	[bug]		Address view shutdown INSIST when accessing the
+			zonetable. [GL #4093]
+
 6186.	[bug]		Fix a 'clients-per-query' miscalculation bug. When the
 			'stale-answer-enable' options was enabled and the
 			'stale-answer-client-timeout' option was enabled and

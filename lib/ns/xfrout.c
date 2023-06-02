@@ -795,7 +795,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		FAILC(DNS_R_FORMERR, "multiple questions");
 	}
 
-	result = dns_view_findzone(client->view, question_name, &zone);
+	result = dns_view_findzone(client->view, question_name,
+				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS || dns_zone_gettype(zone) == dns_zone_dlz) {
 		/*
 		 * The normal zone table does not have a match, or this is

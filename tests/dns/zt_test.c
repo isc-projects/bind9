@@ -28,6 +28,7 @@
 #include <isc/buffer.h>
 #include <isc/loop.h>
 #include <isc/timer.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -56,17 +57,21 @@ count_zone(dns_zone_t *zone, void *uap) {
 ISC_LOOP_TEST_IMPL(apply) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
+	dns_zt_t *zt = NULL;
 	int nzones = 0;
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	view = dns_zone_getview(zone);
-	assert_non_null(view->zonetable);
+	rcu_read_lock();
+	zt = rcu_dereference(view->zonetable);
+	rcu_read_unlock();
+
+	assert_non_null(zt);
 
 	assert_int_equal(nzones, 0);
-	result = dns_zt_apply(view->zonetable, false, NULL, count_zone,
-			      &nzones);
+	result = dns_view_apply(view, false, NULL, count_zone, &nzones);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nzones, 1);
 
@@ -151,6 +156,7 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	isc_result_t result;
 	int n;
 	dns_zone_t *zone = NULL;
+	dns_zt_t *zt = NULL;
 	char buf[4096];
 
 	result = dns_test_makezone("foo", &zone, NULL, true);
@@ -161,7 +167,10 @@ ISC_LOOP_TEST_IMPL(asyncload_zone) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	view = dns_zone_getview(zone);
-	assert_non_null(view->zonetable);
+	rcu_read_lock();
+	zt = rcu_dereference(view->zonetable);
+	rcu_read_unlock();
+	assert_non_null(zt);
 
 	assert_false(dns__zone_loadpending(zone));
 	zonefile = fopen("./zone.data", "wb");
@@ -239,7 +248,9 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	dns_zone_setfile(zone3, TESTS_DIR "/testdata/zt/nonexistent.db",
 			 dns_masterformat_text, &dns_master_style_default);
 
-	zt = view->zonetable;
+	rcu_read_lock();
+	zt = rcu_dereference(view->zonetable);
+	rcu_read_unlock();
 	assert_non_null(zt);
 
 	dns_test_setupzonemgr();
@@ -254,7 +265,10 @@ ISC_LOOP_TEST_IMPL(asyncload_zt) {
 	assert_false(dns__zone_loadpending(zone2));
 	assert_false(atomic_load(&done));
 
+	rcu_read_lock();
+	zt = rcu_dereference(view->zonetable);
 	dns_zt_asyncload(zt, false, all_done, NULL);
+	rcu_read_unlock();
 }
 
 ISC_TEST_LIST_START

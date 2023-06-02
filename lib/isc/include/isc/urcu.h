@@ -19,9 +19,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-/* Inline small (less than 10 lines) functions */
-#define URCU_INLINE_SMALL_FUNCTIONS
-
 #if defined(RCU_MEMBARRIER) || defined(RCU_MB) || defined(RCU_SIGNAL)
 #include <urcu.h>
 #elif defined(RCU_QSBR)

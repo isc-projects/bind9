@@ -1987,7 +1987,8 @@ ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 				     "RRs");
 	}
 
-	result = dns_view_findzone(client->view, zonename, &zone);
+	result = dns_view_findzone(client->view, zonename, DNS_ZTFIND_EXACT,
+				   &zone);
 	if (result != ISC_R_SUCCESS) {
 		FAILN(DNS_R_NOTAUTH, zonename,
 		      "not authoritative for update zone");

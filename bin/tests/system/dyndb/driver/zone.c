@@ -139,7 +139,7 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 
 	/* Return success if the zone is already in the view as expected. */
 	result = dns_view_findzone(inst->view, dns_zone_getorigin(zone),
-				   &zone_in_view);
+				   DNS_ZTFIND_EXACT, &zone_in_view);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		goto cleanup;
 	}

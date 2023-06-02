@@ -247,6 +247,19 @@ AC_DEFINE_UNQUOTED([RCU_VERSION], ["$RCU_VERSION"], [Compile-time Userspace-RCU 
 CFLAGS="$CFLAGS $LIBURCU_CFLAGS"
 LIBS="$LIBS $LIBURCU_LIBS"
 
+#
+# Userspace-RCU inlining doesn't work for rcu_deference() with some combination
+# of C compiler and library version.
+#
+AC_MSG_CHECKING([whether we can inline small liburcu functions])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([[#define URCU_INLINE_SMALL_FUNCTIONS 1
+		     #include <urcu.h>]],
+		   [[struct opaque *a; struct opaque *b = rcu_dereference(a);]])],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([URCU_INLINE_SMALL_FUNCTIONS], [1], [Inline small (less than 10 lines) functions])],
+  [AC_MSG_RESULT([no])])
+
 # Fuzzing is not included in pairwise testing as fuzzing tools are
 # not present in the relevant Docker image.
 #

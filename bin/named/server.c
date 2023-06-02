@@ -2708,7 +2708,7 @@ catz_addmodzone_cb(void *arg) {
 		goto cleanup;
 	}
 
-	result = dns_view_findzone(cz->view, name, &zone);
+	result = dns_view_findzone(cz->view, name, DNS_ZTFIND_EXACT, &zone);
 
 	if (cz->mod) {
 		dns_catz_zone_t *parentcatz;
@@ -2834,7 +2834,7 @@ catz_addmodzone_cb(void *arg) {
 	}
 
 	/* Is it there yet? */
-	CHECK(dns_view_findzone(cz->view, name, &zone));
+	CHECK(dns_view_findzone(cz->view, name, DNS_ZTFIND_EXACT, &zone));
 
 	/*
 	 * Load the zone from the master file.	If this fails, we'll
@@ -2856,7 +2856,7 @@ catz_addmodzone_cb(void *arg) {
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(cz->view->zonetable, zone);
+		dns_view_delzone(cz->view, zone);
 		goto cleanup;
 	}
 
@@ -2891,7 +2891,7 @@ catz_delzone_cb(void *arg) {
 	dns_name_format(dns_catz_entry_getname(cz->entry), cname,
 			DNS_NAME_FORMATSIZE);
 	result = dns_view_findzone(cz->view, dns_catz_entry_getname(cz->entry),
-				   &zone);
+				   DNS_ZTFIND_EXACT, &zone);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -2925,7 +2925,7 @@ catz_delzone_cb(void *arg) {
 		dns_zone_unload(zone);
 	}
 
-	CHECK(dns_zt_unmount(cz->view->zonetable, zone));
+	CHECK(dns_view_delzone(cz->view, zone));
 	file = dns_zone_getfile(zone);
 	if (file != NULL) {
 		isc_file_remove(file);
@@ -3068,7 +3068,8 @@ configure_catz_zone(dns_view_t *view, dns_view_t *pview,
 			isc_ht_iter_current(it, (void **)&entry);
 			name = dns_catz_entry_getname(entry);
 
-			tresult = dns_view_findzone(pview, name, &dnszone);
+			tresult = dns_view_findzone(pview, name,
+						    DNS_ZTFIND_EXACT, &dnszone);
 			if (tresult != ISC_R_SUCCESS) {
 				continue;
 			}
@@ -5036,7 +5037,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	if (view->hints == NULL) {
 		dns_zone_t *rootzone = NULL;
-		(void)dns_view_findzone(view, dns_rootname, &rootzone);
+		(void)dns_view_findzone(view, dns_rootname, DNS_ZTFIND_EXACT,
+					&rootzone);
 		if (rootzone != NULL) {
 			dns_zone_detach(&rootzone);
 			need_hints = false;
@@ -5768,7 +5770,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			/*
 			 * This zone already exists.
 			 */
-			(void)dns_view_findzone(view, name, &zone);
+			(void)dns_view_findzone(view, name, DNS_ZTFIND_EXACT,
+						&zone);
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 				continue;
@@ -5799,7 +5802,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			}
 
 			if (pview != NULL) {
-				(void)dns_view_findzone(pview, name, &zone);
+				(void)dns_view_findzone(
+					pview, name, DNS_ZTFIND_EXACT, &zone);
 				dns_view_detach(&pview);
 			}
 
@@ -5858,7 +5862,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			CHECK(dns_name_fromstring(
 				name, zones[ipv4only_zone].name, 0, NULL));
 
-			(void)dns_view_findzone(view, name, &zone);
+			(void)dns_view_findzone(view, name, DNS_ZTFIND_EXACT,
+						&zone);
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 				continue;
@@ -5888,7 +5893,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			}
 
 			if (pview != NULL) {
-				(void)dns_view_findzone(pview, name, &zone);
+				(void)dns_view_findzone(
+					pview, name, DNS_ZTFIND_EXACT, &zone);
 				dns_view_detach(&pview);
 			}
 
@@ -6574,7 +6580,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			goto cleanup;
 		}
 
-		result = dns_view_findzone(otherview, origin, &zone);
+		result = dns_view_findzone(otherview, origin, DNS_ZTFIND_EXACT,
+					   &zone);
 		dns_view_detach(&otherview);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(zconfig, named_g_lctx, ISC_LOG_ERROR,
@@ -6693,7 +6700,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		/*
 		 * Check for duplicates in the new zone table.
 		 */
-		result = dns_view_findzone(view, origin, &dupzone);
+		result = dns_view_findzone(view, origin, DNS_ZTFIND_EXACT,
+					   &dupzone);
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We already have this zone!
@@ -6749,7 +6757,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		goto cleanup;
 	}
 	if (pview != NULL) {
-		result = dns_view_findzone(pview, origin, &zone);
+		result = dns_view_findzone(pview, origin, DNS_ZTFIND_EXACT,
+					   &zone);
 	}
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -7815,7 +7824,7 @@ configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
 		return;
 	}
 
-	result2 = dns_view_findzone(pview, origin, &zone);
+	result2 = dns_view_findzone(pview, origin, DNS_ZTFIND_EXACT, &zone);
 	if (result2 != ISC_R_SUCCESS) {
 		dns_view_detach(&pview);
 		return;
@@ -9740,8 +9749,7 @@ cleanup_viewlist:
 		if (result == ISC_R_SUCCESS && strcmp(view->name, "_bind") != 0)
 		{
 			dns_view_setviewrevert(view);
-			(void)dns_zt_apply(view->zonetable, false, NULL,
-					   removed, view);
+			(void)dns_view_apply(view, false, NULL, removed, view);
 		}
 		dns_view_detach(&view);
 	}
@@ -10572,7 +10580,8 @@ zone_from_args(named_server_t *server, isc_lex_t *lex, const char *zonetxt,
 				result = ISC_R_NOTFOUND;
 			}
 		} else {
-			result = dns_view_findzone(view, name, zonep);
+			result = dns_view_findzone(view, name, DNS_ZTFIND_EXACT,
+						   zonep);
 		}
 		if (result != ISC_R_SUCCESS) {
 			snprintf(problem, sizeof(problem),
@@ -11311,8 +11320,8 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 	ISC_LIST_INIT(vle->zonelist);
 	ISC_LIST_APPEND(dctx->viewlist, vle, link);
 	if (dctx->dumpzones) {
-		result = dns_zt_apply(view->zonetable, true, NULL,
-				      add_zone_tolist, dctx);
+		result = dns_view_apply(view, true, NULL, add_zone_tolist,
+					dctx);
 	}
 	return (result);
 }
@@ -12409,8 +12418,8 @@ named_server_sync(named_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			result = dns_zt_apply(view->zonetable, false, NULL,
-					      synczone, &cleanup);
+			result = dns_view_apply(view, false, NULL, synczone,
+						&cleanup);
 			if (result != ISC_R_SUCCESS && tresult == ISC_R_SUCCESS)
 			{
 				tresult = result;
@@ -13439,7 +13448,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		result = (view->redirect == NULL) ? ISC_R_NOTFOUND
 						  : ISC_R_EXISTS;
 	} else {
-		result = dns_view_findzone(view, name, &zone);
+		result = dns_view_findzone(view, name, DNS_ZTFIND_EXACT, &zone);
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_EXISTS;
 		}
@@ -13503,7 +13512,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 		dns_zone_attach(view->redirect, &zone);
 	} else {
-		result = dns_view_findzone(view, name, &zone);
+		result = dns_view_findzone(view, name, DNS_ZTFIND_EXACT, &zone);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -13551,7 +13560,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		dns_view_delzone(view, zone);
 		goto cleanup;
 	}
 
@@ -13619,7 +13628,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 			result = ISC_R_NOTFOUND;
 		}
 	} else {
-		result = dns_view_findzone(view, name, &zone);
+		result = dns_view_findzone(view, name, DNS_ZTFIND_EXACT, &zone);
 	}
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -13688,7 +13697,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 		dns_zone_attach(view->redirect, &zone);
 	} else {
-		CHECK(dns_view_findzone(view, name, &zone));
+		CHECK(dns_view_findzone(view, name, DNS_ZTFIND_EXACT, &zone));
 	}
 
 #ifndef HAVE_LMDB
@@ -13759,7 +13768,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		dns_view_delzone(view, zone);
 		goto cleanup;
 	}
 
@@ -14147,7 +14156,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	if (dns_zone_gettype(zone) == dns_zone_redirect) {
 		dns_zone_detach(&view->redirect);
 	} else {
-		CHECK(dns_zt_unmount(view->zonetable, zone));
+		CHECK(dns_view_delzone(view, zone));
 	}
 
 	/* Send cleanup event */

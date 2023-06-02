@@ -6593,7 +6593,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	 * then don't cache.
 	 */
 	dns_ztfind_t options = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_MIRROR;
-	result = dns_zt_find(fctx->res->view->zonetable, name, options, &zone);
+	result = dns_view_findzone(fctx->res->view, name, options, &zone);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		dns_name_t *zname = dns_zone_getorigin(zone);
 		dns_namereln_t reln = dns_name_fullcompare(
