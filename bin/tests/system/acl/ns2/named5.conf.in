@@ -32,6 +32,7 @@ options {
 	notify yes;
 	ixfr-from-differences yes;
 	check-integrity no;
+	dnssec-validation no;
 	allow-query-on { 10.53.0.2; };
 	blackhole { 10.53.0.8; };
 };

@@ -24,6 +24,7 @@ options {
 	notify yes;
 	minimal-responses no;
 	update-quota 1;
+	dnssec-validation no;
 };
 
 acl named-acl {

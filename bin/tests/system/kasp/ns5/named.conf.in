@@ -51,6 +51,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	dnssec-policy "none";
+	dnssec-validation no;
 };
 
 view "inherit" {

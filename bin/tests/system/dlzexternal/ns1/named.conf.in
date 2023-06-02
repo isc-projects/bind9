@@ -23,6 +23,7 @@ options {
 	allow-transfer { !10.53.0.1; any; };
 	recursion no;
 	notify yes;
+	dnssec-validation no;
 };
 
 key rndc_key {

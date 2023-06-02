@@ -18,6 +18,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	allow-query { any; };
+	dnssec-validation no;
 };
 
 include "controls.conf";

@@ -22,6 +22,7 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	bindkeys-file "managed.conf";
+	dnssec-validation no;
 };
 
 key rndc_key {

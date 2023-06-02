@@ -32,6 +32,7 @@ options {
 	notify no;
 	recursion no;
 	allow-transfer { any; };
+	dnssec-validation no;
 };
 
 view "default" {

@@ -31,6 +31,7 @@ options {
 	recursion no;
 	serial-query-rate 100;
 	ixfr-from-differences yes; // GL #3777
+	dnssec-validation no;
 
 	catalog-zones {
 		zone "catalog-tls.example"

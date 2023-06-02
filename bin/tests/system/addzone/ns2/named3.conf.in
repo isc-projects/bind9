@@ -24,6 +24,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	new-zones-directory "new-zones";
+	dnssec-validation no;
 };
 
 view internal {

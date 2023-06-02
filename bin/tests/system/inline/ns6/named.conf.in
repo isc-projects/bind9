@@ -30,6 +30,7 @@ options {
 	recursion yes;
 	notify yes;
 	notify-delay 0;
+	dnssec-validation yes;
 };
 
 zone "." {

@@ -27,6 +27,7 @@ options {
 	allow-transfer { any; };
 	recursion no;
 	key-directory ".";
+	dnssec-validation no;
 };
 
 key rndc_key {
