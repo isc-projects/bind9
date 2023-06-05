@@ -416,12 +416,11 @@ To disable the command channel, use an empty ``controls`` statement:
 ``include`` Statement Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``include`` statement inserts the specified file (or files if a valid glob
-expression is detected) at the point where the ``include`` statement is
-encountered. The ``include`` statement facilitates the administration of
-configuration files by permitting the reading or writing of some things but not
-others. For example, the statement could include private keys that are readable
-only by the name server.
+The ``include`` statement inserts the specified file at the point where the
+``include`` statement is encountered. The ``include`` statement facilitates
+the administration of configuration files by permitting the reading or
+writing of some things but not others. For example, the statement could
+include private keys that are readable only by the name server.
 
 .. _key_grammar:
 
