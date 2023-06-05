@@ -103,7 +103,7 @@
 	}
 
 #undef synchronize_rcu
-#define synchronize_rcu() isc_qsbr_syncronize_rcu()
+#define synchronize_rcu() isc_qsbr_synchronize_rcu()
 
 #define isc_qsbr_rcu_dereference(ptr)              \
 	({                                         \
