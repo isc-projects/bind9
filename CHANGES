@@ -2,6 +2,14 @@
 			sized send buffers for stream-based transports.
 			[GL #4038]
 
+6186.	[bug]		Fix a 'clients-per-query' miscalculation bug. When the
+			'stale-answer-enable' options was enabled and the
+			'stale-answer-client-timeout' option was enabled and
+			larger than 0, named was taking two places from the
+			'clients-per-query' limit for each client and was
+			failing to gradually auto-tune its value, as configured.
+			[GL #4074]
+
 6185.	[func]		Add "ClientQuota" statistics channel counter, which
 			indicates the number of the resolver's spilled queries
 			due to reaching the clients per query quota. [GL !7978]
