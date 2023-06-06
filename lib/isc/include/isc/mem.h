@@ -167,6 +167,8 @@ extern unsigned int isc_mem_defaultflags;
 	ISCMEMFUNC(allocate)((c), (s), 0 _ISC_MEM_FILELINE)
 #define isc_mem_allocatex(c, s, f) \
 	ISCMEMFUNC(allocate)((c), (s), (f)_ISC_MEM_FILELINE)
+#define isc_mem_callocate(c, n, s) \
+	ISCMEMFUNC(callocate)((c), (n), (s), 0 _ISC_MEM_FILELINE)
 #define isc_mem_reallocate(c, p, s) \
 	ISCMEMFUNC(reallocate)((c), (p), (s), 0 _ISC_MEM_FILELINE)
 #define isc_mem_reallocatex(c, p, s, f) \
@@ -512,6 +514,9 @@ void *ISCMEMFUNC(reget)(isc_mem_t *, void *, size_t, size_t,
 
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
 void *ISCMEMFUNC(allocate)(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
+
+ISC_ATTR_MALLOC_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
+void *ISCMEMFUNC(callocate)(isc_mem_t *, size_t, size_t, int _ISC_MEM_FLARG);
 
 ISC_ATTR_DEALLOCATOR_IDX(ISCMEMFUNC(free), 2)
 void *ISCMEMFUNC(reallocate)(isc_mem_t *, void *, size_t, int _ISC_MEM_FLARG);

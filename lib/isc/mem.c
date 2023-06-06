@@ -28,6 +28,7 @@
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/os.h>
+#include <isc/overflow.h>
 #include <isc/refcount.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
@@ -800,6 +801,13 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	CALL_HI_WATER(ctx);
 
 	return (ptr);
+}
+
+void *
+isc__mem_callocate(isc_mem_t *ctx, size_t count, size_t size, int flags FLARG) {
+	size_t bytes = ISC_CHECKED_MUL(count, size);
+	return (isc__mem_allocate(ctx, bytes,
+				  (flags | ISC_MEM_ZERO) FLARG_PASS));
 }
 
 void *
