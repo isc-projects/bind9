@@ -24,9 +24,11 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/rbt.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 
@@ -222,11 +224,187 @@ setownercase_test(void **state) {
 	assert_true(dns_name_caseequal(name1, name2));
 }
 
+/*
+ * No operation water() callback. We need it to cause overmem condition, but
+ * nothing has to be done in the callback.
+ */
+static void
+overmempurge_water(void *arg, int mark) {
+	UNUSED(arg);
+	UNUSED(mark);
+}
+
+/*
+ * Add to a cache DB 'db' an rdataset of type 'rtype' at a name
+ * <idx>.example.com. The rdataset would contain one data, and rdata_len is
+ * its length. 'rtype' is supposed to be some private type whose data can be
+ * arbitrary (and it doesn't matter in this test).
+ */
+static void
+overmempurge_addrdataset(dns_db_t *db, isc_stdtime_t now, int idx,
+			 dns_rdatatype_t rtype, size_t rdata_len,
+			 bool longname) {
+	isc_result_t result;
+	dns_rdata_t rdata;
+	dns_dbnode_t *node = NULL;
+	dns_rdatalist_t rdatalist;
+	dns_rdataset_t rdataset;
+	dns_fixedname_t fname;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	unsigned char rdatabuf[65535]; /* large enough for any valid RDATA */
+
+	REQUIRE(rdata_len <= sizeof(rdatabuf));
+
+	if (longname) {
+		/*
+		 * Build a longest possible name (in wire format) that would
+		 * result in a new rbt node with the long name data.
+		 */
+		snprintf(namebuf, sizeof(namebuf),
+			 "%010d.%010dabcdef%010dabcdef%010dabcdef%010dabcde."
+			 "%010dabcdef%010dabcdef%010dabcdef%010dabcde."
+			 "%010dabcdef%010dabcdef%010dabcdef%010dabcde."
+			 "%010dabcdef%010dabcdef%010dabcdef01.",
+			 idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx,
+			 idx, idx, idx, idx, idx);
+	} else {
+		snprintf(namebuf, sizeof(namebuf), "%d.example.com.", idx);
+	}
+
+	dns_test_namefromstring(namebuf, &fname);
+	name = dns_fixedname_name(&fname);
+
+	result = dns_db_findnode(db, name, true, &node);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(node);
+
+	dns_rdata_init(&rdata);
+	rdata.length = rdata_len;
+	rdata.data = rdatabuf;
+	rdata.rdclass = dns_rdataclass_in;
+	rdata.type = rtype;
+
+	dns_rdatalist_init(&rdatalist);
+	rdatalist.rdclass = dns_rdataclass_in;
+	rdatalist.type = rtype;
+	rdatalist.ttl = 3600;
+	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
+
+	dns_rdataset_init(&rdataset);
+	result = dns_rdatalist_tordataset(&rdatalist, &rdataset);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = dns_db_addrdataset(db, node, NULL, now, &rdataset, 0, NULL);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_db_detachnode(db, &node);
+}
+
+static void
+overmempurge_bigrdata_test(void **state) {
+	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
+	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
+	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	isc_mem_t *mctx2 = NULL;
+	isc_stdtime_t now;
+	size_t i;
+
+	UNUSED(state);
+
+	isc_stdtime_get(&now);
+
+	isc_mem_create(&mctx2);
+
+	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
+			       dns_rdataclass_in, 0, NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_mem_setwater(mctx2, overmempurge_water, NULL, hiwater, lowater);
+
+	/*
+	 * Add cache entries with minimum size of data until 'overmem'
+	 * condition is triggered.
+	 * This should eventually happen, but we also limit the number of
+	 * iteration to avoid an infinite loop in case something gets wrong.
+	 */
+	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
+		overmempurge_addrdataset(db, now, i, 50053, 0, false);
+	}
+	assert_true(isc_mem_isovermem(mctx2));
+
+	/*
+	 * Then try to add the same number of entries, each has very large data.
+	 * 'overmem purge' should keep the total cache size from not exceeding
+	 * the 'hiwater' mark too much. So we should be able to assume the
+	 * cache size doesn't reach the "max".
+	 */
+	while (i-- > 0) {
+		overmempurge_addrdataset(db, now, i, 50054, 65535, false);
+		assert_true(isc_mem_inuse(mctx2) < maxcache);
+	}
+
+	dns_db_detach(&db);
+	isc_mem_destroy(&mctx2);
+}
+
+static void
+overmempurge_longname_test(void **state) {
+	size_t maxcache = 2097152U; /* 2MB - same as DNS_CACHE_MINSIZE */
+	size_t hiwater = maxcache - (maxcache >> 3); /* borrowed from cache.c */
+	size_t lowater = maxcache - (maxcache >> 2); /* ditto */
+	isc_result_t result;
+	dns_db_t *db = NULL;
+	isc_mem_t *mctx2 = NULL;
+	isc_stdtime_t now;
+	size_t i;
+
+	UNUSED(state);
+
+	isc_stdtime_get(&now);
+	isc_mem_create(&mctx2);
+
+	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
+			       dns_rdataclass_in, 0, NULL, &db);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_mem_setwater(mctx2, overmempurge_water, NULL, hiwater, lowater);
+
+	/*
+	 * Add cache entries with minimum size of data until 'overmem'
+	 * condition is triggered.
+	 * This should eventually happen, but we also limit the number of
+	 * iteration to avoid an infinite loop in case something gets wrong.
+	 */
+	for (i = 0; !isc_mem_isovermem(mctx2) && i < (maxcache / 10); i++) {
+		overmempurge_addrdataset(db, now, i, 50053, 0, false);
+	}
+	assert_true(isc_mem_isovermem(mctx2));
+
+	/*
+	 * Then try to add the same number of entries, each has very large data.
+	 * 'overmem purge' should keep the total cache size from not exceeding
+	 * the 'hiwater' mark too much. So we should be able to assume the
+	 * cache size doesn't reach the "max".
+	 */
+	while (i-- > 0) {
+		overmempurge_addrdataset(db, now, i, 50054, 0, true);
+		assert_true(isc_mem_inuse(mctx2) < maxcache);
+	}
+
+	dns_db_detach(&db);
+	isc_mem_destroy(&mctx2);
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(ownercase_test),
 		cmocka_unit_test(setownercase_test),
+		cmocka_unit_test(overmempurge_bigrdata_test),
+		cmocka_unit_test(overmempurge_longname_test),
 	};
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
