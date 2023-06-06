@@ -184,6 +184,7 @@ struct ns_client {
 	isc_nmhandle_t *prefetchhandle; /* Waiting for prefetch / rpzfetch */
 	isc_nmhandle_t *updatehandle;	/* Waiting for update callback */
 	unsigned char  *tcpbuf;
+	size_t		tcpbuf_size;
 	dns_message_t  *message;
 	unsigned char  *sendbuf;
 	dns_rdataset_t *opt;

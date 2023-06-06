@@ -1,3 +1,7 @@
+6188.	[performance]	Reduce memory consumption by allocating properly
+			sized send buffers for stream-based transports.
+			[GL #4038]
+
 6185.	[func]		Add "ClientQuota" statistics channel counter, which
 			indicates the number of the resolver's spilled queries
 			due to reaching the clients per query quota. [GL !7978]
