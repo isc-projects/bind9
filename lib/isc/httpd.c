@@ -458,7 +458,9 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 			if (value_match(header, "deflate")) {
 				httpd->flags |= ACCEPT_DEFLATE;
 			}
-		} else if (name_match(header, "If-Modified-Since")) {
+		} else if (name_match(header, "If-Modified-Since") &&
+			   header->value_len < ISC_FORMATHTTPTIMESTAMP_SIZE)
+		{
 			char timestamp[ISC_FORMATHTTPTIMESTAMP_SIZE + 1];
 			memmove(timestamp, header->value, header->value_len);
 			timestamp[header->value_len] = 0;
