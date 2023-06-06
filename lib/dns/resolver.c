@@ -4441,9 +4441,7 @@ fctx_destroy(fetchctx_t *fctx, bool exiting) {
 	if (bucket_empty && exiting &&
 	    isc_refcount_decrement(&res->activebuckets) == 1)
 	{
-		LOCK(&res->lock);
 		send_shutdown_events(res);
-		UNLOCK(&res->lock);
 	}
 
 	isc_refcount_destroy(&fctx->references);
@@ -10260,10 +10258,7 @@ send_shutdown_events(dns_resolver_t *res) {
 	isc_event_t *event, *next_event;
 	isc_task_t *etask;
 
-	/*
-	 * Caller must be holding the resolver lock.
-	 */
-
+	LOCK(&res->lock);
 	for (event = ISC_LIST_HEAD(res->whenshutdown); event != NULL;
 	     event = next_event)
 	{
@@ -10273,6 +10268,7 @@ send_shutdown_events(dns_resolver_t *res) {
 		event->ev_sender = res;
 		isc_task_sendanddetach(&etask, &event);
 	}
+	UNLOCK(&res->lock);
 }
 
 static void
@@ -10287,7 +10283,6 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&res->lock);
-	INSIST(!atomic_load_acquire(&res->exiting));
 	if (res->spillat > res->spillatmin) {
 		res->spillat--;
 		logit = true;
@@ -10644,7 +10639,6 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 
 	RTRACE("shutdown");
 
-	LOCK(&res->lock);
 	if (atomic_compare_exchange_strong(&res->exiting, &is_false, true)) {
 		RTRACE("exiting");
 
@@ -10673,7 +10667,6 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 					 true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
-	UNLOCK(&res->lock);
 }
 
 void
