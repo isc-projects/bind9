@@ -1,3 +1,7 @@
+6203.	[cleanup]	Ensure that the size calculation does not overflow
+			when allocating memory for an array.
+			[GL #4120] [GL #4121] [GL #4122]
+
 6202.	[func]		Use per-loop memory contexts for dns_resolver
 			objects. [GL !8015]
 
