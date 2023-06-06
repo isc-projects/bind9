@@ -165,7 +165,11 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 /*%<
  * Start a DNSSEC validation.
  *
- * This validates a response to the question given by
+ * On success (which is guaranteed as long as the view has valid
+ * trust anchors), `validatorp` is updated to point to the new
+ * validator. The caller is responsible for detaching it.
+ *
+ * The validator will validate a response to the question given by
  * 'name' and 'type'.
  *
  * To validate a positive response, the response data is
