@@ -7777,7 +7777,7 @@ Name Server Statistics Counters
     This indicates the number of queries which the server attempted to recurse but for which it discovered an existing query with the same IP address, port, query ID, name, type, and class already being processed. This corresponds to the ``duplicate`` counter of previous versions of BIND 9.
 
 ``QryDropped``
-    This indicates the number of recursive queries for which the server discovered an excessive number of existing recursive queries for the same name, type, and class, and which were subsequently dropped. This is the number of dropped queries due to the reason explained with the :any:`clients-per-query` and :any:`max-clients-per-query` options. This corresponds to the ``dropped`` counter of previous versions of BIND 9.
+    This indicates the number of recursive queries dropped by the server as a result of configured limits. These limits include the settings of the :any:`fetches-per-zone`, :any:`fetches-per-server`, :any:`clients-per-query`, and :any:`max-clients-per-query` options, as well as the :any:`rate-limit` option. This corresponds to the ``dropped`` counter of previous versions of BIND 9.
 
 ``QryFailure``
     This indicates the number of query failures. This corresponds to the ``failure`` counter of previous versions of BIND 9. Note: this counter is provided mainly for backward compatibility with previous versions; normally, more fine-grained counters such as ``AuthQryRej`` and ``RecQryRej`` that would also fall into this counter are provided, so this counter is not of much interest in practice.
