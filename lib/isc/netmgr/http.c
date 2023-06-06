@@ -251,11 +251,7 @@ http_malloc(size_t sz, isc_mem_t *mctx) {
 
 static void *
 http_calloc(size_t n, size_t sz, isc_mem_t *mctx) {
-	const size_t msize = n * sz;
-	void *data = isc_mem_allocate(mctx, msize);
-
-	memset(data, 0, msize);
-	return (data);
+	return (isc_mem_callocate(mctx, n, sz));
 }
 
 static void *
