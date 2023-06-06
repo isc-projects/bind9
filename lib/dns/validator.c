@@ -926,6 +926,7 @@ static isc_result_t
 create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	     isc_job_cb callback, const char *caller) {
 	unsigned int fopts = 0;
+	isc_result_t result;
 
 	disassociate_rdatasets(val);
 
@@ -946,10 +947,16 @@ create_fetch(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 	validator_logcreate(val, name, type, caller, "fetch");
 
 	dns_validator_ref(val);
-	return (dns_resolver_createfetch(
+
+	result = dns_resolver_createfetch(
 		val->view->resolver, name, type, NULL, NULL, NULL, NULL, 0,
 		fopts, 0, NULL, val->loop, callback, val, &val->frdataset,
-		&val->fsigrdataset, &val->fetch));
+		&val->fsigrdataset, &val->fetch);
+	if (result != ISC_R_SUCCESS) {
+		dns_validator_detach(&val);
+	}
+
+	return (result);
 }
 
 /*%
@@ -1192,7 +1199,6 @@ seek_dnskey(dns_validator_t *val) {
 				      dns_rdatatype_dnskey,
 				      fetch_callback_dnskey, "seek_dnskey");
 		if (result != ISC_R_SUCCESS) {
-			dns_validator_detach(&val);
 			return (result);
 		}
 		return (DNS_R_WAIT);
@@ -1646,7 +1652,6 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 				      fetch_callback_ds, "validate_dnskey");
 		*resp = DNS_R_WAIT;
 		if (result != ISC_R_SUCCESS) {
-			dns_validator_detach(&val);
 			*resp = result;
 		}
 		return (ISC_R_COMPLETE);
@@ -3004,11 +3009,17 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_validator_t **validatorp) {
 	isc_result_t result = ISC_R_FAILURE;
 	dns_validator_t *val = NULL;
+	dns_keytable_t *kt = NULL;
 
 	REQUIRE(name != NULL);
 	REQUIRE(rdataset != NULL ||
 		(rdataset == NULL && sigrdataset == NULL && message != NULL));
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
+
+	result = dns_view_getsecroots(view, &kt);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
 	*val = (dns_validator_t){ .tid = isc_tid(),
@@ -3018,21 +3029,16 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				  .name = name,
 				  .type = type,
 				  .options = options,
+				  .keytable = kt,
 				  .link = ISC_LINK_INITIALIZER,
 				  .loop = loop,
 				  .cb = cb,
 				  .arg = arg };
 
 	isc_refcount_init(&val->references, 1);
-
+	dns_view_attach(view, &val->view);
 	if (message != NULL) {
 		dns_message_attach(message, &val->message);
-	}
-	dns_view_attach(view, &val->view);
-
-	result = dns_view_getsecroots(val->view, &val->keytable);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
 	}
 
 	val->mustbesecure = dns_resolver_getmustbesecure(view->resolver, name);
@@ -3052,15 +3058,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	*validatorp = val;
 
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (val->message != NULL) {
-		dns_message_detach(&val->message);
-	}
-	isc_mem_put(view->mctx, val, sizeof(*val));
-	dns_view_detach(&view);
-
-	return (result);
 }
 
 void
