@@ -1,3 +1,6 @@
+6199.	[bug]		Improve HTTP Connection: header protocol conformance
+			in the statistics channel. [GL #4126]
+
 6198.	[func]		Remove the holes in the isc_result_t enum to compact
 			the isc_result tables. [GL #4149]
 
