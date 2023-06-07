@@ -13,6 +13,8 @@
 
 # tests for TSIG-GSS updates
 
+set -e
+
 . ../conf.sh
 
 # Uncomment to regenerate credential caches after running krb5/setup.sh

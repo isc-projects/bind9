@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # test response policy zones (RPZ)
 
 # touch dnsrps-off to not test with DNSRPS

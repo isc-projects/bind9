@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # touch dnsrps-off to not test with DNSRPS
 # touch dnsrps-only to not test with classic RPZ
 

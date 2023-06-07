@@ -11,9 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ../conf.sh
-
 set -e
+
+. ../conf.sh
 
 dig_with_opts() {
 	"$DIG" +norec -p "${PORT}" "$@"
