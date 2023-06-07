@@ -3932,6 +3932,11 @@ system.
        default value of that option (90% of physical memory for each
        individual cache) may lead to memory exhaustion over time.
 
+   .. note::
+
+       :any:`max-cache-size` does not work reliably for the maximum
+       amount of memory of 100 MB or lower.
+
    Upon startup and reconfiguration, caches with a limited size
    preallocate a small amount of memory (less than 1% of
    :any:`max-cache-size` for a given view). This preallocation serves as an
