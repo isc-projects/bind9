@@ -29,7 +29,7 @@ information regarding copyright ownership.
 
   Non-matching CDS and CDNSKEY are removed.
 
-* auto-dnssec maintain should cds and/or cdnskey to zone apex iff the 
+* auto-dnssec maintain should cds and/or cdnskey to zone apex iff the
   DNSKEY is published and is signing the DNSKEY RRset.   CDS and CDNSKEY
   records are only removed if there is a deletion date set (implicit on
   matching DNSKEY going inactive / unpublished or explicit).

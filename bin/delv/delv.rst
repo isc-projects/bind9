@@ -293,7 +293,7 @@ assign values to options like the timeout interval. They have the form
 
    This option toggles logging of messages sent. This produces a detailed
    dump of the queries sent by :program:`delv` in the process of carrying
-   out the resolution and validation process. Turning on this option 
+   out the resolution and validation process. Turning on this option
    also activates ``+mtrace``.
 
    This is equivalent to setting the debug level to 11 for the "packets"

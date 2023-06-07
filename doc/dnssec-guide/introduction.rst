@@ -41,7 +41,7 @@ Who May Not Want to Read this Guide?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are already operating a DNSSEC-signed zone, you may not learn
-much from the first half of this document, and you may want to start with 
+much from the first half of this document, and you may want to start with
 :ref:`dnssec_advanced_discussions`. If you want to
 learn about details of the protocol extension, such as data fields and flags,
 or the new record types, this document can help you get started but it
@@ -221,7 +221,7 @@ trust one key: the root key.
 The 12-Step DNSSEC Validation Process (Simplified)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example shows the 12 steps of the DNSSEC validating process 
+The following example shows the 12 steps of the DNSSEC validating process
 at a very high level, looking up the name ``www.isc.org`` :
 
 .. figure:: ../dnssec-guide/img/dnssec-12-steps.png

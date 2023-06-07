@@ -43,11 +43,11 @@ for ($z = 0; $z < $n_zones; $z++) {
 	my $zn = sprintf("zone%06d.example", $z);
 	foreach $ns (qw(2 3 4)) {
 		print $rootdelegations "$zn.		NS	ns$ns.$zn.\n";
-		print $rootdelegations "ns$ns.$zn.	A	10.53.0.$ns\n";		
+		print $rootdelegations "ns$ns.$zn.	A	10.53.0.$ns\n";
 	}
 }
 close $rootdelegations;
-	
+
 sub make_zones {
 	my ($nsno, $secondaried_from) = @_;
 	my $namedconf = new FileHandle("ns$nsno/zones.conf", "w") or die;

@@ -160,7 +160,7 @@ fi
 
 #
 echo_i "checking 'rdnc zonestatus' output"
-ret=0 
+ret=0
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	$RNDCCMD 10.53.0.1 zonestatus primary.example > rndc.out.pri 2>&1
@@ -235,7 +235,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "checking 'rdnc zonestatus' with duplicated zone name"
-ret=0 
+ret=0
 $RNDCCMD 10.53.0.1 zonestatus duplicate.example > rndc.out.duplicate 2>&1
 checkfor "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate
 $RNDCCMD 10.53.0.1 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1

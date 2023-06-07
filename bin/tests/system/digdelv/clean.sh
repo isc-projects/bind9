@@ -31,7 +31,7 @@ rm -f ./ns*/named.lock
 rm -f ./ns*/K* ./ns*/keyid ./ns*/keydata
 rm -f ./ns1/root.db
 rm -f ./ns*/dsset-*
-rm -f ./ns2/example.db 
+rm -f ./ns2/example.db
 rm -f ./ns2/example.tld.db
 rm -f ./nslookup.out.test*
 rm -f ./nsupdate.out.test*

@@ -22,7 +22,7 @@ infile=edns512.db.in
 zonefile=edns512.db
 outfile=edns512.db.signed
 
-keyname1=`$KEYGEN -a RSASHA512 -b 4096 -n zone $zone 2> /dev/null` 
+keyname1=`$KEYGEN -a RSASHA512 -b 4096 -n zone $zone 2> /dev/null`
 keyname2=`$KEYGEN -f KSK -a RSASHA512 -b 4096 -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile

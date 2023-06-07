@@ -2576,7 +2576,7 @@ Boolean Options
    ``configure --disable-auto-validation``, in which case the default is
    ``yes``.
 
-   The default root trust anchor is compiled into :iscman:`named` 
+   The default root trust anchor is compiled into :iscman:`named`
    and is current as of the release date. If the root key changes, a
    running BIND server will detect this and roll smoothly to the new
    key, but newly-installed servers will be unable to start validation,

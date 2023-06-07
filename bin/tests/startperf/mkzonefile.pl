@@ -31,7 +31,7 @@ print"\$TTL 300	; 5 minutes
 			NS	ns
 ns			A	10.53.0.3\n";
 
-srand; 
+srand;
 for (my $i = 0; $i < $nrecords; $i++) {
         my $name = "";
         for (my $j = 0; $j < 8; $j++) {
