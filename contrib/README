@@ -17,7 +17,7 @@ be fixed as time permits.
 
     - scripts/
 
-      Assorted useful scripts, including 'nanny' which monitors 
+      Assorted useful scripts, including 'nanny' which monitors
       named and restarts it in the event of a crash, 'zone-edit'
       which enables editing of a dynamic zone, and others.
 

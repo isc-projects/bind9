@@ -179,7 +179,7 @@ point of view, ``/var/named`` is the root of the filesystem;
 the values of options like :any:`directory` and :any:`pid-file`
 must be adjusted to account for this.
 
-Unlike with earlier versions of BIND, 
+Unlike with earlier versions of BIND,
 :iscman:`named` does *not* typically need to be compiled statically, nor do shared libraries need to be installed under the new
 root. However, depending on the operating system, it may be necessary to set
 up locations such as ``/dev/zero``, ``/dev/random``, ``/dev/log``, and

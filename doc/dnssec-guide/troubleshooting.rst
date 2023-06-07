@@ -139,7 +139,7 @@ With :iscman:`delv`, a "resolution failed" message is output instead:
    $ delv @10.53.0.3 www.example.org. A +rtrace
    ;; fetch: www.example.org/A
    ;; resolution failed: SERVFAIL
-   
+
 BIND 9 logging features may be useful when trying to identify
 DNSSEC errors.
 
@@ -546,7 +546,7 @@ NTAs are added using the :iscman:`rndc` command, e.g.:
 
    $ rndc nta example.com
     Negative trust anchor added: example.com/_default, expires 19-Mar-2020 19:57:42.000
-    
+
 
 The list of currently configured NTAs can also be examined using
 :iscman:`rndc`, e.g.:
@@ -555,7 +555,7 @@ The list of currently configured NTAs can also be examined using
 
    $ rndc nta -dump
     example.com/_default: expiry 19-Mar-2020 19:57:42.000
-    
+
 
 The default lifetime of an NTA is one hour, although by default, BIND
 polls the zone every five minutes to see if the zone correctly

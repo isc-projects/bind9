@@ -154,7 +154,7 @@ fi
 #
 if $FEATURETEST --md5
 then
-	echo_i "fetching using hmac-md5-80 (BADTRUNC)" 
+	echo_i "fetching using hmac-md5-80 (BADTRUNC)"
 	ret=0
 	$DIG $DIGOPTS example.nil. -y "hmac-md5-80:md5:$md5" @10.53.0.1 soa > dig.out.md5-80 || ret=1
 	grep -i "md5.*TSIG.*BADTRUNC" dig.out.md5-80 > /dev/null || ret=1
@@ -162,7 +162,7 @@ then
 		echo_i "failed"; status=1
 	fi
 else
-	echo_i "skipping using hmac-md5-80 (BADTRUNC)" 
+	echo_i "skipping using hmac-md5-80 (BADTRUNC)"
 fi
 
 echo_i "fetching using hmac-sha1-80 (BADTRUNC)"

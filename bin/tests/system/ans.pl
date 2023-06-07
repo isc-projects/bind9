@@ -202,7 +202,7 @@ sub handleUDP {
 							 $prev_tsig->mac);
 					}
 				}
-				
+
 				$packet->sign_tsig($tsig);
 			}
 			last;
@@ -250,7 +250,7 @@ sub packetlen {
 	} else {
 		($header, $offset) = Net::DNS::Header->parse(\$data);
 	}
-		
+
 	for (1 .. $header->qdcount) {
 		if ($decode) {
 			($q, $offset) =
@@ -336,7 +336,7 @@ sub handleTCP {
 		($request, $err) = new Net::DNS::Packet(\$buf, 0);
 		$err and die $err;
 	}
-	
+
 	my @questions = $request->question;
 	my $qname = $questions[0]->qname;
 	my $qtype = $questions[0]->qtype;
@@ -384,7 +384,7 @@ sub handleTCP {
 			if (defined($key_name) && defined($key_data)) {
 				my $tsig;
 				# sign the packet
-				print "  Signing the data with " . 
+				print "  Signing the data with " .
 				      "$key_name/$key_data\n";
 
 				if ($Net::DNS::VERSION < 0.69) {
@@ -426,7 +426,7 @@ sub handleTCP {
 							 $prev_tsig->mac);
 					}
 				}
-				
+
 				$tsig->sign_func($signer) if defined($signer);
 				$tsig->continuation($continuation) if
 					 ($Net::DNS::VERSION >= 0.71 &&

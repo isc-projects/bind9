@@ -19,7 +19,7 @@ Name Server Operations
 Tools for Use With the Name Server Daemon
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes several indispensable diagnostic, administrative, 
+This section describes several indispensable diagnostic, administrative,
 and monitoring tools available to the system administrator for
 controlling and debugging the name server daemon.
 

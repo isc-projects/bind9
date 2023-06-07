@@ -229,7 +229,7 @@ generate a successor key (51623):
 
    ./Kexample.com.+008+17694.private
    # dnssec-keygen -S Kexample.com.+008+17694
-   Generating key pair..++++++ ...........++++++ 
+   Generating key pair..++++++ ...........++++++
    Kexample.com.+008+51623
 
 The first command gets us into the key directory
@@ -261,7 +261,7 @@ file:
 ::
 
    # cd /etc/bind/keys/example.com
-   # cat Kexample.com.+008+51623.key 
+   # cat Kexample.com.+008+51623.key
    ; This is a zone-signing key, keyid 11623, for example.com.
    ; Created: 20201130160024 (Mon Dec  1 00:00:24 2020)
    ; Publish: 20201202000000 (Fri Dec  2 08:00:00 2020)
@@ -480,7 +480,7 @@ DS record based on the new key, 23550:
    ./Kexample.com.+007+24848.key
    ./Kexample.com.+007+24848.private
    # dnssec-keygen -S Kexample.com.+007+24848
-   Generating key pair.......................................................................................++ ...................................++ 
+   Generating key pair.......................................................................................++ ...................................++
    Kexample.com.+007+23550
    # dnssec-dsfromkey -a SHA-1 Kexample.com.+007+23550.key
    example.com. IN DS 23550 7 1 54FCF030AA1C79C0088FDEC1BD1C37DAA2E70DFB

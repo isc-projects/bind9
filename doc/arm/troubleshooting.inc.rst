@@ -151,7 +151,7 @@ peer user support. In addition, ISC maintains a Knowledgebase of helpful article
 at https://kb.isc.org.
 
 Internet Systems Consortium (ISC) offers annual support agreements
-for BIND 9, ISC DHCP, and Kea DHCP. 
+for BIND 9, ISC DHCP, and Kea DHCP.
 All paid support contracts include advance security notifications; some levels include
 service level agreements (SLAs), premium software features, and increased priority on bug fixes
 and feature requests.
