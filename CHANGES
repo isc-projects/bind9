@@ -7,9 +7,11 @@
 			at non-referral nodes to be cached in addition to the
 			referrals that are normally cached. [GL #3325]
 
-
 6200.	[bug]		Fix nslookup erroneously reporting a timeout when the
 			input is delayed. [GL #4044]
+
+6199.	[bug]		Improve HTTP Connection: header protocol conformance
+			in the statistics channel. [GL #4126]
 
 6198.	[func]		Remove the holes in the isc_result_t enum to compact
 			the isc_result tables. [GL #4149]
