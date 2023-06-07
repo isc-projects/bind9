@@ -13,6 +13,8 @@
 
 # tests for TSIG-GSS updates
 
+set -e
+
 . ../conf.sh
 
 status=0

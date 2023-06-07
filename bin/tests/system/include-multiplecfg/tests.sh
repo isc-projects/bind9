@@ -13,6 +13,7 @@
 
 # Test of include statement with glob expression.
 
+set -e
 
 . ../conf.sh
 

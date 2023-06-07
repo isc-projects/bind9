@@ -52,6 +52,8 @@
 # and querying as necessary.
 #
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"

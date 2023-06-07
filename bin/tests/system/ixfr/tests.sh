@@ -16,6 +16,8 @@
 #          in the log file - need a better approach <sdm> - until then,
 #          if you add any tests above that point, you will break the test.
 
+set -e
+
 . ../conf.sh
 
 wait_for_serial() (
