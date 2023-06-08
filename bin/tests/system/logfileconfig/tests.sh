@@ -218,7 +218,7 @@ try=0
 while test $try -lt 12
 do
 	touch ns1/named_inc.$try
-	try=`expr $try + 1`
+	try=$((try + 1))
 done
 rndc_reconfig ns1 10.53.0.1 > rndc.out.test$n
 _found2() (
@@ -229,7 +229,7 @@ _found2() (
 	while test $try -lt 12
 	do
 	        [ -f ns1/named_inc.$try ] && return 1
-		try=`expr $try + 1`
+		try=$((try + 1))
 	done
         set -- ns1/named_inc.*
         [ "$#" -eq 1 ] || return 1
@@ -246,7 +246,7 @@ try=0
 while test $try -lt 12
 do
 	touch $TMPDIR/example.log.$try
-	try=`expr $try + 1`
+	try=$((try + 1))
 done
 rndc_reconfig ns1 10.53.0.1 > rndc.out.test$n
 _found2() (
@@ -257,7 +257,7 @@ _found2() (
 	while test $try -lt 12
 	do
 		[ -f $TMPDIR/example.log.$try ] && return 1
-		try=`expr $try + 1`
+		try=$((try + 1))
 	done
 	set -- $TMPDIR/example.log.*
 	[ "$#" -eq 1 ] || return 1

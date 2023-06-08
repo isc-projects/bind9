@@ -107,7 +107,7 @@ make_dignm () {
 
 setret () {
     ret=1
-    status=`expr $status + 1`
+    status=$((status + 1))
     echo_i "$*"
 }
 
@@ -147,7 +147,7 @@ dnsrps_loaded() {
 		#echo "$Z @$M serial=$SN"
 		break
 	    fi
-	    n=`expr $n + 1`
+	    n=$((n + 1))
 	    if test "$n" -gt $TEN_SECS; then
 		echo_i "dnsrps serial for $Z is $RSN instead of $SN"
 		exit 1
@@ -172,7 +172,7 @@ ck_soa() {
 	    get_sn "$2" "$3"
 	    test "$SN" -eq "$1" && return
 	fi
-	n=`expr $n + 1`
+	n=$((n + 1))
 	if test "$n" -gt $TEN_SECS; then
 	    echo_i "got serial number \"$SN\" instead of \"$1\" from $2 @$3"
 	    return
@@ -285,7 +285,7 @@ ckstatsrange () {
 # $2=optional test file name
 start_group () {
     ret=0
-    t=`expr $t + 1`
+    t=$((t + 1))
     test -n "$1" && date "+${TS}checking $1 (${t})" | cat_i
     TEST_FILE=$2
     if test -n "$TEST_FILE"; then
@@ -803,7 +803,7 @@ EOF
 	    break;
 	fi
 	$DIG -p ${PORT} +short +norecurse a0-1.tld2 @$ns3 >/dev/null
-	n=`expr $n + 1`
+	n=$((n + 1))
 	if test "$n" -gt $TEN_SECS; then
 	    setret "dnsrpzd did not restart"
 	    break
@@ -841,7 +841,7 @@ EOF
 
   if [ native = "$mode" ]; then
     # restart the main test RPZ server with a bad zone.
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking that ns3 with broken rpz does not crash (${t})"
     stop_server --use-rndc --port ${CONTROLPORT} ns3
     cp ns3/broken.db.in ns3/bl.db
@@ -850,7 +850,7 @@ EOF
     stop_server --use-rndc --port ${CONTROLPORT} ns3
     restart 3 "rebuild-bl-rpz"
 
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking if rpz survives a certain class of failed reconfiguration attempts (${t})"
     sed -e "s/^#BAD//" < ns3/named.conf.in > ns3/named.conf.tmp
     copy_setports ns3/named.conf.tmp ns3/named.conf
@@ -861,7 +861,7 @@ EOF
     $RNDCCMD $ns3 reconfig || setret "failed"
 
     # reload a RPZ zone that is now deliberately broken.
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking rpz failed update will keep previous rpz rules (${t})"
     $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.before
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before > /dev/null || setret "failed"
@@ -872,7 +872,7 @@ EOF
     $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
 
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking reload of a mixed-case RPZ zone (${t})"
     # First, a sanity check: the A6-2.TLD2.mixed-case-rpz RPZ record should
     # cause a6-2.tld2 NOERROR answers to be rewritten to NXDOMAIN answers.
@@ -891,13 +891,13 @@ EOF
     grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
   fi
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
   $DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 > dig.out.$t
   ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.$t`
   if test ${ttl:=0} -eq 0; then setret "failed"; fi
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking rpz updates/transfers with parent nodes added after children (${t})"
   # regression test for RT #36272: the success condition
   # is the secondary server not crashing.
@@ -910,7 +910,7 @@ EOF
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
   done
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking that going from an empty policy zone works (${t})"
   nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
   sleep 1
@@ -918,20 +918,20 @@ EOF
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
   grep NXDOMAIN dig.out.${t} > /dev/null || setret "failed"
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking that "add-soa no" at rpz zone level works (${t})"
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
   grep SOA dig.out.${t} > /dev/null && setret "failed"
 
   if [ native = "$mode" ]; then
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking that "add-soa yes" at response-policy level works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
   fi
 
   if [ native = "$mode" ]; then
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "reconfiguring server with 'add-soa no' (${t})"
     cp ns3/named.conf ns3/named.conf.tmp
     sed -e "s/add-soa yes/add-soa no/g" < ns3/named.conf.tmp > ns3/named.conf
@@ -942,7 +942,7 @@ EOF
   fi
 
   if [ native = "$mode" ]; then
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking that 'add-soa unset' works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
@@ -951,12 +951,12 @@ EOF
   # dnsrps does not allow NS RRs in policy zones, so this check
   # with dnsrps results in no rewriting.
   if [ native = "$mode" ]; then
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking rpz with delegation fails correctly (${t})"
     $DIG -p ${PORT} @$ns3 ns example.com > dig.out.$t
     grep "status: SERVFAIL" dig.out.$t > /dev/null || setret "failed"
 
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking policies from expired zone are no longer in effect ($t)"
     $DIG -p ${PORT} @$ns3 a expired > dig.out.$t
     grep "expired.*10.0.0.10" dig.out.$t > /dev/null && setret "failed"
@@ -968,7 +968,7 @@ EOF
   do
     for type in AAAA A
     do
-      t=`expr $t + 1`
+      t=$((t + 1))
       case $label in
       a-only)
 	echo_i "checking rpz 'CNAME *.' (NODATA) with dns64, $type lookup with A-only (${t})"
@@ -986,12 +986,12 @@ EOF
       grep "ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 2$" dig.out.$t > /dev/null || ret=1
       grep "^rpz"  dig.out.$t > /dev/null || ret=1
       [ $ret -eq 0 ] || echo_i "failed"
-      status=`expr $status + $ret`
+      status=$((status + ret))
     done
   done
 
   if [ native = "$mode" ]; then
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "checking that rewriting CD=1 queries handles pending data correctly (${t})"
     $RNDCCMD $ns3 flush
     $RNDCCMD $ns6 flush

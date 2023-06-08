@@ -76,7 +76,7 @@ expect_norecurse() {
     LINE=$2
 
     NAME=`sed -n -e "$LINE,"'$p' ns2/$TESTNAME.queries | head -n 1`
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "testing $NAME doesn't recurse (${t})"
     add_test_marker 10.53.0.2
     run_query $TESTNAME $LINE || {
@@ -92,7 +92,7 @@ expect_recurse() {
     LINE=$2
 
     NAME=`sed -n -e "$LINE,"'$p' ns2/$TESTNAME.queries | head -n 1`
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "testing $NAME recurses (${t})"
     add_test_marker 10.53.0.2
     run_query $TESTNAME $LINE && {
@@ -146,7 +146,7 @@ for mode in native dnsrps; do
   # show whether and why DNSRPS is enabled or disabled
   sed -n 's/^## //p' dnsrps.conf | cat_i
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing that l1.l0 exists without RPZ (${t})"
   add_test_marker 10.53.0.2
   $DIG $DIGOPTS l1.l0 ns @10.53.0.2 -p ${PORT} > dig.out.${t}
@@ -155,7 +155,7 @@ for mode in native dnsrps; do
     status=1
   }
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing that l2.l1.l0 returns SERVFAIL without RPZ (${t})"
   add_test_marker 10.53.0.2
   $DIG $DIGOPTS l2.l1.l0 ns @10.53.0.2 -p ${PORT} > dig.out.${t}
@@ -213,7 +213,7 @@ for mode in native dnsrps; do
   for n in $testlist; do
     run_server 4$n
     ni=$1
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "testing that ${ni} of 33 queries skip recursion (${t})"
     add_test_marker 10.53.0.2
     c=0
@@ -244,7 +244,7 @@ for mode in native dnsrps; do
   echo_i "check recursive behavior consistency during policy update races"
   run_server 6a
   sleep 1
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "running dig to cache CNAME record (${t})"
   add_test_marker 10.53.0.1 10.53.0.2
   $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
@@ -258,7 +258,7 @@ for mode in native dnsrps; do
   $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
   test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
   sleep 1
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
   add_test_marker 10.53.0.2
   $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
@@ -287,7 +287,7 @@ for mode in native dnsrps; do
   cp ns2/saved.policy.local ns2/db.6a.00.policy.local
   run_server 6a
   sleep 1
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "running dig to cache CNAME record (${t})"
   add_test_marker 10.53.0.1 10.53.0.2
   $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org CNAME > dig.out.${t}
@@ -300,7 +300,7 @@ for mode in native dnsrps; do
   $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
   test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
   sleep 1
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
   add_test_marker 10.53.0.2
   $DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
@@ -325,7 +325,7 @@ for mode in native dnsrps; do
   }
 
   # Check maximum number of RPZ zones (64)
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing maximum number of RPZ zones (${t})"
   add_test_marker 10.53.0.2
   run_server max
@@ -341,7 +341,7 @@ for mode in native dnsrps; do
   done
 
   # Check CLIENT-IP behavior
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing CLIENT-IP behavior (${t})"
   add_test_marker 10.53.0.2
   run_server clientip
@@ -356,7 +356,7 @@ for mode in native dnsrps; do
   }
 
   # Check CLIENT-IP behavior #2
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing CLIENT-IP behavior #2 (${t})"
   add_test_marker 10.53.0.2
   run_server clientip2
@@ -386,7 +386,7 @@ for mode in native dnsrps; do
   }
 
   # Check RPZ log clause
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing RPZ log clause (${t})"
   add_test_marker 10.53.0.2
   run_server log
@@ -409,7 +409,7 @@ for mode in native dnsrps; do
 
   # Check wildcard behavior
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing wildcard behavior with 1 RPZ zone (${t})"
   add_test_marker 10.53.0.2
   run_server wildcard1
@@ -424,7 +424,7 @@ for mode in native dnsrps; do
     status=1
   }
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing wildcard behavior with 2 RPZ zones (${t})"
   add_test_marker 10.53.0.2
   run_server wildcard2
@@ -439,7 +439,7 @@ for mode in native dnsrps; do
     status=1
   }
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing wildcard behavior with 1 RPZ zone and no non-wildcard triggers (${t})"
   add_test_marker 10.53.0.2
   run_server wildcard3
@@ -454,7 +454,7 @@ for mode in native dnsrps; do
     status=1
   }
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "testing wildcard passthru before explicit drop (${t})"
   add_test_marker 10.53.0.2
   run_server wildcard4
@@ -471,7 +471,7 @@ for mode in native dnsrps; do
 
   if [ "$mode" = "native" ]; then
     # Check for invalid prefix length error
-    t=`expr $t + 1`
+    t=$((t + 1))
     echo_i "testing for invalid prefix length error (${t})"
     add_test_marker 10.53.0.2
     run_server invalidprefixlength
@@ -481,7 +481,7 @@ for mode in native dnsrps; do
     }
   fi
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
   add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsip-wait-recurse yes' (default)"
@@ -507,7 +507,7 @@ for mode in native dnsrps; do
 
   if test $p1 -le $p2; then ret=1; fi
   if test $ret != 0; then echo_i "failed"; fi
-  status=`expr $status + $ret`
+  status=$((status + ret))
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
   # restore original named.conf
@@ -516,7 +516,7 @@ for mode in native dnsrps; do
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
   wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
-  t=`expr $t + 1`
+  t=$((t + 1))
   echo_i "checking 'nsdname-wait-recurse no' is faster than 'nsdname-wait-recurse yes' ($t)"
   add_test_marker 10.53.0.2 10.53.0.3
   echo_i "timing 'nsdname-wait-recurse yes' (default)"
@@ -542,7 +542,7 @@ for mode in native dnsrps; do
 
   if test $p1 -le $p2; then ret=1; fi
   if test $ret != 0; then echo_i "failed"; fi
-  status=`expr $status + $ret`
+  status=$((status + ret))
 
 
   [ $status -ne 0 ] && pf=fail || pf=pass

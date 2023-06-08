@@ -29,7 +29,7 @@ $DIG $DIGOPTS a.good. @10.53.0.3 a > dig.out.good || ret=1
 grep "status: NOERROR" dig.out.good > /dev/null || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.good > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 # Check the bad. domain
 
@@ -38,7 +38,7 @@ ret=0
 $DIG $DIGOPTS a.bad. @10.53.0.3 a > dig.out.bad || ret=1
 grep "SERVFAIL" dig.out.bad > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "checking that validation with no supported digest algorithms results in insecure"
 ret=0
@@ -49,7 +49,7 @@ $DIG $DIGOPTS a.bad. @10.53.0.4 a > dig.out.insecure || ret=1
 grep "NOERROR" dig.out.insecure > /dev/null || ret=1
 grep "flags:[^;]* ad[ ;]" dig.out.insecure > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 echo_i "exit status: $status"
 
 [ $status -eq 0 ] || exit 1
