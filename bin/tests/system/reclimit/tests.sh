@@ -61,7 +61,7 @@ check_query_count() {
 
 echo_i "set max-recursion-depth=12"
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt excessive-depth lookup ($n)"
 ret=0
 echo "1000" > ans2/ans.limit
@@ -74,9 +74,9 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
 check_query_count dig.out.2.test$n dig.out.4.test$n 27 14
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "12" > ans2/ans.limit
@@ -90,11 +90,11 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
 check_query_count dig.out.2.test$n dig.out.4.test$n 50 26
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "set max-recursion-depth=5"
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt excessive-depth lookup ($n)"
 ret=0
 echo "12" > ans2/ans.limit
@@ -107,9 +107,9 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
 check_query_count dig.out.2.test$n dig.out.4.test$n 13 7
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "5" > ans2/ans.limit
@@ -123,11 +123,11 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
 check_query_count dig.out.2.test$n dig.out.4.test$n 22 12
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "set max-recursion-depth=100, max-recursion-queries=50"
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
 echo "13" > ans2/ans.limit
@@ -144,9 +144,9 @@ $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 50 ] || { ret=1; echo_i "count ($count) !<= 50"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "12" > ans2/ans.limit
@@ -158,11 +158,11 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 50 ] || { ret=1; echo_i "count ($count) !<= 50"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "set max-recursion-depth=100, max-recursion-queries=40"
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
 echo "11" > ans2/ans.limit
@@ -176,9 +176,9 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 40 ] || { ret=1; echo_i "count ($count) !<= 40"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempt permissible lookup ($n)"
 ret=0
 echo "9" > ans2/ans.limit
@@ -190,9 +190,9 @@ $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 eval count=`cat dig.out.2.test$n`
 [ $count -le 40 ] || { ret=1; echo_i "count ($count) !<= 40"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "attempting NS explosion ($n)"
 ret=0
 ns3_reset ns3/named4.conf.in
@@ -205,7 +205,7 @@ $DIG $DIGOPTS +short @10.53.0.7 count txt > dig.out.3.test$n || ret=1
 eval count=`cat dig.out.3.test$n`
 [ $count -lt 50 ] || { ret=1; echo_i "count ($count) !<= 50";  }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 #grep "duplicate query" ns3/named.run
 echo_i "exit status: $status"

@@ -65,35 +65,35 @@ do
 	test $ret = 0 && break
 	sleep 1
 done
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching primary copy of zone before update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1.example.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 1 copy of zone before update ($n)"
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2.example.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 2 copy of zone before update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3.example.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "comparing pre-update copies to known good data ($n)"
 ret=0
 digcomp knowngood.before dig.out.ns1.example.before || ret=1
 digcomp knowngood.before dig.out.ns2.example.before || ret=1
 digcomp knowngood.before dig.out.ns3.example.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "checking update forwarding of a zone (signed) (Do53 -> DoT) ($n)"
 nextpart_thrice
@@ -105,36 +105,36 @@ update add updated.example. 600 A 10.10.10.1
 update add updated.example. 600 TXT Foo
 send
 EOF
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1.example.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 1 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2.example.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "fetching secondary 2 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3.example.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "comparing post-update copies to known good data ($n)"
 ret=0
 digcomp knowngood.after1 dig.out.ns1.example.after1 || ret=1
 digcomp knowngood.after1 dig.out.ns2.example.after1 || ret=1
 digcomp knowngood.after1 dig.out.ns3.example.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "checking update forwarding of a zone (signed) (DoT -> DoT) ($n)"
 nextpart_thrice
@@ -146,43 +146,43 @@ update add updated-dot.example. 600 A 10.10.10.1
 update add updated-dot.example. 600 TXT Foo
 send
 EOF
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1.example.after2 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 1 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2.example.after2 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "fetching secondary 2 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3.example.after2 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "comparing post-update copies to known good data ($n)"
 ret=0
 digcomp knowngood.after2 dig.out.ns1.example.after2 || ret=1
 digcomp knowngood.after2 dig.out.ns2.example.after2 || ret=1
 digcomp knowngood.after2 dig.out.ns3.example.after2 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "checking 'forwarding update for zone' is logged twice ($n)"
 ret=0
 cnt=$(grep -F "forwarding update for zone 'example/IN'" ns3/named.run | wc -l || ret=1)
 test "${cnt}" -eq 2 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 if $FEATURETEST --enable-dnstap
 then
@@ -191,8 +191,8 @@ then
 	capture_dnstap
 	uq_equals_ur example || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
+	status=$((status + ret))
+	n=$((n + 1))
 fi
 
 echo_i "updating zone (unsigned) ($n)"
@@ -205,62 +205,62 @@ update add unsigned.example. 600 A 10.10.10.1
 update add unsigned.example. 600 TXT Foo
 send
 EOF
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.1 axfr > dig.out.ns1.example.after3 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "fetching secondary 1 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.2 axfr > dig.out.ns2.example.after3 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 2 copy of zone after update ($n)"
 ret=0
 $DIG $DIGOPTS example.\
 	@10.53.0.3 axfr > dig.out.ns3.example.after3 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "comparing post-update copies to known good data ($n)"
 ret=0
 digcomp knowngood.after3 dig.out.ns1.example.after3 || ret=1
 digcomp knowngood.after3 dig.out.ns2.example.after3 || ret=1
 digcomp knowngood.after3 dig.out.ns3.example.after3 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "fetching primary copy of zone before update, first primary fails ($n)"
 ret=0
 $DIG $DIGOPTS example3.\
 	@10.53.0.1 axfr > dig.out.ns1.example3.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 1 copy of zone before update, first primary fails ($n)"
 $DIG $DIGOPTS example3.\
 	@10.53.0.2 axfr > dig.out.ns2.example3.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 2 copy of zone before update, first primary fails ($n)"
 ret=0
 $DIG $DIGOPTS example3.\
 	@10.53.0.3 axfr > dig.out.ns3.example3.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "comparing pre-update copies to known good data, first primary fails ($n)"
 ret=0
 digcomp knowngood.before.example3 dig.out.ns1.example3.before || ret=1
 digcomp knowngood.before.example3 dig.out.ns2.example3.before || ret=1
 digcomp knowngood.before.example3 dig.out.ns3.example3.before || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "checking update forwarding of a zone (signed) (Do53 -> DoT) ($n)"
 nextpart_thrice
@@ -272,36 +272,36 @@ update add updated.example3. 600 A 10.10.10.1
 update add updated.example3. 600 TXT Foo
 send
 EOF
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 wait_for_log_thrice
 
 echo_i "fetching primary copy of zone after update, first primary fails ($n)"
 ret=0
 $DIG $DIGOPTS example3.\
 	@10.53.0.1 axfr > dig.out.ns1.example3.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "fetching secondary 1 copy of zone after update, first primary fails ($n)"
 ret=0
 $DIG $DIGOPTS example3.\
 	@10.53.0.2 axfr > dig.out.ns2.example3.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 echo_i "fetching secondary 2 copy of zone after update, first primary fails ($n)"
 ret=0
 $DIG $DIGOPTS example3.\
 	@10.53.0.3 axfr > dig.out.ns3.example3.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "comparing post-update copies to known good data, first primary fails ($n)"
 ret=0
 digcomp knowngood.after1.example3 dig.out.ns1.example3.after1 || ret=1
 digcomp knowngood.after1.example3 dig.out.ns2.example3.after1 || ret=1
 digcomp knowngood.after1.example3 dig.out.ns3.example3.after1 || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
 if $FEATURETEST --enable-dnstap
 then
@@ -310,10 +310,10 @@ then
 	capture_dnstap
 	uq_equals_ur example3 || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
+	status=$((status + ret))
+	n=$((n + 1))
 fi
-n=`expr $n + 1`
+n=$((n + 1))
 
 if test -f keyname
 then
@@ -329,15 +329,15 @@ then
 	update add unsigned.example2. 600 TXT Foo
 	send
 EOF
-	if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-	n=`expr $n + 1`
+	if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+	n=$((n + 1))
 	wait_for_log_thrice
 
 	$DIG -p ${PORT} unsigned.example2 A @10.53.0.1 > dig.out.ns1.test$n
 	grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
+	status=$((status + ret))
+	n=$((n + 1))
 
 	if $FEATURETEST --enable-dnstap
 	then
@@ -346,8 +346,8 @@ EOF
 		capture_dnstap
 		uq_equals_ur example2 || ret=1
 		if [ $ret != 0 ] ; then echo_i "failed"; fi
-		status=`expr $status + $ret`
-		n=`expr $n + 1`
+		status=$((status + ret))
+		n=$((n + 1))
 	fi
 
 	echo_i "checking update forwarding with sig0 (DoT -> Do53) ($n)"
@@ -362,15 +362,15 @@ EOF
 	update add unsigned-dot.example2. 600 TXT Foo
 	send
 EOF
-	if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-	n=`expr $n + 1`
+	if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+	n=$((n + 1))
 	wait_for_log_thrice
 
 	$DIG -p ${PORT} unsigned-dot.example2 A @10.53.0.1 > dig.out.ns1.test$n
 	grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
+	status=$((status + ret))
+	n=$((n + 1))
 
 	if $FEATURETEST --enable-dnstap
 	then
@@ -379,8 +379,8 @@ EOF
 		capture_dnstap
 		uq_equals_ur example2 || ret=1
 		if [ $ret != 0 ] ; then echo_i "failed"; fi
-		status=`expr $status + $ret`
-		n=`expr $n + 1`
+		status=$((status + ret))
+		n=$((n + 1))
 	fi
 fi
 
@@ -396,8 +396,8 @@ ret=0
 EOF
 } > nsupdate.out.$n 2>&1
 grep REFUSED nsupdate.out.$n > /dev/null || ret=1
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "checking update forwarding to dead primary ($n)"
 count=0
@@ -418,12 +418,12 @@ EOF
 	grep "status: NOERROR" dig.out.ns3.test$n.$count > /dev/null || ret=1
 	count=`expr $count + 1`
 done
-if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
-n=`expr $n + 1`
+if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
+n=$((n + 1))
 
 echo_i "waiting for nsupdate to finish ($n)"
 wait
-n=`expr $n + 1`
+n=$((n + 1))
 
 if $FEATURETEST --enable-dnstap
 then
@@ -432,8 +432,8 @@ then
 	capture_dnstap
 	uq_equals_ur noprimary && ret=1
 	if [ $ret != 0 ] ; then echo_i "failed"; fi
-	status=`expr $status + $ret`
-	n=`expr $n + 1`
+	status=$((status + ret))
+	n=$((n + 1))
 fi
 
 n=$((n + 1))

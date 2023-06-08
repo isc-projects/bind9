@@ -22,7 +22,7 @@ DIGOPTS="@10.53.0.1 -p ${PORT}"
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
-	n=`expr $n + 1`
+	n=$((n + 1))
 	echo_i "${1} (${n})"
 	ret=0
 }
@@ -118,49 +118,49 @@ EOF
 }
 
 test_add test1.ipv4.example.nil. A "10.53.0.10" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test2.ipv4.example.nil. A "10.53.0.11" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test3.ipv4.example.nil. A "10.53.0.12" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test4.ipv6.example.nil. AAAA "2001:db8::1" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test1.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test2.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test3.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test4.ipv6.example.nil. AAAA || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 newtest "checking parameter logging"
 grep "loading params for dyndb 'sample' from .*named.conf:" ns1/named.run > /dev/null || ret=1
 grep "loading params for dyndb 'sample2' from .*named.conf:" ns1/named.run > /dev/null || ret=1
 [ $ret -eq 1 ] && echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "checking dyndb still works after reload"
 rndc_reload ns1 10.53.0.1
 
 test_add test5.ipv4.example.nil. A "10.53.0.10" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test6.ipv6.example.nil. AAAA "2001:db8::1" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test5.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test6.ipv6.example.nil. AAAA || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

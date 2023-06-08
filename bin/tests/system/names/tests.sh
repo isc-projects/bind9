@@ -35,14 +35,14 @@ echo_i "Checking if responses are identical other than in message size"
 diff dig.compdis.sorted.test dig.compen.sorted.test >/dev/null
 ret=$?
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "Checking if message with compression disabled is significantly larger"
 echo_i "Disabled $COMPDIS vs enabled $COMPEN"
 val=`expr \( $COMPDIS \* 3 / 2 \) / $COMPEN`
 if [ $val -le 1 ]; then
 	echo_i "failed"
-	status=`expr $status + 1`
+	status=$((status + 1))
 fi;
 
 echo_i "exit status: $status"

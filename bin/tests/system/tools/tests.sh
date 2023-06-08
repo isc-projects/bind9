@@ -19,7 +19,7 @@ checkout() {
 	case $? in
 	0) : ok ;;
 	*) echo_i "failed"
-	   status=`expr $status + 1`
+	   status=$((status + 1))
 	   return 1 ;;
 	esac
 	case $out in
@@ -27,7 +27,7 @@ checkout() {
 	*) echo_i "expect $hash"
 	   echo_i "output $out"
 	   echo_i "failed"
-	   status=`expr $status + 1` ;;
+	   status=$((status + 1)) ;;
 	esac
 }
 
@@ -86,7 +86,7 @@ checkempty
 checkfail() {
 	case $? in
 	0) echo_i "failed to fail"
-	   status=`expr $status + 1`
+	   status=$((status + 1))
 	   return 1 ;;
 	esac
 }
