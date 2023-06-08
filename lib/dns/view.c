@@ -465,15 +465,25 @@ dns_view_detach(dns_view_t **viewp) {
 		if (view->resolver != NULL) {
 			dns_resolver_shutdown(view->resolver);
 		}
-		if (view->adb != NULL) {
-			dns_adb_shutdown(view->adb);
+
+		rcu_read_lock();
+		adb = rcu_dereference(view->adb);
+		if (adb != NULL) {
+			dns_adb_shutdown(adb);
 		}
+		rcu_read_unlock();
+
 		if (view->requestmgr != NULL) {
 			dns_requestmgr_shutdown(view->requestmgr);
 		}
 
 		/* Swap the pointers under the lock */
 		LOCK(&view->lock);
+
+		if (view->resolver != NULL) {
+			resolver = view->resolver;
+			view->resolver = NULL;
+		}
 
 		rcu_read_lock();
 		zonetable = rcu_xchg_pointer(&view->zonetable, NULL);
@@ -482,17 +492,8 @@ dns_view_detach(dns_view_t **viewp) {
 				dns_zt_flush(zonetable);
 			}
 		}
+		adb = rcu_xchg_pointer(&view->adb, NULL);
 		rcu_read_unlock();
-
-		if (view->resolver != NULL) {
-			resolver = view->resolver;
-			view->resolver = NULL;
-		}
-
-		if (view->adb != NULL) {
-			adb = view->adb;
-			view->adb = NULL;
-		}
 
 		if (view->requestmgr != NULL) {
 			requestmgr = view->requestmgr;
@@ -525,16 +526,17 @@ dns_view_detach(dns_view_t **viewp) {
 		if (resolver != NULL) {
 			dns_resolver_detach(&resolver);
 		}
-		if (adb != NULL) {
-			dns_adb_detach(&adb);
+		if (adb != NULL || zonetable != NULL) {
+			synchronize_rcu();
+			if (adb != NULL) {
+				dns_adb_detach(&adb);
+			}
+			if (zonetable != NULL) {
+				dns_zt_detach(&zonetable);
+			}
 		}
 		if (requestmgr != NULL) {
 			dns_requestmgr_detach(&requestmgr);
-		}
-
-		if (zonetable != NULL) {
-			synchronize_rcu();
-			dns_zt_detach(&zonetable);
 		}
 		if (mkzone != NULL) {
 			dns_zone_detach(&mkzone);
@@ -1474,6 +1476,7 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 isc_result_t
 dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 	isc_result_t result;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1495,9 +1498,12 @@ dns_view_flushcache(dns_view_t *view, bool fixuponly) {
 		dns_badcache_flush(view->failcache);
 	}
 
-	if (view->adb) {
-		dns_adb_flush(view->adb);
+	rcu_read_lock();
+	adb = rcu_dereference(view->adb);
+	if (adb != NULL) {
+		dns_adb_flush(adb);
 	}
+	rcu_read_unlock();
 
 	return (ISC_R_SUCCESS);
 }
@@ -1510,13 +1516,17 @@ dns_view_flushname(dns_view_t *view, const dns_name_t *name) {
 isc_result_t
 dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 	isc_result_t result = ISC_R_SUCCESS;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	if (tree) {
-		if (view->adb != NULL) {
-			dns_adb_flushnames(view->adb, name);
+		rcu_read_lock();
+		adb = rcu_dereference(view->adb);
+		if (adb != NULL) {
+			dns_adb_flushnames(adb, name);
 		}
+		rcu_read_unlock();
 		if (view->resolver != NULL) {
 			dns_resolver_flushbadnames(view->resolver, name);
 		}
@@ -1524,9 +1534,12 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name, bool tree) {
 			dns_badcache_flushtree(view->failcache, name);
 		}
 	} else {
-		if (view->adb != NULL) {
-			dns_adb_flushname(view->adb, name);
+		rcu_read_lock();
+		adb = rcu_dereference(view->adb);
+		if (adb != NULL) {
+			dns_adb_flushname(adb, name);
 		}
+		rcu_read_unlock();
 		if (view->resolver != NULL) {
 			dns_resolver_flushbadcache(view->resolver, name);
 		}
@@ -2486,4 +2499,19 @@ dns_view_apply(dns_view_t *view, bool stop, isc_result_t *sub,
 	}
 	rcu_read_unlock();
 	return (result);
+}
+
+void
+dns_view_getadb(dns_view_t *view, dns_adb_t **adbp) {
+	dns_adb_t *adb = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+	REQUIRE(adbp != NULL && *adbp == NULL);
+
+	rcu_read_lock();
+	adb = rcu_dereference(view->adb);
+	if (adb != NULL) {
+		dns_adb_attach(adb, adbp);
+	}
+	rcu_read_unlock();
 }

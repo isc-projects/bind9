@@ -4096,6 +4096,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -4766,13 +4767,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		{
 			max_adb_size = MAX_ADB_SIZE_FOR_CACHESHARE;
 			if (!nsc->adbsizeadjusted) {
-				dns_adb_setadbsize(nsc->primaryview->adb,
-						   MAX_ADB_SIZE_FOR_CACHESHARE);
-				nsc->adbsizeadjusted = true;
+				dns_view_getadb(nsc->primaryview, &adb);
+				if (adb != NULL) {
+					dns_adb_setadbsize(
+						adb,
+						MAX_ADB_SIZE_FOR_CACHESHARE);
+					nsc->adbsizeadjusted = true;
+					dns_adb_detach(&adb);
+				}
 			}
 		}
 	}
-	dns_adb_setadbsize(view->adb, max_adb_size);
+	dns_view_getadb(view, &adb);
+	if (adb != NULL) {
+		dns_adb_setadbsize(adb, max_adb_size);
+		dns_adb_detach(&adb);
+	}
 
 	/*
 	 * Set up ADB quotas
@@ -4819,7 +4829,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		obj2 = cfg_tuple_get(obj, "discount");
 		discount = (double)cfg_obj_asfixedpoint(obj2) / 100.0;
 
-		dns_adb_setquota(view->adb, fps, freq, low, high, discount);
+		dns_view_getadb(view, &adb);
+		if (adb != NULL) {
+			dns_adb_setquota(adb, fps, freq, low, high, discount);
+			dns_adb_detach(&adb);
+		}
 	}
 
 	/*
@@ -11403,7 +11417,12 @@ resume:
 
 	if (dctx->cache != NULL) {
 		if (dctx->dumpadb) {
-			dns_adb_dump(dctx->view->view->adb, dctx->fp);
+			dns_adb_t *adb = NULL;
+			dns_view_getadb(dctx->view->view, &adb);
+			if (adb != NULL) {
+				dns_adb_dump(adb, dctx->fp);
+				dns_adb_detach(&adb);
+			}
 		}
 		if (dctx->dumpbad) {
 			dns_resolver_printbadcache(dctx->view->view->resolver,
@@ -16263,6 +16282,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 	dns_view_t *view = NULL;
 	char *ptr = NULL, *viewname = NULL;
 	bool first = true;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(text != NULL);
 
@@ -16290,7 +16310,8 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 			continue;
 		}
 
-		if (view->adb == NULL) {
+		dns_view_getadb(view, &adb);
+		if (adb == NULL) {
 			continue;
 		}
 
@@ -16300,16 +16321,16 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		CHECK(putstr(text, "Rate limited servers, view "));
 		CHECK(putstr(text, view->name));
 
-		dns_adb_getquota(view->adb, &val, NULL, NULL, NULL, NULL);
+		dns_adb_getquota(adb, &val, NULL, NULL, NULL, NULL);
 		s = snprintf(tbuf, sizeof(tbuf),
 			     " (fetches-per-server %u):", val);
 		if (s < 0 || (unsigned int)s > sizeof(tbuf)) {
-			return (ISC_R_NOSPACE);
+			CHECK(ISC_R_NOSPACE);
 		}
 		first = false;
 		CHECK(putstr(text, tbuf));
 		used = isc_buffer_usedlength(*text);
-		CHECK(dns_adb_dumpquota(view->adb, text));
+		CHECK(dns_adb_dumpquota(adb, text));
 		if (used == isc_buffer_usedlength(*text)) {
 			CHECK(putstr(text, "\n  None."));
 		}
@@ -16320,7 +16341,7 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		s = snprintf(tbuf, sizeof(tbuf),
 			     " (fetches-per-zone %u):", val);
 		if (s < 0 || (unsigned int)s > sizeof(tbuf)) {
-			return (ISC_R_NOSPACE);
+			CHECK(ISC_R_NOSPACE);
 		}
 		CHECK(putstr(text, tbuf));
 		used = isc_buffer_usedlength(*text);
@@ -16328,9 +16349,12 @@ named_server_fetchlimit(named_server_t *server, isc_lex_t *lex,
 		if (used == isc_buffer_usedlength(*text)) {
 			CHECK(putstr(text, "\n  None."));
 		}
+		dns_adb_detach(&adb);
 	}
-
 cleanup:
+	if (adb != NULL) {
+		dns_adb_detach(&adb);
+	}
 	if (isc_buffer_usedlength(*text) > 0) {
 		(void)putnull(text);
 	}

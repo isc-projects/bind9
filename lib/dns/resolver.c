@@ -4694,7 +4694,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	 * Attach to the view's cache and adb.
 	 */
 	dns_db_attach(res->view->cachedb, &fctx->cache);
-	dns_adb_attach(res->view->adb, &fctx->adb);
+	dns_view_getadb(res->view, &fctx->adb);
 
 	ISC_LIST_INIT(fctx->resps);
 	ISC_LINK_INIT(fctx, link);
