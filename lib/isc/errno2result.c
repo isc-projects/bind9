@@ -45,6 +45,7 @@ isc___errno2result(int posixerrno, bool dolog, const char *file,
 		return (ISC_R_FILENOTFOUND);
 	case EACCES:
 	case EPERM:
+	case EROFS:
 		return (ISC_R_NOPERM);
 	case EEXIST:
 		return (ISC_R_FILEEXISTS);
