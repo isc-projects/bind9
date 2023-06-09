@@ -15,7 +15,14 @@ Notes for BIND 9.16.42
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- The overmem cleaning process has been improved, to prevent the cache from
+  significantly exceeding the configured ``max-cache-size`` limit.
+  (CVE-2023-2828)
+
+  ISC would like to thank Shoham Danino from Reichman University, Anat
+  Bremler-Barr from Tel-Aviv University, Yehuda Afek from Tel-Aviv University,
+  and Yuval Shavitt from Tel-Aviv University for bringing this vulnerability to
+  our attention.  :gl:`#4055`
 
 New Features
 ~~~~~~~~~~~~
