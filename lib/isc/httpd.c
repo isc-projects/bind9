@@ -420,7 +420,7 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 	 */
 	httpd->flags = 0;
 
-	ssize_t content_len = 0;
+	size_t content_len = 0;
 	bool keep_alive = false;
 	bool host_header = false;
 
@@ -431,12 +431,23 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 
 		if (name_match(header, "Content-Length")) {
 			char *endptr;
-			content_len = (size_t)strtoul(header->value, &endptr,
-						      10);
-			/* Consistency check, if we consumed all numbers */
+			long val = strtol(header->value, &endptr, 10);
+
+			errno = 0;
+
+			/* ensure we consumed all digits */
 			if ((header->value + header->value_len) != endptr) {
+				return (ISC_R_BADNUMBER);
+			}
+			/* ensure there was no minus sign */
+			if (val < 0) {
+				return (ISC_R_BADNUMBER);
+			}
+			/* ensure it did not overflow */
+			if (errno != 0) {
 				return (ISC_R_RANGE);
 			}
+			content_len = val;
 		} else if (name_match(header, "Connection")) {
 			/* multiple fields in a connection header are allowed */
 			if (value_match(header, "close")) {
@@ -472,17 +483,18 @@ process_request(isc_httpd_t *httpd, size_t last_len) {
 		return (ISC_R_BADNUMBER);
 	}
 
-	if (content_len == (ssize_t)ULONG_MAX) {
-		/* Invalid number in the header value. */
-		return (ISC_R_BADNUMBER);
+	if (content_len >= HTTP_MAX_REQUEST_LEN) {
+		return (ISC_R_RANGE);
 	}
-	if (httpd->consume + content_len > httpd->recvlen) {
+
+	size_t consume = httpd->consume + content_len;
+	if (consume > httpd->recvlen) {
 		/* The request data isn't complete yet. */
 		return (ISC_R_NOMORE);
 	}
 
 	/* Consume the request's data, which we do not use. */
-	httpd->consume += content_len;
+	httpd->consume = consume;
 
 	switch (httpd->minor_version) {
 	case 0:
