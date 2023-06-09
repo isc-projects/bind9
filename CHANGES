@@ -2,7 +2,9 @@
 
 6191.	[placeholder]
 
-6190.	[placeholder]
+6190.	[security]	Improve the overmem cleaning process to prevent the
+			cache going over the configured limit. (CVE-2023-2828)
+			[GL #4055]
 
 6189.	[bug]		Fix an extra dns_validator deatch when encountering
 			deadling which would lead to assertion failure.
