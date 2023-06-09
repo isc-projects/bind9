@@ -1,0 +1,161 @@
+@@
+expression MCTX, COUNT;
+type ELEM;
+@@
+
+- isc_mem_get(MCTX, COUNT * sizeof(ELEM))
++ isc_mem_cget(MCTX, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, COUNT, ELEM;
+@@
+
+- isc_mem_get(MCTX, COUNT * sizeof(ELEM))
++ isc_mem_cget(MCTX, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, COUNT;
+type ELEM;
+@@
+
+- isc_mem_put(MCTX, OLD_PTR, COUNT * sizeof(ELEM))
++ isc_mem_cput(MCTX, OLD_PTR, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, COUNT, ELEM;
+@@
+
+- isc_mem_put(MCTX, OLD_PTR, COUNT * sizeof(ELEM))
++ isc_mem_cput(MCTX, OLD_PTR, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, COUNT;
+type ELEM;
+@@
+
+- isc_mem_get(MCTX, sizeof(ELEM) * COUNT)
++ isc_mem_cget(MCTX, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, COUNT, ELEM;
+@@
+
+- isc_mem_get(MCTX, sizeof(ELEM) * COUNT)
++ isc_mem_cget(MCTX, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, COUNT;
+type ELEM;
+@@
+
+- isc_mem_put(MCTX, OLD_PTR, sizeof(ELEM) * COUNT)
++ isc_mem_cput(MCTX, OLD_PTR, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, COUNT, ELEM;
+@@
+
+- isc_mem_put(MCTX, OLD_PTR, sizeof(ELEM) * COUNT)
++ isc_mem_cput(MCTX, OLD_PTR, COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_COUNT, NEW_COUNT;
+identifier OLD_SIZE, NEW_SIZE;
+type ELEM;
+@@
+
+- size_t OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- size_t NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_COUNT, NEW_COUNT, ELEM;
+identifier OLD_SIZE, NEW_SIZE;
+@@
+
+- size_t OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- size_t NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_COUNT, NEW_COUNT;
+identifier OLD_SIZE, NEW_SIZE;
+type ELEM;
+@@
+
+- size_t NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- size_t OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_COUNT, NEW_COUNT, ELEM;
+identifier OLD_SIZE, NEW_SIZE;
+@@
+
+- size_t NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- size_t OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_SIZE, OLD_COUNT, NEW_SIZE, NEW_COUNT;
+type ELEM;
+@@
+
+- OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_SIZE, OLD_COUNT, NEW_SIZE, NEW_COUNT, ELEM;
+@@
+
+- OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_SIZE, OLD_COUNT, NEW_SIZE, NEW_COUNT;
+type ELEM;
+@@
+
+- NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, NEW_PTR, OLD_SIZE, OLD_COUNT, NEW_SIZE, NEW_COUNT, ELEM;
+@@
+
+- NEW_SIZE = NEW_COUNT * sizeof(ELEM);
+- OLD_SIZE = OLD_COUNT * sizeof(ELEM);
+- NEW_PTR = isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE);
++ NEW_PTR = isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM));
+
+@@
+expression MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT;
+type ELEM;
+@@
+
+- isc_mem_reget(MCTX, OLD_PTR, OLD_COUNT * sizeof(ELEM), NEW_COUNT * sizeof(ELEM))
++ isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, ELEM;
+@@
+
+- isc_mem_reget(MCTX, OLD_PTR, OLD_COUNT * sizeof(ELEM), NEW_COUNT * sizeof(ELEM))
++ isc_mem_creget(MCTX, OLD_PTR, OLD_COUNT, NEW_COUNT, sizeof(ELEM))
+
+@@
+expression MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE;
+@@
+
+- isc_mem_reget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE)
++ isc_mem_creget(MCTX, OLD_PTR, OLD_SIZE, NEW_SIZE, sizeof(char))
