@@ -24,6 +24,12 @@ Security Fixes
   and Yuval Shavitt from Tel-Aviv University for bringing this vulnerability to
   our attention.  :gl:`#4055`
 
+- A query that prioritizes stale data over lookup triggers a fetch to refresh
+  the stale data in cache. If the fetch is aborted for exceeding the recursion
+  quota, it was possible for :iscman:`named` to enter an infinite callback
+  loop and crash due to stack overflow. This has been fixed. (CVE-2023-2911)
+  :gl:`#4089`
+
 New Features
 ~~~~~~~~~~~~
 
