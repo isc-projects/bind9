@@ -355,6 +355,26 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
  */
 
 void
+dns_catz_dbupdate_unregister(dns_db_t *db, dns_catz_zones_t *catzs);
+/*%<
+ * Register the catalog zone database update notify callback.
+ *
+ * Requires:
+ * \li	'db' is a valid database.
+ * \li	'catzs' is valid.
+ */
+
+void
+dns_catz_dbupdate_register(dns_db_t *db, dns_catz_zones_t *catzs);
+/*%<
+ * Unregister the catalog zone database update notify callback.
+ *
+ * Requires:
+ * \li	'db' is a valid database.
+ * \li	'catzs' is valid.
+ */
+
+void
 dns_catz_prereconfig(dns_catz_zones_t *catzs);
 /*%<
  * Called before reconfig, clears 'active' flag on all the zones in set

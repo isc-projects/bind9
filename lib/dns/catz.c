@@ -2191,6 +2191,26 @@ cleanup:
 	return (result);
 }
 
+void
+dns_catz_dbupdate_unregister(dns_db_t *db, dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	LOCK(&catzs->lock);
+	dns_db_updatenotify_unregister(db, dns_catz_dbupdate_callback, catzs);
+	UNLOCK(&catzs->lock);
+}
+
+void
+dns_catz_dbupdate_register(dns_db_t *db, dns_catz_zones_t *catzs) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
+
+	LOCK(&catzs->lock);
+	dns_db_updatenotify_register(db, dns_catz_dbupdate_callback, catzs);
+	UNLOCK(&catzs->lock);
+}
+
 static bool
 catz_rdatatype_is_processable(const dns_rdatatype_t type) {
 	return (!dns_rdatatype_isdnssec(type) && type != dns_rdatatype_cds &&
