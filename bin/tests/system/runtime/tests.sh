@@ -225,8 +225,8 @@ n=$((n+1))
 echo_i "verifying that named switches UID ($n)"
 if [ "$(id -u)" -eq 0 ]; then
     ret=0
-    TEMP_NAMED_DIR=$(mktemp -d "$(pwd)/ns2/tmp.XXXXXXXX")
-    if [ "$?" -eq 0 ]; then
+    { TEMP_NAMED_DIR=$(mktemp -d "$(pwd)/ns2/tmp.XXXXXXXX"); rc=$?; } || true
+    if [ "$rc" -eq 0 ]; then
 	copy_setports ns2/named-alt9.conf.in "${TEMP_NAMED_DIR}/named-alt9.conf"
 	chown -R nobody: "${TEMP_NAMED_DIR}"
 	chmod 0700 "${TEMP_NAMED_DIR}"

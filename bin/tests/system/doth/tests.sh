@@ -845,8 +845,7 @@ n=$((n + 1))
 echo_i "checking server quotas for both encrypted and unencrypted HTTP ($n)"
 ret=0
 if [ -x "$PYTHON" ]; then
-	BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_quota.py"
-	ret=$?
+	BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_quota.py" || ret=$?
 else
 	echo_i "Python is not available. Skipping the test..."
 fi

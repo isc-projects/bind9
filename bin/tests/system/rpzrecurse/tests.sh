@@ -238,8 +238,7 @@ for mode in native dnsrps; do
     for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 \
 	     17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
     do
-      run_query 4$n $i
-      c=`expr $c + $?`
+      run_query 4$n $i || c=$((c + 1))
     done
     skipped=$((33-c))
     if [ $skipped != $ni ]; then

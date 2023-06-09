@@ -208,8 +208,8 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "testing ixfr-from-differences option ($n)"
 # ns3 is primary; ns4 is secondary
-$CHECKZONE test. ns3/mytest.db > /dev/null 2>&1
-if [ $? -ne 0 ]
+{ $CHECKZONE test. ns3/mytest.db > /dev/null 2>&1; rc=$?; } || true
+if [ $rc -ne 0 ]
 then
     echo_i "named-checkzone returned failure on ns3/mytest.db"
 fi

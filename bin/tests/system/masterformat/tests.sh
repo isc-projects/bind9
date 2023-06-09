@@ -24,8 +24,7 @@ israw () {
     $PERL -e 'binmode STDIN;
              read(STDIN, $input, 8);
              ($style, $version) = unpack("NN", $input);
-             exit 1 if ($style != 2 || $version > 1);' < "$1"
-    return $?
+             exit 1 if ($style != 2 || $version > 1);' < "$1" || return $?
 }
 
 isfull () {

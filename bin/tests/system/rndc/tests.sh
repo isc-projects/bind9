@@ -519,8 +519,8 @@ do
 	echo_i "testing rndc buffer size limits (size=${i}) ($n)"
 	ret=0
 	$RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf testgen ${i} 2>&1 > rndc.out.$i.test$n || ret=1
-	actual_size=`$GENCHECK rndc.out.$i.test$n`
-	if [ "$?" = "0" ]; then
+	{ actual_size=`$GENCHECK rndc.out.$i.test$n`; rc=$?; } || true
+	if [ "$rc" = "0" ]; then
 	    expected_size=$((i+1))
 	    if [ $actual_size != $expected_size ]; then ret=1; fi
 	else

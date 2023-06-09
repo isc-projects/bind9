@@ -23,8 +23,7 @@ fail() {
 }
 
 runcmd() {
-        "$@" 1> out.$n 2> err.$n
-	echo $?
+        ("$@" 1> out.$n 2> err.$n; echo $?) || true
 }
 
 testcase() {

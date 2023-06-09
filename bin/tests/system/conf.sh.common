@@ -239,8 +239,7 @@ cat_d() {
 }
 
 digcomp() {
-    output=`$PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"`
-    result=$?
+    { output=`$PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"`; result=$?; } || true
     [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
     return $result
 }

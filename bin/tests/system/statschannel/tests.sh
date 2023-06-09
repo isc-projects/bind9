@@ -59,8 +59,7 @@ getzones() {
     esac
     file=`$PERL fetch.pl -p ${EXTRAPORT1} $path`
     cp $file $file.$1.$3
-    $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3
-    result=$?
+    { $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3; result=$?; } || true
     return $result
 }
 
