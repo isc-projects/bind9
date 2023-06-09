@@ -878,8 +878,8 @@ $RNDCCMD 10.53.0.7 retransfer $zone
 for i in 1 2 3 4 5 6 7 8 9 0
 do
 	ret=1
-	grep "ns2.$zone. . 10 20 20 1814400 3600" ns7/named.run > /dev/null 2>&1
-	[ $? -eq 0 ] && ret=0 && break
+	{ grep "ns2.$zone. . 10 20 20 1814400 3600" ns7/named.run > /dev/null 2>&1; rc=$?; } || true
+	[ $rc -eq 0 ] && ret=0 && break
 	sleep 1
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi

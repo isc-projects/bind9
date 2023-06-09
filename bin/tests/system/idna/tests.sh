@@ -104,8 +104,8 @@ idna_test() {
     echo_i "$description ($n)"
 
     ret=0
-    $DIGCMD $2 $3 > dig.out.$n 2>&1
-    if [ $? -ne 0 ]; then
+    { $DIGCMD $2 $3 > dig.out.$n 2>&1; rc=$?; } || true
+    if [ $rc -ne 0 ]; then
         echo_i "failed: dig command returned non-zero status"
         ret=1
     else
@@ -133,8 +133,8 @@ idna_fail() {
     echo_i "$description ($n)"
 
     ret=0
-    $DIGCMD $2 $3 > dig.out.$n 2>&1
-    if [ $? -eq 0 ]; then
+    { $DIGCMD $2 $3 > dig.out.$n 2>&1; rc=$?; } || true
+    if [ $rc -eq 0 ]; then
         echo_i "failed: dig command unexpectedly succeeded"
         ret=1
     fi
@@ -384,8 +384,7 @@ idna_disabled_test() {
 
 # Main test begins here
 
-$FEATURETEST --with-libidn2
-if [ $? -eq 0 ]; then
+if $FEATURETEST --with-libidn2; then
     idna_enabled_test
 else
     idna_disabled_test

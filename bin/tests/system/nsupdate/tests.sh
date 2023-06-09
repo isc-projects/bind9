@@ -823,13 +823,13 @@ echo_i "check command list ($n)"
 (
 while read cmd
 do
-    echo "$cmd" | $NSUPDATE  > /dev/null 2>&1
-    if test $? -gt 1 ; then
+    { echo "$cmd" | $NSUPDATE  > /dev/null 2>&1; rc=$?; } || true
+    if test $rc -gt 1 ; then
 	echo_i "failed ($cmd)"
 	ret=1
     fi
-    echo "$cmd " | $NSUPDATE  > /dev/null 2>&1
-    if test $? -gt 1 ; then
+    { echo "$cmd " | $NSUPDATE  > /dev/null 2>&1; rc=$?; } || true
+    if test $rc -gt 1 ; then
 	echo_i "failed ($cmd)"
 	ret=1
     fi

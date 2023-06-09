@@ -32,8 +32,7 @@ cat dig.compdis.test  |grep -v ';;' |sort > dig.compdis.sorted.test
 # the compression disabled message should be at least twice as large as with
 # compression disabled, but the content should be the same
 echo_i "Checking if responses are identical other than in message size"
-diff dig.compdis.sorted.test dig.compen.sorted.test >/dev/null
-ret=$?
+{ diff dig.compdis.sorted.test dig.compen.sorted.test >/dev/null; ret=$?; } || true
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

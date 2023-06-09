@@ -55,8 +55,8 @@ do
     n=$((n + 1))
     echo_i "checking that named-checkconf detects error in $bad ($n)"
     ret=0
-    $CHECKCONF $bad > checkconf.out$n 2>&1
-    if [ $? -ne 1 ]; then ret=1; fi
+    { $CHECKCONF $bad > checkconf.out$n 2>&1; rc=$?; } || true
+    if [ $rc -ne 1 ]; then ret=1; fi
     grep "^$bad:[0-9]*: " < checkconf.out$n > /dev/null || ret=1
     case $bad in
     bad-update-policy[123].conf)
@@ -88,8 +88,8 @@ do
 		good-dot-*.conf) continue;;
 		esac
 	fi
-	$CHECKCONF $good > checkconf.out$n 2>&1
-	if [ $? -ne 0 ]; then echo_i "failed"; ret=1; fi
+	{ $CHECKCONF $good > checkconf.out$n 2>&1; rc=$?; } || true
+	if [ $rc -ne 0 ]; then echo_i "failed"; ret=1; fi
 	status=$((status + ret))
 done
 
@@ -98,15 +98,14 @@ do
 	n=$((n + 1))
 	ret=0
 
-	$FEATURETEST --with-lmdb
-	if [ $? -eq 0 ]; then
+	if $FEATURETEST --with-lmdb; then
 		echo_i "checking that named-checkconf detects no error in $lmdb ($n)"
-		$CHECKCONF $lmdb > checkconf.out$n 2>&1
-		if [ $? -ne 0 ]; then echo_i "failed"; ret=1; fi
+		{ $CHECKCONF $lmdb > checkconf.out$n 2>&1; rc=$?; } || true
+		if [ $rc -ne 0 ]; then echo_i "failed"; ret=1; fi
 	else
 		echo_i "checking that named-checkconf detects error in $lmdb ($n)"
-		$CHECKCONF $lmdb > checkconf.out$n 2>&1
-		if [ $? -eq 0 ]; then echo_i "failed"; ret=1; fi
+		{ $CHECKCONF $lmdb > checkconf.out$n 2>&1; rc=$?; } || true
+		if [ $rc -eq 0 ]; then echo_i "failed"; ret=1; fi
 	fi
 	status=$((status + ret))
 done
@@ -205,15 +204,15 @@ options {
     $field 0;
 };
 EOF
-    $CHECKCONF badzero.conf > checkconf.out$n.1 2>&1
-    [ $? -eq 1 ] || { echo_i "options $field failed" ; ret=1; }
+    { $CHECKCONF badzero.conf > checkconf.out$n.1 2>&1; rc=$?; } || true
+    [ $rc -eq 1 ] || { echo_i "options $field failed" ; ret=1; }
     cat > badzero.conf << EOF
 view dummy {
     $field 0;
 };
 EOF
-    $CHECKCONF badzero.conf > checkconf.out$n.2 2>&1
-    [ $? -eq 1 ] || { echo_i "view $field failed" ; ret=1; }
+    { $CHECKCONF badzero.conf > checkconf.out$n.2 2>&1; rc=$?; } || true
+    [ $rc -eq 1 ] || { echo_i "view $field failed" ; ret=1; }
     cat > badzero.conf << EOF
 options {
     $field 0;
@@ -221,8 +220,8 @@ options {
 view dummy {
 };
 EOF
-    $CHECKCONF badzero.conf > checkconf.out$n.3 2>&1
-    [ $? -eq 1 ] || { echo_i "options + view $field failed" ; ret=1; }
+    { $CHECKCONF badzero.conf > checkconf.out$n.3 2>&1; rc=$?; } || true
+    [ $rc -eq 1 ] || { echo_i "options + view $field failed" ; ret=1; }
     cat > badzero.conf << EOF
 zone dummy {
     type secondary;
@@ -230,8 +229,8 @@ zone dummy {
     $field 0;
 };
 EOF
-    $CHECKCONF badzero.conf > checkconf.out$n.4 2>&1
-    [ $? -eq 1 ] || { echo_i "zone $field failed" ; ret=1; }
+    { $CHECKCONF badzero.conf > checkconf.out$n.4 2>&1; rc=$?; } || true
+    [ $rc -eq 1 ] || { echo_i "zone $field failed" ; ret=1; }
 done
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

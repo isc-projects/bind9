@@ -42,8 +42,8 @@ for bad in bad-*.conf
 do
 	ret=0
 	echo_i "checking that named-checkconf detects error in $bad"
-	$CHECKCONF $bad > /dev/null 2>&1
-	if [ $? != 1 ]; then echo_i "failed"; ret=1; fi
+	{ $CHECKCONF $bad > /dev/null 2>&1; rc=$?; } || true
+	if [ $rc != 1 ]; then echo_i "failed"; ret=1; fi
 	status=$((status + ret))
 done
 
@@ -51,8 +51,8 @@ for good in good-*.conf
 do
 	ret=0
 	echo_i "checking that named-checkconf detects no error in $good"
-	$CHECKCONF $good > /dev/null 2>&1
-	if [ $? != 0 ]; then echo_i "failed"; ret=1; fi
+	{ $CHECKCONF $good > /dev/null 2>&1; rc=$?; } || true
+	if [ $rc != 0 ]; then echo_i "failed"; ret=1; fi
 	status=$((status + ret))
 done
 
