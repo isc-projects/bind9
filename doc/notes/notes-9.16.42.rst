@@ -30,21 +30,6 @@ Security Fixes
   loop and crash due to stack overflow. This has been fixed. (CVE-2023-2911)
   :gl:`#4089`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
