@@ -1,3 +1,7 @@
+6190.	[security]	Improve the overmem cleaning process to prevent the
+			cache going over the configured limit. (CVE-2023-2828)
+			[GL #4055]
+
 6188.	[performance]	Reduce memory consumption by allocating properly
 			sized send buffers for stream-based transports.
 			[GL #4038]
