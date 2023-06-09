@@ -33,8 +33,6 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
-
 - The system test suite can now be executed with pytest (along with
   pytest-xdist for parallel execution). :gl:`#3978`
 
@@ -44,11 +42,6 @@ Removed Features
 - TKEY mode 2 (Diffie-Hellman Exchanged Keying) is now deprecated, and
   will be removed in a future release. A warning will be logged when
   the ``tkey-dhkey`` option is used in ``named.conf``. :gl:`#3905`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
 
 Bug Fixes
 ~~~~~~~~~
