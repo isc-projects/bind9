@@ -72,8 +72,65 @@ loadkeys_on() {
     wait_for_log 20 "next key event" ns${nsidx}/named.run
 }
 
+set -x
+
+# verify that the http server dropped the connection without replying
+check_http_dropped() {
+    if [ -x "${NC}" ] ; then
+	"${NC}" 10.53.0.3 "${EXTRAPORT1}" > nc.out$n || ret=1
+	if test -s nc.out$n; then
+		ret=1
+	fi
+    else
+	echo_i "skipping test as nc not found"
+    fi
+}
+
 status=0
 n=1
+
+echo_i "check content-length parse error ($n)"
+ret=0
+check_http_dropped <<EOF
+POST /xml/v3/status HTTP/1.0
+Content-Length: nah
+
+EOF
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "check negative content-length ($n)"
+ret=0
+check_http_dropped <<EOF
+POST /xml/v3/status HTTP/1.0
+Content-Length: -50
+
+EOF
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "check content-length 32-bit overflow ($n)"
+check_http_dropped <<EOF
+POST /xml/v3/status HTTP/1.0
+Content-Length: 4294967239
+
+EOF
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "check content-length 64-bit overflow ($n)"
+check_http_dropped <<EOF
+POST /xml/v3/status HTTP/1.0
+Content-Length: 18446744073709551549
+
+EOF
+
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "Prepare for if-modified-since test ($n)"
 ret=0
