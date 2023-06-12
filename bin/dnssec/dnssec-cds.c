@@ -739,7 +739,7 @@ signed_strict(dns_rdataset_t *dsset, dns_secalg_t *algo) {
 		}
 	}
 
-	isc_mem_put(mctx, algo, nkey);
+	isc_mem_put(mctx, algo, nkey * sizeof(algo[0]));
 	return (all_ok);
 }
 
