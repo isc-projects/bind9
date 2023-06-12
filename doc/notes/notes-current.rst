@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.42
+Notes for BIND 9.16.43
 ----------------------
 
 Security Fixes
@@ -35,9 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- It could happen that after the ``stale-answer-client-timeout`` duration,
-  a delegation from cache was returned to the client. This has now been fixed.
-  :gl:`#3950`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
