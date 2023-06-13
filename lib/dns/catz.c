@@ -2147,20 +2147,23 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 
 	/* New zone came as AXFR */
 	if (catz->db != NULL && catz->db != db) {
+		/* Old db cleanup. */
 		if (catz->dbversion != NULL) {
 			dns_db_closeversion(catz->db, &catz->dbversion, false);
 		}
 		dns_db_updatenotify_unregister(
 			catz->db, dns_catz_dbupdate_callback, catz->catzs);
 		dns_db_detach(&catz->db);
-		/*
-		 * We're not registering db update callback, it will be
-		 * registered at the end of dns__catz_update_cb()
-		 */
 		catz->db_registered = false;
 	}
 	if (catz->db == NULL) {
+		/* New db registration. */
 		dns_db_attach(db, &catz->db);
+		result = dns_db_updatenotify_register(
+			db, dns_catz_dbupdate_callback, catz->catzs);
+		if (result == ISC_R_SUCCESS) {
+			catz->db_registered = true;
+		}
 	}
 
 	if (!catz->updatepending && !catz->updaterunning) {
