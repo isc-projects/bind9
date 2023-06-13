@@ -13,7 +13,7 @@
 
 . ../conf.sh
 
-$SHELL clean.sh 
+$SHELL clean.sh
 
 copy_setports ns2/named1.conf.in ns2/named.conf
 

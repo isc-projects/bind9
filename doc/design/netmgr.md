@@ -44,7 +44,7 @@ the socket event, but this is still sub-optimal.
 The `isc_nm_t` structure represents the network manager itself.  It
 contains a configurable number (generally the same as the number of CPUs)
 of 'networker' objects, each of which represents a thread for executing
-networking events. 
+networking events.
 
 The manager contains flags to indicate whether it has been paused or
 interlocked, and counters for the number of workers running and the
@@ -56,7 +56,7 @@ and a pool of buffers into which messages will be copied when received.
 ### `isc_nmsocket_t`
 
 `isc_nmsocket_t` is a wrapper around a libuv socket. It is configured
-with 
+with
 
 ### `isc_nmhandle_t`
 

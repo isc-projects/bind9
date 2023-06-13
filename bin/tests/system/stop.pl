@@ -195,7 +195,7 @@ sub stop_rndc {
 
 sub server_died {
 	my ( $server, $signal ) = @_;
-	
+
 	print "I:$test:$server died before a SIG$signal was sent\n";
 	$errors = 1;
 

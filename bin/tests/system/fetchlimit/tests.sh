@@ -38,7 +38,7 @@ burst() {
 }
 
 stat() {
-    clients=`rndccmd ${1} status | grep "recursive clients" | 
+    clients=`rndccmd ${1} status | grep "recursive clients" |
             sed 's;.*: \([^/][^/]*\)/.*;\1;'`
     echo_i "clients: $clients"
     [ "$clients" = "" ] && return 1

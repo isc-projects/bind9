@@ -19,7 +19,7 @@ $len = @ARGV[1] if (@ARGV == 2);
 
 my @chars = split("", "abcdefghijklmnopqrstuvwxyz123456789");
 
-srand; 
+srand;
 for (my $i = 0; $i < @ARGV[0]; $i++) {
         my $name = "";
         for (my $j = 0; $j < $len; $j++) {

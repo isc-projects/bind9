@@ -17,7 +17,7 @@ amtrelay04.example.	3600	IN	AMTRELAY 0 0 2 ::
 amtrelay05.example.	3600	IN	AMTRELAY 0 0 3 example.net.
 amtrelay06.example.	3600	IN	AMTRELAY \# 2 0004
 apl01.example.		3600	IN	APL	!1:10.0.0.1/32 1:10.0.0.0/24
-apl02.example.		3600	IN	APL	
+apl02.example.		3600	IN	APL
 atma01.example.		3600	IN	ATMA	+61200000000
 atma02.example.		3600	IN	ATMA	+61200000000
 atma03.example.		3600	IN	ATMA	1234567890abcdef
