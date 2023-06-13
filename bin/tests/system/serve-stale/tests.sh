@@ -1784,7 +1784,7 @@ while [ $num -lt 20 ]; do
     num=$((num+1))
 done;
 _dig_data() {
-    $DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || return 1
+    $DIG -p ${PORT} @10.53.0.3 version.bind txt ch >dig.out.test$n || return 1
     grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
 }
 retry_quiet 5 _dig_data || ret=1
