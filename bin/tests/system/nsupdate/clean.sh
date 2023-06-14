@@ -21,9 +21,11 @@ rm -f */named.memstats
 rm -f */named.run */ans.run
 rm -f */named.run.prev
 rm -f Kxxx.*
+rm -f doubleksk.key prepub.key
 rm -f check.out.*
 rm -f dig.out.*
 rm -f jp.out.ns3.*
+rm -f keygen.out.*
 rm -f nextpart.out.*
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
 rm -f ns*/named.lock
@@ -45,12 +47,14 @@ rm -f ns3/*.signed
 rm -f ns3/K*
 rm -f ns3/delegation.test.db
 rm -f ns3/dnskey.test.db
+rm -f ns3/doubleksk.test.db
 rm -f ns3/dsset-*
 rm -f ns3/example.db
 rm -f ns3/relaxed.db
 rm -f ns3/multisigner.test.db
 rm -f ns3/many.test.bk
 rm -f ns3/nsec3param.test.db
+rm -f ns3/prepub.test.db
 rm -f ns3/too-big.test.db
 rm -f ns5/local.db
 rm -f ns6/in-addr.db

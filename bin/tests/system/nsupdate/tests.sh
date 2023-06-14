@@ -1616,6 +1616,48 @@ retry_quiet 5 has_positive_response multisigner.test CDNSKEY 10.53.0.3 || ret=1
 
 n=$((n + 1))
 ret=0
+echo_i "check that DNSKEY can be prepublished with dynamic update ($n)"
+$DIG $DIGOPTS +tcp +norec prepub.test DNSKEY @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+grep "ANSWER: 2," dig.out.pre.test$n > /dev/null || ret=1
+zsk=$($KEYGEN -a $DEFAULT_ALGORITHM -K ns3 -L 3600 -P now -A now+1w prepub.test 2> keygen.out.prepub.test.out$n)
+cat "ns3/${zsk}.key" | grep -v ";.*" > prepub.key
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone prepub.test
+update add $(cat prepub.key)
+send
+END
+$RNDCCMD 10.53.0.3 loadkeys prepub.test. 2>&1 || ret=1
+$DIG $DIGOPTS +tcp +norec prepub.test DNSKEY @10.53.0.3 > dig.out.post.test$n || ret=1
+grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
+grep "ANSWER: 3," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "check that DNSKEY can be added as a signing key with dynamic update ($n)"
+$DIG $DIGOPTS +dnssec +tcp +norec doubleksk.test DNSKEY @10.53.0.3 > dig.out.pre.test$n || ret=1
+grep "status: NOERROR" dig.out.pre.test$n > /dev/null || ret=1
+# 2x DNSKEY, 1x RRSIG
+grep "ANSWER: 3," dig.out.pre.test$n > /dev/null || ret=1
+ksk=$($KEYGEN -a $DEFAULT_ALGORITHM -K ns3 -L 3600 -fk -P now -A now doubleksk.test 2> keygen.out.doubleksk.test.out$n)
+cat "ns3/${ksk}.key" | grep -v ";.*" > doubleksk.key
+$NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.3 ${PORT}
+zone doubleksk.test
+update add $(cat doubleksk.key)
+send
+END
+$RNDCCMD 10.53.0.3 loadkeys doubleksk.test. 2>&1 || ret=1
+$DIG $DIGOPTS +dnssec +tcp +norec doubleksk.test DNSKEY @10.53.0.3 > dig.out.post.test$n || ret=1
+grep "status: NOERROR" dig.out.post.test$n > /dev/null || ret=1
+# 3x DNSKEY, 2x RRSIG
+grep "ANSWER: 5," dig.out.post.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
 echo_i "check that excessive NSEC3PARAM iterations are rejected by nsupdate ($n)"
 $NSUPDATE -d <<END > nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.3 ${PORT}

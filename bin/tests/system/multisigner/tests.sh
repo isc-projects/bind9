@@ -132,8 +132,17 @@ echo server "${SERVER}" "${PORT}"
 echo update add $(cat "ns4/${ZONE}.zsk")
 echo send
 ) | $NSUPDATE
+# Check the new DNSKEY RRset.
+n=$((n+1))
 echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
 retry_quiet 10 zsks_are_published || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Check the logs for find zone keys errors.
+n=$((n+1))
+ret=0
+echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
+grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Verify again.
@@ -149,8 +158,17 @@ echo server "${SERVER}" "${PORT}"
 echo update add $(cat "ns3/${ZONE}.zsk")
 echo send
 ) | $NSUPDATE
+# Check the new DNSKEY RRset.
+n=$((n+1))
 echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
 retry_quiet 10 zsks_are_published || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# Check the logs for find zone keys errors.
+n=$((n+1))
+ret=0
+echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
+grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Verify again.
@@ -446,6 +464,9 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
+grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # NS4
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} DNSKEY RRset after update ($n)"
@@ -454,6 +475,9 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
+grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 n=$((n+1))
 echo_i "remove dnskey record: remove ns3 and ns4 DNSKEY records from primary ns5 ($n)"
