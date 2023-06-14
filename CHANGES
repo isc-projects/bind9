@@ -1,3 +1,5 @@
+6195.	[bug]		Use rcu to reference view->adb. [GL #4021]
+
 6194.	[func]		Change function 'find_zone_keys()' to look for signing
 			keys by looking for key files instead of a DNSKEY
 			RRset lookup. [GL #4141]

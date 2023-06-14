@@ -1772,6 +1772,7 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	{
 		isc_stats_t *istats = NULL;
 		dns_stats_t *dstats = NULL;
+		dns_adb_t *adb = NULL;
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "view"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
@@ -1838,10 +1839,16 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counters"));
 		TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "type",
 						 ISC_XMLCHAR "adbstat"));
-		CHECK(dump_stats(
-			dns_adb_getstats(view->adb), isc_statsformat_xml,
-			writer, NULL, adbstats_xmldesc, dns_adbstats_max,
-			adbstats_index, adbstat_values, ISC_STATSDUMP_VERBOSE));
+		dns_view_getadb(view, &adb);
+		if (adb != NULL) {
+			result = dump_stats(dns_adb_getstats(adb),
+					    isc_statsformat_xml, writer, NULL,
+					    adbstats_xmldesc, dns_adbstats_max,
+					    adbstats_index, adbstat_values,
+					    ISC_STATSDUMP_VERBOSE);
+			dns_adb_detach(&adb);
+			CHECK(result);
+		}
 		TRY0(xmlTextWriterEndElement(writer)); /* </adbstats> */
 
 		/* <cachestats> */
@@ -2486,6 +2493,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 		view = ISC_LIST_HEAD(server->viewlist);
 		while (view != NULL) {
 			json_object *za, *v = json_object_new_object();
+			dns_adb_t *adb = NULL;
 
 			CHECKMEM(v);
 			json_object_object_add(viewlist, view->name, v);
@@ -2591,7 +2599,11 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 				json_object_object_add(res, "cachestats",
 						       counters);
 
-				istats = dns_adb_getstats(view->adb);
+				dns_view_getadb(view, &adb);
+				if (adb != NULL) {
+					istats = dns_adb_getstats(adb);
+					dns_adb_detach(&adb);
+				}
 				if (istats != NULL) {
 					counters = json_object_new_object();
 					CHECKMEM(counters);
@@ -3484,8 +3496,14 @@ named_stats_dump(named_server_t *server, FILE *fp) {
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		isc_stats_t *adbstats = dns_adb_getstats(view->adb);
+		dns_adb_t *adb = NULL;
+		isc_stats_t *adbstats = NULL;
 
+		dns_view_getadb(view, &adb);
+		if (adb != NULL) {
+			adbstats = dns_adb_getstats(adb);
+			dns_adb_detach(&adb);
+		}
 		if (adbstats == NULL) {
 			continue;
 		}

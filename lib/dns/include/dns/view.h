@@ -1274,11 +1274,11 @@ dns_view_addtrustedkey(dns_view_t *view, dns_rdatatype_t rdtype,
  * Add a DNSSEC trusted key to a view of class 'IN'.  'rdtype' is the type
  * of the RR data for the key, either DNSKEY or DS.  'keyname' is the DNS
  * name of the key, and 'databuf' stores the RR data.
-
+ *
  * Requires:
  *
  *\li	'view' is a valid view.
-
+ *
  *\li	'view' is class 'IN'.
  *
  *\li	'keyname' is a valid name.
@@ -1305,6 +1305,17 @@ dns_view_apply(dns_view_t *view, bool stop, isc_result_t *sub,
  *	the first error code from 'action' is returned.
  *
  * \li ISC_R_SHUTTINGDOWN if the view is in the process of shutting down.
+ */
+
+void
+dns_view_getadb(dns_view_t *view, dns_adb_t **adbp);
+/*%<
+ * Get the view's adb if it exist.
+ *
+ * Requires:
+ *
+ *\li	'view' is a valid view.
+ *\li	'adbp' is non-NULL and '*adbp' is NULL.
  */
 
 ISC_LANG_ENDDECLS

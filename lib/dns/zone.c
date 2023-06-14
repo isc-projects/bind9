@@ -10910,7 +10910,7 @@ static void
 zone_maintenance(dns_zone_t *zone) {
 	isc_time_t now;
 	isc_result_t result;
-	bool load_pending, exiting, dumping, viewok, notify;
+	bool load_pending, exiting, dumping, viewok = false, notify;
 	bool refreshkeys, sign, resign, rekey, chain, warn_expire;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -10924,7 +10924,14 @@ zone_maintenance(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	load_pending = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	exiting = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING);
-	viewok = (zone->view != NULL && zone->view->adb != NULL);
+	if (!load_pending && !exiting && zone->view != NULL) {
+		dns_adb_t *adb = NULL;
+		dns_view_getadb(zone->view, &adb);
+		if (adb != NULL) {
+			dns_adb_detach(&adb);
+			viewok = true;
+		}
+	}
 	UNLOCK_ZONE(zone);
 
 	if (load_pending || exiting || !viewok) {
@@ -12165,20 +12172,22 @@ static void
 notify_find_address(dns_notify_t *notify) {
 	isc_result_t result;
 	unsigned int options;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
 		  DNS_ADBFIND_RETURNLAME;
 
-	if (notify->zone->view->adb == NULL) {
+	dns_view_getadb(notify->zone->view, &adb);
+	if (adb == NULL) {
 		goto destroy;
 	}
 
-	result = dns_adb_createfind(notify->zone->view->adb, notify->zone->loop,
-				    process_notify_adb_event, notify,
-				    &notify->ns, dns_rootname, 0, options, 0,
-				    NULL, notify->zone->view->dstport, 0, NULL,
-				    &notify->find);
+	result = dns_adb_createfind(
+		adb, notify->zone->loop, process_notify_adb_event, notify,
+		&notify->ns, dns_rootname, 0, options, 0, NULL,
+		notify->zone->view->dstport, 0, NULL, &notify->find);
+	dns_adb_detach(&adb);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {
@@ -20384,20 +20393,22 @@ static void
 checkds_find_address(dns_checkds_t *checkds) {
 	isc_result_t result;
 	unsigned int options;
+	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
 	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
 		  DNS_ADBFIND_RETURNLAME;
 
-	if (checkds->zone->view->adb == NULL) {
+	dns_view_getadb(checkds->zone->view, &adb);
+	if (adb == NULL) {
 		goto destroy;
 	}
 
 	result = dns_adb_createfind(
-		checkds->zone->view->adb, checkds->zone->loop,
-		process_checkds_adb_event, checkds, &checkds->ns, dns_rootname,
-		0, options, 0, NULL, checkds->zone->view->dstport, 0, NULL,
-		&checkds->find);
+		adb, checkds->zone->loop, process_checkds_adb_event, checkds,
+		&checkds->ns, dns_rootname, 0, options, 0, NULL,
+		checkds->zone->view->dstport, 0, NULL, &checkds->find);
+	dns_adb_detach(&adb);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {
