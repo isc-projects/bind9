@@ -1,3 +1,7 @@
+6196.	[cleanup]	Report "permission denied" instead of "unexpected error"
+			when trying to update a zone file on a read-only file
+			system. Thanks to Midnight Veil. [GL #4134]
+
 6195.	[bug]		Use rcu to reference view->adb. [GL #4021]
 
 6194.	[func]		Change function 'find_zone_keys()' to look for signing
