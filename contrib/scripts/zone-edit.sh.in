@@ -72,8 +72,8 @@ then
         then
 	    if ${checkzone} -q -D "$zone" ${dir}/new > ${dir}/nnn
 	    then
-	        sort ${dir}/ooo > ${dir}/s1 
-	        sort ${dir}/nnn > ${dir}/s2 
+	        sort ${dir}/ooo > ${dir}/s1
+	        sort ${dir}/nnn > ${dir}/s2
 	        comm -23 ${dir}/s1 ${dir}/s2 |
 		sed 's/^/update delete /' > ${dir}/ccc
 	        comm -13 ${dir}/s1 ${dir}/s2 |
@@ -111,7 +111,7 @@ then
 		    done
 		else
 		    while :
-		    do 
+		    do
 		        echo ${echo_arg} "Abort (a), Redo (r), Modify (m) : $bsc"
 		        read ans
 		        case "$ans" in
@@ -130,7 +130,7 @@ then
 	        fi
 	    else
 		while :
-		do 
+		do
 		    echo ${echo_arg} "Abort (a), Redo (r), Modify (m) : $bsc"
 		    read ans
 		    case "$ans" in

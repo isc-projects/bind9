@@ -89,7 +89,7 @@ is set for a zone.
    `dnssec-policy` statement will override the existing `max-zone-ttl` value.
 
 1. `sig-signing-nodes`: This specifies the number of nodes to be examined
-   in a quantum when signing a zone with a new DNSKEY.  This presumable is 
+   in a quantum when signing a zone with a new DNSKEY.  This presumable is
    to avoid keeping the database connection open for a long time.  With the
    current database approach this probably needs to stay.
 

@@ -148,7 +148,7 @@ All these formats are case-insensitive.
 .. option:: -A date/offset
 
    This option sets the date on which the key is to be activated. After that date,
-   the key is included in the zone and used to sign it. 
+   the key is included in the zone and used to sign it.
 
 .. option:: -R date/offset
 

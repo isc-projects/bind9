@@ -26,7 +26,7 @@ sub readfile {
 	my ($fn) = @_;
 	my $fh = new FileHandle($fn, "r")
 	    or die "open: $fn: $!";
-	
+
 	my $changes = { };
 
 	my ($changeid, $category);

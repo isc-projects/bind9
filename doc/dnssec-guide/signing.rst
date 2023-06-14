@@ -440,7 +440,7 @@ key, and we expect to see it returned when we query for it.
                    6saiq99qDBb5b4G4cx13cPjFTrIvUs3NW44SvbbHorHb
                    kXwOzeGAWyPORN+pwEV/LP9+FHAF/JzAJYdqp+o0dw==
                    ) ; KSK; alg = ECDSAP256SHA256 ; key id = 10376
-     
+
 
 .. _signing_verify_signature:
 
@@ -1098,7 +1098,7 @@ record) to the parent zone to complete the chain of trust.
    in this document. We trust you, a responsible DNS
    administrator, to take the necessary precautions to secure your
    system.
-   
+
    For our examples below, we work with the assumption that
    there is an existing insecure zone ``example.com`` that we are
    converting to a secure version. The secure version uses both a KSK

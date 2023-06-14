@@ -118,23 +118,23 @@ ck_result() {
     NXDOMAIN=`grep -E "^NXDOMAIN|NXDOMAINTC$" mdig.out-$1		2>/dev/null | wc -l`
     SERVFAIL=`grep -E "^SERVFAIL$" mdig.out-$1			2>/dev/null | wc -l`
     NOERROR=`grep -E "^NOERROR$" mdig.out-$1			2>/dev/null | wc -l`
-    
+
     range $ADDRS "$3" 1 ||
     setret "$ADDRS instead of $3 '$2' responses for $1" &&
     BAD=yes
-    
+
     range $TC "$4" 1 ||
     setret "$TC instead of $4 truncation responses for $1" &&
     BAD=yes
-    
+
     range $DROP "$5" 1 ||
     setret "$DROP instead of $5 dropped responses for $1" &&
     BAD=yes
-    
+
     range $NXDOMAIN "$6" 1 ||
     setret "$NXDOMAIN instead of $6 NXDOMAIN responses for $1" &&
     BAD=yes
-    
+
     range $SERVFAIL "$7" 1 ||
     setret "$SERVFAIL instead of $7 error responses for $1" &&
     BAD=yes
@@ -142,7 +142,7 @@ ck_result() {
     range $NOERROR "$8" 1 ||
     setret "$NOERROR instead of $8 NOERROR responses for $1" &&
     BAD=yes
-    
+
     if test -z "$BAD"; then
 	rm -f mdig.out-$1
     fi
@@ -157,7 +157,7 @@ ckstats () {
         sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p" |
         tail -1`
     C=`expr 0$C + 0`
-    
+
     range "$C" $EXPECTED 1 ||
     setret "wrong $LABEL $TYPE statistics of $C instead of $EXPECTED"
 }
