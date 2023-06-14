@@ -1,3 +1,9 @@
+6193.	[bug]		Fix a catz db update notification callback registration
+			logic error, which could crash named when receiving an
+			AXFR update for a catalog zone while the previous update
+			process of the catalog zone was already running.
+			[GL #4136]
+
 6188.	[performance]	Reduce memory consumption by allocating properly
 			sized send buffers for stream-based transports.
 			[GL #4038]
