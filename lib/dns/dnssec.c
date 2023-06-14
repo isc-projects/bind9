@@ -858,7 +858,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
-				      "dns_dnssec_findzonekeys2: error "
+				      "dns_dnssec_findzonekeys: error "
 				      "reading %s: %s",
 				      filename, isc_result_totext(result));
 		}
