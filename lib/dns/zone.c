@@ -12273,7 +12273,7 @@ notify_send_toaddr(void *arg) {
 	if (key != NULL) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
-		dns_name_format(&key->name, namebuf, sizeof(namebuf));
+		dns_name_format(key->name, namebuf, sizeof(namebuf));
 		notify_log(notify->zone, ISC_LOG_INFO,
 			   "sending notify to %s : TSIG (%s)", addrbuf,
 			   namebuf);
@@ -17350,7 +17350,7 @@ again:
 			char buf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
 			if (zone->tsigkey != NULL) {
 				char namebuf[DNS_NAME_FORMATSIZE];
-				dns_name_format(&zone->tsigkey->name, namebuf,
+				dns_name_format(zone->tsigkey->name, namebuf,
 						sizeof(namebuf));
 				snprintf(buf, sizeof(buf), ": TSIG '%s'",
 					 namebuf);
@@ -20484,7 +20484,7 @@ checkds_send_toaddr(void *arg) {
 	if (key != NULL) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
-		dns_name_format(&key->name, namebuf, sizeof(namebuf));
+		dns_name_format(key->name, namebuf, sizeof(namebuf));
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 			     "checkds: sending DS query to %s : TSIG (%s)",
 			     addrbuf, namebuf);

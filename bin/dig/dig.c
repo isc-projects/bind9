@@ -2457,7 +2457,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ptr = ptr2;
 			ptr2 = ptr3;
 		} else {
-			hmacname = DNS_TSIG_HMACMD5_NAME;
+			hmac = DST_ALG_HMACMD5;
 			digestbits = 0;
 		}
 		/* XXXONDREJ: FIXME */

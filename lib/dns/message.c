@@ -689,7 +689,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	 *     26 + n1 + n2 + x + y bytes
 	 */
 
-	dns_name_toregion(&key->name, &r1);
+	dns_name_toregion(key->name, &r1);
 	dns_name_toregion(key->algorithm, &r2);
 	if (key->key == NULL) {
 		x = 0;
@@ -3074,7 +3074,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 				if (result == ISC_R_SUCCESS) {
 					result = DNS_R_NOIDENTITY;
 				}
-				identity = &msg->tsigkey->name;
+				identity = msg->tsigkey->name;
 			}
 			dns_name_clone(identity, signer);
 		}

@@ -144,10 +144,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 		goto cleanup_zt;
 	}
 
-	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_weakrefs;
-	}
+	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
 	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
 				   &view->failcache);
@@ -196,7 +193,6 @@ cleanup_dynkeys:
 		dns_tsigkeyring_detach(&view->dynamickeys);
 	}
 
-cleanup_weakrefs:
 	isc_refcount_decrementz(&view->weakrefs);
 	isc_refcount_destroy(&view->weakrefs);
 
@@ -250,11 +246,8 @@ destroy(dns_view_t *view) {
 		if (result == ISC_R_SUCCESS) {
 			(void)isc_file_openuniqueprivate(template, &fp);
 		}
-		if (fp == NULL) {
-			dns_tsigkeyring_detach(&view->dynamickeys);
-		} else {
-			result = dns_tsigkeyring_dumpanddetach(
-				&view->dynamickeys, fp);
+		if (fp != NULL) {
+			result = dns_tsigkeyring_dump(view->dynamickeys, fp);
 			if (result == ISC_R_SUCCESS) {
 				if (fclose(fp) == 0) {
 					result = isc_file_sanitize(
@@ -273,6 +266,7 @@ destroy(dns_view_t *view) {
 				(void)remove(template);
 			}
 		}
+		dns_tsigkeyring_detach(&view->dynamickeys);
 	}
 	if (view->transports != NULL) {
 		dns_transport_list_detach(&view->transports);
@@ -692,7 +686,7 @@ dns_view_settransports(dns_view_t *view, dns_transport_list_t *list) {
 }
 
 void
-dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+dns_view_setkeyring(dns_view_t *view, dns_tsigkeyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->statickeys != NULL) {
@@ -702,7 +696,7 @@ dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 }
 
 void
-dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsigkeyring_t *ring) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ring != NULL);
 	if (view->dynamickeys != NULL) {
@@ -712,7 +706,7 @@ dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring) {
 }
 
 void
-dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp) {
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsigkeyring_t **ringp) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ringp != NULL && *ringp == NULL);
 	if (view->dynamickeys != NULL) {
@@ -734,7 +728,7 @@ dns_view_restorekeyring(dns_view_t *view) {
 		if (result == ISC_R_SUCCESS) {
 			fp = fopen(keyfile, "r");
 			if (fp != NULL) {
-				dns_keyring_restore(view->dynamickeys, fp);
+				dns_tsigkeyring_restore(view->dynamickeys, fp);
 				(void)fclose(fp);
 			}
 		}

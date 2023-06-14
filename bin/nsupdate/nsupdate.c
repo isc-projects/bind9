@@ -135,7 +135,7 @@ static dns_name_t *userzone = NULL;
 static dns_name_t *zname = NULL;
 static dns_name_t tmpzonename = DNS_NAME_INITEMPTY;
 static dns_name_t restart_primary = DNS_NAME_INITEMPTY;
-static dns_tsig_keyring_t *gssring = NULL;
+static dns_tsigkeyring_t *gssring = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dst_key_t *sig0key = NULL;
 static isc_sockaddr_t *servers = NULL;
@@ -378,13 +378,13 @@ reset_system(void) {
 }
 
 static bool
-parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
+parse_hmac(const char *hmacstr, size_t len, dst_algorithm_t *hmac,
 	   uint16_t *digestbitsp) {
 	uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
 
-	REQUIRE(hmac != NULL && *hmac == NULL);
+	REQUIRE(hmac != NULL);
 	REQUIRE(hmacstr != NULL);
 
 	if (len >= sizeof(buf)) {
@@ -396,9 +396,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 	strlcpy(buf, hmacstr, ISC_MIN(len + 1, sizeof(buf)));
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
-		*hmac = DNS_TSIG_HMACMD5_NAME;
+		*hmac = DST_ALG_HMACMD5;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
-		*hmac = DNS_TSIG_HMACMD5_NAME;
+		*hmac = DST_ALG_HMACMD5;
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
 			error("digest-bits out of range [0..128]");
@@ -406,9 +406,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
-		*hmac = DNS_TSIG_HMACSHA1_NAME;
+		*hmac = DST_ALG_HMACSHA1;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
-		*hmac = DNS_TSIG_HMACSHA1_NAME;
+		*hmac = DST_ALG_HMACSHA1;
 		result = isc_parse_uint16(&digestbits, &buf[10], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 160) {
 			error("digest-bits out of range [0..160]");
@@ -416,9 +416,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
-		*hmac = DNS_TSIG_HMACSHA224_NAME;
+		*hmac = DST_ALG_HMACSHA224;
 	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA224_NAME;
+		*hmac = DST_ALG_HMACSHA224;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 224) {
 			error("digest-bits out of range [0..224]");
@@ -426,9 +426,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
-		*hmac = DNS_TSIG_HMACSHA256_NAME;
+		*hmac = DST_ALG_HMACSHA256;
 	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA256_NAME;
+		*hmac = DST_ALG_HMACSHA256;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 256) {
 			error("digest-bits out of range [0..256]");
@@ -436,9 +436,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
-		*hmac = DNS_TSIG_HMACSHA384_NAME;
+		*hmac = DST_ALG_HMACSHA384;
 	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA384_NAME;
+		*hmac = DST_ALG_HMACSHA384;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 384) {
 			error("digest-bits out of range [0..384]");
@@ -446,9 +446,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
-		*hmac = DNS_TSIG_HMACSHA512_NAME;
+		*hmac = DST_ALG_HMACSHA512;
 	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA512_NAME;
+		*hmac = DST_ALG_HMACSHA512;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 512) {
 			error("digest-bits out of range [0..512]");
@@ -483,12 +483,12 @@ setup_keystr(void) {
 	isc_buffer_t secretbuf;
 	isc_result_t result;
 	isc_buffer_t keynamesrc;
-	char *secretstr;
-	char *s, *n;
+	char *secretstr = NULL;
+	char *s = NULL, *n = NULL;
 	dns_fixedname_t fkeyname;
-	dns_name_t *mykeyname;
-	char *name;
-	const dns_name_t *hmacname = NULL;
+	dns_name_t *mykeyname = NULL;
+	char *name = NULL;
+	dst_algorithm_t hmac;
 	uint16_t digestbits = 0;
 
 	mykeyname = dns_fixedname_initname(&fkeyname);
@@ -507,11 +507,11 @@ setup_keystr(void) {
 		}
 		name = secretstr;
 		secretstr = n + 1;
-		if (!parse_hmac(&hmacname, keystr, s - keystr, &digestbits)) {
+		if (!parse_hmac(keystr, s - keystr, &hmac, &digestbits)) {
 			exit(1);
 		}
 	} else {
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		hmac = DST_ALG_HMACMD5;
 		name = keystr;
 		n = s;
 	}
@@ -538,8 +538,7 @@ setup_keystr(void) {
 	secretlen = isc_buffer_usedlength(&secretbuf);
 
 	debug("keycreate");
-	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    false, false, NULL, 0, 0, gmctx, NULL,
+	result = dns_tsigkey_create(mykeyname, hmac, secret, secretlen, gmctx,
 				    &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "could not create key from %s: %s\n", keystr,
@@ -623,7 +622,7 @@ static void
 setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
-	const dns_name_t *hmacname = NULL;
+	dst_algorithm_t hmac = DST_ALG_UNKNOWN;
 
 	debug("Creating key...");
 
@@ -654,37 +653,26 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 
 	switch (dst_key_alg(dstkey)) {
 	case DST_ALG_HMACMD5:
-		hmacname = DNS_TSIG_HMACMD5_NAME;
-		break;
 	case DST_ALG_HMACSHA1:
-		hmacname = DNS_TSIG_HMACSHA1_NAME;
-		break;
 	case DST_ALG_HMACSHA224:
-		hmacname = DNS_TSIG_HMACSHA224_NAME;
-		break;
 	case DST_ALG_HMACSHA256:
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
-		break;
 	case DST_ALG_HMACSHA384:
-		hmacname = DNS_TSIG_HMACSHA384_NAME;
-		break;
 	case DST_ALG_HMACSHA512:
-		hmacname = DNS_TSIG_HMACSHA512_NAME;
+		hmac = dst_key_alg(dstkey);
 		break;
-	}
-	if (hmacname != NULL) {
-		result = dns_tsigkey_createfromkey(
-			dst_key_name(dstkey), hmacname, dstkey, false, false,
-			NULL, 0, 0, mctx, NULL, &tsigkey);
-		dst_key_free(&dstkey);
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "could not create key from %s: %s\n",
-				keyfile, isc_result_totext(result));
-			return;
-		}
-	} else {
+	default:
 		dst_key_attach(dstkey, &sig0key);
 		dst_key_free(&dstkey);
+		return;
+	}
+
+	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmac, dstkey,
+					   false, false, NULL, 0, 0, mctx,
+					   &tsigkey);
+	dst_key_free(&dstkey);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "could not create key from %s: %s\n", keyfile,
+			isc_result_totext(result));
 	}
 }
 
@@ -1651,7 +1639,7 @@ evaluate_key(char *cmdline) {
 	int secretlen;
 	unsigned char *secret = NULL;
 	isc_buffer_t secretbuf;
-	const dns_name_t *hmacname = NULL;
+	dst_algorithm_t hmac = DST_ALG_UNKNOWN;
 	uint16_t digestbits = 0;
 	char *n;
 
@@ -1665,12 +1653,12 @@ evaluate_key(char *cmdline) {
 
 	n = strchr(namestr, ':');
 	if (n != NULL) {
-		if (!parse_hmac(&hmacname, namestr, n - namestr, &digestbits)) {
+		if (!parse_hmac(namestr, n - namestr, &hmac, &digestbits)) {
 			return (STATUS_SYNTAX);
 		}
 		namestr = n + 1;
 	} else {
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		hmac = DST_ALG_HMACMD5;
 	}
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
@@ -1702,8 +1690,7 @@ evaluate_key(char *cmdline) {
 	if (tsigkey != NULL) {
 		dns_tsigkey_detach(&tsigkey);
 	}
-	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    false, false, NULL, 0, 0, gmctx, NULL,
+	result = dns_tsigkey_create(mykeyname, hmac, secret, secretlen, gmctx,
 				    &tsigkey);
 	isc_mem_free(gmctx, secret);
 	if (result != ISC_R_SUCCESS) {
@@ -3040,13 +3027,8 @@ start_gssrequest(dns_name_t *primary) {
 	if (gssring != NULL) {
 		dns_tsigkeyring_detach(&gssring);
 	}
-	gssring = NULL;
-	result = dns_tsigkeyring_create(gmctx, &gssring);
 
-	if (result != ISC_R_SUCCESS) {
-		fatal("dns_tsigkeyring_create failed: %s",
-		      isc_result_totext(result));
-	}
+	dns_tsigkeyring_create(gmctx, &gssring);
 
 	dns_name_format(primary, namestr, sizeof(namestr));
 	if (kserver == NULL) {
@@ -3098,8 +3080,8 @@ start_gssrequest(dns_name_t *primary) {
 
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
-	result = dns_tkey_buildgssquery(rmsg, keyname, servname, NULL, 0,
-					&context, gmctx, &err_message);
+	result = dns_tkey_buildgssquery(rmsg, keyname, servname, 0, &context,
+					gmctx, &err_message);
 	if (result == ISC_R_FAILURE) {
 		fprintf(stderr, "tkey query failed: %s\n",
 			err_message != NULL ? err_message : "unknown error");
@@ -3236,7 +3218,6 @@ recvgss(void *arg) {
 	result = dns_name_fromtext(servname, &buf, dns_rootname, 0, NULL);
 	check_result(result, "dns_name_fromtext");
 
-	tsigkey = NULL;
 	result = dns_tkey_gssnegotiate(tsigquery, rcvmsg, servname, &context,
 				       &tsigkey, gssring, &err_message);
 	switch (result) {
@@ -3264,18 +3245,6 @@ recvgss(void *arg) {
 		 * the TSIG -- this too is a spec violation, but it's
 		 * the least insane thing to do.
 		 */
-#if 0
-		/*
-		 * Verify the signature.
-		 */
-		rcvmsg->state = DNS_SECTION_ANY;
-		dns_message_setquerytsig(rcvmsg, NULL);
-		result = dns_message_settsigkey(rcvmsg, tsigkey);
-		check_result(result, "dns_message_settsigkey");
-		result = dns_message_checksig(rcvmsg, NULL);
-		ddebug("tsig verification: %s", isc_result_totext(result));
-		check_result(result, "dns_message_checksig");
-#endif /* 0 */
 
 		send_update(&tmpzonename, &primary_servers[primary_inuse]);
 		setzoneclass(dns_rdataclass_none);

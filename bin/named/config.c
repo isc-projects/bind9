@@ -922,14 +922,8 @@ struct keyalgorithms {
 		   { NULL, hmacnone, DST_ALG_UNKNOWN, 0 } };
 
 isc_result_t
-named_config_getkeyalgorithm(const char *str, const dns_name_t **name,
+named_config_getkeyalgorithm(const char *str, unsigned int *typep,
 			     uint16_t *digestbits) {
-	return (named_config_getkeyalgorithm2(str, name, NULL, digestbits));
-}
-
-isc_result_t
-named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
-			      unsigned int *typep, uint16_t *digestbits) {
 	int i;
 	size_t len = 0;
 	uint16_t bits;
@@ -959,31 +953,6 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 		bits = 128;
 	} else {
 		bits = algorithms[i].size;
-	}
-
-	if (name != NULL) {
-		switch (algorithms[i].hmac) {
-		case hmacmd5:
-			*name = dns_tsig_hmacmd5_name;
-			break;
-		case hmacsha1:
-			*name = dns_tsig_hmacsha1_name;
-			break;
-		case hmacsha224:
-			*name = dns_tsig_hmacsha224_name;
-			break;
-		case hmacsha256:
-			*name = dns_tsig_hmacsha256_name;
-			break;
-		case hmacsha384:
-			*name = dns_tsig_hmacsha384_name;
-			break;
-		case hmacsha512:
-			*name = dns_tsig_hmacsha512_name;
-			break;
-		default:
-			UNREACHABLE();
-		}
 	}
 	if (typep != NULL) {
 		*typep = algorithms[i].type;

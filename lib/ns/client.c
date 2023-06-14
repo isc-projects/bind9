@@ -533,7 +533,7 @@ ns_client_send(ns_client_t *client) {
 
 		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 		if (client->message->tsigkey != NULL) {
-			name = &client->message->tsigkey->name;
+			name = client->message->tsigkey->name;
 		}
 
 		if (client->view->nocasecompress == NULL ||
@@ -2095,8 +2095,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		signame = NULL;
 		if (dns_message_gettsig(client->message, &signame) != NULL) {
 			char namebuf[DNS_NAME_FORMATSIZE];
-			char cnamebuf[DNS_NAME_FORMATSIZE];
-			dns_name_format(signame, namebuf, sizeof(namebuf));
+
 			status = client->message->tsigstatus;
 			isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
 			tresult = dns_tsigrcode_totext(status, &b);
@@ -2105,23 +2104,17 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 			if (client->message->tsigkey->generated) {
 				dns_name_format(
 					client->message->tsigkey->creator,
-					cnamebuf, sizeof(cnamebuf));
-				ns_client_log(
-					client, DNS_LOGCATEGORY_SECURITY,
-					NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-					"request has invalid signature: "
-					"TSIG %s (%s): %s (%s)",
-					namebuf, cnamebuf,
-					isc_result_totext(result), tsigrcode);
+					namebuf, sizeof(namebuf));
 			} else {
-				ns_client_log(
-					client, DNS_LOGCATEGORY_SECURITY,
-					NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-					"request has invalid signature: "
-					"TSIG %s: %s (%s)",
-					namebuf, isc_result_totext(result),
-					tsigrcode);
+				dns_name_format(signame, namebuf,
+						sizeof(namebuf));
 			}
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+				      "request has invalid signature: "
+				      "TSIG %s: %s (%s)",
+				      namebuf, isc_result_totext(result),
+				      tsigrcode);
 		} else {
 			status = client->message->sig0status;
 			isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);

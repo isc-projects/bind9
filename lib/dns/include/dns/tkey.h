@@ -69,7 +69,7 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp);
 
 isc_result_t
 dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
-		      dns_tsig_keyring_t *ring);
+		      dns_tsigkeyring_t *ring);
 /*%<
  *	Processes a query containing a TKEY record, adding or deleting TSIG
  *	keys if necessary, and modifies the message to contain the response.
@@ -89,9 +89,9 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 
 isc_result_t
 dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
-		       const dns_name_t *gname, isc_buffer_t *intoken,
-		       uint32_t lifetime, dns_gss_ctx_id_t *context,
-		       isc_mem_t *mctx, char **err_message);
+		       const dns_name_t *gname, uint32_t lifetime,
+		       dns_gss_ctx_id_t *context, isc_mem_t *mctx,
+		       char **err_message);
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
  *	The key is requested to have the specified lifetime (in seconds).
@@ -113,7 +113,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, dns_gss_ctx_id_t *context,
-		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
+		      dns_tsigkey_t **outkey, dns_tsigkeyring_t *ring,
 		      char **err_message);
 /*%<
  *	Client side negotiation of GSS-TSIG.  Process the response

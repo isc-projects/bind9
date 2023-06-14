@@ -148,7 +148,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	dns_rdataset_init(&rdataset);
 	dns_rdatalist_tordataset(&rdatalist, &rdataset);
-	CHECK(dns_rdataset_towire(&rdataset, &key->name, &cctx, target, 0,
+	CHECK(dns_rdataset_towire(&rdataset, key->name, &cctx, target, 0,
 				  &count));
 
 	/*
@@ -271,7 +271,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	dns_fixedname_t fkeyname;
 	dns_message_t *msg = NULL;
 	dns_name_t *keyname;
-	dns_tsig_keyring_t *ring = NULL;
+	dns_tsigkeyring_t *ring = NULL;
 	dns_tsigkey_t *key = NULL;
 	isc_buffer_t *buf = NULL;
 	isc_buffer_t *querytsig = NULL;
@@ -290,12 +290,13 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	result = dns_name_fromstring(keyname, "test", 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_tsigkeyring_create(mctx, &ring);
+	assert_non_null(ring);
 
-	result = dns_tsigkey_create(keyname, dns_tsig_hmacsha256_name, secret,
-				    sizeof(secret), false, false, NULL, 0, 0,
-				    mctx, ring, &key);
+	result = dns_tsigkey_create(keyname, DST_ALG_HMACSHA256, secret,
+				    sizeof(secret), mctx, &key);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	result = dns_tsigkeyring_add(ring, key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(key);
 
@@ -484,88 +485,9 @@ ISC_RUN_TEST_IMPL(algvalid) {
 	assert_false(dns__tsig_algvalid(DST_ALG_GSSAPI));
 }
 
-/* Tests the dns__tsig_algfromname function */
-ISC_RUN_TEST_IMPL(algfromname) {
-	UNUSED(state);
-
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACMD5_NAME),
-			 DST_ALG_HMACMD5);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACSHA1_NAME),
-			 DST_ALG_HMACSHA1);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACSHA224_NAME),
-			 DST_ALG_HMACSHA224);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACSHA256_NAME),
-			 DST_ALG_HMACSHA256);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACSHA384_NAME),
-			 DST_ALG_HMACSHA384);
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_HMACSHA512_NAME),
-			 DST_ALG_HMACSHA512);
-
-	assert_int_equal(dns__tsig_algfromname(DNS_TSIG_GSSAPI_NAME),
-			 DST_ALG_GSSAPI);
-
-	assert_int_equal(dns__tsig_algfromname(dns_rootname), 0);
-}
-
-/* Tests the dns__tsig_algnamefromname function */
-
-/*
- * Helper function to create a dns_name_t from a string and see if
- * the dns__tsig_algnamefromname function can correctly match it against the
- * static table of known algorithms.
- */
-static void
-test_name(const char *name_string, const dns_name_t *expected) {
-	dns_name_t name;
-	dns_name_init(&name, NULL);
-	assert_int_equal(dns_name_fromstring(&name, name_string, 0, mctx),
-			 ISC_R_SUCCESS);
-	assert_ptr_equal(dns__tsig_algnamefromname(&name), expected);
-	dns_name_free(&name, mctx);
-}
-
-ISC_RUN_TEST_IMPL(algnamefromname) {
-	UNUSED(state);
-
-	/* test the standard algorithms */
-	test_name("hmac-md5.sig-alg.reg.int", DNS_TSIG_HMACMD5_NAME);
-	test_name("hmac-sha1", DNS_TSIG_HMACSHA1_NAME);
-	test_name("hmac-sha224", DNS_TSIG_HMACSHA224_NAME);
-	test_name("hmac-sha256", DNS_TSIG_HMACSHA256_NAME);
-	test_name("hmac-sha384", DNS_TSIG_HMACSHA384_NAME);
-	test_name("hmac-sha512", DNS_TSIG_HMACSHA512_NAME);
-
-	test_name("gss-tsig", DNS_TSIG_GSSAPI_NAME);
-
-	/* try another name that isn't a standard algorithm name */
-	assert_null(dns__tsig_algnamefromname(dns_rootname));
-}
-
-/* Tests the dns__tsig_algallocated function */
-ISC_RUN_TEST_IMPL(algallocated) {
-	UNUSED(state);
-
-	/* test the standard algorithms */
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA384_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME));
-
-	/* try another name that isn't a standard algorithm name */
-	assert_true(dns__tsig_algallocated(dns_rootname));
-}
-
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY_CUSTOM(tsig_tcp, setup_test, teardown_test)
 ISC_TEST_ENTRY(algvalid)
-ISC_TEST_ENTRY(algfromname)
-ISC_TEST_ENTRY_CUSTOM(algnamefromname, setup_test, teardown_test)
-ISC_TEST_ENTRY(algallocated)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

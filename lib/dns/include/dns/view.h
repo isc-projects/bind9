@@ -108,8 +108,8 @@ struct dns_view {
 
 	/* Configurable data. */
 	dns_transport_list_t *transports;
-	dns_tsig_keyring_t   *statickeys;
-	dns_tsig_keyring_t   *dynamickeys;
+	dns_tsigkeyring_t    *statickeys;
+	dns_tsigkeyring_t    *dynamickeys;
 	dns_peerlist_t	     *peers;
 	dns_order_t	     *order;
 	dns_fwdtable_t	     *fwdtable;
@@ -433,9 +433,9 @@ void
 dns_view_settransports(dns_view_t *view, dns_transport_list_t *list);
 
 void
-dns_view_setkeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
+dns_view_setkeyring(dns_view_t *view, dns_tsigkeyring_t *ring);
 void
-dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
+dns_view_setdynamickeyring(dns_view_t *view, dns_tsigkeyring_t *ring);
 /*%<
  * Set the view's static TSIG keys
  *
@@ -452,7 +452,7 @@ dns_view_setdynamickeyring(dns_view_t *view, dns_tsig_keyring_t *ring);
  */
 
 void
-dns_view_getdynamickeyring(dns_view_t *view, dns_tsig_keyring_t **ringp);
+dns_view_getdynamickeyring(dns_view_t *view, dns_tsigkeyring_t **ringp);
 /*%<
  * Return the views dynamic keys.
  *

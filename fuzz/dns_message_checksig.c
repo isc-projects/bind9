@@ -89,8 +89,8 @@ static isc_stdtime_t fuzztime = 0x622acce1;
 static isc_loopmgr_t *loopmgr = NULL;
 static dns_view_t *view = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
-static dns_tsig_keyring_t *ring = NULL;
-static dns_tsig_keyring_t *emptyring = NULL;
+static dns_tsigkeyring_t *ring = NULL;
+static dns_tsigkeyring_t *emptyring = NULL;
 static char *wd = NULL;
 static char template[] = "/tmp/dns-message-checksig-XXXXXX";
 
@@ -243,19 +243,8 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
-			isc_result_totext(result));
-		return (1);
-	}
-
-	result = dns_tsigkeyring_create(mctx, &emptyring);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_tsigkeyring_create failed: %s\n",
-			isc_result_totext(result));
-		return (1);
-	}
+	dns_tsigkeyring_create(mctx, &ring);
+	dns_tsigkeyring_create(mctx, &emptyring);
 
 	result = dns_name_fromstring(name, "tsig-key", 0, NULL);
 	if (result != ISC_R_SUCCESS) {
@@ -264,11 +253,16 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
-	result = dns_tsigkey_create(name, dns_tsig_hmacsha256_name, secret,
-				    sizeof(secret), false, false, NULL, 0, 0,
-				    mctx, ring, &tsigkey);
+	result = dns_tsigkey_create(name, DST_ALG_HMACSHA256, secret,
+				    sizeof(secret), mctx, &tsigkey);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_tsigkey_create failed: %s\n",
+			isc_result_totext(result));
+		return (1);
+	}
+	result = dns_tsigkeyring_add(ring, tsigkey);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "dns_tsigkeyring_add failed: %s\n",
 			isc_result_totext(result));
 		return (1);
 	}

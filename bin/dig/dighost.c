@@ -138,7 +138,7 @@ char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
 unsigned char cookie_secret[33];
 unsigned char cookie[8];
-const dns_name_t *hmacname = NULL;
+dst_algorithm_t hmac = DST_ALG_UNKNOWN;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *tsigkey = NULL;
@@ -874,7 +874,7 @@ setup_text_key(void) {
 
 	secretsize = isc_buffer_usedlength(&secretbuf);
 
-	if (hmacname == NULL) {
+	if (hmac == DST_ALG_UNKNOWN) {
 		result = DST_R_UNSUPPORTEDALG;
 		goto failure;
 	}
@@ -884,9 +884,8 @@ setup_text_key(void) {
 		goto failure;
 	}
 
-	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
-				    (int)secretsize, false, false, NULL, 0, 0,
-				    mctx, NULL, &tsigkey);
+	result = dns_tsigkey_create(&keyname, hmac, secretstore,
+				    (int)secretsize, mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
 		printf(";; Couldn't create key %s: %s\n", keynametext,
@@ -1022,50 +1021,50 @@ done:
  * Parse HMAC algorithm specification
  */
 void
-parse_hmac(const char *hmac) {
+parse_hmac(const char *algname) {
 	char buf[20];
 	size_t len;
 
-	REQUIRE(hmac != NULL);
+	REQUIRE(algname != NULL);
 
-	len = strlen(hmac);
+	len = strlen(algname);
 	if (len >= sizeof(buf)) {
-		fatal("unknown key type '%.*s'", (int)len, hmac);
+		fatal("unknown key type '%.*s'", (int)len, algname);
 	}
-	strlcpy(buf, hmac, sizeof(buf));
+	strlcpy(buf, algname, sizeof(buf));
 
 	digestbits = 0;
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		hmac = DST_ALG_HMACMD5;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
-		hmacname = DNS_TSIG_HMACMD5_NAME;
+		hmac = DST_ALG_HMACMD5;
 		digestbits = parse_bits(&buf[9], "digest-bits [0..128]", 128);
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
-		hmacname = DNS_TSIG_HMACSHA1_NAME;
+		hmac = DST_ALG_HMACSHA1;
 		digestbits = 0;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
-		hmacname = DNS_TSIG_HMACSHA1_NAME;
+		hmac = DST_ALG_HMACSHA1;
 		digestbits = parse_bits(&buf[10], "digest-bits [0..160]", 160);
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
-		hmacname = DNS_TSIG_HMACSHA224_NAME;
+		hmac = DST_ALG_HMACSHA224;
 	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
-		hmacname = DNS_TSIG_HMACSHA224_NAME;
+		hmac = DST_ALG_HMACSHA224;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..224]", 224);
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
+		hmac = DST_ALG_HMACSHA256;
 	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
+		hmac = DST_ALG_HMACSHA256;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..256]", 256);
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
-		hmacname = DNS_TSIG_HMACSHA384_NAME;
+		hmac = DST_ALG_HMACSHA384;
 	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
-		hmacname = DNS_TSIG_HMACSHA384_NAME;
+		hmac = DST_ALG_HMACSHA384;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..384]", 384);
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
-		hmacname = DNS_TSIG_HMACSHA512_NAME;
+		hmac = DST_ALG_HMACSHA512;
 	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
-		hmacname = DNS_TSIG_HMACSHA512_NAME;
+		hmac = DST_ALG_HMACSHA512;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..512]", 512);
 	} else {
 		fprintf(stderr,
@@ -1166,38 +1165,29 @@ setup_file_key(void) {
 
 	switch (dst_key_alg(dstkey)) {
 	case DST_ALG_HMACMD5:
-		hmacname = DNS_TSIG_HMACMD5_NAME;
-		break;
 	case DST_ALG_HMACSHA1:
-		hmacname = DNS_TSIG_HMACSHA1_NAME;
-		break;
 	case DST_ALG_HMACSHA224:
-		hmacname = DNS_TSIG_HMACSHA224_NAME;
-		break;
 	case DST_ALG_HMACSHA256:
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
-		break;
 	case DST_ALG_HMACSHA384:
-		hmacname = DNS_TSIG_HMACSHA384_NAME;
-		break;
 	case DST_ALG_HMACSHA512:
-		hmacname = DNS_TSIG_HMACSHA512_NAME;
+		hmac = dst_key_alg(dstkey);
 		break;
+	default:
+		dst_key_attach(dstkey, &sig0key);
+		dst_key_free(&dstkey);
+		return;
 	}
 
-	if (hmacname != NULL) {
-		result = dns_tsigkey_createfromkey(
-			dst_key_name(dstkey), hmacname, dstkey, false, false,
-			NULL, 0, 0, mctx, NULL, &tsigkey);
+	if (dstkey != NULL) {
+		result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmac,
+						   dstkey, false, false, NULL,
+						   0, 0, mctx, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't create key %s: %s\n", keynametext,
 			       isc_result_totext(result));
-			goto failure;
 		}
-	} else {
-		dst_key_attach(dstkey, &sig0key);
-		dst_key_free(&dstkey);
 	}
+
 failure:
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);

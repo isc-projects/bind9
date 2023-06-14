@@ -4024,28 +4024,6 @@ minimal_cache_allowed(const cfg_obj_t *maps[4],
 
 static const char *const response_synonyms[] = { "response", NULL };
 
-static const dns_name_t *
-algorithm_name(unsigned int alg) {
-	switch (alg) {
-	case DST_ALG_HMACMD5:
-		return (dns_tsig_hmacmd5_name);
-	case DST_ALG_HMACSHA1:
-		return (dns_tsig_hmacsha1_name);
-	case DST_ALG_HMACSHA224:
-		return (dns_tsig_hmacsha224_name);
-	case DST_ALG_HMACSHA256:
-		return (dns_tsig_hmacsha256_name);
-	case DST_ALG_HMACSHA384:
-		return (dns_tsig_hmacsha384_name);
-	case DST_ALG_HMACSHA512:
-		return (dns_tsig_hmacsha512_name);
-	case DST_ALG_GSSAPI:
-		return (dns_tsig_gssapi_name);
-	default:
-		UNREACHABLE();
-	}
-}
-
 /*
  * Configure 'view' according to 'vconfig', taking defaults from
  * 'config' where values are missing in 'vconfig'.
@@ -4087,7 +4065,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	uint32_t lame_ttl, fail_ttl;
 	uint32_t max_stale_ttl = 0;
 	uint32_t stale_refresh_time = 0;
-	dns_tsig_keyring_t *ring = NULL;
+	dns_tsigkeyring_t *ring = NULL;
 	dns_transport_list_t *transports = NULL;
 	dns_view_t *pview = NULL; /* Production view */
 	dns_dispatch_t *dispatch4 = NULL;
@@ -5067,12 +5045,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		dns_tsigkey_t *tsigkey = NULL;
 		result = dns_tsigkey_createfromkey(
 			named_g_server->session_keyname,
-			algorithm_name(named_g_server->session_keyalg),
+			named_g_server->session_keyalg,
 			named_g_server->sessionkey, false, false, NULL, 0, 0,
-			mctx, NULL, &tsigkey);
+			mctx, &tsigkey);
 		if (result == ISC_R_SUCCESS) {
-			result = dns_tsigkeyring_add(
-				ring, named_g_server->session_keyname, tsigkey);
+			result = dns_tsigkeyring_add(ring, tsigkey);
 			dns_tsigkey_detach(&tsigkey);
 		}
 		CHECK(result);
@@ -7480,9 +7457,9 @@ cleanup_session_key(named_server_t *server, isc_mem_t *mctx) {
 
 static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
-		     const dns_name_t *keyname, const char *algstr,
-		     unsigned int algtype, uint16_t bits, isc_mem_t *mctx,
-		     bool first_time, dst_key_t **keyp) {
+		     const dns_name_t *keyname, dst_algorithm_t alg,
+		     uint16_t bits, isc_mem_t *mctx, bool first_time,
+		     dst_key_t **keyp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dst_key_t *key = NULL;
 	isc_buffer_t key_txtbuffer;
@@ -7497,9 +7474,8 @@ generate_session_key(const char *filename, const char *keynamestr,
 		      "generating session key for dynamic DNS");
 
 	/* generate key */
-	result = dst_key_generate(keyname, algtype, bits, 1, 0,
-				  DNS_KEYPROTO_ANY, dns_rdataclass_in, mctx,
-				  &key, NULL);
+	result = dst_key_generate(keyname, alg, bits, 1, 0, DNS_KEYPROTO_ANY,
+				  dns_rdataclass_in, mctx, &key, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -7528,12 +7504,12 @@ generate_session_key(const char *filename, const char *keynamestr,
 		"key \"%s\" {\n"
 		"\talgorithm %s;\n"
 		"\tsecret \"%.*s\";\n};\n",
-		keynamestr, algstr, (int)isc_buffer_usedlength(&key_txtbuffer),
+		keynamestr, dst_hmac_algorithm_totext(alg),
+		(int)isc_buffer_usedlength(&key_txtbuffer),
 		(char *)isc_buffer_base(&key_txtbuffer));
 
 	CHECK(isc_stdio_flush(fp));
 	result = isc_stdio_close(fp);
-	fp = NULL;
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -7561,14 +7537,13 @@ cleanup:
 static isc_result_t
 configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		      isc_mem_t *mctx, bool first_time) {
-	const char *keyfile, *keynamestr, *algstr;
+	const char *keyfile = NULL, *keynamestr = NULL, *algstr = NULL;
 	unsigned int algtype;
 	dns_fixedname_t fname;
-	dns_name_t *keyname;
-	const dns_name_t *algname;
+	dns_name_t *keyname = NULL;
 	isc_buffer_t buffer;
 	uint16_t bits;
-	const cfg_obj_t *obj;
+	const cfg_obj_t *obj = NULL;
 	bool need_deleteold = false;
 	bool need_createnew = false;
 	isc_result_t result;
@@ -7601,9 +7576,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 	result = named_config_get(maps, "session-keyalg", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	algstr = cfg_obj_asstring(obj);
-	algname = NULL;
-	result = named_config_getkeyalgorithm2(algstr, &algname, &algtype,
-					       &bits);
+	result = named_config_getkeyalgorithm(algstr, &algtype, &bits);
 	if (result != ISC_R_SUCCESS) {
 		const char *s = " (keeping current key)";
 
@@ -7654,7 +7627,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		server->session_keyalg = algtype;
 		server->session_keybits = bits;
 
-		CHECK(generate_session_key(keyfile, keynamestr, keyname, algstr,
+		CHECK(generate_session_key(keyfile, keynamestr, keyname,
 					   algtype, bits, mctx, first_time,
 					   &server->sessionkey));
 	}
