@@ -1,3 +1,8 @@
+6197.	[bug]		Fix a data race between the dns_zone and dns_catz
+			modules when registering/unregistering a database
+			update notification callback for a catalog zone.
+			[GL #4132]
+
 6196.	[cleanup]	Report "permission denied" instead of "unexpected error"
 			when trying to update a zone file on a read-only file
 			system. Thanks to Midnight Veil. [GL #4134]
