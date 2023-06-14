@@ -1,3 +1,7 @@
+6196.	[cleanup]	Report "permission denied" instead of "unexpected error"
+			when trying to update a zone file on a read-only file
+			system. Thanks to Midnight Veil. [GL #4134]
+
 6193.	[bug]		Fix a catz db update notification callback registration
 			logic error, which could crash named when receiving an
 			AXFR update for a catalog zone while the previous update
