@@ -110,13 +110,13 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
                     S.p_index += 1
             for k, v in S.mutexes.items():
                 r = re.compile(k)
-                line = r.sub("M%s" % v, line)
+                line = r.sub("M{:04d}".format(v), line)
             for k, v in S.threads.items():
                 r = re.compile(k)
-                line = r.sub("T%s" % v, line)
+                line = r.sub("T{:04d}".format(v), line)
             for k, v in S.pointers.items():
                 r = re.compile(k)
-                line = r.sub("0x%s" % str(v).zfill(12), line)
+                line = r.sub("0x{:012d}".format(v), line)
 
             line = STACK.sub("", line)
             line = PID.sub("", line)
