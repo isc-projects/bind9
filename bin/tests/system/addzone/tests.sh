@@ -117,7 +117,7 @@ echo_i "adding new zone with missing file ($n)"
 ret=0
 $DIG $DIGOPTS +all @10.53.0.2 a.missing.example a > dig.out.ns2.pre.$n || ret=1
 grep "status: REFUSED" dig.out.ns2.pre.$n > /dev/null || ret=1
-$RNDCCMD 10.53.0.2 addzone 'missing.example { type primary; file "missing.db"; };' 2> rndc.out.ns2.$n
+$RNDCCMD 10.53.0.2 addzone 'missing.example { type primary; file "missing.db"; };' 2> rndc.out.ns2.$n && ret=1
 grep "file not found" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS +all @10.53.0.2 a.missing.example a > dig.out.ns2.post.$n || ret=1
 grep "status: REFUSED" dig.out.ns2.post.$n > /dev/null || ret=1
@@ -290,7 +290,7 @@ status=$((status + ret))
 
 echo_i "attempting to add primary zone with inline signing and missing file ($n)"
 ret=0
-$RNDCCMD 10.53.0.2 addzone 'inlinemissing.example { type primary; file "missing.db"; inline-signing yes; };' 2> rndc.out.ns2.$n
+$RNDCCMD 10.53.0.2 addzone 'inlinemissing.example { type primary; file "missing.db"; inline-signing yes; };' 2> rndc.out.ns2.$n && ret=1
 grep "file not found" rndc.out.ns2.$n > /dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -572,7 +572,7 @@ echo_i "attempting to add zone to internal view ($n)"
 ret=0
 $DIG +norec $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.pre.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.pre.$n > /dev/null || ret=1
-$RNDCCMD 10.53.0.2 addzone 'added.example in internal { type primary; file "added.db"; };' 2> rndc.out.ns2.$n
+$RNDCCMD 10.53.0.2 addzone 'added.example in internal { type primary; file "added.db"; };' 2> rndc.out.ns2.$n && ret=1
 grep "permission denied" rndc.out.ns2.$n > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.added.example a > dig.out.ns2.int.$n || ret=1
 grep 'status: NOERROR' dig.out.ns2.int.$n > /dev/null || ret=1
@@ -584,7 +584,7 @@ status=$((status + ret))
 
 echo_i "attempting to delete a policy zone ($n)"
 ret=0
-$RNDCCMD 10.53.0.2 delzone 'policy in internal' 2> rndc.out.ns2.$n >&1
+$RNDCCMD 10.53.0.2 delzone 'policy in internal' 2> rndc.out.ns2.$n >&1 && ret=1
 grep 'cannot be deleted' rndc.out.ns2.$n > /dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
