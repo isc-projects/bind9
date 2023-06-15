@@ -260,6 +260,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[DNS_R_RCODE14] = "<rcode 14>",
 	[DNS_R_RCODE15] = "<rcode 15>",
 	[DNS_R_BADVERS] = "BADVERS",
+	[DNS_R_BADCOOKIE] = "BADCOOKIE",
 
 	[ISCCC_R_UNKNOWNVERSION] = "unknown version",
 	[ISCCC_R_SYNTAX] = "syntax error",
@@ -508,6 +509,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[DNS_R_RCODE14] = "DNS_R_RCODE14",
 	[DNS_R_RCODE15] = "DNS_R_RCODE15",
 	[DNS_R_BADVERS] = "DNS_R_BADVERS",
+	[DNS_R_BADCOOKIE] = "DNS_R_BADCOOKIE",
 
 	[ISCCC_R_UNKNOWNVERSION] = "ISCCC_R_UNKNOWNVERSION",
 	[ISCCC_R_SYNTAX] = "ISCCC_R_SYNTAX",

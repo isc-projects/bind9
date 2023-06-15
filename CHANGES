@@ -1,3 +1,6 @@
+6198.	[func]		Remove the holes in the isc_result_t enum to compact
+			the isc_result tables. [GL #4149]
+
 6196.	[cleanup]	Report "permission denied" instead of "unexpected error"
 			when trying to update a zone file on a read-only file
 			system. Thanks to Midnight Veil. [GL #4134]
