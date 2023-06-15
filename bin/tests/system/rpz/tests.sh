@@ -89,15 +89,15 @@ digcmd () {
 		-e '/-b/!s/@\([^ ]*\)/@\1 -b\1/'			\
 		-e '/+n?o?auth/!s/.*/+noauth &/'`
     #echo_i "dig $digcmd_args 1>&2
-    $DIG $digcmd_args
+    $DIG $digcmd_args || return
 }
 
 # set DIGNM=file name for dig output
 GROUP_NM=
 TEST_NUM=0
 make_dignm () {
-    TEST_NUM=`expr $TEST_NUM : '\([0-9]*\).*'`	    # trim '+' characters
-    TEST_NUM=`expr $TEST_NUM + 1`
+    TEST_NUM=$(expr $TEST_NUM : '\([0-9]*\).*' || true)	    # trim '+' characters
+    TEST_NUM=$((TEST_NUM + 1))
     DIGNM=dig.out$GROUP_NM-$TEST_NUM
     while test -f $DIGNM; do
 	TEST_NUM="$TEST_NUM+"
@@ -116,7 +116,7 @@ setret () {
 # $2=DNS server and client IP address
 get_sn() {
     SOA=`$DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2"`
-    SN=`expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*'`
+    SN=$(expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*' || true)
     test "$SN" != "" && return
     echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\` in \"$SOA\""
     exit 1
@@ -136,7 +136,7 @@ get_sn_fast () {
 # $2=DNS server IP address
 FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
 dnsrps_loaded() {
-    test "$mode" = dnsrps || return
+    test "$mode" = dnsrps || return 0
     n=0
     for V in $FZONES; do
 	eval "$V"
@@ -230,7 +230,7 @@ restart () {
 # $1=server and irrelevant args
 # $2=error message
 ckalive () {
-    CKALIVE_NS=`expr "$1" : '.*@ns\([1-9]\).*'`
+    CKALIVE_NS=$(expr "$1" : '.*@ns\([1-9]\).*' || true)
     if test -z "$CKALIVE_NS"; then
 	CKALIVE_NS=3
     fi
@@ -240,7 +240,7 @@ ckalive () {
     setret "$2"
     # restart the server to avoid stalling waiting for it to stop
     restart $CKALIVE_NS "rebuild-bl-rpz"
-    return 1
+    return 0
 }
 
 resetstats () {
@@ -428,7 +428,7 @@ here () {
 DROPPED='^;; no servers could be reached'
 drop () {
     make_dignm
-    digcmd $* >$DIGNM
+    digcmd $* >$DIGNM || true
     if grep "$DROPPED" $DIGNM >/dev/null; then
 	clean_result ${DIGNM}*
 	return 0
@@ -469,6 +469,8 @@ make_proto_nodata() {
 # ensure that the fast-expire zone is populated before we begin testing
 $RNDCCMD $ns3 retransfer fast-expire
 
+native=0
+dnsrps=0
 for mode in native dnsrps; do
   status=0
   case ${mode} in
@@ -831,7 +833,7 @@ EOF
 
   # look for complaints from lib/dns/rpz.c and bin/name/query.c
   for runfile in ns*/named.run; do
-    EMSGS=`nextpart $runfile | grep -E -l 'invalid rpz|rpz.*failed'`
+    EMSGS=$(nextpart $runfile | grep -E -l 'invalid rpz|rpz.*failed' || true)
     if test -n "$EMSGS"; then
       setret "error messages in $runfile starting with:"
       grep -E 'invalid rpz|rpz.*failed' ns*/named.run | \
@@ -1011,6 +1013,6 @@ EOF
   *) echo_i "invalid test mode";;
   esac
 done
-status=`expr ${native:-0} + ${dnsrps:-0}`
+status=$((native + dnsrps))
 
 [ $status -eq 0 ] || exit 1
