@@ -1137,7 +1137,6 @@ system:clang:tsan:
   needs:
     - job: clang:tsan
       artifacts: true
-  allow_failure: true  # upforwd (GL#4072), rpz, serve-stale, ... (GL#4081)
 
 unit:clang:tsan:
   variables:
