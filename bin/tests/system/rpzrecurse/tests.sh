@@ -117,6 +117,7 @@ expect_recurse() {
 	echo_i "test ${t} failed"
 	status=1
     }
+    return 0
 }
 
 add_test_marker() {
@@ -126,6 +127,8 @@ add_test_marker() {
     done
 }
 
+native=0
+dnsrps=0
 for mode in native dnsrps; do
   status=0
   case $mode in
@@ -273,7 +276,7 @@ for mode in native dnsrps; do
   cp ns2/db.6a.00.policy.local ns2/saved.policy.local
   cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
   $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid` || true
   sleep 1
   t=$((t+1))
   echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
@@ -283,7 +286,7 @@ for mode in native dnsrps; do
   echo_i "removing the NSDNAME policy"
   cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
   $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid` || true
   sleep 1
   echo_i "resuming authority server"
   PID=`cat ns1/named.pid`
@@ -315,7 +318,7 @@ for mode in native dnsrps; do
   echo_i "adding an NSDNAME policy"
   cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
   $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
-  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid` || true
   sleep 1
   t=$((t+1))
   echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
@@ -325,7 +328,7 @@ for mode in native dnsrps; do
   echo_i "removing the policy zone"
   cp ns2/named.default.conf ns2/named.conf
   rndc_reconfig ns2 10.53.0.2
-  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid`
+  test -f dnsrpzd.pid && kill -USR1 `cat dnsrpzd.pid` || true
   sleep 1
   echo_i "resuming authority server"
   PID=`cat ns1/named.pid`
@@ -577,6 +580,6 @@ for mode in native dnsrps; do
   *) echo_i "invalid test mode";;
   esac
 done
-status=`expr ${native:-0} + ${dnsrps:-0}`
+status=$((native + dnsrps))
 
 [ $status -eq 0 ] || exit 1
