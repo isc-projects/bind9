@@ -233,7 +233,7 @@ ret=0
         update add another.unsigned.example. 600 TXT Bar
         send
 EOF
-} > nsupdate.out.$n 2>&1
+} > nsupdate.out.$n 2>&1 && ret=1
 grep REFUSED nsupdate.out.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 n=$((n + 1))
