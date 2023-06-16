@@ -2763,7 +2763,6 @@ status=$((status+ret))
 echo_i "checking that the NSEC3 record for the apex is properly signed when a DNSKEY is added via UPDATE ($n)"
 ret=0
 (
-cd ns3 || exit 1
 kskname=$($KEYGEN -q -3 -a $DEFAULT_ALGORITHM -fk update-nsec3.example)
 (
 echo zone update-nsec3.example
@@ -2780,7 +2779,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that the NSEC record is properly generated when DNSKEY are added via auto-dnssec ($n)"
+echo_i "checking that the NSEC record is properly generated when DNSKEY are added by dnssec-policy ($n)"
 ret=0
 dig_with_opts +dnssec a auto-nsec.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
@@ -2790,7 +2789,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that the NSEC3 record is properly generated when DNSKEY are added via auto-dnssec ($n)"
+echo_i "checking that the NSEC3 record is properly generated when DNSKEY are added by dnssec-policy ($n)"
 ret=0
 dig_with_opts +dnssec a auto-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
@@ -2838,121 +2837,6 @@ echo_i "check that 'rndc signing -clear all' without zone is handled ($n)"
 ret=0
 rndccmd 10.53.0.3 signing -clear all > /dev/null 2>&1 && ret=1
 rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param' without additional arguments is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param none' without zone is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param none > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param 1' without additional arguments is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param 1 0' without additional arguments is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param 1 0 0' without additional arguments is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param 1 0 0 -' without zone is handled ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 - > /dev/null 2>&1 && ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param' works with salt ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 ffff inline.example > /dev/null 2>&1 || ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-for i in 1 2 3 4 5 6 7 8 9 10 ; do
-        salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-	if [ "$salt" = "FFFF" ]; then
-		break;
-	fi
-	echo_i "sleeping ...."
-	sleep 1
-done;
-[ "$salt" = "FFFF" ] || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param' works without salt ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 - inline.example > /dev/null 2>&1 || ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-for i in 1 2 3 4 5 6 7 8 9 10 ; do
-	salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-	if [ "$salt" = "-" ]; then
-		break;
-	fi
-	echo_i "sleeping ...."
-	sleep 1
-done;
-[ "$salt" = "-" ] || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param' works with 'auto' as salt ($n)"
-ret=0
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 auto inline.example > /dev/null 2>&1 || ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-for i in 1 2 3 4 5 6 7 8 9 10 ; do
-	salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-	[ -n "$salt" ] && [ "$salt" != "-" ] && break
-	echo_i "sleeping ...."
-	sleep 1
-done;
-[ "$salt" != "-" ] || ret=1
-[ "${#salt}" -eq 16 ] || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that 'rndc signing -nsec3param' with 'auto' as salt again generates a different salt ($n)"
-ret=0
-oldsalt=$salt
-rndccmd 10.53.0.3 signing -nsec3param 1 0 0 auto inline.example > /dev/null 2>&1 || ret=1
-rndccmd 10.53.0.3 status > /dev/null || ret=1
-for i in 1 2 3 4 5 6 7 8 9 10 ; do
-	salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-	[ -n "$salt" ] && [ "$salt" != "$oldsalt" ] && break
-	echo_i "sleeping ...."
-	sleep 1
-done;
-[ "$salt" != "$oldsalt" ] || ret=1
-[ "${#salt}" -eq 16 ] || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3398,26 +3282,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check simultaneous inactivation and publishing of dnskeys removes inactive signature ($n)"
-ret=0
-cnt=0
-while :
-do
-dig_with_opts publish-inactive.example @10.53.0.3 dnskey > dig.out.ns3.test$n
-keys=$(awk '$5 == 257 { print; }' dig.out.ns3.test$n | wc -l)
-test "$keys" -gt 2 && break
-cnt=$((cnt+1))
-test "$cnt" -gt 120 && break
-sleep 1
-done
-test "$keys" -gt 2 || ret=1
-sigs=$(grep -c RRSIG dig.out.ns3.test$n || true)
-n=$((n+1))
-test "$sigs" -eq 2 || ret=1
-if test "$ret" -ne 0 ; then echo_i "failed"; fi
-status=$((status+ret))
-
-echo_i "check that increasing the sig-validity-interval resigning triggers re-signing ($n)"
+echo_i "check that increasing the signatures-validity resigning triggers re-signing ($n)"
 ret=0
 before=$($DIG axfr siginterval.example -p "$PORT" @10.53.0.3 | grep RRSIG.SOA)
 cp ns3/siginterval2.conf ns3/siginterval.conf
@@ -3434,7 +3299,7 @@ if test "$before" = "$after" ; then echo_i "failed"; ret=1; fi
 status=$((status+ret))
 
 if [ -x "$PYTHON" ]; then
-    echo_i "check dnskey-sig-validity sets longer expiry for DNSKEY ($n)"
+    echo_i "check signatures-validity-dnskey sets longer expiry for DNSKEY ($n)"
     ret=0
     rndccmd 10.53.0.3 sign siginterval.example 2>&1 | sed 's/^/ns3 /' | cat_i
     # convert expiry date to a comma-separated list of integers python can
@@ -3641,11 +3506,11 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that CDS records are signed using KSK by with dnssec-auto ($n)"
+echo_i "check that CDS records are signed using KSK by with dnssec-policy ($n)"
 ret=0
 dig_with_opts +noall +answer @10.53.0.2 cds cds-auto.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
+test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3668,8 +3533,9 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that CDS records are signed using KSK when added by nsupdate ($n)"
+echo_i "check that CDS records are signed only using KSK when added by nsupdate ($n)"
 ret=0
+keyid=$(cat ns2/cds-update.secure.id)
 (
 echo zone cds-update.secure
 echo server 10.53.0.2 "$PORT"
@@ -3683,30 +3549,6 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
-lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that CDS records are signed only using KSK when added by"
-echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
-ret=0
-keyid=$(cat ns2/cds-kskonly.secure.id)
-(
-echo zone cds-kskonly.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cds-kskonly.secure CDS
-echo send
-dig_with_opts +noall +answer @10.53.0.2 dnskey cds-kskonly.secure |
-grep "DNSKEY.257" |
-$DSFROMKEY -12 -C -f - -T 1 cds-kskonly.secure |
-sed "s/^/update add /"
-echo send
-) | $NSUPDATE
-dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
@@ -3716,18 +3558,17 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that CDS deletion records are signed only using KSK when added by"
-echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
+echo_i "check that CDS deletion records are signed only using KSK when added by nsupdate ($n)"
 ret=0
-keyid=$(cat ns2/cds-kskonly.secure.id)
+keyid=$(cat ns2/cds-update.secure.id)
 (
-echo zone cds-kskonly.secure
+echo zone cds-update.secure
 echo server 10.53.0.2 "$PORT"
-echo update delete cds-kskonly.secure CDS
-echo update add cds-kskonly.secure 0 CDS 0 0 0 00
+echo update delete cds-update.secure CDS
+echo update add cds-update.secure 0 CDS 0 0 0 00
 echo send
 ) | $NSUPDATE
-dig_with_opts +noall +answer @10.53.0.2 cds cds-kskonly.secure > dig.out.test$n
+dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDS" && $11 == id {print}' dig.out.test$n | wc -l)
@@ -3771,7 +3612,7 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDS" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
+test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 4 || ret=1
 n=$((n+1))
@@ -3820,7 +3661,7 @@ echo_i "check that CDNSKEY records are signed using KSK by with dnssec-auto ($n)
 ret=0
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-auto.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
+test "$lines" -eq 1 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3892,8 +3733,9 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that CDNSKEY records are signed using KSK when added by nsupdate ($n)"
+echo_i "check that CDNSKEY records are signed using KSK only when added by nsupdate ($n)"
 ret=0
+keyid=$(cat ns2/cdnskey-update.secure.id)
 (
 echo zone cdnskey-update.secure
 echo server 10.53.0.2 "$PORT"
@@ -3904,27 +3746,6 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
-lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 1 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "check that CDNSKEY records are signed only using KSK when added by"
-echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
-ret=0
-keyid=$(cat ns2/cdnskey-kskonly.secure.id)
-(
-echo zone cdnskey-kskonly.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cdnskey-kskonly.secure CDNSKEY
-dig_with_opts +noall +answer @10.53.0.2 dnskey cdnskey-kskonly.secure |
-sed -n -e "s/^/update add /" -e 's/DNSKEY.257/CDNSKEY 257/p'
-echo send
-) | $NSUPDATE
-dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
 lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
@@ -3934,29 +3755,8 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "check that CDNSKEY deletion records are signed only using KSK when added by"
-echo_ic "nsupdate when dnssec-dnskey-kskonly is yes ($n)"
-ret=0
-keyid=$(cat ns2/cdnskey-kskonly.secure.id)
-(
-echo zone cdnskey-kskonly.secure
-echo server 10.53.0.2 "$PORT"
-echo update delete cdnskey-kskonly.secure CDNSKEY
-echo update add cdnskey-kskonly.secure 0 CDNSKEY 0 3 0 AA==
-echo send
-) | $NSUPDATE
-dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-kskonly.secure > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 1 || ret=1
-lines=$(awk -v id="${keyid}" '$4 == "RRSIG" && $5 == "CDNSKEY" && $11 == id {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 1 || ret=1
-lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 1 || ret=1
-lines=$(awk '$4 == "CDNSKEY" && $5 == "0" && $6 == "3" && $7 == "0" && $8 == "AA==" {print}' dig.out.test$n | wc -l)
-test "${lines:-10}" -eq 1 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
+echo_i "status: $status"
+exit $status
 
 echo_i "checking initialization with a revoked managed key ($n)"
 ret=0
@@ -3983,7 +3783,7 @@ echo send
 ) | $NSUPDATE
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
-test "$lines" -eq 2 || ret=1
+test "$lines" -eq 1 || ret=1
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
 test "$lines" -eq 2 || ret=1
 n=$((n+1))
@@ -4312,7 +4112,7 @@ get_keys_which_signed() {
 # Basic checks to make sure everything is fine before the KSK is made offline.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
 do
-  echo_i "checking $qtype RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with KSK only ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4324,7 +4124,7 @@ do
   status=$((status+ret))
 done
 
-echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk and dnssec-ksk-only) ($n)"
+echo_i "checking SOA RRset is signed with ZSK only ($n)"
 ret=0
 dig_with_opts $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
 lines=$(get_keys_which_signed "SOA" dig.out.test$n | wc -l)
@@ -4339,10 +4139,9 @@ status=$((status+ret))
 zsk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
 keyfile_to_key_id "$zsk2" > ns2/$zone.zsk.id2
 ZSK_ID2=$(cat ns2/$zone.zsk.id2)
-
-echo_i "load new ZSK $ZSK_ID2 for $zone ($n)"
 ret=0
-dnssec_loadkeys_on 2 $zone || ret=1
+echo_i "prepublish new ZSK $ZSK_ID2 for $zone ($n)"
+rndccmd 10.53.0.2 dnssec -rollover -key $ZSK_ID $zone 2>&1 | sed 's/^/ns2 /' | cat_i
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -4351,7 +4150,7 @@ status=$((status+ret))
 echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
 ret=0
 $SETTIME -I now -K ns2 $ZSK > /dev/null
-$SETTIME -A now -K ns2 $zsk2 > /dev/null
+$SETTIME -s -k OMNIPRESENT now -A now -K ns2 $zsk2 > /dev/null
 dnssec_loadkeys_on 2 $zone || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4374,7 +4173,7 @@ echo send
 # Redo the tests now that the zone is updated and the KSK is offline.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
 do
-  echo_i "checking $qtype RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with KSK only, KSK offline ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4389,7 +4188,7 @@ done
 
 for qtype in "SOA" "TXT"
 do
-  echo_i "checking $qtype RRset is signed with ZSK only, KSK offline (update-check-ksk and dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with new ZSK $ZSK_ID2 only, KSK offline ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4414,10 +4213,10 @@ ZSK_ID3=$(cat ns2/$zone.zsk.id3)
 
 # Schedule the new ZSK (ZSK3) to become active.
 echo_i "delete old ZSK $ZSK_ID schedule ZSK $ZSK_ID2 inactive and new ZSK $ZSK_ID3 active for zone $zone ($n)"
-$SETTIME -D now -K ns2 $ZSK > /dev/null
+$SETTIME -s -k UNRETENTIVE -z HIDDEN -D now -K ns2 $ZSK > /dev/null
 $SETTIME -I +3600 -K ns2 $zsk2 > /dev/null
 $SETTIME -A +3600 -K ns2 $zsk3 > /dev/null
-dnssec_loadkeys_on 2 $zone || ret=1
+rndccmd 10.53.0.2 dnssec -rollover -key $ZSK_ID2 $zone 2>&1 | sed 's/^/ns2 /' | cat_i
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -4439,7 +4238,7 @@ echo send
 # Redo the tests now that the ZSK roll has deleted the old key.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
 do
-  echo_i "checking $qtype RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with KSK only, old ZSK deleted ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4455,7 +4254,7 @@ done
 
 for qtype in "SOA" "TXT"
 do
-  echo_i "checking $qtype RRset is signed with ZSK only, old ZSK deleted (update-check-ksk and dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with ZSK $ZSK_ID2 only, old ZSK deleted ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4471,8 +4270,9 @@ done
 
 # Make the new ZSK (ZSK3) active.
 echo_i "make new ZSK $ZSK_ID3 active for zone $zone ($n)"
-$SETTIME -I +1 -K ns2 $zsk2 > /dev/null
-$SETTIME -A +1 -K ns2 $zsk3 > /dev/null
+$SETTIME -I now -K ns2 $zsk2 > /dev/null
+$SETTIME -s -k OMNIPRESENT now -A now -K ns2 $zsk3 > /dev/null
+
 dnssec_loadkeys_on 2 $zone || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -4506,7 +4306,7 @@ status=$((status+ret))
 # Redo the tests one more time.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
 do
-  echo_i "checking $qtype RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with KSK only, new ZSK active ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
@@ -4522,7 +4322,7 @@ done
 
 for qtype in "SOA" "TXT"
 do
-  echo_i "checking $qtype RRset is signed with ZSK only, new ZSK active (update-check-ksk and dnssec-ksk-only) ($n)"
+  echo_i "checking $qtype RRset is signed with new ZSK $ZSK_ID3 only, new ZSK active ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
