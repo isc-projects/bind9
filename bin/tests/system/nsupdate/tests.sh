@@ -523,7 +523,7 @@ done
 
 ret=0
 echo_i "check that 'nsupdate -l' with a missing keyfile reports the missing file"
-$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistent.key 2> nsupdate.out < /dev/null
+$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistent.key 2> nsupdate.out < /dev/null && ret=1
 grep ns1/nonexistent.key nsupdate.out > /dev/null || ret=1
 if test $ret -ne 0
 then
@@ -573,7 +573,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' refuses update of records via UDP ($n)"
-$NSUPDATE > nsupdate.out.$n 2>&1 << END
+$NSUPDATE > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
 update add 1.0.0.127.in-addr.arpa. 600 PTR localhost.
@@ -611,7 +611,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' refuses update of records for a different address from the client's own address via TCP ($n)"
-$NSUPDATE -v > nsupdate.out.$n 2>&1 << END
+$NSUPDATE -v > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
 update add 1.0.168.192.in-addr.arpa. 600 PTR localhost.
@@ -1208,23 +1208,23 @@ retry_quiet 20 check_size_lt_5000 || ret=1
 n=$((n + 1))
 echo_i "check check-names processing ($n)"
 ret=0
-$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1 && ret=1
 update add # 0 in a 1.2.3.4
 EOF
 grep "bad owner" nsupdate.out1-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1 || ret=1
 check-names off
 update add # 0 in a 1.2.3.4
 EOF
 grep "bad owner" nsupdate.out2-$n > /dev/null && ret=1
 
-$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1 && ret=1
 update add . 0 in mx 0 #
 EOF
 grep "bad name" nsupdate.out3-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1 || ret=1
 check-names off
 update add . 0 in mx 0 #
 EOF
@@ -1235,23 +1235,23 @@ grep "bad name" nsupdate.out4-$n > /dev/null && ret=1
 n=$((n + 1))
 echo_i "check check-svcb processing ($n)"
 ret=0
-$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1 && ret=1
 update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
 EOF
 grep "check-svcb failed: no ALPN" nsupdate.out1-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1 || ret=1
 check-svcb off
 update add _dns.ns.example 0 in svcb 1 ns.example dohpath=/{?dns}
 EOF
 grep "check-svcb failed: no ALPN" nsupdate.out2-$n > /dev/null && ret=1
 
-$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1 && ret=1
 update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
 EOF
 grep "check-svcb failed: no DOHPATH" nsupdate.out3-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1 || ret=1
 check-svcb off
 update add _dns.ns.example 0 in svcb 1 ns.example alpn=h2
 EOF
@@ -1777,7 +1777,7 @@ n=$((n + 1))
 ret=0
 echo_i "check that update is rejected if query is not allowed ($n)"
 {
-  $NSUPDATE -d <<END
+  $NSUPDATE -d <<END && ret=1
   local 10.53.0.2
   server 10.53.0.1 ${PORT}
   update add reject.other.nil 3600 IN TXT Whatever
