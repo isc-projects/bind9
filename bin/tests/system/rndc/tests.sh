@@ -207,7 +207,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that freezing static zones is not allowed ($n)"
 ret=0
-$RNDCCMD 10.53.0.2 freeze static > rndc.out.1.test$n 2>&1
+$RNDCCMD 10.53.0.2 freeze static > rndc.out.1.test$n 2>&1 && ret=1
 grep 'not dynamic' rndc.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -491,7 +491,7 @@ $RNDCCMD4 nta -l 1d nta2.example > rndc.out.2.test$n 2>&1
 grep "Negative trust anchor added" rndc.out.2.test$n > /dev/null || ret=1
 $RNDCCMD4 nta -l 1w nta3.example > rndc.out.3.test$n 2>&1
 grep "Negative trust anchor added" rndc.out.3.test$n > /dev/null || ret=1
-$RNDCCMD4 nta -l 8d nta4.example > rndc.out.4.test$n 2>&1
+$RNDCCMD4 nta -l 8d nta4.example > rndc.out.4.test$n 2>&1 && ret=1
 grep "NTA lifetime cannot exceed one week" rndc.out.4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -506,7 +506,7 @@ $RNDCCMD4 nta -c any nta1.example > rndc.out.2.test$n 2>&1
 nextpart ns4/named.run | grep "added NTA 'nta1.example'" > /dev/null || ret=1
 $RNDCCMD4 nta -c ch nta1.example > rndc.out.3.test$n 2>&1
 nextpart ns4/named.run | grep "added NTA 'nta1.example'" > /dev/null && ret=1
-$RNDCCMD4 nta -c fake nta1.example > rndc.out.4.test$n 2>&1
+$RNDCCMD4 nta -c fake nta1.example > rndc.out.4.test$n 2>&1 && ret=1
 nextpart ns4/named.run | grep "added NTA 'nta1.example'" > /dev/null && ret=1
 grep 'unknown class' rndc.out.4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
