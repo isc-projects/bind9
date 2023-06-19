@@ -83,6 +83,17 @@ $TSIGKEYGEN -a hmac-sha256 sha256-key > ns1/sha256.key
 $TSIGKEYGEN -a hmac-sha384 sha384-key > ns1/sha384.key
 $TSIGKEYGEN -a hmac-sha512 sha512-key > ns1/sha512.key
 
+if $FEATURETEST --md5; then
+	echo 'key "legacy-157" { algorithm "hmac-md5"; secret "mGcDSCx/fF121GOVJlITLg=="; };' > ns1/legacy157.key
+else
+	echo "/* MD5 NOT SUPPORTED */" > ns1/legacy157.key
+fi
+echo 'key "legacy-161" { algorithm "hmac-sha1"; secret "N80fGvcr8JifzRUJ62R4rQ=="; };' > ns1/legacy161.key
+echo 'key "legacy-162" { algorithm "hmac-sha224"; secret "nSIKzFAGS7/tvBs8JteI+Q=="; };' > ns1/legacy162.key
+echo 'key "legacy-163" { algorithm "hmac-sha256"; secret "CvaupxnDeES3HnlYhTq53w=="; };' > ns1/legacy163.key
+echo 'key "legacy-164" { algorithm "hmac-sha384"; secret "wDldBJwJrYfPoL1Pj4ucOQ=="; };' > ns1/legacy164.key
+echo 'key "legacy-165" { algorithm "hmac-sha512"; secret "OgZrTcEa8P76hVY+xyN7Wg=="; };' > ns1/legacy165.key
+
 (cd ns3; $SHELL -e sign.sh)
 
 cp -f ns1/many.test.db.in ns1/many.test.db
