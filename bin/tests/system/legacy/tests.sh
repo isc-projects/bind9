@@ -175,7 +175,7 @@ ret=0
 $DIG $DIGOPTS +edns @10.53.0.5 plain-notcp soa > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.1.test$n > /dev/null && ret=1
-$DIG $DIGOPTS +edns +tcp @10.53.0.5 plain-notcp soa > dig.out.2.test$n
+$DIG $DIGOPTS +edns +tcp @10.53.0.5 plain-notcp soa > dig.out.2.test$n && ret=1
 grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
