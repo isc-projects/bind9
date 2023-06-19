@@ -89,7 +89,7 @@ status=$((status + ret))
 n=$((n + 1))
 
 echo_i "sending queries to ns3"
-$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1
+$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1 || true
 
 ret=0
 echo_i "dumping updated stats for ns3 ($n)"
