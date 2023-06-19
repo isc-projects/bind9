@@ -226,7 +226,7 @@ status=$((status + ret))
 n=$((n+1))
 echo_i "check that 'TYPE353 \# cat' produces 'not a valid number' ($n)"
 ret=0
-$CHECKZONE nan.bad zones/nan.bad > check.out 2>&1
+$CHECKZONE nan.bad zones/nan.bad > check.out 2>&1 && ret=1
 grep "not a valid number" check.out > /dev/null || ret=1
 [ $ret = 0 ] || echo_i "failed"
 status=$((status + ret))
