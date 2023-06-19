@@ -135,7 +135,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -244,7 +244,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -369,7 +369,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -482,7 +482,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -524,7 +524,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
