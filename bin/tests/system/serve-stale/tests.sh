@@ -1136,7 +1136,7 @@ sleep 2
 n=$((n+1))
 echo_i "check notincache.example TXT times out (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 notfound.example TXT > dig.out.test$n 2>&1
+$DIG -p ${PORT} +tries=1 +timeout=3  @10.53.0.3 notfound.example TXT > dig.out.test$n 2>&1 && ret=1
 grep "timed out" dig.out.test$n > /dev/null || ret=1
 grep ";; no servers could be reached" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1784,7 +1784,7 @@ echo_i "sending queries for tests $((n+2))-$((n+4))..."
 # the second RRSIG lookup triggers the issue in [GL #3622]
 $DIG -p ${PORT} +tries=1 +timeout=10  @10.53.0.3 longttl.example TXT > dig.out.test$((n+3)) &
 $DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example RRSIG > dig.out.test$((n+4)) &
-$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2))
+$DIG -p ${PORT} +tries=1 +timeout=3   @10.53.0.3 longttl.example TXT > dig.out.test$((n+2)) || true
 
 # Enable the authoritative name server after stale-answer-client-timeout.
 n=$((n+1))
