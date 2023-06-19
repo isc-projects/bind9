@@ -95,15 +95,22 @@ typedef enum dst_algorithm {
 	DST_ALG_ECDSA384 = 14,
 	DST_ALG_ED25519 = 15,
 	DST_ALG_ED448 = 16,
-	DST_ALG_GSSAPI = 159,
-	DST_ALG_HMACMD5 = 160,
+
+	/*
+	 * Do not renumber HMAC algorithms as they are used externally to named
+	 * in legacy K* key pair files.
+	 * Do not add non HMAC between DST_ALG_HMACMD5 and DST_ALG_HMACSHA512.
+	 */
+	DST_ALG_HMACMD5 = 157,
 	DST_ALG_HMAC_FIRST = DST_ALG_HMACMD5,
+	DST_ALG_GSSAPI = 160,	  /* Internal use only. Exception. */
 	DST_ALG_HMACSHA1 = 161,	  /* XXXMPA */
 	DST_ALG_HMACSHA224 = 162, /* XXXMPA */
 	DST_ALG_HMACSHA256 = 163, /* XXXMPA */
 	DST_ALG_HMACSHA384 = 164, /* XXXMPA */
 	DST_ALG_HMACSHA512 = 165, /* XXXMPA */
 	DST_ALG_HMAC_LAST = DST_ALG_HMACSHA512,
+
 	DST_ALG_INDIRECT = 252,
 	DST_ALG_PRIVATE = 254,
 	DST_MAX_ALGS = 256,
