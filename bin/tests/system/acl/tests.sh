@@ -154,14 +154,14 @@ $DIG -p ${PORT} +tcp soa example. \
 	@10.53.0.2 -b 10.53.0.3 > dig.out.1.${t}
 grep "status: NOERROR" dig.out.1.${t} > /dev/null 2>&1 || ret=1
 $DIG -p ${PORT} +tcp soa example. \
-	@10.53.0.2 -b 10.53.0.8 > dig.out.2.${t}
+	@10.53.0.2 -b 10.53.0.8 > dig.out.2.${t} && ret=1
 grep "status: NOERROR" dig.out.2.${t} > /dev/null 2>&1 && ret=1
 grep "communications error" dig.out.2.${t} > /dev/null 2>&1 || ret=1
 $DIG -p ${PORT} soa example. \
 	@10.53.0.2 -b 10.53.0.3 > dig.out.3.${t}
 grep "status: NOERROR" dig.out.3.${t} > /dev/null 2>&1 || ret=1
 $DIG -p ${PORT} soa example. \
-	@10.53.0.2 -b 10.53.0.8 > dig.out.4.${t}
+	@10.53.0.2 -b 10.53.0.8 > dig.out.4.${t} && ret=1
 grep "status: NOERROR" dig.out.4.${t} > /dev/null 2>&1 && ret=1
 grep "timed out" dig.out.4.${t} > /dev/null 2>&1 || ret=1
 grep ";; no servers could be reached" dig.out.4.${t} > /dev/null 2>&1 || ret=1
