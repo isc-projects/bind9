@@ -47,30 +47,10 @@ zone "retransfer" {
 	notify no;
 };
 
-zone "retransfer3" {
-	type primary;
-	file "retransfer3.db";
-	allow-update { any; };
-	allow-transfer { none; };	// changed dynamically by tests.sh
-	notify no;
-};
-
 zone "nsec3-loop" {
 	type primary;
 	file "nsec3-loop.db";
 	notify no;
-};
-
-zone "inactiveksk" {
-	type primary;
-	file "inactiveksk.db";
-	allow-update { any; };
-};
-
-zone "inactivezsk" {
-	type primary;
-	file "inactivezsk.db";
-	allow-update { any; };
 };
 
 zone "nokeys" {

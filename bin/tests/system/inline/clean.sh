@@ -24,4 +24,4 @@ rm -rf ./*/*.jbk \
    ./*/*.db ./*/*.db.signed ./*/*.db.jnl ./*/*.db.signed.jnl \
    ./*.out ./*.out* ./*/*.out ./*/*.out* \
    ./*/*.bk ./*/*.bk.jnl ./*/*.bk.signed ./*/*.bk.signed.jnl \
-   ns3/a-file ns3/removedkeys
+   ns3/a-file ns3/removedkeys ns3/delayedkeys.conf
