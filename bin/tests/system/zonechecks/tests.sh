@@ -238,11 +238,11 @@ status=$((status + ret))
 
 echo_i "checking 'rdnc zonestatus' with duplicated zone name"
 ret=0
-$RNDCCMD 10.53.0.1 zonestatus duplicate.example > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus duplicate.example > rndc.out.duplicate 2>&1 && ret=1
 checkfor "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate
-$RNDCCMD 10.53.0.1 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1 || ret=1
 checkfor "name: duplicate.example" rndc.out.duplicate
-$RNDCCMD 10.53.0.1 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1 && ret=1
 checkfor "no matching zone 'nosuchzone.example' in any view" rndc.out.duplicate
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
