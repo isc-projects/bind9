@@ -1113,9 +1113,9 @@ ret=0
 $DIG $DIGOPTS bits. SOA @10.53.0.2 > dig.out.ns2.pre.test$n
 oldserial=$(awk '$4 == "SOA" { print $7 }' dig.out.ns2.pre.test$n)
 newserial=$($PERL -e 'while (<>) { chomp; my @field = split /\s+/; printf("%u\n", $field[6] + 10) if ($field[3] eq "SOA"); }' < dig.out.ns2.pre.test$n)
-$RNDCCMD 10.53.0.2 freeze bits > /dev/null 2>&1
-$RNDCCMD 10.53.0.2 signing -serial ${newserial:-0} bits > /dev/null 2>&1
-$RNDCCMD 10.53.0.2 thaw bits > /dev/null 2>&1
+$RNDCCMD 10.53.0.2 freeze bits > /dev/null 2>&1 || ret=1
+$RNDCCMD 10.53.0.2 signing -serial ${newserial:-0} bits > /dev/null 2>&1 && ret=1
+$RNDCCMD 10.53.0.2 thaw bits > /dev/null 2>&1 || ret=1
 retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${newserial:-1}" dig.out.ns2.post1.test$n && ret=1
 retry_quiet 5 wait_for_serial 10.53.0.2 bits. "${oldserial:-1}" dig.out.ns2.post2.test$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
