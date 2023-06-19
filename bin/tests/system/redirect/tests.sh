@@ -54,11 +54,11 @@ status=$((status + ret))
 
 echo_i "checking A zone redirect updates statistics ($n)"
 ret=0
-rm ns2/named.stats 2>/dev/null
+rm -f ns2/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.2 stats || ret=1
 PRE=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats`
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
-rm ns2/named.stats 2>/dev/null
+rm -f ns2/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.2 stats || ret=1
 POST=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats`
 if [ $((POST - PRE)) != 1 ]; then ret=1; fi
@@ -384,7 +384,7 @@ status=$((status + ret))
 
 echo_i "checking AAAA nxdomain-redirect works for nonexist ($n)"
 ret=0
-rm ns4/named.stats 2>/dev/null
+rm -f ns4/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.4 stats || ret=1
 PRE_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats`
 PRE_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats`
@@ -397,7 +397,7 @@ status=$((status + ret))
 
 echo_i "checking AAAA nxdomain-redirect updates statistics ($n)"
 ret=0
-rm ns4/named.stats 2>/dev/null
+rm -f ns4/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.4 stats || ret=1
 POST_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats`
 POST_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats`
