@@ -249,7 +249,7 @@ ret=0
 i=0
 while test $i -lt 256
 do
-	x=`expr 00$i : '.*\(...\)$'`
+	x=$(expr 00$i : '.*\(...\)$' || true)
 	$DIG $DIGOPTS @10.53.0.1 "\\$x.example" TXT > dig.out.ns1.$x.test$n
 	if test $i -le 32 -o $i -ge 127
 	then
