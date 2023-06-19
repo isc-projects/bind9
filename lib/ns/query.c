@@ -7000,7 +7000,7 @@ cleanup:
  */
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx) {
-	bool failcache;
+	isc_result_t failcache;
 	uint32_t flags;
 
 	/*
@@ -7013,20 +7013,22 @@ ns__query_sfcache(query_ctx_t *qctx) {
 	flags = 0;
 #ifdef ENABLE_AFL
 	if (qctx->client->manager->sctx->fuzztype == isc_fuzz_resolver) {
-		failcache = false;
-	} else {
+		failcache = ISC_R_NOTFOUND;
+	} else
+#endif /* ifdef ENABLE_AFL */
+	{
 		failcache = dns_badcache_find(
 			qctx->view->failcache, qctx->client->query.qname,
-			qctx->qtype, &flags, &qctx->client->tnow);
+			qctx->qtype, &flags,
+			isc_time_seconds(&qctx->client->tnow));
 	}
-#else  /* ifdef ENABLE_AFL */
-	failcache = dns_badcache_find(qctx->view->failcache,
-				      qctx->client->query.qname, qctx->qtype,
-				      &flags, &qctx->client->tnow);
-#endif /* ifdef ENABLE_AFL */
-	if (failcache &&
-	    (((flags & NS_FAILCACHE_CD) != 0) ||
-	     ((qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0)))
+
+	if (failcache != ISC_R_SUCCESS) {
+		return (ISC_R_COMPLETE);
+	}
+
+	if (((flags & NS_FAILCACHE_CD) != 0) ||
+	    ((qctx->client->message->flags & DNS_MESSAGEFLAG_CD) == 0))
 	{
 		if (isc_log_wouldlog(ns_lctx, ISC_LOG_DEBUG(1))) {
 			char namebuf[DNS_NAME_FORMATSIZE];

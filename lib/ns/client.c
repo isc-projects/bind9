@@ -943,9 +943,10 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 		isc_interval_set(&i, client->view->fail_ttl, 0);
 		result = isc_time_nowplusinterval(&expire, &i);
 		if (result == ISC_R_SUCCESS) {
-			dns_badcache_add(
-				client->view->failcache, client->query.qname,
-				client->query.qtype, true, flags, &expire);
+			dns_badcache_add(client->view->failcache,
+					 client->query.qname,
+					 client->query.qtype, true, flags,
+					 isc_time_seconds(&expire));
 		}
 	}
 

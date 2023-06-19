@@ -71,8 +71,7 @@
 			goto cleanup;        \
 	} while (0)
 
-#define DNS_VIEW_DELONLYHASH   111
-#define DNS_VIEW_FAILCACHESIZE 1021
+#define DNS_VIEW_DELONLYHASH 111
 
 /*%
  * Default EDNS0 buffer size
@@ -146,11 +145,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
-	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
-				   &view->failcache);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_dynkeys;
-	}
+	view->failcache = dns_badcache_new(view->mctx);
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -188,7 +183,6 @@ cleanup_new_zone_lock:
 	isc_mutex_destroy(&view->new_zone_lock);
 	dns_badcache_destroy(&view->failcache);
 
-cleanup_dynkeys:
 	if (view->dynamickeys != NULL) {
 		dns_tsigkeyring_detach(&view->dynamickeys);
 	}

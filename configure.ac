@@ -236,7 +236,7 @@ AC_MSG_RESULT([$RCU_FLAVOR])
 # not add it automatically - we need to add it explicitly in such case.
 #
 PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR >= 0.13.0 liburcu-cds >= 0.13.0], [],
-		  [PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR liburcu-cds],
+		  [PKG_CHECK_MODULES([LIBURCU], [$RCU_FLAVOR >= 0.10.0 liburcu-cds >= 0.10.0],
 				     [LIBURCU_LIBS="$LIBURCU_LIBS -lurcu-common"])])
 
 AC_DEFINE_UNQUOTED([RCU_FLAVOR], ["$RCU_FLAVOR"], [Chosen Userspace-RCU flavor])

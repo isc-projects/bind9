@@ -236,7 +236,6 @@ STATIC_ASSERT(NS_PROCESSING_LIMIT > NS_RR_LIMIT,
  */
 #define MAX_EDNS0_TIMEOUTS 3
 
-#define DNS_RESOLVER_BADCACHESIZE 1021
 #define DNS_RESOLVER_BADCACHETTL(fctx) \
 	(((fctx)->res->lame_ttl > 30) ? (fctx)->res->lame_ttl : 30)
 
@@ -9906,7 +9905,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		    isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp) {
-	isc_result_t result = ISC_R_SUCCESS;
 	dns_resolver_t *res = NULL;
 
 	/*
@@ -9951,11 +9949,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 #endif
 	isc_refcount_init(&res->references, 1);
 
-	result = dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
-				   &res->badcache);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	res->badcache = dns_badcache_new(res->mctx);
 
 	/* This needs to be case sensitive to not lowercase options and type */
 	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS,
@@ -9984,11 +9978,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	*resp = res;
 
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	dns_view_weakdetach(&res->view);
-	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
-	return (result);
 }
 
 static void
@@ -10730,14 +10719,15 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 #endif /* ifdef ENABLE_AFL */
 	{
 		dns_badcache_add(resolver->badcache, name, type, false, 0,
-				 expire);
+				 isc_time_seconds(expire));
 	}
 }
 
-bool
+isc_result_t
 dns_resolver_getbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *now) {
-	return (dns_badcache_find(resolver->badcache, name, type, NULL, now));
+	return (dns_badcache_find(resolver->badcache, name, type, NULL,
+				  isc_time_seconds(now)));
 }
 
 void

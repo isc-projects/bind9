@@ -588,7 +588,7 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
  * \li	name to be valid.
  */
 
-bool
+isc_result_t
 dns_resolver_getbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *now);
 /*%<
