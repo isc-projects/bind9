@@ -1,3 +1,5 @@
+6200.	[placeholder]
+
 6199.	[bug]		Improve HTTP Connection: header protocol conformance
 			in the statistics channel. [GL #4126]
 
