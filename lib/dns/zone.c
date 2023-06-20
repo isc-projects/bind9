@@ -16812,12 +16812,17 @@ copy_non_dnssec_records(dns_db_t *db, dns_db_t *version, dns_db_t *rawdb,
 		if (rdataset.type == dns_rdatatype_nsec ||
 		    rdataset.type == dns_rdatatype_rrsig ||
 		    rdataset.type == dns_rdatatype_nsec3 ||
-		    rdataset.type == dns_rdatatype_dnskey ||
 		    rdataset.type == dns_rdatatype_nsec3param)
 		{
 			dns_rdataset_disassociate(&rdataset);
 			continue;
 		}
+		/*
+		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
+		 * update the zone with these records from a different provider,
+		 * and thus they may exist in the raw version of the zone.
+		 */
+
 		if (rdataset.type == dns_rdatatype_soa && oldserial != NULL) {
 			result = checkandaddsoa(db, node, version, name,
 						&rdataset, *oldserial);
