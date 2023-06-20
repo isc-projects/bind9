@@ -1644,13 +1644,33 @@ dns_zone_getkeystores(dns_zone_t *zone);
 isc_result_t
 dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		       isc_stdtime_t now, dns_dnsseckeylist_t *keys);
-/*%
+/*%<
  * Find DNSSEC keys used for signing with dnssec-policy. Load these keys
  * into 'keys'.
  *
  * Requires:
  *\li	'zone' to be valid initialised zone.
  *\li	'keys' to be an initialised DNSSEC keylist.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	Error
+ */
+
+isc_result_t
+dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		  isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
+		  dst_key_t **keys, unsigned int *nkeys);
+/*%<
+ * Finds a set of zone keys. Searches in the applicable key stores for the
+ * given 'zone' if there is a dnssec-policy attached, otherwise it looks up
+ * the keys in the zone's key-directory. The found keys are loaded into 'keys'.
+ *
+ * Requires:
+ *\li	'zone' to be a valid initialised zone.
+ *\li	'mctx' is not NULL.
+ *\li	'keys' is not NULL and has enough space form 'nkeys' keys.
+ *\li	'nkeys' is not NULL.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

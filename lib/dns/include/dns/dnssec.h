@@ -177,20 +177,6 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *\li		DST_R_*
  */
 
-/*@{*/
-isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
-			const dns_name_t *name, const char *directory,
-			isc_stdtime_t now, isc_mem_t *mctx,
-			unsigned int maxkeys, dst_key_t **keys,
-			unsigned int *nkeys);
-
-/*%<
- * 	Finds a set of zone keys.
- * 	XXX temporary - this should be handled in dns_zone_t.
- */
-/*@}*/
-
 bool
 dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now);
 /*%<

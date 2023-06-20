@@ -147,7 +147,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
 ret=0
-grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+grep "dns_zone_findkeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 # Verify again.
@@ -176,7 +176,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
 ret=0
-grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+grep "dns_zone_findkeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 # Verify again.
@@ -521,7 +521,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 dnssec_verify
 no_dnssec_in_journal
-grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+grep "dns_zone_findkeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 # NS4
@@ -534,7 +534,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 dnssec_verify
 no_dnssec_in_journal
-grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
+grep "dns_zone_findkeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 

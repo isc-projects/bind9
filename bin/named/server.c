@@ -2793,8 +2793,8 @@ catz_addmodzone_cb(void *arg) {
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, cz->view,
 				&cz->cbd->server->viewlist,
 				&cz->cbd->server->kasplist,
-				&cz->cbd->server->keystorelist,
-				cfg->actx, true, false, cz->mod);
+				&cz->cbd->server->keystorelist, cfg->actx, true,
+				false, cz->mod);
 	dns_view_freeze(cz->view);
 	isc_loopmgr_resume(named_g_loopmgr);
 
@@ -9137,11 +9137,10 @@ load_configuration(const char *filename, named_server_t *server,
 			goto cleanup_cachelist;
 		}
 
-		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist,
-					&server->keystorelist, bindkeys,
-					named_g_mctx, named_g_aclconfctx,
-					false);
+		result = configure_view(
+			view, &viewlist, config, vconfig, &cachelist,
+			&server->kasplist, &server->keystorelist, bindkeys,
+			named_g_mctx, named_g_aclconfctx, false);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
 			goto cleanup_cachelist;

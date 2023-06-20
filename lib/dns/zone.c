@@ -218,6 +218,13 @@ typedef struct dns_include dns_include_t;
 #define ZONEDB_LOCK(l, t)     RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
 
+#define RETERR(x)                            \
+	do {                                 \
+		result = (x);                \
+		if (result != ISC_R_SUCCESS) \
+			goto failure;        \
+	} while (0)
+
 #ifdef ENABLE_AFL
 extern bool dns_fuzzing_resolver;
 #endif /* ifdef ENABLE_AFL */
@@ -6057,6 +6064,212 @@ was_dumping(dns_zone_t *zone) {
 	return (false);
 }
 
+static isc_result_t
+keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
+	    dst_key_t **key) {
+	const char *directory = dns_zone_getkeydirectory(zone);
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	dst_key_t *foundkey = NULL;
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	if (kasp == NULL || (strcmp(dns_kasp_getname(kasp), "none") == 0) ||
+	    (strcmp(dns_kasp_getname(kasp), "insecure") == 0))
+	{
+		result = dst_key_fromfile(
+			dst_key_name(pubkey), dst_key_id(pubkey),
+			dst_key_alg(pubkey),
+			(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE),
+			directory, mctx, &foundkey);
+	} else {
+		for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+		     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+		{
+			dns_keystore_t *ks = dns_kasp_key_keystore(kkey);
+			if (ks == NULL ||
+			    strcmp(dns_keystore_name(ks), "key-directory") == 0)
+			{
+				directory = dns_zone_getkeydirectory(zone);
+			} else {
+				directory = dns_keystore_directory(ks);
+			}
+
+			result = dst_key_fromfile(
+				dst_key_name(pubkey), dst_key_id(pubkey),
+				dst_key_alg(pubkey),
+				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+				 DST_TYPE_STATE),
+				directory, mctx, &foundkey);
+			if (result == ISC_R_SUCCESS) {
+				break;
+			}
+		}
+	}
+
+	*key = foundkey;
+	return (result);
+}
+
+#define is_zone_key(key) \
+	((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE)
+
+static isc_result_t
+findzonekeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+	     dns_dbnode_t *node, const dns_name_t *name, isc_stdtime_t now,
+	     isc_mem_t *mctx, unsigned int maxkeys, dst_key_t **keys,
+	     unsigned int *nkeys) {
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_result_t result;
+	dst_key_t *pubkey = NULL;
+	unsigned int count = 0;
+
+	*nkeys = 0;
+	memset(keys, 0, sizeof(*keys) * maxkeys);
+	dns_rdataset_init(&rdataset);
+	RETERR(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
+				   &rdataset, NULL));
+	RETERR(dns_rdataset_first(&rdataset));
+	while (result == ISC_R_SUCCESS && count < maxkeys) {
+		pubkey = NULL;
+		dns_rdataset_current(&rdataset, &rdata);
+		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
+		dst_key_setttl(pubkey, rdataset.ttl);
+
+		if (!is_zone_key(pubkey) ||
+		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
+		{
+			goto next;
+		}
+		/* Corrupted .key file? */
+		if (!dns_name_equal(name, dst_key_name(pubkey))) {
+			goto next;
+		}
+		keys[count] = NULL;
+		result = keyfromfile(zone, pubkey, mctx, &keys[count]);
+
+		/*
+		 * If the key was revoked and the private file
+		 * doesn't exist, maybe it was revoked internally
+		 * by named.  Try loading the unrevoked version.
+		 */
+		if (result == ISC_R_FILENOTFOUND) {
+			uint32_t flags;
+			flags = dst_key_flags(pubkey);
+			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
+				dst_key_setflags(pubkey,
+						 flags & ~DNS_KEYFLAG_REVOKE);
+				result = keyfromfile(zone, pubkey, mctx,
+						     &keys[count]);
+				if (result == ISC_R_SUCCESS &&
+				    dst_key_pubcompare(pubkey, keys[count],
+						       false))
+				{
+					dst_key_setflags(keys[count], flags);
+				}
+				dst_key_setflags(pubkey, flags);
+			}
+		}
+
+		if (result != ISC_R_SUCCESS) {
+			char filename[DNS_NAME_FORMATSIZE +
+				      DNS_SECALG_FORMATSIZE +
+				      sizeof("key file for //65535")];
+			isc_result_t result2;
+			isc_buffer_t buf;
+
+			isc_buffer_init(&buf, filename, sizeof(filename));
+			result2 = dst_key_getfilename(
+				dst_key_name(pubkey), dst_key_id(pubkey),
+				dst_key_alg(pubkey),
+				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
+				 DST_TYPE_STATE),
+				NULL, mctx, &buf);
+			if (result2 != ISC_R_SUCCESS) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				char algbuf[DNS_SECALG_FORMATSIZE];
+
+				dns_name_format(dst_key_name(pubkey), namebuf,
+						sizeof(namebuf));
+				dns_secalg_format(dst_key_alg(pubkey), algbuf,
+						  sizeof(algbuf));
+				snprintf(filename, sizeof(filename) - 1,
+					 "key file for %s/%s/%d", namebuf,
+					 algbuf, dst_key_id(pubkey));
+			}
+
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
+				      "dns_zone_findkeys: error reading %s: %s",
+				      filename, isc_result_totext(result));
+		}
+
+		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
+			keys[count] = pubkey;
+			pubkey = NULL;
+			count++;
+			goto next;
+		}
+
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
+
+		/*
+		 * If a key is marked inactive, skip it
+		 */
+		if (!dns_dnssec_keyactive(keys[count], now)) {
+			dst_key_setinactive(pubkey, true);
+			dst_key_free(&keys[count]);
+			keys[count] = pubkey;
+			pubkey = NULL;
+			count++;
+			goto next;
+		}
+
+		/*
+		 * Whatever the key's default TTL may have
+		 * been, the rdataset TTL takes priority.
+		 */
+		dst_key_setttl(keys[count], rdataset.ttl);
+
+		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
+			/* We should never get here. */
+			dst_key_free(&keys[count]);
+			goto next;
+		}
+		count++;
+	next:
+		if (pubkey != NULL) {
+			dst_key_free(&pubkey);
+		}
+		dns_rdata_reset(&rdata);
+		result = dns_rdataset_next(&rdataset);
+	}
+	if (result != ISC_R_NOMORE) {
+		goto failure;
+	}
+	if (count == 0) {
+		result = ISC_R_NOTFOUND;
+	} else {
+		result = ISC_R_SUCCESS;
+	}
+
+failure:
+	if (dns_rdataset_isassociated(&rdataset)) {
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (pubkey != NULL) {
+		dst_key_free(&pubkey);
+	}
+	if (result != ISC_R_SUCCESS) {
+		while (count > 0) {
+			dst_key_free(&keys[--count]);
+		}
+	}
+	*nkeys = count;
+	return (result);
+}
+
 /*%
  * Find up to 'maxkeys' DNSSEC keys used for signing version 'ver' of database
  * 'db' for zone 'zone' in its key directory, then load these keys into 'keys'.
@@ -6064,21 +6277,23 @@ was_dumping(dns_zone_t *zone) {
  * 'now'.  Store the number of keys found in 'nkeys'.
  */
 isc_result_t
-dns__zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-		   isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
-		   dst_key_t **keys, unsigned int *nkeys) {
+dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		  isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
+		  dst_key_t **keys, unsigned int *nkeys) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
-	const char *directory = dns_zone_getkeydirectory(zone);
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(mctx != NULL);
+	REQUIRE(nkeys != NULL);
+	REQUIRE(keys != NULL);
 
 	CHECK(dns_db_findnode(db, dns_db_origin(db), false, &node));
-	memset(keys, 0, sizeof(*keys) * maxkeys);
 
 	dns_zone_lock_keyfiles(zone);
 
-	result = dns_dnssec_findzonekeys(db, ver, node, dns_db_origin(db),
-					 directory, now, mctx, maxkeys, keys,
-					 nkeys);
+	result = findzonekeys(zone, db, ver, node, dns_db_origin(db), now, mctx,
+			      maxkeys, keys, nkeys);
 
 	dns_zone_unlock_keyfiles(zone);
 
@@ -6752,11 +6967,11 @@ zone_resigninc(dns_zone_t *zone) {
 
 	now = isc_stdtime_now();
 
-	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
-				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns_zone_findkeys(zone, db, version, now, zone->mctx,
+				   DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_resigninc:dns__zone_findkeys -> %s",
+			     "zone_resigninc:dns_zone_findkeys -> %s",
 			     isc_result_totext(result));
 		goto failure;
 	}
@@ -7987,11 +8202,11 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	now = isc_stdtime_now();
 
-	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
-				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns_zone_findkeys(zone, db, version, now, zone->mctx,
+				   DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
-			   "zone_nsec3chain:dns__zone_findkeys -> %s",
+			   "zone_nsec3chain:dns_zone_findkeys -> %s",
 			   isc_result_totext(result));
 		goto failure;
 	}
@@ -9072,11 +9287,11 @@ zone_sign(dns_zone_t *zone) {
 
 	now = isc_stdtime_now();
 
-	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
-				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns_zone_findkeys(zone, db, version, now, zone->mctx,
+				   DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
-			   "zone_sign:dns__zone_findkeys -> %s",
+			   "zone_sign:dns_zone_findkeys -> %s",
 			   isc_result_totext(result));
 		goto cleanup;
 	}
@@ -20139,11 +20354,11 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
 
-	result = dns__zone_findkeys(zone, db, ver, now, zone->mctx,
-				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
+	result = dns_zone_findkeys(zone, db, ver, now, zone->mctx,
+				   DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
 		dnssec_log(zone, ISC_LOG_ERROR,
-			   "sign_apex:dns__zone_findkeys -> %s",
+			   "sign_apex:dns_zone_findkeys -> %s",
 			   isc_result_totext(result));
 		return (result);
 	}
