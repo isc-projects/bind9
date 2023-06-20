@@ -14455,6 +14455,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	unsigned char salt[255];
 	const char *ptr;
 	size_t n;
+	bool kasp = false;
 
 	REQUIRE(text != NULL);
 
@@ -14562,17 +14563,14 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	}
 
 	if (dns_zone_getkasp(zone) != NULL) {
-		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
-				   "command instead");
-		(void)putnull(text);
-		goto cleanup;
+		kasp = true;
 	}
 
 	if (clear) {
 		CHECK(dns_zone_keydone(zone, keystr));
 		(void)putstr(text, "request queued");
 		(void)putnull(text);
-	} else if (chain) {
+	} else if (chain && !kasp) {
 		CHECK(dns_zone_setnsec3param(
 			zone, (uint8_t)hash, (uint8_t)flags, iter,
 			(uint8_t)saltlen, salt, true, resalt));
@@ -14629,6 +14627,10 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		if (result == ISC_R_NOMORE) {
 			result = ISC_R_SUCCESS;
 		}
+	} else if (kasp) {
+		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
+				   "command instead");
+		(void)putnull(text);
 	}
 
 cleanup:
