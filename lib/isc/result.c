@@ -268,6 +268,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	[ISCCC_R_EXPIRED] = "expired",
 	[ISCCC_R_CLOCKSKEW] = "clock skew",
 	[ISCCC_R_DUPLICATE] = "duplicate",
+	[ISCCC_R_MAXDEPTH] = "max depth",
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -517,6 +518,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	[ISCCC_R_EXPIRED] = "ISCCC_R_EXPIRED",
 	[ISCCC_R_CLOCKSKEW] = "ISCCC_R_CLOCKSKEW",
 	[ISCCC_R_DUPLICATE] = "ISCCC_R_DUPLICATE",
+	[ISCCC_R_MAXDEPTH] = "ISCCC_R_MAXDEPTH",
 };
 
 STATIC_ASSERT((DNS_R_SERVFAIL - DNS_R_NOERROR == 2),
