@@ -14,6 +14,19 @@
 			process of the catalog zone was already running.
 			[GL #4136]
 
+	--- 9.18.16 released ---
+
+6192.	[security]	A query that prioritizes stale data over lookup
+			triggers a fetch to refresh the stale data in cache.
+			If the fetch is aborted for exceeding the recursion
+			quota, it was possible for 'named' to enter an infinite
+			callback loop and crash due to stack overflow. This has
+			been fixed. (CVE-2023-2911) [GL #4089]
+
+6190.	[security]	Improve the overmem cleaning process to prevent the
+			cache going over the configured limit. (CVE-2023-2828)
+			[GL #4055]
+
 6188.	[performance]	Reduce memory consumption by allocating properly
 			sized send buffers for stream-based transports.
 			[GL #4038]

@@ -23,4 +23,5 @@ def test_async_hook(named_port):
         "A",
     )
     ans = dns.query.udp(msg, "10.53.0.1", timeout=10, port=named_port)
+    # the test-async plugin changes the status of any positive answer to NOTIMP
     assert ans.rcode() == dns.rcode.NOTIMP
