@@ -118,6 +118,80 @@ ISC_LOOP_TEST_IMPL(proxystream_recv_send_quota_sendback) {
 	stream_recv_send(arg);
 }
 
+/* PROXY over TLS (as used by, e.g., dnsdist) */
+
+/* TCP */
+ISC_LOOP_TEST_IMPL(proxystreamtls_noop) {
+	stream_noop(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_noresponse) {
+	stream_noresponse(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_shutdownconnect) {
+	stream_shutdownconnect(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_shutdownread) {
+	stream_shutdownread(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_timeout_recovery) {
+	stream_timeout_recovery(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_one) {
+	stream_recv_one(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_two) {
+	stream_recv_two(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_send) {
+	stream_recv_send(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_send_sendback) {
+	allow_send_back = true;
+	stream_recv_send(arg);
+	return;
+}
+
+/* TCP Quota */
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_one_quota) {
+	atomic_store(&check_listener_quota, true);
+	stream_recv_one(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_two_quota) {
+	atomic_store(&check_listener_quota, true);
+	stream_recv_two(arg);
+	return;
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_send_quota) {
+	atomic_store(&check_listener_quota, true);
+	stream_recv_send(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_send_quota_sendback) {
+	atomic_store(&check_listener_quota, true);
+	allow_send_back = true;
+	stream_recv_send(arg);
+}
+
 ISC_TEST_LIST_START
 
 /* Stream */
@@ -153,6 +227,47 @@ ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_quota, proxystream_recv_send_setup,
 ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send_quota_sendback,
 		      proxystream_recv_send_setup,
 		      proxystream_recv_send_teardown)
+
+/* PROXY over TLS */
+
+/* Stream */
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_noop, proxystreamtls_noop_setup,
+		      proxystreamtls_noop_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_noresponse,
+		      proxystreamtls_noresponse_setup,
+		      proxystreamtls_noresponse_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_shutdownconnect,
+		      proxystreamtls_shutdownconnect_setup,
+		      proxystreamtls_shutdownconnect_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_shutdownread,
+		      proxystreamtls_shutdownread_setup,
+		      proxystreamtls_shutdownread_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_timeout_recovery,
+		      proxystreamtls_timeout_recovery_setup,
+		      proxystreamtls_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_one, proxystreamtls_recv_one_setup,
+		      proxystreamtls_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_two, proxystreamtls_recv_two_setup,
+		      proxystreamtls_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_send, proxystreamtls_recv_send_setup,
+		      proxystreamtls_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_send_sendback,
+		      proxystreamtls_recv_send_setup,
+		      proxystreamtls_recv_send_teardown)
+
+/* Stream Quota */
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_one_quota,
+		      proxystreamtls_recv_one_setup,
+		      proxystreamtls_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_two_quota,
+		      proxystreamtls_recv_two_setup,
+		      proxystreamtls_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_send_quota,
+		      proxystreamtls_recv_send_setup,
+		      proxystreamtls_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_send_quota_sendback,
+		      proxystreamtls_recv_send_setup,
+		      proxystreamtls_recv_send_teardown)
 
 ISC_TEST_LIST_END
 
