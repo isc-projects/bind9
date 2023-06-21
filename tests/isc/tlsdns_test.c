@@ -156,6 +156,26 @@ ISC_LOOP_TEST_IMPL(proxy_tlsdns_recv_two) { loop_test_tlsdns_recv_two(arg); }
 
 ISC_LOOP_TEST_IMPL(proxy_tlsdns_recv_send) { loop_test_tlsdns_recv_send(arg); }
 
+/* PROXY over TLS tests */
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_noop) { loop_test_tlsdns_noop(arg); }
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_noresponse) {
+	loop_test_tlsdns_noresponse(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_timeout_recovery) {
+	loop_test_tlsdns_timeout_recovery(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_recv_one) { loop_test_tlsdns_recv_one(arg); }
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_recv_two) { loop_test_tlsdns_recv_two(arg); }
+
+ISC_LOOP_TEST_IMPL(proxytls_tlsdns_recv_send) {
+	loop_test_tlsdns_recv_send(arg);
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(tlsdns_noop, stream_noop_setup, stream_noop_teardown)
@@ -187,6 +207,23 @@ ISC_TEST_ENTRY_CUSTOM(proxy_tlsdns_recv_two, proxystream_recv_two_setup,
 		      proxystream_recv_two_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxy_tlsdns_recv_send, proxystream_recv_send_setup,
 		      proxystream_recv_send_teardown)
+
+/* PROXY over TLS */
+
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_noop, proxystreamtls_noop_setup,
+		      proxystreamtls_noop_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_noresponse,
+		      proxystreamtls_noresponse_setup,
+		      proxystreamtls_noresponse_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_timeout_recovery,
+		      proxystreamtls_timeout_recovery_setup,
+		      proxystreamtls_timeout_recovery_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_recv_one, proxystreamtls_recv_one_setup,
+		      proxystreamtls_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_recv_two, proxystreamtls_recv_two_setup,
+		      proxystreamtls_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_tlsdns_recv_send, proxystreamtls_recv_send_setup,
+		      proxystreamtls_recv_send_teardown)
 
 ISC_TEST_LIST_END
 
