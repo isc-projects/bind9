@@ -2006,6 +2006,104 @@ ISC_LOOP_TEST_IMPL(proxy_doh_recv_send_GET_TLS_quota) {
 	doh_recv_send(arg);
 }
 
+/* PROXY over TLS */
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_one_POST_TLS) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_one(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_one_GET_TLS) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_one(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_one_GET_TLS_quota) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_one_POST_TLS_quota) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_one(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_two_POST_TLS) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_two(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_two_GET_TLS) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_two(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_two_POST_TLS_quota) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_two_GET_TLS_quota) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_two(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_send_POST_TLS) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_send(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_send_GET_TLS) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	doh_recv_send(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_send_POST_TLS_quota) {
+	atomic_store(&POST, true);
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxytls_doh_recv_send_GET_TLS_quota) {
+	atomic_store(&use_TLS, true);
+	atomic_store(&use_PROXY, true);
+	atomic_store(&use_PROXY_over_TLS, true);
+	atomic_store(&check_listener_quota, true);
+	doh_recv_send(arg);
+}
+
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY_CUSTOM(mock_doh_uv_tcp_bind, setup_test, teardown_test)
@@ -2113,6 +2211,31 @@ ISC_TEST_ENTRY_CUSTOM(proxy_doh_recv_send_POST_quota, setup_test,
 ISC_TEST_ENTRY_CUSTOM(proxy_doh_recv_send_GET_TLS_quota, setup_test,
 		      doh_recv_send_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxy_doh_recv_send_POST_TLS_quota, setup_test,
+		      doh_recv_send_teardown)
+/* PROXY over TLS */
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_one_POST_TLS, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_one_GET_TLS, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_one_POST_TLS_quota, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_one_GET_TLS_quota, setup_test,
+		      doh_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_two_POST_TLS, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_two_GET_TLS, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_two_POST_TLS_quota, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_two_GET_TLS_quota, setup_test,
+		      doh_recv_two_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_send_GET_TLS, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_send_POST_TLS, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_send_GET_TLS_quota, setup_test,
+		      doh_recv_send_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxytls_doh_recv_send_POST_TLS_quota, setup_test,
 		      doh_recv_send_teardown)
 ISC_TEST_LIST_END
 
