@@ -132,7 +132,7 @@ do
 		echo_i "failed (empty zone $zone missing)"
 		ret=1
 	}
-	count=`expr $count + 1`
+	count=$((count + 1))
 done
 lines=`grep "automatic empty zone: " ns1/named.run | wc -l`
 test $count -eq $lines -a $count -eq 99 || {

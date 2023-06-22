@@ -255,7 +255,7 @@ EOF
 ) > /dev/null 2>&1 &
 	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3 || ret=1
 	grep "status: NOERROR" dig.out.ns3 > /dev/null || ret=1
-	count=`expr $count + 1`
+	count=$((count + 1))
 done
 if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 n=$((n + 1))

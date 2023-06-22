@@ -273,7 +273,7 @@ do
 	else
 		grep '^\\' dig.out.ns1.$x.test$n && { echo_i "code point $x failed" ; ret=1; }
 	fi
-	i=`expr $i + 1`
+	i=$((i + 1))
 done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

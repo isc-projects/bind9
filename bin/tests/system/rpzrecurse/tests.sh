@@ -33,7 +33,7 @@ while getopts "xS:" c; do
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
-shift `expr $OPTIND - 1 || true`
+shift $((OPTIND - 1))
 if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
@@ -223,7 +223,7 @@ for mode in native dnsrps; do
       run_query 4$n $i
       c=`expr $c + $?`
     done
-    skipped=`expr 33 - $c`
+    skipped=$((33 - c))
     if [ $skipped != $ni ]; then
       echo_i "test $t failed (actual=$skipped, expected=$ni)"
       status=1
@@ -337,7 +337,7 @@ for mode in native dnsrps; do
 	  echo_i "test $t failed: didn't get expected answer from policy zone $i"
 	  status=1
       }
-      i=`expr $i + 1`
+      i=$((i + 1))
   done
 
   # Check CLIENT-IP behavior
@@ -489,7 +489,7 @@ for mode in native dnsrps; do
   t1=`$PERL -e 'print time()."\n";'`
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
   t2=`$PERL -e 'print time()."\n";'`
-  p1=`expr $t2 - $t1`
+  p1=$((t2 - t1))
   echo_i "elapsed time $p1 seconds"
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
@@ -502,7 +502,7 @@ for mode in native dnsrps; do
   t3=`$PERL -e 'print time()."\n";'`
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
   t4=`$PERL -e 'print time()."\n";'`
-  p2=`expr $t4 - $t3`
+  p2=$((t4 - t3))
   echo_i "elapsed time $p2 seconds"
 
   if test $p1 -le $p2; then ret=1; fi
@@ -524,7 +524,7 @@ for mode in native dnsrps; do
   t1=`$PERL -e 'print time()."\n";'`
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.yes.$t
   t2=`$PERL -e 'print time()."\n";'`
-  p1=`expr $t2 - $t1`
+  p1=$((t2 - t1))
   echo_i "elapsed time $p1 seconds"
 
   $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
@@ -537,7 +537,7 @@ for mode in native dnsrps; do
   t3=`$PERL -e 'print time()."\n";'`
   $DIG -p ${PORT} @10.53.0.3 foo.child.example.tld a > dig.out.no.$t
   t4=`$PERL -e 'print time()."\n";'`
-  p2=`expr $t4 - $t3`
+  p2=$((t4 - t3))
   echo_i "elapsed time $p2 seconds"
 
   if test $p1 -le $p2; then ret=1; fi
