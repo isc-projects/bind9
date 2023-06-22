@@ -199,7 +199,7 @@ then
     if [ $ret != 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
 else
-    echo_t "skipped."
+    echo_i "skipped."
 fi
 
 n=$((n+1))
