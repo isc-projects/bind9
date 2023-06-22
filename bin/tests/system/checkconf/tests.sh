@@ -146,15 +146,15 @@ n=$((n + 1))
 echo_i "checking named-checkconf dnssec warnings ($n)"
 ret=0
 # dnssec.1: auto-dnssec warning
-$CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1
+$CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1 && ret=1
 grep 'auto-dnssec may only be ' < checkconf.out$n.1 > /dev/null || ret=1
 # dnssec.2: should have no warnings (other than deprecation warning)
-$CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1
+$CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1 || ret=1
 grep "option 'auto-dnssec' is deprecated" < checkconf.out$n.2 > /dev/null || ret=1
 lines=$(wc -l < "checkconf.out$n.2")
 if [ $lines != 1 ]; then ret=1; fi
 # dnssec.3: should have specific deprecation warning
-$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
+$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1 && ret=1
 grep "'auto-dnssec' option is deprecated and will be removed in BIND 9\.19" < checkconf.out$n.3 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -238,13 +238,13 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking options allowed in inline-signing secondaries ($n)"
 ret=0
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1
+$CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1 && ret=1
 l=`grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l`
 [ $l -eq 1 ] || ret=1
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.2 2>&1
+$CHECKCONF bad-dnssec.conf > checkconf.out$n.2 2>&1 && ret=1
 l=`grep "dnssec-loadkeys-interval.*requires inline" < checkconf.out$n.2 | wc -l`
 [ $l -eq 1 ] || ret=1
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.3 2>&1
+$CHECKCONF bad-dnssec.conf > checkconf.out$n.3 2>&1 && ret=1
 l=`grep "update-check-ksk.*requires inline" < checkconf.out$n.3 | wc -l`
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -252,13 +252,13 @@ status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check file + inline-signing for secondary zones ($n)"
-$CHECKCONF inline-no.conf > checkconf.out$n.1 2>&1
+$CHECKCONF inline-no.conf > checkconf.out$n.1 2>&1 && ret=1
 l=`grep "missing 'file' entry" < checkconf.out$n.1 | wc -l`
 [ $l -eq 0 ] || ret=1
-$CHECKCONF inline-good.conf > checkconf.out$n.2 2>&1
+$CHECKCONF inline-good.conf > checkconf.out$n.2 2>&1 || ret=1
 l=`grep "missing 'file' entry" < checkconf.out$n.2 | wc -l`
 [ $l -eq 0 ] || ret=1
-$CHECKCONF inline-bad.conf > checkconf.out$n.3 2>&1
+$CHECKCONF inline-bad.conf > checkconf.out$n.3 2>&1 && ret=1
 l=`grep "missing 'file' entry" < checkconf.out$n.3 | wc -l`
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -267,7 +267,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking named-checkconf DLZ warnings ($n)"
 ret=0
-$CHECKCONF dlz-bad.conf > checkconf.out$n 2>&1
+$CHECKCONF dlz-bad.conf > checkconf.out$n 2>&1 && ret=1
 grep "'dlz' and 'database'" < checkconf.out$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -294,7 +294,7 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 n=$((n + 1))
 echo_i "checking that named-checkconf -z catches conflicting ttl with max-ttl ($n)"
 ret=0
-$CHECKCONF -z max-ttl.conf > check.out 2>&1
+$CHECKCONF -z max-ttl.conf > check.out 2>&1 && ret=1
 grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
 grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
 grep 'TTL 900 exceeds configured max-zone-ttl 600' check.out > /dev/null 2>&1 || ret=1
