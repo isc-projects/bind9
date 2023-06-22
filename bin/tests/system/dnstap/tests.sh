@@ -554,7 +554,7 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	$DIG $DIGOPTS @10.53.0.4 a.example > dig.out
 
 	# send an UPDATE to ns4
-	$NSUPDATE <<- EOF > nsupdate.out 2>&1
+	$NSUPDATE <<- EOF > nsupdate.out 2>&1 && ret=1
 	server 10.53.0.4 ${PORT}
 	zone example
 	update add b.example 3600 in a 10.10.10.10
@@ -806,7 +806,7 @@ _test_dnstap_roll() (
 
     $RNDCCMD -s "${ip}" dnstap -roll "${n}" | sed "s/^/${ns} /" | cat_i &&
     files=$(find "$ns" -name "dnstap.out.[0-9]" | wc -l) &&
-    test "$files" -eq "${n}" && test "$files" -ge "1"
+    test "$files" -eq "${n}" && test "$files" -ge "1" || return 1
 )
 
 
