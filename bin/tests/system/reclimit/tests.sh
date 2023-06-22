@@ -42,7 +42,7 @@ ns3_sends_aaaa_queries() {
 check_query_count() {
 	count1=`sed 's/[^0-9]//g;' $1`
 	count2=`sed 's/[^0-9]//g;' $2`
-	count=`expr $count1 + $count2`
+	count=$((count1 + count2))
 	#echo_i "count1=$count1 count2=$count2 count=$count"
 	expected_count_with_aaaa=$3
 	expected_count_without_aaaa=$4

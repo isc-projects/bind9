@@ -31,8 +31,8 @@ while [ $count != 300 ]; do
                 kill -HUP `cat ns1/named.pid`
 	fi
 	sleep 1
-	ticks=`expr $ticks + 1`
-	seconds=`expr $ticks \* 1`
+	ticks=$((ticks + 1))
+	seconds=$((ticks * 1))
 	if [ $ticks = 360 ]; then
 		echo_i "Took too long to load zones"
 		exit 1

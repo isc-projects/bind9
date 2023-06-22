@@ -34,7 +34,7 @@ while getopts "x" c; do
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
-shift `expr $OPTIND - 1 || true`
+shift $((OPTIND - 1))
 if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
@@ -98,7 +98,7 @@ burst () {
 		-e 's/;; .* status: SERVFAIL.*/SERVFAIL/p'		\
 		-e 's/response failed with timed out.*/drop/p'		\
 		-e 's/;; communications error to.*/drop/p' >> $FILENAME &
-    QNUM=`expr $QNUM + $BURST_LIMIT`
+    QNUM=$((QNUM + BURST_LIMIT))
 }
 
 # compare integers $1 and $2; ensure the difference is no more than $3
@@ -158,7 +158,7 @@ ckstats () {
     C=`cat ns2/named.stats |
         sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p" |
         tail -1`
-    C=`expr 0$C + 0`
+    C=$((C))
 
     range "$C" $EXPECTED 1 ||
     setret "wrong $LABEL $TYPE statistics of $C instead of $EXPECTED"

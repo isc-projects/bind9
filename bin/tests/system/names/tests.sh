@@ -39,7 +39,7 @@ status=$((status + ret))
 
 echo_i "Checking if message with compression disabled is significantly larger"
 echo_i "Disabled $COMPDIS vs enabled $COMPEN"
-val=`expr \( $COMPDIS \* 3 / 2 \) / $COMPEN`
+val=$(( (COMPDIS * 3 / 2) / COMPEN))
 if [ $val -le 1 ]; then
 	echo_i "failed"
 	status=$((status + 1))

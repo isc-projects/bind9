@@ -2404,7 +2404,7 @@ burst() {
 	num=${1}
 	rm -f burst.input.$$
 	while [ $num -gt 0 ]; do
-		num=`expr $num - 1`
+		num=$((num - 1))
 		echo "fetch${num}.example A" >> burst.input.$$
 	done
 	$PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$

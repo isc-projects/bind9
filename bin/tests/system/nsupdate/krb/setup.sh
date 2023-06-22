@@ -22,8 +22,8 @@ KRB5_KDC_PROFILE=${PWD}/krb5kdc
 export KRB5_KDC_PROFILE
 
 now=`date +%s`
-lifetime=`expr 2147483647 - $now`
-lifetime=`expr $lifetime / 3600 / 24 - 30`
+lifetime=$((2147483647 - now))
+lifetime=$((lifetime / 3600 / 24 - 30))
 
 cat << EOF > "${KRB5_CONFIG}"
 [libdefaults]

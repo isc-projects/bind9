@@ -50,7 +50,7 @@ while getopts "xS:" c; do
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
-shift `expr $OPTIND - 1 || true`
+shift $((OPTIND - 1))
 if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
@@ -265,7 +265,7 @@ ckstats () {
     NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
 		    $NSDIR/named.stats | tail -1`
     eval "OLD_CNT=0\$${NSDIR}_CNT"
-    GOT=`expr $NEW_CNT - $OLD_CNT`
+    GOT=$((NEW_CNT - OLD_CNT))
     if test "$GOT" -ne "$EXPECTED"; then
 	setret "wrong $LABEL $NSDIR statistics of $GOT instead of $EXPECTED"
     fi
@@ -282,7 +282,7 @@ ckstatsrange () {
     NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
 		    $NSDIR/named.stats | tail -1`
     eval "OLD_CNT=0\$${NSDIR}_CNT"
-    GOT=`expr $NEW_CNT - $OLD_CNT`
+    GOT=$((NEW_CNT - OLD_CNT))
     if test "$GOT" -lt "$MIN" -o "$GOT" -gt "$MAX"; then
 	setret "wrong $LABEL $NSDIR statistics of $GOT instead of ${MIN}..${MAX}"
     fi
@@ -785,7 +785,7 @@ EOF
     perf 'without RPZ' norpz 'NOERROR:3000 '
     NORPZ=`trim norpz`
 
-    PERCENT=`expr \( "$RPZ" \* 100 + \( $NORPZ / 2 \) \) / $NORPZ`
+    PERCENT=$(( (RPZ * 100 + (NORPZ / 2)) / NORPZ))
     echo_i "$RPZ qps with RPZ is $PERCENT% of $NORPZ qps without RPZ"
 
     MIN_PERCENT=30
