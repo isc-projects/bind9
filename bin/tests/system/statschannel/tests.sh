@@ -396,7 +396,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # keep-alive not needed in HTTP/1.1, second response has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -428,7 +428,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # keep-alive not needed in HTTP/1.1, second response has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -453,7 +453,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # first response has keep-alive, second has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 1 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -479,7 +479,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 1 || ret=1
     # no keep-alive, one close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
