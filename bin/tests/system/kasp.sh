@@ -242,6 +242,8 @@ set_keyrole() {
 	test "$2" = "csk" && key_set "$1" "KSK" "yes"
 	test "$2" = "csk" && key_set "$1" "ZSK" "yes"
 	test "$2" = "csk" && key_set "$1" "FLAGS" "257"
+
+	return 0
 }
 set_keylifetime() {
 	key_set "$1" "EXPECT" "yes"
@@ -379,7 +381,7 @@ check_key() {
 		[ -s "$STATE_FILE" ] || ret=1
 	fi
 	[ "$ret" -eq 0 ] || _log_error "${BASE_FILE} files missing"
-	[ "$ret" -eq 0 ] || return
+	[ "$ret" -eq 0 ] || return 0
 
 	# Retrieve creation date.
 	grep "; Created:" "$KEY_FILE" > "${ZONE}.${KEY_ID}.${_alg_num}.created" || _log_error "mismatch created comment in $KEY_FILE"
@@ -454,6 +456,8 @@ check_key() {
 			grep "DSChange: " "$STATE_FILE" > /dev/null || _log_error "mismatch ds change in $STATE_FILE"
 		fi
 	fi
+
+	return 0
 }
 
 # Check the key timing metadata for key $1.
@@ -656,7 +660,7 @@ key_unused() {
 	[ -s "$KEY_FILE" ] || ret=1
 	[ -s "$PRIVATE_FILE" ] || ret=1
 	[ -s "$STATE_FILE" ] || ret=1
-	[ "$ret" -eq 0 ] || return
+	[ "$ret" -eq 0 ] || return 0
 
 	# Treat keys that have been removed from the zone as unused.
 	_check_removed=1
@@ -686,6 +690,8 @@ key_unused() {
 	grep "Retired: " "$STATE_FILE" > /dev/null && _log_error "unexpected retired in $STATE_FILE"
 	grep "Revoked: " "$STATE_FILE" > /dev/null && _log_error "unexpected revoked in $STATE_FILE"
 	grep "Removed: " "$STATE_FILE" > /dev/null && _log_error "unexpected removed in $STATE_FILE"
+
+	return 0
 }
 
 # Test: dnssec-verify zone $1.
