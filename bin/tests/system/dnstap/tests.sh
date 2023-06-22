@@ -563,7 +563,12 @@ EOF
 
 	echo_i "checking unix socket message counts"
 	sleep 2
-	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 470
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 450 || {
+		echo_i "dnstap output file smaller than expected"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
 	kill $fstrm_capture_pid
 	wait
 	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
@@ -676,7 +681,12 @@ EOF
 
 	echo_i "checking reopened unix socket message counts"
 	sleep 2
-	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 270
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 270 || {
+		echo_i "dnstap output file smaller than expected"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
 	kill $fstrm_capture_pid
 	wait
 	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
