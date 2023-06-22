@@ -117,3 +117,54 @@
 #define rcu_dereference(ptr) isc_qsbr_rcu_dereference(ptr)
 
 #endif /* RCU_QSBR */
+
+/* clang-format off */
+/*
+ * Following definitions were copied from liburcu development branch to help
+ * with AddressSanitizer complaining about calling caa_container_of on NULL.
+ */
+
+#if !defined(caa_container_of_check_null)
+/*
+ * caa_container_of_check_null - Get the address of an object containing a field.
+ *
+ * @ptr: pointer to the field.
+ * @type: type of the object.
+ * @member: name of the field within the object.
+ *
+ * Return the address of the object containing the field. Return NULL if
+ * @ptr is NULL.
+ */
+#define caa_container_of_check_null(ptr, type, member)			\
+	__extension__							\
+	({								\
+		const __typeof__(((type *) NULL)->member) * __ptr = (ptr); \
+		(__ptr) ? (type *)((char *)__ptr - offsetof(type, member)) : NULL; \
+	})
+
+#define cds_lfht_entry(ptr, type, member)				\
+	caa_container_of_check_null(ptr, type, member)
+
+#undef cds_lfht_for_each_entry
+#define cds_lfht_for_each_entry(ht, iter, pos, member)			\
+	for (cds_lfht_first(ht, iter),					\
+			pos = cds_lfht_entry(cds_lfht_iter_get_node(iter), \
+				__typeof__(*(pos)), member);		\
+		pos != NULL;						\
+		cds_lfht_next(ht, iter),				\
+			pos = cds_lfht_entry(cds_lfht_iter_get_node(iter), \
+				__typeof__(*(pos)), member))
+
+#undef cds_lfht_for_each_entry_duplicate
+#define cds_lfht_for_each_entry_duplicate(ht, hash, match, key,		\
+				iter, pos, member)			\
+	for (cds_lfht_lookup(ht, hash, match, key, iter),		\
+			pos = cds_lfht_entry(cds_lfht_iter_get_node(iter), \
+				__typeof__(*(pos)), member);		\
+		pos != NULL;						\
+		cds_lfht_next_duplicate(ht, match, key, iter),		\
+			pos = cds_lfht_entry(cds_lfht_iter_get_node(iter), \
+				__typeof__(*(pos)), member))
+
+#endif /* !defined(caa_container_of_check_null) */
+/* clang-format on */
