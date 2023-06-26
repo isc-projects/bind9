@@ -37,7 +37,7 @@ grep "status: NXDOMAIN" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
    n=$((n+1))
    echo_i "checking non-cachable NXDOMAIN response handling using dns_client ($n)"
    ret=0
@@ -47,7 +47,7 @@ if [ -x ${RESOLVE} ] ; then
    status=$((status + ret))
 fi
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
    n=$((n+1))
    echo_i "checking that local bound address can be set (Can't query from a denied address) ($n)"
    ret=0
@@ -73,7 +73,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking non-cachable NODATA response handling using dns_client ($n)"
     ret=0
@@ -88,7 +88,7 @@ echo_i "checking handling of bogus referrals ($n)"
 # If the server has the "INSIST(!external)" bug, this query will kill it.
 dig_with_opts +tcp www.example.com. a @10.53.0.1 >/dev/null || { echo_i "failed"; status=$((status + 1)); }
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking handling of bogus referrals using dns_client ($n)"
     ret=0
@@ -135,7 +135,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking answer IPv4 address filtering using dns_client (accept) ($n)"
     ret=0
@@ -153,7 +153,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking answer IPv6 address filtering using dns_client (accept) ($n)"
     ret=0
@@ -179,7 +179,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking CNAME target filtering using dns_client (accept) ($n)"
     ret=0
@@ -198,7 +198,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking CNAME target filtering using dns_client (accept due to subdomain) ($n)"
     ret=0
@@ -226,7 +226,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking DNAME target filtering using dns_client (accept) ($n)"
     ret=0
@@ -245,7 +245,7 @@ grep "status: NOERROR" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-if [ -x ${RESOLVE} ] ; then
+if [ -x "${RESOLVE}" ] ; then
     n=$((n+1))
     echo_i "checking DNAME target filtering using dns_client (accept due to subdomain) ($n)"
     ret=0
