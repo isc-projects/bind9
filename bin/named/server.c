@@ -10136,8 +10136,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	atomic_init(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
-	CHECKFATAL(ns_server_create(mctx, get_matching_view, &server->sctx),
-		   "creating server context");
+	ns_server_create(mctx, get_matching_view, &server->sctx);
 
 #if defined(HAVE_GEOIP2)
 	/*

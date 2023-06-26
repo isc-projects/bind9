@@ -35,7 +35,7 @@
 		RUNTIME_CHECK(result == ISC_R_SUCCESS); \
 	} while (0)
 
-isc_result_t
+void
 ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 		 ns_server_t **sctxp) {
 	ns_server_t *sctx;
@@ -100,8 +100,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

@@ -2139,7 +2139,7 @@ run_server(void *arg) {
 	RUNTIME_CHECK(inet_pton(AF_INET, "127.0.0.1", &in));
 	isc_sockaddr_fromin(&addr, &in, 0);
 
-	CHECK(ns_server_create(mctx, matchview, &sctx));
+	ns_server_create(mctx, matchview, &sctx);
 
 	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&any);
