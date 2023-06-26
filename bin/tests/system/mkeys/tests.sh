@@ -111,15 +111,17 @@ grep "example..*.RRSIG..*TXT" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-n=$((n+1))
-ret=0
-echo_i "check positive validation using delv ($n)"
-delv_with_opts @10.53.0.1 txt example > delv.out$n || ret=1
-grep "; fully validated" delv.out$n > /dev/null || ret=1	# redundant
-grep "example..*TXT.*This is a test" delv.out$n > /dev/null || ret=1
-grep "example..*.RRSIG..*TXT" delv.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status+ret))
+if [ -x "$DELV" ]; then
+	n=$((n+1))
+	ret=0
+	echo_i "check positive validation using delv ($n)"
+	delv_with_opts @10.53.0.1 txt example > delv.out$n || ret=1
+	grep "; fully validated" delv.out$n > /dev/null || ret=1	# redundant
+	grep "example..*TXT.*This is a test" delv.out$n > /dev/null || ret=1
+	grep "example..*.RRSIG..*TXT" delv.out$n > /dev/null || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status+ret))
+fi
 
 n=$((n+1))
 echo_i "check for failed validation due to wrong key in managed-keys ($n)"
