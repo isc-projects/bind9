@@ -60,7 +60,7 @@ echo_i "checking that padding is added to valid cookie responses ($n)"
 ret=0
 n=$((n + 1))
 $DIG $DIGOPTS +cookie foo.example @10.53.0.2 > dig.out.testc
-cookie=`getcookie dig.out.testc`
+cookie=$(getcookie dig.out.testc)
 $DIG $DIGOPTS +cookie=$cookie +padding=128 foo.example @10.53.0.2 > dig.out.test$n
 grep "; PAD" dig.out.test$n > /dev/null || ret=1
 grep "rcvd: 128" dig.out.test$n > /dev/null || ret=1
@@ -97,11 +97,11 @@ n=$((n + 1))
 nextpart ns2/named.stats > /dev/null
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
-opad=`nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}'`
+opad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
 $DIG $DIGOPTS foo.example @10.53.0.3 > dig.out.test$n
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
-npad=`nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}'`
+npad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
 if [ "$opad" -eq "$npad" ]; then echo_i "error: opad ($opad) == npad ($npad)"; ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -112,11 +112,11 @@ n=$((n + 1))
 nextpart ns2/named.stats > /dev/null
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
-opad=`nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}'`
+opad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
 $DIG $DIGOPTS foo.example @10.53.0.4 > dig.out.test$n
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
-npad=`nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}'`
+npad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
 if [ "$opad" -ne "$npad" ]; then echo_i "error: opad ($opad) != npad ($npad)"; ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

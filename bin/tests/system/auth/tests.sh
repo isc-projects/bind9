@@ -183,7 +183,7 @@ n=$((n + 1))
 echo_i "check that CHAOS addresses are compared correctly ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 +noall +answer ch test.example.chaos > dig.out.test$n
-lines=`wc -l < dig.out.test$n`
+lines=$(wc -l < dig.out.test$n)
 [ ${lines:-0} -eq 2 ] || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=$((status + ret))

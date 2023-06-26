@@ -1313,7 +1313,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1332,7 +1332,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1351,7 +1351,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1370,7 +1370,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1389,7 +1389,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))

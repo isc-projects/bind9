@@ -19,7 +19,7 @@ status=0
 
 echo_i "test name too long"
 $PERL formerr.pl -a 10.53.0.1 -p ${PORT} nametoolong > nametoolong.out
-ans=`grep got: nametoolong.out`
+ans=$(grep got: nametoolong.out)
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
 	echo_i "failed"; status=$((status + 1));
@@ -27,7 +27,7 @@ fi
 
 echo_i "two questions"
 $PERL formerr.pl -a 10.53.0.1 -p ${PORT} twoquestions > twoquestions.out
-ans=`grep got: twoquestions.out`
+ans=$(grep got: twoquestions.out)
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
 	echo_i "failed"; status=$((status + 1));
@@ -37,7 +37,7 @@ fi
 # but is a FORMERR without one.
 echo_i "empty question section (and no COOKIE option)"
 $PERL formerr.pl -a 10.53.0.1 -p ${PORT} noquestions > noquestions.out
-ans=`grep got: noquestions.out`
+ans=$(grep got: noquestions.out)
 if [ "${ans}" != "got: 000080010000000000000000" ];
 then
 	echo_i "failed"; status=$((status + 1));

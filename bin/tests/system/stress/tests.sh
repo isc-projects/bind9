@@ -34,7 +34,7 @@ echo_i "waiting for background processes to finish"
 wait
 
 echo_i "killing reload loop"
-kill `cat reload.pid`
+kill $(cat reload.pid)
 
 # If the test has run to completion without named crashing, it has succeeded.
 # Otherwise, the crash will be detected by the test framework and the test will

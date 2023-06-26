@@ -82,7 +82,7 @@ n=$((n + 1))
 ret=0
 echo_i "dumping initial stats for ns3 ($n)"
 rndc_stats ns3 10.53.0.3 || ret=1
-nsock0nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
+nsock0nstat=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
 [ 0 -ne ${nsock0nstat} ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -118,7 +118,7 @@ n=$((n + 1))
 
 ret=0
 echo_i "verifying active sockets output in named.stats ($n)"
-nsock1nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
+nsock1nstat=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
 [ $((nsock1nstat - nsock0nstat)) -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

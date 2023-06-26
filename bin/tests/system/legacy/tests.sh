@@ -241,7 +241,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking recursive lookup to edns 512 + no tcp server does not cause query loops ($n)"
 ret=0
-sent=`grep -c -F "sending packet to 10.53.0.7" ns1/named.run`
+sent=$(grep -c -F "sending packet to 10.53.0.7" ns1/named.run)
 if [ $sent -ge 10 ]; then
 	echo_i "ns1 sent $sent queries to ns7, expected less than 10"
 	ret=1

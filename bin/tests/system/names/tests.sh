@@ -21,12 +21,12 @@ status=0
 
 echo_i "Getting message size with compression enabled"
 $DIG $DIGOPTS -b 10.53.0.1 @10.53.0.1 mx example > dig.compen.test
-COMPEN=`grep ';; MSG SIZE' dig.compen.test |sed -e "s/.*: //g"`
+COMPEN=$(grep ';; MSG SIZE' dig.compen.test |sed -e "s/.*: //g")
 cat dig.compen.test  |grep -v ';;' |sort > dig.compen.sorted.test
 
 echo_i "Getting message size with compression disabled"
 $DIG $DIGOPTS -b 10.53.0.2 @10.53.0.1 mx example > dig.compdis.test
-COMPDIS=`grep ';; MSG SIZE' dig.compdis.test |sed -e "s/.*: //g"`
+COMPDIS=$(grep ';; MSG SIZE' dig.compdis.test |sed -e "s/.*: //g")
 cat dig.compdis.test  |grep -v ';;' |sort > dig.compdis.sorted.test
 
 # the compression disabled message should be at least twice as large as with

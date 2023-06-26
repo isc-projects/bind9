@@ -137,7 +137,7 @@ n=$((n + 1))
 echo_i "checking that named-checkconf warns of notify inconsistencies ($n)"
 ret=0
 $CHECKCONF notify.conf > checkconf.out$n 2>&1
-warnings=`grep "'notify' is disabled" < checkconf.out$n | wc -l`
+warnings=$(grep "'notify' is disabled" < checkconf.out$n | wc -l)
 [ $warnings -eq 3 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -236,13 +236,13 @@ n=$((n + 1))
 echo_i "checking options allowed in inline-signing secondaries ($n)"
 ret=0
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1 && ret=1
-l=`grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l`
+l=$(grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l)
 [ $l -eq 1 ] || ret=1
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.2 2>&1 && ret=1
-l=`grep "dnssec-loadkeys-interval.*requires inline" < checkconf.out$n.2 | wc -l`
+l=$(grep "dnssec-loadkeys-interval.*requires inline" < checkconf.out$n.2 | wc -l)
 [ $l -eq 1 ] || ret=1
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.3 2>&1 && ret=1
-l=`grep "update-check-ksk.*requires inline" < checkconf.out$n.3 | wc -l`
+l=$(grep "update-check-ksk.*requires inline" < checkconf.out$n.3 | wc -l)
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -250,13 +250,13 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check file + inline-signing for secondary zones ($n)"
 $CHECKCONF inline-no.conf > checkconf.out$n.1 2>&1 && ret=1
-l=`grep "missing 'file' entry" < checkconf.out$n.1 | wc -l`
+l=$(grep "missing 'file' entry" < checkconf.out$n.1 | wc -l)
 [ $l -eq 0 ] || ret=1
 $CHECKCONF inline-good.conf > checkconf.out$n.2 2>&1 || ret=1
-l=`grep "missing 'file' entry" < checkconf.out$n.2 | wc -l`
+l=$(grep "missing 'file' entry" < checkconf.out$n.2 | wc -l)
 [ $l -eq 0 ] || ret=1
 $CHECKCONF inline-bad.conf > checkconf.out$n.3 2>&1 && ret=1
-l=`grep "missing 'file' entry" < checkconf.out$n.3 | wc -l`
+l=$(grep "missing 'file' entry" < checkconf.out$n.3 | wc -l)
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -274,16 +274,16 @@ echo_i "checking for missing key directory warning ($n)"
 ret=0
 rm -rf test.keydir
 $CHECKCONF warn-keydir.conf > checkconf.out$n.1 2>&1
-l=`grep "'test.keydir' does not exist" < checkconf.out$n.1 | wc -l`
+l=$(grep "'test.keydir' does not exist" < checkconf.out$n.1 | wc -l)
 [ $l -eq 1 ] || ret=1
 touch test.keydir
 $CHECKCONF warn-keydir.conf > checkconf.out$n.2 2>&1
-l=`grep "'test.keydir' is not a directory" < checkconf.out$n.2 | wc -l`
+l=$(grep "'test.keydir' is not a directory" < checkconf.out$n.2 | wc -l)
 [ $l -eq 1 ] || ret=1
 rm -f test.keydir
 mkdir test.keydir
 $CHECKCONF warn-keydir.conf > checkconf.out$n.3 2>&1
-l=`grep "key-directory" < checkconf.out$n.3 | wc -l`
+l=$(grep "key-directory" < checkconf.out$n.3 | wc -l)
 [ $l -eq 0 ] || ret=1
 rm -rf test.keydir
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

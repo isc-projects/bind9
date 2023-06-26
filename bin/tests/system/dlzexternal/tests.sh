@@ -47,8 +47,8 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS -t $type -q $host | grep -E "^$host"`
-    lines=`echo "$out" | grep "$digout" | wc -l`
+    out=$($DIG $DIGOPTS -t $type -q $host | grep -E "^$host")
+    lines=$(echo "$out" | grep "$digout" | wc -l)
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
             echo_i "dig output incorrect for $host $type $cmd: $out"
@@ -83,14 +83,14 @@ update add testdc3.example.nil 86500 in a 10.53.0.12
 send
 EOF
 $NSUPDATE -k ns1/ddns.key ns1/update.txt > /dev/null 2>&1 && ret=1
-out=`$DIG $DIGOPTS +short a testdc3.example.nil`
+out=$($DIG $DIGOPTS +short a testdc3.example.nil)
 [ "$out" = "10.53.0.12" ] && ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing passing client info into DLZ driver"
-out=`$DIG $DIGOPTS +short -t txt -q source-addr.example.nil | grep -v '^;'`
-addr=`eval echo "$out" | cut -f1 -d'#'`
+out=$($DIG $DIGOPTS +short -t txt -q source-addr.example.nil | grep -v '^;')
+addr=$(eval echo "$out" | cut -f1 -d'#')
 [ "$addr" = "10.53.0.1" ] || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
@@ -112,10 +112,10 @@ status=$((status + ret))
 
 newtest "testing AXFR from DLZ drivers"
 $DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.example.ns1.test$n
-lines=`cat dig.out.example.ns1.test$n | wc -l`
+lines=$(cat dig.out.example.ns1.test$n | wc -l)
 [ ${lines:-0} -eq 4 ] || ret=1
 $DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n
-lines=`cat dig.out.alternate.ns1.test$n | wc -l`
+lines=$(cat dig.out.alternate.ns1.test$n | wc -l)
 [ ${lines:-0} -eq 5 ] || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
@@ -159,9 +159,9 @@ status=$((status + ret))
 newtest "testing correct behavior with findzone returning ISC_R_NOMORE"
 $DIG $DIGOPTS +noall a test.example.com > /dev/null 2>&1 || ret=1
 # we should only find one logged lookup per searched DLZ database
-lines=`grep "dlz_findzonedb.*test\.example\.com.*example.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*test\.example\.com.*example.nil" ns1/named.run | wc -l)
 [ $lines -eq 1 ] || ret=1
-lines=`grep "dlz_findzonedb.*test\.example\.com.*alternate.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*test\.example\.com.*alternate.nil" ns1/named.run | wc -l)
 [ $lines -eq 1 ] || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
@@ -169,15 +169,15 @@ status=$((status + ret))
 newtest "testing findzone can return different results per client"
 $DIG $DIGOPTS -b 10.53.0.1 +noall a test.example.net > /dev/null 2>&1 || ret=1
 # we should only find one logged lookup per searched DLZ database
-lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l)
 [ $lines -eq 1 ] || ret=1
-lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l)
 [ $lines -eq 1 ] || ret=1
 $DIG $DIGOPTS -b 10.53.0.2 +noall a test.example.net > /dev/null 2>&1 || ret=1
 # we should find several logged lookups this time
-lines=`grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*example\.net.*example.nil" ns1/named.run | wc -l)
 [ $lines -gt 2 ] || ret=1
-lines=`grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l`
+lines=$(grep "dlz_findzonedb.*example\.net.*alternate.nil" ns1/named.run | wc -l)
 [ $lines -gt 2 ] || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
@@ -214,7 +214,7 @@ $DIG $DIGOPTS @10.53.0.1 long.name.is.not.there a > dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 grep "^long.name.*A.*100.100.100.3" dig.out.ns1.test$n > /dev/null || ret=1
 grep "flags:[^;]* aa[ ;]" dig.out.ns1.test$n > /dev/null || ret=1
-lookups=`grep "lookup #.*\.not\.there" ns1/named.run | wc -l`
+lookups=$(grep "lookup #.*\.not\.there" ns1/named.run | wc -l)
 [ "$lookups" -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

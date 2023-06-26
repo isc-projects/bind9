@@ -134,7 +134,7 @@ do
 	}
 	count=$((count + 1))
 done
-lines=`grep "automatic empty zone: " ns1/named.run | wc -l`
+lines=$(grep "automatic empty zone: " ns1/named.run | wc -l)
 test $count -eq $lines -a $count -eq 99 || {
 	ret=1; echo_i "failed (count mismatch)";
 }
@@ -162,7 +162,7 @@ sleep 1
 grep "zone serial (0) unchanged." ns1/named.run > /dev/null && ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=$((status + ret)); fi
 
-HOST_NAME=`$FEATURETEST --gethostname`
+HOST_NAME=$($FEATURETEST --gethostname)
 BIND_VERSION_STRING=$($NAMED -V | head -1)
 BIND_VERSION=$($NAMED -V | sed -ne 's/^BIND \([^ ]*\).*/\1/p')
 

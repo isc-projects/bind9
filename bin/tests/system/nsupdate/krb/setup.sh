@@ -13,7 +13,7 @@
 
 set -x
 
-PWD=`pwd`
+PWD=$(pwd)
 
 KRB5_CONFIG="${PWD}/krb5.conf"
 export KRB5_CONFIG
@@ -21,7 +21,7 @@ export KRB5_CONFIG
 KRB5_KDC_PROFILE=${PWD}/krb5kdc
 export KRB5_KDC_PROFILE
 
-now=`date +%s`
+now=$(date +%s)
 lifetime=$((2147483647 - now))
 lifetime=$((lifetime / 3600 / 24 - 30))
 

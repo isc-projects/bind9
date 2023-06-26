@@ -536,7 +536,7 @@ $RNDCCMD 10.53.0.7 null --- start test$n --- 2>&1 | sed 's/^/ns7 /' | cat_i
 $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 sleep 1
 $DIG $DIGOPTS +noall +answer @10.53.0.7 cname1.domain.nil > dig.out.2.$n 2>&1
-ttl=`awk '{print $2}' dig.out.2.$n`
+ttl=$(awk '{print $2}' dig.out.2.$n)
 [ "$ttl" -eq 86400 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

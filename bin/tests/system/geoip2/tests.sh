@@ -50,7 +50,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -66,7 +66,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
   done
@@ -89,7 +89,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -105,7 +105,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done
@@ -128,7 +128,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -144,7 +144,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
   done
@@ -168,7 +168,7 @@ lret=0
 # deliberately skipping 4 and 6 as they have duplicate continents
 for i in 1 2 3 5 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -185,7 +185,7 @@ then
   # deliberately skipping 4 and 6 as they have duplicate continents
   for i in 1 2 3 5 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
   done
@@ -209,7 +209,7 @@ lret=0
 # skipping 2 on purpose here; it has the same region code as 1
 for i in 1 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -226,7 +226,7 @@ then
 # skipping 2 on purpose here; it has the same region code as 1
   for i in 1 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
   done
@@ -250,7 +250,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -266,7 +266,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
   done
@@ -289,7 +289,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -305,7 +305,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done
@@ -328,7 +328,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -344,7 +344,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done
@@ -367,7 +367,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -383,7 +383,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done
@@ -406,7 +406,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -422,7 +422,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done
@@ -445,7 +445,7 @@ ret=0
 lret=0
 for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS txt example -b 10.53.0.$i > dig.out.ns2.test$n.$i || lret=1
-    j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+    j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
     [ "$i" = "$j" ] || lret=1
     [ $lret -eq 1 ] && break
 done
@@ -461,7 +461,7 @@ then
   lret=0
   for i in 1 2 3 4 5 6 7; do
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::$i > dig.out.ns2.test$n.$i || lret=1
-      j=`cat dig.out.ns2.test$n.$i | tr -d '"'`
+      j=$(cat dig.out.ns2.test$n.$i | tr -d '"')
       [ "$i" = "$j" ] || lret=1
       [ $lret -eq 1 ] && break
   done

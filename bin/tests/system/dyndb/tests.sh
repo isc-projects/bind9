@@ -46,9 +46,9 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS +noall +answer -t $type -q $host`
+    out=$($DIG $DIGOPTS +noall +answer -t $type -q $host)
     echo $out > added.a.out.$n
-    lines=`echo "$out" | grep "$ip" | wc -l`
+    lines=$(echo "$out" | grep "$ip" | wc -l)
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
 	    echo_i "dig output incorrect for $host $type $cmd: $out"
@@ -57,9 +57,9 @@ EOF
 
     for i in 1 2 3 4 5 6 7 8 9 10
     do
-	out=`$DIG $DIGOPTS +noall +answer -x $ip`
+	out=$($DIG $DIGOPTS +noall +answer -x $ip)
 	echo $out > added.ptr.out.$n
-	lines=`echo "$out" | grep "$host" | wc -l`
+	lines=$(echo "$out" | grep "$host" | wc -l)
 	[ $lines -eq 1 ] && break;
 	$PERL -e 'select(undef, undef, undef, 0.1);'
     done
@@ -76,7 +76,7 @@ test_del() {
     host="$1"
     type="$2"
 
-    ip=`$DIG $DIGOPTS +short $host $type`
+    ip=$($DIG $DIGOPTS +short $host $type)
 
     cat <<EOF > ns1/update.txt
 server 10.53.0.1 ${PORT}
@@ -91,9 +91,9 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS +noall +answer -t $type -q $host`
+    out=$($DIG $DIGOPTS +noall +answer -t $type -q $host)
     echo $out > deleted.a.out.$n
-    lines=`echo "$out" | grep "$ip" | wc -l`
+    lines=$(echo "$out" | grep "$ip" | wc -l)
     [ $lines -eq 0 ] || {
 	[ "$should_fail" ] || \
 	    echo_i "dig output incorrect for $host $type $cmd: $out"
@@ -102,9 +102,9 @@ EOF
 
     for i in 1 2 3 4 5 6 7 8 9 10
     do
-	out=`$DIG $DIGOPTS +noall +answer -x $ip`
+	out=$($DIG $DIGOPTS +noall +answer -x $ip)
 	echo $out > deleted.ptr.out.$n
-	lines=`echo "$out" | grep "$host" | wc -l`
+	lines=$(echo "$out" | grep "$host" | wc -l)
 	[ $lines -eq 0 ] && break
 	$PERL -e 'select(undef, undef, undef, 0.1);'
     done

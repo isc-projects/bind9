@@ -115,7 +115,7 @@ n=$((n + 1))
 echo_i "checking response size with COOKIE ($n)"
 ret=0
 $DIG $DIGOPTS +cookie large.example txt @10.53.0.1 > dig.out.test$n.l
-cookie=`getcookie dig.out.test$n.l`
+cookie=$(getcookie dig.out.test$n.l)
 $DIG $DIGOPTS +qr +cookie=$cookie large.example txt @10.53.0.1 +ignore > dig.out.test$n
 havetc dig.out.test$n && ret=1
 grep "; COOKIE:.*(good)" dig.out.test$n > /dev/null || ret=1
@@ -135,9 +135,9 @@ n=$((n + 1))
 echo_i "checking COOKIE is learnt for TCP retry ($n)"
 ret=0
 $DIG $DIGOPTS +qr +cookie large.example txt @10.53.0.1 > dig.out.test$n
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $linecount != 3 ]; then ret=1; fi
-checkfull=`getcookie dig.out.test$n | fullcookie`
+checkfull=$(getcookie dig.out.test$n | fullcookie)
 if [ $checkfull != 1 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -155,7 +155,7 @@ echo_i "checking require-server-cookie default (no) ($n)"
 ret=0
 $DIG $DIGOPTS +qr +cookie +nobadcookie soa @10.53.0.1 > dig.out.test$n
 grep "status: BADCOOKIE" dig.out.test$n > /dev/null && ret=1
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $linecount != 2 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -167,7 +167,7 @@ $DIG $DIGOPTS +qr +cookie +nobadcookie soa @10.53.0.3 > dig.out.test$n
 grep "flags: qr[^;]* aa[ ;]" dig.out.test$n > /dev/null && ret=1
 grep "flags: qr[^;]* ad[ ;]" dig.out.test$n > /dev/null && ret=1
 grep "status: BADCOOKIE" dig.out.test$n > /dev/null || ret=1
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $linecount != 2 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -180,7 +180,7 @@ noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
 badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
 server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
 good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $noerror != 3 ]; then ret=1; fi
 if [ $badcookie != 1 ]; then ret=1; fi
 if [ $server != 3 ]; then ret=1; fi
@@ -197,7 +197,7 @@ noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
 badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
 server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
 good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $noerror != 1 ]; then ret=1; fi
 if [ $badcookie != 1 ]; then ret=1; fi
 if [ $server != 2 ]; then ret=1; fi
@@ -212,7 +212,7 @@ ret=0
 $DIG $DIGOPTS +qr +cookie +nobadcookie soa example @10.53.0.8 > dig.out.test$n
 grep "flags: qr[^;]* ad[ ;]" dig.out.test$n > /dev/null && ret=1
 grep "status: BADCOOKIE" dig.out.test$n > /dev/null || ret=1
-linecount=`getcookie dig.out.test$n | wc -l`
+linecount=$(getcookie dig.out.test$n | wc -l)
 if [ $linecount != 2 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -285,7 +285,7 @@ echo_i "get NS4 cookie for cross server checking ($n)"
 ret=0
 $DIG $DIGOPTS +cookie -b 10.53.0.4 soa . @10.53.0.4 > dig.out.test$n
 grep "; COOKIE:.*(good)" dig.out.test$n > /dev/null || ret=1
-ns4cookie=`getcookie dig.out.test$n`
+ns4cookie=$(getcookie dig.out.test$n)
 test -n "$ns4cookie" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -295,7 +295,7 @@ echo_i "get NS5 cookie for cross server checking ($n)"
 ret=0
 $DIG $DIGOPTS +cookie -b 10.53.0.4 soa . @10.53.0.5 > dig.out.test$n
 grep "; COOKIE:.*(good)" dig.out.test$n > /dev/null || ret=1
-ns5cookie=`getcookie dig.out.test$n`
+ns5cookie=$(getcookie dig.out.test$n)
 test -n "$ns5cookie" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -305,7 +305,7 @@ echo_i "get NS6 cookie for cross server checking ($n)"
 ret=0
 $DIG $DIGOPTS +cookie -b 10.53.0.4 soa . @10.53.0.6 > dig.out.test$n
 grep "; COOKIE:.*(good)" dig.out.test$n > /dev/null || ret=1
-ns6cookie=`getcookie dig.out.test$n`
+ns6cookie=$(getcookie dig.out.test$n)
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

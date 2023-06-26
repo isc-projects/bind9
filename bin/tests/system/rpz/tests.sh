@@ -84,10 +84,10 @@ digcmd () {
     # Default to +noauth and @$ns3
     # Also default to -bX where X is the @value so that OS X will choose
     #	    the right IP source address.
-    digcmd_args=`echo "+nocookie +noadd +time=2 +tries=1 -p ${PORT} $*" |	\
+    digcmd_args=$(echo "+nocookie +noadd +time=2 +tries=1 -p ${PORT} $*" |	\
 	    sed -e "/@/!s/.*/& @$ns3/"					\
 		-e '/-b/!s/@\([^ ]*\)/@\1 -b\1/'			\
-		-e '/+n?o?auth/!s/.*/+noauth &/'`
+		-e '/+n?o?auth/!s/.*/+noauth &/')
     #echo_i "dig $digcmd_args 1>&2
     $DIG $digcmd_args || return
 }
@@ -96,12 +96,10 @@ digcmd () {
 GROUP_NM=
 TEST_NUM=0
 make_dignm () {
-    TEST_NUM=$(expr $TEST_NUM : '\([0-9]*\).*' || true)	    # trim '+' characters
     TEST_NUM=$((TEST_NUM + 1))
     DIGNM=dig.out$GROUP_NM-$TEST_NUM
     while test -f $DIGNM; do
-	TEST_NUM="$TEST_NUM+"
-	DIGNM=dig.out$GROUP_NM-$TEST_NUM
+	DIGNM="$DIGNM+"
     done
 }
 
@@ -115,7 +113,7 @@ setret () {
 # $1=domain
 # $2=DNS server and client IP address
 get_sn() {
-    SOA=`$DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2"`
+    SOA=$($DIG -p ${PORT} +short +norecurse soa "$1" "@$2" "-b$2")
     SN=$(expr "$SOA" : '[^ ]* [^ ]* \([^ ]*\) .*' || true)
     test "$SN" != "" && return
     echo_i "no serial number from \`dig -p ${PORT} soa $1 @$2\` in \"$SOA\""
@@ -123,7 +121,7 @@ get_sn() {
 }
 
 get_sn_fast () {
-    RSN=`$DNSRPSCMD -n "$1"`
+    RSN=$($DNSRPSCMD -n "$1")
     #echo "dnsrps serial for $1 is $RSN"
     if test -z "$RSN"; then
 	echo_i "dnsrps failed to get SOA serial number for $1"
@@ -134,7 +132,7 @@ get_sn_fast () {
 # check that dnsrps provider has zones loaded
 # $1=domain
 # $2=DNS server IP address
-FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrps.zones`
+FZONES=$(sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrps.zones)
 dnsrps_loaded() {
     test "$mode" = dnsrps || return 0
     n=0
@@ -214,7 +212,7 @@ restart () {
 	$RNDCCMD $ns$1 halt >/dev/null 2>&1
 	if test -f ns$1/named.pid; then
 	    sleep 1
-	    PID=`cat ns$1/named.pid 2>/dev/null`
+	    PID=$(cat ns$1/named.pid 2>/dev/null)
 	    if test -n "$PID"; then
 		echo_i "killing ns$1 server $PID"
 		kill -9 $PID
@@ -262,9 +260,11 @@ ckstats () {
     NSDIR="$3"
     EXPECTED="$4"
     $RNDCCMD $HOST stats
-    NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
-		    $NSDIR/named.stats | tail -1`
-    eval "OLD_CNT=0\$${NSDIR}_CNT"
+    NEW_CNT=$(sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
+		    $NSDIR/named.stats | tail -1)
+    eval "OLD_CNT=\$${NSDIR}_CNT"
+    NEW_CNT=$((NEW_CNT))
+    OLD_CNT=$((OLD_CNT))
     GOT=$((NEW_CNT - OLD_CNT))
     if test "$GOT" -ne "$EXPECTED"; then
 	setret "wrong $LABEL $NSDIR statistics of $GOT instead of $EXPECTED"
@@ -279,9 +279,11 @@ ckstatsrange () {
     MIN="$4"
     MAX="$5"
     $RNDCCMD $HOST stats
-    NEW_CNT=0`sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
-		    $NSDIR/named.stats | tail -1`
-    eval "OLD_CNT=0\$${NSDIR}_CNT"
+    NEW_CNT=$(sed -n -e 's/[	 ]*\([0-9]*\).response policy.*/\1/p'  \
+		    $NSDIR/named.stats | tail -1)
+    eval "OLD_CNT=\$${NSDIR}_CNT"
+    NEW_CNT=$((NEW_CNT))
+    OLD_CNT=$((OLD_CNT))
     GOT=$((NEW_CNT - OLD_CNT))
     if test "$GOT" -lt "$MIN" -o "$GOT" -gt "$MAX"; then
 	setret "wrong $LABEL $NSDIR statistics of $GOT instead of ${MIN}..${MAX}"
@@ -403,8 +405,8 @@ addr () {
     make_dignm
     digcmd $2 >$DIGNM
     #ckalive "$2" "server crashed by 'dig $2'" || return 1
-    ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
-    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
+    ADDR_ESC=$(echo "$ADDR" | sed -e 's/\./\\./g')
+    ADDR_TTL=$(sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM)
     if test -z "$ADDR_TTL"; then
 	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
@@ -755,7 +757,7 @@ EOF
   ckstats $ns3 bugs ns3 8
 
   # superficial test for major performance bugs
-  QPERF=`sh qperf.sh`
+  QPERF=$(sh qperf.sh)
   if test -n "$QPERF"; then
     perf () {
 	date "+${TS}checking performance $1" | cat_i
@@ -767,8 +769,8 @@ EOF
 	PFILE="ns5/$2.perf"
 	$QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p ${PORT} >$PFILE
 	comment "after test $1"
-	X=`sed -n -e 's/.*Returned *\([^ ]*:\) *\([0-9]*\) .*/\1\2/p' $PFILE \
-		| tr '\n' ' '`
+	X=$(sed -n -e 's/.*Returned *\([^ ]*:\) *\([0-9]*\) .*/\1\2/p' $PFILE \
+		| tr '\n' ' ')
 	if test "$X" != "$3"; then
 	    setret "wrong results '$X' in $PFILE"
 	fi
@@ -780,12 +782,12 @@ EOF
 
     # get qps with rpz
     perf 'with RPZ' rpz 'NOERROR:2900 NXDOMAIN:100 '
-    RPZ=`trim rpz`
+    RPZ=$(trim rpz)
     # turn off rpz and measure qps again
     echo "# RPZ off" >ns5/rpz-switch
-    RNDCCMD_OUT=`$RNDCCMD $ns5 reload`
+    RNDCCMD_OUT=$($RNDCCMD $ns5 reload)
     perf 'without RPZ' norpz 'NOERROR:3000 '
-    NORPZ=`trim norpz`
+    NORPZ=$(trim norpz)
 
     PERCENT=$(( (RPZ * 100 + (NORPZ / 2)) / NORPZ))
     echo_i "$RPZ qps with RPZ is $PERCENT% of $NORPZ qps without RPZ"
@@ -819,7 +821,7 @@ EOF
     stop_server --use-rndc --port ${CONTROLPORT} ns3
     add_librpz_rule "restart"
     restart 3 "rebuild-bl-rpz"
-    HAVE_CORE=`find ns* -name '*core*' -print`
+    HAVE_CORE=$(find ns* -name '*core*' -print)
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
   fi
 
@@ -898,7 +900,7 @@ EOF
   t=$((t + 1))
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
   $DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 > dig.out.$t
-  ttl=`awk '/a3-2 tld2 text/ {print $2}' dig.out.$t`
+  ttl=$(awk '/a3-2 tld2 text/ {print $2}' dig.out.$t)
   if test ${ttl:=0} -eq 0; then setret "failed"; fi
 
   t=$((t + 1))

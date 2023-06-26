@@ -320,7 +320,7 @@ then
 	echo_i "checking update forwarding with sig0 (Do53 -> Do53) ($n)"
 	nextpart_thrice
 	ret=0
-	keyname=`cat keyname`
+	keyname=$(cat keyname)
 	$NSUPDATE -k $keyname.private -- - <<EOF || ret=1
 	local 10.53.0.1
 	server 10.53.0.3 ${PORT}
@@ -353,7 +353,7 @@ EOF
 	echo_i "checking update forwarding with sig0 (DoT -> Do53) ($n)"
 	nextpart_thrice
 	ret=0
-	keyname=`cat keyname`
+	keyname=$(cat keyname)
 	$NSUPDATE -k $keyname.private -S -O -- - <<EOF || ret=1
         local 10.53.0.1
 	server 10.53.0.3 ${TLSPORT}
