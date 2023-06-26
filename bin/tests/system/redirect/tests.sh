@@ -56,11 +56,11 @@ echo_i "checking A zone redirect updates statistics ($n)"
 ret=0
 rm -f ns2/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.2 stats || ret=1
-PRE=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats`
+PRE=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats)
 $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || ret=1
 rm -f ns2/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.2 stats || ret=1
-POST=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats`
+POST=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns2/named.stats)
 if [ $((POST - PRE)) != 1 ]; then ret=1; fi
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -360,7 +360,7 @@ rndc_reload ns2 10.53.0.2
 for i in 1 2 3 4 5 6 7 8 9; do
     tmp=0
     $DIG $DIGOPTS +short @10.53.0.2 soa example.nil > dig.out.ns1.test$n || tmp=1
-    set -- `cat dig.out.ns1.test$n`
+    set -- $(cat dig.out.ns1.test$n)
     [ $3 = 1 ] || tmp=1
     $DIG $DIGOPTS nonexist. @10.53.0.2 -b 10.53.0.2 a > dig.out.ns2.test$n || tmp=1
     grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || tmp=1
@@ -386,8 +386,8 @@ echo_i "checking AAAA nxdomain-redirect works for nonexist ($n)"
 ret=0
 rm -f ns4/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.4 stats || ret=1
-PRE_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats`
-PRE_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats`
+PRE_RED=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats)
+PRE_SUC=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats)
 $DIG $DIGOPTS nonexist. @10.53.0.4 -b 10.53.0.2 aaaa > dig.out.ns4.test$n || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "nonexist.	.*2001:ffff:ffff::6464:6401" dig.out.ns4.test$n > /dev/null || ret=1
@@ -399,8 +399,8 @@ echo_i "checking AAAA nxdomain-redirect updates statistics ($n)"
 ret=0
 rm -f ns4/named.stats 2>/dev/null
 $RNDCCMD 10.53.0.4 stats || ret=1
-POST_RED=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats`
-POST_SUC=`sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats`
+POST_RED=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected$/\1/p" ns4/named.stats)
+POST_SUC=$(sed -n -e "s/[    ]*\([0-9]*\).queries resulted in NXDOMAIN that were redirected and resulted in a successful remote lookup$/\1/p" ns4/named.stats)
 if [ $((POST_RED - PRE_RED)) != 1 ]; then ret=1; fi
 if [ $((POST_SUC - PRE_SUC)) != 1 ]; then ret=1; fi
 n=$((n + 1))

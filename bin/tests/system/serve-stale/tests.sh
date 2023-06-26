@@ -599,7 +599,7 @@ status=$((status+ret))
 
 # Keep track of time so we can access these RRset later, when we expect them
 # to become ancient.
-t1=`$PERL -e 'print time()'`
+t1=$($PERL -e 'print time()')
 
 n=$((n+1))
 echo_i "verify prime cache statistics (low max-stale-ttl) ($n)"
@@ -695,11 +695,11 @@ status=$((status+ret))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 # Retrieve max-stale-ttl value.
-interval_to_ancient=`grep 'max-stale-ttl' ns1/named3.conf.in  | awk '{ print $2 }' | tr -d ';'`
+interval_to_ancient=$(grep 'max-stale-ttl' ns1/named3.conf.in  | awk '{ print $2 }' | tr -d ';')
 # We add 2 seconds to it since this is the ttl value of the records being
 # tested.
 interval_to_ancient=$((interval_to_ancient + 2))
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 elapsed=$((t2 - t1))
 
 # If elapsed time so far is less than max-stale-ttl + 2 seconds, then we sleep
@@ -1375,11 +1375,11 @@ stop_server --use-rndc --port ${CONTROLPORT} ns4
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older. Since
 # max-stale-ttl defaults to a week, we need to adjust the date by one week and
 # five minutes.
-LASTWEEK=`TZ=UTC perl -e 'my $now = time();
+LASTWEEK=$(TZ=UTC perl -e 'my $now = time();
         my $oneWeekAgo = $now - 604800;
         my $fiveMinutesAgo = $oneWeekAgo - 300;
         my ($s, $m, $h, $d, $mo, $y) = (localtime($fiveMinutesAgo))[0, 1, 2, 3, 4, 5];
-        printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);'`
+        printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);')
 
 echo_i "mock the cache date to $LASTWEEK (serve-stale answers disabled) ($n)"
 ret=0
@@ -1612,10 +1612,10 @@ stop_server --use-rndc --port ${CONTROLPORT} ns5
 
 # Load the cache as if it was five minutes (RBTDB_VIRTUAL) older.
 cp ns5/named_dump.db.test$n ns5/named_dump.db
-FIVEMINUTESAGO=`TZ=UTC perl -e 'my $now = time();
+FIVEMINUTESAGO=$(TZ=UTC perl -e 'my $now = time();
         my $fiveMinutesAgo = 300;
         my ($s, $m, $h, $d, $mo, $y) = (localtime($fiveMinutesAgo))[0, 1, 2, 3, 4, 5];
-        printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);'`
+        printf("%04d%02d%02d%02d%02d%02d", $y+1900, $mo+1, $d, $h, $m, $s);')
 
 n=$((n+1))
 echo_i "mock the cache date to $FIVEMINUTESAGO (serve-stale cache disabled) ($n)"
@@ -1728,12 +1728,12 @@ sleep 2
 nextpart ns3/named.run > /dev/null
 
 echo_i "sending queries for tests $((n+1))-$((n+3))..."
-t1=`$PERL -e 'print time()'`
+t1=$($PERL -e 'print time()')
 $DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 data.example TXT > dig.out.test$((n+1)) &
 $DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 nodata.example TXT > dig.out.test$((n+2)) &
 $DIG -p ${PORT} +tries=1 +timeout=11  @10.53.0.3 data.slow TXT > dig.out.test$((n+3)) &
 wait
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 
 # We configured a long value of 30 seconds for resolver-query-timeout.
 # That should give us enough time to receive an stale answer from cache

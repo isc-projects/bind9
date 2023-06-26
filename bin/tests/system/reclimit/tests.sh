@@ -40,8 +40,8 @@ ns3_sends_aaaa_queries() {
 #   - if ns3 sends AAAA queries, the query count should equal $2,
 #   - if ns3 does not send AAAA queries, the query count should equal $3.
 check_query_count() {
-	count1=`sed 's/[^0-9]//g;' $1`
-	count2=`sed 's/[^0-9]//g;' $2`
+	count1=$(sed 's/[^0-9]//g;' $1)
+	count2=$(sed 's/[^0-9]//g;' $2)
 	count=$((count1 + count2))
 	#echo_i "count1=$count1 count2=$count2 count=$count"
 	expected_count_with_aaaa=$3
@@ -141,7 +141,7 @@ if ns3_sends_aaaa_queries; then
 fi
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.4 count txt > dig.out.4.test$n || ret=1
-eval count=`cat dig.out.2.test$n`
+eval count=$(cat dig.out.2.test$n)
 [ $count -le 50 ] || { ret=1; echo_i "count ($count) !<= 50"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -155,7 +155,7 @@ $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect6.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
-eval count=`cat dig.out.2.test$n`
+eval count=$(cat dig.out.2.test$n)
 [ $count -le 50 ] || { ret=1; echo_i "count ($count) !<= 50"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -173,7 +173,7 @@ if ns3_sends_aaaa_queries; then
   grep "status: SERVFAIL" dig.out.1.test$n > /dev/null || ret=1
 fi
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
-eval count=`cat dig.out.2.test$n`
+eval count=$(cat dig.out.2.test$n)
 [ $count -le 40 ] || { ret=1; echo_i "count ($count) !<= 40"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -187,7 +187,7 @@ $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect8.example.org > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
-eval count=`cat dig.out.2.test$n`
+eval count=$(cat dig.out.2.test$n)
 [ $count -le 40 ] || { ret=1; echo_i "count ($count) !<= 40"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -199,10 +199,10 @@ ns3_reset ns3/named4.conf.in
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS +short @10.53.0.3 ns1.1.example.net > dig.out.1.test$n || ret=1
 $DIG $DIGOPTS +short @10.53.0.2 count txt > dig.out.2.test$n || ret=1
-eval count=`cat dig.out.2.test$n`
+eval count=$(cat dig.out.2.test$n)
 [ $count -lt 50 ] || ret=1
 $DIG $DIGOPTS +short @10.53.0.7 count txt > dig.out.3.test$n || ret=1
-eval count=`cat dig.out.3.test$n`
+eval count=$(cat dig.out.3.test$n)
 [ $count -lt 50 ] || { ret=1; echo_i "count ($count) !<= 50";  }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

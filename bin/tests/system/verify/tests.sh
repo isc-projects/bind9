@@ -26,7 +26,7 @@ status=0
 for file in zones/*.good
 do
 	n=$((n + 1))
-	zone=`expr "$file" : 'zones/\(.*\).good'`
+	zone=$(expr "$file" : 'zones/\(.*\).good')
 	echo_i "checking supposedly good zone: $zone ($n)"
 	ret=0
 	case $zone in
@@ -41,7 +41,7 @@ done
 for file in zones/*.bad
 do
 	n=$((n + 1))
-	zone=`expr "$file" : 'zones/\(.*\).bad'`
+	zone=$(expr "$file" : 'zones/\(.*\).bad')
 	echo_i "checking supposedly bad zone: $zone ($n)"
 	ret=0
 	dumpit=0

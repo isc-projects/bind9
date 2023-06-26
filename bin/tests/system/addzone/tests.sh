@@ -129,7 +129,7 @@ status=$((status + ret))
 if ! $FEATURETEST --with-lmdb; then
     echo_i "verifying no comments in NZF file ($n)"
     ret=0
-    hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+    hcount=$(grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l)
     [ $hcount -eq 0 ] || ret=1
     n=$((n + 1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -140,7 +140,7 @@ echo_i "checking rndc showzone with previously added zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.2 showzone previous.example > rndc.out.ns2.$n
 expected='zone "previous.example" { type primary; file "previous.db"; };'
-[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+[ "$(cat rndc.out.ns2.$n)" = "$expected" ] || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -181,7 +181,7 @@ fi
 if ! $FEATURETEST --with-lmdb; then
     echo_i "checking NZF file now has comment ($n)"
     ret=0
-    hcount=`grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l`
+    hcount=$(grep "^# New zone file for view: _default" ns2/3bf305731dd26307.nzf | wc -l)
     [ $hcount -eq 1 ] || ret=1
     n=$((n + 1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -218,7 +218,7 @@ echo_i "checking rndc showzone with a normally-loaded zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.2 showzone normal.example > rndc.out.ns2.$n
 expected='zone "normal.example" { type primary; file "normal.db"; };'
-[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+[ "$(cat rndc.out.ns2.$n)" = "$expected" ] || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -227,7 +227,7 @@ echo_i "checking rndc showzone with a normally-loaded zone with trailing dot ($n
 ret=0
 $RNDCCMD 10.53.0.2 showzone finaldot.example > rndc.out.ns2.$n
 expected='zone "finaldot.example." { type primary; file "normal.db"; };'
-[ "`cat rndc.out.ns2.$n`" = "$expected" ] || ret=1
+[ "$(cat rndc.out.ns2.$n)" = "$expected" ] || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -236,7 +236,7 @@ echo_i "checking rndc showzone with a normally-loaded redirect zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 showzone -redirect > rndc.out.ns1.$n
 expected='zone "." { type redirect; file "redirect.db"; };'
-[ "`cat rndc.out.ns1.$n`" = "$expected" ] || ret=1
+[ "$(cat rndc.out.ns1.$n)" = "$expected" ] || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -517,7 +517,7 @@ status=$((status + ret))
 if ! $FEATURETEST --with-lmdb; then
     echo_i "checking new NZF file has comment ($n)"
     ret=0
-    hcount=`grep "^# New zone file for view: external" ns2/external.nzf | wc -l`
+    hcount=$(grep "^# New zone file for view: external" ns2/external.nzf | wc -l)
     [ $hcount -eq 1 ] || ret=1
     n=$((n + 1))
     if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -556,7 +556,7 @@ _check_rndc_showzone_newly_added() (
 		expected='zone "added.example" { type primary; file "added.db"; };'
 	fi
 	$RNDCCMD 10.53.0.2 showzone added.example in external > rndc.out.ns2.$n 2>/dev/null &&
-	[ "`cat rndc.out.ns2.$n`" = "$expected" ]
+	[ "$(cat rndc.out.ns2.$n)" = "$expected" ]
 )
 retry_quiet 10  _check_rndc_showzone_newly_added || ret=1
 n=$((n + 1))

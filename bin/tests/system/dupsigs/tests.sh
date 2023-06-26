@@ -47,7 +47,7 @@ retry_quiet 60 _wait_for_last_nsec_signed
 retry_quiet 10 fully_signed || status=1
 if [ $status != 0 ]; then echo_i "failed"; fi
 
-start=`date +%s`
+start=$(date +%s)
 now=$start
 end=$((start + 140))
 
@@ -57,14 +57,14 @@ while [ $now -lt $end ] && [ $status -eq 0 ]; do
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl | cat_i
 	$DIG axfr signing.test -p ${PORT} @10.53.0.1 > dig.out.at$et
 	awk '$4 == "RRSIG" { print $11 }' dig.out.at$et | sort | uniq -c | cat_i
-	lines=`awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l`
+	lines=$(awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l)
 	if [ ${et} -ne 0 -a ${lines} -ne 1008 ]
 	then
 		echo_i "failed"
                 status=$((status + 1))
 	fi
 	sleep 5
-	now=`date +%s`
+	now=$(date +%s)
 done
 
 echo_i "exit status: $status"

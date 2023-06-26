@@ -37,11 +37,11 @@ algo=1 flags=0 iters=12 salt="aabbccdd"
 while	read name hash
 do
 	echo_i "checking $NSEC3HASH $name"
-	{ out=`$NSEC3HASH $salt $algo $iters $name`; rc=$?; } || true
+	{ out=$($NSEC3HASH $salt $algo $iters $name); rc=$?; } || true
 	checkout $rc
 
 	echo_i "checking $NSEC3HASH -r $name"
-	{ out=`$NSEC3HASH -r $algo $flags $iters $salt $name`; rc=$?; } || true
+	{ out=$($NSEC3HASH -r $algo $flags $iters $salt $name); rc=$?; } || true
 	checkout $rc
 
 done <<EOF
@@ -67,22 +67,22 @@ checkempty() {
 }
 name=com algo=1 flags=1 iters=0
 echo_i "checking $NSEC3HASH '' $name"
-{ out=`$NSEC3HASH '' $algo $iters $name`; rc=$?; } || true
+{ out=$($NSEC3HASH '' $algo $iters $name); rc=$?; } || true
 checkempty $rc
 echo_i "checking $NSEC3HASH - $name"
-{ out=`$NSEC3HASH - $algo $iters $name`; rc=$?; } || true
+{ out=$($NSEC3HASH - $algo $iters $name); rc=$?; } || true
 checkempty $rc
 echo_i "checking $NSEC3HASH -- '' $name"
-{ out=`$NSEC3HASH -- '' $algo $iters $name`; rc=$?; } || true
+{ out=$($NSEC3HASH -- '' $algo $iters $name); rc=$?; } || true
 checkempty $rc
 echo_i "checking $NSEC3HASH -- - $name"
-{ out=`$NSEC3HASH -- - $algo $iters $name`; rc=$?; } || true
+{ out=$($NSEC3HASH -- - $algo $iters $name); rc=$?; } || true
 checkempty $rc
 echo_i "checking $NSEC3HASH -r '' $name"
-{ out=`$NSEC3HASH -r $algo $flags $iters '' $name`; rc=$?; } || true
+{ out=$($NSEC3HASH -r $algo $flags $iters '' $name); rc=$?; } || true
 checkempty $rc
 echo_i "checking $NSEC3HASH -r - $name"
-{ out=`$NSEC3HASH -r $algo $flags $iters - $name`; rc=$?; } || true
+{ out=$($NSEC3HASH -r $algo $flags $iters - $name); rc=$?; } || true
 checkempty $rc
 
 checkfail() {
@@ -94,13 +94,13 @@ checkfail() {
 	esac
 }
 echo_i "checking $NSEC3HASH missing args"
-{ out=`$NSEC3HASH 00 1 0 2>&1`; rc=$?; } || true
+{ out=$($NSEC3HASH 00 1 0 2>&1); rc=$?; } || true
 checkfail $rc
 echo_i "checking $NSEC3HASH extra args"
-{ out=`$NSEC3HASH 00 1 0 two names 2>&1`; rc=$?; } || true
+{ out=$($NSEC3HASH 00 1 0 two names 2>&1); rc=$?; } || true
 checkfail $rc
 echo_i "checking $NSEC3HASH bad option"
-{ out=`$NSEC3HASH -? 2>&1`; rc=$?; } || true
+{ out=$($NSEC3HASH -? 2>&1); rc=$?; } || true
 checkfail $rc
 
 echo_i "exit status: $status"

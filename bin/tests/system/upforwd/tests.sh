@@ -196,7 +196,7 @@ if test -f keyname
 then
 	echo_i "checking update forwarding to with sig0 ($n)"
 	ret=0
-	keyname=`cat keyname`
+	keyname=$(cat keyname)
 	$NSUPDATE -k $keyname.private -- - <<EOF
 	local 10.53.0.1
 	server 10.53.0.3 ${PORT}

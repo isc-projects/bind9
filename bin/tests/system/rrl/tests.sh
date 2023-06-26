@@ -54,9 +54,9 @@ setret () {
 #   The start of a second credits a rate limit.
 #   This would be far easier in C or by assuming a modern version of perl.
 sec_start () {
-    START=`date`
+    START=$(date)
     while true; do
-	NOW=`date`
+	NOW=$(date)
 	if test "$START" != "$NOW"; then
 	    return
 	fi
@@ -80,7 +80,7 @@ burst () {
     CNT=$XCNT
 
     DOMS=""
-    CNTS=`$PERL -e 'for ( $i = 0; $i < '$BURST_LIMIT'; $i++) { printf "%03d\n", '$QNUM' + $i; }'`
+    CNTS=$($PERL -e 'for ( $i = 0; $i < '$BURST_LIMIT'; $i++) { printf "%03d\n", '$QNUM' + $i; }')
     for CNT in $CNTS
     do
         eval BURST_DOM="$BURST_DOM_BASE"
@@ -112,14 +112,14 @@ ck_result() {
     # wait to the background mdig calls to complete.
     wait
     BAD=no
-    ADDRS=`grep -E "^$2$" mdig.out-$1				2>/dev/null | wc -l`
+    ADDRS=$(grep -E "^$2$" mdig.out-$1				2>/dev/null | wc -l)
     # count simple truncated and truncated NXDOMAIN as TC
-    TC=`grep -E "^TC|NXDOMAINTC$" mdig.out-$1			2>/dev/null | wc -l`
-    DROP=`grep -E "^drop$" mdig.out-$1				2>/dev/null | wc -l`
+    TC=$(grep -E "^TC|NXDOMAINTC$" mdig.out-$1			2>/dev/null | wc -l)
+    DROP=$(grep -E "^drop$" mdig.out-$1				2>/dev/null | wc -l)
     # count NXDOMAIN and truncated NXDOMAIN as NXDOMAIN
-    NXDOMAIN=`grep -E "^NXDOMAIN|NXDOMAINTC$" mdig.out-$1		2>/dev/null | wc -l`
-    SERVFAIL=`grep -E "^SERVFAIL$" mdig.out-$1			2>/dev/null | wc -l`
-    NOERROR=`grep -E "^NOERROR$" mdig.out-$1			2>/dev/null | wc -l`
+    NXDOMAIN=$(grep -E "^NXDOMAIN|NXDOMAINTC$" mdig.out-$1		2>/dev/null | wc -l)
+    SERVFAIL=$(grep -E "^SERVFAIL$" mdig.out-$1			2>/dev/null | wc -l)
+    NOERROR=$(grep -E "^NOERROR$" mdig.out-$1			2>/dev/null | wc -l)
 
     range $ADDRS "$3" 1 ||
     setret "$ADDRS instead of $3 '$2' responses for $1" &&
@@ -155,9 +155,9 @@ ckstats () {
     LABEL="$1"; shift
     TYPE="$1"; shift
     EXPECTED="$1"; shift
-    C=`cat ns2/named.stats |
+    C=$(cat ns2/named.stats |
         sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p" |
-        tail -1`
+        tail -1)
     C=$((C))
 
     range "$C" $EXPECTED 1 ||
@@ -282,7 +282,7 @@ sleep 2
 grep "min-table-size 1" broken.out > /dev/null || setret "min-table-size 0 was not changed to 1"
 
 if [ -f named.pid ]; then
-    kill `cat named.pid`
+    kill $(cat named.pid)
     setret "named should not have started, but did"
 fi
 

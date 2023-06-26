@@ -1286,7 +1286,7 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-list=`$DIG $DIGOPTS -b 10.53.0.6 @10.53.0.2 +short aaaa a-only.example | sort`
+list=$($DIG $DIGOPTS -b 10.53.0.6 @10.53.0.2 +short aaaa a-only.example | sort)
 for a in $list
 do
 	ret=0
@@ -1298,10 +1298,10 @@ do
 	status=$((status + ret))
 done
 
-rev=`$ARPANAME 2001:aaaa::10.0.0.1`
+rev=$($ARPANAME 2001:aaaa::10.0.0.1)
 regex='..\(.*.IP6.ARPA\)'
-rev=`expr "${rev}" : "${regex}"`
-fin=`expr "${rev}" : "............${regex}"`
+rev=$(expr "${rev}" : "${regex}")
+fin=$(expr "${rev}" : "............${regex}")
 while test "${rev}" != "${fin}"
 do
 	ret=0
@@ -1312,7 +1312,7 @@ do
 	n=$((n + 1))
 	if [ $ret != 0 ]; then echo_i "failed"; fi
 	status=$((status + ret))
-	rev=`expr "${rev}" : "${regex}"`
+	rev=$(expr "${rev}" : "${regex}")
 done
 
 echo_i "checking dns64-server and dns64-contact ($n)"

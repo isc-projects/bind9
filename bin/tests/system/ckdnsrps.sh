@@ -38,7 +38,7 @@ while getopts "xADM:S:" c; do
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
-shift `expr $OPTIND - 1 || true`
+shift $(expr $OPTIND - 1 || true)
 if [ "$#" -ne 0 ]; then
     echo "$USAGE" 1>&2
     exit 1

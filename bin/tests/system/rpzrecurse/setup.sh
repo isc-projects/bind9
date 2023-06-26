@@ -66,9 +66,9 @@ done
 
 # decide whether to test DNSRPS
 $SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
+test -z "$(grep 'dnsrps-enable yes' dnsrps.conf)" && TEST_DNSRPS=
 
-CWD=`pwd`
+CWD=$(pwd)
 cat <<EOF >dnsrpzd.conf
 PID-FILE $CWD/dnsrpzd.pid;
 
@@ -81,7 +81,7 @@ sed -n -e 's/^ *//' -e "/zone.*.*primary/s@file \"@&$CWD/ns2/@p" ns2/*.conf \
 
 # Run dnsrpzd to get the license and prime the static policy zones
 if test -n "$TEST_DNSRPS"; then
-    DNSRPZD="`../rpz/dnsrps -p`"
+    DNSRPZD="$(../rpz/dnsrps -p)"
     "$DNSRPZD" -D./dnsrpzd.rpzf -S./dnsrpzd.sock -C./dnsrpzd.conf \
 		-w 0 -dddd -L stdout >./dnsrpzd.run 2>&1
 fi

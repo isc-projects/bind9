@@ -22,7 +22,7 @@ outfile=signed.db.signed
 
 $KEYGEN -a $DEFAULT_ALGORITHM $zone 2>&1 > /dev/null | cat_i
 $KEYGEN -f KSK -a $DEFAULT_ALGORITHM $zone 2>&1 > keygen.out | cat_i
-keyname=`cat keygen.out`
+keyname=$(cat keygen.out)
 rm -f keygen.out
 
 keyfile_to_static_ds $keyname > trusted.conf

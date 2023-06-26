@@ -109,7 +109,7 @@ idna_test() {
         echo_i "failed: dig command returned non-zero status"
         ret=1
     else
-        actual=`qname dig.out.$n`
+        actual=$(qname dig.out.$n)
         if [ "$4" != "$actual" ]; then
             echo_i "failed: expected answer $4, actual result $actual"
             ret=1

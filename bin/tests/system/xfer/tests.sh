@@ -256,7 +256,7 @@ status=$((status+tmp))
 n=$((n+1))
 echo_i "check that a multi-message uncompressable zone transfers ($n)"
 $DIG axfr . -p ${PORT} @10.53.0.4 | grep SOA > axfr.out
-if test `wc -l < axfr.out` != 2
+if test $(wc -l < axfr.out) != 2
 then
 	 echo_i "failed"
          status=$((status+1))
@@ -470,7 +470,7 @@ $RNDCCMD 10.53.0.7 refresh edns-expire 2>&1 | sed 's/^/ns7 /' | cat_i
 sleep 10
 
 # there may be multiple log entries so get the last one.
-expire=`awk '/edns-expire\/IN: got EDNS EXPIRE of/ { x=$9 } END { print x }' ns7/named.run`
+expire=$(awk '/edns-expire\/IN: got EDNS EXPIRE of/ { x=$9 } END { print x }' ns7/named.run)
 test ${expire:-0} -gt 0 -a ${expire:-0} -lt 1814400 || {
     echo_i "failed (expire=${expire:-0})"
     status=$((status+1))
@@ -481,13 +481,13 @@ echo_i "test smaller transfer TCP message size ($n)"
 $DIG $DIGOPTS example. @10.53.0.8 axfr \
 	-y key1.:1234abcd8765 > dig.out.msgsize.test$n || status=1
 
-bytes=`wc -c < dig.out.msgsize.test$n`
+bytes=$(wc -c < dig.out.msgsize.test$n)
 if [ $bytes -ne 459357 ]; then
 	echo_i "failed axfr size check"
         status=$((status+1))
 fi
 
-num_messages=`cat ns8/named.run | grep "sending TCP message of" | wc -l`
+num_messages=$(cat ns8/named.run | grep "sending TCP message of" | wc -l)
 if [ $num_messages -le 300 ]; then
 	echo_i "failed transfer message count check"
         status=$((status+1))
@@ -609,12 +609,12 @@ stop_server ns1
 copy_setports ns1/named3.conf.in ns1/named.conf
 start_server --noclean --restart --port ${PORT} ns1 -- "-D xfer-ns1 $NS_PARAMS -T transferinsecs -T transferstuck"
 sleep 1
-start=`date +%s`
+start=$(date +%s)
 $RNDCCMD 10.53.0.6 retransfer axfr-max-idle-time 2>&1 | sed 's/^/ns6 /' | cat_i
 tmp=0
 retry_quiet 60 wait_for_message "maximum idle time exceeded: timed out" || tmp=1
 if [ $tmp -eq 0 ]; then
-	now=`date +%s`
+	now=$(date +%s)
 	diff=$((now - start))
 	# we expect a timeout in 50 seconds
 	test $diff -lt 50 && tmp=1

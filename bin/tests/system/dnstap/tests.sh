@@ -31,7 +31,7 @@ dnstap_data_ready() {
 	min_size_expected=$3
 
 	kill -HUP $fstrm_capture_pid
-	file_size=`wc -c < "$capture_file" | tr -d ' '`
+	file_size=$(wc -c < "$capture_file" | tr -d ' ')
 	if [ $file_size -lt $min_size_expected ]; then
 		return 1
 	fi
@@ -111,39 +111,39 @@ sleep 1
 
 echo_i "checking initial message counts"
 
-udp1=`$DNSTAPREAD ns1/dnstap.out.save | grep "UDP " | wc -l`
-tcp1=`$DNSTAPREAD ns1/dnstap.out.save | grep "TCP " | wc -l`
-aq1=`$DNSTAPREAD ns1/dnstap.out.save | grep "AQ " | wc -l`
-ar1=`$DNSTAPREAD ns1/dnstap.out.save | grep "AR " | wc -l`
-cq1=`$DNSTAPREAD ns1/dnstap.out.save | grep "CQ " | wc -l`
-cr1=`$DNSTAPREAD ns1/dnstap.out.save | grep "CR " | wc -l`
-rq1=`$DNSTAPREAD ns1/dnstap.out.save | grep "RQ " | wc -l`
-rr1=`$DNSTAPREAD ns1/dnstap.out.save | grep "RR " | wc -l`
-uq1=`$DNSTAPREAD ns1/dnstap.out.save | grep "UQ " | wc -l`
-ur1=`$DNSTAPREAD ns1/dnstap.out.save | grep "UR " | wc -l`
+udp1=$($DNSTAPREAD ns1/dnstap.out.save | grep "UDP " | wc -l)
+tcp1=$($DNSTAPREAD ns1/dnstap.out.save | grep "TCP " | wc -l)
+aq1=$($DNSTAPREAD ns1/dnstap.out.save | grep "AQ " | wc -l)
+ar1=$($DNSTAPREAD ns1/dnstap.out.save | grep "AR " | wc -l)
+cq1=$($DNSTAPREAD ns1/dnstap.out.save | grep "CQ " | wc -l)
+cr1=$($DNSTAPREAD ns1/dnstap.out.save | grep "CR " | wc -l)
+rq1=$($DNSTAPREAD ns1/dnstap.out.save | grep "RQ " | wc -l)
+rr1=$($DNSTAPREAD ns1/dnstap.out.save | grep "RR " | wc -l)
+uq1=$($DNSTAPREAD ns1/dnstap.out.save | grep "UQ " | wc -l)
+ur1=$($DNSTAPREAD ns1/dnstap.out.save | grep "UR " | wc -l)
 
-udp2=`$DNSTAPREAD ns2/dnstap.out.save | grep "UDP " | wc -l`
-tcp2=`$DNSTAPREAD ns2/dnstap.out.save | grep "TCP " | wc -l`
-aq2=`$DNSTAPREAD ns2/dnstap.out.save | grep "AQ " | wc -l`
-ar2=`$DNSTAPREAD ns2/dnstap.out.save | grep "AR " | wc -l`
-cq2=`$DNSTAPREAD ns2/dnstap.out.save | grep "CQ " | wc -l`
-cr2=`$DNSTAPREAD ns2/dnstap.out.save | grep "CR " | wc -l`
-rq2=`$DNSTAPREAD ns2/dnstap.out.save | grep "RQ " | wc -l`
-rr2=`$DNSTAPREAD ns2/dnstap.out.save | grep "RR " | wc -l`
-uq2=`$DNSTAPREAD ns2/dnstap.out.save | grep "UQ " | wc -l`
-ur2=`$DNSTAPREAD ns2/dnstap.out.save | grep "UR " | wc -l`
+udp2=$($DNSTAPREAD ns2/dnstap.out.save | grep "UDP " | wc -l)
+tcp2=$($DNSTAPREAD ns2/dnstap.out.save | grep "TCP " | wc -l)
+aq2=$($DNSTAPREAD ns2/dnstap.out.save | grep "AQ " | wc -l)
+ar2=$($DNSTAPREAD ns2/dnstap.out.save | grep "AR " | wc -l)
+cq2=$($DNSTAPREAD ns2/dnstap.out.save | grep "CQ " | wc -l)
+cr2=$($DNSTAPREAD ns2/dnstap.out.save | grep "CR " | wc -l)
+rq2=$($DNSTAPREAD ns2/dnstap.out.save | grep "RQ " | wc -l)
+rr2=$($DNSTAPREAD ns2/dnstap.out.save | grep "RR " | wc -l)
+uq2=$($DNSTAPREAD ns2/dnstap.out.save | grep "UQ " | wc -l)
+ur2=$($DNSTAPREAD ns2/dnstap.out.save | grep "UR " | wc -l)
 
 mv ns3/dnstap.out.0 ns3/dnstap.out.save
-udp3=`$DNSTAPREAD ns3/dnstap.out.save | grep "UDP " | wc -l`
-tcp3=`$DNSTAPREAD ns3/dnstap.out.save | grep "TCP " | wc -l`
-aq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "AQ " | wc -l`
-ar3=`$DNSTAPREAD ns3/dnstap.out.save | grep "AR " | wc -l`
-cq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "CQ " | wc -l`
-cr3=`$DNSTAPREAD ns3/dnstap.out.save | grep "CR " | wc -l`
-rq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "RQ " | wc -l`
-rr3=`$DNSTAPREAD ns3/dnstap.out.save | grep "RR " | wc -l`
-uq3=`$DNSTAPREAD ns3/dnstap.out.save | grep "UQ " | wc -l`
-ur3=`$DNSTAPREAD ns3/dnstap.out.save | grep "UR " | wc -l`
+udp3=$($DNSTAPREAD ns3/dnstap.out.save | grep "UDP " | wc -l)
+tcp3=$($DNSTAPREAD ns3/dnstap.out.save | grep "TCP " | wc -l)
+aq3=$($DNSTAPREAD ns3/dnstap.out.save | grep "AQ " | wc -l)
+ar3=$($DNSTAPREAD ns3/dnstap.out.save | grep "AR " | wc -l)
+cq3=$($DNSTAPREAD ns3/dnstap.out.save | grep "CQ " | wc -l)
+cr3=$($DNSTAPREAD ns3/dnstap.out.save | grep "CR " | wc -l)
+rq3=$($DNSTAPREAD ns3/dnstap.out.save | grep "RQ " | wc -l)
+rr3=$($DNSTAPREAD ns3/dnstap.out.save | grep "RR " | wc -l)
+uq3=$($DNSTAPREAD ns3/dnstap.out.save | grep "UQ " | wc -l)
+ur3=$($DNSTAPREAD ns3/dnstap.out.save | grep "UR " | wc -l)
 
 echo_i "checking UDP message counts"
 ret=0
@@ -317,38 +317,38 @@ status=$((status + ret))
 
 echo_i "checking reopened message counts"
 
-udp1=`$DNSTAPREAD ns1/dnstap.out | grep "UDP " | wc -l`
-tcp1=`$DNSTAPREAD ns1/dnstap.out | grep "TCP " | wc -l`
-aq1=`$DNSTAPREAD ns1/dnstap.out | grep "AQ " | wc -l`
-ar1=`$DNSTAPREAD ns1/dnstap.out | grep "AR " | wc -l`
-cq1=`$DNSTAPREAD ns1/dnstap.out | grep "CQ " | wc -l`
-cr1=`$DNSTAPREAD ns1/dnstap.out | grep "CR " | wc -l`
-rq1=`$DNSTAPREAD ns1/dnstap.out | grep "RQ " | wc -l`
-rr1=`$DNSTAPREAD ns1/dnstap.out | grep "RR " | wc -l`
-uq1=`$DNSTAPREAD ns1/dnstap.out | grep "UQ " | wc -l`
-ur1=`$DNSTAPREAD ns1/dnstap.out | grep "UR " | wc -l`
+udp1=$($DNSTAPREAD ns1/dnstap.out | grep "UDP " | wc -l)
+tcp1=$($DNSTAPREAD ns1/dnstap.out | grep "TCP " | wc -l)
+aq1=$($DNSTAPREAD ns1/dnstap.out | grep "AQ " | wc -l)
+ar1=$($DNSTAPREAD ns1/dnstap.out | grep "AR " | wc -l)
+cq1=$($DNSTAPREAD ns1/dnstap.out | grep "CQ " | wc -l)
+cr1=$($DNSTAPREAD ns1/dnstap.out | grep "CR " | wc -l)
+rq1=$($DNSTAPREAD ns1/dnstap.out | grep "RQ " | wc -l)
+rr1=$($DNSTAPREAD ns1/dnstap.out | grep "RR " | wc -l)
+uq1=$($DNSTAPREAD ns1/dnstap.out | grep "UQ " | wc -l)
+ur1=$($DNSTAPREAD ns1/dnstap.out | grep "UR " | wc -l)
 
-udp2=`$DNSTAPREAD ns2/dnstap.out | grep "UDP " | wc -l`
-tcp2=`$DNSTAPREAD ns2/dnstap.out | grep "TCP " | wc -l`
-aq2=`$DNSTAPREAD ns2/dnstap.out | grep "AQ " | wc -l`
-ar2=`$DNSTAPREAD ns2/dnstap.out | grep "AR " | wc -l`
-cq2=`$DNSTAPREAD ns2/dnstap.out | grep "CQ " | wc -l`
-cr2=`$DNSTAPREAD ns2/dnstap.out | grep "CR " | wc -l`
-rq2=`$DNSTAPREAD ns2/dnstap.out | grep "RQ " | wc -l`
-rr2=`$DNSTAPREAD ns2/dnstap.out | grep "RR " | wc -l`
-uq2=`$DNSTAPREAD ns2/dnstap.out | grep "UQ " | wc -l`
-ur2=`$DNSTAPREAD ns2/dnstap.out | grep "UR " | wc -l`
+udp2=$($DNSTAPREAD ns2/dnstap.out | grep "UDP " | wc -l)
+tcp2=$($DNSTAPREAD ns2/dnstap.out | grep "TCP " | wc -l)
+aq2=$($DNSTAPREAD ns2/dnstap.out | grep "AQ " | wc -l)
+ar2=$($DNSTAPREAD ns2/dnstap.out | grep "AR " | wc -l)
+cq2=$($DNSTAPREAD ns2/dnstap.out | grep "CQ " | wc -l)
+cr2=$($DNSTAPREAD ns2/dnstap.out | grep "CR " | wc -l)
+rq2=$($DNSTAPREAD ns2/dnstap.out | grep "RQ " | wc -l)
+rr2=$($DNSTAPREAD ns2/dnstap.out | grep "RR " | wc -l)
+uq2=$($DNSTAPREAD ns2/dnstap.out | grep "UQ " | wc -l)
+ur2=$($DNSTAPREAD ns2/dnstap.out | grep "UR " | wc -l)
 
-udp3=`$DNSTAPREAD ns3/dnstap.out | grep "UDP " | wc -l`
-tcp3=`$DNSTAPREAD ns3/dnstap.out | grep "TCP " | wc -l`
-aq3=`$DNSTAPREAD ns3/dnstap.out | grep "AQ " | wc -l`
-ar3=`$DNSTAPREAD ns3/dnstap.out | grep "AR " | wc -l`
-cq3=`$DNSTAPREAD ns3/dnstap.out | grep "CQ " | wc -l`
-cr3=`$DNSTAPREAD ns3/dnstap.out | grep "CR " | wc -l`
-rq3=`$DNSTAPREAD ns3/dnstap.out | grep "RQ " | wc -l`
-rr3=`$DNSTAPREAD ns3/dnstap.out | grep "RR " | wc -l`
-uq3=`$DNSTAPREAD ns3/dnstap.out | grep "UQ " | wc -l`
-ur3=`$DNSTAPREAD ns3/dnstap.out | grep "UR " | wc -l`
+udp3=$($DNSTAPREAD ns3/dnstap.out | grep "UDP " | wc -l)
+tcp3=$($DNSTAPREAD ns3/dnstap.out | grep "TCP " | wc -l)
+aq3=$($DNSTAPREAD ns3/dnstap.out | grep "AQ " | wc -l)
+ar3=$($DNSTAPREAD ns3/dnstap.out | grep "AR " | wc -l)
+cq3=$($DNSTAPREAD ns3/dnstap.out | grep "CQ " | wc -l)
+cr3=$($DNSTAPREAD ns3/dnstap.out | grep "CR " | wc -l)
+rq3=$($DNSTAPREAD ns3/dnstap.out | grep "RQ " | wc -l)
+rr3=$($DNSTAPREAD ns3/dnstap.out | grep "RR " | wc -l)
+uq3=$($DNSTAPREAD ns3/dnstap.out | grep "UQ " | wc -l)
+ur3=$($DNSTAPREAD ns3/dnstap.out | grep "UR " | wc -l)
 
 echo_i "checking UDP message counts"
 ret=0
@@ -543,7 +543,7 @@ fi
 
 echo_i "checking dnstap-read hex output"
 ret=0
-hex=`$DNSTAPREAD -x ns3/dnstap.out | tail -1`
+hex=$($DNSTAPREAD -x ns3/dnstap.out | tail -1)
 echo $hex | $WIRETEST > dnstap.hex
 grep 'status: NOERROR' dnstap.hex > /dev/null 2>&1 || ret=1
 grep 'ANSWER: 3, AUTHORITY: 1' dnstap.hex > /dev/null 2>&1 || ret=1
@@ -572,16 +572,16 @@ EOF
 	status=$((status + ret))
 	kill $fstrm_capture_pid
 	wait
-	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
-	tcp4=`$DNSTAPREAD dnstap.out | grep "TCP " | wc -l`
-	aq4=`$DNSTAPREAD dnstap.out | grep "AQ " | wc -l`
-	ar4=`$DNSTAPREAD dnstap.out | grep "AR " | wc -l`
-	cq4=`$DNSTAPREAD dnstap.out | grep "CQ " | wc -l`
-	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
-	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
-	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
-	uq4=`$DNSTAPREAD dnstap.out | grep "UQ " | wc -l`
-	ur4=`$DNSTAPREAD dnstap.out | grep "UR " | wc -l`
+	udp4=$($DNSTAPREAD dnstap.out | grep "UDP " | wc -l)
+	tcp4=$($DNSTAPREAD dnstap.out | grep "TCP " | wc -l)
+	aq4=$($DNSTAPREAD dnstap.out | grep "AQ " | wc -l)
+	ar4=$($DNSTAPREAD dnstap.out | grep "AR " | wc -l)
+	cq4=$($DNSTAPREAD dnstap.out | grep "CQ " | wc -l)
+	cr4=$($DNSTAPREAD dnstap.out | grep "CR " | wc -l)
+	rq4=$($DNSTAPREAD dnstap.out | grep "RQ " | wc -l)
+	rr4=$($DNSTAPREAD dnstap.out | grep "RR " | wc -l)
+	uq4=$($DNSTAPREAD dnstap.out | grep "UQ " | wc -l)
+	ur4=$($DNSTAPREAD dnstap.out | grep "UR " | wc -l)
 
 	echo_i "checking UDP message counts"
 	ret=0
@@ -690,16 +690,16 @@ EOF
 	status=$((status + ret))
 	kill $fstrm_capture_pid
 	wait
-	udp4=`$DNSTAPREAD dnstap.out | grep "UDP " | wc -l`
-	tcp4=`$DNSTAPREAD dnstap.out | grep "TCP " | wc -l`
-	aq4=`$DNSTAPREAD dnstap.out | grep "AQ " | wc -l`
-	ar4=`$DNSTAPREAD dnstap.out | grep "AR " | wc -l`
-	cq4=`$DNSTAPREAD dnstap.out | grep "CQ " | wc -l`
-	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
-	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
-	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
-	uq4=`$DNSTAPREAD dnstap.out | grep "UQ " | wc -l`
-	ur4=`$DNSTAPREAD dnstap.out | grep "UR " | wc -l`
+	udp4=$($DNSTAPREAD dnstap.out | grep "UDP " | wc -l)
+	tcp4=$($DNSTAPREAD dnstap.out | grep "TCP " | wc -l)
+	aq4=$($DNSTAPREAD dnstap.out | grep "AQ " | wc -l)
+	ar4=$($DNSTAPREAD dnstap.out | grep "AR " | wc -l)
+	cq4=$($DNSTAPREAD dnstap.out | grep "CQ " | wc -l)
+	cr4=$($DNSTAPREAD dnstap.out | grep "CR " | wc -l)
+	rq4=$($DNSTAPREAD dnstap.out | grep "RQ " | wc -l)
+	rr4=$($DNSTAPREAD dnstap.out | grep "RR " | wc -l)
+	uq4=$($DNSTAPREAD dnstap.out | grep "UQ " | wc -l)
+	ur4=$($DNSTAPREAD dnstap.out | grep "UR " | wc -l)
 
 	echo_i "checking UDP message counts"
 	ret=0
@@ -794,7 +794,7 @@ echo_i "checking large packet printing"
 ret=0
 # Expect one occurrence of "opcode: QUERY" below "reponse_message_data" and
 # another one below "response_message".
-lines=`$DNSTAPREAD -y large-answer.fstrm | grep -c "opcode: QUERY"`
+lines=$($DNSTAPREAD -y large-answer.fstrm | grep -c "opcode: QUERY")
 [ $lines -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

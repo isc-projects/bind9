@@ -83,12 +83,12 @@ echo_i "checking server config entry ($n)"
 ret=0
 n=$((n + 1))
 $RNDCCMD stats
-oka=`grep  "EDNS TCP keepalive option received" ns2/named.stats | \
-    tail -1 | awk '{ print $1}'`
+oka=$(grep  "EDNS TCP keepalive option received" ns2/named.stats | \
+    tail -1 | awk '{ print $1}')
 $DIG $DIGOPTS bar.example @10.53.0.3 > dig.out.test$n
 $RNDCCMD stats
-nka=`grep  "EDNS TCP keepalive option received" ns2/named.stats | \
-    tail -1 | awk '{ print $1}'`
+nka=$(grep  "EDNS TCP keepalive option received" ns2/named.stats | \
+    tail -1 | awk '{ print $1}')
 #echo oka ':' $oka
 #echo nka ':' $nka
 if [ "$oka" -eq "$nka" ]; then ret=1; fi
