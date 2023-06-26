@@ -27,7 +27,11 @@ export ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname
 export CDS=$TOP_BUILDDIR/bin/dnssec/dnssec-cds
 export CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
 export CHECKZONE=$TOP_BUILDDIR/bin/check/named-checkzone
-export DELV=$TOP_BUILDDIR/bin/delv/delv
+if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
+    export DELV=$TOP_BUILDDIR/bin/delv/delv
+else
+    export DELV=:
+fi
 export DIG=$TOP_BUILDDIR/bin/dig/dig
 export DNSTAPREAD=$TOP_BUILDDIR/bin/tools/dnstap-read
 export DSFROMKEY=$TOP_BUILDDIR/bin/dnssec/dnssec-dsfromkey
