@@ -105,7 +105,7 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
             else:
                 # We attempt to send couple rndc commands while named is
                 # being shutdown
-                futures[executor.submit(launch_rndc, ["status"])] = "status"
+                futures[executor.submit(launch_rndc, ["-t", "5", "status"])] = "status"
 
         ret_code = -1
         for future in as_completed(futures):
