@@ -1528,3 +1528,9 @@ ffac31097d25039951063bbb9f864e223a46ad1b
 ffbe6b95371c99b7fb05e6de17a8d6b7bf4f629f
 # remove trailing whitespace
 5893debf46ce1b5fbe793114a59da28fac4cccb7
+# arithmetic expansion in system tests
+4d42bdc245a1db1654abb502a52a5a8a3a570881
+# arithmetic expansion in system tests
+1436025e20ae13cfe55df14d62f5812c0cea2ee9
+# subshell notation in system tests
+05baf7206b7baaf91cb8e049ad13e413c52cdf3f
