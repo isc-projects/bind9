@@ -1960,7 +1960,7 @@ ISC_REFCOUNT_IMPL(dns_adb, destroy);
  * Public functions.
  */
 
-isc_result_t
+void
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	       dns_adb_t **newadb) {
 	dns_adb_t *adb = NULL;
@@ -2012,7 +2012,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	 */
 	adb->magic = DNS_ADB_MAGIC;
 	*newadb = adb;
-	return (ISC_R_SUCCESS);
 }
 
 void
