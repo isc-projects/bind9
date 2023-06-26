@@ -329,7 +329,7 @@ ret=0
 
 nextpart $DIR/named.run > /dev/null
 rndccmd 10.53.0.3 loadkeys "$ZONE" > /dev/null || log_error "rndc loadkeys zone ${ZONE} failed"
-wait_for_log 3 "keymgr: done" $DIR/named.run
+wait_for_log 3 "keymgr: $ZONE done" $DIR/named.run
 privkey_stat2=$(key_stat "${basefile}.private")
 pubkey_stat2=$(key_stat "${basefile}.key")
 state_stat2=$(key_stat "${basefile}.state")
