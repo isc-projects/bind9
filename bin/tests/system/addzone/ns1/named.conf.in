@@ -28,6 +28,7 @@ options {
 	allow-query { any; };
 	allow-new-zones yes;
 	recursion no;
+	dnssec-validation no;
 };
 
 zone "." {

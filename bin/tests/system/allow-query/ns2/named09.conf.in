@@ -20,6 +20,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	allow-query {! accept; };
+	dnssec-validation no;
 };
 
 include "controls.conf";

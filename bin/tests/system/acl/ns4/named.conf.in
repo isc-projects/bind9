@@ -23,6 +23,7 @@ options {
 	notify no;
 	allow-new-zones yes;
 	allow-transfer { none; };
+	dnssec-validation no;
 };
 
 controls {

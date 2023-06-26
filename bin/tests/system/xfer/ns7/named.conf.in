@@ -26,6 +26,7 @@ options {
 	listen-on { 10.53.0.7; };
 	listen-on-v6 { none; };
 	recursion no;
+	dnssec-validation no;
 	notify yes;
 	ixfr-from-differences secondary;
 	check-integrity no;

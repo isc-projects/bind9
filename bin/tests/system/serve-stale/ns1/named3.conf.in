@@ -29,6 +29,7 @@ options {
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion yes;
+	dnssec-validation no;
 	max-stale-ttl 20;
 	stale-answer-ttl 3;
 	stale-answer-enable yes;

@@ -30,6 +30,7 @@ options {
 	notify no;
 	notify-delay 0;
 	recursion no;
+	dnssec-validation no;
 };
 
 zone "catalog2.example" {

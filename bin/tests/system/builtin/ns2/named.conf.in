@@ -28,4 +28,5 @@ options {
 	recursion yes;
 	notify no;
 	server-id hostname;
+	dnssec-validation no;
 };
