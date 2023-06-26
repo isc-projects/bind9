@@ -274,12 +274,7 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 		return (1);
 	}
 
-	result = dns_zone_create(&zone, mctx, 0);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "dns_zone_create failed: %s\n",
-			isc_result_totext(result));
-		return (1);
-	}
+	dns_zone_create(&zone, mctx, 0);
 
 	result = dns_zone_setorigin(zone, name);
 	if (result != ISC_R_SUCCESS) {

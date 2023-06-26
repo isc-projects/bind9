@@ -1938,7 +1938,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	isc_buffer_constinit(&b, reverse, strlen(reverse));
 	isc_buffer_add(&b, strlen(reverse));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-	CHECK(dns_zone_create(&zone, mctx, 0));
+	dns_zone_create(&zone, mctx, 0);
 	CHECK(dns_zone_setorigin(zone, name));
 	dns_zone_setview(zone, view);
 	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
@@ -3613,7 +3613,7 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		/*
 		 * Create the actual zone.
 		 */
-		CHECK(dns_zone_create(&zone, mctx, 0));
+		dns_zone_create(&zone, mctx, 0);
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setclass(zone, view->rdclass);
@@ -6793,8 +6793,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {
-			CHECK(dns_zone_create(&raw, dns_zone_getmem(zone),
-					      dns_zone_gettid(zone)));
+			dns_zone_create(&raw, dns_zone_getmem(zone),
+					dns_zone_gettid(zone));
 			CHECK(dns_zone_setorigin(raw, origin));
 			dns_zone_setview(raw, view);
 			dns_zone_setstats(raw, named_g_server->zonestats);

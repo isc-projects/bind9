@@ -1080,7 +1080,7 @@ inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
  ***	Public functions.
  ***/
 
-isc_result_t
+void
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	isc_time_t now;
 	dns_zone_t *zone = NULL;
@@ -1165,7 +1165,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 
 	*zonep = zone;
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -18242,7 +18241,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
 
 isc_result_t
 dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
-	isc_result_t result;
 	isc_mem_t *mctx = NULL;
 	dns_zone_t *zone = NULL;
 	unsigned int tid;
@@ -18261,13 +18259,11 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = dns_zone_create(&zone, mctx, tid);
+	dns_zone_create(&zone, mctx, tid);
 
-	if (result == ISC_R_SUCCESS) {
-		*zonep = zone;
-	}
+	*zonep = zone;
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

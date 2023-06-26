@@ -104,10 +104,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Create the zone structure.
 	 */
-	result = dns_zone_create(&zone, mctx, 0);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_zone_create(&zone, mctx, 0);
 
 	/*
 	 * Set zone type and origin.

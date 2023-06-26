@@ -149,7 +149,7 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-isc_result_t
+void
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid);
 /*%<
  *	Creates a new empty zone and attach '*zonep' to it.
@@ -160,11 +160,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid);
  *
  * Ensures:
  *\li	'*zonep' refers to a valid zone.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_UNEXPECTED
  */
 
 void
