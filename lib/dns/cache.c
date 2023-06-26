@@ -142,11 +142,7 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 
 	isc_refcount_init(&cache->references, 1);
 
-	result = isc_stats_create(mctx, &cache->stats,
-				  dns_cachestatscounter_max);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_lock;
-	}
+	isc_stats_create(mctx, &cache->stats, dns_cachestatscounter_max);
 
 	/*
 	 * Create the database
@@ -175,7 +171,6 @@ cleanup_db:
 	dns_db_detach(&cache->db);
 cleanup_stats:
 	isc_stats_detach(&cache->stats);
-cleanup_lock:
 	isc_mutex_destroy(&cache->lock);
 	isc_mem_free(mctx, cache->name);
 	isc_mem_detach(&cache->hmctx);

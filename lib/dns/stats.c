@@ -164,44 +164,31 @@ dns_stats_detach(dns_stats_t **statsp) {
 /*%
  * Create methods
  */
-static isc_result_t
+static void
 create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	     dns_stats_t **statsp) {
-	dns_stats_t *stats;
-	isc_result_t result;
-
-	stats = isc_mem_get(mctx, sizeof(*stats));
+	dns_stats_t *stats = isc_mem_get(mctx, sizeof(*stats));
 
 	stats->counters = NULL;
 	isc_refcount_init(&stats->references, 1);
 
-	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS) {
-		goto clean_mutex;
-	}
+	isc_stats_create(mctx, &stats->counters, ncounters);
 
 	stats->magic = DNS_STATS_MAGIC;
 	stats->type = type;
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	*statsp = stats;
-
-	return (ISC_R_SUCCESS);
-
-clean_mutex:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
 }
 
-isc_result_t
+void
 dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_general, ncounters, statsp));
+	create_stats(mctx, dns_statstype_general, ncounters, statsp);
 }
 
-isc_result_t
+void
 dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -209,34 +196,34 @@ dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	 * Create rdtype statistics for the first 255 RRtypes,
 	 * plus one additional for other RRtypes.
 	 */
-	return (create_stats(mctx, dns_statstype_rdtype,
-			     (RDTYPECOUNTER_MAXTYPE + 1), statsp));
+	create_stats(mctx, dns_statstype_rdtype, (RDTYPECOUNTER_MAXTYPE + 1),
+		     statsp);
 }
 
-isc_result_t
+void
 dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rdataset,
-			     (RDTYPECOUNTER_MAXVAL + 1), statsp));
+	create_stats(mctx, dns_statstype_rdataset, (RDTYPECOUNTER_MAXVAL + 1),
+		     statsp);
 }
 
-isc_result_t
+void
 dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_opcode, 16, statsp));
+	create_stats(mctx, dns_statstype_opcode, 16, statsp);
 }
 
-isc_result_t
+void
 dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rcode, dns_rcode_badcookie + 1,
-			     statsp));
+	create_stats(mctx, dns_statstype_rcode, dns_rcode_badcookie + 1,
+		     statsp);
 }
 
-isc_result_t
+void
 dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
@@ -244,9 +231,8 @@ dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	 * Create two counters per key, one is the key id, the other two are
 	 * the actual counters for creating and refreshing signatures.
 	 */
-	return (create_stats(mctx, dns_statstype_dnssec,
-			     dnssecsign_num_keys * dnssecsign_block_size,
-			     statsp));
+	create_stats(mctx, dns_statstype_dnssec,
+		     dnssecsign_num_keys * dnssecsign_block_size, statsp);
 }
 
 /*%

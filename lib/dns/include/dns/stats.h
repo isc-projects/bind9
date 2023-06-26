@@ -258,7 +258,7 @@ typedef void (*dns_rcodestats_dumper_t)(dns_rcode_t, uint64_t, void *);
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
 /*%<
  * Create a statistics counter structure of general type.  It counts a general
@@ -270,14 +270,9 @@ dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
-isc_result_t
+void
 dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per rdatatype.
@@ -286,14 +281,9 @@ dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
-isc_result_t
+void
 dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per RRset.
@@ -302,14 +292,9 @@ dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
-isc_result_t
+void
 dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per opcode.
@@ -318,14 +303,9 @@ dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
-isc_result_t
+void
 dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per assigned rcode.
@@ -334,14 +314,9 @@ dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
-isc_result_t
+void
 dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
 /*%<
  * Create a statistics counter structure per assigned DNSKEY id.
@@ -350,11 +325,6 @@ dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  *\li	'mctx' must be a valid memory context.
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
 void

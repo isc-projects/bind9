@@ -58,34 +58,21 @@ ns_stats_detach(ns_stats_t **statsp) {
 	}
 }
 
-isc_result_t
+void
 ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
-	ns_stats_t *stats;
-	isc_result_t result;
-
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	stats = isc_mem_get(mctx, sizeof(*stats));
+	ns_stats_t *stats = isc_mem_get(mctx, sizeof(*stats));
 	stats->counters = NULL;
 
 	isc_refcount_init(&stats->references, 1);
 
-	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS) {
-		goto clean_mem;
-	}
+	isc_stats_create(mctx, &stats->counters, ncounters);
 
 	stats->magic = NS_STATS_MAGIC;
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	*statsp = stats;
-
-	return (ISC_R_SUCCESS);
-
-clean_mem:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
 }
 
 /*%

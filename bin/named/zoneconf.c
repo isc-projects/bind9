@@ -1174,10 +1174,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	rcvquerystats = NULL;
 	dnssecsignstats = NULL;
 	if (statlevel == dns_zonestat_full) {
-		CHECK(isc_stats_create(mctx, &zoneqrystats,
-				       ns_statscounter_max));
-		CHECK(dns_rdatatypestats_create(mctx, &rcvquerystats));
-		CHECK(dns_dnssecsignstats_create(mctx, &dnssecsignstats));
+		isc_stats_create(mctx, &zoneqrystats, ns_statscounter_max);
+		dns_rdatatypestats_create(mctx, &rcvquerystats);
+		dns_dnssecsignstats_create(mctx, &dnssecsignstats);
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	dns_zone_setrcvquerystats(zone, rcvquerystats);

@@ -1082,7 +1082,6 @@ inc_stats(dns_zone_t *zone, isc_statscounter_t counter) {
 
 isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
-	isc_result_t result;
 	isc_time_t now;
 	dns_zone_t *zone = NULL;
 
@@ -1157,11 +1156,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 	zone->notify = r;
 	zone->defaultkasp = NULL;
 
-	result = isc_stats_create(mctx, &zone->gluecachestats,
-				  dns_gluecachestatscounter_max);
-	if (result != ISC_R_SUCCESS) {
-		goto free_refs;
-	}
+	isc_stats_create(mctx, &zone->gluecachestats,
+			 dns_gluecachestatscounter_max);
 
 	zone->magic = ZONE_MAGIC;
 
@@ -1170,15 +1166,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx, unsigned int tid) {
 
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
-
-free_refs:
-	isc_refcount_decrement0(&zone->references);
-	isc_refcount_destroy(&zone->references);
-	isc_refcount_destroy(&zone->irefs);
-	ZONEDB_DESTROYLOCK(&zone->dblock);
-	isc_mutex_destroy(&zone->lock);
-	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
-	return (result);
 }
 
 static void

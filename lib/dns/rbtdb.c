@@ -3800,10 +3800,7 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 						      sizeof(rbtdb_nodelock_t));
 
 	if (IS_CACHE(rbtdb)) {
-		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_node_locks;
-		}
+		dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
 		rbtdb->lru = isc_mem_get(mctx,
 					 rbtdb->node_lock_count *
 						 sizeof(dns_slabheaderlist_t));
@@ -3954,10 +3951,6 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	*dbp = (dns_db_t *)rbtdb;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_node_locks:
-	isc_mem_put(mctx, rbtdb->node_locks,
-		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 
 cleanup_tree_lock:
 	TREE_DESTROYLOCK(&rbtdb->tree_lock);

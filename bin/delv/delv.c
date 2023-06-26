@@ -2167,11 +2167,11 @@ run_server(void *arg) {
 	CHECK(dns_view_createresolver(view, loopmgr, 1, netmgr, 0,
 				      tlsctx_client_cache, dispatch, NULL));
 
-	CHECK(isc_stats_create(mctx, &resstats, dns_resstatscounter_max));
+	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
 	dns_resolver_setstats(view->resolver, resstats);
 	isc_stats_detach(&resstats);
 
-	CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	dns_rdatatypestats_create(mctx, &resquerystats);
 	dns_resolver_setquerystats(view->resolver, resquerystats);
 	dns_stats_detach(&resquerystats);
 

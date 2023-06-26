@@ -1939,7 +1939,7 @@ destroy(dns_adb_t *adb) {
 	RWUNLOCK(&adb->entries_lock, isc_rwlocktype_write);
 	isc_rwlock_destroy(&adb->entries_lock);
 
-	isc_mem_destroy(&adb->hmctx);
+	isc_mem_detach(&adb->hmctx);
 
 	isc_mutex_destroy(&adb->lock);
 	isc_refcount_destroy(&adb->references);
@@ -1964,7 +1964,6 @@ isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	       dns_adb_t **newadb) {
 	dns_adb_t *adb = NULL;
-	isc_result_t result;
 
 	REQUIRE(mem != NULL);
 	REQUIRE(view != NULL);
@@ -2003,10 +2002,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&adb->lock);
 
-	result = isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
-	if (result != ISC_R_SUCCESS) {
-		goto free_lock;
-	}
+	isc_stats_create(adb->mctx, &adb->stats, dns_adbstats_max);
 
 	set_adbstat(adb, 0, dns_adbstats_nnames);
 	set_adbstat(adb, 0, dns_adbstats_nentries);
@@ -2017,25 +2013,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_loopmgr_t *loopmgr,
 	adb->magic = DNS_ADB_MAGIC;
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
-
-free_lock:
-	isc_mutex_destroy(&adb->lock);
-
-	isc_rwlock_destroy(&adb->entries_lock);
-	isc_hashmap_destroy(&adb->entries);
-	INSIST(ISC_LIST_EMPTY(adb->entries_lru));
-
-	isc_rwlock_destroy(&adb->names_lock);
-	isc_hashmap_destroy(&adb->names);
-	INSIST(ISC_LIST_EMPTY(adb->names_lru));
-
-	isc_mem_destroy(&adb->hmctx);
-
-	dns_resolver_detach(&adb->res);
-	dns_view_weakdetach(&adb->view);
-	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
-
-	return (result);
 }
 
 void
