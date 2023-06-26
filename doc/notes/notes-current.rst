@@ -30,7 +30,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- If a response from an authoritative server has its RCODE set to
+  FORMERR and contains an echoed EDNS COOKIE option that was present in
+  the query, :iscman:`named` now retries sending the query to the
+  same server without an EDNS COOKIE option. :gl:`#4049`
 
 Bug Fixes
 ~~~~~~~~~

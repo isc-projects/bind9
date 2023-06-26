@@ -14,6 +14,10 @@
 			process of the catalog zone was already running.
 			[GL #4136]
 
+6166.	[func]		Retry without DNS COOKIE on FORMERR if it appears that
+			the FORMERR was due to the presence of a DNS COOKIE
+			option. [GL #4049]
+
 	--- 9.18.16 released ---
 
 6192.	[security]	A query that prioritizes stale data over lookup

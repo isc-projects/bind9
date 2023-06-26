@@ -279,6 +279,7 @@ struct dns_message {
 	unsigned int free_saved	      : 1;
 	unsigned int cc_ok	      : 1;
 	unsigned int cc_bad	      : 1;
+	unsigned int cc_echoed	      : 1;
 	unsigned int tkey	      : 1;
 	unsigned int rdclass_set      : 1;
 	unsigned int fuzzing	      : 1;
