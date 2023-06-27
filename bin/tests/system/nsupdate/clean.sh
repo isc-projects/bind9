@@ -63,6 +63,7 @@ rm -f ns9/denyname.example.db
 rm -f ns9/example.com.db
 rm -f ns9/in-addr.db
 rm -f perl.update_test.out
+rm -f nsupdate.alg-*
 rm -f nsupdate.out*
 rm -f typelist.out.*
 rm -f update.out.*
