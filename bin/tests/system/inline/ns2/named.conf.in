@@ -31,6 +31,7 @@ options {
 	notify yes;
 	notify-delay 0;
 	allow-new-zones yes;
+	dnssec-validation no;
 };
 
 zone "bits" {

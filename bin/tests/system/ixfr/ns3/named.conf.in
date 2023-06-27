@@ -22,6 +22,7 @@ options {
 	listen-on-v6 { none; };
 	recursion no;
 	notify yes;
+	dnssec-validation no;
 };
 
 key rndc_key {

@@ -21,6 +21,7 @@ options {
 	listen-on { 10.53.0.4; };
 	listen-on-v6 { none; };
 	recursion yes;
+	dnssec-validation no;
 	notify yes;
 	forwarders { 10.53.0.2; };
 	forward only;

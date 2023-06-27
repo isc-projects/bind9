@@ -32,6 +32,7 @@ options {
 	allow-query-cache { 10.53.0.1; };
 	trust-anchor-telemetry yes;
 	allow-new-zones yes;
+	dnssec-validation yes;
 };
 
 zone "." {

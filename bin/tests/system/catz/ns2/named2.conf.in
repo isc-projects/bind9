@@ -28,6 +28,7 @@ options {
 	notify no;
 	recursion no;
 	serial-query-rate 100;
+	dnssec-validation no;
 };
 
 view "default" {

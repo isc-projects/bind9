@@ -22,6 +22,7 @@ options {
 	recursion no;
 	notify yes;
 	startup-notify-rate 5;
+	dnssec-validation no;
 };
 
 key rndc_key {

@@ -27,6 +27,7 @@ options {
 	allow-transfer { any; };
 	recursion no;
 	dnssec-policy "rsasha256";
+	dnssec-validation no;
 };
 
 key rndc_key {

@@ -33,6 +33,7 @@ options {
 	try-tcp-refresh no;
 	notify-delay 0;
 	allow-new-zones yes;
+	dnssec-validation no;
 };
 
 zone "example01.com" {
