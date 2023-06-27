@@ -118,7 +118,8 @@ static inline void *
 mallocx(size_t size, int flags) {
 	void *ptr = NULL;
 
-	size_info *si = malloc(size + sizeof(*si));
+	size_t bytes = ISC_CHECKED_ADD(size, sizeof(size_info));
+	size_info *si = malloc(bytes);
 	INSIST(si != NULL);
 
 	si->size = size;

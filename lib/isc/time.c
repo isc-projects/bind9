@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include <isc/log.h>
+#include <isc/overflow.h>
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -186,16 +187,9 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result) {
 	REQUIRE(t->nanoseconds < NS_PER_SEC && i->nanoseconds < NS_PER_SEC);
 
 	/* Seconds */
-#if HAVE_BUILTIN_ADD_OVERFLOW
-	if (__builtin_add_overflow(t->seconds, i->seconds, &result->seconds)) {
+	if (ISC_OVERFLOW_ADD(t->seconds, i->seconds, &result->seconds)) {
 		return (ISC_R_RANGE);
 	}
-#else
-	if (t->seconds > UINT_MAX - i->seconds) {
-		return (ISC_R_RANGE);
-	}
-	result->seconds = t->seconds + i->seconds;
-#endif
 
 	/* Nanoseconds */
 	result->nanoseconds = t->nanoseconds + i->nanoseconds;
@@ -217,16 +211,9 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	REQUIRE(t->nanoseconds < NS_PER_SEC && i->nanoseconds < NS_PER_SEC);
 
 	/* Seconds */
-#if HAVE_BUILTIN_SUB_OVERFLOW
-	if (__builtin_sub_overflow(t->seconds, i->seconds, &result->seconds)) {
+	if (ISC_OVERFLOW_SUB(t->seconds, i->seconds, &result->seconds)) {
 		return (ISC_R_RANGE);
 	}
-#else
-	if (t->seconds < i->seconds) {
-		return (ISC_R_RANGE);
-	}
-	result->seconds = t->seconds - i->seconds;
-#endif
 
 	/* Nanoseconds */
 	if (t->nanoseconds >= i->nanoseconds) {

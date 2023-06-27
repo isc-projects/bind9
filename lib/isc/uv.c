@@ -116,19 +116,7 @@ isc__uv_realloc(void *ptr, size_t size) {
 
 static void *
 isc__uv_calloc(size_t count, size_t size) {
-	void *ptr;
-	size_t res;
-#if HAVE_BUILTIN_MUL_OVERFLOW
-	bool overflow = __builtin_mul_overflow(count, size, &res);
-	RUNTIME_CHECK(!overflow);
-#else
-	res = count * size;
-	REQUIRE(count == 0 || res / count == size);
-#endif
-
-	ptr = isc_mem_allocatex(isc__uv_mctx, res, ISC_MEM_ZERO);
-
-	return (ptr);
+	return (isc_mem_callocate(isc__uv_mctx, count, size));
 }
 
 static void

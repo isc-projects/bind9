@@ -61,6 +61,7 @@ libisc_la_HEADERS =			\
 	include/isc/nonce.h		\
 	include/isc/once.h		\
 	include/isc/os.h		\
+	include/isc/overflow.h		\
 	include/isc/parseint.h		\
 	include/isc/pause.h		\
 	include/isc/portset.h		\
