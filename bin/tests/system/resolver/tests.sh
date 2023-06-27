@@ -950,7 +950,7 @@ dig_with_opts +timeout=15 large-referral.example.net @10.53.0.1 a > dig.out.ns1.
 grep "status: SERVFAIL" dig.out.ns1.test${n} > /dev/null || ret=1
 # Check the total number of findname() calls triggered by a single query
 # for large-referral.example.net/A.
-findname_call_count="$(grep -c "large-referral\.example\.net.*FINDNAME" ns1/named.run)"
+findname_call_count="$(grep -c "large-referral\.example\.net.*FINDNAME" ns1/named.run || true)"
 if [ "${findname_call_count}" -gt 1000 ]; then
 	echo_i "failed: ${findname_call_count} (> 1000) findname() calls detected for large-referral.example.net"
 	ret=1
