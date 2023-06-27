@@ -10616,7 +10616,6 @@ dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp) {
 
 	RRTRACE(source, "attach");
 
-	REQUIRE(!atomic_load_acquire(&source->exiting));
 	isc_refcount_increment(&source->references);
 
 	*targetp = source;
