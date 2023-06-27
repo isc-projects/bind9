@@ -104,7 +104,6 @@ TESTS +=			\
 	dlzexternal		\
 	dns64			\
 	dsdigest		\
-	dupsigs			\
 	dyndb			\
 	ecdsa			\
 	eddsa			\

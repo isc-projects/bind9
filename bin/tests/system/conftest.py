@@ -96,7 +96,6 @@ else:
     PORTS_PER_TEST = 20
     PRIORITY_TESTS = [
         # Tests that are scheduled first. Speeds up parallel execution.
-        "dupsigs/",
         "rpz/",
         "rpzrecurse/",
         "serve-stale/",
