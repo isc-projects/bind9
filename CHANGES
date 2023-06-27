@@ -1,3 +1,6 @@
+6202.	[func]		Use per-loop memory contexts for dns_resolver
+			objects. [GL !8015]
+
 6201.	[bug]		The free_all_cpu_call_rcu_data() call at the end
 			of isc_loopmgr_run() was causing ~200 ms extra
 			latency. [GL #4163]

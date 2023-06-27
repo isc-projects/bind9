@@ -324,6 +324,7 @@ struct fctxkey {
 typedef struct fctxcount fctxcount_t;
 struct fctxcount {
 	unsigned int magic;
+	isc_mem_t *mctx;
 	isc_mutex_t lock;
 	dns_fixedname_t dfname;
 	dns_name_t *domain;
@@ -701,7 +702,7 @@ static void
 resume_qmin(void *arg);
 
 static isc_result_t
-get_attached_fctx(dns_resolver_t *res, const dns_name_t *name,
+get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		  dns_rdatatype_t type, const dns_name_t *domain,
 		  dns_rdataset_t *nameservers, const isc_sockaddr_t *client,
 		  unsigned int options, unsigned int depth, isc_counter_t *qc,
@@ -1437,6 +1438,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			.count = 0,
 			.allowed = 0,
 		};
+		isc_mem_attach(fctx->mctx, &counter->mctx);
 		isc_mutex_init(&counter->lock);
 		counter->domain = dns_fixedname_initname(&counter->dfname);
 		dns_name_copy(fctx->domain, counter->domain);
@@ -1448,7 +1450,8 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 					 counter->domain->length, counter);
 		if (result == ISC_R_EXISTS) {
 			isc_mutex_destroy(&counter->lock);
-			isc_mem_put(fctx->mctx, counter, sizeof(*counter));
+			isc_mem_putanddetach(&counter->mctx, counter,
+					     sizeof(*counter));
 			counter = NULL;
 			result = isc_hashmap_find(
 				res->counters, &hashval, fctx->domain->ndata,
@@ -1516,7 +1519,7 @@ fcount_decr(fetchctx_t *fctx) {
 	UNLOCK(&counter->lock);
 
 	isc_mutex_destroy(&counter->lock);
-	isc_mem_put(fctx->mctx, counter, sizeof(*counter));
+	isc_mem_putanddetach(&counter->mctx, counter, sizeof(*counter));
 
 	RWUNLOCK(&fctx->res->counters_lock, isc_rwlocktype_write);
 }
@@ -4377,7 +4380,7 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 
 	FCTXTRACE("addevent");
 
-	resp = isc_mem_get(fctx->res->mctx, sizeof(*resp));
+	resp = isc_mem_get(fctx->mctx, sizeof(*resp));
 	*resp = (dns_fetchresponse_t){
 		.result = DNS_R_SERVFAIL,
 		.qtype = fctx->type,
@@ -4392,7 +4395,7 @@ fctx_add_event(fetchctx_t *fctx, isc_loop_t *loop, const isc_sockaddr_t *client,
 		.arg = arg,
 		.link = ISC_LINK_INITIALIZER,
 	};
-	isc_mem_attach(fctx->res->mctx, &resp->mctx);
+	isc_mem_attach(fctx->mctx, &resp->mctx);
 
 	resp->foundname = dns_fixedname_initname(&resp->fname);
 
@@ -4437,48 +4440,43 @@ log_ns_ttl(fetchctx_t *fctx, const char *where) {
 }
 
 static isc_result_t
-fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
-	    const dns_name_t *domain, dns_rdataset_t *nameservers,
-	    const isc_sockaddr_t *client, unsigned int options,
-	    unsigned int depth, isc_counter_t *qc, fetchctx_t **fctxp) {
+fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
+	    dns_rdatatype_t type, const dns_name_t *domain,
+	    dns_rdataset_t *nameservers, const isc_sockaddr_t *client,
+	    unsigned int options, unsigned int depth, isc_counter_t *qc,
+	    fetchctx_t **fctxp) {
 	fetchctx_t *fctx = NULL;
 	isc_result_t result;
 	isc_result_t iresult;
 	isc_interval_t interval;
 	unsigned int findoptions = 0;
 	char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 1];
-	int tid = isc_tid();
 	uint_fast32_t nfctx;
+	isc_mem_t *mctx = isc_loop_getmctx(loop);
 	size_t p;
-	/*
-	 * FIXME: We should be using per loop mctx, but it is currently broken,
-	 * so it is disabled.  I am keeping this note here for future reference.
-	 *
-	 * isc_mem_t *mctx = isc_loop_getmctx(isc_loop_current(res->loopmgr));
-	 */
 
 	/*
 	 * Caller must be holding the lock for 'bucket'
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
 
-	fctx = isc_mem_get(res->mctx, sizeof(*fctx));
+	fctx = isc_mem_get(mctx, sizeof(*fctx));
 	*fctx = (fetchctx_t){
 		.type = type,
 		.qmintype = type,
 		.options = options,
-		.tid = tid,
+		.tid = isc_tid(),
 		.state = fetchstate_active,
 		.depth = depth,
 		.qmin_labels = 1,
 		.fwdpolicy = dns_fwdpolicy_none,
 		.result = ISC_R_FAILURE,
-		.loop = isc_loop_get(res->loopmgr, tid),
+		.loop = loop,
 		.key = { .size = sizeof(unsigned int) +
 				 sizeof(dns_rdatatype_t) + name->length },
 	};
 
-	isc_mem_attach(res->mctx, &fctx->mctx);
+	isc_mem_attach(mctx, &fctx->mctx);
 	dns_resolver_attach(res, &fctx->res);
 
 	isc_mutex_init(&fctx->lock);
@@ -9595,9 +9593,9 @@ detach:
  */
 static void
 rctx_logpacket(respctx_t *rctx) {
+	fetchctx_t *fctx = rctx->fctx;
 #ifdef HAVE_DNSTAP
 	isc_result_t result;
-	fetchctx_t *fctx = rctx->fctx;
 	isc_sockaddr_t localaddr, *la = NULL;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_dtmsgtype_t dtmsgtype;
@@ -9610,7 +9608,7 @@ rctx_logpacket(respctx_t *rctx) {
 		rctx->query->rmessage, "received packet from",
 		&rctx->query->addrinfo->sockaddr, DNS_LOGCATEGORY_RESOLVER,
 		DNS_LOGMODULE_PACKETS, &dns_master_style_comment,
-		ISC_LOG_DEBUG(10), rctx->fctx->mctx);
+		ISC_LOG_DEBUG(10), fctx->mctx);
 
 #ifdef HAVE_DNSTAP
 	/*
@@ -9906,8 +9904,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	REQUIRE(tlsctx_cache != NULL);
 	REQUIRE(dispatchv4 != NULL || dispatchv6 != NULL);
 
-	RTRACE("create");
-
 	res = isc_mem_get(view->mctx, sizeof(*res));
 	*res = (dns_resolver_t){
 		.loopmgr = loopmgr,
@@ -9925,6 +9921,8 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 		.maxqueries = DEFAULT_MAX_QUERIES,
 		.alternates = ISC_LIST_INITIALIZER,
 	};
+
+	RTRACE("create");
 
 	dns_view_weakattach(view, &res->view);
 	isc_mem_attach(view->mctx, &res->mctx);
@@ -10059,8 +10057,8 @@ dns_resolver_prime(dns_resolver_t *res) {
 		result = dns_resolver_createfetch(
 			res, dns_rootname, dns_rdatatype_ns, NULL, NULL, NULL,
 			NULL, 0, DNS_FETCHOPT_NOFORWARD, 0, NULL,
-			isc_loop_main(res->loopmgr), prime_done, res, rdataset,
-			NULL, &res->primefetch);
+			isc_loop_current(res->loopmgr), prime_done, res,
+			rdataset, NULL, &res->primefetch);
 		UNLOCK(&res->primelock);
 
 		if (result != ISC_R_SUCCESS) {
@@ -10240,7 +10238,7 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 }
 
 static isc_result_t
-get_attached_fctx(dns_resolver_t *res, const dns_name_t *name,
+get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		  dns_rdatatype_t type, const dns_name_t *domain,
 		  dns_rdataset_t *nameservers, const isc_sockaddr_t *client,
 		  unsigned int options, unsigned int depth, isc_counter_t *qc,
@@ -10274,7 +10272,7 @@ again:
 		break;
 	case ISC_R_NOTFOUND:
 		/* FIXME: pass key to fctx_create(?) */
-		result = fctx_create(res, name, type, domain, nameservers,
+		result = fctx_create(res, loop, name, type, domain, nameservers,
 				     client, options, depth, qc, &fctx);
 		if (result != ISC_R_SUCCESS) {
 			goto unlock;
@@ -10338,6 +10336,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	unsigned int count = 0;
 	unsigned int spillat;
 	unsigned int spillatmin;
+	isc_mem_t *mctx = isc_loop_getmctx(loop);
 
 	UNUSED(forwarders);
 
@@ -10361,11 +10360,11 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	log_fetch(name, type);
 
-	fetch = isc_mem_get(res->mctx, sizeof(*fetch));
+	fetch = isc_mem_get(mctx, sizeof(*fetch));
 	*fetch = (dns_fetch_t){ 0 };
 
 	dns_resolver_attach(res, &fetch->res);
-	isc_mem_attach(res->mctx, &fetch->mctx);
+	isc_mem_attach(mctx, &fetch->mctx);
 
 	if ((options & DNS_FETCHOPT_UNSHARED) == 0) {
 		/*
@@ -10378,9 +10377,9 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		spillatmin = res->spillatmin;
 		UNLOCK(&res->lock);
 
-		result = get_attached_fctx(res, name, type, domain, nameservers,
-					   client, options, depth, qc, &fctx,
-					   &new_fctx);
+		result = get_attached_fctx(res, loop, name, type, domain,
+					   nameservers, client, options, depth,
+					   qc, &fctx, &new_fctx);
 		if (result != ISC_R_SUCCESS) {
 			goto fail;
 		}
@@ -10423,7 +10422,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			}
 		}
 	} else {
-		result = fctx_create(res, name, type, domain, nameservers,
+		result = fctx_create(res, loop, name, type, domain, nameservers,
 				     client, options, depth, qc, &fctx);
 		if (result != ISC_R_SUCCESS) {
 			goto unlock;
