@@ -725,6 +725,7 @@ check_numkeys() {
 
 _check_keys() {
 	ret=0
+	_ret=0
 
 	# Clear key ids.
 	key_set KEY1 ID "no"
@@ -767,10 +768,10 @@ _check_keys() {
 
 		# If ret is still non-zero, none of the files matched.
 		echo_i "failed"
-		return 1
+		_ret=1
 	done
 
-	return 0
+	return $_ret
 }
 
 # Check keys for a configured zone. This verifies:
