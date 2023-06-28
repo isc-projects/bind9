@@ -44,8 +44,6 @@ controls {
 zone "." {
 	type primary;
 	file "root.db.signed";
-	allow-update { any; };
-	auto-dnssec maintain;
 };
 
 zone "tld" {
