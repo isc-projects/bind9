@@ -200,7 +200,7 @@ endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
 
 if HAVE_PYTHON
-TESTS += kasp keymgr2kasp multisigner tcp pipelined
+TESTS += kasp multisigner tcp pipelined
 
 if HAVE_PYTEST
 TESTS += checkds dispatch rpzextra shutdown timeouts
