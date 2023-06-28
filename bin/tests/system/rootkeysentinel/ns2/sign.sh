@@ -11,13 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# leave as expr as expr treats arguments with leading 0's as base 10
-# handle exit code 1 from expr when the result is 0
-oldid=${1:-00000}
-newid=$(expr \( ${oldid} + 1000 \) % 65536 || true)
-newid=$(expr "0000${newid}" : '.*\(.....\)$')	# prepend leading 0's
-badid=$(expr \( ${oldid} + 7777 \) % 65536 || true)
-badid=$(expr "0000${badid}" : '.*\(.....\)$')	# prepend leading 0's
+oldid=$(echo ${1:-0} | sed 's/^0*//')
+newid=$(printf '%05u' $(((oldid + 1000) % 65536)))
+badid=$(printf '%05u' $(((oldid + 7777) % 65536)))
+oldid=$(printf '%05u' $((oldid + 0)))
 
 . ../../conf.sh
 
