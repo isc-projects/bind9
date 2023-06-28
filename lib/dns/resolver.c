@@ -4051,9 +4051,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		}
 
 		/*
-		 * Turn on NOFOLLOW in relaxed mode so that QNAME minimisation
+		 * Turn on NOFOLLOW in relaxed mode so that QNAME minimization
 		 * doesn't cause additional queries to resolve the target of the
-		 * QNAME minimisation request when a referral is returned.  This
+		 * QNAME minimization request when a referral is returned.  This
 		 * will also reduce the impact of mis-matched NS RRsets where
 		 * the child's NS RRset is garbage.  If a delegation is
 		 * discovered DNS_R_DELEGATION will be returned to resume_qmin.
@@ -4150,31 +4150,50 @@ resume_qmin(void *arg) {
 	case ISC_R_SHUTTINGDOWN:
 	case ISC_R_CANCELED:
 		goto cleanup;
+
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_FORMERR:
 	case DNS_R_REMOTEFORMERR:
 	case ISC_R_FAILURE:
-		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
-			/* Disable minimization in relaxed mode */
-			fctx->qmin_labels = DNS_NAME_MAXLABELS;
-			/*
-			 * We store the result. If we succeed in the end
-			 * we'll issue a warning that the server is
-			 * broken.
-			 */
-			fctx->qmin_warning = result;
-		} else {
-			/* fail in strict mode */
+		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) != 0) {
+			/* These results cause a hard fail in strict mode */
 			goto cleanup;
 		}
-		break;
-	default:
+
+		/* ...or disable minimization in relaxed mode */
+		fctx->qmin_labels = DNS_NAME_MAXLABELS;
+
 		/*
-		 * When DNS_FETCHOPT_NOFOLLOW is set and a delegation
-		 * was discovered, DNS_R_DELEGATION is returned and is
-		 * processed here.
+		 * We store the result. If we succeed in the end
+		 * we'll issue a warning that the server is
+		 * broken.
 		 */
+		fctx->qmin_warning = result;
+		break;
+
+	case ISC_R_SUCCESS:
+	case DNS_R_DELEGATION:
+	case DNS_R_NXRRSET:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		/*
+		 * Any other result will *not* cause a failure in strict
+		 * mode, or cause minimization to be disabled in relaxed
+		 * mode.
+		 *
+		 * If DNS_R_DELEGATION is set here, it implies that
+		 * DNS_FETCHOPT_NOFOLLOW was set, and a delegation was
+		 * discovered but not followed; we will do so now.
+		 */
+		break;
+
+	default:
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(5),
+			      "QNAME minimization: unexpected result %s",
+			      isc_result_totext(result));
 		break;
 	}
 
