@@ -1425,7 +1425,6 @@ if [ -x "$DELV" ] ; then
   ret=0
   delv_with_opts -i +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; authoritative' delv.out.test$n || ret=1
-  grep -q '_.example' delv.out.test$n || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1443,7 +1442,6 @@ if [ -x "$DELV" ] ; then
   ret=0
   delv_with_opts -a ns1/anchor.dnskey +root +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; fully validated' delv.out.test$n || ret=1
-  grep -q '_.example' delv.out.test$n || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 

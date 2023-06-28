@@ -1,3 +1,9 @@
+6204.	[bug]		Use NS records for relaxed QNAME-minimization mode.
+			This reduces the number of queries named makes when
+			resolving, as it allows the non-existence of NS RRsets
+			at non-referral nodes to be cached in addition to the
+			referrals that are normally cached. [GL #3325]
+
 6203.	[cleanup]	Ensure that the size calculation does not overflow
 			when allocating memory for an array.
 			[GL #4120] [GL #4121] [GL #4122]
