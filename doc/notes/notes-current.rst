@@ -46,9 +46,13 @@ Bug Fixes
   This issue was reported independently by Eric Sesterhenn of X41 D-SEC and
   Cameron Whitehead.
 
-- The value of Content-Length header in statistics channel was not bound checked
-  and negative or large enough value could lead to overflow and assertion failure.
-  :gl:`#4125`
+- The value of Content-Length header in statistics channel was not
+  bound checked and negative or large enough value could lead to
+  overflow and assertion failure.  :gl:`#4125`
+
+  This issue was reported by Eric Sesterhenn of X41 D-SEC.
+
+- Address memory leaks due to not clearing OpenSSL error stack. :gl:`#4159`
 
   This issue was reported by Eric Sesterhenn of X41 D-SEC.
 
