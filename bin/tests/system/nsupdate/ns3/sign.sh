@@ -46,27 +46,5 @@ cat $infile $keyname1.key $keyname2.key >$zonefile
 
 $SIGNER -A -3 - -P -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 
-zone=prepub.test.
-infile=prepub.test.db.in
-zonefile=prepub.test.db
-
-keyname1=$($KEYGEN -q -L 3600 -a ${DEFAULT_ALGORITHM} -f KSK $zone)
-keyname2=$($KEYGEN -q -L 3600 -a ${DEFAULT_ALGORITHM} $zone)
-
-cat $infile $keyname1.key $keyname2.key >$zonefile
-
-$SIGNER -A -x -3 - -P -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
-
-zone=doubleksk.test.
-infile=doubleksk.test.db.in
-zonefile=doubleksk.test.db
-
-keyname1=$($KEYGEN -q -L 3600 -a ${DEFAULT_ALGORITHM} -f KSK $zone)
-keyname2=$($KEYGEN -q -L 3600 -a ${DEFAULT_ALGORITHM} $zone)
-
-cat $infile $keyname1.key $keyname2.key >$zonefile
-
-$SIGNER -A -x -3 - -P -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
-
 # Just copy multisigner.db.in because it is signed with dnssec-policy.
 cp multisigner.test.db.in multisigner.test.db

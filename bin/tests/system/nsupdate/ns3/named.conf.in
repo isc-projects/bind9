@@ -35,7 +35,6 @@ controls {
 	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-
 zone "example" {
 	type primary;
 	allow-update { any; };
@@ -79,22 +78,6 @@ zone "too-big.test" {
 	allow-update { any; };
 	max-records 3;
 	file "too-big.test.db";
-};
-
-zone "prepub.test" {
-	type primary;
-	allow-update { any; };
-	auto-dnssec maintain;
-	dnssec-dnskey-kskonly yes;
-	file "prepub.test.db.signed";
-};
-
-zone "doubleksk.test" {
-	type primary;
-	allow-update { any; };
-	auto-dnssec maintain;
-	dnssec-dnskey-kskonly yes;
-	file "doubleksk.test.db.signed";
 };
 
 /* Zone for testing CDS and CDNSKEY updates from other provider */
