@@ -38,12 +38,10 @@ newtest() {
 
 newtest "get test ids"
 $DIG $DIGOPTS . dnskey +short +rrcomm @10.53.0.1 > dig.out.ns1.test$n || ret=1
-oldid=`sed -n 's/.*key id = //p' < dig.out.ns1.test$n`
-oldid=`expr "0000${oldid}" : '.*\(.....\)$'`
-newid=`expr \( ${oldid} + 1000 \) % 65536`
-newid=`expr "0000${newid}" : '.*\(.....\)$'`
-badid=`expr \( ${oldid} + 7777 \) % 65536`
-badid=`expr "0000${badid}" : '.*\(.....\)$'`
+oldid=$(sed -n 's/.*key id = //p' < dig.out.ns1.test$n)
+newid=$(printf "%05u" $(((oldid + 1000) % 65536)))
+badid=$(printf "%05u" $(((oldid + 7777) % 65536)))
+oldid=$(printf "%05u" $((oldid + 0)))
 echo_i "test id: oldid=${oldid} (configured)"
 echo_i "test id: newid=${newid} (not configured)"
 echo_i "test id: badid=${badid}"
