@@ -649,11 +649,6 @@ static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
 static const dns_name_t ip6_arpa = DNS_NAME_INITABSOLUTE(ip6_arpa_data,
 							 ip6_arpa_offsets);
 
-static unsigned char underscore_data[] = "\001_";
-static unsigned char underscore_offsets[] = { 0 };
-static const dns_name_t underscore_name =
-	DNS_NAME_INITNONABSOLUTE(underscore_data, underscore_offsets);
-
 static void
 destroy(dns_resolver_t *res);
 static isc_result_t
@@ -666,7 +661,7 @@ static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
 static void
 fctx_shutdown(fetchctx_t *fctx);
-static isc_result_t
+static void
 fctx_minimize_qname(fetchctx_t *fctx);
 static void
 fctx_destroy(fetchctx_t *fctx, bool exiting);
@@ -4225,11 +4220,14 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		}
 
 		/*
-		 * In "_ A" mode we're asking for _.domain -
-		 * resolver by default will follow delegations
-		 * then, we don't want that.
+		 * Turn on NOFOLLOW in relaxed mode so that QNAME minimisation
+		 * doesn't cause additional queries to resolve the target of the
+		 * QNAME minimisation request when a referral is returned.  This
+		 * will also reduce the impact of mis-matched NS RRsets where
+		 * the child's NS RRset is garbage.  If a delegation is
+		 * discovered DNS_R_DELEGATION will be returned to resume_qmin.
 		 */
-		if ((options & DNS_FETCHOPT_QMIN_USE_A) != 0) {
+		if ((options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			options |= DNS_FETCHOPT_NOFOLLOW;
 		}
 		fctx_addref(fctx);
@@ -4315,22 +4313,15 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	}
 	UNLOCK(&res->buckets[bucketnum].lock);
 
-	if (result == ISC_R_CANCELED) {
+	switch (result) {
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_CANCELED:
 		goto cleanup;
-	}
-
-	/*
-	 * If we're doing "_ A"-style minimization we can get
-	 * NX answer to minimized query - we need to continue then.
-	 *
-	 * Otherwise - either disable minimization if we're
-	 * in relaxed mode or fail if we're in strict mode.
-	 */
-	if ((NXDOMAIN_RESULT(result) &&
-	     (fctx->options & DNS_FETCHOPT_QMIN_USE_A) == 0) ||
-	    result == DNS_R_FORMERR || result == DNS_R_REMOTEFORMERR ||
-	    result == ISC_R_FAILURE)
-	{
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_FORMERR:
+	case DNS_R_REMOTEFORMERR:
+	case ISC_R_FAILURE:
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			fctx->qmin_labels = DNS_MAX_LABELS + 1;
 			/*
@@ -4342,6 +4333,14 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 		} else {
 			goto cleanup;
 		}
+		break;
+	default:
+		/*
+		 * When DNS_FETCHOPT_NOFOLLOW is set and a delegation
+		 * was discovered, DNS_R_DELEGATION is returned and is
+		 * processed here.
+		 */
+		break;
 	}
 
 	if (dns_rdataset_isassociated(&fctx->nameservers)) {
@@ -4380,10 +4379,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	fctx->ns_ttl = fctx->nameservers.ttl;
 	fctx->ns_ttl_ok = true;
 
-	result = fctx_minimize_qname(fctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	fctx_minimize_qname(fctx);
 
 	if (!fctx->minimized) {
 		/*
@@ -5033,10 +5029,7 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 		fctx->ip6arpaskip = (options & DNS_FETCHOPT_QMIN_SKIP_IP6A) !=
 					    0 &&
 				    dns_name_issubdomain(fctx->name, &ip6_arpa);
-		result = fctx_minimize_qname(fctx);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_mctx;
-		}
+		fctx_minimize_qname(fctx);
 	}
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
@@ -5049,12 +5042,6 @@ fctx_create(dns_resolver_t *res, isc_task_t *task, const dns_name_t *name,
 	*fctxp = fctx;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_mctx:
-	fctx->magic = 0;
-	isc_mem_detach(&fctx->mctx);
-	dns_adb_detach(&fctx->adb);
-	dns_db_detach(&fctx->cache);
 
 cleanup_timer:
 	isc_timer_destroy(&fctx->timer);
@@ -8017,7 +8004,9 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		case DNS_R_CHASEDSSERVERS:
 			break;
 		case DNS_R_DELEGATION:
-			/* With NOFOLLOW we want to pass the result code
+			/*
+			 * With NOFOLLOW we want to pass return
+			 * DNS_R_DELEGATION to resume_qmin.
 			 */
 			if ((fctx->options & DNS_FETCHOPT_NOFOLLOW) == 0) {
 				result = ISC_R_SUCCESS;
@@ -8561,6 +8550,14 @@ rctx_answer(respctx_t *rctx) {
 		}
 
 		if (result == DNS_R_DELEGATION) {
+			/*
+			 * With NOFOLLOW we want to return DNS_R_DELEGATION to
+			 * resume_qmin.
+			 */
+			if ((rctx->fctx->options & DNS_FETCHOPT_NOFOLLOW) != 0)
+			{
+				return (result);
+			}
 			result = ISC_R_SUCCESS;
 		} else {
 			/*
@@ -8602,7 +8599,7 @@ rctx_answer_positive(respctx_t *rctx) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
 
-	FCTXTRACE("rctx_answer");
+	FCTXTRACE("rctx_answer_positive");
 
 	rctx_answer_init(rctx);
 	rctx_answer_scan(rctx);
@@ -9650,11 +9647,7 @@ rctx_referral(respctx_t *rctx) {
 	if ((fctx->options & DNS_FETCHOPT_QMINIMIZE) != 0) {
 		dns_name_copy(rctx->ns_name, fctx->qmindcname);
 
-		result = fctx_minimize_qname(fctx);
-		if (result != ISC_R_SUCCESS) {
-			rctx->result = result;
-			return (ISC_R_COMPLETE);
-		}
+		fctx_minimize_qname(fctx);
 	}
 
 	result = fcount_incr(fctx, true);
@@ -10751,12 +10744,15 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 		      typebuf);
 }
 
-static isc_result_t
+static void
 fctx_minimize_qname(fetchctx_t *fctx) {
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 	unsigned int dlabels, nlabels;
+	dns_name_t name;
 
 	REQUIRE(VALID_FCTX(fctx));
+
+	dns_name_init(&name, NULL);
 
 	dlabels = dns_name_countlabels(fctx->qmindcname);
 	nlabels = dns_name_countlabels(fctx->name);
@@ -10796,35 +10792,50 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	}
 
 	if (fctx->qmin_labels < nlabels) {
-		/*
-		 * We want to query for qmin_labels from fctx->name
-		 */
-		dns_fixedname_t fname;
-		dns_name_t *name = dns_fixedname_initname(&fname);
-		dns_name_split(fctx->name, fctx->qmin_labels, NULL, name);
-		if ((fctx->options & DNS_FETCHOPT_QMIN_USE_A) != 0) {
-			isc_buffer_t dbuf;
-			dns_fixedname_t tmpname;
-			dns_name_t *tname = dns_fixedname_initname(&tmpname);
-			char ndata[DNS_NAME_MAXWIRE];
-
-			isc_buffer_init(&dbuf, ndata, DNS_NAME_MAXWIRE);
-			dns_fixedname_init(&tmpname);
-			result = dns_name_concatenate(&underscore_name, name,
-						      tname, &dbuf);
-			if (result == ISC_R_SUCCESS) {
-				dns_name_copy(tname, fctx->qminname);
+		dns_rdataset_t rdataset;
+		dns_fixedname_t fixed;
+		dns_name_t *fname = dns_fixedname_initname(&fixed);
+		dns_rdataset_init(&rdataset);
+		do {
+			/*
+			 * We want to query for qmin_labels from fctx->name.
+			 */
+			dns_name_split(fctx->name, fctx->qmin_labels, NULL,
+				       &name);
+			/*
+			 * Look to see if we have anything cached about NS
+			 * RRsets at this name and if so skip this name and
+			 * try with an additional label prepended.
+			 */
+			result = dns_db_find(fctx->cache, &name, NULL,
+					     dns_rdatatype_ns, 0, 0, NULL,
+					     fname, &rdataset, NULL);
+			if (dns_rdataset_isassociated(&rdataset)) {
+				dns_rdataset_disassociate(&rdataset);
 			}
-			fctx->qmintype = dns_rdatatype_a;
-		} else {
-			dns_name_copy(name, fctx->qminname);
-			fctx->qmintype = dns_rdatatype_ns;
-		}
+			switch (result) {
+			case ISC_R_SUCCESS:
+			case DNS_R_CNAME:
+			case DNS_R_DNAME:
+			case DNS_R_NCACHENXDOMAIN:
+			case DNS_R_NCACHENXRRSET:
+				fctx->qmin_labels++;
+				continue;
+			default:
+				break;
+			}
+			break;
+		} while (fctx->qmin_labels < nlabels);
+	}
+
+	if (fctx->qmin_labels < nlabels) {
+		dns_name_copy(&name, fctx->qminname);
+		fctx->qmintype = dns_rdatatype_ns;
 		fctx->minimized = true;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
-		fctx->qmintype = fctx->type;
 		dns_name_copy(fctx->name, fctx->qminname);
+		fctx->qmintype = fctx->type;
 		fctx->minimized = false;
 	}
 
@@ -10835,8 +10846,6 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		      "QNAME minimization - %s minimized, qmintype %d "
 		      "qminname %s",
 		      fctx->minimized ? "" : "not", fctx->qmintype, domainbuf);
-
-	return (result);
 }
 
 isc_result_t
