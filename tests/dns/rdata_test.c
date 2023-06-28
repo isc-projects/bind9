@@ -23,6 +23,10 @@
 
 #define UNIT_TESTING
 
+#include <openssl_shim.h>
+
+#include <openssl/err.h>
+
 #include <isc/cmocka.h>
 #include <isc/commandline.h>
 #include <isc/hex.h>
@@ -122,6 +126,23 @@ typedef struct wire_ok {
 #define WIRE_INVALID(FIRST, ...) WIRE_TEST(false, 0, FIRST, __VA_ARGS__)
 #define WIRE_SENTINEL()		 WIRE_TEST(false, 0)
 
+static void
+detect_uncleared_libcrypto_error(void) {
+	const char *file, *func, *data;
+	int line, flags;
+	long err;
+	bool leak = false;
+	while ((err = ERR_get_error_all(&file, &line, &func, &data, &flags)) !=
+	       0L)
+	{
+		fprintf(stderr,
+			"# Uncleared libcrypto error: %s:%d %s %s %ld %x\n",
+			file, line, func, data, err, flags);
+		leak = true;
+	}
+	assert_false(leak);
+}
+
 /*
  * Call dns_rdata_fromwire() for data in 'src', which is 'srclen' octets in
  * size and represents RDATA of given 'type' and 'class'.  Store the resulting
@@ -155,6 +176,7 @@ wire_to_rdata(const unsigned char *src, size_t srclen, dns_rdataclass_t rdclass,
 	result = dns_rdata_fromwire(rdata, rdclass, type, &source, &dctx, 0,
 				    &target);
 	dns_decompress_invalidate(&dctx);
+	detect_uncleared_libcrypto_error();
 
 	return (result);
 }
@@ -179,6 +201,7 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 	 */
 	dns_compress_init(&cctx, -1, mctx);
 	result = dns_rdata_towire(rdata, &cctx, &target);
+	detect_uncleared_libcrypto_error();
 	dns_compress_invalidate(&cctx);
 
 	*length = isc_buffer_usedlength(&target);
@@ -270,6 +293,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize,
 	 * Convert from uncompressed wire form into type-specific struct.
 	 */
 	result = dns_rdata_tostruct(rdata, rdata_struct, NULL);
+	detect_uncleared_libcrypto_error();
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
@@ -402,6 +426,7 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 */
 	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
 	result = dns_rdata_totext(&rdata, NULL, &target);
+	detect_uncleared_libcrypto_error();
 	if (result != ISC_R_SUCCESS && debug) {
 		size_t i;
 		fprintf(stdout, "# dns_rdata_totext -> %s",
@@ -490,6 +515,7 @@ check_text_conversions(dns_rdata_t *rdata) {
 	 */
 	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
 	result = dns_rdata_totext(rdata, NULL, &target);
+	detect_uncleared_libcrypto_error();
 	assert_int_equal(result, ISC_R_SUCCESS);
 	/*
 	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
@@ -543,6 +569,7 @@ check_multiline_text_conversions(dns_rdata_t *rdata) {
 	flags = dns_master_styleflags(&dns_master_style_default);
 	result = dns_rdata_tofmttext(rdata, dns_rootname, flags, 80 - 32, 4,
 				     "\n", &target);
+	detect_uncleared_libcrypto_error();
 	assert_int_equal(result, ISC_R_SUCCESS);
 	/*
 	 * Ensure buf_totext is properly NUL terminated as
@@ -710,6 +737,7 @@ check_compare_ok_single(const compare_ok_t *compare_ok,
 	}
 
 	answer = dns_rdata_compare(&rdata1, &rdata2);
+	detect_uncleared_libcrypto_error();
 	if (compare_ok->answer == 0 && answer != 0) {
 		fail_msg("# line %d: dns_rdata_compare('%s', '%s'): "
 			 "expected equal, got %s",
