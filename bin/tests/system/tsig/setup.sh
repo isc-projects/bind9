@@ -26,6 +26,11 @@ key "md5" {
         algorithm hmac-md5;
 };
 
+key "hmac-md5-legacy" {
+	algorithm "hmac-md5";
+	secret "B7HCXJs0XnSPzypG5oHuGw==";
+};
+
 key "md5-trunc" {
         secret "97rnFx24Tfna4mHPfgnerA==";
         algorithm hmac-md5-80;

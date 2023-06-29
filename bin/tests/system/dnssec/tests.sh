@@ -3376,7 +3376,7 @@ do
 	2) # Diffie Helman
 	    alg=$((alg+1))
 	    continue;;
-	159|160|161|162|163|164|165) # private - non standard
+	157|160|161|162|163|164|165) # private - non standard
 	    alg=$((alg+1))
 	    continue;;
 	1|5|7|8|10) # RSA algorithms

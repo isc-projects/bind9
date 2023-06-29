@@ -32,6 +32,7 @@
 
 #include <isc/buffer.h>
 #include <isc/hmac.h>
+#include <isc/lex.h>
 #include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/nonce.h>
@@ -102,7 +103,17 @@
 	}                                                                      \
 	static isc_result_t hmac##alg##_parse(                                 \
 		dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {            \
-		return (hmac_parse(ISC_MD_##alg, key, lexer, pub));            \
+		const char *file = isc_lex_getsourcename(lexer);               \
+		isc_result_t result;                                           \
+		result = hmac_parse(ISC_MD_##alg, key, lexer, pub);            \
+		if (result == ISC_R_SUCCESS && file != NULL) {                 \
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,       \
+				      DNS_LOGMODULE_CRYPTO, ISC_LOG_WARNING,   \
+				      "%s: Use of K* file pairs for HMAC is "  \
+				      "deprecated\n",                          \
+				      file);                                   \
+		}                                                              \
+		return (result);                                               \
 	}                                                                      \
 	static dst_func_t hmac##alg##_functions = {                            \
 		hmac##alg##_createctx,                                         \

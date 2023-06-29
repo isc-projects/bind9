@@ -498,6 +498,9 @@ list_hmac_algorithms(isc_buffer_t *b) {
 	for (dst_algorithm_t i = DST_ALG_HMAC_FIRST; i <= DST_ALG_HMAC_LAST;
 	     i++)
 	{
+		if (i == DST_ALG_GSSAPI) {
+			continue;
+		}
 		if (dst_algorithm_supported(i)) {
 			isc_buffer_putstr(b, " ");
 			isc_buffer_putstr(b, dst_hmac_algorithm_totext(i));

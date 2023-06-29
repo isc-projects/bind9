@@ -840,6 +840,37 @@ fi
 
 n=$((n + 1))
 ret=0
+
+n=$((n + 1))
+ret=0
+echo_i "check TSIG key algorithms using legacy K file pairs (nsupdate -k) ($n)"
+if $FEATURETEST --md5
+then
+	ALGS="157 161 162 163 164 165"
+else
+	ALGS="161 162 163 164 165"
+	echo_i "skipping disabled md5 (157) algorithm"
+fi
+for alg in $ALGS; do
+    $NSUPDATE -k ns1/legacy/Klegacy-${alg}.+${alg}+*.key <<END > nsupdate.alg-$alg.out 2>&1 || ret=1
+server 10.53.0.1 ${PORT}
+update add ${alg}.keytests.nil. 600 A 10.10.10.3
+send
+END
+done
+sleep 2
+for alg in $ALGS; do
+    $DIG $DIGOPTS +short @10.53.0.1 ${alg}.keytests.nil | grep 10.10.10.3 > /dev/null 2>&1 || ret=1
+    grep "Use of K\* file pairs for HMAC is deprecated" nsupdate.alg-$alg.out > /dev/null || ret=1
+done
+if [ $ret -ne 0 ]; then
+    echo_i "failed"
+    status=1
+fi
+
+n=$((n + 1))
+ret=0
+
 echo_i "check TSIG key algorithms (nsupdate -k) ($n)"
 if $FEATURETEST --md5
 then

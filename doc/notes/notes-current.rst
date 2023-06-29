@@ -43,7 +43,8 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Restored the abilty to read HMAC-MD5 K file pairs (K*.+157+*.{key,private})
+  that was accidentally lost. :gl:`#4154`
 
 Known Issues
 ~~~~~~~~~~~~
