@@ -862,7 +862,7 @@ zone_catz_disable(dns_zone_t *zone);
 static isc_result_t
 default_journal(dns_zone_t *zone);
 static void
-zone_xfrdone(dns_zone_t *zone, isc_result_t result);
+zone_xfrdone(dns_zone_t *zone, uint32_t *expireopt, isc_result_t result);
 static isc_result_t
 zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	      isc_result_t result);
@@ -17079,7 +17079,7 @@ zone_detachdb(dns_zone_t *zone) {
 }
 
 static void
-zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
+zone_xfrdone(dns_zone_t *zone, uint32_t *expireopt, isc_result_t result) {
 	isc_time_t now;
 	bool again = false;
 	unsigned int soacount;
@@ -17091,8 +17091,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
-		      "zone transfer finished: %s", isc_result_totext(result));
+	dns_zone_logc(
+		zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_DEBUG(1),
+		expireopt == NULL ? "zone transfer finished: %s"
+				  : "zone transfer finished: %s, expire=%u",
+		isc_result_totext(result), expireopt != NULL ? *expireopt : 0);
 
 	/*
 	 * Obtaining a lock on the zone->secure (see zone_send_secureserial)
@@ -17715,7 +17718,7 @@ failure:
 	 * zmgr->xfrin_in_progress.
 	 */
 	if (result != ISC_R_SUCCESS) {
-		zone_xfrdone(zone, result);
+		zone_xfrdone(zone, NULL, result);
 	}
 
 	if (zmgr_tlsctx_cache != NULL) {

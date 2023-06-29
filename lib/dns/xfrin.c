@@ -833,7 +833,7 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 			dns_journal_destroy(&xfr->ixfr.journal);
 		}
 		if (xfr->done != NULL) {
-			(xfr->done)(xfr->zone, result);
+			(xfr->done)(xfr->zone, NULL, result);
 			xfr->done = NULL;
 		}
 		xfr->shutdown_result = result;
@@ -1545,7 +1545,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		if (xfr->done != NULL) {
 			LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, xfr->info,
 							 result);
-			(xfr->done)(xfr->zone, ISC_R_SUCCESS);
+			(xfr->done)(xfr->zone, NULL, ISC_R_SUCCESS);
 			xfr->done = NULL;
 			LIBDNS_XFRIN_DONE_CALLBACK_END(xfr, xfr->info, result);
 		}
