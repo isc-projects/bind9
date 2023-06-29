@@ -9,6 +9,9 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
+.. meta::
+   :google-site-verification: 0-DMrB_qDynsvXBKJhpsS5m8l5oVea8Qe2ojkudjtCY
+
 *************************************
 BIND 9 Administrator Reference Manual
 *************************************
