@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <isc/async.h>
 #include <isc/hex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -406,7 +407,7 @@ qctx_freedata(query_ctx_t *qctx);
 static void
 qctx_destroy(query_ctx_t *qctx);
 
-static isc_result_t
+static void
 query_setup(ns_client_t *client, dns_rdatatype_t qtype);
 
 static isc_result_t
@@ -5512,7 +5513,7 @@ query_trace(query_ctx_t *qctx) {
  * ns__query_start() again with the same query context. Resuming from
  * recursion is handled by query_resume().
  */
-static isc_result_t
+static void
 query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	isc_result_t result = ISC_R_UNSET;
 	query_ctx_t qctx;
@@ -5527,15 +5528,13 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	 */
 	result = ns__query_sfcache(&qctx);
 	if (result != ISC_R_COMPLETE) {
-		qctx_destroy(&qctx);
-		return (result);
+		goto cleanup;
 	}
 
-	result = ns__query_start(&qctx);
+	(void)ns__query_start(&qctx);
 
 cleanup:
 	qctx_destroy(&qctx);
-	return (result);
 }
 
 static bool
@@ -5831,6 +5830,19 @@ ns__query_start(query_ctx_t *qctx) {
 
 cleanup:
 	return (result);
+}
+
+static void
+async_restart(void *arg) {
+	query_ctx_t *qctx = arg;
+	ns_client_t *client = qctx->client;
+
+	ns__query_start(qctx);
+
+	qctx_clean(qctx);
+	qctx_freedata(qctx);
+	qctx_destroy(qctx);
+	isc_mem_put(client->manager->mctx, qctx, sizeof(*qctx));
 }
 
 /*
@@ -6834,7 +6846,7 @@ query_hookresume(void *arg) {
 	} else {
 		switch (rev->hookpoint) {
 		case NS_QUERY_SETUP:
-			(void)query_setup(client, qctx->qtype);
+			query_setup(client, qctx->qtype);
 			break;
 		case NS_QUERY_START_BEGIN:
 			(void)ns__query_start(qctx);
@@ -10387,7 +10399,7 @@ query_cname(query_ctx_t *qctx) {
 
 	result = query_zerottl_refetch(qctx);
 	if (result != ISC_R_COMPLETE) {
-		return (result);
+		goto cleanup;
 	}
 
 	/*
@@ -10441,7 +10453,8 @@ query_cname(query_ctx_t *qctx) {
 	result = dns_rdataset_first(trdataset);
 	if (result != ISC_R_SUCCESS) {
 		dns_message_puttempname(qctx->client->message, &tname);
-		return (ns_query_done(qctx));
+		(void)ns_query_done(qctx);
+		goto cleanup;
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
@@ -10538,7 +10551,8 @@ query_dname(query_ctx_t *qctx) {
 	result = dns_rdataset_first(trdataset);
 	if (result != ISC_R_SUCCESS) {
 		dns_message_puttempname(qctx->client->message, &tname);
-		return (ns_query_done(qctx));
+		(void)ns_query_done(qctx);
+		goto cleanup;
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
@@ -10570,7 +10584,8 @@ query_dname(query_ctx_t *qctx) {
 		qctx->client->message->rcode = dns_rcode_yxdomain;
 	}
 	if (result != ISC_R_SUCCESS) {
-		return (ns_query_done(qctx));
+		(void)ns_query_done(qctx);
+		goto cleanup;
 	}
 
 	ns_client_keepname(qctx->client, qctx->fname, qctx->dbuf);
@@ -10692,7 +10707,7 @@ query_prepresponse(query_ctx_t *qctx) {
 
 	result = query_zerottl_refetch(qctx);
 	if (result != ISC_R_COMPLETE) {
-		return (result);
+		goto cleanup;
 	}
 
 	return (query_respond(qctx));
@@ -11580,8 +11595,14 @@ ns_query_done(query_ctx_t *qctx) {
 	 * Do we need to restart the query (e.g. for CNAME chaining)?
 	 */
 	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
+		query_ctx_t *saved_qctx = NULL;
 		qctx->client->query.restarts++;
-		return (ns__query_start(qctx));
+		saved_qctx = isc_mem_get(qctx->client->manager->mctx,
+					 sizeof(*saved_qctx));
+		qctx_save(qctx, saved_qctx);
+		isc_async_run(qctx->client->manager->loop, async_restart,
+			      saved_qctx);
+		return (DNS_R_CONTINUE);
 	}
 
 	if (qctx->result != ISC_R_SUCCESS &&
@@ -12124,5 +12145,5 @@ ns_query_start(ns_client_t *client, isc_nmhandle_t *handle) {
 		message->flags |= DNS_MESSAGEFLAG_AD;
 	}
 
-	(void)query_setup(client, qtype);
+	query_setup(client, qtype);
 }
