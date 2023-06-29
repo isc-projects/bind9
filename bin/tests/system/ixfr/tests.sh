@@ -388,9 +388,9 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking whether dig calculates IXFR statistics correctly ($n)"
 ret=0
-$DIG $DIGOPTS +noedns +stat -b 10.53.0.4 @10.53.0.4 test. ixfr=2 > dig.out1.test$n
+$DIG $DIGOPTS +expire +nocookie +stat -b 10.53.0.4 @10.53.0.4 test. ixfr=2 > dig.out1.test$n
 get_dig_xfer_stats dig.out1.test$n > stats.dig
-diff ixfr-stats.good stats.dig > /dev/null || ret=1
+diff ixfr-stats-with-expire.good stats.dig > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -400,20 +400,20 @@ status=$((status+ret))
 
 _wait_for_stats () {
     get_named_xfer_stats ns4/named.run "$1" test "$2" > "$3"
-    diff ixfr-stats.good "$3" > /dev/null || return 1
+    diff "$4" "$3" > /dev/null || return 1
     return 0
 }
 
 n=$((n+1))
 echo_i "checking whether named calculates incoming IXFR statistics correctly ($n)"
 ret=0
-retry_quiet 10 _wait_for_stats 10.53.0.3 "Transfer completed" stats.incoming || ret=1
+retry_quiet 10 _wait_for_stats 10.53.0.3 "Transfer completed" stats.incoming ixfr-stats-without-expire.good || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checking whether named calculates outgoing IXFR statistics correctly ($n)"
-retry_quiet 10 _wait_for_stats 10.53.0.4 "IXFR ended" stats.outgoing || ret=1
+retry_quiet 10 _wait_for_stats 10.53.0.4 "IXFR ended" stats.outgoing ixfr-stats-with-expire.good || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

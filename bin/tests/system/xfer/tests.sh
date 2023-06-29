@@ -541,7 +541,7 @@ tmp=0
 # Use -b so that we can discern between incoming and outgoing transfers in ns3
 # logs later on.
 wait_for_xfer() (
-	$DIG $DIGOPTS +noedns +stat -b 10.53.0.2 @10.53.0.3 xfer-stats. AXFR > dig.out.ns3.test$n
+	$DIG $DIGOPTS +edns +nocookie +noexpire +stat -b 10.53.0.2 @10.53.0.3 xfer-stats. AXFR > dig.out.ns3.test$n
 	grep "; Transfer failed" dig.out.ns3.test$n > /dev/null || return 0
 	return 1
 )

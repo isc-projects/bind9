@@ -30,6 +30,7 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/peer.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -1147,6 +1148,38 @@ request_type(dns_xfrin_t *xfr) {
 	}
 }
 
+static isc_result_t
+add_opt(dns_message_t *message, uint16_t udpsize, bool reqnsid,
+	bool reqexpire) {
+	isc_result_t result;
+	dns_rdataset_t *rdataset = NULL;
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
+	int count = 0;
+
+	/* Set EDNS options if applicable. */
+	if (reqnsid) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_NSID;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
+	}
+	if (reqexpire) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_EXPIRE;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
+	}
+	result = dns_message_buildopt(message, &rdataset, 0, udpsize, 0,
+				      ednsopts, count);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	return (dns_message_setopt(message, rdataset));
+}
+
 /*
  * Build an *XFR request and send its length prefix.
  */
@@ -1160,6 +1193,10 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_name_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
+	bool edns = true;
+	bool reqnsid = xfr->view->requestnsid;
+	bool reqexpire = dns_zone_getrequestexpire(xfr->zone);
+	uint16_t udpsize = dns_view_getudpsize(xfr->view);
 
 	LIBDNS_XFRIN_RECV_SEND_REQUEST(xfr, xfr->info);
 
@@ -1196,6 +1233,24 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	} else if (xfr->reqtype == dns_rdatatype_soa) {
 		CHECK(dns_db_getsoaserial(xfr->db, NULL,
 					  &xfr->ixfr.request_serial));
+	}
+
+	if (xfr->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_netaddr_t primaryip;
+		isc_netaddr_fromsockaddr(&primaryip, &xfr->primaryaddr);
+		result = dns_peerlist_peerbyaddr(xfr->view->peers, &primaryip,
+						 &peer);
+		if (result == ISC_R_SUCCESS) {
+			(void)dns_peer_getsupportedns(peer, &edns);
+			(void)dns_peer_getudpsize(peer, &udpsize);
+			(void)dns_peer_getrequestnsid(peer, &reqnsid);
+			(void)dns_peer_getrequestexpire(peer, &reqexpire);
+		}
+	}
+
+	if (edns) {
+		CHECK(add_opt(msg, udpsize, reqnsid, reqexpire));
 	}
 
 	xfr->nmsg = 0;
