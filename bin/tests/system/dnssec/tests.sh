@@ -197,7 +197,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive validation NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.example > delv.out$n || ret=1
@@ -229,7 +229,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive validation NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.nsec3.example > delv.out$n || ret=1
@@ -254,7 +254,7 @@ status=$((status+ret))
 
 SP="[[:space:]]+"
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive validation OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.optout.example > delv.out$n || ret=1
@@ -280,7 +280,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive wildcard validation NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.wild.example > delv.out$n || ret=1
@@ -322,7 +322,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive wildcard validation NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.wild.nsec3.example > delv.out$n || ret=1
@@ -348,7 +348,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking positive wildcard validation OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.wild.optout.example > delv.out$n || ret=1
@@ -370,7 +370,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NXDOMAIN NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.example > delv.out$n 2>&1 || ret=1
@@ -393,7 +393,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NXDOMAIN NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.nsec3.example > delv.out$n 2>&1 || ret=1
@@ -417,7 +417,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NXDOMAIN OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.optout.example > delv.out$n 2>&1 || ret=1
@@ -439,7 +439,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NODATA OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt a.example > delv.out$n 2>&1 || ret=1
@@ -463,7 +463,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NODATA NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt a.nsec3.example > delv.out$n 2>&1 || ret=1
@@ -487,7 +487,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative validation NODATA OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt a.optout.example > delv.out$n 2>&1 || ret=1
@@ -508,7 +508,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative wildcard validation NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt b.wild.example > delv.out$n 2>&1 || ret=1
@@ -528,7 +528,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative wildcard validation NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt b.wild.nsec3.example > delv.out$n 2>&1 || ret=1
@@ -552,7 +552,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking negative wildcard validation OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 txt b.optout.nsec3.example > delv.out$n 2>&1 || ret=1
@@ -576,7 +576,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server insecurity proof NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.insecure.example > delv.out$n || ret=1
@@ -598,7 +598,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server insecurity proof NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.insecure.nsec3.example > delv.out$n || ret=1
@@ -620,7 +620,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server insecurity proof OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 a a.insecure.optout.example > delv.out$n || ret=1
@@ -644,7 +644,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server negative insecurity proof NSEC using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.insecure.example > delv.out$n 2>&1 || ret=1
@@ -668,7 +668,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server negative insecurity proof NSEC3 using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.insecure.nsec3.example > delv.out$n 2>&1 || ret=1
@@ -692,7 +692,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking 1-server negative insecurity proof OPTOUT using dns_client ($n)"
    delv_with_opts @10.53.0.4 a q.insecure.optout.example > delv.out$n 2>&1 || ret=1
@@ -889,7 +889,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking failed validation using dns_client ($n)"
    delv_with_opts +cd @10.53.0.4 a a.bogus.example > delv.out$n 2>&1 || ret=1
@@ -934,7 +934,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking that validation fails when key record is missing using dns_client ($n)"
    delv_with_opts +cd @10.53.0.4 a a.b.keyless.example > delv.out$n 2>&1 || ret=1
@@ -953,7 +953,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-if [ -x ${DELV} ] ; then
+if [ -x "${DELV}" ] ; then
    ret=0
    echo_i "checking that validation succeeds when a revoked key is encountered using dns_client ($n)"
    delv_with_opts +cd @10.53.0.4 soa revkey.example > delv.out$n 2>&1 || ret=1
