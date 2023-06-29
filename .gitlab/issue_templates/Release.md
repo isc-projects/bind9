@@ -72,6 +72,7 @@
  - [ ] ***(Support)*** Wait for clearance from Security Officer to proceed with the public release (if applicable).
  - [ ] ***(Support)*** Place tarballs in public location on FTP site.
  - [ ] ***(Support)*** Publish links to downloads on ISC website. [Example](https://gitlab.isc.org/website/theme-staging-site/-/commit/1ac7b30b73cb03228df4cd5651fa4e774ac35625)
+ - [ ] ***(Support)*** Add the new releases to the [vulnerability matrix in the Knowledge Base](https://kb.isc.org/docs/aa-00913).
  - [ ] ***(Support)*** Write release email to *bind-announce*. [Example](https://lists.isc.org/pipermail/bind-announce/2023-March/001231.html)
  - [ ] ***(Support)*** Write email to *bind-users* (if a major release). [Example](https://lists.isc.org/pipermail/bind-users/2022-January/105624.html)
  - [ ] ***(Support)*** Send eligible customers updated links to the Subscription Edition (update the -S edition delivery tickets, even if those links were provided earlier via an ASN ticket).
@@ -81,7 +82,7 @@
  - [ ] ***(SwEng)*** Build Debian/Ubuntu packages.
  - [ ] ***(SwEng)*** Update Docker files [here](https://gitlab.isc.org/isc-projects/bind9-docker/-/branches) and make sure push is synchronized to [GitHub](https://github.com/isc-projects/bind9-docker). [Docker Hub](https://hub.docker.com/r/internetsystemsconsortium/bind9) should pick it up automatically. [Example](https://gitlab.isc.org/isc-projects/bind9-docker/-/commit/cada7e10e9af951595c98bfffc4bd42512faac05)
  - [ ] ***(QA)*** Inform Marketing of the release.
- - [ ] ***(Marketing)*** Post short note to Twitter.
+ - [ ] ***(Marketing)*** Post a short note to Mastodon.
  - [ ] ***(Marketing)*** Update [Wikipedia entry for BIND](https://en.wikipedia.org/wiki/BIND).
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed. `git show --show-signature v9.19.12`
