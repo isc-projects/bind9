@@ -11,9 +11,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-set -eu
+set -e
 
 . ../conf.sh
+
+set -u
 
 touch empty
 

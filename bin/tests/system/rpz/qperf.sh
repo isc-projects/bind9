@@ -13,7 +13,7 @@
 
 for QDIR in `echo "$PATH" | tr : ' '` ../../../../contrib/queryperf; do
     QPERF=$QDIR/queryperf
-    if test -f $QPERF -a -x $QPERF; then
+    if test -f "$QPERF" -a -x "$QPERF"; then
 	echo $QPERF
 	exit 0
     fi
