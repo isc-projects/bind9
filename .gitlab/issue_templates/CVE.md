@@ -71,7 +71,7 @@ confidential!
 
   - [ ] [:link:][step_clearance]         **(IM)** Grant Support clearance to proceed with public release
   - [ ] [:link:][step_publish]           **(Support)** Publish the releases (as outlined in the release checklist)
-  - [ ] [:link:][step_matrix]            **(Support)** (BIND 9 only) Update vulnerability matrix in the Knowledge Base
+  - [ ] [:link:][step_matrix]            **(Support)** (BIND 9 only) Add the new CVEs to the vulnerability matrix in the Knowledge Base
   - [ ] [:link:][step_publish_advisory]  **(Support)** Bump Document Version for the Security Advisory and publish it in the Knowledge Base
   - [ ] [:link:][step_notifications]     **(First IM)** Send notification emails to third parties
   - [ ] [:link:][step_mitre]             **(First IM)** Advise MITRE about the disclosed CVEs
@@ -116,7 +116,7 @@ confidential!
 [step_packager_emails]:   https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#send-notifications-to-os-packagers
 [step_clearance]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#grant-support-clearance-to-proceed-with-public-release
 [step_publish]:           https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#publish-the-releases-as-outlined-in-the-release-checklist
-[step_matrix]:            https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#bind-9-only-update-vulnerability-matrix-in-the-knowledge-base
+[step_matrix]:            https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#bind-9-only-add-the-new-cves-to-the-vulnerability-matrix-in-the-knowledge-base
 [step_publish_advisory]:  https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#bump-document-version-for-the-security-advisory-and-publish-it-in-the-knowledge-base
 [step_notifications]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#send-notification-emails-to-third-parties
 [step_mitre]:             https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#advise-mitre-about-the-disclosed-cves
