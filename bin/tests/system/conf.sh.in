@@ -33,7 +33,11 @@ export CHECKDS=$TOP/bin/python/dnssec-checkds
 export CHECKZONE=$TOP/bin/check/named-checkzone
 export COVERAGE=$TOP/bin/python/dnssec-coverage
 export DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
-export DELV=$TOP/bin/delv/delv
+if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
+    export DELV=$TOP/bin/delv/delv
+else
+    export DELV=:
+fi
 export DIG=$TOP/bin/dig/dig
 export DNSTAPREAD=$TOP/bin/tools/dnstap-read
 export DSFROMKEY=$TOP/bin/dnssec/dnssec-dsfromkey

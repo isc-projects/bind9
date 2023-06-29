@@ -70,7 +70,7 @@ else
     add_conf "## testing with DNSRPS"
 fi
 
-if [ ! -x $DNSRPS_CMD ]; then
+if [ ! -x "$DNSRPS_CMD" ]; then
     add_conf "## make $DNSRPS_CMD to test DNSRPS"
     add_conf '#skip'
     exit 0

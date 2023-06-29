@@ -11,11 +11,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-set -eu
+set -e
 
 SYSTEMTESTTOP=..
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
+
+set -u
 
 echo_i "Generating keys for Native PKCS#11" >&2
 
