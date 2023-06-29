@@ -1,3 +1,7 @@
+6209.	[func]		Reduce query-response latency by making recursive
+			queries (CNAME, DNAME, NSEC) asynchronous instead
+			of directly calling the respective functions. [GL #4185]
+
 6208.	[func]		Return BADCOOKIE for out-of-date or otherwise bad, well
 			formed DNS SERVER COOKIES. [GL #4194]
 

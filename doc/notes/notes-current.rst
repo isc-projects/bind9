@@ -41,6 +41,10 @@ Bug Fixes
 
 - None.
 
+- Query-processing latency under load has been improved by reducing the
+  uninterrupted time spent by resolving long cached chains of domain names.
+  :gl:`#4185`
+
 Known Issues
 ~~~~~~~~~~~~
 
