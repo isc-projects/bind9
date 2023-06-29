@@ -142,7 +142,8 @@ struct dns_xfrin {
 
 	xfrin_state_t state;
 	uint32_t end_serial;
-	bool edns, is_ixfr;
+	uint32_t expireopt;
+	bool edns, is_ixfr, expireoptset;
 
 	unsigned int nmsg;  /*%< Number of messages recvd */
 	unsigned int nrecs; /*%< Number of records recvd */
@@ -834,7 +835,9 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 			dns_journal_destroy(&xfr->ixfr.journal);
 		}
 		if (xfr->done != NULL) {
-			(xfr->done)(xfr->zone, NULL, result);
+			(xfr->done)(xfr->zone,
+				    xfr->expireoptset ? &xfr->expireopt : NULL,
+				    result);
 			xfr->done = NULL;
 		}
 		xfr->shutdown_result = result;
@@ -1324,6 +1327,38 @@ failure:
 }
 
 static void
+get_edns_expire(dns_xfrin_t *xfr, dns_message_t *msg) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t optbuf;
+	uint16_t optcode;
+	uint16_t optlen;
+
+	result = dns_rdataset_first(msg->opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(msg->opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			/*
+			 * A EDNS EXPIRE response has a length of 4.
+			 */
+			if (optcode != DNS_OPT_EXPIRE || optlen != 4) {
+				isc_buffer_forward(&optbuf, optlen);
+				continue;
+			}
+			xfr->expireopt = isc_buffer_getuint32(&optbuf);
+			xfr->expireoptset = true;
+			dns_zone_log(xfr->zone, ISC_LOG_DEBUG(1),
+				     "got EDNS EXPIRE of %u", xfr->expireopt);
+			break;
+		}
+	}
+}
+
+static void
 xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	dns_message_t *msg = NULL;
@@ -1585,6 +1620,10 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	xfr->tsigctx = msg->tsigctx;
 	msg->tsigctx = NULL;
 
+	if (!xfr->expireoptset && msg->opt != NULL) {
+		get_edns_expire(xfr, msg);
+	}
+
 	switch (xfr->state) {
 	case XFRST_GOTSOA:
 		xfr->reqtype = dns_rdatatype_axfr;
@@ -1612,7 +1651,9 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		if (xfr->done != NULL) {
 			LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, xfr->info,
 							 result);
-			(xfr->done)(xfr->zone, NULL, ISC_R_SUCCESS);
+			(xfr->done)(xfr->zone,
+				    xfr->expireoptset ? &xfr->expireopt : NULL,
+				    ISC_R_SUCCESS);
 			xfr->done = NULL;
 			LIBDNS_XFRIN_DONE_CALLBACK_END(xfr, xfr->info, result);
 		}
