@@ -11175,11 +11175,19 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 	     result = isc_hashmap_iter_next(it))
 	{
 		fctxcount_t *counter = NULL;
-		isc_hashmap_iter_current(it, (void **)&counter);
-		char nb[DNS_NAME_FORMATSIZE],
-			text[DNS_NAME_FORMATSIZE + BUFSIZ];
+		uint_fast32_t count, dropped, allowed;
+		char nb[DNS_NAME_FORMATSIZE];
+		char text[DNS_NAME_FORMATSIZE + BUFSIZ];
 
-		if (counter->count < spill) {
+		isc_hashmap_iter_current(it, (void **)&counter);
+
+		LOCK(&counter->lock);
+		count = counter->count;
+		dropped = counter->dropped;
+		allowed = counter->allowed;
+		UNLOCK(&counter->lock);
+
+		if (count < spill) {
 			continue;
 		}
 
@@ -11187,8 +11195,7 @@ dns_resolver_dumpquota(dns_resolver_t *res, isc_buffer_t **buf) {
 		snprintf(text, sizeof(text),
 			 "\n- %s: %" PRIuFAST32 " active (allowed %" PRIuFAST32
 			 " spilled %" PRIuFAST32 ")",
-			 nb, counter->count, counter->allowed,
-			 counter->dropped);
+			 nb, count, allowed, dropped);
 
 		result = isc_buffer_reserve(*buf, strlen(text));
 		if (result != ISC_R_SUCCESS) {
