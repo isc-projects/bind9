@@ -11,7 +11,7 @@ zone <string> [ <class> ] {
 	auto-dnssec ( allow | maintain | off ); // deprecated
 	check-names ( fail | warn | ignore );
 	database <string>;
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	dlz <string>;
 	dnskey-sig-validity <integer>;
 	dnssec-dnskey-kskonly <boolean>;

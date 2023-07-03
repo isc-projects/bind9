@@ -5,7 +5,7 @@ zone <string> [ <class> ] {
 	check-names ( fail | warn | ignore );
 	database <string>;
 	delegation-only <boolean>; // deprecated
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	file <quoted_string>;
 	forward ( first | only );
 	forwarders [ port <integer> ]  { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ]; ... };

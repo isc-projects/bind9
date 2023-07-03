@@ -98,7 +98,7 @@ options {
 	datasize ( default | unlimited | <sizeval> ); // deprecated
 	deny-answer-addresses { <address_match_element>; ... } [ except-from { <string>; ... } ];
 	deny-answer-aliases { <string>; ... } [ except-from { <string>; ... } ];
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	directory <quoted_string>;
 	disable-algorithms <string> { <string>; ... }; // may occur multiple times
 	disable-ds-digests <string> { <string>; ... }; // may occur multiple times
@@ -151,7 +151,7 @@ options {
 	fstrm-set-reopen-interval <duration>; // not configured
 	geoip-directory ( <quoted_string> | none );
 	glue-cache <boolean>; // deprecated
-	heartbeat-interval <integer>;
+	heartbeat-interval <integer>; // deprecated
 	hostname ( <quoted_string> | none );
 	http-listener-clients <integer>;
 	http-port <integer>;
@@ -404,7 +404,7 @@ view <string> [ <class> ] {
 	clients-per-query <integer>;
 	deny-answer-addresses { <address_match_element>; ... } [ except-from { <string>; ... } ];
 	deny-answer-aliases { <string>; ... } [ except-from { <string>; ... } ];
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	disable-algorithms <string> { <string>; ... }; // may occur multiple times
 	disable-ds-digests <string> { <string>; ... }; // may occur multiple times
 	disable-empty-zone <string>; // may occur multiple times
