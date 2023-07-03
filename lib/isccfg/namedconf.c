@@ -1260,7 +1260,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* HAVE_GEOIP2 */
 	{ "geoip-use-ecs", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "has-old-clients", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "heartbeat-interval", &cfg_type_uint32, 0 },
+	{ "heartbeat-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "host-statistics", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics-max", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "hostname", &cfg_type_qstringornone, 0 },
@@ -2274,7 +2274,8 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "check-svcb", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-wildcard", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "dialup", &cfg_type_dialuptype,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB |
+		  CFG_CLAUSEFLAG_DEPRECATED },
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32,

@@ -1973,8 +1973,10 @@ Boolean Options
    record <named -m>` is specified on the command line, in which case it is ``yes``.
 
 .. namedconf:statement:: dialup
-   :tags: transfer
+   :tags: deprecated
    :short: Concentrates zone maintenance so that all transfers take place once every :any:`heartbeat-interval`, ideally during a single call.
+
+   This option is deprecated and will be removed in a future release.
 
    If ``yes``, then the server treats all zones as if they are doing
    zone transfers across a dial-on-demand dialup link, which can be
@@ -3793,7 +3795,7 @@ Periodic Task Intervals
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 .. namedconf:statement:: heartbeat-interval
-   :tags: zone
+   :tags: deprecated
    :short: Sets the interval at which the server performs zone maintenance tasks for all zones marked as :any:`dialup`.
 
    The server performs zone maintenance tasks for all zones marked
@@ -3801,6 +3803,8 @@ Periodic Task Intervals
    minutes. Reasonable values are up to 1 day (1440 minutes). The
    maximum value is 28 days (40320 minutes). If set to 0, no zone
    maintenance for these zones occurs.
+
+   This option is deprecated and will be removed in a future release.
 
 .. namedconf:statement:: interface-interval
    :tags: server
