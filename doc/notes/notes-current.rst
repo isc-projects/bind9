@@ -25,7 +25,8 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The :any:`dialup` and :any:`heartbeat-interval` options have been
+  deprecated and will be removed in a future release. :gl:`#3700`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

@@ -1,3 +1,6 @@
+6220.	[func]		Deprecate the 'dialup' and 'heartbeat-interval'
+			options. [GL #3700]
+
 6219.	[bug]		Ignore 'max-zone-ttl' on 'dnssec-policy insecure'.
 			[GL #4032]
 
