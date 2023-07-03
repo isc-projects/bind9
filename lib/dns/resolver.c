@@ -610,15 +610,17 @@ struct dns_resolver {
 #define VALID_RESOLVER(res) ISC_MAGIC_VALID(res, RES_MAGIC)
 
 /*%
- * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0
- * (0x008) which we also use as an addrinfo flag.
+ * Private addrinfo flags.
  */
-#define FCTX_ADDRINFO_MARK	0x00001
-#define FCTX_ADDRINFO_FORWARDER 0x01000
-#define FCTX_ADDRINFO_EDNSOK	0x04000
-#define FCTX_ADDRINFO_NOCOOKIE	0x08000
-#define FCTX_ADDRINFO_BADCOOKIE 0x10000
-#define FCTX_ADDRINFO_DUALSTACK 0x20000
+enum {
+	FCTX_ADDRINFO_MARK = 1 << 0,
+	FCTX_ADDRINFO_FORWARDER = 1 << 1,
+	FCTX_ADDRINFO_EDNSOK = 1 << 2,
+	FCTX_ADDRINFO_NOCOOKIE = 1 << 3,
+	FCTX_ADDRINFO_BADCOOKIE = 1 << 4,
+	FCTX_ADDRINFO_DUALSTACK = 1 << 5,
+	FCTX_ADDRINFO_NOEDNS0 = 1 << 6,
+};
 
 #define UNMARKED(a)    (((a)->flags & FCTX_ADDRINFO_MARK) == 0)
 #define ISFORWARDER(a) (((a)->flags & FCTX_ADDRINFO_FORWARDER) != 0)
@@ -2573,18 +2575,19 @@ resquery_send(resquery_t *query) {
 	 * The ADB does not know about servers with "edns no".  Check
 	 * this, and then inform the ADB for future use.
 	 */
-	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0 &&
+	if ((query->addrinfo->flags & FCTX_ADDRINFO_NOEDNS0) == 0 &&
 	    peer != NULL &&
 	    dns_peer_getsupportedns(peer, &useedns) == ISC_R_SUCCESS &&
 	    !useedns)
 	{
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_NOEDNS0);
+				    FCTX_ADDRINFO_NOEDNS0,
+				    FCTX_ADDRINFO_NOEDNS0);
 	}
 
 	/* Sync NOEDNS0 flag in addrinfo->flags and options now. */
-	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) != 0) {
+	if ((query->addrinfo->flags & FCTX_ADDRINFO_NOEDNS0) != 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 	}
 
@@ -2626,7 +2629,7 @@ resquery_send(resquery_t *query) {
 	 * the remote server doesn't like it.
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
-		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
+		if ((query->addrinfo->flags & FCTX_ADDRINFO_NOEDNS0) == 0) {
 			uint16_t peerudpsize = 0;
 			unsigned int version = DNS_EDNS_VERSION;
 			unsigned int flags = query->addrinfo->flags;
@@ -8427,7 +8430,8 @@ rctx_edns(respctx_t *rctx) {
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
 			fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_NOEDNS0);
+				    FCTX_ADDRINFO_NOEDNS0,
+				    FCTX_ADDRINFO_NOEDNS0);
 	} else if (rctx->opt == NULL &&
 		   (query->rmessage->flags & DNS_MESSAGEFLAG_TC) == 0 &&
 		   !EDNSOK(query->addrinfo) &&
@@ -8453,7 +8457,8 @@ rctx_edns(respctx_t *rctx) {
 			DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
 			fctx->res->mctx);
 		dns_adb_changeflags(fctx->adb, query->addrinfo,
-				    DNS_FETCHOPT_NOEDNS0, DNS_FETCHOPT_NOEDNS0);
+				    FCTX_ADDRINFO_NOEDNS0,
+				    FCTX_ADDRINFO_NOEDNS0);
 	}
 
 	/*
