@@ -17080,11 +17080,11 @@ zone_detachdb(dns_zone_t *zone) {
 
 static void
 zone_xfrdone(dns_zone_t *zone, uint32_t *expireopt, isc_result_t result) {
-	isc_time_t now;
+	isc_time_t now, expiretime;
 	bool again = false;
 	unsigned int soacount;
 	unsigned int nscount;
-	uint32_t serial, refresh, retry, expire, minimum, soattl;
+	uint32_t serial, refresh, retry, expire, minimum, soattl, oldexpire;
 	isc_result_t xfrresult = result;
 	bool free_needed;
 	dns_zone_t *secure = NULL;
@@ -17135,6 +17135,8 @@ again:
 			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 			goto same_primary;
 		}
+
+		oldexpire = zone->expire;
 
 		/*
 		 * Update the zone structure's data from the actual
@@ -17188,19 +17190,31 @@ again:
 		}
 
 		/*
-		 * Set our next update/expire times.
+		 * Set our next refresh time.
 		 */
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
 			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 			zone->refreshtime = now;
-			DNS_ZONE_TIME_ADD(&now, zone->expire,
-					  &zone->expiretime);
 		} else {
 			DNS_ZONE_JITTER_ADD(&now, zone->refresh,
 					    &zone->refreshtime);
-			DNS_ZONE_TIME_ADD(&now, zone->expire,
-					  &zone->expiretime);
 		}
+
+		/*
+		 * Set our next expire time. If the parent returned
+		 * an EXPIRE option use that to update zone->expiretime.
+		 */
+		expire = zone->expire;
+		if (expireopt != NULL && *expireopt < expire) {
+			expire = *expireopt;
+		}
+		DNS_ZONE_TIME_ADD(&now, expire, &expiretime);
+		if (oldexpire != zone->expire ||
+		    isc_time_compare(&expiretime, &zone->expiretime) > 0)
+		{
+			zone->expiretime = expiretime;
+		}
+
 		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS) {
 			char buf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
 			if (zone->tsigkey != NULL) {
@@ -17227,15 +17241,27 @@ again:
 		 */
 		if (zone->masterfile != NULL || zone->journal != NULL) {
 			unsigned int delay = DNS_DUMP_DELAY;
+			isc_interval_t i;
+			isc_time_t when;
+
+			/*
+			 * Compute effective modification time.
+			 */
+			isc_interval_set(&i, zone->expire, 0);
+			result = isc_time_subtract(&zone->expiretime, &i,
+						   &when);
+			if (result != ISC_R_SUCCESS) {
+				when = now;
+			}
 
 			result = ISC_R_FAILURE;
 			if (zone->journal != NULL) {
-				result = isc_file_settime(zone->journal, &now);
+				result = isc_file_settime(zone->journal, &when);
 			}
 			if (result != ISC_R_SUCCESS && zone->masterfile != NULL)
 			{
 				result = isc_file_settime(zone->masterfile,
-							  &now);
+							  &when);
 			}
 
 			if ((DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NODELAY) != 0) ||
