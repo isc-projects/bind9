@@ -392,20 +392,38 @@ static bool
 adbentry_overquota(dns_adbentry_t *entry);
 
 /*
- * MUST NOT overlap DNS_ADBFIND_* flags!
+ * Private flag(s) for adbfind objects. These are used internally and
+ * are not meant to be seen or used by the caller; however, we use the
+ * same flags field as for DNS_ADBFIND_xxx flags, so we must be careful
+ * that there is no overlap between these values and those. To make it
+ * easier, we will number these starting from the most significant bit
+ * instead of the least significant.
  */
-#define FIND_EVENT_SENT	  0x40000000
+enum {
+	FIND_EVENT_SENT = 1 << 31,
+};
 #define FIND_EVENTSENT(h) (((h)->flags & FIND_EVENT_SENT) != 0)
 
-#define NAME_IS_DEAD	 0x40000000
-#define NAME_STARTATZONE DNS_ADBFIND_STARTATZONE
-#define NAME_DEAD(n)	 (((n)->flags & NAME_IS_DEAD) != 0)
+/*
+ * Private flag(s) for adbname objects.
+ */
+enum {
+	NAME_IS_DEAD = 1 << 31,
+};
+#define NAME_DEAD(n) (((n)->flags & NAME_IS_DEAD) != 0)
 
 /*
- * Private flag(s) for entries.
- * MUST NOT overlap FCTX_ADDRINFO_xxx and DNS_FETCHOPT_NOEDNS0.
+ * Private flag(s) for adbentry objects.  Note that these will also
+ * be used for addrinfo flags, and in resolver.c we'll use the same
+ * field for FCTX_ADDRINFO_xxx flags to store information about remote
+ * servers, so we must be careful that there is no overlap between
+ * these values and those. To make it easier, we will number these
+ * starting from the most significant bit instead of the least
+ * significant.
  */
-#define ENTRY_IS_DEAD 0x00400000
+enum {
+	ENTRY_IS_DEAD = 1 << 31,
+};
 #define ENTRY_DEAD(e) (((e)->flags & ENTRY_IS_DEAD) != 0)
 
 /*
@@ -449,8 +467,9 @@ adbentry_overquota(dns_adbentry_t *entry);
  * glue, and compare this to the appropriate bits set in o, to see if
  * this is ok.
  */
-#define STARTATZONE_MATCHES(nf, o) \
-	(((nf)->flags & NAME_STARTATZONE) == ((o)&DNS_ADBFIND_STARTATZONE))
+#define STARTATZONE_MATCHES(nf, o)                  \
+	(((nf)->flags & DNS_ADBFIND_STARTATZONE) == \
+	 ((o)&DNS_ADBFIND_STARTATZONE))
 
 #define ENTER_LEVEL  ISC_LOG_DEBUG(50)
 #define CLEAN_LEVEL  ISC_LOG_DEBUG(100)
@@ -1007,7 +1026,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname, bool start_at_zone) {
 
 	name->key.size = dnsname->length + sizeof(bool);
 	if (start_at_zone) {
-		name->flags |= NAME_STARTATZONE;
+		name->flags |= DNS_ADBFIND_STARTATZONE;
 		name->key.start_at_zone = true;
 	}
 
@@ -2786,14 +2805,14 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * We need to specify whether to search static-stub zones (if
 	 * configured) depending on whether this is a "start at zone" lookup,
 	 * i.e., whether it's a "bailiwick" glue.  If it's bailiwick (in which
-	 * case NAME_STARTATZONE is set) we need to stop the search at any
-	 * matching static-stub zone without looking into the cache to honor
+	 * case DNS_ADBFIND_STARTATZONE is set) we need to stop the search at
+	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       DNS_DBFIND_GLUEOK, true,
-			       ((adbname->flags & NAME_STARTATZONE) != 0), NULL,
-			       NULL, fname, &rdataset, NULL);
+	result = dns_view_find(
+		adb->view, &adbname->name, rdtype, now, DNS_DBFIND_GLUEOK, true,
+		((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0), NULL, NULL,
+		fname, &rdataset, NULL);
 
 	switch (result) {
 	case DNS_R_GLUE:
@@ -3596,7 +3615,7 @@ dns_adb_flushname(dns_adb_t *adb, const dns_name_t *name) {
 	RWLOCK(&adb->names_lock, isc_rwlocktype_write);
 again:
 	/*
-	 * Delete both entries - without and with NAME_STARTATZONE set.
+	 * Delete both entries - without and with DNS_ADBFIND_STARTATZONE set.
 	 */
 	key.start_at_zone = start_at_zone;
 	memmove(&key.name, name->ndata, name->length);
