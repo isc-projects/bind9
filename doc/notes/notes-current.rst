@@ -27,9 +27,12 @@ Removed Features
 
 - The 'auto-dnssec' configuration option has now been removed. Please
   use :any:`dnssec-policy` or manual signing instead. The following options
-  have become obsolete: :any:`dnskey-sig-validity`, :any:`dnssec-dnskey-kskonly`,
-  :any:`dnssec-update-mode`, :any:`sig-validity-interval`, and
-  :any:`update-check-ksk`. :gl:`#3672`.
+  have become obsolete: :any:`dnskey-sig-validity`,
+  :any:`dnssec-dnskey-kskonly`, :any:`dnssec-update-mode`,
+  :any:`sig-validity-interval`, and :any:`update-check-ksk`. :gl:`#3672`.
+
+- The :any:`dialup` and :any:`heartbeat-interval` options have been
+  deprecated and will be removed in a future release. :gl:`#3700`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
