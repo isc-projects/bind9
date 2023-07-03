@@ -886,7 +886,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	static char dlz_dbtype[] = "dlz";
 	char *cpval = default_dbtype;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
 	int i;
 	int32_t journal_size;
@@ -1131,34 +1130,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	CHECK(configure_zone_acl(zconfig, vconfig, config, allow_query_on, ac,
 				 zone, dns_zone_setqueryonacl,
 				 dns_zone_clearqueryonacl));
-
-	obj = NULL;
-	result = named_config_get(maps, "dialup", &obj);
-	INSIST(result == ISC_R_SUCCESS && obj != NULL);
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj)) {
-			dialup = dns_dialuptype_yes;
-		} else {
-			dialup = dns_dialuptype_no;
-		}
-	} else {
-		const char *dialupstr = cfg_obj_asstring(obj);
-		if (strcasecmp(dialupstr, "notify") == 0) {
-			dialup = dns_dialuptype_notify;
-		} else if (strcasecmp(dialupstr, "notify-passive") == 0) {
-			dialup = dns_dialuptype_notifypassive;
-		} else if (strcasecmp(dialupstr, "refresh") == 0) {
-			dialup = dns_dialuptype_refresh;
-		} else if (strcasecmp(dialupstr, "passive") == 0) {
-			dialup = dns_dialuptype_passive;
-		} else {
-			UNREACHABLE();
-		}
-	}
-	if (raw != NULL) {
-		dns_zone_setdialup(raw, dialup);
-	}
-	dns_zone_setdialup(zone, dialup);
 
 	obj = NULL;
 	result = named_config_get(maps, "zone-statistics", &obj);

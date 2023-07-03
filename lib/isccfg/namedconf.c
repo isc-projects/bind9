@@ -95,7 +95,6 @@ static cfg_type_t cfg_type_checkdstype;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
-static cfg_type_t cfg_type_dialuptype;
 static cfg_type_t cfg_type_dlz;
 static cfg_type_t cfg_type_dnssecpolicy;
 static cfg_type_t cfg_type_dnstap;
@@ -1375,7 +1374,7 @@ static cfg_clausedef_t options_clauses[] = {
 #endif /* HAVE_GEOIP2 */
 	{ "geoip-use-ecs", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "has-old-clients", NULL, CFG_CLAUSEFLAG_ANCIENT },
-	{ "heartbeat-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_DEPRECATED },
+	{ "heartbeat-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics-max", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "hostname", &cfg_type_qstringornone, 0 },
@@ -2402,9 +2401,9 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "check-srv-cname", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
 	{ "check-svcb", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-wildcard", &cfg_type_boolean, CFG_ZONE_PRIMARY },
-	{ "dialup", &cfg_type_dialuptype,
+	{ "dialup", &cfg_type_void,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB |
-		  CFG_CLAUSEFLAG_DEPRECATED },
+		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32,
@@ -3107,20 +3106,6 @@ doc_optional_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_doc_obj(pctx, kw->type);
 	cfg_print_cstr(pctx, " ]");
 }
-
-static const char *dialup_enums[] = { "notify", "notify-passive", "passive",
-				      "refresh", NULL };
-static isc_result_t
-parse_dialup_type(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
-}
-static void
-doc_dialup_type(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_doc_enum_or_other(pctx, type, &cfg_type_boolean);
-}
-static cfg_type_t cfg_type_dialuptype = { "dialuptype",	     parse_dialup_type,
-					  cfg_print_ustring, doc_dialup_type,
-					  &cfg_rep_string,   dialup_enums };
 
 static const char *notify_enums[] = { "explicit", "master-only", "primary-only",
 				      NULL };

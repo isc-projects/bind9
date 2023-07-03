@@ -546,9 +546,6 @@ typedef enum {
 						* are still using
 						* default timer values) */
 	DNS_ZONEFLG_FORCEXFER = 0x00008000U,   /*%< Force a zone xfer */
-	DNS_ZONEFLG_NOREFRESH = 0x00010000U,
-	DNS_ZONEFLG_DIALNOTIFY = 0x00020000U,
-	DNS_ZONEFLG_DIALREFRESH = 0x00040000U,
 	DNS_ZONEFLG_SHUTDOWN = 0x00080000U,
 	DNS_ZONEFLG_NOIXFR = 0x00100000U, /*%< IXFR failed, force AXFR */
 	DNS_ZONEFLG_FLUSH = 0x00200000U,
@@ -11128,9 +11125,7 @@ zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_mirror:
 	case dns_zone_stub:
 		LOCK_ZONE(zone);
-		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
-		    isc_time_compare(&now, &zone->refreshtime) >= 0)
-		{
+		if (isc_time_compare(&now, &zone->refreshtime) >= 0) {
 			zone_refresh(zone);
 		}
 		UNLOCK_ZONE(zone);
@@ -12539,9 +12534,6 @@ notify_send_toaddr(void *arg) {
 		goto cleanup_key;
 	}
 	udptimeout = 5;
-	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_DIALNOTIFY)) {
-		udptimeout = 30;
-	}
 	timeout = 3 * udptimeout + 1;
 again:
 	if ((notify->flags & DNS_NOTIFY_TCP) != 0) {
@@ -12712,14 +12704,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	}
 
 	origin = &zone->origin;
-
-	/*
-	 * If the zone is dialup we are done as we don't want to send
-	 * the current soa so as to force a refresh query.
-	 */
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY)) {
-		flags |= DNS_NOTIFY_NOSOA;
-	}
 
 	/*
 	 * Record that this was a notify due to starting up.
@@ -14271,7 +14255,6 @@ soa_query(void *arg) {
 	dns_transport_t *transport = NULL;
 	uint32_t options;
 	bool cancel = true;
-	int timeout;
 	bool have_xfrsource = false, reqnsid, reqexpire;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
 	isc_sockaddr_t curraddr, sourceaddr;
@@ -14433,10 +14416,8 @@ again:
 	}
 
 	zone_iattach(zone, &(dns_zone_t *){ NULL });
-	timeout = 5;
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH)) {
-		timeout = 30;
-	}
+
+	int timeout = 5;
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, options, key, timeout * 3 + 1, timeout, 2,
@@ -14515,7 +14496,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	isc_netaddr_t primaryip;
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
-	int timeout;
 	bool have_xfrsource = false;
 	bool reqnsid;
 	uint16_t udpsize = SEND_BUFFER_SIZE;
@@ -14701,10 +14681,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		POST(result);
 		goto cleanup;
 	}
-	timeout = 5;
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH)) {
-		timeout = 30;
-	}
 
 	/*
 	 * Save request parameters so we can reuse them later on
@@ -14714,9 +14690,10 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	cb_args->stub = stub;
 	cb_args->tsig_key = key;
 	cb_args->udpsize = udpsize;
-	cb_args->timeout = timeout;
+	cb_args->timeout = 15;
 	cb_args->reqnsid = reqnsid;
 
+	int timeout = 5;
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, DNS_REQUESTOPT_TCP, key, timeout * 3 + 1, timeout,
@@ -15019,7 +14996,6 @@ zone__settimer(void *arg) {
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOPRIMARIES) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADING) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING) &&
 		    !isc_time_isepoch(&zone->refreshtime) &&
@@ -15380,13 +15356,10 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 
 	/*
 	 * If the zone is loaded and there are answers check the serial
-	 * to see if we need to do a refresh.  Do not worry about this
-	 * check if we are a dialup zone as we use the notify request
-	 * to trigger a refresh check.
+	 * to see if we need to do a refresh.
 	 */
 	if (msg->counts[DNS_SECTION_ANSWER] > 0 &&
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOREFRESH))
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
 		result = dns_message_findname(
 			msg, DNS_SECTION_ANSWER, &zone->origin,
@@ -19723,61 +19696,6 @@ dns_zone_getrcvquerystats(dns_zone_t *zone) {
 	}
 }
 
-void
-dns_zone_dialup(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone_debuglog(zone, __func__, 3, "notify = %d, refresh = %d",
-		      DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY),
-		      DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH));
-
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALNOTIFY)) {
-		dns_zone_notify(zone);
-	}
-	if (zone->type != dns_zone_primary &&
-	    dns_remote_addresses(&zone->primaries) != NULL &&
-	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
-	{
-		dns_zone_refresh(zone);
-	}
-}
-
-void
-dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	LOCK_ZONE(zone);
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_DIALNOTIFY |
-				       DNS_ZONEFLG_DIALREFRESH |
-				       DNS_ZONEFLG_NOREFRESH);
-	switch (dialup) {
-	case dns_dialuptype_no:
-		break;
-	case dns_dialuptype_yes:
-		DNS_ZONE_SETFLAG(zone, (DNS_ZONEFLG_DIALNOTIFY |
-					DNS_ZONEFLG_DIALREFRESH |
-					DNS_ZONEFLG_NOREFRESH));
-		break;
-	case dns_dialuptype_notify:
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY);
-		break;
-	case dns_dialuptype_notifypassive:
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALNOTIFY);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOREFRESH);
-		break;
-	case dns_dialuptype_refresh:
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DIALREFRESH);
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOREFRESH);
-		break;
-	case dns_dialuptype_passive:
-		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOREFRESH);
-		break;
-	default:
-		UNREACHABLE();
-	}
-	UNLOCK_ZONE(zone);
-}
-
 isc_result_t
 dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -19943,10 +19861,9 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
 		 * No operation is ongoing or pending, just check if the zone
 		 * needs a refresh by looking at the refresh and expire times.
 		 */
-		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
-		    (zone->type == dns_zone_secondary ||
-		     zone->type == dns_zone_mirror ||
-		     zone->type == dns_zone_stub))
+		if (zone->type == dns_zone_secondary ||
+		    zone->type == dns_zone_mirror ||
+		    zone->type == dns_zone_stub)
 		{
 			isc_time_t now = isc_time_now();
 			if (isc_time_compare(&now, &zone->refreshtime) >= 0 ||

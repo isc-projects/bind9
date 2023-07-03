@@ -855,12 +855,6 @@ dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg);
  *\li	see dns_tsig_verify()
  */
 
-void
-dns_view_dialup(dns_view_t *view);
-/*%<
- * Perform dialup-time maintenance on the zones of 'view'.
- */
-
 isc_result_t
 dns_view_flushcache(dns_view_t *view, bool fixuponly);
 /*%<

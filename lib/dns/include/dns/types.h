@@ -229,15 +229,6 @@ typedef enum {
 } dns_minimaltype_t;
 
 typedef enum {
-	dns_dialuptype_no = 0,
-	dns_dialuptype_yes = 1,
-	dns_dialuptype_notify = 2,
-	dns_dialuptype_notifypassive = 3,
-	dns_dialuptype_refresh = 4,
-	dns_dialuptype_passive = 5
-} dns_dialuptype_t;
-
-typedef enum {
 	dns_masterformat_none = 0,
 	dns_masterformat_text = 1,
 	dns_masterformat_raw = 2,
