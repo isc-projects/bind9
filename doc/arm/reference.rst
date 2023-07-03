@@ -1932,7 +1932,8 @@ default is used.
    operations and the number of authoritative answers per query type. The
    default is ``terse``, providing minimal statistics on zones
    (including name and current serial number, but not query type
-   counters).
+   counters), and also information about the currently ongoing incoming zone
+   transfers.
 
    These statistics may be accessed via the ``statistics-channel`` or
    using :option:`rndc stats`, which dumps them to the file listed in the
@@ -5655,6 +5656,7 @@ Broken-out subsets of the statistics can be viewed at
 http://127.0.0.1:8888/xml/v3/status (server uptime and last
 reconfiguration time), http://127.0.0.1:8888/xml/v3/server (server and
 resolver statistics), http://127.0.0.1:8888/xml/v3/zones (zone
+statistics), http://127.0.0.1:8888/xml/v3/xfrins (incoming zone transfer
 statistics), http://127.0.0.1:8888/xml/v3/net (network status and socket
 statistics), http://127.0.0.1:8888/xml/v3/mem (memory manager
 statistics), and http://127.0.0.1:8888/xml/v3/traffic (traffic sizes).
@@ -5664,6 +5666,7 @@ http://127.0.0.1:8888/json, with the broken-out subsets at
 http://127.0.0.1:8888/json/v1/status (server uptime and last
 reconfiguration time), http://127.0.0.1:8888/json/v1/server (server and
 resolver statistics), http://127.0.0.1:8888/json/v1/zones (zone
+statistics), http://127.0.0.1:8888/json/v1/xfrins (incoming zone transfer
 statistics), http://127.0.0.1:8888/json/v1/net (network status and
 socket statistics), http://127.0.0.1:8888/json/v1/mem (memory manager
 statistics), and http://127.0.0.1:8888/json/v1/traffic (traffic sizes).
@@ -7534,6 +7537,146 @@ Incoming Queries
 Outgoing Queries
    The number of outgoing queries for each RR type sent from the internal
    resolver, maintained per view.
+
+Incoming Zone Transfers
+   Information about in-progress incoming zone transfers.
+
+   This section describes the information, which can be seen in the
+   HTML table about in-progress incoming zone transfers.  It lists
+   the meaning, units and possible range of values of each column,
+   and the key/attribute/element name (in parentheses) for the JSON
+   and XML output formats.
+
+   ``Zone Name`` (``name``)
+      Text string. This is the name of the zone being transferred,
+      as specified in the :any:`zone` declaration on this server.
+
+   ``Zone Type`` (``type``)
+      Text string. This is the type of zone being transferred, as
+      specified in the ``zone`` declaration on this server. Possible
+      values are: ``secondary``, ``stub``, ``redirect``, ``mirror``.
+
+   ``Local Serial`` (``serial``)
+      32 bit unsigned Integer. This is the current (old) serial
+      number of the zone being transferred. It comes from the SOA
+      record held on the current server.
+
+   ``Remote Serial`` (``remoteserial``)
+      32 bit unsigned Integer. This is the new serial number of the
+      zone being transferred. It comes from the SOA record held on
+      the primary server from which the zone is being transferred.
+
+   ``IXFR`` (``ixfr``)
+      Boolean. This says whether the transfer is incremental (using
+      IXFR) or full (using AXFR). Possible values are: ``Yes``,
+      ``No``.
+
+   ``State`` (``state``)
+      Text string. This is the current state of the transfer for
+      this zone. Possible values and their meanings are:
+
+         ``Needs Refresh``
+	     The zone is flagged for a refresh, but the process
+	     hasn't started yet.
+
+         ``Pending``
+	     The zone is flagged for a refresh, but the process is
+	     in waiting state because of rate-limiting, see
+	     :any:`serial-query-rate`.
+
+         ``Deferred``
+	     The zone is going to be refreshed, but the process was
+	     deferred due to quota, see :any:`transfers-in` and
+	     :any:`transfers-per-ns`.
+
+         ``SOA Query``
+	     Sending SOA query to get the zone serial number, then
+	     follow with a zone transfer, if necessary.
+
+         ``Got SOA``
+	     An answer for the SOA query from the previous step is
+	     received, initiating a transfer.
+
+         ``Initial SOA``
+	     Waiting for the transfer to start, which is expected
+	     to begin with an initial SOA record.
+
+         ``First Data``
+	     Waiting for the first data record of the transfer.
+
+         ``Receiving IXFR Data``
+	     Receiving data for an IXFR type incremental zone
+	     transfer.
+
+         ``Finalizing IXFR``
+             Finalizing an IXFR type incremental zone transfer.
+
+         ``Receiving AXFR Data``
+             Receiving data for an AXFR type zone transfer.
+
+         ``Finalizing AXFR``
+             Finalizing an AXFR type zone transfer.
+
+      .. note::
+         State names can change between BIND versions.
+
+   ``Additional Refresh Queued`` (``refreshqueued``)
+      Boolean. This shows that the zone is flagged for a refresh.
+      This can be set to ``Yes`` either when the zone transfer is
+      still in one of the pending states (see the description of
+      the ``State`` column), or when the transfer is in a running
+      state, but the zone was marked for another refresh again (e.g.
+      because of "notify" request from a primary server). Possible
+      values are: ``Yes``, ``No``.
+
+   ``Local Address`` (``localaddr``)
+      IP address - IPv4 or IPv6, as appropriate, and port number.
+      This shows the source address used to establish the connection
+      for the transfer.
+
+   ``Remote Address`` (``remoteaddr``)
+      IP address - IPv4 or IPv6, as appropriate, and port number.
+      This shows the destination address used to establish the
+      connection for the transfer.
+
+   ``Transport`` (``transport``)
+      Text string. This is the transport protocol in use for the
+      transfer. Possible values are: ``TCP``, ``TLS``.
+
+   ``TSIG Key Name`` (``tsigkeyname``)
+      Text string. This is the name of the TSIG key specified for
+      use with this zone in the :any:`zone` declaration (if any).
+
+   ``Duration (s)`` (``duration``)
+      64 bit unsigned Integer. This is the time, in seconds, that
+      the transfer has been running so far. The clock starts after
+      the zone transfer process is initialized, and restarts shortly
+      after, when transport connection has been established and the
+      XFR request has been sent.
+
+   ``Messages Received`` (``nmsg``)
+      64 bit unsigned Integer. This is the number of DNS messages
+      received. It does not include transport overheads, such as
+      TCP ACK.
+
+   ``Records Received`` (``nrecs``)
+      64 bit unsigned Integer. This is the number of individual RRs
+      received so far. If an address record has, for example, five
+      addresses associated with the same name, it counts as five
+      RRs.
+
+   ``Bytes Received`` (``nbytes``)
+      64 bit unsigned Integer. This is the number of usable bytes
+      of DNS data. It does not include transport overhead.
+
+   .. note::
+      Depending on the current state of the transfer, some of the
+      values may be empty or set to ``-`` (meaning "not available").
+      Also, in the case of the JSON output format, the corresponding
+      keys can be missing or values can be set to ``NULL``.  For
+      example, it isn't known whether a transfer is using AXFR or
+      IXFR until the first data is received (see the description
+      of the ``State`` column).
 
 Name Server Statistics
    Statistics counters for incoming request processing.
