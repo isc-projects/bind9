@@ -105,7 +105,7 @@ def do_work(named_proc, resolver, rndc_cmd, kill_method, n_workers, n_queries):
             else:
                 # We attempt to send couple rndc commands while named is
                 # being shutdown
-                futures[executor.submit(launch_rndc, ["status"])] = "status"
+                futures[executor.submit(launch_rndc, ["-t", "5", "status"])] = "status"
 
         ret_code = -1
         for future in as_completed(futures):
@@ -156,7 +156,12 @@ def wait_for_proc_termination(proc, max_timeout=10):
     return False
 
 
-def test_named_shutdown(named_port, control_port):
+# We test named shutting down using two methods:
+# Method 1: using rndc ctop
+# Method 2: killing with SIGTERM
+# In both methods named should exit gracefully.
+@pytest.mark.parametrize("kill_method", ["rndc", "sigtem"])
+def test_named_shutdown(named_port, control_port, kill_method):
     # pylint: disable-msg=too-many-locals
     cfg_dir = os.path.join(os.getcwd(), "resolver")
     assert os.path.isdir(cfg_dir)
@@ -182,25 +187,20 @@ def test_named_shutdown(named_port, control_port):
     resolver.nameservers = ["10.53.0.3"]
     resolver.port = named_port
 
-    # We test named shutting down using two methods:
-    # Method 1: using rndc ctop
-    # Method 2: killing with SIGTERM
-    # In both methods named should exit gracefully.
-    for kill_method in ("rndc", "sigterm"):
-        named_cmdline = [named, "-c", cfg_file, "-f"]
-        with subprocess.Popen(named_cmdline, cwd=cfg_dir) as named_proc:
-            try:
-                assert named_proc.poll() is None, "named isn't running"
-                assert wait_for_named_loaded(resolver)
-                do_work(
-                    named_proc,
-                    resolver,
-                    rndc_cmd,
-                    kill_method,
-                    n_workers=12,
-                    n_queries=16,
-                )
-                assert wait_for_proc_termination(named_proc)
-                assert named_proc.returncode == 0, "named crashed"
-            finally:  # Ensure named is terminated in case of an exception
-                named_proc.kill()
+    named_cmdline = [named, "-c", cfg_file, "-f"]
+    with subprocess.Popen(named_cmdline, cwd=cfg_dir) as named_proc:
+        try:
+            assert named_proc.poll() is None, "named isn't running"
+            assert wait_for_named_loaded(resolver)
+            do_work(
+                named_proc,
+                resolver,
+                rndc_cmd,
+                kill_method,
+                n_workers=12,
+                n_queries=16,
+            )
+            assert wait_for_proc_termination(named_proc)
+            assert named_proc.returncode == 0, "named crashed"
+        finally:  # Ensure named is terminated in case of an exception
+            named_proc.kill()
