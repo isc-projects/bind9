@@ -464,7 +464,15 @@ $DIGCMD nil. TXT | grep 'SOA mismatch AXFR' >/dev/null && {
 }
 
 n=$((n+1))
-echo_i "check that we ask for and get a EDNS EXPIRE response ($n)"
+echo_i "check that we ask for and got a EDNS EXPIRE response when transfering from a secondary ($n)"
+tmp=0
+msg="zone edns-expire/IN: zone transfer finished: success, expire=1814[0-4][0-9][0-9]"
+grep "$msg" ns7/named.run > /dev/null || tmp=1
+[ "$tmp" -ne 0 ] && echo_i "failed"
+status=$((status+tmp))
+
+n=$((n+1))
+echo_i "check that we ask for and get a EDNS EXPIRE response when refreshing ($n)"
 # force a refresh query
 $RNDCCMD 10.53.0.7 refresh edns-expire 2>&1 | sed 's/^/ns7 /' | cat_i
 sleep 10
