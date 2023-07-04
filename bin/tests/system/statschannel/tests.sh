@@ -394,6 +394,11 @@ Connection: close
 EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
+    # keep-alive not needed in HTTP/1.1, second response has close
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    test "$lines" = 0 || ret=1
+    lines=$(grep -c "^Connection: close" nc.out$n)
+    test "$lines" = 1 || ret=1
 else
     echo_i "skipping test as nc not found"
 fi
@@ -421,6 +426,62 @@ Connection: close
 EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
+    # keep-alive not needed in HTTP/1.1, second response has close
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    test "$lines" = 0 || ret=1
+    lines=$(grep -c "^Connection: close" nc.out$n)
+    test "$lines" = 1 || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check HTTP/1.0 keep-alive ($n)"
+ret=0
+if [ -x "${NC}" ]; then
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.0
+Connection: keep-alive
+
+GET /xml/v3/status HTTP/1.0
+
+EOF
+    # should be two responses
+    lines=$(grep -c "^<statistics version" nc.out$n)
+    test "$lines" = 2 || ret=1
+    # first response has keep-alive, second has close
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    test "$lines" = 1 || ret=1
+    lines=$(grep -c "^Connection: close" nc.out$n)
+    test "$lines" = 1 || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check inconsistent Connection: headers ($n)"
+ret=0
+if [ -x "${NC}" ]; then
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.0
+Connection: keep-alive
+Connection: close
+
+GET /xml/v3/status HTTP/1.0
+
+EOF
+    # should be one response (second is ignored)
+    lines=$(grep -c "^<statistics version" nc.out$n)
+    test "$lines" = 1 || ret=1
+    # no keep-alive, one close
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    test "$lines" = 0 || ret=1
+    lines=$(grep -c "^Connection: close" nc.out$n)
+    test "$lines" = 1 || ret=1
 else
     echo_i "skipping test as nc not found"
 fi
