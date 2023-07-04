@@ -35,6 +35,10 @@ Feature Changes
 - Make :iscman:`nsupdate` honor the ``-v`` option for SOA queries, that is send
   the request over TCP, only if the server is specified. :gl:`#1181`
 
+- Extend client side support for the EDNS EXPIRE option to IXFR and
+  AXFR query types. ``named`` will now be making EDNS queries AXFR
+  and IXFR queries with EDNS options present.  :gl:`#4170`
+
 Bug Fixes
 ~~~~~~~~~
 
