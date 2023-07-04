@@ -142,7 +142,7 @@ struct dns_xfrin {
 
 	xfrin_state_t state;
 	uint32_t end_serial;
-	bool is_ixfr;
+	bool edns, is_ixfr;
 
 	unsigned int nmsg;  /*%< Number of messages recvd */
 	unsigned int nrecs; /*%< Number of records recvd */
@@ -861,6 +861,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		.primaryaddr = *primaryaddr,
 		.sourceaddr = *sourceaddr,
 		.firstsoa = DNS_RDATA_INIT,
+		.edns = true,
 		.magic = XFRIN_MAGIC,
 	};
 
@@ -1193,7 +1194,7 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_name_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
-	bool edns = true;
+	bool edns = xfr->edns;
 	bool reqnsid = xfr->view->requestnsid;
 	bool reqexpire = dns_zone_getrequestexpire(xfr->zone);
 	uint16_t udpsize = dns_view_getudpsize(xfr->view);
@@ -1235,7 +1236,7 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 					  &xfr->ixfr.request_serial));
 	}
 
-	if (xfr->view->peers != NULL) {
+	if (edns && xfr->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_netaddr_t primaryip;
 		isc_netaddr_fromsockaddr(&primaryip, &xfr->primaryaddr);
@@ -1379,7 +1380,17 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass)
 	{
-		if (result == ISC_R_SUCCESS && msg->rcode != dns_rcode_noerror)
+		if (result == ISC_R_SUCCESS &&
+		    msg->rcode == dns_rcode_formerr && xfr->edns &&
+		    (xfr->state == XFRST_SOAQUERY ||
+		     xfr->state == XFRST_INITIALSOA))
+		{
+			xfr->edns = false;
+			dns_message_detach(&msg);
+			xfrin_reset(xfr);
+			goto try_again;
+		} else if (result == ISC_R_SUCCESS &&
+			   msg->rcode != dns_rcode_noerror)
 		{
 			result = dns_result_fromrcode(msg->rcode);
 		} else if (result == ISC_R_SUCCESS &&
@@ -1408,6 +1419,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
 		xfr->state = XFRST_SOAQUERY;
+	try_again:
 		result = xfrin_start(xfr);
 		if (result != ISC_R_SUCCESS) {
 			xfrin_fail(xfr, result, "failed setting up socket");
