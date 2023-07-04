@@ -2262,7 +2262,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR |
 		  CFG_CLAUSEFLAG_ANCIENT },
 	{ "auto-dnssec", &cfg_type_autodnssec,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_DEPRECATED },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_ANCIENT },
 	{ "check-dup-records", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
 	{ "check-integrity", &cfg_type_boolean, CFG_ZONE_PRIMARY },
 	{ "check-mx", &cfg_type_checkmode, CFG_ZONE_PRIMARY },
