@@ -90,41 +90,38 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 /*
  * Options that modify how a 'fetch' is done.
  */
-#define DNS_FETCHOPT_TCP	 0x00000001 /*%< Use TCP. */
-#define DNS_FETCHOPT_UNSHARED	 0x00000002 /*%< See below. */
-#define DNS_FETCHOPT_RECURSIVE	 0x00000004 /*%< Set RD? */
-#define DNS_FETCHOPT_NOEDNS0	 0x00000008 /*%< Do not use EDNS. */
-#define DNS_FETCHOPT_FORWARDONLY 0x00000010 /*%< Only use forwarders. */
-#define DNS_FETCHOPT_NOVALIDATE	 0x00000020 /*%< Disable validation. */
-#define DNS_FETCHOPT_OBSOLETE1	 0x00000040 /*%< Obsolete */
-#define DNS_FETCHOPT_WANTNSID	 0x00000080 /*%< Request NSID */
-#define DNS_FETCHOPT_PREFETCH	 0x00000100 /*%< Do prefetch */
-#define DNS_FETCHOPT_NOCDFLAG	 0x00000200 /*%< Don't set CD flag. */
-#define DNS_FETCHOPT_NONTA	 0x00000400 /*%< Ignore NTA table. */
-/* RESERVED ECS				0x00000000 */
-/* RESERVED ECS				0x00001000 */
-/* RESERVED ECS				0x00002000 */
-/* RESERVED TCPCLIENT			0x00004000 */
-#define DNS_FETCHOPT_NOCACHED  0x00008000 /*%< Force cache update. */
-#define DNS_FETCHOPT_QMINIMIZE 0x00010000 /*%< Use qname minimization. */
-#define DNS_FETCHOPT_NOFOLLOW                                                  \
-	0x00020000 /*%< Don't retrieve the NS RRset from the child zone when a \
-		    *   delegation is returned in response to a NS query. */
-#define DNS_FETCHOPT_QMIN_STRICT                                         \
-	0x00040000 /*%< Do not work around servers that return errors on \
-		    *   non-empty terminals. */
-#define DNS_FETCHOPT_QMIN_SKIP_IP6A                                        \
-	0x00080000 /*%< Skip some labels when doing qname  minimization on \
-		    *   ip6.arpa. */
-#define DNS_FETCHOPT_NOFORWARD \
-	0x00100000 /*%< Do not use forwarders if possible. */
+enum {
+	DNS_FETCHOPT_TCP = 1 << 0,	       /*%< Use TCP. */
+	DNS_FETCHOPT_UNSHARED = 1 << 1,	       /*%< See below. */
+	DNS_FETCHOPT_RECURSIVE = 1 << 2,       /*%< Set RD? */
+	DNS_FETCHOPT_NOEDNS0 = 1 << 3,	       /*%< Do not use EDNS. */
+	DNS_FETCHOPT_FORWARDONLY = 1 << 4,     /*%< Only use forwarders. */
+	DNS_FETCHOPT_NOVALIDATE = 1 << 5,      /*%< Disable validation. */
+	DNS_FETCHOPT_WANTNSID = 1 << 6,	       /*%< Request NSID */
+	DNS_FETCHOPT_PREFETCH = 1 << 7,	       /*%< Do prefetch */
+	DNS_FETCHOPT_NOCDFLAG = 1 << 8,	       /*%< Don't set CD flag. */
+	DNS_FETCHOPT_NONTA = 1 << 9,	       /*%< Ignore NTA table. */
+	DNS_FETCHOPT_NOCACHED = 1 << 10,       /*%< Force cache update. */
+	DNS_FETCHOPT_QMINIMIZE = 1 << 11,      /*%< Use qname minimization. */
+	DNS_FETCHOPT_NOFOLLOW = 1 << 12,       /*%< Don't retrieve the NS RRset
+						* from the child zone when a
+						* delegation is returned in
+						* response to a NS query. */
+	DNS_FETCHOPT_QMIN_STRICT = 1 << 13,    /*%< Do not work around servers
+						* that return errors on
+						* non-empty terminals. */
+	DNS_FETCHOPT_QMIN_SKIP_IP6A = 1 << 14, /*%< Skip some labels when
+						* doing qname minimization
+						* on ip6.arpa. */
+	DNS_FETCHOPT_NOFORWARD = 1 << 15,      /*%< Do not use forwarders if
+						* possible. */
+	DNS_FETCHOPT_TRYSTALE_ONTIMEOUT = 1 << 16,
 
-/* UNUSED			0x00200000 */
-/* Reserved in use by adb.c		0x00400000 */
-#define DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
-#define DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
-#define DNS_FETCHOPT_EDNSVERSIONSHIFT	24
-#define DNS_FETCHOPT_TRYSTALE_ONTIMEOUT 0x01000000
+	/*% EDNS version bits: */
+	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,
+	DNS_FETCHOPT_EDNSVERSIONSHIFT = 24,
+	DNS_FETCHOPT_EDNSVERSIONMASK = 0xff000000,
+};
 
 /*
  * Upper bounds of class of query RTT (ms).  Corresponds to

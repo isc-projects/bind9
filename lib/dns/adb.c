@@ -375,28 +375,44 @@ static void
 log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
 /*
- * MUST NOT overlap DNS_ADBFIND_* flags!
+ * Private flag(s) for adbfind objects. These are used internally and
+ * are not meant to be seen or used by the caller; however, we use the
+ * same flags field as for DNS_ADBFIND_xxx flags, so we must be careful
+ * that there is no overlap between these values and those. To make it
+ * easier, we will number these starting from the most significant bit
+ * instead of the least significant.
  */
-#define FIND_EVENT_SENT	   0x40000000
-#define FIND_EVENT_FREED   0x80000000
+enum {
+	FIND_EVENT_SENT = 1 << 31,
+	FIND_EVENT_FREED = 1 << 30,
+};
 #define FIND_EVENTSENT(h)  (((h)->flags & FIND_EVENT_SENT) != 0)
 #define FIND_EVENTFREED(h) (((h)->flags & FIND_EVENT_FREED) != 0)
 
-#define NAME_NEEDS_POKE	  0x80000000
-#define NAME_IS_DEAD	  0x40000000
-#define NAME_HINT_OK	  DNS_ADBFIND_HINTOK
-#define NAME_GLUE_OK	  DNS_ADBFIND_GLUEOK
-#define NAME_STARTATZONE  DNS_ADBFIND_STARTATZONE
+/*
+ * Private flag(s) for adbname objects.
+ */
+enum {
+	NAME_IS_DEAD = 1 << 31,
+	NAME_NEEDS_POKE = 1 << 30,
+};
 #define NAME_DEAD(n)	  (((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n) (((n)->flags & NAME_NEEDS_POKE) != 0)
-#define NAME_GLUEOK(n)	  (((n)->flags & NAME_GLUE_OK) != 0)
-#define NAME_HINTOK(n)	  (((n)->flags & NAME_HINT_OK) != 0)
+#define NAME_GLUEOK(n)	  (((n)->flags & DNS_ADBFIND_GLUEOK) != 0)
+#define NAME_HINTOK(n)	  (((n)->flags & DNS_ADBFIND_HINTOK) != 0)
 
 /*
- * Private flag(s) for entries.
- * MUST NOT overlap FCTX_ADDRINFO_xxx and DNS_FETCHOPT_NOEDNS0.
+ * Private flag(s) for adbentry objects.  Note that these will also
+ * be used for addrinfo flags, and in resolver.c we'll use the same
+ * field for FCTX_ADDRINFO_xxx flags to store information about remote
+ * servers, so we must be careful that there is no overlap between
+ * these values and those. To make it easier, we will number these
+ * starting from the most significant bit instead of the least
+ * significant.
  */
-#define ENTRY_IS_DEAD 0x00400000
+enum {
+	ENTRY_IS_DEAD = 1 << 31,
+};
 
 /*
  * To the name, address classes are all that really exist.  If it has a
@@ -445,8 +461,9 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 #define GLUE_OK(nf, o)	   (!NAME_GLUEOK(nf) || (((o)&DNS_ADBFIND_GLUEOK) != 0))
 #define HINT_OK(nf, o)	   (!NAME_HINTOK(nf) || (((o)&DNS_ADBFIND_HINTOK) != 0))
 #define GLUEHINT_OK(nf, o) (GLUE_OK(nf, o) || HINT_OK(nf, o))
-#define STARTATZONE_MATCHES(nf, o) \
-	(((nf)->flags & NAME_STARTATZONE) == ((o)&DNS_ADBFIND_STARTATZONE))
+#define STARTATZONE_MATCHES(nf, o)                  \
+	(((nf)->flags & DNS_ADBFIND_STARTATZONE) == \
+	 ((o)&DNS_ADBFIND_STARTATZONE))
 
 #define ENTER_LEVEL  ISC_LOG_DEBUG(50)
 #define EXIT_LEVEL   ENTER_LEVEL
@@ -2989,13 +3006,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		adbname = new_adbname(adb, name);
 		link_name(adb, bucket, adbname);
 		if (FIND_HINTOK(find)) {
-			adbname->flags |= NAME_HINT_OK;
+			adbname->flags |= DNS_ADBFIND_HINTOK;
 		}
 		if (FIND_GLUEOK(find)) {
-			adbname->flags |= NAME_GLUE_OK;
+			adbname->flags |= DNS_ADBFIND_GLUEOK;
 		}
 		if (FIND_STARTATZONE(find)) {
-			adbname->flags |= NAME_STARTATZONE;
+			adbname->flags |= DNS_ADBFIND_STARTATZONE;
 		}
 	} else {
 		/* Move this name forward in the LRU list */
@@ -3711,15 +3728,16 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * We need to specify whether to search static-stub zones (if
 	 * configured) depending on whether this is a "start at zone" lookup,
 	 * i.e., whether it's a "bailiwick" glue.  If it's bailiwick (in which
-	 * case NAME_STARTATZONE is set) we need to stop the search at any
-	 * matching static-stub zone without looking into the cache to honor
+	 * case DNS_ADBFIND_STARTATZONE is set) we need to stop the search at
+	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
-			       NAME_HINTOK(adbname),
-			       ((adbname->flags & NAME_STARTATZONE) != 0), NULL,
-			       NULL, fname, &rdataset, NULL);
+	result =
+		dns_view_find(adb->view, &adbname->name, rdtype, now,
+			      NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
+			      NAME_HINTOK(adbname),
+			      ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0),
+			      NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (result) {
