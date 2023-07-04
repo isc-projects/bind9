@@ -11390,6 +11390,27 @@ dump_done(void *arg, isc_result_t result) {
 
 	ENTER;
 
+	/*
+	 * Adjust modification time of zone file to preserve expire timing.
+	 */
+	if ((zone->type == dns_zone_secondary ||
+	     zone->type == dns_zone_mirror ||
+	     zone->type == dns_zone_redirect) &&
+	    result == ISC_R_SUCCESS)
+	{
+		LOCK_ZONE(zone);
+		isc_time_t when;
+		isc_interval_t i;
+		isc_interval_set(&i, zone->expire, 0);
+		result = isc_time_subtract(&zone->expiretime, &i, &when);
+		if (result == ISC_R_SUCCESS) {
+			(void)isc_file_settime(zone->masterfile, &when);
+		} else {
+			result = ISC_R_SUCCESS;
+		}
+		UNLOCK_ZONE(zone);
+	}
+
 	if (result == ISC_R_SUCCESS && zone->journal != NULL) {
 		/*
 		 * We don't own these, zone->dctx must stay valid.
@@ -11573,6 +11594,22 @@ redo:
 	} else {
 		result = dns_master_dump(zone->mctx, db, version, masterstyle,
 					 masterfile, masterformat, &rawdata);
+		if ((zone->type == dns_zone_secondary ||
+		     zone->type == dns_zone_mirror ||
+		     zone->type == dns_zone_redirect) &&
+		    result == ISC_R_SUCCESS)
+		{
+			isc_time_t when;
+			isc_interval_t i;
+			isc_interval_set(&i, zone->expire, 0);
+			result = isc_time_subtract(&zone->expiretime, &i,
+						   &when);
+			if (result == ISC_R_SUCCESS) {
+				(void)isc_file_settime(zone->masterfile, &when);
+			} else {
+				result = ISC_R_SUCCESS;
+			}
+		}
 	}
 fail:
 	if (version != NULL) {
