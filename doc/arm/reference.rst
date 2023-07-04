@@ -1766,13 +1766,14 @@ default is used.
    :tags: dnssec
    :short: Sets the frequency of automatic checks of the DNSSEC key repository.
 
-   When a zone is configured with ``auto-dnssec maintain;``, its key
-   repository must be checked periodically to see if any new keys have
-   been added or any existing keys' timing metadata has been updated
-   (see :ref:`man_dnssec-keygen` and :ref:`man_dnssec-settime`).
-   The :any:`dnssec-loadkeys-interval` option
-   sets the frequency of automatic repository checks, in minutes.  The
-   default is ``60`` (1 hour), the minimum is ``1`` (1 minute), and
+   When a zone is configured with ``dnssec-policy;``, its key
+   repository must be checked periodically to see if the next step of a key
+   rollover is due. The :any:`dnssec-loadkeys-interval` option
+   sets the default interval of key repository checks, in minutes, in case
+   the next key event cannot be calculated (for example because a DS record
+   needs to be published).
+
+   The default is ``60`` (1 hour), the minimum is ``1`` (1 minute), and
    the maximum is ``1440`` (24 hours); any higher value is silently
    reduced.
 
@@ -2519,39 +2520,6 @@ Boolean Options
    addresses refer to different machines. If ``yes``, :iscman:`named` does not
    log when the serial number on the primary is less than what :iscman:`named`
    currently has. The default is ``no``.
-
-.. namedconf:statement:: auto-dnssec
-   :tags: dnssec
-   :short: Permits varying levels of automatic DNSSEC key management.
-
-   Zones configured for dynamic DNS may use this option to allow varying
-   levels of automatic DNSSEC key management. There are three possible
-   settings:
-
-   ``auto-dnssec allow;`` permits keys to be updated and the zone fully
-   re-signed whenever the user issues the command :option:`rndc sign zonename <rndc sign>`.
-
-   ``auto-dnssec maintain;`` includes the above, but also
-   automatically adjusts the zone's DNSSEC keys on a schedule, according
-   to the keys' timing metadata (see :ref:`man_dnssec-keygen` and
-   :ref:`man_dnssec-settime`). The command :option:`rndc sign zonename <rndc sign>`
-   causes :iscman:`named` to load keys from the key repository and sign the
-   zone with all keys that are active. :option:`rndc loadkeys zonename <rndc loadkeys>`
-   causes :iscman:`named` to load keys from the key repository and schedule
-   key maintenance events to occur in the future, but it does not sign
-   the full zone immediately. Note: once keys have been loaded for a
-   zone the first time, the repository is searched for changes
-   periodically, regardless of whether :option:`rndc loadkeys` is used. The
-   recheck interval is defined by :any:`dnssec-loadkeys-interval`.
-
-   ``auto-dnssec off;`` does not allow for DNSSEC key management.
-   This is the default setting.
-
-   This option may only be activated at the zone level; if configured
-   at the view or options level, it must be set to ``off``.
-
-   The DNSSEC records are written to the zone's filename set in :any:`file`,
-   unless :any:`inline-signing` is enabled.
 
 .. namedconf:statement:: dnssec-validation
    :tags: dnssec
@@ -7159,9 +7127,6 @@ Zone Options
 
 :any:`key-directory`
    See the description of :any:`key-directory` in :namedconf:ref:`options`.
-
-:any:`auto-dnssec`
-   See the description of :any:`auto-dnssec` in :namedconf:ref:`options`.
 
 :any:`serial-update-method`
    See the description of :any:`serial-update-method` in :namedconf:ref:`options`.
