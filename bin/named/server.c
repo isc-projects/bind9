@@ -12330,8 +12330,7 @@ named_server_rekey(named_server_t *server, isc_lex_t *lex,
 	keyopts = dns_zone_getkeyopts(zone);
 
 	/*
-	 * "rndc loadkeys" requires "auto-dnssec maintain"
-	 * or a "dnssec-policy".
+	 * "rndc loadkeys" requires a "dnssec-policy".
 	 */
 	if ((keyopts & DNS_ZONEKEY_ALLOW) == 0) {
 		result = ISC_R_NOPERM;

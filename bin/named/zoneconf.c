@@ -1661,28 +1661,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		CHECK(dns_zone_setrefreshkeyinterval(zone,
 						     cfg_obj_asuint32(obj)));
 
-		obj = NULL;
-		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
 		if (kasp != NULL) {
 			bool s2i = (strcmp(dns_kasp_getname(kasp),
 					   "insecure") != 0);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, true);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, !s2i);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, true);
-		} else if (result == ISC_R_SUCCESS) {
-			const char *arg = cfg_obj_asstring(obj);
-			if (strcasecmp(arg, "allow") == 0) {
-				allow = true;
-			} else if (strcasecmp(arg, "maintain") == 0) {
-				allow = maint = true;
-			} else if (strcasecmp(arg, "off") == 0) {
-				/* Default */
-			} else {
-				UNREACHABLE();
-			}
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, false);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
 		}
 	}
 
