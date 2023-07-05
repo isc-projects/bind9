@@ -1504,23 +1504,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	}
 
 	/*
-	 * Check auto-dnssec at the view/options level
-	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "auto-dnssec", &obj);
-	if (obj != NULL) {
-		const char *arg = cfg_obj_asstring(obj);
-		if (optlevel != optlevel_zone && strcasecmp(arg, "off") != 0) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "auto-dnssec may only be activated at the "
-				    "zone level");
-			if (result == ISC_R_SUCCESS) {
-				result = ISC_R_FAILURE;
-			}
-		}
-	}
-
-	/*
 	 * Check dnssec-must-be-secure.
 	 */
 	obj = NULL;
@@ -3404,7 +3387,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		bool signing = false;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
-		const char *arg;
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "allow-update", &au);
@@ -3424,7 +3406,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		/*
-		 * To determine whether auto-dnssec is allowed,
+		 * To determine whether dnssec-policy is allowed,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
@@ -3474,39 +3456,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 						      "'allow-update' or "
 						      "'update-policy'"
 						    : "");
-				result = ISC_R_FAILURE;
-			}
-		}
-
-		obj = NULL;
-		arg = "off";
-		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
-		if (res3 == ISC_R_SUCCESS) {
-			arg = cfg_obj_asstring(obj);
-			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "'auto-dnssec' option is deprecated and "
-				    "will be removed in BIND 9.19. Please "
-				    "migrate to dnssec-policy");
-		}
-		if (strcasecmp(arg, "off") != 0) {
-			if (!ddns && !signing && !has_dnssecpolicy) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'auto-dnssec %s;' requires%s "
-					    "inline-signing to be configured "
-					    "for the zone",
-					    arg,
-					    (ztype == CFG_ZONE_PRIMARY)
-						    ? " dynamic DNS or"
-						    : "");
-				result = ISC_R_FAILURE;
-			}
-
-			if (has_dnssecpolicy) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'auto-dnssec %s;' cannot be "
-					    "configured if dnssec-policy is "
-					    "also set",
-					    arg);
 				result = ISC_R_FAILURE;
 			}
 		}
