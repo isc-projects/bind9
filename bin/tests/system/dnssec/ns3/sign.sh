@@ -570,7 +570,7 @@ kskname=$("$KEYGEN" -q -3 -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -fk "$zone"
 zskname=$("$KEYGEN" -q -3 -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 
 #
-# A zone which will change its sig-validity-interval
+# A zone which will change its signatures-validity
 #
 zone=siginterval.example
 infile=siginterval.example.db.in

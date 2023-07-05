@@ -11,7 +11,7 @@ zone <string> [ <class> ] {
 	database <string>;
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	dlz <string>;
-	dnskey-sig-validity <integer>;
+	dnskey-sig-validity <integer>; // obsolete
 	dnssec-dnskey-kskonly <boolean>;
 	dnssec-loadkeys-interval <integer>;
 	dnssec-policy <string>;
@@ -52,7 +52,7 @@ zone <string> [ <class> ] {
 	sig-signing-nodes <integer>;
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
-	sig-validity-interval <integer> [ <integer> ];
+	sig-validity-interval <integer> [ <integer> ]; // obsolete
 	transfer-source ( <ipv4_address> | * );
 	transfer-source-v6 ( <ipv6_address> | * );
 	try-tcp-refresh <boolean>;

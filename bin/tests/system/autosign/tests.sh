@@ -91,7 +91,7 @@ checkjitter () {
 
 	_count=0
 	# Check if we have at least 4 days
-	# This number has been tuned for `sig-validity-interval 10 2`, as
+	# This number has been tuned for `signatures-validity 10d; signatures-refresh 2d`, as
 	# 1 signature expiration dates should be spread out across at most 8 (10-2) days
 	# 2. we remove first and last day to remove frequency outlier, we are left with 6 (8-2) days
 	# 3. we subtract two more days to allow test pass on day boundaries, etc. leaving us with 4 (6-2)

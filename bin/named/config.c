@@ -240,8 +240,6 @@ options {\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
-	sig-validity-interval 30; /* days */\n\
-	dnskey-sig-validity 0; /* default: sig-validity-interval */\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\

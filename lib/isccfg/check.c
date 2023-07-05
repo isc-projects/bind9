@@ -1158,13 +1158,11 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	isc_result_t tresult;
 	unsigned int i;
 	const cfg_obj_t *obj = NULL;
-	const cfg_obj_t *resignobj = NULL;
 	const cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
 	const char *str;
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
-	bool has_dnssecpolicy = false;
 	const char *ccalg = "siphash24";
 	cfg_aclconfctx_t *actx = NULL;
 	static const char *sources[] = {
@@ -1369,8 +1367,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
-		} else {
-			has_dnssecpolicy = true;
 		}
 	}
 
@@ -1386,73 +1382,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 				    "range (35..4096)",
 				    val);
 			result = ISC_R_RANGE;
-		}
-	}
-
-	obj = NULL;
-	cfg_map_get(options, "sig-validity-interval", &obj);
-	if (obj != NULL) {
-		uint32_t validity, resign = 0;
-
-		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
-		resignobj = cfg_tuple_get(obj, "re-sign");
-		if (!cfg_obj_isvoid(resignobj)) {
-			resign = cfg_obj_asuint32(resignobj);
-		}
-
-		if (validity > 3660 || validity == 0) { /* 10 years */
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s '%u' is out of range (1..3660)",
-				    "sig-validity-interval", validity);
-			result = ISC_R_RANGE;
-		}
-
-		if (!cfg_obj_isvoid(resignobj)) {
-			if (resign > 3660 || resign == 0) { /* 10 years */
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "%s '%u' is out of range (1..3660)",
-					    "sig-validity-interval (re-sign)",
-					    validity);
-				result = ISC_R_RANGE;
-			} else if ((validity > 7 && validity < resign) ||
-				   (validity <= 7 && validity * 24 < resign))
-			{
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "validity interval (%u days) "
-					    "less than re-signing interval "
-					    "(%u %s)",
-					    validity, resign,
-					    (validity > 7) ? "days" : "hours");
-				result = ISC_R_RANGE;
-			}
-		}
-
-		if (has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "sig-validity-interval: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	obj = NULL;
-	cfg_map_get(options, "dnskey-sig-validity", &obj);
-	if (obj != NULL) {
-		uint32_t keyvalidity;
-
-		keyvalidity = cfg_obj_asuint32(obj);
-		if (keyvalidity > 3660) { /* 10 years */
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s '%u' is out of range (0..3660)",
-				    "dnskey-sig-validity", keyvalidity);
-			result = ISC_R_RANGE;
-		}
-
-		if (has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnskey-sig-validity: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
 		}
 	}
 

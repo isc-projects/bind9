@@ -905,7 +905,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_stats_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
 	dns_zonestat_level_t statlevel = dns_zonestat_none;
-	int seconds;
 	dns_ttl_t maxttl = 0; /* unlimited */
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 	bool transferinsecs = ns_server_getoption(named_g_server->sctx,
@@ -1547,11 +1546,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * use inline-signing (raw != NULL).
 	 */
 	if (ztype == dns_zone_primary || raw != NULL) {
-		const cfg_obj_t *validity, *resign;
-		bool allow = false, maint = false;
-		bool sigvalinsecs;
-
 		if (use_kasp) {
+			int seconds;
+
 			if (dns_kasp_nsec3(kasp)) {
 				result = dns_zone_setnsec3param(
 					zone, 1, dns_kasp_nsec3flags(kasp),
@@ -1563,52 +1560,14 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					zone, 0, 0, 0, 0, NULL, true, false);
 			}
 			INSIST(result == ISC_R_SUCCESS);
-		}
 
-		if (use_kasp) {
 			seconds = (uint32_t)dns_kasp_sigvalidity_dnskey(kasp);
-		} else {
-			obj = NULL;
-			result = named_config_get(maps, "dnskey-sig-validity",
-						  &obj);
-			INSIST(result == ISC_R_SUCCESS && obj != NULL);
-			seconds = cfg_obj_asuint32(obj) * 86400;
-		}
-		dns_zone_setkeyvalidityinterval(zone, seconds);
+			dns_zone_setkeyvalidityinterval(zone, seconds);
 
-		if (use_kasp) {
 			seconds = (uint32_t)dns_kasp_sigvalidity(kasp);
 			dns_zone_setsigvalidityinterval(zone, seconds);
+
 			seconds = (uint32_t)dns_kasp_sigrefresh(kasp);
-			dns_zone_setsigresigninginterval(zone, seconds);
-		} else {
-			obj = NULL;
-			result = named_config_get(maps, "sig-validity-interval",
-						  &obj);
-			INSIST(result == ISC_R_SUCCESS && obj != NULL);
-
-			sigvalinsecs = ns_server_getoption(
-				named_g_server->sctx, NS_SERVER_SIGVALINSECS);
-			validity = cfg_tuple_get(obj, "validity");
-			seconds = cfg_obj_asuint32(validity);
-			if (!sigvalinsecs) {
-				seconds *= 86400;
-			}
-			dns_zone_setsigvalidityinterval(zone, seconds);
-
-			resign = cfg_tuple_get(obj, "re-sign");
-			if (cfg_obj_isvoid(resign)) {
-				seconds /= 4;
-			} else if (!sigvalinsecs) {
-				uint32_t r = cfg_obj_asuint32(resign);
-				if (seconds > 7 * 86400) {
-					seconds = r * 86400;
-				} else {
-					seconds = r * 3600;
-				}
-			} else {
-				seconds = cfg_obj_asuint32(resign);
-			}
 			dns_zone_setsigresigninginterval(zone, seconds);
 		}
 
