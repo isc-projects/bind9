@@ -1,3 +1,5 @@
+	--- 9.18.17 released ---
+
 6206.	[bug]		Add shutdown checks in dns_catz_dbupdate_callback() to
 			avoid a race with dns_catz_shutdown_catzs(). [GL #4171]
 
