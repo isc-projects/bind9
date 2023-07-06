@@ -125,8 +125,8 @@ dns_xfrin_getendserial(const dns_xfrin_t *xfr);
  */
 
 void
-dns_xfrin_getstats(const dns_xfrin_t *xfr, unsigned int *nmsgp,
-		   unsigned int *nrecsp, uint64_t *nbytesp);
+dns_xfrin_getstats(dns_xfrin_t *xfr, unsigned int *nmsgp, unsigned int *nrecsp,
+		   uint64_t *nbytesp);
 /*%<
  * Get various statistics values of the xfrin object: number of the received
  * messages, number of the received records, number of the received bytes.
