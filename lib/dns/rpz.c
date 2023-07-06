@@ -1474,7 +1474,7 @@ dns_rpz_new_zones(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		goto cleanup_rbt;
 	}
 
-	result = isc_task_create_bound(taskmgr, 0, &rpzs->updater, 0);
+	result = isc_taskmgr_excltask(taskmgr, &rpzs->updater);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_task;
 	}
@@ -2120,7 +2120,7 @@ dns__rpz_zones_destroy(dns_rpz_zones_t *rpzs) {
 	if (rpzs->rbt != NULL) {
 		dns_rbt_destroy(&rpzs->rbt);
 	}
-	isc_task_destroy(&rpzs->updater);
+	isc_task_detach(&rpzs->updater);
 	isc_mutex_destroy(&rpzs->maint_lock);
 	isc_rwlock_destroy(&rpzs->search_lock);
 	isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
