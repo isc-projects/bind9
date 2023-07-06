@@ -27,6 +27,9 @@ Bug Fixes
   BIND 9.19.6 and BIND 9.18.8, has been restored. :gl:`#3668`
   :gl:`#4154`
 
+- Several minor stability issues with the catalog zone implementation
+  have been fixed. :gl:`#4132` :gl:`#4136` :gl:`#4171`
+
 Known Issues
 ~~~~~~~~~~~~
 
