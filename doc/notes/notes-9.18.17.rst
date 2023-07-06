@@ -20,16 +20,16 @@ Feature Changes
   the query, :iscman:`named` now retries sending the query to the
   same server without an EDNS COOKIE option. :gl:`#4049`
 
-- Use NS records for relaxed QNAME-minimization mode.  This reduces the
-  number of queries ``named`` makes when resolving, as it allows the
-  non-existence of NS RRsets at non-referral nodes to be cached in
-  addition to the normally cached referrals. :gl:`#3325`
+- The ``relaxed`` QNAME minimization mode now uses NS records. This
+  reduces the number of queries :iscman:`named` makes when resolving, as
+  it allows the non-existence of NS RRsets at non-referral nodes to be
+  cached in addition to the normally cached referrals. :gl:`#3325`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Restored the abilty to read HMAC-MD5 K file pairs (K*.+157+*.{key,private})
-  that was accidentally lost. :gl:`#4154`
+- The ability to read HMAC-MD5 key files, which was accidentally lost in
+  BIND 9.18.8, has been restored. :gl:`#3668` :gl:`#4154`
 
 Known Issues
 ~~~~~~~~~~~~
