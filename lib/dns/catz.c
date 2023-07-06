@@ -2137,9 +2137,17 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	REQUIRE(DNS_CATZ_ZONES_VALID(fn_arg));
 	catzs = (dns_catz_zones_t *)fn_arg;
 
+	if (atomic_load(&catzs->shuttingdown)) {
+		return (ISC_R_SHUTTINGDOWN);
+	}
+
 	dns_name_toregion(&db->origin, &r);
 
 	LOCK(&catzs->lock);
+	if (catzs->zones == NULL) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto cleanup;
+	}
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&catz);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
