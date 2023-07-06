@@ -1,3 +1,6 @@
+6206.	[bug]		Add shutdown checks in dns_catz_dbupdate_callback() to
+			avoid a race with dns_catz_shutdown_catzs(). [GL #4171]
+
 6205.	[bug]		Restore support to read legacy HMAC-MD5 K file pairs.
 			[GL #4154]
 
