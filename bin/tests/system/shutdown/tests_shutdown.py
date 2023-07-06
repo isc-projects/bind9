@@ -160,7 +160,7 @@ def wait_for_proc_termination(proc, max_timeout=10):
 # Method 1: using rndc ctop
 # Method 2: killing with SIGTERM
 # In both methods named should exit gracefully.
-@pytest.mark.parametrize("kill_method", ["rndc", "sigtem"])
+@pytest.mark.parametrize("kill_method", ["rndc", "sigterm"])
 def test_named_shutdown(named_port, control_port, kill_method):
     # pylint: disable-msg=too-many-locals
     cfg_dir = os.path.join(os.getcwd(), "resolver")
