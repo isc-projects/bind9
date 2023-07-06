@@ -241,6 +241,17 @@ zone "max-zone-ttl.kasp" {
 };
 
 /*
+ * Zone for testing GL #2375: Three is a crowd.
+ */
+zone "three-is-a-crowd.kasp" {
+	type primary;
+	file "three-is-a-crowd.kasp.db";
+	inline-signing yes;
+	/* Use same policy as KSK rollover test zones. */
+	dnssec-policy "ksk-doubleksk";
+};
+
+/*
  * Zones in different signing states.
  */
 
