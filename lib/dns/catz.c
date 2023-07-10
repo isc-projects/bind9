@@ -99,7 +99,6 @@ struct dns_catz_zone {
 	isc_timer_t *updatetimer;
 
 	bool active;
-	bool db_registered;
 	bool broken;
 
 	isc_refcount_t references;
@@ -1005,14 +1004,12 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 		isc_timer_async_destroy(&catz->updatetimer);
 	}
 
-	if (catz->db_registered) {
+	if (catz->db != NULL) {
+		if (catz->dbversion != NULL) {
+			dns_db_closeversion(catz->db, &catz->dbversion, false);
+		}
 		dns_db_updatenotify_unregister(
 			catz->db, dns_catz_dbupdate_callback, catz->catzs);
-	}
-	if (catz->dbversion != NULL) {
-		dns_db_closeversion(catz->db, &catz->dbversion, false);
-	}
-	if (catz->db != NULL) {
 		dns_db_detach(&catz->db);
 	}
 
@@ -2144,16 +2141,12 @@ dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		dns_db_updatenotify_unregister(
 			catz->db, dns_catz_dbupdate_callback, catz->catzs);
 		dns_db_detach(&catz->db);
-		catz->db_registered = false;
 	}
 	if (catz->db == NULL) {
 		/* New db registration. */
 		dns_db_attach(db, &catz->db);
-		result = dns_db_updatenotify_register(
-			db, dns_catz_dbupdate_callback, catz->catzs);
-		if (result == ISC_R_SUCCESS) {
-			catz->db_registered = true;
-		}
+		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
+					     catz->catzs);
 	}
 
 	if (!catz->updatepending && !catz->updaterunning) {
@@ -2186,9 +2179,7 @@ dns_catz_dbupdate_unregister(dns_db_t *db, dns_catz_zones_t *catzs) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 
-	LOCK(&catzs->lock);
 	dns_db_updatenotify_unregister(db, dns_catz_dbupdate_callback, catzs);
-	UNLOCK(&catzs->lock);
 }
 
 void
@@ -2196,9 +2187,7 @@ dns_catz_dbupdate_register(dns_db_t *db, dns_catz_zones_t *catzs) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(DNS_CATZ_ZONES_VALID(catzs));
 
-	LOCK(&catzs->lock);
 	dns_db_updatenotify_register(db, dns_catz_dbupdate_callback, catzs);
-	UNLOCK(&catzs->lock);
 }
 
 static bool
@@ -2495,15 +2484,8 @@ dns__catz_update_cb(void *data) {
 	 * update callback in zone_startload or axfr_makedb, but we will
 	 * call onupdate() artificially so we can register the callback here.
 	 */
-	LOCK(&catzs->lock);
-	if (!oldcatz->db_registered) {
-		result = dns_db_updatenotify_register(
-			updb, dns_catz_dbupdate_callback, oldcatz->catzs);
-		if (result == ISC_R_SUCCESS) {
-			oldcatz->db_registered = true;
-		}
-	}
-	UNLOCK(&catzs->lock);
+	dns_db_updatenotify_register(updb, dns_catz_dbupdate_callback,
+				     oldcatz->catzs);
 
 exit:
 	catz->updateresult = result;

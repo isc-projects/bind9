@@ -58,6 +58,7 @@
 #include <isc/rwlock.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
+#include <isc/urcu.h>
 
 #include <dns/clientinfo.h>
 #include <dns/fixedname.h>
@@ -212,7 +213,7 @@ struct dns_db {
 	dns_ttl_t	 serve_stale_ttl; /* for cache DB's only */
 	isc_mem_t	*mctx;
 	isc_refcount_t	 references;
-	ISC_LIST(dns_dbonupdatelistener_t) update_listeners;
+	struct cds_lfht *update_listeners;
 };
 
 enum {
@@ -221,9 +222,11 @@ enum {
 };
 
 struct dns_dbonupdatelistener {
+	isc_mem_t	       *mctx;
 	dns_dbupdate_callback_t onupdate;
 	void		       *onupdate_arg;
-	ISC_LINK(dns_dbonupdatelistener_t) link;
+	struct cds_lfht_node	ht_node;
+	struct rcu_head		rcu_head;
 };
 
 /*@{*/
@@ -1617,7 +1620,7 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
  *	dns_rdatasetstats_create(); otherwise NULL.
  */
 
-isc_result_t
+void
 dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
 			     void *fn_arg);
 /*%<
@@ -1631,7 +1634,7 @@ dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
  *
  */
 
-isc_result_t
+void
 dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
 			       void *fn_arg);
 /*%<

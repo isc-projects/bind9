@@ -1896,14 +1896,11 @@ dns_zone_get_rpz_num(dns_zone_t *zone) {
  */
 void
 dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
-	isc_result_t result;
 	if (zone->rpz_num == DNS_RPZ_INVALID_NUM) {
 		return;
 	}
 	REQUIRE(zone->rpzs != NULL);
-	result = dns_db_updatenotify_register(db, dns_rpz_dbupdate_callback,
-					      zone->rpzs->zones[zone->rpz_num]);
-	REQUIRE(result == ISC_R_SUCCESS);
+	dns_rpz_dbupdate_register(db, zone->rpzs->zones[zone->rpz_num]);
 }
 
 static void
@@ -1912,8 +1909,7 @@ dns_zone_rpz_disable_db(dns_zone_t *zone, dns_db_t *db) {
 		return;
 	}
 	REQUIRE(zone->rpzs != NULL);
-	(void)dns_db_updatenotify_unregister(db, dns_rpz_dbupdate_callback,
-					     zone->rpzs->zones[zone->rpz_num]);
+	dns_rpz_dbupdate_unregister(db, zone->rpzs->zones[zone->rpz_num]);
 }
 
 /*
