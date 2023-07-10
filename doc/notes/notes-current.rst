@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.17
+Notes for BIND 9.18.18
 ----------------------
 
 Security Fixes
@@ -30,21 +30,12 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- If a response from an authoritative server has its RCODE set to
-  FORMERR and contains an echoed EDNS COOKIE option that was present in
-  the query, :iscman:`named` now retries sending the query to the
-  same server without an EDNS COOKIE option. :gl:`#4049`
-
-- Use NS records for relaxed QNAME-minimization mode.  This reduces the
-  number of queries ``named`` makes when resolving, as it allows the
-  non-existence of NS RRsets at non-referral nodes to be cached in
-  addition to the normally cached referrals. :gl:`#3325`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
 
-- Restored the abilty to read HMAC-MD5 K file pairs (K*.+157+*.{key,private})
-  that was accidentally lost. :gl:`#4154`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
