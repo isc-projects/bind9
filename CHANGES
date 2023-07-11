@@ -1,3 +1,6 @@
+6212.	[bug]		Don't process detach and close netmgr events when
+			the netmgr has been paused. [GL #4200]
+
 	--- 9.18.17 released ---
 
 6206.	[bug]		Add shutdown checks in dns_catz_dbupdate_callback() to
