@@ -38,7 +38,7 @@ Feature Changes
   ``--with-tuning`` option) has either been removed or changed to a
   sensible default. :gl:`#3664`
 
-- The :any:`auto-dnssec` option has been deprecated and will be removed
+- The ``auto-dnssec`` option has been deprecated and will be removed
   in a future BIND 9.19.x release. Please migrate to
   :any:`dnssec-policy`. :gl:`#3667`
 

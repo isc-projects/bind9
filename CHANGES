@@ -1,3 +1,8 @@
+6211.	[func]		Remove 'auto-dnssec'. This obsoletes the configuration
+			options 'dnskey-sig-validity', 'dnssec-dnskey-kskonly',
+			'dnssec-update-mode', 'sig-validity-interval', and
+			'update-check-ksk'. [GL #3672]
+
 6210.	[func]		Don't add signing records for DNSKEY added with dynamic
 			update. The dynamic update DNSSEC management feature was
 			removed with GL #3686. [GL !8070]
