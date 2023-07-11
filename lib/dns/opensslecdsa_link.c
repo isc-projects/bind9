@@ -345,10 +345,16 @@ opensslecdsa_extract_public_key_legacy(const dst_key_t *key, unsigned char *dst,
 				       size_t dstlen) {
 	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
 	const EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(pkey);
-	const EC_GROUP *group = EC_KEY_get0_group(eckey);
-	const EC_POINT *pub = EC_KEY_get0_public_key(eckey);
+	const EC_GROUP *group = (eckey == NULL) ? NULL
+						: EC_KEY_get0_group(eckey);
+	const EC_POINT *pub = (eckey == NULL) ? NULL
+					      : EC_KEY_get0_public_key(eckey);
 	unsigned char buf[MAX_PUBKEY_SIZE + 1];
 	size_t len;
+
+	if (group == NULL || pub == NULL) {
+		return (false);
+	}
 
 	len = EC_POINT_point2oct(group, pub, POINT_CONVERSION_UNCOMPRESSED, buf,
 				 sizeof(buf), NULL);
@@ -528,7 +534,13 @@ err:
 static isc_result_t
 opensslecdsa_validate_pkey_group(unsigned int key_alg, EVP_PKEY *pkey) {
 	const EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(pkey);
-	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
+	int group_nid;
+
+	if (eckey == NULL) {
+		return (dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
+	}
+
+	group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 
 	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) != group_nid) {
 		return (DST_R_INVALIDPRIVATEKEY);
@@ -545,6 +557,7 @@ opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
 
 	eckey = EVP_PKEY_get0_EC_KEY(key->keydata.pkeypair.priv);
 	if (eckey == NULL) {
+		ERR_clear_error();
 		return (false);
 	}
 
@@ -825,7 +838,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		DST_RET(ISC_R_NOSPACE);
 	}
 	if (!opensslecdsa_extract_public_key(key, r.base, keysize)) {
-		DST_RET(DST_R_OPENSSLFAILURE);
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 
 	isc_buffer_add(data, keysize);
