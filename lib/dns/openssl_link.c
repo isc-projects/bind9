@@ -104,6 +104,7 @@ cleanup_rm:
 		ENGINE_free(e);
 	}
 	e = NULL;
+	ERR_clear_error();
 #else
 	UNUSED(engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
