@@ -110,6 +110,7 @@ cleanup_rm:
 	if (global_engine != NULL) {
 		ENGINE_free(global_engine);
 	}
+	ERR_clear_error();
 	global_engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	return (DST_R_NOENGINE);
