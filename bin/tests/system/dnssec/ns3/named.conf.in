@@ -301,13 +301,6 @@ zone "expiring.example" {
 	file "expiring.example.db.signed";
 };
 
-zone "nosign.example" {
-	type primary;
-	allow-update { any; };
-	dnssec-update-mode no-resign;
-	file "nosign.example.db.signed";
-};
-
 zone "upper.example" {
 	type primary;
 	file "upper.example.db.signed";

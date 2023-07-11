@@ -2283,7 +2283,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "dnssec-secure-to-insecure", &cfg_type_boolean,
 	  CFG_ZONE_PRIMARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-update-mode", &cfg_type_dnssecupdatemode,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "forward", &cfg_type_forwardtype,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB |
 		  CFG_ZONE_STATICSTUB | CFG_ZONE_FORWARD },

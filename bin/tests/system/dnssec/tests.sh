@@ -2969,48 +2969,6 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "testing new records are signed with 'no-resign' ($n)"
-ret=0
-(
-echo zone nosign.example
-echo server 10.53.0.3 "$PORT"
-echo update add new.nosign.example 300 in txt "hi there"
-echo send
-) | $NSUPDATE
-sleep 1
-dig_with_answeropts +nottlid txt new.nosign.example @10.53.0.3 \
-        > dig.out.ns3.test$n 2>&1
-grep RRSIG dig.out.ns3.test$n > /dev/null 2>&1 || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "testing expiring records aren't resigned with 'no-resign' ($n)"
-ret=0
-dig_with_answeropts +nottlid nosign.example ns @10.53.0.3 | \
-        grep RRSIG | sed 's/[ 	][ 	]*/ /g' > dig.out.ns3.test$n 2>&1
-# the NS RRSIG should not be changed
-diff nosign.before dig.out.ns3.test$n > /dev/null|| ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "testing updates fail with no private key ($n)"
-ret=0
-rm -f ns3/Knosign.example.*.private
-(
-echo zone nosign.example
-echo server 10.53.0.3 "$PORT"
-echo update add fail.nosign.example 300 in txt "reject me"
-echo send
-) | $NSUPDATE > /dev/null 2>&1 && ret=1
-dig_with_answeropts +nottlid fail.nosign.example txt @10.53.0.3 \
-        > dig.out.ns3.test$n 2>&1
-[ -s dig.out.ns3.test$n ] && ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
 echo_i "testing legacy upper case signer name validation ($n)"
 ret=0
 $DIG +tcp +noadd +noauth +dnssec -p "$PORT" soa upper.example @10.53.0.4 \

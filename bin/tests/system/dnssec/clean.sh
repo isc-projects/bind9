@@ -31,7 +31,6 @@ rm -f ./dnssectools.out*
 rm -f ./dsfromkey.out.*
 rm -f ./keygen.err
 rm -f ./named.secroots.test*
-rm -f ./nosign.before
 rm -f ./ns*/*.nta
 rm -f ./ns*/managed-keys.bind ./ns*/managed-keys.bind.jnl ./ns*/*.mkeys*
 rm -f ./ns*/named.lock
@@ -68,7 +67,7 @@ rm -f ./ns3/dnskey-unsupported.example.db
 rm -f ./ns3/dnskey-unsupported.example.db.tmp
 rm -f ./ns3/dynamic.example.db ./ns3/dynamic.example.db.signed.jnl
 rm -f ./ns3/expired.example.db ./ns3/update-nsec3.example.db
-rm -f ./ns3/expiring.example.db ./ns3/nosign.example.db
+rm -f ./ns3/expiring.example.db
 rm -f ./ns3/future.example.db ./ns3/trusted-future.key
 rm -f ./ns3/inline.example.db.signed
 rm -f ./ns3/kskonly.example.db

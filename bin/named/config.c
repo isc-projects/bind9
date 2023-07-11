@@ -216,7 +216,6 @@ options {\n\
 	check-wildcard yes;\n\
 	dialup no;\n\
 	dnssec-loadkeys-interval 60;\n\
-	dnssec-update-mode maintain;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
 #	inline-signing no;\n\

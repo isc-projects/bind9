@@ -120,7 +120,7 @@ options {
 	dnssec-must-be-secure <string> <boolean>; // may occur multiple times
 	dnssec-policy <string>;
 	dnssec-secure-to-insecure <boolean>; // obsolete
-	dnssec-update-mode ( maintain | no-resign );
+	dnssec-update-mode ( maintain | no-resign ); // obsolete
 	dnssec-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
 	dnstap-identity ( <quoted_string> | none | hostname ); // not configured
@@ -418,7 +418,7 @@ view <string> [ <class> ] {
 	dnssec-must-be-secure <string> <boolean>; // may occur multiple times
 	dnssec-policy <string>;
 	dnssec-secure-to-insecure <boolean>; // obsolete
-	dnssec-update-mode ( maintain | no-resign );
+	dnssec-update-mode ( maintain | no-resign ); // obsolete
 	dnssec-validation ( yes | no | auto );
 	dnstap { ( all | auth | client | forwarder | resolver | update ) [ ( query | response ) ]; ... }; // not configured
 	dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port <integer> ] | <ipv4_address> [ port <integer> ] | <ipv6_address> [ port <integer> ] ); ... };

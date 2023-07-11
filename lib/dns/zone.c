@@ -5182,9 +5182,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		is_dynamic = dns_zone_isdynamic(zone, false);
-		if (zone->type == dns_zone_primary &&
-		    !DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN) &&
-		    is_dynamic && dns_db_issecure(db))
+		if (zone->type == dns_zone_primary && is_dynamic &&
+		    dns_db_issecure(db))
 		{
 			dns_name_t *name;
 			dns_fixedname_t fixed;
@@ -6749,12 +6748,9 @@ zone_resigninc(dns_zone_t *zone) {
 	zonediff_init(&zonediff, &_sig_diff);
 
 	/*
-	 * Zone is frozen or automatic resigning is disabled.
-	 * Pause for 5 minutes.
+	 * Zone is frozen. Pause for 5 minutes.
 	 */
-	if (zone->update_disabled ||
-	    DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_NORESIGN))
-	{
+	if (zone->update_disabled) {
 		result = ISC_R_FAILURE;
 		goto failure;
 	}

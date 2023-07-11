@@ -15,7 +15,7 @@ zone <string> [ <class> ] {
 	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;
 	dnssec-policy <string>;
-	dnssec-update-mode ( maintain | no-resign );
+	dnssec-update-mode ( maintain | no-resign ); // obsolete
 	file <quoted_string>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };

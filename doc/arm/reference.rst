@@ -1784,26 +1784,9 @@ default is used.
    The default is ``none``.
 
 .. namedconf:statement:: dnssec-update-mode
-   :tags: dnssec
-   :short: Controls the scheduled maintenance of DNSSEC signatures.
+   :tags: obsolete
 
-   If this option is set to its default value of ``maintain`` in a zone
-   of :any:`type primary` which is DNSSEC-signed and configured to allow
-   dynamic updates (see :ref:`dynamic_update_policies`), and if :iscman:`named` has access
-   to the private signing key(s) for the zone, then :iscman:`named`
-   automatically signs all new or changed records and maintains signatures
-   for the zone by regenerating RRSIG records whenever they approach
-   their expiration date.
-
-   If the option is changed to ``no-resign``, then :iscman:`named` signs
-   all new or changed records, but scheduled maintenance of signatures
-   is disabled.
-
-   With either of these settings, :iscman:`named` rejects updates to a
-   DNSSEC-signed zone when the signing keys are inactive or unavailable
-   to :iscman:`named`. (A planned third option, ``external``, will disable all
-   automatic signing and allow DNSSEC data to be submitted into a zone
-   via dynamic update; this is not yet implemented.)
+   This option no longer has any effect.
 
 .. namedconf:statement:: nta-lifetime
    :tags: dnssec

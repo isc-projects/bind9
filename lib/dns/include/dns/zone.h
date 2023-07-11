@@ -113,7 +113,6 @@ typedef enum {
 	DNS_ZONEKEY_MAINTAIN = 0x00000002U, /*%< publish/sign on schedule */
 	DNS_ZONEKEY_CREATE = 0x00000004U,   /*%< make keys when needed */
 	DNS_ZONEKEY_FULLSIGN = 0x00000008U, /*%< roll to new keys immediately */
-	DNS_ZONEKEY_NORESIGN = 0x00000010U, /*%< no automatic resigning */
 	DNS_ZONEKEY___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zonekey_t;
 

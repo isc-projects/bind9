@@ -15127,10 +15127,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	}
 
 	/* Next resign event */
-	if (secure &&
-	    (zonetype == dns_zone_primary ||
-	     (zonetype == dns_zone_secondary && hasraw)) &&
-	    ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_NORESIGN) == 0))
+	if (secure && (zonetype == dns_zone_primary ||
+		       (zonetype == dns_zone_secondary && hasraw)))
 	{
 		dns_name_t *name;
 		dns_fixedname_t fixed;

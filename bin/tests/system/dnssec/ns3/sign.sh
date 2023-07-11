@@ -546,23 +546,6 @@ cp "$infile" "$zonefile"
 "$SIGNER" -P -S -o "$zone" "$zonefile" > /dev/null
 
 #
-# Zone with signatures about to expire, and dynamic, but configured
-# not to resign with 'auto-resign no;'
-#
-zone="nosign.example."
-infile="nosign.example.db.in"
-zonefile="nosign.example.db"
-signedfile="nosign.example.db.signed"
-kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
-zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
-cp "$infile" "$zonefile"
-"$SIGNER" -S -e "now+1mi" -o "$zone" "$zonefile" > /dev/null
-# preserve a normalized copy of the NS RRSIG for comparison later
-$CHECKZONE -D nosign.example nosign.example.db.signed 2>/dev/null | \
-        awk '$4 == "RRSIG" && $5 == "NS" {$2 = ""; print}' | \
-        sed 's/[ 	][ 	]*/ /g'> ../nosign.before
-
-#
 # An inline signing zone
 #
 zone=inline.example.
