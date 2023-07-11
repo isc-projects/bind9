@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 
+#include <openssl/err.h>
 #include <openssl/opensslv.h>
 
 #include <isc/iterated_hash.h>
@@ -127,7 +128,7 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 fail:
 	EVP_MD_CTX_free(ctx);
 	EVP_MD_free(md);
-
+	ERR_clear_error();
 	return (0);
 }
 
