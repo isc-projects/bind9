@@ -130,6 +130,7 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 	return (outlength);
 
 fail:
+	ERR_clear_error();
 	return (0);
 }
 

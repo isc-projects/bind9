@@ -11,6 +11,7 @@
  * information regarding copyright ownership.
  */
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/opensslv.h>
 
@@ -61,6 +62,7 @@ isc_hmac_init(isc_hmac_t *hmac, const void *key, const size_t keylen,
 
 	if (EVP_DigestSignInit(hmac, NULL, md_type, NULL, pkey) != 1) {
 		EVP_PKEY_free(pkey);
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -74,6 +76,7 @@ isc_hmac_reset(isc_hmac_t *hmac) {
 	REQUIRE(hmac != NULL);
 
 	if (EVP_MD_CTX_reset(hmac) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -89,6 +92,7 @@ isc_hmac_update(isc_hmac_t *hmac, const unsigned char *buf, const size_t len) {
 	}
 
 	if (EVP_DigestSignUpdate(hmac, buf, len) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -105,6 +109,7 @@ isc_hmac_final(isc_hmac_t *hmac, unsigned char *digest,
 	size_t len = *digestlen;
 
 	if (EVP_DigestSignFinal(hmac, digest, &len) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
