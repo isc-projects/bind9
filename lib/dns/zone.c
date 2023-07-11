@@ -6554,7 +6554,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[1024]; /* XXX */
 	isc_buffer_t buffer;
-	unsigned int i, j;
+	unsigned int i;
 	bool use_kasp = false;
 
 	if (zone->kasp != NULL) {
@@ -6590,8 +6590,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 	}
 
 	for (i = 0; i < nkeys; i++) {
-		bool both = false;
-
 		/* Don't add signatures for offline or inactive keys */
 		if (!dst_key_isprivate(keys[i])) {
 			continue;
@@ -6601,43 +6599,14 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 		}
 
 		if (check_ksk && !REVOKE(keys[i])) {
-			bool have_ksk, have_nonksk;
-			if (KSK(keys[i])) {
-				have_ksk = true;
-				have_nonksk = false;
-			} else {
-				have_ksk = false;
-				have_nonksk = true;
-			}
-
-			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
-					continue;
-				}
-
-				/*
-				 * Don't consider inactive keys, however
-				 * the KSK may be temporary offline, so do
-				 * consider keys which private key files are
-				 * unavailable.
-				 */
-				if (dst_key_inactive(keys[j])) {
-					continue;
-				}
-
-				if (REVOKE(keys[j])) {
-					continue;
-				}
-				if (KSK(keys[j])) {
-					have_ksk = true;
-				} else if (dst_key_isprivate(keys[j])) {
-					have_nonksk = true;
-				}
-				both = have_ksk && have_nonksk;
-				if (both) {
-					break;
-				}
-			}
+			/*
+			 * Don't consider inactive keys, however the KSK may be
+			 * temporary offline, so do consider keys which private
+			 * key files are unavailable.
+			 */
+			both = dst_key_have_ksk_and_zsk(
+				keys, nkeys, i, false, KSK(keys[i]),
+				!KSK(keys[i]), NULL, NULL);
 		}
 		if (use_kasp) {
 			/*
@@ -6648,7 +6617,6 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 			isc_stdtime_t when;
 			bool ksk = false;
 			bool zsk = false;
-			bool have_ksk = false;
 			bool have_zsk = false;
 
 			kresult = dst_key_getbool(keys[i], DST_BOOL_KSK, &ksk);
@@ -6664,55 +6632,12 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_zone_t *zone,
 				}
 			}
 
-			have_ksk = ksk;
-			have_zsk = zsk;
-			both = have_ksk && have_zsk;
-
-			for (j = 0; j < nkeys; j++) {
-				if (both) {
-					break;
-				}
-
-				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
-					continue;
-				}
-
-				/*
-				 * Don't consider inactive keys or offline keys.
-				 */
-				if (!dst_key_isprivate(keys[j])) {
-					continue;
-				}
-				if (dst_key_inactive(keys[j])) {
-					continue;
-				}
-
-				if (REVOKE(keys[j])) {
-					continue;
-				}
-
-				if (!have_ksk) {
-					kresult = dst_key_getbool(keys[j],
-								  DST_BOOL_KSK,
-								  &have_ksk);
-					if (kresult != ISC_R_SUCCESS) {
-						if (KSK(keys[j])) {
-							have_ksk = true;
-						}
-					}
-				}
-				if (!have_zsk) {
-					kresult = dst_key_getbool(keys[j],
-								  DST_BOOL_ZSK,
-								  &have_zsk);
-					if (kresult != ISC_R_SUCCESS) {
-						if (!KSK(keys[j])) {
-							have_zsk = true;
-						}
-					}
-				}
-				both = have_ksk && have_zsk;
-			}
+			/*
+			 * Don't consider inactive keys or offline keys.
+			 */
+			(void)dst_key_have_ksk_and_zsk(keys, nkeys, i, true,
+						       ksk, zsk, NULL,
+						       &have_zsk);
 
 			if (dns_rdatatype_iskeymaterial(type)) {
 				/*
@@ -9375,44 +9300,15 @@ zone_sign(dns_zone_t *zone) {
 			 * Do we do KSK processing?
 			 */
 			if (check_ksk && !REVOKE(zone_keys[i])) {
-				bool have_ksk, have_nonksk;
-				if (KSK(zone_keys[i])) {
-					have_ksk = true;
-					have_nonksk = false;
-				} else {
-					have_ksk = false;
-					have_nonksk = true;
-				}
-				for (j = 0; j < nkeys; j++) {
-					if (j == i || (ALG(zone_keys[i]) !=
-						       ALG(zone_keys[j])))
-					{
-						continue;
-					}
-					/*
-					 * Don't consider inactive keys, however
-					 * the key may be temporary offline, so
-					 * do consider KSKs which private key
-					 * files are unavailable.
-					 */
-					if (dst_key_inactive(zone_keys[j])) {
-						continue;
-					}
-					if (REVOKE(zone_keys[j])) {
-						continue;
-					}
-					if (KSK(zone_keys[j])) {
-						have_ksk = true;
-					} else if (dst_key_isprivate(
-							   zone_keys[j]))
-					{
-						have_nonksk = true;
-					}
-					both = have_ksk && have_nonksk;
-					if (both) {
-						break;
-					}
-				}
+				/*
+				 * Don't consider inactive keys, however the key
+				 * may be temporary offline, so do consider KSKs
+				 * which private key files are unavailable.
+				 */
+				both = dst_key_have_ksk_and_zsk(
+					zone_keys, nkeys, i, false,
+					KSK(zone_keys[i]), !KSK(zone_keys[i]),
+					NULL, NULL);
 			}
 			if (use_kasp) {
 				/*
