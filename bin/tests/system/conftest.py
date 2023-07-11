@@ -581,6 +581,7 @@ else:
                 perl("stop.pl", [system_test_dir.name])
             except subprocess.CalledProcessError as exc:
                 mlogger.error("Failed to stop servers")
+                get_core_dumps()
                 pytest.fail(f"stop.pl exited with {exc.returncode}")
 
         def get_core_dumps():
