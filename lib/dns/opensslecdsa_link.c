@@ -112,6 +112,8 @@ static int
 BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 	int bytes = size - BN_num_bytes(bn);
 
+	INSIST(bytes >= 0);
+
 	while (bytes-- > 0) {
 		*buf++ = 0;
 	}
