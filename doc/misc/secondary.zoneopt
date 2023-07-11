@@ -12,7 +12,7 @@ zone <string> [ <class> ] {
 	dialup ( notify | notify-passive | passive | refresh | <boolean> );
 	dlz <string>;
 	dnskey-sig-validity <integer>; // obsolete
-	dnssec-dnskey-kskonly <boolean>;
+	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;
 	dnssec-policy <string>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -56,7 +56,7 @@ zone <string> [ <class> ] {
 	transfer-source ( <ipv4_address> | * );
 	transfer-source-v6 ( <ipv6_address> | * );
 	try-tcp-refresh <boolean>;
-	update-check-ksk <boolean>;
+	update-check-ksk <boolean>; // obsolete
 	zero-no-soa-ttl <boolean>;
 	zone-statistics ( full | terse | none | <boolean> );
 };

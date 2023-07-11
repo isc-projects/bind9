@@ -82,6 +82,13 @@ zone "step1.going-straight-to-none.kasp" {
         dnssec-policy "none";
 };
 
+zone "step1.going-straight-to-none-dynamic.kasp" {
+        type primary;
+        file "step1.going-straight-to-none-dynamic.kasp.db.signed";
+        dnssec-policy "none";
+        allow-update { any; };
+};
+
 /*
  * Zones for testing KSK/ZSK algorithm roll.
  */

@@ -3403,24 +3403,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
-		    !signing)
-		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-dnskey-kskonly: requires "
-				    "inline-signing when used in secondary "
-				    "zone");
-			result = ISC_R_FAILURE;
-		}
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-dnskey-kskonly: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing)
@@ -3429,24 +3411,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "dnssec-loadkeys-interval: requires "
 				    "inline-signing when used in secondary "
 				    "zone");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
-		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
-		    !signing)
-		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "update-check-ksk: requires "
-				    "inline-signing when used in secondary "
-				    "zone");
-			result = ISC_R_FAILURE;
-		}
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "update-check-ksk: cannot be configured "
-				    "if dnssec-policy is also set");
 			result = ISC_R_FAILURE;
 		}
 

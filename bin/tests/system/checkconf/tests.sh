@@ -218,14 +218,8 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking options allowed in inline-signing secondaries ($n)"
 ret=0
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1 && ret=1
-l=$(grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l)
-[ $l -eq 1 ] || ret=1
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.2 2>&1 && ret=1
 l=$(grep "dnssec-loadkeys-interval.*requires inline" < checkconf.out$n.2 | wc -l)
-[ $l -eq 1 ] || ret=1
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.3 2>&1 && ret=1
-l=$(grep "update-check-ksk.*requires inline" < checkconf.out$n.3 | wc -l)
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -490,9 +484,7 @@ echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
 $CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
 grep "'inline-signing yes;' must also be configured explicitly for zones using dnssec-policy without a configured 'allow-update' or 'update-policy'" < checkconf.out$n > /dev/null || ret=1
-grep "dnssec-dnskey-kskonly: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-update-mode: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "update-check-ksk: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 grep "dnssec-update-mode: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

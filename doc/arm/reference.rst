@@ -2708,40 +2708,14 @@ Boolean Options
    The default is ``no``.
 
 .. namedconf:statement:: update-check-ksk
-   :tags: zone, dnssec
-   :short: Specifies whether to check the KSK bit to determine how a key should be used, when generating RRSIGs for a secure zone.
+   :tags: obsolete
 
-   When set to the default value of ``yes``, check the KSK bit in each
-   key to determine how the key should be used when generating RRSIGs
-   for a secure zone.
-
-   Ordinarily, zone-signing keys (that is, keys without the KSK bit set)
-   are used to sign the entire zone, while key-signing keys (keys with
-   the KSK bit set) are only used to sign the DNSKEY RRset at the zone
-   apex. However, if this option is set to ``no``, then the KSK bit is
-   ignored; KSKs are treated as if they were ZSKs and are used to sign
-   the entire zone. This is similar to the :option:`dnssec-signzone -z`
-   command-line option.
-
-   When this option is set to ``yes``, there must be at least two active
-   keys for every algorithm represented in the DNSKEY RRset: at least
-   one KSK and one ZSK per algorithm. If there is any algorithm for
-   which this requirement is not met, this option is ignored for
-   that algorithm.
+   This option no longer has any effect.
 
 .. namedconf:statement:: dnssec-dnskey-kskonly
-   :tags: dnssec
-   :short: Specifies that only key-signing keys are used to sign the DNSKEY, CDNSKEY, and CDS RRsets at a zone's apex.
+   :tags: obsolete
 
-   When this option and :any:`update-check-ksk` are both set to ``yes``,
-   only key-signing keys (that is, keys with the KSK bit set) are
-   used to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
-   Zone-signing keys (keys without the KSK bit set) are used to sign
-   the remainder of the zone, but not the DNSKEY RRset. This is similar
-   to the :option:`dnssec-signzone -x` command-line option.
-
-   The default is ``yes``. If :any:`update-check-ksk` is set to ``no``, this
-   option is ignored.
+   This option no longer has any effect.
 
 .. namedconf:statement:: try-tcp-refresh
    :tags: transfer

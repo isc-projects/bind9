@@ -359,15 +359,12 @@ Options
 .. option:: -x
 
    This option indicates that BIND 9 should only sign the DNSKEY, CDNSKEY, and CDS RRsets with key-signing keys,
-   and should omit signatures from zone-signing keys. (This is similar to the
-   ``dnssec-dnskey-kskonly yes;`` zone option in :iscman:`named`.)
+   and should omit signatures from zone-signing keys.
 
 .. option:: -z
 
    This option indicates that BIND 9 should ignore the KSK flag on keys when determining what to sign. This causes
    KSK-flagged keys to sign all records, not just the DNSKEY RRset.
-   (This is similar to the ``update-check-ksk no;`` zone option in
-   :iscman:`named`.)
 
 .. option:: -3 salt
 

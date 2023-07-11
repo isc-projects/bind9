@@ -2275,7 +2275,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "dialup", &cfg_type_dialuptype,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_ZONE_STUB },
 	{ "dnssec-dnskey-kskonly", &cfg_type_boolean,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32,
 	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
 	{ "dnssec-policy", &cfg_type_astring,
@@ -2365,7 +2365,7 @@ static cfg_clausedef_t zone_clauses[] = {
 	{ "try-tcp-refresh", &cfg_type_boolean,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR },
 	{ "update-check-ksk", &cfg_type_boolean,
-	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY },
+	  CFG_ZONE_PRIMARY | CFG_ZONE_SECONDARY | CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-alt-transfer-source", &cfg_type_boolean,
 	  CFG_ZONE_SECONDARY | CFG_ZONE_MIRROR | CFG_ZONE_STUB |
 		  CFG_CLAUSEFLAG_ANCIENT },

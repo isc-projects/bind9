@@ -244,7 +244,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 */
 	result = dns__zone_updatesigs(&raw_diff, db, version, zone_keys, nkeys,
 				      zone, now - 3600, now + 3600, 0, now,
-				      true, false, &zonediff);
+				      &zonediff);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_true(ISC_LIST_EMPTY(raw_diff.tuples));
 	assert_false(ISC_LIST_EMPTY(zone_diff.tuples));

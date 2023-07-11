@@ -215,7 +215,6 @@ options {\n\
 	check-srv-cname warn;\n\
 	check-wildcard yes;\n\
 	dialup no;\n\
-	dnssec-dnskey-kskonly yes;\n\
 	dnssec-loadkeys-interval 60;\n\
 	dnssec-update-mode maintain;\n\
 #	forward <none>\n\
@@ -243,7 +242,6 @@ options {\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
-	update-check-ksk yes;\n\
 	zero-no-soa-ttl yes;\n\
 	zone-statistics terse;\n\
 };\n\
