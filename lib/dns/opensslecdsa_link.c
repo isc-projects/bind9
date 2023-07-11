@@ -439,8 +439,10 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	eckey1 = EVP_PKEY_get1_EC_KEY(pkey1);
 	eckey2 = EVP_PKEY_get1_EC_KEY(pkey2);
 	if (eckey1 == NULL && eckey2 == NULL) {
+		ERR_clear_error();
 		DST_RET(true);
 	} else if (eckey1 == NULL || eckey2 == NULL) {
+		ERR_clear_error();
 		DST_RET(false);
 	}
 	priv1 = EC_KEY_get0_private_key(eckey1);
@@ -616,6 +618,8 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	ret = (eckey != NULL && EC_KEY_get0_private_key(eckey) != NULL);
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
+	} else {
+		ERR_clear_error();
 	}
 #else
 	ret = (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) ==
