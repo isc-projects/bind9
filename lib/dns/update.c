@@ -1160,17 +1160,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			continue;
 		}
 
-		if (!REVOKE(keys[i])) {
-			/*
-			 * Don't consider inactive keys, however the KSK may be
-			 * temporary offline, so do consider KSKs which private
-			 * key files are unavailable.
-			 */
-			both = dst_key_have_ksk_and_zsk(
-				keys, nkeys, i, false, KSK(keys[i]),
-				!KSK(keys[i]), NULL, NULL);
-		}
-
 		if (use_kasp) {
 			/*
 			 * A dnssec-policy is found. Check what RRsets this
@@ -1216,26 +1205,34 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				 */
 				continue;
 			}
-
+		} else if (!REVOKE(keys[i])) {
 			/*
-			 * If this key is revoked, it may only sign the
-			 * DNSKEY RRset.
+			 * Don't consider inactive keys, however the KSK may be
+			 * temporary offline, so do consider KSKs which private
+			 * key files are unavailable.
 			 */
-			if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
-				continue;
-			}
-		} else if (both) {
-			/*
-			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
-			 */
-			if (dns_rdatatype_iskeymaterial(type)) {
-				if (!KSK(keys[i])) {
+			both = dst_key_have_ksk_and_zsk(
+				keys, nkeys, i, false, KSK(keys[i]),
+				!KSK(keys[i]), NULL, NULL);
+			if (both) {
+				/*
+				 * CDS and CDNSKEY are signed with KSK (RFC
+				 * 7344, 4.1).
+				 */
+				if (dns_rdatatype_iskeymaterial(type)) {
+					if (!KSK(keys[i])) {
+						continue;
+					}
+				} else if (KSK(keys[i])) {
 					continue;
 				}
-			} else if (KSK(keys[i])) {
-				continue;
 			}
-		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
+		}
+
+		/*
+		 * If this key is revoked, it may only sign the DNSKEY RRset.
+		 */
+		if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
 			continue;
 		}
 
