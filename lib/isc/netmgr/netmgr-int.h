@@ -329,6 +329,9 @@ typedef enum isc__netievent_type {
 	netievent_readcb,
 	netievent_sendcb,
 
+	netievent_detach,
+	netievent_close,
+
 	netievent_task,
 	netievent_privilegedtask,
 
@@ -352,8 +355,6 @@ typedef enum isc__netievent_type {
 	netievent_sockstop, /* for multilayer sockets */
 
 	netievent_resume,
-	netievent_detach,
-	netievent_close,
 } isc__netievent_type;
 
 typedef union {
