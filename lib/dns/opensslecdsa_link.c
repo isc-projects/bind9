@@ -323,7 +323,7 @@ opensslecdsa_create_pkey_legacy(unsigned int key_alg, bool private,
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
@@ -515,7 +515,7 @@ opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (EVP_PKEY_set1_EC_KEY(pkey, eckey) != 1) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_set1_EC_KEY",
