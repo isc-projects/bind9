@@ -342,6 +342,16 @@ dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 							ppub, ppriv));
 	}
 
+	if (*ppub != NULL) {
+		EVP_PKEY_free(*ppub);
+		*ppub = NULL;
+	}
+
+	if (*ppriv != NULL) {
+		EVP_PKEY_free(*ppriv);
+		*ppriv = NULL;
+	}
+
 	return (dst__openssl_fromlabel_engine(key_base_id, engine, label, pin,
 					      ppub, ppriv));
 }
