@@ -525,7 +525,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		DST_RET(ISC_R_FAILURE);
@@ -794,7 +794,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		EVP_PKEY_free(pkey);
@@ -1105,7 +1105,7 @@ eckey_to_pkey(EC_KEY *eckey, EVP_PKEY **pkey) {
 
 	*pkey = EVP_PKEY_new();
 	if (*pkey == NULL) {
-		return (ISC_R_NOMEMORY);
+		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(*pkey, eckey)) {
 		EVP_PKEY_free(*pkey);

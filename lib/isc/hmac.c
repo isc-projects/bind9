@@ -55,6 +55,7 @@ isc_hmac_init(isc_hmac_t *hmac, const void *key, const size_t keylen,
 
 	pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_HMAC, NULL, key, keylen);
 	if (pkey == NULL) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 

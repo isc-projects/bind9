@@ -84,6 +84,7 @@ main(int argc, char **argv) {
 	    !EVP_PKEY_set1_RSA(pkey, rsa))
 	{
 		fprintf(stderr, "fatal error: basic OpenSSL failure\n");
+		ERR_clear_error();
 		exit(1);
 	}
 
@@ -99,6 +100,7 @@ main(int argc, char **argv) {
 			"fatal error: RSA_generate_key_ex() fails "
 			"at file %s line %d\n",
 			__FILE__, __LINE__);
+		ERR_clear_error();
 		exit(1);
 	}
 
