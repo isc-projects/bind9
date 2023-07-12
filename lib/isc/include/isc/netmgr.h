@@ -326,6 +326,26 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg);
  * are not supported.
  */
 
+isc_result_t
+isc_nm_listenproxyudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
+		      isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp);
+/*%<
+ * The same as `isc_nm_listenudp()`, but PROXYv2 headers are
+ * expected at the beginning of the received datagrams.
+ */
+
+void
+isc_nm_proxyudpconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
+		       isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
+		       unsigned int		  timeout,
+		       isc_nm_proxyheader_info_t *proxy_info);
+/*%<
+ * The same as `isc_nm_udpconnect()`, but PROXYv2 headers are added
+ * at the beginning of each sent datagram. The PROXYv2 headers are
+ * created using the data from the `proxy_info` object. If the
+ * object is omitted, then LOCAL PROXYv2 headers are used.
+ */
+
 void
 isc_nm_stoplistening(isc_nmsocket_t *sock);
 /*%<
@@ -598,7 +618,7 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			unsigned int timeout, isc_tlsctx_t *tlsctx,
 			isc_tlsctx_client_session_cache_t *client_sess_cache,
 			isc_nm_proxy_type_t		   proxy_type,
-			isc_nm_proxyheader_info_t		  *proxy_info);
+			isc_nm_proxyheader_info_t	  *proxy_info);
 /*%<
  * Establish a DNS client connection via a TCP or TLS connection, bound to
  * the address 'local' and connected to the address 'peer'.

@@ -324,6 +324,9 @@ isc_nmhandle_setwritetimeout(isc_nmhandle_t *handle, uint64_t write_timeout) {
 		isc__nmhandle_proxystream_setwritetimeout(handle,
 							  write_timeout);
 		break;
+	case isc_nm_proxyudpsocket:
+		isc__nmhandle_proxyudp_setwritetimeout(handle, write_timeout);
+		break;
 	default:
 		UNREACHABLE();
 		break;
@@ -475,6 +478,7 @@ nmsocket_cleanup(void *arg) {
 #endif
 	isc__nm_streamdns_cleanup_data(sock);
 	isc__nm_proxystream_cleanup_data(sock);
+	isc__nm_proxyudp_cleanup_data(sock);
 
 	if (sock->barriers_initialised) {
 		isc_barrier_destroy(&sock->listen_barrier);
@@ -610,6 +614,9 @@ isc___nmsocket_prep_destroy(isc_nmsocket_t *sock FLARG) {
 		case isc_nm_proxystreamsocket:
 			isc__nm_proxystream_close(sock);
 			return;
+		case isc_nm_proxyudpsocket:
+			isc__nm_proxyudp_close(sock);
+			return;
 		default:
 			break;
 		}
@@ -655,7 +662,8 @@ isc_nmsocket_close(isc_nmsocket_t **sockp) {
 		(*sockp)->type == isc_nm_streamdnslistener ||
 		(*sockp)->type == isc_nm_tlslistener ||
 		(*sockp)->type == isc_nm_httplistener ||
-		(*sockp)->type == isc_nm_proxystreamlistener);
+		(*sockp)->type == isc_nm_proxystreamlistener ||
+		(*sockp)->type == isc_nm_proxyudplistener);
 
 	isc__nmsocket_detach(sockp);
 }
@@ -848,6 +856,7 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
+	case isc_nm_proxyudpsocket:
 		if (!sock->client) {
 			break;
 		}
@@ -951,6 +960,10 @@ nmhandle_destroy(isc_nmhandle_t *handle) {
 		sock->statichandle = NULL;
 	}
 
+	if (handle->proxy_udphandle != NULL) {
+		isc_nmhandle_detach(&handle->proxy_udphandle);
+	}
+
 	ISC_LIST_UNLINK(sock->active_handles, handle, active_link);
 
 	if (sock->closehandle_cb == NULL) {
@@ -1044,6 +1057,9 @@ isc__nm_failed_read_cb(isc_nmsocket_t *sock, isc_result_t result, bool async) {
 		return;
 	case isc_nm_proxystreamsocket:
 		isc__nm_proxystream_failed_read_cb(sock, result, async);
+		return;
+	case isc_nm_proxyudpsocket:
+		isc__nm_proxyudp_failed_read_cb(sock, result, async);
 		return;
 	default:
 		UNREACHABLE();
@@ -1151,6 +1167,9 @@ isc__nmsocket_timer_restart(isc_nmsocket_t *sock) {
 	case isc_nm_proxystreamsocket:
 		isc__nmsocket_proxystream_timer_restart(sock);
 		return;
+	case isc_nm_proxyudpsocket:
+		isc__nmsocket_proxyudp_timer_restart(sock);
+		return;
 	default:
 		break;
 	}
@@ -1196,6 +1215,8 @@ isc__nmsocket_timer_running(isc_nmsocket_t *sock) {
 		return (isc__nmsocket_streamdns_timer_running(sock));
 	case isc_nm_proxystreamsocket:
 		return (isc__nmsocket_proxystream_timer_running(sock));
+	case isc_nm_proxyudpsocket:
+		return (isc__nmsocket_proxyudp_timer_running(sock));
 	default:
 		break;
 	}
@@ -1229,6 +1250,9 @@ isc__nmsocket_timer_stop(isc_nmsocket_t *sock) {
 		return;
 	case isc_nm_proxystreamsocket:
 		isc__nmsocket_proxystream_timer_stop(sock);
+		return;
+	case isc_nm_proxyudpsocket:
+		isc__nmsocket_proxyudp_timer_stop(sock);
 		return;
 	default:
 		break;
@@ -1407,6 +1431,9 @@ isc_nmhandle_cleartimeout(isc_nmhandle_t *handle) {
 	case isc_nm_proxystreamsocket:
 		isc__nmhandle_proxystream_cleartimeout(handle);
 		return;
+	case isc_nm_proxyudpsocket:
+		isc__nmhandle_proxyudp_cleartimeout(handle);
+		return;
 	default:
 		handle->sock->read_timeout = 0;
 
@@ -1435,6 +1462,9 @@ isc_nmhandle_settimeout(isc_nmhandle_t *handle, uint32_t timeout) {
 		return;
 	case isc_nm_proxystreamsocket:
 		isc__nmhandle_proxystream_settimeout(handle, timeout);
+		return;
+	case isc_nm_proxyudpsocket:
+		isc__nmhandle_proxyudp_settimeout(handle, timeout);
 		return;
 	default:
 		handle->sock->read_timeout = timeout;
@@ -1595,6 +1625,9 @@ isc_nm_send(isc_nmhandle_t *handle, isc_region_t *region, isc_nm_cb_t cb,
 	case isc_nm_proxystreamsocket:
 		isc__nm_proxystream_send(handle, region, cb, cbarg);
 		break;
+	case isc_nm_proxyudpsocket:
+		isc__nm_proxyudp_send(handle, region, cb, cbarg);
+		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1645,6 +1678,9 @@ isc_nm_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	case isc_nm_proxystreamsocket:
 		isc__nm_proxystream_read(handle, cb, cbarg);
 		break;
+	case isc_nm_proxyudpsocket:
+		isc__nm_proxyudp_read(handle, cb, cbarg);
+		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1662,6 +1698,7 @@ cancelread_cb(void *arg) {
 
 	switch (handle->sock->type) {
 	case isc_nm_udpsocket:
+	case isc_nm_proxyudpsocket:
 	case isc_nm_streamdnssocket:
 	case isc_nm_httpsocket:
 		isc__nm_failed_read_cb(handle->sock, ISC_R_CANCELED, false);
@@ -1738,6 +1775,9 @@ isc_nm_stoplistening(isc_nmsocket_t *sock) {
 	case isc_nm_proxystreamlistener:
 		isc__nm_proxystream_stoplistening(sock);
 		break;
+	case isc_nm_proxyudplistener:
+		isc__nm_proxyudp_stoplistening(sock);
+		break;
 	default:
 		UNREACHABLE();
 	}
@@ -1751,7 +1791,8 @@ isc__nmsocket_stop(isc_nmsocket_t *listener) {
 	REQUIRE(listener->type == isc_nm_httplistener ||
 		listener->type == isc_nm_tlslistener ||
 		listener->type == isc_nm_streamdnslistener ||
-		listener->type == isc_nm_proxystreamlistener);
+		listener->type == isc_nm_proxystreamlistener ||
+		listener->type == isc_nm_proxyudplistener);
 	REQUIRE(!listener->closing);
 
 	listener->closing = true;
@@ -2090,6 +2131,7 @@ isc_nm_bad_request(isc_nmhandle_t *handle) {
 
 	switch (sock->type) {
 	case isc_nm_udpsocket:
+	case isc_nm_proxyudpsocket:
 		return;
 	case isc_nm_tcpsocket:
 	case isc_nm_streamdnssocket:
@@ -2146,6 +2188,7 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 
 	switch (sock->type) {
 	case isc_nm_proxystreamsocket:
+	case isc_nm_proxyudpsocket:
 		return (handle);
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
@@ -2205,8 +2248,8 @@ isc_nmhandle_real_peeraddr(isc_nmhandle_t *handle) {
 	if (isc_nmhandle_is_stream(proxyhandle)) {
 		addr = isc_nmhandle_peeraddr(proxyhandle->sock->outerhandle);
 	} else {
-		/* TODO: PROXY over UDP */
-		UNREACHABLE();
+		INSIST(proxyhandle->sock->type == isc_nm_proxyudpsocket);
+		addr = isc_nmhandle_peeraddr(proxyhandle->proxy_udphandle);
 	}
 
 	return (addr);
@@ -2228,8 +2271,8 @@ isc_nmhandle_real_localaddr(isc_nmhandle_t *handle) {
 	if (isc_nmhandle_is_stream(proxyhandle)) {
 		addr = isc_nmhandle_localaddr(proxyhandle->sock->outerhandle);
 	} else {
-		/* TODO: PROXY over UDP */
-		UNREACHABLE();
+		INSIST(proxyhandle->sock->type == isc_nm_proxyudpsocket);
+		addr = isc_nmhandle_localaddr(proxyhandle->proxy_udphandle);
 	}
 
 	return (addr);
@@ -2319,6 +2362,7 @@ isc_nm_set_maxage(isc_nmhandle_t *handle, const uint32_t ttl) {
 		break;
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_udpsocket:
+	case isc_nm_proxyudpsocket:
 	case isc_nm_streamdnssocket:
 		return;
 		break;
@@ -2811,6 +2855,10 @@ nmsocket_type_totext(isc_nmsocket_type type) {
 		return ("isc_nm_proxystreamlistener");
 	case isc_nm_proxystreamsocket:
 		return ("isc_nm_proxystreamsocket");
+	case isc_nm_proxyudplistener:
+		return ("isc_nm_proxyudplistener");
+	case isc_nm_proxyudpsocket:
+		return ("isc_nm_proxyudpsocket");
 	default:
 		UNREACHABLE();
 	}

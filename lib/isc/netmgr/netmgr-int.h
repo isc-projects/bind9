@@ -249,6 +249,7 @@ struct isc_nmhandle {
 	isc_sockaddr_t peer;
 	isc_sockaddr_t local;
 	bool proxy_is_unspec;
+	struct isc_nmhandle *proxy_udphandle;
 	isc_nm_opaquecb_t doreset; /* reset extra callback, external */
 	isc_nm_opaquecb_t dofree;  /* free extra callback, external */
 #if ISC_NETMGR_TRACE
@@ -553,6 +554,8 @@ struct isc_nmsocket {
 		} proxy2;
 		bool header_processed;
 		bool extra_processed; /* data arrived past header processed */
+		isc_nmsocket_t **udp_server_socks; /* UDP sockets */
+		size_t udp_server_socks_num;
 	} proxy;
 
 	/*%
@@ -1236,6 +1239,45 @@ void
 isc__nmhandle_proxystream_get_selected_alpn(isc_nmhandle_t *handle,
 					    const unsigned char **alpn,
 					    unsigned int *alpnlen);
+
+void
+isc__nm_proxyudp_failed_read_cb(isc_nmsocket_t *sock, const isc_result_t result,
+				const bool async);
+
+void
+isc__nm_proxyudp_stoplistening(isc_nmsocket_t *listener);
+
+void
+isc__nm_proxyudp_cleanup_data(isc_nmsocket_t *sock);
+
+void
+isc__nmhandle_proxyudp_cleartimeout(isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_proxyudp_settimeout(isc_nmhandle_t *handle, uint32_t timeout);
+
+void
+isc__nmhandle_proxyudp_setwritetimeout(isc_nmhandle_t *handle,
+				       uint64_t write_timeout);
+
+bool
+isc__nmsocket_proxyudp_timer_running(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_proxyudp_timer_restart(isc_nmsocket_t *sock);
+
+void
+isc__nmsocket_proxyudp_timer_stop(isc_nmsocket_t *sock);
+
+void
+isc__nm_proxyudp_close(isc_nmsocket_t *sock);
+
+void
+isc__nm_proxyudp_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg);
+
+void
+isc__nm_proxyudp_send(isc_nmhandle_t *handle, isc_region_t *region,
+		      isc_nm_cb_t cb, void *cbarg);
 
 void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
