@@ -85,8 +85,7 @@ n=0
 n=$((n+1))
 echo_i "checking that catalog-bad1.example (with no version) has failed to load ($n)"
 ret=0
-wait_for_message ns2/named.run "catz: zone 'catalog-bad1.example' has no 'version' record" &&
-wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad1.example' is broken and will not be processed" || ret=1
+wait_for_message ns2/named.run "catz: zone 'catalog-bad1.example' has no 'version' record and will not be processed" &&
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -122,7 +121,7 @@ echo_i "checking that catalog-bad5.example (non-IN class) has failed to load ($n
 ret=0
 wait_for_message ns2/named.run "'catalog-zones' option is only supported for views with class IN" &&
 wait_for_message ns2/named.run "all zones loaded" || ret=1
-grep -F "catz: dns_catz_add_zone catalog-bad5.example" ns2/named.run && ret=1
+grep -F "catz: dns_catz_zone_add catalog-bad5.example" ns2/named.run && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
