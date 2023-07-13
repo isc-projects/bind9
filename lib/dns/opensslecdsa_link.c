@@ -357,7 +357,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
