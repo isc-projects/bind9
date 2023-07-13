@@ -1147,15 +1147,10 @@ static void
 compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 	       const unsigned char *secret, isc_buffer_t *buf) {
 	unsigned char digest[ISC_MAX_MD_SIZE] ISC_NONSTRING = { 0 };
-	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_SIPHASH24_TAG_LENGTH, "You need "
-								   "to "
-								   "increase "
-								   "the digest "
-								   "buffer.");
-	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_AES_BLOCK_LENGTH, "You need to "
-							       "increase the "
-							       "digest "
-							       "buffer.");
+	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_SIPHASH24_TAG_LENGTH,
+		      "You need to increase the digest buffer.");
+	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_AES_BLOCK_LENGTH,
+		      "You need to increase the digest buffer.");
 
 	switch (client->manager->sctx->cookiealg) {
 	case ns_cookiealg_siphash24: {
@@ -1278,6 +1273,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		} else {
 			ns_stats_increment(client->manager->sctx->nsstats,
 					   ns_statscounter_cookiebadsize);
+			client->attributes |= NS_CLIENTATTR_BADCOOKIE;
 		}
 		return;
 	}
@@ -1297,9 +1293,10 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	 * Only accept COOKIE if we have talked to the client in the last hour.
 	 */
 	now = isc_stdtime_now();
-	if (isc_serial_gt(when, (now + 300)) || /* In the future. */
-	    isc_serial_lt(when, (now - 3600)))
-	{ /* In the past. */
+	if (isc_serial_gt(when, (now + 300)) /* In the future. */ ||
+	    isc_serial_lt(when, (now - 3600)) /* In the past. */)
+	{
+		client->attributes |= NS_CLIENTATTR_BADCOOKIE;
 		ns_stats_increment(client->manager->sctx->nsstats,
 				   ns_statscounter_cookiebadtime);
 		return;
@@ -1328,6 +1325,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 		}
 	}
 
+	client->attributes |= NS_CLIENTATTR_BADCOOKIE;
 	ns_stats_increment(client->manager->sctx->nsstats,
 			   ns_statscounter_cookienomatch);
 }

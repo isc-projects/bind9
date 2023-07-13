@@ -115,6 +115,8 @@
 #define WANTDNSSEC(c) (((c)->attributes & NS_CLIENTATTR_WANTDNSSEC) != 0)
 /*% Want WANTAD? */
 #define WANTAD(c) (((c)->attributes & NS_CLIENTATTR_WANTAD) != 0)
+/*% Client presented a bad COOKIE. */
+#define BADCOOKIE(c) (((c)->attributes & NS_CLIENTATTR_BADCOOKIE) != 0)
 /*% Client presented a valid COOKIE. */
 #define HAVECOOKIE(c) (((c)->attributes & NS_CLIENTATTR_HAVECOOKIE) != 0)
 /*% Client presented a COOKIE. */
@@ -5619,11 +5621,14 @@ ns__query_start(query_ctx_t *qctx) {
 	CALL_HOOK(NS_QUERY_START_BEGIN, qctx);
 
 	/*
-	 * If we require a server cookie then send back BADCOOKIE
-	 * before we have done too much work.
+	 * If we require a server cookie or the presented server
+	 * cookie was bad then send back BADCOOKIE before we have
+	 * done too much work.
 	 */
-	if (!TCP(qctx->client) && qctx->view->requireservercookie &&
-	    WANTCOOKIE(qctx->client) && !HAVECOOKIE(qctx->client))
+	if (!TCP(qctx->client) &&
+	    (BADCOOKIE(qctx->client) ||
+	     (qctx->view->requireservercookie && WANTCOOKIE(qctx->client) &&
+	      !HAVECOOKIE(qctx->client))))
 	{
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;

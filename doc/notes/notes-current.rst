@@ -32,6 +32,10 @@ Feature Changes
 
 - None.
 
+- Return BADCOOKIE for out-of-date or otherwise bad, well formed
+  DNS SERVER COOKIES.  Previously these were silently treated as
+  DNS CLIENT COOKIES.  :gl:`#4194`
+
 Bug Fixes
 ~~~~~~~~~
 
