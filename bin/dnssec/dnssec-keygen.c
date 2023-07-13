@@ -61,6 +61,7 @@
 #include <isccfg/kaspconf.h>
 #include <isccfg/namedconf.h>
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
+#include <openssl/err.h>
 #include <openssl/provider.h>
 #endif
 
@@ -1146,11 +1147,13 @@ main(int argc, char **argv) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 		fips = OSSL_PROVIDER_load(NULL, "fips");
 		if (fips == NULL) {
+			ERR_clear_error();
 			fatal("Failed to load FIPS provider");
 		}
 		base = OSSL_PROVIDER_load(NULL, "base");
 		if (base == NULL) {
 			OSSL_PROVIDER_unload(fips);
+			ERR_clear_error();
 			fatal("Failed to load base provider");
 		}
 #endif
