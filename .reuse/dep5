@@ -161,6 +161,7 @@ Files: **/.clang-format
        .gitlab-ci.yml
        .lgtm.yml
        .pylintrc
+       .readthedocs.yaml
        .tsan-suppress
        .uncrustify.cfg
        config.guess
