@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck source=conf.sh
 . ../conf.sh
 # shellcheck source=kasp.sh
@@ -189,7 +191,7 @@ _check_nsec3_nsec3param() {
 	grep "${ZONE}.*0.*IN.*NSEC3PARAM.*1.*0.*${ITERATIONS}.*${SALT}" "dig.out.test$n.nsec3param.$ZONE" > /dev/null || return 1
 
 	if [ -z "$SALT" ]; then
-		SALT=`awk '$4 == "NSEC3PARAM" { print $8 }' dig.out.test$n.nsec3param.$ZONE`
+		SALT=$(awk '$4 == "NSEC3PARAM" { print $8 }' dig.out.test$n.nsec3param.$ZONE)
 	fi
 	return 0
 }

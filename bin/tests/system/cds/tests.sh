@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -21,8 +23,7 @@ fail() {
 }
 
 runcmd() {
-        "$@" 1> out.$n 2> err.$n
-	echo $?
+        ("$@" 1> out.$n 2> err.$n; echo $?) || true
 }
 
 testcase() {

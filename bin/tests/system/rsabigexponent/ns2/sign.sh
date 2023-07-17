@@ -20,7 +20,7 @@ outfile=example.db.bad
 for i in Xexample.+008+51650.key Xexample.+008+51650.private \
 	 Xexample.+008+52810.key Xexample.+008+52810.private
 do
-	cp $i `echo $i | sed s/X/K/`
+	cp $i $(echo $i | sed s/X/K/)
 done
 
 $SIGNER -g -s 20000101000000 -e 20361231235959 -o $zone \

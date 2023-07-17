@@ -11,10 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck source=conf.sh
 . ../conf.sh
-
-set -e
 
 status=0
 n=1
@@ -83,8 +83,7 @@ israw0 () {
     < "$1" $PERL -e 'binmode STDIN;
 	             read(STDIN, $input, 8);
 	             ($style, $version) = unpack("NN", $input);
-	             exit 1 if ($style != 2 || $version != 0);'
-    return $?
+	             exit 1 if ($style != 2 || $version != 0);' || return $?
 }
 
 # check that a zone file is raw format, version 1
@@ -93,8 +92,7 @@ israw1 () {
     < "$1" $PERL -e 'binmode STDIN;
 		     read(STDIN, $input, 8);
                      ($style, $version) = unpack("NN", $input);
-                     exit 1 if ($style != 2 || $version != 1);'
-    return $?
+                     exit 1 if ($style != 2 || $version != 1);' || return $?
 }
 
 # strip NS and RRSIG NS from input
@@ -113,8 +111,7 @@ check_secroots_layout () {
 	     /Start view/ { if (!empty) exit(1) }
 	     /Secure roots:/ { if (empty) exit(1) }
 	     /Negative trust anchors:/ { if (!empty) exit(1) }
-	     { empty=0 }' $1
-	return $?
+	     { empty=0 }' $1 || return $?
 }
 
 # Check that for a query against a validating resolver where the
@@ -2646,8 +2643,8 @@ if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     echo_i "running DNSSEC update test"
     ret=0
-    output=$($PERL dnssec_update_test.pl -s 10.53.0.3 -p "$PORT" dynamic.example.)
-    test "$?" -eq 0 || ret=1
+    { output=$($PERL dnssec_update_test.pl -s 10.53.0.3 -p "$PORT" dynamic.example.); rc=$?; } || true
+    test "$rc" -eq 0 || ret=1
     echo "$output" | cat_i
     [ $ret -eq 1 ] && status=1
 else

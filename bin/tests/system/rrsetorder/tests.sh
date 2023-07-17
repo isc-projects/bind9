@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="+nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm +nostat +short +nocookie"
@@ -133,7 +135,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -242,7 +244,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -367,7 +369,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -480,7 +482,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi
@@ -522,7 +524,7 @@ do
     match=0
     for j in $GOOD_RANDOM
     do
-	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1"
+	eval "diff dig.out.random reference.dig.out.random.good$j >/dev/null && match$j=1 match=1 || true"
 	if [ $match -eq 1 ]; then break; fi
     done
     if [ $match -eq 0 ]; then ret=1; fi

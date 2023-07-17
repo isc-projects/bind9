@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -31,24 +33,24 @@ $DIG $DIGOPTS fail.example. @10.53.0.1 a > dig.out.ns1.test$n || ret=1
 grep SERVFAIL dig.out.ns1.test$n > /dev/null || ret=1
 grep 'xx_xx.fail.example: bad owner name (check-names)' ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Entry should exist.
 echo_i "check for warnings from on zone load for 'check-names warn;' ($n)"
 ret=0
 grep 'xx_xx.warn.example: bad owner name (check-names)' ns1/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Entry should not exist.
 echo_i "check for warnings from on zone load for 'check-names ignore;' ($n)"
 ret=1
 grep 'yy_yy.ignore.example: bad owner name (check-names)' ns1/named.run || ret=0
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Entry should exist
 echo_i "check that 'check-names response warn;' works ($n)"
@@ -58,8 +60,8 @@ $DIG $DIGOPTS +noauth yy_yy.ignore.example. @10.53.0.2 a > dig.out.ns2.test$n ||
 digcomp dig.out.ns1.test$n dig.out.ns2.test$n || ret=1
 grep "check-names warning yy_yy.ignore.example/A/IN" ns2/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Entry should exist
 echo_i "check that 'check-names response (owner) fails;' works ($n)"
@@ -70,8 +72,8 @@ grep NOERROR dig.out.ns1.test$n > /dev/null || ret=1
 grep REFUSED dig.out.ns3.test$n > /dev/null || ret=1
 grep "check-names failure yy_yy.ignore.example/A/IN" ns3/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Entry should exist
 echo_i "check that 'check-names response (rdata) fails;' works ($n)"
@@ -82,8 +84,8 @@ grep NOERROR dig.out.ns1.test$n > /dev/null || ret=1
 grep SERVFAIL dig.out.ns3.test$n > /dev/null || ret=1
 grep "check-names failure mx.ignore.example/MX/IN" ns3/named.run > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names fail;' are rejected ($n)"
 ret=0
@@ -99,8 +101,8 @@ $DIG $DIGOPTS xxx_xxx.fail.update @10.53.0.1 A > dig.out.ns1.test$n || ret=1
 grep "xxx_xxx.fail.update/A: bad owner name (check-names)" ns1/named.run > /dev/null || ret=1
 grep NXDOMAIN dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names warn;' succeed and are logged ($n)"
 ret=0
@@ -114,8 +116,8 @@ $DIG $DIGOPTS xxx_xxx.warn.update @10.53.0.1 A > dig.out.ns1.test$n || ret=1
 grep "xxx_xxx.warn.update/A: bad owner name (check-names)" ns1/named.run > /dev/null || ret=1
 grep NOERROR dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names ignore;' succeed and are not logged ($n)"
 ret=0
@@ -131,8 +133,8 @@ if [ $not != 0 ]; then ret=1; fi
 $DIG $DIGOPTS xxx_xxx.ignore.update @10.53.0.1 A > dig.out.ns1.test$n || ret=1
 grep NOERROR dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names primary ignore;' succeed and are not logged ($n)"
 ret=0
@@ -148,8 +150,8 @@ if [ $not != 0 ]; then ret=1; fi
 $DIG $DIGOPTS xxx_xxx.primary-ignore.update @10.53.0.4 A > dig.out.ns4.test$n || ret=1
 grep NOERROR dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names master ignore;' succeed and are not logged ($n)"
 ret=0
@@ -175,8 +177,8 @@ ret=0
 retry_quiet 35 wait_for_record xxx_xxx.master-ignore.update @10.53.0.4 A dig.out.ns4.test$n || ret=1
 grep "xxx_xxx.master-ignore.update/A.*(check-names)" ns4/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "check that updates to 'check-names master ignore;' succeed and are not logged ($n)"
 ret=0

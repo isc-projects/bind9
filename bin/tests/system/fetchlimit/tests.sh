@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tcp +tries=1 +time=1"
@@ -38,8 +40,8 @@ burst() {
 }
 
 stat() {
-    clients=`rndccmd ${1} status | grep "recursive clients" |
-            sed 's;.*: \([^/][^/]*\)/.*;\1;'`
+    clients=$(rndccmd ${1} status | grep "recursive clients" |
+            sed 's;.*: \([^/][^/]*\)/.*;\1;')
     echo_i "clients: $clients"
     [ "$clients" = "" ] && return 1
     [ "$clients" -ge $2 ] || return 1
@@ -98,9 +100,9 @@ for try in 1 2 3 4 5; do
     [ -f ns3/named.stats ] && break
     sleep 1
 done
-sspill=`grep 'spilled due to server' ns3/named.stats | sed 's/\([0-9][0-9]*\) spilled.*/\1/'`
+sspill=$(grep 'spilled due to server' ns3/named.stats | sed 's/\([0-9][0-9]*\) spilled.*/\1/')
 [ -z "$sspill" ] && sspill=0
-fails=`grep 'queries resulted in SERVFAIL' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
+fails=$(grep 'queries resulted in SERVFAIL' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/')
 [ -z "$fails" ] && fails=0
 [ "$fails" -ge "$sspill" ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -188,9 +190,9 @@ for try in 1 2 3 4 5; do
     [ -f ns3/named.stats ] && break
     sleep 1
 done
-zspill=`grep 'spilled due to zone' ns3/named.stats | sed 's/\([0-9][0-9]*\) spilled.*/\1/'`
+zspill=$(grep 'spilled due to zone' ns3/named.stats | sed 's/\([0-9][0-9]*\) spilled.*/\1/')
 [ -z "$zspill" ] && zspill=0
-drops=`grep 'queries dropped' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
+drops=$(grep 'queries dropped' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/')
 [ -z "$drops" ] && drops=0
 [ "$drops" -ge "$zspill" ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -232,7 +234,7 @@ rm -f ns3/named.stats
 touch ns3/named.stats
 rndccmd 10.53.0.3 stats
 wait_for_log 5 "queries dropped due to recursive client limit" ns3/named.stats || ret=1
-drops=`grep 'queries dropped due to recursive client limit' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/'`
+drops=$(grep 'queries dropped due to recursive client limit' ns3/named.stats | sed 's/\([0-9][0-9]*\) queries.*/\1/')
 [ "${drops:-0}" -ne 0 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -260,7 +262,7 @@ for try in 1 2 3 4 5; do
     [ -f ns5/named.stats ] && break
     sleep 1
 done
-zspill=`grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/'`
+zspill=$(grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/')
 [ -z "$zspill" ] && zspill=0
 # ns5 configuration:
 #   clients-per-query 5
@@ -303,7 +305,7 @@ for try in 1 2 3 4 5; do
     [ -f ns5/named.stats ] && break
     sleep 1
 done
-zspill=`grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/'`
+zspill=$(grep 'spilled due to clients per query' ns5/named.stats | sed 's/ *\([0-9][0-9]*\) spilled.*/\1/')
 [ -z "$zspill" ] && zspill=0
 # ns5 configuration:
 #   clients-per-query 5

@@ -27,7 +27,7 @@ while getopts "DNx" c; do
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
-shift `expr $OPTIND - 1 || true`
+shift $((OPTIND - 1))
 if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
@@ -48,7 +48,7 @@ copy_setports ns4/named.conf.in ns4/named.conf
 
 # decide whether to test DNSRPS
 $SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "`grep 'dnsrps-enable yes' dnsrps.conf`" && TEST_DNSRPS=
+test -z "$(grep 'dnsrps-enable yes' dnsrps.conf)" && TEST_DNSRPS=
 touch dnsrps.cache
 
 # setup policy zones for a 64-zone test
@@ -64,7 +64,7 @@ do
     while test $j -le $i
     do
 	echo "name$j A 10.53.0.$i" >> ns2/db.max$i.local
-	j=`expr $j + 1`
+	j=$((j + 1))
     done
-    i=`expr $i + 1`
+    i=$((i + 1))
 done

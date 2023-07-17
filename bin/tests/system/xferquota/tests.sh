@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
@@ -26,16 +28,16 @@ while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo_i "Changing test zone..."
 		cp -f ns1/changing2.db ns1/changing.db
-                kill -HUP `cat ns1/named.pid`
+                kill -HUP $(cat ns1/named.pid)
 	fi
 	sleep 1
-	ticks=`expr $ticks + 1`
-	seconds=`expr $ticks \* 1`
+	ticks=$((ticks + 1))
+	seconds=$((ticks * 1))
 	if [ $ticks = 360 ]; then
 		echo_i "Took too long to load zones"
 		exit 1
 	fi
-	count=`cat ns2/zone*.bk | grep xyzzy | wc -l`
+	count=$(cat ns2/zone*.bk | grep xyzzy | wc -l)
 	echo_i "Have $count zones up in $seconds seconds"
 done
 

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -1189,8 +1191,8 @@ check_interval () {
                        if (int(x) > int(interval))
                          exit (1);
                      }
-                     END { if (int(x) > int(interval) || int(x) < int(interval-10)) exit(1) }' interval=$2
-        return $?
+                     END { if (int(x) > int(interval) || int(x) < int(interval-10)) exit(1) }' interval=$2 || return $?
+        return 0
 }
 
 echo_i "checking automatic key reloading interval ($n)"
@@ -1402,11 +1404,11 @@ $RNDCCMD 10.53.0.3 signing -nsec3param 1 1 10 12345678 delzsk.example. > signing
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	_ret=1
 	$DIG $DIGOPTS delzsk.example NSEC3PARAM @10.53.0.3 > dig.out.ns3.1.test$n 2>&1 || ret=1
-	grep "NSEC3PARAM.*12345678" dig.out.ns3.1.test$n > /dev/null 2>&1
-	if [ $? -eq 0 ]; then
+	{ grep "NSEC3PARAM.*12345678" dig.out.ns3.1.test$n > /dev/null 2>&1; rc=$?; } || true
+	if [ $rc -eq 0 ]; then
 		$RNDCCMD 10.53.0.3 signing -list delzsk.example > signing.out.2.test$n 2>&1
-		grep "Creating NSEC3 chain " signing.out.2.test$n > /dev/null 2>&1
-		if [ $? -ne 0 ]; then
+		{ grep "Creating NSEC3 chain " signing.out.2.test$n > /dev/null 2>&1; rc=$?; } || true
+		if [ $rc -ne 0 ]; then
 			_ret=0
 			break
 		fi
@@ -1425,8 +1427,8 @@ $SETTIME -D now-1h $file > settime.out.test$n || ret=1
 for i in 0 1 2 3 4 5 6 7 8 9; do
 	_ret=1
 	$RNDCCMD 10.53.0.3 signing -list delzsk.example > signing.out.3.test$n 2>&1
-	grep "Signing " signing.out.3.test$n > /dev/null 2>&1
-	if [ $? -ne 0 ]; then
+	{ grep "Signing " signing.out.3.test$n > /dev/null 2>&1; rc=$?; } || true
+	if [ $rc -ne 0 ]; then
 		if [ $(grep "Done signing " signing.out.3.test$n | wc -l) -eq 2 ]; then
 			_ret=0
 			break

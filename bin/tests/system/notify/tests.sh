@@ -11,8 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# shellcheck disable=SC2034
+set -e
 
+# shellcheck disable=SC2034
 . ../conf.sh
 
 dig_plus_opts() {

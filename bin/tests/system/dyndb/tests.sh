@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -20,7 +22,7 @@ DIGOPTS="@10.53.0.1 -p ${PORT}"
 RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
-	n=`expr $n + 1`
+	n=$((n + 1))
 	echo_i "${1} (${n})"
 	ret=0
 }
@@ -44,9 +46,9 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS +noall +answer -t $type -q $host`
+    out=$($DIG $DIGOPTS +noall +answer -t $type -q $host)
     echo $out > added.a.out.$n
-    lines=`echo "$out" | grep "$ip" | wc -l`
+    lines=$(echo "$out" | grep "$ip" | wc -l)
     [ $lines -eq 1 ] || {
 	[ "$should_fail" ] || \
 	    echo_i "dig output incorrect for $host $type $cmd: $out"
@@ -55,9 +57,9 @@ EOF
 
     for i in 1 2 3 4 5 6 7 8 9 10
     do
-	out=`$DIG $DIGOPTS +noall +answer -x $ip`
+	out=$($DIG $DIGOPTS +noall +answer -x $ip)
 	echo $out > added.ptr.out.$n
-	lines=`echo "$out" | grep "$host" | wc -l`
+	lines=$(echo "$out" | grep "$host" | wc -l)
 	[ $lines -eq 1 ] && break;
 	$PERL -e 'select(undef, undef, undef, 0.1);'
     done
@@ -74,7 +76,7 @@ test_del() {
     host="$1"
     type="$2"
 
-    ip=`$DIG $DIGOPTS +short $host $type`
+    ip=$($DIG $DIGOPTS +short $host $type)
 
     cat <<EOF > ns1/update.txt
 server 10.53.0.1 ${PORT}
@@ -89,9 +91,9 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS +noall +answer -t $type -q $host`
+    out=$($DIG $DIGOPTS +noall +answer -t $type -q $host)
     echo $out > deleted.a.out.$n
-    lines=`echo "$out" | grep "$ip" | wc -l`
+    lines=$(echo "$out" | grep "$ip" | wc -l)
     [ $lines -eq 0 ] || {
 	[ "$should_fail" ] || \
 	    echo_i "dig output incorrect for $host $type $cmd: $out"
@@ -100,9 +102,9 @@ EOF
 
     for i in 1 2 3 4 5 6 7 8 9 10
     do
-	out=`$DIG $DIGOPTS +noall +answer -x $ip`
+	out=$($DIG $DIGOPTS +noall +answer -x $ip)
 	echo $out > deleted.ptr.out.$n
-	lines=`echo "$out" | grep "$host" | wc -l`
+	lines=$(echo "$out" | grep "$host" | wc -l)
 	[ $lines -eq 0 ] && break
 	$PERL -e 'select(undef, undef, undef, 0.1);'
     done
@@ -116,49 +118,49 @@ EOF
 }
 
 test_add test1.ipv4.example.nil. A "10.53.0.10" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test2.ipv4.example.nil. A "10.53.0.11" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test3.ipv4.example.nil. A "10.53.0.12" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test4.ipv6.example.nil. AAAA "2001:db8::1" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test1.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test2.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test3.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test4.ipv6.example.nil. AAAA || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 newtest "checking parameter logging"
 grep "loading params for dyndb 'sample' from .*named.conf:" ns1/named.run > /dev/null || ret=1
 grep "loading params for dyndb 'sample2' from .*named.conf:" ns1/named.run > /dev/null || ret=1
 [ $ret -eq 1 ] && echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "checking dyndb still works after reload"
 rndc_reload ns1 10.53.0.1
 
 test_add test5.ipv4.example.nil. A "10.53.0.10" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_add test6.ipv6.example.nil. AAAA "2001:db8::1" || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test5.ipv4.example.nil. A || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 test_del test6.ipv6.example.nil. AAAA || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

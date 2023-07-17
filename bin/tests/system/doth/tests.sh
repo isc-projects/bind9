@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck disable=SC1091
 . ../conf.sh
 
@@ -330,7 +332,7 @@ n=$((n + 1))
 echo_i "checking DoH query when ALPN is expected to fail (dot, failure expected) ($n)"
 ret=0
 # shellcheck disable=SC2086
-"$DIG" +https $common_dig_options -p "${TLSPORT}" "$@" @10.53.0.1 . SOA > dig.out.test$n
+"$DIG" +https $common_dig_options -p "${TLSPORT}" "$@" @10.53.0.1 . SOA > dig.out.test$n && ret=1
 grep "ALPN for HTTP/2 failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -388,7 +390,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (POST, undefined endpoint, failure expected) ($n)"
 ret=0
-dig_with_https_opts +tries=1 +time=1 +https=/fake @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts +tries=1 +time=1 +https=/fake @10.53.0.1 . SOA > dig.out.test$n && ret=1
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -396,7 +398,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query via IPv6 (POST, undefined endpoint, failure expected) ($n)"
 ret=0
-dig_with_https_opts -6 +tries=1 +time=1 +https=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_https_opts -6 +tries=1 +time=1 +https=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n && ret=1
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -462,7 +464,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (GET, undefined endpoint, failure expected) ($n)"
 ret=0
-dig_with_https_opts +tries=1 +time=1 +https-get=/fake @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts +tries=1 +time=1 +https-get=/fake @10.53.0.1 . SOA > dig.out.test$n && ret=1
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -470,7 +472,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query via IPv6 (GET, undefined endpoint, failure expected) ($n)"
 ret=0
-dig_with_https_opts -6 +tries=1 +time=1 +https-get=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n
+dig_with_https_opts -6 +tries=1 +time=1 +https-get=/fake @fd92:7065:b8e:ffff::1 . SOA > dig.out.test$n && ret=1
 grep "communications error" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -756,7 +758,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking DoH query (client certificate required, failure expected) ($n)"
 ret=0
-dig_with_https_opts +tls-ca="$ca_file" -p "${EXTRAPORT6}" +comm @10.53.0.1 . SOA > dig.out.test$n
+dig_with_https_opts +tls-ca="$ca_file" -p "${EXTRAPORT6}" +comm @10.53.0.1 . SOA > dig.out.test$n && ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -843,8 +845,7 @@ n=$((n + 1))
 echo_i "checking server quotas for both encrypted and unencrypted HTTP ($n)"
 ret=0
 if [ -x "$PYTHON" ]; then
-	BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_quota.py"
-	ret=$?
+	BINDHOST="10.53.0.1" "$PYTHON" "$TOP_SRCDIR/bin/tests/system/doth/stress_http_quota.py" || ret=$?
 else
 	echo_i "Python is not available. Skipping the test..."
 fi
