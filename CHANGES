@@ -1,3 +1,7 @@
+6210.	[func]		Don't add signing records for DNSKEY added with dynamic
+			update. The dynamic update DNSSEC management feature was
+			removed with GL #3686. [GL !8070]
+
 6209.	[func]		Reduce query-response latency by making recursive
 			queries (CNAME, DNAME, NSEC) asynchronous instead
 			of directly calling the respective functions. [GL #4185]
