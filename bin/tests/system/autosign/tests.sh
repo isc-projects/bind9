@@ -322,12 +322,15 @@ then
     # try to convert nsec-only.example; this should fail due to
     # non-NSEC3 compatible keys
     echo_i "preset nsec3param in unsigned zone via nsupdate ($n)"
-    $NSUPDATE > nsupdate.out 2>&1 <<END
+    ret=0
+    $NSUPDATE > nsupdate.out 2>&1 <<END && ret=1
 server 10.53.0.3 ${PORT}
 zone nsec-only.example.
 update add nsec-only.example. 3600 NSEC3PARAM 1 0 10 BEEF
 send
 END
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
 fi
 
 echo_i "checking for nsec3param in unsigned zone ($n)"
