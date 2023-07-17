@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="+tcp +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
@@ -24,7 +26,7 @@ wait_for_serial() (
 status=0
 n=0
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "waiting for zone transfer to complete ($n)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9
@@ -40,16 +42,16 @@ do
 	sleep 1
 done
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "testing case preserving responses - no acl ($n)"
 ret=0
 $DIG $DIGOPTS mx example. @10.53.0.1 > dig.ns1.test$n
 grep "0.mail.eXaMpLe" dig.ns1.test$n > /dev/null || ret=1
 grep "mAiL.example" dig.ns1.test$n > /dev/null || ret=1
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "testing no-case-compress acl '{ 10.53.0.2; }' ($n)"
 ret=0
 
@@ -64,27 +66,27 @@ grep "0.mail.example" dig.ns2.test$n > /dev/null || ret=1
 grep "mail.example" dig.ns2.test$n > /dev/null || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "testing load of dynamic zone with various \$ORIGIN values ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
 digcomp dig.ns1.test$n dynamic.good || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "transfer of dynamic zone with various \$ORIGIN values ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
 digcomp dig.ns2.test$n dynamic.good || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "change SOA owner case via update ($n)"
 $NSUPDATE << EOF
 server 10.53.0.1 ${PORT}
@@ -96,27 +98,27 @@ $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
 digcomp dig.ns1.test$n postupdate.good || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 ret=0
 echo_i "wait for zone to transfer ($n)"
 retry_quiet 20 wait_for_serial 10.53.0.2 dynamic 2000042408 dig.ns2.test$n || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check SOA owner case is transferred to secondary ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
 digcomp dig.ns2.test$n postupdate.good || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 #update delete Ns1.DyNaMIC. 300 IN A 10.53.0.1
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "change A record owner case via update ($n)"
 $NSUPDATE << EOF
 server 10.53.0.1 ${PORT}
@@ -128,22 +130,22 @@ $DIG $DIGOPTS axfr dynamic @10.53.0.1 > dig.ns1.test$n
 digcomp dig.ns1.test$n postns1.good || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 ret=0
 echo_i "wait for zone to transfer ($n)"
 retry_quiet 20 wait_for_serial 10.53.0.2 dynamic 2000042409 dig.ns2.test$n || ret=1
 
 test $ret -eq 0 || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check A owner case is transferred to secondary ($n)"
 ret=0
 $DIG $DIGOPTS axfr dynamic @10.53.0.2 > dig.ns2.test$n
 digcomp dig.ns2.test$n postns1.good || ret=1
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

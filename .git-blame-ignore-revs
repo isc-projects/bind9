@@ -10,3 +10,9 @@
 #
 # remove trailing whitespace
 644a0b80c8e69ede97a083069c1a1f3c44e1c76e
+# arithmetic expansion in system tests
+6f07ba6b7d29b2980657156472e6c8d25efed6f4
+# arithmetic expansion in system tests
+e577b1eca70856b816ffa36199f14078e4b76b58
+# subshell notation in system tests
+59e5fa42179366049fb31265532d504208f0329f

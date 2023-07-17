@@ -11,10 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck source=conf.sh
 . ../conf.sh
-
-set -e
 
 status=0
 n=0
@@ -42,14 +42,13 @@ check_ttl_range() {
 
     case "$pos" in
     "3")
-    awk -v rrtype="$2" -v ttl="$3" '($4 == "IN" || $4 == "CLASS1" ) && $5 == rrtype { if ($3 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file
+    { awk -v rrtype="$2" -v ttl="$3" '($4 == "IN" || $4 == "CLASS1" ) && $5 == rrtype { if ($3 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file; result=$?; } || true
     ;;
     *)
-    awk -v rrtype="$2" -v ttl="$3" '($3 == "IN" || $3 == "CLASS1" ) && $4 == rrtype { if ($2 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file
+    { awk -v rrtype="$2" -v ttl="$3" '($3 == "IN" || $3 == "CLASS1" ) && $4 == rrtype { if ($2 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file; result=$?; } || true
     ;;
     esac
 
-   result=$?
    [ $result -eq 0 ] || echo_i "ttl check failed"
    return $result
 }
@@ -799,7 +798,7 @@ if [ -x "$DIG" ] ; then
   echo "no_response no_response" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -809,7 +808,7 @@ if [ -x "$DIG" ] ; then
   echo "partial_axfr partial_axfr" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -819,7 +818,7 @@ if [ -x "$DIG" ] ; then
   echo "no_response partial_axfr" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -829,7 +828,7 @@ if [ -x "$DIG" ] ; then
   echo "partial_axfr no_response" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 2 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -839,7 +838,7 @@ if [ -x "$DIG" ] ; then
   echo "no_response complete_axfr" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 || ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -849,7 +848,7 @@ if [ -x "$DIG" ] ; then
   echo "partial_axfr complete_axfr" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=2 > dig.out.test$n 2>&1 || ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -859,7 +858,7 @@ if [ -x "$DIG" ] ; then
   echo "no_response no_response" | sendcmd 10.53.0.5
   dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -868,7 +867,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   dig_with_opts @10.53.0.5 example AXFR +retry=0 > dig.out.test$n 2>&1 && ret=1
   # Sanity check: ensure ans5 behaves as expected.
-  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  [ $(grep "communications error.*end of file" dig.out.test$n | wc -l) -eq 1 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -946,8 +945,8 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig +bufsize restores default bufsize ($n)"
   ret=0
   dig_with_opts @10.53.0.3 a.example +bufsize=0 +bufsize +qr > dig.out.test$n 2>&1 || ret=1
-  lines=`grep "EDNS:.* udp:" dig.out.test$n | wc -l`
-  lines1232=`grep "EDNS:.* udp: 1232" dig.out.test$n | wc -l`
+  lines=$(grep "EDNS:.* udp:" dig.out.test$n | wc -l)
+  lines1232=$(grep "EDNS:.* udp: 1232" dig.out.test$n | wc -l)
   test $lines -eq 2 || ret=1
   test $lines1232 -eq 2 || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -34,7 +36,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -48,7 +50,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -62,7 +64,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -71,7 +73,7 @@ ret=0
 dig_cmd +short @10.53.0.1 null.example null in > dig.out.test$n
 echo '\# 1 00' | diff - dig.out.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "querying for empty NULL record ($n)"
@@ -79,7 +81,7 @@ ret=0
 dig_cmd +short @10.53.0.1 empty.example null in > dig.out.test$n
 echo '\# 0' | diff - dig.out.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "querying for various representations of a CLASS10 TYPE1 record ($n)"
@@ -92,7 +94,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -106,7 +108,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -120,7 +122,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -134,7 +136,7 @@ do
 	then
 		echo_i "#$i failed"
 	fi
-	status=`expr $status + $ret`
+	status=$((status + ret))
 done
 
 n=$((n+1))
@@ -147,7 +149,7 @@ for try in 0 1 2 3 4 5 6 7 8 9; do
     sleep 1
 done
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "checking large unknown record loading on secondary ($n)"
@@ -159,7 +161,7 @@ for try in 0 1 2 3 4 5 6 7 8 9; do
     sleep 1
 done
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "stop and restart secondary"
 stop_server ns2
@@ -177,7 +179,7 @@ for try in 0 1 2 3 4 5 6 7 8 9; do
     sleep 1
 done
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "checking large unknown record loading on inline secondary ($n)"
@@ -185,7 +187,7 @@ ret=0
 dig_cmd @10.53.0.3 +tcp +short large.example TYPE45234 > dig.out.test$n
 diff large.out dig.out.test$n > /dev/null || { ret=1 ; echo_i "diff failed"; }
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "stop and restart inline secondary"
 stop_server ns3
@@ -203,7 +205,7 @@ for try in 0 1 2 3 4 5 6 7 8 9; do
     sleep 1
 done
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "check that '"'"\\#"'"' is not treated as the unknown escape sequence ($n)"
@@ -211,7 +213,7 @@ ret=0
 dig_cmd @10.53.0.1 +tcp +short txt8.example txt > dig.out.test$n
 echo '"#" "2" "0145"' | diff - dig.out.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "check that 'TXT \# text' is not treated as the unknown escape sequence ($n)"
@@ -219,15 +221,15 @@ ret=0
 dig_cmd @10.53.0.1 +tcp +short txt9.example txt > dig.out.test$n
 echo '"#" "text"' | diff - dig.out.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n+1))
 echo_i "check that 'TYPE353 \# cat' produces 'not a valid number' ($n)"
 ret=0
-$CHECKZONE nan.bad zones/nan.bad > check.out 2>&1
+$CHECKZONE nan.bad zones/nan.bad > check.out 2>&1 && ret=1
 grep "not a valid number" check.out > /dev/null || ret=1
 [ $ret = 0 ] || echo_i "failed"
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 n=1
@@ -37,9 +39,9 @@ grep "'warn' found type SPF" ns1/named.run > /dev/null && ret=1
 grep "zone nowarn/IN: loaded serial 0" ns1/named.run > /dev/null || ret=1
 grep "'y.nowarn' found type SPF" ns1/named.run > /dev/null && ret=1
 grep "'nowarn' found type SPF" ns1/named.run > /dev/null && ret=1
-n=`expr $n + 1`
+n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck source=conf.sh
 . ../conf.sh
 
@@ -22,8 +24,7 @@ israw () {
     $PERL -e 'binmode STDIN;
              read(STDIN, $input, 8);
              ($style, $version) = unpack("NN", $input);
-             exit 1 if ($style != 2 || $version > 1);' < "$1"
-    return $?
+             exit 1 if ($style != 2 || $version > 1);' < "$1" || return $?
 }
 
 isfull () {

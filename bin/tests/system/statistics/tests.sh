@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGCMD="$DIG +tcp -p ${PORT}"
@@ -21,6 +23,8 @@ status=0
 ret=0
 n=1
 stats=0
+nsock0nstat=0
+nsock1nstat=0
 rndc_stats() {
 	_ns=$1
 	_ip=$2
@@ -36,35 +40,35 @@ rndc_stats() {
 echo_i "fetching a.example from ns2's initial configuration ($n)"
 $DIGCMD +noauth a.example. @10.53.0.2 any > dig.out.ns2.1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "dumping initial stats for ns2 ($n)"
 rndc_stats ns2 10.53.0.2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying adb records in named.stats ($n)"
 grep "ADB stats" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "checking for 1 entry in adb hash table in named.stats ($n)"
 grep "1 Addresses in hash table" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying cache statistics in named.stats ($n)"
 grep "Cache Statistics" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking for 2 entries in adb hash table in named.stats ($n)"
@@ -72,20 +76,20 @@ $DIGCMD a.example.info. @10.53.0.2 any > /dev/null 2>&1
 rndc_stats ns2 10.53.0.2 || ret=1
 grep "2 Addresses in hash table" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "dumping initial stats for ns3 ($n)"
 rndc_stats ns3 10.53.0.3 || ret=1
-nsock0nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
-[ 0 -ne ${nsock0nstat:-0} ] || ret=1
+nsock0nstat=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
+[ 0 -ne ${nsock0nstat} ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "sending queries to ns3"
-$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1
+$DIGCMD +tries=2 +time=1 +recurse @10.53.0.3 foo.info. any > /dev/null 2>&1 || true
 
 ret=0
 echo_i "dumping updated stats for ns3 ($n)"
@@ -95,30 +99,30 @@ getstats() {
 }
 retry_quiet 5 getstats || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying recursing clients output in named.stats ($n)"
 grep "2 recursing clients" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying active fetches output in named.stats ($n)"
 grep "1 active fetches" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying active sockets output in named.stats ($n)"
-nsock1nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
-[ `expr ${nsock1nstat:-0} - ${nsock0nstat:-0}` -eq 1 ] || ret=1
+nsock1nstat=$(grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}')
+[ $((nsock1nstat - nsock0nstat)) -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # there should be 1 UDP and no TCP queries.  As the TCP counter is zero
 # no status line is emitted.
@@ -127,22 +131,22 @@ echo_i "verifying queries in progress in named.stats ($n)"
 grep "1 UDP queries in progress" $last_stats > /dev/null || ret=1
 grep "TCP queries in progress" $last_stats > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "verifying bucket size output ($n)"
 grep "bucket size" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking priming queries are counted ($n)"
 grep "priming queries" $last_stats > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking that zones with slash are properly shown in XML output ($n)"
@@ -153,8 +157,8 @@ else
     echo_i "skipping test as libxml2 and/or curl was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking that zones return their type ($n)"
@@ -165,8 +169,8 @@ else
     echo_i "skipping test as libxml2 and/or curl was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking bind9.xsl vs xml ($n)"
@@ -223,8 +227,8 @@ else
     echo_i "skipping test as libxml2 and/or curl with HTTP/1.1 support and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking bind9.xml socket statistics ($n)"
@@ -247,8 +251,8 @@ else
     echo_i "skipping test as libxml2 and/or stats.xml.out file and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "Check that 'zone-statistics full;' is processed by 'rndc reconfig' ($n)"
 ret=0
@@ -271,8 +275,8 @@ rndc_reconfig ns2 10.53.0.2
 rndc_stats ns2 10.53.0.2 || ret=1
 sed -n '/Per Zone Query Statistics/,/^++/p' $last_stats | grep -F '[example]' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

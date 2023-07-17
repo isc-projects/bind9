@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="-p ${PORT}"
@@ -22,13 +24,13 @@ status=0
 echo_i "checking that we detect a NS which refers to a CNAME"
 if $CHECKZONE . cname.db > cname.out 2>&1
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "is a CNAME" cname.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -36,13 +38,13 @@ fi
 echo_i "checking that we detect a NS which is below a DNAME"
 if $CHECKZONE . dname.db > dname.out 2>&1
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "is below a DNAME" dname.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -50,13 +52,13 @@ fi
 echo_i "checking that we detect a NS which has no address records (A/AAAA)"
 if $CHECKZONE . noaddress.db > noaddress.out
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -64,13 +66,13 @@ fi
 echo_i "checking that we detect a NS which has no records"
 if $CHECKZONE . nxdomain.db > nxdomain.out
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "has no address records" noaddress.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -78,13 +80,13 @@ fi
 echo_i "checking that we detect a NS which looks like a A record (fail)"
 if $CHECKZONE -n fail . a.db > a.out 2>&1
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "appears to be an address" a.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -96,10 +98,10 @@ then
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 else
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 fi
 
 #
@@ -108,25 +110,25 @@ if $CHECKZONE -n ignore . a.db > a.out 2>&1
 then
 	if grep "appears to be an address" a.out > /dev/null
 	then
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	else
 		:
 	fi
 else
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 fi
 
 #
 echo_i "checking that we detect a NS which looks like a AAAA record (fail)"
 if $CHECKZONE -n fail . aaaa.db > aaaa.out 2>&1
 then
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 else
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 fi
 
@@ -138,10 +140,10 @@ then
 	then
 		:
 	else
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	fi
 else
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 fi
 
 #
@@ -150,12 +152,12 @@ if $CHECKZONE -n ignore . aaaa.db > aaaa.out 2>&1
 then
 	if grep "appears to be an address" aaaa.out > /dev/null
 	then
-		echo_i "failed (message)"; status=`expr $status + 1`
+		echo_i "failed (message)"; status=$((status + 1))
 	else
 		:
 	fi
 else
-	echo_i "failed (status)"; status=`expr $status + 1`
+	echo_i "failed (status)"; status=$((status + 1))
 fi
 
 #
@@ -232,25 +234,25 @@ $RNDCCMD 10.53.0.1 zonestatus reload.example > rndc.out.removeinclude 2>&1
 checkfor "files: reload.db$" rndc.out.removeinclude
 
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "checking 'rdnc zonestatus' with duplicated zone name"
 ret=0
-$RNDCCMD 10.53.0.1 zonestatus duplicate.example > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus duplicate.example > rndc.out.duplicate 2>&1 && ret=1
 checkfor "zone 'duplicate.example' was found in multiple views" rndc.out.duplicate
-$RNDCCMD 10.53.0.1 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus duplicate.example in primary > rndc.out.duplicate 2>&1 || ret=1
 checkfor "name: duplicate.example" rndc.out.duplicate
-$RNDCCMD 10.53.0.1 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1
+$RNDCCMD 10.53.0.1 zonestatus nosuchzone.example > rndc.out.duplicate 2>&1 && ret=1
 checkfor "no matching zone 'nosuchzone.example' in any view" rndc.out.duplicate
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "checking 'rdnc zonestatus' with big serial value"
 ret=0
 $RNDCCMD 10.53.0.1 zonestatus bigserial.example > rndc.out.bigserial 2>&1
 checkfor "serial: 3003113544" rndc.out.bigserial
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

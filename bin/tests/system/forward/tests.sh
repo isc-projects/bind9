@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 #shellcheck source=conf.sh
 . ../conf.sh
 
@@ -210,9 +212,9 @@ received_pattern="received packet from 10\.53\.0\.1"
 start_pattern="sending packet to 10\.53\.0\.1"
 retry_quiet 5 wait_for_log ns7/named.run "$received_pattern" || ret=1
 check_sent 1 ns7/named.run "$start_pattern" ";\.[[:space:]]*IN[[:space:]]*NS$" || ret=1
-sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns4/named.run)
+sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns4/named.run || true)
 [ "$sent" -eq 0 ] || ret=1
-sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns1/named.run)
+sent=$(grep -c "10.53.0.7#.* (.): query '\./NS/IN' approved" ns1/named.run || true)
 [ "$sent" -eq 1 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))

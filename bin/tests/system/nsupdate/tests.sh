@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="-p ${PORT}"
@@ -579,7 +581,7 @@ done
 
 ret=0
 echo_i "check that 'nsupdate -l' with a missing keyfile reports the missing file"
-$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistent.key 2> nsupdate.out < /dev/null
+$NSUPDATE -4 -p ${PORT} -l -k ns1/nonexistent.key 2> nsupdate.out < /dev/null && ret=1
 grep ns1/nonexistent.key nsupdate.out > /dev/null || ret=1
 if test $ret -ne 0
 then
@@ -629,7 +631,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' refuses update of records via UDP ($n)"
-$NSUPDATE > nsupdate.out.$n 2>&1 << END
+$NSUPDATE > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
 update add 1.0.0.127.in-addr.arpa. 600 PTR localhost.
@@ -667,7 +669,7 @@ fi
 n=$((n + 1))
 ret=0
 echo_i "check that 'update-policy tcp-self' refuses update of records for a different address from the client's own address via TCP ($n)"
-$NSUPDATE -v > nsupdate.out.$n 2>&1 << END
+$NSUPDATE -v > nsupdate.out.$n 2>&1 << END && ret=1
 server 10.53.0.6 ${PORT}
 local 127.0.0.1
 update add 1.0.168.192.in-addr.arpa. 600 PTR localhost.
@@ -821,13 +823,13 @@ echo_i "check command list ($n)"
 (
 while read cmd
 do
-    echo "$cmd" | $NSUPDATE  > /dev/null 2>&1
-    if test $? -gt 1 ; then
+    { echo "$cmd" | $NSUPDATE  > /dev/null 2>&1; rc=$?; } || true
+    if test $rc -gt 1 ; then
 	echo_i "failed ($cmd)"
 	ret=1
     fi
-    echo "$cmd " | $NSUPDATE  > /dev/null 2>&1
-    if test $? -gt 1 ; then
+    { echo "$cmd " | $NSUPDATE  > /dev/null 2>&1; rc=$?; } || true
+    if test $rc -gt 1 ; then
 	echo_i "failed ($cmd)"
 	ret=1
     fi
@@ -1037,23 +1039,23 @@ retry_quiet 20 check_size_lt_5000 || ret=1
 n=$((n + 1))
 echo_i "check check-names processing ($n)"
 ret=0
-$NSUPDATE << EOF > nsupdate.out1-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out1-$n 2>&1 && ret=1
 update add # 0 in a 1.2.3.4
 EOF
 grep "bad owner" nsupdate.out1-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out2-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out2-$n 2>&1 || ret=1
 check-names off
 update add # 0 in a 1.2.3.4
 EOF
 grep "bad owner" nsupdate.out2-$n > /dev/null && ret=1
 
-$NSUPDATE << EOF > nsupdate.out3-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out3-$n 2>&1 && ret=1
 update add . 0 in mx 0 #
 EOF
 grep "bad name" nsupdate.out3-$n > /dev/null || ret=1
 
-$NSUPDATE << EOF > nsupdate.out4-$n 2>&1
+$NSUPDATE << EOF > nsupdate.out4-$n 2>&1 || ret=1
 check-names off
 update add . 0 in mx 0 #
 EOF
@@ -1115,7 +1117,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1134,7 +1136,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1153,7 +1155,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1172,7 +1174,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1191,7 +1193,7 @@ zone unreachable.
 update add unreachable. 600 A 192.0.2.1
 send
 END
-t2=`$PERL -e 'print time()'`
+t2=$($PERL -e 'print time()')
 grep "; Communication with 10.53.0.4#${PORT} failed: timed out" nsupdate.out.test$n > /dev/null 2>&1 || ret=1
 grep "not implemented" nsupdate.out.test$n > /dev/null 2>&1 && ret=1
 elapsed=$((t2 - t1))
@@ -1477,7 +1479,7 @@ n=$((n + 1))
 ret=0
 echo_i "check that update is rejected if query is not allowed ($n)"
 {
-  $NSUPDATE -d <<END
+  $NSUPDATE -d <<END && ret=1
   local 10.53.0.2
   server 10.53.0.1 ${PORT}
   update add reject.other.nil 3600 IN TXT Whatever

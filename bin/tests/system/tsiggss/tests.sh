@@ -13,6 +13,8 @@
 
 # tests for TSIG-GSS updates
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -41,7 +43,7 @@ EOF
     }
 
     # Verify that TKEY response is signed.
-    tkeyout=`awk '/recvmsg reply from GSS-TSIG query/,/Sending update to/' nsupdate.out${num}`
+    tkeyout=$(awk '/recvmsg reply from GSS-TSIG query/,/Sending update to/' nsupdate.out${num})
     pattern="recvmsg reply from GSS-TSIG query .* opcode: QUERY, status: NOERROR, id: .* flags: qr; QUESTION: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1 ;; QUESTION SECTION: ;.* ANY TKEY ;; ANSWER SECTION: .* 0 ANY TKEY gss-tsig\. .* ;; TSIG PSEUDOSECTION: .* 0 ANY TSIG gss-tsig\. .* NOERROR 0"
     echo $tkeyout | grep "$pattern" > /dev/null || {
 	echo_i "bad tkey response (not tsig signed)"
@@ -54,8 +56,8 @@ EOF
 	return 1
     }
 
-    out=`$DIG $DIGOPTS -t $type -q $host | grep -E "^${host}"`
-    lines=`echo "$out" | grep "$digout" | wc -l`
+    out=$($DIG $DIGOPTS -t $type -q $host | grep -E "^${host}")
+    lines=$(echo "$out" | grep "$digout" | wc -l)
     [ $lines -eq 1 ] || {
 	echo_i "dig output incorrect for $host $type $cmd: $out"
 	return 1
@@ -65,7 +67,7 @@ EOF
 
 
 # Testing updates with good credentials.
-KRB5CCNAME="FILE:"`pwd`/ns1/administrator.ccache
+KRB5CCNAME="FILE:"$(pwd)/ns1/administrator.ccache
 export KRB5CCNAME
 
 echo_i "testing updates to testdc1 as administrator ($n)"
@@ -91,7 +93,7 @@ status=$((status+ret))
 
 
 # Testing denied updates.
-KRB5CCNAME="FILE:"`pwd`/ns1/testdenied.ccache
+KRB5CCNAME="FILE:"$(pwd)/ns1/testdenied.ccache
 export KRB5CCNAME
 
 echo_i "testing updates to denied (A) as a user ($n)"
@@ -139,7 +141,7 @@ zone example.nil
 update add fred.example.nil 120 cname foo.bar.
 send
 END
-output=`$DIG $DIGOPTS +short cname fred.example.nil.`
+output=$($DIG $DIGOPTS +short cname fred.example.nil.)
 [ -n "$output" ] || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 n=$((n+1))
@@ -170,7 +172,7 @@ status=$((status+ret))
 
 [ $status -eq 0 ] && echo_i "tsiggss tests all OK"
 
-kill `cat authsock.pid`
+kill $(cat authsock.pid)
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

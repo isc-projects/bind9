@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 status=0
@@ -66,9 +68,9 @@ clear_cache () {
 }
 
 in_cache () {
-        ttl=`$DIG $DIGOPTS "$@" | awk '{print $2}'`
+        ttl=$($DIG $DIGOPTS "$@" | awk '{print $2}')
         [ -z "$ttl" ] && {
-                ttl=`$DIG $DIGOPTS +noanswer +auth "$@" | awk '{print $2}'`
+                ttl=$($DIG $DIGOPTS +noanswer +auth "$@" | awk '{print $2}')
                 [ "$ttl" -ge 3599 ] && return 1
                 return 0
         }
@@ -91,39 +93,39 @@ filter_tree () {
 	' "$file"
 }
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check correctness of routine cache cleaning ($n)"
 $DIG $DIGOPTS +tcp +keepopen -b 10.53.0.7 -f dig.batch > dig.out.ns2 || status=1
 
 digcomp --lc dig.out.ns2 knowngood.dig.out || status=1
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "only one tcp socket was used ($n)"
-tcpclients=`awk '$3 == "client" && $5 ~ /10.53.0.7#[0-9]*:/ {print $5}' ns2/named.run | sort | uniq -c | wc -l`
+tcpclients=$(awk '$3 == "client" && $5 ~ /10.53.0.7#[0-9]*:/ {print $5}' ns2/named.run | sort | uniq -c | wc -l)
 
 test $tcpclients -eq 1 || { status=1; echo_i "failed"; }
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "reset and check that records are correctly cached initially ($n)"
 ret=0
 load_cache
 dump_cache
-nrecords=`filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l`
+nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l)
 [ $nrecords -eq 18 ] || { ret=1; echo_i "found $nrecords records expected 18"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing of the full cache ($n)"
 ret=0
 clear_cache
 dump_cache
-nrecords=`filter_tree flushtest.example ns2/named_dump.db.test$n | wc -l`
+nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | wc -l)
 [ $nrecords -eq 0 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing of individual nodes (interior node) ($n)"
 ret=0
 clear_cache
@@ -133,9 +135,9 @@ in_cache txt top1.flushtest.example || ret=1
 $RNDC $RNDCOPTS flushname top1.flushtest.example
 in_cache txt top1.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing of individual nodes (leaf node, under the interior node) ($n)"
 ret=0
 # leaf node, under the interior node (should still exist)
@@ -143,9 +145,9 @@ in_cache txt third2.second1.top1.flushtest.example || ret=1
 $RNDC $RNDCOPTS flushname third2.second1.top1.flushtest.example
 in_cache txt third2.second1.top1.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing of individual nodes (another leaf node, with both positive and negative cache entries) ($n)"
 ret=0
 # another leaf node, with both positive and negative cache entries
@@ -155,16 +157,16 @@ $RNDC $RNDCOPTS flushname third1.second1.top1.flushtest.example
 in_cache a third1.second1.top1.flushtest.example && ret=1
 in_cache txt third1.second1.top1.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing a nonexistent name ($n)"
 ret=0
 $RNDC $RNDCOPTS flushname fake.flushtest.example || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing of namespaces ($n)"
 ret=0
 clear_cache
@@ -189,43 +191,43 @@ in_cache txt second1.top2.flushtest.example && ret=1
 in_cache txt second2.top2.flushtest.example && ret=1
 in_cache txt second3.top2.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushing a nonexistent namespace ($n)"
 ret=0
 $RNDC $RNDCOPTS flushtree fake.flushtest.example || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`filter_tree flushtest.example ns2/named_dump.db.test$n | grep -v '^;' | grep -E '(TXT|ANY)' | wc -l`
+nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -v '^;' | grep -E '(TXT|ANY)' | wc -l)
 [ $nrecords -eq 17 ] || { ret=1; echo_i "found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check the check that flushname of a partial match works ($n)"
 ret=0
 in_cache txt second2.top1.flushtest.example || ret=1
 $RNDC $RNDCOPTS flushtree example
 in_cache txt second2.top1.flushtest.example && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l`
+nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l)
 [ $nrecords -eq 1 ] || { ret=1; echo_i "found $nrecords records expected 1"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check flushtree clears adb correctly ($n)"
 ret=0
 load_cache
@@ -245,23 +247,23 @@ grep 'plain success/timeout' sed.out.$n.b > /dev/null 2>&1 || ret=1
 grep 'Unassociated entries' sed.out.$n.b > /dev/null 2>&1 || ret=1
 grep 'ns.flushtest.example' sed.out.$n.b > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check expire option returned from primary zone ($n)"
 ret=0
 $DIG @10.53.0.1 -p ${PORT} +expire soa expire-test > dig.out.expire
 grep EXPIRE: dig.out.expire > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
-n=`expr $n + 1`
+n=$((n + 1))
 echo_i "check expire option returned from secondary zone ($n)"
 ret=0
 $DIG @10.53.0.2 -p ${PORT} +expire soa expire-test > dig.out.expire
 grep EXPIRE: dig.out.expire > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

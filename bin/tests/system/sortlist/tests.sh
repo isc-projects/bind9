@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 . ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd -p ${PORT}"

@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 # shellcheck source=conf.sh
 . ../conf.sh
 
@@ -55,10 +57,9 @@ getzones() {
         json) path='json/v1/zones' ;;
         *) return 1 ;;
     esac
-    file=`$PERL fetch.pl -p ${EXTRAPORT1} $path`
+    file=$($PERL fetch.pl -p ${EXTRAPORT1} $path)
     cp $file $file.$1.$3
-    $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3
-    result=$?
+    { $PERL zones-${1}.pl $file $2 2>/dev/null | sort > zones.out.$3; result=$?; } || true
     return $result
 }
 
@@ -78,34 +79,34 @@ echo_i "checking consistency between named.stats and xml/json ($n)"
 rm -f ns2/named.stats
 $DIGCMD +tcp example ns > dig.out.$n || ret=1
 $RNDCCMD 10.53.0.2 stats 2>&1 | sed 's/^/I:ns1 /'
-query_count=`awk '/QUERY/ {print $1}' ns2/named.stats`
-txt_count=`awk '/TXT/ {print $1}' ns2/named.stats`
-noerror_count=`awk '/NOERROR/ {print $1}' ns2/named.stats`
+query_count=$(awk '/QUERY/ {print $1}' ns2/named.stats)
+txt_count=$(awk '/TXT/ {print $1}' ns2/named.stats)
+noerror_count=$(awk '/NOERROR/ {print $1}' ns2/named.stats)
 if [ $PERL_XML ]; then
-    file=`$PERL fetch.pl -p ${EXTRAPORT1} xml/v3/server`
+    file=$($PERL fetch.pl -p ${EXTRAPORT1} xml/v3/server)
     mv $file xml.stats
     $PERL server-xml.pl > xml.fmtstats 2> /dev/null
-    xml_query_count=`awk '/opcode QUERY/ { print $NF }' xml.fmtstats`
+    xml_query_count=$(awk '/opcode QUERY/ { print $NF }' xml.fmtstats)
     xml_query_count=${xml_query_count:-0}
     [ "$query_count" -eq "$xml_query_count" ] || ret=1
-    xml_txt_count=`awk '/qtype TXT/ { print $NF }' xml.fmtstats`
+    xml_txt_count=$(awk '/qtype TXT/ { print $NF }' xml.fmtstats)
     xml_txt_count=${xml_txt_count:-0}
     [ "$txt_count" -eq "$xml_txt_count" ] || ret=1
-    xml_noerror_count=`awk '/rcode NOERROR/ { print $NF }' xml.fmtstats`
+    xml_noerror_count=$(awk '/rcode NOERROR/ { print $NF }' xml.fmtstats)
     xml_noerror_count=${xml_noerror_count:-0}
     [ "$noerror_count" -eq "$xml_noerror_count" ] || ret=1
 fi
 if [ $PERL_JSON ]; then
-    file=`$PERL fetch.pl -p ${EXTRAPORT1} json/v1/server`
+    file=$($PERL fetch.pl -p ${EXTRAPORT1} json/v1/server)
     mv $file json.stats
     $PERL server-json.pl > json.fmtstats 2> /dev/null
-    json_query_count=`awk '/opcode QUERY/ { print $NF }' json.fmtstats`
+    json_query_count=$(awk '/opcode QUERY/ { print $NF }' json.fmtstats)
     json_query_count=${json_query_count:-0}
     [ "$query_count" -eq "$json_query_count" ] || ret=1
-    json_txt_count=`awk '/qtype TXT/ { print $NF }' json.fmtstats`
+    json_txt_count=$(awk '/qtype TXT/ { print $NF }' json.fmtstats)
     json_txt_count=${json_txt_count:-0}
     [ "$txt_count" -eq "$json_txt_count" ] || ret=1
-    json_noerror_count=`awk '/rcode NOERROR/ { print $NF }' json.fmtstats`
+    json_noerror_count=$(awk '/rcode NOERROR/ { print $NF }' json.fmtstats)
     json_noerror_count=${json_noerror_count:-0}
     [ "$noerror_count" -eq "$json_noerror_count" ] || ret=1
 fi
@@ -116,7 +117,7 @@ n=$((n + 1))
 ret=0
 echo_i "checking malloced memory statistics xml/json ($n)"
 if [ $PERL_XML ]; then
-    file=`$PERL fetch.pl -p ${EXTRAPORT1} xml/v3/mem`
+    file=$($PERL fetch.pl -p ${EXTRAPORT1} xml/v3/mem)
     mv $file xml.mem
     $PERL mem-xml.pl $file > xml.fmtmem
     grep "'Malloced' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
@@ -124,7 +125,7 @@ if [ $PERL_XML ]; then
     grep "'maxmalloced' => '[0-9][0-9]*'" xml.fmtmem > /dev/null || ret=1
 fi
 if [ $PERL_JSON ]; then
-    file=`$PERL fetch.pl -p ${EXTRAPORT1} json/v1/mem`
+    file=$($PERL fetch.pl -p ${EXTRAPORT1} json/v1/mem)
     mv $file json.mem
     grep '"malloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
     grep '"maxmalloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
@@ -169,10 +170,10 @@ ret=0
 echo_i "checking if compressed output is really compressed ($n)"
 if $FEATURETEST --with-zlib;
 then
-    REGSIZE=`cat regular.headers | \
-        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
-    COMPSIZE=`cat compressed.headers | \
-        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+    REGSIZE=$(cat regular.headers | \
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/")
+    COMPSIZE=$(cat compressed.headers | \
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/")
     if [ ! $((REGSIZE / COMPSIZE)) -gt 2 ]; then
         ret=1
     fi
@@ -187,8 +188,8 @@ n=$((n + 1))
 zone="dnssec"
 sign_prefix="dnssec-sign operations"
 refresh_prefix="dnssec-refresh operations"
-ksk_id=`cat ns2/$zone.ksk.id`
-zsk_id=`cat ns2/$zone.zsk.id`
+ksk_id=$(cat ns2/$zone.ksk.id)
+zsk_id=$(cat ns2/$zone.zsk.id)
 
 # Test sign operations for scheduled resigning.
 ret=0
@@ -275,12 +276,12 @@ n=$((n + 1))
 # Test sign operations for scheduled resigning (many keys).
 ret=0
 zone="manykeys"
-ksk8_id=`cat ns2/$zone.ksk8.id`
-zsk8_id=`cat ns2/$zone.zsk8.id`
-ksk13_id=`cat ns2/$zone.ksk13.id`
-zsk13_id=`cat ns2/$zone.zsk13.id`
-ksk14_id=`cat ns2/$zone.ksk14.id`
-zsk14_id=`cat ns2/$zone.zsk14.id`
+ksk8_id=$(cat ns2/$zone.ksk8.id)
+zsk8_id=$(cat ns2/$zone.zsk8.id)
+ksk13_id=$(cat ns2/$zone.ksk13.id)
+zsk13_id=$(cat ns2/$zone.zsk13.id)
+ksk14_id=$(cat ns2/$zone.ksk14.id)
+zsk14_id=$(cat ns2/$zone.zsk14.id)
 # The dnssec zone has 10 RRsets to sign (including NSEC) with the ZSKs and one
 # RRset (DNSKEY) with the KSKs. So starting named with signatures that expire
 # almost right away, this should trigger 10 zsk and 1 ksk sign operations per
@@ -395,7 +396,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # keep-alive not needed in HTTP/1.1, second response has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -427,7 +428,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # keep-alive not needed in HTTP/1.1, second response has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -452,7 +453,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 2 || ret=1
     # first response has keep-alive, second has close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 1 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1
@@ -478,7 +479,7 @@ EOF
     lines=$(grep -c "^<statistics version" nc.out$n)
     test "$lines" = 1 || ret=1
     # no keep-alive, one close
-    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n)
+    lines=$(grep -c "^Connection: Keep-Alive" nc.out$n || true)
     test "$lines" = 0 || ret=1
     lines=$(grep -c "^Connection: close" nc.out$n)
     test "$lines" = 1 || ret=1

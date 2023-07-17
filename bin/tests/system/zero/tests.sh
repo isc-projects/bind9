@@ -11,6 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 #shellcheck source=conf.sh
 . ../conf.sh
 
@@ -48,7 +50,7 @@ do
 	(dig_with_opts -d +qr @10.53.0.3 -f query.list > "dig.out$i.6.test$n" 2>&1) & pid6="$!"
 
 	retry_quiet "$timeout" wait_for_pid "$pid1" "$pid2" "$pid3" "$pid4" "$pid5" "$pid6" || { echo_i "wait_for_pid failed"; ret=1; }
-	kill -TERM "$pid1" "$pid2" "$pid3" "$pid4" "$pid5" "$pid6" 2>/dev/null
+	kill -TERM "$pid1" "$pid2" "$pid3" "$pid4" "$pid5" "$pid6" 2>/dev/null || true
 
 	wait "$pid1" || { echo_i "wait $pid1 (dig.out$i.1.test$n) failed with $?"; ret=1; }
 	wait "$pid2" || { echo_i "wait $pid2 (dig.out$i.2.test$n) failed with $?"; ret=1; }

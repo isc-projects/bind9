@@ -488,14 +488,14 @@ This is the main test file and the contents depend on the test.  The contents
 are completely up to the developer, although most test scripts have a form
 similar to the following for each sub-test:
 
-    1. n=`expr $n + 1`
+    1. n=$((n + 1))
     2. echo_i "prime cache nodata.example ($n)"
     3. ret=0
     4. $DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
     5. grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
     6. grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
     7. if [ $ret != 0 ]; then echo_i "failed"; fi
-    8. status=`expr $status + $ret`
+    8. status=$((status + ret))
 
 1.  Increment the test number "n" (initialized to zero at the start of the
     script).
