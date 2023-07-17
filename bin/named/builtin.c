@@ -608,7 +608,7 @@ ipv4reverse_lookup(bdbnode_t *node) {
  */
 static void
 disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_dbnode_t *node = rdataset->private5;
+	dns_dbnode_t *node = rdataset->rdlist.node;
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
 	dns_db_t *db = (dns_db_t *)bdbnode->bdb;
 
@@ -618,13 +618,12 @@ disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 
 static void
 rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
-	dns_dbnode_t *node = source->private5;
+	dns_dbnode_t *node = source->rdlist.node;
 	bdbnode_t *bdbnode = (bdbnode_t *)node;
 	dns_db_t *db = (dns_db_t *)bdbnode->bdb;
 
 	dns_rdatalist_clone(source, target DNS__DB_FLARG_PASS);
-	attachnode(db, node,
-		   (dns_dbnode_t **)&target->private5 DNS__DB_FLARG_PASS);
+	attachnode(db, node, &target->rdlist.node DNS__DB_FLARG_PASS);
 }
 
 static dns_rdatasetmethods_t bdb_rdataset_methods = {
@@ -644,7 +643,7 @@ new_rdataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 
 	rdataset->methods = &bdb_rdataset_methods;
-	dns_db_attachnode(db, node, &rdataset->private5);
+	dns_db_attachnode(db, node, &rdataset->rdlist.node);
 }
 
 /*

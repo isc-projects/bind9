@@ -96,33 +96,38 @@ static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
+	dns_rbtdb_t rbtdb = {
+		.common.methods = &dns__rbtdb_zonemethods,
+		.common.mctx = mctx,
+		.node_locks = node_locks,
+	};
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	rdatasetheader_t header = { 0 };
+	dns_slabheader_t header = {
+		.node = &rbtnode,
+		.db = (dns_db_t *)&rbtdb,
+	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.private1 = &rbtdb,
-		.private2 = &rbtnode,
-		.private3 = raw,
-		.methods = &rdataset_methods,
+		.slab = { .db = (dns_db_t *)&rbtdb,
+			  .node = &rbtnode,
+			  .raw = raw },
+		.methods = &dns_rdataslab_rdatasetmethods,
 	};
-
 	isc_buffer_t b;
 	dns_fixedname_t fname1, fname2;
-	dns_name_t *name1, *name2;
+	dns_name_t *name1 = dns_fixedname_initname(&fname1);
+	dns_name_t *name2 = dns_fixedname_initname(&fname2);
 
 	memset(node_locks, 0, sizeof(node_locks));
 	/* Minimal initialization of the mock objects */
 	NODE_INITLOCK(&rbtdb.node_locks[0].lock);
 
-	name1 = dns_fixedname_initname(&fname1);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
 	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	name2 = dns_fixedname_initname(&fname2);
 	isc_buffer_constinit(&b, str2, strlen(str2));
 	isc_buffer_add(&b, strlen(str2));
 	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);
@@ -158,23 +163,30 @@ ISC_RUN_TEST_IMPL(ownercase) {
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
 	rbtdb_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = { .node_locks = node_locks };
+	dns_rbtdb_t rbtdb = {
+		.common.methods = &dns__rbtdb_zonemethods,
+		.common.mctx = mctx,
+		.node_locks = node_locks,
+	};
 	dns_rbtnode_t rbtnode = { .locknum = 0 };
-	rdatasetheader_t header = { 0 };
+	dns_slabheader_t header = {
+		.node = &rbtnode,
+		.db = (dns_db_t *)&rbtdb,
+	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.private1 = &rbtdb,
-		.private2 = &rbtnode,
-		.private3 = raw,
-		.methods = &rdataset_methods,
+		.slab = { .db = (dns_db_t *)&rbtdb,
+			  .node = &rbtnode,
+			  .raw = raw },
+		.methods = &dns_rdataslab_rdatasetmethods,
 	};
 	const char *str1 =
 		"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
-
 	isc_buffer_t b;
 	dns_fixedname_t fname1, fname2;
-	dns_name_t *name1, *name2;
+	dns_name_t *name1 = dns_fixedname_initname(&fname1);
+	dns_name_t *name2 = dns_fixedname_initname(&fname2);
 
 	UNUSED(state);
 
@@ -182,13 +194,11 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	memset(node_locks, 0, sizeof(node_locks));
 	NODE_INITLOCK(&rbtdb.node_locks[0].lock);
 
-	name1 = dns_fixedname_initname(&fname1);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
 	result = dns_name_fromtext(name1, &b, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	name2 = dns_fixedname_initname(&fname2);
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
 	result = dns_name_fromtext(name2, &b, dns_rootname, 0, NULL);

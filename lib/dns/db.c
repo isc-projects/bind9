@@ -59,7 +59,7 @@ struct dns_dbimplementation {
  * Built in database implementations are registered here.
  */
 
-#include "rbtdb.h"
+#include "rbtdb_p.h"
 
 unsigned int dns_pps = 0U;
 
@@ -74,7 +74,7 @@ initialize(void) {
 	isc_rwlock_init(&implock);
 
 	rbtimp.name = "rbt";
-	rbtimp.create = dns_rbtdb_create;
+	rbtimp.create = dns__rbtdb_create;
 	rbtimp.mctx = NULL;
 	rbtimp.driverarg = NULL;
 	ISC_LINK_INIT(&rbtimp, link);
@@ -196,24 +196,6 @@ dns_db_isstub(dns_db_t *db) {
 }
 
 bool
-dns_db_isdnssec(dns_db_t *db) {
-	/*
-	 * Is 'db' secure or partially secure?
-	 */
-
-	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
-
-	if (db->methods->isdnssec != NULL) {
-		return ((db->methods->isdnssec)(db));
-	}
-	if (db->methods->issecure != NULL) {
-		return ((db->methods->issecure)(db));
-	}
-	return (false);
-}
-
-bool
 dns_db_issecure(dns_db_t *db) {
 	/*
 	 * Is 'db' secure?
@@ -236,9 +218,7 @@ dns_db_ispersistent(dns_db_t *db) {
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	if (db->methods->ispersistent != NULL) {
-		return ((db->methods->ispersistent)(db));
-	} else if (db->methods->beginload == NULL) {
+	if (db->methods->beginload == NULL) {
 		/* If the database can't be loaded, assume it's persistent */
 		return (true);
 	}
@@ -350,15 +330,6 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
 	}
 
 	return (result);
-}
-
-isc_result_t
-dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
-	if (db->methods->dump != NULL) {
-		return ((db->methods->dump)(db, version, filename,
-					    dns_masterformat_text));
-	}
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /***
@@ -624,54 +595,10 @@ dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
 		    dns_dbnode_t **targetp) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(targetp != NULL && *targetp == NULL);
-	/*
-	 * This doesn't check the implementation magic.  If we find that
-	 * we need such checks in future then this will be done in the
-	 * method.
-	 */
 	REQUIRE(sourcep != NULL && *sourcep != NULL);
 
-	UNUSED(db);
-
-	if (db->methods->transfernode == NULL) {
-		*targetp = *sourcep;
-		*sourcep = NULL;
-	} else {
-		(db->methods->transfernode)(db, sourcep, targetp);
-	}
-
-	ENSURE(*sourcep == NULL);
-}
-
-isc_result_t
-dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
-	/*
-	 * Mark as stale all records at 'node' which expire at or before 'now'.
-	 */
-
-	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
-	REQUIRE(node != NULL);
-
-	if (db->methods->expirenode != NULL) {
-		return ((db->methods->expirenode)(db, node, now));
-	}
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-void
-dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
-	/*
-	 * Print a textual representation of the contents of the node to
-	 * 'out'.
-	 */
-
-	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(node != NULL);
-
-	if (db->methods->printnode != NULL) {
-		(db->methods->printnode)(db, node, out);
-	}
+	*targetp = *sourcep;
+	*sourcep = NULL;
 }
 
 /***
@@ -812,15 +739,6 @@ dns__db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 			db, node, version, type, covers DNS__DB_FLARG_PASS));
 	}
 	return (ISC_R_NOTIMPLEMENTED);
-}
-
-void
-dns_db_overmem(dns_db_t *db, bool overmem) {
-	REQUIRE(DNS_DB_VALID(db));
-
-	if (db->methods->overmem != NULL) {
-		(db->methods->overmem)(db, overmem);
-	}
 }
 
 isc_result_t
@@ -1033,15 +951,6 @@ dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	return (ISC_R_NOTFOUND);
 }
 
-void
-dns__db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
-		 dns_dbversion_t *version DNS__DB_FLARG) {
-	if (db->methods->resigned != NULL) {
-		(db->methods->resigned)(db, rdataset,
-					version DNS__DB_FLARG_PASS);
-	}
-}
-
 /*
  * Attach a notify-on-update function the database
  */
@@ -1098,18 +1007,6 @@ dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
 }
 
 isc_result_t
-dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
-	REQUIRE(db != NULL);
-	REQUIRE(node != NULL);
-	REQUIRE(name != NULL);
-
-	if (db->methods->nodefullname != NULL) {
-		return ((db->methods->nodefullname)(db, node, name));
-	}
-	return (ISC_R_NOTIMPLEMENTED);
-}
-
-isc_result_t
 dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl) {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
@@ -1163,4 +1060,48 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 	}
 
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_db_addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
+	       dns_message_t *msg) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+	REQUIRE(rdataset->type == dns_rdatatype_ns);
+
+	if (db->methods->addglue != NULL) {
+		return ((db->methods->addglue)(db, version, rdataset, msg));
+	}
+
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+dns_db_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
+	if (db->methods->locknode != NULL) {
+		(db->methods->locknode)(db, node, type);
+	}
+}
+
+void
+dns_db_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
+	if (db->methods->unlocknode != NULL) {
+		(db->methods->unlocknode)(db, node, type);
+	}
+}
+
+void
+dns_db_expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
+	if (db->methods->expiredata != NULL) {
+		(db->methods->expiredata)(db, node, data);
+	}
+}
+
+void
+dns_db_deletedata(dns_db_t *db, dns_dbnode_t *node, void *data) {
+	if (db->methods->deletedata != NULL) {
+		(db->methods->deletedata)(db, node, data);
+	}
 }

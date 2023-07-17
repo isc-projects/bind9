@@ -672,22 +672,6 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 }
 
 static isc_result_t
-expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(now);
-	UNREACHABLE();
-}
-
-static void
-printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
-	UNUSED(db);
-	UNUSED(node);
-	UNUSED(out);
-	return;
-}
-
-static isc_result_t
 createiterator(dns_db_t *db, unsigned int options,
 	       dns_dbiterator_t **iteratorp) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
@@ -1141,12 +1125,6 @@ nodecount(dns_db_t *db, dns_dbtree_t tree) {
 }
 
 static void
-overmem(dns_db_t *db, bool over) {
-	UNUSED(db);
-	UNUSED(over);
-}
-
-static void
 setloop(dns_db_t *db, isc_loop_t *loop) {
 	UNUSED(db);
 	UNUSED(loop);
@@ -1185,8 +1163,6 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.find = find,
 	.attachnode = attachnode,
 	.detachnode = detachnode,
-	.expirenode = expirenode,
-	.printnode = printnode,
 	.createiterator = createiterator,
 	.findrdataset = findrdataset,
 	.allrdatasets = allrdatasets,
@@ -1195,7 +1171,6 @@ static dns_dbmethods_t sdlzdb_methods = {
 	.deleterdataset = deleterdataset,
 	.issecure = issecure,
 	.nodecount = nodecount,
-	.overmem = overmem,
 	.setloop = setloop,
 	.getoriginnode = getoriginnode,
 	.findnodeext = findnodeext,
@@ -1322,7 +1297,7 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 
 static void
 disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
-	dns_dbnode_t *node = rdataset->private5;
+	dns_dbnode_t *node = rdataset->rdlist.node;
 	dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 	dns_db_t *db = (dns_db_t *)sdlznode->sdlz;
 
@@ -1332,14 +1307,12 @@ disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 
 static void
 rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target DNS__DB_FLARG) {
-	dns_dbnode_t *node = source->private5;
+	dns_dbnode_t *node = source->rdlist.node;
 	dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 	dns_db_t *db = (dns_db_t *)sdlznode->sdlz;
-	dns_dbnode_t *tempdb = NULL;
 
 	dns_rdatalist_clone(source, target DNS__DB_FLARG_PASS);
-	attachnode(db, node, &tempdb DNS__DB_FLARG_PASS);
-	source->private5 = tempdb;
+	attachnode(db, node, &target->rdlist.node DNS__DB_FLARG_PASS);
 }
 
 static dns_rdatasetmethods_t rdataset_methods = {
@@ -1357,16 +1330,13 @@ static void
 list_tordataset(dns_rdatalist_t *rdatalist, dns_db_t *db, dns_dbnode_t *node,
 		dns_rdataset_t *rdataset) {
 	/*
-	 * The sdlz rdataset is an rdatalist with some additions.
-	 *	- private1 & private2 are used by the rdatalist.
-	 *	- private3 & private 4 are unused.
-	 *	- private5 is the node.
+	 * The sdlz rdataset is an rdatalist, but additionally holds
+	 * a database node reference.
 	 */
 
 	dns_rdatalist_tordataset(rdatalist, rdataset);
-
 	rdataset->methods = &rdataset_methods;
-	dns_db_attachnode(db, node, &rdataset->private5);
+	dns_db_attachnode(db, node, &rdataset->rdlist.node);
 }
 
 /*

@@ -45,8 +45,6 @@
 #define ISC_XMLCHAR (const xmlChar *)
 #endif /* HAVE_LIBXML2 */
 
-#include "rbtdb.h"
-
 #define CACHE_MAGIC	   ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache) ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
@@ -80,7 +78,6 @@ struct dns_cache {
 	dns_ttl_t serve_stale_ttl;
 	dns_ttl_t serve_stale_refresh;
 	isc_stats_t *stats;
-	bool overmem;
 };
 
 /***
@@ -246,26 +243,8 @@ dns_cache_getname(dns_cache_t *cache) {
 	return (cache->name);
 }
 
-static void
-water(void *arg, int mark) {
-	dns_cache_t *cache = arg;
-	bool overmem = (mark == ISC_MEM_HIWATER);
-
-	REQUIRE(VALID_CACHE(cache));
-
-	LOCK(&cache->lock);
-	if (overmem != cache->overmem) {
-		dns_db_overmem(cache->db, overmem);
-		cache->overmem = overmem;
-		isc_mem_waterack(cache->mctx, mark);
-	}
-	UNLOCK(&cache->lock);
-}
-
 void
 dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
-	size_t hiwater, lowater;
-
 	REQUIRE(VALID_CACHE(cache));
 
 	/*
@@ -279,29 +258,6 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	LOCK(&cache->lock);
 	cache->size = size;
 	UNLOCK(&cache->lock);
-
-	hiwater = size - (size >> 3); /* Approximately 7/8ths. */
-	lowater = size - (size >> 2); /* Approximately 3/4ths. */
-
-	/*
-	 * If the cache was overmem and cleaning, but now with the new limits
-	 * it is no longer in an overmem condition, then the next
-	 * isc_mem_put for cache memory will do the right thing and trigger
-	 * water().
-	 */
-
-	if (size == 0U || hiwater == 0U || lowater == 0U) {
-		/*
-		 * Disable cache memory limiting.
-		 */
-		isc_mem_clearwater(cache->mctx);
-	} else {
-		/*
-		 * Establish new cache memory limits (either for the first
-		 * time, or replacing other limits).
-		 */
-		isc_mem_setwater(cache->mctx, water, cache, hiwater, lowater);
-	}
 }
 
 size_t

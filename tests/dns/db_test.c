@@ -281,14 +281,14 @@ ISC_RUN_TEST_IMPL(dbtype) {
 	dns_db_detach(&db);
 
 	/* DB has cache semantics */
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_db_load(db, TESTS_DIR "/testdata/db/data.db",
 			     dns_masterformat_text, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	assert_true(dns_db_iscache(db));
-	assert_false(dns_db_iszone(db));
+	assert_false(dns_db_iscache(db));
+	assert_true(dns_db_iszone(db));
 	dns_db_detach(&db);
 }
 

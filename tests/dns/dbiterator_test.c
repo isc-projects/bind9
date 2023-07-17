@@ -50,7 +50,7 @@ test_create(const char *filename) {
 	dns_db_t *db = NULL;
 	dns_dbiterator_t *iter = NULL;
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -85,7 +85,7 @@ test_walk(const char *filename, int nodes) {
 
 	name = dns_fixedname_initname(&f);
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -112,7 +112,7 @@ test_walk(const char *filename, int nodes) {
 ISC_RUN_TEST_IMPL(walk) {
 	UNUSED(state);
 
-	test_walk(TESTS_DIR "/testdata/dbiterator/zone1.data", 12);
+	test_walk(TESTS_DIR "/testdata/dbiterator/zone1.data", 13);
 }
 
 ISC_RUN_TEST_IMPL(walk_nsec3) {
@@ -134,7 +134,7 @@ test_reverse(const char *filename) {
 
 	name = dns_fixedname_initname(&f);
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -184,7 +184,7 @@ test_seek_node(const char *filename, int nodes) {
 	name = dns_fixedname_initname(&f1);
 	seekname = dns_fixedname_initname(&f2);
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -216,7 +216,7 @@ test_seek_node(const char *filename, int nodes) {
 ISC_RUN_TEST_IMPL(seek_node) {
 	UNUSED(state);
 
-	test_seek_node(TESTS_DIR "/testdata/dbiterator/zone1.data", 9);
+	test_seek_node(TESTS_DIR "/testdata/dbiterator/zone1.data", 10);
 }
 
 ISC_RUN_TEST_IMPL(seek_node_nsec3) {
@@ -239,7 +239,7 @@ test_seek_empty(const char *filename) {
 
 	seekname = dns_fixedname_initname(&f1);
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);
@@ -280,7 +280,7 @@ test_seek_nx(const char *filename) {
 
 	seekname = dns_fixedname_initname(&f1);
 
-	result = dns_test_loaddb(&db, dns_dbtype_cache, TEST_ORIGIN, filename);
+	result = dns_test_loaddb(&db, dns_dbtype_zone, TEST_ORIGIN, filename);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_db_createiterator(db, 0, &iter);

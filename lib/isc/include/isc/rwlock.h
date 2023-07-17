@@ -141,6 +141,7 @@ typedef pthread_rwlock_t isc__rwlock_t;
 #define isc__rwlock_unlock(rwl, type)                                \
 	{                                                            \
 		int _ret = pthread_rwlock_unlock(rwl);               \
+		UNUSED(type);                                        \
 		PTHREADS_RUNTIME_CHECK(pthread_rwlock_rwlock, _ret); \
 	}
 

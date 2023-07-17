@@ -2140,15 +2140,15 @@ query_additional(query_ctx_t *qctx, dns_name_t *name,
 	if (rdataset->type == dns_rdatatype_ns &&
 	    client->query.gluedb != NULL && dns_db_iszone(client->query.gluedb))
 	{
-		ns_dbversion_t *dbversion;
+		ns_dbversion_t *dbversion = NULL;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
 		if (dbversion == NULL) {
 			goto regular;
 		}
 
-		result = dns_rdataset_addglue(rdataset, dbversion->version,
-					      client->message);
+		result = dns_db_addglue(qctx->db, dbversion->version, rdataset,
+					client->message);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}
@@ -2860,7 +2860,7 @@ rpz_get_zbits(ns_client_t *client, dns_rdatatype_t ip_type,
 		if (st->rpsdb == NULL ||
 		    librpz->have_trig(dns_dnsrps_type2trig(rpz_type),
 				      ip_type == dns_rdatatype_aaaa,
-				      ((rpsdb_t *)st->rpsdb)->rsp))
+				      ((dns_rpsdb_t *)st->rpsdb)->rsp))
 		{
 			return (DNS_RPZ_ALL_ZBITS);
 		}
@@ -3338,7 +3338,7 @@ rpz_save_p(dns_rpz_st_t *st, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
  * Continue after a hit on a disabled zone (>0).
  */
 static int
-dnsrps_ck(librpz_emsg_t *emsg, ns_client_t *client, rpsdb_t *rpsdb,
+dnsrps_ck(librpz_emsg_t *emsg, ns_client_t *client, dns_rpsdb_t *rpsdb,
 	  bool recursed) {
 	isc_region_t region;
 	librpz_domain_buf_t pname_buf;
@@ -3393,7 +3393,7 @@ static bool
 dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 	     dns_rdatatype_t qtype, dns_rdataset_t **p_rdatasetp,
 	     bool recursed) {
-	rpsdb_t *rpsdb = NULL;
+	dns_rpsdb_t *rpsdb = NULL;
 	librpz_domain_buf_t pname_buf;
 	isc_region_t region;
 	dns_zone_t *p_zone = NULL;
@@ -3405,7 +3405,7 @@ dnsrps_set_p(librpz_emsg_t *emsg, ns_client_t *client, dns_rpz_st_t *st,
 
 	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_set_p");
 
-	rpsdb = (rpsdb_t *)st->rpsdb;
+	rpsdb = (dns_rpsdb_t *)st->rpsdb;
 
 	if (!librpz->rsp_result(emsg, &rpsdb->result, recursed, rpsdb->rsp)) {
 		return (false);
@@ -3505,7 +3505,7 @@ static isc_result_t
 dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		  dns_rpz_type_t rpz_type, dns_rdataset_t **p_rdatasetp) {
 	dns_rpz_st_t *st;
-	rpsdb_t *rpsdb;
+	dns_rpsdb_t *rpsdb;
 	librpz_trig_t trig = LIBRPZ_TRIG_CLIENT_IP;
 	bool recursed = false;
 	int res;
@@ -3515,7 +3515,7 @@ dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_ip");
 
 	st = client->query.rpz_st;
-	rpsdb = (rpsdb_t *)st->rpsdb;
+	rpsdb = (dns_rpsdb_t *)st->rpsdb;
 
 	result = rpz_ready(client, p_rdatasetp);
 	if (result != ISC_R_SUCCESS) {
@@ -3563,7 +3563,7 @@ static isc_result_t
 dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name, bool recursed,
 		    dns_rpz_type_t rpz_type, dns_rdataset_t **p_rdatasetp) {
 	dns_rpz_st_t *st;
-	rpsdb_t *rpsdb;
+	dns_rpsdb_t *rpsdb;
 	librpz_trig_t trig = LIBRPZ_TRIG_CLIENT_IP;
 	isc_region_t r;
 	int res;
@@ -3573,7 +3573,7 @@ dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name, bool recursed,
 	CTRACE(ISC_LOG_DEBUG(3), "dnsrps_rewrite_name");
 
 	st = client->query.rpz_st;
-	rpsdb = (rpsdb_t *)st->rpsdb;
+	rpsdb = (dns_rpsdb_t *)st->rpsdb;
 
 	result = rpz_ready(client, p_rdatasetp);
 	if (result != ISC_R_SUCCESS) {
