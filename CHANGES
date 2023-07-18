@@ -1,3 +1,6 @@
+6279.	[func]		Use QNAME minimization when fetching nameserver
+			addresses. [GL #4209]
+
 6278.	[bug]		The call to isc_mem_setwater() was incorrectly
 			removed from dns_cache_setcachesize(), causing
 			cache overmem conditions not to be detected. [GL #4340]
