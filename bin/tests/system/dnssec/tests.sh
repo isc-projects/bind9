@@ -2775,7 +2775,7 @@ echo send
 dig_with_opts +dnssec a update-nsec3.example. @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 grep "flags:.* ad[ ;]" dig.out.ns4.test$n > /dev/null || ret=1
-grep "NSEC3 .* TYPE65534" dig.out.ns4.test$n > /dev/null || ret=1
+grep "NSEC3 1 0 0 - .*" dig.out.ns4.test$n > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
