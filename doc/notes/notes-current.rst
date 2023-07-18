@@ -63,6 +63,9 @@ Feature Changes
 - B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
   :gl:`#4101`
 
+- QNAME minimization is now used when looking up the addresses of name
+  servers during the recursion process. :gl:`#4209`
+
 Bug Fixes
 ~~~~~~~~~
 
