@@ -2964,6 +2964,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	dns_rdataset_init(&rdataset);
 
 	options = DNS_FETCHOPT_NOVALIDATE;
+
 	if (start_at_zone) {
 		DP(ENTER_LEVEL, "fetch_name: starting at zone for name %p",
 		   adbname);
@@ -2976,6 +2977,11 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 		}
 		nameservers = &rdataset;
 		options |= DNS_FETCHOPT_UNSHARED;
+	} else if (adb->view->qminimization) {
+		options |= DNS_FETCHOPT_QMINIMIZE | DNS_FETCHOPT_QMIN_SKIP_IP6A;
+		if (adb->view->qmin_strict) {
+			options |= DNS_FETCHOPT_QMIN_STRICT;
+		}
 	}
 
 	fetch = new_adbfetch(adb);
