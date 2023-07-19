@@ -281,6 +281,7 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #else
 	EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_RSA_D, &d1);
 	EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_D, &d2);
+	ERR_clear_error();
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (d1 != NULL || d2 != NULL) {
@@ -296,6 +297,7 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		EVP_PKEY_get_bn_param(pkey1, OSSL_PKEY_PARAM_RSA_FACTOR2, &q1);
 		EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_FACTOR1, &p2);
 		EVP_PKEY_get_bn_param(pkey2, OSSL_PKEY_PARAM_RSA_FACTOR2, &q2);
+		ERR_clear_error();
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 		if (BN_cmp(d1, d2) != 0 || BN_cmp(p1, p2) != 0 ||
@@ -543,6 +545,8 @@ opensslrsa_isprivate(const dst_key_t *key) {
 	       d != NULL);
 	if (d != NULL) {
 		BN_clear_free(d);
+	} else {
+		ERR_clear_error();
 	}
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
@@ -834,6 +838,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_EXPONENT1, &dmp1);
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_EXPONENT2, &dmq1);
 	EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_RSA_COEFFICIENT1, &iqmp);
+	ERR_clear_error();
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 
 	if (n == NULL || e == NULL) {
