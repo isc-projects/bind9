@@ -1,3 +1,6 @@
+6213.	[bug]		Mark a primary server as temporarily unreachable if the
+			TCP connection attempt times out. [GL #4215]
+
 6212.	[placeholder]
 
 6211.	[func]		Remove 'auto-dnssec'. This obsoletes the configuration
