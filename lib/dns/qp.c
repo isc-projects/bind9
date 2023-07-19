@@ -628,7 +628,7 @@ recycle(dns_qp_t *qp) {
  */
 static void
 reclaim_chunks_cb(struct rcu_head *arg) {
-	qp_rcuctx_t *rcuctx = isc_urcu_container(arg, qp_rcuctx_t, rcu_head);
+	qp_rcuctx_t *rcuctx = caa_container_of(arg, qp_rcuctx_t, rcu_head);
 	REQUIRE(QPRCU_VALID(rcuctx));
 	dns_qpmulti_t *multi = rcuctx->multi;
 	REQUIRE(QPMULTI_VALID(multi));
@@ -710,7 +710,7 @@ reclaim_chunks(dns_qpmulti_t *multi) {
 		}
 	}
 
-	isc_urcu_cleanup(rcuctx, rcu_head, reclaim_chunks_cb);
+	call_rcu(&rcuctx->rcu_head, reclaim_chunks_cb);
 
 	LOG_STATS("qp will reclaim %u chunks", count);
 }
@@ -1429,7 +1429,7 @@ dns_qp_destroy(dns_qp_t **qptp) {
 
 static void
 qpmulti_destroy_cb(struct rcu_head *arg) {
-	qp_rcuctx_t *rcuctx = isc_urcu_container(arg, qp_rcuctx_t, rcu_head);
+	qp_rcuctx_t *rcuctx = caa_container_of(arg, qp_rcuctx_t, rcu_head);
 	REQUIRE(QPRCU_VALID(rcuctx));
 	/* only nonzero for reclaim_chunks_cb() */
 	REQUIRE(rcuctx->count == 0);
@@ -1476,7 +1476,7 @@ dns_qpmulti_destroy(dns_qpmulti_t **qpmp) {
 		.multi = multi,
 	};
 	isc_mem_attach(qp->mctx, &rcuctx->mctx);
-	isc_urcu_cleanup(rcuctx, rcu_head, qpmulti_destroy_cb);
+	call_rcu(&rcuctx->rcu_head, qpmulti_destroy_cb);
 }
 
 /***********************************************************************

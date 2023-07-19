@@ -57,7 +57,6 @@ isc_async_run(isc_loop_t *loop, isc_job_cb cb, void *cbarg) {
 	 * The function returns 'false' in case the queue was empty - in such
 	 * case we need to trigger the async callback.
 	 */
-	__tsan_release(job);
 	if (!cds_wfcq_enqueue(&loop->async_jobs.head, &loop->async_jobs.tail,
 			      &job->wfcq_node))
 	{
@@ -107,7 +106,7 @@ isc__async_cb(uv_async_t *handle) {
 	 */
 	struct cds_wfcq_node *node, *next;
 	__cds_wfcq_for_each_blocking_safe(&jobs.head, &jobs.tail, node, next) {
-		isc_job_t *job = isc_urcu_container(node, isc_job_t, wfcq_node);
+		isc_job_t *job = caa_container_of(node, isc_job_t, wfcq_node);
 
 		job->cb(job->cbarg);
 
