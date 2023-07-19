@@ -97,7 +97,10 @@ opensslrsa_components_get(const dst_key_t *key, rsa_components_t *c,
 		(void)EVP_PKEY_get_bn_param(priv,
 					    OSSL_PKEY_PARAM_RSA_COEFFICIENT1,
 					    (BIGNUM **)&c->iqmp);
+		ERR_clear_error();
 		return (ISC_R_SUCCESS);
+	} else {
+		ERR_clear_error();
 	}
 #endif
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
