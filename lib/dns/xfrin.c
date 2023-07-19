@@ -955,10 +955,11 @@ xfrin_start(dns_xfrin_t *xfr) {
 	 * XXX: timeouts are hard-coded to 30 seconds; this needs to be
 	 * configurable.
 	 */
-	CHECK(dns_dispatch_add(
-		xfr->disp, 0, 30000, &xfr->primaryaddr, xfr->transport,
-		xfr->tlsctx_cache, xfrin_connect_done, xfrin_send_done,
-		xfrin_recv_done, xfr, &xfr->id, &xfr->dispentry));
+	CHECK(dns_dispatch_add(xfr->disp, dns_zone_getloop(xfr->zone), 0, 30000,
+			       &xfr->primaryaddr, xfr->transport,
+			       xfr->tlsctx_cache, xfrin_connect_done,
+			       xfrin_send_done, xfrin_recv_done, xfr, &xfr->id,
+			       &xfr->dispentry));
 	CHECK(dns_dispatch_connect(xfr->dispentry));
 
 	return (ISC_R_SUCCESS);

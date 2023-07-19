@@ -205,4 +205,14 @@ isc_loop_getloopmgr(isc_loop_t *loop);
  * Requires:
  *\li	'loop' is a valid loop.
  */
+
+isc_time_t
+isc_loop_now(isc_loop_t *loop);
+/*%<
+ * Returns the start time of the current loop tick.
+ *
+ * Requires:
+ *
+ * \li 'loop' is a valid loop.
+ */
 ISC_LANG_ENDDECLS

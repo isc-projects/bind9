@@ -492,10 +492,10 @@ again:
 		dispopt |= DNS_DISPATCHOPT_FIXEDID;
 	}
 
-	result = dns_dispatch_add(request->dispatch, dispopt, request->timeout,
-				  destaddr, transport, tlsctx_cache,
-				  req_connected, req_senddone, req_response,
-				  request, &id, &request->dispentry);
+	result = dns_dispatch_add(
+		request->dispatch, loop, dispopt, request->timeout, destaddr,
+		transport, tlsctx_cache, req_connected, req_senddone,
+		req_response, request, &id, &request->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		if ((options & DNS_REQUESTOPT_FIXEDID) != 0 && !newtcp) {
 			newtcp = true;
@@ -635,7 +635,7 @@ again:
 		goto detach;
 	}
 
-	result = dns_dispatch_add(request->dispatch, 0, request->timeout,
+	result = dns_dispatch_add(request->dispatch, loop, 0, request->timeout,
 				  destaddr, transport, tlsctx_cache,
 				  req_connected, req_senddone, req_response,
 				  request, &id, &request->dispentry);
