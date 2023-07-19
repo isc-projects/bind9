@@ -43,10 +43,14 @@
 
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/heap.h>
 #include <isc/lang.h>
+#include <isc/stdtime.h>
 #include <isc/urcu.h>
 
+#include <dns/name.h>
+#include <dns/rdataset.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
