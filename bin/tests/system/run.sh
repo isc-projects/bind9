@@ -297,7 +297,7 @@ if [ -n "$core_dumps" ]; then
         echoinfo "D:$systest:full backtrace from $coredump saved in $coredump_backtrace"
         "${TOP}/libtool" --mode=execute gdb \
                       -batch \
-                      -command=run.gdb \
+                      -command="${TOP_SRCDIR}/bin/tests/system/run.gdb" \
                       -core="$coredump" \
                       -- \
                       "$binary" > "$coredump_backtrace" 2>&1
