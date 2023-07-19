@@ -178,7 +178,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 	/*
 	 * Did we find anything?
 	 */
-	if (ns_header != NULL) {
+	if (!IS_STUB(search->rbtdb) && ns_header != NULL) {
 		/*
 		 * Note that NS has precedence over DNAME if both exist
 		 * in a zone.  Otherwise DNAME take precedence over NS.
