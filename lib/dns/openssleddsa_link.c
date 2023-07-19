@@ -221,7 +221,7 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		key->key_alg == DST_ALG_ED448);
 
 	if (ctx == NULL) {
-		return (ISC_R_NOMEMORY);
+		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 
 #if HAVE_OPENSSL_ED25519
