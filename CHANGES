@@ -1,3 +1,5 @@
+6212.	[placeholder]
+
 6211.	[func]		Remove 'auto-dnssec'. This obsoletes the configuration
 			options 'dnskey-sig-validity', 'dnssec-dnskey-kskonly',
 			'dnssec-update-mode', 'sig-validity-interval', and
