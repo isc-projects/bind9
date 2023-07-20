@@ -215,9 +215,7 @@ options {\n\
 	check-srv-cname warn;\n\
 	check-wildcard yes;\n\
 	dialup no;\n\
-	dnssec-dnskey-kskonly yes;\n\
 	dnssec-loadkeys-interval 60;\n\
-	dnssec-update-mode maintain;\n\
 #	forward <none>\n\
 #	forwarders <none>\n\
 #	inline-signing no;\n\
@@ -240,12 +238,9 @@ options {\n\
 	sig-signing-nodes 100;\n\
 	sig-signing-signatures 10;\n\
 	sig-signing-type 65534;\n\
-	sig-validity-interval 30; /* days */\n\
-	dnskey-sig-validity 0; /* default: sig-validity-interval */\n\
 	transfer-source *;\n\
 	transfer-source-v6 *;\n\
 	try-tcp-refresh yes; /* BIND 8 compat */\n\
-	update-check-ksk yes;\n\
 	zero-no-soa-ttl yes;\n\
 	zone-statistics terse;\n\
 };\n\

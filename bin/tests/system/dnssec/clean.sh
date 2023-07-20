@@ -13,7 +13,7 @@
 
 set -e
 
-rm -f ./*/K* ./*/keyset-* ./*/dsset-* ./*/signedkey-* ./*/*.signed
+rm -f ./K* ./*/K* ./*/keyset-* ./*/dsset-* ./*/signedkey-* ./*/*.signed
 rm -f ./*/example.bk
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
@@ -31,7 +31,6 @@ rm -f ./dnssectools.out*
 rm -f ./dsfromkey.out.*
 rm -f ./keygen.err
 rm -f ./named.secroots.test*
-rm -f ./nosign.before
 rm -f ./ns*/*.nta
 rm -f ./ns*/managed-keys.bind ./ns*/managed-keys.bind.jnl ./ns*/*.mkeys*
 rm -f ./ns*/named.lock
@@ -40,18 +39,17 @@ rm -f ./ns1/root.db ./ns2/example.db ./ns2/managed.db ./ns2/trusted.db
 rm -f ./ns1/trusted.keys
 rm -f ./ns2/algroll.db
 rm -f ./ns2/badparam.db ./ns2/badparam.db.bad
-rm -f ./ns2/cdnskey-kskonly.secure.db
-rm -f ./ns2/cdnskey-kskonly.secure.id
 rm -f ./ns2/cdnskey-update.secure.db
+rm -f ./ns2/cdnskey-update.secure.id
 rm -f ./ns2/cdnskey-x.secure.db
 rm -f ./ns2/cdnskey.secure.db
 rm -f ./ns2/cds-auto.secure.db ./ns2/cds-auto.secure.db.jnl
-rm -f ./ns2/cds-kskonly.secure.db
-rm -f ./ns2/cds-kskonly.secure.id
 rm -f ./ns2/cds-update.secure.db ./ns2/cds-update.secure.db.jnl
+rm -f ./ns2/cds-update.secure.id
 rm -f ./ns2/cds.secure.db ./ns2/cds-x.secure.db
 rm -f ./ns2/in-addr.arpa.db
 rm -f ./ns2/nsec3chain-test.db
+rm -f ./ns2/settime.out.*
 rm -f ./ns2/single-nsec3.db
 rm -f ./ns2/too-many-iterations.db
 rm -f ./ns2/updatecheck-kskonly.secure.*
@@ -69,7 +67,7 @@ rm -f ./ns3/dnskey-unsupported.example.db
 rm -f ./ns3/dnskey-unsupported.example.db.tmp
 rm -f ./ns3/dynamic.example.db ./ns3/dynamic.example.db.signed.jnl
 rm -f ./ns3/expired.example.db ./ns3/update-nsec3.example.db
-rm -f ./ns3/expiring.example.db ./ns3/nosign.example.db
+rm -f ./ns3/expiring.example.db
 rm -f ./ns3/future.example.db ./ns3/trusted-future.key
 rm -f ./ns3/inline.example.db.signed
 rm -f ./ns3/kskonly.example.db
@@ -82,7 +80,6 @@ rm -f ./ns3/occluded.example.db
 rm -f ./ns3/optout-unknown.example.db ./ns3/optout.example.db
 rm -f ./ns3/optout.nsec3.example.db
 rm -f ./ns3/optout.optout.example.db
-rm -f ./ns3/publish-inactive.example.db
 rm -f ./ns3/revkey.example.db
 rm -f ./ns3/rsasha1-1024.example.tmp
 rm -f ./ns3/rsasha1.example.tmp

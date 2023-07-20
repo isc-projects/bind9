@@ -228,7 +228,7 @@ There are several tools available to manually sign a zone.
 
 To set up a DNSSEC secure zone manually, a series of steps
 must be followed. Please see chapter
-:ref:`advanced_discussions_manual_key_management_and_signing` in the
+:ref:`advanced_discussions_manual_signing` in the
 :doc:`dnssec-guide` for more information.
 
 Monitoring with Private Type Records

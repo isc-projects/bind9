@@ -247,13 +247,18 @@ n=$((n + 1))
 # Test sign operations of KSK.
 ret=0
 echo_i "fetch zone '$zone' stats data after updating DNSKEY RRset ($n)"
-# Add a standby DNSKEY, this triggers resigning the DNSKEY RRset.
-zsk=$("$KEYGEN" -K ns2 -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
-$SETTIME -K ns2 -P now -A never $zsk.key > /dev/null
-loadkeys_on 2 $zone || ret=1
+id=$(echo "${zsk_id}" | cut -d+ -f2 -)
+# Add a DNSKEY, this triggers resigning the DNSKEY RRset.
+zsk=$("$KEYGEN" -L 3600 -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
+(
+echo zone $zone
+echo server 10.53.0.2 "$PORT"
+echo update add $(cat "${zsk}.key" | grep -v ";.*")
+echo send
+) | $NSUPDATE
 # This should trigger the resign of SOA (+1 zsk) and DNSKEY (+1 ksk).
-echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
-echo "${refresh_prefix} ${ksk_id}: 2" >> zones.expect
+echo "${refresh_prefix} ${zsk_id}: 10" > zones.expect
+echo "${refresh_prefix} ${ksk_id}: 1" >> zones.expect
 echo "${sign_prefix} ${zsk_id}: 14" >> zones.expect
 echo "${sign_prefix} ${ksk_id}: 2" >> zones.expect
 cat zones.expect | sort > zones.expect.$n

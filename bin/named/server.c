@@ -12330,8 +12330,7 @@ named_server_rekey(named_server_t *server, isc_lex_t *lex,
 	keyopts = dns_zone_getkeyopts(zone);
 
 	/*
-	 * "rndc loadkeys" requires "auto-dnssec maintain"
-	 * or a "dnssec-policy".
+	 * "rndc loadkeys" requires a "dnssec-policy".
 	 */
 	if ((keyopts & DNS_ZONEKEY_ALLOW) == 0) {
 		result = ISC_R_NOPERM;
@@ -14455,6 +14454,7 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	unsigned char salt[255];
 	const char *ptr;
 	size_t n;
+	bool kasp = false;
 
 	REQUIRE(text != NULL);
 
@@ -14562,17 +14562,14 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 	}
 
 	if (dns_zone_getkasp(zone) != NULL) {
-		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
-				   "command instead");
-		(void)putnull(text);
-		goto cleanup;
+		kasp = true;
 	}
 
 	if (clear) {
 		CHECK(dns_zone_keydone(zone, keystr));
 		(void)putstr(text, "request queued");
 		(void)putnull(text);
-	} else if (chain) {
+	} else if (chain && !kasp) {
 		CHECK(dns_zone_setnsec3param(
 			zone, (uint8_t)hash, (uint8_t)flags, iter,
 			(uint8_t)saltlen, salt, true, resalt));
@@ -14629,6 +14626,10 @@ named_server_signing(named_server_t *server, isc_lex_t *lex,
 		if (result == ISC_R_NOMORE) {
 			result = ISC_R_SUCCESS;
 		}
+	} else if (kasp) {
+		(void)putstr(text, "zone uses dnssec-policy, use rndc dnssec "
+				   "command instead");
+		(void)putnull(text);
 	}
 
 cleanup:
@@ -15126,10 +15127,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	}
 
 	/* Next resign event */
-	if (secure &&
-	    (zonetype == dns_zone_primary ||
-	     (zonetype == dns_zone_secondary && hasraw)) &&
-	    ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_NORESIGN) == 0))
+	if (secure && (zonetype == dns_zone_primary ||
+		       (zonetype == dns_zone_secondary && hasraw)))
 	{
 		dns_name_t *name;
 		dns_fixedname_t fixed;

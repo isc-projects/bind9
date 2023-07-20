@@ -905,7 +905,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_stats_t *rcvquerystats;
 	dns_stats_t *dnssecsignstats;
 	dns_zonestat_level_t statlevel = dns_zonestat_none;
-	int seconds;
 	dns_ttl_t maxttl = 0; /* unlimited */
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 	bool transferinsecs = ns_server_getoption(named_g_server->sctx,
@@ -1547,11 +1546,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * use inline-signing (raw != NULL).
 	 */
 	if (ztype == dns_zone_primary || raw != NULL) {
-		const cfg_obj_t *validity, *resign;
-		bool allow = false, maint = false;
-		bool sigvalinsecs;
-
 		if (use_kasp) {
+			int seconds;
+
 			if (dns_kasp_nsec3(kasp)) {
 				result = dns_zone_setnsec3param(
 					zone, 1, dns_kasp_nsec3flags(kasp),
@@ -1563,52 +1560,14 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					zone, 0, 0, 0, 0, NULL, true, false);
 			}
 			INSIST(result == ISC_R_SUCCESS);
-		}
 
-		if (use_kasp) {
 			seconds = (uint32_t)dns_kasp_sigvalidity_dnskey(kasp);
-		} else {
-			obj = NULL;
-			result = named_config_get(maps, "dnskey-sig-validity",
-						  &obj);
-			INSIST(result == ISC_R_SUCCESS && obj != NULL);
-			seconds = cfg_obj_asuint32(obj) * 86400;
-		}
-		dns_zone_setkeyvalidityinterval(zone, seconds);
+			dns_zone_setkeyvalidityinterval(zone, seconds);
 
-		if (use_kasp) {
 			seconds = (uint32_t)dns_kasp_sigvalidity(kasp);
 			dns_zone_setsigvalidityinterval(zone, seconds);
+
 			seconds = (uint32_t)dns_kasp_sigrefresh(kasp);
-			dns_zone_setsigresigninginterval(zone, seconds);
-		} else {
-			obj = NULL;
-			result = named_config_get(maps, "sig-validity-interval",
-						  &obj);
-			INSIST(result == ISC_R_SUCCESS && obj != NULL);
-
-			sigvalinsecs = ns_server_getoption(
-				named_g_server->sctx, NS_SERVER_SIGVALINSECS);
-			validity = cfg_tuple_get(obj, "validity");
-			seconds = cfg_obj_asuint32(validity);
-			if (!sigvalinsecs) {
-				seconds *= 86400;
-			}
-			dns_zone_setsigvalidityinterval(zone, seconds);
-
-			resign = cfg_tuple_get(obj, "re-sign");
-			if (cfg_obj_isvoid(resign)) {
-				seconds /= 4;
-			} else if (!sigvalinsecs) {
-				uint32_t r = cfg_obj_asuint32(resign);
-				if (seconds > 7 * 86400) {
-					seconds = r * 86400;
-				} else {
-					seconds = r * 3600;
-				}
-			} else {
-				seconds = cfg_obj_asuint32(resign);
-			}
 			dns_zone_setsigresigninginterval(zone, seconds);
 		}
 
@@ -1635,54 +1594,18 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setprivatetype(zone, cfg_obj_asuint32(obj));
 
 		obj = NULL;
-		result = named_config_get(maps, "update-check-ksk", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK,
-				   cfg_obj_asboolean(obj));
-		/*
-		 * This setting will be ignored if dnssec-policy is used.
-		 * named-checkconf will error if both are configured.
-		 */
-
-		obj = NULL;
-		result = named_config_get(maps, "dnssec-dnskey-kskonly", &obj);
-		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_DNSKEYKSKONLY,
-				   cfg_obj_asboolean(obj));
-		/*
-		 * This setting will be ignored if dnssec-policy is used.
-		 * named-checkconf will error if both are configured.
-		 */
-
-		obj = NULL;
 		result = named_config_get(maps, "dnssec-loadkeys-interval",
 					  &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		CHECK(dns_zone_setrefreshkeyinterval(zone,
 						     cfg_obj_asuint32(obj)));
 
-		obj = NULL;
-		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
 		if (kasp != NULL) {
 			bool s2i = (strcmp(dns_kasp_getname(kasp),
 					   "insecure") != 0);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, true);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, !s2i);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, true);
-		} else if (result == ISC_R_SUCCESS) {
-			const char *arg = cfg_obj_asstring(obj);
-			if (strcasecmp(arg, "allow") == 0) {
-				allow = true;
-			} else if (strcasecmp(arg, "maintain") == 0) {
-				allow = maint = true;
-			} else if (strcasecmp(arg, "off") == 0) {
-				/* Default */
-			} else {
-				UNREACHABLE();
-			}
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_CREATE, false);
-			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
 		}
 	}
 
@@ -1824,20 +1747,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNORESRVCNAME,
 				   ignore);
-
-		obj = NULL;
-		result = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
-		if (result == ISC_R_SUCCESS) {
-			const char *arg = cfg_obj_asstring(obj);
-			if (strcasecmp(arg, "no-resign") == 0) {
-				dns_zone_setkeyopt(zone, DNS_ZONEKEY_NORESIGN,
-						   true);
-			} else if (strcasecmp(arg, "maintain") == 0) {
-				/* Default */
-			} else {
-				UNREACHABLE();
-			}
-		}
 
 		obj = NULL;
 		result = named_config_get(maps, "serial-update-method", &obj);

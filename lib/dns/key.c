@@ -159,6 +159,68 @@ dst_key_isnullkey(const dst_key_t *key) {
 	return (true);
 }
 
+#define REVOKE(x) ((dst_key_flags(x) & DNS_KEYFLAG_REVOKE) != 0)
+#define KSK(x)	  ((dst_key_flags(x) & DNS_KEYFLAG_KSK) != 0)
+#define ID(x)	  dst_key_id(x)
+#define ALG(x)	  dst_key_alg(x)
+
+bool
+dst_key_have_ksk_and_zsk(dst_key_t **keys, unsigned int nkeys, unsigned int i,
+			 bool check_offline, bool ksk, bool zsk, bool *have_ksk,
+			 bool *have_zsk) {
+	bool hksk = ksk;
+	bool hzsk = zsk;
+	isc_result_t result;
+
+	REQUIRE(keys != NULL);
+
+	for (unsigned int j = 0; j < nkeys && !(hksk && hzsk); j++) {
+		if (j == i || ALG(keys[i]) != ALG(keys[j])) {
+			continue;
+		}
+		/*
+		 * Don't consider inactive keys.
+		 */
+		if (dst_key_inactive(keys[j])) {
+			continue;
+		}
+		/*
+		 * Don't consider offline keys.
+		 */
+		if (check_offline && !dst_key_isprivate(keys[j])) {
+			continue;
+		}
+		if (REVOKE(keys[j])) {
+			continue;
+		}
+
+		if (!hksk) {
+			result = dst_key_getbool(keys[j], DST_BOOL_KSK, &hksk);
+			if (result != ISC_R_SUCCESS) {
+				if (KSK(keys[j])) {
+					hksk = true;
+				}
+			}
+		}
+		if (!hzsk) {
+			result = dst_key_getbool(keys[j], DST_BOOL_ZSK, &hzsk);
+			if (result != ISC_R_SUCCESS) {
+				if (!KSK(keys[j])) {
+					hzsk = dst_key_isprivate(keys[j]);
+				}
+			}
+		}
+	}
+
+	if (have_ksk != NULL) {
+		*have_ksk = hksk;
+	}
+	if (have_zsk != NULL) {
+		*have_zsk = hzsk;
+	}
+	return (hksk && hzsk);
+}
+
 void
 dst_key_setbits(dst_key_t *key, uint16_t bits) {
 	unsigned int maxbits;

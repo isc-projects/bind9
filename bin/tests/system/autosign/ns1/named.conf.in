@@ -37,12 +37,10 @@ controls {
 
 zone "." {
 	type primary;
-	file "root.db";
+	file "root.db.signed";
 	allow-transfer { any; };
-	allow-query { any; };
 	allow-update { any; };
-	auto-dnssec maintain;
-	dnssec-dnskey-kskonly no;
+	allow-query { any; };
 };
 
 include "trusted.conf";

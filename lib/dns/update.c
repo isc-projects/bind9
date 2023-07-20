@@ -1108,8 +1108,7 @@ static isc_result_t
 add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
 	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-	 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-	 bool keyset_kskonly) {
+	 isc_stdtime_t inception, isc_stdtime_t expire) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
@@ -1118,14 +1117,12 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_stats_t *dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
-	unsigned int i, j;
+	unsigned int i;
 	bool added_sig = false;
 	bool use_kasp = false;
 	isc_mem_t *mctx = diff->mctx;
 
 	if (kasp != NULL) {
-		check_ksk = false;
-		keyset_kskonly = true;
 		use_kasp = true;
 	}
 
@@ -1161,44 +1158,6 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		}
 		if (dst_key_inactive(keys[i])) {
 			continue;
-		}
-
-		if (check_ksk && !REVOKE(keys[i])) {
-			bool have_ksk, have_nonksk;
-			if (KSK(keys[i])) {
-				have_ksk = true;
-				have_nonksk = false;
-			} else {
-				have_ksk = false;
-				have_nonksk = true;
-			}
-			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
-					continue;
-				}
-
-				/* Don't consider inactive keys, however
-				 * the KSK may be temporary offline, so do
-				 * consider KSKs which private key files are
-				 * unavailable.
-				 */
-				if (dst_key_inactive(keys[j])) {
-					continue;
-				}
-
-				if (REVOKE(keys[j])) {
-					continue;
-				}
-				if (KSK(keys[j])) {
-					have_ksk = true;
-				} else if (dst_key_isprivate(keys[j])) {
-					have_nonksk = true;
-				}
-				both = have_ksk && have_nonksk;
-				if (both) {
-					break;
-				}
-			}
 		}
 
 		if (use_kasp) {
@@ -1246,26 +1205,34 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				 */
 				continue;
 			}
-
+		} else if (!REVOKE(keys[i])) {
 			/*
-			 * If this key is revoked, it may only sign the
-			 * DNSKEY RRset.
+			 * Don't consider inactive keys, however the KSK may be
+			 * temporary offline, so do consider KSKs which private
+			 * key files are unavailable.
 			 */
-			if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
-				continue;
-			}
-		} else if (both) {
-			/*
-			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
-			 */
-			if (dns_rdatatype_iskeymaterial(type)) {
-				if (!KSK(keys[i]) && keyset_kskonly) {
+			both = dst_key_have_ksk_and_zsk(
+				keys, nkeys, i, false, KSK(keys[i]),
+				!KSK(keys[i]), NULL, NULL);
+			if (both) {
+				/*
+				 * CDS and CDNSKEY are signed with KSK (RFC
+				 * 7344, 4.1).
+				 */
+				if (dns_rdatatype_iskeymaterial(type)) {
+					if (!KSK(keys[i])) {
+						continue;
+					}
+				} else if (KSK(keys[i])) {
 					continue;
 				}
-			} else if (KSK(keys[i])) {
-				continue;
 			}
-		} else if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
+		}
+
+		/*
+		 * If this key is revoked, it may only sign the DNSKEY RRset.
+		 */
+		if (REVOKE(keys[i]) && type != dns_rdatatype_dnskey) {
 			continue;
 		}
 
@@ -1394,8 +1361,8 @@ static isc_result_t
 add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 dns_dbversion_t *ver, dns_name_t *name, bool cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-		 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-		 bool keyset_kskonly, unsigned int *sigs) {
+		 isc_stdtime_t inception, isc_stdtime_t expire,
+		 unsigned int *sigs) {
 	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
@@ -1445,8 +1412,7 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			continue;
 		}
 		result = add_sigs(log, zone, db, ver, name, type, diff, keys,
-				  nkeys, inception, expire, check_ksk,
-				  keyset_kskonly);
+				  nkeys, inception, expire);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_iterator;
 		}
@@ -1496,7 +1462,7 @@ struct dns_update_state {
 	unsigned int nkeys;
 	isc_stdtime_t inception, expire, soaexpire, keyexpire;
 	dns_ttl_t nsecttl;
-	bool check_ksk, keyset_kskonly, build_nsec3;
+	bool build_nsec3;
 	enum {
 		sign_updates,
 		remove_orphaned,
@@ -1591,17 +1557,6 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		} else {
 			state->keyexpire += now;
 		}
-
-		/*
-		 * Do we look at the KSK flag on the DNSKEY to determining which
-		 * keys sign which RRsets?  First check the zone option then
-		 * check the keys flags to make sure at least one has a ksk set
-		 * and one doesn't.
-		 */
-		state->check_ksk = ((dns_zone_getoptions(zone) &
-				     DNS_ZONEOPT_UPDATECHECKKSK) != 0);
-		state->keyset_kskonly = ((dns_zone_getoptions(zone) &
-					  DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
 
 		/*
 		 * Calculate the NSEC/NSEC3 TTL as a minimum of the SOA TTL and
@@ -1702,9 +1657,7 @@ next_state:
 						log, zone, db, newver, name,
 						type, &state->sig_diff,
 						state->zone_keys, state->nkeys,
-						state->inception, exp,
-						state->check_ksk,
-						state->keyset_kskonly));
+						state->inception, exp));
 					sigs++;
 				}
 			skip:
@@ -1906,8 +1859,7 @@ next_state:
 					log, zone, db, newver, name, cut,
 					&state->sig_diff, state->zone_keys,
 					state->nkeys, state->inception,
-					state->expire, state->check_ksk,
-					state->keyset_kskonly, &sigs));
+					state->expire, &sigs));
 			}
 		unlink:
 			ISC_LIST_UNLINK(state->affected.tuples, t, link);
@@ -1979,13 +1931,11 @@ next_state:
 						dns_rdatatype_nsec, NULL,
 						&state->sig_diff));
 			} else if (t->op == DNS_DIFFOP_ADD) {
-				CHECK(add_sigs(log, zone, db, newver, &t->name,
-					       dns_rdatatype_nsec,
-					       &state->sig_diff,
-					       state->zone_keys, state->nkeys,
-					       state->inception, state->expire,
-					       state->check_ksk,
-					       state->keyset_kskonly));
+				CHECK(add_sigs(
+					log, zone, db, newver, &t->name,
+					dns_rdatatype_nsec, &state->sig_diff,
+					state->zone_keys, state->nkeys,
+					state->inception, state->expire));
 				sigs++;
 			} else {
 				UNREACHABLE();
@@ -2113,8 +2063,7 @@ next_state:
 					log, zone, db, newver, name, cut,
 					&state->sig_diff, state->zone_keys,
 					state->nkeys, state->inception,
-					state->expire, state->check_ksk,
-					state->keyset_kskonly, &sigs));
+					state->expire, &sigs));
 				CHECK(dns_nsec3_addnsec3sx(
 					db, newver, name, state->nsecttl,
 					unsecure, privatetype,
@@ -2154,13 +2103,11 @@ next_state:
 						dns_rdatatype_nsec3, NULL,
 						&state->sig_diff));
 			} else if (t->op == DNS_DIFFOP_ADD) {
-				CHECK(add_sigs(log, zone, db, newver, &t->name,
-					       dns_rdatatype_nsec3,
-					       &state->sig_diff,
-					       state->zone_keys, state->nkeys,
-					       state->inception, state->expire,
-					       state->check_ksk,
-					       state->keyset_kskonly));
+				CHECK(add_sigs(
+					log, zone, db, newver, &t->name,
+					dns_rdatatype_nsec3, &state->sig_diff,
+					state->zone_keys, state->nkeys,
+					state->inception, state->expire));
 				sigs++;
 			} else {
 				UNREACHABLE();

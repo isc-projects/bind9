@@ -1158,13 +1158,11 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	isc_result_t tresult;
 	unsigned int i;
 	const cfg_obj_t *obj = NULL;
-	const cfg_obj_t *resignobj = NULL;
 	const cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
 	const char *str;
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
-	bool has_dnssecpolicy = false;
 	const char *ccalg = "siphash24";
 	cfg_aclconfctx_t *actx = NULL;
 	static const char *sources[] = {
@@ -1369,8 +1367,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
-		} else {
-			has_dnssecpolicy = true;
 		}
 	}
 
@@ -1386,73 +1382,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 				    "range (35..4096)",
 				    val);
 			result = ISC_R_RANGE;
-		}
-	}
-
-	obj = NULL;
-	cfg_map_get(options, "sig-validity-interval", &obj);
-	if (obj != NULL) {
-		uint32_t validity, resign = 0;
-
-		validity = cfg_obj_asuint32(cfg_tuple_get(obj, "validity"));
-		resignobj = cfg_tuple_get(obj, "re-sign");
-		if (!cfg_obj_isvoid(resignobj)) {
-			resign = cfg_obj_asuint32(resignobj);
-		}
-
-		if (validity > 3660 || validity == 0) { /* 10 years */
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s '%u' is out of range (1..3660)",
-				    "sig-validity-interval", validity);
-			result = ISC_R_RANGE;
-		}
-
-		if (!cfg_obj_isvoid(resignobj)) {
-			if (resign > 3660 || resign == 0) { /* 10 years */
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "%s '%u' is out of range (1..3660)",
-					    "sig-validity-interval (re-sign)",
-					    validity);
-				result = ISC_R_RANGE;
-			} else if ((validity > 7 && validity < resign) ||
-				   (validity <= 7 && validity * 24 < resign))
-			{
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "validity interval (%u days) "
-					    "less than re-signing interval "
-					    "(%u %s)",
-					    validity, resign,
-					    (validity > 7) ? "days" : "hours");
-				result = ISC_R_RANGE;
-			}
-		}
-
-		if (has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "sig-validity-interval: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-	}
-
-	obj = NULL;
-	cfg_map_get(options, "dnskey-sig-validity", &obj);
-	if (obj != NULL) {
-		uint32_t keyvalidity;
-
-		keyvalidity = cfg_obj_asuint32(obj);
-		if (keyvalidity > 3660) { /* 10 years */
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s '%u' is out of range (0..3660)",
-				    "dnskey-sig-validity", keyvalidity);
-			result = ISC_R_RANGE;
-		}
-
-		if (has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnskey-sig-validity: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
 		}
 	}
 
@@ -1499,23 +1428,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			tresult = disabled_ds_digests(obj, logctx);
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
-			}
-		}
-	}
-
-	/*
-	 * Check auto-dnssec at the view/options level
-	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "auto-dnssec", &obj);
-	if (obj != NULL) {
-		const char *arg = cfg_obj_asstring(obj);
-		if (optlevel != optlevel_zone && strcasecmp(arg, "off") != 0) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "auto-dnssec may only be activated at the "
-				    "zone level");
-			if (result == ISC_R_SUCCESS) {
-				result = ISC_R_FAILURE;
 			}
 		}
 	}
@@ -3404,7 +3316,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		bool signing = false;
 		isc_result_t res1, res2, res3;
 		const cfg_obj_t *au = NULL;
-		const char *arg;
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "allow-update", &au);
@@ -3424,7 +3335,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		/*
-		 * To determine whether auto-dnssec is allowed,
+		 * To determine whether dnssec-policy is allowed,
 		 * we should also check for allow-update at the
 		 * view and options levels.
 		 */
@@ -3479,39 +3390,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		arg = "off";
-		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
-		if (res3 == ISC_R_SUCCESS) {
-			arg = cfg_obj_asstring(obj);
-			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "'auto-dnssec' option is deprecated and "
-				    "will be removed in BIND 9.19. Please "
-				    "migrate to dnssec-policy");
-		}
-		if (strcasecmp(arg, "off") != 0) {
-			if (!ddns && !signing && !has_dnssecpolicy) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'auto-dnssec %s;' requires%s "
-					    "inline-signing to be configured "
-					    "for the zone",
-					    arg,
-					    (ztype == CFG_ZONE_PRIMARY)
-						    ? " dynamic DNS or"
-						    : "");
-				result = ISC_R_FAILURE;
-			}
-
-			if (has_dnssecpolicy) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'auto-dnssec %s;' cannot be "
-					    "configured if dnssec-policy is "
-					    "also set",
-					    arg);
-				result = ISC_R_FAILURE;
-			}
-		}
-
-		obj = NULL;
 		res1 = cfg_map_get(zoptions, "sig-signing-type", &obj);
 		if (res1 == ISC_R_SUCCESS) {
 			uint32_t type = cfg_obj_asuint32(obj);
@@ -3525,24 +3403,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		}
 
 		obj = NULL;
-		res1 = cfg_map_get(zoptions, "dnssec-dnskey-kskonly", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
-		    !signing)
-		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-dnskey-kskonly: requires "
-				    "inline-signing when used in secondary "
-				    "zone");
-			result = ISC_R_FAILURE;
-		}
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-dnskey-kskonly: cannot be "
-				    "configured if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
 		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
 		    !signing)
@@ -3551,33 +3411,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "dnssec-loadkeys-interval: requires "
 				    "inline-signing when used in secondary "
 				    "zone");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
-		res1 = cfg_map_get(zoptions, "update-check-ksk", &obj);
-		if (res1 == ISC_R_SUCCESS && ztype == CFG_ZONE_SECONDARY &&
-		    !signing)
-		{
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "update-check-ksk: requires "
-				    "inline-signing when used in secondary "
-				    "zone");
-			result = ISC_R_FAILURE;
-		}
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "update-check-ksk: cannot be configured "
-				    "if dnssec-policy is also set");
-			result = ISC_R_FAILURE;
-		}
-
-		obj = NULL;
-		res1 = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
-		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-update-mode: cannot be configured "
-				    "if dnssec-policy is also set");
 			result = ISC_R_FAILURE;
 		}
 	}

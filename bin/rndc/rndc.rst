@@ -265,10 +265,9 @@ Currently supported commands are:
    immediately re-signed by the new keys, but is allowed to
    incrementally re-sign over time.
 
-   This command requires that the zone be configured with a ``dnssec-policy``, or
-   that the ``auto-dnssec`` zone option be set to ``maintain``, and also requires the
-   zone to be configured to allow dynamic DNS. (See "Dynamic Update Policies" in
-   the Administrator Reference Manual for more details.)
+   This command requires that the zone be configured with a ``dnssec-policy``, and
+   also requires the zone to be configured to allow dynamic DNS. (See "Dynamic
+   Update Policies" in the Administrator Reference Manual for more details.)
 
 .. option:: managed-keys (status | refresh | sync | destroy) [class [view]]
 
@@ -504,11 +503,9 @@ Currently supported commands are:
    the zone's DNSKEY RRset. If the DNSKEY RRset is changed, then the
    zone is automatically re-signed with the new key set.
 
-   This command requires that the zone be configured with a ``dnssec-policy``, or
-   that the ``auto-dnssec`` zone option be set to ``allow`` or ``maintain``,
-   and also requires the zone to be configured to allow dynamic DNS. (See
-   "Dynamic Update Policies" in the BIND 9 Administrator Reference Manual for more
-   details.)
+   This command requires that the zone be configured with a ``dnssec-policy``, and
+   also requires the zone to be configured to allow dynamic DNS. (See "Dynamic
+   Update Policies" in the Administrator Reference Manual for more details.)
 
    See also :option:`rndc loadkeys`.
 

@@ -325,7 +325,7 @@ the new ZSK is in effect:
 
 These are all the manual tasks you need to perform for a ZSK rollover.
 If you have followed the configuration examples in this guide of using
-:any:`inline-signing` and :any:`auto-dnssec`, everything else is automated for
+:any:`inline-signing` and :any:`dnssec-policy`, everything else is automated for
 you by BIND.
 
 Day of ZSK Rollover

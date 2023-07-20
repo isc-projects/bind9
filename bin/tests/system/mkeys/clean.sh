@@ -25,6 +25,7 @@ rm -f ns*/named.lock
 rm -f ns1/dsset-sub.tld.
 rm -f ns1/dsset-tld.
 rm -f ns1/named.secroots ns1/root.db.signed* ns1/root.db.tmp
+rm -f ns1/signer.out.*
 rm -f ns1/zone.key
 rm -f ns3/broken.conf
 rm -f ns4/dsset-sub.foo.

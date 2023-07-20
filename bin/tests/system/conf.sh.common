@@ -42,7 +42,6 @@ export LANG=C
 PARALLEL_COMMON="
 rpzrecurse
 serve-stale
-dupsigs
 acl
 additional
 addzone

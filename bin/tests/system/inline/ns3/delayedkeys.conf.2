@@ -11,6 +11,9 @@
  * information regarding copyright ownership.
  */
 
-options {
-    sig-validity-interval 5000;
+zone "delayedkeys" {
+	type primary;
+	file "delayedkeys.db";
+	inline-signing yes;
+	dnssec-policy inline;
 };

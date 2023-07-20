@@ -143,23 +143,6 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
-echo_i "checking named-checkconf dnssec warnings ($n)"
-ret=0
-# dnssec.1: auto-dnssec warning
-$CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1 && ret=1
-grep 'auto-dnssec may only be ' < checkconf.out$n.1 > /dev/null || ret=1
-# dnssec.2: should have no warnings (other than deprecation warning)
-$CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1 || ret=1
-grep "option 'auto-dnssec' is deprecated" < checkconf.out$n.2 > /dev/null || ret=1
-lines=$(wc -l < "checkconf.out$n.2")
-if [ $lines != 1 ]; then ret=1; fi
-# dnssec.3: should have specific deprecation warning
-$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1 && ret=1
-grep "'auto-dnssec' option is deprecated and will be removed in BIND 9\.19" < checkconf.out$n.3 > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-n=$((n + 1))
 echo_i "checking named-checkconf deprecate warnings ($n)"
 ret=0
 $CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
@@ -235,14 +218,8 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking options allowed in inline-signing secondaries ($n)"
 ret=0
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.1 2>&1 && ret=1
-l=$(grep "dnssec-dnskey-kskonly.*requires inline" < checkconf.out$n.1 | wc -l)
-[ $l -eq 1 ] || ret=1
 $CHECKCONF bad-dnssec.conf > checkconf.out$n.2 2>&1 && ret=1
 l=$(grep "dnssec-loadkeys-interval.*requires inline" < checkconf.out$n.2 | wc -l)
-[ $l -eq 1 ] || ret=1
-$CHECKCONF bad-dnssec.conf > checkconf.out$n.3 2>&1 && ret=1
-l=$(grep "update-check-ksk.*requires inline" < checkconf.out$n.3 | wc -l)
 [ $l -eq 1 ] || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -507,12 +484,6 @@ echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
 $CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
 grep "'inline-signing yes;' must also be configured explicitly for zones using dnssec-policy without a configured 'allow-update' or 'update-policy'" < checkconf.out$n > /dev/null || ret=1
-grep "'auto-dnssec maintain;' cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "dnskey-sig-validity: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "dnssec-dnskey-kskonly: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "dnssec-update-mode: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "sig-validity-interval: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
-grep "update-check-ksk: cannot be configured if dnssec-policy is also set" < checkconf.out$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

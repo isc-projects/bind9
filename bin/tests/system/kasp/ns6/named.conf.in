@@ -69,6 +69,13 @@ zone "step1.going-straight-to-none.kasp" {
 	dnssec-policy "default";
 };
 
+zone "step1.going-straight-to-none-dynamic.kasp" {
+	type primary;
+	file "step1.going-straight-to-none-dynamic.kasp.db.signed";
+	dnssec-policy "default";
+	allow-update { any; };
+};
+
 /* These are alorithm rollover test zones. */
 zone "step1.algorithm-roll.kasp" {
 	type primary;

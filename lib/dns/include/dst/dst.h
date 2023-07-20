@@ -774,6 +774,25 @@ dst_key_iszonekey(const dst_key_t *key);
 bool
 dst_key_isnullkey(const dst_key_t *key);
 
+bool
+dst_key_have_ksk_and_zsk(dst_key_t **keys, unsigned int nkeys, unsigned int i,
+			 bool check_offline, bool ksk, bool zsk, bool *have_ksk,
+			 bool *have_zsk);
+/*%<
+ *
+ * Check the list of 'keys' to see if both a KSK and ZSK are present, given key
+ * 'i'. The values stored in 'ksk' and 'zsk' tell whether key 'i' is a KSK, ZSK,
+ * or both (CSK). If 'check_offline' is true, don't consider KSKs that are
+ * currently offline (e.g. their private key file is not available).
+ *
+ * Requires:
+ *\li	"keys" is not NULL.
+ *
+ * Returns:
+ *\li	true if there is one or more keys such that both the KSK and ZSK roles
+ *are covered, false otherwise.
+ */
+
 isc_result_t
 dst_key_buildfilename(const dst_key_t *key, int type, const char *directory,
 		      isc_buffer_t *out);

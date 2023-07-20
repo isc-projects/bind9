@@ -1766,13 +1766,14 @@ default is used.
    :tags: dnssec
    :short: Sets the frequency of automatic checks of the DNSSEC key repository.
 
-   When a zone is configured with ``auto-dnssec maintain;``, its key
-   repository must be checked periodically to see if any new keys have
-   been added or any existing keys' timing metadata has been updated
-   (see :ref:`man_dnssec-keygen` and :ref:`man_dnssec-settime`).
-   The :any:`dnssec-loadkeys-interval` option
-   sets the frequency of automatic repository checks, in minutes.  The
-   default is ``60`` (1 hour), the minimum is ``1`` (1 minute), and
+   When a zone is configured with ``dnssec-policy;``, its key
+   repository must be checked periodically to see if the next step of a key
+   rollover is due. The :any:`dnssec-loadkeys-interval` option
+   sets the default interval of key repository checks, in minutes, in case
+   the next key event cannot be calculated (for example because a DS record
+   needs to be published).
+
+   The default is ``60`` (1 hour), the minimum is ``1`` (1 minute), and
    the maximum is ``1440`` (24 hours); any higher value is silently
    reduced.
 
@@ -1783,26 +1784,9 @@ default is used.
    The default is ``none``.
 
 .. namedconf:statement:: dnssec-update-mode
-   :tags: dnssec
-   :short: Controls the scheduled maintenance of DNSSEC signatures.
+   :tags: obsolete
 
-   If this option is set to its default value of ``maintain`` in a zone
-   of :any:`type primary` which is DNSSEC-signed and configured to allow
-   dynamic updates (see :ref:`dynamic_update_policies`), and if :iscman:`named` has access
-   to the private signing key(s) for the zone, then :iscman:`named`
-   automatically signs all new or changed records and maintains signatures
-   for the zone by regenerating RRSIG records whenever they approach
-   their expiration date.
-
-   If the option is changed to ``no-resign``, then :iscman:`named` signs
-   all new or changed records, but scheduled maintenance of signatures
-   is disabled.
-
-   With either of these settings, :iscman:`named` rejects updates to a
-   DNSSEC-signed zone when the signing keys are inactive or unavailable
-   to :iscman:`named`. (A planned third option, ``external``, will disable all
-   automatic signing and allow DNSSEC data to be submitted into a zone
-   via dynamic update; this is not yet implemented.)
+   This option no longer has any effect.
 
 .. namedconf:statement:: nta-lifetime
    :tags: dnssec
@@ -2520,39 +2504,6 @@ Boolean Options
    log when the serial number on the primary is less than what :iscman:`named`
    currently has. The default is ``no``.
 
-.. namedconf:statement:: auto-dnssec
-   :tags: dnssec
-   :short: Permits varying levels of automatic DNSSEC key management.
-
-   Zones configured for dynamic DNS may use this option to allow varying
-   levels of automatic DNSSEC key management. There are three possible
-   settings:
-
-   ``auto-dnssec allow;`` permits keys to be updated and the zone fully
-   re-signed whenever the user issues the command :option:`rndc sign zonename <rndc sign>`.
-
-   ``auto-dnssec maintain;`` includes the above, but also
-   automatically adjusts the zone's DNSSEC keys on a schedule, according
-   to the keys' timing metadata (see :ref:`man_dnssec-keygen` and
-   :ref:`man_dnssec-settime`). The command :option:`rndc sign zonename <rndc sign>`
-   causes :iscman:`named` to load keys from the key repository and sign the
-   zone with all keys that are active. :option:`rndc loadkeys zonename <rndc loadkeys>`
-   causes :iscman:`named` to load keys from the key repository and schedule
-   key maintenance events to occur in the future, but it does not sign
-   the full zone immediately. Note: once keys have been loaded for a
-   zone the first time, the repository is searched for changes
-   periodically, regardless of whether :option:`rndc loadkeys` is used. The
-   recheck interval is defined by :any:`dnssec-loadkeys-interval`.
-
-   ``auto-dnssec off;`` does not allow for DNSSEC key management.
-   This is the default setting.
-
-   This option may only be activated at the zone level; if configured
-   at the view or options level, it must be set to ``off``.
-
-   The DNSSEC records are written to the zone's filename set in :any:`file`,
-   unless :any:`inline-signing` is enabled.
-
 .. namedconf:statement:: dnssec-validation
    :tags: dnssec
    :short: Enables DNSSEC validation in :iscman:`named`.
@@ -2740,40 +2691,14 @@ Boolean Options
    The default is ``no``.
 
 .. namedconf:statement:: update-check-ksk
-   :tags: zone, dnssec
-   :short: Specifies whether to check the KSK bit to determine how a key should be used, when generating RRSIGs for a secure zone.
+   :tags: obsolete
 
-   When set to the default value of ``yes``, check the KSK bit in each
-   key to determine how the key should be used when generating RRSIGs
-   for a secure zone.
-
-   Ordinarily, zone-signing keys (that is, keys without the KSK bit set)
-   are used to sign the entire zone, while key-signing keys (keys with
-   the KSK bit set) are only used to sign the DNSKEY RRset at the zone
-   apex. However, if this option is set to ``no``, then the KSK bit is
-   ignored; KSKs are treated as if they were ZSKs and are used to sign
-   the entire zone. This is similar to the :option:`dnssec-signzone -z`
-   command-line option.
-
-   When this option is set to ``yes``, there must be at least two active
-   keys for every algorithm represented in the DNSKEY RRset: at least
-   one KSK and one ZSK per algorithm. If there is any algorithm for
-   which this requirement is not met, this option is ignored for
-   that algorithm.
+   This option no longer has any effect.
 
 .. namedconf:statement:: dnssec-dnskey-kskonly
-   :tags: dnssec
-   :short: Specifies that only key-signing keys are used to sign the DNSKEY, CDNSKEY, and CDS RRsets at a zone's apex.
+   :tags: obsolete
 
-   When this option and :any:`update-check-ksk` are both set to ``yes``,
-   only key-signing keys (that is, keys with the KSK bit set) are
-   used to sign the DNSKEY, CDNSKEY, and CDS RRsets at the zone apex.
-   Zone-signing keys (keys without the KSK bit set) are used to sign
-   the remainder of the zone, but not the DNSKEY RRset. This is similar
-   to the :option:`dnssec-signzone -x` command-line option.
-
-   The default is ``yes``. If :any:`update-check-ksk` is set to ``no``, this
-   option is ignored.
+   This option no longer has any effect.
 
 .. namedconf:statement:: try-tcp-refresh
    :tags: transfer
@@ -4197,47 +4122,14 @@ Tuning
    This sets the base retry interval in milliseconds. The default is ``800``.
 
 .. namedconf:statement:: sig-validity-interval
-   :tags: dnssec
-   :short: Specifies the maximum number of days that RRSIGs generated by :iscman:`named` are valid.
+   :tags: obsolete
 
-   This specifies the upper bound of the number of days that RRSIGs
-   generated by :iscman:`named` are valid; the default is ``30`` days,
-   with a maximum of 3660 days (10 years). The optional second value
-   specifies the minimum bound on those RRSIGs and also determines
-   how long before expiry :iscman:`named` starts regenerating those RRSIGs.
-   The default value for the lower bound is 1/4 of the upper bound;
-   it is expressed in days if the upper bound is greater than 7,
-   and hours if it is less than or equal to 7 days.
-
-   When new RRSIGs are generated, the length of time is randomly
-   chosen between these two limits, to spread out the re-signing
-   load. When RRSIGs are re-generated, the upper bound is used, with
-   a small amount of jitter added. New RRSIGs are generated by a
-   number of processes, including the processing of UPDATE requests
-   (ref:`dynamic_update`), the addition and removal of records via
-   in-line signing, and the initial signing of a zone.
-
-   The signature inception time is unconditionally set to one hour
-   before the current time, to allow for a limited amount of clock skew.
-
-   The :any:`sig-validity-interval` can be overridden for DNSKEY records by
-   setting :any:`dnskey-sig-validity`.
-
-   The :any:`sig-validity-interval` should be at least several multiples
-   of the SOA expire interval, to allow for reasonable interaction
-   between the various timer and expiry dates.
+   This option no longer has any effect.
 
 .. namedconf:statement:: dnskey-sig-validity
-   :tags: dnssec
-   :short: Specifies the number of days in the future when automatically generated DNSSEC signatures expire.
+   :tags: obsolete
 
-   This specifies the number of days into the future when DNSSEC signatures
-   that are automatically generated for DNSKEY RRsets as a result of
-   dynamic updates (:ref:`dynamic_update`) will expire.
-   If set to a non-zero value, this overrides the value set by
-   :any:`sig-validity-interval`. The default is zero, meaning
-   :any:`sig-validity-interval` is used. The maximum value is 3660 days (10
-   years), and higher values are rejected.
+   This option no longer has any effect.
 
 .. namedconf:statement:: sig-signing-nodes
    :tags: dnssec
@@ -7159,9 +7051,6 @@ Zone Options
 
 :any:`key-directory`
    See the description of :any:`key-directory` in :namedconf:ref:`options`.
-
-:any:`auto-dnssec`
-   See the description of :any:`auto-dnssec` in :namedconf:ref:`options`.
 
 :any:`serial-update-method`
    See the description of :any:`serial-update-method` in :namedconf:ref:`options`.
