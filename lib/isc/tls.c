@@ -844,10 +844,12 @@ isc_tls_create(isc_tlsctx_t *ctx) {
 
 void
 isc_tls_free(isc_tls_t **tlsp) {
+	isc_tls_t *tls = NULL;
 	REQUIRE(tlsp != NULL && *tlsp != NULL);
 
-	SSL_free(*tlsp);
+	tls = *tlsp;
 	*tlsp = NULL;
+	SSL_free(tls);
 }
 
 const char *
