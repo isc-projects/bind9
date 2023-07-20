@@ -35,7 +35,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Processing already queued queries received over TCP can cause assertion
+  failure when the server is reconfigured at the same time or the cache has been
+  flushed.  This has been fixed to not process queued already received queries
+  over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
 
 Known Issues
 ~~~~~~~~~~~~
