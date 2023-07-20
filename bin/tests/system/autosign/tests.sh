@@ -1248,7 +1248,7 @@ status=$((status + ret))
 
 echo_i "checking key maintenance events were logged correctly ($n)"
 ret=0
-pub=$(grep "DNSKEY .* is now published" ns2/named.run | wc -l)
+pub=$(grep "DNSKEY .* is now published" ns2/named.run | grep -v "CDNSKEY" | wc -l)
 [ "$pub" -eq 10 ] || ret=1
 act=$(grep "DNSKEY .* is now active" ns2/named.run | wc -l)
 [ "$act" -eq 10 ] || ret=1
@@ -1258,10 +1258,17 @@ inac=$(grep "DNSKEY .* is now inactive" ns2/named.run | wc -l)
 [ "$inac" -eq 0 ] || ret=1
 del=$(grep "DNSKEY .* is now deleted" ns2/named.run | wc -l)
 [ "$del" -eq 0 ] || ret=1
-pub=$(grep "DNSKEY .* is now published" ns3/named.run | wc -l)
-[ "$pub" -eq 55 ] || ret=1
+pub=$(grep "DNSKEY .* is now published" ns3/named.run | grep -v "CDNSKEY" | wc -l)
 act=$(grep "DNSKEY .* is now active" ns3/named.run | wc -l)
-[ "$act" -eq 53 ] || ret=1
+if $SHELL ../testcrypto.sh -q RSASHA1
+then
+	# Include two log lines for nsec-only zone.
+	[ "$pub" -eq 53 ] || ret=1
+	[ "$act" -eq 53 ] || ret=1
+else
+	[ "$pub" -eq 51 ] || ret=1
+	[ "$act" -eq 51 ] || ret=1
+fi
 rev=$(grep "DNSKEY .* is now revoked" ns3/named.run | wc -l)
 [ "$rev" -eq 0 ] || ret=1
 inac=$(grep "DNSKEY .* is now inactive" ns3/named.run | wc -l)
