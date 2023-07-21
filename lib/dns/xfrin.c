@@ -1336,9 +1336,11 @@ failure:
 	case ISC_R_NETUNREACH:
 	case ISC_R_HOSTUNREACH:
 	case ISC_R_CONNREFUSED:
+	case ISC_R_TIMEDOUT:
 		/*
-		 * Add the server to unreachable primaries table only if
-		 * the server has a permanent networking error.
+		 * Add the server to unreachable primaries table if
+		 * the server has a permanent networking error or
+		 * the connection attempt as timed out.
 		 */
 		zmgr = dns_zone_getmgr(xfr->zone);
 		if (zmgr != NULL) {
