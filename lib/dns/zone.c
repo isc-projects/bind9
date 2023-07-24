@@ -1301,7 +1301,7 @@ zone_free(dns_zone_t *zone) {
 		zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	}
 	if (zone->catzs != NULL) {
-		dns_catz_detach_catzs(&zone->catzs);
+		dns_catz_zones_detach(&zone->catzs);
 	}
 	zone_freedbargs(zone);
 
@@ -1961,7 +1961,7 @@ zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	INSIST(zone->catzs == NULL || zone->catzs == catzs);
 	dns_catz_catzs_set_view(catzs, zone->view);
 	if (zone->catzs == NULL) {
-		dns_catz_attach_catzs(catzs, &zone->catzs);
+		dns_catz_zones_attach(catzs, &zone->catzs);
 	}
 }
 
@@ -1982,7 +1982,7 @@ zone_catz_disable(dns_zone_t *zone) {
 		if (zone->db != NULL) {
 			dns_zone_catz_disable_db(zone, zone->db);
 		}
-		dns_catz_detach_catzs(&zone->catzs);
+		dns_catz_zones_detach(&zone->catzs);
 	}
 }
 
@@ -2016,9 +2016,16 @@ dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz) {
 }
 
 dns_catz_zone_t *
-dns_zone_get_parentcatz(const dns_zone_t *zone) {
+dns_zone_get_parentcatz(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->parentcatz);
+
+	dns_catz_zone_t *parentcatz = NULL;
+
+	LOCK_ZONE(zone);
+	parentcatz = zone->parentcatz;
+	UNLOCK_ZONE(zone);
+
+	return (parentcatz);
 }
 
 static bool

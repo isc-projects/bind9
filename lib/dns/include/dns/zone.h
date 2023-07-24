@@ -2469,7 +2469,7 @@ dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz);
  */
 
 dns_catz_zone_t *
-dns_zone_get_parentcatz(const dns_zone_t *zone);
+dns_zone_get_parentcatz(dns_zone_t *zone);
 /*%<
  * Get parent catalog zone for this zone
  *

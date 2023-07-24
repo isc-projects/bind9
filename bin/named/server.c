@@ -2872,7 +2872,7 @@ cleanup:
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
-	dns_catz_detach_catz(&cz->origin);
+	dns_catz_zone_detach(&cz->origin);
 	dns_view_detach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
@@ -2946,7 +2946,7 @@ cleanup:
 		dns_zone_detach(&zone);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
-	dns_catz_detach_catz(&cz->origin);
+	dns_catz_zone_detach(&cz->origin);
 	dns_view_detach(&cz->view);
 	isc_mem_putanddetach(&cz->mctx, cz, sizeof(*cz));
 }
@@ -2978,7 +2978,7 @@ catz_run(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
 	isc_mem_attach(view->mctx, &cz->mctx);
 
 	dns_catz_entry_attach(entry, &cz->entry);
-	dns_catz_attach_catz(origin, &cz->origin);
+	dns_catz_zone_attach(origin, &cz->origin);
 	dns_view_attach(view, &cz->view);
 
 	isc_async_run(named_g_mainloop, action, cz);
@@ -3002,6 +3002,25 @@ static isc_result_t
 catz_modzone(dns_catz_entry_t *entry, dns_catz_zone_t *origin, dns_view_t *view,
 	     void *udata) {
 	return (catz_run(entry, origin, view, udata, CATZ_MODZONE));
+}
+
+static void
+catz_changeview(dns_catz_entry_t *entry, void *arg1, void *arg2) {
+	dns_view_t *pview = arg1;
+	dns_view_t *view = arg2;
+
+	dns_zone_t *zone = NULL;
+	isc_result_t result = dns_view_findzone(
+		pview, dns_catz_entry_getname(entry), DNS_ZTFIND_EXACT, &zone);
+
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+
+	dns_zone_setview(zone, view);
+	dns_view_addzone(view, zone);
+
+	dns_zone_detach(&zone);
 }
 
 static isc_result_t
@@ -3031,65 +3050,14 @@ configure_catz_zone(dns_view_t *view, dns_view_t *pview,
 		goto cleanup;
 	}
 
-	result = dns_catz_add_zone(view->catzs, &origin, &zone);
-	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-		cfg_obj_log(catz_obj, named_g_lctx, DNS_CATZ_ERROR_LEVEL,
-			    "catz: unable to create catalog zone '%s', "
-			    "error %s",
-			    str, isc_result_totext(result));
-		goto cleanup;
-	}
-
+	result = dns_catz_zone_add(view->catzs, &origin, &zone);
 	if (result == ISC_R_EXISTS) {
-		isc_ht_iter_t *it = NULL;
-
-		RUNTIME_CHECK(pview != NULL);
-
 		/*
-		 * xxxwpk todo: reconfigure the zone!!!!
-		 */
-		cfg_obj_log(catz_obj, named_g_lctx, DNS_CATZ_ERROR_LEVEL,
-			    "catz: catalog zone '%s' will not be reconfigured",
-			    str);
-		/*
-		 * We have to walk through all the member zones and attach
+		 * We have to walk through all the member zones and re-attach
 		 * them to current view
 		 */
-		dns_catz_get_iterator(zone, &it);
-
-		for (result = isc_ht_iter_first(it); result == ISC_R_SUCCESS;
-		     result = isc_ht_iter_next(it))
-		{
-			dns_name_t *name = NULL;
-			dns_zone_t *dnszone = NULL;
-			dns_catz_entry_t *entry = NULL;
-			isc_result_t tresult;
-
-			isc_ht_iter_current(it, (void **)&entry);
-			name = dns_catz_entry_getname(entry);
-
-			tresult = dns_view_findzone(pview, name,
-						    DNS_ZTFIND_EXACT, &dnszone);
-			if (tresult != ISC_R_SUCCESS) {
-				continue;
-			}
-
-			dns_zone_setview(dnszone, view);
-			dns_view_addzone(view, dnszone);
-
-			/*
-			 * The dns_view_findzone() call above increments the
-			 * zone's reference count, which we need to decrement
-			 * back.  However, as dns_zone_detach() sets the
-			 * supplied pointer to NULL, calling it is deferred
-			 * until the dnszone variable is no longer used.
-			 */
-			dns_zone_detach(&dnszone);
-		}
-
-		isc_ht_iter_destroy(&it);
-
-		result = ISC_R_SUCCESS;
+		dns_catz_zone_for_each_entry2(zone, catz_changeview, pview,
+					      view);
 	}
 
 	dns_catz_zone_resetdefoptions(zone);
@@ -3167,12 +3135,12 @@ configure_catz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t *config,
 	}
 
 	if (old != NULL) {
-		dns_catz_attach_catzs(pview->catzs, &view->catzs);
-		dns_catz_detach_catzs(&pview->catzs);
+		dns_catz_zones_attach(pview->catzs, &view->catzs);
+		dns_catz_zones_detach(&pview->catzs);
 		dns_catz_prereconfig(view->catzs);
 	} else {
-		dns_catz_new_zones(view->mctx, named_g_loopmgr, &view->catzs,
-				   &ns_catz_zonemodmethods);
+		view->catzs = dns_catz_zones_new(view->mctx, named_g_loopmgr,
+						 &ns_catz_zonemodmethods);
 	}
 
 	while (zone_element != NULL) {
@@ -6725,7 +6693,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	}
 
 	if (view->catzs != NULL &&
-	    dns_catz_get_zone(view->catzs, origin) != NULL)
+	    dns_catz_zone_get(view->catzs, origin) != NULL)
 	{
 		zone_is_catz = true;
 	}

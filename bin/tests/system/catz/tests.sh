@@ -85,8 +85,7 @@ n=0
 n=$((n+1))
 echo_i "checking that catalog-bad1.example (with no version) has failed to load ($n)"
 ret=0
-wait_for_message ns2/named.run "catz: zone 'catalog-bad1.example' has no 'version' record" &&
-wait_for_message ns2/named.run "catz: new catalog zone 'catalog-bad1.example' is broken and will not be processed" || ret=1
+wait_for_message ns2/named.run "catz: zone 'catalog-bad1.example' has no 'version' record and will not be processed" &&
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -122,7 +121,7 @@ echo_i "checking that catalog-bad5.example (non-IN class) has failed to load ($n
 ret=0
 wait_for_message ns2/named.run "'catalog-zones' option is only supported for views with class IN" &&
 wait_for_message ns2/named.run "all zones loaded" || ret=1
-grep -F "catz: dns_catz_add_zone catalog-bad5.example" ns2/named.run && ret=1
+grep -F "catz: dns_catz_zone_add catalog-bad5.example" ns2/named.run && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2018,7 +2017,9 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "waiting for secondary to sync up ($n)"
 ret=0
+wait_for_message ns2/named.run  "catz: zone 'dom16.example' was expected to exist but can not be found, will be restored" || ret=1
 wait_for_message ns2/named.run  "catz: update_from_db: new zone merged" || ret=1
+wait_for_message ns2/named.run  "catz: catalog1.example: reload done: success" || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2027,6 +2028,13 @@ echo_i "checking that dom16.example. is served by secondary and that it's the on
 ret=0
 wait_for_a @10.53.0.2 dom16.example. dig.out.test$n || ret=1
 grep "192.0.2.1" dig.out.test$n > /dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that dom8.example. was not accidentally deleted during the configuration ($n)"
+ret=0
+_wait_for_message ns2/named.run "catz: zone 'dom8.example' was expected to exist but can not be found, will be restored" && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
