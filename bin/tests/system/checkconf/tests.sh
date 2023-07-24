@@ -18,7 +18,7 @@ set -e
 status=0
 n=0
 
-mkdir keys
+mkdir -p keys
 
 n=$((n + 1))
 echo_i "checking that named-checkconf handles a known good config ($n)"
@@ -618,8 +618,6 @@ $CHECKCONF -z check-wildcard.conf > checkconf.out$n 2>&1 || ret=1
 grep -F "warning: ownername 'foo.*.check-wildcard' contains an non-terminal wildcard" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=$((status + ret))
-
-rmdir keys
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
