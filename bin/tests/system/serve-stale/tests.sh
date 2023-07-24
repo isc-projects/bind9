@@ -1835,11 +1835,11 @@ while [ $num -lt 20 ]; do
     $DIG +tries=1 -p ${PORT} @10.53.0.3 "latency${num}.data.example" TXT >/dev/null 2>&1 &
     num=$((num+1))
 done;
-_dig_data() {
+check_server_responds() {
     $DIG -p ${PORT} @10.53.0.3 version.bind txt ch >dig.out.test$n || return 1
     grep "status: NOERROR" dig.out.test$n > /dev/null || return 1
 }
-retry_quiet 5 _dig_data || ret=1
+retry_quiet 5 check_server_responds || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -2078,6 +2078,62 @@ echo_i "check stale nodata.example TXT was refreshed (stale-answer-client-timeou
 retry_quiet 10 wait_for_nodata_refresh || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
+
+####################################################################
+# Test for stale-answer-client-timeout 0 and recursive-clients 10. #
+# CVE-2023-2911, GL #4089                                          #
+# ##################################################################
+echo_i "test stale-answer-client-timeout (0) and recursive-clients 10"
+
+n=$((n+1))
+echo_i "prime cache data.slow TXT (stale-answer-client-timeout 0) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 data.slow TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+# Run the following check twice. Sometimes a priming query interrupts the first
+# attempt to exceed the quota.
+attempt=0
+while [ $ret -eq 0 ] && [ $attempt -lt 2 ]; do
+        n=$((n+1))
+        echo_i "slow down response from authoritative server ($n)"
+        ret=0
+        $DIG -p ${PORT} @10.53.0.2 slowdown TXT  > dig.out.test$n
+        grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+        grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+        if [ $ret != 0 ]; then echo_i "failed"; fi
+        status=$((status+ret))
+
+        # Let the data.slow TTL expire
+        sleep 2
+
+        n=$((n+1))
+        echo_i "check that named survives reaching recursive-clients quota (stale-answer-client-timeout 0) ($n)"
+        ret=0
+        num=0
+        # Attempt to exceed the configured value of 'recursive-clients 10;' by running
+        # 20 parallel queries for the stale domain which has slow auth.
+        while [ $num -lt 20 ]; do
+            $DIG +tries=1 +timeout=10 -p ${PORT} @10.53.0.3 data.slow TXT >/dev/null 2>&1 &
+            num=$((num+1))
+        done;
+        # Let the dig processes finish.
+        wait
+        retry_quiet 5 check_server_responds || ret=1
+        if [ $ret != 0 ]; then echo_i "failed"; fi
+        status=$((status+ret))
+
+        attempt=$((attempt+1))
+done
+
+# Restart ns3 to avoid the exceeded recursive-clients limit from previous check
+# to interfere with subsequent checks.
+echo_i "restart ns3"
+stop_server --use-rndc --port ${CONTROLPORT} ns3
+start_server --noclean --restart --port ${PORT} ns3
 
 ############################################################
 # Test for stale-answer-client-timeout 0 and CNAME record. #
