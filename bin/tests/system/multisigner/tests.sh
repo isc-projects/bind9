@@ -133,17 +133,20 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "ns4/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Check the new DNSKEY RRset.
 n=$((n+1))
 echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Check the logs for find zone keys errors.
 n=$((n+1))
-ret=0
 echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
+ret=0
 grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -159,17 +162,20 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "ns3/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Check the new DNSKEY RRset.
 n=$((n+1))
 echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Check the logs for find zone keys errors.
 n=$((n+1))
-ret=0
 echo_i "make sure we did not try to sign with the keys added with nsupdate for zone ${ZONE} ($n)"
+ret=0
 grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not found" "${DIR}/named.run" && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -186,8 +192,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "ns3/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Both ZSKs should still be published.
+n=$((n+1))
+echo_i "check zone ${ZONE} DNSKEY RRset after failed update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -201,7 +212,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "ns4/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# We should have only the KSK and ZSK from provider ns3.
+n=$((n+1))
+echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 check_keys
 check_apex
 dnssec_verify
@@ -215,8 +232,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "ns4/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Both ZSKs should still be published.
+n=$((n+1))
+echo_i "check zone ${ZONE} DNSKEY RRset after failed update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -231,6 +253,12 @@ echo server "${SERVER}" "${PORT}"
 echo update del $(cat "ns3/${ZONE}.zsk")
 echo send
 ) | $NSUPDATE
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+# We should have only the KSK and ZSK from provider ns4.
+n=$((n+1))
+echo_i "check zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 check_keys
 check_apex
 dnssec_verify
@@ -267,10 +295,14 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "cdnskey.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDNSKEY records (we test that BIND does not
 # skip it during DNSSEC maintenance).
+n=$((n+1))
 echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -286,10 +318,14 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "cdnskey.ns3")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDNSKEY records (we test that BIND does not
 # skip it during DNSSEC maintenance).
+n=$((n+1))
 echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -305,11 +341,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "cdnskey.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDNSKEY record again.
+n=$((n+1))
 echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -323,11 +361,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "cdnskey.ns3")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDNSKEY record again.
-echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"
+n=$((n+1))
+echo_i "check zone ${ZONE} CDNSKEY RRset after update ($n)"\
+ret=0
 retry_quiet 10 records_published CDNSKEY 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -355,10 +395,14 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "cds.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDS records (we test that BIND does not
 # skip it during DNSSEC maintenance).
+n=$((n+1))
 echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -374,10 +418,14 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update add $(cat "cds.ns3")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDS records (we test that BIND does not
 # skip it during DNSSEC maintenance).
+n=$((n+1))
 echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -393,11 +441,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "cds.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDS record again.
+n=$((n+1))
 echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -411,11 +461,13 @@ echo zone "${ZONE}"
 echo server "${SERVER}" "${PORT}"
 echo update del $(cat "cds.ns3")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDS record again.
+n=$((n+1))
 echo_i "check zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -457,10 +509,14 @@ echo server "${SERVER}" "${PORT}"
 echo update add $(cat "ns3/${ZONE}.zsk")
 echo update add $(cat "ns4/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -470,8 +526,10 @@ grep "dns_dnssec_findzonekeys: error reading ./K${ZONE}.*\.private: file not fou
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 zsks_are_published || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -491,7 +549,7 @@ echo server "${SERVER}" "${PORT}"
 echo update del $(cat "ns3/${ZONE}.zsk")
 echo update del $(cat "ns4/${ZONE}.zsk")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one DNSKEY record again.
@@ -500,15 +558,19 @@ status=$((status+ret))
 # its own KSK when re-signing the zone.
 #
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 check_keys
 check_apex
 dnssec_verify
 no_dnssec_in_journal
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} DNSKEY RRset after update ($n)"
+ret=0
 check_keys
 check_apex
 dnssec_verify
@@ -544,21 +606,27 @@ echo server "${SERVER}" "${PORT}"
 echo update add $(cat "secondary.cdnskey.ns3")
 echo update add $(cat "secondary.cdnskey.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDNSKEY records (we test that BIND does not
 # skip it during DNSSEC maintenance).
 #
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -575,7 +643,7 @@ echo server "${SERVER}" "${PORT}"
 echo update del $(cat "secondary.cdnskey.ns3")
 echo update del $(cat "secondary.cdnskey.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDNSKEY record again.
@@ -584,16 +652,20 @@ status=$((status+ret))
 # its own KSK when re-signing the zone.
 #
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} CDNSKEY RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDNSKEY 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -630,21 +702,27 @@ echo server "${SERVER}" "${PORT}"
 echo update add $(cat "secondary.cds.ns3")
 echo update add $(cat "secondary.cds.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 # Now there should be two CDS records (we test that BIND does not
 # skip it during DNSSEC maintenance).
 #
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 2 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -661,7 +739,7 @@ echo server "${SERVER}" "${PORT}"
 echo update del $(cat "secondary.cds.ns3")
 echo update del $(cat "secondary.cds.ns4")
 echo send
-) | $NSUPDATE
+) | $NSUPDATE || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Now there should be one CDS record again.
@@ -670,16 +748,20 @@ status=$((status+ret))
 # its own KSK when re-signing the zone.
 #
 # NS3
+n=$((n+1))
 set_server "ns3" "10.53.0.3"
 echo_i "check server ${DIR} zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 dnssec_verify
 no_dnssec_in_journal
 # NS4
+n=$((n+1))
 set_server "ns4" "10.53.0.4"
 echo_i "check server ${DIR} zone ${ZONE} CDS RRset after update ($n)"
+ret=0
 retry_quiet 10 records_published CDS 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
