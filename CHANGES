@@ -1,6 +1,3 @@
-6213.	[bug]		Mark a primary server as temporarily unreachable if the
-			TCP connection attempt times out. [GL #4215]
-
 6212.	[bug]		Don't process detach and close netmgr events when
 			the netmgr has been paused. [GL #4200]
 
