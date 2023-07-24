@@ -2016,9 +2016,16 @@ dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz) {
 }
 
 dns_catz_zone_t *
-dns_zone_get_parentcatz(const dns_zone_t *zone) {
+dns_zone_get_parentcatz(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
-	return (zone->parentcatz);
+
+	dns_catz_zone_t *parentcatz = NULL;
+
+	LOCK_ZONE(zone);
+	parentcatz = zone->parentcatz;
+	UNLOCK_ZONE(zone);
+
+	return (parentcatz);
 }
 
 static bool
