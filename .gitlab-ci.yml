@@ -150,6 +150,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
 
+.debian-bullseye-amd64: &debian_bullseye_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
+  <<: *linux_amd64
+
 .respdiff-debian-bookworm-amd64: &respdiff_debian_bookworm_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_respdiff_amd64
@@ -1193,6 +1197,59 @@ unit:clang:tsan:
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
+      artifacts: true
+
+# Jobs for Debian 11 "bullseye" (amd64)
+
+clang:bullseye:amd64:
+  variables:
+    CC: ${CLANG}
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
+    # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
+    EXTRA_CONFIGURE: "--without-jemalloc"
+  <<: *debian_bullseye_amd64_image
+  <<: *build_job
+
+system:clang:bullseye:amd64:
+  # Set up environment variables that allow the "keyfromlabel" system test to be run
+  variables:
+    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
+    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
+    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
+    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_bullseye_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: clang:bullseye:amd64
+      artifacts: true
+
+unit:clang:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: clang:bullseye:amd64
+      artifacts: true
+
+gcc:bullseye:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_bullseye_amd64_image
+  <<: *build_job
+
+system:gcc:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:bullseye:amd64
+      artifacts: true
+
+unit:gcc:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:bullseye:amd64
       artifacts: true
 
 # Jobs for Clang builds on Debian 12 "bookworm" (amd64)
