@@ -1520,22 +1520,12 @@ failure:
 static void
 xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *)event->ev_arg;
-	dns_zonemgr_t *zmgr = NULL;
 
 	REQUIRE(VALID_XFRIN(xfr));
 
 	UNUSED(task);
 
 	isc_event_free(&event);
-
-	zmgr = dns_zone_getmgr(xfr->zone);
-	if (zmgr != NULL) {
-		isc_time_t now;
-		TIME_NOW(&now);
-		dns_zonemgr_unreachableadd(zmgr, &xfr->masteraddr,
-					   &xfr->sourceaddr, &now);
-	}
-
 	/*
 	 * This will log "giving up: timeout".
 	 */
