@@ -53,7 +53,7 @@ dnssec-policy "nsec3" {
 	keys {
 		ksk key-directory lifetime unlimited algorithm RSASHA256 2048;
 		zsk key-directory lifetime unlimited algorithm RSASHA256 2048;
-		zsk key-directory lifetime unlimited algorithm RSASHA256 1024;
+		zsk key-directory lifetime unlimited algorithm RSASHA256 4096;
 	};
 
 	nsec3param iterations 0 optout no salt-length 0;
