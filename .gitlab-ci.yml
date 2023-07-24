@@ -148,20 +148,20 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
 
-.respdiff-debian-bullseye-amd64: &respdiff_debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
+.respdiff-debian-bookworm-amd64: &respdiff_debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_respdiff_amd64
 
-.debian-bullseye-amd64: &debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
+.debian-bookworm-amd64: &debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
 
-.tsan-debian-bullseye-amd64: &tsan_debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-debian-bullseye-amd64"
+.tsan-debian-bookworm-amd64: &tsan_debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-debian-bookworm-amd64"
   <<: *linux_amd64
 
-.debian-bullseye-amd64cross32: &debian_bullseye_amd64cross32_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64cross32"
+.debian-bookworm-amd64cross32: &debian_bookworm_amd64cross32_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64cross32"
   <<: *linux_amd64
 
 .debian-sid-amd64: &debian_sid_amd64_image
@@ -212,7 +212,7 @@ stages:
 # This is a meta image that is used as a base for non-specific jobs
 
 .base: &base_image
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
 
 ### QCOW2 Image Templates
 
@@ -621,7 +621,7 @@ tarball-create:
     paths:
       - bind-*.tar.${TARBALL_EXTENSION}
 
-# Jobs for doc builds on Debian 11 "bullseye" (amd64)
+# Jobs for doc builds on Debian 12 "bookworm" (amd64)
 
 docs:
   <<: *default_triggering_rules
@@ -790,9 +790,9 @@ unit:gcc:buster:amd64:
     - job: gcc:buster:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for regular GCC builds on Debian 12 "bookworm" (amd64)
 
-gcc:bullseye:amd64:
+gcc:bookworm:amd64:
   variables:
     BUILD_CONTRIB: 1
     CC: gcc
@@ -800,41 +800,41 @@ gcc:bullseye:amd64:
     EXTRA_CONFIGURE: "--with-libidn2"
     LDFLAGS: "--coverage"
     RUN_MAKE_INSTALL: 1
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *build_job
 
-system:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+system:gcc:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *system_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
-    - job: unit:gcc:bullseye:amd64
+    - job: unit:gcc:bookworm:amd64
       artifacts: true
 
-unit:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+unit:gcc:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *unit_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
-    - job: gcc:bullseye:amd64
+    - job: gcc:bookworm:amd64
       artifacts: true
 
-# Build job for cross-compiled GCC builds on 64-bit Debian 11 "bullseye"
+# Build job for cross-compiled GCC builds on 64-bit Debian 12 "bookworm"
 # (amd64) with 32-bit BIND 9.
 
-gcc:bullseye:amd64cross32:
+gcc:bookworm:amd64cross32:
   variables:
     BUILD_CC: gcc
     BUILD_CFLAGS: "${CFLAGS_COMMON}"
     CFLAGS: "${CFLAGS_COMMON}"
     CROSS_COMPILATION: 1
     EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2"
-  <<: *debian_bullseye_amd64cross32_image
+  <<: *debian_bookworm_amd64cross32_image
   <<: *build_job
 
-# Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
+# Jobs for scan-build builds on Debian 12 "bookworm" (amd64)
 
 .scan_build: &scan_build
   - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
@@ -889,7 +889,7 @@ unit:gcc:sid:amd64:
     - job: gcc:sid:amd64
       artifacts: true
 
-# Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
+# Job for out-of-tree GCC build on Debian 12 "bookworm" (amd64)
 # Also tests configration option: --with-lmdb.
 
 gcc:out-of-tree:
@@ -904,7 +904,7 @@ gcc:out-of-tree:
   <<: *base_image
   <<: *build_job
 
-# Jobs for tarball GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for tarball GCC builds on Debian 12 "bookworm" (amd64)
 
 gcc:tarball:
   variables:
@@ -1119,7 +1119,7 @@ unit:gcc:tsan:
       artifacts: true
 
 clang:tsan:
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *build_job
   variables:
     CC: "${CLANG}"
@@ -1130,7 +1130,7 @@ clang:tsan:
 system:clang:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: clang:tsan
@@ -1139,61 +1139,61 @@ system:clang:tsan:
 unit:clang:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
       artifacts: true
 
-# Jobs for Clang builds on Debian 11 "bullseye" (amd64)
+# Jobs for Clang builds on Debian 12 "bookworm" (amd64)
 # The -Wno-compound-token-split-by-macro option prevents warning when compiling
 # Perl DLZ module with Clang against Perl older than version 5.35.2.
 
-clang:bullseye:amd64:
+clang:bookworm:amd64:
   variables:
     BUILD_CONTRIB: 1
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion -Wno-compound-token-split-by-macro"
     EXTRA_CONFIGURE: "--with-python=python3"
     RUN_MAKE_INSTALL: 1
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *build_job
 
-system:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+system:clang:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *system_test_job
   needs:
-    - job: clang:bullseye:amd64
+    - job: clang:bookworm:amd64
       artifacts: true
 
-unit:clang:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+unit:clang:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *unit_test_job
   needs:
-    - job: clang:bullseye:amd64
+    - job: clang:bookworm:amd64
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Debian 12 "bookworm" (amd64)
 
 gcc:softhsm2.6:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O1"
     EXTRA_CONFIGURE: "--with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *build_job
 
 system:gcc:softhsm2.6:
   variables:
     DISABLE_ALGORITHM_SUPPORT_CHECKING: 1
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:softhsm2.6
       artifacts: true
 
 unit:gcc:softhsm2.6:
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:softhsm2.6
@@ -1438,7 +1438,7 @@ coverity:
 respdiff-short:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1449,7 +1449,7 @@ respdiff-short:
 respdiff-short:asan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1461,7 +1461,7 @@ respdiff-short:asan:
 respdiff-short:tsan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1478,7 +1478,7 @@ respdiff-short:tsan:
 respdiff-long:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *respdiff_debian_bullseye_amd64_image
+  <<: *respdiff_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1489,7 +1489,7 @@ respdiff-long:
 respdiff-long:asan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1501,7 +1501,7 @@ respdiff-long:asan:
 respdiff-long:tsan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -1518,7 +1518,7 @@ respdiff-long:tsan:
 respdiff-long-third-party:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1692,7 +1692,7 @@ gcov:
   <<: *default_triggering_rules
   stage: postcheck
   needs:
-    - job: system:gcc:bullseye:amd64
+    - job: system:gcc:bookworm:amd64
       artifacts: true
   script:
     # *.gcno and *.gcda files generated for shared library objects are created
