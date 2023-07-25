@@ -644,6 +644,11 @@ checkbashisms:
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print)
 
+mypy:
+  <<: *precheck_job
+  script:
+    - mypy "bin/tests/system/isctest/"
+
 tarball-create:
   stage: precheck
   <<: *base_image
