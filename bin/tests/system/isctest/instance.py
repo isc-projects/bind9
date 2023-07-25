@@ -18,6 +18,7 @@ import os
 import re
 
 from .rndc import RNDCBinaryExecutor, RNDCException, RNDCExecutor
+from .watchlog import WatchLogFromStart, WatchLogFromHere
 
 
 class NamedPorts(NamedTuple):
@@ -126,6 +127,20 @@ class NamedInstance:
                 raise
 
         return response
+
+    def watch_log_from_start(self) -> WatchLogFromStart:
+        """
+        Return an instance of the `WatchLogFromStart` context manager for this
+        `named` instance's log file.
+        """
+        return WatchLogFromStart(self._log_file)
+
+    def watch_log_from_here(self) -> WatchLogFromHere:
+        """
+        Return an instance of the `WatchLogFromHere` context manager for this
+        `named` instance's log file.
+        """
+        return WatchLogFromHere(self._log_file)
 
     def _rndc_log(self, command: str, response: str) -> None:
         """
