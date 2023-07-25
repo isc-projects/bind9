@@ -2068,6 +2068,32 @@ set_source_ports(dns_dispatchmgr_t *manager) {
 	isc_portset_destroy(mctx, &v6portset);
 }
 
+static void
+teardown_view(void *arg) {
+	dns_view_t *view = arg;
+	dns_view_detach(&view);
+}
+
+static void
+teardown_requestmgr(void *arg) {
+	dns_requestmgr_t *mgr = arg;
+
+	dns_requestmgr_shutdown(mgr);
+	dns_requestmgr_detach(&mgr);
+}
+
+static void
+teardown_dispatch(void *arg) {
+	dns_dispatch_t *dispatchv4 = arg;
+	dns_dispatch_detach(&dispatchv4);
+}
+
+static void
+teardown_dispatchmgr(void *arg) {
+	dns_dispatchmgr_t *dispatchmgr = arg;
+	dns_dispatchmgr_detach(&dispatchmgr);
+}
+
 /*% Main processing routine for mdig */
 int
 main(int argc, char *argv[]) {
@@ -2138,13 +2164,17 @@ main(int argc, char *argv[]) {
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchvx));
 
 	RUNCHECK(dns_requestmgr_create(
-		mctx, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
+		mctx, loopmgr, dispatchmgr, have_ipv4 ? dispatchvx : NULL,
 		have_ipv6 ? dispatchvx : NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_mdig", &view));
 
 	query = ISC_LIST_HEAD(queries);
 	isc_loopmgr_setup(loopmgr, sendqueries, query);
+	isc_loopmgr_teardown(loopmgr, teardown_view, view);
+	isc_loopmgr_teardown(loopmgr, teardown_requestmgr, requestmgr);
+	isc_loopmgr_teardown(loopmgr, teardown_dispatch, dispatchvx);
+	isc_loopmgr_teardown(loopmgr, teardown_dispatchmgr, dispatchmgr);
 
 	/*
 	 * Stall to the start of a new second.
@@ -2173,14 +2203,6 @@ main(int argc, char *argv[]) {
 	}
 
 	isc_loopmgr_run(loopmgr);
-
-	dns_view_detach(&view);
-
-	dns_requestmgr_shutdown(requestmgr);
-	dns_requestmgr_detach(&requestmgr);
-
-	dns_dispatch_detach(&dispatchvx);
-	dns_dispatchmgr_detach(&dispatchmgr);
 
 	dst_lib_destroy();
 

@@ -967,7 +967,7 @@ setup_system(void) {
 	dns_transport_set_always_verify_remote(transport,
 					       tls_always_verify_remote);
 
-	result = dns_requestmgr_create(gmctx, dispatchmgr, dispatchv4,
+	result = dns_requestmgr_create(gmctx, loopmgr, dispatchmgr, dispatchv4,
 				       dispatchv6, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 

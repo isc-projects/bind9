@@ -282,6 +282,9 @@ loop_thread(void *arg) {
 	r = uv_run(&loop->loop, UV_RUN_DEFAULT);
 	UV_RUNTIME_CHECK(uv_run, r);
 
+	/* Invalidate the loop early */
+	loop->magic = 0;
+
 	isc_barrier_wait(&loop->loopmgr->stopping);
 
 	return (NULL);
