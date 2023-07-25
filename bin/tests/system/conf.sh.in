@@ -29,8 +29,10 @@ export CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
 export CHECKZONE=$TOP_BUILDDIR/bin/check/named-checkzone
 if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
     export DELV=$TOP_BUILDDIR/bin/delv/delv
+    export RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
 else
     export DELV=:
+    export RESOLVE=:
 fi
 export DIG=$TOP_BUILDDIR/bin/dig/dig
 export DNSTAPREAD=$TOP_BUILDDIR/bin/tools/dnstap-read
@@ -48,7 +50,6 @@ export NSEC3HASH=$TOP_BUILDDIR/bin/tools/nsec3hash
 export NSLOOKUP=$TOP_BUILDDIR/bin/dig/nslookup
 export NSUPDATE=$TOP_BUILDDIR/bin/nsupdate/nsupdate
 export NZD2NZF=$TOP_BUILDDIR/bin/tools/named-nzd2nzf
-export RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
 export REVOKE=$TOP_BUILDDIR/bin/dnssec/dnssec-revoke
 export RNDC=$TOP_BUILDDIR/bin/rndc/rndc
 export RNDCCONFGEN=$TOP_BUILDDIR/bin/confgen/rndc-confgen
