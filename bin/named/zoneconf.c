@@ -1511,7 +1511,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	if (use_kasp) {
-		maxttl = dns_kasp_zonemaxttl(dns_zone_getkasp(zone));
+		maxttl = dns_kasp_zonemaxttl(dns_zone_getkasp(zone), false);
 	} else {
 		obj = NULL;
 		result = named_config_get(maps, "max-zone-ttl", &obj);

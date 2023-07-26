@@ -382,9 +382,11 @@ dns_kasp_setretiresafety(dns_kasp_t *kasp, uint32_t value);
  */
 
 dns_ttl_t
-dns_kasp_zonemaxttl(dns_kasp_t *kasp);
+dns_kasp_zonemaxttl(dns_kasp_t *kasp, bool fallback);
 /*%<
- * Get maximum zone TTL.
+ * Get maximum zone TTL. If 'fallback' is true, return a default maximum TTL
+ * if the maximum zone TTL is set to unlimited (value 0). Fallback should be
+ * used if determining key rollover timings in keymgr.c
  *
  * Requires:
  *
