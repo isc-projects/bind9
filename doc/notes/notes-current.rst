@@ -55,6 +55,10 @@ Bug Fixes
   uninterrupted time spent by resolving long cached chains of domain names.
   :gl:`#4185`
 
+- Ignore :any:`max-zone-ttl` for :any:`dnssec-policy` "insecure",
+  otherwise some zones will not be loaded if they use a TTL value larger
+  than 86400. :gl:`#4032`.
+
 Known Issues
 ~~~~~~~~~~~~
 
