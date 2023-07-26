@@ -35,8 +35,10 @@ export COVERAGE=$TOP/bin/python/dnssec-coverage
 export DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
 if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
     export DELV=$TOP/bin/delv/delv
+    export RESOLVE=$TOP/bin/tests/system/resolve
 else
     export DELV=:
+    export RESOLVE=:
 fi
 export DIG=$TOP/bin/dig/dig
 export DNSTAPREAD=$TOP/bin/tools/dnstap-read
@@ -58,7 +60,6 @@ export NZD2NZF=$TOP/bin/tools/named-nzd2nzf
 export PK11DEL="$TOP/bin/pkcs11/pkcs11-destroy -s ${SLOT:-0} -p ${HSMPIN:-1234} -w 0"
 export PK11GEN="$TOP/bin/pkcs11/pkcs11-keygen -q -s ${SLOT:-0} -p ${HSMPIN:-1234}"
 export PK11LIST="$TOP/bin/pkcs11/pkcs11-list -s ${SLOT:-0} -p ${HSMPIN:-1234}"
-export RESOLVE=$TOP/bin/tests/system/resolve
 export REVOKE=$TOP/bin/dnssec/dnssec-revoke
 export RNDC=$TOP/bin/rndc/rndc
 export RNDCCONFGEN=$TOP/bin/confgen/rndc-confgen
