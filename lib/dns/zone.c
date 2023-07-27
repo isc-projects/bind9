@@ -12880,6 +12880,7 @@ cleanup:
 	}
 	dns_name_free(&sgr->name, zone->mctx);
 	dns_request_destroy(&request);
+	isc_mem_put(zone->mctx, sgr, sizeof(*sgr));
 
 	/* If last request, release all related resources */
 	if (atomic_fetch_sub_release(&stub->pending_requests, 1) == 1) {
@@ -12906,19 +12907,19 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	dns_message_t *message = NULL;
 	dns_zone_t *zone;
 	isc_result_t result;
-	struct stub_glue_request *request;
+	struct stub_glue_request *sgr;
 	isc_sockaddr_t curraddr;
 
 	zone = args->stub->zone;
-	request = isc_mem_get(zone->mctx, sizeof(*request));
-	request->request = NULL;
-	request->args = args;
-	request->name = (dns_name_t)DNS_NAME_INITEMPTY;
-	request->ipv4 = ipv4;
-	dns_name_dup(name, zone->mctx, &request->name);
+	sgr = isc_mem_get(zone->mctx, sizeof(*sgr));
+	sgr->request = NULL;
+	sgr->args = args;
+	sgr->name = (dns_name_t)DNS_NAME_INITEMPTY;
+	sgr->ipv4 = ipv4;
+	dns_name_dup(name, zone->mctx, &sgr->name);
 
 	create_query(zone, ipv4 ? dns_rdatatype_a : dns_rdatatype_aaaa,
-		     &request->name, &message);
+		     &sgr->name, &message);
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message, args->udpsize, args->reqnsid, false);
@@ -12937,7 +12938,7 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 		zone->view->requestmgr, message, &zone->sourceaddr, &curraddr,
 		NULL, NULL, DNS_REQUESTOPT_TCP, args->tsig_key,
 		args->timeout * 3, args->timeout, 2, zone->loop,
-		stub_glue_response, request, &request->request);
+		stub_glue_response, sgr, &sgr->request);
 
 	if (result != ISC_R_SUCCESS) {
 		uint_fast32_t pr;
@@ -12954,8 +12955,8 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 	return (ISC_R_SUCCESS);
 
 fail:
-	dns_name_free(&request->name, zone->mctx);
-	isc_mem_put(zone->mctx, request, sizeof(*request));
+	dns_name_free(&sgr->name, zone->mctx);
+	isc_mem_put(zone->mctx, sgr, sizeof(*sgr));
 
 	if (message != NULL) {
 		dns_message_detach(&message);
