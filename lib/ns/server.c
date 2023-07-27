@@ -35,11 +35,10 @@
 		RUNTIME_CHECK(result == ISC_R_SUCCESS); \
 	} while (0)
 
-isc_result_t
+void
 ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 		 ns_server_t **sctxp) {
 	ns_server_t *sctx;
-	isc_result_t result;
 
 	REQUIRE(sctxp != NULL && *sctxp == NULL);
 
@@ -65,13 +64,13 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	ISC_LIST_INIT(sctx->http_quotas);
 	isc_mutex_init(&sctx->http_quotas_lock);
 
-	CHECKFATAL(ns_stats_create(mctx, ns_statscounter_max, &sctx->nsstats));
+	ns_stats_create(mctx, ns_statscounter_max, &sctx->nsstats);
 
-	CHECKFATAL(dns_rdatatypestats_create(mctx, &sctx->rcvquerystats));
+	dns_rdatatypestats_create(mctx, &sctx->rcvquerystats);
 
-	CHECKFATAL(dns_opcodestats_create(mctx, &sctx->opcodestats));
+	dns_opcodestats_create(mctx, &sctx->opcodestats);
 
-	CHECKFATAL(dns_rcodestats_create(mctx, &sctx->rcodestats));
+	dns_rcodestats_create(mctx, &sctx->rcodestats);
 
 	isc_histomulti_create(mctx, DNS_SIZEHISTO_SIGBITSIN,
 			      &sctx->udpinstats4);
@@ -101,8 +100,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

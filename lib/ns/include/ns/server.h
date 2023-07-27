@@ -133,7 +133,7 @@ struct ns_altsecret {
 	unsigned char secret[32];
 };
 
-isc_result_t
+void
 ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 		 ns_server_t **sctxp);
 /*%<

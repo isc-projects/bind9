@@ -2139,7 +2139,7 @@ run_server(void *arg) {
 	RUNTIME_CHECK(inet_pton(AF_INET, "127.0.0.1", &in));
 	isc_sockaddr_fromin(&addr, &in, 0);
 
-	CHECK(ns_server_create(mctx, matchview, &sctx));
+	ns_server_create(mctx, matchview, &sctx);
 
 	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&any);
@@ -2167,11 +2167,11 @@ run_server(void *arg) {
 	CHECK(dns_view_createresolver(view, loopmgr, 1, netmgr, 0,
 				      tlsctx_client_cache, dispatch, NULL));
 
-	CHECK(isc_stats_create(mctx, &resstats, dns_resstatscounter_max));
+	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
 	dns_resolver_setstats(view->resolver, resstats);
 	isc_stats_detach(&resstats);
 
-	CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+	dns_rdatatypestats_create(mctx, &resquerystats);
 	dns_resolver_setquerystats(view->resolver, resquerystats);
 	dns_stats_detach(&resquerystats);
 

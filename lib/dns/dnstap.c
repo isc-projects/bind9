@@ -168,7 +168,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	isc_mutex_init(&env->reopen_lock);
 	env->path = isc_mem_strdup(env->mctx, path);
 	isc_refcount_init(&env->refcount, 1);
-	CHECK(isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max));
+	isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max);
 
 	fwopt = fstrm_writer_options_init();
 	if (fwopt == NULL) {

@@ -1791,27 +1791,20 @@ cleanup:
 	return (result);
 }
 
-static isc_result_t
+static void
 setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
-	isc_result_t result;
 	isc_stats_t *zoneqrystats;
 
 	dns_zone_setstatlevel(zone, level);
 
 	zoneqrystats = NULL;
 	if (level == dns_zonestat_full) {
-		result = isc_stats_create(mctx, &zoneqrystats,
-					  ns_statscounter_max);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		isc_stats_create(mctx, &zoneqrystats, ns_statscounter_max);
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	if (zoneqrystats != NULL) {
 		isc_stats_detach(&zoneqrystats);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 static named_cache_t *
@@ -1945,7 +1938,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	isc_buffer_constinit(&b, reverse, strlen(reverse));
 	isc_buffer_add(&b, strlen(reverse));
 	CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-	CHECK(dns_zone_create(&zone, mctx, 0));
+	dns_zone_create(&zone, mctx, 0);
 	CHECK(dns_zone_setorigin(zone, name));
 	dns_zone_setview(zone, view);
 	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
@@ -1963,7 +1956,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	dns_zone_setcheckdstype(zone, dns_checkdstype_no);
 	dns_zone_setnotifytype(zone, dns_notifytype_no);
 	dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
-	CHECK(setquerystats(zone, mctx, dns_zonestat_none)); /* XXXMPA */
+	setquerystats(zone, mctx, dns_zonestat_none);
 	CHECK(dns_view_addzone(view, zone));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
@@ -3548,7 +3541,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 		dns_zone_clearxfracl(zone);
 	}
 
-	CHECK(setquerystats(zone, view->mctx, statlevel));
+	setquerystats(zone, view->mctx, statlevel);
 	if (db != NULL) {
 		dns_db_closeversion(db, &version, true);
 		CHECK(dns_zone_replacedb(zone, db, false));
@@ -3620,7 +3613,7 @@ create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
 		/*
 		 * Create the actual zone.
 		 */
-		CHECK(dns_zone_create(&zone, mctx, 0));
+		dns_zone_create(&zone, mctx, 0);
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		dns_zone_setclass(zone, view->rdclass);
@@ -4711,12 +4704,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		named_g_server->tlsctx_client_cache, dispatch4, dispatch6));
 
 	if (resstats == NULL) {
-		CHECK(isc_stats_create(mctx, &resstats,
-				       dns_resstatscounter_max));
+		isc_stats_create(mctx, &resstats, dns_resstatscounter_max);
 	}
 	dns_resolver_setstats(view->resolver, resstats);
 	if (resquerystats == NULL) {
-		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+		dns_rdatatypestats_create(mctx, &resquerystats);
 	}
 	dns_resolver_setquerystats(view->resolver, resquerystats);
 
@@ -6801,8 +6793,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {
-			CHECK(dns_zone_create(&raw, dns_zone_getmem(zone),
-					      dns_zone_gettid(zone)));
+			dns_zone_create(&raw, dns_zone_getmem(zone),
+					dns_zone_gettid(zone));
 			CHECK(dns_zone_setorigin(raw, origin));
 			dns_zone_setview(raw, view);
 			dns_zone_setstats(raw, named_g_server->zonestats);
@@ -6931,7 +6923,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	dns_zone_setjournalsize(zone, 0);
 
 	dns_zone_setstats(zone, named_g_server->zonestats);
-	CHECK(setquerystats(zone, mctx, dns_zonestat_none));
+	setquerystats(zone, mctx, dns_zonestat_none);
 
 	if (view->managed_keys != NULL) {
 		dns_zone_detach(&view->managed_keys);
@@ -10144,8 +10136,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	atomic_init(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 
-	CHECKFATAL(ns_server_create(mctx, get_matching_view, &server->sctx),
-		   "creating server context");
+	ns_server_create(mctx, get_matching_view, &server->sctx);
 
 #if defined(HAVE_GEOIP2)
 	/*
@@ -10170,18 +10161,15 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->sighup = isc_signal_new(
 		named_g_loopmgr, named_server_reloadwanted, server, SIGHUP);
 
-	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
-				    isc_sockstatscounter_max),
-		   "isc_stats_create");
+	isc_stats_create(server->mctx, &server->sockstats,
+			 isc_sockstatscounter_max);
 	isc_nm_setstats(named_g_netmgr, server->sockstats);
 
-	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,
-				    dns_zonestatscounter_max),
-		   "dns_stats_create (zone)");
+	isc_stats_create(named_g_mctx, &server->zonestats,
+			 dns_zonestatscounter_max);
 
-	CHECKFATAL(isc_stats_create(named_g_mctx, &server->resolverstats,
-				    dns_resstatscounter_max),
-		   "dns_stats_create (resolver)");
+	isc_stats_create(named_g_mctx, &server->resolverstats,
+			 dns_resstatscounter_max);
 
 	CHECKFATAL(named_controls_create(server, &server->controls),
 		   "named_controls_create");

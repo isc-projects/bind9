@@ -619,11 +619,8 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mem_create(&mctx);
 	isc_mem_setname(mctx, "ADB");
-	result = dns_adb_create(mctx, view, loopmgr, &view->adb);
+	dns_adb_create(mctx, view, loopmgr, &view->adb);
 	isc_mem_detach(&mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_resolver;
-	}
 
 	result = dns_requestmgr_create(view->mctx, view->dispatchmgr,
 				       dispatchv4, dispatchv6,
@@ -638,7 +635,6 @@ cleanup_adb:
 	dns_adb_shutdown(view->adb);
 	dns_adb_detach(&view->adb);
 
-cleanup_resolver:
 	dns_resolver_shutdown(view->resolver);
 	dns_resolver_detach(&view->resolver);
 

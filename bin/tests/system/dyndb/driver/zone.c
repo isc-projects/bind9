@@ -66,12 +66,8 @@ create_zone(sample_instance_t *const inst, dns_name_t *const name,
 
 	zone_argv[0] = inst->db_name;
 
-	result = dns_zone_create(&raw, inst->mctx, 0); /* FIXME */
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR, "create_zone: dns_zone_create -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
+	dns_zone_create(&raw, inst->mctx, 0); /* FIXME: all zones are assigned
+						 to loop 0 */
 	result = dns_zone_setorigin(raw, name);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,

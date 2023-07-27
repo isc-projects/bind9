@@ -15,6 +15,9 @@
 
 /*! \file include/ns/stats.h */
 
+#include <isc/mem.h>
+#include <isc/stats.h>
+
 #include <ns/types.h>
 
 /*%
@@ -118,7 +121,7 @@ ns_stats_attach(ns_stats_t *stats, ns_stats_t **statsp);
 void
 ns_stats_detach(ns_stats_t **statsp);
 
-isc_result_t
+void
 ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp);
 
 void

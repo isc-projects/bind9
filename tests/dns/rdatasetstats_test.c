@@ -188,16 +188,12 @@ verify_ancient_counters(dns_rdatastatstype_t which, uint64_t value, void *arg) {
  * active -> stale -> ancient.
  */
 static void
-rdatasetstats(void **state, bool servestale) {
+rdatasetstats(void **state ISC_ATTR_UNUSED, bool servestale) {
 	unsigned int i;
 	unsigned int from = 0;
 	dns_stats_t *stats = NULL;
-	isc_result_t result;
 
-	UNUSED(state);
-
-	result = dns_rdatasetstats_create(mctx, &stats);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	dns_rdatasetstats_create(mctx, &stats);
 
 	/* First 255 types. */
 	for (i = 1; i <= 255; i++) {
