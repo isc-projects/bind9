@@ -1764,6 +1764,24 @@ if ! $FEATURETEST --gssapi ; then
 else
   n=$((n + 1))
   ret=0
+  echo_i "check GSS-API TKEY request rcode against a non configured server ($n)"
+  KRB5CCNAME="FILE:$(pwd)/ns7/machine.ccache"
+  export KRB5CCNAME
+  $NSUPDATE << EOF > nsupdate.out.test$n 2>&1 && ret=1
+  gsstsig
+  realm EXAMPLE.COM
+  server 10.53.0.7 ${PORT}
+  zone example.com
+  send
+EOF
+  grep "response to GSS-TSIG query was unsuccessful (REFUSED)" nsupdate.out.test$n > /dev/null  || ret=1
+  [ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+  copy_setports ns7/named2.conf.in ns7/named.conf
+  rndc_reload ns7 10.53.0.7
+
+  n=$((n + 1))
+  ret=0
   echo_i "check krb5-self match ($n)"
   KRB5CCNAME="FILE:$(pwd)/ns7/machine.ccache"
   export KRB5CCNAME
