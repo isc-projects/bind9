@@ -1,3 +1,7 @@
+6214.	[bug]		Fix the memory leak in for struct stub_glue_request
+			allocated in stub_request_nameserver_address() but not
+			freed in stub_glue_response(). [GL #4227]
+
 6213.	[bug]		Mark a primary server as temporarily unreachable if the
 			TCP connection attempt times out. [GL #4215]
 
