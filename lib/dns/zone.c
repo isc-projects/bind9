@@ -12880,6 +12880,7 @@ cleanup:
 	}
 	dns_name_free(&sgr->name, zone->mctx);
 	dns_request_destroy(&request);
+	isc_mem_put(zone->mctx, sgr, sizeof(*sgr));
 
 	/* If last request, release all related resources */
 	if (atomic_fetch_sub_release(&stub->pending_requests, 1) == 1) {
