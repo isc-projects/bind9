@@ -1684,7 +1684,7 @@ send
 END
 grep 'status: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
 msg="update failed: _dns.ns.example/SVCB: no ALPN (REFUSED)"
-nextpart ns3/named.run | grep "$msg" ns3/named.run > /dev/null || ret=1
+nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
@@ -1714,7 +1714,7 @@ send
 END
 grep 'status: REFUSED' nsupdate.out.test$n > /dev/null || ret=1
 msg="update failed: _dns.ns.example/SVCB: no DOHPATH (REFUSED)"
-nextpart ns3/named.run | grep "$msg" ns3/named.run > /dev/null || ret=1
+nextpart ns3/named.run | grep "$msg" > /dev/null || ret=1
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 n=$((n + 1))
