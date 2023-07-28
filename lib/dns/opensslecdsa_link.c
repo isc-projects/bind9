@@ -846,16 +846,14 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 
 	keylen = opensslecdsa_key_alg_to_publickey_size(key->key_alg) / 2;
 	INSIST(keylen <= sizeof(buf));
-	if (!opensslecdsa_extract_private_key(key, buf, keylen)) {
-		DST_RET(DST_R_OPENSSLFAILURE);
-	}
 
 	i = 0;
-	priv.elements[i].tag = TAG_ECDSA_PRIVATEKEY;
-	priv.elements[i].length = keylen;
-	priv.elements[i].data = buf;
-	i++;
-
+	if (opensslecdsa_extract_private_key(key, buf, keylen)) {
+		priv.elements[i].tag = TAG_ECDSA_PRIVATEKEY;
+		priv.elements[i].length = keylen;
+		priv.elements[i].data = buf;
+		i++;
+	}
 	if (key->engine != NULL) {
 		priv.elements[i].tag = TAG_ECDSA_ENGINE;
 		priv.elements[i].length = (unsigned short)strlen(key->engine) +
@@ -929,10 +927,6 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		}
 	}
 
-	if (privkey_index < 0) {
-		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
-	}
-
 	if (label != NULL) {
 		ret = opensslecdsa_fromlabel(key, engine, label, NULL);
 		if (ret != ISC_R_SUCCESS) {
@@ -945,6 +939,10 @@ opensslecdsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 			DST_RET(DST_R_INVALIDPRIVATEKEY);
 		}
 		DST_RET(ISC_R_SUCCESS);
+	}
+
+	if (privkey_index < 0) {
+		DST_RET(dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
 	}
 
 	ret = opensslecdsa_create_pkey(
