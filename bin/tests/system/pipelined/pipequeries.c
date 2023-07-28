@@ -183,6 +183,32 @@ sendqueries(void *arg) {
 	return;
 }
 
+static void
+teardown_view(void *arg) {
+	dns_view_t *view = arg;
+	dns_view_detach(&view);
+}
+
+static void
+teardown_requestmgr(void *arg) {
+	dns_requestmgr_t *mgr = arg;
+
+	dns_requestmgr_shutdown(mgr);
+	dns_requestmgr_detach(&mgr);
+}
+
+static void
+teardown_dispatchv4(void *arg) {
+	dns_dispatch_t *dispatchv4 = arg;
+	dns_dispatch_detach(&dispatchv4);
+}
+
+static void
+teardown_dispatchmgr(void *arg) {
+	dns_dispatchmgr_t *dispatchmgr = arg;
+	dns_dispatchmgr_detach(&dispatchmgr);
+}
+
 int
 main(int argc, char *argv[]) {
 	isc_sockaddr_t bind_any;
@@ -253,21 +279,18 @@ main(int argc, char *argv[]) {
 
 	RUNCHECK(dns_dispatch_createudp(
 		dispatchmgr, have_src ? &srcaddr : &bind_any, &dispatchv4));
-	RUNCHECK(dns_requestmgr_create(mctx, dispatchmgr, dispatchv4, NULL,
-				       &requestmgr));
+	RUNCHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, dispatchv4,
+				       NULL, &requestmgr));
 
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
 
 	isc_loopmgr_setup(loopmgr, sendqueries, NULL);
+	isc_loopmgr_teardown(loopmgr, teardown_view, view);
+	isc_loopmgr_teardown(loopmgr, teardown_requestmgr, requestmgr);
+	isc_loopmgr_teardown(loopmgr, teardown_dispatchv4, dispatchv4);
+	isc_loopmgr_teardown(loopmgr, teardown_dispatchmgr, dispatchmgr);
+
 	isc_loopmgr_run(loopmgr);
-
-	dns_view_detach(&view);
-
-	dns_requestmgr_shutdown(requestmgr);
-	dns_requestmgr_detach(&requestmgr);
-
-	dns_dispatch_detach(&dispatchv4);
-	dns_dispatchmgr_detach(&dispatchmgr);
 
 	dst_lib_destroy();
 

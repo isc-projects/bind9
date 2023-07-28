@@ -36,9 +36,13 @@
 
 #include <stdbool.h>
 
+#include <isc/job.h>
 #include <isc/lang.h>
+#include <isc/tls.h>
 
 #include <dns/types.h>
+
+#undef DNS_REQUEST_TRACE
 
 #define DNS_REQUESTOPT_TCP     0x00000001U
 #define DNS_REQUESTOPT_CASE    0x00000002U
@@ -48,7 +52,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_requestmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
+dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
+		      dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		      dns_requestmgr_t **requestmgrp);
 /*%<
@@ -90,33 +95,19 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr);
  *\li	'requestmgr' is a valid requestmgr.
  */
 
-void
-dns_requestmgr_attach(dns_requestmgr_t *source, dns_requestmgr_t **targetp);
-/*%<
- *	Attach to the request manager.  dns_requestmgr_shutdown() must not
- *	have been called on 'source' prior to calling dns_requestmgr_attach().
- *
- * Requires:
- *
- *\li	'source' is a valid requestmgr.
- *
- *\li	'targetp' to be non NULL and '*targetp' to be NULL.
- */
-
-void
-dns_requestmgr_detach(dns_requestmgr_t **requestmgrp);
-/*%<
- *	Detach from the given requestmgr.  If this is the final detach
- *	requestmgr will be destroyed.  dns_requestmgr_shutdown() must
- *	be called before the final detach.
- *
- * Requires:
- *
- *\li	'*requestmgrp' is a valid requestmgr.
- *
- * Ensures:
- *\li	'*requestmgrp' is NULL.
- */
+#if DNS_REQUEST_TRACE
+#define dns_requestmgr_ref(ptr) \
+	dns_requestmgr__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_requestmgr_unref(ptr) \
+	dns_requestmgr__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_requestmgr_attach(ptr, ptrp) \
+	dns_requestmgr__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_requestmgr_detach(ptrp) \
+	dns_requestmgr__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_requestmgr);
+#else
+ISC_REFCOUNT_DECL(dns_requestmgr);
+#endif
 
 isc_result_t
 dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
@@ -302,5 +293,17 @@ dns_request_getresult(dns_request_t *request);
  * completion handler.)
  */
 
+#if DNS_REQUEST_TRACE
+#define dns_request_ref(ptr) dns_request__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_request_unref(ptr) \
+	dns_request__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_request_attach(ptr, ptrp) \
+	dns_request__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_request_detach(ptrp) \
+	dns_request__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_request);
+#else
 ISC_REFCOUNT_DECL(dns_request);
+#endif
+
 ISC_LANG_ENDDECLS

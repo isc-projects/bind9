@@ -1927,6 +1927,7 @@ cleanup:
 static void
 shutdown_server(void) {
 	if (requestmgr != NULL) {
+		dns_requestmgr_shutdown(requestmgr);
 		dns_requestmgr_detach(&requestmgr);
 	}
 	if (interfacemgr != NULL) {
@@ -2095,7 +2096,7 @@ sendquery(void *arg) {
 				   NULL, 0));
 	CHECK(dns_message_setopt(message, opt));
 
-	CHECK(dns_requestmgr_create(mctx, dispatchmgr, NULL, NULL,
+	CHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, NULL, NULL,
 				    &requestmgr));
 
 	dns_view_attach(view, &(dns_view_t *){ NULL });

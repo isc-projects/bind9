@@ -622,7 +622,7 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	dns_adb_create(mctx, view, loopmgr, &view->adb);
 	isc_mem_detach(&mctx);
 
-	result = dns_requestmgr_create(view->mctx, view->dispatchmgr,
+	result = dns_requestmgr_create(view->mctx, loopmgr, view->dispatchmgr,
 				       dispatchv4, dispatchv6,
 				       &view->requestmgr);
 	if (result != ISC_R_SUCCESS) {

@@ -11731,13 +11731,6 @@ checkds_cancel(dns_zone_t *zone) {
 }
 
 static void
-forward_cancel_cb(void *arg) {
-	dns_request_t *request = arg;
-	dns_request_cancel(request);
-	dns_request_detach(&request);
-}
-
-static void
 forward_cancel(dns_zone_t *zone) {
 	dns_forward_t *forward;
 
@@ -11751,9 +11744,7 @@ forward_cancel(dns_zone_t *zone) {
 	     forward = ISC_LIST_NEXT(forward, link))
 	{
 		if (forward->request != NULL) {
-			dns_request_t *request = NULL;
-			dns_request_attach(forward->request, &request);
-			isc_async_run(zone->loop, forward_cancel_cb, request);
+			dns_request_cancel(forward->request);
 		}
 	}
 }
@@ -12878,8 +12869,9 @@ cleanup:
 	if (msg != NULL) {
 		dns_message_detach(&msg);
 	}
+
 	dns_name_free(&sgr->name, zone->mctx);
-	dns_request_destroy(&request);
+	dns_request_destroy(&sgr->request);
 	isc_mem_put(zone->mctx, sgr, sizeof(*sgr));
 
 	/* If last request, release all related resources */
@@ -12912,10 +12904,12 @@ stub_request_nameserver_address(struct stub_cb_args *args, bool ipv4,
 
 	zone = args->stub->zone;
 	sgr = isc_mem_get(zone->mctx, sizeof(*sgr));
-	sgr->request = NULL;
-	sgr->args = args;
-	sgr->name = (dns_name_t)DNS_NAME_INITEMPTY;
-	sgr->ipv4 = ipv4;
+	*sgr = (struct stub_glue_request){
+		.args = args,
+		.name = (dns_name_t)DNS_NAME_INITEMPTY,
+		.ipv4 = ipv4,
+	};
+
 	dns_name_dup(name, zone->mctx, &sgr->name);
 
 	create_query(zone, ipv4 ? dns_rdatatype_a : dns_rdatatype_aaaa,
