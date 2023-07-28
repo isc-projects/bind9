@@ -81,32 +81,28 @@ enable_fips_mode(void) {
 
 isc_result_t
 dst__openssl_init(const char *engine) {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	enable_fips_mode();
 
-#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 	if (engine != NULL && *engine == '\0') {
 		engine = NULL;
 	}
 
-	if (engine != NULL) {
-		global_engine = ENGINE_by_id(engine);
-		if (global_engine == NULL) {
-			result = DST_R_NOENGINE;
-			goto cleanup_rm;
-		}
-		if (!ENGINE_init(global_engine)) {
-			result = DST_R_NOENGINE;
-			goto cleanup_rm;
-		}
-		/* This will init the engine. */
-		if (!ENGINE_set_default(global_engine, ENGINE_METHOD_ALL)) {
-			result = DST_R_NOENGINE;
-			goto cleanup_init;
-		}
+	if (engine == NULL) {
+		return (ISC_R_SUCCESS);
 	}
 
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
+	global_engine = ENGINE_by_id(engine);
+	if (global_engine == NULL) {
+		goto cleanup_rm;
+	}
+	if (!ENGINE_init(global_engine)) {
+		goto cleanup_rm;
+	}
+	/* This will init the engine. */
+	if (!ENGINE_set_default(global_engine, ENGINE_METHOD_ALL)) {
+		goto cleanup_init;
+	}
 	return (ISC_R_SUCCESS);
 cleanup_init:
 	ENGINE_finish(global_engine);
@@ -115,10 +111,8 @@ cleanup_rm:
 		ENGINE_free(global_engine);
 	}
 	global_engine = NULL;
-#else
-	UNUSED(engine);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
-	return (result);
+	return (DST_R_NOENGINE);
 }
 
 void
@@ -242,9 +236,6 @@ dst__openssl_fromlabel_engine(int key_base_id, const char *engine,
 
 	UNUSED(pin);
 
-	if (engine == NULL) {
-		DST_RET(DST_R_NOENGINE);
-	}
 	e = dst__openssl_getengine(engine);
 	if (e == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_NOENGINE));
@@ -281,15 +272,13 @@ err:
 }
 
 static isc_result_t
-dst__openssl_fromlabel_provider(int key_base_id, const char *engine,
-				const char *label, const char *pin,
+dst__openssl_fromlabel_provider(int key_base_id, const char *label, const char *pin,
 				EVP_PKEY **ppub, EVP_PKEY **ppriv) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	isc_result_t ret = DST_R_OPENSSLFAILURE;
 	OSSL_STORE_CTX *ctx = NULL;
 
 	UNUSED(pin);
-	UNUSED(engine);
 
 	ctx = OSSL_STORE_open(label, NULL, NULL, NULL, NULL);
 	if (!ctx) {
@@ -335,7 +324,6 @@ err:
 	return (ret);
 #else
 	UNUSED(key_base_id);
-	UNUSED(engine);
 	UNUSED(label);
 	UNUSED(pin);
 	UNUSED(ppub);
@@ -347,12 +335,9 @@ err:
 isc_result_t
 dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv) {
-	isc_result_t result;
-
-	result = dst__openssl_fromlabel_provider(key_base_id, engine, label,
-						 pin, ppub, ppriv);
-	if (result != DST_R_OPENSSLFAILURE) {
-		return (result);
+	if (engine == NULL) {
+		return (dst__openssl_fromlabel_provider(key_base_id, label,
+						        pin, ppub, ppriv));
 	}
 
 	return (dst__openssl_fromlabel_engine(key_base_id, engine, label, pin,
