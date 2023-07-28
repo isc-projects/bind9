@@ -2390,7 +2390,6 @@ addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
 			dns__rbtdb_freeglue(glue);
 			glue = old_glue;
 		} else if (glue != NULL) {
-			__tsan_release(glue);
 			cds_wfs_push(&rbtversion->glue_stack,
 				     &header->wfs_node);
 		}
@@ -2411,7 +2410,6 @@ addglue(dns_db_t *db, dns_dbversion_t *version, dns_rdataset_t *rdataset,
 	 * zone.
 	 */
 	if (glue != (void *)-1) {
-		__tsan_acquire(glue);
 		addglue_to_message(glue, msg);
 	}
 

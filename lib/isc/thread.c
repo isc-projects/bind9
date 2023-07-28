@@ -62,7 +62,6 @@ thread_wrap(isc_threadfunc_t func, void *arg) {
 		.func = func,
 		.arg = arg,
 	};
-	__tsan_release(wrap);
 	return (wrap);
 }
 
@@ -81,8 +80,6 @@ thread_body(struct thread_wrap *wrap) {
 	CMM_ACCESS_ONCE(jemalloc_enforce_init) = malloc(1);
 	free(jemalloc_enforce_init);
 
-	/* Reassure Thread Sanitizer that it is safe to free the wrapper */
-	__tsan_acquire(wrap);
 	free(wrap);
 
 	ret = func(arg);

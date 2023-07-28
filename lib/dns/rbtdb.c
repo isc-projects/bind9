@@ -4658,7 +4658,7 @@ dns__rbtdb_freeglue(dns_glue_t *glue_list) {
 
 static void
 free_gluelist_rcu(struct rcu_head *rcu_head) {
-	dns_glue_t *glue = isc_urcu_container(rcu_head, dns_glue_t, rcu_head);
+	dns_glue_t *glue = caa_container_of(rcu_head, dns_glue_t, rcu_head);
 
 	dns__rbtdb_freeglue(glue);
 }
@@ -4674,7 +4674,7 @@ free_gluetable(dns_rbtdb_version_t *rbtversion) {
 			caa_container_of(node, dns_slabheader_t, wfs_node);
 		dns_glue_t *glue = rcu_xchg_pointer(&header->glue_list, NULL);
 
-		isc_urcu_cleanup(glue, rcu_head, free_gluelist_rcu);
+		call_rcu(&glue->rcu_head, free_gluelist_rcu);
 	}
 	rcu_read_unlock();
 }

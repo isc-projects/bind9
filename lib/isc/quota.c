@@ -79,7 +79,7 @@ isc_quota_release(isc_quota_t *quota) {
 		return;
 	}
 
-	isc_job_t *job = isc_urcu_container(node, isc_job_t, wfcq_node);
+	isc_job_t *job = caa_container_of(node, isc_job_t, wfcq_node);
 	job->cb(job->cbarg);
 }
 
@@ -102,7 +102,6 @@ isc_quota_acquire_cb(isc_quota_t *quota, isc_job_t *job, isc_job_cb cb,
 			 * The cds_wfcq_enqueue() is non-blocking (no internal
 			 * mutex involved), so it offers a slight advantage.
 			 */
-			__tsan_release(job);
 			cds_wfcq_enqueue(&quota->jobs.head, &quota->jobs.tail,
 					 &job->wfcq_node);
 		}
