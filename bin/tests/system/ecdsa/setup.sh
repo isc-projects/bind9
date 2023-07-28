@@ -15,7 +15,7 @@ set -e
 
 . ../conf.sh
 
-if $SHELL ../testcrypto.sh ecdsap384sha384; then
+if $SHELL ../testcrypto.sh ecdsap256sha256; then
 	echo "yes" > ecdsa256-supported.file
 fi
 
