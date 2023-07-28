@@ -125,9 +125,9 @@ static const char *
 opensslecdsa_key_alg_to_group_name(unsigned int key_alg) {
 	switch (key_alg) {
 	case DST_ALG_ECDSA256:
-		return ("P-256");
+		return ("prime256v1");
 	case DST_ALG_ECDSA384:
-		return ("P-384");
+		return ("secp384r1");
 	default:
 		UNREACHABLE();
 	}
