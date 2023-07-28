@@ -1,3 +1,6 @@
+6215.	[protocol]	Return REFUSED to GSS-API TKEY requests if GSS-API
+			support is not configured. [GL #4225]
+
 6214.	[bug]		Fix the memory leak in for struct stub_glue_request
 			allocated in stub_request_nameserver_address() but not
 			freed in stub_glue_response(). [GL #4227]
