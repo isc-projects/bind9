@@ -3800,8 +3800,7 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
 						      sizeof(rbtdb_nodelock_t));
 
-	rbtdb->common.update_listeners =
-		cds_lfht_new(16, 16, 0, CDS_LFHT_ACCOUNTING, NULL);
+	rbtdb->common.update_listeners = cds_lfht_new(16, 16, 0, 0, NULL);
 
 	if (IS_CACHE(rbtdb)) {
 		dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
