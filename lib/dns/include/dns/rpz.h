@@ -402,6 +402,10 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);
 
 isc_result_t
 dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg);
+void
+dns_rpz_dbupdate_unregister(dns_db_t *db, dns_rpz_zone_t *rpz);
+void
+dns_rpz_dbupdate_register(dns_db_t *db, dns_rpz_zone_t *rpz);
 
 void
 dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs);

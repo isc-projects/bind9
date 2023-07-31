@@ -21,12 +21,14 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/tid.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
@@ -96,6 +98,9 @@ impfind(const char *name) {
 	}
 	return (NULL);
 }
+
+static void
+call_updatenotify(dns_db_t *db);
 
 /***
  *** Basic DB Methods
@@ -265,8 +270,6 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 
 isc_result_t
 dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
-	dns_dbonupdatelistener_t *listener;
-
 	/*
 	 * Finish loading 'db'.
 	 */
@@ -280,11 +283,7 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	 * for all registered listeners, regardless of whether the underlying
 	 * database has an 'endload' implementation.
 	 */
-	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-	{
-		listener->onupdate(db, listener->onupdate_arg);
-	}
+	call_updatenotify(db);
 
 	if (db->methods->endload != NULL) {
 		return ((db->methods->endload)(db, callbacks));
@@ -385,8 +384,6 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 void
 dns__db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		     bool commit DNS__DB_FLARG) {
-	dns_dbonupdatelistener_t *listener;
-
 	/*
 	 * Close version '*versionp'.
 	 */
@@ -398,11 +395,7 @@ dns__db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	(db->methods->closeversion)(db, versionp, commit DNS__DB_FLARG_PASS);
 
 	if (commit) {
-		for (listener = ISC_LIST_HEAD(db->update_listeners);
-		     listener != NULL; listener = ISC_LIST_NEXT(listener, link))
-		{
-			listener->onupdate(db, listener->onupdate_arg);
-		}
+		call_updatenotify(db);
 	}
 
 	ENSURE(*versionp == NULL);
@@ -951,59 +944,97 @@ dns__db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	return (ISC_R_NOTFOUND);
 }
 
+static void
+call_updatenotify(dns_db_t *db) {
+	rcu_read_lock();
+	struct cds_lfht *update_listeners =
+		rcu_dereference(db->update_listeners);
+	if (update_listeners != NULL) {
+		struct cds_lfht_iter iter;
+		dns_dbonupdatelistener_t *listener;
+		cds_lfht_for_each_entry(update_listeners, &iter, listener,
+					ht_node) {
+			if (!cds_lfht_is_node_deleted(&listener->ht_node)) {
+				listener->onupdate(db, listener->onupdate_arg);
+			}
+		}
+	}
+	rcu_read_unlock();
+}
+
+static void
+updatenotify_free(struct rcu_head *rcu_head) {
+	dns_dbonupdatelistener_t *listener =
+		caa_container_of(rcu_head, dns_dbonupdatelistener_t, rcu_head);
+	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
+}
+
+static int
+updatenotify_match(struct cds_lfht_node *ht_node, const void *_key) {
+	const dns_dbonupdatelistener_t *listener =
+		caa_container_of(ht_node, dns_dbonupdatelistener_t, ht_node);
+	const dns_dbonupdatelistener_t *key = _key;
+
+	return (listener->onupdate == key->onupdate &&
+		listener->onupdate_arg == key->onupdate_arg);
+}
+
 /*
  * Attach a notify-on-update function the database
  */
-isc_result_t
+void
 dns_db_updatenotify_register(dns_db_t *db, dns_dbupdate_callback_t fn,
 			     void *fn_arg) {
-	dns_dbonupdatelistener_t *listener;
-
 	REQUIRE(db != NULL);
 	REQUIRE(fn != NULL);
 
-	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-	{
-		if ((listener->onupdate == fn) &&
-		    (listener->onupdate_arg == fn_arg))
-		{
-			return (ISC_R_SUCCESS);
-		}
+	dns_dbonupdatelistener_t key = { .onupdate = fn,
+					 .onupdate_arg = fn_arg };
+	uint32_t hash = isc_hash32(&key, sizeof(key), true);
+	dns_dbonupdatelistener_t *listener = isc_mem_get(db->mctx,
+							 sizeof(*listener));
+	*listener = key;
+
+	isc_mem_attach(db->mctx, &listener->mctx);
+
+	rcu_read_lock();
+	struct cds_lfht *update_listeners =
+		rcu_dereference(db->update_listeners);
+	INSIST(update_listeners != NULL);
+	struct cds_lfht_node *ht_node =
+		cds_lfht_add_unique(update_listeners, hash, updatenotify_match,
+				    &key, &listener->ht_node);
+	rcu_read_unlock();
+
+	if (ht_node != &listener->ht_node) {
+		updatenotify_free(&listener->rcu_head);
 	}
-
-	listener = isc_mem_get(db->mctx, sizeof(dns_dbonupdatelistener_t));
-
-	listener->onupdate = fn;
-	listener->onupdate_arg = fn_arg;
-
-	ISC_LINK_INIT(listener, link);
-	ISC_LIST_APPEND(db->update_listeners, listener, link);
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_db_updatenotify_unregister(dns_db_t *db, dns_dbupdate_callback_t fn,
 			       void *fn_arg) {
-	dns_dbonupdatelistener_t *listener;
-
 	REQUIRE(db != NULL);
 
-	for (listener = ISC_LIST_HEAD(db->update_listeners); listener != NULL;
-	     listener = ISC_LIST_NEXT(listener, link))
-	{
-		if ((listener->onupdate == fn) &&
-		    (listener->onupdate_arg == fn_arg))
-		{
-			ISC_LIST_UNLINK(db->update_listeners, listener, link);
-			isc_mem_put(db->mctx, listener,
-				    sizeof(dns_dbonupdatelistener_t));
-			return (ISC_R_SUCCESS);
-		}
-	}
+	dns_dbonupdatelistener_t key = { .onupdate = fn,
+					 .onupdate_arg = fn_arg };
+	uint32_t hash = isc_hash32(&key, sizeof(key), true);
+	struct cds_lfht_iter iter;
 
-	return (ISC_R_NOTFOUND);
+	rcu_read_lock();
+	struct cds_lfht *update_listeners =
+		rcu_dereference(db->update_listeners);
+	INSIST(update_listeners != NULL);
+	cds_lfht_lookup(update_listeners, hash, updatenotify_match, &key,
+			&iter);
+
+	struct cds_lfht_node *ht_node = cds_lfht_iter_get_node(&iter);
+	if (ht_node != NULL && !cds_lfht_del(update_listeners, ht_node)) {
+		dns_dbonupdatelistener_t *listener = caa_container_of(
+			ht_node, dns_dbonupdatelistener_t, ht_node);
+		call_rcu(&listener->rcu_head, updatenotify_free);
+	}
+	rcu_read_unlock();
 }
 
 isc_result_t

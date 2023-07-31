@@ -1624,6 +1624,21 @@ unlock:
 	return (result);
 }
 
+void
+dns_rpz_dbupdate_unregister(dns_db_t *db, dns_rpz_zone_t *rpz) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
+
+	dns_db_updatenotify_unregister(db, dns_rpz_dbupdate_callback, rpz);
+}
+
+void
+dns_rpz_dbupdate_register(dns_db_t *db, dns_rpz_zone_t *rpz) {
+	REQUIRE(DNS_DB_VALID(db));
+	REQUIRE(DNS_RPZ_ZONE_VALID(rpz));
+
+	dns_db_updatenotify_register(db, dns_rpz_dbupdate_callback, rpz);
+}
 static void
 dns__rpz_timer_start(dns_rpz_zone_t *rpz) {
 	uint64_t tdiff;
