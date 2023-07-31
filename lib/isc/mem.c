@@ -582,8 +582,24 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 
 	/*
 	 * wait for asynchronous memory reclamation to complete
-	 * before checking for memory leaks
+	 * before checking for memory leaks.
+	 *
+	 * Because rcu_barrier() needs to be called as many times
+	 * as the number of nested call_rcu() calls (call_rcu()
+	 * calls made from call_rcu thread), and currently there's
+	 * no mechanism to detect whether there are more call_rcu
+	 * callbacks scheduled, we simply call the rcu_barrier()
+	 * multiple times.  The overhead is negligible and it
+	 * prevents rare assertion failures caused by the check
+	 * for memory leaks below.
+	 *
+	 * If there's more nested call_rcu() calls than five levels,
+	 * we are doing something horribly wrong...
 	 */
+	rcu_barrier();
+	rcu_barrier();
+	rcu_barrier();
+	rcu_barrier();
 	rcu_barrier();
 
 #if ISC_MEM_TRACKLINES

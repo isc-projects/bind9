@@ -19,6 +19,7 @@ LDADD +=				\
 
 check_PROGRAMS =		\
 	acl_test		\
+	badcache_test		\
 	db_test			\
 	dbdiff_test		\
 	dbiterator_test		\

@@ -857,7 +857,9 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 
 	disassociate_rdatasets(val);
 
-	if (dns_resolver_getbadcache(val->view->resolver, name, type, &now)) {
+	result = dns_resolver_getbadcache(val->view->resolver, name, type,
+					  &now);
+	if (result == ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 		validator_log(val, ISC_LOG_INFO, "bad cache hit (%s/%s)",

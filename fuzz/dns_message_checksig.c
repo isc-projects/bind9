@@ -126,57 +126,6 @@ sig0key. 0 IN KEY 512 3 8 AwEAAa22lgHi1vAbQvu5ETdTrm2H8rwga9tvyMa6LFiSDyevLvSv0U
 
 static bool destroy_dst = false;
 
-static void
-cleanup(void) {
-	char pathbuf[PATH_MAX];
-	char *pwd = getcwd(pathbuf, sizeof(pathbuf));
-
-	if (view != NULL) {
-		dns_view_detach(&view);
-	}
-	if (tsigkey != NULL) {
-		dns_tsigkey_detach(&tsigkey);
-	}
-	if (ring != NULL) {
-		dns_tsigkeyring_detach(&ring);
-	}
-	if (emptyring != NULL) {
-		dns_tsigkeyring_detach(&emptyring);
-	}
-	if (destroy_dst) {
-		dst_lib_destroy();
-	}
-	if (mctx != NULL) {
-		isc_mem_detach(&mctx);
-	}
-	if (wd != NULL && chdir(wd) == 0) {
-		if (remove(f1) != 0) {
-			fprintf(stderr, "remove(%s) failed\n", f1);
-		}
-		if (remove(f2) != 0) {
-			fprintf(stderr, "remove(%s) failed\n", f2);
-		}
-		if (remove(f3) != 0) {
-			fprintf(stderr, "remove(%s) failed\n", f3);
-		}
-		/*
-		 * Restore working directory if possible before cleaning
-		 * up the key directory.  This will help with any other
-		 * cleanup routines as the directory should not be in use
-		 * when rmdir() is called.
-		 */
-		if (pwd != NULL && chdir(pwd) != 0) {
-			fprintf(stderr, "can't restore working directory: %s\n",
-				pwd);
-		}
-		if (rmdir(wd) != 0) {
-			fprintf(stderr, "rmdir(%s) failed\n", wd);
-		}
-	} else {
-		fprintf(stderr, "cleanup of %s failed\n", wd ? wd : "(null)");
-	}
-}
-
 int
 LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	isc_result_t result;
@@ -188,8 +137,6 @@ LLVMFuzzerInitialize(int *argc ISC_ATTR_UNUSED, char ***argv ISC_ATTR_UNUSED) {
 	dns_zone_t *zone = NULL;
 	char pathbuf[PATH_MAX];
 	FILE *fd;
-
-	atexit(cleanup);
 
 	wd = mkdtemp(template);
 	if (wd == NULL) {

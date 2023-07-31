@@ -122,7 +122,8 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 
 		dns_badcache_add(qctx->client->view->failcache, dns_rootname,
 				 dns_rdatatype_ns, true,
-				 test->cache_entry_flags, &expire);
+				 test->cache_entry_flags,
+				 isc_time_seconds(&expire));
 	}
 
 	/*
