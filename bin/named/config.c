@@ -308,6 +308,7 @@ dnssec-policy \"default\" {\n\
 };\n\
 \n\
 dnssec-policy \"insecure\" {\n\
+	max-zone-ttl 0; \n\
 	keys { };\n\
 	inline-signing yes;\n\
 };\n\
