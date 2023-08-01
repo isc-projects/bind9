@@ -40,6 +40,12 @@ Feature Changes
   DNS SERVER COOKIES.  Previously these were silently treated as
   DNS CLIENT COOKIES.  :gl:`#4194`
 
+- The option :any:`inline-signing` can now also be set inside
+  :any:`dnssec-policy`. The built-in policies ``default`` and ``insecure``
+  enable the use of :any:`inline-signing`. If you set :any:`inline-signing`
+  at the ``zone`` level, it overrides the value used set in
+  :any:`dnssec-policy`. :gl:`#3677`.
+
 Bug Fixes
 ~~~~~~~~~
 

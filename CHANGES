@@ -1,3 +1,5 @@
+6218.	[func]		Add inline-signing to dnssec-policy. [GL #3677]
+
 6217.	[func]		The dns_badcache unit was refactored to use cds_lfht
 			instead of hand-crafted locked hashtable. [GL #4223]
 

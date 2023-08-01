@@ -2208,6 +2208,7 @@ static cfg_clausedef_t dnssecpolicy_clauses[] = {
 	{ "cdnskey", &cfg_type_boolean, 0 },
 	{ "cds-digest-types", &cfg_type_algorithmlist, 0 },
 	{ "dnskey-ttl", &cfg_type_duration, 0 },
+	{ "inline-signing", &cfg_type_boolean, 0 },
 	{ "keys", &cfg_type_kaspkeys, 0 },
 	{ "max-zone-ttl", &cfg_type_duration, 0 },
 	{ "nsec3param", &cfg_type_nsec3, 0 },

@@ -103,6 +103,7 @@ struct dns_kasp {
 	/* Zone settings */
 	dns_ttl_t zone_max_ttl;
 	uint32_t  zone_propagation_delay;
+	bool	  inline_signing;
 
 	/* Parent settings */
 	dns_ttl_t parent_ds_ttl;
@@ -383,6 +384,30 @@ void
 dns_kasp_setretiresafety(dns_kasp_t *kasp, uint32_t value);
 /*%<
  * Set retire safety interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
+bool
+dns_kasp_inlinesigning(dns_kasp_t *kasp);
+/*%<
+ * Should we use inline-signing for this DNSSEC policy?
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   true or false.
+ */
+
+void
+dns_kasp_setinlinesigning(dns_kasp_t *kasp, bool value);
+/*%<
+ * Set inline-signing.
  *
  * Requires:
  *

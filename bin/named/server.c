@@ -6715,7 +6715,9 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		goto cleanup;
 	}
 
-	if (zone != NULL && !named_zone_reusable(zone, zconfig)) {
+	if (zone != NULL &&
+	    !named_zone_reusable(zone, zconfig, vconfig, config, kasplist))
+	{
 		dns_zone_detach(&zone);
 		fullsign = true;
 	}
@@ -6788,7 +6790,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			      strcasecmp(ztypestr, "slave") == 0));
 
 	if (zone_maybe_inline) {
-		inline_signing = named_zone_inlinesigning(zconfig);
+		inline_signing = named_zone_inlinesigning(zconfig, vconfig,
+							  config, kasplist);
 	}
 	if (inline_signing) {
 		dns_zone_getraw(zone, &raw);

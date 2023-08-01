@@ -6086,7 +6086,7 @@ zone is maintained separately and is written out to a different file on disk
 
 If the zone is dynamic because it is configured with an :any:`update-policy` or
 :any:`allow-update`, the DNSSEC records are written to the filename set in the
-original zone's :any:`file`, unless :any:`inline-signing` is explicitly set.
+original zone's :any:`file`, unless :any:`inline-signing` is enabled.
 
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs

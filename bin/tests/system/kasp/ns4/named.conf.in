@@ -76,14 +76,12 @@ view "inherit" {
 	zone "inherit.inherit.signed" {
 		type primary;
 		file "inherit.inherit.signed.db";
-		inline-signing yes;
 	};
 
 	/* Override dnssec-policy */
 	zone "override.inherit.signed" {
 		type primary;
 		file "override.inherit.signed.db";
-		inline-signing yes;
 		dnssec-policy "default";
 	};
 
@@ -103,14 +101,12 @@ view "override" {
 	zone "inherit.override.signed" {
 		type primary;
 		file "inherit.override.signed.db";
-		inline-signing yes;
 	};
 
 	/* Override dnssec-policy */
 	zone "override.override.signed" {
 		type primary;
 		file "override.override.signed.db";
-		inline-signing yes;
 		dnssec-policy "test";
 	};
 
@@ -136,7 +132,6 @@ view "none" {
 	zone "override.none.signed" {
 		type primary;
 		file "override.none.signed.db";
-		inline-signing yes;
 		dnssec-policy "test";
 	};
 
@@ -155,6 +150,7 @@ view "example1" {
 
 	zone "example.net" {
 		type primary;
+		inline-signing no;
 		file "example1.db";
 	};
 };
@@ -165,7 +161,6 @@ view "example2" {
 	zone "example.net" {
 		type primary;
 		file "example2.db";
-		inline-signing yes;
 	};
 };
 

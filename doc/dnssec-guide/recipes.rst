@@ -63,7 +63,6 @@ what the :iscman:`named.conf` zone statement looks like on the primary server, 1
        file "db/example.com.db";
        key-directory "keys/example.com";
        dnssec-policy default;
-       inline-signing yes;
        allow-transfer { 192.168.1.2; 192.168.1.3; 192.168.1.4; };
    };
 
@@ -143,7 +142,6 @@ signed data via zone transfer to the other three DNS secondaries. Its
        file "db/example.com.db";
        key-directory "keys/example.com";
        dnssec-policy default;
-       inline-signing yes;
        allow-transfer { 192.168.1.2; 192.168.1.3; 192.168.1.4; };
    };
 
@@ -997,7 +995,6 @@ Here is what :iscman:`named.conf` looks like when it is signed:
        type primary;
        file "db/example.com.db";
        dnssec-policy "default";
-       inline-signing yes;
    };
 
 To indicate the reversion to unsigned, change the :any:`dnssec-policy` line:
@@ -1009,7 +1006,6 @@ To indicate the reversion to unsigned, change the :any:`dnssec-policy` line:
        type primary;
        file "db/example.com.db";
        dnssec-policy "insecure";
-       inline-signing yes;
    };
 
 Then use :option:`rndc reload` to reload the zone.

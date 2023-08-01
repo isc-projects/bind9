@@ -38,6 +38,7 @@ controls {
 };
 
 dnssec-policy "dnssec" {
+	inline-signing no;
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
@@ -45,6 +46,7 @@ dnssec-policy "dnssec" {
 };
 
 dnssec-policy "manykeys" {
+	inline-signing no;
 	keys {
 		ksk lifetime unlimited algorithm 8;
 		zsk lifetime unlimited algorithm 8;

@@ -35,6 +35,10 @@ controls {
 	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+dnssec-policy "default-dynamic" {
+	inline-signing no;
+};
+
 zone "example" {
 	type primary;
 	allow-update { any; };
@@ -84,6 +88,6 @@ zone "too-big.test" {
 zone "multisigner.test" {
 	type primary;
 	allow-update { any; };
-	dnssec-policy "default";
+	dnssec-policy "default-dynamic";
 	file "multisigner.test.db";
 };

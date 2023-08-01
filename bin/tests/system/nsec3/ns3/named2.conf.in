@@ -29,7 +29,6 @@ dnssec-policy "rsasha1" {
 zone "rsasha1-to-nsec3.kasp" {
 	type primary;
 	file "rsasha1-to-nsec3.kasp.db";
-	inline-signing yes;
 	//dnssec-policy "rsasha1";
 	dnssec-policy "nsec3";
 };
@@ -42,7 +41,6 @@ zone "rsasha1-to-nsec3.kasp" {
 zone "rsasha1-to-nsec3-wait.kasp" {
 	type primary;
 	file "rsasha1-to-nsec3-wait.kasp.db";
-	inline-signing yes;
 	//dnssec-policy "rsasha1";
 	dnssec-policy "nsec3";
 };
@@ -55,7 +53,6 @@ zone "rsasha1-to-nsec3-wait.kasp" {
 zone "nsec3-to-rsasha1.kasp" {
 	type primary;
 	file "nsec3-to-rsasha1.kasp.db";
-	inline-signing yes;
 	//dnssec-policy "nsec3";
 	dnssec-policy "rsasha1";
 };
@@ -69,7 +66,6 @@ zone "nsec3-to-rsasha1.kasp" {
 zone "nsec3-to-rsasha1-ds.kasp" {
 	type primary;
 	file "nsec3-to-rsasha1-ds.kasp.db";
-	inline-signing yes;
 	//dnssec-policy "nsec3";
 	dnssec-policy "rsasha1";
 };

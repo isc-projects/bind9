@@ -98,11 +98,11 @@ up-to-date DNSSEC practices:
         type primary;
         file "dnssec.example.db";
         dnssec-policy default;
-        inline-signing yes;
     };
 
 The :any:`dnssec-policy` statement requires dynamic DNS to be set up, or
-:any:`inline-signing` to be enabled. In the example above we use the latter.
+:any:`inline-signing` to be enabled. In the example above we use the latter,
+because the ``default`` policy uses :any:`inline-signing`.
 
 This is sufficient to create the necessary signing keys, and generate
 ``DNSKEY``, ``RRSIG``, and ``NSEC`` records for the zone. BIND also takes
@@ -174,7 +174,6 @@ by configuring parental agents:
         type primary;
         file "dnssec.example.db";
         dnssec-policy default;
-        inline-signing yes;
         parental-agents { 192.0.2.1; };
         checkds explicit;
     };
