@@ -40,6 +40,10 @@ Bug Fixes
   flushed.  This has been fixed to not process queued already received queries
   over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
 
+- Ignore :any:`max-zone-ttl` for :any:`dnssec-policy` "insecure",
+  otherwise some zones will not be loaded if they use a TTL value larger
+  than 86400. :gl:`#4032`.
+
 Known Issues
 ~~~~~~~~~~~~
 

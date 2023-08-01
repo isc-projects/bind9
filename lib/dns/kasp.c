@@ -27,6 +27,9 @@
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 
+/* Default TTLsig (maximum zone ttl) */
+#define DEFAULT_TTLSIG 86400
+
 isc_result_t
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	dns_kasp_t *kasp;
@@ -237,10 +240,13 @@ dns_kasp_setretiresafety(dns_kasp_t *kasp, uint32_t value) {
 }
 
 dns_ttl_t
-dns_kasp_zonemaxttl(dns_kasp_t *kasp) {
+dns_kasp_zonemaxttl(dns_kasp_t *kasp, bool fallback) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
 
+	if (kasp->zone_max_ttl == 0 && fallback) {
+		return (DEFAULT_TTLSIG);
+	}
 	return (kasp->zone_max_ttl);
 }
 
