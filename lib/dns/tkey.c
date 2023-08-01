@@ -523,7 +523,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	if (tctx->gsscred == NULL && tctx->gssapi_keytab == NULL) {
 		tkey_log("process_gsstkey(): no tkey-gssapi-credential "
 			 "or tkey-gssapi-keytab configured");
-		return (ISC_R_NOPERM);
+		return (DNS_R_REFUSED);
 	}
 
 	if (!dns_name_equal(&tkeyin->algorithm, DNS_TSIG_GSSAPI_NAME) &&

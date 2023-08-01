@@ -3140,7 +3140,16 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	if (rcvmsg->rcode != dns_rcode_noerror &&
 	    rcvmsg->rcode != dns_rcode_nxdomain)
 	{
-		fatal("response to GSS-TSIG query was unsuccessful");
+		char rcode[64];
+		isc_buffer_t b;
+
+		isc_buffer_init(&b, rcode, sizeof(rcode) - 1);
+		result = dns_rcode_totext(rcvmsg->rcode, &b);
+		check_result(result, "dns_rcode_totext");
+		rcode[isc_buffer_usedlength(&b)] = 0;
+
+		fatal("response to GSS-TSIG query was unsuccessful (%s)",
+		      rcode);
 	}
 
 	servname = dns_fixedname_initname(&fname);

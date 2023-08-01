@@ -23,7 +23,7 @@ copy_setports ns2/named.conf.in ns2/named.conf
 copy_setports ns3/named.conf.in ns3/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
-copy_setports ns7/named.conf.in ns7/named.conf
+copy_setports ns7/named1.conf.in ns7/named.conf
 copy_setports ns8/named.conf.in ns8/named.conf
 
 # If "tkey-gssapi-credential" is set in the configuration and GSSAPI support is
