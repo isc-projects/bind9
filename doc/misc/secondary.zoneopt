@@ -9,7 +9,7 @@ zone <string> [ <class> ] {
 	check-names ( fail | warn | ignore );
 	checkds ( explicit | <boolean> );
 	database <string>;
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	dlz <string>;
 	dnskey-sig-validity <integer>; // obsolete
 	dnssec-dnskey-kskonly <boolean>; // obsolete

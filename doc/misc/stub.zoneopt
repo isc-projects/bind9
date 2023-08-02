@@ -4,7 +4,7 @@ zone <string> [ <class> ] {
 	allow-query-on { <address_match_element>; ... };
 	check-names ( fail | warn | ignore );
 	database <string>;
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	file <quoted_string>;
 	forward ( first | only );
 	forwarders [ port <integer> ] [ tls <string> ] { ( <ipv4_address> | <ipv6_address> ) [ port <integer> ] [ tls <string> ]; ... };
