@@ -45,6 +45,7 @@ mkeys_resign_rootzone() (
 	n=$1
 	(
 		cd ns1
+		sleep 1 # ensure modification time changes
 		$SIGNER -PSg -N unixtime -o . root.db > signer.out.test$1 2>&1
 	)
 	nextpart ns1/named.run > /dev/null
@@ -477,6 +478,7 @@ ret=0
 $SETTIME -D none -R none -K ns1 "$original" > /dev/null
 $SETTIME -D now -K ns1 "$standby1" > /dev/null
 $SETTIME -D now -K ns1 "$standby2" > /dev/null
+sleep 1 # ensure modification time changes
 $SIGNER -Sg -K ns1 -N unixtime -o . ns1/root.db > /dev/null 2>/dev/null
 copy_setports ns1/named2.conf.in ns1/named.conf
 rm -f ns1/root.db.signed.jnl
