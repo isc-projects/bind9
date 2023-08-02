@@ -18,7 +18,7 @@ zone <string> [ <class> ] {
 	check-srv-cname ( fail | warn | ignore );
 	check-wildcard <boolean>;
 	database <string>;
-	dialup ( notify | notify-passive | passive | refresh | <boolean> );
+	dialup ( notify | notify-passive | passive | refresh | <boolean> ); // deprecated
 	dlz <string>;
 	dnskey-sig-validity <integer>;
 	dnssec-dnskey-kskonly <boolean>;
