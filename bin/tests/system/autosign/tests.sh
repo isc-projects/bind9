@@ -998,6 +998,7 @@ status=$((status + ret))
 
 echo_i "checking scheduled key activation ($n)"
 ret=0
+sleep 1 # ensure file system time stamp of ns3/delay.example.db changes
 $SETTIME -K ns3 -A now $zsk > settime.out.test$n.zsk || ret=1
 $SETTIME -K ns3 -A now $ksk > settime.out.test$n.ksk || ret=1
 cp ns3/delay.example.db ns3/delay.example.2
