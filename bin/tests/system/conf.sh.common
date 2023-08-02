@@ -137,13 +137,13 @@ zonechecks"
 # Set up color-coded test output
 #
 if [ ${SYSTEMTEST_FORCE_COLOR:-0} -eq 1 ] || test -t 1 && type tput > /dev/null 2>&1 && tput setaf 7 > /dev/null 2>&1 ; then
-    export COLOR_END=`tput setaf 4`    # blue
-    export COLOR_FAIL=`tput setaf 1`   # red
-    export COLOR_INFO=`tput bold`      # bold
-    export COLOR_NONE=`tput sgr0`
-    export COLOR_PASS=`tput setaf 2`   # green
-    export COLOR_START=`tput setaf 4`  # blue
-    export COLOR_WARN=`tput setaf 3`   # yellow
+    export COLOR_END=$(tput setaf 4)    # blue
+    export COLOR_FAIL=$(tput setaf 1)   # red
+    export COLOR_INFO=$(tput bold)      # bold
+    export COLOR_NONE=$(tput sgr0)
+    export COLOR_PASS=$(tput setaf 2)   # green
+    export COLOR_START=$(tput setaf 4)  # blue
+    export COLOR_WARN=$(tput setaf 3)   # yellow
 else
     # set to empty strings so printf succeeds
     export COLOR_END=''
@@ -155,7 +155,7 @@ else
     export COLOR_WARN=''
 fi
 
-export SYSTESTDIR="`basename $PWD`"
+export SYSTESTDIR="$(basename $PWD)"
 
 if type printf > /dev/null 2>&1
 then
@@ -246,7 +246,7 @@ cat_d() {
 }
 
 digcomp() {
-    { output=`$PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"`; result=$?; } || true
+    { output=$($PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"); result=$?; } || true
     [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
     return $result
 }
@@ -480,7 +480,7 @@ nextpartreset() {
 # total number of lines read from that file so far to file descriptor 3
 nextpartread() {
     [ -f $1.prev ] || nextpartreset $1
-    prev=`cat $1.prev`
+    prev=$(cat $1.prev)
     awk "NR > $prev "'{ print }
 	 END          { print NR > "/dev/stderr" }' $1 2>&3
 }
@@ -686,8 +686,8 @@ get_dig_xfer_stats() {
 # them to a format used by some system tests.
 get_named_xfer_stats() {
 	LOGFILE="$1"
-	PEER="`echo $2 | sed 's/\./\\\\./g'`"
-	ZONE="`echo $3 | sed 's/\./\\\\./g'`"
+	PEER="$(echo $2 | sed 's/\./\\./g')"
+	ZONE="$(echo $3 | sed 's/\./\\./g')"
 	MESSAGE="$4"
 	grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" | \
 		sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) messages.*/messages=\1/p" | tail -1
