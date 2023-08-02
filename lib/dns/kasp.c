@@ -30,7 +30,7 @@
 #include <dst/dst.h>
 
 /* Default TTLsig (maximum zone ttl) */
-#define DEFAULT_TTLSIG 86400
+#define DEFAULT_TTLSIG 604800 /* one week */
 
 isc_result_t
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
