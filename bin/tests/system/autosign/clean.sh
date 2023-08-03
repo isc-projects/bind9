@@ -26,8 +26,7 @@ rm -f active.key inact.key del.key delzsk.key unpub.key standby.key rev.key
 rm -f delayksk.key delayzsk.key autoksk.key autozsk.key
 rm -f noksk-ksk.key nozsk-ksk.key nozsk-zsk.key inaczsk-zsk.key inaczsk-ksk.key
 rm -f nopriv.key vanishing.key del1.key del2.key
-rm -f ns*/inactive/*
-rmdir ns*/inactive
+rm -rf ns*/inactive
 rm -f ns*/managed-keys.bind*
 rm -f ns*/named.lock
 rm -f ns1/root.db ns1/root.db.1 ns1/root.db.2 ns1/root.db.3
@@ -42,6 +41,7 @@ rm -f ns2/private.secure.example.db
 rm -f ns2/signing.*
 rm -f ns3/*.nzd ns3/*.nzd-lock ns3/*.nzf
 rm -f ns3/*.nzf
+rm -f ns3/*.jbk
 rm -f ns3/autonsec3.example.db
 rm -f ns3/delay.example.db ns3/delay.example.1 ns3/delay.example.2
 rm -f ns3/delzsk.example.db
@@ -71,7 +71,7 @@ rm -f ns3/secure.optout.example.db
 rm -f ns3/settime.out.*
 rm -f ns3/sync.example.db
 rm -f ns3/ttl*.db
-rm -f nsupdate.out
+rm -f nsupdate.out.test*
 rm -f settime.out.*
 rm -f signing.*
 rm -f sync.key
