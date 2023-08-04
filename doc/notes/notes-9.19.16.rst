@@ -15,38 +15,39 @@ Notes for BIND 9.19.16
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The 'auto-dnssec' configuration option has now been removed. Please
-  use :any:`dnssec-policy` or manual signing instead. The following options
-  have become obsolete: :any:`dnskey-sig-validity`,
+- The ``auto-dnssec`` configuration statement has been removed. Please
+  use :any:`dnssec-policy` or manual signing instead. The following
+  statements have become obsolete: :any:`dnskey-sig-validity`,
   :any:`dnssec-dnskey-kskonly`, :any:`dnssec-update-mode`,
-  :any:`sig-validity-interval`, and :any:`update-check-ksk`. :gl:`#3672`.
+  :any:`sig-validity-interval`, and :any:`update-check-ksk`. :gl:`#3672`
 
 - The :any:`dialup` and :any:`heartbeat-interval` options have been
-  deprecated and will be removed in a future release. :gl:`#3700`
+  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- Return BADCOOKIE for out-of-date or otherwise bad, well formed
-  DNS SERVER COOKIES.  Previously these were silently treated as
-  DNS CLIENT COOKIES.  :gl:`#4194`
+- BIND now returns BADCOOKIE for out-of-date or otherwise bad but
+  well-formed DNS server cookies. :gl:`#4194`
 
-- The option :any:`inline-signing` can now also be set inside
-  :any:`dnssec-policy`. The built-in policies ``default`` and ``insecure``
-  enable the use of :any:`inline-signing`. If you set :any:`inline-signing`
-  at the ``zone`` level, it overrides the value used set in
-  :any:`dnssec-policy`. :gl:`#3677`.
+- The :any:`inline-signing` statement can now also be set inside
+  :any:`dnssec-policy`. The built-in policies ``default`` and
+  ``insecure`` enable the use of :any:`inline-signing`. If
+  :any:`inline-signing` is set at the ``zone`` level, it overrides the
+  value set in :any:`dnssec-policy`. :gl:`#3677`
 
 Bug Fixes
 ~~~~~~~~~
 
-- Query-processing latency under load has been improved by reducing the
-  uninterrupted time spent by resolving long cached chains of domain names.
-  :gl:`#4185`
+- To improve query-processing latency under load, the uninterrupted time
+  spent on resolving long chains of cached domain names has been
+  reduced. :gl:`#4185`
 
-- Ignore :any:`max-zone-ttl` for :any:`dnssec-policy` "insecure",
-  otherwise some zones will not be loaded if they use a TTL value larger
-  than 86400. :gl:`#4032`.
+- Setting :any:`dnssec-policy` to ``insecure`` prevented zones
+  containing resource records with a TTL value larger than 86400 seconds
+  (1 day) from being loaded. This has been fixed by ignoring the TTL
+  values in the zone and using a value of 604800 seconds (1 week) as the
+  maximum zone TTL in key rollover timing calculations. :gl:`#4032`
 
 Known Issues
 ~~~~~~~~~~~~
