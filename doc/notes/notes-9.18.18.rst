@@ -12,16 +12,6 @@
 Notes for BIND 9.18.18
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
