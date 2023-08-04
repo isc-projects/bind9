@@ -21,9 +21,6 @@ Removed Features
   :any:`dnssec-dnskey-kskonly`, :any:`dnssec-update-mode`,
   :any:`sig-validity-interval`, and :any:`update-check-ksk`. :gl:`#3672`
 
-- The :any:`dialup` and :any:`heartbeat-interval` options have been
-  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -36,12 +33,15 @@ Feature Changes
   :any:`inline-signing` is set at the ``zone`` level, it overrides the
   value set in :any:`dnssec-policy`. :gl:`#3677`
 
-Bug Fixes
-~~~~~~~~~
-
 - To improve query-processing latency under load, the uninterrupted time
   spent on resolving long chains of cached domain names has been
   reduced. :gl:`#4185`
+
+- The :any:`dialup` and :any:`heartbeat-interval` options have been
+  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
+
+Bug Fixes
+~~~~~~~~~
 
 - Setting :any:`dnssec-policy` to ``insecure`` prevented zones
   containing resource records with a TTL value larger than 86400 seconds
