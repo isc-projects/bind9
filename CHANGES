@@ -1,3 +1,5 @@
+	--- 9.16.43 released ---
+
 6212.	[bug]		Don't process detach and close netmgr events when
 			the netmgr has been paused. [GL #4200]
 
