@@ -12,16 +12,6 @@
 Notes for BIND 9.19.16
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -37,8 +27,6 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
-
 - Return BADCOOKIE for out-of-date or otherwise bad, well formed
   DNS SERVER COOKIES.  Previously these were silently treated as
   DNS CLIENT COOKIES.  :gl:`#4194`
@@ -51,8 +39,6 @@ Feature Changes
 
 Bug Fixes
 ~~~~~~~~~
-
-- None.
 
 - Query-processing latency under load has been improved by reducing the
   uninterrupted time spent by resolving long cached chains of domain names.
