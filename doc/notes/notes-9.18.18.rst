@@ -12,16 +12,11 @@
 Notes for BIND 9.18.18
 ----------------------
 
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- The :any:`dialup` and :any:`heartbeat-interval` options have been
-  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The :any:`dialup` and :any:`heartbeat-interval` options have been
+  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
 
 Bug Fixes
 ~~~~~~~~~
