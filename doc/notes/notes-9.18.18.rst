@@ -16,7 +16,7 @@ Removed Features
 ~~~~~~~~~~~~~~~~
 
 - The :any:`dialup` and :any:`heartbeat-interval` options have been
-  deprecated and will be removed in a future release. :gl:`#3700`
+  deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -26,14 +26,15 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Processing already queued queries received over TCP can cause assertion
-  failure when the server is reconfigured at the same time or the cache has been
-  flushed.  This has been fixed to not process queued already received queries
-  over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
+- Processing already-queued queries received over TCP could cause an
+  assertion failure, when the server was reconfigured at the same time
+  or the cache was being flushed. This has been fixed. :gl:`#4200`
 
-- Ignore :any:`max-zone-ttl` for :any:`dnssec-policy` "insecure",
-  otherwise some zones will not be loaded if they use a TTL value larger
-  than 86400. :gl:`#4032`.
+- Setting :any:`dnssec-policy` to ``insecure`` prevented zones
+  containing resource records with a TTL value larger than 86400 seconds
+  (1 day) from being loaded. This has been fixed by ignoring the TTL
+  values in the zone and using a value of 604800 seconds (1 week) as the
+  maximum zone TTL in key rollover timing calculations. :gl:`#4032`
 
 Known Issues
 ~~~~~~~~~~~~
