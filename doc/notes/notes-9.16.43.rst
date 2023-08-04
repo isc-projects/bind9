@@ -15,10 +15,9 @@ Notes for BIND 9.16.43
 Bug Fixes
 ~~~~~~~~~
 
-- Processing already queued queries received over TCP can cause assertion
-  failure when the server is reconfigured at the same time or the cache has been
-  flushed.  This has been fixed to not process queued already received queries
-  over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
+- Processing already-queued queries received over TCP could cause an
+  assertion failure, when the server was reconfigured at the same time
+  or the cache was being flushed. This has been fixed. :gl:`#4200`
 
 Known Issues
 ~~~~~~~~~~~~
