@@ -15,6 +15,14 @@ Notes for BIND 9.18.18
 Feature Changes
 ~~~~~~~~~~~~~~~
 
+- When a primary server for a zone responds to an SOA query, but the
+  subsequent TCP connection required to transfer the zone is refused,
+  that server is marked as temporarily unreachable. This now also
+  happens if the TCP connection attempt times out, preventing too many
+  zones from queuing up on an unreachable server and allowing the
+  refresh process to move on to the next configured primary more
+  quickly. :gl:`#4215`
+
 - The :any:`dialup` and :any:`heartbeat-interval` options have been
   deprecated and will be removed in a future BIND 9 release. :gl:`#3700`
 
