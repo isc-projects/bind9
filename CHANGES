@@ -1,3 +1,5 @@
+	--- 9.18.18 released ---
+
 6220.	[func]		Deprecate the 'dialup' and 'heartbeat-interval'
 			options. [GL #3700]
 
