@@ -27,6 +27,14 @@ Feature Changes
 - BIND now returns BADCOOKIE for out-of-date or otherwise bad but
   well-formed DNS server cookies. :gl:`#4194`
 
+- When a primary server for a zone responds to an SOA query, but the
+  subsequent TCP connection required to transfer the zone is refused,
+  that server is marked as temporarily unreachable. This now also
+  happens if the TCP connection attempt times out, preventing too many
+  zones from queuing up on an unreachable server and allowing the
+  refresh process to move on to the next configured primary more
+  quickly. :gl:`#4215`
+
 - The :any:`inline-signing` statement can now also be set inside
   :any:`dnssec-policy`. The built-in policies ``default`` and
   ``insecure`` enable the use of :any:`inline-signing`. If
