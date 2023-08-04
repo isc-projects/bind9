@@ -1,3 +1,5 @@
+	--- 9.19.16 released ---
+
 6221.	[cleanup]	Refactor dns_rdataset internals, move rdatasetheader
 			declarations out of rbtdb.c so they can be used by other
 			databases in the future, and split the zone and cache
