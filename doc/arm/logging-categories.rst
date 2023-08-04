@@ -65,11 +65,11 @@
     
     The query log entry first reports a client object identifier in @0x<hexadecimal-number> format. Next, it reports the client's IP address and port number, and the query name, class, and type. Next, it reports whether the Recursion Desired flag was set (+ if set, - if not set), whether the query was signed (S), whether EDNS was in use along with the EDNS version number (E(#)), whether TCP was used (T), whether DO (DNSSEC Ok) was set (D), whether CD (Checking Disabled) was set (C), whether a valid DNS Server COOKIE was received (V), and whether a DNS COOKIE option without a valid Server COOKIE was present (K). After this, the destination address the query was sent to is reported. Finally, if any CLIENT-SUBNET option was present in the client query, it is included in square brackets in the format [ECS address/source/scope].
 
-    ``client 127.0.0.1#62536 (www.example.com):``
-    ``query: www.example.com IN AAAA +SE``
-    ``client ::1#62537 (www.example.net):``
-    ``query: www.example.net IN AAAA -SE``
-    
+    .. code-block:: none
+
+       client @0x7f91b8005490 127.0.0.1#62536 (www.example.com): query: www.example.com IN AAAA +E(0)K (127.0.0.1)
+       client @0x7f91b4007400 ::1#62537 (www.example.net): query: www.example.net IN AAAA +E(0)K (::1)
+
     The first part of this log message, showing the client address/port number and query name, is repeated in all subsequent log messages related to the same query.
 
 ``query-errors``
