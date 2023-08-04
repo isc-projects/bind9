@@ -1476,7 +1476,7 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	uint8_t mask = (1 << 7);
 	uint8_t bits = 0;
 
-	dns_db_locknode(header->db, header->node, isc_rwlocktype_write);
+	dns_db_locknode(header->db, header->node, isc_rwlocktype_read);
 
 	if (!CASESET(header)) {
 		goto unlock;
@@ -1499,5 +1499,5 @@ rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name) {
 	}
 
 unlock:
-	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_write);
+	dns_db_unlocknode(header->db, header->node, isc_rwlocktype_read);
 }
