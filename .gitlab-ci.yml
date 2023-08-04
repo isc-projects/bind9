@@ -634,7 +634,7 @@ gcc:oraclelinux7:amd64:
     CC: gcc
     # -Wno-address suppresses isc_buffer macro warnings
     CFLAGS: "${CFLAGS_COMMON} -Wno-address"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--disable-dnstap --with-libidn2"
   <<: *oraclelinux_7_amd64_image
   <<: *build_job
 
