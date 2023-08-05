@@ -80,7 +80,6 @@ if ! $do_run; then
         SLOT="$SLOT" \
         ${OPENSSL_CONF:+OPENSSL_CONF="$OPENSSL_CONF"} \
         SOFTHSM2_CONF="$SOFTHSM2_CONF" \
-        SOFTHSM2_MODULE="$SOFTHSM2_MODULE" \
         PATH="$PATH" \
         ${LD_LIBRARY_PATH:+"LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"} \
         TESTS="$*" \

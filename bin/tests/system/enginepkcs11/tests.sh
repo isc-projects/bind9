@@ -16,6 +16,7 @@ set -e
 # shellcheck source=conf.sh
 . ../conf.sh
 
+parse_openssl_config
 PWD=$(pwd)
 
 status=0
