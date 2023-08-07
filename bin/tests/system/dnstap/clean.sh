@@ -19,7 +19,7 @@ rm -f */named.stats
 rm -f dig.out*
 rm -f dnstap.out dnstap.hex
 rm -f dnstap.out.save
-rm -f fstrm_capture.out
+rm -f fstrm_capture.out.*
 rm -f ns*/dnstap.out
 rm -f ns*/dnstap.out.save
 rm -f ns*/dnstap.out.save.?
