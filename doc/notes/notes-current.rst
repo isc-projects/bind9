@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.43
+Notes for BIND 9.16.44
 ----------------------
 
 Security Fixes
@@ -35,10 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Processing already queued queries received over TCP can cause assertion
-  failure when the server is reconfigured at the same time or the cache has been
-  flushed.  This has been fixed to not process queued already received queries
-  over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
