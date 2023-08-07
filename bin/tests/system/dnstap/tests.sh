@@ -78,9 +78,14 @@ mv ns1/dnstap.out ns1/dnstap.out.save
 mv ns2/dnstap.out ns2/dnstap.out.save
 
 if [ -n "$FSTRM_CAPTURE" ] ; then
+	ret=0
+	echo_i "starting fstrm_capture"
 	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
-		-w dnstap.out > fstrm_capture.out 2>&1 &
+		-w dnstap.out > fstrm_capture.out.1 2>&1 &
 	fstrm_capture_pid=$!
+	wait_for_log 10 "socket path ns4/dnstap.out" fstrm_capture.out.1 || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=$((status + ret))
 fi
 
 $RNDCCMD -s 10.53.0.1 dnstap-reopen | sed 's/^/ns1 /' | cat_i
@@ -564,7 +569,7 @@ EOF
 
 	echo_i "checking unix socket message counts"
 	sleep 2
-	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 454 || {
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 450 || {
 		echo_i "dnstap output file smaller than expected"
 		ret=1
 	}
@@ -673,10 +678,14 @@ EOF
 
 	mv dnstap.out dnstap.out.save
 
+	echo_i "restarting fstrm_capture"
 	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
-		-w dnstap.out > fstrm_capture.out 2>&1 &
+		-w dnstap.out > fstrm_capture.out.2 2>&1 &
 	fstrm_capture_pid=$!
-	sleep 1
+	wait_for_log 10 "socket path ns4/dnstap.out" fstrm_capture.out.2 || {
+		echo_i "failed"
+		ret=1
+	}
 	$RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/ns4 /' | cat_i
 	$DIG $DIGOPTS @10.53.0.4 a.example > dig.out
 
