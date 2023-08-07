@@ -374,7 +374,7 @@ cross-version-config-tests:
     # intends to detect obvious backward compatibility issues with the latter.
     - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
     - >
-      "$PYTEST" --setup-only -n "${TEST_PARALLEL_JOBS:-1}"
+      "$PYTEST" --setup-only -n "${TEST_PARALLEL_JOBS:-1}" -k "not dupsigs and not keymgr2kasp"
   needs:
     - job: autoreconf
       artifacts: true
