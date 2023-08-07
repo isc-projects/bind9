@@ -1291,7 +1291,6 @@ clang:openbsd:amd64:
 system:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *system_test_job
-  <<: *system_test_legacy
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
