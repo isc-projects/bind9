@@ -4,7 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-check_LTLIBRARIES = sample.la
+noinst_LTLIBRARIES = sample.la
 
 sample_la_SOURCES =	\
 	db.c		\
