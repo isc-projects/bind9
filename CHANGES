@@ -1,3 +1,6 @@
+6246.	[security]	Fix use-after-free error in TLS DNS code when sending
+			data. (CVE-2023-4236) [GL #4242]
+
 6245.	[security]	Limit the amount of recursion that can be performed
 			by isccc_cc_fromwire. (CVE-2023-3341) [GL #4152]
 
