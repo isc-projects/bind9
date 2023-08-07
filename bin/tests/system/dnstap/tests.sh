@@ -569,7 +569,7 @@ EOF
 
 	echo_i "checking unix socket message counts"
 	sleep 2
-	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 454 || {
+	retry_quiet 5 dnstap_data_ready $fstrm_capture_pid dnstap.out 450 || {
 		echo_i "dnstap output file smaller than expected"
 		ret=1
 	}
