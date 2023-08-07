@@ -407,13 +407,13 @@ _wait_for_stats () {
 n=$((n+1))
 echo_i "checking whether named calculates incoming IXFR statistics correctly ($n)"
 ret=0
-retry_quiet 10 _wait_for_stats 10.53.0.3 "Transfer completed" stats.incoming
+retry_quiet 10 _wait_for_stats 10.53.0.3 "Transfer completed" stats.incoming || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 n=$((n+1))
 echo_i "checking whether named calculates outgoing IXFR statistics correctly ($n)"
-retry_quiet 10 _wait_for_stats 10.53.0.4 "IXFR ended" stats.outgoing
+retry_quiet 10 _wait_for_stats 10.53.0.4 "IXFR ended" stats.outgoing || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
