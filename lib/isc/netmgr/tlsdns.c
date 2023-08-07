@@ -1937,9 +1937,11 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 cycle:
 	result = tls_cycle(sock);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
 
 requeue:
-
 	tlsdns_send_enqueue(sock, req);
 
 	return (result);
