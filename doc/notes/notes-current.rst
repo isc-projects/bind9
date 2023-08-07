@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.18
+Notes for BIND 9.18.19
 ----------------------
 
 Security Fixes
@@ -25,8 +25,7 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The :any:`dialup` and :any:`heartbeat-interval` options have been
-  deprecated and will be removed in a future release. :gl:`#3700`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
@@ -36,14 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Processing already queued queries received over TCP can cause assertion
-  failure when the server is reconfigured at the same time or the cache has been
-  flushed.  This has been fixed to not process queued already received queries
-  over TCP while the server is in the "exclusive" mode.  :gl:`#4200`
-
-- Ignore :any:`max-zone-ttl` for :any:`dnssec-policy` "insecure",
-  otherwise some zones will not be loaded if they use a TTL value larger
-  than 86400. :gl:`#4032`.
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
