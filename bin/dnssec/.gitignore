@@ -2,6 +2,7 @@ dnssec-cds
 dnssec-dsfromkey
 dnssec-keyfromlabel
 dnssec-keygen
+dnssec-ksr
 dnssec-makekeyset
 dnssec-revoke
 dnssec-settime

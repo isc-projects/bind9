@@ -75,6 +75,7 @@ doc/man/dnssec-importkey.8in
 doc/man/dnssec-keyfromlabel.8in
 doc/man/dnssec-keygen.8in
 doc/man/dnssec-keymgr.8in
+doc/man/dnssec-ksr.8in
 doc/man/dnssec-revoke.8in
 doc/man/dnssec-settime.8in
 doc/man/dnssec-signzone.8in

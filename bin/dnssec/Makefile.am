@@ -21,6 +21,7 @@ bin_PROGRAMS = \
 	dnssec-importkey	\
 	dnssec-keyfromlabel	\
 	dnssec-keygen		\
+	dnssec-ksr		\
 	dnssec-revoke		\
 	dnssec-settime		\
 	dnssec-signzone		\
