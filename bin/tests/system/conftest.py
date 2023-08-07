@@ -189,28 +189,6 @@ else:
         # Ensure this hook only runs on the main pytest instance if xdist is
         # used to spawn other workers.
         if not XDIST_WORKER:
-            CONFTEST_LOGGER.debug("compiling required files")
-            env = os.environ.copy()
-            env["TESTS"] = ""  # disable automake test framework - compile-only
-            try:
-                # FUTURE: Remove the need to run this compilation command
-                # before executing tests. Currently it's only here to have
-                # on-par functionality with the legacy test framework.
-                proc = subprocess.run(
-                    "make -e check",
-                    shell=True,
-                    check=True,
-                    cwd=FILE_DIR,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    env=env,
-                )
-            except subprocess.CalledProcessError as exc:
-                CONFTEST_LOGGER.debug(exc.stdout)
-                CONFTEST_LOGGER.error("failed to compile test files: %s", exc)
-                raise exc
-            CONFTEST_LOGGER.debug(proc.stdout)
-
             if config.pluginmanager.has_plugin("xdist") and config.option.numprocesses:
                 # system tests depend on module scope for setup & teardown
                 # enforce use "loadscope" scheduler or disable paralelism
