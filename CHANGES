@@ -1,3 +1,7 @@
+6223.	[func]		Make -E engine option for OpenSSL Engine API use only.
+			OpenSSL Provider API will now require engine to not be
+			set. [GL #8153]
+
 6222.	[func]		Fixes to provider/engine based ECDSA key handling. [GL !8152]
 
 6221.	[cleanup]	Refactor dns_rdataset internals, move rdatasetheader

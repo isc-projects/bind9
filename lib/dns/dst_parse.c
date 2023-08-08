@@ -189,10 +189,9 @@ check_rsa(const dst_private_t *priv, bool external) {
 
 	mask = (1ULL << TAG_SHIFT) - 1;
 
-	if (have[TAG_RSA_ENGINE & mask]) {
+	if (have[TAG_RSA_LABEL & mask]) {
 		ok = have[TAG_RSA_MODULUS & mask] &&
-		     have[TAG_RSA_PUBLICEXPONENT & mask] &&
-		     have[TAG_RSA_LABEL & mask];
+		     have[TAG_RSA_PUBLICEXPONENT & mask];
 	} else {
 		ok = have[TAG_RSA_MODULUS & mask] &&
 		     have[TAG_RSA_PUBLICEXPONENT & mask] &&
@@ -234,11 +233,9 @@ check_ecdsa(const dst_private_t *priv, bool external) {
 
 	mask = (1ULL << TAG_SHIFT) - 1;
 
-	if (have[TAG_ECDSA_ENGINE & mask]) {
-		ok = have[TAG_ECDSA_LABEL & mask];
-	} else {
-		ok = have[TAG_ECDSA_PRIVATEKEY & mask];
-	}
+	ok = have[TAG_ECDSA_LABEL & mask] ||
+	     have[TAG_ECDSA_PRIVATEKEY & mask];
+
 	return (ok ? 0 : -1);
 }
 
@@ -270,11 +267,9 @@ check_eddsa(const dst_private_t *priv, bool external) {
 
 	mask = (1ULL << TAG_SHIFT) - 1;
 
-	if (have[TAG_EDDSA_ENGINE & mask]) {
-		ok = have[TAG_EDDSA_LABEL & mask];
-	} else {
-		ok = have[TAG_EDDSA_PRIVATEKEY & mask];
-	}
+	ok = have[TAG_EDDSA_LABEL & mask] ||
+	     have[TAG_EDDSA_PRIVATEKEY & mask];
+
 	return (ok ? 0 : -1);
 }
 
