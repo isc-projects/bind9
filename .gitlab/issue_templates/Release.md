@@ -41,6 +41,7 @@
 
 ### Before the Tagging Deadline
 
+ - [ ] ***(QA)*** Inspect the current output of the `cross-version-config-tests` job to verify that no unexpected backward-incompatible change was introduced in the current release cycle.
  - [ ] ***(QA)*** Ensure release notes are correct, ask Support and Marketing to check them as well. [Example](https://gitlab.isc.org/isc-private/bind9/-/merge_requests/510)
  - [ ] ***(QA)*** Add a release marker to `CHANGES`. Examples: [9.18](https://gitlab.isc.org/isc-projects/bind9/-/commit/f14d8ad78c0506fd4247187f2177f8eceeb6b3b9), [9.16](https://gitlab.isc.org/isc-projects/bind9/-/commit/1bcdf21874f99a00da389d723e0ad07dfd70f9f1)
  - [ ] ***(QA)*** Add a release marker to `CHANGES.SE` (Subscription Edition only). [Example](https://gitlab.isc.org/isc-private/bind9/-/commit/0f03d5737bcbdaa1bf713c6db1887b14938c3421)
@@ -88,6 +89,7 @@
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed. `git show --show-signature v9.19.12`
  - [ ] ***(QA)*** Push tags for the published releases to the public repository.
  - [ ] ***(QA)*** Merge published release tags (non-linearly) back into the their relevant development/maintenance branches. [Step 7 of the new workflow](https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/6124#new-workflow)
+ - [ ] ***(QA)*** Ensure `allow_failure: true` is removed from the `cross-version-config-tests` job if it was set during the current release cycle.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize [confidential issues](https://gitlab.isc.org/isc-projects/bind9/-/issues/?sort=milestone_due_desc&state=opened&confidential=yes) which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
  - [ ] ***(QA)*** Update QA tools used in GitLab CI (e.g. Black, PyLint, Sphinx) by modifying the relevant [`Dockerfile`](https://gitlab.isc.org/isc-projects/images/-/merge_requests/228/diffs).
