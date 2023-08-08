@@ -393,7 +393,7 @@ cross-version-config-tests:
   <<: *default_triggering_rules
   stage: system
   before_script:
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - test -n "${OUT_OF_TREE_WORKSPACE}" && cp -r bin/tests/system/* "${OUT_OF_TREE_WORKSPACE}/bin/tests/system/" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
   script:
     - *find_pytest
@@ -953,7 +953,6 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
-  <<: *system_test_legacy
   <<: *api_schedules_tags_triggers_web_triggering_rules
 
 unit:gcc:out-of-tree:
