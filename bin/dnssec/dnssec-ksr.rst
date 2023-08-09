@@ -21,23 +21,68 @@ dnssec-ksr - Create signed key response (SKR) files for offline KSK setups
 Synopsis
 ~~~~~~~~
 
-:program:`dnssec-ksr [**-h**]` [**-V**] [**-v** level]
+:program:`dnssec-ksr` [**-E** engine] [**-e** date/offset] [**-F**] [**-h**] [**-i** date/offset] [**-K** directory] [**-k** policy] [**-l** file] [**-V**] [**-v** level] {command} {zone}
 
 Description
 ~~~~~~~~~~~
 
-The :program:`dnssec-ksr` command creates signed key responses (SKRs) that can
-be loaded by a DNS authoritative server. An SKR is a RRset of type DNSKEY,
-CDNSKEY, or CDS, with signatures from a key that is typically offline during
-normal operation.
+The :program:`dnssec-ksr` can be used to issue several commands that are needed
+to generate presigned RRsets for a zone where the private key file of the Key
+Signing Key (KSK) is typically offline. This requires Zone Signing Keys
+(ZSKs) to be pregenerated, and the DNSKEY, CDNSKEY, and CDS RRsets to be
+already signed in advance.
+
+The latter is done by creating Key Signing Requests (KSRs) that can be imported
+to the environment where the KSK is available. Once there, this program can
+create Signed Key Responses (SKRs) that can be loaded by an authoritative DNS
+server.
 
 Options
 ~~~~~~~
+
+.. option:: -E engine
+
+   This option specifies the cryptographic hardware to use, when applicable.
+
+   When BIND 9 is built with OpenSSL, this needs to be set to the OpenSSL
+   engine identifier that drives the cryptographic accelerator or
+   hardware service module (usually ``pkcs11``).
+
+.. option:: -e date/offset
+
+   This option sets the end date for which keys or SKRs need to be generated
+   (depending on the command).
+
+.. option:: -F
+
+   This options turns on FIPS (US Federal Information Processing Standards)
+   mode if the underlying crytographic library supports running in FIPS
+   mode.
 
 .. option:: -h
 
    This option prints a short summary of the options and arguments to
    :program:`dnssec-ksr`.
+
+.. option:: -i date/offset
+
+   This option sets the start date for which keys or SKRs need to be generated
+   (depending on the command).
+
+.. option:: -K directory
+
+   This option sets the directory in which the key files are to be read or
+   written (depending on the command).
+
+.. option:: -k policy
+
+   This option sets the specific ``dnssec-policy`` for which keys need to
+   be generated, or signed.
+
+.. option:: -l file
+
+   This option provides a configuration file that contains a ``dnssec-policy``
+   statement (matching the policy set with :option:`-k`).
 
 .. option:: -V
 
@@ -48,6 +93,23 @@ Options
    This option sets the debugging level. Level 1 is intended to be usefully
    verbose for general users; higher levels are intended for developers.
 
+``command``
+
+   The KSR command to be executed. See below for the available commands.
+
+``zone``
+
+   The name of the zone for which the KSR command is being executed.
+
+Commands
+~~~~~~~~
+
+.. option:: keygen
+
+  Pregenerate a number of zone signing keys (ZSKs), given a DNSSEC policy and
+  an interval. The number of generated keys depends on the interval and the
+  ZSK lifetime.
+
 Exit Status
 ~~~~~~~~~~~
 
@@ -57,7 +119,12 @@ occurred.
 Examples
 ~~~~~~~~
 
-To do.
+When you need to generate keys for the zone "example.com" for the next year,
+given a ``dnssec-policy`` named "mypolicy":
+
+::
+
+    dnssec-ksr -i now -e +1y -k mypolicy -l named.conf keygen example.com
 
 See Also
 ~~~~~~~~
