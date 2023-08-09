@@ -119,7 +119,7 @@ BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 	return (size);
 }
 
-#if OPENSSL_VERSION_NUMBER >= 0x30000000L
+#if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000
 
 static const char *
 opensslecdsa_key_alg_to_group_name(unsigned int key_alg) {

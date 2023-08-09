@@ -233,8 +233,7 @@ check_ecdsa(const dst_private_t *priv, bool external) {
 
 	mask = (1ULL << TAG_SHIFT) - 1;
 
-	ok = have[TAG_ECDSA_LABEL & mask] ||
-	     have[TAG_ECDSA_PRIVATEKEY & mask];
+	ok = have[TAG_ECDSA_LABEL & mask] || have[TAG_ECDSA_PRIVATEKEY & mask];
 
 	return (ok ? 0 : -1);
 }
@@ -267,8 +266,7 @@ check_eddsa(const dst_private_t *priv, bool external) {
 
 	mask = (1ULL << TAG_SHIFT) - 1;
 
-	ok = have[TAG_EDDSA_LABEL & mask] ||
-	     have[TAG_EDDSA_PRIVATEKEY & mask];
+	ok = have[TAG_EDDSA_LABEL & mask] || have[TAG_EDDSA_PRIVATEKEY & mask];
 
 	return (ok ? 0 : -1);
 }

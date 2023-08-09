@@ -272,8 +272,9 @@ err:
 }
 
 static isc_result_t
-dst__openssl_fromlabel_provider(int key_base_id, const char *label, const char *pin,
-				EVP_PKEY **ppub, EVP_PKEY **ppriv) {
+dst__openssl_fromlabel_provider(int key_base_id, const char *label,
+				const char *pin, EVP_PKEY **ppub,
+				EVP_PKEY **ppriv) {
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 	isc_result_t ret = DST_R_OPENSSLFAILURE;
 	OSSL_STORE_CTX *ctx = NULL;
@@ -336,8 +337,8 @@ isc_result_t
 dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 		       const char *pin, EVP_PKEY **ppub, EVP_PKEY **ppriv) {
 	if (engine == NULL) {
-		return (dst__openssl_fromlabel_provider(key_base_id, label,
-						        pin, ppub, ppriv));
+		return (dst__openssl_fromlabel_provider(key_base_id, label, pin,
+							ppub, ppriv));
 	}
 
 	return (dst__openssl_fromlabel_engine(key_base_id, engine, label, pin,
