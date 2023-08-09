@@ -1466,7 +1466,7 @@ respdiff-short:asan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--without-jemalloc"
+    EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s named -q "${PWD}/10k_a.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
@@ -1479,7 +1479,7 @@ respdiff-short:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
+    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
@@ -1507,7 +1507,7 @@ respdiff-long:asan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--without-jemalloc"
+    EXTRA_CONFIGURE: "--disable-dnsrps --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
   script:
     - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
@@ -1520,7 +1520,7 @@ respdiff-long:tsan:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--enable-pthread-rwlock --without-jemalloc"
+    EXTRA_CONFIGURE: "--disable-dnsrps --enable-pthread-rwlock --without-jemalloc"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.5"
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
   script:
