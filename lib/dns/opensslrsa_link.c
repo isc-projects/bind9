@@ -1051,7 +1051,7 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		DST_RET(ISC_R_RANGE);
 	}
 
-	if (key->engine != NULL) {
+	if (engine != NULL) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
 	}
 	key->label = isc_mem_strdup(key->mctx, label);
