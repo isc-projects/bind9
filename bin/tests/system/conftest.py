@@ -104,6 +104,9 @@ else:
     ]
     PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
     CONFTEST_LOGGER = logging.getLogger("conftest")
+    SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
+    SYSTEM_TEST_NAME_RE = re.compile(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
+    SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_sh(?=_))?(.*)\.py")
 
     # ---------------------- Module initialization ---------------------------
 
@@ -227,8 +230,16 @@ else:
         # bin/tests/system. These temporary directories contain all files
         # needed for the system tests - including tests_*.py files. Make sure to
         # ignore these during test collection phase. Otherwise, test artifacts
-        # from previous runs could mess with the runner.
-        return "_tmp_" in str(path)
+        # from previous runs could mess with the runner. Also ignore the
+        # convenience symlinks to those test directories. In both of those
+        # cases, the system test name (directory) contains an underscore, which
+        # is otherwise and invalid character for a system test name.
+        match = SYSTEM_TEST_NAME_RE.search(str(path))
+        if match is None:
+            CONFTEST_LOGGER.warning("unexpected test path: %s (ignored)", path)
+            return True
+        system_test_name = match.groups()[0]
+        return "_" in system_test_name
 
     def pytest_collection_modifyitems(items):
         """Schedule long-running tests first to get more benefit from parallelism."""
@@ -345,8 +356,8 @@ else:
         """Dictionary containing environment variables for the test."""
         env = os.environ.copy()
         env.update(ports)
-        env["builddir"] = f"{env['TOP_BUILDDIR']}/bin/tests/system"
-        env["srcdir"] = f"{env['TOP_SRCDIR']}/bin/tests/system"
+        env["builddir"] = f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
+        env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
         return env
 
     @pytest.fixture(scope="module")
@@ -409,13 +420,25 @@ else:
             assert all(res.outcome == "passed" for res in test_results.values())
             return "passed"
 
+        def unlink(path):
+            try:
+                path.unlink()  # missing_ok=True isn't available on Python 3.6
+            except FileNotFoundError:
+                pass
+
         # Create a temporary directory with a copy of the original system test dir contents
-        system_test_root = Path(f"{env['TOP_BUILDDIR']}/bin/tests/system")
+        system_test_root = Path(f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}")
         testdir = Path(
             tempfile.mkdtemp(prefix=f"{system_test_name}_tmp_", dir=system_test_root)
         )
         shutil.rmtree(testdir)
         shutil.copytree(system_test_root / system_test_name, testdir)
+
+        # Create a convenience symlink with a stable and predictable name
+        module_name = SYMLINK_REPLACEMENT_RE.sub(r"\2", request.node.name)
+        symlink_dst = system_test_root / module_name
+        unlink(symlink_dst)
+        symlink_dst.symlink_to(os.path.relpath(testdir, start=system_test_root))
 
         # Configure logger to write to a file inside the temporary test directory
         mlogger.handlers.clear()
@@ -451,6 +474,7 @@ else:
                 handler.flush()
                 handler.close()
                 shutil.rmtree(testdir)
+                unlink(symlink_dst)
 
     def _run_script(  # pylint: disable=too-many-arguments
         env,
