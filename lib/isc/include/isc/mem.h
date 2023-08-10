@@ -194,6 +194,17 @@ void ISCMEMFUNC(create)(isc_mem_t **_ISC_MEM_FLARG);
  * mctxp != NULL && *mctxp == NULL */
 /*@}*/
 
+#define isc_mem_create_arena(cp) isc__mem_create_arena((cp)_ISC_MEM_FILELINE)
+void
+isc__mem_create_arena(isc_mem_t **_ISC_MEM_FLARG);
+/*!<
+ * \brief Create a memory context that routs all its operations to a dedicated
+ * jemalloc arena (when available).
+ *
+ * Requires:
+ * mctxp != NULL && *mctxp == NULL */
+/*@}*/
+
 /*@{*/
 void
 isc_mem_attach(isc_mem_t *, isc_mem_t **);
