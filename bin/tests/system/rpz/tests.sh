@@ -336,13 +336,13 @@ ckresult () {
 	grep -q 'Truncated, retrying in TCP' $DIGNM && trunc=1 || trunc=0
 	if [ "$tcp" -ne "$trunc" ]; then
 	    setret "'dig $digarg' wrong; no or unexpected truncation in $DIGNM"
-	    return 1
+	else
+	    clean_result ${DIGNM}*
 	fi
-	clean_result ${DIGNM}*
 	return 0
     fi
     setret "'dig $digarg' wrong; diff $DIGNM $2"
-    return 1
+    return 0
 }
 
 # check only that the server does not crash
@@ -390,11 +390,11 @@ addr () {
     ADDR_TTL=$(sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM)
     if test -z "$ADDR_TTL"; then
 	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
-	return 1
+	return 0
     fi
     if test -n "$3" && test "$ADDR_TTL" -ne "$3"; then
 	setret "'dig $2' wrong; TTL=$ADDR_TTL instead of $3 in $DIGNM"
-	return 1
+	return 0
     fi
     clean_result ${DIGNM}*
 }
@@ -436,7 +436,7 @@ drop () {
 	return 0
     fi
     setret "'dig $1' wrong; response in $DIGNM"
-    return 1
+    return 0
 }
 
 nsd() {
