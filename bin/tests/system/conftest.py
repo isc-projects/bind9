@@ -378,7 +378,9 @@ else:
         return logging.getLogger(f"{system_test_name}.{request.node.name}")
 
     @pytest.fixture(scope="module")
-    def system_test_dir(request, env, system_test_name, mlogger):
+    def system_test_dir(
+        request, env, system_test_name, mlogger
+    ):  # pylint: disable=too-many-statements,too-many-locals
         """
         Temporary directory for executing the test.
 
