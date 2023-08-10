@@ -1121,7 +1121,6 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'A':
 			use_tls = true;
-			usevc = true;
 			tls_ca_file = isc_commandline_argument;
 			break;
 		case 'C':
@@ -1136,12 +1135,10 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'E':
 			use_tls = true;
-			usevc = true;
 			tls_client_cert_file = isc_commandline_argument;
 			break;
 		case 'H':
 			use_tls = true;
-			usevc = true;
 			tls_hostname = isc_commandline_argument;
 			break;
 		case 'M':
@@ -1152,7 +1149,6 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'K':
 			use_tls = true;
-			usevc = true;
 			tls_client_key_file = isc_commandline_argument;
 			break;
 		case 'l':
@@ -1187,7 +1183,6 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'O':
 			use_tls = true;
-			usevc = true;
 			tls_always_verify_remote = false;
 			break;
 		case 'p':
@@ -1203,7 +1198,6 @@ parse_args(int argc, char **argv) {
 			break;
 		case 'S':
 			use_tls = true;
-			usevc = true;
 			break;
 		case 't':
 			result = isc_parse_uint32(&timeout,
@@ -1268,6 +1262,7 @@ parse_args(int argc, char **argv) {
 #endif /* HAVE_GSSAPI */
 
 	if (use_tls) {
+		usevc = true;
 		if ((tls_client_key_file == NULL) !=
 		    (tls_client_cert_file == NULL))
 		{
@@ -2681,9 +2676,9 @@ recvsoa(void *arg) {
 		dns_message_renderreset(soaquery);
 		ddebug("retrying soa request without TSIG");
 
-		if (usevc) {
+		if (!default_servers && usevc) {
 			options |= DNS_REQUESTOPT_TCP;
-			if (!default_servers && use_tls) {
+			if (use_tls) {
 				req_transport = transport;
 				req_tls_ctx_cache = tls_ctx_cache;
 			}
@@ -2914,9 +2909,9 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	dns_transport_t *req_transport = NULL;
 	isc_tlsctx_cache_t *req_tls_ctx_cache = NULL;
 
-	if (usevc) {
+	if (!default_servers && usevc) {
 		options |= DNS_REQUESTOPT_TCP;
-		if (!default_servers && use_tls) {
+		if (use_tls) {
 			req_transport = transport;
 			req_tls_ctx_cache = tls_ctx_cache;
 		}
