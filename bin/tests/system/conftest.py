@@ -451,7 +451,7 @@ else:
         # System tests are meant to be executed from their directory - switch to it.
         old_cwd = os.getcwd()
         os.chdir(testdir)
-        mlogger.info("switching to tmpdir: %s", testdir)
+        mlogger.debug("switching to tmpdir: %s", testdir)
         try:
             yield testdir  # other fixtures / tests will execute here
         finally:
@@ -461,13 +461,27 @@ else:
             result = get_test_result()
 
             # Clean temporary dir unless it should be kept
+            keep = False
             if request.config.getoption("--noclean"):
-                mlogger.debug("--noclean requested, keeping temporary directory")
+                mlogger.debug(
+                    "--noclean requested, keeping temporary directory %s", testdir
+                )
+                keep = True
             elif result == "failed":
-                mlogger.debug("test failure detected, keeping temporary directory")
+                mlogger.debug(
+                    "test failure detected, keeping temporary directory %s", testdir
+                )
+                keep = True
             elif not request.node.stash[FIXTURE_OK]:
                 mlogger.debug(
-                    "test setup/teardown issue detected, keeping temporary directory"
+                    "test setup/teardown issue detected, keeping temporary directory %s",
+                    testdir,
+                )
+                keep = True
+
+            if keep:
+                mlogger.info(
+                    "test artifacts in: %s", symlink_dst.relative_to(system_test_root)
                 )
             else:
                 mlogger.debug("deleting temporary directory")
