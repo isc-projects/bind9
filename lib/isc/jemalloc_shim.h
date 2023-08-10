@@ -22,7 +22,9 @@
 
 const char *malloc_conf = NULL;
 
-#define MALLOCX_ZERO ((int)0x40)
+#define MALLOCX_ZERO	    ((int)0x40)
+#define MALLOCX_TCACHE_NONE (0)
+#define MALLOCX_ARENA(a)    (0)
 
 #if defined(HAVE_MALLOC_SIZE) || defined(HAVE_MALLOC_USABLE_SIZE)
 
