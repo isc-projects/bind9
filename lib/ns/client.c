@@ -346,7 +346,7 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 
 	if (TCP_CLIENT(client)) {
 		INSIST(client->tcpbuf == NULL);
-		client->tcpbuf = isc_mem_get(client->mctx,
+		client->tcpbuf = isc_mem_get(client->manager->send_mctx,
 					     NS_CLIENT_TCP_BUFFER_SIZE);
 		client->tcpbuf_size = NS_CLIENT_TCP_BUFFER_SIZE;
 		data = client->tcpbuf;
@@ -383,7 +383,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	if (isc_buffer_base(buffer) == client->tcpbuf) {
 		size_t used = isc_buffer_usedlength(buffer);
-		client->tcpbuf = isc_mem_reget(client->manager->mctx,
+		client->tcpbuf = isc_mem_reget(client->manager->send_mctx,
 					       client->tcpbuf,
 					       client->tcpbuf_size, used);
 		client->tcpbuf_size = used;
@@ -461,7 +461,8 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	return;
 done:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
+		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
+			    client->tcpbuf_size);
 	}
 
 	ns_client_drop(client, result);
@@ -745,7 +746,8 @@ renderend:
 
 cleanup:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
+		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
+			    client->tcpbuf_size);
 	}
 
 	if (cleanup_cctx) {
@@ -1627,7 +1629,8 @@ ns__client_reset_cb(void *client0) {
 
 	ns_client_endrequest(client);
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->mctx, client->tcpbuf, client->tcpbuf_size);
+		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
+			    client->tcpbuf_size);
 	}
 
 	if (client->keytag != NULL) {
@@ -1658,7 +1661,8 @@ ns__client_put_cb(void *client0) {
 	client->magic = 0;
 	client->shuttingdown = true;
 
-	isc_mem_put(client->mctx, client->sendbuf, NS_CLIENT_SEND_BUFFER_SIZE);
+	isc_mem_put(client->manager->send_mctx, client->sendbuf,
+		    NS_CLIENT_SEND_BUFFER_SIZE);
 	if (client->opt != NULL) {
 		INSIST(dns_rdataset_isassociated(client->opt));
 		dns_rdataset_disassociate(client->opt);
@@ -2340,7 +2344,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
 				   &client->message);
 
-		client->sendbuf = isc_mem_get(client->mctx,
+		client->sendbuf = isc_mem_get(client->manager->send_mctx,
 					      NS_CLIENT_SEND_BUFFER_SIZE);
 		/*
 		 * Set magic earlier than usual because ns_query_init()
@@ -2399,7 +2403,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 
 cleanup:
 	if (client->sendbuf != NULL) {
-		isc_mem_put(client->mctx, client->sendbuf,
+		isc_mem_put(client->manager->send_mctx, client->sendbuf,
 			    NS_CLIENT_SEND_BUFFER_SIZE);
 	}
 
@@ -2475,6 +2479,8 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 	isc_task_detach(&manager->task);
 	ns_server_detach(&manager->sctx);
 
+	isc_mem_detach(&manager->send_mctx);
+
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 }
 
@@ -2510,6 +2516,61 @@ ns_clientmgr_create(ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	ns_server_attach(sctx, &manager->sctx);
 
 	ISC_LIST_INIT(manager->recursing);
+
+	/*
+	 * We create specialised per-worker memory context specifically
+	 * dedicated and tuned for allocating send buffers as it is a very
+	 * common operation. Not doing so may result in excessive memory
+	 * use in certain workloads.
+	 *
+	 * Please see this thread for more details:
+	 *
+	 * https://github.com/jemalloc/jemalloc/issues/2483
+	 *
+	 * In particular, this information from the jemalloc developers is
+	 * of the most interest:
+	 *
+	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1639019699
+	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1698173849
+	 *
+	 * In essence, we use the following memory management strategy:
+	 *
+	 * 1. We use a per-worker memory arena for send buffers memory
+	 * allocation to reduce lock contention (In reality, we create a
+	 * per-client manager arena, but we have one client manager per
+	 * worker).
+	 *
+	 * 2. The automatically created arenas settings remain unchanged
+	 * and may be controlled by users (e.g. by setting the
+	 * "MALLOC_CONF" variable).
+	 *
+	 * 3. We attune the arenas to not use dirty pages cache as the
+	 * cache would have a poor reuse rate, and that is known to
+	 * significantly contribute to excessive memory use.
+	 *
+	 * 4. There is no strict need for the dirty cache, as there is a
+	 * per arena bin for each allocation size, so because we initially
+	 * allocate strictly 64K per send buffer (enough for a DNS
+	 * message), allocations would get directed to one bin (an "object
+	 * pool" or a "slab") maintained within an arena. That is, there
+	 * is an object pool already, specifically to optimise for the
+	 * case of frequent allocations of objects of the given size. The
+	 * object pool should suffice our needs, as we will end up
+	 * recycling the objects from there without the need to back it by
+	 * an additional layer of dirty pages cache. The dirty pages cache
+	 * would have worked better in the case when there are more
+	 * allocation bins involved due to a higher reuse rate (the case
+	 * of a more "generic" memory management).
+	 */
+	isc_mem_create_arena(&manager->send_mctx);
+	isc_mem_setname(manager->send_mctx, "sendbufs");
+	(void)isc_mem_arena_set_dirty_decay_ms(manager->send_mctx, 0);
+	/*
+	 * Disable muzzy pages cache too, as versions < 5.2.0 have it
+	 * enabled by default. The muzzy pages cache goes right below the
+	 * dirty pages cache and backs it.
+	 */
+	(void)isc_mem_arena_set_muzzy_decay_ms(manager->send_mctx, 0);
 
 	manager->magic = MANAGER_MAGIC;
 

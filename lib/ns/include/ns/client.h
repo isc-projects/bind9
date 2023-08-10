@@ -144,6 +144,7 @@ struct ns_clientmgr {
 	unsigned int magic;
 
 	isc_mem_t      *mctx;
+	isc_mem_t      *send_mctx;
 	ns_server_t    *sctx;
 	isc_taskmgr_t  *taskmgr;
 	isc_timermgr_t *timermgr;
