@@ -32,6 +32,9 @@ Feature Changes
 
 - None.
 
+- Make :iscman:`nsupdate` honor the ``-v`` option. If set, and the server is
+  specified, SOA queries are now send over TCP as well. :gl:`#1181`
+
 Bug Fixes
 ~~~~~~~~~
 
