@@ -721,5 +721,12 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
+echo_i "Wait for slow zone transfer to complete ($n)"
+ret=0
+wait_for_log 20 "zone example/IN: zone transfer finished: success" ns3/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
