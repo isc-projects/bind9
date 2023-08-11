@@ -1845,6 +1845,55 @@ isc__mem_create_arena(isc_mem_t **mctxp FLARG) {
 #endif /* ISC_MEM_TRACKLINES */
 }
 
+#if defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4
+static bool
+jemalloc_set_ssize_value(const char *valname, ssize_t newval) {
+	int ret;
+
+	ret = mallctl(valname, NULL, NULL, &newval, sizeof(newval));
+	return (ret == 0);
+}
+#endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
+
+static isc_result_t
+mem_set_arena_ssize_value(isc_mem_t *mctx, const char *arena_valname,
+			  const ssize_t newval) {
+	REQUIRE(VALID_CONTEXT(mctx));
+#if defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4
+	bool ret;
+	char buf[256] = { 0 };
+
+	if (mctx->jemalloc_arena == ISC_MEM_ILLEGAL_ARENA) {
+		return (ISC_R_UNEXPECTED);
+	}
+
+	(void)snprintf(buf, sizeof(buf), "arena.%u.%s", mctx->jemalloc_arena,
+		       arena_valname);
+
+	ret = jemalloc_set_ssize_value(buf, newval);
+
+	if (!ret) {
+		return (ISC_R_FAILURE);
+	}
+
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(arena_valname);
+	UNUSED(newval);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif /* defined(JEMALLOC_API_SUPPORTED) && JEMALLOC_VERSION_MAJOR >= 4 */
+}
+
+isc_result_t
+isc_mem_arena_set_muzzy_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
+	return (mem_set_arena_ssize_value(mctx, "muzzy_decay_ms", decay_ms));
+}
+
+isc_result_t
+isc_mem_arena_set_dirty_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
+	return (mem_set_arena_ssize_value(mctx, "dirty_decay_ms", decay_ms));
+}
+
 void
 isc__mem_printactive(isc_mem_t *ctx, FILE *file) {
 #if ISC_MEM_TRACKLINES
