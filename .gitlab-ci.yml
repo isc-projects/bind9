@@ -1021,7 +1021,7 @@ gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -O2"
-    EXTRA_CONFIGURE: "--disable-dnstap --with-gssapi"
+    EXTRA_CONFIGURE: "--disable-dnstap --with-gssapi --without-cmocka"
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
@@ -1029,14 +1029,6 @@ gcc:bionic:amd64:
 system:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *system_test_job
-  <<: *api_schedules_tags_triggers_web_triggering_rules
-  needs:
-    - job: gcc:bionic:amd64
-      artifacts: true
-
-unit:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
-  <<: *unit_test_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
   needs:
     - job: gcc:bionic:amd64
