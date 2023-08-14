@@ -1,3 +1,7 @@
+6240.	[bug]		Use dedicated per-worker thread jemalloc memory
+			arenas for send buffers allocation to reduce memory
+			consumption and avoid lock contention. [GL #4038]
+
 6239.	[func]		Deprecate the 'dnssec-must-be-secure' option.
 			[GL #3700]
 
