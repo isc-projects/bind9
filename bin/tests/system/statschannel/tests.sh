@@ -74,8 +74,23 @@ loadkeys_on() {
 
 status=0
 n=1
+
+echo_i "Prepare for if-modified-since test ($n)"
 ret=0
+i=0
+if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] ; then
+    URL="http://10.53.0.3:${EXTRAPORT1}/bind9.xsl"
+    ${CURL} --silent --show-error --fail --output bind9.xsl.1 $URL
+    ret=$?
+else
+    echo_i "skipping test: requires libxml2 and curl"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 echo_i "checking consistency between named.stats and xml/json ($n)"
+ret=0
 rm -f ns2/named.stats
 $DIGCMD +tcp example ns > dig.out.$n || ret=1
 $RNDCCMD 10.53.0.2 stats 2>&1 | sed 's/^/I:ns1 /'
@@ -558,6 +573,28 @@ if [ -x "${CURL}" ] ; then
     grep -a Content-Length curl.out$n | awk 'BEGIN { prev=0; } { if (prev != 0 && $2 - prev > 100) { exit(1); } prev = $2; }' || ret=1
 else
     echo_i "skipping test as curl not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check if-modified-since works ($n)"
+ret=0
+if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] ; then
+    URL="http://10.53.0.3:${EXTRAPORT1}/bind9.xsl"
+    # ensure over-long time stamps are ignored
+    ${CURL} --silent --show-error --fail --output bind9.xsl.2 $URL \
+	    --header 'If-Modified-Since: 0123456789 0123456789 0123456789 0123456789 0123456789 0123456789'
+    if  ! [ bind9.xsl.2 -nt bind9.xsl.1 ] ||
+        ! ${CURL} --silent --show-error --fail \
+		  --output bind9.xsl.3 $URL \
+		  --time-cond bind9.xsl.1 ||
+	[ -f bind9.xsl.3 ]
+    then
+	   ret=1
+    fi
+else
+    echo_i "skipping test: requires libxml2 and curl"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
