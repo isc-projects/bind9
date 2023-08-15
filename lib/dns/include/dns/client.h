@@ -174,27 +174,6 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
  *\li	Anything else				Failure.
  */
 
-isc_result_t
-dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
-			const dns_name_t *name_space);
-/*%<
- * Remove configured recursive name servers for the 'rdclass' and 'name_space'
- * from the client.  See the description of dns_client_setservers() for
- * the requirements about 'rdclass' and 'name_space'.
- *
- * Requires:
- *
- *\li	'client' is a valid client.
- *
- *\li	'name_space' is NULL or a valid name.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS				On success.
- *
- *\li	Anything else				Failure.
- */
-
 typedef void (*dns_client_resolve_cb)(dns_client_t     *client,
 				      const dns_name_t *name,
 				      dns_namelist_t   *namelist,

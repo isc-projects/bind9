@@ -135,13 +135,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 
 	dns_zt_create(mctx, view, &view->zonetable);
 
-	result = dns_fwdtable_create(mctx, &view->fwdtable);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR("dns_fwdtable_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_zt;
-	}
+	dns_fwdtable_create(mctx, view, &view->fwdtable);
 
 	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 
@@ -193,11 +187,7 @@ cleanup_new_zone_lock:
 	isc_refcount_decrementz(&view->references);
 	isc_refcount_destroy(&view->references);
 
-	if (view->fwdtable != NULL) {
-		dns_fwdtable_destroy(&view->fwdtable);
-	}
-
-cleanup_zt:
+	dns_fwdtable_destroy(&view->fwdtable);
 	dns_zt_detach(&view->zonetable);
 
 	isc_rwlock_destroy(&view->sfd_lock);
@@ -1564,13 +1554,13 @@ dns_view_freezezones(dns_view_t *view, bool value) {
 	return (result);
 }
 
-isc_result_t
+void
 dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->ntatable_priv != NULL) {
 		dns_ntatable_detach(&view->ntatable_priv);
 	}
-	return (dns_ntatable_create(view, loopmgr, &view->ntatable_priv));
+	dns_ntatable_create(view, loopmgr, &view->ntatable_priv);
 }
 
 isc_result_t
@@ -1584,13 +1574,13 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx) {
+void
+dns_view_initsecroots(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->secroots_priv != NULL) {
 		dns_keytable_detach(&view->secroots_priv);
 	}
-	return (dns_keytable_create(mctx, &view->secroots_priv));
+	dns_keytable_create(view, &view->secroots_priv);
 }
 
 isc_result_t
@@ -1769,7 +1759,7 @@ finish:
 		dns_rdataset_disassociate(&dsset);
 	}
 	if (knode != NULL) {
-		dns_keytable_detachkeynode(sr, &knode);
+		dns_keynode_detach(&knode);
 	}
 	dns_keytable_detach(&sr);
 	return (answer);

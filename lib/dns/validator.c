@@ -1715,7 +1715,7 @@ validate_dnskey(dns_validator_t *val) {
 			if (dns_keynode_dsset(keynode, &val->fdsset)) {
 				val->dsset = &val->fdsset;
 			}
-			dns_keytable_detachkeynode(val->keytable, &keynode);
+			dns_keynode_detach(&keynode);
 		}
 	}
 

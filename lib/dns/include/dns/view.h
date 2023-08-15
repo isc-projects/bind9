@@ -932,17 +932,14 @@ dns_view_iscacheshared(dns_view_t *view);
  *\li	#false otherwise.
  */
 
-isc_result_t
+void
 dns_view_initntatable(dns_view_t *view, isc_loopmgr_t *loopmgr);
 /*%<
  * Initialize the negative trust anchor table for the view.
  *
  * Requires:
  * \li	'view' is valid.
- *
- * Returns:
- *\li	ISC_R_SUCCESS
- *\li	Any other result indicates failure
+ * \li	'loopmgr' is a valid loopmgr.
  */
 
 isc_result_t
@@ -963,8 +960,8 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp);
  *\li	ISC_R_NOTFOUND
  */
 
-isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
+void
+dns_view_initsecroots(dns_view_t *view);
 /*%<
  * Initialize security roots for the view, detaching any previously
  * existing security roots first.  (Note that secroots_priv is

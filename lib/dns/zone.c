@@ -4594,7 +4594,7 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		}
 
 		if (keynode != NULL) {
-			dns_keytable_detachkeynode(sr, &keynode);
+			dns_keynode_detach(&keynode);
 		}
 	}
 	dns_rriterator_destroy(&rrit);
@@ -4632,7 +4632,7 @@ failure:
 		isc_time_settoepoch(&zone->refreshkeytime);
 	}
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(sr, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 	if (sr != NULL) {
 		dns_keytable_detach(&sr);
@@ -10035,7 +10035,7 @@ keyfetch_done(void *arg) {
 
 anchors_done:
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(secroots, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 
 	/*

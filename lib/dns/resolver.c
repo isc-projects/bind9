@@ -3451,8 +3451,6 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		dns_forwarders_t *forwarders = NULL;
 		dns_name_t *name = fctx->name;
 		dns_name_t suffix;
-		dns_fixedname_t fixed;
-		dns_name_t *domain;
 
 		/*
 		 * DS records are found in the parent server.
@@ -3468,23 +3466,24 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 			name = &suffix;
 		}
 
-		domain = dns_fixedname_initname(&fixed);
-		result = dns_fwdtable_find(res->view->fwdtable, name, domain,
+		result = dns_fwdtable_find(res->view->fwdtable, name,
 					   &forwarders);
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
-			dns_name_copy(domain, fctx->fwdname);
+			dns_name_copy(forwarders->name, fctx->fwdname);
 			if (fctx->fwdpolicy == dns_fwdpolicy_only &&
-			    isstrictsubdomain(domain, fctx->domain))
+			    isstrictsubdomain(forwarders->name, fctx->domain))
 			{
 				fcount_decr(fctx);
-				dns_name_copy(domain, fctx->domain);
+				dns_name_copy(forwarders->name, fctx->domain);
 				result = fcount_incr(fctx, true);
 				if (result != ISC_R_SUCCESS) {
+					dns_forwarders_detach(&forwarders);
 					return (result);
 				}
 			}
+			dns_forwarders_detach(&forwarders);
 		}
 	}
 
@@ -4566,8 +4565,6 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 	if (domain == NULL) {
 		dns_forwarders_t *forwarders = NULL;
-		dns_fixedname_t fixed;
-		dns_name_t *fname = dns_fixedname_initname(&fixed);
 		unsigned int labels;
 		const dns_name_t *fwdname = name;
 		dns_name_t suffix;
@@ -4588,13 +4585,25 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 
 		/* Find the forwarder for this name. */
 		result = dns_fwdtable_find(fctx->res->view->fwdtable, fwdname,
-					   fname, &forwarders);
+					   &forwarders);
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
-			dns_name_copy(fname, fctx->fwdname);
+			dns_name_copy(forwarders->name, fctx->fwdname);
+			dns_forwarders_detach(&forwarders);
 		}
 
-		if (fctx->fwdpolicy != dns_fwdpolicy_only) {
+		if (fctx->fwdpolicy == dns_fwdpolicy_only) {
+			/*
+			 * We're in forward-only mode.  Set the query
+			 * domain.
+			 */
+			dns_name_copy(fctx->fwdname, fctx->domain);
+			dns_name_copy(fctx->fwdname, fctx->qmindcname);
+			/*
+			 * Disable query minimization
+			 */
+			options &= ~DNS_FETCHOPT_QMINIMIZE;
+		} else {
 			dns_fixedname_t dcfixed;
 			dns_name_t *dcname = dns_fixedname_initname(&dcfixed);
 
@@ -4606,29 +4615,18 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 			if (dns_rdatatype_atparent(fctx->type)) {
 				findoptions |= DNS_DBFIND_NOEXACT;
 			}
-			result = dns_view_findzonecut(res->view, name, fname,
-						      dcname, fctx->now,
-						      findoptions, true, true,
-						      &fctx->nameservers, NULL);
+			result = dns_view_findzonecut(
+				res->view, name, fctx->fwdname, dcname,
+				fctx->now, findoptions, true, true,
+				&fctx->nameservers, NULL);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_nameservers;
 			}
 
-			dns_name_copy(fname, fctx->domain);
+			dns_name_copy(fctx->fwdname, fctx->domain);
 			dns_name_copy(dcname, fctx->qmindcname);
 			fctx->ns_ttl = fctx->nameservers.ttl;
 			fctx->ns_ttl_ok = true;
-		} else {
-			/*
-			 * We're in forward-only mode.  Set the query
-			 * domain.
-			 */
-			dns_name_copy(fname, fctx->domain);
-			dns_name_copy(fname, fctx->qmindcname);
-			/*
-			 * Disable query minimization
-			 */
-			options &= ~DNS_FETCHOPT_QMINIMIZE;
 		}
 	} else {
 		dns_name_copy(domain, fctx->domain);
@@ -6557,8 +6555,6 @@ static inline bool
 name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_forwarders_t *forwarders = NULL;
-	dns_fixedname_t fixed;
-	dns_name_t *fname = dns_fixedname_initname(&fixed);
 	dns_name_t *apex = NULL;
 	dns_name_t suffix;
 	dns_zone_t *zone = NULL;
@@ -6611,7 +6607,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 	/*
 	 * Look for a forward declaration below 'name'.
 	 */
-	result = dns_fwdtable_find(fctx->res->view->fwdtable, name, fname,
+	result = dns_fwdtable_find(fctx->res->view->fwdtable, name,
 				   &forwarders);
 
 	if (ISFORWARDER(fctx->addrinfo)) {
@@ -6619,7 +6615,10 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		 * See if the forwarder declaration is better.
 		 */
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			return (!dns_name_equal(fname, fctx->fwdname));
+			bool better = !dns_name_equal(forwarders->name,
+						      fctx->fwdname);
+			dns_forwarders_detach(&forwarders);
+			return (better);
 		}
 
 		/*
@@ -6627,15 +6626,15 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		 * changed: play it safe and don't cache.
 		 */
 		return (true);
-	} else if ((result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) &&
-		   forwarders->fwdpolicy == dns_fwdpolicy_only &&
-		   !ISC_LIST_EMPTY(forwarders->fwdrs))
-	{
+	} else if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		/*
 		 * If 'name' is covered by a 'forward only' clause then we
 		 * can't cache this response.
 		 */
-		return (true);
+		bool nocache = (forwarders->fwdpolicy == dns_fwdpolicy_only &&
+				!ISC_LIST_EMPTY(forwarders->fwdrs));
+		dns_forwarders_detach(&forwarders);
+		return (nocache);
 	}
 
 	return (false);

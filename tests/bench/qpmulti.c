@@ -311,7 +311,8 @@ mutate_transactions(uv_idle_t *idle) {
 			uint32_t i = isc_random_uniform(args->max_item);
 			if (item[i].present) {
 				isc_result_t result = dns_qp_deletekey(
-					qp, item[i].key, item[i].len);
+					qp, item[i].key, item[i].len, NULL,
+					NULL);
 				INSIST(result == ISC_R_SUCCESS);
 				item[i].present = false;
 				args->present++;

@@ -156,7 +156,7 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone) {
 	REQUIRE(VALID_ZT(zt));
 
 	dns_qpmulti_write(zt->multi, &qp);
-	result = dns_qp_deletename(qp, dns_zone_getorigin(zone));
+	result = dns_qp_deletename(qp, dns_zone_getorigin(zone), NULL, NULL);
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(zt->multi, &qp);
 
@@ -169,7 +169,6 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	isc_result_t result;
 	dns_qpread_t qpr;
 	void *pval = NULL;
-	uint32_t ival;
 	dns_ztfind_t exactmask = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_EXACT;
 	dns_ztfind_t exactopts = options & exactmask;
 
@@ -179,12 +178,12 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	dns_qpmulti_query(zt->multi, &qpr);
 
 	if (exactopts == DNS_ZTFIND_EXACT) {
-		result = dns_qp_getname(&qpr, name, &pval, &ival);
+		result = dns_qp_getname(&qpr, name, &pval, NULL);
 	} else if (exactopts == DNS_ZTFIND_NOEXACT) {
-		result = dns_qp_findname_parent(&qpr, name, DNS_QPFIND_NOEXACT,
-						&pval, &ival);
+		result = dns_qp_findname_ancestor(
+			&qpr, name, DNS_QPFIND_NOEXACT, &pval, NULL);
 	} else {
-		result = dns_qp_findname_parent(&qpr, name, 0, &pval, &ival);
+		result = dns_qp_findname_ancestor(&qpr, name, 0, &pval, NULL);
 	}
 	dns_qpread_destroy(zt->multi, &qpr);
 
@@ -508,7 +507,6 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	dns_qpiter_t qpi;
 	dns_qpread_t qpr;
 	void *zone = NULL;
-	uint32_t ival;
 
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(action != NULL);
@@ -516,7 +514,7 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	dns_qpmulti_query(zt->multi, &qpr);
 	dns_qpiter_init(&qpr, &qpi);
 
-	while (dns_qpiter_next(&qpi, &zone, &ival) == ISC_R_SUCCESS) {
+	while (dns_qpiter_next(&qpi, &zone, NULL) == ISC_R_SUCCESS) {
 		result = action(zone, uap);
 		if (tresult == ISC_R_SUCCESS) {
 			tresult = result;

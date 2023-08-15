@@ -1044,7 +1044,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 	result = dns_keytable_find(secroots, name, &keynode);
 
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(secroots, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
@@ -1062,7 +1062,7 @@ keyloaded(dns_view_t *view, const dns_name_t *name) {
 static isc_result_t
 configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 			  const cfg_obj_t *config, const cfg_obj_t *bindkeys,
-			  bool auto_root, isc_mem_t *mctx) {
+			  bool auto_root) {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *view_keys = NULL;
 	const cfg_obj_t *global_keys = NULL;
@@ -1116,21 +1116,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
-	result = dns_view_initsecroots(view, mctx);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "couldn't create keytable");
-		return (ISC_R_UNEXPECTED);
-	}
-
-	result = dns_view_initntatable(view, named_g_loopmgr);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "couldn't create NTA table");
-		return (ISC_R_UNEXPECTED);
-	}
+	dns_view_initsecroots(view);
+	dns_view_initntatable(view, named_g_loopmgr);
 
 	if (auto_root && view->rdclass == dns_rdataclass_in) {
 		const cfg_obj_t *builtin_keys = NULL;
@@ -2687,8 +2674,7 @@ catz_addmodzone_cb(void *arg) {
 	dns_name_totext(name, true, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
-	result = dns_fwdtable_find(cz->view->fwdtable, name, NULL,
-				   &dnsforwarders);
+	result = dns_fwdtable_find(cz->view->fwdtable, name, &dnsforwarders);
 	if (result == ISC_R_SUCCESS &&
 	    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
 	{
@@ -2863,6 +2849,9 @@ cleanup:
 	}
 	if (zoneconf != NULL) {
 		cfg_obj_destroy(cfg->add_parser, &zoneconf);
+	}
+	if (dnsforwarders != NULL) {
+		dns_forwarders_detach(&dnsforwarders);
 	}
 	dns_catz_entry_detach(cz->origin, &cz->entry);
 	dns_catz_zone_detach(&cz->origin);
@@ -5538,7 +5527,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_root, mctx));
+					auto_root));
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -5707,6 +5696,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		     empty = empty_zones[++empty_zone])
 		{
 			dns_forwarders_t *dnsforwarders = NULL;
+			dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 
 			/*
 			 * Look for zone on drop list.
@@ -5732,12 +5722,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 * If we would forward this name don't add a
 			 * empty zone for it.
 			 */
-			result = dns_fwdtable_find(view->fwdtable, name, NULL,
+			result = dns_fwdtable_find(view->fwdtable, name,
 						   &dnsforwarders);
-			if ((result == ISC_R_SUCCESS ||
-			     result == DNS_R_PARTIALMATCH) &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			if (result == ISC_R_SUCCESS ||
+			    result == DNS_R_PARTIALMATCH)
 			{
+				fwdpolicy = dnsforwarders->fwdpolicy;
+				dns_forwarders_detach(&dnsforwarders);
+			}
+			if (fwdpolicy == dns_fwdpolicy_only) {
 				continue;
 			}
 
@@ -5809,6 +5802,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		     ipv4only_zone++)
 		{
 			dns_forwarders_t *dnsforwarders = NULL;
+			dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 
 			CHECK(dns_name_fromstring(
 				name, zones[ipv4only_zone].name, 0, NULL));
@@ -5823,12 +5817,15 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			/*
 			 * If we would forward this name don't add it.
 			 */
-			result = dns_fwdtable_find(view->fwdtable, name, NULL,
+			result = dns_fwdtable_find(view->fwdtable, name,
 						   &dnsforwarders);
-			if ((result == ISC_R_SUCCESS ||
-			     result == DNS_R_PARTIALMATCH) &&
-			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only)
+			if (result == ISC_R_SUCCESS ||
+			    result == DNS_R_PARTIALMATCH)
 			{
+				fwdpolicy = dnsforwarders->fwdpolicy;
+				dns_forwarders_detach(&dnsforwarders);
+			}
+			if (fwdpolicy == dns_fwdpolicy_only) {
 				continue;
 			}
 
@@ -7305,7 +7302,7 @@ tat_timer_tick(void *arg) {
 
 		dotat_arg.view = view;
 		dotat_arg.loop = named_g_mainloop;
-		(void)dns_keytable_forall(secroots, dotat, &dotat_arg);
+		dns_keytable_forall(secroots, dotat, &dotat_arg);
 		dns_keytable_detach(&secroots);
 	}
 }

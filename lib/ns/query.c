@@ -7513,7 +7513,7 @@ has_ta(query_ctx_t *qctx) {
 	result = dns_keytable_find(keytable, dns_rootname, &keynode);
 	if (result != ISC_R_SUCCESS) {
 		if (keynode != NULL) {
-			dns_keytable_detachkeynode(keytable, &keynode);
+			dns_keynode_detach(&keynode);
 		}
 		dns_keytable_detach(&keytable);
 		return (false);
@@ -7533,7 +7533,7 @@ has_ta(query_ctx_t *qctx) {
 			result = dns_rdata_tostruct(&rdata, &ds, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (ds.key_tag == sentinel) {
-				dns_keytable_detachkeynode(keytable, &keynode);
+				dns_keynode_detach(&keynode);
 				dns_keytable_detach(&keytable);
 				dns_rdataset_disassociate(&dsset);
 				return (true);
@@ -7543,7 +7543,7 @@ has_ta(query_ctx_t *qctx) {
 	}
 
 	if (keynode != NULL) {
-		dns_keytable_detachkeynode(keytable, &keynode);
+		dns_keynode_detach(&keynode);
 	}
 
 	dns_keytable_detach(&keytable);

@@ -159,7 +159,6 @@ random_byte(void) {
 static void
 setup_items(void) {
 	void *pval = NULL;
-	uint32_t ival = ~0U;
 	dns_qp_t *qp = NULL;
 	dns_qp_create(mctx, &test_methods, NULL, &qp);
 	for (size_t i = 0; i < ARRAY_SIZE(item); i++) {
@@ -172,7 +171,7 @@ setup_items(void) {
 			memmove(item[i].ascii, item[i].key, len);
 			qp_test_keytoascii(item[i].ascii, len);
 		} while (dns_qp_getkey(qp, item[i].key, item[i].len, &pval,
-				       &ival) == ISC_R_SUCCESS);
+				       NULL) == ISC_R_SUCCESS);
 		assert_int_equal(dns_qp_insert(qp, &item[i], i), ISC_R_SUCCESS);
 	}
 	dns_qp_destroy(&qp);
@@ -283,9 +282,13 @@ one_transaction(dns_qpmulti_t *qpm) {
 		if (item[i].in_rw) {
 			/* TRACE("delete %zu %.*s", i,
 				 item[i].len, item[i].ascii); */
-			result = dns_qp_deletekey(qpw, item[i].key,
-						  item[i].len);
+			void *pvald = NULL;
+			uint32_t ivald = 0;
+			result = dns_qp_deletekey(qpw, item[i].key, item[i].len,
+						  &pvald, &ivald);
 			ASSERT(result == ISC_R_SUCCESS);
+			ASSERT(pvald == &item[i]);
+			ASSERT(ivald == i);
 			item[i].in_rw = false;
 		} else {
 			/* TRACE("insert %zu %.*s", i,

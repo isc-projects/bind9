@@ -214,28 +214,18 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	dns_view_setdispatchmgr(view, dispatchmgr);
 
 	/* Initialize view security roots */
-	result = dns_view_initsecroots(view, mctx);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
+	dns_view_initsecroots(view);
 
-	result = dns_view_createresolver(view, loopmgr, 1, nm, 0,
-					 tlsctx_client_cache, dispatchv4,
-					 dispatchv6);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
-
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
-			       rdclass, 0, NULL, &view->cachedb);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_view;
-	}
+	CHECK(dns_view_createresolver(view, loopmgr, 1, nm, 0,
+				      tlsctx_client_cache, dispatchv4,
+				      dispatchv6));
+	CHECK(dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
+			    rdclass, 0, NULL, &view->cachedb));
 
 	*viewp = view;
 	return (ISC_R_SUCCESS);
 
-cleanup_view:
+cleanup:
 	dns_view_detach(&view);
 	return (result);
 }
@@ -392,23 +382,6 @@ dns_client_setservers(dns_client_t *client, dns_rdataclass_t rdclass,
 
 	result = dns_fwdtable_add(client->view->fwdtable, name_space, addrs,
 				  dns_fwdpolicy_only);
-
-	return (result);
-}
-
-isc_result_t
-dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
-			const dns_name_t *name_space) {
-	isc_result_t result;
-
-	REQUIRE(DNS_CLIENT_VALID(client));
-	REQUIRE(rdclass == dns_rdataclass_in);
-
-	if (name_space == NULL) {
-		name_space = dns_rootname;
-	}
-
-	result = dns_fwdtable_delete(client->view->fwdtable, name_space);
 
 	return (result);
 }
