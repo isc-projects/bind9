@@ -23,6 +23,8 @@
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/rdataclass.h>
+#include <dns/time.h>
 
 #include "dnssectool.h"
 
@@ -73,6 +75,12 @@ typedef struct ksr_ctx ksr_ctx_t;
 static int min_rsa = 1024;
 static int min_dh = 128;
 
+#define CHECK(r)                    \
+	ret = (r);                  \
+	if (ret != ISC_R_SUCCESS) { \
+		goto fail;          \
+	}
+
 static void
 usage(int ret) {
 	fprintf(stderr, "Usage:\n");
@@ -95,6 +103,59 @@ usage(int ret) {
 	fprintf(stderr, "Commands:\n");
 	fprintf(stderr, "    keygen: pregenerate ZSKs\n");
 	exit(ret);
+}
+
+static void
+checkparams(ksr_ctx_t *ksr, const char *command) {
+	if (ksr->configfile == NULL) {
+		fatal("%s requires a configuration file", command);
+	}
+	if (ksr->policy == NULL) {
+		fatal("%s requires a dnssec-policy", command);
+	}
+	if (!ksr->setend) {
+		fatal("%s requires an end date", command);
+	}
+	if (!ksr->setstart) {
+		ksr->start = ksr->now;
+	}
+	if (ksr->keydir == NULL) {
+		ksr->keydir = ".";
+	}
+}
+
+static void
+getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *config = NULL;
+
+	RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser) == ISC_R_SUCCESS);
+	if (cfg_parse_file(parser, ksr->configfile, &cfg_type_namedconf,
+			   &config) != ISC_R_SUCCESS)
+	{
+		fatal("unable to load dnssec-policy '%s' from '%s'",
+		      ksr->policy, ksr->configfile);
+	}
+	kasp_from_conf(config, mctx, lctx, ksr->policy, ksr->keydir, engine,
+		       kasp);
+	if (*kasp == NULL) {
+		fatal("failed to load dnssec-policy '%s'", ksr->policy);
+	}
+	if (ISC_LIST_EMPTY(dns_kasp_keys(*kasp))) {
+		fatal("dnssec-policy '%s' has no keys configured", ksr->policy);
+	}
+	cfg_obj_destroy(parser, &config);
+	cfg_parser_destroy(&parser);
+}
+
+static void
+setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
+	ksr->propagation = dns_kasp_zonepropagationdelay(kasp);
+	ksr->publishsafety = dns_kasp_publishsafety(kasp);
+	ksr->retiresafety = dns_kasp_retiresafety(kasp);
+	ksr->signdelay = dns_kasp_signdelay(kasp);
+	ksr->ttl = dns_kasp_dnskeyttl(kasp);
+	ksr->ttlsig = dns_kasp_zonemaxttl(kasp, true);
 }
 
 static void
@@ -123,7 +184,7 @@ progress(int p) {
 static void
 create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 	   isc_stdtime_t inception, isc_stdtime_t active,
-	   isc_stdtime_t *inactive) {
+	   isc_stdtime_t *expiration) {
 	bool conflict = false;
 	bool freekey = false;
 	bool show_progress = true;
@@ -212,7 +273,7 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 			fflush(stderr);
 		}
 		key = dk->key;
-		*inactive = inact;
+		*expiration = inact;
 		goto output;
 	}
 
@@ -279,13 +340,14 @@ create_zsk(ksr_ctx_t *ksr, dns_kasp_key_t *kaspkey, dns_dnsseckeylist_t *keys,
 	dst_key_settime(key, DST_TIME_PUBLISH, (active - prepub));
 	dst_key_settime(key, DST_TIME_ACTIVATE, active);
 	if (ksr->lifetime > 0) {
+		isc_stdtime_t inactive = (active + ksr->lifetime);
 		isc_stdtime_t remove = ksr->ttlsig + ksr->propagation +
 				       ksr->retiresafety + ksr->signdelay;
-		*inactive = (active + ksr->lifetime);
-		dst_key_settime(key, DST_TIME_INACTIVE, (*inactive));
-		dst_key_settime(key, DST_TIME_DELETE, (*inactive + remove));
+		dst_key_settime(key, DST_TIME_INACTIVE, inactive);
+		dst_key_settime(key, DST_TIME_DELETE, (inactive + remove));
+		*expiration = inactive;
 	} else {
-		*inactive = 0;
+		*expiration = 0;
 	}
 
 	ret = dst_key_tofile(key, options, ksr->keydir);
@@ -313,46 +375,15 @@ output:
 static void
 keygen(ksr_ctx_t *ksr) {
 	isc_result_t ret;
-	cfg_parser_t *parser = NULL;
-	cfg_obj_t *config = NULL;
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
 	bool noop = true;
 
 	/* Check parameters */
-	if (ksr->configfile == NULL) {
-		fatal("keygen requires a configuration file");
-	}
-	if (ksr->policy == NULL) {
-		fatal("keygen requires a dnssec-policy");
-	}
-	if (!ksr->setend) {
-		fatal("keygen requires an end date");
-	}
-	if (!ksr->setstart) {
-		ksr->start = ksr->now;
-	}
-	if (ksr->keydir == NULL) {
-		ksr->keydir = ".";
-	}
-
-	RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &parser) == ISC_R_SUCCESS);
-	if (cfg_parse_file(parser, ksr->configfile, &cfg_type_namedconf,
-			   &config) != ISC_R_SUCCESS)
-	{
-		fatal("unable to load dnssec-policy '%s' from '%s'",
-		      ksr->policy, ksr->configfile);
-	}
-	kasp_from_conf(config, mctx, lctx, ksr->policy, ksr->keydir, engine,
-		       &kasp);
-	if (kasp == NULL) {
-		fatal("failed to load dnssec-policy '%s'", ksr->policy);
-	}
-
-	if (ISC_LIST_EMPTY(dns_kasp_keys(kasp))) {
-		fatal("dnssec-policy '%s' has no keys configured", ksr->policy);
-	}
-
+	checkparams(ksr, "keygen");
+	/* Get the policy */
+	getkasp(ksr, &kasp);
+	/* Get existing keys */
 	ISC_LIST_INIT(keys);
 	ret = dns_dnssec_findmatchingkeys(name, NULL, ksr->keydir, NULL,
 					  ksr->now, mctx, &keys);
@@ -360,13 +391,9 @@ keygen(ksr_ctx_t *ksr) {
 		fatal("failed to load existing keys from %s: %s", ksr->keydir,
 		      isc_result_totext(ret));
 	}
-
-	ksr->propagation = dns_kasp_zonepropagationdelay(kasp);
-	ksr->publishsafety = dns_kasp_publishsafety(kasp);
-	ksr->retiresafety = dns_kasp_retiresafety(kasp);
-	ksr->signdelay = dns_kasp_signdelay(kasp);
-	ksr->ttl = dns_kasp_dnskeyttl(kasp);
-	ksr->ttlsig = dns_kasp_zonemaxttl(kasp, true);
+	/* Set context */
+	setcontext(ksr, kasp);
+	/* Key generation */
 	for (dns_kasp_key_t *kk = ISC_LIST_HEAD(dns_kasp_keys(kasp));
 	     kk != NULL; kk = ISC_LIST_NEXT(kk, link))
 	{
@@ -380,29 +407,26 @@ keygen(ksr_ctx_t *ksr) {
 		ksr->size = dns_kasp_key_size(kk);
 		noop = false;
 
-		for (isc_stdtime_t inception = ksr->start, active = ksr->start;
+		for (isc_stdtime_t inception = ksr->start, act = ksr->start;
 		     inception < ksr->end; inception += ksr->lifetime)
 		{
-			create_zsk(ksr, kk, &keys, inception, active, &active);
+			create_zsk(ksr, kk, &keys, inception, act, &act);
 			if (ksr->lifetime == 0) {
-				/* unlimited lifetime */
+				/* unlimited lifetime, but not infinite loop */
 				break;
 			}
 		}
 	}
-
 	if (noop) {
 		fatal("policy '%s' has no zsks", ksr->policy);
 	}
-
+	/* Cleanup */
 	while (!ISC_LIST_EMPTY(keys)) {
 		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
 		ISC_LIST_UNLINK(keys, key, link);
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
-	cfg_obj_destroy(parser, &config);
-	cfg_parser_destroy(&parser);
 }
 
 int
