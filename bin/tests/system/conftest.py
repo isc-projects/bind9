@@ -27,26 +27,6 @@ import pytest
 # pylint: disable=redefined-outer-name
 
 
-@pytest.fixture(scope="module")
-def named_port():
-    return int(os.environ.get("PORT", default=5300))
-
-
-@pytest.fixture(scope="module")
-def named_tlsport():
-    return int(os.environ.get("TLSPORT", default=8853))
-
-
-@pytest.fixture(scope="module")
-def named_httpsport():
-    return int(os.environ.get("HTTPSPORT", default=4443))
-
-
-@pytest.fixture(scope="module")
-def control_port():
-    return int(os.environ.get("CONTROLPORT", default=9953))
-
-
 # ----------------- Older pytest / xdist compatibility -------------------
 # As of 2023-01-11, the minimal supported pytest / xdist versions are
 # determined by what is available in EL8/EPEL8:
@@ -312,27 +292,48 @@ def base_port(request, module_base_ports):
 def ports(base_port):
     """Dictionary containing port names and their assigned values."""
     return {
-        "PORT": str(base_port),
-        "TLSPORT": str(base_port + 1),
-        "HTTPPORT": str(base_port + 2),
-        "HTTPSPORT": str(base_port + 3),
-        "EXTRAPORT1": str(base_port + 4),
-        "EXTRAPORT2": str(base_port + 5),
-        "EXTRAPORT3": str(base_port + 6),
-        "EXTRAPORT4": str(base_port + 7),
-        "EXTRAPORT5": str(base_port + 8),
-        "EXTRAPORT6": str(base_port + 9),
-        "EXTRAPORT7": str(base_port + 10),
-        "EXTRAPORT8": str(base_port + 11),
-        "CONTROLPORT": str(base_port + 12),
+        "PORT": base_port,
+        "TLSPORT": base_port + 1,
+        "HTTPPORT": base_port + 2,
+        "HTTPSPORT": base_port + 3,
+        "EXTRAPORT1": base_port + 4,
+        "EXTRAPORT2": base_port + 5,
+        "EXTRAPORT3": base_port + 6,
+        "EXTRAPORT4": base_port + 7,
+        "EXTRAPORT5": base_port + 8,
+        "EXTRAPORT6": base_port + 9,
+        "EXTRAPORT7": base_port + 10,
+        "EXTRAPORT8": base_port + 11,
+        "CONTROLPORT": base_port + 12,
     }
+
+
+@pytest.fixture(scope="module")
+def named_port(ports):
+    return ports["PORT"]
+
+
+@pytest.fixture(scope="module")
+def named_tlsport(ports):
+    return ports["TLSPORT"]
+
+
+@pytest.fixture(scope="module")
+def named_httpsport(ports):
+    return ports["HTTPSPORT"]
+
+
+@pytest.fixture(scope="module")
+def control_port(ports):
+    return ports["CONTROLPORT"]
 
 
 @pytest.fixture(scope="module")
 def env(ports):
     """Dictionary containing environment variables for the test."""
     env = os.environ.copy()
-    env.update(ports)
+    for portname, portnum in ports.items():
+        env[portname] = str(portnum)
     env["builddir"] = f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     return env
