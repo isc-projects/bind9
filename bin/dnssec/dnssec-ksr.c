@@ -212,6 +212,17 @@ setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
 }
 
 static void
+cleanup(dns_dnsseckeylist_t *keys, dns_kasp_t *kasp) {
+	while (!ISC_LIST_EMPTY(*keys)) {
+		dns_dnsseckey_t *key = ISC_LIST_HEAD(*keys);
+		ISC_LIST_UNLINK(*keys, key, link);
+		dst_key_free(&key->key);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
+	dns_kasp_detach(&kasp);
+}
+
+static void
 progress(int p) {
 	char c = '*';
 	switch (p) {
@@ -567,13 +578,7 @@ keygen(ksr_ctx_t *ksr) {
 		fatal("policy '%s' has no zsks", ksr->policy);
 	}
 	/* Cleanup */
-	while (!ISC_LIST_EMPTY(keys)) {
-		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
-		ISC_LIST_UNLINK(keys, key, link);
-		dst_key_free(&key->key);
-		dns_dnsseckey_destroy(mctx, &key);
-	}
-	dns_kasp_detach(&kasp);
+	cleanup(&keys, kasp);
 }
 
 static void
@@ -630,12 +635,7 @@ request(ksr_ctx_t *ksr) {
 		inception = next;
 	}
 	/* Cleanup */
-	while (!ISC_LIST_EMPTY(keys)) {
-		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
-		ISC_LIST_UNLINK(keys, key, link);
-		dst_key_free(&key->key);
-		dns_dnsseckey_destroy(mctx, &key);
-	}
+	cleanup(&keys, kasp);
 }
 
 int
