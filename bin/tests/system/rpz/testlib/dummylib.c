@@ -270,9 +270,7 @@ pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 	rdatap += 4;
 	used += (4 * 5);
 
-	if (rdlenp != NULL) {
-		*rdlenp = used;
-	}
+	SET_IF_NOT_NULL(rdlenp, used);
 
 	return (true);
 }
@@ -1889,9 +1887,7 @@ domain_pton2(const char *src, u_char *dst, size_t dstsiz, size_t *dstlen,
 
 	tptr = tmps;
 
-	if (dstlen != NULL) {
-		*dstlen = 0;
-	}
+	SET_IF_NOT_NULL(dstlen, 0);
 
 	while (tptr && *tptr) {
 		tok = strsep(&tptr, ".");
@@ -2117,9 +2113,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 			*ttlp = 3600;
 		}
 
-		if (typep != NULL) {
-			*typep = this_rr->type;
-		}
+		SET_IF_NOT_NULL(typep, this_rr->type);
 
 		if (rrp != NULL) {
 			uint8_t *copy_src = NULL, *nrdata = NULL;
@@ -2205,9 +2199,7 @@ trpz_rsp_rr(librpz_emsg_t *emsg, uint16_t *typep, uint16_t *classp,
 		trsp->rstack[0].result.next_rr = this_rr->rrn;
 		last_result->rridx++;
 	} else {
-		if (typep != NULL) {
-			*typep = ns_t_invalid;
-		}
+		SET_IF_NOT_NULL(typep, ns_t_invalid);
 
 		if (rrp != NULL) {
 			*rrp = NULL;

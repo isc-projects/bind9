@@ -952,11 +952,7 @@ named_config_getkeyalgorithm(const char *str, unsigned int *typep,
 	} else {
 		bits = algorithms[i].size;
 	}
-	if (typep != NULL) {
-		*typep = algorithms[i].type;
-	}
-	if (digestbits != NULL) {
-		*digestbits = bits;
-	}
+	SET_IF_NOT_NULL(typep, algorithms[i].type);
+	SET_IF_NOT_NULL(digestbits, bits);
 	return (ISC_R_SUCCESS);
 }

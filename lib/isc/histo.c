@@ -27,16 +27,6 @@
 #include <isc/mem.h>
 #include <isc/tid.h>
 
-/*
- * XXXFANF this should probably be in <isc/util.h> too
- */
-#define OUTARG(ptr, val)                \
-	({                              \
-		if ((ptr) != NULL) {    \
-			*(ptr) = (val); \
-		}                       \
-	})
-
 #define HISTO_MAGIC	    ISC_MAGIC('H', 's', 't', 'o')
 #define HISTO_VALID(p)	    ISC_MAGIC_VALID(p, HISTO_MAGIC)
 #define HISTOMULTI_MAGIC    ISC_MAGIC('H', 'g', 'M', 't')
@@ -327,9 +317,9 @@ isc_histo_get(const isc_histo_t *hg, uint key, uint64_t *minp, uint64_t *maxp,
 	REQUIRE(HISTO_VALID(hg));
 
 	if (key < BUCKETS(hg)) {
-		OUTARG(minp, key_to_minval(hg, key));
-		OUTARG(maxp, key_to_maxval(hg, key));
-		OUTARG(countp, get_key_count(hg, key));
+		SET_IF_NOT_NULL(minp, key_to_minval(hg, key));
+		SET_IF_NOT_NULL(maxp, key_to_maxval(hg, key));
+		SET_IF_NOT_NULL(countp, get_key_count(hg, key));
 		return (ISC_R_SUCCESS);
 	} else {
 		return (ISC_R_RANGE);
@@ -465,9 +455,9 @@ isc_histo_moments(const isc_histo_t *hg, double *pm0, double *pm1,
 		sigma += count * delta * (value - mean);
 	}
 
-	OUTARG(pm0, pop);
-	OUTARG(pm1, mean);
-	OUTARG(pm2, (pop > 0) ? sqrt(sigma / pop) : 0.0);
+	SET_IF_NOT_NULL(pm0, pop);
+	SET_IF_NOT_NULL(pm1, mean);
+	SET_IF_NOT_NULL(pm2, (pop > 0) ? sqrt(sigma / pop) : 0.0);
 }
 
 /*

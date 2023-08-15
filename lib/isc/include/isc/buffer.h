@@ -844,9 +844,7 @@ isc_buffer_peekuint8(const isc_buffer_t *restrict b, uint8_t *valp) {
 	ISC_BUFFER_PEEK_CHECK(b, sizeof(*valp));
 
 	uint8_t *cp = isc_buffer_current(b);
-	if (valp != NULL) {
-		*valp = (uint8_t)(cp[0]);
-	}
+	SET_IF_NOT_NULL(valp, (uint8_t)(cp[0]));
 	return (ISC_R_SUCCESS);
 }
 
@@ -887,9 +885,7 @@ isc_buffer_peekuint16(const isc_buffer_t *restrict b, uint16_t *valp) {
 
 	uint8_t *cp = isc_buffer_current(b);
 
-	if (valp != NULL) {
-		*valp = ISC_U8TO16_BE(cp);
-	}
+	SET_IF_NOT_NULL(valp, ISC_U8TO16_BE(cp));
 	return (ISC_R_SUCCESS);
 }
 
@@ -917,9 +913,7 @@ isc_buffer_peekuint32(const isc_buffer_t *restrict b, uint32_t *valp) {
 
 	uint8_t *cp = isc_buffer_current(b);
 
-	if (valp != NULL) {
-		*valp = ISC_U8TO32_BE(cp);
-	}
+	SET_IF_NOT_NULL(valp, ISC_U8TO32_BE(cp));
 	return (ISC_R_SUCCESS);
 }
 
@@ -948,9 +942,7 @@ isc_buffer_peekuint48(const isc_buffer_t *restrict b, uint64_t *valp) {
 
 	uint8_t *cp = isc_buffer_current(b);
 
-	if (valp != NULL) {
-		*valp = ISC_U8TO48_BE(cp);
-	}
+	SET_IF_NOT_NULL(valp, ISC_U8TO48_BE(cp));
 	return (ISC_R_SUCCESS);
 }
 

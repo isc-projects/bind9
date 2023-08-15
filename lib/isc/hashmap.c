@@ -347,9 +347,7 @@ isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t *hashvalp,
 	}
 
 	INSIST(node->key != NULL);
-	if (valuep != NULL) {
-		*valuep = node->value;
-	}
+	SET_IF_NOT_NULL(valuep, node->value);
 	return (ISC_R_SUCCESS);
 }
 

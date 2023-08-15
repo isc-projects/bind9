@@ -13,6 +13,8 @@
 
 #include "openssl_shim.h"
 
+#include <isc/util.h>
+
 #if !HAVE_RSA_SET0_KEY && OPENSSL_VERSION_NUMBER < 0x30000000L
 /* From OpenSSL 1.1.0 */
 int
@@ -96,39 +98,23 @@ RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp) {
 void
 RSA_get0_key(const RSA *r, const BIGNUM **n, const BIGNUM **e,
 	     const BIGNUM **d) {
-	if (n != NULL) {
-		*n = r->n;
-	}
-	if (e != NULL) {
-		*e = r->e;
-	}
-	if (d != NULL) {
-		*d = r->d;
-	}
+	SET_IF_NOT_NULL(n, r->n);
+	SET_IF_NOT_NULL(e, r->e);
+	SET_IF_NOT_NULL(d, r->d);
 }
 
 void
 RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q) {
-	if (p != NULL) {
-		*p = r->p;
-	}
-	if (q != NULL) {
-		*q = r->q;
-	}
+	SET_IF_NOT_NULL(p, r->p);
+	SET_IF_NOT_NULL(q, r->q);
 }
 
 void
 RSA_get0_crt_params(const RSA *r, const BIGNUM **dmp1, const BIGNUM **dmq1,
 		    const BIGNUM **iqmp) {
-	if (dmp1 != NULL) {
-		*dmp1 = r->dmp1;
-	}
-	if (dmq1 != NULL) {
-		*dmq1 = r->dmq1;
-	}
-	if (iqmp != NULL) {
-		*iqmp = r->iqmp;
-	}
+	SET_IF_NOT_NULL(dmp1, r->dmp1);
+	SET_IF_NOT_NULL(dmq1, r->dmq1);
+	SET_IF_NOT_NULL(iqmp, r->iqmp);
 }
 
 int
@@ -141,12 +127,8 @@ RSA_test_flags(const RSA *r, int flags) {
 /* From OpenSSL 1.1 */
 void
 ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
-	if (pr != NULL) {
-		*pr = sig->r;
-	}
-	if (ps != NULL) {
-		*ps = sig->s;
-	}
+	SET_IF_NOT_NULL(pr, sig->r);
+	SET_IF_NOT_NULL(ps, sig->s);
 }
 
 int
@@ -170,9 +152,7 @@ static const char err_empty_string = '\0';
 unsigned long
 ERR_get_error_all(const char **file, int *line, const char **func,
 		  const char **data, int *flags) {
-	if (func != NULL) {
-		*func = &err_empty_string;
-	}
+	SET_IF_NOT_NULL(func, &err_empty_string);
 	return (ERR_get_error_line_data(file, line, data, flags));
 }
 #endif /* if !HAVE_ERR_GET_ERROR_ALL */

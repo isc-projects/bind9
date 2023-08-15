@@ -5459,12 +5459,8 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 	dns_rdataset_disassociate(&rdataset);
 
 success:
-	if (nscount != NULL) {
-		*nscount = count;
-	}
-	if (errors != NULL) {
-		*errors = ecount;
-	}
+	SET_IF_NOT_NULL(nscount, count);
+	SET_IF_NOT_NULL(errors, ecount);
 
 	result = ISC_R_SUCCESS;
 
@@ -5473,11 +5469,6 @@ invalidate_rdataset:
 
 	return (result);
 }
-
-#define SET_IF_NOT_NULL(obj, val) \
-	if (obj != NULL) {        \
-		*obj = val;       \
-	}
 
 #define SET_SOA_VALUES(soattl_v, serial_v, refresh_v, retry_v, expire_v, \
 		       minimum_v)                                        \
