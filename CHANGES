@@ -1,3 +1,7 @@
+6376.	[func]		Allow 'dnssec-keygen' options '-f' and '-k' to be used
+			together to create a subset of keys from the DNSSEC
+			policy.
+
 6375.	[func]		Allow multiple RNDC message to be processed from
 			a single TCP read. [GL #4416]
 

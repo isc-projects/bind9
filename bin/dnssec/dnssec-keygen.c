@@ -96,6 +96,7 @@ struct keygen_ctx {
 	int options;
 	int dbits;
 	dns_ttl_t ttl;
+	uint16_t zskflag;
 	uint16_t kskflag;
 	uint16_t revflag;
 	dns_secalg_t alg;
@@ -177,7 +178,7 @@ usage(void) {
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -E <engine>:\n");
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
-	fprintf(stderr, "    -f <keyflag>: KSK | REVOKE\n");
+	fprintf(stderr, "    -f <keyflag>: ZSK | KSK | REVOKE\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
 	fprintf(stderr, "    -L <ttl>: default key TTL\n");
 	fprintf(stderr, "    -p <protocol>: (default: 3 [dnssec])\n");
@@ -262,6 +263,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	isc_result_t ret;
 	dst_key_t *key = NULL;
 	dst_key_t *prevkey = NULL;
+	uint16_t kskflag;
 
 	UNUSED(argc);
 
@@ -551,10 +553,16 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 		ctx->directory = ".";
 	}
 
+	if (ctx->ksk) {
+		kskflag = DNS_KEYFLAG_KSK;
+	} else {
+		kskflag = ctx->kskflag;
+	}
+
 	if ((ctx->options & DST_TYPE_KEY) != 0) { /* KEY */
 		flags |= ctx->signatory;
 	} else if ((flags & DNS_KEYOWNER_ZONE) != 0) { /* DNSKEY */
-		flags |= ctx->kskflag;
+		flags |= kskflag;
 		flags |= ctx->revflag;
 	}
 
@@ -923,6 +931,8 @@ main(int argc, char **argv) {
 			c = (unsigned char)(isc_commandline_argument[0]);
 			if (toupper(c) == 'K') {
 				ctx.kskflag = DNS_KEYFLAG_KSK;
+			} else if (toupper(c) == 'Z') {
+				ctx.zskflag = 1;
 			} else if (toupper(c) == 'R') {
 				ctx.revflag = DNS_KEYFLAG_REVOKE;
 			} else {
@@ -1198,8 +1208,8 @@ main(int argc, char **argv) {
 		if (ctx.size != -1) {
 			fatal("-k and -b cannot be used together");
 		}
-		if (ctx.kskflag || ctx.revflag) {
-			fatal("-k and -f cannot be used together");
+		if (ctx.revflag) {
+			fatal("-k and -fR cannot be used together");
 		}
 		if (ctx.options & DST_TYPE_KEY) {
 			fatal("-k and -T KEY cannot be used together");
@@ -1214,9 +1224,9 @@ main(int argc, char **argv) {
 			ctx.use_nsec3 = false;
 			ctx.alg = DST_ALG_ECDSA256;
 			ctx.size = 0;
-			ctx.kskflag = DNS_KEYFLAG_KSK;
 			ctx.ttl = 3600;
 			ctx.setttl = true;
+			ctx.kskflag = DNS_KEYFLAG_KSK;
 			ctx.ksk = true;
 			ctx.zsk = true;
 			ctx.lifetime = 0;
@@ -1254,15 +1264,13 @@ main(int argc, char **argv) {
 			ctx.ttl = dns_kasp_dnskeyttl(kasp);
 			ctx.setttl = true;
 
-			kaspkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
-
-			while (kaspkey != NULL) {
+			for (kaspkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+			     kaspkey != NULL;
+			     kaspkey = ISC_LIST_NEXT(kaspkey, link))
+			{
 				ctx.use_nsec3 = false;
 				ctx.alg = dns_kasp_key_algorithm(kaspkey);
 				ctx.size = dns_kasp_key_size(kaspkey);
-				ctx.kskflag = dns_kasp_key_ksk(kaspkey)
-						      ? DNS_KEYFLAG_KSK
-						      : 0;
 				ctx.ksk = dns_kasp_key_ksk(kaspkey);
 				ctx.zsk = dns_kasp_key_zsk(kaspkey);
 				ctx.lifetime = dns_kasp_key_lifetime(kaspkey);
@@ -1270,10 +1278,17 @@ main(int argc, char **argv) {
 				if (ctx.keystore != NULL) {
 					check_keystore_options(&ctx);
 				}
-
+				if (ctx.ksk && ctx.kskflag == 0 &&
+				    ctx.zskflag != 0)
+				{
+					continue;
+				}
+				if (ctx.zsk && ctx.zskflag == 0 &&
+				    ctx.kskflag != 0)
+				{
+					continue;
+				}
 				keygen(&ctx, mctx, argc, argv);
-
-				kaspkey = ISC_LIST_NEXT(kaspkey, link);
 			}
 
 			dns_kasp_detach(&kasp);
