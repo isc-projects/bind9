@@ -1,3 +1,7 @@
+6252.	[test]		Python system tests have to be executed by invoking
+			pytest directly. Executing them with the legacy test
+			runner is no longer supported. [GL #4250]
+
 6251.	[bug]		Interating a hashmap could return the same element
 			twice. [GL #3422]
 
