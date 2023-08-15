@@ -10718,11 +10718,11 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
 }
 
 static void
-free_algorithm(void *node, void *arg) {
-	unsigned char *algorithms = node;
+free_bfnode(void *node, void *arg) {
+	unsigned char *bfnode = node;
 	isc_mem_t *mctx = arg;
 
-	isc_mem_put(mctx, algorithms, *algorithms);
+	isc_mem_put(mctx, bfnode, *bfnode);
 }
 
 void
@@ -10734,109 +10734,6 @@ dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
 	}
 }
 
-isc_result_t
-dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
-			       unsigned int alg) {
-	unsigned int len, mask;
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-	unsigned char *algorithms = NULL;
-	unsigned int algorithms_len;
-
-	/*
-	 * Whether an algorithm is disabled (or not) is stored in a
-	 * per-name bitfield that is stored as the node data of an
-	 * RBT.
-	 */
-
-	REQUIRE(VALID_RESOLVER(resolver));
-	if (alg > 255) {
-		return (ISC_R_RANGE);
-	}
-
-	if (resolver->algorithms == NULL) {
-		result = dns_rbt_create(resolver->mctx, free_algorithm,
-					resolver->mctx, &resolver->algorithms);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-	}
-
-	len = alg / 8 + 2;
-	mask = 1 << (alg % 8);
-
-	result = dns_rbt_addnode(resolver->algorithms, name, &node);
-
-	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-		return (result);
-	}
-
-	/* If algorithms is set, algorithms[0] contains its length. */
-	algorithms = node->data;
-	algorithms_len = (algorithms) ? algorithms[0] : 0;
-
-	if (algorithms == NULL || len > algorithms_len) {
-		INSIST(len > 0);
-		/*
-		 * If no bitfield exists in the node data, or if
-		 * it is not long enough, allocate a new
-		 * bitfield and copy the old (smaller) bitfield
-		 * into it if one exists.
-		 */
-		node->data = algorithms =
-			isc_mem_creget(resolver->mctx, algorithms,
-				       algorithms_len, len, sizeof(char));
-		/* store the new length */
-		algorithms[0] = len;
-	}
-
-	algorithms[len - 1] |= mask;
-	return (ISC_R_SUCCESS);
-}
-
-bool
-dns_resolver_algorithm_supported(dns_resolver_t *resolver,
-				 const dns_name_t *name, unsigned int alg) {
-	unsigned int len, mask;
-	unsigned char *algorithms;
-	void *data = NULL;
-	isc_result_t result;
-	bool found = false;
-
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
-		return (false);
-	}
-
-	if (resolver->algorithms == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->algorithms, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		len = alg / 8 + 2;
-		mask = 1 << (alg % 8);
-		algorithms = data;
-		if (len <= *algorithms && (algorithms[len - 1] & mask) != 0) {
-			found = true;
-		}
-	}
-unlock:
-	if (found) {
-		return (false);
-	}
-
-	return (dst_algorithm_supported(alg));
-}
-
-static void
-free_digest(void *node, void *arg) {
-	unsigned char *digests = node;
-	isc_mem_t *mctx = arg;
-
-	isc_mem_put(mctx, digests, *digests);
-}
-
 void
 dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
@@ -10846,96 +10743,130 @@ dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
 	}
 }
 
+static isc_result_t
+bftree_add(dns_rbt_t **bftp, isc_mem_t *mctx, const dns_name_t *name,
+	   unsigned int val) {
+	isc_result_t result;
+	dns_rbt_t *bftree = NULL;
+	dns_rbtnode_t *node = NULL;
+	unsigned int len, mask;
+	unsigned char *bits = NULL;
+	unsigned int bits_len;
+
+	if (*bftp == NULL) {
+		result = dns_rbt_create(mctx, free_bfnode, mctx, &bftree);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		*bftp = bftree;
+	} else {
+		bftree = *bftp;
+	}
+
+	len = val / 8 + 2;
+	mask = 1 << (val % 8);
+
+	result = dns_rbt_addnode(bftree, name, &node);
+	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+		return (result);
+	}
+
+	/* If bits is set, bits[0] contains its length. */
+	bits = node->data;
+	bits_len = (bits != NULL) ? bits[0] : 0;
+
+	if (bits == NULL || len > bits_len) {
+		INSIST(len > 0);
+
+		/*
+		 * If no bitfield exists in the node data, or if
+		 * it is not long enough, allocate a new
+		 * bitfield and copy the old (smaller) bitfield
+		 * into it if one exists.
+		 */
+		node->data = bits = isc_mem_creget(mctx, bits, bits_len, len,
+						   sizeof(char));
+		/* store the new length */
+		bits[0] = len;
+	}
+
+	bits[len - 1] |= mask;
+	return (ISC_R_SUCCESS);
+}
+
+static bool
+bftree_present(dns_rbt_t *bftree, const dns_name_t *name, unsigned int val) {
+	isc_result_t result;
+	void *data = NULL;
+
+	result = dns_rbt_findname(bftree, name, 0, NULL, &data);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		unsigned int len = val / 8 + 2;
+		unsigned int mask = 1 << (val % 8);
+		unsigned char *bits = data;
+		if (len <= *bits && (bits[len - 1] & mask) != 0) {
+			return (true);
+		}
+	}
+
+	return (false);
+}
+
+isc_result_t
+dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
+			       unsigned int alg) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	if (alg > 255) {
+		return (ISC_R_RANGE);
+	}
+
+	return (bftree_add(&resolver->algorithms, resolver->mctx, name, alg));
+}
+
 isc_result_t
 dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int digest_type) {
-	unsigned int len, mask;
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-
-	/*
-	 * Whether a digest is disabled (or not) is stored in a per-name
-	 * bitfield that is stored as the node data of an RBT.
-	 */
-
 	REQUIRE(VALID_RESOLVER(resolver));
+
 	if (digest_type > 255) {
 		return (ISC_R_RANGE);
 	}
 
-	if (resolver->digests == NULL) {
-		result = dns_rbt_create(resolver->mctx, free_digest,
-					resolver->mctx, &resolver->digests);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
+	return (bftree_add(&resolver->digests, resolver->mctx, name,
+			   digest_type));
+}
+
+bool
+dns_resolver_algorithm_supported(dns_resolver_t *resolver,
+				 const dns_name_t *name, unsigned int alg) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
+		return (false);
+	}
+
+	if (resolver->algorithms != NULL) {
+		if (bftree_present(resolver->algorithms, name, alg)) {
+			return (false);
 		}
 	}
 
-	len = digest_type / 8 + 2;
-	mask = 1 << (digest_type % 8);
-
-	result = dns_rbt_addnode(resolver->digests, name, &node);
-
-	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
-		unsigned char *digests = node->data;
-		/* If digests is set, digests[0] contains its length. */
-		if (digests == NULL || len > *digests) {
-			/*
-			 * If no bitfield exists in the node data, or if
-			 * it is not long enough, allocate a new
-			 * bitfield and copy the old (smaller) bitfield
-			 * into it if one exists.
-			 */
-			unsigned char *tmp = isc_mem_cget(resolver->mctx, 1,
-							  len);
-			if (digests != NULL) {
-				memmove(tmp, digests, *digests);
-			}
-			tmp[len - 1] |= mask;
-			/* tmp[0] should contain the length of 'tmp'. */
-			*tmp = len;
-			node->data = tmp;
-			/* Free the older bitfield. */
-			if (digests != NULL) {
-				isc_mem_put(resolver->mctx, digests, *digests);
-			}
-		} else {
-			digests[len - 1] |= mask;
-		}
-	}
-	result = ISC_R_SUCCESS;
-cleanup:
-	return (result);
+	return (dst_algorithm_supported(alg));
 }
 
 bool
 dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name,
 				 unsigned int digest_type) {
-	unsigned int len, mask;
-	unsigned char *digests;
-	void *data = NULL;
-	isc_result_t result;
-	bool found = false;
-
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->digests == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->digests, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		len = digest_type / 8 + 2;
-		mask = 1 << (digest_type % 8);
-		digests = data;
-		if (len <= *digests && (digests[len - 1] & mask) != 0) {
-			found = true;
+	if (resolver->digests != NULL) {
+		if (bftree_present(resolver->digests, name, digest_type)) {
+			return (false);
 		}
 	}
-unlock:
-	if (found) {
-		return (false);
-	}
+
 	return (dst_ds_digest_supported(digest_type));
 }
 
