@@ -278,6 +278,8 @@ setup.sh    Run after prereq.sh, this sets up the preconditions for the tests.
 
 tests.sh    Runs the actual tests.  This file is mandatory.
 
+tests_sh_xyz.py  A glue file for the pytest runner for executing shell tests.
+
 clean.sh    Run at the end to clean up temporary files, but only if the test
             was completed successfully and its running was not inhibited by the
             "-n" switch being passed to "legacy.run.sh".  Otherwise the
@@ -496,6 +498,17 @@ d.  Use "echo_i" to output informational messages.
 e.  Retain a count of test failures and return this as the exit status from
     the script.
 
+
+tests_sh_xyz.py
+---------------
+This glue file is required by the pytest runner in order to find and execute
+the shell tests in tests.sh.
+
+Replace the "xyz" with the system test name and create the file with the
+following contents.
+
+    def test_xyz(run_tests_sh):
+        run_tests_sh()
 
 clean.sh
 ---
