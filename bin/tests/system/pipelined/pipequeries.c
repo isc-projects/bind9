@@ -282,7 +282,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dns_requestmgr_create(mctx, loopmgr, dispatchmgr, dispatchv4,
 				       NULL, &requestmgr));
 
-	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));
+	RUNCHECK(dns_view_create(mctx, NULL, 0, "_test", &view));
 
 	isc_loopmgr_setup(loopmgr, sendqueries, NULL);
 	isc_loopmgr_teardown(loopmgr, teardown_view, view);

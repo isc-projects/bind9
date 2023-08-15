@@ -45,6 +45,7 @@
 
 #include <dns/callbacks.h>
 #include <dns/db.h>
+#include <dns/dispatch.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
@@ -59,12 +60,27 @@ dns_zonemgr_t *zonemgr = NULL;
  * Create a view.
  */
 isc_result_t
-dns_test_makeview(const char *name, bool with_cache, dns_view_t **viewp) {
+dns_test_makeview(const char *name, bool with_dispatchmgr, bool with_cache,
+		  dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 	dns_cache_t *cache = NULL;
+	dns_dispatchmgr_t *dispatchmgr = NULL;
 
-	result = dns_view_create(mctx, dns_rdataclass_in, name, &view);
+	if (with_dispatchmgr) {
+		result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
+
+	result = dns_view_create(mctx, dispatchmgr, dns_rdataclass_in, name,
+				 &view);
+
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_detach(&dispatchmgr);
+	}
+
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -124,7 +140,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	 * If requested, create a view.
 	 */
 	if (createview) {
-		result = dns_test_makeview("view", false, &view);
+		result = dns_test_makeview("view", false, false, &view);
 		if (result != ISC_R_SUCCESS) {
 			goto detach_zone;
 		}

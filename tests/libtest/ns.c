@@ -439,7 +439,8 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	/*
 	 * Every client needs to belong to a view.
 	 */
-	result = dns_test_makeview("view", params->with_cache, &client->view);
+	result = dns_test_makeview("view", false, params->with_cache,
+				   &client->view);
 	if (result != ISC_R_SUCCESS) {
 		goto detach_client;
 	}

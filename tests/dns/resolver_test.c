@@ -35,7 +35,6 @@
 
 #include <tests/dns.h>
 
-static dns_dispatchmgr_t *dispatchmgr = NULL;
 static dns_dispatch_t *dispatch = NULL;
 static dns_view_t *view = NULL;
 static isc_tlsctx_cache_t *tlsctx_cache = NULL;
@@ -44,20 +43,21 @@ static int
 setup_test(void **state) {
 	isc_result_t result;
 	isc_sockaddr_t local;
+	dns_dispatchmgr_t *dispatchmgr = NULL;
 
 	setup_managers(state);
 
-	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+	result = dns_test_makeview("view", true, false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_test_makeview("view", false, &view);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	dns_view_setdispatchmgr(view, dispatchmgr);
+	dispatchmgr = dns_view_getdispatchmgr(view);
+	assert_non_null(dispatchmgr);
 
 	isc_sockaddr_any(&local);
 	result = dns_dispatch_createudp(dispatchmgr, &local, &dispatch);
 	assert_int_equal(result, ISC_R_SUCCESS);
+
+	dns_dispatchmgr_detach(&dispatchmgr);
 
 	return (0);
 }
@@ -66,7 +66,6 @@ static int
 teardown_test(void **state) {
 	dns_dispatch_detach(&dispatch);
 	dns_view_detach(&view);
-	dns_dispatchmgr_detach(&dispatchmgr);
 	teardown_managers(state);
 
 	return (0);
