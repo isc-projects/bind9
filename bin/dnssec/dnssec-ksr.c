@@ -101,7 +101,8 @@ usage(int ret) {
 	fprintf(stderr, "    -V: print version information\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Commands:\n");
-	fprintf(stderr, "    keygen: pregenerate ZSKs\n");
+	fprintf(stderr, "    keygen:  pregenerate ZSKs\n");
+	fprintf(stderr, "    request: create a Key Signing Request (KSR)\n");
 	exit(ret);
 }
 
@@ -146,6 +147,58 @@ getkasp(ksr_ctx_t *ksr, dns_kasp_t **kasp) {
 	}
 	cfg_obj_destroy(parser, &config);
 	cfg_parser_destroy(&parser);
+}
+
+static int
+keytag_cmp(const void *k1, const void *k2) {
+	dns_dnsseckey_t **key1 = (dns_dnsseckey_t **)k1;
+	dns_dnsseckey_t **key2 = (dns_dnsseckey_t **)k2;
+	if (dst_key_id((*key1)->key) < dst_key_id((*key2)->key)) {
+		return (-1);
+	} else if (dst_key_id((*key1)->key) > dst_key_id((*key2)->key)) {
+		return (1);
+	}
+	return (0);
+}
+
+static void
+get_dnskeys(ksr_ctx_t *ksr, dns_dnsseckeylist_t *keys) {
+	dns_dnsseckeylist_t keys_read;
+	dns_dnsseckey_t **keys_sorted;
+	int i = 0, n = 0;
+	isc_result_t ret;
+
+	ISC_LIST_INIT(*keys);
+	ISC_LIST_INIT(keys_read);
+	ret = dns_dnssec_findmatchingkeys(name, NULL, ksr->keydir, NULL,
+					  ksr->now, mctx, &keys_read);
+	if (ret != ISC_R_SUCCESS && ret != ISC_R_NOTFOUND) {
+		fatal("failed to load existing keys from %s: %s", ksr->keydir,
+		      isc_result_totext(ret));
+	}
+	/* Sort on keytag. */
+	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(keys_read); dk != NULL;
+	     dk = ISC_LIST_NEXT(dk, link))
+	{
+		n++;
+	}
+	keys_sorted = isc_mem_cget(mctx, n, sizeof(dns_dnsseckey_t *));
+	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(keys_read); dk != NULL;
+	     dk = ISC_LIST_NEXT(dk, link), i++)
+	{
+		keys_sorted[i] = dk;
+	}
+	qsort(keys_sorted, n, sizeof(dns_dnsseckey_t *), keytag_cmp);
+	while (!ISC_LIST_EMPTY(keys_read)) {
+		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys_read);
+		ISC_LIST_UNLINK(keys_read, key, link);
+	}
+	/* Save sorted list in 'keys' */
+	for (i = 0; i < n; i++) {
+		ISC_LIST_APPEND(*keys, keys_sorted[i], link);
+	}
+	INSIST(ISC_LIST_EMPTY(keys_read));
+	isc_mem_cput(mctx, keys_sorted, n, sizeof(dns_dnsseckey_t *));
 }
 
 static void
@@ -372,9 +425,108 @@ output:
 	}
 }
 
+static isc_stdtime_t
+print_dnskey(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
+	     isc_stdtime_t inception, isc_stdtime_t *next_inception) {
+	bool ksk = dns_kasp_key_ksk(kaspkey);
+	bool zsk = dns_kasp_key_zsk(kaspkey);
+	char algstr[DNS_SECALG_FORMATSIZE];
+	char classstr[10];
+	char keystr[DST_KEY_MAXSIZE];
+	char pubstr[DST_KEY_MAXTEXTSIZE];
+	char rolestr[4];
+	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+	dst_key_t *key = NULL;
+	isc_stdtime_t next_bundle = *next_inception;
+
+	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
+	dns_secalg_format(dns_kasp_key_algorithm(kaspkey), algstr,
+			  sizeof(algstr));
+	if (ksk && zsk) {
+		snprintf(rolestr, sizeof(rolestr), "csk");
+	} else if (ksk) {
+		snprintf(rolestr, sizeof(rolestr), "ksk");
+	} else {
+		snprintf(rolestr, sizeof(rolestr), "zsk");
+	}
+
+	/* Fetch matching key pair. */
+	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(*keys); dk != NULL;
+	     dk = ISC_LIST_NEXT(dk, link))
+	{
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_buffer_t classbuf;
+		isc_buffer_t keybuf;
+		isc_buffer_t pubbuf;
+		isc_region_t r;
+		isc_result_t ret;
+		isc_stdtime_t pub = 0, del = 0;
+
+		(void)dst_key_gettime(dk->key, DST_TIME_PUBLISH, &pub);
+		(void)dst_key_gettime(dk->key, DST_TIME_DELETE, &del);
+
+		/* Determine next bundle. */
+		if (pub > 0 && pub > inception && pub < next_bundle) {
+			next_bundle = pub;
+		}
+		if (del > 0 && del > inception && del < next_bundle) {
+			next_bundle = del;
+		}
+		/* Find matching key. */
+		if (!dns_kasp_key_match(kaspkey, dk)) {
+			continue;
+		}
+		if (pub > inception) {
+			continue;
+		}
+		if (del != 0 && inception >= del) {
+			continue;
+		}
+		/* Found matching key pair. */
+		key = dk->key;
+		/* Print DNSKEY record. */
+		isc_buffer_init(&classbuf, classstr, sizeof(classstr));
+		isc_buffer_init(&keybuf, keystr, sizeof(keystr));
+		isc_buffer_init(&pubbuf, pubstr, sizeof(pubstr));
+		CHECK(dst_key_todns(key, &keybuf));
+		isc_buffer_usedregion(&keybuf, &r);
+		dns_rdata_fromregion(&rdata, dst_key_class(key),
+				     dns_rdatatype_dnskey, &r);
+		CHECK(dns_rdata_totext(&rdata, (dns_name_t *)NULL, &pubbuf));
+		CHECK(dns_rdataclass_totext(dst_key_class(key), &classbuf));
+		CHECK(dns_name_print(dst_key_name(key), stdout));
+		fprintf(stdout, " %u ", ttl);
+		isc_buffer_usedregion(&classbuf, &r);
+		if ((unsigned int)fwrite(r.base, 1, r.length, stdout) !=
+		    r.length)
+		{
+			goto fail;
+		}
+		fprintf(stdout, " DNSKEY ");
+		isc_buffer_usedregion(&pubbuf, &r);
+		if ((unsigned int)fwrite(r.base, 1, r.length, stdout) !=
+		    r.length)
+		{
+			goto fail;
+		}
+		fputc('\n', stdout);
+		fflush(stdout);
+	}
+	/* No key pair found. */
+	if (key == NULL) {
+		fatal("no %s/%s %s key pair found for bundle %s", namestr,
+		      algstr, rolestr, timestr);
+	}
+
+	return (next_bundle);
+
+fail:
+	fatal("failed to print %s/%s %s key pair found for bundle %s", namestr,
+	      algstr, rolestr, timestr);
+}
+
 static void
 keygen(ksr_ctx_t *ksr) {
-	isc_result_t ret;
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
 	bool noop = true;
@@ -384,13 +536,7 @@ keygen(ksr_ctx_t *ksr) {
 	/* Get the policy */
 	getkasp(ksr, &kasp);
 	/* Get existing keys */
-	ISC_LIST_INIT(keys);
-	ret = dns_dnssec_findmatchingkeys(name, NULL, ksr->keydir, NULL,
-					  ksr->now, mctx, &keys);
-	if (ret != ISC_R_SUCCESS && ret != ISC_R_NOTFOUND) {
-		fatal("failed to load existing keys from %s: %s", ksr->keydir,
-		      isc_result_totext(ret));
-	}
+	get_dnskeys(ksr, &keys);
 	/* Set context */
 	setcontext(ksr, kasp);
 	/* Key generation */
@@ -428,6 +574,68 @@ keygen(ksr_ctx_t *ksr) {
 		dns_dnsseckey_destroy(mctx, &key);
 	}
 	dns_kasp_detach(&kasp);
+}
+
+static void
+request(ksr_ctx_t *ksr) {
+	dns_dnsseckeylist_t keys;
+	dns_kasp_t *kasp = NULL;
+	isc_stdtime_t next = 0;
+	isc_stdtime_t inception = 0;
+
+	/* Check parameters */
+	checkparams(ksr, "request");
+	/* Get the policy */
+	getkasp(ksr, &kasp);
+	/* Get keys */
+	get_dnskeys(ksr, &keys);
+	/* Set context */
+	setcontext(ksr, kasp);
+	/* Create request */
+	inception = ksr->start;
+	while (inception <= ksr->end) {
+		char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+		char utc[sizeof("YYYYMMDDHHSSMM")];
+		isc_buffer_t b;
+		isc_region_t r;
+		isc_result_t ret;
+
+		isc_stdtime_tostring(inception, timestr, sizeof(timestr));
+		isc_buffer_init(&b, utc, sizeof(utc));
+		ret = dns_time32_totext(inception, &b);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("failed to convert bundle time32 to text: %s",
+			      isc_result_totext(ret));
+		}
+		isc_buffer_usedregion(&b, &r);
+
+		fprintf(stdout, ";; KSR %s - bundle %.*s (%s)\n", namestr,
+			(int)r.length, r.base, timestr);
+
+		next = ksr->end + 1;
+		for (dns_kasp_key_t *kk = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+		     kk != NULL; kk = ISC_LIST_NEXT(kk, link))
+		{
+			/*
+			 * Output the DNSKEY records for the current bundle
+			 * that starts at 'inception. The 'next' variable is
+			 * updated to the start time of the
+			 * next bundle, determined by the earliest publication
+			 * or withdrawal of a key that is after the current
+			 * inception.
+			 */
+			next = print_dnskey(kk, ksr->ttl, &keys, inception,
+					    &next);
+		}
+		inception = next;
+	}
+	/* Cleanup */
+	while (!ISC_LIST_EMPTY(keys)) {
+		dns_dnsseckey_t *key = ISC_LIST_HEAD(keys);
+		ISC_LIST_UNLINK(keys, key, link);
+		dst_key_free(&key->key);
+		dns_dnsseckey_destroy(mctx, &key);
+	}
 }
 
 int
@@ -551,6 +759,8 @@ main(int argc, char *argv[]) {
 	/* command */
 	if (strcmp(argv[0], "keygen") == 0) {
 		keygen(&ksr);
+	} else if (strcmp(argv[0], "request") == 0) {
+		request(&ksr);
 	} else {
 		fatal("unknown command '%s'", argv[0]);
 	}

@@ -110,6 +110,10 @@ Commands
   an interval. The number of generated keys depends on the interval and the
   ZSK lifetime.
 
+.. option:: request
+
+  Create a Key Signing Request (KSR), given a DNSSEC policy and an interval.
+
 Exit Status
 ~~~~~~~~~~~
 
@@ -125,6 +129,12 @@ given a ``dnssec-policy`` named "mypolicy":
 ::
 
     dnssec-ksr -i now -e +1y -k mypolicy -l named.conf keygen example.com
+
+Creating a Key Signing Request for the same zone and period can be done with:
+
+::
+
+    dnssec-ksr -i now -e +1y -k mypolicy -l named.conf request example.com
 
 See Also
 ~~~~~~~~
