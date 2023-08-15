@@ -13,9 +13,17 @@
 
 set -e
 
+rm -f ./*.ksk*
+rm -f ./*.zsk*
 rm -f ./created.out
-rm -f ./python.out
+rm -f ./keygen.out.*
 rm -f ./named.conf
+rm -f ./now.out
+rm -f ./python.out
+rm -f ./settime.out.*
 rm -f ./K*
-rm -f ./ksr.out.*
 rm -rf ./keydir
+rm -f ./ksr.*.err.*
+rm -f ./ksr.*.expect
+rm -f ./ksr.*.expect.*
+rm -f ./ksr.*.out.*

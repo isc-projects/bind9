@@ -21,3 +21,17 @@ $SHELL clean.sh
 mkdir keydir
 
 copy_setports named.conf.in named.conf
+
+# Create KSK for the various policies.
+create_ksk () {
+	KSK=$($KEYGEN -l named.conf -fK -k $2 $1 2> keygen.out.$1)
+	num=0
+	for ksk in $KSK
+	do
+		num=$(($num+1))
+		cat "${ksk}.key" | grep -v ";.*" > "$1.ksk$num"
+	done
+}
+create_ksk common.test common
+create_ksk unlimited.test unlimited
+create_ksk two-tone.test two-tone
