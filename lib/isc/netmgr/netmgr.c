@@ -239,6 +239,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
 				   &worker->uvreq_pool);
+		isc_mempool_setfreemax(worker->uvreq_pool, ISC_NM_UVREQS_MAX);
 
 		isc_loop_attach(loop, &worker->loop);
 		isc_loop_teardown(loop, networker_teardown, worker);
