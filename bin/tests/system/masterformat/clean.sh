@@ -17,6 +17,9 @@ rm -f ./ns1/example.db.serial.raw
 rm -f ./ns1/large.db ./ns1/large.db.raw
 rm -f ./ns1/signed.db.raw
 rm -f ./ns1/session.key
+rm -f ./ns1/signed.db.raw.jbk
+rm -f ./ns1/signed.db.raw.signed
+rm -f ./ns1/signed.db.raw.signed.jnl
 rm -f ./dig.out.*
 rm -f ./dig.out
 rm -f ./*/named.memstats
