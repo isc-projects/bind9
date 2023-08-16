@@ -11098,9 +11098,9 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 					  &tls_params, tlsctx_cache, &delt));
 	}
 
-	result = cfg_acl_fromconfig2(cfg_tuple_get(listener, "acl"), config,
-				     named_g_lctx, actx, mctx, 0, family,
-				     &delt->acl);
+	result = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"), config,
+				    named_g_lctx, actx, mctx, family,
+				    &delt->acl);
 	if (result != ISC_R_SUCCESS) {
 		ns_listenelt_destroy(delt);
 		return (result);
