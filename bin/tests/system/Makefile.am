@@ -238,3 +238,6 @@ AM_LOG_FLAGS = -r
 $(TESTS): legacy.run.sh
 
 test-local: check
+
+clean-local::
+	-find $(builddir) -maxdepth 1 -type d -name "*_*" | xargs rm -rf
