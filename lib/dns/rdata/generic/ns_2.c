@@ -102,7 +102,7 @@ towire_ns(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return (dns_name_towire(&name, cctx, target));
+	return (dns_name_towire(&name, cctx, target, NULL));
 }
 
 static int

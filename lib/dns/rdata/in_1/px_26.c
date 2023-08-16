@@ -167,7 +167,7 @@ towire_in_px(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
 
 	/*
@@ -175,7 +175,7 @@ towire_in_px(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
-	return (dns_name_towire(&name, cctx, target));
+	return (dns_name_towire(&name, cctx, target, NULL));
 }
 
 static int

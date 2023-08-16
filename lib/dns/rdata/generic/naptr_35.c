@@ -388,7 +388,7 @@ towire_naptr(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
-	return (dns_name_towire(&name, cctx, target));
+	return (dns_name_towire(&name, cctx, target, NULL));
 }
 
 static int

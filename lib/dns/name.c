@@ -1663,13 +1663,7 @@ root_label:;
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target) {
-	return (dns_name_towire2(name, cctx, target, NULL));
-}
-
-isc_result_t
-dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
-		 isc_buffer_t *target, uint16_t *name_coff) {
+		isc_buffer_t *target, uint16_t *name_coff) {
 	bool compress;
 	dns_offsets_t clo;
 	dns_name_t clname;

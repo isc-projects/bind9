@@ -146,7 +146,7 @@ towire_ch_a(ARGS_TOWIRE) {
 
 	dns_name_fromregion(&name, &sregion);
 	isc_region_consume(&sregion, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 
 	isc_buffer_availableregion(target, &tregion);
 	if (tregion.length < 2) {

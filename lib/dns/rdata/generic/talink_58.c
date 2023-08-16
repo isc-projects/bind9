@@ -117,11 +117,11 @@ towire_talink(ARGS_TOWIRE) {
 
 	dns_name_fromregion(&prev, &sregion);
 	isc_region_consume(&sregion, name_length(&prev));
-	RETERR(dns_name_towire(&prev, cctx, target));
+	RETERR(dns_name_towire(&prev, cctx, target, NULL));
 
 	dns_name_fromregion(&next, &sregion);
 	isc_region_consume(&sregion, name_length(&next));
-	return (dns_name_towire(&next, cctx, target));
+	return (dns_name_towire(&next, cctx, target, NULL));
 }
 
 static int

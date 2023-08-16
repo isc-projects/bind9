@@ -720,10 +720,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source, dns_decompress_t dctx,
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target);
-isc_result_t
-dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
-		 isc_buffer_t *target, uint16_t *comp_offsetp);
+		isc_buffer_t *target, uint16_t *comp_offsetp);
 /*%<
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
