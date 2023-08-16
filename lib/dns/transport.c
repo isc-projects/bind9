@@ -13,6 +13,7 @@
 
 #include <inttypes.h>
 
+#include <isc/hashmap.h>
 #include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -22,8 +23,8 @@
 #include <isc/sockaddr.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/name.h>
-#include <dns/rbt.h>
 #include <dns/transport.h>
 
 #define TRANSPORT_MAGIC	     ISC_MAGIC('T', 'r', 'n', 's')
@@ -37,7 +38,7 @@ struct dns_transport_list {
 	isc_refcount_t references;
 	isc_mem_t *mctx;
 	isc_rwlock_t lock;
-	dns_rbt_t *transports[DNS_TRANSPORT_COUNT];
+	isc_hashmap_t *transports[DNS_TRANSPORT_COUNT];
 };
 
 typedef enum ternary { ter_none = 0, ter_true = 1, ter_false = 2 } ternary_t;
@@ -47,6 +48,8 @@ struct dns_transport {
 	isc_refcount_t references;
 	isc_mem_t *mctx;
 	dns_transport_type_t type;
+	dns_fixedname_t fn;
+	dns_name_t *name;
 	struct {
 		char *tlsname;
 		char *certfile;
@@ -64,29 +67,20 @@ struct dns_transport {
 	} doh;
 };
 
-static void
-free_dns_transport(void *node, void *arg) {
-	dns_transport_t *transport = node;
-
-	REQUIRE(node != NULL);
-
-	UNUSED(arg);
-
-	dns_transport_detach(&transport);
-}
-
 static isc_result_t
 list_add(dns_transport_list_t *list, const dns_name_t *name,
 	 const dns_transport_type_t type, dns_transport_t *transport) {
 	isc_result_t result;
-	dns_rbt_t *rbt = NULL;
+	isc_hashmap_t *hm = NULL;
 
 	RWLOCK(&list->lock, isc_rwlocktype_write);
-	rbt = list->transports[type];
-	INSIST(rbt != NULL);
+	hm = list->transports[type];
+	INSIST(hm != NULL);
 
-	result = dns_rbt_addname(rbt, name, transport);
-
+	transport->name = dns_fixedname_initname(&transport->fn);
+	dns_name_copy(name, transport->name);
+	result = isc_hashmap_add(hm, NULL, transport->name->ndata,
+				 transport->name->length, transport);
 	RWUNLOCK(&list->lock, isc_rwlocktype_write);
 
 	return (result);
@@ -629,15 +623,16 @@ dns_transport_find(const dns_transport_type_t type, const dns_name_t *name,
 		   dns_transport_list_t *list) {
 	isc_result_t result;
 	dns_transport_t *transport = NULL;
-	dns_rbt_t *rbt = NULL;
+	isc_hashmap_t *hm = NULL;
 
 	REQUIRE(VALID_TRANSPORT_LIST(list));
 	REQUIRE(list->transports[type] != NULL);
 
-	rbt = list->transports[type];
+	hm = list->transports[type];
 
 	RWLOCK(&list->lock, isc_rwlocktype_read);
-	result = dns_rbt_findname(rbt, name, 0, NULL, (void *)&transport);
+	result = isc_hashmap_find(hm, NULL, name->ndata, name->length,
+				  (void **)&transport);
 	if (result == ISC_R_SUCCESS) {
 		isc_refcount_increment(&transport->references);
 	}
@@ -660,10 +655,8 @@ dns_transport_list_new(isc_mem_t *mctx) {
 	list->magic = TRANSPORT_LIST_MAGIC;
 
 	for (size_t type = 0; type < DNS_TRANSPORT_COUNT; type++) {
-		isc_result_t result;
-		result = dns_rbt_create(list->mctx, free_dns_transport, NULL,
-					&list->transports[type]);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		isc_hashmap_create(list->mctx, 10, ISC_HASHMAP_CASE_INSENSITIVE,
+				   &list->transports[type]);
 	}
 
 	return (list);
@@ -686,9 +679,24 @@ transport_list_destroy(dns_transport_list_t *list) {
 	list->magic = 0;
 
 	for (size_t type = 0; type < DNS_TRANSPORT_COUNT; type++) {
-		if (list->transports[type] != NULL) {
-			dns_rbt_destroy(&list->transports[type]);
+		isc_result_t result;
+		isc_hashmap_iter_t *it = NULL;
+
+		if (list->transports[type] == NULL) {
+			continue;
 		}
+
+		isc_hashmap_iter_create(list->transports[type], &it);
+		for (result = isc_hashmap_iter_first(it);
+		     result == ISC_R_SUCCESS;
+		     result = isc_hashmap_iter_delcurrent_next(it))
+		{
+			dns_transport_t *transport = NULL;
+			isc_hashmap_iter_current(it, (void **)&transport);
+			dns_transport_detach(&transport);
+		}
+		isc_hashmap_iter_destroy(&it);
+		isc_hashmap_destroy(&list->transports[type]);
 	}
 	isc_rwlock_destroy(&list->lock);
 	isc_mem_putanddetach(&list->mctx, list, sizeof(*list));
