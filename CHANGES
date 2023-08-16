@@ -1,3 +1,7 @@
+6228.	[func]		Limit the number of inactive network manager handles
+			and uvreq objects that we keep around for reusing
+			later. [GL #4265]
+
 6227.	[bug]		Check the statistics-channel HTTP Content-length
 			to prevent negative or overflowing values from
 			causing a crash. [GL #4125]
