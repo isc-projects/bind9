@@ -104,6 +104,13 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  */
 #define NM_MAXSEG (1280 - 20 - 40)
 
+/*%
+ * How many isc_nmhandles and isc_nm_uvreqs will we be
+ * caching for reuse in a socket.
+ */
+#define ISC_NM_NMHANDLES_MAX 64
+#define ISC_NM_UVREQS_MAX    64
+
 /*
  * Define ISC_NETMGR_TRACE to activate tracing of handles and sockets.
  * This will impair performance but enables us to quickly determine,
@@ -245,6 +252,7 @@ struct isc_nmhandle {
 #endif
 	LINK(isc_nmhandle_t) active_link;
 	LINK(isc_nmhandle_t) inactive_link;
+
 	void *opaque;
 
 	isc_job_t job;
@@ -623,6 +631,9 @@ struct isc_nmsocket {
 	 * 'spare' handles for that can be reused to avoid allocations, for UDP.
 	 */
 	ISC_LIST(isc_nmhandle_t) inactive_handles;
+
+	size_t inactive_handles_cur;
+	size_t inactive_handles_max;
 
 	/*%
 	 * 'active' handles and uvreqs, mostly for debugging purposes.
