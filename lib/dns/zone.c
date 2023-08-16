@@ -12701,14 +12701,14 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		result = ISC_R_NOTIMPLEMENTED;
 		goto cleanup_key;
 	}
-	timeout = 15;
+	timeout = 5;
 	if (DNS_ZONE_FLAG(notify->zone, DNS_ZONEFLG_DIALNOTIFY)) {
 		timeout = 30;
 	}
-	result = dns_request_create(notify->zone->view->requestmgr, message,
-				    &src, &notify->dst, options, key,
-				    timeout * 3, timeout, 2, notify->zone->task,
-				    notify_done, notify, &notify->request);
+	result = dns_request_create(
+		notify->zone->view->requestmgr, message, &src, &notify->dst,
+		options, key, timeout * 3 + 1, timeout, 2, notify->zone->task,
+		notify_done, notify, &notify->request);
 	if (result == ISC_R_SUCCESS) {
 		if (isc_sockaddr_pf(&notify->dst) == AF_INET) {
 			inc_stats(notify->zone,
@@ -14668,13 +14668,13 @@ again:
 	}
 
 	zone_iattach(zone, &dummy);
-	timeout = 15;
+	timeout = 5;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH)) {
 		timeout = 30;
 	}
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr,
-		&zone->primaryaddr, options, key, timeout * 3, timeout, 2,
+		&zone->primaryaddr, options, key, timeout * 3 + 1, timeout, 2,
 		zone->task, refresh_callback, zone, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
@@ -14924,7 +14924,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		POST(result);
 		goto cleanup;
 	}
-	timeout = 15;
+	timeout = 5;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH)) {
 		timeout = 30;
 	}
@@ -14942,7 +14942,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	result = dns_request_create(
 		zone->view->requestmgr, message, &zone->sourceaddr,
-		&zone->primaryaddr, DNS_REQUESTOPT_TCP, key, timeout * 3,
+		&zone->primaryaddr, DNS_REQUESTOPT_TCP, key, timeout * 3 + 1,
 		timeout, 2, zone->task, stub_callback, cb_args, &zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_debuglog(zone, me, 1, "dns_request_create() failed: %s",
@@ -21248,11 +21248,11 @@ checkds_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
 		     "checkds: create request for DS query to %s", addrbuf);
 
-	timeout = 15;
+	timeout = 5;
 	options |= DNS_REQUESTOPT_TCP;
 	result = dns_request_create(
 		checkds->zone->view->requestmgr, message, &src, &checkds->dst,
-		options, key, timeout * 3, timeout, 2, checkds->zone->task,
+		options, key, timeout * 3 + 1, timeout, 2, checkds->zone->task,
 		checkds_done, checkds, &checkds->request);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(checkds->zone, ISC_LOG_DEBUG(3),
