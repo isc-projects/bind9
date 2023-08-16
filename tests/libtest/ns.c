@@ -285,7 +285,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	 * class IN and type "qtype", link the two and add the result to the
 	 * QUESTION section of the query.
 	 */
-	result = dns_name_fromstring(qname, qnamestr, 0, mctx);
+	result = dns_name_fromstring(qname, qnamestr, dns_rootname, 0, mctx);
 	if (result != ISC_R_SUCCESS) {
 		goto put_name;
 	}
@@ -533,7 +533,7 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 
 	name = dns_fixedname_initname(&fixed);
 
-	result = dns_name_fromstring(name, origin, 0, NULL);
+	result = dns_name_fromstring(name, origin, dns_rootname, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

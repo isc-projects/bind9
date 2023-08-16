@@ -2104,20 +2104,10 @@ dns_name_tostring(const dns_name_t *name, char **target, isc_mem_t *mctx) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * dns_name_fromstring() -- convert directly from a string to a name,
- * allocating memory as needed
- */
 isc_result_t
-dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
+dns_name_fromstring(dns_name_t *target, const char *src,
+		    const dns_name_t *origin, unsigned int options,
 		    isc_mem_t *mctx) {
-	return (dns_name_fromstring2(target, src, dns_rootname, options, mctx));
-}
-
-isc_result_t
-dns_name_fromstring2(dns_name_t *target, const char *src,
-		     const dns_name_t *origin, unsigned int options,
-		     isc_mem_t *mctx) {
 	isc_result_t result;
 	isc_buffer_t buf;
 	dns_fixedname_t fn;

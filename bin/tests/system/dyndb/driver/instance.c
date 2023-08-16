@@ -81,14 +81,14 @@ parse_params(isc_mem_t *mctx, int argc, char **argv, dns_name_t *z1,
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
-	result = dns_name_fromstring2(z1, argv[0], dns_rootname, 0, mctx);
+	result = dns_name_fromstring(z1, argv[0], dns_rootname, 0, mctx);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "parse_params: dns_name_fromstring2 -> %s",
 			  isc_result_totext(result));
 		goto cleanup;
 	}
-	result = dns_name_fromstring2(z2, argv[1], dns_rootname, 0, mctx);
+	result = dns_name_fromstring(z2, argv[1], dns_rootname, 0, mctx);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,
 			  "parse_params: dns_name_fromstring2 -> %s",

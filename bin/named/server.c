@@ -2194,7 +2194,8 @@ configure_rpz_name(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
 		   const char *str, const char *msg) {
 	isc_result_t result;
 
-	result = dns_name_fromstring(name, str, DNS_NAME_DOWNCASE, view->mctx);
+	result = dns_name_fromstring(name, str, dns_rootname, DNS_NAME_DOWNCASE,
+				     view->mctx);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
 			    "invalid %s '%s'", msg, str);
@@ -2207,8 +2208,8 @@ configure_rpz_name2(dns_view_t *view, const cfg_obj_t *obj, dns_name_t *name,
 		    const char *str, const dns_name_t *origin) {
 	isc_result_t result;
 
-	result = dns_name_fromstring2(name, str, origin, DNS_NAME_DOWNCASE,
-				      view->mctx);
+	result = dns_name_fromstring(name, str, origin, DNS_NAME_DOWNCASE,
+				     view->mctx);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, named_g_lctx, DNS_RPZ_ERROR_LEVEL,
 			    "invalid zone '%s'", str);
@@ -3020,8 +3021,8 @@ configure_catz_zone(dns_view_t *view, dns_view_t *pview,
 
 	str = cfg_obj_asstring(cfg_tuple_get(catz_obj, "zone name"));
 
-	result = dns_name_fromstring(&origin, str, DNS_NAME_DOWNCASE,
-				     view->mctx);
+	result = dns_name_fromstring(&origin, str, dns_rootname,
+				     DNS_NAME_DOWNCASE, view->mctx);
 	if (result == ISC_R_SUCCESS && dns_name_equal(&origin, dns_rootname)) {
 		result = DNS_R_EMPTYLABEL;
 	}
@@ -3415,7 +3416,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	{
 		zconfig = cfg_listelt_value(element);
 		str = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
-		CHECK(dns_name_fromstring(zname, str, 0, NULL));
+		CHECK(dns_name_fromstring(zname, str, dns_rootname, 0, NULL));
 		namereln = dns_name_fullcompare(zname, name, &order, &nlabels);
 		if (namereln != dns_namereln_subdomain) {
 			continue;
@@ -3446,10 +3447,11 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 				dns_name_clone(name, ns);
 			} else {
 				CHECK(dns_name_fromstring(ns, empty_dbtype[2],
-							  0, NULL));
+							  dns_rootname, 0,
+							  NULL));
 			}
-			CHECK(dns_name_fromstring(contact, empty_dbtype[3], 0,
-						  NULL));
+			CHECK(dns_name_fromstring(contact, empty_dbtype[3],
+						  dns_rootname, 0, NULL));
 			CHECK(add_soa(db, version, name, ns, contact));
 			CHECK(add_ns(db, version, name, ns));
 		}
@@ -5648,7 +5650,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		result = named_config_get(maps, "empty-server", &obj);
 		if (result == ISC_R_SUCCESS) {
 			CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
-						  0, NULL));
+						  dns_rootname, 0, NULL));
 			isc_buffer_init(&buffer, server, sizeof(server) - 1);
 			CHECK(dns_name_totext(name, false, &buffer));
 			server[isc_buffer_usedlength(&buffer)] = 0;
@@ -5661,7 +5663,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		result = named_config_get(maps, "empty-contact", &obj);
 		if (result == ISC_R_SUCCESS) {
 			CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
-						  0, NULL));
+						  dns_rootname, 0, NULL));
 			isc_buffer_init(&buffer, contact, sizeof(contact) - 1);
 			CHECK(dns_name_totext(name, false, &buffer));
 			contact[isc_buffer_usedlength(&buffer)] = 0;
@@ -5701,7 +5703,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			/*
 			 * Look for zone on drop list.
 			 */
-			CHECK(dns_name_fromstring(name, empty, 0, NULL));
+			CHECK(dns_name_fromstring(name, empty, dns_rootname, 0,
+						  NULL));
 			if (disablelist != NULL &&
 			    on_disable_list(disablelist, name))
 			{
@@ -5804,8 +5807,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			dns_forwarders_t *dnsforwarders = NULL;
 			dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 
-			CHECK(dns_name_fromstring(
-				name, zones[ipv4only_zone].name, 0, NULL));
+			CHECK(dns_name_fromstring(name,
+						  zones[ipv4only_zone].name,
+						  dns_rootname, 0, NULL));
 
 			(void)dns_view_findzone(view, name, DNS_ZTFIND_EXACT,
 						&zone);
@@ -5883,8 +5887,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	result = named_config_get(maps, "nxdomain-redirect", &obj);
 	if (result == ISC_R_SUCCESS) {
 		dns_name_t *name = dns_fixedname_name(&view->redirectfixed);
-		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj), 0,
-					  NULL));
+		CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
+					  dns_rootname, 0, NULL));
 		view->redirectzone = name;
 	} else {
 		view->redirectzone = NULL;
@@ -5907,8 +5911,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 			ntaname = dns_fixedname_initname(&fntaname);
 			obj = cfg_listelt_value(element);
-			CHECK(dns_name_fromstring(
-				ntaname, cfg_obj_asstring(obj), 0, NULL));
+			CHECK(dns_name_fromstring(ntaname,
+						  cfg_obj_asstring(obj),
+						  dns_rootname, 0, NULL));
 			CHECK(dns_ntatable_add(ntatable, ntaname, true, 0,
 					       0xffffffffU));
 		}
@@ -6158,7 +6163,8 @@ validate_tls(const cfg_obj_t *config, dns_view_t *view, const cfg_obj_t *obj,
 	     isc_log_t *logctx, const char *str, dns_name_t **name) {
 	dns_fixedname_t fname;
 	dns_name_t *nm = dns_fixedname_initname(&fname);
-	isc_result_t result = dns_name_fromstring(nm, str, 0, NULL);
+	isc_result_t result = dns_name_fromstring(nm, str, dns_rootname, 0,
+						  NULL);
 
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -7155,7 +7161,7 @@ get_tat_qname(dns_name_t *target, dns_name_t *keyname, dns_keynode_t *keynode) {
 		isc_textregion_consume(&r, m);
 	}
 
-	return (dns_name_fromstring2(target, label, keyname, 0, NULL));
+	return (dns_name_fromstring(target, label, keyname, 0, NULL));
 }
 
 static void
@@ -7759,7 +7765,7 @@ configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 	origin = dns_fixedname_initname(&fixorigin);
 
-	result2 = dns_name_fromstring(origin, zname, 0, NULL);
+	result2 = dns_name_fromstring(origin, zname, dns_rootname, 0, NULL);
 	if (result2 != ISC_R_SUCCESS) {
 		return;
 	}
@@ -10460,7 +10466,7 @@ zone_from_args(named_server_t *server, isc_lex_t *lex, const char *zonetxt,
 	}
 
 	name = dns_fixedname_initname(&fname);
-	CHECK(dns_name_fromstring(name, zonebuf, 0, NULL));
+	CHECK(dns_name_fromstring(name, zonebuf, dns_rootname, 0, NULL));
 
 	/* Look for the optional class name. */
 	classtxt = next_token(lex, text);
@@ -13347,7 +13353,7 @@ delete_zoneconf(dns_view_t *view, cfg_parser_t *pctx, const cfg_obj_t *config,
 		cfg_listelt_t *e;
 
 		zn = cfg_obj_asstring(cfg_tuple_get(zconf, "name"));
-		result = dns_name_fromstring(myname, zn, 0, NULL);
+		result = dns_name_fromstring(myname, zn, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS || !dns_name_equal(zname, myname)) {
 			continue;
 		}
@@ -14193,7 +14199,8 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 	if (strcmp(map_key_for_list, "zone") == 0) {
 		name1 = dns_fixedname_initname(&fixed1);
 		name2 = dns_fixedname_initname(&fixed2);
-		result = dns_name_fromstring(name1, name, 0, NULL);
+		result = dns_name_fromstring(name1, name, dns_rootname, 0,
+					     NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
@@ -14212,7 +14219,8 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 		}
 
 		if (name1 != NULL) {
-			result = dns_name_fromstring(name2, vname, 0, NULL);
+			result = dns_name_fromstring(name2, vname, dns_rootname,
+						     0, NULL);
 			if (result == ISC_R_SUCCESS &&
 			    dns_name_equal(name1, name2))
 			{

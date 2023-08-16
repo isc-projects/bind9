@@ -287,7 +287,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	/* isc_log_setdebuglevel(lctx, 99); */
 
 	keyname = dns_fixedname_initname(&fkeyname);
-	result = dns_name_fromstring(keyname, "test", 0, NULL);
+	result = dns_name_fromstring(keyname, "test", dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_tsigkeyring_create(mctx, &ring);

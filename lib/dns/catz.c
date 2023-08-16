@@ -1439,7 +1439,8 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
 			dns_rdata_freestruct(&rdata_txt);
-			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
+			result = dns_name_fromstring(keyname, keycbuf,
+						     dns_rootname, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
 				dns_name_free(keyname, mctx);
 				isc_mem_put(mctx, keyname, sizeof(*keyname));
@@ -2293,7 +2294,7 @@ dns__catz_update_cb(void *data) {
 	 * records might be processed differently depending on the version of
 	 * the catalog zone's schema.
 	 */
-	result = dns_name_fromstring2(name, "version", &updb->origin, 0, NULL);
+	result = dns_name_fromstring(name, "version", &updb->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_dbiterator_destroy(&updbit);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,

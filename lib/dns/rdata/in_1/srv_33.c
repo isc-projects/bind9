@@ -335,8 +335,8 @@ additionaldata_in_srv(ARGS_ADDLDATA) {
 
 	dns_fixedname_init(&fixed);
 	snprintf(buf, sizeof(buf), "_%u._tcp", port);
-	result = dns_name_fromstring2(dns_fixedname_name(&fixed), buf, NULL, 0,
-				      NULL);
+	result = dns_name_fromstring(dns_fixedname_name(&fixed), buf, NULL, 0,
+				     NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
 	}

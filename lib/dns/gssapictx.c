@@ -431,7 +431,8 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 		dns_name_t *machine;
 
 		machine = dns_fixedname_initname(&fixed);
-		result = dns_name_fromstring(machine, sname, 0, NULL);
+		result = dns_name_fromstring(machine, sname, dns_rootname, 0,
+					     NULL);
 		if (result != ISC_R_SUCCESS) {
 			return (false);
 		}
@@ -511,7 +512,7 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 		dns_name_t *machine;
 
 		machine = dns_fixedname_initname(&fixed);
-		result = dns_name_fromstring2(machine, sbuf, realm, 0, NULL);
+		result = dns_name_fromstring(machine, sbuf, realm, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			return (false);
 		}
