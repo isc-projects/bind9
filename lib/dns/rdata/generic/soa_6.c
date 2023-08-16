@@ -85,7 +85,7 @@ totext_soa(ARGS_TOTEXT) {
 	dns_name_t mname;
 	dns_name_t rname;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 	int i;
 	bool multiline;
 	bool comm;
@@ -112,13 +112,17 @@ totext_soa(ARGS_TOTEXT) {
 	dns_name_fromregion(&rname, &dregion);
 	isc_region_consume(&dregion, name_length(&rname));
 
-	sub = name_prefix(&mname, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&mname, tctx->origin, &prefix)
+		       ? DNS_NAME_OMITFINALDOT
+		       : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&rname, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&rname, tctx->origin, &prefix)
+		       ? DNS_NAME_OMITFINALDOT
+		       : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	if (multiline) {
 		RETERR(str_totext(" (", target));

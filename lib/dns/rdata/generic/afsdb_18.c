@@ -71,8 +71,7 @@ totext_afsdb(ARGS_TOTEXT) {
 	dns_name_t prefix;
 	isc_region_t region;
 	char buf[sizeof("64000 ")];
-	bool sub;
-	unsigned int num;
+	unsigned int num, opts;
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 	REQUIRE(rdata->length != 0);
@@ -86,8 +85,9 @@ totext_afsdb(ARGS_TOTEXT) {
 	snprintf(buf, sizeof(buf), "%u ", num);
 	RETERR(str_totext(buf, target));
 	dns_name_fromregion(&name, &region);
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	return (dns_name_totext(&prefix, opts, target));
 }
 
 static isc_result_t

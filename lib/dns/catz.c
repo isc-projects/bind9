@@ -1868,13 +1868,13 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 
 	isc_buffer_putstr(tbuf, catz->catzs->view->name);
 	isc_buffer_putstr(tbuf, "_");
-	result = dns_name_totext(&catz->name, true, tbuf);
+	result = dns_name_totext(&catz->name, DNS_NAME_OMITFINALDOT, tbuf);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	isc_buffer_putstr(tbuf, "_");
-	result = dns_name_totext(&entry->name, true, tbuf);
+	result = dns_name_totext(&entry->name, DNS_NAME_OMITFINALDOT, tbuf);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1967,7 +1967,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 	isc_buffer_allocate(catz->catzs->mctx, &buffer, ISC_BUFFER_INCR);
 
 	isc_buffer_putstr(buffer, "zone \"");
-	dns_name_totext(&entry->name, true, buffer);
+	dns_name_totext(&entry->name, DNS_NAME_OMITFINALDOT, buffer);
 	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
 
 	isc_buffer_putstr(buffer, " { ");
@@ -2004,7 +2004,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		if (entry->opts.masters.keys[i] != NULL) {
 			isc_buffer_putstr(buffer, " key ");
 			result = dns_name_totext(entry->opts.masters.keys[i],
-						 true, buffer);
+						 DNS_NAME_OMITFINALDOT, buffer);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -2013,7 +2013,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		if (entry->opts.masters.tlss[i] != NULL) {
 			isc_buffer_putstr(buffer, " tls ");
 			result = dns_name_totext(entry->opts.masters.tlss[i],
-						 true, buffer);
+						 DNS_NAME_OMITFINALDOT, buffer);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

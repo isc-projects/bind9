@@ -2827,7 +2827,7 @@ lookforsoa:
 		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
-		result = dns_name_totext(&primary, true, &buf);
+		result = dns_name_totext(&primary, DNS_NAME_OMITFINALDOT, &buf);
 		check_result(result, "dns_name_totext");
 		serverstr[isc_buffer_usedlength(&buf)] = 0;
 

@@ -503,7 +503,10 @@ ncache_summary(dns_rdataset_t *rdataset, bool omit_final_dot,
 				CHECK(str_totext("; ", target));
 			}
 
-			CHECK(dns_name_totext(&name, omit_final_dot, target));
+			CHECK(dns_name_totext(
+				&name,
+				omit_final_dot ? DNS_NAME_OMITFINALDOT : 0,
+				target));
 			CHECK(str_totext(" ", target));
 			CHECK(dns_rdatatype_totext(rds.type, target));
 			if (rds.type == dns_rdatatype_rrsig) {
@@ -603,7 +606,10 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		      !first))
 		{
 			unsigned int name_start = target->used;
-			RETERR(dns_name_totext(name, omit_final_dot, target));
+			RETERR(dns_name_totext(
+				name,
+				omit_final_dot ? DNS_NAME_OMITFINALDOT : 0,
+				target));
 			column += target->used - name_start;
 		}
 
@@ -800,7 +806,8 @@ question_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	/* Owner name */
 	{
 		unsigned int name_start = target->used;
-		RETERR(dns_name_totext(owner_name, omit_final_dot, target));
+		unsigned int opts = omit_final_dot ? DNS_NAME_OMITFINALDOT : 0;
+		RETERR(dns_name_totext(owner_name, opts, target));
 		column += target->used - name_start;
 	}
 
@@ -1055,7 +1062,7 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 
 	if (itresult == ISC_R_SUCCESS && ctx->neworigin != NULL) {
 		isc_buffer_clear(buffer);
-		itresult = dns_name_totext(ctx->neworigin, false, buffer);
+		itresult = dns_name_totext(ctx->neworigin, 0, buffer);
 		RUNTIME_CHECK(itresult == ISC_R_SUCCESS);
 		isc_buffer_usedregion(buffer, &r);
 		fprintf(f, "$ORIGIN %.*s\n", (int)r.length, (char *)r.base);

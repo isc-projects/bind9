@@ -268,7 +268,7 @@ totext_rrsig(ARGS_TOTEXT) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_totext(&name, false, target));
+	RETERR(dns_name_totext(&name, 0, target));
 
 	/*
 	 * Sig.

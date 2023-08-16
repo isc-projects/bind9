@@ -177,7 +177,7 @@ totext_hip(ARGS_TOTEXT) {
 	while (region.length > 0) {
 		dns_name_fromregion(&name, &region);
 
-		RETERR(dns_name_totext(&name, false, target));
+		RETERR(dns_name_totext(&name, 0, target));
 		isc_region_consume(&region, name.length);
 		if (region.length > 0) {
 			RETERR(str_totext(tctx->linebreak, target));

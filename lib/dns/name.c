@@ -1098,24 +1098,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 }
 
 isc_result_t
-dns_name_totext(const dns_name_t *name, bool omit_final_dot,
+dns_name_totext(const dns_name_t *name, unsigned int options,
 		isc_buffer_t *target) {
-	unsigned int options = DNS_NAME_MASTERFILE;
-
-	if (omit_final_dot) {
-		options |= DNS_NAME_OMITFINALDOT;
-	}
-	return (dns_name_totext2(name, options, target));
-}
-
-isc_result_t
-dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target) {
-	return (dns_name_totext2(name, DNS_NAME_OMITFINALDOT, target));
-}
-
-isc_result_t
-dns_name_totext2(const dns_name_t *name, unsigned int options,
-		 isc_buffer_t *target) {
 	unsigned char *ndata;
 	char *tdata;
 	unsigned int nlen, tlen;
@@ -1202,8 +1186,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 				/* Special modifiers in zone files. */
 				case 0x40: /* '@' */
 				case 0x24: /* '$' */
-					if ((options & DNS_NAME_MASTERFILE) ==
-					    0)
+					if ((options & DNS_NAME_PRINCIPAL) != 0)
 					{
 						goto no_escape;
 					}
@@ -2020,7 +2003,7 @@ dns_name_print(const dns_name_t *name, FILE *stream) {
 	REQUIRE(VALID_NAME(name));
 
 	isc_buffer_init(&b, t, sizeof(t));
-	result = dns_name_totext(name, false, &b);
+	result = dns_name_totext(name, 0, &b);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -2061,7 +2044,7 @@ dns_name_format(const dns_name_t *name, char *cp, unsigned int size) {
 	 * Leave room for null termination after buffer.
 	 */
 	isc_buffer_init(&buf, cp, size - 1);
-	result = dns_name_totext(name, true, &buf);
+	result = dns_name_totext(name, DNS_NAME_OMITFINALDOT, &buf);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_putuint8(&buf, (uint8_t)'\0');
 	} else {
@@ -2084,7 +2067,7 @@ dns_name_tostring(const dns_name_t *name, char **target, isc_mem_t *mctx) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	isc_buffer_init(&buf, txt, sizeof(txt));
-	result = dns_name_totext(name, false, &buf);
+	result = dns_name_totext(name, 0, &buf);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

@@ -2672,7 +2672,7 @@ catz_addmodzone_cb(void *arg) {
 	name = dns_catz_entry_getname(cz->entry);
 
 	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
-	dns_name_totext(name, true, &namebuf);
+	dns_name_totext(name, DNS_NAME_OMITFINALDOT, &namebuf);
 	isc_buffer_putuint8(&namebuf, 0);
 
 	result = dns_fwdtable_find(cz->view->fwdtable, name, &dnsforwarders);
@@ -5652,7 +5652,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
 						  dns_rootname, 0, NULL));
 			isc_buffer_init(&buffer, server, sizeof(server) - 1);
-			CHECK(dns_name_totext(name, false, &buffer));
+			CHECK(dns_name_totext(name, 0, &buffer));
 			server[isc_buffer_usedlength(&buffer)] = 0;
 			empty_dbtype[2] = server;
 		} else {
@@ -5665,7 +5665,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			CHECK(dns_name_fromstring(name, cfg_obj_asstring(obj),
 						  dns_rootname, 0, NULL));
 			isc_buffer_init(&buffer, contact, sizeof(contact) - 1);
-			CHECK(dns_name_totext(name, false, &buffer));
+			CHECK(dns_name_totext(name, 0, &buffer));
 			contact[isc_buffer_usedlength(&buffer)] = 0;
 			empty_dbtype[3] = contact;
 		} else {

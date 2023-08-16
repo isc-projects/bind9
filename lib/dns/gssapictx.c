@@ -117,7 +117,8 @@ name_to_gbuffer(const dns_name_t *name, isc_buffer_t *buffer,
 		namep = &tname;
 	}
 
-	result = dns_name_toprincipal(namep, buffer);
+	result = dns_name_totext(
+		namep, DNS_NAME_OMITFINALDOT | DNS_NAME_PRINCIPAL, buffer);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(buffer, 0);
 	isc_buffer_usedregion(buffer, &r);
@@ -383,7 +384,8 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	 * a string, and do string operations on them.
 	 */
 	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
-	result = dns_name_toprincipal(signer, &buffer);
+	result = dns_name_totext(
+		signer, DNS_NAME_OMITFINALDOT | DNS_NAME_PRINCIPAL, &buffer);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
 	dns_name_format(realm, rbuf, sizeof(rbuf));
@@ -461,7 +463,8 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	 * a string, and do string operations on them.
 	 */
 	isc_buffer_init(&buffer, sbuf, sizeof(sbuf));
-	result = dns_name_toprincipal(signer, &buffer);
+	result = dns_name_totext(
+		signer, DNS_NAME_OMITFINALDOT | DNS_NAME_PRINCIPAL, &buffer);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
 	dns_name_format(realm, rbuf, sizeof(rbuf));

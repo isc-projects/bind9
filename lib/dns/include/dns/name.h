@@ -797,30 +797,22 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
  */
 
 #define DNS_NAME_OMITFINALDOT 0x01U
-#define DNS_NAME_MASTERFILE   0x02U /* escape $ and @ */
+#define DNS_NAME_PRINCIPAL    0x02U /* do not escape $ and @ */
 
 isc_result_t
-dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target);
-
-isc_result_t
-dns_name_totext(const dns_name_t *name, bool omit_final_dot,
+dns_name_totext(const dns_name_t *name, unsigned int options,
 		isc_buffer_t *target);
-
-isc_result_t
-dns_name_totext2(const dns_name_t *name, unsigned int options,
-		 isc_buffer_t *target);
 /*%<
  * Convert 'name' into text format, storing the result in 'target'.
  *
  * Notes:
- *\li	If 'omit_final_dot' is true, then the final '.' in absolute
- *	names other than the root name will be omitted.
- *
  *\li	If DNS_NAME_OMITFINALDOT is set in options, then the final '.'
  *	in absolute names other than the root name will be omitted.
  *
- *\li	If DNS_NAME_MASTERFILE is set in options, '$' and '@' will also
- *	be escaped.
+ *\li	If DNS_NAME_PRINCIPAL is set in options, '$' and '@' will *not*
+ *	be escaped; otherwise they will, along with other characters that
+ *	are special in zone files ('"', '(', ')', '.', ';', and '\'),
+ *	which are always escaped.
  *
  *\li	If dns_name_countlabels == 0, the name will be "@", representing the
  *	current origin as described by RFC1035.
@@ -831,9 +823,9 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
  *
  *\li	'name' is a valid name
  *
- *\li	'target' is a valid buffer.
+ *\li	'target' is a valid buffer
  *
- *\li	if dns_name_isabsolute == FALSE, then omit_final_dot == FALSE
+ *\li	if dns_name_isabsolute is false, then omit_final_dot is false
  *
  * Ensures:
  *

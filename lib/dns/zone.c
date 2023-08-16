@@ -15347,7 +15347,8 @@ zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	isc_buffer_init(&buffer, buf, (unsigned int)length - 1);
 	if (zone->type != dns_zone_redirect && zone->type != dns_zone_key) {
 		if (dns_name_dynamic(&zone->origin)) {
-			result = dns_name_totext(&zone->origin, true, &buffer);
+			result = dns_name_totext(
+				&zone->origin, DNS_NAME_OMITFINALDOT, &buffer);
 		}
 		if (result != ISC_R_SUCCESS &&
 		    isc_buffer_availablelength(&buffer) >=
@@ -15392,7 +15393,8 @@ zone_name_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	 */
 	isc_buffer_init(&buffer, buf, (unsigned int)length - 1);
 	if (dns_name_dynamic(&zone->origin)) {
-		result = dns_name_totext(&zone->origin, true, &buffer);
+		result = dns_name_totext(&zone->origin, DNS_NAME_OMITFINALDOT,
+					 &buffer);
 	}
 	if (result != ISC_R_SUCCESS &&
 	    isc_buffer_availablelength(&buffer) >= (sizeof("<UNKNOWN>") - 1))

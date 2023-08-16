@@ -274,7 +274,7 @@ emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 		fatal("can't build record");
 	}
 
-	result = dns_name_totext(name, false, &nameb);
+	result = dns_name_totext(name, 0, &nameb);
 	if (result != ISC_R_SUCCESS) {
 		fatal("can't print name");
 	}
