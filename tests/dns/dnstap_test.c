@@ -146,7 +146,7 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 	isc_time_t p, f;
 	struct fstrm_iothr_options *fopt;
 
-	result = dns_test_makeview("test", false, &view);
+	result = dns_test_makeview("test", false, false, &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	fopt = fstrm_iothr_options_init();

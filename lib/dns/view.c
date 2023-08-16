@@ -79,7 +79,8 @@
 #define DEFAULT_EDNS_BUFSIZE 1232
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
+dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
+		dns_rdataclass_t rdclass, const char *name,
 		dns_view_t **viewp) {
 	dns_view_t *view = NULL;
 	isc_result_t result;
@@ -128,6 +129,10 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
 	ISC_LINK_INIT(view, link);
 
 	isc_mem_attach(mctx, &view->mctx);
+
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_attach(dispatchmgr, &view->dispatchmgr);
+	}
 
 	isc_mutex_init(&view->lock);
 
@@ -442,6 +447,7 @@ dns_view_detach(dns_view_t **viewp) {
 		dns_resolver_t *resolver = NULL;
 		dns_adb_t *adb = NULL;
 		dns_requestmgr_t *requestmgr = NULL;
+		dns_dispatchmgr_t *dispatchmgr = NULL;
 
 		isc_refcount_destroy(&view->references);
 
@@ -477,6 +483,7 @@ dns_view_detach(dns_view_t **viewp) {
 			}
 		}
 		adb = rcu_xchg_pointer(&view->adb, NULL);
+		dispatchmgr = rcu_xchg_pointer(&view->dispatchmgr, NULL);
 		rcu_read_unlock();
 
 		if (view->requestmgr != NULL) {
@@ -510,14 +517,15 @@ dns_view_detach(dns_view_t **viewp) {
 		if (resolver != NULL) {
 			dns_resolver_detach(&resolver);
 		}
-		if (adb != NULL || zonetable != NULL) {
-			synchronize_rcu();
-			if (adb != NULL) {
-				dns_adb_detach(&adb);
-			}
-			if (zonetable != NULL) {
-				dns_zt_detach(&zonetable);
-			}
+		synchronize_rcu();
+		if (dispatchmgr != NULL) {
+			dns_dispatchmgr_detach(&dispatchmgr);
+		}
+		if (adb != NULL) {
+			dns_adb_detach(&adb);
+		}
+		if (zonetable != NULL) {
+			dns_zt_detach(&zonetable);
 		}
 		if (requestmgr != NULL) {
 			dns_requestmgr_detach(&requestmgr);
@@ -2411,16 +2419,18 @@ dns_view_getudpsize(dns_view_t *view) {
 	return (view->udpsize);
 }
 
-void
-dns_view_setdispatchmgr(dns_view_t *view, dns_dispatchmgr_t *dispatchmgr) {
-	REQUIRE(DNS_VIEW_VALID(view));
-	view->dispatchmgr = dispatchmgr;
-}
-
 dns_dispatchmgr_t *
 dns_view_getdispatchmgr(dns_view_t *view) {
 	REQUIRE(DNS_VIEW_VALID(view));
-	return (view->dispatchmgr);
+
+	rcu_read_lock();
+	dns_dispatchmgr_t *dispatchmgr = rcu_dereference(view->dispatchmgr);
+	if (dispatchmgr != NULL) {
+		dns_dispatchmgr_ref(dispatchmgr);
+	}
+	rcu_read_unlock();
+
+	return (dispatchmgr);
 }
 
 isc_result_t

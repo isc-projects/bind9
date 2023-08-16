@@ -928,9 +928,15 @@ xfrin_start(dns_xfrin_t *xfr) {
 	if (xfr->transport == NULL ||
 	    dns_transport_get_type(xfr->transport) == DNS_TRANSPORT_TCP)
 	{
-		result = dns_dispatch_gettcp(dns_view_getdispatchmgr(xfr->view),
-					     &xfr->primaryaddr,
-					     &xfr->sourceaddr, &xfr->disp);
+		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
+		if (dispmgr == NULL) {
+			result = ISC_R_SHUTTINGDOWN;
+		} else {
+			result = dns_dispatch_gettcp(dispmgr, &xfr->primaryaddr,
+						     &xfr->sourceaddr,
+						     &xfr->disp);
+			dns_dispatchmgr_detach(&dispmgr);
+		}
 	}
 	if (result == ISC_R_SUCCESS) {
 		char peer[ISC_SOCKADDR_FORMATSIZE];
@@ -938,9 +944,16 @@ xfrin_start(dns_xfrin_t *xfr) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(1),
 			  "attached to TCP connection to %s", peer);
 	} else {
-		CHECK(dns_dispatch_createtcp(dns_view_getdispatchmgr(xfr->view),
-					     &xfr->sourceaddr,
-					     &xfr->primaryaddr, &xfr->disp));
+		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
+		if (dispmgr == NULL) {
+			result = ISC_R_SHUTTINGDOWN;
+		} else {
+			result = dns_dispatch_createtcp(
+				dispmgr, &xfr->sourceaddr, &xfr->primaryaddr,
+				&xfr->disp);
+			dns_dispatchmgr_detach(&dispmgr);
+		}
+		CHECK(result);
 	}
 
 	/* Set the maximum timer */

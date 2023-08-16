@@ -259,8 +259,8 @@ struct dns_view {
 #endif /* HAVE_LMDB */
 
 isc_result_t
-dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, const char *name,
-		dns_view_t **viewp);
+dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispmgr,
+		dns_rdataclass_t rdclass, const char *name, dns_view_t **viewp);
 /*%<
  * Create a view.
  *
@@ -377,9 +377,6 @@ dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *\li	'view' is a valid, unfrozen view.
  *
  *\li	'view' does not have a resolver already.
- *
- *\li	A dispatch manager has been associated with the view by calling
- *	dns_view_setdispatchmgr().
  *
  *\li	The requirements of dns_resolver_create() apply to 'ndisp',
  *	'netmgr', 'options', 'tlsctx_cache', 'dispatchv4', and 'dispatchv6'.
@@ -1254,12 +1251,10 @@ dns_view_getudpsize(dns_view_t *view);
  * Get the current EDNS UDP buffer size.
  */
 
-void
-dns_view_setdispatchmgr(dns_view_t *view, dns_dispatchmgr_t *dispatchmgr);
 dns_dispatchmgr_t *
 dns_view_getdispatchmgr(dns_view_t *view);
 /*%<
- * Set/get the dispatch manager for the view; this wil be used
+ * Get the attached dispatch manager for the view; this will be used
  * by the resolver and request managers to send and receive DNS
  * messages.
  */

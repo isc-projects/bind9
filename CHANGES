@@ -1,3 +1,6 @@
+6226.	[bug]		Attach dispatchmgr in the dns_view object to prevent
+			use-after-free when shutting down. [GL #4228]
+
 6225.	[func]		Convert dns_nta, dns_forward and dns_keytable units
 			to use QP trie instead of an RBT. [GL !7811]
 

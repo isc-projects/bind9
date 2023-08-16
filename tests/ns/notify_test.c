@@ -70,7 +70,7 @@ ISC_LOOP_TEST_IMPL(notify_start) {
 	result = ns_test_getclient(NULL, false, &client);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_test_makeview("view", false, &client->view);
+	result = dns_test_makeview("view", false, false, &client->view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = ns_test_serve_zone("example.com",

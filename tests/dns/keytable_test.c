@@ -170,7 +170,7 @@ create_tables(void) {
 	dns_name_t *keyname = dns_fixedname_name(&fn);
 	isc_stdtime_t now = isc_stdtime_now();
 
-	assert_int_equal(dns_test_makeview("view", false, &view),
+	assert_int_equal(dns_test_makeview("view", false, false, &view),
 			 ISC_R_SUCCESS);
 
 	dns_keytable_create(view, &keytable);
@@ -602,7 +602,7 @@ ISC_LOOP_TEST_IMPL(nta) {
 	dns_view_t *myview = NULL;
 	isc_stdtime_t now = isc_stdtime_now();
 
-	result = dns_test_makeview("view", false, &myview);
+	result = dns_test_makeview("view", false, false, &myview);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	dns_view_initsecroots(myview);
