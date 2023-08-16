@@ -140,9 +140,9 @@ struct dns_view {
 	dns_acl_t	     *denyansweracl;
 	dns_acl_t	     *nocasecompress;
 	bool		      msgcompression;
-	dns_rbt_t	     *answeracl_exclude;
-	dns_rbt_t	     *denyanswernames;
-	dns_rbt_t	     *answernames_exclude;
+	dns_nametree_t	     *answeracl_exclude;
+	dns_nametree_t	     *denyanswernames;
+	dns_nametree_t	     *answernames_exclude;
 	dns_rrl_t	     *rrl;
 	dns_rbt_t	     *sfd;
 	isc_rwlock_t	      sfd_lock;

@@ -47,6 +47,7 @@
 #include <dns/keyvalues.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nametree.h>
 #include <dns/nta.h>
 #include <dns/order.h>
 #include <dns/peer.h>
@@ -348,13 +349,13 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->pad_acl);
 	}
 	if (view->answeracl_exclude != NULL) {
-		dns_rbt_destroy(&view->answeracl_exclude);
+		dns_nametree_detach(&view->answeracl_exclude);
 	}
 	if (view->denyanswernames != NULL) {
-		dns_rbt_destroy(&view->denyanswernames);
+		dns_nametree_detach(&view->denyanswernames);
 	}
 	if (view->answernames_exclude != NULL) {
-		dns_rbt_destroy(&view->answernames_exclude);
+		dns_nametree_detach(&view->answernames_exclude);
 	}
 	if (view->sfd != NULL) {
 		dns_rbt_destroy(&view->sfd);

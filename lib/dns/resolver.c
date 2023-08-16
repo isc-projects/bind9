@@ -52,6 +52,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/nametree.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -563,7 +564,7 @@ struct dns_resolver {
 	ISC_LIST(alternate_t) alternates;
 	dns_rbt_t *algorithms;
 	dns_rbt_t *digests;
-	dns_rbt_t *mustbesecure;
+	dns_nametree_t *mustbesecure;
 	unsigned int spillatmax;
 	unsigned int spillatmin;
 	isc_timer_t *spillattimer;
@@ -6751,15 +6752,8 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (view->answeracl_exclude != NULL) {
-		dns_rbtnode_t *node = NULL;
-
-		result = dns_rbt_findnode(view->answeracl_exclude, name, NULL,
-					  &node, NULL, 0, NULL, NULL);
-
-		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			return (true);
-		}
+	if (dns_nametree_covered(view->answeracl_exclude, name)) {
+		return (true);
 	}
 
 	/*
@@ -6806,7 +6800,6 @@ static bool
 is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 			dns_rdataset_t *rdataset, bool *chainingp) {
 	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
 	dns_name_t *tname = NULL;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
@@ -6872,12 +6865,8 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (view->answernames_exclude != NULL) {
-		result = dns_rbt_findnode(view->answernames_exclude, qname,
-					  NULL, &node, NULL, 0, NULL, NULL);
-		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			return (true);
-		}
+	if (dns_nametree_covered(view->answernames_exclude, qname)) {
+		return (true);
 	}
 
 	/*
@@ -6896,9 +6885,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	/*
 	 * Otherwise, apply filters.
 	 */
-	result = dns_rbt_findnode(view->denyanswernames, tname, NULL, &node,
-				  NULL, 0, NULL, NULL);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (dns_nametree_covered(view->denyanswernames, tname)) {
 		char qnamebuf[DNS_NAME_FORMATSIZE];
 		char tnamebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[64];
@@ -10957,11 +10944,9 @@ dns_resolver_resetmustbesecure(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if (resolver->mustbesecure != NULL) {
-		dns_rbt_destroy(&resolver->mustbesecure);
+		dns_nametree_detach(&resolver->mustbesecure);
 	}
 }
-
-static bool yes = true, no = false;
 
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
@@ -10971,35 +10956,19 @@ dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if (resolver->mustbesecure == NULL) {
-		result = dns_rbt_create(resolver->mctx, NULL, NULL,
-					&resolver->mustbesecure);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_nametree_create(resolver->mctx, "dnssec-must-be-secure",
+				    &resolver->mustbesecure);
 	}
-	result = dns_rbt_addname(resolver->mustbesecure, name,
-				 value ? &yes : &no);
-cleanup:
+
+	result = dns_nametree_add(resolver->mustbesecure, name, value);
 	return (result);
 }
 
 bool
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
-	void *data = NULL;
-	bool value = false;
-	isc_result_t result;
-
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->mustbesecure == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->mustbesecure, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		value = *(bool *)data;
-	}
-unlock:
-	return (value);
+	return (dns_nametree_covered(resolver->mustbesecure, name));
 }
 
 void
