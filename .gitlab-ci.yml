@@ -402,6 +402,8 @@ cross-version-config-tests:
     - *setup_interfaces
   script:
     - *find_pytest
+    - *find_python
+    - ( if [ "${CI_DISPOSABLE_ENVIRONMENT}" = "true" ]; then sleep 3000; "$PYTHON" "${CI_PROJECT_DIR}/util/get-running-system-tests.py"; fi ) &
     - cd bin/tests/system
     - >
       "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
