@@ -91,6 +91,7 @@ libdns_la_HEADERS =			\
 	include/dns/masterdump.h	\
 	include/dns/message.h		\
 	include/dns/name.h		\
+	include/dns/nametree.h		\
 	include/dns/ncache.h		\
 	include/dns/nsec.h		\
 	include/dns/nsec3.h		\
@@ -196,6 +197,7 @@ libdns_la_SOURCES =			\
 	masterdump.c			\
 	message.c			\
 	name.c				\
+	nametree.c			\
 	ncache.c			\
 	nsec.c				\
 	nsec3.c				\

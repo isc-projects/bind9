@@ -29,6 +29,7 @@ check_PROGRAMS =		\
 	dst_test		\
 	keytable_test		\
 	name_test		\
+	nametree_test		\
 	nsec3_test		\
 	nsec3param_test		\
 	private_test		\
