@@ -6752,7 +6752,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (dns_nametree_covered(view->answeracl_exclude, name)) {
+	if (dns_nametree_covered(view->answeracl_exclude, name, 0)) {
 		return (true);
 	}
 
@@ -6865,7 +6865,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (dns_nametree_covered(view->answernames_exclude, qname)) {
+	if (dns_nametree_covered(view->answernames_exclude, qname, 0)) {
 		return (true);
 	}
 
@@ -6885,7 +6885,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	/*
 	 * Otherwise, apply filters.
 	 */
-	if (dns_nametree_covered(view->denyanswernames, tname)) {
+	if (dns_nametree_covered(view->denyanswernames, tname, 0)) {
 		char qnamebuf[DNS_NAME_FORMATSIZE];
 		char tnamebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[64];
@@ -10887,7 +10887,8 @@ dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if (resolver->mustbesecure == NULL) {
-		dns_nametree_create(resolver->mctx, "dnssec-must-be-secure",
+		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BOOL,
+				    "dnssec-must-be-secure",
 				    &resolver->mustbesecure);
 	}
 
@@ -10899,7 +10900,7 @@ bool
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	return (dns_nametree_covered(resolver->mustbesecure, name));
+	return (dns_nametree_covered(resolver->mustbesecure, name, 0));
 }
 
 void

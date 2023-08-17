@@ -645,7 +645,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		}
 	}
 
-	dns_nametree_create(mctx, confname, ntp);
+	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, confname, ntp);
 
 	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(obj); element != NULL;

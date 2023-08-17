@@ -37,7 +37,8 @@
 
 #include <tests/dns.h>
 
-dns_nametree_t *nametree = NULL;
+dns_nametree_t *booltree = NULL;
+dns_nametree_t *bitstree = NULL;
 
 /*
  * Test utilities.  In general, these assume input parameters are valid
@@ -46,38 +47,49 @@ dns_nametree_t *nametree = NULL;
  * the test code concise.
  */
 
-/* Common setup: create a nametree to test with a few keys */
+/* Common setup: create a booltree to test with a few keys */
 static void
 create_tables(void) {
 	dns_fixedname_t fn;
 	dns_name_t *name = dns_fixedname_name(&fn);
 
-	dns_nametree_create(mctx, "test", &nametree);
+	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, "bool test", &booltree);
+	dns_nametree_create(mctx, DNS_NAMETREE_BITS, "bits test", &bitstree);
 
-	/* Add a positive node */
+	/* Add a positive boolean node */
 	dns_test_namefromstring("example.com.", &fn);
-	assert_int_equal(dns_nametree_add(nametree, name, true), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(booltree, name, true), ISC_R_SUCCESS);
 
-	/* Add a negative node below it */
+	/* Add assorted bits to a bitfield node */
+	assert_int_equal(dns_nametree_add(bitstree, name, 1), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(bitstree, name, 9), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(bitstree, name, 53), ISC_R_SUCCESS);
+
+	/* Add negative boolean nodes with and without parents */
 	dns_test_namefromstring("negative.example.com.", &fn);
-	assert_int_equal(dns_nametree_add(nametree, name, false),
+	assert_int_equal(dns_nametree_add(booltree, name, false),
+			 ISC_R_SUCCESS);
+	dns_test_namefromstring("negative.example.org.", &fn);
+	assert_int_equal(dns_nametree_add(booltree, name, false),
 			 ISC_R_SUCCESS);
 
-	/* Add a negative node with no parent */
-	dns_test_namefromstring("negative.example.org.", &fn);
-	assert_int_equal(dns_nametree_add(nametree, name, false),
-			 ISC_R_SUCCESS);
+	/* Add a bitfield nodes under a parent */
+	dns_test_namefromstring("sub.example.com.", &fn);
+	assert_int_equal(dns_nametree_add(bitstree, name, 2), ISC_R_SUCCESS);
 }
 
 static void
 destroy_tables(void) {
-	if (nametree != NULL) {
-		dns_nametree_detach(&nametree);
+	if (booltree != NULL) {
+		dns_nametree_detach(&booltree);
+	}
+	if (bitstree != NULL) {
+		dns_nametree_detach(&bitstree);
 	}
 	rcu_barrier();
 }
 
-ISC_RUN_TEST_IMPL(add) {
+ISC_RUN_TEST_IMPL(add_bool) {
 	dns_ntnode_t *node = NULL;
 	dns_fixedname_t fn;
 	dns_name_t *name = dns_fixedname_name(&fn);
@@ -88,15 +100,15 @@ ISC_RUN_TEST_IMPL(add) {
 	 * Getting the node for example.com should succeed.
 	 */
 	dns_test_namefromstring("example.com.", &fn);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
 
 	/*
 	 * Try to add the same name.  This should fail.
 	 */
-	assert_int_equal(dns_nametree_add(nametree, name, false), ISC_R_EXISTS);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_add(booltree, name, false), ISC_R_EXISTS);
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
 
@@ -104,10 +116,129 @@ ISC_RUN_TEST_IMPL(add) {
 	 * Try to add a new name.
 	 */
 	dns_test_namefromstring("newname.com.", &fn);
-	assert_int_equal(dns_nametree_add(nametree, name, true), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_add(booltree, name, true), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
+
+	destroy_tables();
+}
+
+ISC_RUN_TEST_IMPL(add_bits) {
+	dns_ntnode_t *node = NULL;
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_name(&fn);
+
+	create_tables();
+
+	/*
+	 * Getting the node for example.com should succeed.
+	 */
+	dns_test_namefromstring("example.com.", &fn);
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
+			 ISC_R_SUCCESS);
+	dns_ntnode_detach(&node);
+
+	/*
+	 * Try to add the same name. This should succeed.
+	 */
+	assert_int_equal(dns_nametree_add(bitstree, name, 1), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(bitstree, name, 2), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(bitstree, name, 3), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
+			 ISC_R_SUCCESS);
+	dns_ntnode_detach(&node);
+
+	/*
+	 * Try to add a new name.
+	 */
+	dns_test_namefromstring("newname.com.", &fn);
+	assert_int_equal(dns_nametree_add(booltree, name, true), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
+			 ISC_R_SUCCESS);
+	dns_ntnode_detach(&node);
+
+	destroy_tables();
+}
+
+ISC_RUN_TEST_IMPL(covered_bool) {
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_name(&fn);
+	const char *yesnames[] = { "example.com.", "sub.example.com.", NULL };
+	const char *nonames[] = { "whatever.com.", "negative.example.com.",
+				  "example.org.", "negative.example.org.",
+				  NULL };
+	create_tables();
+
+	for (const char **n = yesnames; *n != NULL; n++) {
+		dns_test_namefromstring(*n, &fn);
+		assert_true(dns_nametree_covered(booltree, name, 0));
+	}
+	for (const char **n = nonames; *n != NULL; n++) {
+		dns_test_namefromstring(*n, &fn);
+		assert_false(dns_nametree_covered(booltree, name, 0));
+	}
+
+	/* If the nametree is NULL, dns_nametree_covered() returns false. */
+	dns_test_namefromstring("anyname.example.", &fn);
+	assert_false(dns_nametree_covered(NULL, name, 0));
+
+	destroy_tables();
+}
+
+ISC_RUN_TEST_IMPL(covered_bits) {
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_name(&fn);
+
+	create_tables();
+
+	/* check existing bit values */
+	dns_test_namefromstring("example.com.", &fn);
+	assert_false(dns_nametree_covered(bitstree, name, 0));
+	assert_true(dns_nametree_covered(bitstree, name, 1));
+	assert_false(dns_nametree_covered(bitstree, name, 2));
+	assert_false(dns_nametree_covered(bitstree, name, 3));
+	assert_true(dns_nametree_covered(bitstree, name, 9));
+	assert_true(dns_nametree_covered(bitstree, name, 53));
+	assert_false(dns_nametree_covered(bitstree, name, 288));
+
+	/* add a small bit value, test again */
+	assert_int_equal(dns_nametree_add(bitstree, name, 3), ISC_R_SUCCESS);
+	assert_true(dns_nametree_covered(bitstree, name, 3));
+
+	/* add a large bit value, test again */
+	assert_int_equal(dns_nametree_add(bitstree, name, 615), ISC_R_SUCCESS);
+	assert_true(dns_nametree_covered(bitstree, name, 615));
+
+	/* check existing bit values for subdomain */
+	dns_test_namefromstring("sub.example.com.", &fn);
+	assert_false(dns_nametree_covered(bitstree, name, 0));
+	assert_false(dns_nametree_covered(bitstree, name, 1));
+	assert_true(dns_nametree_covered(bitstree, name, 2));
+	assert_false(dns_nametree_covered(bitstree, name, 3));
+	assert_false(dns_nametree_covered(bitstree, name, 9));
+	assert_false(dns_nametree_covered(bitstree, name, 53));
+	assert_false(dns_nametree_covered(bitstree, name, 288));
+
+	/* check nonexistent subdomain is all false */
+	dns_test_namefromstring("other.example.com", &fn);
+	assert_false(dns_nametree_covered(bitstree, name, 0));
+	assert_false(dns_nametree_covered(bitstree, name, 1));
+	assert_false(dns_nametree_covered(bitstree, name, 2));
+	assert_false(dns_nametree_covered(bitstree, name, 3));
+	assert_false(dns_nametree_covered(bitstree, name, 9));
+	assert_false(dns_nametree_covered(bitstree, name, 53));
+	assert_false(dns_nametree_covered(bitstree, name, 288));
+
+	/* check nonexistent domain is all false */
+	dns_test_namefromstring("anyname.", &fn);
+	assert_false(dns_nametree_covered(bitstree, name, 0));
+	assert_false(dns_nametree_covered(bitstree, name, 1));
+	assert_false(dns_nametree_covered(bitstree, name, 2));
+	assert_false(dns_nametree_covered(bitstree, name, 3));
+	assert_false(dns_nametree_covered(bitstree, name, 9));
+	assert_false(dns_nametree_covered(bitstree, name, 53));
+	assert_false(dns_nametree_covered(bitstree, name, 288));
 
 	destroy_tables();
 }
@@ -120,11 +251,11 @@ ISC_RUN_TEST_IMPL(delete) {
 
 	/* name doesn't match */
 	dns_test_namefromstring("example.org.", &fn);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_NOTFOUND);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_NOTFOUND);
 
 	/* subdomain match is the same as no match */
 	dns_test_namefromstring("sub.example.org.", &fn);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_NOTFOUND);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_NOTFOUND);
 
 	/*
 	 * delete requires exact match: this should return SUCCESS on
@@ -132,12 +263,12 @@ ISC_RUN_TEST_IMPL(delete) {
 	 * ancestor does exist.
 	 */
 	dns_test_namefromstring("negative.example.com.", &fn);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_NOTFOUND);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_NOTFOUND);
 
 	dns_test_namefromstring("negative.example.org.", &fn);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_SUCCESS);
-	assert_int_equal(dns_nametree_delete(nametree, name), ISC_R_NOTFOUND);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_delete(booltree, name), ISC_R_NOTFOUND);
 
 	destroy_tables();
 }
@@ -154,49 +285,26 @@ ISC_RUN_TEST_IMPL(find) {
 	 * that has a null key, too.
 	 */
 	dns_test_namefromstring("example.org.", &fn);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_NOTFOUND);
 	dns_test_namefromstring("sub.example.com.", &fn);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_NOTFOUND);
 	dns_test_namefromstring("example.com.", &fn);
-	assert_int_equal(dns_nametree_find(nametree, name, &node),
+	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
 
 	destroy_tables();
 }
 
-ISC_RUN_TEST_IMPL(covered) {
-	dns_fixedname_t fn;
-	dns_name_t *name = dns_fixedname_name(&fn);
-	const char *yesnames[] = { "example.com.", "sub.example.com.", NULL };
-	const char *nonames[] = { "whatever.com.", "negative.example.com.",
-				  "example.org.", "negative.example.org.",
-				  NULL };
-	create_tables();
-
-	for (const char **n = yesnames; *n != NULL; n++) {
-		dns_test_namefromstring(*n, &fn);
-		assert_true(dns_nametree_covered(nametree, name));
-	}
-	for (const char **n = nonames; *n != NULL; n++) {
-		dns_test_namefromstring(*n, &fn);
-		assert_false(dns_nametree_covered(nametree, name));
-	}
-
-	/* If nametree is NULL, dns_nametree_covered() returns false. */
-	dns_test_namefromstring("anyname.example.", &fn);
-	assert_false(dns_nametree_covered(NULL, name));
-
-	destroy_tables();
-}
-
 ISC_TEST_LIST_START
-ISC_TEST_ENTRY(add)
-ISC_TEST_ENTRY(covered)
-ISC_TEST_ENTRY(find)
+ISC_TEST_ENTRY(add_bool)
+ISC_TEST_ENTRY(add_bits)
+ISC_TEST_ENTRY(covered_bool)
+ISC_TEST_ENTRY(covered_bits)
 ISC_TEST_ENTRY(delete)
+ISC_TEST_ENTRY(find)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

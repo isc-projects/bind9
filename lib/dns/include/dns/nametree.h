@@ -40,15 +40,21 @@
 /* Define to 1 for detailed reference tracing */
 #undef DNS_NAMETREE_TRACE
 
+typedef enum { DNS_NAMETREE_BOOL, DNS_NAMETREE_BITS } dns_nametree_type_t;
+
 ISC_LANG_BEGINDECLS
 
 void
-dns_nametree_create(isc_mem_t *mctx, const char *name, dns_nametree_t **ntp);
+dns_nametree_create(isc_mem_t *mctx, dns_nametree_type_t type, const char *name,
+		    dns_nametree_t **ntp);
 /*%<
  * Create a nametree.
  *
  * If 'name' is not NULL, it will be saved as the name of the QP trie
  * for debugging purposes.
+ *
+ * 'type' indicates whether the tree will be used for storing boolean
+ * values (DNS_NAMETREE_BOOL) or bitfields (DNS_NAMETREE_BITS).
  *
  * Requires:
  *
@@ -57,12 +63,21 @@ dns_nametree_create(isc_mem_t *mctx, const char *name, dns_nametree_t **ntp);
  */
 
 isc_result_t
-dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name, bool value);
+dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
+		 uint32_t value);
 /*%<
  * Add a node to 'nametree'.
  *
- * 'value' is a single boolean value, true or false. If the name already
+ * If the nametree type was set to DNS_NAMETREE_BOOL, then 'value'
+ * represents a single boolean value, true or false. If the name already
  * exists within the tree, then return ISC_R_EXISTS.
+ *
+ * If the nametree type was set to DNS_NAMETREE_BITS, then 'value' is
+ * a bit number within a bit field, which is sized to accomodate at least
+ * 'value' bits. If the name already exists, then that bit will be set
+ * in the bitfield, other bits will be retained, and ISC_R_SUCCESS will be
+ * returned. If 'value' excees the number of bits in the existing bit
+ * field, the field will be expanded.
  *
  * Requires:
  *
@@ -116,13 +131,21 @@ dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
  */
 
 bool
-dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name);
+dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
+		     uint32_t bit);
 /*%<
- * Indicates whether a 'name' is covered by 'nametree'.
+ * Indicates whether a 'name' (with optional 'bit' value) is covered by
+ * 'nametree'.
  *
- * This returns true if 'name' has a match or a closest ancestor in
- * 'nametree' with its value set to 'true'.  If a name is not found, or if
- * 'nametree' is NULL, the default return value is false.
+ * In DNS_NAMETREE_BOOL nametrees, this returns true if 'name' has a match
+ * or a closest ancestor in 'nametree' with its value set to 'true'.
+ * 'bit' is ignored.
+ *
+ * In DNS_NAMETREE_BITS trees, this returns true if 'name' has a match or
+ * a closest ancestor in 'nametree' with the 'bit' set in its bitfield.
+ *
+ * If a name is not found, or if 'nametree' is NULL, the default return
+ * value is false.
  *
  * Requires:
  *
