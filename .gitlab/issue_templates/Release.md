@@ -56,7 +56,7 @@
  - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Verify GitLab CI results [for the tags](https://gitlab.isc.org/isc-private/bind9/-/pipelines?scope=tags) created and sign off on the releases to be published.
  - [ ] ***(QA)*** Update GitLab settings for all maintained branches to allow merging to them again: [public](https://gitlab.isc.org/isc-projects/bind9/-/settings/repository), [private](https://gitlab.isc.org/isc-private/bind9/-/settings/repository)
- - [ ] ***(QA)*** Prepare and merge MRs resetting the release notes and updating the version string for each maintained branch: [9.16](https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/7652/diffs) and [newer](https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/7651/diffs)
+ - [ ] ***(QA)*** Prepare (using [`version_bump.py`](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/version_bump.py)) and merge MRs resetting the release notes and updating the version string for each maintained branch.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
  - [ ] ***(QA)*** Request signatures for the tarballs, providing their location and checksums. Ask [signers on Mattermost](https://mattermost.isc.org/isc/channels/bind-9-qa).
  - [ ] ***(Signers)*** Ensure that the contents of tarballs and tags are identical.
@@ -74,7 +74,7 @@
  - [ ] ***(Support)*** Place tarballs in public location on FTP site.
  - [ ] ***(Support)*** Publish links to downloads on ISC website. [Example](https://gitlab.isc.org/website/theme-staging-site/-/commit/1ac7b30b73cb03228df4cd5651fa4e774ac35625)
  - [ ] ***(Support)*** Add the new releases to the [vulnerability matrix in the Knowledge Base](https://kb.isc.org/docs/aa-00913).
- - [ ] ***(Support)*** Write release email to *bind-announce*. [Example](https://lists.isc.org/pipermail/bind-announce/2023-March/001231.html)
+ - [ ] ***(Support)*** Use the [Printing Press project](https://gitlab.isc.org/isc-private/printing-press/-/wikis/home#adding-new-documents) to prepare a release announcement email and send it to the *bind-announce* mailing list.
  - [ ] ***(Support)*** Write email to *bind-users* (if a major release). [Example](https://lists.isc.org/pipermail/bind-users/2022-January/105624.html)
  - [ ] ***(Support)*** Send eligible customers updated links to the Subscription Edition (update the -S edition delivery tickets, even if those links were provided earlier via an ASN ticket).
  - [ ] ***(Support)*** Update tickets in case of waiting support customers.
@@ -88,7 +88,7 @@
  - [ ] ***(Marketing)*** Write blog article (if a major release).
  - [ ] ***(QA)*** Ensure all new tags are annotated and signed. `git show --show-signature v9.19.12`
  - [ ] ***(QA)*** Push tags for the published releases to the public repository.
- - [ ] ***(QA)*** Merge published release tags (non-linearly) back into the their relevant development/maintenance branches. [Step 7 of the new workflow](https://gitlab.isc.org/isc-projects/bind9/-/merge_requests/6124#new-workflow)
+ - [ ] ***(QA)*** Using [`merge_tag.py`](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/merge_tag.py), merge published release tags back into the their relevant development/maintenance branches.
  - [ ] ***(QA)*** Ensure `allow_failure: true` is removed from the `cross-version-config-tests` job if it was set during the current release cycle.
  - [ ] ***(QA)*** Sanitize confidential issues which are assigned to the current release milestone and do not describe a security vulnerability, then make them public.
  - [ ] ***(QA)*** Sanitize [confidential issues](https://gitlab.isc.org/isc-projects/bind9/-/issues/?sort=milestone_due_desc&state=opened&confidential=yes) which are assigned to older release milestones and describe security vulnerabilities, then make them public if appropriate[^2].
