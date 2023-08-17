@@ -1,3 +1,7 @@
+6238.	[cleanup]	Refactor several objects relying on dns_rbt trees
+			to instead of dns_nametree, a wrapper around dns_qp.
+			[GL !8213]
+
 6237.	[bug]		Address memory leaks due to not clearing OpenSSL error
 			stack. [GL #4159]
 
