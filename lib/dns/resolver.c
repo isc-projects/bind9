@@ -562,8 +562,8 @@ struct dns_resolver {
 
 	uint32_t lame_ttl;
 	ISC_LIST(alternate_t) alternates;
-	dns_rbt_t *algorithms;
-	dns_rbt_t *digests;
+	dns_nametree_t *algorithms;
+	dns_nametree_t *digests;
 	dns_nametree_t *mustbesecure;
 	unsigned int spillatmax;
 	unsigned int spillatmin;
@@ -10717,20 +10717,12 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
 	(void)dns_badcache_print(resolver->badcache, "Bad cache", fp);
 }
 
-static void
-free_bfnode(void *node, void *arg) {
-	unsigned char *bfnode = node;
-	isc_mem_t *mctx = arg;
-
-	isc_mem_put(mctx, bfnode, *bfnode);
-}
-
 void
 dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if (resolver->algorithms != NULL) {
-		dns_rbt_destroy(&resolver->algorithms);
+		dns_nametree_detach(&resolver->algorithms);
 	}
 }
 
@@ -10739,77 +10731,8 @@ dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if (resolver->digests != NULL) {
-		dns_rbt_destroy(&resolver->digests);
+		dns_nametree_detach(&resolver->digests);
 	}
-}
-
-static isc_result_t
-bftree_add(dns_rbt_t **bftp, isc_mem_t *mctx, const dns_name_t *name,
-	   unsigned int val) {
-	isc_result_t result;
-	dns_rbt_t *bftree = NULL;
-	dns_rbtnode_t *node = NULL;
-	unsigned int len, mask;
-	unsigned char *bits = NULL;
-	unsigned int bits_len;
-
-	if (*bftp == NULL) {
-		result = dns_rbt_create(mctx, free_bfnode, mctx, &bftree);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-		*bftp = bftree;
-	} else {
-		bftree = *bftp;
-	}
-
-	len = val / 8 + 2;
-	mask = 1 << (val % 8);
-
-	result = dns_rbt_addnode(bftree, name, &node);
-	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-		return (result);
-	}
-
-	/* If bits is set, bits[0] contains its length. */
-	bits = node->data;
-	bits_len = (bits != NULL) ? bits[0] : 0;
-
-	if (bits == NULL || len > bits_len) {
-		INSIST(len > 0);
-
-		/*
-		 * If no bitfield exists in the node data, or if
-		 * it is not long enough, allocate a new
-		 * bitfield and copy the old (smaller) bitfield
-		 * into it if one exists.
-		 */
-		node->data = bits = isc_mem_creget(mctx, bits, bits_len, len,
-						   sizeof(char));
-		/* store the new length */
-		bits[0] = len;
-	}
-
-	bits[len - 1] |= mask;
-	return (ISC_R_SUCCESS);
-}
-
-static bool
-bftree_present(dns_rbt_t *bftree, const dns_name_t *name, unsigned int val) {
-	isc_result_t result;
-	void *data = NULL;
-
-	result = dns_rbt_findname(bftree, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		unsigned int len = val / 8 + 2;
-		unsigned int mask = 1 << (val % 8);
-		unsigned char *bits = data;
-		if (len <= *bits && (bits[len - 1] & mask) != 0) {
-			return (true);
-		}
-	}
-
-	return (false);
 }
 
 isc_result_t
@@ -10821,7 +10744,12 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 		return (ISC_R_RANGE);
 	}
 
-	return (bftree_add(&resolver->algorithms, resolver->mctx, name, alg));
+	if (resolver->algorithms == NULL) {
+		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BITS,
+				    "algorithms", &resolver->algorithms);
+	}
+
+	return (dns_nametree_add(resolver->algorithms, name, alg));
 }
 
 isc_result_t
@@ -10833,8 +10761,12 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 		return (ISC_R_RANGE);
 	}
 
-	return (bftree_add(&resolver->digests, resolver->mctx, name,
-			   digest_type));
+	if (resolver->digests == NULL) {
+		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BITS,
+				    "ds-digests", &resolver->digests);
+	}
+
+	return (dns_nametree_add(resolver->digests, name, digest_type));
 }
 
 bool
@@ -10846,10 +10778,8 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 		return (false);
 	}
 
-	if (resolver->algorithms != NULL) {
-		if (bftree_present(resolver->algorithms, name, alg)) {
-			return (false);
-		}
+	if (dns_nametree_covered(resolver->algorithms, name, alg)) {
+		return (false);
 	}
 
 	return (dst_algorithm_supported(alg));
@@ -10861,10 +10791,8 @@ dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 unsigned int digest_type) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->digests != NULL) {
-		if (bftree_present(resolver->digests, name, digest_type)) {
-			return (false);
-		}
+	if (dns_nametree_covered(resolver->digests, name, digest_type)) {
+		return (false);
 	}
 
 	return (dst_ds_digest_supported(digest_type));
