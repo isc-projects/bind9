@@ -67,7 +67,8 @@ static void
 destroy_ntnode(dns_ntnode_t *node) {
 	isc_refcount_destroy(&node->references);
 	if (node->bits != NULL) {
-		isc_mem_cput(node->mctx, node->bits, 8, sizeof(uint32_t));
+		isc_mem_cput(node->mctx, node->bits, node->bits[0],
+			     sizeof(char));
 	}
 	isc_mem_putanddetach(&node->mctx, node, sizeof(dns_ntnode_t));
 }
@@ -103,7 +104,19 @@ dns_nametree_create(isc_mem_t *mctx, dns_nametree_type_t type, const char *name,
 
 static void
 destroy_nametree(dns_nametree_t *nametree) {
+	/* dns_qpread_t qpr; */
+	/* dns_qpiter_t iter; */
+	/* void *pval = NULL; */
+
 	nametree->magic = 0;
+
+	/* dns_qpmulti_query(nametree->table, &qpr); */
+	/* dns_qpiter_init(&qpr, &iter); */
+	/* while (dns_qpiter_next(&iter, &pval, NULL) == ISC_R_SUCCESS) { */
+	/* 	dns_ntnode_t *n = pval; */
+	/* 	dns_ntnode_detach(&n); */
+	/* } */
+	/* dns_qpread_destroy(nametree->table, &qpr); */
 
 	dns_qpmulti_destroy(&nametree->table);
 	isc_refcount_destroy(&nametree->references);
@@ -132,10 +145,10 @@ newnode(isc_mem_t *mctx, const dns_name_t *name) {
 
 static bool
 matchbit(unsigned char *bits, uint32_t val) {
-	unsigned int len = val / 8;
+	unsigned int len = val / 8 + 2;
 	unsigned int mask = 1 << (val % 8);
 
-	if ((bits[len] & mask) != 0) {
+	if (len <= bits[0] && (bits[len - 1] & mask) != 0) {
 		return (true);
 	}
 	return (false);
@@ -146,7 +159,7 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 		 uint32_t value) {
 	isc_result_t result;
 	dns_qp_t *qp = NULL;
-	unsigned int len, mask;
+	uint32_t size, pos, mask, count = 0;
 	dns_ntnode_t *old = NULL, *new = NULL;
 
 	REQUIRE(VALID_NAMETREE(nametree));
@@ -160,32 +173,44 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
 		new->set = value;
 		break;
 
+	case DNS_NAMETREE_COUNT:
+		new = newnode(nametree->mctx, name);
+		new->set = true;
+		result = dns_qp_deletename(qp, name, (void **)&old, &count);
+		if (result == ISC_R_SUCCESS) {
+			count += 1;
+		}
+		break;
+
 	case DNS_NAMETREE_BITS:
 		result = dns_qp_getname(qp, name, (void **)&old, NULL);
 		if (result == ISC_R_SUCCESS && matchbit(old->bits, value)) {
 			goto out;
 		}
 
-		len = value / 8;
+		size = pos = value / 8 + 2;
 		mask = 1 << (value % 8);
 
+		if (old != NULL && old->bits[0] > pos) {
+			size = old->bits[0];
+		}
+
 		new = newnode(nametree->mctx, name);
-		new->bits = isc_mem_cget(nametree->mctx, 8, sizeof(value));
+		new->bits = isc_mem_cget(nametree->mctx, size, sizeof(char));
 		if (result == ISC_R_SUCCESS) {
-			INSIST(old != NULL);
 			memmove(new->bits, old->bits, old->bits[0]);
 			result = dns_qp_deletename(qp, name, NULL, NULL);
 			INSIST(result == ISC_R_SUCCESS);
 		}
 
-		new->bits[len] |= mask;
+		new->bits[pos - 1] |= mask;
+		new->bits[0] = size;
 		break;
 	default:
 		UNREACHABLE();
 	}
 
-	result = dns_qp_insert(qp, new, 0);
-
+	result = dns_qp_insert(qp, new, count);
 	/*
 	 * We detach the node here, so any dns_qp_deletename() will
 	 * destroy the node directly.
@@ -202,16 +227,30 @@ isc_result_t
 dns_nametree_delete(dns_nametree_t *nametree, const dns_name_t *name) {
 	isc_result_t result;
 	dns_qp_t *qp = NULL;
-	void *pval = NULL;
+	dns_ntnode_t *old = NULL;
+	uint32_t count;
 
 	REQUIRE(VALID_NAMETREE(nametree));
 	REQUIRE(name != NULL);
 
 	dns_qpmulti_write(nametree->table, &qp);
-	result = dns_qp_deletename(qp, name, &pval, NULL);
-	if (result == ISC_R_SUCCESS) {
-		dns_ntnode_t *n = pval;
-		dns_ntnode_detach(&n);
+	result = dns_qp_deletename(qp, name, (void **)&old, &count);
+	switch (nametree->type) {
+	case DNS_NAMETREE_BOOL:
+	case DNS_NAMETREE_BITS:
+		break;
+
+	case DNS_NAMETREE_COUNT:
+		if (result == ISC_R_SUCCESS && count-- != 0) {
+			dns_ntnode_t *new = newnode(nametree->mctx, name);
+			new->set = true;
+			result = dns_qp_insert(qp, new, count);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_ntnode_detach(&new);
+		}
+		break;
+	default:
+		UNREACHABLE();
 	}
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(nametree->table, &qp);
@@ -223,18 +262,17 @@ isc_result_t
 dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
 		  dns_ntnode_t **ntnodep) {
 	isc_result_t result;
+	dns_ntnode_t *node = NULL;
 	dns_qpread_t qpr;
-	void *pval = NULL;
 
 	REQUIRE(VALID_NAMETREE(nametree));
 	REQUIRE(name != NULL);
 	REQUIRE(ntnodep != NULL && *ntnodep == NULL);
 
 	dns_qpmulti_query(nametree->table, &qpr);
-	result = dns_qp_getname(&qpr, name, &pval, NULL);
+	result = dns_qp_getname(&qpr, name, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS) {
-		dns_ntnode_t *knode = pval;
-		dns_ntnode_attach(knode, ntnodep);
+		dns_ntnode_attach(node, ntnodep);
 	}
 	dns_qpread_destroy(nametree->table, &qpr);
 
@@ -258,10 +296,16 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 	dns_qpmulti_query(nametree->table, &qpr);
 	result = dns_qp_findname_ancestor(&qpr, name, 0, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		if (nametree->type == DNS_NAMETREE_BOOL) {
+		switch (nametree->type) {
+		case DNS_NAMETREE_BOOL:
 			ret = node->set;
-		} else {
+			break;
+		case DNS_NAMETREE_COUNT:
+			ret = true;
+			break;
+		case DNS_NAMETREE_BITS:
 			ret = matchbit(node->bits, bit);
+			break;
 		}
 	}
 

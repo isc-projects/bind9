@@ -40,7 +40,11 @@
 /* Define to 1 for detailed reference tracing */
 #undef DNS_NAMETREE_TRACE
 
-typedef enum { DNS_NAMETREE_BOOL, DNS_NAMETREE_BITS } dns_nametree_type_t;
+typedef enum {
+	DNS_NAMETREE_BOOL,
+	DNS_NAMETREE_BITS,
+	DNS_NAMETREE_COUNT
+} dns_nametree_type_t;
 
 ISC_LANG_BEGINDECLS
 
@@ -54,7 +58,8 @@ dns_nametree_create(isc_mem_t *mctx, dns_nametree_type_t type, const char *name,
  * for debugging purposes.
  *
  * 'type' indicates whether the tree will be used for storing boolean
- * values (DNS_NAMETREE_BOOL) or bitfields (DNS_NAMETREE_BITS).
+ * values (DNS_NAMETREE_BOOL), bitfields (DNS_NAMETREE_BITS), or counters
+ * (DNS_NAMETREE_COUNT).
  *
  * Requires:
  *
@@ -71,6 +76,12 @@ dns_nametree_add(dns_nametree_t *nametree, const dns_name_t *name,
  * If the nametree type was set to DNS_NAMETREE_BOOL, then 'value'
  * represents a single boolean value, true or false. If the name already
  * exists within the tree, then return ISC_R_EXISTS.
+ *
+ * If the nametree type was set to DNS_NAMETREE_COUNT, then 'value'
+ * can only be true. Each time the same name is added to the tree,
+ * ISC_R_SUCCESS is returned and a counter is incremented.
+ * dns_nametree_delete() must be deleted the same number of times
+ * as dns_nametree_add() before the name is removed from the tree.
  *
  * If the nametree type was set to DNS_NAMETREE_BITS, then 'value' is
  * a bit number within a bit field, which is sized to accomodate at least
@@ -95,6 +106,10 @@ isc_result_t
 dns_nametree_delete(dns_nametree_t *nametree, const dns_name_t *name);
 /*%<
  * Delete 'name' from 'nametree'.
+ *
+ * If the nametree type was set to DNS_NAMETREE_COUNT, then this must
+ * be called for each name the same number of times as dns_nametree_add()
+ * was called before the name is removed.
  *
  * Requires:
  *

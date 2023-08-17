@@ -39,6 +39,7 @@
 
 dns_nametree_t *booltree = NULL;
 dns_nametree_t *bitstree = NULL;
+dns_nametree_t *counttree = NULL;
 
 /*
  * Test utilities.  In general, these assume input parameters are valid
@@ -55,6 +56,7 @@ create_tables(void) {
 
 	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, "bool test", &booltree);
 	dns_nametree_create(mctx, DNS_NAMETREE_BITS, "bits test", &bitstree);
+	dns_nametree_create(mctx, DNS_NAMETREE_COUNT, "count test", &counttree);
 
 	/* Add a positive boolean node */
 	dns_test_namefromstring("example.com.", &fn);
@@ -73,7 +75,7 @@ create_tables(void) {
 	assert_int_equal(dns_nametree_add(booltree, name, false),
 			 ISC_R_SUCCESS);
 
-	/* Add a bitfield nodes under a parent */
+	/* Add a bitfield node under a parent */
 	dns_test_namefromstring("sub.example.com.", &fn);
 	assert_int_equal(dns_nametree_add(bitstree, name, 2), ISC_R_SUCCESS);
 }
@@ -85,6 +87,9 @@ destroy_tables(void) {
 	}
 	if (bitstree != NULL) {
 		dns_nametree_detach(&bitstree);
+	}
+	if (counttree != NULL) {
+		dns_nametree_detach(&counttree);
 	}
 	rcu_barrier();
 }
@@ -157,6 +162,42 @@ ISC_RUN_TEST_IMPL(add_bits) {
 	assert_int_equal(dns_nametree_find(booltree, name, &node),
 			 ISC_R_SUCCESS);
 	dns_ntnode_detach(&node);
+
+	destroy_tables();
+}
+
+ISC_RUN_TEST_IMPL(add_count) {
+	dns_fixedname_t fn;
+	dns_name_t *name = dns_fixedname_name(&fn);
+
+	create_tables();
+
+	/* add a counter node five times */
+	dns_test_namefromstring("example.com.", &fn);
+	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
+	assert_int_equal(dns_nametree_add(counttree, name, 0), ISC_R_SUCCESS);
+
+	/* delete it five times, checking coverage each time */
+	assert_true(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
+
+	assert_true(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
+
+	assert_true(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
+
+	assert_true(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
+
+	assert_true(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_SUCCESS);
+
+	assert_false(dns_nametree_covered(counttree, name, 0));
+	assert_int_equal(dns_nametree_delete(counttree, name), ISC_R_NOTFOUND);
 
 	destroy_tables();
 }
@@ -301,6 +342,7 @@ ISC_RUN_TEST_IMPL(find) {
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(add_bool)
 ISC_TEST_ENTRY(add_bits)
+ISC_TEST_ENTRY(add_count)
 ISC_TEST_ENTRY(covered_bool)
 ISC_TEST_ENTRY(covered_bits)
 ISC_TEST_ENTRY(delete)
