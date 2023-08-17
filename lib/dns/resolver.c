@@ -6752,7 +6752,7 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (dns_nametree_covered(view->answeracl_exclude, name, 0)) {
+	if (dns_nametree_covered(view->answeracl_exclude, name, NULL, 0)) {
 		return (true);
 	}
 
@@ -6865,7 +6865,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (dns_nametree_covered(view->answernames_exclude, qname, 0)) {
+	if (dns_nametree_covered(view->answernames_exclude, qname, NULL, 0)) {
 		return (true);
 	}
 
@@ -6885,7 +6885,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	/*
 	 * Otherwise, apply filters.
 	 */
-	if (dns_nametree_covered(view->denyanswernames, tname, 0)) {
+	if (dns_nametree_covered(view->denyanswernames, tname, NULL, 0)) {
 		char qnamebuf[DNS_NAME_FORMATSIZE];
 		char tnamebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[64];
@@ -10778,7 +10778,7 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 		return (false);
 	}
 
-	if (dns_nametree_covered(resolver->algorithms, name, alg)) {
+	if (dns_nametree_covered(resolver->algorithms, name, NULL, alg)) {
 		return (false);
 	}
 
@@ -10791,7 +10791,7 @@ dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 unsigned int digest_type) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (dns_nametree_covered(resolver->digests, name, digest_type)) {
+	if (dns_nametree_covered(resolver->digests, name, NULL, digest_type)) {
 		return (false);
 	}
 
@@ -10828,7 +10828,7 @@ bool
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	return (dns_nametree_covered(resolver->mustbesecure, name, 0));
+	return (dns_nametree_covered(resolver->mustbesecure, name, NULL, 0));
 }
 
 void

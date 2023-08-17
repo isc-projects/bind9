@@ -19,6 +19,7 @@
 #include <isc/refcount.h>
 #include <isc/result.h>
 #include <isc/string.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
@@ -281,7 +282,7 @@ dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
 
 bool
 dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
-		     uint32_t bit) {
+		     dns_name_t *found, uint32_t bit) {
 	isc_result_t result;
 	dns_qpread_t qpr;
 	dns_ntnode_t *node = NULL;
@@ -296,6 +297,10 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 	dns_qpmulti_query(nametree->table, &qpr);
 	result = dns_qp_findname_ancestor(&qpr, name, 0, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		if (found != NULL) {
+			dns_name_copy(node->name, found);
+		}
+
 		switch (nametree->type) {
 		case DNS_NAMETREE_BOOL:
 			ret = node->set;

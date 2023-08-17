@@ -147,7 +147,7 @@ dns_nametree_find(dns_nametree_t *nametree, const dns_name_t *name,
 
 bool
 dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
-		     uint32_t bit);
+		     dns_name_t *found, uint32_t bit);
 /*%<
  * Indicates whether a 'name' (with optional 'bit' value) is covered by
  * 'nametree'.
@@ -161,6 +161,9 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
  *
  * If a name is not found, or if 'nametree' is NULL, the default return
  * value is false.
+ *
+ * If 'found' is not NULL, the name or ancestor name that was found in
+ * the tree is copied into it.
  *
  * Requires:
  *
