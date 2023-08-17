@@ -143,9 +143,8 @@ struct dns_view {
 	dns_nametree_t	     *answeracl_exclude;
 	dns_nametree_t	     *denyanswernames;
 	dns_nametree_t	     *answernames_exclude;
+	dns_nametree_t	     *sfd;
 	dns_rrl_t	     *rrl;
-	dns_rbt_t	     *sfd;
-	isc_rwlock_t	      sfd_lock;
 	bool		      provideixfr;
 	bool		      requestnsid;
 	bool		      sendcookie;
