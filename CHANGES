@@ -1,6 +1,8 @@
 6224.	[bug]		Check the If-Modified-Since value length to prevent
 			out-of-bounds write. [GL #4124]
 
+	--- 9.18.18 released ---
+
 6220.	[func]		Deprecate the 'dialup' and 'heartbeat-interval'
 			options. [GL #3700]
 
