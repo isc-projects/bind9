@@ -588,7 +588,7 @@ else:
             try:
                 shell("get_core_dumps.sh", [system_test_dir.name])
             except subprocess.CalledProcessError as exc:
-                mlogger.error("Found core dumps")
+                mlogger.error("Found core dumps or sanitizer reports")
                 pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
 
         os.environ.update(env)  # Ensure pytests have the same env vars as shell tests.
