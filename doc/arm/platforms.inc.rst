@@ -51,8 +51,7 @@ following systems:
 -  OpenBSD 7.3
 -  Alpine Linux 3.18
 
-The amd64, i386, armhf, and arm64 CPU architectures are all fully
-supported.
+The amd64 CPU architecture is fully supported and regularly tested.
 
 Best-Effort
 ~~~~~~~~~~~
@@ -73,7 +72,7 @@ regularly by ISC.
    -  Arch Linux
 
 -  OpenWRT/LEDE 17.01+
--  Other CPU architectures (mips, mipsel, sparc, …)
+-  Other CPU architectures (arm, arm64, mips64, ppc64, s390x)
 
 Community-Maintained
 ~~~~~~~~~~~~~~~~~~~~
@@ -92,6 +91,8 @@ supported platforms.
    -  Red Hat Enterprise Linux / CentOS / Oracle Linux 6, 7
    -  Debian 8 Jessie, 9 Stretch, 10 Buster
    -  FreeBSD 10.x, 11.x
+
+-  Less common CPU architectures (i386, i686, mips, mipsel, sparc, ppc, and others)
 
 Unsupported Platforms
 ---------------------
