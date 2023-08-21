@@ -1,3 +1,7 @@
+6227.	[bug]		Check the statistics-channel HTTP Content-length
+			to prevent negative or overflowing values from
+			causing a crash. [GL #4125]
+
 6226.	[bug]		Attach dispatchmgr in the dns_view object to prevent
 			use-after-free when shutting down. [GL #4228]
 
