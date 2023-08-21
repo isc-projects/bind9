@@ -38,15 +38,19 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
-
 - The value of If-Modified-Since header in statistics channel was not checked
   for length leading to possible buffer overflow by an authorized user.  We
   would like to emphasize that statistics channel must be properly setup to
   allow access only from authorized users of the system. :gl:`#4124`
 
-  This was reported independently by Eric Sesterhenn of X41 D-SEC and Cameron
-  Whitehead.
+  This issue was reported independently by Eric Sesterhenn of X41 D-SEC and
+  Cameron Whitehead.
+
+- The value of Content-Length header in statistics channel was not bound checked
+  and negative or large enough value could lead to overflow and assertion failure.
+  :gl:`#4125`
+
+  This issue was reported by Eric Sesterhenn of X41 D-SEC.
 
 Known Issues
 ~~~~~~~~~~~~
