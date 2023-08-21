@@ -393,7 +393,7 @@ cross-version-config-tests:
   <<: *default_triggering_rules
   stage: system
   before_script:
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
+    - test -n "${OUT_OF_TREE_WORKSPACE}" && cp -r bin/tests/system/* "${OUT_OF_TREE_WORKSPACE}/bin/tests/system/" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *setup_interfaces
   script:
     - *find_pytest
@@ -403,22 +403,6 @@ cross-version-config-tests:
     - '( ! grep -F "grep: warning:" pytest.out.txt )'
   after_script:
     - *display_pytest_failures
-
-.system_test_legacy: &system_test_legacy
-  script:
-    - cd bin/tests/system
-    - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
-    - if git rev-parse > /dev/null 2>&1; then ( ! grep "^I:.*:file.*not removed$" *.log ); fi
-    - '( ! grep -F "grep: warning:" *.log )'
-  after_script:
-    - test -d bind-* && cd bind-*
-    - REALSOURCEDIR="$PWD"
-    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
-    - cat bin/tests/system/test-suite.log
-    - find bin/tests/system -name "*dig.*" | xargs grep "error" || true
-    - *find_python
-    - >
-      "$PYTHON" "$REALSOURCEDIR"/bin/tests/convert-trs-to-junit.py . > "$CI_PROJECT_DIR"/junit.xml
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -953,7 +937,6 @@ system:gcc:out-of-tree:
       artifacts: true
   <<: *base_image
   <<: *system_test_job
-  <<: *system_test_legacy
   <<: *api_schedules_tags_triggers_web_triggering_rules
 
 unit:gcc:out-of-tree:
@@ -1291,7 +1274,6 @@ clang:openbsd:amd64:
 system:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *system_test_job
-  <<: *system_test_legacy
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
