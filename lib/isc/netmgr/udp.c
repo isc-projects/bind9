@@ -188,6 +188,7 @@ start_udp_child(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nmsocket_t *sock,
 	isc__nmsocket_init(csock, worker, isc_nm_udpsocket, iface, sock);
 	csock->recv_cb = sock->recv_cb;
 	csock->recv_cbarg = sock->recv_cbarg;
+	csock->inactive_handles_max = ISC_NM_NMHANDLES_MAX;
 
 	if (mgr->load_balance_sockets) {
 		csock->fd = isc__nm_udp_lb_socket(mgr,

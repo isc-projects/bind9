@@ -239,6 +239,7 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
 				   &worker->uvreq_pool);
+		isc_mempool_setfreemax(worker->uvreq_pool, ISC_NM_UVREQS_MAX);
 
 		isc_loop_attach(loop, &worker->loop);
 		isc_loop_teardown(loop, networker_teardown, worker);
@@ -806,6 +807,8 @@ dequeue_handle(isc_nmsocket_t *sock) {
 	if (handle != NULL) {
 		ISC_LIST_DEQUEUE(sock->inactive_handles, handle, inactive_link);
 
+		sock->inactive_handles_cur--;
+
 		isc_refcount_init(&handle->references, 1);
 		INSIST(VALID_NMHANDLE(handle));
 		return (handle);
@@ -913,7 +916,10 @@ nmhandle__destroy(isc_nmhandle_t *handle) {
 #if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__)
 	nmhandle_free(sock, handle);
 #else
-	if (sock->active) {
+	if (sock->active &&
+	    sock->inactive_handles_cur < sock->inactive_handles_max)
+	{
+		sock->inactive_handles_cur++;
 		ISC_LIST_APPEND(sock->inactive_handles, handle, inactive_link);
 	} else {
 		nmhandle_free(sock, handle);
