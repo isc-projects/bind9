@@ -73,6 +73,8 @@
 #include <ns/stats.h>
 #include <ns/xfrout.h>
 
+#include "probes.h"
+
 #if 0
 /*
  * It has been recommended that DNS64 be changed to return excluded
@@ -7051,6 +7053,25 @@ ns__query_sfcache(query_ctx_t *qctx) {
 	return (ISC_R_COMPLETE);
 }
 
+static void
+query_trace_rrldrop(query_ctx_t *qctx,
+		    dns_rrl_result_t rrl_result ISC_ATTR_UNUSED) {
+	if (!LIBNS_RRL_DROP_ENABLED()) {
+		return;
+	}
+
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_netaddr_t peer;
+	isc_netaddr_fromsockaddr(&peer, &qctx->client->peeraddr);
+	isc_netaddr_format(&peer, peerbuf, sizeof(peerbuf));
+
+	char qnamebuf[DNS_NAME_FORMATSIZE];
+	char fnamebuf[DNS_NAME_FORMATSIZE];
+	dns_name_format(qctx->client->query.qname, qnamebuf, sizeof(qnamebuf));
+	dns_name_format(qctx->fname, fnamebuf, sizeof(fnamebuf));
+	LIBNS_RRL_DROP(peerbuf, qnamebuf, fnamebuf, rrl_result);
+}
+
 /*%
  * Handle response rate limiting (RRL).
  */
@@ -7183,6 +7204,12 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 					      NS_LOGMODULE_QUERY,
 					      DNS_RRL_LOG_DROP, "%s", log_buf);
 			}
+
+			/*
+			 * If tracing is enabled, format some extra information
+			 * to pass along.
+			 */
+			query_trace_rrldrop(qctx, rrl_result);
 
 			if (!qctx->view->rrl->log_only) {
 				if (rrl_result == DNS_RRL_RESULT_DROP) {

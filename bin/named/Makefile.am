@@ -38,8 +38,8 @@ AM_CPPFLAGS +=						\
 sbin_PROGRAMS = named
 
 nodist_named_SOURCES = xsl.c
-BUILT_SOURCES = xsl.c
-CLEANFILES = xsl.c
+BUILT_SOURCES += xsl.c
+CLEANFILES += xsl.c
 
 EXTRA_DIST = bind9.xsl
 

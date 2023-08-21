@@ -171,6 +171,7 @@ libisc_la_SOURCES =		\
 	picohttpparser.c	\
 	picohttpparser.h	\
 	portset.c		\
+	probes.d		\
 	quota.c			\
 	radix.c			\
 	random.c		\
@@ -256,3 +257,12 @@ libisc_la_CPPFLAGS +=		\
 libisc_la_LIBADD +=		\
 	$(LIBXML2_LIBS)
 endif HAVE_LIBXML2
+
+if !HAVE_SYSTEMTAP
+DTRACE_DEPS = libisc_la-rwlock.lo libisc_la-job.lo
+DTRACE_OBJS = .libs/libisc_la-rwlock.$(OBJEXT) .libs/libisc_la-job.$(OBJEXT)
+endif
+
+include $(top_srcdir)/Makefile.dtrace
+
+libisc_la_LIBADD += $(DTRACE_LIBADD)

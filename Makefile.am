@@ -8,8 +8,8 @@ SUBDIRS += tests
 # run fuzz tests before system tests
 SUBDIRS += fuzz bin
 
-BUILT_SOURCES = bind.keys.h
-CLEANFILES = bind.keys.h
+BUILT_SOURCES += bind.keys.h
+CLEANFILES += bind.keys.h
 
 bind.keys.h: bind.keys Makefile
 	${PERL} ${top_srcdir}/util/bindkeys.pl ${top_srcdir}/bind.keys > $@
@@ -19,6 +19,7 @@ bind.keys.h: bind.keys Makefile
 EXTRA_DIST =			\
 	bind.keys		\
 	util/bindkeys.pl	\
+	util/dtrace.sh		\
 	contrib			\
 	CHANGES			\
 	COPYRIGHT		\

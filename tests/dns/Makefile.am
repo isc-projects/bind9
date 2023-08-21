@@ -48,8 +48,6 @@ check_PROGRAMS =		\
 	zonemgr_test		\
 	zt_test
 
-CLEANFILES =
-
 if HAVE_PERL
 
 check_PROGRAMS +=		\

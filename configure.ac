@@ -1569,6 +1569,64 @@ AX_GCC_FUNC_ATTRIBUTE([constructor])
 AX_GCC_FUNC_ATTRIBUTE([destructor])
 
 #
+# Check whether to enable User Statically Defined Tracing.
+#
+# This is supported only on Linux now and requires SystemTap libraries.
+#
+# [pairwise: --enable-tracing=auto, --enable-tracing=yes, --disable-tracing]
+AC_ARG_ENABLE([tracing],
+	      [AS_HELP_STRING([--enable-tracing],
+			      [enable User Statically Defined Tracing])],
+	      [],
+	      [enable_tracing=auto])
+
+AC_ARG_VAR([DTRACE], [path to dtrace binary used to build User Statically Defined Tracing probes])
+AC_PATH_PROGS([DTRACE], [dtrace])
+AC_CHECK_HEADERS([sys/sdt.h])
+
+AC_MSG_CHECKING([whether to enable User Statically Defined Tracing support (default is auto)])
+AS_CASE([$enable_tracing],
+	[auto],	[enable_tracing=yes
+		 AS_IF([test "$ac_cv_header_sys_sdt_h" != "yes"], [enable_tracing=no])
+		 AS_IF([test -z "$DTRACE"],[enable_tracing=no])
+		 AC_COMPILE_IFELSE(
+		   [AC_LANG_PROGRAM([[]],
+				    [[#if !defined(__has_feature)
+				      #define __has_feature(x) 0
+				      #endif /* if !defined(__has_feature) */
+				      #if __has_feature(address_sanitizer)
+				      #define __SANITIZE_ADDRESS__ 1
+				      #endif /* if __has_feature(address_sanitizer) */
+				      #if defined(__SANITIZE_ADDRESS__)
+				      #error Address Sanitizer enabled
+				      #endif
+				     ]])],
+		   [],
+		   [enable_tracing=no]
+		 )])
+AS_CASE([$enable_tracing],
+	[yes], [AS_IF([test "$ac_cv_header_sys_sdt_h" != "yes"],
+		      [AC_MSG_ERROR([sys/sdt.h header not found])])
+		AS_IF([test -z "$DTRACE"],
+		      [AC_MSG_ERROR([The dtrace command not found])])
+		AC_MSG_RESULT([yes])],
+	[DTRACE=""
+	 AC_MSG_RESULT([no])])
+
+AS_CASE([$host],
+	[*-linux*],[have_systemtap=true])
+
+AM_CONDITIONAL([HAVE_SYSTEMTAP], [test -n "$have_systemtap"])
+AM_CONDITIONAL([HAVE_DTRACE], [test -n "$DTRACE"])
+
+# Use shim script if dtrace is not available
+AS_IF([test -z "$DTRACE"],
+      [DTRACE='$(top_srcdir)/util/dtrace.sh'])
+
+AC_SUBST([DTRACE])
+
+
+#
 # Files to configure.  These are listed here because we used to
 # specify them as arguments to AC_OUTPUT.
 #

@@ -123,7 +123,7 @@ EXTRA_DIST =				\
 	$(MANPAGES_RST)			\
 	$(MANPAGES_IN)
 
-CLEANFILES =				\
+CLEANFILES +=				\
 	$(man_MANS)
 
 #

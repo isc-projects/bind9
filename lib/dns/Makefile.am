@@ -12,10 +12,10 @@ nodist_libdns_la_SOURCES =		\
 	$(nodist_libdns_la_HEADERS)	\
 	code.h
 
-BUILT_SOURCES =				\
+BUILT_SOURCES +=			\
 	$(nodist_libdns_la_SOURCES)
 
-CLEANFILES =				\
+CLEANFILES +=				\
 	$(nodist_libdns_la_SOURCES)	\
 	gen$(BUILD_EXEEXT)
 
@@ -124,6 +124,7 @@ libdns_la_HEADERS =			\
 	include/dns/ssu.h		\
 	include/dns/stats.h		\
 	include/dns/time.h		\
+	include/dns/trace.h		\
 	include/dns/transport.h		\
 	include/dns/tkey.h		\
 	include/dns/trace.h		\
@@ -208,6 +209,7 @@ libdns_la_SOURCES =			\
 	order.c				\
 	peer.c				\
 	private.c			\
+	probes.d			\
 	qp.c				\
 	qp_p.h				\
 	rbt.c				\
@@ -330,3 +332,12 @@ if HAVE_LMDB
 libdns_la_CPPFLAGS += $(LMDB_CFLAGS)
 libdns_la_LIBADD += $(LMDB_LIBS)
 endif
+
+if !HAVE_SYSTEMTAP
+DTRACE_DEPS = libdns_la-xfrin.lo
+DTRACE_OBJS = .libs/libdns_la-xfrin.$(OBJEXT)
+endif
+
+include $(top_srcdir)/Makefile.dtrace
+
+libdns_la_LIBADD += $(DTRACE_LIBADD)

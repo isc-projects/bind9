@@ -35,6 +35,7 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/soa.h>
+#include <dns/trace.h>
 #include <dns/transport.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
@@ -42,6 +43,8 @@
 #include <dns/zone.h>
 
 #include <dst/dst.h>
+
+#include "probes.h"
 
 /*
  * Incoming AXFR and IXFR.
@@ -180,6 +183,8 @@ struct dns_xfrin {
 
 	isc_timer_t *max_time_timer;
 	isc_timer_t *max_idle_timer;
+
+	char info[DNS_NAME_MAXTEXT + 32];
 };
 
 #define XFRIN_MAGIC    ISC_MAGIC('X', 'f', 'r', 'I')
@@ -248,11 +253,6 @@ static void
 xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg);
 static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
-
-static void
-xfrin_logv(dns_xfrin_t *xff, int level, const char *zonetext,
-	   const isc_sockaddr_t *primaryaddr, const char *fmt, va_list ap)
-	ISC_FORMAT_PRINTF(5, 0);
 
 static void
 xfrin_log(dns_xfrin_t *xfr, int level, const char *fmt, ...)
@@ -360,10 +360,10 @@ static isc_result_t
 axfr_finalize(dns_xfrin_t *xfr) {
 	isc_result_t result;
 
-	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, true));
+	LIBDNS_XFRIN_AXFR_FINALIZE_BEGIN(xfr, xfr->info);
+	result = dns_zone_replacedb(xfr->zone, xfr->db, true);
+	LIBDNS_XFRIN_AXFR_FINALIZE_END(xfr, xfr->info, result);
 
-	result = ISC_R_SUCCESS;
-failure:
 	return (result);
 }
 
@@ -910,6 +910,8 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	isc_timer_create(dns_zone_getloop(zone), xfrin_idledout, xfr,
 			 &xfr->max_idle_timer);
 
+	dns_zone_name(xfr->zone, xfr->info, sizeof(xfr->info));
+
 	*xfrp = xfr;
 }
 
@@ -955,6 +957,8 @@ xfrin_start(dns_xfrin_t *xfr) {
 		}
 		CHECK(result);
 	}
+
+	LIBDNS_XFRIN_START(xfr, xfr->info);
 
 	/* Set the maximum timer */
 	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
@@ -1026,6 +1030,8 @@ xfrin_connect_done(isc_result_t result, isc_region_t *region ISC_ATTR_UNUSED,
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
+
+	LIBDNS_XFRIN_CONNECTED(xfr, xfr->info, result);
 
 	if (result != ISC_R_SUCCESS) {
 		xfrin_fail(xfr, result, "failed to connect");
@@ -1155,6 +1161,8 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
 
+	LIBDNS_XFRIN_RECV_SEND_REQUEST(xfr, xfr->info);
+
 	/* Create the request message */
 	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
@@ -1245,6 +1253,8 @@ xfrin_send_done(isc_result_t result, isc_region_t *region, void *arg) {
 		result = ISC_R_SHUTTINGDOWN;
 	}
 
+	LIBDNS_XFRIN_SENT(xfr, xfr->info, result);
+
 	CHECK(result);
 
 	xfrin_log(xfr, ISC_LOG_DEBUG(3), "sent request data");
@@ -1273,6 +1283,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 	/* Stop the idle timer */
 	isc_timer_stop(xfr->max_idle_timer);
+
+	LIBDNS_XFRIN_RECV_START(xfr, xfr->info, result);
 
 	CHECK(result);
 
@@ -1307,6 +1319,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 			  isc_result_totext(result));
 	}
 
+	LIBDNS_XFRIN_RECV_PARSED(xfr, xfr->info, result);
+
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass)
 	{
@@ -1334,6 +1348,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 			  isc_result_totext(result));
 	try_axfr:
+		LIBDNS_XFRIN_RECV_TRY_AXFR(xfr, xfr->info, result);
 		dns_message_detach(&msg);
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
@@ -1373,6 +1388,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	     result = dns_message_nextname(msg, DNS_SECTION_QUESTION))
 	{
 		dns_rdataset_t *rds = NULL;
+
+		LIBDNS_XFRIN_RECV_QUESTION(xfr, xfr->info, msg);
 
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
@@ -1434,6 +1451,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	     result = dns_message_nextname(msg, DNS_SECTION_ANSWER))
 	{
 		dns_rdataset_t *rds = NULL;
+
+		LIBDNS_XFRIN_RECV_ANSWER(xfr, xfr->info, msg);
 
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
@@ -1513,15 +1532,22 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		 * Close the journal.
 		 */
 		if (xfr->ixfr.journal != NULL) {
+			LIBDNS_XFRIN_JOURNAL_DESTROY_BEGIN(xfr, xfr->info,
+							   result);
 			dns_journal_destroy(&xfr->ixfr.journal);
+			LIBDNS_XFRIN_JOURNAL_DESTROY_END(xfr, xfr->info,
+							 result);
 		}
 
 		/*
 		 * Inform the caller we succeeded.
 		 */
 		if (xfr->done != NULL) {
+			LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, xfr->info,
+							 result);
 			(xfr->done)(xfr->zone, ISC_R_SUCCESS);
 			xfr->done = NULL;
+			LIBDNS_XFRIN_DONE_CALLBACK_END(xfr, xfr->info, result);
 		}
 
 		atomic_store(&xfr->shuttingdown, true);
@@ -1539,6 +1565,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		isc_interval_set(&interval, dns_zone_getidlein(xfr->zone), 0);
 		isc_timer_start(xfr->max_idle_timer, isc_timertype_once,
 				&interval);
+
+		LIBDNS_XFRIN_READ(xfr, xfr->info, result);
 		return;
 	}
 
@@ -1551,6 +1579,7 @@ failure:
 		dns_message_detach(&msg);
 	}
 	dns_xfrin_detach(&xfr);
+	LIBDNS_XFRIN_RECV_DONE(xfr, xfr->info, result);
 }
 
 static void
@@ -1674,36 +1703,24 @@ xfrin_destroy(dns_xfrin_t *xfr) {
  * Log incoming zone transfer messages in a format like
  * transfer of <zone> from <address>: <message>
  */
-static void
-xfrin_logv(dns_xfrin_t *xfr, int level, const char *zonetext,
-	   const isc_sockaddr_t *primaryaddr, const char *fmt, va_list ap) {
-	char primarytext[ISC_SOCKADDR_FORMATSIZE];
-	char msgtext[2048];
-
-	isc_sockaddr_format(primaryaddr, primarytext, sizeof(primarytext));
-	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
-		      level, "%p: transfer of '%s' from %s: %s", xfr, zonetext,
-		      primarytext, msgtext);
-}
-
-/*
- * Logging function for use when there is a xfrin_ctx_t.
- */
 
 static void
 xfrin_log(dns_xfrin_t *xfr, int level, const char *fmt, ...) {
 	va_list ap;
-	char zonetext[DNS_NAME_MAXTEXT + 32];
+	char primarytext[ISC_SOCKADDR_FORMATSIZE];
+	char msgtext[2048];
 
 	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
 
-	dns_zone_name(xfr->zone, zonetext, sizeof(zonetext));
-
+	isc_sockaddr_format(&xfr->primaryaddr, primarytext,
+			    sizeof(primarytext));
 	va_start(ap, fmt);
-	xfrin_logv(xfr, level, zonetext, &xfr->primaryaddr, fmt, ap);
+	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 	va_end(ap);
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN, DNS_LOGMODULE_XFER_IN,
+		      level, "%p: transfer of '%s' from %s: %s", xfr, xfr->info,
+		      primarytext, msgtext);
 }
