@@ -150,20 +150,24 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_amd64
 
-.respdiff-debian-bullseye-amd64: &respdiff_debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
-  <<: *linux_respdiff_amd64
-
 .debian-bullseye-amd64: &debian_bullseye_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
   <<: *linux_amd64
 
-.tsan-debian-bullseye-amd64: &tsan_debian_bullseye_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tsan-debian-bullseye-amd64"
+.respdiff-debian-bookworm-amd64: &respdiff_debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
+  <<: *linux_respdiff_amd64
+
+.debian-bookworm-amd64: &debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
 
-.debian-bullseye-amd64cross32: &debian_bullseye_amd64cross32_image
-  image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64cross32"
+.tsan-debian-bookworm-amd64: &tsan_debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:tsan-debian-bookworm-amd64"
+  <<: *linux_amd64
+
+.debian-bookworm-amd64cross32: &debian_bookworm_amd64cross32_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64cross32"
   <<: *linux_amd64
 
 .debian-sid-amd64: &debian_sid_amd64_image
@@ -208,7 +212,7 @@ stages:
 # This is a meta image that is used as a base for non-specific jobs
 
 .base: &base_image
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
 
 ### QCOW2 Image Templates
 
@@ -505,7 +509,7 @@ cross-version-config-tests:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
     - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
-    - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" )
+    - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
 
 .respdiff: &respdiff_job
   stage: system
@@ -645,7 +649,7 @@ tarball-create:
     - job: autoreconf
       artifacts: true
 
-# Jobs for doc builds on Debian 11 "bullseye" (amd64)
+# Jobs for doc builds on Debian 12 "bookworm" (amd64)
 
 docs:
   <<: *default_triggering_rules
@@ -806,48 +810,48 @@ unit:gcc:buster:amd64:
     - job: gcc:buster:amd64
       artifacts: true
 
-# Jobs for regular GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for regular GCC builds on Debian 12 "bookworm" (amd64)
 
-gcc:bullseye:amd64:
+gcc:bookworm:amd64:
   variables:
     BUILD_CONTRIB: 1
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} --coverage -O0"
     EXTRA_CONFIGURE: "--with-libidn2 ${WITH_READLINE_LIBEDIT}"
     RUN_MAKE_INSTALL: 1
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   <<: *build_job
 
-system:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+system:gcc:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *system_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
-    - job: unit:gcc:bullseye:amd64
+    - job: unit:gcc:bookworm:amd64
       artifacts: true
 
-unit:gcc:bullseye:amd64:
-  <<: *debian_bullseye_amd64_image
+unit:gcc:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
   <<: *unit_test_gcov_job
   variables:
     CI_ENABLE_ALL_TESTS: 1
   needs:
-    - job: gcc:bullseye:amd64
+    - job: gcc:bookworm:amd64
       artifacts: true
 
-# Build job for cross-compiled GCC builds on 64-bit Debian 11 "bullseye"
+# Build job for cross-compiled GCC builds on 64-bit Debian 12 "bookworm"
 # (amd64) with 32-bit BIND 9.
 
-gcc:bullseye:amd64cross32:
+gcc:bookworm:amd64cross32:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     CROSS_COMPILATION: 1
     EXTRA_CONFIGURE: "--build=x86_64-linux-gnu --host=i686-linux-gnu --with-libidn2 ${WITH_READLINE_LIBEDIT}"
-  <<: *debian_bullseye_amd64cross32_image
+  <<: *debian_bookworm_amd64cross32_image
   <<: *build_job
 
-# Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
+# Jobs for scan-build builds on Debian 12 "bookworm" (amd64)
 
 .scan_build: &scan_build
   - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
@@ -882,20 +886,13 @@ scan-build:
 gcc:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3 -DOPENSSL_API_COMPAT=10100"
-    # For the jemalloc ./configure option, see https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb --without-jemalloc ${WITH_READLINE}"
+    CFLAGS: "${CFLAGS_COMMON} -O3"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb ${WITH_READLINE}"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
 
 system:gcc:sid:amd64:
-  # Set up environment variables that allow the "keyfromlabel" system test to be run
-  variables:
-    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
-    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
-    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
-    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   needs:
@@ -909,7 +906,7 @@ unit:gcc:sid:amd64:
     - job: gcc:sid:amd64
       artifacts: true
 
-# Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
+# Job for out-of-tree GCC build on Debian 12 "bookworm" (amd64)
 # Also tests configration option: --with-lmdb.
 
 gcc:out-of-tree:
@@ -943,7 +940,7 @@ unit:gcc:out-of-tree:
   <<: *unit_test_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
 
-# Jobs for tarball GCC builds on Debian 11 "bullseye" (amd64)
+# Jobs for tarball GCC builds on Debian 12 "bookworm" (amd64)
 
 gcc:tarball:
   variables:
@@ -1169,7 +1166,7 @@ unit:gcc:tsan:
       artifacts: true
 
 clang:tsan:
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *build_job
   variables:
     CC: "${CLANG}"
@@ -1180,7 +1177,7 @@ clang:tsan:
 system:clang:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *system_test_tsan_job
   needs:
     - job: clang:tsan
@@ -1189,34 +1186,22 @@ system:clang:tsan:
 unit:clang:tsan:
   variables:
     TSAN_OPTIONS: "${TSAN_OPTIONS_DEBIAN}"
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   <<: *unit_test_tsan_job
   needs:
     - job: clang:tsan
       artifacts: true
 
-# Jobs for Clang builds on Debian 11 "bullseye" (amd64)
-# The -Wno-compound-token-split-by-macro option prevents warning when compiling
-# Perl DLZ module with Clang against Perl older than version 5.35.2.
+# Jobs for Debian 11 "bullseye" (amd64)
 
 clang:bullseye:amd64:
   variables:
-    BUILD_CONTRIB: 1
     CC: ${CLANG}
-    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion -Wno-compound-token-split-by-macro"
-    # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
-    EXTRA_CONFIGURE: "--without-jemalloc"
-    RUN_MAKE_INSTALL: 1
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
 system:clang:bullseye:amd64:
-  # Set up environment variables that allow the "keyfromlabel" system test to be run
-  variables:
-    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
-    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
-    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
-    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
   <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
@@ -1228,6 +1213,68 @@ unit:clang:bullseye:amd64:
   <<: *unit_test_job
   needs:
     - job: clang:bullseye:amd64
+      artifacts: true
+
+gcc:bullseye:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
+    EXTRA_CONFIGURE: "--with-libidn2 --without-jemalloc"
+  <<: *debian_bullseye_amd64_image
+  <<: *build_job
+
+system:gcc:bullseye:amd64:
+  # Set up environment variables that allow the "keyfromlabel" system test to be run
+  variables:
+    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
+    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
+    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
+    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_bullseye_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: gcc:bullseye:amd64
+      artifacts: true
+
+unit:gcc:bullseye:amd64:
+  <<: *debian_bullseye_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: gcc:bullseye:amd64
+      artifacts: true
+
+# Jobs for Clang builds on Debian 12 "bookworm" (amd64)
+
+clang:bookworm:amd64:
+  variables:
+    BUILD_CONTRIB: 1
+    CC: ${CLANG}
+    CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion -DOPENSSL_API_COMPAT=10100"
+    # See https://gitlab.isc.org/isc-projects/bind9/-/issues/3444
+    EXTRA_CONFIGURE: "--without-jemalloc"
+    RUN_MAKE_INSTALL: 1
+  <<: *debian_bookworm_amd64_image
+  <<: *build_job
+
+system:clang:bookworm:amd64:
+  # Set up environment variables that allow the "keyfromlabel" system test to be run
+  variables:
+    DEFAULT_OPENSSL_CONF: "/etc/ssl/openssl.cnf"
+    OPENSSL_CONF: "/var/tmp/etc/openssl.cnf"
+    SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
+    SOFTHSM2_MODULE: "/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_bookworm_amd64_image
+  <<: *system_test_job
+  needs:
+    - job: clang:bookworm:amd64
+      artifacts: true
+
+unit:clang:bookworm:amd64:
+  <<: *debian_bookworm_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: clang:bookworm:amd64
       artifacts: true
 
 # Jobs for Clang builds on FreeBSD 12 (amd64)
@@ -1403,7 +1450,7 @@ coverity:
 respdiff-short:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1414,7 +1461,7 @@ respdiff-short:
 respdiff-short:asan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
@@ -1427,7 +1474,7 @@ respdiff-short:asan:
 respdiff-short:tsan:
   <<: *respdiff_job
   <<: *default_triggering_rules
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
@@ -1444,7 +1491,7 @@ respdiff-short:tsan:
 respdiff-long:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *respdiff_debian_bullseye_amd64_image
+  <<: *respdiff_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1455,7 +1502,7 @@ respdiff-long:
 respdiff-long:asan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=address,undefined"
@@ -1468,7 +1515,7 @@ respdiff-long:asan:
 respdiff-long:tsan:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *tsan_debian_bullseye_amd64_image
+  <<: *tsan_debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -fsanitize=thread"
@@ -1485,7 +1532,7 @@ respdiff-long:tsan:
 respdiff-long-third-party:
   <<: *respdiff_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
-  <<: *debian_bullseye_amd64_image
+  <<: *debian_bookworm_amd64_image
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -1658,34 +1705,27 @@ gcov:
   <<: *default_triggering_rules
   stage: postcheck
   needs:
-    - job: system:gcc:bullseye:amd64
+    - job: system:gcc:bookworm:amd64
       artifacts: true
   script:
-    # *.gcno and *.gcda files generated for shared library objects are created
-    # in directories in which gcovr is unable to process them properly
-    # (.../.libs/...).  Move such *.gcno and *.gcda files one level higher.
-    - find . -regex ".*/\.libs/.*\.\(gcda\|gcno\)" -execdir mv "{}" .. \;
-    # Help gcovr process the nasty tricks in lib/dns/code.h, where we include C
-    # source files from lib/dns/rdata/*/, using an even nastier trick.
-    - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
-    # Help gcovr process inline functions in headers by copying all libdns and
-    # libisc headers to lib/{dns,isc,ns}/.
-    - for SRC in dns isc; do for DST in dns isc ns; do cp -f "lib/${SRC}/include/${SRC}"/*.h "lib/${DST}/"; done; done
-    - find bin lib -maxdepth 1 -mindepth 1 -type d -exec cp -f lib/isc/include/isc/buffer.h "{}" \;
-    - cp -f lib/isc/include/isc/buffer.h lib/isc/netmgr/buffer.h
-    # Help gcovr find dlz_dbi.c file
-    - for DST in ldap mysql mysqldyn sqlite3 wildcard; do cp contrib/dlz/modules/common/dlz_dbi.c "contrib/dlz/modules/${DST}"; done
+    # Ensure gcov files for unit tests are found via tests/ rather than
+    # lib/*/tests/ to prevent confusing gcovr.
+    - find lib/ -name tests -type l -delete
+    # The "a-conftest.gcno" file is result of the ./configure step and
+    # should be removed as it does not belong to the BIND 9 code base.
+    - rm a-conftest.gcno
     # Generate XML file in the Cobertura XML format suitable for use by GitLab
     # for the purpose of displaying code coverage information in the diff view
     # of a given merge request.
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude-directories lib/samples --exclude tests --xml -o coverage.xml
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude-directories lib/samples --exclude tests --html-details -o coverage.html
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude-directories lib/samples --exclude tests -o coverage.txt
+    - gcovr --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude tests --cobertura-pretty -o coverage.xml
+    - gcovr --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude tests --html-details -o coverage.html
+    - gcovr --exclude-directories bin/tests --exclude-directories doc --exclude-directories fuzz --exclude tests --txt -o coverage.txt
     - tail -n 3 coverage.txt
   coverage: /^TOTAL.*\s+(\d+\%)$/
   artifacts:
     paths:
       - coverage*.html
+      - coverage.css
       - coverage.txt
       - coverage.xml
     reports:
