@@ -267,7 +267,6 @@ pack_soa_record(unsigned char *rdatap, size_t rbufsz, size_t *rdlenp,
 	ISC_U32TO8_BE(rdatap, psoa->expire);
 	rdatap += 4;
 	ISC_U32TO8_BE(rdatap, psoa->minimum);
-	rdatap += 4;
 	used += (4 * 5);
 
 	SET_IF_NOT_NULL(rdlenp, used);

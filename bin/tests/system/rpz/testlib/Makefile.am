@@ -6,7 +6,7 @@ AM_CPPFLAGS +=			\
 
 AM_CFLAGS += -Wall -pedantic
 
-check_LTLIBRARIES = libdummyrpz.la
+noinst_LTLIBRARIES = libdummyrpz.la
 libdummyrpz_la_SOURCES= dummylib.c test-data.c trpz.h test-data.h
 libdummyrpz_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -rpath $(abs_builddir)
 LDADD += -lpthread $(DLOPEN_LIBS)

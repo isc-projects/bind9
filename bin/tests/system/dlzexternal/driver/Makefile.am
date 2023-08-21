@@ -4,7 +4,7 @@ AM_CPPFLAGS +=			\
 	$(LIBISC_CFLAGS)	\
 	$(LIBDNS_CFLAGS)
 
-check_LTLIBRARIES = dlzexternal.la
+noinst_LTLIBRARIES = dlzexternal.la
 
 dlzexternal_la_SOURCES =	\
 	driver.c		\
