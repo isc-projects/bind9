@@ -6188,7 +6188,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
         keys {
             ksk key-directory lifetime unlimited algorithm rsasha256 2048;
-            zsk lifetime P30D algorithm 8;
+            zsk lifetime 30d algorithm 8;
             csk lifetime P6MT12H3M15S algorithm ecdsa256;
         };
 
@@ -6207,7 +6207,11 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     keys in hardware security modules or separate directories.
 
     The ``lifetime`` parameter specifies how long a key may be used
-    before rolling over.  In the example above, the first key has an
+    before rolling over. For convenience, TTL-style time-unit suffixes
+    can be used to specify the key lifetime. It also accepts ISO 8601
+    duration formats.
+
+    In the example above, the first key has an
     unlimited lifetime, the second key may be used for 30 days, and the
     third key has a rather peculiar lifetime of 6 months, 12 hours, 3
     minutes, and 15 seconds.  A lifetime of 0 seconds is the same as
