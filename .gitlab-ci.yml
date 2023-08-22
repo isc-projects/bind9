@@ -406,6 +406,7 @@ cross-version-config-tests:
       "$PYTEST" --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "$TEST_PARALLEL_JOBS" | tee pytest.out.txt
     - '( ! grep -F "grep: warning:" pytest.out.txt )'
   after_script:
+    - test -n "${OUT_OF_TREE_WORKSPACE}" && cd "${OUT_OF_TREE_WORKSPACE}"
     - *display_pytest_failures
 
 .system_test: &system_test_job
