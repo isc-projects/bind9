@@ -30,6 +30,11 @@ import dns.rdatatype
 import dns.resolver
 
 
+pytestmark = pytest.mark.skipif(
+    sys.version_info < (3, 7), reason="Python >= 3.7 required [GL #3001]"
+)
+
+
 def has_signed_apex_nsec(zone, response):
     has_nsec = False
     has_rrsig = False
