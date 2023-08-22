@@ -145,15 +145,6 @@ stages:
   <<: *base_image
   stage: precheck
 
-.autoconf: &autoconf_job
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: precheck
-  script:
-    - autoreconf -fi
-  artifacts:
-    untracked: true
-
 .configure: &configure
     - ${CONFIGURE}
       --enable-developer
@@ -185,12 +176,10 @@ stages:
     - test -z "${RUN_MAKE_INSTALL}" || make DESTDIR="${INSTALL_PATH}" install
     - test -z "${RUN_MAKE_INSTALL}" || DESTDIR="${INSTALL_PATH}" sh util/check-make-install
     - if [[ "${CFLAGS}" == *"-fsanitize=address"* ]]; then ( ! grep -F AddressSanitizer config.log ); fi
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     untracked: true
     when: always
+  needs: []
 
 .setup_interfaces: &setup_interfaces
     - if [ "$(id -u)" -eq "0" ]; then
@@ -283,9 +272,6 @@ stages:
 
 # Jobs in the precheck stage
 
-autoreconf:
-  <<: *autoconf_job
-
 misc:
   <<: *precheck_job
   script:
@@ -295,7 +281,6 @@ misc:
     - sh util/xmllint-html.sh
     - sh util/check-win32util-configure
     - sh util/check-categories.sh
-  needs: []
   artifacts:
     paths:
       - util/newcopyrights
@@ -312,11 +297,9 @@ changes:
     - perl util/check-changes CHANGES
     - sh util/check-line-length.sh CHANGES
     - rm CHANGES.tmp
-  needs: []
 
 coccinelle:
   <<: *precheck_job
-  needs: []
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
@@ -326,7 +309,6 @@ danger:
   environment:
     name: danger
     action: access
-  needs: []
   script:
     - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
     - hazard
@@ -361,12 +343,10 @@ docs:
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
     - find bin/ lib/ isc-config.sh.1 -not -path "bin/tests/*" -name "*.[0-9]" -exec mandoc -T lint -Werror "{}" \;
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     paths:
       - doc/arm/
+  needs: []
 
 # Jobs for regular GCC builds on Alpine Linux 3.15 (amd64)
 
@@ -760,9 +740,6 @@ respdiff-third-party:
 abi-check:
   <<: *base_image
   stage: build
-  needs:
-    - job: autoreconf
-      artifacts: true
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og"
@@ -786,6 +763,7 @@ abi-check:
   only:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
+  needs: []
 
 .post_merge_template: &post_merge
   <<: *base_image
