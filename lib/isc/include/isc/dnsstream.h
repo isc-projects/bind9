@@ -491,12 +491,8 @@ isc_dnsstream_assembler_incoming(isc_dnsstream_assembler_t *restrict dnsasm,
 	REQUIRE(dnsasm != NULL);
 	INSIST(!dnsasm->calling_cb);
 
-	if (buf_size == 0) {
-		INSIST(buf == NULL);
-	} else {
+	if (buf != NULL && buf_size > 0) {
 		size_t remaining;
-
-		INSIST(buf != NULL);
 
 		remaining = isc_buffer_remaininglength(&dnsasm->dnsbuf);
 
@@ -525,7 +521,7 @@ isc_dnsstream_assembler_incoming(isc_dnsstream_assembler_t *restrict dnsasm,
 			 * when receiving the next batch of data.
 			 */
 			return;
-		} else if (remaining == 1 && buf_size > 0) {
+		} else if (remaining == 1) {
 			/* Mostly the same case as above, but we have incomplete
 			 * message length in the buffer and received at least
 			 * one byte to complete it.
