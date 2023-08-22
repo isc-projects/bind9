@@ -19,7 +19,7 @@ LDADD +=			\
 
 if HAVE_PERL
 
-check_PROGRAMS =		\
+noinst_PROGRAMS =		\
 	feature-test		\
 	makejournal		\
 	pipelined/pipequeries	\
