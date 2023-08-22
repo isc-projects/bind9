@@ -268,7 +268,7 @@ stages:
   <<: *base_image
   stage: precheck
   script:
-    - autoreconf -fi
+    - autoreconf2.69 -fi
   artifacts:
     untracked: true
 
@@ -375,7 +375,7 @@ cross-version-config-tests:
     - BASELINE="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BRANCH}&order_by=version" | jq -r ".[0].name")"
     - git clone --branch "${BASELINE}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BASELINE}"
     - cd "bind-${BASELINE}"
-    - autoreconf -fi
+    - autoreconf2.69 -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
     - cd bin/tests/system
@@ -637,7 +637,7 @@ docs:
   script:
     - *configure
     - make maintainer-clean
-    - autoreconf -fi
+    - autoreconf2.69 -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} doc V=1
