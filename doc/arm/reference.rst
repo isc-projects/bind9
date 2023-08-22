@@ -6162,7 +6162,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     DNSKEY RRset always includes a key-signing key for that algorithm.
 
     Here is an example (for illustration purposes only) of some possible
-    entries in a :any:`keys` list:
+    entries in a ``keys`` list:
 
     ::
 
