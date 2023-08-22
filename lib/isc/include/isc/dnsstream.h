@@ -540,7 +540,7 @@ isc_dnsstream_assembler_incoming(isc_dnsstream_assembler_t *restrict dnsasm,
 				return;
 			}
 
-			if (buf_size > 0) {
+			if (unprocessed_size > 0) {
 				isc_buffer_putmem(dnsasm->current,
 						  unprocessed_buf,
 						  unprocessed_size);
