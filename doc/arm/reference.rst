@@ -314,6 +314,26 @@ file documentation:
     ``domain_name``
         A quoted string which is used as a DNS name; for example: ``my.test.domain``.
 
+    ``duration``
+        A duration in BIND 9 can be written in three ways: as single number
+        representing seconds, as a string of numbers with TTL-style
+        time-unit suffixes, or in ISO 6801 duration format.
+
+        Allowed TTL time-unit suffixes are: "W" (week), "D" (day), "H" (hour),
+        "M" (minute), and "S" (second). Examples: "1W" (1 week), "3d12h"
+        (3 days, 12 hours).
+
+        ISO 8601 duration format consists of the letter "P", followed by an
+	optional series of numbers with unit suffixes "Y" (year), "M" (month),
+        "W" (week), and "D" (day); this may optionally be followed by the
+        letter "T", and another series of numbers with unit suffixes
+        "H" (hour), "M" (minute), and "S" (second). Examples: "P3M10D"
+        (3 months, 10 days), "P2WT12H" (2 weeks, 12 hours), "pt15m"
+        (15 minutes).  For more information on ISO 8601 duration format,
+        see :rfc:`3339`, appendix A.
+
+        Both TTL-style and ISO 8601 duration formats are case-insensitive.
+
     ``fixedpoint``
         A non-negative real number that can be specified to the nearest one-hundredth. Up to five digits can be specified before a decimal point, and up to two digits after, so the maximum value is 99999.99. Acceptable values might be further limited by the contexts in which they are used.
 
