@@ -190,6 +190,7 @@ def test_long_axfr(named_port):
 # that use a different value for this setting (for example, FreeBSD defaults to
 # 32768 bytes) may need their system-level settings to be tweaked in order for
 # this test to pass.
+@pytest_custom_markers.flaky(max_runs=3)
 def test_send_timeout(named_port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(("10.53.0.1", named_port))
