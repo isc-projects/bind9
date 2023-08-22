@@ -9,6 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest_custom_markers
 
+
+# The rrl is known to be quite unstable. GL #172
+@pytest_custom_markers.flaky(max_runs=2)
 def test_rrl(run_tests_sh):
     run_tests_sh()
