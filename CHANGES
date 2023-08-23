@@ -4,6 +4,10 @@
 6230.	[bug]		Prevent an unnecessary query restart if a synthesized
 			CNAME target points to the CNAME owner. [GL #3835]
 
+6227.	[bug]		Check the statistics-channel HTTP Content-length
+			to prevent negative or overflowing values from
+			causing a crash. [GL #4125]
+
 6224.	[bug]		Check the If-Modified-Since value length to prevent
 			out-of-bounds write. [GL #4124]
 
