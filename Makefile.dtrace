@@ -8,9 +8,9 @@ AM_V_DTRACE_0 = @echo "  DTRACE   $@";
 BUILT_SOURCES += probes.h
 CLEANFILES += probes.h probes.o
 
-probes.h: probes.d
+probes.h: Makefile probes.d
 	$(AM_V_DTRACE)$(DTRACE) -s $(srcdir)/probes.d -h -o $@
-probes.lo: probes.d $(DTRACE_DEPS)
+probes.lo: Makefile probes.d $(DTRACE_DEPS)
 	$(AM_V_DTRACE)$(LIBTOOL) --mode=compile --tag=CC $(DTRACE) -s $(srcdir)/probes.d -G -o $@ $(DTRACE_OBJS)
 
 if HAVE_DTRACE
