@@ -606,8 +606,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	a_addr.s_addr = 0x0100007fU;
 
-	CHECKED_MEM_GET_PTR(mctx, sampledb);
-	ZERO_PTR(sampledb);
+	sampledb = isc_mem_getx(mctx, sizeof(*sampledb), ISC_MEM_ZERO);
 
 	isc_mem_attach(mctx, &sampledb->common.mctx);
 	dns_name_init(&sampledb->common.origin, NULL);
