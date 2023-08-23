@@ -195,8 +195,8 @@ isc__tls_initialize(void) {
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_getx(isc__tls_mctx, nlocks * sizeof(locks[0]),
-			     ISC_MEM_ZERO);
+	locks = isc_mem_cgetx(isc__tls_mctx, nlocks, sizeof(locks[0]),
+			      ISC_MEM_ZERO);
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);
@@ -245,7 +245,7 @@ isc__tls_shutdown(void) {
 
 	if (locks != NULL) {
 		isc_mutexblock_destroy(locks, nlocks);
-		isc_mem_put(isc__tls_mctx, locks, nlocks * sizeof(locks[0]));
+		isc_mem_cput(isc__tls_mctx, locks, nlocks, sizeof(locks[0]));
 		locks = NULL;
 	}
 #endif

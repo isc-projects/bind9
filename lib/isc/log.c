@@ -477,9 +477,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	if (lcfg->channellist_count > 0) {
-		isc_mem_put(mctx, lcfg->channellists,
-			    lcfg->channellist_count *
-				    sizeof(ISC_LIST(isc_logchannellist_t)));
+		isc_mem_cput(mctx, lcfg->channellists, lcfg->channellist_count,
+			     sizeof(ISC_LIST(isc_logchannellist_t)));
 	}
 
 	lcfg->dynamic = false;

@@ -1492,8 +1492,8 @@ zone_freedbargs(dns_zone_t *zone) {
 		for (i = 0; i < zone->db_argc; i++) {
 			isc_mem_free(zone->mctx, zone->db_argv[i]);
 		}
-		isc_mem_put(zone->mctx, zone->db_argv,
-			    zone->db_argc * sizeof(*zone->db_argv));
+		isc_mem_cput(zone->mctx, zone->db_argv, zone->db_argc,
+			     sizeof(*zone->db_argv));
 	}
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
@@ -1546,7 +1546,7 @@ dns_zone_setdbtype(dns_zone_t *zone, unsigned int dbargc,
 	LOCK_ZONE(zone);
 
 	/* Set up a new database argument list. */
-	argv = isc_mem_get(zone->mctx, dbargc * sizeof(*argv));
+	argv = isc_mem_cget(zone->mctx, dbargc, sizeof(*argv));
 	for (i = 0; i < dbargc; i++) {
 		argv[i] = NULL;
 	}
@@ -18258,9 +18258,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *netmgr,
 	isc_ratelimiter_create(loop, &zmgr->startupnotifyrl);
 	isc_ratelimiter_create(loop, &zmgr->startuprefreshrl);
 
-	zmgr->mctxpool = isc_mem_getx(zmgr->mctx,
-				      zmgr->workers * sizeof(zmgr->mctxpool[0]),
-				      ISC_MEM_ZERO);
+	zmgr->mctxpool = isc_mem_cget(zmgr->mctx, zmgr->workers,
+				      sizeof(zmgr->mctxpool[0]));
 	for (size_t i = 0; i < zmgr->workers; i++) {
 		isc_mem_create(&zmgr->mctxpool[i]);
 		isc_mem_setname(zmgr->mctxpool[i], "zonemgr-mctxpool");
@@ -18473,8 +18472,8 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
 	isc_ratelimiter_detach(&zmgr->startuprefreshrl);
 
-	isc_mem_put(zmgr->mctx, zmgr->mctxpool,
-		    zmgr->workers * sizeof(zmgr->mctxpool[0]));
+	isc_mem_cput(zmgr->mctx, zmgr->mctxpool, zmgr->workers,
+		     sizeof(zmgr->mctxpool[0]));
 
 	isc_rwlock_destroy(&zmgr->urlock);
 	isc_rwlock_destroy(&zmgr->rwlock);

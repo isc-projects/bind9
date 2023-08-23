@@ -4210,7 +4210,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 					       dlzargv[0], dlzargc, dlzargv,
 					       &dlzdb);
 			isc_mem_free(mctx, s);
-			isc_mem_put(mctx, dlzargv, dlzargc * sizeof(*dlzargv));
+			isc_mem_cput(mctx, dlzargv, dlzargc, sizeof(*dlzargv));
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}

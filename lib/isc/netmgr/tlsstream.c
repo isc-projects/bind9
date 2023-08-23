@@ -1451,8 +1451,8 @@ tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
 		(size_t)isc_loopmgr_nloops(listener->worker->netmgr->loopmgr);
 	INSIST(nworkers > 0);
 
-	listener->tlsstream.listener_tls_ctx = isc_mem_get(
-		listener->worker->mctx, sizeof(isc_tlsctx_t *) * nworkers);
+	listener->tlsstream.listener_tls_ctx = isc_mem_cget(
+		listener->worker->mctx, nworkers, sizeof(isc_tlsctx_t *));
 	listener->tlsstream.n_listener_tls_ctx = nworkers;
 	for (size_t i = 0; i < nworkers; i++) {
 		listener->tlsstream.listener_tls_ctx[i] = NULL;
@@ -1472,10 +1472,9 @@ tls_cleanup_listener_tlsctx(isc_nmsocket_t *listener) {
 	for (size_t i = 0; i < listener->tlsstream.n_listener_tls_ctx; i++) {
 		isc_tlsctx_free(&listener->tlsstream.listener_tls_ctx[i]);
 	}
-	isc_mem_put(listener->worker->mctx,
-		    listener->tlsstream.listener_tls_ctx,
-		    sizeof(isc_tlsctx_t *) *
-			    listener->tlsstream.n_listener_tls_ctx);
+	isc_mem_cput(
+		listener->worker->mctx, listener->tlsstream.listener_tls_ctx,
+		listener->tlsstream.n_listener_tls_ctx, sizeof(isc_tlsctx_t *));
 	listener->tlsstream.n_listener_tls_ctx = 0;
 }
 

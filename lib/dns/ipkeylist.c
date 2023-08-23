@@ -43,18 +43,18 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 	}
 
 	if (ipkl->addrs != NULL) {
-		isc_mem_put(mctx, ipkl->addrs,
-			    ipkl->allocated * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, ipkl->addrs, ipkl->allocated,
+			     sizeof(isc_sockaddr_t));
 	}
 
 	if (ipkl->sources != NULL) {
-		isc_mem_put(mctx, ipkl->sources,
-			    ipkl->allocated * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, ipkl->sources, ipkl->allocated,
+			     sizeof(isc_sockaddr_t));
 	}
 
 	if (ipkl->addrs != NULL) {
-		isc_mem_put(mctx, ipkl->addrs,
-			    ipkl->allocated * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, ipkl->addrs, ipkl->allocated,
+			     sizeof(isc_sockaddr_t));
 	}
 
 	if (ipkl->keys != NULL) {
@@ -67,8 +67,8 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 			}
 			isc_mem_put(mctx, ipkl->keys[i], sizeof(dns_name_t));
 		}
-		isc_mem_put(mctx, ipkl->keys,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->keys, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 
 	if (ipkl->tlss != NULL) {
@@ -81,8 +81,8 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 			}
 			isc_mem_put(mctx, ipkl->tlss[i], sizeof(dns_name_t));
 		}
-		isc_mem_put(mctx, ipkl->tlss,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->tlss, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 
 	if (ipkl->labels != NULL) {
@@ -95,8 +95,8 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
 			}
 			isc_mem_put(mctx, ipkl->labels[i], sizeof(dns_name_t));
 		}
-		isc_mem_put(mctx, ipkl->labels,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->labels, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 
 	dns_ipkeylist_init(ipkl);
@@ -186,17 +186,17 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 		return (ISC_R_SUCCESS);
 	}
 
-	addrs = isc_mem_get(mctx, n * sizeof(isc_sockaddr_t));
-	sources = isc_mem_get(mctx, n * sizeof(isc_sockaddr_t));
-	keys = isc_mem_get(mctx, n * sizeof(dns_name_t *));
-	tlss = isc_mem_get(mctx, n * sizeof(dns_name_t *));
-	labels = isc_mem_get(mctx, n * sizeof(dns_name_t *));
+	addrs = isc_mem_cget(mctx, n, sizeof(isc_sockaddr_t));
+	sources = isc_mem_cget(mctx, n, sizeof(isc_sockaddr_t));
+	keys = isc_mem_cget(mctx, n, sizeof(dns_name_t *));
+	tlss = isc_mem_cget(mctx, n, sizeof(dns_name_t *));
+	labels = isc_mem_cget(mctx, n, sizeof(dns_name_t *));
 
 	if (ipkl->addrs != NULL) {
 		memmove(addrs, ipkl->addrs,
 			ipkl->allocated * sizeof(isc_sockaddr_t));
-		isc_mem_put(mctx, ipkl->addrs,
-			    ipkl->allocated * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, ipkl->addrs, ipkl->allocated,
+			     sizeof(isc_sockaddr_t));
 	}
 	ipkl->addrs = addrs;
 	memset(&ipkl->addrs[ipkl->allocated], 0,
@@ -205,8 +205,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	if (ipkl->sources != NULL) {
 		memmove(sources, ipkl->sources,
 			ipkl->allocated * sizeof(isc_sockaddr_t));
-		isc_mem_put(mctx, ipkl->sources,
-			    ipkl->allocated * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, ipkl->sources, ipkl->allocated,
+			     sizeof(isc_sockaddr_t));
 	}
 	ipkl->sources = sources;
 	memset(&ipkl->sources[ipkl->allocated], 0,
@@ -215,8 +215,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	if (ipkl->keys) {
 		memmove(keys, ipkl->keys,
 			ipkl->allocated * sizeof(dns_name_t *));
-		isc_mem_put(mctx, ipkl->keys,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->keys, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 	ipkl->keys = keys;
 	memset(&ipkl->keys[ipkl->allocated], 0,
@@ -225,8 +225,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	if (ipkl->tlss) {
 		memmove(tlss, ipkl->tlss,
 			ipkl->allocated * sizeof(dns_name_t *));
-		isc_mem_put(mctx, ipkl->tlss,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->tlss, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 	ipkl->tlss = tlss;
 	memset(&ipkl->tlss[ipkl->allocated], 0,
@@ -235,8 +235,8 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	if (ipkl->labels != NULL) {
 		memmove(labels, ipkl->labels,
 			ipkl->allocated * sizeof(dns_name_t *));
-		isc_mem_put(mctx, ipkl->labels,
-			    ipkl->allocated * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, ipkl->labels, ipkl->allocated,
+			     sizeof(dns_name_t *));
 	}
 	ipkl->labels = labels;
 	memset(&ipkl->labels[ipkl->allocated], 0,
@@ -245,11 +245,11 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	ipkl->allocated = n;
 	return (ISC_R_SUCCESS);
 
-	isc_mem_put(mctx, addrs, n * sizeof(isc_sockaddr_t));
-	isc_mem_put(mctx, sources, n * sizeof(isc_sockaddr_t));
-	isc_mem_put(mctx, tlss, n * sizeof(dns_name_t *));
-	isc_mem_put(mctx, keys, n * sizeof(dns_name_t *));
-	isc_mem_put(mctx, labels, n * sizeof(dns_name_t *));
+	isc_mem_cput(mctx, addrs, n, sizeof(isc_sockaddr_t));
+	isc_mem_cput(mctx, sources, n, sizeof(isc_sockaddr_t));
+	isc_mem_cput(mctx, tlss, n, sizeof(dns_name_t *));
+	isc_mem_cput(mctx, keys, n, sizeof(dns_name_t *));
+	isc_mem_cput(mctx, labels, n, sizeof(dns_name_t *));
 
 	return (ISC_R_NOMEMORY);
 }

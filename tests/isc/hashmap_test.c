@@ -48,9 +48,9 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_result_t result;
 	test_node_t *nodes, *long_nodes, *upper_nodes;
 
-	nodes = isc_mem_get(mctx, count * sizeof(nodes[0]));
-	long_nodes = isc_mem_get(mctx, count * sizeof(nodes[0]));
-	upper_nodes = isc_mem_get(mctx, count * sizeof(nodes[0]));
+	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
+	long_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
+	upper_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
 
 	isc_hashmap_create(mctx, init_bits, ISC_HASHMAP_CASE_SENSITIVE,
 			   &hashmap);
@@ -172,9 +172,9 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_hashmap_destroy(&hashmap);
 	assert_null(hashmap);
 
-	isc_mem_put(mctx, nodes, count * sizeof(nodes[0]));
-	isc_mem_put(mctx, long_nodes, count * sizeof(nodes[0]));
-	isc_mem_put(mctx, upper_nodes, count * sizeof(nodes[0]));
+	isc_mem_cput(mctx, nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(mctx, long_nodes, count, sizeof(nodes[0]));
+	isc_mem_cput(mctx, upper_nodes, count, sizeof(nodes[0]));
 }
 
 static void
@@ -187,7 +187,7 @@ test_hashmap_iterator(void) {
 	size_t tksize;
 	test_node_t *nodes;
 
-	nodes = isc_mem_get(mctx, count * sizeof(nodes[0]));
+	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
 
 	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, ISC_HASHMAP_CASE_SENSITIVE,
 			   &hashmap);
@@ -310,7 +310,7 @@ test_hashmap_iterator(void) {
 	isc_hashmap_destroy(&hashmap);
 	assert_null(hashmap);
 
-	isc_mem_put(mctx, nodes, count * sizeof(nodes[0]));
+	isc_mem_cput(mctx, nodes, count, sizeof(nodes[0]));
 }
 
 /* 1 bit, 120 elements test, full rehashing */

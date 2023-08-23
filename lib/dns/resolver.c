@@ -10797,8 +10797,8 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 		 * into it if one exists.
 		 */
 		node->data = algorithms =
-			isc_mem_regetx(resolver->mctx, algorithms,
-				       algorithms_len, len, ISC_MEM_ZERO);
+			isc_mem_creget(resolver->mctx, algorithms,
+				       algorithms_len, len, sizeof(char));
 		/* store the new length */
 		algorithms[0] = len;
 	}

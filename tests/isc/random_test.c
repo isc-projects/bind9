@@ -520,7 +520,7 @@ blockfrequency(uint16_t *values, size_t length) {
 	assert_true(numblocks < 100);
 	assert_true(numbits >= (mbits * numblocks));
 
-	pi = isc_mem_get(mctx, numblocks * sizeof(double));
+	pi = isc_mem_cget(mctx, numblocks, sizeof(double));
 	assert_non_null(pi);
 
 	for (i = 0; i < numblocks; i++) {
@@ -543,7 +543,7 @@ blockfrequency(uint16_t *values, size_t length) {
 
 	chi_square *= 4 * mbits;
 
-	isc_mem_put(mctx, pi, numblocks * sizeof(double));
+	isc_mem_cput(mctx, pi, numblocks, sizeof(double));
 
 	p_value = igamc(numblocks * 0.5, chi_square * 0.5);
 

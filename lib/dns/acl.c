@@ -70,8 +70,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	 */
 	acl->magic = DNS_ACL_MAGIC;
 
-	acl->elements = isc_mem_getx(mctx, n * sizeof(acl->elements[0]),
-				     ISC_MEM_ZERO);
+	acl->elements = isc_mem_cget(mctx, n, sizeof(acl->elements[0]));
 	acl->alloc = n;
 	ISC_LIST_INIT(acl->ports_and_transports);
 	acl->port_proto_entries = 0;
@@ -316,10 +315,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos) {
 			newalloc = 4;
 		}
 
-		dest->elements = isc_mem_regetx(
-			dest->mctx, dest->elements,
-			dest->alloc * sizeof(dest->elements[0]),
-			newalloc * sizeof(dest->elements[0]), ISC_MEM_ZERO);
+		dest->elements = isc_mem_creget(dest->mctx, dest->elements,
+						dest->alloc, newalloc,
+						sizeof(dest->elements[0]));
 		dest->alloc = newalloc;
 	}
 
@@ -521,8 +519,8 @@ destroy(dns_acl_t *dacl) {
 		}
 	}
 	if (dacl->elements != NULL) {
-		isc_mem_put(dacl->mctx, dacl->elements,
-			    dacl->alloc * sizeof(dacl->elements[0]));
+		isc_mem_cput(dacl->mctx, dacl->elements, dacl->alloc,
+			     sizeof(dacl->elements[0]));
 	}
 	if (dacl->name != NULL) {
 		isc_mem_free(dacl->mctx, dacl->name);

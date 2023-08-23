@@ -1147,8 +1147,8 @@ isc_buffer_reserve(isc_buffer_t *restrict dbuf, const unsigned int size) {
 		}
 		dbuf->dynamic = true;
 	} else {
-		dbuf->base = isc_mem_reget(dbuf->mctx, dbuf->base, dbuf->length,
-					   len);
+		dbuf->base = isc_mem_creget(dbuf->mctx, dbuf->base,
+					    dbuf->length, len, sizeof(char));
 	}
 	dbuf->length = (unsigned int)len;
 

@@ -230,8 +230,8 @@ requestmgr_destroy(dns_requestmgr_t *requestmgr) {
 	for (size_t i = 0; i < nloops; i++) {
 		INSIST(ISC_LIST_EMPTY(requestmgr->requests[i]));
 	}
-	isc_mem_put(requestmgr->mctx, requestmgr->requests,
-		    nloops * sizeof(requestmgr->requests[0]));
+	isc_mem_cput(requestmgr->mctx, requestmgr->requests, nloops,
+		     sizeof(requestmgr->requests[0]));
 
 	if (requestmgr->dispatchv4 != NULL) {
 		dns_dispatch_detach(&requestmgr->dispatchv4);

@@ -310,8 +310,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 	if ((shuffle || sort)) {
 		if (count > MAX_SHUFFLE) {
-			in = isc_mem_get(cctx->mctx, count * sizeof(*in));
-			out = isc_mem_get(cctx->mctx, count * sizeof(*out));
+			in = isc_mem_cget(cctx->mctx, count, sizeof(*in));
+			out = isc_mem_cget(cctx->mctx, count, sizeof(*out));
 			if (in == NULL || out == NULL) {
 				shuffle = sort = false;
 			}
@@ -467,10 +467,10 @@ rollback:
 
 cleanup:
 	if (out != NULL && out != out_fixed) {
-		isc_mem_put(cctx->mctx, out, count * sizeof(*out));
+		isc_mem_cput(cctx->mctx, out, count, sizeof(*out));
 	}
 	if (in != NULL && in != in_fixed) {
-		isc_mem_put(cctx->mctx, in, count * sizeof(*in));
+		isc_mem_cput(cctx->mctx, in, count, sizeof(*in));
 	}
 	return (result);
 }

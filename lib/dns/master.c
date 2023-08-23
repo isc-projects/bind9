@@ -2123,11 +2123,11 @@ cleanup:
 		ISC_LIST_UNLINK(glue_list, this, link);
 	}
 	if (rdatalist != NULL) {
-		isc_mem_put(mctx, rdatalist,
-			    rdatalist_size * sizeof(*rdatalist));
+		isc_mem_cput(mctx, rdatalist, rdatalist_size,
+			     sizeof(*rdatalist));
 	}
 	if (rdata != NULL) {
-		isc_mem_put(mctx, rdata, rdata_size * sizeof(*rdata));
+		isc_mem_cput(mctx, rdata, rdata_size, sizeof(*rdata));
 	}
 	if (target_mem != NULL) {
 		isc_mem_put(mctx, target_mem, target_size);
@@ -2599,7 +2599,7 @@ load_raw(dns_loadctx_t *lctx) {
 
 cleanup:
 	if (rdata != NULL) {
-		isc_mem_put(mctx, rdata, rdata_size * sizeof(*rdata));
+		isc_mem_cput(mctx, rdata, rdata_size, sizeof(*rdata));
 	}
 	if (target_mem != NULL) {
 		isc_mem_put(mctx, target_mem, target_size);

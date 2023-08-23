@@ -2447,7 +2447,7 @@ resume:
 		goto resume;
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+		isc_mem_cput(mctx, stack, stackcount, sizeof(*stack));
 	}
 	isc_symtab_destroy(&symtab);
 	*countp = count;

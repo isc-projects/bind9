@@ -1707,7 +1707,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	zonecut = NULL;
 
 	count = dns_rdataset_count(&vctx->keyset);
-	dstkeys = isc_mem_get(vctx->mctx, sizeof(*dstkeys) * count);
+	dstkeys = isc_mem_cget(vctx->mctx, count, sizeof(*dstkeys));
 
 	for (result = dns_rdataset_first(&vctx->keyset);
 	     result == ISC_R_SUCCESS; result = dns_rdataset_next(&vctx->keyset))
@@ -1898,7 +1898,7 @@ done:
 	while (nkeys-- > 0U) {
 		dst_key_free(&dstkeys[nkeys]);
 	}
-	isc_mem_put(vctx->mctx, dstkeys, sizeof(*dstkeys) * count);
+	isc_mem_cput(vctx->mctx, dstkeys, count, sizeof(*dstkeys));
 	if (dbiter != NULL) {
 		dns_dbiterator_destroy(&dbiter);
 	}

@@ -216,8 +216,8 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	atomic_init(&netmgr->keepalive, 30000);
 	atomic_init(&netmgr->advertised, 30000);
 
-	netmgr->workers =
-		isc_mem_get(mctx, netmgr->nloops * sizeof(netmgr->workers[0]));
+	netmgr->workers = isc_mem_cget(mctx, netmgr->nloops,
+				       sizeof(netmgr->workers[0]));
 
 	isc_loopmgr_teardown(loopmgr, netmgr_teardown, netmgr);
 
@@ -269,8 +269,8 @@ nm_destroy(isc_nm_t **mgr0) {
 
 	isc_mutex_destroy(&mgr->lock);
 
-	isc_mem_put(mgr->mctx, mgr->workers,
-		    mgr->nloops * sizeof(mgr->workers[0]));
+	isc_mem_cput(mgr->mctx, mgr->workers, mgr->nloops,
+		     sizeof(mgr->workers[0]));
 	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(*mgr));
 }
 
@@ -457,8 +457,8 @@ nmsocket_cleanup(void *arg) {
 		/*
 		 * Now free them.
 		 */
-		isc_mem_put(sock->worker->mctx, sock->children,
-			    sock->nchildren * sizeof(*sock));
+		isc_mem_cput(sock->worker->mctx, sock->children,
+			     sock->nchildren, sizeof(*sock));
 		sock->children = NULL;
 		sock->nchildren = 0;
 	}

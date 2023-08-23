@@ -301,8 +301,8 @@ cfg_create_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	}
 
 	CHECK(cfg_create_obj(pctx, type, &obj));
-	obj->value.tuple = isc_mem_get(pctx->mctx,
-				       nfields * sizeof(cfg_obj_t *));
+	obj->value.tuple = isc_mem_cget(pctx->mctx, nfields,
+					sizeof(cfg_obj_t *));
 	for (f = fields, i = 0; f->name != NULL; f++, i++) {
 		obj->value.tuple[i] = NULL;
 	}
@@ -401,8 +401,8 @@ free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
 		CLEANUP_OBJ(obj->value.tuple[i]);
 		nfields++;
 	}
-	isc_mem_put(pctx->mctx, obj->value.tuple,
-		    nfields * sizeof(cfg_obj_t *));
+	isc_mem_cput(pctx->mctx, obj->value.tuple, nfields,
+		     sizeof(cfg_obj_t *));
 }
 
 bool

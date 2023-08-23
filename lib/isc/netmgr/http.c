@@ -2981,8 +2981,8 @@ http_init_listener_endpoints(isc_nmsocket_t *listener,
 	INSIST(nworkers > 0);
 
 	listener->h2.listener_endpoints =
-		isc_mem_get(listener->worker->mctx,
-			    sizeof(isc_nm_http_endpoints_t *) * nworkers);
+		isc_mem_cget(listener->worker->mctx, nworkers,
+			     sizeof(isc_nm_http_endpoints_t *));
 	listener->h2.n_listener_endpoints = nworkers;
 	for (size_t i = 0; i < nworkers; i++) {
 		listener->h2.listener_endpoints[i] = NULL;
@@ -3003,9 +3003,9 @@ http_cleanup_listener_endpoints(isc_nmsocket_t *listener) {
 		isc_nm_http_endpoints_detach(
 			&listener->h2.listener_endpoints[i]);
 	}
-	isc_mem_put(listener->worker->mctx, listener->h2.listener_endpoints,
-		    sizeof(isc_nm_http_endpoints_t *) *
-			    listener->h2.n_listener_endpoints);
+	isc_mem_cput(listener->worker->mctx, listener->h2.listener_endpoints,
+		     listener->h2.n_listener_endpoints,
+		     sizeof(isc_nm_http_endpoints_t *));
 	listener->h2.n_listener_endpoints = 0;
 }
 

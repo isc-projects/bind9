@@ -314,7 +314,7 @@ setup_test(void **state) {
 
 	setup_loopmgr(state);
 
-	nm = isc_mem_get(mctx, MAX_NM * sizeof(nm[0]));
+	nm = isc_mem_cget(mctx, MAX_NM, sizeof(nm[0]));
 	for (size_t i = 0; i < MAX_NM; i++) {
 		isc_netmgr_create(mctx, loopmgr, &nm[i]);
 		assert_non_null(nm[i]);
@@ -348,7 +348,7 @@ teardown_test(void **state ISC_ATTR_UNUSED) {
 		isc_netmgr_destroy(&nm[i]);
 		assert_null(nm[i]);
 	}
-	isc_mem_put(mctx, nm, MAX_NM * sizeof(nm[0]));
+	isc_mem_cput(mctx, nm, MAX_NM, sizeof(nm[0]));
 
 	teardown_loopmgr(state);
 
