@@ -820,13 +820,6 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 }
 
 void *
-isc__mem_callocate(isc_mem_t *ctx, size_t count, size_t size, int flags FLARG) {
-	size_t bytes = ISC_CHECKED_MUL(count, size);
-	return (isc__mem_allocate(ctx, bytes,
-				  (flags | ISC_MEM_ZERO) FLARG_PASS));
-}
-
-void *
 isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	       int flags FLARG) {
 	void *new_ptr = NULL;
