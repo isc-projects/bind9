@@ -2594,6 +2594,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == DNS_R_TSIGERRORSET && servers != NULL) {
+		unsigned int options = 0;
+
 		dns_message_detach(&rcvmsg);
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
@@ -2603,6 +2605,10 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_renderreset(soaquery);
 		ddebug("retrying soa request without TSIG");
 
+		if (!default_servers && usevc) {
+			options |= DNS_REQUESTOPT_TCP;
+		}
+
 		if (isc_sockaddr_pf(addr) == AF_INET6) {
 			srcaddr = localaddr6;
 		} else {
@@ -2610,7 +2616,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		}
 
 		result = dns_request_create(requestmgr, soaquery, srcaddr, addr,
-					    0, NULL, timeout, udp_timeout,
+					    options, NULL, timeout, udp_timeout,
 					    udp_retries, global_task, recvsoa,
 					    reqinfo, &request);
 		check_result(result, "dns_request_create");
@@ -2825,6 +2831,11 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	isc_result_t result;
 	nsu_requestinfo_t *reqinfo;
 	isc_sockaddr_t *srcaddr;
+	unsigned int options = 0;
+
+	if (!default_servers && usevc) {
+		options |= DNS_REQUESTOPT_TCP;
+	}
 
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
 	reqinfo->msg = msg;
@@ -2836,7 +2847,7 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 		srcaddr = localaddr4;
 	}
 
-	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, 0,
+	result = dns_request_create(requestmgr, msg, srcaddr, destaddr, options,
 				    default_servers ? NULL : tsigkey, timeout,
 				    udp_timeout, udp_retries, global_task,
 				    recvsoa, reqinfo, request);
