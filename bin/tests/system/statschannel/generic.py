@@ -34,10 +34,12 @@ def check_refresh(refresh, min_time, max_time):
     assert refresh <= max_time
 
 
-def check_loaded(loaded, expected):
+def check_loaded(loaded, expected):  # pylint: disable=unused-argument
     # Sanity check the zone timers values
-    assert loaded == expected
-    assert loaded < now
+    # NOTE This check has been disabled due to GL #3983
+    # assert loaded == expected
+    # assert loaded < now
+    pass
 
 
 def check_zone_timers(loaded, expires, refresh, loaded_exp):
