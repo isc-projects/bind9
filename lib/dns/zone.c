@@ -18152,6 +18152,11 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(result));
 	}
 
+	/*
+	 * Get the TLS transport for the primary, if configured
+	 */
+	result = ISC_R_NOTFOUND;
+
 	if ((zone->primarytlsnames != NULL) &&
 	    (zone->primarytlsnames[zone->curprimary] != NULL))
 	{
