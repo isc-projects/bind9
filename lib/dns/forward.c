@@ -121,26 +121,8 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(fwdtable->table, &qp);
 
-	if (result == ISC_R_SUCCESS) {
-		dns_forwarders_detach(&forwarders);
-	} else {
-		goto cleanup;
-	}
+	dns_forwarders_detach(&forwarders);
 
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
-		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
-		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		if (fwd->tlsname != NULL) {
-			dns_name_free(fwd->tlsname, fwdtable->mctx);
-			isc_mem_put(fwdtable->mctx, fwd->tlsname,
-				    sizeof(*fwd->tlsname));
-		}
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(*fwd));
-	}
-	isc_mem_put(fwdtable->mctx, forwarders, sizeof(*forwarders));
 	return (result);
 }
 
@@ -171,21 +153,8 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
 	dns_qpmulti_commit(fwdtable->table, &qp);
 
-	if (result == ISC_R_SUCCESS) {
-		dns_forwarders_detach(&forwarders);
-	} else {
-		goto cleanup;
-	}
+	dns_forwarders_detach(&forwarders);
 
-	return (ISC_R_SUCCESS);
-
-cleanup:
-	while (!ISC_LIST_EMPTY(forwarders->fwdrs)) {
-		fwd = ISC_LIST_HEAD(forwarders->fwdrs);
-		ISC_LIST_UNLINK(forwarders->fwdrs, fwd, link);
-		isc_mem_put(fwdtable->mctx, fwd, sizeof(*fwd));
-	}
-	isc_mem_put(fwdtable->mctx, forwarders, sizeof(*forwarders));
 	return (result);
 }
 
