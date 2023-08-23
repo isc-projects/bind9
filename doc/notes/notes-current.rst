@@ -32,7 +32,8 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- Make :iscman:`nsupdate` honor the ``-v`` option for SOA queries, that is send
+  the request over TCP, only if the server is specified. :gl:`#1181`
 
 Bug Fixes
 ~~~~~~~~~
