@@ -77,7 +77,7 @@ isccc_symtab_create(unsigned int size,
 	if (symtab == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
-	symtab->table = malloc(size * sizeof(eltlist_t));
+	symtab->table = calloc(size, sizeof(eltlist_t));
 	if (symtab->table == NULL) {
 		free(symtab);
 		return (ISC_R_NOMEMORY);

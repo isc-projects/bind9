@@ -199,7 +199,6 @@ maybe_rehash(isc_ht_t *ht, size_t newcount) {
 
 static void
 hashtable_new(isc_ht_t *ht, const uint8_t idx, const uint8_t bits) {
-	size_t size;
 	REQUIRE(ht->hashbits[idx] == HT_NO_BITS);
 	REQUIRE(ht->table[idx] == NULL);
 	REQUIRE(bits >= HT_MIN_BITS);
@@ -208,15 +207,12 @@ hashtable_new(isc_ht_t *ht, const uint8_t idx, const uint8_t bits) {
 	ht->hashbits[idx] = bits;
 	ht->size[idx] = HASHSIZE(ht->hashbits[idx]);
 
-	size = ht->size[idx] * sizeof(isc_ht_node_t *);
-
-	ht->table[idx] = isc_mem_getx(ht->mctx, size, ISC_MEM_ZERO);
+	ht->table[idx] = isc_mem_cget(ht->mctx, ht->size[idx],
+				      sizeof(isc_ht_node_t *));
 }
 
 static void
 hashtable_free(isc_ht_t *ht, const uint8_t idx) {
-	size_t size = ht->size[idx] * sizeof(isc_ht_node_t *);
-
 	for (size_t i = 0; i < ht->size[idx]; i++) {
 		isc_ht_node_t *node = ht->table[idx][i];
 		while (node != NULL) {
@@ -228,7 +224,9 @@ hashtable_free(isc_ht_t *ht, const uint8_t idx) {
 		}
 	}
 
-	isc_mem_put(ht->mctx, ht->table[idx], size);
+	isc_mem_cput(ht->mctx, ht->table[idx], ht->size[idx],
+		     sizeof(isc_ht_node_t *));
+
 	ht->hashbits[idx] = HT_NO_BITS;
 	ht->table[idx] = NULL;
 }

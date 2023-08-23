@@ -170,8 +170,6 @@ hashmap_dump_table(const isc_hashmap_t *hashmap, const uint8_t idx) {
 static void
 hashmap_create_table(isc_hashmap_t *hashmap, const uint8_t idx,
 		     const uint8_t bits) {
-	size_t size;
-
 	REQUIRE(hashmap->tables[idx].hashbits == HASHMAP_NO_BITS);
 	REQUIRE(hashmap->tables[idx].table == NULL);
 	REQUIRE(bits >= HASHMAP_MIN_BITS);
@@ -183,11 +181,9 @@ hashmap_create_table(isc_hashmap_t *hashmap, const uint8_t idx,
 		.size = HASHSIZE(bits),
 	};
 
-	size = hashmap->tables[idx].size *
-	       sizeof(hashmap->tables[idx].table[0]);
-
-	hashmap->tables[idx].table = isc_mem_getx(hashmap->mctx, size,
-						  ISC_MEM_ZERO);
+	hashmap->tables[idx].table =
+		isc_mem_cget(hashmap->mctx, hashmap->tables[idx].size,
+			     sizeof(hashmap->tables[idx].table[0]));
 }
 
 static void

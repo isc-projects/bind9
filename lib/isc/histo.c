@@ -58,9 +58,8 @@
 #define EXPONENTS(hg) (CHUNKS - DENORMALS(hg))
 #define BUCKETS(hg)   (EXPONENTS(hg) * MANTISSAS(hg))
 
-#define MAXCHUNK(hg)   EXPONENTS(hg)
-#define CHUNKSIZE(hg)  MANTISSAS(hg)
-#define CHUNKBYTES(hg) (CHUNKSIZE(hg) * sizeof(hg_bucket_t))
+#define MAXCHUNK(hg)  EXPONENTS(hg)
+#define CHUNKSIZE(hg) MANTISSAS(hg)
 
 typedef atomic_uint_fast64_t hg_bucket_t;
 typedef atomic_ptr(hg_bucket_t) hg_chunk_t;
@@ -107,7 +106,8 @@ isc_histo_destroy(isc_histo_t **hgp) {
 
 	for (uint c = 0; c < CHUNKS; c++) {
 		if (hg->chunk[c] != NULL) {
-			isc_mem_put(hg->mctx, hg->chunk[c], CHUNKBYTES(hg));
+			isc_mem_cput(hg->mctx, hg->chunk[c], CHUNKSIZE(hg),
+				     sizeof(hg_bucket_t));
 		}
 	}
 	isc_mem_putanddetach(&hg->mctx, hg, sizeof(*hg));
@@ -232,15 +232,16 @@ key_to_new_bucket(isc_histo_t *hg, uint key) {
 	uint chunksize = CHUNKSIZE(hg);
 	uint chunk = key / chunksize;
 	uint bucket = key % chunksize;
-	size_t bytes = CHUNKBYTES(hg);
 	hg_bucket_t *old_cp = NULL;
-	hg_bucket_t *new_cp = isc_mem_getx(hg->mctx, bytes, ISC_MEM_ZERO);
+	hg_bucket_t *new_cp = isc_mem_cget(hg->mctx, CHUNKSIZE(hg),
+					   sizeof(hg_bucket_t));
 	hg_chunk_t *cpp = &hg->chunk[chunk];
 	if (atomic_compare_exchange_strong_acq_rel(cpp, &old_cp, new_cp)) {
 		return (&new_cp[bucket]);
 	} else {
 		/* lost the race, so use the winner's chunk */
-		isc_mem_put(hg->mctx, new_cp, bytes);
+		isc_mem_cput(hg->mctx, new_cp, CHUNKSIZE(hg),
+			     sizeof(hg_bucket_t));
 		return (&old_cp[bucket]);
 	}
 }

@@ -576,22 +576,18 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	return (ISC_R_SUCCESS);
 }
 
-#define grow_array(mctx, array, newlen, oldlen)                       \
-	if (newlen >= oldlen) {                                       \
-		size_t newsize = (newlen + 16) * sizeof(array[0]);    \
-		size_t oldsize = oldlen * sizeof(array[0]);           \
-		array = isc_mem_regetx(mctx, array, oldsize, newsize, \
-				       ISC_MEM_ZERO);                 \
-		oldlen = newlen + 16;                                 \
+#define grow_array(mctx, array, newlen, oldlen)                          \
+	if (newlen >= oldlen) {                                          \
+		array = isc_mem_creget(mctx, array, oldlen, newlen + 16, \
+				       sizeof(array[0]));                \
+		oldlen = newlen + 16;                                    \
 	}
 
-#define shrink_array(mctx, array, newlen, oldlen)                     \
-	if (newlen < oldlen) {                                        \
-		size_t newsize = newlen * sizeof(array[0]);           \
-		size_t oldsize = oldlen * sizeof(array[0]);           \
-		array = isc_mem_regetx(mctx, array, oldsize, newsize, \
-				       ISC_MEM_ZERO);                 \
-		oldlen = newlen;                                      \
+#define shrink_array(mctx, array, newlen, oldlen)                   \
+	if (newlen < oldlen) {                                      \
+		array = isc_mem_creget(mctx, array, oldlen, newlen, \
+				       sizeof(array[0]));           \
+		oldlen = newlen;                                    \
 	}
 
 isc_result_t

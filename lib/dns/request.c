@@ -138,9 +138,8 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	isc_mem_attach(mctx, &requestmgr->mctx);
 
 	uint32_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
-	requestmgr->requests = isc_mem_getx(
-		requestmgr->mctx, nloops * sizeof(requestmgr->requests[0]),
-		ISC_MEM_ZERO);
+	requestmgr->requests = isc_mem_cget(requestmgr->mctx, nloops,
+					    sizeof(requestmgr->requests[0]));
 	for (size_t i = 0; i < nloops; i++) {
 		ISC_LIST_INIT(requestmgr->requests[i]);
 

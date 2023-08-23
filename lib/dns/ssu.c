@@ -65,7 +65,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	REQUIRE(tablep != NULL && *tablep == NULL);
 	REQUIRE(mctx != NULL);
 
-	table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
+	table = isc_mem_get(mctx, sizeof(*table));
 	isc_refcount_init(&table->references, 1);
 	table->mctx = NULL;
 	isc_mem_attach(mctx, &table->mctx);

@@ -26,6 +26,7 @@
 #include <isc/loop.h>
 #include <isc/md.h>
 #include <isc/mutex.h>
+#include <isc/overflow.h>
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
 #include <isc/refcount.h>
@@ -1511,7 +1512,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	REQUIRE(argv != NULL && *argv == NULL);
 
 	LOCK_ZONE(zone);
-	size = (zone->db_argc + 1) * sizeof(char *);
+	size = ISC_CHECKED_MUL((zone->db_argc + 1), sizeof(char *));
 	for (i = 0; i < zone->db_argc; i++) {
 		size += strlen(zone->db_argv[i]) + 1;
 	}
@@ -1520,7 +1521,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 		tmp = mem;
 		tmp2 = mem;
 		base = mem;
-		tmp2 += (zone->db_argc + 1) * sizeof(char *);
+		tmp2 += ISC_CHECKED_MUL((zone->db_argc + 1), sizeof(char *));
 		for (i = 0; i < zone->db_argc; i++) {
 			*tmp++ = tmp2;
 			strlcpy(tmp2, zone->db_argv[i], size - (tmp2 - base));

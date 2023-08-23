@@ -195,8 +195,7 @@ isc__tls_initialize(void) {
 	RUNTIME_CHECK(OPENSSL_init_ssl(opts, NULL) == 1);
 #else
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_cgetx(isc__tls_mctx, nlocks, sizeof(locks[0]),
-			      ISC_MEM_ZERO);
+	locks = isc_mem_cget(isc__tls_mctx, nlocks, sizeof(locks[0]));
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(isc__tls_lock_callback);
 	CRYPTO_THREADID_set_callback(isc__tls_set_thread_id);

@@ -1582,8 +1582,6 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
  */
 static void
 hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits) {
-	size_t size;
-
 	REQUIRE(rbt->hashbits[index] == 0U);
 	REQUIRE(rbt->hashtable[index] == NULL);
 	REQUIRE(bits >= ISC_HASH_MIN_BITS);
@@ -1591,15 +1589,16 @@ hashtable_new(dns_rbt_t *rbt, uint8_t index, uint8_t bits) {
 
 	rbt->hashbits[index] = bits;
 
-	size = ISC_HASHSIZE(rbt->hashbits[index]) * sizeof(dns_rbtnode_t *);
-	rbt->hashtable[index] = isc_mem_getx(rbt->mctx, size, ISC_MEM_ZERO);
+	rbt->hashtable[index] = isc_mem_cget(rbt->mctx,
+					     ISC_HASHSIZE(rbt->hashbits[index]),
+					     sizeof(dns_rbtnode_t *));
 }
 
 static void
 hashtable_free(dns_rbt_t *rbt, uint8_t index) {
-	size_t size = ISC_HASHSIZE(rbt->hashbits[index]) *
-		      sizeof(dns_rbtnode_t *);
-	isc_mem_put(rbt->mctx, rbt->hashtable[index], size);
+	isc_mem_cput(rbt->mctx, rbt->hashtable[index],
+		     ISC_HASHSIZE(rbt->hashbits[index]),
+		     sizeof(dns_rbtnode_t *));
 
 	rbt->hashbits[index] = 0U;
 	rbt->hashtable[index] = NULL;

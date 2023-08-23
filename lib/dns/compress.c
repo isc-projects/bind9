@@ -42,9 +42,8 @@ dns_compress_init(dns_compress_t *cctx, isc_mem_t *mctx,
 
 	if ((flags & DNS_COMPRESS_LARGE) != 0) {
 		size_t count = (1 << DNS_COMPRESS_LARGEBITS);
-		size_t size = count * sizeof(*set);
 		mask = count - 1;
-		set = isc_mem_allocatex(mctx, size, ISC_MEM_ZERO);
+		set = isc_mem_callocate(mctx, count, sizeof(*set));
 	} else {
 		mask = ARRAY_SIZE(cctx->smallset) - 1;
 		set = cctx->smallset;

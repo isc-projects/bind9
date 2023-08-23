@@ -210,7 +210,6 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_recv_cb_t cb, void *cbarg, isc_nmsocket_t **sockp) {
 	isc_result_t result = ISC_R_UNSET;
 	isc_nmsocket_t *sock = NULL;
-	size_t children_size = 0;
 	uv_os_sock_t fd = -1;
 	isc__networker_t *worker = &mgr->workers[0];
 
@@ -231,9 +230,8 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 
 	sock->nchildren = (workers == ISC_NM_LISTEN_ALL) ? (uint32_t)mgr->nloops
 							 : workers;
-	children_size = sock->nchildren * sizeof(sock->children[0]);
-	sock->children = isc_mem_getx(worker->mctx, children_size,
-				      ISC_MEM_ZERO);
+	sock->children = isc_mem_cget(worker->mctx, sock->nchildren,
+				      sizeof(sock->children[0]));
 
 	isc__nmsocket_barrier_init(sock);
 

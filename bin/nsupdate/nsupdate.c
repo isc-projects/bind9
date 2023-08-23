@@ -2823,7 +2823,6 @@ lookforsoa:
 	if (default_servers) {
 		char serverstr[DNS_NAME_MAXTEXT + 1];
 		isc_buffer_t buf;
-		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
 		result = dns_name_totext(&primary, DNS_NAME_OMITFINALDOT, &buf);
@@ -2835,8 +2834,8 @@ lookforsoa:
 				     sizeof(isc_sockaddr_t));
 		}
 		primary_alloc = MAX_SERVERADDRS;
-		size = primary_alloc * sizeof(isc_sockaddr_t);
-		primary_servers = isc_mem_getx(gmctx, size, ISC_MEM_ZERO);
+		primary_servers = isc_mem_cget(gmctx, primary_alloc,
+					       sizeof(isc_sockaddr_t));
 		primary_total = get_addresses(serverstr, dnsport,
 					      primary_servers, primary_alloc);
 		if (primary_total == 0) {

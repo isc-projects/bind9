@@ -441,8 +441,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	if ((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0) {
 		unsigned int i;
 
-		ctx->debuglist =
-			mallocx((DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
+		ctx->debuglist = calloc(DEBUG_TABLE_COUNT, sizeof(debuglist_t));
 		INSIST(ctx->debuglist != NULL);
 
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
@@ -489,8 +488,7 @@ destroy(isc_mem_t *ctx) {
 			}
 		}
 
-		sdallocx(ctx->debuglist,
-			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
+		free(ctx->debuglist);
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 

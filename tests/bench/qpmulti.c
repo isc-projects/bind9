@@ -128,11 +128,10 @@ init_items(isc_mem_t *mctx) {
 	void *pval = NULL;
 	uint32_t ival = ~0U;
 	dns_qp_t *qp = NULL;
-	size_t bytes = ITEM_COUNT * sizeof(*item);
 	uint64_t start;
 
 	start = isc_time_monotonic();
-	item = isc_mem_allocatex(mctx, bytes, ISC_MEM_ZERO);
+	item = isc_mem_callocate(mctx, ITEM_COUNT, sizeof(*item));
 
 	/* ensure there are no duplicate names */
 	dns_qp_create(mctx, &item_methods, NULL, &qp);
@@ -152,7 +151,7 @@ init_items(isc_mem_t *mctx) {
 
 	double time = (double)(isc_time_monotonic() - start) / NS_PER_SEC;
 	printf("%f sec to create %zu items, %f/sec %zu bytes\n", time,
-	       ITEM_COUNT, ITEM_COUNT / time, bytes);
+	       ITEM_COUNT, ITEM_COUNT / time, ITEM_COUNT * sizeof(*item));
 }
 
 static void
