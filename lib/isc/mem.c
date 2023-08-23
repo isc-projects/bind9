@@ -384,9 +384,6 @@ mem_initialize(void) {
  */
 #ifdef JEMALLOC_API_SUPPORTED
 	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
-	RUNTIME_CHECK(ISC_MEM_ALIGN(0) == MALLOCX_ALIGN(0));
-	RUNTIME_CHECK(ISC_MEM_ALIGN(sizeof(void *)) ==
-		      MALLOCX_ALIGN(sizeof(void *)));
 #endif /* JEMALLOC_API_SUPPORTED */
 
 	isc_mutex_init(&contextslock);
@@ -416,7 +413,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = mallocx(sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
+	ctx = malloc(sizeof(*ctx));
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
@@ -497,7 +494,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(atomic_load(&ctx->inuse) == 0);
 	}
-	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
+	free(ctx);
 }
 
 void

@@ -126,70 +126,6 @@ ISC_RUN_TEST_IMPL(isc_mem_get) {
 	isc_mempool_destroy(&mp1);
 }
 
-#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
-/* aligned memory system tests */
-ISC_RUN_TEST_IMPL(isc_mem_get_align) {
-	isc_mem_t *mctx2 = NULL;
-	void *ptr;
-	size_t alignment;
-	uintptr_t aligned;
-
-	/* Check different alignment sizes up to the page size */
-	for (alignment = sizeof(void *); alignment <= 4096; alignment *= 2) {
-		size_t size = alignment / 2 - 1;
-		ptr = isc_mem_getx(mctx, size, ISC_MEM_ALIGN(alignment));
-
-		/* Check if the pointer is properly aligned */
-		aligned = (((uintptr_t)ptr / alignment) * alignment);
-		assert_ptr_equal(aligned, (uintptr_t)ptr);
-
-		/* Check if we can resize to <alignment, 2*alignment> range */
-		ptr = isc_mem_regetx(mctx, ptr, size, size * 2 + alignment,
-				     ISC_MEM_ALIGN(alignment));
-
-		/* Check if the pointer is still properly aligned */
-		aligned = (((uintptr_t)ptr / alignment) * alignment);
-		assert_ptr_equal(aligned, (uintptr_t)ptr);
-
-		isc_mem_putx(mctx, ptr, size * 2 + alignment,
-			     ISC_MEM_ALIGN(alignment));
-
-		/* Check whether isc_mem_putanddetach_detach() also works */
-		isc_mem_create(&mctx2);
-		ptr = isc_mem_getx(mctx2, size, ISC_MEM_ALIGN(alignment));
-		isc_mem_putanddetachx(&mctx2, ptr, size,
-				      ISC_MEM_ALIGN(alignment));
-	}
-}
-
-/* aligned memory system tests */
-ISC_RUN_TEST_IMPL(isc_mem_allocate_align) {
-	void *ptr;
-	size_t alignment;
-	uintptr_t aligned;
-
-	/* Check different alignment sizes up to the page size */
-	for (alignment = sizeof(void *); alignment <= 4096; alignment *= 2) {
-		size_t size = alignment / 2 - 1;
-		ptr = isc_mem_allocatex(mctx, size, ISC_MEM_ALIGN(alignment));
-
-		/* Check if the pointer is properly aligned */
-		aligned = (((uintptr_t)ptr / alignment) * alignment);
-		assert_ptr_equal(aligned, (uintptr_t)ptr);
-
-		/* Check if we can resize to <alignment, 2*alignment> range */
-		ptr = isc_mem_reallocatex(mctx, ptr, size * 2 + alignment,
-					  ISC_MEM_ALIGN(alignment));
-
-		/* Check if the pointer is still properly aligned */
-		aligned = (((uintptr_t)ptr / alignment) * alignment);
-		assert_ptr_equal(aligned, (uintptr_t)ptr);
-
-		isc_mem_freex(mctx, ptr, ISC_MEM_ALIGN(alignment));
-	}
-}
-#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
-
 /* zeroed memory system tests */
 ISC_RUN_TEST_IMPL(isc_mem_get_zero) {
 	uint8_t *ptr;
@@ -544,10 +480,6 @@ ISC_RUN_TEST_IMPL(isc_mem_benchmark) {
 ISC_TEST_LIST_START
 
 ISC_TEST_ENTRY(isc_mem_get)
-#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
-ISC_TEST_ENTRY(isc_mem_get_align)
-ISC_TEST_ENTRY(isc_mem_allocate_align)
-#endif /* defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC) */
 ISC_TEST_ENTRY(isc_mem_get_zero)
 ISC_TEST_ENTRY(isc_mem_allocate_zero)
 ISC_TEST_ENTRY(isc_mem_inuse)

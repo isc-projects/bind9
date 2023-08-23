@@ -134,25 +134,9 @@ extern unsigned int isc_mem_defaultflags;
  * The definitions of the macros have been pulled directly from jemalloc.h
  * and checked for consistency in mem.c.
  *
- *\li	ISC_MEM_ALIGN(alignment) - use when you need aligned allocation,
- *
- *	NOTE: Set the matching flag, when freeing aligned memory allocation.
- *
  *\li	ISC_MEM_ZERO - fill the memory with zeroes before returning
  */
 
-#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
-#if __SIZEOF_POINTER__ == 4
-#define ISC_MEM_ALIGN(a) ((int)(ffs((int)(a)) - 1))
-#else
-#define ISC_MEM_ALIGN(a)                       \
-	((int)(((size_t)(a) < (size_t)INT_MAX) \
-		       ? ffs((int)(a)) - 1     \
-		       : ffs((int)(((size_t)(a)) >> 32)) + 31))
-#endif
-#else
-#define ISC_MEM_ALIGN(a) (a & 0)
-#endif
 #define ISC_MEM_ZERO ((int)0x40)
 
 #define isc_mem_get(c, s) isc__mem_get((c), (s), 0 _ISC_MEM_FILELINE)
