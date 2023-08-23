@@ -17722,6 +17722,11 @@ got_transfer_quota(void *arg) {
 			      isc_result_totext(result));
 	}
 
+	/*
+	 * Get the TLS transport for the primary, if configured
+	 */
+	result = ISC_R_NOTFOUND;
+
 	if (dns_remote_tlsname(&zone->primaries) != NULL) {
 		dns_view_t *view = dns_zone_getview(zone);
 		dns_name_t *tlsname = dns_remote_tlsname(&zone->primaries);
