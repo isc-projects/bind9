@@ -1105,14 +1105,13 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 	int i;
 #if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
 	RSA *rsa = NULL, *pubrsa = NULL;
-	const BIGNUM *ex = NULL;
 #else
 	OSSL_PARAM_BLD *bld = NULL;
 	OSSL_PARAM *params = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
-	BIGNUM *ex = NULL;
 #endif /* OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000 */
 #if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
+	const BIGNUM *ex = NULL;
 	ENGINE *ep = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	isc_mem_t *mctx = key->mctx;
@@ -1206,7 +1205,6 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 		DST_RET(ISC_R_SUCCESS);
 #else  /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 		UNUSED(engine);
-		UNUSED(ex);
 		DST_RET(DST_R_NOENGINE);
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	}
@@ -1401,9 +1399,6 @@ err:
 	}
 	if (bld != NULL) {
 		OSSL_PARAM_BLD_free(bld);
-	}
-	if (ex != NULL) {
-		BN_free(ex);
 	}
 	if (e != NULL) {
 		BN_free(e);
