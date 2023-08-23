@@ -1,3 +1,7 @@
+6256.	[func]		Expose the SOA query transport type (used before/during
+			XFR) in the incoming zone transfers section of the
+			statistics channel. [GL !8240]
+
 6255.	[func]		Expose data about incoming zone transfers in progress
 			using statistics channel. [GL #3883]
 
