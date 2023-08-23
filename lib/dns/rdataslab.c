@@ -329,7 +329,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 	 * Allocate the memory, set up a buffer, start copying in
 	 * data.
 	 */
-	rawbuf = isc_mem_getx(mctx, buflen, ISC_MEM_ZERO);
+	rawbuf = isc_mem_cget(mctx, 1, buflen);
 
 #if DNS_RDATASET_FIXED
 	/* Allocate temporary offset table. */

@@ -10863,8 +10863,6 @@ isc_result_t
 dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int digest_type) {
 	unsigned int len, mask;
-	unsigned char *tmp;
-	unsigned char *digests;
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
@@ -10892,7 +10890,7 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 	result = dns_rbt_addnode(resolver->digests, name, &node);
 
 	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
-		digests = node->data;
+		unsigned char *digests = node->data;
 		/* If digests is set, digests[0] contains its length. */
 		if (digests == NULL || len > *digests) {
 			/*
@@ -10901,7 +10899,8 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 			 * bitfield and copy the old (smaller) bitfield
 			 * into it if one exists.
 			 */
-			tmp = isc_mem_getx(resolver->mctx, len, ISC_MEM_ZERO);
+			unsigned char *tmp = isc_mem_cget(resolver->mctx, 1,
+							  len);
 			if (digests != NULL) {
 				memmove(tmp, digests, *digests);
 			}

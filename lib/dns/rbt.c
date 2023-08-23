@@ -1508,28 +1508,15 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	nodelen = sizeof(dns_rbtnode_t) + region.length + labels + 1;
-	node = isc_mem_getx(mctx, nodelen, ISC_MEM_ZERO);
-
-	node->is_root = 0;
-	node->parent = NULL;
-	node->right = NULL;
-	node->left = NULL;
-	node->down = NULL;
-	node->data = NULL;
-
-	node->hashnext = NULL;
-	node->hashval = 0;
+	node = isc_mem_get(mctx, nodelen);
+	*node = (dns_rbtnode_t){
+		.nsec = DNS_RBT_NSEC_NORMAL,
+		.color = BLACK,
+	};
 
 	ISC_LINK_INIT(node, deadlink);
 
-	node->locknum = 0;
-	node->wild = 0;
-	node->dirty = 0;
 	isc_refcount_init(&node->references, 0);
-	node->find_callback = 0;
-	node->nsec = DNS_RBT_NSEC_NORMAL;
-
-	node->color = BLACK;
 
 	/*
 	 * The following is stored to make reconstructing a name from the

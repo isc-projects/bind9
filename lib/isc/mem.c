@@ -306,7 +306,8 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 	ret = mallocx(size, flags);
 	INSIST(ret != NULL);
 
-	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	if ((flags & ISC__MEM_ZERO) == 0 &&
+	    (ctx->flags & ISC_MEMFLAG_FILL) != 0)
 	{
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
@@ -338,7 +339,8 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	new_ptr = rallocx(old_ptr, new_size, flags);
 	INSIST(new_ptr != NULL);
 
-	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	if ((flags & ISC__MEM_ZERO) == 0 &&
+	    (ctx->flags & ISC_MEMFLAG_FILL) != 0)
 	{
 		ssize_t diff_size = new_size - old_size;
 		void *diff_ptr = (uint8_t *)new_ptr + old_size;
@@ -383,7 +385,7 @@ mem_initialize(void) {
  * Check if the values copied from jemalloc still match
  */
 #ifdef JEMALLOC_API_SUPPORTED
-	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
+	RUNTIME_CHECK(ISC__MEM_ZERO == MALLOCX_ZERO);
 #endif /* JEMALLOC_API_SUPPORTED */
 
 	isc_mutex_init(&contextslock);

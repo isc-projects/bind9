@@ -1033,7 +1033,9 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	REQUIRE(src != NULL);
 	REQUIRE(destp != NULL && *destp == NULL);
 
-	d = isc_mem_getx(mctx, sizeof(*d), ISC_MEM_ZERO);
+	d = isc_mem_get(mctx, sizeof(*d));
+	*d = (dns_dtdata_t){ 0 };
+
 	isc_mem_attach(mctx, &d->mctx);
 
 	d->frame = dnstap__dnstap__unpack(NULL, src->length, src->base);

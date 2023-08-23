@@ -114,12 +114,12 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name, int argc, char **argv,
 
 	REQUIRE(sample_instp != NULL && *sample_instp == NULL);
 
-	sample_instance_t *inst = isc_mem_getx(mctx, sizeof(*inst),
-					       ISC_MEM_ZERO);
+	sample_instance_t *inst = isc_mem_get(mctx, sizeof(*inst));
+	*inst = (sample_instance_t){ 0 };
+
 	isc_mem_attach(mctx, &inst->mctx);
 
 	inst->db_name = isc_mem_strdup(mctx, db_name);
-
 	inst->zone1_name = dns_fixedname_initname(&inst->zone1_fn);
 	inst->zone2_name = dns_fixedname_initname(&inst->zone2_fn);
 

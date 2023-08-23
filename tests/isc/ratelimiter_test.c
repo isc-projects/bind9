@@ -105,7 +105,8 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_enqueue) { assert_int_equal(ticks, 1); }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_enqueue) {
 	isc_result_t result;
-	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	rlstat_t *rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 
 	result = isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
 					 &rlstat->event);
@@ -123,8 +124,9 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_enqueue_shutdown) {
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_enqueue_shutdown) {
-	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
 	isc_rlevent_t *event = NULL;
+	rlstat_t *rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 
 	expect_assert_failure(
 		isc_ratelimiter_enqueue(NULL, mainloop, tick, NULL, &event));
@@ -156,8 +158,9 @@ ISC_LOOP_TEARDOWN_IMPL(ratelimiter_dequeue) { /* */
 }
 
 ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_dequeue) {
-	rlstat_t *rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
 	isc_rlevent_t *fake = isc_mem_get(mctx, sizeof(*fake));
+	rlstat_t *rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 
 	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
 						 &rlstat->event),
@@ -225,12 +228,14 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pertick_interval) {
 	isc_ratelimiter_setpertic(rl, 1);
 	isc_ratelimiter_setpushpop(rl, false);
 
-	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tock, rlstat,
 						 &rlstat->event),
 			 ISC_R_SUCCESS);
 
-	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
 						 &rlstat->event),
 			 ISC_R_SUCCESS);
@@ -258,12 +263,14 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(ratelimiter_pushpop) {
 	isc_ratelimiter_setpertic(rl, 2);
 	isc_ratelimiter_setpushpop(rl, true);
 
-	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tock, rlstat,
 						 &rlstat->event),
 			 ISC_R_SUCCESS);
 
-	rlstat = isc_mem_getx(mctx, sizeof(*rlstat), ISC_MEM_ZERO);
+	rlstat = isc_mem_get(mctx, sizeof(*rlstat));
+	*rlstat = (rlstat_t){ 0 };
 	assert_int_equal(isc_ratelimiter_enqueue(rl, mainloop, tick, rlstat,
 						 &rlstat->event),
 			 ISC_R_SUCCESS);

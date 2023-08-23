@@ -2956,8 +2956,8 @@ isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 	for (size_t i = 0; i < isc_loopmgr_nloops(loopmgr); i++) {
 		isc__networker_t *worker =
 			&listener->worker->netmgr->workers[i];
-		http_endpoints_data_t *data = isc_mem_getx(
-			worker->loop->mctx, sizeof(*data), ISC_MEM_ZERO);
+		http_endpoints_data_t *data = isc_mem_cget(worker->loop->mctx,
+							   1, sizeof(*data));
 
 		isc__nmsocket_attach(listener, &data->listener);
 		isc_nm_http_endpoints_attach(eps, &data->endpoints);

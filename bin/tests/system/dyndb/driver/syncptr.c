@@ -226,7 +226,8 @@ syncptr(sample_instance_t *inst, dns_name_t *name, dns_rdata_t *addr_rdata,
 	DNS_RDATACOMMON_INIT(&ptr_struct, dns_rdatatype_ptr, dns_rdataclass_in);
 	dns_name_init(&ptr_struct.ptr, NULL);
 
-	syncptr = isc_mem_getx(mctx, sizeof(*syncptr), ISC_MEM_ZERO);
+	syncptr = isc_mem_get(mctx, sizeof(*syncptr));
+	*syncptr = (syncptr_t){ 0 };
 	isc_mem_attach(mctx, &syncptr->mctx);
 	isc_buffer_init(&syncptr->b, syncptr->buf, sizeof(syncptr->buf));
 	dns_fixedname_init(&syncptr->ptr_target_name);

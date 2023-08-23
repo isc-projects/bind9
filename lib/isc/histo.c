@@ -375,8 +375,8 @@ isc_histomulti_create(isc_mem_t *mctx, uint sigbits, isc_histomulti_t **hmp) {
 	uint size = isc_tid_count();
 	INSIST(size > 0);
 
-	isc_histomulti_t *hm = isc_mem_getx(
-		mctx, STRUCT_FLEX_SIZE(hm, hg, size), ISC_MEM_ZERO);
+	isc_histomulti_t *hm = isc_mem_cget(mctx, 1,
+					    STRUCT_FLEX_SIZE(hm, hg, size));
 	*hm = (isc_histomulti_t){
 		.magic = HISTOMULTI_MAGIC,
 		.size = size,

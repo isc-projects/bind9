@@ -261,7 +261,7 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 
 	bsize = sizeof(dns_rrl_block_t) +
 		ISC_CHECKED_MUL((newsize - 1), sizeof(dns_rrl_entry_t));
-	b = isc_mem_getx(rrl->mctx, bsize, ISC_MEM_ZERO);
+	b = isc_mem_cget(rrl->mctx, 1, bsize);
 	b->size = bsize;
 
 	e = b->entries;
@@ -327,7 +327,7 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 
 	hsize = sizeof(dns_rrl_hash_t) +
 		ISC_CHECKED_MUL((new_bins - 1), sizeof(hash->bins[0]));
-	hash = isc_mem_getx(rrl->mctx, hsize, ISC_MEM_ZERO);
+	hash = isc_mem_cget(rrl->mctx, 1, hsize);
 	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
 	hash->gen = rrl->hash_gen;
@@ -1345,10 +1345,12 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 
 	*rrlp = NULL;
 
-	rrl = isc_mem_getx(view->mctx, sizeof(*rrl), ISC_MEM_ZERO);
+	rrl = isc_mem_get(view->mctx, sizeof(*rrl));
+	*rrl = (dns_rrl_t){
+		.ts_bases[0] = isc_stdtime_now(),
+	};
 	isc_mem_attach(view->mctx, &rrl->mctx);
 	isc_mutex_init(&rrl->lock);
-	rrl->ts_bases[0] = isc_stdtime_now();
 
 	view->rrl = rrl;
 

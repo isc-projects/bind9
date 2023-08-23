@@ -404,11 +404,13 @@ record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 
 	len = sizeof(*element) + nsec3->next_length * 2 + nsec3->salt_length;
 
-	element = isc_mem_getx(vctx->mctx, len, ISC_MEM_ZERO);
-	element->hash = nsec3->hash;
-	element->salt_length = nsec3->salt_length;
-	element->next_length = nsec3->next_length;
-	element->iterations = nsec3->iterations;
+	element = isc_mem_get(vctx->mctx, len);
+	*element = (struct nsec3_chain_fixed){
+		.hash = nsec3->hash,
+		.salt_length = nsec3->salt_length,
+		.next_length = nsec3->next_length,
+		.iterations = nsec3->iterations,
+	};
 	cp = (unsigned char *)(element + 1);
 	memmove(cp, nsec3->salt, nsec3->salt_length);
 	cp += nsec3->salt_length;
