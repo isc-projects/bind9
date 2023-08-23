@@ -731,7 +731,7 @@ gcc:8fips:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-tracing"
   <<: *oraclelinux_8fips_amd64_image
   <<: *build_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
@@ -756,7 +756,7 @@ gcc:9fips:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-leak-detection"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-fips-mode --disable-leak-detection --disable-tracing"
   <<: *oraclelinux_9fips_amd64_image
   <<: *build_job
   <<: *api_schedules_tags_triggers_web_triggering_rules
