@@ -923,6 +923,7 @@
                   <th>Additional Refresh Queued</th>
                   <th>Local Address</th>
                   <th>Remote Address</th>
+                  <th>SOA Transport</th>
                   <th>Transport</th>
                   <th>TSIG Key Name</th>
                   <th>Duration (s)</th>
@@ -949,6 +950,7 @@
                     <td><xsl:value-of select="refreshqueued"/></td>
                     <td><xsl:value-of select="localaddr"/></td>
                     <td><xsl:value-of select="remoteaddr"/></td>
+                    <td><xsl:value-of select="soatransport"/></td>
                     <td><xsl:value-of select="transport"/></td>
                     <td><xsl:value-of select="tsigkeyname"/></td>
                     <td><xsl:value-of select="duration"/></td>
