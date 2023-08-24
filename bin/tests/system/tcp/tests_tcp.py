@@ -114,3 +114,21 @@ def test_close_wait(named_port):
         msg = create_msg("a.example.", "A")
         (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
         (response, rtime) = dns.query.receive_tcp(sock, timeout())
+
+
+# GL #4273
+def test_tcp_big(named_port):
+    with create_socket("10.53.0.7", named_port) as sock:
+        msg = dns.message.Message(id=0)
+        msg.flags = dns.flags.RD
+        msg.question.append(dns.rrset.from_text(dns.name.root, 0, 1, "URI"))
+        msg.additional.append(
+            dns.rrset.from_text(dns.name.root, 0, 1, "URI", "0 0 " + "b" * 65503)
+        )
+        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        (response, rtime) = dns.query.receive_tcp(sock, timeout())
+
+        # Now check that the server is alive and well
+        msg = create_msg("a.example.", "A")
+        (sbytes, stime) = dns.query.send_tcp(sock, msg, timeout())
+        (response, rtime) = dns.query.receive_tcp(sock, timeout())
