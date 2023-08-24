@@ -60,6 +60,9 @@ Bug Fixes
   ms-subdomain-self-rhs update rules, removal of nonexistent PTR
   and SRV records via UPDATE could fail. This has been fixed. :gl:`#4280`
 
+- The value of :any:`stale-refresh-time` was set to zero after ``rndc flush``.
+  This has been fixed. :gl:`#4278`
+
 Known Issues
 ~~~~~~~~~~~~
 
