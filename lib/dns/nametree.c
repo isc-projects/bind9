@@ -288,11 +288,7 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
 	dns_ntnode_t *node = NULL;
 	bool ret = false;
 
-	REQUIRE(nametree == NULL || VALID_NAMETREE(nametree));
-
-	if (nametree == NULL) {
-		return (false);
-	}
+	REQUIRE(VALID_NAMETREE(nametree));
 
 	dns_qpmulti_query(nametree->table, &qpr);
 	result = dns_qp_findname_ancestor(&qpr, name, 0, (void **)&node, NULL);

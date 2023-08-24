@@ -618,6 +618,8 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	if (*ntp != NULL) {
 		dns_nametree_detach(ntp);
 	}
+	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, confname, ntp);
+
 	if (vconfig != NULL) {
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	}
@@ -644,8 +646,6 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			return (ISC_R_SUCCESS);
 		}
 	}
-
-	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, confname, ntp);
 
 	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(obj); element != NULL;
@@ -4906,7 +4906,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set supported DNSSEC algorithms.
 	 */
-	dns_resolver_reset_algorithms(view->resolver);
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-algorithms", &disabled);
 	if (disabled != NULL) {
@@ -4921,7 +4920,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set supported DS digest types.
 	 */
-	dns_resolver_reset_ds_digests(view->resolver);
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-ds-digests", &disabled);
 	if (disabled != NULL) {
@@ -5521,7 +5519,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
 					auto_root));
-	dns_resolver_resetmustbesecure(view->resolver);
+
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
 	if (result == ISC_R_SUCCESS) {

@@ -9809,12 +9809,11 @@ dns_resolver__destroy(dns_resolver_t *res) {
 
 	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
 
-	/* These must be run before zeroing the magic number */
-	dns_resolver_reset_algorithms(res);
-	dns_resolver_reset_ds_digests(res);
-	dns_resolver_resetmustbesecure(res);
-
 	res->magic = 0;
+
+	dns_nametree_detach(&res->algorithms);
+	dns_nametree_detach(&res->digests);
+	dns_nametree_detach(&res->mustbesecure);
 
 	if (res->querystats != NULL) {
 		dns_stats_detach(&res->querystats);
@@ -9954,6 +9953,13 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
+
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BITS, "algorithms",
+			    &res->algorithms);
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BITS, "ds-digests",
+			    &res->digests);
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BOOL,
+			    "dnssec-must-be-secure", &res->mustbesecure);
 
 	res->magic = RES_MAGIC;
 
@@ -10717,24 +10723,6 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
 	(void)dns_badcache_print(resolver->badcache, "Bad cache", fp);
 }
 
-void
-dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->algorithms != NULL) {
-		dns_nametree_detach(&resolver->algorithms);
-	}
-}
-
-void
-dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->digests != NULL) {
-		dns_nametree_detach(&resolver->digests);
-	}
-}
-
 isc_result_t
 dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg) {
@@ -10742,11 +10730,6 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 
 	if (alg > 255) {
 		return (ISC_R_RANGE);
-	}
-
-	if (resolver->algorithms == NULL) {
-		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BITS,
-				    "algorithms", &resolver->algorithms);
 	}
 
 	return (dns_nametree_add(resolver->algorithms, name, alg));
@@ -10759,11 +10742,6 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
 
 	if (digest_type > 255) {
 		return (ISC_R_RANGE);
-	}
-
-	if (resolver->digests == NULL) {
-		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BITS,
-				    "ds-digests", &resolver->digests);
 	}
 
 	return (dns_nametree_add(resolver->digests, name, digest_type));
@@ -10798,27 +10776,12 @@ dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 	return (dst_ds_digest_supported(digest_type));
 }
 
-void
-dns_resolver_resetmustbesecure(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->mustbesecure != NULL) {
-		dns_nametree_detach(&resolver->mustbesecure);
-	}
-}
-
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
 			     bool value) {
 	isc_result_t result;
 
 	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->mustbesecure == NULL) {
-		dns_nametree_create(resolver->mctx, DNS_NAMETREE_BOOL,
-				    "dnssec-must-be-secure",
-				    &resolver->mustbesecure);
-	}
 
 	result = dns_nametree_add(resolver->mustbesecure, name, value);
 	return (result);

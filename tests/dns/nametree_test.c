@@ -206,10 +206,6 @@ ISC_RUN_TEST_IMPL(covered_bool) {
 		assert_false(dns_nametree_covered(booltree, name, NULL, 0));
 	}
 
-	/* If the nametree is NULL, dns_nametree_covered() returns false. */
-	dns_test_namefromstring("anyname.example.", &fn);
-	assert_false(dns_nametree_covered(NULL, name, NULL, 0));
-
 	/* Check that the found name is as expected */
 	dns_test_namefromstring("other.example.com.", &fn);
 	assert_true(dns_nametree_covered(booltree, name, found, 0));

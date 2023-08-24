@@ -159,8 +159,7 @@ dns_nametree_covered(dns_nametree_t *nametree, const dns_name_t *name,
  * In DNS_NAMETREE_BITS trees, this returns true if 'name' has a match or
  * a closest ancestor in 'nametree' with the 'bit' set in its bitfield.
  *
- * If a name is not found, or if 'nametree' is NULL, the default return
- * value is false.
+ * If a name is not found, the default return value is false.
  *
  * If 'found' is not NULL, the name or ancestor name that was found in
  * the tree is copied into it.

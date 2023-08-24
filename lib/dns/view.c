@@ -162,6 +162,8 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		goto cleanup_peerlist;
 	}
 
+	dns_nametree_create(view->mctx, DNS_NAMETREE_COUNT, "sfd", &view->sfd);
+
 	view->magic = DNS_VIEW_MAGIC;
 	*viewp = view;
 
@@ -2320,11 +2322,6 @@ dns_view_sfd_add(dns_view_t *view, const dns_name_t *name) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->sfd == NULL) {
-		dns_nametree_create(view->mctx, DNS_NAMETREE_COUNT, "sfd",
-				    &view->sfd);
-	}
-
 	result = dns_nametree_add(view->sfd, name, 0);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
@@ -2341,10 +2338,8 @@ dns_view_sfd_find(dns_view_t *view, const dns_name_t *name,
 		  dns_name_t *foundname) {
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->sfd != NULL) {
-		if (!dns_nametree_covered(view->sfd, name, foundname, 0)) {
-			dns_name_copy(dns_rootname, foundname);
-		}
+	if (!dns_nametree_covered(view->sfd, name, foundname, 0)) {
+		dns_name_copy(dns_rootname, foundname);
 	}
 }
 
