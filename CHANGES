@@ -1,3 +1,6 @@
+6234.	[bug]		Restore stale-refresh-time value after flushing the
+			cache. [GL #4278]
+
 6232.	[bug]		Following the introduction of krb5-subdomain-self-rhs
 			and ms-subdomain-self-rhs update rules, removal of
 			nonexistent PTR and SRV records via UPDATE could fail.
