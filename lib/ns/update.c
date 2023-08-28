@@ -2219,9 +2219,16 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 	dns_rdataset_init(&rdataset);
 	if (rdata->type == dns_rdatatype_nsec3) {
-		CHECK(dns_db_findnsec3node(db, name, false, &node));
+		result = dns_db_findnsec3node(db, name, false, &node);
 	} else {
-		CHECK(dns_db_findnode(db, name, false, &node));
+		result = dns_db_findnode(db, name, false, &node);
+	}
+	if (result == ISC_R_NOTFOUND) {
+		*flag = false;
+		result = ISC_R_SUCCESS;
+		goto failure;
+	} else {
+		CHECK(result);
 	}
 	result = dns_db_findrdataset(db, node, ver, rdata->type, 0,
 				     (isc_stdtime_t)0, &rdataset, NULL);
