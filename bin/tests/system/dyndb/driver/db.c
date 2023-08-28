@@ -641,14 +641,12 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (sampledb != NULL) {
-		if (dns_name_dynamic(&sampledb->common.origin)) {
-			dns_name_free(&sampledb->common.origin, mctx);
-		}
-
-		isc_mem_putanddetach(&sampledb->common.mctx, sampledb,
-				     sizeof(*sampledb));
+	if (dns_name_dynamic(&sampledb->common.origin)) {
+		dns_name_free(&sampledb->common.origin, mctx);
 	}
+
+	isc_mem_putanddetach(&sampledb->common.mctx, sampledb,
+			     sizeof(*sampledb));
 
 	return (result);
 }
