@@ -18121,8 +18121,7 @@ zonemgr_keymgmt_init(dns_zonemgr_t *zmgr) {
 
 	isc_mem_attach(zmgr->mctx, &mgmt->mctx);
 	isc_rwlock_init(&mgmt->lock);
-	isc_hashmap_create(mgmt->mctx, DNS_KEYMGMT_HASH_BITS,
-			   ISC_HASHMAP_CASE_SENSITIVE, &mgmt->table);
+	isc_hashmap_create(mgmt->mctx, DNS_KEYMGMT_HASH_BITS, &mgmt->table);
 
 	zmgr->keymgmt = mgmt;
 }
@@ -18144,6 +18143,13 @@ zonemgr_keymgmt_destroy(dns_zonemgr_t *zmgr) {
 	isc_mem_putanddetach(&mgmt->mctx, mgmt, sizeof(dns_keymgmt_t));
 }
 
+static bool
+kfio_match(void *node, const void *key) {
+	const dns_keyfileio_t *kfio = node;
+
+	return (dns_name_equal(kfio->name, key));
+}
+
 static void
 zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 		    dns_keyfileio_t **added) {
@@ -18161,8 +18167,8 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 
 	RWLOCK(&mgmt->lock, isc_rwlocktype_write);
 
-	result = isc_hashmap_find(mgmt->table, NULL, name->ndata, name->length,
-				  (void **)&kfio);
+	result = isc_hashmap_find(mgmt->table, dns_name_hash(name), kfio_match,
+				  name, (void **)&kfio);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		isc_refcount_increment(&kfio->references);
@@ -18177,8 +18183,8 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 		dns_name_copy(name, kfio->name);
 
 		isc_mutex_init(&kfio->lock);
-		result = isc_hashmap_add(mgmt->table, NULL, kfio->name->ndata,
-					 kfio->name->length, kfio);
+		result = isc_hashmap_add(mgmt->table, dns_name_hash(kfio->name),
+					 kfio_match, kfio->name, kfio, NULL);
 		INSIST(result == ISC_R_SUCCESS);
 		break;
 	default:
@@ -18186,6 +18192,11 @@ zonemgr_keymgmt_add(dns_zonemgr_t *zmgr, dns_zone_t *zone,
 	}
 	*added = kfio;
 	RWUNLOCK(&mgmt->lock, isc_rwlocktype_write);
+}
+
+static bool
+match_ptr(void *node, const void *key) {
+	return (node == key);
 }
 
 static void
@@ -18206,9 +18217,9 @@ zonemgr_keymgmt_delete(dns_zonemgr_t *zmgr, dns_keyfileio_t **deleted) {
 		kfio->magic = 0;
 		isc_mutex_destroy(&kfio->lock);
 
-		result = isc_hashmap_delete(mgmt->table, NULL,
-					    kfio->name->ndata,
-					    kfio->name->length);
+		result = isc_hashmap_delete(mgmt->table,
+					    dns_name_hash(kfio->name),
+					    match_ptr, kfio);
 		INSIST(result == ISC_R_SUCCESS);
 
 		isc_mem_put(mgmt->mctx, kfio, sizeof(*kfio));

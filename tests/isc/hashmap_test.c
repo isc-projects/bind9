@@ -42,6 +42,28 @@ typedef struct test_node {
 	char key[64];
 } test_node_t;
 
+static bool
+nodes_match(void *node0, const void *key) {
+	struct test_node *node = node0;
+
+	return (memcmp(node->key, key, 16) == 0);
+}
+
+static bool
+long_nodes_match(void *node0, const void *key) {
+	struct test_node *node = node0;
+	size_t len = strlen(key);
+
+	return (memcmp(node->key, key, len) == 0);
+}
+
+static bool
+upper_nodes_match(void *node0, const void *key) {
+	struct test_node *node = node0;
+
+	return (isc_ascii_lowerequal((uint8_t *)node->key, key, 16));
+}
+
 static void
 test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	isc_hashmap_t *hashmap = NULL;
@@ -52,8 +74,7 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	long_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
 	upper_nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
 
-	isc_hashmap_create(mctx, init_bits, ISC_HASHMAP_CASE_SENSITIVE,
-			   &hashmap);
+	isc_hashmap_create(mctx, init_bits, &hashmap);
 	assert_non_null(hashmap);
 
 	/*
@@ -62,55 +83,67 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 	 */
 	for (size_t i = 0; i < count; i++) {
 		/* short keys */
-		snprintf(nodes[i].key, 16, "%u", (unsigned int)i);
-		strlcat(nodes[i].key, " key of a raw hashmap!!", 16);
+		snprintf((char *)nodes[i].key, 16, "%u", (unsigned int)i);
+		strlcat((char *)nodes[i].key, " key of a raw hashmap!!", 16);
+		nodes[i].hashval = isc_hash32(nodes[i].key, 16, true);
 
 		/* long keys */
-		snprintf(long_nodes[i].key, sizeof(long_nodes[i].key), "%u",
-			 (unsigned int)i);
-		strlcat(long_nodes[i].key, " key of a raw hashmap!!",
+		snprintf((char *)long_nodes[i].key, sizeof(long_nodes[i].key),
+			 "%u", (unsigned int)i);
+		strlcat((char *)long_nodes[i].key, " key of a raw hashmap!!",
 			sizeof(long_nodes[i].key));
+		long_nodes[i].hashval = isc_hash32(
+			long_nodes[i].key,
+			strlen((const char *)long_nodes[i].key), true);
 
 		/* (some) uppercase keys */
-		snprintf(upper_nodes[i].key, 16, "%u", (unsigned int)i);
-		strlcat(upper_nodes[i].key, " KEY of a raw hashmap!!", 16);
+		snprintf((char *)upper_nodes[i].key, 16, "%u", (unsigned int)i);
+		strlcat((char *)upper_nodes[i].key, " KEY of a raw hashmap!!",
+			16);
+		upper_nodes[i].hashval = isc_hash32(upper_nodes[i].key, 16,
+						    false);
 	}
 
 	/* insert short nodes */
 	for (size_t i = 0; i < count; i++) {
-		nodes[i].hashval = isc_hashmap_hash(hashmap, nodes[i].key, 16);
-		result = isc_hashmap_add(hashmap, &(nodes[i]).hashval,
-					 nodes[i].key, 16, &nodes[i]);
+		void *f = NULL;
+		result = isc_hashmap_add(hashmap, nodes[i].hashval, nodes_match,
+					 nodes[i].key, &nodes[i], &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_ptr_equal(f, NULL);
 	}
 
 	/* check if the short nodes were insert */
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_find(hashmap, &(nodes[i]).hashval,
-					  nodes[i].key, 16, &f);
+		result = isc_hashmap_find(hashmap, nodes[i].hashval,
+					  nodes_match, nodes[i].key, &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
 		assert_ptr_equal(&nodes[i], f);
 	}
 
 	/* check for double inserts */
 	for (size_t i = 0; i < count; i++) {
-		result = isc_hashmap_add(hashmap, NULL, nodes[i].key, 16,
-					 &nodes[i]);
+		void *f = NULL;
+		result = isc_hashmap_add(hashmap, nodes[i].hashval, nodes_match,
+					 nodes[i].key, &nodes[i], &f);
 		assert_int_equal(result, ISC_R_EXISTS);
-	}
-
-	for (size_t i = 0; i < count; i++) {
-		result =
-			isc_hashmap_add(hashmap, NULL, long_nodes[i].key,
-					strlen((const char *)long_nodes[i].key),
-					&long_nodes[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_ptr_equal(f, &nodes[i]);
 	}
 
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_find(hashmap, NULL, upper_nodes[i].key, 16,
+		result = isc_hashmap_add(hashmap, long_nodes[i].hashval,
+					 long_nodes_match, long_nodes[i].key,
+					 &long_nodes[i], &f);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_ptr_equal(f, NULL);
+	}
+
+	for (size_t i = 0; i < count; i++) {
+		void *f = NULL;
+		result = isc_hashmap_find(hashmap, upper_nodes[i].hashval,
+					  long_nodes_match, upper_nodes[i].key,
 					  &f);
 		assert_int_equal(result, ISC_R_NOTFOUND);
 		assert_null(f);
@@ -118,45 +151,50 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_find(
-			hashmap, NULL, long_nodes[i].key,
-			strlen((const char *)long_nodes[i].key), &f);
+		result = isc_hashmap_find(hashmap, long_nodes[i].hashval,
+					  long_nodes_match, long_nodes[i].key,
+					  &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
 		assert_ptr_equal(f, &long_nodes[i]);
 	}
 
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_delete(hashmap, &nodes[i].hashval,
-					    nodes[i].key, 16);
+		result = isc_hashmap_delete(hashmap, nodes[i].hashval,
+					    nodes_match, nodes[i].key);
 		assert_int_equal(result, ISC_R_SUCCESS);
-		result = isc_hashmap_find(hashmap, NULL, nodes[i].key, 16, &f);
-		assert_int_equal(result, ISC_R_NOTFOUND);
-		assert_null(f);
-	}
-
-	for (size_t i = 0; i < count; i++) {
-		result = isc_hashmap_add(hashmap, NULL, upper_nodes[i].key, 16,
-					 &upper_nodes[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
-	}
-
-	for (size_t i = 0; i < count; i++) {
-		void *f = NULL;
-		result = isc_hashmap_delete(
-			hashmap, NULL, long_nodes[i].key,
-			strlen((const char *)long_nodes[i].key));
-		assert_int_equal(result, ISC_R_SUCCESS);
-		result = isc_hashmap_find(
-			hashmap, NULL, long_nodes[i].key,
-			strlen((const char *)long_nodes[i].key), &f);
+		result = isc_hashmap_find(hashmap, nodes[i].hashval,
+					  nodes_match, nodes[i].key, &f);
 		assert_int_equal(result, ISC_R_NOTFOUND);
 		assert_null(f);
 	}
 
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_find(hashmap, NULL, upper_nodes[i].key, 16,
+		result = isc_hashmap_add(hashmap, upper_nodes[i].hashval,
+					 upper_nodes_match, upper_nodes[i].key,
+					 &upper_nodes[i], &f);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_ptr_equal(f, NULL);
+	}
+
+	for (size_t i = 0; i < count; i++) {
+		void *f = NULL;
+		result = isc_hashmap_delete(hashmap, long_nodes[i].hashval,
+					    long_nodes_match,
+					    long_nodes[i].key);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		result = isc_hashmap_find(hashmap, long_nodes[i].hashval,
+					  long_nodes_match, long_nodes[i].key,
+					  &f);
+		assert_int_equal(result, ISC_R_NOTFOUND);
+		assert_null(f);
+	}
+
+	for (size_t i = 0; i < count; i++) {
+		void *f = NULL;
+		result = isc_hashmap_find(hashmap, upper_nodes[i].hashval,
+					  upper_nodes_match, upper_nodes[i].key,
 					  &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
 		assert_ptr_equal(f, &upper_nodes[i]);
@@ -164,7 +202,8 @@ test_hashmap_full(uint8_t init_bits, uintptr_t count) {
 
 	for (size_t i = 0; i < count; i++) {
 		void *f = NULL;
-		result = isc_hashmap_find(hashmap, NULL, nodes[i].key, 16, &f);
+		result = isc_hashmap_find(hashmap, nodes[i].hashval,
+					  nodes_match, nodes[i].key, &f);
 		assert_int_equal(result, ISC_R_NOTFOUND);
 		assert_null(f);
 	}
@@ -184,25 +223,26 @@ test_hashmap_iterator(void) {
 	isc_hashmap_iter_t *iter = NULL;
 	size_t count = 7600;
 	uint32_t walked;
-	size_t tksize;
 	test_node_t *nodes;
 
 	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
 
-	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, ISC_HASHMAP_CASE_SENSITIVE,
-			   &hashmap);
+	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, &hashmap);
 	assert_non_null(hashmap);
 
 	for (size_t i = 0; i < count; i++) {
 		/* short keys */
-		snprintf(nodes[i].key, 16, "%u", (unsigned int)i);
-		strlcat(nodes[i].key, " key of a raw hashmap!!", 16);
+		snprintf((char *)nodes[i].key, 16, "%u", (unsigned int)i);
+		strlcat((char *)nodes[i].key, " key of a raw hashmap!!", 16);
+		nodes[i].hashval = isc_hash32(nodes[i].key, 16, true);
 	}
 
 	for (size_t i = 0; i < count; i++) {
-		result = isc_hashmap_add(hashmap, NULL, nodes[i].key, 16,
-					 &nodes[i]);
+		void *f = NULL;
+		result = isc_hashmap_add(hashmap, nodes[i].hashval, nodes_match,
+					 nodes[i].key, &nodes[i], &f);
 		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_ptr_equal(f, NULL);
 	}
 
 	/* We want to iterate while rehashing is in progress */
@@ -220,8 +260,7 @@ test_hashmap_iterator(void) {
 		test_node_t *v = NULL;
 
 		isc_hashmap_iter_current(iter, (void *)&v);
-		isc_hashmap_iter_currentkey(iter, &tkey, &tksize);
-		assert_int_equal(tksize, 16);
+		isc_hashmap_iter_currentkey(iter, &tkey);
 
 		i = v - &nodes[0];
 
@@ -245,8 +284,7 @@ test_hashmap_iterator(void) {
 		test_node_t *v = NULL;
 
 		isc_hashmap_iter_current(iter, (void *)&v);
-		isc_hashmap_iter_currentkey(iter, &tkey, &tksize);
-		assert_int_equal(tksize, 16);
+		isc_hashmap_iter_currentkey(iter, &tkey);
 
 		i = v - nodes;
 		snprintf(key, 16, "%u", (unsigned int)i);
@@ -273,8 +311,7 @@ test_hashmap_iterator(void) {
 		test_node_t *v = NULL;
 
 		isc_hashmap_iter_current(iter, (void *)&v);
-		isc_hashmap_iter_currentkey(iter, &tkey, &tksize);
-		assert_int_equal(tksize, 16);
+		isc_hashmap_iter_currentkey(iter, &tkey);
 
 		i = v - nodes;
 		snprintf(key, 16, "%u", (unsigned int)i);
@@ -356,15 +393,15 @@ ISC_RUN_TEST_IMPL(isc_hashmap_hash_zero_length) {
 	bool again = false;
 
 again:
-	isc_hashmap_create(mctx, 1, ISC_HASHMAP_CASE_SENSITIVE, &hashmap);
+	isc_hashmap_create(mctx, 1, &hashmap);
 
-	hashval = isc_hashmap_hash(hashmap, "", 0);
+	hashval = isc_hash32("", 0, true);
 
 	isc_hashmap_destroy(&hashmap);
 
 	if (hashval == 0 && !again) {
 		/*
-		 * We could be extremely unlock and the siphash could hash the
+		 * We could be extremely unlucky and the siphash could hash the
 		 * zero length string to 0, so try one more time.
 		 */
 		again = true;
@@ -374,50 +411,78 @@ again:
 	assert_int_not_equal(hashval, 0);
 }
 
+static bool
+case_match(void *node0, const void *key) {
+	struct test_node *node = node0;
+	size_t len = strlen(key);
+
+	return (memcmp(node->key, key, len) == 0);
+}
+
+static bool
+nocase_match(void *node0, const void *key) {
+	struct test_node *node = node0;
+	size_t len = strlen(key);
+
+	return (isc_ascii_lowerequal((uint8_t *)node->key, key, len));
+}
+
 ISC_RUN_TEST_IMPL(isc_hashmap_case) {
 	isc_result_t result;
 	isc_hashmap_t *hashmap = NULL;
 	test_node_t lower = { .key = "isc_hashmap_case" };
+	test_node_t same = { .key = "isc_hashmap_case" };
 	test_node_t upper = { .key = "ISC_HASHMAP_CASE" };
 	test_node_t mixed = { .key = "IsC_hAsHmAp_CaSe" };
+	void *f = NULL;
 
-	isc_hashmap_create(mctx, 1, ISC_HASHMAP_CASE_SENSITIVE, &hashmap);
+	isc_hashmap_create(mctx, 1, &hashmap);
 
-	result = isc_hashmap_add(hashmap, NULL, lower.key, strlen(lower.key),
-				 &lower);
+	result = isc_hashmap_add(hashmap,
+				 isc_hash32(lower.key, strlen(lower.key), true),
+				 case_match, lower.key, &lower, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_hashmap_add(hashmap, NULL, lower.key, strlen(lower.key),
-				 &lower);
+	result = isc_hashmap_add(hashmap,
+				 isc_hash32(same.key, strlen(same.key), true),
+				 case_match, same.key, &same, NULL);
 	assert_int_equal(result, ISC_R_EXISTS);
 
-	result = isc_hashmap_add(hashmap, NULL, upper.key, strlen(upper.key),
-				 &upper);
+	result = isc_hashmap_add(hashmap,
+				 isc_hash32(upper.key, strlen(upper.key), true),
+				 case_match, upper.key, &upper, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_hashmap_find(hashmap, NULL, mixed.key, strlen(mixed.key),
-				  &(void *){ NULL });
+	result = isc_hashmap_find(
+		hashmap, isc_hash32(mixed.key, strlen(mixed.key), true),
+		case_match, mixed.key, &f);
 	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_ptr_equal(f, NULL);
 
 	isc_hashmap_destroy(&hashmap);
 
-	isc_hashmap_create(mctx, 1, ISC_HASHMAP_CASE_INSENSITIVE, &hashmap);
+	isc_hashmap_create(mctx, 1, &hashmap);
 
-	result = isc_hashmap_add(hashmap, NULL, lower.key, strlen(lower.key),
-				 &lower);
+	result = isc_hashmap_add(
+		hashmap, isc_hash32(lower.key, strlen(lower.key), false),
+		nocase_match, lower.key, &lower, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_hashmap_add(hashmap, NULL, lower.key, strlen(lower.key),
-				 &lower);
+	result = isc_hashmap_add(hashmap,
+				 isc_hash32(same.key, strlen(same.key), false),
+				 nocase_match, same.key, &same, NULL);
 	assert_int_equal(result, ISC_R_EXISTS);
 
-	result = isc_hashmap_add(hashmap, NULL, upper.key, strlen(upper.key),
-				 &upper);
+	result = isc_hashmap_add(
+		hashmap, isc_hash32(upper.key, strlen(upper.key), false),
+		nocase_match, upper.key, &upper, NULL);
 	assert_int_equal(result, ISC_R_EXISTS);
 
-	result = isc_hashmap_find(hashmap, NULL, mixed.key, strlen(mixed.key),
-				  &(void *){ NULL });
+	result = isc_hashmap_find(
+		hashmap, isc_hash32(mixed.key, strlen(mixed.key), false),
+		nocase_match, mixed.key, &f);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_ptr_equal(f, &lower);
 
 	isc_hashmap_destroy(&hashmap);
 }

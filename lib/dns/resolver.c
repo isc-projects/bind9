@@ -305,20 +305,6 @@ typedef enum {
 	badns_forwarder,
 } badnstype_t;
 
-typedef struct fctxkey fctxkey_t;
-struct fctxkey {
-	size_t size;
-	union {
-		struct {
-			unsigned int options; /* 32 bits */
-			dns_rdatatype_t type; /* 16 bits */
-			uint8_t name[DNS_NAME_MAXWIRE];
-		};
-		char key[sizeof(unsigned int) + sizeof(dns_rdatatype_t) +
-			 DNS_NAME_MAXWIRE];
-	};
-} __attribute__((__packed__));
-
 #define FCTXCOUNT_MAGIC		 ISC_MAGIC('F', 'C', 'n', 't')
 #define VALID_FCTXCOUNT(counter) ISC_MAGIC_VALID(counter, FCTXCOUNT_MAGIC)
 
@@ -343,7 +329,6 @@ struct fetchctx {
 	dns_name_t *name;
 	dns_rdatatype_t type;
 	unsigned int options;
-	fctxkey_t key;
 	fctxcount_t *counter;
 	char *info;
 	isc_mem_t *mctx;
@@ -1401,6 +1386,14 @@ fcount_logspill(fetchctx_t *fctx, fctxcount_t *counter, bool final) {
 	counter->logged = now;
 }
 
+static bool
+fcount_match(void *node, const void *key) {
+	const fctxcount_t *counter = node;
+	const dns_name_t *domain = key;
+
+	return (dns_name_equal(counter->domain, domain));
+}
+
 static isc_result_t
 fcount_incr(fetchctx_t *fctx, bool force) {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1420,12 +1413,11 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 		return (ISC_R_SUCCESS);
 	}
 
-	hashval = isc_hashmap_hash(res->counters, fctx->domain->ndata,
-				   fctx->domain->length);
+	hashval = dns_name_hash(fctx->domain);
 
 	RWLOCK(&res->counters_lock, locktype);
-	result = isc_hashmap_find(res->counters, &hashval, fctx->domain->ndata,
-				  fctx->domain->length, (void **)&counter);
+	result = isc_hashmap_find(res->counters, hashval, fcount_match,
+				  fctx->domain, (void **)&counter);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		break;
@@ -1443,17 +1435,15 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 
 		UPGRADELOCK(&res->counters_lock, locktype);
 
-		result = isc_hashmap_add(res->counters, &hashval,
-					 counter->domain->ndata,
-					 counter->domain->length, counter);
+		void *found = NULL;
+		result = isc_hashmap_add(res->counters, hashval, fcount_match,
+					 counter->domain, counter, &found);
 		if (result == ISC_R_EXISTS) {
 			isc_mutex_destroy(&counter->lock);
 			isc_mem_putanddetach(&counter->mctx, counter,
 					     sizeof(*counter));
-			counter = NULL;
-			result = isc_hashmap_find(
-				res->counters, &hashval, fctx->domain->ndata,
-				fctx->domain->length, (void **)&counter);
+			counter = found;
+			result = ISC_R_SUCCESS;
 		}
 
 		INSIST(result == ISC_R_SUCCESS);
@@ -1479,6 +1469,11 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 	RWUNLOCK(&res->counters_lock, locktype);
 
 	return (result);
+}
+
+static bool
+match_ptr(void *node, const void *key) {
+	return (node == key);
 }
 
 static void
@@ -1508,9 +1503,9 @@ fcount_decr(fetchctx_t *fctx) {
 		return;
 	}
 
-	isc_result_t result = isc_hashmap_delete(fctx->res->counters, NULL,
-						 counter->domain->ndata,
-						 counter->domain->length);
+	isc_result_t result = isc_hashmap_delete(fctx->res->counters,
+						 dns_name_hash(counter->domain),
+						 match_ptr, counter);
 	INSIST(result == ISC_R_SUCCESS);
 
 	fcount_logspill(fctx, counter, true);
@@ -4523,18 +4518,12 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		.fwdpolicy = dns_fwdpolicy_none,
 		.result = ISC_R_FAILURE,
 		.loop = loop,
-		.key = { .size = sizeof(unsigned int) +
-				 sizeof(dns_rdatatype_t) + name->length },
 	};
 
 	isc_mem_attach(mctx, &fctx->mctx);
 	dns_resolver_attach(res, &fctx->res);
 
 	isc_mutex_init(&fctx->lock);
-
-	fctx->key.options = options;
-	fctx->key.type = type;
-	isc_ascii_lowercopy(fctx->key.name, name->ndata, name->length);
 
 	if (qc != NULL) {
 		isc_counter_attach(qc, &fctx->qc);
@@ -6999,21 +6988,39 @@ ISC_REFCOUNT_TRACE_IMPL(fetchctx, fctx_destroy);
 ISC_REFCOUNT_IMPL(fetchctx, fctx_destroy);
 #endif
 
+static uint32_t
+fctx_hash(fetchctx_t *fctx) {
+	isc_hash32_t hash32;
+	isc_hash32_init(&hash32);
+	isc_hash32_hash(&hash32, fctx->name->ndata, fctx->name->length, false);
+	isc_hash32_hash(&hash32, &fctx->options, sizeof(fctx->options), true);
+	isc_hash32_hash(&hash32, &fctx->type, sizeof(fctx->type), true);
+	return (isc_hash32_finalize(&hash32));
+}
+
+static bool
+fctx_match(void *node, const void *key) {
+	const fetchctx_t *fctx0 = node;
+	const fetchctx_t *fctx1 = key;
+
+	return (fctx0->options == fctx1->options &&
+		fctx0->type == fctx1->type &&
+		dns_name_equal(fctx0->name, fctx1->name));
+}
+
 /* Must be fctx locked */
 static void
 release_fctx(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_resolver_t *res = fctx->res;
-	uint32_t hashval = isc_hashmap_hash(res->fctxs, fctx->key.key,
-					    fctx->key.size);
 
 	if (!fctx->hashed) {
 		return;
 	}
 
 	RWLOCK(&res->fctxs_lock, isc_rwlocktype_write);
-	result = isc_hashmap_delete(res->fctxs, &hashval, fctx->key.key,
-				    fctx->key.size);
+	result = isc_hashmap_delete(res->fctxs, fctx_hash(fctx), match_ptr,
+				    fctx);
 	INSIST(result == ISC_R_SUCCESS);
 	fctx->hashed = false;
 	RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
@@ -9974,13 +9981,10 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	res->badcache = dns_badcache_new(res->mctx);
 
-	/* This needs to be case sensitive to not lowercase options and type */
-	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS,
-			   ISC_HASHMAP_CASE_SENSITIVE, &res->fctxs);
+	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS, &res->fctxs);
 	isc_rwlock_init(&res->fctxs_lock);
 
-	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS,
-			   ISC_HASHMAP_CASE_INSENSITIVE, &res->counters);
+	isc_hashmap_create(view->mctx, RES_DOMAIN_HASH_BITS, &res->counters);
 	isc_rwlock_init(&res->counters_lock);
 
 	if (dispatchv4 != NULL) {
@@ -10294,34 +10298,23 @@ get_attached_fctx(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		  unsigned int options, unsigned int depth, isc_counter_t *qc,
 		  fetchctx_t **fctxp, bool *new_fctx) {
 	isc_result_t result;
-	uint32_t hashval;
-	fctxkey_t key = {
-		.size = sizeof(unsigned int) + sizeof(dns_rdatatype_t) +
-			name->length,
+	fetchctx_t key = {
+		.name = UNCONST(name),
+		.options = options,
+		.type = type,
 	};
 	fetchctx_t *fctx = NULL;
 	isc_rwlocktype_t locktype = isc_rwlocktype_read;
-
-	STATIC_ASSERT(sizeof(key.options) == sizeof(options),
-		      "key options size mismatch");
-	STATIC_ASSERT(sizeof(key.type) == sizeof(type),
-		      "key type size mismatch");
-
-	key.options = options;
-	key.type = type;
-	isc_ascii_lowercopy(key.name, name->ndata, name->length);
-
-	hashval = isc_hashmap_hash(res->fctxs, key.key, key.size);
+	uint32_t hashval = fctx_hash(&key);
 
 again:
 	RWLOCK(&res->fctxs_lock, locktype);
-	result = isc_hashmap_find(res->fctxs, &hashval, key.key, key.size,
+	result = isc_hashmap_find(res->fctxs, hashval, fctx_match, &key,
 				  (void **)&fctx);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		break;
 	case ISC_R_NOTFOUND:
-		/* FIXME: pass key to fctx_create(?) */
 		result = fctx_create(res, loop, name, type, domain, nameservers,
 				     client, options, depth, qc, &fctx);
 		if (result != ISC_R_SUCCESS) {
@@ -10329,15 +10322,17 @@ again:
 		}
 
 		UPGRADELOCK(&res->fctxs_lock, locktype);
-		result = isc_hashmap_add(res->fctxs, &hashval, fctx->key.key,
-					 fctx->key.size, fctx);
+
+		void *found = NULL;
+		result = isc_hashmap_add(res->fctxs, hashval, fctx_match, fctx,
+					 fctx, &found);
 		if (result == ISC_R_SUCCESS) {
 			*new_fctx = true;
 			fctx->hashed = true;
 		} else {
 			fctx_done_detach(&fctx, result);
-			result = isc_hashmap_find(res->fctxs, &hashval, key.key,
-						  key.size, (void **)&fctx);
+			fctx = found;
+			result = ISC_R_SUCCESS;
 		}
 		INSIST(result == ISC_R_SUCCESS);
 		break;
