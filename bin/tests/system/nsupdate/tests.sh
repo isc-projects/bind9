@@ -464,6 +464,28 @@ echo_i "end RT #482 regression test"
 
 n=$((n + 1))
 ret=0
+echo_i "remove nonexistent PTR record ($n)"
+$NSUPDATE -k ns1/ddns.key -d << EOF > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.1 ${PORT}
+zone example.nil.
+update delete nonexistent.example.nil. 0 IN PTR foo.
+send
+EOF
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
+echo_i "remove nonexistent SRV record ($n)"
+$NSUPDATE -k ns1/ddns.key -d << EOF > nsupdate.out.test$n 2>&1 || ret=1
+server 10.53.0.1 ${PORT}
+zone example.nil.
+update delete nonexistent.example.nil. 0 IN SRV 0 0 0 foo.
+send
+EOF
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=$((n + 1))
+ret=0
 echo_i "start NSEC3PARAM changes via UPDATE on a unsigned zone test ($n)"
 $NSUPDATE << EOF
 server 10.53.0.3 ${PORT}
