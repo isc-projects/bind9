@@ -52,6 +52,10 @@ Bug Fixes
 
   This issue was reported by Eric Sesterhenn of X41 D-SEC.
 
+- Following the introduction of krb5-subdomain-self-rhs and
+  ms-subdomain-self-rhs update rules, removal of nonexistent PTR
+  and SRV records via UPDATE could fail. This has been fixed. :gl:`#4280`
+
 Known Issues
 ~~~~~~~~~~~~
 
