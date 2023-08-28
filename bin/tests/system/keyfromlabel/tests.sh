@@ -16,6 +16,7 @@ set -e
 # shellcheck source=conf.sh
 . ../conf.sh
 
+parse_openssl_config
 PWD=$(pwd)
 
 keygen() {
@@ -26,7 +27,7 @@ keygen() {
 
 	label="${id}-${zone}"
 	p11id=$(echo "${label}" | openssl sha1 -r | awk '{print $1}')
-	pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-keyfromlabel" -l -k --key-type $type:$bits --label "${label}" --id "${p11id}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
+	OPENSSL_CONF= pkcs11-tool --module $SOFTHSM2_MODULE --token-label "softhsm2-keyfromlabel" -l -k --key-type $type:$bits --label "${label}" --id "${p11id}" --pin $(cat $PWD/pin) > pkcs11-tool.out.$zone.$id || return 1
 }
 
 keyfromlabel() {
@@ -35,10 +36,11 @@ keyfromlabel() {
         id="$3"
         shift 3
 
-	$KEYFRLAB -E pkcs11 -a $alg -l "token=softhsm2-keyfromlabel;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id 2>> /dev/null || return 1
+	$KEYFRLAB $ENGINE_ARG -a $alg -l "pkcs11:token=softhsm2-keyfromlabel;object=${id}-${zone};pin-source=$PWD/pin" "$@" $zone >> keyfromlabel.out.$zone.$id  || return 1
 	cat keyfromlabel.out.$zone.$id
 }
 
+status=0
 infile="template.db.in"
 for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
 		   ecdsap256sha256:EC:prime256v1 ecdsap384sha384:EC:prime384v1
@@ -83,7 +85,7 @@ do
 		echo_i "Sign zone with $ksk $zsk"
 		ret=0
 		cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
-		$SIGNER -E pkcs11 -S -a -g -o "$zone" "$zonefile" > signer.out.$zone || ret=1
+		$SIGNER $ENGINE_ARG -S -a -g -o "$zone" "$zonefile" > signer.out.$zone || ret=1
 		test "$ret" -eq 0 || echo_i "failed"
 		status=$((status+ret))
 	fi
