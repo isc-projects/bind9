@@ -1,3 +1,8 @@
+6232.	[bug]		Following the introduction of krb5-subdomain-self-rhs
+			and ms-subdomain-self-rhs update rules, removal of
+			nonexistent PTR and SRV records via UPDATE could fail.
+			[GL #4280]
+
 6231.	[func]		Make nsupdate honor -v for SOA requests only if the
 			server is specified. [GL #1181]
 
