@@ -69,6 +69,8 @@ Bug Fixes
   allowed us to optimize the process of returning memory pages back to
   the operating system. :gl:`#4038`
 
+- Prevent DNS message corruption on long DNS over TLS streams. :gl:`#4255`
+
 Known Issues
 ~~~~~~~~~~~~
 
