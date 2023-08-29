@@ -6067,8 +6067,8 @@ was_dumping(dns_zone_t *zone) {
 static isc_result_t
 keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 	    dst_key_t **key) {
-	const char *directory = dns_zone_getkeydirectory(zone);
-	dns_kasp_t *kasp = dns_zone_getkasp(zone);
+	const char *directory = zone->keydirectory;
+	dns_kasp_t *kasp = zone->kasp;
 	dst_key_t *foundkey = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
 
@@ -6088,7 +6088,7 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 			if (ks == NULL ||
 			    strcmp(dns_keystore_name(ks), "key-directory") == 0)
 			{
-				directory = dns_zone_getkeydirectory(zone);
+				directory = zone->keydirectory;
 			} else {
 				directory = dns_keystore_directory(ks);
 			}
