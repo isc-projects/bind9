@@ -33,7 +33,6 @@
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-#include <isc/uv.h>
 
 #include "timer.c"
 
@@ -408,15 +407,15 @@ ISC_LOOP_TEST_SETUP_TEARDOWN_IMPL(purge) {
  * Set of tests that check whether the rescheduling works as expected.
  */
 
-uint64_t timer_start;
-uint64_t timer_stop;
+isc_time_t timer_start;
+isc_time_t timer_stop;
 uint64_t timer_expect;
 uint64_t timer_ticks;
 isc_interval_t timer_interval;
 isc_timertype_t timer_type;
 
 ISC_LOOP_TEARDOWN_IMPL(timer_expect) {
-	uint64_t diff = (timer_stop - timer_start) / 1000000000;
+	uint64_t diff = isc_time_microdiff(&timer_stop, &timer_start) / 1000000;
 	assert_true(diff == timer_expect);
 }
 
@@ -425,14 +424,14 @@ timer_event(void *arg ISC_ATTR_UNUSED) {
 	if (--timer_ticks == 0) {
 		isc_timer_destroy(&timer);
 		isc_loopmgr_shutdown(loopmgr);
-		timer_stop = uv_hrtime();
+		timer_stop = isc_loop_now(isc_loop_current(loopmgr));
 	} else {
 		isc_timer_start(timer, timer_type, &timer_interval);
 	}
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_up) {
-	timer_start = uv_hrtime();
+	timer_start = isc_loop_now(isc_loop_current(loopmgr));
 	timer_expect = 1;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -446,13 +445,13 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_up, setup_loop_reschedule_up,
 	isc_interval_set(&timer_interval, 0, 0);
 	isc_timer_start(timer, timer_type, &timer_interval);
 
-	/* And then reschedule it to 2 seconds */
+	/* And then reschedule it to 1 second */
 	isc_interval_set(&timer_interval, 1, 0);
 	isc_timer_start(timer, timer_type, &timer_interval);
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_down) {
-	timer_start = uv_hrtime();
+	timer_start = isc_loop_now(isc_loop_current(loopmgr));
 	timer_expect = 0;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -462,7 +461,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_down, setup_loop_reschedule_down,
 			  teardown_loop_timer_expect) {
 	isc_timer_create(mainloop, timer_event, NULL, &timer);
 
-	/* Schedule the timer to fire at 1 second */
+	/* Schedule the timer to fire at 10 seconds */
 	isc_interval_set(&timer_interval, 10, 0);
 	isc_timer_start(timer, timer_type, &timer_interval);
 
@@ -472,7 +471,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_down, setup_loop_reschedule_down,
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_from_callback) {
-	timer_start = uv_hrtime();
+	timer_start = isc_loop_now(isc_loop_current(loopmgr));
 	timer_expect = 1;
 	timer_ticks = 2;
 	timer_type = isc_timertype_once;
@@ -488,7 +487,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(reschedule_from_callback,
 }
 
 ISC_LOOP_SETUP_IMPL(zero) {
-	timer_start = uv_hrtime();
+	timer_start = isc_loop_now(isc_loop_current(loopmgr));
 	timer_expect = 0;
 	timer_ticks = 1;
 	timer_type = isc_timertype_once;
@@ -503,7 +502,7 @@ ISC_LOOP_TEST_CUSTOM_IMPL(zero, setup_loop_zero, teardown_loop_timer_expect) {
 }
 
 ISC_LOOP_SETUP_IMPL(reschedule_ticker) {
-	timer_start = uv_hrtime();
+	timer_start = isc_loop_now(isc_loop_current(loopmgr));
 	timer_expect = 1;
 	timer_ticks = 5;
 	timer_type = isc_timertype_ticker;
