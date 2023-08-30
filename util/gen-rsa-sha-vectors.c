@@ -131,5 +131,8 @@ main() {
 	}
 	printf("\";\n\n");
 
+	EVP_MD_CTX_free(evp_md_ctx);
+	EVP_PKEY_free(pkey);
+
 	return (0);
 }
