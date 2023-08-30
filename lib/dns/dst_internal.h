@@ -93,6 +93,7 @@ struct dst_key {
 	isc_mem_t *mctx;	    /*%< memory context */
 	char *engine;		    /*%< engine name (HSM) */
 	char *label;		    /*%< engine label (HSM) */
+	char *object;		    /*%< engine object (HSM) */
 	union {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;

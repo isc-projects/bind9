@@ -124,7 +124,7 @@ generate_key(isc_mem_t *mctx, dns_secalg_t alg, int keysize,
 
 	DO("generate key",
 	   dst_key_generate(dns_rootname, alg, keysize, 0, 0, DNS_KEYPROTO_ANY,
-			    dns_rdataclass_in, mctx, &key, NULL));
+			    dns_rdataclass_in, NULL, mctx, &key, NULL));
 
 	isc_buffer_init(&key_rawbuffer, &key_rawsecret, sizeof(key_rawsecret));
 

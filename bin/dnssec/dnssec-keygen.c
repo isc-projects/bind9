@@ -692,14 +692,15 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			fprintf(stderr, "Generating key pair.");
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
-					       ctx->rdclass, mctx, &key,
+					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
 			putc('\n', stderr);
 			fflush(stderr);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
-					       ctx->rdclass, mctx, &key, NULL);
+					       ctx->rdclass, NULL, mctx, &key,
+					       NULL);
 		}
 
 		if (ret != ISC_R_SUCCESS) {

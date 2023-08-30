@@ -629,8 +629,8 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 isc_result_t
 dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 		 unsigned int param, unsigned int flags, unsigned int protocol,
-		 dns_rdataclass_t rdclass, isc_mem_t *mctx, dst_key_t **keyp,
-		 void (*callback)(int));
+		 dns_rdataclass_t rdclass, const char *object, isc_mem_t *mctx,
+		 dst_key_t **keyp, void (*callback)(int));
 
 /*%<
  * Generate a DST key (or keypair) with the supplied parameters.  The

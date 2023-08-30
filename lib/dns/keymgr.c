@@ -459,8 +459,8 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 			keyflags |= DNS_KEYFLAG_KSK;
 		}
 		RETERR(dst_key_generate(origin, algo, size, 0, keyflags,
-					DNS_KEYPROTO_DNSSEC, rdclass, mctx,
-					&newkey, NULL));
+					DNS_KEYPROTO_DNSSEC, rdclass, NULL,
+					mctx, &newkey, NULL));
 
 		/* Key collision? */
 		conflict = keymgr_keyid_conflict(newkey, keylist);

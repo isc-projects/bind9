@@ -7435,7 +7435,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	/* generate key */
 	result = dst_key_generate(keyname, alg, bits, 1, 0, DNS_KEYPROTO_ANY,
-				  dns_rdataclass_in, mctx, &key, NULL);
+				  dns_rdataclass_in, NULL, mctx, &key, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
