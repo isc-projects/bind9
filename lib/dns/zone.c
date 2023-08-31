@@ -17618,7 +17618,8 @@ got_transfer_quota(void *arg) {
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		CHECK(ISC_R_CANCELED);
+		zone_xfrdone(zone, NULL, ISC_R_CANCELED);
+		return;
 	}
 
 	now = isc_time_now();
@@ -17633,7 +17634,8 @@ got_transfer_quota(void *arg) {
 			      "got_transfer_quota: skipping zone transfer as "
 			      "primary %s (source %s) is unreachable (cached)",
 			      primary, source);
-		CHECK(ISC_R_CANCELED);
+		zone_xfrdone(zone, NULL, ISC_R_CANCELED);
+		return;
 	}
 
 	isc_netaddr_fromsockaddr(&primaryip, &primaryaddr);
@@ -17711,33 +17713,32 @@ got_transfer_quota(void *arg) {
 		dns_name_t *keyname = dns_remote_keyname(&zone->primaries);
 		result = dns_view_gettsig(view, keyname, &zone->tsigkey);
 	}
-	if (zone->tsigkey == NULL) {
+	if (result != ISC_R_SUCCESS) {
+		INSIST(zone->tsigkey == NULL);
 		result = dns_view_getpeertsig(zone->view, &primaryip,
 					      &zone->tsigkey);
 	}
-
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
 			      "could not get TSIG key for zone transfer: %s",
 			      isc_result_totext(result));
 	}
 
+	/*
+	 * Get the TLS transport for the primary, if configured.
+	 */
 	if (dns_remote_tlsname(&zone->primaries) != NULL) {
 		dns_view_t *view = dns_zone_getview(zone);
 		dns_name_t *tlsname = dns_remote_tlsname(&zone->primaries);
 		result = dns_view_gettransport(view, DNS_TRANSPORT_TLS, tlsname,
 					       &zone->transport);
-
-		dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_INFO,
-			      "got TLS configuration for zone transfer: %s",
-			      isc_result_totext(result));
-	}
-
-	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
-		dns_zone_logc(
-			zone, DNS_LOGCATEGORY_XFER_IN, ISC_LOG_ERROR,
-			"could not get TLS configuration for zone transfer: %s",
-			isc_result_totext(result));
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
+			dns_zone_logc(zone, DNS_LOGCATEGORY_XFER_IN,
+				      ISC_LOG_ERROR,
+				      "could not get TLS configuration for "
+				      "zone transfer: %s",
+				      isc_result_totext(result));
+		}
 	}
 
 	LOCK_ZONE(zone);
@@ -17751,12 +17752,22 @@ got_transfer_quota(void *arg) {
 
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
 
-	CHECK(dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
-			       zone->tsigkey, zone->transport,
-			       zmgr_tlsctx_cache, zone->mctx, zone_xfrdone,
-			       &zone->xfr));
+	result = dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
+				  zone->tsigkey, zone->transport,
+				  zmgr_tlsctx_cache, zone->mctx, zone_xfrdone,
+				  &zone->xfr);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
+
+	/*
+	 * Any failure in this function is handled like a failed
+	 * zone transfer.  This ensures that we get removed from
+	 * zmgr->xfrin_in_progress.
+	 */
+	if (result != ISC_R_SUCCESS) {
+		zone_xfrdone(zone, NULL, result);
+		return;
+	}
 
 	LOCK_ZONE(zone);
 	if (xfrtype == dns_rdatatype_axfr) {
@@ -17773,20 +17784,6 @@ got_transfer_quota(void *arg) {
 		}
 	}
 	UNLOCK_ZONE(zone);
-
-failure:
-	/*
-	 * Any failure in this function is handled like a failed
-	 * zone transfer.  This ensures that we get removed from
-	 * zmgr->xfrin_in_progress.
-	 */
-	if (result != ISC_R_SUCCESS) {
-		zone_xfrdone(zone, NULL, result);
-	}
-
-	if (zmgr_tlsctx_cache != NULL) {
-		isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
-	}
 }
 
 /*
