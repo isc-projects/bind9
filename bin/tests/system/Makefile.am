@@ -18,6 +18,8 @@ LDADD +=			\
 	$(LIBISC_LIBS)
 
 if HAVE_PERL
+if HAVE_PYTHON
+if HAVE_PYTEST
 
 noinst_PROGRAMS =		\
 	feature-test		\
@@ -110,10 +112,12 @@ TESTS +=			\
 	catz			\
 	cds			\
 	checkconf		\
+	checkds			\
 	checknames		\
 	checkzone		\
 	database		\
 	dialup			\
+	dispatch		\
 	dlzexternal		\
 	dns64			\
 	dsdigest		\
@@ -135,8 +139,10 @@ TESTS +=			\
 	hooks			\
 	host			\
 	journal			\
+	kasp			\
 	keepalive		\
 	keyfromlabel		\
+	keymgr2kasp		\
 	legacy			\
 	limits			\
 	logfileconfig		\
@@ -151,22 +157,27 @@ TESTS +=			\
 	nslookup		\
 	padding			\
 	pending			\
+	pipelined		\
 	redirect		\
 	rndc			\
 	rootkeysentinel		\
 	rpz			\
+	rpzextra		\
 	rrchecker		\
 	rrl			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
 	sfcache			\
+	shutdown		\
 	smartsign		\
 	sortlist		\
 	spf			\
 	staticstub		\
 	stub			\
 	synthfromdnssec		\
+	tcp			\
+	timeouts		\
 	tkey			\
 	tools			\
 	transport-acl		\
@@ -214,13 +225,6 @@ endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 
 endif HAVE_PERLMOD_NET_DNS
 
-if HAVE_PYTHON
-TESTS += kasp keymgr2kasp tcp pipelined
-
-if HAVE_PYTEST
-TESTS += checkds dispatch rpzextra shutdown timeouts
-endif
-
 if HAVE_PYMOD_DNS
 TESTS += qmin cookie
 if HAVE_PERLMOD_NET_DNS
@@ -231,8 +235,16 @@ endif HAVE_PERLMOD_NET_DNS_NAMESERVER
 endif HAVE_PERLMOD_NET_DNS
 endif HAVE_PYMOD_DNS
 
-endif HAVE_PYTHON
-
+else !HAVE_PYTEST
+check:
+	echo pytest is not available, no tests were ran
+	exit 1
+endif !HAVE_PYTEST
+else !HAVE_PYTHON
+check:
+	echo Python is not available, no tests were ran
+	exit 1
+endif !HAVE_PYTHON
 else !HAVE_PERL
 check:
 	echo Perl is not available, no tests were ran
@@ -247,10 +259,7 @@ LOG_DRIVER_V_1 = --verbose yes
 LOG_DRIVER = $(srcdir)/custom-test-driver
 AM_LOG_DRIVER_FLAGS = $(LOG_DRIVER_V)
 
-LOG_COMPILER = $(builddir)/legacy.run.sh
-AM_LOG_FLAGS = -r
-
-$(TESTS): legacy.run.sh
+LOG_COMPILER = $(srcdir)/run.sh
 
 test-local: check
 
