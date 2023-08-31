@@ -20,7 +20,7 @@ Security Fixes
   DNS-over-HTTPS (DoH) clients. This has been fixed.
 
   ISC would like to thank Thomas Amgarten from arcade solutions ag for
-  bringing this vulnerability to our attention. (CVE-2022-1183)
+  bringing this vulnerability to our attention. :cve:`2022-1183`
   :gl:`#3216`
 
 Known Issues
