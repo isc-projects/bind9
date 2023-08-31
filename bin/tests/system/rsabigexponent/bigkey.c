@@ -66,6 +66,7 @@ EVP_PKEY *pkey;
 				"%d\n",                                       \
 				msg, isc_result_totext(result), __FILE__,     \
 				__LINE__);                                    \
+			ERR_clear_error();                                    \
 			exit(1);                                              \
 		}                                                             \
 	} while (0)
