@@ -16,7 +16,7 @@ Security Fixes
 ~~~~~~~~~~~~~~
 
 - It was possible to trigger an assertion failure by sending a specially
-  crafted large TCP DNS message. This was disclosed in CVE-2020-8620.
+  crafted large TCP DNS message. :cve:`2020-8620`
 
   ISC would like to thank Emanuel Almeida of Cisco Systems, Inc. for
   bringing this vulnerability to our attention. :gl:`#1996`
@@ -25,14 +25,13 @@ Security Fixes
   query resolution scenarios where QNAME minimization and forwarding
   were both enabled. To prevent such crashes, QNAME minimization is now
   always disabled for a given query resolution process, if forwarders
-  are used at any point. This was disclosed in CVE-2020-8621.
+  are used at any point. :cve:`2020-8621`
 
   ISC would like to thank Joseph Gullo for bringing this vulnerability
   to our attention. :gl:`#1997`
 
 - It was possible to trigger an assertion failure when verifying the
-  response to a TSIG-signed request. This was disclosed in
-  CVE-2020-8622.
+  response to a TSIG-signed request. :cve:`2020-8622`
 
   ISC would like to thank Dave Feldman, Jeff Warren, and Joel Cunningham
   of Oracle for bringing this vulnerability to our attention.
@@ -40,8 +39,8 @@ Security Fixes
 
 - When BIND 9 was compiled with native PKCS#11 support, it was possible
   to trigger an assertion failure in code determining the number of bits
-  in the PKCS#11 RSA public key with a specially crafted packet. This
-  was disclosed in CVE-2020-8623.
+  in the PKCS#11 RSA public key with a specially crafted packet.
+  :cve:`2020-8623`
 
   ISC would like to thank Lyu Chiy for bringing this vulnerability to
   our attention. :gl:`#2037`
@@ -50,7 +49,7 @@ Security Fixes
   as ``zonesub`` rules, which allowed keys used in ``subdomain`` rules
   to update names outside of the specified subdomains. The problem was
   fixed by making sure ``subdomain`` rules are again processed as
-  described in the ARM. This was disclosed in CVE-2020-8624.
+  described in the ARM. :cve:`2020-8624`
 
   ISC would like to thank Joop Boonen of credativ GmbH for bringing this
   vulnerability to our attention. :gl:`#2055`

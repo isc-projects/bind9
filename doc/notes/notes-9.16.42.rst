@@ -17,7 +17,7 @@ Security Fixes
 
 - The overmem cleaning process has been improved, to prevent the cache
   from significantly exceeding the configured ``max-cache-size`` limit.
-  (CVE-2023-2828)
+  :cve:`2023-2828`
 
   ISC would like to thank Shoham Danino from Reichman University, Anat
   Bremler-Barr from Tel-Aviv University, Yehuda Afek from Tel-Aviv
@@ -28,7 +28,7 @@ Security Fixes
   refresh the stale data in cache. If the fetch is aborted for exceeding
   the recursion quota, it was possible for :iscman:`named` to enter an
   infinite callback loop and crash due to stack overflow. This has been
-  fixed. (CVE-2023-2911) :gl:`#4089`
+  fixed. :cve:`2023-2911` :gl:`#4089`
 
 Bug Fixes
 ~~~~~~~~~
