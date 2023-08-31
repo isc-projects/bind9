@@ -563,6 +563,7 @@ opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
 
 	privkey = EC_KEY_get0_private_key(eckey);
 	if (privkey == NULL) {
+		ERR_clear_error();
 		return (false);
 	}
 
