@@ -30,6 +30,7 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/peer.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -141,7 +142,8 @@ struct dns_xfrin {
 
 	xfrin_state_t state;
 	uint32_t end_serial;
-	bool is_ixfr;
+	uint32_t expireopt;
+	bool edns, is_ixfr, expireoptset;
 
 	unsigned int nmsg;  /*%< Number of messages recvd */
 	unsigned int nrecs; /*%< Number of records recvd */
@@ -833,7 +835,9 @@ xfrin_fail(dns_xfrin_t *xfr, isc_result_t result, const char *msg) {
 			dns_journal_destroy(&xfr->ixfr.journal);
 		}
 		if (xfr->done != NULL) {
-			(xfr->done)(xfr->zone, result);
+			(xfr->done)(xfr->zone,
+				    xfr->expireoptset ? &xfr->expireopt : NULL,
+				    result);
 			xfr->done = NULL;
 		}
 		xfr->shutdown_result = result;
@@ -860,6 +864,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		.primaryaddr = *primaryaddr,
 		.sourceaddr = *sourceaddr,
 		.firstsoa = DNS_RDATA_INIT,
+		.edns = true,
 		.magic = XFRIN_MAGIC,
 	};
 
@@ -1147,6 +1152,38 @@ request_type(dns_xfrin_t *xfr) {
 	}
 }
 
+static isc_result_t
+add_opt(dns_message_t *message, uint16_t udpsize, bool reqnsid,
+	bool reqexpire) {
+	isc_result_t result;
+	dns_rdataset_t *rdataset = NULL;
+	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
+	int count = 0;
+
+	/* Set EDNS options if applicable. */
+	if (reqnsid) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_NSID;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
+	}
+	if (reqexpire) {
+		INSIST(count < DNS_EDNSOPTIONS);
+		ednsopts[count].code = DNS_OPT_EXPIRE;
+		ednsopts[count].length = 0;
+		ednsopts[count].value = NULL;
+		count++;
+	}
+	result = dns_message_buildopt(message, &rdataset, 0, udpsize, 0,
+				      ednsopts, count);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	return (dns_message_setopt(message, rdataset));
+}
+
 /*
  * Build an *XFR request and send its length prefix.
  */
@@ -1160,6 +1197,10 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	dns_name_t *qname = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_name_t *msgsoaname = NULL;
+	bool edns = xfr->edns;
+	bool reqnsid = xfr->view->requestnsid;
+	bool reqexpire = dns_zone_getrequestexpire(xfr->zone);
+	uint16_t udpsize = dns_view_getudpsize(xfr->view);
 
 	LIBDNS_XFRIN_RECV_SEND_REQUEST(xfr, xfr->info);
 
@@ -1196,6 +1237,24 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 	} else if (xfr->reqtype == dns_rdatatype_soa) {
 		CHECK(dns_db_getsoaserial(xfr->db, NULL,
 					  &xfr->ixfr.request_serial));
+	}
+
+	if (edns && xfr->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_netaddr_t primaryip;
+		isc_netaddr_fromsockaddr(&primaryip, &xfr->primaryaddr);
+		result = dns_peerlist_peerbyaddr(xfr->view->peers, &primaryip,
+						 &peer);
+		if (result == ISC_R_SUCCESS) {
+			(void)dns_peer_getsupportedns(peer, &edns);
+			(void)dns_peer_getudpsize(peer, &udpsize);
+			(void)dns_peer_getrequestnsid(peer, &reqnsid);
+			(void)dns_peer_getrequestexpire(peer, &reqexpire);
+		}
+	}
+
+	if (edns) {
+		CHECK(add_opt(msg, udpsize, reqnsid, reqexpire));
 	}
 
 	xfr->nmsg = 0;
@@ -1268,6 +1327,38 @@ failure:
 }
 
 static void
+get_edns_expire(dns_xfrin_t *xfr, dns_message_t *msg) {
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_buffer_t optbuf;
+	uint16_t optcode;
+	uint16_t optlen;
+
+	result = dns_rdataset_first(msg->opt);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_current(msg->opt, &rdata);
+		isc_buffer_init(&optbuf, rdata.data, rdata.length);
+		isc_buffer_add(&optbuf, rdata.length);
+		while (isc_buffer_remaininglength(&optbuf) >= 4) {
+			optcode = isc_buffer_getuint16(&optbuf);
+			optlen = isc_buffer_getuint16(&optbuf);
+			/*
+			 * A EDNS EXPIRE response has a length of 4.
+			 */
+			if (optcode != DNS_OPT_EXPIRE || optlen != 4) {
+				isc_buffer_forward(&optbuf, optlen);
+				continue;
+			}
+			xfr->expireopt = isc_buffer_getuint32(&optbuf);
+			xfr->expireoptset = true;
+			dns_zone_log(xfr->zone, ISC_LOG_DEBUG(1),
+				     "got EDNS EXPIRE of %u", xfr->expireopt);
+			break;
+		}
+	}
+}
+
+static void
 xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	dns_xfrin_t *xfr = (dns_xfrin_t *)arg;
 	dns_message_t *msg = NULL;
@@ -1324,7 +1415,17 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	if (result != ISC_R_SUCCESS || msg->rcode != dns_rcode_noerror ||
 	    msg->opcode != dns_opcode_query || msg->rdclass != xfr->rdclass)
 	{
-		if (result == ISC_R_SUCCESS && msg->rcode != dns_rcode_noerror)
+		if (result == ISC_R_SUCCESS &&
+		    msg->rcode == dns_rcode_formerr && xfr->edns &&
+		    (xfr->state == XFRST_SOAQUERY ||
+		     xfr->state == XFRST_INITIALSOA))
+		{
+			xfr->edns = false;
+			dns_message_detach(&msg);
+			xfrin_reset(xfr);
+			goto try_again;
+		} else if (result == ISC_R_SUCCESS &&
+			   msg->rcode != dns_rcode_noerror)
 		{
 			result = dns_result_fromrcode(msg->rcode);
 		} else if (result == ISC_R_SUCCESS &&
@@ -1353,6 +1454,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		xfrin_reset(xfr);
 		xfr->reqtype = dns_rdatatype_soa;
 		xfr->state = XFRST_SOAQUERY;
+	try_again:
 		result = xfrin_start(xfr);
 		if (result != ISC_R_SUCCESS) {
 			xfrin_fail(xfr, result, "failed setting up socket");
@@ -1518,6 +1620,10 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	xfr->tsigctx = msg->tsigctx;
 	msg->tsigctx = NULL;
 
+	if (!xfr->expireoptset && msg->opt != NULL) {
+		get_edns_expire(xfr, msg);
+	}
+
 	switch (xfr->state) {
 	case XFRST_GOTSOA:
 		xfr->reqtype = dns_rdatatype_axfr;
@@ -1545,7 +1651,9 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		if (xfr->done != NULL) {
 			LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, xfr->info,
 							 result);
-			(xfr->done)(xfr->zone, ISC_R_SUCCESS);
+			(xfr->done)(xfr->zone,
+				    xfr->expireoptset ? &xfr->expireopt : NULL,
+				    ISC_R_SUCCESS);
 			xfr->done = NULL;
 			LIBDNS_XFRIN_DONE_CALLBACK_END(xfr, xfr->info, result);
 		}

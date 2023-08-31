@@ -434,7 +434,7 @@ typedef isc_result_t (*dns_additionaldatafunc_t)(
 
 typedef isc_result_t (*dns_digestfunc_t)(void *, isc_region_t *);
 
-typedef void (*dns_xfrindone_t)(dns_zone_t *, isc_result_t);
+typedef void (*dns_xfrindone_t)(dns_zone_t *, uint32_t *, isc_result_t);
 
 typedef void (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
 
