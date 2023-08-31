@@ -2123,11 +2123,11 @@ cleanup:
 		ISC_LIST_UNLINK(glue_list, this, link);
 	}
 	if (rdatalist != NULL) {
-		isc_mem_put(mctx, rdatalist,
-			    rdatalist_size * sizeof(*rdatalist));
+		isc_mem_cput(mctx, rdatalist, rdatalist_size,
+			     sizeof(*rdatalist));
 	}
 	if (rdata != NULL) {
-		isc_mem_put(mctx, rdata, rdata_size * sizeof(*rdata));
+		isc_mem_cput(mctx, rdata, rdata_size, sizeof(*rdata));
 	}
 	if (target_mem != NULL) {
 		isc_mem_put(mctx, target_mem, target_size);
@@ -2599,7 +2599,7 @@ load_raw(dns_loadctx_t *lctx) {
 
 cleanup:
 	if (rdata != NULL) {
-		isc_mem_put(mctx, rdata, rdata_size * sizeof(*rdata));
+		isc_mem_cput(mctx, rdata, rdata_size, sizeof(*rdata));
 	}
 	if (target_mem != NULL) {
 		isc_mem_put(mctx, target_mem, target_size);
@@ -2753,10 +2753,7 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 	ISC_LIST(dns_rdatalist_t) save;
 	dns_rdatalist_t *this;
 
-	newlist = isc_mem_get(mctx, new_len * sizeof(*newlist));
-	if (newlist == NULL) {
-		return (NULL);
-	}
+	newlist = isc_mem_cget(mctx, new_len, sizeof(newlist[0]));
 
 	ISC_LIST_INIT(save);
 	while ((this = ISC_LIST_HEAD(*current)) != NULL) {
@@ -2786,7 +2783,7 @@ grow_rdatalist(int new_len, dns_rdatalist_t *oldlist, int old_len,
 
 	INSIST(rdlcount == old_len);
 	if (oldlist != NULL) {
-		isc_mem_put(mctx, oldlist, old_len * sizeof(*oldlist));
+		isc_mem_cput(mctx, oldlist, old_len, sizeof(*oldlist));
 	}
 	return (newlist);
 }
@@ -2804,11 +2801,7 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	dns_rdatalist_t *this;
 	dns_rdata_t *rdata;
 
-	newlist = isc_mem_get(mctx, new_len * sizeof(*newlist));
-	if (newlist == NULL) {
-		return (NULL);
-	}
-	memset(newlist, 0, new_len * sizeof(*newlist));
+	newlist = isc_mem_cget(mctx, new_len, sizeof(*newlist));
 
 	/*
 	 * Copy current relinking.
@@ -2851,7 +2844,7 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	}
 	INSIST(rdcount == old_len || rdcount == 0);
 	if (oldlist != NULL) {
-		isc_mem_put(mctx, oldlist, old_len * sizeof(*oldlist));
+		isc_mem_cput(mctx, oldlist, old_len, sizeof(*oldlist));
 	}
 	return (newlist);
 }

@@ -953,11 +953,11 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 
 	v4ports = NULL;
 	if (nv4ports != 0) {
-		v4ports = isc_mem_get(mgr->mctx, sizeof(in_port_t) * nv4ports);
+		v4ports = isc_mem_cget(mgr->mctx, nv4ports, sizeof(in_port_t));
 	}
 	v6ports = NULL;
 	if (nv6ports != 0) {
-		v6ports = isc_mem_get(mgr->mctx, sizeof(in_port_t) * nv6ports);
+		v6ports = isc_mem_cget(mgr->mctx, nv6ports, sizeof(in_port_t));
 	}
 
 	do {
@@ -973,15 +973,15 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 	INSIST(i4 == nv4ports && i6 == nv6ports);
 
 	if (mgr->v4ports != NULL) {
-		isc_mem_put(mgr->mctx, mgr->v4ports,
-			    mgr->nv4ports * sizeof(in_port_t));
+		isc_mem_cput(mgr->mctx, mgr->v4ports, mgr->nv4ports,
+			     sizeof(in_port_t));
 	}
 	mgr->v4ports = v4ports;
 	mgr->nv4ports = nv4ports;
 
 	if (mgr->v6ports != NULL) {
-		isc_mem_put(mgr->mctx, mgr->v6ports,
-			    mgr->nv6ports * sizeof(in_port_t));
+		isc_mem_cput(mgr->mctx, mgr->v6ports, mgr->nv6ports,
+			     sizeof(in_port_t));
 	}
 	mgr->v6ports = v6ports;
 	mgr->nv6ports = nv6ports;
@@ -1082,12 +1082,12 @@ dispatchmgr_destroy(dns_dispatchmgr_t *mgr) {
 	}
 
 	if (mgr->v4ports != NULL) {
-		isc_mem_put(mgr->mctx, mgr->v4ports,
-			    mgr->nv4ports * sizeof(in_port_t));
+		isc_mem_cput(mgr->mctx, mgr->v4ports, mgr->nv4ports,
+			     sizeof(in_port_t));
 	}
 	if (mgr->v6ports != NULL) {
-		isc_mem_put(mgr->mctx, mgr->v6ports,
-			    mgr->nv6ports * sizeof(in_port_t));
+		isc_mem_cput(mgr->mctx, mgr->v6ports, mgr->nv6ports,
+			     sizeof(in_port_t));
 	}
 
 	isc_nm_detach(&mgr->nm);
@@ -1115,8 +1115,8 @@ qid_allocate(dns_dispatchmgr_t *mgr, dns_qid_t **qidp) {
 	*qid = (dns_qid_t){ .qid_nbuckets = DNS_QID_BUCKETS,
 			    .qid_increment = DNS_QID_INCREMENT };
 
-	qid->qid_table = isc_mem_get(mgr->mctx,
-				     DNS_QID_BUCKETS * sizeof(dns_displist_t));
+	qid->qid_table = isc_mem_cget(mgr->mctx, DNS_QID_BUCKETS,
+				      sizeof(dns_displist_t));
 	for (i = 0; i < qid->qid_nbuckets; i++) {
 		ISC_LIST_INIT(qid->qid_table[i]);
 	}
@@ -1137,8 +1137,8 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp) {
 	REQUIRE(VALID_QID(qid));
 
 	qid->magic = 0;
-	isc_mem_put(mctx, qid->qid_table,
-		    qid->qid_nbuckets * sizeof(dns_displist_t));
+	isc_mem_cput(mctx, qid->qid_table, qid->qid_nbuckets,
+		     sizeof(dns_displist_t));
 	isc_mutex_destroy(&qid->lock);
 	isc_mem_put(mctx, qid, sizeof(*qid));
 }
@@ -2290,7 +2290,7 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 
 	isc_mutex_init(&dset->lock);
 
-	dset->dispatches = isc_mem_get(mctx, sizeof(dns_dispatch_t *) * n);
+	dset->dispatches = isc_mem_cget(mctx, n, sizeof(dns_dispatch_t *));
 
 	isc_mem_attach(mctx, &dset->mctx);
 
@@ -2318,7 +2318,7 @@ fail:
 	for (j = 0; j < i; j++) {
 		dns_dispatch_detach(&(dset->dispatches[j])); /* DISPATCH004 */
 	}
-	isc_mem_put(mctx, dset->dispatches, sizeof(dns_dispatch_t *) * n);
+	isc_mem_cput(mctx, dset->dispatches, n, sizeof(dns_dispatch_t *));
 	if (dset->mctx == mctx) {
 		isc_mem_detach(&dset->mctx);
 	}
@@ -2340,8 +2340,8 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
 	for (i = 0; i < dset->ndisp; i++) {
 		dns_dispatch_detach(&(dset->dispatches[i])); /* DISPATCH004 */
 	}
-	isc_mem_put(dset->mctx, dset->dispatches,
-		    sizeof(dns_dispatch_t *) * dset->ndisp);
+	isc_mem_cput(dset->mctx, dset->dispatches, dset->ndisp,
+		     sizeof(dns_dispatch_t *));
 	isc_mutex_destroy(&dset->lock);
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 }

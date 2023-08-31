@@ -72,8 +72,8 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	remote->mctx = mctx;
 
 	if (addrs != NULL) {
-		remote->addresses = isc_mem_get(mctx,
-						count * sizeof(isc_sockaddr_t));
+		remote->addresses = isc_mem_cget(mctx, count,
+						 sizeof(isc_sockaddr_t));
 		memmove(remote->addresses, addrs,
 			count * sizeof(isc_sockaddr_t));
 	} else {
@@ -81,16 +81,16 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	}
 
 	if (srcs != NULL) {
-		remote->sources = isc_mem_get(mctx,
-					      count * sizeof(isc_sockaddr_t));
+		remote->sources = isc_mem_cget(mctx, count,
+					       sizeof(isc_sockaddr_t));
 		memmove(remote->sources, srcs, count * sizeof(isc_sockaddr_t));
 	} else {
 		remote->sources = NULL;
 	}
 
 	if (keynames != NULL) {
-		remote->keynames = isc_mem_get(mctx,
-					       count * sizeof(keynames[0]));
+		remote->keynames = isc_mem_cget(mctx, count,
+						sizeof(keynames[0]));
 		for (i = 0; i < count; i++) {
 			remote->keynames[i] = NULL;
 		}
@@ -108,8 +108,8 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	}
 
 	if (tlsnames != NULL) {
-		remote->tlsnames = isc_mem_get(mctx,
-					       count * sizeof(tlsnames[0]));
+		remote->tlsnames = isc_mem_cget(mctx, count,
+						sizeof(tlsnames[0]));
 		for (i = 0; i < count; i++) {
 			remote->tlsnames[i] = NULL;
 		}
@@ -127,7 +127,7 @@ dns_remote_init(dns_remote_t *remote, unsigned int count,
 	}
 
 	if (mark) {
-		remote->ok = isc_mem_get(mctx, count * sizeof(bool));
+		remote->ok = isc_mem_cget(mctx, count, sizeof(bool));
 		for (i = 0; i < count; i++) {
 			remote->ok[i] = false;
 		}
@@ -199,19 +199,19 @@ dns_remote_clear(dns_remote_t *remote) {
 	}
 
 	if (remote->ok != NULL) {
-		isc_mem_put(mctx, remote->ok, count * sizeof(bool));
+		isc_mem_cput(mctx, remote->ok, count, sizeof(bool));
 		remote->ok = NULL;
 	}
 
 	if (remote->addresses != NULL) {
-		isc_mem_put(mctx, remote->addresses,
-			    count * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, remote->addresses, count,
+			     sizeof(isc_sockaddr_t));
 		remote->addresses = NULL;
 	}
 
 	if (remote->sources != NULL) {
-		isc_mem_put(mctx, remote->sources,
-			    count * sizeof(isc_sockaddr_t));
+		isc_mem_cput(mctx, remote->sources, count,
+			     sizeof(isc_sockaddr_t));
 		remote->sources = NULL;
 	}
 
@@ -225,8 +225,8 @@ dns_remote_clear(dns_remote_t *remote) {
 				remote->keynames[i] = NULL;
 			}
 		}
-		isc_mem_put(mctx, remote->keynames,
-			    count * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, remote->keynames, count,
+			     sizeof(dns_name_t *));
 		remote->keynames = NULL;
 	}
 
@@ -240,8 +240,8 @@ dns_remote_clear(dns_remote_t *remote) {
 				remote->tlsnames[i] = NULL;
 			}
 		}
-		isc_mem_put(mctx, remote->tlsnames,
-			    count * sizeof(dns_name_t *));
+		isc_mem_cput(mctx, remote->tlsnames, count,
+			     sizeof(dns_name_t *));
 		remote->tlsnames = NULL;
 	}
 

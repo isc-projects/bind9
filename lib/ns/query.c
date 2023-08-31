@@ -731,8 +731,8 @@ query_reset(ns_client_t *client, bool everything) {
 		ns_client_putrdataset(client, &client->query.dns64_sigaaaa);
 	}
 	if (client->query.dns64_aaaaok != NULL) {
-		isc_mem_put(client->manager->mctx, client->query.dns64_aaaaok,
-			    client->query.dns64_aaaaoklen * sizeof(bool));
+		isc_mem_cput(client->manager->mctx, client->query.dns64_aaaaok,
+			     client->query.dns64_aaaaoklen, sizeof(bool));
 		client->query.dns64_aaaaok = NULL;
 		client->query.dns64_aaaaoklen = 0;
 	}
@@ -4962,7 +4962,7 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 	}
 
 	count = dns_rdataset_count(rdataset);
-	aaaaok = isc_mem_get(client->manager->mctx, sizeof(bool) * count);
+	aaaaok = isc_mem_cget(client->manager->mctx, count, sizeof(bool));
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	if (dns_dns64_aaaaok(dns64, &netaddr, client->signer, env, flags,
@@ -4976,14 +4976,14 @@ dns64_aaaaok(ns_client_t *client, dns_rdataset_t *rdataset,
 			}
 		}
 		if (aaaaok != NULL) {
-			isc_mem_put(client->manager->mctx, aaaaok,
-				    sizeof(bool) * count);
+			isc_mem_cput(client->manager->mctx, aaaaok, count,
+				     sizeof(bool));
 		}
 		return (true);
 	}
 	if (aaaaok != NULL) {
-		isc_mem_put(client->manager->mctx, aaaaok,
-			    sizeof(bool) * count);
+		isc_mem_cput(client->manager->mctx, aaaaok, count,
+			     sizeof(bool));
 	}
 	return (false);
 }

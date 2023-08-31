@@ -1700,8 +1700,7 @@ send_update(ns_client_t *client, dns_zone_t *zone) {
 	 */
 	if (ssutable != NULL) {
 		ruleslen = request->counts[DNS_SECTION_UPDATE];
-		rules = isc_mem_getx(mctx, sizeof(*rules) * ruleslen,
-				     ISC_MEM_ZERO);
+		rules = isc_mem_cget(mctx, ruleslen, sizeof(*rules));
 	}
 
 	for (rule = 0,
@@ -1912,7 +1911,7 @@ failure:
 	}
 
 	if (rules != NULL) {
-		isc_mem_put(mctx, rules, sizeof(*rules) * ruleslen);
+		isc_mem_cput(mctx, rules, ruleslen, sizeof(*rules));
 	}
 
 	if (ssutable != NULL) {
@@ -3461,7 +3460,7 @@ common:
 	}
 
 	if (rules != NULL) {
-		isc_mem_put(mctx, rules, sizeof(*rules) * ruleslen);
+		isc_mem_cput(mctx, rules, ruleslen, sizeof(*rules));
 	}
 
 	if (ssutable != NULL) {

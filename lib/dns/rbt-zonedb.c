@@ -2116,7 +2116,8 @@ setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 
 static dns_glue_t *
 new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
-	dns_glue_t *glue = isc_mem_getx(mctx, sizeof(*glue), ISC_MEM_ZERO);
+	dns_glue_t *glue = isc_mem_get(mctx, sizeof(*glue));
+	*glue = (dns_glue_t){ 0 };
 	dns_name_t *gluename = dns_fixedname_initname(&glue->fixedname);
 
 	isc_mem_attach(mctx, &glue->mctx);

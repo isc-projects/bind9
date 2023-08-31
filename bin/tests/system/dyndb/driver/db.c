@@ -606,17 +606,16 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	a_addr.s_addr = 0x0100007fU;
 
-	sampledb = isc_mem_getx(mctx, sizeof(*sampledb), ISC_MEM_ZERO);
+	sampledb = isc_mem_get(mctx, sizeof(*sampledb));
+	*sampledb = (sampledb_t){
+		.common.magic = DNS_DB_MAGIC,
+		.common.impmagic = SAMPLEDB_MAGIC,
+		.common.methods = &sampledb_methods,
+		.common.rdclass = rdclass,
+	};
 
 	isc_mem_attach(mctx, &sampledb->common.mctx);
 	dns_name_init(&sampledb->common.origin, NULL);
-
-	sampledb->common.magic = DNS_DB_MAGIC;
-	sampledb->common.impmagic = SAMPLEDB_MAGIC;
-
-	sampledb->common.methods = &sampledb_methods;
-	sampledb->common.attributes = 0;
-	sampledb->common.rdclass = rdclass;
 
 	CHECK(dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin));
 

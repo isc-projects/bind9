@@ -2425,19 +2425,10 @@ resume:
 		}
 		/* Grow stack? */
 		if (stackcount == pushed) {
-			void *newstack;
-			uint32_t newlen = stackcount + 16;
-			size_t newsize, oldsize;
-
-			newsize = newlen * sizeof(*stack);
-			oldsize = stackcount * sizeof(*stack);
-			newstack = isc_mem_get(mctx, newsize);
-			if (stackcount != 0) {
-				memmove(newstack, stack, oldsize);
-				isc_mem_put(mctx, stack, oldsize);
-			}
-			stack = newstack;
-			stackcount = newlen;
+			stack = isc_mem_creget(mctx, stack, stackcount,
+					       stackcount + 16,
+					       sizeof(stack[0]));
+			stackcount += 16;
 		}
 		stack[pushed++] = UNCONST(cfg_list_next(element));
 		goto newlist;
@@ -2447,7 +2438,7 @@ resume:
 		goto resume;
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
+		isc_mem_cput(mctx, stack, stackcount, sizeof(*stack));
 	}
 	isc_symtab_destroy(&symtab);
 	*countp = count;

@@ -322,8 +322,8 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
 
-	mgr->clientmgrs = isc_mem_get(mgr->mctx,
-				      mgr->ncpus * sizeof(mgr->clientmgrs[0]));
+	mgr->clientmgrs = isc_mem_cget(mgr->mctx, mgr->ncpus,
+				       sizeof(mgr->clientmgrs[0]));
 	for (size_t i = 0; i < mgr->ncpus; i++) {
 		result = ns_clientmgr_create(mgr->sctx, mgr->loopmgr,
 					     mgr->aclenv, (int)i,
@@ -371,8 +371,8 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	for (size_t i = 0; i < mgr->ncpus; i++) {
 		ns_clientmgr_detach(&mgr->clientmgrs[i]);
 	}
-	isc_mem_put(mgr->mctx, mgr->clientmgrs,
-		    mgr->ncpus * sizeof(mgr->clientmgrs[0]));
+	isc_mem_cput(mgr->mctx, mgr->clientmgrs, mgr->ncpus,
+		     sizeof(mgr->clientmgrs[0]));
 
 	if (mgr->sctx != NULL) {
 		ns_server_detach(&mgr->sctx);

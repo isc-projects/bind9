@@ -21,6 +21,7 @@
 #include <isc/attributes.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
+#include <isc/overflow.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -128,47 +129,30 @@ extern unsigned int isc_mem_defaultflags;
  */
 
 /*%
- * Flags that can be passed to isc_mem_*x() variants of the macros.
- *
  * The definitions of the macros have been pulled directly from jemalloc.h
  * and checked for consistency in mem.c.
  *
- *\li	ISC_MEM_ALIGN(alignment) - use when you need aligned allocation,
- *
- *	NOTE: Set the matching flag, when freeing aligned memory allocation.
- *
- *\li	ISC_MEM_ZERO - fill the memory with zeroes before returning
+ *\li	ISC__MEM_ZERO - fill the memory with zeroes before returning
  */
 
-#if defined(HAVE_MALLOC_NP_H) || defined(HAVE_JEMALLOC)
-#if __SIZEOF_POINTER__ == 4
-#define ISC_MEM_ALIGN(a) ((int)(ffs((int)(a)) - 1))
-#else
-#define ISC_MEM_ALIGN(a)                       \
-	((int)(((size_t)(a) < (size_t)INT_MAX) \
-		       ? ffs((int)(a)) - 1     \
-		       : ffs((int)(((size_t)(a)) >> 32)) + 31))
-#endif
-#else
-#define ISC_MEM_ALIGN(a) (a & 0)
-#endif
-#define ISC_MEM_ZERO ((int)0x40)
+#define ISC__MEM_ZERO ((int)0x40)
 
-#define isc_mem_get(c, s)     isc__mem_get((c), (s), 0 _ISC_MEM_FILELINE)
-#define isc_mem_getx(c, s, f) isc__mem_get((c), (s), (f)_ISC_MEM_FILELINE)
+#define isc_mem_get(c, s) isc__mem_get((c), (s), 0 _ISC_MEM_FILELINE)
+#define isc_mem_cget(c, n, s)                        \
+	isc__mem_get((c), ISC_CHECKED_MUL((n), (s)), \
+		     ISC__MEM_ZERO _ISC_MEM_FILELINE)
 #define isc_mem_reget(c, p, o, n) \
 	isc__mem_reget((c), (p), (o), (n), 0 _ISC_MEM_FILELINE)
-#define isc_mem_regetx(c, p, o, n, f) \
-	isc__mem_reget((c), (p), (o), (n), (f)_ISC_MEM_FILELINE)
+#define isc_mem_creget(c, p, o, n, s)                       \
+	isc__mem_reget((c), (p), ISC_CHECKED_MUL((o), (s)), \
+		       ISC_CHECKED_MUL((n), (s)),           \
+		       ISC__MEM_ZERO _ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s) isc__mem_allocate((c), (s), 0 _ISC_MEM_FILELINE)
-#define isc_mem_allocatex(c, s, f) \
-	isc__mem_allocate((c), (s), (f)_ISC_MEM_FILELINE)
-#define isc_mem_callocate(c, n, s) \
-	isc__mem_callocate((c), (n), (s), 0 _ISC_MEM_FILELINE)
+#define isc_mem_callocate(c, n, s)                        \
+	isc__mem_allocate((c), ISC_CHECKED_MUL((n), (s)), \
+			  ISC__MEM_ZERO _ISC_MEM_FILELINE)
 #define isc_mem_reallocate(c, p, s) \
 	isc__mem_reallocate((c), (p), (s), 0 _ISC_MEM_FILELINE)
-#define isc_mem_reallocatex(c, p, s, f) \
-	isc__mem_reallocate((c), (p), (s), (f)_ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p) isc__mem_strdup((c), (p)_ISC_MEM_FILELINE)
 #define isc_mem_strndup(c, p, l) \
 	isc__mem_strndup((c), (p), (l)_ISC_MEM_FILELINE)
@@ -179,30 +163,21 @@ extern unsigned int isc_mem_defaultflags;
 		isc__mem_put((c), (p), (s), 0 _ISC_MEM_FILELINE); \
 		(p) = NULL;                                       \
 	} while (0)
-#define isc_mem_putx(c, p, s, f)                                   \
-	do {                                                       \
-		isc__mem_put((c), (p), (s), (f)_ISC_MEM_FILELINE); \
-		(p) = NULL;                                        \
+#define isc_mem_cput(c, p, n, s)                                  \
+	do {                                                      \
+		isc__mem_put((c), (p), ISC_CHECKED_MUL((n), (s)), \
+			     ISC__MEM_ZERO _ISC_MEM_FILELINE);    \
+		(p) = NULL;                                       \
 	} while (0)
 #define isc_mem_putanddetach(c, p, s)                                      \
 	do {                                                               \
 		isc__mem_putanddetach((c), (p), (s), 0 _ISC_MEM_FILELINE); \
 		(p) = NULL;                                                \
 	} while (0)
-#define isc_mem_putanddetachx(c, p, s, f)                                   \
-	do {                                                                \
-		isc__mem_putanddetach((c), (p), (s), (f)_ISC_MEM_FILELINE); \
-		(p) = NULL;                                                 \
-	} while (0)
 #define isc_mem_free(c, p)                                    \
 	do {                                                  \
 		isc__mem_free((c), (p), 0 _ISC_MEM_FILELINE); \
 		(p) = NULL;                                   \
-	} while (0)
-#define isc_mem_freex(c, p, f)                                 \
-	do {                                                   \
-		isc__mem_free((c), (p), (f)_ISC_MEM_FILELINE); \
-		(p) = NULL;                                    \
 	} while (0)
 #define isc_mempool_put(c, p)                                \
 	do {                                                 \
@@ -516,10 +491,6 @@ isc__mem_reget(isc_mem_t *, void *, size_t, size_t, int _ISC_MEM_FLARG);
 ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mem_free, 2)
 void *
 isc__mem_allocate(isc_mem_t *, size_t, int _ISC_MEM_FLARG);
-
-ISC_ATTR_MALLOC_DEALLOCATOR_IDX(isc__mem_free, 2)
-void *
-isc__mem_callocate(isc_mem_t *, size_t, size_t, int _ISC_MEM_FLARG);
 
 ISC_ATTR_DEALLOCATOR_IDX(isc__mem_free, 2)
 void *

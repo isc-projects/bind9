@@ -128,11 +128,10 @@ init_items(isc_mem_t *mctx) {
 	void *pval = NULL;
 	uint32_t ival = ~0U;
 	dns_qp_t *qp = NULL;
-	size_t bytes = ITEM_COUNT * sizeof(*item);
 	uint64_t start;
 
 	start = isc_time_monotonic();
-	item = isc_mem_allocatex(mctx, bytes, ISC_MEM_ZERO);
+	item = isc_mem_callocate(mctx, ITEM_COUNT, sizeof(*item));
 
 	/* ensure there are no duplicate names */
 	dns_qp_create(mctx, &item_methods, NULL, &qp);
@@ -152,7 +151,7 @@ init_items(isc_mem_t *mctx) {
 
 	double time = (double)(isc_time_monotonic() - start) / NS_PER_SEC;
 	printf("%f sec to create %zu items, %f/sec %zu bytes\n", time,
-	       ITEM_COUNT, ITEM_COUNT / time, bytes);
+	       ITEM_COUNT, ITEM_COUNT / time, ITEM_COUNT * sizeof(*item));
 }
 
 static void
@@ -821,7 +820,7 @@ startup(void *arg) {
 	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
 	size_t bytes = sizeof(struct bench_state) +
 		       sizeof(struct thread_args) * nloops;
-	struct bench_state *bctx = isc_mem_getx(mctx, bytes, ISC_MEM_ZERO);
+	struct bench_state *bctx = isc_mem_cget(mctx, 1, bytes);
 
 	*bctx = (struct bench_state){
 		.loopmgr = loopmgr,
@@ -872,10 +871,11 @@ setup_tickers(isc_mem_t *mctx, isc_loopmgr_t *loopmgr) {
 	uint32_t nloops = isc_loopmgr_nloops(loopmgr);
 	for (uint32_t i = 0; i < nloops; i++) {
 		isc_loop_t *loop = isc_loop_get(loopmgr, i);
-		struct ticker *ticker = isc_mem_getx(mctx, sizeof(*ticker),
-						     ISC_MEM_ZERO);
+		struct ticker *ticker = isc_mem_get(mctx, sizeof(*ticker));
+		*ticker = (struct ticker){
+			.loopmgr = loopmgr,
+		};
 		isc_mem_attach(mctx, &ticker->mctx);
-		ticker->loopmgr = loopmgr;
 		isc_loop_setup(loop, start_ticker, ticker);
 		isc_loop_teardown(loop, stop_ticker, ticker);
 	}

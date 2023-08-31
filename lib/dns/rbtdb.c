@@ -530,9 +530,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		for (i = 0; i < rbtdb->node_lock_count; i++) {
 			INSIST(ISC_LIST_EMPTY(rbtdb->lru[i]));
 		}
-		isc_mem_put(rbtdb->common.mctx, rbtdb->lru,
-			    rbtdb->node_lock_count *
-				    sizeof(dns_slabheaderlist_t));
+		isc_mem_cput(rbtdb->common.mctx, rbtdb->lru,
+			     rbtdb->node_lock_count,
+			     sizeof(dns_slabheaderlist_t));
 	}
 	/*
 	 * Clean up dead node buckets.
@@ -541,8 +541,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		for (i = 0; i < rbtdb->node_lock_count; i++) {
 			INSIST(ISC_LIST_EMPTY(rbtdb->deadnodes[i]));
 		}
-		isc_mem_put(rbtdb->common.mctx, rbtdb->deadnodes,
-			    rbtdb->node_lock_count * sizeof(dns_rbtnodelist_t));
+		isc_mem_cput(rbtdb->common.mctx, rbtdb->deadnodes,
+			     rbtdb->node_lock_count, sizeof(dns_rbtnodelist_t));
 	}
 	/*
 	 * Clean up heap objects.
@@ -551,8 +551,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		for (i = 0; i < rbtdb->node_lock_count; i++) {
 			isc_heap_destroy(&rbtdb->heaps[i]);
 		}
-		isc_mem_put(rbtdb->hmctx, rbtdb->heaps,
-			    rbtdb->node_lock_count * sizeof(isc_heap_t *));
+		isc_mem_cput(rbtdb->hmctx, rbtdb->heaps, rbtdb->node_lock_count,
+			     sizeof(isc_heap_t *));
 	}
 
 	if (rbtdb->rrsetstats != NULL) {
@@ -565,8 +565,8 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		isc_stats_detach(&rbtdb->gluecachestats);
 	}
 
-	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
-		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
+	isc_mem_cput(rbtdb->common.mctx, rbtdb->node_locks,
+		     rbtdb->node_lock_count, sizeof(rbtdb_nodelock_t));
 	TREE_DESTROYLOCK(&rbtdb->tree_lock);
 	isc_refcount_destroy(&rbtdb->common.references);
 	if (rbtdb->loop != NULL) {

@@ -306,7 +306,8 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 	ret = mallocx(size, flags);
 	INSIST(ret != NULL);
 
-	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	if ((flags & ISC__MEM_ZERO) == 0 &&
+	    (ctx->flags & ISC_MEMFLAG_FILL) != 0)
 	{
 		memset(ret, 0xbe, size); /* Mnemonic for "beef". */
 	}
@@ -338,7 +339,8 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	new_ptr = rallocx(old_ptr, new_size, flags);
 	INSIST(new_ptr != NULL);
 
-	if ((flags & ISC_MEM_ZERO) == 0 && (ctx->flags & ISC_MEMFLAG_FILL) != 0)
+	if ((flags & ISC__MEM_ZERO) == 0 &&
+	    (ctx->flags & ISC_MEMFLAG_FILL) != 0)
 	{
 		ssize_t diff_size = new_size - old_size;
 		void *diff_ptr = (uint8_t *)new_ptr + old_size;
@@ -383,10 +385,7 @@ mem_initialize(void) {
  * Check if the values copied from jemalloc still match
  */
 #ifdef JEMALLOC_API_SUPPORTED
-	RUNTIME_CHECK(ISC_MEM_ZERO == MALLOCX_ZERO);
-	RUNTIME_CHECK(ISC_MEM_ALIGN(0) == MALLOCX_ALIGN(0));
-	RUNTIME_CHECK(ISC_MEM_ALIGN(sizeof(void *)) ==
-		      MALLOCX_ALIGN(sizeof(void *)));
+	RUNTIME_CHECK(ISC__MEM_ZERO == MALLOCX_ZERO);
 #endif /* JEMALLOC_API_SUPPORTED */
 
 	isc_mutex_init(&contextslock);
@@ -416,7 +415,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = mallocx(sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
+	ctx = malloc(sizeof(*ctx));
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
@@ -441,8 +440,7 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	if ((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0) {
 		unsigned int i;
 
-		ctx->debuglist =
-			mallocx((DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
+		ctx->debuglist = calloc(DEBUG_TABLE_COUNT, sizeof(debuglist_t));
 		INSIST(ctx->debuglist != NULL);
 
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
@@ -489,8 +487,7 @@ destroy(isc_mem_t *ctx) {
 			}
 		}
 
-		sdallocx(ctx->debuglist,
-			 (DEBUG_TABLE_COUNT * sizeof(debuglist_t)), 0);
+		free(ctx->debuglist);
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -499,7 +496,7 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(atomic_load(&ctx->inuse) == 0);
 	}
-	sdallocx(ctx, sizeof(*ctx), ISC_MEM_ALIGN(isc_os_cacheline()));
+	free(ctx);
 }
 
 void
@@ -817,13 +814,6 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	CALL_HI_WATER(ctx);
 
 	return (ptr);
-}
-
-void *
-isc__mem_callocate(isc_mem_t *ctx, size_t count, size_t size, int flags FLARG) {
-	size_t bytes = ISC_CHECKED_MUL(count, size);
-	return (isc__mem_allocate(ctx, bytes,
-				  (flags | ISC_MEM_ZERO) FLARG_PASS));
 }
 
 void *

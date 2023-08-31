@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>
+#include <isc/overflow.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
@@ -259,8 +260,8 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 	}
 
 	bsize = sizeof(dns_rrl_block_t) +
-		(newsize - 1) * sizeof(dns_rrl_entry_t);
-	b = isc_mem_getx(rrl->mctx, bsize, ISC_MEM_ZERO);
+		ISC_CHECKED_MUL((newsize - 1), sizeof(dns_rrl_entry_t));
+	b = isc_mem_cget(rrl->mctx, 1, bsize);
 	b->size = bsize;
 
 	e = b->entries;
@@ -298,7 +299,8 @@ free_old_hash(dns_rrl_t *rrl) {
 
 	isc_mem_put(rrl->mctx, old_hash,
 		    sizeof(*old_hash) +
-			    (old_hash->length - 1) * sizeof(old_hash->bins[0]));
+			    ISC_CHECKED_MUL((old_hash->length - 1),
+					    sizeof(old_hash->bins[0])));
 	rrl->old_hash = NULL;
 }
 
@@ -323,8 +325,9 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	}
 	new_bins = hash_divisor(new_bins);
 
-	hsize = sizeof(dns_rrl_hash_t) + (new_bins - 1) * sizeof(hash->bins[0]);
-	hash = isc_mem_getx(rrl->mctx, hsize, ISC_MEM_ZERO);
+	hsize = sizeof(dns_rrl_hash_t) +
+		ISC_CHECKED_MUL((new_bins - 1), sizeof(hash->bins[0]));
+	hash = isc_mem_cget(rrl->mctx, 1, hsize);
 	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
 	hash->gen = rrl->hash_gen;
@@ -1321,13 +1324,15 @@ dns_rrl_view_destroy(dns_view_t *view) {
 	h = rrl->hash;
 	if (h != NULL) {
 		isc_mem_put(rrl->mctx, h,
-			    sizeof(*h) + (h->length - 1) * sizeof(h->bins[0]));
+			    sizeof(*h) + ISC_CHECKED_MUL((h->length - 1),
+							 sizeof(h->bins[0])));
 	}
 
 	h = rrl->old_hash;
 	if (h != NULL) {
 		isc_mem_put(rrl->mctx, h,
-			    sizeof(*h) + (h->length - 1) * sizeof(h->bins[0]));
+			    sizeof(*h) + ISC_CHECKED_MUL((h->length - 1),
+							 sizeof(h->bins[0])));
 	}
 
 	isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));
@@ -1340,10 +1345,12 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 
 	*rrlp = NULL;
 
-	rrl = isc_mem_getx(view->mctx, sizeof(*rrl), ISC_MEM_ZERO);
+	rrl = isc_mem_get(view->mctx, sizeof(*rrl));
+	*rrl = (dns_rrl_t){
+		.ts_bases[0] = isc_stdtime_now(),
+	};
 	isc_mem_attach(view->mctx, &rrl->mctx);
 	isc_mutex_init(&rrl->lock);
-	rrl->ts_bases[0] = isc_stdtime_now();
 
 	view->rrl = rrl;
 

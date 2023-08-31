@@ -576,22 +576,18 @@ named_config_getname(isc_mem_t *mctx, const cfg_obj_t *obj,
 	return (ISC_R_SUCCESS);
 }
 
-#define grow_array(mctx, array, newlen, oldlen)                       \
-	if (newlen >= oldlen) {                                       \
-		size_t newsize = (newlen + 16) * sizeof(array[0]);    \
-		size_t oldsize = oldlen * sizeof(array[0]);           \
-		array = isc_mem_regetx(mctx, array, oldsize, newsize, \
-				       ISC_MEM_ZERO);                 \
-		oldlen = newlen + 16;                                 \
+#define grow_array(mctx, array, newlen, oldlen)                          \
+	if (newlen >= oldlen) {                                          \
+		array = isc_mem_creget(mctx, array, oldlen, newlen + 16, \
+				       sizeof(array[0]));                \
+		oldlen = newlen + 16;                                    \
 	}
 
-#define shrink_array(mctx, array, newlen, oldlen)                     \
-	if (newlen < oldlen) {                                        \
-		size_t newsize = newlen * sizeof(array[0]);           \
-		size_t oldsize = oldlen * sizeof(array[0]);           \
-		array = isc_mem_regetx(mctx, array, oldsize, newsize, \
-				       ISC_MEM_ZERO);                 \
-		oldlen = newlen;                                      \
+#define shrink_array(mctx, array, newlen, oldlen)                   \
+	if (newlen < oldlen) {                                      \
+		array = isc_mem_creget(mctx, array, oldlen, newlen, \
+				       sizeof(array[0]));           \
+		oldlen = newlen;                                    \
 	}
 
 isc_result_t
@@ -808,10 +804,10 @@ resume:
 	shrink_array(mctx, sources, i, srccount);
 
 	if (lists != NULL) {
-		isc_mem_put(mctx, lists, listcount * sizeof(lists[0]));
+		isc_mem_cput(mctx, lists, listcount, sizeof(lists[0]));
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
+		isc_mem_cput(mctx, stack, stackcount, sizeof(stack[0]));
 	}
 
 	INSIST(keycount == addrcount);
@@ -829,7 +825,7 @@ resume:
 
 cleanup:
 	if (addrs != NULL) {
-		isc_mem_put(mctx, addrs, addrcount * sizeof(addrs[0]));
+		isc_mem_cput(mctx, addrs, addrcount, sizeof(addrs[0]));
 	}
 	if (keys != NULL) {
 		for (size_t j = 0; j < i; j++) {
@@ -841,7 +837,7 @@ cleanup:
 			}
 			isc_mem_put(mctx, keys[j], sizeof(*keys[j]));
 		}
-		isc_mem_put(mctx, keys, keycount * sizeof(keys[0]));
+		isc_mem_cput(mctx, keys, keycount, sizeof(keys[0]));
 	}
 	if (tlss != NULL) {
 		for (size_t j = 0; j < i; j++) {
@@ -853,16 +849,16 @@ cleanup:
 			}
 			isc_mem_put(mctx, tlss[j], sizeof(*tlss[j]));
 		}
-		isc_mem_put(mctx, tlss, tlscount * sizeof(tlss[0]));
+		isc_mem_cput(mctx, tlss, tlscount, sizeof(tlss[0]));
 	}
 	if (sources != NULL) {
-		isc_mem_put(mctx, sources, srccount * sizeof(sources[0]));
+		isc_mem_cput(mctx, sources, srccount, sizeof(sources[0]));
 	}
 	if (lists != NULL) {
-		isc_mem_put(mctx, lists, listcount * sizeof(lists[0]));
+		isc_mem_cput(mctx, lists, listcount, sizeof(lists[0]));
 	}
 	if (stack != NULL) {
-		isc_mem_put(mctx, stack, stackcount * sizeof(stack[0]));
+		isc_mem_cput(mctx, stack, stackcount, sizeof(stack[0]));
 	}
 	return (result);
 }

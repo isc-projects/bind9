@@ -238,8 +238,8 @@ error(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 static void
 primary_from_servers(void) {
 	if (primary_servers != NULL && primary_servers != servers) {
-		isc_mem_put(gmctx, primary_servers,
-			    primary_alloc * sizeof(isc_sockaddr_t));
+		isc_mem_cput(gmctx, primary_servers, primary_alloc,
+			     sizeof(isc_sockaddr_t));
 	}
 	primary_servers = servers;
 	primary_total = ns_total;
@@ -684,12 +684,12 @@ doshutdown(void) {
 	 * to NULL.
 	 */
 	if (primary_servers != NULL && primary_servers != servers) {
-		isc_mem_put(gmctx, primary_servers,
-			    primary_alloc * sizeof(isc_sockaddr_t));
+		isc_mem_cput(gmctx, primary_servers, primary_alloc,
+			     sizeof(isc_sockaddr_t));
 	}
 
 	if (servers != NULL) {
-		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
+		isc_mem_cput(gmctx, servers, ns_alloc, sizeof(isc_sockaddr_t));
 	}
 
 	if (localaddr4 != NULL) {
@@ -830,7 +830,7 @@ setup_system(void) {
 		if (primary_servers == servers) {
 			primary_servers = NULL;
 		}
-		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
+		isc_mem_cput(gmctx, servers, ns_alloc, sizeof(isc_sockaddr_t));
 	}
 
 	ns_inuse = 0;
@@ -845,7 +845,7 @@ setup_system(void) {
 		default_servers = !local_only;
 
 		ns_total = ns_alloc = (have_ipv4 ? 1 : 0) + (have_ipv6 ? 1 : 0);
-		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
+		servers = isc_mem_cget(gmctx, ns_alloc, sizeof(isc_sockaddr_t));
 
 		if (have_ipv6) {
 			memset(&in6, 0, sizeof(in6));
@@ -887,7 +887,7 @@ setup_system(void) {
 		}
 
 		ns_alloc = ns_total;
-		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
+		servers = isc_mem_cget(gmctx, ns_alloc, sizeof(isc_sockaddr_t));
 
 		i = 0;
 		for (sa = ISC_LIST_HEAD(*nslist); sa != NULL;
@@ -1556,15 +1556,14 @@ evaluate_server(char *cmdline) {
 		if (primary_servers == servers) {
 			primary_servers = NULL;
 		}
-		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
+		isc_mem_cput(gmctx, servers, ns_alloc, sizeof(isc_sockaddr_t));
 	}
 
 	default_servers = false;
 
 	ns_alloc = MAX_SERVERADDRS;
 	ns_inuse = 0;
-	servers = isc_mem_getx(gmctx, ns_alloc * sizeof(isc_sockaddr_t),
-			       ISC_MEM_ZERO);
+	servers = isc_mem_cget(gmctx, ns_alloc, sizeof(isc_sockaddr_t));
 	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
 	if (ns_total == 0) {
 		return (STATUS_SYNTAX);
@@ -2824,7 +2823,6 @@ lookforsoa:
 	if (default_servers) {
 		char serverstr[DNS_NAME_MAXTEXT + 1];
 		isc_buffer_t buf;
-		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
 		result = dns_name_totext(&primary, DNS_NAME_OMITFINALDOT, &buf);
@@ -2832,12 +2830,12 @@ lookforsoa:
 		serverstr[isc_buffer_usedlength(&buf)] = 0;
 
 		if (primary_servers != NULL && primary_servers != servers) {
-			isc_mem_put(gmctx, primary_servers,
-				    primary_alloc * sizeof(isc_sockaddr_t));
+			isc_mem_cput(gmctx, primary_servers, primary_alloc,
+				     sizeof(isc_sockaddr_t));
 		}
 		primary_alloc = MAX_SERVERADDRS;
-		size = primary_alloc * sizeof(isc_sockaddr_t);
-		primary_servers = isc_mem_getx(gmctx, size, ISC_MEM_ZERO);
+		primary_servers = isc_mem_cget(gmctx, primary_alloc,
+					       sizeof(isc_sockaddr_t));
 		primary_total = get_addresses(serverstr, dnsport,
 					      primary_servers, primary_alloc);
 		if (primary_total == 0) {

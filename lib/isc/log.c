@@ -477,9 +477,8 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 	}
 
 	if (lcfg->channellist_count > 0) {
-		isc_mem_put(mctx, lcfg->channellists,
-			    lcfg->channellist_count *
-				    sizeof(ISC_LIST(isc_logchannellist_t)));
+		isc_mem_cput(mctx, lcfg->channellists, lcfg->channellist_count,
+			     sizeof(ISC_LIST(isc_logchannellist_t)));
 	}
 
 	lcfg->dynamic = false;
@@ -974,13 +973,9 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
  */
 static void
 sync_channellist(isc_logconfig_t *lcfg) {
-	unsigned int bytes;
-	isc_log_t *lctx;
-	void *lists;
-
 	REQUIRE(VALID_CONFIG(lcfg));
 
-	lctx = lcfg->lctx;
+	isc_log_t *lctx = lcfg->lctx;
 
 	REQUIRE(lctx->category_count != 0);
 
@@ -988,18 +983,10 @@ sync_channellist(isc_logconfig_t *lcfg) {
 		return;
 	}
 
-	bytes = lctx->category_count * sizeof(ISC_LIST(isc_logchannellist_t));
+	lcfg->channellists = isc_mem_creget(
+		lctx->mctx, lcfg->channellists, lcfg->channellist_count,
+		lctx->category_count, sizeof(ISC_LIST(isc_logchannellist_t)));
 
-	lists = isc_mem_getx(lctx->mctx, bytes, ISC_MEM_ZERO);
-
-	if (lcfg->channellist_count != 0) {
-		bytes = lcfg->channellist_count *
-			sizeof(ISC_LIST(isc_logchannellist_t));
-		memmove(lists, lcfg->channellists, bytes);
-		isc_mem_put(lctx->mctx, lcfg->channellists, bytes);
-	}
-
-	lcfg->channellists = lists;
 	lcfg->channellist_count = lctx->category_count;
 }
 

@@ -528,8 +528,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	if (!nosigs) {
 		arraysize += dns_rdataset_count(&sigset);
 	}
-	wassignedby = isc_mem_get(mctx, arraysize * sizeof(bool));
-	nowsignedby = isc_mem_get(mctx, arraysize * sizeof(bool));
+	wassignedby = isc_mem_cget(mctx, arraysize, sizeof(bool));
+	nowsignedby = isc_mem_cget(mctx, arraysize, sizeof(bool));
 
 	for (i = 0; i < arraysize; i++) {
 		wassignedby[i] = nowsignedby[i] = false;
@@ -781,8 +781,8 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 	}
 
-	isc_mem_put(mctx, wassignedby, arraysize * sizeof(bool));
-	isc_mem_put(mctx, nowsignedby, arraysize * sizeof(bool));
+	isc_mem_cput(mctx, wassignedby, arraysize, sizeof(bool));
+	isc_mem_cput(mctx, nowsignedby, arraysize, sizeof(bool));
 }
 
 struct hashlist {

@@ -62,7 +62,7 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 
 	symtab->mctx = NULL;
 	isc_mem_attach(mctx, &symtab->mctx);
-	symtab->table = isc_mem_get(mctx, size * sizeof(eltlist_t));
+	symtab->table = isc_mem_cget(mctx, size, sizeof(eltlist_t));
 	for (i = 0; i < size; i++) {
 		INIT_LIST(symtab->table[i]);
 	}
@@ -101,8 +101,8 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 			isc_mem_put(symtab->mctx, elt, sizeof(*elt));
 		}
 	}
-	isc_mem_put(symtab->mctx, symtab->table,
-		    symtab->size * sizeof(eltlist_t));
+	isc_mem_cput(symtab->mctx, symtab->table, symtab->size,
+		     sizeof(eltlist_t));
 	symtab->magic = 0;
 	isc_mem_putanddetach(&symtab->mctx, symtab, sizeof(*symtab));
 }
@@ -177,7 +177,7 @@ grow_table(isc_symtab_t *symtab) {
 	newmax = newsize * 3 / 4;
 	INSIST(newsize > 0U && newmax > 0U);
 
-	newtable = isc_mem_get(symtab->mctx, newsize * sizeof(eltlist_t));
+	newtable = isc_mem_cget(symtab->mctx, newsize, sizeof(eltlist_t));
 
 	for (i = 0; i < newsize; i++) {
 		INIT_LIST(newtable[i]);
@@ -197,8 +197,8 @@ grow_table(isc_symtab_t *symtab) {
 		}
 	}
 
-	isc_mem_put(symtab->mctx, symtab->table,
-		    symtab->size * sizeof(eltlist_t));
+	isc_mem_cput(symtab->mctx, symtab->table, symtab->size,
+		     sizeof(eltlist_t));
 
 	symtab->table = newtable;
 	symtab->size = newsize;

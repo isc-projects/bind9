@@ -20,6 +20,7 @@
 #include <isc/dir.h>
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/overflow.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
@@ -588,9 +589,9 @@ journal_file_create(isc_mem_t *mctx, bool downgrade, const char *filename) {
 	journal_header_encode(&header, &rawheader);
 
 	size = sizeof(journal_rawheader_t) +
-	       index_size * sizeof(journal_rawpos_t);
+	       ISC_CHECKED_MUL(index_size, sizeof(journal_rawpos_t));
 
-	mem = isc_mem_getx(mctx, size, ISC_MEM_ZERO);
+	mem = isc_mem_cget(mctx, 1, size);
 	memmove(mem, &rawheader, sizeof(rawheader));
 
 	result = isc_stdio_write(mem, 1, (size_t)size, fp, NULL);
@@ -704,13 +705,14 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 		unsigned int rawbytes;
 		unsigned char *p;
 
-		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
+		rawbytes = ISC_CHECKED_MUL(j->header.index_size,
+					   sizeof(journal_rawpos_t));
 		j->rawindex = isc_mem_get(mctx, rawbytes);
 
 		CHECK(journal_read(j, j->rawindex, rawbytes));
 
-		j->index = isc_mem_get(mctx, j->header.index_size *
-						     sizeof(journal_pos_t));
+		j->index = isc_mem_cget(mctx, j->header.index_size,
+					sizeof(journal_pos_t));
 
 		p = j->rawindex;
 		for (i = 0; i < j->header.index_size; i++) {
@@ -746,12 +748,12 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable, bool create,
 failure:
 	j->magic = 0;
 	if (j->rawindex != NULL) {
-		isc_mem_put(j->mctx, j->rawindex,
-			    j->header.index_size * sizeof(journal_rawpos_t));
+		isc_mem_cput(j->mctx, j->rawindex, j->header.index_size,
+			     sizeof(journal_rawpos_t));
 	}
 	if (j->index != NULL) {
-		isc_mem_put(j->mctx, j->index,
-			    j->header.index_size * sizeof(journal_pos_t));
+		isc_mem_cput(j->mctx, j->index, j->header.index_size,
+			     sizeof(journal_pos_t));
 	}
 	isc_mem_free(j->mctx, j->filename);
 	if (j->fp != NULL) {
@@ -1159,7 +1161,8 @@ dns_journal_begin_transaction(dns_journal_t *j) {
 	 */
 	if (JOURNAL_EMPTY(&j->header)) {
 		offset = sizeof(journal_rawheader_t) +
-			 j->header.index_size * sizeof(journal_rawpos_t);
+			 ISC_CHECKED_MUL(j->header.index_size,
+					 sizeof(journal_rawpos_t));
 	} else {
 		offset = j->header.end.offset;
 	}
@@ -1443,12 +1446,12 @@ dns_journal_destroy(dns_journal_t **journalp) {
 	j->it.result = ISC_R_FAILURE;
 	dns_name_invalidate(&j->it.name);
 	if (j->rawindex != NULL) {
-		isc_mem_put(j->mctx, j->rawindex,
-			    j->header.index_size * sizeof(journal_rawpos_t));
+		isc_mem_cput(j->mctx, j->rawindex, j->header.index_size,
+			     sizeof(journal_rawpos_t));
 	}
 	if (j->index != NULL) {
-		isc_mem_put(j->mctx, j->index,
-			    j->header.index_size * sizeof(journal_pos_t));
+		isc_mem_cput(j->mctx, j->index, j->header.index_size,
+			     sizeof(journal_pos_t));
 	}
 	if (j->it.target.base != NULL) {
 		isc_mem_put(j->mctx, j->it.target.base, j->it.target.length);
@@ -1914,7 +1917,8 @@ dns_journal_iter_init(dns_journal_t *j, uint32_t begin_serial,
 		 * (We don't need to worry about the transaction header
 		 * because that was already excluded from xdr.size.)
 		 */
-		*xfrsizep = size - (count * sizeof(journal_rawrrhdr_t));
+		*xfrsizep = size - (ISC_CHECKED_MUL(
+					   count, sizeof(journal_rawrrhdr_t)));
 	}
 
 	result = ISC_R_SUCCESS;
@@ -2531,7 +2535,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 	 * Cope with very small target sizes.
 	 */
 	indexend = sizeof(journal_rawheader_t) +
-		   j1->header.index_size * sizeof(journal_rawpos_t);
+		   ISC_CHECKED_MUL(j1->header.index_size,
+				   sizeof(journal_rawpos_t));
 	if (target_size < DNS_JOURNAL_SIZE_MIN) {
 		target_size = DNS_JOURNAL_SIZE_MIN;
 	}
@@ -2834,7 +2839,8 @@ index_to_disk(dns_journal_t *j) {
 		unsigned char *p;
 		unsigned int rawbytes;
 
-		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
+		rawbytes = ISC_CHECKED_MUL(j->header.index_size,
+					   sizeof(journal_rawpos_t));
 
 		p = j->rawindex;
 		for (i = 0; i < j->header.index_size; i++) {

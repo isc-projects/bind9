@@ -1,3 +1,9 @@
+6236.	[func]		Add isc_mem_cget() and isc_mem_cput() calloc-like
+			functions that take nmemb and size, do checked
+			multiplication and zero the memory before returning
+			it to the user.  Replace isc_mem_getx(..., ISC_MEM_ZERO)
+			with isc_mem_cget(...) usage. [GL !8237]
+
 6235.	[doc]		Clarify BIND 9 time formats. [GL #4266]
 
 6234.	[bug]		Restore stale-refresh-time value after flushing the

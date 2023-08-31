@@ -371,9 +371,9 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	if (isc_buffer_base(buffer) == client->tcpbuf) {
 		size_t used = isc_buffer_usedlength(buffer);
-		client->tcpbuf = isc_mem_reget(client->manager->mctx,
-					       client->tcpbuf,
-					       client->tcpbuf_size, used);
+		client->tcpbuf =
+			isc_mem_creget(client->manager->mctx, client->tcpbuf,
+				       client->tcpbuf_size, used, sizeof(char));
 		client->tcpbuf_size = used;
 		r.base = client->tcpbuf;
 		r.length = used;
