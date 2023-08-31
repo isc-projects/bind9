@@ -455,8 +455,11 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (priv1 != NULL || priv2 != NULL) {
 		if (priv1 == NULL || priv2 == NULL || BN_cmp(priv1, priv2) != 0)
 		{
+			ERR_clear_error();
 			DST_RET(false);
 		}
+	} else {
+		ERR_clear_error();
 	}
 
 	ret = true;
