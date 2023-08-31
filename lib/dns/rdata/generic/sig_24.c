@@ -150,7 +150,7 @@ totext_sig(ARGS_TOTEXT) {
 	unsigned long foot;
 	dns_name_t name;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 
 	REQUIRE(rdata->type == dns_rdatatype_sig);
 	REQUIRE(rdata->length != 0);
@@ -235,8 +235,9 @@ totext_sig(ARGS_TOTEXT) {
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	/*
 	 * Sig.
@@ -341,7 +342,7 @@ towire_sig(ARGS_TOWIRE) {
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 
 	/*
 	 * Signature.

@@ -114,7 +114,7 @@ ISC_RUN_TEST_IMPL(dns_dbfind_staleok) {
 	example = dns_fixedname_initname(&example_fixed);
 	found = dns_fixedname_initname(&found_fixed);
 
-	result = dns_name_fromstring(example, "example", 0, NULL);
+	result = dns_name_fromstring(example, "example", dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

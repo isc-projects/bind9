@@ -551,7 +551,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 		}
 
 		isc_buffer_init(&b, nbuf, sizeof(nbuf));
-		result = dns_name_totext(n->name, false, &b);
+		result = dns_name_totext(n->name, 0, &b);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}

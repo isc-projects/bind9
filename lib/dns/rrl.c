@@ -956,7 +956,8 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 		}
 		if (qname != NULL) {
 			ADD_LOG_CSTR(&lb, " for ");
-			(void)dns_name_totext(qname, true, &lb);
+			(void)dns_name_totext(qname, DNS_NAME_OMITFINALDOT,
+					      &lb);
 		} else {
 			ADD_LOG_CSTR(&lb, " for (?)");
 		}

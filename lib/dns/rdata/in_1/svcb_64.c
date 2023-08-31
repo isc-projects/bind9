@@ -660,7 +660,7 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 	char buf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:255.255.255.255")];
 	unsigned short num;
 	int n;
@@ -686,8 +686,9 @@ generic_totext_in_svcb(ARGS_TOTEXT) {
 	 */
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	while (region.length > 0) {
 		isc_region_t r;
@@ -966,7 +967,7 @@ generic_towire_in_svcb(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 	isc_region_consume(&region, name_length(&name));
 
 	/*

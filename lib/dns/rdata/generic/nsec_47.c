@@ -65,7 +65,7 @@ totext_nsec(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_totext(&name, false, target));
+	RETERR(dns_name_totext(&name, 0, target));
 	/*
 	 * Don't leave a trailing space when there's no typemap present.
 	 */
@@ -111,7 +111,7 @@ towire_nsec(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 
 	return (mem_tobuffer(target, sr.base, sr.length));
 }

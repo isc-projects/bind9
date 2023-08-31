@@ -483,12 +483,12 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 			 dns_name_countlabels(&sdlz->common.origin);
 		dns_name_init(&relname, NULL);
 		dns_name_getlabelsequence(name, 0, labels, &relname);
-		result = dns_name_totext(&relname, true, &b);
+		result = dns_name_totext(&relname, DNS_NAME_OMITFINALDOT, &b);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
 	} else {
-		result = dns_name_totext(name, true, &b);
+		result = dns_name_totext(name, DNS_NAME_OMITFINALDOT, &b);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -496,7 +496,8 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	isc_buffer_putuint8(&b, 0);
 
 	isc_buffer_init(&b2, zonestr, sizeof(zonestr));
-	result = dns_name_totext(&sdlz->common.origin, true, &b2);
+	result = dns_name_totext(&sdlz->common.origin, DNS_NAME_OMITFINALDOT,
+				 &b2);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -558,7 +559,8 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 			}
 
 			isc_buffer_init(&b, wildstr, sizeof(wildstr));
-			result = dns_name_totext(wild, true, &b);
+			result = dns_name_totext(wild, DNS_NAME_OMITFINALDOT,
+						 &b);
 			if (result != ISC_R_SUCCESS) {
 				MAYBE_UNLOCK(sdlz->dlzimp);
 				return (result);
@@ -693,7 +695,8 @@ createiterator(dns_db_t *db, unsigned int options,
 	}
 
 	isc_buffer_init(&b, zonestr, sizeof(zonestr));
-	result = dns_name_totext(&sdlz->common.origin, true, &b);
+	result = dns_name_totext(&sdlz->common.origin, DNS_NAME_OMITFINALDOT,
+				 &b);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -1423,7 +1426,7 @@ dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
 
 	/* Convert DNS name to ascii text */
 	isc_buffer_init(&b, namestr, sizeof(namestr));
-	result = dns_name_totext(name, true, &b);
+	result = dns_name_totext(name, DNS_NAME_OMITFINALDOT, &b);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -1542,7 +1545,7 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 
 	/* Convert DNS name to ascii text */
 	isc_buffer_init(&b, namestr, sizeof(namestr));
-	result = dns_name_totext(name, true, &b);
+	result = dns_name_totext(name, DNS_NAME_OMITFINALDOT, &b);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}

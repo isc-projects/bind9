@@ -106,7 +106,7 @@ totext_in_a6(ARGS_TOTEXT) {
 	char buf[sizeof("128")];
 	dns_name_t name;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 
 	REQUIRE(rdata->type == dns_rdatatype_a6);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -140,8 +140,9 @@ totext_in_a6(ARGS_TOTEXT) {
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	return (dns_name_totext(&prefix, opts, target));
 }
 
 static isc_result_t
@@ -226,7 +227,7 @@ towire_in_a6(ARGS_TOWIRE) {
 
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &sr);
-	return (dns_name_towire(&name, cctx, target));
+	return (dns_name_towire(&name, cctx, target, NULL));
 }
 
 static int

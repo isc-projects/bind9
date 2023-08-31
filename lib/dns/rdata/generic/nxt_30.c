@@ -91,10 +91,9 @@ fromtext_nxt(ARGS_FROMTEXT) {
 static isc_result_t
 totext_nxt(ARGS_TOTEXT) {
 	isc_region_t sr;
-	unsigned int i, j;
+	unsigned int i, j, opts;
 	dns_name_t name;
 	dns_name_t prefix;
-	bool sub;
 
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 	REQUIRE(rdata->length != 0);
@@ -104,8 +103,9 @@ totext_nxt(ARGS_TOTEXT) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	for (i = 0; i < sr.length; i++) {
 		if (sr.base[i] != 0) {
@@ -174,7 +174,7 @@ towire_nxt(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &sr);
 	dns_name_fromregion(&name, &sr);
 	isc_region_consume(&sr, name_length(&name));
-	RETERR(dns_name_towire(&name, cctx, target));
+	RETERR(dns_name_towire(&name, cctx, target, NULL));
 
 	return (mem_tobuffer(target, sr.base, sr.length));
 }

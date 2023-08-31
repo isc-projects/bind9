@@ -1439,7 +1439,8 @@ catz_process_primaries(dns_catz_zone_t *catz, dns_ipkeylist_t *ipkl,
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
 			dns_rdata_freestruct(&rdata_txt);
-			result = dns_name_fromstring(keyname, keycbuf, 0, mctx);
+			result = dns_name_fromstring(keyname, keycbuf,
+						     dns_rootname, 0, mctx);
 			if (result != ISC_R_SUCCESS) {
 				dns_name_free(keyname, mctx);
 				isc_mem_put(mctx, keyname, sizeof(*keyname));
@@ -1867,13 +1868,13 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 
 	isc_buffer_putstr(tbuf, catz->catzs->view->name);
 	isc_buffer_putstr(tbuf, "_");
-	result = dns_name_totext(&catz->name, true, tbuf);
+	result = dns_name_totext(&catz->name, DNS_NAME_OMITFINALDOT, tbuf);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	isc_buffer_putstr(tbuf, "_");
-	result = dns_name_totext(&entry->name, true, tbuf);
+	result = dns_name_totext(&entry->name, DNS_NAME_OMITFINALDOT, tbuf);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -1966,7 +1967,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 	isc_buffer_allocate(catz->catzs->mctx, &buffer, ISC_BUFFER_INCR);
 
 	isc_buffer_putstr(buffer, "zone \"");
-	dns_name_totext(&entry->name, true, buffer);
+	dns_name_totext(&entry->name, DNS_NAME_OMITFINALDOT, buffer);
 	isc_buffer_putstr(buffer, "\" { type secondary; primaries");
 
 	isc_buffer_putstr(buffer, " { ");
@@ -2003,7 +2004,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		if (entry->opts.masters.keys[i] != NULL) {
 			isc_buffer_putstr(buffer, " key ");
 			result = dns_name_totext(entry->opts.masters.keys[i],
-						 true, buffer);
+						 DNS_NAME_OMITFINALDOT, buffer);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -2012,7 +2013,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *catz, dns_catz_entry_t *entry,
 		if (entry->opts.masters.tlss[i] != NULL) {
 			isc_buffer_putstr(buffer, " tls ");
 			result = dns_name_totext(entry->opts.masters.tlss[i],
-						 true, buffer);
+						 DNS_NAME_OMITFINALDOT, buffer);
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
 			}
@@ -2293,7 +2294,7 @@ dns__catz_update_cb(void *data) {
 	 * records might be processed differently depending on the version of
 	 * the catalog zone's schema.
 	 */
-	result = dns_name_fromstring2(name, "version", &updb->origin, 0, NULL);
+	result = dns_name_fromstring(name, "version", &updb->origin, 0, NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_dbiterator_destroy(&updbit);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,

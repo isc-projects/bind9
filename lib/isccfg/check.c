@@ -278,7 +278,8 @@ validate_tls(const cfg_obj_t *config, const cfg_obj_t *obj, isc_log_t *logctx,
 	     const char *str) {
 	dns_fixedname_t fname;
 	dns_name_t *nm = dns_fixedname_initname(&fname);
-	isc_result_t result = dns_name_fromstring(nm, str, 0, NULL);
+	isc_result_t result = dns_name_fromstring(nm, str, dns_rootname, 0,
+						  NULL);
 
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
@@ -975,7 +976,8 @@ check_name(const char *str) {
 	dns_fixedname_t fixed;
 
 	dns_fixedname_init(&fixed);
-	return (dns_name_fromstring(dns_fixedname_name(&fixed), str, 0, NULL));
+	return (dns_name_fromstring(dns_fixedname_name(&fixed), str,
+				    dns_rootname, 0, NULL));
 }
 
 static bool
@@ -2344,7 +2346,8 @@ resume:
 				const char *str = cfg_obj_asstring(key);
 				dns_fixedname_t fname;
 				dns_name_t *nm = dns_fixedname_initname(&fname);
-				tresult = dns_name_fromstring(nm, str, 0, NULL);
+				tresult = dns_name_fromstring(
+					nm, str, dns_rootname, 0, NULL);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 						    "'%s' is not a valid name",
@@ -2358,7 +2361,8 @@ resume:
 				const char *str = cfg_obj_asstring(tls);
 				dns_fixedname_t fname;
 				dns_name_t *nm = dns_fixedname_initname(&fname);
-				tresult = dns_name_fromstring(nm, str, 0, NULL);
+				tresult = dns_name_fromstring(
+					nm, str, dns_rootname, 0, NULL);
 				if (tresult != ISC_R_SUCCESS) {
 					cfg_obj_log(tls, logctx, ISC_LOG_ERROR,
 						    "'%s' is not a valid name",
@@ -2491,7 +2495,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		}
 
 		str = cfg_obj_asstring(identity);
-		tresult = dns_name_fromstring(id, str, 1, NULL);
+		tresult = dns_name_fromstring(id, str, dns_rootname, 1, NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
@@ -2509,7 +2513,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			str = cfg_obj_asstring(dname);
 		}
 		if (tresult == ISC_R_SUCCESS) {
-			tresult = dns_name_fromstring(name, str, 0, NULL);
+			tresult = dns_name_fromstring(name, str, dns_rootname,
+						      0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
 					    "'%s' is not a valid name", str);
@@ -4492,7 +4497,7 @@ record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 		const char *str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
 		isc_symvalue_t symvalue;
 
-		result = dns_name_fromstring(name, str, 0, NULL);
+		result = dns_name_fromstring(name, str, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
@@ -4565,7 +4570,7 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 		}
 
 		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-		result = dns_name_fromstring(name, str, 0, NULL);
+		result = dns_name_fromstring(name, str, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
@@ -4613,7 +4618,7 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 		const char *str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
 		isc_symvalue_t symvalue;
 
-		result = dns_name_fromstring(name, str, 0, NULL);
+		result = dns_name_fromstring(name, str, dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			continue;
 		}
@@ -4805,7 +4810,8 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 			}
 		}
 
-		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		tresult = dns_name_fromstring(name, zonename, dns_rootname, 0,
+					      NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(nameobj, logctx, ISC_LOG_ERROR,
 				    "bad domain name '%s'", zonename);
@@ -4864,7 +4870,8 @@ check_rpz(const cfg_obj_t *rpz_obj, isc_log_t *logctx) {
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
 
-		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		tresult = dns_name_fromstring(name, zonename, dns_rootname, 0,
+					      NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "bad domain name '%s'", zonename);
@@ -4922,7 +4929,8 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx,
 		nameobj = cfg_tuple_get(obj, "zone name");
 		zonename = cfg_obj_asstring(nameobj);
 
-		tresult = dns_name_fromstring(name, zonename, 0, NULL);
+		tresult = dns_name_fromstring(name, zonename, dns_rootname, 0,
+					      NULL);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "bad domain name '%s'", zonename);

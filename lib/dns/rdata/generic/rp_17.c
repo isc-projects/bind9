@@ -63,7 +63,7 @@ totext_rp(ARGS_TOTEXT) {
 	dns_name_t rmail;
 	dns_name_t email;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 
 	REQUIRE(rdata->type == dns_rdatatype_rp);
 	REQUIRE(rdata->length != 0);
@@ -80,13 +80,17 @@ totext_rp(ARGS_TOTEXT) {
 	dns_name_fromregion(&email, &region);
 	isc_region_consume(&region, email.length);
 
-	sub = name_prefix(&rmail, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&rmail, tctx->origin, &prefix)
+		       ? DNS_NAME_OMITFINALDOT
+		       : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&email, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&email, tctx->origin, &prefix)
+		       ? DNS_NAME_OMITFINALDOT
+		       : 0;
+	return (dns_name_totext(&prefix, opts, target));
 }
 
 static isc_result_t
@@ -128,12 +132,12 @@ towire_rp(ARGS_TOWIRE) {
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	RETERR(dns_name_towire(&rmail, cctx, target));
+	RETERR(dns_name_towire(&rmail, cctx, target, NULL));
 
 	dns_name_fromregion(&rmail, &region);
 	isc_region_consume(&region, rmail.length);
 
-	return (dns_name_towire(&rmail, cctx, target));
+	return (dns_name_towire(&rmail, cctx, target, NULL));
 }
 
 static int

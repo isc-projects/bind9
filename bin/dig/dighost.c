@@ -2029,7 +2029,7 @@ next_origin(dig_lookup_t *oldlookup) {
 	 * Check for a absolute name or ndots being met.
 	 */
 	name = dns_fixedname_initname(&fixed);
-	result = dns_name_fromstring2(name, oldlookup->textname, NULL, 0, NULL);
+	result = dns_name_fromstring(name, oldlookup->textname, NULL, 0, NULL);
 	if (result == ISC_R_SUCCESS &&
 	    (dns_name_isabsolute(name) ||
 	     (int)dns_name_countlabels(name) > ndots))

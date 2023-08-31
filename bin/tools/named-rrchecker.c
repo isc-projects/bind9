@@ -185,7 +185,8 @@ main(int argc, char *argv[]) {
 
 	if (origin != NULL) {
 		name = dns_fixedname_initname(&fixed);
-		result = dns_name_fromstring(name, origin, 0, NULL);
+		result = dns_name_fromstring(name, origin, dns_rootname, 0,
+					     NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_name_fromstring: %s",
 			      isc_result_totext(result));

@@ -224,17 +224,19 @@ rdata_checknames(dns_rdata_t *rdata) {
 	(void)dns_rdata_checknames(rdata, dns_rootname, NULL);
 	(void)dns_rdata_checknames(rdata, dns_rootname, bad);
 
-	result = dns_name_fromstring(name, "example.net", 0, NULL);
+	result = dns_name_fromstring(name, "example.net", dns_rootname, 0,
+				     NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	(void)dns_rdata_checknames(rdata, name, NULL);
 	(void)dns_rdata_checknames(rdata, name, bad);
 
-	result = dns_name_fromstring(name, "in-addr.arpa", 0, NULL);
+	result = dns_name_fromstring(name, "in-addr.arpa", dns_rootname, 0,
+				     NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	(void)dns_rdata_checknames(rdata, name, NULL);
 	(void)dns_rdata_checknames(rdata, name, bad);
 
-	result = dns_name_fromstring(name, "ip6.arpa", 0, NULL);
+	result = dns_name_fromstring(name, "ip6.arpa", dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	(void)dns_rdata_checknames(rdata, name, NULL);
 	(void)dns_rdata_checknames(rdata, name, bad);

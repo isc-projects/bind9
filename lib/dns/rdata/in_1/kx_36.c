@@ -54,7 +54,7 @@ totext_in_kx(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 	char buf[sizeof("64000")];
 	unsigned short num;
 
@@ -74,8 +74,9 @@ totext_in_kx(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 
 	dns_name_fromregion(&name, &region);
-	sub = name_prefix(&name, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&name, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	return (dns_name_totext(&prefix, opts, target));
 }
 
 static isc_result_t
@@ -120,7 +121,7 @@ towire_in_kx(ARGS_TOWIRE) {
 	dns_name_init(&name, offsets);
 	dns_name_fromregion(&name, &region);
 
-	return (dns_name_towire(&name, cctx, target));
+	return (dns_name_towire(&name, cctx, target, NULL));
 }
 
 static int

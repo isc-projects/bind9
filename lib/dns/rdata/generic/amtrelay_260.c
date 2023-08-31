@@ -174,7 +174,7 @@ totext_amtrelay(ARGS_TOTEXT) {
 	case 3:
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &region);
-		return (dns_name_totext(&name, false, target));
+		return (dns_name_totext(&name, 0, target));
 
 	default:
 		UNREACHABLE();

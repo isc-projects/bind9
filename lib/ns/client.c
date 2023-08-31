@@ -626,7 +626,7 @@ renderend:
 
 		isc_buffer_init(&b, zone, sizeof(zone));
 		dns_compress_setpermitted(&cctx, false);
-		eresult = dns_name_towire(zo, &cctx, &b);
+		eresult = dns_name_towire(zo, &cctx, &b, NULL);
 		if (eresult == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(&b, &zr);
 		}

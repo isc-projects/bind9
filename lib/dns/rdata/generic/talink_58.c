@@ -52,7 +52,7 @@ totext_talink(ARGS_TOTEXT) {
 	dns_name_t prev;
 	dns_name_t next;
 	dns_name_t prefix;
-	bool sub;
+	unsigned int opts;
 
 	REQUIRE(rdata->type == dns_rdatatype_talink);
 	REQUIRE(rdata->length != 0);
@@ -69,13 +69,15 @@ totext_talink(ARGS_TOTEXT) {
 	dns_name_fromregion(&next, &dregion);
 	isc_region_consume(&dregion, name_length(&next));
 
-	sub = name_prefix(&prev, tctx->origin, &prefix);
-	RETERR(dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&prev, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	RETERR(dns_name_totext(&prefix, opts, target));
 
 	RETERR(str_totext(" ", target));
 
-	sub = name_prefix(&next, tctx->origin, &prefix);
-	return (dns_name_totext(&prefix, sub, target));
+	opts = name_prefix(&next, tctx->origin, &prefix) ? DNS_NAME_OMITFINALDOT
+							 : 0;
+	return (dns_name_totext(&prefix, opts, target));
 }
 
 static isc_result_t
@@ -117,11 +119,11 @@ towire_talink(ARGS_TOWIRE) {
 
 	dns_name_fromregion(&prev, &sregion);
 	isc_region_consume(&sregion, name_length(&prev));
-	RETERR(dns_name_towire(&prev, cctx, target));
+	RETERR(dns_name_towire(&prev, cctx, target, NULL));
 
 	dns_name_fromregion(&next, &sregion);
 	isc_region_consume(&sregion, name_length(&next));
-	return (dns_name_towire(&next, cctx, target));
+	return (dns_name_towire(&next, cctx, target, NULL));
 }
 
 static int

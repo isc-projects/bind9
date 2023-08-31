@@ -352,7 +352,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			 * Write the name.
 			 */
 			dns_compress_setpermitted(cctx, true);
-			result = dns_name_towire(&name, cctx, target);
+			result = dns_name_towire(&name, cctx, target, NULL);
 			if (result != ISC_R_SUCCESS) {
 				goto rollback;
 			}

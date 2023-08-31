@@ -2676,7 +2676,7 @@ resquery_send(resquery_t *query) {
 	memset(&zr, 0, sizeof(zr));
 	isc_buffer_init(&zb, zone, sizeof(zone));
 	dns_compress_setpermitted(&cctx, false);
-	result = dns_name_towire(fctx->domain, &cctx, &zb);
+	result = dns_name_towire(fctx->domain, &cctx, &zb, NULL);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_usedregion(&zb, &zr);
 	}
@@ -9627,7 +9627,7 @@ rctx_logpacket(respctx_t *rctx) {
 	dns_compress_init(&cctx, fctx->mctx, 0);
 	dns_compress_setpermitted(&cctx, false);
 	isc_buffer_init(&zb, zone, sizeof(zone));
-	result = dns_name_towire(fctx->domain, &cctx, &zb);
+	result = dns_name_towire(fctx->domain, &cctx, &zb, NULL);
 	if (result == ISC_R_SUCCESS) {
 		isc_buffer_usedregion(&zb, &zr);
 	}
