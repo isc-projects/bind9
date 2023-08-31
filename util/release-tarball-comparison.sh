@@ -63,10 +63,6 @@ run_in_container "apt-get update &&			\
 		xz-utils				\
 "
 
-run_in_container "apt-get -y install --no-install-recommends python3-pip && \
-	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
-	pip3 install docutils==0.18.1 sphinx-rtd-theme==1.2.2 sphinx==6.2.1"
-
 # Retrieve the release-ready BIND 9 tarball.
 docker cp "${BIND_TARBALL}" "${CONTAINER_ID}:/usr/src"
 
@@ -76,6 +72,9 @@ BIND_DIRECTORY="bind-${BIND_VERSION}"
 # Prepare a temporary "release" tarball from upstream BIND 9 project.
 run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSION} --depth 1 https://${GITLAB_USER}:${GITLAB_TOKEN}@gitlab.isc.org/isc-private/bind9.git && \
 	cd bind9 && \
+	apt-get -y install --no-install-recommends python3-pip && \
+	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
+	pip3 install \$(awk '!/^#/ { printf \"%s \", \$0 }' doc/arm/requirements.txt) && \
 	if [ $(echo "${BIND_VERSION}" | cut -b 1-5) = 9.16. ]; then \
 		git archive --prefix=${BIND_DIRECTORY}/ --output=${BIND_DIRECTORY}.tar HEAD && \
 		mkdir ${BIND_DIRECTORY} && \

@@ -1,5 +1,5 @@
-# Make Read the Docs use the exact same package versions as in
-# registry.gitlab.isc.org/isc-projects/images/bind9:debian-bookworm-amd64
+# docutils < 0.19 are required for RHEL 8 and older (but we don't care about these)
+# and by the latest sphinx-rtd-theme (and we care about that one)
 Sphinx==6.2.1
 docutils==0.18.1
 sphinx_rtd_theme==1.2.2
