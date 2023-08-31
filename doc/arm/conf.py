@@ -40,6 +40,44 @@ except ImportError:
 
 
 GITLAB_BASE_URL = "https://gitlab.isc.org/isc-projects/bind9/-/"
+KNOWLEDGEBASE_BASE_URL = "https://kb.isc.org/docs/"
+
+
+# Custom Sphinx role enabling automatic hyperlinking to security advisory in
+# ISC Knowledgebase
+class CVERefRole(ReferenceRole):
+    def __init__(self, base_url: str) -> None:
+        self.base_url = base_url
+        super().__init__()
+
+    def run(self) -> Tuple[List[Node], List[system_message]]:
+        cve_identifier = "(CVE-%s)" % self.target
+
+        target_id = "index-%s" % self.env.new_serialno("index")
+        entries = [
+            ("single", "ISC Knowledgebase; " + cve_identifier, target_id, "", None)
+        ]
+
+        index = addnodes.index(entries=entries)
+        target = nodes.target("", "", ids=[target_id])
+        self.inliner.document.note_explicit_target(target)
+
+        try:
+            refuri = self.base_url + "cve-%s" % self.target
+            reference = nodes.reference(
+                "", "", internal=False, refuri=refuri, classes=["cve"]
+            )
+            if self.has_explicit_title:
+                reference += nodes.strong(self.title, self.title)
+            else:
+                reference += nodes.strong(cve_identifier, cve_identifier)
+        except ValueError:
+            error_text = "invalid ISC Knowledgebase identifier %s" % self.target
+            msg = self.inliner.reporter.error(error_text, line=self.lineno)
+            prb = self.inliner.problematic(self.rawtext, self.rawtext, msg)
+            return [prb], [msg]
+
+        return [index, target, reference], []
 
 
 # Custom Sphinx role enabling automatic hyperlinking to GitLab issues/MRs.
@@ -84,6 +122,7 @@ class GitLabRefRole(ReferenceRole):
 
 
 def setup(app):
+    roles.register_local_role("cve", CVERefRole(KNOWLEDGEBASE_BASE_URL))
     roles.register_local_role("gl", GitLabRefRole(GITLAB_BASE_URL))
     app.add_crossref_type("iscman", "iscman", "pair: %s; manual page")
 

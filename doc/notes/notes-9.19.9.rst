@@ -19,14 +19,14 @@ Security Fixes
   available memory. This flaw was addressed by adding a new
   :any:`update-quota` option that controls the maximum number of
   outstanding DNS UPDATE messages that :iscman:`named` can hold in a
-  queue at any given time (default: 100). (CVE-2022-3094)
+  queue at any given time (default: 100). :cve:`2022-3094`
 
   ISC would like to thank Rob Schulhof from Infoblox for bringing this
   vulnerability to our attention. :gl:`#3523`
 
 - :iscman:`named` could crash with an assertion failure when an RRSIG
   query was received and :any:`stale-answer-client-timeout` was set to a
-  non-zero value. This has been fixed. (CVE-2022-3736)
+  non-zero value. This has been fixed. :cve:`2022-3736`
 
   ISC would like to thank Borja Marcos from Sarenet (with assistance by
   Iratxe Niño from Fundación Sarenet) for bringing this vulnerability to
@@ -36,7 +36,7 @@ Security Fixes
   :any:`stale-answer-client-timeout` option set to any value greater
   than ``0`` could crash with an assertion failure, when the
   :any:`recursive-clients` soft quota was reached. This has been fixed.
-  (CVE-2022-3924)
+  :cve:`2022-3924`
 
   ISC would like to thank Maksym Odinintsev from AWS for bringing this
   vulnerability to our attention. :gl:`#3619`

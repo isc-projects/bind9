@@ -17,7 +17,7 @@ Security Fixes
 
 - The overmem cleaning process has been improved, to prevent the cache from
   significantly exceeding the configured :any:`max-cache-size` limit.
-  (CVE-2023-2828)
+  :cve:`2023-2828`
 
   ISC would like to thank Shoham Danino from Reichman University, Anat
   Bremler-Barr from Tel-Aviv University, Yehuda Afek from Tel-Aviv University,
