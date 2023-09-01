@@ -1,6 +1,8 @@
 6237.	[bug]		Address memory leaks due to not clearing OpenSSL error
 			stack. [GL #4159]
 
+6235.	[doc]		Clarify BIND 9 time formats. [GL #4266]
+
 6234.	[bug]		Restore stale-refresh-time value after flushing the
 			cache. [GL #4278]
 
