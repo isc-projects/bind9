@@ -47,6 +47,7 @@ isc_md_init(isc_md_t *md, const isc_md_type_t *md_type) {
 	}
 
 	if (EVP_DigestInit_ex(md, md_type, NULL) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -58,6 +59,7 @@ isc_md_reset(isc_md_t *md) {
 	REQUIRE(md != NULL);
 
 	if (EVP_MD_CTX_reset(md) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -73,6 +75,7 @@ isc_md_update(isc_md_t *md, const unsigned char *buf, const size_t len) {
 	}
 
 	if (EVP_DigestUpdate(md, buf, len) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 
@@ -85,6 +88,7 @@ isc_md_final(isc_md_t *md, unsigned char *digest, unsigned int *digestlen) {
 	REQUIRE(digest != NULL);
 
 	if (EVP_DigestFinal_ex(md, digest, digestlen) != 1) {
+		ERR_clear_error();
 		return (ISC_R_CRYPTOFAILURE);
 	}
 

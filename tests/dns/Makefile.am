@@ -7,8 +7,8 @@ AM_CPPFLAGS +=				\
 	$(KRB5_CFLAGS)			\
 	-DSRCDIR=\"$(abs_srcdir)\"	\
 	-DBUILDDIR=\"$(abs_builddir)\"	\
-	-I$(top_srcdir)/lib/isc		\
-	-I$(top_srcdir)/lib/dns
+	-I$(top_srcdir)/lib/dns		\
+	-I$(top_srcdir)/lib/isc
 
 LDADD +=				\
 	$(LIBISC_LIBS)			\
@@ -105,6 +105,14 @@ dst_test_CPPFLAGS =		\
 rsa_test_CPPFLAGS =		\
 	$(AM_CPPFLAGS)		\
 	$(OPENSSL_CFLAGS)
+
+rdata_test_CPPFLAGS = 		\
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)
+
+rdata_test_LDADD =		\
+	$(LDADD)		\
+	$(OPENSSL_LIBS)
 
 EXTRA_sigs_test_DEPENDENCIES = testdata/master/master18.data
 CLEANFILES += $(EXTRA_sigs_test_DEPENDENCIES)

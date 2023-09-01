@@ -762,10 +762,12 @@ isc_tls_create(isc_tlsctx_t *ctx) {
 
 void
 isc_tls_free(isc_tls_t **tlsp) {
+	isc_tls_t *tls = NULL;
 	REQUIRE(tlsp != NULL && *tlsp != NULL);
 
-	SSL_free(*tlsp);
+	tls = *tlsp;
 	*tlsp = NULL;
+	SSL_free(tls);
 }
 
 const char *
@@ -961,6 +963,7 @@ isc_tlsctx_enable_peer_verification(isc_tlsctx_t *tlsctx, const bool is_server,
 			ret = X509_VERIFY_PARAM_set1_host(param, hostname, 0);
 		}
 		if (ret != 1) {
+			ERR_clear_error();
 			return (ISC_R_FAILURE);
 		}
 
@@ -1011,6 +1014,7 @@ isc_tlsctx_load_client_ca_names(isc_tlsctx_t *ctx, const char *ca_bundle_file) {
 
 	cert_names = SSL_load_client_CA_file(ca_bundle_file);
 	if (cert_names == NULL) {
+		ERR_clear_error();
 		return (ISC_R_FAILURE);
 	}
 
@@ -1051,6 +1055,7 @@ isc_tls_cert_store_create(const char *ca_bundle_filename,
 	return (ISC_R_SUCCESS);
 
 error:
+	ERR_clear_error();
 	if (store != NULL) {
 		X509_STORE_free(store);
 	}
@@ -1531,6 +1536,7 @@ isc_tlsctx_client_session_cache_keep(isc_tlsctx_client_session_cache_t *cache,
 
 	sess = SSL_get1_session(tls);
 	if (sess == NULL) {
+		ERR_clear_error();
 		return;
 	} else if (!ssl_session_seems_resumable(sess)) {
 		SSL_SESSION_free(sess);

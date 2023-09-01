@@ -13,6 +13,7 @@
 
 #include <stdio.h>
 
+#include <openssl/err.h>
 #include <openssl/opensslv.h>
 
 #include <isc/iterated_hash.h>
@@ -43,18 +44,22 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 
 	do {
 		if (SHA1_Init(&ctx) != 1) {
+			ERR_clear_error();
 			return (0);
 		}
 
 		if (SHA1_Update(&ctx, buf, len) != 1) {
+			ERR_clear_error();
 			return (0);
 		}
 
 		if (SHA1_Update(&ctx, salt, saltlength) != 1) {
+			ERR_clear_error();
 			return (0);
 		}
 
 		if (SHA1_Final(out, &ctx) != 1) {
+			ERR_clear_error();
 			return (0);
 		}
 
@@ -127,7 +132,7 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 fail:
 	EVP_MD_CTX_free(ctx);
 	EVP_MD_free(md);
-
+	ERR_clear_error();
 	return (0);
 }
 

@@ -175,7 +175,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (dctx->key->key_alg == DST_ALG_ECDSA256) {
 		type = EVP_sha256();
@@ -257,6 +257,8 @@ err:
 static int
 BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 	int bytes = size - BN_num_bytes(bn);
+
+	INSIST(bytes >= 0);
 
 	while (bytes-- > 0) {
 		*buf++ = 0;
@@ -357,7 +359,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
@@ -439,8 +441,10 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	eckey1 = EVP_PKEY_get1_EC_KEY(pkey1);
 	eckey2 = EVP_PKEY_get1_EC_KEY(pkey2);
 	if (eckey1 == NULL && eckey2 == NULL) {
+		ERR_clear_error();
 		DST_RET(true);
 	} else if (eckey1 == NULL || eckey2 == NULL) {
+		ERR_clear_error();
 		DST_RET(false);
 	}
 	priv1 = EC_KEY_get0_private_key(eckey1);
@@ -453,8 +457,11 @@ opensslecdsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	if (priv1 != NULL || priv2 != NULL) {
 		if (priv1 == NULL || priv2 == NULL || BN_cmp(priv1, priv2) != 0)
 		{
+			ERR_clear_error();
 			DST_RET(false);
 		}
+	} else {
+		ERR_clear_error();
 	}
 
 	ret = true;
@@ -520,7 +527,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		DST_RET(ISC_R_FAILURE);
@@ -616,6 +623,8 @@ opensslecdsa_isprivate(const dst_key_t *key) {
 	ret = (eckey != NULL && EC_KEY_get0_private_key(eckey) != NULL);
 	if (eckey != NULL) {
 		EC_KEY_free(eckey);
+	} else {
+		ERR_clear_error();
 	}
 #else
 	ret = (EVP_PKEY_get_bn_param(pkey, OSSL_PKEY_PARAM_PRIV_KEY, &priv) ==
@@ -787,7 +796,7 @@ opensslecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		EVP_PKEY_free(pkey);
@@ -1098,7 +1107,7 @@ eckey_to_pkey(EC_KEY *eckey, EVP_PKEY **pkey) {
 
 	*pkey = EVP_PKEY_new();
 	if (*pkey == NULL) {
-		return (ISC_R_NOMEMORY);
+		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(*pkey, eckey)) {
 		EVP_PKEY_free(*pkey);
