@@ -393,7 +393,7 @@ ixfr_init(dns_xfrin_ctx_t *xfr) {
 	char *journalfile = NULL;
 
 	if (xfr->reqtype != dns_rdatatype_ixfr) {
-		xfrin_log(xfr, ISC_LOG_ERROR,
+		xfrin_log(xfr, ISC_LOG_NOTICE,
 			  "got incremental response to AXFR request");
 		return (DNS_R_FORMERR);
 	}
@@ -510,6 +510,10 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 	if (rdata->type == dns_rdatatype_none ||
 	    dns_rdatatype_ismeta(rdata->type))
 	{
+		char buf[64];
+		dns_rdatatype_format(rdata->type, buf, sizeof(buf));
+		xfrin_log(xfr, ISC_LOG_NOTICE,
+			  "Unexpected %s record in zone transfer", buf);
 		FAIL(DNS_R_FORMERR);
 	}
 
@@ -532,7 +536,7 @@ redo:
 	switch (xfr->state) {
 	case XFRST_SOAQUERY:
 		if (rdata->type != dns_rdatatype_soa) {
-			xfrin_log(xfr, ISC_LOG_ERROR,
+			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "non-SOA response to SOA query");
 			FAIL(DNS_R_FORMERR);
 		}
@@ -557,7 +561,7 @@ redo:
 
 	case XFRST_INITIALSOA:
 		if (rdata->type != dns_rdatatype_soa) {
-			xfrin_log(xfr, ISC_LOG_ERROR,
+			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "first RR in zone transfer must be SOA");
 			FAIL(DNS_R_FORMERR);
 		}
@@ -642,7 +646,7 @@ redo:
 				xfr->state = XFRST_IXFR_END;
 				break;
 			} else if (soa_serial != xfr->ixfr.current_serial) {
-				xfrin_log(xfr, ISC_LOG_ERROR,
+				xfrin_log(xfr, ISC_LOG_NOTICE,
 					  "IXFR out of sync: "
 					  "expected serial %u, got %u",
 					  xfr->ixfr.current_serial, soa_serial);
@@ -678,7 +682,7 @@ redo:
 			 * allow for case differences.
 			 */
 			if (dns_rdata_compare(rdata, &xfr->firstsoa) != 0) {
-				xfrin_log(xfr, ISC_LOG_ERROR,
+				xfrin_log(xfr, ISC_LOG_NOTICE,
 					  "start and ending SOA records "
 					  "mismatch");
 				FAIL(DNS_R_FORMERR);
@@ -1650,7 +1654,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	 * match the question that was sent.
 	 */
 	if (msg->counts[DNS_SECTION_QUESTION] > 1) {
-		xfrin_log(xfr, ISC_LOG_DEBUG(3), "too many questions (%u)",
+		xfrin_log(xfr, ISC_LOG_NOTICE, "too many questions (%u)",
 			  msg->counts[DNS_SECTION_QUESTION]);
 		result = DNS_R_FORMERR;
 		goto failure;
@@ -1659,7 +1663,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 	if ((xfr->state == XFRST_SOAQUERY || xfr->state == XFRST_INITIALSOA) &&
 	    msg->counts[DNS_SECTION_QUESTION] != 1)
 	{
-		xfrin_log(xfr, ISC_LOG_DEBUG(3), "missing question section");
+		xfrin_log(xfr, ISC_LOG_NOTICE, "missing question section");
 		result = DNS_R_FORMERR;
 		goto failure;
 	}
@@ -1674,7 +1678,7 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
 		if (!dns_name_equal(name, &xfr->name)) {
 			result = DNS_R_FORMERR;
-			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question name mismatch");
 			goto failure;
 		}
@@ -1682,13 +1686,13 @@ xfrin_recv_done(isc_nmhandle_t *handle, isc_result_t result,
 		INSIST(rds != NULL);
 		if (rds->type != xfr->reqtype) {
 			result = DNS_R_FORMERR;
-			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question type mismatch");
 			goto failure;
 		}
 		if (rds->rdclass != xfr->rdclass) {
 			result = DNS_R_FORMERR;
-			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question class mismatch");
 			goto failure;
 		}
