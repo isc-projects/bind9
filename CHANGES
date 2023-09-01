@@ -1,3 +1,5 @@
+6235.	[doc]		Clarify BIND 9 time formats. [GL #4266]
+
 6230.	[bug]		Prevent an unnecessary query restart if a synthesized
 			CNAME target points to the CNAME owner. [GL #3835]
 
