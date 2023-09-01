@@ -112,6 +112,8 @@ static int
 BN_bn2bin_fixed(const BIGNUM *bn, unsigned char *buf, int size) {
 	int bytes = size - BN_num_bytes(bn);
 
+	INSIST(bytes >= 0);
+
 	while (bytes-- > 0) {
 		*buf++ = 0;
 	}
@@ -323,7 +325,7 @@ opensslecdsa_create_pkey_legacy(unsigned int key_alg, bool private,
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (!EVP_PKEY_set1_EC_KEY(pkey, eckey)) {
 		DST_RET(dst__openssl_toresult(ISC_R_FAILURE));
@@ -345,10 +347,16 @@ opensslecdsa_extract_public_key_legacy(const dst_key_t *key, unsigned char *dst,
 				       size_t dstlen) {
 	EVP_PKEY *pkey = key->keydata.pkeypair.pub;
 	const EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(pkey);
-	const EC_GROUP *group = EC_KEY_get0_group(eckey);
-	const EC_POINT *pub = EC_KEY_get0_public_key(eckey);
+	const EC_GROUP *group = (eckey == NULL) ? NULL
+						: EC_KEY_get0_group(eckey);
+	const EC_POINT *pub = (eckey == NULL) ? NULL
+					      : EC_KEY_get0_public_key(eckey);
 	unsigned char buf[MAX_PUBKEY_SIZE + 1];
 	size_t len;
+
+	if (group == NULL || pub == NULL) {
+		return (false);
+	}
 
 	len = EC_POINT_point2oct(group, pub, POINT_CONVERSION_UNCOMPRESSED, buf,
 				 sizeof(buf), NULL);
@@ -509,7 +517,7 @@ opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (EVP_PKEY_set1_EC_KEY(pkey, eckey) != 1) {
 		DST_RET(dst__openssl_toresult2("EVP_PKEY_set1_EC_KEY",
@@ -528,7 +536,13 @@ err:
 static isc_result_t
 opensslecdsa_validate_pkey_group(unsigned int key_alg, EVP_PKEY *pkey) {
 	const EC_KEY *eckey = EVP_PKEY_get0_EC_KEY(pkey);
-	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
+	int group_nid;
+
+	if (eckey == NULL) {
+		return (dst__openssl_toresult(DST_R_INVALIDPRIVATEKEY));
+	}
+
+	group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 
 	if (EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey)) != group_nid) {
 		return (DST_R_INVALIDPRIVATEKEY);
@@ -545,11 +559,13 @@ opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
 
 	eckey = EVP_PKEY_get0_EC_KEY(key->keydata.pkeypair.priv);
 	if (eckey == NULL) {
+		ERR_clear_error();
 		return (false);
 	}
 
 	privkey = EC_KEY_get0_private_key(eckey);
 	if (privkey == NULL) {
+		ERR_clear_error();
 		return (false);
 	}
 
@@ -571,7 +587,7 @@ opensslecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (evp_md_ctx == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	if (dctx->key->key_alg == DST_ALG_ECDSA256) {
 		type = EVP_sha256();
@@ -738,7 +754,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 
 	ecdsasig = ECDSA_SIG_new();
 	if (ecdsasig == NULL) {
-		DST_RET(ISC_R_NOMEMORY);
+		DST_RET(dst__openssl_toresult(ISC_R_NOMEMORY));
 	}
 	r = BN_bin2bn(cp, siglen / 2, NULL);
 	cp += siglen / 2;
@@ -825,7 +841,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 		DST_RET(ISC_R_NOSPACE);
 	}
 	if (!opensslecdsa_extract_public_key(key, r.base, keysize)) {
-		DST_RET(DST_R_OPENSSLFAILURE);
+		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
 
 	isc_buffer_add(data, keysize);

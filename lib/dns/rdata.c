@@ -17,6 +17,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <openssl/err.h>
 #include <openssl/objects.h>
 
 #include <isc/ascii.h>
@@ -623,6 +624,7 @@ check_private(isc_buffer_t *source, dns_secalg_t alg) {
 		in = sr.base;
 		obj = d2i_ASN1_OBJECT(NULL, &in, sr.length);
 		if (obj == NULL) {
+			ERR_clear_error();
 			RETERR(DNS_R_FORMERR);
 		}
 		ASN1_OBJECT_free(obj);

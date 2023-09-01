@@ -199,7 +199,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_reset) {
 	 * so this could be only manually checked that the test will
 	 * segfault when called by hand
 	 */
-	expect_assert_failure(isc_hmac_final(hmac,digest,&digestlen));
+	expect_assert_failure(isc_hmac_final(hmac, digest, &digestlen));
 #endif /* if 0 */
 }
 

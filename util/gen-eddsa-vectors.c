@@ -39,17 +39,20 @@ main() {
 	EVP_MD_CTX *evp_md_ctx = EVP_MD_CTX_create();
 
 	if (ctx == NULL || evp_md_ctx == NULL) {
+		ERR_clear_error();
 		return (1);
 	}
 
 	if (EVP_PKEY_keygen_init(ctx) != 1 ||
 	    EVP_PKEY_keygen(ctx, &pkey) != 1 || pkey == NULL)
 	{
+		ERR_clear_error();
 		return (1);
 	}
 
 	bytes = sizeof(buf);
 	if (EVP_PKEY_get_raw_public_key(pkey, buf, &bytes) != 1) {
+		ERR_clear_error();
 		return (1);
 	}
 
@@ -64,6 +67,7 @@ main() {
 	    EVP_DigestSign(evp_md_ctx, buf, &bytes,
 			   (const unsigned char *)"test", 4) != 1)
 	{
+		ERR_clear_error();
 		return (1);
 	}
 
@@ -80,17 +84,20 @@ main() {
 	ctx = EVP_PKEY_CTX_new_id(NID_ED448, NULL);
 	evp_md_ctx = EVP_MD_CTX_create();
 	if (ctx == NULL || evp_md_ctx == NULL) {
+		ERR_clear_error();
 		return (1);
 	}
 
 	if (EVP_PKEY_keygen_init(ctx) != 1 ||
 	    EVP_PKEY_keygen(ctx, &pkey) != 1 || pkey == NULL)
 	{
+		ERR_clear_error();
 		return (1);
 	}
 
 	bytes = sizeof(buf);
 	if (EVP_PKEY_get_raw_public_key(pkey, buf, &bytes) != 1) {
+		ERR_clear_error();
 		return (1);
 	}
 
@@ -105,6 +112,7 @@ main() {
 	    EVP_DigestSign(evp_md_ctx, buf, &bytes,
 			   (const unsigned char *)"test", 4) != 1)
 	{
+		ERR_clear_error();
 		return (1);
 	}
 
@@ -113,6 +121,9 @@ main() {
 		printf("\\x%02x", buf[i]);
 	}
 	printf("\";\n\n");
+
+	EVP_MD_CTX_free(evp_md_ctx);
+	EVP_PKEY_free(pkey);
 
 	return (0);
 }

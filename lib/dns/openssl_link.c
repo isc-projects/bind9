@@ -110,6 +110,7 @@ cleanup_rm:
 	if (global_engine != NULL) {
 		ENGINE_free(global_engine);
 	}
+	ERR_clear_error();
 	global_engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000 */
 	return (DST_R_NOENGINE);
@@ -339,6 +340,16 @@ dst__openssl_fromlabel(int key_base_id, const char *engine, const char *label,
 	if (engine == NULL) {
 		return (dst__openssl_fromlabel_provider(key_base_id, label, pin,
 							ppub, ppriv));
+	}
+
+	if (*ppub != NULL) {
+		EVP_PKEY_free(*ppub);
+		*ppub = NULL;
+	}
+
+	if (*ppriv != NULL) {
+		EVP_PKEY_free(*ppriv);
+		*ppriv = NULL;
 	}
 
 	return (dst__openssl_fromlabel_engine(key_base_id, engine, label, pin,
