@@ -100,9 +100,11 @@ TESTS +=			\
 	cookie			\
 	database		\
 	dialup			\
+	digdelv			\
 	dispatch		\
 	dlzexternal		\
 	dns64			\
+	dnssec			\
 	dnstap			\
 	doth			\
 	dsdigest		\
@@ -115,6 +117,7 @@ TESTS +=			\
 	filter-aaaa		\
 	fetchlimit		\
 	formerr			\
+	forward			\
 	geoip2			\
 	glue			\
 	idna			\
@@ -189,7 +192,6 @@ TESTS +=			\
 
 if HAVE_PYMOD_DNS
 if HAVE_PERLMOD_NET_DNS
-TESTS += digdelv dnssec forward
 if HAVE_PERLMOD_NET_DNS_NAMESERVER
 TESTS += chain
 endif HAVE_PERLMOD_NET_DNS_NAMESERVER
