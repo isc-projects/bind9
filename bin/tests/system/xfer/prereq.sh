@@ -23,4 +23,10 @@ then
 	exit 1
 fi
 
+if ! ${PERL} -MDigest::HMAC -e ''
+then
+	echo_i "perl Digest::HMAC module is required"
+	exit 1
+fi
+
 exit 0
