@@ -145,6 +145,7 @@ TESTS +=			\
 	padding			\
 	pending			\
 	pipelined		\
+	reclimit		\
 	redirect		\
 	resolver		\
 	rndc			\
@@ -183,14 +184,6 @@ TESTS +=			\
 	xferquota		\
 	zero			\
 	zonechecks
-
-if HAVE_PERLMOD_NET_DNS
-
-if HAVE_PERLMOD_NET_DNS_NAMESERVER
-TESTS += reclimit
-endif HAVE_PERLMOD_NET_DNS_NAMESERVER
-
-endif HAVE_PERLMOD_NET_DNS
 
 if HAVE_PYMOD_DNS
 TESTS += qmin cookie
