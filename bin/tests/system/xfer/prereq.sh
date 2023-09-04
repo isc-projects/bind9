@@ -16,9 +16,9 @@
 # macOS ships with Net::DNS 0.74 which does not work with
 # HMAC-SHA256, despite the workarounds in ans.pl
 
-if perl -MNet::DNS -e 'exit $Net::DNS::VERSION >= 1.0'
+if ${PERL} -MNet::DNS -e 'exit ($Net::DNS::VERSION >= 1.0)'
 then
-	version=$(perl -MNet::DNS -e 'print $Net::DNS::VERSION')
+	version=$(${PERL} -MNet::DNS -e 'print $Net::DNS::VERSION')
 	echo_i "perl Net::DNS $version is too old - skipping xfer test"
 	exit 1
 fi
