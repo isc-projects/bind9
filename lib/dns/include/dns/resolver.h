@@ -423,18 +423,6 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
  * \li	only one of 'name' or 'alt' to be valid.
  */
 
-void
-dns_resolver_reset_algorithms(dns_resolver_t *resolver);
-/*%<
- * Clear the disabled DNSSEC algorithms.
- */
-
-void
-dns_resolver_reset_ds_digests(dns_resolver_t *resolver);
-/*%<
- * Clear the disabled DS digest types.
- */
-
 isc_result_t
 dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg);
@@ -481,9 +469,6 @@ dns_resolver_ds_digest_supported(dns_resolver_t	  *resolver,
  * dns_resolver_disable_ds_digest(), then checks the underlying
  * crypto libraries if it was not specifically disabled.
  */
-
-void
-dns_resolver_resetmustbesecure(dns_resolver_t *resolver);
 
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,

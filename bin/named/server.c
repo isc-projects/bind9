@@ -83,6 +83,7 @@
 #include <dns/keyvalues.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
+#include <dns/nametree.h>
 #include <dns/nsec3.h>
 #include <dns/nta.h>
 #include <dns/order.h>
@@ -602,21 +603,23 @@ configure_view_sortlist(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 static isc_result_t
 configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			 const char *confname, const char *conftuplename,
-			 isc_mem_t *mctx, dns_rbt_t **rbtp) {
-	isc_result_t result;
+			 isc_mem_t *mctx, dns_nametree_t **ntp) {
+	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *maps[3];
 	const cfg_obj_t *obj = NULL;
-	const cfg_listelt_t *element;
+	const cfg_listelt_t *element = NULL;
 	int i = 0;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 	isc_buffer_t b;
-	const char *str;
-	const cfg_obj_t *nameobj;
+	const char *str = NULL;
+	const cfg_obj_t *nameobj = NULL;
 
-	if (*rbtp != NULL) {
-		dns_rbt_destroy(rbtp);
+	if (*ntp != NULL) {
+		dns_nametree_detach(ntp);
 	}
+	dns_nametree_create(mctx, DNS_NAMETREE_BOOL, confname, ntp);
+
 	if (vconfig != NULL) {
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	}
@@ -632,7 +635,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 	(void)named_config_get(maps, confname, &obj);
 	if (obj == NULL) {
 		/*
-		 * No value available.	*rbtp == NULL.
+		 * No value available.	*ntp == NULL.
 		 */
 		return (ISC_R_SUCCESS);
 	}
@@ -644,11 +647,6 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		}
 	}
 
-	result = dns_rbt_create(mctx, NULL, NULL, rbtp);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-
 	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(obj); element != NULL;
 	     element = cfg_list_next(element))
@@ -658,14 +656,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		isc_buffer_constinit(&b, str, strlen(str));
 		isc_buffer_add(&b, strlen(str));
 		CHECK(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
-		/*
-		 * We don't need the node data, but need to set dummy data to
-		 * avoid a partial match with an empty node.  For example, if
-		 * we have foo.example.com and bar.example.com, we'd get a match
-		 * for baz.example.com, which is not the expected result.
-		 * We simply use (void *)1 as the dummy data.
-		 */
-		result = dns_rbt_addname(*rbtp, name, (void *)1);
+		result = dns_nametree_add(*ntp, name, true);
 		if (result != ISC_R_SUCCESS) {
 			cfg_obj_log(nameobj, named_g_lctx, ISC_LOG_ERROR,
 				    "failed to add %s for %s: %s", str,
@@ -674,10 +665,10 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		}
 	}
 
-	return (result);
+	return (ISC_R_SUCCESS);
 
 cleanup:
-	dns_rbt_destroy(rbtp);
+	dns_nametree_detach(ntp);
 	return (result);
 }
 
@@ -4915,7 +4906,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set supported DNSSEC algorithms.
 	 */
-	dns_resolver_reset_algorithms(view->resolver);
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-algorithms", &disabled);
 	if (disabled != NULL) {
@@ -4930,7 +4920,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	/*
 	 * Set supported DS digest types.
 	 */
-	dns_resolver_reset_ds_digests(view->resolver);
 	disabled = NULL;
 	(void)named_config_get(maps, "disable-ds-digests", &disabled);
 	if (disabled != NULL) {
@@ -5530,7 +5519,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
 					auto_root));
-	dns_resolver_resetmustbesecure(view->resolver);
+
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
 	if (result == ISC_R_SUCCESS) {

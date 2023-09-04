@@ -52,6 +52,7 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/name.h>
+#include <dns/nametree.h>
 #include <dns/ncache.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
@@ -561,9 +562,9 @@ struct dns_resolver {
 
 	uint32_t lame_ttl;
 	ISC_LIST(alternate_t) alternates;
-	dns_rbt_t *algorithms;
-	dns_rbt_t *digests;
-	dns_rbt_t *mustbesecure;
+	dns_nametree_t *algorithms;
+	dns_nametree_t *digests;
+	dns_nametree_t *mustbesecure;
 	unsigned int spillatmax;
 	unsigned int spillatmin;
 	isc_timer_t *spillattimer;
@@ -6751,15 +6752,8 @@ is_answeraddress_allowed(dns_view_t *view, dns_name_t *name,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (view->answeracl_exclude != NULL) {
-		dns_rbtnode_t *node = NULL;
-
-		result = dns_rbt_findnode(view->answeracl_exclude, name, NULL,
-					  &node, NULL, 0, NULL, NULL);
-
-		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			return (true);
-		}
+	if (dns_nametree_covered(view->answeracl_exclude, name, NULL, 0)) {
+		return (true);
 	}
 
 	/*
@@ -6806,7 +6800,6 @@ static bool
 is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 			dns_rdataset_t *rdataset, bool *chainingp) {
 	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
 	dns_name_t *tname = NULL;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
@@ -6872,12 +6865,8 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	 * If the owner name matches one in the exclusion list, either
 	 * exactly or partially, allow it.
 	 */
-	if (view->answernames_exclude != NULL) {
-		result = dns_rbt_findnode(view->answernames_exclude, qname,
-					  NULL, &node, NULL, 0, NULL, NULL);
-		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			return (true);
-		}
+	if (dns_nametree_covered(view->answernames_exclude, qname, NULL, 0)) {
+		return (true);
 	}
 
 	/*
@@ -6896,9 +6885,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	/*
 	 * Otherwise, apply filters.
 	 */
-	result = dns_rbt_findnode(view->denyanswernames, tname, NULL, &node,
-				  NULL, 0, NULL, NULL);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+	if (dns_nametree_covered(view->denyanswernames, tname, NULL, 0)) {
 		char qnamebuf[DNS_NAME_FORMATSIZE];
 		char tnamebuf[DNS_NAME_FORMATSIZE];
 		char classbuf[64];
@@ -9822,12 +9809,11 @@ dns_resolver__destroy(dns_resolver_t *res) {
 
 	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
 
-	/* These must be run before zeroing the magic number */
-	dns_resolver_reset_algorithms(res);
-	dns_resolver_reset_ds_digests(res);
-	dns_resolver_resetmustbesecure(res);
-
 	res->magic = 0;
+
+	dns_nametree_detach(&res->algorithms);
+	dns_nametree_detach(&res->digests);
+	dns_nametree_detach(&res->mustbesecure);
 
 	if (res->querystats != NULL) {
 		dns_stats_detach(&res->querystats);
@@ -9967,6 +9953,13 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
+
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BITS, "algorithms",
+			    &res->algorithms);
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BITS, "ds-digests",
+			    &res->digests);
+	dns_nametree_create(res->mctx, DNS_NAMETREE_BOOL,
+			    "dnssec-must-be-secure", &res->mustbesecure);
 
 	res->magic = RES_MAGIC;
 
@@ -10730,238 +10723,58 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp) {
 	(void)dns_badcache_print(resolver->badcache, "Bad cache", fp);
 }
 
-static void
-free_algorithm(void *node, void *arg) {
-	unsigned char *algorithms = node;
-	isc_mem_t *mctx = arg;
-
-	isc_mem_put(mctx, algorithms, *algorithms);
-}
-
-void
-dns_resolver_reset_algorithms(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->algorithms != NULL) {
-		dns_rbt_destroy(&resolver->algorithms);
-	}
-}
-
 isc_result_t
 dns_resolver_disable_algorithm(dns_resolver_t *resolver, const dns_name_t *name,
 			       unsigned int alg) {
-	unsigned int len, mask;
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-	unsigned char *algorithms = NULL;
-	unsigned int algorithms_len;
-
-	/*
-	 * Whether an algorithm is disabled (or not) is stored in a
-	 * per-name bitfield that is stored as the node data of an
-	 * RBT.
-	 */
-
 	REQUIRE(VALID_RESOLVER(resolver));
+
 	if (alg > 255) {
 		return (ISC_R_RANGE);
 	}
 
-	if (resolver->algorithms == NULL) {
-		result = dns_rbt_create(resolver->mctx, free_algorithm,
-					resolver->mctx, &resolver->algorithms);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+	return (dns_nametree_add(resolver->algorithms, name, alg));
+}
+
+isc_result_t
+dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
+			       unsigned int digest_type) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	if (digest_type > 255) {
+		return (ISC_R_RANGE);
 	}
 
-	len = alg / 8 + 2;
-	mask = 1 << (alg % 8);
-
-	result = dns_rbt_addnode(resolver->algorithms, name, &node);
-
-	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-		return (result);
-	}
-
-	/* If algorithms is set, algorithms[0] contains its length. */
-	algorithms = node->data;
-	algorithms_len = (algorithms) ? algorithms[0] : 0;
-
-	if (algorithms == NULL || len > algorithms_len) {
-		INSIST(len > 0);
-		/*
-		 * If no bitfield exists in the node data, or if
-		 * it is not long enough, allocate a new
-		 * bitfield and copy the old (smaller) bitfield
-		 * into it if one exists.
-		 */
-		node->data = algorithms =
-			isc_mem_creget(resolver->mctx, algorithms,
-				       algorithms_len, len, sizeof(char));
-		/* store the new length */
-		algorithms[0] = len;
-	}
-
-	algorithms[len - 1] |= mask;
-	return (ISC_R_SUCCESS);
+	return (dns_nametree_add(resolver->digests, name, digest_type));
 }
 
 bool
 dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name, unsigned int alg) {
-	unsigned int len, mask;
-	unsigned char *algorithms;
-	void *data = NULL;
-	isc_result_t result;
-	bool found = false;
-
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	if ((alg == DST_ALG_DH) || (alg == DST_ALG_INDIRECT)) {
 		return (false);
 	}
 
-	if (resolver->algorithms == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->algorithms, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		len = alg / 8 + 2;
-		mask = 1 << (alg % 8);
-		algorithms = data;
-		if (len <= *algorithms && (algorithms[len - 1] & mask) != 0) {
-			found = true;
-		}
-	}
-unlock:
-	if (found) {
+	if (dns_nametree_covered(resolver->algorithms, name, NULL, alg)) {
 		return (false);
 	}
 
 	return (dst_algorithm_supported(alg));
 }
 
-static void
-free_digest(void *node, void *arg) {
-	unsigned char *digests = node;
-	isc_mem_t *mctx = arg;
-
-	isc_mem_put(mctx, digests, *digests);
-}
-
-void
-dns_resolver_reset_ds_digests(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->digests != NULL) {
-		dns_rbt_destroy(&resolver->digests);
-	}
-}
-
-isc_result_t
-dns_resolver_disable_ds_digest(dns_resolver_t *resolver, const dns_name_t *name,
-			       unsigned int digest_type) {
-	unsigned int len, mask;
-	isc_result_t result;
-	dns_rbtnode_t *node = NULL;
-
-	/*
-	 * Whether a digest is disabled (or not) is stored in a per-name
-	 * bitfield that is stored as the node data of an RBT.
-	 */
-
-	REQUIRE(VALID_RESOLVER(resolver));
-	if (digest_type > 255) {
-		return (ISC_R_RANGE);
-	}
-
-	if (resolver->digests == NULL) {
-		result = dns_rbt_create(resolver->mctx, free_digest,
-					resolver->mctx, &resolver->digests);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-
-	len = digest_type / 8 + 2;
-	mask = 1 << (digest_type % 8);
-
-	result = dns_rbt_addnode(resolver->digests, name, &node);
-
-	if (result == ISC_R_SUCCESS || result == ISC_R_EXISTS) {
-		unsigned char *digests = node->data;
-		/* If digests is set, digests[0] contains its length. */
-		if (digests == NULL || len > *digests) {
-			/*
-			 * If no bitfield exists in the node data, or if
-			 * it is not long enough, allocate a new
-			 * bitfield and copy the old (smaller) bitfield
-			 * into it if one exists.
-			 */
-			unsigned char *tmp = isc_mem_cget(resolver->mctx, 1,
-							  len);
-			if (digests != NULL) {
-				memmove(tmp, digests, *digests);
-			}
-			tmp[len - 1] |= mask;
-			/* tmp[0] should contain the length of 'tmp'. */
-			*tmp = len;
-			node->data = tmp;
-			/* Free the older bitfield. */
-			if (digests != NULL) {
-				isc_mem_put(resolver->mctx, digests, *digests);
-			}
-		} else {
-			digests[len - 1] |= mask;
-		}
-	}
-	result = ISC_R_SUCCESS;
-cleanup:
-	return (result);
-}
-
 bool
 dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name,
 				 unsigned int digest_type) {
-	unsigned int len, mask;
-	unsigned char *digests;
-	void *data = NULL;
-	isc_result_t result;
-	bool found = false;
-
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->digests == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->digests, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		len = digest_type / 8 + 2;
-		mask = 1 << (digest_type % 8);
-		digests = data;
-		if (len <= *digests && (digests[len - 1] & mask) != 0) {
-			found = true;
-		}
-	}
-unlock:
-	if (found) {
+	if (dns_nametree_covered(resolver->digests, name, NULL, digest_type)) {
 		return (false);
 	}
+
 	return (dst_ds_digest_supported(digest_type));
 }
-
-void
-dns_resolver_resetmustbesecure(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	if (resolver->mustbesecure != NULL) {
-		dns_rbt_destroy(&resolver->mustbesecure);
-	}
-}
-
-static bool yes = true, no = false;
 
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
@@ -10970,36 +10783,15 @@ dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
 
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->mustbesecure == NULL) {
-		result = dns_rbt_create(resolver->mctx, NULL, NULL,
-					&resolver->mustbesecure);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
-	}
-	result = dns_rbt_addname(resolver->mustbesecure, name,
-				 value ? &yes : &no);
-cleanup:
+	result = dns_nametree_add(resolver->mustbesecure, name, value);
 	return (result);
 }
 
 bool
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name) {
-	void *data = NULL;
-	bool value = false;
-	isc_result_t result;
-
 	REQUIRE(VALID_RESOLVER(resolver));
 
-	if (resolver->mustbesecure == NULL) {
-		goto unlock;
-	}
-	result = dns_rbt_findname(resolver->mustbesecure, name, 0, NULL, &data);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		value = *(bool *)data;
-	}
-unlock:
-	return (value);
+	return (dns_nametree_covered(resolver->mustbesecure, name, NULL, 0));
 }
 
 void
