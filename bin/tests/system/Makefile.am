@@ -72,10 +72,6 @@ rpz_dnsrps_LDADD =		\
 
 TESTS =
 
-if HAVE_PERLMOD_TIME_HIRES
-TESTS += serve-stale
-endif HAVE_PERLMOD_TIME_HIRES
-
 if HAVE_PERLMOD_NET_DNS
 TESTS +=		\
 	rpzrecurse
@@ -163,6 +159,7 @@ TESTS +=			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
+	serve-stale		\
 	sfcache			\
 	shutdown		\
 	smartsign		\
