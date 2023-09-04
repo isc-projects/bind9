@@ -1722,8 +1722,10 @@ default is used.
    :any:`disable-ds-digests` are treated as insecure.
 
 .. namedconf:statement:: dnssec-must-be-secure
-   :tags: dnssec
+   :tags: deprecated
    :short: Defines hierarchies that must or may not be secure (signed and validated).
+
+   This option is deprecated and will be removed in a future release.
 
    This specifies hierarchies which must be or may not be secure (signed and
    validated). If ``yes``, then :iscman:`named` only accepts answers if
