@@ -241,10 +241,6 @@ AX_PERL_MODULE([Net::DNS])
 AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS],
 	       [test "$HAVE_PERLMOD_NET__DNS" = "yes"])
 
-AX_PERL_MODULE([Time::HiRes])
-AM_CONDITIONAL([HAVE_PERLMOD_TIME_HIRES],
-	       [test "$HAVE_PERLMOD_TIME__HIRES" = "yes"])
-
 #
 # Python is optional, it is used only by some of the system test scripts.
 #
