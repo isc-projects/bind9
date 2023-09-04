@@ -179,15 +179,12 @@ TESTS +=			\
 	verify			\
 	views			\
 	wildcard		\
+	xfer			\
 	xferquota		\
 	zero			\
 	zonechecks
 
 if HAVE_PERLMOD_NET_DNS
-
-if HAVE_PERLMOD_DIGEST_HMAC
-TESTS += xfer
-endif HAVE_PERLMOD_DIGEST_HMAC
 
 if HAVE_PERLMOD_NET_DNS_NAMESERVER
 TESTS += reclimit
