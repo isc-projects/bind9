@@ -118,7 +118,7 @@ options {
 	dnssec-accept-expired <boolean>;
 	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;
-	dnssec-must-be-secure <string> <boolean>; // may occur multiple times
+	dnssec-must-be-secure <string> <boolean>; // may occur multiple times, deprecated
 	dnssec-policy <string>;
 	dnssec-secure-to-insecure <boolean>; // obsolete
 	dnssec-update-mode ( maintain | no-resign ); // obsolete
@@ -416,7 +416,7 @@ view <string> [ <class> ] {
 	dnssec-accept-expired <boolean>;
 	dnssec-dnskey-kskonly <boolean>; // obsolete
 	dnssec-loadkeys-interval <integer>;
-	dnssec-must-be-secure <string> <boolean>; // may occur multiple times
+	dnssec-must-be-secure <string> <boolean>; // may occur multiple times, deprecated
 	dnssec-policy <string>;
 	dnssec-secure-to-insecure <boolean>; // obsolete
 	dnssec-update-mode ( maintain | no-resign ); // obsolete

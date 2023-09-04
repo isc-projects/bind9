@@ -2056,7 +2056,7 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "dnssec-lookaside", NULL,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_ANCIENT },
 	{ "dnssec-must-be-secure", &cfg_type_mustbesecure,
-	  CFG_CLAUSEFLAG_MULTI },
+	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_DEPRECATED },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
 #ifdef HAVE_DNSTAP
 	{ "dnstap", &cfg_type_dnstap, 0 },
