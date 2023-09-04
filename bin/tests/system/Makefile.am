@@ -126,6 +126,7 @@ TESTS +=			\
 	emptyzones		\
 	enginepkcs11		\
 	filter-aaaa		\
+	fetchlimit		\
 	formerr			\
 	geoip2			\
 	glue			\
@@ -133,6 +134,7 @@ TESTS +=			\
 	include-multiplecfg	\
 	inline			\
 	integrity		\
+	ixfr			\
 	hooks			\
 	host			\
 	journal			\
@@ -152,11 +154,13 @@ TESTS +=			\
 	notify			\
 	nsec3			\
 	nslookup		\
+	nsupdate		\
 	nzd2nzf			\
 	padding			\
 	pending			\
 	pipelined		\
 	redirect		\
+	resolver		\
 	rndc			\
 	rootkeysentinel		\
 	rpz			\
@@ -172,6 +176,8 @@ TESTS +=			\
 	sortlist		\
 	spf			\
 	staticstub		\
+	statistics		\
+	stress			\
 	stub			\
 	synthfromdnssec		\
 	tcp			\
@@ -183,23 +189,15 @@ TESTS +=			\
 	tsiggss			\
 	ttl			\
 	unknown			\
+	upforwd			\
 	verify			\
 	views			\
 	wildcard		\
 	xferquota		\
+	zero			\
 	zonechecks
 
 if HAVE_PERLMOD_NET_DNS
-
-TESTS +=		\
-	fetchlimit	\
-	ixfr		\
-	nsupdate	\
-	resolver	\
-	statistics	\
-	stress		\
-	upforwd		\
-	zero
 
 if HAVE_PERLMOD_FILE_FETCH
 TESTS += statschannel
