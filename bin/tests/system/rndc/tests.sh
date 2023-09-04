@@ -78,7 +78,7 @@ update add text2.nil. 600 IN TXT "addition 2"
 send
 END
 
-$DIGCMD @10.53.0.2 text2.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text2.nil. TXT > dig.out.1.test$n || ret=1
 grep 'addition 2' dig.out.1.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -95,7 +95,7 @@ zone nil.
 update add text3.nil. 600 IN TXT "addition 3"
 send
 END
-$DIGCMD @10.53.0.2 text3.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text3.nil. TXT > dig.out.1.test$n || ret=1
 grep 'addition 3' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -135,7 +135,7 @@ update add text4.nil. 600 IN TXT "addition 4"
 send
 END
 
-$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n || ret=1
 grep 'addition 4' dig.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -175,7 +175,7 @@ update add text5.nil. 600 IN TXT "addition 5"
 send
 END
 
-$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text4.nil. TXT > dig.out.1.test$n || ret=1
 grep 'addition 4' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -247,11 +247,11 @@ zone other.
 update add text7.other. 600 IN TXT "addition 7"
 send
 END
-$DIGCMD @10.53.0.2 text6.other. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text6.other. TXT > dig.out.1.test$n || ret=1
 grep 'addition 6' dig.out.1.test$n >/dev/null || ret=1
-$DIGCMD @10.53.0.2 text7.other. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.2 text7.other. TXT > dig.out.2.test$n || ret=1
 grep 'addition 7' dig.out.2.test$n >/dev/null || ret=1
-$DIGCMD @10.53.0.2 frozen.other. TXT > dig.out.3.test$n
+$DIGCMD @10.53.0.2 frozen.other. TXT > dig.out.3.test$n || ret=1
 grep 'frozen addition' dig.out.3.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -290,11 +290,11 @@ zone nil.
 update add text7.nil. 600 IN TXT "addition 7"
 send
 END
-$DIGCMD @10.53.0.2 text6.nil. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.2 text6.nil. TXT > dig.out.1.test$n || ret=1
 grep 'addition 6' dig.out.1.test$n > /dev/null || ret=1
-$DIGCMD @10.53.0.2 text7.nil. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.2 text7.nil. TXT > dig.out.2.test$n || ret=1
 grep 'addition 7' dig.out.2.test$n > /dev/null || ret=1
-$DIGCMD @10.53.0.2 frozen.nil. TXT > dig.out.3.test$n
+$DIGCMD @10.53.0.2 frozen.nil. TXT > dig.out.3.test$n || ret=1
 grep 'frozen addition' dig.out.3.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -716,7 +716,7 @@ zone example.
 update add text2.example. 600 IN TXT "addition 3"
 send
 END
-$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n || ret=1
 grep 'addition 3' dig.out.1.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -738,7 +738,7 @@ zone example.
 update add text2.example. 600 IN TXT "addition 3"
 send
 END
-$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.4 -p ${PORT} text2.example. TXT > dig.out.1.test$n || ret=1
 grep 'addition 3' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -747,10 +747,10 @@ n=$((n+1))
 echo_i "checking initial in-view zone file is loaded ($n)"
 ret=0
 TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
-$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n || ret=1
 grep 'include 1' dig.out.1.test$n >/dev/null || ret=1
 TSIG="$DEFAULT_HMAC:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
-$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n || ret=1
 grep 'include 1' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -773,7 +773,7 @@ status=$((status+ret))
 echo_i "checking update ($n)"
 ret=0
 TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
-$DIGCMD @10.53.0.7 -y "$TSIG" text2.test. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.7 -y "$TSIG" text2.test. TXT > dig.out.1.test$n || ret=1
 grep 'addition 1' dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -803,10 +803,10 @@ n=$((n+1))
 echo_i "checking zone file edits are loaded ($n)"
 ret=0
 TSIG="$DEFAULT_HMAC:int:FrSt77yPTFx6hTs4i2tKLB9LmE0="
-$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.1.test$n || ret=1
 grep 'include 2' dig.out.1.test$n >/dev/null || ret=1
 TSIG="$DEFAULT_HMAC:ext:FrSt77yPTFx6hTs4i2tKLB9LmE0="
-$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n
+$DIGCMD @10.53.0.7 -y "$TSIG" text1.test. TXT > dig.out.2.test$n || ret=1
 grep 'include 2' dig.out.2.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
