@@ -27,7 +27,8 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- The :any:`dnssec-must-be-secure` option has been deprecated and will be
+  removed in a future release. :gl:`#4263`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
