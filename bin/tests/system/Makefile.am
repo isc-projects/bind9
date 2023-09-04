@@ -93,6 +93,7 @@ TESTS +=			\
 	case			\
 	catz			\
 	cds			\
+	chain			\
 	checkconf		\
 	checkds			\
 	checknames		\
@@ -189,14 +190,6 @@ TESTS +=			\
 	xferquota		\
 	zero			\
 	zonechecks
-
-if HAVE_PYMOD_DNS
-if HAVE_PERLMOD_NET_DNS
-if HAVE_PERLMOD_NET_DNS_NAMESERVER
-TESTS += chain
-endif HAVE_PERLMOD_NET_DNS_NAMESERVER
-endif HAVE_PERLMOD_NET_DNS
-endif HAVE_PYMOD_DNS
 
 else !HAVE_PYTEST
 check:
