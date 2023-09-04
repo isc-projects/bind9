@@ -94,11 +94,6 @@ TESTS +=		\
 	rpzrecurse
 endif HAVE_PERLMOD_NET_DNS
 
-if HAVE_LIBNGHTTP2
-TESTS +=		\
-	doth
-endif
-
 TESTS +=			\
 	acl			\
 	additional		\
@@ -120,6 +115,8 @@ TESTS +=			\
 	dispatch		\
 	dlzexternal		\
 	dns64			\
+	dnstap			\
+	doth			\
 	dsdigest		\
 	dupsigs			\
 	dyndb			\
@@ -155,6 +152,7 @@ TESTS +=			\
 	notify			\
 	nsec3			\
 	nslookup		\
+	nzd2nzf			\
 	padding			\
 	pending			\
 	pipelined		\
@@ -191,10 +189,6 @@ TESTS +=			\
 	xferquota		\
 	zonechecks
 
-if HAVE_LMDB
-TESTS += nzd2nzf
-endif # HAVE_LMDB
-
 if HAVE_PERLMOD_NET_DNS
 
 TESTS +=		\
@@ -206,10 +200,6 @@ TESTS +=		\
 	stress		\
 	upforwd		\
 	zero
-
-if HAVE_DNSTAP
-TESTS += dnstap
-endif
 
 if HAVE_PERLMOD_FILE_FETCH
 TESTS += statschannel
