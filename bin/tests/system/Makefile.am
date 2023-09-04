@@ -110,6 +110,7 @@ TESTS +=			\
 	checkds			\
 	checknames		\
 	checkzone		\
+	cookie			\
 	database		\
 	dialup			\
 	dispatch		\
@@ -159,6 +160,7 @@ TESTS +=			\
 	padding			\
 	pending			\
 	pipelined		\
+	qmin			\
 	reclimit		\
 	redirect		\
 	resolver		\
@@ -201,7 +203,6 @@ TESTS +=			\
 	zonechecks
 
 if HAVE_PYMOD_DNS
-TESTS += qmin cookie
 if HAVE_PERLMOD_NET_DNS
 TESTS += digdelv dnssec forward
 if HAVE_PERLMOD_NET_DNS_NAMESERVER
