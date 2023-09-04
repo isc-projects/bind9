@@ -74,17 +74,9 @@ contents of your configuration file in a non-confidential issue, it is
 advisable to obscure key secrets; this can be done automatically by
 using `named-checkconf -px`.
 
-If you are reporting a bug that is a potential security issue, such as an
-assertion failure or other crash in `named`, please do *NOT* use GitLab to
-report it. Instead, send mail to
-[security-officer@isc.org](mailto:security-officer@isc.org) using our
-OpenPGP key to secure your message. (Information about OpenPGP and links
-to our key can be found at
-[https://www.isc.org/pgpkey](https://www.isc.org/pgpkey).) Please do not
-discuss the bug on any public mailing list.
-
-For a general overview of ISC security policies, read the Knowledgebase
-article at [https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
+For information about ISC's Security Vulnerability Disclosure Policy and
+information about reporting potential security issues, please see
+`SECURITY.md`.
 
 Professional support and training for BIND are available from
 ISC. Contact us at [https://www.isc.org/contact](https://www.isc.org/contact)
