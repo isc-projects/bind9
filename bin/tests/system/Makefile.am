@@ -83,14 +83,7 @@ tkey_keydelete_LDADD =		\
 	$(LDADD)		\
 	$(LIBDNS_LIBS)
 
-TESTS =
-
-if HAVE_PERLMOD_NET_DNS
-TESTS +=		\
-	rpzrecurse
-endif HAVE_PERLMOD_NET_DNS
-
-TESTS +=			\
+TESTS =				\
 	acl			\
 	additional		\
 	addzone			\
@@ -168,6 +161,7 @@ TESTS +=			\
 	rootkeysentinel		\
 	rpz			\
 	rpzextra		\
+	rpzrecurse		\
 	rrchecker		\
 	rrl			\
 	rrsetorder		\
