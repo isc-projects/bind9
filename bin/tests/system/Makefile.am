@@ -70,7 +70,14 @@ rpz_dnsrps_LDADD =		\
 	$(LIBDNS_LIBS)		\
 	$(DLOPEN_LIBS)
 
+# Longer running tests are listed (and executed) first to take the most
+# advantage of parallel execution.
 TESTS =				\
+	rpz			\
+	rpzrecurse		\
+	serve-stale		\
+	timeouts		\
+	upforwd			\
 	acl			\
 	additional		\
 	addzone			\
@@ -145,15 +152,12 @@ TESTS =				\
 	resolver		\
 	rndc			\
 	rootkeysentinel		\
-	rpz			\
 	rpzextra		\
-	rpzrecurse		\
 	rrchecker		\
 	rrl			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
-	serve-stale		\
 	sfcache			\
 	shutdown		\
 	smartsign		\
@@ -166,14 +170,12 @@ TESTS =				\
 	stub			\
 	synthfromdnssec		\
 	tcp			\
-	timeouts		\
 	tools			\
 	transport-acl		\
 	tsig			\
 	tsiggss			\
 	ttl			\
 	unknown			\
-	upforwd			\
 	verify			\
 	views			\
 	wildcard		\
