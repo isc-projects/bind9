@@ -5622,9 +5622,14 @@ cleanup_fetchctx:
 		fctx_done_unref(fctx, result);
 	}
 
+	/*
+	 * val->name points to name on a message on one of the
+	 * queries on the fetch context so the validator has to
+	 * be destroyed first.
+	 */
+	dns_validator_destroy(&val);
 	fetchctx_detach(&fctx);
 	INSIST(node == NULL);
-	dns_validator_destroy(&val);
 }
 
 static void
