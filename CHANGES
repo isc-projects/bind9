@@ -1,3 +1,6 @@
+6239.	[func]		Deprecate the 'dnssec-must-be-secure' option.
+			[GL #3700]
+
 6238.	[cleanup]	Refactor several objects relying on dns_rbt trees
 			to instead of dns_nametree, a wrapper around dns_qp.
 			[GL !8213]
