@@ -311,10 +311,6 @@ AC_PATH_PROGS([PERL], [perl5 perl])
 AC_SUBST([PERL])
 AM_CONDITIONAL([HAVE_PERL], [test -n "$PERL"])
 
-AX_PERL_MODULE([Net::DNS])
-AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS],
-	       [test "$HAVE_PERLMOD_NET__DNS" = "yes"])
-
 #
 # Python is optional, it is used only by some of the system test scripts.
 #
