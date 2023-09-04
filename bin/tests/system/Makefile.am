@@ -163,6 +163,7 @@ TESTS +=			\
 	spf			\
 	staticstub		\
 	statistics		\
+	statschannel		\
 	stress			\
 	stub			\
 	synthfromdnssec		\
@@ -183,10 +184,6 @@ TESTS +=			\
 	zonechecks
 
 if HAVE_PERLMOD_NET_DNS
-
-if HAVE_PERLMOD_FILE_FETCH
-TESTS += statschannel
-endif HAVE_PERLMOD_FILE_FETCH
 
 if HAVE_PERLMOD_DIGEST_HMAC
 TESTS += xfer
