@@ -70,7 +70,7 @@ test_update deny.example.nil. TXT "86400 TXT helloworld" "helloworld" should_fai
 status=$((status + ret))
 
 newtest "testing nxrrset"
-$DIG $DIGOPTS testdc1.example.nil AAAA > dig.out.$n
+$DIG $DIGOPTS testdc1.example.nil AAAA > dig.out.$n || ret=1
 grep "status: NOERROR" dig.out.$n > /dev/null || ret=1
 grep "ANSWER: 0" dig.out.$n > /dev/null || ret=1
 status=$((status + ret))
@@ -111,47 +111,47 @@ test_update testdc1.alternate.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
 status=$((status + ret))
 
 newtest "testing AXFR from DLZ drivers"
-$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.example.ns1.test$n
+$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.example.ns1.test$n || ret=1
 lines=$(cat dig.out.example.ns1.test$n | wc -l)
 [ ${lines:-0} -eq 4 ] || ret=1
-$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n
+$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n || ret=1
 lines=$(cat dig.out.alternate.ns1.test$n | wc -l)
 [ ${lines:-0} -eq 5 ] || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing AXFR denied from DLZ drivers"
-$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr example.nil > dig.out.example.ns1.test$n
+$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr example.nil > dig.out.example.ns1.test$n || ret=1
 grep "; Transfer failed" dig.out.example.ns1.test$n > /dev/null || ret=1
-$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n
+$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n || ret=1
 grep "; Transfer failed" dig.out.alternate.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing AXFR denied based on view ACL"
 # 10.53.0.1 should be disallowed
-$DIG $DIGOPTS -b 10.53.0.1 +noall +answer axfr example.org > dig.out.example.ns1.test$n.1
+$DIG $DIGOPTS -b 10.53.0.1 +noall +answer axfr example.org > dig.out.example.ns1.test$n.1 || ret=1
 grep "; Transfer failed" dig.out.example.ns1.test$n.1 > /dev/null || ret=1
 # 10.53.0.2 should be allowed
-$DIG $DIGOPTS -b 10.53.0.2 +noall +answer axfr example.org > dig.out.example.ns1.test$n.2
+$DIG $DIGOPTS -b 10.53.0.2 +noall +answer axfr example.org > dig.out.example.ns1.test$n.2 || ret=1
 grep "; Transfer failed" dig.out.example.ns1.test$n.2 > /dev/null && ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing unsearched/unregistered DLZ zone is not found"
-$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.test$n
+$DIG $DIGOPTS +noall +answer ns other.nil > dig.out.ns1.test$n || ret=1
 grep "3600.IN.NS.other.nil." dig.out.ns1.test$n > /dev/null && ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing unsearched/registered DLZ zone is found"
-$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n || ret=1
 grep "3600.IN.NS.zone.nil." dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
 
 newtest "testing unsearched/registered DLZ zone is found"
-$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n
+$DIG $DIGOPTS +noall +answer ns zone.nil > dig.out.ns1.test$n || ret=1
 grep "3600.IN.NS.zone.nil." dig.out.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=$((status + ret))
