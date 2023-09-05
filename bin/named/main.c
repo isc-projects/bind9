@@ -103,6 +103,14 @@
 #include <nghttp2/nghttp2.h>
 #endif
 
+/* On DragonFly BSD the header does not provide jemalloc API */
+#if defined(HAVE_MALLOC_NP_H) && !defined(__DragonFly__)
+#include <malloc_np.h>
+#include <sys/malloc.h> /* For M_VERSION */
+#elif defined(HAVE_JEMALLOC)
+#include <jemalloc/jemalloc.h>
+#endif
+
 /*
  * Include header files for database drivers here.
  */
@@ -596,6 +604,13 @@ printversion(bool verbose) {
 	       UV_VERSION_MINOR, UV_VERSION_PATCH);
 	printf("linked to libuv version: %s\n", uv_version_string());
 	printf("compiled with %s version: %s\n", RCU_FLAVOR, RCU_VERSION);
+#if defined(JEMALLOC_VERSION)
+	printf("compiled with jemalloc version: %u.%u.%u\n",
+	       JEMALLOC_VERSION_MAJOR, JEMALLOC_VERSION_MINOR,
+	       JEMALLOC_VERSION_BUGFIX);
+#elif defined(M_VERSION)
+	printf("compiled with system jemalloc version: %u\n", M_VERSION);
+#endif
 #if HAVE_LIBNGHTTP2
 	nghttp2_info *nginfo = NULL;
 	printf("compiled with libnghttp2 version: %s\n", NGHTTP2_VERSION);
@@ -1181,6 +1196,17 @@ setup(void) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to libuv version: %s", uv_version_string());
+#if defined(JEMALLOC_VERSION)
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled with jemalloc version: %u.%u.%u",
+		      JEMALLOC_VERSION_MAJOR, JEMALLOC_VERSION_MINOR,
+		      JEMALLOC_VERSION_BUGFIX);
+#elif defined(M_VERSION)
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled with system jemalloc version: %u", M_VERSION);
+#endif
 #ifdef HAVE_LIBXML2
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
