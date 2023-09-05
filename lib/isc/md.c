@@ -168,8 +168,14 @@ end:
 	return (res);
 }
 
-#define md_register_algorithm(alg) \
-	const isc_md_type_t *isc__md_##alg(void) { return (EVP_##alg()); }
+#define md_register_algorithm(alg)                        \
+	const isc_md_type_t *isc__md_##alg(void) {        \
+		const isc_md_type_t *value = EVP_##alg(); \
+		if (value == NULL) {                      \
+			ERR_clear_error();                \
+		}                                         \
+		return (value);                           \
+	}
 
 md_register_algorithm(md5);
 md_register_algorithm(sha1);
