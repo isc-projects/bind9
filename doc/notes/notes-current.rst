@@ -64,6 +64,11 @@ Bug Fixes
 - The value of :any:`stale-refresh-time` was set to zero after ``rndc flush``.
   This has been fixed. :gl:`#4278`
 
+- BIND could consume more memory than it needs. That has been fixed by
+  using specialised jemalloc memory arenas dedicated to sending buffers. It
+  allowed us to optimize the process of returning memory pages back to
+  the operating system. :gl:`#4038`
+
 Known Issues
 ~~~~~~~~~~~~
 

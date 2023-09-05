@@ -194,6 +194,42 @@ void ISCMEMFUNC(create)(isc_mem_t **_ISC_MEM_FLARG);
  * mctxp != NULL && *mctxp == NULL */
 /*@}*/
 
+#define isc_mem_create_arena(cp) isc__mem_create_arena((cp)_ISC_MEM_FILELINE)
+void
+isc__mem_create_arena(isc_mem_t **_ISC_MEM_FLARG);
+/*!<
+ * \brief Create a memory context that routs all its operations to a
+ * dedicated jemalloc arena (when available). When jemalloc is not
+ * available, the function is, effectively, an alias to
+ * isc_mem_create().
+ *
+ * Requires:
+ * mctxp != NULL && *mctxp == NULL */
+/*@}*/
+
+isc_result_t
+isc_mem_arena_set_muzzy_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms);
+
+isc_result_t
+isc_mem_arena_set_dirty_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms);
+/*!<
+ * \brief These two functions set the given parameters on the
+ * jemalloc arena associated with the memory context (if there is
+ * one). When jemalloc is not available, these are no-op.
+ *
+ * NOTE: The "muzzy_decay_ms" and "dirty_decay_ms" are the most common
+ * parameters to adjust when the defaults do not work well (per the
+ * official jemalloc tuning guide:
+ * https://github.com/jemalloc/jemalloc/blob/dev/TUNING.md).
+ *
+ * Requires:
+ * mctx - a valid memory context.
+ */
+/*@}*/
+
+void
+isc_mem_attach(isc_mem_t *, isc_mem_t **);
+
 /*@{*/
 void
 isc_mem_attach(isc_mem_t *, isc_mem_t **);

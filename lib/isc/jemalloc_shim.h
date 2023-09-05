@@ -22,7 +22,10 @@
 const char *malloc_conf = NULL;
 
 /* Without jemalloc, isc_mem_get_align() is equal to isc_mem_get() */
-#define MALLOCX_ALIGN(a) (a & 0) /* Clear the flag */
+#define MALLOCX_ALIGN(a)    (a & 0) /* Clear the flag */
+#define MALLOCX_ZERO	    ((int)0x40)
+#define MALLOCX_TCACHE_NONE (0)
+#define MALLOCX_ARENA(a)    (0)
 
 #if defined(HAVE_MALLOC_SIZE) || defined(HAVE_MALLOC_USABLE_SIZE)
 

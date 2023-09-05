@@ -49,6 +49,11 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	isc_mem_attach(mctx, &sctx->mctx);
 
+	/*
+	 * See here for more details:
+	 * https://github.com/jemalloc/jemalloc/issues/2483
+	 */
+
 	isc_refcount_init(&sctx->references, 1);
 
 	isc_quota_init(&sctx->xfroutquota, 10);
