@@ -46,8 +46,10 @@
 /* On DragonFly BSD the header does not provide jemalloc API */
 #if defined(HAVE_MALLOC_NP_H) && !defined(__DragonFly__)
 #include <malloc_np.h>
+#define JEMALLOC_API_SUPPORTED 1
 #elif defined(HAVE_JEMALLOC)
 #include <jemalloc/jemalloc.h>
+#define JEMALLOC_API_SUPPORTED 1
 
 #if JEMALLOC_VERSION_MAJOR < 4
 #define sdallocx(ptr, size, flags) dallocx(ptr, flags)
