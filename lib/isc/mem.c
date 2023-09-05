@@ -72,6 +72,8 @@
 unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
+#define ISC_MEM_ILLEGAL_ARENA (UINT_MAX)
+
 /*
  * Constants.
  */
@@ -122,6 +124,8 @@ static isc_mutex_t contextslock;
 struct isc_mem {
 	unsigned int magic;
 	unsigned int flags;
+	unsigned int jemalloc_flags;
+	unsigned int jemalloc_arena;
 	unsigned int debugging;
 	isc_mutex_t lock;
 	bool checkfree;
@@ -225,7 +229,7 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 #endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
-	dl = mallocx(sizeof(debuglink_t), 0);
+	dl = mallocx(sizeof(debuglink_t), mctx->jemalloc_flags);
 	INSIST(dl != NULL);
 
 	ISC_LINK_INIT(dl, link);
@@ -273,7 +277,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 	while (dl != NULL) {
 		if (dl->ptr == ptr) {
 			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
-			sdallocx(dl, sizeof(*dl), 0);
+			sdallocx(dl, sizeof(*dl), mctx->jemalloc_flags);
 			goto unlock;
 		}
 		dl = ISC_LIST_NEXT(dl, link);
@@ -303,7 +307,7 @@ mem_get(isc_mem_t *ctx, size_t size, int flags) {
 
 	ADJUST_ZERO_ALLOCATION_SIZE(size);
 
-	ret = mallocx(size, flags);
+	ret = mallocx(size, flags | ctx->jemalloc_flags);
 	INSIST(ret != NULL);
 
 	if ((flags & ISC__MEM_ZERO) == 0 &&
@@ -326,7 +330,7 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size, int flags) {
 	if ((ctx->flags & ISC_MEMFLAG_FILL) != 0) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 	}
-	sdallocx(mem, size, flags);
+	sdallocx(mem, size, flags | ctx->jemalloc_flags);
 }
 
 static void *
@@ -336,7 +340,7 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 
 	ADJUST_ZERO_ALLOCATION_SIZE(new_size);
 
-	new_ptr = rallocx(old_ptr, new_size, flags);
+	new_ptr = rallocx(old_ptr, new_size, flags | ctx->jemalloc_flags);
 	INSIST(new_ptr != NULL);
 
 	if ((flags & ISC__MEM_ZERO) == 0 &&
@@ -379,6 +383,48 @@ mem_putstats(isc_mem_t *ctx, size_t size) {
  * Private.
  */
 
+static bool
+mem_jemalloc_arena_create(unsigned int *pnew_arenano) {
+	REQUIRE(pnew_arenano != NULL);
+
+#ifdef JEMALLOC_API_SUPPORTED
+	unsigned int arenano = 0;
+	size_t len = sizeof(arenano);
+	int res = 0;
+
+	res = mallctl("arenas.create", &arenano, &len, NULL, 0);
+	if (res != 0) {
+		return (false);
+	}
+
+	*pnew_arenano = arenano;
+
+	return (true);
+#else
+	*pnew_arenano = ISC_MEM_ILLEGAL_ARENA;
+	return (true);
+#endif /* JEMALLOC_API_SUPPORTED */
+}
+
+static bool
+mem_jemalloc_arena_destroy(unsigned int arenano) {
+#ifdef JEMALLOC_API_SUPPORTED
+	int res = 0;
+	char buf[256] = { 0 };
+
+	(void)snprintf(buf, sizeof(buf), "arena.%u.destroy", arenano);
+	res = mallctl(buf, NULL, NULL, NULL, 0);
+	if (res != 0) {
+		return (false);
+	}
+
+	return (true);
+#else
+	UNUSED(arenano);
+	return (true);
+#endif /* JEMALLOC_API_SUPPORTED */
+}
+
 static void
 mem_initialize(void) {
 /*
@@ -410,18 +456,21 @@ isc__mem_shutdown(void) {
 }
 
 static void
-mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
+mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags,
+	   unsigned int jemalloc_flags) {
 	isc_mem_t *ctx = NULL;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
-	ctx = malloc(sizeof(*ctx));
+	ctx = mallocx(sizeof(*ctx), jemalloc_flags);
 	INSIST(ctx != NULL);
 
 	*ctx = (isc_mem_t){
 		.magic = MEM_MAGIC,
 		.debugging = debugging,
 		.flags = flags,
+		.jemalloc_flags = jemalloc_flags,
+		.jemalloc_arena = ISC_MEM_ILLEGAL_ARENA,
 		.checkfree = true,
 	};
 
@@ -440,7 +489,9 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 	if ((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0) {
 		unsigned int i;
 
-		ctx->debuglist = calloc(DEBUG_TABLE_COUNT, sizeof(debuglist_t));
+		ctx->debuglist = mallocx(
+			ISC_CHECKED_MUL(DEBUG_TABLE_COUNT, sizeof(debuglist_t)),
+			jemalloc_flags);
 		INSIST(ctx->debuglist != NULL);
 
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
@@ -462,11 +513,14 @@ mem_create(isc_mem_t **ctxp, unsigned int debugging, unsigned int flags) {
 
 static void
 destroy(isc_mem_t *ctx) {
+	unsigned int arena_no;
 	LOCK(&contextslock);
 	ISC_LIST_UNLINK(contexts, ctx, link);
 	UNLOCK(&contextslock);
 
 	ctx->magic = 0;
+
+	arena_no = ctx->jemalloc_arena;
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
@@ -483,11 +537,14 @@ destroy(isc_mem_t *ctx) {
 				INSIST(!ctx->checkfree || dl->ptr == NULL);
 
 				ISC_LIST_UNLINK(ctx->debuglist[i], dl, link);
-				sdallocx(dl, sizeof(*dl), 0);
+				sdallocx(dl, sizeof(*dl), ctx->jemalloc_flags);
 			}
 		}
 
-		free(ctx->debuglist);
+		sdallocx(
+			ctx->debuglist,
+			ISC_CHECKED_MUL(DEBUG_TABLE_COUNT, sizeof(debuglist_t)),
+			ctx->jemalloc_flags);
 	}
 #endif /* if ISC_MEM_TRACKLINES */
 
@@ -496,7 +553,11 @@ destroy(isc_mem_t *ctx) {
 	if (ctx->checkfree) {
 		INSIST(atomic_load(&ctx->inuse) == 0);
 	}
-	free(ctx);
+	sdallocx(ctx, sizeof(*ctx), ctx->jemalloc_flags);
+
+	if (arena_no != ISC_MEM_ILLEGAL_ARENA) {
+		RUNTIME_CHECK(mem_jemalloc_arena_destroy(arena_no) == true);
+	}
 }
 
 void
@@ -806,7 +867,7 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	ptr = mem_get(ctx, size, flags);
 
 	/* Recalculate the real allocated size */
-	size = sallocx(ptr, flags);
+	size = sallocx(ptr, flags | ctx->jemalloc_flags);
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
@@ -859,7 +920,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
 	} else if (new_size == 0) {
 		isc__mem_free(ctx, old_ptr, flags FLARG_PASS);
 	} else {
-		size_t old_size = sallocx(old_ptr, flags);
+		size_t old_size = sallocx(old_ptr, flags | ctx->jemalloc_flags);
 
 		DELETE_TRACE(ctx, old_ptr, old_size, file, line);
 		mem_putstats(ctx, old_size);
@@ -867,7 +928,7 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
 		new_ptr = mem_realloc(ctx, old_ptr, old_size, new_size, flags);
 
 		/* Recalculate the real allocated size */
-		new_size = sallocx(new_ptr, flags);
+		new_size = sallocx(new_ptr, flags | ctx->jemalloc_flags);
 
 		mem_getstats(ctx, new_size);
 		ADD_TRACE(ctx, new_ptr, new_size, file, line);
@@ -891,7 +952,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr, int flags FLARG) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
-	size = sallocx(ptr, flags);
+	size = sallocx(ptr, flags | ctx->jemalloc_flags);
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
@@ -1542,13 +1603,90 @@ error:
 
 void
 isc__mem_create(isc_mem_t **mctxp FLARG) {
-	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags);
+	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags, 0);
 #if ISC_MEM_TRACKLINES
 	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
 		fprintf(stderr, "create mctx %p file %s line %u\n", *mctxp,
 			file, line);
 	}
 #endif /* ISC_MEM_TRACKLINES */
+}
+
+void
+isc__mem_create_arena(isc_mem_t **mctxp FLARG) {
+	unsigned int arena_no = ISC_MEM_ILLEGAL_ARENA;
+
+	RUNTIME_CHECK(mem_jemalloc_arena_create(&arena_no));
+
+	/*
+	 * We use MALLOCX_TCACHE_NONE to bypass the tcache and route
+	 * allocations directly to the arena. That is a recommendation
+	 * from jemalloc developers:
+	 *
+	 * https://github.com/jemalloc/jemalloc/issues/2483#issuecomment-1698173849
+	 */
+	mem_create(mctxp, isc_mem_debugging, isc_mem_defaultflags,
+		   arena_no == ISC_MEM_ILLEGAL_ARENA
+			   ? 0
+			   : MALLOCX_ARENA(arena_no) | MALLOCX_TCACHE_NONE);
+	(*mctxp)->jemalloc_arena = arena_no;
+#if ISC_MEM_TRACKLINES
+	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0) {
+		fprintf(stderr,
+			"create mctx %p file %s line %u for jemalloc arena "
+			"%u\n",
+			*mctxp, file, line, arena_no);
+	}
+#endif /* ISC_MEM_TRACKLINES */
+}
+
+#ifdef JEMALLOC_API_SUPPORTED
+static bool
+jemalloc_set_ssize_value(const char *valname, ssize_t newval) {
+	int ret;
+
+	ret = mallctl(valname, NULL, NULL, &newval, sizeof(newval));
+	return (ret == 0);
+}
+#endif /* JEMALLOC_API_SUPPORTED */
+
+static isc_result_t
+mem_set_arena_ssize_value(isc_mem_t *mctx, const char *arena_valname,
+			  const ssize_t newval) {
+	REQUIRE(VALID_CONTEXT(mctx));
+#ifdef JEMALLOC_API_SUPPORTED
+	bool ret;
+	char buf[256] = { 0 };
+
+	if (mctx->jemalloc_arena == ISC_MEM_ILLEGAL_ARENA) {
+		return (ISC_R_UNEXPECTED);
+	}
+
+	(void)snprintf(buf, sizeof(buf), "arena.%u.%s", mctx->jemalloc_arena,
+		       arena_valname);
+
+	ret = jemalloc_set_ssize_value(buf, newval);
+
+	if (!ret) {
+		return (ISC_R_FAILURE);
+	}
+
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(arena_valname);
+	UNUSED(newval);
+	return (ISC_R_NOTIMPLEMENTED);
+#endif
+}
+
+isc_result_t
+isc_mem_arena_set_muzzy_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
+	return (mem_set_arena_ssize_value(mctx, "muzzy_decay_ms", decay_ms));
+}
+
+isc_result_t
+isc_mem_arena_set_dirty_decay_ms(isc_mem_t *mctx, const ssize_t decay_ms) {
+	return (mem_set_arena_ssize_value(mctx, "dirty_decay_ms", decay_ms));
 }
 
 void
