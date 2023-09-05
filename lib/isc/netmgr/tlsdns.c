@@ -1833,6 +1833,77 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 	}
 
 	/*
+	 * Try to send any pending data before trying to call SSL_write_ex().
+	 * Otherwise, it could fail with SSL_ERROR_WANT_WRITE error.
+	 *
+	 * It is important to stress that we want to avoid this happening
+	 * due to how SSL_write_ex() works - mainly to avoid partial
+	 * writes.
+	 *
+	 * Although the documentation for these functions is vague, it is
+	 * not stated that partial writes are not possible. On the
+	 * contrary, one can deduce that it is possible and recovering
+	 * from this situation is complicated and unreasonably hard to
+	 * implement to the point when it is better to avoid this
+	 * situation altogether.
+	 *
+	 * In particular, the following can be found in the documentation:
+	 *
+	 * "The write functions will only return with success when the
+	 * complete contents of buf of length num has been written. This
+	 * default behaviour can be changed with the
+	 * SSL_MODE_ENABLE_PARTIAL_WRITE option of
+	 * SSL_CTX_set_mode(3). When this flag is set, the write functions
+	 * will also return with success when a partial write has been
+	 * successfully completed. In this case, the write function
+	 * operation is considered completed. The bytes are sent, and a
+	 * new write call with a new buffer (with the already sent bytes
+	 * removed) must be started. A partial write is performed with the
+	 * size of a message block, which is 16kB."
+
+	 * That is, it is said that success is returned only when the
+	 * complete chunk of data is written (encrypted), but it does not
+	 * mention that partial writes are not possible (the behaviour can
+	 * be changed using SSL_MODE_ENABLE_PARTIAL_WRITE). Another
+	 * important aspect of this passage is that a partial write of up
+	 * to 16 kilobytes can happen, and the call still can
+	 * fail. Needless to say, this amount of data may include more
+	 * than one DNS message.
+	 *
+	 * One could expect that SSL_write_ex() should return the number
+	 * of bytes written, but no, that is not guaranteed (emphasis is
+	 * mine): "*On success* SSL_write_ex() will store the number of
+	 * bytes written in *written."
+	 *
+	 * Moreover, we can find the following guidance on how to handle
+	 * the SSL_ERROR_WANT_WRITE error in the "Warnings" section of the
+	 * documentation:
+
+	 * "When a write function call has to be repeated because
+	 * SSL_get_error(3) returned SSL_ERROR_WANT_READ or
+	 * SSL_ERROR_WANT_WRITE, it must be repeated with the same
+	 * arguments. The data that was passed might have been partially
+	 * processed. When SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER was set
+	 * using SSL_CTX_set_mode(3) the pointer can be different, but the
+	 * data and length should still be the same."
+	 *
+	 * That is, when a call to SSL_write_ex() fails with
+	 * SSL_ERROR_WANT_WRITE, we must attempt to make the next call to
+	 * the function exactly with the same arguments. Of course, the
+	 * code is structured in such a way that we cannot guarantee that
+	 * (and keeping track of that would be unreasonably complicated to
+	 * implement). The best we can do to avoid this error is to get
+	 * (and send) the outgoing data from the SSL buffer ASAP before
+	 * processing the subsequent write request. We can achieve that by
+	 * calling tls_cycle() and rescheduling the write request for
+	 * being processed later.
+	 */
+	if (BIO_pending(sock->tls.app_rbio) > 0) {
+		/* Handle any pending data and requeue the write request. */
+		goto cycle;
+	}
+
+	/*
 	 * There's no SSL_writev(), so we need to use a local buffer to
 	 * assemble the whole message
 	 */
@@ -1844,7 +1915,6 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 
 	rv = SSL_write_ex(sock->tls.tls, worker->sendbuf, sendlen, &bytes);
 	if (rv > 0) {
-		/* SSL_write_ex() doesn't do partial writes */
 		INSIST(sendlen == bytes);
 
 		ISC_LIST_APPEND(sock->tls.sendreqs, req, link);
@@ -1865,6 +1935,7 @@ tlsdns_send_direct(isc_nmsocket_t *sock, isc__nm_uvreq_t *req) {
 		return (ISC_R_TLSERROR);
 	}
 
+cycle:
 	result = tls_cycle(sock);
 
 requeue:

@@ -1,3 +1,7 @@
+6241.	[bug]		Take into account the possibility of partial TLS writes
+			in TLS DNS code. That helps to prevent DNS messages
+			corruption on long DNS over TLS streams. [GL #4255]
+
 6240.	[bug]		Use dedicated per-worker thread jemalloc memory
 			arenas for send buffers allocation to reduce memory
 			consumption and avoid lock contention. [GL #4038]
