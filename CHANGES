@@ -1,3 +1,6 @@
+6243.	[bug]		Restore the call order of dns_validator_destroy and
+			fetchctx_detach to prevent use after free. [GL #4214]
+
 6242.	[func]		Ignore jemalloc versions before 4.0.0 as we now
 			need explicit memory arenas and tcache support.
 			[GL #4296]
