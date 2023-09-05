@@ -1763,6 +1763,9 @@ report() {
     echo "      OpenSSL:		$OPENSSL_VERSION"
     echo "      libuv:		$LIBUV_VERSION"
     echo "      Userspace-RCU:	$RCU_VERSION"
+    if test "no" != "$with_jemalloc"; then
+      echo "      jemalloc:		$JEMALLOC_VERSION"
+    fi
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
