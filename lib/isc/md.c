@@ -181,6 +181,9 @@ const isc_md_type_t *isc__md_sha512 = NULL;
 	{                                                          \
 		REQUIRE(isc__md_##alg == NULL);                    \
 		isc__md_##alg = EVP_MD_fetch(NULL, algname, NULL); \
+		if (isc__md_##alg == NULL) {                       \
+			ERR_clear_error();                         \
+		}                                                  \
 	}
 
 #define md_unregister_algorithm(alg)                                    \
@@ -195,6 +198,9 @@ const isc_md_type_t *isc__md_sha512 = NULL;
 #define md_register_algorithm(alg, algname)  \
 	{                                    \
 		isc__md_##alg = EVP_##alg(); \
+		if (isc__md_##alg == NULL) { \
+			ERR_clear_error();   \
+		}                            \
 	}
 #define md_unregister_algorithm(alg)
 #endif
