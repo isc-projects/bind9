@@ -16,6 +16,7 @@ named.run
 parallel.mk
 /*.log
 /*.trs
+/*.xml
 /resolve
 /legacy.run.sh
 /run.log
