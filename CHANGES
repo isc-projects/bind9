@@ -1,3 +1,5 @@
+6241.	[placeholder]
+
 6240.	[bug]		Use dedicated per-worker thread jemalloc memory
 			arenas for send buffers allocation to reduce memory
 			consumption and avoid lock contention. [GL #4038]
