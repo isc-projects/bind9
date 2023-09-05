@@ -52,11 +52,6 @@
 #elif defined(HAVE_JEMALLOC)
 #include <jemalloc/jemalloc.h>
 #define JEMALLOC_API_SUPPORTED 1
-
-#if JEMALLOC_VERSION_MAJOR < 4
-#define sdallocx(ptr, size, flags) dallocx(ptr, flags)
-#endif /* JEMALLOC_VERSION_MAJOR < 4 */
-
 #else
 #include "jemalloc_shim.h"
 #endif

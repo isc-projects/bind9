@@ -36,7 +36,7 @@ AC_DEFUN([AX_CHECK_JEMALLOC], [
 		    save_LIBS="$LIBS"
 		    save_LDFLAGS="$LDFLAGS"
 		    save_CPPFLAGS="$CPPFLAGS"
-		    AC_SEARCH_LIBS([mallocx], [jemalloc],
+		    AC_SEARCH_LIBS([sdallocx], [jemalloc],
 			[
 			    found=true
 			    AS_IF([test "$ac_cv_search_mallocx" != "none required"],
