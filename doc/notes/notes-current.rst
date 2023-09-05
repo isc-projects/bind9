@@ -40,6 +40,10 @@ Feature Changes
   AXFR query types. ``named`` will now be making EDNS queries AXFR
   and IXFR queries with EDNS options present.  :gl:`#4170`
 
+- Compiling with jemalloc versions older than 4.0.0 is no longer supported;
+  those versions do not provide the features required by current BIND 9
+  releases. :gl:`#4296`
+
 Bug Fixes
 ~~~~~~~~~
 

@@ -1,3 +1,7 @@
+6242.	[func]		Ignore jemalloc versions before 4.0.0 as we now
+			need explicit memory arenas and tcache support.
+			[GL #4296]
+
 6241.	[placeholder]
 
 6240.	[bug]		Use dedicated per-worker thread jemalloc memory
