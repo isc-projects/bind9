@@ -72,8 +72,6 @@ loadkeys_on() {
     wait_for_log 20 "next key event" ns${nsidx}/named.run
 }
 
-set -x
-
 # verify that the http server dropped the connection without replying
 check_http_dropped() {
     if [ -x "${NC}" ] ; then
