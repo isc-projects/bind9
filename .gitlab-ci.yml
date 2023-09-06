@@ -417,6 +417,14 @@ cross-version-config-tests:
     reports:
       junit: junit.xml
 
+.system_test_make_check: &system_test_make_check_job
+  <<: *system_test_common
+  script:
+    - cd bin/tests/system
+    - make -j${TEST_PARALLEL_JOBS:-1} check
+  after_script:
+    - cat bin/tests/system/test-suite.log || true
+
 .system_test_gcov: &system_test_gcov_job
   <<: *system_test_common
   artifacts:
@@ -1323,6 +1331,7 @@ clang:openbsd:amd64:
 system:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *system_test_job
+  <<: *system_test_make_check_job
   <<: *api_schedules_triggers_web_triggering_rules
   variables:
     USER: gitlab-runner
