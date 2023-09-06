@@ -167,14 +167,18 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 		char namebuf[DNS_NAME_FORMATSIZE];
 		char object[DNS_NAME_FORMATSIZE + 26];
 
-		/* Generate the key */
+		/* Create the PKCS11 URI */
 		isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
 		dns_name_format(origin, namebuf, sizeof(namebuf));
 		snprintf(object, sizeof(object), "%s-%s-%s", namebuf,
 			 ksk ? "ksk" : "zsk", timebuf);
+		len = strlen(object) + strlen(uri) + 10;
+		label = isc_mem_get(mctx, len);
+		sprintf(label, "%s;object=%s;", uri, object);
 
+		/* Generate the key */
 		result = dst_key_generate(origin, alg, size, 0, flags,
-					  DNS_KEYPROTO_DNSSEC, rdclass, object,
+					  DNS_KEYPROTO_DNSSEC, rdclass, label,
 					  mctx, &key, NULL);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
@@ -187,9 +191,6 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 		dst_key_free(&key);
 
 		/* Retrieve generated key from label */
-		len = strlen(object) + strlen(uri) + 10;
-		label = isc_mem_get(mctx, len);
-		sprintf(label, "%s;object=%s;", uri, object);
 		result = dst_key_fromlabel(
 			origin, alg, flags, DNS_KEYPROTO_DNSSEC,
 			dns_rdataclass_in, dns_keystore_engine(keystore), label,

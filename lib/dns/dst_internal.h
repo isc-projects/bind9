@@ -94,7 +94,6 @@ struct dst_key {
 	char *directory;	    /*%< key directory */
 	char *engine;		    /*%< engine name (HSM) */
 	char *label;		    /*%< engine label (HSM) */
-	char *object;		    /*%< engine object (HSM) */
 	union {
 		void *generic;
 		dns_gss_ctx_id_t gssctx;

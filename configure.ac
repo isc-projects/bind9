@@ -644,6 +644,7 @@ AS_IF([test "$enable_doh" = "yes"],
 
 AM_CONDITIONAL([HAVE_LIBNGHTTP2], [test -n "$LIBNGHTTP2_LIBS"])
 
+
 #
 # flockfile is usually provided by pthreads
 #

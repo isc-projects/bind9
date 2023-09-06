@@ -1031,7 +1031,7 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 isc_result_t
 dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 		 unsigned int param, unsigned int flags, unsigned int protocol,
-		 dns_rdataclass_t rdclass, const char *object, isc_mem_t *mctx,
+		 dns_rdataclass_t rdclass, const char *label, isc_mem_t *mctx,
 		 dst_key_t **keyp, void (*callback)(int)) {
 	dst_key_t *key;
 	isc_result_t ret;
@@ -1046,8 +1046,8 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 	key = get_key_struct(name, alg, flags, protocol, bits, rdclass, 0,
 			     mctx);
 
-	if (object != NULL) {
-		key->object = isc_mem_strdup(mctx, object);
+	if (label != NULL) {
+		key->label = isc_mem_strdup(mctx, label);
 	}
 
 	if (bits == 0) { /*%< NULL KEY */
@@ -1407,9 +1407,6 @@ dst_key_free(dst_key_t **keyp) {
 		}
 		if (key->label != NULL) {
 			isc_mem_free(mctx, key->label);
-		}
-		if (key->object != NULL) {
-			isc_mem_free(mctx, key->object);
 		}
 		dns_name_free(key->key_name, mctx);
 		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));

@@ -410,26 +410,17 @@ opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 
 static isc_result_t
-opensslecdsa_generate_pkey_with_object(int group_nid, const char *object,
-				       EVP_PKEY **retkey) {
+opensslecdsa_generate_pkey_with_uri(int group_nid, const char *label,
+				    EVP_PKEY **retkey) {
 	int status;
 	isc_result_t ret;
-	unsigned char id[16];
-	char *label = UNCONST(object);
+	char *uri = UNCONST(label);
 	EVP_PKEY_CTX *ctx = NULL;
-	OSSL_PARAM params[3];
+	OSSL_PARAM params[2];
 
 	/* Generate the key's parameters. */
-	status = RAND_bytes(id, 16);
-	if (status != 1) {
-		DST_RET(dst__openssl_toresult2("RAND_bytes",
-					       DST_R_OPENSSLFAILURE));
-	}
-
-	params[0] = OSSL_PARAM_construct_utf8_string("pkcs11_key_label", label,
-						     0);
-	params[1] = OSSL_PARAM_construct_octet_string("pkcs11_key_id", id, 16);
-	params[2] = OSSL_PARAM_construct_end();
+	params[0] = OSSL_PARAM_construct_utf8_string("pkcs11_uri", uri, 0);
+	params[1] = OSSL_PARAM_construct_end();
 
 	ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", "provider=pkcs11");
 	if (ctx == NULL) {
@@ -476,7 +467,7 @@ err:
 }
 
 static isc_result_t
-opensslecdsa_generate_pkey(unsigned int key_alg, const char *object,
+opensslecdsa_generate_pkey(unsigned int key_alg, const char *label,
 			   EVP_PKEY **retkey) {
 	isc_result_t ret;
 	EVP_PKEY_CTX *ctx = NULL;
@@ -484,9 +475,9 @@ opensslecdsa_generate_pkey(unsigned int key_alg, const char *object,
 	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 	int status;
 
-	if (object != NULL) {
-		return (opensslecdsa_generate_pkey_with_object(group_nid,
-							       object, retkey));
+	if (label != NULL) {
+		return (opensslecdsa_generate_pkey_with_uri(group_nid, label,
+							    retkey));
 	}
 
 	/* Generate the key's parameters. */
@@ -570,14 +561,14 @@ opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
 #else
 
 static isc_result_t
-opensslecdsa_generate_pkey(unsigned int key_alg, const char *object,
+opensslecdsa_generate_pkey(unsigned int key_alg, const char *label,
 			   EVP_PKEY **retkey) {
 	isc_result_t ret;
 	EC_KEY *eckey = NULL;
 	EVP_PKEY *pkey = NULL;
 	int group_nid;
 
-	UNUSED(object);
+	UNUSED(label);
 
 	group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 
@@ -892,7 +883,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(unused);
 	UNUSED(callback);
 
-	ret = opensslecdsa_generate_pkey(key->key_alg, key->object, &pkey);
+	ret = opensslecdsa_generate_pkey(key->key_alg, key->label, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		return (ret);
 	}
