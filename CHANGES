@@ -1,3 +1,6 @@
+6244.	[bug]		Adjust log levels on malformed messages to NOTICE when
+			transferring in a zone. [GL #4290]
+
 6243.	[bug]		Restore the call order of dns_validator_destroy and
 			fetchctx_detach to prevent use after free. [GL #4214]
 
