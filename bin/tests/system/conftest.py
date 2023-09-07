@@ -87,6 +87,7 @@ SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_sh(?=_))?(.*)\.py")
 
 # ---------------------- Module initialization ---------------------------
 
+
 def init_pytest_conftest_logger(conftest_logger):
     """
     This initializes the conftest logger which is used for pytest setup
@@ -99,7 +100,9 @@ def init_pytest_conftest_logger(conftest_logger):
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
     conftest_logger.addHandler(file_handler)
 
+
 init_pytest_conftest_logger(CONFTEST_LOGGER)
+
 
 def avoid_duplicated_logs():
     """
@@ -116,6 +119,7 @@ def avoid_duplicated_logs():
     for handler in todel:
         logging.root.handlers.remove(handler)
 
+
 def parse_env(env_bytes):
     """Parse the POSIX env format into Python dictionary."""
     out = {}
@@ -128,6 +132,7 @@ def parse_env(env_bytes):
                 continue
             out[match.groups()[0]] = match.groups()[1]
     return out
+
 
 def get_env_bytes(cmd):
     try:
@@ -144,15 +149,15 @@ def get_env_bytes(cmd):
     env_bytes = proc.stdout
     return parse_env(env_bytes)
 
+
 # Read common environment variables for running tests from conf.sh.
 # FUTURE: Remove conf.sh entirely and define all variables in pytest only.
 CONF_ENV = get_env_bytes(". ./conf.sh && env")
 os.environb.update(CONF_ENV)
-CONFTEST_LOGGER.debug(
-    "variables in env: %s", ", ".join([str(key) for key in CONF_ENV])
-)
+CONFTEST_LOGGER.debug("variables in env: %s", ", ".join([str(key) for key in CONF_ENV]))
 
 # --------------------------- pytest hooks -------------------------------
+
 
 def pytest_addoption(parser):
     parser.addoption(
@@ -161,6 +166,7 @@ def pytest_addoption(parser):
         default=False,
         help="don't remove the temporary test directories with artifacts",
     )
+
 
 def pytest_configure(config):
     # Ensure this hook only runs on the main pytest instance if xdist is
@@ -180,6 +186,7 @@ def pytest_configure(config):
             else:
                 config.option.dist = "loadscope"
 
+
 def pytest_ignore_collect(path):
     # System tests are executed in temporary directories inside
     # bin/tests/system. These temporary directories contain all files
@@ -196,6 +203,7 @@ def pytest_ignore_collect(path):
     system_test_name = match.groups()[0]
     return "_" in system_test_name
 
+
 def pytest_collection_modifyitems(items):
     """Schedule long-running tests first to get more benefit from parallelism."""
     priority = []
@@ -206,6 +214,7 @@ def pytest_collection_modifyitems(items):
         else:
             other.append(item)
     items[:] = priority + other
+
 
 class NodeResult:
     def __init__(self, report=None):
@@ -219,6 +228,7 @@ class NodeResult:
             self.outcome = report.outcome
         if report.longreprtext:
             self.messages.append(report.longreprtext)
+
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item):
@@ -240,7 +250,9 @@ def pytest_runtest_makereport(item):
     node_result = test_results.setdefault(item.nodeid, NodeResult())
     node_result.update(report)
 
+
 # --------------------------- Fixtures -----------------------------------
+
 
 @pytest.fixture(scope="session")
 def modules():
@@ -261,6 +273,7 @@ def modules():
                     mods.append(mod)
     return sorted(mods)
 
+
 @pytest.fixture(scope="session")
 def module_base_ports(modules):
     """
@@ -275,9 +288,7 @@ def module_base_ports(modules):
     port_min = PORT_MIN
     port_max = PORT_MAX - len(modules) * PORTS_PER_TEST
     if port_max < port_min:
-        raise RuntimeError(
-            "not enough ports to assign unique port set to each module"
-        )
+        raise RuntimeError("not enough ports to assign unique port set to each module")
 
     # Rotate the base port value over time to detect possible test issues
     # with using random ports. This introduces a very slight race condition
@@ -289,11 +300,13 @@ def module_base_ports(modules):
 
     return {mod: base_port + i * PORTS_PER_TEST for i, mod in enumerate(modules)}
 
+
 @pytest.fixture(scope="module")
 def base_port(request, module_base_ports):
     """Start of the port range assigned to a particular test module."""
     port = module_base_ports[request.fspath]
     return port
+
 
 @pytest.fixture(scope="module")
 def ports(base_port):
@@ -314,6 +327,7 @@ def ports(base_port):
         "CONTROLPORT": str(base_port + 12),
     }
 
+
 @pytest.fixture(scope="module")
 def env(ports):
     """Dictionary containing environment variables for the test."""
@@ -323,11 +337,13 @@ def env(ports):
     env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     return env
 
+
 @pytest.fixture(scope="module")
 def system_test_name(request):
     """Name of the system test directory."""
     path = Path(request.fspath)
     return path.parent.name
+
 
 @pytest.fixture(scope="module")
 def mlogger(system_test_name):
@@ -335,10 +351,12 @@ def mlogger(system_test_name):
     avoid_duplicated_logs()
     return logging.getLogger(system_test_name)
 
+
 @pytest.fixture
 def logger(request, system_test_name):
     """Logging facility specific to a particular test."""
     return logging.getLogger(f"{system_test_name}.{request.node.name}")
+
 
 @pytest.fixture(scope="module")
 def system_test_dir(
@@ -455,6 +473,7 @@ def system_test_dir(
             shutil.rmtree(testdir)
             unlink(symlink_dst)
 
+
 def _run_script(  # pylint: disable=too-many-arguments
     env,
     mlogger,
@@ -497,15 +516,18 @@ def _run_script(  # pylint: disable=too-many-arguments
             raise subprocess.CalledProcessError(returncode, cmd)
         mlogger.debug("  exited with %d", returncode)
 
+
 @pytest.fixture(scope="module")
 def shell(env, system_test_dir, mlogger):
     """Function to call a shell script with arguments."""
     return partial(_run_script, env, mlogger, system_test_dir, env["SHELL"])
 
+
 @pytest.fixture(scope="module")
 def perl(env, system_test_dir, mlogger):
     """Function to call a perl script with arguments."""
     return partial(_run_script, env, mlogger, system_test_dir, env["PERL"])
+
 
 @pytest.fixture(scope="module")
 def run_tests_sh(system_test_dir, shell):
@@ -515,6 +537,7 @@ def run_tests_sh(system_test_dir, shell):
         shell(f"{system_test_dir}/tests.sh")
 
     return run_tests
+
 
 @pytest.fixture(scope="module", autouse=True)
 def system_test(  # pylint: disable=too-many-arguments,too-many-statements
