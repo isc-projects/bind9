@@ -1,3 +1,5 @@
+6245.	[placeholder]
+
 6244.	[bug]		Adjust log levels on malformed messages to NOTICE when
 			transferring in a zone. [GL #4290]
 
