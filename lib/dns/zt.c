@@ -181,9 +181,10 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 		result = dns_qp_getname(&qpr, name, &pval, NULL);
 	} else if (exactopts == DNS_ZTFIND_NOEXACT) {
 		result = dns_qp_findname_ancestor(
-			&qpr, name, DNS_QPFIND_NOEXACT, &pval, NULL);
+			&qpr, name, DNS_QPFIND_NOEXACT, NULL, &pval, NULL);
 	} else {
-		result = dns_qp_findname_ancestor(&qpr, name, 0, &pval, NULL);
+		result = dns_qp_findname_ancestor(&qpr, name, 0, NULL, &pval,
+						  NULL);
 	}
 	dns_qpread_destroy(zt->multi, &qpr);
 

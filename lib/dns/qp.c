@@ -176,7 +176,7 @@ initialize_bits_for_byte(void) {
 			qp_shift_t letter = byte - 'A';
 			qp_shift_t bit = after_esc + skip_punct + letter;
 			dns_qp_bits_for_byte[byte] = bit;
-			/* to simplify reverse conversion in the tests */
+			/* to simplify reverse conversion */
 			bit_two++;
 		} else {
 			/* non-hostname characters need to be escaped */
@@ -216,7 +216,11 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 	dns_fixedname_t fixed;
 
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
-	REQUIRE(name->labels > 0);
+
+	if (name->labels == 0) {
+		key[0] = SHIFT_NOBYTE;
+		return (0);
+	}
 
 	if (name->offsets == NULL) {
 		dns_name_t *clone = dns_fixedname_initname(&fixed);
@@ -243,6 +247,85 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name) {
 	key[len] = SHIFT_NOBYTE;
 	ENSURE(len < sizeof(dns_qpkey_t));
 	return (len);
+}
+
+void
+dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name) {
+	size_t locs[DNS_NAME_MAXLABELS];
+	size_t loc = 0, opos = 0;
+	size_t offset;
+
+	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
+	REQUIRE(name->buffer != NULL);
+	REQUIRE(name->offsets != NULL);
+
+	if (keylen == 0) {
+		dns_name_reset(name);
+		return;
+	}
+
+	isc_buffer_clear(name->buffer);
+
+	/* Scan the key looking for label boundaries */
+	for (offset = 0; offset <= keylen; offset++) {
+		INSIST(key[offset] >= SHIFT_NOBYTE &&
+		       key[offset] < SHIFT_OFFSET);
+		INSIST(loc < DNS_NAME_MAXLABELS);
+		if (qpkey_bit(key, keylen, offset) == SHIFT_NOBYTE) {
+			if (qpkey_bit(key, keylen, offset + 1) == SHIFT_NOBYTE)
+			{
+				locs[loc] = offset + 1;
+				goto scanned;
+			}
+			locs[loc++] = offset + 1;
+		} else if (offset == 0) {
+			/* This happens for a relative name */
+			locs[loc++] = offset;
+		}
+	}
+	UNREACHABLE();
+scanned:
+
+	/*
+	 * In the key the labels are encoded in reverse order, so
+	 * we step backward through the label boundaries, then forward
+	 * through the labels, to create the DNS wire format data.
+	 */
+	name->labels = loc;
+	while (loc-- > 0) {
+		uint8_t len = 0, *lenp = NULL;
+
+		/* Add a length byte to the name data and set an offset */
+		lenp = isc_buffer_used(name->buffer);
+		isc_buffer_putuint8(name->buffer, 0);
+		name->offsets[opos++] = name->length++;
+
+		/* Convert from escaped byte ranges to ASCII */
+		for (offset = locs[loc]; offset < locs[loc + 1] - 1; offset++) {
+			uint8_t bit = qpkey_bit(key, keylen, offset);
+			uint8_t byte = dns_qp_byte_for_bit[bit];
+			if (qp_common_character(byte)) {
+				isc_buffer_putuint8(name->buffer, byte);
+			} else {
+				byte += key[++offset] - SHIFT_BITMAP;
+				isc_buffer_putuint8(name->buffer, byte);
+			}
+			len++;
+		}
+
+		name->length += len;
+		*lenp = len;
+	}
+
+	/* Add a root label for absolute names */
+	if (key[0] == SHIFT_NOBYTE) {
+		name->attributes.absolute = true;
+		isc_buffer_putuint8(name->buffer, 0);
+		name->offsets[opos++] = name->length++;
+		name->labels++;
+	}
+
+	name->ndata = isc_buffer_base(name->buffer);
 }
 
 /*
@@ -1811,8 +1894,8 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_qpfind_t options, void **pval_r,
-			 uint32_t *ival_r) {
+			 dns_qpfind_t options, dns_name_t *foundname,
+			 void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
@@ -1827,6 +1910,7 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	} label[DNS_NAME_MAXLABELS];
 
 	REQUIRE(QP_VALID(qp));
+	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	searchlen = dns_qpkey_fromname(search, name);
 	if ((options & DNS_QPFIND_NOEXACT) != 0) {
@@ -1888,6 +1972,9 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	if (offset == QPKEY_EQUAL || offset == foundlen) {
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
+		if (foundname != NULL) {
+			dns_qpkey_toname(found, foundlen, foundname);
+		}
 		if (offset == QPKEY_EQUAL) {
 			return (result);
 		} else {
@@ -1899,6 +1986,10 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 			n = ref_ptr(qp, label[labels].ref);
 			SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 			SET_IF_NOT_NULL(ival_r, leaf_ival(n));
+			if (foundname != NULL) {
+				foundlen = leaf_qpkey(qp, n, found);
+				dns_qpkey_toname(found, foundlen, foundname);
+			}
 			return (DNS_R_PARTIALMATCH);
 		}
 	}

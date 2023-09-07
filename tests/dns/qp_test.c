@@ -45,6 +45,11 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		size_t len;
 	} testcases[] = {
 		{
+			.namestr = "",
+			.key = { 0x02 },
+			.len = 0,
+		},
+		{
 			.namestr = ".",
 			.key = { 0x02, 0x02 },
 			.len = 1,
@@ -53,6 +58,16 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 			.namestr = "\\000",
 			.key = { 0x03, 0x03, 0x02, 0x02 },
 			.len = 3,
+		},
+		{
+			.namestr = "com",
+			.key = { 0x16, 0x22, 0x20, 0x02 },
+			.len = 4,
+		},
+		{
+			.namestr = "com.",
+			.key = { 0x02, 0x16, 0x22, 0x20, 0x02 },
+			.len = 5,
 		},
 		{
 			.namestr = "example.com.",
@@ -80,15 +95,21 @@ ISC_RUN_TEST_IMPL(qpkey_name) {
 		dns_fixedname_t fn1, fn2;
 		dns_name_t *in = NULL, *out = NULL;
 
-		dns_test_namefromstring(testcases[i].namestr, &fn1);
-		in = dns_fixedname_name(&fn1);
+		in = dns_fixedname_initname(&fn1);
+		if (testcases[i].len != 0) {
+			dns_test_namefromstring(testcases[i].namestr, &fn1);
+		}
 		len = dns_qpkey_fromname(key, in);
 
 		assert_int_equal(testcases[i].len, len);
 		assert_memory_equal(testcases[i].key, key, len);
+		/* also check key correctness for empty name */
+		if (len == 0) {
+			assert_int_equal(testcases[i].key[0], ((char *)key)[0]);
+		}
 
 		out = dns_fixedname_initname(&fn2);
-		qp_test_keytoname(key, len, out);
+		dns_qpkey_toname(key, len, out);
 		assert_true(dns_name_equal(in, out));
 	}
 }
@@ -258,19 +279,47 @@ static void
 check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[]) {
 	for (int i = 0; check[i].query != NULL; i++) {
 		isc_result_t result;
-		dns_fixedname_t fixed;
-		dns_name_t *name = dns_fixedname_name(&fixed);
+		dns_fixedname_t fn1, fn2;
+		dns_name_t *name = dns_fixedname_initname(&fn1);
+		dns_name_t *foundname = dns_fixedname_initname(&fn2);
 		void *pval = NULL;
 
+		dns_test_namefromstring(check[i].query, &fn1);
+		result = dns_qp_findname_ancestor(qp, name, check[i].options,
+						  foundname, &pval, NULL);
+
 #if 0
-		fprintf(stderr, "%s %u %s %s\n", check[i].query,
-			check[i].options, isc_result_totext(check[i].result),
+		fprintf(stderr, "%s (flags %u) %s (expected %s) "
+			"value \"%s\" (expected \"%s\")\n",
+			check[i].query, check[i].options,
+			isc_result_totext(result),
+			isc_result_totext(check[i].result), (char *)pval,
 			check[i].found);
 #endif
-		dns_test_namefromstring(check[i].query, &fixed);
-		result = dns_qp_findname_ancestor(qp, name, check[i].options,
-						  &pval, NULL);
+
 		assert_int_equal(result, check[i].result);
+		if (result == ISC_R_SUCCESS) {
+			assert_true(dns_name_equal(name, foundname));
+		} else if (result == DNS_R_PARTIALMATCH) {
+			/*
+			 * there are cases where we may have passed a
+			 * query name that was relative to the zone apex,
+			 * and gotten back an absolute name from the
+			 * partial match. it's also possible for an
+			 * absolute query to get a partial match on a
+			 * node that had an empty name. in these cases,
+			 * sanity checking the relations between name
+			 * and foundname can trigger an assertion, so
+			 * let's just skip them.
+			 */
+			if (dns_name_isabsolute(name) ==
+			    dns_name_isabsolute(foundname))
+			{
+				assert_false(dns_name_equal(name, foundname));
+				assert_true(
+					dns_name_issubdomain(name, foundname));
+			}
+		}
 		if (check[i].found == NULL) {
 			assert_null(pval);
 		} else {
@@ -291,6 +340,7 @@ insert_str(dns_qp_t *qp, const char *str) {
 ISC_RUN_TEST_IMPL(partialmatch) {
 	isc_result_t result;
 	dns_qp_t *qp = NULL;
+	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
 
@@ -302,7 +352,10 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 		"fooo.bar.", "web.foo.bar.", ".",	"",
 	};
 
-	int i = 0;
+	/*
+	 * omit the root node for now, otherwise we'll get "partial match"
+	 * results when we want "not found".
+	 */
 	while (insert[i][0] != '.') {
 		insert_str(qp, insert[i++]);
 	}
@@ -340,21 +393,41 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 		{ "bar.", 0, DNS_R_PARTIALMATCH, "." },
 		{ "foo.bar.", 0, ISC_R_SUCCESS, "foo.bar." },
 		{ "foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "." },
+		{ "bar", 0, ISC_R_NOTFOUND, NULL },
+		{ "bar", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "." },
 		{ NULL, 0, 0, NULL },
 	};
 	check_partialmatch(qp, check2);
 
-	/* what if entries in the trie are relative to the zone apex? */
+	/*
+	 * what if entries in the trie are relative to the zone apex
+	 * and there's no root node?
+	 */
 	dns_qpkey_t rootkey = { SHIFT_NOBYTE };
 	result = dns_qp_deletekey(qp, rootkey, 1, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	check_partialmatch(
+		qp,
+		(struct check_partialmatch[]){
+			{ "bar", 0, ISC_R_NOTFOUND, NULL },
+			{ "bar", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
+			{ "bar.", 0, ISC_R_NOTFOUND, NULL },
+			{ "bar.", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
+			{ NULL, 0, 0, NULL },
+		});
+
+	/* what if there's a root node with an empty key? */
 	INSIST(insert[i][0] == '\0');
 	insert_str(qp, insert[i++]);
-	check_partialmatch(qp, (struct check_partialmatch[]){
-				       { "bar", 0, DNS_R_PARTIALMATCH, "" },
-				       { "bar.", 0, DNS_R_PARTIALMATCH, "" },
-				       { NULL, 0, 0, NULL },
-			       });
+	check_partialmatch(
+		qp,
+		(struct check_partialmatch[]){
+			{ "bar", 0, DNS_R_PARTIALMATCH, "" },
+			{ "bar", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "" },
+			{ "bar.", 0, DNS_R_PARTIALMATCH, "" },
+			{ "bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "" },
+			{ NULL, 0, 0, NULL },
+		});
 
 	dns_qp_destroy(&qp);
 }

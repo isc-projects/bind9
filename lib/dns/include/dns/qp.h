@@ -431,6 +431,17 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name);
  * \li  the length of the key
  */
 
+void
+dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name);
+/*%<
+ * Convert a trie lookup key back into a DNS name.
+ *
+ * Requires:
+ * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `name->buffer` is not NULL
+ * \li  `name->offsets` is not NULL
+ */
+
 isc_result_t
 dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	      size_t search_keylen, void **pval_r, uint32_t *ival_r);
@@ -469,7 +480,8 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_qpfind_t options, void **pval_r, uint32_t *ival_r);
+			 dns_qpfind_t options, dns_name_t *foundname,
+			 void **pval_r, uint32_t *ival_r);
 /*%<
  * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
  * given DNS name.
@@ -477,12 +489,16 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
  * If the DNS_QPFIND_NOEXACT option is set, find the closest ancestor
  * domain that is not equal to the search name.
  *
+ * If 'foundname' is not NULL, it is updated to contain the name found.
+ *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
  * are not null, unless the return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `foundname` is a pointer to a valid `dns_name_t` with
+ *       buffer and offset space available, or is NULL.
  *
  * Returns:
  * \li  ISC_R_SUCCESS if an exact match was found
