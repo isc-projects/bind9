@@ -182,7 +182,6 @@ libisc_la_SOURCES =		\
 	safe.c			\
 	serial.c		\
 	signal.c		\
-	siphash.c		\
 	sockaddr.c		\
 	stats.c			\
 	stdio.c			\

@@ -24,8 +24,6 @@
 
 #include <isc/siphash.h>
 
-#include "siphash.c"
-
 #include <tests/isc.h>
 
 const uint8_t vectors_sip64[64][8] = {
@@ -131,8 +129,6 @@ const uint8_t vectors_hsip32[64][4] = {
 };
 
 ISC_RUN_TEST_IMPL(isc_siphash24) {
-	UNUSED(state);
-
 	uint8_t in[64], out[8], key[16];
 	for (size_t i = 0; i < ARRAY_SIZE(key); i++) {
 		key[i] = i;
@@ -143,11 +139,20 @@ ISC_RUN_TEST_IMPL(isc_siphash24) {
 		isc_siphash24(key, in, i, true, out);
 		assert_memory_equal(out, vectors_sip64[i], 8);
 	}
+
+	for (size_t i = 0; i < ARRAY_SIZE(in); i++) {
+		for (size_t j = 0; j < i; j++) {
+			isc_siphash24_t s;
+			isc_siphash24_init(&s, key);
+			isc_siphash24_hash(&s, in, j, true);
+			isc_siphash24_hash(&s, in + j, i - j, true);
+			isc_siphash24_finalize(&s, out);
+			assert_memory_equal(out, vectors_sip64[i], 8);
+		}
+	}
 }
 
 ISC_RUN_TEST_IMPL(isc_halfsiphash24) {
-	UNUSED(state);
-
 	uint8_t in[64], out[4], key[16];
 	for (size_t i = 0; i < ARRAY_SIZE(key); i++) {
 		key[i] = i;
@@ -157,6 +162,17 @@ ISC_RUN_TEST_IMPL(isc_halfsiphash24) {
 		in[i] = i;
 		isc_halfsiphash24(key, in, i, true, out);
 		assert_memory_equal(out, vectors_hsip32[i], 4);
+	}
+
+	for (size_t i = 0; i < ARRAY_SIZE(in); i++) {
+		for (size_t j = 0; j < i; j++) {
+			isc_halfsiphash24_t s;
+			isc_halfsiphash24_init(&s, key);
+			isc_halfsiphash24_hash(&s, in, j, true);
+			isc_halfsiphash24_hash(&s, in + j, i - j, true);
+			isc_halfsiphash24_finalize(&s, out);
+			assert_memory_equal(out, vectors_hsip32[i], 4);
+		}
 	}
 }
 
