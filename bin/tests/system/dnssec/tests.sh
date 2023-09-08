@@ -2967,7 +2967,7 @@ status=$((status+ret))
 echo_i "testing legacy upper case signer name validation ($n)"
 ret=0
 $DIG +tcp +noadd +noauth +dnssec -p "$PORT" soa upper.example @10.53.0.4 \
-        > dig.out.ns4.test$n 2>&1
+        > dig.out.ns4.test$n 2>&1 || ret=1
 grep "flags:.* ad;" dig.out.ns4.test$n > /dev/null || ret=1
 grep "RRSIG.*SOA.* UPPER\\.EXAMPLE\\. " dig.out.ns4.test$n > /dev/null || ret=1
 n=$((n+1))
@@ -2977,7 +2977,7 @@ status=$((status+ret))
 echo_i "testing that we lower case signer name ($n)"
 ret=0
 $DIG +tcp +noadd +noauth +dnssec -p "$PORT" soa LOWER.EXAMPLE @10.53.0.4 \
-        > dig.out.ns4.test$n 2>&1
+        > dig.out.ns4.test$n 2>&1 || ret=1
 grep "flags:.* ad;" dig.out.ns4.test$n > /dev/null || ret=1
 grep "RRSIG.*SOA.* lower\\.example\\. " dig.out.ns4.test$n > /dev/null || ret=1
 n=$((n+1))
@@ -3277,11 +3277,11 @@ if [ -x "$PYTHON" ]; then
     # convert expiry date to a comma-separated list of integers python can
     # use as input to date(). strip leading 0s in months and days so
     # python3 will recognize them as integers.
-    $DIG +dnssec +short -p "$PORT" @10.53.0.3 soa siginterval.example > dig.out.soa.test$n
+    $DIG +dnssec +short -p "$PORT" @10.53.0.3 soa siginterval.example > dig.out.soa.test$n || ret=1
     soaexpire=$(awk '$1 ~ /SOA/ { print $5 }' dig.out.soa.test$n |
 	       sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' |
 	       sed 's/ 0/ /g')
-    $DIG +dnssec +short -p "$PORT" @10.53.0.3 dnskey siginterval.example > dig.out.dnskey.test$n
+    $DIG +dnssec +short -p "$PORT" @10.53.0.3 dnskey siginterval.example > dig.out.dnskey.test$n || ret=1
     dnskeyexpire=$(awk '$1 ~ /DNSKEY/ { print $5; exit 0 }' dig.out.dnskey.test$n |
 		  sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' |
 		  sed 's/ 0/ /g')

@@ -24,7 +24,7 @@ zone=.
 n=$((n + 1))
 echo_i "check +edns=100 sets version 100 ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +qr +edns=100 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +qr +edns=100 soa $zone > dig.out$n || ret=1
 grep "EDNS: version: 100," dig.out$n > /dev/null || { ret=1; reason="version"; }
 if [ $ret != 0 ]; then echo_i "failed $reason"; fi
 status=$((status + ret))
@@ -32,7 +32,7 @@ status=$((status + ret))
 n=$((n + 1))
 ret=0 reason=
 echo_i "check +ednsopt=100 adds option 100 ($n)"
-$DIG $DIGOPTS  @10.53.0.1 +qr +ednsopt=100 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +qr +ednsopt=100 soa $zone > dig.out$n || ret=1
 grep "; OPT=100" dig.out$n > /dev/null || { ret=1; reason="option"; }
 if [ $ret != 0 ]; then echo_i "failed $reason"; fi
 status=$((status + ret))
@@ -40,7 +40,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "check +ednsflags=0x80 sets flags to 0x0080 ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +qr +ednsflags=0x80 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +qr +ednsflags=0x80 soa $zone > dig.out$n || ret=1
 grep "MBZ: 0x0080," dig.out$n > /dev/null || { ret=1; reason="flags"; }
 if [ $ret != 0 ]; then echo_i "failed $reason"; fi
 status=$((status + ret))
@@ -48,7 +48,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "Unknown EDNS version ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsnegotiation soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsnegotiation soa $zone > dig.out$n || ret=1
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "IN.SOA." dig.out$n > /dev/null && { ret=1; reason="soa"; }
@@ -58,7 +58,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "Unknown EDNS option ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +ednsopt=100 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +ednsopt=100 soa $zone > dig.out$n || ret=1
 grep "status: NOERROR," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "; OPT=100" dig.out$n > /dev/null && { ret=1; reason="option"; }
@@ -69,7 +69,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "Unknown EDNS version + option ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsneg +ednsopt=100 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsneg +ednsopt=100 soa $zone > dig.out$n || ret=1
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "; OPT=100" dig.out$n > /dev/null && { ret=1; reason="option"; }
@@ -80,7 +80,7 @@ n=$((n + 1))
 
 echo_i "Unknown EDNS flag ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +ednsflags=0x80 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +ednsflags=0x80 soa $zone > dig.out$n || ret=1
 grep "status: NOERROR," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "EDNS:.*MBZ" dig.out$n > /dev/null > /dev/null && { ret=1; reason="mbz"; }
@@ -91,7 +91,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "Unknown EDNS version + flag ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsneg +ednsflags=0x80 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +edns=100 +noednsneg +ednsflags=0x80 soa $zone > dig.out$n || ret=1
 grep "status: BADVERS," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "EDNS:.*MBZ" dig.out$n > /dev/null > /dev/null && { ret=1; reason="mbz"; }
@@ -102,7 +102,7 @@ n=$((n + 1))
 
 echo_i "DiG's EDNS negotiation ($n)"
 ret=0 reason=
-$DIG $DIGOPTS  @10.53.0.1 +edns=100 soa $zone > dig.out$n
+$DIG $DIGOPTS  @10.53.0.1 +edns=100 soa $zone > dig.out$n || ret=1
 grep "status: NOERROR," dig.out$n > /dev/null || { ret=1; reason="status"; }
 grep "EDNS: version: 0," dig.out$n > /dev/null || { ret=1; reason="version"; }
 grep "IN.SOA." dig.out$n > /dev/null || { ret=1; reason="soa"; }
