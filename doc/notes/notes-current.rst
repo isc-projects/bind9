@@ -15,7 +15,13 @@ Notes for BIND 9.16.44
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Previously, sending a specially crafted message over the control
+  channel could cause the packet-parsing code to run out of available
+  stack memory, causing :iscman:`named` to terminate unexpectedly.
+  This has been fixed. (CVE-2023-3341)
+
+  ISC would like to thank Eric Sesterhenn from X41 D-Sec GmbH for
+  bringing this vulnerability to our attention. :gl:`#4152`
 
 New Features
 ~~~~~~~~~~~~

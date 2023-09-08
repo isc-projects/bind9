@@ -35,8 +35,10 @@
 #define ISCCC_R_CLOCKSKEW (ISC_RESULTCLASS_ISCCC + 4)
 /*% Duplicate */
 #define ISCCC_R_DUPLICATE (ISC_RESULTCLASS_ISCCC + 5)
+/*% Maximum recursion depth */
+#define ISCCC_R_MAXDEPTH (ISC_RESULTCLASS_ISCCC + 6)
 
-#define ISCCC_R_NRESULTS 6 /*%< Number of results */
+#define ISCCC_R_NRESULTS 7 /*%< Number of results */
 
 ISC_LANG_BEGINDECLS
 

@@ -1,3 +1,6 @@
+6245.	[security]	Limit the amount of recursion that can be performed
+			by isccc_cc_fromwire. (CVE-2023-3341) [GL #4152]
+
 6235.	[doc]		Clarify BIND 9 time formats. [GL #4266]
 
 6230.	[bug]		Prevent an unnecessary query restart if a synthesized
