@@ -32,11 +32,6 @@ Security Fixes
   Operations for bringing this vulnerability to our attention.
   :gl:`#4242`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -45,8 +40,6 @@ Removed Features
 
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - Make :iscman:`nsupdate` honor the ``-v`` option. If set, and the server is
   specified, SOA queries are now send over TCP as well. :gl:`#1181`
