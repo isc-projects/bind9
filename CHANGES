@@ -1,3 +1,5 @@
+	--- 9.18.19 released ---
+
 6246.	[security]	Fix use-after-free error in TLS DNS code when sending
 			data. (CVE-2023-4236) [GL #4242]
 
