@@ -1,3 +1,6 @@
+6247.	[func]		Implement incremental hashing in both isc_siphash
+			and isc_hash units. [GL #4306]
+
 6246.	[placeholder]
 
 6245.	[placeholder]
