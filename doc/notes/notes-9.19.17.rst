@@ -30,6 +30,11 @@ New Features
   added. These probes enable fine-grained application tracing and
   introduce no overhead when they are not enabled. :gl:`#4041`
 
+- The client-side support of the EDNS EXPIRE option has been expanded to
+  include IXFR and AXFR query types. This enhancement enables
+  :iscman:`named` to perform AXFR and IXFR queries while incorporating
+  the EDNS EXPIRE option. :gl:`#4170`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -39,18 +44,13 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- If the ``server`` command is specified, :iscman:`nsupdate` now honors
-  the :option:`nsupdate -v` option for SOA queries by sending both the
-  UPDATE request and the initial query over TCP. :gl:`#1181`
-
-- The client-side support of the EDNS EXPIRE option has been expanded to
-  include IXFR and AXFR query types. This enhancement enables
-  :iscman:`named` to perform AXFR and IXFR queries while incorporating
-  the EDNS EXPIRE option. :gl:`#4170`
-
 - Compiling with jemalloc versions older than 4.0.0 is no longer
   supported; those versions do not provide the features required by
   current BIND 9 releases. :gl:`#4296`
+
+- If the ``server`` command is specified, :iscman:`nsupdate` now honors
+  the :option:`nsupdate -v` option for SOA queries by sending both the
+  UPDATE request and the initial query over TCP. :gl:`#1181`
 
 Bug Fixes
 ~~~~~~~~~
