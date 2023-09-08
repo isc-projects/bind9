@@ -23,26 +23,6 @@ Security Fixes
   ISC would like to thank Eric Sesterhenn from X41 D-Sec GmbH for
   bringing this vulnerability to our attention. :gl:`#4152`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
-
 Known Issues
 ~~~~~~~~~~~~
 
