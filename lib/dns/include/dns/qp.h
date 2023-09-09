@@ -86,6 +86,7 @@
 
 #include <isc/attributes.h>
 
+#include <dns/name.h>
 #include <dns/types.h>
 
 /*%
@@ -182,8 +183,9 @@ typedef union dns_qpreadable {
 typedef uint8_t dns_qpkey_t[DNS_QP_MAXKEY];
 
 /*%
- * A trie iterator describes a path through the trie from the root to
- * a leaf node, for use with `dns_qpiter_init()` and `dns_qpiter_next()`.
+ * A QP iterator traverses a trie starting with the root and passing
+ * though each leaf node in lexicographic order; it is used with
+ * `dns_qpiter_init()` and `dns_qpiter_next()`.
  */
 typedef struct dns_qpiter {
 	unsigned int	magic;
@@ -194,6 +196,22 @@ typedef struct dns_qpiter {
 		uint8_t	 more;
 	} stack[DNS_QP_MAXKEY];
 } dns_qpiter_t;
+
+/*%
+ * A QP chain holds references to each populated node between
+ * the root and a given leaf. It is set while running
+ * `dns_qp_findname_ancestor()`, and can optionally be passed
+ * back to the caller so that individual nodes can be accessed.
+ */
+typedef struct dns_qpchain {
+	unsigned int	magic;
+	dns_qpreader_t *qp;
+	uint8_t		len;
+	struct {
+		void  *node;
+		size_t offset;
+	} chain[DNS_NAME_MAXLABELS];
+} dns_qpchain_t;
 
 /*%
  * These leaf methods allow the qp-trie code to call back to the code
@@ -481,7 +499,7 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 			 dns_qpfind_t options, dns_name_t *foundname,
-			 void **pval_r, uint32_t *ival_r);
+			 dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
  * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
  * given DNS name.
@@ -490,6 +508,10 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
  * domain that is not equal to the search name.
  *
  * If 'foundname' is not NULL, it is updated to contain the name found.
+ *
+ * If 'chain' is not NULL, it is updated to contain a QP chain with
+ * references to the populated nodes in the tree between the root and
+ * the name found.
  *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
  * are not null, unless the return value is ISC_R_NOTFOUND.
@@ -598,6 +620,39 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
  * Returns:
  * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
  * \li  ISC_R_NOMORE otherwise
+ */
+
+void
+dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain);
+/*%<
+ * Initialize a QP chain.
+ *
+ * Requires:
+ * \li  `qpr` is a pointer to a valid qp-trie
+ * \li  `chain` is not NULL.
+ */
+
+unsigned int
+dns_qpchain_length(dns_qpchain_t *chain);
+/*%<
+ * Returns the length of a QP chain.
+ *
+ * Requires:
+ * \li  `chain` is a pointer to an initialized QP chain object.
+ */
+
+void
+dns_qpchain_node(dns_qpchain_t *chain, unsigned int level, dns_name_t *name,
+		 void **pval_r, uint32_t *ival_r);
+/*%<
+ * Sets 'name' to the name of the leaf referenced at `chain->stack[level]`.
+ *
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null.
+ *
+ * Requires:
+ * \li  `chain` is a pointer to an initialized QP chain object.
+ * \li  `level` is less than `chain->len`.
  */
 
 /***********************************************************************

@@ -286,7 +286,7 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[]) {
 
 		dns_test_namefromstring(check[i].query, &fn1);
 		result = dns_qp_findname_ancestor(qp, name, check[i].options,
-						  foundname, &pval, NULL);
+						  foundname, NULL, &pval, NULL);
 
 #if 0
 		fprintf(stderr, "%s (flags %u) %s (expected %s) "
@@ -432,11 +432,108 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	dns_qp_destroy(&qp);
 }
 
+struct check_qpchain {
+	const char *query;
+	dns_qpfind_t options;
+	isc_result_t result;
+	unsigned int length;
+	const char *names[10];
+};
+
+static void
+check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
+	for (int i = 0; check[i].query != NULL; i++) {
+		isc_result_t result;
+		dns_fixedname_t fn1;
+		dns_name_t *name = dns_fixedname_initname(&fn1);
+		dns_qpchain_t chain;
+
+		dns_qpchain_init(qp, &chain);
+		dns_test_namefromstring(check[i].query, &fn1);
+		result = dns_qp_findname_ancestor(qp, name, check[i].options,
+						  NULL, &chain, NULL, NULL);
+
+#if 0
+		fprintf(stderr, "%s (%d) %s (expected %s), "
+			"len %d (expected %d)\n",
+			check[i].query, check[i].options,
+			isc_result_totext(result),
+			isc_result_totext(check[i].result),
+			dns_qpchain_length(&chain), check[i].length);
+#endif
+		assert_int_equal(result, check[i].result);
+		assert_int_equal(dns_qpchain_length(&chain), check[i].length);
+		for (unsigned int j = 0; j < check[i].length; j++) {
+			dns_fixedname_t fn2, fn3;
+			dns_name_t *expected = dns_fixedname_initname(&fn2);
+			dns_name_t *found = dns_fixedname_initname(&fn3);
+
+			dns_test_namefromstring(check[i].names[j], &fn2);
+			dns_qpchain_node(&chain, j, found, NULL, NULL);
+#if 0
+			char nb[DNS_NAME_FORMATSIZE];
+			dns_name_format(found, nb, sizeof(nb));
+			fprintf(stderr, "got %s, expected %s\n", nb,
+				check[i].names[j]);
+#endif
+			assert_true(dns_name_equal(found, expected));
+		}
+	}
+}
+
+ISC_RUN_TEST_IMPL(qpchain) {
+	dns_qp_t *qp = NULL;
+	int i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+
+	/*
+	 * Fixed size strings [16] should ensure leaf-compatible alignment.
+	 */
+	const char insert[][16] = { ".",	  "a.",	    "b.",   "c.b.a.",
+				    "e.d.c.b.a.", "c.b.b.", "c.d.", "a.b.c.d.",
+				    "a.b.c.d.e.", "" };
+
+	while (insert[i][0] != '\0') {
+		insert_str(qp, insert[i++]);
+	}
+
+	static struct check_qpchain check1[] = {
+		{ "b.", 0, ISC_R_SUCCESS, 2 },
+		{ "c.", 0, DNS_R_PARTIALMATCH, 1 },
+		{ "e.d.c.b.a.", 0, ISC_R_SUCCESS, 4 },
+		{ "a.b.c.d.", 0, ISC_R_SUCCESS, 3 },
+		{ "a.b.c.d.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, 2 },
+		{ NULL, 0, 0, 0 },
+	};
+
+	check1[0].names[0] = ".";
+	check1[0].names[1] = "b.";
+
+	check1[1].names[0] = ".";
+
+	check1[2].names[0] = ".";
+	check1[2].names[1] = "a.";
+	check1[2].names[2] = "c.b.a.";
+	check1[2].names[3] = "e.d.c.b.a.";
+
+	check1[3].names[0] = ".";
+	check1[3].names[1] = "c.d.";
+	check1[3].names[2] = "a.b.c.d.";
+
+	check1[4].names[0] = ".";
+	check1[4].names[1] = "c.d.";
+
+	check_qpchain(qp, check1);
+	dns_qp_destroy(&qp);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(qpkey_name)
 ISC_TEST_ENTRY(qpkey_sort)
 ISC_TEST_ENTRY(qpiter)
 ISC_TEST_ENTRY(partialmatch)
+ISC_TEST_ENTRY(qpchain)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

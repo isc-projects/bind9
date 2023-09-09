@@ -393,6 +393,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 
 #define QP_MAGIC       ISC_MAGIC('t', 'r', 'i', 'e')
 #define QPITER_MAGIC   ISC_MAGIC('q', 'p', 'i', 't')
+#define QPCHAIN_MAGIC  ISC_MAGIC('q', 'p', 'c', 'h')
 #define QPMULTI_MAGIC  ISC_MAGIC('q', 'p', 'm', 'v')
 #define QPREADER_MAGIC ISC_MAGIC('q', 'p', 'r', 'x')
 #define QPBASE_MAGIC   ISC_MAGIC('q', 'p', 'b', 'p')
@@ -400,6 +401,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 
 #define QP_VALID(qp)	  ISC_MAGIC_VALID(qp, QP_MAGIC)
 #define QPITER_VALID(qp)  ISC_MAGIC_VALID(qp, QPITER_MAGIC)
+#define QPCHAIN_VALID(qp) ISC_MAGIC_VALID(qp, QPCHAIN_MAGIC)
 #define QPMULTI_VALID(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
 #define QPBASE_VALID(qp)  ISC_MAGIC_VALID(qp, QPBASE_MAGIC)
 #define QPRCU_VALID(qp)	  ISC_MAGIC_VALID(qp, QPRCU_MAGIC)

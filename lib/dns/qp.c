@@ -1778,8 +1778,56 @@ dns_qp_deletename(dns_qp_t *qp, const dns_name_t *name, void **pval_r,
 }
 
 /***********************************************************************
- *
- *  iterate
+ *  chains
+ */
+static void
+maybe_set_name(dns_qpreader_t *qp, qp_node_t *node, dns_name_t *name) {
+	dns_qpkey_t key;
+	size_t len;
+
+	if (name == NULL) {
+		return;
+	}
+
+	len = leaf_qpkey(qp, node, key);
+	dns_qpkey_toname(key, len, name);
+}
+
+void
+dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain) {
+	dns_qpreader_t *qp = dns_qpreader(qpr);
+	REQUIRE(QP_VALID(qp));
+	REQUIRE(chain != NULL);
+
+	*chain = (dns_qpchain_t){
+		.magic = QPCHAIN_MAGIC,
+		.qp = qp,
+	};
+}
+
+unsigned int
+dns_qpchain_length(dns_qpchain_t *chain) {
+	REQUIRE(QPCHAIN_VALID(chain));
+
+	return (chain->len);
+}
+
+void
+dns_qpchain_node(dns_qpchain_t *chain, unsigned int level, dns_name_t *name,
+		 void **pval_r, uint32_t *ival_r) {
+	qp_node_t *node = NULL;
+
+	REQUIRE(QPCHAIN_VALID(chain));
+	REQUIRE(level < chain->len);
+
+	node = chain->chain[level].node;
+	maybe_set_name(chain->qp, node, name);
+	SET_IF_NOT_NULL(pval_r, leaf_pval(node));
+	SET_IF_NOT_NULL(ival_r, leaf_ival(node));
+}
+
+/***********************************************************************
+ *  iterators
  */
 
 void
@@ -1892,22 +1940,26 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 	return (dns_qp_getkey(qpr, key, keylen, pval_r, ival_r));
 }
 
+static inline void
+add_link(dns_qpchain_t *chain, qp_node_t *node, size_t offset) {
+	chain->chain[chain->len].node = node;
+	chain->chain[chain->len].offset = offset;
+	chain->len++;
+	INSIST(chain->len <= DNS_NAME_MAXLABELS);
+}
+
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 			 dns_qpfind_t options, dns_name_t *foundname,
-			 void **pval_r, uint32_t *ival_r) {
+			 dns_qpchain_t *chain, void **pval_r,
+			 uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
 	size_t offset;
-	qp_shift_t bit;
-	qp_node_t *n = NULL, *twigs = NULL;
+	qp_node_t *n = NULL;
 	isc_result_t result;
-	unsigned int labels = 0;
-	struct offref {
-		uint32_t off;
-		qp_ref_t ref;
-	} label[DNS_NAME_MAXLABELS];
+	dns_qpchain_t oc;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
@@ -1920,6 +1972,11 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 		result = ISC_R_SUCCESS;
 	}
 
+	if (chain == NULL) {
+		chain = &oc;
+	}
+	dns_qpchain_init(qp, chain);
+
 	n = get_root(qp);
 	if (n == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -1931,37 +1988,52 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	 * that we discover along the way. (In general, qp-trie searches can be
 	 * one-pass, by recording their traversal, or two-pass, for less stack
 	 * memory usage.)
-	 *
-	 * A shorter key that can be a parent domain always has a leaf node at
-	 * SHIFT_NOBYTE (indicating end of its key) where our search key has a
-	 * normal character immediately after a label separator. Note 1: It is
-	 * OK if `offset - 1` underflows: it will become SIZE_MAX, which is
-	 * greater than `searchlen`, so `qpkey_bit()` will return SHIFT_NOBYTE,
-	 * which is what we want when `offset == 0`. Note 2: Any SHIFT_NOBYTE
-	 * twig is always `twigs[0]`.
 	 */
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
-		twigs = branch_twigs_vector(qp, n);
+
+		qp_node_t *twigs = branch_twigs_vector(qp, n);
 		offset = branch_key_offset(n);
-		bit = qpkey_bit(search, searchlen, offset);
+		qp_shift_t bit = qpkey_bit(search, searchlen, offset);
+
+		/*
+		 * A shorter key that can be a parent domain always has a
+		 * leaf node at SHIFT_NOBYTE (indicating end of its key)
+		 * where our search key has a normal character immediately
+		 * after a label separator.
+		 *
+		 * Note 1: It is OK if `off - 1` underflows: it will
+		 * become SIZE_MAX, which is greater than `searchlen`, so
+		 * `qpkey_bit()` will return SHIFT_NOBYTE, which is what we
+		 * want when `off == 0`.
+		 *
+		 * Note 2: Any SHIFT_NOBYTE twig is always `twigs[0]`.
+		 */
 		if (bit != SHIFT_NOBYTE && branch_has_twig(n, SHIFT_NOBYTE) &&
 		    qpkey_bit(search, searchlen, offset - 1) == SHIFT_NOBYTE &&
 		    !is_branch(&twigs[0]))
 		{
-			label[labels].off = offset;
-			label[labels].ref = branch_twigs_ref(n);
-			labels++;
-			INSIST(labels <= DNS_NAME_MAXLABELS);
+			add_link(chain, twigs, offset);
 		}
 		if (branch_has_twig(n, bit)) {
+			/* we have the twig we wanted */
 			n = branch_twig_ptr(qp, n, bit);
-		} else if (labels == 0) {
-			/* any twig will do */
+		} else if (chain->len == 0) {
+			/*
+			 * the twig we're looking for isn't here,
+			 * and we haven't found an ancestor yet either.
+			 * continue the search with whatever this branch's
+			 * first twig is.
+			 */
 			n = &twigs[0];
 		} else {
-			n = ref_ptr(qp, label[labels - 1].ref);
-			break;
+			/*
+			 * this branch is a dead end, but we do have
+			 * a previous leaf node saved in the chain.
+			 * we go back to that. it's a leaf, so we'll
+			 * fall out of the loop here.
+			 */
+			n = chain->chain[chain->len - 1].node;
 		}
 	}
 
@@ -1972,27 +2044,41 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	if (offset == QPKEY_EQUAL || offset == foundlen) {
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
-		if (foundname != NULL) {
-			dns_qpkey_toname(found, foundlen, foundname);
-		}
+		maybe_set_name(qp, n, foundname);
 		if (offset == QPKEY_EQUAL) {
+			if ((options & DNS_QPFIND_NOEXACT) == 0) {
+				/* add the exact match to the chain */
+				add_link(chain, n, offset);
+			}
 			return (result);
 		} else {
 			return (DNS_R_PARTIALMATCH);
 		}
 	}
-	while (labels-- > 0) {
-		if (offset > label[labels].off) {
-			n = ref_ptr(qp, label[labels].ref);
+
+	/*
+	 * the requested name was not found, but if an ancestor
+	 * was, we can retrieve that from the chain.
+	 */
+	int len = chain->len;
+	while (len-- > 0) {
+		if (offset >= chain->chain[len].offset) {
+			n = chain->chain[len].node;
 			SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 			SET_IF_NOT_NULL(ival_r, leaf_ival(n));
-			if (foundname != NULL) {
-				foundlen = leaf_qpkey(qp, n, found);
-				dns_qpkey_toname(found, foundlen, foundname);
-			}
+			maybe_set_name(qp, n, foundname);
 			return (DNS_R_PARTIALMATCH);
+		} else {
+			/*
+			 * oops, during the search we found and added
+			 * a leaf that's longer than the requested
+			 * name; remove it from the chain.
+			 */
+			chain->len--;
 		}
 	}
+
+	/* nothing was found at all */
 	return (ISC_R_NOTFOUND);
 }
 

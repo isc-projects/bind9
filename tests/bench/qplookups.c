@@ -254,7 +254,7 @@ main(int argc, char **argv) {
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
 		name = dns_fixedname_name(&items[i]);
-		dns_qp_findname_ancestor(qp, name, 0, NULL, NULL, NULL);
+		dns_qp_findname_ancestor(qp, name, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
@@ -280,7 +280,7 @@ main(int argc, char **argv) {
 			++search->ndata[1];
 		}
 
-		dns_qp_findname_ancestor(qp, search, 0, NULL, NULL, NULL);
+		dns_qp_findname_ancestor(qp, search, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
