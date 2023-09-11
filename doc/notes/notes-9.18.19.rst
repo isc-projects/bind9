@@ -23,10 +23,10 @@ Security Fixes
   ISC would like to thank Eric Sesterhenn from X41 D-Sec GmbH for
   bringing this vulnerability to our attention. :gl:`#4152`
 
-- Previously, it was possible to remotely trigger a use-after-free error
-  in the DNS-over-TLS transport code, specifically in the code
-  responsible for sending data to the remote peer. This has been fixed.
-  (CVE-2023-4236)
+- A flaw in the networking code handling DNS-over-TLS queries could
+  cause :iscman:`named` to terminate unexpectedly due to an assertion
+  failure under significant DNS-over-TLS query load. This has been
+  fixed. (CVE-2023-4236)
 
   ISC would like to thank Robert Story from USC/ISI Root Server
   Operations for bringing this vulnerability to our attention.
