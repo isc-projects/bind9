@@ -1,3 +1,6 @@
+6253.	[cleanup]	Remove the support for control channel over Unix
+			Domain Sockets. [GL #4311]
+
 6252.	[test]		Python system tests have to be executed by invoking
 			pytest directly. Executing them with the legacy test
 			runner is no longer supported. [GL #4250]
