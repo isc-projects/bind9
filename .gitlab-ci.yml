@@ -359,8 +359,6 @@ cross-version-config-tests:
     - *configure
     - *setup_interfaces
     - make -j${BUILD_PARALLEL_JOBS:-1}
-    # Build system test binaries.
-    - make -C bin/tests/system -j${TEST_PARALLEL_JOBS:-1} check TESTS=""
     - export BIND_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
     # When testing a .0 release, compare it against the previous development
     # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
