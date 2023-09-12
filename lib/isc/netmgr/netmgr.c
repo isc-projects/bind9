@@ -222,6 +222,11 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mem_attach(loop->mctx, &worker->mctx);
 
+		isc_mempool_create(worker->mctx, sizeof(isc_nmsocket_t),
+				   &worker->nmsocket_pool);
+		isc_mempool_setfreemax(worker->nmsocket_pool,
+				       ISC_NM_NMSOCKET_MAX);
+
 		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
 				   &worker->uvreq_pool);
 		isc_mempool_setfreemax(worker->uvreq_pool, ISC_NM_UVREQS_MAX);
@@ -492,7 +497,7 @@ nmsocket_cleanup(void *arg) {
 
 		ISC_LIST_UNLINK(worker->active_sockets, sock, active_link);
 
-		isc_mem_put(worker->mctx, sock, sizeof(*sock));
+		isc_mempool_put(worker->nmsocket_pool, sock);
 	}
 
 	isc__networker_detach(&worker);
@@ -2571,6 +2576,7 @@ isc__networker_destroy(isc__networker_t *worker) {
 	isc_loop_detach(&worker->loop);
 
 	isc_mempool_destroy(&worker->uvreq_pool);
+	isc_mempool_destroy(&worker->nmsocket_pool);
 
 	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
 			     ISC_NETMGR_RECVBUF_SIZE);

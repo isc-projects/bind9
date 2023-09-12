@@ -1482,7 +1482,7 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		local = &local_interface;
 	}
 
-	sock = isc_mem_get(worker->mctx, sizeof(*sock));
+	sock = isc_mempool_get(worker->nmsocket_pool);
 	isc__nmsocket_init(sock, worker, isc_nm_httpsocket, local, NULL);
 	http_initsocket(sock);
 
@@ -1694,7 +1694,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	INSIST(session->handle->sock->tid == isc_tid());
 
 	worker = session->handle->sock->worker;
-	socket = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
+	socket = isc_mempool_get(worker->nmsocket_pool);
 	local = isc_nmhandle_localaddr(session->handle);
 	isc__nmsocket_init(socket, worker, isc_nm_httpsocket, &local, NULL);
 	http_initsocket(socket);
@@ -2515,7 +2515,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	REQUIRE(isc_tid() == 0);
 
 	worker = &mgr->workers[isc_tid()];
-	sock = isc_mem_get(worker->mctx, sizeof(*sock));
+	sock = isc_mempool_get(worker->nmsocket_pool);
 	isc__nmsocket_init(sock, worker, isc_nm_httplistener, iface, NULL);
 	http_initsocket(sock);
 	atomic_init(&sock->h2->max_concurrent_streams,
