@@ -40,25 +40,21 @@ enum {
 	isc_sockstatscounter_udp6close,
 	isc_sockstatscounter_tcp4close,
 	isc_sockstatscounter_tcp6close,
-	isc_sockstatscounter_fdwatchclose,
 
 	isc_sockstatscounter_udp4bindfail,
 	isc_sockstatscounter_udp6bindfail,
 	isc_sockstatscounter_tcp4bindfail,
 	isc_sockstatscounter_tcp6bindfail,
-	isc_sockstatscounter_fdwatchbindfail,
 
 	isc_sockstatscounter_udp4connect,
 	isc_sockstatscounter_udp6connect,
 	isc_sockstatscounter_tcp4connect,
 	isc_sockstatscounter_tcp6connect,
-	isc_sockstatscounter_fdwatchconnect,
 
 	isc_sockstatscounter_udp4connectfail,
 	isc_sockstatscounter_udp6connectfail,
 	isc_sockstatscounter_tcp4connectfail,
 	isc_sockstatscounter_tcp6connectfail,
-	isc_sockstatscounter_fdwatchconnectfail,
 
 	isc_sockstatscounter_tcp4accept,
 	isc_sockstatscounter_tcp6accept,
@@ -70,13 +66,11 @@ enum {
 	isc_sockstatscounter_udp6sendfail,
 	isc_sockstatscounter_tcp4sendfail,
 	isc_sockstatscounter_tcp6sendfail,
-	isc_sockstatscounter_fdwatchsendfail,
 
 	isc_sockstatscounter_udp4recvfail,
 	isc_sockstatscounter_udp6recvfail,
 	isc_sockstatscounter_tcp4recvfail,
 	isc_sockstatscounter_tcp6recvfail,
-	isc_sockstatscounter_fdwatchrecvfail,
 
 	isc_sockstatscounter_udp4active,
 	isc_sockstatscounter_udp6active,
