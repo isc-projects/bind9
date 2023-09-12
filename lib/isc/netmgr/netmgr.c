@@ -742,6 +742,17 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 			UNREACHABLE();
 		}
 		break;
+		switch (family) {
+		case AF_INET:
+			sock->statsindex = tcp4statsindex;
+			break;
+		case AF_INET6:
+			sock->statsindex = tcp6statsindex;
+			break;
+		default:
+			UNREACHABLE();
+		}
+		break;
 	default:
 		break;
 	}
@@ -753,10 +764,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
-
-#if HAVE_LIBNGHTTP2
-	isc__nm_http_initsocket(sock);
-#endif
 
 	sock->magic = NMSOCK_MAGIC;
 
@@ -878,8 +885,10 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 	}
 
 #if HAVE_LIBNGHTTP2
-	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
-		isc__nm_httpsession_attach(sock->h2.session,
+	if (sock->type == isc_nm_httpsocket && sock->h2 != NULL &&
+	    sock->h2->session)
+	{
+		isc__nm_httpsession_attach(sock->h2->session,
 					   &handle->httpsession);
 	}
 #endif
@@ -2191,8 +2200,11 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 		return (handle);
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
-		return (get_proxy_handle(
-			isc__nm_httpsession_handle(sock->h2.session)));
+		if (sock->h2 != NULL) {
+			return (get_proxy_handle(
+				isc__nm_httpsession_handle(sock->h2->session)));
+		}
+		return (NULL);
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
 		break;

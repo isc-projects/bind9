@@ -529,7 +529,7 @@ struct isc_nmsocket {
 	} tlsstream;
 
 #if HAVE_LIBNGHTTP2
-	isc_nmsocket_h2_t h2;
+	isc_nmsocket_h2_t *h2;
 #endif /* HAVE_LIBNGHTTP2 */
 
 	struct {
@@ -1033,9 +1033,6 @@ isc__nmhandle_http_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
  * Set the keepalive value on the underlying session handle
  */
-
-void
-isc__nm_http_initsocket(isc_nmsocket_t *sock);
 
 void
 isc__nm_http_cleanup_data(isc_nmsocket_t *sock);
