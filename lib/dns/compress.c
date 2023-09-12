@@ -11,8 +11,6 @@
  * information regarding copyright ownership.
  */
 
-#define DNS_NAME_USEINLINE 1
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>

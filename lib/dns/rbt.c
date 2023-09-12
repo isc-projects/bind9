@@ -13,8 +13,6 @@
 
 /*! \file */
 
-#define DNS_NAME_USEINLINE 1
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <sys/stat.h>
