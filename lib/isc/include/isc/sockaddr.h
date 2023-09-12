@@ -29,10 +29,9 @@
  */
 struct isc_sockaddr {
 	union {
-		struct sockaddr		sa;
-		struct sockaddr_in	sin;
-		struct sockaddr_in6	sin6;
-		struct sockaddr_storage ss;
+		struct sockaddr	    sa;
+		struct sockaddr_in  sin;
+		struct sockaddr_in6 sin6;
 	} type;
 	unsigned int length; /* XXXRTH beginning? */
 	ISC_LINK(struct isc_sockaddr) link;
