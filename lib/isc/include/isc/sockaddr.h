@@ -33,7 +33,6 @@ struct isc_sockaddr {
 		struct sockaddr_in	sin;
 		struct sockaddr_in6	sin6;
 		struct sockaddr_storage ss;
-		struct sockaddr_un	sunix;
 	} type;
 	unsigned int length; /* XXXRTH beginning? */
 	ISC_LINK(struct isc_sockaddr) link;
@@ -222,17 +221,6 @@ bool
 isc_sockaddr_isnetzero(const isc_sockaddr_t *sa);
 /*%<
  * Returns true if the address is in net zero.
- */
-
-isc_result_t
-isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
-/*
- *  Create a UNIX domain sockaddr that refers to path.
- *
- * Returns:
- * \li	ISC_R_NOSPACE
- * \li	ISC_R_NOTIMPLEMENTED
- * \li	ISC_R_SUCCESS
  */
 
 isc_result_t

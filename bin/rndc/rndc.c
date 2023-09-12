@@ -260,18 +260,11 @@ get_addresses(const char *host, in_port_t port) {
 
 	REQUIRE(host != NULL);
 
-	if (*host == '/') {
-		result = isc_sockaddr_frompath(&serveraddrs[nserveraddrs],
-					       host);
-		if (result == ISC_R_SUCCESS) {
-			nserveraddrs++;
-		}
-	} else {
-		count = SERVERADDRS - nserveraddrs;
-		result = isc_getaddresses(
-			host, port, &serveraddrs[nserveraddrs], count, &found);
-		nserveraddrs += found;
-	}
+	count = SERVERADDRS - nserveraddrs;
+	result = isc_getaddresses(host, port, &serveraddrs[nserveraddrs], count,
+				  &found);
+	nserveraddrs += found;
+
 	if (result != ISC_R_SUCCESS) {
 		fatal("couldn't get address for '%s': %s", host,
 		      isc_result_totext(result));
@@ -518,11 +511,6 @@ rndc_startconnect(isc_sockaddr_t *addr) {
 	case AF_INET6:
 		local = &local6;
 		break;
-	case AF_UNIX:
-		/*
-		 * TODO: support UNIX domain sockets in netgmr.
-		 */
-		fatal("UNIX domain sockets not currently supported");
 	default:
 		UNREACHABLE();
 	}

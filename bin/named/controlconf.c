@@ -215,12 +215,7 @@ shutdown_listener(controllistener_t *listener) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "stopping command channel on %s", socktext);
-#if 0
-		/* XXX: no unix domain socket support */
-		if (listener->type == isc_socktype_unix) {
-			isc_socket_cleanunix(&listener->address, true);
-		}
-#endif
+
 		listener->exiting = true;
 	}
 
@@ -236,11 +231,6 @@ address_ok(isc_sockaddr_t *sockaddr, controllistener_t *listener) {
 	isc_netaddr_t netaddr;
 	isc_result_t result;
 	int match;
-
-	/* ACL doesn't apply to unix domain sockets */
-	if (listener->type != isc_socktype_tcp) {
-		return (true);
-	}
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 
@@ -1031,33 +1021,6 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 			      socktext, isc_result_totext(result));
 	}
 
-#if 0
-	/* XXX: no unix socket support yet */
-	if (result == ISC_R_SUCCESS && type == isc_socktype_unix) {
-		uint32_t perm, owner, group;
-		perm = cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
-		owner = cfg_obj_asuint32(cfg_tuple_get(control, "owner"));
-		group = cfg_obj_asuint32(cfg_tuple_get(control, "group"));
-		result = ISC_R_SUCCESS;
-		if (listener->perm != perm || listener->owner != owner ||
-		    listener->group != group)
-		{
-			result = isc_socket_permunix(&listener->address, perm,
-						     owner, group);
-		}
-		if (result == ISC_R_SUCCESS) {
-			listener->perm = perm;
-			listener->owner = owner;
-			listener->group = group;
-		} else if (control != NULL) {
-			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
-				    "couldn't update ownership/permission for "
-				    "command channel %s",
-				    socktext);
-		}
-	}
-#endif
-
 	*listenerp = listener;
 }
 
@@ -1129,35 +1092,14 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 
 	pf = isc_sockaddr_pf(&listener->address);
 	if ((pf == AF_INET && isc_net_probeipv4() != ISC_R_SUCCESS) ||
-	    (pf == AF_UNIX && isc_net_probeunix() != ISC_R_SUCCESS) ||
 	    (pf == AF_INET6 && isc_net_probeipv6() != ISC_R_SUCCESS))
 	{
 		CHECK(ISC_R_FAMILYNOSUPPORT);
 	}
 
-#if 0
-	/* XXX: no unix socket support yet */
-	if (type == isc_socktype_unix) {
-		isc_socket_cleanunix(&listener->address, false);
-	}
-#endif
-
 	CHECK(isc_nm_listentcp(named_g_netmgr, ISC_NM_LISTEN_ONE,
 			       &listener->address, control_newconn, listener, 5,
 			       NULL, &listener->sock));
-#if 0
-	/* XXX: no unix socket support yet */
-	if (type == isc_socktype_unix) {
-		listener->perm =
-			cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
-		listener->owner =
-			cfg_obj_asuint32(cfg_tuple_get(control, "owner"));
-		listener->group =
-			cfg_obj_asuint32(cfg_tuple_get(control, "group"));
-		result = isc_socket_permunix(&listener->address, listener->perm,
-					     listener->owner, listener->group);
-	}
-#endif
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
@@ -1214,8 +1156,19 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 		{
 			const cfg_obj_t *controls = NULL;
 			const cfg_obj_t *inetcontrols = NULL;
+			const cfg_obj_t *unixcontrols = NULL;
 
 			controls = cfg_listelt_value(element);
+
+			(void)cfg_map_get(controls, "unix", &unixcontrols);
+			if (unixcontrols != NULL) {
+				cfg_obj_log(controls, named_g_lctx,
+					    ISC_LOG_ERROR,
+					    "UNIX domain sockets are not "
+					    "supported");
+				return (ISC_R_FAILURE);
+			}
+
 			(void)cfg_map_get(controls, "inet", &inetcontrols);
 			if (inetcontrols == NULL) {
 				continue;
@@ -1231,8 +1184,8 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 
 				/*
 				 * The parser handles BIND 8 configuration file
-				 * syntax, so it allows unix phrases as well
-				 * inet phrases with no keys{} clause.
+				 * syntax, so it allows inet phrases with no
+				 * keys{} clause.
 				 */
 				control = cfg_listelt_value(element2);
 
@@ -1279,91 +1232,6 @@ named_controls_configure(named_controls_t *cp, const cfg_obj_t *config,
 							link);
 				}
 			}
-		}
-		for (element = cfg_list_first(controlslist); element != NULL;
-		     element = cfg_list_next(element))
-		{
-			const cfg_obj_t *controls = NULL;
-			const cfg_obj_t *unixcontrols = NULL;
-
-			controls = cfg_listelt_value(element);
-			(void)cfg_map_get(controls, "unix", &unixcontrols);
-			if (unixcontrols == NULL) {
-				continue;
-			}
-
-			cfg_obj_log(controls, named_g_lctx, ISC_LOG_ERROR,
-				    "UNIX domain sockets not yet supported");
-			return (ISC_R_FAILURE);
-
-#if 0
-			/* XXX: no unix domain socket support in netmgr */
-			for (element2 = cfg_list_first(unixcontrols);
-			     element2 != NULL;
-			     element2 = cfg_list_next(element2))
-			{
-				const cfg_obj_t *control = NULL;
-				const cfg_obj_t *path = NULL;
-				isc_sockaddr_t addr;
-				isc_result_t result;
-
-				/*
-				 * The parser handles BIND 8 configuration file
-				 * syntax, so it allows unix phrases as well
-				 * inet phrases with no keys{} clause.
-				 */
-				control = cfg_listelt_value(element2);
-
-				path = cfg_tuple_get(control, "path");
-				result = isc_sockaddr_frompath(
-					&addr, cfg_obj_asstring(path));
-				if (result != ISC_R_SUCCESS) {
-					isc_log_write(
-						named_g_lctx,
-						NAMED_LOGCATEGORY_GENERAL,
-						NAMED_LOGMODULE_CONTROL,
-						ISC_LOG_DEBUG(9),
-						"control channel '%s': %s",
-						cfg_obj_asstring(path),
-						isc_result_totext(result));
-					continue;
-				}
-
-				isc_log_write(named_g_lctx,
-					      NAMED_LOGCATEGORY_GENERAL,
-					      NAMED_LOGMODULE_CONTROL,
-					      ISC_LOG_DEBUG(9),
-					      "processing control channel '%s'",
-					      cfg_obj_asstring(path));
-
-				update_listener(cp, &listener, control, config,
-						&addr, aclconfctx,
-						cfg_obj_asstring(path),
-						isc_socktype_unix);
-
-				if (listener != NULL) {
-					/*
-					 * Remove the listener from the old
-					 * list, so it won't be shut down.
-					 */
-					ISC_LIST_UNLINK(cp->listeners, listener,
-							link);
-				} else {
-					/*
-					 * This is a new listener.
-					 */
-					add_listener(cp, &listener, control,
-						     config, &addr, aclconfctx,
-						     cfg_obj_asstring(path),
-						     isc_socktype_unix);
-				}
-
-				if (listener != NULL) {
-					ISC_LIST_APPEND(new_listeners, listener,
-							link);
-				}
-			}
-#endif
 		}
 	} else {
 		int i;
