@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.19
+Notes for BIND 9.18.20
 ----------------------
 
 Security Fixes
@@ -25,51 +25,17 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The :any:`dnssec-must-be-secure` option has been deprecated and will be
-  removed in a future release. :gl:`#4263`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
 - None.
 
-- Make :iscman:`nsupdate` honor the ``-v`` option. If set, and the server is
-  specified, SOA queries are now send over TCP as well. :gl:`#1181`
-
 Bug Fixes
 ~~~~~~~~~
 
-- The value of If-Modified-Since header in statistics channel was not checked
-  for length leading to possible buffer overflow by an authorized user.  We
-  would like to emphasize that statistics channel must be properly setup to
-  allow access only from authorized users of the system. :gl:`#4124`
-
-  This issue was reported independently by Eric Sesterhenn of X41 D-SEC and
-  Cameron Whitehead.
-
-- The value of Content-Length header in statistics channel was not
-  bound checked and negative or large enough value could lead to
-  overflow and assertion failure.  :gl:`#4125`
-
-  This issue was reported by Eric Sesterhenn of X41 D-SEC.
-
-- Address memory leaks due to not clearing OpenSSL error stack. :gl:`#4159`
-
-  This issue was reported by Eric Sesterhenn of X41 D-SEC.
-
-- Following the introduction of krb5-subdomain-self-rhs and
-  ms-subdomain-self-rhs update rules, removal of nonexistent PTR
-  and SRV records via UPDATE could fail. This has been fixed. :gl:`#4280`
-
-- The value of :any:`stale-refresh-time` was set to zero after ``rndc flush``.
-  This has been fixed. :gl:`#4278`
-
-- BIND could consume more memory than it needs. That has been fixed by
-  using specialised jemalloc memory arenas dedicated to sending buffers. It
-  allowed us to optimize the process of returning memory pages back to
-  the operating system. :gl:`#4038`
-
-- Prevent DNS message corruption on long DNS over TLS streams. :gl:`#4255`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
