@@ -13,6 +13,7 @@
 
 /*! \file */
 
+#include <isc/hash.h>
 #include <isc/iterated_hash.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -50,6 +51,7 @@ isc__initialize(void) {
 	isc__uv_initialize();
 	isc__xml_initialize();
 	isc__md_initialize();
+	isc__hash_initialize();
 	isc__iterated_hash_initialize();
 	(void)isc_os_ncpus();
 	rcu_register_thread();
