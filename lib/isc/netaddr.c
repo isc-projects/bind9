@@ -348,10 +348,6 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 		memmove(&t->type.in6, &s->type.sin6.sin6_addr, 16);
 		t->zone = s->type.sin6.sin6_scope_id;
 		break;
-	case AF_UNIX:
-		memmove(t->type.un, s->type.sunix.sun_path, sizeof(t->type.un));
-		t->zone = 0;
-		break;
 	default:
 		UNREACHABLE();
 	}
