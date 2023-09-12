@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.44
+Notes for BIND 9.16.45
 ----------------------
 
 Security Fixes
