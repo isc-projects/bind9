@@ -754,7 +754,7 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 		raw += 2;
 		sigregion.base = raw;
 		dns_rdata_reset(&rdata);
-		dns_rdata_fromregion(&rdata, rdataset->rdclass, rdataset->type,
+		dns_rdata_fromregion(&rdata, ncacherdataset->rdclass, type,
 				     &sigregion);
 		(void)dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		rdataset->covers = rrsig.covered;
