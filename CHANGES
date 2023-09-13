@@ -1,3 +1,9 @@
+6250.	[bug]		The wrong covered value was being set by
+			dns_ncache_current for RRSIG records in the returned
+			rdataset structure. This resulted in TYPE0 being
+			reported as the covered value of the RRSIG when dumping
+			the cache contents. [GL #4314]
+
 6235.	[doc]		Clarify BIND 9 time formats. [GL #4266]
 
 6230.	[bug]		Prevent an unnecessary query restart if a synthesized
