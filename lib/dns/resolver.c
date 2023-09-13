@@ -44,6 +44,7 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/dns64.h>
 #include <dns/dnstap.h>
 #include <dns/ds.h>
 #include <dns/edns.h>
@@ -1938,8 +1939,9 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	   unsigned int options) {
 	isc_result_t result;
 	dns_resolver_t *res = NULL;
+	dns_dns64_t *dns64 = NULL;
 	resquery_t *query = NULL;
-	isc_sockaddr_t addr;
+	isc_sockaddr_t addr, sockaddr;
 	bool have_addr = false;
 	unsigned int srtt;
 	isc_tlsctx_cache_t *tlsctx_cache = NULL;
@@ -2011,15 +2013,46 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->start = isc_time_now();
 
 	/*
-	 * If this is a TCP query, then we need to make a socket and
-	 * a dispatch for it here.  Otherwise we use the resolver's
-	 * shared dispatch.
+	 * Maybe apply DNS64 mappings to IPv4 addresses.
 	 */
+	sockaddr = addrinfo->sockaddr;
+	dns64 = ISC_LIST_HEAD(fctx->res->view->dns64);
+	if (isc_sockaddr_pf(&sockaddr) == AF_INET &&
+	    fctx->res->view->usedns64 && dns64 != NULL)
+	{
+		struct in6_addr aaaa;
+
+		result = dns_dns64_aaaafroma(
+			dns64, NULL, NULL, fctx->res->view->aclenv, 0,
+			(unsigned char *)&sockaddr.type.sin.sin_addr.s_addr,
+			aaaa.s6_addr);
+		if (result == ISC_R_SUCCESS) {
+			char sockaddrbuf1[ISC_SOCKADDR_FORMATSIZE];
+			char sockaddrbuf2[ISC_SOCKADDR_FORMATSIZE];
+
+			/* format old address */
+			isc_sockaddr_format(&sockaddr, sockaddrbuf1,
+					    sizeof(sockaddrbuf1));
+
+			/* replace address */
+			isc_sockaddr_fromin6(&sockaddr, &aaaa,
+					     ntohs(sockaddr.type.sin.sin_port));
+			addrinfo->sockaddr = sockaddr;
+
+			/* format new address */
+			isc_sockaddr_format(&sockaddr, sockaddrbuf2,
+					    sizeof(sockaddrbuf2));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+				      "Using DNS64 address %s to talk to %s\n",
+				      sockaddrbuf2, sockaddrbuf1);
+		}
+	}
 	if (res->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
 		isc_netaddr_t dstip;
 		bool usetcp = false;
-		isc_netaddr_fromsockaddr(&dstip, &addrinfo->sockaddr);
+		isc_netaddr_fromsockaddr(&dstip, &sockaddr);
 		result = dns_peerlist_peerbyaddr(res->view->peers, &dstip,
 						 &peer);
 		if (result == ISC_R_SUCCESS) {
@@ -2034,10 +2067,15 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		}
 	}
 
+	/*
+	 * If this is a TCP query, then we need to make a socket and
+	 * a dispatch for it here.  Otherwise we use the resolver's
+	 * shared dispatch.
+	 */
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
 		int pf;
 
-		pf = isc_sockaddr_pf(&addrinfo->sockaddr);
+		pf = isc_sockaddr_pf(&sockaddr);
 		if (!have_addr) {
 			switch (pf) {
 			case PF_INET:
@@ -2059,8 +2097,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		isc_sockaddr_setport(&addr, 0);
 
 		result = dns_dispatch_createtcp(res->view->dispatchmgr, &addr,
-						&addrinfo->sockaddr,
-						&query->dispatch);
+						&sockaddr, &query->dispatch);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_query;
 		}
@@ -2075,7 +2112,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 				goto cleanup_query;
 			}
 		} else {
-			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
+			switch (isc_sockaddr_pf(&sockaddr)) {
 			case PF_INET:
 				dns_dispatch_attach(
 					dns_resolver_dispatchv4(res),
@@ -2124,12 +2161,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	UNLOCK(&fctx->lock);
 
 	/* Set up the dispatch and set the query ID */
-	result = dns_dispatch_add(
-		query->dispatch, fctx->loop, 0,
-		isc_interval_ms(&fctx->interval), &query->addrinfo->sockaddr,
-		addrinfo->transport, tlsctx_cache, resquery_connected,
-		resquery_senddone, resquery_response, query, &query->id,
-		&query->dispentry);
+	result = dns_dispatch_add(query->dispatch, fctx->loop, 0,
+				  isc_interval_ms(&fctx->interval), &sockaddr,
+				  addrinfo->transport, tlsctx_cache,
+				  resquery_connected, resquery_senddone,
+				  resquery_response, query, &query->id,
+				  &query->dispentry);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_udpfetch;
 	}

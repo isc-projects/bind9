@@ -1,3 +1,8 @@
+6248.	[func]		Add an option "resolver-use-dns64", which enables
+			application of DNS64 rules to server addresses
+			when sending recursive queries. This allows
+			resolution to be performed via NAT64. [GL #608]
+
 6247.	[func]		Implement incremental hashing in both isc_siphash
 			and isc_hash units. [GL #4306]
 

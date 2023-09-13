@@ -22,6 +22,11 @@ New Features
 
 - None.
 
+- The new :any:`resolver-use-dns64` option enables ``named`` to apply
+  :any:`dns64` rules to IPv4 server addresses when sending recursive
+  queries, so that resolution can be performed over a NAT64 connection.
+  :gl:`#608`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
