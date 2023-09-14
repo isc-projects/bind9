@@ -1672,9 +1672,7 @@ ns__client_put_cb(void *client0) {
 
 	dns_message_detach(&client->message);
 
-	if (client->manager != NULL) {
-		ns_clientmgr_detach(&client->manager);
-	}
+	ns_clientmgr_detach(&client->manager);
 
 	/*
 	 * Detaching the task must be done after unlinking from
