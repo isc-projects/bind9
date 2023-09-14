@@ -99,11 +99,13 @@ fixup_error_logged = False
 for commit in danger.git.commits:
     message_lines = commit.message.splitlines()
     subject = message_lines[0]
-    if not fixup_error_logged and (
+    is_merge = subject.startswith("Merge branch ")
+    is_fixup = (
         subject.startswith("fixup!")
         or subject.startswith("amend!")
         or subject.startswith("Apply suggestion")
-    ):
+    )
+    if not fixup_error_logged and is_fixup:
         fail(
             "Fixup commits are still present in this merge request. "
             "Please squash them before merging."
@@ -115,7 +117,7 @@ for commit in danger.git.commits:
             f"Prohibited keyword `{match.groups()[0]}` detected "
             f"at the start of a subject line in commit {commit.sha}."
         )
-    if len(subject) > 72 and not subject.startswith("Merge branch "):
+    if len(subject) > 72 and not is_merge and not is_fixup:
         warn(
             f"Subject line for commit {commit.sha} is too long: "
             f"```{subject}``` ({len(subject)} > 72 characters)."
