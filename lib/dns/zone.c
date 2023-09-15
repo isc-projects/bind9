@@ -17588,6 +17588,34 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone) {
 	return (zone->sigresigninginterval);
 }
 
+isc_sockaddr_t
+dns_zone_getsourceaddr(dns_zone_t *zone) {
+	isc_sockaddr_t sourceaddr;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	INSIST(dns_remote_count(&zone->primaries) > 0);
+	sourceaddr = zone->sourceaddr;
+	UNLOCK_ZONE(zone);
+
+	return (sourceaddr);
+}
+
+isc_sockaddr_t
+dns_zone_getprimaryaddr(dns_zone_t *zone) {
+	isc_sockaddr_t curraddr;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	INSIST(dns_remote_count(&zone->primaries) > 0);
+	curraddr = dns_remote_curraddr(&zone->primaries);
+	UNLOCK_ZONE(zone);
+
+	return (curraddr);
+}
+
 isc_time_t
 dns_zone_getxfrintime(const dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
