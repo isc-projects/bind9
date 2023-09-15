@@ -1479,6 +1479,20 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone);
  * \li	'zone' to be a valid zone.
  */
 
+isc_time_t
+dns_zone_getxfrintime(const dns_zone_t *zone);
+/*%<
+ * Get the start time of the zone's latest major step before an incoming zone
+ * transfer is initiated. The time is set to the current time before the
+ * precursory SOA query is queued, then it gets reset when the query starts,
+ * when the query restarts (using another transport or another primary server),
+ * when an incoming zone transfer is initated and deferred, and, finally, when
+ * it gets started.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
 dns_transport_type_t
 dns_zone_getrequesttransporttype(dns_zone_t *zone);
 /*%<

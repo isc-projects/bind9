@@ -292,6 +292,7 @@ struct dns_zone {
 	isc_time_t signingtime;
 	isc_time_t nsec3chaintime;
 	isc_time_t refreshkeytime;
+	isc_time_t xfrintime;
 	uint32_t refreshkeyinterval;
 	uint32_t refreshkeycount;
 	uint32_t refresh;
@@ -13870,6 +13871,10 @@ same_primary:
 	queue_soa_query(zone);
 
 detach:
+	if (do_queue_xfrin) {
+		/* Shows in the statistics channel the duration of the step. */
+		zone->xfrintime = isc_time_now();
+	}
 	UNLOCK_ZONE(zone);
 	if (do_queue_xfrin) {
 		queue_xfrin(zone);
@@ -13901,6 +13906,9 @@ queue_soa_query(dns_zone_t *zone) {
 
 	sq = isc_mem_get(zone->mctx, sizeof(*sq));
 	*sq = (struct soaquery){ .zone = NULL };
+
+	/* Shows in the statistics channel the duration of the current step. */
+	zone->xfrintime = isc_time_now();
 
 	/*
 	 * Attach so that we won't clean up until the event is delivered.
@@ -14099,6 +14107,9 @@ again:
 			      isc_result_totext(result));
 		goto skip_primary;
 	} else {
+		/* Shows in the statistics channel the duration of the query. */
+		zone->xfrintime = isc_time_now();
+
 		if (isc_sockaddr_pf(&curraddr) == PF_INET) {
 			inc_stats(zone, dns_zonestatscounter_soaoutv4);
 		} else {
@@ -14121,6 +14132,10 @@ cleanup:
 	}
 	if (cancel) {
 		cancel_refresh(zone);
+	}
+	if (do_queue_xfrin) {
+		/* Shows in the statistics channel the duration of the step. */
+		zone->xfrintime = isc_time_now();
 	}
 	UNLOCK_ZONE(zone);
 	if (do_queue_xfrin) {
@@ -17571,6 +17586,13 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->sigresigninginterval);
+}
+
+isc_time_t
+dns_zone_getxfrintime(const dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->xfrintime);
 }
 
 static void

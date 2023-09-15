@@ -1647,8 +1647,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "duration"));
-	if (is_running) {
-		isc_time_t start = dns_xfrin_getstarttime(xfr);
+	if (is_running || is_deferred || is_presoa || is_pending) {
+		isc_time_t start = is_running ? dns_xfrin_getstarttime(xfr)
+					      : dns_zone_getxfrintime(zone);
 		isc_time_t now = isc_time_now();
 		isc_time_t diff;
 		uint32_t sec;
@@ -2680,8 +2681,9 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		json_object_object_add(xfrinobj, "tsigkeyname", NULL);
 	}
 
-	if (is_running) {
-		isc_time_t start = dns_xfrin_getstarttime(xfr);
+	if (is_running || is_deferred || is_presoa || is_pending) {
+		isc_time_t start = is_running ? dns_xfrin_getstarttime(xfr)
+					      : dns_zone_getxfrintime(zone);
 		isc_time_t now = isc_time_now();
 		isc_time_t diff;
 		uint32_t sec;
