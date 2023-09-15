@@ -1466,7 +1466,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_zonestat_level_t statlevel;
 	int xmlrc;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_pending;
+	bool is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -1479,13 +1479,15 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	}
 
 	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_pending, &needs_refresh);
+				 &is_presoa, &is_pending, &needs_refresh);
 	if (result != ISC_R_SUCCESS) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
-	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+	if (!is_running && !is_deferred && !is_presoa && !is_pending &&
+	    !needs_refresh)
+	{
 		/* No ongoing/queued transfer. */
 		goto cleanup;
 	}
@@ -1546,6 +1548,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR xfr_state));
 	} else if (is_deferred) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Deferred"));
+	} else if (is_presoa) {
+		TRY0(xmlTextWriterWriteString(writer,
+					      ISC_XMLCHAR "Refresh SOA"));
 	} else if (is_pending) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Pending"));
 	} else if (needs_refresh) {
@@ -1582,8 +1587,12 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "soatransport"));
-	if (is_running) {
-		transport_type = dns_xfrin_getsoatransporttype(xfr);
+	if (is_running || is_presoa) {
+		if (is_running) {
+			transport_type = dns_xfrin_getsoatransporttype(xfr);
+		} else {
+			transport_type = dns_zone_getrequesttransporttype(zone);
+		}
 		if (transport_type == DNS_TRANSPORT_UDP) {
 			TRY0(xmlTextWriterWriteString(writer,
 						      ISC_XMLCHAR "UDP"));
@@ -2501,7 +2510,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	dns_transport_type_t transport_type;
 	dns_zonestat_level_t statlevel;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_pending;
+	bool is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -2534,13 +2543,15 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_pending, &needs_refresh);
+				 &is_presoa, &is_pending, &needs_refresh);
 	if (result != ISC_R_SUCCESS) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
-	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+	if (!is_running && !is_deferred && !is_presoa && !is_pending &&
+	    !needs_refresh)
+	{
 		/* No ongoing/queued transfer. */
 		goto cleanup;
 	}
@@ -2568,6 +2579,9 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	} else if (is_deferred) {
 		json_object_object_add(xfrinobj, "state",
 				       json_object_new_string("Deferred"));
+	} else if (is_presoa) {
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string("Refresh SOA"));
 	} else if (is_pending) {
 		json_object_object_add(xfrinobj, "state",
 				       json_object_new_string("Pending"));
@@ -2602,8 +2616,13 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 				       json_object_new_string("-"));
 	}
 
-	if (is_running) {
-		transport_type = dns_xfrin_getsoatransporttype(xfr);
+	if (is_running || is_presoa) {
+		if (is_running) {
+			transport_type = dns_xfrin_getsoatransporttype(xfr);
+		} else {
+			transport_type = dns_zone_getrequesttransporttype(zone);
+		}
+
 		if (transport_type == DNS_TRANSPORT_UDP) {
 			json_object_object_add(xfrinobj, "soatransport",
 					       json_object_new_string("UDP"));

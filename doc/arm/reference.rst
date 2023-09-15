@@ -7580,9 +7580,17 @@ Incoming Zone Transfers
 	     hasn't started yet.
 
          ``Pending``
-	     The zone is flagged for a refresh, but the process is
-	     in waiting state because of rate-limiting, see
-	     :any:`serial-query-rate`.
+	     The zone is flagged for a refresh, but the process is currently
+	     in the queue and will start shortly, or is in a waiting state
+	     because of rate-limiting, see :any:`serial-query-rate`.
+
+         ``Refresh SOA``
+	     Sending a refresh SOA query to get the zone serial number, then
+	     initiate a zone transfer, if necessary. If this step is successful,
+	     the ``SOA Query`` and ``Got SOA`` states will be skipped.
+	     Otherwise, the zone transfer procedure can still be initiated,
+	     and the SOA request will be attempted using the same transport as
+	     the zone transfer.
 
          ``Deferred``
 	     The zone is going to be refreshed, but the process was
@@ -7641,7 +7649,14 @@ Incoming Zone Transfers
 
    ``SOA Transport`` (``soatransport``)
       Text string. This is the transport protocol in use for the
-      SOA request. Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
+      SOA query.  Note, that this value can potentially change during the
+      process. For example, when the transfer is in the ``Refresh SOA``
+      state, the ``SOA Transport`` of the ongoing query can be shown as ``UDP``.
+      If that query fails or times out, it then can be retried using another
+      transport, or the transfer process can be initiated in "SOA before" mode,
+      where the SOA query will be attempted using the same transport as the zone
+      transfer. See the description of the ``State`` field for more information.
+      Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
 
    ``Transport`` (``transport``)
       Text string. This is the transport protocol in use for the

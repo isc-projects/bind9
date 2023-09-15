@@ -17600,6 +17600,61 @@ queue_xfrin(dns_zone_t *zone) {
 }
 
 /*
+ * Get the transport type used for the SOA query to the current primary server
+ * before an ongoing incoming zone transfer.
+ *
+ * Requires:
+ *	The zone is locked by the caller.
+ */
+static dns_transport_type_t
+get_request_transport_type(dns_zone_t *zone) {
+	dns_transport_type_t transport_type = DNS_TRANSPORT_NONE;
+
+	if (zone->transport != NULL) {
+		transport_type = dns_transport_get_type(zone->transport);
+	} else {
+		transport_type = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC))
+					 ? DNS_TRANSPORT_TCP
+					 : DNS_TRANSPORT_UDP;
+
+		/* Check if the peer is forced to always use TCP. */
+		if (transport_type != DNS_TRANSPORT_TCP) {
+			isc_result_t result;
+			isc_sockaddr_t primaryaddr;
+			isc_netaddr_t primaryip;
+			dns_peer_t *peer = NULL;
+
+			primaryaddr = dns_remote_curraddr(&zone->primaries);
+			isc_netaddr_fromsockaddr(&primaryip, &primaryaddr);
+			result = dns_peerlist_peerbyaddr(zone->view->peers,
+							 &primaryip, &peer);
+			if (result == ISC_R_SUCCESS && peer != NULL) {
+				bool usetcp;
+				result = dns_peer_getforcetcp(peer, &usetcp);
+				if (result == ISC_R_SUCCESS && usetcp) {
+					transport_type = DNS_TRANSPORT_TCP;
+				}
+			}
+		}
+	}
+
+	return (transport_type);
+}
+
+dns_transport_type_t
+dns_zone_getrequesttransporttype(dns_zone_t *zone) {
+	dns_transport_type_t transport_type;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	transport_type = get_request_transport_type(zone);
+	UNLOCK_ZONE(zone);
+
+	return (transport_type);
+}
+
+/*
  * This event callback is called when a zone has received
  * any necessary zone transfer quota.  This is the time
  * to go ahead and start the transfer.
@@ -17743,30 +17798,19 @@ got_transfer_quota(void *arg) {
 				      "zone transfer: %s",
 				      isc_result_totext(result));
 		}
-
-		if (result == ISC_R_SUCCESS && xfrtype != dns_rdatatype_soa) {
-			soa_transport_type = DNS_TRANSPORT_TLS;
-		}
 	}
 
 	LOCK_ZONE(zone);
-	if (soa_transport_type == DNS_TRANSPORT_NONE &&
-	    xfrtype != dns_rdatatype_soa)
-	{
-		soa_transport_type = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC))
-					     ? DNS_TRANSPORT_TCP
-					     : DNS_TRANSPORT_UDP;
-
-		/* Check if the peer is forced to always use TCP. */
-		if (soa_transport_type != DNS_TRANSPORT_TCP && peer != NULL) {
-			bool usetcp;
-			result = dns_peer_getforcetcp(peer, &usetcp);
-			if (result == ISC_R_SUCCESS && usetcp) {
-				soa_transport_type = DNS_TRANSPORT_TCP;
-			}
-		}
+	if (xfrtype != dns_rdatatype_soa) {
+		/*
+		 * If 'xfrtype' is dns_rdatatype_soa, then the SOA query will be
+		 * performed by xfrin, otherwise, the SOA request performed by
+		 * soa_query() was successful and we should inform the xfrin
+		 * about the transport type used for that query, so that the
+		 * information can be presented in the statistics channel.
+		 */
+		soa_transport_type = get_request_transport_type(zone);
 	}
-
 	sourceaddr = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
 
@@ -19189,13 +19233,20 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 
 isc_result_t
 dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_pending, bool *needs_refresh) {
+		bool *is_deferred, bool *is_presoa, bool *is_pending,
+		bool *needs_refresh) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
 	if (zone->zmgr == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
+
+	/* Reset. */
+	*is_running = false;
+	*is_deferred = false;
+	*is_presoa = false;
+	*is_pending = false;
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
@@ -19204,20 +19255,14 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	}
 	if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
 		*is_running = true;
-		*is_deferred = false;
-		*is_pending = false;
 	} else if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
-		*is_running = false;
 		*is_deferred = true;
-		*is_pending = false;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
-		*is_running = false;
-		*is_deferred = false;
-		*is_pending = true;
-	} else {
-		*is_running = false;
-		*is_deferred = false;
-		*is_pending = false;
+		if (zone->request != NULL) {
+			*is_presoa = true;
+		} else {
+			*is_pending = true;
+		}
 	}
 	*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 	UNLOCK_ZONE(zone);
