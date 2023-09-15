@@ -2085,7 +2085,7 @@ teardown(void *arg ISC_ATTR_UNUSED) {
 
 static void
 setup(void *arg ISC_ATTR_UNUSED) {
-	RUNCHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	RUNCHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
 
 	set_source_ports(dispatchmgr);
 

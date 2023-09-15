@@ -85,7 +85,7 @@ setup_server(void **state) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	result = dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}

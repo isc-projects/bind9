@@ -919,7 +919,7 @@ setup_system(void *arg ISC_ATTR_UNUSED) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(gmctx, loopmgr, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	result = dst_lib_init(gmctx, NULL);

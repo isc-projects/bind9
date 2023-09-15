@@ -252,7 +252,8 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.nm = nm,
 	};
 
-	result = dns_dispatchmgr_create(mctx, nm, &client->dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, nm,
+					&client->dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_client;
 	}

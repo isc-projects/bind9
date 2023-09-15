@@ -2142,7 +2142,7 @@ run_server(void *arg) {
 
 	ns_server_create(mctx, matchview, &sctx);
 
-	CHECK(dns_dispatchmgr_create(mctx, netmgr, &dispatchmgr));
+	CHECK(dns_dispatchmgr_create(mctx, loopmgr, netmgr, &dispatchmgr));
 	isc_sockaddr_any(&any);
 	CHECK(dns_dispatch_createudp(dispatchmgr, &any, &dispatch));
 	CHECK(ns_interfacemgr_create(mctx, sctx, loopmgr, netmgr, dispatchmgr,

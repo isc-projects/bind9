@@ -55,9 +55,9 @@ struct dns_dispatchmgr {
 	isc_stats_t *stats;
 	isc_nm_t *nm;
 
-	/* Locked by "lock". */
-	isc_mutex_t lock;
-	ISC_LIST(dns_dispatch_t) list;
+	uint32_t nloops;
+
+	struct cds_lfht **tcps;
 
 	struct cds_lfht *qids;
 
@@ -109,14 +109,12 @@ struct dns_dispatch {
 	/* Unlocked. */
 	unsigned int magic; /*%< magic */
 	uint32_t tid;
+	isc_mem_t *mctx;
 	dns_dispatchmgr_t *mgr; /*%< dispatch manager */
 	isc_nmhandle_t *handle; /*%< netmgr handle for TCP connection */
 	isc_sockaddr_t local;	/*%< local address */
 	in_port_t localport;	/*%< local UDP port */
 	isc_sockaddr_t peer;	/*%< peer address (TCP) */
-
-	/*% Locked by mgr->lock. */
-	ISC_LINK(dns_dispatch_t) link;
 
 	isc_socktype_t socktype;
 	dns_dispatchstate_t state;
@@ -130,6 +128,9 @@ struct dns_dispatch {
 	uint_fast32_t requests; /*%< how many requests we have */
 
 	unsigned int timedout;
+
+	struct cds_lfht_node ht_node;
+	struct rcu_head rcu_head;
 };
 
 #define RESPONSE_MAGIC	  ISC_MAGIC('D', 'r', 's', 'p')
@@ -339,7 +340,6 @@ dispentry_log(dns_dispentry_t *resp, int level, const char *fmt, ...) {
 
 /*%
  * Choose a random port number for a dispatch entry.
- * The caller must hold the disp->lock
  */
 static isc_result_t
 setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
@@ -957,7 +957,7 @@ setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
  */
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		       dns_dispatchmgr_t **mgrp) {
 	dns_dispatchmgr_t *mgr = NULL;
 	isc_portset_t *v4portset = NULL;
@@ -967,7 +967,10 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 	REQUIRE(mgrp != NULL && *mgrp == NULL);
 
 	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
-	*mgr = (dns_dispatchmgr_t){ .magic = 0 };
+	*mgr = (dns_dispatchmgr_t){
+		.magic = 0,
+		.nloops = isc_loopmgr_nloops(loopmgr),
+	};
 
 #if DNS_DISPATCH_TRACE
 	fprintf(stderr, "dns_dispatchmgr__init:%s:%s:%d:%p->references = 1\n",
@@ -978,9 +981,12 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm,
 	isc_mem_attach(mctx, &mgr->mctx);
 	isc_nm_attach(nm, &mgr->nm);
 
-	isc_mutex_init(&mgr->lock);
-
-	ISC_LIST_INIT(mgr->list);
+	mgr->tcps = isc_mem_cget(mgr->mctx, mgr->nloops, sizeof(mgr->tcps[0]));
+	for (size_t i = 0; i < mgr->nloops; i++) {
+		mgr->tcps[i] = cds_lfht_new(
+			2, 2, 0, CDS_LFHT_AUTO_RESIZE | CDS_LFHT_ACCOUNTING,
+			NULL);
+	}
 
 	create_default_portset(mgr->mctx, AF_INET, &v4portset);
 	create_default_portset(mgr->mctx, AF_INET6, &v6portset);
@@ -1035,9 +1041,13 @@ dispatchmgr_destroy(dns_dispatchmgr_t *mgr) {
 	isc_refcount_destroy(&mgr->references);
 
 	mgr->magic = 0;
-	isc_mutex_destroy(&mgr->lock);
 
 	RUNTIME_CHECK(!cds_lfht_destroy(mgr->qids, NULL));
+
+	for (size_t i = 0; i < mgr->nloops; i++) {
+		RUNTIME_CHECK(!cds_lfht_destroy(mgr->tcps[i], NULL));
+	}
+	isc_mem_cput(mgr->mctx, mgr->tcps, mgr->nloops, sizeof(mgr->tcps[0]));
 
 	if (mgr->blackhole != NULL) {
 		dns_acl_detach(&mgr->blackhole);
@@ -1064,7 +1074,6 @@ dispatchmgr_destroy(dns_dispatchmgr_t *mgr) {
 void
 dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats) {
 	REQUIRE(VALID_DISPATCHMGR(mgr));
-	REQUIRE(ISC_LIST_EMPTY(mgr->list));
 	REQUIRE(mgr->stats == NULL);
 
 	isc_stats_attach(stats, &mgr->stats);
@@ -1089,12 +1098,13 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, uint32_t tid,
 	disp = isc_mem_get(mgr->mctx, sizeof(*disp));
 	*disp = (dns_dispatch_t){
 		.socktype = type,
-		.link = ISC_LINK_INITIALIZER,
 		.active = ISC_LIST_INITIALIZER,
 		.pending = ISC_LIST_INITIALIZER,
 		.tid = tid,
 		.magic = DISPATCH_MAGIC,
 	};
+
+	isc_mem_attach(mgr->mctx, &disp->mctx);
 
 	dns_dispatchmgr_attach(mgr, &disp->mgr);
 #if DNS_DISPATCH_TRACE
@@ -1106,17 +1116,50 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, uint32_t tid,
 	*dispp = disp;
 }
 
+struct dispatch_key {
+	const isc_sockaddr_t *local;
+	const isc_sockaddr_t *peer;
+};
+
+static uint32_t
+dispatch_hash(struct dispatch_key *key) {
+	uint32_t hashval = isc_sockaddr_hash(key->peer, false);
+	if (key->local) {
+		hashval ^= isc_sockaddr_hash(key->local, true);
+	}
+
+	return (hashval);
+}
+
+static int
+dispatch_match(struct cds_lfht_node *node, const void *key0) {
+	dns_dispatch_t *disp = caa_container_of(node, dns_dispatch_t, ht_node);
+	const struct dispatch_key *key = key0;
+	isc_sockaddr_t local;
+	isc_sockaddr_t peer;
+
+	if (disp->handle != NULL) {
+		local = isc_nmhandle_localaddr(disp->handle);
+		peer = isc_nmhandle_peeraddr(disp->handle);
+	} else {
+		local = disp->local;
+		peer = disp->peer;
+	}
+
+	return (isc_sockaddr_equal(&peer, key->peer) &&
+		(key->local == NULL || isc_sockaddr_equal(&local, key->local)));
+}
+
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
+	uint32_t tid = isc_tid();
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(destaddr != NULL);
 
-	LOCK(&mgr->lock);
-
-	dispatch_allocate(mgr, isc_socktype_tcp, isc_tid(), &disp);
+	dispatch_allocate(mgr, isc_socktype_tcp, tid, &disp);
 
 	disp->peer = *destaddr;
 
@@ -1132,10 +1175,14 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	/*
 	 * Append it to the dispatcher list.
 	 */
+	struct dispatch_key key = {
+		.local = &disp->local,
+		.peer = &disp->peer,
+	};
 
-	/* FIXME: There should be a lookup hashtable here */
-	ISC_LIST_APPEND(mgr->list, disp, link);
-	UNLOCK(&mgr->lock);
+	rcu_read_lock();
+	cds_lfht_add(mgr->tcps[tid], dispatch_hash(&key), &disp->ht_node);
+	rcu_read_unlock();
 
 	if (isc_log_wouldlog(dns_lctx, 90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -1159,46 +1206,25 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 	dns_dispatch_t *disp_connected = NULL;
 	dns_dispatch_t *disp_fallback = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
+	uint32_t tid = isc_tid();
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(destaddr != NULL);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
-	LOCK(&mgr->lock);
+	struct dispatch_key key = {
+		.local = localaddr,
+		.peer = destaddr,
+	};
 
-	for (dns_dispatch_t *disp = ISC_LIST_HEAD(mgr->list); disp != NULL;
-	     disp = ISC_LIST_NEXT(disp, link))
-	{
-		isc_sockaddr_t sockname;
-		isc_sockaddr_t peeraddr;
-
-		if (disp->tid != isc_tid()) {
-			continue;
-		}
-
-		REQUIRE(disp->tid == isc_tid());
-
-		if (disp->handle != NULL) {
-			sockname = isc_nmhandle_localaddr(disp->handle);
-			peeraddr = isc_nmhandle_peeraddr(disp->handle);
-		} else {
-			sockname = disp->local;
-			peeraddr = disp->peer;
-		}
-
-		/*
-		 * The conditions match:
-		 * 1. socktype is TCP
-		 * 2. destination address is same
-		 * 3. local address is either NULL or same
-		 */
-		if (disp->socktype != isc_socktype_tcp ||
-		    !isc_sockaddr_equal(destaddr, &peeraddr) ||
-		    (localaddr != NULL &&
-		     !isc_sockaddr_eqaddr(localaddr, &sockname)))
-		{
-			continue;
-		}
+	rcu_read_lock();
+	struct cds_lfht_iter iter;
+	dns_dispatch_t *disp = NULL;
+	cds_lfht_for_each_entry_duplicate(mgr->tcps[tid], dispatch_hash(&key),
+					  dispatch_match, &key, &iter, disp,
+					  ht_node) {
+		INSIST(disp->tid == isc_tid());
+		INSIST(disp->socktype == isc_socktype_tcp);
 
 		switch (disp->state) {
 		case DNS_DISPATCHSTATE_NONE:
@@ -1233,6 +1259,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 			break;
 		}
 	}
+	rcu_read_unlock();
 
 	if (disp_connected != NULL) {
 		/* We found connected dispatch */
@@ -1252,8 +1279,6 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		result = ISC_R_SUCCESS;
 	}
 
-	UNLOCK(&mgr->lock);
-
 	return (result);
 }
 
@@ -1267,12 +1292,10 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	REQUIRE(localaddr != NULL);
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
-	LOCK(&mgr->lock);
 	result = dispatch_createudp(mgr, localaddr, isc_tid(), &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}
-	UNLOCK(&mgr->lock);
 
 	return (result);
 }
@@ -1322,23 +1345,28 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 }
 
 static void
+dispatch_destroy_rcu(struct rcu_head *rcu_head) {
+	dns_dispatch_t *disp = caa_container_of(rcu_head, dns_dispatch_t,
+						rcu_head);
+
+	isc_mem_putanddetach(&disp->mctx, disp, sizeof(*disp));
+}
+
+static void
 dispatch_destroy(dns_dispatch_t *disp) {
 	dns_dispatchmgr_t *mgr = disp->mgr;
+	uint32_t tid = isc_tid();
 
 	isc_refcount_destroy(&disp->references);
 	disp->magic = 0;
 
-	LOCK(&mgr->lock);
-	if (ISC_LINK_LINKED(disp, link)) {
-		ISC_LIST_UNLINK(disp->mgr->list, disp, link);
+	if (disp->socktype == isc_socktype_tcp) {
+		(void)cds_lfht_del(mgr->tcps[tid], &disp->ht_node);
 	}
-	UNLOCK(&mgr->lock);
 
 	INSIST(disp->requests == 0);
 	INSIST(ISC_LIST_EMPTY(disp->pending));
 	INSIST(ISC_LIST_EMPTY(disp->active));
-
-	INSIST(!ISC_LINK_LINKED(disp, link));
 
 	dispatch_log(disp, LVL(90), "destroying dispatch %p", disp);
 
@@ -1347,14 +1375,9 @@ dispatch_destroy(dns_dispatch_t *disp) {
 			     disp->handle, &disp->handle);
 		isc_nmhandle_detach(&disp->handle);
 	}
+	dns_dispatchmgr_detach(&disp->mgr);
 
-	isc_mem_put(mgr->mctx, disp, sizeof(*disp));
-
-	/*
-	 * Because dispatch uses mgr->mctx, we must detach after freeing
-	 * dispatch, not before.
-	 */
-	dns_dispatchmgr_detach(&mgr);
+	call_rcu(&disp->rcu_head, dispatch_destroy_rcu);
 }
 
 #if DNS_DISPATCH_TRACE
@@ -1394,7 +1417,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
 
 	localport = isc_sockaddr_getport(&disp->local);
 
-	resp = isc_mem_get(disp->mgr->mctx, sizeof(*resp));
+	resp = isc_mem_get(disp->mctx, sizeof(*resp));
 	*resp = (dns_dispentry_t){
 		.port = localport,
 		.timeout = timeout,
@@ -1419,7 +1442,7 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
 	if (disp->socktype == isc_socktype_udp) {
 		result = setup_socket(disp, resp, dest, &localport);
 		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(disp->mgr->mctx, resp, sizeof(*resp));
+			isc_mem_put(disp->mctx, resp, sizeof(*resp));
 			inc_stats(disp->mgr, dns_resstatscounter_dispsockfail);
 			return (result);
 		}
@@ -1456,11 +1479,11 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
 	} while (i++ < QID_MAX_TRIES);
 fail:
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(disp->mgr->mctx, resp, sizeof(*resp));
+		isc_mem_put(disp->mctx, resp, sizeof(*resp));
 		return (ISC_R_NOMORE);
 	}
 
-	isc_mem_attach(disp->mgr->mctx, &resp->mctx);
+	isc_mem_attach(disp->mctx, &resp->mctx);
 
 	if (transport != NULL) {
 		dns_transport_attach(transport, &resp->transport);
@@ -1907,7 +1930,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		result = dns_transport_get_tlsctx(
 			resp->transport, &resp->peer, resp->tlsctx_cache,
-			resp->disp->mgr->mctx, &tlsctx, &sess_cache);
+			resp->mctx, &tlsctx, &sess_cache);
 
 		if (result != ISC_R_SUCCESS) {
 			return (result);
@@ -2184,7 +2207,6 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 	dset->dispatches[0] = NULL;
 	dns_dispatch_attach(source, &dset->dispatches[0]); /* DISPATCH004 */
 
-	LOCK(&mgr->lock);
 	for (i = 1; i < dset->ndisp; i++) {
 		result = dispatch_createudp(mgr, &source->local, i,
 					    &dset->dispatches[i]);
@@ -2193,14 +2215,11 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 		}
 	}
 
-	UNLOCK(&mgr->lock);
 	*dsetp = dset;
 
 	return (ISC_R_SUCCESS);
 
 fail:
-	UNLOCK(&mgr->lock);
-
 	for (size_t j = 0; j < i; j++) {
 		dns_dispatch_detach(&(dset->dispatches[j])); /* DISPATCH004 */
 	}

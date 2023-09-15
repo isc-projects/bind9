@@ -1312,8 +1312,8 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		isc_sockaddr_format(&sa, buf, sizeof(buf));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "could not get query source dispatcher (%s)",
-			      buf);
+			      "could not get query source dispatcher (%s): %s",
+			      buf, isc_result_totext(result));
 		return (result);
 	}
 
@@ -9897,8 +9897,8 @@ run_server(void *arg) {
 	dns_zonemgr_create(named_g_mctx, named_g_loopmgr, named_g_netmgr,
 			   &server->zonemgr);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
-					  &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_loopmgr,
+					  named_g_netmgr, &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
