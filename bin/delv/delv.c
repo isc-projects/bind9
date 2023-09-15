@@ -2165,7 +2165,7 @@ run_server(void *arg) {
 	dns_view_initsecroots(view);
 	CHECK(setup_dnsseckeys(NULL, view));
 
-	CHECK(dns_view_createresolver(view, loopmgr, 1, netmgr, 0,
+	CHECK(dns_view_createresolver(view, loopmgr, netmgr, 0,
 				      tlsctx_client_cache, dispatch, NULL));
 
 	isc_stats_create(mctx, &resstats, dns_resstatscounter_max);

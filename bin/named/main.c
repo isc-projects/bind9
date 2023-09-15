@@ -949,9 +949,7 @@ parse_command_line(int argc, char *argv[]) {
 			parse_T_opt(isc_commandline_argument);
 			break;
 		case 'U':
-			named_g_udpdisp = parse_int(isc_commandline_argument,
-						    "number of UDP listeners "
-						    "per interface");
+			/* Obsolete.  No longer in use.  Ignore. */
 			break;
 		case 'u':
 			named_g_username = isc_commandline_argument;
@@ -1044,16 +1042,6 @@ create_managers(void) {
 		ISC_LOG_INFO, "found %u CPU%s, using %u worker thread%s",
 		named_g_cpus_detected, named_g_cpus_detected == 1 ? "" : "s",
 		named_g_cpus, named_g_cpus == 1 ? "" : "s");
-	if (named_g_udpdisp == 0) {
-		named_g_udpdisp = named_g_cpus_detected;
-	}
-	if (named_g_udpdisp > named_g_cpus) {
-		named_g_udpdisp = named_g_cpus;
-	}
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "using %u UDP listener%s per interface", named_g_udpdisp,
-		      named_g_udpdisp == 1 ? "" : "s");
 
 	isc_managers_create(&named_g_mctx, named_g_cpus, &named_g_loopmgr,
 			    &named_g_netmgr);

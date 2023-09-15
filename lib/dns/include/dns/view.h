@@ -365,8 +365,8 @@ dns_view_weakdetach(dns_view_t **targetp);
 
 isc_result_t
 dns_view_createresolver(dns_view_t *view, isc_loopmgr_t *loopmgr,
-			unsigned int ndisp, isc_nm_t *netmgr,
-			unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
+			isc_nm_t *netmgr, unsigned int options,
+			isc_tlsctx_cache_t *tlsctx_cache,
 			dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6);
 /*%<
  * Create a resolver and address database for the view.

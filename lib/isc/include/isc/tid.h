@@ -28,11 +28,11 @@ isc_tid_count(void);
  * Returns the number of threads.
  */
 
-extern thread_local uint32_t tid_local;
+extern thread_local uint32_t isc__tid_local;
 
 static inline uint32_t
 isc_tid(void) {
-	return (tid_local);
+	return (isc__tid_local);
 }
 /*%<
  * Returns the thread ID of the currently-running loop.

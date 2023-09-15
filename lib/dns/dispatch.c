@@ -19,7 +19,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <isc/atomic.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/loop.h>
@@ -119,8 +118,6 @@ struct dns_dispatch {
 	/*% Locked by mgr->lock. */
 	ISC_LINK(dns_dispatch_t) link;
 
-	/* Locked by "lock". */
-	isc_mutex_t lock; /*%< locks all below */
 	isc_socktype_t socktype;
 	dns_dispatchstate_t state;
 	isc_refcount_t references;
@@ -130,7 +127,7 @@ struct dns_dispatch {
 	dns_displist_t pending;
 	dns_displist_t active;
 
-	unsigned int requests; /*%< how many requests we have */
+	uint_fast32_t requests; /*%< how many requests we have */
 
 	unsigned int timedout;
 };
@@ -188,7 +185,7 @@ static void
 dispentry_cancel(dns_dispentry_t *resp, isc_result_t result);
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		   dns_dispatch_t **dispp);
+		   uint32_t tid, dns_dispatch_t **dispp);
 static void
 udp_startrecv(isc_nmhandle_t *handle, dns_dispentry_t *resp);
 static void
@@ -417,10 +414,8 @@ dispentry_destroy(dns_dispentry_t *resp) {
 	 */
 	dispentry_cancel(resp, ISC_R_CANCELED);
 
-	LOCK(&disp->lock);
 	INSIST(disp->requests > 0);
 	disp->requests--;
-	UNLOCK(&disp->lock);
 
 	isc_refcount_destroy(&resp->references);
 
@@ -504,7 +499,7 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 	disp = resp->disp;
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	INSIST(resp->reading);
 	resp->reading = false;
 
@@ -518,7 +513,7 @@ udp_recv(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		eresult = ISC_R_CANCELED;
 	}
 
-	dispentry_log(resp, LVL(90), "read callback:%s, requests %d",
+	dispentry_log(resp, LVL(90), "read callback:%s, requests %" PRIuFAST32,
 		      isc_result_totext(eresult), disp->requests);
 
 	if (eresult != ISC_R_SUCCESS) {
@@ -617,8 +612,6 @@ next:
 	udp_dispatch_getnext(resp, timeout);
 
 done:
-	UNLOCK(&disp->lock);
-
 	if (respond) {
 		dispentry_log(resp, LVL(90), "UDP read callback on %p: %s",
 			      handle, isc_result_totext(eresult));
@@ -781,11 +774,11 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 
 	REQUIRE(VALID_DISPATCH(disp));
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	INSIST(disp->reading);
 	disp->reading = false;
 
-	dispatch_log(disp, LVL(90), "TCP read:%s:requests %u",
+	dispatch_log(disp, LVL(90), "TCP read:%s:requests %" PRIuFAST32,
 		     isc_result_totext(result), disp->requests);
 
 	peer = isc_nmhandle_peeraddr(handle);
@@ -886,7 +879,6 @@ tcp_recv(isc_nmhandle_t *handle, isc_result_t result, isc_region_t *region,
 		isc_nmhandle_settimeout(handle, timeout);
 	}
 
-	UNLOCK(&disp->lock);
 	rcu_read_unlock();
 
 	/*
@@ -1082,7 +1074,7 @@ dns_dispatchmgr_setstats(dns_dispatchmgr_t *mgr, isc_stats_t *stats) {
  * Allocate and set important limits.
  */
 static void
-dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type,
+dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type, uint32_t tid,
 		  dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 
@@ -1100,7 +1092,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type,
 		.link = ISC_LINK_INITIALIZER,
 		.active = ISC_LIST_INITIALIZER,
 		.pending = ISC_LIST_INITIALIZER,
-		.tid = isc_tid(),
+		.tid = tid,
 		.magic = DISPATCH_MAGIC,
 	};
 
@@ -1110,7 +1102,6 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, isc_socktype_t type,
 		__func__, __FILE__, __LINE__, disp);
 #endif
 	isc_refcount_init(&disp->references, 1); /* DISPATCH000 */
-	isc_mutex_init(&disp->lock);
 
 	*dispp = disp;
 }
@@ -1125,7 +1116,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	LOCK(&mgr->lock);
 
-	dispatch_allocate(mgr, isc_socktype_tcp, &disp);
+	dispatch_allocate(mgr, isc_socktype_tcp, isc_tid(), &disp);
 
 	disp->peer = *destaddr;
 
@@ -1181,12 +1172,11 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		isc_sockaddr_t sockname;
 		isc_sockaddr_t peeraddr;
 
-		LOCK(&disp->lock);
-
 		if (disp->tid != isc_tid()) {
-			UNLOCK(&disp->lock);
 			continue;
 		}
+
+		REQUIRE(disp->tid == isc_tid());
 
 		if (disp->handle != NULL) {
 			sockname = isc_nmhandle_localaddr(disp->handle);
@@ -1207,7 +1197,6 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		    (localaddr != NULL &&
 		     !isc_sockaddr_eqaddr(localaddr, &sockname)))
 		{
-			UNLOCK(&disp->lock);
 			continue;
 		}
 
@@ -1239,8 +1228,6 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		default:
 			UNREACHABLE();
 		}
-
-		UNLOCK(&disp->lock);
 
 		if (disp_connected != NULL) {
 			break;
@@ -1281,7 +1268,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 	REQUIRE(dispp != NULL && *dispp == NULL);
 
 	LOCK(&mgr->lock);
-	result = dispatch_createudp(mgr, localaddr, &disp);
+	result = dispatch_createudp(mgr, localaddr, isc_tid(), &disp);
 	if (result == ISC_R_SUCCESS) {
 		*dispp = disp;
 	}
@@ -1292,7 +1279,7 @@ dns_dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		   dns_dispatch_t **dispp) {
+		   uint32_t tid, dns_dispatch_t **dispp) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_dispatch_t *disp = NULL;
 	isc_sockaddr_t sa_any;
@@ -1308,7 +1295,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		}
 	}
 
-	dispatch_allocate(mgr, isc_socktype_udp, &disp);
+	dispatch_allocate(mgr, isc_socktype_udp, tid, &disp);
 
 	if (isc_log_wouldlog(dns_lctx, 90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -1361,8 +1348,6 @@ dispatch_destroy(dns_dispatch_t *disp) {
 		isc_nmhandle_detach(&disp->handle);
 	}
 
-	isc_mutex_destroy(&disp->lock);
-
 	isc_mem_put(mgr->mctx, disp, sizeof(*disp));
 
 	/*
@@ -1401,10 +1386,9 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
 	REQUIRE(sent != NULL);
 	REQUIRE(loop != NULL);
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 
 	if (disp->state == DNS_DISPATCHSTATE_CANCELED) {
-		UNLOCK(&disp->lock);
 		return (ISC_R_CANCELED);
 	}
 
@@ -1436,7 +1420,6 @@ dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
 		result = setup_socket(disp, resp, dest, &localport);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(disp->mgr->mctx, resp, sizeof(*resp));
-			UNLOCK(&disp->lock);
 			inc_stats(disp->mgr, dns_resstatscounter_dispsockfail);
 			return (result);
 		}
@@ -1496,7 +1479,6 @@ fail:
 				     : dns_resstatscounter_dispreqtcp);
 
 	rcu_read_unlock();
-	UNLOCK(&disp->lock);
 
 	*idp = resp->id;
 	*respp = resp;
@@ -1521,7 +1503,7 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 		return (ISC_R_TIMEDOUT);
 	}
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	switch (disp->socktype) {
 	case isc_socktype_udp:
 		udp_dispatch_getnext(resp, timeout);
@@ -1532,7 +1514,6 @@ dns_dispatch_getnext(dns_dispentry_t *resp) {
 	default:
 		UNREACHABLE();
 	}
-	UNLOCK(&disp->lock);
 
 	return (result);
 }
@@ -1549,10 +1530,10 @@ udp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	dns_dispatch_t *disp = resp->disp;
 	bool respond = false;
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	dispentry_log(resp, LVL(90),
 		      "canceling response: %s, %s/%s (%s/%s), "
-		      "requests %u",
+		      "requests %" PRIuFAST32,
 		      isc_result_totext(result), state2str(resp->state),
 		      resp->reading ? "reading" : "not reading",
 		      state2str(disp->state),
@@ -1593,8 +1574,6 @@ udp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	resp->state = DNS_DISPATCHSTATE_CANCELED;
 
 unlock:
-	UNLOCK(&disp->lock);
-
 	if (respond) {
 		dispentry_log(resp, LVL(90), "read callback: %s",
 			      isc_result_totext(result));
@@ -1614,10 +1593,10 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	dns_dispatch_t *disp = resp->disp;
 	dns_displist_t resps = ISC_LIST_INITIALIZER;
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	dispentry_log(resp, LVL(90),
 		      "canceling response: %s, %s/%s (%s/%s), "
-		      "requests %u",
+		      "requests %" PRIuFAST32,
 		      isc_result_totext(result), state2str(resp->state),
 		      resp->reading ? "reading" : "not reading",
 		      state2str(disp->state),
@@ -1692,7 +1671,6 @@ tcp_dispentry_cancel(dns_dispentry_t *resp, isc_result_t result) {
 	resp->state = DNS_DISPATCHSTATE_CANCELED;
 
 unlock:
-	UNLOCK(&disp->lock);
 
 	/*
 	 * NOTE: Calling the response callback directly from here should be done
@@ -1797,7 +1775,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 			     localbuf, peerbuf, isc_result_totext(eresult));
 	}
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	INSIST(disp->state == DNS_DISPATCHSTATE_CONNECTING);
 
 	/*
@@ -1833,8 +1811,6 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		disp->state = DNS_DISPATCHSTATE_NONE;
 	}
 
-	UNLOCK(&disp->lock);
-
 	for (resp = ISC_LIST_HEAD(resps); resp != NULL; resp = next) {
 		next = ISC_LIST_NEXT(resp, rlink);
 		ISC_LIST_UNLINK(resps, resp, rlink);
@@ -1856,8 +1832,7 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dispentry_log(resp, LVL(90), "connected: %s",
 		      isc_result_totext(eresult));
 
-	LOCK(&disp->lock);
-
+	REQUIRE(disp->tid == isc_tid());
 	switch (resp->state) {
 	case DNS_DISPATCHSTATE_CANCELED:
 		eresult = ISC_R_CANCELED;
@@ -1885,7 +1860,6 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		/* probably a port collision; try a different one */
 		result = setup_socket(disp, resp, &resp->peer, &localport);
 		if (result == ISC_R_SUCCESS) {
-			UNLOCK(&disp->lock);
 			udp_dispatch_connect(disp, resp);
 			goto detach;
 		}
@@ -1897,7 +1871,6 @@ udp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		break;
 	}
 unlock:
-	UNLOCK(&disp->lock);
 
 	dispentry_log(resp, LVL(90), "connect callback: %s",
 		      isc_result_totext(eresult));
@@ -1909,12 +1882,11 @@ detach:
 
 static void
 udp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	resp->state = DNS_DISPATCHSTATE_CONNECTING;
 	resp->start = isc_loop_now(resp->loop);
 	dns_dispentry_ref(resp); /* DISPENTRY004 */
 	ISC_LIST_APPEND(disp->pending, resp, plink);
-	UNLOCK(&disp->lock);
 
 	isc_nm_udpconnect(disp->mgr->nm, &resp->local, &resp->peer,
 			  udp_connected, resp, resp->timeout);
@@ -1944,7 +1916,7 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 	}
 
 	/* Check whether the dispatch is already connecting or connected. */
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	switch (disp->state) {
 	case DNS_DISPATCHSTATE_NONE:
 		/* First connection, continue with connecting */
@@ -1953,7 +1925,6 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		resp->start = isc_loop_now(resp->loop);
 		dns_dispentry_ref(resp); /* DISPENTRY005 */
 		ISC_LIST_APPEND(disp->pending, resp, plink);
-		UNLOCK(&disp->lock);
 
 		char localbuf[ISC_SOCKADDR_FORMATSIZE];
 		char peerbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -1979,7 +1950,6 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 		resp->start = isc_loop_now(resp->loop);
 		dns_dispentry_ref(resp); /* DISPENTRY005 */
 		ISC_LIST_APPEND(disp->pending, resp, plink);
-		UNLOCK(&disp->lock);
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTED:
@@ -1996,7 +1966,6 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			tcp_startrecv(disp, resp);
 		}
 
-		UNLOCK(&disp->lock);
 		/* We are already connected; call the connected cb */
 		dispentry_log(resp, LVL(90), "connect callback: %s",
 			      isc_result_totext(ISC_R_SUCCESS));
@@ -2105,7 +2074,7 @@ dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout) {
 
 	dispentry_log(resp, LVL(90), "resume");
 
-	LOCK(&disp->lock);
+	REQUIRE(disp->tid == isc_tid());
 	switch (disp->socktype) {
 	case isc_socktype_udp: {
 		udp_dispatch_getnext(resp, timeout);
@@ -2119,8 +2088,6 @@ dns_dispatch_resume(dns_dispentry_t *resp, uint16_t timeout) {
 	default:
 		UNREACHABLE();
 	}
-
-	UNLOCK(&disp->lock);
 }
 
 void
@@ -2180,31 +2147,25 @@ dns_dispentry_getlocaladdress(dns_dispentry_t *resp, isc_sockaddr_t *addrp) {
 
 dns_dispatch_t *
 dns_dispatchset_get(dns_dispatchset_t *dset) {
-	dns_dispatch_t *disp = NULL;
+	uint32_t tid = isc_tid();
 
 	/* check that dispatch set is configured */
 	if (dset == NULL || dset->ndisp == 0) {
 		return (NULL);
 	}
 
-	LOCK(&dset->lock);
-	disp = dset->dispatches[dset->cur];
-	dset->cur++;
-	if (dset->cur == dset->ndisp) {
-		dset->cur = 0;
-	}
-	UNLOCK(&dset->lock);
+	INSIST(tid < dset->ndisp);
 
-	return (disp);
+	return (dset->dispatches[tid]);
 }
 
 isc_result_t
 dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
-		       dns_dispatchset_t **dsetp, int n) {
+		       dns_dispatchset_t **dsetp, uint32_t ndisp) {
 	isc_result_t result;
 	dns_dispatchset_t *dset = NULL;
 	dns_dispatchmgr_t *mgr = NULL;
-	int i, j;
+	size_t i;
 
 	REQUIRE(VALID_DISPATCH(source));
 	REQUIRE(source->socktype == isc_socktype_udp);
@@ -2213,21 +2174,19 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 	mgr = source->mgr;
 
 	dset = isc_mem_get(mctx, sizeof(dns_dispatchset_t));
-	*dset = (dns_dispatchset_t){ .ndisp = n };
-
-	isc_mutex_init(&dset->lock);
-
-	dset->dispatches = isc_mem_cget(mctx, n, sizeof(dns_dispatch_t *));
+	*dset = (dns_dispatchset_t){ .ndisp = ndisp };
 
 	isc_mem_attach(mctx, &dset->mctx);
+
+	dset->dispatches = isc_mem_cget(dset->mctx, ndisp,
+					sizeof(dns_dispatch_t *));
 
 	dset->dispatches[0] = NULL;
 	dns_dispatch_attach(source, &dset->dispatches[0]); /* DISPATCH004 */
 
 	LOCK(&mgr->lock);
-	for (i = 1; i < n; i++) {
-		dset->dispatches[i] = NULL;
-		result = dispatch_createudp(mgr, &source->local,
+	for (i = 1; i < dset->ndisp; i++) {
+		result = dispatch_createudp(mgr, &source->local, i,
 					    &dset->dispatches[i]);
 		if (result != ISC_R_SUCCESS) {
 			goto fail;
@@ -2242,34 +2201,28 @@ dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
 fail:
 	UNLOCK(&mgr->lock);
 
-	for (j = 0; j < i; j++) {
+	for (size_t j = 0; j < i; j++) {
 		dns_dispatch_detach(&(dset->dispatches[j])); /* DISPATCH004 */
 	}
-	isc_mem_cput(mctx, dset->dispatches, n, sizeof(dns_dispatch_t *));
-	if (dset->mctx == mctx) {
-		isc_mem_detach(&dset->mctx);
-	}
+	isc_mem_cput(dset->mctx, dset->dispatches, ndisp,
+		     sizeof(dns_dispatch_t *));
 
-	isc_mutex_destroy(&dset->lock);
-	isc_mem_put(mctx, dset, sizeof(dns_dispatchset_t));
+	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 	return (result);
 }
 
 void
 dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
-	dns_dispatchset_t *dset = NULL;
-	int i;
-
 	REQUIRE(dsetp != NULL && *dsetp != NULL);
 
-	dset = *dsetp;
+	dns_dispatchset_t *dset = *dsetp;
 	*dsetp = NULL;
-	for (i = 0; i < dset->ndisp; i++) {
+
+	for (size_t i = 0; i < dset->ndisp; i++) {
 		dns_dispatch_detach(&(dset->dispatches[i])); /* DISPATCH004 */
 	}
 	isc_mem_cput(dset->mctx, dset->dispatches, dset->ndisp,
 		     sizeof(dns_dispatch_t *));
-	isc_mutex_destroy(&dset->lock);
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 }
 

@@ -69,9 +69,7 @@ ISC_LANG_BEGINDECLS
 struct dns_dispatchset {
 	isc_mem_t	*mctx;
 	dns_dispatch_t **dispatches;
-	int		 ndisp;
-	int		 cur;
-	isc_mutex_t	 lock;
+	uint32_t	 ndisp;
 };
 
 /*
@@ -358,7 +356,7 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
 
 isc_result_t
 dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
-		       dns_dispatchset_t **dsetp, int n);
+		       dns_dispatchset_t **dsetp, uint32_t n);
 /*%<
  * Given a valid dispatch 'source', create a dispatch set containing
  * 'n' UDP dispatches, with the remainder filled out by clones of the

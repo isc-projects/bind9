@@ -261,11 +261,12 @@ ISC_LOOP_TEST_IMPL(dispatchset_create) {
 	isc_loopmgr_shutdown(loopmgr);
 }
 
-/* test dispatch set round-robin */
+/* test dispatch set per-loop dispatch */
 ISC_LOOP_TEST_IMPL(dispatchset_get) {
 	isc_result_t result;
 	dns_dispatchset_t *dset = NULL;
 	dns_dispatch_t *d1, *d2, *d3, *d4, *d5;
+	uint32_t tid_saved;
 
 	UNUSED(arg);
 
@@ -291,10 +292,21 @@ ISC_LOOP_TEST_IMPL(dispatchset_get) {
 	result = make_dispatchset(4, &dset);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	/*
+	 * Temporarily modify and then restore the current thread's
+	 * ID value, in order to confirm that different threads get
+	 * different dispatch sets but the same thread gets the same
+	 * one.
+	 */
+	tid_saved = isc__tid_local;
 	d1 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d2 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d3 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d4 = dns_dispatchset_get(dset);
+	isc__tid_local = tid_saved;
 	d5 = dns_dispatchset_get(dset);
 
 	assert_ptr_equal(d1, d5);
