@@ -1,3 +1,11 @@
+6257.	[func]		Expose the "Refresh SOA" query state (before the XFR)
+			in the incoming zone transfers section of the
+			statistics channel and show the local and remote
+			addresses for that query. Also Improve the
+			"Duration (s)" field to show the duration of the
+			"Pending" and "Refresh SOA" states too, before the
+			actual transfer starts. [GL !8305]
+
 6256.	[func]		Expose the SOA query transport type (used before/during
 			XFR) in the incoming zone transfers section of the
 			statistics channel. [GL !8240]
