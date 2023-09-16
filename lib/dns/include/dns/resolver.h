@@ -165,9 +165,8 @@ enum {
 #define DNS_QMIN_MAX_NO_DELEGATION 3
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		    unsigned int ndisp, isc_nm_t *nm, unsigned int options,
-		    isc_tlsctx_cache_t *tlsctx_cache,
+dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
+		    unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp);
 
@@ -183,17 +182,15 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
  *
  *\li	'view' is a valid view.
  *
- *\li	'ndisp' > 0.
- *
  *\li	'nm' is a valid network manager.
  *
  *\li	'tlsctx_cache' != NULL.
  *
  *\li	'dispatchv4' is a dispatch with an IPv4 UDP socket, or is NULL.
- *	If not NULL, 'ndisp' clones of it will be created by the resolver.
+ *	If not NULL, clones per loop of it will be created by the resolver.
  *
  *\li	'dispatchv6' is a dispatch with an IPv6 UDP socket, or is NULL.
- *	If not NULL, 'ndisp' clones of it will be created by the resolver.
+ *	If not NULL, clones per loop of it will be created by the resolver.
  *
  *\li	resp != NULL && *resp == NULL.
  *

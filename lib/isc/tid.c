@@ -23,7 +23,7 @@
 /**
  * Private
  */
-thread_local uint32_t tid_local = ISC_TID_UNKNOWN;
+thread_local uint32_t isc__tid_local = ISC_TID_UNKNOWN;
 
 /*
  * Zero is a better nonsense value in this case than ISC_TID_UNKNOWN;
@@ -37,8 +37,8 @@ static uint32_t tid_count = 0;
 
 void
 isc__tid_init(uint32_t tid) {
-	REQUIRE(tid_local == ISC_TID_UNKNOWN || tid_local == tid);
-	tid_local = tid;
+	REQUIRE(isc__tid_local == ISC_TID_UNKNOWN || isc__tid_local == tid);
+	isc__tid_local = tid;
 }
 
 void

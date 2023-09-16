@@ -65,9 +65,6 @@
 
 #define NS_INTERFACEFLAG_ANYADDR   0x01U /*%< bound to "any" address */
 #define NS_INTERFACEFLAG_LISTENING 0x02U /*%< listening */
-#define MAX_UDP_DISPATCH                           \
-	128 /*%< Maximum number of UDP dispatchers \
-	     *           to start per interface */
 /*% The nameserver interface structure */
 struct ns_interface {
 	unsigned int	   magic; /*%< Magic number. */

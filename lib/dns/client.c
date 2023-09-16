@@ -215,9 +215,8 @@ createview(isc_mem_t *mctx, dns_rdataclass_t rdclass, isc_loopmgr_t *loopmgr,
 	/* Initialize view security roots */
 	dns_view_initsecroots(view);
 
-	CHECK(dns_view_createresolver(view, loopmgr, 1, nm, 0,
-				      tlsctx_client_cache, dispatchv4,
-				      dispatchv6));
+	CHECK(dns_view_createresolver(view, loopmgr, nm, 0, tlsctx_client_cache,
+				      dispatchv4, dispatchv6));
 	CHECK(dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			    rdclass, 0, NULL, &view->cachedb));
 
@@ -253,7 +252,8 @@ dns_client_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.nm = nm,
 	};
 
-	result = dns_dispatchmgr_create(mctx, nm, &client->dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, nm,
+					&client->dispatchmgr);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_client;
 	}

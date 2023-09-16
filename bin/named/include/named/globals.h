@@ -50,7 +50,6 @@
 
 EXTERN isc_mem_t *named_g_mctx		      INIT(NULL);
 EXTERN unsigned int named_g_cpus	      INIT(0);
-EXTERN unsigned int named_g_udpdisp	      INIT(0);
 EXTERN isc_loop_t *named_g_mainloop	      INIT(NULL);
 EXTERN isc_loopmgr_t *named_g_loopmgr	      INIT(NULL);
 EXTERN bool named_g_loopmgr_running	      INIT(false);

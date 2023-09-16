@@ -54,8 +54,8 @@ struct dns_requestmgr {
 	atomic_bool shuttingdown;
 
 	dns_dispatchmgr_t *dispatchmgr;
-	dns_dispatch_t *dispatchv4;
-	dns_dispatch_t *dispatchv6;
+	dns_dispatchset_t *dispatches4;
+	dns_dispatchset_t *dispatches6;
 	dns_requestlist_t *requests;
 };
 
@@ -150,10 +150,14 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr,
 	dns_dispatchmgr_attach(dispatchmgr, &requestmgr->dispatchmgr);
 
 	if (dispatchv4 != NULL) {
-		dns_dispatch_attach(dispatchv4, &requestmgr->dispatchv4);
+		dns_dispatchset_create(requestmgr->mctx, dispatchv4,
+				       &requestmgr->dispatches4,
+				       isc_loopmgr_nloops(requestmgr->loopmgr));
 	}
 	if (dispatchv6 != NULL) {
-		dns_dispatch_attach(dispatchv6, &requestmgr->dispatchv6);
+		dns_dispatchset_create(requestmgr->mctx, dispatchv6,
+				       &requestmgr->dispatches6,
+				       isc_loopmgr_nloops(requestmgr->loopmgr));
 	}
 
 	isc_refcount_init(&requestmgr->references, 1);
@@ -232,11 +236,11 @@ requestmgr_destroy(dns_requestmgr_t *requestmgr) {
 	isc_mem_cput(requestmgr->mctx, requestmgr->requests, nloops,
 		     sizeof(requestmgr->requests[0]));
 
-	if (requestmgr->dispatchv4 != NULL) {
-		dns_dispatch_detach(&requestmgr->dispatchv4);
+	if (requestmgr->dispatches4 != NULL) {
+		dns_dispatchset_destroy(&requestmgr->dispatches4);
 	}
-	if (requestmgr->dispatchv6 != NULL) {
-		dns_dispatch_detach(&requestmgr->dispatchv6);
+	if (requestmgr->dispatches6 != NULL) {
+		dns_dispatchset_destroy(&requestmgr->dispatches6);
 	}
 	if (requestmgr->dispatchmgr != NULL) {
 		dns_dispatchmgr_detach(&requestmgr->dispatchmgr);
@@ -360,11 +364,11 @@ udp_dispatch(dns_requestmgr_t *requestmgr, const isc_sockaddr_t *srcaddr,
 	if (srcaddr == NULL) {
 		switch (isc_sockaddr_pf(destaddr)) {
 		case PF_INET:
-			disp = requestmgr->dispatchv4;
+			disp = dns_dispatchset_get(requestmgr->dispatches4);
 			break;
 
 		case PF_INET6:
-			disp = requestmgr->dispatchv6;
+			disp = dns_dispatchset_get(requestmgr->dispatches6);
 			break;
 
 		default:

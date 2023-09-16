@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <sys/un.h>
 
+#include <isc/hash.h>
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>

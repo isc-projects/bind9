@@ -245,7 +245,8 @@ ISC_LOOP_TEST_IMPL(dispatchset_create) {
 
 	UNUSED(arg);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = make_dispatchset(1, &dset);
@@ -261,15 +262,17 @@ ISC_LOOP_TEST_IMPL(dispatchset_create) {
 	isc_loopmgr_shutdown(loopmgr);
 }
 
-/* test dispatch set round-robin */
+/* test dispatch set per-loop dispatch */
 ISC_LOOP_TEST_IMPL(dispatchset_get) {
 	isc_result_t result;
 	dns_dispatchset_t *dset = NULL;
 	dns_dispatch_t *d1, *d2, *d3, *d4, *d5;
+	uint32_t tid_saved;
 
 	UNUSED(arg);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = make_dispatchset(1, &dset);
@@ -291,10 +294,21 @@ ISC_LOOP_TEST_IMPL(dispatchset_get) {
 	result = make_dispatchset(4, &dset);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	/*
+	 * Temporarily modify and then restore the current thread's
+	 * ID value, in order to confirm that different threads get
+	 * different dispatch sets but the same thread gets the same
+	 * one.
+	 */
+	tid_saved = isc__tid_local;
 	d1 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d2 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d3 = dns_dispatchset_get(dset);
+	isc__tid_local++;
 	d4 = dns_dispatchset_get(dset);
+	isc__tid_local = tid_saved;
 	d5 = dns_dispatchset_get(dset);
 
 	assert_ptr_equal(d1, d5);
@@ -451,7 +465,8 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_connect) {
 	testdata.region.base = testdata.message;
 	testdata.region.length = sizeof(testdata.message);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
@@ -496,7 +511,8 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	isc_loop_teardown(isc_loop_main(loopmgr), stop_listening, sock);
 
 	/* Client */
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
@@ -530,7 +546,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	testdata.region.base = testdata.message;
 	testdata.region.length = sizeof(testdata.message);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tcp_connect_addr,
@@ -567,7 +584,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tls_response) {
 	testdata.region.base = testdata.message;
 	testdata.region.length = sizeof(testdata.message);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createtcp(dispatchmgr, &tls_connect_addr,
@@ -594,7 +612,8 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_udp_response) {
 	uint16_t id;
 
 	/* Server */
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_nm_listenudp(netmgr, ISC_NM_LISTEN_ONE, &udp_server_addr,
@@ -636,7 +655,8 @@ ISC_LOOP_TEST_IMPL(dispatch_getnext) {
 	testdata.region.base = testdata.message;
 	testdata.region.length = sizeof(testdata.message);
 
-	result = dns_dispatchmgr_create(mctx, connect_nm, &dispatchmgr);
+	result = dns_dispatchmgr_create(mctx, loopmgr, connect_nm,
+					&dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_dispatch_createudp(dispatchmgr, &udp_connect_addr,

@@ -1312,8 +1312,8 @@ get_view_querysource_dispatch(const cfg_obj_t **maps, int af,
 		isc_sockaddr_format(&sa, buf, sizeof(buf));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "could not get query source dispatcher (%s)",
-			      buf);
+			      "could not get query source dispatcher (%s): %s",
+			      buf, isc_result_totext(result));
 		return (result);
 	}
 
@@ -4033,7 +4033,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	named_cache_t *nsc;
 	bool zero_no_soattl;
 	dns_acl_t *clients = NULL, *mapped = NULL, *excluded = NULL;
-	unsigned int query_timeout, ndisp;
+	unsigned int query_timeout;
 	bool old_rpz_ok = false;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
@@ -4685,9 +4685,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		goto cleanup;
 	}
 
-	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
 	CHECK(dns_view_createresolver(
-		view, named_g_loopmgr, ndisp, named_g_netmgr, resopts,
+		view, named_g_loopmgr, named_g_netmgr, resopts,
 		named_g_server->tlsctx_client_cache, dispatch4, dispatch6));
 
 	if (resstats == NULL) {
@@ -9898,8 +9897,8 @@ run_server(void *arg) {
 	dns_zonemgr_create(named_g_mctx, named_g_loopmgr, named_g_netmgr,
 			   &server->zonemgr);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_netmgr,
-					  &named_g_dispatchmgr),
+	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, named_g_loopmgr,
+					  named_g_netmgr, &named_g_dispatchmgr),
 		   "creating dispatch manager");
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
@@ -12146,10 +12145,6 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "worker threads: %u\n", named_g_cpus);
-	CHECK(putstr(text, line));
-
-	snprintf(line, sizeof(line), "UDP listeners per interface: %u\n",
-		 named_g_udpdisp);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "number of zones: %u (%u automatic)\n",

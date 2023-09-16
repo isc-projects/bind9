@@ -798,7 +798,7 @@ create_name(const char *str, char *namedata, size_t len, dns_name_t *name) {
 }
 
 static void
-setup_system(void) {
+setup_system(void *arg ISC_ATTR_UNUSED) {
 	isc_result_t result;
 	isc_sockaddr_t bind_any, bind_any6;
 	isc_sockaddrlist_t *nslist;
@@ -919,7 +919,7 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, netmgr, &dispatchmgr);
+	result = dns_dispatchmgr_create(gmctx, loopmgr, netmgr, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
 	result = dst_lib_init(gmctx, NULL);
@@ -3475,8 +3475,7 @@ main(int argc, char **argv) {
 	timeoutms = timeout * 1000;
 	isc_nm_settimeouts(netmgr, timeoutms, timeoutms, timeoutms, timeoutms);
 
-	setup_system();
-
+	isc_loopmgr_setup(loopmgr, setup_system, NULL);
 	isc_loopmgr_setup(loopmgr, getinput, NULL);
 	isc_loopmgr_teardown(loopmgr, shutdown_program, NULL);
 	isc_loopmgr_run(loopmgr);

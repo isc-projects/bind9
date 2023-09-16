@@ -9930,9 +9930,8 @@ spillattimer_countdown(void *arg) {
 }
 
 isc_result_t
-dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
-		    unsigned int ndisp, isc_nm_t *nm, unsigned int options,
-		    isc_tlsctx_cache_t *tlsctx_cache,
+dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
+		    unsigned int options, isc_tlsctx_cache_t *tlsctx_cache,
 		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
 		    dns_resolver_t **resp) {
 	dns_resolver_t *res = NULL;
@@ -9942,7 +9941,6 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(ndisp > 0);
 	REQUIRE(resp != NULL && *resp == NULL);
 	REQUIRE(tlsctx_cache != NULL);
 	REQUIRE(dispatchv4 != NULL || dispatchv6 != NULL);
@@ -9989,12 +9987,12 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 	if (dispatchv4 != NULL) {
 		dns_dispatchset_create(res->mctx, dispatchv4, &res->dispatches4,
-				       ndisp);
+				       isc_loopmgr_nloops(res->loopmgr));
 	}
 
 	if (dispatchv6 != NULL) {
 		dns_dispatchset_create(res->mctx, dispatchv6, &res->dispatches6,
-				       ndisp);
+				       isc_loopmgr_nloops(res->loopmgr));
 	}
 
 	isc_mutex_init(&res->lock);

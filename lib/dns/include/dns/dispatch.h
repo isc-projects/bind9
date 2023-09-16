@@ -69,9 +69,7 @@ ISC_LANG_BEGINDECLS
 struct dns_dispatchset {
 	isc_mem_t	*mctx;
 	dns_dispatch_t **dispatches;
-	int		 ndisp;
-	int		 cur;
-	isc_mutex_t	 lock;
+	uint32_t	 ndisp;
 };
 
 /*
@@ -79,7 +77,8 @@ struct dns_dispatchset {
 #define DNS_DISPATCHOPT_FIXEDID 0x00000001U
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, isc_nm_t *nm, dns_dispatchmgr_t **mgrp);
+dns_dispatchmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
+		       dns_dispatchmgr_t **mgrp);
 /*%<
  * Creates a new dispatchmgr object, and sets the available ports
  * to the default range (1024-65535).
@@ -358,7 +357,7 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
 
 isc_result_t
 dns_dispatchset_create(isc_mem_t *mctx, dns_dispatch_t *source,
-		       dns_dispatchset_t **dsetp, int n);
+		       dns_dispatchset_t **dsetp, uint32_t n);
 /*%<
  * Given a valid dispatch 'source', create a dispatch set containing
  * 'n' UDP dispatches, with the remainder filled out by clones of the
