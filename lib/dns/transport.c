@@ -67,6 +67,13 @@ struct dns_transport {
 	} doh;
 };
 
+static bool
+transport_match(void *node, const void *key) {
+	dns_transport_t *transport = node;
+
+	return (dns_name_equal(transport->name, key));
+}
+
 static isc_result_t
 list_add(dns_transport_list_t *list, const dns_name_t *name,
 	 const dns_transport_type_t type, dns_transport_t *transport) {
@@ -79,8 +86,8 @@ list_add(dns_transport_list_t *list, const dns_name_t *name,
 
 	transport->name = dns_fixedname_initname(&transport->fn);
 	dns_name_copy(name, transport->name);
-	result = isc_hashmap_add(hm, NULL, transport->name->ndata,
-				 transport->name->length, transport);
+	result = isc_hashmap_add(hm, dns_name_hash(name), transport_match, name,
+				 transport, NULL);
 	RWUNLOCK(&list->lock, isc_rwlocktype_write);
 
 	return (result);
@@ -631,8 +638,8 @@ dns_transport_find(const dns_transport_type_t type, const dns_name_t *name,
 	hm = list->transports[type];
 
 	RWLOCK(&list->lock, isc_rwlocktype_read);
-	result = isc_hashmap_find(hm, NULL, name->ndata, name->length,
-				  (void **)&transport);
+	result = isc_hashmap_find(hm, dns_name_hash(name), transport_match,
+				  name, (void **)&transport);
 	if (result == ISC_R_SUCCESS) {
 		isc_refcount_increment(&transport->references);
 	}
@@ -655,8 +662,7 @@ dns_transport_list_new(isc_mem_t *mctx) {
 	list->magic = TRANSPORT_LIST_MAGIC;
 
 	for (size_t type = 0; type < DNS_TRANSPORT_COUNT; type++) {
-		isc_hashmap_create(list->mctx, 10, ISC_HASHMAP_CASE_INSENSITIVE,
-				   &list->transports[type]);
+		isc_hashmap_create(list->mctx, 10, &list->transports[type]);
 	}
 
 	return (list);

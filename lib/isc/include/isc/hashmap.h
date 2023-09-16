@@ -24,7 +24,7 @@
 typedef struct isc_hashmap	isc_hashmap_t;
 typedef struct isc_hashmap_iter isc_hashmap_iter_t;
 
-enum { ISC_HASHMAP_CASE_SENSITIVE = 0x00, ISC_HASHMAP_CASE_INSENSITIVE = 0x01 };
+typedef bool (*isc_hashmap_match_fn)(void *node, const void *key);
 
 /*%
  * Create hashmap at *hashmapp, using memory context and size of (1<<bits)
@@ -36,8 +36,7 @@ enum { ISC_HASHMAP_CASE_SENSITIVE = 0x00, ISC_HASHMAP_CASE_INSENSITIVE = 0x01 };
  *
  */
 void
-isc_hashmap_create(isc_mem_t *mctx, uint8_t bits, unsigned int options,
-		   isc_hashmap_t **hashmapp);
+isc_hashmap_create(isc_mem_t *mctx, uint8_t bits, isc_hashmap_t **hashmapp);
 
 /*%
  * Destroy hashmap, freeing everything
@@ -49,19 +48,12 @@ void
 isc_hashmap_destroy(isc_hashmap_t **hashmapp);
 
 /*%
- * Return current hashed value for 'key' of size 'keysize';
- */
-uint32_t
-isc_hashmap_hash(const isc_hashmap_t *hashmap, const void *key,
-		 uint32_t keysize);
-
-/*%
  * Add a node to hashmap, pointed by binary key 'key' of size 'keysize';
  * set its value to 'value'
  *
  * Requires:
  * \li	'hashmap' is a valid hashmap
- * \li	'hashval' is optional precomputed hash value of 'key'
+ * \li	'hashval' is a precomputed hash value of 'key'
  * \li	'key' is non-null key of size 'keysize'
  *
  * Returns:
@@ -69,8 +61,9 @@ isc_hashmap_hash(const isc_hashmap_t *hashmap, const void *key,
  * \li	#ISC_R_SUCCESS		-- all is well.
  */
 isc_result_t
-isc_hashmap_add(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
-		const void *key, uint32_t keysize, void *value);
+isc_hashmap_add(isc_hashmap_t *hashmap, const uint32_t hashval,
+		isc_hashmap_match_fn match, const void *key, void *value,
+		void **foundp);
 
 /*%
  * Find a node matching 'key'/'keysize' in hashmap 'hashmap';
@@ -80,7 +73,7 @@ isc_hashmap_add(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
  *
  * Requires:
  * \li	'hashmap' is a valid hashmap
- * \li	'hashval' is optional precomputed hash value of 'key'
+ * \li	'hashval' is a precomputed hash value of 'key'
  * \li	'key' is non-null key of size 'keysize'
  *
  * Returns:
@@ -88,24 +81,24 @@ isc_hashmap_add(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
  * \li	#ISC_R_NOTFOUND		-- key not found
  */
 isc_result_t
-isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t *hashvalp,
-		 const void *key, uint32_t keysize, void **valuep);
+isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t hashval,
+		 isc_hashmap_match_fn match, const void *key, void **valuep);
 
 /*%
  * Delete node from hashmap
  *
  * Requires:
  * \li	'hashmap' is a valid hashmap
- * \li	'hashval' is optional precomputed hash value of 'key'
- * \li	'key' is non-null key of size 'keysize'
+ * \li	'hashval' is a precomputed hash value of 'key'
+ * \li	'key' is non-null key
  *
  * Returns:
  * \li	#ISC_R_NOTFOUND		-- key not found
  * \li	#ISC_R_SUCCESS		-- all is well
  */
 isc_result_t
-isc_hashmap_delete(isc_hashmap_t *hashmap, const uint32_t *hashvalp,
-		   const void *key, uint32_t keysize);
+isc_hashmap_delete(isc_hashmap_t *hashmap, const uint32_t hashval,
+		   isc_hashmap_match_fn match, const void *key);
 
 /*%
  * Create an iterator for the hashmap; point '*itp' to it.
@@ -176,8 +169,7 @@ void
 isc_hashmap_iter_current(isc_hashmap_iter_t *it, void **valuep);
 
 /*%
- * Set 'key' and 'keysize to the current key and keysize for the value
- * under the iterator
+ * Set 'key' to the current key for the value under the iterator
  *
  * Requires:
  * \li	'it' is non NULL.
@@ -185,8 +177,7 @@ isc_hashmap_iter_current(isc_hashmap_iter_t *it, void **valuep);
  * \li	'keysize' is non NULL.
  */
 void
-isc_hashmap_iter_currentkey(isc_hashmap_iter_t *it, const unsigned char **key,
-			    size_t *keysize);
+isc_hashmap_iter_currentkey(isc_hashmap_iter_t *it, const unsigned char **key);
 
 /*%
  * Returns the number of items in the hashmap.
