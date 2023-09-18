@@ -240,4 +240,4 @@ $(TESTS): legacy.run.sh
 test-local: check
 
 clean-local::
-	-find $(builddir) -maxdepth 1 -type d -name "*_*" | xargs rm -rf
+	-find -L . -mindepth 1 -maxdepth 1 -type d -name "*_*" -and -not -name "_common" -exec rm -rf {} \;
