@@ -41,7 +41,7 @@ parental-agents "ns2" port @PORT@ {
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 /*

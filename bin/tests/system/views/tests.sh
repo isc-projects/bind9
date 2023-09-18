@@ -24,7 +24,7 @@ dig_with_shortopts() {
 	"$DIG" +tcp +short -p "${PORT}" "$@"
 }
 
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 

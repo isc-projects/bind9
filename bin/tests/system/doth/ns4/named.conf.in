@@ -18,7 +18,7 @@
 # startup/reconfiguration was known to cause timeout issues in the CI
 # system, where many tests run in parallel.
 
-include "../../common/rndc.key";
+include "../../_common/rndc.key";
 
 controls {
 	inet 10.53.0.4 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
@@ -56,7 +56,7 @@ options {
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 tls tls-v1.2-pfs {

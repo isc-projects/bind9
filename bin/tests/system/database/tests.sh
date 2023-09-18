@@ -21,7 +21,7 @@ n=0
 rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
-RNDCCMD="$RNDC -s 10.53.0.1 -p ${CONTROLPORT} -c ../common/rndc.conf"
+RNDCCMD="$RNDC -s 10.53.0.1 -p ${CONTROLPORT} -c ../_common/rndc.conf"
 
 # Check the example. domain
 

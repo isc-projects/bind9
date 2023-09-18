@@ -14,16 +14,18 @@ Introduction
 This directory holds a simple test environment for running bind9 system tests
 involving multiple name servers.
 
-With the exception of "common" (which holds configuration information common to
-multiple tests), each directory holds a set of scripts and configuration
-files to test different parts of BIND.  The directories are named for the
-aspect of BIND they test, for example:
+Each system test directory holds a set of scripts and configuration files to
+test different parts of BIND.  The directories are named for the aspect of BIND
+they test, for example:
 
   dnssec/       DNSSEC tests
   forward/      Forwarding tests
   glue/         Glue handling tests
 
 etc.
+
+A system test directory must start with an alphabetic character and may not
+contain any special characters. Only hyphen may be used as a word separator.
 
 Typically each set of tests sets up 2-5 name servers and then performs one or
 more tests against them.  Within the test subdirectory, each name server has a

@@ -159,7 +159,7 @@ _dig_with_opts() {
 
 # RNDC.
 _rndccmd() {
-	"$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+	"$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 # Print IDs of keys used for generating RRSIG records for RRsets of type $1

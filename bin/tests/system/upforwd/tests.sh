@@ -20,7 +20,7 @@ set -e
 . ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../_common/rndc.conf"
 
 status=0
 n=1

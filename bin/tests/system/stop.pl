@@ -189,7 +189,7 @@ sub stop_rndc {
 	my $how = $halt ? "halt" : "stop";
 
 	# Ugly, but should work.
-	system("$RNDC -c ../common/rndc.conf -s $ip -p $port $how | sed 's/^/I:$test:$server /'");
+	system("$RNDC -c ../_common/rndc.conf -s $ip -p $port $how | sed 's/^/I:$test:$server /'");
 	return;
 }
 

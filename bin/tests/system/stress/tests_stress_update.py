@@ -24,7 +24,7 @@ def rndc_loop(test_state, server):
     cmdline = [
         rndc,
         "-c",
-        "../common/rndc.conf",
+        "../_common/rndc.conf",
         "-p",
         port,
         "-s",

@@ -18,7 +18,7 @@ set -e
 status=0
 n=0
 
-RNDCOPTS="-c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"
+RNDCOPTS="-c ../_common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"
 DIGOPTS="+nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm \
          +nostat @10.53.0.2 -p ${PORT}"
 

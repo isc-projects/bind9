@@ -16,7 +16,7 @@
 # shellcheck source=conf.sh
 . ../conf.sh
 
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 set -e
 

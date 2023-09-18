@@ -19,7 +19,7 @@ n=0
 status=0
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 getcookie() {
 	awk '$2 == "COOKIE:" {

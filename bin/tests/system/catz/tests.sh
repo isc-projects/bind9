@@ -21,7 +21,7 @@ dig_with_opts() {
 }
 
 rndccmd() (
-	"$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
+	"$RNDC" -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 )
 
 _wait_for_message() (
@@ -662,7 +662,7 @@ echo_i "reconfiguring secondary - checking if catz survives a certain class of f
 ret=0
 sed -e "s/^#T3//" < ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -689,7 +689,7 @@ echo_i "reconfiguring secondary - checking if catz survives another type of fail
 ret=0
 sed -e "s/^#T4//" < ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
@@ -1746,7 +1746,7 @@ echo_i "reconfiguring secondary - removing catalog4 catalog zone, adding non-exi
 ret=0
 sed -e "s/^#T2//" < ns2/named1.conf.in > ns2/named.conf.tmp
 copy_setports ns2/named.conf.tmp ns2/named.conf
-$RNDC -c ../common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p "${CONTROLPORT}" reconfig > /dev/null 2>&1 && ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
