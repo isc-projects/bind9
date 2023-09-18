@@ -187,17 +187,15 @@ isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size) {
 	}
 }
 
-uint32_t
-isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, bool address_only) {
+void
+isc_sockaddr_hash_ex(isc_hash32_t *hash, const isc_sockaddr_t *sockaddr,
+		     bool address_only) {
 	REQUIRE(sockaddr != NULL);
 
 	size_t len = 0;
 	const uint8_t *s = NULL;
 	unsigned int p = 0;
 	const struct in6_addr *in6;
-	isc_hash32_t hash;
-
-	isc_hash32_init(&hash);
 
 	switch (sockaddr->type.sa.sa_family) {
 	case AF_INET:
@@ -224,10 +222,19 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, bool address_only) {
 		UNREACHABLE();
 	}
 
-	isc_hash32_hash(&hash, s, len, true);
+	isc_hash32_hash(hash, s, len, true);
 	if (!address_only) {
-		isc_hash32_hash(&hash, &p, sizeof(p), true);
+		isc_hash32_hash(hash, &p, sizeof(p), true);
 	}
+}
+
+uint32_t
+isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, bool address_only) {
+	isc_hash32_t hash;
+
+	isc_hash32_init(&hash);
+
+	isc_sockaddr_hash_ex(&hash, sockaddr, address_only);
 
 	return (isc_hash32_finalize(&hash));
 }
