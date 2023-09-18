@@ -377,6 +377,14 @@ if [ -x "${DELV}" ] ; then
    status=$((status+ret))
 fi
 
+echo_i "checking RRSIG covered type in negative cache entry ($n)"
+ret=0
+rndc_dumpdb ns4
+grep -F '; example. RRSIG NSEC ...' ns4/named_dump.db.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking negative validation NXDOMAIN NSEC3 ($n)"
 ret=0
 dig_with_opts +noauth q.nsec3.example. \
