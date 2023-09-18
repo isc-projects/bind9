@@ -67,7 +67,7 @@ comment () {
 }
 
 DNSRPSCMD=./dnsrps
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 if test -x "$DNSRPSCMD"; then
     WAIT_CMD="$DNSRPSCMD -w 0.1"

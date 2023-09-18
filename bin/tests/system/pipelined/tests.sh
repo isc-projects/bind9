@@ -20,7 +20,7 @@ mdig_with_opts() {
 }
 
 rndccmd() {
-	"$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "${@}"
+	"$RNDC" -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "${@}"
 }
 
 pipequeries() {

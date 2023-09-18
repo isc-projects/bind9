@@ -59,7 +59,7 @@ acl check2 { !key two; 10.53.0.2; };
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 zone "example" {

@@ -16,7 +16,7 @@ set -e
 . ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC  -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"
+RNDCCMD="$RNDC  -c ../_common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT}"
 
 n=0
 status=0

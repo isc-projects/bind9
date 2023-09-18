@@ -22,8 +22,8 @@ n=0
 
 ns3_reset() {
 	copy_setports $1 ns3/named.conf
-	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns3 /'
-	$RNDC -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush | sed 's/^/I:ns3 /'
+	$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns3 /'
+	$RNDC -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush | sed 's/^/I:ns3 /'
 }
 
 ns3_sends_aaaa_queries() {

@@ -19,7 +19,7 @@ status=0
 n=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 # convert private-type records to readable form
 # $1 is the zone

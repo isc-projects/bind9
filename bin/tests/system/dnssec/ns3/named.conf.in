@@ -75,7 +75,7 @@ dnssec-policy "autonsec3" {
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 zone "example" {

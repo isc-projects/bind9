@@ -16,7 +16,7 @@ set -e
 . ../conf.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 check_zonestatus() (
     $RNDCCMD "10.53.0.$1" zonestatus -redirect > "zonestatus.out.ns$1.$n" &&
