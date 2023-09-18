@@ -29,3 +29,4 @@ parallel.mk
 /*_*
 !/*_*.py
 !/*_*.sh
+!/_common
