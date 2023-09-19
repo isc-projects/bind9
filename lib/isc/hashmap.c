@@ -87,11 +87,13 @@ struct isc_hashmap {
 	isc_mem_t *mctx;
 	size_t count;
 	hashmap_table_t tables[HASHMAP_NUM_TABLES];
+	uint_fast32_t iterators;
 };
 
 struct isc_hashmap_iter {
 	isc_hashmap_t *hashmap;
 	size_t i;
+	size_t size;
 	uint8_t hindex;
 	hashmap_node_t *cur;
 };
@@ -305,11 +307,12 @@ isc_hashmap_find(const isc_hashmap_t *hashmap, const uint32_t hashval,
 	return (ISC_R_SUCCESS);
 }
 
-static void
+static bool
 hashmap_delete_node(isc_hashmap_t *hashmap, hashmap_node_t *entry,
 		    uint32_t hashval, uint32_t psl, const uint8_t idx) {
 	uint32_t pos;
 	uint32_t hash;
+	bool last = false;
 
 	hashmap->count--;
 
@@ -328,12 +331,17 @@ hashmap_delete_node(isc_hashmap_t *hashmap, hashmap_node_t *entry,
 			break;
 		}
 
+		if (pos == 0) {
+			last = true;
+		}
+
 		node->psl--;
 		*entry = *node;
 		entry = &hashmap->tables[idx].table[pos];
 	}
 
 	*entry = (hashmap_node_t){ 0 };
+	return (last);
 }
 
 static void
@@ -342,6 +350,9 @@ hashmap_rehash_one(isc_hashmap_t *hashmap) {
 	uint32_t oldsize = hashmap->tables[oldidx].size;
 	hashmap_node_t *oldtable = hashmap->tables[oldidx].table;
 	hashmap_node_t node;
+
+	/* Don't rehash when iterating */
+	INSIST(hashmap->iterators == 0);
 
 	/* Find first non-empty node */
 	while (hashmap->hiter < oldsize && oldtable[hashmap->hiter].key == NULL)
@@ -360,8 +371,8 @@ hashmap_rehash_one(isc_hashmap_t *hashmap) {
 	/* Move the first non-empty node from old table to new table */
 	node = oldtable[hashmap->hiter];
 
-	hashmap_delete_node(hashmap, &oldtable[hashmap->hiter], node.hashval,
-			    node.psl, oldidx);
+	(void)hashmap_delete_node(hashmap, &oldtable[hashmap->hiter],
+				  node.hashval, node.psl, oldidx);
 
 	isc_result_t result = hashmap_add(hashmap, node.hashval, NULL, node.key,
 					  node.value, NULL, hashmap->hindex);
@@ -458,7 +469,7 @@ isc_hashmap_delete(isc_hashmap_t *hashmap, const uint32_t hashval,
 	node = hashmap_find(hashmap, hashval, match, key, &psl, &idx);
 	if (node != NULL) {
 		INSIST(node->key != NULL);
-		hashmap_delete_node(hashmap, node, hashval, psl, idx);
+		(void)hashmap_delete_node(hashmap, node, hashval, psl, idx);
 		result = ISC_R_SUCCESS;
 	}
 
@@ -494,6 +505,8 @@ hashmap_add(isc_hashmap_t *hashmap, const uint32_t hashval,
 	hashmap_node_t node;
 	hashmap_node_t *current = NULL;
 	uint32_t pos;
+
+	INSIST(hashmap->iterators == 0);
 
 	hash = isc_hash_bits32(hashval, hashmap->tables[idx].hashbits);
 
@@ -592,6 +605,8 @@ isc_hashmap_iter_create(isc_hashmap_t *hashmap, isc_hashmap_iter_t **iterp) {
 		.hindex = hashmap->hindex,
 	};
 
+	hashmap->iterators++;
+
 	*iterp = iter;
 }
 
@@ -606,19 +621,22 @@ isc_hashmap_iter_destroy(isc_hashmap_iter_t **iterp) {
 	*iterp = NULL;
 	hashmap = iter->hashmap;
 	isc_mem_put(hashmap->mctx, iter, sizeof(*iter));
+
+	INSIST(hashmap->iterators > 0);
+	hashmap->iterators--;
 }
 
 static isc_result_t
 isc__hashmap_iter_next(isc_hashmap_iter_t *iter) {
 	isc_hashmap_t *hashmap = iter->hashmap;
 
-	while (iter->i < hashmap->tables[iter->hindex].size &&
+	while (iter->i < iter->size &&
 	       hashmap->tables[iter->hindex].table[iter->i].key == NULL)
 	{
 		iter->i++;
 	}
 
-	if (iter->i < hashmap->tables[iter->hindex].size) {
+	if (iter->i < iter->size) {
 		iter->cur = &hashmap->tables[iter->hindex].table[iter->i];
 
 		return (ISC_R_SUCCESS);
@@ -627,6 +645,7 @@ isc__hashmap_iter_next(isc_hashmap_iter_t *iter) {
 	if (try_nexttable(hashmap, iter->hindex)) {
 		iter->hindex = hashmap_nexttable(iter->hindex);
 		iter->i = 0;
+		iter->size = hashmap->tables[iter->hindex].size;
 		return (isc__hashmap_iter_next(iter));
 	}
 
@@ -639,6 +658,7 @@ isc_hashmap_iter_first(isc_hashmap_iter_t *iter) {
 
 	iter->hindex = iter->hashmap->hindex;
 	iter->i = 0;
+	iter->size = iter->hashmap->tables[iter->hashmap->hindex].size;
 
 	return (isc__hashmap_iter_next(iter));
 }
@@ -661,8 +681,16 @@ isc_hashmap_iter_delcurrent_next(isc_hashmap_iter_t *iter) {
 	hashmap_node_t *node =
 		&iter->hashmap->tables[iter->hindex].table[iter->i];
 
-	hashmap_delete_node(iter->hashmap, node, node->hashval, node->psl,
-			    iter->hindex);
+	if (hashmap_delete_node(iter->hashmap, node, node->hashval, node->psl,
+				iter->hindex))
+	{
+		/*
+		 * We have seen the new last element so reduce the size
+		 * so we don't iterate over it twice.
+		 */
+		INSIST(iter->size != 0);
+		iter->size--;
+	}
 
 	return (isc__hashmap_iter_next(iter));
 }

@@ -1,3 +1,6 @@
+6251.	[bug]		Interating a hashmap could return the same element
+			twice. [GL #3422]
+
 6250.	[bug]		The wrong covered value was being set by
 			dns_ncache_current for RRSIG records in the returned
 			rdataset structure. This resulted in TYPE0 being
