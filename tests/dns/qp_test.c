@@ -199,12 +199,20 @@ const dns_qpmethods_t qpiter_methods = {
 ISC_RUN_TEST_IMPL(qpiter) {
 	dns_qp_t *qp = NULL;
 	uint32_t item[ITER_ITEMS] = { 0 };
+	uint32_t order[ITER_ITEMS] = { 0 };
+	dns_qpiter_t qpi;
+	int inserted, n;
+	uint32_t ival;
+	void *pval = NULL;
 
 	dns_qp_create(mctx, &qpiter_methods, item, &qp);
 	for (size_t tests = 0; tests < 1234; tests++) {
-		uint32_t ival = isc_random_uniform(ITER_ITEMS - 1) + 1;
-		void *pval = &item[ival];
+		ival = isc_random_uniform(ITER_ITEMS - 1) + 1;
+		pval = &item[ival];
+
 		item[ival] = ival;
+
+		inserted = n = 0;
 
 		/* randomly insert or remove */
 		dns_qpkey_t key;
@@ -220,12 +228,14 @@ ISC_RUN_TEST_IMPL(qpiter) {
 
 		/* check that we see only valid items in the correct order */
 		uint32_t prev = 0;
-		dns_qpiter_t qpi;
 		dns_qpiter_init(qp, &qpi);
-		while (dns_qpiter_next(&qpi, &pval, &ival) == ISC_R_SUCCESS) {
+		while (dns_qpiter_next(&qpi, NULL, &pval, &ival) ==
+		       ISC_R_SUCCESS)
+		{
 			assert_in_range(ival, prev + 1, ITER_ITEMS - 1);
 			assert_int_equal(ival, item[ival]);
 			assert_ptr_equal(pval, &item[ival]);
+			order[inserted++] = ival;
 			item[ival] = ~ival;
 			prev = ival;
 		}
@@ -237,7 +247,62 @@ ISC_RUN_TEST_IMPL(qpiter) {
 				item[ival] = ival;
 			}
 		}
+
+		/* now iterate backward and check correctness */
+		n = inserted;
+		while (dns_qpiter_prev(&qpi, NULL, NULL, &ival) ==
+		       ISC_R_SUCCESS)
+		{
+			assert_int_equal(ival, order[--n]);
+		}
+		assert_int_equal(n, 0);
+
+		/* ...and forward again */
+		while (dns_qpiter_next(&qpi, NULL, NULL, &ival) ==
+		       ISC_R_SUCCESS)
+		{
+			assert_int_equal(ival, order[n++]);
+		}
+
+		assert_int_equal(n, inserted);
+
+		/*
+		 * if there are enough items inserted, try going
+		 * forward a few steps, then back to the start,
+		 * to confirm we can change directions while iterating.
+		 */
+		if (tests > 3) {
+			assert_int_equal(
+				dns_qpiter_next(&qpi, NULL, NULL, &ival),
+				ISC_R_SUCCESS);
+			assert_int_equal(ival, order[0]);
+
+			assert_int_equal(
+				dns_qpiter_next(&qpi, NULL, NULL, &ival),
+				ISC_R_SUCCESS);
+			assert_int_equal(ival, order[1]);
+
+			assert_int_equal(
+				dns_qpiter_prev(&qpi, NULL, NULL, &ival),
+				ISC_R_SUCCESS);
+			assert_int_equal(ival, order[0]);
+
+			assert_int_equal(
+				dns_qpiter_next(&qpi, NULL, NULL, &ival),
+				ISC_R_SUCCESS);
+			assert_int_equal(ival, order[1]);
+
+			assert_int_equal(
+				dns_qpiter_prev(&qpi, NULL, NULL, &ival),
+				ISC_R_SUCCESS);
+			assert_int_equal(ival, order[0]);
+
+			assert_int_equal(
+				dns_qpiter_prev(&qpi, NULL, NULL, &ival),
+				ISC_R_NOMORE);
+		}
 	}
+
 	dns_qp_destroy(&qp);
 }
 

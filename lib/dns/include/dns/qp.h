@@ -191,10 +191,7 @@ typedef struct dns_qpiter {
 	unsigned int	magic;
 	dns_qpreader_t *qp;
 	uint16_t	sp;
-	struct __attribute__((__packed__)) {
-		uint32_t ref;
-		uint8_t	 more;
-	} stack[DNS_QP_MAXKEY];
+	void	       *stack[DNS_QP_MAXKEY];
 } dns_qpiter_t;
 
 /*%
@@ -595,12 +592,17 @@ dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi);
  */
 
 isc_result_t
-dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
+dns_qpiter_next(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r);
+isc_result_t
+dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r);
 /*%<
- * Get the next leaf object of a trie in lexicographic order of its keys.
+ * Iterate forward/backward through a QP trie in lexicographic order.
  *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
- * are not null, unless the return value is ISC_R_NOMORE.
+ * are not null, unless the return value is ISC_R_NOMORE. Similarly,
+ * if `name` is not null, it is updated to contain the node name.
  *
  * NOTE: see the safety note under `dns_qpiter_init()`.
  *
@@ -610,7 +612,7 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
  *	void *pval;
  *	uint32_t ival;
  *	dns_qpiter_init(qp, &qpi);
- *	while (dns_qpiter_next(&qpi, &pval, &ival)) {
+ *	while (dns_qpiter_next(&qpi, &pval, &ival) == ISC_R_SUCCESS) {
  *		// do something with pval and ival
  *	}
  *

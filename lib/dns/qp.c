@@ -1609,9 +1609,10 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 	n = ref_ptr(qp, qp->root_ref);
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
+		qp_ref_t ref = branch_twigs_ref(n);
 		bit = branch_keybit(n, new_key, new_keylen);
 		pos = branch_has_twig(n, bit) ? branch_twig_pos(n, bit) : 0;
-		n = branch_twigs(qp, n) + pos;
+		n = ref_ptr(qp, ref + pos);
 	}
 
 	/* do the keys differ, and if so, where? */
@@ -1835,58 +1836,130 @@ dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(qpi != NULL);
-	qpi->magic = QPITER_MAGIC;
-	qpi->qp = qp;
-	qpi->sp = 0;
-	qpi->stack[qpi->sp].ref = qp->root_ref;
-	qpi->stack[qpi->sp].more = 0;
+	*qpi = (dns_qpiter_t){
+		.qp = qp,
+		.magic = QPITER_MAGIC,
+	};
 }
 
 /*
+ * are we at the last twig in this branch (in whichever direction
+ * we're iterating)?
+ */
+static bool
+last_twig(dns_qpiter_t *qpi, bool forward) {
+	qp_weight_t pos = 0, max = 0;
+	if (qpi->sp > 0) {
+		qp_node_t *child = qpi->stack[qpi->sp];
+		qp_node_t *parent = qpi->stack[qpi->sp - 1];
+		pos = child - ref_ptr(qpi->qp, branch_twigs_ref(parent));
+		if (forward) {
+			max = branch_twigs_size(parent) - 1;
+		}
+	}
+	return (pos == max);
+}
+
+/*
+ * move a QP iterator forward or back to the next or previous leaf.
  * note: this function can go wrong when the iterator refers to
  * a mutable view of the trie which is altered while iterating
  */
-isc_result_t
-dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r) {
+static isc_result_t
+iterate(bool forward, dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+	uint32_t *ival_r) {
+	qp_node_t *node = NULL;
+	bool initial_branch = true;
+
 	REQUIRE(QPITER_VALID(qpi));
-	REQUIRE(QP_VALID(qpi->qp));
 
 	dns_qpreader_t *qp = qpi->qp;
 
-	if (qpi->stack[qpi->sp].ref == INVALID_REF) {
-		INSIST(qpi->sp == 0);
-		qpi->magic = 0;
+	REQUIRE(QP_VALID(qp));
+
+	node = get_root(qp);
+	if (node == NULL) {
 		return (ISC_R_NOMORE);
 	}
 
-	/* push branch nodes onto the stack until we reach a leaf */
-	for (;;) {
-		qp_node_t *n = ref_ptr(qp, qpi->stack[qpi->sp].ref);
-		if (node_tag(n) == LEAF_TAG) {
-			SET_IF_NOT_NULL(pval_r, leaf_pval(n));
-			SET_IF_NOT_NULL(ival_r, leaf_ival(n));
-			break;
+	do {
+		if (qpi->stack[qpi->sp] == NULL) {
+			/* newly initialized iterator: use the root node */
+			INSIST(qpi->sp == 0);
+			qpi->stack[0] = node;
+		} else if (!initial_branch) {
+			/*
+			 * in a prior loop, we reached a branch; from
+			 * here we just need to get the highest or lowest
+			 * leaf in the subtree; we don't need to bother
+			 * stepping forward or backward through twigs
+			 * anymore.
+			 */
+			INSIST(qpi->sp > 0);
+		} else if (last_twig(qpi, forward)) {
+			/*
+			 * we've stepped to the end (or the beginning,
+			 * if we're iterating backwards) of a set of twigs.
+			 */
+			if (qpi->sp == 0) {
+				/*
+				 * we've finished iterating. reinitialize
+				 * the iterator, then return ISC_R_NOMORE.
+				 */
+				dns_qpiter_init(qpi->qp, qpi);
+				return (ISC_R_NOMORE);
+			}
+
+			/*
+			 * pop the stack, and resume at the parent branch.
+			 */
+			qpi->stack[qpi->sp] = NULL;
+			qpi->sp--;
+			continue;
+		} else {
+			/*
+			 * there are more twigs in the current branch,
+			 * so step the node pointer forward (or back).
+			 */
+			node = qpi->stack[qpi->sp];
+			node += (forward ? 1 : -1);
+			qpi->stack[qpi->sp] = node;
 		}
-		qpi->sp++;
-		INSIST(qpi->sp < DNS_QP_MAXKEY);
-		qpi->stack[qpi->sp].ref = branch_twigs_ref(n);
-		qpi->stack[qpi->sp].more = branch_twigs_size(n) - 1;
-	}
 
-	/* pop the stack until we find a twig with a successor */
-	while (qpi->sp > 0 && qpi->stack[qpi->sp].more == 0) {
-		qpi->sp--;
-	}
+		/*
+		 * if we're at a branch now, push its first (or last) twig
+		 * onto the stack and loop again.
+		 */
+		if (is_branch(node)) {
+			qpi->sp++;
+			INSIST(qpi->sp < DNS_QP_MAXKEY);
 
-	/* move across to the next twig */
-	if (qpi->stack[qpi->sp].more > 0) {
-		qpi->stack[qpi->sp].more--;
-		qpi->stack[qpi->sp].ref++;
-	} else {
-		INSIST(qpi->sp == 0);
-		qpi->stack[qpi->sp].ref = INVALID_REF;
-	}
+			qp_node_t *twigs = ref_ptr(qp, branch_twigs_ref(node));
+			if (!forward) {
+				twigs += branch_twigs_size(node) - 1;
+			}
+			node = qpi->stack[qpi->sp] = twigs;
+			initial_branch = false;
+		}
+	} while (is_branch(node));
+
+	/* we're at a leaf: return its data to the caller */
+	SET_IF_NOT_NULL(pval_r, leaf_pval(node));
+	SET_IF_NOT_NULL(ival_r, leaf_ival(node));
+	maybe_set_name(qpi->qp, node, name);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_qpiter_next(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r) {
+	return (iterate(true, qpi, name, pval_r, ival_r));
+}
+
+isc_result_t
+dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r) {
+	return (iterate(false, qpi, name, pval_r, ival_r));
 }
 
 /***********************************************************************
@@ -1992,9 +2065,9 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
 
-		qp_node_t *twigs = branch_twigs(qp, n);
 		offset = branch_key_offset(n);
 		qp_shift_t bit = qpkey_bit(search, searchlen, offset);
+		qp_node_t *twigs = branch_twigs(qp, n);
 
 		/*
 		 * A shorter key that can be a parent domain always has a
@@ -2007,11 +2080,12 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 		 * `qpkey_bit()` will return SHIFT_NOBYTE, which is what we
 		 * want when `off == 0`.
 		 *
-		 * Note 2: Any SHIFT_NOBYTE twig is always `twigs[0]`.
+		 * Note 2: If SHIFT_NOBYTE twig is present, it will always
+		 * be in position 0, the first localtion in 'twigs'.
 		 */
 		if (bit != SHIFT_NOBYTE && branch_has_twig(n, SHIFT_NOBYTE) &&
 		    qpkey_bit(search, searchlen, offset - 1) == SHIFT_NOBYTE &&
-		    !is_branch(&twigs[0]))
+		    !is_branch(twigs))
 		{
 			add_link(chain, twigs, offset);
 		}
@@ -2022,10 +2096,11 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 			/*
 			 * the twig we're looking for isn't here,
 			 * and we haven't found an ancestor yet either.
-			 * continue the search with whatever this branch's
+			 * but we need to end the loop at a leaf, so
+			 * continue down from whatever this branch's
 			 * first twig is.
 			 */
-			n = &twigs[0];
+			n = twigs;
 		} else {
 			/*
 			 * this branch is a dead end, but we do have

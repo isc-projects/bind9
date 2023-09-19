@@ -516,7 +516,7 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	dns_qpmulti_query(zt->multi, &qpr);
 	dns_qpiter_init(&qpr, &qpi);
 
-	while (dns_qpiter_next(&qpi, &zone, NULL) == ISC_R_SUCCESS) {
+	while (dns_qpiter_next(&qpi, NULL, &zone, NULL) == ISC_R_SUCCESS) {
 		result = action(zone, uap);
 		if (tresult == ISC_R_SUCCESS) {
 			tresult = result;
