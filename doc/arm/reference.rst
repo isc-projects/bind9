@@ -7609,9 +7609,8 @@ Incoming Zone Transfers
 	     An answer for the SOA query from the previous step is
 	     received, initiating a transfer.
 
-         ``Initial SOA``
-	     Waiting for the transfer to start, which is expected
-	     to begin with an initial SOA record. The ``Duration`` timer
+         ``Zone Transfer Request``
+	     Waiting for the zone transfer to start. The ``Duration (s)`` timer
 	     restarts before entering this state.
 
          ``First Data``
