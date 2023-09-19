@@ -222,10 +222,11 @@ test_hashmap_iterator(void) {
 	isc_result_t result;
 	isc_hashmap_iter_t *iter = NULL;
 	size_t count = 7600;
-	uint32_t walked;
 	test_node_t *nodes;
+	bool *seen;
 
 	nodes = isc_mem_cget(mctx, count, sizeof(nodes[0]));
+	seen = isc_mem_cget(mctx, count, sizeof(seen[0]));
 
 	isc_hashmap_create(mctx, HASHMAP_MIN_BITS, &hashmap);
 	assert_non_null(hashmap);
@@ -248,7 +249,7 @@ test_hashmap_iterator(void) {
 	/* We want to iterate while rehashing is in progress */
 	assert_true(rehashing_in_progress(hashmap));
 
-	walked = 0;
+	memset(seen, 0, count * sizeof(seen[0]));
 	isc_hashmap_iter_create(hashmap, &iter);
 
 	for (result = isc_hashmap_iter_first(iter); result == ISC_R_SUCCESS;
@@ -269,13 +270,16 @@ test_hashmap_iterator(void) {
 
 		assert_memory_equal(key, tkey, 16);
 
-		walked++;
+		assert_false(seen[i]);
+		seen[i] = true;
 	}
-	assert_int_equal(walked, count);
 	assert_int_equal(result, ISC_R_NOMORE);
+	for (size_t i = 0; i < count; i++) {
+		assert_true(seen[i]);
+	}
 
 	/* erase odd */
-	walked = 0;
+	memset(seen, 0, count * sizeof(seen[0]));
 	result = isc_hashmap_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		char key[16] = { 0 };
@@ -296,13 +300,17 @@ test_hashmap_iterator(void) {
 		} else {
 			result = isc_hashmap_iter_next(iter);
 		}
-		walked++;
+
+		assert_false(seen[i]);
+		seen[i] = true;
 	}
 	assert_int_equal(result, ISC_R_NOMORE);
-	assert_int_equal(walked, count);
+	for (size_t i = 0; i < count; i++) {
+		assert_true(seen[i]);
+	}
 
 	/* erase even */
-	walked = 0;
+	memset(seen, 0, count * sizeof(seen[0]));
 	result = isc_hashmap_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
 		char key[16] = { 0 };
@@ -323,20 +331,15 @@ test_hashmap_iterator(void) {
 		} else {
 			result = isc_hashmap_iter_next(iter);
 		}
-		walked++;
 	}
 	assert_int_equal(result, ISC_R_NOMORE);
-	assert_int_equal(walked, count / 2);
 
-	walked = 0;
 	for (result = isc_hashmap_iter_first(iter); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(iter))
 	{
-		walked++;
+		assert_true(false);
 	}
-
 	assert_int_equal(result, ISC_R_NOMORE);
-	assert_int_equal(walked, 0);
 
 	/* Iterator doesn't progress rehashing */
 	assert_true(rehashing_in_progress(hashmap));
@@ -347,6 +350,7 @@ test_hashmap_iterator(void) {
 	isc_hashmap_destroy(&hashmap);
 	assert_null(hashmap);
 
+	isc_mem_cput(mctx, seen, count, sizeof(seen[0]));
 	isc_mem_cput(mctx, nodes, count, sizeof(nodes[0]));
 }
 
