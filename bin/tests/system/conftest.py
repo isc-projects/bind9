@@ -63,7 +63,7 @@ PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
 CONFTEST_LOGGER = logging.getLogger("conftest")
 SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
 SYSTEM_TEST_NAME_RE = re.compile(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
-SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_sh(?=_))?(.*)\.py")
+SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_.*)\.py")
 
 # ---------------------- Module initialization ---------------------------
 
@@ -419,7 +419,7 @@ def system_test_dir(
     shutil.copytree(system_test_root / system_test_name, testdir)
 
     # Create a convenience symlink with a stable and predictable name
-    module_name = SYMLINK_REPLACEMENT_RE.sub(r"\2", request.node.name)
+    module_name = SYMLINK_REPLACEMENT_RE.sub(r"\1", request.node.name)
     symlink_dst = system_test_root / module_name
     unlink(symlink_dst)
     symlink_dst.symlink_to(os.path.relpath(testdir, start=system_test_root))
