@@ -32,6 +32,13 @@ Removed Features
 
 - None.
 
+- Configuring control channel to use Unix Domain Socket has an fatal error since
+  BIND 9.18.  Completely remove the feature and make ``named-checkconf`` also
+  report this as an error in the configuration. :gl:`#4311`
+
+  The support for control channel over Unix Domain Sockets has been
+  non-functional since BIND 9.18
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

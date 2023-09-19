@@ -553,8 +553,6 @@ init_desc(void) {
 	SET_SOCKSTATDESC(udp6open, "UDP/IPv6 sockets opened", "UDP6Open");
 	SET_SOCKSTATDESC(tcp4open, "TCP/IPv4 sockets opened", "TCP4Open");
 	SET_SOCKSTATDESC(tcp6open, "TCP/IPv6 sockets opened", "TCP6Open");
-	SET_SOCKSTATDESC(unixopen, "Unix domain sockets opened", "UnixOpen");
-	SET_SOCKSTATDESC(rawopen, "Raw sockets opened", "RawOpen");
 	SET_SOCKSTATDESC(udp4openfail, "UDP/IPv4 socket open failures",
 			 "UDP4OpenFail");
 	SET_SOCKSTATDESC(udp6openfail, "UDP/IPv6 socket open failures",
@@ -563,18 +561,10 @@ init_desc(void) {
 			 "TCP4OpenFail");
 	SET_SOCKSTATDESC(tcp6openfail, "TCP/IPv6 socket open failures",
 			 "TCP6OpenFail");
-	SET_SOCKSTATDESC(unixopenfail, "Unix domain socket open failures",
-			 "UnixOpenFail");
-	SET_SOCKSTATDESC(rawopenfail, "Raw socket open failures",
-			 "RawOpenFail");
 	SET_SOCKSTATDESC(udp4close, "UDP/IPv4 sockets closed", "UDP4Close");
 	SET_SOCKSTATDESC(udp6close, "UDP/IPv6 sockets closed", "UDP6Close");
 	SET_SOCKSTATDESC(tcp4close, "TCP/IPv4 sockets closed", "TCP4Close");
 	SET_SOCKSTATDESC(tcp6close, "TCP/IPv6 sockets closed", "TCP6Close");
-	SET_SOCKSTATDESC(unixclose, "Unix domain sockets closed", "UnixClose");
-	SET_SOCKSTATDESC(fdwatchclose, "FDwatch sockets closed",
-			 "FDWatchClose");
-	SET_SOCKSTATDESC(rawclose, "Raw sockets closed", "RawClose");
 	SET_SOCKSTATDESC(udp4bindfail, "UDP/IPv4 socket bind failures",
 			 "UDP4BindFail");
 	SET_SOCKSTATDESC(udp6bindfail, "UDP/IPv6 socket bind failures",
@@ -583,10 +573,6 @@ init_desc(void) {
 			 "TCP4BindFail");
 	SET_SOCKSTATDESC(tcp6bindfail, "TCP/IPv6 socket bind failures",
 			 "TCP6BindFail");
-	SET_SOCKSTATDESC(unixbindfail, "Unix domain socket bind failures",
-			 "UnixBindFail");
-	SET_SOCKSTATDESC(fdwatchbindfail, "FDwatch socket bind failures",
-			 "FdwatchBindFail");
 	SET_SOCKSTATDESC(udp4connectfail, "UDP/IPv4 socket connect failures",
 			 "UDP4ConnFail");
 	SET_SOCKSTATDESC(udp6connectfail, "UDP/IPv6 socket connect failures",
@@ -595,10 +581,6 @@ init_desc(void) {
 			 "TCP4ConnFail");
 	SET_SOCKSTATDESC(tcp6connectfail, "TCP/IPv6 socket connect failures",
 			 "TCP6ConnFail");
-	SET_SOCKSTATDESC(unixconnectfail, "Unix domain socket connect failures",
-			 "UnixConnFail");
-	SET_SOCKSTATDESC(fdwatchconnectfail, "FDwatch socket connect failures",
-			 "FDwatchConnFail");
 	SET_SOCKSTATDESC(udp4connect, "UDP/IPv4 connections established",
 			 "UDP4Conn");
 	SET_SOCKSTATDESC(udp6connect, "UDP/IPv6 connections established",
@@ -607,48 +589,26 @@ init_desc(void) {
 			 "TCP4Conn");
 	SET_SOCKSTATDESC(tcp6connect, "TCP/IPv6 connections established",
 			 "TCP6Conn");
-	SET_SOCKSTATDESC(unixconnect, "Unix domain connections established",
-			 "UnixConn");
-	SET_SOCKSTATDESC(fdwatchconnect,
-			 "FDwatch domain connections established",
-			 "FDwatchConn");
 	SET_SOCKSTATDESC(tcp4acceptfail, "TCP/IPv4 connection accept failures",
 			 "TCP4AcceptFail");
 	SET_SOCKSTATDESC(tcp6acceptfail, "TCP/IPv6 connection accept failures",
 			 "TCP6AcceptFail");
-	SET_SOCKSTATDESC(unixacceptfail,
-			 "Unix domain connection accept failures",
-			 "UnixAcceptFail");
 	SET_SOCKSTATDESC(tcp4accept, "TCP/IPv4 connections accepted",
 			 "TCP4Accept");
 	SET_SOCKSTATDESC(tcp6accept, "TCP/IPv6 connections accepted",
 			 "TCP6Accept");
-	SET_SOCKSTATDESC(unixaccept, "Unix domain connections accepted",
-			 "UnixAccept");
 	SET_SOCKSTATDESC(udp4sendfail, "UDP/IPv4 send errors", "UDP4SendErr");
 	SET_SOCKSTATDESC(udp6sendfail, "UDP/IPv6 send errors", "UDP6SendErr");
 	SET_SOCKSTATDESC(tcp4sendfail, "TCP/IPv4 send errors", "TCP4SendErr");
 	SET_SOCKSTATDESC(tcp6sendfail, "TCP/IPv6 send errors", "TCP6SendErr");
-	SET_SOCKSTATDESC(unixsendfail, "Unix domain send errors",
-			 "UnixSendErr");
-	SET_SOCKSTATDESC(fdwatchsendfail, "FDwatch send errors",
-			 "FDwatchSendErr");
 	SET_SOCKSTATDESC(udp4recvfail, "UDP/IPv4 recv errors", "UDP4RecvErr");
 	SET_SOCKSTATDESC(udp6recvfail, "UDP/IPv6 recv errors", "UDP6RecvErr");
 	SET_SOCKSTATDESC(tcp4recvfail, "TCP/IPv4 recv errors", "TCP4RecvErr");
 	SET_SOCKSTATDESC(tcp6recvfail, "TCP/IPv6 recv errors", "TCP6RecvErr");
-	SET_SOCKSTATDESC(unixrecvfail, "Unix domain recv errors",
-			 "UnixRecvErr");
-	SET_SOCKSTATDESC(fdwatchrecvfail, "FDwatch recv errors",
-			 "FDwatchRecvErr");
-	SET_SOCKSTATDESC(rawrecvfail, "Raw recv errors", "RawRecvErr");
 	SET_SOCKSTATDESC(udp4active, "UDP/IPv4 sockets active", "UDP4Active");
 	SET_SOCKSTATDESC(udp6active, "UDP/IPv6 sockets active", "UDP6Active");
 	SET_SOCKSTATDESC(tcp4active, "TCP/IPv4 sockets active", "TCP4Active");
 	SET_SOCKSTATDESC(tcp6active, "TCP/IPv6 sockets active", "TCP6Active");
-	SET_SOCKSTATDESC(unixactive, "Unix domain sockets active",
-			 "UnixActive");
-	SET_SOCKSTATDESC(rawactive, "Raw sockets active", "RawActive");
 	INSIST(i == isc_sockstatscounter_max);
 
 	/* Initialize DNSSEC statistics */

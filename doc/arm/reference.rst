@@ -495,15 +495,10 @@ control channels are used by the :iscman:`rndc` utility to send commands to
 and retrieve non-DNS results from a name server.
 
 .. namedconf:statement:: unix
-   :tags: server
+   :tags: obsolete
    :short: Specifies a Unix domain socket as a control channel.
 
-   A :any:`unix` control channel is a Unix domain socket listening at the
-   specified path in the file system. Access to the socket is specified by
-   the ``perm``, ``owner``, and ``group`` clauses. Note that on some platforms
-   (SunOS and Solaris), the permissions (``perm``) are applied to the parent
-   directory as the permissions on the socket itself are ignored.
-
+   This option has been removed and using it will cause a fatal error.
 
 .. namedconf:statement:: inet
    :tags: server
@@ -7937,17 +7932,16 @@ Socket I/O Statistics Counters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Socket I/O statistics counters are defined per socket type, which are
-``UDP4`` (UDP/IPv4), ``UDP6`` (UDP/IPv6), ``TCP4`` (TCP/IPv4), ``TCP6``
-(TCP/IPv6), ``Unix`` (Unix Domain), and ``FDwatch`` (sockets opened
-outside the socket module). In the following list, ``<TYPE>`` represents
+``UDP4`` (UDP/IPv4), ``UDP6`` (UDP/IPv6), ``TCP4`` (TCP/IPv4), and ``TCP6``
+(TCP/IPv6). In the following list, ``<TYPE>`` represents
 a socket type. Not all counters are available for all socket types;
 exceptions are noted in the descriptions.
 
 ``<TYPE>Open``
-    This indicates the number of sockets opened successfully. This counter does not apply to the ``FDwatch`` type.
+    This indicates the number of sockets opened successfully.
 
 ``<TYPE>OpenFail``
-    This indicates the number of failures to open sockets. This counter does not apply to the ``FDwatch`` type.
+    This indicates the number of failures to open sockets.
 
 ``<TYPE>Close``
     This indicates the number of closed sockets.
@@ -7962,10 +7956,10 @@ exceptions are noted in the descriptions.
     This indicates the number of connections established successfully.
 
 ``<TYPE>AcceptFail``
-    This indicates the number of failures to accept incoming connection requests. This counter does not apply to the ``UDP`` and ``FDwatch`` types.
+    This indicates the number of failures to accept incoming connection requests. This counter does not apply to the ``UDP`` type.
 
 ``<TYPE>Accept``
-    This indicates the number of incoming connections successfully accepted. This counter does not apply to the ``UDP`` and ``FDwatch`` types.
+    This indicates the number of incoming connections successfully accepted. This counter does not apply to the ``UDP`` type.
 
 ``<TYPE>SendErr``
     This indicates the number of errors in socket send operations.

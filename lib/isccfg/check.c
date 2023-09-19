@@ -5638,10 +5638,7 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *unixcontrols;
 	const cfg_obj_t *keylist = NULL;
 	const char *path;
-	uint32_t perm, mask;
 	dns_acl_t *acl = NULL;
-	isc_sockaddr_t addr;
-	int i;
 
 	(void)cfg_map_get(config, "controls", &controlslist);
 	if (controlslist == NULL) {
@@ -5654,7 +5651,7 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	/*
 	 * INET: Check allow clause.
-	 * UNIX: Check "perm" for sanity, check path length.
+	 * UNIX: Not supported.
 	 */
 	for (element = cfg_list_first(controlslist); element != NULL;
 	     element = cfg_list_next(element))
@@ -5687,39 +5684,9 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		{
 			control = cfg_listelt_value(element2);
 			path = cfg_obj_asstring(cfg_tuple_get(control, "path"));
-			tresult = isc_sockaddr_frompath(&addr, path);
-			if (tresult == ISC_R_NOSPACE) {
-				cfg_obj_log(control, logctx, ISC_LOG_ERROR,
-					    "unix control '%s': path too long",
-					    path);
-				result = ISC_R_NOSPACE;
-			}
-			perm = cfg_obj_asuint32(cfg_tuple_get(control, "perm"));
-			for (i = 0; i < 3; i++) {
-#ifdef NEED_SECURE_DIRECTORY
-				mask = (0x1 << (i * 3)); /* SEARCH */
-#else  /* ifdef NEED_SECURE_DIRECTORY */
-				mask = (0x6 << (i * 3)); /* READ + WRITE */
-#endif /* ifdef NEED_SECURE_DIRECTORY */
-				if ((perm & mask) == mask) {
-					break;
-				}
-			}
-			if (i == 0) {
-				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
-					    "unix control '%s' allows access "
-					    "to everyone",
-					    path);
-			} else if (i == 3) {
-				cfg_obj_log(control, logctx, ISC_LOG_WARNING,
-					    "unix control '%s' allows access "
-					    "to nobody",
-					    path);
-			}
-			tresult = check_controlskeys(control, keylist, logctx);
-			if (tresult != ISC_R_SUCCESS) {
-				result = tresult;
-			}
+			cfg_obj_log(control, logctx, ISC_LOG_ERROR,
+				    "unix control '%s': not supported", path);
+			result = ISC_R_FAMILYNOSUPPORT;
 		}
 	}
 	cfg_aclconfctx_detach(&actx);

@@ -97,23 +97,6 @@ static const isc_statscounter_t tcp6statsindex[] = {
 	isc_sockstatscounter_tcp6active
 };
 
-#if 0
-/* XXX: not currently used */
-static const isc_statscounter_t unixstatsindex[] = {
-	isc_sockstatscounter_unixopen,
-	isc_sockstatscounter_unixopenfail,
-	isc_sockstatscounter_unixclose,
-	isc_sockstatscounter_unixbindfail,
-	isc_sockstatscounter_unixconnectfail,
-	isc_sockstatscounter_unixconnect,
-	isc_sockstatscounter_unixacceptfail,
-	isc_sockstatscounter_unixaccept,
-	isc_sockstatscounter_unixsendfail,
-	isc_sockstatscounter_unixrecvfail,
-	isc_sockstatscounter_unixactive
-};
-#endif /* if 0 */
-
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock FLARG);
 static void
