@@ -7576,8 +7576,9 @@ Incoming Zone Transfers
       this zone. Possible values and their meanings are:
 
          ``Needs Refresh``
-	     The zone is flagged for a refresh, but the process
-	     hasn't started yet.
+	     The zone needs a refresh, but the process hasn't started yet,
+	     which can be due to different factors, like the retry interval of
+	     the zone.
 
          ``Pending``
 	     The zone is flagged for a refresh, but the process is currently
@@ -7592,7 +7593,9 @@ Incoming Zone Transfers
 	     Otherwise, the zone transfer procedure can still be initiated,
 	     and the SOA request will be attempted using the same transport as
 	     the zone transfer. The ``Duration (s)`` timer restarts before
-	     entering this state, and for each attempted primary server.
+	     entering this state, and for each attempted connection (note that
+	     in UDP mode there can be several retries during one "connection"
+	     attempt).
 
          ``Deferred``
 	     The zone is going to be refreshed, but the process was

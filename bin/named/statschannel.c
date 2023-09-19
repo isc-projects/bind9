@@ -1564,7 +1564,8 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "refreshqueued"));
 	TRY0(xmlTextWriterWriteString(
-		writer, ISC_XMLCHAR(needs_refresh ? "Yes" : "No")));
+		writer,
+		ISC_XMLCHAR(is_running && needs_refresh ? "Yes" : "No")));
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "localaddr"));
@@ -2605,7 +2606,8 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 
 	json_object_object_add(
 		xfrinobj, "refreshqueued",
-		json_object_new_string(needs_refresh ? "Yes" : "No"));
+		json_object_new_string(is_running && needs_refresh ? "Yes"
+								   : "No"));
 
 	if (is_running) {
 		addrp = dns_xfrin_getsourceaddr(xfr);

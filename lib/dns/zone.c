@@ -19297,6 +19297,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	*is_deferred = false;
 	*is_presoa = false;
 	*is_pending = false;
+	*needs_refresh = false;
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
@@ -19305,6 +19306,11 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	}
 	if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
 		*is_running = true;
+		/*
+		 * The NEEDREFRESH flag is set only when a notify was received
+		 * while the current zone transfer is running.
+		 */
+		*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 	} else if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
 		*is_deferred = true;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
@@ -19313,8 +19319,24 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 		} else {
 			*is_pending = true;
 		}
+	} else {
+		/*
+		 * No operation is ongoing or pending, just check if the zone
+		 * needs a refresh by looking at the refresh and expire times.
+		 */
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
+		    (zone->type == dns_zone_secondary ||
+		     zone->type == dns_zone_mirror ||
+		     zone->type == dns_zone_stub))
+		{
+			isc_time_t now = isc_time_now();
+			if (isc_time_compare(&now, &zone->refreshtime) >= 0 ||
+			    isc_time_compare(&now, &zone->expiretime) >= 0)
+			{
+				*needs_refresh = true;
+			}
+		}
 	}
-	*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 
