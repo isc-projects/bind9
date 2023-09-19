@@ -84,7 +84,7 @@ if [ "${srcdir}" != "${builddir}" ]; then
         cp -a "${srcdir}/_common" "${builddir}"
     fi
     # Some tests require additional files to work for out-of-tree test runs.
-    for file in ckdnsrps.sh conftest.py digcomp.pl ditch.pl fromhex.pl get_core_dumps.sh kasp.sh packet.pl pytest_custom_markers.py start.pl stop.pl testcrypto.sh; do
+    for file in ckdnsrps.sh conftest.py digcomp.pl ditch.pl fromhex.pl get_core_dumps.sh kasp.sh packet.pl start.pl stop.pl testcrypto.sh; do
         if [ ! -r "${file}" ]; then
             cp -a "${srcdir}/${file}" "${builddir}"
         fi
@@ -190,37 +190,6 @@ if [ -r "$systest/tests.sh" ]; then
         stop_servers || status=1
     else
         status=1
-    fi
-fi
-
-if [ $status -eq 0 ]; then
-    if [ -n "$PYTEST" ]; then
-        for test in $(cd "${systest}" && find . -name "tests*.py" ! -name "tests_sh_*.py"); do
-            rm -f "$systest/$test.status"
-            if start_servers; then
-                run=$((run+1))
-                test_status=0
-                (cd "$systest" && LEGACY_TEST_RUNNER=1 "$PYTEST" -rsxX -v "$test" "$@" || echo "$?" > "$test.status") | SYSTESTDIR="$systest" cat_d
-                if [ -f "$systest/$test.status" ]; then
-                    if [ "$(cat "$systest/$test.status")" = "5" ]; then
-                        echowarn "R:$systest:SKIPPED"
-                    else
-                        echo_i "FAILED"
-                        test_status=$(cat "$systest/$test.status")
-                    fi
-                fi
-                status=$((status+test_status))
-                stop_servers || status=1
-            else
-                status=1
-            fi
-            if [ $status -ne 0 ]; then
-                break
-            fi
-        done
-        rm -f "$systest/$test.status"
-    else
-        echoinfo "I:$systest:pytest not installed, skipping python tests"
     fi
 fi
 
