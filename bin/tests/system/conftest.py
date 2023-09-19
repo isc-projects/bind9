@@ -267,13 +267,21 @@ else:
 
     @pytest.fixture(scope="session")
     def modules():
-        """Sorted list of all modules. Used to determine port distribution."""
+        """
+        Sorted list of ALL modules.
+
+        The list includes even test modules that are not tested in the current
+        session. It is used to determine port distribution. Using a complete
+        list of all possible test modules allows independent concurrent pytest
+        invocations.
+        """
         mods = []
-        for dirpath, _dirs, files in os.walk(os.getcwd()):
+        for dirpath, _dirs, files in os.walk(FILE_DIR):
             for file in files:
                 if file.startswith("tests_") and file.endswith(".py"):
                     mod = f"{dirpath}/{file}"
-                    mods.append(mod)
+                    if not pytest_ignore_collect(mod):
+                        mods.append(mod)
         return sorted(mods)
 
     @pytest.fixture(scope="session")
@@ -281,11 +289,11 @@ else:
         """
         Dictionary containing assigned base port for every module.
 
-        Note that this is a session-wide fixture. The port numbers are
-        deterministically assigned before any testing starts. This fixture MUST
-        return the same value when called again during the same test session.
-        When running tests in parallel, this is exactly what happens - every
-        worker thread will call this fixture to determine test ports.
+        The port numbers are deterministically assigned before any testing
+        starts. This fixture MUST return the same value when called again
+        during the same test session. When running tests in parallel, this is
+        exactly what happens - every worker thread will call this fixture to
+        determine test ports.
         """
         port_min = PORT_MIN
         port_max = PORT_MAX - len(modules) * PORTS_PER_TEST

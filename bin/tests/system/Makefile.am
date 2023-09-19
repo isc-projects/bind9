@@ -24,6 +24,8 @@ LDADD +=			\
 	$(LIBDNS_LIBS)
 
 if HAVE_PERL
+if HAVE_PYTHON
+if HAVE_PYTEST
 
 noinst_PROGRAMS =		\
 	feature-test		\
@@ -68,23 +70,14 @@ rpz_dnsrps_LDADD =		\
 	$(LIBDNS_LIBS)		\
 	$(DLOPEN_LIBS)
 
-TESTS =
-
-if HAVE_PERLMOD_TIME_HIRES
-TESTS += serve-stale
-endif HAVE_PERLMOD_TIME_HIRES
-
-if HAVE_PERLMOD_NET_DNS
-TESTS +=		\
-	rpzrecurse
-endif HAVE_PERLMOD_NET_DNS
-
-if HAVE_LIBNGHTTP2
-TESTS +=		\
-	doth
-endif
-
-TESTS +=			\
+# Longer running tests are listed (and executed) first to take the most
+# advantage of parallel execution.
+TESTS =				\
+	rpz			\
+	rpzrecurse		\
+	serve-stale		\
+	timeouts		\
+	upforwd			\
 	acl			\
 	additional		\
 	addzone			\
@@ -96,13 +89,21 @@ TESTS +=			\
 	case			\
 	catz			\
 	cds			\
+	chain			\
 	checkconf		\
+	checkds			\
 	checknames		\
 	checkzone		\
+	cookie			\
 	database		\
 	dialup			\
+	digdelv			\
+	dispatch		\
 	dlzexternal		\
 	dns64			\
+	dnssec			\
+	dnstap			\
+	doth			\
 	dsdigest		\
 	dyndb			\
 	ecdsa			\
@@ -111,16 +112,20 @@ TESTS +=			\
 	emptyzones		\
 	enginepkcs11		\
 	filter-aaaa		\
+	fetchlimit		\
 	formerr			\
+	forward			\
 	geoip2			\
 	glue			\
 	idna			\
 	include-multiplecfg	\
 	inline			\
 	integrity		\
+	ixfr			\
 	hooks			\
 	host			\
 	journal			\
+	kasp			\
 	keepalive		\
 	keyfromlabel		\
 	legacy			\
@@ -131,28 +136,40 @@ TESTS +=			\
 	metadata		\
 	mirror			\
 	mkeys			\
+	multisigner		\
 	names			\
 	notify			\
 	nsec3			\
 	nslookup		\
+	nsupdate		\
+	nzd2nzf			\
 	padding			\
 	pending			\
+	pipelined		\
+	qmin			\
+	reclimit		\
 	redirect		\
+	resolver		\
 	rndc			\
 	rootkeysentinel		\
-	rpz			\
+	rpzextra		\
 	rrchecker		\
 	rrl			\
 	rrsetorder		\
 	rsabigexponent		\
 	runtime			\
 	sfcache			\
+	shutdown		\
 	smartsign		\
 	sortlist		\
 	spf			\
 	staticstub		\
+	statistics		\
+	statschannel		\
+	stress			\
 	stub			\
 	synthfromdnssec		\
+	tcp			\
 	tools			\
 	transport-acl		\
 	tsig			\
@@ -162,62 +179,21 @@ TESTS +=			\
 	verify			\
 	views			\
 	wildcard		\
+	xfer			\
 	xferquota		\
+	zero			\
 	zonechecks
 
-if HAVE_LMDB
-TESTS += nzd2nzf
-endif # HAVE_LMDB
-
-if HAVE_PERLMOD_NET_DNS
-
-TESTS +=		\
-	fetchlimit	\
-	ixfr		\
-	nsupdate	\
-	resolver	\
-	statistics	\
-	stress		\
-	upforwd		\
-	zero
-
-if HAVE_DNSTAP
-TESTS += dnstap
-endif
-
-if HAVE_PERLMOD_FILE_FETCH
-TESTS += statschannel
-endif HAVE_PERLMOD_FILE_FETCH
-
-if HAVE_PERLMOD_DIGEST_HMAC
-TESTS += xfer
-endif HAVE_PERLMOD_DIGEST_HMAC
-
-if HAVE_PERLMOD_NET_DNS_NAMESERVER
-TESTS += reclimit
-endif HAVE_PERLMOD_NET_DNS_NAMESERVER
-
-endif HAVE_PERLMOD_NET_DNS
-
-if HAVE_PYTHON
-TESTS += kasp multisigner tcp pipelined
-
-if HAVE_PYTEST
-TESTS += checkds dispatch rpzextra shutdown timeouts
-endif
-
-if HAVE_PYMOD_DNS
-TESTS += qmin cookie
-if HAVE_PERLMOD_NET_DNS
-TESTS += digdelv dnssec forward
-if HAVE_PERLMOD_NET_DNS_NAMESERVER
-TESTS += chain
-endif HAVE_PERLMOD_NET_DNS_NAMESERVER
-endif HAVE_PERLMOD_NET_DNS
-endif HAVE_PYMOD_DNS
-
-endif HAVE_PYTHON
-
+else !HAVE_PYTEST
+check:
+	echo pytest is not available, no tests were ran
+	exit 1
+endif !HAVE_PYTEST
+else !HAVE_PYTHON
+check:
+	echo Python is not available, no tests were ran
+	exit 1
+endif !HAVE_PYTHON
 else !HAVE_PERL
 check:
 	echo Perl is not available, no tests were ran
@@ -232,10 +208,7 @@ LOG_DRIVER_V_1 = --verbose yes
 LOG_DRIVER = $(srcdir)/custom-test-driver
 AM_LOG_DRIVER_FLAGS = $(LOG_DRIVER_V)
 
-LOG_COMPILER = $(builddir)/legacy.run.sh
-AM_LOG_FLAGS = -r
-
-$(TESTS): legacy.run.sh
+LOG_COMPILER = $(srcdir)/run.sh
 
 test-local: check
 

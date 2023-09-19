@@ -13,6 +13,7 @@ named.run
 /random.data
 /*.log
 /*.trs
+/*.xml
 /resolve
 /legacy.run.sh
 /run.log
