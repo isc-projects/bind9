@@ -19,7 +19,7 @@ status=0
 n=0
 
 DIGOPTS="@10.53.0.1 -p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 newtest() {
 	n=$((n + 1))

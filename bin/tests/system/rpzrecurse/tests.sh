@@ -43,7 +43,7 @@ fi
 trap 'exit 1' 1 2 15
 
 DNSRPSCMD=../rpz/dnsrps
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 # $1 = test name (such as 1a, 1b, etc. for which named.$1.conf exists)
 run_server() {
@@ -275,7 +275,7 @@ for mode in native dnsrps; do
   echo_i "adding an NSDNAME policy"
   cp ns2/db.6a.00.policy.local ns2/saved.policy.local
   cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  $RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
   test -f dnsrpzd.pid && kill -USR1 $(cat dnsrpzd.pid) || true
   sleep 1
   t=$((t+1))
@@ -285,7 +285,7 @@ for mode in native dnsrps; do
   sleep 1
   echo_i "removing the NSDNAME policy"
   cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
-  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  $RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
   test -f dnsrpzd.pid && kill -USR1 $(cat dnsrpzd.pid) || true
   sleep 1
   echo_i "resuming authority server"
@@ -317,7 +317,7 @@ for mode in native dnsrps; do
   kill -STOP $PID
   echo_i "adding an NSDNAME policy"
   cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-  $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
+  $RNDC -c ../_common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
   test -f dnsrpzd.pid && kill -USR1 $(cat dnsrpzd.pid) || true
   sleep 1
   t=$((t+1))
@@ -514,10 +514,10 @@ for mode in native dnsrps; do
     p1=$((t2-t1))
     echo_i "elapsed time $p1 seconds"
 
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
     copy_setports ns3/named2.conf.in ns3/named.conf
     nextpart ns3/named.run > /dev/null
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
     wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
     echo_i "timing 'nsip-wait-recurse no'"
@@ -532,11 +532,11 @@ for mode in native dnsrps; do
     if test $ret != 0; then echo_i "failed"; fi
     status=$((status+ret))
 
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
     # restore original named.conf
     copy_setports ns3/named1.conf.in ns3/named.conf
     nextpart ns3/named.run > /dev/null
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
     wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
     t=$((t+1))
@@ -550,10 +550,10 @@ for mode in native dnsrps; do
     p1=$((t2-t1))
     echo_i "elapsed time $p1 seconds"
 
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} flush
     copy_setports ns3/named3.conf.in ns3/named.conf
     nextpart ns3/named.run > /dev/null
-    $RNDC  -c ../common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
+    $RNDC  -c ../_common/rndc.conf -s 10.53.0.3 -p ${CONTROLPORT} reload > /dev/null
     wait_for_log 20 "rpz: policy: reload done" ns3/named.run || ret=1
 
     echo_i "timing 'nsdname-wait-recurse no'"

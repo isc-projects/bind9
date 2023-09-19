@@ -43,7 +43,7 @@ parental-agents "ns8" port @PORT@ {
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 /*

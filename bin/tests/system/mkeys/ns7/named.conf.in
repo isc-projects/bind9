@@ -39,13 +39,13 @@ controls {
 view view1 {
 	zone "." {
 		type hint;
-		file "../../common/root.hint";
+		file "../../_common/root.hint";
 	};
 };
 
 view view2 {
 	zone "." {
 		type hint;
-		file "../../common/root.hint";
+		file "../../_common/root.hint";
 	};
 };

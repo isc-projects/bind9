@@ -18,7 +18,7 @@ set -e
 DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tcp +tries=1 +time=1"
 
 rndccmd() (
-    "$RNDC" -c ../common/rndc.conf -p "${CONTROLPORT}" -s "$@"
+    "$RNDC" -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "$@"
 )
 
 burst() {

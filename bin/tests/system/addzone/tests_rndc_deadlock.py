@@ -22,7 +22,7 @@ def run_rndc(server, rndc_command):
     rndc = os.getenv("RNDC")
     port = os.getenv("CONTROLPORT")
 
-    cmdline = [rndc, "-c", "../common/rndc.conf", "-p", port, "-s", server]
+    cmdline = [rndc, "-c", "../_common/rndc.conf", "-p", port, "-s", server]
     cmdline.extend(rndc_command)
 
     subprocess.check_output(cmdline, stderr=subprocess.STDOUT, timeout=10)

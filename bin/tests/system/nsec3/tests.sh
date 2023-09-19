@@ -31,7 +31,7 @@ dig_with_opts() {
 
 # Call rndc.
 rndccmd() {
-    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 # Set zone name ($1) and policy ($2) for testing nsec3.

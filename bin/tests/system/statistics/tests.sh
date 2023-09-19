@@ -16,7 +16,7 @@ set -e
 . ../conf.sh
 
 DIGCMD="$DIG +tcp -p ${PORT}"
-RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../_common/rndc.conf"
 
 status=0
 

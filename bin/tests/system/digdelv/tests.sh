@@ -1405,7 +1405,7 @@ if [ -x "$DELV" ] ; then
 
   n=$((n+1))
   echo_i "check NS output from delv +ns ($n)"
-  delv_with_opts -i +ns +nortrace +nostrace +nomtrace +novtrace +hint=../common/root.hint ns example > delv.out.test$n || ret=1
+  delv_with_opts -i +ns +nortrace +nostrace +nomtrace +novtrace +hint=../_common/root.hint ns example > delv.out.test$n || ret=1
   lines=$(awk '$1 == "example." && $4 == "NS" {print}' delv.out.test$n | wc -l)
   [ $lines -eq 2 ] || ret=1
   status=$((status+ret))
@@ -1413,7 +1413,7 @@ if [ -x "$DELV" ] ; then
   n=$((n+1))
   echo_i "checking delv +ns (no validation) ($n)"
   ret=0
-  delv_with_opts -i +ns +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  delv_with_opts -i +ns +hint=../_common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; authoritative' delv.out.test$n || ret=1
   grep -q '_.example' delv.out.test$n && ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1422,7 +1422,7 @@ if [ -x "$DELV" ] ; then
   n=$((n+1))
   echo_i "checking delv +ns +qmin (no validation) ($n)"
   ret=0
-  delv_with_opts -i +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  delv_with_opts -i +ns +qmin +hint=../_common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; authoritative' delv.out.test$n || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -1430,7 +1430,7 @@ if [ -x "$DELV" ] ; then
   n=$((n+1))
   echo_i "checking delv +ns (with validation) ($n)"
   ret=0
-  delv_with_opts -a ns1/anchor.dnskey +root +ns +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  delv_with_opts -a ns1/anchor.dnskey +root +ns +hint=../_common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; fully validated' delv.out.test$n || ret=1
   grep -q '_.example' delv.out.test$n && ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
@@ -1439,7 +1439,7 @@ if [ -x "$DELV" ] ; then
   n=$((n+1))
   echo_i "checking delv +ns +qmin (with validation) ($n)"
   ret=0
-  delv_with_opts -a ns1/anchor.dnskey +root +ns +qmin +hint=../common/root.hint a a.example > delv.out.test$n || ret=1
+  delv_with_opts -a ns1/anchor.dnskey +root +ns +qmin +hint=../_common/root.hint a a.example > delv.out.test$n || ret=1
   grep -q '; fully validated' delv.out.test$n || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))

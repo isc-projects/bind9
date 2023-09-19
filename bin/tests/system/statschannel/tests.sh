@@ -17,7 +17,7 @@ set -e
 . ../conf.sh
 
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 if ! $FEATURETEST --have-json-c
 then

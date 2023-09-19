@@ -178,8 +178,8 @@ def test_named_shutdown(named_port, control_port, kill_method):
     rndc = os.getenv("RNDC")
     assert rndc is not None
 
-    # rndc configuration resides in ../common/rndc.conf
-    rndc_cfg = os.path.join("..", "common", "rndc.conf")
+    # rndc configuration resides in ../_common/rndc.conf
+    rndc_cfg = os.path.join("..", "_common", "rndc.conf")
     assert os.path.isfile(rndc_cfg)
 
     # rndc command with default arguments.

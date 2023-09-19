@@ -244,7 +244,7 @@ def rekey(zone):
     rndc_cmd = [
         rndc,
         "-c",
-        "../common/rndc.conf",
+        "../_common/rndc.conf",
         "-p",
         port,
         "-s",

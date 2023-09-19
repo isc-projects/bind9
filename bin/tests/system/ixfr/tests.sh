@@ -30,7 +30,7 @@ status=0
 n=0
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf -s"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../_common/rndc.conf -s"
 
 sendcmd() {
     send 10.53.0.2 "${EXTRAPORT1}"

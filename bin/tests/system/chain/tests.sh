@@ -16,7 +16,7 @@ set -e
 . ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 sendcmd() {
     send 10.53.0.4 "${EXTRAPORT1}"

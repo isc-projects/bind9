@@ -25,7 +25,7 @@ sendcmd() (
 )
 
 rndccmd() {
-    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 root=10.53.0.1

@@ -26,7 +26,7 @@ dig_with_opts() {
 }
 
 rndc_with_opts() {
-    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 echo_i "checking DNSSEC SERVFAIL is cached ($n)"
