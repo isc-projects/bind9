@@ -44,8 +44,6 @@ isc_hash_get_initializer(void);
 void
 isc_hash_set_initializer(const void *initializer);
 
-#define isc_hash_function isc_hash64
-
 void
 isc_hash32_init(isc_hash32_t *restrict state);
 void

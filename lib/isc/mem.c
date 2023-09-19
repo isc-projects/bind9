@@ -216,11 +216,11 @@ add_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size FLARG) {
 #ifdef __COVERITY__
 	/*
 	 * Use simple conversion from pointer to hash to avoid
-	 * tainting 'ptr' due to byte swap in isc_hash_function.
+	 * tainting 'ptr' due to byte swap in isc_hash32.
 	 */
 	hash = (uintptr_t)ptr >> 3;
 #else
-	hash = isc_hash_function(&ptr, sizeof(ptr), true);
+	hash = isc_hash32(&ptr, sizeof(ptr), true);
 #endif
 	idx = hash % DEBUG_TABLE_COUNT;
 
@@ -260,11 +260,11 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, size_t size,
 #ifdef __COVERITY__
 	/*
 	 * Use simple conversion from pointer to hash to avoid
-	 * tainting 'ptr' due to byte swap in isc_hash_function.
+	 * tainting 'ptr' due to byte swap in isc_hash32.
 	 */
 	hash = (uintptr_t)ptr >> 3;
 #else
-	hash = isc_hash_function(&ptr, sizeof(ptr), true);
+	hash = isc_hash32(&ptr, sizeof(ptr), true);
 #endif
 	idx = hash % DEBUG_TABLE_COUNT;
 

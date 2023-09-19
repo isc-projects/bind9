@@ -373,12 +373,15 @@ setup_socket(dns_dispatch_t *disp, dns_dispentry_t *resp,
 
 static uint32_t
 qid_hash(const dns_dispentry_t *dispentry) {
-	/*
-	 * TODO(OS): Add incremental isc_sockaddr_hash() function and then use
-	 * isc_hash32 API
-	 */
-	uint32_t hashval = isc_sockaddr_hash(&dispentry->peer, true);
-	return (hashval ^ (((uint32_t)dispentry->id << 16) | dispentry->port));
+	isc_hash32_t hash;
+
+	isc_hash32_init(&hash);
+
+	isc_sockaddr_hash_ex(&hash, &dispentry->peer, true);
+	isc_hash32_hash(&hash, &dispentry->id, sizeof(dispentry->id), true);
+	isc_hash32_hash(&hash, &dispentry->port, sizeof(dispentry->port), true);
+
+	return (isc_hash32_finalize(&hash));
 }
 
 static int

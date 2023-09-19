@@ -85,7 +85,16 @@ isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
  * If 'b''s scope is zero then 'a''s scope will be ignored.
  */
 
-unsigned int
+void
+isc_sockaddr_hash_ex(isc_hash32_t *hash, const isc_sockaddr_t *sockaddr,
+		     bool address_only);
+/*%<
+ * Add the hash of the sockaddr into the hash for incremental hashing
+ *
+ * See isc_sockaddr_hash() for details.
+ */
+
+uint32_t
 isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, bool address_only);
 /*%<
  * Return a hash value for the socket address 'sockaddr'.  If 'address_only'
