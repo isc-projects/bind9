@@ -11,6 +11,7 @@
 # information regarding copyright ownership.
 ############################################################################
 
+import glob
 import os
 import re
 
@@ -44,6 +45,9 @@ relnotes_issue_or_mr_id_regex = re.compile(rb":gl:`[#!][0-9]+`")
 release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
 
 modified_files = danger.git.modified_files
+affected_files = (
+    danger.git.modified_files + danger.git.created_files + danger.git.deleted_files
+)
 mr_labels = danger.gitlab.mr.labels
 target_branch = danger.gitlab.mr.target_branch
 is_backport = "Backport" in mr_labels or "Backport::Partial" in mr_labels
@@ -436,3 +440,45 @@ for log_level in user_visible_log_levels:
             "sure none of the messages added is a leftover debug message."
         )
         break
+
+###############################################################################
+# SYSTEM TEST FILES
+###############################################################################
+#
+# FAIL if newly added system test directory contains an underscore (invalid char)
+# FAIL if there are no pytest files in the system test directory
+# FAIL if the pytest glue file for tests.sh is missing
+
+TESTNAME_CANDIDATE_RE = re.compile(r"bin/tests/system/([^/]+)")
+testnames = set()
+for path in affected_files:
+    match = TESTNAME_CANDIDATE_RE.search(path)
+    if match is not None:
+        testnames.add(match.groups()[0])
+
+for testname in testnames:
+    dirpath = f"bin/tests/system/{testname}"
+    if (
+        not os.path.isdir(dirpath)
+        or testname.startswith(".")
+        or testname.startswith("_")
+    ):
+        continue
+    if "_" in testname:
+        fail(
+            f"System test directory `{testname}` may not contain an underscore, "
+            "use hyphen instead."
+        )
+    if not glob.glob(f"{dirpath}/**/tests_*.py", recursive=True):
+        fail(
+            f"System test directory `{testname}` doesn't contain any "
+            "`tests_*.py` pytest file."
+        )
+    tests_sh_exists = os.path.exists(f"{dirpath}/tests.sh")
+    glue_file_name = f"tests_sh_{testname.replace('-', '_')}.py"
+    tests_sh_py_exists = os.path.exists(f"{dirpath}/{glue_file_name}")
+    if tests_sh_exists and not tests_sh_py_exists:
+        fail(
+            f"System test directory `{testname}` is missing the "
+            f"`{glue_file_name}` pytest glue file."
+        )

@@ -66,7 +66,7 @@ comment () {
 }
 
 DNSRPSCMD=./dnsrps
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 
 if test -x "$DNSRPSCMD"; then
     # speed up the many delays for dnsrpzd by waiting only 0.1 seconds

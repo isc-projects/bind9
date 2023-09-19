@@ -96,7 +96,7 @@ n=$((n+1))
 
 echo_i "checking the key with 'rndc tsig-list' ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
+$RNDC -c ../_common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
 grep "key \"bar.example.server" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then
         echo_i "failed"
@@ -116,8 +116,8 @@ n=$((n+1))
 
 echo_i "deleting the key with 'rndc tsig-delete' ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-delete bar.example.server > /dev/null || ret=1
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
+$RNDC -c ../_common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-delete bar.example.server > /dev/null || ret=1
+$RNDC -c ../_common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
 grep "key \"bar.example.server" rndc.out.test$n > /dev/null && ret=1
 dig_with_opts -k "$keyname" txt.example txt > dig.out.test$n || ret=1
 grep "TSIG could not be validated" dig.out.test$n > /dev/null || ret=1
@@ -141,7 +141,7 @@ n=$((n+1))
 
 echo_i "checking the new key with 'rndc tsig-list' ($n)"
 ret=0
-$RNDC -c ../common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
+$RNDC -c ../_common/rndc.conf -s 10.53.0.1 -p "$CONTROLPORT" tsig-list > rndc.out.test$n
 grep "key \"bar.example.server" rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then
         echo_i "failed"

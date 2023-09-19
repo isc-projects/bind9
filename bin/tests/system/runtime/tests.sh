@@ -16,7 +16,7 @@ set -e
 # shellcheck source=conf.sh
 . ../conf.sh
 
-RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
 NAMED_DEFAULT_ARGS="-m record -d 99 -g -U 4"
 
 kill_named() {

@@ -110,8 +110,8 @@ if [ ! -d "${srcdir}/$systest" ]; then
 fi
 
 if [ "${srcdir}" != "${builddir}" ]; then
-    if [ ! -d common ] || [ ! -r common/.prepared ]; then
-        cp -a "${srcdir}/common" "${builddir}"
+    if [ ! -d _common ] || [ ! -r _common/.prepared ]; then
+        cp -a "${srcdir}/_common" "${builddir}"
     fi
     # Some tests require additional files to work for out-of-tree test runs.
     for file in ckdnsrps.sh conftest.py digcomp.pl ditch.pl fromhex.pl get_core_dumps.sh kasp.sh packet.pl pytest_custom_markers.py start.pl stop.pl testcrypto.sh; do

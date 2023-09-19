@@ -10,5 +10,5 @@
 # information regarding copyright ownership.
 
 
-def test_allowquery(run_tests_sh):
+def test_allow_query(run_tests_sh):
     run_tests_sh()

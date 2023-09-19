@@ -20,7 +20,7 @@ dig_with_opts() {
 }
 
 rndc_with_opts() {
-    "$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+    "$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 status=0

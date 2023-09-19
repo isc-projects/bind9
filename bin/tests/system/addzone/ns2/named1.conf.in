@@ -22,7 +22,7 @@ options {
 	dnssec-validation no;
 };
 
-include "../../common/rndc.key";
+include "../../_common/rndc.key";
 
 controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
@@ -30,7 +30,7 @@ controls {
 
 zone "." {
 	type hint;
-	file "../../common/root.hint";
+	file "../../_common/root.hint";
 };
 
 zone "normal.example" {

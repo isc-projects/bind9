@@ -38,7 +38,7 @@ dig_with_opts() {
 
 # RNDC.
 rndccmd() {
-	"$RNDC" -c ../common/rndc.conf -p "$CONTROLPORT" -s "$@"
+	"$RNDC" -c ../_common/rndc.conf -p "$CONTROLPORT" -s "$@"
 }
 
 # Log error and increment failure rate.

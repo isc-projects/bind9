@@ -21,7 +21,7 @@ dig_with_opts() {
 }
 
 rndccmd() {
-	"${RNDC}" -p "${CONTROLPORT}" -c ../common/rndc.conf -s "$@"
+	"${RNDC}" -p "${CONTROLPORT}" -c ../_common/rndc.conf -s "$@"
 }
 
 status=0

@@ -18,7 +18,7 @@ set -e
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 DIGOPTS=""
 DIGCMD="$DIG $DIGOPTS -p ${PORT}"
-RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf -s"
+RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../_common/rndc.conf -s"
 
 status=0
 n=0

@@ -296,7 +296,7 @@ send() {
 eval "$($PYTHON "$TOP_SRCDIR/bin/tests/system/get_algorithms.py")"
 
 # Default HMAC algorithm.
-# also update common/rndc.conf and common/rndc.key when updating DEFAULT_HMAC
+# also update _common/rndc.conf and _common/rndc.key when updating DEFAULT_HMAC
 export DEFAULT_HMAC=hmac-sha256
 
 #
@@ -609,12 +609,12 @@ _times() {
 }
 
 rndc_reload() {
-    $RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'"I:$SYSTESTDIR:$1"' /'
+    $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'"I:$SYSTESTDIR:$1"' /'
     # reloading single zone is synchronous, if we're reloading whole server
     # we need to wait for reload to finish
     if [ -z "$3" ]; then
         for _ in $(_times 10); do
-            $RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break
+            $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break
             sleep 1
         done
     fi
@@ -622,9 +622,9 @@ rndc_reload() {
 
 rndc_reconfig() {
     seconds=${3:-10}
-    $RNDC -c ../common/rndc.conf -s "$2" -p "${CONTROLPORT}" reconfig 2>&1 | sed 's/^/'"I:$SYSTESTDIR:$1"' /'
+    $RNDC -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" reconfig 2>&1 | sed 's/^/'"I:$SYSTESTDIR:$1"' /'
     for _ in $(_times "$seconds"); do
-        "$RNDC" -c ../common/rndc.conf -s "$2" -p "${CONTROLPORT}" status | grep "reload/reconfig in progress" > /dev/null || break
+        "$RNDC" -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" status | grep "reload/reconfig in progress" > /dev/null || break
         sleep 1
     done
 }
@@ -636,7 +636,7 @@ rndc_reconfig() {
 # arguments, if any, are appended to the rndc command line after "dumpdb".
 #
 # Control channel configuration for the name server instance to send the
-# command to must match the contents of bin/tests/system/common/rndc.conf.
+# command to must match the contents of bin/tests/system/_common/rndc.conf.
 #
 # rndc output is stored in a file called rndc.out.test${n}; the "n" variable is
 # required to be set by the calling tests.sh script.
@@ -651,7 +651,7 @@ rndc_dumpdb() {
 	__ip="10.53.0.$(echo "${__server}" | tr -c -d "0-9")"
 
 	shift
-	${RNDC} -c ../common/rndc.conf -p "${CONTROLPORT}" -s "${__ip}" dumpdb "$@" > "rndc.out.test${n}" 2>&1 || __ret=1
+	${RNDC} -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "${__ip}" dumpdb "$@" > "rndc.out.test${n}" 2>&1 || __ret=1
 
 	for _ in 0 1 2 3 4 5 6 7 8 9
 	do
