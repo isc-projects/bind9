@@ -1,3 +1,7 @@
+6254.	[cleanup]	Add semantic patch to do an explicit cast from char
+			to unsigned char in ctype.h class of functions.
+			[GL #4327]
+
 6253.	[cleanup]	Remove the support for control channel over Unix
 			Domain Sockets. [GL #4311]
 
