@@ -237,26 +237,6 @@ AC_PATH_PROGS([PERL], [perl5 perl])
 AC_SUBST([PERL])
 AM_CONDITIONAL([HAVE_PERL], [test -n "$PERL"])
 
-AX_PERL_MODULE([Digest::HMAC])
-AM_CONDITIONAL([HAVE_PERLMOD_DIGEST_HMAC],
-	       [test "$HAVE_PERLMOD_DIGEST__HMAC" = "yes"])
-
-AX_PERL_MODULE([File::Fetch])
-AM_CONDITIONAL([HAVE_PERLMOD_FILE_FETCH],
-	       [test "$HAVE_PERLMOD_FILE__FETCH" = "yes"])
-
-AX_PERL_MODULE([Net::DNS])
-AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS],
-	       [test "$HAVE_PERLMOD_NET__DNS" = "yes"])
-
-AX_PERL_MODULE([Net::DNS::Nameserver])
-AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS_NAMESERVER],
-	       [test "$HAVE_PERLMOD_NET__DNS__NAMESERVER" = "yes"])
-
-AX_PERL_MODULE([Time::HiRes])
-AM_CONDITIONAL([HAVE_PERLMOD_TIME_HIRES],
-	       [test "$HAVE_PERLMOD_TIME__HIRES" = "yes"])
-
 #
 # Python is optional, it is used only by some of the system test scripts.
 #
@@ -268,9 +248,6 @@ AS_IF([test -z "$PYTEST"],
       [AC_MSG_WARN([pytest not found, some system tests will be skipped])])
 AC_SUBST([PYTEST])
 AM_CONDITIONAL([HAVE_PYTEST], [test -n "$PYTEST"])
-
-AX_PYTHON_MODULE([dns])
-AM_CONDITIONAL([HAVE_PYMOD_DNS], [test "$HAVE_PYMOD_DNS" = "yes"])
 
 #
 # xsltproc is optional, it is used only by system test scripts.

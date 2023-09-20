@@ -44,11 +44,8 @@ else
     clean=true
 fi
 
-do_run=false
 restart=false
-log_flags="-r"
-while getopts "sknp:r-:t" OPT; do
-    log_flags="$log_flags -$OPT$OPTARG"
+while getopts "sknp:-:t" OPT; do
     if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
         OPT="${OPTARG%%=*}"
         OPTARG="${OPTARG#$OPT}"
@@ -60,8 +57,7 @@ while getopts "sknp:r-:t" OPT; do
         k | keep) stopservers=false ;;
         n | noclean) clean=false ;;
         p | port) baseport=$OPTARG ;;
-        r | run) do_run=true ;;
-        s | skip) exit 77 ;;
+        s | skip) exit 0 ;;
         t | restart) restart=true ;;
         -) break ;;
         *) echo "invalid option" >&2; exit 1 ;;
@@ -69,32 +65,6 @@ while getopts "sknp:r-:t" OPT; do
 done
 
 shift $((OPTIND-1))
-
-if ! $do_run; then
-    if [ "$baseport" -eq 0 ]; then
-        log_flags="$log_flags -p 5300"
-    fi
-    env - \
-	CYGWIN="$CYGWIN" \
-        SYSTEMTEST_FORCE_COLOR="$SYSTEMTEST_FORCE_COLOR" \
-        SYSTEMTEST_NO_CLEAN="$SYSTEMTEST_NO_CLEAN" \
-        SLOT="$SLOT" \
-        OPENSSL_CONF="$OPENSSL_CONF" \
-        SOFTHSM2_CONF="$SOFTHSM2_CONF" \
-        SOFTHSM2_MODULE="$SOFTHSM2_MODULE" \
-        PATH="$PATH" \
-        ${LD_LIBRARY_PATH:+"LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"} \
-        TESTS="$*" \
-        TEST_SUITE_LOG=run.log \
-        LOG_DRIVER_FLAGS="--verbose yes --color-tests yes" \
-        LOG_FLAGS="$log_flags" \
-        TEST_LARGE_MAP="${TEST_LARGE_MAP}" \
-        CI_ENABLE_ALL_TESTS="${CI_ENABLE_ALL_TESTS}" \
-	${VIRTUAL_ENV:+"VIRTUAL_ENV=${VIRTUAL_ENV}"} \
-	${PERL5LIB:+"PERL5LIB=${PERL5LIB}"} \
-        make -e check
-    exit $?
-fi
 
 if [ $# -eq 0 ]; then
     echofail "Usage: $0 [-k] [-n] [-p <PORT>] test-directory [test-options]" >&2;
@@ -182,7 +152,7 @@ else
     echowarn "I:$systest:Prerequisites missing, skipping test."
     echowarn "R:$systest:SKIPPED";
     echoend "E:$systest:$(date_with_args)"
-    exit 77
+    exit 0
 fi
 
 # Clean up files left from any potential previous runs except when

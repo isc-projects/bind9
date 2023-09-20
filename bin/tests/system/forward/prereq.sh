@@ -13,19 +13,15 @@
 
 . ../conf.sh
 
-# macOS ships with Net::DNS 0.74 which does not work with
-# HMAC-SHA256, despite the workarounds in ans.pl
-
-if ${PERL} -MNet::DNS -e 'exit ($Net::DNS::VERSION >= 1.0)'
+if ! ${PYTHON} -c 'import dns'
 then
-	version=$(${PERL} -MNet::DNS -e 'print $Net::DNS::VERSION')
-	echo_i "perl Net::DNS $version is too old - skipping xfer test"
+	echo_i "python dns module is required"
 	exit 1
 fi
 
-if ! ${PERL} -MDigest::HMAC -e ''
+if ! ${PERL} -MNet::DNS -e ''
 then
-	echo_i "perl Digest::HMAC module is required"
+	echo_i "perl Net::DNS module is required"
 	exit 1
 fi
 
