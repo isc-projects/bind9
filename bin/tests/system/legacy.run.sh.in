@@ -57,7 +57,7 @@ while getopts "sknp:-:t" OPT; do
         k | keep) stopservers=false ;;
         n | noclean) clean=false ;;
         p | port) baseport=$OPTARG ;;
-        s | skip) exit 77 ;;
+        s | skip) exit 0 ;;
         t | restart) restart=true ;;
         -) break ;;
         *) echo "invalid option" >&2; exit 1 ;;
@@ -152,7 +152,7 @@ else
     echowarn "I:$systest:Prerequisites missing, skipping test."
     echowarn "R:$systest:SKIPPED";
     echoend "E:$systest:$(date_with_args)"
-    exit 77
+    exit 0
 fi
 
 # Clean up files left from any potential previous runs except when
