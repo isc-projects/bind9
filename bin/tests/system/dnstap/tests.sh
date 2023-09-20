@@ -69,8 +69,12 @@ status=$((status + ret))
 # need to complete before reopening/rolling for the counts to
 # be correct.
 
-$DIG $DIGOPTS @10.53.0.3 a.example > dig.out
+echo_i "prime cache"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.example > dig.out || true
 wait_for_log 20 "(.): reset client" ns1/named.run || true
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
 
 # check three different dnstap reopen/roll methods:
 # ns1: dnstap-reopen; ns2: dnstap -reopen; ns3: dnstap -roll
@@ -88,12 +92,16 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	status=$((status + ret))
 fi
 
+echo_i "reopen/roll capture streams"
+ret=0
 $RNDCCMD -s 10.53.0.1 dnstap-reopen | sed 's/^/ns1 /' | cat_i
 $RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/ns2 /' | cat_i
 $RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/ns3 /' | cat_i
 $RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/ns4 /' | cat_i
 
-$DIG $DIGOPTS @10.53.0.3 a.example > dig.out
+echo_i "send test traffic"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.example > dig.out || ret=1
 
 # send an UPDATE to ns2
 $NSUPDATE <<- EOF

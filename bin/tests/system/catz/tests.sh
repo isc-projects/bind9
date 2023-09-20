@@ -1152,7 +1152,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that dom8.example. is not AXFR accessible from 10.53.0.1 ($n)"
 ret=0
-dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.1 > dig.out.test$n
+dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.1 > dig.out.test$n || ret=1
 grep "Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -1160,7 +1160,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that dom8.example. is AXFR accessible from 10.53.0.2 ($n)"
 ret=0
-dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.2 > dig.out.test$n
+dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.2 > dig.out.test$n || ret=1
 grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -1199,7 +1199,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that dom8.example. is AXFR accessible from 10.53.0.1 ($n)"
 ret=0
-dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.1 > dig.out.test$n
+dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.1 > dig.out.test$n || ret=1
 grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
@@ -1207,7 +1207,7 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "checking that dom8.example. is AXFR accessible from 10.53.0.2 ($n)"
 ret=0
-dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.2 > dig.out.test$n
+dig_with_opts @10.53.0.2 axfr dom8.example. -b 10.53.0.2 > dig.out.test$n || ret=1
 grep -v "Transfer failed." dig.out.test$n > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))

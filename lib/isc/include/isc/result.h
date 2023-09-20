@@ -271,6 +271,7 @@ typedef enum isc_result {
 	ISCCC_R_EXPIRED,
 	ISCCC_R_CLOCKSKEW,
 	ISCCC_R_DUPLICATE,
+	ISCCC_R_MAXDEPTH,
 
 	ISC_R_NRESULTS, /*% The number of results. */
 	ISC_R_MAKE_ENUM_32BIT = INT32_MAX,
