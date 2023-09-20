@@ -333,8 +333,10 @@ value_match(const struct phr_header *header, const char *match) {
 	limit = header->value_len - match_len + 1;
 
 	for (size_t i = 0; i < limit; i++) {
-		if (isspace(header->value[i])) {
-			while (i < limit && isspace(header->value[i])) {
+		if (isspace((unsigned char)header->value[i])) {
+			while (i < limit &&
+			       isspace((unsigned char)header->value[i]))
+			{
 				i++;
 			}
 			continue;
