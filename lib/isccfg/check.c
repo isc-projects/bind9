@@ -69,6 +69,8 @@
 
 #include <ns/hooks.h>
 
+#define NAMED_CONTROL_PORT 953
+
 static in_port_t dnsport = 53;
 
 static isc_result_t
@@ -451,9 +453,8 @@ disabled_ds_digests(const cfg_obj_t *disabled, isc_log_t *logctx) {
 }
 
 static isc_result_t
-nameexist(const cfg_obj_t *obj, const char *name, int value,
-	  isc_symtab_t *symtab, const char *fmt, isc_log_t *logctx,
-	  isc_mem_t *mctx) {
+exists(const cfg_obj_t *obj, const char *name, int value, isc_symtab_t *symtab,
+       const char *fmt, isc_log_t *logctx, isc_mem_t *mctx) {
 	char *key;
 	const char *file;
 	unsigned int line;
@@ -504,10 +505,10 @@ mustbesecure(const cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 			    str);
 	} else {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		result = nameexist(secure, namebuf, 1, symtab,
-				   "dnssec-must-be-secure '%s': already "
-				   "exists previous definition: %s:%u",
-				   logctx, mctx);
+		result = exists(secure, namebuf, 1, symtab,
+				"dnssec-must-be-secure '%s': already exists "
+				"previous definition: %s:%u",
+				logctx, mctx);
 	}
 	return (result);
 }
@@ -2911,14 +2912,14 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
-		tresult = nameexist(zconfig, namebuf,
-				    ztype == CFG_ZONE_HINT	 ? 1
-				    : ztype == CFG_ZONE_REDIRECT ? 2
-								 : 3,
-				    symtab,
-				    "zone '%s': already exists "
-				    "previous definition: %s:%u",
-				    logctx, mctx);
+		tresult = exists(
+			zconfig, namebuf,
+			ztype == CFG_ZONE_HINT	     ? 1
+			: ztype == CFG_ZONE_REDIRECT ? 2
+						     : 3,
+			symtab,
+			"zone '%s': already exists previous definition: %s:%u",
+			logctx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -4932,10 +4933,9 @@ check_catz(const cfg_obj_t *catz_obj, const char *viewname, isc_mem_t *mctx,
 		}
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		tresult =
-			nameexist(nameobj, namebuf, 1, symtab,
-				  "catalog zone '%s': already added here %s:%u",
-				  logctx, mctx);
+		tresult = exists(nameobj, namebuf, 1, symtab,
+				 "catalog zone '%s': already added here %s:%u",
+				 logctx, mctx);
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 			continue;
@@ -5637,8 +5637,10 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	const cfg_obj_t *inetcontrols;
 	const cfg_obj_t *unixcontrols;
 	const cfg_obj_t *keylist = NULL;
+	const cfg_obj_t *obj = NULL;
 	const char *path;
 	dns_acl_t *acl = NULL;
+	isc_symtab_t *symtab = NULL;
 
 	(void)cfg_map_get(config, "controls", &controlslist);
 	if (controlslist == NULL) {
@@ -5648,6 +5650,11 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "key", &keylist);
 
 	cfg_aclconfctx_create(mctx, &actx);
+
+	result = isc_symtab_create(mctx, 100, freekey, mctx, true, &symtab);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
 
 	/*
 	 * INET: Check allow clause.
@@ -5664,6 +5671,9 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		for (element2 = cfg_list_first(inetcontrols); element2 != NULL;
 		     element2 = cfg_list_next(element2))
 		{
+			char socktext[ISC_SOCKADDR_FORMATSIZE];
+			isc_sockaddr_t addr;
+
 			control = cfg_listelt_value(element2);
 			allow = cfg_tuple_get(control, "allow");
 			tresult = cfg_acl_fromconfig(allow, config, logctx,
@@ -5678,6 +5688,20 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			}
+			obj = cfg_tuple_get(control, "address");
+			addr = *cfg_obj_assockaddr(obj);
+			if (isc_sockaddr_getport(&addr) == 0) {
+				isc_sockaddr_setport(&addr, NAMED_CONTROL_PORT);
+			}
+			isc_sockaddr_format(&addr, socktext, sizeof(socktext));
+			tresult = exists(
+				obj, socktext, 1, symtab,
+				"inet control socket '%s': already defined, "
+				"previous definition: %s:%u",
+				logctx, mctx);
+			if (tresult != ISC_R_SUCCESS) {
+				result = tresult;
+			}
 		}
 		for (element2 = cfg_list_first(unixcontrols); element2 != NULL;
 		     element2 = cfg_list_next(element2))
@@ -5689,7 +5713,11 @@ check_controls(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 			result = ISC_R_FAMILYNOSUPPORT;
 		}
 	}
+cleanup:
 	cfg_aclconfctx_detach(&actx);
+	if (symtab != NULL) {
+		isc_symtab_destroy(&symtab);
+	}
 	return (result);
 }
 
