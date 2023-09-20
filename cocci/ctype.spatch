@@ -1,0 +1,105 @@
+@@
+char T;
+@@
+
+- isalnum(T)
++ isalnum((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isalpha(T)
++ isalpha((unsigned char)T)
+
+@@
+char T;
+@@
+
+- iscntrl(T)
++ iscntrl((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isdigit(T)
++ isdigit((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isgraph(T)
++ isgraph((unsigned char)T)
+
+@@
+char T;
+@@
+
+- islower(T)
++ islower((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isprint(T)
++ isprint((unsigned char)T)
+
+@@
+char T;
+@@
+
+- ispunct(T)
++ ispunct((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isspace(T)
++ isspace((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isupper(T)
++ isupper((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isxdigit(T)
++ isxdigit((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isascii(T)
++ isascii((unsigned char)T)
+
+@@
+char T;
+@@
+
+- isblank(T)
++ isblank((unsigned char)T)
+
+@@
+char T;
+@@
+
+- tolower(T)
++ tolower((unsigned char)T)
+
+@@
+char T;
+@@
+
+- toupper(T)
++ toupper((unsigned char)T)
+
