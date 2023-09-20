@@ -29,9 +29,12 @@
 6247.	[func]		Implement incremental hashing in both isc_siphash
 			and isc_hash units. [GL #4306]
 
+	--- 9.19.17 released ---
+
 6246.	[placeholder]
 
-6245.	[placeholder]
+6245.	[security]	Limit the amount of recursion that can be performed
+			by isccc_cc_fromwire. (CVE-2023-3341) [GL #4152]
 
 6244.	[bug]		Adjust log levels on malformed messages to NOTICE when
 			transferring in a zone. [GL #4290]

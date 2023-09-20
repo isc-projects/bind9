@@ -74,7 +74,7 @@ run_in_container "git -c advice.detachedHead=false clone --branch v${BIND_VERSIO
 	cd bind9 && \
 	apt-get -y install --no-install-recommends python3-pip && \
 	rm -f /usr/lib/python3.*/EXTERNALLY-MANAGED && \
-	pip3 install \$(awk '!/^#/ { printf \"%s \", \$0 }' doc/arm/requirements.txt) && \
+	pip3 install -r doc/arm/requirements.txt && \
 	if [ $(echo "${BIND_VERSION}" | cut -b 1-5) = 9.16. ]; then \
 		git archive --prefix=${BIND_DIRECTORY}/ --output=${BIND_DIRECTORY}.tar HEAD && \
 		mkdir ${BIND_DIRECTORY} && \
