@@ -17,7 +17,7 @@ Security Fixes
 
 - The rules for acceptance of records into the cache have been tightened
   to prevent the possibility of poisoning if forwarders send records
-  outside the configured bailiwick. (CVE-2021-25220)
+  outside the configured bailiwick. :cve:`2021-25220`
 
   ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
   Network and Information Security Lab, Tsinghua University, and
@@ -26,18 +26,18 @@ Security Fixes
 
 - TCP connections with :any:`keep-response-order` enabled could leave the
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
-  properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
+  properly shut down the connection. :cve:`2022-0396` :gl:`#3112`
 
 - Lookups involving a DNAME could trigger an assertion failure when
   :any:`synth-from-dnssec` was enabled (which is the default).
-  (CVE-2022-0635)
+  :cve:`2022-0635`
 
   ISC would like to thank Vincent Levigneron from AFNIC for bringing
   this vulnerability to our attention. :gl:`#3158`
 
 - When chasing DS records, a timed-out or artificially delayed fetch
   could cause ``named`` to crash while resuming a DS lookup.
-  (CVE-2022-0667) :gl:`#3129`
+  :cve:`2022-0667` :gl:`#3129`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

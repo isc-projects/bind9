@@ -18,7 +18,7 @@ Security Fixes
 - Previously, sending a specially crafted message over the control
   channel could cause the packet-parsing code to run out of available
   stack memory, causing :iscman:`named` to terminate unexpectedly.
-  This has been fixed. (CVE-2023-3341)
+  This has been fixed. :cve:`2023-3341`
 
   ISC would like to thank Eric Sesterhenn from X41 D-Sec GmbH for
   bringing this vulnerability to our attention. :gl:`#4152`
@@ -26,7 +26,7 @@ Security Fixes
 - A flaw in the networking code handling DNS-over-TLS queries could
   cause :iscman:`named` to terminate unexpectedly due to an assertion
   failure under significant DNS-over-TLS query load. This has been
-  fixed. (CVE-2023-4236)
+  fixed. :cve:`2023-4236`
 
   ISC would like to thank Robert Story from USC/ISI Root Server
   Operations for bringing this vulnerability to our attention.

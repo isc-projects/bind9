@@ -18,7 +18,7 @@ Security Fixes
 - Previously, there was no limit to the number of database lookups
   performed while processing large delegations, which could be abused to
   severely impact the performance of :iscman:`named` running as a
-  recursive resolver. This has been fixed. (CVE-2022-2795)
+  recursive resolver. This has been fixed. :cve:`2022-2795`
 
   ISC would like to thank Yehuda Afek from Tel-Aviv University and Anat
   Bremler-Barr & Shani Stajnrod from Reichman University for bringing
@@ -27,20 +27,20 @@ Security Fixes
 - When an HTTP connection was reused to request statistics from the
   stats channel, the content length of successive responses could grow
   in size past the end of the allocated buffer. This has been fixed.
-  (CVE-2022-2881) :gl:`#3493`
+  :cve:`2022-2881` :gl:`#3493`
 
 - Memory leaks in code handling Diffie-Hellman (DH) keys were fixed that
   could be externally triggered, when using TKEY records in DH mode with
-  OpenSSL 3.0.0 and later versions. (CVE-2022-2906) :gl:`#3491`
+  OpenSSL 3.0.0 and later versions. :cve:`2022-2906` :gl:`#3491`
 
 - :iscman:`named` running as a resolver with the
   :any:`stale-answer-client-timeout` option set to ``0`` could crash
   with an assertion failure, when there was a stale CNAME in the cache
-  for the incoming query. This has been fixed. (CVE-2022-3080)
+  for the incoming query. This has been fixed. :cve:`2022-3080`
   :gl:`#3517`
 
 - Memory leaks were fixed that could be externally triggered in the
-  DNSSEC verification code for the EdDSA algorithm. (CVE-2022-38178)
+  DNSSEC verification code for the EdDSA algorithm. :cve:`2022-38178`
   :gl:`#3487`
 
 Feature Changes
