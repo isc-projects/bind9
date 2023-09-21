@@ -50,8 +50,6 @@
 #define DNS_ADBNAME_VALID(x)	 ISC_MAGIC_VALID(x, DNS_ADBNAME_MAGIC)
 #define DNS_ADBNAMEHOOK_MAGIC	 ISC_MAGIC('a', 'd', 'N', 'H')
 #define DNS_ADBNAMEHOOK_VALID(x) ISC_MAGIC_VALID(x, DNS_ADBNAMEHOOK_MAGIC)
-#define DNS_ADBLAMEINFO_MAGIC	 ISC_MAGIC('a', 'd', 'b', 'Z')
-#define DNS_ADBLAMEINFO_VALID(x) ISC_MAGIC_VALID(x, DNS_ADBLAMEINFO_MAGIC)
 #define DNS_ADBENTRY_MAGIC	 ISC_MAGIC('a', 'd', 'b', 'E')
 #define DNS_ADBENTRY_VALID(x)	 ISC_MAGIC_VALID(x, DNS_ADBENTRY_MAGIC)
 #define DNS_ADBFETCH_MAGIC	 ISC_MAGIC('a', 'd', 'F', '4')
@@ -87,7 +85,6 @@
 typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
 typedef ISC_LIST(dns_adbnamehook_t) dns_adbnamehooklist_t;
-typedef struct dns_adblameinfo dns_adblameinfo_t;
 typedef ISC_LIST(dns_adbentry_t) dns_adbentrylist_t;
 typedef struct dns_adbfetch dns_adbfetch_t;
 typedef struct dns_adbfetch6 dns_adbfetch6_t;
@@ -202,23 +199,6 @@ struct dns_adbnamehook {
 };
 
 /*%
- * dns_adblameinfo structure:
- *
- * This is a small widget that holds qname-specific information about an
- * address.  Currently limited to lameness, but could just as easily be
- * extended to other types of information about zones.
- */
-struct dns_adblameinfo {
-	unsigned int magic;
-
-	dns_name_t qname;
-	dns_rdatatype_t qtype;
-	isc_stdtime_t lame_timer;
-
-	ISC_LINK(dns_adblameinfo_t) plink;
-};
-
-/*%
  * dns_adbentry structure:
  *
  * This is the structure representing a nameserver address; it can be looked
@@ -269,9 +249,6 @@ struct dns_adbentry {
 	 * entry.
 	 */
 
-	/* FIXME */
-	ISC_LIST(dns_adblameinfo_t) lameinfo;
-
 	ISC_LINK(dns_adbentry_t) link;
 };
 
@@ -304,10 +281,6 @@ static dns_adbnamehook_t *
 new_adbnamehook(dns_adb_t *adb);
 static void
 free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehookp);
-static dns_adblameinfo_t *
-new_adblameinfo(dns_adb_t *, const dns_name_t *, dns_rdatatype_t);
-static void
-free_adblameinfo(dns_adb_t *, dns_adblameinfo_t **);
 static dns_adbentry_t *
 new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr);
 static void
@@ -444,7 +417,6 @@ enum {
 #define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) != 0)
 #define FIND_STARTATZONE(fn)	(((fn)->options & DNS_ADBFIND_STARTATZONE) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
-#define FIND_RETURNLAME(fn)	(((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
 #define FIND_NOFETCH(fn)	(((fn)->options & DNS_ADBFIND_NOFETCH) != 0)
 
 /*
@@ -1087,39 +1059,6 @@ free_adbnamehook(dns_adb_t *adb, dns_adbnamehook_t **namehook) {
 	isc_mem_put(adb->mctx, nh, sizeof(*nh));
 }
 
-static dns_adblameinfo_t *
-new_adblameinfo(dns_adb_t *adb, const dns_name_t *qname,
-		dns_rdatatype_t qtype) {
-	dns_adblameinfo_t *li = isc_mem_get(adb->mctx, sizeof(*li));
-
-	dns_name_init(&li->qname, NULL);
-	dns_name_dup(qname, adb->mctx, &li->qname);
-	li->magic = DNS_ADBLAMEINFO_MAGIC;
-	li->lame_timer = 0;
-	li->qtype = qtype;
-	ISC_LINK_INIT(li, plink);
-
-	return (li);
-}
-
-static void
-free_adblameinfo(dns_adb_t *adb, dns_adblameinfo_t **lameinfo) {
-	dns_adblameinfo_t *li = NULL;
-
-	REQUIRE(lameinfo != NULL && DNS_ADBLAMEINFO_VALID(*lameinfo));
-
-	li = *lameinfo;
-	*lameinfo = NULL;
-
-	REQUIRE(!ISC_LINK_LINKED(li, plink));
-
-	dns_name_free(&li->qname, adb->mctx);
-
-	li->magic = 0;
-
-	isc_mem_put(adb->mctx, li, sizeof(*li));
-}
-
 static dns_adbentry_t *
 new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
 	dns_adbentry_t *entry = NULL;
@@ -1128,7 +1067,6 @@ new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
 	*entry = (dns_adbentry_t){
 		.srtt = isc_random_uniform(0x1f) + 1,
 		.sockaddr = *addr,
-		.lameinfo = ISC_LIST_INITIALIZER,
 		.link = ISC_LINK_INITIALIZER,
 		.magic = DNS_ADBENTRY_MAGIC,
 	};
@@ -1154,7 +1092,6 @@ static void
 destroy_adbentry(dns_adbentry_t *entry) {
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
-	dns_adblameinfo_t *li = NULL;
 	dns_adb_t *adb = entry->adb;
 	uint_fast32_t active;
 
@@ -1169,13 +1106,6 @@ destroy_adbentry(dns_adbentry_t *entry) {
 
 	if (entry->cookie != NULL) {
 		isc_mem_put(adb->mctx, entry->cookie, entry->cookielen);
-	}
-
-	li = ISC_LIST_HEAD(entry->lameinfo);
-	while (li != NULL) {
-		ISC_LIST_UNLINK(entry->lameinfo, li, plink);
-		free_adblameinfo(adb, &li);
-		li = ISC_LIST_HEAD(entry->lameinfo);
 	}
 
 	isc_mutex_destroy(&entry->lock);
@@ -1531,48 +1461,6 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 	return (adbentry);
 }
 
-/*
- * The entry must be locked.
- */
-static bool
-entry_is_lame(dns_adb_t *adb, dns_adbentry_t *entry, const dns_name_t *qname,
-	      dns_rdatatype_t qtype, isc_stdtime_t now) {
-	dns_adblameinfo_t *li = NULL, *next_li = NULL;
-	bool is_bad = false;
-
-	li = ISC_LIST_HEAD(entry->lameinfo);
-	if (li == NULL) {
-		return (false);
-	}
-	while (li != NULL) {
-		next_li = ISC_LIST_NEXT(li, plink);
-
-		/*
-		 * Has the entry expired?
-		 */
-		if (li->lame_timer < now) {
-			ISC_LIST_UNLINK(entry->lameinfo, li, plink);
-			free_adblameinfo(adb, &li);
-		}
-
-		/*
-		 * Order tests from least to most expensive.
-		 *
-		 * We do not break out of the main loop here as
-		 * we use the loop for house keeping.
-		 */
-		if (li != NULL && !is_bad && li->qtype == qtype &&
-		    dns_name_equal(qname, &li->qname))
-		{
-			is_bad = true;
-		}
-
-		li = next_li;
-	}
-
-	return (is_bad);
-}
-
 static void
 log_quota(dns_adbentry_t *entry, const char *fmt, ...) {
 	va_list ap;
@@ -1595,9 +1483,7 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) {
 }
 
 static void
-copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
-		    const dns_name_t *qname, dns_rdatatype_t qtype,
-		    dns_adbname_t *name, isc_stdtime_t now) {
+copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 	dns_adbnamehook_t *namehook = NULL;
 	dns_adbentry_t *entry = NULL;
 
@@ -1609,15 +1495,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			LOCK(&entry->lock);
 
 			if (adbentry_overquota(entry)) {
-				find->options |= (DNS_ADBFIND_LAMEPRUNED |
-						  DNS_ADBFIND_OVERQUOTA);
-				goto nextv4;
-			}
-
-			if (!FIND_RETURNLAME(find) &&
-			    entry_is_lame(adb, entry, qname, qtype, now))
-			{
-				find->options |= DNS_ADBFIND_LAMEPRUNED;
+				find->options |= DNS_ADBFIND_OVERQUOTA;
 				goto nextv4;
 			}
 
@@ -1641,17 +1519,10 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find,
 			LOCK(&entry->lock);
 
 			if (adbentry_overquota(entry)) {
-				find->options |= (DNS_ADBFIND_LAMEPRUNED |
-						  DNS_ADBFIND_OVERQUOTA);
+				find->options |= DNS_ADBFIND_OVERQUOTA;
 				goto nextv6;
 			}
 
-			if (!FIND_RETURNLAME(find) &&
-			    entry_is_lame(adb, entry, qname, qtype, now))
-			{
-				find->options |= DNS_ADBFIND_LAMEPRUNED;
-				goto nextv6;
-			}
 			addrinfo = new_adbaddrinfo(adb, entry, find->port);
 
 			/*
@@ -2067,7 +1938,7 @@ dns_adb_shutdown(dns_adb_t *adb) {
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_loop_t *loop, isc_job_cb cb, void *cbarg,
 		   const dns_name_t *name, const dns_name_t *qname,
-		   dns_rdatatype_t qtype, unsigned int options,
+		   dns_rdatatype_t qtype ISC_ATTR_UNUSED, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		   unsigned int depth, isc_counter_t *qc,
 		   dns_adbfind_t **findp) {
@@ -2299,7 +2170,7 @@ fetch:
 	 * Run through the name and copy out the bits we are
 	 * interested in.
 	 */
-	copy_namehook_lists(adb, find, qname, qtype, adbname, now);
+	copy_namehook_lists(adb, find, adbname);
 
 post_copy:
 	if (NAME_FETCH_A(adbname)) {
@@ -2568,9 +2439,7 @@ static void
 dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	   isc_stdtime_t now) {
 	char addrbuf[ISC_NETADDR_FORMATSIZE];
-	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	isc_netaddr_t netaddr;
-	dns_adblameinfo_t *li = NULL;
 
 	isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
 	isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
@@ -2607,15 +2476,6 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	}
 
 	fprintf(f, "\n");
-	for (li = ISC_LIST_HEAD(entry->lameinfo); li != NULL;
-	     li = ISC_LIST_NEXT(li, plink))
-	{
-		fprintf(f, ";\t\t");
-		dns_name_print(&li->qname, f);
-		dns_rdatatype_format(li->qtype, typebuf, sizeof(typebuf));
-		fprintf(f, " %s [lame TTL %d]\n", typebuf,
-			(int)(li->lame_timer - now));
-	}
 }
 
 static void
@@ -3161,41 +3021,6 @@ cleanup:
 		dns_rdataset_disassociate(&rdataset);
 	}
 
-	return (result);
-}
-
-isc_result_t
-dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		 const dns_name_t *qname, dns_rdatatype_t qtype,
-		 isc_stdtime_t expire_time) {
-	REQUIRE(DNS_ADB_VALID(adb));
-	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
-	REQUIRE(qname != NULL);
-
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_adblameinfo_t *li = NULL;
-	dns_adbentry_t *entry = addr->entry;
-
-	LOCK(&entry->lock);
-	li = ISC_LIST_HEAD(entry->lameinfo);
-	while (li != NULL &&
-	       (li->qtype != qtype || !dns_name_equal(qname, &li->qname)))
-	{
-		li = ISC_LIST_NEXT(li, plink);
-	}
-	if (li != NULL) {
-		if (expire_time > li->lame_timer) {
-			li->lame_timer = expire_time;
-		}
-		goto unlock;
-	}
-	li = new_adblameinfo(adb, qname, qtype);
-	li->lame_timer = expire_time;
-
-	ISC_LIST_PREPEND(addr->entry->lameinfo, li, plink);
-
-unlock:
-	UNLOCK(&entry->lock);
 	return (result);
 }
 
