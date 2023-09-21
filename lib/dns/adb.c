@@ -220,8 +220,8 @@ struct dns_adbentry {
 	isc_refcount_t references;
 	dns_adbnamehooklist_t nhs;
 
-	unsigned int flags;
-	unsigned int srtt;
+	atomic_uint flags;
+	atomic_uint srtt;
 	unsigned int completed;
 	unsigned int timeouts;
 	unsigned char plain;
@@ -239,8 +239,8 @@ struct dns_adbentry {
 	unsigned char *cookie;
 	uint16_t cookielen;
 
-	isc_stdtime_t expires;
-	isc_stdtime_t lastage;
+	_Atomic(isc_stdtime_t) expires;
+	_Atomic(isc_stdtime_t) lastage;
 	/*%<
 	 * A nonzero 'expires' field indicates that the entry should
 	 * persist until that time.  This allows entries found
@@ -391,7 +391,7 @@ enum {
 enum {
 	ENTRY_IS_DEAD = 1 << 31,
 };
-#define ENTRY_DEAD(e) (((e)->flags & ENTRY_IS_DEAD) != 0)
+#define ENTRY_DEAD(e) ((atomic_load(&(e)->flags) & ENTRY_IS_DEAD) != 0)
 
 /*
  * To the name, address classes are all that really exist.  If it has a
@@ -1068,6 +1068,9 @@ new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
 		.srtt = isc_random_uniform(0x1f) + 1,
 		.sockaddr = *addr,
 		.link = ISC_LINK_INITIALIZER,
+		.quota = adb->quota,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.adb = dns_adb_ref(adb),
 		.magic = DNS_ADBENTRY_MAGIC,
 	};
 
@@ -1075,13 +1078,7 @@ new_adbentry(dns_adb_t *adb, const isc_sockaddr_t *addr) {
 	fprintf(stderr, "dns_adbentry__init:%s:%s:%d:%p->references = 1\n",
 		__func__, __FILE__, __LINE__ + 1, entry);
 #endif
-	isc_refcount_init(&entry->references, 1);
 	isc_mutex_init(&entry->lock);
-
-	atomic_init(&entry->active, 0);
-	atomic_init(&entry->quota, adb->quota);
-
-	dns_adb_attach(adb, &entry->adb);
 
 	inc_adbstats(adb, dns_adbstats_entriescnt);
 
@@ -1210,8 +1207,8 @@ new_adbaddrinfo(dns_adb_t *adb, dns_adbentry_t *entry, in_port_t port) {
 
 	ai = isc_mem_get(adb->mctx, sizeof(*ai));
 	*ai = (dns_adbaddrinfo_t){
-		.srtt = entry->srtt,
-		.flags = entry->flags,
+		.srtt = atomic_load(&entry->srtt),
+		.flags = atomic_load(&entry->flags),
 		.publink = ISC_LINK_INITIALIZER,
 		.sockaddr = entry->sockaddr,
 		.entry = dns_adbentry_ref(entry),
@@ -1492,7 +1489,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 		while (namehook != NULL) {
 			dns_adbaddrinfo_t *addrinfo = NULL;
 			entry = namehook->entry;
-			LOCK(&entry->lock);
 
 			if (adbentry_overquota(entry)) {
 				find->options |= DNS_ADBFIND_OVERQUOTA;
@@ -1506,7 +1502,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			 */
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
 		nextv4:
-			UNLOCK(&entry->lock);
 			namehook = ISC_LIST_NEXT(namehook, name_link);
 		}
 	}
@@ -1516,7 +1511,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 		while (namehook != NULL) {
 			dns_adbaddrinfo_t *addrinfo = NULL;
 			entry = namehook->entry;
-			LOCK(&entry->lock);
 
 			if (adbentry_overquota(entry)) {
 				find->options |= DNS_ADBFIND_OVERQUOTA;
@@ -1530,7 +1524,6 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_adbname_t *name) {
 			 */
 			ISC_LIST_APPEND(find->list, addrinfo, publink);
 		nextv6:
-			UNLOCK(&entry->lock);
 			namehook = ISC_LIST_NEXT(namehook, name_link);
 		}
 	}
@@ -1572,7 +1565,7 @@ expire_entry(dns_adbentry_t *adbentry) {
 	dns_adb_t *adb = adbentry->adb;
 
 	if (!ENTRY_DEAD(adbentry)) {
-		adbentry->flags |= ENTRY_IS_DEAD;
+		(void)atomic_fetch_or(&adbentry->flags, ENTRY_IS_DEAD);
 
 		result = isc_hashmap_delete(
 			adb->entries,
@@ -1591,7 +1584,9 @@ entry_expired(dns_adbentry_t *adbentry, isc_stdtime_t now) {
 		return (false);
 	}
 
-	if (adbentry->expires == 0 || adbentry->expires > now) {
+	if (atomic_load(&adbentry->expires) == 0 ||
+	    atomic_load(&adbentry->expires) > now)
+	{
 		return (false);
 	}
 
@@ -2452,8 +2447,8 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 	fprintf(f,
 		";\t%s [srtt %u] [flags %08x] [edns %u/%u] "
 		"[plain %u/%u]",
-		addrbuf, entry->srtt, entry->flags, entry->edns, entry->ednsto,
-		entry->plain, entry->plainto);
+		addrbuf, atomic_load(&entry->srtt), atomic_load(&entry->flags),
+		entry->edns, entry->ednsto, entry->plain, entry->plainto);
 	if (entry->udpsize != 0U) {
 		fprintf(f, " [udpsize %u]", entry->udpsize);
 	}
@@ -2465,8 +2460,9 @@ dump_entry(FILE *f, dns_adb_t *adb, dns_adbentry_t *entry, bool debug,
 		}
 		fprintf(f, "]");
 	}
-	if (entry->expires != 0) {
-		fprintf(f, " [ttl %d]", (int)(entry->expires - now));
+	if (atomic_load(&entry->expires) != 0) {
+		fprintf(f, " [ttl %d]",
+			(int)(atomic_load(&entry->expires) - now));
 	}
 
 	if (adb != NULL && adb->quota != 0 && adb->atr_freq != 0) {
@@ -3031,16 +3027,14 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int rtt,
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 	REQUIRE(factor <= 10);
 
-	isc_stdtime_t now = 0;
 	dns_adbentry_t *entry = addr->entry;
-	LOCK(&entry->lock);
 
-	if (entry->expires == 0 || factor == DNS_ADB_RTTADJAGE) {
+	isc_stdtime_t now = 0;
+	if (atomic_load(&entry->expires) == 0 || factor == DNS_ADB_RTTADJAGE) {
 		now = isc_stdtime_now();
 	}
-	adjustsrtt(addr, rtt, factor, now);
 
-	UNLOCK(&entry->lock);
+	adjustsrtt(addr, rtt, factor, now);
 }
 
 void
@@ -3048,40 +3042,36 @@ dns_adb_agesrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr, isc_stdtime_t now) {
 	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(DNS_ADBADDRINFO_VALID(addr));
 
-	dns_adbentry_t *entry = addr->entry;
-	LOCK(&entry->lock);
-
 	adjustsrtt(addr, 0, DNS_ADB_RTTADJAGE, now);
-
-	UNLOCK(&entry->lock);
 }
 
 static void
 adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 	   isc_stdtime_t now) {
-	uint64_t new_srtt;
+	unsigned int new_srtt;
 
 	if (factor == DNS_ADB_RTTADJAGE) {
-		if (addr->entry->lastage != now) {
+		if (atomic_load(&addr->entry->lastage) != now) {
 			new_srtt = addr->entry->srtt;
 			new_srtt <<= 9;
 			new_srtt -= addr->entry->srtt;
 			new_srtt >>= 9;
-			addr->entry->lastage = now;
+			atomic_store(&addr->entry->lastage, now);
 		} else {
-			new_srtt = addr->entry->srtt;
+			new_srtt = atomic_load(&addr->entry->srtt)
 		}
 	} else {
-		new_srtt = ((uint64_t)addr->entry->srtt / 10 * factor) +
+		new_srtt = ((uint64_t)atomic_load(&addr->entry->srtt) / 10 *
+			    factor) +
 			   ((uint64_t)rtt / 10 * (10 - factor));
 	}
 
-	addr->entry->srtt = (unsigned int)new_srtt;
-	addr->srtt = (unsigned int)new_srtt;
+	atomic_store(&addr->entry->srtt, new_srtt);
+	addr->srtt = new_srtt;
 
-	if (addr->entry->expires == 0) {
-		addr->entry->expires = now + ADB_ENTRY_WINDOW;
-	}
+	(void)atomic_compare_exchange_strong(&addr->entry->expires,
+					     &(isc_stdtime_t){ 0 },
+					     now + ADB_ENTRY_WINDOW);
 }
 
 void
@@ -3093,12 +3083,16 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 	isc_stdtime_t now;
 	dns_adbentry_t *entry = addr->entry;
 
-	LOCK(&entry->lock);
+	unsigned int flags = atomic_load(&entry->flags);
+	while (!atomic_compare_exchange_strong(&entry->flags, &flags,
+					       (flags & ~mask) | (bits & mask)))
+	{
+		/* repeat */
+	}
 
-	entry->flags = (entry->flags & ~mask) | (bits & mask);
-	if (entry->expires == 0) {
+	if (atomic_load(&entry->expires) == 0) {
 		now = isc_stdtime_now();
-		entry->expires = now + ADB_ENTRY_WINDOW;
+		atomic_store(&entry->expires, now + ADB_ENTRY_WINDOW);
 	}
 
 	/*
@@ -3106,8 +3100,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int bits,
 	 * the most recent values from addr->entry->flags.
 	 */
 	addr->flags = (addr->flags & ~mask) | (bits & mask);
-
-	UNLOCK(&entry->lock);
 }
 
 /*
@@ -3365,11 +3357,12 @@ dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
 	entry = get_attached_and_locked_entry(adb, now, sa);
 	INSIST(entry != NULL);
 
+	UNLOCK(&entry->lock);
+
 	port = isc_sockaddr_getport(sa);
 	addr = new_adbaddrinfo(adb, entry, port);
 	*addrp = addr;
 
-	UNLOCK(&entry->lock);
 	dns_adbentry_detach(&entry);
 
 	return (result);
@@ -3393,10 +3386,9 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 
 	REQUIRE(DNS_ADBENTRY_VALID(entry));
 
-	if (entry->expires == 0) {
-		now = isc_stdtime_now();
-		entry->expires = now + ADB_ENTRY_WINDOW;
-	}
+	now = isc_stdtime_now();
+	(void)atomic_compare_exchange_strong(
+		&entry->expires, &(isc_stdtime_t){ 0 }, now + ADB_ENTRY_WINDOW);
 
 	free_adbaddrinfo(adb, &addr);
 }
