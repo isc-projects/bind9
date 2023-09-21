@@ -1,3 +1,6 @@
+6264.	[func]		Use atomics to handle some ADB entry members
+			to reduce ADB locking contention. [GL #4326]
+
 6263.	[func]		Convert the RPZ summary database to use a QP trie
 			instead of an RBT. [GL !8352]
 
