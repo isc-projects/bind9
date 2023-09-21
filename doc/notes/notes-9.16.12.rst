@@ -22,7 +22,7 @@ Security Fixes
   authentication). This flaw could be exploited to crash ``named``.
   Theoretically, it also enabled remote code execution, but achieving
   the latter is very difficult in real-world conditions.
-  (CVE-2020-8625)
+  :cve:`2020-8625`
 
   This vulnerability was responsibly reported to us as ZDI-CAN-12302 by
   Trend Micro Zero Day Initiative. :gl:`#2354`

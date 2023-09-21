@@ -17,7 +17,7 @@ Security Fixes
 
 - Fixed an assertion failure that occurred in ``named`` when it
   attempted to send a UDP packet that exceeded the MTU size, if
-  Response Rate Limiting (RRL) was enabled. (CVE-2021-25218) :gl:`#2856`
+  Response Rate Limiting (RRL) was enabled. :cve:`2021-25218` :gl:`#2856`
 
 - ``named`` failed to check the opcode of responses when performing zone
   refreshes, stub zone updates, and UPDATE forwarding. This could lead

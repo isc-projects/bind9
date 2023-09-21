@@ -17,7 +17,7 @@ Security Fixes
 
 - The rules for acceptance of records into the cache have been tightened
   to prevent the possibility of poisoning if forwarders send records
-  outside the configured bailiwick. (CVE-2021-25220)
+  outside the configured bailiwick. :cve:`2021-25220`
 
   ISC would like to thank Xiang Li, Baojun Liu, and Chaoyi Lu from
   Network and Information Security Lab, Tsinghua University, and
@@ -26,7 +26,7 @@ Security Fixes
 
 - TCP connections with ``keep-response-order`` enabled could leave the
   TCP sockets in the ``CLOSE_WAIT`` state when the client did not
-  properly shut down the connection. (CVE-2022-0396) :gl:`#3112`
+  properly shut down the connection. :cve:`2022-0396` :gl:`#3112`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

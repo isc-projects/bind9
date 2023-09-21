@@ -26,7 +26,7 @@ Security Fixes
   that has a negligible impact on resolver performance while also
   preventing abuse. Administrators may observe more traffic towards
   servers issuing certain types of broken responses than in previous
-  BIND 9 releases, depending on client query patterns. (CVE-2021-25219)
+  BIND 9 releases, depending on client query patterns. :cve:`2021-25219`
 
   ISC would like to thank Kishore Kumar Kothapalli of Infoblox for
   bringing this vulnerability to our attention. :gl:`#2899`

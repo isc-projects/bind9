@@ -16,14 +16,14 @@ Security Fixes
 ~~~~~~~~~~~~~~
 
 - A malformed incoming IXFR transfer could trigger an assertion failure
-  in ``named``, causing it to quit abnormally. (CVE-2021-25214)
+  in ``named``, causing it to quit abnormally. :cve:`2021-25214`
 
   ISC would like to thank Greg Kuechle of SaskTel for bringing this
   vulnerability to our attention. :gl:`#2467`
 
 - ``named`` crashed when a DNAME record placed in the ANSWER section
   during DNAME chasing turned out to be the final answer to a client
-  query. (CVE-2021-25215)
+  query. :cve:`2021-25215`
 
   ISC would like to thank `Siva Kakarla`_ for bringing this
   vulnerability to our attention. :gl:`#2540`
@@ -37,7 +37,7 @@ Security Fixes
   GSSAPI authentication). This flaw could be exploited to crash
   ``named`` binaries compiled for 64-bit platforms, and could enable
   remote code execution when ``named`` was compiled for 32-bit
-  platforms. (CVE-2021-25216)
+  platforms. :cve:`2021-25216`
 
   This vulnerability was reported to us as ZDI-CAN-13347 by Trend Micro
   Zero Day Initiative. :gl:`#2604`
