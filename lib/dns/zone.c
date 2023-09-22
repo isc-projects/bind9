@@ -292,6 +292,7 @@ struct dns_zone {
 	isc_time_t signingtime;
 	isc_time_t nsec3chaintime;
 	isc_time_t refreshkeytime;
+	isc_time_t xfrintime;
 	uint32_t refreshkeyinterval;
 	uint32_t refreshkeycount;
 	uint32_t refresh;
@@ -13870,6 +13871,10 @@ same_primary:
 	queue_soa_query(zone);
 
 detach:
+	if (do_queue_xfrin) {
+		/* Shows in the statistics channel the duration of the step. */
+		zone->xfrintime = isc_time_now();
+	}
 	UNLOCK_ZONE(zone);
 	if (do_queue_xfrin) {
 		queue_xfrin(zone);
@@ -13901,6 +13906,9 @@ queue_soa_query(dns_zone_t *zone) {
 
 	sq = isc_mem_get(zone->mctx, sizeof(*sq));
 	*sq = (struct soaquery){ .zone = NULL };
+
+	/* Shows in the statistics channel the duration of the current step. */
+	zone->xfrintime = isc_time_now();
 
 	/*
 	 * Attach so that we won't clean up until the event is delivered.
@@ -14099,6 +14107,9 @@ again:
 			      isc_result_totext(result));
 		goto skip_primary;
 	} else {
+		/* Shows in the statistics channel the duration of the query. */
+		zone->xfrintime = isc_time_now();
+
 		if (isc_sockaddr_pf(&curraddr) == PF_INET) {
 			inc_stats(zone, dns_zonestatscounter_soaoutv4);
 		} else {
@@ -14121,6 +14132,10 @@ cleanup:
 	}
 	if (cancel) {
 		cancel_refresh(zone);
+	}
+	if (do_queue_xfrin) {
+		/* Shows in the statistics channel the duration of the step. */
+		zone->xfrintime = isc_time_now();
 	}
 	UNLOCK_ZONE(zone);
 	if (do_queue_xfrin) {
@@ -17573,6 +17588,41 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone) {
 	return (zone->sigresigninginterval);
 }
 
+isc_sockaddr_t
+dns_zone_getsourceaddr(dns_zone_t *zone) {
+	isc_sockaddr_t sourceaddr;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	INSIST(dns_remote_count(&zone->primaries) > 0);
+	sourceaddr = zone->sourceaddr;
+	UNLOCK_ZONE(zone);
+
+	return (sourceaddr);
+}
+
+isc_sockaddr_t
+dns_zone_getprimaryaddr(dns_zone_t *zone) {
+	isc_sockaddr_t curraddr;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	INSIST(dns_remote_count(&zone->primaries) > 0);
+	curraddr = dns_remote_curraddr(&zone->primaries);
+	UNLOCK_ZONE(zone);
+
+	return (curraddr);
+}
+
+isc_time_t
+dns_zone_getxfrintime(const dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->xfrintime);
+}
+
 static void
 queue_xfrin(dns_zone_t *zone) {
 	isc_result_t result;
@@ -17597,6 +17647,61 @@ queue_xfrin(dns_zone_t *zone) {
 			      "starting zone transfer: %s",
 			      isc_result_totext(result));
 	}
+}
+
+/*
+ * Get the transport type used for the SOA query to the current primary server
+ * before an ongoing incoming zone transfer.
+ *
+ * Requires:
+ *	The zone is locked by the caller.
+ */
+static dns_transport_type_t
+get_request_transport_type(dns_zone_t *zone) {
+	dns_transport_type_t transport_type = DNS_TRANSPORT_NONE;
+
+	if (zone->transport != NULL) {
+		transport_type = dns_transport_get_type(zone->transport);
+	} else {
+		transport_type = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC))
+					 ? DNS_TRANSPORT_TCP
+					 : DNS_TRANSPORT_UDP;
+
+		/* Check if the peer is forced to always use TCP. */
+		if (transport_type != DNS_TRANSPORT_TCP) {
+			isc_result_t result;
+			isc_sockaddr_t primaryaddr;
+			isc_netaddr_t primaryip;
+			dns_peer_t *peer = NULL;
+
+			primaryaddr = dns_remote_curraddr(&zone->primaries);
+			isc_netaddr_fromsockaddr(&primaryip, &primaryaddr);
+			result = dns_peerlist_peerbyaddr(zone->view->peers,
+							 &primaryip, &peer);
+			if (result == ISC_R_SUCCESS && peer != NULL) {
+				bool usetcp;
+				result = dns_peer_getforcetcp(peer, &usetcp);
+				if (result == ISC_R_SUCCESS && usetcp) {
+					transport_type = DNS_TRANSPORT_TCP;
+				}
+			}
+		}
+	}
+
+	return (transport_type);
+}
+
+dns_transport_type_t
+dns_zone_getrequesttransporttype(dns_zone_t *zone) {
+	dns_transport_type_t transport_type;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	transport_type = get_request_transport_type(zone);
+	UNLOCK_ZONE(zone);
+
+	return (transport_type);
 }
 
 /*
@@ -17743,30 +17848,19 @@ got_transfer_quota(void *arg) {
 				      "zone transfer: %s",
 				      isc_result_totext(result));
 		}
-
-		if (result == ISC_R_SUCCESS && xfrtype != dns_rdatatype_soa) {
-			soa_transport_type = DNS_TRANSPORT_TLS;
-		}
 	}
 
 	LOCK_ZONE(zone);
-	if (soa_transport_type == DNS_TRANSPORT_NONE &&
-	    xfrtype != dns_rdatatype_soa)
-	{
-		soa_transport_type = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC))
-					     ? DNS_TRANSPORT_TCP
-					     : DNS_TRANSPORT_UDP;
-
-		/* Check if the peer is forced to always use TCP. */
-		if (soa_transport_type != DNS_TRANSPORT_TCP && peer != NULL) {
-			bool usetcp;
-			result = dns_peer_getforcetcp(peer, &usetcp);
-			if (result == ISC_R_SUCCESS && usetcp) {
-				soa_transport_type = DNS_TRANSPORT_TCP;
-			}
-		}
+	if (xfrtype != dns_rdatatype_soa) {
+		/*
+		 * If 'xfrtype' is dns_rdatatype_soa, then the SOA query will be
+		 * performed by xfrin, otherwise, the SOA request performed by
+		 * soa_query() was successful and we should inform the xfrin
+		 * about the transport type used for that query, so that the
+		 * information can be presented in the statistics channel.
+		 */
+		soa_transport_type = get_request_transport_type(zone);
 	}
-
 	sourceaddr = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
 
@@ -19189,13 +19283,21 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 
 isc_result_t
 dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_pending, bool *needs_refresh) {
+		bool *is_deferred, bool *is_presoa, bool *is_pending,
+		bool *needs_refresh) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
 	if (zone->zmgr == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
+
+	/* Reset. */
+	*is_running = false;
+	*is_deferred = false;
+	*is_presoa = false;
+	*is_pending = false;
+	*needs_refresh = false;
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
@@ -19204,22 +19306,37 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	}
 	if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
 		*is_running = true;
-		*is_deferred = false;
-		*is_pending = false;
+		/*
+		 * The NEEDREFRESH flag is set only when a notify was received
+		 * while the current zone transfer is running.
+		 */
+		*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 	} else if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
-		*is_running = false;
 		*is_deferred = true;
-		*is_pending = false;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
-		*is_running = false;
-		*is_deferred = false;
-		*is_pending = true;
+		if (zone->request != NULL) {
+			*is_presoa = true;
+		} else {
+			*is_pending = true;
+		}
 	} else {
-		*is_running = false;
-		*is_deferred = false;
-		*is_pending = false;
+		/*
+		 * No operation is ongoing or pending, just check if the zone
+		 * needs a refresh by looking at the refresh and expire times.
+		 */
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH) &&
+		    (zone->type == dns_zone_secondary ||
+		     zone->type == dns_zone_mirror ||
+		     zone->type == dns_zone_stub))
+		{
+			isc_time_t now = isc_time_now();
+			if (isc_time_compare(&now, &zone->refreshtime) >= 0 ||
+			    isc_time_compare(&now, &zone->expiretime) >= 0)
+			{
+				*needs_refresh = true;
+			}
+		}
 	}
-	*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 

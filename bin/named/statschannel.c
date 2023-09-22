@@ -1459,6 +1459,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_rdataclass_t rdclass;
 	const char *ztype;
 	uint32_t serial;
+	isc_sockaddr_t addr;
 	const isc_sockaddr_t *addrp = NULL;
 	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
 	dns_transport_type_t transport_type;
@@ -1466,7 +1467,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_zonestat_level_t statlevel;
 	int xmlrc;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_pending;
+	bool is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -1479,13 +1480,15 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	}
 
 	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_pending, &needs_refresh);
+				 &is_presoa, &is_pending, &needs_refresh);
 	if (result != ISC_R_SUCCESS) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
-	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+	if (!is_running && !is_deferred && !is_presoa && !is_pending &&
+	    !needs_refresh)
+	{
 		/* No ongoing/queued transfer. */
 		goto cleanup;
 	}
@@ -1546,6 +1549,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR xfr_state));
 	} else if (is_deferred) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Deferred"));
+	} else if (is_presoa) {
+		TRY0(xmlTextWriterWriteString(writer,
+					      ISC_XMLCHAR "Refresh SOA"));
 	} else if (is_pending) {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Pending"));
 	} else if (needs_refresh) {
@@ -1558,13 +1564,18 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "refreshqueued"));
 	TRY0(xmlTextWriterWriteString(
-		writer, ISC_XMLCHAR(needs_refresh ? "Yes" : "No")));
+		writer,
+		ISC_XMLCHAR(is_running && needs_refresh ? "Yes" : "No")));
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "localaddr"));
 	if (is_running) {
 		addrp = dns_xfrin_getsourceaddr(xfr);
 		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
+	} else if (is_presoa) {
+		addr = dns_zone_getsourceaddr(zone);
+		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
 	} else {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
@@ -1576,14 +1587,22 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		addrp = dns_xfrin_getprimaryaddr(xfr);
 		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
+	} else if (is_presoa) {
+		addr = dns_zone_getprimaryaddr(zone);
+		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
 	} else {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
 	}
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "soatransport"));
-	if (is_running) {
-		transport_type = dns_xfrin_getsoatransporttype(xfr);
+	if (is_running || is_presoa) {
+		if (is_running) {
+			transport_type = dns_xfrin_getsoatransporttype(xfr);
+		} else {
+			transport_type = dns_zone_getrequesttransporttype(zone);
+		}
 		if (transport_type == DNS_TRANSPORT_UDP) {
 			TRY0(xmlTextWriterWriteString(writer,
 						      ISC_XMLCHAR "UDP"));
@@ -1638,8 +1657,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "duration"));
-	if (is_running) {
-		isc_time_t start = dns_xfrin_getstarttime(xfr);
+	if (is_running || is_deferred || is_presoa || is_pending) {
+		isc_time_t start = is_running ? dns_xfrin_getstarttime(xfr)
+					      : dns_zone_getxfrintime(zone);
 		isc_time_t now = isc_time_now();
 		isc_time_t diff;
 		uint32_t sec;
@@ -2496,12 +2516,13 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	uint32_t serial;
 	json_object *xfrinarray = (json_object *)arg;
 	json_object *xfrinobj = NULL;
+	isc_sockaddr_t addr;
 	const isc_sockaddr_t *addrp = NULL;
 	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
 	dns_transport_type_t transport_type;
 	dns_zonestat_level_t statlevel;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_pending;
+	bool is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -2534,13 +2555,15 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_pending, &needs_refresh);
+				 &is_presoa, &is_pending, &needs_refresh);
 	if (result != ISC_R_SUCCESS) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
-	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+	if (!is_running && !is_deferred && !is_presoa && !is_pending &&
+	    !needs_refresh)
+	{
 		/* No ongoing/queued transfer. */
 		goto cleanup;
 	}
@@ -2568,6 +2591,9 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	} else if (is_deferred) {
 		json_object_object_add(xfrinobj, "state",
 				       json_object_new_string("Deferred"));
+	} else if (is_presoa) {
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string("Refresh SOA"));
 	} else if (is_pending) {
 		json_object_object_add(xfrinobj, "state",
 				       json_object_new_string("Pending"));
@@ -2580,11 +2606,17 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 
 	json_object_object_add(
 		xfrinobj, "refreshqueued",
-		json_object_new_string(needs_refresh ? "Yes" : "No"));
+		json_object_new_string(is_running && needs_refresh ? "Yes"
+								   : "No"));
 
 	if (is_running) {
 		addrp = dns_xfrin_getsourceaddr(xfr);
 		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		json_object_object_add(xfrinobj, "localaddr",
+				       json_object_new_string(addr_buf));
+	} else if (is_presoa) {
+		addr = dns_zone_getsourceaddr(zone);
+		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
 		json_object_object_add(xfrinobj, "localaddr",
 				       json_object_new_string(addr_buf));
 	} else {
@@ -2597,13 +2629,23 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
 		json_object_object_add(xfrinobj, "remoteaddr",
 				       json_object_new_string(addr_buf));
+	} else if (is_presoa) {
+		addr = dns_zone_getprimaryaddr(zone);
+		isc_sockaddr_format(&addr, addr_buf, sizeof(addr_buf));
+		json_object_object_add(xfrinobj, "remoteaddr",
+				       json_object_new_string(addr_buf));
 	} else {
 		json_object_object_add(xfrinobj, "remoteaddr",
 				       json_object_new_string("-"));
 	}
 
-	if (is_running) {
-		transport_type = dns_xfrin_getsoatransporttype(xfr);
+	if (is_running || is_presoa) {
+		if (is_running) {
+			transport_type = dns_xfrin_getsoatransporttype(xfr);
+		} else {
+			transport_type = dns_zone_getrequesttransporttype(zone);
+		}
+
 		if (transport_type == DNS_TRANSPORT_UDP) {
 			json_object_object_add(xfrinobj, "soatransport",
 					       json_object_new_string("UDP"));
@@ -2661,8 +2703,9 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		json_object_object_add(xfrinobj, "tsigkeyname", NULL);
 	}
 
-	if (is_running) {
-		isc_time_t start = dns_xfrin_getstarttime(xfr);
+	if (is_running || is_deferred || is_presoa || is_pending) {
+		isc_time_t start = is_running ? dns_xfrin_getstarttime(xfr)
+					      : dns_zone_getxfrintime(zone);
 		isc_time_t now = isc_time_now();
 		isc_time_t diff;
 		uint32_t sec;

@@ -80,7 +80,7 @@
 typedef enum {
 	XFRST_SOAQUERY,
 	XFRST_GOTSOA,
-	XFRST_INITIALSOA,
+	XFRST_ZONEXFRREQUEST,
 	XFRST_FIRSTDATA,
 	XFRST_IXFR_DELSOA,
 	XFRST_IXFR_DEL,
@@ -553,7 +553,7 @@ redo:
 		 */
 		break;
 
-	case XFRST_INITIALSOA:
+	case XFRST_ZONEXFRREQUEST:
 		if (rdata->type != dns_rdatatype_soa) {
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "first RR in zone transfer must be SOA");
@@ -799,8 +799,8 @@ dns_xfrin_getstate(const dns_xfrin_t *xfr, const char **statestr,
 	case XFRST_GOTSOA:
 		*statestr = "Got SOA";
 		break;
-	case XFRST_INITIALSOA:
-		*statestr = "Initial SOA";
+	case XFRST_ZONEXFRREQUEST:
+		*statestr = "Zone Transfer Request";
 		break;
 	case XFRST_FIRSTDATA:
 		*statestr = "First Data";
@@ -1017,7 +1017,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	if (reqtype == dns_rdatatype_soa) {
 		atomic_init(&xfr->state, XFRST_SOAQUERY);
 	} else {
-		atomic_init(&xfr->state, XFRST_INITIALSOA);
+		atomic_init(&xfr->state, XFRST_ZONEXFRREQUEST);
 	}
 
 	xfr->start = isc_time_now();
@@ -1101,9 +1101,9 @@ xfrin_start(dns_xfrin_t *xfr) {
 	/*
 	 * If the transfer is started when the 'state' is XFRST_SOAQUERY, it
 	 * means the SOA query will be performed by xfrin. A transfer could also
-	 * be initiated starting from the XFRST_INITIALSOA state, which means
-	 * that the SOA query was already performed by other means (e.g. by
-	 * zone.c:soa_query()), or that it's a transfer without a preceding
+	 * be initiated starting from the XFRST_ZONEXFRREQUEST state, which
+	 * means that the SOA query was already performed by other means (e.g.
+	 * by zone.c:soa_query()), or that it's a transfer without a preceding
 	 * SOA request, and 'soa_transport_type' is already correctly
 	 * set by the creator of the xfrin.
 	 */
@@ -1572,7 +1572,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		if (result == ISC_R_SUCCESS &&
 		    msg->rcode == dns_rcode_formerr && xfr->edns &&
 		    (atomic_load(&xfr->state) == XFRST_SOAQUERY ||
-		     atomic_load(&xfr->state) == XFRST_INITIALSOA))
+		     atomic_load(&xfr->state) == XFRST_ZONEXFRREQUEST))
 		{
 			xfr->edns = false;
 			dns_message_detach(&msg);
@@ -1632,7 +1632,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	}
 
 	if ((atomic_load(&xfr->state) == XFRST_SOAQUERY ||
-	     atomic_load(&xfr->state) == XFRST_INITIALSOA) &&
+	     atomic_load(&xfr->state) == XFRST_ZONEXFRREQUEST) &&
 	    msg->counts[DNS_SECTION_QUESTION] != 1)
 	{
 		xfrin_log(xfr, ISC_LOG_NOTICE, "missing question section");
@@ -1682,7 +1682,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	 * if the first RR in the answer section is not a SOA record.
 	 */
 	if (xfr->reqtype == dns_rdatatype_ixfr &&
-	    atomic_load(&xfr->state) == XFRST_INITIALSOA &&
+	    atomic_load(&xfr->state) == XFRST_ZONEXFRREQUEST &&
 	    msg->counts[DNS_SECTION_ANSWER] == 0)
 	{
 		xfrin_log(xfr, ISC_LOG_DEBUG(3),
@@ -1787,7 +1787,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	switch (atomic_load(&xfr->state)) {
 	case XFRST_GOTSOA:
 		xfr->reqtype = dns_rdatatype_axfr;
-		atomic_store(&xfr->state, XFRST_INITIALSOA);
+		atomic_store(&xfr->state, XFRST_ZONEXFRREQUEST);
 		CHECK(xfrin_send_request(xfr));
 		break;
 	case XFRST_AXFR_END:

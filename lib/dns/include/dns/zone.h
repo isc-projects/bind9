@@ -1479,6 +1479,53 @@ dns_zone_getsigresigninginterval(dns_zone_t *zone);
  * \li	'zone' to be a valid zone.
  */
 
+isc_sockaddr_t
+dns_zone_getsourceaddr(dns_zone_t *zone);
+/*%<
+ * Get the zone's source address from which it has last contacted the current
+ * primary server.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'zone' has a non-empty primaries list.
+ */
+
+isc_sockaddr_t
+dns_zone_getprimaryaddr(dns_zone_t *zone);
+/*%<
+ * Get the zone's current primary server.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ * \li	'zone' has a non-empty primaries list.
+ */
+
+isc_time_t
+dns_zone_getxfrintime(const dns_zone_t *zone);
+/*%<
+ * Get the start time of the zone's latest major step before an incoming zone
+ * transfer is initiated. The time is set to the current time before the
+ * precursory SOA query is queued, then it gets reset when the query starts,
+ * when the query restarts (using another transport or another primary server),
+ * when an incoming zone transfer is initated and deferred, and, finally, when
+ * it gets started.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
+dns_transport_type_t
+dns_zone_getrequesttransporttype(dns_zone_t *zone);
+/*%<
+ * Get the transport type used for the SOA query to the current primary server
+ * before an ongoing incoming zone transfer is lanunched. When the transfer is
+ * already running, this information should be retrieved from the xfrin object
+ * instead, using the dns_xfrin_gettransporttype() function.
+ *
+ * Requires:
+ * \li	'zone' to be a valid zone.
+ */
+
 void
 dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
 /*%<
@@ -1792,7 +1839,8 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
 
 isc_result_t
 dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_pending, bool *needs_refresh);
+		bool *is_deferred, bool *is_presoa, bool *is_pending,
+		bool *needs_refresh);
 /*%<
  *	Returns the xfrin associated with the zone (if any) with the current
  * 	transfer states (as booleans). When no longer needed, the returned xfrin
@@ -1803,6 +1851,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
  *\li	'xfrp' to be non NULL and '*xfrp' to be NULL.
  *\li	'is_running' to be non NULL.
  *\li	'is_deferred' to be non NULL.
+ *\li	'is_presoa' to be non NULL.
  *\li	'is_pending' to be non NULL.
  *\li	'needs_refresh' to be non NULL.
  *

@@ -7576,30 +7576,45 @@ Incoming Zone Transfers
       this zone. Possible values and their meanings are:
 
          ``Needs Refresh``
-	     The zone is flagged for a refresh, but the process
-	     hasn't started yet.
+	     The zone needs a refresh, but the process hasn't started yet,
+	     which can be due to different factors, like the retry interval of
+	     the zone.
 
          ``Pending``
-	     The zone is flagged for a refresh, but the process is
-	     in waiting state because of rate-limiting, see
-	     :any:`serial-query-rate`.
+	     The zone is flagged for a refresh, but the process is currently
+	     in the queue and will start shortly, or is in a waiting state
+	     because of rate-limiting, see :any:`serial-query-rate`. The
+	     ``Duration (s)`` timer starts before entering this state.
+
+         ``Refresh SOA``
+	     Sending a refresh SOA query to get the zone serial number, then
+	     initiate a zone transfer, if necessary. If this step is successful,
+	     the ``SOA Query`` and ``Got SOA`` states will be skipped.
+	     Otherwise, the zone transfer procedure can still be initiated,
+	     and the SOA request will be attempted using the same transport as
+	     the zone transfer. The ``Duration (s)`` timer restarts before
+	     entering this state, and for each attempted connection (note that
+	     in UDP mode there can be several retries during one "connection"
+	     attempt).
 
          ``Deferred``
 	     The zone is going to be refreshed, but the process was
 	     deferred due to quota, see :any:`transfers-in` and
-	     :any:`transfers-per-ns`.
+	     :any:`transfers-per-ns`. The ``Duration (s)`` timer restarts before
+	     entering this state.
 
          ``SOA Query``
 	     Sending SOA query to get the zone serial number, then
-	     follow with a zone transfer, if necessary.
+	     follow with a zone transfer, if necessary. The ``Duration (s)``
+	     timer restarts before entering this state.
 
          ``Got SOA``
 	     An answer for the SOA query from the previous step is
 	     received, initiating a transfer.
 
-         ``Initial SOA``
-	     Waiting for the transfer to start, which is expected
-	     to begin with an initial SOA record.
+         ``Zone Transfer Request``
+	     Waiting for the zone transfer to start. The ``Duration (s)`` timer
+	     restarts before entering this state.
 
          ``First Data``
 	     Waiting for the first data record of the transfer.
@@ -7641,7 +7656,14 @@ Incoming Zone Transfers
 
    ``SOA Transport`` (``soatransport``)
       Text string. This is the transport protocol in use for the
-      SOA request. Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
+      SOA query.  Note, that this value can potentially change during the
+      process. For example, when the transfer is in the ``Refresh SOA``
+      state, the ``SOA Transport`` of the ongoing query can be shown as ``UDP``.
+      If that query fails or times out, it then can be retried using another
+      transport, or the transfer process can be initiated in "SOA before" mode,
+      where the SOA query will be attempted using the same transport as the zone
+      transfer. See the description of the ``State`` field for more information.
+      Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
 
    ``Transport`` (``transport``)
       Text string. This is the transport protocol in use for the
@@ -7653,10 +7675,12 @@ Incoming Zone Transfers
 
    ``Duration (s)`` (``duration``)
       64 bit unsigned Integer. This is the time, in seconds, that
-      the transfer has been running so far. The clock starts after
-      the zone transfer process is initialized, and restarts shortly
-      after, when transport connection has been established and the
-      XFR request has been sent.
+      the current major state of the transfer process has been running so far.
+      The timer starts after the refresh SOA request is queued (before the
+      ``Pending`` state), then it restarts several times during the whole
+      process to indicate the duration of the current major state. See the
+      descriptions of the different states to find out the states, before which
+      this timer restarts.
 
    ``Messages Received`` (``nmsg``)
       64 bit unsigned Integer. This is the number of DNS messages

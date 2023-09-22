@@ -715,9 +715,9 @@ _wait_for_transfers() {
     getxfrins xml x$n || return 1
     getxfrins json j$n || return 1
     # XML is encoded in one line, use sed to separate each transfer
-    count=$(sed 's/<xfrin /\n<xfrin /g' xfrins.xml.x$n | grep -c '<state>\(Initial SOA\|First Data\|Receiving AXFR Data\)</state>')
+    count=$(sed 's/<xfrin /\n<xfrin /g' xfrins.xml.x$n | grep -c '<state>\(Zone Transfer Request\|First Data\|Receiving AXFR Data\)</state>')
     if [ $count != 3 ]; then return 1; fi
-    count=$(grep -c '"state":"\(Initial SOA\|First Data\|Receiving AXFR Data\)"' xfrins.json.j$n)
+    count=$(grep -c '"state":"\(Zone Transfer Request\|First Data\|Receiving AXFR Data\)"' xfrins.json.j$n)
     if [ $count != 3 ]; then return 1; fi
 }
 
