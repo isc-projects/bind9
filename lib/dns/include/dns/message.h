@@ -30,6 +30,9 @@
 
 #include <dst/dst.h>
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_MESSAGE_TRACE
+
 /*! \file dns/message.h
  * \brief Message Handling Module
  *
@@ -250,7 +253,7 @@ typedef struct dns_minttl {
 struct dns_message {
 	/* public from here down */
 	unsigned int   magic;
-	isc_refcount_t refcount;
+	isc_refcount_t references;
 
 	dns_messageid_t	 id;
 	unsigned int	 flags;
@@ -396,24 +399,20 @@ dns_message_reset(dns_message_t *msg, unsigned int intent);
  *\li	'intent' is DNS_MESSAGE_INTENTPARSE or DNS_MESSAGE_INTENTRENDER
  */
 
-void
-dns_message_attach(dns_message_t *source, dns_message_t **target);
-/*%<
- * Attach to message 'source'.
- *
- * Requires:
- *\li	'source' to be a valid message.
- *\li	'target' to be non NULL and '*target' to be NULL.
- */
-
-void
-dns_message_detach(dns_message_t **messagep);
-/*%<
- * Detach *messagep from its message.
- * list.
- *
- * Requires:
- *\li	'*messagep' to be a valid message.
+#if DNS_NTA_TRACE
+#define dns_message_ref(ptr) dns_message__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_message_unref(ptr) \
+	dns_message__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_message_attach(ptr, ptrp) \
+	dns_message__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_message_detach(ptrp) \
+	dns_message__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_message);
+#else
+ISC_REFCOUNT_DECL(dns_message);
+#endif
+/*
+ * Reference counting for dns_message
  */
 
 isc_result_t
