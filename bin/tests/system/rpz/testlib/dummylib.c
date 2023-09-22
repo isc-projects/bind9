@@ -535,7 +535,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 	while (tptr != NULL && *tptr != '\0') {
 		tok = strsep(&tptr, ";\n");
 
-		while (isspace(*tok)) {
+		while (isspace((unsigned char)*tok)) {
 			tok++;
 		}
 
@@ -547,7 +547,7 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 
 			tok += 5;
 
-			while (isspace(*tok)) {
+			while (isspace((unsigned char)*tok)) {
 				tok++;
 			}
 
@@ -570,7 +570,8 @@ get_cstr_zones(const char *cstr, trpz_rsp_t *trsp, size_t *pnzones) {
 				qend = tok;
 			}
 
-			while (*qend != '\0' && !isspace(*qend)) {
+			while (*qend != '\0' && !isspace((unsigned char)*qend))
+			{
 				qend++;
 			}
 

@@ -1147,7 +1147,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 			continue;
 		}
 
-		while (*lptr && !isspace(*lptr)) {
+		while (*lptr && !isspace((unsigned char)*lptr)) {
 			lptr++;
 		}
 
@@ -1171,7 +1171,7 @@ sanity_check_data_file(const char *fname, char **errp) {
 			goto out;
 		}
 
-		while (isspace(*lptr)) {
+		while (isspace((unsigned char)*lptr)) {
 			lptr++;
 		}
 
@@ -1280,7 +1280,7 @@ load_all_updates(const char *fname, trpz_result_t **presults, size_t *pnresults,
 			continue;
 		}
 
-		while (*lptr && !isspace(*lptr)) {
+		while (*lptr && !isspace((unsigned char)*lptr)) {
 			lptr++;
 		}
 
@@ -1343,7 +1343,7 @@ load_all_updates(const char *fname, trpz_result_t **presults, size_t *pnresults,
 		}
 
 		/* Everything here is an update */
-		while (isspace(*lptr)) {
+		while (isspace((unsigned char)*lptr)) {
 			lptr++;
 		}
 
@@ -1421,7 +1421,7 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 			}
 			*data++ = c;
 			res++;
-		} else if (c == '\\' && !isdigit(*p)) {
+		} else if (c == '\\' && !isdigit((unsigned char)*p)) {
 			/* an escaped character */
 			if (slen <= 0) {
 				goto out;
@@ -1441,7 +1441,9 @@ wdns_str_to_name(const char *str, uint8_t **pbuf, bool downcase) {
 			d[2] = *p++;
 			d[3] = '\0';
 			slen -= 3;
-			if (!isdigit(d[0]) || !isdigit(d[1]) || !isdigit(d[2]))
+			if (!isdigit((unsigned char)d[0]) ||
+			    !isdigit((unsigned char)d[1]) ||
+			    !isdigit((unsigned char)d[2]))
 			{
 				goto out;
 			}
