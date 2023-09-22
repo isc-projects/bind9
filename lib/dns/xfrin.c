@@ -1899,7 +1899,6 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 	 * Calculate the length of time the transfer took,
 	 * and print a log message with the bytes and rate.
 	 */
-	LOCK(&xfr->statslock);
 	msecs = isc_time_microdiff(&now, &xfr->start) / 1000;
 	if (msecs == 0) {
 		msecs = 1;
@@ -1912,8 +1911,6 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 		  xfr->nmsg, xfr->nrecs, xfr->nbytes,
 		  (unsigned int)(msecs / 1000), (unsigned int)(msecs % 1000),
 		  (unsigned int)persec, xfr->end_serial);
-	UNLOCK(&xfr->statslock);
-	isc_mutex_destroy(&xfr->statslock);
 
 	if (xfr->dispentry != NULL) {
 		dns_dispatch_done(&xfr->dispentry);
@@ -1989,6 +1986,7 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 
 	isc_timer_destroy(&xfr->max_idle_timer);
 	isc_timer_destroy(&xfr->max_time_timer);
+	isc_mutex_destroy(&xfr->statslock);
 
 	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));
 }
