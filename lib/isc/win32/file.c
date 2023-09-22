@@ -569,10 +569,14 @@ isc_file_isabsolute(const char *filename) {
 	if ((filename[0] == '\\') && (filename[1] == '\\')) {
 		return (true);
 	}
-	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '\\') {
+	if (isalpha((unsigned char)filename[0]) && filename[1] == ':' &&
+	    filename[2] == '\\')
+	{
 		return (true);
 	}
-	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '/') {
+	if (isalpha((unsigned char)filename[0]) && filename[1] == ':' &&
+	    filename[2] == '/')
+	{
 		return (true);
 	}
 	return (false);

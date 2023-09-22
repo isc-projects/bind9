@@ -1,3 +1,7 @@
+6254.	[cleanup]	Add semantic patch to do an explicit cast from char
+			to unsigned char in ctype.h class of functions.
+			[GL #4327]
+
 6250.	[bug]		The wrong covered value was being set by
 			dns_ncache_current for RRSIG records in the returned
 			rdataset structure. This resulted in TYPE0 being

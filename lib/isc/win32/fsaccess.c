@@ -70,7 +70,7 @@ is_ntfs(const char *file) {
 	 * Look for c:\path\... style, c:/path/... or \\computer\shar\path...
 	 * the UNC style file specs
 	 */
-	if (isalpha(filename[0]) && filename[1] == ':' &&
+	if (isalpha((unsigned char)filename[0]) && filename[1] == ':' &&
 	    (filename[2] == '\\' || filename[2] == '/'))
 	{
 		/* Copy 'c:\' or 'c:/' and NUL terminate. */
