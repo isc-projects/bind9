@@ -1,3 +1,7 @@
+6254.	[cleanup]	Add semantic patch to do an explicit cast from char
+			to unsigned char in ctype.h class of functions.
+			[GL #4327]
+
 6252.	[test]		Python system tests have to be executed by invoking
 			pytest directly. Executing them with the legacy test
 			runner is no longer supported. [GL #4250]

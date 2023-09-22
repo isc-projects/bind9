@@ -2059,7 +2059,7 @@ decvalue(char value) {
 	 * isascii() is valid for full range of int values, no need to
 	 * mask or cast.
 	 */
-	if (!isascii(value)) {
+	if (!isascii((unsigned char)value)) {
 		return (-1);
 	}
 	if ((s = strchr(decdigits, value)) == NULL) {
