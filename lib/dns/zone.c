@@ -19164,6 +19164,45 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	return (count);
 }
 
+isc_result_t
+dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
+		bool *is_deferred, bool *is_pending, bool *needs_refresh) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(xfrp != NULL && *xfrp == NULL);
+
+	if (zone->zmgr == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+	LOCK_ZONE(zone);
+	if (zone->xfr != NULL) {
+		dns_xfrin_attach(zone->xfr, xfrp);
+	}
+	if (zone->statelist == &zone->zmgr->xfrin_in_progress) {
+		*is_running = true;
+		*is_deferred = false;
+		*is_pending = false;
+	} else if (zone->statelist == &zone->zmgr->waiting_for_xfrin) {
+		*is_running = false;
+		*is_deferred = true;
+		*is_pending = false;
+	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH)) {
+		*is_running = false;
+		*is_deferred = false;
+		*is_pending = true;
+	} else {
+		*is_running = false;
+		*is_deferred = false;
+		*is_pending = false;
+	}
+	*needs_refresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH);
+	UNLOCK_ZONE(zone);
+	RWUNLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
+
+	return (ISC_R_SUCCESS);
+}
+
 void
 dns_zone_lock_keyfiles(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));

@@ -303,6 +303,7 @@
 	<a href="/xml/v3/status">Status</a>,
 	<a href="/xml/v3/server">Server</a>,
 	<a href="/xml/v3/zones">Zones</a>,
+	<a href="/xml/v3/xfrins">Incoming Zone Transfers</a>,
 	<a href="/xml/v3/net">Network</a>,
 	<a href="/xml/v3/mem">Memory</a> and
 	<a href="/xml/v3/traffic">Traffic Size</a></p>
@@ -905,6 +906,59 @@
                 </table>
               </xsl:if>
             </xsl:for-each>
+          </xsl:for-each>
+        </xsl:if>
+        <xsl:if test="views/view/xfrins/xfrin">
+          <xsl:for-each select="views/view">
+            <h3>Incoming Zone Transfers for View <xsl:value-of select="@name"/></h3>
+            <table class="xfrins">
+              <thead>
+	        <tr>
+                  <th>Zone Name</th>
+                  <th>Zone Type</th>
+                  <th>Local Serial</th>
+                  <th>Remote Serial</th>
+                  <th>IXFR</th>
+                  <th>State</th>
+                  <th>Additional Refresh Queued</th>
+                  <th>Local Address</th>
+                  <th>Remote Address</th>
+                  <th>Transport</th>
+                  <th>TSIG Key Name</th>
+                  <th>Duration (s)</th>
+                  <th>Messages Received</th>
+                  <th>Records Received</th>
+                  <th>Bytes Received</th>
+                </tr>
+              </thead>
+              <tbody>
+                <xsl:for-each select="xfrins/xfrin">
+                  <xsl:variable name="css-class16">
+                    <xsl:choose>
+                      <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                      <xsl:otherwise>odd</xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  <tr class="{$css-class16}">
+                    <td><xsl:value-of select="@name"/></td>
+                    <td><xsl:value-of select="type"/></td>
+                    <td><xsl:value-of select="serial"/></td>
+                    <td><xsl:value-of select="remoteserial"/></td>
+                    <td><xsl:value-of select="ixfr"/></td>
+                    <td><xsl:value-of select="state"/></td>
+                    <td><xsl:value-of select="refreshqueued"/></td>
+                    <td><xsl:value-of select="localaddr"/></td>
+                    <td><xsl:value-of select="remoteaddr"/></td>
+                    <td><xsl:value-of select="transport"/></td>
+                    <td><xsl:value-of select="tsigkeyname"/></td>
+                    <td><xsl:value-of select="duration"/></td>
+                    <td><xsl:value-of select="nmsg"/></td>
+                    <td><xsl:value-of select="nrecs"/></td>
+                    <td><xsl:value-of select="nbytes"/></td>
+                  </tr>
+                </xsl:for-each>
+              </tbody>
+            </table>
           </xsl:for-each>
         </xsl:if>
         <xsl:if test="memory/summary">

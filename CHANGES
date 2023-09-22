@@ -1,3 +1,6 @@
+6255.	[func]		Expose data about incoming zone transfers in progress
+			using statistics channel. [GL #3883]
+
 6254.	[cleanup]	Add semantic patch to do an explicit cast from char
 			to unsigned char in ctype.h class of functions.
 			[GL #4327]

@@ -40,23 +40,23 @@ dns_transport_new(const dns_name_t *name, dns_transport_type_t type,
  */
 
 dns_transport_type_t
-dns_transport_get_type(dns_transport_t *transport);
+dns_transport_get_type(const dns_transport_t *transport);
 char *
-dns_transport_get_certfile(dns_transport_t *transport);
+dns_transport_get_certfile(const dns_transport_t *transport);
 char *
-dns_transport_get_keyfile(dns_transport_t *transport);
+dns_transport_get_keyfile(const dns_transport_t *transport);
 char *
-dns_transport_get_cafile(dns_transport_t *transport);
+dns_transport_get_cafile(const dns_transport_t *transport);
 char *
-dns_transport_get_remote_hostname(dns_transport_t *transport);
+dns_transport_get_remote_hostname(const dns_transport_t *transport);
 char *
-dns_transport_get_endpoint(dns_transport_t *transport);
+dns_transport_get_endpoint(const dns_transport_t *transport);
 dns_http_mode_t
-dns_transport_get_mode(dns_transport_t *transport);
+dns_transport_get_mode(const dns_transport_t *transport);
 char *
-dns_transport_get_ciphers(dns_transport_t *transport);
+dns_transport_get_ciphers(const dns_transport_t *transport);
 char *
-dns_transport_get_tlsname(dns_transport_t *transport);
+dns_transport_get_tlsname(const dns_transport_t *transport);
 uint32_t
 dns_transport_get_tls_versions(const dns_transport_t *transport);
 bool

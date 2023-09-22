@@ -33,7 +33,9 @@
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/stats.h>
+#include <dns/transport.h>
 #include <dns/view.h>
+#include <dns/xfrin.h>
 #include <dns/zt.h>
 
 #include <ns/stats.h>
@@ -1264,6 +1266,7 @@ cleanup:
 #define STATS_XML_STATUS  0x00 /* display only common statistics */
 #define STATS_XML_SERVER  0x01
 #define STATS_XML_ZONES	  0x02
+#define STATS_XML_XFRINS  0x04
 #define STATS_XML_NET	  0x08
 #define STATS_XML_MEM	  0x10
 #define STATS_XML_TRAFFIC 0x20
@@ -1447,6 +1450,221 @@ cleanup:
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 		      "Failed at zone_xmlrender()");
 	return (ISC_R_FAILURE);
+}
+
+static isc_result_t
+xfrin_xmlrender(dns_zone_t *zone, void *arg) {
+	isc_result_t result;
+	char buf[1024 + 32]; /* sufficiently large for zone name and class */
+	dns_rdataclass_t rdclass;
+	const char *ztype;
+	uint32_t serial;
+	const isc_sockaddr_t *addrp = NULL;
+	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
+	const dns_transport_t *transport = NULL;
+	xmlTextWriterPtr writer = arg;
+	dns_zonestat_level_t statlevel;
+	int xmlrc;
+	dns_xfrin_t *xfr = NULL;
+	bool is_running, is_deferred, is_pending;
+	bool needs_refresh;
+	bool is_first_data_received, is_ixfr;
+	unsigned int nmsg = 0;
+	unsigned int nrecs = 0;
+	uint64_t nbytes = 0;
+
+	statlevel = dns_zone_getstatlevel(zone);
+	if (statlevel == dns_zonestat_none) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
+				 &is_pending, &needs_refresh);
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+		/* No ongoing/queued transfer. */
+		goto cleanup;
+	}
+
+	if (is_running && xfr == NULL) {
+		/* The transfer is finished, and it's shutting down. */
+		goto cleanup;
+	}
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "xfrin"));
+
+	dns_zone_nameonly(zone, buf, sizeof(buf));
+	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "name",
+					 ISC_XMLCHAR buf));
+
+	rdclass = dns_zone_getclass(zone);
+	dns_rdataclass_format(rdclass, buf, sizeof(buf));
+	TRY0(xmlTextWriterWriteAttribute(writer, ISC_XMLCHAR "class",
+					 ISC_XMLCHAR buf));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "type"));
+	ztype = user_zonetype(zone);
+	if (ztype != NULL) {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR ztype));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "serial"));
+	if (dns_zone_getserial(zone, &serial) == ISC_R_SUCCESS) {
+		TRY0(xmlTextWriterWriteFormatString(writer, "%u", serial));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "remoteserial"));
+	if (is_running) {
+		serial = dns_xfrin_getendserial(xfr);
+		if (serial != 0) {
+			TRY0(xmlTextWriterWriteFormatString(writer, "%u",
+							    serial));
+		} else {
+			TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+		}
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "state"));
+	if (is_running) {
+		const char *xfr_state = NULL;
+
+		dns_xfrin_getstate(xfr, &xfr_state, &is_first_data_received,
+				   &is_ixfr);
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR xfr_state));
+	} else if (is_deferred) {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Deferred"));
+	} else if (is_pending) {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "Pending"));
+	} else if (needs_refresh) {
+		TRY0(xmlTextWriterWriteString(writer,
+					      ISC_XMLCHAR "Needs Refresh"));
+	} else {
+		UNREACHABLE();
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "refreshqueued"));
+	TRY0(xmlTextWriterWriteString(
+		writer, ISC_XMLCHAR(needs_refresh ? "Yes" : "No")));
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "localaddr"));
+	if (is_running) {
+		addrp = dns_xfrin_getsourceaddr(xfr);
+		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "remoteaddr"));
+	if (is_running) {
+		addrp = dns_xfrin_getprimaryaddr(xfr);
+		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR addr_buf));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "transport"));
+	if (is_running) {
+		transport = dns_xfrin_gettransport(xfr);
+		if (transport == NULL ||
+		    dns_transport_get_type(transport) == DNS_TRANSPORT_TCP)
+		{
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "TCP"));
+		} else if (dns_transport_get_type(transport) ==
+			   DNS_TRANSPORT_TLS)
+		{
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "TLS"));
+		} else {
+			TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+		}
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "tsigkeyname"));
+	if (is_running) {
+		const dns_name_t *tsigkeyname = dns_xfrin_gettsigkeyname(xfr);
+		char tsigkeyname_buf[DNS_NAME_FORMATSIZE];
+
+		if (tsigkeyname != NULL) {
+			dns_name_format(tsigkeyname, tsigkeyname_buf,
+					sizeof(tsigkeyname_buf));
+			TRY0(xmlTextWriterWriteString(
+				writer, ISC_XMLCHAR tsigkeyname_buf));
+		}
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "duration"));
+	if (is_running) {
+		isc_time_t start = dns_xfrin_getstarttime(xfr);
+		isc_time_t now = isc_time_now();
+		isc_time_t diff;
+		uint32_t sec;
+
+		isc_time_subtract(&now, &start, &diff);
+		sec = isc_time_seconds(&diff);
+		TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu32, sec));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "0"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	if (is_running) {
+		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes);
+	}
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "nmsg"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%u", nmsg));
+	TRY0(xmlTextWriterEndElement(writer));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "nrecs"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%u", nrecs));
+	TRY0(xmlTextWriterEndElement(writer));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "nbytes"));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu64, nbytes));
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "ixfr"));
+	if (is_running && is_first_data_received) {
+		TRY0(xmlTextWriterWriteString(
+			writer, ISC_XMLCHAR(is_ixfr ? "Yes" : "No")));
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR ""));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterEndElement(writer)); /* xfrin */
+
+cleanup:
+	if (xfr != NULL) {
+		dns_xfrin_detach(&xfr);
+	}
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "Failed at xfrin_xmlrender()");
+	}
+	return (result);
 }
 
 static isc_result_t
@@ -1727,8 +1945,8 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 	 */
 	view = ISC_LIST_HEAD(server->viewlist);
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "views"));
-	while (view != NULL &&
-	       ((flags & (STATS_XML_SERVER | STATS_XML_ZONES)) != 0))
+	while (view != NULL && ((flags & (STATS_XML_SERVER | STATS_XML_ZONES |
+					  STATS_XML_XFRINS)) != 0))
 	{
 		isc_stats_t *istats = NULL;
 		dns_stats_t *dstats = NULL;
@@ -1744,6 +1962,14 @@ generatexml(named_server_t *server, uint32_t flags, int *buflen,
 			CHECK(dns_view_apply(view, true, NULL, zone_xmlrender,
 					     writer));
 			TRY0(xmlTextWriterEndElement(writer)); /* /zones */
+		}
+
+		if ((flags & STATS_XML_XFRINS) != 0) {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "xfrins"));
+			CHECK(dns_zt_apply(view->zonetable, true, NULL,
+					   xfrin_xmlrender, writer));
+			TRY0(xmlTextWriterEndElement(writer)); /* /xfrins */
 		}
 
 		if ((flags & STATS_XML_SERVER) == 0) {
@@ -1935,6 +2161,17 @@ render_xml_zones(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
+render_xml_xfrins(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		  void *arg, unsigned int *retcode, const char **retmsg,
+		  const char **mimetype, isc_buffer_t *b,
+		  isc_httpdfree_t **freecb, void **freecb_args) {
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_xml(STATS_XML_XFRINS, arg, retcode, retmsg, mimetype, b,
+			   freecb, freecb_args));
+}
+
+static isc_result_t
 render_xml_net(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 	       void *arg, unsigned int *retcode, const char **retmsg,
 	       const char **mimetype, isc_buffer_t *b, isc_httpdfree_t **freecb,
@@ -1976,6 +2213,7 @@ render_xml_traffic(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 #define STATS_JSON_STATUS  0x00 /* display only common statistics */
 #define STATS_JSON_SERVER  0x01
 #define STATS_JSON_ZONES   0x02
+#define STATS_JSON_XFRINS  0x04
 #define STATS_JSON_NET	   0x08
 #define STATS_JSON_MEM	   0x10
 #define STATS_JSON_TRAFFIC 0x20
@@ -2227,6 +2465,211 @@ cleanup:
 }
 
 static isc_result_t
+xfrin_jsonrender(dns_zone_t *zone, void *arg) {
+	isc_result_t result;
+	char buf[1024 + 32]; /* sufficiently large for zone name and class */
+	char classbuf[64];   /* sufficiently large for class */
+	char *zone_name_only = NULL;
+	char *class_only = NULL;
+	dns_rdataclass_t rdclass;
+	uint32_t serial;
+	json_object *xfrinarray = (json_object *)arg;
+	json_object *xfrinobj = NULL;
+	const isc_sockaddr_t *addrp = NULL;
+	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
+	const dns_transport_t *transport = NULL;
+	dns_zonestat_level_t statlevel;
+	dns_xfrin_t *xfr = NULL;
+	bool is_running, is_deferred, is_pending;
+	bool needs_refresh;
+	bool is_first_data_received, is_ixfr;
+	unsigned int nmsg = 0;
+	unsigned int nrecs = 0;
+	uint64_t nbytes = 0;
+
+	statlevel = dns_zone_getstatlevel(zone);
+	if (statlevel == dns_zonestat_none) {
+		return (ISC_R_SUCCESS);
+	}
+
+	dns_zone_nameonly(zone, buf, sizeof(buf));
+	zone_name_only = buf;
+
+	rdclass = dns_zone_getclass(zone);
+	dns_rdataclass_format(rdclass, classbuf, sizeof(classbuf));
+	class_only = classbuf;
+
+	if (dns_zone_getserial(zone, &serial) != ISC_R_SUCCESS) {
+		xfrinobj = addzone(zone_name_only, class_only,
+				   user_zonetype(zone), 0, false);
+	} else {
+		xfrinobj = addzone(zone_name_only, class_only,
+				   user_zonetype(zone), serial, true);
+	}
+
+	if (xfrinobj == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
+
+	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
+				 &is_pending, &needs_refresh);
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
+
+	if (!is_running && !is_deferred && !is_pending && !needs_refresh) {
+		/* No ongoing/queued transfer. */
+		goto cleanup;
+	}
+
+	if (is_running && xfr == NULL) {
+		/* The transfer is finished, and it's shutting down. */
+		goto cleanup;
+	}
+
+	if (is_running) {
+		serial = dns_xfrin_getendserial(xfr);
+		if (serial != 0) {
+			json_object_object_add(xfrinobj, "remoteserial",
+					       json_object_new_int64(serial));
+		}
+	}
+
+	if (is_running) {
+		const char *xfr_state = NULL;
+
+		dns_xfrin_getstate(xfr, &xfr_state, &is_first_data_received,
+				   &is_ixfr);
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string(xfr_state));
+	} else if (is_deferred) {
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string("Deferred"));
+	} else if (is_pending) {
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string("Pending"));
+	} else if (needs_refresh) {
+		json_object_object_add(xfrinobj, "state",
+				       json_object_new_string("Needs Refresh"));
+	} else {
+		UNREACHABLE();
+	}
+
+	json_object_object_add(
+		xfrinobj, "refreshqueued",
+		json_object_new_string(needs_refresh ? "Yes" : "No"));
+
+	if (is_running) {
+		addrp = dns_xfrin_getsourceaddr(xfr);
+		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		json_object_object_add(xfrinobj, "localaddr",
+				       json_object_new_string(addr_buf));
+	} else {
+		json_object_object_add(xfrinobj, "localaddr",
+				       json_object_new_string("-"));
+	}
+
+	if (is_running) {
+		addrp = dns_xfrin_getprimaryaddr(xfr);
+		isc_sockaddr_format(addrp, addr_buf, sizeof(addr_buf));
+		json_object_object_add(xfrinobj, "remoteaddr",
+				       json_object_new_string(addr_buf));
+	} else {
+		json_object_object_add(xfrinobj, "remoteaddr",
+				       json_object_new_string("-"));
+	}
+
+	if (is_running) {
+		transport = dns_xfrin_gettransport(xfr);
+		if (transport == NULL ||
+		    dns_transport_get_type(transport) == DNS_TRANSPORT_TCP)
+		{
+			json_object_object_add(xfrinobj, "transport",
+					       json_object_new_string("TCP"));
+		} else if (dns_transport_get_type(transport) ==
+			   DNS_TRANSPORT_TLS)
+		{
+			json_object_object_add(xfrinobj, "transport",
+					       json_object_new_string("TLS"));
+		} else {
+			json_object_object_add(xfrinobj, "transport",
+					       json_object_new_string("-"));
+		}
+	} else {
+		json_object_object_add(xfrinobj, "transport",
+				       json_object_new_string("-"));
+	}
+
+	if (is_running) {
+		const dns_name_t *tsigkeyname = dns_xfrin_gettsigkeyname(xfr);
+		char tsigkeyname_buf[DNS_NAME_FORMATSIZE];
+
+		if (tsigkeyname != NULL) {
+			dns_name_format(tsigkeyname, tsigkeyname_buf,
+					sizeof(tsigkeyname_buf));
+			json_object_object_add(
+				xfrinobj, "tsigkeyname",
+				json_object_new_string(tsigkeyname_buf));
+		} else {
+			json_object_object_add(xfrinobj, "tsigkeyname", NULL);
+		}
+	} else {
+		json_object_object_add(xfrinobj, "tsigkeyname", NULL);
+	}
+
+	if (is_running) {
+		isc_time_t start = dns_xfrin_getstarttime(xfr);
+		isc_time_t now = isc_time_now();
+		isc_time_t diff;
+		uint32_t sec;
+
+		isc_time_subtract(&now, &start, &diff);
+		sec = isc_time_seconds(&diff);
+		json_object_object_add(xfrinobj, "duration",
+				       json_object_new_int64((int64_t)sec));
+	} else {
+		json_object_object_add(xfrinobj, "duration",
+				       json_object_new_int64(0));
+	}
+
+	if (is_running) {
+		dns_xfrin_getstats(xfr, &nmsg, &nrecs, &nbytes);
+	}
+	json_object_object_add(xfrinobj, "nmsg",
+			       json_object_new_int64((int64_t)nmsg));
+	json_object_object_add(xfrinobj, "nrecs",
+			       json_object_new_int64((int64_t)nrecs));
+	json_object_object_add(
+		xfrinobj, "nbytes",
+		json_object_new_int64(nbytes > INT64_MAX ? INT64_MAX
+							 : (int64_t)nbytes));
+
+	if (is_running && is_first_data_received) {
+		json_object_object_add(
+			xfrinobj, "ixfr",
+			json_object_new_string(is_ixfr ? "Yes" : "No"));
+	} else {
+		json_object_object_add(xfrinobj, "ixfr",
+				       json_object_new_string(""));
+	}
+
+	json_object_array_add(xfrinarray, xfrinobj);
+	xfrinobj = NULL;
+	result = ISC_R_SUCCESS;
+
+cleanup:
+	if (xfr != NULL) {
+		dns_xfrin_detach(&xfr);
+	}
+	if (xfrinobj != NULL) {
+		json_object_put(xfrinobj);
+	}
+	return (result);
+}
+
+static isc_result_t
 generatejson(named_server_t *server, size_t *msglen, const char **msg,
 	     json_object **rootp, uint32_t flags) {
 	dns_view_t *view;
@@ -2444,7 +2887,9 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 #endif /* ifdef HAVE_DNSTAP */
 	}
 
-	if ((flags & (STATS_JSON_ZONES | STATS_JSON_SERVER)) != 0) {
+	if ((flags &
+	     (STATS_JSON_SERVER | STATS_JSON_ZONES | STATS_JSON_XFRINS)) != 0)
+	{
 		viewlist = json_object_new_object();
 		CHECKMEM(viewlist);
 
@@ -2452,7 +2897,7 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 
 		view = ISC_LIST_HEAD(server->viewlist);
 		while (view != NULL) {
-			json_object *za, *v = json_object_new_object();
+			json_object *za, *xa, *v = json_object_new_object();
 			dns_adb_t *adb = NULL;
 
 			CHECKMEM(v);
@@ -2470,6 +2915,20 @@ generatejson(named_server_t *server, size_t *msglen, const char **msg,
 				json_object_object_add(v, "zones", za);
 			} else {
 				json_object_put(za);
+			}
+
+			xa = json_object_new_array();
+			CHECKMEM(xa);
+
+			if ((flags & STATS_JSON_XFRINS) != 0) {
+				CHECK(dns_zt_apply(view->zonetable, true, NULL,
+						   xfrin_jsonrender, xa));
+			}
+
+			if (json_object_array_length(xa) != 0) {
+				json_object_object_add(v, "xfrins", xa);
+			} else {
+				json_object_put(xa);
 			}
 
 			if ((flags & STATS_JSON_SERVER) != 0) {
@@ -2856,6 +3315,17 @@ render_json_zones(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 }
 
 static isc_result_t
+render_json_xfrins(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
+		   void *arg, unsigned int *retcode, const char **retmsg,
+		   const char **mimetype, isc_buffer_t *b,
+		   isc_httpdfree_t **freecb, void **freecb_args) {
+	UNUSED(httpd);
+	UNUSED(urlinfo);
+	return (render_json(STATS_JSON_XFRINS, arg, retcode, retmsg, mimetype,
+			    b, freecb, freecb_args));
+}
+
+static isc_result_t
 render_json_mem(const isc_httpd_t *httpd, const isc_httpdurl_t *urlinfo,
 		void *arg, unsigned int *retcode, const char **retmsg,
 		const char **mimetype, isc_buffer_t *b,
@@ -3061,6 +3531,9 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 			    "/xml/v" STATS_XML_VERSION_MAJOR "/zones", false,
 			    render_xml_zones, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/xml/v" STATS_XML_VERSION_MAJOR "/xfrins", false,
+			    render_xml_xfrins, server);
+	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/xml/v" STATS_XML_VERSION_MAJOR "/net", false,
 			    render_xml_net, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
@@ -3085,6 +3558,9 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/json/v" STATS_JSON_VERSION_MAJOR "/zones", false,
 			    render_json_zones, server);
+	isc_httpdmgr_addurl(listener->httpdmgr,
+			    "/json/v" STATS_JSON_VERSION_MAJOR "/xfrins", false,
+			    render_json_xfrins, server);
 	isc_httpdmgr_addurl(listener->httpdmgr,
 			    "/json/v" STATS_JSON_VERSION_MAJOR "/net", false,
 			    render_json_net, server);
