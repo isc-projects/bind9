@@ -173,8 +173,6 @@ free_listener(controllistener_t *listener) {
 	INSIST(listener->exiting);
 	INSIST(ISC_LIST_EMPTY(listener->connections));
 
-	isc_refcount_destroy(&listener->references);
-
 	REQUIRE(listener->sock == NULL);
 
 	free_controlkeylist(&listener->keys, listener->mctx);

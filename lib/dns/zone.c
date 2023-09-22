@@ -5601,8 +5601,6 @@ closeversion:
 
 static void
 zone_destroy(dns_zone_t *zone) {
-	isc_refcount_destroy(&zone->references);
-
 	/*
 	 * Stop things being restarted after we cancel them below.
 	 */

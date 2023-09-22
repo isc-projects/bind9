@@ -66,7 +66,6 @@ static dns_qpmethods_t qpmethods = {
 
 static void
 destroy_ntnode(dns_ntnode_t *node) {
-	isc_refcount_destroy(&node->references);
 	if (node->bits != NULL) {
 		isc_mem_cput(node->mctx, node->bits, node->bits[0],
 			     sizeof(char));
@@ -120,7 +119,6 @@ destroy_nametree(dns_nametree_t *nametree) {
 	/* dns_qpread_destroy(nametree->table, &qpr); */
 
 	dns_qpmulti_destroy(&nametree->table);
-	isc_refcount_destroy(&nametree->references);
 
 	isc_mem_putanddetach(&nametree->mctx, nametree, sizeof(*nametree));
 }

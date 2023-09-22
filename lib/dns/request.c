@@ -227,8 +227,6 @@ requestmgr_destroy(dns_requestmgr_t *requestmgr) {
 
 	INSIST(atomic_load(&requestmgr->shuttingdown));
 
-	isc_refcount_destroy(&requestmgr->references);
-
 	size_t nloops = isc_loopmgr_nloops(requestmgr->loopmgr);
 	for (size_t i = 0; i < nloops; i++) {
 		INSIST(ISC_LIST_EMPTY(requestmgr->requests[i]));
@@ -972,8 +970,6 @@ req_destroy(dns_request_t *request) {
 	REQUIRE(!ISC_LINK_LINKED(request, link));
 
 	req_log(ISC_LOG_DEBUG(3), "%s: request %p", __func__, request);
-
-	isc_refcount_destroy(&request->references);
 
 	/*
 	 * These should have been cleaned up before the

@@ -1859,7 +1859,6 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 
 	/* Safe-guards */
 	REQUIRE(atomic_load(&xfr->shuttingdown));
-	isc_refcount_destroy(&xfr->references);
 
 	INSIST(xfr->shutdown_result != ISC_R_UNSET);
 

@@ -998,8 +998,6 @@ resquery_destroy(resquery_t *query) {
 		dns_dispatch_detach(&query->dispatch);
 	}
 
-	isc_refcount_destroy(&query->references);
-
 	LOCK(&fctx->lock);
 	atomic_fetch_sub_release(&fctx->nqueries, 1);
 	UNLOCK(&fctx->lock);
@@ -4308,8 +4306,6 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(fctx->state != fetchstate_active);
 
 	FCTXTRACE("destroy");
-
-	isc_refcount_destroy(&fctx->references);
 
 	fctx->magic = 0;
 
@@ -9850,7 +9846,6 @@ static void
 dns_resolver__destroy(dns_resolver_t *res) {
 	alternate_t *a = NULL;
 
-	isc_refcount_destroy(&res->references);
 	REQUIRE(!atomic_load_acquire(&res->priming));
 	REQUIRE(res->primefetch == NULL);
 

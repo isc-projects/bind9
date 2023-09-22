@@ -1020,7 +1020,6 @@ dns__catz_zone_destroy(dns_catz_zone_t *catz) {
 	dns_catz_options_free(&catz->zoneoptions, mctx);
 
 	dns_catz_zones_detach(&catz->catzs);
-	isc_refcount_destroy(&catz->references);
 
 	isc_mem_put(mctx, catz, sizeof(*catz));
 }
@@ -1032,7 +1031,6 @@ dns__catz_zones_destroy(dns_catz_zones_t *catzs) {
 
 	catzs->magic = 0;
 	isc_mutex_destroy(&catzs->lock);
-	isc_refcount_destroy(&catzs->references);
 
 	isc_mem_putanddetach(&catzs->mctx, catzs, sizeof(*catzs));
 }

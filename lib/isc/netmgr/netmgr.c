@@ -880,8 +880,6 @@ isc_nmhandle_is_stream(isc_nmhandle_t *handle) {
 
 static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
-	isc_refcount_destroy(&handle->references);
-
 	handle->magic = 0;
 
 	if (handle->dofree != NULL) {

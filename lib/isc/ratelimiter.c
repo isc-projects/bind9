@@ -313,8 +313,6 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *restrict rl) {
 
 static void
 ratelimiter_destroy(isc_ratelimiter_t *restrict rl) {
-	isc_refcount_destroy(&rl->references);
-
 	LOCK(&rl->lock);
 	REQUIRE(rl->state == isc_ratelimiter_shuttingdown);
 	UNLOCK(&rl->lock);

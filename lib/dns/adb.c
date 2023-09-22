@@ -1179,7 +1179,6 @@ destroy_adbentry(dns_adbentry_t *entry) {
 	}
 
 	isc_mutex_destroy(&entry->lock);
-	isc_refcount_destroy(&entry->references);
 	isc_mem_put(adb->mctx, entry, sizeof(*entry));
 
 	dec_adbstats(adb, dns_adbstats_entriescnt);
@@ -1963,7 +1962,6 @@ destroy(dns_adb_t *adb) {
 	isc_mem_detach(&adb->hmctx);
 
 	isc_mutex_destroy(&adb->lock);
-	isc_refcount_destroy(&adb->references);
 
 	isc_stats_detach(&adb->stats);
 	dns_resolver_detach(&adb->res);

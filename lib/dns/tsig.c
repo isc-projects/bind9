@@ -332,7 +332,6 @@ destroyring(dns_tsigkeyring_t *ring) {
 
 	ring->magic = 0;
 
-	isc_refcount_destroy(&ring->references);
 	isc_rwlock_destroy(&ring->lock);
 	isc_mem_putanddetach(&ring->mctx, ring, sizeof(dns_tsigkeyring_t));
 }

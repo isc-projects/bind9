@@ -2383,8 +2383,6 @@ clientmgr_destroy_cb(void *arg) {
 
 	manager->magic = 0;
 
-	isc_refcount_destroy(&manager->references);
-
 	isc_loop_detach(&manager->loop);
 
 	dns_aclenv_detach(&manager->aclenv);

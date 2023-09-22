@@ -414,8 +414,6 @@ dispentry_destroy(dns_dispentry_t *resp) {
 	INSIST(disp->requests > 0);
 	disp->requests--;
 
-	isc_refcount_destroy(&resp->references);
-
 	resp->magic = 0;
 
 	INSIST(!ISC_LINK_LINKED(resp, plink));
@@ -1363,7 +1361,6 @@ dispatch_destroy(dns_dispatch_t *disp) {
 	dns_dispatchmgr_t *mgr = disp->mgr;
 	uint32_t tid = isc_tid();
 
-	isc_refcount_destroy(&disp->references);
 	disp->magic = 0;
 
 	if (disp->socktype == isc_socktype_tcp) {
