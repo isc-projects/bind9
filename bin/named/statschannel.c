@@ -1461,7 +1461,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	uint32_t serial;
 	const isc_sockaddr_t *addrp = NULL;
 	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
-	const dns_transport_t *transport = NULL;
+	dns_transport_type_t transport_type;
 	xmlTextWriterPtr writer = arg;
 	dns_zonestat_level_t statlevel;
 	int xmlrc;
@@ -1581,20 +1581,41 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	}
 	TRY0(xmlTextWriterEndElement(writer));
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "transport"));
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "soatransport"));
 	if (is_running) {
-		transport = dns_xfrin_gettransport(xfr);
-		if (transport == NULL ||
-		    dns_transport_get_type(transport) == DNS_TRANSPORT_TCP)
-		{
+		transport_type = dns_xfrin_getsoatransporttype(xfr);
+		if (transport_type == DNS_TRANSPORT_UDP) {
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "UDP"));
+		} else if (transport_type == DNS_TRANSPORT_TCP) {
 			TRY0(xmlTextWriterWriteString(writer,
 						      ISC_XMLCHAR "TCP"));
-		} else if (dns_transport_get_type(transport) ==
-			   DNS_TRANSPORT_TLS)
-		{
+		} else if (transport_type == DNS_TRANSPORT_TLS) {
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "TLS"));
+		} else if (transport_type == DNS_TRANSPORT_NONE) {
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "None"));
+		} else {
+			/* We don't expect any other SOA transport type. */
+			TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+		}
+	} else {
+		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
+	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "transport"));
+	if (is_running) {
+		transport_type = dns_xfrin_gettransporttype(xfr);
+		if (transport_type == DNS_TRANSPORT_TCP) {
+			TRY0(xmlTextWriterWriteString(writer,
+						      ISC_XMLCHAR "TCP"));
+		} else if (transport_type == DNS_TRANSPORT_TLS) {
 			TRY0(xmlTextWriterWriteString(writer,
 						      ISC_XMLCHAR "TLS"));
 		} else {
+			/* We don't expect any other transport type. */
 			TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
 		}
 	} else {
@@ -2477,7 +2498,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	json_object *xfrinobj = NULL;
 	const isc_sockaddr_t *addrp = NULL;
 	char addr_buf[ISC_SOCKADDR_FORMATSIZE];
-	const dns_transport_t *transport = NULL;
+	dns_transport_type_t transport_type;
 	dns_zonestat_level_t statlevel;
 	dns_xfrin_t *xfr = NULL;
 	bool is_running, is_deferred, is_pending;
@@ -2582,18 +2603,39 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	}
 
 	if (is_running) {
-		transport = dns_xfrin_gettransport(xfr);
-		if (transport == NULL ||
-		    dns_transport_get_type(transport) == DNS_TRANSPORT_TCP)
-		{
+		transport_type = dns_xfrin_getsoatransporttype(xfr);
+		if (transport_type == DNS_TRANSPORT_UDP) {
+			json_object_object_add(xfrinobj, "soatransport",
+					       json_object_new_string("UDP"));
+		} else if (transport_type == DNS_TRANSPORT_TCP) {
+			json_object_object_add(xfrinobj, "soatransport",
+					       json_object_new_string("TCP"));
+		} else if (transport_type == DNS_TRANSPORT_TLS) {
+			json_object_object_add(xfrinobj, "soatransport",
+					       json_object_new_string("TLS"));
+		} else if (transport_type == DNS_TRANSPORT_NONE) {
+			json_object_object_add(xfrinobj, "soatransport",
+					       json_object_new_string("None"));
+		} else {
+			/* We don't expect any other SOA transport type. */
+			json_object_object_add(xfrinobj, "soatransport",
+					       json_object_new_string("-"));
+		}
+	} else {
+		json_object_object_add(xfrinobj, "soatransport",
+				       json_object_new_string("-"));
+	}
+
+	if (is_running) {
+		transport_type = dns_xfrin_gettransporttype(xfr);
+		if (transport_type == DNS_TRANSPORT_TCP) {
 			json_object_object_add(xfrinobj, "transport",
 					       json_object_new_string("TCP"));
-		} else if (dns_transport_get_type(transport) ==
-			   DNS_TRANSPORT_TLS)
-		{
+		} else if (transport_type == DNS_TRANSPORT_TLS) {
 			json_object_object_add(xfrinobj, "transport",
 					       json_object_new_string("TLS"));
 		} else {
+			/* We don't expect any other transport type. */
 			json_object_object_add(xfrinobj, "transport",
 					       json_object_new_string("-"));
 		}

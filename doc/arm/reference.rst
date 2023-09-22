@@ -7639,6 +7639,10 @@ Incoming Zone Transfers
       This shows the destination address used to establish the
       connection for the transfer.
 
+   ``SOA Transport`` (``soatransport``)
+      Text string. This is the transport protocol in use for the
+      SOA request. Possible values are: ``UDP``, ``TCP``, ``TLS``, ``None``.
+
    ``Transport`` (``transport``)
       Text string. This is the transport protocol in use for the
       transfer. Possible values are: ``TCP``, ``TLS``.

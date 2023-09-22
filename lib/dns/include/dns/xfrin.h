@@ -56,6 +56,7 @@ isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
+		 dns_transport_type_t soa_transport_type,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 		 isc_mem_t *mctx, dns_xfrindone_t done, dns_xfrin_t **xfrp);
 /*%<
@@ -81,6 +82,13 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  *
  *\li	If 'xfrtype' is dns_rdatatype_ixfr or dns_rdatatype_soa,
  *	the zone has a database.
+ *
+ *\li	'soa_transport_type' is DNS_TRANSPORT_NONE if 'xfrtype'
+ *	is dns_rdatatype_soa (because in that case the SOA request
+ *	will use the same transport as the XFR), or when there is no
+ *	preceding SOA request. Otherwise, it should indicate the
+ *	transport type used for the SOA request performed by the
+ *	caller itself.
  */
 
 isc_time_t
@@ -160,10 +168,23 @@ dns_xfrin_getprimaryaddr(const dns_xfrin_t *xfr);
  *\li	const pointer to the zone transfer's primary server's socket address
  */
 
-const dns_transport_t *
-dns_xfrin_gettransport(const dns_xfrin_t *xfr);
+dns_transport_type_t
+dns_xfrin_gettransporttype(const dns_xfrin_t *xfr);
 /*%<
- * Get the trnasport of the xfrin object.
+ * Get the zone transfer's trnasport type of the xfrin object.
+ *
+ * Requires:
+ *\li	'xfr' is a valid dns_xfrin_t.
+ *
+ * Returns:
+ *\li	const pointer to the zone transfer's transport
+ *
+ */
+
+dns_transport_type_t
+dns_xfrin_getsoatransporttype(const dns_xfrin_t *xfr);
+/*%<
+ * Get the SOA request's trnasport type of the xfrin object.
  *
  * Requires:
  *\li	'xfr' is a valid dns_xfrin_t.

@@ -98,7 +98,7 @@ getxfrins() {
         *) return 1 ;;
     esac
     file=`$PERL fetch.pl -s 10.53.0.3 -p ${EXTRAPORT1} $path`
-    cp $file $file.$1.$3
+    cp $file $file.$1.$2
     result=$?
     return $result
 }
@@ -701,25 +701,54 @@ i=0
 # Restart ns1 with '-T transferslowly' to see the xfrins information in ns3's statschannel while it's ongoing
 stop_server ns1
 start_server --noclean --restart --port ${PORT} ns1 -- "-D statschannel-ns1 $NS_PARAMS -T transferslowly"
-# Request a retransfer of the "example" zone
+# Request a retransfer of the secondary zones
 nextpart ns3/named.run > /dev/null
 $RNDCCMD 10.53.0.3 retransfer example | sed "s/^/ns3 /" | cat_i
+$RNDCCMD 10.53.0.3 retransfer example-tcp | sed "s/^/ns3 /" | cat_i
+$RNDCCMD 10.53.0.3 retransfer example-tls | sed "s/^/ns3 /" | cat_i
 wait_for_log_fast 200 "zone example/IN: Transfer started" ns3/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
-# We have now less than one second to catch the zone transfer in process
+_wait_for_transfers() {
+    getxfrins xml x$n || return 1
+    getxfrins json j$n || return 1
+    # XML is encoded in one line, use sed to separate each transfer
+    count=$(sed 's/<xfrin /\n<xfrin /g' xfrins.xml.x$n | grep -c '<state>\(Initial SOA\|First Data\|Receiving AXFR Data\)</state>')
+    if [ $count != 3 ]; then return 1; fi
+    count=$(grep -c '"state":"\(Initial SOA\|First Data\|Receiving AXFR Data\)"' xfrins.json.j$n)
+    if [ $count != 3 ]; then return 1; fi
+}
+
+# We have now less than one second to catch the zone transfers in progress
 echo_i "Checking zone transfer information in the statistics channel ($n)"
 ret=0
-i=0
-getxfrins xml example x$n || ret=1
-getxfrins json example j$n || ret=1
-grep -F '<state>Initial SOA</state>' xfrins.xml.x$n >/dev/null || ret=1
-grep -F '"state":"Initial SOA"' xfrins.json.j$n >/dev/null || ret=1
+retry_quiet_fast 200 _wait_for_transfers || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
+
+if [ $PERL_JSON ]; then
+    echo_i "Checking zone transfer transports ($n)"
+    ret=0
+    cp xfrins.json.j$((n - 1)) xfrins.json.j$n
+    $PERL xfrins-json.pl xfrins.json.j$n example > xfrins.example.format$n
+    echo "soatransport: UDP" > xfrins.example.expect$n
+    echo "transport: TCP" >> xfrins.example.expect$n
+    cmp xfrins.example.format$n xfrins.example.expect$n || ret=1
+    $PERL xfrins-json.pl xfrins.json.j$n example-tcp > xfrins.example-tcp.format$n
+    echo "soatransport: TCP" > xfrins.example-tcp.expect$n
+    echo "transport: TCP" >> xfrins.example-tcp.expect$n
+    cmp xfrins.example-tcp.format$n xfrins.example-tcp.expect$n || ret=1
+    $PERL xfrins-json.pl xfrins.json.j$n example-tls > xfrins.example-tls.format$n
+    echo "soatransport: TLS" > xfrins.example-tls.expect$n
+    echo "transport: TLS" >> xfrins.example-tls.expect$n
+    cmp xfrins.example-tls.format$n xfrins.example-tls.expect$n || ret=1
+    if [ $ret != 0 ]; then echo_i "failed"; fi
+    status=$((status + ret))
+    n=$((n + 1))
+fi
 
 echo_i "Wait for slow zone transfer to complete ($n)"
 ret=0

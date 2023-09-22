@@ -17616,6 +17616,7 @@ got_transfer_quota(void *arg) {
 	isc_sockaddr_t primaryaddr;
 	isc_sockaddr_t sourceaddr;
 	isc_time_t now;
+	dns_transport_type_t soa_transport_type = DNS_TRANSPORT_NONE;
 	const char *soa_before = "";
 	bool loaded;
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
@@ -17742,11 +17743,33 @@ got_transfer_quota(void *arg) {
 				      "zone transfer: %s",
 				      isc_result_totext(result));
 		}
+
+		if (result == ISC_R_SUCCESS && xfrtype != dns_rdatatype_soa) {
+			soa_transport_type = DNS_TRANSPORT_TLS;
+		}
 	}
 
 	LOCK_ZONE(zone);
+	if (soa_transport_type == DNS_TRANSPORT_NONE &&
+	    xfrtype != dns_rdatatype_soa)
+	{
+		soa_transport_type = (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC))
+					     ? DNS_TRANSPORT_TCP
+					     : DNS_TRANSPORT_UDP;
+
+		/* Check if the peer is forced to always use TCP. */
+		if (soa_transport_type != DNS_TRANSPORT_TCP && peer != NULL) {
+			bool usetcp;
+			result = dns_peer_getforcetcp(peer, &usetcp);
+			if (result == ISC_R_SUCCESS && usetcp) {
+				soa_transport_type = DNS_TRANSPORT_TCP;
+			}
+		}
+	}
+
 	sourceaddr = zone->sourceaddr;
 	UNLOCK_ZONE(zone);
+
 	INSIST(isc_sockaddr_pf(&primaryaddr) == isc_sockaddr_pf(&sourceaddr));
 
 	if (zone->xfr != NULL) {
@@ -17756,9 +17779,9 @@ got_transfer_quota(void *arg) {
 	zmgr_tlsctx_attach(zone->zmgr, &zmgr_tlsctx_cache);
 
 	result = dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
-				  zone->tsigkey, zone->transport,
-				  zmgr_tlsctx_cache, zone->mctx, zone_xfrdone,
-				  &zone->xfr);
+				  zone->tsigkey, soa_transport_type,
+				  zone->transport, zmgr_tlsctx_cache,
+				  zone->mctx, zone_xfrdone, &zone->xfr);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 

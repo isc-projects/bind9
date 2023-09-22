@@ -164,6 +164,7 @@ struct dns_xfrin {
 	dst_context_t *tsigctx; /*%< TSIG verification context */
 	unsigned int sincetsig; /*%< recvd since the last TSIG */
 
+	dns_transport_type_t soa_transport_type;
 	dns_transport_t *transport;
 
 	dns_xfrindone_t done;
@@ -206,6 +207,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
+	     dns_transport_type_t soa_transport_type,
 	     dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 	     dns_xfrin_t **xfrp);
 
@@ -700,6 +702,7 @@ isc_result_t
 dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 const isc_sockaddr_t *primaryaddr,
 		 const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
+		 dns_transport_type_t soa_transport_type,
 		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 		 isc_mem_t *mctx, dns_xfrindone_t done, dns_xfrin_t **xfrp) {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
@@ -721,8 +724,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	}
 
 	xfrin_create(mctx, zone, db, zonename, dns_zone_getclass(zone), xfrtype,
-		     primaryaddr, sourceaddr, tsigkey, transport, tlsctx_cache,
-		     &xfr);
+		     primaryaddr, sourceaddr, tsigkey, soa_transport_type,
+		     transport, tlsctx_cache, &xfr);
 
 	if (db != NULL) {
 		xfr->zone_had_db = true;
@@ -854,11 +857,22 @@ dns_xfrin_getprimaryaddr(const dns_xfrin_t *xfr) {
 	return (&xfr->primaryaddr);
 }
 
-const dns_transport_t *
-dns_xfrin_gettransport(const dns_xfrin_t *xfr) {
+dns_transport_type_t
+dns_xfrin_gettransporttype(const dns_xfrin_t *xfr) {
 	REQUIRE(VALID_XFRIN(xfr));
 
-	return (xfr->transport);
+	if (xfr->transport != NULL) {
+		return (dns_transport_get_type(xfr->transport));
+	}
+
+	return (DNS_TRANSPORT_TCP);
+}
+
+dns_transport_type_t
+dns_xfrin_getsoatransporttype(const dns_xfrin_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
+	return (xfr->soa_transport_type);
 }
 
 const dns_name_t *
@@ -965,6 +979,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	     dns_name_t *zonename, dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype, const isc_sockaddr_t *primaryaddr,
 	     const isc_sockaddr_t *sourceaddr, dns_tsigkey_t *tsigkey,
+	     dns_transport_type_t soa_transport_type,
 	     dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
 	     dns_xfrin_t **xfrp) {
 	dns_xfrin_t *xfr = NULL;
@@ -977,6 +992,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		.maxrecords = dns_zone_getmaxrecords(zone),
 		.primaryaddr = *primaryaddr,
 		.sourceaddr = *sourceaddr,
+		.soa_transport_type = soa_transport_type,
 		.firstsoa = DNS_RDATA_INIT,
 		.edns = true,
 		.magic = XFRIN_MAGIC,
@@ -1081,6 +1097,23 @@ xfrin_start(dns_xfrin_t *xfr) {
 	}
 
 	LIBDNS_XFRIN_START(xfr, xfr->info);
+
+	/*
+	 * If the transfer is started when the 'state' is XFRST_SOAQUERY, it
+	 * means the SOA query will be performed by xfrin. A transfer could also
+	 * be initiated starting from the XFRST_INITIALSOA state, which means
+	 * that the SOA query was already performed by other means (e.g. by
+	 * zone.c:soa_query()), or that it's a transfer without a preceding
+	 * SOA request, and 'soa_transport_type' is already correctly
+	 * set by the creator of the xfrin.
+	 */
+	if (atomic_load(&xfr->state) == XFRST_SOAQUERY) {
+		/*
+		 * The "SOA before" mode is used, where the SOA request is
+		 * using the same transport as the XFR.
+		 */
+		xfr->soa_transport_type = dns_xfrin_gettransporttype(xfr);
+	}
 
 	/* Set the maximum timer */
 	isc_interval_set(&interval, dns_zone_getmaxxfrin(xfr->zone), 0);
