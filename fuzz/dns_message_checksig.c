@@ -318,7 +318,7 @@ create_message(dns_message_t **messagep, const uint8_t *data, size_t size,
 		isc_buffer_putmem(&b, data, size);
 	}
 
-	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_message_parse(message, &b, 0);
 	if (debug) {

@@ -582,6 +582,11 @@ struct dns_resolver {
 
 	/* Atomic. */
 	atomic_uint_fast32_t nfctx;
+
+	uint32_t nloops;
+
+	isc_mempool_t **namepools;
+	isc_mempool_t **rdspools;
 };
 
 #define RES_MAGIC	    ISC_MAGIC('R', 'e', 's', '!')
@@ -2001,8 +2006,9 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	 * remain valid until this query is canceled.
 	 */
 
-	dns_message_create(fctx->mctx, DNS_MESSAGE_INTENTPARSE,
-			   &query->rmessage);
+	dns_message_create(fctx->mctx, fctx->res->namepools[fctx->tid],
+			   fctx->res->rdspools[fctx->tid],
+			   DNS_MESSAGE_INTENTPARSE, &query->rmessage);
 	query->start = isc_time_now();
 
 	/*
@@ -4679,8 +4685,9 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		goto cleanup_fcount;
 	}
 
-	dns_message_create(fctx->mctx, DNS_MESSAGE_INTENTRENDER,
-			   &fctx->qmessage);
+	dns_message_create(fctx->mctx, fctx->res->namepools[fctx->tid],
+			   fctx->res->rdspools[fctx->tid],
+			   DNS_MESSAGE_INTENTRENDER, &fctx->qmessage);
 
 	/*
 	 * Compute an expiration time for the entire fetch.
@@ -9893,6 +9900,15 @@ dns_resolver__destroy(dns_resolver_t *res) {
 	dns_badcache_destroy(&res->badcache);
 
 	dns_view_weakdetach(&res->view);
+
+	for (size_t i = 0; i < res->nloops; i++) {
+		dns_message_destroypools(&res->namepools[i], &res->rdspools[i]);
+	}
+	isc_mem_cput(res->mctx, res->rdspools, res->nloops,
+		     sizeof(res->rdspools[0]));
+	isc_mem_cput(res->mctx, res->namepools, res->nloops,
+		     sizeof(res->namepools[0]));
+
 	isc_mem_putanddetach(&res->mctx, res, sizeof(*res));
 }
 
@@ -9956,6 +9972,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.maxdepth = DEFAULT_RECURSION_DEPTH,
 		.maxqueries = DEFAULT_MAX_QUERIES,
 		.alternates = ISC_LIST_INITIALIZER,
+		.nloops = isc_loopmgr_nloops(loopmgr),
 	};
 
 	RTRACE("create");
@@ -9982,12 +9999,12 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 
 	if (dispatchv4 != NULL) {
 		dns_dispatchset_create(res->mctx, dispatchv4, &res->dispatches4,
-				       isc_loopmgr_nloops(res->loopmgr));
+				       res->nloops);
 	}
 
 	if (dispatchv6 != NULL) {
 		dns_dispatchset_create(res->mctx, dispatchv6, &res->dispatches6,
-				       isc_loopmgr_nloops(res->loopmgr));
+				       res->nloops);
 	}
 
 	isc_mutex_init(&res->lock);
@@ -9999,6 +10016,18 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 			    &res->digests);
 	dns_nametree_create(res->mctx, DNS_NAMETREE_BOOL,
 			    "dnssec-must-be-secure", &res->mustbesecure);
+
+	res->namepools = isc_mem_cget(res->mctx, res->nloops,
+				      sizeof(res->namepools[0]));
+	res->rdspools = isc_mem_cget(res->mctx, res->nloops,
+				     sizeof(res->rdspools[0]));
+	for (size_t i = 0; i < res->nloops; i++) {
+		isc_loop_t *loop = isc_loop_get(res->loopmgr, i);
+		isc_mem_t *pool_mctx = isc_loop_getmctx(loop);
+
+		dns_message_createpools(pool_mctx, &res->namepools[i],
+					&res->rdspools[i]);
+	}
 
 	res->magic = RES_MAGIC;
 

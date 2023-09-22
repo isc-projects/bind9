@@ -207,7 +207,7 @@ render(isc_buffer_t *buf, unsigned int flags, dns_tsigkey_t *key,
 	dns_compress_t cctx;
 	isc_result_t result;
 
-	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &msg);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER, &msg);
 	assert_non_null(msg);
 
 	msg->id = 50;
@@ -317,7 +317,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	/*
 	 * Process response message 1.
 	 */
-	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	result = dns_message_settsigkey(msg, key);
@@ -370,7 +370,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	/*
 	 * Process response message 2.
 	 */
-	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;
@@ -415,7 +415,7 @@ ISC_RUN_TEST_IMPL(tsig_tcp) {
 	/*
 	 * Process response message 3.
 	 */
-	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &msg);
 	assert_non_null(msg);
 
 	msg->tcp_continuation = 1;

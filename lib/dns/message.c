@@ -657,9 +657,6 @@ msgreset(dns_message_t *msg, bool everything) {
 	if (!everything) {
 		msginit(msg);
 	}
-
-	ENSURE(isc_mempool_getallocated(msg->namepool) == 0);
-	ENSURE(isc_mempool_getallocated(msg->rdspool) == 0);
 }
 
 static unsigned int
@@ -703,17 +700,18 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 }
 
 void
-dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
-	dns_message_t *msg = NULL;
-	isc_buffer_t *dynbuf = NULL;
-
+dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
+		   isc_mempool_t *rdspool, dns_message_intent_t intent,
+		   dns_message_t **msgp) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(msgp != NULL);
 	REQUIRE(*msgp == NULL);
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
 		intent == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE((namepool != NULL && rdspool != NULL) ||
+		(namepool == NULL && rdspool == NULL));
 
-	msg = isc_mem_get(mctx, sizeof(dns_message_t));
+	dns_message_t *msg = isc_mem_get(mctx, sizeof(dns_message_t));
 	*msg = (dns_message_t){
 		.from_to_wire = intent,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
@@ -725,25 +723,24 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 		.freerdata = ISC_LIST_INITIALIZER,
 		.freerdatalist = ISC_LIST_INITIALIZER,
 		.magic = DNS_MESSAGE_MAGIC,
+		.namepool = namepool,
+		.rdspool = rdspool,
 	};
 
 	isc_mem_attach(mctx, &msg->mctx);
+
+	if (namepool == NULL && rdspool == NULL) {
+		dns_message_createpools(mctx, &msg->namepool, &msg->rdspool);
+		msg->free_pools = true;
+	}
+
 	msginit(msg);
 
 	for (size_t i = 0; i < DNS_SECTION_MAX; i++) {
 		ISC_LIST_INIT(msg->sections[i]);
 	}
 
-	isc_mempool_create(msg->mctx, sizeof(dns_fixedname_t), &msg->namepool);
-	isc_mempool_setfillcount(msg->namepool, NAME_FILLCOUNT);
-	isc_mempool_setfreemax(msg->namepool, NAME_FREEMAX);
-	isc_mempool_setname(msg->namepool, "dns_fixedname_pool");
-
-	isc_mempool_create(msg->mctx, sizeof(dns_rdataset_t), &msg->rdspool);
-	isc_mempool_setfillcount(msg->rdspool, RDATASET_FILLCOUNT);
-	isc_mempool_setfreemax(msg->rdspool, RDATASET_FREEMAX);
-	isc_mempool_setname(msg->rdspool, "dns_rdataset_pool");
-
+	isc_buffer_t *dynbuf = NULL;
 	isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
 	ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
 
@@ -751,7 +748,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
 }
 
 void
-dns_message_reset(dns_message_t *msg, unsigned int intent) {
+dns_message_reset(dns_message_t *msg, dns_message_intent_t intent) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
 		intent == DNS_MESSAGE_INTENTRENDER);
@@ -766,9 +763,13 @@ dns__message_destroy(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	msgreset(msg, true);
-	isc_mempool_destroy(&msg->namepool);
-	isc_mempool_destroy(&msg->rdspool);
+
 	msg->magic = 0;
+
+	if (msg->free_pools) {
+		dns_message_destroypools(&msg->namepool, &msg->rdspool);
+	}
+
 	isc_mem_putanddetach(&msg->mctx, msg, sizeof(dns_message_t));
 }
 
@@ -4762,4 +4763,34 @@ dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_message_createpools(isc_mem_t *mctx, isc_mempool_t **namepoolp,
+			isc_mempool_t **rdspoolp) {
+	REQUIRE(mctx != NULL);
+	REQUIRE(namepoolp != NULL && *namepoolp == NULL);
+	REQUIRE(rdspoolp != NULL && *rdspoolp == NULL);
+
+	isc_mempool_create(mctx, sizeof(dns_fixedname_t), namepoolp);
+	isc_mempool_setfillcount(*namepoolp, NAME_FILLCOUNT);
+	isc_mempool_setfreemax(*namepoolp, NAME_FREEMAX);
+	isc_mempool_setname(*namepoolp, "dns_fixedname_pool");
+
+	isc_mempool_create(mctx, sizeof(dns_rdataset_t), rdspoolp);
+	isc_mempool_setfillcount(*rdspoolp, RDATASET_FILLCOUNT);
+	isc_mempool_setfreemax(*rdspoolp, RDATASET_FREEMAX);
+	isc_mempool_setname(*rdspoolp, "dns_rdataset_pool");
+}
+
+void
+dns_message_destroypools(isc_mempool_t **namepoolp, isc_mempool_t **rdspoolp) {
+	REQUIRE(namepoolp != NULL && *namepoolp != NULL);
+	REQUIRE(rdspoolp != NULL && *rdspoolp != NULL);
+
+	ENSURE(isc_mempool_getallocated(*namepoolp) == 0);
+	ENSURE(isc_mempool_getallocated(*rdspoolp) == 0);
+
+	isc_mempool_destroy(rdspoolp);
+	isc_mempool_destroy(namepoolp);
 }

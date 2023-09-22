@@ -47,7 +47,7 @@ parse_message(isc_buffer_t *input, dns_message_t **messagep) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
 
-	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
+	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_message_parse(message, input, DNS_MESSAGEPARSE_BESTEFFORT);
 	if (result == DNS_R_RECOVERABLE) {

@@ -145,6 +145,9 @@ struct ns_clientmgr {
 
 	isc_mem_t     *mctx;
 	isc_mem_t     *send_mctx;
+	isc_mempool_t *namepool;
+	isc_mempool_t *rdspool;
+
 	ns_server_t   *sctx;
 	isc_refcount_t references;
 	uint32_t       tid;
