@@ -152,7 +152,6 @@ struct dns_xfrin {
 	unsigned int nrecs; /*%< Number of records recvd */
 	uint64_t nbytes;    /*%< Number of bytes received */
 	isc_time_t start;   /*%< Start time of the transfer */
-	isc_time_t end;	    /*%< End time of the transfer */
 	dns_transport_type_t soa_transport_type;
 	uint32_t end_serial;
 
@@ -1878,6 +1877,7 @@ failure:
 static void
 xfrin_destroy(dns_xfrin_t *xfr) {
 	uint64_t msecs, persec;
+	isc_time_t now = isc_time_now();
 
 	REQUIRE(VALID_XFRIN(xfr));
 	REQUIRE(dns_zone_gettid(xfr->zone) == isc_tid());
@@ -1900,8 +1900,7 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 	 * and print a log message with the bytes and rate.
 	 */
 	LOCK(&xfr->statslock);
-	xfr->end = isc_time_now();
-	msecs = isc_time_microdiff(&xfr->end, &xfr->start) / 1000;
+	msecs = isc_time_microdiff(&now, &xfr->start) / 1000;
 	if (msecs == 0) {
 		msecs = 1;
 	}
