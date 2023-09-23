@@ -488,13 +488,16 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_name_t *foundname, dns_qpchain_t *chain,
-			 void **pval_r, uint32_t *ival_r);
+			 dns_name_t *foundname, dns_name_t *predecessor,
+			 dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
  * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
  * given DNS name.
  *
  * If 'foundname' is not NULL, it is updated to contain the name found.
+ *
+ * If 'predecessor' is not NULL, it is updated to contain the DNSSEC
+ * predecessor of the searched-for name.
  *
  * If 'chain' is not NULL, it is updated to contain a QP chain with
  * references to the populated nodes in the tree between the root and

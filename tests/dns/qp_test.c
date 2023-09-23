@@ -350,7 +350,7 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[]) {
 
 		dns_test_namefromstring(check[i].query, &fn1);
 		result = dns_qp_findname_ancestor(qp, name, foundname, NULL,
-						  &pval, NULL);
+						  NULL, &pval, NULL);
 
 #if 0
 		fprintf(stderr, "%s %s (expected %s) "
@@ -437,7 +437,7 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 		{ "webby.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
 		{ "my.web.foo.bar.", DNS_R_PARTIALMATCH, "web.foo.bar." },
 		{ "my.other.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
-		{ NULL },
+		{ NULL, 0, NULL },
 	};
 	check_partialmatch(qp, check1);
 
@@ -450,7 +450,7 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 		{ "bar.", DNS_R_PARTIALMATCH, "." },
 		{ "foo.bar.", ISC_R_SUCCESS, "foo.bar." },
 		{ "bar", ISC_R_NOTFOUND, NULL },
-		{ NULL },
+		{ NULL, 0, NULL },
 	};
 	check_partialmatch(qp, check2);
 
@@ -464,7 +464,7 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	check_partialmatch(qp, (struct check_partialmatch[]){
 				       { "bar", ISC_R_NOTFOUND, NULL },
 				       { "bar.", ISC_R_NOTFOUND, NULL },
-				       { NULL },
+				       { NULL, 0, NULL },
 			       });
 
 	/* what if there's a root node with an empty key? */
@@ -473,7 +473,7 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	check_partialmatch(qp, (struct check_partialmatch[]){
 				       { "bar", DNS_R_PARTIALMATCH, "" },
 				       { "bar.", DNS_R_PARTIALMATCH, "" },
-				       { NULL },
+				       { NULL, 0, NULL },
 			       });
 
 	dns_qp_destroy(&qp);
@@ -496,8 +496,8 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 
 		dns_qpchain_init(qp, &chain);
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_findname_ancestor(qp, name, NULL, &chain, NULL,
-						  NULL);
+		result = dns_qp_findname_ancestor(qp, name, NULL, NULL, &chain,
+						  NULL, NULL);
 
 #if 0
 		fprintf(stderr, "%s %s (expected %s), "
@@ -528,16 +528,13 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 
 ISC_RUN_TEST_IMPL(qpchain) {
 	dns_qp_t *qp = NULL;
+	const char insert[][16] = { ".",      "a.",	    "b.",
+				    "c.b.a.", "e.d.c.b.a.", "c.b.b.",
+				    "c.d.",   "a.b.c.d.",   "a.b.c.d.e.",
+				    "b.a.",   "x.k.c.d.",   "" };
 	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
-
-	/*
-	 * Fixed size strings [16] should ensure leaf-compatible alignment.
-	 */
-	const char insert[][16] = { ".",	  "a.",	    "b.",   "c.b.a.",
-				    "e.d.c.b.a.", "c.b.b.", "c.d.", "a.b.c.d.",
-				    "a.b.c.d.e.", "b.a.",   "" };
 
 	while (insert[i][0] != '\0') {
 		insert_str(qp, insert[i++]);
@@ -560,12 +557,115 @@ ISC_RUN_TEST_IMPL(qpchain) {
 	dns_qp_destroy(&qp);
 }
 
+struct check_predecessors {
+	const char *query;
+	const char *predecessor;
+	isc_result_t result;
+};
+
+static void
+check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
+	isc_result_t result;
+	dns_fixedname_t fn1, fn2;
+	dns_name_t *name = dns_fixedname_initname(&fn1);
+	dns_name_t *pred = dns_fixedname_initname(&fn2);
+
+	for (int i = 0; check[i].query != NULL; i++) {
+		char *predname = NULL;
+
+		dns_test_namefromstring(check[i].query, &fn1);
+		result = dns_qp_findname_ancestor(qp, name, NULL, pred, NULL,
+						  NULL, NULL);
+#if 0
+		fprintf(stderr, "%s: expected %s got %s\n", check[i].query,
+			isc_result_totext(check[i].result),
+			isc_result_totext(result));
+#endif
+		assert_int_equal(result, check[i].result);
+		result = dns_name_tostring(pred, &predname, mctx);
+#if 0
+		fprintf(stderr, "... expected predecessor %s got %s\n",
+			check[i].predecessor, predname);
+#endif
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		assert_string_equal(predname, check[i].predecessor);
+		isc_mem_free(mctx, predname);
+	}
+}
+
+ISC_RUN_TEST_IMPL(predecessors) {
+	dns_qp_t *qp = NULL;
+	const char insert[][16] = {
+		"a.",	  "b.",	      "c.b.a.",	  "e.d.c.b.a.",
+		"c.b.b.", "c.d.",     "a.b.c.d.", "a.b.c.d.e.",
+		"b.a.",	  "x.k.c.d.", ""
+	};
+	int i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert[i][0] != '\0') {
+		insert_str(qp, insert[i++]);
+	}
+
+	/* first check: no root label in the database */
+	static struct check_predecessors check1[] = {
+		{ ".", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "a.", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ "b.a.", "a.", ISC_R_SUCCESS },
+		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
+		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
+		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
+		{ "d.c.", "c.b.b.", ISC_R_NOTFOUND },
+		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
+		{ "a.b.c.e.f.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "z.y.x.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
+		{ "z.z.z.z.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
+		{ "0.b.c.d.e.", "x.k.c.d.", ISC_R_NOTFOUND },
+		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND },
+		{ NULL, NULL, 0 }
+	};
+
+	check_predecessors(qp, check1);
+
+	/* second check: add a root label and try again */
+	const char root[16] = ".";
+	insert_str(qp, root);
+
+	static struct check_predecessors check2[] = {
+		{ ".", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ "a.", ".", ISC_R_SUCCESS },
+		{ "b.a.", "a.", ISC_R_SUCCESS },
+		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
+		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
+		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
+		{ "d.c.", "c.b.b.", DNS_R_PARTIALMATCH },
+		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
+		{ "a.b.c.e.f.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "z.y.x.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
+		{ "z.z.z.z.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
+		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH },
+		{ NULL, NULL, 0 }
+	};
+
+	check_predecessors(qp, check2);
+
+	dns_qp_destroy(&qp);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(qpkey_name)
 ISC_TEST_ENTRY(qpkey_sort)
 ISC_TEST_ENTRY(qpiter)
 ISC_TEST_ENTRY(partialmatch)
 ISC_TEST_ENTRY(qpchain)
+ISC_TEST_ENTRY(predecessors)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN

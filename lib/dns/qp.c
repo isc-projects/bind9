@@ -1771,6 +1771,7 @@ maybe_set_name(dns_qpreader_t *qp, qp_node_t *node, dns_name_t *name) {
 		return;
 	}
 
+	dns_name_reset(name);
 	len = leaf_qpkey(qp, node, key);
 	dns_qpkey_toname(key, len, name);
 }
@@ -1996,22 +1997,41 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 static inline void
 add_link(dns_qpchain_t *chain, qp_node_t *node, size_t offset) {
+	/*
+	 * prevent duplication, which could occur if we're adding a link
+	 * for the predecessor node and it's the same as the parent.
+	 */
+	if (chain->len > 0 && node == chain->chain[chain->len - 1].node) {
+		return;
+	}
 	chain->chain[chain->len].node = node;
 	chain->chain[chain->len].offset = offset;
 	chain->len++;
 	INSIST(chain->len <= DNS_NAME_MAXLABELS);
 }
 
+static inline void
+prevleaf(dns_qpiter_t *it) {
+	isc_result_t result = dns_qpiter_prev(it, NULL, NULL, NULL);
+	if (result == ISC_R_NOMORE) {
+		result = dns_qpiter_prev(it, NULL, NULL, NULL);
+	}
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+}
+
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_name_t *foundname, dns_qpchain_t *chain,
-			 void **pval_r, uint32_t *ival_r) {
+			 dns_name_t *foundname, dns_name_t *predecessor,
+			 dns_qpchain_t *chain, void **pval_r,
+			 uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
 	size_t offset;
 	qp_node_t *n = NULL;
 	dns_qpchain_t oc;
+	dns_qpiter_t it;
+	bool matched = true;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
@@ -2022,11 +2042,13 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 		chain = &oc;
 	}
 	dns_qpchain_init(qp, chain);
+	dns_qpiter_init(qp, &it);
 
 	n = get_root(qp);
 	if (n == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
+	it.stack[0] = n;
 
 	/*
 	 * Like `dns_qp_insert()`, we must find a leaf. However, we don't make a
@@ -2062,32 +2084,87 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 		{
 			add_link(chain, twigs, offset);
 		}
-		if (branch_has_twig(n, bit)) {
-			/* we have the twig we wanted */
-			n = branch_twig_ptr(qp, n, bit);
-		} else if (chain->len == 0) {
+
+		matched = branch_has_twig(n, bit);
+		if (matched) {
 			/*
-			 * the twig we're looking for isn't here,
-			 * and we haven't found an ancestor yet either.
-			 * but we need to end the loop at a leaf, so
-			 * continue down from whatever this branch's
-			 * first twig is.
+			 * found a match: if it's a branch, we keep
+			 * searching, and if it's a leaf, we drop out of
+			 * the loop.
 			 */
-			n = twigs;
+			n = branch_twig_ptr(qp, n, bit);
+		} else if (predecessor != NULL) {
+			/*
+			 * this branch is a dead end, but the caller wants
+			 * the predecessor to the name we were searching
+			 * for, so let's go find that.
+			 */
+			qp_weight_t pos = branch_twig_pos(n, bit);
+			if (pos == 0) {
+				/*
+				 * this entire branch is greater than
+				 * the key we wanted, so we step back to
+				 * the predecessor using the iterator.
+				 */
+				prevleaf(&it);
+				n = it.stack[it.sp];
+			} else {
+				/*
+				 * the name we want would've been between
+				 * two twigs in this branch. point n to the
+				 * lesser of those, then walk down to the
+				 * highest leaf in that subtree to get the
+				 * predecessor.
+				 */
+				n = twigs + pos - 1;
+				while (is_branch(n)) {
+					prefetch_twigs(qp, n);
+					it.stack[++it.sp] = n;
+					pos = branch_twigs_size(n) - 1;
+					n = ref_ptr(qp,
+						    branch_twigs_ref(n) + pos);
+				}
+			}
 		} else {
 			/*
-			 * this branch is a dead end, but we do have
-			 * a previous leaf node saved in the chain.
-			 * we go back to that. it's a leaf, so we'll
-			 * fall out of the loop here.
+			 * this branch is a dead end, and the predecessor
+			 * doesn't matter. now we just need to find a leaf
+			 * to end on so qpkey_leaf() will work below.
 			 */
-			n = chain->chain[chain->len - 1].node;
+			if (chain->len > 0) {
+				/* we saved an ancestor leaf: use that */
+				n = chain->chain[chain->len - 1].node;
+			} else {
+				/* walk down to find the leftmost leaf */
+				while (is_branch(twigs)) {
+					twigs = branch_twigs(qp, twigs);
+				}
+				n = twigs;
+			}
 		}
+
+		it.stack[++it.sp] = n;
 	}
 
 	/* do the keys differ, and if so, where? */
 	foundlen = leaf_qpkey(qp, n, found);
 	offset = qpkey_compare(search, searchlen, found, foundlen);
+
+	/*
+	 * if we've been asked to return the predecessor name, we
+	 * work that out here.
+	 *
+	 * if 'matched' is true, the search ended at a leaf.  it's either
+	 * an exact match or the immediate successor of the searched-for
+	 * name, and in either case, we can use the qpiter stack we've
+	 * constructed to step back to the predecessor.  if 'matched' is
+	 * false, then the search failed at a branch node, and we would
+	 * have already found the predecessor.
+	 */
+	if (predecessor != NULL && matched) {
+		prevleaf(&it);
+	}
+	maybe_set_name(qp, it.stack[it.sp], predecessor);
 
 	if (offset == QPKEY_EQUAL || offset == foundlen) {
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
