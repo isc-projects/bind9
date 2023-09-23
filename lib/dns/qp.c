@@ -360,25 +360,6 @@ qpkey_compare(const dns_qpkey_t key_a, const size_t keylen_a,
 	return (QPKEY_EQUAL);
 }
 
-/*
- * Given a key constructed by dns_qpkey_fromname(), trim it down to the last
- * label boundary before the `max` length.
- *
- * This is used when searching a trie for the best match for a name.
- */
-static size_t
-qpkey_trim_label(dns_qpkey_t key, size_t len, size_t max) {
-	size_t stop = 0;
-	for (size_t offset = 0; offset < max; offset++) {
-		if (qpkey_bit(key, len, offset) == SHIFT_NOBYTE &&
-		    qpkey_bit(key, len, offset + 1) != SHIFT_NOBYTE)
-		{
-			stop = offset + 1;
-		}
-	}
-	return (stop);
-}
-
 /***********************************************************************
  *
  *  allocator wrappers
@@ -2023,27 +2004,19 @@ add_link(dns_qpchain_t *chain, qp_node_t *node, size_t offset) {
 
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_qpfind_t options, dns_name_t *foundname,
-			 dns_qpchain_t *chain, void **pval_r,
-			 uint32_t *ival_r) {
+			 dns_name_t *foundname, dns_qpchain_t *chain,
+			 void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
 	size_t offset;
 	qp_node_t *n = NULL;
-	isc_result_t result;
 	dns_qpchain_t oc;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	searchlen = dns_qpkey_fromname(search, name);
-	if ((options & DNS_QPFIND_NOEXACT) != 0) {
-		searchlen = qpkey_trim_label(search, searchlen, searchlen);
-		result = DNS_R_PARTIALMATCH;
-	} else {
-		result = ISC_R_SUCCESS;
-	}
 
 	if (chain == NULL) {
 		chain = &oc;
@@ -2121,11 +2094,9 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 		maybe_set_name(qp, n, foundname);
 		if (offset == QPKEY_EQUAL) {
-			if ((options & DNS_QPFIND_NOEXACT) == 0) {
-				/* add the exact match to the chain */
-				add_link(chain, n, offset);
-			}
-			return (result);
+			/* add the exact match to the chain */
+			add_link(chain, n, offset);
+			return (ISC_R_SUCCESS);
 		} else {
 			return (DNS_R_PARTIALMATCH);
 		}

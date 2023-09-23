@@ -335,7 +335,6 @@ const dns_qpmethods_t string_methods = {
 
 struct check_partialmatch {
 	const char *query;
-	dns_qpfind_t options;
 	isc_result_t result;
 	const char *found;
 };
@@ -350,13 +349,13 @@ check_partialmatch(dns_qp_t *qp, struct check_partialmatch check[]) {
 		void *pval = NULL;
 
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_findname_ancestor(qp, name, check[i].options,
-						  foundname, NULL, &pval, NULL);
+		result = dns_qp_findname_ancestor(qp, name, foundname, NULL,
+						  &pval, NULL);
 
 #if 0
-		fprintf(stderr, "%s (flags %u) %s (expected %s) "
+		fprintf(stderr, "%s %s (expected %s) "
 			"value \"%s\" (expected \"%s\")\n",
-			check[i].query, check[i].options,
+			check[i].query,
 			isc_result_totext(result),
 			isc_result_totext(check[i].result), (char *)pval,
 			check[i].found);
@@ -426,26 +425,19 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	}
 
 	static struct check_partialmatch check1[] = {
-		{ "a.b.", 0, ISC_R_SUCCESS, "a.b." },
-		{ "a.b.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "b." },
-		{ "b.c.", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
-		{ "bar.", 0, ISC_R_NOTFOUND, NULL },
-		{ "f.bar.", 0, ISC_R_NOTFOUND, NULL },
-		{ "foo.bar.", 0, ISC_R_SUCCESS, "foo.bar." },
-		{ "foo.bar.", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
-		{ "foooo.bar.", 0, ISC_R_NOTFOUND, NULL },
-		{ "w.foo.bar.", 0, DNS_R_PARTIALMATCH, "foo.bar." },
-		{ "www.foo.bar.", 0, DNS_R_PARTIALMATCH, "foo.bar." },
-		{ "web.foo.bar.", 0, ISC_R_SUCCESS, "web.foo.bar." },
-		{ "webby.foo.bar.", 0, DNS_R_PARTIALMATCH, "foo.bar." },
-		{ "my.web.foo.bar.", 0, DNS_R_PARTIALMATCH, "web.foo.bar." },
-		{ "web.foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH,
-		  "foo.bar." },
-		{ "my.web.foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH,
-		  "web.foo.bar." },
-		{ "my.other.foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH,
-		  "foo.bar." },
-		{ NULL, 0, 0, NULL },
+		{ "a.b.", ISC_R_SUCCESS, "a.b." },
+		{ "b.c.", ISC_R_NOTFOUND, NULL },
+		{ "bar.", ISC_R_NOTFOUND, NULL },
+		{ "f.bar.", ISC_R_NOTFOUND, NULL },
+		{ "foo.bar.", ISC_R_SUCCESS, "foo.bar." },
+		{ "foooo.bar.", ISC_R_NOTFOUND, NULL },
+		{ "w.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
+		{ "www.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
+		{ "web.foo.bar.", ISC_R_SUCCESS, "web.foo.bar." },
+		{ "webby.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
+		{ "my.web.foo.bar.", DNS_R_PARTIALMATCH, "web.foo.bar." },
+		{ "my.other.foo.bar.", DNS_R_PARTIALMATCH, "foo.bar." },
+		{ NULL },
 	};
 	check_partialmatch(qp, check1);
 
@@ -454,13 +446,11 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	insert_str(qp, insert[i++]);
 
 	static struct check_partialmatch check2[] = {
-		{ "b.c.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "." },
-		{ "bar.", 0, DNS_R_PARTIALMATCH, "." },
-		{ "foo.bar.", 0, ISC_R_SUCCESS, "foo.bar." },
-		{ "foo.bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "." },
-		{ "bar", 0, ISC_R_NOTFOUND, NULL },
-		{ "bar", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "." },
-		{ NULL, 0, 0, NULL },
+		{ "b.c.", DNS_R_PARTIALMATCH, "." },
+		{ "bar.", DNS_R_PARTIALMATCH, "." },
+		{ "foo.bar.", ISC_R_SUCCESS, "foo.bar." },
+		{ "bar", ISC_R_NOTFOUND, NULL },
+		{ NULL },
 	};
 	check_partialmatch(qp, check2);
 
@@ -471,35 +461,26 @@ ISC_RUN_TEST_IMPL(partialmatch) {
 	dns_qpkey_t rootkey = { SHIFT_NOBYTE };
 	result = dns_qp_deletekey(qp, rootkey, 1, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
-	check_partialmatch(
-		qp,
-		(struct check_partialmatch[]){
-			{ "bar", 0, ISC_R_NOTFOUND, NULL },
-			{ "bar", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
-			{ "bar.", 0, ISC_R_NOTFOUND, NULL },
-			{ "bar.", DNS_QPFIND_NOEXACT, ISC_R_NOTFOUND, NULL },
-			{ NULL, 0, 0, NULL },
-		});
+	check_partialmatch(qp, (struct check_partialmatch[]){
+				       { "bar", ISC_R_NOTFOUND, NULL },
+				       { "bar.", ISC_R_NOTFOUND, NULL },
+				       { NULL },
+			       });
 
 	/* what if there's a root node with an empty key? */
 	INSIST(insert[i][0] == '\0');
 	insert_str(qp, insert[i++]);
-	check_partialmatch(
-		qp,
-		(struct check_partialmatch[]){
-			{ "bar", 0, DNS_R_PARTIALMATCH, "" },
-			{ "bar", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "" },
-			{ "bar.", 0, DNS_R_PARTIALMATCH, "" },
-			{ "bar.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, "" },
-			{ NULL, 0, 0, NULL },
-		});
+	check_partialmatch(qp, (struct check_partialmatch[]){
+				       { "bar", DNS_R_PARTIALMATCH, "" },
+				       { "bar.", DNS_R_PARTIALMATCH, "" },
+				       { NULL },
+			       });
 
 	dns_qp_destroy(&qp);
 }
 
 struct check_qpchain {
 	const char *query;
-	dns_qpfind_t options;
 	isc_result_t result;
 	unsigned int length;
 	const char *names[10];
@@ -515,13 +496,12 @@ check_qpchain(dns_qp_t *qp, struct check_qpchain check[]) {
 
 		dns_qpchain_init(qp, &chain);
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_findname_ancestor(qp, name, check[i].options,
-						  NULL, &chain, NULL, NULL);
+		result = dns_qp_findname_ancestor(qp, name, NULL, &chain, NULL,
+						  NULL);
 
 #if 0
-		fprintf(stderr, "%s (%d) %s (expected %s), "
-			"len %d (expected %d)\n",
-			check[i].query, check[i].options,
+		fprintf(stderr, "%s %s (expected %s), "
+			"len %d (expected %d)\n", check[i].query,
 			isc_result_totext(result),
 			isc_result_totext(check[i].result),
 			dns_qpchain_length(&chain), check[i].length);
@@ -557,37 +537,24 @@ ISC_RUN_TEST_IMPL(qpchain) {
 	 */
 	const char insert[][16] = { ".",	  "a.",	    "b.",   "c.b.a.",
 				    "e.d.c.b.a.", "c.b.b.", "c.d.", "a.b.c.d.",
-				    "a.b.c.d.e.", "" };
+				    "a.b.c.d.e.", "b.a.",   "" };
 
 	while (insert[i][0] != '\0') {
 		insert_str(qp, insert[i++]);
 	}
 
 	static struct check_qpchain check1[] = {
-		{ "b.", 0, ISC_R_SUCCESS, 2 },
-		{ "c.", 0, DNS_R_PARTIALMATCH, 1 },
-		{ "e.d.c.b.a.", 0, ISC_R_SUCCESS, 4 },
-		{ "a.b.c.d.", 0, ISC_R_SUCCESS, 3 },
-		{ "a.b.c.d.", DNS_QPFIND_NOEXACT, DNS_R_PARTIALMATCH, 2 },
-		{ NULL, 0, 0, 0 },
+		{ "b.", ISC_R_SUCCESS, 2, { ".", "b." } },
+		{ "b.a.", ISC_R_SUCCESS, 3, { ".", "a.", "b.a." } },
+		{ "c.", DNS_R_PARTIALMATCH, 1, { "." } },
+		{ "e.d.c.b.a.",
+		  ISC_R_SUCCESS,
+		  5,
+		  { ".", "a.", "b.a.", "c.b.a.", "e.d.c.b.a." } },
+		{ "a.b.c.d.", ISC_R_SUCCESS, 3, { ".", "c.d.", "a.b.c.d." } },
+		{ "b.c.d.", DNS_R_PARTIALMATCH, 2, { ".", "c.d." } },
+		{ NULL, 0, 0, { NULL } },
 	};
-
-	check1[0].names[0] = ".";
-	check1[0].names[1] = "b.";
-
-	check1[1].names[0] = ".";
-
-	check1[2].names[0] = ".";
-	check1[2].names[1] = "a.";
-	check1[2].names[2] = "c.b.a.";
-	check1[2].names[3] = "e.d.c.b.a.";
-
-	check1[3].names[0] = ".";
-	check1[3].names[1] = "c.d.";
-	check1[3].names[2] = "a.b.c.d.";
-
-	check1[4].names[0] = ".";
-	check1[4].names[1] = "c.d.";
 
 	check_qpchain(qp, check1);
 	dns_qp_destroy(&qp);

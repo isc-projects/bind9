@@ -281,13 +281,6 @@ typedef enum dns_qpgc {
 	DNS_QPGC_ALL,
 } dns_qpgc_t;
 
-/*%
- * Options for fancy searches such as `dns_qp_findname_ancestor()`
- */
-typedef enum dns_qpfind {
-	DNS_QPFIND_NOEXACT = 1 << 0,
-} dns_qpfind_t;
-
 /***********************************************************************
  *
  *  functions - create, destory, enquire
@@ -495,14 +488,11 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 isc_result_t
 dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_qpfind_t options, dns_name_t *foundname,
-			 dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
+			 dns_name_t *foundname, dns_qpchain_t *chain,
+			 void **pval_r, uint32_t *ival_r);
 /*%<
  * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
  * given DNS name.
- *
- * If the DNS_QPFIND_NOEXACT option is set, find the closest ancestor
- * domain that is not equal to the search name.
  *
  * If 'foundname' is not NULL, it is updated to contain the name found.
  *

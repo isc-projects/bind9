@@ -171,21 +171,26 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 	void *pval = NULL;
 	dns_ztfind_t exactmask = DNS_ZTFIND_NOEXACT | DNS_ZTFIND_EXACT;
 	dns_ztfind_t exactopts = options & exactmask;
+	dns_qpchain_t chain;
 
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(exactopts != exactmask);
 
 	dns_qpmulti_query(zt->multi, &qpr);
 
-	if (exactopts == DNS_ZTFIND_EXACT) {
-		result = dns_qp_getname(&qpr, name, &pval, NULL);
-	} else if (exactopts == DNS_ZTFIND_NOEXACT) {
-		result = dns_qp_findname_ancestor(&qpr, name,
-						  DNS_QPFIND_NOEXACT, NULL,
-						  NULL, &pval, NULL);
-	} else {
-		result = dns_qp_findname_ancestor(&qpr, name, 0, NULL, NULL,
-						  &pval, NULL);
+	result = dns_qp_findname_ancestor(&qpr, name, NULL, &chain, &pval,
+					  NULL);
+	if (exactopts == DNS_ZTFIND_EXACT && result == DNS_R_PARTIALMATCH) {
+		result = ISC_R_NOTFOUND;
+	} else if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS) {
+		/* get pval from the previous chain link */
+		int len = dns_qpchain_length(&chain);
+		if (len >= 2) {
+			dns_qpchain_node(&chain, len - 2, NULL, &pval, NULL);
+			result = DNS_R_PARTIALMATCH;
+		} else {
+			result = ISC_R_NOTFOUND;
+		}
 	}
 	dns_qpread_destroy(zt->multi, &qpr);
 
