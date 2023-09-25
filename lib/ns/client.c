@@ -2307,6 +2307,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 		ns_clientmgr_attach(mgr, &client->manager);
 
 		dns_message_create(client->manager->mctx,
+				   client->manager->namepool,
+				   client->manager->rdspool,
 				   DNS_MESSAGE_INTENTPARSE, &client->message);
 
 		client->sendbuf = isc_mem_get(client->manager->send_mctx,
@@ -2383,8 +2385,6 @@ clientmgr_destroy_cb(void *arg) {
 
 	manager->magic = 0;
 
-	isc_refcount_destroy(&manager->references);
-
 	isc_loop_detach(&manager->loop);
 
 	dns_aclenv_detach(&manager->aclenv);
@@ -2392,6 +2392,8 @@ clientmgr_destroy_cb(void *arg) {
 	isc_mutex_destroy(&manager->reclock);
 
 	ns_server_detach(&manager->sctx);
+
+	dns_message_destroypools(&manager->rdspool, &manager->namepool);
 
 	isc_mem_detach(&manager->send_mctx);
 
@@ -2426,6 +2428,8 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 	dns_aclenv_attach(aclenv, &manager->aclenv);
 	isc_refcount_init(&manager->references, 1);
 	ns_server_attach(sctx, &manager->sctx);
+
+	dns_message_createpools(mctx, &manager->namepool, &manager->rdspool);
 
 	/*
 	 * We create specialised per-worker memory context specifically

@@ -30,6 +30,9 @@
 
 #include <dst/dst.h>
 
+/* Define to 1 for detailed reference tracing */
+#undef DNS_MESSAGE_TRACE
+
 /*! \file dns/message.h
  * \brief Message Handling Module
  *
@@ -201,9 +204,11 @@ typedef int dns_messagetextflag_t;
 /*
  * These tell the message library how the created dns_message_t will be used.
  */
-#define DNS_MESSAGE_INTENTUNKNOWN 0 /*%< internal use only */
-#define DNS_MESSAGE_INTENTPARSE	  1 /*%< parsing messages */
-#define DNS_MESSAGE_INTENTRENDER  2 /*%< rendering */
+typedef enum dns_message_intent {
+	DNS_MESSAGE_INTENTUNKNOWN = 0, /*%< internal use only */
+	DNS_MESSAGE_INTENTPARSE = 1,   /*%< parsing messages */
+	DNS_MESSAGE_INTENTRENDER = 2,  /*%< rendering */
+} dns_message_intent_t;
 
 /*
  * Control behavior of parsing
@@ -250,7 +255,7 @@ typedef struct dns_minttl {
 struct dns_message {
 	/* public from here down */
 	unsigned int   magic;
-	isc_refcount_t refcount;
+	isc_refcount_t references;
 
 	dns_messageid_t	 id;
 	unsigned int	 flags;
@@ -268,21 +273,24 @@ struct dns_message {
 	dns_rdataset_t *sig0;
 	dns_rdataset_t *tsig;
 
-	int	     state;
-	unsigned int from_to_wire     : 2;
-	unsigned int header_ok	      : 1;
-	unsigned int question_ok      : 1;
-	unsigned int tcp_continuation : 1;
-	unsigned int verified_sig     : 1;
-	unsigned int verify_attempted : 1;
-	unsigned int free_query	      : 1;
-	unsigned int free_saved	      : 1;
-	unsigned int cc_ok	      : 1;
-	unsigned int cc_bad	      : 1;
-	unsigned int cc_echoed	      : 1;
-	unsigned int tkey	      : 1;
-	unsigned int rdclass_set      : 1;
-	unsigned int fuzzing	      : 1;
+	int state;
+	unsigned int			      : 0; /* bits */
+	dns_message_intent_t from_to_wire     : 2; /* 2 */
+	unsigned int	     header_ok	      : 1; /* 3 */
+	unsigned int	     question_ok      : 1; /* 4 */
+	unsigned int	     tcp_continuation : 1; /* 5 */
+	unsigned int	     verified_sig     : 1; /* 6 */
+	unsigned int	     verify_attempted : 1; /* 7 */
+	unsigned int	     free_query	      : 1; /* 8 */
+	unsigned int	     free_saved	      : 1; /* 9 */
+	unsigned int	     cc_ok	      : 1; /* 10 */
+	unsigned int	     cc_bad	      : 1; /* 11 */
+	unsigned int	     cc_echoed	      : 1; /* 12 */
+	unsigned int	     tkey	      : 1; /* 13 */
+	unsigned int	     rdclass_set      : 1; /* 14 */
+	unsigned int	     fuzzing	      : 1; /* 15 */
+	unsigned int	     free_pools	      : 1; /* 16 */
+	unsigned int			      : 0;
 
 	unsigned int opt_reserved;
 	unsigned int sig_reserved;
@@ -351,8 +359,9 @@ struct dns_ednsopt {
 ISC_LANG_BEGINDECLS
 
 void
-dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
-
+dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
+		   isc_mempool_t *rdspool, dns_message_intent_t intent,
+		   dns_message_t **msgp);
 /*%<
  * Create msg structure.
  *
@@ -364,20 +373,19 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
  *
  *\li	'msgp' be non-null and '*msg' be NULL.
  *
+ *\li	'namepool' and 'rdspool' must be either both NULL or both valid
+ *	isc_mempool_t
+ *
  *\li	'intent' must be one of DNS_MESSAGE_INTENTPARSE or
  *	#DNS_MESSAGE_INTENTRENDER.
  *
  * Ensures:
  *\li	The data in "*msg" is set to indicate an unused and empty msg
  *	structure.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY		-- out of memory
- *\li	#ISC_R_SUCCESS		-- success
  */
 
 void
-dns_message_reset(dns_message_t *msg, unsigned int intent);
+dns_message_reset(dns_message_t *msg, dns_message_intent_t intent);
 /*%<
  * Reset a message structure to default state.  All internal lists are freed
  * or reset to a default state as well.  This is simply a more efficient
@@ -396,24 +404,20 @@ dns_message_reset(dns_message_t *msg, unsigned int intent);
  *\li	'intent' is DNS_MESSAGE_INTENTPARSE or DNS_MESSAGE_INTENTRENDER
  */
 
-void
-dns_message_attach(dns_message_t *source, dns_message_t **target);
-/*%<
- * Attach to message 'source'.
- *
- * Requires:
- *\li	'source' to be a valid message.
- *\li	'target' to be non NULL and '*target' to be NULL.
- */
-
-void
-dns_message_detach(dns_message_t **messagep);
-/*%<
- * Detach *messagep from its message.
- * list.
- *
- * Requires:
- *\li	'*messagep' to be a valid message.
+#if DNS_MESSAGE_TRACE
+#define dns_message_ref(ptr) dns_message__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_message_unref(ptr) \
+	dns_message__unref(ptr, __func__, __FILE__, __LINE__)
+#define dns_message_attach(ptr, ptrp) \
+	dns_message__attach(ptr, ptrp, __func__, __FILE__, __LINE__)
+#define dns_message_detach(ptrp) \
+	dns_message__detach(ptrp, __func__, __FILE__, __LINE__)
+ISC_REFCOUNT_TRACE_DECL(dns_message);
+#else
+ISC_REFCOUNT_DECL(dns_message);
+#endif
+/*
+ * Reference counting for dns_message
  */
 
 isc_result_t
@@ -1546,5 +1550,11 @@ dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl);
  * \li   msg be a valid rendered message;
  * \li   'pttl != NULL'.
  */
+
+void
+dns_message_createpools(isc_mem_t *mctx, isc_mempool_t **namepoolp,
+			isc_mempool_t **rdspoolp);
+void
+dns_message_destroypools(isc_mempool_t **namepoolp, isc_mempool_t **rdspoolp);
 
 ISC_LANG_ENDDECLS

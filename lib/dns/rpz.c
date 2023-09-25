@@ -2088,8 +2088,6 @@ static void
 dns__rpz_zones_destroy(dns_rpz_zones_t *rpzs) {
 	REQUIRE(rpzs->shuttingdown);
 
-	isc_refcount_destroy(&rpzs->references);
-
 	for (dns_rpz_num_t rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num)
 	{
 		if (rpzs->zones[rpz_num] == NULL) {

@@ -5601,8 +5601,6 @@ closeversion:
 
 static void
 zone_destroy(dns_zone_t *zone) {
-	isc_refcount_destroy(&zone->references);
-
 	/*
 	 * Stop things being restarted after we cancel them below.
 	 */
@@ -12608,7 +12606,8 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype, dns_name_t *name,
 	dns_name_t *qname = NULL;
 	dns_rdataset_t *qrdataset = NULL;
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+			   &message);
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
@@ -12760,7 +12759,8 @@ stub_glue_response(void *arg) {
 		goto cleanup;
 	}
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 	result = dns_request_getresponse(request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -13194,7 +13194,8 @@ stub_callback(void *arg) {
 		goto next_primary;
 	}
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 
 	result = dns_request_getresponse(request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -13556,7 +13557,8 @@ refresh_callback(void *arg) {
 		goto next_primary;
 	}
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 	result = dns_request_getresponse(request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -14802,7 +14804,8 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+			   &message);
 
 	message->opcode = dns_opcode_notify;
 	message->flags |= DNS_MESSAGEFLAG_AA;
@@ -15705,8 +15708,8 @@ notify_done(void *arg) {
 
 	isc_buffer_init(&buf, rcode, sizeof(rcode));
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
-	dns_message_create(notify->zone->mctx, DNS_MESSAGE_INTENTPARSE,
-			   &message);
+	dns_message_create(notify->zone->mctx, NULL, NULL,
+			   DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_request_getresult(request);
 	if (result != ISC_R_SUCCESS) {
@@ -18054,7 +18057,8 @@ forward_callback(void *arg) {
 		goto next_primary;
 	}
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &msg);
 
 	result = dns_request_getresponse(request, msg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER |
@@ -20169,7 +20173,8 @@ checkds_done(void *arg) {
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "checkds: DS query to %s: done",
 		     addrbuf);
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &message);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
+			   &message);
 	INSIST(message != NULL);
 
 	CHECK(dns_request_getresult(request));
@@ -20422,7 +20427,8 @@ checkds_createmessage(dns_zone_t *zone, dns_message_t **messagep) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
 
-	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER, &message);
+	dns_message_create(zone->mctx, NULL, NULL, DNS_MESSAGE_INTENTRENDER,
+			   &message);
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;

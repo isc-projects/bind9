@@ -34,6 +34,8 @@ ISC_LANG_BEGINDECLS
 
 typedef atomic_uint_fast32_t isc_refcount_t;
 
+#define ISC_REFCOUNT_INITIALIZER(a) (a)
+
 /** \def isc_refcount_init(ref, n)
  *  \brief Initialize the reference counter.
  *  \param[in] ref pointer to reference counter.
@@ -145,6 +147,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 		uint_fast32_t refs =                                          \
 			isc_refcount_decrement(&ptr->references) - 1;         \
 		if (refs == 0) {                                              \
+			isc_refcount_destroy(&ptr->references);               \
 			destroy(ptr);                                         \
 		}                                                             \
 		fprintf(stderr,                                               \
@@ -170,6 +173,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 		uint_fast32_t refs =                                          \
 			isc_refcount_decrement(&ptr->references) - 1;         \
 		if (refs == 0) {                                              \
+			isc_refcount_destroy(&ptr->references);               \
 			destroy(ptr);                                         \
 		}                                                             \
 		fprintf(stderr,                                               \
@@ -193,6 +197,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	void name##_unref(name##_t *ptr) {                           \
 		REQUIRE(ptr != NULL);                                \
 		if (isc_refcount_decrement(&ptr->references) == 1) { \
+			isc_refcount_destroy(&ptr->references);      \
 			destroy(ptr);                                \
 		}                                                    \
 	}                                                            \

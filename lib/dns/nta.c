@@ -93,7 +93,6 @@ dns__nta_destroy(dns__nta_t *nta) {
 	REQUIRE(nta->timer == NULL);
 
 	nta->magic = 0;
-	isc_refcount_destroy(&nta->references);
 	if (dns_rdataset_isassociated(&nta->rdataset)) {
 		dns_rdataset_disassociate(&nta->rdataset);
 	}
@@ -140,7 +139,6 @@ dns_ntatable_create(dns_view_t *view, isc_loopmgr_t *loopmgr,
 
 static void
 dns__ntatable_destroy(dns_ntatable_t *ntatable) {
-	isc_refcount_destroy(&ntatable->references);
 	ntatable->magic = 0;
 	isc_rwlock_destroy(&ntatable->rwlock);
 	dns_qpmulti_destroy(&ntatable->table);

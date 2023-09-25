@@ -657,9 +657,6 @@ msgreset(dns_message_t *msg, bool everything) {
 	if (!everything) {
 		msginit(msg);
 	}
-
-	ENSURE(isc_mempool_getallocated(msg->namepool) == 0);
-	ENSURE(isc_mempool_getallocated(msg->rdspool) == 0);
 }
 
 static unsigned int
@@ -703,55 +700,55 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 }
 
 void
-dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp) {
-	dns_message_t *m = NULL;
-	isc_buffer_t *dynbuf = NULL;
-	unsigned int i;
-
+dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
+		   isc_mempool_t *rdspool, dns_message_intent_t intent,
+		   dns_message_t **msgp) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(msgp != NULL);
 	REQUIRE(*msgp == NULL);
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
 		intent == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE((namepool != NULL && rdspool != NULL) ||
+		(namepool == NULL && rdspool == NULL));
 
-	m = isc_mem_get(mctx, sizeof(dns_message_t));
-	*m = (dns_message_t){ .from_to_wire = intent };
-	isc_mem_attach(mctx, &m->mctx);
-	msginit(m);
+	dns_message_t *msg = isc_mem_get(mctx, sizeof(dns_message_t));
+	*msg = (dns_message_t){
+		.from_to_wire = intent,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.scratchpad = ISC_LIST_INITIALIZER,
+		.cleanup = ISC_LIST_INITIALIZER,
+		.rdatas = ISC_LIST_INITIALIZER,
+		.rdatalists = ISC_LIST_INITIALIZER,
+		.offsets = ISC_LIST_INITIALIZER,
+		.freerdata = ISC_LIST_INITIALIZER,
+		.freerdatalist = ISC_LIST_INITIALIZER,
+		.magic = DNS_MESSAGE_MAGIC,
+		.namepool = namepool,
+		.rdspool = rdspool,
+	};
 
-	for (i = 0; i < DNS_SECTION_MAX; i++) {
-		ISC_LIST_INIT(m->sections[i]);
+	isc_mem_attach(mctx, &msg->mctx);
+
+	if (namepool == NULL && rdspool == NULL) {
+		dns_message_createpools(mctx, &msg->namepool, &msg->rdspool);
+		msg->free_pools = true;
 	}
 
-	ISC_LIST_INIT(m->scratchpad);
-	ISC_LIST_INIT(m->cleanup);
-	ISC_LIST_INIT(m->rdatas);
-	ISC_LIST_INIT(m->rdatalists);
-	ISC_LIST_INIT(m->offsets);
-	ISC_LIST_INIT(m->freerdata);
-	ISC_LIST_INIT(m->freerdatalist);
+	msginit(msg);
 
-	isc_mempool_create(m->mctx, sizeof(dns_fixedname_t), &m->namepool);
-	isc_mempool_setfillcount(m->namepool, NAME_FILLCOUNT);
-	isc_mempool_setfreemax(m->namepool, NAME_FREEMAX);
-	isc_mempool_setname(m->namepool, "msg:names");
+	for (size_t i = 0; i < DNS_SECTION_MAX; i++) {
+		ISC_LIST_INIT(msg->sections[i]);
+	}
 
-	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t), &m->rdspool);
-	isc_mempool_setfillcount(m->rdspool, RDATASET_FILLCOUNT);
-	isc_mempool_setfreemax(m->rdspool, RDATASET_FREEMAX);
-	isc_mempool_setname(m->rdspool, "msg:rdataset");
-
+	isc_buffer_t *dynbuf = NULL;
 	isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
-	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
+	ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
 
-	isc_refcount_init(&m->refcount, 1);
-	m->magic = DNS_MESSAGE_MAGIC;
-
-	*msgp = m;
+	*msgp = msg;
 }
 
 void
-dns_message_reset(dns_message_t *msg, unsigned int intent) {
+dns_message_reset(dns_message_t *msg, dns_message_intent_t intent) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE ||
 		intent == DNS_MESSAGE_INTENTRENDER);
@@ -766,31 +763,21 @@ dns__message_destroy(dns_message_t *msg) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	msgreset(msg, true);
-	isc_mempool_destroy(&msg->namepool);
-	isc_mempool_destroy(&msg->rdspool);
-	isc_refcount_destroy(&msg->refcount);
+
 	msg->magic = 0;
+
+	if (msg->free_pools) {
+		dns_message_destroypools(&msg->namepool, &msg->rdspool);
+	}
+
 	isc_mem_putanddetach(&msg->mctx, msg, sizeof(dns_message_t));
 }
 
-void
-dns_message_attach(dns_message_t *source, dns_message_t **target) {
-	REQUIRE(DNS_MESSAGE_VALID(source));
-
-	isc_refcount_increment(&source->refcount);
-	*target = source;
-}
-
-void
-dns_message_detach(dns_message_t **messagep) {
-	REQUIRE(messagep != NULL && DNS_MESSAGE_VALID(*messagep));
-	dns_message_t *msg = *messagep;
-	*messagep = NULL;
-
-	if (isc_refcount_decrement(&msg->refcount) == 1) {
-		dns__message_destroy(msg);
-	}
-}
+#if DNS_MESSAGE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_message, dns__message_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_message, dns__message_destroy);
+#endif
 
 static isc_result_t
 findname(dns_name_t **foundname, const dns_name_t *target,
@@ -4776,4 +4763,34 @@ dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_message_createpools(isc_mem_t *mctx, isc_mempool_t **namepoolp,
+			isc_mempool_t **rdspoolp) {
+	REQUIRE(mctx != NULL);
+	REQUIRE(namepoolp != NULL && *namepoolp == NULL);
+	REQUIRE(rdspoolp != NULL && *rdspoolp == NULL);
+
+	isc_mempool_create(mctx, sizeof(dns_fixedname_t), namepoolp);
+	isc_mempool_setfillcount(*namepoolp, NAME_FILLCOUNT);
+	isc_mempool_setfreemax(*namepoolp, NAME_FREEMAX);
+	isc_mempool_setname(*namepoolp, "dns_fixedname_pool");
+
+	isc_mempool_create(mctx, sizeof(dns_rdataset_t), rdspoolp);
+	isc_mempool_setfillcount(*rdspoolp, RDATASET_FILLCOUNT);
+	isc_mempool_setfreemax(*rdspoolp, RDATASET_FREEMAX);
+	isc_mempool_setname(*rdspoolp, "dns_rdataset_pool");
+}
+
+void
+dns_message_destroypools(isc_mempool_t **namepoolp, isc_mempool_t **rdspoolp) {
+	REQUIRE(namepoolp != NULL && *namepoolp != NULL);
+	REQUIRE(rdspoolp != NULL && *rdspoolp != NULL);
+
+	ENSURE(isc_mempool_getallocated(*namepoolp) == 0);
+	ENSURE(isc_mempool_getallocated(*rdspoolp) == 0);
+
+	isc_mempool_destroy(rdspoolp);
+	isc_mempool_destroy(namepoolp);
 }

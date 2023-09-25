@@ -104,7 +104,6 @@ static void
 destroy_keynode(dns_keynode_t *knode) {
 	dns_rdata_t *rdata = NULL;
 
-	isc_refcount_destroy(&knode->references);
 	isc_rwlock_destroy(&knode->rwlock);
 	if (knode->dslist != NULL) {
 		for (rdata = ISC_LIST_HEAD(knode->dslist->rdata); rdata != NULL;
@@ -163,7 +162,6 @@ destroy_keytable(dns_keytable_t *keytable) {
 	dns_qpread_destroy(keytable->table, &qpr);
 
 	dns_qpmulti_destroy(&keytable->table);
-	isc_refcount_destroy(&keytable->references);
 
 	isc_mem_putanddetach(&keytable->mctx, keytable, sizeof(*keytable));
 }
