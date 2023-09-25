@@ -1454,7 +1454,6 @@ cleanup:
 
 static isc_result_t
 xfrin_xmlrender(dns_zone_t *zone, void *arg) {
-	isc_result_t result;
 	char buf[1024 + 32]; /* sufficiently large for zone name and class */
 	dns_rdataclass_t rdclass;
 	const char *ztype;
@@ -1479,23 +1478,30 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_presoa, &is_pending, &needs_refresh);
-	if (result != ISC_R_SUCCESS) {
-		result = ISC_R_SUCCESS;
-		goto cleanup;
+	if (dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred, &is_presoa,
+			    &is_pending, &needs_refresh) != ISC_R_SUCCESS)
+	{
+		/*
+		 * Failed to get information about the zone's incoming transfer
+		 * (if any), but we still want to continue generating the
+		 * remaining parts of the output.
+		 */
+		return (ISC_R_SUCCESS);
 	}
 
 	if (!is_running && !is_deferred && !is_presoa && !is_pending &&
 	    !needs_refresh)
 	{
+		if (xfr != NULL) {
+			dns_xfrin_detach(&xfr);
+		}
 		/* No ongoing/queued transfer. */
-		goto cleanup;
+		return (ISC_R_SUCCESS);
 	}
 
 	if (is_running && xfr == NULL) {
 		/* The transfer is finished, and it's shutting down. */
-		goto cleanup;
+		return (ISC_R_SUCCESS);
 	}
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "xfrin"));
@@ -1696,16 +1702,22 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 
 	TRY0(xmlTextWriterEndElement(writer)); /* xfrin */
 
+	if (xfr != NULL) {
+		dns_xfrin_detach(&xfr);
+	}
+
+	return (ISC_R_SUCCESS);
+
 cleanup:
 	if (xfr != NULL) {
 		dns_xfrin_detach(&xfr);
 	}
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "Failed at xfrin_xmlrender()");
-	}
-	return (result);
+
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+		      "Failed at xfrin_xmlrender()");
+
+	return (ISC_R_FAILURE);
 }
 
 static isc_result_t
