@@ -19293,7 +19293,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
 	if (zone->zmgr == NULL) {
-		return (ISC_R_NOTFOUND);
+		return (ISC_R_FAILURE);
 	}
 
 	/* Reset. */

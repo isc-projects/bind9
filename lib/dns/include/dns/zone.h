@@ -1856,9 +1856,8 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
  *\li	'needs_refresh' to be non NULL.
  *
  * Returns:
- *	ISC_R_SUCCESS	xfrin exists and the information was returned.
- *	ISC_R_NOTFOUND	no xfrin was found for the zone.
- *	ISC_R_FAILED	error while trying to get the xfrin information
+ *	ISC_R_SUCCESS	transfer information is returned
+ *	ISC_R_FAILURE	error while trying to get the transfer information
  */
 
 void
