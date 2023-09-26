@@ -428,6 +428,7 @@ Currently supported commands are:
    .. option:: zone [class [view]]
 
    If a zone is specified, this command reloads only the given zone.
+   If no zone is specified, the reloading happens asynchronously.
 
 .. program:: rndc
 
@@ -594,7 +595,8 @@ Currently supported commands are:
    refused. If the zone has changed and the ``ixfr-from-differences``
    option is in use, the journal file is updated to reflect
    changes in the zone. Otherwise, if the zone has changed, any existing
-   journal file is removed.
+   journal file is removed.  If no zone is specified, the reloading happens
+   asynchronously.
 
    See also :option:`rndc freeze`.
 

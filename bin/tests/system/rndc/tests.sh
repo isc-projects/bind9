@@ -86,6 +86,8 @@ status=$((status+ret))
 echo_i "rndc thaw"
 $RNDCCMD 10.53.0.2 thaw | sed 's/^/ns2 /' | cat_i
 
+wait_for_log 3 "zone_postload: zone nil/IN: done" ns2/named.run
+
 n=$((n+1))
 echo_i "checking zone now writable ($n)"
 ret=0
