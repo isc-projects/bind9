@@ -1,3 +1,5 @@
+6259.	[placeholder]
+
 6258.	[func]		Use explictly created external memory pools for
 			dns_message in the ns_client and dns_resolver.
 			[GL #4325]
