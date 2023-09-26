@@ -92,7 +92,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  */
 
 isc_time_t
-dns_xfrin_getstarttime(const dns_xfrin_t *xfr);
+dns_xfrin_getstarttime(dns_xfrin_t *xfr);
 /*%<
  * Get the start time of the xfrin object.
  *
@@ -120,7 +120,7 @@ dns_xfrin_getstate(const dns_xfrin_t *xfr, const char **statestr,
  */
 
 uint32_t
-dns_xfrin_getendserial(const dns_xfrin_t *xfr);
+dns_xfrin_getendserial(dns_xfrin_t *xfr);
 /*%<
  * Get the 'end_serial' of the xfrin object.
  *
@@ -182,7 +182,7 @@ dns_xfrin_gettransporttype(const dns_xfrin_t *xfr);
  */
 
 dns_transport_type_t
-dns_xfrin_getsoatransporttype(const dns_xfrin_t *xfr);
+dns_xfrin_getsoatransporttype(dns_xfrin_t *xfr);
 /*%<
  * Get the SOA request's trnasport type of the xfrin object.
  *
