@@ -2926,4 +2926,18 @@ isc__nm_dump_active(isc__networker_t *worker) {
 		nmsocket_dump(sock);
 	}
 }
+
+void
+isc__nm_dump_active_manager(isc_nm_t *netmgr) {
+	size_t i = 0;
+
+	for (i = 0; i < netmgr->nloops; i++) {
+		isc__networker_t *worker = &netmgr->workers[i];
+
+		if (!ISC_LIST_EMPTY(worker->active_sockets)) {
+			fprintf(stderr, "Worker #%zu (%p)\n", i, worker);
+			isc__nm_dump_active(worker);
+		}
+	}
+}
 #endif

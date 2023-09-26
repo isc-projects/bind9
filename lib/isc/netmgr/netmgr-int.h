@@ -215,8 +215,13 @@ typedef struct isc__networker {
 
 ISC_REFCOUNT_DECL(isc__networker);
 
+#ifdef ISC_NETMGR_TRACE
 void
 isc__nm_dump_active(isc__networker_t *worker);
+
+void
+isc__nm_dump_active_manager(isc_nm_t *netmgr);
+#endif /* ISC_NETMGR_TRACE */
 
 /*
  * A general handle for a connection bound to a networker.  For UDP
