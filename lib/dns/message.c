@@ -725,13 +725,13 @@ dns_message_create(isc_mem_t *mctx, isc_mempool_t *namepool,
 		.magic = DNS_MESSAGE_MAGIC,
 		.namepool = namepool,
 		.rdspool = rdspool,
+		.free_pools = (namepool == NULL && rdspool == NULL),
 	};
 
 	isc_mem_attach(mctx, &msg->mctx);
 
-	if (namepool == NULL && rdspool == NULL) {
+	if (msg->free_pools) {
 		dns_message_createpools(mctx, &msg->namepool, &msg->rdspool);
-		msg->free_pools = true;
 	}
 
 	msginit(msg);
