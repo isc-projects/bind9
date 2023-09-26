@@ -116,12 +116,18 @@ typedef struct dns_qpmulti dns_qpmulti_t;
  */
 #define DNS_QPREADER_FIELDS                   \
 	uint32_t		    magic;    \
-	uint32_t		    root_ref; \
+	dns_qpref_t		    root_ref; \
 	dns_qpbase_t		   *base;     \
 	void			   *uctx;     \
 	const struct dns_qpmethods *methods
 
-typedef struct dns_qpbase dns_qpbase_t; /* private */
+typedef struct dns_qpbase dns_qpbase_t; /* private, declared in qp_p.h */
+
+/*%
+ * A unique twig reference; this can be converted to chunk and cell
+ * values to find a specific location.
+ */
+typedef uint32_t dns_qpref_t;
 
 typedef struct dns_qpreader {
 	DNS_QPREADER_FIELDS;
@@ -174,39 +180,73 @@ typedef union dns_qpreadable {
  */
 #define DNS_QP_MAXKEY 512
 
+/*
+ * C is not strict enough with its integer types for the following typedefs
+ * to improve type safety, but it helps to have annotations saying what
+ * particular kind of number we are dealing with.
+ */
+
+/*%
+ * The bit number, or position of a bit inside a word. (Valid values 0..63)
+ * A dns_qpkey_t (below) is an array of these; each element within dns_qpkey
+ * must satisfy:
+ *
+ *	SHIFT_NOBYTE <= key[off] && key[off] < SHIFT_OFFSET
+ */
+typedef uint8_t dns_qpshift_t;
+
+/*%
+ * The number of bits set in a word (i.e, Hamming weight or popcount).
+ * This is used to determine the position of a node in the packed sparse
+ * vector of twigs. Valid values are 0..47 (because our bitmap does not
+ * fill the entire word).
+ */
+typedef uint8_t dns_qpweight_t;
+
+/*
+ * Chunk and cell numbers, used to identify a specific location in
+ * one of the chunks stored in the QP base pointer array. Each cell
+ * within a chunk can contain a node.
+ */
+typedef uint32_t dns_qpchunk_t;
+typedef uint32_t dns_qpcell_t;
+
 /*%
  * A trie lookup key is a small array, allocated on the stack during trie
  * searches. Keys are usually created on demand from DNS names using
  * `dns_qpkey_fromname()`, but in principle you can define your own
  * functions to convert other types to trie lookup keys.
  */
-typedef uint8_t dns_qpkey_t[DNS_QP_MAXKEY];
+typedef dns_qpshift_t dns_qpkey_t[DNS_QP_MAXKEY];
 
 /*%
  * A QP iterator traverses a trie starting with the root and passing
- * though each leaf node in lexicographic order; it is used with
- * `dns_qpiter_init()` and `dns_qpiter_next()`.
+ * though each leaf node in lexicographic order; it is used by
+ * `dns_qpiter_init()` and `dns_qpiter_next()`. It is also used
+ * internally by `dns_qp_findname_iterator()` to locate the predecessor
+ * of a searched-for name.
  */
 typedef struct dns_qpiter {
 	unsigned int	magic;
 	dns_qpreader_t *qp;
 	uint16_t	sp;
-	void	       *stack[DNS_QP_MAXKEY];
+	dns_qpnode_t   *stack[DNS_QP_MAXKEY];
 } dns_qpiter_t;
 
 /*%
- * A QP chain holds references to each populated node between
- * the root and a given leaf. It is set while running
- * `dns_qp_findname_ancestor()`, and can optionally be passed
- * back to the caller so that individual nodes can be accessed.
+ * A QP chain holds references to each populated node between the root and
+ * a given leaf. It is used internally by `dns_qp_findname_ancestor()` to
+ * return a partial match if the specific name requested is not found;
+ * optionally it can be passed back to the caller so that individual nodes
+ * can be accessed.
  */
 typedef struct dns_qpchain {
 	unsigned int	magic;
 	dns_qpreader_t *qp;
 	uint8_t		len;
 	struct {
-		void  *node;
-		size_t offset;
+		dns_qpnode_t *node;
+		size_t	      offset;
 	} chain[DNS_NAME_MAXLABELS];
 } dns_qpchain_t;
 

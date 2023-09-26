@@ -37,7 +37,7 @@
  */
 
 uint8_t
-qp_test_bittoascii(qp_shift_t bit) {
+qp_test_bittoascii(dns_qpshift_t bit) {
 	uint8_t byte = dns_qp_byte_for_bit[bit];
 	if (bit == SHIFT_NOBYTE) {
 		return ('.');
@@ -67,14 +67,14 @@ qp_test_keytoascii(dns_qpkey_t key, size_t len) {
  */
 
 static size_t
-getheight(dns_qp_t *qp, qp_node_t *n) {
+getheight(dns_qp_t *qp, dns_qpnode_t *n) {
 	if (node_tag(n) == LEAF_TAG) {
 		return (0);
 	}
 	size_t max_height = 0;
-	qp_node_t *twigs = branch_twigs(qp, n);
-	qp_weight_t size = branch_twigs_size(n);
-	for (qp_weight_t pos = 0; pos < size; pos++) {
+	dns_qpnode_t *twigs = branch_twigs(qp, n);
+	dns_qpweight_t size = branch_twigs_size(n);
+	for (dns_qpweight_t pos = 0; pos < size; pos++) {
 		size_t height = getheight(qp, &twigs[pos]);
 		max_height = ISC_MAX(max_height, height);
 	}
@@ -83,20 +83,20 @@ getheight(dns_qp_t *qp, qp_node_t *n) {
 
 size_t
 qp_test_getheight(dns_qp_t *qp) {
-	qp_node_t *root = get_root(qp);
+	dns_qpnode_t *root = get_root(qp);
 	return (root == NULL ? 0 : getheight(qp, root));
 }
 
 static size_t
-maxkeylen(dns_qp_t *qp, qp_node_t *n) {
+maxkeylen(dns_qp_t *qp, dns_qpnode_t *n) {
 	if (node_tag(n) == LEAF_TAG) {
 		dns_qpkey_t key;
 		return (leaf_qpkey(qp, n, key));
 	}
 	size_t max_len = 0;
-	qp_node_t *twigs = branch_twigs(qp, n);
-	qp_weight_t size = branch_twigs_size(n);
-	for (qp_weight_t pos = 0; pos < size; pos++) {
+	dns_qpnode_t *twigs = branch_twigs(qp, n);
+	dns_qpweight_t size = branch_twigs_size(n);
+	for (dns_qpweight_t pos = 0; pos < size; pos++) {
 		size_t len = maxkeylen(qp, &twigs[pos]);
 		max_len = ISC_MAX(max_len, len);
 	}
@@ -105,7 +105,7 @@ maxkeylen(dns_qp_t *qp, qp_node_t *n) {
 
 size_t
 qp_test_maxkeylen(dns_qp_t *qp) {
-	qp_node_t *root = get_root(qp);
+	dns_qpnode_t *root = get_root(qp);
 	return (root == NULL ? 0 : maxkeylen(qp, root));
 }
 
@@ -158,7 +158,7 @@ qp_test_dumpqp(dns_qp_t *qp) {
 void
 qp_test_dumpmulti(dns_qpmulti_t *multi) {
 	dns_qpreader_t qpr;
-	qp_node_t *reader = rcu_dereference(multi->reader);
+	dns_qpnode_t *reader = rcu_dereference(multi->reader);
 	dns_qpmulti_t *whence = unpack_reader(&qpr, reader);
 	dumpqp(&multi->writer, "qpmulti->writer");
 	printf("qpmulti->reader %p root_ref %u %u:%u base %p\n", reader,
@@ -176,10 +176,10 @@ qp_test_dumpmulti(dns_qpmulti_t *multi) {
 
 void
 qp_test_dumpchunks(dns_qp_t *qp) {
-	qp_cell_t used = 0;
-	qp_cell_t free = 0;
+	dns_qpcell_t used = 0;
+	dns_qpcell_t free = 0;
 	dumpqp(qp, "qp");
-	for (qp_chunk_t c = 0; c < qp->chunk_max; c++) {
+	for (dns_qpchunk_t c = 0; c < qp->chunk_max; c++) {
 		printf("qp %p chunk %u base %p "
 		       "used %u free %u immutable %u discounted %u\n",
 		       qp, c, qp->base->ptr[c], qp->usage[c].used,
@@ -196,11 +196,11 @@ void
 qp_test_dumptrie(dns_qpreadable_t qpr) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	struct {
-		qp_ref_t ref;
-		qp_shift_t max, pos;
+		dns_qpref_t ref;
+		dns_qpshift_t max, pos;
 	} stack[512];
 	size_t sp = 0;
-	qp_cell_t leaf_count = 0;
+	dns_qpcell_t leaf_count = 0;
 
 	/*
 	 * fake up a sentinel stack entry corresponding to the root
@@ -211,7 +211,7 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 	stack[sp].max = 0;
 	stack[sp].pos = 0;
 
-	qp_node_t *n = get_root(qp);
+	dns_qpnode_t *n = get_root(qp);
 	if (n == NULL) {
 		printf("%p EMPTY\n", n);
 		fflush(stdout);
@@ -222,15 +222,15 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 
 	for (;;) {
 		if (is_branch(n)) {
-			qp_ref_t ref = branch_twigs_ref(n);
-			qp_weight_t max = branch_twigs_size(n);
-			qp_node_t *twigs = ref_ptr(qp, ref);
+			dns_qpref_t ref = branch_twigs_ref(n);
+			dns_qpweight_t max = branch_twigs_size(n);
+			dns_qpnode_t *twigs = ref_ptr(qp, ref);
 
 			/* brief list of twigs */
 			dns_qpkey_t bits;
 			size_t len = 0;
-			for (qp_shift_t bit = SHIFT_NOBYTE; bit < SHIFT_OFFSET;
-			     bit++)
+			for (dns_qpshift_t bit = SHIFT_NOBYTE;
+			     bit < SHIFT_OFFSET; bit++)
 			{
 				if (branch_has_twig(n, bit)) {
 					bits[len++] = bit;
@@ -271,11 +271,11 @@ qp_test_dumptrie(dns_qpreadable_t qpr) {
 }
 
 static void
-dumpdot_name(qp_node_t *n) {
+dumpdot_name(dns_qpnode_t *n) {
 	if (n == NULL) {
 		printf("empty");
 	} else if (is_branch(n)) {
-		qp_ref_t ref = branch_twigs_ref(n);
+		dns_qpref_t ref = branch_twigs_ref(n);
 		printf("c%dn%d", ref_chunk(ref), ref_cell(ref));
 	} else {
 		printf("v%p", leaf_pval(n));
@@ -283,7 +283,7 @@ dumpdot_name(qp_node_t *n) {
 }
 
 static void
-dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
+dumpdot_twig(dns_qp_t *qp, dns_qpnode_t *n) {
 	if (n == NULL) {
 		printf("empty [shape=oval, label=\"\\N EMPTY\"];\n");
 	} else if (is_branch(n)) {
@@ -291,7 +291,9 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 		printf(" [shape=record, label=\"{ \\N\\noff %zu | ",
 		       branch_key_offset(n));
 		char sep = '{';
-		for (qp_shift_t bit = SHIFT_NOBYTE; bit < SHIFT_OFFSET; bit++) {
+		for (dns_qpshift_t bit = SHIFT_NOBYTE; bit < SHIFT_OFFSET;
+		     bit++)
+		{
 			if (branch_has_twig(n, bit)) {
 				printf("%c <t%d> %c ", sep,
 				       branch_twig_pos(n, bit),
@@ -301,17 +303,17 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 		}
 		printf("}}\"];\n");
 
-		qp_node_t *twigs = branch_twigs(qp, n);
-		qp_weight_t size = branch_twigs_size(n);
+		dns_qpnode_t *twigs = branch_twigs(qp, n);
+		dns_qpweight_t size = branch_twigs_size(n);
 
-		for (qp_weight_t pos = 0; pos < size; pos++) {
+		for (dns_qpweight_t pos = 0; pos < size; pos++) {
 			dumpdot_name(n);
 			printf(":t%d:e -> ", pos);
 			dumpdot_name(&twigs[pos]);
 			printf(":w;\n");
 		}
 
-		for (qp_weight_t pos = 0; pos < size; pos++) {
+		for (dns_qpweight_t pos = 0; pos < size; pos++) {
 			dumpdot_twig(qp, &twigs[pos]);
 		}
 
@@ -327,7 +329,7 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 void
 qp_test_dumpdot(dns_qp_t *qp) {
 	REQUIRE(QP_VALID(qp));
-	qp_node_t *n = get_root(qp);
+	dns_qpnode_t *n = get_root(qp);
 	printf("strict digraph {\nrankdir = \"LR\"; ranksep = 1.0;\n");
 	printf("ROOT [shape=point]; ROOT -> ");
 	dumpdot_name(n);
