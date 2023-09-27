@@ -73,7 +73,7 @@ getheight(dns_qp_t *qp, qp_node_t *n) {
 	}
 	size_t max_height = 0;
 	qp_weight_t size = branch_twigs_size(n);
-	qp_node_t *twigs = branch_twigs_vector(qp, n);
+	qp_node_t *twigs = branch_twigs(qp, n);
 	for (qp_weight_t pos = 0; pos < size; pos++) {
 		size_t height = getheight(qp, &twigs[pos]);
 		max_height = ISC_MAX(max_height, height);
@@ -95,7 +95,7 @@ maxkeylen(dns_qp_t *qp, qp_node_t *n) {
 	}
 	size_t max_len = 0;
 	qp_weight_t size = branch_twigs_size(n);
-	qp_node_t *twigs = branch_twigs_vector(qp, n);
+	qp_node_t *twigs = branch_twigs(qp, n);
 	for (qp_weight_t pos = 0; pos < size; pos++) {
 		size_t len = maxkeylen(qp, &twigs[pos]);
 		max_len = ISC_MAX(max_len, len);
@@ -300,7 +300,7 @@ dumpdot_twig(dns_qp_t *qp, qp_node_t *n) {
 		printf("}}\"];\n");
 
 		qp_weight_t size = branch_twigs_size(n);
-		qp_node_t *twigs = branch_twigs_vector(qp, n);
+		qp_node_t *twigs = branch_twigs(qp, n);
 
 		for (qp_weight_t pos = 0; pos < size; pos++) {
 			dumpdot_name(n);

@@ -1611,7 +1611,7 @@ dns_qp_insert(dns_qp_t *qp, void *pval, uint32_t ival) {
 		prefetch_twigs(qp, n);
 		bit = branch_keybit(n, new_key, new_keylen);
 		pos = branch_has_twig(n, bit) ? branch_twig_pos(n, bit) : 0;
-		n = branch_twigs_vector(qp, n) + pos;
+		n = branch_twigs(qp, n) + pos;
 	}
 
 	/* do the keys differ, and if so, where? */
@@ -1992,7 +1992,7 @@ dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
 	while (is_branch(n)) {
 		prefetch_twigs(qp, n);
 
-		qp_node_t *twigs = branch_twigs_vector(qp, n);
+		qp_node_t *twigs = branch_twigs(qp, n);
 		offset = branch_key_offset(n);
 		qp_shift_t bit = qpkey_bit(search, searchlen, offset);
 

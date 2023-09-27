@@ -25,29 +25,39 @@
  */
 
 /*
- * A qp-trie node is normally either a branch or a leaf. It consists of
- * three 32-bit words into which the components are packed. They are used
- * as a 64-bit word and a 32-bit word, but they are not declared like that
- * to avoid unwanted padding, keeping the size down to 12 bytes. They are
- * in native endian order so getting the 64-bit part should compile down to
- * an unaligned load.
+ * A qp-trie node is almost always one of two types: branch or leaf.
+ * (A third type is used only to anchor the root of a trie; see below.)
  *
- * The type of node is identified by the tag in the least significant bits
- * of the 64-bit word.
+ * A node contains a 64-bit word and a 32-bit word. In order to avoid
+ * unwanted padding, they are declared as three 32-bit words; this keeps
+ * the size down to 12 bytes. They are in native endian order, so getting
+ * the 64-bit part should compile down to an unaligned load.
  *
- * In a branch the 64-bit word is described by the enum below. The 32-bit
- * word is a reference to the packed sparse vector of "twigs", i.e. child
- * nodes. A branch node has at least 2 and less than SHIFT_OFFSET twigs
- * (see the enum below). The qp-trie update functions ensure that branches
- * actually branch, i.e. branches cannot have only 1 child.
+ * The node type is identified by the least significant bits of the 64-bit
+ * word.
  *
- * The contents of each leaf are set by the trie's user. The 64-bit word
- * contains a pointer value (which must be word-aligned, so the tag bits
- * are zero), and the 32-bit word is an arbitrary integer value.
+ * In a leaf node:
+ * - The 64-bit word is used to store a pointer value. (Pointers must be
+ *   word-aligned so the least significant bits are zero; those bits can
+ *   then act as a node tag to indicate that this is a leaf. This
+ *   requirement is enforced by the make_leaf() constructor.)
+ * - The 32-bit word is used to store an integer value.  Both the
+ *   pointer and integer values can be retrieved when looking up a key.
  *
- * There is a third kind of node, reader nodes, which anchor the root of a
- * trie. A pair of reader nodes together contain a packed `dns_qpreader_t`.
- * See the section on "packed reader nodes" below.
+ * In a branch node:
+ * - The 64-bit word is subdivided into three portions: the least
+ *   significant bits are the node type (for a branch, 0x1); the
+ *   most sigificant 15 bits are an offset value into the key, and
+ *   the 47 bits in the middle are a bitmap; see the documentation
+ *   for the SHIFT_* enum below.
+ * - The 32-bit word is a reference (qp_ref_t) to the packed sparse
+ *   vector of "twigs", i.e. child nodes. A branch node has at least
+ *   two and at most 47 twigs. (The qp-trie update functions ensure that
+ *   branches actually branch, i.e. a branch cannot have only one child.)
+ *
+ * A third node type, reader nodes, anchors the root of a trie.
+ * A pair of reader nodes together contain a packed `dns_qpreader_t`.
+ * See the section on "packed reader nodes" for details.
  */
 typedef struct qp_node {
 #if WORDS_BIGENDIAN
@@ -78,17 +88,13 @@ STATIC_ASSERT(sizeof(void *) <= sizeof(uint64_t),
 	      "pointers must fit in 64 bits");
 
 /*
- * A branch node contains a 64-bit word comprising the type tag, the
+ * The 64-bit word in a branch node is comprised of a node type tag, a
  * bitmap, and an offset into the key. It is called an "index word" because
  * it describes how to access the twigs vector (think "database index").
  * The following enum sets up the bit positions of these parts.
  *
- * In a leaf, the same 64-bit word contains a pointer. The pointer
- * must be word-aligned so that the branch/leaf tag bit is zero.
- * This requirement is checked by the newleaf() constructor.
- *
- * The bitmap is just above the type tag. The `bits_for_byte[]` table is
- * used to fill in a key so that bit tests can work directly against the
+ * The bitmap is just above the type tag. The `dns_qp_bits_for_byte[]` table
+ * is used to fill in a key so that bit tests can work directly against the
  * index word without superfluous masking or shifting; we don't need to
  * mask out the bitmap before testing a bit, but we do need to mask the
  * bitmap before calling popcount.
@@ -716,10 +722,11 @@ branch_keybit(qp_node_t *n, const dns_qpkey_t key, size_t len) {
 }
 
 /*
- * Get a pointer to a branch node's twigs vector.
+ * Get a pointer to a the first twig of a branch (this also functions
+ * as a pointer to the entire twig vector).
  */
 static inline qp_node_t *
-branch_twigs_vector(dns_qpreadable_t qpr, qp_node_t *n) {
+branch_twigs(dns_qpreadable_t qpr, qp_node_t *n) {
 	return (ref_ptr(qpr, branch_twigs_ref(n)));
 }
 
@@ -728,7 +735,7 @@ branch_twigs_vector(dns_qpreadable_t qpr, qp_node_t *n) {
  */
 static inline void
 prefetch_twigs(dns_qpreadable_t qpr, qp_node_t *n) {
-	__builtin_prefetch(branch_twigs_vector(qpr, n));
+	__builtin_prefetch(ref_ptr(qpr, branch_twigs_ref(n)));
 }
 
 /* root node **********************************************************/
@@ -798,11 +805,11 @@ branch_twig_pos(qp_node_t *n, qp_shift_t bit) {
 }
 
 /*
- * Get a pointer to a particular twig.
+ * Get a pointer to the twig for a given bit number.
  */
 static inline qp_node_t *
 branch_twig_ptr(dns_qpreadable_t qpr, qp_node_t *n, qp_shift_t bit) {
-	return (branch_twigs_vector(qpr, n) + branch_twig_pos(n, bit));
+	return (ref_ptr(qpr, branch_twigs_ref(n) + branch_twig_pos(n, bit)));
 }
 
 /*
