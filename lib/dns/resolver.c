@@ -1991,9 +1991,12 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	INSIST(ISC_LIST_EMPTY(fctx->validators));
 
 	query = isc_mem_get(fctx->mctx, sizeof(*query));
-	*query = (resquery_t){ .options = options,
-			       .addrinfo = addrinfo,
-			       .dispatchmgr = res->view->dispatchmgr };
+	*query = (resquery_t){
+		.options = options,
+		.addrinfo = addrinfo,
+		.dispatchmgr = res->view->dispatchmgr,
+		.link = ISC_LINK_INITIALIZER,
+	};
 
 #if DNS_RESOLVER_TRACE
 	fprintf(stderr, "rctx_init:%s:%s:%d:%p->references = 1\n", __func__,
@@ -2141,7 +2144,6 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	LOCK(&fctx->lock);
 	INSIST(!SHUTTINGDOWN(fctx));
 	fetchctx_attach(fctx, &query->fctx);
-	ISC_LINK_INIT(query, link);
 	query->magic = QUERY_MAGIC;
 
 	if ((query->options & DNS_FETCHOPT_TCP) == 0) {
@@ -2186,6 +2188,13 @@ cleanup_udpfetch:
 		}
 	}
 
+	LOCK(&fctx->lock);
+	if (ISC_LINK_LINKED(query, link)) {
+		atomic_fetch_sub_release(&fctx->nqueries, 1);
+		ISC_LIST_UNLINK(fctx->queries, query, link);
+	}
+	UNLOCK(&fctx->lock);
+
 cleanup_dispatch:
 	fetchctx_detach(&query->fctx);
 
@@ -2194,13 +2203,6 @@ cleanup_dispatch:
 	}
 
 cleanup_query:
-	LOCK(&fctx->lock);
-	if (ISC_LINK_LINKED(query, link)) {
-		atomic_fetch_sub_release(&fctx->nqueries, 1);
-		ISC_LIST_UNLINK(fctx->queries, query, link);
-	}
-	UNLOCK(&fctx->lock);
-
 	query->magic = 0;
 	dns_message_detach(&query->rmessage);
 	isc_mem_put(fctx->mctx, query, sizeof(*query));
