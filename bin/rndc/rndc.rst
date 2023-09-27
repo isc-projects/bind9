@@ -389,7 +389,8 @@ Currently supported commands are:
    This command schedules zone maintenance for the given zone.
 
 ``reload``
-   This command reloads the configuration file and zones.
+   This command reloads the configuration file and zones. As no zone is specified,
+   the reloading of the zones happens asynchronously.
 
 ``reload`` *zone* [*class* [*view*]]
    This command reloads the given zone.
@@ -546,7 +547,8 @@ Currently supported commands are:
    refused. If the zone has changed and the ``ixfr-from-differences``
    option is in use, the journal file is updated to reflect
    changes in the zone. Otherwise, if the zone has changed, any existing
-   journal file is removed.
+   journal file is removed.  If no zone is specified, the reloading happens
+   asynchronously.
 
    See also ``rndc freeze``.
 
