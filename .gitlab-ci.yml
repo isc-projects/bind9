@@ -340,6 +340,24 @@ stages:
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
 
+ci-variables:
+  stage: precheck
+  <<: *precheck_job
+  script:
+    - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
+    # When testing a .0 release, compare it against the previous development
+    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
+    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BASELINE_BRANCH=$((BIND_BASELINE_BRANCH - 1 - (BIND_BASELINE_BRANCH % 2))); fi
+    - export BIND_BASELINE_VERSION="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BASELINE_BRANCH}&order_by=version" | jq -r ".[0].name")"
+    - echo "BIND_BASELINE_BRANCH=$BIND_BASELINE_BRANCH" >> ci_vars.env
+    - echo "BIND_BASELINE_VERSION=$BIND_BASELINE_VERSION" >> ci_vars.env
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    reports:
+      dotenv: ci_vars.env
+
 cross-version-config-tests:
   stage: system
   <<: *base_image
@@ -354,13 +372,8 @@ cross-version-config-tests:
     - *configure
     - *setup_interfaces
     - make -j${BUILD_PARALLEL_JOBS:-1}
-    - export BIND_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
-    # When testing a .0 release, compare it against the previous development
-    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
-    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BRANCH=$((BIND_BRANCH - 1 - (BIND_BRANCH % 2))); fi
-    - BASELINE="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BRANCH}&order_by=version" | jq -r ".[0].name")"
-    - git clone --branch "${BASELINE}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BASELINE}"
-    - cd "bind-${BASELINE}"
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
+    - cd "bind-${BIND_BASELINE_VERSION}"
     - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
@@ -374,6 +387,8 @@ cross-version-config-tests:
       "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
   needs:
     - job: autoreconf
+      artifacts: true
+    - job: ci-variables
       artifacts: true
   artifacts:
     reports:
