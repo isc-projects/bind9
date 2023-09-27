@@ -190,8 +190,8 @@ struct thread_args {
 	struct bench_state *bctx; /* (in) */
 	isc_barrier_t *barrier;	  /* (in) */
 	isc_loopmgr_t *loopmgr;	  /* (in) */
-	uv_idle_t handle;	  /* (in) */
-	uv_idle_cb cb;		  /* (in) */
+	isc_job_t job;		  /* (in) */
+	isc_job_cb cb;		  /* (in) */
 	dns_qpmulti_t *multi;	  /* (in) */
 	double zipf_skew;	  /* (in) */
 	uint32_t max_item;	  /* (in) */
@@ -211,9 +211,7 @@ first_loop(void *varg) {
 	struct thread_args *args = varg;
 	isc_loop_t *loop = isc_loop_current(args->loopmgr);
 
-	uv_idle_init(&loop->loop, &args->handle);
-	uv_idle_start(&args->handle, args->cb);
-	args->handle.data = args;
+	isc_job_run(loop, &args->job, args->cb, args);
 
 	isc_barrier_wait(args->barrier);
 	args->start = isc_time_monotonic();
@@ -226,17 +224,17 @@ next_loop(struct thread_args *args, isc_nanosecs_t start) {
 	args->worked += stop - start;
 	args->stop = stop;
 	if (args->stop - args->start < RUNTIME) {
+		isc_job_run(isc_loop_current(args->loopmgr), &args->job,
+			    args->cb, args);
 		return;
 	}
-	uv_idle_stop(&args->handle);
-	uv_close(&args->handle, NULL);
 	isc_async_run(isc_loop_main(args->loopmgr), collect, args);
 }
 
 #if ZIPF
 static void
-read_zipf(uv_idle_t *idle) {
-	struct thread_args *args = idle->data;
+read_zipf(void *varg) {
+	struct thread_args *args = varg;
 	isc_nanosecs_t start;
 	void *pval = NULL;
 	uint32_t ival;
@@ -273,8 +271,8 @@ read_zipf(uv_idle_t *idle) {
 #endif
 
 static void
-read_transactions(uv_idle_t *idle) {
-	struct thread_args *args = idle->data;
+read_transactions(void *varg) {
+	struct thread_args *args = varg;
 	isc_nanosecs_t start = isc_time_monotonic();
 	void *pval = NULL;
 	uint32_t ival;
@@ -299,8 +297,8 @@ read_transactions(uv_idle_t *idle) {
 }
 
 static void
-mutate_transactions(uv_idle_t *idle) {
-	struct thread_args *args = idle->data;
+mutate_transactions(void *varg) {
+	struct thread_args *args = varg;
 	isc_nanosecs_t start = isc_time_monotonic();
 
 	for (uint32_t tx = 0; tx < args->tx_per_loop; tx++) {
@@ -474,6 +472,7 @@ dispatch(struct bench_state *bctx) {
 		bctx->max_item = 10;
 		load_multi(bctx);
 		break;
+
 	case vary_max_items_rw:
 		if (bctx->max_item == ITEM_COUNT) {
 			goto init_max_items_ro;
@@ -732,6 +731,7 @@ dispatch(struct bench_state *bctx) {
 			.cb = zipf  ? read_zipf
 			      : mut ? mutate_transactions
 				    : read_transactions,
+			.job = ISC_JOB_INITIALIZER,
 			.ops_per_tx = mut ? bctx->mut_ops_per_tx
 					  : bctx->read_ops_per_tx,
 			.tx_per_loop = mut ? bctx->mut_tx_per_loop
