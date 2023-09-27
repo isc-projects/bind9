@@ -125,8 +125,6 @@ random_byte(void) {
 
 static void
 init_items(isc_mem_t *mctx) {
-	void *pval = NULL;
-	uint32_t ival = ~0U;
 	dns_qp_t *qp = NULL;
 	uint64_t start;
 
@@ -143,8 +141,8 @@ init_items(isc_mem_t *mctx) {
 				item[i].key[off] = random_byte();
 			}
 			item[i].key[len] = SHIFT_NOBYTE;
-		} while (dns_qp_getkey(qp, item[i].key, item[i].len, &pval,
-				       &ival) == ISC_R_SUCCESS);
+		} while (dns_qp_getkey(qp, item[i].key, item[i].len, NULL,
+				       NULL) == ISC_R_SUCCESS);
 		INSIST(dns_qp_insert(qp, &item[i], i) == ISC_R_SUCCESS);
 	}
 	dns_qp_destroy(&qp);
@@ -236,8 +234,6 @@ static void
 read_zipf(void *varg) {
 	struct thread_args *args = varg;
 	isc_nanosecs_t start;
-	void *pval = NULL;
-	uint32_t ival;
 
 	/* outside time because it is v slow */
 	uint32_t r[args->tx_per_loop][args->ops_per_tx];
@@ -255,7 +251,7 @@ read_zipf(void *varg) {
 		for (uint32_t op = 0; op < args->ops_per_tx; op++) {
 			uint32_t i = r[tx][op];
 			isc_result_t result = dns_qp_getkey(
-				&qp, item[i].key, item[i].len, &pval, &ival);
+				&qp, item[i].key, item[i].len, NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 				args->present++;
 			} else {
@@ -274,8 +270,6 @@ static void
 read_transactions(void *varg) {
 	struct thread_args *args = varg;
 	isc_nanosecs_t start = isc_time_monotonic();
-	void *pval = NULL;
-	uint32_t ival;
 
 	for (uint32_t tx = 0; tx < args->tx_per_loop; tx++) {
 		args->transactions++;
@@ -284,7 +278,7 @@ read_transactions(void *varg) {
 		for (uint32_t op = 0; op < args->ops_per_tx; op++) {
 			uint32_t i = isc_random_uniform(args->max_item);
 			isc_result_t result = dns_qp_getkey(
-				&qp, item[i].key, item[i].len, &pval, &ival);
+				&qp, item[i].key, item[i].len, NULL, NULL);
 			if (result == ISC_R_SUCCESS) {
 				args->present++;
 			} else {

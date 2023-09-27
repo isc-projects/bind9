@@ -57,8 +57,7 @@ smallname_offsets(void *pval, uint32_t ival) {
 }
 
 static void
-smallname_from_name(/* isc_mem_t *mctx, */ const dns_name_t *name, void **valp,
-		    uint32_t *ctxp) {
+smallname_from_name(const dns_name_t *name, void **valp, uint32_t *ctxp) {
 	size_t size = sizeof(isc_refcount_t) + name->length + name->labels;
 	*valp = isc_mem_get(mctx, size);
 	*ctxp = name->labels << 8 | name->length;
@@ -68,7 +67,7 @@ smallname_from_name(/* isc_mem_t *mctx, */ const dns_name_t *name, void **valp,
 }
 
 static void
-smallname_free(/* isc_mem_t *mctx, */ void *pval, uint32_t ival) {
+smallname_free(void *pval, uint32_t ival) {
 	size_t size = sizeof(isc_refcount_t);
 	size += smallname_length(pval, ival) + smallname_labels(pval, ival);
 	isc_mem_put(mctx, pval, size);
