@@ -250,12 +250,11 @@ main(int argc, char **argv) {
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
 		name = dns_fixedname_name(&items[i]);
-		dns_qp_findname_ancestor(qp, name, 0, NULL, NULL, NULL, NULL);
+		dns_qp_lookup(qp, name, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
-	snprintf(buf, sizeof(buf),
-		 "look up %zd names (dns_qp_findname_ancestor):", n);
+	snprintf(buf, sizeof(buf), "look up %zd names (dns_qp_lookup):", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
 	start = isc_time_monotonic();
@@ -276,12 +275,12 @@ main(int argc, char **argv) {
 			++search->ndata[1];
 		}
 
-		dns_qp_findname_ancestor(qp, search, 0, NULL, NULL, NULL, NULL);
+		dns_qp_lookup(qp, search, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
 	snprintf(buf, sizeof(buf),
-		 "look up %zd wrong names (dns_qp_findname_ancestor):", n);
+		 "look up %zd wrong names (dns_qp_lookup):", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
 	isc_mem_cput(mctx, items, n, sizeof(dns_fixedname_t));

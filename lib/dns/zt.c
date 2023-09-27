@@ -178,8 +178,7 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, dns_ztfind_t options,
 
 	dns_qpmulti_query(zt->multi, &qpr);
 
-	result = dns_qp_findname_ancestor(&qpr, name, NULL, NULL, &chain, &pval,
-					  NULL);
+	result = dns_qp_lookup(&qpr, name, NULL, NULL, &chain, &pval, NULL);
 	if (exactopts == DNS_ZTFIND_EXACT && result == DNS_R_PARTIALMATCH) {
 		result = ISC_R_NOTFOUND;
 	} else if (exactopts == DNS_ZTFIND_NOEXACT && result == ISC_R_SUCCESS) {

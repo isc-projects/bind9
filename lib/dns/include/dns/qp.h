@@ -235,10 +235,10 @@ typedef struct dns_qpiter {
 
 /*%
  * A QP chain holds references to each populated node between the root and
- * a given leaf. It is used internally by `dns_qp_findname_ancestor()` to
- * return a partial match if the specific name requested is not found;
- * optionally it can be passed back to the caller so that individual nodes
- * can be accessed.
+ * a given leaf. It is used internally by `dns_qp_lookup()` to return a
+ * partial match if the specific name requested is not found; optionally it
+ * can be passed back to the caller so that individual nodes can be
+ * accessed.
  */
 typedef struct dns_qpchain {
 	unsigned int	magic;
@@ -527,24 +527,33 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
  */
 
 isc_result_t
-dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_name_t *foundname, dns_name_t *predecessor,
-			 dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
+dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
+	      dns_name_t *foundname, dns_name_t *predecessor,
+	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
- * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
- * given DNS name.
+ * Look up a leaf in a qp-trie that is equal to, or an ancestor domain of,
+ * 'name'.
  *
- * If 'foundname' is not NULL, it is updated to contain the name found.
- *
- * If 'predecessor' is not NULL, it is updated to contain the DNSSEC
- * predecessor of the searched-for name.
+ * If 'foundname' is not NULL, it will be updated to contain the name
+ * that was found (if any). The return code, ISC_R_SUCCESS or
+ * DNS_R_PARTIALMATCH, indicates whether the name found is name that
+ * was requested, or an ancestor. If the result is ISC_R_NOTFOUND,
+ * 'foundname' will not be updated.
  *
  * If 'chain' is not NULL, it is updated to contain a QP chain with
  * references to the populated nodes in the tree between the root and
- * the name found.
+ * the name that was found. If the return code is DNS_R_PARTIALMATCH
+ * then the chain terminates at the closest ancestor found; if it is
+ * ISC_R_SUCCESS then it terminates at the name that was requested.
+ * If the result is ISC_R_NOTFOUND, 'chain' will not be updated.
  *
- * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
- * are not null, unless the return value is ISC_R_NOTFOUND.
+ * If 'predecessor' is not NULL, it will be updated to contain the
+ * closest predecessor of the searched-for name that exists in the
+ * trie.
+ *
+ * The leaf data for the node that was found will be assigned to
+ * whichever of `*pval_r` and `*ival_r` are not NULL, unless the
+ * return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie

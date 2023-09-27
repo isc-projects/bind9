@@ -2012,10 +2012,9 @@ prevleaf(dns_qpiter_t *it) {
 }
 
 isc_result_t
-dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_name_t *foundname, dns_name_t *predecessor,
-			 dns_qpchain_t *chain, void **pval_r,
-			 uint32_t *ival_r) {
+dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
+	      dns_name_t *foundname, dns_name_t *predecessor,
+	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
