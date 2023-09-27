@@ -26,6 +26,7 @@ noinst_PROGRAMS =			\
 	iterated_hash			\
 	load-names			\
 	qp-dump				\
+	qplookups			\
 	qpmulti				\
 	siphash
 
