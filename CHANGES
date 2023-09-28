@@ -1,3 +1,7 @@
+6261.	[bug]		Fix a possible assertion failure on an error path in
+			resolver.c:fctx_query(), when using an uninitialized
+			link. [GL #4331]
+
 6260.	[func]		Added opptions to the QP trie that will be needed
 			when it is used as a zone or cache database: backward
 			iteration, and retrieval of DNSSEC predecessor
