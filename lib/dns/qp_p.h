@@ -25,37 +25,47 @@
  */
 
 /*
- * A qp-trie node is normally either a branch or a leaf. It consists of
- * three 32-bit words into which the components are packed. They are used
- * as a 64-bit word and a 32-bit word, but they are not declared like that
- * to avoid unwanted padding, keeping the size down to 12 bytes. They are
- * in native endian order so getting the 64-bit part should compile down to
- * an unaligned load.
+ * A qp-trie node is almost always one of two types: branch or leaf.
+ * (A third type is used only to anchor the root of a trie; see below.)
  *
- * The type of node is identified by the tag in the least significant bits
- * of the 64-bit word.
+ * A node contains a 64-bit word and a 32-bit word. In order to avoid
+ * unwanted padding, they are declared as three 32-bit words; this keeps
+ * the size down to 12 bytes. They are in native endian order, so getting
+ * the 64-bit part should compile down to an unaligned load.
  *
- * In a branch the 64-bit word is described by the enum below. The 32-bit
- * word is a reference to the packed sparse vector of "twigs", i.e. child
- * nodes. A branch node has at least 2 and less than SHIFT_OFFSET twigs
- * (see the enum below). The qp-trie update functions ensure that branches
- * actually branch, i.e. branches cannot have only 1 child.
+ * The node type is identified by the least significant bits of the 64-bit
+ * word.
  *
- * The contents of each leaf are set by the trie's user. The 64-bit word
- * contains a pointer value (which must be word-aligned, so the tag bits
- * are zero), and the 32-bit word is an arbitrary integer value.
+ * In a leaf node:
+ * - The 64-bit word is used to store a pointer value. (Pointers must be
+ *   word-aligned so the least significant bits are zero; those bits can
+ *   then act as a node tag to indicate that this is a leaf. This
+ *   requirement is enforced by the make_leaf() constructor.)
+ * - The 32-bit word is used to store an integer value.  Both the
+ *   pointer and integer values can be retrieved when looking up a key.
  *
- * There is a third kind of node, reader nodes, which anchor the root of a
- * trie. A pair of reader nodes together contain a packed `dns_qpreader_t`.
- * See the section on "packed reader nodes" below.
+ * In a branch node:
+ * - The 64-bit word is subdivided into three portions: the least
+ *   significant bits are the node type (for a branch, 0x1); the
+ *   most sigificant 15 bits are an offset value into the key, and
+ *   the 47 bits in the middle are a bitmap; see the documentation
+ *   for the SHIFT_* enum below.
+ * - The 32-bit word is a reference (dns_qpref_t) to the packed sparse
+ *   vector of "twigs", i.e. child nodes. A branch node has at least
+ *   two and at most 47 twigs. (The qp-trie update functions ensure that
+ *   branches actually branch, i.e. a branch cannot have only one child.)
+ *
+ * A third node type, reader nodes, anchors the root of a trie.
+ * A pair of reader nodes together contain a packed `dns_qpreader_t`.
+ * See the section on "packed reader nodes" for details.
  */
-typedef struct qp_node {
+struct dns_qpnode {
 #if WORDS_BIGENDIAN
 	uint32_t bighi, biglo, small;
 #else
 	uint32_t biglo, bighi, small;
 #endif
-} qp_node_t;
+};
 
 /*
  * The possible values of the node type tag. Type tags must fit in two bits
@@ -78,17 +88,13 @@ STATIC_ASSERT(sizeof(void *) <= sizeof(uint64_t),
 	      "pointers must fit in 64 bits");
 
 /*
- * A branch node contains a 64-bit word comprising the type tag, the
+ * The 64-bit word in a branch node is comprised of a node type tag, a
  * bitmap, and an offset into the key. It is called an "index word" because
  * it describes how to access the twigs vector (think "database index").
  * The following enum sets up the bit positions of these parts.
  *
- * In a leaf, the same 64-bit word contains a pointer. The pointer
- * must be word-aligned so that the branch/leaf tag bit is zero.
- * This requirement is checked by the newleaf() constructor.
- *
- * The bitmap is just above the type tag. The `bits_for_byte[]` table is
- * used to fill in a key so that bit tests can work directly against the
+ * The bitmap is just above the type tag. The `dns_qp_bits_for_byte[]` table
+ * is used to fill in a key so that bit tests can work directly against the
  * index word without superfluous masking or shifting; we don't need to
  * mask out the bitmap before testing a bit, but we do need to mask the
  * bitmap before calling popcount.
@@ -96,7 +102,7 @@ STATIC_ASSERT(sizeof(void *) <= sizeof(uint64_t),
  * The byte offset into the key is at the top of the word, so that it
  * can be extracted with just a shift, with no masking needed.
  *
- * The names are SHIFT_thing because they are qp_shift_t values. (See
+ * The names are SHIFT_thing because they are dns_qpshift_t values. (See
  * below for the various `qp_*` type declarations.)
  *
  * These values are relatively fixed in practice: SHIFT_NOBYTE needs
@@ -116,7 +122,7 @@ enum {
  */
 
 /*
- * A "cell" is a location that can contain a `qp_node_t`, and a "chunk"
+ * A "cell" is a location that can contain a `dns_qpnode_t`, and a "chunk"
  * is a moderately large array of cells. A big trie can occupy
  * multiple chunks. (Unlike other nodes, a trie's root node lives in
  * its `struct dns_qp` instead of being allocated in a cell.)
@@ -142,7 +148,7 @@ STATIC_ASSERT(6 <= QP_CHUNK_LOG && QP_CHUNK_LOG <= 20,
 	      "qp-trie chunk size is unreasonable");
 
 #define QP_CHUNK_SIZE  (1U << QP_CHUNK_LOG)
-#define QP_CHUNK_BYTES (QP_CHUNK_SIZE * sizeof(qp_node_t))
+#define QP_CHUNK_BYTES (QP_CHUNK_SIZE * sizeof(dns_qpnode_t))
 
 /*
  * We need a bitfield this big to count how much of a chunk is in use:
@@ -183,71 +189,23 @@ STATIC_ASSERT(6 <= QP_CHUNK_LOG && QP_CHUNK_LOG <= 20,
  */
 #define GROWTH_FACTOR(size) ((size) + (size) / 2 + 2)
 
-/***********************************************************************
- *
- *  helper types
- */
-
 /*
- * C is not strict enough with its integer types for these typedefs to
- * improve type safety, but it helps to have annotations saying what
- * particular kind of number we are dealing with.
+ * Constructors and accessors for dns_qpref_t values, defined here to show
+ * how the dns_qpref_t, dns_qpchunk_t, dns_qpcell_t types relate to each other
  */
 
-/*
- * The number or position of a bit inside a word. (0..63)
- *
- * Note: A dns_qpkey_t is logically an array of qp_shift_t values, but it
- * isn't declared that way because dns_qpkey_t is a public type whereas
- * qp_shift_t is private.
- *
- * A dns_qpkey element key[off] must satisfy
- *
- *	SHIFT_NOBYTE <= key[off] && key[off] < SHIFT_OFFSET
- */
-typedef uint8_t qp_shift_t;
-
-/*
- * The number of bits set in a word (as in Hamming weight or popcount)
- * which is used for the position of a node in the packed sparse
- * vector of twigs. (0..47) because our bitmap does not fill the word.
- */
-typedef uint8_t qp_weight_t;
-
-/*
- * A chunk number, i.e. an index into the chunk arrays.
- */
-typedef uint32_t qp_chunk_t;
-
-/*
- * Cell offset within a chunk, or a count of cells. Each cell in a
- * chunk can contain a node.
- */
-typedef uint32_t qp_cell_t;
-
-/*
- * A twig reference is used to refer to a twigs vector, which occupies a
- * contiguous group of cells.
- */
-typedef uint32_t qp_ref_t;
-
-/*
- * Constructors and accessors for qp_ref_t values, defined here to show
- * how the qp_ref_t, qp_chunk_t, qp_cell_t types relate to each other
- */
-
-static inline qp_ref_t
-make_ref(qp_chunk_t chunk, qp_cell_t cell) {
+static inline dns_qpref_t
+make_ref(dns_qpchunk_t chunk, dns_qpcell_t cell) {
 	return (QP_CHUNK_SIZE * chunk + cell);
 }
 
-static inline qp_chunk_t
-ref_chunk(qp_ref_t ref) {
+static inline dns_qpchunk_t
+ref_chunk(dns_qpref_t ref) {
 	return (ref / QP_CHUNK_SIZE);
 }
 
-static inline qp_cell_t
-ref_cell(qp_ref_t ref) {
+static inline dns_qpcell_t
+ref_cell(dns_qpref_t ref) {
 	return (ref % QP_CHUNK_SIZE);
 }
 
@@ -256,7 +214,7 @@ ref_cell(qp_ref_t ref) {
  * to a value that should trigger an obvious bug. See qp_init()
  * and get_root() below.
  */
-#define INVALID_REF ((qp_ref_t)~0UL)
+#define INVALID_REF ((dns_qpref_t)~0UL)
 
 /***********************************************************************
  *
@@ -307,9 +265,9 @@ ref_cell(qp_ref_t ref) {
  */
 typedef struct qp_usage {
 	/*% the allocation point, increases monotonically */
-	qp_cell_t used : QP_USAGE_BITS;
+	dns_qpcell_t used : QP_USAGE_BITS;
 	/*% count of nodes no longer needed, also monotonic */
-	qp_cell_t free : QP_USAGE_BITS;
+	dns_qpcell_t free : QP_USAGE_BITS;
 	/*% qp->base->ptr[chunk] != NULL */
 	bool exists : 1;
 	/*% is this chunk shared? [MT] */
@@ -349,7 +307,7 @@ typedef struct qp_usage {
 struct dns_qpbase {
 	unsigned int magic;
 	isc_refcount_t refcount;
-	qp_node_t *ptr[];
+	dns_qpnode_t *ptr[];
 };
 
 /*
@@ -362,8 +320,8 @@ typedef struct qp_rcuctx {
 	struct rcu_head rcu_head;
 	isc_mem_t *mctx;
 	dns_qpmulti_t *multi;
-	qp_chunk_t count;
-	qp_chunk_t chunk[];
+	dns_qpchunk_t count;
+	dns_qpchunk_t chunk[];
 } qp_rcuctx_t;
 
 /*
@@ -380,8 +338,8 @@ qpbase_unref(dns_qpreadable_t qpr) {
  * Now we know about `dns_qpreader_t` and `dns_qpbase_t`,
  * here's how we convert a twig reference into a pointer.
  */
-static inline qp_node_t *
-ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
+static inline dns_qpnode_t *
+ref_ptr(dns_qpreadable_t qpr, dns_qpref_t ref) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	return (qp->base->ptr[ref_chunk(ref)] + ref_cell(ref));
 }
@@ -393,6 +351,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 
 #define QP_MAGIC       ISC_MAGIC('t', 'r', 'i', 'e')
 #define QPITER_MAGIC   ISC_MAGIC('q', 'p', 'i', 't')
+#define QPCHAIN_MAGIC  ISC_MAGIC('q', 'p', 'c', 'h')
 #define QPMULTI_MAGIC  ISC_MAGIC('q', 'p', 'm', 'v')
 #define QPREADER_MAGIC ISC_MAGIC('q', 'p', 'r', 'x')
 #define QPBASE_MAGIC   ISC_MAGIC('q', 'p', 'b', 'p')
@@ -400,6 +359,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 
 #define QP_VALID(qp)	  ISC_MAGIC_VALID(qp, QP_MAGIC)
 #define QPITER_VALID(qp)  ISC_MAGIC_VALID(qp, QPITER_MAGIC)
+#define QPCHAIN_VALID(qp) ISC_MAGIC_VALID(qp, QPCHAIN_MAGIC)
 #define QPMULTI_VALID(qp) ISC_MAGIC_VALID(qp, QPMULTI_MAGIC)
 #define QPBASE_VALID(qp)  ISC_MAGIC_VALID(qp, QPBASE_MAGIC)
 #define QPRCU_VALID(qp)	  ISC_MAGIC_VALID(qp, QPRCU_MAGIC)
@@ -407,7 +367,7 @@ ref_ptr(dns_qpreadable_t qpr, qp_ref_t ref) {
 /*
  * Polymorphic initialization of the `dns_qpreader_t` prefix.
  *
- * The location of the root node is actually a qp_ref_t, but is
+ * The location of the root node is actually a dns_qpref_t, but is
  * declared in DNS_QPREADER_FIELDS as uint32_t to avoid leaking too
  * many internal details into the public API.
  *
@@ -506,17 +466,17 @@ struct dns_qp {
 	/*% array of per-chunk allocation counters */
 	qp_usage_t *usage;
 	/*% number of slots in `chunk` and `usage` arrays */
-	qp_chunk_t chunk_max;
+	dns_qpchunk_t chunk_max;
 	/*% which chunk is used for allocations */
-	qp_chunk_t bump;
+	dns_qpchunk_t bump;
 	/*% nodes in the `bump` chunk below `fender` are read only [MT] */
-	qp_cell_t fender;
+	dns_qpcell_t fender;
 	/*% number of leaf nodes */
-	qp_cell_t leaf_count;
+	dns_qpcell_t leaf_count;
 	/*% total of all usage[] counters */
-	qp_cell_t used_count, free_count;
+	dns_qpcell_t used_count, free_count;
 	/*% free cells that cannot be recovered right now */
-	qp_cell_t hold_count;
+	dns_qpcell_t hold_count;
 	/*% what kind of transaction was most recently started [MT] */
 	enum { QP_NONE, QP_WRITE, QP_UPDATE } transaction_mode : 2;
 	/*% compact the entire trie [MT] */
@@ -539,7 +499,7 @@ struct dns_qp {
  * There is a `reader_ref` which corresponds to the `reader` pointer
  * (`ref_ptr(multi->reader_ref) == multi->reader`). The `reader_ref` is
  * necessary when freeing the space used by the reader, because there
- * isn't a good way to recover a qp_ref_t from a qp_node_t pointer.
+ * isn't a good way to recover a dns_qpref_t from a dns_qpnode_t pointer.
  *
  * There is a per-trie list of snapshots that is used for reclaiming
  * memory when a snapshot is destroyed.
@@ -550,11 +510,11 @@ struct dns_qp {
 struct dns_qpmulti {
 	uint32_t magic;
 	/*% RCU-protected pointer to current packed reader */
-	qp_node_t *reader;
+	dns_qpnode_t *reader;
 	/*% the mutex protects the rest of this structure */
 	isc_mutex_t mutex;
 	/*% ref_ptr(writer, reader_ref) == reader */
-	qp_ref_t reader_ref;
+	dns_qpref_t reader_ref;
 	/*% the main working structure */
 	dns_qp_t writer;
 	/*% saved allocator state to support rollback */
@@ -581,7 +541,7 @@ struct dns_qpmulti {
  * Get the 64-bit word of a node.
  */
 static inline uint64_t
-node64(qp_node_t *n) {
+node64(dns_qpnode_t *n) {
 	uint64_t lo = n->biglo;
 	uint64_t hi = n->bighi;
 	return (lo | (hi << 32));
@@ -591,16 +551,16 @@ node64(qp_node_t *n) {
  * Get the 32-bit word of a node.
  */
 static inline uint32_t
-node32(qp_node_t *n) {
+node32(dns_qpnode_t *n) {
 	return (n->small);
 }
 
 /*
  * Create a node from its parts
  */
-static inline qp_node_t
+static inline dns_qpnode_t
 make_node(uint64_t big, uint32_t small) {
-	return ((qp_node_t){
+	return ((dns_qpnode_t){
 		.biglo = (uint32_t)(big),
 		.bighi = (uint32_t)(big >> 32),
 		.small = small,
@@ -612,7 +572,7 @@ make_node(uint64_t big, uint32_t small) {
  * a warning about mismatched pointer/integer sizes on 32 bit systems.
  */
 static inline void *
-node_pointer(qp_node_t *n) {
+node_pointer(dns_qpnode_t *n) {
 	return ((void *)(uintptr_t)(node64(n) & ~TAG_MASK));
 }
 
@@ -620,7 +580,7 @@ node_pointer(qp_node_t *n) {
  * Examine a node's tag bits
  */
 static inline uint32_t
-node_tag(qp_node_t *n) {
+node_tag(dns_qpnode_t *n) {
 	return (n->biglo & TAG_MASK);
 }
 
@@ -628,7 +588,7 @@ node_tag(qp_node_t *n) {
  * simplified for the hot path
  */
 static inline bool
-is_branch(qp_node_t *n) {
+is_branch(dns_qpnode_t *n) {
 	return (n->biglo & BRANCH_TAG);
 }
 
@@ -638,7 +598,7 @@ is_branch(qp_node_t *n) {
  * Get a leaf's pointer value.
  */
 static inline void *
-leaf_pval(qp_node_t *n) {
+leaf_pval(dns_qpnode_t *n) {
 	return (node_pointer(n));
 }
 
@@ -646,16 +606,16 @@ leaf_pval(qp_node_t *n) {
  * Get a leaf's integer value
  */
 static inline uint32_t
-leaf_ival(qp_node_t *n) {
+leaf_ival(dns_qpnode_t *n) {
 	return (node32(n));
 }
 
 /*
  * Create a leaf node from its parts
  */
-static inline qp_node_t
+static inline dns_qpnode_t
 make_leaf(const void *pval, uint32_t ival) {
-	qp_node_t leaf = make_node((uintptr_t)pval, ival);
+	dns_qpnode_t leaf = make_node((uintptr_t)pval, ival);
 	REQUIRE(node_tag(&leaf) == LEAF_TAG);
 	return (leaf);
 }
@@ -672,15 +632,15 @@ make_leaf(const void *pval, uint32_t ival) {
  * Get a branch node's index word
  */
 static inline uint64_t
-branch_index(qp_node_t *n) {
+branch_index(dns_qpnode_t *n) {
 	return (node64(n));
 }
 
 /*
  * Get a reference to a branch node's child twigs.
  */
-static inline qp_ref_t
-branch_twigs_ref(qp_node_t *n) {
+static inline dns_qpref_t
+branch_twigs_ref(dns_qpnode_t *n) {
 	return (node32(n));
 }
 
@@ -688,7 +648,7 @@ branch_twigs_ref(qp_node_t *n) {
  * Bit positions in the bitmap come directly from the key. DNS names are
  * converted to keys using the tables declared at the end of this file.
  */
-static inline qp_shift_t
+static inline dns_qpshift_t
 qpkey_bit(const dns_qpkey_t key, size_t len, size_t offset) {
 	if (offset < len) {
 		return (key[offset]);
@@ -701,23 +661,24 @@ qpkey_bit(const dns_qpkey_t key, size_t len, size_t offset) {
  * Extract a branch node's offset field, used to index the key.
  */
 static inline size_t
-branch_key_offset(qp_node_t *n) {
+branch_key_offset(dns_qpnode_t *n) {
 	return ((size_t)(branch_index(n) >> SHIFT_OFFSET));
 }
 
 /*
  * Which bit identifies the twig of this node for this key?
  */
-static inline qp_shift_t
-branch_keybit(qp_node_t *n, const dns_qpkey_t key, size_t len) {
+static inline dns_qpshift_t
+branch_keybit(dns_qpnode_t *n, const dns_qpkey_t key, size_t len) {
 	return (qpkey_bit(key, len, branch_key_offset(n)));
 }
 
 /*
- * Get a pointer to a branch node's twigs vector.
+ * Get a pointer to a the first twig of a branch (this also functions
+ * as a pointer to the entire twig vector).
  */
-static inline qp_node_t *
-branch_twigs_vector(dns_qpreadable_t qpr, qp_node_t *n) {
+static inline dns_qpnode_t *
+branch_twigs(dns_qpreadable_t qpr, dns_qpnode_t *n) {
 	return (ref_ptr(qpr, branch_twigs_ref(n)));
 }
 
@@ -725,8 +686,8 @@ branch_twigs_vector(dns_qpreadable_t qpr, qp_node_t *n) {
  * Warm up the cache while calculating which twig we want.
  */
 static inline void
-prefetch_twigs(dns_qpreadable_t qpr, qp_node_t *n) {
-	__builtin_prefetch(branch_twigs_vector(qpr, n));
+prefetch_twigs(dns_qpreadable_t qpr, dns_qpnode_t *n) {
+	__builtin_prefetch(ref_ptr(qpr, branch_twigs_ref(n)));
 }
 
 /* root node **********************************************************/
@@ -734,7 +695,7 @@ prefetch_twigs(dns_qpreadable_t qpr, qp_node_t *n) {
 /*
  * Get a pointer to the root node, checking if the trie is empty.
  */
-static inline qp_node_t *
+static inline dns_qpnode_t *
 get_root(dns_qpreadable_t qpr) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	if (qp->root_ref == INVALID_REF) {
@@ -751,7 +712,7 @@ get_root(dns_qpreadable_t qpr) {
  * just enough to treat the root node as a vector of one twig.
  */
 #define MOVABLE_ROOT(qp)                                   \
-	(&(qp_node_t){                                     \
+	(&(dns_qpnode_t){                                  \
 		.biglo = BRANCH_TAG | (1 << SHIFT_NOBYTE), \
 		.small = qp->root_ref,                     \
 	})
@@ -769,11 +730,11 @@ get_root(dns_qpreadable_t qpr) {
  * we subtract 1 to set all lesser bits, and subtract the tag mask
  * because the type tag is not part of the bitmap.
  */
-static inline qp_weight_t
-branch_count_bitmap_before(qp_node_t *n, qp_shift_t bit) {
+static inline dns_qpweight_t
+branch_count_bitmap_before(dns_qpnode_t *n, dns_qpshift_t bit) {
 	uint64_t mask = (1ULL << bit) - 1 - TAG_MASK;
 	uint64_t bitmap = branch_index(n) & mask;
-	return ((qp_weight_t)__builtin_popcountll(bitmap));
+	return ((dns_qpweight_t)__builtin_popcountll(bitmap));
 }
 
 /*
@@ -782,45 +743,45 @@ branch_count_bitmap_before(qp_node_t *n, qp_shift_t bit) {
  * The offset is directly after the bitmap so the offset's lesser bits
  * covers the whole bitmap, and the bitmap's weight is the number of twigs.
  */
-static inline qp_weight_t
-branch_twigs_size(qp_node_t *n) {
+static inline dns_qpweight_t
+branch_twigs_size(dns_qpnode_t *n) {
 	return (branch_count_bitmap_before(n, SHIFT_OFFSET));
 }
 
 /*
  * Position of a twig within the packed sparse vector.
  */
-static inline qp_weight_t
-branch_twig_pos(qp_node_t *n, qp_shift_t bit) {
+static inline dns_qpweight_t
+branch_twig_pos(dns_qpnode_t *n, dns_qpshift_t bit) {
 	return (branch_count_bitmap_before(n, bit));
 }
 
 /*
- * Get a pointer to a particular twig.
+ * Get a pointer to the twig for a given bit number.
  */
-static inline qp_node_t *
-branch_twig_ptr(dns_qpreadable_t qpr, qp_node_t *n, qp_shift_t bit) {
-	return (branch_twigs_vector(qpr, n) + branch_twig_pos(n, bit));
+static inline dns_qpnode_t *
+branch_twig_ptr(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpshift_t bit) {
+	return (ref_ptr(qpr, branch_twigs_ref(n) + branch_twig_pos(n, bit)));
 }
 
 /*
  * Is the twig identified by this bit present?
  */
 static inline bool
-branch_has_twig(qp_node_t *n, qp_shift_t bit) {
+branch_has_twig(dns_qpnode_t *n, dns_qpshift_t bit) {
 	return (branch_index(n) & (1ULL << bit));
 }
 
 /* twig logistics *****************************************************/
 
 static inline void
-move_twigs(qp_node_t *to, qp_node_t *from, qp_weight_t size) {
-	memmove(to, from, size * sizeof(qp_node_t));
+move_twigs(dns_qpnode_t *to, dns_qpnode_t *from, dns_qpweight_t size) {
+	memmove(to, from, size * sizeof(dns_qpnode_t));
 }
 
 static inline void
-zero_twigs(qp_node_t *twigs, qp_weight_t size) {
-	memset(twigs, 0, size * sizeof(qp_node_t));
+zero_twigs(dns_qpnode_t *twigs, dns_qpweight_t size) {
+	memset(twigs, 0, size * sizeof(dns_qpnode_t));
 }
 
 /***********************************************************************
@@ -864,14 +825,14 @@ zero_twigs(qp_node_t *twigs, qp_weight_t size) {
  * allocated using `alloc_twigs(&multi->writer, READER_SIZE)`.
  */
 static inline void
-make_reader(qp_node_t *reader, dns_qpmulti_t *multi) {
+make_reader(dns_qpnode_t *reader, dns_qpmulti_t *multi) {
 	dns_qp_t *qp = &multi->writer;
 	reader[0] = make_node(READER_TAG | (uintptr_t)multi, QPREADER_MAGIC);
 	reader[1] = make_node(READER_TAG | (uintptr_t)qp->base, qp->root_ref);
 }
 
 static inline bool
-reader_valid(qp_node_t *reader) {
+reader_valid(dns_qpnode_t *reader) {
 	return (reader != NULL && //
 		node_tag(&reader[0]) == READER_TAG &&
 		node_tag(&reader[1]) == READER_TAG &&
@@ -883,7 +844,7 @@ reader_valid(qp_node_t *reader) {
  * consistency checks.
  */
 static inline dns_qpmulti_t *
-unpack_reader(dns_qpreader_t *qp, qp_node_t *reader) {
+unpack_reader(dns_qpreader_t *qp, dns_qpnode_t *reader) {
 	INSIST(reader_valid(reader));
 	dns_qpmulti_t *multi = node_pointer(&reader[0]);
 	dns_qpbase_t *base = node_pointer(&reader[1]);
@@ -905,19 +866,19 @@ unpack_reader(dns_qpreader_t *qp, qp_node_t *reader) {
  */
 
 static inline void
-attach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
+attach_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	qp->methods->attach(qp->uctx, leaf_pval(n), leaf_ival(n));
 }
 
 static inline void
-detach_leaf(dns_qpreadable_t qpr, qp_node_t *n) {
+detach_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	qp->methods->detach(qp->uctx, leaf_pval(n), leaf_ival(n));
 }
 
 static inline size_t
-leaf_qpkey(dns_qpreadable_t qpr, qp_node_t *n, dns_qpkey_t key) {
+leaf_qpkey(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpkey_t key) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	size_t len = qp->methods->makekey(key, qp->uctx, leaf_pval(n),
 					  leaf_ival(n));

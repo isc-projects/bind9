@@ -86,6 +86,7 @@
 
 #include <isc/attributes.h>
 
+#include <dns/name.h>
 #include <dns/types.h>
 
 /*%
@@ -115,12 +116,18 @@ typedef struct dns_qpmulti dns_qpmulti_t;
  */
 #define DNS_QPREADER_FIELDS                   \
 	uint32_t		    magic;    \
-	uint32_t		    root_ref; \
+	dns_qpref_t		    root_ref; \
 	dns_qpbase_t		   *base;     \
 	void			   *uctx;     \
 	const struct dns_qpmethods *methods
 
-typedef struct dns_qpbase dns_qpbase_t; /* private */
+typedef struct dns_qpbase dns_qpbase_t; /* private, declared in qp_p.h */
+
+/*%
+ * A unique twig reference; this can be converted to chunk and cell
+ * values to find a specific location.
+ */
+typedef uint32_t dns_qpref_t;
 
 typedef struct dns_qpreader {
 	DNS_QPREADER_FIELDS;
@@ -173,27 +180,75 @@ typedef union dns_qpreadable {
  */
 #define DNS_QP_MAXKEY 512
 
+/*
+ * C is not strict enough with its integer types for the following typedefs
+ * to improve type safety, but it helps to have annotations saying what
+ * particular kind of number we are dealing with.
+ */
+
+/*%
+ * The bit number, or position of a bit inside a word. (Valid values 0..63)
+ * A dns_qpkey_t (below) is an array of these; each element within dns_qpkey
+ * must satisfy:
+ *
+ *	SHIFT_NOBYTE <= key[off] && key[off] < SHIFT_OFFSET
+ */
+typedef uint8_t dns_qpshift_t;
+
+/*%
+ * The number of bits set in a word (i.e, Hamming weight or popcount).
+ * This is used to determine the position of a node in the packed sparse
+ * vector of twigs. Valid values are 0..47 (because our bitmap does not
+ * fill the entire word).
+ */
+typedef uint8_t dns_qpweight_t;
+
+/*
+ * Chunk and cell numbers, used to identify a specific location in
+ * one of the chunks stored in the QP base pointer array. Each cell
+ * within a chunk can contain a node.
+ */
+typedef uint32_t dns_qpchunk_t;
+typedef uint32_t dns_qpcell_t;
+
 /*%
  * A trie lookup key is a small array, allocated on the stack during trie
  * searches. Keys are usually created on demand from DNS names using
  * `dns_qpkey_fromname()`, but in principle you can define your own
  * functions to convert other types to trie lookup keys.
  */
-typedef uint8_t dns_qpkey_t[DNS_QP_MAXKEY];
+typedef dns_qpshift_t dns_qpkey_t[DNS_QP_MAXKEY];
 
 /*%
- * A trie iterator describes a path through the trie from the root to
- * a leaf node, for use with `dns_qpiter_init()` and `dns_qpiter_next()`.
+ * A QP iterator traverses a trie starting with the root and passing
+ * though each leaf node in lexicographic order; it is used by
+ * `dns_qpiter_init()` and `dns_qpiter_next()`. It is also used
+ * internally by `dns_qp_findname_iterator()` to locate the predecessor
+ * of a searched-for name.
  */
 typedef struct dns_qpiter {
 	unsigned int	magic;
 	dns_qpreader_t *qp;
 	uint16_t	sp;
-	struct __attribute__((__packed__)) {
-		uint32_t ref;
-		uint8_t	 more;
-	} stack[DNS_QP_MAXKEY];
+	dns_qpnode_t   *stack[DNS_QP_MAXKEY];
 } dns_qpiter_t;
+
+/*%
+ * A QP chain holds references to each populated node between the root and
+ * a given leaf. It is used internally by `dns_qp_lookup()` to return a
+ * partial match if the specific name requested is not found; optionally it
+ * can be passed back to the caller so that individual nodes can be
+ * accessed.
+ */
+typedef struct dns_qpchain {
+	unsigned int	magic;
+	dns_qpreader_t *qp;
+	uint8_t		len;
+	struct {
+		dns_qpnode_t *node;
+		size_t	      offset;
+	} chain[DNS_NAME_MAXLABELS];
+} dns_qpchain_t;
 
 /*%
  * These leaf methods allow the qp-trie code to call back to the code
@@ -265,13 +320,6 @@ typedef enum dns_qpgc {
 	DNS_QPGC_NOW,
 	DNS_QPGC_ALL,
 } dns_qpgc_t;
-
-/*%
- * Options for fancy searches such as `dns_qp_findname_ancestor()`
- */
-typedef enum dns_qpfind {
-	DNS_QPFIND_NOEXACT = 1 << 0,
-} dns_qpfind_t;
 
 /***********************************************************************
  *
@@ -431,6 +479,17 @@ dns_qpkey_fromname(dns_qpkey_t key, const dns_name_t *name);
  * \li  the length of the key
  */
 
+void
+dns_qpkey_toname(const dns_qpkey_t key, size_t keylen, dns_name_t *name);
+/*%<
+ * Convert a trie lookup key back into a DNS name.
+ *
+ * Requires:
+ * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `name->buffer` is not NULL
+ * \li  `name->offsets` is not NULL
+ */
+
 isc_result_t
 dns_qp_getkey(dns_qpreadable_t qpr, const dns_qpkey_t search_key,
 	      size_t search_keylen, void **pval_r, uint32_t *ival_r);
@@ -468,21 +527,39 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
  */
 
 isc_result_t
-dns_qp_findname_ancestor(dns_qpreadable_t qpr, const dns_name_t *name,
-			 dns_qpfind_t options, void **pval_r, uint32_t *ival_r);
+dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
+	      dns_name_t *foundname, dns_name_t *predecessor,
+	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
 /*%<
- * Find a leaf in a qp-trie that is an ancestor domain of, or equal to, the
- * given DNS name.
+ * Look up a leaf in a qp-trie that is equal to, or an ancestor domain of,
+ * 'name'.
  *
- * If the DNS_QPFIND_NOEXACT option is set, find the closest ancestor
- * domain that is not equal to the search name.
+ * If 'foundname' is not NULL, it will be updated to contain the name
+ * that was found (if any). The return code, ISC_R_SUCCESS or
+ * DNS_R_PARTIALMATCH, indicates whether the name found is name that
+ * was requested, or an ancestor. If the result is ISC_R_NOTFOUND,
+ * 'foundname' will not be updated.
  *
- * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
- * are not null, unless the return value is ISC_R_NOTFOUND.
+ * If 'chain' is not NULL, it is updated to contain a QP chain with
+ * references to the populated nodes in the tree between the root and
+ * the name that was found. If the return code is DNS_R_PARTIALMATCH
+ * then the chain terminates at the closest ancestor found; if it is
+ * ISC_R_SUCCESS then it terminates at the name that was requested.
+ * If the result is ISC_R_NOTFOUND, 'chain' will not be updated.
+ *
+ * If 'predecessor' is not NULL, it will be updated to contain the
+ * closest predecessor of the searched-for name that exists in the
+ * trie.
+ *
+ * The leaf data for the node that was found will be assigned to
+ * whichever of `*pval_r` and `*ival_r` are not NULL, unless the
+ * return value is ISC_R_NOTFOUND.
  *
  * Requires:
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `name` is a pointer to a valid `dns_name_t`
+ * \li  `foundname` is a pointer to a valid `dns_name_t` with
+ *       buffer and offset space available, or is NULL.
  *
  * Returns:
  * \li  ISC_R_SUCCESS if an exact match was found
@@ -557,12 +634,17 @@ dns_qpiter_init(dns_qpreadable_t qpr, dns_qpiter_t *qpi);
  */
 
 isc_result_t
-dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
+dns_qpiter_next(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r);
+isc_result_t
+dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		uint32_t *ival_r);
 /*%<
- * Get the next leaf object of a trie in lexicographic order of its keys.
+ * Iterate forward/backward through a QP trie in lexicographic order.
  *
  * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
- * are not null, unless the return value is ISC_R_NOMORE.
+ * are not null, unless the return value is ISC_R_NOMORE. Similarly,
+ * if `name` is not null, it is updated to contain the node name.
  *
  * NOTE: see the safety note under `dns_qpiter_init()`.
  *
@@ -572,7 +654,7 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
  *	void *pval;
  *	uint32_t ival;
  *	dns_qpiter_init(qp, &qpi);
- *	while (dns_qpiter_next(&qpi, &pval, &ival)) {
+ *	while (dns_qpiter_next(&qpi, &pval, &ival) == ISC_R_SUCCESS) {
  *		// do something with pval and ival
  *	}
  *
@@ -582,6 +664,39 @@ dns_qpiter_next(dns_qpiter_t *qpi, void **pval_r, uint32_t *ival_r);
  * Returns:
  * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
  * \li  ISC_R_NOMORE otherwise
+ */
+
+void
+dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain);
+/*%<
+ * Initialize a QP chain.
+ *
+ * Requires:
+ * \li  `qpr` is a pointer to a valid qp-trie
+ * \li  `chain` is not NULL.
+ */
+
+unsigned int
+dns_qpchain_length(dns_qpchain_t *chain);
+/*%<
+ * Returns the length of a QP chain.
+ *
+ * Requires:
+ * \li  `chain` is a pointer to an initialized QP chain object.
+ */
+
+void
+dns_qpchain_node(dns_qpchain_t *chain, unsigned int level, dns_name_t *name,
+		 void **pval_r, uint32_t *ival_r);
+/*%<
+ * Sets 'name' to the name of the leaf referenced at `chain->stack[level]`.
+ *
+ * The leaf values are assigned to whichever of `*pval_r` and `*ival_r`
+ * are not null.
+ *
+ * Requires:
+ * \li  `chain` is a pointer to an initialized QP chain object.
+ * \li  `level` is less than `chain->len`.
  */
 
 /***********************************************************************

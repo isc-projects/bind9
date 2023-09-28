@@ -1,3 +1,8 @@
+6260.	[func]		Added opptions to the QP trie that will be needed
+			when it is used as a zone or cache database: backward
+			iteration, and retrieval of DNSSEC predecessor
+			nodes and node chains. [GL !8338]
+
 6259.	[placeholder]
 
 6258.	[func]		Use explictly created external memory pools for

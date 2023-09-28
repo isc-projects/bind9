@@ -204,8 +204,6 @@ main(int argc, char **argv) {
 	dns_name_t *name = NULL;
 	size_t i = 0, n = 0;
 	char buf[BUFSIZ];
-	void *pval = NULL;
-	uint32_t ival;
 
 	if (argc != 2) {
 		usage();
@@ -228,12 +226,10 @@ main(int argc, char **argv) {
 
 	start = isc_time_monotonic();
 	for (i = 0;; i++) {
-		if (dns_qpiter_next(&it, &pval, &ival) != ISC_R_SUCCESS) {
+		name = dns_fixedname_initname(&items[i]);
+		if (dns_qpiter_next(&it, name, NULL, NULL) != ISC_R_SUCCESS) {
 			break;
 		}
-
-		name = dns_fixedname_initname(&items[i]);
-		name_from_smallname(name, pval, ival);
 	}
 	stop = isc_time_monotonic();
 
@@ -254,12 +250,11 @@ main(int argc, char **argv) {
 	start = isc_time_monotonic();
 	for (i = 0; i < n; i++) {
 		name = dns_fixedname_name(&items[i]);
-		dns_qp_findname_ancestor(qp, name, 0, NULL, NULL);
+		dns_qp_lookup(qp, name, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
-	snprintf(buf, sizeof(buf),
-		 "look up %zd names (dns_qp_findname_ancestor):", n);
+	snprintf(buf, sizeof(buf), "look up %zd names (dns_qp_lookup):", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
 	start = isc_time_monotonic();
@@ -280,12 +275,12 @@ main(int argc, char **argv) {
 			++search->ndata[1];
 		}
 
-		dns_qp_findname_ancestor(qp, search, 0, NULL, NULL);
+		dns_qp_lookup(qp, search, 0, NULL, NULL, NULL, NULL);
 	}
 	stop = isc_time_monotonic();
 
 	snprintf(buf, sizeof(buf),
-		 "look up %zd wrong names (dns_qp_findname_ancestor):", n);
+		 "look up %zd wrong names (dns_qp_lookup):", n);
 	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
 	isc_mem_cput(mctx, items, n, sizeof(dns_fixedname_t));
