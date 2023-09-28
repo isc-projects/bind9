@@ -18,6 +18,7 @@
 #include <isc/file.h>
 #include <isc/ht.h>
 #include <isc/rwlock.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/fixedname.h>
@@ -122,52 +123,19 @@ const dns_qpmethods_t methods = {
 
 static void
 usage(void) {
-	fprintf(stderr,
-		"usage: qp_dump [-dt] <filename>\n"
-		"	-d	output in graphviz dot format\n"
-		"	-t	output in ad-hoc indented text format\n");
+	fprintf(stderr, "usage: lookups <filename>\n");
+	exit(0);
 }
 
-int
-main(int argc, char *argv[]) {
+static size_t
+load_qp(dns_qp_t *qp, const char *filename) {
 	isc_result_t result;
-	dns_qp_t *qp = NULL;
-	const char *filename = NULL;
 	char *filetext = NULL;
-	size_t filesize;
+	size_t filesize, names = 0;
+	char *pos = NULL, *file_end = NULL;
 	off_t fileoff;
 	FILE *fp = NULL;
-	size_t wirebytes = 0, labels = 0, names = 0;
-	char *pos = NULL, *file_end = NULL;
-	bool dumpdot = false, dumptxt = false;
-	int opt;
 
-	while ((opt = isc_commandline_parse(argc, argv, "dt")) != -1) {
-		switch (opt) {
-		case 'd':
-			dumpdot = true;
-			continue;
-		case 't':
-			dumptxt = true;
-			continue;
-		default:
-			usage();
-			exit(1);
-			continue;
-		}
-	}
-	argc -= isc_commandline_index;
-	argv += isc_commandline_index;
-
-	if (argc != 1) {
-		/* must exit 0 to appease test runner */
-		usage();
-		exit(0);
-	}
-
-	isc_mem_create(&mctx);
-
-	filename = argv[0];
 	result = isc_file_getsize(filename, &fileoff);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
@@ -184,8 +152,6 @@ main(int argc, char *argv[]) {
 	}
 	fclose(fp);
 	filetext[filesize] = '\0';
-
-	dns_qp_create(mctx, &methods, NULL, &qp);
 
 	pos = filetext;
 	file_end = pos + filesize;
@@ -223,57 +189,105 @@ main(int argc, char *argv[]) {
 			exit(1);
 		}
 
-		wirebytes += name->length;
-		labels += name->labels;
-		names += 1;
+		names++;
 	}
+
+	return (names);
+}
+
+int
+main(int argc, char **argv) {
+	dns_qp_t *qp = NULL;
+	isc_nanosecs_t start, stop;
+	dns_fixedname_t *items = NULL;
+	dns_qpiter_t it = { 0 };
+	dns_name_t *name = NULL;
+	size_t i = 0, n = 0;
+	char buf[BUFSIZ];
+	void *pval = NULL;
+	uint32_t ival;
+
+	if (argc != 2) {
+		usage();
+	}
+
+	isc_mem_create(&mctx);
+
+	dns_qp_create(mctx, &methods, NULL, &qp);
+
+	start = isc_time_monotonic();
+	n = load_qp(qp, argv[1]);
 	dns_qp_compact(qp, DNS_QPGC_ALL);
+	stop = isc_time_monotonic();
 
-#define print_megabytes(label, value) \
-	printf("%6.2f MiB - " label "\n", (double)(value) / 1048576.0)
+	snprintf(buf, sizeof(buf), "load %zd names:", n);
+	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
-	if (!dumptxt && !dumpdot) {
-		size_t smallbytes = wirebytes + labels +
-				    names * sizeof(isc_refcount_t);
-		dns_qp_memusage_t memusage = dns_qp_memusage(qp);
-		uint64_t compaction_us, recovery_us, rollback_us;
-		dns_qp_gctime(&compaction_us, &recovery_us, &rollback_us);
+	items = isc_mem_cget(mctx, n, sizeof(dns_fixedname_t));
+	dns_qpiter_init(qp, &it);
 
-		printf("leaves %zu\n"
-		       " nodes %zu\n"
-		       "  used %zu\n"
-		       "  free %zu\n"
-		       "   cow %zu\n"
-		       "chunks %zu\n"
-		       " bytes %zu\n",
-		       memusage.leaves, memusage.live, memusage.used,
-		       memusage.free, memusage.hold, memusage.chunk_count,
-		       memusage.bytes);
+	start = isc_time_monotonic();
+	for (i = 0;; i++) {
+		if (dns_qpiter_next(&it, &pval, &ival) != ISC_R_SUCCESS) {
+			break;
+		}
 
-		printf("%f compaction\n", (double)compaction_us / 1000000);
-		printf("%f recovery\n", (double)recovery_us / 1000000);
-		printf("%f rollback\n", (double)rollback_us / 1000000);
-
-		size_t bytes = memusage.bytes;
-		print_megabytes("file size", filesize);
-		print_megabytes("names", wirebytes);
-		print_megabytes("labels", labels);
-		print_megabytes("names + labels", wirebytes + labels);
-		print_megabytes("smallnames", smallbytes);
-		print_megabytes("qp-trie", bytes);
-		print_megabytes("qp-trie + smallnames", bytes + smallbytes);
-		print_megabytes("calculated", bytes + smallbytes + filesize);
-		print_megabytes("allocated", isc_mem_inuse(mctx));
-		printf("%6zu - height\n", qp_test_getheight(qp));
-		printf("%6zu - max key len\n", qp_test_maxkeylen(qp));
+		name = dns_fixedname_initname(&items[i]);
+		name_from_smallname(name, pval, ival);
 	}
+	stop = isc_time_monotonic();
 
-	if (dumptxt) {
-		qp_test_dumptrie(qp);
-	}
-	if (dumpdot) {
-		qp_test_dumpdot(qp);
-	}
+	snprintf(buf, sizeof(buf), "iterate %zd names:", n);
+	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
 
+	n = i;
+	start = isc_time_monotonic();
+	for (i = 0; i < n; i++) {
+		name = dns_fixedname_name(&items[i]);
+		dns_qp_getname(qp, name, NULL, NULL);
+	}
+	stop = isc_time_monotonic();
+
+	snprintf(buf, sizeof(buf), "look up %zd names (dns_qp_getname):", n);
+	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
+
+	start = isc_time_monotonic();
+	for (i = 0; i < n; i++) {
+		name = dns_fixedname_name(&items[i]);
+		dns_qp_findname_ancestor(qp, name, 0, NULL, NULL);
+	}
+	stop = isc_time_monotonic();
+
+	snprintf(buf, sizeof(buf),
+		 "look up %zd names (dns_qp_findname_ancestor):", n);
+	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
+
+	start = isc_time_monotonic();
+	for (i = 0; i < n; i++) {
+		/*
+		 * copy the name, and modify the first letter before
+		 * searching; that way it probably won't be found in
+		 * the QP trie. (though it might, if for example the trie
+		 * contains both "x." and "y.". for best results,
+		 * use input data where this isn't an issue.)
+		 */
+		dns_fixedname_t sf;
+		dns_name_t *search = dns_fixedname_initname(&sf);
+
+		name = dns_fixedname_name(&items[i]);
+		dns_name_copy(name, search);
+		if (search->ndata[1] != 0) {
+			++search->ndata[1];
+		}
+
+		dns_qp_findname_ancestor(qp, search, 0, NULL, NULL);
+	}
+	stop = isc_time_monotonic();
+
+	snprintf(buf, sizeof(buf),
+		 "look up %zd wrong names (dns_qp_findname_ancestor):", n);
+	printf("%-57s%7.3fsec\n", buf, (stop - start) / (double)NS_PER_SEC);
+
+	isc_mem_cput(mctx, items, n, sizeof(dns_fixedname_t));
 	return (0);
 }
