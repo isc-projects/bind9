@@ -1680,7 +1680,7 @@ dns__rpz_timer_stop(void *arg) {
 	isc_timer_destroy(&rpz->updatetimer);
 	rpz->loop = NULL;
 
-	dns_rpz_unref_rpzs(rpz->rpzs);
+	dns_rpz_zones_unref(rpz->rpzs);
 }
 
 static void
@@ -1709,7 +1709,7 @@ update_rpz_done_cb(void *data) {
 		      ISC_LOG_INFO, "rpz: %s: reload done: %s", dname,
 		      isc_result_totext(rpz->updateresult));
 
-	dns_rpz_unref_rpzs(rpz->rpzs);
+	dns_rpz_zones_unref(rpz->rpzs);
 }
 
 static isc_result_t
@@ -1975,7 +1975,7 @@ dns__rpz_timer_cb(void *arg) {
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_MASTER,
 		      ISC_LOG_INFO, "rpz: %s: reload start", domain);
 
-	dns_rpz_ref_rpzs(rpz->rpzs);
+	dns_rpz_zones_ref(rpz->rpzs);
 	isc_work_enqueue(rpz->loop, update_rpz_cb, update_rpz_done_cb, rpz);
 
 	isc_timer_destroy(&rpz->updatetimer);
@@ -2026,7 +2026,7 @@ dns__rpz_shutdown(dns_rpz_zone_t *rpz) {
 		/* Don't wait for timer to trigger for shutdown */
 		INSIST(rpz->loop != NULL);
 
-		dns_rpz_ref_rpzs(rpz->rpzs);
+		dns_rpz_zones_ref(rpz->rpzs);
 		isc_async_run(rpz->loop, dns__rpz_timer_stop, rpz);
 	}
 }

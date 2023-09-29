@@ -411,27 +411,17 @@ void
 dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs);
 
 #ifdef DNS_RPZ_TRACE
-/* Compatibility macros */
-#define dns_rpz_detach_rpzs(rpzsp) \
+#define dns_rpz_zones_detach(rpzsp) \
 	dns_rpz_zones__detach(rpzsp, __func__, __FILE__, __LINE__)
-#define dns_rpz_attach_rpzs(rpzs, rpzsp) \
+#define dns_rpz_zones_attach(rpzs, rpzsp) \
 	dns_rpz_zones__attach(rpzs, rpzsp, __func__, __FILE__, __LINE__)
-#define dns_rpz_ref_rpzs(ptr) \
+#define dns_rpz_zones_ref(ptr) \
 	dns_rpz_zones__ref(ptr, __func__, __FILE__, __LINE__)
-#define dns_rpz_unref_rpzs(ptr) \
+#define dns_rpz_zones_unref(ptr) \
 	dns_rpz_zones__unref(ptr, __func__, __FILE__, __LINE__)
-#define dns_rpz_shutdown_rpzs(rpzs) \
-	dns_rpz_zones_shutdown(rpzs, __func__, __FILE__, __LINE__)
 
 ISC_REFCOUNT_TRACE_DECL(dns_rpz_zones);
 #else
-/* Compatibility macros */
-#define dns_rpz_detach_rpzs(rpzsp)	 dns_rpz_zones_detach(rpzsp)
-#define dns_rpz_attach_rpzs(rpzs, rpzsp) dns_rpz_zones_attach(rpzs, rpzsp)
-#define dns_rpz_shutdown_rpzs(rpzsp)	 dns_rpz_zones_shutdown(rpzsp)
-#define dns_rpz_ref_rpzs(ptr)		 dns_rpz_zones_ref(ptr)
-#define dns_rpz_unref_rpzs(ptr)		 dns_rpz_zones_unref(ptr)
-
 ISC_REFCOUNT_DECL(dns_rpz_zones);
 #endif
 
