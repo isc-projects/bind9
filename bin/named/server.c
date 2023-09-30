@@ -2480,7 +2480,7 @@ configure_rpz(dns_view_t *view, dns_view_t *pview, const cfg_obj_t **maps,
 	}
 #endif /* ifndef USE_DNSRPS */
 
-	result = dns_rpz_new_zones(view->mctx, named_g_loopmgr, rps_cstr,
+	result = dns_rpz_new_zones(view, named_g_loopmgr, rps_cstr,
 				   rps_cstr_size, &view->rpzs);
 	if (result != ISC_R_SUCCESS) {
 		return (result);

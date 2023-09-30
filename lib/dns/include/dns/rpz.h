@@ -29,6 +29,7 @@
 #include <isc/timer.h>
 
 #include <dns/fixedname.h>
+#include <dns/qp.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
 
@@ -269,7 +270,7 @@ struct dns_rpz_zones {
 	bool shuttingdown;
 
 	dns_rpz_cidr_node_t *cidr;
-	dns_rbt_t	    *rbt;
+	dns_qpmulti_t	    *table;
 
 	/*
 	 * DNSRPZ librpz configuration string and handle on librpz connection
@@ -394,7 +395,7 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, char *rps_cstr,
+dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 		  size_t rps_cstr_size, dns_rpz_zones_t **rpzsp);
 
 isc_result_t
