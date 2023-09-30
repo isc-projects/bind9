@@ -1996,6 +1996,10 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 static inline void
 add_link(dns_qpchain_t *chain, dns_qpnode_t *node, size_t offset) {
+	/* prevent duplication */
+	if (chain->chain[chain->len - 1].node == node) {
+		return;
+	}
 	chain->chain[chain->len].node = node;
 	chain->chain[chain->len].offset = offset;
 	chain->len++;
@@ -2161,9 +2165,8 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 		maybe_set_name(qp, n, foundname);
+		add_link(chain, n, offset);
 		if (offset == QPKEY_EQUAL) {
-			/* add the exact match to the chain */
-			add_link(chain, n, offset);
 			return (ISC_R_SUCCESS);
 		} else {
 			return (DNS_R_PARTIALMATCH);

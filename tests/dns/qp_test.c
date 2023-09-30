@@ -550,6 +550,10 @@ ISC_RUN_TEST_IMPL(qpchain) {
 		  { ".", "a.", "b.a.", "c.b.a.", "e.d.c.b.a." } },
 		{ "a.b.c.d.", ISC_R_SUCCESS, 3, { ".", "c.d.", "a.b.c.d." } },
 		{ "b.c.d.", DNS_R_PARTIALMATCH, 2, { ".", "c.d." } },
+		{ "z.x.k.c.d.",
+		  DNS_R_PARTIALMATCH,
+		  3,
+		  { ".", "c.d.", "x.k.c.d." } },
 		{ NULL, 0, 0, { NULL } },
 	};
 
