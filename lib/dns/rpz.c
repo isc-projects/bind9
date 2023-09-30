@@ -1371,6 +1371,7 @@ add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		return (ISC_R_SUCCESS);
 	}
 
+	RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	result = search(rpz->rpzs, &tgt_ip, tgt_prefix, &set, true, &found);
 	if (result != ISC_R_SUCCESS) {
 		char namebuf[DNS_NAME_FORMATSIZE];
@@ -1380,7 +1381,8 @@ add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		 * because diff_apply() likes to add nodes before deleting.
 		 */
 		if (result == ISC_R_EXISTS) {
-			return (ISC_R_SUCCESS);
+			result = ISC_R_SUCCESS;
+			goto done;
 		}
 
 		/*
@@ -1391,10 +1393,12 @@ add_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
 			      "rpz add_cidr(%s) failed: %s", namebuf,
 			      isc_result_totext(result));
-		return (result);
+		goto done;
 	}
 
 	adj_trigger_cnt(rpz, rpz_type, &tgt_ip, tgt_prefix, true);
+done:
+	RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	return (result);
 }
 
@@ -1484,7 +1488,9 @@ add_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		return (ISC_R_SUCCESS);
 	}
 	if (result == ISC_R_SUCCESS) {
+		RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 		adj_trigger_cnt(rpz, rpz_type, NULL, 0, true);
+		RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	}
 	return (result);
 }
@@ -2197,10 +2203,7 @@ rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 
 	REQUIRE(rpzs != NULL && rpz_num < rpzs->p.num_zones);
 
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-
 	rpz_type = type_from_name(rpzs, rpz, src_name);
-
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
 	case DNS_RPZ_TYPE_NSDNAME:
@@ -2214,7 +2217,6 @@ rpz_add(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 	case DNS_RPZ_TYPE_BAD:
 		break;
 	}
-	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 
 	return (result);
 }
@@ -2242,9 +2244,10 @@ del_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 		return;
 	}
 
+	RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	result = search(rpz->rpzs, &tgt_ip, tgt_prefix, &tgt_set, false, &tgt);
 	if (result != ISC_R_SUCCESS) {
-		return;
+		goto done;
 	}
 
 	/*
@@ -2303,6 +2306,9 @@ del_cidr(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 
 		tgt = parent;
 	} while (tgt != NULL);
+
+done:
+	RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 }
 
 static void
@@ -2367,7 +2373,9 @@ del_name(dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	}
 
 	if (exists) {
+		RWLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 		adj_trigger_cnt(rpz, rpz_type, NULL, 0, false);
+		RWUNLOCK(&rpz->rpzs->search_lock, isc_rwlocktype_write);
 	}
 
 	dns_qp_compact(qp, DNS_QPGC_MAYBE);
@@ -2390,10 +2398,7 @@ rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 
 	REQUIRE(rpzs != NULL && rpz_num < rpzs->p.num_zones);
 
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_write);
-
 	rpz_type = type_from_name(rpzs, rpz, src_name);
-
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_QNAME:
 	case DNS_RPZ_TYPE_NSDNAME:
@@ -2407,8 +2412,6 @@ rpz_del(dns_rpz_zone_t *rpz, const dns_name_t *src_name) {
 	case DNS_RPZ_TYPE_BAD:
 		break;
 	}
-
-	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_write);
 }
 
 /*
@@ -2554,8 +2557,6 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		return (0);
 	}
 
-	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
-
 	dns_qpmulti_query(rpzs->table, &qpr);
 	dns_qpchain_init(&qpr, &chain);
 
@@ -2599,7 +2600,6 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		break;
 	}
 
-	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 	dns_qpread_destroy(rpzs->table, &qpr);
 	return (zbits & found_zbits);
 }
