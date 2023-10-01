@@ -165,6 +165,7 @@ libdns_la_SOURCES =			\
 	clientinfo.c			\
 	compress.c			\
 	db.c				\
+	db_p.h				\
 	dbiterator.c			\
 	diff.c				\
 	dispatch.c			\

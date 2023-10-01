@@ -96,7 +96,7 @@ const char *ownercase_vectors[12][2] = {
 static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
-	rbtdb_nodelock_t node_locks[1];
+	db_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = {
 		.common.methods = &dns__rbtdb_zonemethods,
 		.common.mctx = mctx,
@@ -163,7 +163,7 @@ ISC_RUN_TEST_IMPL(ownercase) {
 
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
-	rbtdb_nodelock_t node_locks[1];
+	db_nodelock_t node_locks[1];
 	dns_rbtdb_t rbtdb = {
 		.common.methods = &dns__rbtdb_zonemethods,
 		.common.mctx = mctx,

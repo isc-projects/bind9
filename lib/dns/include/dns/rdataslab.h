@@ -60,7 +60,7 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_RDATASLAB_OFFLINE 0x01 /* RRSIG is for offline DNSKEY */
 
-struct dns_proof {
+struct dns_slabheader_proof {
 	dns_name_t	name;
 	void	       *neg;
 	void	       *negsig;
@@ -94,8 +94,8 @@ struct dns_slabheader {
 
 	atomic_uint_fast32_t last_refresh_fail_ts;
 
-	dns_proof_t *noqname;
-	dns_proof_t *closest;
+	dns_slabheader_proof_t *noqname;
+	dns_slabheader_proof_t *closest;
 	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
@@ -312,5 +312,11 @@ void
 dns_slabheader_destroy(dns_slabheader_t **headerp);
 /*%<
  * Free all memory associated with '*headerp'.
+ */
+
+void
+dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof);
+/*%<
+ * Free all memory associated with a nonexistence proof.
  */
 ISC_LANG_ENDDECLS

@@ -61,6 +61,7 @@ struct dns_dbimplementation {
  * Built in database implementations are registered here.
  */
 
+#include "db_p.h"
 #include "rbtdb_p.h"
 
 unsigned int dns_pps = 0U;

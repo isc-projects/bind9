@@ -89,23 +89,6 @@ struct xrdata {
 #endif /* if DNS_RDATASET_FIXED */
 };
 
-struct dns_glue {
-	struct dns_glue *next;
-	dns_fixedname_t fixedname;
-	dns_rdataset_t rdataset_a;
-	dns_rdataset_t sigrdataset_a;
-	dns_rdataset_t rdataset_aaaa;
-	dns_rdataset_t sigrdataset_aaaa;
-	struct cds_wfs_node wfs_node;
-};
-
-typedef struct {
-	dns_glue_t *glue_list;
-	dns_rbtdb_t *rbtdb;
-	dns_rbtdb_version_t *rbtversion;
-	dns_name_t *nodename;
-} dns_glue_additionaldata_ctx_t;
-
 static void
 rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG);
 static isc_result_t
@@ -1160,6 +1143,23 @@ dns_slabheader_destroy(dns_slabheader_t **headerp) {
 	isc_mem_put(mctx, header, size);
 }
 
+void
+dns_slabheader_freeproof(isc_mem_t *mctx, dns_slabheader_proof_t **proof) {
+	if (dns_name_dynamic(&(*proof)->name)) {
+		dns_name_free(&(*proof)->name, mctx);
+	}
+	if ((*proof)->neg != NULL) {
+		isc_mem_put(mctx, (*proof)->neg,
+			    dns_rdataslab_size((*proof)->neg, 0));
+	}
+	if ((*proof)->negsig != NULL) {
+		isc_mem_put(mctx, (*proof)->negsig,
+			    dns_rdataslab_size((*proof)->negsig, 0));
+	}
+	isc_mem_put(mctx, *proof, sizeof(**proof));
+	*proof = NULL;
+}
+
 dns_rdatasetmethods_t dns_rdataslab_rdatasetmethods = {
 	.disassociate = rdataset_disassociate,
 	.first = rdataset_first,
@@ -1331,7 +1331,7 @@ rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
 	dns_db_t *db = rdataset->slab.db;
 	dns_dbnode_t *node = rdataset->slab.node;
-	const dns_proof_t *noqname = rdataset->slab.noqname;
+	const dns_slabheader_proof_t *noqname = rdataset->slab.noqname;
 
 	/*
 	 * Usually, rdataset->slab.raw refers the data following a
@@ -1387,7 +1387,7 @@ rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
 		    dns_rdataset_t *nsecsig DNS__DB_FLARG) {
 	dns_db_t *db = rdataset->slab.db;
 	dns_dbnode_t *node = rdataset->slab.node;
-	const dns_proof_t *closest = rdataset->slab.closest;
+	const dns_slabheader_proof_t *closest = rdataset->slab.closest;
 
 	/*
 	 * As mentioned above, rdataset->slab.raw usually refers the data
