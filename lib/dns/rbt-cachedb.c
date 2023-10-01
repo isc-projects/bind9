@@ -957,7 +957,9 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				   DNS_SIGTYPE(dns_rdatatype_nsec))
 			{
 				nsecsig = header;
-			} else if (cname_ok && DNS_SIGTYPE(dns_rdatatype_cname))
+			} else if (cname_ok &&
+				   header->type ==
+					   DNS_SIGTYPE(dns_rdatatype_cname))
 			{
 				/*
 				 * If we get a CNAME match, we'll also need
