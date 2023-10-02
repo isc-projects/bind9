@@ -2320,11 +2320,8 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	isc_result_t result;
 
 	/*
-	 * Caller must be holding the manager lock.
-	 *
 	 * Note: creating a client does not add the client to the
-	 * manager's client list or set the client's manager pointer.
-	 * The caller is responsible for that.
+	 * manager's client list, the caller is responsible for that.
 	 */
 
 	if (new) {
@@ -2400,26 +2397,13 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	if (client->sendbuf != NULL) {
-		isc_mem_put(client->manager->send_mctx, client->sendbuf,
-			    NS_CLIENT_SEND_BUFFER_SIZE);
-	}
-
-	if (client->message != NULL) {
-		dns_message_detach(&client->message);
-	}
-
-	if (client->task != NULL) {
-		isc_task_detach(&client->task);
-	}
-
-	if (client->manager != NULL) {
-		ns_clientmgr_detach(&client->manager);
-	}
+	isc_mem_put(client->manager->send_mctx, client->sendbuf,
+		    NS_CLIENT_SEND_BUFFER_SIZE);
+	dns_message_detach(&client->message);
+	isc_task_detach(&client->task);
+	ns_clientmgr_detach(&client->manager);
 	isc_mem_detach(&client->mctx);
-	if (client->sctx != NULL) {
-		ns_server_detach(&client->sctx);
-	}
+	ns_server_detach(&client->sctx);
 
 	return (result);
 }
