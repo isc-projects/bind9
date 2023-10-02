@@ -336,17 +336,6 @@ dns_master_questiontotext(const dns_name_t	   *owner_name,
 			  const dns_master_style_t *style,
 			  isc_buffer_t		   *target);
 
-isc_result_t
-dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
-			    dns_dbversion_t *version, dns_dbnode_t *node,
-			    const dns_name_t	     *name,
-			    const dns_master_style_t *style, FILE *f);
-
-isc_result_t
-dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
-		    dns_dbnode_t *node, const dns_name_t *name,
-		    const dns_master_style_t *style, const char *filename);
-
 dns_masterstyle_flags_t
 dns_master_styleflags(const dns_master_style_t *style);
 
