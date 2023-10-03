@@ -3164,7 +3164,7 @@ for details on how to specify IP address lists.
    :rfc:`1034` to use case-insensitive name comparisons when checking for
    matching domain names.
 
-   If left undefined, the ACL defaults to ``none``: case-insensitive
+   If left undefined, the ACL defaults to ``none``: case-sensitive
    compression is used for all clients. If the ACL is defined and
    matches a client, case is ignored when compressing domain
    names in DNS responses sent to that client.
