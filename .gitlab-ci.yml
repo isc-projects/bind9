@@ -263,15 +263,6 @@ stages:
   <<: *base_image
   stage: precheck
 
-.autoconf: &autoconf_job
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: precheck
-  script:
-    - autoreconf2.69 -fi
-  artifacts:
-    untracked: true
-
 .configure: &configure
     - ${CONFIGURE}
       --disable-maintainer-mode
@@ -309,12 +300,10 @@ stages:
     - test -z "${CROSS_COMPILATION}" || grep -F -A 1 "checking whether we are cross compiling" config.log | grep -q "result.*yes"
     - test -z "${CROSS_COMPILATION}" || file lib/dns/gen | grep -F -q "ELF 64-bit LSB"
     - test -z "${CROSS_COMPILATION}" || ( ! git ls-files -z --others --exclude lib/dns/gen | xargs -0 file | grep "ELF 64-bit LSB" )
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     untracked: true
     when: always
+  needs: []
 
 .windows_build: &windows_build_job
   stage: build
@@ -375,7 +364,6 @@ cross-version-config-tests:
     - BASELINE="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BRANCH}&order_by=version" | jq -r ".[0].name")"
     - git clone --branch "${BASELINE}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BASELINE}"
     - cd "bind-${BASELINE}"
-    - autoreconf2.69 -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
     - cd bin/tests/system
@@ -387,15 +375,13 @@ cross-version-config-tests:
     # intends to detect obvious backward compatibility issues with the latter.
     - sed -i -E "s|(export TOP)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
     - make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     paths:
       - bind-*
     untracked: true
     expire_in: "1 day"
     when: on_failure
+  needs: []
 
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
@@ -504,9 +490,6 @@ cross-version-config-tests:
 
 # Jobs in the precheck stage
 
-autoreconf:
-  <<: *autoconf_job
-
 misc:
   <<: *precheck_job
   script:
@@ -525,7 +508,6 @@ misc:
     - sh util/check-win32util-configure
     - sh util/check-categories.sh
     - sh util/xmllint-html.sh
-  needs: []
   artifacts:
     paths:
       - checklibs.out
@@ -533,7 +515,6 @@ misc:
 
 black:
   <<: *precheck_job
-  needs: []
   script:
     - black $(git ls-files '*.py' '*.py.in')
     - git diff > black.patch
@@ -546,7 +527,6 @@ black:
 
 clang-format:
   <<: *precheck_job
-  needs: []
   script:
     - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
     - git diff > clang-format.patch
@@ -559,14 +539,12 @@ clang-format:
 
 coccinelle:
   <<: *precheck_job
-  needs: []
   script:
     - util/check-cocci
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 reuse:
   <<: *precheck_job
-  needs: []
   image:
     name: docker.io/fsfe/reuse:latest
     entrypoint: [""]
@@ -575,7 +553,6 @@ reuse:
 
 danger:
   <<: *precheck_job
-  needs: []
   script:
     - danger-python ci -f
   only:
@@ -588,19 +565,16 @@ pylint:
   <<: *default_triggering_rules
   <<: *base_image
   stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
   script:
     - *configure
     - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc --disable=wrong-import-position $(git ls-files 'bin/tests/system/*.py' | grep -vE 'ans\.py')
+  needs: []
 
 checkbashisms:
   <<: *precheck_job
-  needs: []
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print | sed -e '/^\.\/install-sh$/d')
 
@@ -644,15 +618,13 @@ docs:
     - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     paths:
       - doc/arm/
       - doc/man/
       - doc/misc/
     when: always
+  needs: []
 
 # Jobs for regular GCC builds on Alpine Linux 3.18 (amd64)
 
@@ -904,13 +876,11 @@ scan-build:
   script:
     - *configure
     - *scan_build
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     paths:
       - scan-build.reports/
     when: on_failure
+  needs: []
 
 # Jobs for regular GCC builds on Debian "sid" (amd64)
 # Also tests configration option: --without-lmdb.
@@ -1482,9 +1452,6 @@ coverity:
     - *coverity_build
   after_script:
     - mv -v /tmp/cov-int.tar.gz ${CI_PROJECT_DIR}/
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     paths:
       - curl-response.txt
@@ -1495,6 +1462,7 @@ coverity:
     variables:
       - $COVERITY_SCAN_PROJECT_NAME
       - $COVERITY_SCAN_TOKEN
+  needs: []
 
 # Respdiff tests
 
@@ -1606,14 +1574,12 @@ respdiff-long-third-party:
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - cd bind-qa/bind9/stress
     - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
-  needs:
-    - job: autoreconf
-      artifacts: true
   artifacts:
     untracked: true
     expire_in: "1 week"
     when: always
   timeout: 2h
+  needs: []
 
 stress:authoritative:fedora:38:amd64:
   <<: *fedora_38_amd64_image
@@ -1784,9 +1750,6 @@ gcov:
 pairwise:
   <<: *base_image
   stage: build
-  needs:
-    - job: autoreconf
-      artifacts: true
   script:
       - util/pairwise-testing.sh
   artifacts:
@@ -1798,3 +1761,4 @@ pairwise:
   only:
     variables:
       - $PAIRWISE_TESTING
+  needs: []
