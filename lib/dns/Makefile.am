@@ -216,6 +216,8 @@ libdns_la_SOURCES =			\
 	probes.d			\
 	qp.c				\
 	qp_p.h				\
+	qpzone_p.h			\
+	qpzone.c			\
 	rbt.c				\
 	rbt-cachedb.c			\
 	rbt-zonedb.c			\
