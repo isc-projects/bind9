@@ -376,16 +376,19 @@ cross-version-config-tests:
     # intends to detect obvious backward compatibility issues with the latter.
     - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
     - >
-      "$PYTEST" --setup-only -n "${TEST_PARALLEL_JOBS:-1}"
+      "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
   needs:
     - job: autoreconf
       artifacts: true
   artifacts:
+    reports:
+      junit: junit.xml
     paths:
       - bind-*
+      - junit.xml
     untracked: true
     expire_in: "1 day"
-    when: on_failure
+    when: always
 
 .display_pytest_failures: &display_pytest_failures
     - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
