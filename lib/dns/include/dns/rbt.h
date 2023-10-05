@@ -57,12 +57,6 @@ ISC_LANG_BEGINDECLS
  * appended to this structure.  Allocating a contiguous block of memory for
  * multiple dns_rbtnode structures will not work.
  */
-enum {
-	DNS_RBT_NSEC_NORMAL = 0,   /* in main tree */
-	DNS_RBT_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
-	DNS_RBT_NSEC_NSEC = 2,	   /* in nsec tree */
-	DNS_RBT_NSEC_NSEC3 = 3	   /* in nsec3 tree */
-};
 struct dns_rbtnode {
 #if DNS_RBT_USEMAGIC
 	unsigned int magic;
