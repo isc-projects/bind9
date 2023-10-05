@@ -1,3 +1,8 @@
+6262.	[bug]		Duplicate control sockets didn't generate a
+			configuration failure leading to hard to diagnose
+			rndc connection errors.  These are now caught by
+			named-checkconf and named. [GL #4253]
+
 6261.	[bug]		Fix a possible assertion failure on an error path in
 			resolver.c:fctx_query(), when using an uninitialized
 			link. [GL #4331]
