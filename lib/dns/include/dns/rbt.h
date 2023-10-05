@@ -30,7 +30,7 @@ ISC_LANG_BEGINDECLS
 
 /*@{*/
 /*%
- * Option values for dns_rbt_findnode() and dns_rbt_findname().
+ * Option values for dns_rbt_findnode().
  * These are used to form a bitmask.
  */
 #define DNS_RBTFIND_NOOPTIONS	  0x00
@@ -143,13 +143,6 @@ struct dns_rbtnode {
 typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t	*node,
 					      dns_name_t	*name,
 					      void *callback_arg DNS__DB_FLARG);
-
-typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file, unsigned char *data,
-					    void *arg, uint64_t *crc);
-
-typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode, void *base,
-					   size_t offset, void *arg,
-					   uint64_t *crc);
 
 typedef void (*dns_rbtdeleter_t)(void *, void *);
 
@@ -276,54 +269,15 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter, void *deleter_arg,
  *
  * Returns:
  *\li   #ISC_R_SUCCESS  Success
- *\li   #ISC_R_NOMEMORY Resource limit: Out of Memory
- */
-
-isc_result_t
-dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data);
-/*%<
- * Add 'name' to the tree of trees, associated with 'data'.
- *
- * Notes:
- *\li   'data' is never required to be non-NULL, but specifying it
- *      when the name is added is faster than searching for 'name'
- *      again and then setting the data pointer.  The lack of a data pointer
- *      for a node also has other ramifications regarding whether
- *      dns_rbt_findname considers a node to exist, or dns_rbt_deletename
- *      joins nodes.
- *
- * Requires:
- *\li   rbt is a valid rbt manager.
- *\li   dns_name_isabsolute(name) == TRUE
- *
- * Ensures:
- *\li   'name' is not altered in any way.
- *
- *\li   Any external references to nodes in the tree are unaffected by
- *      node splits that are necessary to insert the new name.
- *
- *\li   If result is #ISC_R_SUCCESS:
- *              'name' is findable in the red/black tree of trees in O(log N).
- *              The data pointer of the node for 'name' is set to 'data'.
- *
- *\li   If result is #ISC_R_EXISTS or #ISC_R_NOSPACE:
- *              The tree of trees is unaltered.
- *
- *\li   If result is #ISC_R_NOMEMORY:
- *              No guarantees.
- *
- * Returns:
- *\li   #ISC_R_SUCCESS  Success
- *\li   #ISC_R_EXISTS   The name already exists with associated data.
- *\li   #ISC_R_NOSPACE  The name had more logical labels than are allowed.
- *\li   #ISC_R_NOMEMORY Resource Limit: Out of Memory
  */
 
 isc_result_t
 dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep);
 
 /*%<
- * Just like dns_rbt_addname, but returns the address of the node.
+ * Add 'name' to the tree of trees. On success, return the address of
+ * the newly added node. If 'name' already existed, return ISC_R_EXISTS
+ * and the address of the pre-existing node.
  *
  * Requires:
  *\li   rbt is a valid rbt structure.
@@ -344,61 +298,16 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep);
  *              The tree of trees is unaltered.
  *              *nodep is the existing node for 'name'.
  *
- *\li   If result is ISC_R_NOMEMORY:
- *              No guarantees.
- *
  * Returns:
  *\li   #ISC_R_SUCCESS  Success
  *\li   #ISC_R_EXISTS   The name already exists, possibly without data.
- *\li   #ISC_R_NOMEMORY Resource Limit: Out of Memory
- */
-
-#define dns_rbt_findname(rbt, name, options, foundname, data) \
-	dns__rbt_findname(rbt, name, options, foundname, data DNS__DB_FILELINE)
-isc_result_t
-dns__rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
-		  dns_name_t *foundname, void **data DNS__DB_FLARG);
-/*%<
- * Get the data pointer associated with 'name'.
- *
- * Notes:
- *\li   When #DNS_RBTFIND_NOEXACT is set, the closest matching superdomain is
- *      returned (also subject to #DNS_RBTFIND_EMPTYDATA), even when there is
- *      an exact match in the tree.
- *
- *\li   A node that has no data is considered not to exist for this function,
- *      unless the #DNS_RBTFIND_EMPTYDATA option is set.
- *
- * Requires:
- *\li   rbt is a valid rbt manager.
- *\li   dns_name_isabsolute(name) == TRUE
- *\li   data != NULL && *data == NULL
- *
- * Ensures:
- *\li   'name' and the tree are not altered in any way.
- *
- *\li   If result is ISC_R_SUCCESS:
- *              *data is the data associated with 'name'.
- *
- *\li   If result is DNS_R_PARTIALMATCH:
- *              *data is the data associated with the deepest superdomain
- *              of 'name' which has data.
- *
- *\li   If result is ISC_R_NOTFOUND:
- *              Neither the name nor a superdomain was found with data.
- *
- * Returns:
- *\li   #ISC_R_SUCCESS          Success
- *\li   #DNS_R_PARTIALMATCH     Superdomain found with data
- *\li   #ISC_R_NOTFOUND         No match
- *\li   #ISC_R_NOSPACE          Concatenating nodes to form foundname failed
+ *\li   #ISC_R_NOSPACE  The name had more logical labels than are allowed.
  */
 
 #define dns_rbt_findnode(rbt, name, foundname, node, chain, options, callback, \
 			 callback_arg)                                         \
 	dns__rbt_findnode(rbt, name, foundname, node, chain, options,          \
 			  callback, callback_arg DNS__DB_FILELINE)
-
 isc_result_t
 dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 		  dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
@@ -504,52 +413,6 @@ dns__rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
  *\li   #ISC_R_NOSPACE Concatenating nodes to form foundname failed
  */
 
-#define dns_rbt_deletename(rbt, name, recurse) \
-	dns__rbt_deletename(rbt, name, recurse DNS__DB_FILELINE)
-isc_result_t
-dns__rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
-		    bool recurse DNS__DB_FLARG);
-/*%<
- * Delete 'name' from the tree of trees.
- *
- * Notes:
- *\li   When 'name' is removed, if recurse is true then all of its
- *      subnames are removed too.
- *
- * Requires:
- *\li   rbt is a valid rbt manager.
- *\li   dns_name_isabsolute(name) == TRUE
- *
- * Ensures:
- *\li   'name' is not altered in any way.
- *
- *\li   Does NOT ensure that any external references to nodes in the tree
- *      are unaffected by node joins.
- *
- *\li   If result is ISC_R_SUCCESS:
- *              'name' does not appear in the tree with data; however,
- *              the node for the name might still exist which can be
- *              found with dns_rbt_findnode (but not dns_rbt_findname).
- *
- *\li   If result is ISC_R_NOTFOUND:
- *              'name' does not appear in the tree with data, because
- *              it did not appear in the tree before the function was called.
- *
- *\li   If result is something else:
- *              See result codes for dns_rbt_findnode (if it fails, the
- *              node is not deleted) or dns_rbt_deletenode (if it fails,
- *              the node is deleted, but the tree is not optimized when
- *              it could have been).
- *
- * Returns:
- *\li   #ISC_R_SUCCESS  Success
- *\li   #ISC_R_NOTFOUND No match
- *\li   something_else  Any return code from dns_rbt_findnode except
- *                      DNS_R_PARTIALMATCH (which causes ISC_R_NOTFOUND
- *                      to be returned instead), and any code from
- *                      dns_rbt_deletenode.
- */
-
 isc_result_t
 dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse);
 /*%<
@@ -574,13 +437,12 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse);
  *              the node could can be found with dns_rbt_findnode when
  *              that function's empty_data_ok parameter is true.
  *
- *\li   If result is ISC_R_NOMEMORY or ISC_R_NOSPACE:
+ *\li   If result is ISC_R_NOSPACE:
  *              The node was deleted, but the tree structure was not
  *              optimized.
  *
  * Returns:
  *\li   #ISC_R_SUCCESS  Success
- *\li   #ISC_R_NOMEMORY Resource Limit: Out of Memory when joining nodes.
  *\li   #ISC_R_NOSPACE  dns_name_concatenate failed when joining nodes.
  */
 
@@ -664,10 +526,8 @@ dns_rbt_hashsize(dns_rbt_t *rbt);
  * \li  rbt is a valid rbt manager.
  */
 
-void
-dns_rbt_destroy(dns_rbt_t **rbtp);
 isc_result_t
-dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
+dns_rbt_destroy(dns_rbt_t **rbtp, unsigned int quantum);
 /*%<
  * Stop working with a red-black tree of trees.
  * If 'quantum' is zero then the entire tree will be destroyed.
@@ -902,7 +762,6 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
  *
  * Returns:
  *\li   #DNS_R_NEWORIGIN                The name & origin were successfully set.
- *\li   #ISC_R_NOMEMORY         Resource Limit: Out of Memory building chain.
  *\li   &lt;something_else>     Any error result from dns_name_concatenate.
  */
 
