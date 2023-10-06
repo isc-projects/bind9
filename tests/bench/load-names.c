@@ -552,7 +552,7 @@ main(int argc, char *argv[]) {
 			isc_mem_create(&mem);
 			map = fun->new (mem);
 
-			size_t nitems = ARRAY_SIZE(item) / (nthreads + 1);
+			size_t nitems = lines / (nthreads + 1);
 
 			isc_barrier_init(&barrier, nthreads);
 
