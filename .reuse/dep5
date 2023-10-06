@@ -170,6 +170,7 @@ Files: **/.clang-format
        doc/misc/options
        doc/misc/rndc.grammar
        sonar-project.properties
+       tests/bench/names.csv
 Copyright: Internet Systems Consortium, Inc. ("ISC")
 License: CC0-1.0
 
