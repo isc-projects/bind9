@@ -83,7 +83,7 @@ stages:
     - ovh
     - amd64
 
-# Autoscaling GitLab Runner on AWS EC2
+# Autoscaling GitLab Runner on AWS EC2 (amd64)
 
 .linux-amd64: &linux_amd64
   tags:
@@ -92,21 +92,16 @@ stages:
     - runner-manager
     - amd64
 
-# Stress-testing runners
+# Autoscaling GitLab Runner on AWS EC2 (arm64)
 
-.linux-stress-amd64: &linux_stress_amd64
+.linux-arm64: &linux_arm64
   tags:
-    - amd64
+    - linux
     - aws
-    - linux-stress
-    - stress
-
-.linux-stress-arm64: &linux_stress_arm64
-  tags:
+    - runner-manager
     - aarch64
-    - aws
-    - linux-stress
-    - stress
+
+# Stress-testing runners
 
 .freebsd-stress-amd64: &freebsd_stress_amd64
   tags:
@@ -190,7 +185,7 @@ stages:
 
 .fedora-38-arm64: &fedora_38_arm64_image
   image: "$CI_REGISTRY_IMAGE:fedora-38-arm64"
-  <<: *linux_stress_arm64
+  <<: *linux_arm64
 
 # Ubuntu
 
@@ -1583,7 +1578,7 @@ respdiff-long-third-party:
 
 stress:authoritative:fedora:38:amd64:
   <<: *fedora_38_amd64_image
-  <<: *linux_stress_amd64
+  <<: *linux_amd64
   <<: *stress_job
   variables:
     CC: gcc
@@ -1598,7 +1593,7 @@ stress:authoritative:fedora:38:amd64:
 
 stress:recursive:fedora:38:amd64:
   <<: *fedora_38_amd64_image
-  <<: *linux_stress_amd64
+  <<: *linux_amd64
   <<: *stress_job
   variables:
     CC: gcc
@@ -1613,7 +1608,7 @@ stress:recursive:fedora:38:amd64:
 
 stress:rpz:fedora:38:amd64:
   <<: *fedora_38_amd64_image
-  <<: *linux_stress_amd64
+  <<: *linux_amd64
   <<: *stress_job
   variables:
     CC: gcc
@@ -1628,7 +1623,7 @@ stress:rpz:fedora:38:amd64:
 
 stress:authoritative:fedora:38:arm64:
   <<: *fedora_38_arm64_image
-  <<: *linux_stress_arm64
+  <<: *linux_arm64
   <<: *stress_job
   variables:
     CC: gcc
@@ -1643,7 +1638,7 @@ stress:authoritative:fedora:38:arm64:
 
 stress:recursive:fedora:38:arm64:
   <<: *fedora_38_arm64_image
-  <<: *linux_stress_arm64
+  <<: *linux_arm64
   <<: *stress_job
   variables:
     CC: gcc
@@ -1658,7 +1653,7 @@ stress:recursive:fedora:38:arm64:
 
 stress:rpz:fedora:38:arm64:
   <<: *fedora_38_arm64_image
-  <<: *linux_stress_arm64
+  <<: *linux_arm64
   <<: *stress_job
   variables:
     CC: gcc
