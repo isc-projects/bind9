@@ -190,7 +190,8 @@ new_hashmap(isc_mem_t *mem) {
 
 static bool
 name_match(void *node, const void *key) {
-	return (dns_name_equal(node, key));
+	const struct item_s *i = node;
+	return (dns_name_equal(&i->fixed.name, key));
 }
 
 static isc_result_t
