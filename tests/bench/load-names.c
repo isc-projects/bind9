@@ -190,7 +190,8 @@ new_hashmap(isc_mem_t *mem) {
 
 static bool
 name_match(void *node, const void *key) {
-	return (dns_name_equal(node, key));
+	const struct item_s *i = node;
+	return (dns_name_equal(&i->fixed.name, key));
 }
 
 static isc_result_t
@@ -552,7 +553,7 @@ main(int argc, char *argv[]) {
 			isc_mem_create(&mem);
 			map = fun->new (mem);
 
-			size_t nitems = ARRAY_SIZE(item) / (nthreads + 1);
+			size_t nitems = lines / (nthreads + 1);
 
 			isc_barrier_init(&barrier, nthreads);
 
