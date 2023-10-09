@@ -465,10 +465,10 @@ static void
 query_addnxrrsetnsec(query_ctx_t *qctx);
 
 static isc_result_t
-query_nxdomain(query_ctx_t *qctx, isc_result_t res);
+query_nxdomain(query_ctx_t *qctx, isc_result_t result);
 
 static isc_result_t
-query_redirect(query_ctx_t *qctx);
+query_redirect(query_ctx_t *qctx, isc_result_t result);
 
 static isc_result_t
 query_ncache(query_ctx_t *qctx, isc_result_t result);
@@ -7718,8 +7718,7 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
  * result from the search.
  */
 static isc_result_t
-query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
-	isc_result_t result = res;
+query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	char errmsg[256];
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_gotanswer");
@@ -7795,7 +7794,7 @@ root_key_sentinel:
 		return (query_coveringnsec(qctx));
 
 	case DNS_R_NCACHENXDOMAIN:
-		result = query_redirect(qctx);
+		result = query_redirect(qctx, result);
 		if (result != ISC_R_COMPLETE) {
 			return (result);
 		}
@@ -9612,11 +9611,10 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
  * Handle NXDOMAIN and empty wildcard responses.
  */
 static isc_result_t
-query_nxdomain(query_ctx_t *qctx, isc_result_t res) {
+query_nxdomain(query_ctx_t *qctx, isc_result_t result) {
 	dns_section_t section;
 	uint32_t ttl;
-	isc_result_t result = res;
-	bool empty_wild = (res == DNS_R_EMPTYWILD);
+	bool empty_wild = (result == DNS_R_EMPTYWILD);
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_nxdomain");
 
@@ -9625,7 +9623,7 @@ query_nxdomain(query_ctx_t *qctx, isc_result_t res) {
 	INSIST(qctx->is_zone || REDIRECT(qctx->client));
 
 	if (!empty_wild) {
-		result = query_redirect(qctx);
+		result = query_redirect(qctx, result);
 		if (result != ISC_R_COMPLETE) {
 			return (result);
 		}
@@ -9713,7 +9711,7 @@ cleanup:
  * redirecting, so query processing should continue past it.
  */
 static isc_result_t
-query_redirect(query_ctx_t *qctx) {
+query_redirect(query_ctx_t *qctx, isc_result_t saved_result) {
 	isc_result_t result;
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_redirect");
@@ -9754,7 +9752,7 @@ query_redirect(query_ctx_t *qctx) {
 		SAVE(qctx->client->query.redirect.rdataset, qctx->rdataset);
 		SAVE(qctx->client->query.redirect.sigrdataset,
 		     qctx->sigrdataset);
-		qctx->client->query.redirect.result = DNS_R_NCACHENXDOMAIN;
+		qctx->client->query.redirect.result = saved_result;
 		dns_name_copy(qctx->fname, qctx->client->query.redirect.fname);
 		qctx->client->query.redirect.authoritative =
 			qctx->authoritative;
@@ -10415,7 +10413,7 @@ query_coveringnsec(query_ctx_t *qctx) {
 	 * We now have the proof that we have an NXDOMAIN.  Apply
 	 * NXDOMAIN redirection if configured.
 	 */
-	result = query_redirect(qctx);
+	result = query_redirect(qctx, DNS_R_COVERINGNSEC);
 	if (result != ISC_R_COMPLETE) {
 		redirected = true;
 		goto cleanup;
