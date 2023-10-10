@@ -4,7 +4,8 @@
 
 6317.	[placeholder]
 
-6316.	[placeholder]
+6316.	[security]	Specific queries could trigger an assertion check with
+			nxdomain-redirect enabled. (CVE-2023-5517) [GL #4281]
 
 6315.	[security]	Speed up parsing of DNS messages with many different
 			names. (CVE-2023-4408) [GL #4234]
