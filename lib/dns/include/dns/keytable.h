@@ -287,9 +287,9 @@ dns_keynode_trust(dns_keynode_t *keynode);
 
 void
 dns_keytable_forall(dns_keytable_t *keytable,
-		    void (*func)(dns_keytable_t *, dns_keynode_t *,
-				 dns_name_t *, void *),
-		    void *arg);
+		    void	    (*func)(dns_keytable_t *, dns_keynode_t *,
+				    dns_name_t *, void *),
+		    void	   *arg);
 /*%<
  * Call 'func' on each keynode in 'keytable'.
  */

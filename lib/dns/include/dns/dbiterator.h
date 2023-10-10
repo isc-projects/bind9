@@ -68,7 +68,7 @@ ISC_LANG_BEGINDECLS
 *****/
 
 typedef struct dns_dbiteratormethods {
-	void (*destroy)(dns_dbiterator_t **iteratorp DNS__DB_FLARG);
+	void	     (*destroy)(dns_dbiterator_t **iteratorp DNS__DB_FLARG);
 	isc_result_t (*first)(dns_dbiterator_t *iterator DNS__DB_FLARG);
 	isc_result_t (*last)(dns_dbiterator_t *iterator DNS__DB_FLARG);
 	isc_result_t (*seek)(dns_dbiterator_t	   *iterator,

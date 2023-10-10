@@ -78,15 +78,15 @@ extern unsigned int dns_pps;
 *****/
 
 typedef struct dns_dbmethods {
-	void (*destroy)(dns_db_t *db);
+	void	     (*destroy)(dns_db_t *db);
 	isc_result_t (*beginload)(dns_db_t	       *db,
 				  dns_rdatacallbacks_t *callbacks);
 	isc_result_t (*endload)(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
 	void (*currentversion)(dns_db_t *db, dns_dbversion_t **versionp);
 	isc_result_t (*newversion)(dns_db_t *db, dns_dbversion_t **versionp);
-	void (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
+	void	     (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
 			      dns_dbversion_t **targetp);
-	void (*closeversion)(dns_db_t *db, dns_dbversion_t **versionp,
+	void	     (*closeversion)(dns_db_t *db, dns_dbversion_t **versionp,
 			     bool commit DNS__DB_FLARG);
 	isc_result_t (*findnode)(dns_db_t *db, const dns_name_t *name,
 				 bool		      create,
@@ -103,7 +103,7 @@ typedef struct dns_dbmethods {
 				    dns_name_t		       *dcname,
 				    dns_rdataset_t	       *rdataset,
 				    dns_rdataset_t *sigrdataset DNS__DB_FLARG);
-	void (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
+	void	     (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
 			   dns_dbnode_t **targetp DNS__DB_FLARG);
 	void (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
 	isc_result_t (*createiterator)(dns_db_t *db, unsigned int options,
@@ -131,9 +131,9 @@ typedef struct dns_dbmethods {
 				       dns_dbversion_t	     *version,
 				       dns_rdatatype_t	      type,
 				       dns_rdatatype_t covers DNS__DB_FLARG);
-	bool (*issecure)(dns_db_t *db);
+	bool	     (*issecure)(dns_db_t *db);
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
-	void (*setloop)(dns_db_t *db, isc_loop_t *);
+	void	     (*setloop)(dns_db_t *db, isc_loop_t *);
 	isc_result_t (*getoriginnode)(dns_db_t		  *db,
 				      dns_dbnode_t **nodep DNS__DB_FLARG);
 	isc_result_t (*getnsec3parameters)(dns_db_t	   *db,
@@ -164,7 +164,7 @@ typedef struct dns_dbmethods {
 				dns_rdataset_t		   *rdataset,
 				dns_rdataset_t *sigrdataset DNS__DB_FLARG);
 	isc_result_t (*setcachestats)(dns_db_t *db, isc_stats_t *stats);
-	size_t (*hashsize)(dns_db_t *db);
+	size_t	     (*hashsize)(dns_db_t *db);
 	isc_result_t (*getsize)(dns_db_t *db, dns_dbversion_t *version,
 				uint64_t *records, uint64_t *bytes);
 	isc_result_t (*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
