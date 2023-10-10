@@ -1285,7 +1285,7 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (zone->rpzs != NULL) {
 		REQUIRE(zone->rpz_num < zone->rpzs->p.num_zones);
-		dns_rpz_detach_rpzs(&zone->rpzs);
+		dns_rpz_zones_detach(&zone->rpzs);
 		zone->rpz_num = DNS_RPZ_INVALID_NUM;
 	}
 	if (zone->catzs != NULL) {
@@ -1879,7 +1879,7 @@ dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
 		REQUIRE(zone->rpzs == rpzs && zone->rpz_num == rpz_num);
 	} else {
 		REQUIRE(zone->rpz_num == DNS_RPZ_INVALID_NUM);
-		dns_rpz_attach_rpzs(rpzs, &zone->rpzs);
+		dns_rpz_zones_attach(rpzs, &zone->rpzs);
 		zone->rpz_num = rpz_num;
 	}
 	rpzs->defined |= DNS_RPZ_ZBIT(rpz_num);

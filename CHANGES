@@ -1,3 +1,6 @@
+6263.	[func]		Convert the RPZ summary database to use a QP trie
+			instead of an RBT. [GL !8352]
+
 6262.	[bug]		Duplicate control sockets didn't generate a
 			configuration failure leading to hard to diagnose
 			rndc connection errors.  These are now caught by
@@ -7,7 +10,7 @@
 			resolver.c:fctx_query(), when using an uninitialized
 			link. [GL #4331]
 
-6260.	[func]		Added opptions to the QP trie that will be needed
+6260.	[func]		Added options to the QP trie that will be needed
 			when it is used as a zone or cache database: backward
 			iteration, and retrieval of DNSSEC predecessor
 			nodes and node chains. [GL !8338]

@@ -29,6 +29,7 @@
 #include <isc/timer.h>
 
 #include <dns/fixedname.h>
+#include <dns/qp.h>
 #include <dns/rdata.h>
 #include <dns/types.h>
 
@@ -269,7 +270,7 @@ struct dns_rpz_zones {
 	bool shuttingdown;
 
 	dns_rpz_cidr_node_t *cidr;
-	dns_rbt_t	    *rbt;
+	dns_qpmulti_t	    *table;
 
 	/*
 	 * DNSRPZ librpz configuration string and handle on librpz connection
@@ -394,7 +395,7 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 		     dns_name_t *selfname);
 
 isc_result_t
-dns_rpz_new_zones(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, char *rps_cstr,
+dns_rpz_new_zones(dns_view_t *view, isc_loopmgr_t *loopmgr, char *rps_cstr,
 		  size_t rps_cstr_size, dns_rpz_zones_t **rpzsp);
 
 isc_result_t
@@ -411,27 +412,17 @@ void
 dns_rpz_zones_shutdown(dns_rpz_zones_t *rpzs);
 
 #ifdef DNS_RPZ_TRACE
-/* Compatibility macros */
-#define dns_rpz_detach_rpzs(rpzsp) \
+#define dns_rpz_zones_detach(rpzsp) \
 	dns_rpz_zones__detach(rpzsp, __func__, __FILE__, __LINE__)
-#define dns_rpz_attach_rpzs(rpzs, rpzsp) \
+#define dns_rpz_zones_attach(rpzs, rpzsp) \
 	dns_rpz_zones__attach(rpzs, rpzsp, __func__, __FILE__, __LINE__)
-#define dns_rpz_ref_rpzs(ptr) \
+#define dns_rpz_zones_ref(ptr) \
 	dns_rpz_zones__ref(ptr, __func__, __FILE__, __LINE__)
-#define dns_rpz_unref_rpzs(ptr) \
+#define dns_rpz_zones_unref(ptr) \
 	dns_rpz_zones__unref(ptr, __func__, __FILE__, __LINE__)
-#define dns_rpz_shutdown_rpzs(rpzs) \
-	dns_rpz_zones_shutdown(rpzs, __func__, __FILE__, __LINE__)
 
 ISC_REFCOUNT_TRACE_DECL(dns_rpz_zones);
 #else
-/* Compatibility macros */
-#define dns_rpz_detach_rpzs(rpzsp)	 dns_rpz_zones_detach(rpzsp)
-#define dns_rpz_attach_rpzs(rpzs, rpzsp) dns_rpz_zones_attach(rpzs, rpzsp)
-#define dns_rpz_shutdown_rpzs(rpzsp)	 dns_rpz_zones_shutdown(rpzsp)
-#define dns_rpz_ref_rpzs(ptr)		 dns_rpz_zones_ref(ptr)
-#define dns_rpz_unref_rpzs(ptr)		 dns_rpz_zones_unref(ptr)
-
 ISC_REFCOUNT_DECL(dns_rpz_zones);
 #endif
 
