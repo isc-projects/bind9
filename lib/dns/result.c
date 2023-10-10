@@ -405,7 +405,7 @@ dns_result_torcode(isc_result_t result) {
 		 * Rcodes can't be bigger than 12 bits, which is why we
 		 * AND with 0xFFF instead of 0xFFFF.
 		 */
-		return ((dns_rcode_t)((result)&0xFFF));
+		return ((dns_rcode_t)((result) & 0xFFF));
 	}
 
 	/*

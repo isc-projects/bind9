@@ -442,8 +442,8 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
  * These are currently used on simple unsigned ints, so they are
  * not really associated with any particular type.
  */
-#define WANT_INET(x)  (((x)&DNS_ADBFIND_INET) != 0)
-#define WANT_INET6(x) (((x)&DNS_ADBFIND_INET6) != 0)
+#define WANT_INET(x)  (((x) & DNS_ADBFIND_INET) != 0)
+#define WANT_INET6(x) (((x) & DNS_ADBFIND_INET6) != 0)
 
 #define EXPIRE_OK(exp, now) ((exp == INT_MAX) || (exp < now))
 
@@ -452,11 +452,11 @@ log_quota(dns_adbentry_t *entry, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
  * glue, and compare this to the appropriate bits set in o, to see if
  * this is ok.
  */
-#define GLUE_OK(nf, o)	   (!NAME_GLUEOK(nf) || (((o)&DNS_ADBFIND_GLUEOK) != 0))
-#define HINT_OK(nf, o)	   (!NAME_HINTOK(nf) || (((o)&DNS_ADBFIND_HINTOK) != 0))
+#define GLUE_OK(nf, o)	   (!NAME_GLUEOK(nf) || (((o) & DNS_ADBFIND_GLUEOK) != 0))
+#define HINT_OK(nf, o)	   (!NAME_HINTOK(nf) || (((o) & DNS_ADBFIND_HINTOK) != 0))
 #define GLUEHINT_OK(nf, o) (GLUE_OK(nf, o) || HINT_OK(nf, o))
 #define STARTATZONE_MATCHES(nf, o) \
-	(((nf)->flags & NAME_STARTATZONE) == ((o)&DNS_ADBFIND_STARTATZONE))
+	(((nf)->flags & NAME_STARTATZONE) == ((o) & DNS_ADBFIND_STARTATZONE))
 
 #define ENTER_LEVEL  ISC_LOG_DEBUG(50)
 #define EXIT_LEVEL   ENTER_LEVEL

@@ -184,16 +184,16 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 /*% memory and memory pool methods */
 typedef struct isc_memmethods {
 	void *(*memget)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
-	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
-				size_t size _ISC_MEM_FLARG);
+	void  (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
+	void  (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
+				 size_t size _ISC_MEM_FLARG);
 	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
 	void *(*memreallocate)(isc_mem_t *mctx, void *ptr,
 			       size_t size _ISC_MEM_FLARG);
 	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
 	char *(*memstrndup)(isc_mem_t *mctx, const char *s,
 			    size_t size _ISC_MEM_FLARG);
-	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
+	void  (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
 } isc_memmethods_t;
 
 /*%
