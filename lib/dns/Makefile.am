@@ -125,10 +125,9 @@ libdns_la_HEADERS =			\
 	include/dns/ssu.h		\
 	include/dns/stats.h		\
 	include/dns/time.h		\
-	include/dns/trace.h		\
-	include/dns/transport.h		\
 	include/dns/tkey.h		\
 	include/dns/trace.h		\
+	include/dns/transport.h		\
 	include/dns/tsig.h		\
 	include/dns/ttl.h		\
 	include/dns/types.h		\
