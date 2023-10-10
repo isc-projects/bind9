@@ -15,7 +15,7 @@ variables:
   TEST_PARALLEL_JOBS: 4
 
   CONFIGURE: ./configure
-  CLANG_VERSION: 16
+  CLANG_VERSION: 17
   CLANG: "clang-${CLANG_VERSION}"
   SCAN_BUILD: "scan-build-${CLANG_VERSION}"
   LLVM_SYMBOLIZER: "/usr/lib/llvm-${CLANG_VERSION}/bin/llvm-symbolizer"
