@@ -500,14 +500,16 @@ static isc_result_t
 opensslrsa_generate_pkey_with_uri(size_t key_size, const char *label,
 				  EVP_PKEY **retkey) {
 	EVP_PKEY_CTX *ctx = NULL;
-	OSSL_PARAM params[3];
+	OSSL_PARAM params[4];
 	char *uri = UNCONST(label);
 	isc_result_t ret;
 	int status;
 
 	params[0] = OSSL_PARAM_construct_utf8_string("pkcs11_uri", uri, 0);
-	params[1] = OSSL_PARAM_construct_size_t("rsa_keygen_bits", &key_size);
-	params[2] = OSSL_PARAM_construct_end();
+	params[1] = OSSL_PARAM_construct_utf8_string(
+		"pkcs11_key_usage", (char *)"digitalSignature", 0);
+	params[2] = OSSL_PARAM_construct_size_t("rsa_keygen_bits", &key_size);
+	params[3] = OSSL_PARAM_construct_end();
 
 	ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", "provider=pkcs11");
 	if (ctx == NULL) {
