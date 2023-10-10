@@ -23,6 +23,10 @@ Security Fixes
   University, and Yuval Shavitt from Tel-Aviv University for bringing
   this vulnerability to our attention. :gl:`#4234`
 
+- Specific queries could cause :iscman:`named` to crash with an
+  assertion failure when ``nxdomain-redirect`` was enabled. This has
+  been fixed. :cve:`2023-5517` :gl:`#4281`
+
 New Features
 ~~~~~~~~~~~~
 
