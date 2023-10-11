@@ -15,7 +15,13 @@ Notes for BIND 9.16.46
 Security Fixes
 ~~~~~~~~~~~~~~
 
-- None.
+- Parsing DNS messages with many different names could cause excessive
+  CPU load. This has been fixed. :cve:`2023-4408`
+
+  ISC would like to thank Shoham Danino from Reichman University, Anat
+  Bremler-Barr from Tel-Aviv University, Yehuda Afek from Tel-Aviv
+  University, and Yuval Shavitt from Tel-Aviv University for bringing
+  this vulnerability to our attention. :gl:`#4234`
 
 New Features
 ~~~~~~~~~~~~
