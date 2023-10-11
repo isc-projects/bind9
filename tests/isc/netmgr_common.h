@@ -42,6 +42,9 @@ extern isc_tlsctx_t *tcp_listen_tlsctx;
 extern isc_tlsctx_t *tcp_connect_tlsctx;
 extern isc_tlsctx_client_session_cache_t *tcp_tlsctx_client_sess_cache;
 
+extern isc_sockaddr_t udp_listen_addr;
+extern isc_sockaddr_t udp_connect_addr;
+
 extern uint64_t send_magic;
 extern uint64_t stop_magic;
 
@@ -432,3 +435,111 @@ proxystreamtls_shutdownread_teardown(void **state);
 
 void
 stop_listening(void *arg ISC_ATTR_UNUSED);
+
+/* UDP */
+
+/* Timeout for soft-timeout tests (0.05 seconds) */
+#define UDP_T_SOFT 50
+
+/* Timeouts in miliseconds */
+#define UDP_T_INIT	 120 * 1000
+#define UDP_T_IDLE	 120 * 1000
+#define UDP_T_KEEPALIVE	 120 * 1000
+#define UDP_T_ADVERTISED 120 * 1000
+#define UDP_T_CONNECT	 30 * 1000
+
+int
+setup_udp_test(void **state);
+
+int
+teardown_udp_test(void **state);
+
+int
+udp_noop_setup(void **state);
+
+int
+udp_noop_teardown(void **state);
+
+void
+udp_noop(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_noresponse_setup(void **state);
+
+int
+udp_noresponse_teardown(void **state);
+
+void
+udp_noresponse(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_timeout_recovery_setup(void **state);
+
+int
+udp_timeout_recovery_teardown(void **state);
+
+void
+udp_timeout_recovery(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_shutdown_connect_setup(void **state);
+
+int
+udp_shutdown_connect_teardown(void **state);
+
+void
+udp_shutdown_connect(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_shutdown_read_setup(void **state);
+
+int
+udp_shutdown_read_teardown(void **state);
+
+void
+udp_shutdown_read(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_cancel_read_setup(void **state);
+
+int
+udp_cancel_read_teardown(void **state);
+
+void
+udp_cancel_read(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_recv_one_setup(void **state);
+
+int
+udp_recv_one_teardown(void **state);
+
+void
+udp_recv_one(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_recv_two_setup(void **state);
+
+int
+udp_recv_two_teardown(void **state);
+
+void
+udp_recv_two(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_recv_send_setup(void **state);
+
+int
+udp_recv_send_teardown(void **state);
+
+void
+udp_recv_send(void **arg ISC_ATTR_UNUSED);
+
+int
+udp_double_read_setup(void **state);
+
+int
+udp_double_read_teardown(void **state);
+
+void
+udp_double_read(void **arg ISC_ATTR_UNUSED);
