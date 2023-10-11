@@ -337,14 +337,14 @@ dnssec-policy \"insecure\" {\n\
 			    "# END TRUST ANCHORS\n\
 \n\
 primaries " DEFAULT_IANA_ROOT_ZONE_PRIMARIES " {\n\
-	2001:500:200::b;	# b.root-servers.net\n\
+	2801:1b8:10::b;		# b.root-servers.net\n\
 	2001:500:2::c;		# c.root-servers.net\n\
 	2001:500:2f::f;		# f.root-servers.net\n\
 	2001:500:12::d0d;	# g.root-servers.net\n\
 	2001:7fd::1;		# k.root-servers.net\n\
 	2620:0:2830:202::132;	# xfr.cjr.dns.icann.org\n\
 	2620:0:2d0:202::132;	# xfr.lax.dns.icann.org\n\
-	199.9.14.201;		# b.root-servers.net\n\
+	170.247.170.2;		# b.root-servers.net\n\
 	192.33.4.12;		# c.root-servers.net\n\
 	192.5.5.241;		# f.root-servers.net\n\
 	192.112.36.4;		# g.root-servers.net\n\
