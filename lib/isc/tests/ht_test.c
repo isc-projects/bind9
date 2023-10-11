@@ -60,8 +60,7 @@ test_ht_full(int bits, uintptr_t count) {
 				  NULL, &mctx, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_ht_init(&ht, mctx, bits);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_init(&ht, mctx, bits, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -214,8 +213,7 @@ test_ht_iterator() {
 				  NULL, &mctx, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_ht_init(&ht, mctx, 16);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_init(&ht, mctx, 16, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -229,8 +227,7 @@ test_ht_iterator() {
 	}
 
 	walked = 0;
-	result = isc_ht_iter_create(ht, &iter);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_ht_iter_create(ht, &iter);
 
 	for (result = isc_ht_iter_first(iter);
 	     result == ISC_R_SUCCESS;

@@ -868,16 +868,12 @@ dns_message_detach(dns_message_t **messagep) {
 
 static isc_result_t
 name_hash_add(isc_ht_t *ht, dns_name_t *name, dns_name_t **foundp) {
-	dns_fixedname_t fixed;
-	dns_name_t *key = dns_fixedname_initname(&fixed);
-	dns_name_downcase(name, key, NULL);
-
-	isc_result_t result = isc_ht_find(ht, key->ndata, key->length,
+	isc_result_t result = isc_ht_find(ht, name->ndata, name->length,
 					  (void **)foundp);
 	if (result == ISC_R_SUCCESS) {
 		return (ISC_R_EXISTS);
 	}
-	result = isc_ht_add(ht, key->ndata, key->length, (void *)name);
+	result = isc_ht_add(ht, name->ndata, name->length, (void *)name);
 	INSIST(result == ISC_R_SUCCESS);
 	return (ISC_R_SUCCESS);
 }
@@ -1226,7 +1222,8 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Can't ask the same question twice.
 		 */
 		if (name->ht == NULL) {
-			isc_ht_init(&name->ht, msg->mctx, 1);
+			isc_ht_init(&name->ht, msg->mctx, 1,
+				    ISC_HT_CASE_SENSITIVE);
 			free_ht = true;
 
 			dns_rdataset_t *old_rdataset = NULL;
