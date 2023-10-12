@@ -1997,7 +1997,7 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 static inline void
 add_link(dns_qpchain_t *chain, dns_qpnode_t *node, size_t offset) {
 	/* prevent duplication */
-	if (chain->chain[chain->len - 1].node == node) {
+	if (chain->len != 0 && chain->chain[chain->len - 1].node == node) {
 		return;
 	}
 	chain->chain[chain->len].node = node;
