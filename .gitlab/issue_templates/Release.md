@@ -52,7 +52,7 @@
 
 ### Before the ASN Deadline (for ASN Releases) or the Public Release Date (for Regular Releases)
 
- - [ ] ***(QA)*** Check that the formatting is correct for HTML and PDF versions of release notes.
+ - [ ] ***(QA)*** Check that the formatting is correct for the HTML version of release notes.
  - [ ] ***(QA)*** Check that the formatting of the generated man pages is correct.
  - [ ] ***(QA)*** Verify GitLab CI results [for the tags](https://gitlab.isc.org/isc-private/bind9/-/pipelines?scope=tags) created and sign off on the releases to be published.
  - [ ] ***(QA)*** Update GitLab settings for all maintained branches to allow merging to them again: [public](https://gitlab.isc.org/isc-projects/bind9/-/settings/repository), [private](https://gitlab.isc.org/isc-private/bind9/-/settings/repository)
