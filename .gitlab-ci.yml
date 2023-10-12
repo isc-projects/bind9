@@ -611,7 +611,6 @@ docs:
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} doc V=1
     - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
-    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
   artifacts:
     paths:
@@ -619,6 +618,20 @@ docs:
       - doc/man/
       - doc/misc/
     when: always
+  needs: []
+
+docs:pdf:
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *base_image
+  stage: docs
+  before_script:
+    - apt-get -y install qpdf texlive-full texlive-xetex xindy
+  script:
+    - *configure
+    - make -C doc/arm/ pdf V=1
+    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
+  artifacts:
+    untracked: true
   needs: []
 
 # Jobs for regular GCC builds on Alpine Linux 3.18 (amd64)
@@ -1400,6 +1413,8 @@ release:
     - job: msvc-debug:windows:amd64
       artifacts: true
     - job: docs
+      artifacts: true
+    - job: docs:pdf
       artifacts: true
   only:
     - tags
