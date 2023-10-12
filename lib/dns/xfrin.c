@@ -52,24 +52,13 @@
  * Incoming AXFR and IXFR.
  */
 
-/*%
- * It would be non-sensical (or at least obtuse) to use FAIL() with an
- * ISC_R_SUCCESS code, but the test is there to keep the Solaris compiler
- * from complaining about "end-of-loop code not reached".
- */
-#define FAIL(code)                           \
-	do {                                 \
-		result = (code);             \
-		if (result != ISC_R_SUCCESS) \
-			goto failure;        \
-	} while (0)
-
-#define CHECK(op)                            \
-	do {                                 \
-		result = (op);               \
-		if (result != ISC_R_SUCCESS) \
-			goto failure;        \
-	} while (0)
+#define CHECK(op)                              \
+	{                                      \
+		result = (op);                 \
+		if (result != ISC_R_SUCCESS) { \
+			goto failure;          \
+		}                              \
+	}
 
 /*%
  * The states of the *XFR state machine.  We handle both IXFR and AXFR
@@ -451,10 +440,7 @@ ixfr_apply(dns_xfrin_t *xfr) {
 		}
 	}
 	if (xfr->ixfr.journal != NULL) {
-		result = dns_journal_writediff(xfr->ixfr.journal, &xfr->diff);
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
+		CHECK(dns_journal_writediff(xfr->ixfr.journal, &xfr->diff));
 	}
 	dns_diff_clear(&xfr->diff);
 	xfr->difflen = 0;
@@ -506,7 +492,8 @@ xfr_rr(dns_xfrin_t *xfr, dns_name_t *name, uint32_t ttl, dns_rdata_t *rdata) {
 		dns_rdatatype_format(rdata->type, buf, sizeof(buf));
 		xfrin_log(xfr, ISC_LOG_NOTICE,
 			  "Unexpected %s record in zone transfer", buf);
-		FAIL(DNS_R_FORMERR);
+		result = DNS_R_FORMERR;
+		goto failure;
 	}
 
 	/*
@@ -521,7 +508,8 @@ xfr_rr(dns_xfrin_t *xfr, dns_name_t *name, uint32_t ttl, dns_rdata_t *rdata) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "SOA name mismatch: '%s'",
 			  namebuf);
-		FAIL(DNS_R_NOTZONETOP);
+		result = DNS_R_NOTZONETOP;
+		goto failure;
 	}
 
 redo:
@@ -530,7 +518,8 @@ redo:
 		if (rdata->type != dns_rdatatype_soa) {
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "non-SOA response to SOA query");
-			FAIL(DNS_R_FORMERR);
+			result = DNS_R_FORMERR;
+			goto failure;
 		}
 		LOCK(&xfr->statslock);
 		xfr->end_serial = dns_soa_getserial(rdata);
@@ -542,7 +531,8 @@ redo:
 				  "requested serial %u, "
 				  "primary has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
-			FAIL(DNS_R_UPTODATE);
+			result = DNS_R_UPTODATE;
+			goto failure;
 		}
 		atomic_store(&xfr->state, XFRST_GOTSOA);
 		break;
@@ -557,7 +547,8 @@ redo:
 		if (rdata->type != dns_rdatatype_soa) {
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "first RR in zone transfer must be SOA");
-			FAIL(DNS_R_FORMERR);
+			result = DNS_R_FORMERR;
+			goto failure;
 		}
 		/*
 		 * Remember the serial number in the initial SOA.
@@ -579,7 +570,8 @@ redo:
 				  "requested serial %u, "
 				  "primary has %u, not updating",
 				  xfr->ixfr.request_serial, xfr->end_serial);
-			FAIL(DNS_R_UPTODATE);
+			result = DNS_R_UPTODATE;
+			goto failure;
 		}
 		xfr->firstsoa = *rdata;
 		if (xfr->firstsoa_data != NULL) {
@@ -646,7 +638,8 @@ redo:
 					  "IXFR out of sync: "
 					  "expected serial %u, got %u",
 					  xfr->ixfr.current_serial, soa_serial);
-				FAIL(DNS_R_FORMERR);
+				result = DNS_R_FORMERR;
+				goto failure;
 			} else {
 				CHECK(ixfr_commit(xfr));
 				atomic_store(&xfr->state, XFRST_IXFR_DELSOA);
@@ -656,7 +649,8 @@ redo:
 		if (rdata->type == dns_rdatatype_ns &&
 		    dns_name_iswildcard(name))
 		{
-			FAIL(DNS_R_INVALIDNS);
+			result = DNS_R_INVALIDNS;
+			goto failure;
 		}
 		CHECK(ixfr_putdata(xfr, DNS_DIFFOP_ADD, name, ttl, rdata));
 		break;
@@ -681,7 +675,8 @@ redo:
 				xfrin_log(xfr, ISC_LOG_NOTICE,
 					  "start and ending SOA records "
 					  "mismatch");
-				FAIL(DNS_R_FORMERR);
+				result = DNS_R_FORMERR;
+				goto failure;
 			}
 			CHECK(axfr_commit(xfr));
 			atomic_store(&xfr->state, XFRST_AXFR_END);
@@ -690,8 +685,8 @@ redo:
 		break;
 	case XFRST_AXFR_END:
 	case XFRST_IXFR_END:
-		FAIL(DNS_R_EXTRADATA);
-		FALLTHROUGH;
+		result = DNS_R_EXTRADATA;
+		goto failure;
 	default:
 		UNREACHABLE();
 	}
@@ -1675,23 +1670,23 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_QUESTION, &name);
 		if (!dns_name_equal(name, &xfr->name)) {
-			result = DNS_R_FORMERR;
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question name mismatch");
+			result = DNS_R_FORMERR;
 			goto failure;
 		}
 		rds = ISC_LIST_HEAD(name->list);
 		INSIST(rds != NULL);
 		if (rds->type != xfr->reqtype) {
-			result = DNS_R_FORMERR;
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question type mismatch");
+			result = DNS_R_FORMERR;
 			goto failure;
 		}
 		if (rds->rdclass != xfr->rdclass) {
-			result = DNS_R_FORMERR;
 			xfrin_log(xfr, ISC_LOG_NOTICE,
 				  "question class mismatch");
+			result = DNS_R_FORMERR;
 			goto failure;
 		}
 	}
@@ -1717,7 +1712,8 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	if (xfr->reqtype == dns_rdatatype_soa &&
 	    (msg->flags & DNS_MESSAGEFLAG_AA) == 0)
 	{
-		FAIL(DNS_R_NOTAUTHORITATIVE);
+		result = DNS_R_NOTAUTHORITATIVE;
+		goto failure;
 	}
 
 	result = dns_message_checksig(msg, xfr->view);
