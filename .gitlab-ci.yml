@@ -514,7 +514,6 @@ cross-version-config-tests:
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
-    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
 
 .respdiff: &respdiff_job
@@ -676,6 +675,22 @@ docs:tarball:
   needs:
     - job: tarball-create
       artifacts: true
+
+docs:pdf:
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  <<: *base_image
+  stage: docs
+  before_script:
+    - apt-get -y install qpdf texlive-full texlive-xetex xindy
+  script:
+    - *configure
+    - make -C doc/arm/ pdf V=1
+    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    untracked: true
 
 # Jobs for regular GCC builds on Alpine Linux 3.18 (amd64)
 
@@ -1391,6 +1406,8 @@ release:
     - job: tarball-create
       artifacts: true
     - job: docs
+      artifacts: true
+    - job: docs:pdf
       artifacts: true
   only:
     - tags
