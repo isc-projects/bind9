@@ -102,17 +102,7 @@ install-epub:
 	$(INSTALL) -d $(DESTDIR)/$(docdir)
 	$(INSTALL_DATA) $(SPHINXBUILDDIR)/epub/*.epub $(DESTDIR)/$(docdir)/
 
-if HAVE_XELATEX
-pdf-local:
-	$(AM_V_SPHINX)$(SPHINX_BUILD) -b latex -d $(SPHINXBUILDDIR)/.doctrees/latex $(ALLSPHINXOPTS) $(SPHINXBUILDDIR)/latex
-	$(MAKE) -C $(SPHINXBUILDDIR)/latex all-pdf
-
-install-pdf-local:
-	$(INSTALL) -d $(DESTDIR)/$(docdir)
-	$(INSTALL_DATA) $(SPHINXBUILDDIR)/latex/*.pdf $(DESTDIR)/$(docdir)/
-endif
-
 clean-local:
 	-rm -rf $(SPHINXBUILDDIR)
 
-doc-local: html singlehtml pdf epub
+doc-local: html singlehtml epub

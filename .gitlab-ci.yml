@@ -497,7 +497,6 @@ cross-version-config-tests:
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k doc V=1
-    - qpdf --check doc/arm/_build/latex/Bv9ARM.pdf
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
 
 .respdiff: &respdiff_job
@@ -1364,7 +1363,6 @@ release:
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
     - mv "../doc/arm/_build/html" doc/arm/
-    - mv "../doc/arm/_build/latex/Bv9ARM.pdf" doc/arm/
     - mv "../doc/arm/_build/epub/Bv9ARM.epub" doc/arm/
     - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
     - popd

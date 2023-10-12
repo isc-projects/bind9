@@ -1271,10 +1271,6 @@ AC_ARG_VAR([SPHINX_BUILD], [path to sphinx-build binary used to build the docume
 AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [])
 AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test -n "$SPHINX_BUILD"])
 
-AC_PATH_PROG([XELATEX], [xelatex], [])
-AC_PATH_PROG([LATEXMK], [latexmk], [])
-AM_CONDITIONAL([HAVE_XELATEX], [test -n "$XELATEX" && test -n "$LATEXMK"])
-
 #
 # Build the man pages only if we have prebuilt manpages or we can build them from RST sources
 #
