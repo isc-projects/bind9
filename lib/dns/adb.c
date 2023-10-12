@@ -3052,10 +3052,8 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 
 	if (factor == DNS_ADB_RTTADJAGE) {
 		if (atomic_load(&addr->entry->lastage) != now) {
-			new_srtt = addr->entry->srtt;
-			new_srtt <<= 9;
-			new_srtt -= addr->entry->srtt;
-			new_srtt >>= 9;
+			new_srtt = (uint64_t)atomic_load(&addr->entry->srtt) *
+				   98 / 100;
 			atomic_store(&addr->entry->lastage, now);
 			atomic_store(&addr->entry->srtt, new_srtt);
 			addr->srtt = new_srtt;
