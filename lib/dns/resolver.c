@@ -3393,8 +3393,6 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 			*overquota = true;
 		}
 		fctx->quotacount++; /* quota exceeded */
-	} else if ((find->options & DNS_ADBFIND_LAMEPRUNED) != 0) {
-		fctx->lamecount++; /* cached lame server */
 	} else {
 		fctx->adberr++; /* unreachable server, etc. */
 	}
@@ -9829,17 +9827,6 @@ rctx_lameserver(respctx_t *rctx) {
 
 	inc_stats(fctx->res, dns_resstatscounter_lame);
 	log_lame(fctx, query->addrinfo);
-	if (fctx->res->lame_ttl != 0) {
-		result = dns_adb_marklame(fctx->adb, query->addrinfo,
-					  fctx->name, fctx->type,
-					  rctx->now + fctx->res->lame_ttl);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
-				      "could not mark server as lame: %s",
-				      isc_result_totext(result));
-		}
-	}
 	rctx->broken_server = DNS_R_LAME;
 	rctx->next_server = true;
 	FCTXTRACE("lame server");

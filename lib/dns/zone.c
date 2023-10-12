@@ -12051,8 +12051,7 @@ notify_find_address(dns_notify_t *notify) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
-		  DNS_ADBFIND_RETURNLAME;
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
 
 	dns_view_getadb(notify->zone->view, &adb);
 	if (adb == NULL) {
@@ -20491,8 +20490,7 @@ checkds_find_address(dns_checkds_t *checkds) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
-		  DNS_ADBFIND_RETURNLAME;
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
 
 	dns_view_getadb(checkds->zone->view, &adb);
 	if (adb == NULL) {
