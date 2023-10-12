@@ -3057,17 +3057,16 @@ adjustsrtt(dns_adbaddrinfo_t *addr, unsigned int rtt, unsigned int factor,
 			new_srtt -= addr->entry->srtt;
 			new_srtt >>= 9;
 			atomic_store(&addr->entry->lastage, now);
-		} else {
-			new_srtt = atomic_load(&addr->entry->srtt)
+			atomic_store(&addr->entry->srtt, new_srtt);
+			addr->srtt = new_srtt;
 		}
 	} else {
 		new_srtt = ((uint64_t)atomic_load(&addr->entry->srtt) / 10 *
 			    factor) +
 			   ((uint64_t)rtt / 10 * (10 - factor));
+		atomic_store(&addr->entry->srtt, new_srtt);
+		addr->srtt = new_srtt;
 	}
-
-	atomic_store(&addr->entry->srtt, new_srtt);
-	addr->srtt = new_srtt;
 
 	(void)atomic_compare_exchange_strong(&addr->entry->expires,
 					     &(isc_stdtime_t){ 0 },
