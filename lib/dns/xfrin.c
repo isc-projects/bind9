@@ -128,7 +128,6 @@ struct dns_xfrin {
 	dns_db_t *db;
 	dns_dbversion_t *ver;
 	dns_diff_t diff; /*%< Pending database changes */
-	int difflen;	 /*%< Number of pending tuples */
 
 	_Atomic xfrin_state_t state;
 	uint32_t expireopt;
@@ -307,9 +306,6 @@ axfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata,
 				   &tuple));
 	dns_diff_append(&xfr->diff, &tuple);
-	if (++xfr->difflen > 100) {
-		CHECK(axfr_apply(xfr));
-	}
 	result = ISC_R_SUCCESS;
 failure:
 	return (result);
@@ -324,7 +320,6 @@ axfr_apply(dns_xfrin_t *xfr) {
 	uint64_t records;
 
 	CHECK(dns_diff_load(&xfr->diff, xfr->axfr.add, xfr->axfr.add_private));
-	xfr->difflen = 0;
 	dns_diff_clear(&xfr->diff);
 	if (xfr->maxrecords != 0U) {
 		result = dns_db_getsize(xfr->db, xfr->ver, &records, NULL);
@@ -380,7 +375,6 @@ ixfr_init(dns_xfrin_t *xfr) {
 
 	atomic_store(&xfr->is_ixfr, true);
 	INSIST(xfr->db != NULL);
-	xfr->difflen = 0;
 
 	journalfile = dns_zone_getjournal(xfr->zone);
 	if (journalfile != NULL) {
@@ -409,9 +403,6 @@ ixfr_putdata(dns_xfrin_t *xfr, dns_diffop_t op, dns_name_t *name, dns_ttl_t ttl,
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op, name, ttl, rdata,
 				   &tuple));
 	dns_diff_append(&xfr->diff, &tuple);
-	if (++xfr->difflen > 100) {
-		CHECK(ixfr_apply(xfr));
-	}
 	result = ISC_R_SUCCESS;
 failure:
 	return (result);
@@ -443,7 +434,6 @@ ixfr_apply(dns_xfrin_t *xfr) {
 		CHECK(dns_journal_writediff(xfr->ixfr.journal, &xfr->diff));
 	}
 	dns_diff_clear(&xfr->diff);
-	xfr->difflen = 0;
 	result = ISC_R_SUCCESS;
 failure:
 	return (result);
@@ -932,7 +922,6 @@ xfrin_reset(dns_xfrin_t *xfr) {
 	}
 
 	dns_diff_clear(&xfr->diff);
-	xfr->difflen = 0;
 
 	if (xfr->ixfr.journal != NULL) {
 		dns_journal_destroy(&xfr->ixfr.journal);
