@@ -579,7 +579,9 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 }
 
 static void
-dns__nta_shutdown_cb(dns__nta_t *nta) {
+dns__nta_shutdown_cb(void *arg) {
+	dns__nta_t *nta = arg;
+
 	REQUIRE(VALID_NTA(nta));
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
@@ -602,7 +604,7 @@ dns__nta_shutdown(dns__nta_t *nta) {
 	REQUIRE(VALID_NTA(nta));
 
 	dns__nta_ref(nta);
-	isc_async_run(nta->loop, (isc_job_cb)dns__nta_shutdown_cb, nta);
+	isc_async_run(nta->loop, dns__nta_shutdown_cb, nta);
 	nta->shuttingdown = true;
 }
 
