@@ -367,10 +367,11 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			if (!dns_name_issubdomain(name, rule->name)) {
 				continue;
 			}
-			RWLOCK(&env->rwlock, isc_rwlocktype_read);
-			dns_acl_match(addr, NULL, env->localhost, NULL, &match,
+			rcu_read_lock();
+			dns_acl_t *localhost = rcu_dereference(env->localhost);
+			dns_acl_match(addr, NULL, localhost, NULL, &match,
 				      NULL);
-			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
+			rcu_read_unlock();
 			if (match == 0) {
 				if (signer != NULL) {
 					isc_log_write(dns_lctx,

@@ -3878,10 +3878,7 @@ create_mapped_acl(void) {
 
 	isc_netaddr_fromin6(&addr, &in6);
 
-	result = dns_acl_create(named_g_mctx, 1, &acl);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_acl_create(named_g_mctx, 1, &acl);
 
 	result = dns_iptable_addprefix(acl->iptable, &addr, 96, true);
 	if (result == ISC_R_SUCCESS) {

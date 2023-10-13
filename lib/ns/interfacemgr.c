@@ -308,10 +308,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 	}
 	ns_listenlist_attach(mgr->listenon4, &mgr->listenon6);
 
-	result = dns_aclenv_create(mctx, &mgr->aclenv);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_listenon;
-	}
+	dns_aclenv_create(mctx, &mgr->aclenv);
 #if defined(HAVE_GEOIP2)
 	mgr->aclenv->geoip = geoip;
 #else  /* if defined(HAVE_GEOIP2) */
@@ -347,9 +344,6 @@ ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
 
 	return (ISC_R_SUCCESS);
 
-cleanup_listenon:
-	ns_listenlist_detach(&mgr->listenon4);
-	ns_listenlist_detach(&mgr->listenon6);
 cleanup_lock:
 	isc_mutex_destroy(&mgr->lock);
 	ns_server_detach(&mgr->sctx);
@@ -1104,14 +1098,8 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 		return (result);
 	}
 
-	result = dns_acl_create(mgr->mctx, 0, &localhost);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_iter;
-	}
-	result = dns_acl_create(mgr->mctx, 0, &localnets);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_localhost;
-	}
+	dns_acl_create(mgr->mctx, 0, &localhost);
+	dns_acl_create(mgr->mctx, 0, &localnets);
 
 	clearlistenon(mgr);
 
@@ -1292,13 +1280,9 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 
 	dns_aclenv_set(mgr->aclenv, localhost, localnets);
 
-	/* cleanup_localnets: */
 	dns_acl_detach(&localnets);
-
-cleanup_localhost:
 	dns_acl_detach(&localhost);
 
-cleanup_iter:
 	isc_interfaceiter_destroy(&iter);
 	return (result);
 }

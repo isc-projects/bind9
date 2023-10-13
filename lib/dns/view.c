@@ -157,10 +157,7 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 		goto cleanup_order;
 	}
 
-	result = dns_aclenv_create(view->mctx, &view->aclenv);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_peerlist;
-	}
+	dns_aclenv_create(view->mctx, &view->aclenv);
 
 	dns_nametree_create(view->mctx, DNS_NAMETREE_COUNT, "sfd", &view->sfd);
 
@@ -168,11 +165,6 @@ dns_view_create(isc_mem_t *mctx, dns_dispatchmgr_t *dispatchmgr,
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
-
-cleanup_peerlist:
-	if (view->peers != NULL) {
-		dns_peerlist_detach(&view->peers);
-	}
 
 cleanup_order:
 	if (view->order != NULL) {
