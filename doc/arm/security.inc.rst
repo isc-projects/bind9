@@ -14,6 +14,56 @@
 Security Configurations
 =======================
 
+Security Assumptions
+--------------------
+BIND 9's design assumes that access to the objects listed below is limited only to
+trusted parties. An incorrect deployment, which does not follow rules set by this
+section, cannot be the basis for CVE assignment or special security-sensitive
+handling of issues.
+
+Unauthorized access can potentially disclose sensitive data, slow down server
+operation, etc. Unauthorized, unexpected, or incorrect writes to listed objects
+can potentically cause crashes, incorrect data handling, or corruption.
+
+- All files stored on disk - including zone files, configuration files, key
+  files, temporary files, etc.
+- Clients communicating via :any:`controls` socket using configured keys
+- Access to :any:`statistics-channels` from untrusted clients
+- Sockets used for :any:`update-policy` type `external`
+
+Certain aspects of the DNS protocol are left unspecified, such as the handling of
+responses from DNS servers which do not fully conform to the DNS protocol. For
+such a situation, BIND implements its own safety checks and limits which are
+subject to change as the protocol and deployment evolve.
+
+Authoritative Servers
+~~~~~~~~~~~~~~~~~~~~~
+By default, zones use intentionally lenient limits (unlimited size, long
+transfer timeouts, etc.). These defaults can be misused by the source of data
+(zone transfers or UPDATEs) to exhaust resources on the receiving side.
+
+The impact of malicious zone changes can be limited, to an extent, using
+configuration options listed in sections :ref:`server_resource_limits` and
+:ref:`zone_transfers`. Limits should also be applied to zones where malicious clients may potentially be authorized to use :ref:`dynamic_update`.
+
+DNS Resolvers
+~~~~~~~~~~~~~
+By definition, DNS resolvers act as traffic amplifiers;
+during normal operation, a DNS resolver can legitimately generate more outgoing
+traffic (counted in packets or bytes) than the incoming client traffic that
+triggered it. The DNS protocol specification does not currently specify limits
+for this amplification, but BIND implements its own limits to balance
+interoperability and safety. As a general rule, if a traffic amplification factor
+for any given scenario is lower than 100 packets, ISC does not handle the given
+scenario as a security issue. These limits are subject to change as DNS
+deployment evolves.
+
+All DNS answers received by the DNS resolver are treated as untrusted input and are
+subject to safety and correctness checks. However, protocol non-conformity
+might cause unexpected behavior. If such unexpected behavior is limited to DNS
+domains hosted on non-conformant servers, it is not deemed a security issue *in
+BIND*.
+
 .. _file_permissions:
 
 .. _access_Control_Lists:
