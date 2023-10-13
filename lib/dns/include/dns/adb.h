@@ -61,8 +61,7 @@
  *** Imports
  ***/
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_ADB_TRACE
+/* Add -DDNS_ADB_TRACE=1 to CFLAGS for detailed reference tracing */
 
 #include <inttypes.h>
 #include <stdbool.h>

@@ -59,7 +59,7 @@
 #include <dns/fixedname.h>
 #include <dns/types.h>
 
-#undef DNS_RESOLVER_TRACE
+/* Add -DDNS_RESOLVER_TRACE=1 to CFLAGS for detailed reference tracing */
 
 ISC_LANG_BEGINDECLS
 

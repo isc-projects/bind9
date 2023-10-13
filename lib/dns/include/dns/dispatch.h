@@ -58,7 +58,7 @@
 
 #include <dns/types.h>
 
-#undef DNS_DISPATCH_TRACE
+/* Add -DDNS_DISPATCH_TRACE=1 to CFLAGS for detailed reference tracing */
 
 ISC_LANG_BEGINDECLS
 

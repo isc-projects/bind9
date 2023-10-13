@@ -47,8 +47,7 @@
 ***** Imports
 *****/
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_DB_TRACE
+/* Add -DDNS_DB_TRACE=1 to CFLAGS for detailed reference tracing */
 
 #include <inttypes.h>
 #include <stdbool.h>

@@ -49,7 +49,7 @@
 #include <named/main.h>
 #include <named/server.h>
 
-#undef NAMED_CONTROLCONF_TRACE
+/* Add -DNAMED_CONTROLCONF_TRACE=1 to CFLAGS for detailed reference tracing */
 
 typedef struct controlkey controlkey_t;
 typedef ISC_LIST(controlkey_t) controlkeylist_t;

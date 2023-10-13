@@ -40,8 +40,7 @@
 #include <dns/types.h>
 #include <dns/view.h>
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_NTA_TRACE
+/* Add -DDNS_NTA_TRACE=1 to CFLAGS for detailed reference tracing */
 
 ISC_LANG_BEGINDECLS
 

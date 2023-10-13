@@ -23,7 +23,7 @@
 
 typedef void (*isc_job_cb)(void *);
 
-#undef ISC_LOOP_TRACE
+/* Add -DISC_LOOP_TRACE=1 to CFLAGS for detailed reference tracing */
 
 ISC_LANG_BEGINDECLS
 
