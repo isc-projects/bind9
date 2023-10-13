@@ -235,7 +235,7 @@ noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	     void *cbarg);
 
 isc_result_t
-noop_accept_cb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, unsigned int result,
+noop_accept_cb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	       void *cbarg ISC_ATTR_UNUSED);
 
 void

@@ -634,7 +634,7 @@ resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
 static void
-fctx_shutdown(fetchctx_t *fctx);
+fctx_shutdown(void *arg);
 static void
 fctx_minimize_qname(fetchctx_t *fctx);
 static void
@@ -4369,7 +4369,9 @@ fctx_expired(void *arg) {
 }
 
 static void
-fctx_shutdown(fetchctx_t *fctx) {
+fctx_shutdown(void *arg) {
+	fetchctx_t *fctx = arg;
+
 	REQUIRE(VALID_FCTX(fctx));
 
 	fctx_done_unref(fctx, ISC_R_SHUTTINGDOWN);
@@ -10151,8 +10153,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 			INSIST(fctx != NULL);
 
 			fetchctx_ref(fctx);
-			isc_async_run(fctx->loop, (isc_job_cb)fctx_shutdown,
-				      fctx);
+			isc_async_run(fctx->loop, fctx_shutdown, fctx);
 		}
 		isc_hashmap_iter_destroy(&it);
 		RWUNLOCK(&res->fctxs_lock, isc_rwlocktype_write);
@@ -10495,7 +10496,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	if (new_fctx) {
 		fetchctx_ref(fctx);
-		isc_async_run(fctx->loop, (isc_job_cb)fctx_start, fctx);
+		isc_async_run(fctx->loop, fctx_start, fctx);
 	}
 
 unlock:
