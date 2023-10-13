@@ -32,46 +32,23 @@
  * for 'n' ACL elements.  The elements are uninitialized and the
  * length is 0.
  */
-isc_result_t
+void
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
-	dns_acl_t *acl;
+	REQUIRE(target != NULL && *target == NULL);
 
-	/*
-	 * Work around silly limitation of isc_mem_get().
-	 */
-	if (n == 0) {
-		n = 1;
-	}
+	dns_acl_t *acl = isc_mem_get(mctx, sizeof(*acl));
+	*acl = (dns_acl_t){
+		.refcount = 1,
+		.nextincache = ISC_LINK_INITIALIZER,
+		.elements = isc_mem_cget(mctx, n, sizeof(acl->elements[0])),
+		.alloc = n,
+		.ports_and_transports = ISC_LIST_INITIALIZER,
+		.magic = DNS_ACL_MAGIC,
+	};
 
-	acl = isc_mem_get(mctx, sizeof(*acl));
-
-	acl->mctx = NULL;
 	isc_mem_attach(mctx, &acl->mctx);
 
-	acl->name = NULL;
-
-	isc_refcount_init(&acl->refcount, 1);
-
-	dns_iptable_create(mctx, &acl->iptable);
-
-	acl->elements = NULL;
-	acl->alloc = 0;
-	acl->length = 0;
-	acl->has_negatives = false;
-
-	ISC_LINK_INIT(acl, nextincache);
-	/*
-	 * Must set magic early because we use dns_acl_detach() to clean up.
-	 */
-	acl->magic = DNS_ACL_MAGIC;
-
-	acl->elements = isc_mem_cget(mctx, n, sizeof(acl->elements[0]));
-	acl->alloc = n;
-	ISC_LIST_INIT(acl->ports_and_transports);
-	acl->port_proto_entries = 0;
-
 	*target = acl;
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -85,10 +62,7 @@ dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target) {
 	isc_result_t result;
 	dns_acl_t *acl = NULL;
 
-	result = dns_acl_create(mctx, 0, &acl);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_acl_create(mctx, 0, &acl);
 
 	result = dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
 	if (result != ISC_R_SUCCESS) {
@@ -681,41 +655,22 @@ dns_acl_allowed(isc_netaddr_t *addr, const dns_name_t *signer, dns_acl_t *acl,
 /*
  * Initialize ACL environment, setting up localhost and localnets ACLs
  */
-isc_result_t
+void
 dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
-	isc_result_t result;
 	dns_aclenv_t *env = isc_mem_get(mctx, sizeof(*env));
-	*env = (dns_aclenv_t){ 0 };
+	*env = (dns_aclenv_t){
+		.references = 1,
+		.magic = DNS_ACLENV_MAGIC,
+	};
 
 	isc_mem_attach(mctx, &env->mctx);
 	isc_refcount_init(&env->references, 1);
 	isc_rwlock_init(&env->rwlock);
 
-	result = dns_acl_create(mctx, 0, &env->localhost);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rwlock;
-	}
-	result = dns_acl_create(mctx, 0, &env->localnets);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_localhost;
-	}
-	env->match_mapped = false;
-#if defined(HAVE_GEOIP2)
-	env->geoip = NULL;
-#endif /* if defined(HAVE_GEOIP2) */
-
-	env->magic = DNS_ACLENV_MAGIC;
+	dns_acl_create(mctx, 0, &env->localhost);
+	dns_acl_create(mctx, 0, &env->localnets);
 
 	*envp = env;
-
-	return (ISC_R_SUCCESS);
-
-cleanup_localhost:
-	dns_acl_detach(&env->localhost);
-cleanup_rwlock:
-	isc_rwlock_destroy(&env->rwlock);
-	isc_mem_putanddetach(&env->mctx, env, sizeof(*env));
-	return (result);
 }
 
 void
