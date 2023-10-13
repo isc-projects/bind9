@@ -131,24 +131,18 @@ _comp_with_mask(void *addr, void *dest, u_int mask) {
 	return (0);
 }
 
-isc_result_t
+void
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
-	isc_radix_tree_t *radix;
-
 	REQUIRE(target != NULL && *target == NULL);
+	RUNTIME_CHECK(maxbits <= RADIX_MAXBITS);
 
-	radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
-
-	radix->mctx = NULL;
+	isc_radix_tree_t *radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
+	*radix = (isc_radix_tree_t){
+		.maxbits = maxbits,
+		.magic = RADIX_TREE_MAGIC,
+	};
 	isc_mem_attach(mctx, &radix->mctx);
-	radix->maxbits = maxbits;
-	radix->head = NULL;
-	radix->num_active_node = 0;
-	radix->num_added_node = 0;
-	RUNTIME_CHECK(maxbits <= RADIX_MAXBITS); /* XXX */
-	radix->magic = RADIX_TREE_MAGIC;
 	*target = radix;
-	return (ISC_R_SUCCESS);
 }
 
 /*

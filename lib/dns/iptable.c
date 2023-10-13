@@ -28,7 +28,6 @@ destroy_iptable(dns_iptable_t *dtab);
  */
 isc_result_t
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
-	isc_result_t result;
 	dns_iptable_t *tab;
 
 	tab = isc_mem_get(mctx, sizeof(*tab));
@@ -38,17 +37,10 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	tab->radix = NULL;
 	tab->magic = DNS_IPTABLE_MAGIC;
 
-	result = isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
 
 	*target = tab;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	dns_iptable_detach(&tab);
-	return (result);
 }
 
 static bool dns_iptable_neg = false;
