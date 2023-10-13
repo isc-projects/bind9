@@ -1,3 +1,6 @@
+6265.	[bug]		Don't schedule resign operations on the raw version
+			of an inline-signing zone. [GL #4350]
+
 6264.	[func]		Use atomics to handle some ADB entry members
 			to reduce ADB locking contention. [GL #4326]
 
