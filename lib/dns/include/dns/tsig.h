@@ -30,8 +30,7 @@
 
 #include <dst/dst.h>
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_TSIG_TRACE
+/* Add -DDNS_TSIG_TRACE=1 to CFLAGS for detailed reference tracing */
 
 /*
  * Algorithms.

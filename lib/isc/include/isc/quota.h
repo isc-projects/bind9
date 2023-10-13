@@ -45,7 +45,7 @@
 ***** Types.
 *****/
 
-#undef ISC_QUOTA_TRACE
+/* Add -DISC_QUOTA_TRACE=1 to CFLAGS for detailed reference tracing */
 
 ISC_LANG_BEGINDECLS
 

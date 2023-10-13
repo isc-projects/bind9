@@ -42,7 +42,7 @@
 
 #include <dns/types.h>
 
-#undef DNS_REQUEST_TRACE
+/* Add -DDNS_REQUEST_TRACE=1 to CFLAGS for detailed reference tracing */
 
 #define DNS_REQUESTOPT_TCP     0x00000001U
 #define DNS_REQUESTOPT_CASE    0x00000002U

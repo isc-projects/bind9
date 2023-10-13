@@ -37,8 +37,7 @@
 
 #include <dst/dst.h>
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_NAMETREE_TRACE
+/* Add -DDNS_NAMETREE_TRACE=1 to CFLAGS for detailed reference tracing */
 
 typedef enum {
 	DNS_NAMETREE_BOOL,

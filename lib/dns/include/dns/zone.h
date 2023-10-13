@@ -38,8 +38,7 @@
 #include <dns/xfrin.h>
 #include <dns/zt.h>
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_ZONE_TRACE
+/* Add -DDNS_ZONE_TRACE=1 to CFLAGS for detailed reference tracing */
 
 typedef enum {
 	dns_zone_none,

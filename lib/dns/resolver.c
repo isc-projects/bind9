@@ -74,11 +74,6 @@
 #include <dns/validator.h>
 #include <dns/zone.h>
 
-/* Detailed logging of fctx attach/detach */
-#ifndef FCTX_TRACE
-#undef FCTX_TRACE
-#endif
-
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)                                                             \
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,                     \

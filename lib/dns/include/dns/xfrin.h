@@ -34,8 +34,7 @@
 #include <dns/transport.h>
 #include <dns/types.h>
 
-/* Define to 1 for detailed reference tracing */
-#undef DNS_XFRIN_TRACE
+/* Add -DDNS_XFRIN_TRACE=1 to CFLAGS for detailed reference tracing */
 
 /***
  *** Types
