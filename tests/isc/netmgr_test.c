@@ -394,7 +394,7 @@ noop_recv_cb(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 }
 
 static unsigned int
-noop_accept_cb(isc_nmhandle_t *handle, unsigned int result, void *cbarg) {
+noop_accept_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	UNUSED(handle);
 	UNUSED(cbarg);
 
