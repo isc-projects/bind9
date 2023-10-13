@@ -237,8 +237,8 @@ dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
  *
  * Requires:
  *\li	*diff is a valid diff (possibly empty), containing
- *   	tuples of type #DNS_DIFFOP_ADD and/or
- *  	For #DNS_DIFFOP_DEL tuples, the TTL is ignored.
+ *	tuples of type #DNS_DIFFOP_ADD and/or
+ *	For #DNS_DIFFOP_DEL tuples, the TTL is ignored.
  *
  */
 
@@ -251,8 +251,8 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
  * database transaction mechanisms.
  *
  * Requires:
- *\li 	'addfunc' is a valid dns_addradatasetfunc_t obtained from
- * 	dns_db_beginload()
+ *\li	'addfunc' is a valid dns_addradatasetfunc_t obtained from
+ *	dns_db_beginload()
  *
  *\li	'add_private' points to a corresponding dns_dbload_t *
  *      (XXX why is it a void pointer, then?)
