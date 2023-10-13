@@ -13,10 +13,7 @@
 
 #pragma once
 
-/*
- * Define this for reference count tracing in the unit
- */
-#undef DNS_RPZ_TRACE
+/* Add -DDNS_RPZ_TRACE=1 to CFLAGS for detailed reference tracing */
 
 #include <inttypes.h>
 #include <stdbool.h>
