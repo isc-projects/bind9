@@ -107,9 +107,10 @@ bool noanswer = false;
 bool stream_use_TLS = false;
 bool stream_use_PROXY = false;
 bool stream_PROXY_over_TLS = false;
-bool udp_use_PROXY = false;
 bool stream = false;
 in_port_t stream_port = 0;
+
+bool udp_use_PROXY = false;
 
 isc_nm_recv_cb_t connect_readcb = NULL;
 
@@ -443,6 +444,11 @@ listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
+		if (udp_use_PROXY || stream_use_PROXY) {
+			assert_true(isc_nm_is_proxy_handle(handle));
+			proxy_verify_endpoints(handle);
+		}
+
 		memmove(&magic, region->base, sizeof(magic));
 		assert_true(magic == send_magic);
 
@@ -520,6 +526,7 @@ stream_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	if (stream_use_PROXY) {
 		assert_true(isc_nm_is_proxy_handle(handle));
+		proxy_verify_endpoints(handle);
 	}
 
 	isc_refcount_increment0(&active_sreads);
@@ -908,6 +915,25 @@ stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+void
+proxy_verify_endpoints(isc_nmhandle_t *handle) {
+	isc_sockaddr_t local, peer;
+	peer = isc_nmhandle_peeraddr(handle);
+	local = isc_nmhandle_localaddr(handle);
+
+	if (isc_nm_is_proxy_unspec(handle)) {
+		isc_sockaddr_t real_local, real_peer;
+		real_peer = isc_nmhandle_real_peeraddr(handle);
+		real_local = isc_nmhandle_real_localaddr(handle);
+
+		assert_true(isc_sockaddr_equal(&peer, &real_peer));
+		assert_true(isc_sockaddr_equal(&local, &real_local));
+	} else if (proxy_info == NULL) {
+		assert_true(isc_sockaddr_equal(&peer, &proxy_src));
+		assert_true(isc_sockaddr_equal(&local, &proxy_dst));
+	}
+}
+
 int
 proxystream_timeout_recovery_setup(void **state) {
 	stream_use_PROXY = true;
@@ -1199,7 +1225,8 @@ setup_udp_test(void **state) {
 
 	udp_listen_addr = (isc_sockaddr_t){ .length = 0 };
 	isc_sockaddr_fromin6(&udp_listen_addr, &in6addr_loopback,
-			     UDP_TEST_PORT);
+			     udp_use_PROXY ? PROXYUDP_TEST_PORT
+					   : UDP_TEST_PORT);
 
 	atomic_store(&sreads, 0);
 	atomic_store(&ssends, 0);
@@ -1253,8 +1280,14 @@ teardown_udp_test(void **state) {
 
 static void
 udp_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout) {
-	isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr, cb,
-			  cbarg, timeout);
+	if (udp_use_PROXY) {
+		isc_nm_proxyudpconnect(netmgr, &udp_connect_addr,
+				       &udp_listen_addr, cb, cbarg, timeout,
+				       NULL);
+	} else {
+		isc_nm_udpconnect(netmgr, &udp_connect_addr, &udp_listen_addr,
+				  cb, cbarg, timeout);
+	}
 }
 
 static void
@@ -1268,8 +1301,17 @@ udp_listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
 
 static void
 udp_start_listening(uint32_t nworkers, isc_nm_recv_cb_t cb) {
-	isc_result_t result = isc_nm_listenudp(
-		netmgr, nworkers, &udp_listen_addr, cb, NULL, &listen_sock);
+	isc_result_t result;
+
+	if (udp_use_PROXY) {
+		result = isc_nm_listenproxyudp(netmgr, nworkers,
+					       &udp_listen_addr, cb, NULL,
+					       &listen_sock);
+	} else {
+		result = isc_nm_listenudp(netmgr, nworkers, &udp_listen_addr,
+					  cb, NULL, &listen_sock);
+	}
+
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(mainloop, stop_listening, listen_sock);
@@ -1377,6 +1419,10 @@ udp__connect_cb(isc_nmhandle_t *handle, isc_result_t eresult, void *cbarg) {
 
 	switch (eresult) {
 	case ISC_R_SUCCESS:
+		if (udp_use_PROXY) {
+			assert_true(isc_nm_is_proxy_handle(handle));
+		}
+
 		if (have_expected_cconnects(atomic_fetch_add(&cconnects, 1) +
 					    1))
 		{
@@ -1441,6 +1487,19 @@ udp_noop(void **arg ISC_ATTR_UNUSED) {
 
 	isc_refcount_increment0(&active_cconnects);
 	udp_connect(connect_success_cb, NULL, UDP_T_CONNECT);
+}
+
+int
+proxyudp_noop_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_noop_setup(state));
+}
+
+int
+proxyudp_noop_teardown(void **state) {
+	int ret = udp_noop_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 static void
@@ -1527,6 +1586,19 @@ udp_noresponse(void **arg ISC_ATTR_UNUSED) {
 
 	isc_refcount_increment0(&active_cconnects);
 	udp_connect(udp_noresponse_connect_cb, listen_sock, UDP_T_SOFT);
+}
+
+int
+proxyudp_noresponse_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_noresponse_setup(state));
+}
+
+int
+proxyudp_noresponse_teardown(void **state) {
+	int ret = udp_noresponse_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 static void
@@ -1667,6 +1739,19 @@ udp_timeout_recovery(void **arg ISC_ATTR_UNUSED) {
 	udp_connect(udp_timeout_recovery_connect_cb, listen_sock, UDP_T_SOFT);
 }
 
+int
+proxyudp_timeout_recovery_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_timeout_recovery_setup(state));
+}
+
+int
+proxyudp_timeout_recovery_teardown(void **state) {
+	int ret = udp_timeout_recovery_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
+}
+
 static void
 udp_shutdown_connect_async_cb(void *arg ISC_ATTR_UNUSED);
 
@@ -1720,6 +1805,19 @@ udp_shutdown_connect(void **arg ISC_ATTR_UNUSED) {
 	 * async loop.
 	 */
 	isc_async_current(loopmgr, udp_shutdown_connect_async_cb, netmgr);
+}
+
+int
+proxyudp_shutdown_connect_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_shutdown_connect_setup(state));
+}
+
+int
+proxyudp_shutdown_connect_teardown(void **state) {
+	int ret = udp_shutdown_connect_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 static void
@@ -1822,6 +1920,19 @@ udp_shutdown_read(void **arg ISC_ATTR_UNUSED) {
 
 	isc_refcount_increment0(&active_cconnects);
 	udp_connect(udp_shutdown_read_connect_cb, NULL, UDP_T_SOFT);
+}
+
+int
+proxyudp_shutdown_read_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_shutdown_read_setup(state));
+}
+
+int
+proxyudp_shutdown_read_teardown(void **state) {
+	int ret = udp_shutdown_read_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 static void
@@ -1942,6 +2053,19 @@ udp_cancel_read(void **arg ISC_ATTR_UNUSED) {
 }
 
 int
+proxyudp_cancel_read_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_cancel_read_setup(state));
+}
+
+int
+proxyudp_cancel_read_teardown(void **state) {
+	int ret = udp_cancel_read_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
+}
+
+int
 udp_recv_one_setup(void **state) {
 	setup_udp_test(state);
 
@@ -1983,6 +2107,19 @@ udp_recv_one(void **arg ISC_ATTR_UNUSED) {
 	udp_start_listening(ISC_NM_LISTEN_ONE, udp_listen_read_cb);
 
 	udp_enqueue_connect(NULL);
+}
+
+int
+proxyudp_recv_one_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_recv_one_setup(state));
+}
+
+int
+proxyudp_recv_one_teardown(void **state) {
+	int ret = udp_recv_one_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 int
@@ -2030,6 +2167,19 @@ udp_recv_two(void **arg ISC_ATTR_UNUSED) {
 }
 
 int
+proxyudp_recv_two_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_recv_two_setup(state));
+}
+
+int
+proxyudp_recv_two_teardown(void **state) {
+	int ret = udp_recv_two_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
+}
+
+int
 udp_recv_send_setup(void **state) {
 	setup_udp_test(state);
 
@@ -2063,6 +2213,19 @@ udp_recv_send(void **arg ISC_ATTR_UNUSED) {
 		isc_async_run(isc_loop_get(loopmgr, i), udp_enqueue_connect,
 			      NULL);
 	}
+}
+
+int
+proxyudp_recv_send_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_recv_send_setup(state));
+}
+
+int
+proxyudp_recv_send_teardown(void **state) {
+	int ret = udp_recv_send_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }
 
 static void
@@ -2234,4 +2397,17 @@ udp_double_read(void **arg ISC_ATTR_UNUSED) {
 	udp_start_listening(ISC_NM_LISTEN_ALL, udp_double_read_listen_cb);
 
 	udp_enqueue_connect(NULL);
+}
+
+int
+proxyudp_double_read_setup(void **state) {
+	udp_use_PROXY = true;
+	return (udp_double_read_setup(state));
+}
+
+int
+proxyudp_double_read_teardown(void **state) {
+	int ret = udp_double_read_teardown(state);
+	udp_use_PROXY = false;
+	return (ret);
 }

@@ -36,6 +36,7 @@ check_PROGRAMS =	\
 	parse_test	\
 	proxyheader_test	\
 	proxystream_test	\
+	proxyudp_test	\
 	quota_test	\
 	radix_test	\
 	random_test	\
@@ -124,6 +125,20 @@ proxystream_test_SOURCES =	\
 	netmgr_common.h \
 	netmgr_common.c \
 	stream_shutdown.c
+
+proxyudp_test_CPPFLAGS =	\
+	$(AM_CPPFLAGS)	\
+	$(OPENSSL_CFLAGS)
+
+proxyudp_test_LDADD =	\
+	$(LDADD)	\
+	$(OPENSSL_LIBS)
+
+proxyudp_test_SOURCES =	\
+	proxyudp_test.c	\
+	netmgr_common.h \
+	netmgr_common.c \
+	uv_wrap.h
 
 random_test_LDADD =	\
 	$(LDADD)	\
