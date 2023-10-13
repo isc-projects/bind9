@@ -134,14 +134,20 @@ struct dns_xfrin {
 	bool edns, expireoptset;
 	atomic_bool is_ixfr;
 
-	isc_mutex_t statslock;
-	/* Locked by statslock; can be accessed from the statistics channel. */
-	unsigned int nmsg;  /*%< Number of messages recvd */
-	unsigned int nrecs; /*%< Number of records recvd */
-	uint64_t nbytes;    /*%< Number of bytes received */
-	isc_time_t start;   /*%< Start time of the transfer */
-	dns_transport_type_t soa_transport_type;
-	uint32_t end_serial;
+	/*
+	 * Following variable were made atomic only for loading the values for
+	 * the statistics channelr, thus all accesses can be **relaxed** because
+	 * all store and load operations that affect XFR are done on the same
+	 * thread and only the statistics channel thread could perform a load
+	 * operation from a different thread and it's ok to not be precise in
+	 * the statistics.
+	 */
+	atomic_uint nmsg;	     /*%< Number of messages recvd */
+	atomic_uint nrecs;	     /*%< Number of records recvd */
+	atomic_uint_fast64_t nbytes; /*%< Number of bytes received */
+	_Atomic(isc_time_t) start;   /*%< Start time of the transfer */
+	_Atomic(dns_transport_type_t) soa_transport_type;
+	atomic_uint_fast32_t end_serial;
 
 	unsigned int maxrecords; /*%< The maximum number of
 				  *   records set for the zone */
@@ -470,10 +476,9 @@ failure:
 static isc_result_t
 xfr_rr(dns_xfrin_t *xfr, dns_name_t *name, uint32_t ttl, dns_rdata_t *rdata) {
 	isc_result_t result;
+	uint_fast32_t end_serial;
 
-	LOCK(&xfr->statslock);
-	xfr->nrecs++;
-	UNLOCK(&xfr->statslock);
+	atomic_fetch_add_relaxed(&xfr->nrecs, 1);
 
 	if (rdata->type == dns_rdatatype_none ||
 	    dns_rdatatype_ismeta(rdata->type))
@@ -511,16 +516,15 @@ redo:
 			result = DNS_R_FORMERR;
 			goto failure;
 		}
-		LOCK(&xfr->statslock);
-		xfr->end_serial = dns_soa_getserial(rdata);
-		UNLOCK(&xfr->statslock);
-		if (!DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial) &&
+		end_serial = dns_soa_getserial(rdata);
+		atomic_store_relaxed(&xfr->end_serial, end_serial);
+		if (!DNS_SERIAL_GT(end_serial, xfr->ixfr.request_serial) &&
 		    !dns_zone_isforced(xfr->zone))
 		{
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
-				  "primary has %u, not updating",
-				  xfr->ixfr.request_serial, xfr->end_serial);
+				  "primary has %" PRIuFAST32 ", not updating",
+				  xfr->ixfr.request_serial, end_serial);
 			result = DNS_R_UPTODATE;
 			goto failure;
 		}
@@ -544,11 +548,10 @@ redo:
 		 * Remember the serial number in the initial SOA.
 		 * We need it to recognize the end of an IXFR.
 		 */
-		LOCK(&xfr->statslock);
-		xfr->end_serial = dns_soa_getserial(rdata);
-		UNLOCK(&xfr->statslock);
+		end_serial = dns_soa_getserial(rdata);
+		atomic_store_relaxed(&xfr->end_serial, end_serial);
 		if (xfr->reqtype == dns_rdatatype_ixfr &&
-		    !DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial) &&
+		    !DNS_SERIAL_GT(end_serial, xfr->ixfr.request_serial) &&
 		    !dns_zone_isforced(xfr->zone))
 		{
 			/*
@@ -558,8 +561,8 @@ redo:
 			 */
 			xfrin_log(xfr, ISC_LOG_DEBUG(3),
 				  "requested serial %u, "
-				  "primary has %u, not updating",
-				  xfr->ixfr.request_serial, xfr->end_serial);
+				  "primary has %" PRIuFAST32 ", not updating",
+				  xfr->ixfr.request_serial, end_serial);
 			result = DNS_R_UPTODATE;
 			goto failure;
 		}
@@ -619,7 +622,8 @@ redo:
 	case XFRST_IXFR_ADD:
 		if (rdata->type == dns_rdatatype_soa) {
 			uint32_t soa_serial = dns_soa_getserial(rdata);
-			if (soa_serial == xfr->end_serial) {
+			if (soa_serial == atomic_load_relaxed(&xfr->end_serial))
+			{
 				CHECK(ixfr_commit(xfr));
 				atomic_store(&xfr->state, XFRST_IXFR_END);
 				break;
@@ -764,9 +768,7 @@ dns_xfrin_getstarttime(dns_xfrin_t *xfr) {
 
 	REQUIRE(VALID_XFRIN(xfr));
 
-	LOCK(&xfr->statslock);
-	start = xfr->start;
-	UNLOCK(&xfr->statslock);
+	return (atomic_load_relaxed(&xfr->start));
 
 	return (start);
 }
@@ -818,15 +820,9 @@ dns_xfrin_getstate(const dns_xfrin_t *xfr, const char **statestr,
 
 uint32_t
 dns_xfrin_getendserial(dns_xfrin_t *xfr) {
-	uint32_t end_serial;
-
 	REQUIRE(VALID_XFRIN(xfr));
 
-	LOCK(&xfr->statslock);
-	end_serial = xfr->end_serial;
-	UNLOCK(&xfr->statslock);
-
-	return (end_serial);
+	return (atomic_load_relaxed(&xfr->end_serial));
 }
 
 void
@@ -835,11 +831,9 @@ dns_xfrin_getstats(dns_xfrin_t *xfr, unsigned int *nmsgp, unsigned int *nrecsp,
 	REQUIRE(VALID_XFRIN(xfr));
 	REQUIRE(nmsgp != NULL && nrecsp != NULL && nbytesp != NULL);
 
-	LOCK(&xfr->statslock);
-	*nmsgp = xfr->nmsg;
-	*nrecsp = xfr->nrecs;
-	*nbytesp = xfr->nbytes;
-	UNLOCK(&xfr->statslock);
+	SET_IF_NOT_NULL(nmsgp, atomic_load_relaxed(&xfr->nmsg));
+	SET_IF_NOT_NULL(nrecsp, atomic_load_relaxed(&xfr->nrecs));
+	SET_IF_NOT_NULL(nbytesp, atomic_load_relaxed(&xfr->nbytes));
 }
 
 const isc_sockaddr_t *
@@ -869,15 +863,9 @@ dns_xfrin_gettransporttype(const dns_xfrin_t *xfr) {
 
 dns_transport_type_t
 dns_xfrin_getsoatransporttype(dns_xfrin_t *xfr) {
-	dns_transport_type_t soa_transport_type;
-
 	REQUIRE(VALID_XFRIN(xfr));
 
-	LOCK(&xfr->statslock);
-	soa_transport_type = xfr->soa_transport_type;
-	UNLOCK(&xfr->statslock);
-
-	return (soa_transport_type);
+	return (atomic_load_relaxed(&xfr->soa_transport_type));
 }
 
 const dns_name_t *
@@ -1007,8 +995,6 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	dns_view_weakattach(dns_zone_getview(zone), &xfr->view);
 	dns_name_init(&xfr->name, NULL);
 
-	isc_mutex_init(&xfr->statslock);
-
 	atomic_init(&xfr->shuttingdown, false);
 	atomic_init(&xfr->is_ixfr, false);
 
@@ -1024,7 +1010,7 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 		atomic_init(&xfr->state, XFRST_ZONEXFRREQUEST);
 	}
 
-	xfr->start = isc_time_now();
+	atomic_init(&xfr->start, isc_time_now());
 
 	if (tsigkey != NULL) {
 		dns_tsigkey_attach(tsigkey, &xfr->tsigkey);
@@ -1116,9 +1102,8 @@ xfrin_start(dns_xfrin_t *xfr) {
 		 * The "SOA before" mode is used, where the SOA request is
 		 * using the same transport as the XFR.
 		 */
-		LOCK(&xfr->statslock);
-		xfr->soa_transport_type = dns_xfrin_gettransporttype(xfr);
-		UNLOCK(&xfr->statslock);
+		atomic_init(&xfr->soa_transport_type,
+			    dns_xfrin_gettransporttype(xfr));
 	}
 
 	/* Set the maximum timer */
@@ -1414,12 +1399,11 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 		CHECK(add_opt(msg, udpsize, reqnsid, reqexpire));
 	}
 
-	LOCK(&xfr->statslock);
-	xfr->nmsg = 0;
-	xfr->nrecs = 0;
-	xfr->nbytes = 0;
-	xfr->start = isc_time_now();
-	UNLOCK(&xfr->statslock);
+	atomic_init(&xfr->nmsg, 0);
+	atomic_init(&xfr->nrecs, 0);
+	atomic_init(&xfr->nbytes, 0);
+	atomic_init(&xfr->start, isc_time_now());
+
 	msg->id = xfr->id;
 	if (xfr->tsigctx != NULL) {
 		dst_context_destroy(&xfr->tsigctx);
@@ -1551,11 +1535,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 	dns_message_setclass(msg, xfr->rdclass);
 
-	LOCK(&xfr->statslock);
-	if (xfr->nmsg > 0) {
-		msg->tcp_continuation = 1;
-	}
-	UNLOCK(&xfr->statslock);
+	msg->tcp_continuation = (atomic_load_relaxed(&xfr->nmsg) > 0) ? 1 : 0;
 
 	isc_buffer_init(&buffer, region->base, region->length);
 	isc_buffer_add(&buffer, region->length);
@@ -1758,29 +1738,21 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 		CHECK(dns_message_getquerytsig(msg, xfr->mctx, &xfr->lasttsig));
 	} else if (dns_message_gettsigkey(msg) != NULL) {
 		xfr->sincetsig++;
-		LOCK(&xfr->statslock);
-		if (xfr->sincetsig > 100 || xfr->nmsg == 0 ||
+		if (xfr->sincetsig > 100 ||
+		    atomic_load_relaxed(&xfr->nmsg) == 0 ||
 		    atomic_load(&xfr->state) == XFRST_AXFR_END ||
 		    atomic_load(&xfr->state) == XFRST_IXFR_END)
 		{
-			UNLOCK(&xfr->statslock);
 			result = DNS_R_EXPECTEDTSIG;
 			goto failure;
 		}
-		UNLOCK(&xfr->statslock);
 	}
 
 	/*
-	 * Update the number of messages received.
+	 * Update the number of messages and bytes received.
 	 */
-	LOCK(&xfr->statslock);
-	xfr->nmsg++;
-
-	/*
-	 * Update the number of bytes received.
-	 */
-	xfr->nbytes += buffer.used;
-	UNLOCK(&xfr->statslock);
+	atomic_fetch_add_relaxed(&xfr->nmsg, 1);
+	atomic_fetch_add_relaxed(&xfr->nbytes, buffer.used);
 
 	/*
 	 * Take the context back.
@@ -1884,18 +1856,21 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 	 * Calculate the length of time the transfer took,
 	 * and print a log message with the bytes and rate.
 	 */
-	msecs = isc_time_microdiff(&now, &xfr->start) / 1000;
+	isc_time_t start = atomic_load_relaxed(&xfr->start);
+	msecs = isc_time_microdiff(&now, &start) / 1000;
 	if (msecs == 0) {
 		msecs = 1;
 	}
-	persec = (xfr->nbytes * 1000) / msecs;
+	persec = (atomic_load_relaxed(&xfr->nbytes) * 1000) / msecs;
 	xfrin_log(xfr, ISC_LOG_INFO,
 		  "Transfer completed: %d messages, %d records, "
 		  "%" PRIu64 " bytes, "
-		  "%u.%03u secs (%u bytes/sec) (serial %u)",
-		  xfr->nmsg, xfr->nrecs, xfr->nbytes,
+		  "%u.%03u secs (%u bytes/sec) (serial %" PRIuFAST32 ")",
+		  atomic_load_relaxed(&xfr->nmsg),
+		  atomic_load_relaxed(&xfr->nrecs),
+		  atomic_load_relaxed(&xfr->nbytes),
 		  (unsigned int)(msecs / 1000), (unsigned int)(msecs % 1000),
-		  (unsigned int)persec, xfr->end_serial);
+		  (unsigned int)persec, atomic_load_relaxed(&xfr->end_serial));
 
 	if (xfr->dispentry != NULL) {
 		dns_dispatch_done(&xfr->dispentry);
@@ -1971,7 +1946,6 @@ xfrin_destroy(dns_xfrin_t *xfr) {
 
 	isc_timer_destroy(&xfr->max_idle_timer);
 	isc_timer_destroy(&xfr->max_time_timer);
-	isc_mutex_destroy(&xfr->statslock);
 
 	isc_mem_putanddetach(&xfr->mctx, xfr, sizeof(*xfr));
 }
