@@ -20,9 +20,6 @@
 
 #include <dns/acl.h>
 
-static void
-destroy_iptable(dns_iptable_t *dtab);
-
 /*
  * Create a new IP table and the underlying radix structure
  */
@@ -30,7 +27,7 @@ void
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	dns_iptable_t *tab = isc_mem_get(mctx, sizeof(*tab));
 	*tab = (dns_iptable_t){
-		.refcount = 1,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.magic = DNS_IPTABLE_MAGIC,
 	};
 	isc_mem_attach(mctx, &tab->mctx);
@@ -130,34 +127,22 @@ dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos) {
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_iptable_attach(dns_iptable_t *source, dns_iptable_t **target) {
-	REQUIRE(DNS_IPTABLE_VALID(source));
-	isc_refcount_increment(&source->refcount);
-	*target = source;
-}
-
-void
-dns_iptable_detach(dns_iptable_t **tabp) {
-	REQUIRE(tabp != NULL && DNS_IPTABLE_VALID(*tabp));
-	dns_iptable_t *tab = *tabp;
-	*tabp = NULL;
-
-	if (isc_refcount_decrement(&tab->refcount) == 1) {
-		isc_refcount_destroy(&tab->refcount);
-		destroy_iptable(tab);
-	}
-}
-
 static void
-destroy_iptable(dns_iptable_t *dtab) {
+dns__iptable_destroy(dns_iptable_t *dtab) {
 	REQUIRE(DNS_IPTABLE_VALID(dtab));
+
+	dtab->magic = 0;
 
 	if (dtab->radix != NULL) {
 		isc_radix_destroy(dtab->radix, NULL);
 		dtab->radix = NULL;
 	}
 
-	dtab->magic = 0;
 	isc_mem_putanddetach(&dtab->mctx, dtab, sizeof(*dtab));
 }
+
+#if DNS_IPTABLE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_iptable, dns__iptable_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_iptable, dns__iptable_destroy);
+#endif
