@@ -146,6 +146,18 @@ zone "dynamic-inline-signing.kasp" {
 	inline-signing yes;
 };
 
+/*
+ * A dynamic inline-signed zone with dnssec-policy with DNSSEC records in the
+ * raw version of the zone.
+ */
+zone "dynamic-signed-inline-signing.kasp" {
+	type primary;
+	file "dynamic-signed-inline-signing.kasp.db.signed";
+	key-directory "keys";
+	dnssec-policy "default";
+	allow-update { any; };
+};
+
 /* An inline-signed zone with dnssec-policy. */
 zone "inline-signing.kasp" {
 	type primary;
