@@ -38,7 +38,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 
 	dns_acl_t *acl = isc_mem_get(mctx, sizeof(*acl));
 	*acl = (dns_acl_t){
-		.refcount = 1,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.nextincache = ISC_LINK_INITIALIZER,
 		.elements = isc_mem_cget(mctx, n, sizeof(acl->elements[0])),
 		.alloc = n,
@@ -464,16 +464,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 	return (false);
 }
 
-void
-dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
-	REQUIRE(DNS_ACL_VALID(source));
-
-	isc_refcount_increment(&source->refcount);
-	*target = source;
-}
-
 static void
-destroy(dns_acl_t *dacl) {
+dns__acl_destroy(dns_acl_t *dacl) {
 	unsigned int i;
 	dns_acl_port_transports_t *port_proto;
 
@@ -508,21 +500,16 @@ destroy(dns_acl_t *dacl) {
 		port_proto = next;
 	}
 
-	isc_refcount_destroy(&dacl->refcount);
+	isc_refcount_destroy(&dacl->references);
 	dacl->magic = 0;
 	isc_mem_putanddetach(&dacl->mctx, dacl, sizeof(*dacl));
 }
 
-void
-dns_acl_detach(dns_acl_t **aclp) {
-	REQUIRE(aclp != NULL && DNS_ACL_VALID(*aclp));
-	dns_acl_t *acl = *aclp;
-	*aclp = NULL;
-
-	if (isc_refcount_decrement(&acl->refcount) == 1) {
-		destroy(acl);
-	}
-}
+#if DNS_ACL_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_acl, dns__acl_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_acl, dns__acl_destroy);
+#endif
 
 static isc_once_t insecure_prefix_once = ISC_ONCE_INIT;
 static isc_mutex_t insecure_prefix_lock;
@@ -659,7 +646,7 @@ void
 dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 	dns_aclenv_t *env = isc_mem_get(mctx, sizeof(*env));
 	*env = (dns_aclenv_t){
-		.references = 1,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
 		.magic = DNS_ACLENV_MAGIC,
 	};
 
@@ -720,28 +707,11 @@ dns__aclenv_destroy(dns_aclenv_t *aclenv) {
 	isc_mem_putanddetach(&aclenv->mctx, aclenv, sizeof(*aclenv));
 }
 
-void
-dns_aclenv_attach(dns_aclenv_t *source, dns_aclenv_t **targetp) {
-	REQUIRE(VALID_ACLENV(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&source->references);
-	*targetp = source;
-}
-
-void
-dns_aclenv_detach(dns_aclenv_t **aclenvp) {
-	dns_aclenv_t *aclenv = NULL;
-
-	REQUIRE(aclenvp != NULL && VALID_ACLENV(*aclenvp));
-
-	aclenv = *aclenvp;
-	*aclenvp = NULL;
-
-	if (isc_refcount_decrement(&aclenv->references) == 1) {
-		dns__aclenv_destroy(aclenv);
-	}
-}
+#if DNS_ACL_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_aclenv, dns__aclenv_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_aclenv, dns__aclenv_destroy);
+#endif
 
 void
 dns_acl_add_port_transports(dns_acl_t *acl, const in_port_t port,
