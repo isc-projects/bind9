@@ -4,5 +4,6 @@
 /dns_name_fromwire
 /load-names
 /qp-dump
+/qplookups
 /qpmulti
 /siphash
