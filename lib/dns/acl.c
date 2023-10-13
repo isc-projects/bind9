@@ -19,6 +19,7 @@
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/string.h>
+#include <isc/urcu.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
@@ -47,6 +48,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	};
 
 	isc_mem_attach(mctx, &acl->mctx);
+	dns_iptable_create(acl->mctx, &acl->iptable);
 
 	*target = acl;
 }
@@ -401,26 +403,18 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr, const dns_name_t *reqsigner,
 		if (env == NULL) {
 			return (false);
 		}
-		RWLOCK(&env->rwlock, isc_rwlocktype_read);
-		if (env->localhost == NULL) {
-			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
-			return (false);
-		}
-		dns_acl_attach(env->localhost, &inner);
-		RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
+		rcu_read_lock();
+		dns_acl_attach(rcu_dereference(env->localhost), &inner);
+		rcu_read_unlock();
 		break;
 
 	case dns_aclelementtype_localnets:
 		if (env == NULL) {
 			return (false);
 		}
-		RWLOCK(&env->rwlock, isc_rwlocktype_read);
-		if (env->localnets == NULL) {
-			RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
-			return (false);
-		}
-		dns_acl_attach(env->localnets, &inner);
-		RWUNLOCK(&env->rwlock, isc_rwlocktype_read);
+		rcu_read_lock();
+		dns_acl_attach(rcu_dereference(env->localnets), &inner);
+		rcu_read_unlock();
 		break;
 
 #if defined(HAVE_GEOIP2)
@@ -652,7 +646,6 @@ dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 
 	isc_mem_attach(mctx, &env->mctx);
 	isc_refcount_init(&env->references, 1);
-	isc_rwlock_init(&env->rwlock);
 
 	dns_acl_create(mctx, 0, &env->localhost);
 	dns_acl_create(mctx, 0, &env->localnets);
@@ -663,34 +656,45 @@ dns_aclenv_create(isc_mem_t *mctx, dns_aclenv_t **envp) {
 void
 dns_aclenv_set(dns_aclenv_t *env, dns_acl_t *localhost, dns_acl_t *localnets) {
 	REQUIRE(VALID_ACLENV(env));
+	REQUIRE(DNS_ACL_VALID(localhost));
+	REQUIRE(DNS_ACL_VALID(localnets));
 
-	RWLOCK(&env->rwlock, isc_rwlocktype_write);
-	dns_acl_detach(&env->localhost);
-	dns_acl_attach(localhost, &env->localhost);
-	dns_acl_detach(&env->localnets);
-	dns_acl_attach(localnets, &env->localnets);
-	RWUNLOCK(&env->rwlock, isc_rwlocktype_write);
+	rcu_read_lock();
+	localhost = rcu_xchg_pointer(&env->localhost, dns_acl_ref(localhost));
+	localnets = rcu_xchg_pointer(&env->localnets, dns_acl_ref(localnets));
+	rcu_read_unlock();
+
+	dns_acl_detach(&localhost);
+	dns_acl_detach(&localnets);
 }
 
 void
-dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
-	REQUIRE(VALID_ACLENV(s));
-	REQUIRE(VALID_ACLENV(t));
+dns_aclenv_copy(dns_aclenv_t *target, dns_aclenv_t *source) {
+	REQUIRE(VALID_ACLENV(source));
+	REQUIRE(VALID_ACLENV(target));
 
-	RWLOCK(&t->rwlock, isc_rwlocktype_write);
-	RWLOCK(&s->rwlock, isc_rwlocktype_read);
-	dns_acl_detach(&t->localhost);
-	dns_acl_attach(s->localhost, &t->localhost);
-	dns_acl_detach(&t->localnets);
-	dns_acl_attach(s->localnets, &t->localnets);
+	rcu_read_lock();
 
-	t->match_mapped = s->match_mapped;
+	dns_acl_t *localhost = rcu_dereference(source->localhost);
+	INSIST(DNS_ACL_VALID(localhost));
+
+	dns_acl_t *localnets = rcu_dereference(source->localnets);
+	INSIST(DNS_ACL_VALID(localnets));
+
+	localhost = rcu_xchg_pointer(&target->localhost,
+				     dns_acl_ref(localhost));
+	localnets = rcu_xchg_pointer(&target->localnets,
+				     dns_acl_ref(localnets));
+
+	target->match_mapped = source->match_mapped;
 #if defined(HAVE_GEOIP2)
-	t->geoip = s->geoip;
+	target->geoip = source->geoip;
 #endif /* if defined(HAVE_GEOIP2) */
 
-	RWUNLOCK(&s->rwlock, isc_rwlocktype_read);
-	RWUNLOCK(&t->rwlock, isc_rwlocktype_write);
+	rcu_read_unlock();
+
+	dns_acl_detach(&localhost);
+	dns_acl_detach(&localnets);
 }
 
 static void
@@ -699,10 +703,17 @@ dns__aclenv_destroy(dns_aclenv_t *aclenv) {
 
 	aclenv->magic = 0;
 
-	isc_refcount_destroy(&aclenv->references);
-	dns_acl_detach(&aclenv->localhost);
-	dns_acl_detach(&aclenv->localnets);
-	isc_rwlock_destroy(&aclenv->rwlock);
+	rcu_read_lock();
+	dns_acl_t *localhost = rcu_xchg_pointer(&aclenv->localhost, NULL);
+	INSIST(DNS_ACL_VALID(localhost));
+
+	dns_acl_t *localnets = rcu_xchg_pointer(&aclenv->localnets, NULL);
+	INSIST(DNS_ACL_VALID(localnets));
+
+	rcu_read_unlock();
+
+	dns_acl_detach(&localhost);
+	dns_acl_detach(&localnets);
 
 	isc_mem_putanddetach(&aclenv->mctx, aclenv, sizeof(*aclenv));
 }

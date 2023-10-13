@@ -34,7 +34,6 @@
 #include <isc/magic.h>
 #include <isc/netaddr.h>
 #include <isc/refcount.h>
-#include <isc/rwlock.h>
 
 #include <dns/geoip.h>
 #include <dns/iptable.h>
@@ -103,9 +102,8 @@ struct dns_aclenv {
 	isc_mem_t     *mctx;
 	isc_refcount_t references;
 
-	isc_rwlock_t rwlock; /*%< Locks localhost and localnets */
-	dns_acl_t   *localhost;
-	dns_acl_t   *localnets;
+	dns_acl_t *localhost;
+	dns_acl_t *localnets;
 
 	bool match_mapped;
 #if defined(HAVE_GEOIP2)
