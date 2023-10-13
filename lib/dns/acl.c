@@ -34,7 +34,6 @@
  */
 isc_result_t
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
-	isc_result_t result;
 	dns_acl_t *acl;
 
 	/*
@@ -53,11 +52,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 
 	isc_refcount_init(&acl->refcount, 1);
 
-	result = dns_iptable_create(mctx, &acl->iptable);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, acl, sizeof(*acl));
-		return (result);
-	}
+	dns_iptable_create(mctx, &acl->iptable);
 
 	acl->elements = NULL;
 	acl->alloc = 0;

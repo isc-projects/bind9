@@ -26,21 +26,18 @@ destroy_iptable(dns_iptable_t *dtab);
 /*
  * Create a new IP table and the underlying radix structure
  */
-isc_result_t
+void
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
-	dns_iptable_t *tab;
-
-	tab = isc_mem_get(mctx, sizeof(*tab));
-	tab->mctx = NULL;
+	dns_iptable_t *tab = isc_mem_get(mctx, sizeof(*tab));
+	*tab = (dns_iptable_t){
+		.refcount = 1,
+		.magic = DNS_IPTABLE_MAGIC,
+	};
 	isc_mem_attach(mctx, &tab->mctx);
-	isc_refcount_init(&tab->refcount, 1);
-	tab->radix = NULL;
-	tab->magic = DNS_IPTABLE_MAGIC;
 
 	isc_radix_create(mctx, &tab->radix, RADIX_MAXBITS);
 
 	*target = tab;
-	return (ISC_R_SUCCESS);
 }
 
 static bool dns_iptable_neg = false;

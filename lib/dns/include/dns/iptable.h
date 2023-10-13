@@ -39,7 +39,7 @@ struct dns_iptable {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
 /*
  * Create a new IP table and the underlying radix structure
