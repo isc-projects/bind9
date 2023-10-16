@@ -3825,15 +3825,11 @@ set_resigntime(dns_zone_t *zone) {
 	INSIST(LOCKED_ZONE(zone));
 
 	/* We only re-sign zones that can be dynamically updated */
-	if (zone->update_disabled) {
+	if (!dns_zone_isdynamic(zone, false)) {
 		return;
 	}
 
-	if (!inline_secure(zone) &&
-	    (zone->type != dns_zone_primary ||
-	     (zone->ssutable == NULL &&
-	      (zone->update_acl == NULL || dns_acl_isnone(zone->update_acl)))))
-	{
+	if (inline_raw(zone)) {
 		return;
 	}
 
@@ -5174,7 +5170,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 		is_dynamic = dns_zone_isdynamic(zone, false);
 		if (zone->type == dns_zone_primary && is_dynamic &&
-		    dns_db_issecure(db))
+		    dns_db_issecure(db) && !inline_raw(zone))
 		{
 			dns_name_t *name;
 			dns_fixedname_t fixed;
