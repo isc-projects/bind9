@@ -794,6 +794,11 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->rrcomments = lookold->rrcomments;
 	looknew->fuzzing = lookold->fuzzing;
 	looknew->fuzztime = lookold->fuzztime;
+	looknew->proxy_mode = lookold->proxy_mode;
+	looknew->proxy_plain = lookold->proxy_plain;
+	looknew->proxy_local = lookold->proxy_local;
+	looknew->proxy_src_addr = lookold->proxy_src_addr;
+	looknew->proxy_dst_addr = lookold->proxy_dst_addr;
 
 	if (lookold->ecs_addr != NULL) {
 		looknew->ecs_addr = isc_mem_get(mctx,
@@ -2921,6 +2926,9 @@ start_tcp(dig_query_t *query) {
 	bool tls_mode = false;
 	isc_tlsctx_client_session_cache_t *sess_cache = NULL;
 	int local_timeout;
+	isc_nm_proxy_type_t proxy_type = ISC_NM_PROXY_NONE;
+	isc_nm_proxyheader_info_t proxy_info = { 0 };
+	isc_nm_proxyheader_info_t *ppi = NULL;
 
 	REQUIRE(DIG_VALID_QUERY(query));
 
@@ -3012,6 +3020,22 @@ start_tcp(dig_query_t *query) {
 		}
 	}
 
+	if (query->lookup->proxy_mode) {
+		proxy_type = ISC_NM_PROXY_PLAIN;
+		if ((tls_mode || (query->lookup->https_mode &&
+				  !query->lookup->http_plain)) &&
+		    !query->lookup->proxy_plain)
+		{
+			proxy_type = ISC_NM_PROXY_ENCRYPTED;
+		}
+		if (!query->lookup->proxy_local) {
+			isc_nm_proxyheader_info_init(
+				&proxy_info, &query->lookup->proxy_src_addr,
+				&query->lookup->proxy_dst_addr, NULL);
+			ppi = &proxy_info;
+		}
+	}
+
 	REQUIRE(query != NULL);
 
 	query_attach(query, &connectquery);
@@ -3025,7 +3049,7 @@ start_tcp(dig_query_t *query) {
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
 					local_timeout, tlsctx, sess_cache,
-					ISC_NM_PROXY_NONE, NULL);
+					proxy_type, ppi);
 #if HAVE_LIBNGHTTP2
 	} else if (query->lookup->https_mode) {
 		char uri[4096] = { 0 };
@@ -3045,13 +3069,13 @@ start_tcp(dig_query_t *query) {
 		isc_nm_httpconnect(netmgr, &localaddr, &query->sockaddr, uri,
 				   !query->lookup->https_get, tcp_connected,
 				   connectquery, tlsctx, sess_cache,
-				   local_timeout, ISC_NM_PROXY_NONE, NULL);
+				   local_timeout, proxy_type, ppi);
 #endif
 	} else {
 		isc_nm_streamdnsconnect(netmgr, &localaddr, &query->sockaddr,
 					tcp_connected, connectquery,
-					local_timeout, NULL, NULL,
-					ISC_NM_PROXY_NONE, NULL);
+					local_timeout, NULL, NULL, proxy_type,
+					ppi);
 	}
 
 	return;
@@ -3301,9 +3325,24 @@ start_udp(dig_query_t *query) {
 	}
 
 	query_attach(query, &connectquery);
-	isc_nm_udpconnect(netmgr, &localaddr, &query->sockaddr, udp_ready,
-			  connectquery,
-			  (timeout ? timeout : UDP_TIMEOUT) * 1000);
+	if (query->lookup->proxy_mode) {
+		isc_nm_proxyheader_info_t proxy_info = { 0 };
+		isc_nm_proxyheader_info_t *ppi = NULL;
+		if (!query->lookup->proxy_local) {
+			isc_nm_proxyheader_info_init(
+				&proxy_info, &query->lookup->proxy_src_addr,
+				&query->lookup->proxy_dst_addr, NULL);
+			ppi = &proxy_info;
+		}
+		isc_nm_proxyudpconnect(netmgr, &localaddr, &query->sockaddr,
+				       udp_ready, connectquery,
+				       (timeout ? timeout : UDP_TIMEOUT) * 1000,
+				       ppi);
+	} else {
+		isc_nm_udpconnect(netmgr, &localaddr, &query->sockaddr,
+				  udp_ready, connectquery,
+				  (timeout ? timeout : UDP_TIMEOUT) * 1000);
+	}
 }
 
 /*%
