@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- For inline-signing zones, if the unsigned version of the zone contains
+  DNSSEC records, it was scheduled to be resigning. This unwanted behavior
+  has been fixed. :gl:`#4350`
 
 Known Issues
 ~~~~~~~~~~~~

@@ -1,3 +1,6 @@
+6265.	[bug]		Don't schedule resign operations on the raw version
+			of an inline-signing zone. [GL #4350]
+
 6261.	[bug]		Fix a possible assertion failure on an error path in
 			resolver.c:fctx_query(), when using an uninitialized
 			link. [GL #4331]

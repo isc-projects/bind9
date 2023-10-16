@@ -164,6 +164,19 @@ private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$ZSK" >> "$infile"
 cp $infile $zonefile
 $SIGNER -PS -x -o $zone -O raw -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
 
+# We are signing the raw version of the zone here. This is unusual and not
+# common operation, but want to make sure that in such a case BIND 9 does not
+# schedule a resigning operation on the raw version. Add expired signatures so
+# a resign is imminent.
+setup dynamic-signed-inline-signing.kasp
+T="now-1d"
+csktimes="-P $T -A $T -P sync $T"
+CSK=$($KEYGEN -a $DEFAULT_ALGORITHM -L 3600 -f KSK $ksktimes $zone 2> keygen.out.$zone.1)
+$SETTIME -s -g $O -d $O $T -k $O $T -z $O $T -r $O $T "$CSK" > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+cp $infile $zonefile
+$SIGNER -PS -z -x -s now-2w -e now-1mi -o $zone -f "${zonefile}.signed" $infile > signer.out.$zone.1 2>&1
+
 # These signatures are set to expire long in the past, update immediately.
 setup expired-sigs.autosign
 T="now-6mo"
