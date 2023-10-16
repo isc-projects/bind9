@@ -158,7 +158,6 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 
 	uri = dns_keystore_pkcs11uri(keystore);
 	if (uri != NULL) {
-		dst_key_t *key = NULL;
 		char *label = NULL;
 		size_t len;
 		char timebuf[18];
@@ -179,29 +178,14 @@ dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
 		/* Generate the key */
 		result = dst_key_generate(origin, alg, size, 0, flags,
 					  DNS_KEYPROTO_DNSSEC, rdclass, label,
-					  mctx, &key, NULL);
-		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
-				      "keystore: failed to generate key "
-				      "%s (ret=%d)",
-				      object, result);
-			return (result);
-		}
-		dst_key_free(&key);
-
-		/* Retrieve generated key from label */
-		result = dst_key_fromlabel(
-			origin, alg, flags, DNS_KEYPROTO_DNSSEC,
-			dns_rdataclass_in, dns_keystore_engine(keystore), label,
-			NULL, mctx, &newkey);
+					  mctx, &newkey, NULL);
 
 		isc_mem_put(mctx, label, len);
 
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
 				      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
-				      "keystore: failed to access key "
+				      "keystore: failed to generate key "
 				      "%s (ret=%d)",
 				      object, result);
 			return (result);
