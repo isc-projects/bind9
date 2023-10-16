@@ -43,7 +43,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The zone option :any:`inline-signing` is now ignored if there is no
+  :any:`dnssec-policy` configured for the zone. This means that unsigned
+  zones will no longer create redundant signed versions of the zone.
+  :gl:`#4349`
 
 Bug Fixes
 ~~~~~~~~~
