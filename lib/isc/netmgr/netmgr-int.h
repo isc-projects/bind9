@@ -1224,6 +1224,20 @@ isc__nm_proxystream_senddns(isc_nmhandle_t *handle, isc_region_t *region,
 			    isc_nm_cb_t cb, void *cbarg);
 
 void
+isc__nm_proxystream_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx);
+
+bool
+isc__nm_proxystream_has_encryption(const isc_nmhandle_t *handle);
+
+const char *
+isc__nm_proxystream_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
+
+void
+isc__nmhandle_proxystream_get_selected_alpn(isc_nmhandle_t *handle,
+					    const unsigned char **alpn,
+					    unsigned int *alpnlen);
+
+void
 isc__nm_incstats(isc_nmsocket_t *sock, isc__nm_statid_t id);
 /*%<
  * Increment socket-related statistics counters.

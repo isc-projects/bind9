@@ -436,11 +436,11 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 isc_result_t
 isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 			 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-			 int backlog, isc_quota_t *quota,
+			 int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
 			 isc_nmsocket_t **sockp);
 /*%<
  * Start listening for data preceded by a PROXYv2 header over the
- * TCP on interface 'iface', using net manager 'mgr'.
+ * TCP or TLS on interface 'iface', using net manager 'mgr'.
  *
  * On success, 'sockp' will be updated to contain a new listening TCP
  * socket.
@@ -450,13 +450,18 @@ isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
  *
  * If 'quota' is not NULL, then the socket is attached to the specified
  * quota. This allows us to enforce TCP client quota limits.
+ *
+ * If 'tlsctx' is not NULL, then listen for TLS connections. In that
+ * case PROXYv2 headers are expected to be sent encrypted right after
+ * the TLS handshake.
  */
 
 void
 isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			  unsigned int		     timeout,
-			  isc_nm_proxyheader_info_t *proxy_info);
+			  unsigned int timeout, isc_tlsctx_t *tlsctx,
+			  isc_tlsctx_client_session_cache_t *client_sess_cache,
+			  isc_nm_proxyheader_info_t	    *proxy_info);
 /*%<
  * Create a TCP socket using netmgr 'mgr', bind it to the address
  * 'local', and connect it to the address 'peer'. Right after the

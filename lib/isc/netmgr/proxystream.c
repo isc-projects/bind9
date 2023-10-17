@@ -316,7 +316,7 @@ proxystream_accept_cb(isc_nmhandle_t *handle, isc_result_t result,
 isc_result_t
 isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 			 isc_nm_accept_cb_t accept_cb, void *accept_cbarg,
-			 int backlog, isc_quota_t *quota,
+			 int backlog, isc_quota_t *quota, isc_tlsctx_t *tlsctx,
 			 isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *listener = NULL;
@@ -335,8 +335,15 @@ isc_nm_listenproxystream(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	listener->accept_cb = accept_cb;
 	listener->accept_cbarg = accept_cbarg;
 
-	result = isc_nm_listentcp(mgr, workers, iface, proxystream_accept_cb,
-				  listener, backlog, quota, &listener->outer);
+	if (tlsctx == NULL) {
+		result = isc_nm_listentcp(mgr, workers, iface,
+					  proxystream_accept_cb, listener,
+					  backlog, quota, &listener->outer);
+	} else {
+		result = isc_nm_listentls(
+			mgr, workers, iface, proxystream_accept_cb, listener,
+			backlog, quota, tlsctx, false, &listener->outer);
+	}
 
 	if (result != ISC_R_SUCCESS) {
 		listener->closed = true;
@@ -451,7 +458,8 @@ error:
 void
 isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			  isc_sockaddr_t *peer, isc_nm_cb_t cb, void *cbarg,
-			  unsigned int timeout,
+			  unsigned int timeout, isc_tlsctx_t *tlsctx,
+			  isc_tlsctx_client_session_cache_t *client_sess_cache,
 			  isc_nm_proxyheader_info_t *proxy_info) {
 	isc_result_t result = ISC_R_FAILURE;
 	isc_nmsocket_t *nsock = NULL;
@@ -487,8 +495,15 @@ isc_nm_proxystreamconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			&proxy_info->proxy_info.tlv_data);
 	}
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_nm_tcpconnect(mgr, local, peer, proxystream_connect_cb, nsock,
-			  nsock->connect_timeout);
+
+	if (tlsctx == NULL) {
+		isc_nm_tcpconnect(mgr, local, peer, proxystream_connect_cb,
+				  nsock, nsock->connect_timeout);
+	} else {
+		isc_nm_tlsconnect(mgr, local, peer, proxystream_connect_cb,
+				  nsock, tlsctx, client_sess_cache,
+				  nsock->connect_timeout, false, NULL);
+	}
 }
 
 static void
@@ -537,6 +552,7 @@ void
 isc__nm_proxystream_cleanup_data(isc_nmsocket_t *sock) {
 	switch (sock->type) {
 	case isc_nm_tcpsocket:
+	case isc_nm_tlssocket:
 		if (sock->proxy.sock != NULL) {
 			isc__nmsocket_detach(&sock->proxy.sock);
 		}
@@ -1086,4 +1102,65 @@ void
 isc__nm_proxystream_senddns(isc_nmhandle_t *handle, isc_region_t *region,
 			    isc_nm_cb_t cb, void *cbarg) {
 	proxystream_send(handle, region, cb, cbarg, true);
+}
+
+void
+isc__nm_proxystream_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
+	REQUIRE(VALID_NMSOCK(listener));
+	REQUIRE(listener->type == isc_nm_proxystreamlistener);
+
+	if (listener->outer != NULL) {
+		INSIST(VALID_NMSOCK(listener->outer));
+		isc_nmsocket_set_tlsctx(listener->outer, tlsctx);
+	}
+}
+
+bool
+isc__nm_proxystream_has_encryption(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_proxystreamsocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+		return (isc_nm_has_encryption(sock->outerhandle));
+	}
+
+	return (false);
+}
+
+const char *
+isc__nm_proxystream_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
+	isc_nmsocket_t *sock = NULL;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	REQUIRE(VALID_NMSOCK(handle->sock));
+	REQUIRE(handle->sock->type == isc_nm_proxystreamsocket);
+
+	sock = handle->sock;
+	if (sock->outerhandle != NULL) {
+		INSIST(VALID_NMHANDLE(sock->outerhandle));
+		return (isc_nm_verify_tls_peer_result_string(
+			sock->outerhandle));
+	}
+
+	return (NULL);
+}
+
+void
+isc__nmhandle_proxystream_get_selected_alpn(isc_nmhandle_t *handle,
+					    const unsigned char **alpn,
+					    unsigned int *alpnlen) {
+	isc_nmsocket_t *sock;
+
+	REQUIRE(VALID_NMHANDLE(handle));
+	sock = handle->sock;
+	REQUIRE(VALID_NMSOCK(sock));
+	REQUIRE(sock->type == isc_nm_proxystreamsocket);
+	REQUIRE(sock->tid == isc_tid());
+
+	isc__nmhandle_get_selected_alpn(sock->outerhandle, alpn, alpnlen);
 }

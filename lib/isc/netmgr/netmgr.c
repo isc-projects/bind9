@@ -2353,6 +2353,8 @@ isc_nm_has_encryption(const isc_nmhandle_t *handle) {
 #endif /* HAVE_LIBNGHTTP2 */
 	case isc_nm_streamdnssocket:
 		return (isc__nm_streamdns_has_encryption(handle));
+	case isc_nm_proxystreamsocket:
+		return (isc__nm_proxystream_has_encryption(handle));
 	default:
 		return (false);
 	};
@@ -2455,6 +2457,9 @@ isc_nmsocket_set_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 		break;
 	case isc_nm_streamdnslistener:
 		isc__nm_streamdns_set_tlsctx(listener, tlsctx);
+		break;
+	case isc_nm_proxystreamlistener:
+		isc__nm_proxystream_set_tlsctx(listener, tlsctx);
 		break;
 	default:
 		UNREACHABLE();
@@ -2696,6 +2701,10 @@ isc__nmhandle_get_selected_alpn(isc_nmhandle_t *handle,
 	switch (sock->type) {
 	case isc_nm_tlssocket:
 		isc__nmhandle_tls_get_selected_alpn(handle, alpn, alpnlen);
+		return;
+	case isc_nm_proxystreamsocket:
+		isc__nmhandle_proxystream_get_selected_alpn(handle, alpn,
+							    alpnlen);
 		return;
 	default:
 		break;
