@@ -380,7 +380,7 @@ if lines_containing(changes_added_lines, "[security]"):
             "This merge request fixes a security issue. "
             "Please add a CHANGES entry which includes a CVE identifier."
         )
-    if not lines_containing(notes_added_lines, "CVE-20"):
+    if not lines_containing(notes_added_lines, ":cve:`20"):
         fail(
             "This merge request fixes a security issue. "
             "Please add a release note which includes a CVE identifier."
