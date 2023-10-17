@@ -23,7 +23,7 @@
 
 #define SIZE (1024 * 1024)
 
-#define KILOHASHES(count, us) ((us) == 0 ? 0.0 : ((count)*1000.0 / (us)))
+#define KILOHASHES(count, us) ((us) == 0 ? 0.0 : ((count) * 1000.0 / (us)))
 
 int
 main(void) {

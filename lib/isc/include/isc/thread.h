@@ -33,7 +33,7 @@
 ISC_LANG_BEGINDECLS
 
 typedef pthread_t isc_thread_t;
-typedef void *(*isc_threadfunc_t)(void *);
+typedef void	 *(*isc_threadfunc_t)(void *);
 
 /*%
  * like isc_thread_create(), but run the function on the current

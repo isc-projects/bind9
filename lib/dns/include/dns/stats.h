@@ -234,7 +234,7 @@ enum {
 /*%<
  * Conversion macros among dns_rdatatype_t, attributes and isc_statscounter_t.
  */
-#define DNS_RDATASTATSTYPE_BASE(type)  ((dns_rdatatype_t)((type)&0xFFFF))
+#define DNS_RDATASTATSTYPE_BASE(type)  ((dns_rdatatype_t)((type) & 0xFFFF))
 #define DNS_RDATASTATSTYPE_ATTR(type)  ((type) >> 16)
 #define DNS_RDATASTATSTYPE_VALUE(b, a) (((a) << 16) | (b))
 

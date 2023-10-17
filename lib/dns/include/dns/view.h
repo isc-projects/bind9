@@ -212,13 +212,13 @@ struct dns_view {
 	 * XXX: This should be a pointer to an opaque type that
 	 * named implements.
 	 */
-	char	*new_zone_dir;
-	char	*new_zone_file;
-	char	*new_zone_db;
-	void	*new_zone_dbenv;
-	uint64_t new_zone_mapsize;
-	void	*new_zone_config;
-	void (*cfg_destroy)(void **);
+	char	   *new_zone_dir;
+	char	   *new_zone_file;
+	char	   *new_zone_db;
+	void	   *new_zone_dbenv;
+	uint64_t    new_zone_mapsize;
+	void	   *new_zone_config;
+	void	    (*cfg_destroy)(void **);
 	isc_mutex_t new_zone_lock;
 
 	unsigned char secret[32]; /* Client secret */
@@ -230,11 +230,11 @@ struct dns_view {
 
 	/* Registered module instances */
 	void *plugins;
-	void (*plugins_free)(isc_mem_t *, void **);
+	void  (*plugins_free)(isc_mem_t *, void **);
 
 	/* Hook table */
 	void *hooktable; /* ns_hooktable */
-	void (*hooktable_free)(isc_mem_t *, void **);
+	void  (*hooktable_free)(isc_mem_t *, void **);
 };
 
 #define DNS_VIEW_MAGIC	     ISC_MAGIC('V', 'i', 'e', 'w')

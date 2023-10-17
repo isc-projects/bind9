@@ -191,10 +191,10 @@
 
 /*% Is IP address multicast? */
 #define ISC_IPADDR_ISMULTICAST(i) \
-	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
+	(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
+	(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
 
 /***
  *** Functions.

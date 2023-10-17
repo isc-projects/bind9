@@ -18,8 +18,8 @@
 #include <isc/lang.h>
 #include <isc/loop.h>
 
-typedef void (*isc_work_cb)(void *arg);
-typedef void (*isc_after_work_cb)(void *arg);
+typedef void		(*isc_work_cb)(void *arg);
+typedef void		(*isc_after_work_cb)(void *arg);
 typedef struct isc_work isc_work_t;
 
 ISC_LANG_BEGINDECLS

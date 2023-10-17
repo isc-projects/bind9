@@ -698,7 +698,7 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
 
 void
 dns_rbt_printtext(dns_rbt_t *rbt, void (*data_printer)(FILE *, void *),
-		  FILE	    *f);
+		  FILE *f);
 /*%<
  * Print an ASCII representation of the internal structure of the red-black
  * tree of trees to the passed stream.

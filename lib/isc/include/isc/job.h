@@ -30,7 +30,7 @@
 #include <isc/types.h>
 #include <isc/urcu.h>
 
-typedef void (*isc_job_cb)(void *);
+typedef void	       (*isc_job_cb)(void *);
 typedef struct isc_job isc_job_t;
 
 struct isc_job {

@@ -501,11 +501,11 @@ cfg_listelt_value(const cfg_listelt_t *elt);
 
 void
 cfg_print(const cfg_obj_t *obj,
-	  void (*f)(void *closure, const char *text, int textlen),
-	  void *closure);
+	  void		   (*f)(void *closure, const char *text, int textlen),
+	  void		  *closure);
 void
 cfg_printx(const cfg_obj_t *obj, unsigned int flags,
-	   void (*f)(void *closure, const char *text, int textlen),
+	   void	 (*f)(void *closure, const char *text, int textlen),
 	   void *closure);
 
 #define CFG_PRINTER_XKEY    0x1 /* '?' out shared keys. */
@@ -527,7 +527,7 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 
 void
 cfg_print_grammar(const cfg_type_t *type, unsigned int flags,
-		  void (*f)(void *closure, const char *text, int textlen),
+		  void	(*f)(void *closure, const char *text, int textlen),
 		  void *closure);
 /*%<
  * Print a summary of the grammar of the configuration type 'type'.

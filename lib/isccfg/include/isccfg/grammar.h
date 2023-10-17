@@ -87,9 +87,9 @@ typedef struct cfg_rep cfg_rep_t;
 
 typedef isc_result_t (*cfg_parsefunc_t)(cfg_parser_t *, const cfg_type_t *type,
 					cfg_obj_t **);
-typedef void (*cfg_printfunc_t)(cfg_printer_t *, const cfg_obj_t *);
-typedef void (*cfg_docfunc_t)(cfg_printer_t *, const cfg_type_t *);
-typedef void (*cfg_freefunc_t)(cfg_parser_t *, cfg_obj_t *);
+typedef void	     (*cfg_printfunc_t)(cfg_printer_t *, const cfg_obj_t *);
+typedef void	     (*cfg_docfunc_t)(cfg_printer_t *, const cfg_type_t *);
+typedef void	     (*cfg_freefunc_t)(cfg_parser_t *, cfg_obj_t *);
 
 /*
  * Structure definitions
@@ -101,7 +101,7 @@ typedef void (*cfg_freefunc_t)(cfg_parser_t *, cfg_obj_t *);
  * by calling the function 'f'.
  */
 struct cfg_printer {
-	void (*f)(void *closure, const char *text, int textlen);
+	void  (*f)(void *closure, const char *text, int textlen);
 	void *closure;
 	int   indent;
 	int   flags;
@@ -574,7 +574,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype);
 
 void
 cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
-		      void (*f)(void *closure, const char *text, int textlen),
+		      void  (*f)(void *closure, const char *text, int textlen),
 		      void *closure);
 /*%<
  * Print a summary of the grammar of the zone type represented by

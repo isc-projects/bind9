@@ -744,7 +744,7 @@ doh_connect_thread(void *arg) {
 		isc_loopmgr_shutdown(loopmgr);
 	}
 
-next : {}
+next: {}
 }
 
 static void
