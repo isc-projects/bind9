@@ -123,10 +123,10 @@ typedef uint16_t in_port_t;
 #define ISC__IPADDR(x) ((uint32_t)htonl((uint32_t)(x)))
 
 #define ISC_IPADDR_ISMULTICAST(i) \
-	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
+	(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xe0000000))
 
 #define ISC_IPADDR_ISEXPERIMENTAL(i) \
-	(((uint32_t)(i)&ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
+	(((uint32_t)(i) & ISC__IPADDR(0xf0000000)) == ISC__IPADDR(0xf0000000))
 
 /*
  * Fix the FD_SET and FD_CLR Macros to properly cast

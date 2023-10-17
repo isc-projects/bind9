@@ -28,8 +28,8 @@
 #include <dns/types.h>
 
 typedef struct {
-	void (*func)(void *arg, dns_zone_t *zone, int level,
-		     const char *message);
+	void  (*func)(void *arg, dns_zone_t *zone, int level,
+		      const char *message);
 	void *arg;
 } dns_update_log_t;
 
