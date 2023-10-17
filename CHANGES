@@ -1,3 +1,7 @@
+6266.	[func]		The zone option 'inline-signing' is ignored from now
+			on iff there is no 'dnssec-policy' configured for the
+			corresponding zone. [GL #4349]
+
 6265.	[bug]		Don't schedule resign operations on the raw version
 			of an inline-signing zone. [GL #4350]
 

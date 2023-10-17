@@ -6112,15 +6112,15 @@ are configured with different versions of the same zone, each separate
 version uses the same set of signing keys.
 
 The :any:`dnssec-policy` statement requires dynamic DNS to be set up, or
-:any:`inline-signing` to be enabled.
+:any:`inline-signing` to be enabled (which is the default for DNSSEC zones).
 
 If :any:`inline-signing` is enabled, this means that a signed version of the
 zone is maintained separately and is written out to a different file on disk
 (the zone's filename plus a ``.signed`` extension).
 
-If the zone is dynamic because it is configured with an :any:`update-policy` or
-:any:`allow-update`, the DNSSEC records are written to the filename set in the
-original zone's :any:`file`, unless :any:`inline-signing` is enabled.
+If :any:`inline-signing` is disabled, the zone needs to be configured with
+an :any:`update-policy` or :any:`allow-update`. In such case, the DNSSEC
+records are written to the filename set in the original zone's :any:`file`.
 
 Key rollover timing is computed for each key according to the key
 lifetime defined in the KASP.  The lifetime may be modified by zone TTLs
@@ -6182,6 +6182,18 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
     This indicates the TTL to use when generating DNSKEY resource
     records. The default is 1 hour (3600 seconds).
+
+:any:`inline-signing`
+   :tags: dnssec
+   :short: Specifies whether BIND 9 maintains a separate signed version of a zone.
+
+   If ``yes``, BIND 9 maintains a separate signed version of the zone.
+   An unsigned zone is transferred in or loaded from disk and the signed
+   version of the zone is served with, possibly, a different serial
+   number. The signed version of the zone is stored in a file that is
+   the zone's filename (set in :any:`file`) with a ``.signed`` extension.
+
+   This behavior is enabled by default.
 
 :any:`keys`
     This is a list specifying the algorithms and roles to use when
@@ -7097,12 +7109,9 @@ Zone Options
    :tags: dnssec, zone
    :short: Specifies whether BIND 9 maintains a separate signed version of a zone.
 
-   If ``yes``, BIND 9 maintains a separate signed version of the zone.
-   An unsigned zone is transferred in or loaded from disk and the signed
-   version of the zone is served with, possibly, a different serial
-   number. The signed version of the zone is stored in a file that is
-   the zone's filename (set in :any:`file`) with a ``.signed`` extension.
-   This behavior is disabled by default.
+   The use of inline signing is determined by the :any:`dnssec-policy` for
+   the zone. If :any:`inline-signing` is explicitly set to ``yes`` or ``no``
+   in :any:`zone`, then it overrides any value from :any:`dnssec-policy`.
 
 :any:`multi-master`
    See the description of :any:`multi-master` in :ref:`boolean_options`.
@@ -7129,8 +7138,8 @@ perform dynamic updates to a zone:
 In both cases, BIND 9 writes the updates to the zone's filename
 set in :any:`file`.
 
-In the case of a DNSSEC zone, DNSSEC records are also written to
-the zone's filename, unless :any:`inline-signing` is enabled.
+In the case of a DNSSEC zone where :any:`inline-signing` is disabled, DNSSEC
+records are also written to the zone's filename.
 
    .. note:: The zone file can no longer be manually updated while ``named``
       is running; it is now necessary to perform :option:`rndc freeze`, edit,

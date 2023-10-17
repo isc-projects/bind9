@@ -277,7 +277,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "attempting to add primary zone with inline signing ($n)"
-$RNDCCMD 10.53.0.2 addzone 'inline.example { type primary; file "inline.db"; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 addzone 'inline.example { type primary; file "inline.db"; dnssec-policy default; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
 _check_add_primary_zone_with_inline() (
 	$DIG $DIGOPTS @10.53.0.2 a.inline.example a > dig.out.ns2.$n &&
 	grep 'status: NOERROR' dig.out.ns2.$n > /dev/null &&
@@ -290,14 +290,14 @@ status=$((status + ret))
 
 echo_i "attempting to add primary zone with inline signing and missing file ($n)"
 ret=0
-$RNDCCMD 10.53.0.2 addzone 'inlinemissing.example { type primary; file "missing.db"; inline-signing yes; };' 2> rndc.out.ns2.$n && ret=1
+$RNDCCMD 10.53.0.2 addzone 'inlinemissing.example { type primary; file "missing.db"; dnssec-policy default; inline-signing yes; };' 2> rndc.out.ns2.$n && ret=1
 grep "file not found" rndc.out.ns2.$n > /dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 echo_i "attempting to add secondary zone with inline signing ($n)"
-$RNDCCMD 10.53.0.2 addzone 'inlinesec.example { type secondary; primaries { 10.53.0.1; }; file "inlinesec.bk"; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 addzone 'inlinesec.example { type secondary; primaries { 10.53.0.1; }; file "inlinesec.bk"; dnssec-policy default; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
 _check_add_secondary_with_inline() (
 	$DIG $DIGOPTS @10.53.0.2 a.inlinesec.example a > dig.out.ns2.$n &&
 	grep 'status: NOERROR' dig.out.ns2.$n > /dev/null &&
@@ -324,7 +324,7 @@ n=$((n + 1))
 status=$((status + ret))
 
 echo_i "restoring secondary zone with inline signing ($n)"
-$RNDCCMD 10.53.0.2 addzone 'inlinesec.example { type secondary; primaries { 10.53.0.1; }; file "inlinesec.bk"; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
+$RNDCCMD 10.53.0.2 addzone 'inlinesec.example { type secondary; primaries { 10.53.0.1; }; file "inlinesec.bk"; dnssec-policy default; inline-signing yes; };' 2>&1 | sed 's/^/I:ns2 /'
 _check_restoring_secondary_with_inline() (
 	$DIG $DIGOPTS @10.53.0.2 a.inlinesec.example a > dig.out.ns2.$n &&
 	grep 'status: NOERROR' dig.out.ns2.$n > /dev/null &&
