@@ -448,6 +448,9 @@ typedef bool (*dns_checknsfunc_t)(dns_zone_t *, const dns_name_t *,
 				  const dns_name_t *, dns_rdataset_t *,
 				  dns_rdataset_t *);
 
+typedef bool (*dns_checkisservedbyfunc_t)(dns_zone_t *, dns_rdatatype_t type,
+					  const dns_name_t *);
+
 typedef bool (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *,
 				 const isc_sockaddr_t *, const isc_sockaddr_t *,
 				 dns_rdataclass_t, void *);

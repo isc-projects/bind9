@@ -2188,6 +2188,18 @@ dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns);
  */
 
 void
+dns_zone_setcheckisservedby(dns_zone_t		     *zone,
+			    dns_checkisservedbyfunc_t checkisserverby);
+/*%<
+ *	Set the post load integrity callback function 'checkisserverby'.
+ *	'checkisserverby' will be called if the NS TARGET is not within
+ *	the zone and there are A or AAAA records in the the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+void
 dns_zone_setnotifydelay(dns_zone_t *zone, uint32_t delay);
 /*%<
  * Set the minimum delay between sets of notify messages.
