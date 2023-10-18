@@ -65,6 +65,11 @@
 #  pattern, only this data will be signed. Currently, this is only
 #  done for TCP.
 #
+# /pattern NOTIMP <key> <key_data>/
+# /pattern NOTIMP/
+#
+# Return a NOTIMP response
+#
 # /pattern bad-id <key> <key_data>/
 # /pattern bad-id/
 #
@@ -376,13 +381,20 @@ sub handleTCP {
 		if ("$qname $qtype" =~ /$dbtype/) {
 			$count_these++;
 			my $a;
+			my $done = 0;
 			foreach $a (@{$r->{answer}}) {
 				$packet->push("answer", $a);
+			}
+			if (defined($key_name) && $key_name eq "NOTIMP") {
+				$packet->header->rcode('NOTIMP');
+				$key_name = $key_data;
+				($key_data, $tname) = split(/ /,$tname);
+				$done = 1;
 			}
 			if (defined($key_name) && $key_name eq "bad-id") {
 				$packet->header->id(($id+50)%0xffff);
 				$key_name = $key_data;
-				($key_data, $tname) = split(/ /,$tname)
+				($key_data, $tname) = split(/ /,$tname);
 			}
 			if (defined($key_name) && defined($key_data)) {
 				my $tsig;
@@ -453,6 +465,7 @@ sub handleTCP {
 			}
 			#$packet->print;
 			push(@results,$packet->data);
+			last if ($done);
 			if ($tname eq "") {
 				$tname = $qname;
 			}
