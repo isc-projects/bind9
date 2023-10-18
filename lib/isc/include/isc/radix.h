@@ -192,7 +192,7 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
  */
 
 #define RADIX_MAXBITS  128
-#define RADIX_NBIT(x)  (0x80 >> ((x)&0x7f))
+#define RADIX_NBIT(x)  (0x80 >> ((x) & 0x7f))
 #define RADIX_NBYTE(x) ((x) >> 3)
 
 #define RADIX_WALK(Xhead, Xnode)                              \

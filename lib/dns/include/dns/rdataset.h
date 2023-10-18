@@ -63,11 +63,11 @@ typedef enum {
 } dns_rdatasetadditional_t;
 
 typedef struct dns_rdatasetmethods {
-	void (*disassociate)(dns_rdataset_t *rdataset);
+	void	     (*disassociate)(dns_rdataset_t *rdataset);
 	isc_result_t (*first)(dns_rdataset_t *rdataset);
 	isc_result_t (*next)(dns_rdataset_t *rdataset);
-	void (*current)(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-	void (*clone)(dns_rdataset_t *source, dns_rdataset_t *target);
+	void	     (*current)(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
+	void	     (*clone)(dns_rdataset_t *source, dns_rdataset_t *target);
 	unsigned int (*count)(dns_rdataset_t *rdataset);
 	isc_result_t (*addnoqname)(dns_rdataset_t   *rdataset,
 				   const dns_name_t *name);
@@ -77,9 +77,9 @@ typedef struct dns_rdatasetmethods {
 				   const dns_name_t *name);
 	isc_result_t (*getclosest)(dns_rdataset_t *rdataset, dns_name_t *name,
 				   dns_rdataset_t *neg, dns_rdataset_t *negsig);
-	void (*settrust)(dns_rdataset_t *rdataset, dns_trust_t trust);
-	void (*expire)(dns_rdataset_t *rdataset);
-	void (*clearprefetch)(dns_rdataset_t *rdataset);
+	void	     (*settrust)(dns_rdataset_t *rdataset, dns_trust_t trust);
+	void	     (*expire)(dns_rdataset_t *rdataset);
+	void	     (*clearprefetch)(dns_rdataset_t *rdataset);
 	void (*setownercase)(dns_rdataset_t *rdataset, const dns_name_t *name);
 	void (*getownercase)(const dns_rdataset_t *rdataset, dns_name_t *name);
 	isc_result_t (*addglue)(dns_rdataset_t	*rdataset,
