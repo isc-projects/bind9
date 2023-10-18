@@ -1,3 +1,5 @@
+6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
+
 6266.	[func]		The zone option 'inline-signing' is ignored from now
 			on iff there is no 'dnssec-policy' configured for the
 			corresponding zone. [GL #4349]
