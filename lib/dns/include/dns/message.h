@@ -881,23 +881,6 @@ dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
  */
 
 void
-dns_message_movename(dns_message_t *msg, dns_name_t *name,
-		     dns_section_t fromsection, dns_section_t tosection);
-/*%<
- * Move a name from one section to another.
- *
- * Requires:
- *
- *\li	'msg' be valid.
- *
- *\li	'name' must be a name already in 'fromsection'.
- *
- *\li	'fromsection' must be a valid section.
- *
- *\li	'tosection' must be a valid section.
- */
-
-void
 dns_message_addname(dns_message_t *msg, dns_name_t *name,
 		    dns_section_t section);
 /*%<
