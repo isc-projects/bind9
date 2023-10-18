@@ -1205,8 +1205,9 @@ xfrin_start(dns_xfrin_t *xfr) {
 	 * do this because other connections could be using a different
 	 * certificate, so we just create a new dispatch every time.
 	 */
-	if (xfr->transport == NULL ||
-	    dns_transport_get_type(xfr->transport) == DNS_TRANSPORT_TCP)
+	if (xfr->disp == NULL &&
+	    (xfr->transport == NULL ||
+	     dns_transport_get_type(xfr->transport) == DNS_TRANSPORT_TCP))
 	{
 		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
 		if (dispmgr == NULL) {
@@ -1223,7 +1224,7 @@ xfrin_start(dns_xfrin_t *xfr) {
 		isc_sockaddr_format(&xfr->primaryaddr, peer, sizeof(peer));
 		xfrin_log(xfr, ISC_LOG_DEBUG(1),
 			  "attached to TCP connection to %s", peer);
-	} else {
+	} else if (xfr->disp == NULL) {
 		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
 		if (dispmgr == NULL) {
 			result = ISC_R_SHUTTINGDOWN;
@@ -1234,6 +1235,11 @@ xfrin_start(dns_xfrin_t *xfr) {
 			dns_dispatchmgr_detach(&dispmgr);
 		}
 		CHECK(result);
+	}
+
+	/* If this is a retry, we need to cancel the previous dispentry */
+	if (xfr->dispentry != NULL) {
+		dns_dispatch_done(&xfr->dispentry);
 	}
 
 	LIBDNS_XFRIN_START(xfr, xfr->info);
@@ -1940,7 +1946,7 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 	case XFRST_GOTSOA:
 		xfr->reqtype = dns_rdatatype_axfr;
 		atomic_store(&xfr->state, XFRST_ZONEXFRREQUEST);
-		CHECK(xfrin_send_request(xfr));
+		CHECK(xfrin_start(xfr));
 		break;
 	case XFRST_AXFR_END:
 	case XFRST_IXFR_END:
