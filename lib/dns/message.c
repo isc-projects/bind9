@@ -443,30 +443,29 @@ msginit(dns_message_t *m) {
 }
 
 static void
-msgresetnames(dns_message_t *msg, unsigned int first_section) {
-	unsigned int i;
-	dns_name_t *name, *next_name;
-	dns_rdataset_t *rds, *next_rds;
+msgresetname(dns_message_t *msg, dns_name_t *name) {
+	dns_rdataset_t *rds = NULL, *next_rds = NULL;
 
-	/*
-	 * Clean up name lists by calling the rdataset disassociate function.
-	 */
-	for (i = first_section; i < DNS_SECTION_MAX; i++) {
-		name = ISC_LIST_HEAD(msg->sections[i]);
-		while (name != NULL) {
-			next_name = ISC_LIST_NEXT(name, link);
+	ISC_LIST_FOREACH_SAFE (name->list, rds, link, next_rds) {
+		ISC_LIST_UNLINK(name->list, rds, link);
+
+		dns__message_putassociatedrdataset(msg, &rds);
+	}
+}
+
+static void
+msgresetnames(dns_message_t *msg, unsigned int first_section) {
+	/* Clean up name lists. */
+	for (size_t i = first_section; i < DNS_SECTION_MAX; i++) {
+		dns_name_t *name = NULL, *next_name = NULL;
+
+		ISC_LIST_FOREACH_SAFE (msg->sections[i], name, link, next_name)
+		{
 			ISC_LIST_UNLINK(msg->sections[i], name, link);
 
-			rds = ISC_LIST_HEAD(name->list);
-			while (rds != NULL) {
-				next_rds = ISC_LIST_NEXT(rds, link);
-				ISC_LIST_UNLINK(name->list, rds, link);
+			msgresetname(msg, name);
 
-				dns__message_putassociatedrdataset(msg, &rds);
-				rds = next_rds;
-			}
 			dns_message_puttempname(msg, &name);
-			name = next_name;
 		}
 	}
 }
@@ -525,10 +524,10 @@ msgresetsigs(dns_message_t *msg, bool replying) {
  */
 static void
 msgreset(dns_message_t *msg, bool everything) {
-	dns_msgblock_t *msgblock, *next_msgblock;
-	isc_buffer_t *dynbuf, *next_dynbuf;
-	dns_rdata_t *rdata;
-	dns_rdatalist_t *rdatalist;
+	dns_msgblock_t *msgblock = NULL, *next_msgblock = NULL;
+	isc_buffer_t *dynbuf = NULL, *next_dynbuf = NULL;
+	dns_rdata_t *rdata = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
 
 	msgresetnames(msg, 0);
 	msgresetopt(msg);
@@ -783,14 +782,12 @@ ISC_REFCOUNT_IMPL(dns_message, dns__message_destroy);
 static isc_result_t
 findname(dns_name_t **foundname, const dns_name_t *target,
 	 dns_namelist_t *section) {
-	dns_name_t *curr;
+	dns_name_t *name = NULL;
 
-	for (curr = ISC_LIST_TAIL(*section); curr != NULL;
-	     curr = ISC_LIST_PREV(curr, link))
-	{
-		if (dns_name_equal(curr, target)) {
+	ISC_LIST_FOREACH_REV (*section, name, link) {
+		if (dns_name_equal(name, target)) {
 			if (foundname != NULL) {
-				*foundname = curr;
+				*foundname = name;
 			}
 			return (ISC_R_SUCCESS);
 		}
@@ -802,21 +799,18 @@ findname(dns_name_t **foundname, const dns_name_t *target,
 isc_result_t
 dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
 		 dns_rdatatype_t type, dns_rdatatype_t covers,
-		 dns_rdataset_t **rdataset) {
-	dns_rdataset_t *curr;
+		 dns_rdataset_t **rdatasetp) {
+	dns_rdataset_t *rds = NULL;
 
 	REQUIRE(name != NULL);
-	REQUIRE(rdataset == NULL || *rdataset == NULL);
+	REQUIRE(rdatasetp == NULL || *rdatasetp == NULL);
 
-	for (curr = ISC_LIST_TAIL(name->list); curr != NULL;
-	     curr = ISC_LIST_PREV(curr, link))
-	{
-		if (curr->rdclass == rdclass && curr->type == type &&
-		    curr->covers == covers)
+	ISC_LIST_FOREACH_REV (name->list, rds, link) {
+		if (rds->rdclass == rdclass && rds->type == type &&
+		    rds->covers == covers)
 		{
-			if (rdataset != NULL) {
-				*rdataset = curr;
-			}
+			SET_IF_NOT_NULL(rdatasetp, rds);
+
 			return (ISC_R_SUCCESS);
 		}
 	}
@@ -826,19 +820,16 @@ dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
-		     dns_rdatatype_t covers, dns_rdataset_t **rdataset) {
-	dns_rdataset_t *curr;
+		     dns_rdatatype_t covers, dns_rdataset_t **rdatasetp) {
+	dns_rdataset_t *rds = NULL;
 
 	REQUIRE(name != NULL);
-	REQUIRE(rdataset == NULL || *rdataset == NULL);
+	REQUIRE(rdatasetp == NULL || *rdatasetp == NULL);
 
-	for (curr = ISC_LIST_TAIL(name->list); curr != NULL;
-	     curr = ISC_LIST_PREV(curr, link))
-	{
-		if (curr->type == type && curr->covers == covers) {
-			if (rdataset != NULL) {
-				*rdataset = curr;
-			}
+	ISC_LIST_FOREACH_REV (name->list, rds, link) {
+		if (rds->type == type && rds->covers == covers) {
+			SET_IF_NOT_NULL(rdatasetp, rds);
+
 			return (ISC_R_SUCCESS);
 		}
 	}
@@ -1109,17 +1100,13 @@ update(dns_section_t section, dns_rdataclass_t rdclass) {
  */
 static bool
 auth_signed(dns_namelist_t *section) {
-	dns_name_t *name;
+	dns_name_t *name = NULL;
 
-	for (name = ISC_LIST_HEAD(*section); name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
+	ISC_LIST_FOREACH (*section, name, link) {
 		int auth_dnssec = 0, auth_rrsig = 0;
-		dns_rdataset_t *rds;
+		dns_rdataset_t *rds = NULL;
 
-		for (rds = ISC_LIST_HEAD(name->list); rds != NULL;
-		     rds = ISC_LIST_NEXT(rds, link))
-		{
+		ISC_LIST_FOREACH (name->list, rds, link) {
 			switch (rds->type) {
 			case dns_rdatatype_ds:
 				auth_dnssec |= 0x1;
@@ -2336,10 +2323,6 @@ dns_message_renderend(dns_message_t *msg) {
 
 void
 dns_message_renderreset(dns_message_t *msg) {
-	unsigned int i;
-	dns_name_t *name;
-	dns_rdataset_t *rds;
-
 	/*
 	 * Reset the message so that it may be rendered again.
 	 */
@@ -2349,15 +2332,14 @@ dns_message_renderreset(dns_message_t *msg) {
 
 	msg->buffer = NULL;
 
-	for (i = 0; i < DNS_SECTION_MAX; i++) {
+	for (size_t i = 0; i < DNS_SECTION_MAX; i++) {
+		dns_name_t *name = NULL;
+
 		msg->cursors[i] = NULL;
 		msg->counts[i] = 0;
-		for (name = ISC_LIST_HEAD(msg->sections[i]); name != NULL;
-		     name = ISC_LIST_NEXT(name, link))
-		{
-			for (rds = ISC_LIST_HEAD(name->list); rds != NULL;
-			     rds = ISC_LIST_NEXT(rds, link))
-			{
+		ISC_LIST_FOREACH (msg->sections[i], name, link) {
+			dns_rdataset_t *rds = NULL;
+			ISC_LIST_FOREACH (name->list, rds, link) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
 			}
 		}
@@ -3220,7 +3202,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 		dns_masterstyle_flags_t __flags = dns_master_styleflags(sp); \
 		if ((__flags & DNS_STYLEFLAG_INDENT) == 0ULL &&              \
 		    (__flags & DNS_STYLEFLAG_YAML) == 0ULL)                  \
+		{                                                            \
 			break;                                               \
+		}                                                            \
 		for (__i = 0; __i < msg->indent.count; __i++) {              \
 			ADD_STRING(target, msg->indent.string);              \
 		}                                                            \
@@ -3230,8 +3214,7 @@ isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  const dns_master_style_t *style,
 			  dns_messagetextflag_t flags, isc_buffer_t *target) {
-	dns_name_t *name, empty_name;
-	dns_rdataset_t *rdataset;
+	dns_name_t empty_name;
 	isc_result_t result = ISC_R_SUCCESS;
 	bool seensoa = false;
 	size_t saved_count;
@@ -3276,13 +3259,13 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		msg->indent.count++;
 	}
 	do {
-		name = NULL;
+		dns_name_t *name = NULL;
 		dns_message_currentname(msg, section, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
+
+		dns_rdataset_t *rds = NULL;
+		ISC_LIST_FOREACH (name->list, rds, link) {
 			if (section == DNS_SECTION_ANSWER &&
-			    rdataset->type == dns_rdatatype_soa)
+			    rds->type == dns_rdatatype_soa)
 			{
 				if ((flags & DNS_MESSAGETEXTFLAG_OMITSOA) != 0)
 				{
@@ -3303,11 +3286,10 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 					ADD_STRING(target, ";");
 				}
 				result = dns_master_questiontotext(
-					name, rdataset, style, target);
+					name, rds, style, target);
 			} else {
 				result = dns_master_rdatasettotext(
-					name, rdataset, style, &msg->indent,
-					target);
+					name, rds, style, &msg->indent, target);
 			}
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup;
@@ -3337,7 +3319,7 @@ cleanup:
 static isc_result_t
 render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	int i;
-	char addr[16], addr_text[64];
+	char addr[16] = { 0 }, addr_text[64];
 	uint16_t family;
 	uint8_t addrlen, addrbytes, scopelen;
 	isc_result_t result;
@@ -3362,7 +3344,6 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 		return (DNS_R_OPTERR);
 	}
 
-	memset(addr, 0, sizeof(addr));
 	for (i = 0; i < addrbytes; i++) {
 		addr[i] = isc_buffer_getuint8(ecsbuf);
 	}
@@ -4652,10 +4633,56 @@ dns_message_clonebuffer(dns_message_t *msg) {
 }
 
 static isc_result_t
-message_authority_soa_min(dns_message_t *msg, dns_ttl_t *pttl) {
+rdataset_soa_min(dns_rdataset_t *rds, dns_ttl_t *ttlp) {
 	isc_result_t result;
-	dns_rdataset_t *rdataset = NULL;
-	dns_name_t *name = NULL;
+	/* loop over the rdatas */
+	for (result = dns_rdataset_first(rds); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rds))
+	{
+		dns_name_t tmp;
+		isc_region_t r = { 0 };
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(rds, &rdata);
+
+		switch (rdata.type) {
+		case dns_rdatatype_soa:
+			/* SOA rdataset */
+			break;
+		case dns_rdatatype_none:
+			/*
+			 * Negative cache rdataset: we need
+			 * to inspect the rdata to determine
+			 * whether it's an SOA.
+			 */
+			dns_rdata_toregion(&rdata, &r);
+			dns_name_init(&tmp, NULL);
+			dns_name_fromregion(&tmp, &r);
+			isc_region_consume(&r, tmp.length);
+			if (r.length < 2) {
+				continue;
+			}
+			rdata.type = r.base[0] << 8 | r.base[1];
+			if (rdata.type != dns_rdatatype_soa) {
+				continue;
+			}
+			break;
+		default:
+			continue;
+		}
+
+		if (rdata.type == dns_rdatatype_soa) {
+			*ttlp = ISC_MIN(rds->ttl, dns_soa_getminimum(&rdata));
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+static isc_result_t
+message_authority_soa_min(dns_message_t *msg, dns_ttl_t *ttlp) {
+	isc_result_t result;
 
 	if (msg->counts[DNS_SECTION_AUTHORITY] == 0) {
 		return (ISC_R_NOTFOUND);
@@ -4665,62 +4692,19 @@ message_authority_soa_min(dns_message_t *msg, dns_ttl_t *pttl) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(msg, DNS_SECTION_AUTHORITY))
 	{
-		name = NULL;
+		dns_name_t *name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_AUTHORITY, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			isc_result_t tresult;
 
-			if ((rdataset->attributes &
-			     DNS_RDATASETATTR_RENDERED) == 0)
+		dns_rdataset_t *rds = NULL;
+		ISC_LIST_FOREACH (name->list, rds, link) {
+			if ((rds->attributes & DNS_RDATASETATTR_RENDERED) == 0)
 			{
 				continue;
 			}
 
-			/* loop over the rdatas */
-			for (tresult = dns_rdataset_first(rdataset);
-			     tresult == ISC_R_SUCCESS;
-			     tresult = dns_rdataset_next(rdataset))
-			{
-				dns_name_t tmp;
-				isc_region_t r = { 0 };
-				dns_rdata_t rdata = DNS_RDATA_INIT;
-
-				dns_rdataset_current(rdataset, &rdata);
-
-				switch (rdata.type) {
-				case dns_rdatatype_soa:
-					/* SOA rdataset */
-					break;
-				case dns_rdatatype_none:
-					/*
-					 * Negative cache rdataset: we need
-					 * to inspect the rdata to determine
-					 * whether it's an SOA.
-					 */
-					dns_rdata_toregion(&rdata, &r);
-					dns_name_init(&tmp, NULL);
-					dns_name_fromregion(&tmp, &r);
-					isc_region_consume(&r, tmp.length);
-					if (r.length < 2) {
-						continue;
-					}
-					rdata.type = r.base[0] << 8 | r.base[1];
-					if (rdata.type != dns_rdatatype_soa) {
-						continue;
-					}
-					break;
-				default:
-					continue;
-				}
-
-				if (rdata.type == dns_rdatatype_soa) {
-					*pttl = ISC_MIN(
-						rdataset->ttl,
-						dns_soa_getminimum(&rdata));
-					return (ISC_R_SUCCESS);
-				}
+			result = rdataset_soa_min(rds, ttlp);
+			if (result == ISC_R_SUCCESS) {
+				return (ISC_R_SUCCESS);
 			}
 		}
 	}
