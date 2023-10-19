@@ -483,6 +483,38 @@ $DIGCMD nil. TXT | grep 'SOA mismatch AXFR' >/dev/null && {
 }
 
 n=$((n+1))
+echo_i "handle EDNS NOTIMP ($n)"
+
+$RNDCCMD 10.53.0.4 null testing EDNS NOTIMP | sed 's/^/ns4 /' | cat_i
+
+sendcmd < ans5/ednsnotimp
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+nextpart ns4/named.run | grep "Transfer status: NOTIMP" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=$((status+1))
+}
+
+n=$((n+1))
+echo_i "handle EDNS FORMERR ($n)"
+
+$RNDCCMD 10.53.0.4 null testing EDNS FORMERR | sed 's/^/ns4 /' | cat_i
+
+sendcmd < ans5/ednsformerr
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 10
+
+$DIGCMD nil. TXT | grep 'EDNS FORMERR' >/dev/null || {
+    echo_i "failed"
+    status=$((status+1))
+}
+
+n=$((n+1))
 echo_i "check that we ask for and got a EDNS EXPIRE response when transfering from a secondary ($n)"
 tmp=0
 msg="zone edns-expire/IN: zone transfer finished: success, expire=1814[0-4][0-9][0-9]"

@@ -70,6 +70,16 @@
 #
 # Return a NOTIMP response
 #
+# /pattern EDNS=NOTIMP <key> <key_data>/
+# /pattern EDNS=NOTIMP/
+#
+# Return a NOTIMP response to an EDNS request
+#
+# /pattern EDNS=FORMERR <key> <key_data>/
+# /pattern EDNS=FORMERR/
+#
+# Return a FORMERR response to an EDNS request
+#
 # /pattern bad-id <key> <key_data>/
 # /pattern bad-id/
 #
@@ -350,6 +360,11 @@ sub handleTCP {
 	my $qtype = $questions[0]->qtype;
 	my $qclass = $questions[0]->qclass;
 	my $id = $request->header->id;
+	my @additional = $request->additional;
+	my $has_opt = 0;
+	foreach (@additional) {
+		$has_opt = 1 if (ref($_) eq 'Net::DNS::RR::OPT');
+	}
 
 	my $opaque;
 
@@ -382,20 +397,49 @@ sub handleTCP {
 			$count_these++;
 			my $a;
 			my $done = 0;
-			foreach $a (@{$r->{answer}}) {
-				$packet->push("answer", $a);
+
+			while (defined($key_name) &&
+			       ($key_name eq "NOTIMP" || $key_name eq "EDNS=NOTIMP" ||
+				$key_name eq "EDNS=FORMERR" || $key_name eq "bad-id")) {
+
+				if (defined($key_name) && $key_name eq "NOTIMP") {
+					$packet->header->rcode('NOTIMP') if (!$done);
+					$key_name = $key_data;
+					($key_data, $tname) = split(/ /,$tname);
+					$done = 1;
+				}
+
+				if (defined($key_name) && $key_name eq "EDNS=NOTIMP") {
+					if ($has_opt) {
+						$packet->header->rcode('NOTIMP') if (!$done);
+						$done = 1;
+					}
+					$key_name = $key_data;
+					($key_data, $tname) = split(/ /,$tname);
+				}
+
+				if (defined($key_name) && $key_name eq "EDNS=FORMERR") {
+					if ($has_opt) {
+						$packet->header->rcode('FORMERR') if (!$done);
+						$done = 1;
+					}
+					$key_name = $key_data;
+					($key_data, $tname) = split(/ /,$tname);
+				}
+
+				if (defined($key_name) && $key_name eq "bad-id") {
+					$packet->header->id(($id+50)%0xffff);
+					$key_name = $key_data;
+					($key_data, $tname) = split(/ /,$tname);
+				}
 			}
-			if (defined($key_name) && $key_name eq "NOTIMP") {
-				$packet->header->rcode('NOTIMP');
-				$key_name = $key_data;
-				($key_data, $tname) = split(/ /,$tname);
-				$done = 1;
+
+			if (!$done) {
+				foreach $a (@{$r->{answer}}) {
+					$packet->push("answer", $a);
+				}
 			}
-			if (defined($key_name) && $key_name eq "bad-id") {
-				$packet->header->id(($id+50)%0xffff);
-				$key_name = $key_data;
-				($key_data, $tname) = split(/ /,$tname);
-			}
+
 			if (defined($key_name) && defined($key_data)) {
 				my $tsig;
 				# sign the packet
