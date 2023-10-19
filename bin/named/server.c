@@ -59,6 +59,7 @@
 #include <isc/stats.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
+#include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
@@ -10287,8 +10288,15 @@ reload(named_server_t *server) {
 
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 #if HAVE_LIBSYSTEMD
-	sd_notify(0, "RELOADING=1\n"
-		     "STATUS=reload command received\n");
+	char buf[512];
+	int n = snprintf(buf, sizeof(buf),
+			 "RELOADING=1\n"
+			 "MONOTONIC_USEC=%" PRIu64 "\n"
+			 "STATUS=reload command received\n",
+			 (uint64_t)isc_time_monotonic() / NS_PER_US);
+	if (n > 0 && (size_t)n < sizeof(buf)) {
+		sd_notify(0, buf);
+	}
 #endif /* HAVE_LIBSYSTEMD */
 
 	CHECK(loadconfig(server));
@@ -10668,8 +10676,15 @@ named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
 	atomic_store(&server->reload_status, NAMED_RELOAD_IN_PROGRESS);
 #if HAVE_LIBSYSTEMD
-	sd_notify(0, "RELOADING=1\n"
-		     "STATUS=reconfig command received\n");
+	char buf[512];
+	int n = snprintf(buf, sizeof(buf),
+			 "RELOADING=1\n"
+			 "MONOTONIC_USEC=%" PRIu64 "\n"
+			 "STATUS=reconfig command received\n",
+			 (uint64_t)isc_time_monotonic() / NS_PER_US);
+	if (n > 0 && (size_t)n < sizeof(buf)) {
+		sd_notify(0, buf);
+	}
 #endif /* HAVE_LIBSYSTEMD */
 
 	CHECK(loadconfig(server));
