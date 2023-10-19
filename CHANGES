@@ -1,3 +1,10 @@
+6272.	[func]		Enable systemd units support with the 'notify-reload'
+			service type by settng the MONOTONIC_USEC field when
+			sending an sd_notify() message to the service manager
+			to notify it about reloading the service. Note that the
+			'NotifyAccess=all' option is required in the systemd
+			unit file's '[Service]' section. [GL #4377]
+
 6271.	[bug]		Fix a shutdown race in dns__catz_update_cb(). [GL #4381]
 
 6270.	[bug]		Handle an assertion when the primary server returned
