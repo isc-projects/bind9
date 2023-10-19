@@ -72,7 +72,7 @@ uv_tcp_close_reset(uv_tcp_t *handle, uv_close_cb close_cb);
 #endif
 
 #if UV_VERSION_HEX < UV_VERSION(1, 34, 0)
-#define uv_sleep(msec) usleep(msec * 1000)
+#define uv_sleep(msec) usleep((msec) * 1000)
 #endif /* UV_VERSION_HEX < UV_VERSION(1, 34, 0) */
 
 #if UV_VERSION_HEX < UV_VERSION(1, 27, 0)
