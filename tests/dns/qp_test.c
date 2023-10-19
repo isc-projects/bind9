@@ -271,7 +271,7 @@ ISC_RUN_TEST_IMPL(qpiter) {
 		 * forward a few steps, then back to the start,
 		 * to confirm we can change directions while iterating.
 		 */
-		if (tests > 3) {
+		if (inserted > 3) {
 			assert_int_equal(
 				dns_qpiter_next(&qpi, NULL, NULL, &ival),
 				ISC_R_SUCCESS);
