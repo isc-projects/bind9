@@ -1,3 +1,7 @@
+6270.	[bug]		Handle an assertion when the primary server returned
+			NOTIMP to IXFR or FORMERR to EDNS to SOA/IXFR/AXFR
+			request when transfering a zone. [GL #4372]
+
 6269.	[maint]		B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and
 			2801:1b8:10::b. [GL #4101]
 
