@@ -28,10 +28,13 @@ New Features
   queries, so that resolution can be performed over a NAT64 connection.
   :gl:`#608`
 
+- Processing large incremental transfers (IXFR) can take a long time.
+  Offload the processing to a separate work thread that doesn't block
+  networking threads and keeps them free to process regular traffic.
+  :gl:`#4367`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- None.
 
 - Configuring control channel to use Unix Domain Socket has an fatal error since
   BIND 9.18.  Completely remove the feature and make ``named-checkconf`` also
