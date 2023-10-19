@@ -83,7 +83,7 @@ static atomic_bool handle_fatal = false;
 static atomic_bool handle_fatal = true;
 #endif
 
-#if !defined(LIBRESSL_VERSION_NUMBER)
+#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
 /*
  * This was crippled with LibreSSL, so just skip it:
  * https://cvsweb.openbsd.org/src/lib/libcrypto/Attic/mem.c
@@ -150,14 +150,6 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 
 #endif /* ISC_MEM_TRACKLINES */
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-static void
-isc__tls_free(void *ptr) {
-	isc__tls_free_ex(ptr, __FILE__, __LINE__);
-}
-
-#endif
-
 #endif /* !defined(LIBRESSL_VERSION_NUMBER) */
 
 void
@@ -166,20 +158,16 @@ isc__tls_initialize(void) {
 	isc_mem_setname(isc__tls_mctx, "OpenSSL");
 	isc_mem_setdestroycheck(isc__tls_mctx, false);
 
-#if !defined(LIBRESSL_VERSION_NUMBER)
+#if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
 	/*
 	 * CRYPTO_set_mem_(_ex)_functions() returns 1 on success or 0 on
 	 * failure, which means OpenSSL already allocated some memory.  There's
 	 * nothing we can do about it.
 	 */
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	(void)CRYPTO_set_mem_functions(isc__tls_malloc_ex, isc__tls_realloc_ex,
 				       isc__tls_free_ex);
-#else
-	(void)CRYPTO_set_mem_ex_functions(isc__tls_malloc_ex,
-					  isc__tls_realloc_ex, isc__tls_free);
-#endif
-#endif /* !defined(LIBRESSL_VERSION_NUMBER) */
+#endif /* !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= \
+	  0x30000000L  */
 
 #if OPENSSL_VERSION_NUMBER >= 0x10100000L
 	uint64_t opts = OPENSSL_INIT_ENGINE_ALL_BUILTIN |
