@@ -178,6 +178,15 @@ msgblock_allocate(isc_mem_t *, unsigned int, unsigned int);
 #define msgblock_get(block, type) \
 	((type *)msgblock_internalget(block, sizeof(type)))
 
+/*
+ * This function differs from public dns_message_puttemprdataset() that it
+ * requires the *rdatasetp to be associated, and it will disassociate and
+ * put it back to the memory pool.
+ */
+static void
+dns__message_putassociatedrdataset(dns_message_t *msg,
+				   dns_rdataset_t **rdatasetp);
+
 static void *
 msgblock_internalget(dns_msgblock_t *, unsigned int);
 
@@ -453,9 +462,7 @@ msgresetnames(dns_message_t *msg, unsigned int first_section) {
 				next_rds = ISC_LIST_NEXT(rds, link);
 				ISC_LIST_UNLINK(name->list, rds, link);
 
-				INSIST(dns_rdataset_isassociated(rds));
-				dns_rdataset_disassociate(rds);
-				isc_mempool_put(msg->rdspool, rds);
+				dns__message_putassociatedrdataset(msg, &rds);
 				rds = next_rds;
 			}
 			dns_message_puttempname(msg, &name);
@@ -471,9 +478,7 @@ msgresetopt(dns_message_t *msg) {
 			dns_message_renderrelease(msg, msg->opt_reserved);
 			msg->opt_reserved = 0;
 		}
-		INSIST(dns_rdataset_isassociated(msg->opt));
-		dns_rdataset_disassociate(msg->opt);
-		isc_mempool_put(msg->rdspool, msg->opt);
+		dns__message_putassociatedrdataset(msg, &msg->opt);
 		msg->opt = NULL;
 		msg->cc_ok = 0;
 		msg->cc_bad = 0;
@@ -493,24 +498,20 @@ msgresetsigs(dns_message_t *msg, bool replying) {
 			INSIST(msg->querytsig == NULL);
 			msg->querytsig = msg->tsig;
 		} else {
-			dns_rdataset_disassociate(msg->tsig);
-			isc_mempool_put(msg->rdspool, msg->tsig);
+			dns__message_putassociatedrdataset(msg, &msg->tsig);
 			if (msg->querytsig != NULL) {
-				dns_rdataset_disassociate(msg->querytsig);
-				isc_mempool_put(msg->rdspool, msg->querytsig);
+				dns__message_putassociatedrdataset(
+					msg, &msg->querytsig);
 			}
 		}
 		dns_message_puttempname(msg, &msg->tsigname);
 		msg->tsig = NULL;
 	} else if (msg->querytsig != NULL && !replying) {
-		dns_rdataset_disassociate(msg->querytsig);
-		isc_mempool_put(msg->rdspool, msg->querytsig);
+		dns__message_putassociatedrdataset(msg, &msg->querytsig);
 		msg->querytsig = NULL;
 	}
 	if (msg->sig0 != NULL) {
-		INSIST(dns_rdataset_isassociated(msg->sig0));
-		dns_rdataset_disassociate(msg->sig0);
-		isc_mempool_put(msg->rdspool, msg->sig0);
+		dns__message_putassociatedrdataset(msg, &msg->sig0);
 		msg->sig0 = NULL;
 	}
 	if (msg->sig0name != NULL) {
@@ -1081,8 +1082,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 cleanup:
 	if (rdataset != NULL) {
-		INSIST(!dns_rdataset_isassociated(rdataset));
-		isc_mempool_put(msg->rdspool, rdataset);
+		dns_message_puttemprdataset(msg, &rdataset);
 	}
 	if (free_name) {
 		dns_message_puttempname(msg, &name);
@@ -1580,7 +1580,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 				dns_message_puttempname(msg, &name);
 			}
 			if (free_rdataset) {
-				isc_mempool_put(msg->rdspool, rdataset);
+				dns__message_putassociatedrdataset(msg,
+								   &rdataset);
 			}
 			free_name = free_rdataset = false;
 		}
@@ -1612,7 +1613,7 @@ cleanup:
 		dns_message_puttempname(msg, &name);
 	}
 	if (free_rdataset) {
-		isc_mempool_put(msg->rdspool, rdataset);
+		dns__message_putassociatedrdataset(msg, &rdataset);
 	}
 
 	return (result);
@@ -2561,6 +2562,13 @@ dns_message_puttemprdata(dns_message_t *msg, dns_rdata_t **item) {
 	REQUIRE(item != NULL && *item != NULL);
 
 	releaserdata(msg, *item);
+	*item = NULL;
+}
+
+static void
+dns__message_putassociatedrdataset(dns_message_t *msg, dns_rdataset_t **item) {
+	dns_rdataset_disassociate(*item);
+	isc_mempool_put(msg->rdspool, *item);
 	*item = NULL;
 }
 
