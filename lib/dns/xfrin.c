@@ -1227,46 +1227,21 @@ xfrin_start(dns_xfrin_t *xfr) {
 
 	dns_xfrin_ref(xfr);
 
-	/*
-	 * Reuse an existing TCP connection if possible.  For XoT, we can't
-	 * do this because other connections could be using a different
-	 * certificate, so we just create a new dispatch every time.
-	 */
-	if (xfr->disp == NULL &&
-	    (xfr->transport == NULL ||
-	     dns_transport_get_type(xfr->transport) == DNS_TRANSPORT_TCP))
-	{
-		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
-		if (dispmgr == NULL) {
-			result = ISC_R_SHUTTINGDOWN;
-		} else {
-			result = dns_dispatch_gettcp(dispmgr, &xfr->primaryaddr,
-						     &xfr->sourceaddr,
-						     &xfr->disp);
-			dns_dispatchmgr_detach(&dispmgr);
-		}
-	}
-	if (result == ISC_R_SUCCESS) {
-		char peer[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&xfr->primaryaddr, peer, sizeof(peer));
-		xfrin_log(xfr, ISC_LOG_DEBUG(1),
-			  "attached to TCP connection to %s", peer);
-	} else if (xfr->disp == NULL) {
-		dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
-		if (dispmgr == NULL) {
-			result = ISC_R_SHUTTINGDOWN;
-		} else {
-			result = dns_dispatch_createtcp(
-				dispmgr, &xfr->sourceaddr, &xfr->primaryaddr,
-				&xfr->disp);
-			dns_dispatchmgr_detach(&dispmgr);
-		}
-		CHECK(result);
-	}
-
 	/* If this is a retry, we need to cancel the previous dispentry */
-	if (xfr->dispentry != NULL) {
-		dns_dispatch_done(&xfr->dispentry);
+	xfrin_cancelio(xfr);
+
+	dns_dispatchmgr_t *dispmgr = dns_view_getdispatchmgr(xfr->view);
+	if (dispmgr == NULL) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto failure;
+	} else {
+		result = dns_dispatch_createtcp(
+			dispmgr, &xfr->sourceaddr, &xfr->primaryaddr,
+			DNS_DISPATCHOPT_UNSHARED, &xfr->disp);
+		dns_dispatchmgr_detach(&dispmgr);
+		if (result != ISC_R_SUCCESS) {
+			goto failure;
+		}
 	}
 
 	LIBDNS_XFRIN_START(xfr, xfr->info);

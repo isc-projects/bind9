@@ -117,6 +117,7 @@ struct dns_dispatch {
 	isc_sockaddr_t local;	/*%< local address */
 	isc_sockaddr_t peer;	/*%< peer address (TCP) */
 
+	dns_dispatchopt_t options;
 	dns_dispatchstate_t state;
 
 	bool reading;
@@ -1156,7 +1157,8 @@ dispatch_match(struct cds_lfht_node *node, const void *key0) {
 
 isc_result_t
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
-		       const isc_sockaddr_t *destaddr, dns_dispatch_t **dispp) {
+		       const isc_sockaddr_t *destaddr,
+		       dns_dispatchopt_t options, dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp = NULL;
 	uint32_t tid = isc_tid();
 
@@ -1165,6 +1167,7 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 
 	dispatch_allocate(mgr, isc_socktype_tcp, tid, &disp);
 
+	disp->options = options;
 	disp->peer = *destaddr;
 
 	if (localaddr != NULL) {
@@ -1184,9 +1187,12 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *localaddr,
 		.peer = &disp->peer,
 	};
 
-	rcu_read_lock();
-	cds_lfht_add(mgr->tcps[tid], dispatch_hash(&key), &disp->ht_node);
-	rcu_read_unlock();
+	if ((disp->options & DNS_DISPATCHOPT_UNSHARED) == 0) {
+		rcu_read_lock();
+		cds_lfht_add(mgr->tcps[tid], dispatch_hash(&key),
+			     &disp->ht_node);
+		rcu_read_unlock();
+	}
 
 	if (isc_log_wouldlog(dns_lctx, 90)) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -1363,7 +1369,9 @@ dispatch_destroy(dns_dispatch_t *disp) {
 
 	disp->magic = 0;
 
-	if (disp->socktype == isc_socktype_tcp) {
+	if (disp->socktype == isc_socktype_tcp &&
+	    (disp->options & DNS_DISPATCHOPT_UNSHARED) == 0)
+	{
 		(void)cds_lfht_del(mgr->tcps[tid], &disp->ht_node);
 	}
 
@@ -1391,12 +1399,12 @@ ISC_REFCOUNT_IMPL(dns_dispatch, dispatch_destroy);
 #endif
 
 isc_result_t
-dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop, unsigned int options,
-		 unsigned int timeout, const isc_sockaddr_t *dest,
-		 dns_transport_t *transport, isc_tlsctx_cache_t *tlsctx_cache,
-		 dispatch_cb_t connected, dispatch_cb_t sent,
-		 dispatch_cb_t response, void *arg, dns_messageid_t *idp,
-		 dns_dispentry_t **respp) {
+dns_dispatch_add(dns_dispatch_t *disp, isc_loop_t *loop,
+		 dns_dispatchopt_t options, unsigned int timeout,
+		 const isc_sockaddr_t *dest, dns_transport_t *transport,
+		 isc_tlsctx_cache_t *tlsctx_cache, dispatch_cb_t connected,
+		 dispatch_cb_t sent, dispatch_cb_t response, void *arg,
+		 dns_messageid_t *idp, dns_dispentry_t **respp) {
 	REQUIRE(VALID_DISPATCH(disp));
 	REQUIRE(dest != NULL);
 	REQUIRE(respp != NULL && *respp == NULL);
