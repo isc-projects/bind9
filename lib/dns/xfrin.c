@@ -134,7 +134,6 @@ struct dns_xfrin {
 	bool diff_running;
 	struct __cds_wfcq_head diff_head;
 	struct cds_wfcq_tail diff_tail;
-	isc_result_t result;
 
 	_Atomic xfrin_state_t state;
 	uint32_t expireopt;
@@ -195,6 +194,11 @@ struct dns_xfrin {
 
 #define XFRIN_MAGIC    ISC_MAGIC('X', 'f', 'r', 'I')
 #define VALID_XFRIN(x) ISC_MAGIC_VALID(x, XFRIN_MAGIC)
+
+typedef struct xfrin_work {
+	dns_xfrin_t *xfr;
+	isc_result_t result;
+} xfrin_work_t;
 
 /**************************************************************************/
 /*
@@ -328,9 +332,12 @@ failure:
  */
 static void
 axfr_apply(void *arg) {
-	dns_xfrin_t *xfr = arg;
+	xfrin_work_t *work = arg;
+	dns_xfrin_t *xfr = work->xfr;
 	isc_result_t result = ISC_R_SUCCESS;
 	uint64_t records;
+
+	REQUIRE(VALID_XFRIN(xfr));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -348,13 +355,16 @@ axfr_apply(void *arg) {
 
 failure:
 	dns_diff_clear(&xfr->diff);
-	xfr->result = result;
+	work->result = result;
 }
 
 static void
 axfr_apply_done(void *arg) {
-	dns_xfrin_t *xfr = arg;
-	isc_result_t result = xfr->result;
+	xfrin_work_t *work = arg;
+	dns_xfrin_t *xfr = work->xfr;
+	isc_result_t result = work->result;
+
+	REQUIRE(VALID_XFRIN(xfr));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -371,6 +381,8 @@ axfr_apply_done(void *arg) {
 failure:
 	xfr->diff_running = false;
 
+	isc_mem_put(xfr->mctx, work, sizeof(*work));
+
 	if (result == ISC_R_SUCCESS) {
 		if (atomic_load(&xfr->state) == XFRST_AXFR_END) {
 			xfrin_end(xfr, result);
@@ -384,11 +396,16 @@ failure:
 
 static void
 axfr_commit(dns_xfrin_t *xfr) {
-	INSIST(!xfr->diff_running);
+	REQUIRE(!xfr->diff_running);
+
+	xfrin_work_t *work = isc_mem_get(xfr->mctx, sizeof(*work));
+	*work = (xfrin_work_t){
+		.xfr = dns_xfrin_ref(xfr),
+		.result = ISC_R_UNSET,
+	};
 	xfr->diff_running = true;
-	dns_xfrin_ref(xfr);
 	isc_work_enqueue(dns_zone_getloop(xfr->zone), axfr_apply,
-			 axfr_apply_done, xfr);
+			 axfr_apply_done, work);
 }
 
 static isc_result_t
@@ -409,7 +426,6 @@ axfr_finalize(dns_xfrin_t *xfr) {
 
 typedef struct ixfr_apply_data {
 	dns_diff_t diff; /*%< Pending database changes */
-	isc_result_t result;
 	struct cds_wfcq_node wfcq_node;
 } ixfr_apply_data_t;
 
@@ -514,8 +530,11 @@ failure:
 
 static void
 ixfr_apply(void *arg) {
-	dns_xfrin_t *xfr = arg;
+	xfrin_work_t *work = arg;
+	dns_xfrin_t *xfr = work->xfr;
 	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_XFRIN(xfr));
 
 	struct __cds_wfcq_head diff_head;
 	struct cds_wfcq_tail diff_tail;
@@ -547,14 +566,16 @@ ixfr_apply(void *arg) {
 		isc_mem_put(xfr->mctx, data, sizeof(*data));
 	}
 
-	/* FIXME: This might need a barrier or smth */
-	xfr->result = result;
+	work->result = result;
 }
 
 static void
 ixfr_apply_done(void *arg) {
-	dns_xfrin_t *xfr = arg;
-	isc_result_t result = xfr->result;
+	xfrin_work_t *work = arg;
+	dns_xfrin_t *xfr = work->xfr;
+	isc_result_t result = work->result;
+
+	REQUIRE(VALID_XFRIN(xfr));
 
 	if (atomic_load(&xfr->shuttingdown)) {
 		result = ISC_R_SHUTTINGDOWN;
@@ -567,12 +588,14 @@ ixfr_apply_done(void *arg) {
 	/* Reschedule */
 	if (!cds_wfcq_empty(&xfr->diff_head, &xfr->diff_tail)) {
 		isc_work_enqueue(dns_zone_getloop(xfr->zone), ixfr_apply,
-				 ixfr_apply_done, xfr);
+				 ixfr_apply_done, work);
 		return;
 	}
 
 failure:
 	xfr->diff_running = false;
+
+	isc_mem_put(xfr->mctx, work, sizeof(*work));
 
 	if (result == ISC_R_SUCCESS) {
 		dns_db_closeversion(xfr->db, &xfr->ver, true);
@@ -613,10 +636,14 @@ ixfr_commit(dns_xfrin_t *xfr) {
 			       &data->wfcq_node);
 
 	if (!xfr->diff_running) {
-		dns_xfrin_ref(xfr);
+		xfrin_work_t *work = isc_mem_get(xfr->mctx, sizeof(*work));
+		*work = (xfrin_work_t){
+			.xfr = dns_xfrin_ref(xfr),
+			.result = ISC_R_UNSET,
+		};
 		xfr->diff_running = true;
 		isc_work_enqueue(dns_zone_getloop(xfr->zone), ixfr_apply,
-				 ixfr_apply_done, xfr);
+				 ixfr_apply_done, work);
 	}
 
 failure:
@@ -1973,7 +2000,6 @@ xfrin_recv_done(isc_result_t result, isc_region_t *region, void *arg) {
 
 failure:
 	if (result != ISC_R_SUCCESS) {
-		xfr->result = result;
 		xfrin_fail(xfr, result, "failed while receiving responses");
 	}
 
