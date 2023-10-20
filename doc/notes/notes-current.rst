@@ -51,6 +51,9 @@ Feature Changes
   zones will no longer create redundant signed versions of the zone.
   :gl:`#4349`
 
+- B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
+  :gl:`#4101`
+
 Bug Fixes
 ~~~~~~~~~
 
