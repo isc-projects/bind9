@@ -308,6 +308,25 @@ $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
 }
 
 n=$((n+1))
+echo_i "handle IXFR NOTIMP ($n)"
+
+sendcmd < ans5/ixfrnotimp
+
+$RNDCCMD 10.53.0.4 refresh nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+nextpart ns4/named.run | grep "zone nil/IN: requesting IXFR from 10.53.0.5" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=$((status+1))
+}
+
+$DIGCMD nil. TXT | grep 'IXFR NOTIMP' >/dev/null || {
+    echo_i "failed"
+    status=$((status+1))
+}
+
+n=$((n+1))
 echo_i "unsigned transfer ($n)"
 
 sendcmd < ans5/unsigned
@@ -459,6 +478,38 @@ nextpart ns4/named.run | grep "Transfer status: FORMERR" > /dev/null || {
 }
 
 $DIGCMD nil. TXT | grep 'SOA mismatch AXFR' >/dev/null && {
+    echo_i "failed"
+    status=$((status+1))
+}
+
+n=$((n+1))
+echo_i "handle EDNS NOTIMP ($n)"
+
+$RNDCCMD 10.53.0.4 null testing EDNS NOTIMP | sed 's/^/ns4 /' | cat_i
+
+sendcmd < ans5/ednsnotimp
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 2
+
+nextpart ns4/named.run | grep "Transfer status: NOTIMP" > /dev/null || {
+    echo_i "failed: expected status was not logged"
+    status=$((status+1))
+}
+
+n=$((n+1))
+echo_i "handle EDNS FORMERR ($n)"
+
+$RNDCCMD 10.53.0.4 null testing EDNS FORMERR | sed 's/^/ns4 /' | cat_i
+
+sendcmd < ans5/ednsformerr
+
+$RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
+
+sleep 10
+
+$DIGCMD nil. TXT | grep 'EDNS FORMERR' >/dev/null || {
     echo_i "failed"
     status=$((status+1))
 }

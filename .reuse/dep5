@@ -81,7 +81,10 @@ Files: **/*.after*
        bin/tests/system/unknown/large.out
        bin/tests/system/xfer/ans5/badkeydata
        bin/tests/system/xfer/ans5/badmessageid
+       bin/tests/system/xfer/ans5/ednsformerr
+       bin/tests/system/xfer/ans5/ednsnotimp
        bin/tests/system/xfer/ans5/goodaxfr
+       bin/tests/system/xfer/ans5/ixfrnotimp
        bin/tests/system/xfer/ans5/partial
        bin/tests/system/xfer/ans5/soamismatch
        bin/tests/system/xfer/ans5/unknownkey
