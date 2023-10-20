@@ -1,3 +1,5 @@
+6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
+
 6265.	[bug]		Don't schedule resign operations on the raw version
 			of an inline-signing zone. [GL #4350]
 
