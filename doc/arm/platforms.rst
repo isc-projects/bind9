@@ -46,7 +46,7 @@ Current versions of BIND 9 are fully supported and regularly tested on the
 following systems:
 
 -  Debian 10, 11, 12
--  Ubuntu LTS 18.04, 20.04, 22.04
+-  Ubuntu LTS 20.04, 22.04
 -  Fedora 38
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
 -  FreeBSD 12.4, 13.2
