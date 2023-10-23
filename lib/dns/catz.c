@@ -881,6 +881,13 @@ dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
 
 	LOCK(&catzs->lock);
 
+	/*
+	 * This function is called only during a (re)configuration, while
+	 * 'catzs->zones' can become NULL only during shutdown.
+	 */
+	INSIST(catzs->zones != NULL);
+	INSIST(!atomic_load(&catzs->shuttingdown));
+
 	result = dns_catz_new_zone(catzs, &catz, name);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
@@ -919,6 +926,10 @@ dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name) {
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	LOCK(&catzs->lock);
+	if (catzs->zones == NULL) {
+		UNLOCK(&catzs->lock);
+		return (NULL);
+	}
 	result = isc_ht_find(catzs->zones, name->ndata, name->length,
 			     (void **)&found);
 	UNLOCK(&catzs->lock);
@@ -2299,6 +2310,11 @@ dns__catz_update_cb(void *data) {
 	 */
 	dns_name_toregion(&updb->origin, &r);
 	LOCK(&catzs->lock);
+	if (catzs->zones == NULL) {
+		UNLOCK(&catzs->lock);
+		result = ISC_R_SHUTTINGDOWN;
+		goto exit;
+	}
 	result = isc_ht_find(catzs->zones, r.base, r.length, (void **)&oldcatz);
 	is_active = (result == ISC_R_SUCCESS && oldcatz->active);
 	UNLOCK(&catzs->lock);

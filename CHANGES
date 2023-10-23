@@ -1,3 +1,5 @@
+6271.	[bug]		Fix a shutdown race in dns__catz_update_cb(). [GL #4381]
+
 6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
 
 6265.	[bug]		Don't schedule resign operations on the raw version
