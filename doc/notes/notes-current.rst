@@ -70,6 +70,9 @@ Bug Fixes
   DNSSEC records, it was scheduled to be resigning. This unwanted behavior
   has been fixed. :gl:`#4350`
 
+- Looking up stale data from the cache did not take into account local
+  authoritative zones. This has been fixed. :gl:`#4355`
+
 Known Issues
 ~~~~~~~~~~~~
 
