@@ -302,7 +302,8 @@ isc_result_t
 dns_catz_zone_add(dns_catz_zones_t *catzs, const dns_name_t *name,
 		  dns_catz_zone_t **catzp);
 /*%<
- * Allocate a new catz named 'name' and put it in 'catzs' collection.
+ * Allocate a new catz named 'name' and put it in 'catzs' collection. This
+ * function is safe to call only during a (re)configuration.
  *
  * Requires:
  * \li	'catzs' is a valid dns_catz_zones_t.

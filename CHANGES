@@ -1,3 +1,5 @@
+6271.	[bug]		Fix a shutdown race in dns__catz_update_cb(). [GL #4381]
+
 6270.	[bug]		Handle an assertion when the primary server returned
 			NOTIMP to IXFR or FORMERR to EDNS to SOA/IXFR/AXFR
 			request when transfering a zone. [GL #4372]
