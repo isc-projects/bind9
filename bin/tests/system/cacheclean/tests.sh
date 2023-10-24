@@ -23,12 +23,12 @@ DIGOPTS="+nosea +nocomm +nocmd +noquest +noadd +noauth +nocomm \
          +nostat @10.53.0.2 -p ${PORT}"
 
 # fill the cache with nodes from flushtest.example zone
-load_cache () {
-        # empty all existing cache data
-        $RNDC $RNDCOPTS flush
+load_cache() {
+  # empty all existing cache data
+  $RNDC $RNDCOPTS flush
 
-	# load the positive cache entries
-	$DIG $DIGOPTS -f - << EOF > /dev/null 2>&1
+  # load the positive cache entries
+  $DIG $DIGOPTS -f - <<EOF >/dev/null 2>&1
 txt top1.flushtest.example
 txt second1.top1.flushtest.example
 txt third1.second1.top1.flushtest.example
@@ -47,42 +47,42 @@ txt third2.second2.top3.flushtest.example
 txt second3.top3.flushtest.example
 EOF
 
-	# load the negative cache entries
-        # nxrrset:
-	$DIG $DIGOPTS a third1.second1.top1.flushtest.example > /dev/null
-        # nxdomain:
-	$DIG $DIGOPTS txt top4.flushtest.example > /dev/null
-        # empty nonterminal:
-	$DIG $DIGOPTS txt second2.top3.flushtest.example > /dev/null
+  # load the negative cache entries
+  # nxrrset:
+  $DIG $DIGOPTS a third1.second1.top1.flushtest.example >/dev/null
+  # nxdomain:
+  $DIG $DIGOPTS txt top4.flushtest.example >/dev/null
+  # empty nonterminal:
+  $DIG $DIGOPTS txt second2.top3.flushtest.example >/dev/null
 
-	# sleep 2 seconds ensure the TTLs will be lower on cached data
-	sleep 2
+  # sleep 2 seconds ensure the TTLs will be lower on cached data
+  sleep 2
 }
 
-dump_cache () {
-        rndc_dumpdb ns2 -cache _default
+dump_cache() {
+  rndc_dumpdb ns2 -cache _default
 }
 
-clear_cache () {
-        $RNDC $RNDCOPTS flush
+clear_cache() {
+  $RNDC $RNDCOPTS flush
 }
 
-in_cache () {
-        ttl=$($DIG $DIGOPTS "$@" | awk '{print $2}')
-        [ -z "$ttl" ] && {
-                ttl=$($DIG $DIGOPTS +noanswer +auth "$@" | awk '{print $2}')
-                [ "$ttl" -ge 3599 ] && return 1
-                return 0
-        }
-        [ "$ttl" -ge 3599 ] && return 1
-        return 0
+in_cache() {
+  ttl=$($DIG $DIGOPTS "$@" | awk '{print $2}')
+  [ -z "$ttl" ] && {
+    ttl=$($DIG $DIGOPTS +noanswer +auth "$@" | awk '{print $2}')
+    [ "$ttl" -ge 3599 ] && return 1
+    return 0
+  }
+  [ "$ttl" -ge 3599 ] && return 1
+  return 0
 }
 
 # Extract records at and below name "$1" from the cache dump in file "$2".
-filter_tree () {
-	tree="$1"
-	file="$2"
-	perl -n -e '
+filter_tree() {
+  tree="$1"
+  file="$2"
+  perl -n -e '
 		next if /^;/;
 		if (/'"$tree"'/ || (/^\t/ && $print)) {
 			$print = 1;
@@ -95,7 +95,7 @@ filter_tree () {
 
 n=$((n + 1))
 echo_i "check correctness of routine cache cleaning ($n)"
-$DIG $DIGOPTS +tcp +keepopen -b 10.53.0.7 -f dig.batch > dig.out.ns2 || status=1
+$DIG $DIGOPTS +tcp +keepopen -b 10.53.0.7 -f dig.batch >dig.out.ns2 || status=1
 
 digcomp --lc dig.out.ns2 knowngood.dig.out || status=1
 
@@ -103,7 +103,10 @@ n=$((n + 1))
 echo_i "only one tcp socket was used ($n)"
 tcpclients=$(awk '$3 == "client" && $5 ~ /10.53.0.7#[0-9]*:/ {print $5}' ns2/named.run | sort | uniq -c | wc -l)
 
-test $tcpclients -eq 1 || { status=1; echo_i "failed"; }
+test $tcpclients -eq 1 || {
+  status=1
+  echo_i "failed"
+}
 
 n=$((n + 1))
 echo_i "reset and check that records are correctly cached initially ($n)"
@@ -111,7 +114,10 @@ ret=0
 load_cache
 dump_cache
 nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l)
-[ $nrecords -eq 18 ] || { ret=1; echo_i "found $nrecords records expected 18"; }
+[ $nrecords -eq 18 ] || {
+  ret=1
+  echo_i "found $nrecords records expected 18"
+}
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -205,7 +211,10 @@ echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
 nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -v '^;' | grep -E '(TXT|ANY)' | wc -l)
-[ $nrecords -eq 17 ] || { ret=1; echo_i "found $nrecords records expected 17"; }
+[ $nrecords -eq 17 ] || {
+  ret=1
+  echo_i "found $nrecords records expected 17"
+}
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -223,7 +232,10 @@ echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
 nrecords=$(filter_tree flushtest.example ns2/named_dump.db.test$n | grep -E '(TXT|ANY)' | wc -l)
-[ $nrecords -eq 1 ] || { ret=1; echo_i "found $nrecords records expected 1"; }
+[ $nrecords -eq 1 ] || {
+  ret=1
+  echo_i "found $nrecords records expected 1"
+}
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
@@ -234,32 +246,32 @@ load_cache
 dump_cache
 mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.a
 sed -n '/plain success\/timeout/,/Unassociated entries/p' \
-	ns2/named_dump.db.test$n.a > sed.out.$n.a
-grep 'plain success/timeout' sed.out.$n.a > /dev/null 2>&1 || ret=1
-grep 'ns.flushtest.example' sed.out.$n.a > /dev/null 2>&1 || ret=1
+  ns2/named_dump.db.test$n.a >sed.out.$n.a
+grep 'plain success/timeout' sed.out.$n.a >/dev/null 2>&1 || ret=1
+grep 'ns.flushtest.example' sed.out.$n.a >/dev/null 2>&1 || ret=1
 $RNDC $RNDCOPTS flushtree flushtest.example || ret=1
 dump_cache
 mv ns2/named_dump.db.test$n ns2/named_dump.db.test$n.b
 sed -n '/plain success\/timeout/,/Unassociated entries/p' \
-	ns2/named_dump.db.test$n.b > sed.out.$n.b
-grep 'plain success/timeout' sed.out.$n.b > /dev/null 2>&1 || ret=1
-grep 'ns.flushtest.example' sed.out.$n.b > /dev/null 2>&1 && ret=1
+  ns2/named_dump.db.test$n.b >sed.out.$n.b
+grep 'plain success/timeout' sed.out.$n.b >/dev/null 2>&1 || ret=1
+grep 'ns.flushtest.example' sed.out.$n.b >/dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check expire option returned from primary zone ($n)"
 ret=0
-$DIG @10.53.0.1 -p ${PORT} +expire soa expire-test > dig.out.expire || ret=1
-grep EXPIRE: dig.out.expire > /dev/null || ret=1
+$DIG @10.53.0.1 -p ${PORT} +expire soa expire-test >dig.out.expire || ret=1
+grep EXPIRE: dig.out.expire >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check expire option returned from secondary zone ($n)"
 ret=0
-$DIG @10.53.0.2 -p ${PORT} +expire soa expire-test > dig.out.expire || ret=1
-grep EXPIRE: dig.out.expire > /dev/null || ret=1
+$DIG @10.53.0.2 -p ${PORT} +expire soa expire-test >dig.out.expire || ret=1
+grep EXPIRE: dig.out.expire >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 

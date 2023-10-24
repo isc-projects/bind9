@@ -13,10 +13,9 @@
 
 . ../conf.sh
 
-if ! ${PERL} -MNet::DNS -e ''
-then
-	echo_i "perl Net::DNS module is required"
-	exit 1
+if ! ${PERL} -MNet::DNS -e ''; then
+  echo_i "perl Net::DNS module is required"
+  exit 1
 fi
 
 exit 0

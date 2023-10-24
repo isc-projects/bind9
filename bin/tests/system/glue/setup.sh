@@ -15,4 +15,4 @@
 
 copy_setports ns1/named.conf.in ns1/named.conf
 
-( cd ns1 && $SHELL sign.sh )
+(cd ns1 && $SHELL sign.sh)

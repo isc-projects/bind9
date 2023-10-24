@@ -20,34 +20,34 @@ dig_out_basename="dig.out.test"
 testing="testing allow-transfer transport ACL functionality"
 
 dig_with_opts() {
-	# shellcheck disable=SC2086
-	"$DIG" +noadd +nosea +nostat +noquest +nocmd "$@"
+  # shellcheck disable=SC2086
+  "$DIG" +noadd +nosea +nostat +noquest +nocmd "$@"
 }
 
 status=0
 n=0
 
-run_dig_test () {
-	test_message="$1"
-	shift
-	n=$((n+1))
-	echo_i "$test_message ($n)"
-	ret=0
-	dig_with_opts "$@" > "$dig_out_basename$n" || ret=1
+run_dig_test() {
+  test_message="$1"
+  shift
+  n=$((n + 1))
+  echo_i "$test_message ($n)"
+  ret=0
+  dig_with_opts "$@" >"$dig_out_basename$n" || ret=1
 }
 
-run_dig_expect_axfr_success () {
-	run_dig_test "$@"
-	grep "; Transfer failed" "$dig_out_basename$n" > /dev/null && ret=1
-	if [ $ret != 0 ]; then echo_i "failed"; fi
-	status=$((status+ret))
+run_dig_expect_axfr_success() {
+  run_dig_test "$@"
+  grep "; Transfer failed" "$dig_out_basename$n" >/dev/null && ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 }
 
-run_dig_expect_axfr_failure () {
-	run_dig_test "$@"
-	grep "; Transfer failed" "$dig_out_basename$n" > /dev/null || ret=1
-	if [ $ret != 0 ]; then echo_i "failed"; fi
-	status=$((status + ret))
+run_dig_expect_axfr_failure() {
+  run_dig_test "$@"
+  grep "; Transfer failed" "$dig_out_basename$n" >/dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
 }
 
 # generic tests
@@ -61,7 +61,7 @@ run_dig_expect_axfr_success "$testing for XFR via TCP" -p "${EXTRAPORT1}" +tcp -
 
 run_dig_expect_axfr_success "$testing for XoT" -p "${EXTRAPORT1}" +tls -b 10.53.0.10 @10.53.0.2 axfr example1
 
-run_dig_expect_axfr_failure "$testing for XFR via TCP (failure expected)" -p  "${EXTRAPORT2}" +tcp -b 10.53.0.10 @10.53.0.1 axfr example1
+run_dig_expect_axfr_failure "$testing for XFR via TCP (failure expected)" -p "${EXTRAPORT2}" +tcp -b 10.53.0.10 @10.53.0.1 axfr example1
 
 run_dig_expect_axfr_failure "$testing for XoT (failure expected)" -p "${EXTRAPORT2}" +tls -b 10.53.0.10 @10.53.0.2 axfr example1
 

@@ -13,9 +13,9 @@
 
 . ../conf.sh
 
-$FEATURETEST --tsan &&  {
-        echo_i "TSAN - skipping dyndb test"
-        exit 255
+$FEATURETEST --tsan && {
+  echo_i "TSAN - skipping dyndb test"
+  exit 255
 }
 
 exit 0

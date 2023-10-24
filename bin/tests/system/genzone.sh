@@ -33,9 +33,8 @@ cat <<EOF
 					3600 )
 EOF
 
-for n
-do
-	cat <<EOF
+for n; do
+  cat <<EOF
 @			NS	ns${n}
 ns${n}			A	10.53.0.${n}
 EOF

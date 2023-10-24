@@ -27,4 +27,4 @@ print('')
 
 for a in range(150000):
     print('%s IN NS a' % (a))
-    print('%s IN NS b' % (a))" > ns1/large.db
+    print('%s IN NS b' % (a))" >ns1/large.db

@@ -13,10 +13,9 @@
 
 . ../conf.sh
 
-if ! ${PERL} -MTime::HiRes -e ''
-then
-	echo_i "perl Time::HiRes module is required"
-	exit 1
+if ! ${PERL} -MTime::HiRes -e ''; then
+  echo_i "perl Time::HiRes module is required"
+  exit 1
 fi
 
 exit 0

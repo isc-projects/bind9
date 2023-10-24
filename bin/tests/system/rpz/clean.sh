@@ -16,16 +16,19 @@
 USAGE="$0: [-Px]"
 DEBUG=
 while getopts "Px" c; do
-    case $c in
-	x) set -x ;;
-	P) PARTIAL=set ;;
-	*) echo "$USAGE" 1>&2; exit 1;;
-    esac
+  case $c in
+    x) set -x ;;
+    P) PARTIAL=set ;;
+    *)
+      echo "$USAGE" 1>&2
+      exit 1
+      ;;
+  esac
 done
 shift $((OPTIND - 1))
 if test "$#" -ne 0; then
-    echo "$USAGE" 1>&2
-    exit 1
+  echo "$USAGE" 1>&2
+  exit 1
 fi
 
 # this might be called from setup.sh to partially clean up the files
@@ -43,14 +46,14 @@ rm -f */*.jnl
 rm -f dnsrps.cache dnsrps.conf
 
 if [ ${PARTIAL:-unset} = unset ]; then
-    rm -f proto.* dsset-* trusted.conf dig.out* nsupdate.tmp ns*/*tmp
-    rm -f ns5/requests ns5/*.perf
-    rm -f */named.memstats */*.run */*.run.prev */named.stats */session.key
-    rm -f */*.log */*core */*.pid
-    rm -f ns*/named.lock
-    rm -f ns*/named.conf
-    rm -f ns*/*switch
-    rm -f dnsrps.zones
-    rm -f ns*/managed-keys.bind*
-    rm -f tmp
+  rm -f proto.* dsset-* trusted.conf dig.out* nsupdate.tmp ns*/*tmp
+  rm -f ns5/requests ns5/*.perf
+  rm -f */named.memstats */*.run */*.run.prev */named.stats */session.key
+  rm -f */*.log */*core */*.pid
+  rm -f ns*/named.lock
+  rm -f ns*/named.conf
+  rm -f ns*/*switch
+  rm -f dnsrps.zones
+  rm -f ns*/managed-keys.bind*
+  rm -f tmp
 fi

@@ -22,6 +22,6 @@ zonefile=tc-test-signed.db
 # the test will be around 512 bytes in size with glue records excluded.  Please
 # keep this in mind when updating signing algorithms used in system tests.
 keyname=$($KEYGEN -q -a RSASHA256 -b 2048 -n zone $zone)
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$keyname.key" >"$zonefile"
 
-$SIGNER -P -o $zone $zonefile > /dev/null
+$SIGNER -P -o $zone $zonefile >/dev/null

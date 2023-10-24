@@ -16,32 +16,31 @@ set -e
 . ../conf.sh
 
 # replace_data dname RR old_data new_data
-replace_data()
-{
-	if [ $# -ne 4 ]; then
-		echo_i "unexpected input for replace_data"
-		return 1
-	fi
+replace_data() {
+  if [ $# -ne 4 ]; then
+    echo_i "unexpected input for replace_data"
+    return 1
+  fi
 
-	_dname=$1
-	_rr=$2
-	_olddata=$3
-	_newdata=$4
+  _dname=$1
+  _rr=$2
+  _olddata=$3
+  _newdata=$4
 
-	_ret=0
-	$NSUPDATE -d <<END >> nsupdate.out.test 2>&1 || _ret=1
+  _ret=0
+  $NSUPDATE -d <<END >>nsupdate.out.test 2>&1 || _ret=1
 server 10.53.0.2 ${PORT}
 update delete ${_dname} 30 ${_rr} ${_olddata}
 update add ${_dname} 30 ${_rr} ${_newdata}
 send
 END
 
-	if [ $_ret != 0 ]; then
-		echo_i "failed to update the test data"
-		return 1
-	fi
+  if [ $_ret != 0 ]; then
+    echo_i "failed to update the test data"
+    return 1
+  fi
 
-	return 0
+  return 0
 }
 
 status=0

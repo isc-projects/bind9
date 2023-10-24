@@ -15,7 +15,7 @@
 # individual system subtests, so every test is given a unique port range.
 
 get_sorted_test_names() {
-	find . -maxdepth 2 -mindepth 2 -type f \( -name "tests.sh" -o -name "tests*.py" \) | cut -d/ -f2 | sort -u
+  find . -maxdepth 2 -mindepth 2 -type f \( -name "tests.sh" -o -name "tests*.py" \) | cut -d/ -f2 | sort -u
 }
 
 total_tests=$(get_sorted_test_names | wc -l)
@@ -27,30 +27,33 @@ port_max=$((32767 - (total_tests * ports_per_test)))
 baseport=0
 test_index=0
 while getopts "p:t:-:" OPT; do
-    if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
-	OPT="${OPTARG%%=*}"
-	OPTARG="${OPTARG#$OPT}"
-	OPTARG="${OPTARG#=}"
-    fi
+  if [ "$OPT" = "-" ] && [ -n "$OPTARG" ]; then
+    OPT="${OPTARG%%=*}"
+    OPTARG="${OPTARG#$OPT}"
+    OPTARG="${OPTARG#=}"
+  fi
 
-    # shellcheck disable=SC2214
-    case "$OPT" in
-	p | port) baseport=$OPTARG ;;
-	t | test)
-		test_index=$(get_sorted_test_names | awk "/^${OPTARG}\$/ { print NR }")
-		if [ -z "${test_index}" ]; then
-			echo "Test '${OPTARG}' not found" >&2
-			exit 1
-		fi
-		;;
-	-) break ;;
-	*) echo "invalid option" >&2; exit 1 ;;
-    esac
+  # shellcheck disable=SC2214
+  case "$OPT" in
+    p | port) baseport=$OPTARG ;;
+    t | test)
+      test_index=$(get_sorted_test_names | awk "/^${OPTARG}\$/ { print NR }")
+      if [ -z "${test_index}" ]; then
+        echo "Test '${OPTARG}' not found" >&2
+        exit 1
+      fi
+      ;;
+    -) break ;;
+    *)
+      echo "invalid option" >&2
+      exit 1
+      ;;
+  esac
 done
 
 port_pool_size=$((port_max - port_min))
 if [ "${baseport}" -eq 0 ]; then
-	baseport="$((($(date +%s) / 3600 % port_pool_size) + port_min + (test_index * ports_per_test)))"
+  baseport="$((($(date +%s) / 3600 % port_pool_size) + port_min + (test_index * ports_per_test)))"
 fi
 
 echo "export PORT=$((baseport))"

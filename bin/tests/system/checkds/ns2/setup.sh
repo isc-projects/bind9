@@ -17,18 +17,17 @@
 echo_i "ns2/setup.sh"
 
 for zn in \
-	ns2 ns2-4 ns2-4-5 ns2-4-6 ns2-5-7 \
-	ns5 ns5-6-7 ns5-7 ns6
-do
-	zone="${zn}"
-	infile="${zn}.db.infile"
-	zonefile="${zn}.db"
+  ns2 ns2-4 ns2-4-5 ns2-4-6 ns2-5-7 \
+  ns5 ns5-6-7 ns5-7 ns6; do
+  zone="${zn}"
+  infile="${zn}.db.infile"
+  zonefile="${zn}.db"
 
-	# The signing key is copied from ns5.
-	CSK=$(cat "${zn}.keyname")
-	cat "${zn}.db.in" "${CSK}.key" > "$infile"
-	private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >> "$infile"
-	$SIGNER -S -g -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone 2>&1
+  # The signing key is copied from ns5.
+  CSK=$(cat "${zn}.keyname")
+  cat "${zn}.db.in" "${CSK}.key" >"$infile"
+  private_type_record $zone $DEFAULT_ALGORITHM_NUMBER "$CSK" >>"$infile"
+  $SIGNER -S -g -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile >signer.out.$zone 2>&1
 
-	cp "dsset-${zn}." ../ns1/
+  cp "dsset-${zn}." ../ns1/
 done

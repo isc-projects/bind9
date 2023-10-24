@@ -13,7 +13,7 @@
 
 # Clean up after rrl tests.
 
-rm -f  */named.memstats */named.run */named.stats */log-* */session.key
+rm -f */named.memstats */named.run */named.stats */log-* */session.key
 rm -f broken.conf
 rm -f broken.out
 rm -f dig.out* *mdig.out*

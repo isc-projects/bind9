@@ -23,14 +23,14 @@ copy_setports ns4/named.conf.in ns4/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 
 (
-	cd ns3
-	$SHELL setup.sh
+  cd ns3
+  $SHELL setup.sh
 )
 (
-	cd ns4
-	$SHELL setup.sh
+  cd ns4
+  $SHELL setup.sh
 )
 (
-	cd ns5
-	$SHELL setup.sh
+  cd ns5
+  $SHELL setup.sh
 )

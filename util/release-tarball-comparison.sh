@@ -15,22 +15,22 @@ set -e
 set -o nounset
 
 print_usage_and_exit() {
-	echo
-	echo "Usage: GITLAB_USER=<your_gitlab_username> GITLAB_TOKEN=<your_gitlab_token> ${0} /path/to/bind-9.x.y.tar.xz" >&2
-	exit 1
+  echo
+  echo "Usage: GITLAB_USER=<your_gitlab_username> GITLAB_TOKEN=<your_gitlab_token> ${0} /path/to/bind-9.x.y.tar.xz" >&2
+  exit 1
 }
 
 BIND_TARBALL="${1:-}"
 if [ ! -f "${BIND_TARBALL}" ]; then
-	echo "ERROR: path to BIND 9 tarball either not provided or the file does not exist." >&2
-	print_usage_and_exit
+  echo "ERROR: path to BIND 9 tarball either not provided or the file does not exist." >&2
+  print_usage_and_exit
 fi
 
 GITLAB_USER=${GITLAB_USER:-}
 GITLAB_TOKEN=${GITLAB_TOKEN:-}
 if [ -z "${GITLAB_USER}" ] || [ -z "${GITLAB_TOKEN}" ]; then
-	echo "ERROR: GITLAB_USER and GITLAB_TOKEN environmental variables are not set." >&2
-	print_usage_and_exit
+  echo "ERROR: GITLAB_USER and GITLAB_TOKEN environmental variables are not set." >&2
+  print_usage_and_exit
 fi
 
 # Create the container to work in.
@@ -39,7 +39,7 @@ trap "docker container rm -f \${CONTAINER_ID} >/dev/null" EXIT
 docker start "${CONTAINER_ID}"
 
 run_in_container() {
-	docker exec --workdir /usr/src "${CONTAINER_ID}" /bin/sh -c "$@"
+  docker exec --workdir /usr/src "${CONTAINER_ID}" /bin/sh -c "$@"
 }
 
 # Pull build requirements.

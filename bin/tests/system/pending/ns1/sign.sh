@@ -17,19 +17,19 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
-(cd ../ns2 && $SHELL -e sign.sh )
+(cd ../ns2 && $SHELL -e sign.sh)
 
 cp ../ns2/dsset-example. .
 cp ../ns2/dsset-example.com. .
 
 keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
 keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK -n zone $zone)
-cat $infile $keyname1.key $keyname2.key > $zonefile
+cat $infile $keyname1.key $keyname2.key >$zonefile
 
-$SIGNER -g -o $zone $zonefile > /dev/null
+$SIGNER -g -o $zone $zonefile >/dev/null
 
 # Configure the resolving server with a static key.
-keyfile_to_static_ds $keyname2 > trusted.conf
+keyfile_to_static_ds $keyname2 >trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf

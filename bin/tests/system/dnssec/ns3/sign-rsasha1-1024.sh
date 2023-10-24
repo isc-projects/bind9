@@ -20,7 +20,7 @@
 zone=rsasha1-1024.example
 k1=$("$KEYGEN" -a rsasha1 -b 1024 $zone)
 k2=$("$KEYGEN" -a rsasha1 -b 1024 -f KSK $zone)
-cat $zone.db.in $k1.key $k2.key > $zone.tmp
+cat $zone.db.in $k1.key $k2.key >$zone.tmp
 # use maximum expirey period (-e 2^31-1-3600)
 # use output format full for easy extraction of KSK (-O full)
 "$SIGNER" -e +2147480047 -o $zone -f $zone.db -O full $zone.tmp
