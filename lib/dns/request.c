@@ -350,7 +350,7 @@ tcp_dispatch(bool newtcp, dns_requestmgr_t *requestmgr,
 	}
 
 	result = dns_dispatch_createtcp(requestmgr->dispatchmgr, srcaddr,
-					destaddr, dispatchp);
+					destaddr, 0, dispatchp);
 	return (result);
 }
 
