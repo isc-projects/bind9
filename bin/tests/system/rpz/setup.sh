@@ -19,31 +19,7 @@ set -e
 
 QPERF=$($SHELL qperf.sh)
 
-USAGE="$0: [-DNx]"
-DEBUG=
-while getopts "DNx" c; do
-  case $c in
-    x)
-      set -x
-      DEBUG=-x
-      ;;
-    D) TEST_DNSRPS="-D" ;;
-    N) PARTIAL=-P ;;
-    *)
-      echo "$USAGE" 1>&2
-      exit 1
-      ;;
-  esac
-done
-shift $((OPTIND - 1))
-if test "$#" -ne 0; then
-  echo "$USAGE" 1>&2
-  exit 1
-fi
-
-if [ ${NOCLEAN:-unset} = unset ]; then
-  $SHELL clean.sh $PARTIAL $DEBUG
-fi
+$SHELL clean.sh
 
 for dir in ns*; do
   touch $dir/named.run
@@ -63,10 +39,7 @@ copy_setports ns10/named.conf.in ns10/named.conf
 
 copy_setports dnsrps.zones.in dnsrps.zones
 
-# decide whether to test DNSRPS
-# Note that dnsrps.conf is included in named.conf
-$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "$(grep 'testing with DNSRPS' dnsrps.conf)" && TEST_DNSRPS=
+touch dnsrps.conf
 touch dnsrps.cache
 
 # set up test policy zones.

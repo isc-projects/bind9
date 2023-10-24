@@ -17,29 +17,7 @@ set -e
 
 . ../conf.sh
 
-USAGE="$0: [-DNx]"
-DEBUG=
-while getopts "DNx" c; do
-  case $c in
-    x)
-      set -x
-      DEBUG=-x
-      ;;
-    D) TEST_DNSRPS="-D" ;;
-    N) NOCLEAN=set ;;
-    *)
-      echo "$USAGE" 1>&2
-      exit 1
-      ;;
-  esac
-done
-shift $((OPTIND - 1))
-if test "$#" -ne 0; then
-  echo "$USAGE" 1>&2
-  exit 1
-fi
-
-[ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
+$SHELL clean.sh
 
 $PERL testgen.pl
 
@@ -52,9 +30,7 @@ copy_setports ns3/named1.conf.in ns3/named.conf
 
 copy_setports ns4/named.conf.in ns4/named.conf
 
-# decide whether to test DNSRPS
-$SHELL ../ckdnsrps.sh $TEST_DNSRPS $DEBUG
-test -z "$(grep 'dnsrps-enable yes' dnsrps.conf)" && TEST_DNSRPS=
+touch dnsrps.conf
 touch dnsrps.cache
 
 # setup policy zones for a 64-zone test
