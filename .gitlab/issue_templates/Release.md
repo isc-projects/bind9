@@ -32,6 +32,7 @@
 
  - [ ] ***(QA)*** Inform Support and Marketing of impending release (and give estimated release dates).
  - [ ] ***(QA)*** Ensure there are no permanent test failures on any platform.
+ - [ ] ***(QA)*** Check charts from `shotgun:*` jobs in the scheduled pipelines to verify there is no unexplained performance drop for any protocol.
  - [ ] ***(QA)*** Check Perflab to ensure there has been no unexplained drop in performance for the versions being released.
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding merge requests in the private repository[^1] (Subscription Edition only).
