@@ -160,6 +160,7 @@ Files: **/.clang-format
        .clang-format
        .clang-format.headers
        .dir-locals.el
+       .editorconfig
        .git-blame-ignore-revs
        .gitattributes
        .gitignore
