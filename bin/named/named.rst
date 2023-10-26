@@ -203,6 +203,8 @@ Options
    Use of this option overrides the ``lock-file`` option in
    :iscman:`named.conf`. If set to ``none``, the lock file check is disabled.
 
+   This option has been deprecated and will be removed in the next release.
+
 Signals
 ~~~~~~~
 

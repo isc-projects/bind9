@@ -8171,6 +8171,11 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "'lock-file' has no effect "
 				      "because the server was run with -X");
+			isc_log_write(
+				named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				"-X option has been deprecated and will be "
+				"removed in the a release");
 			if (named_g_defaultlockfile != NULL) {
 				server->lockfile = isc_mem_strdup(
 					server->mctx, named_g_defaultlockfile);
@@ -8185,6 +8190,10 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 							  filename);
 		}
 	} else if (named_g_forcelock && named_g_defaultlockfile != NULL) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+			      "-X option has been deprecated and will be "
+			      "removed in the a release");
 		server->lockfile = isc_mem_strdup(server->mctx,
 						  named_g_defaultlockfile);
 	}

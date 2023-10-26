@@ -1477,8 +1477,10 @@ default is used.
    on exit. If not specified, the default is ``named.memstats``.
 
 .. namedconf:statement:: lock-file
-   :tags: server
+   :tags: deprecated
    :short: Sets the pathname of the file on which :iscman:`named` attempts to acquire a file lock when starting for the first time.
+
+   This option is deprecated and will be removed in a future release.
 
    This is the pathname of a file on which :iscman:`named` attempts to acquire a
    file lock when starting for the first time; if unsuccessful, the
