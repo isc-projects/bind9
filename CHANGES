@@ -1,3 +1,7 @@
+6274.	[bug]		The 'lock-file' file was being removed when it
+			shouldn't have been making it ineffective if named was
+			started 3 or more times. [GL #4387]
+
 6271.	[bug]		Fix a shutdown race in dns__catz_update_cb(). [GL #4381]
 
 6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
