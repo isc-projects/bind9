@@ -1,3 +1,7 @@
+6274.	[bug]		The 'lock-file' file was being removed when it
+			shouldn't have been making it ineffective if named was
+			started 3 or more times. [GL #4387]
+
 6273.	[bug]		Don't reuse the existing TCP streams in dns_xfrin, so
 			parallel TCP transfers works again. [GL #4379]
 
