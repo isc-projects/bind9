@@ -8152,7 +8152,7 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 
 	if (!first_time) {
 		if (obj != NULL && cfg_obj_isstring(obj) &&
-		    server->lockfile != NULL &&
+		    server->lockfile != NULL && !named_g_forcelock &&
 		    strcmp(cfg_obj_asstring(obj), server->lockfile) != 0)
 		{
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
