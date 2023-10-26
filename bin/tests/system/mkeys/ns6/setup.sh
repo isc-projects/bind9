@@ -30,4 +30,4 @@ cp "../ns1/${rootkey}.key" .
 # Configure the resolving server with an initializing key.
 # (We use key-format trust anchors here because otherwise the
 # unsupported algorithm test won't work.)
-keyfile_to_initial_keys $unsupportedkey $islandkey $rootkey > managed.conf
+keyfile_to_initial_keys $unsupportedkey $islandkey $rootkey >managed.conf

@@ -18,49 +18,53 @@ set -e
 status=0
 n=0
 fail() {
-	echo_i "failed"
-	status=$((status + 1))
+  echo_i "failed"
+  status=$((status + 1))
 }
 
 runcmd() {
-        ("$@" 1> out.$n 2> err.$n; echo $?) || true
+  (
+    "$@" 1>out.$n 2>err.$n
+    echo $?
+  ) || true
 }
 
 testcase() {
-	n=$((n + 1))
-	echo_i "$name ($n)"
-	expect=$1
-	shift
-	result=$(runcmd "$@")
-	check_stdout
-	check_stderr
-	if [ "$expect" -ne "$result" ]; then
-                echo_d "exit status does not match $expect"
-		fail
-	fi
-        unset name err out
+  n=$((n + 1))
+  echo_i "$name ($n)"
+  expect=$1
+  shift
+  result=$(runcmd "$@")
+  check_stdout
+  check_stderr
+  if [ "$expect" -ne "$result" ]; then
+    echo_d "exit status does not match $expect"
+    fail
+  fi
+  unset name err out
 }
 
 check_stderr() {
-	if [ -n "${err:=}" ]; then
-		grep -E "$err" err.$n >/dev/null && return 0
-		echo_d "stderr did not match '$err'"
-	else
-		[ -s err.$n ] || return 0
-	fi
-	cat err.$n | cat_d
-	fail
+  if [ -n "${err:=}" ]; then
+    grep -E "$err" err.$n >/dev/null && return 0
+    echo_d "stderr did not match '$err'"
+  else
+    [ -s err.$n ] || return 0
+  fi
+  cat err.$n | cat_d
+  fail
 }
 
 check_stdout() {
-	diff out.$n "${out:-empty}" >/dev/null && return
-	echo_d "stdout did not match '$out'"
-	(	echo "wanted"
-		cat "$out"
-		echo "got"
-		cat out.$n
-	) | cat_d
-	fail
+  diff out.$n "${out:-empty}" >/dev/null && return
+  echo_d "stdout did not match '$out'"
+  (
+    echo "wanted"
+    cat "$out"
+    echo "got"
+    cat out.$n
+  ) | cat_d
+  fail
 }
 
 Z=cds.test

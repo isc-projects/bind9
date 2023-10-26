@@ -14,7 +14,7 @@
 . ../conf.sh
 
 $FEATURETEST --with-libnghttp2 || {
-	echo_i "This test requires libnghttp2 support." >&2
-	exit 255
+  echo_i "This test requires libnghttp2 support." >&2
+  exit 255
 }
 exit 0

@@ -36,30 +36,30 @@ SYSTEMTEST_NO_CLEAN=${SYSTEMTEST_NO_CLEAN:-0}
 # Handle command line switches if present.
 
 while getopts "cn-" flag; do
-    case "$flag" in
-        c) SYSTEMTEST_FORCE_COLOR=1 ;;
-        n) SYSTEMTEST_NO_CLEAN=1 ;;
-	-) break;;
-	*) exit 1;;
-    esac
+  case "$flag" in
+    c) SYSTEMTEST_FORCE_COLOR=1 ;;
+    n) SYSTEMTEST_NO_CLEAN=1 ;;
+    -) break ;;
+    *) exit 1 ;;
+  esac
 done
 export NOCLEAN
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 # Obtain number of processes to use.
 
 if [ $# -eq 0 ]; then
-    numproc=1
+  numproc=1
 elif [ $# -eq 1 ]; then
-    if [ "$1" -ne "$1" ] 2>&1; then
-        # Value passed is not numeric
-        echo "$usage" >&2
-        exit 1
-    fi
-    numproc=$1
-else
+  if [ "$1" -ne "$1" ] 2>&1; then
+    # Value passed is not numeric
     echo "$usage" >&2
     exit 1
+  fi
+  numproc=$1
+else
+  echo "$usage" >&2
+  exit 1
 fi
 
 # Run the tests.
@@ -70,30 +70,30 @@ export SYSTEMTEST_NO_CLEAN
 status=0
 
 if [ "$NOPARALLEL" = "" ]; then
-    # use "make" to run tests in parallel.
-    make -j "$numproc" check
-    status=$?
+  # use "make" to run tests in parallel.
+  make -j "$numproc" check
+  status=$?
 else
-    # the NOPARALLEL environment variable indicates that tests must be
-    # run sequentially.
-    $PERL testsock.pl || {
-        cat <<-EOF
+  # the NOPARALLEL environment variable indicates that tests must be
+  # run sequentially.
+  $PERL testsock.pl || {
+    cat <<-EOF
 	I:NOTE: System tests were skipped because they require the
 	I:      test IP addresses 10.53.0.* to be configured as alias
 	I:      addresses on the loopback interface.  Please run
 	I:      "bin/tests/system/ifconfig.sh up" as root to configure them.
 	EOF
-        exit 1
-    }
-    (
-	status=0
-        for testdir in $SUBDIRS; do
-            $SHELL legacy.run.sh -r "$testdir" || status=1
-        done
-	echo "$status" > systests.status
-    ) 2>&1 | tee "systests.output"
-    read -r status < systests.status
-    rm systests.status
+    exit 1
+  }
+  (
+    status=0
+    for testdir in $SUBDIRS; do
+      $SHELL legacy.run.sh -r "$testdir" || status=1
+    done
+    echo "$status" >systests.status
+  ) 2>&1 | tee "systests.output"
+  read -r status <systests.status
+  rm systests.status
 fi
 
 exit "$status"

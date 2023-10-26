@@ -12,20 +12,20 @@
 # information regarding copyright ownership.
 
 unused_headers=$(
-	git ls-files -- '*.h' ':!:*include*' ':!:*rdata*' |
-	sed 's|.*/\(.*\.h\)|\1|' |
-	while read -r header; do
-		git grep -q "#include \".*${header}\"" || echo "${header}"
-	done
+  git ls-files -- '*.h' ':!:*include*' ':!:*rdata*' \
+    | sed 's|.*/\(.*\.h\)|\1|' \
+    | while read -r header; do
+      git grep -q "#include \".*${header}\"" || echo "${header}"
+    done
 
-	git ls-files -- '*include/*.h' |
-	sed 's|.*/include\/\(.*\.h\)|\1|' |
-	while read -r header; do
-		git grep -q "#include <${header}>" || echo "${header}"
-	done
+  git ls-files -- '*include/*.h' \
+    | sed 's|.*/include\/\(.*\.h\)|\1|' \
+    | while read -r header; do
+      git grep -q "#include <${header}>" || echo "${header}"
+    done
 )
 
 if [ -n "${unused_headers}" ]; then
-	echo -e "Following headers are unused:\n${unused_headers}"
-	exit 1
+  echo -e "Following headers are unused:\n${unused_headers}"
+  exit 1
 fi

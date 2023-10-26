@@ -19,6 +19,6 @@ zonefile=sub.foo.db
 keyname=$($KEYGEN -a ${DEFAULT_ALGORITHM} -qfk $zone)
 zskkeyname=$($KEYGEN -a ${DEFAULT_ALGORITHM} -q $zone)
 
-$SIGNER -Sg -o $zone $zonefile > /dev/null 2>/dev/null
-keyfile_to_initial_ds $keyname > private.conf
+$SIGNER -Sg -o $zone $zonefile >/dev/null 2>/dev/null
+keyfile_to_initial_ds $keyname >private.conf
 cp private.conf ../ns5/private.conf

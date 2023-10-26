@@ -27,12 +27,12 @@ export ARPANAME=$TOP_BUILDDIR/bin/tools/arpaname
 export CDS=$TOP_BUILDDIR/bin/dnssec/dnssec-cds
 export CHECKCONF=$TOP_BUILDDIR/bin/check/named-checkconf
 export CHECKZONE=$TOP_BUILDDIR/bin/check/named-checkzone
-if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
-    export DELV=$TOP_BUILDDIR/bin/delv/delv
-    export RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
+if [ -z "$TSAN_OPTIONS" ]; then # workaround for GL#4119
+  export DELV=$TOP_BUILDDIR/bin/delv/delv
+  export RESOLVE=$TOP_BUILDDIR/bin/tests/system/resolve
 else
-    export DELV=:
-    export RESOLVE=:
+  export DELV=:
+  export RESOLVE=:
 fi
 export DIG=$TOP_BUILDDIR/bin/dig/dig
 export DNSTAPREAD=$TOP_BUILDDIR/bin/tools/dnstap-read
@@ -88,13 +88,13 @@ export PYTEST=@PYTEST@
 #
 export PERL=$(command -v "@PERL@" || true)
 if ! test -x "$PERL"; then
-    echo "Perl interpreter is required for system tests."
-    exit 77
+  echo "Perl interpreter is required for system tests."
+  exit 77
 fi
 export PYTHON=$(command -v "@PYTHON@" || true)
 if ! test -x "$PYTHON"; then
-    echo "Python interpreter is required for system tests."
-    exit 77
+  echo "Python interpreter is required for system tests."
+  exit 77
 fi
 
 # Load common values

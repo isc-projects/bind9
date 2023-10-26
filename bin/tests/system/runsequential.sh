@@ -20,7 +20,6 @@
 
 . ./conf.sh
 
-for d in $SEQUENTIALDIRS
-do
-    $SHELL legacy.run.sh "${@}" "$d" 2>&1 | tee "test.output.$d"
+for d in $SEQUENTIALDIRS; do
+  $SHELL legacy.run.sh "${@}" "$d" 2>&1 | tee "test.output.$d"
 done

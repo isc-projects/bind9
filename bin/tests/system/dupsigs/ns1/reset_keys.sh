@@ -18,7 +18,7 @@ rm -rf keys/signing.test
 mkdir -p keys/signing.test
 
 timetodnssec() {
-    $PERL -e 'my ($S,$M,$H,$d,$m,$y,$x) = gmtime(@ARGV[0]);
+  $PERL -e 'my ($S,$M,$H,$d,$m,$y,$x) = gmtime(@ARGV[0]);
 	      printf("%04u%02u%02u%02u%02u%02u\n", $y+1900,$m+1,$d,$H,$M,$S);' ${1}
 }
 
@@ -37,9 +37,8 @@ ZSK8=$($KEYGEN -a RSASHA256 -K $KEYDIR -q $zone)
 ZSK9=$($KEYGEN -a RSASHA256 -K $KEYDIR -q $zone)
 
 # clear all times on all keys
-for FILEN in keys/signing.test/*.key
-do
-    $SETTIME -P none -A none -R none -I none -D none $FILEN
+for FILEN in keys/signing.test/*.key; do
+  $SETTIME -P none -A none -R none -I none -D none $FILEN
 done
 
 BASE=$(date +%s)

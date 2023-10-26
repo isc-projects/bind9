@@ -38,23 +38,23 @@ status=$((status + ret))
 ret=0
 n=$((n + 1))
 echo_i "test that the nameserver is running with a missing master file ($n)"
-$DIG $DIGOPTS +tcp +noall +answer example soa @10.53.0.2 > dig.out.$n
-grep SOA dig.out.$n > /dev/null || ret=1
+$DIG $DIGOPTS +tcp +noall +answer example soa @10.53.0.2 >dig.out.$n
+grep SOA dig.out.$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 ret=0
 n=$((n + 1))
 echo_i "test that the nameserver returns SERVFAIL for a missing master file ($n)"
-$DIG $DIGOPTS +tcp +all missing soa @10.53.0.2 > dig.out.$n
-grep "status: SERVFAIL" dig.out.$n > /dev/null || ret=1
+$DIG $DIGOPTS +tcp +all missing soa @10.53.0.2 >dig.out.$n
+grep "status: SERVFAIL" dig.out.$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 ret=0
 n=$((n + 1))
 echo_i "test owner inheritance after "'$INCLUDE'" ($n)"
-$CHECKZONE -Dq example zone/inheritownerafterinclude.db > checkzone.out$n
+$CHECKZONE -Dq example zone/inheritownerafterinclude.db >checkzone.out$n
 diff checkzone.out$n zone/inheritownerafterinclude.good || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

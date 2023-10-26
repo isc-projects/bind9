@@ -24,6 +24,6 @@ zonefile=optout-tld.db
 
 keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$keyname.key" >"$zonefile"
 
-"$SIGNER" -z -3 - -A -o "$zone" "$zonefile" > /dev/null 2>&1
+"$SIGNER" -z -3 - -A -o "$zone" "$zonefile" >/dev/null 2>&1

@@ -21,7 +21,7 @@ $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 6 3 >ns6/primary.db
 $SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 7 >ns7/primary2.db
 
 cp -f ns4/root.db.in ns4/root.db
-$PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >> ns4/root.db
+$PERL -e 'for ($i=0;$i<10000;$i++){ printf("x%u 0 in a 10.53.0.1\n", $i);}' >>ns4/root.db
 
 copy_setports ns1/named1.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
@@ -39,7 +39,7 @@ touch -t 200101010000 ns2/sec.db
 
 cp ns2/mapped.db.in ns2/mapped.db
 
-$PERL -e 'for ($i=0;$i<4096;$i++){ printf("name%u 259200 A 1.2.3.4\nname%u 259200 TXT \"Hello World %u\"\n", $i, $i, $i);}' > ns8/small.db
-$PERL -e 'printf("large IN TYPE45234 \\# 48000 "); for ($i=0;$i<16*3000;$i++) { printf("%02x", $i % 256); } printf("\n");' > ns8/large.db
+$PERL -e 'for ($i=0;$i<4096;$i++){ printf("name%u 259200 A 1.2.3.4\nname%u 259200 TXT \"Hello World %u\"\n", $i, $i, $i);}' >ns8/small.db
+$PERL -e 'printf("large IN TYPE45234 \\# 48000 "); for ($i=0;$i<16*3000;$i++) { printf("%02x", $i % 256); } printf("\n");' >ns8/large.db
 
 cp -f ns1/ixfr-too-big.db.in ns1/ixfr-too-big.db

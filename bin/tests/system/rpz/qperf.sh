@@ -12,11 +12,11 @@
 # information regarding copyright ownership.
 
 for QDIR in $(echo "$PATH" | tr : ' ') ../../../../contrib/queryperf; do
-    QPERF=$QDIR/queryperf
-    if test -f "$QPERF" -a -x "$QPERF"; then
-	echo $QPERF
-	exit 0
-    fi
+  QPERF=$QDIR/queryperf
+  if test -f "$QPERF" -a -x "$QPERF"; then
+    echo $QPERF
+    exit 0
+  fi
 done
 
 exit 0

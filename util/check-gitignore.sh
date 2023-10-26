@@ -14,10 +14,10 @@
 ignored_yet_tracked="$(git ls-files --cached --ignored --exclude-standard | git check-ignore --verbose --stdin --no-index)"
 
 if [ -n "${ignored_yet_tracked}" ]; then
-	echo "The following .gitignore files contain patterns matching tracked files:"
-	echo
-	echo "${ignored_yet_tracked}"
-	echo
-	echo "Please adjust the contents of the above .gitignore files and/or the names of the tracked files."
-	exit 1
+  echo "The following .gitignore files contain patterns matching tracked files:"
+  echo
+  echo "${ignored_yet_tracked}"
+  echo
+  echo "Please adjust the contents of the above .gitignore files and/or the names of the tracked files."
+  exit 1
 fi

@@ -17,7 +17,6 @@
 
 . ./conf.sh
 
-for d in $SUBDIRS
-do
-   $SHELL stop.sh $d
+for d in $SUBDIRS; do
+  $SHELL stop.sh $d
 done

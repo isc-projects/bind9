@@ -2,7 +2,7 @@
 
 # test-driver - basic testsuite driver script.
 
-scriptversion=2021-09-20.08; # UTC
+scriptversion=2021-09-20.08 # UTC
 
 # Copyright (C) 2011-2020 Free Software Foundation, Inc.
 #
@@ -34,15 +34,13 @@ scriptversion=2021-09-20.08; # UTC
 # helps a lot in preventing typo-related bugs.
 set -u
 
-usage_error ()
-{
+usage_error() {
   echo "$0: $*" >&2
   print_usage >&2
   exit 2
 }
 
-print_usage ()
-{
+print_usage() {
   cat <<END
 Usage:
   test-driver --test-name=NAME --log-file=PATH --trs-file=PATH
@@ -53,36 +51,67 @@ The '--test-name', '--log-file' and '--trs-file' options are mandatory.
 END
 }
 
-test_name= # Used for reporting.
-log_file=  # Where to save the output of the test script.
-trs_file=  # Where to save the metadata of the test run.
-junit_file=  # Where to save pytest junit output.
+test_name=  # Used for reporting.
+log_file=   # Where to save the output of the test script.
+trs_file=   # Where to save the metadata of the test run.
+junit_file= # Where to save pytest junit output.
 expect_failure=no
 color_tests=no
 enable_hard_errors=yes
 verbose=no
 while test $# -gt 0; do
   case $1 in
-  --help) print_usage; exit $?;;
-  --version) echo "test-driver $scriptversion"; exit $?;;
-  --test-name) test_name=$2; shift;;
-  --log-file) log_file=$2; shift;;
-  --trs-file) trs_file=$2; junit_file=$(echo $trs_file | sed 's/\.trs$/\.xml/'); shift;;
-  --color-tests) color_tests=$2; shift;;
-  --expect-failure) expect_failure=$2; shift;;
-  --enable-hard-errors) enable_hard_errors=$2; shift;;
-  --verbose) verbose=$2; shift;;
-  --) shift; break;;
-  -*) usage_error "invalid option: '$1'";;
-   *) break;;
+    --help)
+      print_usage
+      exit $?
+      ;;
+    --version)
+      echo "test-driver $scriptversion"
+      exit $?
+      ;;
+    --test-name)
+      test_name=$2
+      shift
+      ;;
+    --log-file)
+      log_file=$2
+      shift
+      ;;
+    --trs-file)
+      trs_file=$2
+      junit_file=$(echo $trs_file | sed 's/\.trs$/\.xml/')
+      shift
+      ;;
+    --color-tests)
+      color_tests=$2
+      shift
+      ;;
+    --expect-failure)
+      expect_failure=$2
+      shift
+      ;;
+    --enable-hard-errors)
+      enable_hard_errors=$2
+      shift
+      ;;
+    --verbose)
+      verbose=$2
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*) usage_error "invalid option: '$1'" ;;
+    *) break ;;
   esac
   shift
 done
 
 missing_opts=
 test x"$test_name" = x && missing_opts="$missing_opts --test-name"
-test x"$log_file"  = x && missing_opts="$missing_opts --log-file"
-test x"$trs_file"  = x && missing_opts="$missing_opts --trs-file"
+test x"$log_file" = x && missing_opts="$missing_opts --log-file"
+test x"$trs_file" = x && missing_opts="$missing_opts --trs-file"
 if test x"$missing_opts" != x; then
   usage_error "the following mandatory options are missing:$missing_opts"
 fi
@@ -117,7 +146,7 @@ else
 fi
 
 # Run junit to trs converter script.
-./convert-junit-to-trs.py $junit_file > $trs_file
+./convert-junit-to-trs.py $junit_file >$trs_file
 estatus=$?
 
 if test $enable_hard_errors = no && test $estatus -eq 99; then
@@ -127,12 +156,12 @@ else
 fi
 
 case $tweaked_estatus:$expect_failure in
-  0:yes) col=$red res=XPASS recheck=yes gcopy=yes;;
-  0:*)   col=$grn res=PASS  recheck=no  gcopy=no;;
-  77:*)  col=$blu res=SKIP  recheck=no  gcopy=yes;;
-  99:*)  col=$mgn res=ERROR recheck=yes gcopy=yes;;
-  *:yes) col=$lgn res=XFAIL recheck=no  gcopy=yes;;
-  *:*)   col=$red res=FAIL  recheck=yes gcopy=yes;;
+  0:yes) col=$red res=XPASS recheck=yes gcopy=yes ;;
+  0:*) col=$grn res=PASS recheck=no gcopy=no ;;
+  77:*) col=$blu res=SKIP recheck=no gcopy=yes ;;
+  99:*) col=$mgn res=ERROR recheck=yes gcopy=yes ;;
+  *:yes) col=$lgn res=XFAIL recheck=no gcopy=yes ;;
+  *:*) col=$red res=FAIL recheck=yes gcopy=yes ;;
 esac
 
 # Report the test outcome and exit status in the logs, so that one can
@@ -145,9 +174,9 @@ echo "$res $test_name (exit status: $estatus)" >>$log_file
 echo "${col}${res}${std}: $test_name"
 
 # Register other relevant test metadata.
-echo ":global-test-result: $res" >> $trs_file
-echo ":recheck: $recheck" >> $trs_file
-echo ":copy-in-global-log: $gcopy" >> $trs_file
+echo ":global-test-result: $res" >>$trs_file
+echo ":recheck: $recheck" >>$trs_file
+echo ":copy-in-global-log: $gcopy" >>$trs_file
 
 # Local Variables:
 # mode: shell-script

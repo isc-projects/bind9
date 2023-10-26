@@ -15,7 +15,7 @@
 . ../conf.sh
 
 for conf in ns*/named.conf.in; do
-    copy_setports "$conf" "$(dirname "$conf")/$(basename "$conf" .in)"
+  copy_setports "$conf" "$(dirname "$conf")/$(basename "$conf" .in)"
 done
 
 (cd ns2 && $SHELL sign.sh)

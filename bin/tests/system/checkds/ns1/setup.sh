@@ -31,16 +31,16 @@ cp "$zsk.key" "../ns10/"
 cp "$ksk.private" "../ns10/"
 cp "$zsk.private" "../ns10/"
 
-cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
-"$SIGNER" -g -o "$zone" "$zonefile" > /dev/null 2>&1
+cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+"$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
 
 (
-	cd ../ns10
-	cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
-	"$SIGNER" -g -o "$zone" "$zonefile" > /dev/null 2>&1
+  cd ../ns10
+  cat "$infile" "$ksk.key" "$zsk.key" >"$zonefile"
+  "$SIGNER" -g -o "$zone" "$zonefile" >/dev/null 2>&1
 )
 
 # Configure the resolving server with a static key.
-keyfile_to_static_ds "$ksk" > trusted.conf
+keyfile_to_static_ds "$ksk" >trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns8/trusted.conf

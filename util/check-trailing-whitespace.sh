@@ -14,10 +14,10 @@
 trailing_whitespace="$(git grep -I -n '[[:space:]]$' -- ':!*/testdata/*')"
 
 if [ -n "${trailing_whitespace}" ]; then
-	echo "The following occurrences of trailing whitespace characters were found:"
-	echo
-	echo "${trailing_whitespace}"
-	echo
-	echo "Please remove the trailing whitespace from these files."
-	exit 1
+  echo "The following occurrences of trailing whitespace characters were found:"
+  echo
+  echo "${trailing_whitespace}"
+  echo
+  echo "Please remove the trailing whitespace from these files."
+  exit 1
 fi

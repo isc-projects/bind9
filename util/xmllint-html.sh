@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-files=`git ls-files '*.html'`
-if test -n "$files"
-then
-	xmllint --noout --nonet --html $files 2>&1 |
-	awk 'BEGIN { status = 0; }
+files=$(git ls-files '*.html')
+if test -n "$files"; then
+  xmllint --noout --nonet --html $files 2>&1 \
+    | awk 'BEGIN { status = 0; }
 	     # suppress HTML 5 <section> tag errors
 	     /HTML parser error : Tag section invalid/ { getline; getline; next; }
 	     { print; status = 1; }
