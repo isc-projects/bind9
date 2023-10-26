@@ -15,35 +15,39 @@ USAGE="# Usage: ${0} [-h | -G] -s File.d [-o <File>]"
 
 mode=
 while getopts hGs:o: opt; do
-	case "${opt}" in
-		h) mode=header ;;
-		s) input=$OPTARG ;;
-		o) output=$OPTARG ;;
-		G) mode=object ;;
-		\?) echo $USAGE; exit 1;;
-	esac
+  case "${opt}" in
+    h) mode=header ;;
+    s) input=$OPTARG ;;
+    o) output=$OPTARG ;;
+    G) mode=object ;;
+    \?)
+      echo $USAGE
+      exit 1
+      ;;
+  esac
 done
 shift $((OPTIND - 1))
 
 if test -z "${mode}" || test -z "${input}"; then
-	echo $USAGE; exit 1;
+  echo $USAGE
+  exit 1
 fi
 
 case "${mode}" in
-	header)
-		if test -z "${output}"; then
-			output="$(basename "${input}" .d).h"
-		fi
-		PROVIDER=$(cat "${input}" | sed -ne 's/^provider \(.*\) {/\1/p' | tr "a-z" "A-Z")
-		sed -ne 's/.*probe \(.*\)(.*);/\1/p' "${input}" | tr "a-z" "A-Z" | while read PROBE; do
-			echo "#define ${PROVIDER}_${PROBE}_ENABLED() 0";
-			echo "#define ${PROVIDER}_${PROBE}(...)";
-		done > "${output}"
-		;;
-	object)
-		if test -z "${output}"; then
-			output="$(basename "${input}" .d).o"
-		fi
-		echo "extern int empty;" | gcc -xc -c - -fPIC -DPIC  -o "${output}"
-		;;
+  header)
+    if test -z "${output}"; then
+      output="$(basename "${input}" .d).h"
+    fi
+    PROVIDER=$(cat "${input}" | sed -ne 's/^provider \(.*\) {/\1/p' | tr "a-z" "A-Z")
+    sed -ne 's/.*probe \(.*\)(.*);/\1/p' "${input}" | tr "a-z" "A-Z" | while read PROBE; do
+      echo "#define ${PROVIDER}_${PROBE}_ENABLED() 0"
+      echo "#define ${PROVIDER}_${PROBE}(...)"
+    done >"${output}"
+    ;;
+  object)
+    if test -z "${output}"; then
+      output="$(basename "${input}" .d).o"
+    fi
+    echo "extern int empty;" | gcc -xc -c - -fPIC -DPIC -o "${output}"
+    ;;
 esac

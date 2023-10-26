@@ -14,7 +14,7 @@
 . ../conf.sh
 
 $FEATURETEST --with-lmdb || {
-	echo_i "This test requires LMDB support." >&2
-	exit 255
+  echo_i "This test requires LMDB support." >&2
+  exit 255
 }
 exit 0

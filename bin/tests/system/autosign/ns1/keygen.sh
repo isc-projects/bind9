@@ -17,9 +17,9 @@ zone=.
 zonefile=root.db
 infile=root.db.in
 
-(cd ../ns2 && $SHELL keygen.sh )
+(cd ../ns2 && $SHELL keygen.sh)
 
-cat $infile ../ns2/dsset-example. ../ns2/dsset-bar. > $zonefile
+cat $infile ../ns2/dsset-example. ../ns2/dsset-bar. >$zonefile
 
 zskact=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q $zone)
 zskvanish=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q $zone)
@@ -34,22 +34,22 @@ rm $zsknopriv.private
 ksksby=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -P now -A now -fk $zone)
 kskrev=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q -R now -fk $zone)
 
-keyfile_to_static_ds $ksksby > trusted.conf
+keyfile_to_static_ds $ksksby >trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 
-keyfile_to_static_ds $kskrev > trusted.conf
+keyfile_to_static_ds $kskrev >trusted.conf
 cp trusted.conf ../ns5/trusted.conf
 
-echo $zskact > ../active.key
-echo $zskvanish > ../vanishing.key
-echo $zskdel > ../del.key
-echo $zskinact > ../inact.key
-echo $zskunpub > ../unpub.key
-echo $zsknopriv > ../nopriv.key
-echo $zsksby > ../standby.key
-echo $zskactnowpub1d > ../activate-now-publish-1day.key
-$REVOKE -R $kskrev > ../rev.key
+echo $zskact >../active.key
+echo $zskvanish >../vanishing.key
+echo $zskdel >../del.key
+echo $zskinact >../inact.key
+echo $zskunpub >../unpub.key
+echo $zsknopriv >../nopriv.key
+echo $zsksby >../standby.key
+echo $zskactnowpub1d >../activate-now-publish-1day.key
+$REVOKE -R $kskrev >../rev.key
 
-$SIGNER -S -o . -O full root.db > signing.out 2>&1
+$SIGNER -S -o . -O full root.db >signing.out 2>&1

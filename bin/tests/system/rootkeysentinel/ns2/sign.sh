@@ -26,15 +26,15 @@ keyname1=$($KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone)
 keyname2=$($KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone)
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
-echo root-key-sentinel-is-ta-$oldid A 10.53.0.1 >> $zonefile
-echo root-key-sentinel-not-ta-$oldid A 10.53.0.2 >> $zonefile
-echo root-key-sentinel-is-ta-$newid A 10.53.0.3 >> $zonefile
-echo root-key-sentinel-not-ta-$newid A 10.53.0.4 >> $zonefile
-echo old-is-ta CNAME root-key-sentinel-is-ta-$oldid >> $zonefile
-echo old-not-ta CNAME root-key-sentinel-not-ta-$oldid >> $zonefile
-echo new-is-ta CNAME root-key-sentinel-is-ta-$newid >> $zonefile
-echo new-not-ta CNAME root-key-sentinel-not-ta-$newid >> $zonefile
-echo bad-is-ta CNAME root-key-sentinel-is-ta-$badid >> $zonefile
-echo bad-not-ta CNAME root-key-sentinel-not-ta-$badid >> $zonefile
+echo root-key-sentinel-is-ta-$oldid A 10.53.0.1 >>$zonefile
+echo root-key-sentinel-not-ta-$oldid A 10.53.0.2 >>$zonefile
+echo root-key-sentinel-is-ta-$newid A 10.53.0.3 >>$zonefile
+echo root-key-sentinel-not-ta-$newid A 10.53.0.4 >>$zonefile
+echo old-is-ta CNAME root-key-sentinel-is-ta-$oldid >>$zonefile
+echo old-not-ta CNAME root-key-sentinel-not-ta-$oldid >>$zonefile
+echo new-is-ta CNAME root-key-sentinel-is-ta-$newid >>$zonefile
+echo new-not-ta CNAME root-key-sentinel-not-ta-$newid >>$zonefile
+echo bad-is-ta CNAME root-key-sentinel-is-ta-$badid >>$zonefile
+echo bad-not-ta CNAME root-key-sentinel-not-ta-$badid >>$zonefile
 
-$SIGNER -P -g -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
+$SIGNER -P -g -o $zone -k $keyname1 $zonefile $keyname2 >/dev/null

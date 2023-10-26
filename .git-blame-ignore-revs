@@ -1534,3 +1534,5 @@ ffbe6b95371c99b7fb05e6de17a8d6b7bf4f629f
 1436025e20ae13cfe55df14d62f5812c0cea2ee9
 # subshell notation in system tests
 05baf7206b7baaf91cb8e049ad13e413c52cdf3f
+# reformat shell scripts with shfmt
+4cb8b13987b930952238cc88e84272b8cf911933

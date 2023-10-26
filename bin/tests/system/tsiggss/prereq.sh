@@ -14,14 +14,14 @@
 . ../conf.sh
 
 # enable the tsiggss test only if gssapi was enabled
-$FEATURETEST --gssapi ||  {
-        echo_i "gssapi and krb5 not supported - skipping tsiggss test"
-        exit 255
+$FEATURETEST --gssapi || {
+  echo_i "gssapi and krb5 not supported - skipping tsiggss test"
+  exit 255
 }
 
-$FEATURETEST --have-fips-dh ||  {
-        echo_i "FIPS mode Diffie-Hellman not working - skipping tsiggss test"
-        exit 255
+$FEATURETEST --have-fips-dh || {
+  echo_i "FIPS mode Diffie-Hellman not working - skipping tsiggss test"
+  exit 255
 }
 
 exit 0
