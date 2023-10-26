@@ -1,3 +1,6 @@
+6276.	[cleanup]	Remove both lock-file configuration option and the
+			-X argument to named. [GL #4391]
+
 6275.	[bug]		Fix assertion failure when using lock-file configuration
 			option together -X argument to named. [GL #4386]
 
