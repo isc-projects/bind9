@@ -61,6 +61,10 @@ Bug Fixes
   DNSSEC records, it was scheduled to be resigning. This unwanted behavior
   has been fixed. :gl:`#4350`
 
+- The :any:`lock-file` file was being removed when it shouldn't
+  have been making it ineffective if named was started 3 or more
+  times. :gl:`#4387`
+
 Known Issues
 ~~~~~~~~~~~~
 
