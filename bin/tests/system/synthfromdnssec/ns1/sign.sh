@@ -19,27 +19,27 @@ infile=example.db.in
 zonefile=example.db
 
 keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$keyname.key" >"$zonefile"
 
-$SIGNER -P -o $zone $zonefile > /dev/null
+$SIGNER -P -o $zone $zonefile >/dev/null
 
 zone=dnamed
 infile=dnamed.db.in
 zonefile=dnamed.db
 
 keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$keyname.key" >"$zonefile"
 
-$SIGNER -P -o $zone $zonefile > /dev/null
+$SIGNER -P -o $zone $zonefile >/dev/null
 
 zone=.
 infile=root.db.in
 zonefile=root.db
 
 keyname=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone $zone)
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$keyname.key" >"$zonefile"
 
-$SIGNER -P -g -o $zone $zonefile > /dev/null
+$SIGNER -P -g -o $zone $zonefile >/dev/null
 
 # Configure the resolving server with a static key.
-keyfile_to_static_ds "$keyname" > trusted.conf
+keyfile_to_static_ds "$keyname" >trusted.conf

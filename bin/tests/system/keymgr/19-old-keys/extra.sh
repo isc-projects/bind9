@@ -11,13 +11,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-now=`$PERL -e 'print time()."\n";'`
+now=$($PERL -e 'print time()."\n";')
 for keyfile in K*.key; do
-    inactive=`$SETTIME -upI $keyfile | awk '{print $2}'`
-    if [ "$inactive" = UNSET ]; then
-        continue
-    elif [ "$inactive" -lt "$now" ]; then
-        echo_d "inactive date is in the past"
-        ret=1
-    fi
+  inactive=$($SETTIME -upI $keyfile | awk '{print $2}')
+  if [ "$inactive" = UNSET ]; then
+    continue
+  elif [ "$inactive" -lt "$now" ]; then
+    echo_d "inactive date is in the past"
+    ret=1
+  fi
 done

@@ -14,15 +14,13 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
-then
-    if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.70);' 2>/dev/null
-    then
-        :
-    else
-        echo_i "Net::DNS versions 0.69 to 0.70 have bugs that cause this test to fail: please update." >&2
-        exit 1
-    fi
+if $PERL -e 'use Net::DNS;' 2>/dev/null; then
+  if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.70);' 2>/dev/null; then
+    :
+  else
+    echo_i "Net::DNS versions 0.69 to 0.70 have bugs that cause this test to fail: please update." >&2
+    exit 1
+  fi
 fi
 
 exit 0

@@ -16,10 +16,9 @@
 
 set -e
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
-then
-    :
+if $PERL -e 'use Net::DNS;' 2>/dev/null; then
+  :
 else
-    echo_i "This test requires the Net::DNS library." >&2
-    exit 1
+  echo_i "This test requires the Net::DNS library." >&2
+  exit 1
 fi

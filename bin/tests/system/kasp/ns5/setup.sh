@@ -20,11 +20,10 @@ echo_i "ns5/setup.sh"
 # Set up zones that potentially will be initially signed.
 #
 for zn in inherit.inherit override.inherit none.inherit \
-	  inherit.override override.override none.override \
-	  inherit.none override.none none.none
-do
-	zone="$zn.unsigned"
-	echo_i "setting up zone: $zone"
-	zonefile="${zone}.db"
-	cp template.db.in $zonefile
+  inherit.override override.override none.override \
+  inherit.none override.none none.none; do
+  zone="$zn.unsigned"
+  echo_i "setting up zone: $zone"
+  zonefile="${zone}.db"
+  cp template.db.in $zonefile
 done

@@ -35,11 +35,11 @@ copy_setports ns8/named.conf.in ns8/named.conf
 copy_setports ns9/named.conf.in ns9/named.conf.in.tkey
 copy_setports ns10/named.conf.in ns10/named.conf.in.tkey
 if $FEATURETEST --gssapi; then
-	sed 's|@TKEY_CONFIGURATION@|tkey-gssapi-credential "DNS/ns9.example.com@EXAMPLE.COM";|' ns9/named.conf.in.tkey > ns9/named.conf
-	sed 's|@TKEY_CONFIGURATION@|tkey-gssapi-credential "DNS/ns10.example.com@EXAMPLE.COM";|' ns10/named.conf.in.tkey > ns10/named.conf
+  sed 's|@TKEY_CONFIGURATION@|tkey-gssapi-credential "DNS/ns9.example.com@EXAMPLE.COM";|' ns9/named.conf.in.tkey >ns9/named.conf
+  sed 's|@TKEY_CONFIGURATION@|tkey-gssapi-credential "DNS/ns10.example.com@EXAMPLE.COM";|' ns10/named.conf.in.tkey >ns10/named.conf
 else
-	sed 's|@TKEY_CONFIGURATION@||' ns9/named.conf.in.tkey > ns9/named.conf
-	sed 's|@TKEY_CONFIGURATION@||' ns10/named.conf.in.tkey > ns10/named.conf
+  sed 's|@TKEY_CONFIGURATION@||' ns9/named.conf.in.tkey >ns9/named.conf
+  sed 's|@TKEY_CONFIGURATION@||' ns10/named.conf.in.tkey >ns10/named.conf
 fi
 rm -f ns9/named.conf.in.tkey
 rm -f ns10/named.conf.in.tkey
@@ -47,10 +47,10 @@ rm -f ns10/named.conf.in.tkey
 copy_setports verylarge.in verylarge
 
 cp -f ns1/example1.db ns1/example.db
-sed 's/example.nil/other.nil/g' ns1/example1.db > ns1/other.db
-sed 's/example.nil/unixtime.nil/g' ns1/example1.db > ns1/unixtime.db
-sed 's/example.nil/yyyymmddvv.nil/g' ns1/example1.db > ns1/yyyymmddvv.db
-sed 's/example.nil/keytests.nil/g' ns1/example1.db > ns1/keytests.db
+sed 's/example.nil/other.nil/g' ns1/example1.db >ns1/other.db
+sed 's/example.nil/unixtime.nil/g' ns1/example1.db >ns1/unixtime.db
+sed 's/example.nil/yyyymmddvv.nil/g' ns1/example1.db >ns1/yyyymmddvv.db
+sed 's/example.nil/keytests.nil/g' ns1/example1.db >ns1/keytests.db
 cp -f ns3/example.db.in ns3/example.db
 cp -f ns3/too-big.test.db.in ns3/too-big.test.db
 
@@ -71,20 +71,23 @@ ns1.update.nil.         A       10.53.0.2
 ns2.update.nil.		AAAA	::1
 EOF
 
-$DDNSCONFGEN -q -z example.nil > ns1/ddns.key
+$DDNSCONFGEN -q -z example.nil >ns1/ddns.key
 
 if $FEATURETEST --md5; then
-	$DDNSCONFGEN -q -a hmac-md5 -k md5-key -z keytests.nil > ns1/md5.key
+  $DDNSCONFGEN -q -a hmac-md5 -k md5-key -z keytests.nil >ns1/md5.key
 else
-	echo -n > ns1/md5.key
+  echo -n >ns1/md5.key
 fi
-$DDNSCONFGEN -q -a hmac-sha1 -k sha1-key -z keytests.nil > ns1/sha1.key
-$DDNSCONFGEN -q -a hmac-sha224 -k sha224-key -z keytests.nil > ns1/sha224.key
-$DDNSCONFGEN -q -a hmac-sha256 -k sha256-key -z keytests.nil > ns1/sha256.key
-$DDNSCONFGEN -q -a hmac-sha384 -k sha384-key -z keytests.nil > ns1/sha384.key
-$DDNSCONFGEN -q -a hmac-sha512 -k sha512-key -z keytests.nil > ns1/sha512.key
+$DDNSCONFGEN -q -a hmac-sha1 -k sha1-key -z keytests.nil >ns1/sha1.key
+$DDNSCONFGEN -q -a hmac-sha224 -k sha224-key -z keytests.nil >ns1/sha224.key
+$DDNSCONFGEN -q -a hmac-sha256 -k sha256-key -z keytests.nil >ns1/sha256.key
+$DDNSCONFGEN -q -a hmac-sha384 -k sha384-key -z keytests.nil >ns1/sha384.key
+$DDNSCONFGEN -q -a hmac-sha512 -k sha512-key -z keytests.nil >ns1/sha512.key
 
-(cd ns3; $SHELL -e sign.sh)
+(
+  cd ns3
+  $SHELL -e sign.sh
+)
 
 cp -f ns1/many.test.db.in ns1/many.test.db
 

@@ -15,4 +15,4 @@
 
 PK11DELBIN=$(echo "$PK11DEL" | awk '{ print $1 }')
 
-[ -x "$PK11DELBIN" ] && $PK11DEL -w0 > /dev/null 2>&1
+[ -x "$PK11DELBIN" ] && $PK11DEL -w0 >/dev/null 2>&1

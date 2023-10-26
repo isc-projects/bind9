@@ -16,12 +16,11 @@ SYSTEMTESTTOP=..
 
 fail=0
 
-if $PERL -e 'use File::Fetch;' 2>/dev/null
-then
-        :
+if $PERL -e 'use File::Fetch;' 2>/dev/null; then
+  :
 else
-    echo_i "This test requires the File::Fetch library." >&2
-    fail=1
+  echo_i "This test requires the File::Fetch library." >&2
+  fail=1
 fi
 
 exit $fail

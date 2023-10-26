@@ -33,12 +33,12 @@ export CHECKDS=$TOP/bin/python/dnssec-checkds
 export CHECKZONE=$TOP/bin/check/named-checkzone
 export COVERAGE=$TOP/bin/python/dnssec-coverage
 export DDNSCONFGEN=$TOP/bin/confgen/ddns-confgen
-if [ -z "$TSAN_OPTIONS" ]; then  # workaround for GL#4119
-    export DELV=$TOP/bin/delv/delv
-    export RESOLVE=$TOP/bin/tests/system/resolve
+if [ -z "$TSAN_OPTIONS" ]; then # workaround for GL#4119
+  export DELV=$TOP/bin/delv/delv
+  export RESOLVE=$TOP/bin/tests/system/resolve
 else
-    export DELV=:
-    export RESOLVE=:
+  export DELV=:
+  export RESOLVE=:
 fi
 export DIG=$TOP/bin/dig/dig
 export DNSTAPREAD=$TOP/bin/tools/dnstap-read
@@ -105,8 +105,8 @@ export PSSUSPEND=
 #
 export PERL=@PERL@
 if ! test -x "$PERL"; then
-    echo "Perl interpreter is required for system tests."
-    exit 77
+  echo "Perl interpreter is required for system tests."
+  exit 77
 fi
 export PYTHON=@PYTHON@
 
@@ -114,7 +114,6 @@ export PYTHON=@PYTHON@
 # Determine if we support various optional features.
 #
 export CRYPTO=@CRYPTO@
-
 
 # Load common values shared between windows and unix/linux.
 . $TOP/bin/tests/system/conf.sh.common

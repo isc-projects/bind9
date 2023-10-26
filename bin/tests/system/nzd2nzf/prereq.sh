@@ -13,8 +13,8 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 if ! $FEATURETEST --with-lmdb; then
-        echo_i "This test requires LMDB support (--with-lmdb)"
-        exit 255
+  echo_i "This test requires LMDB support (--with-lmdb)"
+  exit 255
 fi
 
 exit 0

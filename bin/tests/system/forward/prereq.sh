@@ -14,24 +14,21 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
-then
-    :
+if $PERL -e 'use Net::DNS;' 2>/dev/null; then
+  :
 else
-    echo_i "This test requires the Net::DNS library." >&2
-    exit 1
+  echo_i "This test requires the Net::DNS library." >&2
+  exit 1
 fi
 
-if test -n "$PYTHON"
-then
-    if $PYTHON -c "import dns" 2> /dev/null
-    then
-        :
-    else
-        echo_i "This test requires the dnspython module." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires Python and the dnspython module." >&2
+if test -n "$PYTHON"; then
+  if $PYTHON -c "import dns" 2>/dev/null; then
+    :
+  else
+    echo_i "This test requires the dnspython module." >&2
     exit 1
+  fi
+else
+  echo_i "This test requires Python and the dnspython module." >&2
+  exit 1
 fi

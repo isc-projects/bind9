@@ -14,7 +14,7 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
-keyname=`$KEYGEN -T KEY -a DH -b 768 -n host server`
+keyname=$($KEYGEN -T KEY -a DH -b 768 -n host server)
 keyid=$(keyfile_to_key_id $keyname)
 rm -f named.conf
-sed -e "s;KEYID;$keyid;" < named.conf.in > named.conf
+sed -e "s;KEYID;$keyid;" <named.conf.in >named.conf
