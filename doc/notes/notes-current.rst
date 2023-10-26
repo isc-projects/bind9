@@ -43,6 +43,9 @@ Bug Fixes
   have been making it ineffective if named was started 3 or more
   times. :gl:`#4387`
 
+- When :any:`lock-file` was used at the same time as :option:`named -X`, the
+  assertion failure would be triggered.  This has been fixed. :gl:`#4386`
+
 Known Issues
 ~~~~~~~~~~~~
 
