@@ -207,7 +207,7 @@ AS_IF([test -z "$PKG_CONFIG"],
 # [pairwise: --with-liburcu=membarrier, --with-liburcu=qsbr, --with-liburcu=mb, --with-liburcu=signal, --with-liburcu=bp]
 AC_ARG_WITH([liburcu],
 	    [AS_HELP_STRING([--with-liburcu=FLAVOR],
-			     [Build with Userspace-RCU variant (membarrier|qsbr|mb|signal|bp) [default=membarrier]]))],
+			     [Build with Userspace-RCU variant (developer-only option) (membarrier|qsbr|mb|signal|bp) [default=membarrier]]))],
 	    [], [with_liburcu=membarrier])
 
 AC_MSG_CHECKING([liburcu flavor])
@@ -228,6 +228,9 @@ AS_CASE([$with_liburcu],
 	[RCU_FLAVOR="liburcu-bp"
 	 AC_DEFINE([RCU_BP], [1], [Build with bulletproof Userspace-RCU flavor])],
 	[AC_MSG_ERROR([Invalid Userspace-RCU flavor picked])])
+
+AS_IF([test "$with_liburcu" != "membarrier" && test "$enable_developer" != "yes"],
+      [AC_MSG_ERROR([Changing Userspace-RCU variant is allowed only in developer mode])])
 
 AC_MSG_RESULT([$RCU_FLAVOR])
 
