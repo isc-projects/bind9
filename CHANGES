@@ -1,3 +1,6 @@
+6275.	[bug]		Fix assertion failure when using lock-file configuration
+			option together -X argument to named. [GL #4386]
+
 6274.	[bug]		The 'lock-file' file was being removed when it
 			shouldn't have been making it ineffective if named was
 			started 3 or more times. [GL #4387]
