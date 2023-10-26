@@ -1333,11 +1333,11 @@ dns_qpmulti_query(dns_qpmulti_t *multi, dns_qpread_t *qp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qp != NULL);
 
-	dns_qpmulti_t *whence = reader_open(multi, qp);
-	INSIST(whence == multi);
-
 	qp->tid = isc_tid();
 	rcu_read_lock();
+
+	dns_qpmulti_t *whence = reader_open(multi, qp);
+	INSIST(whence == multi);
 }
 
 void
@@ -1358,12 +1358,15 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 	REQUIRE(QPMULTI_VALID(multi));
 	REQUIRE(qpsp != NULL && *qpsp == NULL);
 
+	rcu_read_lock();
+
 	LOCK(&multi->mutex);
 
 	dns_qp_t *qpw = &multi->writer;
 	size_t bytes = sizeof(dns_qpsnap_t) + sizeof(dns_qpbase_t) +
 		       sizeof(qpw->base->ptr[0]) * qpw->chunk_max;
 	dns_qpsnap_t *qps = isc_mem_allocate(qpw->mctx, bytes);
+
 	qps->whence = reader_open(multi, qps);
 	INSIST(qps->whence == multi);
 
@@ -1414,6 +1417,8 @@ dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 
 	*qpsp = NULL;
 	UNLOCK(&multi->mutex);
+
+	rcu_read_unlock();
 }
 
 /***********************************************************************
