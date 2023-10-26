@@ -24,6 +24,6 @@ copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
 
 (
-    cd ns1
-    $SHELL sign.sh
+  cd ns1
+  $SHELL sign.sh
 )

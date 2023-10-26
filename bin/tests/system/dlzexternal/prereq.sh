@@ -14,8 +14,8 @@
 . ../conf.sh
 
 $FEATURETEST --tsan && {
-	echo_i "TSAN - skipping dlzexternal test"
-        exit 255
+  echo_i "TSAN - skipping dlzexternal test"
+  exit 255
 }
 
 exit 0

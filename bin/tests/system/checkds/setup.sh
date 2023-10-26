@@ -31,18 +31,18 @@ copy_setports ns10/named.conf.in ns10/named.conf
 
 # Setup zones
 (
-	cd ns9
-	$SHELL setup.sh
+  cd ns9
+  $SHELL setup.sh
 )
 (
-	cd ns5
-	$SHELL setup.sh
+  cd ns5
+  $SHELL setup.sh
 )
 (
-	cd ns2
-	$SHELL setup.sh
+  cd ns2
+  $SHELL setup.sh
 )
 (
-	cd ns1
-	$SHELL setup.sh
+  cd ns1
+  $SHELL setup.sh
 )

@@ -17,11 +17,14 @@
 #
 
 if [ -z "$1" ] || [ ! -d "$1" ]; then
-    echo "Usage: $0 system_test_dir [pytest_args]"
-    exit 2
+  echo "Usage: $0 system_test_dir [pytest_args]"
+  exit 2
 fi
 
 system_test_dir="$1"
 shift
 
-(cd "$system_test_dir" || exit 2 ; /usr/bin/env python3 -m pytest "$@")
+(
+  cd "$system_test_dir" || exit 2
+  /usr/bin/env python3 -m pytest "$@"
+)

@@ -11,20 +11,20 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-usage () {
-    echo "Usage: $0 [-s] <number of zones> [<records per zone>]"
-    echo "       -s: use the same zone file all zones"
-    exit 1
+usage() {
+  echo "Usage: $0 [-s] <number of zones> [<records per zone>]"
+  echo "       -s: use the same zone file all zones"
+  exit 1
 }
 
 if [ "$#" -lt 1 -o "$#" -gt 3 ]; then
-    usage
+  usage
 fi
 
 single_file=""
 if [ $1 = "-s" ]; then
-    single_file=yes
-    shift
+  single_file=yes
+  shift
 fi
 
 nzones=$1
@@ -35,9 +35,9 @@ nrecords=5
 
 . ../system/conf.sh
 
-cat << EOF
+cat <<EOF
 options {
-        directory "`pwd`";
+        directory "$(pwd)";
         listen-on { localhost; };
         listen-on-v6 { localhost; };
 	port 5300;
@@ -58,7 +58,7 @@ controls {
 
 logging {
         channel basic {
-                file "`pwd`/named.log" versions 3 size 100m;
+                file "$(pwd)/named.log" versions 3 size 100m;
                 severity info;
                 print-time yes;
                 print-severity no;
@@ -72,11 +72,11 @@ logging {
 EOF
 
 $PERL makenames.pl $nzones | while read zonename; do
-    if [ $single_file ]; then
-        echo "zone $zonename { type primary; file \"smallzone.db\"; };"
-    else
-        [ -d zones ] || mkdir zones
-        $PERL mkzonefile.pl $zonename $nrecords > zones/$zonename.db
-        echo "zone $zonename { type primary; file \"zones/$zonename.db\"; };"
-    fi
+  if [ $single_file ]; then
+    echo "zone $zonename { type primary; file \"smallzone.db\"; };"
+  else
+    [ -d zones ] || mkdir zones
+    $PERL mkzonefile.pl $zonename $nrecords >zones/$zonename.db
+    echo "zone $zonename { type primary; file \"zones/$zonename.db\"; };"
+  fi
 done

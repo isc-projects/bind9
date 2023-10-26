@@ -27,8 +27,8 @@ echo "		exit 1; \\"
 echo "	}"
 echo
 echo "test check: $PARALLELS"
-for directory in $PARALLELDIRS ; do
-        echo
-        echo "test-$(echo "$directory" | tr _ -): check_interfaces"
-        echo "	@${SHELL} ./legacy.run.sh -r $directory 2>&1 | tee test.output.$directory"
+for directory in $PARALLELDIRS; do
+  echo
+  echo "test-$(echo "$directory" | tr _ -): check_interfaces"
+  echo "	@${SHELL} ./legacy.run.sh -r $directory 2>&1 | tee test.output.$directory"
 done

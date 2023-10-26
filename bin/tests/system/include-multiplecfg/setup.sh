@@ -15,4 +15,4 @@
 
 $SHELL clean.sh
 
-copy_setports  ns2/named.conf.in ns2/named.conf
+copy_setports ns2/named.conf.in ns2/named.conf
