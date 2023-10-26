@@ -8443,10 +8443,7 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 		if (server->lockfile == NULL) {
 			return (ISC_R_NOMEMORY);
 		}
-	}
-
-	if (named_g_forcelock && named_g_defaultlockfile != NULL) {
-		INSIST(server->lockfile == NULL);
+	} else if (named_g_forcelock && named_g_defaultlockfile != NULL) {
 		server->lockfile = isc_mem_strdup(server->mctx,
 						  named_g_defaultlockfile);
 	}
