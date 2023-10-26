@@ -28,7 +28,6 @@ rm -f ./ns2/inline.db.jbk
 rm -f ./ns2/inline.db.signed
 rm -f ./ns2/inlinesec.bk*
 rm -rf ./ns2/new-zones
-rm -f ./ns*/named.lock
 rm -f ./ns*/named.run ./ns*/named.run.prev
 rm -f ./ns2/nzf-*
 rm -f ./ns3/named.conf

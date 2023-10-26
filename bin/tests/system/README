@@ -566,7 +566,7 @@ By default, start.pl starts a "named" server with the following options:
 
     -U 4            Uses four listeners.
 
-    -X named.lock   Acquires a lock on this file in the "nsN" directory, so
+      Acquires a lock on this file in the "nsN" directory, so
                     preventing multiple instances of this named running in this
                     directory (which could possibly interfere with the test).
 

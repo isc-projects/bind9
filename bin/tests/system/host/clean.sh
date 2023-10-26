@@ -14,7 +14,6 @@
 rm -f ns1/example.db
 rm -f host.out*
 rm -f host.err*
-rm -f ns*/named.lock
 rm -f ns*/named.memstats
 rm -f ns*/named.run
 rm -f ns*/named.conf

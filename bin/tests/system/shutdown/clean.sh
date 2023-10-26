@@ -12,7 +12,6 @@
 # information regarding copyright ownership.
 
 rm -f ns*/*.jnl
-rm -f ns*/named.lock
 rm -f ns*/named.memstats
 rm -f ns*/rpz*.txt
 rm -f */named.conf

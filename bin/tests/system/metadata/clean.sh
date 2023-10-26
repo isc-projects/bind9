@@ -18,4 +18,3 @@ rm -f prerev.key postrev.key oldstyle.key
 rm -f keys sigs
 rm -f tmp.out
 rm -f settime1.test* settime2.test*
-rm -f ns*/named.lock

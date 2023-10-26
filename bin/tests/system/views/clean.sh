@@ -34,5 +34,4 @@ rm -f ns2/internal/inline.db.signed.jnl
 rm -f ns2/zones.conf
 rm -f ns2/db.* ns2/K*
 rm -f dig.out.external dig.out.internal
-rm -f ns*/named.lock
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*

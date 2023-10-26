@@ -23,5 +23,4 @@ rm -f good-kasp.conf.in
 rm -f good-server-christmas-tree.conf
 rm -f good.conf good.conf.raw good.conf.out badzero.conf *.out
 rm -rf keys
-rm -f ns*/named.lock
 rm -rf test.keydir

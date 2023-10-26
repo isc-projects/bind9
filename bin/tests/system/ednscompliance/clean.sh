@@ -12,7 +12,6 @@
 # information regarding copyright ownership.
 
 rm -f dig.out*
-rm -f ns*/named.lock
 rm -f ns*/named.conf
 rm -f ns*/named.run
 rm -f ns*/named.memstats

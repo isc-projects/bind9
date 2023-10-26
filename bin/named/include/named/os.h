@@ -56,9 +56,6 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user);
 void
 named_os_writepidfile(const char *filename, bool first_time);
 
-bool
-named_os_issingleton(const char *filename);
-
 void
 named_os_shutdown(void);
 

@@ -21,7 +21,6 @@ rm -f ns1/named.memstats ns1/dig.out
 rm -f ns1/named_log ns1/named_pipe ns1/named_sym
 rm -rf ns1/named_dir
 rm -f ns1/named_deflog
-rm -f ns*/named.lock
 rm -f ns1/query_log
 rm -f ns1/named_iso8601
 rm -f ns1/named_iso8601_utc

@@ -103,8 +103,6 @@ struct named_server {
 
 	dns_dtenv_t *dtenv; /*%< Dnstap environment */
 
-	char *lockfile;
-
 	isc_tlsctx_cache_t *tlsctx_server_cache;
 	isc_tlsctx_cache_t *tlsctx_client_cache;
 

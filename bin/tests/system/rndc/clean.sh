@@ -15,7 +15,6 @@ rm -f dig.out.*.test*
 rm -f ns*/*.nta
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
 rm -f ns*/named.conf
-rm -f ns*/named.lock
 rm -f ns*/named.memstats
 rm -f ns*/named.run ns*/named.run.prev
 rm -f ns2/named.stats

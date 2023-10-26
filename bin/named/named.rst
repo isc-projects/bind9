@@ -21,7 +21,7 @@ named - Internet domain name server
 Synopsis
 ~~~~~~~~
 
-:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] [**-X** lock-file]
+:program:`named` [ [**-4**] | [**-6**] ] [**-c** config-file] [**-C**] [**-d** debug-level] [**-D** string] [**-E** engine-name] [**-f**] [**-g**] [**-L** logfile] [**-M** option] [**-m** flag] [**-n** #cpus] [**-p** port] [**-s**] [**-t** directory] [**-U** #listeners] [**-u** user] [**-v**] [**-V**] ]
 
 Description
 ~~~~~~~~~~~
@@ -198,12 +198,7 @@ Options
 
 .. option:: -X lock-file
 
-   This option acquires a lock on the specified file at runtime; this helps to
-   prevent duplicate :program:`named` instances from running simultaneously.
-   Use of this option overrides the ``lock-file`` option in
-   :iscman:`named.conf`. If set to ``none``, the lock file check is disabled.
-
-   This option has been deprecated and will be removed in the next release.
+   This option has been removed and using it will cause a fatal error.
 
 Signals
 ~~~~~~~

@@ -18,7 +18,7 @@ rm -f */named*.run
 rm -f */named.memstats
 rm -f kill*.out
 rm -f ns*/managed-keys.bind*
-rm -f ns*/named.lock ns*/named*.pid ns*/other.lock
+rm -f ns*/named*.pid
 rm -f ns2/named.conf ns2/named-alt*.conf
 rm -f rndc.out*
 rm -rf ns2/nope

@@ -312,7 +312,7 @@ usage(void) {
 			"[-p port] [-s]\n"
 			"             [-S sockets] [-t chrootdir] [-u "
 			"username] [-U listeners]\n"
-			"             [-X lockfile] [-m "
+			"             [-m "
 			"{usage|trace|record|size|mctx}]\n"
 			"             [-M fill|nofill]\n"
 			"usage: named [-v|-V|-C]\n");
@@ -671,7 +671,6 @@ printversion(bool verbose) {
 	printf("  rndc configuration:   %s\n", rndcconf);
 	printf("  nsupdate session key: %s\n", named_g_defaultsessionkeyfile);
 	printf("  named PID file:       %s\n", named_g_defaultpidfile);
-	printf("  named lock file:      %s\n", named_g_defaultlockfile);
 #if defined(HAVE_GEOIP2)
 #define RTC(x) RUNTIME_CHECK((x) == ISC_R_SUCCESS)
 	RTC(cfg_parser_create(mctx, named_g_lctx, &parser));
@@ -964,13 +963,8 @@ parse_command_line(int argc, char *argv[]) {
 			/* Obsolete. No longer in use. Ignore. */
 			break;
 		case 'X':
-			named_g_forcelock = true;
-			if (strcasecmp(isc_commandline_argument, "none") != 0) {
-				named_g_defaultlockfile =
-					isc_commandline_argument;
-			} else {
-				named_g_defaultlockfile = NULL;
-			}
+			/* Obsolete. No longer in use. Abort. */
+			named_main_earlyfatal("option '-X' has been removed");
 			break;
 		case 'F':
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L && OPENSSL_API_LEVEL >= 30000

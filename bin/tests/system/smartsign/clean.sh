@@ -12,4 +12,3 @@
 # information regarding copyright ownership.
 
 rm -f K* dsset-* *.signed dnskey.sigs other.sigs dsset.out
-rm -f ns*/named.lock

@@ -12,4 +12,3 @@
 # information regarding copyright ownership.
 
 rm -f classlist.out privatelist.out typelist.out tempzone checkzone.out* checker.out
-rm -f ns*/named.lock

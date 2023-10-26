@@ -28,7 +28,6 @@ rm -f noksk-ksk.key nozsk-ksk.key nozsk-zsk.key inaczsk-zsk.key inaczsk-ksk.key
 rm -f nopriv.key vanishing.key del1.key del2.key
 rm -rf ns*/inactive
 rm -f ns*/managed-keys.bind*
-rm -f ns*/named.lock
 rm -f ns1/root.db ns1/root.db.1 ns1/root.db.2 ns1/root.db.3
 rm -f ns1/signing.out
 rm -f ns2/bar.db

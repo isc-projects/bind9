@@ -21,7 +21,6 @@ rm -f ./*/named_dump.db
 rm -f ./ans*/query.log
 rm -f ./dig.out.*
 rm -f ./ns*/managed-keys.bind*
-rm -f ./ns*/named.lock
 rm -f ./ns*/trusted.conf
 rm -f ./ns1/K* ./ns1/dsset-*
 rm -f ./ns1/root.db ./ns1/root.db.signed

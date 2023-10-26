@@ -18,7 +18,7 @@ set -e
 
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
 RNDCCMD="$RNDC -c ../_common/rndc.conf -p ${CONTROLPORT} -s"
-NS_PARAMS="-X named.lock -m record -c named.conf -d 99 -g -U 4 -T maxcachesize=2097152"
+NS_PARAMS="-m record -c named.conf -d 99 -g -U 4 -T maxcachesize=2097152"
 
 if ! $FEATURETEST --have-json-c; then
   unset PERL_JSON

@@ -11,7 +11,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f ns*/named.lock
 rm -f verify.out*
 rm -f zones/*.bad
 rm -f zones/*.good

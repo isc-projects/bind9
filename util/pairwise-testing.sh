@@ -19,7 +19,6 @@ options {
 	port 5300;
 	listen-on { 127.0.0.1; };
 	listen-on-v6 { ::1; };
-	lock-file \"named.lock\";
 };
 
 zone \".\" {
@@ -74,13 +73,7 @@ while read -r -a configure_switches; do
     exit 1
   fi
   # "timeout" is unable to report a crash on shutdown via its exit
-  # code.  A named instance that exits cleanly is expected to
-  # clean up its configured lock file, so if it is still around at
-  # this point, something went wrong.
-  if [ -f "named.lock" ]; then
-    echo "named did not clean up its lock file, possible crash on shutdown"
-    exit 1
-  fi
+  # code.
   cd ..
   rm -rf "pairwise-${runid}" "pairwise-output.${runid}.txt"
 done <pairwise-commands.txt
