@@ -706,17 +706,19 @@ cleanup_pidfile(void) {
 }
 
 static void
-cleanup_lockfile(void) {
+cleanup_lockfile(bool unlink_lockfile) {
 	if (singletonfd != -1) {
 		close(singletonfd);
 		singletonfd = -1;
 	}
 
 	if (lockfile != NULL) {
-		int n = unlink(lockfile);
-		if (n == -1 && errno != ENOENT) {
-			named_main_earlywarning("unlink '%s': failed",
-						lockfile);
+		if (unlink_lockfile) {
+			int n = unlink(lockfile);
+			if (n == -1 && errno != ENOENT) {
+				named_main_earlywarning("unlink '%s': failed",
+							lockfile);
+			}
 		}
 		free(lockfile);
 		lockfile = NULL;
@@ -932,7 +934,7 @@ named_os_issingleton(const char *filename) {
 		if (ret == -1) {
 			named_main_earlywarning("couldn't create '%s'",
 						filename);
-			cleanup_lockfile();
+			cleanup_lockfile(false);
 			return (false);
 		}
 	}
@@ -944,7 +946,7 @@ named_os_issingleton(const char *filename) {
 	singletonfd = open(filename, O_WRONLY | O_CREAT,
 			   S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 	if (singletonfd == -1) {
-		cleanup_lockfile();
+		cleanup_lockfile(false);
 		return (false);
 	}
 
@@ -956,8 +958,7 @@ named_os_issingleton(const char *filename) {
 
 	/* Non-blocking (does not wait for lock) */
 	if (fcntl(singletonfd, F_SETLK, &lock) == -1) {
-		close(singletonfd);
-		singletonfd = -1;
+		cleanup_lockfile(false);
 		return (false);
 	}
 
@@ -968,7 +969,7 @@ void
 named_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
-	cleanup_lockfile();
+	cleanup_lockfile(true);
 }
 
 void
