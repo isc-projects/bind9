@@ -8407,7 +8407,7 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 	(void)named_config_get(maps, "lock-file", &obj);
 
 	if (!first_time) {
-		if (obj != NULL && !cfg_obj_isstring(obj) &&
+		if (obj != NULL && cfg_obj_isstring(obj) &&
 		    server->lockfile != NULL &&
 		    strcmp(cfg_obj_asstring(obj), server->lockfile) != 0)
 		{
