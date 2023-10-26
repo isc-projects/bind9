@@ -12,13 +12,22 @@
 # information regarding copyright ownership.
 
 while [ "$#" != 0 ]; do
-    case $1 in
+  case $1 in
     +*) shift ;;
     -t) shift ;;
-    DS|ds) ext=ds ; shift ;;
-    DNSKEY|dnskey) ext=dnskey ; shift ;;
-    *) file=$1 ; shift ;;
-    esac
+    DS | ds)
+      ext=ds
+      shift
+      ;;
+    DNSKEY | dnskey)
+      ext=dnskey
+      shift
+      ;;
+    *)
+      file=$1
+      shift
+      ;;
+  esac
 done
 
 cat ${file}.${ext}.db

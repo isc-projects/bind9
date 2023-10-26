@@ -15,12 +15,12 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 if [ "$CYGWIN" ]; then
-    DIG=".\dig.bat"
-    WINDSFROMKEY=`cygpath -w $DSFROMKEY`
-    CHECKDS="$CHECKDS -a sha1 -a sha256 -d $DIG -D $WINDSFROMKEY"
+  DIG=".\dig.bat"
+  WINDSFROMKEY=$(cygpath -w $DSFROMKEY)
+  CHECKDS="$CHECKDS -a sha1 -a sha256 -d $DIG -D $WINDSFROMKEY"
 else
-    DIG="./dig.sh"
-    CHECKDS="$CHECKDS -a sha1 -a sha256 -d $DIG -D $DSFROMKEY"
+  DIG="./dig.sh"
+  CHECKDS="$CHECKDS -a sha1 -a sha256 -d $DIG -D $DSFROMKEY"
 fi
 chmod +x $DIG
 
@@ -29,88 +29,88 @@ n=1
 
 echo_i "checking for correct DS, looking up key via 'dig' ($n)"
 ret=0
-$CHECKDS ok.example > checkds.out.$n 2>&1 || ret=1
-grep 'SHA-1' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS ok.example >checkds.out.$n 2>&1 || ret=1
+grep 'SHA-1' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for correct DS, obtaining key from file ($n)"
 ret=0
-$CHECKDS -f ok.example.dnskey.db ok.example > checkds.out.$n 2>&1 || ret=1
-grep 'SHA-1' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS -f ok.example.dnskey.db ok.example >checkds.out.$n 2>&1 || ret=1
+grep 'SHA-1' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for incorrect DS, looking up key via 'dig' ($n)"
 ret=0
-$CHECKDS wrong.example > checkds.out.$n 2>&1 || ret=1
-grep 'SHA-1' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS wrong.example >checkds.out.$n 2>&1 || ret=1
+grep 'SHA-1' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for incorrect DS, obtaining key from file ($n)"
 ret=0
-$CHECKDS -f wrong.example.dnskey.db wrong.example > checkds.out.$n 2>&1 || ret=1
-grep 'SHA-1' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS -f wrong.example.dnskey.db wrong.example >checkds.out.$n 2>&1 || ret=1
+grep 'SHA-1' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for partially missing DS, looking up key via 'dig' ($n)"
 ret=0
-$CHECKDS missing.example > checkds.out.$n 2>&1 && ret=1
-grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-1.*missing' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256.*missing' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS missing.example >checkds.out.$n 2>&1 && ret=1
+grep 'SHA-1.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-1.*missing' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256.*missing' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for partially missing DS, obtaining key from file ($n)"
 ret=0
-$CHECKDS -f missing.example.dnskey.db missing.example > checkds.out.$n 2>&1 && ret=1
-grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-1.*missing' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256.*missing' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS -f missing.example.dnskey.db missing.example >checkds.out.$n 2>&1 && ret=1
+grep 'SHA-1.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-1.*missing' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256.*missing' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for entirely missing DS, looking up key via 'dig' ($n)"
 ret=0
-$CHECKDS none.example > checkds.out.$n 2>&1 && ret=1
-grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 && ret=1
-grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 && ret=1
-n=`expr $n + 1`
+$CHECKDS none.example >checkds.out.$n 2>&1 && ret=1
+grep 'SHA-1.*found' checkds.out.$n >/dev/null 2>&1 && ret=1
+grep 'SHA-256.*found' checkds.out.$n >/dev/null 2>&1 && ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking for entirely missing DS, obtaining key from file ($n)"
 ret=0
-$CHECKDS -f none.example.dnskey.db none.example > checkds.out.$n 2>&1 && ret=1
-grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 && ret=1
-grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 && ret=1
-n=`expr $n + 1`
+$CHECKDS -f none.example.dnskey.db none.example >checkds.out.$n 2>&1 && ret=1
+grep 'SHA-1.*found' checkds.out.$n >/dev/null 2>&1 && ret=1
+grep 'SHA-256.*found' checkds.out.$n >/dev/null 2>&1 && ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 echo_i "checking with prepared dsset file ($n)"
 ret=0
-$CHECKDS -f prep.example.db -s prep.example.ds.db prep.example > checkds.out.$n 2>&1 || ret=1
-grep 'SHA-1.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-grep 'SHA-256.*found' checkds.out.$n > /dev/null 2>&1 || ret=1
-n=`expr $n + 1`
+$CHECKDS -f prep.example.db -s prep.example.ds.db prep.example >checkds.out.$n 2>&1 || ret=1
+grep 'SHA-1.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+grep 'SHA-256.*found' checkds.out.$n >/dev/null 2>&1 || ret=1
+n=$(expr $n + 1)
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$(expr $status + $ret)
 
 if [ $status = 0 ]; then $SHELL clean.sh; fi
 echo_i "exit status: $status"

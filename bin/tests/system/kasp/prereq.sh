@@ -15,7 +15,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 if ! test -n "$PYTHON"; then
-	echo_i "This test requires Python."
-	exit 1
+  echo_i "This test requires Python."
+  exit 1
 fi
 exit 0

@@ -17,19 +17,18 @@
 echo_i "ns3/setup.sh"
 
 setup() {
-	zone="$1"
-	echo_i "setting up zone: $zone"
-	zonefile="${zone}.db"
-	infile="${zone}.db.infile"
-	cp template.db.in "$zonefile"
+  zone="$1"
+  echo_i "setting up zone: $zone"
+  zonefile="${zone}.db"
+  infile="${zone}.db.infile"
+  cp template.db.in "$zonefile"
 }
 
 for zn in nsec-to-nsec3 nsec3 nsec3-other nsec3-change nsec3-to-nsec \
-	  nsec3-to-optout nsec3-from-optout nsec3-dynamic \
-	  nsec3-dynamic-change nsec3-dynamic-to-inline \
-	  nsec3-inline-to-dynamic nsec3-dynamic-update-inline
-do
-	setup "${zn}.kasp"
+  nsec3-to-optout nsec3-from-optout nsec3-dynamic \
+  nsec3-dynamic-change nsec3-dynamic-to-inline \
+  nsec3-inline-to-dynamic nsec3-dynamic-update-inline; do
+  setup "${zn}.kasp"
 done
 
 cp nsec3-fails-to-load.kasp.db.in nsec3-fails-to-load.kasp.db

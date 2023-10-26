@@ -17,8 +17,8 @@ SYSTEMTESTTOP=..
 ln -s $CHECKZONE named-compilezone
 
 ./named-compilezone -D -F raw -o good1.db.raw example \
-        zones/good1.db > /dev/null 2>&1
+  zones/good1.db >/dev/null 2>&1
 ./named-compilezone -D -F map -o good1.db.map example \
-        zones/good1.db > /dev/null 2>&1
+  zones/good1.db >/dev/null 2>&1
 
 copy_setports zones/bad-tsig.db.in zones/bad-tsig.db

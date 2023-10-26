@@ -16,30 +16,26 @@
 
 set -e
 
-if test -n "$PYTHON"
-then
-    if $PYTHON -c "import dns" 2> /dev/null
-    then
-        :
-    else
-        echo_i "This test requires the dnspython module." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires Python and the dnspython module." >&2
+if test -n "$PYTHON"; then
+  if $PYTHON -c "import dns" 2>/dev/null; then
+    :
+  else
+    echo_i "This test requires the dnspython module." >&2
     exit 1
+  fi
+else
+  echo_i "This test requires Python and the dnspython module." >&2
+  exit 1
 fi
 
-if "$PERL" -e 'use Net::DNS;' 2>/dev/null
-then
-    # shellcheck disable=SC2016
-    if "$PERL" -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.70);' 2>/dev/null
-    then
-        :
-    else
-        echo_i "Net::DNS versions 0.69 to 0.70 have bugs that cause this test to fail: please update." >&2
-        exit 1
-    fi
+if "$PERL" -e 'use Net::DNS;' 2>/dev/null; then
+  # shellcheck disable=SC2016
+  if "$PERL" -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.70);' 2>/dev/null; then
+    :
+  else
+    echo_i "Net::DNS versions 0.69 to 0.70 have bugs that cause this test to fail: please update." >&2
+    exit 1
+  fi
 fi
 
 exit 0

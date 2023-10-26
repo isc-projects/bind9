@@ -17,8 +17,8 @@
 set -e
 
 if test -z "$PERL"; then
-    echo_i "This test requires Perl." >&2
-    exit 1
+  echo_i "This test requires Perl." >&2
+  exit 1
 fi
 
 exit 0

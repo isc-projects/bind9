@@ -542,6 +542,19 @@ reuse:
   script:
     - reuse lint
 
+shfmt:
+  <<: *precheck_job
+  needs: []
+  script:
+    - shfmt -w -i 2 -ci -bn bin/tests/system/ util/ $(find bin/tests/system/ -name "*.sh.in")
+    - git diff > shfmt.patch
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
+  artifacts:
+    paths:
+      - shfmt.patch
+    expire_in: "1 week"
+    when: on_failure
+
 danger:
   <<: *precheck_job
   script:

@@ -14,7 +14,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL clean.sh 
+$SHELL clean.sh
 
 copy_setports ns2/named1.conf.in ns2/named.conf
 
@@ -28,9 +28,8 @@ copy_setports ns2/named-alt7.conf.in ns2/named-alt7.conf
 
 mkdir ns2/nope
 
-if [ 1 = "${CYGWIN:-0}" ]
-then
-    setfacl -s user::r-x,group::r-x,other::r-x ns2/nope
+if [ 1 = "${CYGWIN:-0}" ]; then
+  setfacl -s user::r-x,group::r-x,other::r-x ns2/nope
 else
-    chmod 555 ns2/nope
+  chmod 555 ns2/nope
 fi

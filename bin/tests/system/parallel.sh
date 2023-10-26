@@ -13,7 +13,7 @@
 
 . ./conf.sh
 
-PARALLELS=`echo $PARALLELDIRS | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -`
+PARALLELS=$(echo $PARALLELDIRS | sed "s|\([^ ][^ ]*\)|test-\1|g;" | tr _ -)
 
 echo ".PHONY: $PARALLELS"
 echo
@@ -28,9 +28,9 @@ echo "	}"
 echo
 echo "test check: $PARALLELS"
 port=${STARTPORT:-5000}
-for directory in $PARALLELDIRS ; do
-        echo
-        echo "test-`echo $directory | tr _ -`: check_interfaces"
-        echo "	@${SHELL} ./run.sh -p $port $directory 2>&1 | tee test.output.$directory"
-        port=`expr $port + 100`
+for directory in $PARALLELDIRS; do
+  echo
+  echo "test-$(echo $directory | tr _ -): check_interfaces"
+  echo "	@${SHELL} ./run.sh -p $port $directory 2>&1 | tee test.output.$directory"
+  port=$(expr $port + 100)
 done

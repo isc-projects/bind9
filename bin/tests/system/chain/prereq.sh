@@ -14,37 +14,32 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if test -n "$PYTHON"
-then
-    if $PYTHON -c "import dns" 2> /dev/null
-    then
-        :
-    else
-        echo_i "This test requires the dnspython module." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires Python and the dnspython module." >&2
+if test -n "$PYTHON"; then
+  if $PYTHON -c "import dns" 2>/dev/null; then
+    :
+  else
+    echo_i "This test requires the dnspython module." >&2
     exit 1
+  fi
+else
+  echo_i "This test requires Python and the dnspython module." >&2
+  exit 1
 fi
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
-then
-    if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.74);' 2>/dev/null
-    then
-        :
-    else
-        echo_i "Net::DNS versions 0.69 to 0.74 have bugs that cause this test to fail: please update." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires the perl Net::DNS library." >&2
+if $PERL -e 'use Net::DNS;' 2>/dev/null; then
+  if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.74);' 2>/dev/null; then
+    :
+  else
+    echo_i "Net::DNS versions 0.69 to 0.74 have bugs that cause this test to fail: please update." >&2
     exit 1
+  fi
+else
+  echo_i "This test requires the perl Net::DNS library." >&2
+  exit 1
 fi
-if $PERL -e 'use Net::DNS::Nameserver;' 2>/dev/null
-then
-	:
+if $PERL -e 'use Net::DNS::Nameserver;' 2>/dev/null; then
+  :
 else
-    echo_i "This test requires the Net::DNS::Nameserver library." >&2
-    exit 1
+  echo_i "This test requires the Net::DNS::Nameserver library." >&2
+  exit 1
 fi

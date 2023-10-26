@@ -11,8 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-expand "$1" |
-awk -v file="$1" 'length > 80 {
+expand "$1" \
+  | awk -v file="$1" 'length > 80 {
     if (logged == 0) {
         print file ": Line Too Long"
         logged = 1

@@ -14,25 +14,22 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if test -n "$PYTHON"
-then
-    if $PYTHON -c "import pytest" 2> /dev/null
-    then
-        :
-    else
-        echo_i "This test requires the pytest framework." >&2
-    fi
+if test -n "$PYTHON"; then
+  if $PYTHON -c "import pytest" 2>/dev/null; then
+    :
+  else
+    echo_i "This test requires the pytest framework." >&2
+  fi
 
-    if $PYTHON -c "import dns" 2> /dev/null
-    then
-        :
-    else
-        echo_i "This test requires the dnspython module." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires Python, the pytest framework and the dnspython module." >&2
+  if $PYTHON -c "import dns" 2>/dev/null; then
+    :
+  else
+    echo_i "This test requires the dnspython module." >&2
     exit 1
+  fi
+else
+  echo_i "This test requires Python, the pytest framework and the dnspython module." >&2
+  exit 1
 fi
 
 exit 0

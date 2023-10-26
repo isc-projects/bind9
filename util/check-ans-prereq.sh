@@ -14,15 +14,15 @@
 status=0
 
 for testscript in bin/tests/system/*/tests.sh; do
-	testdir="$(dirname "${testscript}")"
-	prereq="${testdir}/prereq.sh"
-	if [ -e "${prereq}" ] || [ -e "${prereq}.in" ]; then
-		continue
-	fi
-	if find "${testdir}" -type d -name "ans*" | grep -Eq "/ans[0-9]+$"; then
-		echo "missing ${prereq}"
-		status=1
-	fi
+  testdir="$(dirname "${testscript}")"
+  prereq="${testdir}/prereq.sh"
+  if [ -e "${prereq}" ] || [ -e "${prereq}.in" ]; then
+    continue
+  fi
+  if find "${testdir}" -type d -name "ans*" | grep -Eq "/ans[0-9]+$"; then
+    echo "missing ${prereq}"
+    status=1
+  fi
 done
 
 exit ${status}

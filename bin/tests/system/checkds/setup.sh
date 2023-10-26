@@ -27,14 +27,14 @@ copy_setports ns9/named.conf.in ns9/named.conf
 
 # Setup zones
 (
-	cd ns9
-	$SHELL setup.sh
+  cd ns9
+  $SHELL setup.sh
 )
 (
-	cd ns5
-	$SHELL setup.sh
+  cd ns5
+  $SHELL setup.sh
 )
 (
-	cd ns2
-	$SHELL setup.sh
+  cd ns2
+  $SHELL setup.sh
 )

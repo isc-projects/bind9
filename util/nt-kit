@@ -24,57 +24,66 @@ ZIP=bind9-nt.zip
 DOZIP=false
 
 case "$1" in
--nozip) DOZIP=false; shift ;;
--zip)   DOZIP=true ; shift ;;
+  -nozip)
+    DOZIP=false
+    shift
+    ;;
+  -zip)
+    DOZIP=true
+    shift
+    ;;
 esac
 
 case $# in
-0)
+  0)
     dstdir=../bind9-nt
     rmtdir=g:/proj/bind9-nt
     ;;
-1)
+  1)
     dstdir=../bind9-nt
     rmtdir="$1"
     ;;
-2)
+  2)
     dstdir="$2"
     rmtdir="$1"
     ;;
-*)
+  *)
     echo "usage: $0 rmtdir [dstdir]" >&2
     exit 99
     ;;
 esac
 
 test -f version || {
-    echo "$0: must be run in bind9 top level directory" >&2
-    exit 1
+  echo "$0: must be run in bind9 top level directory" >&2
+  exit 1
 }
 
-set -- `ls -i version`
+set -- $(ls -i version)
 this_version=$1
 if test -e "$dstdir/version"; then
-    set -- `ls -i "$dstdir/version" 2>&1`
+  set -- $(ls -i "$dstdir/version" 2>&1)
 else
-    set -- 0
+  set -- 0
 fi
 that_version=$1
 
 # Try to make an effort to not wipe out current directory or non-bind directory
 test "0$this_version" -eq "0$that_version" && {
-    echo "$0: dstdir must not be current directory" >&2
-    exit 1
+  echo "$0: dstdir must not be current directory" >&2
+  exit 1
 }
 
 test ! -d $dstdir -o "$that_version" -ne 0 || {
-    echo "$0: existing dstdir must be a bind9 source directory" >&2
-    exit 1
+  echo "$0: existing dstdir must be a bind9 source directory" >&2
+  exit 1
 }
 
 rm -rf $dstdir
 mkdir $dstdir
-tar cf - . | (cd $dstdir; tar xfp -)
+tar cf - . | (
+  cd $dstdir
+  tar xfp -
+)
 cd $dstdir
 
 # XXX Tale BSD/OS special
@@ -102,10 +111,10 @@ perl -pi -e 'last if /^##confparser\.c/' lib/dns/config/Makefile.in
 set +x
 echo doing Makefile substitutions
 while read file type dates; do
-        case $file in
-                */Makefile.in|./make/includes.in|./version)
-                        echo $file
-                        perl -pi -e 'tr%{}/%()\\%;
+  case $file in
+    */Makefile.in | ./make/includes.in | ./version)
+      echo $file
+      perl -pi -e 'tr%{}/%()\\%;
                                      s%(-I.*)unix%$1win32%;
                                      s%(-I.*)pthreads.*?(\\?)$%$2%;
                                      s%-I ?%/I %g;
@@ -118,18 +127,18 @@ while read file type dates; do
                                      s%rm -f%-del /q /f%;
                                      s%rm -rf%-rd /q /s%;
                                      s%touch%copy NUL:%' $file
-                        ;;
-		./make/rules.in)
-                        echo frobbing conditionals in $file
+      ;;
+    ./make/rules.in)
+      echo frobbing conditionals in $file
 
-                        # /K is specified in MAKEDEFS *YUCK* because nmake
-                        # for some BRAINDAMAGED REASON does not put K
-                        # in MAKEFLAGS  (confirm with "nmake /PKN foo";
-                        # only P and N are in Makeflags.)  However ... doing
-                        # things this way ends up putting /K when you might not
-                        # want it.  Thanks, Microsoft.
-                        perl -pi -e \
-                                'print "MAKEDEFS = /nologo /K\$(MAKEFLAGS)\n"
+      # /K is specified in MAKEDEFS *YUCK* because nmake
+      # for some BRAINDAMAGED REASON does not put K
+      # in MAKEFLAGS  (confirm with "nmake /PKN foo";
+      # only P and N are in Makeflags.)  However ... doing
+      # things this way ends up putting /K when you might not
+      # want it.  Thanks, Microsoft.
+      perl -pi -e \
+        'print "MAKEDEFS = /nologo /K\$(MAKEFLAGS)\n"
                                         if $. == 1;
 
                                  tr%{}/%()\\%;
@@ -157,9 +166,9 @@ while read file type dates; do
                                  s/\$\$i/%i/g;
 
                                  s/^\t+(fi|done).*\n//' $file
-                        ;;
-        esac
-done < util/copyrights
+      ;;
+  esac
+done <util/copyrights
 set -x
 
 # Make Makefiles
@@ -169,14 +178,14 @@ set -x
 cp config.h.win32 config.h
 
 if $DOZIP; then
-    dir="`basename $dstdir`"
-    cd ..
-    rm -f $ZIP
-    # q = quiet
-    # r = recurse
-    # l = LF -> CRLF
-    # 9 = highest compression
-    zip -qrl9 $ZIP $dir
+  dir="$(basename $dstdir)"
+  cd ..
+  rm -f $ZIP
+  # q = quiet
+  # r = recurse
+  # l = LF -> CRLF
+  # 9 = highest compression
+  zip -qrl9 $ZIP $dir
 fi
 
 exit 0

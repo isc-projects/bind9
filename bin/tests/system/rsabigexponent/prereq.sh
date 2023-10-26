@@ -14,11 +14,10 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if $BIGKEY > /dev/null 2>&1
-then
-    rm -f Kexample.*
+if $BIGKEY >/dev/null 2>&1; then
+  rm -f Kexample.*
 else
-    echo_i "This test requires OpenSSL cryptography provider" >&2
-    echo_i "configure with --with-openssl, and make sure you disable --with-pkcs11 and --enable-native-pkcs11" >&2
-    exit 255
+  echo_i "This test requires OpenSSL cryptography provider" >&2
+  echo_i "configure with --with-openssl, and make sure you disable --with-pkcs11 and --enable-native-pkcs11" >&2
+  exit 255
 fi
