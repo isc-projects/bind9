@@ -204,10 +204,10 @@ AS_IF([test -z "$PKG_CONFIG"],
 #
 # Pick Userspace-RCU flavor (developer only option)
 #
-# [pairwise: --with-liburcu=membarrier, --with-liburcu=qsbr, --with-liburcu=mb, --with-liburcu=signal, --with-liburcu=bp]
+# [pairwise: --with-liburcu=membarrier, --with-liburcu=qsbr, --with-liburcu=mb, --with-liburcu=bp]
 AC_ARG_WITH([liburcu],
 	    [AS_HELP_STRING([--with-liburcu=FLAVOR],
-			     [Build with Userspace-RCU variant (developer-only option) (membarrier|qsbr|mb|signal|bp) [default=membarrier]]))],
+			     [Build with Userspace-RCU variant (developer-only option) (membarrier|qsbr|mb|bp) [default=membarrier]]))],
 	    [], [with_liburcu=membarrier])
 
 AC_MSG_CHECKING([liburcu flavor])
@@ -221,9 +221,6 @@ AS_CASE([$with_liburcu],
 	[mb],
 	[RCU_FLAVOR="liburcu-mb"
 	 AC_DEFINE([RCU_MB], [1], [Build with mb Userspace-RCU flavor])],
-	[signal],
-	[RCU_FLAVOR="liburcu-signal"
-	 AC_DEFINE([RCU_SIGNAL], [1], [Build with signal Userspace-RCU flavor])],
 	[bp],
 	[RCU_FLAVOR="liburcu-bp"
 	 AC_DEFINE([RCU_BP], [1], [Build with bulletproof Userspace-RCU flavor])],
