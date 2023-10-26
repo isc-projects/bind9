@@ -978,7 +978,7 @@ stream_timeout_recovery(void **state ISC_ATTR_UNUSED) {
 	 */
 	isc_nm_settimeouts(connect_nm, T_SOFT, T_SOFT, T_SOFT, T_SOFT);
 	connect_readcb = timeout_retry_cb;
-	stream_connect(connect_connect_cb, NULL, T_SOFT);
+	stream_connect(connect_connect_cb, NULL, T_CONNECT);
 }
 
 int

@@ -109,7 +109,8 @@ static atomic_bool use_PROXY_over_TLS = false;
 static isc_nm_t **nm = NULL;
 
 /* Timeout for soft-timeout tests (0.05 seconds) */
-#define T_SOFT 50
+#define T_SOFT	  50
+#define T_CONNECT 30 * 1000
 
 #define NSENDS	100
 #define NWRITES 10
@@ -697,7 +698,8 @@ doh_timeout_recovery(void *arg ISC_ATTR_UNUSED) {
 			ISC_NM_HTTP_DEFAULT_PATH);
 	isc_nm_httpconnect(connect_nm, NULL, &tcp_listen_addr, req_url,
 			   atomic_load(&POST), timeout_request_cb, NULL, ctx,
-			   client_sess_cache, T_SOFT, get_proxy_type(), NULL);
+			   client_sess_cache, T_CONNECT, get_proxy_type(),
+			   NULL);
 }
 
 static int
@@ -771,7 +773,7 @@ doh_connect_thread(void *arg) {
 	 */
 	int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
 	if (active > workers) {
-		goto next;
+		return;
 	}
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
 			     &(isc_region_t){ .base = (uint8_t *)send_msg.base,
@@ -782,8 +784,6 @@ doh_connect_thread(void *arg) {
 	if (sends <= 0) {
 		isc_loopmgr_shutdown(loopmgr);
 	}
-
-next: {}
 }
 
 static void
