@@ -81,12 +81,14 @@ status=$((status+ret))
 n=$((n+1))
 echo_i "verifying that named checks for conflicting named processes ($n)"
 ret=0
+test -f ns2/named.lock || ret=1
 testpid=$(run_named ns2 named$n.run -c named-alt2.conf -D runtime-ns2-extra-2 -X named.lock)
 test -n "$testpid" || ret=1
 retry_quiet 10 check_named_log "another named process" ns2/named$n.run || ret=1
 test -n "$testpid" && retry_quiet 10 check_pid $testpid || ret=1
 test -n "$testpid" && kill -15 $testpid > kill$n.out 2>&1 && ret=1
 test -n "$testpid" && retry_quiet 10 check_pid $testpid || ret=1
+test -f ns2/named.lock || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
