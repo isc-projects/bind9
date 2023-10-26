@@ -8407,8 +8407,8 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 	(void)named_config_get(maps, "lock-file", &obj);
 
 	if (!first_time) {
-		if (obj != NULL && !cfg_obj_isstring(obj) &&
-		    server->lockfile != NULL &&
+		if (obj != NULL && cfg_obj_isstring(obj) &&
+		    server->lockfile != NULL && !named_g_forcelock &&
 		    strcmp(cfg_obj_asstring(obj), server->lockfile) != 0)
 		{
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -8422,26 +8422,23 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 	}
 
 	if (obj != NULL) {
-		if (cfg_obj_isvoid(obj)) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-				      "skipping lock-file check ");
-			return (ISC_R_SUCCESS);
-		} else if (named_g_forcelock) {
+		if (named_g_forcelock) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "'lock-file' has no effect "
 				      "because the server was run with -X");
-			server->lockfile = isc_mem_strdup(
-				server->mctx, named_g_defaultlockfile);
-		} else {
+			if (named_g_defaultlockfile != NULL) {
+				server->lockfile = isc_mem_strdup(
+					server->mctx, named_g_defaultlockfile);
+			}
+		} else if (cfg_obj_isvoid(obj)) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
+				      "skipping lock-file check");
+		} else if (cfg_obj_isstring(obj)) {
 			filename = cfg_obj_asstring(obj);
 			server->lockfile = isc_mem_strdup(server->mctx,
 							  filename);
-		}
-
-		if (server->lockfile == NULL) {
-			return (ISC_R_NOMEMORY);
 		}
 	} else if (named_g_forcelock && named_g_defaultlockfile != NULL) {
 		server->lockfile = isc_mem_strdup(server->mctx,
