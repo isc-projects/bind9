@@ -407,9 +407,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	isccc_time_t exp;
 	uint32_t nonce;
 
-	if (conn->shuttingdown) {
-		return;
-	}
+	INSIST(!conn->shuttingdown);
 
 	/* Is the server shutting down? */
 	if (listener->controls->shuttingdown) {
@@ -539,6 +537,9 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	return;
 
 cleanup:
+	/* Make sure no read callbacks are called again */
+	isccc_ccmsg_invalidate(&conn->ccmsg);
+
 	conn->shuttingdown = true;
 
 	REQUIRE(isc_tid() == 0);
@@ -563,8 +564,6 @@ conn_free(controlconnection_t *conn) {
 		named_fuzz_notify();
 	}
 #endif /* ifdef ENABLE_AFL */
-
-	isccc_ccmsg_invalidate(&conn->ccmsg);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
