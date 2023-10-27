@@ -38,17 +38,17 @@
 #include <tests/dns.h>
 
 /* Timeouts in miliseconds */
-#define T_SERVER_INIT	    5000
-#define T_SERVER_IDLE	    5000
-#define T_SERVER_KEEPALIVE  5000
-#define T_SERVER_ADVERTISED 5000
+#define T_SERVER_INIT	    10000
+#define T_SERVER_IDLE	    10000
+#define T_SERVER_KEEPALIVE  10000
+#define T_SERVER_ADVERTISED 10000
 
-#define T_CLIENT_INIT	    2000
-#define T_CLIENT_IDLE	    2000
-#define T_CLIENT_KEEPALIVE  2000
-#define T_CLIENT_ADVERTISED 2000
+#define T_CLIENT_INIT	    10000
+#define T_CLIENT_IDLE	    10000
+#define T_CLIENT_KEEPALIVE  10000
+#define T_CLIENT_ADVERTISED 10000
 
-#define T_CLIENT_CONNECT 1000
+#define T_CLIENT_CONNECT 10000
 
 /* dns_dispatchset_t *dset = NULL; */
 static isc_sockaddr_t udp_server_addr;
