@@ -22,6 +22,5 @@ rm -f ./dig.*
 rm -f ./rndc.*
 rm -f ./sfcache.*
 rm -f ./ns*/managed-keys.bind*
-rm -f ./ns*/named.lock
 rm -f ./ns5/named.run.part*
 rm -f ./ns5/named_dump*

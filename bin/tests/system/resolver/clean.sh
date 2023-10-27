@@ -35,6 +35,5 @@ rm -f ns6/to-be-removed.tld.db ns6/to-be-removed.tld.db.jnl
 rm -f ns7/server.db ns7/server.db.jnl
 rm -f resolve.out.*.test*
 rm -f .digrc
-rm -f ns*/named.lock
 rm -f ns5/trusted.conf
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*

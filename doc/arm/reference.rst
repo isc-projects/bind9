@@ -1476,21 +1476,11 @@ default is used.
    This is the pathname of the file the server writes memory usage statistics to
    on exit. If not specified, the default is ``named.memstats``.
 
-.. namedconf:statement:: lock-file
-   :tags: server
+.. lock-file:
+   :tags: obsolete
    :short: Sets the pathname of the file on which :iscman:`named` attempts to acquire a file lock when starting for the first time.
 
-   This is the pathname of a file on which :iscman:`named` attempts to acquire a
-   file lock when starting for the first time; if unsuccessful, the
-   server terminates, under the assumption that another server
-   is already running. If not specified, the default is
-   ``none``.
-
-   Specifying ``lock-file none`` disables the use of a lock file.
-   :any:`lock-file` is ignored if :iscman:`named` was run using the :option:`-X <named -X>`
-   option, which overrides it. Changes to :any:`lock-file` are ignored if
-   :iscman:`named` is being reloaded or reconfigured; it is only effective
-   when the server is first started.
+   This option has been removed and using it will cause a fatal error.
 
 .. namedconf:statement:: pid-file
    :tags: server

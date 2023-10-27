@@ -50,7 +50,6 @@ if [ ${PARTIAL:-unset} = unset ]; then
   rm -f ns5/requests ns5/*.perf
   rm -f */named.memstats */*.run */*.run.prev */named.stats */session.key
   rm -f */*.log */*core */*.pid
-  rm -f ns*/named.lock
   rm -f ns*/named.conf
   rm -f ns*/*switch
   rm -f dnsrps.zones

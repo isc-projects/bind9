@@ -43,6 +43,15 @@ Removed Features
   The support for control channel over Unix Domain Sockets has been
   non-functional since BIND 9.18
 
+- Support for specifying ``lock-file`` via configuration and via the
+  :option:`named -X` command line option has been removed. An external process
+  supervisor should be used instead.  :gl:`#4391`
+
+  Alternatively :program:`flock` can be used to achieve the same effect as the
+  removed configuration/argument:
+
+    flock -n -x <dir>/named.lock <path>/named <args>
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
@@ -60,13 +69,6 @@ Bug Fixes
 - For inline-signing zones, if the unsigned version of the zone contains
   DNSSEC records, it was scheduled to be resigning. This unwanted behavior
   has been fixed. :gl:`#4350`
-
-- The :any:`lock-file` file was being removed when it shouldn't
-  have been making it ineffective if named was started 3 or more
-  times. :gl:`#4387`
-
-- When :any:`lock-file` was used at the same time as :option:`named -X`, the
-  assertion failure would be triggered.  This has been fixed. :gl:`#4386`
 
 Known Issues
 ~~~~~~~~~~~~

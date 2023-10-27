@@ -23,7 +23,6 @@ rm -f */named.run.prev
 rm -f axfr.out
 rm -f dig.out.*
 rm -f ns*/managed-keys.bind*
-rm -f ns*/named.lock
 rm -f ns1/dot-fallback.db
 rm -f ns1/edns-expire.db
 rm -f ns1/ixfr-too-big.db ns1/ixfr-too-big.db.jnl

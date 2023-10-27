@@ -24,5 +24,4 @@ rm -f */named.run
 rm -f authsock.pid
 rm -f ns1/core
 rm -f nsupdate.out*
-rm -f ns*/named.lock
 rm -f ns*/managed-keys.bind*

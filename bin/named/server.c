@@ -8129,83 +8129,6 @@ cleanup:
 #endif /* HAVE_LMDB */
 
 static isc_result_t
-check_lockfile(named_server_t *server, const cfg_obj_t *config,
-	       bool first_time) {
-	isc_result_t result;
-	const char *filename = NULL;
-	const cfg_obj_t *maps[3];
-	const cfg_obj_t *options;
-	const cfg_obj_t *obj;
-	int i;
-
-	i = 0;
-	options = NULL;
-	result = cfg_map_get(config, "options", &options);
-	if (result == ISC_R_SUCCESS) {
-		maps[i++] = options;
-	}
-	maps[i++] = named_g_defaults;
-	maps[i] = NULL;
-
-	obj = NULL;
-	(void)named_config_get(maps, "lock-file", &obj);
-
-	if (!first_time) {
-		if (obj != NULL && cfg_obj_isstring(obj) &&
-		    server->lockfile != NULL && !named_g_forcelock &&
-		    strcmp(cfg_obj_asstring(obj), server->lockfile) != 0)
-		{
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "changing 'lock-file' "
-				      "has no effect until the "
-				      "server is restarted");
-		}
-
-		return (ISC_R_SUCCESS);
-	}
-
-	if (obj != NULL) {
-		if (named_g_forcelock) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-				      "'lock-file' has no effect "
-				      "because the server was run with -X");
-			if (named_g_defaultlockfile != NULL) {
-				server->lockfile = isc_mem_strdup(
-					server->mctx, named_g_defaultlockfile);
-			}
-		} else if (cfg_obj_isvoid(obj)) {
-			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-				      NAMED_LOGMODULE_SERVER, ISC_LOG_DEBUG(1),
-				      "skipping lock-file check");
-		} else if (cfg_obj_isstring(obj)) {
-			filename = cfg_obj_asstring(obj);
-			server->lockfile = isc_mem_strdup(server->mctx,
-							  filename);
-		}
-	} else if (named_g_forcelock && named_g_defaultlockfile != NULL) {
-		server->lockfile = isc_mem_strdup(server->mctx,
-						  named_g_defaultlockfile);
-	}
-
-	if (server->lockfile == NULL) {
-		return (ISC_R_SUCCESS);
-	}
-
-	if (named_os_issingleton(server->lockfile)) {
-		return (ISC_R_SUCCESS);
-	}
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-		      "could not lock %s; another named "
-		      "process may be running",
-		      server->lockfile);
-	return (ISC_R_FAILURE);
-}
-
-static isc_result_t
 load_configuration(const char *filename, named_server_t *server,
 		   bool first_time) {
 	cfg_obj_t *config = NULL, *bindkeys = NULL;
@@ -8418,14 +8341,6 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 	} else {
 		setstring(server, &server->bindkeysfile, NULL);
-	}
-
-	/*
-	 * Check the process lockfile.
-	 */
-	result = check_lockfile(server, config, first_time);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_bindkeys_parser;
 	}
 
 #if defined(HAVE_GEOIP2)
@@ -10213,9 +10128,6 @@ named_server_destroy(named_server_t **serverp) {
 	}
 	if (server->hostname != NULL) {
 		isc_mem_free(server->mctx, server->hostname);
-	}
-	if (server->lockfile != NULL) {
-		isc_mem_free(server->mctx, server->lockfile);
 	}
 
 	if (server->zonemgr != NULL) {

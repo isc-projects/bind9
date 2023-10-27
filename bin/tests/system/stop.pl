@@ -130,16 +130,6 @@ exit($errors);
 
 # Subroutines
 
-# Return the full path to a given server's lock file.
-sub server_lock_file {
-	my ( $server ) = @_;
-
-	return $testdir . "/" . $server . "/named.lock" if ($server =~ /^ns/);
-	return if ($server =~ /^ans/);
-
-	die "Unknown server type $server\n";
-}
-
 # Return the full path to a given server's PID file.
 sub server_pid_file {
 	my ( $server ) = @_;
@@ -257,15 +247,6 @@ sub pid_file_exists {
 	return $server;
 }
 
-sub lock_file_exists {
-	my ( $server ) = @_;
-	my $lock_file = server_lock_file($server);
-
-	return unless defined($lock_file) && -f $lock_file;
-
-	return $server;
-}
-
 sub wait_for_servers {
 	my ( $timeout, @servers ) = @_;
 
@@ -273,7 +254,7 @@ sub wait_for_servers {
 		sleep 1 if (@servers > 0);
 		@servers =
 			grep { defined($_) }
-			map  { pid_file_exists($_) || lock_file_exists($_) } @servers;
+			map  { pid_file_exists($_) } @servers;
 		$timeout--;
 	}
 

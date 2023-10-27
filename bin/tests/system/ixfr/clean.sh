@@ -22,5 +22,4 @@ rm -f */named.run */named.run.prev
 rm -f */ans.run
 rm -f dig.out.test* dig.out1.test* dig.out2.test* dig.out3.test*
 rm -f ns3/large.db
-rm -f ns*/named.lock
 rm -f ns*/managed-keys.bind* ns*/*.mkeys

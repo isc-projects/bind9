@@ -118,11 +118,6 @@ EXTERN const char *named_g_logfile   INIT(NULL);
 EXTERN const char *named_g_defaultsessionkeyfile INIT(NAMED_LOCALSTATEDIR
 						      "/run/named/"
 						      "session.key");
-EXTERN const char *named_g_defaultlockfile INIT(NAMED_LOCALSTATEDIR "/run/"
-								    "named/"
-								    "named."
-								    "lock");
-EXTERN bool named_g_forcelock		   INIT(false);
 
 #if NAMED_RUN_PID_DIR
 EXTERN const char *named_g_defaultpidfile INIT(NAMED_LOCALSTATEDIR "/run/named/"

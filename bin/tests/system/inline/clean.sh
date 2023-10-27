@@ -13,7 +13,7 @@
 
 rm -rf ./*/*.jbk \
   ./*/*.nzd ./*/*.nzd-lock ./*/*.nzf \
-  ./*/named.conf ./*/named.memstats ./*/named.run* ./*/named.lock \
+  ./*/named.conf ./*/named.memstats ./*/named.run* \
   ./*/trusted.conf \
   ./K* ./*/K* \
   ./checkecdsa \

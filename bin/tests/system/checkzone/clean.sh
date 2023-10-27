@@ -12,6 +12,5 @@
 # information regarding copyright ownership.
 
 rm -f test.* good1.db.raw named-compilezone
-rm -f ns*/named.lock
 rm -f zones/bad-tsig.db
 rm -f zones/zone1_*.txt

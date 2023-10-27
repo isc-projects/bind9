@@ -28,7 +28,6 @@ rm -f */named.conf
 rm -f */ans.run
 rm -f Ksig0.example2.*
 rm -f keyname keyname.err
-rm -f ns*/named.lock
 rm -f ns1/example2.db
 rm -f ns*/managed-keys.bind*
 rm -f nsupdate.out.*

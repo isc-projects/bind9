@@ -164,7 +164,6 @@ options {
 	listen-on [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
 	listen-on-v6 [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
 	lmdb-mapsize <sizeval>;
-	lock-file ( <quoted_string> | none );
 	managed-keys-directory <quoted_string>;
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );

@@ -27,7 +27,6 @@ rm -f jp.out.ns3.*
 rm -f keygen.out.*
 rm -f nextpart.out.*
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
-rm -f ns*/named.lock
 rm -f ns1/example.db ns1/unixtime.db ns1/yyyymmddvv.db ns1/update.db ns1/other.db ns1/keytests.db
 rm -f ns1/many.test.db
 rm -f ns1/maxjournal.db

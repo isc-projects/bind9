@@ -16,7 +16,6 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f */named.stats
 rm -f dig.out.*
-rm -f ns*/named.lock
 rm -f ns1/K*
 rm -f ns1/dsset-nsec3.
 rm -f ns1/dsset-signed.

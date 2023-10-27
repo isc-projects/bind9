@@ -34,5 +34,4 @@ rm -f ./ns3/example.db.raw ./ns3/dynamic.db.raw
 rm -f ./baseline.txt ./text.* ./raw.*
 rm -f ./ns1/Ksigned.* ./ns1/dsset-signed. ./ns1/signed.db.signed
 rm -f ./rndc.out
-rm -f ./ns*/named.lock
 rm -f ./ns*/managed-keys.bind*

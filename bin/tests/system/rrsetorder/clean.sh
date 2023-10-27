@@ -18,6 +18,5 @@ rm -f dig.out.cyclic2
 rm -f ns2/root.bk
 rm -f ns?/named.run ns?/named.core
 rm -f */named.memstats
-rm -f ns*/named.lock
 rm -f ns*/named.conf
 rm -f ns*/managed-keys.bind*
