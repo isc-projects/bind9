@@ -94,7 +94,6 @@ struct controllistener {
 	bool exiting;
 	isc_refcount_t references;
 	controlkeylist_t keys;
-	isc_mutex_t connections_lock;
 	controlconnectionlist_t connections;
 	isc_socktype_t type;
 	uint32_t perm;
@@ -170,9 +169,9 @@ free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
 
 static void
 free_listener(controllistener_t *listener) {
-	INSIST(listener->exiting);
-	INSIST(ISC_LIST_EMPTY(listener->connections));
-
+	REQUIRE(isc_tid() == 0);
+	REQUIRE(listener->exiting);
+	REQUIRE(ISC_LIST_EMPTY(listener->connections));
 	REQUIRE(listener->sock == NULL);
 
 	free_controlkeylist(&listener->keys, listener->mctx);
@@ -180,7 +179,6 @@ free_listener(controllistener_t *listener) {
 	if (listener->acl != NULL) {
 		dns_acl_detach(&listener->acl);
 	}
-	isc_mutex_destroy(&listener->connections_lock);
 
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
@@ -195,6 +193,7 @@ ISC_REFCOUNT_IMPL(controlconnection, conn_free);
 
 static void
 shutdown_listener(controllistener_t *listener) {
+	REQUIRE(isc_tid() == 0);
 	if (!listener->exiting) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 
@@ -267,6 +266,8 @@ cleanup_sendhandle:
 	if (result != ISC_R_SUCCESS) {
 		control_recvmessage(handle, result, conn);
 	}
+
+	REQUIRE(isc_tid() == 0);
 	controlconnection_detach(&conn);
 }
 
@@ -373,6 +374,7 @@ control_respond(controlconnection_t *conn) {
 	r.base = conn->buffer->base;
 	r.length = conn->buffer->used;
 
+	REQUIRE(isc_tid() == 0);
 	controlconnection_ref(conn);
 	isccc_ccmsg_sendmessage(&conn->ccmsg, &r, control_senddone, conn);
 
@@ -390,6 +392,8 @@ control_command(void *arg) {
 			conn->request, listener->readonly, &conn->text);
 		control_respond(conn);
 	}
+
+	REQUIRE(isc_tid() == 0);
 	controlconnection_detach(&conn);
 }
 
@@ -403,9 +407,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	isccc_time_t exp;
 	uint32_t nonce;
 
-	if (conn->shuttingdown) {
-		return;
-	}
+	INSIST(!conn->shuttingdown);
 
 	/* Is the server shutting down? */
 	if (listener->controls->shuttingdown) {
@@ -528,18 +530,26 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	/*
 	 * Trigger the command.
 	 */
+	REQUIRE(isc_tid() == 0);
 	controlconnection_ref(conn);
 	isc_async_run(named_g_mainloop, control_command, conn);
 
 	return;
 
 cleanup:
+	/* Make sure no read callbacks are called again */
+	isccc_ccmsg_invalidate(&conn->ccmsg);
+
 	conn->shuttingdown = true;
+
+	REQUIRE(isc_tid() == 0);
 	controlconnection_detach(&conn);
 }
 
 static void
 conn_free(controlconnection_t *conn) {
+	REQUIRE(isc_tid() == 0);
+
 	controllistener_t *listener = conn->listener;
 
 	conn_cleanup(conn);
@@ -548,16 +558,12 @@ conn_free(controlconnection_t *conn) {
 		isc_buffer_free(&conn->buffer);
 	}
 
-	LOCK(&listener->connections_lock);
 	ISC_LIST_UNLINK(listener->connections, conn, link);
-	UNLOCK(&listener->connections_lock);
 #ifdef ENABLE_AFL
 	if (named_g_fuzz_type == isc_fuzz_rndc) {
 		named_fuzz_notify();
 	}
 #endif /* ifdef ENABLE_AFL */
-
-	isccc_ccmsg_invalidate(&conn->ccmsg);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
@@ -570,6 +576,8 @@ conn_free(controlconnection_t *conn) {
 
 static void
 newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
+	REQUIRE(isc_tid() == 0);
+
 	controlconnection_t *conn = isc_mem_get(listener->mctx, sizeof(*conn));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
@@ -586,9 +594,7 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	/* Set a 32 KiB upper limit on incoming message. */
 	isccc_ccmsg_setmaxsize(&conn->ccmsg, 32768);
 
-	LOCK(&listener->connections_lock);
 	ISC_LIST_INITANDAPPEND(listener->connections, conn, link);
-	UNLOCK(&listener->connections_lock);
 
 	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
 }
@@ -1041,7 +1047,6 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 					 .address = *addr,
 					 .type = type };
 	isc_mem_attach(mctx, &listener->mctx);
-	isc_mutex_init(&listener->connections_lock);
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_INIT(listener->keys);
 	ISC_LIST_INIT(listener->connections);
