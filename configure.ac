@@ -204,7 +204,7 @@ AS_IF([test -z "$PKG_CONFIG"],
 #
 # Pick Userspace-RCU flavor (developer only option)
 #
-# [pairwise: --with-liburcu=membarrier, --with-liburcu=qsbr, --with-liburcu=mb, --with-liburcu=bp]
+# [pairwise: skip]
 AC_ARG_WITH([liburcu],
 	    [AS_HELP_STRING([--with-liburcu=FLAVOR],
 			     [Build with Userspace-RCU variant (developer-only option) (membarrier|qsbr|mb|bp) [default=membarrier]]))],
