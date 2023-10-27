@@ -895,9 +895,10 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 #if !defined(OPENSSL_NO_ENGINE)
 	ENGINE *ep = NULL;
 	const BIGNUM *ex = NULL;
+	const char *engine = NULL;
 #endif /* if !defined(OPENSSL_NO_ENGINE) */
 	isc_mem_t *mctx = key->mctx;
-	const char *engine = NULL, *label = NULL;
+	const char *label = NULL;
 	EVP_PKEY *pkey = NULL;
 	BIGNUM *n = NULL, *e = NULL, *d = NULL;
 	BIGNUM *p = NULL, *q = NULL;
@@ -930,9 +931,11 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 
 	for (i = 0; i < priv.nelements; i++) {
 		switch (priv.elements[i].tag) {
+#if !defined(OPENSSL_NO_ENGINE) && OPENSSL_API_LEVEL < 30000
 		case TAG_RSA_ENGINE:
 			engine = (char *)priv.elements[i].data;
 			break;
+#endif
 		case TAG_RSA_LABEL:
 			label = (char *)priv.elements[i].data;
 			break;
