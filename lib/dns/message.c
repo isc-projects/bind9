@@ -110,12 +110,12 @@ hexdump(const char *msg, const char *msg2, void *base, size_t len) {
  * XXXMLG These should come from a config setting.
  */
 #define SCRATCHPAD_SIZE	   1232
-#define NAME_FILLCOUNT	   4
+#define NAME_FILLCOUNT	   1024
 #define NAME_FREEMAX	   8 * NAME_FILLCOUNT
 #define OFFSET_COUNT	   4
 #define RDATA_COUNT	   8
 #define RDATALIST_COUNT	   8
-#define RDATASET_FILLCOUNT 4
+#define RDATASET_FILLCOUNT 1024
 #define RDATASET_FREEMAX   8 * RDATASET_FILLCOUNT
 
 /*%
