@@ -29,6 +29,7 @@
 #include <stdbool.h>
 
 #include <isc/net.h>
+#include <isc/netmgr.h>
 #include <isc/tls.h>
 
 #include <dns/types.h>
@@ -51,6 +52,7 @@ struct ns_listenelt {
 	size_t		    http_endpoints_number;
 	uint32_t	    http_max_clients;
 	uint32_t	    max_concurrent_streams;
+	isc_nm_proxy_type_t proxy;
 	ISC_LINK(ns_listenelt_t) link;
 };
 
@@ -82,7 +84,8 @@ isc_result_t
 ns_listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 		    const uint16_t family, bool tls,
 		    const ns_listen_tls_params_t *tls_params,
-		    isc_tlsctx_cache_t *tlsctx_cache, ns_listenelt_t **target);
+		    isc_tlsctx_cache_t *tlsctx_cache, isc_nm_proxy_type_t proxy,
+		    ns_listenelt_t **target);
 /*%<
  * Create a listen-on list element.
  *
@@ -96,7 +99,8 @@ isc_result_t
 ns_listenelt_create_http(isc_mem_t *mctx, in_port_t http_port, dns_acl_t *acl,
 			 const uint16_t family, bool tls,
 			 const ns_listen_tls_params_t *tls_params,
-			 isc_tlsctx_cache_t *tlsctx_cache, char **endpoints,
+			 isc_tlsctx_cache_t	      *tlsctx_cache,
+			 isc_nm_proxy_type_t proxy, char **endpoints,
 			 size_t nendpoints, const uint32_t max_clients,
 			 const uint32_t max_streams, ns_listenelt_t **target);
 /*%<

@@ -3066,9 +3066,10 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    :tags: server
    :short: Specifies the IPv6 addresses on which a server listens for DNS queries.
 
-   The :any:`listen-on` and :any:`listen-on-v6` statements can each take an optional
-   port, TLS configuration identifier, and/or HTTP configuration identifier,
-   in addition to an :term:`address_match_list`.
+   The :any:`listen-on` and :any:`listen-on-v6` statements can each
+   take an optional port, PROXYv2 support switch, TLS configuration
+   identifier, and/or HTTP configuration identifier, in addition to an
+   :term:`address_match_list`.
 
    The :term:`address_match_list` in :any:`listen-on` specifies the IPv4 addresses
    on which the server will listen. (IPv6 addresses are ignored, with a
@@ -3080,6 +3081,52 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    The server listens on all interfaces allowed by the address match list.
    If no :any:`listen-on-v6` is specified, the default is to listen for standard
    DNS queries on port 53 of all IPv6 interfaces.
+
+   When specified, the PROXYv2 support switch ``proxy`` allows
+   enabling the PROXYv2 protocol support. The PROXYv2 protocol
+   provides the means for passing connection information, such as a
+   client's source and destination addresses and ports, across
+   multiple layers of NAT or TCP/UDP proxies to back-end servers. The
+   addresses passed to by the PROXYv2 protocol are then used instead
+   of the peer and interface addresses provided by the operating
+   system.
+
+   The ``proxy`` switch can have the following values:
+
+   * ``plain`` - accept plain PROXYv2 headers. It is the only valid
+     option for transports that do not employ encryption. In the case
+     of transports that employ encryption, it instructs BIND that
+     PROXYv2 headers are sent without encryption before the TLS
+     handshake. In that case, only PROXYv2 headers are not encrypted.
+   * ``encrypted`` - accept encrypted PROXYv2 headers. In the case of
+     transports that employ encryption, it instructs BIND that PROXYv2
+     headers are sent encrypted immediately after the TLS
+     handshake. The option is valid only for the transports that employ
+     encryption.
+
+   You must consult your proxying front-end software documentation to
+   decide which value you need to use. If in doubt, use ``plain`` for
+   encrypted transports, especially for DNS-over-HTTPS (DoH), but
+   DNS-specific software is likely to need ``encrypted``.
+
+   It should be noted that when PROXYv2 is enabled on a listener, it
+   loses the ability to accept regular DNS queries without associated
+   PROXYv2 headers.
+
+   In some cases, PROXYv2 headers might not contain usable source and
+   destination addresses. In particular, that happens when the headers
+   use ``LOCAL`` command or the headers that use unspecified or
+   unsupported by BIND address types. If otherwise correct, such
+   headers are accepted by BIND and the real endpoint addresses are
+   used in these cases.
+
+   The PROXYv2 protocol is designed to be extensible and can carry
+   additional information in the form of type-length-values
+   (TLVs). Many of the types are defined in the protocol
+   specification, and for some of these, we do a reasonable amount of
+   validation in order to detect and reject ill-formed or hand-crafted
+   headers. Apart from that, this additional data, while accepted, is
+   not currently used by BIND for anything else.
 
    If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
    (DoT) connections, using the key and certificate specified in the
@@ -3110,6 +3157,9 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
       listen-on port 1234 { !1.2.3.4; 1.2/16; };
       listen-on port 8853 tls ephemeral { 4.3.2.1; };
       listen-on port 8453 tls ephemeral http myserver { 8.7.6.5; };
+      listen-on port 5300 proxy plain { !1.2.3.4; 1.2/16; };
+      listen-on port 8953 proxy encrypted tls ephemeral { 4.3.2.1; };
+      listen-on port 8553 proxy plain tls ephemeral http myserver { 8.7.6.5; };
 
    The first two lines instruct the name server to listen for standard DNS
    queries on port 53 of the IP address 5.6.7.8 and on port 1234 of an address
@@ -3126,9 +3176,12 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
 
       listen-on-v6 { any; };
       listen-on-v6 port 1234 { !2001:db8::/32; any; };
-      listen-on port 8853 tls example-tls { 2001:db8::100; };
-      listen-on port 8453 tls example-tls http default { 2001:db8::100; };
-      listen-on port 8000 tls none http myserver { 2001:db8::100; };
+      listen-on-v6 port 8853 tls example-tls { 2001:db8::100; };
+      listen-on-v6 port 8453 tls example-tls http default { 2001:db8::100; };
+      listen-on-v6 port 8000 tls none http myserver { 2001:db8::100; };
+      listen-on-v6 port 53000 proxy plain { !2001:db8::/32; any; };
+      listen-on-v6 port 8953 proxy encrypted tls example-tls { 2001:db8::100; };
+      listen-on-v6 port 8553 proxy plain tls example-tls http default { 2001:db8::100; };
 
    The first two lines instruct the name server to listen for standard DNS
    queries on port 53 of any IPv6 addresses, and on port 1234 of IPv6

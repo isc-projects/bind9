@@ -150,6 +150,11 @@ static cfg_type_t cfg_type_zone;
 
 static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
+	/*
+	 * Let's follow the protocols encapsulation order (lower->upper), at
+	 * least roughly.
+	 */
+	{ "proxy", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "tls", &cfg_type_astring, 0 },
 #if HAVE_LIBNGHTTP2
 	{ "http", &cfg_type_astring, 0 },

@@ -161,8 +161,8 @@ options {
 	keep-response-order { <address_match_element>; ... }; // obsolete
 	key-directory <quoted_string>;
 	lame-ttl <duration>;
-	listen-on [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
-	listen-on-v6 [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
+	listen-on [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
+	listen-on-v6 [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
 	lmdb-mapsize <sizeval>;
 	managed-keys-directory <quoted_string>;
 	masterfile-format ( raw | text );

@@ -1033,6 +1033,7 @@ check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
 	const cfg_obj_t *portobj = NULL;
 	const cfg_obj_t *http_server = NULL;
+	const cfg_obj_t *proxyobj = NULL;
 	bool do_tls = false, no_tls = false;
 	dns_acl_t *acl = NULL;
 
@@ -1094,6 +1095,36 @@ check_listener(const cfg_obj_t *listener, const cfg_obj_t *config,
 			    cfg_obj_asuint32(portobj));
 		if (result == ISC_R_SUCCESS) {
 			result = ISC_R_RANGE;
+		}
+	}
+
+	proxyobj = cfg_tuple_get(ltup, "proxy");
+	if (proxyobj != NULL && cfg_obj_isstring(proxyobj)) {
+		const char *proxyval = cfg_obj_asstring(proxyobj);
+		if (proxyval == NULL ||
+		    (strcasecmp(proxyval, "encrypted") != 0 &&
+		     strcasecmp(proxyval, "plain") != 0))
+		{
+			cfg_obj_log(proxyobj, logctx, ISC_LOG_ERROR,
+				    "'proxy' must have one of the following "
+				    "values: 'plain', 'encrypted'");
+
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+
+		if (proxyval != NULL &&
+		    strcasecmp(proxyval, "encrypted") == 0 && !do_tls)
+		{
+			cfg_obj_log(proxyobj, logctx, ISC_LOG_ERROR,
+				    "'proxy encrypted' can be used only when "
+				    "encryption is enabled by setting 'tls' to "
+				    "a defined value or to 'ephemeral'");
+
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
 		}
 	}
 

@@ -413,7 +413,8 @@ static isc_result_t
 listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 	       const ns_listen_tls_params_t *tls_params,
 	       isc_tlsctx_cache_t *tlsctx_cache, in_port_t port,
-	       isc_mem_t *mctx, ns_listenelt_t **target);
+	       isc_mem_t *mctx, isc_nm_proxy_type_t proxy,
+	       ns_listenelt_t **target);
 #endif
 
 static isc_result_t
@@ -10791,6 +10792,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *tlsobj = NULL, *httpobj = NULL;
 	const cfg_obj_t *portobj = NULL;
 	const cfg_obj_t *http_server = NULL;
+	const cfg_obj_t *proxyobj = NULL;
 	in_port_t port = 0;
 	const char *key = NULL, *cert = NULL, *ca_file = NULL,
 		   *dhparam_file = NULL, *ciphers = NULL;
@@ -10802,6 +10804,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	uint32_t tls_protos = 0;
 	ns_listen_tls_params_t tls_params = { 0 };
 	const char *tlsname = NULL;
+	isc_nm_proxy_type_t proxy = ISC_NM_PROXY_NONE;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -10985,16 +10988,31 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		port = (in_port_t)cfg_obj_asuint32(portobj);
 	}
 
+	proxyobj = cfg_tuple_get(ltup, "proxy");
+	if (proxyobj != NULL && cfg_obj_isstring(proxyobj)) {
+		const char *proxyval = cfg_obj_asstring(proxyobj);
+
+		if (strcasecmp(proxyval, "encrypted") == 0) {
+			INSIST(do_tls == true);
+			proxy = ISC_NM_PROXY_ENCRYPTED;
+		} else if (strcasecmp(proxyval, "plain") == 0) {
+			proxy = ISC_NM_PROXY_PLAIN;
+		} else {
+			UNREACHABLE();
+		}
+	}
+
 #ifdef HAVE_LIBNGHTTP2
 	if (http) {
 		CHECK(listenelt_http(http_server, family, do_tls, &tls_params,
-				     tlsctx_cache, port, mctx, &delt));
+				     tlsctx_cache, port, mctx, proxy, &delt));
 	}
 #endif /* HAVE_LIBNGHTTP2 */
 
 	if (!http) {
 		CHECK(ns_listenelt_create(mctx, port, NULL, family, do_tls,
-					  &tls_params, tlsctx_cache, &delt));
+					  &tls_params, tlsctx_cache, proxy,
+					  &delt));
 	}
 
 	result = cfg_acl_fromconfig(cfg_tuple_get(listener, "acl"), config,
@@ -11015,7 +11033,8 @@ static isc_result_t
 listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 	       const ns_listen_tls_params_t *tls_params,
 	       isc_tlsctx_cache_t *tlsctx_cache, in_port_t port,
-	       isc_mem_t *mctx, ns_listenelt_t **target) {
+	       isc_mem_t *mctx, isc_nm_proxy_type_t proxy,
+	       ns_listenelt_t **target) {
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_listenelt_t *delt = NULL;
 	char **endpoints = NULL;
@@ -11080,9 +11099,9 @@ listenelt_http(const cfg_obj_t *http, const uint16_t family, bool tls,
 
 	INSIST(i == len);
 
-	result = ns_listenelt_create_http(mctx, port, NULL, family, tls,
-					  tls_params, tlsctx_cache, endpoints,
-					  len, max_clients, max_streams, &delt);
+	result = ns_listenelt_create_http(
+		mctx, port, NULL, family, tls, tls_params, tlsctx_cache, proxy,
+		endpoints, len, max_clients, max_streams, &delt);
 	if (result != ISC_R_SUCCESS) {
 		goto error;
 	}
