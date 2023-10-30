@@ -34,7 +34,7 @@ def junit_to_trs(junit_xml):
                 res = "ERROR"
                 has_error = True
             elif node.tag == "skipped":
-                if node.attrib["type"] == "pytest.xfail":
+                if node.attrib.get("type") == "pytest.xfail":
                     res = "XFAIL"
                 else:
                     res = "SKIP"
