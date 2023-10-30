@@ -1385,8 +1385,8 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	transp_sock->h2.session = session;
 	http_sock->h2.connect.tlsctx = NULL;
 	/* otherwise we will get some garbage output in DIG */
-	http_sock->iface = handle->sock->iface;
-	http_sock->peer = handle->sock->peer;
+	http_sock->iface = isc_nmhandle_localaddr(handle);
+	http_sock->peer = isc_nmhandle_peeraddr(handle);
 
 	transp_sock->h2.connect.post = http_sock->h2.connect.post;
 	transp_sock->h2.connect.uri = http_sock->h2.connect.uri;
@@ -1672,6 +1672,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	isc_nm_http_session_t *session = (isc_nm_http_session_t *)user_data;
 	isc_nmsocket_t *socket = NULL;
 	isc__networker_t *worker = NULL;
+	isc_sockaddr_t local;
 
 	if (frame->hd.type != NGHTTP2_HEADERS ||
 	    frame->headers.cat != NGHTTP2_HCAT_REQUEST)
@@ -1689,10 +1690,9 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 
 	worker = session->handle->sock->worker;
 	socket = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(socket, worker, isc_nm_httpsocket,
-			   (isc_sockaddr_t *)&session->handle->sock->iface,
-			   NULL);
-	socket->peer = session->handle->sock->peer;
+	local = isc_nmhandle_localaddr(session->handle);
+	isc__nmsocket_init(socket, worker, isc_nm_httpsocket, &local, NULL);
+	socket->peer = isc_nmhandle_peeraddr(session->handle);
 	socket->h2 = (isc_nmsocket_h2_t){
 		.psock = socket,
 		.stream_id = frame->hd.stream_id,

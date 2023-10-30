@@ -882,6 +882,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_tlsctx_t *tlsctx = NULL;
+	isc_sockaddr_t local;
 
 	/* If accept() was unsuccessful we can't do anything */
 	if (result != ISC_R_SUCCESS) {
@@ -899,12 +900,13 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (ISC_R_CANCELED);
 	}
 
+	local = isc_nmhandle_localaddr(handle);
 	/*
 	 * We need to create a 'wrapper' tlssocket for this connection.
 	 */
 	tlssock = isc_mem_get(handle->sock->worker->mctx, sizeof(*tlssock));
 	isc__nmsocket_init(tlssock, handle->sock->worker, isc_nm_tlssocket,
-			   &handle->sock->iface, NULL);
+			   &local, NULL);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
 	tlsctx = tls_get_listener_tlsctx(tlslistensock, isc_tid());
@@ -922,7 +924,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->accept_cbarg = tlslistensock->accept_cbarg;
 	isc__nmsocket_attach(handle->sock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
-	tlssock->peer = handle->sock->peer;
+	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	tlssock->read_timeout =
 		atomic_load_relaxed(&handle->sock->worker->netmgr->init);
 
@@ -1242,8 +1244,8 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	INSIST(VALID_NMHANDLE(handle));
 
-	tlssock->iface = handle->sock->iface;
-	tlssock->peer = handle->sock->peer;
+	tlssock->iface = isc_nmhandle_localaddr(handle);
+	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	if (isc__nm_closing(worker)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto error;
