@@ -36,7 +36,7 @@ Removed Features
   :gl:`#4421`
 
 - The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
-  are now deprecated. A warning will be logged if they are used. :gl:`#4405`
+  have been removed. Using them is now a fatal error. :gl:`#4405`
 
 Feature Changes
 ~~~~~~~~~~~~~~~

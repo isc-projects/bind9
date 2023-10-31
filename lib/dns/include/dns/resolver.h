@@ -518,39 +518,6 @@ void
 dns_resolver_setzeronosoattl(dns_resolver_t *resolver, bool state);
 
 unsigned int
-dns_resolver_getretryinterval(dns_resolver_t *resolver);
-
-void
-dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval);
-/*%<
- * Sets the amount of time, in milliseconds, that is waited for a reply
- * to a server before another server is tried.  Interacts with the
- * value of dns_resolver_getnonbackofftries() by trying that number of times
- * at this interval, before doing exponential backoff and doubling the interval
- * on each subsequent try, to a maximum of 10 seconds.  Defaults to 800 ms;
- * silently capped at 2000 ms.
- *
- * Requires:
- * \li	resolver to be valid.
- * \li  interval > 0.
- */
-
-unsigned int
-dns_resolver_getnonbackofftries(dns_resolver_t *resolver);
-
-void
-dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries);
-/*%<
- * Sets the number of failures of getting a reply from remote servers for
- * a query before backing off by doubling the retry interval for each
- * subsequent request sent.  Defaults to 3.
- *
- * Requires:
- * \li	resolver to be valid.
- * \li  tries > 0.
- */
-
-unsigned int
 dns_resolver_getoptions(dns_resolver_t *resolver);
 /*%<
  * Get the resolver options.
