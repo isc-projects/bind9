@@ -55,7 +55,7 @@ ISC_LANG_BEGINDECLS
  ***/
 
 /*%
- * Optional flags for dns_client_(start)resolve.
+ * Optional flags for dns_client_resolve.
  */
 /*%< Do not return DNSSEC data (e.g. RRSIGS) with response. */
 #define DNS_CLIENTRESOPT_NODNSSEC 0x01
@@ -185,11 +185,6 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   unsigned int options, dns_namelist_t *namelist,
 		   dns_client_resolve_cb resolve_cb);
 
-isc_result_t
-dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
-			dns_rdataclass_t rdclass, dns_rdatatype_t type,
-			unsigned int options, isc_job_cb cb, void *arg,
-			dns_clientrestrans_t **transp);
 /*%<
  * Perform name resolution for 'name', 'rdclass', and 'type'.
  *
@@ -214,13 +209,6 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
  *
  * It is expected that the client object passed to dns_client_resolve() was
  * created via dns_client_create() and has external managers and contexts.
- *
- * dns_client_startresolve() is an asynchronous version of dns_client_resolve()
- * and does not block.  When name resolution is completed, 'cb' will be
- * called with the argument of a 'dns_clientresume_t' object, which contains
- * the resulting list of answer names (on success), and a also contains
- * a pointer to 'arg'.  On return, '*transp' is set to an opaque transaction
- * ID so that the caller can cancel this resolution process.
  *
  * Requires:
  *
