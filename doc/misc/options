@@ -247,9 +247,9 @@ options {
 	request-ixfr <boolean>;
 	request-nsid <boolean>;
 	require-server-cookie <boolean>;
-	resolver-nonbackoff-tries <integer>;
+	resolver-nonbackoff-tries <integer>; // deprecated
 	resolver-query-timeout <integer>;
-	resolver-retry-interval <integer>;
+	resolver-retry-interval <integer>; // deprecated
 	resolver-use-dns64 <boolean>;
 	response-padding { <address_match_element>; ... } block-size <integer>;
 	response-policy { zone <string> [ add-soa <boolean> ] [ log <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only <quoted_string> ) ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ ede <string> ]; ... } [ add-soa <boolean> ] [ break-dnssec <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [ nsdname-wait-recurse <boolean> ] [ qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text> } ];
@@ -523,9 +523,9 @@ view <string> [ <class> ] {
 	request-ixfr <boolean>;
 	request-nsid <boolean>;
 	require-server-cookie <boolean>;
-	resolver-nonbackoff-tries <integer>;
+	resolver-nonbackoff-tries <integer>; // deprecated
 	resolver-query-timeout <integer>;
-	resolver-retry-interval <integer>;
+	resolver-retry-interval <integer>; // deprecated
 	resolver-use-dns64 <boolean>;
 	response-padding { <address_match_element>; ... } block-size <integer>;
 	response-policy { zone <string> [ add-soa <boolean> ] [ log <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ policy ( cname | disabled | drop | given | no-op | nodata | nxdomain | passthru | tcp-only <quoted_string> ) ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ ede <string> ]; ... } [ add-soa <boolean> ] [ break-dnssec <boolean> ] [ max-policy-ttl <duration> ] [ min-update-interval <duration> ] [ min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [ nsdname-wait-recurse <boolean> ] [ qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [ dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text> } ];

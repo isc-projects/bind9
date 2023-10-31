@@ -1,3 +1,7 @@
+6296.	[func]		The "resolver-nonbackoff-tries" and
+			"resolver-retry-interval" options are deprecated;
+			a warning will be logged if they are used. [GL #4405]
+
 6295.	[bug]		Fix an assertion failure which could occur during
 			shutdown when DNSSEC validation was running. [GL #4462]
 
