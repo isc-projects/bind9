@@ -192,6 +192,8 @@ grep "option 'root-delegation-only' is deprecated" <checkconf.out$n.1 >/dev/null
 grep "'type delegation-only' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'dialup' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'heartbeat-interval' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
+grep "option 'resolver-nonbackoff-tries' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
+grep "option 'resolver-retry-interval' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "option 'dnssec-must-be-secure' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 grep "token 'port' is deprecated" <checkconf.out$n.1 >/dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
