@@ -1,3 +1,7 @@
+6278.	[bug]		The call to isc_mem_setwater() was incorrectly
+			removed from dns_cache_setcachesize(), causing
+			cache overmem conditions not to be detected. [GL #4340]
+
 6277.	[bug]		Take into account local authoritative zones when
 			falling back to serve-stale. [GL #4355]
 
