@@ -37,6 +37,9 @@ Bug Fixes
 
 - None.
 
+- Looking up stale data from the cache did not take into account local
+  authoritative zones. This has been fixed. :gl:`#4355`
+
 Known Issues
 ~~~~~~~~~~~~
 
