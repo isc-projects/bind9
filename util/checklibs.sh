@@ -86,10 +86,11 @@ for lib in $(git ls-files -c lib \
     | xargs grep "$pat" \
     | sed -e 's/.*://' -e 's/(.*//' \
     | while read p; do
-      case $p in
-        isc_ntsecurity_getaccountgroups) continue ;; # internal
-        isc_socketmgr_getmaxsockets) p=isc__socketmgr_getmaxsockets ;;
-      esac
+      if test "$p" = isc_ntsecurity_getaccountgroups; then
+        continue
+      elif test "$p" = isc_socketmgr_getmaxsockets; then
+        p=isc__socketmgr_getmaxsockets
+      fi
       grep -q "^${p}"'$' $def && continue
       test $lib = isc -a -f lib/isc/win32/libisc.def.exclude \
         && grep -q "^${p}"'$' lib/isc/win32/libisc.def.exclude \
