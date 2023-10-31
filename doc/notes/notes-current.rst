@@ -46,6 +46,9 @@ Bug Fixes
 - When :any:`lock-file` was used at the same time as :option:`named -X`, the
   assertion failure would be triggered.  This has been fixed. :gl:`#4386`
 
+- Looking up stale data from the cache did not take into account local
+  authoritative zones. This has been fixed. :gl:`#4355`
+
 Known Issues
 ~~~~~~~~~~~~
 
