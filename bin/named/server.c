@@ -5205,6 +5205,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, NULL, "allow-query-cache-on",
 				 NULL, actx, named_g_mctx, &view->cacheonacl));
 
+	CHECK(configure_view_acl(vconfig, config, named_g_config, "allow-proxy",
+				 NULL, actx, named_g_mctx, &view->proxyacl));
+
+	CHECK(configure_view_acl(vconfig, config, named_g_config,
+				 "allow-proxy-on", NULL, actx, named_g_mctx,
+				 &view->proxyonacl));
+
 	if (strcmp(view->name, "_bind") != 0 &&
 	    view->rdclass != dns_rdataclass_chaos)
 	{

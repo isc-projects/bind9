@@ -339,6 +339,12 @@ destroy(dns_view_t *view) {
 	if (view->pad_acl != NULL) {
 		dns_acl_detach(&view->pad_acl);
 	}
+	if (view->proxyacl != NULL) {
+		dns_acl_detach(&view->proxyacl);
+	}
+	if (view->proxyonacl != NULL) {
+		dns_acl_detach(&view->proxyonacl);
+	}
 	if (view->answeracl_exclude != NULL) {
 		dns_nametree_detach(&view->answeracl_exclude);
 	}

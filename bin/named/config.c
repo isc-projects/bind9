@@ -132,6 +132,8 @@ options {\n\
 	/* view */\n\
 	allow-new-zones no;\n\
 	allow-notify {none;};\n\
+	allow-proxy {none;};\n\
+	allow-proxy-on {any;};\n\
 	allow-query-cache { localnets; localhost; };\n\
 	allow-query-cache-on { any; };\n\
 	allow-recursion { localnets; localhost; };\n\

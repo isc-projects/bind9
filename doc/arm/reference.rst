@@ -2833,6 +2833,44 @@ for details on how to specify IP address lists.
    the configured :any:`primaries` for the zone. :any:`allow-notify` can be used
    to expand the list of permitted hosts, not to reduce it.
 
+.. namedconf:statement:: allow-proxy
+   :tags: server
+   :short: Defines an :any:`address_match_list` for the client addresses allowed to send PROXYv2 headers.
+
+   The default :any:`address_match_list` is `none`, which means that
+   no client is allowed to do that by default for security reasons, as
+   the PROXYv2 protocol provides an easy way to spoof both source and
+   destination addresses.
+
+   This :any:`address_match_list` is primarily meant to have addresses
+   and subnets of the proxies that are allowed to send PROXYv2 headers
+   to BIND. In most cases, we do not recommend setting this
+   :any:`address_match_list` to be very allowing, in particular, to
+   set it to `any`, especially in the cases when PROXYv2 headers can be
+   accepted on publically available networking interfaces.
+
+   The specified option is the only option that matches against real
+   peer addresses when PROXYv2 headers are used. Most of the options
+   that work with peer addresses, use the ones extracted from PROXYv2
+   headers.
+
+   Also, see: :namedconf:ref:`allow-proxy-on`
+
+.. namedconf:statement:: allow-proxy-on
+   :tags: server
+   :short: Defines an :any:`address_match_list` for the interface addresses allowed to accept PROXYv2 headers. The option is mostly intended for multi-homed configurations.
+
+   The default :any:`address_match_list` is `any`, which means that
+   accepting PROXYv2 is allowed on any interface.
+
+   The option is useful in cases when you need to have precise control
+   over which interfaces PROXYv2 is allowed, as it is the only one
+   that matches against real interface addresses when PROXYv2 headers
+   are used. Most of the options that work with interface addresses
+   will use the ones extracted from PROXYv2 headers.
+
+   You may want to set :namedconf:ref:`allow-proxy` first.
+
 .. namedconf:statement:: allow-query
    :tags: query
    :short: Specifies which hosts (an IP address list) are allowed to send queries to this resolver.
@@ -3127,6 +3165,14 @@ queries may be specified using the :any:`listen-on` and :any:`listen-on-v6` opti
    validation in order to detect and reject ill-formed or hand-crafted
    headers. Apart from that, this additional data, while accepted, is
    not currently used by BIND for anything else.
+
+   By default, no client is allowed to send queries that contain
+   PROXYv2 protocol headers, even when support for the protocol is
+   enabled in a :any:`listen-on` statement. If you are interested in
+   enabling the PROXYv2 protocol support, you may also want to take a
+   look at :namedconf:ref:`allow-proxy` and
+   :namedconf:ref:`allow-proxy-on` options to adjust the corresponding
+   ACLs.
 
    If a TLS configuration is specified, :iscman:`named` will listen for DNS-over-TLS
    (DoT) connections, using the key and certificate specified in the

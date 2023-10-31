@@ -595,11 +595,17 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	isc_result_t result = ISC_R_SUCCESS, tresult;
 	int i = 0;
 
-	static const char *acls[] = {
-		"allow-query",		"allow-query-on", "allow-query-cache",
-		"allow-query-cache-on", "blackhole",	  "match-clients",
-		"match-destinations",	"sortlist",	  NULL
-	};
+	static const char *acls[] = { "allow-proxy",
+				      "allow-proxy-on",
+				      "allow-query",
+				      "allow-query-on",
+				      "allow-query-cache",
+				      "allow-query-cache-on",
+				      "blackhole",
+				      "match-clients",
+				      "match-destinations",
+				      "sortlist",
+				      NULL };
 
 	while (acls[i] != NULL) {
 		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
