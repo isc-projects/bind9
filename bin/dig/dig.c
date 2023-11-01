@@ -306,8 +306,7 @@ help(void) {
 	       "                 +[no]tls-keyfile=file (Load client TLS "
 	       "private key from file)\n"
 	       "                 +[no]trace          (Trace delegation down "
-	       "from root "
-	       "[+dnssec])\n"
+	       "from root [implies +dnssec])\n"
 	       "                 +tries=###          (Set number of UDP "
 	       "attempts) [3]\n"
 	       "                 +[no]ttlid          (Control display of ttls "
@@ -1670,6 +1669,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		switch (cmd[1]) {
 		case 'e': /* defname */
 			FULLCHECK("defname");
+			fprintf(stderr, ";; +[no]defname option is "
+					"deprecated; use +[no]search\n");
 			if (!lookup->trace) {
 				usesearch = state;
 			}
@@ -2044,12 +2045,11 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			goto invalid_option;
 		}
 		break;
-	case 'm': /* multiline */
+	case 'm':
 		switch (cmd[1]) {
 		case 'a':
 			FULLCHECK("mapped");
-			fprintf(stderr, ";; +mapped option is deprecated");
-			break;
+			fatal("+mapped option no longer supported");
 		case 'u':
 			FULLCHECK("multiline");
 			lookup->multiline = state;
@@ -2303,8 +2303,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			break;
 		case 'i': /* sigchase */
 			FULLCHECK("sigchase");
-			fprintf(stderr, ";; +sigchase option is deprecated");
-			break;
+			fatal("+sigchase option no longer supported");
 		case 'p': /* split */
 			FULLCHECK("split");
 			if (value != NULL && !state) {
@@ -2428,8 +2427,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			break;
 		case 'o':
 			FULLCHECK("topdown");
-			fprintf(stderr, ";; +topdown option is deprecated");
-			break;
+			fatal("+topdown option no longer supported");
 		case 'r':
 			switch (cmd[2]) {
 			case 'a': /* trace */
@@ -2470,9 +2468,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 				break;
 			case 'u': /* trusted-key */
 				FULLCHECK("trusted-key");
-				fprintf(stderr, ";; +trusted-key option is "
-						"deprecated");
-				break;
+				fatal("+trusted-key option "
+				      "no longer supported");
 			default:
 				goto invalid_option;
 			}
@@ -2509,9 +2506,8 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			switch (cmd[2]) {
 			case 'e':
 				FULLCHECK("unexpected");
-				fprintf(stderr, ";; +unexpected option "
-						"is deprecated");
-				break;
+				fatal("+unexpected option "
+				      "no longer supported");
 			case 'k':
 				FULLCHECK("unknownformat");
 				lookup->print_unknown_format = state;
@@ -2519,11 +2515,7 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 			default:
 				goto invalid_option;
 			}
-			break;
-		default:
-			goto invalid_option;
 		}
-
 		break;
 	case 'v':
 		FULLCHECK("vc");
@@ -2629,14 +2621,12 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			exit(0);
 			break;
 		case 'i':
-			/* deprecated */
-			break;
+			fatal("-%c removed", option[0]);
 		case 'm': /* memdebug */
 			/* memdebug is handled in preparse_args() */
 			break;
 		case 'n':
-			/* deprecated */
-			break;
+			fatal("-%c removed", option[0]);
 		case 'r':
 			debug("digrc (late)");
 			digrc = false;

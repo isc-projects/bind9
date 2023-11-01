@@ -53,8 +53,7 @@ export LC_ALL
 # 1. http://www.unicode.org/reports/tr46/#Deviations
 # 2. http://www.unicode.org/reports/tr46/#IDNAComparison
 
-# Using dig insecure mode as we are not testing DNSSEC here
-DIGCMD="$DIG -i -p ${PORT} @10.53.0.1"
+DIGCMD="$DIG -p ${PORT} @10.53.0.1"
 
 # Initialize test count and status return
 n=0
