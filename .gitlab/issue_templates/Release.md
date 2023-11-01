@@ -33,6 +33,7 @@
  - [ ] ***(QA)*** Rebase -S editions on top of current open-source versions: `git checkout bind-9.18-sub && git rebase origin/bind-9.18`
  - [ ] ***(QA)*** [Inform](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/inform_supp_marketing.py) Support and Marketing of impending release (and give estimated release dates).
  - [ ] ***(QA)*** Ensure there are no permanent test failures on any platform. Check [public](https://gitlab.isc.org/isc-projects/bind9/-/pipelines?scope=all&source=schedule) and [private](https://gitlab.isc.org/isc-private/bind9/-/pipelines?scope=all&source=schedule) scheduled pipelines.
+ - [ ] ***(QA)*** Check charts from `shotgun:*` jobs in the scheduled pipelines to verify there is no unexplained performance drop for any protocol.
  - [ ] ***(QA)*** Check [Perflab](https://perflab.isc.org/) to ensure there has been no unexplained drop in performance for the versions being released.
  - [ ] ***(QA)*** Check whether all issues assigned to the release milestone are resolved[^1].
  - [ ] ***(QA)*** Ensure that there are no outstanding [merge requests in the private repository](https://gitlab.isc.org/isc-private/bind9/-/merge_requests/)[^1] (Subscription Edition only).

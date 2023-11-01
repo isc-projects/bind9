@@ -340,6 +340,23 @@ stages:
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
 
+ci-variables:
+  stage: precheck
+  <<: *precheck_job
+  script:
+    - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
+    # When testing a .0 release, compare it against the previous development
+    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
+    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BASELINE_BRANCH=$((BIND_BASELINE_BRANCH - 1 - (BIND_BASELINE_BRANCH % 2))); fi
+    - BIND_BASELINE_VERSION="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BASELINE_BRANCH}&order_by=version" | jq -r ".[0].name")"
+    - echo "BIND_BASELINE_VERSION=$BIND_BASELINE_VERSION" >> ci_vars.env
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    reports:
+      dotenv: ci_vars.env
+
 cross-version-config-tests:
   stage: system
   <<: *base_image
@@ -354,13 +371,8 @@ cross-version-config-tests:
     - *configure
     - *setup_interfaces
     - make -j${BUILD_PARALLEL_JOBS:-1}
-    - export BIND_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
-    # When testing a .0 release, compare it against the previous development
-    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
-    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BRANCH=$((BIND_BRANCH - 1 - (BIND_BRANCH % 2))); fi
-    - BASELINE="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BRANCH}&order_by=version" | jq -r ".[0].name")"
-    - git clone --branch "${BASELINE}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BASELINE}"
-    - cd "bind-${BASELINE}"
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
+    - cd "bind-${BIND_BASELINE_VERSION}"
     - autoreconf -fi
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1}
@@ -375,6 +387,8 @@ cross-version-config-tests:
   needs:
     - job: autoreconf
       artifacts: true
+    - job: ci-variables
+      artifacts: true
   artifacts:
     reports:
       junit: junit.xml
@@ -388,6 +402,26 @@ cross-version-config-tests:
 .display_pytest_failures: &display_pytest_failures
     - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
     - awk '/^=+ ERRORS =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
+
+.shotgun: &shotgun_job
+  <<: *base_image
+  <<: *api_schedules_tags_triggers_web_triggering_rules
+  stage: performance
+  script:
+    - if [ -z "$CI_COMMIT_TAG" ]; then export SHOTGUN_ROUNDS=1; else export SHOTGUN_ROUNDS=3; fi
+    - PIPELINE_ID=$(curl -s -X POST --fail
+        -F "token=$CI_JOB_TOKEN"
+        -F ref=main
+        -F "variables[SHOTGUN_TEST_VERSION]=['$CI_COMMIT_REF_NAME', '$BIND_BASELINE_VERSION']"
+        -F "variables[SHOTGUN_DURATION]=300"
+        -F "variables[SHOTGUN_ROUNDS]=$SHOTGUN_ROUNDS"
+        -F "variables[SHOTGUN_TRAFFIC_MULTIPLIER]=$SHOTGUN_TRAFFIC_MULTIPLIER"
+        -F "variables[SHOTGUN_SCENARIO]=$SHOTGUN_SCENARIO"
+        https://gitlab.isc.org/api/v4/projects/188/trigger/pipeline | jq .id)
+    - util/ci-wait-shotgun.py $PIPELINE_ID
+  needs:
+    - job: ci-variables
+      artifacts: true
 
 .system_test_common: &system_test_common
   <<: *default_triggering_rules
@@ -1541,7 +1575,32 @@ respdiff-long-third-party:
   script:
     - bash respdiff.sh -s third_party -q "${PWD}/100k_mixed.txt" -c 1 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}"
 
-# "Stress" tests
+# Performance tests
+
+# Run shotgun:udp right away, but delay other shotgun jobs sligthly in order to
+# allow re-use of the built container image. Otherwise, the jobs would do the
+# same builds in parallel rather than re-use the already built image.
+shotgun:udp:
+  <<: *shotgun_job
+  variables:
+    SHOTGUN_SCENARIO: udp
+    SHOTGUN_TRAFFIC_MULTIPLIER: 15
+
+shotgun:tcp:
+  <<: *shotgun_job
+  variables:
+    SHOTGUN_SCENARIO: tcp
+    SHOTGUN_TRAFFIC_MULTIPLIER: 6
+  when: delayed
+  start_in: 5 minutes
+
+shotgun:dot:
+  <<: *shotgun_job
+  variables:
+    SHOTGUN_SCENARIO: dot
+    SHOTGUN_TRAFFIC_MULTIPLIER: 3
+  when: delayed
+  start_in: 5 minutes
 
 # Parallel build in the "make" step is avoided since multiple jobs can be
 # executed concurrently on the same runner. This may present problems when one
