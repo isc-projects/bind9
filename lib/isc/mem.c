@@ -1906,3 +1906,14 @@ isc__mem_printactive(isc_mem_t *ctx, FILE *file) {
 	UNUSED(file);
 #endif /* if ISC_MEM_TRACKLINES */
 }
+
+void *
+isc__mem_alloc_noctx(size_t size) {
+	return mallocx(size, 0);
+}
+
+void
+isc__mem_free_noctx(void *ptr, size_t size) {
+	ADJUST_ZERO_ALLOCATION_SIZE(size);
+	sdallocx(ptr, size, 0);
+}
