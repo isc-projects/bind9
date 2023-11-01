@@ -1378,10 +1378,6 @@ plus_option(char *option) {
 		fprintf(stderr, "Invalid option: +%s\n", option);
 		usage();
 	}
-
-	if (qmin && !fulltrace) {
-		fatal("'+qmin' cannot be used without '+ns'");
-	}
 	return;
 }
 
@@ -1728,6 +1724,11 @@ parse_args(int argc, char **argv) {
 				curqname = isc_mem_strdup(mctx, argv[0]);
 			}
 		}
+	}
+
+	/* check consistency */
+	if (qmin && !fulltrace) {
+		fatal("'+qmin' cannot be used without '+ns'");
 	}
 
 	/*
