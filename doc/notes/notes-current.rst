@@ -66,6 +66,10 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- :any:`max-cache-size` accidentally became ineffective in BIND 9.19.16.
+  This has been fixed and the option now behaves as documented again.
+  :gl:`#4340`
+
 - For inline-signing zones, if the unsigned version of the zone contains
   DNSSEC records, it was scheduled to be resigning. This unwanted behavior
   has been fixed. :gl:`#4350`
