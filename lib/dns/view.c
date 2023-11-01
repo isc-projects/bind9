@@ -929,29 +929,8 @@ db_find:
 		 */
 		result = ISC_R_NOTFOUND;
 	} else if (result == DNS_R_GLUE) {
-		if (view->cachedb != NULL && !is_staticstub_zone) {
-			/*
-			 * We found an answer, but the cache may be better.
-			 * Remember what we've got and go look in the cache.
-			 */
-			is_cache = true;
-			dns_rdataset_clone(rdataset, &zrdataset);
-			dns_rdataset_disassociate(rdataset);
-			if (sigrdataset != NULL &&
-			    dns_rdataset_isassociated(sigrdataset))
-			{
-				dns_rdataset_clone(sigrdataset, &zsigrdataset);
-				dns_rdataset_disassociate(sigrdataset);
-			}
-			dns_db_attach(db, &zdb);
-			dns_db_attachnode(zdb, node, &znode);
-			dns_db_detachnode(db, &node);
-			dns_db_detach(&db);
-			dns_db_attach(view->cachedb, &db);
-			goto db_find;
-		}
 		/*
-		 * Otherwise, the glue is the best answer.
+		 * Glue is the answer wanted.
 		 */
 		result = ISC_R_SUCCESS;
 	}

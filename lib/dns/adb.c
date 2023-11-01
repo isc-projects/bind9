@@ -2658,10 +2658,11 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype) {
 	 * any matching static-stub zone without looking into the cache to honor
 	 * the configuration on which server we should send queries to.
 	 */
-	result = dns_view_find(
-		adb->view, adbname->name, rdtype, now, DNS_DBFIND_GLUEOK, true,
-		((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0), NULL, NULL,
-		fname, &rdataset, NULL);
+	result =
+		dns_view_find(adb->view, adbname->name, rdtype, now,
+			      DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK, true,
+			      ((adbname->flags & DNS_ADBFIND_STARTATZONE) != 0),
+			      NULL, NULL, fname, &rdataset, NULL);
 
 	switch (result) {
 	case DNS_R_GLUE:
@@ -2964,6 +2965,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 	dns_rdataset_init(&rdataset);
 
 	options = DNS_FETCHOPT_NOVALIDATE;
+
 	if (start_at_zone) {
 		DP(ENTER_LEVEL, "fetch_name: starting at zone for name %p",
 		   adbname);
@@ -2976,6 +2978,11 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone, unsigned int depth,
 		}
 		nameservers = &rdataset;
 		options |= DNS_FETCHOPT_UNSHARED;
+	} else if (adb->view->qminimization) {
+		options |= DNS_FETCHOPT_QMINIMIZE | DNS_FETCHOPT_QMIN_SKIP_IP6A;
+		if (adb->view->qmin_strict) {
+			options |= DNS_FETCHOPT_QMIN_STRICT;
+		}
 	}
 
 	fetch = new_adbfetch(adb);

@@ -548,8 +548,11 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
  * Notes:
  *
  *\li	See the description of dns_db_find() for information about 'options'.
- *	If the caller sets #DNS_DBFIND_GLUEOK, it must ensure that 'name'
- *	and 'type' are appropriate for glue retrieval.
+
+ *\li	If the caller sets #DNS_DBFIND_GLUEOK, it must ensure that 'name'
+ *	and 'type' are appropriate for glue retrieval. Glue found in a
+ *	zone database will be returned without checking the cache for a
+ *	better answer.
  *
  *\li	If 'now' is zero, then the current time will be used.
  *
