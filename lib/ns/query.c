@@ -7319,19 +7319,8 @@ query_usestale(query_ctx_t *qctx, isc_result_t result) {
 	qctx_freedata(qctx);
 
 	if (dns_view_staleanswerenabled(qctx->client->view)) {
-		isc_result_t ret;
-		ret = query_getdb(qctx->client, qctx->client->query.qname,
-				  qctx->client->query.qtype, qctx->options,
-				  &qctx->zone, &qctx->db, &qctx->version,
-				  &qctx->is_zone);
-		if (ret != ISC_R_SUCCESS) {
-			/*
-			 * Failed to get the database, unexpected, but let us
-			 * at least abandon serve-stale.
-			 */
-			return (false);
-		}
-
+		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
+		qctx->version = NULL;
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
 		if (qctx->client->query.fetch != NULL) {
 			dns_resolver_destroyfetch(&qctx->client->query.fetch);
