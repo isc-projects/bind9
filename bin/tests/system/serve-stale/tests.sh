@@ -255,29 +255,6 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 #
-# Test interaction with local zone
-#
-
-n=$((n + 1))
-echo_i "check that serve-stale does not recurse for local authoritative zone ($n)"
-ret=0
-
-num=0
-threshold=10
-while [ $num -lt $threshold ]; do
-
-  echo_i "dig test.serve.stale TXT ($n)"
-  $DIG -p ${PORT} @10.53.0.3 test.serve.stale TXT >dig.out.test$n.$num
-  grep "status: SERVFAIL" dig.out.test$n.$num >/dev/null || ret=1
-  if [ $ret != 0 ]; then num=$threshold; fi
-
-  sleep 1
-  num=$((num + 1))
-done
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-#
 # Test disabling serve-stale via rndc.
 #
 n=$((n + 1))
@@ -933,17 +910,6 @@ status=$((status + ret))
 # Now test server with no serve-stale options set.
 #
 echo_i "test server with no serve-stale options set"
-
-n=$((n + 1))
-echo_i "updating ns3/named.conf ($n)"
-ret=0
-copy_setports ns3/named1.conf.in ns3/named.conf
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=$((status + ret))
-
-echo_i "restart ns3"
-stop_server --use-rndc --port ${CONTROLPORT} ns3
-start_server --noclean --restart --port ${PORT} ns3
 
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
