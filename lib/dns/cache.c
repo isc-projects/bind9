@@ -239,6 +239,13 @@ dns_cache_getname(dns_cache_t *cache) {
 	return (cache->name);
 }
 
+/* This is a no-op, but has to exist for isc_mem_setwater(). */
+static void
+water(void *arg, int mark) {
+	UNUSED(arg);
+	UNUSED(mark);
+}
+
 void
 dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	REQUIRE(VALID_CACHE(cache));
@@ -254,6 +261,14 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	LOCK(&cache->lock);
 	cache->size = size;
 	UNLOCK(&cache->lock);
+
+	size_t hi = size - (size >> 3); /* Approximately 7/8ths. */
+	size_t lo = size - (size >> 2); /* Approximately 3/4ths. */
+	if (size == 0U || hi == 0U || lo == 0U) {
+		isc_mem_clearwater(cache->mctx);
+	} else {
+		isc_mem_setwater(cache->mctx, water, cache, hi, lo);
+	}
 }
 
 size_t
