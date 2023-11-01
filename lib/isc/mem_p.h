@@ -26,6 +26,17 @@ isc__mem_printactive(isc_mem_t *mctx, FILE *file);
  * a single memory context.
  */
 
+void *
+isc__mem_alloc_noctx(size_t size);
+void
+isc__mem_free_noctx(void *ptr, size_t size);
+/*%<
+ * Allocate memory that is not associated with an isc_mem memory context.
+ *
+ * For use purely in the isc_trampoline unit, to avoid the need of copying
+ * multiple #ifdef lines from lib/isc/mem.c to lib/isc/trampoline.c.
+ */
+
 void
 isc__mem_checkdestroyed(void);
 

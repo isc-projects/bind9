@@ -22,6 +22,7 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
+#include "mem_p.h"
 #include "trampoline_p.h"
 
 #define ISC__TRAMPOLINE_UNUSED 0
@@ -148,7 +149,7 @@ isc__trampoline_detach(isc__trampoline_t *trampoline) {
 		isc__trampoline_min = trampoline->tid;
 	}
 
-	free(trampoline->jemalloc_enforce_init);
+	isc__mem_free_noctx(trampoline->jemalloc_enforce_init, 8);
 	free(trampoline);
 
 	uv_mutex_unlock(&isc__trampoline_lock);
@@ -174,7 +175,7 @@ isc__trampoline_attach(isc__trampoline_t *trampoline) {
 	 * so that an optimizing compiler does not strip away such a pair of
 	 * malloc() + free() calls altogether, as it would foil the fix.
 	 */
-	trampoline->jemalloc_enforce_init = malloc(8);
+	trampoline->jemalloc_enforce_init = isc__mem_alloc_noctx(8);
 	uv_mutex_unlock(&isc__trampoline_lock);
 }
 
