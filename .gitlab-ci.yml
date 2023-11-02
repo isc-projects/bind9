@@ -1397,16 +1397,16 @@ unit:clang:openbsd:amd64:
     - job: clang:openbsd:amd64
       artifacts: true
 
-# Job producing a release tarball
+# Job producing a release directory
 
 release:
   <<: *base_image
   stage: release
   script:
-    - export BIND_DIRECTORY="$(basename "$(find . -name "bind-*.tar.*" -printf "%f")" ".tar.${TARBALL_EXTENSION}")"
+    - export BIND_DIRECTORY="$(basename bind-*.tar.* ".tar.${TARBALL_EXTENSION}")"
     # Prepare release tarball contents (tarballs + documentation)
-    - mkdir -p release/doc/arm
-    - pushd release
+    - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
+    - pushd "${BIND_DIRECTORY}-release"
     - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" .
     - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
@@ -1416,8 +1416,6 @@ release:
     - mv "../doc/arm/_build/epub/Bv9ARM.epub" doc/arm/
     - echo '<!DOCTYPE HTML><html lang="en"><meta http-equiv="refresh" content="0; url=doc/arm/html/notes.html"><title>Redirect</title></html>' > "RELEASE-NOTES-${BIND_DIRECTORY}.html"
     - popd
-    # Create release tarball
-    - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
     - job: tarball-create
       artifacts: true
@@ -1429,8 +1427,50 @@ release:
     - tags
   artifacts:
     paths:
+      - "*-release"
+    expire_in: "1 month"
+
+# Job signing the source tarballs in the release directory
+
+sign:
+  stage: release
+  tags:
+    - signer
+  script:
+    - export RELEASE_DIRECTORY="$(echo *-release)"
+    - pushd "${RELEASE_DIRECTORY}"
+    - |
+      echo
+      cat > /tmp/sign-bind9.sh <<EOF
+      #!/bin/sh
+      {
+          for FILE in \$(find "${PWD}" -name "*.tar.xz" | sort); do
+              echo ">>> Signing \${FILE}..."
+              gpg2 --local-user "\${SIGNING_KEY_FINGERPRINT}" --armor --digest-algo SHA512 --detach-sign --output "\${FILE}.asc" "\${FILE}"
+          done
+      } 2>&1 | tee "${CI_PROJECT_DIR}/signing.log"
+      EOF
+      chmod +x /tmp/sign-bind9.sh
+      echo -e "\e[31m*** Please sign the releases by following the instructions at:\e[0m"
+      echo -e "\e[31m*** \e[0m"
+      echo -e "\e[31m*** ${SIGNING_HELP_URL}\e[0m"
+      echo -e "\e[31m*** \e[0m"
+      echo -e "\e[31m*** Sleeping until files in ${PWD} are signed... ⌛\e[0m"
+      while [ "$(find . -name "*.asc" -size +0 | sed "s|\.asc$||" | sort)" != "$(find . -name "*.tar.xz" | sort)" ]; do sleep 10; done
+    - popd
+    - tar --create --file="${RELEASE_DIRECTORY}.tar.gz" --gzip "${RELEASE_DIRECTORY}"
+  artifacts:
+    paths:
       - "*.tar.gz"
+      - signing.log
     expire_in: never
+  needs:
+    - job: release
+      artifacts: true
+  only:
+    - tags
+  when: manual
+  allow_failure: false
 
 # Coverity Scan analysis upload
 
