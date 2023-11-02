@@ -336,7 +336,6 @@ int
 main(int argc, char *argv[]) {
 	isc_result_t result;
 	dns_message_t *message = NULL;
-	isc_buffer_t *b = NULL;
 	dns_dtdata_t *dt = NULL;
 	dns_dthandle_t *handle = NULL;
 	int rv = 0, ch;
@@ -392,17 +391,8 @@ main(int argc, char *argv[]) {
 		input.base = data;
 		input.length = datalen;
 
-		if (b != NULL) {
-			isc_buffer_free(&b);
-		}
-		isc_buffer_allocate(mctx, &b, 2048);
-		if (b == NULL) {
-			fatal("out of memory");
-		}
-
 		result = dns_dt_parse(mctx, &input, &dt);
 		if (result != ISC_R_SUCCESS) {
-			isc_buffer_free(&b);
 			continue;
 		}
 
@@ -430,9 +420,6 @@ cleanup:
 	}
 	if (message != NULL) {
 		dns_message_detach(&message);
-	}
-	if (b != NULL) {
-		isc_buffer_free(&b);
 	}
 	isc_mem_destroy(&mctx);
 
