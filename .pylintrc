@@ -5,6 +5,7 @@ disable=
     C0115, # missing-class-docstring
     C0116, # missing-function-docstring
     C0209, # consider-using-f-string
+    C0301, # line-too-long, handled better by black
     C0415, # import-outside-toplevel
     R0801, # duplicate-code
     R0903, # too-few-public-methods
