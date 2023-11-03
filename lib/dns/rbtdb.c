@@ -10070,7 +10070,7 @@ rehash_bits(rbtdb_version_t *version, size_t newcount) {
 	uint32_t newbits = oldbits;
 
 	while (newcount >= HASHSIZE(newbits) &&
-	       newbits <= RBTDB_GLUE_TABLE_MAX_BITS)
+	       newbits < RBTDB_GLUE_TABLE_MAX_BITS)
 	{
 		newbits += 1;
 	}
