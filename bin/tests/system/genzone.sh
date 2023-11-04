@@ -478,7 +478,10 @@ amtrelay04		AMTRELAY 0 0 2 ::
 amtrelay05		AMTRELAY 0 0 3 example.net.
 amtrelay06		AMTRELAY \# 2 0004
 
-; type 261 -- 32767 (unassigned)
+; type 261
+resinfo			RESINFO	qnamemin exterr=15,16,17 infourl=https://resolver.example.com/guide
+
+; type 262 -- 32767 (unassigned)
 
 ; type 32768
 ta			TA	30795 1 1 (
