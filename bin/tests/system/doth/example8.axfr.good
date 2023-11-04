@@ -2621,6 +2621,7 @@ openpgpkey.example8.	3600	IN	OPENPGPKEY AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7
 ptr01.example8.		3600	IN	PTR	example8.
 px01.example8.		3600	IN	PX	65535 foo. bar.
 px02.example8.		3600	IN	PX	65535 . .
+resinfo.example8.	3600	IN	RESINFO	"qnamemin" "exterr=15,16,17" "infourl=https://resolver.example.com/guide"
 rkey01.example8.	3600	IN	RKEY	0 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
 rp01.example8.		3600	IN	RP	mbox-dname.example8. txt-dname.example8.
 rp02.example8.		3600	IN	RP	. .
