@@ -1852,7 +1852,7 @@ default is used.
    The default is five minutes. It cannot be longer than :any:`nta-lifetime`, which
    cannot be longer than a week.
 
-:any:`max-zone-ttl`
+.. namedconf:statement:: max-zone-ttl
    :tags: deprecated
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
@@ -6305,7 +6305,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     This is similar to :any:`signatures-validity`, but for DNSKEY records.
     The default is ``P2W`` (2 weeks).
 
-.. namedconf:statement:: max-zone-ttl
+:any:`max-zone-ttl`
    :tags: zone, query
    :short: Specifies a maximum permissible time-to-live (TTL) value, in seconds.
 
@@ -6320,7 +6320,6 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
    The default value ``PT24H`` (24 hours).  A value of zero is treated
    as if the default value were in use.
-
 
 .. namedconf:statement:: nsec3param
    :tags: dnssec
