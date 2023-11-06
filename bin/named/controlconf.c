@@ -91,7 +91,7 @@ struct controllistener {
 	isc_sockaddr_t address;
 	isc_nmsocket_t *sock;
 	dns_acl_t *acl;
-	bool exiting;
+	bool shuttingdown;
 	isc_refcount_t references;
 	controlkeylist_t keys;
 	controlconnectionlist_t connections;
@@ -119,6 +119,8 @@ static void
 conn_cleanup(controlconnection_t *conn);
 static void
 conn_free(controlconnection_t *conn);
+static void
+conn_shutdown(controlconnection_t *conn);
 
 #if NAMED_CONTROLCONF_TRACE
 #define controllistener_ref(ptr) \
@@ -147,6 +149,14 @@ ISC_REFCOUNT_DECL(controlconnection);
 
 #define CLOCKSKEW 300
 
+#define CHECK(x)                               \
+	{                                      \
+		result = (x);                  \
+		if (result != ISC_R_SUCCESS) { \
+			goto cleanup;          \
+		}                              \
+	}
+
 static void
 free_controlkey(controlkey_t *key, isc_mem_t *mctx) {
 	if (key->keyname != NULL) {
@@ -169,8 +179,7 @@ free_controlkeylist(controlkeylist_t *keylist, isc_mem_t *mctx) {
 
 static void
 free_listener(controllistener_t *listener) {
-	REQUIRE(isc_tid() == 0);
-	REQUIRE(listener->exiting);
+	REQUIRE(listener->shuttingdown);
 	REQUIRE(ISC_LIST_EMPTY(listener->connections));
 	REQUIRE(listener->sock == NULL);
 
@@ -193,28 +202,25 @@ ISC_REFCOUNT_IMPL(controlconnection, conn_free);
 
 static void
 shutdown_listener(controllistener_t *listener) {
-	REQUIRE(isc_tid() == 0);
-	if (!listener->exiting) {
-		char socktext[ISC_SOCKADDR_FORMATSIZE];
-
-		for (controlconnection_t *conn =
-			     ISC_LIST_HEAD(listener->connections);
-		     conn != NULL; conn = ISC_LIST_HEAD(listener->connections))
-		{
-			control_recvmessage(conn->ccmsg.handle,
-					    ISC_R_SHUTTINGDOWN, conn);
-		}
-
-		ISC_LIST_UNLINK(listener->controls->listeners, listener, link);
-
-		isc_sockaddr_format(&listener->address, socktext,
-				    sizeof(socktext));
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
-			      "stopping command channel on %s", socktext);
-
-		listener->exiting = true;
+	/* Don't shutdown the same listener twice */
+	if (listener->shuttingdown) {
+		return;
 	}
+	listener->shuttingdown = true;
+
+	for (controlconnection_t *conn = ISC_LIST_HEAD(listener->connections);
+	     conn != NULL; conn = ISC_LIST_HEAD(listener->connections))
+	{
+		conn_shutdown(conn);
+	}
+
+	ISC_LIST_UNLINK(listener->controls->listeners, listener, link);
+
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_format(&listener->address, socktext, sizeof(socktext));
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
+		      "stopping command channel on %s", socktext);
 
 	isc_nm_stoplistening(listener->sock);
 	isc_nmsocket_close(&listener->sock);
@@ -239,35 +245,35 @@ address_ok(isc_sockaddr_t *sockaddr, controllistener_t *listener) {
 static void
 control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
-	controllistener_t *listener = conn->listener;
-	isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
-	if (conn->result == ISC_R_SHUTTINGDOWN) {
-		isc_loopmgr_shutdown(named_g_loopmgr);
-		goto cleanup_sendhandle;
+	if (conn->shuttingdown) {
+		/* The connection is shuttingdown */
+		result = ISC_R_SHUTTINGDOWN;
 	}
 
-	if (listener->controls->shuttingdown || result == ISC_R_SHUTTINGDOWN) {
-		goto cleanup_sendhandle;
-	} else if (result != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
+		/* Everything is peachy, continue reading from the socket */
+		isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage,
+					conn);
+		goto done;
+	}
+
+	/* This is the error path */
+	if (result != ISC_R_SHUTTINGDOWN) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
+		isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
 
 		isc_sockaddr_format(&peeraddr, socktext, sizeof(socktext));
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "error sending command response to %s: %s",
 			      socktext, isc_result_totext(result));
-		goto cleanup_sendhandle;
 	}
 
-	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
+	conn_shutdown(conn);
 
-cleanup_sendhandle:
-	if (result != ISC_R_SUCCESS) {
-		control_recvmessage(handle, result, conn);
-	}
-
-	REQUIRE(isc_tid() == 0);
+done:
+	/* Detach the sending reference */
 	controlconnection_detach(&conn);
 }
 
@@ -374,7 +380,7 @@ control_respond(controlconnection_t *conn) {
 	r.base = conn->buffer->base;
 	r.length = conn->buffer->used;
 
-	REQUIRE(isc_tid() == 0);
+	/* Attach the sending reference */
 	controlconnection_ref(conn);
 	isccc_ccmsg_sendmessage(&conn->ccmsg, &r, control_senddone, conn);
 
@@ -385,15 +391,33 @@ cleanup:
 static void
 control_command(void *arg) {
 	controlconnection_t *conn = (controlconnection_t *)arg;
-	controllistener_t *listener = conn->listener;
 
-	if (!listener->controls->shuttingdown) {
+	/* Don't run the command if we already started the shutdown */
+	if (!conn->shuttingdown) {
 		conn->result = named_control_docommand(
-			conn->request, listener->readonly, &conn->text);
+			conn->request, conn->listener->readonly, &conn->text);
 		control_respond(conn);
 	}
 
-	REQUIRE(isc_tid() == 0);
+	/* Detach the control command reference */
+	controlconnection_detach(&conn);
+}
+
+static void
+conn_shutdown(controlconnection_t *conn) {
+	/* Don't shutdown the same controlconnection twice */
+	if (conn->shuttingdown) {
+		return;
+	}
+	conn->shuttingdown = true;
+
+	/*
+	 * Calling invalidate on ccmsg will shutdown the TCP connection, thus
+	 * we are making sure that no read callback will be called ever again.
+	 */
+	isccc_ccmsg_invalidate(&conn->ccmsg);
+
+	/* Detach the reading reference */
 	controlconnection_detach(&conn);
 }
 
@@ -407,19 +431,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	isccc_time_t exp;
 	uint32_t nonce;
 
-	INSIST(!conn->shuttingdown);
-
-	/* Is the server shutting down? */
-	if (listener->controls->shuttingdown) {
-		result = ISC_R_SHUTTINGDOWN;
-	}
-
 	if (result != ISC_R_SUCCESS) {
-		if (result == ISC_R_SHUTTINGDOWN) {
-			listener->controls->shuttingdown = true;
-		} else if (result != ISC_R_EOF) {
-			log_invalid(&conn->ccmsg, result);
-		}
 		goto cleanup;
 	}
 
@@ -445,13 +457,13 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	}
 
 	if (key == NULL) {
-		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
+		result = ISCCC_R_BADAUTH;
 		goto cleanup;
 	}
 
 	/* We shouldn't be getting a reply. */
 	if (isccc_cc_isreply(conn->request)) {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
@@ -462,7 +474,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	 */
 	conn->ctrl = isccc_alist_lookup(conn->request, "_ctrl");
 	if (!isccc_alist_alistp(conn->ctrl)) {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
@@ -470,11 +482,11 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		if ((sent + CLOCKSKEW) < conn->now ||
 		    (sent - CLOCKSKEW) > conn->now)
 		{
-			log_invalid(&conn->ccmsg, ISCCC_R_CLOCKSKEW);
+			result = ISCCC_R_CLOCKSKEW;
 			goto cleanup;
 		}
 	} else {
-		log_invalid(&conn->ccmsg, ISC_R_FAILURE);
+		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
 
@@ -484,7 +496,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	if (isccc_cc_lookupuint32(conn->ctrl, "_exp", &exp) == ISC_R_SUCCESS &&
 	    conn->now > exp)
 	{
-		log_invalid(&conn->ccmsg, ISCCC_R_EXPIRED);
+		result = ISCCC_R_EXPIRED;
 		goto cleanup;
 	}
 
@@ -500,7 +512,6 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		if (result == ISC_R_EXISTS) {
 			result = ISCCC_R_DUPLICATE;
 		}
-		log_invalid(&conn->ccmsg, result);
 		goto cleanup;
 	}
 
@@ -509,7 +520,7 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		     ISC_R_SUCCESS ||
 	     conn->nonce != nonce))
 	{
-		log_invalid(&conn->ccmsg, ISCCC_R_BADAUTH);
+		result = ISCCC_R_BADAUTH;
 		goto cleanup;
 	}
 
@@ -527,28 +538,33 @@ control_recvmessage(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		return;
 	}
 
-	/*
-	 * Trigger the command.
-	 */
-	REQUIRE(isc_tid() == 0);
+	/* Attach the command reference */
 	controlconnection_ref(conn);
+
+	/* Trigger the command asynchronously. */
 	isc_async_run(named_g_mainloop, control_command, conn);
 
 	return;
 
 cleanup:
-	/* Make sure no read callbacks are called again */
-	isccc_ccmsg_invalidate(&conn->ccmsg);
+	switch (result) {
+	case ISC_R_SHUTTINGDOWN:
+	case ISC_R_EOF:
+		break;
+	default:
+		/* We can't get here on normal path */
+		INSIST(result != ISC_R_SUCCESS);
 
-	conn->shuttingdown = true;
+		log_invalid(&conn->ccmsg, result);
+	}
 
-	REQUIRE(isc_tid() == 0);
-	controlconnection_detach(&conn);
+	conn_shutdown(conn);
 }
 
 static void
 conn_free(controlconnection_t *conn) {
-	REQUIRE(isc_tid() == 0);
+	/* Make sure that the connection was shutdown first */
+	REQUIRE(conn->shuttingdown);
 
 	controllistener_t *listener = conn->listener;
 
@@ -576,17 +592,26 @@ conn_free(controlconnection_t *conn) {
 
 static void
 newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
-	REQUIRE(isc_tid() == 0);
+	/* Don't create new connection if we are shutting down */
+	if (listener->shuttingdown) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
+			      "rejected new control connection: %s",
+			      isc_result_totext(ISC_R_SHUTTINGDOWN));
+		return;
+	}
 
 	controlconnection_t *conn = isc_mem_get(listener->mctx, sizeof(*conn));
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_CONTROL, ISC_LOG_DEBUG(3),
 		      "allocate new control connection");
 
-	*conn = (controlconnection_t){ .alg = DST_ALG_UNKNOWN };
-
-	isc_refcount_init(&conn->references, 1);
-	controllistener_attach(listener, &conn->listener);
+	*conn = (controlconnection_t){
+		.alg = DST_ALG_UNKNOWN,
+		.references = ISC_REFCOUNT_INITIALIZER(1),
+		.listener = controllistener_ref(listener),
+		.link = ISC_LINK_INITIALIZER,
+	};
 
 	/* isccc_ccmsg_init() attaches to the handle */
 	isccc_ccmsg_init(listener->mctx, handle, &conn->ccmsg);
@@ -594,8 +619,9 @@ newconnection(controllistener_t *listener, isc_nmhandle_t *handle) {
 	/* Set a 32 KiB upper limit on incoming message. */
 	isccc_ccmsg_setmaxsize(&conn->ccmsg, 32768);
 
-	ISC_LIST_INITANDAPPEND(listener->connections, conn, link);
+	ISC_LIST_APPEND(listener->connections, conn, link);
 
+	/* The reading reference has been initialized in the initializer */
 	isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage, conn);
 }
 
@@ -635,8 +661,7 @@ controls_shutdown(named_controls_t *controls) {
 	     listener = next)
 	{
 		/*
-		 * This is asynchronous.  As listeners shut down, they will
-		 * call their callbacks.
+		 * As listeners shut down, they will call their callbacks.
 		 */
 		next = ISC_LIST_NEXT(listener, link);
 		shutdown_listener(listener);
@@ -645,8 +670,20 @@ controls_shutdown(named_controls_t *controls) {
 
 void
 named_controls_shutdown(named_controls_t *controls) {
-	controls_shutdown(controls);
+	/*
+	 * Don't ever shutdown the controls twice.
+	 *
+	 * NOTE: This functions is called when the server is shutting down, but
+	 * controls_shutdown() can and will be called multiple times - on each
+	 * reconfiguration, the listeners will be torn down and recreated again,
+	 * see named_controls_configure() for details.
+	 */
+	if (controls->shuttingdown) {
+		return;
+	}
 	controls->shuttingdown = true;
+
+	controls_shutdown(controls);
 }
 
 static isc_result_t
@@ -774,14 +811,6 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 		}
 	}
 }
-
-#define CHECK(x)                               \
-	do {                                   \
-		result = (x);                  \
-		if (result != ISC_R_SUCCESS) { \
-			goto cleanup;          \
-		}                              \
-	} while (0)
 
 static isc_result_t
 get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
@@ -1042,6 +1071,12 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	isc_result_t result = ISC_R_SUCCESS;
 	int pf;
 
+	/* Don't create new listener if we are shutting down */
+	if (cp->shuttingdown) {
+		result = ISC_R_SHUTTINGDOWN;
+		goto shuttingdown;
+	}
+
 	listener = isc_mem_get(mctx, sizeof(*listener));
 	*listener = (controllistener_t){ .controls = cp,
 					 .address = *addr,
@@ -1112,9 +1147,10 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 
 cleanup:
 	isc_refcount_decrement(&listener->references);
-	listener->exiting = true;
+	listener->shuttingdown = true;
 	free_listener(listener);
 
+shuttingdown:
 	if (control != NULL) {
 		cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
 			    "couldn't add command channel %s: %s", socktext,
@@ -1332,6 +1368,7 @@ named_controls_destroy(named_controls_t **ctrlsp) {
 	named_controls_t *controls = *ctrlsp;
 	*ctrlsp = NULL;
 
+	REQUIRE(controls->shuttingdown);
 	REQUIRE(ISC_LIST_EMPTY(controls->listeners));
 
 	LOCK(&controls->symtab_lock);
