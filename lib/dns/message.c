@@ -2707,11 +2707,16 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(opt->type == dns_rdatatype_opt);
+	REQUIRE(opt == NULL || DNS_RDATASET_VALID(opt));
+	REQUIRE(opt == NULL || opt->type == dns_rdatatype_opt);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 
 	msgresetopt(msg);
+
+	if (opt == NULL) {
+		return (ISC_R_SUCCESS);
+	}
 
 	result = dns_rdataset_first(opt);
 	if (result != ISC_R_SUCCESS) {

@@ -1114,14 +1114,14 @@ dns_message_getopt(dns_message_t *msg);
 isc_result_t
 dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
 /*%<
- * Set the OPT record for 'msg'.
+ * Set/clear the OPT record for 'msg'.
  *
  * Requires:
  *
  *\li	'msg' is a valid message with rendering intent
  *	and no sections have been rendered.
  *
- *\li	'opt' is a valid OPT record.
+ *\li	'opt' is a valid OPT record or NULL.
  *
  * Ensures:
  *
