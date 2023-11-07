@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include <isc/ascii.h>
+#include <isc/atomic.h>
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
@@ -87,7 +88,7 @@ struct isc_hashmap {
 	isc_mem_t *mctx;
 	size_t count;
 	hashmap_table_t tables[HASHMAP_NUM_TABLES];
-	uint_fast32_t iterators;
+	atomic_uint_fast32_t iterators;
 };
 
 struct isc_hashmap_iter {
@@ -352,7 +353,7 @@ hashmap_rehash_one(isc_hashmap_t *hashmap) {
 	hashmap_node_t node;
 
 	/* Don't rehash when iterating */
-	INSIST(hashmap->iterators == 0);
+	INSIST(atomic_load_acquire(&hashmap->iterators) == 0);
 
 	/* Find first non-empty node */
 	while (hashmap->hiter < oldsize && oldtable[hashmap->hiter].key == NULL)
@@ -506,7 +507,7 @@ hashmap_add(isc_hashmap_t *hashmap, const uint32_t hashval,
 	hashmap_node_t *current = NULL;
 	uint32_t pos;
 
-	INSIST(hashmap->iterators == 0);
+	INSIST(atomic_load_acquire(&hashmap->iterators) == 0);
 
 	hash = isc_hash_bits32(hashval, hashmap->tables[idx].hashbits);
 
@@ -605,7 +606,7 @@ isc_hashmap_iter_create(isc_hashmap_t *hashmap, isc_hashmap_iter_t **iterp) {
 		.hindex = hashmap->hindex,
 	};
 
-	hashmap->iterators++;
+	(void)atomic_fetch_add_release(&hashmap->iterators, 1);
 
 	*iterp = iter;
 }
@@ -622,8 +623,7 @@ isc_hashmap_iter_destroy(isc_hashmap_iter_t **iterp) {
 	hashmap = iter->hashmap;
 	isc_mem_put(hashmap->mctx, iter, sizeof(*iter));
 
-	INSIST(hashmap->iterators > 0);
-	hashmap->iterators--;
+	INSIST(atomic_fetch_sub_release(&hashmap->iterators, 1) > 0);
 }
 
 static isc_result_t
