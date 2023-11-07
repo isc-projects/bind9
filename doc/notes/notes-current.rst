@@ -27,6 +27,9 @@ Removed Features
 
 - None.
 
+- The support for AES algorithm for DNS cookies has been deprecated.
+  :gl:`#4421`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 
