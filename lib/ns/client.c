@@ -15,7 +15,6 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include <isc/aes.h>
 #include <isc/async.h>
 #include <isc/atomic.h>
 #include <isc/formatcheck.h>
@@ -23,7 +22,6 @@
 #include <isc/hmac.h>
 #include <isc/log.h>
 #include <isc/mutex.h>
-#include <isc/nonce.h>
 #include <isc/once.h>
 #include <isc/random.h>
 #include <isc/safe.h>
@@ -122,8 +120,8 @@ clientmgr_destroy_cb(void *arg);
 static void
 ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static void
-compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
-	       const unsigned char *secret, isc_buffer_t *buf);
+compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
+	       isc_buffer_t *buf);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -1006,14 +1004,11 @@ no_nsid:
 	if ((client->attributes & NS_CLIENTATTR_WANTCOOKIE) != 0) {
 		isc_buffer_t buf;
 		isc_stdtime_t now = isc_stdtime_now();
-		uint32_t nonce;
 
 		isc_buffer_init(&buf, cookie, sizeof(cookie));
 
-		isc_random_buf(&nonce, sizeof(nonce));
-
-		compute_cookie(client, now, nonce,
-			       client->manager->sctx->secret, &buf);
+		compute_cookie(client, now, client->manager->sctx->secret,
+			       &buf);
 
 		INSIST(count < DNS_EDNSOPTIONS);
 		ednsopts[count].code = DNS_OPT_COOKIE;
@@ -1145,12 +1140,10 @@ no_nsid:
 }
 
 static void
-compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
-	       const unsigned char *secret, isc_buffer_t *buf) {
+compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
+	       isc_buffer_t *buf) {
 	unsigned char digest[ISC_MAX_MD_SIZE] ISC_NONSTRING = { 0 };
 	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_SIPHASH24_TAG_LENGTH,
-		      "You need to increase the digest buffer.");
-	STATIC_ASSERT(ISC_MAX_MD_SIZE >= ISC_AES_BLOCK_LENGTH,
 		      "You need to increase the digest buffer.");
 
 	switch (client->manager->sctx->cookiealg) {
@@ -1188,48 +1181,6 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		isc_buffer_putmem(buf, digest, 8);
 		break;
 	}
-	case ns_cookiealg_aes: {
-		unsigned char input[4 + 4 + 16] ISC_NONSTRING = { 0 };
-		isc_netaddr_t netaddr;
-		unsigned char *cp;
-		unsigned int i;
-
-		isc_buffer_putmem(buf, client->cookie, 8);
-		isc_buffer_putuint32(buf, nonce);
-		isc_buffer_putuint32(buf, when);
-		memmove(input, (unsigned char *)isc_buffer_used(buf) - 16, 16);
-		isc_aes128_crypt(secret, input, digest);
-		for (i = 0; i < 8; i++) {
-			input[i] = digest[i] ^ digest[i + 8];
-		}
-		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-		switch (netaddr.family) {
-		case AF_INET:
-			cp = (unsigned char *)&netaddr.type.in;
-			memmove(input + 8, cp, 4);
-			memset(input + 12, 0, 4);
-			isc_aes128_crypt(secret, input, digest);
-			break;
-		case AF_INET6:
-			cp = (unsigned char *)&netaddr.type.in6;
-			memmove(input + 8, cp, 16);
-			isc_aes128_crypt(secret, input, digest);
-			for (i = 0; i < 8; i++) {
-				input[i + 8] = digest[i] ^ digest[i + 8];
-			}
-			isc_aes128_crypt(client->manager->sctx->secret,
-					 input + 8, digest);
-			break;
-		default:
-			UNREACHABLE();
-		}
-		for (i = 0; i < 8; i++) {
-			digest[i] ^= digest[i + 8];
-		}
-		isc_buffer_putmem(buf, digest, 8);
-		break;
-	}
-
 	default:
 		UNREACHABLE();
 	}
@@ -1242,7 +1193,6 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	unsigned char *old;
 	isc_stdtime_t now;
 	uint32_t when;
-	uint32_t nonce;
 	isc_buffer_t db;
 
 	/*
@@ -1285,7 +1235,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	old = isc_buffer_current(buf);
 	memmove(client->cookie, old, 8);
 	isc_buffer_forward(buf, 8);
-	nonce = isc_buffer_getuint32(buf);
+	isc_buffer_forward(buf, 4); /* version + reserved */
 	when = isc_buffer_getuint32(buf);
 	isc_buffer_forward(buf, 8);
 
@@ -1304,7 +1254,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	}
 
 	isc_buffer_init(&db, dbuf, sizeof(dbuf));
-	compute_cookie(client, when, nonce, client->manager->sctx->secret, &db);
+	compute_cookie(client, when, client->manager->sctx->secret, &db);
 
 	if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
 		ns_stats_increment(client->manager->sctx->nsstats,
@@ -1317,7 +1267,7 @@ process_cookie(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	     altsecret != NULL; altsecret = ISC_LIST_NEXT(altsecret, link))
 	{
 		isc_buffer_init(&db, dbuf, sizeof(dbuf));
-		compute_cookie(client, when, nonce, altsecret->secret, &db);
+		compute_cookie(client, when, altsecret->secret, &db);
 		if (isc_safe_memequal(old, dbuf, COOKIE_SIZE)) {
 			ns_stats_increment(client->manager->sctx->nsstats,
 					   ns_statscounter_cookiematch);

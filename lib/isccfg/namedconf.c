@@ -1082,7 +1082,7 @@ static cfg_type_t cfg_type_bracketed_portlist = { "bracketed_portlist",
 						  &cfg_rep_list,
 						  &cfg_type_portrange };
 
-static const char *cookiealg_enums[] = { "aes", "siphash24", NULL };
+static const char *cookiealg_enums[] = { "siphash24", NULL };
 static cfg_type_t cfg_type_cookiealg = { "cookiealg",	    cfg_parse_enum,
 					 cfg_print_ustring, cfg_doc_enum,
 					 &cfg_rep_string,   &cookiealg_enums };

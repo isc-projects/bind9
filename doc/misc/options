@@ -92,7 +92,7 @@ options {
 	check-svcb <boolean>;
 	check-wildcard <boolean>;
 	clients-per-query <integer>;
-	cookie-algorithm ( aes | siphash24 );
+	cookie-algorithm ( siphash24 );
 	cookie-secret <string>; // may occur multiple times
 	deny-answer-addresses { <address_match_element>; ... } [ except-from { <string>; ... } ];
 	deny-answer-aliases { <string>; ... } [ except-from { <string>; ... } ];

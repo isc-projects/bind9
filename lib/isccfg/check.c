@@ -25,7 +25,6 @@
 #include <fstrm.h>
 #endif
 
-#include <isc/aes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/dir.h>
@@ -1563,7 +1562,11 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 		ccalg = cfg_obj_asstring(obj);
 		if (strcasecmp(ccalg, "aes") == 0) {
 			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-				    "cookie-algorithm 'aes' is deprecated");
+				    "cookie-algorithm 'aes' is obsolete and "
+				    "should be removed");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
 		}
 	}
 
@@ -1599,16 +1602,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 			}
 
 			usedlength = isc_buffer_usedlength(&b);
-			if (strcasecmp(ccalg, "aes") == 0 &&
-			    usedlength != ISC_AES128_KEYLENGTH)
-			{
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "AES cookie-secret must be 128 "
-					    "bits");
-				if (result == ISC_R_SUCCESS) {
-					result = ISC_R_RANGE;
-				}
-			}
 			if (strcasecmp(ccalg, "siphash24") == 0 &&
 			    usedlength != ISC_SIPHASH24_KEY_LENGTH)
 			{
