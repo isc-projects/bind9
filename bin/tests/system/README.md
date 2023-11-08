@@ -114,6 +114,13 @@ Alternately, using the make command is also supported:
 
     make [-j numproc] test
 
+### rr
+
+When running system tests, named can be run under the rr tool. rr records a
+trace to the $system_test/nsX/named-Y/ directory, which can be later used to
+replay named. To enable this, execute start.pl with the USE_RR environment
+variable set.
+
 ### Test Artifacts
 
 Each test module is executed inside a unique temporary directory which contains
