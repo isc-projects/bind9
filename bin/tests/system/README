@@ -710,6 +710,14 @@ or SEQUENTIAL variables.
 need to edit multiple files to add a test.)
 
 
+rr
+---
+
+When running system tests, named can be run under the rr tool. rr records a
+trace to the $system_test/nsX/named-Y/ directory, which can be later used to
+replay named. To enable this, execute start.pl with the USE_RR environment
+variable set.
+
 Developer Notes for pytest runner
 ===
 
