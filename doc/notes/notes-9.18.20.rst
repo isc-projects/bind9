@@ -12,25 +12,8 @@
 Notes for BIND 9.18.20
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
   :gl:`#4101`
