@@ -43,7 +43,9 @@
 6268.	[func]		Offload the IXFR and AXFR processing to unblock
 			the networking threads. [GL #4367]
 
-6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
+6267.	[func]		The timeouts for resending zone refresh queries over UDP
+			were lowered to enable named to more quickly determine
+			that a primary is down. [GL #4260]
 
 6266.	[func]		The zone option 'inline-signing' is ignored from now
 			on iff there is no 'dnssec-policy' configured for the
