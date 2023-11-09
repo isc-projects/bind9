@@ -1,3 +1,9 @@
+6284.	[bug]		Fix a catz db update notification callback registration
+			logic error, which could cause an assertion failure when
+			receiving an AXFR update for a catalog zone while the
+			previous update process of the catalog zone was already
+			running. [GL #4418]
+
 6283.	[bug]		Fix a data race in isc_hashmap by using atomics for the
 			iterators number. [GL !8474]
 
