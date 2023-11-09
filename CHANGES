@@ -1,3 +1,5 @@
+	--- 9.19.18 released ---
+
 6280.	[bug]		Fix missing newlines in the output of "rndc nta -dump".
 			[GL !8454]
 
