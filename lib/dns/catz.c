@@ -2493,15 +2493,6 @@ dns__catz_update_cb(void *data) {
 		      ISC_LOG_DEBUG(3),
 		      "catz: update_from_db: new zone merged");
 
-	/*
-	 * When we're doing reconfig and setting a new catalog zone
-	 * from an existing zone we won't have a chance to set up
-	 * update callback in zone_startload or axfr_makedb, but we will
-	 * call onupdate() artificially so we can register the callback here.
-	 */
-	dns_db_updatenotify_register(updb, dns_catz_dbupdate_callback,
-				     oldcatz->catzs);
-
 exit:
 	catz->updateresult = result;
 }
