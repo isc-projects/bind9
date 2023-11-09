@@ -15,51 +15,51 @@ Notes for BIND 9.19.18
 New Features
 ~~~~~~~~~~~~
 
-- The statstics channel now includes information about incoming zone transfers
-  currently in progress. :gl:`#3883`
+- The statistics channel now includes information about incoming zone
+  transfers that are currently in progress. :gl:`#3883`
 
-- The new :any:`resolver-use-dns64` option enables ``named`` to apply
-  :any:`dns64` rules to IPv4 server addresses when sending recursive
-  queries, so that resolution can be performed over a NAT64 connection.
-  :gl:`#608`
+- The new :any:`resolver-use-dns64` option enables :iscman:`named` to
+  apply :any:`dns64` rules to IPv4 server addresses when sending
+  recursive queries, so that resolution can be performed over a NAT64
+  connection. :gl:`#608`
 
-- Processing large incremental transfers (IXFR) can take a long time.
-  Offload the processing to a separate work thread that doesn't block
-  networking threads and keeps them free to process regular traffic.
-  :gl:`#4367`
+- Processing large incremental transfers (IXFR) has been offloaded to a
+  separate work thread so that it does not prevent networking threads
+  from processing regular traffic in the meantime. :gl:`#4367`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- Configuring control channel to use Unix Domain Socket has an fatal error since
-  BIND 9.18.  Completely remove the feature and make ``named-checkconf`` also
-  report this as an error in the configuration. :gl:`#4311`
+- Configuring the control channel to use a Unix domain socket has been a
+  fatal error since BIND 9.18. The feature has now been completely
+  removed and :iscman:`named-checkconf` now reports it as a
+  configuration error. :gl:`#4311`
 
-  The support for control channel over Unix Domain Sockets has been
-  non-functional since BIND 9.18
+- Support for the ``lock-file`` statement and the ``named -X``
+  command-line option has been removed. An external process supervisor
+  should be used instead. :gl:`#4391`
 
-- Support for specifying ``lock-file`` via configuration and via the
-  :option:`named -X` command line option has been removed. An external process
-  supervisor should be used instead.  :gl:`#4391`
+  Alternatively, the ``flock`` utility (part of util-linux) can be used
+  on Linux systems to achieve the same effect as ``lock-file`` or
+  ``named -X``:
 
-  Alternatively :program:`flock` can be used to achieve the same effect as the
-  removed configuration/argument:
+  ::
 
-    flock -n -x <dir>/named.lock <path>/named <args>
+    flock -n -x <directory>/named.lock <path>/named <arguments>
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The zone option :any:`inline-signing` is now ignored if there is no
+- The :any:`inline-signing` zone option is now ignored if there is no
   :any:`dnssec-policy` configured for the zone. This means that unsigned
-  zones will no longer create redundant signed versions of the zone.
+  zones no longer create redundant signed versions of the zone.
   :gl:`#4349`
 
-- B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
-  :gl:`#4101`
+- The IP addresses for B.ROOT-SERVERS.NET have been updated to
+  170.247.170.2 and 2801:1b8:10::b. :gl:`#4101`
 
 - QNAME minimization is now used when looking up the addresses of name
-  servers during the recursion process. :gl:`#4209`
+  servers during the recursive resolution process. :gl:`#4209`
 
 Bug Fixes
 ~~~~~~~~~
@@ -68,12 +68,12 @@ Bug Fixes
   This has been fixed and the option now behaves as documented again.
   :gl:`#4340`
 
-- For inline-signing zones, if the unsigned version of the zone contains
-  DNSSEC records, it was scheduled to be resigning. This unwanted behavior
-  has been fixed. :gl:`#4350`
+- If the unsigned version of an inline-signed zone contained DNSSEC
+  records, it was incorrectly scheduled for resigning. This has been
+  fixed. :gl:`#4350`
 
-- Looking up stale data from the cache did not take into account local
-  authoritative zones. This has been fixed. :gl:`#4355`
+- Looking up stale data from the cache did not take local authoritative
+  data into account. This has been fixed. :gl:`#4355`
 
 Known Issues
 ~~~~~~~~~~~~
