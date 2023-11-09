@@ -15,25 +15,26 @@ Notes for BIND 9.18.20
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
-  :gl:`#4101`
+- The IP addresses for B.ROOT-SERVERS.NET have been updated to
+  170.247.170.2 and 2801:1b8:10::b. :gl:`#4101`
 
 Bug Fixes
 ~~~~~~~~~
 
-- For inline-signing zones, if the unsigned version of the zone contains
-  DNSSEC records, it was scheduled to be resigning. This unwanted behavior
-  has been fixed. :gl:`#4350`
+- If the unsigned version of an inline-signed zone contained DNSSEC
+  records, it was incorrectly scheduled for resigning. This has been
+  fixed. :gl:`#4350`
 
-- The :any:`lock-file` file was being removed when it shouldn't
-  have been making it ineffective if named was started 3 or more
-  times. :gl:`#4387`
+- The :any:`lock-file` file was being removed when it should not have
+  been, making the statement ineffective when :iscman:`named` was
+  started three or more times. This has been fixed. :gl:`#4387`
 
-- When :any:`lock-file` was used at the same time as :option:`named -X`, the
-  assertion failure would be triggered.  This has been fixed. :gl:`#4386`
+- An assertion failure was triggered when :any:`lock-file` was used at
+  the same time as the :option:`named -X` command-line option. This has
+  been fixed. :gl:`#4386`
 
-- Looking up stale data from the cache did not take into account local
-  authoritative zones. This has been fixed. :gl:`#4355`
+- Looking up stale data from the cache did not take local authoritative
+  data into account. This has been fixed. :gl:`#4355`
 
 Known Issues
 ~~~~~~~~~~~~
