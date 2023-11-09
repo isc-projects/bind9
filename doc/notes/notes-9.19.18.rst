@@ -23,17 +23,8 @@ New Features
   recursive queries, so that resolution can be performed over a NAT64
   connection. :gl:`#608`
 
-- Processing large incremental transfers (IXFR) has been offloaded to a
-  separate work thread so that it does not prevent networking threads
-  from processing regular traffic in the meantime. :gl:`#4367`
-
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- Configuring the control channel to use a Unix domain socket has been a
-  fatal error since BIND 9.18. The feature has now been completely
-  removed and :iscman:`named-checkconf` now reports it as a
-  configuration error. :gl:`#4311`
 
 - Support for the ``lock-file`` statement and the ``named -X``
   command-line option has been removed. An external process supervisor
@@ -47,8 +38,20 @@ Removed Features
 
     flock -n -x <directory>/named.lock <path>/named <arguments>
 
+- Configuring the control channel to use a Unix domain socket has been a
+  fatal error since BIND 9.18. The feature has now been completely
+  removed and :iscman:`named-checkconf` now reports it as a
+  configuration error. :gl:`#4311`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
+
+- Processing large incremental transfers (IXFR) has been offloaded to a
+  separate work thread so that it does not prevent networking threads
+  from processing regular traffic in the meantime. :gl:`#4367`
+
+- QNAME minimization is now used when looking up the addresses of name
+  servers during the recursive resolution process. :gl:`#4209`
 
 - The :any:`inline-signing` zone option is now ignored if there is no
   :any:`dnssec-policy` configured for the zone. This means that unsigned
@@ -57,9 +60,6 @@ Feature Changes
 
 - The IP addresses for B.ROOT-SERVERS.NET have been updated to
   170.247.170.2 and 2801:1b8:10::b. :gl:`#4101`
-
-- QNAME minimization is now used when looking up the addresses of name
-  servers during the recursive resolution process. :gl:`#4209`
 
 Bug Fixes
 ~~~~~~~~~
