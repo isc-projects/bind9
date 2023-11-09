@@ -25,16 +25,16 @@ Bug Fixes
   records, it was incorrectly scheduled for resigning. This has been
   fixed. :gl:`#4350`
 
-- The :any:`lock-file` file was being removed when it should not have
-  been, making the statement ineffective when :iscman:`named` was
-  started three or more times. This has been fixed. :gl:`#4387`
+- Looking up stale data from the cache did not take local authoritative
+  data into account. This has been fixed. :gl:`#4355`
 
 - An assertion failure was triggered when :any:`lock-file` was used at
   the same time as the :option:`named -X` command-line option. This has
   been fixed. :gl:`#4386`
 
-- Looking up stale data from the cache did not take local authoritative
-  data into account. This has been fixed. :gl:`#4355`
+- The :any:`lock-file` file was being removed when it should not have
+  been, making the statement ineffective when :iscman:`named` was
+  started three or more times. This has been fixed. :gl:`#4387`
 
 Known Issues
 ~~~~~~~~~~~~
