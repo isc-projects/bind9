@@ -305,8 +305,7 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		fatal("recv failed: %s", isc_result_totext(result));
 	}
 
-	source.rstart = isc_buffer_base(ccmsg->buffer);
-	source.rend = isc_buffer_used(ccmsg->buffer);
+	isccc_ccmsg_toregion(ccmsg, &source);
 
 	DO("parse message",
 	   isccc_cc_fromwire(&source, &response, algorithm, &secret));
@@ -381,8 +380,7 @@ rndc_recvnonce(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 		fatal("recv failed: %s", isc_result_totext(result));
 	}
 
-	source.rstart = isc_buffer_base(ccmsg->buffer);
-	source.rend = isc_buffer_used(ccmsg->buffer);
+	isccc_ccmsg_toregion(ccmsg, &source);
 
 	DO("parse message",
 	   isccc_cc_fromwire(&source, &response, algorithm, &secret));
