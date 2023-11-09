@@ -12,33 +12,11 @@
 Notes for BIND 9.16.45
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
-
-- B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
-  :gl:`#4101`
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
+- The IP addresses for B.ROOT-SERVERS.NET have been updated to
+  170.247.170.2 and 2801:1b8:10::b. :gl:`#4101`
 
 Known Issues
 ~~~~~~~~~~~~
