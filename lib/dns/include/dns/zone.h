@@ -1880,9 +1880,9 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
  */
 
 isc_result_t
-dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_presoa, bool *is_pending,
-		bool *needs_refresh);
+dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
+		bool *is_running, bool *is_deferred, bool *is_presoa,
+		bool *is_pending, bool *needs_refresh);
 /*%<
  *	Returns the xfrin associated with the zone (if any) with the current
  * 	transfer states (as booleans). When no longer needed, the returned xfrin
@@ -1891,6 +1891,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
  * Requires:
  *\li	'zone' to be a valid zone.
  *\li	'xfrp' to be non NULL and '*xfrp' to be NULL.
+ *\li	'is_firstrefresh' to be non NULL.
  *\li	'is_running' to be non NULL.
  *\li	'is_deferred' to be non NULL.
  *\li	'is_presoa' to be non NULL.

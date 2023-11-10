@@ -554,6 +554,7 @@ typedef enum {
 						      * notify due to the zone
 						      * just being loaded for
 						      * the first time. */
+	DNS_ZONEFLG_FIRSTREFRESH = 0x100000000U, /*%< First refresh pending */
 	DNS_ZONEFLG___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneflg_t;
 
@@ -2272,6 +2273,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 	      dns_remote_addresses(&zone->primaries) != NULL)) &&
 	    rbt)
 	{
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
+
 		if (zone->stream == NULL &&
 		    (zone->masterfile == NULL ||
 		     !isc_file_exists(zone->masterfile)))
@@ -5091,7 +5094,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			if (isc_time_compare(&zone->refreshtime,
 					     &zone->expiretime) >= 0)
 			{
+				DNS_ZONE_SETFLAG(zone,
+						 DNS_ZONEFLG_FIRSTREFRESH);
 				zone->refreshtime = now;
+			} else {
+				/* The zone is up to date. */
+				DNS_ZONE_CLRFLAG(zone,
+						 DNS_ZONEFLG_FIRSTREFRESH);
 			}
 		}
 
@@ -5270,6 +5279,8 @@ cleanup:
 	    (zone->type == dns_zone_redirect &&
 	     dns_remote_addresses(&zone->primaries) != NULL))
 	{
+		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
+
 		if (result != ISC_R_NOMEMORY) {
 			if (zone->journal != NULL) {
 				zone_saveunique(zone, zone->journal,
@@ -17591,7 +17602,8 @@ again:
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NEEDNOTIFY);
 		FALLTHROUGH;
 	case DNS_R_UPTODATE:
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER);
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FORCEXFER |
+					       DNS_ZONEFLG_FIRSTREFRESH);
 		/*
 		 * Has the zone expired underneath us?
 		 */
@@ -19724,9 +19736,9 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 }
 
 isc_result_t
-dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_presoa, bool *is_pending,
-		bool *needs_refresh) {
+dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
+		bool *is_running, bool *is_deferred, bool *is_presoa,
+		bool *is_pending, bool *needs_refresh) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
@@ -19735,6 +19747,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 	}
 
 	/* Reset. */
+	*is_firstrefresh = false;
 	*is_running = false;
 	*is_deferred = false;
 	*is_presoa = false;
@@ -19743,6 +19756,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
 
 	RWLOCK(&zone->zmgr->rwlock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
+	*is_firstrefresh = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIRSTREFRESH);
 	if (zone->xfr != NULL) {
 		dns_xfrin_attach(zone->xfr, xfrp);
 	}
