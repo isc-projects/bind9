@@ -28,6 +28,11 @@ New Features
 - The statistics channel now includes counters that indicate the number
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
+- The statistics channel's incoming zone transfers information now also shows
+  the zones' "first refresh" flag, which indicates that a zone is not fully
+  ready yet, and its first ever refresh is pending or is in-progress. The number
+  of such zones is now also exposed by the ``rndc status`` command. :gl:`#4241`
+
 - Add HSM support to :any:`dnssec-policy`. You can now configure keys with a
   ``key-store`` that allows you to set the directory to store the key files and
   set a PKCS#11 URI string. The latter requires OpenSSL 3 and a valid PKCS#11
