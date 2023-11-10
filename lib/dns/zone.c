@@ -19671,7 +19671,7 @@ dns_zone_getkeystores(dns_zone_t *zone) {
 }
 
 unsigned int
-dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
+dns_zonemgr_getcount(dns_zonemgr_t *zmgr, dns_zonestate_t state) {
 	dns_zone_t *zone;
 	unsigned int count = 0;
 
@@ -19691,6 +19691,15 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 		     zone != NULL; zone = ISC_LIST_NEXT(zone, statelink))
 		{
 			count++;
+		}
+		break;
+	case DNS_ZONESTATE_XFERFIRSTREFRESH:
+		for (zone = ISC_LIST_HEAD(zmgr->zones); zone != NULL;
+		     zone = ISC_LIST_NEXT(zone, link))
+		{
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FIRSTREFRESH)) {
+				count++;
+			}
 		}
 		break;
 	case DNS_ZONESTATE_SOAQUERY:

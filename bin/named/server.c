@@ -12063,8 +12063,8 @@ named_server_flushnode(named_server_t *server, isc_lex_t *lex, bool tree) {
 isc_result_t
 named_server_status(named_server_t *server, isc_buffer_t **text) {
 	isc_result_t result;
-	unsigned int zonecount, xferrunning, xferdeferred, soaqueries;
-	unsigned int automatic;
+	unsigned int zonecount, xferrunning, xferdeferred, xferfirstrefresh;
+	unsigned int soaqueries, automatic;
 	const char *ob = "", *cb = "", *alt = "";
 	char boottime[ISC_FORMATHTTPTIMESTAMP_SIZE];
 	char configtime[ISC_FORMATHTTPTIMESTAMP_SIZE];
@@ -12087,6 +12087,8 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 					   DNS_ZONESTATE_XFERRUNNING);
 	xferdeferred = dns_zonemgr_getcount(server->zonemgr,
 					    DNS_ZONESTATE_XFERDEFERRED);
+	xferfirstrefresh = dns_zonemgr_getcount(server->zonemgr,
+						DNS_ZONESTATE_XFERFIRSTREFRESH);
 	soaqueries = dns_zonemgr_getcount(server->zonemgr,
 					  DNS_ZONESTATE_SOAQUERY);
 	automatic = dns_zonemgr_getcount(server->zonemgr,
@@ -12141,6 +12143,10 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "xfers deferred: %u\n", xferdeferred);
+	CHECK(putstr(text, line));
+
+	snprintf(line, sizeof(line), "xfers first refresh: %u\n",
+		 xferfirstrefresh);
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "soa queries in progress: %u\n",
