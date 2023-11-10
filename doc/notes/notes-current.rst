@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.45
+Notes for BIND 9.16.46
 ----------------------
 
 Security Fixes
@@ -31,9 +31,6 @@ Feature Changes
 ~~~~~~~~~~~~~~~
 
 - None.
-
-- B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and 2801:1b8:10::b.
-  :gl:`#4101`
 
 Bug Fixes
 ~~~~~~~~~
