@@ -689,6 +689,13 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
+echo_i "Checking that there are no 'first refresh' zones in ns3 ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status | grep -E '^xfers first refresh: 0$' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 echo_i "Transfering zones from ns1 to ns3 in slow mode ($n)"
 ret=0
 i=0
@@ -739,10 +746,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
+echo_i "Checking that there is one 'first refresh' zone in ns3 ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status | grep -E '^xfers first refresh: 1$' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 if [ $PERL_JSON ]; then
   echo_i "Checking zone transfer transports ($n)"
   ret=0
-  cp xfrins.json.j$((n - 1)) xfrins.json.j$n
+  cp xfrins.json.j$((n - 2)) xfrins.json.j$n
   $PERL xfrins-json.pl xfrins.json.j$n example >xfrins.example.format$n
   echo "soatransport: UDP" >xfrins.example.expect$n
   echo "transport: TCP" >>xfrins.example.expect$n
