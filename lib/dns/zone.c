@@ -17662,6 +17662,12 @@ again:
 			DNS_ZONE_TIME_ADD(&now, zone->expire,
 					  &zone->expiretime);
 		}
+
+		/*
+		 * Set loadtime.
+		 */
+		zone->loadtime = now;
+
 		if (result == ISC_R_SUCCESS && xfrresult == ISC_R_SUCCESS) {
 			char buf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
 			if (zone->tsigkey != NULL) {
