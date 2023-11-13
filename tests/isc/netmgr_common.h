@@ -292,6 +292,9 @@ stream_listen(isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
 void
 stream_connect(isc_nm_cb_t cb, void *cbarg, unsigned int timeout);
 
+void
+set_proxyheader_info(isc_nm_proxyheader_info_t *pi);
+
 isc_nm_proxyheader_info_t *
 get_proxyheader_info(void);
 

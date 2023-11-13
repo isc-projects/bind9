@@ -600,6 +600,11 @@ tls_connect(isc_nm_t *nm) {
 			  stream_use_PROXY, NULL);
 }
 
+void
+set_proxyheader_info(isc_nm_proxyheader_info_t *pi) {
+	proxy_info = pi;
+}
+
 isc_nm_proxyheader_info_t *
 get_proxyheader_info(void) {
 	if (proxy_info != NULL) {
@@ -915,6 +920,36 @@ stream_timeout_recovery_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+typedef struct proxy_addrs {
+	isc_sockaddr_t src_addr;
+	isc_sockaddr_t dst_addr;
+} proxy_addrs_t;
+
+static void
+proxy2_handler_save_addrs_cb(const isc_result_t result,
+			     const isc_proxy2_command_t cmd, const int socktype,
+			     const isc_sockaddr_t *restrict src_addr,
+			     const isc_sockaddr_t *restrict dst_addr,
+			     const isc_region_t *restrict tlv_data,
+			     const isc_region_t *restrict extra, void *cbarg) {
+	proxy_addrs_t *addrs = (proxy_addrs_t *)cbarg;
+
+	UNUSED(cmd);
+	UNUSED(socktype);
+	UNUSED(tlv_data);
+	UNUSED(extra);
+
+	REQUIRE(result == ISC_R_SUCCESS);
+
+	if (src_addr != NULL) {
+		addrs->src_addr = *src_addr;
+	}
+
+	if (dst_addr != NULL) {
+		addrs->dst_addr = *dst_addr;
+	}
+}
+
 void
 proxy_verify_endpoints(isc_nmhandle_t *handle) {
 	isc_sockaddr_t local, peer;
@@ -931,6 +966,20 @@ proxy_verify_endpoints(isc_nmhandle_t *handle) {
 	} else if (proxy_info == NULL) {
 		assert_true(isc_sockaddr_equal(&peer, &proxy_src));
 		assert_true(isc_sockaddr_equal(&local, &proxy_dst));
+	} else if (proxy_info != NULL && !proxy_info->complete) {
+		assert_true(isc_sockaddr_equal(
+			&peer, &proxy_info->proxy_info.src_addr));
+		assert_true(isc_sockaddr_equal(
+			&local, &proxy_info->proxy_info.dst_addr));
+	} else if (proxy_info != NULL && proxy_info->complete) {
+		proxy_addrs_t addrs = { 0 };
+		RUNTIME_CHECK(isc_proxy2_header_handle_directly(
+				      &proxy_info->complete_header,
+				      proxy2_handler_save_addrs_cb,
+				      &addrs) == ISC_R_SUCCESS);
+
+		assert_true(isc_sockaddr_equal(&peer, &addrs.src_addr));
+		assert_true(isc_sockaddr_equal(&local, &addrs.dst_addr));
 	}
 }
 

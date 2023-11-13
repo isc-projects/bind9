@@ -46,6 +46,13 @@
 
 #include <tests/isc.h>
 
+static isc_nm_proxyheader_info_t custom_info;
+
+char complete_proxy_data[] = { 0x0d, 0x0a, 0x0d, 0x0a, 0x00, 0x0d, 0x0a,
+			       0x51, 0x55, 0x49, 0x54, 0x0a, 0x21, 0x11,
+			       0x00, 0x0c, 0x01, 0x02, 0x03, 0x04, 0x04,
+			       0x03, 0x02, 0x01, 0x14, 0xe9, 0x14, 0xe9 };
+
 /* TCP */
 ISC_LOOP_TEST_IMPL(proxystream_noop) {
 	stream_noop(arg);
@@ -74,6 +81,24 @@ ISC_LOOP_TEST_IMPL(proxystream_timeout_recovery) {
 
 ISC_LOOP_TEST_IMPL(proxystream_recv_one) {
 	stream_recv_one(arg);
+	return;
+}
+
+static void
+proxystream_recv_one_prerendered(void **arg ISC_ATTR_UNUSED) {
+	isc_region_t header = { 0 };
+	header.base = (unsigned char *)complete_proxy_data;
+	header.length = sizeof(complete_proxy_data);
+
+	isc_nm_proxyheader_info_init_complete(&custom_info, &header);
+
+	set_proxyheader_info(&custom_info);
+
+	stream_recv_one(arg);
+}
+
+ISC_LOOP_TEST_IMPL(proxystream_recv_one_prerendered) {
+	proxystream_recv_one_prerendered(arg);
 	return;
 }
 
@@ -151,6 +176,11 @@ ISC_LOOP_TEST_IMPL(proxystreamtls_recv_one) {
 	return;
 }
 
+ISC_LOOP_TEST_IMPL(proxystreamtls_recv_one_prerendered) {
+	proxystream_recv_one_prerendered(arg);
+	return;
+}
+
 ISC_LOOP_TEST_IMPL(proxystreamtls_recv_two) {
 	stream_recv_two(arg);
 	return;
@@ -209,6 +239,8 @@ ISC_TEST_ENTRY_CUSTOM(proxystream_timeout_recovery,
 		      proxystream_timeout_recovery_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one, proxystream_recv_one_setup,
 		      proxystream_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystream_recv_one_prerendered,
+		      proxystream_recv_one_setup, proxystream_recv_one_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystream_recv_two, proxystream_recv_two_setup,
 		      proxystream_recv_two_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystream_recv_send, proxystream_recv_send_setup,
@@ -246,6 +278,9 @@ ISC_TEST_ENTRY_CUSTOM(proxystreamtls_timeout_recovery,
 		      proxystreamtls_timeout_recovery_setup,
 		      proxystreamtls_timeout_recovery_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_one, proxystreamtls_recv_one_setup,
+		      proxystreamtls_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_one_prerendered,
+		      proxystreamtls_recv_one_setup,
 		      proxystreamtls_recv_one_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxystreamtls_recv_two, proxystreamtls_recv_two_setup,
 		      proxystreamtls_recv_two_teardown)
