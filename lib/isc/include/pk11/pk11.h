@@ -165,7 +165,7 @@ pkcs_C_GetMechanismInfo(CK_SLOT_ID slotID, CK_MECHANISM_TYPE type,
 
 CK_RV
 pkcs_C_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags, CK_VOID_PTR pApplication,
-		   CK_RV		 (*Notify)(CK_SESSION_HANDLE hSession,
+		   CK_RV (*Notify)(CK_SESSION_HANDLE hSession,
 				   CK_NOTIFICATION   event,
 				   CK_VOID_PTR	     pApplication),
 		   CK_SESSION_HANDLE_PTR phSession);

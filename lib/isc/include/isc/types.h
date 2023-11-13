@@ -98,7 +98,7 @@ typedef struct isc_timer      isc_timer_t;	/*%< Timer */
 typedef struct isc_timermgr   isc_timermgr_t;	/*%< Timer Manager */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
-typedef int  (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
+typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *, int);
 
 /* The following cannot be listed alphabetically due to forward reference */
 typedef isc_result_t(isc_httpdaction_t)(
