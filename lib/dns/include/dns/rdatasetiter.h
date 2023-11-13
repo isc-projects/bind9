@@ -68,7 +68,7 @@ ISC_LANG_BEGINDECLS
 *****/
 
 typedef struct dns_rdatasetitermethods {
-	void	     (*destroy)(dns_rdatasetiter_t **iteratorp);
+	void (*destroy)(dns_rdatasetiter_t **iteratorp);
 	isc_result_t (*first)(dns_rdatasetiter_t *iterator);
 	isc_result_t (*next)(dns_rdatasetiter_t *iterator);
 	void (*current)(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset);
