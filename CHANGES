@@ -1,3 +1,5 @@
+6281.	[bug]		Fix a data race in dns_tsigkeyring_dump(). [GL #4328]
+
 6280.	[bug]		Fix missing newlines in the output of "rndc nta -dump".
 			[GL !8454]
 

@@ -469,6 +469,7 @@ dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp) {
 
 	REQUIRE(VALID_TSIGKEYRING(ring));
 
+	RWLOCK(&ring->lock, isc_rwlocktype_read);
 	isc_hashmap_iter_create(ring->keys, &it);
 	for (result = isc_hashmap_iter_first(it); result == ISC_R_SUCCESS;
 	     result = isc_hashmap_iter_next(it))
@@ -482,6 +483,7 @@ dns_tsigkeyring_dump(dns_tsigkeyring_t *ring, FILE *fp) {
 		}
 	}
 	isc_hashmap_iter_destroy(&it);
+	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 
 	return (found ? ISC_R_SUCCESS : ISC_R_NOTFOUND);
 }
