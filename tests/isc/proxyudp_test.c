@@ -49,6 +49,13 @@
 
 #include <tests/isc.h>
 
+static isc_nm_proxyheader_info_t custom_info;
+
+char complete_proxy_data[] = { 0x0d, 0x0a, 0x0d, 0x0a, 0x00, 0x0d, 0x0a,
+			       0x51, 0x55, 0x49, 0x54, 0x0a, 0x21, 0x12,
+			       0x00, 0x0c, 0x01, 0x02, 0x03, 0x04, 0x04,
+			       0x03, 0x02, 0x01, 0x14, 0xe9, 0x14, 0xe9 };
+
 ISC_LOOP_TEST_IMPL(proxyudp_noop) { udp_noop(arg); }
 
 ISC_LOOP_TEST_IMPL(proxyudp_noresponse) { udp_noresponse(arg); }
@@ -62,6 +69,18 @@ ISC_LOOP_TEST_IMPL(proxyudp_shutdown_read) { udp_shutdown_read(arg); }
 ISC_LOOP_TEST_IMPL(proxyudp_cancel_read) { udp_cancel_read(arg); }
 
 ISC_LOOP_TEST_IMPL(proxyudp_recv_one) { udp_recv_one(arg); }
+
+ISC_LOOP_TEST_IMPL(proxyudp_recv_one_prerendered) {
+	isc_region_t header = { 0 };
+	header.base = (unsigned char *)complete_proxy_data;
+	header.length = sizeof(complete_proxy_data);
+
+	isc_nm_proxyheader_info_init_complete(&custom_info, &header);
+
+	set_proxyheader_info(&custom_info);
+
+	udp_recv_one(arg);
+}
 
 ISC_LOOP_TEST_IMPL(proxyudp_recv_two) { udp_recv_two(arg); }
 
@@ -88,6 +107,8 @@ ISC_TEST_ENTRY_CUSTOM(proxyudp_shutdown_connect,
 ISC_TEST_ENTRY_CUSTOM(proxyudp_double_read, proxyudp_double_read_setup,
 		      proxyudp_double_read_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxyudp_recv_one, proxyudp_recv_one_setup,
+		      proxyudp_recv_one_teardown)
+ISC_TEST_ENTRY_CUSTOM(proxyudp_recv_one_prerendered, proxyudp_recv_one_setup,
 		      proxyudp_recv_one_teardown)
 ISC_TEST_ENTRY_CUSTOM(proxyudp_recv_two, proxyudp_recv_two_setup,
 		      proxyudp_recv_two_teardown)
