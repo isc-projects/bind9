@@ -2004,8 +2004,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	dns_dnsseckeylist_t newkeys;
 	dns_kasp_key_t *kkey;
 	dns_dnsseckey_t *newkey = NULL;
-	isc_dir_t dir;
-	bool dir_open = false;
 	bool secure_to_insecure = false;
 	int numkeys = 0;
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
@@ -2224,7 +2222,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	keymgr_update(keyring, kasp, now, nexttime, secure_to_insecure);
 
 	/* Store key states and update hints. */
-	isc_dir_init(&dir);
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
@@ -2239,15 +2236,9 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 				directory = ".";
 			}
 
-			RETERR(isc_dir_open(&dir, directory));
-			dir_open = true;
-
 			dns_dnssec_get_hints(dkey, now);
 			RETERR(dst_key_tofile(dkey->key, options, directory));
 			dst_key_setmodified(dkey->key, false);
-
-			isc_dir_close(&dir);
-			dir_open = false;
 
 			if (!isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
 				continue;
@@ -2266,10 +2257,6 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	result = ISC_R_SUCCESS;
 
 failure:
-	if (dir_open) {
-		isc_dir_close(&dir);
-	}
-
 	if (result != ISC_R_SUCCESS) {
 		while ((newkey = ISC_LIST_HEAD(newkeys)) != NULL) {
 			ISC_LIST_UNLINK(newkeys, newkey, link);
@@ -2295,7 +2282,6 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	       dns_keytag_t id, unsigned int alg, bool check_id) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	const char *directory = NULL;
-	isc_dir_t dir;
 	isc_result_t result;
 	dns_dnsseckey_t *ksk_key = NULL;
 
@@ -2362,14 +2348,9 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	}
 
 	/* Store key state and update hints. */
-	isc_dir_init(&dir);
 	directory = dst_key_directory(ksk_key->key);
 	if (directory == NULL) {
 		directory = ".";
-	}
-	result = isc_dir_open(&dir, directory);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
 	}
 
 	dns_dnssec_get_hints(ksk_key, now);
@@ -2377,7 +2358,6 @@ keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	if (result == ISC_R_SUCCESS) {
 		dst_key_setmodified(ksk_key->key, false);
 	}
-	isc_dir_close(&dir);
 
 	return (result);
 }
@@ -2605,7 +2585,6 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 		    unsigned int algorithm) {
 	int options = (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE);
 	const char *directory = NULL;
-	isc_dir_t dir;
 	isc_result_t result;
 	dns_dnsseckey_t *key = NULL;
 	isc_stdtime_t active, retire, prepub;
@@ -2664,14 +2643,9 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	dst_key_setnum(key->key, DST_NUM_LIFETIME, (retire - active));
 
 	/* Store key state and update hints. */
-	isc_dir_init(&dir);
 	directory = dst_key_directory(key->key);
 	if (directory == NULL) {
 		directory = ".";
-	}
-	result = isc_dir_open(&dir, directory);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
 	}
 
 	dns_dnssec_get_hints(key, now);
@@ -2679,7 +2653,6 @@ dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 	if (result == ISC_R_SUCCESS) {
 		dst_key_setmodified(key->key, false);
 	}
-	isc_dir_close(&dir);
 
 	return (result);
 }
