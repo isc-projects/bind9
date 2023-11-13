@@ -282,11 +282,11 @@ typedef struct dns_qpchain {
  * readable identifier into `buf` which has max length `size`.
  */
 typedef struct dns_qpmethods {
-	void   (*attach)(void *uctx, void *pval, uint32_t ival);
-	void   (*detach)(void *uctx, void *pval, uint32_t ival);
+	void (*attach)(void *uctx, void *pval, uint32_t ival);
+	void (*detach)(void *uctx, void *pval, uint32_t ival);
 	size_t (*makekey)(dns_qpkey_t key, void *uctx, void *pval,
 			  uint32_t ival);
-	void   (*triename)(void *uctx, char *buf, size_t size);
+	void (*triename)(void *uctx, char *buf, size_t size);
 } dns_qpmethods_t;
 
 /*%
