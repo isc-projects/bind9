@@ -75,8 +75,8 @@ extern unsigned int dns_pps;
 *****/
 
 typedef struct dns_dbmethods {
-	void	     (*attach)(dns_db_t *source, dns_db_t **targetp);
-	void	     (*detach)(dns_db_t **dbp);
+	void (*attach)(dns_db_t *source, dns_db_t **targetp);
+	void (*detach)(dns_db_t **dbp);
 	isc_result_t (*beginload)(dns_db_t	       *db,
 				  dns_rdatacallbacks_t *callbacks);
 	isc_result_t (*endload)(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
@@ -85,9 +85,9 @@ typedef struct dns_dbmethods {
 			     dns_masterformat_t masterformat);
 	void (*currentversion)(dns_db_t *db, dns_dbversion_t **versionp);
 	isc_result_t (*newversion)(dns_db_t *db, dns_dbversion_t **versionp);
-	void	     (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
+	void (*attachversion)(dns_db_t *db, dns_dbversion_t *source,
 			      dns_dbversion_t **targetp);
-	void	     (*closeversion)(dns_db_t *db, dns_dbversion_t **versionp,
+	void (*closeversion)(dns_db_t *db, dns_dbversion_t **versionp,
 			     bool commit);
 	isc_result_t (*findnode)(dns_db_t *db, const dns_name_t *name,
 				 bool create, dns_dbnode_t **nodep);
@@ -103,12 +103,12 @@ typedef struct dns_dbmethods {
 				    dns_name_t	   *dcname,
 				    dns_rdataset_t *rdataset,
 				    dns_rdataset_t *sigrdataset);
-	void	     (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
+	void (*attachnode)(dns_db_t *db, dns_dbnode_t *source,
 			   dns_dbnode_t **targetp);
-	void	     (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp);
+	void (*detachnode)(dns_db_t *db, dns_dbnode_t **targetp);
 	isc_result_t (*expirenode)(dns_db_t *db, dns_dbnode_t *node,
 				   isc_stdtime_t now);
-	void	     (*printnode)(dns_db_t *db, dns_dbnode_t *node, FILE *out);
+	void (*printnode)(dns_db_t *db, dns_dbnode_t *node, FILE *out);
 	isc_result_t (*createiterator)(dns_db_t *db, unsigned int options,
 				       dns_dbiterator_t **iteratorp);
 	isc_result_t (*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
@@ -135,13 +135,13 @@ typedef struct dns_dbmethods {
 				       dns_dbversion_t *version,
 				       dns_rdatatype_t	type,
 				       dns_rdatatype_t	covers);
-	bool	     (*issecure)(dns_db_t *db);
+	bool (*issecure)(dns_db_t *db);
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
-	bool	     (*ispersistent)(dns_db_t *db);
-	void	     (*overmem)(dns_db_t *db, bool overmem);
-	void	     (*settask)(dns_db_t *db, isc_task_t *);
+	bool (*ispersistent)(dns_db_t *db);
+	void (*overmem)(dns_db_t *db, bool overmem);
+	void (*settask)(dns_db_t *db, isc_task_t *);
 	isc_result_t (*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
-	void	     (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
+	void (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 			     dns_dbnode_t **targetp);
 	isc_result_t (*getnsec3parameters)(dns_db_t	   *db,
 					   dns_dbversion_t *version,
@@ -155,11 +155,11 @@ typedef struct dns_dbmethods {
 				       isc_stdtime_t resign);
 	isc_result_t (*getsigningtime)(dns_db_t *db, dns_rdataset_t *rdataset,
 				       dns_name_t *name);
-	void	     (*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
+	void (*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
 			 dns_dbversion_t *version);
-	bool	     (*isdnssec)(dns_db_t *db);
+	bool (*isdnssec)(dns_db_t *db);
 	dns_stats_t *(*getrrsetstats)(dns_db_t *db);
-	void	     (*rpz_attach)(dns_db_t *db, void *rpzs, uint8_t rpz_num);
+	void (*rpz_attach)(dns_db_t *db, void *rpzs, uint8_t rpz_num);
 	isc_result_t (*rpz_ready)(dns_db_t *db);
 	isc_result_t (*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				    bool		     create,
@@ -175,7 +175,7 @@ typedef struct dns_dbmethods {
 				dns_rdataset_t		*rdataset,
 				dns_rdataset_t		*sigrdataset);
 	isc_result_t (*setcachestats)(dns_db_t *db, isc_stats_t *stats);
-	size_t	     (*hashsize)(dns_db_t *db);
+	size_t (*hashsize)(dns_db_t *db);
 	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
 				     dns_name_t *name);
 	isc_result_t (*getsize)(dns_db_t *db, dns_dbversion_t *version,
