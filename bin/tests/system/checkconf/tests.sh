@@ -86,6 +86,8 @@ for good in good-*.conf; do
     case $good in
       good-doh-*.conf) continue ;;
       good-dot-*.conf) continue ;;
+      good-proxy-*doh*.conf) continue ;;
+      bad-proxy-*doh*.conf) continue ;;
     esac
   fi
   {
