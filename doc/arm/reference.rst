@@ -4042,7 +4042,8 @@ Tuning
    :short: Sets the resolver's lame cache.
 
    This is always set to 0. More information is available in the
-   security advisory for :cve:`2021-25219`.
+   `security advisory for CVE-2021-25219
+   <https://kb.isc.org/docs/cve-2021-25219>`_.
 
 .. namedconf:statement:: servfail-ttl
    :tags: server
