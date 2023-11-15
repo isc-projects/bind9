@@ -1,3 +1,5 @@
+	--- 9.18.20 released ---
+
 6280.	[bug]		Fix missing newlines in the output of "rndc nta -dump".
 			[GL !8454]
 
@@ -16,7 +18,9 @@
 6269.	[maint]		B.ROOT-SERVERS.NET addresses are now 170.247.170.2 and
 			2801:1b8:10::b. [GL #4101]
 
-6267.	[func]		Adjust UDP timeouts used in zone maintenance. [GL #4260]
+6267.	[func]		The timeouts for resending zone refresh queries over UDP
+			were lowered to enable named to more quickly determine
+			that a primary is down. [GL #4260]
 
 6265.	[bug]		Don't schedule resign operations on the raw version
 			of an inline-signing zone. [GL #4350]
