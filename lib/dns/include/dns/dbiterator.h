@@ -236,12 +236,11 @@ dns__dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  * Returns:
  *
  *\li	#ISC_R_SUCCESS
- *\li	#DNS_R_NEWORIGIN			If this iterator was created
- * with 'relative_names' set to true, then #DNS_R_NEWORIGIN will be returned
- *when
- * the origin the names are relative to changes.  This result can occur only
- *when
- *'name' is not NULL.  This is also a successful result.
+ *\li	#DNS_R_NEWORIGIN
+ *      If this iterator was created with 'relative_names' set to true,
+ *      then #DNS_R_NEWORIGIN will be returned when there is a change in
+ *      origin to which the names are relative.  This result can occur only
+ *      when 'name' is not NULL.  This is also a successful result.
  *
  *\li	Other results are possible, depending on the DB implementation.
  */
