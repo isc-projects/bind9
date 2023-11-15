@@ -4,7 +4,6 @@ lib_LTLIBRARIES = libisc.la
 
 libisc_ladir = $(includedir)/isc
 libisc_la_HEADERS =			\
-	include/isc/aes.h		\
 	include/isc/align.h		\
 	include/isc/ascii.h		\
 	include/isc/assertions.h	\
@@ -112,7 +111,6 @@ libisc_la_SOURCES =		\
 	netmgr/timer.c		\
 	netmgr/tlsstream.c	\
 	netmgr/udp.c		\
-	aes.c			\
 	ascii.c			\
 	assertions.c		\
 	async.c			\

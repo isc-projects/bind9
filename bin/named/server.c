@@ -32,7 +32,6 @@
 #include <systemd/sd-daemon.h>
 #endif
 
-#include <isc/aes.h>
 #include <isc/async.h>
 #include <isc/attributes.h>
 #include <isc/base64.h>
@@ -9418,8 +9417,6 @@ load_configuration(const char *filename, named_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "siphash24") == 0) {
 		server->sctx->cookiealg = ns_cookiealg_siphash24;
-	} else if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
-		server->sctx->cookiealg = ns_cookiealg_aes;
 	} else {
 		UNREACHABLE();
 	}
@@ -9482,21 +9479,6 @@ load_configuration(const char *filename, named_server_t *server,
 						ISC_LOG_ERROR,
 						"SipHash-2-4 cookie-secret "
 						"must be 128 bits: %s",
-						isc_result_totext(result));
-					goto cleanup_altsecrets;
-				}
-				break;
-			case ns_cookiealg_aes:
-				expectedlength = ISC_AES128_KEYLENGTH;
-				if (usedlength != expectedlength) {
-					result = ISC_R_RANGE;
-					isc_log_write(
-						named_g_lctx,
-						NAMED_LOGCATEGORY_GENERAL,
-						NAMED_LOGMODULE_SERVER,
-						ISC_LOG_ERROR,
-						"AES cookie-secret must be 128 "
-						"bits: %s",
 						isc_result_totext(result));
 					goto cleanup_altsecrets;
 				}

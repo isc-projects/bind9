@@ -765,12 +765,6 @@ AC_CHECK_FUNCS([EVP_sha224 EVP_sha256 EVP_sha384 EVP_sha512], [:],
 	       [AC_MSG_FAILURE([SHA-2 support in OpenSSL is mandatory.])])
 
 #
-# Check for OpenSSL AES support
-#
-AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb], [:],
-	       [AC_MSG_FAILURE([AES support in OpenSSL is mandatory.])])
-
-#
 # Check for OpenSSL 1.1.x/LibreSSL functions
 #
 AC_CHECK_FUNCS([ECDSA_SIG_get0 EVP_PKEY_get0_EC_KEY])

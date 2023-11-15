@@ -2371,9 +2371,9 @@ Boolean Options
    :tags: server
    :short: Sets the algorithm to be used when generating a server cookie.
 
-   This sets the algorithm to be used when generating the server cookie; the options are
-   "aes" or "siphash24". The default is "siphash24". The "aes" option remains for legacy
-   purposes.
+   This sets the algorithm to be used when generating the server cookie. The
+   default is "siphash24", which is the only supported option, as the
+   previously supported "aes" option has been removed.
 
 .. namedconf:statement:: cookie-secret
    :tags: server
@@ -2382,8 +2382,7 @@ Boolean Options
    If set, this is a shared secret used for generating and verifying
    EDNS COOKIE options within an anycast cluster. If not set, the system
    generates a random secret at startup. The shared secret is
-   encoded as a hex string and needs to be 128 bits for either "siphash24"
-   or "aes".
+   encoded as a hex string and needs to be 128 bits.
 
    If there are multiple secrets specified, the first one listed in
    :iscman:`named.conf` is used to generate new server cookies. The others

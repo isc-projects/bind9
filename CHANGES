@@ -1,3 +1,5 @@
+6285.	[func]		Remove AES-based DNS cookies. [GL #4421]
+
 6284.	[bug]		Fix a catz db update notification callback registration
 			logic error, which could cause an assertion failure when
 			receiving an AXFR update for a catalog zone while the

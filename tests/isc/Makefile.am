@@ -13,7 +13,6 @@ LDADD +=			\
 
 check_PROGRAMS =	\
 	ascii_test	\
-	aes_test	\
 	async_test	\
 	buffer_test	\
 	counter_test	\
