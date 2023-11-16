@@ -32,6 +32,13 @@ Feature Changes
 
 - None.
 
+- :program:`named-compilezone` no longer performs zone integrity checks
+  by default; this allows faster conversion of a zone file from one format
+  to another. Zone checks can be performed by running :program:`named-checkzone`
+  separately, or the previous default behavior can be restored by using
+  ``named-compilezone -i full -k fail -n fail -r warn -m warn -M warn
+  -S warn -T warn -W warn -C check-svcb:fail``. :gl:`#4364`
+
 Bug Fixes
 ~~~~~~~~~
 
