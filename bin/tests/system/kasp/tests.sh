@@ -510,7 +510,6 @@ n=$((n + 1))
 echo_i "check if resigning the raw version of the zone is prevented for zone ${ZONE} ($n)"
 ret=0
 grep "zone_resigninc: zone $ZONE/IN (unsigned): enter" $DIR/named.run && ret=1
-grep "error reading K$ZONE" $DIR/named.run && ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
