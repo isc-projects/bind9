@@ -287,7 +287,7 @@ process_message(isc_buffer_t *source) {
 	}
 
 	if (dorender) {
-		unsigned char b2[64 * 1024];
+		unsigned char b2[65535];
 		isc_buffer_t buffer;
 		dns_compress_t cctx;
 
