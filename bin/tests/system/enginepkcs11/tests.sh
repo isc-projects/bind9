@@ -23,9 +23,9 @@ status=0
 ret=0
 n=0
 
-dig_with_opts() (
+dig_with_opts() {
   $DIG +tcp +noadd +nosea +nostat +nocmd +dnssec -p "$PORT" "$@"
-)
+}
 
 check_keys() {
   _zone=$1
@@ -34,7 +34,7 @@ check_keys() {
   _status=0
   _count=$(ls K*.key | grep "K${_zone}" | wc -l)
 
-  test "$_count" -eq "$_expect" || ret=1
+  test "$_count" -eq "$_expect" || _ret=1
   test "$_ret" -eq 0 || echo_i "failed (expected $_expect keys, got $_count)"
   _status=$((_status + _ret))
 
@@ -86,10 +86,10 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
   ret=0
   echo_i "Test inline signing for $zone ($n)"
   dig_with_opts "$zone" @10.53.0.1 SOA >dig.out.soa.$zone.$n || ret=1
-  awk '$4 == "RRSIG" { print $11 }' dig.out.soa.$zone.$n >dig.out.keyids.$zone.$n || return 1
+  awk '$4 == "RRSIG" { print $11 }' dig.out.soa.$zone.$n >dig.out.keyids.$zone.$n || ret=1
   numsigs=$(cat dig.out.keyids.$zone.$n | wc -l)
-  test $numsigs -eq 1 || return 1
-  grep -w "$zskid1" dig.out.keyids.$zone.$n >/dev/null || return 1
+  test $numsigs -eq 1 || ret=1
+  grep -w "$zskid1" dig.out.keyids.$zone.$n >/dev/null || ret=1
   test "$ret" -eq 0 || echo_i "failed (SOA RRset not signed with key $zskid1)"
   status=$((status + ret))
 
@@ -112,11 +112,11 @@ EOF
   n=$((n + 1))
   ret=0
   echo_i "Test DNSKEY response for $zone after inline signing ($n)"
-  _dig_dnskey() (
+  _dig_dnskey() {
     dig_with_opts "$zone" @10.53.0.1 DNSKEY >dig.out.dnskey.$zone.$n || return 1
     count=$(awk 'BEGIN { count = 0 } $4 == "DNSKEY" { count++ } END {print count}' dig.out.dnskey.$zone.$n)
     test $count -eq 3
-  )
+  }
   retry_quiet 10 _dig_dnskey || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected 3 DNSKEY records)"
   status=$((status + ret))
@@ -124,7 +124,7 @@ EOF
   n=$((n + 1))
   ret=0
   echo_i "Test SOA response for $zone after inline signing ($n)"
-  _dig_soa() (
+  _dig_soa() {
     dig_with_opts "$zone" @10.53.0.1 SOA >dig.out.soa.$zone.$n || return 1
     awk '$4 == "RRSIG" { print $11 }' dig.out.soa.$zone.$n >dig.out.keyids.$zone.$n || return 1
     numsigs=$(cat dig.out.keyids.$zone.$n | wc -l)
@@ -132,7 +132,7 @@ EOF
     grep -w "$zskid1" dig.out.keyids.$zone.$n >/dev/null || return 1
     grep -w "$zskid2" dig.out.keyids.$zone.$n >/dev/null || return 1
     return 0
-  )
+  }
   retry_quiet 10 _dig_soa || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected 2 SOA RRSIG records)"
   status=$((status + ret))
@@ -160,7 +160,7 @@ EOF
   n=$((n + 1))
   ret=0
   echo_i "Test DNSKEY response for $zone after inline signing (key signing) ($n)"
-  _dig_dnskey_ksk() (
+  _dig_dnskey_ksk() {
     dig_with_opts "$zone" @10.53.0.1 DNSKEY >dig.out.dnskey.$zone.$n || return 1
     count=$(awk 'BEGIN { count = 0 } $4 == "DNSKEY" { count++ } END {print count}' dig.out.dnskey.$zone.$n)
     test $count -eq 4 || return 1
@@ -170,7 +170,7 @@ EOF
     grep -w "$kskid1" dig.out.keyids.$zone.$n >/dev/null || return 1
     grep -w "$kskid2" dig.out.keyids.$zone.$n >/dev/null || return 1
     return 0
-  )
+  }
   retry_quiet 10 _dig_dnskey_ksk || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected 4 DNSKEY records, 2 KSK signatures)"
   status=$((status + ret))
