@@ -16,11 +16,9 @@ confidential!
 | Mattermost Channel:      | [CVE-YYYY-NNNN][mattermost_url]      |
 | Support Ticket:          | [URL]                                |
 | Release Checklist:       | #NNNN                                |
-| Post-mortem Etherpad:    | [postmortem-YYYY-MM][postmortem_url] |
 
 [cvss_score]: https://nvd.nist.gov/vuln-metrics/cvss/v3-calculator?vector=AV:X/AC:X/PR:X/UI:X/S:X/C:X/I:X/A:X&version=3.1
 [mattermost_url]:
-[postmortem_url]:
 
 :bulb: **Click [here][checklist_explanations] (internal resource) for general information about the security incident handling process.**
 
@@ -30,7 +28,6 @@ confidential!
 
   - [ ] [:link:][step_deputy]            **(IM)** Pick a Deputy Incident Manager
   - [ ] [:link:][step_respond]           **(IM)** Respond to the bug reporter
-  - [ ] [:link:][step_etherpad]          **(IM)** Create an Etherpad for post-mortem
   - [ ] [:link:][step_public_mrs]        **(SwEng)** Ensure there are no public merge requests which inadvertently disclose the issue
   - [ ] [:link:][step_assign_cve_id]     **(IM)** Assign a CVE identifier
   - [ ] [:link:][step_note_cve_info]     **(SwEng)** Update this issue with the assigned CVE identifier and the CVSS score
@@ -80,12 +77,10 @@ confidential!
 
 ### After Public Disclosure
 
-  - [ ] [:link:][step_postmortem]        **(First IM)** Organize post-mortem meeting and make sure it happens
   - [ ] [:link:][step_regression]        **(QA)** Merge a regression test reproducing the bug into all affected (and still maintained) branches
 
 [step_deputy]:            https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#pick-a-deputy-incident-manager
 [step_respond]:           https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#respond-to-the-bug-reporter
-[step_etherpad]:          https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#create-an-etherpad-for-post-mortem
 [step_public_mrs]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#ensure-there-are-no-public-merge-requests-which-inadvertently-disclose-the-issue
 [step_assign_cve_id]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#assign-a-cve-identifier
 [step_note_cve_info]:     https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-this-issue-with-the-assigned-cve-identifier-and-the-cvss-score
@@ -123,5 +118,4 @@ confidential!
 [step_embargo_end]:       https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#inform-original-reporter-if-external-that-the-security-disclosure-process-is-complete
 [step_asn_clear]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#update-the-sf-portal-to-clear-the-asn
 [step_customers]:         https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#email-asn-recipients-that-the-embargo-is-lifted
-[step_postmortem]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#organize-post-mortem-meeting-and-make-sure-it-happens
 [step_regression]:        https://gitlab.isc.org/isc-private/isc-wiki/-/wikis/Security-Incident-Handling-Checklist-Explanations#merge-a-regression-test-reproducing-the-bug-into-all-affected-and-still-maintained-branches
