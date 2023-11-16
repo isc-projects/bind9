@@ -290,7 +290,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 			   dns_rdatatype_t qtype, unsigned int qflags) {
 	dns_rdataset_t *qrdataset = NULL;
 	dns_message_t *message = NULL;
-	unsigned char query[65536];
+	unsigned char query[65535];
 	dns_name_t *qname = NULL;
 	isc_buffer_t querybuf;
 	dns_compress_t cctx;
