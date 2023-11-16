@@ -63,9 +63,9 @@
  - [ ] ***(Signers)*** Ensure that the contents of tarballs and tags are identical.
  - [ ] ***(Signers)*** Validate tarball checksums, sign tarballs, and upload signatures.
  - [ ] ***(QA)*** Verify tarball signatures and check tarball checksums again: Run `publish_bind.sh` on repo.isc.org to pre-publish.
+ - [ ] ***(QA)*** Prepare the `patches/` subdirectory for each security release (if applicable).
  - [ ] ***(Support)*** Pre-publish ASN and/or Subscription Edition tarballs so that packages can be built.
  - [ ] ***(QA)*** Build and test ASN and/or Subscription Edition packages (in [cloudsmith branch in private repo](https://gitlab.isc.org/isc-private/rpms/bind/-/tree/cloudsmith)). [Example](https://gitlab.isc.org/isc-private/rpms/bind/-/commit/e2512f4cfaf991827a635e374e7e93b27a5f38ba)
- - [ ] ***(QA)*** Prepare the `patches/` subdirectory for each security release (if applicable).
  - [ ] ***(QA)*** Notify Support that the releases have been prepared.
  - [ ] ***(QA)*** Use the [Printing Press project](https://gitlab.isc.org/isc-private/printing-press/-/wikis/home#adding-new-documents) to prepare a release announcement email.
  - [ ] ***(Marketing)*** Update ASN documents in the SF portal.
