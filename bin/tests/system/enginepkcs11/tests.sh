@@ -243,6 +243,150 @@ done
 # Go back to main test dir.
 cd ..
 
+# Perform tests inside ns2 dir
+cd ns2
+
+algtypebits="ecdsap256sha256:EC:prime256v1"
+alg=$(echo "$algtypebits" | cut -f 1 -d :)
+type=$(echo "$algtypebits" | cut -f 2 -d :)
+bits=$(echo "$algtypebits" | cut -f 3 -d :)
+zone="${alg}.views"
+zonefile1="zone.$alg.views.view1.db.signed"
+zonefile2="zone.$alg.views.view2.db.signed"
+
+skip=0
+if [ ! -f $zonefile1 ]; then
+  echo_i "skipping test for ${alg}:${type}:${bits}, no signed zone file ${zonefile1}"
+  skip=1
+fi
+
+if [ ! -f $zonefile2 ]; then
+  echo_i "skipping test for ${alg}:${type}:${bits}, no signed zone file ${zonefile2}"
+  skip=1
+fi
+
+if [ $skip -eq 0 ]; then
+  # Basic checks if setup was successful.
+  n=$((n + 1))
+  ret=0
+  echo_i "Test key generation was successful for $zone ($n)"
+  check_keys $zone 4 || ret=1
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test zone signing was successful for $zone in view1 ($n)"
+  $VERIFY -z -o $zone "${zonefile1}" >verify.out.$zone.view1.$n 2>&1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (dnssec-verify failed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test zone signing was successful for $zone in view2 ($n)"
+  $VERIFY -z -o $zone "${zonefile2}" >verify.out.$zone.view2.$n 2>&1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (dnssec-verify failed)"
+  status=$((status + ret))
+
+  # Test dnssec-policy signing with keys stored in engine.
+  zone="${alg}.same-policy.views"
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test key generation was successful for $zone ($n)"
+  check_keys $zone 1 || ret=1
+  status=$((status + ret))
+
+  _dig_inview() {
+    _qtype="$1"
+    _alg="$2"
+    _tsig="$DEFAULT_HMAC:$3:$4"
+    dig_with_opts "$zone" @10.53.0.2 $_qtype -y "$_tsig" >dig.out.$zone.$n || return 1
+    awk -v cov="$_qtype" '$4 == "RRSIG" && $5 == cov { print $6 }' dig.out.$zone.$n >dig.out.alg.$zone.$n || return 1
+    numsigs=$(cat dig.out.alg.$zone.$n | wc -l)
+    test $numsigs -eq 1 || return 1
+    grep -w "$_alg" dig.out.alg.$zone.$n >/dev/null || return 1
+  }
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA is signed for $zone in view1 ($n)"
+  VIEW1="YPfMoAk6h+3iN8MDRQC004iSNHY="
+  retry_quiet 4 _dig_inview SOA 13 keyforview1 $VIEW1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (SOA RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY is signed for $zone in view1 ($n)"
+  retry_quiet 4 _dig_inview DNSKEY 13 keyforview1 $VIEW1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (DNSKEY RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA is signed for $zone in view2 ($n)"
+  VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
+  retry_quiet 4 _dig_inview SOA 13 keyforview2 $VIEW2 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (SOA RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY is signed for $zone in view2 ($n)"
+  retry_quiet 4 _dig_inview DNSKEY 13 keyforview2 $VIEW2 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (DNSKEY RRset not signed)"
+  status=$((status + ret))
+
+  # Now test zone in different views using a different dnssec-policy.
+  zone="zone-with.different-policy.views"
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test key generation was successful for $zone in view1 ($n)"
+  # view1
+  check_keys $zone 1 || ret=1
+  status=$((status + ret))
+  # view2
+  echo_i "Test key generation was successful for $zone in view2 ($n)"
+  count=$(ls keys/K*.key | grep "K${zone}" | wc -l)
+  test "$count" -eq 1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected 1 key, got $count)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA is signed for $zone in view1 ($n)"
+  VIEW1="YPfMoAk6h+3iN8MDRQC004iSNHY="
+  retry_quiet 4 _dig_inview SOA 13 keyforview1 $VIEW1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (SOA RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY is signed for $zone in view1 ($n)"
+  retry_quiet 4 _dig_inview DNSKEY 13 keyforview1 $VIEW1 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (DNSKEY RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA is signed for $zone in view2 ($n)"
+  VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
+  retry_quiet 4 _dig_inview SOA 8 keyforview2 $VIEW2 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (SOA RRset not signed)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY is signed for $zone in view2 ($n)"
+  retry_quiet 4 _dig_inview DNSKEY 8 keyforview2 $VIEW2 || ret=1
+  test "$ret" -eq 0 || echo_i "failed (DNSKEY RRset not signed)"
+  status=$((status + ret))
+fi
+
+# Go back to main test dir.
+cd ..
+
 n=$((n + 1))
 ret=0
 echo_i "Checking for assertion failure in pk11_numbits()"

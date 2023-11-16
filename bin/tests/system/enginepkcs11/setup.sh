@@ -24,11 +24,6 @@ parse_openssl_config
 printf '%s' "${HSMPIN:-1234}" >ns1/pin
 PWD=$(pwd)
 
-copy_setports ns1/named.conf.in ns1/named.conf
-sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns1/named.args.in >ns1/named.args
-
-mkdir ns1/keys
-
 keygen() {
   type="$1"
   bits="$2"
@@ -52,6 +47,11 @@ keyfromlabel() {
 }
 
 # Setup ns1.
+copy_setports ns1/named.conf.in ns1/named.conf
+sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns1/named.args.in >ns1/named.args
+
+mkdir ns1/keys
+
 dir="ns1"
 infile="${dir}/template.db.in"
 for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
@@ -161,3 +161,149 @@ zone "${alg}.split" {
 EOF
   fi
 done
+
+# Setup ns2 (with views).
+copy_setports ns2/named.conf.in ns2/named.conf
+sed -e "s/@ENGINE_ARGS@/${ENGINE_ARG}/g" <ns2/named.args.in >ns2/named.args
+
+mkdir ns2/keys
+
+dir="ns2"
+infile="${dir}/template.db.in"
+algtypebits="ecdsap256sha256:EC:prime256v1"
+alg=$(echo "$algtypebits" | cut -f 1 -d :)
+type=$(echo "$algtypebits" | cut -f 2 -d :)
+bits=$(echo "$algtypebits" | cut -f 3 -d :)
+tld="views"
+
+if $SHELL ../testcrypto.sh $alg; then
+  zone="$alg.$tld"
+  zonefile1="zone.$alg.$tld.view1.db"
+  zonefile2="zone.$alg.$tld.view2.db"
+  ret=0
+
+  echo_i "Generate keys $alg $type:$bits for zone $zone"
+  keygen $type $bits $zone enginepkcs11-zsk || ret=1
+  keygen $type $bits $zone enginepkcs11-ksk || ret=1
+  test "$ret" -eq 0 || exit 1
+
+  echo_i "Get ZSK $alg $zone $type:$bits"
+  zsk1=$(keyfromlabel $alg $zone enginepkcs11-zsk $dir)
+  test -z "$zsk1" && exit 1
+
+  echo_i "Get KSK $alg $zone $type:$bits"
+  ksk1=$(keyfromlabel $alg $zone enginepkcs11-ksk $dir -f KSK)
+  test -z "$ksk1" && exit 1
+
+  (
+    cd $dir
+    zskid1=$(keyfile_to_key_id $zsk1)
+    kskid1=$(keyfile_to_key_id $ksk1)
+    echo "$zskid1" >$zone.zskid1
+    echo "$kskid1" >$zone.kskid1
+  )
+
+  echo_i "Sign zone with $ksk1 $zsk1"
+  cat "$infile" "${dir}/${ksk1}.key" "${dir}/${zsk1}.key" >"${dir}/${zonefile1}"
+  $SIGNER $ENGINE_ARG -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile1}" >signer.out.view1.$zone || ret=1
+  test "$ret" -eq 0 || exit 1
+
+  cat "$infile" "${dir}/${ksk1}.key" "${dir}/${zsk1}.key" >"${dir}/${zonefile2}"
+  $SIGNER $ENGINE_ARG -K $dir -S -a -g -O full -o "$zone" "${dir}/${zonefile2}" >signer.out.view2.$zone || ret=1
+  test "$ret" -eq 0 || exit 1
+
+  echo_i "Generate successor keys $alg $type:$bits for zone $zone"
+  keygen $type $bits $zone enginepkcs11-zsk2 || ret=1
+  keygen $type $bits $zone enginepkcs11-ksk2 || ret=1
+  test "$ret" -eq 0 || exit 1
+
+  echo_i "Get ZSK $alg $id-$zone $type:$bits"
+  zsk2=$(keyfromlabel $alg $zone enginepkcs11-zsk2 $dir)
+  test -z "$zsk2" && exit 1
+
+  echo_i "Get KSK $alg $id-$zone $type:$bits"
+  ksk2=$(keyfromlabel $alg $zone enginepkcs11-ksk2 $dir -f KSK)
+  test -z "$ksk2" && exit 1
+
+  (
+    cd $dir
+    zskid2=$(keyfile_to_key_id $zsk2)
+    kskid2=$(keyfile_to_key_id $ksk2)
+    echo "$zskid2" >$zone.zskid2
+    echo "$kskid2" >$zone.kskid2
+    cp "${zsk2}.key" "${zsk2}.zsk2"
+    cp "${ksk2}.key" "${ksk2}.ksk2"
+  )
+
+  echo_i "Add zone $alg.same-policy.$tld to named.conf"
+  cp $infile ${dir}/zone.${alg}.same-policy.view1.db
+  cp $infile ${dir}/zone.${alg}.same-policy.view2.db
+
+  echo_i "Add zone zone-with.different-policy.$tld to named.conf"
+  cp $infile ${dir}/zone.zone-with.different-policy.view1.db
+  cp $infile ${dir}/zone.zone-with.different-policy.view2.db
+
+  echo_i "Add zone $zone to named.conf"
+  cat >>"${dir}/named.conf" <<EOF
+dnssec-policy "$alg" {
+	keys {
+		csk key-store "hsm" lifetime unlimited algorithm ${alg};
+	};
+};
+
+dnssec-policy "rsasha256" {
+	keys {
+		csk key-store "hsm2" lifetime unlimited algorithm rsasha256 2048;
+	};
+};
+
+view "view1" {
+	match-clients { key "keyforview1"; };
+
+	zone "$zone" {
+		type primary;
+		file "${zonefile1}.signed";
+		allow-update { any; };
+	};
+
+	zone "${alg}.same-policy.${tld}" {
+		type primary;
+		file "zone.${alg}.same-policy.view1.db";
+		dnssec-policy "$alg";
+		allow-update { any; };
+	};
+
+	zone "zone-with.different-policy.${tld}" {
+		type primary;
+		file "zone.zone-with.different-policy.view1.db";
+		dnssec-policy "$alg";
+		allow-update { any; };
+	};
+};
+
+view "view2" {
+	match-clients { key "keyforview2"; };
+
+	zone "$zone" {
+		type primary;
+		file "${zonefile2}.signed";
+		allow-update { any; };
+	};
+
+	zone "${alg}.same-policy.${tld}" {
+		type primary;
+		file "zone.${alg}.same-policy.view2.db";
+		dnssec-policy "$alg";
+		allow-update { any; };
+	};
+
+	zone "zone-with.different-policy.${tld}" {
+		type primary;
+		file "zone.zone-with.different-policy.view2.db";
+		dnssec-policy "rsasha256";
+		allow-update { any; };
+	};
+};
+
+EOF
+fi
