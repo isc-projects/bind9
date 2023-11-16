@@ -542,7 +542,7 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
  *
  *\li	'cctx' be valid.
  *
- *\li	'buffer' is a valid buffer.
+ *\li	'buffer' is a valid buffer with length less than 65536.
  *
  * Side Effects:
  *
