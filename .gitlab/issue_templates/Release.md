@@ -58,6 +58,7 @@
  - [ ] ***(QA)*** Verify GitLab CI results [for the tags](https://gitlab.isc.org/isc-private/bind9/-/pipelines?scope=tags) created and sign off on the releases to be published.
  - [ ] ***(QA)*** Update GitLab settings for all maintained branches to allow merging to them again: [public](https://gitlab.isc.org/isc-projects/bind9/-/settings/repository), [private](https://gitlab.isc.org/isc-private/bind9/-/settings/repository)
  - [ ] ***(QA)*** Prepare (using [`version_bump.py`](https://gitlab.isc.org/isc-private/bind-qa/-/blob/master/bind9/releng/version_bump.py)) and merge MRs resetting the release notes and updating the version string for each maintained branch.
+ - [ ] ***(QA)*** Rebase the Subscription Edition branches (including recent release prep commits) on top of the open source branches with updated version strings.
  - [ ] ***(QA)*** Announce (on Mattermost) that the code freeze is over.
  - [ ] ***(QA)*** Request signatures for the tarballs, providing their location and checksums. Ask [signers on Mattermost](https://mattermost.isc.org/isc/channels/bind-9-qa).
  - [ ] ***(Signers)*** Ensure that the contents of tarballs and tags are identical.
