@@ -1735,6 +1735,7 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(buffer != NULL);
+	REQUIRE(isc_buffer_length(buffer) < 65536);
 	REQUIRE(msg->buffer == NULL);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 
