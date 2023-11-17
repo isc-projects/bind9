@@ -48,6 +48,14 @@ zone "default.kasp" {
 	dnssec-policy "default";
 };
 
+/* A zone with special characters. */
+zone "i-am.\":\;?&[]\@!\$*+,|=\.\(\)special.kasp." {
+        type primary;
+        file "i-am.special.kasp.db";
+        check-names ignore;
+        dnssec-policy "default";
+};
+
 /* checkds: Zone with one KSK. */
 zone "checkds-ksk.kasp" {
 	type primary;
