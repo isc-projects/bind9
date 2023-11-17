@@ -444,9 +444,9 @@ keymgr_keyid_conflict(dst_key_t *newkey, dns_dnsseckeylist_t *keys) {
  */
 static isc_result_t
 keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
-		 dns_rdataclass_t rdclass, isc_mem_t *mctx, const char *keydir,
-		 dns_dnsseckeylist_t *keylist, dns_dnsseckeylist_t *newkeys,
-		 dst_key_t **dst_key) {
+		 dns_kasp_t *kasp, dns_rdataclass_t rdclass, isc_mem_t *mctx,
+		 const char *keydir, dns_dnsseckeylist_t *keylist,
+		 dns_dnsseckeylist_t *newkeys, dst_key_t **dst_key) {
 	isc_result_t result = ISC_R_SUCCESS;
 	bool conflict = false;
 	int flags = DNS_KEYOWNER_ZONE;
@@ -465,9 +465,9 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 						DNS_KEYPROTO_DNSSEC, rdclass,
 						NULL, mctx, &newkey, NULL));
 		} else {
-			RETERR(dns_keystore_keygen(keystore, origin, rdclass,
-						   mctx, alg, size, flags,
-						   &newkey));
+			RETERR(dns_keystore_keygen(
+				keystore, origin, dns_kasp_getname(kasp),
+				rdclass, mctx, alg, size, flags, &newkey));
 		}
 
 		/* Key collision? */
@@ -1812,9 +1812,9 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		bool csk = (dns_kasp_key_ksk(kaspkey) &&
 			    dns_kasp_key_zsk(kaspkey));
 
-		isc_result_t result = keymgr_createkey(kaspkey, origin, rdclass,
-						       mctx, keydir, keyring,
-						       newkeys, &dst_key);
+		isc_result_t result =
+			keymgr_createkey(kaspkey, origin, kasp, rdclass, mctx,
+					 keydir, keyring, newkeys, &dst_key);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}

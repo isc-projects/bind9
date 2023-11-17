@@ -16,10 +16,12 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
+#include <dns/fixedname.h>
 #include <dns/keystore.h>
 #include <dns/keyvalues.h>
 
@@ -143,53 +145,119 @@ dns_keystore_setpkcs11uri(dns_keystore_t *keystore, const char *uri) {
 				      : isc_mem_strdup(keystore->mctx, uri);
 }
 
+static isc_result_t
+buildpkcs11label(const char *uri, const dns_name_t *zname, const char *policy,
+		 int flags, isc_buffer_t *buf) {
+	bool ksk = ((flags & DNS_KEYFLAG_KSK) != 0);
+	char timebuf[18];
+	isc_time_t now = isc_time_now();
+	isc_result_t result;
+	dns_fixedname_t fname;
+	dns_name_t *pname = dns_fixedname_initname(&fname);
+
+	/* uri + object */
+	if (isc_buffer_availablelength(buf) < strlen(uri) + strlen(";object="))
+	{
+		return (ISC_R_NOSPACE);
+	}
+	isc_buffer_putstr(buf, uri);
+	isc_buffer_putstr(buf, ";object=");
+	/* zone name */
+	result = dns_name_tofilenametext(zname, false, buf);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	/*
+	 * policy name
+	 *
+	 * Note that strlen(policy) is not the actual length, but if this
+	 * already does not fit, the escaped version returned from
+	 * dns_name_tofilenametext() certainly won't fit.
+	 */
+	if (isc_buffer_availablelength(buf) < (strlen(policy) + 1)) {
+		return (ISC_R_NOSPACE);
+	}
+	isc_buffer_putstr(buf, "-");
+	result = dns_name_fromstring(pname, policy, dns_rootname, 0, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	result = dns_name_tofilenametext(pname, false, buf);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	/* key type + current time */
+	isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
+	return isc_buffer_printf(buf, "-%s-%s", ksk ? "ksk" : "zsk", timebuf);
+}
+
 isc_result_t
 dns_keystore_keygen(dns_keystore_t *keystore, const dns_name_t *origin,
-		    dns_rdataclass_t rdclass, isc_mem_t *mctx, uint32_t alg,
-		    int size, int flags, dst_key_t **dstkey) {
+		    const char *policy, dns_rdataclass_t rdclass,
+		    isc_mem_t *mctx, uint32_t alg, int size, int flags,
+		    dst_key_t **dstkey) {
 	isc_result_t result;
 	dst_key_t *newkey = NULL;
 	const char *uri = NULL;
 
 	REQUIRE(DNS_KEYSTORE_VALID(keystore));
 	REQUIRE(dns_name_isvalid(origin));
+	REQUIRE(policy != NULL);
 	REQUIRE(mctx != NULL);
 	REQUIRE(dstkey != NULL && *dstkey == NULL);
 
 	uri = dns_keystore_pkcs11uri(keystore);
 	if (uri != NULL) {
-		char *label = NULL;
-		size_t len;
-		char timebuf[18];
-		isc_time_t now = isc_time_now();
-		bool ksk = ((flags & DNS_KEYFLAG_KSK) != 0);
-		char namebuf[DNS_NAME_FORMATSIZE];
-		char object[DNS_NAME_FORMATSIZE + 26];
-
-		/* Create the PKCS11 URI */
-		isc_time_formatshorttimestamp(&now, timebuf, sizeof(timebuf));
-		dns_name_format(origin, namebuf, sizeof(namebuf));
-		snprintf(object, sizeof(object), "%s-%s-%s", namebuf,
-			 ksk ? "ksk" : "zsk", timebuf);
-		len = strlen(object) + strlen(uri) + 10;
-		label = isc_mem_get(mctx, len);
-		sprintf(label, "%s;object=%s;", uri, object);
+		/*
+		 * Create the PKCS#11 label.
+		 * The label consists of the configured URI, and the object
+		 * parameter.  The object parameter needs to be unique.  We
+		 * know that for a given point in time, there will be at most
+		 * one key per type created for each zone in a given DNSSEC
+		 * policy.  Hence the object is constructed out of the following
+		 * parts: the zone name, policy name, key type, and the
+		 * current time.
+		 *
+		 * The object may not contain any characters that conflict with
+		 * special characters in the PKCS#11 URI scheme syntax (see
+		 * RFC 7512, Section 2.3). Therefore, we mangle the zone name
+		 * and policy name through 'dns_name_tofilenametext()'. We
+		 * could create a new function to convert a name to PKCS#11
+		 * text, but this existing function will suffice.
+		 */
+		char label[NAME_MAX];
+		isc_buffer_t buf;
+		isc_buffer_init(&buf, label, sizeof(label));
+		result = buildpkcs11label(uri, origin, policy, flags, &buf);
+		if (result != ISC_R_SUCCESS) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(origin, namebuf, sizeof(namebuf));
+			isc_log_write(
+				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				"keystore: failed to create PKCS#11 object "
+				"for zone %s, policy %s: %s",
+				namebuf, policy, isc_result_totext(result));
+			return (result);
+		}
 
 		/* Generate the key */
 		result = dst_key_generate(origin, alg, size, 0, flags,
 					  DNS_KEYPROTO_DNSSEC, rdclass, label,
 					  mctx, &newkey, NULL);
 
-		isc_mem_put(mctx, label, len);
-
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
-				      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
-				      "keystore: failed to generate key "
-				      "%s (ret=%d)",
-				      object, result);
+			isc_log_write(
+				dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+				DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+				"keystore: failed to generate PKCS#11 object "
+				"%s: %s",
+				label, isc_result_totext(result));
 			return (result);
 		}
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DNSSEC,
+			      DNS_LOGMODULE_DNSSEC, ISC_LOG_ERROR,
+			      "keystore: generated PKCS#11 object %s", label);
 	} else {
 		result = dst_key_generate(origin, alg, size, 0, flags,
 					  DNS_KEYPROTO_DNSSEC, rdclass, NULL,

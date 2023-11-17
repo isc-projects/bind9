@@ -697,10 +697,10 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 			fprintf(stderr, "Generating key pair.");
 		}
 
-		if (ctx->keystore != NULL) {
-			ret = dns_keystore_keygen(ctx->keystore, name,
-						  ctx->rdclass, mctx, ctx->alg,
-						  ctx->size, flags, &key);
+		if (ctx->keystore != NULL && ctx->policy != NULL) {
+			ret = dns_keystore_keygen(
+				ctx->keystore, name, ctx->policy, ctx->rdclass,
+				mctx, ctx->alg, ctx->size, flags, &key);
 		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
