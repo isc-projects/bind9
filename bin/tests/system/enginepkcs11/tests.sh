@@ -211,6 +211,28 @@ EOF
   retry_quiet 2 _dig_policy_soa || ret=1
   test "$ret" -eq 0 || echo_i "failed (expected a SOA RRSIG record)"
 
+  zone="$alg.\"\:\;\?\&\[\]\@\!\$\*\+\,\|\=\.\(\)foo.weird"
+  keyfile="${alg}.%22%3A%3B%3F%26%5B%5D%40%21%24%2A%2B%2C%7C%3D%2E%28%29foo.weird"
+  n=$((n + 1))
+  ret=0
+  echo_i "Test key generation was successful for $zone ($n)"
+  check_keys $keyfile 2 || ret=1
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test DNSKEY response for $zone ($n)"
+  retry_quiet 2 _dig_policy_dnskey || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected 2 DNSKEY records)"
+  status=$((status + ret))
+
+  n=$((n + 1))
+  ret=0
+  echo_i "Test SOA response for $zone ($n)"
+  retry_quiet 2 _dig_policy_soa || ret=1
+  test "$ret" -eq 0 || echo_i "failed (expected a SOA RRSIG record)"
+  status=$((status + ret))
+
   # Check a dnssec-policy that uses multiple key-stores.
   zone="${alg}.split"
   echo_i "Test key generation was successful for $zone ($n)"

@@ -122,6 +122,9 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
     echo_i "Add zone $alg.split to named.conf"
     cp $infile ${dir}/zone.${alg}.split.db
 
+    echo_i "Add weird zone to named.conf"
+    cp $infile ${dir}/zone.${alg}.weird.db
+
     echo_i "Add zone $zone to named.conf"
     cat >>"${dir}/named.conf" <<EOF
 zone "$zone" {
@@ -141,6 +144,21 @@ zone "${alg}.kasp" {
 	type primary;
 	file "zone.${alg}.kasp.db";
 	dnssec-policy "$alg";
+	allow-update { any; };
+};
+
+dnssec-policy "weird-${alg}-\"\:\;\?\&\[\]\@\!\$\*\+\,\|\=\.\(\)" {
+	keys {
+		ksk key-store "hsm" lifetime unlimited algorithm ${alg};
+		zsk key-store "pin" lifetime unlimited algorithm ${alg};
+	};
+};
+
+zone "${alg}.\"\:\;\?\&\[\]\@\!\$\*\+\,\|\=\.\(\)foo.weird" {
+	type primary;
+	file "zone.${alg}.weird.db";
+	check-names ignore;
+	dnssec-policy "weird-${alg}-\"\:\;\?\&\[\]\@\!\$\*\+\,\|\=\.\(\)";
 	allow-update { any; };
 };
 
