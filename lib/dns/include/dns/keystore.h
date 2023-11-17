@@ -146,13 +146,10 @@ dns_keystore_engine(dns_keystore_t *keystore);
  */
 
 const char *
-dns_keystore_directory(dns_keystore_t *keystore);
+dns_keystore_directory(dns_keystore_t *keystore, const char *keydir);
 /*%<
- * Get keystore directory.
- *
- * Requires:
- *
- *\li   'keystore' is a valid keystore.
+ * Get keystore directory. If 'keystore' is NULL or 'keystore->directory' is
+ *NULL, return 'keydir'.
  *
  * Returns:
  *

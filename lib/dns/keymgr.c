@@ -453,6 +453,7 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 	dst_key_t *newkey = NULL;
 	uint32_t alg = dns_kasp_key_algorithm(kkey);
 	dns_keystore_t *keystore = dns_kasp_key_keystore(kkey);
+	const char *dir = NULL;
 	int size = dns_kasp_key_size(kkey);
 
 	if (dns_kasp_key_ksk(kkey)) {
@@ -490,19 +491,10 @@ keymgr_createkey(dns_kasp_key_t *kkey, const dns_name_t *origin,
 	dst_key_setbool(newkey, DST_BOOL_KSK, dns_kasp_key_ksk(kkey));
 	dst_key_setbool(newkey, DST_BOOL_ZSK, dns_kasp_key_zsk(kkey));
 
-	if (keystore == NULL ||
-	    strcmp(dns_keystore_name(keystore), "key-directory") == 0)
-	{
-		if (keydir != NULL) {
-			dst_key_setdirectory(newkey, keydir);
-		}
-	} else {
-		if (dns_keystore_directory(keystore) != NULL) {
-			dst_key_setdirectory(newkey,
-					     dns_keystore_directory(keystore));
-		}
+	dir = dns_keystore_directory(keystore, keydir);
+	if (dir != NULL) {
+		dst_key_setdirectory(newkey, dir);
 	}
-
 	*dst_key = newkey;
 	return (ISC_R_SUCCESS);
 

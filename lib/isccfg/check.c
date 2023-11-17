@@ -3009,14 +3009,16 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
 	{
 		dns_keystore_t *kks = dns_kasp_key_keystore(kkey);
-		if (kks == NULL || strcmp(DNS_KEYSTORE_KEYDIRECTORY,
-					  dns_keystore_name(kks)) == 0)
-		{
-			dir = keydir;
-			keystore = false;
-		} else {
-			dir = dns_keystore_directory(kks);
-			keystore = true;
+		dir = dns_keystore_directory(kks, keydir);
+		keystore = (kks != NULL && strcmp(DNS_KEYSTORE_KEYDIRECTORY,
+						  dns_keystore_name(kks)) != 0);
+
+		ret = keydirexist(zconfig,
+				  keystore ? "key-store directory"
+					   : "key-directory",
+				  zname, dir, name, keydirs, logctx, mctx);
+		if (ret != ISC_R_SUCCESS) {
+			result = ret;
 		}
 	}
 	dns_kasp_thaw(kasp);

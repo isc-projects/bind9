@@ -6085,13 +6085,8 @@ keyfromfile(dns_zone_t *zone, dst_key_t *pubkey, isc_mem_t *mctx,
 		     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
 		{
 			dns_keystore_t *ks = dns_kasp_key_keystore(kkey);
-			if (ks == NULL ||
-			    strcmp(dns_keystore_name(ks), "key-directory") == 0)
-			{
-				directory = zone->keydirectory;
-			} else {
-				directory = dns_keystore_directory(ks);
-			}
+			directory = dns_keystore_directory(ks,
+							   zone->keydirectory);
 
 			result = dst_key_fromfile(
 				dst_key_name(pubkey), dst_key_id(pubkey),

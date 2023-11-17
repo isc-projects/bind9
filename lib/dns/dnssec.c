@@ -1376,15 +1376,8 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, dns_kasp_t *kasp,
 			{
 				if (dns_kasp_key_keystore(kkey) == keystore) {
 					const char *directory =
-						dns_keystore_directory(
-							keystore);
-					if (directory == NULL ||
-					    (strcmp(dns_keystore_name(keystore),
-						    DNS_KEYSTORE_KEYDIRECTORY) ==
-					     0))
-					{
-						directory = keydir;
-					}
+						dns_keystore_directory(keystore,
+								       keydir);
 					RETERR(findmatchingkeys(
 						directory, namebuf, len, mctx,
 						now, &list));
@@ -1532,15 +1525,7 @@ keyfromfile(dns_kasp_t *kasp, const char *keydir, dst_key_t *key, int type,
 		     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
 		{
 			dns_keystore_t *ks = dns_kasp_key_keystore(kkey);
-			if (ks == NULL ||
-			    strcmp(dns_keystore_name(ks),
-				   DNS_KEYSTORE_KEYDIRECTORY) == 0)
-			{
-				directory = keydir;
-			} else {
-				directory = dns_keystore_directory(ks);
-			}
-
+			directory = dns_keystore_directory(ks, keydir);
 			result = dst_key_fromfile(dst_key_name(key),
 						  dst_key_id(key),
 						  dst_key_alg(key), type,

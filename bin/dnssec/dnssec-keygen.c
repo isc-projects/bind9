@@ -913,7 +913,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 static void
 check_keystore_options(keygen_ctx_t *ctx) {
-	ctx->directory = dns_keystore_directory(ctx->keystore);
+	ctx->directory = dns_keystore_directory(ctx->keystore, NULL);
 	if (ctx->directory != NULL) {
 		isc_result_t ret = try_dir(ctx->directory);
 		if (ret != ISC_R_SUCCESS) {

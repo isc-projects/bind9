@@ -108,8 +108,16 @@ dns_keystore_engine(dns_keystore_t *keystore) {
 }
 
 const char *
-dns_keystore_directory(dns_keystore_t *keystore) {
-	REQUIRE(DNS_KEYSTORE_VALID(keystore));
+dns_keystore_directory(dns_keystore_t *keystore, const char *keydir) {
+	if (keystore == NULL) {
+		return (keydir);
+	}
+
+	INSIST(DNS_KEYSTORE_VALID(keystore));
+
+	if (keystore->directory == NULL) {
+		return (keydir);
+	}
 
 	return (keystore->directory);
 }
