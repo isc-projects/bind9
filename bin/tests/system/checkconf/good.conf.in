@@ -41,7 +41,7 @@ dnssec-policy "test" {
 };
 key-store "hsm" {
 	directory ".";
-	uri "pkcs11:token=bind9;pin-value=1234";
+	pkcs11-uri "pkcs11:token=bind9;pin-value=1234";
 };
 options {
 	avoid-v4-udp-ports {

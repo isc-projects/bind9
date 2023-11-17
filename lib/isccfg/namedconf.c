@@ -2601,10 +2601,11 @@ static cfg_type_t cfg_type_key = { "key",	  cfg_parse_named_map,
 /*%
  * A key-store statement.
  */
-static cfg_clausedef_t keystore_clauses[] = { { "directory", &cfg_type_astring,
-						0 },
-					      { "uri", &cfg_type_qstring, 0 },
-					      { NULL, NULL, 0 } };
+static cfg_clausedef_t keystore_clauses[] = {
+	{ "directory", &cfg_type_astring, 0 },
+	{ "pkcs11-uri", &cfg_type_qstring, 0 },
+	{ NULL, NULL, 0 }
+};
 
 static cfg_clausedef_t *keystore_clausesets[] = { keystore_clauses, NULL };
 static cfg_type_t cfg_type_keystoreopts = {

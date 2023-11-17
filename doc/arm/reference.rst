@@ -621,7 +621,7 @@ The following options can be specified in a :any:`key-store` statement:
    The ``directory`` specifies where key files for this key should be stored.
    This is similar to using the zone's ``key-directory``.
 
-.. namedconf:statement:: uri
+.. namedconf:statement:: pkcs11-uri
    :tags: dnssec, pkcs11
 
    The ``uri`` is a string that specifies a PKCS#11 URI Scheme (defined in

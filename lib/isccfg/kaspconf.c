@@ -780,7 +780,8 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 		maps[i] = NULL;
 		dns_keystore_setdirectory(keystore,
 					  get_string(maps, "directory"));
-		dns_keystore_setpkcs11uri(keystore, get_string(maps, "uri"));
+		dns_keystore_setpkcs11uri(keystore,
+					  get_string(maps, "pkcs11-uri"));
 	}
 
 	/* Append it to the list for future lookups. */

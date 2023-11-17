@@ -37,12 +37,12 @@ controls {
 
 key-store "hsm" {
 	directory ".";
-	uri "pkcs11:token=softhsm2-enginepkcs11;pin-value=1234";
+	pkcs11-uri "pkcs11:token=softhsm2-enginepkcs11;pin-value=1234";
 };
 
 key-store "pin" {
 	directory ".";
-	uri "pkcs11:token=softhsm2-enginepkcs11;pin-source=pin";
+	pkcs11-uri "pkcs11:token=softhsm2-enginepkcs11;pin-source=pin";
 };
 
 key-store "disk" {

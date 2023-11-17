@@ -44,7 +44,7 @@ key <string> {
 
 key-store <string> {
 	directory <string>;
-	uri <quoted_string>;
+	pkcs11-uri <quoted_string>;
 }; // may occur multiple times
 
 logging {
