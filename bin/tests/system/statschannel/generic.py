@@ -19,7 +19,6 @@ fmt = "%Y-%m-%dT%H:%M:%SZ"
 # The constants were taken from BIND 9 source code (lib/dns/zone.c)
 max_refresh = timedelta(seconds=2419200)  # 4 weeks
 max_expires = timedelta(seconds=14515200)  # 24 weeks
-now = datetime.utcnow().replace(microsecond=0)
 dayzero = datetime.utcfromtimestamp(0).replace(microsecond=0)
 
 
@@ -34,19 +33,20 @@ def check_refresh(refresh, min_time, max_time):
     assert refresh <= max_time
 
 
-def check_loaded(loaded, expected):
+def check_loaded(loaded, expected, now):
     # Sanity check the zone timers values
     assert loaded == expected
-    assert loaded < now
+    assert loaded <= now
 
 
 def check_zone_timers(loaded, expires, refresh, loaded_exp):
+    now = datetime.utcnow().replace(microsecond=0)
     # Sanity checks the zone timers values
     if expires is not None:
         check_expires(expires, now, now + max_expires)
     if refresh is not None:
         check_refresh(refresh, now, now + max_refresh)
-    check_loaded(loaded, loaded_exp)
+    check_loaded(loaded, loaded_exp, now)
 
 
 #
