@@ -1,3 +1,7 @@
+6286.	[bug]		Dig +yaml will now report "no servers could be reached"
+			on TCP connection failure as well as for UDP timeouts.
+			[GL #4396]
+
 6285.	[func]		Remove AES-based DNS cookies. [GL #4421]
 
 6284.	[bug]		Fix a catz db update notification callback registration
