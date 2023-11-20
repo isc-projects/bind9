@@ -394,6 +394,16 @@ check_subdomain
 dnssec_verify
 
 #
+# A zone with special characters.
+#
+set_zone "i-am.\":\;?&[]\@!\$*+,|=\.\(\)special.kasp."
+set_policy "default" "1" "3600"
+set_server "ns3" "10.53.0.3"
+# It is non-trivial to adapt the tests to deal with all possible different
+# escaping characters, so we will just try to verify the zone.
+dnssec_verify
+
+#
 # Zone: dynamic.kasp
 #
 set_zone "dynamic.kasp"
