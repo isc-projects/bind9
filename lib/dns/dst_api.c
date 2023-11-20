@@ -1647,7 +1647,7 @@ dst_key_read_public(const char *filename, int type, isc_mem_t *mctx,
 	isc_token_t token;
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
+	unsigned int opt = ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	isc_lexspecials_t specials;
 	uint32_t ttl = 0;
