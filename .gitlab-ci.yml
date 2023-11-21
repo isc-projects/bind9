@@ -34,8 +34,6 @@ variables:
 
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
-  TARBALL_EXTENSION: xz
-
   AM_COLOR_TESTS: always
 
   WITHOUT_READLINE: "--without-readline"
@@ -302,8 +300,8 @@ stages:
 
 # Unpack release tarball and continue work in the extracted directory.
 .unpack_release_tarball: &unpack_release_tarball
-  - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
-  - rm -f bind-*.tar.${TARBALL_EXTENSION}
+  - tar --extract --file bind-*.tar.xz
+  - rm -f bind-*.tar.xz
   - cd bind-*
 
 .build: &build_job
@@ -678,7 +676,7 @@ tarball-create:
   artifacts:
     paths:
       - diff.patch
-      - bind-*.tar.${TARBALL_EXTENSION}
+      - bind-*.tar.xz
     when: always
   needs:
     - job: autoreconf
@@ -1401,12 +1399,12 @@ release:
   <<: *base_image
   stage: release
   script:
-    - export BIND_DIRECTORY="$(basename bind-*.tar.* ".tar.${TARBALL_EXTENSION}")"
+    - export BIND_DIRECTORY="$(basename bind-*.tar.xz ".tar.xz")"
     # Prepare release tarball contents (tarballs + documentation)
     - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
     - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "../${BIND_DIRECTORY}.tar.xz" .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
     - mv "../doc/arm/_build/html" doc/arm/
