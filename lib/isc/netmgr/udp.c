@@ -211,10 +211,12 @@ isc_nm_listenudp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	isc_result_t result = ISC_R_UNSET;
 	isc_nmsocket_t *sock = NULL;
 	uv_os_sock_t fd = -1;
-	isc__networker_t *worker = &mgr->workers[0];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
+
+	worker = &mgr->workers[0];
 
 	if (isc__nm_closing(worker)) {
 		return (ISC_R_SHUTTINGDOWN);
@@ -357,11 +359,13 @@ isc_nm_routeconnect(isc_nm_t *mgr, isc_nm_cb_t cb, void *cbarg) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	isc__nm_uvreq_t *req = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 	uv_os_sock_t fd = -1;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		return (ISC_R_SHUTTINGDOWN);
@@ -647,7 +651,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 		 isc_nm_cb_t cb, void *cbarg) {
 	isc_nmsocket_t *sock = handle->sock;
 	const isc_sockaddr_t *peer = &handle->peer;
-	const struct sockaddr *sa = sock->connected ? NULL : &peer->type.sa;
+	const struct sockaddr *sa = NULL;
 	isc__nm_uvreq_t *uvreq = NULL;
 	isc__networker_t *worker = NULL;
 	uint32_t maxudp;
@@ -660,6 +664,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 
 	worker = sock->worker;
 	maxudp = atomic_load(&worker->netmgr->maxudp);
+	sa = sock->connected ? NULL : &peer->type.sa;
 
 	/*
 	 * We're simulating a firewall blocking UDP packets bigger than
@@ -768,12 +773,14 @@ isc_nm_udpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 	isc_nmsocket_t *sock = NULL;
 	isc__nm_uvreq_t *req = NULL;
 	sa_family_t sa_family;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 	uv_os_sock_t fd = -1;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(local != NULL);
 	REQUIRE(peer != NULL);
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);

@@ -947,10 +947,12 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	isc_result_t result;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_nmsocket_t *tsock = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		return (ISC_R_SHUTTINGDOWN);
@@ -1171,9 +1173,11 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
 		  unsigned int timeout) {
 	isc_nmsocket_t *sock = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		connect_cb(NULL, ISC_R_SHUTTINGDOWN, connect_cbarg);

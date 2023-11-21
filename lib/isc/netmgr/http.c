@@ -1449,13 +1449,15 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   unsigned int timeout) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(cb != NULL);
 	REQUIRE(peer != NULL);
 	REQUIRE(uri != NULL);
 	REQUIRE(*uri != '\0');
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
@@ -2461,13 +2463,15 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		  isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
+	REQUIRE(VALID_NM(mgr));
 	REQUIRE(!ISC_LIST_EMPTY(eps->handlers));
 	REQUIRE(!ISC_LIST_EMPTY(eps->handler_cbargs));
 	REQUIRE(atomic_load(&eps->in_use) == false);
 	REQUIRE(isc_tid() == 0);
 
+	worker = &mgr->workers[isc_tid()];
 	sock = isc_mem_get(worker->mctx, sizeof(*sock));
 	isc__nmsocket_init(sock, worker, isc_nm_httplistener, iface, NULL);
 	atomic_init(&sock->h2.max_concurrent_streams,
