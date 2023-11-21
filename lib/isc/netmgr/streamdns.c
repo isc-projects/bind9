@@ -372,9 +372,11 @@ isc_nm_streamdnsconnect(isc_nm_t *mgr, isc_sockaddr_t *local,
 			unsigned int timeout, isc_tlsctx_t *ctx,
 			isc_tlsctx_client_session_cache_t *client_sess_cache) {
 	isc_nmsocket_t *nsock = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		cb(NULL, ISC_R_SHUTTINGDOWN, cbarg);
@@ -716,10 +718,12 @@ isc_nm_listenstreamdns(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		       isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *listener = NULL;
-	isc__networker_t *worker = &mgr->workers[isc_tid()];
+	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
 	REQUIRE(isc_tid() == 0);
+
+	worker = &mgr->workers[isc_tid()];
 
 	if (isc__nm_closing(worker)) {
 		return (ISC_R_SHUTTINGDOWN);
