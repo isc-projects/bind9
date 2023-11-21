@@ -34,8 +34,6 @@ variables:
 
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
-  TARBALL_EXTENSION: xz
-
   AM_COLOR_TESTS: always
 
   WITHOUT_READLINE: "--without-readline"
@@ -302,8 +300,8 @@ stages:
 
 # Unpack release tarball and continue work in the extracted directory.
 .unpack_release_tarball: &unpack_release_tarball
-  - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
-  - rm -f bind-*.tar.${TARBALL_EXTENSION}
+  - tar --extract --file bind-*.tar.xz
+  - rm -f bind-*.tar.xz
   - cd bind-*
 
 .build: &build_job
@@ -339,65 +337,6 @@ stages:
       else
         sudo sh -x bin/tests/system/ifconfig.sh up;
       fi
-
-ci-variables:
-  stage: precheck
-  <<: *precheck_job
-  script:
-    - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
-    # When testing a .0 release, compare it against the previous development
-    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
-    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BASELINE_BRANCH=$((BIND_BASELINE_BRANCH - 1 - (BIND_BASELINE_BRANCH % 2))); fi
-    - BIND_BASELINE_VERSION="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BASELINE_BRANCH}&order_by=version" | jq -r ".[0].name")"
-    - echo "BIND_BASELINE_VERSION=$BIND_BASELINE_VERSION" >> ci_vars.env
-  needs:
-    - job: autoreconf
-      artifacts: true
-  artifacts:
-    reports:
-      dotenv: ci_vars.env
-
-cross-version-config-tests:
-  stage: system
-  <<: *base_image
-  <<: *default_triggering_rules
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    # Disable option checking to prevent problems with new default options in
-    # the &configure anchor.
-    EXTRA_CONFIGURE: "--disable-option-checking"
-  script:
-    - *configure
-    - *setup_interfaces
-    - make -j${BUILD_PARALLEL_JOBS:-1}
-    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
-    - cd "bind-${BIND_BASELINE_VERSION}"
-    - autoreconf -fi
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1}
-    - *find_pytest
-    - cd bin/tests/system
-    # Run the setup phase of all system tests in the most recently tagged BIND 9
-    # release using the binaries built for the current BIND 9 version.  This
-    # intends to detect obvious backward compatibility issues with the latter.
-    - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
-    - >
-      "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
-  needs:
-    - job: autoreconf
-      artifacts: true
-    - job: ci-variables
-      artifacts: true
-  artifacts:
-    reports:
-      junit: junit.xml
-    paths:
-      - bind-*
-      - junit.xml
-    untracked: true
-    expire_in: "1 day"
-    when: always
 
 .display_pytest_failures: &display_pytest_failures
     - awk '/^=+ FAILURES =+/{flag=1;next}/^=+.*=+$/{flag=0}flag' bin/tests/system/pytest.out.txt || true
@@ -596,6 +535,23 @@ black:
     expire_in: "1 week"
     when: on_failure
 
+ci-variables:
+  stage: precheck
+  <<: *precheck_job
+  script:
+    - export BIND_BASELINE_BRANCH="$(sed -n -E "s|^m4_define\(\[bind_VERSION_MINOR\], ([0-9]+)\)dnl$|\1|p" configure.ac)"
+    # When testing a .0 release, compare it against the previous development
+    # release (e.g., 9.19.0 and 9.18.0 should both be compared against 9.17.22).
+    - if [ "$(sed -n -E "s|^m4_define\(\[bind_VERSION_PATCH\], ([0-9]+)\)dnl$|\1|p" configure.ac)" = "0" ]; then export BIND_BASELINE_BRANCH=$((BIND_BASELINE_BRANCH - 1 - (BIND_BASELINE_BRANCH % 2))); fi
+    - BIND_BASELINE_VERSION="$(curl -s "https://gitlab.isc.org/api/v4/projects/1/repository/tags?search=^v9.${BIND_BASELINE_BRANCH}&order_by=version" | jq -r ".[0].name")"
+    - echo "BIND_BASELINE_VERSION=$BIND_BASELINE_VERSION" >> ci_vars.env
+  needs:
+    - job: autoreconf
+      artifacts: true
+  artifacts:
+    reports:
+      dotenv: ci_vars.env
+
 clang-format:
   <<: *precheck_job
   needs: []
@@ -678,7 +634,7 @@ tarball-create:
   artifacts:
     paths:
       - diff.patch
-      - bind-*.tar.${TARBALL_EXTENSION}
+      - bind-*.tar.xz
     when: always
   needs:
     - job: autoreconf
@@ -705,6 +661,50 @@ docs:tarball:
   needs:
     - job: tarball-create
       artifacts: true
+
+# Job detecting named.conf breakage introduced since the previous point release
+
+cross-version-config-tests:
+  stage: system
+  <<: *base_image
+  <<: *default_triggering_rules
+  variables:
+    CC: gcc
+    CFLAGS: "${CFLAGS_COMMON}"
+    # Disable option checking to prevent problems with new default options in
+    # the &configure anchor.
+    EXTRA_CONFIGURE: "--disable-option-checking"
+  script:
+    - *configure
+    - *setup_interfaces
+    - make -j${BUILD_PARALLEL_JOBS:-1}
+    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git "bind-${BIND_BASELINE_VERSION}"
+    - cd "bind-${BIND_BASELINE_VERSION}"
+    - autoreconf -fi
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1}
+    - *find_pytest
+    - cd bin/tests/system
+    # Run the setup phase of all system tests in the most recently tagged BIND 9
+    # release using the binaries built for the current BIND 9 version.  This
+    # intends to detect obvious backward compatibility issues with the latter.
+    - sed -i -E "s|(export TOP_BUILDDIR)=.*|\1=${CI_PROJECT_DIR}|" conf.sh
+    - >
+      "$PYTEST" --setup-only --junit-xml="$CI_PROJECT_DIR"/junit.xml -n "${TEST_PARALLEL_JOBS:-1}"
+  needs:
+    - job: autoreconf
+      artifacts: true
+    - job: ci-variables
+      artifacts: true
+  artifacts:
+    reports:
+      junit: junit.xml
+    paths:
+      - bind-*
+      - junit.xml
+    untracked: true
+    expire_in: "1 day"
+    when: always
 
 # Jobs for regular GCC builds on Alpine Linux 3.18 (amd64)
 
@@ -1401,12 +1401,12 @@ release:
   <<: *base_image
   stage: release
   script:
-    - export BIND_DIRECTORY="$(basename bind-*.tar.* ".tar.${TARBALL_EXTENSION}")"
+    - export BIND_DIRECTORY="$(basename bind-*.tar.xz ".tar.xz")"
     # Prepare release tarball contents (tarballs + documentation)
     - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
     - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "../${BIND_DIRECTORY}.tar.xz" .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README.md,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
     - mv "../doc/arm/_build/html" doc/arm/
