@@ -38,9 +38,6 @@ variables:
 
   UBSAN_OPTIONS: "halt_on_error=1:abort_on_error=1:disable_coredump=0"
 
-  TARBALL_COMPRESSOR: xz
-  TARBALL_EXTENSION: xz
-
   INSTALL_PATH: "${CI_PROJECT_DIR}/.local"
 
   # Disable pytest's "cacheprovider" plugin to prevent it from creating
@@ -598,10 +595,10 @@ tarball-create:
     - rm -rf "${BIND_DIRECTORY}/tmp/.doctrees/"
     - for man in "${BIND_DIRECTORY}/doc/man/"*; do mv "$man" "$man"in; done
     - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/doc/man/"*in
-    - ${TARBALL_COMPRESSOR} "${BIND_DIRECTORY}.tar"
+    - xz "${BIND_DIRECTORY}.tar"
   artifacts:
     paths:
-      - bind-*.tar.${TARBALL_EXTENSION}
+      - bind-*.tar.xz
 
 # Jobs for doc builds on Debian 12 "bookworm" (amd64)
 
@@ -749,8 +746,8 @@ gcc:tarball:nosphinx:
   <<: *build_job
   before_script:
     - (! command -v sphinx-build >/dev/null)
-    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
-    - rm -f bind-*.tar.${TARBALL_EXTENSION}
+    - tar --extract --file bind-*.tar.xz
+    - rm -f bind-*.tar.xz
     - cd bind-*
   needs:
     - job: tarball-create
@@ -950,8 +947,8 @@ gcc:tarball:
   <<: *base_image
   <<: *build_job
   before_script:
-    - tar --extract --file bind-*.tar.${TARBALL_EXTENSION}
-    - rm -f bind-*.tar.${TARBALL_EXTENSION}
+    - tar --extract --file bind-*.tar.xz
+    - rm -f bind-*.tar.xz
     - cd bind-*
   needs:
     - job: tarball-create
@@ -1377,7 +1374,7 @@ release:
     - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
     - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
     # Create Windows zips
-    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
+    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.xz" | tee Build/Release/SHA256 Build/Debug/SHA256
     - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Release/
     - cp "doc/arm/_build/latex/Bv9ARM.pdf" Build/Debug/
     - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
@@ -1385,8 +1382,8 @@ release:
     # Prepare release tarball contents (tarballs + zips + documentation)
     - mkdir -p "${BIND_DIRECTORY}-release/doc/arm"
     - pushd "${BIND_DIRECTORY}-release"
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
+    - mv "../${BIND_DIRECTORY}.tar.xz" ../BIND*.zip .
+    - tar --extract --file="${BIND_DIRECTORY}.tar.xz"
     - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
     - rm -rf "${BIND_DIRECTORY}"
     - mv "../doc/arm/_build/html" doc/arm/
