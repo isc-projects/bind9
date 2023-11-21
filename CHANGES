@@ -1,3 +1,6 @@
+6289.	[test]		Remove legacy system test runner in favor of pytest.
+			[GL #4251]
+
 6288.	[func]		Refactor the isc_mem overmem handling to always use
 			isc_mem_isovermem and remove the water callback.
 			[GL #4451]
