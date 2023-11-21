@@ -152,8 +152,9 @@ isc_nm_listenudp(isc_nm_t *mgr, isc_sockaddr_t *iface, isc_nm_recv_cb_t cb,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *sock = NULL;
 	size_t children_size = 0;
-	REQUIRE(VALID_NM(mgr));
 	uv_os_sock_t fd = -1;
+
+	REQUIRE(VALID_NM(mgr));
 
 	/*
 	 * We are creating mgr->nworkers duplicated sockets, one
@@ -693,6 +694,7 @@ isc__nm_udp_send(isc_nmhandle_t *handle, const isc_region_t *region,
 	uint32_t maxudp = atomic_load(&sock->mgr->maxudp);
 	int ntid;
 
+	REQUIRE(VALID_NMSOCK(sock));
 	INSIST(sock->type == isc_nm_udpsocket);
 
 	/*

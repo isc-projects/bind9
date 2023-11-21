@@ -2493,6 +2493,7 @@ isc_nm_listenhttp(isc_nm_t *mgr, isc_sockaddr_t *iface, int backlog,
 	isc_nmsocket_t *sock = NULL;
 	isc_result_t result;
 
+	REQUIRE(VALID_NM(mgr));
 	REQUIRE(!ISC_LIST_EMPTY(eps->handlers));
 	REQUIRE(!ISC_LIST_EMPTY(eps->handler_cbargs));
 	REQUIRE(atomic_load(&eps->in_use) == false);

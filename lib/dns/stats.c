@@ -367,10 +367,11 @@ void
 dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 			      dnssecsignstats_type_t operation) {
 	uint32_t kval;
-	int num_keys = isc_stats_ncounters(stats->counters) /
-		       dnssecsign_block_size;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
+
+	int num_keys = isc_stats_ncounters(stats->counters) /
+		       dnssecsign_block_size;
 
 	/* Shift algorithm in front of key tag, which is 16 bits */
 	kval = (uint32_t)(alg << 16 | id);
@@ -414,10 +415,11 @@ dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id, uint8_t alg,
 void
 dns_dnssecsignstats_clear(dns_stats_t *stats, dns_keytag_t id, uint8_t alg) {
 	uint32_t kval;
-	int num_keys = isc_stats_ncounters(stats->counters) /
-		       dnssecsign_block_size;
 
 	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
+
+	int num_keys = isc_stats_ncounters(stats->counters) /
+		       dnssecsign_block_size;
 
 	/* Shift algorithm in front of key tag, which is 16 bits */
 	kval = (uint32_t)(alg << 16 | id);
