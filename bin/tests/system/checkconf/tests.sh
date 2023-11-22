@@ -620,7 +620,7 @@ else
   expect=3
 fi
 $CHECKCONF $conf >checkconf.out$n 2>&1 && ret=1
-grep "dnssec-policy: nsec3 iterations value 151 out of range" <checkconf.out$n >/dev/null || ret=1
+grep "dnssec-policy: nsec3 iterations value 1 not allowed, must be zero" <checkconf.out$n >/dev/null || ret=1
 lines=$(wc -l <"checkconf.out$n")
 if [ $lines -ne $expect ]; then ret=1; fi
 if [ $ret -ne 0 ]; then echo_i "failed"; fi

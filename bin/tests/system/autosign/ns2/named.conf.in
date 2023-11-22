@@ -67,7 +67,7 @@ dnssec-policy "optout" {
 		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 
-	nsec3param iterations 1 optout yes salt-length 0;
+	nsec3param iterations 0 optout yes salt-length 0;
 };
 
 zone "." {
