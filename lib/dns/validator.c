@@ -1591,20 +1591,9 @@ validate_answer(dns_validator_t *val, bool resume) {
 			continue;
 		}
 
-		do {
-			isc_result_t tresult;
-			vresult = verify(val, val->key, &rdata,
-					 val->siginfo->keyid);
-			if (vresult == ISC_R_SUCCESS) {
-				break;
-			}
-
-			tresult = select_signing_key(val, val->keyset);
-			if (tresult != ISC_R_SUCCESS) {
-				break;
-			}
-		} while (1);
+		vresult = verify(val, val->key, &rdata, val->siginfo->keyid);
 		if (vresult != ISC_R_SUCCESS) {
+			val->failed = true;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
 		} else {
@@ -1641,8 +1630,12 @@ validate_answer(dns_validator_t *val, bool resume) {
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
-				      isc_result_totext(result));
+				      isc_result_totext(vresult));
 			resume = false;
+		}
+		if (val->failed) {
+			result = ISC_R_NOMORE;
+			break;
 		}
 	}
 	if (result != ISC_R_NOMORE) {
