@@ -1467,7 +1467,7 @@ ret=0
 (
   cd signer/general || exit 0
   rm -f signed.zone
-  $SIGNER -f signed.zone -3 - -H 151 -o example.com. test9.zone >signer.out.$n
+  $SIGNER -f signed.zone -3 - -H 51 -o example.com. test9.zone >signer.out.$n
   test -f signed.zone
 ) && ret=1
 n=$((n + 1))
@@ -1492,7 +1492,7 @@ ret=0
 (
   cd signer/general || exit 1
   rm -f signed.zone
-  $SIGNER -f signed.zone -3 - -H 150 -o example.com. test9.zone >signer.out.$n
+  $SIGNER -f signed.zone -3 - -H 50 -o example.com. test9.zone >signer.out.$n
   test -f signed.zone
 ) || ret=1
 n=$((n + 1))
@@ -4317,8 +4317,8 @@ status=$((status + ret))
 
 echo_i "checking excessive NSEC3 iteration warnings in named.run ($n)"
 ret=0
-grep "zone too-many-iterations/IN: excessive NSEC3PARAM iterations [0-9]* > 150" ns2/named.run >/dev/null 2>&1 || ret=1
-grep "zone too-many-iterations/IN: excessive NSEC3PARAM iterations [0-9]* > 150" ns3/named.run >/dev/null 2>&1 || ret=1
+grep "zone too-many-iterations/IN: excessive NSEC3PARAM iterations [0-9]* > 50" ns2/named.run >/dev/null 2>&1 || ret=1
+grep "zone too-many-iterations/IN: excessive NSEC3PARAM iterations [0-9]* > 50" ns3/named.run >/dev/null 2>&1 || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
