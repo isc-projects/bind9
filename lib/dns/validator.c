@@ -1241,6 +1241,8 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 				    (dns_secalg_t)dst_key_alg(val->key) &&
 			    siginfo->keyid ==
 				    (dns_keytag_t)dst_key_id(val->key) &&
+			    (dst_key_flags(val->key) & DNS_KEYFLAG_REVOKE) ==
+				    0 &&
 			    dst_key_iszonekey(val->key))
 			{
 				if (foundold) {
@@ -1633,37 +1635,13 @@ validate(dns_validator_t *val, bool resume) {
 			continue;
 		}
 
-		do {
-			vresult = verify(val, val->key, &rdata,
-					val->siginfo->keyid);
-			if (vresult == ISC_R_SUCCESS)
-				break;
-			if (val->keynode != NULL) {
-				dns_keynode_t *nextnode = NULL;
-				result = dns_keytable_findnextkeynode(
-							val->keytable,
-							val->keynode,
-							&nextnode);
-				dns_keytable_detachkeynode(val->keytable,
-							   &val->keynode);
-				val->keynode = nextnode;
-				if (result != ISC_R_SUCCESS) {
-					val->key = NULL;
-					break;
-				}
-				val->key = dns_keynode_key(val->keynode);
-				if (val->key == NULL)
-					break;
-			} else {
-				if (get_dst_key(val, val->siginfo, val->keyset)
-				    != ISC_R_SUCCESS)
-					break;
-			}
-		} while (1);
-		if (vresult != ISC_R_SUCCESS)
+		vresult = verify(val, val->key, &rdata,
+				val->siginfo->keyid);
+		if (vresult != ISC_R_SUCCESS) {
+			val->failed = true;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
-		else {
+		} else {
 			dns_rdataset_trimttl(event->rdataset,
 					     event->sigrdataset,
 					     val->siginfo, val->start,
@@ -1700,8 +1678,12 @@ validate(dns_validator_t *val, bool resume) {
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
-				      isc_result_totext(result));
+				      isc_result_totext(vresult));
 			resume = false;
+		}
+		if (val->failed) {
+			result = ISC_R_NOMORE;
+			break;
 		}
 	}
 	if (result != ISC_R_NOMORE) {
