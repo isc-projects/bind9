@@ -1144,6 +1144,8 @@ select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
 				    (dns_secalg_t)dst_key_alg(val->key) &&
 			    siginfo->keyid ==
 				    (dns_keytag_t)dst_key_id(val->key) &&
+			    (dst_key_flags(val->key) & DNS_KEYFLAG_REVOKE) ==
+				    0 &&
 			    dst_key_iszonekey(val->key))
 			{
 				if (foundold) {
