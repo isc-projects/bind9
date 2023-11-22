@@ -17,8 +17,6 @@ $SHELL clean.sh
 
 copy_setports ns2/named1.conf.in ns2/named.conf
 
-copy_setports ns2/named-alt1.conf.in ns2/named-alt1.conf
-copy_setports ns2/named-alt2.conf.in ns2/named-alt2.conf
 copy_setports ns2/named-alt4.conf.in ns2/named-alt4.conf
 copy_setports ns2/named-alt5.conf.in ns2/named-alt5.conf
 copy_setports ns2/named-alt6.conf.in ns2/named-alt6.conf
