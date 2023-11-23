@@ -477,6 +477,17 @@ struct dns_rbtdb {
 	 */
 	rdatasetheaderlist_t *rdatasets;
 
+	/*
+	 * Start point % node_lock_count for next LRU cleanup.
+	 */
+	atomic_uint lru_sweep;
+
+	/*
+	 * When performing LRU cleaning limit cleaning to headers that were
+	 * last used at or before this.
+	 */
+	_Atomic(isc_stdtime_t) last_used;
+
 	/*%
 	 * Temporary storage for stale cache nodes and dynamically deleted
 	 * nodes that await being cleaned up.
@@ -561,8 +572,7 @@ static void
 expire_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, bool tree_locked,
 	      expire_t reason);
 static void
-overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start, size_t purgesize,
-	      bool tree_locked);
+overmem_purge(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, bool tree_locked);
 static void
 resign_insert(dns_rbtdb_t *rbtdb, int idx, rdatasetheader_t *newheader);
 static void
@@ -6444,6 +6454,9 @@ find_header:
 			if (header->rdh_ttl > newheader->rdh_ttl) {
 				set_ttl(rbtdb, header, newheader->rdh_ttl);
 			}
+			if (header->last_used != now) {
+				update_header(rbtdb, header, now);
+			}
 			if (header->noqname == NULL &&
 			    newheader->noqname != NULL)
 			{
@@ -6496,6 +6509,9 @@ find_header:
 			if (header->rdh_ttl > newheader->rdh_ttl) {
 				set_ttl(rbtdb, header, newheader->rdh_ttl);
 			}
+			if (header->last_used != now) {
+				update_header(rbtdb, header, now);
+			}
 			if (header->noqname == NULL &&
 			    newheader->noqname != NULL)
 			{
@@ -6523,6 +6539,8 @@ find_header:
 			idx = newheader->node->locknum;
 			if (IS_CACHE(rbtdb)) {
 				if (ZEROTTL(newheader)) {
+					newheader->last_used =
+						rbtdb->last_used + 1;
 					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
 							newheader, link);
 				} else {
@@ -6564,6 +6582,8 @@ find_header:
 				INSIST(rbtdb->heaps != NULL);
 				isc_heap_insert(rbtdb->heaps[idx], newheader);
 				if (ZEROTTL(newheader)) {
+					newheader->last_used =
+						rbtdb->last_used + 1;
 					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
 							newheader, link);
 				} else {
@@ -6969,8 +6989,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	if (cache_is_overmem) {
-		overmem_purge(rbtdb, rbtnode->locknum, rdataset_size(newheader),
-			      tree_locked);
+		overmem_purge(rbtdb, newheader, tree_locked);
 	}
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
@@ -10147,7 +10166,9 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
 	size_t purged = 0;
 
 	for (header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
-	     header != NULL && purged <= purgesize; header = header_prev)
+	     header != NULL && header->last_used <= rbtdb->last_used &&
+	     purged <= purgesize;
+	     header = header_prev)
 	{
 		header_prev = ISC_LIST_PREV(header, link);
 		/*
@@ -10171,30 +10192,55 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
  * entries under the overmem condition.  To recover from this condition quickly,
  * we cleanup entries up to the size of newly added rdata (passed as purgesize).
  *
- * This process is triggered while adding a new entry, and we specifically avoid
- * purging entries in the same LRU bucket as the one to which the new entry will
- * belong.  Otherwise, we might purge entries of the same name of different RR
- * types while adding RRsets from a single response (consider the case where
- * we're adding A and AAAA glue records of the same NS name).
+ * The LRU lists tails are processed in LRU order to the nearest second.
+ *
+ * A write lock on the tree must be held.
  */
 static void
-overmem_purge(dns_rbtdb_t *rbtdb, unsigned int locknum_start, size_t purgesize,
+overmem_purge(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	      bool tree_locked) {
-	unsigned int locknum;
+	uint32_t locknum_start = rbtdb->lru_sweep++ % rbtdb->node_lock_count;
+	uint32_t locknum = locknum_start;
+	size_t purgesize = rdataset_size(newheader);
 	size_t purged = 0;
+	isc_stdtime_t min_last_used = 0;
+	size_t max_passes = 8;
 
-	for (locknum = (locknum_start + 1) % rbtdb->node_lock_count;
-	     locknum != locknum_start && purged <= purgesize;
-	     locknum = (locknum + 1) % rbtdb->node_lock_count)
-	{
+again:
+	do {
 		NODE_LOCK(&rbtdb->node_locks[locknum].lock,
 			  isc_rwlocktype_write);
 
 		purged += expire_lru_headers(rbtdb, locknum, purgesize - purged,
 					     tree_locked);
 
+		/*
+		 * Work out the oldest remaining last_used values of the list
+		 * tails as we walk across the array of lru lists.
+		 */
+		rdatasetheader_t *header =
+			ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
+		if (header != NULL &&
+		    (min_last_used == 0 || header->last_used < min_last_used))
+		{
+			min_last_used = header->last_used;
+		}
 		NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
 			    isc_rwlocktype_write);
+		locknum = (locknum + 1) % rbtdb->node_lock_count;
+	} while (locknum != locknum_start && purged <= purgesize);
+
+	/*
+	 * Update rbtdb->last_used if we have walked all the list tails and have
+	 * not freed the required amount of memory.
+	 */
+	if (purged < purgesize) {
+		if (min_last_used != 0) {
+			rbtdb->last_used = min_last_used;
+			if (max_passes-- > 0) {
+				goto again;
+			}
+		}
 	}
 }
 
