@@ -15,8 +15,10 @@ from datetime import datetime
 
 import pytest
 
-import generic
 import pytest_custom_markers
+
+pytest.register_assert_rewrite("generic")
+import generic
 
 pytestmark = pytest_custom_markers.have_json_c
 requests = pytest.importorskip("requests")
