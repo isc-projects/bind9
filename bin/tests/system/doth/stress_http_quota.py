@@ -161,12 +161,12 @@ class SubDIG:
 # and examining their statuses in one logical operation.
 class MultiDIG:
     def __init__(self, numdigs, http_secure=None, extra_args=None):
-        assert int(numdigs) > 0
+        assert int(numdigs) > 0, f"numdigs={numdigs}"
         digs = []
         for _ in range(1, int(numdigs) + 1):
             digs.append(SubDIG(http_secure=http_secure, extra_args=extra_args))
         self.digs = digs
-        assert len(self.digs) == int(numdigs)
+        assert len(self.digs) == int(numdigs), f"len={len(self.digs)} numdigs={numdigs}"
 
     def run(self):
         for p in self.digs:
