@@ -773,6 +773,7 @@ doh_connect_thread(void *arg) {
 	 */
 	int_fast64_t active = atomic_fetch_add(&active_cconnects, 1);
 	if (active > workers) {
+		atomic_fetch_sub(&active_cconnects, 1);
 		return;
 	}
 	connect_send_request(connect_nm, req_url, atomic_load(&POST),
