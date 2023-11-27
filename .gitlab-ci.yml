@@ -216,6 +216,10 @@ stages:
   image: "freebsd-13.2-x86_64"
   <<: *libvirt_amd64
 
+.freebsd-14-amd64: &freebsd_14_amd64_image
+  image: "freebsd-14.0-x86_64"
+  <<: *libvirt_amd64
+
 .openbsd-amd64: &openbsd_amd64_image
   image: "openbsd-7.4-x86_64"
   <<: *libvirt_amd64
@@ -1279,6 +1283,33 @@ unit:clang:freebsd13:amd64:
   <<: *unit_test_job
   needs:
     - job: clang:freebsd13:amd64
+      artifacts: true
+
+# Jobs for Clang builds on FreeBSD 14 (amd64)
+
+clang:freebsd14:amd64:
+  variables:
+    CFLAGS: "${CFLAGS_COMMON}"
+    # Disable BIND 9 GSS-API support because of Heimdal incompatibility; see FreeBSD bug #275241.
+    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT} --without-gssapi"
+    USER: gitlab-runner
+  <<: *freebsd_14_amd64_image
+  <<: *build_job
+
+system:clang:freebsd14:amd64:
+  <<: *freebsd_14_amd64_image
+  <<: *system_test_job
+  variables:
+    USER: gitlab-runner
+  needs:
+    - job: clang:freebsd14:amd64
+      artifacts: true
+
+unit:clang:freebsd14:amd64:
+  <<: *freebsd_14_amd64_image
+  <<: *unit_test_job
+  needs:
+    - job: clang:freebsd14:amd64
       artifacts: true
 
 # Jobs for Clang builds on OpenBSD (amd64)
