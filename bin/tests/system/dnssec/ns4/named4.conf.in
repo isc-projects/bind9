@@ -39,17 +39,17 @@ key auth {
 
 include "trusted.conf";
 
+zone "." {
+	type hint;
+	file "../../_common/root.hint";
+};
+
 view rec {
 	match-recursive-only yes;
 	recursion yes;
 	dnssec-validation yes;
 	dnssec-accept-expired yes;
 	minimal-responses no;
-
-	zone "." {
-		type hint;
-		file "../../_common/root.hint";
-	};
 
 	zone secure.example {
 		type static-stub;
