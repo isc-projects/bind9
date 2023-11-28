@@ -14464,8 +14464,12 @@ again:
 	INSIST(zone->curprimary < zone->primariescnt);
 
 	zone->primaryaddr = zone->primaries[zone->curprimary];
-
 	isc_netaddr_fromsockaddr(&primaryip, &zone->primaryaddr);
+
+	if (isc_sockaddr_disabled(&zone->primaryaddr)) {
+		goto skip_primary;
+	}
+
 	/*
 	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
