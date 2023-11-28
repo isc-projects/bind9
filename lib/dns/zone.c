@@ -14150,6 +14150,10 @@ again:
 	curraddr = dns_remote_curraddr(&zone->primaries);
 	isc_netaddr_fromsockaddr(&primaryip, &curraddr);
 
+	if (isc_sockaddr_disabled(&curraddr)) {
+		goto skip_primary;
+	}
+
 	/*
 	 * First, look for a tsig key in the primaries statement, then
 	 * try for a server key.
