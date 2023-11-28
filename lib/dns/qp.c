@@ -1391,6 +1391,8 @@ dns_qpmulti_snapshot(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 
 	*qpsp = qps;
 	UNLOCK(&multi->mutex);
+
+	rcu_read_unlock();
 }
 
 void
@@ -1417,8 +1419,6 @@ dns_qpsnap_destroy(dns_qpmulti_t *multi, dns_qpsnap_t **qpsp) {
 
 	*qpsp = NULL;
 	UNLOCK(&multi->mutex);
-
-	rcu_read_unlock();
 }
 
 /***********************************************************************
