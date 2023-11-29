@@ -372,7 +372,7 @@ want to consider deploying DNSSEC:
 .. [#]
    The Office of Management and Budget (OMB) for the US government
    published `a memo in
-   2008 <https://www.whitehouse.gov/sites/whitehouse.gov/files/omb/memoranda/2008/m08-23.pdf>`__,
+   2008 <https://georgewbush-whitehouse.archives.gov/omb/memoranda/fy2008/m08-23.pdf>`__,
    requesting all ``.gov`` subdomains to be DNSSEC-signed by December
    2009. This explains why ``.gov`` is the most-deployed DNSSEC domain
    currently, with `around 90% of subdomains
