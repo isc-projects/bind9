@@ -291,6 +291,40 @@ ISC_RUN_TEST_IMPL(isc_mem_reallocate) {
 	isc_mem_free(mctx, data);
 }
 
+ISC_RUN_TEST_IMPL(isc_mem_overmem) {
+	isc_mem_t *omctx = NULL;
+	isc_mem_create(&omctx);
+	assert_non_null(omctx);
+
+	isc_mem_setwater(omctx, 1024, 512);
+
+	/* inuse < lo_water */
+	void *data1 = isc_mem_allocate(omctx, 256);
+	assert_false(isc_mem_isovermem(omctx));
+
+	/* lo_water < inuse < hi_water */
+	void *data2 = isc_mem_allocate(omctx, 512);
+	assert_false(isc_mem_isovermem(omctx));
+
+	/* hi_water < inuse */
+	void *data3 = isc_mem_allocate(omctx, 512);
+	assert_true(isc_mem_isovermem(omctx));
+
+	/* lo_water < inuse < hi_water */
+	isc_mem_free(omctx, data2);
+	assert_true(isc_mem_isovermem(omctx));
+
+	/* inuse < lo_water */
+	isc_mem_free(omctx, data3);
+	assert_false(isc_mem_isovermem(omctx));
+
+	/* inuse == 0 */
+	isc_mem_free(omctx, data1);
+	assert_false(isc_mem_isovermem(omctx));
+
+	isc_mem_destroy(&omctx);
+}
+
 #if ISC_MEM_TRACKLINES
 
 /* test mem with no flags */
@@ -486,6 +520,7 @@ ISC_TEST_ENTRY(isc_mem_inuse)
 ISC_TEST_ENTRY(isc_mem_zeroget)
 ISC_TEST_ENTRY(isc_mem_reget)
 ISC_TEST_ENTRY(isc_mem_reallocate)
+ISC_TEST_ENTRY(isc_mem_overmem)
 
 #if ISC_MEM_TRACKLINES
 ISC_TEST_ENTRY(isc_mem_noflags)
