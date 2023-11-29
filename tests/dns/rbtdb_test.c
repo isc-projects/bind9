@@ -216,16 +216,6 @@ ISC_RUN_TEST_IMPL(setownercase) {
 }
 
 /*
- * No operation water() callback. We need it to cause overmem condition, but
- * nothing has to be done in the callback.
- */
-static void
-overmempurge_water(void *arg, int mark) {
-	UNUSED(arg);
-	UNUSED(mark);
-}
-
-/*
  * Add to a cache DB 'db' an rdataset of type 'rtype' at a name
  * <idx>.example.com. The rdataset would contain one data, and rdata_len is
  * its length. 'rtype' is supposed to be some private type whose data can be
@@ -307,7 +297,7 @@ ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_setwater(mctx2, overmempurge_water, NULL, hiwater, lowater);
+	isc_mem_setwater(mctx2, hiwater, lowater);
 
 	/*
 	 * Add cache entries with minimum size of data until 'overmem'
@@ -351,7 +341,7 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	isc_mem_setwater(mctx2, overmempurge_water, NULL, hiwater, lowater);
+	isc_mem_setwater(mctx2, hiwater, lowater);
 
 	/*
 	 * Add cache entries with minimum size of data until 'overmem'

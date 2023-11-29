@@ -116,7 +116,6 @@ struct dns_adb {
 	isc_stats_t *stats;
 
 	atomic_bool exiting;
-	atomic_bool is_overmem;
 
 	uint32_t quota;
 	uint32_t atr_freq;
@@ -345,8 +344,6 @@ static void
 shutdown_names(dns_adb_t *);
 static void
 shutdown_entries(dns_adb_t *);
-static void
-water(void *, int);
 static void
 dump_entry(FILE *, dns_adb_t *, dns_adbentry_t *, bool, isc_stdtime_t);
 static void
@@ -1290,7 +1287,7 @@ get_attached_and_locked_name(dns_adb_t *adb, const dns_name_t *name,
 	last_update = adb->names_last_update;
 
 	if (last_update + ADB_STALE_MARGIN >= now ||
-	    atomic_load_relaxed(&adb->is_overmem))
+	    isc_mem_isovermem(adb->mctx))
 	{
 		last_update = now;
 		UPGRADELOCK(&adb->names_lock, locktype);
@@ -1384,7 +1381,7 @@ get_attached_and_locked_entry(dns_adb_t *adb, isc_stdtime_t now,
 	last_update = adb->entries_last_update;
 
 	if (now - last_update > ADB_STALE_MARGIN ||
-	    atomic_load_relaxed(&adb->is_overmem))
+	    isc_mem_isovermem(adb->mctx))
 	{
 		last_update = now;
 
@@ -1617,7 +1614,7 @@ maybe_expire_entry(dns_adbentry_t *adbentry, isc_stdtime_t now) {
  */
 static void
 purge_stale_names(dns_adb_t *adb, isc_stdtime_t now) {
-	bool overmem = atomic_load_relaxed(&adb->is_overmem);
+	bool overmem = isc_mem_isovermem(adb->mctx);
 	int max_removed = overmem ? 2 : 1;
 	int scans = 0, removed = 0;
 	dns_adbname_t *prev = NULL;
@@ -1722,7 +1719,7 @@ cleanup_names(dns_adb_t *adb, isc_stdtime_t now) {
  */
 static void
 purge_stale_entries(dns_adb_t *adb, isc_stdtime_t now) {
-	bool overmem = atomic_load_relaxed(&adb->is_overmem);
+	bool overmem = isc_mem_isovermem(adb->mctx);
 	int max_removed = overmem ? 2 : 1;
 	int scans = 0, removed = 0;
 	dns_adbentry_t *prev = NULL;
@@ -3478,18 +3475,6 @@ dns_adb_flushnames(dns_adb_t *adb, const dns_name_t *name) {
 	RWUNLOCK(&adb->names_lock, isc_rwlocktype_write);
 }
 
-static void
-water(void *arg, int mark) {
-	dns_adb_t *adb = arg;
-
-	REQUIRE(DNS_ADB_VALID(adb));
-
-	atomic_store_release(&adb->is_overmem, (mark == ISC_MEM_HIWATER));
-
-	DP(ISC_LOG_DEBUG(1), "adb reached %s water mark",
-	   (mark == ISC_MEM_HIWATER) ? "high" : "low");
-}
-
 void
 dns_adb_setadbsize(dns_adb_t *adb, size_t size) {
 	size_t hiwater, lowater;
@@ -3506,7 +3491,7 @@ dns_adb_setadbsize(dns_adb_t *adb, size_t size) {
 	if (size == 0U || hiwater == 0U || lowater == 0U) {
 		isc_mem_clearwater(adb->mctx);
 	} else {
-		isc_mem_setwater(adb->mctx, water, adb, hiwater, lowater);
+		isc_mem_setwater(adb->mctx, hiwater, lowater);
 	}
 }
 
