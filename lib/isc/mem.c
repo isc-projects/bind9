@@ -350,11 +350,6 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 	return (new_ptr);
 }
 
-#define stats_bucket(ctx, size)                      \
-	((size / STATS_BUCKET_SIZE) >= STATS_BUCKETS \
-		 ? &ctx->stats[STATS_BUCKETS]        \
-		 : &ctx->stats[size / STATS_BUCKET_SIZE])
-
 /*!
  * Update internal counters after a memory get.
  */
