@@ -1,3 +1,7 @@
+6288.	[func]		Refactor the isc_mem overmem handling to always use
+			isc_mem_isovermem and remove the water callback.
+			[GL #4451]
+
 6287.	[bug]		Recognize escapes when reading the public key from file.
 			[GL !8502]
 

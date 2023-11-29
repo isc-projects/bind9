@@ -129,8 +129,6 @@ struct isc_mem {
 	atomic_size_t inuse;
 	atomic_bool hi_called;
 	atomic_bool is_overmem;
-	isc_mem_water_t water;
-	void *water_arg;
 	atomic_size_t hi_water;
 	atomic_size_t lo_water;
 	ISC_LIST(isc_mempool_t) pools;
@@ -351,11 +349,6 @@ mem_realloc(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 
 	return (new_ptr);
 }
-
-#define stats_bucket(ctx, size)                      \
-	((size / STATS_BUCKET_SIZE) >= STATS_BUCKETS \
-		 ? &ctx->stats[STATS_BUCKETS]        \
-		 : &ctx->stats[size / STATS_BUCKET_SIZE])
 
 /*!
  * Update internal counters after a memory get.
@@ -673,68 +666,6 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	*ctxp = NULL;
 }
 
-#define CALL_HI_WATER(ctx)                                             \
-	{                                                              \
-		if (ctx->water != NULL && hi_water(ctx)) {             \
-			(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER); \
-		}                                                      \
-	}
-
-#define CALL_LO_WATER(ctx)                                             \
-	{                                                              \
-		if ((ctx->water != NULL) && lo_water(ctx)) {           \
-			(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER); \
-		}                                                      \
-	}
-
-static bool
-hi_water(isc_mem_t *ctx) {
-	size_t inuse;
-	size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
-
-	if (hiwater == 0) {
-		return (false);
-	}
-
-	inuse = atomic_load_relaxed(&ctx->inuse);
-	if (inuse <= hiwater) {
-		return (false);
-	}
-
-	if (atomic_load_acquire(&ctx->hi_called)) {
-		return (false);
-	}
-
-	/* We are over water (for the first time) */
-	atomic_store_release(&ctx->is_overmem, true);
-
-	return (true);
-}
-
-static bool
-lo_water(isc_mem_t *ctx) {
-	size_t inuse;
-	size_t lowater = atomic_load_relaxed(&ctx->lo_water);
-
-	if (lowater == 0) {
-		return (false);
-	}
-
-	inuse = atomic_load_relaxed(&ctx->inuse);
-	if (inuse >= lowater) {
-		return (false);
-	}
-
-	if (!atomic_load_acquire(&ctx->hi_called)) {
-		return (false);
-	}
-
-	/* We are no longer overmem */
-	atomic_store_release(&ctx->is_overmem, false);
-
-	return (true);
-}
-
 void *
 isc__mem_get(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	void *ptr = NULL;
@@ -745,8 +676,6 @@ isc__mem_get(isc_mem_t *ctx, size_t size, int flags FLARG) {
 
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
-
-	CALL_HI_WATER(ctx);
 
 	return (ptr);
 }
@@ -759,19 +688,6 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size, int flags FLARG) {
 
 	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
-
-	CALL_LO_WATER(ctx);
-}
-
-void
-isc_mem_waterack(isc_mem_t *ctx, int flag) {
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	if (flag == ISC_MEM_LOWATER) {
-		atomic_store_release(&ctx->hi_called, false);
-	} else if (flag == ISC_MEM_HIWATER) {
-		atomic_store_release(&ctx->hi_called, true);
-	}
 }
 
 #if ISC_MEM_TRACKLINES
@@ -867,8 +783,6 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size, int flags FLARG) {
 	mem_getstats(ctx, size);
 	ADD_TRACE(ctx, ptr, size, file, line);
 
-	CALL_HI_WATER(ctx);
-
 	return (ptr);
 }
 
@@ -896,8 +810,6 @@ isc__mem_reget(isc_mem_t *ctx, void *old_ptr, size_t old_size, size_t new_size,
 		 * where the realloc will exactly hit on the boundary of
 		 * the water and we would call water twice.
 		 */
-		CALL_LO_WATER(ctx);
-		CALL_HI_WATER(ctx);
 	}
 
 	return (new_ptr);
@@ -933,8 +845,6 @@ isc__mem_reallocate(isc_mem_t *ctx, void *old_ptr, size_t new_size,
 		 * where the realloc will exactly hit on the boundary of
 		 * the water and we would call water twice.
 		 */
-		CALL_LO_WATER(ctx);
-		CALL_HI_WATER(ctx);
 	}
 
 	return (new_ptr);
@@ -953,8 +863,6 @@ isc__mem_free(isc_mem_t *ctx, void *ptr, int flags FLARG) {
 
 	mem_putstats(ctx, size);
 	mem_put(ctx, ptr, size, flags);
-
-	CALL_LO_WATER(ctx);
 }
 
 /*
@@ -1019,59 +927,66 @@ isc_mem_inuse(isc_mem_t *ctx) {
 
 void
 isc_mem_clearwater(isc_mem_t *mctx) {
-	isc_mem_setwater(mctx, NULL, NULL, 0, 0);
+	isc_mem_setwater(mctx, 0, 0);
 }
 
 void
-isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
-		 size_t hiwater, size_t lowater) {
-	isc_mem_water_t oldwater;
-	void *oldwater_arg;
-
+isc_mem_setwater(isc_mem_t *ctx, size_t hiwater, size_t lowater) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(hiwater >= lowater);
-
-	oldwater = ctx->water;
-	oldwater_arg = ctx->water_arg;
-
-	/* No water was set and new water is also NULL */
-	if (oldwater == NULL && water == NULL) {
-		return;
-	}
-
-	/* The water function is being set for the first time */
-	if (oldwater == NULL) {
-		REQUIRE(water != NULL && lowater > 0);
-
-		INSIST(atomic_load_acquire(&ctx->hi_water) == 0);
-		INSIST(atomic_load_acquire(&ctx->lo_water) == 0);
-
-		ctx->water = water;
-		ctx->water_arg = water_arg;
-		atomic_store_release(&ctx->hi_water, hiwater);
-		atomic_store_release(&ctx->lo_water, lowater);
-
-		return;
-	}
-
-	REQUIRE((water == oldwater && water_arg == oldwater_arg) ||
-		(water == NULL && water_arg == NULL && hiwater == 0));
 
 	atomic_store_release(&ctx->hi_water, hiwater);
 	atomic_store_release(&ctx->lo_water, lowater);
 
-	if (atomic_load_acquire(&ctx->hi_called) &&
-	    (atomic_load_acquire(&ctx->inuse) < lowater || lowater == 0U))
-	{
-		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
-	}
+	return;
 }
 
 bool
 isc_mem_isovermem(isc_mem_t *ctx) {
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	return (atomic_load_relaxed(&ctx->is_overmem));
+	bool is_overmem = atomic_load_relaxed(&ctx->is_overmem);
+
+	if (!is_overmem) {
+		/* We are not overmem, check whether we should be? */
+		size_t hiwater = atomic_load_relaxed(&ctx->hi_water);
+		if (hiwater == 0) {
+			return (false);
+		}
+
+		size_t inuse = atomic_load_relaxed(&ctx->inuse);
+		if (inuse <= hiwater) {
+			return (false);
+		}
+
+		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
+			fprintf(stderr,
+				"overmem mctx %p inuse %zu hi_water %zu\n", ctx,
+				inuse, hiwater);
+		}
+
+		atomic_store_relaxed(&ctx->is_overmem, true);
+		return (true);
+	} else {
+		/* We are overmem, check whether we should not be? */
+		size_t lowater = atomic_load_relaxed(&ctx->lo_water);
+		if (lowater == 0) {
+			return (false);
+		}
+
+		size_t inuse = atomic_load_relaxed(&ctx->inuse);
+		if (inuse >= lowater) {
+			return (true);
+		}
+
+		if ((isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0) {
+			fprintf(stderr,
+				"overmem mctx %p inuse %zu lo_water %zu\n", ctx,
+				inuse, lowater);
+		}
+		atomic_store_relaxed(&ctx->is_overmem, false);
+		return (false);
+	}
 }
 
 void
