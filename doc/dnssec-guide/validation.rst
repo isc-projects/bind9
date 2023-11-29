@@ -717,7 +717,7 @@ process. Thereafter, BIND uses the managed keys database
 
 Explicit management of keys was common in the early days of DNSSEC, when
 neither the root zone nor many top-level domains were signed. Since
-then, `over 90% <https://stats.research.icann.org/dns/tld_report/>`__ of
+then, `over 90% <https://ithi.research.icann.org/graph-m7.html>`__ of
 the top-level domains have been signed, including all the largest ones.
 Unless you have a particular need to manage keys yourself, it is best to
 use the BIND defaults and let the software manage the root key.
