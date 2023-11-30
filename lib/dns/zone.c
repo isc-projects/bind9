@@ -6020,6 +6020,8 @@ dns_zone_setparentals(dns_zone_t *zone, isc_sockaddr_t *addresses,
 		goto unlock;
 	}
 
+	report_no_active_addresses(zone, addresses, count, "parental-agents");
+
 	/*
 	 * Now set up the parentals and parental key lists.
 	 */
@@ -21015,7 +21017,14 @@ checkds_find_address(dns_checkds_t *checkds) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_CHECKDS_VALID(checkds));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
+
+	options = DNS_ADBFIND_WANTEVENT;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	dns_view_getadb(checkds->zone->view, &adb);
 	if (adb == NULL) {
@@ -21314,6 +21323,10 @@ checkds_send(dns_zone_t *zone) {
 		dst = dns_remote_curraddr(&zone->parentals);
 		src = dns_remote_sourceaddr(&zone->parentals);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
+
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
 
 		/* TODO: glue the transport to the checkds request */
 
