@@ -10784,7 +10784,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 	const cfg_obj_t *proxyobj = NULL;
 	in_port_t port = 0;
 	const char *key = NULL, *cert = NULL, *ca_file = NULL,
-		   *dhparam_file = NULL, *ciphers = NULL;
+		   *dhparam_file = NULL, *ciphers = NULL, *cipher_suites = NULL;
 	bool tls_prefer_server_ciphers = false,
 	     tls_prefer_server_ciphers_set = false;
 	bool tls_session_tickets = false, tls_session_tickets_set = false;
@@ -10814,6 +10814,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			const cfg_obj_t *tlsmap = NULL;
 			const cfg_obj_t *tls_proto_list = NULL;
 			const cfg_obj_t *ciphers_obj = NULL;
+			const cfg_obj_t *cipher_suites_obj = NULL;
 			const cfg_obj_t *prefer_server_ciphers_obj = NULL;
 			const cfg_obj_t *session_tickets_obj = NULL;
 
@@ -10874,6 +10875,13 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 				ciphers = cfg_obj_asstring(ciphers_obj);
 			}
 
+			if (cfg_map_get(tlsmap, "cipher-suites",
+					&cipher_suites_obj) == ISC_R_SUCCESS)
+			{
+				cipher_suites =
+					cfg_obj_asstring(cipher_suites_obj);
+			}
+
 			if (cfg_map_get(tlsmap, "prefer-server-ciphers",
 					&prefer_server_ciphers_obj) ==
 			    ISC_R_SUCCESS)
@@ -10901,6 +10909,7 @@ listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 		.protocols = tls_protos,
 		.dhparam_file = dhparam_file,
 		.ciphers = ciphers,
+		.cipher_suites = cipher_suites,
 		.prefer_server_ciphers = tls_prefer_server_ciphers,
 		.prefer_server_ciphers_set = tls_prefer_server_ciphers_set,
 		.session_tickets = tls_session_tickets,

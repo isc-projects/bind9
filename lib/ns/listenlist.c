@@ -135,6 +135,11 @@ listenelt_create(isc_mem_t *mctx, in_port_t port, dns_acl_t *acl,
 							  tls_params->ciphers);
 			}
 
+			if (tls_params->cipher_suites != NULL) {
+				isc_tlsctx_set_cipher_suites(
+					sslctx, tls_params->cipher_suites);
+			}
+
 			if (tls_params->prefer_server_ciphers_set) {
 				isc_tlsctx_prefer_server_ciphers(
 					sslctx,

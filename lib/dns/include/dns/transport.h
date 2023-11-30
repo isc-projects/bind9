@@ -56,6 +56,8 @@ dns_transport_get_mode(const dns_transport_t *transport);
 char *
 dns_transport_get_ciphers(const dns_transport_t *transport);
 char *
+dns_transport_get_cipher_suites(const dns_transport_t *transport);
+char *
 dns_transport_get_tlsname(const dns_transport_t *transport);
 uint32_t
 dns_transport_get_tls_versions(const dns_transport_t *transport);
@@ -66,8 +68,8 @@ bool
 dns_transport_get_always_verify_remote(dns_transport_t *transport);
 /*%<
  * Getter functions: return the type, cert file, key file, CA file,
- * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, TLS name,
- * TLS version, server ciphers preference mode, and always enabling
+ * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, cipher suites,
+ * TLS name, TLS version, server ciphers preference mode, and always enabling
  * authentication mode for 'transport'.
  *
  * dns_transport_get_prefer_server_ciphers() returns 'true' is value
@@ -116,6 +118,9 @@ dns_transport_set_mode(dns_transport_t *transport, dns_http_mode_t mode);
 void
 dns_transport_set_ciphers(dns_transport_t *transport, const char *ciphers);
 void
+dns_transport_set_cipher_suites(dns_transport_t *transport,
+				const char	*cipher_suites);
+void
 dns_transport_set_tlsname(dns_transport_t *transport, const char *tlsname);
 
 void
@@ -129,8 +134,8 @@ dns_transport_set_always_verify_remote(dns_transport_t *transport,
 				       const bool	always_verify_remote);
 /*%<
  * Setter functions: set the type, cert file, key file, CA file,
- * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, TLS name,
- * TLS version, server ciphers preference mode, and always enabling
+ * hostname, HTTP endpoint, HTTP mode (GET or POST), ciphers, cipher suites, TLS
+ *name, TLS version, server ciphers preference mode, and always enabling
  * authentication mode for 'transport'.
  *
  * Requires:
