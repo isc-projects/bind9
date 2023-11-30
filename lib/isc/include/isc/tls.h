@@ -133,11 +133,32 @@ isc_tls_cipherlist_valid(const char *cipherlist);
 void
 isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist);
 /*%<
- * Set cipher list string for on the given TLS context 'ctx'.
+ * Set cipher list string for on the given TLS context 'ctx'. This affects only
+ * TLSv1.2 (and older).
  *
  * Requires:
  * \li	'ctx' != NULL;
  * \li	'cipherlist' a valid pointer to a non empty string.
+ */
+
+bool
+isc_tls_cipher_suites_valid(const char *cipher_suites);
+/*%<
+ * Check if cipher suites string is valid.
+ *
+ * Requires:
+ * \li	'cipher_suites' a valid pointer to a non empty string.
+ */
+
+void
+isc_tlsctx_set_cipher_suites(isc_tlsctx_t *ctx, const char *cipher_suites);
+/*%<
+ * Set cipher suites string for on the given TLS context 'ctx'. This affects
+ * only TLSv1.3.
+ *
+ * Requires:
+ * \li	'ctx' != NULL;
+ * \li	'cipher_suites' a valid pointer to a non empty string.
  */
 
 void

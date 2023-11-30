@@ -788,6 +788,55 @@ isc_tlsctx_set_cipherlist(isc_tlsctx_t *ctx, const char *cipherlist) {
 	RUNTIME_CHECK(SSL_CTX_set_cipher_list(ctx, cipherlist) == 1);
 }
 
+bool
+isc_tls_cipher_suites_valid(const char *cipher_suites) {
+#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
+	isc_tlsctx_t *tmp_ctx = NULL;
+	const SSL_METHOD *method = NULL;
+	bool result;
+	REQUIRE(cipher_suites != NULL);
+
+	if (*cipher_suites == '\0') {
+		return (false);
+	}
+
+	method = TLS_server_method();
+	if (method == NULL) {
+		return (false);
+	}
+	tmp_ctx = SSL_CTX_new(method);
+	if (tmp_ctx == NULL) {
+		return (false);
+	}
+
+	result = SSL_CTX_set_ciphersuites(tmp_ctx, cipher_suites) == 1;
+
+	isc_tlsctx_free(&tmp_ctx);
+
+	return (result);
+#else
+	UNUSED(cipher_suites);
+
+	UNREACHABLE();
+#endif
+}
+
+void
+isc_tlsctx_set_cipher_suites(isc_tlsctx_t *ctx, const char *cipher_suites) {
+#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
+	REQUIRE(ctx != NULL);
+	REQUIRE(cipher_suites != NULL);
+	REQUIRE(*cipher_suites != '\0');
+
+	RUNTIME_CHECK(SSL_CTX_set_ciphersuites(ctx, cipher_suites) == 1);
+#else
+	UNUSED(ctx);
+	UNUSED(cipher_suites);
+
+	UNREACHABLE();
+#endif
+}
+
 void
 isc_tlsctx_prefer_server_ciphers(isc_tlsctx_t *ctx, const bool prefer) {
 	REQUIRE(ctx != NULL);
