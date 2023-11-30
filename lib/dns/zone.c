@@ -12496,8 +12496,14 @@ notify_find_address(dns_notify_t *notify) {
 	unsigned int options;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6 |
-		  DNS_ADBFIND_RETURNLAME;
+
+	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_RETURNLAME;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	if (notify->zone->view->adb == NULL) {
 		goto destroy;
@@ -12902,6 +12908,17 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		/* TODO: glue the transport to the notify */
 
 		dst = zone->notify[i];
+
+		if (isc_sockaddr_disabled(&dst)) {
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
+			continue;
+		}
+
 		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
 				dns_tsigkey_detach(&key);
