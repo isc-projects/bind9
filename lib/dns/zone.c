@@ -18631,12 +18631,19 @@ sendtoprimary(dns_forward_t *forward) {
 		return (ISC_R_CANCELED);
 	}
 
+next:
 	if (forward->which >= forward->zone->primariescnt) {
 		UNLOCK_ZONE(forward->zone);
 		return (ISC_R_NOMORE);
 	}
 
 	forward->addr = forward->zone->primaries[forward->which];
+
+	if (isc_sockaddr_disabled(&forward->addr)) {
+		forward->which++;
+		goto next;
+	}
+
 	/*
 	 * Always use TCP regardless of whether the original update
 	 * used TCP.
