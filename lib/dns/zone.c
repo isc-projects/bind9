@@ -6392,6 +6392,8 @@ dns_zone_setparentals(dns_zone_t *zone, const isc_sockaddr_t *parentals,
 		goto unlock;
 	}
 
+	report_no_active_addresses(zone, parentals, count, "parental-agents");
+
 	/*
 	 * Now set up the parentals and parental key lists
 	 */
@@ -21800,6 +21802,16 @@ checkds_send(dns_zone_t *zone) {
 
 		dst = zone->parentals[i];
 
+		if (isc_sockaddr_disabled(&dst)) {
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
+			continue;
+		}
+
 		/* TODO: glue the transport to the checkds request */
 
 		if (checkds_isqueued(zone, &dst, key, transport)) {
@@ -21827,6 +21839,12 @@ checkds_send(dns_zone_t *zone) {
 				     "checkds: create DS query for "
 				     "parent %d failed",
 				     i);
+			if (key != NULL) {
+				dns_tsigkey_detach(&key);
+			}
+			if (transport != NULL) {
+				dns_transport_detach(&transport);
+			}
 			continue;
 		}
 		zone_iattach(zone, &checkds->zone);
