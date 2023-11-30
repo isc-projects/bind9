@@ -3971,6 +3971,11 @@ static cfg_clausedef_t tls_clauses[] = {
 	{ "dhparam-file", &cfg_type_qstring, 0 },
 	{ "protocols", &cfg_type_tlsprotos, 0 },
 	{ "ciphers", &cfg_type_astring, 0 },
+#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
+	{ "cipher-suites", &cfg_type_astring, 0 },
+#else
+	{ "cipher-suites", &cfg_type_astring, CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif
 	{ "prefer-server-ciphers", &cfg_type_boolean, 0 },
 	{ "session-tickets", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }

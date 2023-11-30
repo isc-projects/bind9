@@ -2131,7 +2131,8 @@ check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 		    isc_log_t *logctx, isc_symtab_t *symtab) {
 	isc_result_t result, tresult;
 	const cfg_obj_t *tls_proto_list = NULL, *tls_key = NULL,
-			*tls_cert = NULL, *tls_ciphers = NULL;
+			*tls_cert = NULL, *tls_ciphers = NULL,
+			*tls_cipher_suites = NULL;
 	uint32_t tls_protos = 0;
 	isc_symvalue_t symvalue;
 
@@ -2242,6 +2243,20 @@ check_tls_defintion(const cfg_obj_t *tlsobj, const char *name,
 				    "not a "
 				    "valid cipher list string",
 				    name);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	/* Check if the cipher suites string is valid */
+	tresult = cfg_map_get(tlsobj, "cipher-suites", &tls_cipher_suites);
+	if (tresult == ISC_R_SUCCESS) {
+		const char *cipher_suites = cfg_obj_asstring(tls_cipher_suites);
+		if (!isc_tls_cipher_suites_valid(cipher_suites)) {
+			cfg_obj_log(
+				tls_cipher_suites, logctx, ISC_LOG_ERROR,
+				"'cipher-suites' in the 'tls' clause '%s' is "
+				"not a valid cipher suites string",
+				name);
 			result = ISC_R_FAILURE;
 		}
 	}
