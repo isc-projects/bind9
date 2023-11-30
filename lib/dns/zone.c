@@ -12259,7 +12259,14 @@ notify_find_address(dns_notify_t *notify) {
 	dns_adb_t *adb = NULL;
 
 	REQUIRE(DNS_NOTIFY_VALID(notify));
-	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET | DNS_ADBFIND_INET6;
+
+	options = DNS_ADBFIND_WANTEVENT;
+	if (isc_net_probeipv4() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET;
+	}
+	if (isc_net_probeipv6() != ISC_R_DISABLED) {
+		options |= DNS_ADBFIND_INET6;
+	}
 
 	dns_view_getadb(notify->zone->view, &adb);
 	if (adb == NULL) {
@@ -12679,6 +12686,10 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		dst = dns_remote_curraddr(&zone->notify);
 		src = dns_remote_sourceaddr(&zone->notify);
 		INSIST(isc_sockaddr_pf(&src) == isc_sockaddr_pf(&dst));
+
+		if (isc_sockaddr_disabled(&dst)) {
+			goto next;
+		}
 
 		if (notify_isqueued(zone, flags, NULL, &dst, key, transport)) {
 			if (key != NULL) {
