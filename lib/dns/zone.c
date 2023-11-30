@@ -18359,12 +18359,19 @@ sendtoprimary(dns_forward_t *forward) {
 		return (ISC_R_CANCELED);
 	}
 
+next:
 	if (forward->which >= dns_remote_count(&forward->zone->primaries)) {
 		UNLOCK_ZONE(zone);
 		return (ISC_R_NOMORE);
 	}
 
 	forward->addr = dns_remote_addr(&zone->primaries, forward->which);
+
+	if (isc_sockaddr_disabled(&forward->addr)) {
+		forward->which++;
+		goto next;
+	}
+
 	/*
 	 * Always use TCP regardless of whether the original update
 	 * used TCP.
