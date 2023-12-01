@@ -116,7 +116,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
 	REQUIRE(ISC_STATS_VALID(stats));
 
 	for (i = 0; i < stats->ncounters; i++) {
-		uint32_t counter = atomic_load_acquire(&stats->counters[i]);
+		isc__atomic_statcounter_t counter = atomic_load_acquire(&stats->counters[i]);
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 && counter == 0) {
 			continue;
 		}
