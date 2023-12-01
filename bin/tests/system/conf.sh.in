@@ -95,26 +95,3 @@ fi
 
 # Load common values
 . $TOP_SRCDIR/bin/tests/system/conf.sh.common
-
-#
-# Construct the lists of tests to run
-#
-PARALLEL_UNIX="chain
-checkds
-cookie
-dlzexternal
-dnssec
-dyndb
-enginepkcs11
-filter-aaaa
-kasp
-keyfromlabel
-legacy
-logfileconfig
-multisigner
-nzd2nzf
-pipelined
-qmin
-shutdown
-tcp"
-SUBDIRS="$PARALLEL_COMMON $PARALLEL_UNIX"
