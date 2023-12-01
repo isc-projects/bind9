@@ -325,8 +325,6 @@ By default, `named` server is started with the following options:
     -m record
                     Turns on these memory usage debugging flags.
 
-    -U 4            Uses four listeners.
-
 All output is sent to a file called `named.run` in the nameserver directory.
 
 The options used to start named can be altered. There are a couple ways of
