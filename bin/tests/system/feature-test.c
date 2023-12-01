@@ -49,6 +49,7 @@ usage(void) {
 	fprintf(stderr, "\t--have-geoip2\n");
 	fprintf(stderr, "\t--have-json-c\n");
 	fprintf(stderr, "\t--have-libxml2\n");
+	fprintf(stderr, "\t--have-openssl-cipher-suites\n");
 	fprintf(stderr, "\t--ipv6only=no\n");
 	fprintf(stderr, "\t--md5\n");
 	fprintf(stderr, "\t--rsasha1\n");
@@ -182,6 +183,14 @@ main(int argc, char **argv) {
 #else  /* ifdef HAVE_LIBXML2 */
 		return (1);
 #endif /* ifdef HAVE_LIBXML2 */
+	}
+
+	if (strcmp(argv[1], "--have-openssl-cipher-suites") == 0) {
+#ifdef HAVE_SSL_CTX_SET_CIPHERSUITES
+		return (0);
+#else  /* ifdef HAVE_SSL_CTX_SET_CIPHERSUITES */
+		return (1);
+#endif /* ifdef HAVE_SSL_CTX_SET_CIPHERSUITES */
 	}
 
 	if (strcmp(argv[1], "--tsan") == 0) {
