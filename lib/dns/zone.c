@@ -17220,7 +17220,7 @@ receive_secure_db(void *arg) {
 		goto failure;
 	}
 
-	result = dns_db_createiterator(rawdb, 0, &dbiterator);
+	result = dns_db_createiterator(rawdb, DNS_DB_NONSEC3, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
