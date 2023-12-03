@@ -2179,18 +2179,22 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	 * the predecessor name for a non-exact match.
 	 *
 	 * if 'matched' is true, then the search ended at a leaf.
-	 * if it was not an exact match, then we're now pointing at
-	 * the immediate successor of the searched-for name, and can
-	 * use the qpiter stack we've constructed to step back to
-	 * the predecessor. if it was an exact match, we don't need to
-	 * do anything.
+	 * if it was not an exact match, then we're now pointing
+	 * at either the immediate predecessor or the immediate
+	 * successor of the searched-for name; if successor, we can
+	 * now use the qpiter stack we've constructed to step back to
+	 * the predecessor. if we're pointed at the predecessor
+	 * or it was an exact match, we don't need to do anything.
 	 *
 	 * if 'matched' is false, then the search failed at a branch
 	 * node, and we would already have positioned the iterator
 	 * at the predecessor.
 	 */
 	if (getpred && matched) {
-		if (offset != QPKEY_EQUAL) {
+		if (offset != QPKEY_EQUAL &&
+		    (offset <= searchlen && offset <= foundlen &&
+		     found[offset] > search[offset]))
+		{
 			prevleaf(iter);
 		}
 	}
