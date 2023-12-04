@@ -3119,10 +3119,10 @@ destroy_validator(dns_validator_t *val) {
 	if (val->siginfo != NULL) {
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
 	}
-	dns_view_detach(&val->view);
 	if (val->message != NULL) {
 		dns_message_detach(&val->message);
 	}
+	dns_view_detach(&val->view);
 	isc_mem_put(mctx, val, sizeof(*val));
 }
 
