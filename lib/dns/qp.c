@@ -2038,6 +2038,17 @@ prevleaf(dns_qpiter_t *it) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
+static inline dns_qpnode_t *
+greatest_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpiter_t *iter) {
+	while (is_branch(n)) {
+		dns_qpref_t ref = branch_twigs_ref(n) + branch_twigs_size(n) -
+				  1;
+		iter->stack[++iter->sp] = n;
+		n = ref_ptr(qpr, ref);
+	}
+	return (n);
+}
+
 isc_result_t
 dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
@@ -2118,35 +2129,64 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			n = branch_twig_ptr(qp, n, bit);
 		} else if (getpred) {
 			/*
-			 * this branch is a dead end, but the caller
-			 * passed us an iterator: position it at the
-			 * predecessor node.
+			 * this branch is a dead end. however, the caller
+			 * passed us an iterator, so we need to find the
+			 * predecessor of the searched-for-name.
+			 * first step: find out if we've overshot
+			 * the search key; we do that by finding an
+			 * arbitrary leaf to compare against.
 			 */
-			dns_qpweight_t pos = branch_twig_pos(n, bit);
-			if (pos == 0) {
+			size_t to;
+			dns_qpnode_t *least = n;
+			while (is_branch(least)) {
+				least = branch_twigs(qp, least);
+			}
+			foundlen = leaf_qpkey(qp, least, found);
+			to = qpkey_compare(search, searchlen, found, foundlen);
+			if (to == offset) {
 				/*
-				 * this entire branch is greater than
-				 * the key we wanted, so we step back to
-				 * the predecessor using the iterator.
+				 * we're on the right branch, so find
+				 * the best match.
 				 */
-				prevleaf(iter);
-				n = iter->stack[iter->sp];
-			} else {
+
+				dns_qpweight_t pos = branch_twig_pos(n, bit);
+				if (pos == 0) {
+					/*
+					 * every leaf in the branch is greater
+					 * than the one we wanted; use the
+					 * iterator to walk back to the
+					 * predecessor.
+					 */
+					prevleaf(iter);
+					n = iter->stack[iter->sp--];
+				} else {
+					/*
+					 * the name we want would've been
+					 * after some twig in this
+					 * branch. point n to that twig,
+					 * then walk down to the highest
+					 * leaf in that subtree to get the
+					 * predecessor.
+					 */
+					n = greatest_leaf(qp, twigs + pos - 1,
+							  iter);
+				}
+			} else if (to <= searchlen && to <= foundlen &&
+				   search[to] < found[to])
+			{
 				/*
-				 * the name we want would've been between
-				 * two twigs in this branch. point n to the
-				 * lesser of those, then walk down to the
-				 * highest leaf in that subtree to get the
+				 * every leaf is greater than the one
+				 * we wanted, so iterate back to the
 				 * predecessor.
 				 */
-				n = twigs + pos - 1;
-				while (is_branch(n)) {
-					prefetch_twigs(qp, n);
-					iter->stack[++iter->sp] = n;
-					pos = branch_twigs_size(n) - 1;
-					n = ref_ptr(qp,
-						    branch_twigs_ref(n) + pos);
-				}
+				prevleaf(iter);
+				n = iter->stack[iter->sp--];
+			} else {
+				/*
+				 * every leaf is less than the one we
+				 * wanted, so get the highest.
+				 */
+				n = greatest_leaf(qp, n, iter);
 			}
 		} else {
 			/*

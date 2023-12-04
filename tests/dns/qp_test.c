@@ -635,11 +635,11 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 
 ISC_RUN_TEST_IMPL(predecessors) {
 	dns_qp_t *qp = NULL;
-	const char insert[][16] = {
-		"a.",	  "b.",	      "c.b.a.",	  "e.d.c.b.a.",
-		"c.b.b.", "c.d.",     "a.b.c.d.", "a.b.c.d.e.",
-		"b.a.",	  "x.k.c.d.", ""
-	};
+	const char insert[][16] = { "a.",	  "b.",		"c.b.a.",
+				    "e.d.c.b.a.", "c.b.b.",	"c.d.",
+				    "a.b.c.d.",	  "a.b.c.d.e.", "b.a.",
+				    "x.k.c.d.",	  "moog.",	"mook.",
+				    "moon.",	  "moops.",	"" };
 	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
@@ -649,8 +649,8 @@ ISC_RUN_TEST_IMPL(predecessors) {
 
 	/* first check: no root label in the database */
 	static struct check_predecessors check1[] = {
-		{ ".", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "a.", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ ".", "moops.", ISC_R_NOTFOUND },
+		{ "a.", "moops.", ISC_R_SUCCESS },
 		{ "b.a.", "a.", ISC_R_SUCCESS },
 		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
 		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
@@ -658,13 +658,16 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "d.c.", "c.b.b.", ISC_R_NOTFOUND },
 		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
 		{ "a.b.c.e.f.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "z.y.x.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "z.y.x.", "moops.", ISC_R_NOTFOUND },
 		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
 		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
 		{ "0.b.c.d.e.", "x.k.c.d.", ISC_R_NOTFOUND },
 		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND },
+		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "moor.", "moops.", ISC_R_NOTFOUND },
+		{ "mop.", "moops.", ISC_R_NOTFOUND },
 		{ NULL, NULL, 0 }
 	};
 
@@ -675,7 +678,7 @@ ISC_RUN_TEST_IMPL(predecessors) {
 	insert_str(qp, root);
 
 	static struct check_predecessors check2[] = {
-		{ ".", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ ".", "moops.", ISC_R_SUCCESS },
 		{ "a.", ".", ISC_R_SUCCESS },
 		{ "b.a.", "a.", ISC_R_SUCCESS },
 		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
@@ -684,12 +687,15 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "d.c.", "c.b.b.", DNS_R_PARTIALMATCH },
 		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
 		{ "a.b.c.e.f.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "z.y.x.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "z.y.x.", "moops.", DNS_R_PARTIALMATCH },
 		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
 		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
 		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH },
+		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "moor.", "moops.", DNS_R_PARTIALMATCH },
+		{ "mop.", "moops.", DNS_R_PARTIALMATCH },
 		{ NULL, NULL, 0 }
 	};
 
