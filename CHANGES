@@ -1,3 +1,7 @@
+6339.	[bug]		The alignas() can't be used on types larger than
+			max_align_t; instead add padding into the structures
+			where we want avoid false memory sharing. [GL #4187]
+
 6338.	[func]		Optimize slabheader placement, so the infrastructure
 			records are put in the beginning of the slabheader
 			linked list. [GL !8675]
