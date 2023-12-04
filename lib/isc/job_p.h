@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <isc/align.h>
 #include <isc/job.h>
 #include <isc/loop.h>
 #include <isc/os.h>
@@ -24,9 +23,15 @@
  * mutex, because we are only using enqueue and splice, and those don't need
  * any synchronization (see urcu/wfcqueue.h for detailed description).
  */
+STATIC_ASSERT(ISC_OS_CACHELINE_SIZE >= sizeof(struct __cds_wfcq_head),
+	      "ISC_OS_CACHELINE_SIZE smaller than "
+	      "sizeof(struct __cds_wfcq_head)");
+
 typedef struct isc_jobqueue {
-	alignas(ISC_OS_CACHELINE_SIZE) struct __cds_wfcq_head head;
-	alignas(ISC_OS_CACHELINE_SIZE) struct cds_wfcq_tail tail;
+	struct __cds_wfcq_head head;
+	uint8_t __padding[ISC_OS_CACHELINE_SIZE -
+			  sizeof(struct __cds_wfcq_head)];
+	struct cds_wfcq_tail tail;
 } isc_jobqueue_t;
 
 typedef ISC_LIST(isc_job_t) isc_joblist_t;
