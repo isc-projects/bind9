@@ -89,6 +89,7 @@ options {
 	listen-on port @EXTRAPORT4@ tls tls-expired { 10.53.0.1; };             // DoT
 	listen-on port @EXTRAPORT5@ tls tls-forward-secrecy-mutual-tls { 10.53.0.1; }; // DoT
 	listen-on port @EXTRAPORT6@ tls tls-forward-secrecy-mutual-tls http local { 10.53.0.1; }; // DoH
+	listen-on port @EXTRAPORT7@ tls tls-forward-secrecy { 10.53.0.1; }; // DoT
 	recursion no;
 	notify explicit;
 	also-notify { 10.53.0.2 port @PORT@; };
@@ -169,4 +170,28 @@ zone "example11" {
 	type primary;
 	file "example.db";
 	allow-transfer port @EXTRAPORT5@ transport tls { any; };
+};
+
+zone "example12" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT7@ transport tls { any; };
+};
+
+zone "example13" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT7@ transport tls { any; };
+};
+
+zone "example14" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT7@ transport tls { any; };
+};
+
+zone "example15" {
+	type primary;
+	file "example.db";
+	allow-transfer port @EXTRAPORT7@ transport tls { any; };
 };
