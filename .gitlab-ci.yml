@@ -1404,18 +1404,6 @@ clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *build_job
 
-system:clang:openbsd:amd64:
-  <<: *openbsd_amd64_image
-  <<: *system_test_job
-  <<: *system_test_make_check_job
-  <<: *api_schedules_triggers_web_triggering_rules
-  variables:
-    USER: gitlab-runner
-  needs:
-    - job: clang:openbsd:amd64
-      artifacts: true
-  allow_failure: true
-
 unit:clang:openbsd:amd64:
   <<: *openbsd_amd64_image
   <<: *unit_test_job

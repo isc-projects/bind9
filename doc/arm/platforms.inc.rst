@@ -48,7 +48,6 @@ following systems:
 -  Fedora 39
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 8, 9
 -  FreeBSD 12.4, 13.2, 14.0
--  OpenBSD 7.4
 -  Alpine Linux 3.18
 
 The amd64 CPU architecture is fully supported and regularly tested.
@@ -65,6 +64,7 @@ regularly by ISC.
 -  macOS 10.12+
 -  Solaris 11
 -  NetBSD
+-  OpenBSD
 -  Other Linux distributions still supported by their vendors, such as:
 
    -  Ubuntu 22.10+
