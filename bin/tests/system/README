@@ -662,14 +662,12 @@ or SEQUENTIAL variables.
 need to edit multiple files to add a test.)
 
 
-Valgrind
+rr
 ---
-When running system tests, named can be run under Valgrind.  The output from
-Valgrind are sent to per-process files that can be reviewed after the test has
-completed.  To enable this, set the USE_VALGRIND environment variable to
-"helgrind" to run the Helgrind tool, or any other value to run the Memcheck
-tool.  To use "helgrind" effectively, build BIND with --disable-atomic.
-
+When running system tests, named can be run under the rr tool. rr records a
+trace to the $system_test/nsX/named-Y/ directory, which can be later used to
+replay named. To enable this, execute start.pl with the USE_RR environment
+variable set.
 
 Maintenance Notes
 ===
