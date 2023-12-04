@@ -23,6 +23,9 @@ from typing import Any, Dict, List, Optional
 import pytest
 
 
+pytest.register_assert_rewrite("isctest")
+
+
 # Silence warnings caused by passing a pytest fixture to another fixture.
 # pylint: disable=redefined-outer-name
 
