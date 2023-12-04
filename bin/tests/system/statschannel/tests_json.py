@@ -100,7 +100,5 @@ def test_zone_with_many_keys_json(statsport):
     )
 
 
-def test_traffic_json(named_port, statsport):
-    generic.test_traffic(
-        fetch_traffic_json, statsip="10.53.0.2", statsport=statsport, port=named_port
-    )
+def test_traffic_json(statsport):
+    generic.test_traffic(fetch_traffic_json, statsip="10.53.0.2", statsport=statsport)
