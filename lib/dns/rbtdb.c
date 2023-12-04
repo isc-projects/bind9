@@ -4134,7 +4134,11 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 						: DNS_R_NXDOMAIN;
 			}
 		} else {
-			result = active ? DNS_R_EMPTYNAME : DNS_R_NXDOMAIN;
+			bool wantpartial = (options & DNS_DBFIND_WANTPARTIAL) !=
+					   0;
+			result = active	       ? DNS_R_EMPTYNAME
+				 : wantpartial ? DNS_R_PARTIALMATCH
+					       : DNS_R_NXDOMAIN;
 		}
 		goto tree_exit;
 	} else if (result != ISC_R_SUCCESS) {
