@@ -47,7 +47,7 @@ following systems:
 -  Ubuntu LTS 20.04, 22.04
 -  Fedora 39
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 8, 9
--  FreeBSD 12.4, 13.2
+-  FreeBSD 12.4, 13.2, 14.0
 -  OpenBSD 7.4
 -  Alpine Linux 3.18
 
