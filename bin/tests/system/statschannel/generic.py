@@ -17,6 +17,8 @@ import dns.message
 import dns.query
 import dns.rcode
 
+import isctest
+
 
 # ISO datetime format without msec
 fmt = "%Y-%m-%dT%H:%M:%SZ"
@@ -25,8 +27,6 @@ fmt = "%Y-%m-%dT%H:%M:%SZ"
 max_refresh = timedelta(seconds=2419200)  # 4 weeks
 max_expires = timedelta(seconds=14515200)  # 24 weeks
 dayzero = datetime.utcfromtimestamp(0).replace(microsecond=0)
-
-TIMEOUT = 10
 
 
 # Generic helper functions
@@ -121,20 +121,6 @@ def create_msg(qname, qtype):
     return msg
 
 
-def udp_query(ip, port, msg):
-    ans = dns.query.udp(msg, ip, TIMEOUT, port=port)
-    assert ans.rcode() == dns.rcode.NOERROR
-
-    return ans
-
-
-def tcp_query(ip, port, msg):
-    ans = dns.query.tcp(msg, ip, TIMEOUT, port=port)
-    assert ans.rcode() == dns.rcode.NOERROR
-
-    return ans
-
-
 def create_expected(data):
     expected = {
         "dns-tcp-requests-sizes-received-ipv4": defaultdict(int),
@@ -184,14 +170,14 @@ def check_traffic(data, expected):
 def test_traffic(fetch_traffic, **kwargs):
     statsip = kwargs["statsip"]
     statsport = kwargs["statsport"]
-    port = kwargs["port"]
 
     data = fetch_traffic(statsip, statsport)
     exp = create_expected(data)
 
     msg = create_msg("short.example.", "TXT")
     update_expected(exp, "dns-udp-requests-sizes-received-ipv4", msg)
-    ans = udp_query(statsip, port, msg)
+    ans = isctest.query.udp(msg, statsip)
+    isctest.check.noerror(ans)
     update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
     data = fetch_traffic(statsip, statsport)
 
@@ -199,7 +185,8 @@ def test_traffic(fetch_traffic, **kwargs):
 
     msg = create_msg("long.example.", "TXT")
     update_expected(exp, "dns-udp-requests-sizes-received-ipv4", msg)
-    ans = udp_query(statsip, port, msg)
+    ans = isctest.query.udp(msg, statsip)
+    isctest.check.noerror(ans)
     update_expected(exp, "dns-udp-responses-sizes-sent-ipv4", ans)
     data = fetch_traffic(statsip, statsport)
 
@@ -207,7 +194,8 @@ def test_traffic(fetch_traffic, **kwargs):
 
     msg = create_msg("short.example.", "TXT")
     update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
-    ans = tcp_query(statsip, port, msg)
+    ans = isctest.query.tcp(msg, statsip)
+    isctest.check.noerror(ans)
     update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
     data = fetch_traffic(statsip, statsport)
 
@@ -215,7 +203,8 @@ def test_traffic(fetch_traffic, **kwargs):
 
     msg = create_msg("long.example.", "TXT")
     update_expected(exp, "dns-tcp-requests-sizes-received-ipv4", msg)
-    ans = tcp_query(statsip, port, msg)
+    ans = isctest.query.tcp(msg, statsip)
+    isctest.check.noerror(ans)
     update_expected(exp, "dns-tcp-responses-sizes-sent-ipv4", ans)
     data = fetch_traffic(statsip, statsport)
 
