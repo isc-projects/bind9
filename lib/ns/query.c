@@ -11216,6 +11216,7 @@ again:
 		 * Find the closest encloser.
 		 */
 		dns_name_copy(name, cname);
+		bool once = true;
 		while (result == DNS_R_NXDOMAIN) {
 			labels = dns_name_countlabels(cname) - 1;
 			/*
@@ -11225,10 +11226,21 @@ again:
 				goto cleanup;
 			}
 			dns_name_split(cname, labels, NULL, cname);
-			result = dns_db_findext(qctx->db, cname, qctx->version,
-						dns_rdatatype_nsec, options, 0,
-						NULL, fname, &cm, &ci, NULL,
-						NULL);
+			result = dns_db_findext(
+				qctx->db, cname, qctx->version,
+				dns_rdatatype_nsec,
+				options | (once ? DNS_DBFIND_WANTPARTIAL : 0),
+				0, NULL, fname, &cm, &ci, NULL, NULL);
+			if (result == DNS_R_PARTIALMATCH && once) {
+				unsigned int flabels =
+					dns_name_countlabels(fname);
+				if (labels > flabels + 1) {
+					dns_name_split(cname, flabels + 1, NULL,
+						       cname);
+				}
+				result = DNS_R_NXDOMAIN;
+			}
+			once = false;
 		}
 		/*
 		 * Add closest (provable) encloser NSEC3.
