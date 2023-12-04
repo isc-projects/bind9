@@ -55,9 +55,9 @@ $DSFROMKEY Kbar.+013+60101.key >dsset-bar.
 $SIGNER -S -o bar. -O full $zonefile >signing.bar.out 2>&1
 
 # a zone with empty non-terminals.
-zone=optout-with-ent
-zonefile=optout-with-ent.db
-infile=optout-with-ent.db.in
+zone=nsec3-with-ent
+zonefile=nsec3-with-ent.db
+infile=nsec3-with-ent.db.in
 cat $infile >$zonefile
 kskname=$($KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q -fk $zone)
 $KEYGEN -a ${DEFAULT_ALGORITHM} -3 -q $zone >/dev/null
