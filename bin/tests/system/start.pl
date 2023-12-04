@@ -230,22 +230,13 @@ sub construct_ns_command {
 
 	my $command;
 
-	if ($ENV{'USE_VALGRIND'}) {
-		$command = "valgrind -q --gen-suppressions=all --num-callers=48 --fullpath-after= --log-file=named-$server-valgrind-%p.log ";
-
-		if ($ENV{'USE_VALGRIND'} eq 'helgrind') {
-			$command .= "--tool=helgrind ";
-		} else {
-			$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
-		}
-
-		$command .= "$NAMED -m none ";
+	if ($taskset) {
+		$command = "taskset $taskset $NAMED ";
+	} elsif ($ENV{'USE_RR'}) {
+		$ENV{'_RR_TRACE_DIR'} = ".";
+		$command = "rr record --chaos $NAMED ";
 	} else {
-		if ($taskset) {
-			$command = "taskset $taskset $NAMED ";
-		} else {
-			$command = "$NAMED ";
-		}
+		$command = "$NAMED ";
 	}
 
 	my $args_file = $testdir . "/" . $server . "/" . "named.args";
