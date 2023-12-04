@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Fix statistics export to use full 64 bit signed numbers instead of truncating
+  values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
+  :gl:`#4467`
 
 Known Issues
 ~~~~~~~~~~~~
