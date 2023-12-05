@@ -1608,6 +1608,10 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	(void)cfg_map_get(options, "cookie-algorithm", &obj);
 	if (obj != NULL) {
 		ccalg = cfg_obj_asstring(obj);
+		if (strcasecmp(ccalg, "aes") == 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+				    "cookie-algorithm 'aes' is deprecated");
+		}
 	}
 
 	obj = NULL;

@@ -9,6 +9,8 @@
 			on TCP connection failure as well as for UDP timeouts.
 			[GL #4396]
 
+6282.	[func]		Deprecate AES-based DNS cookies. [GL #4421]
+
 	--- 9.18.20 released ---
 
 6280.	[bug]		Fix missing newlines in the output of "rndc nta -dump".
