@@ -9,9 +9,5 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-import pytest
-
-
-@pytest.fixture(scope="module")
-def statsport(ports):
-    return ports["EXTRAPORT1"]
+from . import check
+from . import query

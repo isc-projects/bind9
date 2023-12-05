@@ -462,6 +462,7 @@ for testname in testnames:
         not os.path.isdir(dirpath)
         or testname.startswith(".")
         or testname.startswith("_")
+        or testname == "isctest"
     ):
         continue
     if "_" in testname:
