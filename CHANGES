@@ -1,3 +1,5 @@
+6297.	[bug]		Improve LRU cleaning behaviour. [GL #4448]
+
 6296.	[func]		The "resolver-nonbackoff-tries" and
 			"resolver-retry-interval" options have been removed;
 			Using them is now a fatal error. [GL #4405]
