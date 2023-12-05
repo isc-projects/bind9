@@ -1673,7 +1673,9 @@ dns__cachedb_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
 		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG) {
 	uint32_t locknum_start = rbtdb->lru_sweep++ % rbtdb->node_lock_count;
 	uint32_t locknum = locknum_start;
-	size_t purgesize = rdataset_size(newheader);
+	/* Size of added data, possible node and possible ENT node. */
+	size_t purgesize = rdataset_size(newheader) +
+			   2 * dns__rbtnode_getsize(HEADER_NODE(newheader));
 	size_t purged = 0;
 	isc_stdtime_t min_last_used = 0;
 	size_t max_passes = 8;
