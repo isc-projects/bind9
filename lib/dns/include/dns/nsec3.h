@@ -26,7 +26,7 @@
 #include <dns/types.h>
 
 #define DNS_NSEC3_SALTSIZE	255
-#define DNS_NSEC3_MAXITERATIONS 150U
+#define DNS_NSEC3_MAXITERATIONS 50U
 
 /*
  * hash = 1, flags =1, iterations = 2, salt length = 1, salt = 255 (max)

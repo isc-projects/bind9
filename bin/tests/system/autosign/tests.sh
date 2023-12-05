@@ -1269,9 +1269,9 @@ n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
-echo_i "check removal of ENT NSEC3 records when opt out delegations are removed"
+echo_i "check removal of ENT NSEC3 records when opt out delegations are removed ($n)"
 zone=optout-with-ent
-hash=JTR8R6AVFULU0DQH9I6HNN2KUK5956EL
+hash=JE76PJ65FUO86UIR594L8P0SNJJ6RMNI
 
 # check that NSEC3 for ENT is present
 echo_i "check ENT NSEC3 is initially present"

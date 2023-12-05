@@ -1,3 +1,9 @@
+6292.	[func]		Lower the maximum number of allowed NSEC3 iterations,
+			from 150 to 50. DNSSEC responses with a higher
+			iteration count are treated as insecure. For signing
+			with dnssec-policy, iterations must be set to zero.
+			[GL #4363]
+
 6291.	[bug]		SIGTERM failed to properly stop multiple outstanding
 			lookup in dig. [GL #4457]
 

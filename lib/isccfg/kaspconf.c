@@ -291,15 +291,12 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 		return (DNS_R_NSEC3BADALG);
 	}
 
-	if (iter > dns_nsec3_maxiterations()) {
-		ret = DNS_R_NSEC3ITERRANGE;
-	}
-
-	if (ret == DNS_R_NSEC3ITERRANGE) {
+	if (iter != DEFAULT_NSEC3PARAM_ITER) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 			    "dnssec-policy: nsec3 iterations value %u "
-			    "out of range",
+			    "not allowed, must be zero",
 			    iter);
+		return (DNS_R_NSEC3ITERRANGE);
 		return (ret);
 	}
 

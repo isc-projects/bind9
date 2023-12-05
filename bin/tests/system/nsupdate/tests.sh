@@ -433,7 +433,7 @@ if $PERL -e 'use Net::DNS;' 2>/dev/null; then
     n=$((n + 1))
     ret=0
     echo_i "check for too many NSEC3 iterations log ($n)"
-    grep "updating zone 'update.nil/IN': too many NSEC3 iterations (151)" ns1/named.run >/dev/null || ret=1
+    grep "updating zone 'update.nil/IN': too many NSEC3 iterations (51)" ns1/named.run >/dev/null || ret=1
     [ $ret -eq 1 ] && {
       echo_i "failed"
       status=1
@@ -1899,9 +1899,9 @@ echo_i "check that excessive NSEC3PARAM iterations are rejected by nsupdate ($n)
 $NSUPDATE -d <<END >nsupdate.out.test$n 2>&1 && ret=1
 server 10.53.0.3 ${PORT}
 zone example
-update add example 0 in NSEC3PARAM 1 0 151 -
+update add example 0 in NSEC3PARAM 1 0 51 -
 END
-grep "NSEC3PARAM has excessive iterations (> 150)" nsupdate.out.test$n >/dev/null || ret=1
+grep "NSEC3PARAM has excessive iterations (> 50)" nsupdate.out.test$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
   status=1

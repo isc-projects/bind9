@@ -3494,7 +3494,7 @@ main(int argc, char *argv[]) {
 			set_iter = true;
 			/* too-many is NOT DOCUMENTED */
 			if (strcmp(isc_commandline_argument, "too-many") == 0) {
-				nsec3iter = 151;
+				nsec3iter = 51;
 				no_max_check = true;
 				break;
 			}
