@@ -8,4 +8,4 @@
 
 ### Links / references
 
-/label ~"feature request"
+/label ~Feature
