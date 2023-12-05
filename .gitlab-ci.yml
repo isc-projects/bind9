@@ -608,9 +608,15 @@ shfmt:
 
 danger:
   <<: *precheck_job
+  # Keep the GIT_DEPTH environment variable set to a "high number" before
+  # https://github.com/libgit2/libgit2/pull/6662 is addressed and integrated
+  # into pygit2.
+  variables:
+    GIT_DEPTH: 1000
   needs: []
   script:
-    - danger-python ci -f
+    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
+    - hazard
   only:
     refs:
       - merge_requests
