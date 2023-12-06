@@ -1948,6 +1948,24 @@ dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
 	return (iterate(false, qpi, name, pval_r, ival_r));
 }
 
+isc_result_t
+dns_qpiter_current(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		   uint32_t *ival_r) {
+	dns_qpnode_t *node = NULL;
+
+	REQUIRE(QPITER_VALID(qpi));
+
+	node = qpi->stack[qpi->sp];
+	if (node == NULL || is_branch(node)) {
+		return (ISC_R_FAILURE);
+	}
+
+	SET_IF_NOT_NULL(pval_r, leaf_pval(node));
+	SET_IF_NOT_NULL(ival_r, leaf_ival(node));
+	maybe_set_name(qpi->qp, node, name);
+	return (ISC_R_SUCCESS);
+}
+
 /***********************************************************************
  *
  *  search
@@ -2020,10 +2038,21 @@ prevleaf(dns_qpiter_t *it) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
+static inline dns_qpnode_t *
+greatest_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpiter_t *iter) {
+	while (is_branch(n)) {
+		dns_qpref_t ref = branch_twigs_ref(n) + branch_twigs_size(n) -
+				  1;
+		iter->stack[++iter->sp] = n;
+		n = ref_ptr(qpr, ref);
+	}
+	return (n);
+}
+
 isc_result_t
 dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
-	      dns_name_t *foundname, dns_name_t *predecessor,
-	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r) {
+	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
+	      void **pval_r, uint32_t *ival_r) {
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
@@ -2032,6 +2061,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	dns_qpchain_t oc;
 	dns_qpiter_t it;
 	bool matched = true;
+	bool getpred = true;
 
 	REQUIRE(QP_VALID(qp));
 	REQUIRE(foundname == NULL || ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
@@ -2041,14 +2071,18 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	if (chain == NULL) {
 		chain = &oc;
 	}
+	if (iter == NULL) {
+		iter = &it;
+		getpred = false;
+	}
 	dns_qpchain_init(qp, chain);
-	dns_qpiter_init(qp, &it);
+	dns_qpiter_init(qp, iter);
 
 	n = get_root(qp);
 	if (n == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
-	it.stack[0] = n;
+	iter->stack[0] = n;
 
 	/*
 	 * Like `dns_qp_insert()`, we must find a leaf. However, we don't make a
@@ -2093,37 +2127,66 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 * the loop.
 			 */
 			n = branch_twig_ptr(qp, n, bit);
-		} else if (predecessor != NULL) {
+		} else if (getpred) {
 			/*
-			 * this branch is a dead end, but the caller wants
-			 * the predecessor to the name we were searching
-			 * for, so let's go find that.
+			 * this branch is a dead end. however, the caller
+			 * passed us an iterator, so we need to find the
+			 * predecessor of the searched-for-name.
+			 * first step: find out if we've overshot
+			 * the search key; we do that by finding an
+			 * arbitrary leaf to compare against.
 			 */
-			dns_qpweight_t pos = branch_twig_pos(n, bit);
-			if (pos == 0) {
+			size_t to;
+			dns_qpnode_t *least = n;
+			while (is_branch(least)) {
+				least = branch_twigs(qp, least);
+			}
+			foundlen = leaf_qpkey(qp, least, found);
+			to = qpkey_compare(search, searchlen, found, foundlen);
+			if (to == offset) {
 				/*
-				 * this entire branch is greater than
-				 * the key we wanted, so we step back to
-				 * the predecessor using the iterator.
+				 * we're on the right branch, so find
+				 * the best match.
 				 */
-				prevleaf(&it);
-				n = it.stack[it.sp];
-			} else {
+
+				dns_qpweight_t pos = branch_twig_pos(n, bit);
+				if (pos == 0) {
+					/*
+					 * every leaf in the branch is greater
+					 * than the one we wanted; use the
+					 * iterator to walk back to the
+					 * predecessor.
+					 */
+					prevleaf(iter);
+					n = iter->stack[iter->sp--];
+				} else {
+					/*
+					 * the name we want would've been
+					 * after some twig in this
+					 * branch. point n to that twig,
+					 * then walk down to the highest
+					 * leaf in that subtree to get the
+					 * predecessor.
+					 */
+					n = greatest_leaf(qp, twigs + pos - 1,
+							  iter);
+				}
+			} else if (to <= searchlen && to <= foundlen &&
+				   search[to] < found[to])
+			{
 				/*
-				 * the name we want would've been between
-				 * two twigs in this branch. point n to the
-				 * lesser of those, then walk down to the
-				 * highest leaf in that subtree to get the
+				 * every leaf is greater than the one
+				 * we wanted, so iterate back to the
 				 * predecessor.
 				 */
-				n = twigs + pos - 1;
-				while (is_branch(n)) {
-					prefetch_twigs(qp, n);
-					it.stack[++it.sp] = n;
-					pos = branch_twigs_size(n) - 1;
-					n = ref_ptr(qp,
-						    branch_twigs_ref(n) + pos);
-				}
+				prevleaf(iter);
+				n = iter->stack[iter->sp--];
+			} else {
+				/*
+				 * every leaf is less than the one we
+				 * wanted, so get the highest.
+				 */
+				n = greatest_leaf(qp, n, iter);
 			}
 		} else {
 			/*
@@ -2143,7 +2206,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			}
 		}
 
-		it.stack[++it.sp] = n;
+		iter->stack[++iter->sp] = n;
 	}
 
 	/* do the keys differ, and if so, where? */
@@ -2151,20 +2214,30 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	offset = qpkey_compare(search, searchlen, found, foundlen);
 
 	/*
-	 * if we've been asked to return the predecessor name, we
-	 * work that out here.
+	 * if we've been passed an iterator, we want it to point
+	 * at the matching name in the case of an exact match, or at
+	 * the predecessor name for a non-exact match.
 	 *
-	 * if 'matched' is true, the search ended at a leaf.  it's either
-	 * an exact match or the immediate successor of the searched-for
-	 * name, and in either case, we can use the qpiter stack we've
-	 * constructed to step back to the predecessor.  if 'matched' is
-	 * false, then the search failed at a branch node, and we would
-	 * have already found the predecessor.
+	 * if 'matched' is true, then the search ended at a leaf.
+	 * if it was not an exact match, then we're now pointing
+	 * at either the immediate predecessor or the immediate
+	 * successor of the searched-for name; if successor, we can
+	 * now use the qpiter stack we've constructed to step back to
+	 * the predecessor. if we're pointed at the predecessor
+	 * or it was an exact match, we don't need to do anything.
+	 *
+	 * if 'matched' is false, then the search failed at a branch
+	 * node, and we would already have positioned the iterator
+	 * at the predecessor.
 	 */
-	if (predecessor != NULL && matched) {
-		prevleaf(&it);
+	if (getpred && matched) {
+		if (offset != QPKEY_EQUAL &&
+		    (offset <= searchlen && offset <= foundlen &&
+		     found[offset] > search[offset]))
+		{
+			prevleaf(iter);
+		}
 	}
-	maybe_set_name(qp, it.stack[it.sp], predecessor);
 
 	if (offset == QPKEY_EQUAL || offset == foundlen) {
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));

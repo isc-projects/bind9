@@ -204,6 +204,7 @@ ISC_RUN_TEST_IMPL(qpiter) {
 	int inserted, n;
 	uint32_t ival;
 	void *pval = NULL;
+	isc_result_t result;
 
 	dns_qp_create(mctx, &qpiter_methods, item, &qp);
 	for (size_t tests = 0; tests < 1234; tests++) {
@@ -253,15 +254,30 @@ ISC_RUN_TEST_IMPL(qpiter) {
 		while (dns_qpiter_prev(&qpi, NULL, NULL, &ival) ==
 		       ISC_R_SUCCESS)
 		{
-			assert_int_equal(ival, order[--n]);
+			--n;
+
+			assert_int_equal(ival, order[n]);
+
+			/* and check current iterator value as well */
+			result = dns_qpiter_current(&qpi, NULL, NULL, &ival);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_int_equal(ival, order[n]);
 		}
+
 		assert_int_equal(n, 0);
 
 		/* ...and forward again */
 		while (dns_qpiter_next(&qpi, NULL, NULL, &ival) ==
 		       ISC_R_SUCCESS)
 		{
-			assert_int_equal(ival, order[n++]);
+			assert_int_equal(ival, order[n]);
+
+			/* and check current iterator value as well */
+			result = dns_qpiter_current(&qpi, NULL, NULL, &ival);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			assert_int_equal(ival, order[n]);
+
+			n++;
 		}
 
 		assert_int_equal(n, inserted);
@@ -575,16 +591,36 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 	dns_name_t *pred = dns_fixedname_initname(&fn2);
 
 	for (int i = 0; check[i].query != NULL; i++) {
+		dns_qpiter_t it;
 		char *predname = NULL;
 
 		dns_test_namefromstring(check[i].query, &fn1);
-		result = dns_qp_lookup(qp, name, NULL, pred, NULL, NULL, NULL);
+		result = dns_qp_lookup(qp, name, NULL, &it, NULL, NULL, NULL);
 #if 0
 		fprintf(stderr, "%s: expected %s got %s\n", check[i].query,
 			isc_result_totext(check[i].result),
 			isc_result_totext(result));
 #endif
 		assert_int_equal(result, check[i].result);
+
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * we found an exact match; iterate to find
+			 * the predecessor.
+			 */
+			result = dns_qpiter_prev(&it, pred, NULL, NULL);
+			if (result == ISC_R_NOMORE) {
+				result = dns_qpiter_prev(&it, pred, NULL, NULL);
+			}
+		} else {
+			/*
+			 * we didn't find a match, so the iterator should
+			 * already be pointed at the predecessor node.
+			 */
+			result = dns_qpiter_current(&it, pred, NULL, NULL);
+		}
+		assert_int_equal(result, ISC_R_SUCCESS);
+
 		result = dns_name_tostring(pred, &predname, mctx);
 #if 0
 		fprintf(stderr, "... expected predecessor %s got %s\n",
@@ -599,11 +635,11 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 
 ISC_RUN_TEST_IMPL(predecessors) {
 	dns_qp_t *qp = NULL;
-	const char insert[][16] = {
-		"a.",	  "b.",	      "c.b.a.",	  "e.d.c.b.a.",
-		"c.b.b.", "c.d.",     "a.b.c.d.", "a.b.c.d.e.",
-		"b.a.",	  "x.k.c.d.", ""
-	};
+	const char insert[][16] = { "a.",	  "b.",		"c.b.a.",
+				    "e.d.c.b.a.", "c.b.b.",	"c.d.",
+				    "a.b.c.d.",	  "a.b.c.d.e.", "b.a.",
+				    "x.k.c.d.",	  "moog.",	"mook.",
+				    "moon.",	  "moops.",	"" };
 	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
@@ -613,8 +649,8 @@ ISC_RUN_TEST_IMPL(predecessors) {
 
 	/* first check: no root label in the database */
 	static struct check_predecessors check1[] = {
-		{ ".", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "a.", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ ".", "moops.", ISC_R_NOTFOUND },
+		{ "a.", "moops.", ISC_R_SUCCESS },
 		{ "b.a.", "a.", ISC_R_SUCCESS },
 		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
 		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
@@ -622,13 +658,16 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "d.c.", "c.b.b.", ISC_R_NOTFOUND },
 		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
 		{ "a.b.c.e.f.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "z.y.x.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "z.y.x.", "moops.", ISC_R_NOTFOUND },
 		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "z.z.z.z.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
 		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
 		{ "0.b.c.d.e.", "x.k.c.d.", ISC_R_NOTFOUND },
 		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND },
+		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "moor.", "moops.", ISC_R_NOTFOUND },
+		{ "mop.", "moops.", ISC_R_NOTFOUND },
 		{ NULL, NULL, 0 }
 	};
 
@@ -639,7 +678,7 @@ ISC_RUN_TEST_IMPL(predecessors) {
 	insert_str(qp, root);
 
 	static struct check_predecessors check2[] = {
-		{ ".", "a.b.c.d.e.", ISC_R_SUCCESS },
+		{ ".", "moops.", ISC_R_SUCCESS },
 		{ "a.", ".", ISC_R_SUCCESS },
 		{ "b.a.", "a.", ISC_R_SUCCESS },
 		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
@@ -648,12 +687,15 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "d.c.", "c.b.b.", DNS_R_PARTIALMATCH },
 		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
 		{ "a.b.c.e.f.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "z.y.x.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "z.y.x.", "moops.", DNS_R_PARTIALMATCH },
 		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "z.z.z.z.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
+		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
 		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
 		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH },
+		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "moor.", "moops.", DNS_R_PARTIALMATCH },
+		{ "mop.", "moops.", DNS_R_PARTIALMATCH },
 		{ NULL, NULL, 0 }
 	};
 

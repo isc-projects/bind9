@@ -528,8 +528,8 @@ dns_qp_getname(dns_qpreadable_t qpr, const dns_name_t *name, void **pval_r,
 
 isc_result_t
 dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
-	      dns_name_t *foundname, dns_name_t *predecessor,
-	      dns_qpchain_t *chain, void **pval_r, uint32_t *ival_r);
+	      dns_name_t *foundname, dns_qpiter_t *iter, dns_qpchain_t *chain,
+	      void **pval_r, uint32_t *ival_r);
 /*%<
  * Look up a leaf in a qp-trie that is equal to, or an ancestor domain of,
  * 'name'.
@@ -547,9 +547,9 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
  * ISC_R_SUCCESS then it terminates at the name that was requested.
  * If the result is ISC_R_NOTFOUND, 'chain' will not be updated.
  *
- * If 'predecessor' is not NULL, it will be updated to contain the
- * closest predecessor of the searched-for name that exists in the
- * trie.
+ * If 'iter' is not NULL, it will be updated to point to a QP iterator
+ * which is pointed at the searched-for name if it exists in the trie,
+ * or the closest predecessor if it doesn't.
  *
  * The leaf data for the node that was found will be assigned to
  * whichever of `*pval_r` and `*ival_r` are not NULL, unless the
@@ -559,7 +559,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
  * \li  `qpr` is a pointer to a readable qp-trie
  * \li  `name` is a pointer to a valid `dns_name_t`
  * \li  `foundname` is a pointer to a valid `dns_name_t` with
- *       buffer and offset space available, or is NULL.
+ *       buffer and offset space available, or is NULL
  *
  * Returns:
  * \li  ISC_R_SUCCESS if an exact match was found
@@ -666,6 +666,24 @@ dns_qpiter_prev(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
  * \li  ISC_R_NOMORE otherwise
  */
 
+isc_result_t
+dns_qpiter_current(dns_qpiter_t *qpi, dns_name_t *name, void **pval_r,
+		   uint32_t *ival_r);
+/*%<
+ * Sets the values of `name`, `pval_r` and `ival_r` to those at the
+ * node currently pointed to by `qpi`, but without moving the iterator
+ * in either direction. If the iterator is not currently pointed at a
+ * leaf node, ISC_R_FAILURE is returned.
+ * Requires:
+ *
+ * \li  `qpi` is a pointer to a valid qp iterator
+ *
+ * Returns:
+ * \li  ISC_R_SUCCESS if a leaf was found and pval_r and ival_r were set
+ * \li  ISC_R_FAILURE if the iterator is not initialized or not pointing
+ *      at a leaf node
+ */
+
 void
 dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain);
 /*%<
@@ -673,7 +691,7 @@ dns_qpchain_init(dns_qpreadable_t qpr, dns_qpchain_t *chain);
  *
  * Requires:
  * \li  `qpr` is a pointer to a valid qp-trie
- * \li  `chain` is not NULL.
+ * \li  `chain` is not NULL
  */
 
 unsigned int
@@ -682,7 +700,7 @@ dns_qpchain_length(dns_qpchain_t *chain);
  * Returns the length of a QP chain.
  *
  * Requires:
- * \li  `chain` is a pointer to an initialized QP chain object.
+ * \li  `chain` is a pointer to an initialized QP chain object
  */
 
 void
@@ -695,8 +713,8 @@ dns_qpchain_node(dns_qpchain_t *chain, unsigned int level, dns_name_t *name,
  * are not null.
  *
  * Requires:
- * \li  `chain` is a pointer to an initialized QP chain object.
- * \li  `level` is less than `chain->len`.
+ * \li  `chain` is a pointer to an initialized QP chain object
+ * \li  `level` is less than `chain->len`
  */
 
 /***********************************************************************
