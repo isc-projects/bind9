@@ -35,6 +35,9 @@ Removed Features
 - The support for AES algorithm for DNS cookies has been removed.
   :gl:`#4421`
 
+- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
+  have been removed. Using them is now a fatal error. :gl:`#4405`
+
 Feature Changes
 ~~~~~~~~~~~~~~~
 

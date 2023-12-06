@@ -9953,7 +9953,7 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.spillatmin = 10,
 		.spillat = 10,
 		.spillatmax = 100,
-		.retryinterval = 10000,
+		.retryinterval = 800,
 		.nonbackofftries = 3,
 		.query_timeout = DEFAULT_QUERY_TIMEOUT,
 		.maxdepth = DEFAULT_RECURSION_DEPTH,
@@ -11050,36 +11050,6 @@ dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which) {
 	REQUIRE(which == dns_quotatype_zone || which == dns_quotatype_server);
 
 	return (resolver->quotaresp[which]);
-}
-
-unsigned int
-dns_resolver_getretryinterval(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	return (resolver->retryinterval);
-}
-
-void
-dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	REQUIRE(interval > 0);
-
-	resolver->retryinterval = ISC_MIN(interval, 2000);
-}
-
-unsigned int
-dns_resolver_getnonbackofftries(dns_resolver_t *resolver) {
-	REQUIRE(VALID_RESOLVER(resolver));
-
-	return (resolver->nonbackofftries);
-}
-
-void
-dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries) {
-	REQUIRE(VALID_RESOLVER(resolver));
-	REQUIRE(tries > 0);
-
-	resolver->nonbackofftries = tries;
 }
 
 void

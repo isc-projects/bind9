@@ -4034,7 +4034,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	unsigned int query_timeout;
 	bool old_rpz_ok = false;
 	dns_dyndbctx_t *dctx = NULL;
-	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
 	dns_adb_t *adb = NULL;
@@ -4887,23 +4886,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		maxbits = 4096;
 	}
 	view->maxbits = maxbits;
-
-	/*
-	 * Set resolver retry parameters.
-	 */
-	obj = NULL;
-	CHECK(named_config_get(maps, "resolver-retry-interval", &obj));
-	resolver_param = cfg_obj_asuint32(obj);
-	if (resolver_param > 0) {
-		dns_resolver_setretryinterval(view->resolver, resolver_param);
-	}
-
-	obj = NULL;
-	CHECK(named_config_get(maps, "resolver-nonbackoff-tries", &obj));
-	resolver_param = cfg_obj_asuint32(obj);
-	if (resolver_param > 0) {
-		dns_resolver_setnonbackofftries(view->resolver, resolver_param);
-	}
 
 	/*
 	 * Set supported DNSSEC algorithms.
