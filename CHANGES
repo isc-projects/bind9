@@ -1,3 +1,9 @@
+6294.	[bug]		BIND might sometimes crash after startup or
+			re-configuration when one 'tls' entry is used multiple
+			times to connect to remote servers due to initialisation
+			attempts from contexts of multiple threads. That has
+			been fixed. [GL #4464]
+
 6293.	[func]		Initial support for accepting the PROXYv2 protocol in
 			all currently implemented DNS transports in BIND and
 			complementary support for sending it in dig are included

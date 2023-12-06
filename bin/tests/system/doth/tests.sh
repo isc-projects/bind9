@@ -884,5 +884,37 @@ if [ -n "$testcurl" ]; then
   status=$((status + ret))
 fi
 
+n=$((n + 1))
+echo_i "checking Do53 query to NS5 for zone \"example12\" (verifying successful client TLS context reuse by the NS5 server instance during XoT) ($n)"
+ret=0
+dig_with_opts +comm @10.53.0.5 example12 SOA >dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking Do53 query to NS5 for zone \"example13\" (verifying successful client TLS context reuse by the NS5 server instance during XoT) ($n)"
+ret=0
+dig_with_opts +comm @10.53.0.5 example13 SOA >dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking Do53 query to NS5 for zone \"example14\" (verifying successful client TLS context reuse by the NS5 server instance during XoT) ($n)"
+ret=0
+dig_with_opts +comm @10.53.0.5 example14 SOA >dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+n=$((n + 1))
+echo_i "checking Do53 query to NS5 for zone \"example15\" (verifying successful client TLS context reuse by the NS5 server instance during XoT) ($n)"
+ret=0
+dig_with_opts +comm @10.53.0.5 example15 SOA >dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
