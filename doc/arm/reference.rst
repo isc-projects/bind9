@@ -4370,17 +4370,21 @@ Tuning
    has no effect, the value of :any:`max-cache-ttl` will be ``0`` in such case.
 
 .. namedconf:statement:: resolver-nonbackoff-tries
-   :tags: server
+   :tags: deprecated.
    :short: Specifies the number of retries before exponential backoff.
 
-   This specifies how many retries occur before exponential backoff kicks in. The
-   default is ``3``.
+   This specifies how many retries occur before exponential backoff kicks in.
+   The default is ``3``.
+
+   This option is deprecated and will be removed in a future release.
 
 .. namedconf:statement:: resolver-retry-interval
-   :tags: server, query
+   :tags: deprecated
    :short: Sets the base retry interval (in milliseconds).
 
    This sets the base retry interval in milliseconds. The default is ``800``.
+
+   This option is deprecated and will be removed in a future release.
 
 .. namedconf:statement:: sig-validity-interval
    :tags: dnssec

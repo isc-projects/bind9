@@ -1,3 +1,7 @@
+6296.	[func]		The "resolver-nonbackoff-tries" and
+			"resolver-retry-interval" options are deprecated;
+			a warning will be logged if they are used. [GL #4405]
+
 6294.	[bug]		BIND might sometimes crash after startup or
 			re-configuration when one 'tls' entry is used multiple
 			times to connect to remote servers due to initialisation
