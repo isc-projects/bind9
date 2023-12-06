@@ -254,7 +254,6 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 	uint32_t saltlen = DEFAULT_NSEC3PARAM_SALTLEN;
 	uint32_t badalg = 0;
 	bool optout = false;
-	isc_result_t ret = ISC_R_SUCCESS;
 
 	/* How many iterations. */
 	obj = cfg_tuple_get(config, "iterations");
@@ -297,7 +296,6 @@ cfg_nsec3param_fromconfig(const cfg_obj_t *config, dns_kasp_t *kasp,
 			    "not allowed, must be zero",
 			    iter);
 		return (DNS_R_NSEC3ITERRANGE);
-		return (ret);
 	}
 
 	/* Opt-out? */
