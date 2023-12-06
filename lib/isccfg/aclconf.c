@@ -701,7 +701,8 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			if (strcasecmp(cfg_obj_asstring(obj_transport),
 				       "udp") == 0)
 			{
-				transports = isc_nm_udpsocket;
+				transports = isc_nm_udpsocket |
+					     isc_nm_proxyudpsocket;
 				encrypted = false;
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "tcp") == 0)
@@ -713,7 +714,8 @@ cfg_acl_fromconfig(const cfg_obj_t *acl_data, const cfg_obj_t *cctx,
 			{
 				/* Good ol' DNS over port 53 */
 				transports = isc_nm_streamdnssocket |
-					     isc_nm_udpsocket;
+					     isc_nm_udpsocket |
+					     isc_nm_proxyudpsocket;
 				encrypted = false;
 			} else if (strcasecmp(cfg_obj_asstring(obj_transport),
 					      "tls") == 0)

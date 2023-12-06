@@ -605,9 +605,9 @@ ISC_LOOP_TEST_IMPL(dispatch_timeout_tcp_response) {
 	*test = (test_dispatch_t){ 0 };
 
 	/* Server */
-	result = isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE,
-					&tcp_server_addr, noop_nameserver, NULL,
-					accept_cb, NULL, 0, NULL, NULL, &sock);
+	result = isc_nm_listenstreamdns(
+		netmgr, ISC_NM_LISTEN_ONE, &tcp_server_addr, noop_nameserver,
+		NULL, accept_cb, NULL, 0, NULL, NULL, ISC_NM_PROXY_NONE, &sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* ensure we stop listening after the test is done */
@@ -637,9 +637,9 @@ ISC_LOOP_TEST_IMPL(dispatch_tcp_response) {
 	*test = (test_dispatch_t){ 0 };
 
 	/* Server */
-	result = isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE,
-					&tcp_server_addr, nameserver, NULL,
-					accept_cb, NULL, 0, NULL, NULL, &sock);
+	result = isc_nm_listenstreamdns(
+		netmgr, ISC_NM_LISTEN_ONE, &tcp_server_addr, nameserver, NULL,
+		accept_cb, NULL, 0, NULL, NULL, ISC_NM_PROXY_NONE, &sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(isc_loop_main(loopmgr), stop_listening, sock);
@@ -676,7 +676,8 @@ ISC_LOOP_TEST_IMPL(dispatch_tls_response) {
 	/* Server */
 	result = isc_nm_listenstreamdns(
 		netmgr, ISC_NM_LISTEN_ONE, &tls_server_addr, nameserver, NULL,
-		accept_cb, NULL, 0, NULL, tls_listen_tlsctx, &sock);
+		accept_cb, NULL, 0, NULL, tls_listen_tlsctx, ISC_NM_PROXY_NONE,
+		&sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_loop_teardown(isc_loop_main(loopmgr), stop_listening, sock);
@@ -780,9 +781,9 @@ ISC_LOOP_TEST_IMPL(dispatch_gettcp) {
 	*test = (test_dispatch_t){ 0 };
 
 	/* Server */
-	result = isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE,
-					&tcp_server_addr, nameserver, NULL,
-					accept_cb, NULL, 0, NULL, NULL, &sock);
+	result = isc_nm_listenstreamdns(
+		netmgr, ISC_NM_LISTEN_ONE, &tcp_server_addr, nameserver, NULL,
+		accept_cb, NULL, 0, NULL, NULL, ISC_NM_PROXY_NONE, &sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* ensure we stop listening after the test is done */
@@ -812,9 +813,9 @@ ISC_LOOP_TEST_IMPL(dispatch_newtcp) {
 	*test = (test_dispatch_t){ 0 };
 
 	/* Server */
-	result = isc_nm_listenstreamdns(netmgr, ISC_NM_LISTEN_ONE,
-					&tcp_server_addr, nameserver, NULL,
-					accept_cb, NULL, 0, NULL, NULL, &sock);
+	result = isc_nm_listenstreamdns(
+		netmgr, ISC_NM_LISTEN_ONE, &tcp_server_addr, nameserver, NULL,
+		accept_cb, NULL, 0, NULL, NULL, ISC_NM_PROXY_NONE, &sock);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* ensure we stop listening after the test is done */

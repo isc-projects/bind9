@@ -344,6 +344,13 @@ isc__nm_httpsession_detach(isc_nm_http_session_t **sessionp) {
 			     sizeof(isc_nm_http_session_t));
 }
 
+isc_nmhandle_t *
+isc__nm_httpsession_handle(isc_nm_http_session_t *session) {
+	REQUIRE(VALID_HTTP2_SESSION(session));
+
+	return (session->handle);
+}
+
 static http_cstream_t *
 find_http_cstream(int32_t stream_id, isc_nm_http_session_t *session) {
 	http_cstream_t *cstream = NULL;
@@ -1378,8 +1385,8 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	transp_sock->h2.session = session;
 	http_sock->h2.connect.tlsctx = NULL;
 	/* otherwise we will get some garbage output in DIG */
-	http_sock->iface = handle->sock->iface;
-	http_sock->peer = handle->sock->peer;
+	http_sock->iface = isc_nmhandle_localaddr(handle);
+	http_sock->peer = isc_nmhandle_peeraddr(handle);
 
 	transp_sock->h2.connect.post = http_sock->h2.connect.post;
 	transp_sock->h2.connect.uri = http_sock->h2.connect.uri;
@@ -1390,7 +1397,8 @@ transport_connect_cb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		const unsigned char *alpn = NULL;
 		unsigned int alpnlen = 0;
 
-		INSIST(transp_sock->type == isc_nm_tlssocket);
+		INSIST(transp_sock->type == isc_nm_tlssocket ||
+		       transp_sock->type == isc_nm_proxystreamsocket);
 
 		isc__nmhandle_get_selected_alpn(handle, &alpn, &alpnlen);
 		if (alpn == NULL || alpnlen != NGHTTP2_PROTO_VERSION_ID_LEN ||
@@ -1446,7 +1454,8 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		   const char *uri, bool post, isc_nm_cb_t cb, void *cbarg,
 		   isc_tlsctx_t *tlsctx,
 		   isc_tlsctx_client_session_cache_t *client_sess_cache,
-		   unsigned int timeout) {
+		   unsigned int timeout, isc_nm_proxy_type_t proxy_type,
+		   isc_nm_proxyheader_info_t *proxy_info) {
 	isc_sockaddr_t local_interface;
 	isc_nmsocket_t *sock = NULL;
 	isc__networker_t *worker = NULL;
@@ -1508,12 +1517,38 @@ isc_nm_httpconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		sock->iface = sock->h2.connect.local_interface;
 	}
 
-	if (tlsctx != NULL) {
-		isc_nm_tlsconnect(mgr, local, peer, transport_connect_cb, sock,
-				  tlsctx, client_sess_cache, timeout);
-	} else {
-		isc_nm_tcpconnect(mgr, local, peer, transport_connect_cb, sock,
-				  timeout);
+	switch (proxy_type) {
+	case ISC_NM_PROXY_NONE:
+		if (tlsctx != NULL) {
+			isc_nm_tlsconnect(mgr, local, peer,
+					  transport_connect_cb, sock, tlsctx,
+					  client_sess_cache, timeout, false,
+					  NULL);
+		} else {
+			isc_nm_tcpconnect(mgr, local, peer,
+					  transport_connect_cb, sock, timeout);
+		}
+		break;
+	case ISC_NM_PROXY_PLAIN:
+		if (tlsctx != NULL) {
+			isc_nm_tlsconnect(mgr, local, peer,
+					  transport_connect_cb, sock, tlsctx,
+					  client_sess_cache, timeout, true,
+					  proxy_info);
+		} else {
+			isc_nm_proxystreamconnect(
+				mgr, local, peer, transport_connect_cb, sock,
+				timeout, NULL, NULL, proxy_info);
+		}
+		break;
+	case ISC_NM_PROXY_ENCRYPTED:
+		INSIST(tlsctx != NULL);
+		isc_nm_proxystreamconnect(
+			mgr, local, peer, transport_connect_cb, sock, timeout,
+			tlsctx, client_sess_cache, proxy_info);
+		break;
+	default:
+		UNREACHABLE();
 	}
 }
 
@@ -1637,6 +1672,7 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 	isc_nm_http_session_t *session = (isc_nm_http_session_t *)user_data;
 	isc_nmsocket_t *socket = NULL;
 	isc__networker_t *worker = NULL;
+	isc_sockaddr_t local;
 
 	if (frame->hd.type != NGHTTP2_HEADERS ||
 	    frame->headers.cat != NGHTTP2_HCAT_REQUEST)
@@ -1654,10 +1690,9 @@ server_on_begin_headers_callback(nghttp2_session *ngsession,
 
 	worker = session->handle->sock->worker;
 	socket = isc_mem_get(worker->mctx, sizeof(isc_nmsocket_t));
-	isc__nmsocket_init(socket, worker, isc_nm_httpsocket,
-			   (isc_sockaddr_t *)&session->handle->sock->iface,
-			   NULL);
-	socket->peer = session->handle->sock->peer;
+	local = isc_nmhandle_localaddr(session->handle);
+	isc__nmsocket_init(socket, worker, isc_nm_httpsocket, &local, NULL);
+	socket->peer = isc_nmhandle_peeraddr(session->handle);
 	socket->h2 = (isc_nmsocket_h2_t){
 		.psock = socket,
 		.stream_id = frame->hd.stream_id,
@@ -2460,9 +2495,9 @@ isc_result_t
 isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		  int backlog, isc_quota_t *quota, isc_tlsctx_t *ctx,
 		  isc_nm_http_endpoints_t *eps, uint32_t max_concurrent_streams,
-		  isc_nmsocket_t **sockp) {
+		  isc_nm_proxy_type_t proxy_type, isc_nmsocket_t **sockp) {
 	isc_nmsocket_t *sock = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NM(mgr));
@@ -2482,14 +2517,37 @@ isc_nm_listenhttp(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	atomic_store(&eps->in_use, true);
 	http_init_listener_endpoints(sock, eps);
 
-	if (ctx != NULL) {
-		result = isc_nm_listentls(mgr, workers, iface,
-					  httplisten_acceptcb, sock, backlog,
-					  quota, ctx, &sock->outer);
-	} else {
-		result = isc_nm_listentcp(mgr, workers, iface,
-					  httplisten_acceptcb, sock, backlog,
-					  quota, &sock->outer);
+	switch (proxy_type) {
+	case ISC_NM_PROXY_NONE:
+		if (ctx != NULL) {
+			result = isc_nm_listentls(
+				mgr, workers, iface, httplisten_acceptcb, sock,
+				backlog, quota, ctx, false, &sock->outer);
+		} else {
+			result = isc_nm_listentcp(mgr, workers, iface,
+						  httplisten_acceptcb, sock,
+						  backlog, quota, &sock->outer);
+		}
+		break;
+	case ISC_NM_PROXY_PLAIN:
+		if (ctx != NULL) {
+			result = isc_nm_listentls(
+				mgr, workers, iface, httplisten_acceptcb, sock,
+				backlog, quota, ctx, true, &sock->outer);
+		} else {
+			result = isc_nm_listenproxystream(
+				mgr, workers, iface, httplisten_acceptcb, sock,
+				backlog, quota, NULL, &sock->outer);
+		}
+		break;
+	case ISC_NM_PROXY_ENCRYPTED:
+		INSIST(ctx != NULL);
+		result = isc_nm_listenproxystream(
+			mgr, workers, iface, httplisten_acceptcb, sock, backlog,
+			quota, ctx, &sock->outer);
+		break;
+	default:
+		UNREACHABLE();
 	}
 
 	if (result != ISC_R_SUCCESS) {
@@ -2863,7 +2921,7 @@ isc__nm_http_has_encryption(const isc_nmhandle_t *handle) {
 
 	INSIST(VALID_HTTP2_SESSION(session));
 
-	return (isc_nm_socket_type(session->handle) == isc_nm_tlssocket);
+	return (isc_nm_has_encryption(session->handle));
 }
 
 const char *
@@ -3200,8 +3258,8 @@ isc__nm_http_cleanup_data(isc_nmsocket_t *sock) {
 
 	if ((sock->type == isc_nm_httplistener ||
 	     sock->type == isc_nm_httpsocket ||
-	     sock->type == isc_nm_tcpsocket ||
-	     sock->type == isc_nm_tlssocket) &&
+	     sock->type == isc_nm_tcpsocket || sock->type == isc_nm_tlssocket ||
+	     sock->type == isc_nm_proxystreamsocket) &&
 	    sock->h2.session != NULL)
 	{
 		if (sock->h2.connect.uri != NULL) {

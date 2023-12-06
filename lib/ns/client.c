@@ -2001,6 +2001,60 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		return;
 	}
 
+	if (isc_nm_is_proxy_handle(client->handle)) {
+		char fmtbuf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
+		isc_netaddr_t real_local_addr, real_peer_addr;
+		isc_sockaddr_t real_local, real_peer;
+		int log_level = ISC_LOG_DEBUG(10);
+
+		real_peer = isc_nmhandle_real_peeraddr(client->handle);
+		isc_netaddr_fromsockaddr(&real_peer_addr, &real_peer);
+		real_local = isc_nmhandle_real_localaddr(client->handle);
+		isc_netaddr_fromsockaddr(&real_local_addr, &real_local);
+
+		/* do not allow by default */
+		if (ns_client_checkaclsilent(client, &real_peer_addr,
+					     client->view->proxyacl,
+					     false) != ISC_R_SUCCESS)
+		{
+			if (isc_log_wouldlog(ns_lctx, log_level)) {
+				isc_sockaddr_format(&real_peer, fmtbuf,
+						    sizeof(fmtbuf));
+				ns_client_log(
+					client, DNS_LOGCATEGORY_SECURITY,
+					NS_LOGMODULE_CLIENT, log_level,
+					"dropped request: PROXY is not allowed "
+					"for that client (real client address: "
+					"%s). Rejected by the 'allow-proxy' "
+					"ACL",
+					fmtbuf);
+			}
+			isc_nm_bad_request(handle);
+			return;
+		}
+
+		/* allow by default */
+		if (ns_client_checkaclsilent(client, &real_local_addr,
+					     client->view->proxyonacl,
+					     true) != ISC_R_SUCCESS)
+		{
+			if (isc_log_wouldlog(ns_lctx, log_level)) {
+				isc_sockaddr_format(&real_local, fmtbuf,
+						    sizeof(fmtbuf));
+				ns_client_log(
+					client, DNS_LOGCATEGORY_SECURITY,
+					NS_LOGMODULE_CLIENT, log_level,
+					"dropped request: PROXY is not allowed "
+					"on the interface (real interface "
+					"address: %s). Rejected by the "
+					"'allow-proxy-on' ACL",
+					fmtbuf);
+			}
+			isc_nm_bad_request(handle);
+			return;
+		}
+	}
+
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(5), "using view '%s'", client->view->name);
 

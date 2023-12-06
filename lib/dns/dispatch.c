@@ -1972,7 +1972,8 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 
 		isc_nm_streamdnsconnect(disp->mgr->nm, &disp->local,
 					&disp->peer, tcp_connected, disp,
-					resp->timeout, tlsctx, sess_cache);
+					resp->timeout, tlsctx, sess_cache,
+					ISC_NM_PROXY_NONE, NULL);
 		break;
 
 	case DNS_DISPATCHSTATE_CONNECTING:

@@ -20,7 +20,12 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Initial support for accepting the PROXYv2 protocol in all currently
+  implemented DNS transports in :iscman:`named` and complementary
+  support for sending it in :iscman:`dig` are included into this
+  release. Please consult the related documentation for additional
+  details.
+  :gl:`#4388`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

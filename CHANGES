@@ -1,3 +1,8 @@
+6293.	[func]		Initial support for accepting the PROXYv2 protocol in
+			all currently implemented DNS transports in BIND and
+			complementary support for sending it in dig are included
+			into this release. [GL #4388]
+
 6292.	[func]		Lower the maximum number of allowed NSEC3 iterations,
 			from 150 to 50. DNSSEC responses with a higher
 			iteration count are treated as insecure. For signing

@@ -187,6 +187,13 @@ struct dig_lookup {
 		char *tls_key_file;
 		isc_tlsctx_cache_t *tls_ctx_cache;
 	};
+	struct {
+		bool proxy_mode;
+		bool proxy_plain;
+		bool proxy_local;
+		isc_sockaddr_t proxy_src_addr;
+		isc_sockaddr_t proxy_dst_addr;
+	};
 	isc_stdtime_t fuzztime;
 };
 

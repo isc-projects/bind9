@@ -145,6 +145,7 @@ TESTS =				\
 	nzd2nzf			\
 	padding			\
 	pending			\
+	proxy			\
 	pipelined		\
 	qmin			\
 	reclimit		\

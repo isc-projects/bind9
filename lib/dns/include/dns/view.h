@@ -139,6 +139,8 @@ struct dns_view {
 	dns_acl_t	     *upfwdacl;
 	dns_acl_t	     *denyansweracl;
 	dns_acl_t	     *nocasecompress;
+	dns_acl_t	     *proxyacl;
+	dns_acl_t	     *proxyonacl;
 	bool		      msgcompression;
 	dns_nametree_t	     *answeracl_exclude;
 	dns_nametree_t	     *denyanswernames;

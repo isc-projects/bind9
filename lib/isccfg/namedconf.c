@@ -150,6 +150,11 @@ static cfg_type_t cfg_type_zone;
 
 static cfg_tuplefielddef_t listenon_tuple_fields[] = {
 	{ "port", &cfg_type_optional_port, 0 },
+	/*
+	 * Let's follow the protocols encapsulation order (lower->upper), at
+	 * least roughly.
+	 */
+	{ "proxy", &cfg_type_astring, CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "tls", &cfg_type_astring, 0 },
 #if HAVE_LIBNGHTTP2
 	{ "http", &cfg_type_astring, 0 },
@@ -2021,6 +2026,9 @@ static cfg_clausedef_t view_clauses[] = {
 	{ "additional-from-auth", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "additional-from-cache", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "allow-new-zones", &cfg_type_boolean, 0 },
+	{ "allow-proxy", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_EXPERIMENTAL },
+	{ "allow-proxy-on", &cfg_type_bracketed_aml,
+	  CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "allow-query-cache", &cfg_type_bracketed_aml, 0 },
 	{ "allow-query-cache-on", &cfg_type_bracketed_aml, 0 },
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },

@@ -252,6 +252,14 @@ help(void) {
 	       "request)\n"
 	       "                 +padding=###        (Set padding block size "
 	       "[0])\n"
+	       "                 "
+	       "+[no]proxy[=src_addr[#src_port]-dst_addr[#dst_port]]        "
+	       "(Add PROXYv2 headers to the queries. If addresses are omitted, "
+	       "LOCAL PROXYv2 headers are added)\n"
+	       "                 "
+	       "+[no]proxy-plain[=src_addr[#src_port]-dst_addr[#dst_port]]  "
+	       "(The same as '+[no]proxy', but send PROXYv2 headers ahead of "
+	       "any encryption if an encrypted transport is used)\n"
 	       "                 +qid=###            (Specify the query ID to "
 	       "use when sending queries)\n"
 	       "                 +[no]qr             (Print question before "
@@ -365,6 +373,39 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		}
 		printf(";; SERVER: %s(%s) (%s)\n", fromtext, query->userarg,
 		       proto);
+
+		if (query->lookup->proxy_mode) {
+			printf(";; CLIENT PROXY HEADER");
+
+			if ((dig_lookup_is_tls(query->lookup) ||
+			     (query->lookup->https_mode &&
+			      !query->lookup->http_plain)) &&
+			    query->lookup->proxy_plain)
+			{
+				printf(" (plain)");
+			}
+
+			printf(": ");
+
+			if (!query->lookup->proxy_local) {
+				char src_buf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
+				char dst_buf[ISC_SOCKADDR_FORMATSIZE] = { 0 };
+
+				isc_sockaddr_format(
+					&query->lookup->proxy_src_addr, src_buf,
+					sizeof(src_buf));
+
+				isc_sockaddr_format(
+					&query->lookup->proxy_dst_addr, dst_buf,
+					sizeof(dst_buf));
+				printf("source: %s, destination: %s", src_buf,
+				       dst_buf);
+			} else {
+				printf("LOCAL");
+			}
+
+			printf("\n");
+		}
 		time(&tnow);
 		(void)localtime_r(&tnow, &tmnow);
 
@@ -1051,6 +1092,317 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 		    (_l >= sizeof(F) || strncasecmp(cmd, F, _l) != 0))   \
 			goto invalid_option;                             \
 	} while (0)
+
+/*
+ * Parse source and destination addresses in the same format as used by "kdig":
+ *
+ * SRC_ADDR[#SRC_PORT]-DST_ADDR[#DST_PORT]
+ *
+ * This can be described (pretty closely for our purpose) using the
+ * following EBNF grammar:
+ *
+ * S = proxy-addrs. (* start rule *)
+ * proxy-addrs = addr "-" addr EOF.
+ * addr = addr-char { addr-char } ["#" port ].
+ * port = digit { digit }.
+ * addr-char = <aby but "#", "-", EOF >.
+ * EOF = '\0'.
+ */
+#define MATCH(ch)     (st->str[0] == (ch))
+#define MATCH_DIGIT() isdigit((unsigned char)(st->str[0]))
+#define ADVANCE()     st->str++
+#define GETP()	      (st->str)
+
+typedef struct isc_proxy_addrs_parser_state {
+	const char *str;
+
+	const char *last_addr_start;
+	size_t last_addr_len;
+
+	const char *last_port_start;
+	size_t last_port_len;
+
+	const char *src_addr_start;
+	size_t src_addr_len;
+
+	const char *src_port_start;
+	size_t src_port_len;
+
+	const char *dst_addr_start;
+	size_t dst_addr_len;
+
+	const char *dst_port_start;
+	size_t dst_port_len;
+} isc_proxy_addrs_parser_state_t;
+
+static bool
+rule_proxy_addrs(isc_proxy_addrs_parser_state_t *st);
+
+static bool
+rule_addr(isc_proxy_addrs_parser_state_t *st);
+
+static bool
+rule_port(isc_proxy_addrs_parser_state_t *st);
+
+static bool
+rule_addr_char(isc_proxy_addrs_parser_state_t *st);
+
+static void
+proxy_handle_port_string(const char *port_start, const size_t port_len,
+			 in_port_t *pport) {
+	char buf[512] = { 0 }; /* max */
+	size_t string_size = 0, max_string_bytes = 0;
+
+	string_size = port_len + 1;
+	max_string_bytes = string_size > sizeof(buf) ? sizeof(buf)
+						     : string_size;
+
+	(void)strlcpy(buf, port_start, max_string_bytes);
+	*pport = (in_port_t)atoi(buf);
+}
+
+static isc_result_t
+proxy_handle_addr_string(const char *addr_start, const size_t addr_len,
+			 const in_port_t addr_port, isc_sockaddr_t *addr) {
+	isc_result_t result = ISC_R_FAILURE;
+	char buf[512] = { 0 }; /* max */
+	size_t string_size = 0, max_string_bytes = 0;
+	struct in_addr ipv4 = { 0 };
+	struct in6_addr ipv6 = { 0 };
+	int ret = 0;
+
+	string_size = addr_len + 1;
+	max_string_bytes = string_size > sizeof(buf) ? sizeof(buf)
+						     : string_size;
+
+	(void)strlcpy(buf, addr_start, max_string_bytes);
+
+	ret = inet_pton(AF_INET, buf, &ipv4);
+	if (ret == 1) {
+		isc_sockaddr_fromin(addr, &ipv4, addr_port);
+		result = ISC_R_SUCCESS;
+	} else {
+		ret = inet_pton(AF_INET6, buf, &ipv6);
+		if (ret == 1) {
+			isc_sockaddr_fromin6(addr, &ipv6, addr_port);
+			result = ISC_R_SUCCESS;
+		}
+	}
+
+	return (result);
+}
+
+static bool
+parse_proxy_addresses(const char *addrs, isc_sockaddr_t *psrc,
+		      isc_sockaddr_t *pdst) {
+	isc_result_t result = ISC_R_FAILURE;
+	isc_sockaddr_t src = { 0 }, dst = { 0 };
+	isc_proxy_addrs_parser_state_t st = { 0 };
+	in_port_t src_port = 0, dst_port = 53; /* Follow kdig footsteps */
+
+	REQUIRE(addrs != NULL && *addrs != '\0');
+	REQUIRE(psrc != NULL);
+	REQUIRE(pdst != NULL);
+
+	st.str = addrs;
+
+	/* start syntax analysis and verification */
+	if (!rule_proxy_addrs(&st)) {
+		warn("PROXY source and destination addresses cannot be parsed");
+		return (false);
+	}
+
+	/* get port numeric values */
+	if (st.src_port_len > 0) {
+		INSIST(st.src_port_start != NULL);
+		proxy_handle_port_string(st.src_port_start, st.src_port_len,
+					 &src_port);
+	}
+
+	if (st.dst_port_len > 0) {
+		INSIST(st.dst_port_start != NULL);
+		proxy_handle_port_string(st.dst_port_start, st.dst_port_len,
+					 &dst_port);
+	}
+
+	/* get addresses */
+	INSIST(st.src_addr_len > 0);
+	INSIST(st.src_addr_start != NULL);
+	INSIST(st.dst_addr_len > 0);
+	INSIST(st.dst_addr_start != NULL);
+
+	result = proxy_handle_addr_string(st.src_addr_start, st.src_addr_len,
+					  src_port, &src);
+	if (result != ISC_R_SUCCESS) {
+		warn("Cannot get PROXY source address: %s",
+		     isc_result_totext(result));
+		return (false);
+	}
+
+	result = proxy_handle_addr_string(st.dst_addr_start, st.dst_addr_len,
+					  dst_port, &dst);
+	if (result != ISC_R_SUCCESS) {
+		warn("Cannot get PROXY destination address: %s",
+		     isc_result_totext(result));
+		return (false);
+	}
+
+	/* addresses should be of the same type */
+	if (isc_sockaddr_pf(&src) != isc_sockaddr_pf(&dst)) {
+		warn("PROXY source and destination addresses must be of the "
+		     "same type");
+		return (false);
+	}
+
+	*psrc = src;
+	*pdst = dst;
+
+	return (true);
+}
+
+static bool
+rule_proxy_addrs(isc_proxy_addrs_parser_state_t *st) {
+	if (!rule_addr(st)) {
+		return (false);
+	}
+
+	st->src_addr_start = st->last_addr_start;
+	st->src_addr_len = st->last_addr_len;
+	st->src_port_start = st->last_port_start;
+	st->src_port_len = st->last_port_len;
+
+	if (!MATCH('-')) {
+		return (false);
+	}
+
+	ADVANCE();
+
+	if (!rule_addr(st)) {
+		return (false);
+	}
+
+	st->dst_addr_start = st->last_addr_start;
+	st->dst_addr_len = st->last_addr_len;
+	st->dst_port_start = st->last_port_start;
+	st->dst_port_len = st->last_port_len;
+
+	if (!MATCH('\0')) {
+		return (false);
+	}
+
+	return (true);
+}
+
+static bool
+rule_addr(isc_proxy_addrs_parser_state_t *st) {
+	const char *start = GETP();
+	if (!rule_addr_char(st)) {
+		return (false);
+	}
+
+	while (rule_addr_char(st)) {
+		/* skip */
+	}
+
+	st->last_addr_start = start;
+	st->last_addr_len = GETP() - start;
+
+	if (MATCH('#')) {
+		ADVANCE();
+
+		if (!rule_port(st)) {
+			return (false);
+		}
+	}
+
+	return (true);
+}
+
+static bool
+rule_port(isc_proxy_addrs_parser_state_t *st) {
+	const char *start = GETP();
+	if (!MATCH_DIGIT()) {
+		return (false);
+	}
+
+	ADVANCE();
+
+	while (MATCH_DIGIT()) {
+		ADVANCE();
+	}
+
+	st->last_port_start = start;
+	st->last_port_len = GETP() - start;
+
+	return (true);
+}
+
+static bool
+rule_addr_char(isc_proxy_addrs_parser_state_t *st) {
+	if (MATCH('#') || MATCH('-') || MATCH('\0')) {
+		return (false);
+	}
+
+	ADVANCE();
+
+	return (true);
+}
+
+#undef GETP
+#undef ADVANCE
+#undef MATCH_DIGIT
+#undef MATCH
+
+static bool
+plus_proxy_handle_addresses(const char *value, const bool state,
+			    dig_lookup_t *lookup) {
+	lookup->proxy_mode = state;
+	if (!state) {
+		/*
+		 * We are not interested in the option value in that
+		 * case
+		 */
+		return (true);
+	}
+
+	if (value == NULL || *value == '\0') {
+		lookup->proxy_local = true;
+		return (true);
+	}
+
+	if (!parse_proxy_addresses(value, &lookup->proxy_src_addr,
+				   &lookup->proxy_dst_addr))
+	{
+		return (false);
+	}
+	return (true);
+}
+
+static bool
+plus_proxy_options(const char *cmd, const char *value, const bool state,
+		   dig_lookup_t *lookup) {
+	switch (cmd[5]) {
+	case '-':
+		FULLCHECK("proxy-plain");
+		lookup->proxy_plain = state;
+		if (!plus_proxy_handle_addresses(value, state, lookup)) {
+			goto invalid_option;
+		}
+		break;
+	case '\0':
+		FULLCHECK("proxy");
+		if (!plus_proxy_handle_addresses(value, state, lookup)) {
+			goto invalid_option;
+		}
+		break;
+	default:
+		goto invalid_option;
+	}
+	return (true);
+
+invalid_option:
+	return (false);
+}
 
 static bool
 plus_tls_options(const char *cmd, const char *value, const bool state,
@@ -1797,19 +2149,30 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 		}
 		break;
 	case 'p':
-		FULLCHECK("padding");
-		if (state && lookup->edns == -1) {
-			lookup->edns = DEFAULT_EDNS_VERSION;
+		switch (cmd[1]) {
+		case 'a':
+			FULLCHECK("padding");
+			if (state && lookup->edns == -1) {
+				lookup->edns = DEFAULT_EDNS_VERSION;
+			}
+			if (value == NULL) {
+				goto need_value;
+			}
+			result = parse_uint(&num, value, 512, "padding");
+			if (result != ISC_R_SUCCESS) {
+				warn("Couldn't parse padding");
+				goto exit_or_usage;
+			}
+			lookup->padding = (uint16_t)num;
+			break;
+		case 'r':
+			if (!plus_proxy_options(cmd, value, state, lookup)) {
+				goto invalid_option;
+			}
+			break;
+		default:
+			goto invalid_option;
 		}
-		if (value == NULL) {
-			goto need_value;
-		}
-		result = parse_uint(&num, value, 512, "padding");
-		if (result != ISC_R_SUCCESS) {
-			warn("Couldn't parse padding");
-			goto exit_or_usage;
-		}
-		lookup->padding = (uint16_t)num;
 		break;
 	case 'q':
 		switch (cmd[1]) {

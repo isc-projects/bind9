@@ -355,11 +355,14 @@ tls_send_outgoing(isc_nmsocket_t *sock, bool finish, isc_nmhandle_t *tlshandle,
 	size_t len = 0;
 	bool new_send_req = false;
 	isc_region_t used_region = { 0 };
+	bool shutting_down = isc__nm_closing(sock->worker);
 
-	if (inactive(sock)) {
+	if (shutting_down || inactive(sock)) {
 		if (cb != NULL) {
+			isc_result_t result = shutting_down ? ISC_R_SHUTTINGDOWN
+							    : ISC_R_CANCELED;
 			INSIST(VALID_NMHANDLE(tlshandle));
-			cb(tlshandle, ISC_R_CANCELED, cbarg);
+			cb(tlshandle, result, cbarg);
 		}
 		return (0);
 	}
@@ -879,6 +882,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	isc_nmsocket_t *tlslistensock = (isc_nmsocket_t *)cbarg;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_tlsctx_t *tlsctx = NULL;
+	isc_sockaddr_t local;
 
 	/* If accept() was unsuccessful we can't do anything */
 	if (result != ISC_R_SUCCESS) {
@@ -896,12 +900,13 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 		return (ISC_R_CANCELED);
 	}
 
+	local = isc_nmhandle_localaddr(handle);
 	/*
 	 * We need to create a 'wrapper' tlssocket for this connection.
 	 */
 	tlssock = isc_mem_get(handle->sock->worker->mctx, sizeof(*tlssock));
 	isc__nmsocket_init(tlssock, handle->sock->worker, isc_nm_tlssocket,
-			   &handle->sock->iface, NULL);
+			   &local, NULL);
 
 	/* We need to initialize SSL now to reference SSL_CTX properly */
 	tlsctx = tls_get_listener_tlsctx(tlslistensock, isc_tid());
@@ -919,7 +924,7 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 	tlssock->accept_cbarg = tlslistensock->accept_cbarg;
 	isc__nmsocket_attach(handle->sock, &tlssock->listener);
 	isc_nmhandle_attach(handle, &tlssock->outerhandle);
-	tlssock->peer = handle->sock->peer;
+	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	tlssock->read_timeout =
 		atomic_load_relaxed(&handle->sock->worker->netmgr->init);
 
@@ -943,7 +948,8 @@ tlslisten_acceptcb(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 isc_result_t
 isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 		 isc_nm_accept_cb_t accept_cb, void *accept_cbarg, int backlog,
-		 isc_quota_t *quota, SSL_CTX *sslctx, isc_nmsocket_t **sockp) {
+		 isc_quota_t *quota, SSL_CTX *sslctx, bool proxy,
+		 isc_nmsocket_t **sockp) {
 	isc_result_t result;
 	isc_nmsocket_t *tlssock = NULL;
 	isc_nmsocket_t *tsock = NULL;
@@ -975,8 +981,15 @@ isc_nm_listentls(isc_nm_t *mgr, uint32_t workers, isc_sockaddr_t *iface,
 	 * tlssock will be a TLS 'wrapper' around an unencrypted stream.
 	 * We set tlssock->outer to a socket listening for a TCP connection.
 	 */
-	result = isc_nm_listentcp(mgr, workers, iface, tlslisten_acceptcb,
-				  tlssock, backlog, quota, &tlssock->outer);
+	if (proxy) {
+		result = isc_nm_listenproxystream(
+			mgr, workers, iface, tlslisten_acceptcb, tlssock,
+			backlog, quota, NULL, &tlssock->outer);
+	} else {
+		result = isc_nm_listentcp(mgr, workers, iface,
+					  tlslisten_acceptcb, tlssock, backlog,
+					  quota, &tlssock->outer);
+	}
 	if (result != ISC_R_SUCCESS) {
 		tlssock->closed = true;
 		isc__nmsocket_detach(&tlssock);
@@ -1016,7 +1029,10 @@ tls_send_direct(void *arg) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->tid == isc_tid());
 
-	if (inactive(sock)) {
+	if (isc__nm_closing(sock->worker)) {
+		req->cb.send(req->handle, ISC_R_SHUTTINGDOWN, req->cbarg);
+		goto done;
+	} else if (inactive(sock)) {
 		req->cb.send(req->handle, ISC_R_CANCELED, req->cbarg);
 		goto done;
 	}
@@ -1076,7 +1092,10 @@ isc__nm_tls_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 	REQUIRE(sock->statichandle == handle);
 	REQUIRE(sock->tid == isc_tid());
 
-	if (inactive(sock)) {
+	if (isc__nm_closing(sock->worker)) {
+		cb(handle, ISC_R_SHUTTINGDOWN, NULL, cbarg);
+		return;
+	} else if (inactive(sock)) {
 		cb(handle, ISC_R_CANCELED, NULL, cbarg);
 		return;
 	}
@@ -1171,7 +1190,8 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 		  isc_nm_cb_t connect_cb, void *connect_cbarg,
 		  isc_tlsctx_t *ctx,
 		  isc_tlsctx_client_session_cache_t *client_sess_cache,
-		  unsigned int timeout) {
+		  unsigned int timeout, bool proxy,
+		  isc_nm_proxyheader_info_t *proxy_info) {
 	isc_nmsocket_t *sock = NULL;
 	isc__networker_t *worker = NULL;
 
@@ -1198,8 +1218,14 @@ isc_nm_tlsconnect(isc_nm_t *mgr, isc_sockaddr_t *local, isc_sockaddr_t *peer,
 			client_sess_cache, &sock->tlsstream.client_sess_cache);
 	}
 
-	isc_nm_tcpconnect(mgr, local, peer, tcp_connected, sock,
-			  sock->connect_timeout);
+	if (proxy) {
+		isc_nm_proxystreamconnect(mgr, local, peer, tcp_connected, sock,
+					  sock->connect_timeout, NULL, NULL,
+					  proxy_info);
+	} else {
+		isc_nm_tcpconnect(mgr, local, peer, tcp_connected, sock,
+				  sock->connect_timeout);
+	}
 }
 
 static void
@@ -1218,10 +1244,13 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 
 	INSIST(VALID_NMHANDLE(handle));
 
-	tlssock->iface = handle->sock->iface;
-	tlssock->peer = handle->sock->peer;
+	tlssock->iface = isc_nmhandle_localaddr(handle);
+	tlssock->peer = isc_nmhandle_peeraddr(handle);
 	if (isc__nm_closing(worker)) {
 		result = ISC_R_SHUTTINGDOWN;
+		goto error;
+	} else if (isc__nmsocket_closing(handle->sock)) {
+		result = ISC_R_CANCELED;
 		goto error;
 	}
 
@@ -1269,7 +1298,8 @@ error:
 
 void
 isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
-	if (sock->type == isc_nm_tcplistener &&
+	if ((sock->type == isc_nm_tcplistener ||
+	     sock->type == isc_nm_proxystreamlistener) &&
 	    sock->tlsstream.tlslistener != NULL)
 	{
 		isc__nmsocket_detach(&sock->tlsstream.tlslistener);
@@ -1304,7 +1334,8 @@ isc__nm_tls_cleanup_data(isc_nmsocket_t *sock) {
 				    sock->tlsstream.send_req,
 				    sizeof(*sock->tlsstream.send_req));
 		}
-	} else if (sock->type == isc_nm_tcpsocket &&
+	} else if ((sock->type == isc_nm_tcpsocket ||
+		    sock->type == isc_nm_proxystreamsocket) &&
 		   sock->tlsstream.tlssocket != NULL)
 	{
 		/*

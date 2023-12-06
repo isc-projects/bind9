@@ -62,6 +62,8 @@ managed-keys { <string> ( static-key | initial-key | static-ds | initial-ds ) <i
 options {
 	allow-new-zones <boolean>;
 	allow-notify { <address_match_element>; ... };
+	allow-proxy { <address_match_element>; ... }; // experimental
+	allow-proxy-on { <address_match_element>; ... }; // experimental
 	allow-query { <address_match_element>; ... };
 	allow-query-cache { <address_match_element>; ... };
 	allow-query-cache-on { <address_match_element>; ... };
@@ -161,8 +163,8 @@ options {
 	keep-response-order { <address_match_element>; ... }; // obsolete
 	key-directory <quoted_string>;
 	lame-ttl <duration>;
-	listen-on [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
-	listen-on-v6 [ port <integer> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
+	listen-on [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
+	listen-on-v6 [ port <integer> ] [ proxy <string> ] [ tls <string> ] [ http <string> ] { <address_match_element>; ... }; // may occur multiple times
 	lmdb-mapsize <sizeval>;
 	managed-keys-directory <quoted_string>;
 	masterfile-format ( raw | text );
@@ -366,6 +368,8 @@ trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... }; //
 view <string> [ <class> ] {
 	allow-new-zones <boolean>;
 	allow-notify { <address_match_element>; ... };
+	allow-proxy { <address_match_element>; ... }; // experimental
+	allow-proxy-on { <address_match_element>; ... }; // experimental
 	allow-query { <address_match_element>; ... };
 	allow-query-cache { <address_match_element>; ... };
 	allow-query-cache-on { <address_match_element>; ... };

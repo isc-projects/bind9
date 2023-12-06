@@ -59,6 +59,32 @@ stream_shutdownconnect_setup(void **state ISC_ATTR_UNUSED) {
 	return (r);
 }
 
+int
+proxystream_shutdownconnect_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_shutdownconnect_setup(state));
+}
+
+int
+proxystream_shutdownconnect_teardown(void **state) {
+	int r = stream_shutdownconnect_teardown(state);
+	stream_use_PROXY = false;
+	return (r);
+}
+
+int
+proxystreamtls_shutdownconnect_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_shutdownconnect_setup(state));
+}
+
+int
+proxystreamtls_shutdownconnect_teardown(void **state) {
+	int r = proxystream_shutdownconnect_teardown(state);
+	stream_PROXY_over_TLS = false;
+	return (r);
+}
+
 void
 stream_shutdownconnect(void **state ISC_ATTR_UNUSED) {
 	isc_result_t result = stream_listen(stream_accept_cb, NULL, 128, NULL,
@@ -145,6 +171,32 @@ shutdownread_connectcb(isc_nmhandle_t *handle, isc_result_t eresult,
 int
 stream_shutdownread_setup(void **state ISC_ATTR_UNUSED) {
 	int r = setup_netmgr_test(state);
+	return (r);
+}
+
+int
+proxystream_shutdownread_setup(void **state) {
+	stream_use_PROXY = true;
+	return (stream_shutdownread_setup(state));
+}
+
+int
+proxystream_shutdownread_teardown(void **state) {
+	int r = stream_shutdownread_teardown(state);
+	stream_use_PROXY = false;
+	return (r);
+}
+
+int
+proxystreamtls_shutdownread_setup(void **state) {
+	stream_PROXY_over_TLS = true;
+	return (proxystream_shutdownread_setup(state));
+}
+
+int
+proxystreamtls_shutdownread_teardown(void **state) {
+	int r = proxystream_shutdownread_teardown(state);
+	stream_PROXY_over_TLS = false;
 	return (r);
 }
 
