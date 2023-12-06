@@ -1143,7 +1143,24 @@ get_create_tlsctx(const dns_xfrin_ctx_t *xfr, isc_tlsctx_t **pctx,
 			 */
 			INSIST(found != NULL);
 			isc_tlsctx_free(&tlsctx);
-			isc_tls_cert_store_free(&store);
+			/*
+			 * The 'store' variable can be 'NULL' when remote server
+			 * verification is not enabled (that is, when Strict or
+			 * Mutual TLS are not used).
+			 *
+			 * The 'found_store' might be equal to 'store' as there
+			 * is one-to-many relation between a store and
+			 * per-transport TLS contexts. In that case, the call to
+			 * 'isc_tlsctx_cache_find()' above could have returned a
+			 * store via the 'found_store' variable, whose value we
+			 * can assign to 'store' later. In that case,
+			 * 'isc_tlsctx_cache_add()' will return the same value.
+			 * When that happens, we should not free the store
+			 * object, as it is managed by the TLS context cache.
+			 */
+			if (store != NULL && store != found_store) {
+				isc_tls_cert_store_free(&store);
+			}
 			isc_tlsctx_client_session_cache_detach(&sess_cache);
 			/* Let's return the data from the cache. */
 			*psess_cache = found_sess_cache;

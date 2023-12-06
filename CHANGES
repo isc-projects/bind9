@@ -1,3 +1,9 @@
+6294.	[bug]		BIND might sometimes crash after startup or
+			re-configuration when one 'tls' entry is used multiple
+			times to connect to remote servers due to initialisation
+			attempts from contexts of multiple threads. That has
+			been fixed. [GL #4464]
+
 6290.	[bug]		Dig +yaml will now report "no servers could be reached"
 			also for UDP setup failure when no other servers or
 			tries are left. [GL #1229]
