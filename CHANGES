@@ -1,3 +1,6 @@
+6295.	[bug]		Fix an assertion failure which could occur during
+			shutdown when DNSSEC validation was running. [GL #4462]
+
 6294.	[bug]		BIND might sometimes crash after startup or
 			re-configuration when one 'tls' entry is used multiple
 			times to connect to remote servers due to initialisation
