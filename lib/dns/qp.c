@@ -2139,12 +2139,14 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 */
 			size_t to;
 			dns_qpnode_t *least = n;
+
+		least:
 			while (is_branch(least)) {
 				least = branch_twigs(qp, least);
 			}
 			foundlen = leaf_qpkey(qp, least, found);
 			to = qpkey_compare(search, searchlen, found, foundlen);
-			if (to == offset) {
+			if (to >= offset) {
 				/*
 				 * we're on the right branch, so find
 				 * the best match.
@@ -2180,9 +2182,12 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 				 * we wanted, so iterate back to the
 				 * predecessor.
 				 */
+				iter->sp--;
 				prevleaf(iter);
-				n = iter->stack[iter->sp--];
-			} else {
+				n = iter->stack[iter->sp];
+				least = n;
+				goto least;
+			} else if (is_branch(n)) {
 				/*
 				 * every leaf is less than the one we
 				 * wanted, so get the highest.
