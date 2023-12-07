@@ -251,6 +251,13 @@ dns__rbtnode_namelen(dns_rbtnode_t *node) {
 	return (len);
 }
 
+unsigned int
+dns__rbtnode_getsize(dns_rbtnode_t *node) {
+	REQUIRE(DNS_RBTNODE_VALID(node));
+
+	return (NODE_SIZE(node));
+}
+
 /*
  * Initialize a red/black tree of trees.
  */

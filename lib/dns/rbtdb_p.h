@@ -273,11 +273,22 @@ struct dns_rbtdb {
 	uint32_t serve_stale_refresh;
 
 	/*
-	 * This is a linked list used to implement the LRU cache.  There will
-	 * be node_lock_count linked lists here.  Nodes in bucket 1 will be
-	 * placed on the linked list lru[1].
+	 * This is an array of linked lists used to implement the LRU cache.
+	 * There will be node_lock_count linked lists here.  Nodes in bucket 1
+	 * will be placed on the linked list lru[1].
 	 */
 	dns_slabheaderlist_t *lru;
+
+	/*
+	 * Start point % node_lock_count for next LRU cleanup.
+	 */
+	atomic_uint lru_sweep;
+
+	/*
+	 * When performing LRU cleaning limit cleaning to headers that were
+	 * last used at or before this.
+	 */
+	_Atomic(isc_stdtime_t) last_used;
 
 	/*%
 	 * Temporary storage for stale cache nodes and dynamically deleted
@@ -607,7 +618,6 @@ dns__cachedb_expireheader(dns_slabheader_t *header,
 			  dns_expire_t reason DNS__DB_FLARG);
 void
 dns__cachedb_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
-		     unsigned int locknum_start,
 		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
 
 ISC_LANG_ENDDECLS

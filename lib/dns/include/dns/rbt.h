@@ -991,4 +991,11 @@ dns__rbtnode_namelen(dns_rbtnode_t *node);
  * Returns the length of the full name of the node. Used only internally
  * and in unit tests.
  */
+
+unsigned int
+dns__rbtnode_getsize(dns_rbtnode_t *node);
+/*
+ * Return allocated size for a node.
+ */
+
 ISC_LANG_ENDDECLS
