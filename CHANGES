@@ -1,3 +1,5 @@
+	--- 9.18.21 released ---
+
 6297.	[bug]		Improve LRU cleaning behaviour. [GL #4448]
 
 6296.	[func]		The "resolver-nonbackoff-tries" and
