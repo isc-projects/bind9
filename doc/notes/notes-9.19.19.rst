@@ -15,31 +15,37 @@ Notes for BIND 9.19.19
 New Features
 ~~~~~~~~~~~~
 
-- Initial support for accepting the PROXYv2 protocol in all currently
-  implemented DNS transports in :iscman:`named` and complementary
-  support for sending it in :iscman:`dig` are included into this
-  release. Please consult the related documentation for additional
-  details.
+- Initial support for the PROXYv2 protocol was added. :iscman:`named`
+  can now accept PROXYv2 headers over all currently implemented DNS
+  transports and :iscman:`dig` can insert these headers into the queries
+  it sends. Please consult the related documentation
+  (:any:`allow-proxy`, :any:`allow-proxy-on`, :any:`listen-on`, and
+  :any:`listen-on-v6` for :iscman:`named`, :option:`dig +proxy` and
+  :option:`dig +proxy-plain` for :iscman:`dig`) for additional details.
   :gl:`#4388`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The support for AES algorithm for DNS cookies has been removed.
-  :gl:`#4421`
+- Support for using AES as the DNS COOKIE algorithm (``cookie-algorithm
+  aes;``) has been removed. The only supported DNS COOKIE algorithm is
+  now the current default, SipHash-2-4. :gl:`#4421`
 
-- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
-  have been removed. Using them is now a fatal error. :gl:`#4405`
+- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval``
+  statements have been removed. Using them is now a fatal error.
+  :gl:`#4405`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The maximum number of allowed NSEC3 iterations for validation has been
-  lowered from 150 to 50. DNSSEC responses containing NSEC3 records with
-  iteration counts greater than 50 are now treated as insecure.  :gl:`#4363`
+- The maximum number of NSEC3 iterations allowed for validation purposes
+  has been lowered from 150 to 50. DNSSEC responses containing NSEC3
+  records with iteration counts greater than 50 are now treated as
+  insecure. :gl:`#4363`
 
-- The number of NSEC3 iterations that can be configured for a zone must be 0.
-  :gl:`#4363`
+- Following :rfc:`9276` recommendations, :any:`dnssec-policy` now only
+  allows an NSEC3 iteration count of 0 for the DNSSEC-signed zones using
+  NSEC3 that the policy manages. :gl:`#4363`
 
 Known Issues
 ~~~~~~~~~~~~
