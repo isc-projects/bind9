@@ -46,11 +46,11 @@
 
 static int
 _setup(void **state) {
-	isc_hmac_t *hmac = isc_hmac_new();
-	if (hmac == NULL) {
+	isc_hmac_t *hmac_st = isc_hmac_new();
+	if (hmac_st == NULL) {
 		return (-1);
 	}
-	*state = hmac;
+	*state = hmac_st;
 	return (0);
 }
 
@@ -77,31 +77,32 @@ _reset(void **state) {
 ISC_RUN_TEST_IMPL(isc_hmac_new) {
 	UNUSED(state);
 
-	isc_hmac_t *hmac = isc_hmac_new();
-	assert_non_null(hmac);
-	isc_hmac_free(hmac); /* Cleanup */
+	isc_hmac_t *hmac_st = isc_hmac_new();
+	assert_non_null(hmac_st);
+	isc_hmac_free(hmac_st); /* Cleanup */
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_free) {
 	UNUSED(state);
 
-	isc_hmac_t *hmac = isc_hmac_new();
-	assert_non_null(hmac);
-	isc_hmac_free(hmac); /* Test freeing valid message digest context */
-	isc_hmac_free(NULL); /* Test freeing NULL argument */
+	isc_hmac_t *hmac_st = isc_hmac_new();
+	assert_non_null(hmac_st);
+	isc_hmac_free(hmac_st); /* Test freeing valid message digest context */
+	isc_hmac_free(NULL);	/* Test freeing NULL argument */
 }
 
 static void
-isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
+isc_hmac_test(isc_hmac_t *hmac_st, const void *key, size_t keylen,
 	      const isc_md_type_t *type, const char *buf, size_t buflen,
 	      const char *result, const size_t repeats) {
 	isc_result_t res;
 
-	assert_non_null(hmac);
-	assert_int_equal(isc_hmac_init(hmac, key, keylen, type), ISC_R_SUCCESS);
+	assert_non_null(hmac_st);
+	assert_int_equal(isc_hmac_init(hmac_st, key, keylen, type),
+			 ISC_R_SUCCESS);
 
 	for (size_t i = 0; i < repeats; i++) {
-		assert_int_equal(isc_hmac_update(hmac,
+		assert_int_equal(isc_hmac_update(hmac_st,
 						 (const unsigned char *)buf,
 						 buflen),
 				 ISC_R_SUCCESS);
@@ -109,7 +110,7 @@ isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
 
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned int digestlen = sizeof(digest);
-	assert_int_equal(isc_hmac_final(hmac, digest, &digestlen),
+	assert_int_equal(isc_hmac_final(hmac_st, digest, &digestlen),
 			 ISC_R_SUCCESS);
 
 	char hexdigest[ISC_MAX_MD_SIZE * 2 + 3];
@@ -122,76 +123,79 @@ isc_hmac_test(isc_hmac_t *hmac, const void *key, size_t keylen,
 	assert_return_code(res, ISC_R_SUCCESS);
 
 	assert_memory_equal(hexdigest, result, (result ? strlen(result) : 0));
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_init) {
-	isc_hmac_t *hmac = *state;
-	assert_non_null(hmac);
+	isc_hmac_t *hmac_st = *state;
+	assert_non_null(hmac_st);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, NULL),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, NULL),
 			 ISC_R_NOTIMPLEMENTED);
 
 	if (!isc_fips_mode()) {
 		expect_assert_failure(isc_hmac_init(NULL, "", 0, ISC_MD_MD5));
 
-		expect_assert_failure(isc_hmac_init(hmac, NULL, 0, ISC_MD_MD5));
+		expect_assert_failure(
+			isc_hmac_init(hmac_st, NULL, 0, ISC_MD_MD5));
 
-		assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_MD5),
+		assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_MD5),
 				 ISC_R_SUCCESS);
-		assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+		assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 	}
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA1),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA1),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA224),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA224),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA256),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA256),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA384),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA384),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA512),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA512),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_update) {
-	isc_hmac_t *hmac = *state;
-	assert_non_null(hmac);
+	isc_hmac_t *hmac_st = *state;
+	assert_non_null(hmac_st);
 
 	/* Uses message digest context initialized in isc_hmac_init_test() */
 	expect_assert_failure(isc_hmac_update(NULL, NULL, 0));
 
-	assert_int_equal(isc_hmac_update(hmac, NULL, 100), ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_update(hmac, (const unsigned char *)"", 0),
+	assert_int_equal(isc_hmac_update(hmac_st, NULL, 100), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_update(hmac_st, (const unsigned char *)"", 0),
 			 ISC_R_SUCCESS);
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_reset) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 #if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] ISC_ATTR_UNUSED;
 	unsigned int digestlen ISC_ATTR_UNUSED;
 #endif /* if 0 */
 
-	assert_non_null(hmac);
+	assert_non_null(hmac_st);
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA512),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA512),
 			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_update(hmac, (const unsigned char *)"a", 1),
-			 ISC_R_SUCCESS);
-	assert_int_equal(isc_hmac_update(hmac, (const unsigned char *)"b", 1),
-			 ISC_R_SUCCESS);
+	assert_int_equal(
+		isc_hmac_update(hmac_st, (const unsigned char *)"a", 1),
+		ISC_R_SUCCESS);
+	assert_int_equal(
+		isc_hmac_update(hmac_st, (const unsigned char *)"b", 1),
+		ISC_R_SUCCESS);
 
-	assert_int_equal(isc_hmac_reset(hmac), ISC_R_SUCCESS);
+	assert_int_equal(isc_hmac_reset(hmac_st), ISC_R_SUCCESS);
 
 #if 0
 	/*
@@ -199,13 +203,13 @@ ISC_RUN_TEST_IMPL(isc_hmac_reset) {
 	 * so this could be only manually checked that the test will
 	 * segfault when called by hand
 	 */
-	expect_assert_failure(isc_hmac_final(hmac, digest, &digestlen));
+	expect_assert_failure(isc_hmac_final(hmac_st, digest, &digestlen));
 #endif /* if 0 */
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_final) {
-	isc_hmac_t *hmac = *state;
-	assert_non_null(hmac);
+	isc_hmac_t *hmac_st = *state;
+	assert_non_null(hmac_st);
 
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned int digestlen = sizeof(digest);
@@ -213,16 +217,16 @@ ISC_RUN_TEST_IMPL(isc_hmac_final) {
 	/* Fail when message digest context is empty */
 	expect_assert_failure(isc_hmac_final(NULL, digest, &digestlen));
 	/* Fail when output buffer is empty */
-	expect_assert_failure(isc_hmac_final(hmac, NULL, &digestlen));
+	expect_assert_failure(isc_hmac_final(hmac_st, NULL, &digestlen));
 
-	assert_int_equal(isc_hmac_init(hmac, "", 0, ISC_MD_SHA512),
+	assert_int_equal(isc_hmac_init(hmac_st, "", 0, ISC_MD_SHA512),
 			 ISC_R_SUCCESS);
 	/* Fail when the digest length pointer is empty */
-	expect_assert_failure(isc_hmac_final(hmac, digest, NULL));
+	expect_assert_failure(isc_hmac_final(hmac_st, digest, NULL));
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_md5) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	if (isc_fips_mode()) {
 		skip();
@@ -230,11 +234,11 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 	}
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_MD5, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_MD5, TEST_INPUT(""),
 		      "74E6F7298A9C2D168935F58C001BAD88", 1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_MD5,
@@ -242,14 +246,14 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 		      "9294727A3638BB1C13F48EF8158BFC9D", 1);
 
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_MD5,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_MD5,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79"
 				 "\x61\x20\x77\x61\x6e\x74\x20\x66\x6f"
 				 "\x72\x20\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
 		      "750C783E6AB0B503EAA86E310A5DB738", 1);
 
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_MD5,
@@ -260,7 +264,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 				 "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"),
 		      "56BE34521D144C88DBB8C733F0E8B3F6", 1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -273,7 +277,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 		      "697EAF0ACA3A3AEA3A75164746FFAA79", 1);
 #if 0
 	/* Test 5 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_MD5,
@@ -281,7 +285,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 		      "4C1A03424B55E07FE7F27BE1",
 		      1);
 	/* Test 6 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -301,7 +305,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 		      "AA4AE5E15272D00E95705637CE8A3B55ED402112",
 		      1);
 	/* Test 7 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -324,27 +328,27 @@ ISC_RUN_TEST_IMPL(isc_hmac_md5) {
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_SHA1, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_SHA1, TEST_INPUT(""),
 		      "FBDB1D1B18AA6C08324B7D64B71FB76370690E1D", 1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_SHA1,
 		      TEST_INPUT("\x48\x69\x20\x54\x68\x65\x72\x65"),
 		      "B617318655057264E28BC0B6FB378C8EF146BE00", 1);
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_SHA1,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_SHA1,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				 "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
 				 "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
 		      "EFFCDF6AE5EB2FA2D27416D5F184DF9C259A7C79", 1);
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_SHA1,
@@ -355,7 +359,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 				 "\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD\xDD"),
 		      "125D7342B9AC11CD91A39AF48AA17B4F63F175D3", 1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -368,7 +372,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 		      "4C9007F4026250C6BC8414F9BF50C86C2D7235DA", 1);
 #if 0
 	/* Test 5 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_SHA1,
@@ -377,7 +381,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 		      1);
 #endif /* if 0 */
 	/* Test 6 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -391,7 +395,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 				 "Hash Key First"),
 		      "AA4AE5E15272D00E95705637CE8A3B55ED402112", 1);
 	/* Test 7 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -407,16 +411,16 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha1) {
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_SHA224, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_SHA224, TEST_INPUT(""),
 		      "5CE14F72894662213E2748D2A6BA234B74263910CEDDE2F5"
 		      "A9271524",
 		      1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_SHA224,
@@ -425,7 +429,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      "4F53684B22",
 		      1);
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_SHA224,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_SHA224,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				 "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
 				 "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
@@ -433,7 +437,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      "08FD05E44",
 		      1);
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_SHA224,
@@ -446,7 +450,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      "D1EC8333EA",
 		      1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -461,7 +465,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      1);
 #if 0
 	/* Test 5 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_SHA224,
@@ -470,7 +474,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      1);
 #endif /* if 0 */
 	/* Test 6 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -492,7 +496,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 		      "273FA6870E",
 		      1);
 	/* Test 7 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -530,16 +534,16 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha224) {
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_SHA256, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_SHA256, TEST_INPUT(""),
 		      "B613679A0814D9EC772F95D778C35FC5FF1697C493715653"
 		      "C6C712144292C5AD",
 		      1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_SHA256,
@@ -548,7 +552,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      "A726E9376C2E32CFF7",
 		      1);
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_SHA256,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_SHA256,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				 "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
 				 "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
@@ -556,7 +560,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      "839DEC58B964EC3843",
 		      1);
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_SHA256,
@@ -569,7 +573,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      "22D9635514CED565FE",
 		      1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -584,7 +588,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      1);
 #if 0
 	/* Test 5 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_SHA256,
@@ -593,7 +597,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      1);
 #endif /* if 0 */
 	/* Test 6 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -615,7 +619,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 		      "140546040F0EE37F54",
 		      1);
 	/* Test 7 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -653,16 +657,16 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha256) {
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_SHA384, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_SHA384, TEST_INPUT(""),
 		      "6C1F2EE938FAD2E24BD91298474382CA218C75DB3D83E114"
 		      "B3D4367776D14D3551289E75E8209CD4B792302840234ADC",
 		      1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_SHA384,
@@ -672,7 +676,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      "E8B2FA9CB6",
 		      1);
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_SHA384,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_SHA384,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				 "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
 				 "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
@@ -681,7 +685,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      "ECFAB21649",
 		      1);
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_SHA384,
@@ -695,7 +699,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      "E101A34F27",
 		      1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -711,7 +715,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      1);
 #if 0
 	/* Test 5 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_SHA384,
@@ -720,7 +724,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      1);
 #endif /* if 0 */
 	/* Test 6 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -743,7 +747,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 		      "F163F44952",
 		      1);
 	/* Test 7 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -782,17 +786,17 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha384) {
 }
 
 ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
-	isc_hmac_t *hmac = *state;
+	isc_hmac_t *hmac_st = *state;
 
 	/* Test 0 */
-	isc_hmac_test(hmac, TEST_INPUT(""), ISC_MD_SHA512, TEST_INPUT(""),
+	isc_hmac_test(hmac_st, TEST_INPUT(""), ISC_MD_SHA512, TEST_INPUT(""),
 		      "B936CEE86C9F87AA5D3C6F2E84CB5A4239A5FE50480A6EC6"
 		      "6B70AB5B1F4AC6730C6C515421B327EC1D69402E53DFB49A"
 		      "D7381EB067B338FD7B0CB22247225D47",
 		      1);
 
 	/* Test 1 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"
 				 "\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b\x0b"),
 		      ISC_MD_SHA512,
@@ -802,7 +806,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      "4EAEA3F4E4BE9D914EEB61F1702E696C203A126854",
 		      1);
 	/* Test 2 */
-	isc_hmac_test(hmac, TEST_INPUT("Jefe"), ISC_MD_SHA512,
+	isc_hmac_test(hmac_st, TEST_INPUT("Jefe"), ISC_MD_SHA512,
 		      TEST_INPUT("\x77\x68\x61\x74\x20\x64\x6f\x20\x79\x61"
 				 "\x20\x77\x61\x6e\x74\x20\x66\x6f\x72\x20"
 				 "\x6e\x6f\x74\x68\x69\x6e\x67\x3f"),
@@ -811,7 +815,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      "65F8F0E6FDCAEAB1A34D4A6B4B636E070A38BCE737",
 		      1);
 	/* Test 3 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"),
 		      ISC_MD_SHA512,
@@ -825,7 +829,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      "A47E67C807B946A337BEE8942674278859E13292FB",
 		      1);
 	/* Test 4 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a"
 				 "\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14"
 				 "\x15\x16\x17\x18\x19"),
@@ -841,7 +845,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      1);
 #if 0
 	/* Test 5 -- unimplemented optional functionality */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"
 				 "\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c\x0c"),
 		      ISC_MD_SHA512,
@@ -850,7 +854,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      1);
 #endif /* if 0 */
 	/* Test 6 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
@@ -873,7 +877,7 @@ ISC_RUN_TEST_IMPL(isc_hmac_sha512) {
 		      "215D6A1E5295E64F73F63F0AEC8B915A985D786598",
 		      1);
 	/* Test 7 */
-	isc_hmac_test(hmac,
+	isc_hmac_test(hmac_st,
 		      TEST_INPUT("\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
 				 "\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa"
