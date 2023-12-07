@@ -3566,6 +3566,12 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	debug("tcp_connected(%p, %s, %p)", handle, isc_result_totext(eresult),
 	      query);
 
+	if (eresult == ISC_R_SHUTTINGDOWN) {
+		query_detach(&query);
+		cancel_all();
+		return;
+	}
+
 	lookup_attach(query->lookup, &l);
 
 	if (eresult == ISC_R_CANCELED || eresult == ISC_R_TLSBADPEERCERT ||
