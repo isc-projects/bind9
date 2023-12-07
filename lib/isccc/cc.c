@@ -255,7 +255,7 @@ list_towire(isccc_sexpr_t *list, isc_buffer_t **buffer) {
 }
 
 static isc_result_t
-sign(unsigned char *data, unsigned int length, unsigned char *hmac,
+sign(unsigned char *data, unsigned int length, unsigned char *out,
      uint32_t algorithm, isccc_region_t *secret) {
 	const isc_md_type_t *md_type;
 	isc_result_t result;
@@ -304,9 +304,9 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 		return (result);
 	}
 	if (algorithm == ISCCC_ALG_HMACMD5) {
-		PUT_MEM(digestb64, HMD5_LENGTH, hmac);
+		PUT_MEM(digestb64, HMD5_LENGTH, out);
 	} else {
-		PUT_MEM(digestb64, HSHA_LENGTH, hmac);
+		PUT_MEM(digestb64, HSHA_LENGTH, out);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -382,7 +382,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	isccc_region_t source;
 	isccc_region_t target;
 	isc_result_t result;
-	isccc_sexpr_t *_auth, *hmac;
+	isccc_sexpr_t *_auth, *hmacvalue;
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned int digestlen = sizeof(digest);
 	unsigned char digestb64[HSHA_LENGTH * 4];
@@ -395,11 +395,11 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		return (ISC_R_FAILURE);
 	}
 	if (algorithm == ISCCC_ALG_HMACMD5) {
-		hmac = isccc_alist_lookup(_auth, "hmd5");
+		hmacvalue = isccc_alist_lookup(_auth, "hmd5");
 	} else {
-		hmac = isccc_alist_lookup(_auth, "hsha");
+		hmacvalue = isccc_alist_lookup(_auth, "hsha");
 	}
-	if (!isccc_sexpr_binaryp(hmac)) {
+	if (!isccc_sexpr_binaryp(hmacvalue)) {
 		return (ISC_R_FAILURE);
 	}
 	/*
@@ -452,7 +452,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		isccc_region_t *region;
 		unsigned char *value;
 
-		region = isccc_sexpr_tobinary(hmac);
+		region = isccc_sexpr_tobinary(hmacvalue);
 		if ((region->rend - region->rstart) != HMD5_LENGTH) {
 			return (ISCCC_R_BADAUTH);
 		}
@@ -465,7 +465,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		unsigned char *value;
 		uint32_t valalg;
 
-		region = isccc_sexpr_tobinary(hmac);
+		region = isccc_sexpr_tobinary(hmacvalue);
 
 		/*
 		 * Note: with non-MD5 algorithms, there's an extra octet

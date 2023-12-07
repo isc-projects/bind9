@@ -369,13 +369,13 @@ reset_system(void) {
 }
 
 static bool
-parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
+parse_hmac(const dns_name_t **hmacp, const char *hmacstr, size_t len,
 	   uint16_t *digestbitsp) {
 	uint16_t digestbits = 0;
 	isc_result_t result;
 	char buf[20];
 
-	REQUIRE(hmac != NULL && *hmac == NULL);
+	REQUIRE(hmacp != NULL && *hmacp == NULL);
 	REQUIRE(hmacstr != NULL);
 
 	if (len >= sizeof(buf)) {
@@ -387,9 +387,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 	strlcpy(buf, hmacstr, ISC_MIN(len + 1, sizeof(buf)));
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
-		*hmac = DNS_TSIG_HMACMD5_NAME;
+		*hmacp = DNS_TSIG_HMACMD5_NAME;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
-		*hmac = DNS_TSIG_HMACMD5_NAME;
+		*hmacp = DNS_TSIG_HMACMD5_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
 			error("digest-bits out of range [0..128]");
@@ -397,9 +397,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
-		*hmac = DNS_TSIG_HMACSHA1_NAME;
+		*hmacp = DNS_TSIG_HMACSHA1_NAME;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
-		*hmac = DNS_TSIG_HMACSHA1_NAME;
+		*hmacp = DNS_TSIG_HMACSHA1_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[10], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 160) {
 			error("digest-bits out of range [0..160]");
@@ -407,9 +407,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
-		*hmac = DNS_TSIG_HMACSHA224_NAME;
+		*hmacp = DNS_TSIG_HMACSHA224_NAME;
 	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA224_NAME;
+		*hmacp = DNS_TSIG_HMACSHA224_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 224) {
 			error("digest-bits out of range [0..224]");
@@ -417,9 +417,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
-		*hmac = DNS_TSIG_HMACSHA256_NAME;
+		*hmacp = DNS_TSIG_HMACSHA256_NAME;
 	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA256_NAME;
+		*hmacp = DNS_TSIG_HMACSHA256_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 256) {
 			error("digest-bits out of range [0..256]");
@@ -427,9 +427,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
-		*hmac = DNS_TSIG_HMACSHA384_NAME;
+		*hmacp = DNS_TSIG_HMACSHA384_NAME;
 	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA384_NAME;
+		*hmacp = DNS_TSIG_HMACSHA384_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 384) {
 			error("digest-bits out of range [0..384]");
@@ -437,9 +437,9 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
-		*hmac = DNS_TSIG_HMACSHA512_NAME;
+		*hmacp = DNS_TSIG_HMACSHA512_NAME;
 	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
-		*hmac = DNS_TSIG_HMACSHA512_NAME;
+		*hmacp = DNS_TSIG_HMACSHA512_NAME;
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 512) {
 			error("digest-bits out of range [0..512]");
