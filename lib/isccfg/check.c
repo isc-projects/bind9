@@ -1790,16 +1790,6 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	}
 
 	obj = NULL;
-	(void)cfg_map_get(options, "resolver-nonbackoff-tries", &obj);
-	if (obj != NULL && cfg_obj_asuint32(obj) == 0U) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "'resolver-nonbackoff-tries' must be >= 1");
-		if (result == ISC_R_SUCCESS) {
-			result = ISC_R_RANGE;
-		}
-	}
-
-	obj = NULL;
 	(void)cfg_map_get(options, "max-ixfr-ratio", &obj);
 	if (obj != NULL && cfg_obj_ispercentage(obj)) {
 		uint32_t percent = cfg_obj_aspercentage(obj);
