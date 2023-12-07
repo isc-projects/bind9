@@ -2056,7 +2056,8 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	dns_qpreader_t *qp = dns_qpreader(qpr);
 	dns_qpkey_t search, found;
 	size_t searchlen, foundlen;
-	size_t offset;
+	size_t offset = 0;
+	size_t difpos = 0;
 	dns_qpnode_t *n = NULL;
 	dns_qpchain_t oc;
 	dns_qpiter_t it;
@@ -2211,7 +2212,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 
 	/* do the keys differ, and if so, where? */
 	foundlen = leaf_qpkey(qp, n, found);
-	offset = qpkey_compare(search, searchlen, found, foundlen);
+	difpos = qpkey_compare(search, searchlen, found, foundlen);
 
 	/*
 	 * if we've been passed an iterator, we want it to point
@@ -2230,21 +2231,36 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	 * node, and we would already have positioned the iterator
 	 * at the predecessor.
 	 */
-	if (getpred && matched) {
-		if (offset != QPKEY_EQUAL &&
-		    (offset <= searchlen && offset <= foundlen &&
-		     found[offset] > search[offset]))
+	if (getpred && matched && difpos != QPKEY_EQUAL) {
+		while (difpos < offset) {
+			if (difpos <= searchlen && difpos <= foundlen &&
+			    search[difpos] < found[difpos])
+			{
+				iter->sp--;
+				prevleaf(iter);
+				n = iter->stack[iter->sp];
+			} else {
+				break;
+			}
+
+			foundlen = leaf_qpkey(qp, n, found);
+			difpos = qpkey_compare(search, searchlen, found,
+					       foundlen);
+		}
+
+		if (difpos <= searchlen && difpos <= foundlen &&
+		    search[difpos] < found[difpos])
 		{
 			prevleaf(iter);
 		}
 	}
 
-	if (offset == QPKEY_EQUAL || offset == foundlen) {
+	if (difpos == QPKEY_EQUAL || difpos == foundlen) {
 		SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 		SET_IF_NOT_NULL(ival_r, leaf_ival(n));
 		maybe_set_name(qp, n, foundname);
-		add_link(chain, n, offset);
-		if (offset == QPKEY_EQUAL) {
+		add_link(chain, n, difpos);
+		if (difpos == QPKEY_EQUAL) {
 			return (ISC_R_SUCCESS);
 		} else {
 			return (DNS_R_PARTIALMATCH);
@@ -2257,7 +2273,7 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 	 */
 	int len = chain->len;
 	while (len-- > 0) {
-		if (offset >= chain->chain[len].offset) {
+		if (difpos >= chain->chain[len].offset) {
 			n = chain->chain[len].node;
 			SET_IF_NOT_NULL(pval_r, leaf_pval(n));
 			SET_IF_NOT_NULL(ival_r, leaf_ival(n));
