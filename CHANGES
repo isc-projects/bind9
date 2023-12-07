@@ -1,3 +1,6 @@
+6303.	[bug]		Dig failed to correctly process a SIGINT received while
+			waiting for a TCP connection to complete. [GL #4138]
+
 6302.	[func]		The "trust-anchor-telemetry" statement is no longer
 			marked as experimental. This silences a relevant log
 			message that was emitted even when the feature was
