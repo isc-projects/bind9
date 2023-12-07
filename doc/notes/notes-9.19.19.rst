@@ -12,11 +12,6 @@
 Notes for BIND 9.19.19
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
 New Features
 ~~~~~~~~~~~~
 
@@ -29,8 +24,6 @@ New Features
 
 Removed Features
 ~~~~~~~~~~~~~~~~
-
-- None.
 
 - The support for AES algorithm for DNS cookies has been removed.
   :gl:`#4421`
@@ -47,11 +40,6 @@ Feature Changes
 
 - The number of NSEC3 iterations that can be configured for a zone must be 0.
   :gl:`#4363`
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
