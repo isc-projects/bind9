@@ -486,7 +486,7 @@ struct dns_rbtdb {
 	 * When performing LRU cleaning limit cleaning to headers that were
 	 * last used at or before this.
 	 */
-	_Atomic(isc_stdtime_t) last_used;
+	atomic_uint last_used;
 
 	/*%
 	 * Temporary storage for stale cache nodes and dynamically deleted
@@ -6540,7 +6540,8 @@ find_header:
 			if (IS_CACHE(rbtdb)) {
 				if (ZEROTTL(newheader)) {
 					newheader->last_used =
-						rbtdb->last_used + 1;
+						atomic_load(&rbtdb->last_used) +
+						1;
 					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
 							newheader, link);
 				} else {
@@ -6583,7 +6584,8 @@ find_header:
 				isc_heap_insert(rbtdb->heaps[idx], newheader);
 				if (ZEROTTL(newheader)) {
 					newheader->last_used =
-						rbtdb->last_used + 1;
+						atomic_load(&rbtdb->last_used) +
+						1;
 					ISC_LIST_APPEND(rbtdb->rdatasets[idx],
 							newheader, link);
 				} else {
@@ -10166,7 +10168,8 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
 	size_t purged = 0;
 
 	for (header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
-	     header != NULL && header->last_used <= rbtdb->last_used &&
+	     header != NULL &&
+	     header->last_used <= atomic_load(&rbtdb->last_used) &&
 	     purged <= purgesize;
 	     header = header_prev)
 	{
@@ -10199,7 +10202,8 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
 static void
 overmem_purge(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	      bool tree_locked) {
-	uint32_t locknum_start = rbtdb->lru_sweep++ % rbtdb->node_lock_count;
+	uint32_t locknum_start = atomic_fetch_add(&rbtdb->lru_sweep, 1) %
+				 rbtdb->node_lock_count;
 	uint32_t locknum = locknum_start;
 	/* Size of added data, possible node and possible ENT node. */
 	size_t purgesize = rdataset_size(newheader) +
@@ -10238,7 +10242,7 @@ again:
 	 */
 	if (purged < purgesize) {
 		if (min_last_used != 0) {
-			rbtdb->last_used = min_last_used;
+			atomic_store(&rbtdb->last_used, min_last_used);
 			if (max_passes-- > 0) {
 				goto again;
 			}
