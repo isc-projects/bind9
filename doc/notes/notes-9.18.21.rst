@@ -12,16 +12,6 @@
 Notes for BIND 9.18.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
@@ -30,16 +20,6 @@ Removed Features
 
 - The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
   are now deprecated. A warning will be logged if they are used. :gl:`#4405`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
