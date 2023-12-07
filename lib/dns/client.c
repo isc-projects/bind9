@@ -70,7 +70,6 @@
  * DNS client object
  */
 struct dns_client {
-	/* Unlocked */
 	unsigned int magic;
 	unsigned int attributes;
 	isc_mem_t *mctx;
@@ -431,10 +430,6 @@ static isc_result_t
 start_fetch(resctx_t *rctx) {
 	isc_result_t result;
 	int fopts = 0;
-
-	/*
-	 * The caller must be holding the rctx's lock.
-	 */
 
 	REQUIRE(rctx->fetch == NULL);
 
@@ -859,45 +854,11 @@ resolve_done(void *arg) {
 	isc_mem_putanddetach(&resarg->mctx, resarg, sizeof(*resarg));
 }
 
-isc_result_t
-dns_client_resolve(dns_client_t *client, const dns_name_t *name,
-		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		   unsigned int options, dns_namelist_t *namelist,
-		   dns_client_resolve_cb resolve_cb) {
-	isc_result_t result;
-	resarg_t *resarg = NULL;
-
-	REQUIRE(DNS_CLIENT_VALID(client));
-	REQUIRE(namelist != NULL && ISC_LIST_EMPTY(*namelist));
-	REQUIRE(rdclass == dns_rdataclass_in);
-
-	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
-
-	*resarg = (resarg_t){
-		.client = client,
-		.name = name,
-		.result = DNS_R_SERVFAIL,
-		.namelist = namelist,
-		.resolve_cb = resolve_cb,
-	};
-
-	isc_mem_attach(client->mctx, &resarg->mctx);
-
-	result = dns_client_startresolve(client, name, rdclass, type, options,
-					 resolve_done, resarg, &resarg->trans);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
-		return (result);
-	}
-
-	return (result);
-}
-
-isc_result_t
-dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
-			dns_rdataclass_t rdclass, dns_rdatatype_t type,
-			unsigned int options, isc_job_cb cb, void *arg,
-			dns_clientrestrans_t **transp) {
+static isc_result_t
+startresolve(dns_client_t *client, const dns_name_t *name,
+	     dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	     unsigned int options, isc_job_cb cb, void *arg,
+	     dns_clientrestrans_t **transp) {
 	dns_clientresume_t *rev = NULL;
 	resctx_t *rctx = NULL;
 	isc_mem_t *mctx = NULL;
@@ -981,6 +942,40 @@ cleanup:
 	return (result);
 }
 
+isc_result_t
+dns_client_resolve(dns_client_t *client, const dns_name_t *name,
+		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
+		   unsigned int options, dns_namelist_t *namelist,
+		   dns_client_resolve_cb resolve_cb) {
+	isc_result_t result;
+	resarg_t *resarg = NULL;
+
+	REQUIRE(DNS_CLIENT_VALID(client));
+	REQUIRE(namelist != NULL && ISC_LIST_EMPTY(*namelist));
+	REQUIRE(rdclass == dns_rdataclass_in);
+
+	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
+
+	*resarg = (resarg_t){
+		.client = client,
+		.name = name,
+		.result = DNS_R_SERVFAIL,
+		.namelist = namelist,
+		.resolve_cb = resolve_cb,
+	};
+
+	isc_mem_attach(client->mctx, &resarg->mctx);
+
+	result = startresolve(client, name, rdclass, type, options,
+			      resolve_done, resarg, &resarg->trans);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
+		return (result);
+	}
+
+	return (result);
+}
+
 void
 dns_client_freeresanswer(dns_client_t *client, dns_namelist_t *namelist) {
 	dns_name_t *name;
@@ -1026,11 +1021,6 @@ destroyrestrans(dns_clientrestrans_t **transp) {
 
 	mctx = client->mctx;
 	dns_view_detach(&rctx->view);
-
-	/*
-	 * Wait for the lock in client_resfind to be released before
-	 * destroying the lock.
-	 */
 
 	INSIST(ISC_LINK_LINKED(rctx, link));
 	ISC_LIST_UNLINK(client->resctxs, rctx, link);

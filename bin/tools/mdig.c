@@ -1693,8 +1693,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			exit(0);
 			break;
 		case 'i':
-			/* deprecated */
-			break;
+			fatal("-%c removed", opt);
 		case 'm':
 			/*
 			 * handled by preparse_args()

@@ -614,11 +614,6 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
 
    This option performs [or does not perform] a search showing intermediate results.
 
-.. option:: +sigchase, +nosigchase
-
-   This feature is now obsolete and has been removed; use :iscman:`delv`
-   instead.
-
 .. option:: +split=W
 
    This option splits long hex- or base64-formatted fields in resource records into
@@ -688,36 +683,29 @@ abbreviation is unambiguous; for example, :option:`+cd` is equivalent to
    server TLS certificate verification. Otherwise, the DNS server name
    is used. This option has no effect if :option:`+tls-ca` is not specified.
 
-.. option:: +topdown, +notopdown
-
-   This feature is related to :option:`dig +sigchase`, which is obsolete and
-   has been removed. Use :iscman:`delv` instead.
-
 .. option:: +trace, +notrace
 
-   This option toggles tracing of the delegation path from the root name servers for
-   the name being looked up. Tracing is disabled by default. When
-   tracing is enabled, :program:`dig` makes iterative queries to resolve the
-   name being looked up. It follows referrals from the root servers,
-   showing the answer from each server that was used to resolve the
-   lookup.
+   This option toggles tracing of the delegation path from the root name
+   servers for the name being looked up. Tracing is disabled by default.
+   When tracing is enabled, :program:`dig` makes iterative queries to
+   resolve the name being looked up. It follows referrals from the root
+   servers, showing the answer from each server that was used to resolve
+   the lookup.
 
    If ``@server`` is also specified, it affects only the initial query for
    the root zone name servers.
 
-   :option:`+dnssec` is also set when :option:`+trace` is set, to better emulate the
-   default queries from a name server.
+   :option:`+dnssec` is set when :option:`+trace` is set, to better
+   emulate the default queries from a name server.
+
+   Note that the ``delv +ns`` option can also be used for tracing the
+   resolution of a name from the root (see :iscman:`delv`).
 
 .. option:: +tries=T
 
    This option sets the number of times to try UDP and TCP queries to server to ``T``
    instead of the default, 3. If ``T`` is less than or equal to zero,
    the number of tries is silently rounded up to 1.
-
-.. option:: +trusted-key=####
-
-   This option formerly specified trusted keys for use with :option:`dig +sigchase`. This
-   feature is now obsolete and has been removed; use :iscman:`delv` instead.
 
 .. option:: +ttlid, +nottlid
 
