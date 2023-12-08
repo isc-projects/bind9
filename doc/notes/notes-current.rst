@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.19
+Notes for BIND 9.19.20
 ----------------------
 
 Security Fixes
@@ -20,33 +20,17 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- Initial support for accepting the PROXYv2 protocol in all currently
-  implemented DNS transports in :iscman:`named` and complementary
-  support for sending it in :iscman:`dig` are included into this
-  release. Please consult the related documentation for additional
-  details.
-  :gl:`#4388`
+- None.
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
 - None.
 
-- The support for AES algorithm for DNS cookies has been removed.
-  :gl:`#4421`
-
-- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
-  have been removed. Using them is now a fatal error. :gl:`#4405`
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- The maximum number of allowed NSEC3 iterations for validation has been
-  lowered from 150 to 50. DNSSEC responses containing NSEC3 records with
-  iteration counts greater than 50 are now treated as insecure.  :gl:`#4363`
-
-- The number of NSEC3 iterations that can be configured for a zone must be 0.
-  :gl:`#4363`
+- None.
 
 Bug Fixes
 ~~~~~~~~~
