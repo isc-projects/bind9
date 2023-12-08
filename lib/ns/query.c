@@ -5834,6 +5834,9 @@ static void
 async_restart(void *arg) {
 	query_ctx_t *qctx = arg;
 	ns_client_t *client = qctx->client;
+	isc_nmhandle_t *handle = client->restarthandle;
+
+	client->restarthandle = NULL;
 
 	ns__query_start(qctx);
 
@@ -5841,6 +5844,7 @@ async_restart(void *arg) {
 	qctx_freedata(qctx);
 	qctx_destroy(qctx);
 	isc_mem_put(client->manager->mctx, qctx, sizeof(*qctx));
+	isc_nmhandle_detach(&handle);
 }
 
 /*
@@ -11642,6 +11646,8 @@ ns_query_done(query_ctx_t *qctx) {
 		saved_qctx = isc_mem_get(qctx->client->manager->mctx,
 					 sizeof(*saved_qctx));
 		qctx_save(qctx, saved_qctx);
+		isc_nmhandle_attach(qctx->client->handle,
+				    &qctx->client->restarthandle);
 		isc_async_run(qctx->client->manager->loop, async_restart,
 			      saved_qctx);
 		return (DNS_R_CONTINUE);

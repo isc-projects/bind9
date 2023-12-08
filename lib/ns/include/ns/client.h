@@ -169,11 +169,12 @@ struct ns_client {
 	unsigned int	 attributes;
 	dns_view_t	*view;
 	dns_dispatch_t	*dispatch;
-	isc_nmhandle_t	*handle;      /* Permanent pointer to handle */
-	isc_nmhandle_t	*sendhandle;  /* Waiting for send callback */
-	isc_nmhandle_t	*reqhandle;   /* Waiting for request callback
-					 (query, update, notify) */
-	isc_nmhandle_t *updatehandle; /* Waiting for update callback */
+	isc_nmhandle_t	*handle;       /* Permanent pointer to handle */
+	isc_nmhandle_t	*sendhandle;   /* Waiting for send callback */
+	isc_nmhandle_t	*reqhandle;    /* Waiting for request callback
+					  (query, update, notify) */
+	isc_nmhandle_t *updatehandle;  /* Waiting for update callback */
+	isc_nmhandle_t *restarthandle; /* Waiting for restart callback */
 	unsigned char  *tcpbuf;
 	size_t		tcpbuf_size;
 	dns_message_t  *message;
