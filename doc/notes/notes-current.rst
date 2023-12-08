@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.21
+Notes for BIND 9.18.22
 ----------------------
 
 Security Fixes
@@ -25,11 +25,7 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The support for AES algorithm for DNS cookies has been deprecated.
-  :gl:`#4421`
-
-- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
-  are now deprecated. A warning will be logged if they are used. :gl:`#4405`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
