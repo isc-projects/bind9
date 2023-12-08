@@ -12,34 +12,16 @@
 Notes for BIND 9.18.21
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The support for AES algorithm for DNS cookies has been deprecated.
-  :gl:`#4421`
+- Support for using AES as the DNS COOKIE algorithm (``cookie-algorithm
+  aes;``) has been deprecated and will be removed in a future release.
+  Please use the current default, SipHash-2-4, instead. :gl:`#4421`
 
-- The ``resolver-nonbackoff-tries`` and ``resolver-retry-interval`` options
-  are now deprecated. A warning will be logged if they are used. :gl:`#4405`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
+- The :any:`resolver-nonbackoff-tries` and :any:`resolver-retry-interval`
+  statements have been deprecated. Using them now causes a warning to be
+  logged. :gl:`#4405`
 
 Known Issues
 ~~~~~~~~~~~~
