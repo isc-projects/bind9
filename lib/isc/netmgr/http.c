@@ -221,8 +221,8 @@ call_pending_callbacks(isc__nm_http_pending_callbacks_t pending_callbacks,
 		       isc_result_t result);
 
 static void
-server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
-	       const isc_result_t result, isc_region_t *data);
+server_call_cb(isc_nmsocket_t *socket, const isc_result_t result,
+	       isc_region_t *data);
 
 static isc_nm_httphandler_t *
 http_endpoints_find(const char *request_path,
@@ -979,23 +979,30 @@ static void
 http_readcb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 	    isc_region_t *region, void *data) {
 	isc_nm_http_session_t *session = (isc_nm_http_session_t *)data;
+	isc_nm_http_session_t *tmpsess = NULL;
 	ssize_t readlen;
 
 	REQUIRE(VALID_HTTP2_SESSION(session));
+
+	/*
+	 * Let's ensure that HTTP/2 session and its associated data will
+	 * not go "out of scope" too early.
+	 */
+	isc__nm_httpsession_attach(session, &tmpsess);
 
 	if (result != ISC_R_SUCCESS) {
 		if (result != ISC_R_TIMEDOUT) {
 			session->reading = false;
 		}
 		failed_read_cb(result, session);
-		return;
+		goto done;
 	}
 
 	readlen = nghttp2_session_mem_recv(session->ngsession, region->base,
 					   region->length);
 	if (readlen < 0) {
 		failed_read_cb(ISC_R_UNEXPECTED, session);
-		return;
+		goto done;
 	}
 
 	if ((size_t)readlen < region->length) {
@@ -1011,6 +1018,9 @@ http_readcb(isc_nmhandle_t *handle ISC_ATTR_UNUSED, isc_result_t result,
 
 	/* We might have something to receive or send, do IO */
 	http_do_bio(session, NULL, NULL, NULL);
+
+done:
+	isc__nm_httpsession_detach(&tmpsess);
 }
 
 static void
@@ -2023,8 +2033,6 @@ static void
 log_server_error_response(const isc_nmsocket_t *socket,
 			  const struct http_error_responses *response) {
 	const int log_level = ISC_LOG_DEBUG(1);
-	isc_sockaddr_t client_addr;
-	isc_sockaddr_t local_addr;
 	char client_sabuf[ISC_SOCKADDR_FORMATSIZE];
 	char local_sabuf[ISC_SOCKADDR_FORMATSIZE];
 
@@ -2032,10 +2040,8 @@ log_server_error_response(const isc_nmsocket_t *socket,
 		return;
 	}
 
-	client_addr = isc_nmhandle_peeraddr(socket->h2->session->handle);
-	local_addr = isc_nmhandle_localaddr(socket->h2->session->handle);
-	isc_sockaddr_format(&client_addr, client_sabuf, sizeof(client_sabuf));
-	isc_sockaddr_format(&local_addr, local_sabuf, sizeof(local_sabuf));
+	isc_sockaddr_format(&socket->peer, client_sabuf, sizeof(client_sabuf));
+	isc_sockaddr_format(&socket->iface, local_sabuf, sizeof(local_sabuf));
 	isc__nmsocket_log(socket, log_level,
 			  "HTTP/2 request from %s (on %s) failed: %s %s",
 			  client_sabuf, local_sabuf, response->header.value,
@@ -2074,17 +2080,14 @@ server_send_error_response(const isc_http_error_responses_t error,
 }
 
 static void
-server_call_cb(isc_nmsocket_t *socket, isc_nm_http_session_t *session,
-	       const isc_result_t result, isc_region_t *data) {
-	isc_sockaddr_t addr;
+server_call_cb(isc_nmsocket_t *socket, const isc_result_t result,
+	       isc_region_t *data) {
 	isc_nmhandle_t *handle = NULL;
 
 	REQUIRE(VALID_NMSOCK(socket));
-	REQUIRE(VALID_HTTP2_SESSION(session));
 	REQUIRE(socket->h2->cb != NULL);
 
-	addr = isc_nmhandle_peeraddr(session->handle);
-	handle = isc__nmhandle_get(socket, &addr, NULL);
+	handle = isc__nmhandle_get(socket, NULL, NULL);
 	socket->h2->cb(handle, result, data, socket->h2->cbarg);
 	isc_nmhandle_detach(&handle);
 }
@@ -2105,8 +2108,7 @@ isc__nm_http_bad_request(isc_nmhandle_t *handle) {
 }
 
 static int
-server_on_request_recv(nghttp2_session *ngsession,
-		       isc_nm_http_session_t *session, isc_nmsocket_t *socket) {
+server_on_request_recv(nghttp2_session *ngsession, isc_nmsocket_t *socket) {
 	isc_result_t result;
 	isc_http_error_responses_t code = ISC_HTTP_ERROR_SUCCESS;
 	isc_region_t data;
@@ -2177,7 +2179,7 @@ server_on_request_recv(nghttp2_session *ngsession,
 		UNREACHABLE();
 	}
 
-	server_call_cb(socket, session, ISC_R_SUCCESS, &data);
+	server_call_cb(socket, ISC_R_SUCCESS, &data);
 
 	return (0);
 
@@ -2364,8 +2366,9 @@ isc__nm_http_read(isc_nmhandle_t *handle, isc_nm_recv_cb_t cb, void *cbarg) {
 static int
 server_on_frame_recv_callback(nghttp2_session *ngsession,
 			      const nghttp2_frame *frame, void *user_data) {
-	isc_nm_http_session_t *session = (isc_nm_http_session_t *)user_data;
 	isc_nmsocket_t *socket = NULL;
+
+	UNUSED(user_data);
 
 	switch (frame->hd.type) {
 	case NGHTTP2_DATA:
@@ -2387,8 +2390,7 @@ server_on_frame_recv_callback(nghttp2_session *ngsession,
 				return (0);
 			}
 
-			return (server_on_request_recv(ngsession, session,
-						       socket));
+			return (server_on_request_recv(ngsession, socket));
 		}
 		break;
 	default:
@@ -2806,7 +2808,7 @@ failed_httpstream_read_cb(isc_nmsocket_t *sock, isc_result_t result,
 		session->ngsession, NGHTTP2_FLAG_END_STREAM,
 		sock->h2->stream_id, NGHTTP2_REFUSED_STREAM);
 	isc_buffer_usedregion(&sock->h2->rbuf, &data);
-	server_call_cb(sock, session, result, &data);
+	server_call_cb(sock, result, &data);
 }
 
 static void
@@ -2835,7 +2837,8 @@ client_call_failed_read_cb(isc_result_t result,
 		}
 
 		if (result != ISC_R_TIMEDOUT || cstream->read_cb == NULL ||
-		    !isc__nmsocket_timer_running(session->handle->sock))
+		    !(session->handle != NULL &&
+		      isc__nmsocket_timer_running(session->handle->sock)))
 		{
 			ISC_LIST_DEQUEUE(session->cstreams, cstream, link);
 			put_http_cstream(session->mctx, cstream);
@@ -2923,6 +2926,10 @@ isc__nm_http_has_encryption(const isc_nmhandle_t *handle) {
 
 	INSIST(VALID_HTTP2_SESSION(session));
 
+	if (session->handle == NULL) {
+		return (false);
+	}
+
 	return (isc_nm_has_encryption(session->handle));
 }
 
@@ -2952,6 +2959,10 @@ isc__nm_http_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 	}
 
 	INSIST(VALID_HTTP2_SESSION(session));
+
+	if (session->handle == NULL) {
+		return (NULL);
+	}
 
 	return (isc_nm_verify_tls_peer_result_string(session->handle));
 }
