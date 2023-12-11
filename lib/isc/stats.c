@@ -30,6 +30,16 @@
 
 typedef atomic_int_fast64_t isc__atomic_statcounter_t;
 
+/*
+ * Statistics are counted with an atomic int_fast64_t but exported to functions
+ * taking int64_t (isc_stats_dumper_t). A 128-bit native and fast architecture
+ * doesn't exist in reality so these two are the same thing in practise.
+ * However, a silent truncation happening silently in the future is still not
+ * acceptable.
+ */
+STATIC_ASSERT(sizeof(isc__atomic_statcounter_t) <= sizeof(int64_t),
+	      "Exported statistics must fit into the statistic counter size");
+
 struct isc_stats {
 	unsigned int magic;
 	isc_mem_t *mctx;
@@ -125,7 +135,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
 	REQUIRE(ISC_STATS_VALID(stats));
 
 	for (i = 0; i < stats->ncounters; i++) {
-		isc__atomic_statcounter_t counter = atomic_load_acquire(&stats->counters[i]);
+		int_fast64_t counter = atomic_load_acquire(&stats->counters[i]);
 		if ((options & ISC_STATSDUMP_VERBOSE) == 0 && counter == 0) {
 			continue;
 		}
