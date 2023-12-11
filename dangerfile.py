@@ -23,11 +23,13 @@ import gitlab
 def added_lines(target_branch, paths):
     import subprocess
 
-    subprocess.check_output(
-        ["/usr/bin/git", "fetch", "--depth", "1", "origin", target_branch]
-    )
+    # Hazard fetches the target branch itself, so there is no need to fetch it
+    # explicitly using `git fetch --depth 1000 origin <target_branch>`.  The
+    # refs/remotes/origin/<target_branch> ref is also expected to be readily
+    # usable by the time this file is executed.
+
     diff = subprocess.check_output(
-        ["/usr/bin/git", "diff", "FETCH_HEAD..", "--"] + paths
+        ["/usr/bin/git", "diff", f"origin/{target_branch}...", "--"] + paths
     )
     added_lines = []
     for line in diff.splitlines():
@@ -184,7 +186,6 @@ BACKPORT_OF_RE = re.compile(
     r"Backport\s+of.*(merge_requests/|!)([0-9]+)", flags=re.IGNORECASE
 )
 VERSION_LABEL_RE = re.compile(r"v9.([0-9]+)(-S)?")
-backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description)
 version_labels = [l for l in mr_labels if l.startswith("v9.")]
 affects_labels = [l for l in mr_labels if l.startswith("Affects v9.")]
 if is_backport:
@@ -203,6 +204,7 @@ if is_backport:
                 "Backport MRs must have their target version in the title. "
                 f"Please put `[9.{minor_ver}{edition}]` at the start of the MR title."
             )
+    backport_desc = BACKPORT_OF_RE.search(danger.gitlab.mr.description or "")
     if backport_desc is None:
         fail(
             "Backport MRs must link to the original MR. Please put "
