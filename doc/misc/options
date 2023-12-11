@@ -188,6 +188,8 @@ options {
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
 	max-udp-size <integer>;
+	max-validation-failures-per-fetch <integer>; // experimental
+	max-validations-per-fetch <integer>; // experimental
 	max-zone-ttl ( unlimited | <duration> ); // deprecated
 	memstatistics <boolean>;
 	memstatistics-file <quoted_string>;
@@ -469,6 +471,8 @@ view <string> [ <class> ] {
 	max-transfer-time-in <integer>;
 	max-transfer-time-out <integer>;
 	max-udp-size <integer>;
+	max-validation-failures-per-fetch <integer>; // experimental
+	max-validations-per-fetch <integer>; // experimental
 	max-zone-ttl ( unlimited | <duration> ); // deprecated
 	message-compression <boolean>;
 	min-cache-ttl <duration>;

@@ -178,6 +178,16 @@
  */
 #define MINIMUM_QUERY_TIMEOUT (MAX_SINGLE_QUERY_TIMEOUT + 1000U)
 
+/*
+ * The default maximum number of validations and validation failures per-fetch
+ */
+#ifndef DEFAULT_MAX_VALIDATIONS
+#define DEFAULT_MAX_VALIDATIONS 16
+#endif
+#ifndef DEFAULT_MAX_VALIDATION_FAILURES
+#define DEFAULT_MAX_VALIDATION_FAILURES 1
+#endif
+
 /* The default time in seconds for the whole query to live. */
 #ifndef DEFAULT_QUERY_TIMEOUT
 #define DEFAULT_QUERY_TIMEOUT MINIMUM_QUERY_TIMEOUT
@@ -457,6 +467,9 @@ struct fetchctx {
 	dns_adbaddrinfo_t *addrinfo;
 	unsigned int depth;
 	char clientstr[ISC_SOCKADDR_FORMATSIZE];
+
+	uint32_t nvalidations;
+	uint32_t nfails;
 };
 
 #define FCTX_MAGIC	 ISC_MAGIC('F', '!', '!', '!')
@@ -566,6 +579,9 @@ struct dns_resolver {
 	atomic_uint_fast32_t zspill; /* fetches-per-zone */
 	atomic_bool exiting;
 	atomic_bool priming;
+
+	atomic_uint_fast32_t maxvalidations;
+	atomic_uint_fast32_t maxvalidationfails;
 
 	/* Locked by lock. */
 	unsigned int spillat; /* clients-per-query */
@@ -961,7 +977,8 @@ valcreate(fetchctx_t *fctx, dns_message_t *message, dns_adbaddrinfo_t *addrinfo,
 
 	result = dns_validator_create(
 		fctx->res->view, name, type, rdataset, sigrdataset, message,
-		valoptions, fctx->loop, validated, valarg, &validator);
+		valoptions, fctx->loop, validated, valarg, &fctx->nvalidations,
+		&fctx->nfails, &validator);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	inc_stats(fctx->res, dns_resstatscounter_val);
 	if ((valoptions & DNS_VALIDATOR_DEFER) == 0) {
@@ -4518,6 +4535,8 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 		.fwdpolicy = dns_fwdpolicy_none,
 		.result = ISC_R_FAILURE,
 		.loop = loop,
+		.nvalidations = atomic_load_relaxed(&res->maxvalidations),
+		.nfails = atomic_load_relaxed(&res->maxvalidationfails),
 	};
 
 	isc_mem_attach(mctx, &fctx->mctx);
@@ -9960,6 +9979,8 @@ dns_resolver_create(dns_view_t *view, isc_loopmgr_t *loopmgr, isc_nm_t *nm,
 		.maxqueries = DEFAULT_MAX_QUERIES,
 		.alternates = ISC_LIST_INITIALIZER,
 		.nloops = isc_loopmgr_nloops(loopmgr),
+		.maxvalidations = DEFAULT_MAX_VALIDATIONS,
+		.maxvalidationfails = DEFAULT_MAX_VALIDATION_FAILURES,
 	};
 
 	RTRACE("create");
@@ -10923,6 +10944,18 @@ dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout) {
 	}
 
 	resolver->query_timeout = timeout;
+}
+
+void
+dns_resolver_setmaxvalidations(dns_resolver_t *resolver, uint32_t max) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	atomic_store(&resolver->maxvalidations, max);
+}
+
+void
+dns_resolver_setmaxvalidationfails(dns_resolver_t *resolver, uint32_t max) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	atomic_store(&resolver->maxvalidationfails, max);
 }
 
 void
