@@ -635,11 +635,12 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 
 ISC_RUN_TEST_IMPL(predecessors) {
 	dns_qp_t *qp = NULL;
-	const char insert[][16] = { "a.",	  "b.",		"c.b.a.",
-				    "e.d.c.b.a.", "c.b.b.",	"c.d.",
-				    "a.b.c.d.",	  "a.b.c.d.e.", "b.a.",
-				    "x.k.c.d.",	  "moog.",	"mook.",
-				    "moon.",	  "moops.",	"" };
+	const char insert[][16] = {
+		"a.",	  "b.",	      "c.b.a.",	  "e.d.c.b.a.",
+		"c.b.b.", "c.d.",     "a.b.c.d.", "a.b.c.d.e.",
+		"b.a.",	  "x.k.c.d.", "moog.",	  "mooker.",
+		"mooko.", "moon.",    "moops.",	  ""
+	};
 	int i = 0;
 
 	dns_qp_create(mctx, &string_methods, NULL, &qp);
@@ -667,7 +668,21 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND },
 		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
 		{ "moor.", "moops.", ISC_R_NOTFOUND },
+		{ "mopbop.", "moops.", ISC_R_NOTFOUND },
+		{ "moppop.", "moops.", ISC_R_NOTFOUND },
+		{ "mopps.", "moops.", ISC_R_NOTFOUND },
+		{ "mopzop.", "moops.", ISC_R_NOTFOUND },
 		{ "mop.", "moops.", ISC_R_NOTFOUND },
+		{ "monbop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "monpop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "monps.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "monzop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "moop.", "moon.", ISC_R_NOTFOUND },
+		{ "moopser.", "moops.", ISC_R_NOTFOUND },
+		{ "monky.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "monkey.", "a.b.c.d.e.", ISC_R_NOTFOUND },
+		{ "monker.", "a.b.c.d.e.", ISC_R_NOTFOUND },
 		{ NULL, NULL, 0 }
 	};
 
@@ -695,7 +710,21 @@ ISC_RUN_TEST_IMPL(predecessors) {
 		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH },
 		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
 		{ "moor.", "moops.", DNS_R_PARTIALMATCH },
+		{ "mopbop.", "moops.", DNS_R_PARTIALMATCH },
+		{ "moppop.", "moops.", DNS_R_PARTIALMATCH },
+		{ "mopps.", "moops.", DNS_R_PARTIALMATCH },
+		{ "mopzop.", "moops.", DNS_R_PARTIALMATCH },
 		{ "mop.", "moops.", DNS_R_PARTIALMATCH },
+		{ "monbop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "monpop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "monps.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "monzop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "moop.", "moon.", DNS_R_PARTIALMATCH },
+		{ "moopser.", "moops.", DNS_R_PARTIALMATCH },
+		{ "monky.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "monkey.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
+		{ "monker.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
 		{ NULL, NULL, 0 }
 	};
 
