@@ -583,7 +583,7 @@ docs:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} all V=1
     - make -j${BUILD_PARALLEL_JOBS:-1} doc V=1
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | grep -v -F -e aclocal.m4 -e configure -e ltmain.sh -e bin/named/bind9.xsl.h -e m4/ | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - find doc/man/ -maxdepth 1 -name "*.[0-9]" -exec mandoc -T lint "{}" \; | ( ! grep -v -e "skipping paragraph macro. sp after" -e "unknown font, skipping request. ft C" -e "input text line longer than 80 bytes" )
   artifacts:
     paths:
