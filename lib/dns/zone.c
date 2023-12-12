@@ -21247,6 +21247,55 @@ zone_checkds(dns_zone_t *zone) {
 #endif /* ifdef ENABLE_AFL */
 }
 
+static isc_result_t
+update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
+	   dns_diff_t *diff) {
+	isc_result_t result;
+
+	/*
+	 * Delete everything using the existing TTL.
+	 */
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_difftuple_t *tuple = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
+					      rdataset->ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_diff_appendminimal(diff, &tuple);
+	}
+	if (result != ISC_R_NOMORE) {
+		return (result);
+	}
+
+	/*
+	 * Add everything using the new TTL.
+	 */
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_difftuple_t *tuple = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
+					      ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_diff_appendminimal(diff, &tuple);
+	}
+	if (result != ISC_R_NOMORE) {
+		return (result);
+	}
+	return (ISC_R_SUCCESS);
+}
+
 static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -21304,11 +21353,39 @@ zone_rekey(dns_zone_t *zone) {
 	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
 
+	/*
+	 * Only update DNSKEY TTL if we have a policy.
+	 */
+	if (kasp != NULL) {
+		ttl = dns_kasp_dnskeyttl(kasp);
+	}
+
 	/* Get the DNSKEY rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
-		ttl = keyset.ttl;
+		/*
+		 * If we don't have a policy then use the DNSKEY ttl
+		 * if it exists.  Otherwise update the DNSKEY ttl if
+		 * needed.
+		 */
+		if (kasp == NULL) {
+			ttl = keyset.ttl;
+		} else if (ttl != keyset.ttl) {
+			result = update_ttl(&keyset, &zone->origin, ttl, &diff);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "Updating DNSKEY TTL from %u to %u "
+					   "failed: %s",
+					   keyset.ttl, ttl,
+					   isc_result_totext(result));
+				goto failure;
+			}
+			dnssec_log(zone, ISC_LOG_INFO,
+				   "Updating DNSKEY TTL from %u to %u",
+				   keyset.ttl, ttl);
+			keyset.ttl = ttl;
+		}
 
 		dns_zone_lock_keyfiles(zone);
 
@@ -21330,6 +21407,18 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &cdsset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdsset)) {
 		dns_rdataset_disassociate(&cdsset);
+	} else if (result == ISC_R_SUCCESS && kasp != NULL && ttl != cdsset.ttl)
+	{
+		result = update_ttl(&cdsset, &zone->origin, ttl, &diff);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "Updating CDS TTL from %u to %u failed: %s",
+				   cdsset.ttl, ttl, isc_result_totext(result));
+			goto failure;
+		}
+		dnssec_log(zone, ISC_LOG_INFO, "Updating CDS TTL from %u to %u",
+			   cdsset.ttl, ttl);
+		cdsset.ttl = ttl;
 	}
 
 	/* Get the CDNSKEY rdataset */
@@ -21337,6 +21426,21 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &cdnskeyset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdnskeyset)) {
 		dns_rdataset_disassociate(&cdnskeyset);
+	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
+		   ttl != cdnskeyset.ttl)
+	{
+		result = update_ttl(&cdnskeyset, &zone->origin, ttl, &diff);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(
+				zone, ISC_LOG_ERROR,
+				"Updating CDNSKEY TTL from %u to %u failed: %s",
+				cdnskeyset.ttl, ttl, isc_result_totext(result));
+			goto failure;
+		}
+		dnssec_log(zone, ISC_LOG_INFO,
+			   "Updating CDNSKEY TTL from %u to %u", cdnskeyset.ttl,
+			   ttl);
+		cdnskeyset.ttl = ttl;
 	}
 
 	/*
@@ -21473,13 +21577,6 @@ zone_rekey(dns_zone_t *zone) {
 			}
 
 			digests = dns_kasp_digests(zone->defaultkasp);
-		}
-
-		/*
-		 * Only update DNSKEY TTL if we have a policy.
-		 */
-		if (kasp != NULL) {
-			ttl = dns_kasp_dnskeyttl(kasp);
 		}
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
