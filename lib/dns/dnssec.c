@@ -1983,6 +1983,19 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 	unsigned char keybuf[DST_KEY_MAXSIZE];
 	isc_result_t result;
 	dns_dnsseckey_t *key;
+	dns_ttl_t cdsttl = ttl;
+	dns_ttl_t cdnskeyttl = ttl;
+
+	REQUIRE(keys != NULL);
+	REQUIRE(rmkeys != NULL);
+
+	if (dns_rdataset_isassociated(cds)) {
+		cdsttl = cds->ttl;
+	}
+
+	if (dns_rdataset_isassociated(cdnskey)) {
+		cdnskeyttl = cdnskey->ttl;
+	}
 
 	for (key = ISC_LIST_HEAD(*keys); key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
@@ -2030,7 +2043,7 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 					      "CDS for key %s is now published",
 					      keystr);
 				RETERR(addrdata(&cdnskeyrdata, diff, origin,
-						ttl, mctx));
+						cdnskeyttl, mctx));
 			}
 			/* Only publish SHA-256 (SHA-1 is deprecated) */
 			if (!dns_rdataset_isassociated(cds) ||
@@ -2041,8 +2054,8 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
 					"CDNSKEY for key %s is now published",
 					keystr);
-				RETERR(addrdata(&cds_sha256, diff, origin, ttl,
-						mctx));
+				RETERR(addrdata(&cds_sha256, diff, origin,
+						cdsttl, mctx));
 			}
 		}
 
