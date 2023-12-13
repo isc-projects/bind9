@@ -106,5 +106,9 @@ gather system-wide statistics.
 -->
 
 <!-- DO NOT modify the following two lines. -->
+
+### Acknowledgements
+<!-- Please specify whether and how you would like to be publicly credited with discovering the issue. We normally use the format "First_name Last_name, Company or Team".  -->
+
 /label ~Bug ~Security
 /confidential
