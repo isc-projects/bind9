@@ -9657,16 +9657,7 @@ zone_sign(dns_zone_t *zone) {
 				if (ALG(zone_keys[i]) == signing->algorithm &&
 				    dst_key_id(zone_keys[i]) == signing->keyid)
 				{
-					bool ksk = false;
-					isc_result_t ret = dst_key_getbool(
-						zone_keys[i], DST_BOOL_KSK,
-						&ksk);
-					if (ret != ISC_R_SUCCESS) {
-						ksk = KSK(zone_keys[i]);
-					}
-					if (ksk) {
-						dst_key_free(&zone_keys[i]);
-					}
+					dst_key_free(&zone_keys[i]);
 					continue;
 				}
 				zone_keys[j] = zone_keys[i];
