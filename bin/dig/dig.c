@@ -2811,7 +2811,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ptr = ptr2;
 			ptr2 = ptr3;
 		} else {
-			hmac = DST_ALG_HMACMD5;
+			hmac_alg = DST_ALG_HMACMD5;
 			digestbits = 0;
 		}
 		/* XXXONDREJ: FIXME */

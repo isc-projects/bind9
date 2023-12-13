@@ -138,7 +138,7 @@ char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
 unsigned char cookie_secret[33];
 unsigned char cookie[8];
-dst_algorithm_t hmac = DST_ALG_UNKNOWN;
+dst_algorithm_t hmac_alg = DST_ALG_UNKNOWN;
 unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *tsigkey = NULL;
@@ -879,7 +879,7 @@ setup_text_key(void) {
 
 	secretsize = isc_buffer_usedlength(&secretbuf);
 
-	if (hmac == DST_ALG_UNKNOWN) {
+	if (hmac_alg == DST_ALG_UNKNOWN) {
 		result = DST_R_UNSUPPORTEDALG;
 		goto failure;
 	}
@@ -889,7 +889,7 @@ setup_text_key(void) {
 		goto failure;
 	}
 
-	result = dns_tsigkey_create(&keyname, hmac, secretstore,
+	result = dns_tsigkey_create(&keyname, hmac_alg, secretstore,
 				    (int)secretsize, mctx, &tsigkey);
 failure:
 	if (result != ISC_R_SUCCESS) {
@@ -1041,35 +1041,35 @@ parse_hmac(const char *algname) {
 	digestbits = 0;
 
 	if (strcasecmp(buf, "hmac-md5") == 0) {
-		hmac = DST_ALG_HMACMD5;
+		hmac_alg = DST_ALG_HMACMD5;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
-		hmac = DST_ALG_HMACMD5;
+		hmac_alg = DST_ALG_HMACMD5;
 		digestbits = parse_bits(&buf[9], "digest-bits [0..128]", 128);
 	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
-		hmac = DST_ALG_HMACSHA1;
+		hmac_alg = DST_ALG_HMACSHA1;
 		digestbits = 0;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
-		hmac = DST_ALG_HMACSHA1;
+		hmac_alg = DST_ALG_HMACSHA1;
 		digestbits = parse_bits(&buf[10], "digest-bits [0..160]", 160);
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
-		hmac = DST_ALG_HMACSHA224;
+		hmac_alg = DST_ALG_HMACSHA224;
 	} else if (strncasecmp(buf, "hmac-sha224-", 12) == 0) {
-		hmac = DST_ALG_HMACSHA224;
+		hmac_alg = DST_ALG_HMACSHA224;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..224]", 224);
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
-		hmac = DST_ALG_HMACSHA256;
+		hmac_alg = DST_ALG_HMACSHA256;
 	} else if (strncasecmp(buf, "hmac-sha256-", 12) == 0) {
-		hmac = DST_ALG_HMACSHA256;
+		hmac_alg = DST_ALG_HMACSHA256;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..256]", 256);
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
-		hmac = DST_ALG_HMACSHA384;
+		hmac_alg = DST_ALG_HMACSHA384;
 	} else if (strncasecmp(buf, "hmac-sha384-", 12) == 0) {
-		hmac = DST_ALG_HMACSHA384;
+		hmac_alg = DST_ALG_HMACSHA384;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..384]", 384);
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
-		hmac = DST_ALG_HMACSHA512;
+		hmac_alg = DST_ALG_HMACSHA512;
 	} else if (strncasecmp(buf, "hmac-sha512-", 12) == 0) {
-		hmac = DST_ALG_HMACSHA512;
+		hmac_alg = DST_ALG_HMACSHA512;
 		digestbits = parse_bits(&buf[12], "digest-bits [0..512]", 512);
 	} else {
 		fprintf(stderr,
@@ -1175,7 +1175,7 @@ setup_file_key(void) {
 	case DST_ALG_HMACSHA256:
 	case DST_ALG_HMACSHA384:
 	case DST_ALG_HMACSHA512:
-		hmac = dst_key_alg(dstkey);
+		hmac_alg = dst_key_alg(dstkey);
 		break;
 	default:
 		dst_key_attach(dstkey, &sig0key);
@@ -1184,9 +1184,9 @@ setup_file_key(void) {
 	}
 
 	if (dstkey != NULL) {
-		result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmac,
-						   dstkey, false, false, NULL,
-						   0, 0, mctx, &tsigkey);
+		result = dns_tsigkey_createfromkey(
+			dst_key_name(dstkey), hmac_alg, dstkey, false, false,
+			NULL, 0, 0, mctx, &tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Couldn't create key %s: %s\n", keynametext,
 			       isc_result_totext(result));
