@@ -1,3 +1,7 @@
+6310.	[bug]		Memory leak in zone.c:sign_zone. When named signed a
+			zone it could leak dst_keys due to a misplaced
+			'continue'. [GL #4488]
+
 6309.	[bug]		Changing a zone's primaries while a refresh was in
 			progress could trigger an assertion. [GL #4310]
 
