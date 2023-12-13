@@ -5823,6 +5823,17 @@ The following options can be specified in a :any:`tls` statement:
     versions might be specified (e.g.
     ``protocols { TLSv1.2; TLSv1.3; };``).
 
+.. namedconf:statement:: cipher-suites
+   :tags: security
+   :short: Specifies a list of allowed cipher suites in the order of preference for TLSv1.3 only.
+
+    Cipher suites list which defines allowed cipher suites, such as
+    ``TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256``.
+    The string must be formed according to the rules specified in the
+    OpenSSL documentation (see
+    https://www.openssl.org/docs/man1.1.1/man1/ciphers.html, section
+    "TLS v1.3 cipher suites" for details).
+
 .. namedconf:statement:: ciphers
    :tags: security
    :short: Specifies a list of allowed ciphers in the order of preference for TLSv1.2 only.
