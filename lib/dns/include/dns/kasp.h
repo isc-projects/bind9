@@ -27,7 +27,6 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
-#include <isc/mutex.h>
 #include <isc/refcount.h>
 
 #include <dns/types.h>
@@ -44,10 +43,7 @@ struct dns_kasp_digest {
 struct dns_kasp_key {
 	isc_mem_t *mctx;
 
-	/* Locked by themselves. */
 	isc_refcount_t references;
-
-	/* Under owner's locking control. */
 	ISC_LINK(struct dns_kasp_key) link;
 
 	/* Configuration */
@@ -71,13 +67,9 @@ struct dns_kasp {
 	char	    *name;
 
 	/* Internals. */
-	isc_mutex_t lock;
-	bool	    frozen;
-
-	/* Locked by themselves. */
+	bool	       frozen;
 	isc_refcount_t references;
 
-	/* Under owner's locking control. */
 	ISC_LINK(struct dns_kasp) link;
 
 	/* Configuration: signatures */
