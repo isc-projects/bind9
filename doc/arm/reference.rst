@@ -5825,7 +5825,7 @@ The following options can be specified in a :any:`tls` statement:
 
 .. namedconf:statement:: ciphers
    :tags: security
-   :short: Specifies a list of allowed ciphers.
+   :short: Specifies a list of allowed ciphers in the order of preference for TLSv1.2 only.
 
     Cipher list which defines allowed ciphers, such as
     ``HIGH:!aNULL:!MD5:!SHA1:!SHA256:!SHA384``. The string must be
