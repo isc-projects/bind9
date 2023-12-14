@@ -41,7 +41,10 @@ Removed Features
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- The ``dnssec-validation yes`` option now requires an explicitly configured
+  :any:`trust-anchors` statement. If using manual trust anchors is not
+  operationally required, then please consider using ``dnssec-validation auto``
+  instead. :gl:`#4373`
 
 Bug Fixes
 ~~~~~~~~~
