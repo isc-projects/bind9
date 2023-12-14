@@ -2577,7 +2577,10 @@ Boolean Options
    If set to ``yes``, DNSSEC validation is enabled, but a trust anchor must be
    manually configured using a :any:`trust-anchors` statement (or the
    :any:`managed-keys` or :any:`trusted-keys` statements, both deprecated). If
-   there is no configured trust anchor, validation does not take place.
+   :any:`trust-anchors` is not configured, it is a configuration error. If
+   :any:`trust-anchors` does not include a valid root key, then validation does
+   not take place for names which are not covered by any of the configured trust
+   anchors.
 
    If set to ``no``, DNSSEC validation is disabled. (Note: the resolver
    will still set the DO bit in outgoing queries indicating that it can
