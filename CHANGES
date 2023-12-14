@@ -1,3 +1,7 @@
+6304.	[bug]		The wrong time was being used to determine what RRSIGs
+			where to be generated when dnssec-policy was in use.
+			[GL #4494]
+
 6282.	[func]		Deprecate AES-based DNS cookies. [GL #4421]
 
 	--- 9.16.45 released ---
