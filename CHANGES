@@ -1,3 +1,8 @@
+6321.	[func]		The 'tls' block was extended with a new
+			'cipher-suites' option that allows setting
+			allowed cipher suites for TLSv1.3.
+			[GL #3504]
+
 6320.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
