@@ -30,6 +30,8 @@ options {
 	recursion no;
 };
 
+trust-anchors { };
+
 zone "." {
 	type master;
 	file "root.db";

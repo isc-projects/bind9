@@ -27,6 +27,8 @@ options {
 	prefetch 4 10;
 };
 
+include "trusted.conf";
+
 server 10.53.0.7 {
 	edns-version 0;
 };

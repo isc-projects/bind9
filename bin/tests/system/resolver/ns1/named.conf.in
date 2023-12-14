@@ -31,6 +31,8 @@ options {
 	attach-cache "globalcache";
 };
 
+trust-anchors { };
+
 server 10.53.0.3 {
 	tcp-only yes;
 };

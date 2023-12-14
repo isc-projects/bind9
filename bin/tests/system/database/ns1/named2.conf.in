@@ -35,6 +35,8 @@ options {
 	dnssec-validation yes;
 };
 
+trust-anchors { };
+
 zone "database" {
 	type primary;
 	database "_builtin empty localhost. marka.isc.org.";

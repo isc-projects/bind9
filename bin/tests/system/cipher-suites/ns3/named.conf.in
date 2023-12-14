@@ -39,6 +39,8 @@ options {
 	dnssec-validation yes;
 };
 
+trust-anchors { };
+
 zone "." {
 	type hint;
 	file "../../_common/root.hint";

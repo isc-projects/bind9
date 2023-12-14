@@ -27,6 +27,8 @@ options {
 	zone-statistics yes;
 };
 
+trust-anchors { };
+
 statistics-channels {
 	inet 10.53.0.3 port @EXTRAPORT1@ allow { any; };
 };
