@@ -1,3 +1,7 @@
+6304.	[bug]		The wrong time was being used to determine what RRSIGs
+			where to be generated when dnssec-policy was in use.
+			[GL #4494]
+
 6303.	[bug]		Dig failed to correctly process a SIGINT received while
 			waiting for a TCP connection to complete. [GL #4138]
 
