@@ -478,7 +478,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 		if (setquerytsig) {
 			isc_buffer_t b;
 			unsigned char hmacname[] = HMACSHA256;
-			unsigned char hmac[32] = {
+			unsigned char hmacvalue[32] = {
 				0x22, 0x4d, 0x58, 0x07, 0x64, 0x8d, 0x14, 0x00,
 				0x9d, 0x8e, 0xfc, 0x1c, 0xd0, 0x49, 0x55, 0xe9,
 				0xcc, 0x90, 0x21, 0x87, 0x3b, 0x5f, 0xaf, 0x5c,
@@ -496,7 +496,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 			isc_buffer_putuint16(&b, 300);	      /* Fudge */
 			isc_buffer_putuint16(&b, 32);	      /* Mac Length */
 			/* Mac */
-			isc_buffer_putmem(&b, hmac, 32);
+			isc_buffer_putmem(&b, hmacvalue, 32);
 			isc_buffer_putuint16(&b, 7674); /* Original Id */
 			isc_buffer_putuint16(&b, 0);	/* Error */
 			isc_buffer_putuint16(&b, 0);	/* Other len */
