@@ -1138,12 +1138,6 @@ dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 		dns_rdata_t private = DNS_RDATA_INIT;
 
 		dns_rdataset_current(&rdataset, &rdata);
-
-		CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, origin,
-					   rdataset.ttl, &rdata, &tuple));
-		CHECK(do_one_tuple(&tuple, db, ver, diff));
-		INSIST(tuple == NULL);
-
 		dns_nsec3param_toprivate(&rdata, &private, privatetype, buf,
 					 sizeof(buf));
 		buf[2] = DNS_NSEC3FLAG_REMOVE;
