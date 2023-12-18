@@ -1772,5 +1772,16 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "check that the startup change from NSEC3 to NSEC is properly signed ($n)"
+ret=0
+$JOURNALPRINT ns3/nsec3-to-nsec.example.db.jnl \
+  | awk 'BEGIN { count=0; ok=0 }
+$1 == "del" && $5 == "SOA" { count++; if (count == 2) { if (ok) { exit(0); } else { exit(1); } } }
+$1 == "add" && $5 == "RRSIG" && $6 == "TYPE65534" { ok=1 }
+' || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
