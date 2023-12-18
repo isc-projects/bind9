@@ -202,15 +202,22 @@ ISC_REFCOUNT_IMPL(controlconnection, conn_free);
 
 static void
 shutdown_listener(controllistener_t *listener) {
+	controlconnection_t *conn = NULL;
+	controlconnection_t *next = NULL;
+
 	/* Don't shutdown the same listener twice */
 	if (listener->shuttingdown) {
 		return;
 	}
 	listener->shuttingdown = true;
 
-	for (controlconnection_t *conn = ISC_LIST_HEAD(listener->connections);
-	     conn != NULL; conn = ISC_LIST_HEAD(listener->connections))
+	for (conn = ISC_LIST_HEAD(listener->connections); conn != NULL;
+	     conn = next)
 	{
+		/*
+		 * 'conn' is likely to be freed by the conn_shutdown() call.
+		 */
+		next = ISC_LIST_NEXT(conn, link);
 		conn_shutdown(conn);
 	}
 
