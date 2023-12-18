@@ -1,3 +1,8 @@
+6302.	[func]		The "trust-anchor-telemetry" statement is no longer
+			marked as experimental. This silences a relevant log
+			message that was emitted even when the feature was
+			explicitly disabled. [GL #4497]
+
 6301.	[bug]		Fix data races with atomic members of the xfrin
 			structure in xfrin_start() and xfrin_send_request()
 			functions. [GL #4493]
