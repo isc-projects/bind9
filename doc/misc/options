@@ -295,7 +295,7 @@ options {
 	transfers-in <integer>;
 	transfers-out <integer>;
 	transfers-per-ns <integer>;
-	trust-anchor-telemetry <boolean>; // experimental
+	trust-anchor-telemetry <boolean>;
 	try-tcp-refresh <boolean>;
 	udp-receive-buffer <integer>;
 	udp-send-buffer <integer>;
@@ -569,7 +569,7 @@ view <string> [ <class> ] {
 	transfer-format ( many-answers | one-answer );
 	transfer-source ( <ipv4_address> | * );
 	transfer-source-v6 ( <ipv6_address> | * );
-	trust-anchor-telemetry <boolean>; // experimental
+	trust-anchor-telemetry <boolean>;
 	trust-anchors { <string> ( static-key | initial-key | static-ds | initial-ds ) <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times
 	trusted-keys { <string> <integer> <integer> <integer> <quoted_string>; ... }; // may occur multiple times, deprecated
 	try-tcp-refresh <boolean>;
