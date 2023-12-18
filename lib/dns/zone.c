@@ -21049,12 +21049,13 @@ do_nsfetch(void *arg) {
 	unsigned int options = DNS_FETCHOPT_UNSHARED | DNS_FETCHOPT_NOCACHED;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
-		return;
+		result = ISC_R_SHUTTINGDOWN;
+		goto cleanup;
 	}
 
 	result = dns_view_getresolver(zone->view, &resolver);
 	if (result != ISC_R_SUCCESS) {
-		return;
+		goto cleanup;
 	}
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(3))) {
@@ -21085,6 +21086,7 @@ do_nsfetch(void *arg) {
 
 	dns_resolver_detach(&resolver);
 
+cleanup:
 	if (result != ISC_R_SUCCESS) {
 		dns_name_t *zname = dns_fixedname_name(&nsfetch->name);
 		bool free_needed;
