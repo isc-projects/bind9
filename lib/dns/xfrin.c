@@ -1260,8 +1260,8 @@ xfrin_start(dns_xfrin_t *xfr) {
 		 * The "SOA before" mode is used, where the SOA request is
 		 * using the same transport as the XFR.
 		 */
-		atomic_init(&xfr->soa_transport_type,
-			    dns_xfrin_gettransporttype(xfr));
+		atomic_store_relaxed(&xfr->soa_transport_type,
+				     dns_xfrin_gettransporttype(xfr));
 	}
 
 	/* Set the maximum timer */
@@ -1552,10 +1552,10 @@ xfrin_send_request(dns_xfrin_t *xfr) {
 		CHECK(add_opt(msg, udpsize, reqnsid, reqexpire));
 	}
 
-	atomic_init(&xfr->nmsg, 0);
-	atomic_init(&xfr->nrecs, 0);
-	atomic_init(&xfr->nbytes, 0);
-	atomic_init(&xfr->start, isc_time_now());
+	atomic_store_relaxed(&xfr->nmsg, 0);
+	atomic_store_relaxed(&xfr->nrecs, 0);
+	atomic_store_relaxed(&xfr->nbytes, 0);
+	atomic_store_relaxed(&xfr->start, isc_time_now());
 
 	msg->id = xfr->id;
 	if (xfr->tsigctx != NULL) {
