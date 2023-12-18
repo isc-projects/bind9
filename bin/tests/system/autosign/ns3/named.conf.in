@@ -167,6 +167,7 @@ zone "nsec3-to-nsec.example" {
 	type primary;
 	file "nsec3-to-nsec.example.db";
 	allow-update { any; };
+	max-journal-size 10M;
 	auto-dnssec maintain;
 };
 
