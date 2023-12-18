@@ -1806,5 +1806,18 @@ n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+echo_i "check that NSEC3 to NSEC builds the NSEC chain first ($n)"
+ret=0
+$JOURNALPRINT ns3/nsec3-to-nsec.example.db.jnl \
+  | awk 'BEGIN { nsec3param=0; nsec=0 }
+$1 == "del" && $5 == "SOA" { if (nsec3param || nsec) { if (nsec3param && !nsec) { exit(1); } else { exit(0); } } }
+$1 == "del" && $5 == "NSEC3PARAM" { nsec3param=1 }
+$1 == "add" && $2 == "nsec3-to-nsec.example." && $5 == "NSEC" { nsec=1 }
+END { if (nsec3param || nsec) { if (nsec3param && !nsec) { exit(1); } else { exit(0); } } else { exit(1); } }
+' || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
