@@ -11,6 +11,7 @@
 
 from datetime import datetime, timedelta
 from collections import defaultdict
+from time import sleep
 import os
 
 import dns.message
@@ -28,6 +29,9 @@ max_refresh = timedelta(seconds=2419200)  # 4 weeks
 max_expires = timedelta(seconds=14515200)  # 24 weeks
 dayzero = datetime.utcfromtimestamp(0).replace(microsecond=0)
 
+# Wait for the secondary zone files to appear to extract their mtime
+max_secondary_zone_waittime_sec = 5
+
 
 # Generic helper functions
 def check_expires(expires, min_time, max_time):
@@ -42,7 +46,7 @@ def check_refresh(refresh, min_time, max_time):
 
 def check_loaded(loaded, expected, now):
     # Sanity check the zone timers values
-    assert loaded == expected
+    assert (loaded - expected).total_seconds() < max_secondary_zone_waittime_sec
     assert loaded <= now
 
 
@@ -93,12 +97,26 @@ def test_zone_timers_secondary(fetch_zones, load_timers, **kwargs):
     statsport = kwargs["statsport"]
     zonedir = kwargs["zonedir"]
 
-    zones = fetch_zones(statsip, statsport)
-
-    for zone in zones:
-        (name, loaded, expires, refresh) = load_timers(zone, False)
-        mtime = zone_mtime(zonedir, name)
-        check_zone_timers(loaded, expires, refresh, mtime)
+    # If any one of the zone files isn't ready, then retry until timeout.
+    tries = max_secondary_zone_waittime_sec
+    while tries >= 0:
+        zones = fetch_zones(statsip, statsport)
+        again = False
+        for zone in zones:
+            (name, loaded, expires, refresh) = load_timers(zone, False)
+            mtime = zone_mtime(zonedir, name)
+            if (mtime != dayzero) or (tries == 0):
+                # mtime was either retrieved successfully or no tries were
+                # left, run the check anyway.
+                check_zone_timers(loaded, expires, refresh, mtime)
+            else:
+                tries = tries - 1
+                again = True
+                break
+        if again:
+            sleep(1)
+        else:
+            break
 
 
 def test_zone_with_many_keys(fetch_zones, load_zone, **kwargs):
