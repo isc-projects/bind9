@@ -14690,7 +14690,9 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	dir = dns_zone_getkeydirectory(zone);
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &version);
+	LOCK(&kasp->lock);
 	result = dns_zone_getdnsseckeys(zone, db, version, now, &keys);
+	UNLOCK(&kasp->lock);
 	if (result != ISC_R_SUCCESS) {
 		if (result != ISC_R_NOTFOUND) {
 			goto cleanup;
@@ -14701,7 +14703,9 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		/*
 		 * Output the DNSSEC status of the key and signing policy.
 		 */
+		LOCK(&kasp->lock);
 		dns_keymgr_status(kasp, &keys, now, &output[0], sizeof(output));
+		UNLOCK(&kasp->lock);
 		CHECK(putstr(text, output));
 	} else if (checkds) {
 		/*
@@ -14713,6 +14717,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
 		isc_result_t ret;
 
+		LOCK(&kasp->lock);
 		if (use_keyid) {
 			result = dns_keymgr_checkds_id(kasp, &keys, dir, now,
 						       when, dspublish, keyid,
@@ -14721,6 +14726,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 			result = dns_keymgr_checkds(kasp, &keys, dir, now, when,
 						    dspublish);
 		}
+		UNLOCK(&kasp->lock);
 
 		switch (result) {
 		case ISC_R_SUCCESS:
@@ -14767,8 +14773,10 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		isc_time_formattimestamp(&timewhen, whenbuf, sizeof(whenbuf));
 		isc_result_t ret;
 
+		LOCK(&kasp->lock);
 		result = dns_keymgr_rollover(kasp, &keys, dir, now, when, keyid,
 					     (unsigned int)algorithm);
+		UNLOCK(&kasp->lock);
 
 		switch (result) {
 		case ISC_R_SUCCESS:
