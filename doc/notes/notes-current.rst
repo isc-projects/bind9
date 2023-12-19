@@ -39,6 +39,9 @@ Bug Fixes
   values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
   :gl:`#4467`
 
+- The speed of loading the configuration for many zones with the same
+  :any:`dnssec-policy` has been improved. :gl:`#4423`
+
 Known Issues
 ~~~~~~~~~~~~
 

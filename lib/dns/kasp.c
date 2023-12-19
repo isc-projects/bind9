@@ -51,7 +51,6 @@ dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp) {
 	kasp->mctx = NULL;
 	isc_mem_attach(mctx, &kasp->mctx);
 	kasp->name = isc_mem_strdup(mctx, name);
-	isc_mutex_init(&kasp->lock);
 	isc_refcount_init(&kasp->references, 1);
 
 	*kaspp = kasp;
@@ -90,7 +89,6 @@ destroy(dns_kasp_t *kasp) {
 	}
 	INSIST(ISC_LIST_EMPTY(kasp->digests));
 
-	isc_mutex_destroy(&kasp->lock);
 	isc_mem_free(kasp->mctx, kasp->name);
 	isc_mem_putanddetach(&kasp->mctx, kasp, sizeof(*kasp));
 }

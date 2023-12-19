@@ -139,15 +139,6 @@
 /*%
  * KASP flags
  */
-#define KASP_LOCK(k)                  \
-	if ((k) != NULL) {            \
-		LOCK((&((k)->lock))); \
-	}
-
-#define KASP_UNLOCK(k)                  \
-	if ((k) != NULL) {              \
-		UNLOCK((&((k)->lock))); \
-	}
 
 /*
  * Default values.
@@ -6095,7 +6086,7 @@ failure:
 
 /*%
  * Find DNSSEC keys used for signing zone with dnssec-policy. Load these keys
- * into 'keys'. Requires KASP to be locked.
+ * into 'keys'.
  */
 isc_result_t
 dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
@@ -7030,7 +7021,6 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		int zsk_count = 0;
 		bool approved;
 
-		KASP_LOCK(kasp);
 		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
@@ -7041,7 +7031,6 @@ signed_with_good_key(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 				zsk_count++;
 			}
 		}
-		KASP_UNLOCK(kasp);
 
 		if (dns_rdatatype_iskeymaterial(type)) {
 			/*
@@ -20250,7 +20239,6 @@ checkds_done(void *arg) {
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &version);
 
-	KASP_LOCK(kasp);
 	LOCK_ZONE(zone);
 	for (key = ISC_LIST_HEAD(zone->checkds_ok); key != NULL;
 	     key = ISC_LIST_NEXT(key, link))
@@ -20343,7 +20331,6 @@ checkds_done(void *arg) {
 		}
 	}
 	UNLOCK_ZONE(zone);
-	KASP_UNLOCK(kasp);
 
 	/* Rekey after checkds. */
 	if (rekey) {
@@ -21321,8 +21308,6 @@ zone_rekey(dns_zone_t *zone) {
 	 */
 	fullsign = DNS_ZONEKEY_OPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
-	KASP_LOCK(kasp);
-
 	dns_zone_lock_keyfiles(zone);
 	result = dns_dnssec_findmatchingkeys(&zone->origin, dir, now, mctx,
 					     &keys);
@@ -21370,13 +21355,10 @@ zone_rekey(dns_zone_t *zone) {
 					   "zone_rekey:dns_dnssec_keymgr "
 					   "failed: %s",
 					   isc_result_totext(result));
-				KASP_UNLOCK(kasp);
 				goto failure;
 			}
 		}
 	}
-
-	KASP_UNLOCK(kasp);
 
 	if (result == ISC_R_SUCCESS) {
 		dns_kasp_digestlist_t digests;
