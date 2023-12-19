@@ -21,6 +21,7 @@ options {
 	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
 	dnssec-validation auto;
+	bindkeys-file "../../../../../bind.keys";
 	minimal-responses no;
 	recursion no;
 	notify yes;
