@@ -1089,8 +1089,8 @@ static isc_result_t
 add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	 dns_dbversion_t *ver, dns_name_t *name, dns_rdatatype_t type,
 	 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-	 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-	 bool keyset_kskonly) {
+	 isc_stdtime_t now, isc_stdtime_t inception, isc_stdtime_t expire,
+	 bool check_ksk, bool keyset_kskonly) {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
 	dns_kasp_t *kasp = dns_zone_getkasp(zone);
@@ -1223,7 +1223,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				continue;
 			} else if (zsk &&
 				   !dst_key_is_signing(keys[i], DST_BOOL_ZSK,
-						       inception, &when))
+						       now, &when))
 			{
 				/*
 				 * This key is not active for zone-signing.
@@ -1381,8 +1381,9 @@ static isc_result_t
 add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 dns_dbversion_t *ver, dns_name_t *name, bool cut,
 		 dns_diff_t *diff, dst_key_t **keys, unsigned int nkeys,
-		 isc_stdtime_t inception, isc_stdtime_t expire, bool check_ksk,
-		 bool keyset_kskonly, unsigned int *sigs) {
+		 isc_stdtime_t now, isc_stdtime_t inception,
+		 isc_stdtime_t expire, bool check_ksk, bool keyset_kskonly,
+		 unsigned int *sigs) {
 	isc_result_t result;
 	dns_dbnode_t *node;
 	dns_rdatasetiter_t *iter;
@@ -1432,7 +1433,7 @@ add_exposed_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			continue;
 		}
 		result = add_sigs(log, zone, db, ver, name, type, diff, keys,
-				  nkeys, inception, expire, check_ksk,
+				  nkeys, now, inception, expire, check_ksk,
 				  keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_iterator;
@@ -1481,7 +1482,7 @@ struct dns_update_state {
 	dns_diff_t work;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys;
-	isc_stdtime_t inception, expire, soaexpire, keyexpire;
+	isc_stdtime_t now, inception, expire, soaexpire, keyexpire;
 	dns_ttl_t nsecttl;
 	bool check_ksk, keyset_kskonly, build_nsec3;
 	enum {
@@ -1527,7 +1528,6 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_difftuple_t *t, *next;
 	bool flag, build_nsec;
 	unsigned int i;
-	isc_stdtime_t now;
 	dns_rdata_soa_t soa;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
@@ -1564,16 +1564,17 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			goto failure;
 		}
 
-		isc_stdtime_get(&now);
-		state->inception = now - 3600; /* Allow for some clock skew. */
-		state->expire = now +
+		isc_stdtime_get(&state->now);
+		state->inception = state->now - 3600; /* Allow for some clock
+							 skew. */
+		state->expire = state->now +
 				dns__jitter_expire(zone, sigvalidityinterval);
-		state->soaexpire = now + sigvalidityinterval;
+		state->soaexpire = state->now + sigvalidityinterval;
 		state->keyexpire = dns_zone_getkeyvalidityinterval(zone);
 		if (state->keyexpire == 0) {
 			state->keyexpire = state->expire;
 		} else {
-			state->keyexpire += now;
+			state->keyexpire += state->now;
 		}
 
 		/*
@@ -1689,8 +1690,8 @@ next_state:
 						log, zone, db, newver, name,
 						type, &state->sig_diff,
 						state->zone_keys, state->nkeys,
-						state->inception, exp,
-						state->check_ksk,
+						state->now, state->inception,
+						exp, state->check_ksk,
 						state->keyset_kskonly));
 					sigs++;
 				}
@@ -1892,9 +1893,10 @@ next_state:
 				CHECK(add_exposed_sigs(
 					log, zone, db, newver, name, cut,
 					&state->sig_diff, state->zone_keys,
-					state->nkeys, state->inception,
-					state->expire, state->check_ksk,
-					state->keyset_kskonly, &sigs));
+					state->nkeys, state->now,
+					state->inception, state->expire,
+					state->check_ksk, state->keyset_kskonly,
+					&sigs));
 			}
 		unlink:
 			ISC_LIST_UNLINK(state->affected.tuples, t, link);
@@ -1970,8 +1972,8 @@ next_state:
 					       dns_rdatatype_nsec,
 					       &state->sig_diff,
 					       state->zone_keys, state->nkeys,
-					       state->inception, state->expire,
-					       state->check_ksk,
+					       state->now, state->inception,
+					       state->expire, state->check_ksk,
 					       state->keyset_kskonly));
 				sigs++;
 			} else {
@@ -2099,9 +2101,10 @@ next_state:
 				CHECK(add_exposed_sigs(
 					log, zone, db, newver, name, cut,
 					&state->sig_diff, state->zone_keys,
-					state->nkeys, state->inception,
-					state->expire, state->check_ksk,
-					state->keyset_kskonly, &sigs));
+					state->nkeys, state->now,
+					state->inception, state->expire,
+					state->check_ksk, state->keyset_kskonly,
+					&sigs));
 				CHECK(dns_nsec3_addnsec3sx(
 					db, newver, name, state->nsecttl,
 					unsecure, privatetype,
@@ -2145,8 +2148,8 @@ next_state:
 					       dns_rdatatype_nsec3,
 					       &state->sig_diff,
 					       state->zone_keys, state->nkeys,
-					       state->inception, state->expire,
-					       state->check_ksk,
+					       state->now, state->inception,
+					       state->expire, state->check_ksk,
 					       state->keyset_kskonly));
 				sigs++;
 			} else {
