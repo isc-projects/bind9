@@ -241,6 +241,22 @@ setownercase(dns_rdataset_t *rdataset, const dns_name_t *name) {
 	}
 }
 
+static const char *
+optotext(dns_diffop_t op) {
+	switch (op) {
+	case DNS_DIFFOP_ADD:
+		return ("add");
+	case DNS_DIFFOP_ADDRESIGN:
+		return ("add-resign");
+	case DNS_DIFFOP_DEL:
+		return ("del");
+	case DNS_DIFFOP_DELRESIGN:
+		return ("del-resign");
+	default:
+		return ("unknown");
+	}
+}
+
 static isc_result_t
 diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 	dns_difftuple_t *t;
@@ -270,6 +286,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 
 		while (t != NULL && dns_name_equal(&t->name, name)) {
 			dns_rdatatype_t type, covers;
+			dns_rdataclass_t rdclass;
 			dns_diffop_t op;
 			dns_rdatalist_t rdl;
 			dns_rdataset_t rds;
@@ -278,6 +295,7 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 
 			op = t->op;
 			type = t->rdata.type;
+			rdclass = t->rdata.rdclass;
 			covers = rdata_covers(&t->rdata);
 
 			/*
@@ -440,6 +458,22 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver, bool warn) {
 					dns_rdataset_disassociate(&ardataset);
 				}
 			} else {
+				if (result == DNS_R_NOTEXACT) {
+					dns_name_format(name, namebuf,
+							sizeof(namebuf));
+					dns_rdatatype_format(type, typebuf,
+							     sizeof(typebuf));
+					dns_rdataclass_format(rdclass, classbuf,
+							      sizeof(classbuf));
+					isc_log_write(
+						DIFF_COMMON_LOGARGS,
+						ISC_LOG_ERROR,
+						"dns_diff_apply: %s/%s/%s: %s "
+						"%s",
+						namebuf, typebuf, classbuf,
+						optotext(op),
+						isc_result_totext(result));
+				}
 				if (dns_rdataset_isassociated(&ardataset)) {
 					dns_rdataset_disassociate(&ardataset);
 				}
