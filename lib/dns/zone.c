@@ -20582,7 +20582,8 @@ failure:
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		    dns_dbversion_t *ver, dns_diff_t *diff, bool sign_all) {
-	dns_difftuple_t *tuple, *newtuple = NULL;
+	dns_difftuple_t *tuple = NULL, *newtuple = NULL, *next = NULL;
+	dns_difftuple_t *addtuple = NULL, *deltuple = NULL;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	bool flag;
@@ -20591,11 +20592,20 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	uint16_t keyid;
 	unsigned char buf[5];
 	dns_name_t *name = dns_db_origin(db);
+	dns_difftuplelist_t add = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t del = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t tuples = ISC_LIST_INITIALIZER;
 
+	/*
+	 * Move non DNSKEY and not DNSSEC DNSKEY records to tuples
+	 * and sort the remaining DNSKEY records to add and del.
+	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
+	     tuple = ISC_LIST_HEAD(diff->tuples))
 	{
 		if (tuple->rdata.type != dns_rdatatype_dnskey) {
+			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
 
@@ -20604,9 +20614,65 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK |
 				     DNS_KEYTYPE_NOAUTH)) != DNS_KEYOWNER_ZONE)
 		{
+			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
 
+		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		switch (tuple->op) {
+		case DNS_DIFFOP_DEL:
+		case DNS_DIFFOP_DELRESIGN:
+			ISC_LIST_APPEND(del, tuple, link);
+			break;
+		case DNS_DIFFOP_ADD:
+		case DNS_DIFFOP_ADDRESIGN:
+			ISC_LIST_APPEND(add, tuple, link);
+			break;
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	/*
+	 * Put the tuples that don't need more processing back onto
+	 * diff->tuples.
+	 */
+	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+
+	/*
+	 * Filter out DNSKEY TTL changes and put them back onto diff->tuples.
+	 */
+	for (deltuple = ISC_LIST_HEAD(del); deltuple != NULL; deltuple = next) {
+		next = ISC_LIST_NEXT(deltuple, link);
+		for (addtuple = ISC_LIST_HEAD(add); addtuple != NULL;
+		     addtuple = ISC_LIST_NEXT(addtuple, link))
+		{
+			int n = dns_rdata_compare(&deltuple->rdata,
+						  &addtuple->rdata);
+			if (n == 0) {
+				ISC_LIST_UNLINK(del, deltuple, link);
+				ISC_LIST_APPEND(diff->tuples, deltuple, link);
+				ISC_LIST_UNLINK(add, addtuple, link);
+				ISC_LIST_APPEND(diff->tuples, addtuple, link);
+				break;
+			}
+		}
+	}
+
+	/*
+	 * Combine any remaining DNSKEY changes together.
+	 */
+	ISC_LIST_APPENDLIST(tuples, add, link);
+	ISC_LIST_APPENDLIST(tuples, del, link);
+
+	/*
+	 * Add private records for keys that have been removed
+	 * or added.
+	 */
+	for (tuple = ISC_LIST_HEAD(tuples); tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link))
+	{
 		dns_rdata_toregion(&tuple->rdata, &r);
 
 		keyid = dst_region_computeid(&r);
@@ -20646,7 +20712,15 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 			INSIST(newtuple == NULL);
 		}
 	}
+
 failure:
+	/*
+	 * Put the DNSKEY changes we cared about back on diff->tuples.
+	 */
+	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+	INSIST(ISC_LIST_EMPTY(add));
+	INSIST(ISC_LIST_EMPTY(del));
+	INSIST(ISC_LIST_EMPTY(tuples));
 	return (result);
 }
 
