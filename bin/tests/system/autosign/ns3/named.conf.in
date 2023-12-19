@@ -261,7 +261,8 @@ zone "nsec3-to-nsec.example" {
 	file "nsec3-to-nsec.example.db";
 	allow-update { any; };
 	inline-signing no;
-	dnssec-policy nsec3;
+	max-journal-size 10M;
+	dnssec-policy autosign;
 };
 
 zone "oldsigs.example" {
