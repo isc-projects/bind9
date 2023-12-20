@@ -1,5 +1,3 @@
-# docutils < 0.19 are required for RHEL 8 and older (but we don't care about these)
-# and by the latest sphinx-rtd-theme (and we care about that one)
 Sphinx==7.2.6
-docutils==0.18.1
-sphinx_rtd_theme==1.3.0
+docutils==0.20.1
+sphinx_rtd_theme==2.0.0
