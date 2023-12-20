@@ -1,3 +1,9 @@
+6398.	[bug]		Fix potential data races in our DoH implementation
+			related to HTTP/2 session object management and
+			endpoints set object management after reconfiguration.
+			We would like to thank Dzintars and Ivo from nic.lv
+			for bringing this to our attention. [GL #4473]
+
 6397.	[bug]		Clear DNS_FETCHOPT_TRYSTALE_ONTIMEOUT when looking for
 			parent NS records needed to get the DS result.
 			[GL #4661]
