@@ -745,8 +745,8 @@ cleanup:
 	return (result);
 }
 
-void
-dns_request_cancel(dns_request_t *request) {
+static void
+request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(request->tid == isc_tid());
 
@@ -757,6 +757,26 @@ dns_request_cancel(dns_request_t *request) {
 
 	req_log(ISC_LOG_DEBUG(3), "%s: request %p", __func__, request);
 	req_sendevent(request, ISC_R_CANCELED); /* call asynchronously */
+}
+
+static void
+req_cancel_cb(void *arg) {
+	dns_request_t *request = arg;
+
+	request_cancel(request);
+	dns_request_unref(request);
+}
+
+void
+dns_request_cancel(dns_request_t *request) {
+	REQUIRE(VALID_REQUEST(request));
+
+	if (request->tid == isc_tid()) {
+		request_cancel(request);
+	} else {
+		dns_request_ref(request);
+		isc_async_run(request->loop, req_cancel_cb, request);
+	}
 }
 
 isc_result_t
@@ -959,6 +979,11 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 
 	request->result = result;
 
+	/*
+	 * Do not call request->cb directly as it introduces a dead lock
+	 * between dns_zonemgr_shutdown and sendtoprimary in lib/dns/zone.c
+	 * zone->lock.
+	 */
 	dns_request_ref(request);
 	isc_async_run(request->loop, req_sendevent_cb, request);
 }
