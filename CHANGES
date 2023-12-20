@@ -32,6 +32,8 @@
 6298.	[bug]		Fix dns_qp_lookup bugs related to the iterator.
 			[GL !8558]
 
+	--- 9.19.19 released ---
+
 6297.	[bug]		Improve LRU cleaning behaviour. [GL #4448]
 
 6296.	[func]		The "resolver-nonbackoff-tries" and
