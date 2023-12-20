@@ -17,8 +17,6 @@ provider libdns {
 	probe xfrin_connected(void *, char *, int);
 	probe xfrin_done_callback_begin(void *, char *, int);
 	probe xfrin_done_callback_end(void *, char *, int);
-	probe xfrin_journal_destroy_begin(void *, char *, int);
-	probe xfrin_journal_destroy_end(void *, char *, int);
 	probe xfrin_read(void *, char *, int);
 	probe xfrin_recv_answer(void *, char *, void *);
 	probe xfrin_recv_done(void *, char *, int);
