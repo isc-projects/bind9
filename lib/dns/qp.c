@@ -2116,6 +2116,17 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 	}
 
 	/*
+	 * Special case: if the search key differs even before the root
+	 * key offset, it means the name desired either precedes or
+	 * follows the entire range of names in the database, and
+	 * popping up the stack won't help us, so just move the
+	 * iterator one step back from the origin and return.
+	 */
+	if (to < branch_key_offset(iter->stack[0])) {
+		dns_qpiter_init(qp, iter);
+		return (prevleaf(iter));
+	}
+	/*
 	 * As long as the branch offset point is after the point where the
 	 * search key differs, we need to branch up and find a better leaf
 	 * node.
@@ -2128,8 +2139,6 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 			 * go to the parent branch and iterate back to the
 			 * predecessor from that point.
 			 */
-			iter->stack[iter->sp] = NULL;
-			iter->sp--;
 			n = prevleaf(iter);
 			leaf = n;
 		} else {

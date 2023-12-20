@@ -755,6 +755,48 @@ ISC_RUN_TEST_IMPL(predecessors) {
 	dns_qp_destroy(&qp);
 }
 
+/*
+ * this is a regression test for an infinite loop that could
+ * previously occur in fix_iterator()
+ */
+ISC_RUN_TEST_IMPL(fixiterator) {
+	dns_qp_t *qp = NULL;
+	const char insert[][32] = { "dynamic.",
+				    "a.dynamic.",
+				    "aaaa.dynamic.",
+				    "cdnskey.dynamic.",
+				    "cds.dynamic.",
+				    "cname.dynamic.",
+				    "dname.dynamic.",
+				    "dnskey.dynamic.",
+				    "ds.dynamic.",
+				    "mx.dynamic.",
+				    "ns.dynamic.",
+				    "nsec.dynamic.",
+				    "private-cdnskey.dynamic.",
+				    "private-dnskey.dynamic.",
+				    "rrsig.dynamic.",
+				    "txt.dynamic.",
+				    "" };
+	int i = 0;
+
+	dns_qp_create(mctx, &string_methods, NULL, &qp);
+	while (insert[i][0] != '\0') {
+		insert_str(qp, insert[i++]);
+	}
+
+	static struct check_predecessors check1[] = {
+		{ "newtext.dynamic.", "mx.dynamic.", DNS_R_PARTIALMATCH, 6 },
+		{ "absent.", "txt.dynamic.", ISC_R_NOTFOUND, 0 },
+		{ "nonexistent.", "txt.dynamic.", ISC_R_NOTFOUND, 0 },
+		{ NULL, NULL, 0, 0 }
+	};
+
+	check_predecessors(qp, check1);
+
+	dns_qp_destroy(&qp);
+}
+
 ISC_TEST_LIST_START
 ISC_TEST_ENTRY(qpkey_name)
 ISC_TEST_ENTRY(qpkey_sort)
@@ -762,6 +804,7 @@ ISC_TEST_ENTRY(qpiter)
 ISC_TEST_ENTRY(partialmatch)
 ISC_TEST_ENTRY(qpchain)
 ISC_TEST_ENTRY(predecessors)
+ISC_TEST_ENTRY(fixiterator)
 ISC_TEST_LIST_END
 
 ISC_TEST_MAIN
