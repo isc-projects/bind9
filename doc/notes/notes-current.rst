@@ -42,6 +42,14 @@ Bug Fixes
 - An RPZ response's SOA record TTL was set to 1 instead of the SOA TTL, if
   ``add-soa`` was used. This has been fixed. :gl:`#3323`
 
+- Potential data races were found in our DoH implementation related
+  to HTTP/2 session object management and endpoints set object
+  management after reconfiguration. These issues have been
+  fixed. :gl:`#4473`
+
+  ISC would like to thank Dzintars and Ivo from nic.lv for bringing
+  this to our attention.
+
 Known Issues
 ~~~~~~~~~~~~
 
