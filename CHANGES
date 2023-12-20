@@ -13,6 +13,8 @@
 6299.	[port]		NetBSD has added 'hmac' to libc which collides with our
 			use of 'hmac'. [GL #4478]
 
+	--- 9.18.21 released ---
+
 6297.	[bug]		Improve LRU cleaning behaviour. [GL #4448]
 
 6296.	[func]		The "resolver-nonbackoff-tries" and
