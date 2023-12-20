@@ -1656,13 +1656,6 @@ get_edns_expire(dns_xfrin_t *xfr, dns_message_t *msg) {
 
 static void
 xfrin_end(dns_xfrin_t *xfr, isc_result_t result) {
-	/* Close the journal. */
-	if (xfr->ixfr.journal != NULL) {
-		LIBDNS_XFRIN_JOURNAL_DESTROY_BEGIN(xfr, xfr->info, result);
-		dns_journal_destroy(&xfr->ixfr.journal);
-		LIBDNS_XFRIN_JOURNAL_DESTROY_END(xfr, xfr->info, result);
-	}
-
 	/* Inform the caller. */
 	if (xfr->done != NULL) {
 		LIBDNS_XFRIN_DONE_CALLBACK_BEGIN(xfr, xfr->info, result);

@@ -1,3 +1,7 @@
+6308.	[bug]		Prevent crashes caused by the zone journal getting
+			destroyed before all changes from an incoming IXFR are
+			written to it. [GL #4496]
+
 6307.	[bug]		Obtain a client->handle reference when calling
 			async_restart. [GL #4439]
 
