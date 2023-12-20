@@ -4,8 +4,7 @@
 6306.	[func]		Log more details about the cause of "not exact" errors.
 			[GL #4500]
 
-6305.	[bug]		Improve load configuration time for many zones with
-			the same dnssec-policy [GL #4423]
+6305.	[placeholder]
 
 6304.	[bug]		The wrong time was being used to determine what RRSIGs
 			where to be generated when dnssec-policy was in use.
