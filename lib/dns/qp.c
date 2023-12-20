@@ -2029,13 +2029,14 @@ add_link(dns_qpchain_t *chain, dns_qpnode_t *node, size_t offset) {
 	INSIST(chain->len <= DNS_NAME_MAXLABELS);
 }
 
-static inline void
+static inline dns_qpnode_t *
 prevleaf(dns_qpiter_t *it) {
 	isc_result_t result = dns_qpiter_prev(it, NULL, NULL, NULL);
 	if (result == ISC_R_NOMORE) {
 		result = dns_qpiter_prev(it, NULL, NULL, NULL);
 	}
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	return (it->stack[it->sp]);
 }
 
 static inline dns_qpnode_t *
@@ -2046,6 +2047,7 @@ greatest_leaf(dns_qpreadable_t qpr, dns_qpnode_t *n, dns_qpiter_t *iter) {
 		iter->stack[++iter->sp] = n;
 		n = ref_ptr(qpr, ref);
 	}
+	iter->stack[++iter->sp] = n;
 	return (n);
 }
 
@@ -2126,12 +2128,13 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 			 * go to the parent branch and iterate back to the
 			 * predecessor from that point.
 			 */
+			iter->stack[iter->sp] = NULL;
 			iter->sp--;
-			prevleaf(iter);
-			n = iter->stack[iter->sp];
+			n = prevleaf(iter);
 			leaf = n;
 		} else {
 			if (is_branch(n)) {
+				iter->sp--;
 				n = greatest_leaf(qp, n, iter);
 			}
 			return (n);
@@ -2155,8 +2158,7 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 			 * wanted; use the iterator to walk back to the
 			 * predecessor.
 			 */
-			prevleaf(iter);
-			n = iter->stack[iter->sp--];
+			n = prevleaf(iter);
 		} else {
 			/*
 			 * The name we want would've been after some twig in
@@ -2177,7 +2179,7 @@ fix_iterator(dns_qpreader_t *qp, dns_qpiter_t *iter, dns_qpnode_t *start,
 		 */
 		if (to <= searchlen && to <= foundlen && search[to] < found[to])
 		{
-			prevleaf(iter);
+			n = prevleaf(iter);
 		}
 	}
 
@@ -2272,6 +2274,8 @@ dns_qp_lookup(dns_qpreadable_t qpr, const dns_name_t *name,
 			 */
 			n = fix_iterator(qp, iter, n, search, searchlen, bit,
 					 offset);
+			iter->stack[iter->sp] = NULL;
+			iter->sp--;
 		} else {
 			/*
 			 * this branch is a dead end, and the predecessor

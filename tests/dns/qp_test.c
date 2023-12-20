@@ -581,6 +581,7 @@ struct check_predecessors {
 	const char *query;
 	const char *predecessor;
 	isc_result_t result;
+	int remaining;
 };
 
 static void
@@ -589,11 +590,12 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 	dns_fixedname_t fn1, fn2;
 	dns_name_t *name = dns_fixedname_initname(&fn1);
 	dns_name_t *pred = dns_fixedname_initname(&fn2);
+	char *namestr = NULL;
 
 	for (int i = 0; check[i].query != NULL; i++) {
 		dns_qpiter_t it;
-		char *predname = NULL;
 
+		namestr = NULL;
 		dns_test_namefromstring(check[i].query, &fn1);
 		result = dns_qp_lookup(qp, name, NULL, &it, NULL, NULL, NULL);
 #if 0
@@ -621,15 +623,35 @@ check_predecessors(dns_qp_t *qp, struct check_predecessors check[]) {
 		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		result = dns_name_tostring(pred, &predname, mctx);
+		result = dns_name_tostring(pred, &namestr, mctx);
 #if 0
 		fprintf(stderr, "... expected predecessor %s got %s\n",
-			check[i].predecessor, predname);
+			check[i].predecessor, namestr);
 #endif
 		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_string_equal(namestr, check[i].predecessor);
 
-		assert_string_equal(predname, check[i].predecessor);
-		isc_mem_free(mctx, predname);
+#if 0
+		fprintf(stderr, "%d: remaining names after %s:\n", i, namestr);
+#endif
+		isc_mem_free(mctx, namestr);
+
+		int j = 0;
+		while (dns_qpiter_next(&it, name, NULL, NULL) == ISC_R_SUCCESS)
+		{
+#if 0
+			result = dns_name_tostring(name, &namestr, mctx);
+			assert_int_equal(result, ISC_R_SUCCESS);
+			fprintf(stderr, "%s%s", j > 0 ? "->" : "", namestr);
+			isc_mem_free(mctx, namestr);
+#endif
+			j++;
+		}
+#if 0
+		fprintf(stderr, "\n...expected %d got %d\n",
+			check[i].remaining, j);
+#endif
+		assert_int_equal(j, check[i].remaining);
 	}
 }
 
@@ -650,40 +672,40 @@ ISC_RUN_TEST_IMPL(predecessors) {
 
 	/* first check: no root label in the database */
 	static struct check_predecessors check1[] = {
-		{ ".", "moops.", ISC_R_NOTFOUND },
-		{ "a.", "moops.", ISC_R_SUCCESS },
-		{ "b.a.", "a.", ISC_R_SUCCESS },
-		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
-		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
-		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
-		{ "d.c.", "c.b.b.", ISC_R_NOTFOUND },
-		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
-		{ "a.b.c.e.f.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "z.y.x.", "moops.", ISC_R_NOTFOUND },
-		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
-		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
-		{ "0.b.c.d.e.", "x.k.c.d.", ISC_R_NOTFOUND },
-		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND },
-		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "moor.", "moops.", ISC_R_NOTFOUND },
-		{ "mopbop.", "moops.", ISC_R_NOTFOUND },
-		{ "moppop.", "moops.", ISC_R_NOTFOUND },
-		{ "mopps.", "moops.", ISC_R_NOTFOUND },
-		{ "mopzop.", "moops.", ISC_R_NOTFOUND },
-		{ "mop.", "moops.", ISC_R_NOTFOUND },
-		{ "monbop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "monpop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "monps.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "monzop.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "moop.", "moon.", ISC_R_NOTFOUND },
-		{ "moopser.", "moops.", ISC_R_NOTFOUND },
-		{ "monky.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "monkey.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ "monker.", "a.b.c.d.e.", ISC_R_NOTFOUND },
-		{ NULL, NULL, 0 }
+		{ ".", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "a.", "moops.", ISC_R_SUCCESS, 0 },
+		{ "b.a.", "a.", ISC_R_SUCCESS, 14 },
+		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS, 11 },
+		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH, 14 },
+		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH, 11 },
+		{ "d.c.", "c.b.b.", ISC_R_NOTFOUND, 9 },
+		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH, 12 },
+		{ "a.b.c.e.f.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "z.y.x.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH, 6 },
+		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH, 6 },
+		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH, 7 },
+		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH, 11 },
+		{ "0.b.c.d.e.", "x.k.c.d.", ISC_R_NOTFOUND, 6 },
+		{ "b.d.", "c.b.b.", ISC_R_NOTFOUND, 9 },
+		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "moor.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "mopbop.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "moppop.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "mopps.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "mopzop.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "mop.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "monbop.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "monpop.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "monps.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "monzop.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "mon.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "moop.", "moon.", ISC_R_NOTFOUND, 1 },
+		{ "moopser.", "moops.", ISC_R_NOTFOUND, 0 },
+		{ "monky.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "monkey.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ "monker.", "a.b.c.d.e.", ISC_R_NOTFOUND, 5 },
+		{ NULL, NULL, 0, 0 }
 	};
 
 	check_predecessors(qp, check1);
@@ -693,39 +715,39 @@ ISC_RUN_TEST_IMPL(predecessors) {
 	insert_str(qp, root);
 
 	static struct check_predecessors check2[] = {
-		{ ".", "moops.", ISC_R_SUCCESS },
-		{ "a.", ".", ISC_R_SUCCESS },
-		{ "b.a.", "a.", ISC_R_SUCCESS },
-		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS },
-		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH },
-		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
-		{ "d.c.", "c.b.b.", DNS_R_PARTIALMATCH },
-		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH },
-		{ "a.b.c.e.f.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "z.y.x.", "moops.", DNS_R_PARTIALMATCH },
-		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH },
-		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH },
-		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH },
-		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "moor.", "moops.", DNS_R_PARTIALMATCH },
-		{ "mopbop.", "moops.", DNS_R_PARTIALMATCH },
-		{ "moppop.", "moops.", DNS_R_PARTIALMATCH },
-		{ "mopps.", "moops.", DNS_R_PARTIALMATCH },
-		{ "mopzop.", "moops.", DNS_R_PARTIALMATCH },
-		{ "mop.", "moops.", DNS_R_PARTIALMATCH },
-		{ "monbop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "monpop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "monps.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "monzop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "moop.", "moon.", DNS_R_PARTIALMATCH },
-		{ "moopser.", "moops.", DNS_R_PARTIALMATCH },
-		{ "monky.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "monkey.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ "monker.", "a.b.c.d.e.", DNS_R_PARTIALMATCH },
-		{ NULL, NULL, 0 }
+		{ ".", "moops.", ISC_R_SUCCESS, 0 },
+		{ "a.", ".", ISC_R_SUCCESS, 15 },
+		{ "b.a.", "a.", ISC_R_SUCCESS, 14 },
+		{ "b.", "e.d.c.b.a.", ISC_R_SUCCESS, 11 },
+		{ "aaa.a.", "a.", DNS_R_PARTIALMATCH, 14 },
+		{ "ddd.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH, 11 },
+		{ "d.c.", "c.b.b.", DNS_R_PARTIALMATCH, 9 },
+		{ "1.2.c.b.a.", "c.b.a.", DNS_R_PARTIALMATCH, 12 },
+		{ "a.b.c.e.f.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "z.y.x.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "w.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH, 6 },
+		{ "z.z.z.z.k.c.d.", "x.k.c.d.", DNS_R_PARTIALMATCH, 6 },
+		{ "w.k.c.d.", "a.b.c.d.", DNS_R_PARTIALMATCH, 7 },
+		{ "d.a.", "e.d.c.b.a.", DNS_R_PARTIALMATCH, 11 },
+		{ "0.b.c.d.e.", "x.k.c.d.", DNS_R_PARTIALMATCH, 6 },
+		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "moor.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "mopbop.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "moppop.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "mopps.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "mopzop.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "mop.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "monbop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "monpop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "monps.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "monzop.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "mon.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "moop.", "moon.", DNS_R_PARTIALMATCH, 1 },
+		{ "moopser.", "moops.", DNS_R_PARTIALMATCH, 0 },
+		{ "monky.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "monkey.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ "monker.", "a.b.c.d.e.", DNS_R_PARTIALMATCH, 5 },
+		{ NULL, NULL, 0, 0 }
 	};
 
 	check_predecessors(qp, check2);
