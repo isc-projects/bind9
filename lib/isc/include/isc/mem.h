@@ -184,7 +184,33 @@ extern unsigned int isc_mem_defaultflags;
 	} while (0)
 
 /*@{*/
+/*
+ * This is a little hack to help with dynamic link order,
+ * see https://github.com/jemalloc/jemalloc/issues/2566
+ * for more information.
+ */
+#if HAVE_JEMALLOC
+#include <jemalloc/jemalloc.h>
+
+extern volatile void *isc__mem_malloc;
+
+#ifndef CMM_ACCESS_ONCE
+/*
+ * This macro has been borrowed from Userspace-RCU to ensure the access
+ * to isc__mem_malloc will not be optimized away by the compiler.
+ */
+#define CMM_ACCESS_ONCE(x) (*(__volatile__ __typeof__(x) *)&(x))
+#endif
+
+#define isc_mem_create(cp)                                            \
+	{                                                             \
+		ISCMEMFUNC(create)((cp)_ISC_MEM_FILELINE);            \
+		isc__mem_malloc = mallocx;                            \
+		ISC_INSIST(CMM_ACCESS_ONCE(isc__mem_malloc) != NULL); \
+	}
+#else
 #define isc_mem_create(cp) ISCMEMFUNC(create)((cp)_ISC_MEM_FILELINE)
+#endif
 void ISCMEMFUNC(create)(isc_mem_t **_ISC_MEM_FLARG);
 
 /*!<
