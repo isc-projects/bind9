@@ -1,3 +1,7 @@
+6326.	[func]		Add workaround to enforce dynamic linker to pull
+			jemalloc earlier than libc to ensure all memory
+			allocations are done via jemalloc. [GL #4404]
+
 6325.	[func]		Expose the TCP client count in statistics channel.
 			[GL #4425]
 
