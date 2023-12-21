@@ -196,6 +196,14 @@ $KEYGEN -q -a $DEFAULT_ALGORITHM $zone >kg.out 2>&1 || dumpit kg.out
 $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile >s.out || dumpit s.out
 
 #
+# NSEC3->NSEC3 transition test zone.
+#
+setup nsec3-to-nsec3.example
+$KEYGEN -q -a $DEFAULT_ALGORITHM -fk $zone >kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $DEFAULT_ALGORITHM $zone >kg.out 2>&1 || dumpit kg.out
+$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile >s.out || dumpit s.out
+
+#
 # Introducing a pre-published key test.
 #
 setup prepub.example

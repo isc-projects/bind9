@@ -7506,11 +7506,6 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 	}
 
 	/*
-	 * Preserve the existing ttl.
-	 */
-	ttl = rdataset.ttl;
-
-	/*
 	 * Delete all NSEC3PARAM records which match that in nsec3chain.
 	 */
 	for (result = dns_rdataset_first(&rdataset); result == ISC_R_SUCCESS;
@@ -7526,6 +7521,16 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 		    memcmp(nsec3param.salt, chain->nsec3param.salt,
 			   nsec3param.salt_length))
 		{
+			/*
+			 * If the SOA minimum is different to the current TTL,
+			 * delete the record.  We will re-add it with the new
+			 * TTL below.
+			 */
+			if (rdataset.ttl != ttl) {
+				CHECK(update_one_rr(db, ver, diff,
+						    DNS_DIFFOP_DEL, name,
+						    rdataset.ttl, &rdata));
+			}
 			dns_rdata_reset(&rdata);
 			continue;
 		}
@@ -7536,6 +7541,34 @@ fixup_nsec3param(dns_db_t *db, dns_dbversion_t *ver, dns_nsec3chain_t *chain,
 	}
 	if (result != ISC_R_NOMORE) {
 		goto failure;
+	}
+
+	/*
+	 * Restore any NSEC3PARAM records that we deleted to change the TTL.
+	 */
+	if (rdataset.ttl != ttl) {
+		for (result = dns_rdataset_first(&rdataset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(&rdataset))
+		{
+			dns_rdataset_current(&rdataset, &rdata);
+			CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+
+			if (nsec3param.hash != chain->nsec3param.hash ||
+			    (active && nsec3param.flags != 0) ||
+			    nsec3param.iterations !=
+				    chain->nsec3param.iterations ||
+			    nsec3param.salt_length !=
+				    chain->nsec3param.salt_length ||
+			    memcmp(nsec3param.salt, chain->nsec3param.salt,
+				   nsec3param.salt_length))
+			{
+				CHECK(update_one_rr(db, ver, diff,
+						    DNS_DIFFOP_ADD, name, ttl,
+						    &rdata));
+			}
+			dns_rdata_reset(&rdata);
+		}
 	}
 
 	dns_rdataset_disassociate(&rdataset);

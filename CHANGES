@@ -1,3 +1,11 @@
+6312.	[bug]		Conversion from NSEC3 signed to NSEC signed could
+			temporarily put the zone into a state where it was
+			treated as unsigned until the NSEC chain was built.
+			Additionally conversion from one set of NSEC3 parameters
+			to another could also temporarily put the zone into a
+			state where it was treated as unsigned until the new
+			NSEC3 chain was built. [GL #1794] [GL #4495]
+
 6311.	[func]		Zone content checks are now disabled by default
 			when running named-compilezone. named-checkzone
 			can still be used for checking zone integrity,

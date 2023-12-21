@@ -890,7 +890,8 @@ checkprivate private.secure.example 10.53.0.3 2 || ret=1 # pre-signed
 checkprivate nsec3.example 10.53.0.3 || ret=1
 checkprivate nsec3.nsec3.example 10.53.0.3 || ret=1
 checkprivate nsec3.optout.example 10.53.0.3 || ret=1
-checkprivate nsec3-to-nsec.example 10.53.0.3 2 || ret=1 # automatically removed
+checkprivate nsec3-to-nsec.example 10.53.0.3 2 || ret=1  # automatically removed
+checkprivate nsec3-to-nsec3.example 10.53.0.3 2 || ret=1 # automatically removed
 if $SHELL ../testcrypto.sh -q RSASHA1; then
   checkprivate nsec-only.example 10.53.0.3 || ret=1
 fi
@@ -1332,6 +1333,33 @@ $1 == "del" && $5 == "SOA" { if (private || rrsig) { if (private == rrsig) { exi
 $1 == "add" && $5 == "TYPE65534" { private=1 }
 $1 == "add" && $5 == "RRSIG" && $6 == "TYPE65534" { rrsig=1 }
 END { if (private || rrsig) { if (private == rrsig) { exit(0); } else { exit(1); } } else { exit (1); } }
+' || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "check that NSEC3 to NSEC builds the NSEC chain first ($n)"
+ret=0
+$JOURNALPRINT ns3/nsec3-to-nsec.example.db.jnl \
+  | awk 'BEGIN { nsec3param=0; nsec=0 }
+$1 == "del" && $5 == "SOA" { if (nsec3param || nsec) { if (nsec3param && !nsec) { exit(1); } else { exit(0); } } }
+$1 == "del" && $5 == "NSEC3PARAM" { nsec3param=1 }
+$1 == "add" && $2 == "nsec3-to-nsec.example." && $5 == "NSEC" { nsec=1 }
+END { if (nsec3param || nsec) { if (nsec3param && !nsec) { exit(1); } else { exit(0); } } else { exit(1); } }
+' || ret=1
+n=$((n + 1))
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "check that NSEC3 to NSEC3 builds the new NSEC3 chain first ($n)"
+ret=0
+$JOURNALPRINT ns3/nsec3-to-nsec3.example.db.jnl \
+  | awk 'BEGIN { addnsec3param=0; delnsec3param=0; nsec3=0 }
+$1 == "del" && $5 == "SOA" { if (delnsec3param || nsec3 || addnsec3param) { if (delnsec3param && (!nsec3 || !addnsec3param)) { exit(1); } else { exit(0); } } }
+$1 == "del" && $5 == "NSEC3PARAM" { delnsec3param=1 }
+$1 == "add" && $5 == "NSEC3PARAM" { addnsec3param=1 }
+$1 == "add" && $5 == "NSEC3" { nsec3=1 }
+END { if (delnsec3param || nsec3 || addnsec3param) { if (delnsec3param && (!nsec3 || !addnsec3param)) { exit(1); } else { exit(0); } } else { exit(1); } }
 ' || ret=1
 n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
