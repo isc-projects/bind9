@@ -88,6 +88,7 @@ bool dochecksrv = false;
 bool docheckns = false;
 #endif /* if CHECK_LOCAL */
 dns_zoneopt_t zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_CHECKMX |
+			     DNS_ZONEOPT_CHECKDUPRR | DNS_ZONEOPT_CHECKSPF |
 			     DNS_ZONEOPT_MANYERRORS | DNS_ZONEOPT_CHECKNAMES |
 			     DNS_ZONEOPT_CHECKINTEGRITY |
 #if CHECK_SIBLING

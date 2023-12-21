@@ -147,15 +147,12 @@ main(int argc, char **argv) {
 		UNREACHABLE();
 	}
 
-	/* Compilation specific defaults */
+	/* When compiling, disable checks by default */
 	if (progmode == progmode_compile) {
-		zone_options |= (DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_FATALNS |
-				 DNS_ZONEOPT_CHECKSPF | DNS_ZONEOPT_CHECKDUPRR |
-				 DNS_ZONEOPT_CHECKNAMES |
-				 DNS_ZONEOPT_CHECKNAMESFAIL |
-				 DNS_ZONEOPT_CHECKWILDCARD);
-	} else {
-		zone_options |= (DNS_ZONEOPT_CHECKDUPRR | DNS_ZONEOPT_CHECKSPF);
+		zone_options = 0;
+		docheckmx = false;
+		docheckns = false;
+		dochecksrv = false;
 	}
 
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)

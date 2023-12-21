@@ -1,3 +1,11 @@
+6311.	[func]		Zone content checks are now disabled by default
+			when running named-compilezone. named-checkzone
+			can still be used for checking zone integrity,
+			or the former checks in named-compilezone can be
+			re-enabled by using "named-compilezone -i full
+			-k fail -n fail -r warn -m warn -M warn -S warn
+			-T warn -W warn -C check-svcb:fail". [GL #4364]
+
 6310.	[bug]		Memory leak in zone.c:sign_zone. When named signed a
 			zone it could leak dst_keys due to a misplaced
 			'continue'. [GL #4488]
