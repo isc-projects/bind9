@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import shutil
 from typing import Any, Optional
 
 import dns.rcode
@@ -95,3 +96,26 @@ def zones_equal(
                 )
                 assert found_rdataset
                 assert found_rdataset.ttl == rdataset.ttl
+
+
+def is_executable(cmd: str, errmsg: str) -> None:
+    executable = shutil.which(cmd)
+    assert executable is not None, errmsg
+
+
+def nxdomain(message: dns.message.Message) -> None:
+    rcode(message, dns.rcode.NXDOMAIN)
+
+
+def single_question(message: dns.message.Message) -> None:
+    assert len(message.question) == 1, str(message)
+
+
+def empty_answer(message: dns.message.Message) -> None:
+    assert not message.answer, str(message)
+
+
+def is_response_to(response: dns.message.Message, query: dns.message.Message) -> None:
+    single_question(response)
+    single_question(query)
+    assert query.is_response(response), str(response)
