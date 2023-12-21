@@ -24,6 +24,8 @@
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/rdataclass.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
 #include <dns/time.h>
 
 #include "dnssectool.h"
@@ -436,19 +438,34 @@ output:
 	}
 }
 
+static void
+print_rdata(dns_rdataset_t *rrset) {
+	isc_buffer_t target;
+	isc_region_t r;
+	isc_result_t ret;
+	char buf[4096];
+
+	isc_buffer_init(&target, buf, sizeof(buf));
+	ret = dns_rdataset_totext(rrset, name, false, false, &target);
+	if (ret != ISC_R_SUCCESS) {
+		fatal("failed to print rdata");
+	}
+	isc_buffer_usedregion(&target, &r);
+	fprintf(stdout, "%.*s", (int)r.length, (char *)r.base);
+}
+
 static isc_stdtime_t
-print_dnskey(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
-	     isc_stdtime_t inception, isc_stdtime_t *next_inception) {
+print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
+	      isc_stdtime_t inception, isc_stdtime_t next_inception) {
 	bool ksk = dns_kasp_key_ksk(kaspkey);
 	bool zsk = dns_kasp_key_zsk(kaspkey);
 	char algstr[DNS_SECALG_FORMATSIZE];
-	char classstr[10];
-	char keystr[DST_KEY_MAXSIZE];
-	char pubstr[DST_KEY_MAXTEXTSIZE];
 	char rolestr[4];
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
-	dst_key_t *key = NULL;
-	isc_stdtime_t next_bundle = *next_inception;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	isc_result_t ret = ISC_R_SUCCESS;
+	isc_stdtime_t next_bundle = next_inception;
 
 	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
 	dns_secalg_format(dns_kasp_key_algorithm(kaspkey), algstr,
@@ -462,15 +479,14 @@ print_dnskey(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	}
 
 	/* Fetch matching key pair. */
+	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
+	dns_rdatalist_init(rdatalist);
+	rdatalist->rdclass = dns_rdataclass_in;
+	rdatalist->type = dns_rdatatype_dnskey;
+	rdatalist->ttl = ttl;
 	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(*keys); dk != NULL;
 	     dk = ISC_LIST_NEXT(dk, link))
 	{
-		dns_rdata_t rdata = DNS_RDATA_INIT;
-		isc_buffer_t classbuf;
-		isc_buffer_t keybuf;
-		isc_buffer_t pubbuf;
-		isc_region_t r;
-		isc_result_t ret;
 		isc_stdtime_t pub = 0, del = 0;
 
 		(void)dst_key_gettime(dk->key, DST_TIME_PUBLISH, &pub);
@@ -493,47 +509,42 @@ print_dnskey(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 		if (del != 0 && inception >= del) {
 			continue;
 		}
-		/* Found matching key pair. */
-		key = dk->key;
-		/* Print DNSKEY record. */
-		isc_buffer_init(&classbuf, classstr, sizeof(classstr));
-		isc_buffer_init(&keybuf, keystr, sizeof(keystr));
-		isc_buffer_init(&pubbuf, pubstr, sizeof(pubstr));
-		CHECK(dst_key_todns(key, &keybuf));
-		isc_buffer_usedregion(&keybuf, &r);
-		dns_rdata_fromregion(&rdata, dst_key_class(key),
+		/* Found matching key pair, add DNSKEY record to RRset. */
+		isc_buffer_t buf;
+		isc_buffer_t *newbuf = NULL;
+		dns_rdata_t *rdata = NULL;
+		isc_region_t r;
+		unsigned char rdatabuf[DST_KEY_MAXSIZE];
+
+		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		dns_rdata_init(rdata);
+		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
+		CHECK(dst_key_todns(dk->key, &buf));
+		isc_buffer_usedregion(&buf, &r);
+		isc_buffer_allocate(mctx, &newbuf, r.length);
+		isc_buffer_putmem(newbuf, r.base, r.length);
+		isc_buffer_usedregion(newbuf, &r);
+		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_dnskey, &r);
-		CHECK(dns_rdata_totext(&rdata, (dns_name_t *)NULL, &pubbuf));
-		CHECK(dns_rdataclass_totext(dst_key_class(key), &classbuf));
-		CHECK(dns_name_print(dst_key_name(key), stdout));
-		fprintf(stdout, " %u ", ttl);
-		isc_buffer_usedregion(&classbuf, &r);
-		if ((unsigned int)fwrite(r.base, 1, r.length, stdout) !=
-		    r.length)
-		{
-			goto fail;
-		}
-		fprintf(stdout, " DNSKEY ");
-		isc_buffer_usedregion(&pubbuf, &r);
-		if ((unsigned int)fwrite(r.base, 1, r.length, stdout) !=
-		    r.length)
-		{
-			goto fail;
-		}
-		fputc('\n', stdout);
-		fflush(stdout);
+		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	}
-	/* No key pair found. */
-	if (key == NULL) {
+	/* Error if no key pair found. */
+	if (ISC_LIST_EMPTY(rdatalist->rdata)) {
 		fatal("no %s/%s %s key pair found for bundle %s", namestr,
 		      algstr, rolestr, timestr);
 	}
 
-	return (next_bundle);
+	/* All good, print DNSKEY RRset. */
+	dns_rdatalist_tordataset(rdatalist, &rdataset);
+	print_rdata(&rdataset);
 
 fail:
-	fatal("failed to print %s/%s %s key pair found for bundle %s", namestr,
-	      algstr, rolestr, timestr);
+	if (ret != ISC_R_SUCCESS) {
+		fatal("failed to print %s/%s %s key pair found for bundle %s",
+		      namestr, algstr, rolestr, timestr);
+	}
+
+	return (next_bundle);
 }
 
 static void
@@ -583,6 +594,7 @@ keygen(ksr_ctx_t *ksr) {
 
 static void
 request(ksr_ctx_t *ksr) {
+	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	dns_dnsseckeylist_t keys;
 	dns_kasp_t *kasp = NULL;
 	isc_stdtime_t next = 0;
@@ -599,7 +611,6 @@ request(ksr_ctx_t *ksr) {
 	/* Create request */
 	inception = ksr->start;
 	while (inception <= ksr->end) {
-		char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 		char utc[sizeof("YYYYMMDDHHSSMM")];
 		isc_buffer_t b;
 		isc_region_t r;
@@ -613,8 +624,7 @@ request(ksr_ctx_t *ksr) {
 			      isc_result_totext(ret));
 		}
 		isc_buffer_usedregion(&b, &r);
-
-		fprintf(stdout, ";; KSR %s - bundle %.*s (%s)\n", namestr,
+		fprintf(stdout, ";; KeySigningRequest 1.0 %.*s (%s)\n",
 			(int)r.length, r.base, timestr);
 
 		next = ksr->end + 1;
@@ -629,11 +639,16 @@ request(ksr_ctx_t *ksr) {
 			 * or withdrawal of a key that is after the current
 			 * inception.
 			 */
-			next = print_dnskey(kk, ksr->ttl, &keys, inception,
-					    &next);
+			next = print_dnskeys(kk, ksr->ttl, &keys, inception,
+					     next);
 		}
 		inception = next;
 	}
+
+	isc_stdtime_tostring(ksr->now, timestr, sizeof(timestr));
+	fprintf(stdout, ";; KeySigningRequest generated at %s by %s\n", timestr,
+		PACKAGE_VERSION);
+
 	/* Cleanup */
 	cleanup(&keys, kasp);
 }

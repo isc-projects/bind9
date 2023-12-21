@@ -16,9 +16,11 @@ set -e
 rm -f ./*.ksk*
 rm -f ./*.zsk*
 rm -f ./created.out
+rm -f ./footer.*
 rm -f ./keygen.out.*
 rm -f ./named.conf
 rm -f ./now.out
+rm -rf ./offline
 rm -f ./python.out
 rm -f ./settime.out.*
 rm -f ./K*

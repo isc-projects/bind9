@@ -188,21 +188,26 @@ ksr common -i $now -e +1y request common.test > ksr.request.out.$n 2>&1 || ret=1
 # Bundle 1: KSK + ZSK1
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" > ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" > ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
 # Bundle 2: KSK + ZSK1 + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 print_dnskeys common.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 3: KSK + ZSK2
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >> ksr.request.expect.$n
+# Footer
+cp ksr.request.expect.$n ksr.request.expect.base
+grep ";; KeySigningRequest generated at" ksr.request.out.$n > footer.$n || ret=1
+cat footer.$n >> ksr.request.expect.$n
+# Check if request output is the same as expected.
 diff ksr.request.out.$n ksr.request.expect.$n > /dev/null || ret=1
 cp ksr.request.expect.$n ksr.request.expect
 test "$ret" -eq 0 || echo_i "failed"
@@ -253,7 +258,10 @@ echo_i "check that 'dnssec-ksr request' creates correct KSR if the interval is s
 ret=0
 ksr common -i $now -e +1y request common.test > ksr.request.out.$n 2>&1 || ret=1
 # Same as earlier.
-diff ksr.request.out.$n ksr.request.expect > /dev/null || ret=1
+cp ksr.request.expect.base ksr.request.expect.$n
+grep ";; KeySigningRequest generated at" ksr.request.out.$n > footer.$n || ret=1
+cat footer.$n >> ksr.request.expect.$n
+diff ksr.request.out.$n ksr.request.expect.$n > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -261,31 +269,35 @@ n=$((n+1))
 echo_i "check that 'dnssec-ksr request' creates correct KSR with new interval ($n)"
 ret=0
 ksr common -i $now -e +2y request common.test > ksr.request.out.$n 2>&1 || ret=1
-cp ksr.request.expect ksr.request.expect.$n
+cp ksr.request.expect.base ksr.request.expect.$n
 # Bundle 4: KSK + ZSK2 + ZSK3
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 print_dnskeys common.test 2 3 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 5: KSK + ZSK3
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3 >> ksr.request.expect.$n
 # Bundle 6: KSK + ZSK3 + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 print_dnskeys common.test 3 4 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect
 # Bundle 7: KSK + ZSK4
 key=$(cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk3.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
-echo ";; KSR common.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat common.test.ksk1 >> ksr.request.expect.$n
 cat common.test.$DEFAULT_ALGORITHM_NUMBER.zsk4 >> ksr.request.expect.$n
+# Footer
+cp ksr.request.expect.$n ksr.request.expect.base
+grep ";; KeySigningRequest generated at" ksr.request.out.$n > footer.$n || ret=1
+cat footer.$n >> ksr.request.expect.$n
 diff ksr.request.out.$n ksr.request.expect.$n > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -340,9 +352,12 @@ ret=0
 ksr unlimited -i $created -e +10y request unlimited.test > ksr.request.out.$n 2>&1 || ret=1
 # Only one bundle: KSK + ZSK
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
-echo ";; KSR unlimited.test - bundle $inception" > ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" > ksr.request.expect.$n
 cat unlimited.test.ksk1 >> ksr.request.expect.$n
 cat unlimited.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
+# Footer
+grep ";; KeySigningRequest generated at" ksr.request.out.$n > footer.$n || ret=1
+cat footer.$n >> ksr.request.expect.$n
 diff ksr.request.out.$n ksr.request.expect.$n > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -390,7 +405,7 @@ ksr two-tone -i $created -e +6mo request two-tone.test > ksr.request.out.$n 2>&1
 # Bundle 1: KSK-A1, KSK-B1, ZSK-A1, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Generated" | cut -d' ' -f 2-)
-echo ";; KSR two-tone.test - bundle $inception" > ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" > ksr.request.expect.$n
 cat two-tone.test.ksk1 >> ksr.request.expect.$n
 cat two-tone.test.ksk2 >> ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
@@ -398,7 +413,7 @@ cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
 # Bundle 2: KSK-A1, KSK-B1, ZSK-A1 + ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
-echo ";; KSR two-tone.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat two-tone.test.ksk1 >> ksr.request.expect.$n
 cat two-tone.test.ksk2 >> ksr.request.expect.$n
 print_dnskeys two-tone.test 1 2 $DEFAULT_ALGORITHM_NUMBER ksr.keygen.out.expect.$DEFAULT_ALGORITHM_NUMBER >> ksr.request.expect.$n
@@ -406,7 +421,7 @@ cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
 # Bundle 3: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1
 key=$(cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
-echo ";; KSR two-tone.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat two-tone.test.ksk1 >> ksr.request.expect.$n
 cat two-tone.test.ksk2 >> ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >> ksr.request.expect.$n
@@ -414,7 +429,7 @@ cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1 >> ksr.request.expect.$n
 # Bundle 4: KSK-A1, KSK-B1, ZSK-A2, ZSK-B1 + ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2.id)
 inception=$(cat $key.state | grep "Published" | cut -d' ' -f 2-)
-echo ";; KSR two-tone.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat two-tone.test.ksk1 >> ksr.request.expect.$n
 cat two-tone.test.ksk2 >> ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >> ksr.request.expect.$n
@@ -422,11 +437,14 @@ print_dnskeys two-tone.test 1 2 $ALTERNATIVE_ALGORITHM_NUMBER ksr.keygen.out.exp
 # Bundle 5: KSK-A1, KSK-B1, ZSK-A2, ZSK-B2
 key=$(cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk1.id)
 inception=$(cat $key.state | grep "Removed" | cut -d' ' -f 2-)
-echo ";; KSR two-tone.test - bundle $inception" >> ksr.request.expect.$n
+echo ";; KeySigningRequest 1.0 $inception" >> ksr.request.expect.$n
 cat two-tone.test.ksk1 >> ksr.request.expect.$n
 cat two-tone.test.ksk2 >> ksr.request.expect.$n
 cat two-tone.test.$DEFAULT_ALGORITHM_NUMBER.zsk2 >> ksr.request.expect.$n
 cat two-tone.test.$ALTERNATIVE_ALGORITHM_NUMBER.zsk2 >> ksr.request.expect.$n
+# Footer
+grep ";; KeySigningRequest generated at" ksr.request.out.$n > footer.$n || ret=1
+cat footer.$n >> ksr.request.expect.$n
 # Check the KSR request against the expected request.
 diff ksr.request.out.$n ksr.request.expect.$n > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
