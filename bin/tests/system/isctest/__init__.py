@@ -10,4 +10,7 @@
 # information regarding copyright ownership.
 
 from . import check
+from . import instance
 from . import query
+from . import rndc
+from . import watchlog
