@@ -41,7 +41,7 @@ set_zone_policy() {
   POLICY=$2
   NUM_KEYS=$3
   DNSKEY_TTL=$4
-  KEYFILE_TTL=${5:-$4}
+  KEYFILE_TTL=$4
   # The CDS digest type in these tests are all the default,
   # which is SHA-256 (2).
   CDS_SHA256="yes"
