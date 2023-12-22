@@ -13,4 +13,4 @@ from . import check
 from . import instance
 from . import query
 from . import rndc
-from . import watchlog
+from . import log
