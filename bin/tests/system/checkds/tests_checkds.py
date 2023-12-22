@@ -489,20 +489,16 @@ def test_checkds(servers, params):
     # Wait until the provided zone is signed and then verify its DNSSEC data.
     zone_check(servers["ns9"], params.zone)
 
-    # Wait until all the expected log lines are found in the log file for the
-    # provided server.
+    # Wait up to 10 seconds until all the expected log lines are found in the
+    # log file for the provided server.  Rekey every second if necessary.
+    time_remaining = 10
     for log_string in params.logs_to_wait_for:
-        for _ in range(10):
-            with servers["ns9"].watch_log_from_start() as watcher:
-                line = f"zone {params.zone}/IN (signed): checkds: {log_string}"
-                try:
-                    watcher.wait_for_line(line, timeout=1)
-                except TimeoutError:
-                    rekey(params.zone)
-                else:
-                    break
-        else:
-            raise TimeoutError
+        line = f"zone {params.zone}/IN (signed): checkds: {log_string}"
+        while line not in servers["ns9"].log:
+            rekey(params.zone)
+            time_remaining -= 1
+            assert time_remaining, f'Timed out waiting for "{log_string}" to be logged'
+            time.sleep(1)
 
     # Check whether key states on the parent server provided match
     # expectations.
