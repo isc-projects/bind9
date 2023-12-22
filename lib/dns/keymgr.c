@@ -2218,11 +2218,16 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	for (dns_dnsseckey_t *dkey = ISC_LIST_HEAD(*keyring); dkey != NULL;
 	     dkey = ISC_LIST_NEXT(dkey, link))
 	{
-		if (dst_key_ismodified(dkey->key) && !dkey->purge) {
+		bool modified = dst_key_ismodified(dkey->key);
+		if (dst_key_getttl(dkey->key) != dns_kasp_dnskeyttl(kasp)) {
+			dst_key_setttl(dkey->key, dns_kasp_dnskeyttl(kasp));
+			modified = true;
+		}
+		if (modified && !dkey->purge) {
 			dns_dnssec_get_hints(dkey, now);
 			RETERR(dst_key_tofile(dkey->key, options, directory));
-			dst_key_setmodified(dkey->key, false);
 		}
+		dst_key_setmodified(dkey->key, false);
 	}
 
 	result = ISC_R_SUCCESS;

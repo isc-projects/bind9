@@ -213,7 +213,7 @@ set_policy() {
   POLICY=$1
   NUM_KEYS=$2
   DNSKEY_TTL=$3
-  KEYFILE_TTL=${4:-$3}
+  KEYFILE_TTL=$3
   CDS_DELETE="no"
 }
 # By default policies are considered to be secure.
