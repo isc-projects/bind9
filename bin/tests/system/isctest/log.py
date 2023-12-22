@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Optional, TextIO, Dict, Any, overload, List, Union
+from typing import Iterator, Optional, TextIO, Dict, Any, overload, List, Union
 
 import abc
 import os
@@ -20,6 +20,40 @@ import time
 
 class WatchLogException(Exception):
     pass
+
+
+class LogFile:
+    """
+    Log file wrapper with a path and means to find a string in its contents.
+    """
+
+    def __init__(self, path: str):
+        self.path = path
+
+    @property
+    def _lines(self) -> Iterator[str]:
+        with open(self.path, encoding="utf-8") as f:
+            yield from f
+
+    def __contains__(self, substring: str) -> bool:
+        """
+        Return whether any of the lines in the log contains a given string.
+        """
+        for line in self._lines:
+            if substring in line:
+                return True
+        return False
+
+    def expect(self, msg: str):
+        """Check the string is present anywhere in the log file."""
+        if msg in self:
+            return
+        assert False, f"log message not found in log {self.path}: {msg}"
+
+    def prohibit(self, msg: str):
+        """Check the string is not present in the entire log file."""
+        if msg in self:
+            assert False, f"forbidden message appeared in log {self.path}: {msg}"
 
 
 class WatchLog(abc.ABC):

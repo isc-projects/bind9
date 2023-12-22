@@ -18,7 +18,7 @@ import os
 import re
 
 from .rndc import RNDCBinaryExecutor, RNDCException, RNDCExecutor
-from .watchlog import WatchLogFromStart, WatchLogFromHere
+from .log import LogFile, WatchLogFromStart, WatchLogFromHere
 
 
 class NamedPorts(NamedTuple):
@@ -63,7 +63,7 @@ class NamedInstance:
         """
         self.ip = self._identifier_to_ip(identifier)
         self.ports = ports
-        self._log_file = os.path.join(identifier, "named.run")
+        self.log = LogFile(os.path.join(identifier, "named.run"))
         self._rndc_executor = rndc_executor or RNDCBinaryExecutor()
         self._rndc_logger = rndc_logger or logging.getLogger()
 
@@ -133,14 +133,14 @@ class NamedInstance:
         Return an instance of the `WatchLogFromStart` context manager for this
         `named` instance's log file.
         """
-        return WatchLogFromStart(self._log_file)
+        return WatchLogFromStart(self.log.path)
 
     def watch_log_from_here(self) -> WatchLogFromHere:
         """
         Return an instance of the `WatchLogFromHere` context manager for this
         `named` instance's log file.
         """
-        return WatchLogFromHere(self._log_file)
+        return WatchLogFromHere(self.log.path)
 
     def reconfigure(self) -> None:
         """
