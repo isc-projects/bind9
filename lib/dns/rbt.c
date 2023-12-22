@@ -733,7 +733,7 @@ dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data) {
 	 * there is data associated with a node.
 	 */
 	if (result == ISC_R_SUCCESS ||
-	    (result == ISC_R_EXISTS && node->data == NULL))
+	    (result == ISC_R_EXISTS && node != NULL && node->data == NULL))
 	{
 		node->data = data;
 		result = ISC_R_SUCCESS;
