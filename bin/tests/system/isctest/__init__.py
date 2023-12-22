@@ -14,3 +14,8 @@ from . import instance
 from . import query
 from . import rndc
 from . import log
+
+# isctest.mark module is intentionally NOT imported, because it relies on
+# environment variables which might not be set at the time of import of the
+# `isctest` package. To use the marks, manual `import isctest.mark` is needed
+# instead.
