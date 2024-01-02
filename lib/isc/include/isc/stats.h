@@ -77,6 +77,9 @@ enum {
 	isc_sockstatscounter_tcp4active,
 	isc_sockstatscounter_tcp6active,
 
+	isc_sockstatscounter_tcp4clients,
+	isc_sockstatscounter_tcp6clients,
+
 	isc_sockstatscounter_max,
 };
 

@@ -855,6 +855,10 @@ accept_connection(isc_nmsocket_t *csock) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
+	if (csock->server->pquota != NULL) {
+		isc__nm_incstats(csock, STATID_CLIENTS);
+	}
+
 	/*
 	 * We need to initialize the tcp and timer before failing because
 	 * isc__nm_tcp_close() can't handle uninitalized TCP nmsocket.
@@ -1105,6 +1109,7 @@ tcp_close_sock(isc_nmsocket_t *sock) {
 
 	if (sock->server != NULL) {
 		if (sock->server->pquota != NULL) {
+			isc__nm_decstats(sock, STATID_CLIENTS);
 			isc_quota_release(sock->server->pquota);
 		}
 		isc__nmsocket_detach(&sock->server);
