@@ -20,9 +20,14 @@ my $pidf = new IO::File "ans.pid", "w" or die "cannot open pid file: $!";
 print $pidf "$$\n" or die "cannot write pid file: $!";
 $pidf->close or die "cannot close pid file: $!";
 sub rmpid { unlink "ans.pid"; exit 1; };
+sub term { };
 
 $SIG{INT} = \&rmpid;
-$SIG{TERM} = \&rmpid;
+if ($Net::DNS::VERSION >= 1.42) {
+    $SIG{TERM} = \&term;
+} else {
+    $SIG{TERM} = \&rmpid;
+}
 
 my $count = 0;
 
@@ -71,4 +76,11 @@ my $ns = Net::DNS::Nameserver->new(
     Verbose => $verbose,
 );
 
-$ns->main_loop;
+if ($Net::DNS::VERSION >= 1.42) {
+    $ns->start_server();
+    select(undef, undef, undef, undef);
+    $ns->stop_server();
+    unlink "ans.pid";
+} else {
+    $ns->main_loop;
+}
