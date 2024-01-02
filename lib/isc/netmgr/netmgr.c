@@ -67,7 +67,8 @@ static const isc_statscounter_t udp4statsindex[] = {
 	-1,
 	isc_sockstatscounter_udp4sendfail,
 	isc_sockstatscounter_udp4recvfail,
-	isc_sockstatscounter_udp4active
+	isc_sockstatscounter_udp4active,
+	-1,
 };
 
 static const isc_statscounter_t udp6statsindex[] = {
@@ -81,7 +82,8 @@ static const isc_statscounter_t udp6statsindex[] = {
 	-1,
 	isc_sockstatscounter_udp6sendfail,
 	isc_sockstatscounter_udp6recvfail,
-	isc_sockstatscounter_udp6active
+	isc_sockstatscounter_udp6active,
+	-1,
 };
 
 static const isc_statscounter_t tcp4statsindex[] = {
@@ -90,7 +92,7 @@ static const isc_statscounter_t tcp4statsindex[] = {
 	isc_sockstatscounter_tcp4connectfail, isc_sockstatscounter_tcp4connect,
 	isc_sockstatscounter_tcp4acceptfail,  isc_sockstatscounter_tcp4accept,
 	isc_sockstatscounter_tcp4sendfail,    isc_sockstatscounter_tcp4recvfail,
-	isc_sockstatscounter_tcp4active
+	isc_sockstatscounter_tcp4active,      isc_sockstatscounter_tcp4clients,
 };
 
 static const isc_statscounter_t tcp6statsindex[] = {
@@ -99,7 +101,7 @@ static const isc_statscounter_t tcp6statsindex[] = {
 	isc_sockstatscounter_tcp6connectfail, isc_sockstatscounter_tcp6connect,
 	isc_sockstatscounter_tcp6acceptfail,  isc_sockstatscounter_tcp6accept,
 	isc_sockstatscounter_tcp6sendfail,    isc_sockstatscounter_tcp6recvfail,
-	isc_sockstatscounter_tcp6active
+	isc_sockstatscounter_tcp6active,      isc_sockstatscounter_tcp6clients,
 };
 
 #if 0
