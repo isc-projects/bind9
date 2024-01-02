@@ -21,107 +21,44 @@ testsock6() {
 }
 
 export LANG=C
-
-
-#
-# Set up color-coded test output
-#
-if [ ${SYSTEMTEST_FORCE_COLOR:-0} -eq 1 ] || test -t 1 && type tput > /dev/null 2>&1 && tput setaf 7 > /dev/null 2>&1 ; then
-    export COLOR_END=$(tput setaf 4)    # blue
-    export COLOR_FAIL=$(tput setaf 1)   # red
-    export COLOR_INFO=$(tput bold)      # bold
-    export COLOR_NONE=$(tput sgr0)
-    export COLOR_PASS=$(tput setaf 2)   # green
-    export COLOR_START=$(tput setaf 4)  # blue
-    export COLOR_WARN=$(tput setaf 3)   # yellow
-else
-    # set to empty strings so printf succeeds
-    export COLOR_END=''
-    export COLOR_FAIL=''
-    export COLOR_INFO=''
-    export COLOR_NONE=''
-    export COLOR_PASS=''
-    export COLOR_START=''
-    export COLOR_WARN=''
-fi
-
 export SYSTESTDIR="$(basename $PWD)"
 
-if type printf > /dev/null 2>&1
-then
-	echofail () {
-		printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
-	}
-	echowarn () {
-		printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
-	}
-	echopass () {
-		printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
-	}
-	echoinfo () {
-		printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
-	}
-	echostart () {
-		printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
-	}
-	echoend () {
-		printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
-	}
-	echo_i() {
-	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
-	       echoinfo "I:$__LINE"
-	    done
-	}
+echofail () {
+    echo "$*"
+}
+echowarn () {
+    echo "$*"
+}
+echopass () {
+    echo "$*"
+}
+echoinfo () {
+    echo "$*"
+}
+echostart () {
+    echo "$*"
+}
+echoend () {
+    echo "$*"
+}
 
-	echo_ic() {
-	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
-	       echoinfo "I:  $__LINE"
-	    done
-	}
+echo_i() {
+    echo "$@" | while IFS= read -r __LINE ; do
+       echoinfo "I:$__LINE"
+    done
+}
 
-	echo_d() {
-	    printf '%s\n' "$*" | while IFS= read -r __LINE ; do
-	       echoinfo "D:$__LINE"
-	    done
-	}
-else
-	echofail () {
-		echo "$*"
-	}
-	echowarn () {
-		echo "$*"
-	}
-	echopass () {
-		echo "$*"
-	}
-	echoinfo () {
-		echo "$*"
-	}
-	echostart () {
-		echo "$*"
-	}
-	echoend () {
-		echo "$*"
-	}
+echo_ic() {
+    echo "$@" | while IFS= read -r __LINE ; do
+       echoinfo "I:  $__LINE"
+    done
+}
 
-	echo_i() {
-	    echo "$@" | while IFS= read -r __LINE ; do
-	       echoinfo "I:$__LINE"
-	    done
-	}
-
-	echo_ic() {
-	    echo "$@" | while IFS= read -r __LINE ; do
-	       echoinfo "I:  $__LINE"
-	    done
-	}
-
-	echo_d() {
-	    echo "$@" | while IFS= read -r __LINE ; do
-	       echoinfo "D:$__LINE"
-	    done
-	}
-fi
+echo_d() {
+    echo "$@" | while IFS= read -r __LINE ; do
+       echoinfo "D:$__LINE"
+    done
+}
 
 cat_i() {
     while IFS= read -r __LINE ; do
