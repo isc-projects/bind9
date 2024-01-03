@@ -49,8 +49,8 @@ $DSFROMKEY -T 1200 $keyname >>../ns1/root.db
 zone=updated
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
-zsk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
-ksk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone -f KSK $zone)
+zsk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -L 3600 -n zone $zone)
+ksk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -L 3600 -n zone -f KSK $zone)
 $SETTIME -s -g OMNIPRESENT -k RUMOURED now -z RUMOURED now "$zsk" >settime.out.updated.1 2>&1
 $SETTIME -s -g OMNIPRESENT -k RUMOURED now -r RUMOURED now -d HIDDEN now "$ksk" >settime.out.updated.2 2>&1
 $DSFROMKEY -T 1200 $ksk >>../ns1/root.db

@@ -1,3 +1,8 @@
+6313.	[bug]		When dnssec-policy is in effect the DNSKEY's TTLs in
+			the zone where not being updated to match the policy.
+			This lead to failures when DNSKEYs where updated as the
+			TTLs mismatched. [GL #4466]
+
 6312.	[bug]		Conversion from NSEC3 signed to NSEC signed could
 			temporarily put the zone into a state where it was
 			treated as unsigned until the NSEC chain was built.

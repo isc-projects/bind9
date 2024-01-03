@@ -16061,6 +16061,77 @@ failure:
 	return (result);
 }
 
+/*
+ * Filter the key material preserving TTL changes.  If kasp in effect honour the
+ * existing ttl.  The lists returned by sync_secure_db/dns_db_diffx should be
+ * DNSSEC RRset order so we can process 'del' and 'add' in parallel rather than
+ * searching for TTL only changes first and processing them, then checking the
+ * 'in use' status on a subsequent pass.
+ */
+
+static void
+filter_keymaterial(dns_zone_t *zone, dns_difftuplelist_t *del,
+		   dns_difftuplelist_t *add, bool kasp, dns_ttl_t ttl) {
+	dns_difftuple_t *deltuple = ISC_LIST_HEAD(*del);
+	dns_difftuple_t *addtuple = ISC_LIST_HEAD(*add);
+	isc_result_t result;
+
+	while (deltuple != NULL || addtuple != NULL) {
+		dns_difftuple_t *delnext = NULL, *addnext = NULL;
+		bool inuse = false;
+		if (deltuple != NULL) {
+			delnext = ISC_LIST_NEXT(deltuple, link);
+		}
+		if (addtuple != NULL) {
+			addnext = ISC_LIST_NEXT(addtuple, link);
+		}
+		if (deltuple != NULL && addtuple != NULL) {
+			int n = dns_rdata_compare(&deltuple->rdata,
+						  &addtuple->rdata);
+			if (n == 0) {
+				/*
+				 * If the rdata is equal then the only
+				 * difference will be a TTL change.
+				 */
+				if (kasp) {
+					/* TTL is managed by dnssec-policy */
+					ISC_LIST_UNLINK(*del, deltuple, link);
+					dns_difftuple_free(&deltuple);
+					ISC_LIST_UNLINK(*add, addtuple, link);
+					dns_difftuple_free(&addtuple);
+				}
+				deltuple = delnext;
+				addtuple = addnext;
+				continue;
+			}
+			if (n < 0) {
+				goto checkdel;
+			}
+			goto checkadd;
+		} else if (deltuple != NULL) {
+		checkdel:
+			result = dns_zone_dnskey_inuse(zone, &deltuple->rdata,
+						       &inuse);
+			if (result == ISC_R_SUCCESS && inuse) {
+				ISC_LIST_UNLINK(*del, deltuple, link);
+				dns_difftuple_free(&deltuple);
+			}
+			deltuple = delnext;
+		} else {
+		checkadd:
+			result = dns_zone_dnskey_inuse(zone, &addtuple->rdata,
+						       &inuse);
+			if (result == ISC_R_SUCCESS && inuse) {
+				ISC_LIST_UNLINK(*add, addtuple, link);
+				dns_difftuple_free(&addtuple);
+			} else if (kasp) {
+				addtuple->ttl = ttl;
+			}
+			addtuple = addnext;
+		}
+	}
+}
+
 static isc_result_t
 sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	       dns_dbversion_t *secver, dns_difftuple_t **soatuple,
@@ -16071,6 +16142,16 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	dns_difftuple_t *tuple = NULL, *next;
 	dns_difftuple_t *oldtuple = NULL, *newtuple = NULL;
 	dns_rdata_soa_t oldsoa, newsoa;
+	dns_difftuplelist_t add = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t del = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t keyadd = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t keydel = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t ckeyadd = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t ckeydel = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t cdsadd = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t cdsdel = ISC_LIST_INITIALIZER;
+	dns_kasp_t *kasp = NULL;
+	dns_ttl_t keyttl = 0, ckeyttl = 0, cdsttl = 0;
 
 	REQUIRE(DNS_ZONE_VALID(seczone));
 	REQUIRE(soatuple != NULL && *soatuple == NULL);
@@ -16089,8 +16170,52 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		return (result);
 	}
 
+	/*
+	 * If kasp is in effect honour the existing DNSKEY, CDNSKEY and CDS
+	 * TTLs.
+	 */
+	kasp = seczone->kasp;
+	if (kasp != NULL) {
+		dns_rdataset_t rdataset;
+		dns_dbnode_t *node = NULL;
+		dns_ttl_t ttl = dns_kasp_dnskeyttl(kasp);
+
+		dns_rdataset_init(&rdataset);
+
+		result = dns_db_getoriginnode(secdb, &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+		result = dns_db_findrdataset(
+			secdb, node, secver, dns_rdatatype_dnskey,
+			dns_rdatatype_none, 0, &rdataset, NULL);
+		keyttl = (result == ISC_R_SUCCESS) ? rdataset.ttl : ttl;
+		if (dns_rdataset_isassociated(&rdataset)) {
+			dns_rdataset_disassociate(&rdataset);
+		}
+
+		result = dns_db_findrdataset(
+			secdb, node, secver, dns_rdatatype_cdnskey,
+			dns_rdatatype_none, 0, &rdataset, NULL);
+		ckeyttl = (result == ISC_R_SUCCESS) ? rdataset.ttl : ttl;
+		if (dns_rdataset_isassociated(&rdataset)) {
+			dns_rdataset_disassociate(&rdataset);
+		}
+
+		result = dns_db_findrdataset(
+			secdb, node, secver, dns_rdatatype_cds,
+			dns_rdatatype_none, 0, &rdataset, NULL);
+		cdsttl = (result == ISC_R_SUCCESS) ? rdataset.ttl : ttl;
+		if (dns_rdataset_isassociated(&rdataset)) {
+			dns_rdataset_disassociate(&rdataset);
+		}
+		dns_db_detachnode(secdb, &node);
+	}
+
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
+		dns_difftuplelist_t *al = &add, *dl = &del;
+
 		next = ISC_LIST_NEXT(tuple, link);
+
 		/*
 		 * Skip DNSSEC records that BIND maintains with inline-signing.
 		 */
@@ -16105,18 +16230,27 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		}
 
 		/*
-		 * Allow DNSKEY, CDNSKEY, CDS because users should be able to
-		 * update the zone with these records from a different provider,
-		 * but skip records that are under our control.
+		 * Apex DNSKEY, CDNSKEY and CDS need special processing so
+		 * split them out.
 		 */
-		if (dns_rdatatype_iskeymaterial(tuple->rdata.type)) {
-			bool inuse = false;
-			isc_result_t r = dns_zone_dnskey_inuse(
-				seczone, &tuple->rdata, &inuse);
-			if (r == ISC_R_SUCCESS && inuse) {
-				ISC_LIST_UNLINK(diff->tuples, tuple, link);
-				dns_difftuple_free(&tuple);
-				continue;
+		if (dns_rdatatype_iskeymaterial(tuple->rdata.type) &&
+		    dns_name_equal(&tuple->name, &seczone->origin))
+		{
+			switch (tuple->rdata.type) {
+			case dns_rdatatype_dnskey:
+				al = &keyadd;
+				dl = &keydel;
+				break;
+			case dns_rdatatype_cdnskey:
+				al = &ckeyadd;
+				dl = &ckeydel;
+				break;
+			case dns_rdatatype_cds:
+				al = &cdsadd;
+				dl = &cdsdel;
+				break;
+			default:
+				UNREACHABLE();
 			}
 		}
 
@@ -16129,6 +16263,23 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 				INSIST(newtuple == NULL);
 				newtuple = tuple;
 			}
+		}
+
+		/*
+		 * Split into deletions and additions.
+		 */
+		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		switch (tuple->op) {
+		case DNS_DIFFOP_DEL:
+		case DNS_DIFFOP_DELRESIGN:
+			ISC_LIST_APPEND(*dl, tuple, link);
+			break;
+		case DNS_DIFFOP_ADD:
+		case DNS_DIFFOP_ADDRESIGN:
+			ISC_LIST_APPEND(*al, tuple, link);
+			break;
+		default:
+			UNREACHABLE();
 		}
 	}
 
@@ -16151,12 +16302,31 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		    dns_name_equal(&oldsoa.origin, &newsoa.origin) &&
 		    dns_name_equal(&oldsoa.contact, &newsoa.contact))
 		{
-			ISC_LIST_UNLINK(diff->tuples, oldtuple, link);
+			ISC_LIST_UNLINK(del, oldtuple, link);
 			dns_difftuple_free(&oldtuple);
-			ISC_LIST_UNLINK(diff->tuples, newtuple, link);
+			ISC_LIST_UNLINK(add, newtuple, link);
 			dns_difftuple_free(&newtuple);
 		}
 	}
+
+	/*
+	 * Filter out keys we manage but still allow TTL changes.
+	 */
+	filter_keymaterial(seczone, &keydel, &keyadd, kasp != NULL, keyttl);
+	filter_keymaterial(seczone, &ckeydel, &ckeyadd, kasp != NULL, ckeyttl);
+	filter_keymaterial(seczone, &cdsdel, &cdsadd, kasp != NULL, cdsttl);
+
+	/*
+	 * Rebuild the diff now that we have filtered it
+	 */
+	ISC_LIST_APPENDLIST(diff->tuples, del, link);
+	ISC_LIST_APPENDLIST(diff->tuples, keydel, link);
+	ISC_LIST_APPENDLIST(diff->tuples, ckeydel, link);
+	ISC_LIST_APPENDLIST(diff->tuples, cdsdel, link);
+	ISC_LIST_APPENDLIST(diff->tuples, add, link);
+	ISC_LIST_APPENDLIST(diff->tuples, keyadd, link);
+	ISC_LIST_APPENDLIST(diff->tuples, ckeyadd, link);
+	ISC_LIST_APPENDLIST(diff->tuples, cdsadd, link);
 
 	if (ISC_LIST_EMPTY(diff->tuples)) {
 		return (DNS_R_UNCHANGED);
@@ -19738,7 +19908,8 @@ failure:
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		    dns_dbversion_t *ver, dns_diff_t *diff, bool sign_all) {
-	dns_difftuple_t *tuple, *newtuple = NULL;
+	dns_difftuple_t *tuple = NULL, *newtuple = NULL, *next = NULL;
+	dns_difftuple_t *addtuple = NULL, *deltuple = NULL;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	bool flag;
@@ -19747,11 +19918,20 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	uint16_t keyid;
 	unsigned char buf[5];
 	dns_name_t *name = dns_db_origin(db);
+	dns_difftuplelist_t add = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t del = ISC_LIST_INITIALIZER;
+	dns_difftuplelist_t tuples = ISC_LIST_INITIALIZER;
 
+	/*
+	 * Move non DNSKEY and not DNSSEC DNSKEY records to tuples
+	 * and sort the remaining DNSKEY records to add and del.
+	 */
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
+	     tuple = ISC_LIST_HEAD(diff->tuples))
 	{
 		if (tuple->rdata.type != dns_rdatatype_dnskey) {
+			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
 
@@ -19760,9 +19940,65 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK |
 				     DNS_KEYTYPE_NOAUTH)) != DNS_KEYOWNER_ZONE)
 		{
+			ISC_LIST_UNLINK(diff->tuples, tuple, link);
+			ISC_LIST_APPEND(tuples, tuple, link);
 			continue;
 		}
 
+		ISC_LIST_UNLINK(diff->tuples, tuple, link);
+		switch (tuple->op) {
+		case DNS_DIFFOP_DEL:
+		case DNS_DIFFOP_DELRESIGN:
+			ISC_LIST_APPEND(del, tuple, link);
+			break;
+		case DNS_DIFFOP_ADD:
+		case DNS_DIFFOP_ADDRESIGN:
+			ISC_LIST_APPEND(add, tuple, link);
+			break;
+		default:
+			UNREACHABLE();
+		}
+	}
+
+	/*
+	 * Put the tuples that don't need more processing back onto
+	 * diff->tuples.
+	 */
+	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+
+	/*
+	 * Filter out DNSKEY TTL changes and put them back onto diff->tuples.
+	 */
+	for (deltuple = ISC_LIST_HEAD(del); deltuple != NULL; deltuple = next) {
+		next = ISC_LIST_NEXT(deltuple, link);
+		for (addtuple = ISC_LIST_HEAD(add); addtuple != NULL;
+		     addtuple = ISC_LIST_NEXT(addtuple, link))
+		{
+			int n = dns_rdata_compare(&deltuple->rdata,
+						  &addtuple->rdata);
+			if (n == 0) {
+				ISC_LIST_UNLINK(del, deltuple, link);
+				ISC_LIST_APPEND(diff->tuples, deltuple, link);
+				ISC_LIST_UNLINK(add, addtuple, link);
+				ISC_LIST_APPEND(diff->tuples, addtuple, link);
+				break;
+			}
+		}
+	}
+
+	/*
+	 * Combine any remaining DNSKEY changes together.
+	 */
+	ISC_LIST_APPENDLIST(tuples, add, link);
+	ISC_LIST_APPENDLIST(tuples, del, link);
+
+	/*
+	 * Add private records for keys that have been removed
+	 * or added.
+	 */
+	for (tuple = ISC_LIST_HEAD(tuples); tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link))
+	{
 		dns_rdata_toregion(&tuple->rdata, &r);
 
 		keyid = dst_region_computeid(&r);
@@ -19802,7 +20038,15 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 			INSIST(newtuple == NULL);
 		}
 	}
+
 failure:
+	/*
+	 * Put the DNSKEY changes we cared about back on diff->tuples.
+	 */
+	ISC_LIST_APPENDLIST(diff->tuples, tuples, link);
+	INSIST(ISC_LIST_EMPTY(add));
+	INSIST(ISC_LIST_EMPTY(del));
+	INSIST(ISC_LIST_EMPTY(tuples));
 	return (result);
 }
 
@@ -21247,6 +21491,55 @@ zone_checkds(dns_zone_t *zone) {
 #endif /* ifdef ENABLE_AFL */
 }
 
+static isc_result_t
+update_ttl(dns_rdataset_t *rdataset, dns_name_t *name, dns_ttl_t ttl,
+	   dns_diff_t *diff) {
+	isc_result_t result;
+
+	/*
+	 * Delete everything using the existing TTL.
+	 */
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_difftuple_t *tuple = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_DEL, name,
+					      rdataset->ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_diff_appendminimal(diff, &tuple);
+	}
+	if (result != ISC_R_NOMORE) {
+		return (result);
+	}
+
+	/*
+	 * Add everything using the new TTL.
+	 */
+	for (result = dns_rdataset_first(rdataset); result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(rdataset))
+	{
+		dns_difftuple_t *tuple = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+
+		dns_rdataset_current(rdataset, &rdata);
+		result = dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
+					      ttl, &rdata, &tuple);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_diff_appendminimal(diff, &tuple);
+	}
+	if (result != ISC_R_NOMORE) {
+		return (result);
+	}
+	return (ISC_R_SUCCESS);
+}
+
 static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
@@ -21304,11 +21597,39 @@ zone_rekey(dns_zone_t *zone) {
 	ttl = soaset.ttl;
 	dns_rdataset_disassociate(&soaset);
 
+	/*
+	 * Only update DNSKEY TTL if we have a policy.
+	 */
+	if (kasp != NULL) {
+		ttl = dns_kasp_dnskeyttl(kasp);
+	}
+
 	/* Get the DNSKEY rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey,
 				     dns_rdatatype_none, 0, &keyset, &keysigs);
 	if (result == ISC_R_SUCCESS) {
-		ttl = keyset.ttl;
+		/*
+		 * If we don't have a policy then use the DNSKEY ttl
+		 * if it exists.  Otherwise update the DNSKEY ttl if
+		 * needed.
+		 */
+		if (kasp == NULL) {
+			ttl = keyset.ttl;
+		} else if (ttl != keyset.ttl) {
+			result = update_ttl(&keyset, &zone->origin, ttl, &diff);
+			if (result != ISC_R_SUCCESS) {
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "Updating DNSKEY TTL from %u to %u "
+					   "failed: %s",
+					   keyset.ttl, ttl,
+					   isc_result_totext(result));
+				goto failure;
+			}
+			dnssec_log(zone, ISC_LOG_INFO,
+				   "Updating DNSKEY TTL from %u to %u",
+				   keyset.ttl, ttl);
+			keyset.ttl = ttl;
+		}
 
 		dns_zone_lock_keyfiles(zone);
 
@@ -21330,6 +21651,18 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &cdsset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdsset)) {
 		dns_rdataset_disassociate(&cdsset);
+	} else if (result == ISC_R_SUCCESS && kasp != NULL && ttl != cdsset.ttl)
+	{
+		result = update_ttl(&cdsset, &zone->origin, ttl, &diff);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "Updating CDS TTL from %u to %u failed: %s",
+				   cdsset.ttl, ttl, isc_result_totext(result));
+			goto failure;
+		}
+		dnssec_log(zone, ISC_LOG_INFO, "Updating CDS TTL from %u to %u",
+			   cdsset.ttl, ttl);
+		cdsset.ttl = ttl;
 	}
 
 	/* Get the CDNSKEY rdataset */
@@ -21337,6 +21670,21 @@ zone_rekey(dns_zone_t *zone) {
 				     dns_rdatatype_none, 0, &cdnskeyset, NULL);
 	if (result != ISC_R_SUCCESS && dns_rdataset_isassociated(&cdnskeyset)) {
 		dns_rdataset_disassociate(&cdnskeyset);
+	} else if (result == ISC_R_SUCCESS && kasp != NULL &&
+		   ttl != cdnskeyset.ttl)
+	{
+		result = update_ttl(&cdnskeyset, &zone->origin, ttl, &diff);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(
+				zone, ISC_LOG_ERROR,
+				"Updating CDNSKEY TTL from %u to %u failed: %s",
+				cdnskeyset.ttl, ttl, isc_result_totext(result));
+			goto failure;
+		}
+		dnssec_log(zone, ISC_LOG_INFO,
+			   "Updating CDNSKEY TTL from %u to %u", cdnskeyset.ttl,
+			   ttl);
+		cdnskeyset.ttl = ttl;
 	}
 
 	/*
@@ -21473,13 +21821,6 @@ zone_rekey(dns_zone_t *zone) {
 			}
 
 			digests = dns_kasp_digests(zone->defaultkasp);
-		}
-
-		/*
-		 * Only update DNSKEY TTL if we have a policy.
-		 */
-		if (kasp != NULL) {
-			ttl = dns_kasp_dnskeyttl(kasp);
 		}
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
