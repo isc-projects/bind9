@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <isc/atomic.h>
 #include <isc/result.h>
 
 /*! \file isc/types.h
@@ -74,10 +75,11 @@ typedef struct isc_rwlock	 isc_rwlock_t;	      /*%< Read Write Lock */
 typedef struct isc_sockaddr	 isc_sockaddr_t;      /*%< Socket Address */
 typedef ISC_LIST(isc_sockaddr_t) isc_sockaddrlist_t;  /*%< Socket Address List
 						       * */
-typedef struct isc_stats  isc_stats_t;		      /*%< Statistics */
-typedef int_fast64_t	  isc_statscounter_t;
-typedef struct isc_symtab isc_symtab_t;		/*%< Symbol Table */
-typedef struct isc_task	  isc_task_t;		/*%< Task */
+typedef struct isc_stats    isc_stats_t;	      /*%< Statistics */
+typedef int_fast64_t	    isc_statscounter_t;
+typedef atomic_int_fast64_t isc_atomic_statscounter_t;
+typedef struct isc_symtab   isc_symtab_t;	/*%< Symbol Table */
+typedef struct isc_task	    isc_task_t;		/*%< Task */
 typedef ISC_LIST(isc_task_t) isc_tasklist_t;	/*%< Task List */
 typedef struct isc_taskmgr    isc_taskmgr_t;	/*%< Task Manager */
 typedef struct isc_textregion isc_textregion_t; /*%< Text Region */

@@ -22,6 +22,10 @@
 			message that was emitted even when the feature was
 			explicitly disabled. [GL #4497]
 
+6300.	[bug]		Fix statistics export to use full 64 bit signed numbers
+			instead of truncating values to unsigned 32 bits.
+			[GL #4467]
+
 6299.	[port]		NetBSD has added 'hmac' to libc which collides with our
 			use of 'hmac'. [GL #4478]
 
