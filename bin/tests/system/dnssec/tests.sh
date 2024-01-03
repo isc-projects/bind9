@@ -2720,7 +2720,7 @@ rndccmd 10.53.0.3 signing -nsec3param 1 0 0 auto inline.example >/dev/null 2>&1 
 rndccmd 10.53.0.3 status >/dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10; do
   salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-  [ -n "$salt" ] && [ "$salt" != "-" ] && break
+  [ "$salt" != "-" ] && [ "${#salt}" -eq 16 ] && break
   echo_i "sleeping ...."
   sleep 1
 done
@@ -2737,7 +2737,7 @@ rndccmd 10.53.0.3 signing -nsec3param 1 0 0 auto inline.example >/dev/null 2>&1 
 rndccmd 10.53.0.3 status >/dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10; do
   salt=$(dig_with_opts +nodnssec +short nsec3param inline.example. @10.53.0.3 | awk '{print $4}')
-  [ -n "$salt" ] && [ "$salt" != "$oldsalt" ] && break
+  [ "$salt" != "$oldsalt" ] && [ "${#salt}" -eq 16 ] && break
   echo_i "sleeping ...."
   sleep 1
 done

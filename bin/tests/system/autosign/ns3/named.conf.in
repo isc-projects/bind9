@@ -186,6 +186,14 @@ zone "secure-to-insecure2.example" {
 	dnssec-secure-to-insecure yes;
 };
 
+zone "nsec3-to-nsec3.example" {
+	type primary;
+	file "nsec3-to-nsec3.example.db";
+	allow-update { any; };
+	inline-signing no;
+	max-journal-size 10M;
+};
+
 zone "oldsigs.example" {
 	type primary;
 	file "oldsigs.example.db";
