@@ -14,7 +14,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

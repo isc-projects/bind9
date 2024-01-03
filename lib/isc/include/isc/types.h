@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <isc/atomic.h>
 #include <isc/result.h>
 
 /*! \file isc/types.h
@@ -20,7 +21,6 @@
  * OS-specific types, from the OS-specific include directories.
  */
 #include <limits.h>
-#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

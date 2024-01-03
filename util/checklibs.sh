@@ -42,4 +42,26 @@ list=$(git grep -l uintptr_t lib bin \
   echo "$list"
 }
 
+#
+# Check for the direct usage of stdatomic.h
+#
+list=$(git grep -l stdatomic.h lib bin ':(exclude)lib/isc/include/isc/atomic\.h' \
+  | grep -e '\.c$' -e '\.h$')
+[ -n "$list" ] && {
+  status=1
+  echo 'Use #include <isc/atomic.h> instead of #include <stdatomic.h>:'
+  echo "$list"
+}
+
+#
+# Check for the usage of explicit memory ordering
+#
+list=$(git grep -l memory_order_.* lib bin ':(exclude)lib/isc/include/isc/atomic\.h' \
+  | grep -e '\.c$' -e '\.h$')
+[ -n "$list" ] && {
+  status=1
+  echo 'Prefer the helpers in <isc/atomic.h> over specifying an explicit memory order:'
+  echo "$list"
+}
+
 exit $status
