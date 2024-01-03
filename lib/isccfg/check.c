@@ -1414,14 +1414,11 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 
 				ret = cfg_keystore_fromconfig(kconfig, mctx,
 							      logctx, NULL,
-							      &kslist, &ks);
+							      &kslist, NULL);
 				if (ret != ISC_R_SUCCESS) {
 					if (result == ISC_R_SUCCESS) {
 						result = ret;
 					}
-				}
-				if (ks != NULL) {
-					dns_keystore_detach(&ks);
 				}
 			}
 		}
@@ -1431,14 +1428,11 @@ check_options(const cfg_obj_t *options, const cfg_obj_t *config,
 	 * Add default key-store "key-directory".
 	 */
 	tresult = cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist,
-					  &ks);
+					  NULL);
 	if (tresult != ISC_R_SUCCESS) {
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
-	}
-	if (ks != NULL) {
-		dns_keystore_detach(&ks);
 	}
 
 	/*
@@ -2962,16 +2956,10 @@ check_keydir(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *kcfg = cfg_listelt_value(element);
-		ks = NULL;
 		(void)cfg_keystore_fromconfig(kcfg, mctx, logctx, NULL, &kslist,
-					      &ks);
-		INSIST(ks != NULL);
-		dns_keystore_detach(&ks);
+					      NULL);
 	}
-	ks = NULL;
-	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist, &ks);
-	INSIST(ks != NULL);
-	dns_keystore_detach(&ks);
+	(void)cfg_keystore_fromconfig(NULL, mctx, logctx, NULL, &kslist, NULL);
 
 	/*
 	 * Look for the dnssec-policy by name, which is the dnssec-policy
@@ -3036,9 +3024,6 @@ check:
 	if (do_cleanup) {
 		if (kasp != NULL) {
 			dns_kasp_detach(&kasp);
-		}
-		if (ks != NULL) {
-			dns_keystore_detach(&ks);
 		}
 		for (kasp = ISC_LIST_HEAD(kasplist); kasp != NULL;
 		     kasp = kasp_next)

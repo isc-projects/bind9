@@ -54,17 +54,8 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
 	return (ISC_R_SUCCESS);
 }
 
-void
-dns_keystore_attach(dns_keystore_t *source, dns_keystore_t **targetp) {
-	REQUIRE(DNS_KEYSTORE_VALID(source));
-	REQUIRE(targetp != NULL && *targetp == NULL);
-
-	isc_refcount_increment(&source->references);
-	*targetp = source;
-}
-
 static inline void
-destroy(dns_keystore_t *keystore) {
+dns__keystore_destroy(dns_keystore_t *keystore) {
 	char *name;
 
 	REQUIRE(!ISC_LINK_LINKED(keystore, link));
@@ -81,17 +72,11 @@ destroy(dns_keystore_t *keystore) {
 	isc_mem_putanddetach(&keystore->mctx, keystore, sizeof(*keystore));
 }
 
-void
-dns_keystore_detach(dns_keystore_t **kspp) {
-	REQUIRE(kspp != NULL && DNS_KEYSTORE_VALID(*kspp));
-
-	dns_keystore_t *ks = *kspp;
-	*kspp = NULL;
-
-	if (isc_refcount_decrement(&ks->references) == 1) {
-		destroy(ks);
-	}
-}
+#ifdef DNS_KEYSTORE_TRACE
+ISC_REFCOUNT_TRACE_IMPL(dns_keystore, dns__keystore_destroy);
+#else
+ISC_REFCOUNT_IMPL(dns_keystore, dns__keystore_destroy);
+#endif
 
 const char *
 dns_keystore_name(dns_keystore_t *keystore) {

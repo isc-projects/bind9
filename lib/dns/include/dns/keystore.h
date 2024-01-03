@@ -24,6 +24,8 @@
  * A key store defines where to store DNSSEC keys.
  */
 
+/* Add -DDNS_KEYSTORE_TRACE=1 to CFLAGS for detailed reference tracing */
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
@@ -83,38 +85,6 @@ dns_keystore_create(isc_mem_t *mctx, const char *name, const char *engine,
  *\li  #ISC_R_NOMEMORY
  *
  *\li  Other errors are possible.
- */
-
-void
-dns_keystore_attach(dns_keystore_t *source, dns_keystore_t **targetp);
-/*%<
- * Attach '*targetp' to 'source'.
- *
- * Requires:
- *
- *\li   'source' is a valid keystore.
- *
- *\li   'targetp' points to a NULL dns_keystore_t *.
- *
- * Ensures:
- *
- *\li   *targetp is attached to source.
- *
- *\li   While *targetp is attached, the keystore will not shut down.
- */
-
-void
-dns_keystore_detach(dns_keystore_t **kspp);
-/*%<
- * Detach keystore.
- *
- * Requires:
- *
- *\li   'kspp' points to a valid dns_keystore_t *
- *
- * Ensures:
- *
- *\li   *kspp is NULL.
  */
 
 const char *
@@ -230,5 +200,21 @@ dns_keystorelist_find(dns_keystorelist_t *list, const char *name,
  *\li   #ISC_R_SUCCESS          A matching keystore was found.
  *\li   #ISC_R_NOTFOUND         No matching keystore was found.
  */
+
+#ifdef DNS_KEYSTORE_TRACE
+/* Compatibility macros */
+#define dns_keystore_attach(ks, ksp) \
+	dns_keystore__attach(ks, ksp, __func__, __FILE__, __LINE__)
+#define dns_keystore_detach(ksp) \
+	dns_keystore__detach(ksp, __func__, __FILE__, __LINE__)
+#define dns_keystore_ref(ptr) \
+	dns_keystore__ref(ptr, __func__, __FILE__, __LINE__)
+#define dns_keystore_unref(ptr) \
+	dns_keystore__unref(ptr, __func__, __FILE__, __LINE__)
+
+ISC_REFCOUNT_TRACE_DECL(dns_keystore);
+#else
+ISC_REFCOUNT_DECL(dns_keystore);
+#endif /* DNS_KEYSTORE_TRACE */
 
 ISC_LANG_ENDDECLS

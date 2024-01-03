@@ -737,8 +737,6 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	dns_keystore_t *keystore = NULL;
 	int i = 0;
 
-	REQUIRE(kspp != NULL && *kspp == NULL);
-
 	if (config != NULL) {
 		name = cfg_obj_asstring(cfg_tuple_get(config, "name"));
 	} else {
@@ -789,7 +787,10 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
 	INSIST(!(ISC_LIST_EMPTY(*keystorelist)));
 
 	/* Success: Attach the keystore to the pointer and return. */
-	dns_keystore_attach(keystore, kspp);
+	if (kspp != NULL) {
+		INSIST(*kspp == NULL);
+		dns_keystore_attach(keystore, kspp);
+	}
 
 	/* Don't detach as keystore is on '*keystorelist' */
 	return (ISC_R_SUCCESS);

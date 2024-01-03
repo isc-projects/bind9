@@ -8895,15 +8895,11 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Create the built-in key store ("key-directory").
 	 */
-	keystore = NULL;
 	result = cfg_keystore_fromconfig(NULL, named_g_mctx, named_g_lctx,
-					 named_g_engine, &keystorelist,
-					 &keystore);
+					 named_g_engine, &keystorelist, NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_keystorelist;
 	}
-	INSIST(keystore != NULL);
-	dns_keystore_detach(&keystore);
 
 	/*
 	 * Create the DNSSEC key stores.
@@ -8917,12 +8913,10 @@ load_configuration(const char *filename, named_server_t *server,
 		keystore = NULL;
 		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
 						 named_g_lctx, named_g_engine,
-						 &keystorelist, &keystore);
+						 &keystorelist, NULL);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_keystorelist;
 		}
-		INSIST(keystore != NULL);
-		dns_keystore_detach(&keystore);
 	}
 
 	/*

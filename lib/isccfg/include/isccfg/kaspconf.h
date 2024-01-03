@@ -78,7 +78,7 @@ cfg_keystore_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx,
  *
  *\li  'logctx' is a valid logging context.
  *
- *\li  kspp != NULL && *kspp == NULL
+ *\li  kspp == NULL || *kspp == NULL
  *
  * Returns:
  *

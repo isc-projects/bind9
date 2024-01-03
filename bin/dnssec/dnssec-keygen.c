@@ -276,14 +276,12 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		cfg_obj_t *kconfig = cfg_listelt_value(element);
 		ks = NULL;
 		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, engine,
-						 &kslist, &ks);
+						 &kslist, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure key-store '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
 			      isc_result_totext(result));
 		}
-		INSIST(ks != NULL);
-		dns_keystore_detach(&ks);
 	}
 	/* Default key-directory key store. */
 	ks = NULL;
