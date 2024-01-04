@@ -1,3 +1,6 @@
+6319.	[func]		Limit isc_task_send() overhead for RBTDB tree pruning.
+			[GL #4383]
+
 6317.	[security]	Restore DNS64 state when handling a serve-stale timeout.
 			(CVE-2023-5679) [GL #4334]
 
