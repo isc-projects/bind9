@@ -276,11 +276,12 @@ def control_port(ports):
 @pytest.fixture(scope="module")
 def env(ports):
     """Dictionary containing environment variables for the test."""
-    env = os.environ.copy()
+    env = dict(isctest.vars.ALL)
     for portname, portnum in ports.items():
         env[portname] = str(portnum)
     env["builddir"] = f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
+    os.environ.update(env)
     return env
 
 
