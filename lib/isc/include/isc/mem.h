@@ -190,7 +190,13 @@ extern unsigned int isc_mem_defaultflags;
  * for more information.
  */
 #if HAVE_JEMALLOC
-#include <jemalloc/jemalloc.h>
+
+/*
+ * cmocka.h has confliction definitions with the jemalloc header but we only
+ * need the mallocx symbol from jemalloc.
+ */
+void *
+mallocx(size_t size, int flags);
 
 extern volatile void *isc__mem_malloc;
 
