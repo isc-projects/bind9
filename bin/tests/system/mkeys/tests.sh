@@ -13,7 +13,6 @@
 
 set -e
 
-export ALGORITHM_SET="ecc_default"
 #shellcheck source=conf.sh
 . ../conf.sh
 

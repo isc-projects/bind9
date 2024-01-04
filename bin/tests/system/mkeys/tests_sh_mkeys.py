@@ -9,6 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest
+
+pytestmark = pytest.mark.algorithm_set("ecc_default")
+
 
 def test_mkeys(run_tests_sh):
     run_tests_sh()
