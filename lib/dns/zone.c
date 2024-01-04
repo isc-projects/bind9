@@ -16671,14 +16671,20 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	dns_rdata_soa_t oldsoa, newsoa;
 	dns_difftuplelist_t add = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t del = ISC_LIST_INITIALIZER;
+#if 0
 	dns_difftuplelist_t keyadd = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t keydel = ISC_LIST_INITIALIZER;
+#endif
 	dns_difftuplelist_t ckeyadd = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t ckeydel = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t cdsadd = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t cdsdel = ISC_LIST_INITIALIZER;
 	dns_kasp_t *kasp = NULL;
-	dns_ttl_t keyttl = 0, ckeyttl = 0, cdsttl = 0;
+#if 0
+	dns_ttl_t keyttl = 0;
+#endif
+	dns_ttl_t ckeyttl = 0;
+	dns_ttl_t cdsttl = 0;
 
 	REQUIRE(DNS_ZONE_VALID(seczone));
 	REQUIRE(soatuple != NULL && *soatuple == NULL);
@@ -16712,6 +16718,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		result = dns_db_getoriginnode(secdb, &node);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
+#if 0
 		result = dns_db_findrdataset(
 			secdb, node, secver, dns_rdatatype_dnskey,
 			dns_rdatatype_none, 0, &rdataset, NULL);
@@ -16719,6 +16726,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		if (dns_rdataset_isassociated(&rdataset)) {
 			dns_rdataset_disassociate(&rdataset);
 		}
+#endif
 
 		result = dns_db_findrdataset(
 			secdb, node, secver, dns_rdatatype_cdnskey,
@@ -16748,6 +16756,7 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		 */
 		if (tuple->rdata.type == dns_rdatatype_nsec ||
 		    tuple->rdata.type == dns_rdatatype_rrsig ||
+		    /* if dnskey is removed adjust switch below */
 		    tuple->rdata.type == dns_rdatatype_dnskey ||
 		    tuple->rdata.type == dns_rdatatype_nsec3 ||
 		    tuple->rdata.type == dns_rdatatype_nsec3param)
@@ -16765,10 +16774,12 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		    dns_name_equal(&tuple->name, &seczone->origin))
 		{
 			switch (tuple->rdata.type) {
+#if 0
 			case dns_rdatatype_dnskey:
 				al = &keyadd;
 				dl = &keydel;
 				break;
+#endif
 			case dns_rdatatype_cdnskey:
 				al = &ckeyadd;
 				dl = &ckeydel;
@@ -16840,7 +16851,9 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	/*
 	 * Filter out keys we manage but still allow TTL changes.
 	 */
+#if 0
 	filter_keymaterial(seczone, &keydel, &keyadd, kasp != NULL, keyttl);
+#endif
 	filter_keymaterial(seczone, &ckeydel, &ckeyadd, kasp != NULL, ckeyttl);
 	filter_keymaterial(seczone, &cdsdel, &cdsadd, kasp != NULL, cdsttl);
 
@@ -16848,11 +16861,15 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	 * Rebuild the diff now that we have filtered it
 	 */
 	ISC_LIST_APPENDLIST(diff->tuples, del, link);
+#if 0
 	ISC_LIST_APPENDLIST(diff->tuples, keydel, link);
+#endif
 	ISC_LIST_APPENDLIST(diff->tuples, ckeydel, link);
 	ISC_LIST_APPENDLIST(diff->tuples, cdsdel, link);
 	ISC_LIST_APPENDLIST(diff->tuples, add, link);
+#if 0
 	ISC_LIST_APPENDLIST(diff->tuples, keyadd, link);
+#endif
 	ISC_LIST_APPENDLIST(diff->tuples, ckeyadd, link);
 	ISC_LIST_APPENDLIST(diff->tuples, cdsadd, link);
 
