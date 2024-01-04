@@ -1,4 +1,5 @@
-6319.	[placeholder]
+6319.	[func]		Limit isc_async_run() overhead for RBTDB tree pruning.
+			[GL #4383]
 
 6318.	[placeholder]
 
