@@ -3390,7 +3390,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						continue;
 					}
 				}
-#if 0
 				/*
 				 * Don't remove DNSKEY, CDNSKEY, CDS records
 				 * that are in use (under our control).
@@ -3412,7 +3411,6 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						continue;
 					}
 				}
-#endif
 			}
 			dns_name_format(name, namestr, sizeof(namestr));
 			dns_rdatatype_format(rdata.type, typestr,

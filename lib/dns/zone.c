@@ -16588,7 +16588,6 @@ failure:
 	return (result);
 }
 
-#if 0
 /*
  * Filter the key material preserving TTL changes.  If kasp in effect honour the
  * existing ttl.  The lists returned by sync_secure_db/dns_db_diffx should be
@@ -16659,7 +16658,6 @@ filter_keymaterial(dns_zone_t *zone, dns_difftuplelist_t *del,
 		}
 	}
 }
-#endif
 
 static isc_result_t
 sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
@@ -16679,10 +16677,8 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 	dns_difftuplelist_t ckeydel = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t cdsadd = ISC_LIST_INITIALIZER;
 	dns_difftuplelist_t cdsdel = ISC_LIST_INITIALIZER;
-#if 0
 	dns_kasp_t *kasp = NULL;
 	dns_ttl_t keyttl = 0, ckeyttl = 0, cdsttl = 0;
-#endif
 
 	REQUIRE(DNS_ZONE_VALID(seczone));
 	REQUIRE(soatuple != NULL && *soatuple == NULL);
@@ -16701,7 +16697,6 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		return (result);
 	}
 
-#if 0
 	/*
 	 * If kasp is in effect honour the existing DNSKEY, CDNSKEY and CDS
 	 * TTLs.
@@ -16742,7 +16737,6 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		}
 		dns_db_detachnode(secdb, &node);
 	}
-#endif
 
 	for (tuple = ISC_LIST_HEAD(diff->tuples); tuple != NULL; tuple = next) {
 		dns_difftuplelist_t *al = &add, *dl = &del;
@@ -16763,7 +16757,6 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 			continue;
 		}
 
-#if 0
 		/*
 		 * Apex DNSKEY, CDNSKEY and CDS need special processing so
 		 * split them out.
@@ -16788,7 +16781,6 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 				UNREACHABLE();
 			}
 		}
-#endif
 
 		if (tuple->rdata.type == dns_rdatatype_soa) {
 			if (tuple->op == DNS_DIFFOP_DEL) {
@@ -16845,14 +16837,12 @@ sync_secure_db(dns_zone_t *seczone, dns_zone_t *raw, dns_db_t *secdb,
 		}
 	}
 
-#if 0
 	/*
 	 * Filter out keys we manage but still allow TTL changes.
 	 */
 	filter_keymaterial(seczone, &keydel, &keyadd, kasp != NULL, keyttl);
 	filter_keymaterial(seczone, &ckeydel, &ckeyadd, kasp != NULL, ckeyttl);
 	filter_keymaterial(seczone, &cdsdel, &cdsadd, kasp != NULL, cdsttl);
-#endif
 
 	/*
 	 * Rebuild the diff now that we have filtered it
