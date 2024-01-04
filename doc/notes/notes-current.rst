@@ -32,6 +32,15 @@ Security Fixes
   features were enabled. This has been fixed. :cve:`2023-5679`
   :gl:`#4334`
 
+- Query patterns that continuously triggered cache database maintenance
+  could cause an excessive amount of memory to be allocated, exceeding
+  ``max-cache-size`` and potentially leading to all available memory on
+  the host running :iscman:`named` being exhausted. This has been fixed.
+  :cve:`2023-6516`
+
+  ISC would like to thank Infoblox for bringing this vulnerability to
+  our attention. :gl:`#4383`
+
 New Features
 ~~~~~~~~~~~~
 
