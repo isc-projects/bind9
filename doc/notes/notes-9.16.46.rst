@@ -44,8 +44,9 @@ Security Fixes
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The support for AES algorithm for DNS cookies has been deprecated.
-  :gl:`#4421`
+- Support for using AES as the DNS COOKIE algorithm (``cookie-algorithm
+  aes;``) has been deprecated and will be removed in a future release.
+  Please use the current default, SipHash-2-4, instead. :gl:`#4421`
 
 Known Issues
 ~~~~~~~~~~~~
