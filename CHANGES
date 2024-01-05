@@ -1,3 +1,7 @@
+6319.	[security]	Query patterns that continuously triggered cache
+			database maintenance could exhaust all available memory
+			on the host running named. (CVE-2023-6516) [GL #4383]
+
 6317.	[security]	Restore DNS64 state when handling a serve-stale timeout.
 			(CVE-2023-5679) [GL #4334]
 
