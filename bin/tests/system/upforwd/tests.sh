@@ -240,7 +240,7 @@ if test -f keyname; then
 	update add unsigned.example2. 600 TXT Foo
 	send
 EOF
-  $DIG -p ${PORT} unsigned.example2 A @10.53.0.1 >dig.out.ns1.test$n
+  $DIG -p ${PORT} unsigned.example2 A @10.53.0.1 >dig.out.ns1.test$n || ret=1
   grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
