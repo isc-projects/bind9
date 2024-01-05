@@ -1,3 +1,15 @@
+6319.	[placeholder]
+
+6318.	[placeholder]
+
+6317.	[placeholder]
+
+6316.	[placeholder]
+
+6315.	[placeholder]
+
+6314.	[placeholder]
+
 6313.	[bug]		When dnssec-policy is in effect the DNSKEY's TTLs in
 			the zone where not being updated to match the policy.
 			This lead to failures when DNSKEYs where updated as the
