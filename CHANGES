@@ -2,7 +2,8 @@
 
 6318.	[placeholder]
 
-6317.	[placeholder]
+6317.	[security]	Restore DNS64 state when handling a serve-stale timeout.
+			(CVE-2023-5679) [GL #4334]
 
 6316.	[security]	Specific queries could trigger an assertion check with
 			nxdomain-redirect enabled. (CVE-2023-5517) [GL #4281]

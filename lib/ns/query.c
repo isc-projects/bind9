@@ -6251,6 +6251,13 @@ query_lookup_stale(ns_client_t *client) {
 	query_ctx_t qctx;
 
 	qctx_init(client, NULL, client->query.qtype, &qctx);
+	if (DNS64(client)) {
+		qctx.qtype = qctx.type = dns_rdatatype_a;
+		qctx.dns64 = true;
+	}
+	if (DNS64EXCLUDE(client)) {
+		qctx.dns64_exclude = true;
+	}
 	dns_db_attach(client->view->cachedb, &qctx.db);
 	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 	client->query.dboptions |= DNS_DBFIND_STALETIMEOUT;
