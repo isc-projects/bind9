@@ -258,7 +258,7 @@ echo_i "dumping zone files"
 
 now="$(TZ=UTC date +%Y%m%d%H%M%S)"
 check_expiry() (
-  $DIG $DIGOPTS AXFR oldsigs.example @10.53.0.3 >dig.out.test$n
+  $DIG $DIGOPTS AXFR oldsigs.example @10.53.0.3 >dig.out.test$n || return 1
   nearest_expiration="$(awk '$4 == "RRSIG" { print $9 }' <dig.out.test$n | sort -n | head -1)"
   if [ "$nearest_expiration" -le "$now" ]; then
     echo_i "failed: $nearest_expiration <= $now"
@@ -822,7 +822,7 @@ echo_i "prepublish key for ZSK $id"
 newserial=$oldserial
 try=0
 while [ $oldserial -eq $newserial -a $try -lt 42 ]; do
-  $DIG $DIGOPTS +short soa prepub.example @10.53.0.3 >dig.out.ns3.test$n.2
+  $DIG $DIGOPTS +short soa prepub.example @10.53.0.3 >dig.out.ns3.test$n.2 || true
   newserial=$(cat dig.out.ns3.test$n.2 | awk '$0 !~ /SOA/ {print $3}')
   sleep 1
   try=$((try + 1))
@@ -1103,8 +1103,8 @@ status=$((status + ret))
 
 echo_i "test CDS and CDNSKEY auto generation ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 sync.example cds >dig.out.ns3.cdstest$n
-$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey >dig.out.ns3.cdnskeytest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example cds >dig.out.ns3.cdstest$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey >dig.out.ns3.cdnskeytest$n || ret=1
 grep -i "sync.example.*in.cds.*[1-9][0-9]* " dig.out.ns3.cdstest$n >/dev/null || ret=1
 grep -i "sync.example.*in.cdnskey.*257 " dig.out.ns3.cdnskeytest$n >/dev/null || ret=1
 n=$((n + 1))
@@ -1113,9 +1113,9 @@ status=$((status + ret))
 
 echo_i "test 'csk' affects DNSKEY/CDS/CDNSKEY ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 sync.example dnskey >dig.out.ns3.dnskeytest$n
-$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey >dig.out.ns3.cdnskeytest$n
-$DIG $DIGOPTS @10.53.0.3 sync.example cds >dig.out.ns3.cdstest$n
+$DIG $DIGOPTS @10.53.0.3 sync.example dnskey >dig.out.ns3.dnskeytest$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 sync.example cdnskey >dig.out.ns3.cdnskeytest$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 sync.example cds >dig.out.ns3.cdstest$n || ret=1
 lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.ns3.dnskeytest$n | wc -l)
 test ${lines:-0} -eq 2 || ret=1
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.ns3.cdnskeytest$n | wc -l)
@@ -1128,9 +1128,9 @@ status=$((status + ret))
 
 echo_i "test 'ksk' affects DNSKEY/CDS/CDNSKEY ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 kskonly.example dnskey >dig.out.ns3.dnskeytest$n
-$DIG $DIGOPTS @10.53.0.3 kskonly.example cdnskey >dig.out.ns3.cdnskeytest$n
-$DIG $DIGOPTS @10.53.0.3 kskonly.example cds >dig.out.ns3.cdstest$n
+$DIG $DIGOPTS @10.53.0.3 kskonly.example dnskey >dig.out.ns3.dnskeytest$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 kskonly.example cdnskey >dig.out.ns3.cdnskeytest$n || ret=1
+$DIG $DIGOPTS @10.53.0.3 kskonly.example cds >dig.out.ns3.cdstest$n || ret=1
 lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.ns3.dnskeytest$n | wc -l)
 test ${lines:-0} -eq 1 || ret=1
 lines=$(awk '$4 == "RRSIG" && $5 == "CDNSKEY" {print}' dig.out.ns3.cdnskeytest$n | wc -l)
@@ -1178,7 +1178,7 @@ status=$((status + ret))
 
 echo_i "check that zone with inactive ZSK and active KSK is properly autosigned ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 axfr inaczsk2.example >dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.3 axfr inaczsk2.example >dig.out.ns3.test$n || ret=1
 grep "SOA ${DEFAULT_ALGORITHM_NUMBER} 2" dig.out.ns3.test$n >/dev/null || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1277,7 +1277,7 @@ hash=JE76PJ65FUO86UIR594L8P0SNJJ6RMNI
 # check that NSEC3 for ENT is present
 echo_i "check ENT NSEC3 is initially present"
 ret=0
-$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.pre.ns2.test$n
+$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.pre.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.pre.ns2.test$n >/dev/null || ret=1
 grep "ANSWER: 0, AUTHORITY: 4, " dig.out.pre.ns2.test$n >/dev/null || ret=1
 grep "^${hash}.${zone}." dig.out.pre.ns2.test$n >/dev/null || ret=1
@@ -1295,8 +1295,8 @@ ret=0
   echo send
 ) | $NSUPDATE
 # check that NSEC3 for ENT is still present
-$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.pre.ns2.test$n
-$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.mid.ns2.test$n
+$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.pre.ns2.test$n || ret=1
+$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.mid.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.mid.ns2.test$n >/dev/null || ret=1
 grep "ANSWER: 0, AUTHORITY: 4, " dig.out.mid.ns2.test$n >/dev/null || ret=1
 grep "^${hash}.${zone}." dig.out.mid.ns2.test$n >/dev/null || ret=1
@@ -1315,11 +1315,11 @@ ret=0
 ) | $NSUPDATE
 # check that NSEC3 for ENT is gone
 echo_i "check ENT NSEC3 is gone for zone $zone hash $hash"
-$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.post.ns2.test$n
+$DIG $DIGOPTS @10.53.0.2 a "ent.${zone}" >dig.out.post.ns2.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.post.ns2.test$n >/dev/null || ret=1
 grep "ANSWER: 0, AUTHORITY: 4, " dig.out.post.ns2.test$n >/dev/null || ret=1
 grep "^${hash}.${zone}." dig.out.post.ns2.test$n >/dev/null && ret=1
-$DIG $DIGOPTS @10.53.0.2 axfr "${zone}" >dig.out.axfr.ns2.test$n
+$DIG $DIGOPTS @10.53.0.2 axfr "${zone}" >dig.out.axfr.ns2.test$n || ret=1
 grep "^${hash}.${zone}." dig.out.axfr.ns2.test$n >/dev/null && ret=1
 n=$((n + 1))
 if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
