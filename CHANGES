@@ -6,7 +6,8 @@
 
 6316.	[placeholder]
 
-6315.	[placeholder]
+6315.	[security]	Speed up parsing of DNS messages with many different
+			names. (CVE-2023-4408) [GL #4234]
 
 6314.	[bug]		Address race conditions in dns_tsigkey_find().
 			[GL #4182]
