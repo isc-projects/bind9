@@ -1,3 +1,5 @@
+	--- 9.16.46 released ---
+
 6319.	[security]	Query patterns that continuously triggered cache
 			database maintenance could exhaust all available memory
 			on the host running named. (CVE-2023-6516) [GL #4383]
