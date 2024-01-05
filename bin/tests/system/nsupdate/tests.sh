@@ -329,7 +329,7 @@ $NSUPDATE -k ns1/ddns.key <<END >nsupdate.out 2>&1 || ret=1
     prereq nxrrset example.nil. type0
     send
 END
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n
+$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
 grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -341,7 +341,7 @@ ret=0
 echo_i "check that TYPE=0 update is handled ($n)"
 echo "a0e4280000010000000100000000060001c00c000000fe000000000000" \
   | $PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp >/dev/null || ret=1
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n
+$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
 grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -353,7 +353,7 @@ ret=0
 echo_i "check that TYPE=0 additional data is handled ($n)"
 echo "a0e4280000010000000000010000060001c00c000000fe000000000000" \
   | $PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp >/dev/null || ret=1
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n
+$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
 grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -365,7 +365,7 @@ ret=0
 echo_i "check that update to undefined class is handled ($n)"
 echo "a0e4280000010001000000000000060101c00c000000fe000000000000" \
   | $PERL ../packet.pl -a 10.53.0.1 -p ${PORT} -t tcp >/dev/null || ret=1
-$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n
+$DIG $DIGOPTS +tcp version.bind txt ch @10.53.0.1 >dig.out.ns1.$n || ret=1
 grep "status: NOERROR" dig.out.ns1.$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -871,7 +871,7 @@ zone denyname.example
 update add foo.denyname.example 3600 IN TXT added
 send
 EOF
-$DIG $DIGOPTS +tcp @10.53.0.9 foo.denyname.example TXT >dig.out.ns9.test$n
+$DIG $DIGOPTS +tcp @10.53.0.9 foo.denyname.example TXT >dig.out.ns9.test$n || ret=1
 grep "added" dig.out.ns9.test$n >/dev/null || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -888,7 +888,7 @@ zone denyname.example
 update add denyname.example 3600 IN TXT added
 send
 EOF
-$DIG $DIGOPTS +tcp @10.53.0.9 denyname.example TXT >dig.out.ns9.test$n
+$DIG $DIGOPTS +tcp @10.53.0.9 denyname.example TXT >dig.out.ns9.test$n || ret=1
 grep "added" dig.out.ns9.test$n >/dev/null && ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -902,11 +902,11 @@ $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
   @10.53.0.3 dnskey \
   | awk -v port="${PORT}" 'BEGIN { print "server 10.53.0.3", port; }
 	$2 == 10 && $3 == "IN" && $4 == "DNSKEY" { $2 = 600; print "update add", $0 }
-	END { print "send" }' >update.in.$n
+	END { print "send" }' >update.in.$n || ret=1
 $NSUPDATE update.in.$n
 
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
-  @10.53.0.3 any >dig.out.ns3.$n
+  @10.53.0.3 any >dig.out.ns3.$n || ret=1
 
 grep "600.*DNSKEY" dig.out.ns3.$n >/dev/null || ret=1
 grep TYPE65534 dig.out.ns3.$n >/dev/null && ret=1
@@ -1071,7 +1071,7 @@ n=$((n + 1))
 ret=0
 echo_i "add a record which is truncated when logged. ($n)"
 $NSUPDATE verylarge || ret=1
-$DIG $DIGOPTS +tcp @10.53.0.1 txt txt.update.nil >dig.out.ns1.test$n
+$DIG $DIGOPTS +tcp @10.53.0.1 txt txt.update.nil >dig.out.ns1.test$n || ret=1
 grep "ANSWER: 1," dig.out.ns1.test$n >/dev/null || ret=1
 grep "adding an RR at 'txt.update.nil' TXT .* \[TRUNCATED\]" ns1/named.run >/dev/null || ret=1
 if [ $ret -ne 0 ]; then
@@ -1215,7 +1215,7 @@ update add child.delegation.test. 3600 NS foo.example.net.
 update add child.delegation.test. 3600 NS bar.example.net.
 send
 EOF
-$DIG $DIGOPTS +tcp @10.53.0.3 ns child.delegation.test >dig.out.ns1.test$n
+$DIG $DIGOPTS +tcp @10.53.0.3 ns child.delegation.test >dig.out.ns1.test$n || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n >/dev/null 2>&1 || ret=1
 grep "AUTHORITY: 2" dig.out.ns1.test$n >/dev/null 2>&1 || ret=1
 [ $ret = 0 ] || {
@@ -1233,7 +1233,7 @@ update del child.delegation.test. 3600 NS foo.example.net.
 update del child.delegation.test. 3600 NS bar.example.net.
 send
 EOF
-$DIG $DIGOPTS +tcp @10.53.0.3 ns child.delegation.test >dig.out.ns1.test$n
+$DIG $DIGOPTS +tcp @10.53.0.3 ns child.delegation.test >dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n >/dev/null 2>&1 || ret=1
 [ $ret = 0 ] || {
   echo_i "failed"
@@ -1250,7 +1250,7 @@ update add r1.too-big.test 3600 IN TXT r1.too-big.test
 send
 EOF
 grep "update failed: SERVFAIL" nsupdate.out-$n >/dev/null || ret=1
-$DIG $DIGOPTS +tcp @10.53.0.3 r1.too-big.test TXT >dig.out.ns3.test$n
+$DIG $DIGOPTS +tcp @10.53.0.3 r1.too-big.test TXT >dig.out.ns3.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns3.test$n >/dev/null || ret=1
 grep "records in zone (4) exceeds max-records (3)" ns3/named.run >/dev/null || ret=1
 [ $ret = 0 ] || {
@@ -1569,7 +1569,7 @@ else
   update add machine.example.com 3600 IN A 10.53.0.7
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.7 machine.example.com A >dig.out.ns7.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.7 machine.example.com A >dig.out.ns7.test$n || ret=1
   grep "status: NOERROR" dig.out.ns7.test$n >/dev/null || ret=1
   grep "machine.example.com..*A.*10.53.0.7" dig.out.ns7.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1591,7 +1591,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.7 foo.example.com A >dig.out.ns7.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.7 foo.example.com A >dig.out.ns7.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns7.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
@@ -1611,7 +1611,7 @@ EOF
   update add _xxx._tcp.example.com 3600 IN SRV 0 0 0 machine.example.com
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx._tcp.example.com SRV >dig.out.ns7.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx._tcp.example.com SRV >dig.out.ns7.test$n || ret=1
   grep "status: NOERROR" dig.out.ns7.test$n >/dev/null || ret=1
   grep "_xxx._tcp.example.com.*SRV.*0 0 0 machine.example.com" dig.out.ns7.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1633,7 +1633,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx._udp.example.com SRV >dig.out.ns7.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.7 _xxx._udp.example.com SRV >dig.out.ns7.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns7.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
@@ -1653,7 +1653,7 @@ EOF
   update add xxx.machine.example.com 3600 IN A 10.53.0.8
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.8 xxx.machine.example.com A >dig.out.ns8.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.8 xxx.machine.example.com A >dig.out.ns8.test$n || ret=1
   grep "status: NOERROR" dig.out.ns8.test$n >/dev/null || ret=1
   grep "xxx.machine.example.com..*A.*10.53.0.8" dig.out.ns8.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1675,7 +1675,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.8 foo.example.com A >dig.out.ns8.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.8 foo.example.com A >dig.out.ns8.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns8.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
@@ -1696,7 +1696,7 @@ EOF
   update add machine.example.com 3600 IN A 10.53.0.9
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.9 machine.example.com A >dig.out.ns9.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.9 machine.example.com A >dig.out.ns9.test$n || ret=1
   grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
   grep "machine.example.com..*A.*10.53.0.9" dig.out.ns9.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1718,7 +1718,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.9 foo.example.com A >dig.out.ns9.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.9 foo.example.com A >dig.out.ns9.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns9.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
@@ -1738,7 +1738,7 @@ EOF
   update add _xxx._tcp.example.com 3600 IN SRV 0 0 0 machine.example.com
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.9 _xxx._tcp.example.com SRV >dig.out.ns9.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.9 _xxx._tcp.example.com SRV >dig.out.ns9.test$n || ret=1
   grep "status: NOERROR" dig.out.ns9.test$n >/dev/null || ret=1
   grep "_xxx._tcp.example.com.*SRV.*0 0 0 machine.example.com" dig.out.ns9.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1760,7 +1760,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.9 _xxx._udp.example.com SRV >dig.out.ns9.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.9 _xxx._udp.example.com SRV >dig.out.ns9.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns9.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
@@ -1780,7 +1780,7 @@ EOF
   update add xxx.machine.example.com 3600 IN A 10.53.0.10
   send
 EOF
-  $DIG $DIGOPTS +tcp @10.53.0.10 xxx.machine.example.com A >dig.out.ns10.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.10 xxx.machine.example.com A >dig.out.ns10.test$n || ret=1
   grep "status: NOERROR" dig.out.ns10.test$n >/dev/null || ret=1
   grep "xxx.machine.example.com..*A.*10.53.0.10" dig.out.ns10.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
@@ -1802,7 +1802,7 @@ EOF
   send
 EOF
   grep "update failed: REFUSED" nsupdate.out-$n >/dev/null || ret=1
-  $DIG $DIGOPTS +tcp @10.53.0.10 foo.example.com A >dig.out.ns10.test$n
+  $DIG $DIGOPTS +tcp @10.53.0.10 foo.example.com A >dig.out.ns10.test$n || ret=1
   grep "status: NXDOMAIN" dig.out.ns10.test$n >/dev/null || ret=1
   [ $ret = 0 ] || {
     echo_i "failed"
