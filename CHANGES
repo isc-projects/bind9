@@ -1,3 +1,5 @@
+	--- 9.18.22 released ---
+
 6319.	[func]		Limit isc_task_send() overhead for RBTDB tree pruning.
 			[GL #4383]
 
