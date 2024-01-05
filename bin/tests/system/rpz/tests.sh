@@ -869,20 +869,20 @@ EOF
     # reload a RPZ zone that is now deliberately broken.
     t=$(expr $t + 1)
     echo_i "checking rpz failed update will keep previous rpz rules (${t})"
-    $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.before
+    $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.before || setret "failed"
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before >/dev/null || setret "failed"
     cp ns3/broken.db.in ns3/manual-update-rpz.db
     rndc_reload ns3 $ns3 manual-update-rpz
     sleep 1
     # ensure previous RPZ rules still apply.
-    $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.after
+    $DIG -p ${PORT} @$ns3 walled.tld2 >dig.out.$t.after || setret "failed"
     grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after >/dev/null || setret "failed"
 
     t=$(expr $t + 1)
     echo_i "checking reload of a mixed-case RPZ zone (${t})"
     # First, a sanity check: the A6-2.TLD2.mixed-case-rpz RPZ record should
     # cause a6-2.tld2 NOERROR answers to be rewritten to NXDOMAIN answers.
-    $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.before
+    $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.before || setret "failed"
     grep "status: NXDOMAIN" dig.out.$t.before >/dev/null || setret "failed"
     # Add a sibling name (a6-1.tld2.mixed-case-rpz, with "tld2" in lowercase
     # rather than uppercase) before A6-2.TLD.mixed-case-rpz.
@@ -893,13 +893,13 @@ EOF
     # a6-2.tld2 NOERROR answers should still be rewritten to NXDOMAIN answers.
     # (The bug we try to trigger here caused a6-2.tld2.mixed-case-rpz to be
     # erroneously removed from the summary RPZ database after reload.)
-    $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.after
+    $DIG -p ${PORT} @$ns3 a6-2.tld2. A >dig.out.$t.after || setret "failed"
     grep "status: NXDOMAIN" dig.out.$t.after >/dev/null || setret "failed"
   fi
 
   t=$(expr $t + 1)
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
-  $DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 >dig.out.$t
+  $DIG +noall +answer -p ${PORT} @$ns3 any a3-2.tld2 >dig.out.$t || setret "failed"
   ttl=$(awk '/a3-2 tld2 text/ {print $2}' dig.out.$t)
   if test ${ttl:=0} -eq 0; then setret "failed"; fi
 
@@ -921,18 +921,18 @@ EOF
   nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
   sleep 1
   rndc_reload ns7 $ns7 policy2
-  $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t}
+  $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t} || setret "failed"
   grep NXDOMAIN dig.out.${t} >/dev/null || setret "failed"
 
   t=$(expr $t + 1)
   echo_i "checking that "add-soa no" at rpz zone level works (${t})"
-  $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t}
+  $DIG z.x.servfail -p ${PORT} @$ns7 >dig.out.${t} || setret "failed"
   grep SOA dig.out.${t} >/dev/null && setret "failed"
 
   if [ native = "$mode" ]; then
     t=$(expr $t + 1)
     echo_i "checking that "add-soa yes" at response-policy level works (${t})"
-    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t}
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
     grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null || setret "failed"
   fi
 
@@ -943,14 +943,14 @@ EOF
     sed -e "s/add-soa yes/add-soa no/g" <ns3/named.conf.tmp >ns3/named.conf
     rndc_reconfig ns3 $ns3
     echo_i "checking that 'add-soa no' at response-policy level works (${t})"
-    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t}
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 >dig.out.${t} || setret "failed"
     grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null && setret "failed"
   fi
 
   if [ native = "$mode" ]; then
     t=$(expr $t + 1)
     echo_i "checking that 'add-soa unset' works (${t})"
-    $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 >dig.out.${t}
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 >dig.out.${t} || setret "failed"
     grep "^manual-update-rpz\..*SOA" dig.out.${t} >/dev/null || setret "failed"
   fi
 
@@ -959,12 +959,12 @@ EOF
   if [ native = "$mode" ]; then
     t=$(expr $t + 1)
     echo_i "checking rpz with delegation fails correctly (${t})"
-    $DIG -p ${PORT} @$ns3 ns example.com >dig.out.$t
+    $DIG -p ${PORT} @$ns3 ns example.com >dig.out.$t || setret "failed"
     grep "status: SERVFAIL" dig.out.$t >/dev/null || setret "failed"
 
     t=$(expr $t + 1)
     echo_i "checking policies from expired zone are no longer in effect ($t)"
-    $DIG -p ${PORT} @$ns3 a expired >dig.out.$t
+    $DIG -p ${PORT} @$ns3 a expired >dig.out.$t || setret "failed"
     grep "expired.*10.0.0.10" dig.out.$t >/dev/null && setret "failed"
     grep "fast-expire/IN: response-policy zone expired" ns3/named.run >/dev/null || setret "failed"
   fi
@@ -985,7 +985,7 @@ EOF
           ;;
       esac
       ret=0
-      $DIG ${label}.example -p ${PORT} $type @10.53.0.9 >dig.out.${t}
+      $DIG ${label}.example -p ${PORT} $type @10.53.0.9 >dig.out.${t} || setret "failed"
       grep "status: NOERROR" dig.out.$t >/dev/null || ret=1
       grep "ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 2$" dig.out.$t >/dev/null || ret=1
       grep "^rpz" dig.out.$t >/dev/null || ret=1
@@ -999,7 +999,7 @@ EOF
     echo_i "checking that rewriting CD=1 queries handles pending data correctly (${t})"
     $RNDCCMD $ns3 flush
     $RNDCCMD $ns6 flush
-    $DIG a7-2.tld2s -p ${PORT} @$ns6 +cd >dig.out.${t}
+    $DIG a7-2.tld2s -p ${PORT} @$ns6 +cd >dig.out.${t} || setret "failed"
     grep -w "1.1.1.1" dig.out.${t} >/dev/null || setret "failed"
   fi
 
