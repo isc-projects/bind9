@@ -3236,12 +3236,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    "zone '%s': is not a valid name", znamestr);
 		result = ISC_R_FAILURE;
 	} else {
-		char namebuf[DNS_NAME_FORMATSIZE + 128];
-		char *tmp = namebuf;
-		size_t len = sizeof(namebuf);
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char *key = NULL;
+		const char *vname = NULL;
+		size_t len = 0;
+		int n;
 
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(zclass, classbuf, sizeof(classbuf));
+
 		tresult = exists(
 			zconfig, namebuf,
 			ztype == CFG_ZONE_HINT	     ? 1
@@ -3260,15 +3265,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (dns_name_isula(zname)) {
 			ula = true;
 		}
-		len -= strlen(tmp);
-		tmp += strlen(tmp);
-		(void)snprintf(tmp, len, "%u/%s", zclass,
-			       (ztype == CFG_ZONE_INVIEW) ? target
-			       : (viewname != NULL)	  ? viewname
-							  : "_default");
+		vname = (ztype == CFG_ZONE_INVIEW) ? target
+			: (viewname != NULL)	   ? viewname
+						   : "_default";
+		len = strlen(namebuf) + strlen(classbuf) + strlen(vname) + 3;
+		key = isc_mem_get(mctx, len);
+		n = snprintf(key, len, "%s/%s/%s", namebuf, classbuf, vname);
+		RUNTIME_CHECK(n > 0 && (size_t)n < len);
 		switch (ztype) {
 		case CFG_ZONE_INVIEW:
-			tresult = isc_symtab_lookup(inview, namebuf, 0, NULL);
+			tresult = isc_symtab_lookup(inview, key, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(inviewobj, logctx, ISC_LOG_ERROR,
 					    "'in-view' zone '%s' "
@@ -3291,25 +3297,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		case CFG_ZONE_MIRROR:
 		case CFG_ZONE_HINT:
 		case CFG_ZONE_STUB:
-		case CFG_ZONE_STATICSTUB:
-			tmp = isc_mem_strdup(mctx, namebuf);
+		case CFG_ZONE_STATICSTUB: {
+			char *tmp = isc_mem_strdup(mctx, key);
+			isc_symvalue_t symvalue;
+			symvalue.as_cpointer = NULL;
+			tresult = isc_symtab_define(inview, tmp, 1, symvalue,
+						    isc_symexists_replace);
+			if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
 			{
-				isc_symvalue_t symvalue;
-				symvalue.as_cpointer = NULL;
-				tresult = isc_symtab_define(
-					inview, tmp, 1, symvalue,
-					isc_symexists_replace);
-				if (result == ISC_R_SUCCESS &&
-				    tresult != ISC_R_SUCCESS)
-				{
-					result = tresult;
-				}
+				result = tresult;
 			}
-			break;
+		} break;
 
 		default:
 			UNREACHABLE();
 		}
+		isc_mem_put(mctx, key, len);
 	}
 
 	if (ztype == CFG_ZONE_INVIEW) {
