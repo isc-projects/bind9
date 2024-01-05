@@ -1539,38 +1539,44 @@ isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		 const dns_name_t *algorithm, dns_tsigkeyring_t *ring) {
 	dns_tsigkey_t *key = NULL;
-	isc_stdtime_t now = isc_stdtime_now();
 	isc_result_t result;
+	isc_rwlocktype_t locktype = isc_rwlocktype_read;
+	isc_stdtime_t now = isc_stdtime_now();
 
 	REQUIRE(name != NULL);
 	REQUIRE(VALID_TSIGKEYRING(ring));
 	REQUIRE(tsigkey != NULL && *tsigkey == NULL);
 
-	RWLOCK(&ring->lock, isc_rwlocktype_read);
+again:
+	RWLOCK(&ring->lock, locktype);
 	result = isc_hashmap_find(ring->keys, dns_name_hash(name), tkey_match,
 				  name, (void **)&key);
 	if (result == ISC_R_NOTFOUND) {
-		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
+		RWUNLOCK(&ring->lock, locktype);
 		return (result);
 	}
 	if (algorithm != NULL && !dns_name_equal(key->algorithm, algorithm)) {
-		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
+		RWUNLOCK(&ring->lock, locktype);
 		return (ISC_R_NOTFOUND);
 	}
 	if (key->inception != key->expire && isc_serial_lt(key->expire, now)) {
 		/*
 		 * The key has expired.
 		 */
-		RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-		RWLOCK(&ring->lock, isc_rwlocktype_write);
+		if (locktype == isc_rwlocktype_read) {
+			RWUNLOCK(&ring->lock, locktype);
+			locktype = isc_rwlocktype_write;
+			key = NULL;
+			goto again;
+		}
 		rm_lru(key);
 		rm_hashmap(key);
-		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+		RWUNLOCK(&ring->lock, locktype);
 		return (ISC_R_NOTFOUND);
 	}
-	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
-	adjust_lru(key);
 	dns_tsigkey_ref(key);
+	RWUNLOCK(&ring->lock, locktype);
+	adjust_lru(key);
 	*tsigkey = key;
 	return (ISC_R_SUCCESS);
 }
