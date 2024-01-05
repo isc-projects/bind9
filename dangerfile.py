@@ -347,18 +347,18 @@ if changes_added_lines:
 #       MR.
 
 release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
-release_notes_changed = list(filter(release_notes_regex.match, modified_files))
+release_notes_changed = list(filter(release_notes_regex.match, affected_files))
 release_notes_label_set = "Release Notes" in mr_labels
 if not release_notes_changed:
     if release_notes_label_set:
         fail(
             "This merge request has the *Release Notes* label set. "
-            "Add a release note or unset the *Release Notes* label."
+            "Update release notes or unset the *Release Notes* label."
         )
     elif "Customer" in mr_labels:
         warn(
             "This merge request has the *Customer* label set. "
-            "Add a release note unless the changes introduced are trivial."
+            "Update release notes unless the changes introduced are trivial."
         )
 if release_notes_changed and not release_notes_label_set:
     fail(
@@ -367,7 +367,9 @@ if release_notes_changed and not release_notes_label_set:
     )
 
 if release_notes_changed:
-    notes_added_lines = added_lines(target_branch, release_notes_changed)
+    modified_or_new_files = danger.git.modified_files + danger.git.created_files
+    release_notes_added = list(filter(release_notes_regex.match, modified_or_new_files))
+    notes_added_lines = added_lines(target_branch, release_notes_added)
     identifiers_found = filter(relnotes_issue_or_mr_id_regex.search, notes_added_lines)
     if notes_added_lines and not any(identifiers_found):
         warn("No valid issue/MR identifiers found in added release notes.")

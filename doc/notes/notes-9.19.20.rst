@@ -32,34 +32,26 @@ Security Fixes
   features were enabled. This has been fixed. :cve:`2023-5679`
   :gl:`#4334`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
 
-- None.
+- :iscman:`named-compilezone` no longer performs zone integrity checks
+  by default; this allows faster conversion of a zone file from one
+  format to another. :gl:`#4364`
 
-- :program:`named-compilezone` no longer performs zone integrity checks
-  by default; this allows faster conversion of a zone file from one format
-  to another. Zone checks can be performed by running :program:`named-checkzone`
-  separately, or the previous default behavior can be restored by using
-  ``named-compilezone -i full -k fail -n fail -r warn -m warn -M warn
-  -S warn -T warn -W warn -C check-svcb:fail``. :gl:`#4364`
+  Zone checks can be performed by running :iscman:`named-checkzone`
+  separately, or the previous default behavior can be restored by using:
+
+  ::
+
+    named-compilezone -i full -k fail -n fail -r warn -m warn -M warn -S warn -T warn -W warn -C check-svcb:fail
 
 Bug Fixes
 ~~~~~~~~~
 
-- Fix statistics export to use full 64 bit signed numbers instead of truncating
-  values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
-  :gl:`#4467`
+- The counters exported via the statistics channel were changed back to
+  64-bit signed values; they were being inadvertently truncated to
+  unsigned 32-bit values since BIND 9.15.0. :gl:`#4467`
 
 Known Issues
 ~~~~~~~~~~~~
