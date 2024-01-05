@@ -32,27 +32,12 @@ Security Fixes
   features were enabled. This has been fixed. :cve:`2023-5679`
   :gl:`#4334`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
-- Fix statistics export to use full 64 bit signed numbers instead of truncating
-  values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
-  :gl:`#4467`
+- The counters exported via the statistics channel were changed back to
+  64-bit signed values; they were being inadvertently truncated to
+  unsigned 32-bit values since BIND 9.15.0. :gl:`#4467`
 
 Known Issues
 ~~~~~~~~~~~~
