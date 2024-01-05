@@ -41,26 +41,11 @@ Security Fixes
   ISC would like to thank Infoblox for bringing this vulnerability to
   our attention. :gl:`#4383`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
 Removed Features
 ~~~~~~~~~~~~~~~~
 
 - The support for AES algorithm for DNS cookies has been deprecated.
   :gl:`#4421`
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
-Bug Fixes
-~~~~~~~~~
-
-- None.
 
 Known Issues
 ~~~~~~~~~~~~
