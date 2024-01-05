@@ -1,3 +1,5 @@
+	--- 9.19.20 released ---
+
 6319.	[func]		Limit isc_async_run() overhead for RBTDB tree pruning.
 			[GL #4383]
 
