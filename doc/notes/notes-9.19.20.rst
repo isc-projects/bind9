@@ -32,20 +32,8 @@ Security Fixes
   features were enabled. This has been fixed. :cve:`2023-5679`
   :gl:`#4334`
 
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
 Feature Changes
 ~~~~~~~~~~~~~~~
-
-- None.
 
 - :program:`named-compilezone` no longer performs zone integrity checks
   by default; this allows faster conversion of a zone file from one format
