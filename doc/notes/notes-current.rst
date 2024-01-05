@@ -27,6 +27,11 @@ Security Fixes
   assertion failure when ``nxdomain-redirect`` was enabled. This has
   been fixed. :cve:`2023-5517` :gl:`#4281`
 
+- A bad interaction between DNS64 and serve-stale could cause
+  :iscman:`named` to crash with an assertion failure, when both of these
+  features were enabled. This has been fixed. :cve:`2023-5679`
+  :gl:`#4334`
+
 New Features
 ~~~~~~~~~~~~
 
