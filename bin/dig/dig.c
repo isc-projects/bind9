@@ -1151,13 +1151,19 @@ proxy_handle_port_string(const char *port_start, const size_t port_len,
 			 in_port_t *pport) {
 	char buf[512] = { 0 }; /* max */
 	size_t string_size = 0, max_string_bytes = 0;
+	unsigned int tmp;
+	isc_result_t result;
 
 	string_size = port_len + 1;
 	max_string_bytes = string_size > sizeof(buf) ? sizeof(buf)
 						     : string_size;
 
 	(void)strlcpy(buf, port_start, max_string_bytes);
-	*pport = (in_port_t)atoi(buf);
+	result = parse_uint(&tmp, buf, MAXPORT, "port number");
+	if (result != ISC_R_SUCCESS) {
+		fatal("Couldn't parse port number");
+	}
+	*pport = tmp;
 }
 
 static isc_result_t
