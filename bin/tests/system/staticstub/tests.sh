@@ -204,8 +204,8 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "checking static-stub of a undelegated tld resolves after DS query ($n)"
 ret=0
-$DIG $DIGOPTS undelegated. @10.53.0.2 ds >dig.out.ns2.ds.test$n
-$DIG $DIGOPTS undelegated. @10.53.0.2 soa >dig.out.ns2.soa.test$n
+$DIG $DIGOPTS undelegated. @10.53.0.2 ds >dig.out.ns2.ds.test$n || ret=1
+$DIG $DIGOPTS undelegated. @10.53.0.2 soa >dig.out.ns2.soa.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns2.ds.test$n >/dev/null || ret=1
 grep "status: NOERROR" dig.out.ns2.soa.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi

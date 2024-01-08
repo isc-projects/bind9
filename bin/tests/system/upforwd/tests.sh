@@ -404,7 +404,7 @@ EOF
   n=$((n + 1))
   wait_for_log_thrice
 
-  $DIG -p ${PORT} unsigned.example2 A @10.53.0.1 >dig.out.ns1.test$n
+  $DIG -p ${PORT} unsigned.example2 A @10.53.0.1 >dig.out.ns1.test$n || ret=1
   grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
@@ -439,7 +439,7 @@ EOF
   n=$((n + 1))
   wait_for_log_thrice
 
-  $DIG -p ${PORT} unsigned-dot.example2 A @10.53.0.1 >dig.out.ns1.test$n
+  $DIG -p ${PORT} unsigned-dot.example2 A @10.53.0.1 >dig.out.ns1.test$n || ret=1
   grep "status: NOERROR" dig.out.ns1.test$n >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=$((status + ret))
