@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.46
+Notes for BIND 9.16.47
 ----------------------
 
 Security Fixes
@@ -25,8 +25,7 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- The support for AES algorithm for DNS cookies has been deprecated.
-  :gl:`#4421`
+- None.
 
 Feature Changes
 ~~~~~~~~~~~~~~~
