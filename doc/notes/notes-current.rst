@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.22
+Notes for BIND 9.18.23
 ----------------------
 
 Security Fixes
@@ -35,9 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- Fix statistics export to use full 64 bit signed numbers instead of truncating
-  values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
-  :gl:`#4467`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
