@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.19.20
+Notes for BIND 9.19.21
 ----------------------
 
 Security Fixes
@@ -32,19 +32,10 @@ Feature Changes
 
 - None.
 
-- :program:`named-compilezone` no longer performs zone integrity checks
-  by default; this allows faster conversion of a zone file from one format
-  to another. Zone checks can be performed by running :program:`named-checkzone`
-  separately, or the previous default behavior can be restored by using
-  ``named-compilezone -i full -k fail -n fail -r warn -m warn -M warn
-  -S warn -T warn -W warn -C check-svcb:fail``. :gl:`#4364`
-
 Bug Fixes
 ~~~~~~~~~
 
-- Fix statistics export to use full 64 bit signed numbers instead of truncating
-  values to unsigned 32 bits. Export was truncating values since BIND 9.15.0.
-  :gl:`#4467`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
