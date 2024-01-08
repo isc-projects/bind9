@@ -12,13 +12,14 @@
 import os
 
 from .all import ALL
-from .algorithms import set_algorithm_set
+from .algorithms import init_crypto_supported, set_algorithm_set
 from .openssl import parse_openssl_config
 from .. import log
 
 
 def init_vars():
     """Initializes the environment variables."""
+    init_crypto_supported()
     set_algorithm_set(os.getenv("ALGORITHM_SET"))
     parse_openssl_config(ALL["OPENSSL_CONF"])
 

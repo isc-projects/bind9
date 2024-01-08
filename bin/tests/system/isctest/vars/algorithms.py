@@ -10,10 +10,10 @@
 # information regarding copyright ownership.
 
 import os
-from pathlib import Path
 import platform
 import random
 import subprocess
+import tempfile
 import time
 from typing import Dict, List, NamedTuple, Optional, Union
 
@@ -112,25 +112,54 @@ ALGORITHM_SETS = {
     # ),
 }
 
-# TODO rewrite testcrypto.sh to python
-TESTCRYPTO = Path(__file__).resolve().parent.parent.parent / "testcrypto.sh"
 
-
-def _is_supported(alg: Algorithm) -> bool:
+def is_crypto_supported(alg: Algorithm) -> bool:
     """Test whether a given algorithm is supported on the current platform."""
-    try:
-        subprocess.run(
-            f"{TESTCRYPTO} -q {alg.name}",
-            shell=True,
-            check=True,
-            env=BASIC_VARS,
+    assert alg in ALL_ALGORITHMS, f"unknown algorithm: {alg}"
+    with tempfile.TemporaryDirectory() as tmpdir:
+        proc = subprocess.run(
+            [
+                BASIC_VARS["KEYGEN"],
+                "-a",
+                alg.name,
+                "-b",
+                str(alg.bits),
+                "foo",
+            ],
+            cwd=tmpdir,
+            check=False,
             stdout=subprocess.DEVNULL,
         )
-    except subprocess.CalledProcessError as exc:
-        log.debug(exc)
+        if proc.returncode == 0:
+            return True
         log.info("algorithm %s not supported", alg.name)
         return False
-    return True
+
+
+# Indicate algorithm support on the current platform.
+CRYPTO_SUPPORTED_VARS = {
+    "RSASHA1_SUPPORTED": "0",
+    "RSASHA256_SUPPORTED": "0",
+    "RSASHA512_SUPPORTED": "0",
+    "ECDSAP256SHA256_SUPPORTED": "0",
+    "ECDSAP384SHA384_SUPPORTED": "0",
+    "ED25519_SUPPORTED": "0",
+    "ED448_SUPPORTED": "0",
+}
+
+SUPPORTED_ALGORITHMS: List[Algorithm] = []
+
+
+def init_crypto_supported():
+    """Initialize the environment variables indicating cryptography support."""
+    for alg in ALL_ALGORITHMS:
+        supported = is_crypto_supported(alg)
+        if supported:
+            SUPPORTED_ALGORITHMS.append(alg)
+        envvar = f"{alg.name}_SUPPORTED"
+        val = "1" if supported else "0"
+        CRYPTO_SUPPORTED_VARS[envvar] = val
+        os.environ[envvar] = val
 
 
 def _filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
@@ -140,7 +169,7 @@ def _filter_supported(algs: AlgorithmSet) -> AlgorithmSet:
         candidates = getattr(algs, alg_type)
         if isinstance(candidates, Algorithm):
             candidates = [candidates]
-        supported = list(filter(_is_supported, candidates))
+        supported = [alg for alg in candidates if alg in SUPPORTED_ALGORITHMS]
         if len(supported) == 1:
             supported = supported.pop()
         elif not supported:
