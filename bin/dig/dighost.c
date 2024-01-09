@@ -4358,7 +4358,7 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 		if (l->current_query == query) {
 			query_detach(&l->current_query);
 		}
-		if (next != NULL) {
+		if (next != NULL && (!l->ns_search_only || l->trace_root)) {
 			debug("sending query %p", next);
 			if (l->tcp_mode) {
 				start_tcp(next);
