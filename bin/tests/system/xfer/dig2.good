@@ -1,6 +1,7 @@
 example.		86400	IN	SOA	ns2.example. hostmaster.example. 1397051953 5 5 1814400 3600
 example.		3600	IN	NS	ns2.example.
 example.		3600	IN	NS	ns3.example.
+example.		3600	IN	DNSKEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
 a01.example.		3600	IN	A	0.0.0.1
 a02.example.		3600	IN	A	255.255.255.255
 a601.example.		3600	IN	A6	0 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
@@ -42,7 +43,6 @@ dlv.example.		3600	IN	DLV	30795 1 1 310D27F4D82C1FC2400704EA9939FE6E1CEAA3B9
 dname01.example.	3600	IN	DNAME	dname-target.
 dname02.example.	3600	IN	DNAME	dname-target.example.
 dname03.example.	3600	IN	DNAME	.
-dnskey01.example.	3600	IN	DNSKEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
 doa01.example.		3600	IN	DOA	1234567890 1234567890 1 "image/gif" R0lGODlhKAAZAOMCAGZmZgBmmf///zOZzMz//5nM/zNmmWbM/5nMzMzMzACZ/////////////////////yH5BAEKAA8ALAAAAAAoABkAAATH8IFJK5U2a4337F5ogRkpnoCJrly7PrCKyh8c3HgAhzT35MDbbtO7/IJIHbGiOiaTxVTpSVWWLqNq1UVyapNS1wd3OAxug0LhnCubcVhsxysQnOt4ATpvvzHlFzl1AwODhWeFAgRpen5/UhheAYMFdUB4SFcpGEGGdQeCAqBBLTuSk30EeXd9pEsAbKGxjHqDSE0Sp6ixN4N1BJmbc7lIhmsBich1awPAjkY1SZR8bJWrz382SGqIBQQFQd4IsUTaX+ceuudPEQA7
 doa02.example.		3600	IN	DOA	0 1 2 "" aHR0cHM6Ly93d3cuaXNjLm9yZy8=
 ds01.example.		3600	IN	NS	ns42.example.
