@@ -623,7 +623,7 @@ status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check if query for the zone returns SERVFAIL ($n)"
-$DIG @10.53.0.6 -p ${PORT} -t soa huge.zone >dig.out.1.test$n
+$DIG @10.53.0.6 -p ${PORT} -t soa huge.zone >dig.out.1.test$n || ret=1
 grep "SERVFAIL" dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then
   echo_i "failed (ignored)"
@@ -639,7 +639,7 @@ status=$((status + ret))
 
 n=$((n + 1))
 echo_i "check if query for the zone returns NOERROR ($n)"
-$DIG @10.53.0.6 -p ${PORT} -t soa huge.zone >dig.out.1.test$n
+$DIG @10.53.0.6 -p ${PORT} -t soa huge.zone >dig.out.1.test$n || ret=1
 grep "NOERROR" dig.out.1.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

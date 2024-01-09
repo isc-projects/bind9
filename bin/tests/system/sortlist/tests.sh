@@ -29,7 +29,7 @@ a.example.		300	IN	A	1.1.1.3
 a.example.		300	IN	A	1.1.1.2
 a.example.		300	IN	A	1.1.1.4
 EOF
-$DIG $DIGOPTS a.example. @10.53.0.1 -b 10.53.0.1 >test1.dig
+$DIG $DIGOPTS a.example. @10.53.0.1 -b 10.53.0.1 >test1.dig || status=1
 # Note that this can't use digcomp.pl because here, the ordering of the
 # result RRs is significant.
 diff test1.dig test1.good || status=1
