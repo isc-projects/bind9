@@ -76,6 +76,7 @@ struct ns_interface {
 	char		   name[32];   /*%< Null terminated. */
 	isc_nmsocket_t	  *udplistensocket;
 	isc_nmsocket_t	  *tcplistensocket;
+	isc_nmsocket_t	  *tlslistensocket;
 	isc_nmsocket_t	  *http_listensocket;
 	isc_nmsocket_t	  *http_secure_listensocket;
 	isc_quota_t	  *http_quota;
@@ -87,7 +88,8 @@ struct ns_interface {
 					   *   servicing TCP queries
 					   *   (whether accepting or
 					   *   connected) */
-	ns_clientmgr_t *clientmgr;	  /*%< Client manager. */
+	ns_clientmgr_t	   *clientmgr;	  /*%< Client manager. */
+	isc_nm_proxy_type_t proxy_type;
 	ISC_LINK(ns_interface_t) link;
 };
 
