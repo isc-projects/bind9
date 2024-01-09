@@ -71,7 +71,7 @@ status=$(expr $status + $ret)
 # need tocomplete before reopening/rolling for the counts to
 # be correct.
 
-$DIG $DIGOPTS @10.53.0.3 a.example >dig.out
+$DIG $DIGOPTS @10.53.0.3 a.example >dig.out || ret=1
 wait_for_log 20 "(./NS): query_reset" ns1/named.run || true
 
 # check three different dnstap reopen/roll methods:
@@ -95,7 +95,7 @@ $RNDCCMD -s 10.53.0.2 dnstap -reopen | sed 's/^/ns2 /' | cat_i
 $RNDCCMD -s 10.53.0.3 dnstap -roll | sed 's/^/ns3 /' | cat_i
 $RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/ns4 /' | cat_i
 
-$DIG $DIGOPTS @10.53.0.3 a.example >dig.out
+$DIG $DIGOPTS @10.53.0.3 a.example >dig.out || ret=1
 
 # send an UPDATE to ns2
 $NSUPDATE <<-EOF
@@ -558,7 +558,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
 
 if [ -n "$FSTRM_CAPTURE" ]; then
-  $DIG $DIGOPTS @10.53.0.4 a.example >dig.out
+  $DIG $DIGOPTS @10.53.0.4 a.example >dig.out || ret=1
 
   # send an UPDATE to ns4
   $NSUPDATE <<-EOF >nsupdate.out 2>&1
@@ -689,7 +689,7 @@ EOF
     ret=1
   }
   $RNDCCMD -s 10.53.0.4 dnstap -reopen | sed 's/^/ns4 /' | cat_i
-  $DIG $DIGOPTS @10.53.0.4 a.example >dig.out
+  $DIG $DIGOPTS @10.53.0.4 a.example >dig.out || ret=1
 
   echo_i "checking reopened unix socket message counts"
   sleep 2

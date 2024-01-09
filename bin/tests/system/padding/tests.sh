@@ -29,7 +29,7 @@ getcookie() {
 echo_i "checking that dig handles padding ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +qr +padding=128 foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +qr +padding=128 foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null || ret=1
 grep "; QUERY SIZE: 128" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -49,7 +49,7 @@ status=$(expr $status + $ret)
 echo_i "checking that padding is added for TCP responses ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc +padding=128 foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc +padding=128 foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null || ret=1
 grep "rcvd: 128" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -58,9 +58,9 @@ status=$(expr $status + $ret)
 echo_i "checking that padding is added to valid cookie responses ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +cookie foo.example @10.53.0.2 >dig.out.testc
+$DIG $DIGOPTS +cookie foo.example @10.53.0.2 >dig.out.testc || ret=1
 cookie=$(getcookie dig.out.testc)
-$DIG $DIGOPTS +cookie=$cookie +padding=128 foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +cookie=$cookie +padding=128 foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null || ret=1
 grep "rcvd: 128" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -69,7 +69,7 @@ status=$(expr $status + $ret)
 echo_i "checking that padding must be requested (TCP) ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -77,7 +77,7 @@ status=$(expr $status + $ret)
 echo_i "checking that padding must be requested (valid cookie) ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +cookie=$cookie foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +cookie=$cookie foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -85,7 +85,7 @@ status=$(expr $status + $ret)
 echo_i "checking that padding can be filtered out ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc +padding=128 -b 10.53.0.8 foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc +padding=128 -b 10.53.0.8 foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; PAD" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -97,7 +97,7 @@ nextpart ns2/named.stats >/dev/null
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
 opad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
-$DIG $DIGOPTS foo.example @10.53.0.3 >dig.out.test$n
+$DIG $DIGOPTS foo.example @10.53.0.3 >dig.out.test$n || ret=1
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
 npad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
@@ -115,7 +115,7 @@ nextpart ns2/named.stats >/dev/null
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
 opad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
-$DIG $DIGOPTS foo.example @10.53.0.4 >dig.out.test$n
+$DIG $DIGOPTS foo.example @10.53.0.4 >dig.out.test$n || ret=1
 $RNDCCMD 10.53.0.2 stats
 wait_for_log_peek 5 "--- Statistics Dump ---" ns2/named.stats || ret=1
 npad=$(nextpart ns2/named.stats | awk '/EDNS padding option received/ { print $1}')
@@ -129,9 +129,9 @@ status=$(expr $status + $ret)
 echo_i "checking that zero-length padding option has no effect ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +qr +ednsopt=12 foo.example @10.53.0.2 >dig.out.test$n.1
+$DIG $DIGOPTS +qr +ednsopt=12 foo.example @10.53.0.2 >dig.out.test$n.1 || ret=1
 grep "; PAD" dig.out.test$n.1 >/dev/null || ret=1
-$DIG $DIGOPTS +qr +ednsopt=12:00 foo.example @10.53.0.2 >dig.out.test$n.2
+$DIG $DIGOPTS +qr +ednsopt=12:00 foo.example @10.53.0.2 >dig.out.test$n.2 || ret=1
 grep "; PAD" dig.out.test$n.2 >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)

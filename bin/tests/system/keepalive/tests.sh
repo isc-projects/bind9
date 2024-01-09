@@ -23,7 +23,7 @@ status=0
 echo_i "checking that dig handles TCP keepalive ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +qr +keepalive foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +qr +keepalive foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -39,7 +39,7 @@ status=$(expr $status + $ret)
 echo_i "checking that TCP keepalive is added for TCP responses ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -47,7 +47,7 @@ status=$(expr $status + $ret)
 echo_i "checking that TCP keepalive requires TCP ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +keepalive foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +keepalive foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE" dig.out.test$n >/dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -55,7 +55,7 @@ status=$(expr $status + $ret)
 echo_i "checking default value ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.3 >dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.3 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE: 30.0 secs" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -63,7 +63,7 @@ status=$(expr $status + $ret)
 echo_i "checking configured value ($n)"
 ret=0
 n=$(expr $n + 1)
-$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE: 15.0 secs" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -73,7 +73,7 @@ ret=0
 n=$(expr $n + 1)
 $RNDCCMD tcp-timeouts 300 300 300 200 >output
 $DIFF -b output expected || ret=1
-$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n
+$DIG $DIGOPTS +vc +keepalive foo.example @10.53.0.2 >dig.out.test$n || ret=1
 grep "; TCP KEEPALIVE: 20.0 secs" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$(expr $status + $ret)
@@ -84,7 +84,7 @@ n=$(expr $n + 1)
 $RNDCCMD stats
 oka=$(grep "EDNS TCP keepalive option received" ns2/named.stats \
   | tail -1 | awk '{ print $1}')
-$DIG $DIGOPTS bar.example @10.53.0.3 >dig.out.test$n
+$DIG $DIGOPTS bar.example @10.53.0.3 >dig.out.test$n || ret=1
 $RNDCCMD stats
 nka=$(grep "EDNS TCP keepalive option received" ns2/named.stats \
   | tail -1 | awk '{ print $1}')

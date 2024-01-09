@@ -31,7 +31,7 @@ echo_i "test server with serve-stale options set"
 n=$((n + 1))
 echo_i "prime cache longttl.example TXT ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 longttl.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 longttl.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -40,7 +40,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -49,7 +49,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache othertype.example CAA ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 othertype.example CAA >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -58,7 +58,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -67,7 +67,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nxdomain.example TXT ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -93,7 +93,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -219,7 +219,7 @@ status=$((status + ret))
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time) ($n)"
@@ -234,7 +234,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -242,7 +242,7 @@ status=$((status + ret))
 
 # Step 7.
 echo_i "sending query for test $((n + 1))"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1))
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1)) || true
 
 # Step 8.
 n=$((n + 1))
@@ -260,7 +260,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -493,7 +493,7 @@ echo_i "flush cache, re-enable serve-stale and query again ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 flushtree example >rndc.out.test$n.1 2>&1 || ret=1
 $RNDCCMD 10.53.0.1 serve-stale on >rndc.out.test$n.2 2>&1 || ret=1
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 grep "status: SERVFAIL" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -510,7 +510,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -519,7 +519,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache longttl.example TXT (low max-stale-ttl) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 longttl.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 longttl.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -528,7 +528,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (low max-stale-ttl) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -537,7 +537,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache othertype.example CAA (low max-stale-ttl) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 othertype.example CAA >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 othertype.example CAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -546,7 +546,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (low max-stale-ttl) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -555,7 +555,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nxdomain.example TXT (low max-stale-ttl) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -585,7 +585,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -726,7 +726,7 @@ n=$((n + 1))
 echo_i "flush cache, enable responses from authoritative server ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 flushtree example >rndc.out.test$n.1 2>&1 || ret=1
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -744,7 +744,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (stale-refresh-time rndc) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -755,7 +755,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -767,7 +767,7 @@ sleep 2
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time rndc) ($n)"
@@ -782,7 +782,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -790,7 +790,7 @@ status=$((status + ret))
 
 # Step 7.
 echo_i "sending query for test $((n + 1))"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1))
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1)) || true
 
 # Step 8.
 n=$((n + 1))
@@ -838,7 +838,7 @@ n=$((n + 1))
 echo_i "flush cache, enable responses from authoritative server ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 flushtree example >rndc.out.test$n.1 2>&1 || ret=1
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -848,7 +848,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (stale-refresh-time disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -859,7 +859,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -871,7 +871,7 @@ sleep 2
 # Step 4.
 n=$((n + 1))
 echo_i "sending query for test ($n)"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$n || ret=1
 
 # Step 5.
 echo_i "check stale data.example TXT (stale-refresh-time disabled) ($n)"
@@ -886,7 +886,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -894,7 +894,7 @@ status=$((status + ret))
 
 # Step 7.
 echo_i "sending query for test $((n + 1))"
-$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1))
+$DIG -p ${PORT} @10.53.0.1 data.example TXT >dig.out.test$((n + 1)) || true
 
 # Step 8.
 n=$((n + 1))
@@ -914,7 +914,7 @@ echo_i "test server with no serve-stale options set"
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -923,7 +923,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache longttl.example TXT (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 longttl.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 longttl.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -932,7 +932,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -942,7 +942,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache othertype.example CAA (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 othertype.example CAA >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 othertype.example CAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n >/dev/null || ret=1
@@ -952,7 +952,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -962,7 +962,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nxdomain.example TXT (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nxdomain.example TXT >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -989,7 +989,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1087,7 +1087,7 @@ sleep 2
 n=$((n + 1))
 echo_i "check notincache.example TXT times out (max-stale-ttl default) ($n)"
 ret=0
-$DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 notfound.example TXT >dig.out.test$n 2>&1
+$DIG -p ${PORT} +tries=1 +timeout=3 @10.53.0.3 notfound.example TXT >dig.out.test$n 2>&1 && ret=1
 grep "connection timed out" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -1155,7 +1155,7 @@ echo_i "test server with serve-stale disabled"
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1164,7 +1164,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache longttl.example TTL (serve-stale answers disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.4 longttl.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.4 longttl.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1173,7 +1173,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TTL (serve-stale answers disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.4 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.4 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -1183,7 +1183,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache othertype.example CAA (serve-stale answers disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.4 othertype.example CAA >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.4 othertype.example CAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n >/dev/null || ret=1
@@ -1193,7 +1193,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (serve-stale answers disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.4 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.4 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -1203,7 +1203,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nxdomain.example TXT (serve-stale answers disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.4 nxdomain.example TXT >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -1230,7 +1230,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1360,7 +1360,7 @@ echo_i "test server with serve-stale cache disabled"
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1369,7 +1369,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache longttl.example TXT (serve-stale cache disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.5 longttl.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.5 longttl.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1378,7 +1378,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (serve-stale cache disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.5 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.5 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -1388,7 +1388,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache othertype.example CAA (serve-stale cache disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.5 othertype.example CAA >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.5 othertype.example CAA >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "othertype\.example\..*2.*IN.*CAA.*0.*issue" dig.out.test$n >/dev/null || ret=1
@@ -1398,7 +1398,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (serve-stale cache disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.5 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.5 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -1408,7 +1408,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nxdomain.example TXT (serve-stale cache disabled) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.5 nxdomain.example TXT >dig.out.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n >/dev/null || ret=1
@@ -1436,7 +1436,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1614,7 +1614,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1623,7 +1623,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (stale-answer-client-timeout) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1632,7 +1632,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (stale-answer-client-timeout) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1641,7 +1641,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "delay responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt slowdown >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt slowdown >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1650,7 +1650,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.slow TXT (stale-answer-client-timeout) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.slow TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.slow TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1659,7 +1659,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1731,7 +1731,7 @@ n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
 sleep 4
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1824,7 +1824,7 @@ sleep 3
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1849,7 +1849,7 @@ echo_i "test stale-answer-client-timeout (0) and CNAME record"
 n=$((n + 1))
 echo_i "prime cache shortttl.cname.example (stale-answer-client-timeout off) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 shortttl.cname.example A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 shortttl.cname.example A >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
 grep "shortttl\.cname\.example\..*1.*IN.*CNAME.*longttl\.target\.example\." dig.out.test$n >/dev/null || ret=1
@@ -1863,7 +1863,7 @@ sleep 1
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1873,7 +1873,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale shortttl.cname.example comes from cache (stale-answer-client-timeout off) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 shortttl.cname.example A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 shortttl.cname.example A >dig.out.test$n || ret=1
 wait_for_log 5 "shortttl.cname.example resolver failure, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
@@ -1886,7 +1886,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1933,7 +1933,7 @@ start_server --noclean --restart --port ${PORT} ns3
 n=$((n + 1))
 echo_i "prime cache data.example TXT (stale-answer-client-timeout 0)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1942,7 +1942,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache nodata.example TXT (stale-answer-client-timeout 0)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1951,7 +1951,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1964,7 +1964,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale nodata.example TXT comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "nodata.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n >/dev/null || ret=1
@@ -1976,7 +1976,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -1987,14 +1987,14 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 wait_for_rrset_refresh() {
-  $DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+  $DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || return 1
   grep "status: NOERROR" dig.out.test$n >/dev/null || return 1
   grep "ANSWER: 1," dig.out.test$n >/dev/null || return 1
   grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || return 1
@@ -2011,7 +2011,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
 wait_for_nodata_refresh() {
-  $DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n
+  $DIG -p ${PORT} @10.53.0.3 nodata.example TXT >dig.out.test$n || return 1
   grep "status: NOERROR" dig.out.test$n >/dev/null || return 1
   grep "ANSWER: 0," dig.out.test$n >/dev/null || return 1
   grep "example\..*[12].*IN.*SOA" dig.out.test$n >/dev/null || return 1
@@ -2034,7 +2034,7 @@ echo_i "test stale-answer-client-timeout (0) and recursive-clients 10"
 n=$((n + 1))
 echo_i "prime cache data.slow TXT (stale-answer-client-timeout 0) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.slow TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.slow TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2047,7 +2047,7 @@ while [ $ret -eq 0 ] && [ $attempt -lt 2 ]; do
   n=$((n + 1))
   echo_i "slow down response from authoritative server ($n)"
   ret=0
-  $DIG -p ${PORT} @10.53.0.2 slowdown TXT >dig.out.test$n
+  $DIG -p ${PORT} @10.53.0.2 slowdown TXT >dig.out.test$n || ret=1
   grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
   grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2089,7 +2089,7 @@ echo_i "test stale-answer-client-timeout (0) and CNAME record"
 n=$((n + 1))
 echo_i "prime cache cname1.stale.test A (stale-answer-client-timeout 0) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
 grep "cname1\.stale\.test\..*1.*IN.*CNAME.*a1\.stale\.test\." dig.out.test$n >/dev/null || ret=1
@@ -2104,7 +2104,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale cname1.stale.test A comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 cname1.stale.test A >dig.out.test$n || ret=1
 wait_for_log 5 "cname1.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
@@ -2127,7 +2127,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache cname2.stale.test A (stale-answer-client-timeout 0) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
 grep "cname2\.stale\.test\..*1.*IN.*CNAME.*a2\.stale\.test\." dig.out.test$n >/dev/null || ret=1
@@ -2142,7 +2142,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale cname2.stale.test A comes from cache (stale-answer-client-timeout 0) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 cname2.stale.test A >dig.out.test$n || ret=1
 wait_for_log 5 "cname2.stale.test stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
@@ -2186,7 +2186,7 @@ n=$((n + 1))
 echo_i "flush cache, enable responses from authoritative server ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 flushtree example >rndc.out.test$n.1 2>&1 || ret=1
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2195,7 +2195,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache data.example TXT (stale-answer-client-timeout 0, stale-refresh-time 4) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*2.*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -2208,7 +2208,7 @@ sleep 2
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2218,7 +2218,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2229,7 +2229,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2251,7 +2251,7 @@ sleep 2
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2261,7 +2261,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2281,7 +2281,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache within stale-refresh-time (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2292,7 +2292,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "enable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt enable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2307,7 +2307,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT was not refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example query within stale refresh time" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2321,7 +2321,7 @@ sleep 4
 n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example stale answer used, an attempt to refresh the RRset" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2332,7 +2332,7 @@ status=$((status + ret))
 n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT was refreshed (stale-answer-client-timeout 0 stale-refresh-time 4) ($n)"
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "data\.example\..*[12].*IN.*TXT.*A text record with a 2 second ttl" dig.out.test$n >/dev/null || ret=1
@@ -2366,7 +2366,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "disable responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt disable >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"0\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2409,7 +2409,7 @@ wait_for_fetchlimits() {
   burst 2
   # We expect a query for nx.example to fail because fetch-limits for
   # the domain 'example.' (and everything below) has been reached.
-  $DIG -p ${PORT} +tries=1 +timeout=1 @10.53.0.3 nx.example >dig.out.test$n
+  $DIG -p ${PORT} +tries=1 +timeout=1 @10.53.0.3 nx.example >dig.out.test$n || return 1
   grep "status: SERVFAIL" dig.out.test$n >/dev/null || return 1
 }
 
@@ -2427,7 +2427,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache (fetch-limits) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2440,7 +2440,7 @@ n=$((n + 1))
 ret=0
 echo_i "check stale data.example TXT comes from cache again (fetch-limits) ($n)"
 nextpart ns3/named.run >/dev/null
-$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 data.example TXT >dig.out.test$n || ret=1
 wait_for_log 5 "data.example resolver failure, stale answer used" ns3/named.run || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
@@ -2527,21 +2527,21 @@ copy_setports ns3/named8.conf.in ns3/named.conf
 rndc_reload ns3 10.53.0.3
 # flush cache, enable ans2 responses, make sure serve-stale is on
 $RNDCCMD 10.53.0.3 flush >rndc.out.test$n.1 2>&1 || ret=1
-$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null
+$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null || ret=1
 $RNDCCMD 10.53.0.3 serve-stale on >rndc.out.test$n.2 2>&1 || ret=1
 # prime the cache with an AAAA NXRRSET response
-$DIG -p ${PORT} @10.53.0.3 a-only.example AAAA >dig.out.1.test$n
+$DIG -p ${PORT} @10.53.0.3 a-only.example AAAA >dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n >/dev/null || ret=1
 grep "2001:aaaa" dig.out.1.test$n >/dev/null || ret=1
 # disable responses from the auth server
-$DIG -p ${PORT} @10.53.0.2 txt disable >/dev/null
+$DIG -p ${PORT} @10.53.0.2 txt disable >/dev/null || ret=1
 # wait two seconds for the previous answer to become stale
 sleep 2
 # resend the query and wait in the background; we should get a stale answer
 $DIG -p ${PORT} @10.53.0.3 a-only.example AAAA >dig.out.2.test$n &
 # re-enable queries after a pause, so the server gets a real answer too
 sleep 2
-$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null
+$DIG -p ${PORT} @10.53.0.2 txt enable >/dev/null || ret=1
 wait
 grep "status: NOERROR" dig.out.2.test$n >/dev/null || ret=1
 grep "2001:aaaa" dig.out.2.test$n >/dev/null || ret=1
@@ -2584,7 +2584,7 @@ status=$((status + ret))
 n=$((n + 1))
 echo_i "prime cache cname.example A (stale-answer-client-timeout 1.8) ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.3 cname.example A >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.3 cname.example A >dig.out.test$n || ret=1
 grep "status: NOERROR" dig.out.test$n >/dev/null || ret=1
 grep "ANSWER: 2," dig.out.test$n >/dev/null || ret=1
 grep "cname\.example\..*7.*IN.*CNAME.*target\.example\." dig.out.test$n >/dev/null || ret=1
@@ -2600,7 +2600,7 @@ sleep 7
 n=$((n + 1))
 echo_i "delay responses from authoritative server ($n)"
 ret=0
-$DIG -p ${PORT} @10.53.0.2 txt slowdown >dig.out.test$n
+$DIG -p ${PORT} @10.53.0.2 txt slowdown >dig.out.test$n || ret=1
 grep "ANSWER: 1," dig.out.test$n >/dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
