@@ -1,3 +1,7 @@
+6320.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
+			'host -C' commands when one of the name servers returns
+			SERVFAIL. [GL #4508]
+
 6319.	[placeholder]
 
 6318.	[placeholder]
