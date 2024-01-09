@@ -9261,7 +9261,7 @@ dns_resolver_create(dns_view_t *view,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_buckets;
 		res->buckets[i].task = NULL;
-		result = isc_task_create(taskmgr, 0, &res->buckets[i].task);
+		result = isc_task_create(taskmgr, ISC_TASK_QUANTUM_SLOW, &res->buckets[i].task);
 		if (result != ISC_R_SUCCESS) {
 			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;

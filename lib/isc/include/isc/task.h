@@ -98,8 +98,15 @@ ISC_LANG_BEGINDECLS
  ***/
 
 typedef enum {
-		isc_taskmgrmode_normal = 0,
-		isc_taskmgrmode_privileged
+	isc_taskqueue_normal = 0,
+	isc_taskqueue_slow = 1,
+} isc_taskqueue_t;
+
+#define ISC_TASK_QUANTUM_SLOW 1024
+
+typedef enum {
+	isc_taskmgrmode_normal = 0,
+	isc_taskmgrmode_privileged
 } isc_taskmgrmode_t;
 
 /*% Task and task manager methods */

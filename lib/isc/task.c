@@ -107,6 +107,7 @@ struct isc__task {
 	isc_eventlist_t			on_shutdown;
 	unsigned int			nevents;
 	unsigned int			quantum;
+	unsigned int			qid;
 	unsigned int			flags;
 	isc_stdtime_t			now;
 	isc_time_t			tnow;
@@ -141,11 +142,11 @@ struct isc__taskmgr {
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
 	LIST(isc__task_t)		tasks;
-	isc__tasklist_t			ready_tasks;
-	isc__tasklist_t			ready_priority_tasks;
+	isc__tasklist_t			ready_tasks[2];
+	isc__tasklist_t			ready_priority_tasks[2];
 	isc_taskmgrmode_t		mode;
 #ifdef ISC_PLATFORM_USETHREADS
-	isc_condition_t			work_available;
+	isc_condition_t			work_available[2];
 	isc_condition_t			exclusive_granted;
 	isc_condition_t			paused;
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -247,13 +248,13 @@ isc_taskmgrmode_t
 isc__taskmgr_mode(isc_taskmgr_t *manager0);
 
 static inline bool
-empty_readyq(isc__taskmgr_t *manager);
+empty_readyq(isc__taskmgr_t *manager, isc_taskqueue_t qid);
 
 static inline isc__task_t *
-pop_readyq(isc__taskmgr_t *manager);
+pop_readyq(isc__taskmgr_t *manager, isc_taskqueue_t qid);
 
 static inline void
-push_readyq(isc__taskmgr_t *manager, isc__task_t *task);
+push_readyq(isc__taskmgr_t *manager, isc__task_t *task, isc_taskqueue_t qid);
 
 static struct isc__taskmethods {
 	isc_taskmethods_t methods;
@@ -324,7 +325,8 @@ task_finished(isc__task_t *task) {
 		 * any idle worker threads so they
 		 * can exit.
 		 */
-		BROADCAST(&manager->work_available);
+		BROADCAST(&manager->work_available[isc_taskqueue_normal]);
+		BROADCAST(&manager->work_available[isc_taskqueue_slow]);
 	}
 #endif /* USE_WORKER_THREADS */
 	UNLOCK(&manager->lock);
@@ -364,7 +366,13 @@ isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
 	task->nevents = 0;
-	task->quantum = quantum;
+	if (quantum >= ISC_TASK_QUANTUM_SLOW) {
+		task->qid = isc_taskqueue_slow;
+		task->quantum = quantum - ISC_TASK_QUANTUM_SLOW;
+	} else {
+		task->qid = isc_taskqueue_normal;
+		task->quantum = quantum;
+	}
 	task->flags = 0;
 	task->now = 0;
 	isc_time_settoepoch(&task->tnow);
@@ -476,11 +484,11 @@ task_ready(isc__task_t *task) {
 
 	LOCK(&manager->lock);
 	LOCK(&task->lock);
-	push_readyq(manager, task);
+	push_readyq(manager, task, task->qid);
 	UNLOCK(&task->lock);
 #ifdef USE_WORKER_THREADS
 	if (manager->mode == isc_taskmgrmode_normal || has_privilege)
-		SIGNAL(&manager->work_available);
+		SIGNAL(&manager->work_available[task->qid]);
 #endif /* USE_WORKER_THREADS */
 	UNLOCK(&manager->lock);
 }
@@ -961,13 +969,13 @@ isc__task_getcurrenttimex(isc_task_t *task0, isc_time_t *t) {
  * Caller must hold the task manager lock.
  */
 static inline bool
-empty_readyq(isc__taskmgr_t *manager) {
+empty_readyq(isc__taskmgr_t *manager, isc_taskqueue_t qid) {
 	isc__tasklist_t queue;
 
 	if (manager->mode == isc_taskmgrmode_normal)
-		queue = manager->ready_tasks;
+		queue = manager->ready_tasks[qid];
 	else
-		queue = manager->ready_priority_tasks;
+		queue = manager->ready_priority_tasks[qid];
 
 	return (EMPTY(queue));
 }
@@ -981,18 +989,18 @@ empty_readyq(isc__taskmgr_t *manager) {
  * Caller must hold the task manager lock.
  */
 static inline isc__task_t *
-pop_readyq(isc__taskmgr_t *manager) {
+pop_readyq(isc__taskmgr_t *manager, isc_taskqueue_t qid) {
 	isc__task_t *task;
 
 	if (manager->mode == isc_taskmgrmode_normal)
-		task = HEAD(manager->ready_tasks);
+		task = HEAD(manager->ready_tasks[qid]);
 	else
-		task = HEAD(manager->ready_priority_tasks);
+		task = HEAD(manager->ready_priority_tasks[qid]);
 
 	if (task != NULL) {
-		DEQUEUE(manager->ready_tasks, task, ready_link);
+		DEQUEUE(manager->ready_tasks[qid], task, ready_link);
 		if (ISC_LINK_LINKED(task, ready_priority_link))
-			DEQUEUE(manager->ready_priority_tasks, task,
+			DEQUEUE(manager->ready_priority_tasks[qid], task,
 				ready_priority_link);
 	}
 
@@ -1006,16 +1014,16 @@ pop_readyq(isc__taskmgr_t *manager) {
  * Caller must hold the task manager lock.
  */
 static inline void
-push_readyq(isc__taskmgr_t *manager, isc__task_t *task) {
-	ENQUEUE(manager->ready_tasks, task, ready_link);
+push_readyq(isc__taskmgr_t *manager, isc__task_t *task, isc_taskqueue_t qid) {
+	ENQUEUE(manager->ready_tasks[qid], task, ready_link);
 	if ((task->flags & TASK_F_PRIVILEGED) != 0)
-		ENQUEUE(manager->ready_priority_tasks, task,
+		ENQUEUE(manager->ready_priority_tasks[qid], task,
 			ready_priority_link);
 	manager->tasks_ready++;
 }
 
 static void
-dispatch(isc__taskmgr_t *manager) {
+dispatch(isc__taskmgr_t *manager, isc_taskqueue_t qid) {
 	isc__task_t *task;
 #ifndef USE_WORKER_THREADS
 	unsigned int total_dispatch_count = 0;
@@ -1094,13 +1102,13 @@ dispatch(isc__taskmgr_t *manager) {
 		 * If a pause has been requested, don't do any work
 		 * until it's been released.
 		 */
-		while ((empty_readyq(manager) || manager->pause_requested ||
+		while ((empty_readyq(manager, qid) || manager->pause_requested ||
 			manager->exclusive_requested) && !FINISHED(manager))
 		{
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
 						    ISC_MSG_WAIT, "wait"));
-			WAIT(&manager->work_available, &manager->lock);
+			WAIT(&manager->work_available[qid], &manager->lock);
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_TASK,
 						    ISC_MSG_AWAKE, "awake"));
@@ -1113,7 +1121,7 @@ dispatch(isc__taskmgr_t *manager) {
 		XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
 					    ISC_MSG_WORKING, "working"));
 
-		task = pop_readyq(manager);
+		task = pop_readyq(manager, qid);
 		if (task != NULL) {
 			unsigned int dispatch_count = 0;
 			bool done = false;
@@ -1278,7 +1286,7 @@ dispatch(isc__taskmgr_t *manager) {
 				 */
 #ifdef USE_WORKER_THREADS
 				LOCK(&task->lock);
-				push_readyq(manager, task);
+				push_readyq(manager, task, qid);
 				UNLOCK(&task->lock);
 #else
 				ENQUEUE(new_ready_tasks, task, ready_link);
@@ -1297,10 +1305,14 @@ dispatch(isc__taskmgr_t *manager) {
 		 * we're stuck.  Automatically drop privileges at that
 		 * point and continue with the regular ready queue.
 		 */
-		if (manager->tasks_running == 0 && empty_readyq(manager)) {
+		if (manager->tasks_running == 0 && empty_readyq(manager, isc_taskqueue_normal) && empty_readyq(manager, isc_taskqueue_slow)) {
 			manager->mode = isc_taskmgrmode_normal;
-			if (!empty_readyq(manager))
-				BROADCAST(&manager->work_available);
+			if (!empty_readyq(manager, isc_taskqueue_normal)) {
+				BROADCAST(&manager->work_available[isc_taskqueue_normal]);
+			}
+			if (!empty_readyq(manager, isc_taskqueue_slow)) {
+				BROADCAST(&manager->work_available[isc_taskqueue_slow]);
+			}
 		}
 #endif
 	}
@@ -1322,13 +1334,37 @@ static isc_threadresult_t
 #ifdef _WIN32
 WINAPI
 #endif
-run(void *uap) {
+run_normal(void *uap) {
 	isc__taskmgr_t *manager = uap;
 
 	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				    ISC_MSG_STARTING, "starting"));
 
-	dispatch(manager);
+	dispatch(manager, isc_taskqueue_normal);
+
+	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				    ISC_MSG_EXITING, "exiting"));
+
+#ifdef OPENSSL_LEAKS
+	ERR_remove_state(0);
+#endif
+
+	return ((isc_threadresult_t)0);
+}
+#endif /* USE_WORKER_THREADS */
+
+#ifdef USE_WORKER_THREADS
+static isc_threadresult_t
+#ifdef _WIN32
+WINAPI
+#endif
+run_slow(void *uap) {
+	isc__taskmgr_t *manager = uap;
+
+	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				    ISC_MSG_STARTING, "starting"));
+
+	dispatch(manager, isc_taskqueue_slow);
 
 	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				    ISC_MSG_EXITING, "exiting"));
@@ -1347,7 +1383,8 @@ manager_free(isc__taskmgr_t *manager) {
 
 #ifdef USE_WORKER_THREADS
 	(void)isc_condition_destroy(&manager->exclusive_granted);
-	(void)isc_condition_destroy(&manager->work_available);
+	(void)isc_condition_destroy(&manager->work_available[isc_taskqueue_normal]);
+	(void)isc_condition_destroy(&manager->work_available[isc_taskqueue_slow]);
 	(void)isc_condition_destroy(&manager->paused);
 	isc_mem_free(manager->mctx, manager->threads);
 #endif /* USE_WORKER_THREADS */
@@ -1414,12 +1451,20 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 #ifdef USE_WORKER_THREADS
 	manager->workers = 0;
 	manager->threads = isc_mem_allocate(mctx,
-					    workers * sizeof(isc_thread_t));
+					    2 * workers * sizeof(isc_thread_t));
 	if (manager->threads == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_lock;
 	}
-	if (isc_condition_init(&manager->work_available) != ISC_R_SUCCESS) {
+	if (isc_condition_init(&manager->work_available[isc_taskqueue_normal]) != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_condition_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_threads;
+	}
+	if (isc_condition_init(&manager->work_available[isc_taskqueue_slow]) != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_condition_init() %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -1448,8 +1493,10 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
-	INIT_LIST(manager->ready_tasks);
-	INIT_LIST(manager->ready_priority_tasks);
+	INIT_LIST(manager->ready_tasks[isc_taskqueue_normal]);
+	INIT_LIST(manager->ready_tasks[isc_taskqueue_slow]);
+	INIT_LIST(manager->ready_priority_tasks[isc_taskqueue_normal]);
+	INIT_LIST(manager->ready_priority_tasks[isc_taskqueue_slow]);
 	manager->tasks_running = 0;
 	manager->tasks_ready = 0;
 	manager->exclusive_requested = false;
@@ -1465,7 +1512,19 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	 * Start workers.
 	 */
 	for (i = 0; i < workers; i++) {
-		if (isc_thread_create(run, manager,
+		if (isc_thread_create(run_normal, manager,
+				      &manager->threads[manager->workers]) ==
+		    ISC_R_SUCCESS) {
+			char name[21];	/* thread name limit on Linux */
+			snprintf(name, sizeof(name), "isc-worker%04u", i);
+			isc_thread_setname(manager->threads[manager->workers],
+					   name);
+			manager->workers++;
+			started++;
+		}
+	}
+	for (; i < workers * 2; i++) {
+		if (isc_thread_create(run_slow, manager,
 				      &manager->threads[manager->workers]) ==
 		    ISC_R_SUCCESS) {
 			char name[21];	/* thread name limit on Linux */
@@ -1482,7 +1541,7 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		manager_free(manager);
 		return (ISC_R_NOTHREADS);
 	}
-	isc_thread_setconcurrency(workers);
+	isc_thread_setconcurrency(workers * 2);
 #endif /* USE_WORKER_THREADS */
 #ifdef USE_SHARED_MANAGER
 	manager->refs = 1;
@@ -1497,7 +1556,8 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  cleanup_exclusivegranted:
 	(void)isc_condition_destroy(&manager->exclusive_granted);
  cleanup_workavailable:
-	(void)isc_condition_destroy(&manager->work_available);
+	(void)isc_condition_destroy(&manager->work_available[isc_taskqueue_slow]);
+	(void)isc_condition_destroy(&manager->work_available[isc_taskqueue_normal]);
  cleanup_threads:
 	isc_mem_free(mctx, manager->threads);
  cleanup_lock:
@@ -1582,7 +1642,7 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	     task = NEXT(task, link)) {
 		LOCK(&task->lock);
 		if (task_shutdown(task))
-			push_readyq(manager, task);
+			push_readyq(manager, task, task->qid);
 		UNLOCK(&task->lock);
 	}
 #ifdef USE_WORKER_THREADS
@@ -1591,7 +1651,8 @@ isc__taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 * there's work left to do, and if there are already no tasks left
 	 * it will cause the workers to see manager->exiting.
 	 */
-	BROADCAST(&manager->work_available);
+	BROADCAST(&manager->work_available[isc_taskqueue_normal]);
+	BROADCAST(&manager->work_available[isc_taskqueue_slow]);
 	UNLOCK(&manager->lock);
 
 	/*
@@ -1693,7 +1754,8 @@ isc__taskmgr_resume(isc_taskmgr_t *manager0) {
 	LOCK(&manager->lock);
 	if (manager->pause_requested) {
 		manager->pause_requested = false;
-		BROADCAST(&manager->work_available);
+		BROADCAST(&manager->work_available[isc_taskqueue_normal]);
+		BROADCAST(&manager->work_available[isc_taskqueue_slow]);
 	}
 	UNLOCK(&manager->lock);
 }
@@ -1778,7 +1840,8 @@ isc__task_endexclusive(isc_task_t *task0) {
 	LOCK(&manager->lock);
 	REQUIRE(manager->exclusive_requested);
 	manager->exclusive_requested = false;
-	BROADCAST(&manager->work_available);
+	BROADCAST(&manager->work_available[isc_taskqueue_normal]);
+	BROADCAST(&manager->work_available[isc_taskqueue_slow]);
 	UNLOCK(&manager->lock);
 #else
 	UNUSED(task0);
@@ -1804,10 +1867,10 @@ isc__task_setprivilege(isc_task_t *task0, bool priv) {
 
 	LOCK(&manager->lock);
 	if (priv && ISC_LINK_LINKED(task, ready_link))
-		ENQUEUE(manager->ready_priority_tasks, task,
+		ENQUEUE(manager->ready_priority_tasks[task->qid], task,
 			ready_priority_link);
 	else if (!priv && ISC_LINK_LINKED(task, ready_priority_link))
-		DEQUEUE(manager->ready_priority_tasks, task,
+		DEQUEUE(manager->ready_priority_tasks[task->qid], task,
 			ready_priority_link);
 	UNLOCK(&manager->lock);
 }
