@@ -1167,7 +1167,7 @@ has_dname(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
  * Signs all records at a name.
  */
 static void
-signname(dns_dbnode_t *node, dns_name_t *name) {
+signname(dns_dbnode_t *node, bool apex, dns_name_t *name) {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *rdsiter;
@@ -1218,6 +1218,10 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			fatal("'%s': found DS RRset without NS RRset\n",
 			      namebuf);
+		} else if (rdataset.type == dns_rdatatype_dnskey && !apex) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			fatal("'%s': Non-apex DNSKEY RRset\n", namebuf);
 		}
 
 		signset(&del, &add, node, name, &rdataset);
@@ -1537,7 +1541,7 @@ signapex(void) {
 	check_result(result, "dns_dbiterator_seek()");
 	result = dns_dbiterator_current(gdbiter, &node, name);
 	check_dns_dbiterator_current(result);
-	signname(node, name);
+	signname(node, true, name);
 	dumpnode(name, node);
 	dns_db_detachnode(gdb, &node);
 	result = dns_dbiterator_first(gdbiter);
@@ -1666,7 +1670,7 @@ assignwork(void *arg) {
 
 	UNLOCK(&namelock);
 
-	signname(node, dns_fixedname_name(&fname));
+	signname(node, false, dns_fixedname_name(&fname));
 
 	/*%
 	 * Write a node to the output file, and restart the worker task.
