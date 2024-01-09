@@ -1,3 +1,7 @@
+6389.	[bug]		dnssec-verify and dnssec-signzone could fail if there
+			was an obscured DNSKEY RRset at a delegatation.
+			[GL #4517]
+
 6388.	[placeholder]
 
 6387.	[func]		Added a new statistics variable "recursive high-water"
