@@ -14,84 +14,89 @@
 # When sourcing the script outside the pytest environment (e.g. during helper
 # script development), the env variables have to be loaded.
 if [ -z "$TOP_SRCDIR" ]; then
-    SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd | sed -E 's|(.*bin/tests/system).*|\1|')
-    eval "$(PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH" /usr/bin/env python3 -m isctest)"
+  SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd | sed -E 's|(.*bin/tests/system).*|\1|')
+  eval "$(PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH" /usr/bin/env python3 -m isctest)"
 fi
 
 testsock6() {
-	if test -n "$PERL" && $PERL -e "use IO::Socket::IP;" 2> /dev/null
-	then
-		$PERL "$TOP_SRCDIR/bin/tests/system/testsock6.pl" "$@"
-	else
-		false
-	fi
+  if test -n "$PERL" && $PERL -e "use IO::Socket::IP;" 2>/dev/null; then
+    $PERL "$TOP_SRCDIR/bin/tests/system/testsock6.pl" "$@"
+  else
+    false
+  fi
 }
 
-echofail () {
-    echo "$*"
+echofail() {
+  echo "$*"
 }
-echowarn () {
-    echo "$*"
+echowarn() {
+  echo "$*"
 }
-echopass () {
-    echo "$*"
+echopass() {
+  echo "$*"
 }
-echoinfo () {
-    echo "$*"
+echoinfo() {
+  echo "$*"
 }
-echostart () {
-    echo "$*"
+echostart() {
+  echo "$*"
 }
-echoend () {
-    echo "$*"
+echoend() {
+  echo "$*"
 }
 
 echo_i() {
-    echo "$@" | while IFS= read -r __LINE ; do
-       echoinfo "I:$__LINE"
-    done
+  echo "$@" | while IFS= read -r __LINE; do
+    echoinfo "I:$__LINE"
+  done
 }
 
 echo_ic() {
-    echo "$@" | while IFS= read -r __LINE ; do
-       echoinfo "I:  $__LINE"
-    done
+  echo "$@" | while IFS= read -r __LINE; do
+    echoinfo "I:  $__LINE"
+  done
 }
 
 echo_d() {
-    echo "$@" | while IFS= read -r __LINE ; do
-       echoinfo "D:$__LINE"
-    done
+  echo "$@" | while IFS= read -r __LINE; do
+    echoinfo "D:$__LINE"
+  done
 }
 
 cat_i() {
-    while IFS= read -r __LINE ; do
-       echoinfo "I:$__LINE"
-    done
+  while IFS= read -r __LINE; do
+    echoinfo "I:$__LINE"
+  done
 }
 
 cat_d() {
-    while IFS= read -r __LINE ; do
-       echoinfo "D:$__LINE"
-    done
+  while IFS= read -r __LINE; do
+    echoinfo "D:$__LINE"
+  done
 }
 
 digcomp() {
-    { output=$($PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"); result=$?; } || true
-    [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
-    return $result
+  {
+    output=$($PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@")
+    result=$?
+  } || true
+  [ -n "$output" ] && {
+    echo "digcomp failed:"
+    echo "$output"
+  } | cat_i
+  return $result
 }
 
 start_server() {
-    $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$SYSTESTDIR" "$@"
+  $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$SYSTESTDIR" "$@"
 }
 
 stop_server() {
-    $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$SYSTESTDIR" "$@"
+  $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$SYSTESTDIR" "$@"
 }
 
 send() {
-    $PERL "$TOP_SRCDIR/bin/tests/system/send.pl" "$@"
+  $PERL "$TOP_SRCDIR/bin/tests/system/send.pl" "$@"
 }
 
 #
@@ -140,94 +145,94 @@ export DEFAULT_HMAC=hmac-sha256
 # the error using the description of the tested variable provided in $3
 # and return 1.
 assert_int_equal() {
-	found="$1"
-	expected="$2"
-	description="$3"
+  found="$1"
+  expected="$2"
+  description="$3"
 
-	if [ "${expected}" -ne "${found}" ]; then
-		echo_i "incorrect ${description}: got ${found}, expected ${expected}"
-		return 1
-	fi
+  if [ "${expected}" -ne "${found}" ]; then
+    echo_i "incorrect ${description}: got ${found}, expected ${expected}"
+    return 1
+  fi
 
-	return 0
+  return 0
 }
 
 # keyfile_to_keys_section: helper function for keyfile_to_*_keys() which
 # converts keyfile data into a key-style trust anchor configuration
 # section using the supplied parameters
 keyfile_to_keys() {
-    section_name=$1
-    key_prefix=$2
-    shift
-    shift
-    echo "$section_name {"
-    for keyname in $*; do
-	awk '!/^; /{
+  section_name=$1
+  key_prefix=$2
+  shift
+  shift
+  echo "$section_name {"
+  for keyname in $*; do
+    awk '!/^; /{
 	    printf "\t\""$1"\" "
 	    printf "'"$key_prefix "'"
 	    printf $4 " " $5 " " $6 " \""
 	    for (i=7; i<=NF; i++) printf $i
 	    printf "\";\n"
 	}' $keyname.key
-    done
-    echo "};"
+  done
+  echo "};"
 }
 
 # keyfile_to_dskeys_section: helper function for keyfile_to_*_dskeys()
 # converts keyfile data into a DS-style trust anchor configuration
 # section using the supplied parameters
 keyfile_to_dskeys() {
-    section_name=$1
-    key_prefix=$2
-    shift
-    shift
-    echo "$section_name {"
-    for keyname in $*; do
-        $DSFROMKEY $keyname.key | \
-	awk '!/^; /{
+  section_name=$1
+  key_prefix=$2
+  shift
+  shift
+  echo "$section_name {"
+  for keyname in $*; do
+    $DSFROMKEY $keyname.key \
+      | awk '!/^; /{
 	    printf "\t\""$1"\" "
 	    printf "'"$key_prefix "'"
 	    printf $4 " " $5 " " $6 " \""
 	    for (i=7; i<=NF; i++) printf $i
 	    printf "\";\n"
 	}'
-    done
-    echo "};"
+  done
+  echo "};"
 }
 
 # keyfile_to_trusted_keys: convert key data contained in the keyfile(s)
 # provided to a "trust-keys" section suitable for including in a
 # resolver's configuration file
 keyfile_to_trusted_keys() {
-    keyfile_to_keys "trusted-keys" "" $*
+  keyfile_to_keys "trusted-keys" "" $*
 }
 
 # keyfile_to_static_keys: convert key data contained in the keyfile(s)
 # provided to a *static-key* "trust-anchors" section suitable for including in
 # a resolver's configuration file
 keyfile_to_static_keys() {
-    keyfile_to_keys "trust-anchors" "static-key" $*
+  keyfile_to_keys "trust-anchors" "static-key" $*
 }
 
 # keyfile_to_initial_keys: convert key data contained in the keyfile(s)
 # provided to an *initial-key* "trust-anchors" section suitable for including
 # in a resolver's configuration file
 keyfile_to_initial_keys() {
-    keyfile_to_keys "trust-anchors" "initial-key" $*
+  keyfile_to_keys "trust-anchors" "initial-key" $*
 }
 
 # keyfile_to_static_ds_keys: convert key data contained in the keyfile(s)
 # provided to a *static-ds* "trust-anchors" section suitable for including in a
 # resolver's configuration file
 keyfile_to_static_ds() {
-    keyfile_to_dskeys "trust-anchors" "static-ds" $*
+  keyfile_to_dskeys "trust-anchors" "static-ds" $*
 }
 
 # keyfile_to_initial_ds_keys: convert key data contained in the keyfile(s)
 # provided to an *initial-ds* "trust-anchors" section suitable for including
 # in a resolver's configuration file
 keyfile_to_initial_ds() {
-    keyfile_to_dskeys "trust-anchors" "initial-ds" $*
+  keyfile_to_dskeys "trust-anchors" "initial-ds" $*
 }
 
 # keyfile_to_key_id: convert a key file name to a key ID
@@ -236,7 +241,7 @@ keyfile_to_initial_ds() {
 # print the key ID with leading zeros stripped ("6160" for the
 # aforementioned example).
 keyfile_to_key_id() {
-	echo "$1" | sed "s/.*+0\{0,4\}//"
+  echo "$1" | sed "s/.*+0\{0,4\}//"
 }
 
 # private_type_record: write a private type record recording the state of the
@@ -246,13 +251,13 @@ keyfile_to_key_id() {
 # private type record with default type value of 65534, indicating that the
 # signing process for this key is completed.
 private_type_record() {
-        _zone=$1
-        _algorithm=$2
-        _keyfile=$3
+  _zone=$1
+  _algorithm=$2
+  _keyfile=$3
 
-        _id=$(keyfile_to_key_id "$_keyfile")
+  _id=$(keyfile_to_key_id "$_keyfile")
 
-        printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
+  printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
 }
 
 # nextpart*() - functions for reading files incrementally
@@ -303,51 +308,51 @@ private_type_record() {
 # nextpartreset: reset the marker used by nextpart() and nextpartpeek()
 # so that it points to the start of the given file
 nextpartreset() {
-    echo "0" > $1.prev
+  echo "0" >$1.prev
 }
 
 # nextpartread: read everything that's been appended to a file since the
 # last time nextpart() was called and print it to stdout, print the
 # total number of lines read from that file so far to file descriptor 3
 nextpartread() {
-    [ -f $1.prev ] || nextpartreset $1
-    prev=$(cat $1.prev)
-    awk "NR > $prev "'{ print }
+  [ -f $1.prev ] || nextpartreset $1
+  prev=$(cat $1.prev)
+  awk "NR > $prev "'{ print }
 	 END          { print NR > "/dev/stderr" }' $1 2>&3
 }
 
 # nextpart: read everything that's been appended to a file since the
 # last time nextpart() was called
 nextpart() {
-	nextpartread $1 3> $1.prev.tmp
-	mv $1.prev.tmp $1.prev
+  nextpartread $1 3>$1.prev.tmp
+  mv $1.prev.tmp $1.prev
 }
 
 # nextpartpeek: read everything that's been appended to a file since the
 # last time nextpart() was called
 nextpartpeek() {
-	nextpartread $1 3> /dev/null
+  nextpartread $1 3>/dev/null
 }
 
 # _search_log: look for message $1 in file $2 with nextpart().
 _search_log() (
-	msg="$1"
-	file="$2"
-	nextpart "$file" | grep -F -e "$msg" > /dev/null
+  msg="$1"
+  file="$2"
+  nextpart "$file" | grep -F -e "$msg" >/dev/null
 )
 
 # _search_log_re: same as _search_log but the message is an grep -E regex
 _search_log_re() (
-	msg="$1"
-	file="$2"
-	nextpart "$file" | grep -E -e "$msg" > /dev/null
+  msg="$1"
+  file="$2"
+  nextpart "$file" | grep -E -e "$msg" >/dev/null
 )
 
 # _search_log_peek: look for message $1 in file $2 with nextpartpeek().
 _search_log_peek() (
-	msg="$1"
-	file="$2"
-	nextpartpeek "$file" | grep -F -e "$msg" > /dev/null
+  msg="$1"
+  file="$2"
+  nextpartpeek "$file" | grep -F -e "$msg" >/dev/null
 )
 
 # wait_for_log: wait until message $2 in file $3 appears.  Bail out after
@@ -356,108 +361,108 @@ _search_log_peek() (
 # set correctly.  Tests using wait_for_log() are responsible for cleaning up
 # the created <file>.prev files.
 wait_for_log() (
-	timeout="$1"
-	msg="$2"
-	file="$3"
-	retry_quiet "$timeout" _search_log "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for literal '$msg' in $file"
-        return 1
+  timeout="$1"
+  msg="$2"
+  file="$3"
+  retry_quiet "$timeout" _search_log "$msg" "$file" && return 0
+  echo_i "exceeded time limit waiting for literal '$msg' in $file"
+  return 1
 )
 
 # wait_for_log_re: same as wait_for_log, but the message is an grep -E regex
 wait_for_log_re() (
-	timeout="$1"
-	msg="$2"
-	file="$3"
-	retry_quiet "$timeout" _search_log_re "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for regex '$msg' in $file"
-        return 1
+  timeout="$1"
+  msg="$2"
+  file="$3"
+  retry_quiet "$timeout" _search_log_re "$msg" "$file" && return 0
+  echo_i "exceeded time limit waiting for regex '$msg' in $file"
+  return 1
 )
 
 # wait_for_log_peek: similar to wait_for_log() but peeking, so the file offset
 # does not change.
 wait_for_log_peek() (
-	timeout="$1"
-	msg="$2"
-	file="$3"
-	retry_quiet "$timeout" _search_log_peek "$msg" "$file" && return 0
-	echo_i "exceeded time limit waiting for literal '$msg' in $file"
-        return 1
+  timeout="$1"
+  msg="$2"
+  file="$3"
+  retry_quiet "$timeout" _search_log_peek "$msg" "$file" && return 0
+  echo_i "exceeded time limit waiting for literal '$msg' in $file"
+  return 1
 )
 
 # _retry: keep running a command until it succeeds, up to $1 times, with
 # one-second intervals, optionally printing a message upon every attempt
 _retry() {
-	__retries="${1}"
-	shift
+  __retries="${1}"
+  shift
 
-	while :; do
-		if "$@"; then
-			return 0
-		fi
-		__retries=$((__retries-1))
-		if [ "${__retries}" -gt 0 ]; then
-			if [ "${__retry_quiet}" -ne 1 ]; then
-				echo_i "retrying"
-			fi
-			sleep 1
-		else
-			return 1
-		fi
-	done
+  while :; do
+    if "$@"; then
+      return 0
+    fi
+    __retries=$((__retries - 1))
+    if [ "${__retries}" -gt 0 ]; then
+      if [ "${__retry_quiet}" -ne 1 ]; then
+        echo_i "retrying"
+      fi
+      sleep 1
+    else
+      return 1
+    fi
+  done
 }
 
 # retry: call _retry() in verbose mode
 retry() {
-	__retry_quiet=0
-	_retry "$@"
+  __retry_quiet=0
+  _retry "$@"
 }
 
 # retry_quiet: call _retry() in silent mode
 retry_quiet() {
-	__retry_quiet=1
-	_retry "$@"
+  __retry_quiet=1
+  _retry "$@"
 }
 
 # _repeat: keep running command up to $1 times, unless it fails
 _repeat() (
-    __retries="${1}"
-    shift
-    while :; do
-	if ! "$@"; then
-	    return 1
-	fi
-	__retries=$((__retries-1))
-	if [ "${__retries}" -le 0 ]; then
-	    break
-	fi
-    done
-    return 0
+  __retries="${1}"
+  shift
+  while :; do
+    if ! "$@"; then
+      return 1
+    fi
+    __retries=$((__retries - 1))
+    if [ "${__retries}" -le 0 ]; then
+      break
+    fi
+  done
+  return 0
 )
 
 _times() {
-	awk "BEGIN{ for(i = 1; i <= $1; i++) print i}";
+  awk "BEGIN{ for(i = 1; i <= $1; i++) print i}"
 }
 
 rndc_reload() {
-    $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'"I:$1"' /'
-    # reloading single zone is synchronous, if we're reloading whole server
-    # we need to wait for reload to finish
-    if [ -z "$3" ]; then
-        for _ in $(_times 10); do
-            $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break
-            sleep 1
-        done
-    fi
+  $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'"I:$1"' /'
+  # reloading single zone is synchronous, if we're reloading whole server
+  # we need to wait for reload to finish
+  if [ -z "$3" ]; then
+    for _ in $(_times 10); do
+      $RNDC -c ../_common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" >/dev/null || break
+      sleep 1
+    done
+  fi
 }
 
 rndc_reconfig() {
-    seconds=${3:-10}
-    $RNDC -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" reconfig 2>&1 | sed 's/^/'"I:$1"' /'
-    for _ in $(_times "$seconds"); do
-        "$RNDC" -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" status | grep "reload/reconfig in progress" > /dev/null || break
-        sleep 1
-    done
+  seconds=${3:-10}
+  $RNDC -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" reconfig 2>&1 | sed 's/^/'"I:$1"' /'
+  for _ in $(_times "$seconds"); do
+    "$RNDC" -c ../_common/rndc.conf -s "$2" -p "${CONTROLPORT}" status | grep "reload/reconfig in progress" >/dev/null || break
+    sleep 1
+  done
 }
 
 # rndc_dumpdb: call "rndc dumpdb [...]" and wait until it completes
@@ -476,39 +481,38 @@ rndc_reconfig() {
 # code other than 0 or if the "; Dump complete" string does not appear in the
 # dump within 10 seconds.
 rndc_dumpdb() {
-	__ret=0
-	__dump_complete=0
-	__server="${1}"
-	__ip="10.53.0.$(echo "${__server}" | tr -c -d "0-9")"
+  __ret=0
+  __dump_complete=0
+  __server="${1}"
+  __ip="10.53.0.$(echo "${__server}" | tr -c -d "0-9")"
 
-	shift
-	${RNDC} -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "${__ip}" dumpdb "$@" > "rndc.out.test${n}" 2>&1 || __ret=1
+  shift
+  ${RNDC} -c ../_common/rndc.conf -p "${CONTROLPORT}" -s "${__ip}" dumpdb "$@" >"rndc.out.test${n}" 2>&1 || __ret=1
 
-	for _ in 0 1 2 3 4 5 6 7 8 9
-	do
-		if grep '^; Dump complete$' "${__server}/named_dump.db" > /dev/null; then
-			mv "${__server}/named_dump.db" "${__server}/named_dump.db.test${n}"
-			__dump_complete=1
-			break
-		fi
-		sleep 1
-	done
+  for _ in 0 1 2 3 4 5 6 7 8 9; do
+    if grep '^; Dump complete$' "${__server}/named_dump.db" >/dev/null; then
+      mv "${__server}/named_dump.db" "${__server}/named_dump.db.test${n}"
+      __dump_complete=1
+      break
+    fi
+    sleep 1
+  done
 
-	if [ ${__dump_complete} -eq 0 ]; then
-		echo_i "timed out waiting for 'rndc dumpdb' to finish"
-		__ret=1
-	fi
+  if [ ${__dump_complete} -eq 0 ]; then
+    echo_i "timed out waiting for 'rndc dumpdb' to finish"
+    __ret=1
+  fi
 
-	return ${__ret}
+  return ${__ret}
 }
 
 # get_dig_xfer_stats: extract transfer statistics from dig output stored
 # in $1, converting them to a format used by some system tests.
 get_dig_xfer_stats() {
-	LOGFILE="$1"
-	sed -n "s/^;; XFR size: .*messages \([0-9][0-9]*\).*/messages=\1/p" "${LOGFILE}"
-	sed -n "s/^;; XFR size: \([0-9][0-9]*\) records.*/records=\1/p" "${LOGFILE}"
-	sed -n "s/^;; XFR size: .*bytes \([0-9][0-9]*\).*/bytes=\1/p" "${LOGFILE}"
+  LOGFILE="$1"
+  sed -n "s/^;; XFR size: .*messages \([0-9][0-9]*\).*/messages=\1/p" "${LOGFILE}"
+  sed -n "s/^;; XFR size: \([0-9][0-9]*\) records.*/records=\1/p" "${LOGFILE}"
+  sed -n "s/^;; XFR size: .*bytes \([0-9][0-9]*\).*/bytes=\1/p" "${LOGFILE}"
 }
 
 # get_named_xfer_stats: from named log file $1, extract transfer
@@ -516,16 +520,16 @@ get_dig_xfer_stats() {
 # message which has to contain the string provided in $4), converting
 # them to a format used by some system tests.
 get_named_xfer_stats() {
-	LOGFILE="$1"
-	PEER="$(echo $2 | sed 's/\./\\./g')"
-	ZONE="$(echo $3 | sed 's/\./\\./g')"
-	MESSAGE="$4"
-	grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" | \
-		sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) messages.*/messages=\1/p" | tail -1
-	grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" | \
-		sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) records.*/records=\1/p" | tail -1
-	grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" | \
-		sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) bytes.*/bytes=\1/p" | tail -1
+  LOGFILE="$1"
+  PEER="$(echo $2 | sed 's/\./\\./g')"
+  ZONE="$(echo $3 | sed 's/\./\\./g')"
+  MESSAGE="$4"
+  grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" \
+    | sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) messages.*/messages=\1/p" | tail -1
+  grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" \
+    | sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) records.*/records=\1/p" | tail -1
+  grep " ${PEER}#.*${MESSAGE}:" "${LOGFILE}" \
+    | sed -n "s/.* '${ZONE}\/.* \([0-9][0-9]*\) bytes.*/bytes=\1/p" | tail -1
 }
 
 # copy_setports - Copy Configuration File and Replace Ports
@@ -539,57 +543,57 @@ get_named_xfer_stats() {
 #   copy_setports infile outfile
 #
 copy_setports() {
-    dir=$(echo "$TMPDIR" | sed 's/\//\\\//g')
+  dir=$(echo "$TMPDIR" | sed 's/\//\\\//g')
 
-    sed -e "s/@TMPDIR@/${dir}/g" \
-        -e "s/@PORT@/${PORT}/g" \
-        -e "s/@TLSPORT@/${TLSPORT}/g" \
-        -e "s/@HTTPPORT@/${HTTPPORT}/g" \
-        -e "s/@HTTPSPORT@/${HTTPSPORT}/g" \
-        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
-        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
-        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
-        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
-        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
-        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
-        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
-        -e "s/@DEFAULT_ALGORITHM@/${DEFAULT_ALGORITHM}/g" \
-        -e "s/@DEFAULT_ALGORITHM_NUMBER@/${DEFAULT_ALGORITHM_NUMBER}/g" \
-        -e "s/@DEFAULT_BITS@/${DEFAULT_BITS}/g" \
-        -e "s/@ALTERNATIVE_ALGORITHM@/${ALTERNATIVE_ALGORITHM}/g" \
-        -e "s/@ALTERNATIVE_ALGORITHM_NUMBER@/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
-        -e "s/@ALTERNATIVE_BITS@/${ALTERNATIVE_BITS}/g" \
-        -e "s/@DEFAULT_HMAC@/${DEFAULT_HMAC}/g" \
-        -e "s/@DISABLED_ALGORITHM@/${DISABLED_ALGORITHM}/g" \
-        -e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_NUMBER}/g" \
-        -e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
-        $1 > $2
+  sed -e "s/@TMPDIR@/${dir}/g" \
+    -e "s/@PORT@/${PORT}/g" \
+    -e "s/@TLSPORT@/${TLSPORT}/g" \
+    -e "s/@HTTPPORT@/${HTTPPORT}/g" \
+    -e "s/@HTTPSPORT@/${HTTPSPORT}/g" \
+    -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+    -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+    -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+    -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+    -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+    -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+    -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+    -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
+    -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+    -e "s/@DEFAULT_ALGORITHM@/${DEFAULT_ALGORITHM}/g" \
+    -e "s/@DEFAULT_ALGORITHM_NUMBER@/${DEFAULT_ALGORITHM_NUMBER}/g" \
+    -e "s/@DEFAULT_BITS@/${DEFAULT_BITS}/g" \
+    -e "s/@ALTERNATIVE_ALGORITHM@/${ALTERNATIVE_ALGORITHM}/g" \
+    -e "s/@ALTERNATIVE_ALGORITHM_NUMBER@/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
+    -e "s/@ALTERNATIVE_BITS@/${ALTERNATIVE_BITS}/g" \
+    -e "s/@DEFAULT_HMAC@/${DEFAULT_HMAC}/g" \
+    -e "s/@DISABLED_ALGORITHM@/${DISABLED_ALGORITHM}/g" \
+    -e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_NUMBER}/g" \
+    -e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
+    $1 >$2
 }
 
 # parse_openssl_config - Parse OpenSSL configuration for HSM settings
 #
 # Will set SOFTHSM2_MODULE, OPENSSL_ENGINE and ENGINE_ARG based on openssl configuration.
 parse_openssl_config() {
-    ENGINE_ARG=""
-    [ -f "$OPENSSL_CONF" ] || return 0
-    while IFS="=" read key val; do
-        # trim variables
-        key="${key## }"
-        key="${key%% }"
-        val="${val## }"
-        val="${val%% }"
-        case "$key" in
-        "engine_id")
-            OPENSSL_ENGINE="$val"
-            ENGINE_ARG="-E $OPENSSL_ENGINE"
-            ;;
-        "MODULE_PATH"|"pkcs11-module-path")
-            SOFTHSM2_MODULE="$val"
-            ;;
-        esac
-    done < "$OPENSSL_CONF"
+  ENGINE_ARG=""
+  [ -f "$OPENSSL_CONF" ] || return 0
+  while IFS="=" read key val; do
+    # trim variables
+    key="${key## }"
+    key="${key%% }"
+    val="${val## }"
+    val="${val%% }"
+    case "$key" in
+      "engine_id")
+        OPENSSL_ENGINE="$val"
+        ENGINE_ARG="-E $OPENSSL_ENGINE"
+        ;;
+      "MODULE_PATH" | "pkcs11-module-path")
+        SOFTHSM2_MODULE="$val"
+        ;;
+    esac
+  done <"$OPENSSL_CONF"
 }
 
 grep_v() { grep -v "$@" || test $? = 1; }
