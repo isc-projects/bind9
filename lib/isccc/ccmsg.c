@@ -180,6 +180,16 @@ isccc_ccmsg_sendmessage(isccc_ccmsg_t *ccmsg, isc_region_t *region,
 }
 
 void
+isccc_ccmsg_disconnect(isccc_ccmsg_t *ccmsg) {
+	REQUIRE(VALID_CCMSG(ccmsg));
+
+	if (ccmsg->handle != NULL) {
+		isc_nmhandle_close(ccmsg->handle);
+		isc_nmhandle_detach(&ccmsg->handle);
+	}
+}
+
+void
 isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg) {
 	REQUIRE(VALID_CCMSG(ccmsg));
 
@@ -187,10 +197,6 @@ isccc_ccmsg_invalidate(isccc_ccmsg_t *ccmsg) {
 
 	if (ccmsg->buffer != NULL) {
 		isc_buffer_free(&ccmsg->buffer);
-	}
-	if (ccmsg->handle != NULL) {
-		isc_nmhandle_close(ccmsg->handle);
-		isc_nmhandle_detach(&ccmsg->handle);
 	}
 }
 
