@@ -43,7 +43,7 @@ have_json_c = pytest.mark.skipif(
 
 
 try:
-    import flaky as flaky_pkg
+    import flaky as flaky_pkg  # type: ignore
 except ModuleNotFoundError:
     # In case the flaky package is not installed, run the tests as usual
     # without any attempts to re-run them.
