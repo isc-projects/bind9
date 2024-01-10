@@ -419,10 +419,10 @@ conn_shutdown(controlconnection_t *conn) {
 	conn->shuttingdown = true;
 
 	/*
-	 * Calling invalidate on ccmsg will shutdown the TCP connection, thus
-	 * we are making sure that no read callback will be called ever again.
+	 * Close the TCP connection to make sure that no read callback will be
+	 * called for it ever again.
 	 */
-	isccc_ccmsg_invalidate(&conn->ccmsg);
+	isccc_ccmsg_disconnect(&conn->ccmsg);
 
 	/* Detach the reading reference */
 	controlconnection_detach(&conn);
@@ -574,6 +574,8 @@ conn_free(controlconnection_t *conn) {
 	REQUIRE(conn->shuttingdown);
 
 	controllistener_t *listener = conn->listener;
+
+	isccc_ccmsg_invalidate(&conn->ccmsg);
 
 	conn_cleanup(conn);
 

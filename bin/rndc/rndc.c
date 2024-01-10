@@ -348,7 +348,7 @@ rndc_recvdone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 
 	isccc_sexpr_free(&response);
 
-	isccc_ccmsg_invalidate(ccmsg);
+	isccc_ccmsg_disconnect(ccmsg);
 	isc_loopmgr_shutdown(loopmgr);
 }
 
@@ -1002,6 +1002,8 @@ main(int argc, char **argv) {
 	}
 
 	isc_loopmgr_run(loopmgr);
+
+	isccc_ccmsg_invalidate(&rndc_ccmsg);
 
 	isc_log_destroy(&log);
 	isc_log_setcontext(NULL);
