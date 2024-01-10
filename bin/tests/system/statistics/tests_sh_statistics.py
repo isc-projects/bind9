@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import pytest_custom_markers
 
+
+@pytest_custom_markers.flaky(max_runs=2)  # GL#1621
 def test_statistics(run_tests_sh):
     run_tests_sh()
