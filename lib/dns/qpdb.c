@@ -2013,29 +2013,23 @@ dns__qpdb_findnodeintree(dns_qpdb_t *qpdb, dns_qp_t *tree,
 		 * Try to upgrade the lock and if that fails unlock then relock.
 		 */
 		TREE_FORCEUPGRADE(&qpdb->tree_lock, &tlocktype);
-		node = NULL;
-		result = dns_rbt_addnode(tree, name, &node);
-		if (result == ISC_R_SUCCESS) {
-			dns_rbt_namefromnode(node, &nodename);
-			node->locknum = node->hashval % qpdb->node_lock_count;
-			if (tree == qpdb->tree) {
-				dns__qpzone_addwildcards(qpdb, name, true);
+		node = dns_qpdata_create(qpdb, name);
+		result = dns_qp_insert(tree, node, 0);
+		INSIST(result == ISC_R_SUCCESS);
 
-				if (dns_name_iswildcard(name)) {
-					result = dns__qpzone_wildcardmagic(
-						qpdb, name, true);
-					if (result != ISC_R_SUCCESS) {
-						goto unlock;
-					}
+		if (tree == qpdb->tree) {
+			dns__qpzone_addwildcards(qpdb, name, true);
+
+			if (dns_name_iswildcard(name)) {
+				result = dns__qpzone_wildcardmagic(qpdb, name,
+								   true);
+				if (result != ISC_R_SUCCESS) {
+					goto unlock;
 				}
 			}
-			if (tree == qpdb->nsec3) {
-				node->nsec = DNS_DB_NSEC_NSEC3;
-			}
-		} else if (result == ISC_R_EXISTS) {
-			result = ISC_R_SUCCESS;
-		} else {
-			goto unlock;
+		}
+		if (tree == qpdb->nsec3) {
+			node->nsec = DNS_DB_NSEC_NSEC3;
 		}
 	}
 
@@ -3337,14 +3331,18 @@ dns__qpdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	if (newnsec) {
 		dns_rbtnode_t *nsecnode = NULL;
 
-		result = dns_rbt_addnode(qpdb->nsec, name, &nsecnode);
+		result = dns_qp_getname(qpdb->nsec, name, (void **)&nsecnode,
+					NULL);
 		if (result == ISC_R_SUCCESS) {
-			nsecnode->nsec = DNS_DB_NSEC_NSEC;
-			rbtnode->nsec = DNS_DB_NSEC_HAS_NSEC;
-		} else if (result == ISC_R_EXISTS) {
-			rbtnode->nsec = DNS_DB_NSEC_HAS_NSEC;
 			result = ISC_R_SUCCESS;
+		} else {
+			INSIST(nsecnode == NULL);
+			nsecnode = dns_qpdata_create(qpdb, name);
+			nsecnode->nsec = DNS_DB_NSEC_NSEC;
+			result = dns_qp_insert(qpdb->nsec, nsecnode, 0);
+			INSIST(result == ISC_R_SUCCESS);
 		}
+		rbtnode->nsec = DNS_DB_NSEC_HAS_NSEC;
 	}
 
 	if (result == ISC_R_SUCCESS) {
@@ -3889,27 +3887,21 @@ dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	 * change.
 	 */
 	if (!IS_CACHE(qpdb)) {
-		result = dns_rbt_addnode(qpdb->tree, &qpdb->common.origin,
-					 &qpdb->origin_node);
-		if (result != ISC_R_SUCCESS) {
-			INSIST(result != ISC_R_EXISTS);
-			free_qpdb(qpdb, false);
-			return (result);
-		}
+		qpdb->origin_node = dns_qpdata_create(qpdb,
+						      &qpdb->common.origin);
+		result = dns_qp_insert(qpdb->tree, qpdb->origin_node, 0);
+		INSIST(result == ISC_R_SUCCESS);
 		INSIST(qpdb->origin_node != NULL);
 		qpdb->origin_node->nsec = DNS_DB_NSEC_NORMAL;
+
 		/*
 		 * Add an apex node to the NSEC3 tree so that NSEC3 searches
 		 * return partial matches when there is only a single NSEC3
 		 * record in the tree.
 		 */
-		result = dns_rbt_addnode(qpdb->nsec3, &qpdb->common.origin,
-					 &qpdb->nsec3_origin_node);
-		if (result != ISC_R_SUCCESS) {
-			INSIST(result != ISC_R_EXISTS);
-			free_qpdb(qpdb, false);
-			return (result);
-		}
+		qpdb->nsec3_origin_node =
+			dns_qpdata_create(qpdb, &qpdb->common.origin);
+		result = dns_qp_insert(qpdb->nsec3, qpdb->nsec3_origin_node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		INSIST(qpdb->nsec3_origin_node != NULL);
 		qpdb->nsec3_origin_node->nsec = DNS_DB_NSEC_NSEC3;

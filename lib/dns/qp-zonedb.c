@@ -1608,14 +1608,17 @@ delegating_type(dns_qpdb_t *qpdb, dns_rbtnode_t *node, dns_typepair_t type) {
 static isc_result_t
 loadnode(dns_qpdb_t *qpdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	 bool hasnsec) {
-	isc_result_t noderesult, nsecresult, tmpresult;
+	isc_result_t noderesult, nsecresult;
 	dns_rbtnode_t *nsecnode = NULL, *node = NULL;
 
-	noderesult = dns_rbt_addnode(qpdb->tree, name, &node);
-	if (!hasnsec) {
-		goto done;
-	}
-	if (noderesult == ISC_R_EXISTS) {
+	noderesult = dns_qp_getname(qpdb->tree, name, (void **)&node, NULL);
+	if (noderesult != ISC_R_SUCCESS) {
+		INSIST(node == NULL);
+		node = dns_qpdata_create(qpdb, name);
+		noderesult = dns_qp_insert(qpdb->tree, node, 0);
+		INSIST(noderesult == ISC_R_SUCCESS);
+		dns_qpdata_unref(node);
+	} else if (noderesult == ISC_R_SUCCESS) {
 		/*
 		 * Add a node to the auxiliary NSEC tree for an old node
 		 * just now getting an NSEC record.
@@ -1623,7 +1626,11 @@ loadnode(dns_qpdb_t *qpdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 		if (node->nsec == DNS_DB_NSEC_HAS_NSEC) {
 			goto done;
 		}
-	} else if (noderesult != ISC_R_SUCCESS) {
+	} else {
+		goto done;
+	}
+
+	if (!hasnsec) {
 		goto done;
 	}
 
@@ -1635,14 +1642,8 @@ loadnode(dns_qpdb_t *qpdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	 * Add nodes to the auxiliary tree after corresponding nodes have
 	 * been added to the main tree.
 	 */
-	nsecresult = dns_rbt_addnode(qpdb->nsec, name, &nsecnode);
+	nsecresult = dns_qp_getname(qpdb->nsec, name, (void **)&nsecnode, NULL);
 	if (nsecresult == ISC_R_SUCCESS) {
-		nsecnode->nsec = DNS_DB_NSEC_NSEC;
-		node->nsec = DNS_DB_NSEC_HAS_NSEC;
-		goto done;
-	}
-
-	if (nsecresult == ISC_R_EXISTS) {
 #if 1 /* 0 */
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
@@ -1650,28 +1651,14 @@ loadnode(dns_qpdb_t *qpdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 #endif /* if 1 */
 		node->nsec = DNS_DB_NSEC_HAS_NSEC;
 		goto done;
+	} else {
+		INSIST(nsecnode == NULL);
+		nsecnode = dns_qpdata_create(qpdb, name);
+		nsecresult = dns_qp_insert(qpdb->nsec, nsecnode, 0);
+		INSIST(nsecresult == ISC_R_SUCCESS);
 	}
-
-	if (noderesult == ISC_R_SUCCESS) {
-		/*
-		 * Remove the node we just added above.
-		 */
-		tmpresult = dns_rbt_deletenode(qpdb->tree, node, false);
-		if (tmpresult != ISC_R_SUCCESS) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-				      "loading_addrdataset: "
-				      "dns_rbt_deletenode: %s after "
-				      "dns_rbt_addnode(NSEC): %s",
-				      isc_result_totext(tmpresult),
-				      isc_result_totext(noderesult));
-		}
-	}
-
-	/*
-	 * Set the error condition to be returned.
-	 */
-	noderesult = nsecresult;
+	nsecnode->nsec = DNS_DB_NSEC_NSEC;
+	node->nsec = DNS_DB_NSEC_HAS_NSEC;
 
 done:
 	if (noderesult == ISC_R_SUCCESS || noderesult == ISC_R_EXISTS) {
@@ -1731,10 +1718,15 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	if (rdataset->type == dns_rdatatype_nsec3 ||
 	    rdataset->covers == dns_rdatatype_nsec3)
 	{
-		result = dns_rbt_addnode(qpdb->nsec3, name, &node);
-		if (result == ISC_R_SUCCESS) {
-			node->nsec = DNS_DB_NSEC_NSEC3;
+		result = dns_qp_getname(qpdb->nsec3, name, (void **)&node,
+					NULL);
+		if (result != ISC_R_SUCCESS) {
+			INSIST(node == NULL);
+			node = dns_qpdata_create(qpdb, name);
+			result = dns_qp_insert(qpdb->nsec3, node, 0);
+			INSIST(result == ISC_R_SUCCESS);
 		}
+		node->nsec = DNS_DB_NSEC_NSEC3;
 	} else if (rdataset->type == dns_rdatatype_nsec) {
 		result = loadnode(qpdb, name, &node, true);
 	} else {
@@ -2462,13 +2454,17 @@ dns__qpzone_wildcardmagic(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock) {
 	INSIST(n >= 2);
 	n--;
 	dns_name_getlabelsequence(name, 1, n, &foundname);
-	result = dns_rbt_addnode(qpdb->tree, &foundname, &node);
-	if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-		return (result);
+
+	result = dns_qp_getname(qpdb->tree, &foundname, (void **)&node, NULL);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(node == NULL);
+		node = dns_qpdata_create(qpdb, &foundname);
+		result = dns_qp_insert(qpdb->tree, node, 0);
+		INSIST(result == ISC_R_SUCCESS);
 	}
-	if (result == ISC_R_SUCCESS) {
-		node->nsec = DNS_DB_NSEC_NORMAL;
-	}
+
+	INSIST(result == ISC_R_SUCCESS);
+	node->nsec = DNS_DB_NSEC_NORMAL;
 	node->find_callback = 1;
 	if (lock) {
 		NODE_WRLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
@@ -2500,9 +2496,14 @@ dns__qpzone_addwildcards(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock) {
 			if (result != ISC_R_SUCCESS) {
 				return (result);
 			}
-			result = dns_rbt_addnode(qpdb->tree, &foundname, &node);
-			if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
-				return (result);
+
+			result = dns_qp_getname(qpdb->tree, name,
+						(void **)&node, NULL);
+			if (result != ISC_R_SUCCESS) {
+				INSIST(node == NULL);
+				node = dns_qpdata_create(qpdb, name);
+				result = dns_qp_insert(qpdb->tree, node, 0);
+				INSIST(result == ISC_R_SUCCESS);
 			}
 			if (result == ISC_R_SUCCESS) {
 				node->nsec = DNS_DB_NSEC_NORMAL;
