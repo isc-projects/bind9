@@ -1037,8 +1037,6 @@ clean_zone_node(dns_rbtnode_t *node, uint32_t least_serial) {
  */
 static void
 delete_node(dns_qpdb_t *qpdb, dns_rbtnode_t *node) {
-	dns_rbtnode_t *nsecnode = NULL;
-	dns_fixedname_t fname;
 	dns_name_t *name = NULL;
 	isc_result_t result = ISC_R_UNEXPECTED;
 
@@ -1055,56 +1053,35 @@ delete_node(dns_qpdb_t *qpdb, dns_rbtnode_t *node) {
 	}
 
 	switch (node->nsec) {
-	case DNS_DB_NSEC_NORMAL:
-		result = dns_rbt_deletenode(qpdb->tree, node, false);
-		break;
 	case DNS_DB_NSEC_HAS_NSEC:
-		/*
-		 * Though this may be wasteful, it has to be done before
-		 * node is deleted.
-		 */
-		name = dns_fixedname_initname(&fname);
-		dns_rbt_fullnamefromnode(node, name);
 		/*
 		 * Delete the corresponding node from the auxiliary NSEC
 		 * tree before deleting from the main tree.
 		 */
-		nsecnode = NULL;
-		result = dns_rbt_findnode(qpdb->nsec, name, NULL, &nsecnode,
-					  NULL, DNS_RBTFIND_EMPTYDATA, NULL,
-					  NULL);
+		result = dns_qp_deletename(qpdb->nsec, node->name, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-				      "delete_node: "
-				      "dns_rbt_findnode(nsec): %s",
+				      "delete_node(): "
+				      "dns_qp_deletename: %s",
 				      isc_result_totext(result));
-		} else {
-			result = dns_rbt_deletenode(qpdb->nsec, nsecnode,
-						    false);
-			if (result != ISC_R_SUCCESS) {
-				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_DATABASE,
-					DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-					"delete_node(): "
-					"dns_rbt_deletenode(nsecnode): %s",
-					isc_result_totext(result));
-			}
 		}
-		result = dns_rbt_deletenode(qpdb->tree, node, false);
+		/* FALLTHROUGH */
+	case DNS_DB_NSEC_NORMAL:
+		result = dns_qp_deletename(qpdb->tree, node->name, NULL, NULL);
 		break;
 	case DNS_DB_NSEC_NSEC:
-		result = dns_rbt_deletenode(qpdb->nsec, node, false);
+		result = dns_qp_deletename(qpdb->nsec, node->name, NULL, NULL);
 		break;
 	case DNS_DB_NSEC_NSEC3:
-		result = dns_rbt_deletenode(qpdb->nsec3, node, false);
+		result = dns_qp_deletename(qpdb->nsec3, node->name, NULL, NULL);
 		break;
 	}
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 			      "delete_node(): "
-			      "dns_rbt_deletenode: %s",
+			      "dns_qp_deletename: %s",
 			      isc_result_totext(result));
 	}
 }
