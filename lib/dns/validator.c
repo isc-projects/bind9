@@ -1222,6 +1222,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	isc_buffer_t b;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *oldkey = val->key;
+	bool no_rdata = false;
 
 	if (oldkey == NULL) {
 		result = dns_rdataset_first(rdataset);
@@ -1232,7 +1233,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		goto failure;
+		goto done;
 	}
 
 	do {
@@ -1241,8 +1242,9 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		INSIST(val->key == NULL);
-		result = dst_key_fromdns(&siginfo->signer, rdata.rdclass, &b,
-					 val->view->mctx, &val->key);
+		result = dst_key_fromdns_ex(&siginfo->signer, rdata.rdclass, &b,
+					    val->view->mctx, no_rdata,
+					    &val->key);
 		if (result == ISC_R_SUCCESS) {
 			if (siginfo->algorithm ==
 				    (dns_secalg_t)dst_key_alg(val->key) &&
@@ -1252,18 +1254,24 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 				    0 &&
 			    dst_key_iszonekey(val->key))
 			{
-				/*
-				 * This is the key we're looking for.
-				 */
-				return (ISC_R_SUCCESS);
+				if (no_rdata) {
+					/* Retry with full key */
+					dns_rdata_reset(&rdata);
+					dst_key_free(&val->key);
+					no_rdata = false;
+					continue;
+				}
+				/* This is the key we're looking for. */
+				goto done;
 			}
 			dst_key_free(&val->key);
 		}
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
+		no_rdata = true;
 	} while (result == ISC_R_SUCCESS);
 
-failure:
+done:
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_NOTFOUND;
 	}

@@ -417,6 +417,10 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory);
  */
 
 isc_result_t
+dst_key_fromdns_ex(dns_name_t *name, dns_rdataclass_t rdclass,
+		   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
+		   dst_key_t **keyp);
+isc_result_t
 dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
