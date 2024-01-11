@@ -2969,7 +2969,7 @@ isc__nm_http_set_max_streams(isc_nmsocket_t *listener,
 void
 isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 			  isc_nm_http_endpoints_t *eps) {
-	size_t nworkers;
+	size_t nlisteners;
 
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(listener->type == isc_nm_httplistener);
@@ -2977,8 +2977,8 @@ isc_nm_http_set_endpoints(isc_nmsocket_t *listener,
 
 	atomic_store(&eps->in_use, true);
 
-	nworkers = (size_t)listener->mgr->nworkers;
-	for (size_t i = 0; i < nworkers; i++) {
+	nlisteners = (size_t)listener->mgr->nlisteners;
+	for (size_t i = 0; i < nlisteners; i++) {
 		isc__netievent__http_eps_t *ievent =
 			isc__nm_get_netievent_httpendpoints(listener->mgr,
 							    listener, eps);
@@ -3003,20 +3003,20 @@ isc__nm_async_httpendpoints(isc__networker_t *worker, isc__netievent_t *ev0) {
 static void
 http_init_listener_endpoints(isc_nmsocket_t *listener,
 			     isc_nm_http_endpoints_t *epset) {
-	size_t nworkers;
+	size_t nlisteners;
 
 	REQUIRE(VALID_NMSOCK(listener));
 	REQUIRE(VALID_NM(listener->mgr));
 	REQUIRE(VALID_HTTP_ENDPOINTS(epset));
 
-	nworkers = (size_t)listener->mgr->nworkers;
-	INSIST(nworkers > 0);
+	nlisteners = (size_t)listener->mgr->nlisteners;
+	INSIST(nlisteners > 0);
 
 	listener->h2.listener_endpoints =
 		isc_mem_get(listener->mgr->mctx,
-			    sizeof(isc_nm_http_endpoints_t *) * nworkers);
-	listener->h2.n_listener_endpoints = nworkers;
-	for (size_t i = 0; i < nworkers; i++) {
+			    sizeof(isc_nm_http_endpoints_t *) * nlisteners);
+	listener->h2.n_listener_endpoints = nlisteners;
+	for (size_t i = 0; i < nlisteners; i++) {
 		listener->h2.listener_endpoints[i] = NULL;
 		isc_nm_http_endpoints_attach(
 			epset, &listener->h2.listener_endpoints[i]);
