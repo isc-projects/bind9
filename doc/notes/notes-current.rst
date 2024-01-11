@@ -38,7 +38,13 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- Changes to ``listen-on`` statements were ignored on reconfiguration
+  unless the port or interface address was changed, making it
+  impossible to change a related listener transport type. That issue
+  has been fixed.
+
+  ISC would like to thank Thomas Amgarten for bringing this issue to
+  our attention. :gl:`#4518`, :gl:`#4528`
 
 Known Issues
 ~~~~~~~~~~~~
