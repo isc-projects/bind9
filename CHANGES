@@ -1,3 +1,9 @@
+6322.	[bug]		Changes to "listen-on" statements were ignored on
+			reconfiguration unless the port or interface address was
+			changed, making it impossible to change a related
+			listener transport type. Thanks to Thomas Amgarten.
+			[GL #4518] [GL #4528]
+
 6320.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
