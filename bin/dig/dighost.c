@@ -4361,29 +4361,32 @@ recv_done(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 	if ((msg->rcode == dns_rcode_servfail && !l->servfail_stops) ||
 	    (check_ra && (msg->flags & DNS_MESSAGEFLAG_RA) == 0 && l->recurse))
 	{
+		const char *err = (msg->rcode == dns_rcode_servfail &&
+				   !l->servfail_stops)
+					  ? "SERVFAIL reply"
+					  : "recursion not available";
 		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		if (l->current_query == query) {
 			query_detach(&l->current_query);
 		}
-		if (next != NULL) {
+		if (next != NULL && (!l->ns_search_only || l->trace_root)) {
+			dighost_comments(l,
+					 "Got %s from %s, trying next server",
+					 err, query->servname);
 			debug("sending query %p", next);
 			if (l->tcp_mode) {
 				start_tcp(next);
 			} else {
 				start_udp(next);
 			}
-			dighost_comments(l,
-					 "Got %s from %s, trying next "
-					 "server",
-					 msg->rcode == dns_rcode_servfail
-						 ? "SERVFAIL reply"
-						 : "recursion not available",
-					 query->servname);
 			if (check_if_queries_done(l, query)) {
 				goto cancel_lookup;
 			}
 
 			goto detach_query;
+		} else {
+			dighost_comments(l, "Got %s from %s", err,
+					 query->servname);
 		}
 	}
 

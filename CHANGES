@@ -1,3 +1,7 @@
+6320.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
+			'host -C' commands when one of the name servers returns
+			SERVFAIL. [GL #4508]
+
 6312.	[bug]		Conversion from NSEC3 signed to NSEC signed could
 			temporarily put the zone into a state where it was
 			treated as unsigned until the NSEC chain was built.
