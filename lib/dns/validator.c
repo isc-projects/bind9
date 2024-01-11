@@ -1104,8 +1104,8 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
  * 'rdataset'.  If found, build a dst_key_t for it and point val->key at
  * it.
  *
- * If val->key is already non-NULL, locate it in the rdataset and then
- * search past it for the *next* key that could have signed 'siginfo', then
+ * If val->key is already non-NULL, start searching from the next position in
+ * 'rdataset' to find the *next* key that could have signed 'siginfo', then
  * set val->key to that.
  *
  * Returns ISC_R_SUCCESS if a possible matching key has been found,
@@ -1118,19 +1118,18 @@ select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
 	isc_buffer_t b;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *oldkey = val->key;
-	bool foundold;
 
 	if (oldkey == NULL) {
-		foundold = true;
+		result = dns_rdataset_first(rdataset);
 	} else {
-		foundold = false;
+		dst_key_free(&oldkey);
 		val->key = NULL;
+		result = dns_rdataset_next(rdataset);
 	}
-
-	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
+
 	do {
 		dns_rdataset_current(rdataset, &rdata);
 
@@ -1148,15 +1147,10 @@ select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
 				    0 &&
 			    dst_key_iszonekey(val->key))
 			{
-				if (foundold) {
-					/*
-					 * This is the key we're looking for.
-					 */
-					return (ISC_R_SUCCESS);
-				} else if (dst_key_compare(oldkey, val->key)) {
-					foundold = true;
-					dst_key_free(&oldkey);
-				}
+				/*
+				 * This is the key we're looking for.
+				 */
+				return (ISC_R_SUCCESS);
 			}
 			dst_key_free(&val->key);
 		}
@@ -1164,13 +1158,9 @@ select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
 		result = dns_rdataset_next(rdataset);
 	} while (result == ISC_R_SUCCESS);
 
+failure:
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_NOTFOUND;
-	}
-
-failure:
-	if (oldkey != NULL) {
-		dst_key_free(&oldkey);
 	}
 
 	return (result);
