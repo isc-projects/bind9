@@ -89,6 +89,10 @@ for good in good-*.conf; do
       good-proxy-*doh*.conf) continue ;;
       bad-proxy-*doh*.conf) continue ;;
     esac
+  elif ! $FEATURETEST --have-openssl-cipher-suites; then
+    case $good in
+      good-tls-cipher-suites-*.conf) continue ;;
+    esac
   fi
   {
     $CHECKCONF $good >checkconf.out$n 2>&1

@@ -57,6 +57,7 @@ struct dns_transport {
 		char *cafile;
 		char *remote_hostname;
 		char *ciphers;
+		char *cipher_suites;
 		uint32_t protocol_versions;
 		ternary_t prefer_server_ciphers;
 		bool always_verify_remote;
@@ -300,6 +301,30 @@ dns_transport_get_ciphers(const dns_transport_t *transport) {
 	return (transport->tls.ciphers);
 }
 
+void
+dns_transport_set_cipher_suites(dns_transport_t *transport,
+				const char *cipher_suites) {
+	REQUIRE(VALID_TRANSPORT(transport));
+	REQUIRE(transport->type == DNS_TRANSPORT_TLS ||
+		transport->type == DNS_TRANSPORT_HTTP);
+
+	if (transport->tls.cipher_suites != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.cipher_suites);
+	}
+
+	if (cipher_suites != NULL) {
+		transport->tls.cipher_suites = isc_mem_strdup(transport->mctx,
+							      cipher_suites);
+	}
+}
+
+char *
+dns_transport_get_cipher_suites(const dns_transport_t *transport) {
+	REQUIRE(VALID_TRANSPORT(transport));
+
+	return (transport->tls.cipher_suites);
+}
+
 char *
 dns_transport_get_tlsname(const dns_transport_t *transport) {
 	REQUIRE(VALID_TRANSPORT(transport));
@@ -367,6 +392,7 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 	isc_tlsctx_client_session_cache_t *found_sess_cache = NULL;
 	uint32_t tls_versions;
 	const char *ciphers = NULL;
+	const char *cipher_suites = NULL;
 	bool prefer_server_ciphers;
 	uint16_t family;
 	const char *tlsname = NULL;
@@ -421,6 +447,10 @@ dns_transport_get_tlsctx(dns_transport_t *transport, const isc_sockaddr_t *peer,
 		ciphers = dns_transport_get_ciphers(transport);
 		if (ciphers != NULL) {
 			isc_tlsctx_set_cipherlist(tlsctx, ciphers);
+		}
+		cipher_suites = dns_transport_get_cipher_suites(transport);
+		if (cipher_suites != NULL) {
+			isc_tlsctx_set_cipher_suites(tlsctx, cipher_suites);
 		}
 
 		if (dns_transport_get_prefer_server_ciphers(
@@ -608,6 +638,9 @@ transport_destroy(dns_transport_t *transport) {
 	}
 	if (transport->tls.ciphers != NULL) {
 		isc_mem_free(transport->mctx, transport->tls.ciphers);
+	}
+	if (transport->tls.cipher_suites != NULL) {
+		isc_mem_free(transport->mctx, transport->tls.cipher_suites);
 	}
 
 	if (transport->tls.tlsname != NULL) {

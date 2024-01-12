@@ -20,7 +20,10 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The ``tls`` block was extended with a new ``cipher-suites`` option
+  that allows setting allowed cipher suites for TLSv1.3. Please
+  consult the documentation for additional details.
+  :gl:`#3504`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

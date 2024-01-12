@@ -714,6 +714,7 @@ AC_CHECK_FUNCS([SSL_read_ex SSL_peek_ex SSL_write_ex])
 AC_CHECK_FUNCS([SSL_CTX_set1_cert_store X509_STORE_up_ref])
 AC_CHECK_FUNCS([SSL_CTX_up_ref])
 AC_CHECK_FUNCS([SSL_SESSION_is_resumable])
+AC_CHECK_FUNCS([SSL_CTX_set_ciphersuites])
 
 #
 # Check for algorithm support in OpenSSL

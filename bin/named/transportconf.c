@@ -120,11 +120,13 @@ add_doh_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 					     dns_transport_set_tls_versions);
 		parse_transport_option(doh, transport, "ciphers",
 				       dns_transport_set_ciphers);
+		parse_transport_option(doh, transport, "cipher-suites",
+				       dns_transport_set_cipher_suites);
 		parse_transport_bool_option(
 			doh, transport, "prefer-server-ciphers",
-			dns_transport_set_prefer_server_ciphers)
-			parse_transport_option(doh, transport, "ca-file",
-					       dns_transport_set_cafile);
+			dns_transport_set_prefer_server_ciphers);
+		parse_transport_option(doh, transport, "ca-file",
+				       dns_transport_set_cafile);
 		parse_transport_option(doh, transport, "remote-hostname",
 				       dns_transport_set_remote_hostname);
 	}
@@ -172,11 +174,13 @@ add_tls_transports(const cfg_obj_t *transportlist, dns_transport_list_t *list) {
 					     dns_transport_set_tls_versions);
 		parse_transport_option(tls, transport, "ciphers",
 				       dns_transport_set_ciphers);
+		parse_transport_option(tls, transport, "cipher-suites",
+				       dns_transport_set_cipher_suites);
 		parse_transport_bool_option(
 			tls, transport, "prefer-server-ciphers",
-			dns_transport_set_prefer_server_ciphers)
-			parse_transport_option(tls, transport, "ca-file",
-					       dns_transport_set_cafile);
+			dns_transport_set_prefer_server_ciphers);
+		parse_transport_option(tls, transport, "ca-file",
+				       dns_transport_set_cafile);
 		parse_transport_option(tls, transport, "remote-hostname",
 				       dns_transport_set_remote_hostname);
 	}
