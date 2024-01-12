@@ -573,6 +573,13 @@ dns_rdatatype_isdnssec(dns_rdatatype_t type);
  */
 
 bool
+dns_rdatatype_iskeymaterial(dns_rdatatype_t type);
+/*%<
+ * Return true iff the rdata type 'type' is a DNSSEC key
+ * related type, like DNSKEY, CDNSKEY, or CDS.
+ */
+
+bool
 dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
 /*%<
  * Return true iff rdata of type 'type' is considered authoritative

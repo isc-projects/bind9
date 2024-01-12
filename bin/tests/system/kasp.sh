@@ -213,6 +213,7 @@ set_policy() {
   POLICY=$1
   NUM_KEYS=$2
   DNSKEY_TTL=$3
+  KEYFILE_TTL=$3
   CDS_DELETE="no"
 }
 # By default policies are considered to be secure.
@@ -329,7 +330,7 @@ check_key() {
   _alg_numpad=$(printf "%03d" "$_alg_num")
   _alg_string=$(key_get "$1" ALG_STR)
   _length=$(key_get "$1" "ALG_LEN")
-  _dnskey_ttl="$DNSKEY_TTL"
+  _dnskey_ttl="$KEYFILE_TTL"
   _lifetime=$(key_get "$1" LIFETIME)
   _legacy=$(key_get "$1" LEGACY)
   _private=$(key_get "$1" PRIVATE)
@@ -1055,7 +1056,7 @@ _find_dnskey() {
   _flags="$(key_get $1 FLAGS)"
   _key_file="$(key_get $1 BASEFILE).key"
 
-  awk '$1 == "'"$_owner"'" && $2 == "'"$DNSKEY_TTL"'" && $3 == "IN" && $4 == "DNSKEY" && $5 == "'"$_flags"'" && $6 == "3" && $7 == "'"$_alg"'" { print $8 }' <"$_key_file"
+  awk '$1 == "'"$_owner"'" && $2 == "'"$KEYFILE_TTL"'" && $3 == "IN" && $4 == "DNSKEY" && $5 == "'"$_flags"'" && $6 == "3" && $7 == "'"$_alg"'" { print $8 }' <"$_key_file"
 }
 
 # Test DNSKEY query.

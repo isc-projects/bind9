@@ -1205,10 +1205,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				}
 			}
 
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				/*
 				 * DNSKEY RRset is signed with KSK.
 				 * CDS and CDNSKEY RRsets too (RFC 7344, 4.1).
@@ -1242,10 +1239,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			/*
 			 * CDS and CDNSKEY are signed with KSK (RFC 7344, 4.1).
 			 */
-			if (type == dns_rdatatype_dnskey ||
-			    type == dns_rdatatype_cdnskey ||
-			    type == dns_rdatatype_cds)
-			{
+			if (dns_rdatatype_iskeymaterial(type)) {
 				if (!KSK(keys[i]) && keyset_kskonly) {
 					continue;
 				}
@@ -1675,10 +1669,7 @@ next_state:
 						    &flag));
 				if (flag) {
 					isc_stdtime_t exp;
-					if (type == dns_rdatatype_dnskey ||
-					    type == dns_rdatatype_cdnskey ||
-					    type == dns_rdatatype_cds)
-					{
+					if (dns_rdatatype_iskeymaterial(type)) {
 						exp = state->keyexpire;
 					} else if (type == dns_rdatatype_soa) {
 						exp = state->soaexpire;
