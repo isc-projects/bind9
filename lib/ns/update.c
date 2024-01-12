@@ -3261,11 +3261,18 @@ update_action(void *arg) {
 						FAIL(r);
 					}
 					if (inuse) {
+						char typebuf
+							[DNS_RDATATYPE_FORMATSIZE];
+
+						dns_rdatatype_format(
+							rdata.type, typebuf,
+							sizeof(typebuf));
 						update_log(client, zone,
 							   LOGLEVEL_PROTOCOL,
 							   "attempt to "
 							   "delete in use "
-							   "DNSKEY ignored");
+							   "%s ignored",
+							   typebuf);
 						continue;
 					}
 				}
