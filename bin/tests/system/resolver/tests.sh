@@ -505,9 +505,21 @@ n=$((n + 1))
 echo_i "check that '-t aaaa' in .digrc does not have unexpected side effects ($n)"
 ret=0
 echo "-t aaaa" >.digrc
-(HOME="$(pwd)" dig_with_opts @10.53.0.4 . >dig.out.1.${n}) || ret=1
-(HOME="$(pwd)" dig_with_opts @10.53.0.4 . A >dig.out.2.${n}) || ret=1
-(HOME="$(pwd)" dig_with_opts @10.53.0.4 -x 127.0.0.1 >dig.out.3.${n}) || ret=1
+(
+  HOME="$(pwd)"
+  export HOME
+  dig_with_opts @10.53.0.4 . >dig.out.1.${n}
+) || ret=1
+(
+  HOME="$(pwd)"
+  export HOME
+  dig_with_opts @10.53.0.4 . A >dig.out.2.${n}
+) || ret=1
+(
+  HOME="$(pwd)"
+  export HOME
+  dig_with_opts @10.53.0.4 -x 127.0.0.1 >dig.out.3.${n}
+) || ret=1
 grep ';\..*IN.*AAAA$' dig.out.1.${n} >/dev/null || ret=1
 grep ';\..*IN.*A$' dig.out.2.${n} >/dev/null || ret=1
 grep 'extra type option' dig.out.2.${n} >/dev/null && ret=1
