@@ -1030,16 +1030,13 @@ static bool
 same_listener_type(ns_interface_t *ifp, ns_listenelt_t *new_le) {
 	bool same_transport_type = false;
 
-	if (new_le->is_http && new_le->sslctx != NULL &&
-	    ifp->http_secure_listensocket != NULL)
-	{
-		/* HTTPS/DoH */
-		same_transport_type = true;
-	} else if (new_le->is_http && new_le->sslctx == NULL &&
-		   ifp->http_listensocket != NULL)
-	{
-		/* HTTP/plain DoH */
-		same_transport_type = true;
+	/* See 'interface_setup()' above */
+	if (new_le->is_http) {
+		/* HTTP/DoH */
+		same_transport_type = (new_le->sslctx != NULL &&
+				       ifp->http_secure_listensocket != NULL) ||
+				      (new_le->sslctx == NULL &&
+				       ifp->http_listensocket != NULL);
 	} else if (new_le->sslctx != NULL && ifp->tlslistensocket != NULL) {
 		/* TLS/DoT */
 		same_transport_type = true;
