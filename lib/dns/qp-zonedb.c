@@ -103,8 +103,7 @@ findnsec3node(dns_db_t *db, const dns_name_t *name, bool create,
 }
 
 static isc_result_t
-zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
-		      void *arg DNS__DB_FLARG) {
+check_zonecut(dns_rbtnode_t *node, void *arg DNS__DB_FLARG) {
 	qpdb_search_t *search = arg;
 	dns_slabheader_t *header = NULL, *header_next = NULL;
 	dns_slabheader_t *dname_header = NULL, *sigdname_header = NULL;
@@ -227,7 +226,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 			 * is, we need to remember the node name.
 			 */
 			zcname = dns_fixedname_name(&search->zonecut_name);
-			dns_name_copy(name, zcname);
+			dns_name_copy(node->name, zcname);
 			search->copy_name = true;
 		}
 	} else {
@@ -472,15 +471,11 @@ static isc_result_t
 find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 	      const dns_name_t *qname) {
 	unsigned int i, j;
-	dns_rbtnode_t *node = NULL, *level_node = NULL, *wnode = NULL;
+	dns_rbtnode_t *node = NULL, *level_node = NULL;
 	dns_slabheader_t *header = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
-	dns_name_t name;
-	dns_name_t *wname = NULL;
-	dns_fixedname_t fwname;
 	dns_qpdb_t *qpdb = NULL;
 	bool done, wild, active;
-	dns_rbtnodechain_t wchain;
 
 	/*
 	 * Caller must be holding the tree lock and MUST NOT be holding
@@ -536,6 +531,11 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 		NODE_UNLOCK(lock, &nlocktype);
 
 		if (wild) {
+			dns_name_t *wname = NULL;
+			dns_fixedname_t fwname;
+			dns_rbtnode_t *wnode = NULL;
+			dns_qpiter_t wchain;
+
 			/*
 			 * Construct the wildcard name for this level.
 			 */
@@ -559,9 +559,9 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 
 			wnode = NULL;
 			dns_rbtnodechain_init(&wchain);
-			result = dns_rbt_findnode(
-				qpdb->tree, wname, NULL, &wnode, &wchain,
-				DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+
+			result = dns_qp_lookup(qpdb->tree, wname, NULL, NULL,
+					       &wchain, (void **)&wnode, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * We have found the wildcard node.  If it
@@ -709,9 +709,9 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 				return (result);
 			}
 			nsecnode = NULL;
-			result = dns_rbt_findnode(
-				search->qpdb->nsec, target, NULL, &nsecnode,
-				nsecchain, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+			result = dns_qp_lookup(search->qpdb->nsec, name, NULL,
+					       NULL, nsecchain,
+					       (void **)&nsecnode, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * Since this was the first loop, finding the
@@ -728,6 +728,7 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 			} else if (result == ISC_R_NOTFOUND ||
 				   result == DNS_R_PARTIALMATCH)
 			{
+				/* The iterator is already where we want it */
 				result = dns_rbtnodechain_current(
 					nsecchain, name, origin, NULL);
 				if (result == ISC_R_NOTFOUND) {
@@ -751,18 +752,10 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 			return (result);
 		}
 
-		/*
-		 * Construct the name to seek in the main tree.
-		 */
-		result = dns_name_concatenate(name, origin, target, NULL);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-
 		*nodep = NULL;
-		result = dns_rbt_findnode(search->qpdb->tree, target, NULL,
-					  nodep, &search->chain,
-					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+		result = dns_qp_lookup(search->qpdb->tree, name, NULL,
+				       &search->iter, &search->chain,
+				       (void **)nodep, NULL);
 		if (result == ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1032,15 +1025,43 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
 	/*
-	 * Search down from the root of the tree.  If, while going down, we
-	 * encounter a callback node, zone_zonecut_callback() will search the
-	 * rdatasets at the zone cut for active DNAME or NS rdatasets.
+	 * Search down from the root of the tree.
 	 */
 	tree = (options & DNS_DBFIND_FORCENSEC3) != 0 ? search.qpdb->nsec3
 						      : search.qpdb->tree;
-	result = dns_rbt_findnode(tree, name, foundname, &node, &search.chain,
-				  DNS_RBTFIND_EMPTYDATA, zone_zonecut_callback,
-				  &search);
+	result = dns_qp_lookup(tree, name, foundname, &search.iter,
+			       &search.chain, (void **)&node, NULL);
+
+	/*
+	 * Check the QP chain to see if there's a node above us with a
+	 * active DNAME or NS rdatasets.
+	 *
+	 * We're only interested in nodes above QNAME, so if the result
+	 * was success, then we skip the last item in the chain.
+	 */
+	unsigned int len = dns_qpchain_length(&search.chain);
+	if (result == ISC_R_SUCCESS) {
+		len--;
+	}
+
+	for (unsigned int i = 0; i < len; i++) {
+		isc_result_t zcresult;
+		dns_rbtnode_t *encloser = NULL;
+
+		dns_qpchain_node(&search.chain, i, NULL, (void **)&encloser,
+				 NULL);
+
+		if (encloser->find_callback) {
+			zcresult = check_zonecut(
+				encloser, (void *)&search DNS__DB_FLARG_PASS);
+			if (zcresult != DNS_R_CONTINUE) {
+				result = DNS_R_PARTIALMATCH;
+				search.chain.len = i - 1;
+				node = encloser;
+				break;
+			}
+		}
+	}
 
 	if (result == DNS_R_PARTIALMATCH) {
 	partial_match:
@@ -1108,6 +1129,9 @@ found:
 	 * have matched a wildcard.
 	 */
 
+	lock = &search.qpdb->node_locks[node->locknum].lock;
+	NODE_RDLOCK(lock, &nlocktype);
+
 	if (search.zonecut != NULL) {
 		/*
 		 * If we're beneath a zone cut, we don't want to look for
@@ -1147,9 +1171,6 @@ found:
 	/*
 	 * We now go looking for rdata...
 	 */
-
-	lock = &search.qpdb->node_locks[node->locknum].lock;
-	NODE_RDLOCK(lock, &nlocktype);
 
 	found = NULL;
 	foundsig = NULL;

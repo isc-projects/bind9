@@ -430,8 +430,7 @@ check_stale_header(dns_rbtnode_t *node, dns_slabheader_t *header,
 }
 
 static isc_result_t
-cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
-		       void *arg DNS__DB_FLARG) {
+check_zonecut(dns_rbtnode_t *node, void *arg DNS__DB_FLARG) {
 	qpdb_search_t *search = arg;
 	dns_slabheader_t *header = NULL;
 	dns_slabheader_t *header_prev = NULL, *header_next = NULL;
@@ -441,11 +440,6 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	REQUIRE(search->zonecut == NULL);
-
-	/*
-	 * Keep compiler silent.
-	 */
-	UNUSED(name);
 
 	lock = &(search->qpdb->node_locks[node->locknum].lock);
 	NODE_RDLOCK(lock, &nlocktype);
@@ -668,8 +662,8 @@ find_coveringnsec(qpdb_search_t *search, const dns_name_t *name,
 	 */
 	dns_rbtnodechain_init(&chain);
 	target = dns_fixedname_initname(&ftarget);
-	result = dns_rbt_findnode(search->qpdb->nsec, name, target, &node,
-				  &chain, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	result = dns_qp_lookup(search->qpdb->nsec, name, target, NULL, &chain,
+			       (void **)&node, NULL);
 	if (result != DNS_R_PARTIALMATCH) {
 		dns_rbtnodechain_reset(&chain);
 		return (ISC_R_NOTFOUND);
@@ -701,8 +695,8 @@ find_coveringnsec(qpdb_search_t *search, const dns_name_t *name,
 	 * Lookup the predecessor in the main tree.
 	 */
 	node = NULL;
-	result = dns_rbt_findnode(search->qpdb->tree, target, fname, &node,
-				  NULL, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	result = dns_qp_lookup(search->qpdb->tree, target, fname, NULL, NULL,
+			       (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
 	}
@@ -801,18 +795,46 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
 	/*
-	 * Search down from the root of the tree.  If, while going down, we
-	 * encounter a callback node, cache_zonecut_callback() will search the
-	 * rdatasets at the zone cut for a DNAME rdataset.
+	 * Search down from the root of the tree.
 	 */
-	result = dns_rbt_findnode(search.qpdb->tree, name, foundname, &node,
-				  &search.chain, DNS_RBTFIND_EMPTYDATA,
-				  cache_zonecut_callback, &search);
+	result = dns_qp_lookup(search.qpdb->tree, name, foundname, NULL,
+			       &search.chain, (void **)&node, NULL);
+
+	/*
+	 * Check the QP chain to see if there's a node above us with a
+	 * active DNAME or NS rdatasets.
+	 *
+	 * We're only interested in nodes above QNAME, so if the result
+	 * was success, then we skip the last item in the chain.
+	 */
+	unsigned int len = dns_qpchain_length(&search.chain);
+	if (result == ISC_R_SUCCESS) {
+		len--;
+	}
+
+	for (unsigned int i = 0; i < len; i++) {
+		isc_result_t zcresult;
+		dns_rbtnode_t *encloser = NULL;
+
+		dns_qpchain_node(&search.chain, i, NULL, (void **)&encloser,
+				 NULL);
+
+		if (encloser->find_callback) {
+			zcresult = check_zonecut(
+				encloser, (void *)&search DNS__DB_FLARG_PASS);
+			if (zcresult != DNS_R_CONTINUE) {
+				result = DNS_R_PARTIALMATCH;
+				search.chain.len = i - 1;
+				node = encloser;
+				break;
+			}
+		}
+	}
 
 	if (result == DNS_R_PARTIALMATCH) {
 		/*
-		 * If dns_rbt_findnode discovered a covering DNAME skip
-		 * looking for a covering NSEC.
+		 * If we discovered a covering DNAME skip looking for a covering
+		 * NSEC.
 		 */
 		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0 &&
 		    (search.zonecut_header == NULL ||
@@ -1190,7 +1212,6 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	dns_slabheader_t *header = NULL;
 	dns_slabheader_t *header_prev = NULL, *header_next = NULL;
 	dns_slabheader_t *found = NULL, *foundsig = NULL;
-	unsigned int rbtoptions = DNS_RBTFIND_EMPTYDATA;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	bool dcnull = (dcname == NULL);
@@ -1214,17 +1235,25 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		dcname = foundname;
 	}
 
-	if ((options & DNS_DBFIND_NOEXACT) != 0) {
-		rbtoptions |= DNS_RBTFIND_NOEXACT;
-	}
-
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_rbt_findnode(search.qpdb->tree, name, dcname, &node,
-				  &search.chain, rbtoptions, NULL, &search);
+	result = dns_qp_lookup(search.qpdb->tree, name, dcname, NULL,
+			       &search.chain, (void **)&node, NULL);
+	if ((options & DNS_DBFIND_NOEXACT) != 0 && result == ISC_R_SUCCESS) {
+		int len = dns_qpchain_length(&search.chain);
+		if (len >= 2) {
+			node = NULL;
+			dns_qpchain_node(&search.chain, len - 2, NULL,
+					 (void **)&node, NULL);
+			search.chain.len = len - 1;
+			result = DNS_R_PARTIALMATCH;
+		} else {
+			result = ISC_R_NOTFOUND;
+		}
+	}
 
 	if (result == DNS_R_PARTIALMATCH) {
 		result = find_deepest_zonecut(&search, node, nodep, foundname,
@@ -1250,7 +1279,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 				       &header_prev))
 		{
 			/*
-			 * The function dns_rbt_findnode found us the a matching
+			 * The function dns_qp_lookup found us a matching
 			 * node for 'name' and stored the result in 'dcname'.
 			 * This is the deepest known zonecut in our database.
 			 * However, this node may be stale and if serve-stale

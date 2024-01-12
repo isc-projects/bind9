@@ -1977,8 +1977,8 @@ dns__qpdb_findnodeintree(dns_qpdb_t *qpdb, dns_qp_t *tree,
 
 	dns_name_init(&nodename, NULL);
 	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
-	result = dns_rbt_findnode(tree, name, NULL, &node, NULL,
-				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	result = dns_qp_lookup(tree, name, NULL, NULL, NULL, (void **)&node,
+			       NULL);
 	if (result != ISC_R_SUCCESS) {
 		if (!create) {
 			if (result == DNS_R_PARTIALMATCH) {
@@ -4412,30 +4412,30 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 	switch (qpdbiter->nsec3mode) {
 	case nsec3only:
 		qpdbiter->current = &qpdbiter->nsec3chain;
-		result = dns_rbt_findnode(qpdb->nsec3, name, NULL,
-					  &qpdbiter->node, qpdbiter->current,
-					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+		result = dns_qp_lookup(qpdb->nsec3, name, NULL,
+				       qpdbiter->current, NULL,
+				       (void **)&qpdbiter->node, NULL);
 		break;
 	case nonsec3:
 		qpdbiter->current = &qpdbiter->chain;
-		result = dns_rbt_findnode(qpdb->tree, name, NULL,
-					  &qpdbiter->node, qpdbiter->current,
-					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+		result = dns_qp_lookup(qpdb->tree, name, NULL,
+				       qpdbiter->current, NULL,
+				       (void **)&qpdbiter->node, NULL);
 		break;
 	case full:
 		/*
-		 * Stay on main chain if not found on either chain.
+		 * Stay on main chain if not found on
+		 * either chain.
 		 */
 		qpdbiter->current = &qpdbiter->chain;
-		result = dns_rbt_findnode(qpdb->tree, name, NULL,
-					  &qpdbiter->node, qpdbiter->current,
-					  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+		result = dns_qp_lookup(qpdb->tree, name, NULL,
+				       qpdbiter->current, NULL,
+				       (void **)&qpdbiter->node, NULL);
 		if (result == DNS_R_PARTIALMATCH) {
 			dns_rbtnode_t *node = NULL;
-			tresult = dns_rbt_findnode(qpdb->nsec3, name, NULL,
-						   &node, &qpdbiter->nsec3chain,
-						   DNS_RBTFIND_EMPTYDATA, NULL,
-						   NULL);
+			tresult = dns_qp_lookup(qpdb->nsec3, name, NULL,
+						&qpdbiter->nsec3chain, NULL,
+						(void **)&node, NULL);
 			if (tresult == ISC_R_SUCCESS) {
 				qpdbiter->node = node;
 				qpdbiter->current = &qpdbiter->nsec3chain;
