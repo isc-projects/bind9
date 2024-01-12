@@ -446,7 +446,9 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
-	*ifp = (ns_interface_t){ .generation = mgr->generation, .addr = *addr };
+	*ifp = (ns_interface_t){ .generation = mgr->generation,
+				 .addr = *addr,
+				 .proxy_type = ISC_NM_PROXY_NONE };
 
 	if (name == NULL) {
 		name = default_name;
@@ -530,7 +532,7 @@ ns_interface_listentls(ns_interface_t *ifp, isc_nm_proxy_type_t proxy,
 		ifp->mgr->nm, ISC_NM_LISTEN_ALL, &ifp->addr, ns_client_request,
 		ifp, ns__client_tcpconn, ifp, ifp->mgr->backlog,
 		&ifp->mgr->sctx->tcpquota, sslctx, proxy,
-		&ifp->tcplistensocket);
+		&ifp->tlslistensocket);
 
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
@@ -662,9 +664,13 @@ interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr, const char *name,
 		ns_interface_create(mgr, addr, name, &ifp);
 	} else {
 		REQUIRE(!LISTENING(ifp));
+		LOCK(&mgr->lock);
+		ifp->generation = mgr->generation;
+		UNLOCK(&mgr->lock);
 	}
 
 	ifp->flags |= NS_INTERFACEFLAG_LISTENING;
+	ifp->proxy_type = elt->proxy;
 
 	if (elt->is_http) {
 		result = ns_interface_listenhttp(
@@ -733,6 +739,10 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 		isc_nm_stoplistening(ifp->tcplistensocket);
 		isc_nmsocket_close(&ifp->tcplistensocket);
 	}
+	if (ifp->tlslistensocket != NULL) {
+		isc_nm_stoplistening(ifp->tlslistensocket);
+		isc_nmsocket_close(&ifp->tlslistensocket);
+	}
 	if (ifp->http_listensocket != NULL) {
 		isc_nm_stoplistening(ifp->http_listensocket);
 		isc_nmsocket_close(&ifp->http_listensocket);
@@ -788,6 +798,14 @@ find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
 	return (ifp);
 }
 
+static void
+log_interface_shutdown(const ns_interface_t *ifp) {
+	char sabuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
+	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+		      "no longer listening on %s", sabuf);
+}
+
 /*%
  * Remove any interfaces whose generation number is not the current one.
  */
@@ -812,10 +830,7 @@ purge_old_interfaces(ns_interfacemgr_t *mgr) {
 	for (ifp = ISC_LIST_HEAD(interfaces); ifp != NULL; ifp = next) {
 		next = ISC_LIST_NEXT(ifp, link);
 		if (LISTENING(ifp)) {
-			char sabuf[256];
-			isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-				      "no longer listening on %s", sabuf);
+			log_interface_shutdown(ifp);
 			ns_interface_shutdown(ifp);
 		}
 		ISC_LIST_UNLINK(interfaces, ifp, link);
@@ -932,9 +947,8 @@ replace_listener_tlsctx(ns_interface_t *ifp, isc_tlsctx_t *newctx) {
 	isc_sockaddr_format(&ifp->addr, sabuf, sizeof(sabuf));
 	isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
 		      "updating TLS context on %s", sabuf);
-	if (ifp->tcplistensocket != NULL) {
-		/* 'tcplistensocket' is used for DoT */
-		isc_nmsocket_set_tlsctx(ifp->tcplistensocket, newctx);
+	if (ifp->tlslistensocket != NULL) {
+		isc_nmsocket_set_tlsctx(ifp->tlslistensocket, newctx);
 	} else if (ifp->http_secure_listensocket != NULL) {
 		isc_nmsocket_set_tlsctx(ifp->http_secure_listensocket, newctx);
 	}
@@ -1005,6 +1019,61 @@ update_listener_configuration(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
 	UNLOCK(&mgr->lock);
 }
 
+static bool
+same_listener_type(ns_interface_t *ifp, ns_listenelt_t *new_le) {
+	bool same_transport_type = false;
+
+	if (new_le->is_http && new_le->sslctx != NULL &&
+	    ifp->http_secure_listensocket != NULL)
+	{
+		/* HTTPS/DoH */
+		same_transport_type = true;
+	} else if (new_le->is_http && new_le->sslctx == NULL &&
+		   ifp->http_listensocket != NULL)
+	{
+		/* HTTP/plain DoH */
+		same_transport_type = true;
+	} else if (new_le->sslctx != NULL && ifp->tlslistensocket != NULL) {
+		/* TLS/DoT */
+		same_transport_type = true;
+	} else if (new_le->sslctx == NULL && (ifp->udplistensocket != NULL ||
+					      ifp->tcplistensocket != NULL))
+	{
+		/* "plain" DNS/Do53 */
+		same_transport_type = true;
+	}
+
+	/*
+	 * Check if transport type of the listener has not changed. That
+	 * implies that PROXY type has not been changed as well.
+	 */
+	return (same_transport_type && new_le->proxy == ifp->proxy_type);
+}
+
+static bool
+interface_update_or_shutdown(ns_interfacemgr_t *mgr, ns_interface_t *ifp,
+			     ns_listenelt_t *le, const bool config) {
+	if (LISTENING(ifp) && config && !same_listener_type(ifp, le)) {
+		/*
+		 * DNS listener type has been changed on re-configuration. We
+		 * will need to recreate the listener anew.
+		 */
+		log_interface_shutdown(ifp);
+		ns_interface_shutdown(ifp);
+	} else {
+		LOCK(&mgr->lock);
+		ifp->generation = mgr->generation;
+		UNLOCK(&mgr->lock);
+		if (LISTENING(ifp)) {
+			if (config) {
+				update_listener_configuration(mgr, ifp, le);
+			}
+			return (true);
+		}
+	}
+	return (false);
+}
+
 static isc_result_t
 do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 	isc_interfaceiter_t *iter = NULL;
@@ -1072,12 +1141,9 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 
 			ifp = find_matching_interface(mgr, &listen_addr);
 			if (ifp != NULL) {
-				ifp->generation = mgr->generation;
-				if (LISTENING(ifp)) {
-					if (config) {
-						update_listener_configuration(
-							mgr, ifp, le);
-					}
+				bool cont = interface_update_or_shutdown(
+					mgr, ifp, le, config);
+				if (cont) {
 					continue;
 				}
 			}
@@ -1217,12 +1283,9 @@ do_scan(ns_interfacemgr_t *mgr, bool verbose, bool config) {
 
 			ifp = find_matching_interface(mgr, &listen_sockaddr);
 			if (ifp != NULL) {
-				ifp->generation = mgr->generation;
-				if (LISTENING(ifp)) {
-					if (config) {
-						update_listener_configuration(
-							mgr, ifp, le);
-					}
+				bool cont = interface_update_or_shutdown(
+					mgr, ifp, le, config);
+				if (cont) {
 					continue;
 				}
 			}
