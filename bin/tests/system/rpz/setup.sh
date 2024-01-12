@@ -17,8 +17,6 @@ set -e
 
 . ../conf.sh
 
-QPERF=$($SHELL qperf.sh)
-
 $SHELL clean.sh
 
 for dir in ns*; do
@@ -117,32 +115,6 @@ a3-17.tld2	500 A	17.17.17.17
 ; dummy NSDNAME policy to trigger lookups
 ns1.x.rpz-nsdname	CNAME	.
 EOF
-
-if test -n "$QPERF"; then
-  # Do not build the full zones if we will not use them.
-  $PERL -e 'for ($val = 1; $val <= 65535; ++$val) {
-	printf("host-%05d\tA    192.168.%d.%d\n", $val, $val/256, $val%256);
-	}' >>ns5/example.db
-
-  echo >>ns5/bl.db
-  echo "; rewrite some names" >>ns5/bl.db
-  $PERL -e 'for ($val = 2; $val <= 65535; $val += 69) {
-	printf("host-%05d.example.tld5\tCNAME\t.\n", $val);
-	}' >>ns5/bl.db
-
-  echo >>ns5/bl.db
-  echo "; rewrite with some not entirely trivial patricia trees" >>ns5/bl.db
-  $PERL -e 'for ($val = 3; $val <= 65535; $val += 69) {
-	printf("32.%d.%d.168.192.rpz-ip  \tCNAME\t.\n",
-		$val%256, $val/256);
-	}' >>ns5/bl.db
-fi
-
-# some psuedo-random queryperf requests
-$PERL -e 'for ($cnt = $val = 1; $cnt <= 3000; ++$cnt) {
-	printf("host-%05d.example.tld5 A\n", $val);
-	$val = ($val * 9 + 32771) % 65536;
-	}' >ns5/requests
 
 cp ns2/bl.tld2.db.in ns2/bl.tld2.db
 cp ns5/empty.db.in ns5/empty.db
