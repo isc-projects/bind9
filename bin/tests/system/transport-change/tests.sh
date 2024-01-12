@@ -96,5 +96,11 @@ run_dig_multitest_expect_success "$testing: a query over plain HTTP/DoH" +http-p
 reconfig_server "reconfiguring the server to use plain HTTP/DoH over PROXYv2" named-http-plain-proxy.conf.in
 run_dig_multitest_expect_success "$testing: a query over plain HTTP/DoH over PROXYv2" +http-plain +proxy
 
+reconfig_server "reconfiguring the server back to use TLS/DoT" named-tls.conf.in
+run_dig_multitest_expect_success "$testing: a query over TLS/DoT" +tls
+
+reconfig_server "reconfiguring the server back to use HTTPS/DoH" named-https.conf.in
+run_dig_multitest_expect_success "$testing: a query over HTTPS/DoH" +https
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
