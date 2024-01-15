@@ -357,6 +357,27 @@ def mlogger(system_test_name):
     return logging.getLogger(system_test_name)
 
 
+def _get_marker(node, marker):
+    try:
+        # pytest >= 4.x
+        return node.get_closest_marker(marker)
+    except AttributeError:
+        # pytest < 4.x
+        return node.get_marker(marker)
+
+
+@pytest.fixture(autouse=True)
+def wait_for_zones_loaded(request, servers):
+    """Wait for all zones to be loaded by specified named instances."""
+    instances = _get_marker(request.node, "requires_zones_loaded")
+    if not instances:
+        return
+
+    for instance in instances.args:
+        with servers[instance].watch_log_from_start() as watcher:
+            watcher.wait_for_line("all zones loaded")
+
+
 @pytest.fixture
 def logger(request, system_test_name):
     """Logging facility specific to a particular test."""
