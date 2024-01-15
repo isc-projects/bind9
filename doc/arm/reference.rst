@@ -1060,10 +1060,10 @@ responses such as NXDOMAIN.
 :any:`parental-agents` Block Definition and Usage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:any:`parental-agents` lists allow for a common set of parental agents to be easily
-used by multiple primary and secondary zones.
-A parental agent is the entity that is allowed to
-change a zone's delegation information (defined in :rfc:`7344`).
+:any:`parental-agents` lists allow for a common set of parental agents to be
+easily used by multiple primary and secondary zones. A "parental agent" is a
+trusted DNS server that is queried to check if DS records for a given zones
+are up-to-date.
 
 :any:`primaries` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
