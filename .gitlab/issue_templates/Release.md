@@ -67,15 +67,14 @@
  - [ ] ***(QA)*** Prepare the `patches/` subdirectory for each security release (if applicable).
  - [ ] ***(QA)*** Pre-publish ASN and/or Subscription Edition tarballs so that packages can be built.
  - [ ] ***(QA)*** Build and test ASN and/or Subscription Edition packages (in [cloudsmith branch in private repo](https://gitlab.isc.org/isc-private/rpms/bind/-/tree/cloudsmith)). [Example](https://gitlab.isc.org/isc-private/rpms/bind/-/commit/e2512f4cfaf991827a635e374e7e93b27a5f38ba)
- - [ ] ***(QA)*** Use the [Printing Press project](https://gitlab.isc.org/isc-private/printing-press/-/wikis/home#adding-new-documents) to prepare a release announcement email.
- - [ ] ***(Marketing)*** Update ASN documents in the SF portal.
- - [ ] ***(Marketing)*** Send out ASN emails (if applicable).
+ - [ ] ***(Marketing)*** Prepare and send out ASN emails (as outlined in the CVE checklist; if applicable).
 
 ### On the Day of Public Release
 
  - [ ] ***(QA)*** Wait for clearance from Security Officer to proceed with the public release (if applicable).
  - [ ] ***(QA)*** Place tarballs in public location on FTP site.
  - [ ] ***(QA)*** Inform Marketing of the release, providing FTP links for the published tarballs.
+ - [ ] ***(QA)*** Use the [Printing Press project](https://gitlab.isc.org/isc-private/printing-press/-/wikis/home#adding-new-documents) to prepare a release announcement email.
  - [ ] ***(Marketing)*** Publish links to downloads on ISC website. [Example](https://gitlab.isc.org/website/theme-staging-site/-/commit/1ac7b30b73cb03228df4cd5651fa4e774ac35625)
  - [ ] ***(Marketing)*** Update the BIND -S information document in SF with download links to the new versions. (If this is a security release, this will have already been done as part of the ASN process.)
  - [ ] ***(Marketing)*** Update the Current Software Versions document in the SF portal if any stable versions were released.
