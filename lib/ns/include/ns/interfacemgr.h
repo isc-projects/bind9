@@ -77,6 +77,7 @@ struct ns_interface {
 	char		   name[32];   /*%< Null terminated. */
 	isc_nmsocket_t	  *udplistensocket;
 	isc_nmsocket_t	  *tcplistensocket;
+	isc_nmsocket_t	  *tlslistensocket;
 	isc_nmsocket_t	  *http_listensocket;
 	isc_nmsocket_t	  *http_secure_listensocket;
 	isc_quota_t	  *http_quota;
