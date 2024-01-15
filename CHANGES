@@ -1,3 +1,6 @@
+6371.	[bug]		Access to the trust bytes in the ncache data needed to
+			be made thread safe. [GL #4475]
+
 6370.	[bug]		Wrong source address used for IPv6 notify messages.
 			[GL #4669]
 
