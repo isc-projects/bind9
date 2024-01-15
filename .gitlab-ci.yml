@@ -592,6 +592,8 @@ coccinelle:
 pylint:
   <<: *precheck_job
   needs: []
+  variables:
+    PYTHONPATH: "${CI_PROJECT_DIR}/bin/tests/system"
   script:
     - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|^bin/tests/system/)')
       # Ignore Pylint wrong-import-position error in system test to enable use of pytest.importorskip
@@ -641,6 +643,11 @@ checkbashisms:
   needs: []
   script:
     - checkbashisms $(find . -path './.git' -prune -o -type f -exec sh -c 'head -n 1 "{}" | grep -qsF "#!/bin/sh"' \; -print)
+
+mypy:
+  <<: *precheck_job
+  script:
+    - mypy "bin/tests/system/isctest/"
 
 tarball-create:
   stage: precheck

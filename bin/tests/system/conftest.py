@@ -22,8 +22,9 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-
 pytest.register_assert_rewrite("isctest")
+
+import isctest
 
 
 # Silence warnings caused by passing a pytest fixture to another fixture.
@@ -648,3 +649,21 @@ def system_test(  # pylint: disable=too-many-arguments,too-many-statements
         stop_servers()
         get_core_dumps()
         request.node.stash[FIXTURE_OK] = True
+
+
+@pytest.fixture
+def servers(ports, logger, system_test_dir):
+    instances = {}
+    for entry in system_test_dir.rglob("*"):
+        if entry.is_dir():
+            try:
+                dir_name = entry.name
+                # LATER: Make ports fixture return NamedPorts directly
+                named_ports = isctest.instance.NamedPorts(
+                    dns=int(ports["PORT"]), rndc=int(ports["CONTROLPORT"])
+                )
+                instance = isctest.instance.NamedInstance(dir_name, named_ports, logger)
+                instances[dir_name] = instance
+            except ValueError:
+                continue
+    return instances
