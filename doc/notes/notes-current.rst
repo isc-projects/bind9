@@ -20,7 +20,8 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- The statistics channel now includes counters that indicate the number
+  of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
 Removed Features
 ~~~~~~~~~~~~~~~~

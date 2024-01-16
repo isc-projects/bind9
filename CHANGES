@@ -33,6 +33,9 @@
 			listener transport type. Thanks to Thomas Amgarten.
 			[GL #4518] [GL #4528]
 
+6325.	[func]		Expose the TCP client count in statistics channel.
+			[GL #4425]
+
 6324.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
