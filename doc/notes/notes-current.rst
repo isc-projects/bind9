@@ -25,6 +25,9 @@ New Features
   consult the documentation for additional details.
   :gl:`#3504`
 
+- The statistics channel now includes counters that indicate the number
+  of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
