@@ -1164,7 +1164,9 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 cleanup:
 	if (rdataset != NULL) {
-		INSIST(!dns_rdataset_isassociated(rdataset));
+		if (dns_rdataset_isassociated(rdataset)) {
+			dns_rdataset_disassociate(rdataset);
+		}
 		isc_mempool_put(msg->rdspool, rdataset);
 	}
 	if (free_name) {
