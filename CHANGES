@@ -1,3 +1,7 @@
+6322.	[security]	Specific DNS answers could cause a denial-of-service
+			condition due to DNS validation taking a long time.
+			(CVE-2023-50387) [GL #4424]
+
 6321.	[security]	Change 6315 inadvertently introduced regressions that
 			could cause named to crash. [GL #4234]
 
