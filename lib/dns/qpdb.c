@@ -131,8 +131,8 @@
 
 #define KEEPSTALE(qpdb) ((qpdb)->common.serve_stale_ttl > 0)
 
-#define QPDBITER_NSEC3_ORIGIN_NODE(qpdb, iterator)         \
-	((iterator)->current == &(iterator)->nsec3chain && \
+#define QPDBITER_NSEC3_ORIGIN_NODE(qpdb, iterator)        \
+	((iterator)->current == &(iterator)->nsec3iter && \
 	 (iterator)->node == (qpdb)->nsec3_origin_node)
 
 /*%
@@ -235,10 +235,10 @@ typedef struct qpdb_rdatasetiter {
 /*
  * Note that these iterators, unless created with either DNS_DB_NSEC3ONLY or
  * DNS_DB_NONSEC3, will transparently move between the last node of the
- * "regular" RBT ("chain" field) and the root node of the NSEC3 RBT
- * ("nsec3chain" field) of the database in question, as if the latter was a
+ * "regular" QP ("iter" field) and the root node of the NSEC3 QP
+ * ("nsec3iter" field) of the database in question, as if the latter was a
  * successor to the former in lexical order.  The "current" field always holds
- * the address of either "chain" or "nsec3chain", depending on which RBT is
+ * the address of either "iter" or "nsec3iter", depending on which QP is
  * being traversed at given time.
  */
 static void
@@ -279,9 +279,9 @@ typedef struct qpdb_dbiterator {
 	isc_result_t result;
 	dns_fixedname_t name;
 	dns_fixedname_t origin;
-	dns_rbtnodechain_t chain;
-	dns_rbtnodechain_t nsec3chain;
-	dns_rbtnodechain_t *current;
+	dns_qpiter_t iter;
+	dns_qpiter_t nsec3iter;
+	dns_qpiter_t *current;
 	dns_rbtnode_t *node;
 	enum { full, nonsec3, nsec3only } nsec3mode;
 } qpdb_dbiterator_t;
@@ -2247,6 +2247,7 @@ dns__qpdb_createiterator(dns_db_t *db, unsigned int options,
 	dns_fixedname_init(&qpdbiter->name);
 	dns_fixedname_init(&qpdbiter->origin);
 	qpdbiter->node = NULL;
+
 	if ((options & DNS_DB_NSEC3ONLY) != 0) {
 		qpdbiter->nsec3mode = nsec3only;
 	} else if ((options & DNS_DB_NONSEC3) != 0) {
@@ -2254,16 +2255,15 @@ dns__qpdb_createiterator(dns_db_t *db, unsigned int options,
 	} else {
 		qpdbiter->nsec3mode = full;
 	}
-	dns_rbtnodechain_init(&qpdbiter->chain);
-	dns_rbtnodechain_init(&qpdbiter->nsec3chain);
+	dns_qpiter_init(qpdb->tree, &qpdbiter->iter);
+	dns_qpiter_init(qpdb->nsec3, &qpdbiter->nsec3iter);
 	if (qpdbiter->nsec3mode == nsec3only) {
-		qpdbiter->current = &qpdbiter->nsec3chain;
+		qpdbiter->current = &qpdbiter->nsec3iter;
 	} else {
-		qpdbiter->current = &qpdbiter->chain;
+		qpdbiter->current = &qpdbiter->iter;
 	}
 
 	*iteratorp = (dns_dbiterator_t *)qpdbiter;
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -4193,8 +4193,6 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp DNS__DB_FLARG) {
 	dns_db_attach(qpdbiter->common.db, &db);
 	dns_db_detach(&qpdbiter->common.db);
 
-	dns_rbtnodechain_reset(&qpdbiter->chain);
-	dns_rbtnodechain_reset(&qpdbiter->nsec3chain);
 	isc_mem_put(db->mctx, qpdbiter, sizeof(*qpdbiter));
 	dns_db_detach(&db);
 
@@ -4206,7 +4204,6 @@ dbiterator_first(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	isc_result_t result;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
-	dns_name_t *name = NULL, *origin = NULL;
 
 	if (qpdbiter->result != ISC_R_SUCCESS &&
 	    qpdbiter->result != ISC_R_NOTFOUND &&
@@ -4222,30 +4219,38 @@ dbiterator_first(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 
-	name = dns_fixedname_name(&qpdbiter->name);
-	origin = dns_fixedname_name(&qpdbiter->origin);
-	dns_rbtnodechain_reset(&qpdbiter->chain);
-	dns_rbtnodechain_reset(&qpdbiter->nsec3chain);
-
 	switch (qpdbiter->nsec3mode) {
 	case nsec3only:
-		qpdbiter->current = &qpdbiter->nsec3chain;
-		result = dns_rbtnodechain_first(qpdbiter->current, qpdb->nsec3,
-						name, origin);
+		qpdbiter->current = &qpdbiter->nsec3iter;
+		dns_qpiter_init(qpdb->nsec3, qpdbiter->current);
+		result = dns_qpiter_next(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
+		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+			/* If we're in the NSEC3 tree, skip the origin */
+			if (QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter)) {
+				result = dns_qpiter_next(
+					qpdbiter->current, NULL,
+					(void **)&qpdbiter->node, NULL);
+			}
+		}
 		break;
 	case nonsec3:
-		qpdbiter->current = &qpdbiter->chain;
-		result = dns_rbtnodechain_first(qpdbiter->current, qpdb->tree,
-						name, origin);
+		qpdbiter->current = &qpdbiter->iter;
+		dns_qpiter_init(qpdb->tree, qpdbiter->current);
+		result = dns_qpiter_next(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
 		break;
 	case full:
-		qpdbiter->current = &qpdbiter->chain;
-		result = dns_rbtnodechain_first(qpdbiter->current, qpdb->tree,
-						name, origin);
-		if (result == ISC_R_NOTFOUND) {
-			qpdbiter->current = &qpdbiter->nsec3chain;
-			result = dns_rbtnodechain_first(
-				qpdbiter->current, qpdb->nsec3, name, origin);
+		qpdbiter->current = &qpdbiter->iter;
+		dns_qpiter_init(qpdb->tree, qpdbiter->current);
+		result = dns_qpiter_next(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
+		if (result == ISC_R_NOMORE) {
+			qpdbiter->current = &qpdbiter->nsec3iter;
+			dns_qpiter_init(qpdb->nsec3, qpdbiter->current);
+			result = dns_qpiter_next(qpdbiter->current, NULL,
+						 (void **)&qpdbiter->node,
+						 NULL);
 		}
 		break;
 	default:
@@ -4253,29 +4258,10 @@ dbiterator_first(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	}
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
-		result = dns_rbtnodechain_current(qpdbiter->current, NULL, NULL,
-						  &qpdbiter->node);
-
-		/* If we're in the NSEC3 tree, skip the origin */
-		if (QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter)) {
-			qpdbiter->node = NULL;
-			result = dns_rbtnodechain_next(qpdbiter->current, name,
-						       origin);
-			if (result == ISC_R_SUCCESS ||
-			    result == DNS_R_NEWORIGIN)
-			{
-				result = dns_rbtnodechain_current(
-					qpdbiter->current, NULL, NULL,
-					&qpdbiter->node);
-			}
-		}
-		if (result == ISC_R_SUCCESS) {
-			qpdbiter->new_origin = true;
-			reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
-		}
+		qpdbiter->new_origin = true;
+		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 	} else {
-		INSIST(result == ISC_R_NOTFOUND);
-		result = ISC_R_NOMORE; /* The tree is empty. */
+		INSIST(result == ISC_R_NOMORE); /* The tree is empty. */
 	}
 
 	qpdbiter->result = result;
@@ -4292,7 +4278,6 @@ dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	isc_result_t result;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
-	dns_name_t *name = NULL, *origin = NULL;
 
 	if (qpdbiter->result != ISC_R_SUCCESS &&
 	    qpdbiter->result != ISC_R_NOTFOUND &&
@@ -4308,30 +4293,48 @@ dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 
-	name = dns_fixedname_name(&qpdbiter->name);
-	origin = dns_fixedname_name(&qpdbiter->origin);
-	dns_rbtnodechain_reset(&qpdbiter->chain);
-	dns_rbtnodechain_reset(&qpdbiter->nsec3chain);
-
 	switch (qpdbiter->nsec3mode) {
 	case nsec3only:
-		qpdbiter->current = &qpdbiter->nsec3chain;
-		result = dns_rbtnodechain_last(qpdbiter->current, qpdb->nsec3,
-					       name, origin);
+		qpdbiter->current = &qpdbiter->nsec3iter;
+		dns_qpiter_init(qpdb->nsec3, qpdbiter->current);
+		result = dns_qpiter_prev(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
+		if ((result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) &&
+		    QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter))
+		{
+			/*
+			 * NSEC3 tree only has an origin node.
+			 */
+			qpdbiter->node = NULL;
+			result = ISC_R_NOMORE;
+		}
 		break;
 	case nonsec3:
-		qpdbiter->current = &qpdbiter->chain;
-		result = dns_rbtnodechain_last(qpdbiter->current, qpdb->tree,
-					       name, origin);
+		qpdbiter->current = &qpdbiter->iter;
+		dns_qpiter_init(qpdb->tree, qpdbiter->current);
+		result = dns_qpiter_prev(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
 		break;
 	case full:
-		qpdbiter->current = &qpdbiter->nsec3chain;
-		result = dns_rbtnodechain_last(qpdbiter->current, qpdb->nsec3,
-					       name, origin);
-		if (result == ISC_R_NOTFOUND) {
-			qpdbiter->current = &qpdbiter->chain;
-			result = dns_rbtnodechain_last(
-				qpdbiter->current, qpdb->tree, name, origin);
+		qpdbiter->current = &qpdbiter->nsec3iter;
+		dns_qpiter_init(qpdb->nsec3, qpdbiter->current);
+		result = dns_qpiter_prev(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
+		if ((result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) &&
+		    QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter))
+		{
+			/*
+			 * NSEC3 tree only has an origin node.
+			 */
+			qpdbiter->node = NULL;
+			result = ISC_R_NOMORE;
+		}
+		if (result == ISC_R_NOMORE) {
+			qpdbiter->current = &qpdbiter->iter;
+			dns_qpiter_init(qpdb->tree, qpdbiter->current);
+			result = dns_qpiter_prev(qpdbiter->current, NULL,
+						 (void **)&qpdbiter->node,
+						 NULL);
 		}
 		break;
 	default:
@@ -4339,42 +4342,10 @@ dbiterator_last(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	}
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
-		result = dns_rbtnodechain_current(qpdbiter->current, NULL, NULL,
-						  &qpdbiter->node);
-		if (QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter)) {
-			/*
-			 * NSEC3 tree only has an origin node.
-			 */
-			qpdbiter->node = NULL;
-			switch (qpdbiter->nsec3mode) {
-			case nsec3only:
-				result = ISC_R_NOMORE;
-				break;
-			case nonsec3:
-			case full:
-				qpdbiter->current = &qpdbiter->chain;
-				result = dns_rbtnodechain_last(
-					qpdbiter->current, qpdb->tree, name,
-					origin);
-				if (result == ISC_R_SUCCESS ||
-				    result == DNS_R_NEWORIGIN)
-				{
-					result = dns_rbtnodechain_current(
-						qpdbiter->current, NULL, NULL,
-						&qpdbiter->node);
-				}
-				break;
-			default:
-				UNREACHABLE();
-			}
-		}
-		if (result == ISC_R_SUCCESS) {
-			qpdbiter->new_origin = true;
-			reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
-		}
+		qpdbiter->new_origin = true;
+		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 	} else {
-		INSIST(result == ISC_R_NOTFOUND);
-		result = ISC_R_NOMORE; /* The tree is empty. */
+		INSIST(result == ISC_R_NOMORE); /* The tree is empty. */
 	}
 
 	qpdbiter->result = result;
@@ -4388,7 +4359,6 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 	isc_result_t result, tresult;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
-	dns_name_t *iname = NULL, *origin = NULL;
 
 	if (qpdbiter->result != ISC_R_SUCCESS &&
 	    qpdbiter->result != ISC_R_NOTFOUND &&
@@ -4404,20 +4374,15 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 
-	iname = dns_fixedname_name(&qpdbiter->name);
-	origin = dns_fixedname_name(&qpdbiter->origin);
-	dns_rbtnodechain_reset(&qpdbiter->chain);
-	dns_rbtnodechain_reset(&qpdbiter->nsec3chain);
-
 	switch (qpdbiter->nsec3mode) {
 	case nsec3only:
-		qpdbiter->current = &qpdbiter->nsec3chain;
+		qpdbiter->current = &qpdbiter->nsec3iter;
 		result = dns_qp_lookup(qpdb->nsec3, name, NULL,
 				       qpdbiter->current, NULL,
 				       (void **)&qpdbiter->node, NULL);
 		break;
 	case nonsec3:
-		qpdbiter->current = &qpdbiter->chain;
+		qpdbiter->current = &qpdbiter->iter;
 		result = dns_qp_lookup(qpdb->tree, name, NULL,
 				       qpdbiter->current, NULL,
 				       (void **)&qpdbiter->node, NULL);
@@ -4425,20 +4390,20 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 	case full:
 		/*
 		 * Stay on main chain if not found on
-		 * either chain.
+		 * either iterator.
 		 */
-		qpdbiter->current = &qpdbiter->chain;
+		qpdbiter->current = &qpdbiter->iter;
 		result = dns_qp_lookup(qpdb->tree, name, NULL,
 				       qpdbiter->current, NULL,
 				       (void **)&qpdbiter->node, NULL);
 		if (result == DNS_R_PARTIALMATCH) {
 			dns_rbtnode_t *node = NULL;
 			tresult = dns_qp_lookup(qpdb->nsec3, name, NULL,
-						&qpdbiter->nsec3chain, NULL,
+						&qpdbiter->nsec3iter, NULL,
 						(void **)&node, NULL);
 			if (tresult == ISC_R_SUCCESS) {
 				qpdbiter->node = node;
-				qpdbiter->current = &qpdbiter->nsec3chain;
+				qpdbiter->current = &qpdbiter->nsec3iter;
 				result = tresult;
 			}
 		}
@@ -4448,15 +4413,8 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 	}
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-		tresult = dns_rbtnodechain_current(qpdbiter->current, iname,
-						   origin, NULL);
-		if (tresult == ISC_R_SUCCESS) {
-			qpdbiter->new_origin = true;
-			reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
-		} else {
-			result = tresult;
-			qpdbiter->node = NULL;
-		}
+		qpdbiter->new_origin = true;
+		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 	} else {
 		qpdbiter->node = NULL;
 	}
@@ -4471,7 +4429,6 @@ static isc_result_t
 dbiterator_prev(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	isc_result_t result;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
-	dns_name_t *name = NULL, *origin = NULL;
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
 
 	REQUIRE(qpdbiter->node != NULL);
@@ -4486,42 +4443,31 @@ dbiterator_prev(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 
-	name = dns_fixedname_name(&qpdbiter->name);
-	origin = dns_fixedname_name(&qpdbiter->origin);
-	result = dns_rbtnodechain_prev(qpdbiter->current, name, origin);
-	if (qpdbiter->current == &qpdbiter->nsec3chain &&
-	    (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN))
-	{
-		/*
-		 * If we're in the NSEC3 tree, it's empty or we've
-		 * reached the origin, then we're done with it.
-		 */
-		result = dns_rbtnodechain_current(qpdbiter->current, NULL, NULL,
-						  &qpdbiter->node);
-		if (result == ISC_R_NOTFOUND ||
-		    QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter))
-		{
-			qpdbiter->node = NULL;
-			result = ISC_R_NOMORE;
+	result = dns_qpiter_prev(qpdbiter->current, NULL,
+				 (void **)&qpdbiter->node, NULL);
+
+	if (qpdbiter->current == &qpdbiter->nsec3iter) {
+		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+			/*
+			 * If we're in the NSEC3 tree, it's empty or
+			 * we've reached the origin, then we're done
+			 * with it.
+			 */
+			if (QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter)) {
+				qpdbiter->node = NULL;
+				result = ISC_R_NOMORE;
+			}
 		}
-	}
-	if (result == ISC_R_NOMORE && qpdbiter->nsec3mode != nsec3only &&
-	    &qpdbiter->nsec3chain == qpdbiter->current)
-	{
-		qpdbiter->current = &qpdbiter->chain;
-		dns_rbtnodechain_reset(qpdbiter->current);
-		result = dns_rbtnodechain_last(qpdbiter->current, qpdb->tree,
-					       name, origin);
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_NOMORE;
+		if (result == ISC_R_NOMORE && qpdbiter->nsec3mode == full) {
+			qpdbiter->current = &qpdbiter->iter;
+			dns_qpiter_init(qpdb->tree, qpdbiter->current);
+			result = dns_qpiter_prev(qpdbiter->current, NULL,
+						 (void **)&qpdbiter->node,
+						 NULL);
 		}
 	}
 
-	if (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		qpdbiter->new_origin = (result == DNS_R_NEWORIGIN);
-		result = dns_rbtnodechain_current(qpdbiter->current, NULL, NULL,
-						  &qpdbiter->node);
-	}
+	qpdbiter->new_origin = (result == DNS_R_NEWORIGIN);
 
 	if (result == ISC_R_SUCCESS) {
 		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
@@ -4536,7 +4482,6 @@ static isc_result_t
 dbiterator_next(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 	isc_result_t result;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
-	dns_name_t *name = NULL, *origin = NULL;
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
 
 	REQUIRE(qpdbiter->node != NULL);
@@ -4549,44 +4494,45 @@ dbiterator_next(dns_dbiterator_t *iterator DNS__DB_FLARG) {
 		resume_iteration(qpdbiter);
 	}
 
-	name = dns_fixedname_name(&qpdbiter->name);
-	origin = dns_fixedname_name(&qpdbiter->origin);
-	result = dns_rbtnodechain_next(qpdbiter->current, name, origin);
-	if (result == ISC_R_NOMORE && qpdbiter->nsec3mode != nonsec3 &&
-	    &qpdbiter->chain == qpdbiter->current)
-	{
-		qpdbiter->current = &qpdbiter->nsec3chain;
-		dns_rbtnodechain_reset(qpdbiter->current);
-		result = dns_rbtnodechain_first(qpdbiter->current, qpdb->nsec3,
-						name, origin);
-		if (result == ISC_R_NOTFOUND) {
-			result = ISC_R_NOMORE;
-		}
-	}
-
 	dereference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
+
+	result = dns_qpiter_next(qpdbiter->current, NULL,
+				 (void **)&qpdbiter->node, NULL);
+
+	if (result == ISC_R_NOMORE && qpdbiter->nsec3mode == full &&
+	    qpdbiter->current == &qpdbiter->iter)
+	{
+		qpdbiter->current = &qpdbiter->nsec3iter;
+		dns_qpiter_init(qpdb->nsec3, qpdbiter->current);
+		result = dns_qpiter_next(qpdbiter->current, NULL,
+					 (void **)&qpdbiter->node, NULL);
+	}
 
 	if (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		/*
 		 * If we've just started the NSEC3 tree,
 		 * skip over the origin.
 		 */
-		qpdbiter->new_origin = (result == DNS_R_NEWORIGIN);
-		result = dns_rbtnodechain_current(qpdbiter->current, NULL, NULL,
-						  &qpdbiter->node);
 		if (QPDBITER_NSEC3_ORIGIN_NODE(qpdb, qpdbiter)) {
-			qpdbiter->node = NULL;
-			result = dns_rbtnodechain_next(qpdbiter->current, name,
-						       origin);
-			if (result == ISC_R_SUCCESS ||
-			    result == DNS_R_NEWORIGIN)
-			{
-				result = dns_rbtnodechain_current(
-					qpdbiter->current, NULL, NULL,
-					&qpdbiter->node);
+			switch (qpdbiter->nsec3mode) {
+			case nsec3only:
+			case full:
+				result = dns_qpiter_next(
+					qpdbiter->current, NULL,
+					(void **)&qpdbiter->node, NULL);
+				break;
+			case nonsec3:
+				result = ISC_R_NOMORE;
+				qpdbiter->node = NULL;
+				break;
+			default:
+				UNREACHABLE();
 			}
 		}
 	}
+
+	qpdbiter->new_origin = (result == DNS_R_NEWORIGIN);
+
 	if (result == ISC_R_SUCCESS) {
 		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 	}
@@ -4602,9 +4548,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)iterator->db;
 	qpdb_dbiterator_t *qpdbiter = (qpdb_dbiterator_t *)iterator;
 	dns_rbtnode_t *node = qpdbiter->node;
-	isc_result_t result;
-	dns_name_t *nodename = dns_fixedname_name(&qpdbiter->name);
-	dns_name_t *origin = dns_fixedname_name(&qpdbiter->origin);
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(qpdbiter->result == ISC_R_SUCCESS);
 	REQUIRE(qpdbiter->node != NULL);
@@ -4614,13 +4558,8 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	}
 
 	if (name != NULL) {
-		if (qpdbiter->common.relative_names) {
-			origin = NULL;
-		}
-		result = dns_name_concatenate(nodename, origin, name, NULL);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		dns_name_copy(qpdbiter->node->name, name);
+
 		if (qpdbiter->common.relative_names && qpdbiter->new_origin) {
 			result = DNS_R_NEWORIGIN;
 		}

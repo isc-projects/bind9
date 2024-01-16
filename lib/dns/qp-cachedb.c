@@ -497,25 +497,24 @@ find_deepest_zonecut(qpdb_search_t *search, dns_rbtnode_t *node,
 		     dns_dbnode_t **nodep, dns_name_t *foundname,
 		     dns_rdataset_t *rdataset,
 		     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
-	unsigned int i;
 	isc_result_t result = ISC_R_NOTFOUND;
-	dns_name_t name;
 	dns_qpdb_t *qpdb = NULL;
-	bool done;
 
 	/*
 	 * Caller must be holding the tree lock.
 	 */
 
 	qpdb = search->qpdb;
-	i = search->chain.level_matches;
-	done = false;
-	do {
+
+	for (int i = dns_qpchain_length(&search->chain) - 1; i >= 0; i--) {
 		dns_slabheader_t *header = NULL;
 		dns_slabheader_t *header_prev = NULL, *header_next = NULL;
 		dns_slabheader_t *found = NULL, *foundsig = NULL;
-		isc_rwlock_t *lock = &qpdb->node_locks[node->locknum].lock;
+		isc_rwlock_t *lock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+
+		dns_qpchain_node(&search->chain, i, NULL, (void **)&node, NULL);
+		lock = &qpdb->node_locks[node->locknum].lock;
 
 		NODE_RDLOCK(lock, &nlocktype);
 
@@ -556,31 +555,10 @@ find_deepest_zonecut(qpdb_search_t *search, dns_rbtnode_t *node,
 		if (found != NULL) {
 			/*
 			 * If we have to set foundname, we do it before
-			 * anything else.  If we were to set foundname after
-			 * we had set nodep or bound the rdataset, then we'd
-			 * have to undo that work if dns_name_concatenate()
-			 * failed.  By setting foundname first, there's
-			 * nothing to undo if we have trouble.
+			 * anything else.
 			 */
 			if (foundname != NULL) {
-				dns_name_init(&name, NULL);
-				dns_rbt_namefromnode(node, &name);
-				dns_name_copy(&name, foundname);
-				while (i > 0) {
-					dns_rbtnode_t *level_node =
-						search->chain.levels[--i];
-					dns_name_init(&name, NULL);
-					dns_rbt_namefromnode(level_node, &name);
-					result = dns_name_concatenate(
-						foundname, &name, foundname,
-						NULL);
-					if (result != ISC_R_SUCCESS) {
-						if (nodep != NULL) {
-							*nodep = NULL;
-						}
-						goto node_exit;
-					}
-				}
+				dns_name_copy(node->name, foundname);
 			}
 			result = DNS_R_DELEGATION;
 			if (nodep != NULL) {
@@ -618,16 +596,12 @@ find_deepest_zonecut(qpdb_search_t *search, dns_rbtnode_t *node,
 			}
 		}
 
-	node_exit:
 		NODE_UNLOCK(lock, &nlocktype);
 
-		if (found == NULL && i > 0) {
-			i--;
-			node = search->chain.levels[i];
-		} else {
-			done = true;
+		if (found != NULL) {
+			break;
 		}
-	} while (!done);
+	}
 
 	return (result);
 }
@@ -644,11 +618,10 @@ find_coveringnsec(qpdb_search_t *search, const dns_name_t *name,
 		  dns_dbnode_t **nodep, isc_stdtime_t now,
 		  dns_name_t *foundname, dns_rdataset_t *rdataset,
 		  dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
-	dns_fixedname_t fprefix, forigin, ftarget, fixed;
-	dns_name_t *prefix = NULL, *origin = NULL;
-	dns_name_t *target = NULL, *fname = NULL;
+	dns_fixedname_t fpredecessor, fixed;
+	dns_name_t *predecessor = NULL, *fname = NULL;
 	dns_rbtnode_t *node = NULL;
-	dns_rbtnodechain_t chain;
+	dns_qpiter_t iter;
 	isc_result_t result;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 	isc_rwlock_t *lock = NULL;
@@ -660,34 +633,22 @@ find_coveringnsec(qpdb_search_t *search, const dns_name_t *name,
 	/*
 	 * Look for the node in the auxilary tree.
 	 */
-	dns_rbtnodechain_init(&chain);
-	target = dns_fixedname_initname(&ftarget);
-	result = dns_qp_lookup(search->qpdb->nsec, name, target, NULL, &chain,
+	result = dns_qp_lookup(search->qpdb->nsec, name, NULL, &iter, NULL,
 			       (void **)&node, NULL);
 	if (result != DNS_R_PARTIALMATCH) {
-		dns_rbtnodechain_reset(&chain);
 		return (ISC_R_NOTFOUND);
 	}
 
-	prefix = dns_fixedname_initname(&fprefix);
-	origin = dns_fixedname_initname(&forigin);
-	target = dns_fixedname_initname(&ftarget);
 	fname = dns_fixedname_initname(&fixed);
-
+	predecessor = dns_fixedname_initname(&fpredecessor);
 	matchtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_nsec, 0);
 	sigmatchtype = DNS_SIGTYPE(dns_rdatatype_nsec);
 
 	/*
-	 * Extract predecessor from chain.
+	 * Extract predecessor from iterator.
 	 */
-	result = dns_rbtnodechain_current(&chain, prefix, origin, NULL);
-	dns_rbtnodechain_reset(&chain);
+	result = dns_qpiter_current(&iter, predecessor, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
-		return (ISC_R_NOTFOUND);
-	}
-
-	result = dns_name_concatenate(prefix, origin, target, NULL);
-	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
 	}
 
@@ -695,8 +656,8 @@ find_coveringnsec(qpdb_search_t *search, const dns_name_t *name,
 	 * Lookup the predecessor in the main tree.
 	 */
 	node = NULL;
-	result = dns_qp_lookup(search->qpdb->tree, target, fname, NULL, NULL,
-			       (void **)&node, NULL);
+	result = dns_qp_lookup(search->qpdb->tree, predecessor, fname, NULL,
+			       NULL, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
 	}
@@ -790,7 +751,6 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		.now = now,
 	};
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain);
 
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
@@ -1193,8 +1153,6 @@ tree_exit:
 		INSIST(tlocktype == isc_rwlocktype_none);
 	}
 
-	dns_rbtnodechain_reset(&search.chain);
-
 	update_cachestats(search.qpdb, result);
 	return (result);
 }
@@ -1229,7 +1187,6 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		.now = now,
 	};
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain);
 
 	if (dcnull) {
 		dcname = foundname;
@@ -1368,8 +1325,6 @@ tree_exit:
 	TREE_UNLOCK(&search.qpdb->tree_lock, &tlocktype);
 
 	INSIST(!search.need_cleanup);
-
-	dns_rbtnodechain_reset(&search.chain);
 
 	if (result == DNS_R_DELEGATION) {
 		result = ISC_R_SUCCESS;

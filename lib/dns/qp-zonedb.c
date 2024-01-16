@@ -321,11 +321,10 @@ typedef enum { FORWARD, BACK } direction_t;
  * Return true if we found a predecessor or successor.
  */
 static bool
-step(qpdb_search_t *search, dns_rbtnodechain_t *chain, direction_t direction,
+step(qpdb_search_t *search, dns_qpiter_t *iter, direction_t direction,
      dns_name_t *nextname) {
-	dns_fixedname_t forigin;
-	dns_name_t *origin = NULL;
-	dns_name_t prefix;
+	dns_fixedname_t fnodename;
+	dns_name_t *nodename = dns_fixedname_initname(&fnodename);
 	dns_qpdb_t *qpdb = NULL;
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -333,17 +332,11 @@ step(qpdb_search_t *search, dns_rbtnodechain_t *chain, direction_t direction,
 
 	qpdb = search->qpdb;
 
-	dns_name_init(&prefix, NULL);
-	origin = dns_fixedname_initname(&forigin);
+	result = dns_qpiter_current(iter, nodename, (void **)&node, NULL);
 
 	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		node = NULL;
-		result = dns_rbtnodechain_current(chain, &prefix, origin,
-						  &node);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
+
 		NODE_RDLOCK(&(qpdb->node_locks[node->locknum].lock),
 			    &nlocktype);
 		for (header = node->data; header != NULL; header = header->next)
@@ -359,16 +352,19 @@ step(qpdb_search_t *search, dns_rbtnodechain_t *chain, direction_t direction,
 		if (header != NULL) {
 			break;
 		}
+
 		if (direction == FORWARD) {
-			result = dns_rbtnodechain_next(chain, NULL, NULL);
+			result = dns_qpiter_next(iter, nodename, (void **)&node,
+						 NULL);
 		} else {
-			result = dns_rbtnodechain_prev(chain, NULL, NULL);
+			result = dns_qpiter_prev(iter, nodename, (void **)&node,
+						 NULL);
 		}
 	};
 	if (result == ISC_R_SUCCESS) {
-		result = dns_name_concatenate(&prefix, origin, nextname, NULL);
-	}
-	if (result == ISC_R_SUCCESS) {
+		if (nextname != NULL) {
+			dns_name_copy(nodename, nextname);
+		}
 		return (true);
 	}
 	return (false);
@@ -381,17 +377,17 @@ step(qpdb_search_t *search, dns_rbtnodechain_t *chain, direction_t direction,
  * of the database.
  */
 static bool
-activeempty(qpdb_search_t *search, dns_rbtnodechain_t *chain,
+activeempty(qpdb_search_t *search, dns_qpiter_t *iter,
 	    const dns_name_t *current) {
 	isc_result_t result;
 	dns_fixedname_t fnext;
 	dns_name_t *next = dns_fixedname_initname(&fnext);
 
-	result = dns_rbtnodechain_next(chain, NULL, NULL);
+	result = dns_qpiter_next(iter, NULL, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 		return (false);
 	}
-	return (step(search, chain, FORWARD, next) &&
+	return (step(search, iter, FORWARD, next) &&
 		dns_name_issubdomain(next, current));
 }
 
@@ -405,7 +401,7 @@ wildcard_blocked(qpdb_search_t *search, const dns_name_t *qname,
 	dns_name_t name;
 	dns_name_t rname;
 	dns_name_t tname;
-	dns_rbtnodechain_t chain;
+	dns_qpiter_t iter;
 	bool check_next = false;
 	bool check_prev = false;
 	unsigned int n;
@@ -421,20 +417,20 @@ wildcard_blocked(qpdb_search_t *search, const dns_name_t *qname,
 	 * need to find out if there's an empty nonterminal node
 	 * between the wildcard level and the qname.
 	 *
-	 * search->chain should now be pointing at the predecessor
+	 * search->iter should now be pointing at the predecessor
 	 * of the searched-for name. We are using a local copy of the
-	 * chain so as not to change the state of search->chain.
+	 * iterator so as not to change the state of search->iter.
 	 * step() will walk backward until we find a predecessor with
 	 * data.
 	 */
-	chain = search->chain;
-	check_prev = step(search, &chain, BACK, prev);
+	iter = search->iter;
+	check_prev = step(search, &iter, BACK, prev);
 
-	/* Now reset the chain and look for a successor with data. */
-	chain = search->chain;
-	result = dns_rbtnodechain_next(&chain, NULL, NULL);
+	/* Now reset the iterator and look for a successor with data. */
+	iter = search->iter;
+	result = dns_qpiter_next(&iter, NULL, NULL, NULL);
 	if (result == ISC_R_SUCCESS) {
-		check_next = step(search, &chain, FORWARD, next);
+		check_next = step(search, &iter, FORWARD, next);
 	}
 
 	if (!check_prev && !check_next) {
@@ -470,12 +466,10 @@ wildcard_blocked(qpdb_search_t *search, const dns_name_t *qname,
 static isc_result_t
 find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 	      const dns_name_t *qname) {
-	unsigned int i, j;
-	dns_rbtnode_t *node = NULL, *level_node = NULL;
 	dns_slabheader_t *header = NULL;
 	isc_result_t result = ISC_R_NOTFOUND;
 	dns_qpdb_t *qpdb = NULL;
-	bool done, wild, active;
+	bool wild, active;
 
 	/*
 	 * Caller must be holding the tree lock and MUST NOT be holding
@@ -493,14 +487,15 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 	 */
 
 	qpdb = search->qpdb;
-	i = search->chain.level_matches;
-	done = false;
-	node = *nodep;
-	do {
-		isc_rwlock_t *lock = &qpdb->node_locks[node->locknum].lock;
+	for (int i = dns_qpchain_length(&search->chain) - 1; i >= 0; i--) {
+		dns_rbtnode_t *node = NULL;
+		isc_rwlock_t *lock = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		NODE_RDLOCK(lock, &nlocktype);
 
+		dns_qpchain_node(&search->chain, i, NULL, (void **)&node, NULL);
+		lock = &qpdb->node_locks[node->locknum].lock;
+
+		NODE_RDLOCK(lock, &nlocktype);
 		/*
 		 * First we try to figure out if this node is active in
 		 * the search's version.  We do this now, even though we
@@ -516,52 +511,29 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 				break;
 			}
 		}
-		if (header != NULL) {
-			active = true;
-		} else {
-			active = false;
-		}
-
-		if (node->wild) {
-			wild = true;
-		} else {
-			wild = false;
-		}
-
+		active = (header != NULL);
+		wild = node->wild;
 		NODE_UNLOCK(lock, &nlocktype);
 
 		if (wild) {
-			dns_name_t *wname = NULL;
-			dns_fixedname_t fwname;
 			dns_rbtnode_t *wnode = NULL;
-			dns_qpiter_t wchain;
+			dns_fixedname_t fwname;
+			dns_name_t *wname = NULL;
+			dns_qpiter_t witer;
 
 			/*
 			 * Construct the wildcard name for this level.
 			 */
-			dns_name_init(&name, NULL);
-			dns_rbt_namefromnode(node, &name);
 			wname = dns_fixedname_initname(&fwname);
-			result = dns_name_concatenate(dns_wildcardname, &name,
-						      wname, NULL);
-			j = i;
-			while (result == ISC_R_SUCCESS && j != 0) {
-				j--;
-				level_node = search->chain.levels[j];
-				dns_name_init(&name, NULL);
-				dns_rbt_namefromnode(level_node, &name);
-				result = dns_name_concatenate(wname, &name,
-							      wname, NULL);
-			}
+			result = dns_name_concatenate(dns_wildcardname,
+						      node->name, wname, NULL);
 			if (result != ISC_R_SUCCESS) {
 				break;
 			}
 
 			wnode = NULL;
-			dns_rbtnodechain_init(&wchain);
-
-			result = dns_qp_lookup(qpdb->tree, wname, NULL, NULL,
-					       &wchain, (void **)&wnode, NULL);
+			result = dns_qp_lookup(qpdb->tree, wname, NULL, &witer,
+					       NULL, (void **)&wnode, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
 				 * We have found the wildcard node.  If it
@@ -582,7 +554,7 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 				}
 				NODE_UNLOCK(lock, &nlocktype);
 				if (header != NULL ||
-				    activeempty(search, &wchain, wname))
+				    activeempty(search, &witer, wname))
 				{
 					if (wildcard_blocked(search, qname,
 							     wname))
@@ -617,14 +589,7 @@ find_wildcard(qpdb_search_t *search, dns_rbtnode_t **nodep,
 			result = ISC_R_NOTFOUND;
 			break;
 		}
-
-		if (i > 0) {
-			i--;
-			node = search->chain.levels[i];
-		} else {
-			done = true;
-		}
-	} while (!done);
+	}
 
 	return (result);
 }
@@ -673,7 +638,7 @@ matchparams(dns_slabheader_t *header, qpdb_search_t *search) {
 static isc_result_t
 previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 		      dns_name_t *name, dns_name_t *origin,
-		      dns_rbtnode_t **nodep, dns_rbtnodechain_t *nsecchain,
+		      dns_rbtnode_t **nodep, dns_qpiter_t *nseciter,
 		      bool *firstp) {
 	dns_fixedname_t ftarget;
 	dns_name_t *target = NULL;
@@ -684,13 +649,8 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 	REQUIRE(type == dns_rdatatype_nsec3 || firstp != NULL);
 
 	if (type == dns_rdatatype_nsec3) {
-		result = dns_rbtnodechain_prev(&search->chain, NULL, NULL);
-		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
-			return (result);
-		}
-		result = dns_rbtnodechain_current(&search->chain, name, origin,
-						  nodep);
-		return (result);
+		return (dns_qpiter_prev(&search->iter, name, (void **)nodep,
+					NULL));
 	}
 
 	target = dns_fixedname_initname(&ftarget);
@@ -702,7 +662,6 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 			 * It is the first node sought in the NSEC tree.
 			 */
 			*firstp = false;
-			dns_rbtnodechain_init(nsecchain);
 			result = dns_name_concatenate(name, origin, target,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {
@@ -710,7 +669,7 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 			}
 			nsecnode = NULL;
 			result = dns_qp_lookup(search->qpdb->nsec, name, NULL,
-					       NULL, nsecchain,
+					       nseciter, NULL,
 					       (void **)&nsecnode, NULL);
 			if (result == ISC_R_SUCCESS) {
 				/*
@@ -720,8 +679,8 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 				 * unacceptable NSEC record.
 				 * Try the previous node in the NSEC tree.
 				 */
-				result = dns_rbtnodechain_prev(nsecchain, name,
-							       origin);
+				result = dns_qpiter_prev(nseciter, name, NULL,
+							 NULL);
 				if (result == DNS_R_NEWORIGIN) {
 					result = ISC_R_SUCCESS;
 				}
@@ -729,11 +688,8 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 				   result == DNS_R_PARTIALMATCH)
 			{
 				/* The iterator is already where we want it */
-				result = dns_rbtnodechain_current(
-					nsecchain, name, origin, NULL);
-				if (result == ISC_R_NOTFOUND) {
-					result = ISC_R_NOMORE;
-				}
+				result = dns_qpiter_current(nseciter, name,
+							    NULL, NULL);
 			}
 		} else {
 			/*
@@ -743,7 +699,7 @@ previous_closest_nsec(dns_rdatatype_t type, qpdb_search_t *search,
 			 * must have found nodes in the main tree with NSEC
 			 * records.  Perhaps they lacked signature records.
 			 */
-			result = dns_rbtnodechain_prev(nsecchain, name, origin);
+			result = dns_qpiter_prev(nseciter, name, NULL, NULL);
 			if (result == DNS_R_NEWORIGIN) {
 				result = ISC_R_SUCCESS;
 			}
@@ -787,7 +743,7 @@ find_closest_nsec(qpdb_search_t *search, dns_dbnode_t **nodep,
 		  bool secure DNS__DB_FLARG) {
 	dns_rbtnode_t *node = NULL, *prevnode = NULL;
 	dns_slabheader_t *header = NULL, *header_next = NULL;
-	dns_rbtnodechain_t nsecchain;
+	dns_qpiter_t nseciter;
 	bool empty_node;
 	isc_result_t result;
 	dns_fixedname_t fname, forigin;
@@ -814,13 +770,13 @@ find_closest_nsec(qpdb_search_t *search, dns_dbnode_t **nodep,
 	 */
 	name = dns_fixedname_initname(&fname);
 	origin = dns_fixedname_initname(&forigin);
-again:
-	node = NULL;
-	prevnode = NULL;
-	result = dns_rbtnodechain_current(&search->chain, name, origin, &node);
+
+	result = dns_qpiter_current(&search->iter, name, (void **)&node, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
+
+again:
 	do {
 		dns_slabheader_t *found = NULL, *foundsig = NULL;
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
@@ -926,7 +882,7 @@ again:
 				empty_node = true;
 				result = previous_closest_nsec(
 					type, search, name, origin, &prevnode,
-					&nsecchain, &first);
+					&nseciter, &first);
 			} else {
 				/*
 				 * We found an active node, but either the
@@ -942,7 +898,7 @@ again:
 			 */
 			result = previous_closest_nsec(type, search, name,
 						       origin, &prevnode,
-						       &nsecchain, &first);
+						       &nseciter, &first);
 		}
 		NODE_UNLOCK(&(search->qpdb->node_locks[node->locknum].lock),
 			    &nlocktype);
@@ -950,13 +906,9 @@ again:
 		prevnode = NULL;
 	} while (empty_node && result == ISC_R_SUCCESS);
 
-	if (!first) {
-		dns_rbtnodechain_invalidate(&nsecchain);
-	}
-
 	if (result == ISC_R_NOMORE && wraps) {
-		result = dns_rbtnodechain_last(&search->chain, tree, NULL,
-					       NULL);
+		result = dns_qpiter_prev(&search->iter, name, (void **)&node,
+					 NULL);
 		if (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 			wraps = false;
 			goto again;
@@ -1020,7 +972,6 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		.options = options,
 	};
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain);
 
 	TREE_RDLOCK(&search.qpdb->tree_lock, &tlocktype);
 
@@ -1095,8 +1046,8 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 * The NSEC3 tree won't have empty nodes,
 			 * so it isn't necessary to check for them.
 			 */
-			dns_rbtnodechain_t chain = search.chain;
-			active = activeempty(&search, &chain, name);
+			dns_qpiter_t iter = search.iter;
+			active = activeempty(&search, &iter, name);
 		}
 
 		/*
@@ -1510,8 +1461,6 @@ tree_exit:
 	if (close_version) {
 		dns__qpdb_closeversion(db, &version, false DNS__DB_FLARG_PASS);
 	}
-
-	dns_rbtnodechain_reset(&search.chain);
 
 	return (result);
 }

@@ -269,7 +269,8 @@ typedef struct {
 	dns_qpdb_version_t *rbtversion;
 	uint32_t serial;
 	unsigned int options;
-	dns_rbtnodechain_t chain;
+	dns_qpchain_t chain;
+	dns_qpiter_t iter;
 	bool copy_name;
 	bool need_cleanup;
 	bool wild;
