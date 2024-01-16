@@ -67,13 +67,19 @@ tls_xfer_expect_success "$testing" 4 example
 
 tls_xfer_expect_success "$testing" 2 example-aes-128
 tls_xfer_expect_success "$testing" 3 example-aes-256
-tls_xfer_expect_success "$testing" 4 example-chacha-20
+if ! $FEATURETEST --have-fips-mode; then
+  tls_xfer_expect_success "$testing" 4 example-chacha-20
+fi
 
 tls_xfer_expect_failure "$testing" 2 example-aes-256
-tls_xfer_expect_failure "$testing" 2 example-chacha-20
+if ! $FEATURETEST --have-fips-mode; then
+  tls_xfer_expect_failure "$testing" 2 example-chacha-20
+fi
 
 tls_xfer_expect_failure "$testing" 3 example-aes-128
-tls_xfer_expect_failure "$testing" 3 example-chacha-20
+if ! $FEATURETEST --have-fips-mode; then
+  tls_xfer_expect_failure "$testing" 3 example-chacha-20
+fi
 
 tls_xfer_expect_failure "$testing" 4 example-aes-128
 tls_xfer_expect_failure "$testing" 4 example-aes-256
@@ -82,7 +88,9 @@ tls_xfer_expect_failure "$testing" 4 example-aes-256
 tls_xfer_expect_failure "$testing" 5 example
 tls_xfer_expect_failure "$testing" 5 example-aes-128
 tls_xfer_expect_failure "$testing" 5 example-aes-256
-tls_xfer_expect_failure "$testing" 5 example-chacha-20
+if ! $FEATURETEST --have-fips-mode; then
+  tls_xfer_expect_failure "$testing" 5 example-chacha-20
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -914,10 +914,6 @@ accept_connection(isc_nmsocket_t *csock) {
 	 */
 	isc_nmhandle_detach(&handle);
 
-	if (csock->statichandle != NULL) {
-		INSIST(csock->recv_cb != NULL);
-	}
-
 	/*
 	 * sock is now attached to the handle.
 	 */
