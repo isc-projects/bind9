@@ -3622,7 +3622,7 @@ dns__qpdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 unsigned int
 dns__qpdb_nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
-	unsigned int count;
+	dns_qp_memusage_t mu;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_QPDB(qpdb));
@@ -3630,20 +3630,20 @@ dns__qpdb_nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
 	switch (tree) {
 	case dns_dbtree_main:
-		count = dns_rbt_nodecount(qpdb->tree);
+		mu = dns_qp_memusage(qpdb->tree);
 		break;
 	case dns_dbtree_nsec:
-		count = dns_rbt_nodecount(qpdb->nsec);
+		mu = dns_qp_memusage(qpdb->nsec);
 		break;
 	case dns_dbtree_nsec3:
-		count = dns_rbt_nodecount(qpdb->nsec3);
+		mu = dns_qp_memusage(qpdb->nsec3);
 		break;
 	default:
 		UNREACHABLE();
 	}
 	TREE_UNLOCK(&qpdb->tree_lock, &tlocktype);
 
-	return (count);
+	return (mu.leaves);
 }
 
 void
