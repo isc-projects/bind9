@@ -30,7 +30,7 @@
 #define VALID_QPDB(qpdb) \
 	((qpdb) != NULL && (qpdb)->common.impmagic == QPDB_MAGIC)
 
-#define QPDB_HEADERNODE(h) ((dns_rbtnode_t *)((h)->node))
+#define QPDB_HEADERNODE(h) ((dns_qpdata_t *)((h)->node))
 
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
@@ -91,13 +91,13 @@ struct dns_qpdata {
 	 * be reached from a child that was found by a hash lookup.
 	 */
 	unsigned int hashval;
-	dns_rbtnode_t *uppernode;
-	dns_rbtnode_t *hashnext;
+	dns_qpdata_t *uppernode;
+	dns_qpdata_t *hashnext;
 
-	dns_rbtnode_t *parent;
-	dns_rbtnode_t *left;
-	dns_rbtnode_t *right;
-	dns_rbtnode_t *down;
+	dns_qpdata_t *parent;
+	dns_qpdata_t *left;
+	dns_qpdata_t *right;
+	dns_qpdata_t *down;
 
 	dns_fixedname_t fn;
 	dns_name_t *name;
@@ -108,7 +108,7 @@ struct dns_qpdata {
 	 * have no data any longer, but we cannot unlink at that exact moment
 	 * because we did not or could not obtain a write lock on the tree.
 	 */
-	ISC_LINK(dns_qpdbnode_t) deadlink;
+	ISC_LINK(dns_qpdata_t) deadlink;
 
 	/*@{*/
 	/*!
@@ -139,7 +139,7 @@ struct dns_qpdata {
 };
 
 typedef struct qpdb_changed {
-	dns_rbtnode_t *node;
+	dns_qpdata_t *node;
 	bool dirty;
 	ISC_LINK(struct qpdb_changed) link;
 } qpdb_changed_t;
@@ -193,8 +193,8 @@ struct dns_qpdb {
 	/* Locks for individual tree nodes */
 	unsigned int node_lock_count;
 	db_nodelock_t *node_locks;
-	dns_rbtnode_t *origin_node;
-	dns_rbtnode_t *nsec3_origin_node;
+	dns_qpdata_t *origin_node;
+	dns_qpdata_t *nsec3_origin_node;
 	dns_stats_t *rrsetstats;     /* cache DB only */
 	isc_stats_t *cachestats;     /* cache DB only */
 	isc_stats_t *gluecachestats; /* zone DB only */
@@ -240,7 +240,7 @@ struct dns_qpdb {
 	 * Temporary storage for stale cache nodes and dynamically deleted
 	 * nodes that await being cleaned up.
 	 */
-	dns_rbtnodelist_t *deadnodes;
+	dns_qpdatalist_t *deadnodes;
 
 	/*
 	 * Heaps.  These are used for TTL based expiry in a cache,
@@ -274,7 +274,7 @@ typedef struct {
 	bool copy_name;
 	bool need_cleanup;
 	bool wild;
-	dns_rbtnode_t *zonecut;
+	dns_qpdata_t *zonecut;
 	dns_slabheader_t *zonecut_header;
 	dns_slabheader_t *zonecut_sigheader;
 	dns_fixedname_t zonecut_name;
@@ -294,7 +294,7 @@ typedef struct {
  */
 typedef struct {
 	dns_db_t *db;
-	dns_rbtnode_t *node;
+	dns_qpdata_t *node;
 } qpdb_prune_t;
 
 extern dns_dbmethods_t dns__qpdb_zonemethods;
@@ -448,7 +448,7 @@ dns__qpdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
  * rbt-cachedb.c:
  */
 void
-dns__qpdb_bindrdataset(dns_qpdb_t *qpdb, dns_rbtnode_t *node,
+dns__qpdb_bindrdataset(dns_qpdb_t *qpdb, dns_qpdata_t *node,
 		       dns_slabheader_t *header, isc_stdtime_t now,
 		       isc_rwlocktype_t locktype,
 		       dns_rdataset_t *rdataset DNS__DB_FLARG);
@@ -460,7 +460,7 @@ void
 dns__qpdb_freeglue(dns_glue_t *glue_list);
 
 void
-dns__qpdb_newref(dns_qpdb_t *qpdb, dns_rbtnode_t *node,
+dns__qpdb_newref(dns_qpdb_t *qpdb, dns_qpdata_t *node,
 		 isc_rwlocktype_t locktype DNS__DB_FLARG);
 /*%<
  * Increment the reference counter to a node in an RBT database.
@@ -471,7 +471,7 @@ dns__qpdb_newref(dns_qpdb_t *qpdb, dns_rbtnode_t *node,
  */
 
 bool
-dns__qpdb_decref(dns_qpdb_t *qpdb, dns_rbtnode_t *node, uint32_t least_serial,
+dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 		 isc_rwlocktype_t *nlocktypep, isc_rwlocktype_t *tlocktypep,
 		 bool tryupgrade, bool pruning DNS__DB_FLARG);
 /*%<
@@ -484,7 +484,7 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_rbtnode_t *node, uint32_t least_serial,
  */
 
 isc_result_t
-dns__qpdb_add(dns_qpdb_t *qpdb, dns_rbtnode_t *rbtnode,
+dns__qpdb_add(dns_qpdb_t *qpdb, dns_qpdata_t *qpnode,
 	      const dns_name_t *nodename, dns_qpdb_version_t *rbtversion,
 	      dns_slabheader_t *newheader, unsigned int options, bool loading,
 	      dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
