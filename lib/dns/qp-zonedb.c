@@ -2021,8 +2021,7 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 				       rdataset DNS__DB_FLARG_PASS);
 
 		if (foundname != NULL) {
-			dns_rbt_fullnamefromnode(QPDB_HEADERNODE(header),
-						 foundname);
+			dns_name_copy(QPDB_HEADERNODE(header)->name, foundname);
 		}
 
 		NODE_UNLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);

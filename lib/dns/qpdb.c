@@ -1037,19 +1037,17 @@ clean_zone_node(dns_rbtnode_t *node, uint32_t least_serial) {
  */
 static void
 delete_node(dns_qpdb_t *qpdb, dns_rbtnode_t *node) {
-	dns_name_t *name = NULL;
 	isc_result_t result = ISC_R_UNEXPECTED;
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
+		dns_name_format(node->name, printname, sizeof(printname));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 			      "delete_node(): %p %s (bucket %d)", node,
-			      dns_rbt_formatnodename(node, printname,
-						     sizeof(printname)),
-			      node->locknum);
+			      printname, node->locknum);
 	}
 
 	switch (node->nsec) {
@@ -3707,7 +3705,6 @@ isc_result_t
 dns__qpdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	isc_result_t result;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_QPDB(qpdb));
@@ -3715,10 +3712,10 @@ dns__qpdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
-	result = dns_rbt_fullnamefromnode(rbtnode, name);
+	dns_name_copy(rbtnode->name, name);
 	TREE_UNLOCK(&qpdb->tree_lock, &tlocktype);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
