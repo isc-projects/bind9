@@ -1130,6 +1130,9 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t dctx,
 
 cleanup:
 	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset)) {
+			dns_rdataset_disassociate(rdataset);
+		}
 		dns_message_puttemprdataset(msg, &rdataset);
 	}
 
