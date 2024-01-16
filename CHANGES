@@ -5,6 +5,10 @@
 6396.	[security]	Remove SIG(0) support from named as a countermeasure
 			for CVE-2024-1975. [GL #4480]
 
+6383.	[bug]		qctx-zversion was not being cleared when it should have
+			been leading to an assertion failure if it needed to be
+			reused. (CVE-2024-4076) [GL #4507]
+
 	--- 9.16.50 released ---
 
 6364.	[protocol]	Add RESOLVER.ARPA to the built in empty zones.
