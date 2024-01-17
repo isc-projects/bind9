@@ -16,12 +16,12 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-import pytest_custom_markers
+import isctest.mark
 
 pytest.register_assert_rewrite("generic")
 import generic
 
-pytestmark = pytest_custom_markers.have_libxml2
+pytestmark = isctest.mark.have_libxml2
 requests = pytest.importorskip("requests")
 
 

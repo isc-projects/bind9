@@ -15,12 +15,12 @@ from datetime import datetime
 
 import pytest
 
-import pytest_custom_markers
+import isctest.mark
 
 pytest.register_assert_rewrite("generic")
 import generic
 
-pytestmark = pytest_custom_markers.have_json_c
+pytestmark = isctest.mark.have_json_c
 requests = pytest.importorskip("requests")
 
 
