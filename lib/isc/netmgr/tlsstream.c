@@ -45,6 +45,8 @@
 
 #define TLS_MAX_SEND_BUF_SIZE (UINT16_MAX + UINT16_MAX / 2)
 
+#define MAX_DNS_MESSAGE_SIZE (UINT16_MAX)
+
 #ifdef ISC_NETMGR_TRACE
 ISC_ATTR_UNUSED static const char *
 tls_status2str(int tls_status) {
@@ -608,27 +610,34 @@ tls_do_bio(isc_nmsocket_t *sock, isc_region_t *received_data,
 				  SSL_SENT_SHUTDOWN) != 0);
 			bool write_failed = false;
 			if (*(uint16_t *)send_data->tcplen != 0) {
+				size_t sendlen = 0;
+				uint8_t sendbuf[MAX_DNS_MESSAGE_SIZE +
+						sizeof(uint16_t)];
 				/*
 				 * There is a DNS message length to write - do
 				 * it.
 				 */
-				rv = SSL_write_ex(
-					sock->tlsstream.tls, send_data->tcplen,
-					sizeof(send_data->tcplen), &len);
-				if (rv != 1 || len != sizeof(send_data->tcplen))
-				{
+
+				/*
+				 * There's no SSL_writev(), so we need to use a
+				 * local buffer to assemble the whole message
+				 */
+				INSIST(send_data->uvbuf.len <=
+				       MAX_DNS_MESSAGE_SIZE);
+
+				sendlen = send_data->uvbuf.len +
+					  sizeof(uint16_t);
+				memmove(sendbuf, send_data->tcplen,
+					sizeof(uint16_t));
+				memmove(sendbuf + sizeof(uint16_t),
+					send_data->uvbuf.base,
+					send_data->uvbuf.len);
+
+				/* Write data */
+				rv = SSL_write_ex(sock->tlsstream.tls, sendbuf,
+						  sendlen, &len);
+				if (rv != 1 || len != sendlen) {
 					write_failed = true;
-				} else {
-					/* Write data */
-					rv = SSL_write_ex(sock->tlsstream.tls,
-							  send_data->uvbuf.base,
-							  send_data->uvbuf.len,
-							  &len);
-					if (rv != 1 ||
-					    len != send_data->uvbuf.len)
-					{
-						write_failed = true;
-					}
 				}
 			} else {
 				/* Write data only */
