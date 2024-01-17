@@ -1206,8 +1206,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		rdatalist->rdclass = rdclass;
 
 		result = dns_rdatalist_tordataset(rdatalist, rdataset);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
 
@@ -1254,6 +1253,9 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
  cleanup:
 	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset)) {
+			dns_rdataset_disassociate(rdataset);
+		}
 		dns_message_puttemprdataset(msg, &rdataset);
 	}
 #if 0
