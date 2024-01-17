@@ -2037,11 +2037,11 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 			if (!dns_rdataset_isassociated(cdnskey) ||
 			    !exists(cdnskey, &cdnskeyrdata))
 			{
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_DNSSEC,
-					      ISC_LOG_INFO,
-					      "CDS for key %s is now published",
-					      keystr);
+				isc_log_write(
+					dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
+					"CDNSKEY for key %s is now published",
+					keystr);
 				RETERR(addrdata(&cdnskeyrdata, diff, origin,
 						cdnskeyttl, mctx));
 			}
@@ -2049,11 +2049,11 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 			if (!dns_rdataset_isassociated(cds) ||
 			    !exists(cds, &cds_sha256))
 			{
-				isc_log_write(
-					dns_lctx, DNS_LOGCATEGORY_GENERAL,
-					DNS_LOGMODULE_DNSSEC, ISC_LOG_INFO,
-					"CDNSKEY for key %s is now published",
-					keystr);
+				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "CDS for key %s is now published",
+					      keystr);
 				RETERR(addrdata(&cds_sha256, diff, origin,
 						cdsttl, mctx));
 			}
