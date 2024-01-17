@@ -611,6 +611,10 @@ init_desc(void) {
 	SET_SOCKSTATDESC(udp6active, "UDP/IPv6 sockets active", "UDP6Active");
 	SET_SOCKSTATDESC(tcp4active, "TCP/IPv4 sockets active", "TCP4Active");
 	SET_SOCKSTATDESC(tcp6active, "TCP/IPv6 sockets active", "TCP6Active");
+	SET_SOCKSTATDESC(tcp4clients, "TCP/IPv4 clients currently connected",
+			 "TCP4Clients");
+	SET_SOCKSTATDESC(tcp6clients, "TCP/IPv6 clients currently connected",
+			 "TCP6Clients");
 	INSIST(i == isc_sockstatscounter_max);
 
 	/* Initialize DNSSEC statistics */

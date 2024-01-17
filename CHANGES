@@ -1,3 +1,6 @@
+6325.	[func]		Expose the TCP client count in statistics channel.
+			[GL #4425]
+
 6324.	[bug]		Changes to "listen-on" statements were ignored on
 			reconfiguration unless the port or interface address was
 			changed, making it impossible to change a related
