@@ -1016,6 +1016,13 @@ isc__nm_tlsdns_processbuffer(isc_nmsocket_t *sock) {
 		return (ISC_R_CANCELED);
 	}
 
+	if (sock->client && !sock->recv_read) {
+		/*
+		 * We are not reading data - stop here.
+		 */
+		return (ISC_R_CANCELED);
+	}
+
 	req = isc__nm_get_read_req(sock, NULL);
 	REQUIRE(VALID_UVREQ(req));
 
