@@ -600,6 +600,13 @@ dns__qpdb_destroy(dns_db_t *arg) {
 	unsigned int i;
 	unsigned int inactive = 0;
 
+	if (rbtdb->origin_node != NULL) {
+		dns_qpdata_detach(&rbtdb->origin_node);
+	}
+	if (rbtdb->nsec3_origin_node != NULL) {
+		dns_qpdata_detach(&rbtdb->nsec3_origin_node);
+	}
+
 	/* XXX check for open versions here */
 
 	if (qpdb->soanode != NULL) {
@@ -1991,6 +1998,7 @@ dns__qpdb_findnodeintree(dns_qpdb_t *qpdb, dns_qp_t *tree,
 		node = dns_qpdata_create(qpdb, name);
 		result = dns_qp_insert(tree, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
+		dns_qpdata_unref(node);
 
 		if (tree == qpdb->tree) {
 			dns__qpzone_addwildcards(qpdb, name, true);
@@ -3316,6 +3324,7 @@ dns__qpdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 			nsecnode->nsec = DNS_DB_NSEC_NSEC;
 			result = dns_qp_insert(qpdb->nsec, nsecnode, 0);
 			INSIST(result == ISC_R_SUCCESS);
+			dns_qpdata_detach(&nsecnode);
 		}
 		qpnode->nsec = DNS_DB_NSEC_HAS_NSEC;
 	}
@@ -4766,7 +4775,21 @@ dns_qpdata_create(dns_qpdb_t *qpdb, const dns_name_t *name) {
 
 void
 dns_qpdata_destroy(dns_qpdata_t *data) {
-	dns_name_free(data->name, data->mctx);
+	dns_slabheader_t *current = NULL, *next = NULL;
+
+	for (current = data->data; current != NULL; current = next) {
+		dns_slabheader_t *down = current->down, *down_next = NULL;
+
+		next = current->next;
+
+		for (down = current->down; down != NULL; down = down_next) {
+			down_next = down->down;
+			dns_slabheader_destroy(&down);
+		}
+
+		dns_slabheader_destroy(&current);
+	}
+
 	isc_mem_putanddetach(&data->mctx, data, sizeof(dns_qpdata_t));
 }
 

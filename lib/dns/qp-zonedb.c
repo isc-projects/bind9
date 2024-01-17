@@ -1624,10 +1624,11 @@ loadnode(dns_qpdb_t *qpdb, const dns_name_t *name, dns_qpdata_t **nodep,
 	} else {
 		INSIST(nsecnode == NULL);
 		nsecnode = dns_qpdata_create(qpdb, name);
+		nsecnode->nsec = DNS_DB_NSEC_NSEC;
 		nsecresult = dns_qp_insert(qpdb->nsec, nsecnode, 0);
 		INSIST(nsecresult == ISC_R_SUCCESS);
+		dns_qpdata_detach(&nsecnode);
 	}
-	nsecnode->nsec = DNS_DB_NSEC_NSEC;
 	node->nsec = DNS_DB_NSEC_HAS_NSEC;
 
 done:
@@ -1695,6 +1696,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 			node = dns_qpdata_create(qpdb, name);
 			result = dns_qp_insert(qpdb->nsec3, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
+			dns_qpdata_unref(node);
 		}
 		node->nsec = DNS_DB_NSEC_NSEC3;
 	} else if (rdataset->type == dns_rdatatype_nsec) {
@@ -2430,6 +2432,7 @@ dns__qpzone_wildcardmagic(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock) {
 		node = dns_qpdata_create(qpdb, &foundname);
 		result = dns_qp_insert(qpdb->tree, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
+		dns_qpdata_unref(node);
 	}
 
 	INSIST(result == ISC_R_SUCCESS);
@@ -2471,10 +2474,11 @@ dns__qpzone_addwildcards(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock) {
 			if (result != ISC_R_SUCCESS) {
 				INSIST(node == NULL);
 				node = dns_qpdata_create(qpdb, name);
+				node->nsec = DNS_DB_NSEC_NORMAL;
 				result = dns_qp_insert(qpdb->tree, node, 0);
 				INSIST(result == ISC_R_SUCCESS);
-			}
-			if (result == ISC_R_SUCCESS) {
+				dns_qpdata_detach(&node);
+			} else if (result == ISC_R_SUCCESS) {
 				node->nsec = DNS_DB_NSEC_NORMAL;
 			}
 		}
