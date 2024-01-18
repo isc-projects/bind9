@@ -73,6 +73,8 @@ unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 
 #define ISC_MEM_ILLEGAL_ARENA (UINT_MAX)
 
+volatile void *isc__mem_malloc = mallocx;
+
 /*
  * Constants.
  */

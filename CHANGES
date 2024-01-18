@@ -1,3 +1,7 @@
+6326.	[func]		Add workaround to enforce dynamic linker to pull
+			jemalloc earlier than libc to ensure all memory
+			allocations are done via jemalloc. [GL #4404]
+
 6324.	[bug]		Changes to "listen-on" statements were ignored on
 			reconfiguration unless the port or interface address was
 			changed, making it impossible to change a related
