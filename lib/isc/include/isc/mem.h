@@ -23,6 +23,7 @@
 #include <isc/mutex.h>
 #include <isc/overflow.h>
 #include <isc/types.h>
+#include <isc/urcu.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -183,7 +184,31 @@ extern unsigned int isc_mem_defaultflags;
 	} while (0)
 
 /*@{*/
+/*
+ * This is a little hack to help with dynamic link order,
+ * see https://github.com/jemalloc/jemalloc/issues/2566
+ * for more information.
+ */
+#if HAVE_JEMALLOC
+
+/*
+ * cmocka.h has confliction definitions with the jemalloc header but we only
+ * need the mallocx symbol from jemalloc.
+ */
+void *
+mallocx(size_t size, int flags);
+
+extern volatile void *isc__mem_malloc;
+
+#define isc_mem_create(cp)                                            \
+	{                                                             \
+		isc__mem_create((cp)_ISC_MEM_FILELINE);               \
+		isc__mem_malloc = mallocx;                            \
+		ISC_INSIST(CMM_ACCESS_ONCE(isc__mem_malloc) != NULL); \
+	}
+#else
 #define isc_mem_create(cp) isc__mem_create((cp)_ISC_MEM_FILELINE)
+#endif
 void
 isc__mem_create(isc_mem_t **_ISC_MEM_FLARG);
 
