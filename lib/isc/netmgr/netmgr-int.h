@@ -62,9 +62,10 @@
 #endif
 
 /*
- * The TCP receive buffer can fit one maximum sized DNS message plus its size,
- * the receive buffer here affects TCP, DoT and DoH.
+ * The TCP send and receive buffers can fit one maximum sized DNS message plus
+ * its size, the receive buffer here affects TCP, DoT and DoH.
  */
+#define ISC_NETMGR_TCP_SENDBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 #define ISC_NETMGR_TCP_RECVBUF_SIZE (sizeof(uint16_t) + UINT16_MAX)
 
 /* Pick the larger buffer */
