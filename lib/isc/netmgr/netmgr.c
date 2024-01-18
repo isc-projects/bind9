@@ -1128,6 +1128,7 @@ isc__nmsocket_writetimeout_cb(void *data, isc_result_t eresult) {
 
 	sock = req->sock;
 
+	isc__nm_start_reading(sock);
 	isc__nmsocket_reset(sock);
 }
 
