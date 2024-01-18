@@ -12,6 +12,7 @@
 # information regarding copyright ownership.
 
 import os
+from pathlib import Path
 import subprocess
 
 import pytest
@@ -33,12 +34,29 @@ def feature_test(feature):
     return True
 
 
+DNSRPS_BIN = Path(os.environ["TOP_BUILDDIR"]) / "bin/tests/system/rpz/dnsrps"
+
+
+def is_dnsrps_available():
+    if not feature_test("--enable-dnsrps"):
+        return False
+    try:
+        subprocess.run([DNSRPS_BIN, "-a"], check=True)
+    except subprocess.CalledProcessError:
+        return False
+    return True
+
+
 have_libxml2 = pytest.mark.skipif(
     not feature_test("--have-libxml2"), reason="libxml2 support disabled in the build"
 )
 
 have_json_c = pytest.mark.skipif(
     not feature_test("--have-json-c"), reason="json-c support disabled in the build"
+)
+
+dnsrps_enabled = pytest.mark.skipif(
+    not is_dnsrps_available(), reason="dnsrps disabled in the build"
 )
 
 
