@@ -190,14 +190,19 @@ requests_shutdown(void *arg) {
 
 void
 dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
+	bool first;
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 
 	req_log(ISC_LOG_DEBUG(3), "%s: %p", __func__, requestmgr);
 
 	rcu_read_lock();
-	INSIST(atomic_compare_exchange_strong(&requestmgr->shuttingdown,
-					      &(bool){ false }, true));
+	first = atomic_compare_exchange_strong(&requestmgr->shuttingdown,
+					       &(bool){ false }, true);
 	rcu_read_unlock();
+
+	if (!first) {
+		return;
+	}
 
 	/*
 	 * Wait until all dns_request_create{raw}() are finished, so
