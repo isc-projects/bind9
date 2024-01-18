@@ -1436,21 +1436,6 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (result);
 }
 
-static size_t
-hashsize(dns_db_t *db) {
-	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
-	size_t size;
-	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
-
-	REQUIRE(VALID_QPDB(qpdb));
-
-	TREE_RDLOCK(&qpdb->tree_lock, &tlocktype);
-	size = dns_rbt_hashsize(qpdb->tree);
-	TREE_UNLOCK(&qpdb->tree_lock, &tlocktype);
-
-	return (size);
-}
-
 static isc_result_t
 setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
@@ -1556,7 +1541,6 @@ dns_dbmethods_t dns__qpdb_cachemethods = {
 	.getoriginnode = dns__qpdb_getoriginnode,
 	.getrrsetstats = getrrsetstats,
 	.setcachestats = setcachestats,
-	.hashsize = hashsize,
 	.setservestalettl = setservestalettl,
 	.getservestalettl = getservestalettl,
 	.setservestalerefresh = setservestalerefresh,
