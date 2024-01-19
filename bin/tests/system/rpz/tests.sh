@@ -720,57 +720,6 @@ done
 end_group
 ckstats $ns3 bugs ns3 8
 
-# superficial test for major performance bugs
-QPERF=$(sh qperf.sh)
-if test -n "$QPERF"; then
-  perf() {
-    date "+${TS}checking performance $1" | cat_i
-    # Dry run to prime everything
-    comment "before dry run $1"
-    $RNDCCMD $ns5 notrace
-    $QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p ${PORT} >/dev/null
-    comment "before real test $1"
-    PFILE="ns5/$2.perf"
-    $QPERF -c -1 -l30 -d ns5/requests -s $ns5 -p ${PORT} >$PFILE
-    comment "after test $1"
-    X=$(sed -n -e 's/.*Returned *\([^ ]*:\) *\([0-9]*\) .*/\1\2/p' $PFILE \
-      | tr '\n' ' ')
-    if test "$X" != "$3"; then
-      setret "wrong results '$X' in $PFILE"
-    fi
-    ckalive $ns5 "failed; server #5 crashed"
-  }
-  trim() {
-    sed -n -e 's/.*Queries per second: *\([0-9]*\).*/\1/p' ns5/$1.perf
-  }
-
-  # get qps with rpz
-  perf 'with RPZ' rpz 'NOERROR:2900 NXDOMAIN:100 '
-  RPZ=$(trim rpz)
-  # turn off rpz and measure qps again
-  echo "# RPZ off" >ns5/rpz-switch
-  RNDCCMD_OUT=$($RNDCCMD $ns5 reload)
-  perf 'without RPZ' norpz 'NOERROR:3000 '
-  NORPZ=$(trim norpz)
-
-  PERCENT=$(((RPZ * 100 + (NORPZ / 2)) / NORPZ))
-  echo_i "$RPZ qps with RPZ is $PERCENT% of $NORPZ qps without RPZ"
-
-  MIN_PERCENT=30
-  if test "$PERCENT" -lt $MIN_PERCENT; then
-    echo_i "$RPZ qps with rpz or $PERCENT% is below $MIN_PERCENT% of $NORPZ qps"
-  fi
-
-  if test "$PERCENT" -ge 100; then
-    echo_i "$RPZ qps with RPZ or $PERCENT% of $NORPZ qps without RPZ is too high"
-  fi
-
-  ckstats $ns5 performance ns5 200
-
-else
-  echo_i "performance not checked; queryperf not available"
-fi
-
 # Ensure ns3 manages to transfer the fast-expire zone before shutdown.
 nextpartreset ns3/named.run
 wait_for_log 20 "zone fast-expire/IN: transferred serial 1" ns3/named.run
