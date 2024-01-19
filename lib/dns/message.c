@@ -1288,6 +1288,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		isedns = false;
 		issigzero = false;
 		istsig = false;
+		found_rdataset = NULL;
 
 		name = NULL;
 		result = dns_message_gettempname(msg, &name);
@@ -1435,10 +1436,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Then put the meta-class back into the finished rdata.
 		 */
 		rdata = newrdata(msg);
-		if (rdata == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		if (msg->opcode == dns_opcode_update &&
 		    update(sectionid, rdclass))
 		{
@@ -1589,7 +1586,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * the question section, fail.
 			 */
 			if (dns_rdatatype_questiononly(rdtype)) {
-				dns_message_puttemprdataset(msg, &rdataset);
 				DO_ERROR(DNS_R_FORMERR);
 			}
 
@@ -1637,18 +1633,17 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				/* Free the rdataset we used as the key */
 				dns_rdataset_disassociate(rdataset);
 				isc_mempool_put(msg->rdspool, rdataset);
-				rdataset = found_rdataset;
-
 				result = ISC_R_SUCCESS;
+				rdataset = found_rdataset;
 
 				if (!dns_rdatatype_issingleton(rdtype)) {
 					break;
 				}
 
-				dns_rdata_t *first;
 				dns_rdatalist_fromrdataset(rdataset,
 							   &rdatalist);
-				first = ISC_LIST_HEAD(rdatalist->rdata);
+				dns_rdata_t *first =
+					ISC_LIST_HEAD(rdatalist->rdata);
 				INSIST(first != NULL);
 				if (dns_rdata_compare(rdata, first) != 0) {
 					DO_ERROR(DNS_R_FORMERR);
@@ -1693,7 +1688,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			dns_rcode_t ercode;
 
 			msg->opt = rdataset;
-			rdataset = NULL;
 			ercode = (dns_rcode_t)((msg->opt->ttl &
 						DNS_MESSAGE_EDNSRCODE_MASK) >>
 					       20);
@@ -1704,7 +1698,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->sig0 = rdataset;
 			msg->sig0name = name;
 			msg->sigstart = recstart;
-			rdataset = NULL;
 			free_name = false;
 		} else if (istsig) {
 			msg->tsig = rdataset;
@@ -1714,9 +1707,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * Windows doesn't like TSIG names to be compressed.
 			 */
 			msg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
-			rdataset = NULL;
 			free_name = false;
 		}
+		rdataset = NULL;
 
 		if (seen_problem) {
 			if (free_name) {
@@ -1725,8 +1718,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			free_name = false;
 		}
 		INSIST(!free_name);
-
-		rdataset = NULL;
 	}
 
 	/*
@@ -1748,6 +1739,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	}
 
 cleanup:
+	if (rdataset != NULL && rdataset != found_rdataset) {
+		dns_rdataset_disassociate(rdataset);
+		isc_mempool_put(msg->rdspool, rdataset);
+	}
 	if (free_name) {
 		dns_message_puttempname(msg, &name);
 	}
