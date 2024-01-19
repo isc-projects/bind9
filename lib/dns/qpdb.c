@@ -2244,8 +2244,8 @@ dns__qpdb_createiterator(dns_db_t *db, unsigned int options,
 	qpdbiter->common.methods = &dbiterator_methods;
 	qpdbiter->common.db = NULL;
 	dns_db_attach(db, &qpdbiter->common.db);
-	qpdbiter->common.relative_names = ((options & DNS_DB_RELATIVENAMES) !=
-					   0);
+	qpdbiter->common.relative_names = 0; /* no special logic for relative
+						 names */
 	qpdbiter->common.magic = DNS_DBITERATOR_MAGIC;
 	qpdbiter->paused = true;
 	qpdbiter->tree_locked = isc_rwlocktype_none;
