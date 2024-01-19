@@ -3734,9 +3734,6 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
-echo_i "status: $status"
-exit $status
-
 echo_i "checking initialization with a revoked managed key ($n)"
 ret=0
 copy_setports ns5/named2.conf.in ns5/named.conf
