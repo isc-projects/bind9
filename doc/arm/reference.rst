@@ -7342,7 +7342,7 @@ records are also written to the zone's filename.
      send
      EOF
 
-   The ruletype field has 20 values: ``name``, ``subdomain``, ``zonesub``,
+   The ruletype field has 18 values: ``name``, ``subdomain``, ``zonesub``,
    ``wildcard``, ``self``, ``selfsub``, ``selfwild``, ``ms-self``,
    ``ms-selfsub``, ``ms-subdomain``, ``ms-subdomain-self-rhs``, ``krb5-self``,
    ``krb5-selfsub``, ``krb5-subdomain``,  ``krb5-subdomain-self-rhs``,
