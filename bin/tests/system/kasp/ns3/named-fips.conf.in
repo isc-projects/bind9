@@ -39,6 +39,11 @@ controls {
         inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+zone "." {
+	type hint;
+	file "../../_common/root.hint.blackhole";
+};
+
 /* Zones that are getting initially signed */
 
 /* The default case: No keys created, using default policy. */
