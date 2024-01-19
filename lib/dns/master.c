@@ -626,7 +626,8 @@ static const char *hex = "0123456789abcdef0123456789ABCDEF";
  * counting the terminating NUL.
  */
 static unsigned int
-nibbles(char *numbuf, size_t length, unsigned int width, char mode, int value) {
+nibbles(char *numbuf, size_t length, unsigned int width, char mode,
+	unsigned int value) {
 	unsigned int count = 0;
 
 	/*
