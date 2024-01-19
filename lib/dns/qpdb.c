@@ -210,7 +210,7 @@ qp_triename(void *uctx, char *buf, size_t size) {
 static void
 prune_tree(void *arg);
 static void
-free_gluetable(dns_qpdb_version_t *version);
+free_gluetable(struct cds_wfs_stack *glue_stack);
 
 static void
 rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
@@ -600,11 +600,11 @@ dns__qpdb_destroy(dns_db_t *arg) {
 	unsigned int i;
 	unsigned int inactive = 0;
 
-	if (rbtdb->origin_node != NULL) {
-		dns_qpdata_detach(&rbtdb->origin_node);
+	if (qpdb->origin_node != NULL) {
+		dns_qpdata_detach(&qpdb->origin_node);
 	}
-	if (rbtdb->nsec3_origin_node != NULL) {
-		dns_qpdata_detach(&rbtdb->nsec3_origin_node);
+	if (qpdb->nsec3_origin_node != NULL) {
+		dns_qpdata_detach(&qpdb->nsec3_origin_node);
 	}
 
 	/* XXX check for open versions here */
@@ -622,7 +622,7 @@ dns__qpdb_destroy(dns_db_t *arg) {
 	 * node count below.
 	 */
 	if (qpdb->current_version != NULL) {
-		free_gluetable(qpdb->current_version);
+		free_gluetable(&qpdb->current_version->glue_stack);
 	}
 
 	/*
@@ -1873,7 +1873,7 @@ dns__qpdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 	if (cleanup_version != NULL) {
 		isc_refcount_destroy(&cleanup_version->references);
 		INSIST(EMPTY(cleanup_version->changed_list));
-		free_gluetable(cleanup_version);
+		free_gluetable(&cleanup_version->glue_stack);
 		cds_wfs_destroy(&cleanup_version->glue_stack);
 		isc_rwlock_destroy(&cleanup_version->rwlock);
 		isc_mem_put(qpdb->common.mctx, cleanup_version,
@@ -4663,8 +4663,8 @@ free_gluelist_rcu(struct rcu_head *rcu_head) {
 }
 
 static void
-free_gluetable(dns_qpdb_version_t *rbtversion) {
-	struct cds_wfs_head *head = __cds_wfs_pop_all(&rbtversion->glue_stack);
+free_gluetable(struct cds_wfs_stack *glue_stack) {
+	struct cds_wfs_head *head = __cds_wfs_pop_all(glue_stack);
 	struct cds_wfs_node *node = NULL, *next = NULL;
 
 	rcu_read_lock();
