@@ -2401,6 +2401,176 @@ ISC_RUN_TEST_IMPL(tlsdns_recv_one) {
 	atomic_assert_int_eq(ssends, 0);
 }
 
+static void
+tlsdns_many_listen_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			   isc_region_t *region, void *cbarg) {
+	uint64_t magic = 0;
+	isc_nmhandle_t *sendhandle = NULL;
+	isc_buffer_t *send_data = (isc_buffer_t *)cbarg;
+	isc_region_t send_messages = { 0 };
+
+	assert_non_null(handle);
+	assert_non_null(send_data);
+
+	F();
+
+	if (eresult != ISC_R_SUCCESS) {
+		goto unref;
+	}
+
+	atomic_fetch_add(&sreads, 1);
+
+	assert_true(region->length >= sizeof(magic));
+
+	memmove(&magic, region->base + sizeof(uint16_t), sizeof(magic));
+	assert_true(magic == stop_magic || magic == send_magic);
+
+	isc_nmhandle_attach(handle, &sendhandle);
+	isc_refcount_increment0(&active_ssends);
+	isc_nmhandle_setwritetimeout(sendhandle, T_IDLE);
+	/* send multiple DNS messages at once */
+	isc_buffer_usedregion(send_data, &send_messages);
+	isc_nm_send(sendhandle, &send_messages, listen_send_cb, cbarg);
+unref:
+	isc_refcount_decrement(&active_sreads);
+	isc_nmhandle_detach(&handle);
+}
+
+static isc_result_t
+tlsdns_many_listen_accept_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			     void *cbarg) {
+	isc_nmhandle_t *readhandle = NULL;
+
+	UNUSED(cbarg);
+
+	F();
+
+	if (eresult != ISC_R_SUCCESS) {
+		return (eresult);
+	}
+
+	atomic_fetch_add(&saccepts, 1);
+
+	isc_refcount_increment0(&active_sreads);
+	isc_nmhandle_attach(handle, &readhandle);
+	isc_nm_read(handle, tlsdns_many_listen_read_cb, cbarg);
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+tlsdns_many_connect_read_cb(isc_nmhandle_t *handle, isc_result_t eresult,
+			    isc_region_t *region, void *cbarg) {
+	isc_nmhandle_t *sendhandle = NULL;
+	uint64_t magic = 0;
+
+	UNUSED(cbarg);
+
+	assert_non_null(handle);
+
+	F();
+
+	if (eresult != ISC_R_SUCCESS) {
+		goto unref;
+	}
+
+	assert_true(region->length >= sizeof(magic));
+
+	atomic_fetch_add(&creads, 1);
+
+	memmove(&magic, region->base, sizeof(magic));
+
+	assert_true(magic == stop_magic || magic == send_magic);
+
+	isc_refcount_increment0(&active_csends);
+	isc_nmhandle_attach(handle, &sendhandle);
+	isc_nmhandle_setwritetimeout(handle, T_IDLE);
+	/*
+	 * At this point the read is completed, so we should stop that -
+	 * but the sending code will make a cycling through input
+	 * attempt. When not properly handled, this situation will cause
+	 * excessive reads.
+	 */
+	isc_nm_send(sendhandle, &send_msg, connect_send_cb, NULL);
+
+unref:
+	isc_refcount_decrement(&active_creads);
+	isc_nmhandle_detach(&handle);
+}
+
+/*
+ * A unit test *VERY* specific to #4487 - it would crash the unit test
+ * suite without the related fix due to excessive/unexpected reads.
+ *
+ * The intention behind the test is to (needlessly ;-)) prove that the
+ * author of the fix is not fantasising and excessive reads are
+ * possible in principle. Also, it proves that there is more than one
+ * way to do that.
+ *
+ * It is *not* reproducing the situation from the bug report 1:1, as
+ * it is impossible to understand what exactly was going on with this
+ * custom/proprietary server without having access to it (and even in
+ * that case the bug was hard to reproduce to the point, where the
+ * reporters considered it to be fixed for a while). There are far too
+ * many things a play.
+ */
+ISC_RUN_TEST_IMPL(tlsdns_server_send_many_recv_one) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_nmsocket_t *listen_sock = NULL;
+	uint8_t buf[512];
+	isc_buffer_t server_send_buf = { 0 };
+
+	isc_buffer_init(&server_send_buf, buf, sizeof(buf));
+
+	/*
+	 * Prepare a buffer with three "DNS" messages which we will send
+	 * at once (our code does not normally do that do that).
+	 */
+	isc_buffer_putuint16(&server_send_buf, (uint16_t)send_msg.length);
+	isc_buffer_putmem(&server_send_buf, send_msg.base, send_msg.length);
+	isc_buffer_putuint16(&server_send_buf, (uint16_t)send_msg.length);
+	isc_buffer_putmem(&server_send_buf, send_msg.base, send_msg.length);
+	isc_buffer_putuint16(&server_send_buf, (uint16_t)send_msg.length);
+	isc_buffer_putmem(&server_send_buf, send_msg.base, send_msg.length);
+
+	atomic_store(&nsends, 1);
+
+	result = isc_nm_listentls(
+		listen_nm, &tcp_listen_addr, tlsdns_many_listen_accept_cb,
+		&server_send_buf, 0, 0, NULL, tcp_listen_tlsctx, &listen_sock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	connect_readcb = tlsdns_many_connect_read_cb;
+	isc_refcount_increment0(&active_cconnects);
+	isc_nm_tlsdnsconnect(connect_nm, &tcp_connect_addr, &tcp_listen_addr,
+			     connect_connect_cb, NULL, T_CONNECT, 0,
+			     tcp_connect_tlsctx, tcp_tlsctx_client_sess_cache);
+
+	WAIT_FOR_EQ(cconnects, 1);
+	WAIT_FOR_LE(nsends, 0);
+	WAIT_FOR_EQ(csends, 2);
+	WAIT_FOR_EQ(sreads, 1);
+	WAIT_FOR_EQ(ssends, 1);
+	WAIT_FOR_EQ(creads, 1);
+
+	isc_nm_stoplistening(listen_sock);
+	isc_nmsocket_close(&listen_sock);
+	assert_null(listen_sock);
+	isc__netmgr_shutdown(connect_nm);
+
+	X(cconnects);
+	X(csends);
+	X(creads);
+	X(sreads);
+	X(ssends);
+
+	atomic_assert_int_eq(cconnects, 1);
+	atomic_assert_int_eq(csends, 2);
+	atomic_assert_int_eq(creads, 1);
+	atomic_assert_int_eq(sreads, 1);
+	atomic_assert_int_eq(ssends, 1);
+}
+
 ISC_RUN_TEST_IMPL(tlsdns_recv_two) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_nmsocket_t *listen_sock = NULL;
@@ -2879,6 +3049,8 @@ ISC_TEST_ENTRY_CUSTOM(tls_half_recv_half_send_quota_sendback, setup_test,
 
 /* TLSDNS */
 ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_one, setup_test, teardown_test)
+ISC_TEST_ENTRY_CUSTOM(tlsdns_server_send_many_recv_one, setup_test,
+		      teardown_test)
 ISC_TEST_ENTRY_CUSTOM(tlsdns_recv_two, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(tlsdns_noop, setup_test, teardown_test)
 ISC_TEST_ENTRY_CUSTOM(tlsdns_noresponse, setup_test, teardown_test)

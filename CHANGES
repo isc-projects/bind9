@@ -1,3 +1,7 @@
+6320.	[bug]		Under some circumstances, the DoT code in client
+			mode could process more than one message at a time when
+			that was not expected. That has been fixed. [GL #4487]
+
 	--- 9.18.22 released ---
 
 6319.	[func]		Limit isc_task_send() overhead for RBTDB tree pruning.
