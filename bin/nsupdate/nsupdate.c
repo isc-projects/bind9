@@ -102,6 +102,8 @@
 
 #define DNSDEFAULTPORT 53
 
+#define DEFAULT_EDNS_BUFSIZE 1232
+
 /* Number of addresses to request from isc_getaddresses() */
 #define MAX_SERVERADDRS 4
 
@@ -175,6 +177,8 @@ static isc_mutex_t answer_lock;
 static dns_message_t *answer = NULL;
 static uint32_t default_ttl = 0;
 static bool default_ttl_set = false;
+static uint32_t lease = 0, keylease = 0;
+static bool lease_set = false, keylease_set = false;
 static bool checknames = true;
 static bool checksvcb = true;
 static const char *resolvconf = RESOLV_CONF;
@@ -1518,6 +1522,90 @@ evaluate_prereq(char *cmdline) {
 	return (make_prereq(cmdline, ispositive, isrrset));
 }
 
+static void
+updateopt(void) {
+	isc_result_t result;
+	dns_ednsopt_t ednsopts[1];
+	unsigned char ul[8];
+	unsigned int count = 0;
+
+	if (lease_set) {
+		isc_buffer_t b;
+		INSIST(count < ARRAY_SIZE(ednsopts));
+		ednsopts[count++] = (dns_ednsopt_t){ .code = DNS_OPT_UL,
+						     .length = keylease_set ? 8
+									    : 4,
+						     .value = ul };
+
+		isc_buffer_init(&b, ul, sizeof(ul));
+		isc_buffer_putuint32(&b, lease);
+		isc_buffer_putuint32(&b, keylease);
+	}
+
+	if (count != 0) {
+		dns_rdataset_t *opt = NULL;
+		result = dns_message_buildopt(updatemsg, &opt, 0,
+					      DEFAULT_EDNS_BUFSIZE, 0, ednsopts,
+					      count);
+		check_result(result, "dns_message_buildopt");
+		result = dns_message_setopt(updatemsg, opt);
+		check_result(result, "dns_message_setopt");
+	} else {
+		result = dns_message_setopt(updatemsg, NULL);
+		check_result(result, "dns_message_setopt");
+	}
+}
+
+static uint16_t
+evaluate_lease(char *cmdline) {
+	char *word;
+	isc_result_t result;
+	uint32_t value1, value2;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL || *word == 0) {
+		fprintf(stderr, "could not read ttl\n");
+		return (STATUS_SYNTAX);
+	}
+
+	if (!strcasecmp(word, "none")) {
+		lease = 0;
+		lease_set = false;
+		keylease = 0;
+		keylease_set = false;
+		updateopt();
+		return (STATUS_MORE);
+	}
+
+	result = isc_parse_uint32(&value1, word, 10);
+	if (result != ISC_R_SUCCESS) {
+		return (STATUS_SYNTAX);
+	}
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (word == NULL || *word == 0) {
+		lease = value1;
+		lease_set = true;
+		keylease = 0;
+		keylease_set = false;
+		updateopt();
+		return (STATUS_MORE);
+	}
+
+	result = isc_parse_uint32(&value2, word, 10);
+	if (result != ISC_R_SUCCESS) {
+		return (STATUS_SYNTAX);
+	}
+
+	lease = value1;
+	lease_set = true;
+	keylease = value2;
+	keylease_set = true;
+	updateopt();
+
+	return (STATUS_MORE);
+}
+
 static uint16_t
 evaluate_server(char *cmdline) {
 	char *word, *server;
@@ -2221,6 +2309,9 @@ do_next_command(char *cmdline) {
 	}
 	if (strcasecmp(word, "add") == 0) {
 		return (update_addordelete(cmdline, false));
+	}
+	if (strcasecmp(word, "lease") == 0) {
+		return (evaluate_lease(cmdline));
 	}
 	if (strcasecmp(word, "server") == 0) {
 		return (evaluate_server(cmdline));

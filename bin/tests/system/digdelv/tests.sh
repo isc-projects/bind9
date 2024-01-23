@@ -562,6 +562,25 @@ if [ -x "$DIG" ]; then
   status=$((status + ret))
 
   n=$((n + 1))
+  echo_i "checking ednsopt UL prints as expected (single lease) ($n)"
+  ret=0
+  dig_with_opts @10.53.0.3 +ednsopt=UL:00000e10 +qr a.example >dig.out.test$n 2>&1 || ret=1
+  pat='UL: 3600 (1 hour)'
+  grep "$pat" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+  n=$((n + 1))
+
+  n=$((n + 1))
+  echo_i "checking ednsopt UL prints as expected (split lease) ($n)"
+  ret=0
+  dig_with_opts @10.53.0.3 +ednsopt=UL:00000e1000127500 +qr a.example >dig.out.test$n 2>&1 || ret=1
+  pat='UL: 3600/1209600 (1 hour/2 weeks)'
+  grep "$pat" dig.out.test$n >/dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status + ret))
+  n=$((n + 1))
+
   echo_i "checking ednsopt LLQ prints as expected ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=llq:0001000200001234567812345678fefefefe +qr a.example >dig.out.test$n 2>&1 || ret=1

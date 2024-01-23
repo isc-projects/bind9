@@ -103,6 +103,7 @@
 
 /*%< EDNS0 extended OPT codes */
 #define DNS_OPT_LLQ	      1	 /*%< LLQ opt code */
+#define DNS_OPT_UL	      2	 /*%< UL opt code */
 #define DNS_OPT_NSID	      3	 /*%< NSID opt code */
 #define DNS_OPT_CLIENT_SUBNET 8	 /*%< client subnet opt code */
 #define DNS_OPT_EXPIRE	      9	 /*%< EXPIRE opt code */
@@ -1113,14 +1114,14 @@ dns_message_getopt(dns_message_t *msg);
 isc_result_t
 dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
 /*%<
- * Set the OPT record for 'msg'.
+ * Set/clear the OPT record for 'msg'.
  *
  * Requires:
  *
  *\li	'msg' is a valid message with rendering intent
  *	and no sections have been rendered.
  *
- *\li	'opt' is a valid OPT record.
+ *\li	'opt' is a valid OPT record or NULL.
  *
  * Ensures:
  *

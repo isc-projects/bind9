@@ -2707,11 +2707,16 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(opt->type == dns_rdatatype_opt);
+	REQUIRE(opt == NULL || DNS_RDATASET_VALID(opt));
+	REQUIRE(opt == NULL || opt->type == dns_rdatatype_opt);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 
 	msgresetopt(msg);
+
+	if (opt == NULL) {
+		return (ISC_R_SUCCESS);
+	}
 
 	result = dns_rdataset_first(opt);
 	if (result != ISC_R_SUCCESS) {
@@ -3428,7 +3433,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 	dns_rdataset_t *ps = NULL;
 	const dns_name_t *name = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
-	char buf[sizeof("1234567890")];
+	char buf[sizeof("/1234567890")];
 	uint32_t mbz;
 	dns_rdata_t rdata;
 	isc_buffer_t optbuf;
@@ -3518,6 +3523,39 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg, dns_pseudosection_t section,
 						goto cleanup;
 					}
 					ADD_STRING(target, "\n");
+					continue;
+				}
+			} else if (optcode == DNS_OPT_UL) {
+				INDENT(style);
+				ADD_STRING(target, "UL:");
+				if (optlen == 4U || optlen == 8U) {
+					uint32_t secs, key = 0;
+					secs = isc_buffer_getuint32(&optbuf);
+					snprintf(buf, sizeof(buf), " %u", secs);
+					ADD_STRING(target, buf);
+					if (optlen == 8U) {
+						key = isc_buffer_getuint32(
+							&optbuf);
+						snprintf(buf, sizeof(buf),
+							 "/%u", key);
+						ADD_STRING(target, buf);
+					}
+					ADD_STRING(target, " (");
+					result = dns_ttl_totext(secs, true,
+								true, target);
+					if (result != ISC_R_SUCCESS) {
+						goto cleanup;
+					}
+					if (optlen == 8U) {
+						ADD_STRING(target, "/");
+						result = dns_ttl_totext(
+							key, true, true,
+							target);
+						if (result != ISC_R_SUCCESS) {
+							goto cleanup;
+						}
+					}
+					ADD_STRING(target, ")\n");
 					continue;
 				}
 			} else if (optcode == DNS_OPT_NSID) {
@@ -3878,6 +3916,38 @@ dns_message_pseudosectiontotext(dns_message_t *msg, dns_pseudosection_t section,
 						return (result);
 					}
 					ADD_STRING(target, "\n");
+					continue;
+				}
+			} else if (optcode == DNS_OPT_UL) {
+				ADD_STRING(target, "; UL:");
+				if (optlen == 4U || optlen == 8U) {
+					uint32_t secs, key = 0;
+					secs = isc_buffer_getuint32(&optbuf);
+					snprintf(buf, sizeof(buf), " %u", secs);
+					ADD_STRING(target, buf);
+					if (optlen == 8U) {
+						key = isc_buffer_getuint32(
+							&optbuf);
+						snprintf(buf, sizeof(buf),
+							 "/%u", key);
+						ADD_STRING(target, buf);
+					}
+					ADD_STRING(target, " (");
+					result = dns_ttl_totext(secs, true,
+								true, target);
+					if (result != ISC_R_SUCCESS) {
+						goto cleanup;
+					}
+					if (optlen == 8U) {
+						ADD_STRING(target, "/");
+						result = dns_ttl_totext(
+							key, true, true,
+							target);
+						if (result != ISC_R_SUCCESS) {
+							goto cleanup;
+						}
+					}
+					ADD_STRING(target, ")\n");
 					continue;
 				}
 			} else if (optcode == DNS_OPT_NSID) {

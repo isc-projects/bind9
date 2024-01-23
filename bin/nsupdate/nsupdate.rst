@@ -323,6 +323,11 @@ The command formats and their meanings are as follows:
    By default check-svcb processing is on. If check-svcb processing
    fails, the record is not added to the UPDATE message.
 
+``lease time [keytime]``
+   Set the EDNS Update Lease (UL) option to value to ``time`` and
+   optionally also set the key lease time to ``keytime`` in seconds.
+   If ``time`` is ``none`` the lease times are cleared.
+
 ``prereq nxdomain domain-name``
    This command requires that no resource record of any type exist with the name
    ``domain-name``.

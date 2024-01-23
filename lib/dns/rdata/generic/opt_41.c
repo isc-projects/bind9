@@ -129,6 +129,12 @@ fromwire_opt(ARGS_FROMWIRE) {
 			}
 			isc_region_consume(&sregion, length);
 			break;
+		case DNS_OPT_UL:
+			if (length != 4U && length != 8U) {
+				return (DNS_R_OPTERR);
+			}
+			isc_region_consume(&sregion, length);
+			break;
 		case DNS_OPT_CLIENT_SUBNET: {
 			uint16_t family;
 			uint8_t addrlen;
