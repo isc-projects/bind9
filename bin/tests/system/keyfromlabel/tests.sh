@@ -47,8 +47,10 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
   alg=$(echo "$algtypebits" | cut -f 1 -d :)
   type=$(echo "$algtypebits" | cut -f 2 -d :)
   bits=$(echo "$algtypebits" | cut -f 3 -d :)
+  alg_upper=$(echo "$alg" | tr '[:lower:]' '[:upper:]')
+  supported=$(eval "echo \$${alg_upper}_SUPPORTED")
 
-  if $SHELL ../testcrypto.sh $alg; then
+  if [ "${supported}" = 1 ]; then
     zone="$alg.example"
     zonefile="zone.$alg.example.db"
     ret=0

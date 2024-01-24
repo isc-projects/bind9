@@ -1462,7 +1462,7 @@ echo_ic "check that 'dnssec-signzone -F' failed with disallowed algorithm ($n)"
 ret=0
 if ! $FEATURETEST --fips-provider; then
   echo_i "skipped no FIPS provider available"
-elif ! $SHELL ../testcrypto.sh -q RSASHA1; then
+elif [ $RSASHA1_SUPPORTED = 0 ]; then
   echo_i "skipped: RSASHA1 is not supported"
 else
   (
@@ -3417,7 +3417,7 @@ if $FEATURETEST --have-fips-mode; then
   echo_i "skipped: already in FIPS mode"
 elif ! $FEATURETEST --fips-provider; then
   echo_i "skipped no FIPS provider available"
-elif ! $SHELL ../testcrypto.sh -q RSASHA1; then
+elif [ $RSASHA1_SUPPORTED = 0 ]; then
   echo_i "skipped: RSASHA1 is not supported"
 else
   $KEYGEN -F -a rsasha1 example.fips 2>keygen.err$n || true
@@ -3433,7 +3433,7 @@ if $FEATURETEST --have-fips-mode; then
   echo_i "skipped: already in FIPS mode"
 elif ! $FEATURETEST --fips-provider; then
   echo_i "skipped: cannot switch to FIPS mode"
-elif ! $SHELL ../testcrypto.sh -q RSASHA1; then
+elif [ $RSASHA1_SUPPORTED = 0 ]; then
   echo_i "skipped: RSASHA1 is not supported"
 else
   $KEYGEN -F -a nsec3rsasha1 example.fips 2>keygen.err$n || true

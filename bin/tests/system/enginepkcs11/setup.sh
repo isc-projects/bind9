@@ -59,9 +59,11 @@ for algtypebits in rsasha256:rsa:2048 rsasha512:rsa:2048 \
   alg=$(echo "$algtypebits" | cut -f 1 -d :)
   type=$(echo "$algtypebits" | cut -f 2 -d :)
   bits=$(echo "$algtypebits" | cut -f 3 -d :)
+  alg_upper=$(echo "$alg" | tr '[:lower:]' '[:upper:]')
+  supported=$(eval "echo \$${alg_upper}_SUPPORTED")
 
   tld="example"
-  if $SHELL ../testcrypto.sh $alg; then
+  if [ "${supported}" = 1 ]; then
     zone="$alg.$tld"
     zonefile="zone.$alg.$tld.db"
     ret=0
@@ -191,9 +193,11 @@ algtypebits="ecdsap256sha256:EC:prime256v1"
 alg=$(echo "$algtypebits" | cut -f 1 -d :)
 type=$(echo "$algtypebits" | cut -f 2 -d :)
 bits=$(echo "$algtypebits" | cut -f 3 -d :)
+alg_upper=$(echo "$alg" | tr '[:lower:]' '[:upper:]')
+supported=$(eval "echo \$${alg_upper}_SUPPORTED")
 tld="views"
 
-if $SHELL ../testcrypto.sh $alg; then
+if [ "${supported}" = 1 ]; then
   zone="$alg.$tld"
   zonefile1="zone.$alg.$tld.view1.db"
   zonefile2="zone.$alg.$tld.view2.db"
