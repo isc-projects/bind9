@@ -242,7 +242,7 @@ set_key_default_values "KEY1"
 echo_i "initial check zone ${ZONE}"
 check_nsec
 
-if ($SHELL ../testcrypto.sh -q RSASHA1); then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   # Zone: rsasha1-to-nsec3.kasp.
   set_zone_policy "rsasha1-to-nsec3.kasp" "rsasha1" 1 3600
   set_server "ns3" "10.53.0.3"
@@ -391,7 +391,7 @@ check_nsec
 # Reconfig named.
 ret=0
 echo_i "reconfig dnssec-policy to trigger nsec3 rollovers"
-if ! ($SHELL ../testcrypto.sh -q RSASHA1); then
+if [ $RSASHA1_SUPPORTED = 0 ]; then
   copy_setports ns3/named2-fips.conf.in ns3/named.conf
 else
   copy_setports ns3/named2-fips.conf.in ns3/named-fips.conf
@@ -407,7 +407,7 @@ set_key_default_values "KEY1"
 echo_i "check zone ${ZONE} after reconfig"
 check_nsec3
 
-if ($SHELL ../testcrypto.sh -q RSASHA1); then
+if [ $RSASHA1_SUPPORTED = 1 ]; then
   # Zone: rsasha1-to-nsec3.kasp.
   set_zone_policy "rsasha1-to-nsec3.kasp" "nsec3" 2 3600
   set_server "ns3" "10.53.0.3"

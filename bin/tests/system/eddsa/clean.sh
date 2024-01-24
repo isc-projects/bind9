@@ -25,4 +25,3 @@ rm -f ns*/root.db
 rm -f ns*/signer.err
 rm -f ns*/trusted.conf
 rm -f ns*/example.com.db
-rm -f *-supported.file
