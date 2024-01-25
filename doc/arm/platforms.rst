@@ -49,7 +49,7 @@ following systems:
 -  Ubuntu LTS 20.04, 22.04
 -  Fedora 39
 -  Red Hat Enterprise Linux / CentOS / Oracle Linux 7, 8, 9
--  FreeBSD 12.4, 13.2, 14.0
+-  FreeBSD 13.2, 14.0
 -  Alpine Linux 3.19
 
 The amd64, i386, armhf and arm64 CPU architectures are all fully
