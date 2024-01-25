@@ -205,10 +205,6 @@ stages:
 
 ### QCOW2 Image Templates
 
-.freebsd-12-amd64: &freebsd_12_amd64_image
-  image: "freebsd-12.4-x86_64"
-  <<: *libvirt_amd64
-
 .freebsd-13-amd64: &freebsd_13_amd64_image
   image: "freebsd-13.2-x86_64"
   <<: *libvirt_amd64
@@ -1332,32 +1328,6 @@ unit:clang:bookworm:amd64:
     - job: clang:bookworm:amd64
       artifacts: true
 
-# Jobs for Clang builds on FreeBSD 12 (amd64)
-
-clang:freebsd12:amd64:
-  variables:
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE}"
-    USER: gitlab-runner
-  <<: *freebsd_12_amd64_image
-  <<: *build_job
-
-system:clang:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
-  <<: *system_test_job
-  variables:
-    USER: gitlab-runner
-  needs:
-    - job: clang:freebsd12:amd64
-      artifacts: true
-
-unit:clang:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: clang:freebsd12:amd64
-      artifacts: true
-
 # Jobs for Clang builds on FreeBSD 13 (amd64)
 
 clang:freebsd13:amd64:
@@ -1390,7 +1360,7 @@ clang:freebsd14:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
     # Disable BIND 9 GSS-API support because of Heimdal incompatibility; see FreeBSD bug #275241.
-    EXTRA_CONFIGURE: "${WITH_READLINE_LIBEDIT} --without-gssapi"
+    EXTRA_CONFIGURE: "${WITH_READLINE_EDITLINE} --without-gssapi"
     USER: gitlab-runner
   <<: *freebsd_14_amd64_image
   <<: *build_job
@@ -1794,7 +1764,6 @@ stress:rpz:fedora:39:arm64:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
 stress:authoritative:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
@@ -1809,7 +1778,6 @@ stress:authoritative:freebsd12:amd64:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:recursive:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
@@ -1824,7 +1792,6 @@ stress:recursive:freebsd12:amd64:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 stress:rpz:freebsd12:amd64:
-  <<: *freebsd_12_amd64_image
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
