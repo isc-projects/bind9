@@ -16,6 +16,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/util.h>
 
@@ -121,6 +122,12 @@ dns_rdataclass_t
 dst_key_class(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_class);
+}
+
+const char *
+dst_key_directory(const dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
+	return (key->directory);
 }
 
 bool
@@ -245,6 +252,14 @@ dns_ttl_t
 dst_key_getttl(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return (key->key_ttl);
+}
+
+void
+dst_key_setdirectory(dst_key_t *key, const char *dir) {
+	if (key->directory != NULL) {
+		isc_mem_free(key->mctx, key->directory);
+	}
+	key->directory = isc_mem_strdup(key->mctx, dir);
 }
 
 /*! \file */

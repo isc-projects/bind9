@@ -1056,13 +1056,20 @@ find_zone_keys(dns_zone_t *zone, isc_mem_t *mctx, unsigned int maxkeys,
 	unsigned int count = 0;
 	isc_result_t result;
 	isc_stdtime_t now = isc_stdtime_now();
+	dns_kasp_t *kasp;
+	dns_keystorelist_t *keystores;
+	const char *keydir;
 
 	ISC_LIST_INIT(keylist);
 
+	kasp = dns_zone_getkasp(zone);
+	keydir = dns_zone_getkeydirectory(zone);
+	keystores = dns_zone_getkeystores(zone);
+
 	dns_zone_lock_keyfiles(zone);
-	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone),
-					     dns_zone_getkeydirectory(zone),
-					     now, mctx, &keylist);
+	result = dns_dnssec_findmatchingkeys(dns_zone_getorigin(zone), kasp,
+					     keydir, keystores, now, mctx,
+					     &keylist);
 	dns_zone_unlock_keyfiles(zone);
 
 	if (result != ISC_R_SUCCESS) {

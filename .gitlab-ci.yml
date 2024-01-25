@@ -946,7 +946,7 @@ gcc:ossl3:sid:amd64:
   <<: *build_job
 
 system:gcc:ossl3:sid:amd64:
-  # Set up environment variables to run pkcs11-provider system tests
+  # Set up environment variables to run pkcs11-provider based system tests
   variables:
     OPENSSL_CONF: "/var/tmp/etc/openssl-provider.cnf"
     SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"

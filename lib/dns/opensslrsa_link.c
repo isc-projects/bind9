@@ -366,13 +366,17 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 }
 
 static isc_result_t
-opensslrsa_generate_pkey(unsigned int key_size, BIGNUM *e,
+opensslrsa_generate_pkey(unsigned int key_size, const char *label, BIGNUM *e,
 			 void (*callback)(int), EVP_PKEY **retkey) {
-	RSA *rsa = RSA_new();
-	EVP_PKEY *pkey = EVP_PKEY_new();
+	RSA *rsa = NULL;
+	EVP_PKEY *pkey = NULL;
 	BN_GENCB *cb = NULL;
 	isc_result_t ret;
 
+	UNUSED(label);
+
+	rsa = RSA_new();
+	pkey = EVP_PKEY_new();
 	if (rsa == NULL || pkey == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
@@ -493,11 +497,62 @@ progress_cb(EVP_PKEY_CTX *ctx) {
 }
 
 static isc_result_t
-opensslrsa_generate_pkey(unsigned int key_size, BIGNUM *e,
+opensslrsa_generate_pkey_with_uri(size_t key_size, const char *label,
+				  EVP_PKEY **retkey) {
+	EVP_PKEY_CTX *ctx = NULL;
+	OSSL_PARAM params[4];
+	char *uri = UNCONST(label);
+	isc_result_t ret;
+	int status;
+
+	params[0] = OSSL_PARAM_construct_utf8_string("pkcs11_uri", uri, 0);
+	params[1] = OSSL_PARAM_construct_utf8_string(
+		"pkcs11_key_usage", (char *)"digitalSignature", 0);
+	params[2] = OSSL_PARAM_construct_size_t("rsa_keygen_bits", &key_size);
+	params[3] = OSSL_PARAM_construct_end();
+
+	ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", "provider=pkcs11");
+	if (ctx == NULL) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new_from_name",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_keygen_init(ctx);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_CTX_set_params(ctx, params);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_set_params",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_generate(ctx, retkey);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_generate",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	ret = ISC_R_SUCCESS;
+err:
+	EVP_PKEY_CTX_free(ctx);
+	return (ret);
+}
+
+static isc_result_t
+opensslrsa_generate_pkey(unsigned int key_size, const char *label, BIGNUM *e,
 			 void (*callback)(int), EVP_PKEY **retkey) {
-	EVP_PKEY_CTX *ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", NULL);
+	EVP_PKEY_CTX *ctx;
 	isc_result_t ret;
 
+	if (label != NULL) {
+		return (opensslrsa_generate_pkey_with_uri(key_size, label,
+							  retkey));
+	}
+
+	ctx = EVP_PKEY_CTX_new_from_name(NULL, "RSA", NULL);
 	if (ctx == NULL) {
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
@@ -669,7 +724,8 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		BN_set_bit(e, 32);
 	}
 
-	ret = opensslrsa_generate_pkey(key->key_size, e, callback, &pkey);
+	ret = opensslrsa_generate_pkey(key->key_size, key->label, e, callback,
+				       &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		goto err;
 	}

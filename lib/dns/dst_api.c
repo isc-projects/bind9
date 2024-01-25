@@ -691,6 +691,10 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	}
 
 	key->modified = false;
+
+	if (dirname != NULL) {
+		key->directory = isc_mem_strdup(mctx, dirname);
+	}
 	*keyp = key;
 	key = NULL;
 
@@ -1027,8 +1031,8 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 isc_result_t
 dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 		 unsigned int param, unsigned int flags, unsigned int protocol,
-		 dns_rdataclass_t rdclass, isc_mem_t *mctx, dst_key_t **keyp,
-		 void (*callback)(int)) {
+		 dns_rdataclass_t rdclass, const char *label, isc_mem_t *mctx,
+		 dst_key_t **keyp, void (*callback)(int)) {
 	dst_key_t *key;
 	isc_result_t ret;
 
@@ -1041,6 +1045,10 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 
 	key = get_key_struct(name, alg, flags, protocol, bits, rdclass, 0,
 			     mctx);
+
+	if (label != NULL) {
+		key->label = isc_mem_strdup(mctx, label);
+	}
 
 	if (bits == 0) { /*%< NULL KEY */
 		key->key_flags |= DNS_KEYTYPE_NOKEY;
@@ -1390,6 +1398,9 @@ dst_key_free(dst_key_t **keyp) {
 		if (key->keydata.generic != NULL) {
 			INSIST(key->func->destroy != NULL);
 			key->func->destroy(key);
+		}
+		if (key->directory != NULL) {
+			isc_mem_free(mctx, key->directory);
 		}
 		if (key->engine != NULL) {
 			isc_mem_free(mctx, key->engine);

@@ -121,3 +121,20 @@ dnssec-policy "checkds-csk" {
 dnssec-policy "ttl" {
 	max-zone-ttl 299;
 };
+
+key-store "ksk" {
+	directory "ksk";
+};
+
+key-store "zsk" {
+	directory "zsk";
+};
+
+dnssec-policy "keystore" {
+	dnskey-ttl 303;
+
+	keys {
+		ksk key-store "ksk" lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk key-store "zsk" lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+};

@@ -410,12 +410,77 @@ opensslecdsa_create_pkey(unsigned int key_alg, bool private,
 #if OPENSSL_VERSION_NUMBER >= 0x30000000L
 
 static isc_result_t
-opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
+opensslecdsa_generate_pkey_with_uri(int group_nid, const char *label,
+				    EVP_PKEY **retkey) {
+	int status;
+	isc_result_t ret;
+	char *uri = UNCONST(label);
+	EVP_PKEY_CTX *ctx = NULL;
+	OSSL_PARAM params[3];
+
+	/* Generate the key's parameters. */
+	params[0] = OSSL_PARAM_construct_utf8_string("pkcs11_uri", uri, 0);
+	params[1] = OSSL_PARAM_construct_utf8_string(
+		"pkcs11_key_usage", (char *)"digitalSignature", 0);
+	params[2] = OSSL_PARAM_construct_end();
+
+	ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", "provider=pkcs11");
+	if (ctx == NULL) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_new_from_name",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_keygen_init(ctx);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_keygen_init",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	status = EVP_PKEY_CTX_set_params(ctx, params);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_set_params",
+					       DST_R_OPENSSLFAILURE));
+	}
+	/*
+	 * Setting the P-384 curve doesn't work correctly when using:
+	 * OSSL_PARAM_construct_utf8_string("ec_paramgen_curve", "P-384", 0);
+	 *
+	 * Instead use the OpenSSL function to set the curve nid param.
+	 */
+	status = EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, group_nid);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_CTX_set_ec_paramgen_"
+					       "curve_nid",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	/* Generate the key. */
+	status = EVP_PKEY_generate(ctx, retkey);
+	if (status != 1) {
+		DST_RET(dst__openssl_toresult2("EVP_PKEY_generate",
+					       DST_R_OPENSSLFAILURE));
+	}
+
+	ret = ISC_R_SUCCESS;
+
+err:
+	EVP_PKEY_CTX_free(ctx);
+	return (ret);
+}
+
+static isc_result_t
+opensslecdsa_generate_pkey(unsigned int key_alg, const char *label,
+			   EVP_PKEY **retkey) {
 	isc_result_t ret;
 	EVP_PKEY_CTX *ctx = NULL;
 	EVP_PKEY *params_pkey = NULL;
 	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 	int status;
+
+	if (label != NULL) {
+		return (opensslecdsa_generate_pkey_with_uri(group_nid, label,
+							    retkey));
+	}
 
 	/* Generate the key's parameters. */
 	ctx = EVP_PKEY_CTX_new_from_name(NULL, "EC", NULL);
@@ -498,11 +563,16 @@ opensslecdsa_extract_private_key(const dst_key_t *key, unsigned char *buf,
 #else
 
 static isc_result_t
-opensslecdsa_generate_pkey(unsigned int key_alg, EVP_PKEY **retkey) {
+opensslecdsa_generate_pkey(unsigned int key_alg, const char *label,
+			   EVP_PKEY **retkey) {
 	isc_result_t ret;
 	EC_KEY *eckey = NULL;
 	EVP_PKEY *pkey = NULL;
-	int group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
+	int group_nid;
+
+	UNUSED(label);
+
+	group_nid = opensslecdsa_key_alg_to_group_nid(key_alg);
 
 	eckey = EC_KEY_new_by_curve_name(group_nid);
 	if (eckey == NULL) {
@@ -815,7 +885,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(unused);
 	UNUSED(callback);
 
-	ret = opensslecdsa_generate_pkey(key->key_alg, &pkey);
+	ret = opensslecdsa_generate_pkey(key->key_alg, key->label, &pkey);
 	if (ret != ISC_R_SUCCESS) {
 		return (ret);
 	}

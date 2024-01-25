@@ -407,6 +407,9 @@ The following blocks are supported:
     :namedconf:ref:`key`
         Specifies key information for use in authentication and authorization using TSIG.
 
+    :any:``key-store``
+        Describes a DNSSEC key store. See :ref:`key-store Grammar <key_store_grammar>` for details.
+
     :any:`logging`
         Specifies what information the server logs and where the log messages are sent.
 
@@ -591,6 +594,42 @@ matching this name, algorithm, and secret.
 
    The ``secret_string`` is the secret to be used by the
    algorithm, and is treated as a Base64-encoded string.
+
+.. _key_store_grammar:
+
+:any:`key-store` Block Grammar
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. namedconf:statement:: key-store
+   :tags: dnssec
+   :short: Configures a DNSSEC key store.
+
+.. _key_store_statement:
+
+``key-store`` Block Definition and Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``key-store`` statement defines how DNSSEC keys should be stored.
+
+There is one built-in key store named ``key-directory``. Configuring
+keys to use ``key-store "key-directory"`` is identical to using
+``key-directory``.
+
+The following options can be specified in a :any:`key-store` statement:
+
+.. directory
+
+   The ``directory`` specifies where key files for this key should be stored.
+   This is similar to using the zone's ``key-directory``.
+
+.. namedconf:statement:: pkcs11-uri
+   :tags: dnssec, pkcs11
+
+   The ``uri`` is a string that specifies a PKCS#11 URI Scheme (defined in
+   :rfc:`7512`). When set, ``named`` will try to create keys inside the
+   corresponding PKCS#11 token. This requires BIND to be built with OpenSSL 3,
+   and have a PKCS#11 provider configured.
+
+.. _logging_grammar:
 
 :any:`logging` Block Grammar
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6282,7 +6321,10 @@ The following options can be specified in a :any:`dnssec-policy` statement:
 
    This behavior is enabled by default.
 
-:any:`keys`
+.. keys
+   :tags: dnssec
+   :short: Specifies the type of keys to be used for DNSSEC signing.
+
     This is a list specifying the algorithms and roles to use when
     generating keys and signing the zone.  Entries in this list do not
     represent specific DNSSEC keys, which may be changed on a regular
@@ -6298,7 +6340,7 @@ The following options can be specified in a :any:`dnssec-policy` statement:
         keys {
             ksk key-directory lifetime unlimited algorithm rsasha256 2048;
             zsk lifetime 30d algorithm 8;
-            csk lifetime P6MT12H3M15S algorithm ecdsa256;
+            csk key-store "hsm" lifetime P6MT12H3M15S algorithm ecdsa256;
         };
 
     This example specifies that three keys should be used in the zone.
@@ -6311,9 +6353,15 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     used to sign all RRsets.
 
     An optional second token determines where the key is stored.
-    Currently, keys can only be stored in the configured
-    :any:`key-directory`.  This token may be used in the future to store
-    keys in hardware security modules or separate directories.
+    The two available options are ``key-store <string>`` and
+    ``key-directory``.
+
+    When using ``key-store``, the referenced :any:`key-store` describes
+    how the key should be be stored. This can be as a file, or it can be
+    inside a PKCS#11 token.
+
+    When using ``key-directory``, the key is stored in the zone's
+    configured :any:`key-directory`. This is also the default.
 
     The ``lifetime`` parameter specifies how long a key may be used
     before rolling over. For convenience, TTL-style time-unit suffixes
@@ -6345,6 +6393,13 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     third keys, an appropriate default size for the algorithm is used.
     Each KSK/ZSK pair must have the same algorithm. A CSK combines the
     functionality of a ZSK and a KSK.
+
+.. note:: When changing the ``key-directory`` or the ``key-store``, BIND will
+   be unable to find existing key files. Make sure you copy key files to the
+   new directory before changing the path used in the configuration file.
+   This is also true when changing to a built-in policy, for example to
+   ``insecure``. In this specific case you should move the existing key files
+   to the zone's ``key-directory`` from the new configuration.
 
 .. namedconf:statement:: purge-keys
    :tags: dnssec

@@ -79,6 +79,7 @@
 #include <dns/journal.h>
 #include <dns/kasp.h>
 #include <dns/keymgr.h>
+#include <dns/keystore.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/master.h>
@@ -441,8 +442,8 @@ static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
-	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
-	       bool modify);
+	       dns_keystorelist_t *keystores, cfg_aclconfctx_t *aclconf,
+	       bool added, bool old_rpz_ok, bool modify);
 
 static void
 configure_zone_setviewcommit(isc_result_t result, const cfg_obj_t *zconfig,
@@ -2787,12 +2788,12 @@ catz_addmodzone_cb(void *arg) {
 	zoneobj = cfg_listelt_value(cfg_list_first(zlist));
 
 	/* Mark view unfrozen so that zone can be added */
-
 	isc_loopmgr_pause(named_g_loopmgr);
 	dns_view_thaw(cz->view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, cz->view,
 				&cz->cbd->server->viewlist,
-				&cz->cbd->server->kasplist, cfg->actx, true,
+				&cz->cbd->server->kasplist,
+				&cz->cbd->server->keystorelist, cfg->actx, true,
 				false, cz->mod);
 	dns_view_freeze(cz->view);
 	isc_loopmgr_resume(named_g_loopmgr);
@@ -3975,8 +3976,9 @@ static const char *const response_synonyms[] = { "response", NULL };
 static isc_result_t
 configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	       cfg_obj_t *vconfig, named_cachelist_t *cachelist,
-	       dns_kasplist_t *kasplist, const cfg_obj_t *bindkeys,
-	       isc_mem_t *mctx, cfg_aclconfctx_t *actx, bool need_hints) {
+	       dns_kasplist_t *kasplist, dns_keystorelist_t *keystores,
+	       const cfg_obj_t *bindkeys, isc_mem_t *mctx,
+	       cfg_aclconfctx_t *actx, bool need_hints) {
 	const cfg_obj_t *maps[4];
 	const cfg_obj_t *cfgmaps[3];
 	const cfg_obj_t *optionmaps[3];
@@ -4121,7 +4123,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	{
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view, viewlist,
-				     kasplist, actx, false, old_rpz_ok, false));
+				     kasplist, keystores, actx, false,
+				     old_rpz_ok, false));
 		zone_element_latest = element;
 	}
 
@@ -6429,8 +6432,8 @@ static isc_result_t
 configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	       const cfg_obj_t *vconfig, dns_view_t *view,
 	       dns_viewlist_t *viewlist, dns_kasplist_t *kasplist,
-	       cfg_aclconfctx_t *aclconf, bool added, bool old_rpz_ok,
-	       bool modify) {
+	       dns_keystorelist_t *keystores, cfg_aclconfctx_t *aclconf,
+	       bool added, bool old_rpz_ok, bool modify) {
 	dns_view_t *pview = NULL; /* Production view */
 	dns_zone_t *zone = NULL;  /* New or reused zone */
 	dns_zone_t *raw = NULL;	  /* New or reused raw zone */
@@ -6624,7 +6627,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setstats(zone, named_g_server->zonestats);
 		}
 		CHECK(named_zone_configure(config, vconfig, zconfig, aclconf,
-					   kasplist, zone, NULL));
+					   kasplist, keystores, zone, NULL));
 		dns_zone_attach(zone, &view->redirect);
 		goto cleanup;
 	}
@@ -6800,7 +6803,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * Configure the zone.
 	 */
 	CHECK(named_zone_configure(config, vconfig, zconfig, aclconf, kasplist,
-				   zone, raw));
+				   keystores, zone, raw));
 
 	/*
 	 * Add the zone to its view in the new view list.
@@ -7434,7 +7437,7 @@ generate_session_key(const char *filename, const char *keynamestr,
 
 	/* generate key */
 	result = dst_key_generate(keyname, alg, bits, 1, 0, DNS_KEYPROTO_ANY,
-				  dns_rdataclass_in, mctx, &key, NULL);
+				  dns_rdataclass_in, NULL, mctx, &key, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -7800,7 +7803,8 @@ configure_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, view,
 				     &named_g_server->viewlist,
-				     &named_g_server->kasplist, actx, true,
+				     &named_g_server->kasplist,
+				     &named_g_server->keystorelist, actx, true,
 				     false, false));
 	}
 
@@ -7985,7 +7989,8 @@ configure_newzone(const cfg_obj_t *zconfig, cfg_obj_t *config,
 		  cfg_aclconfctx_t *actx) {
 	return (configure_zone(
 		config, zconfig, vconfig, view, &named_g_server->viewlist,
-		&named_g_server->kasplist, actx, true, false, false));
+		&named_g_server->kasplist, &named_g_server->keystorelist, actx,
+		true, false, false));
 }
 
 /*%
@@ -8129,10 +8134,14 @@ load_configuration(const char *filename, named_server_t *server,
 	const cfg_obj_t *options;
 	const cfg_obj_t *usev4ports, *avoidv4ports, *usev6ports, *avoidv6ports;
 	const cfg_obj_t *kasps;
+	const cfg_obj_t *keystores;
 	dns_kasp_t *kasp = NULL;
 	dns_kasp_t *kasp_next = NULL;
 	dns_kasp_t *default_kasp = NULL;
 	dns_kasplist_t tmpkasplist, kasplist;
+	dns_keystore_t *keystore = NULL;
+	dns_keystore_t *keystore_next = NULL;
+	dns_keystorelist_t tmpkeystorelist, keystorelist;
 	const cfg_obj_t *views;
 
 	dns_view_t *view_next = NULL;
@@ -8171,6 +8180,7 @@ load_configuration(const char *filename, named_server_t *server,
 	REQUIRE(isc_loop_current(named_g_loopmgr) == named_g_mainloop);
 
 	ISC_LIST_INIT(kasplist);
+	ISC_LIST_INIT(keystorelist);
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
@@ -8883,6 +8893,33 @@ load_configuration(const char *filename, named_server_t *server,
 	(void)configure_session_key(maps, server, named_g_mctx, first_time);
 
 	/*
+	 * Create the built-in key store ("key-directory").
+	 */
+	result = cfg_keystore_fromconfig(NULL, named_g_mctx, named_g_lctx,
+					 named_g_engine, &keystorelist, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_keystorelist;
+	}
+
+	/*
+	 * Create the DNSSEC key stores.
+	 */
+	keystores = NULL;
+	(void)cfg_map_get(config, "key-store", &keystores);
+	for (element = cfg_list_first(keystores); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		keystore = NULL;
+		result = cfg_keystore_fromconfig(kconfig, named_g_mctx,
+						 named_g_lctx, named_g_engine,
+						 &keystorelist, NULL);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_keystorelist;
+		}
+	}
+
+	/*
 	 * Create the built-in kasp policies ("default", "insecure").
 	 */
 	kasps = NULL;
@@ -8895,7 +8932,7 @@ load_configuration(const char *filename, named_server_t *server,
 		kasp = NULL;
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
-					     &kasplist, &kasp);
+					     &keystorelist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_kasplist;
 		}
@@ -8924,7 +8961,7 @@ load_configuration(const char *filename, named_server_t *server,
 		kasp = NULL;
 		result = cfg_kasp_fromconfig(kconfig, default_kasp, true,
 					     named_g_mctx, named_g_lctx,
-					     &kasplist, &kasp);
+					     &keystorelist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup_kasplist;
 		}
@@ -8932,8 +8969,15 @@ load_configuration(const char *filename, named_server_t *server,
 		dns_kasp_freeze(kasp);
 		dns_kasp_detach(&kasp);
 	}
-
 	dns_kasp_detach(&default_kasp);
+
+	/*
+	 * Save keystore list and kasp list.
+	 */
+	tmpkeystorelist = server->keystorelist;
+	server->keystorelist = keystorelist;
+	keystorelist = tmpkeystorelist;
+
 	tmpkasplist = server->kasplist;
 	server->kasplist = kasplist;
 	kasplist = tmpkasplist;
@@ -9037,7 +9081,8 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 
 		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist, bindkeys,
+					&cachelist, &server->kasplist,
+					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
@@ -9058,7 +9103,8 @@ load_configuration(const char *filename, named_server_t *server,
 			goto cleanup_cachelist;
 		}
 		result = configure_view(view, &viewlist, config, NULL,
-					&cachelist, &server->kasplist, bindkeys,
+					&cachelist, &server->kasplist,
+					&server->keystorelist, bindkeys,
 					named_g_mctx, named_g_aclconfctx, true);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
@@ -9085,10 +9131,10 @@ load_configuration(const char *filename, named_server_t *server,
 			goto cleanup_cachelist;
 		}
 
-		result = configure_view(view, &viewlist, config, vconfig,
-					&cachelist, &server->kasplist, bindkeys,
-					named_g_mctx, named_g_aclconfctx,
-					false);
+		result = configure_view(
+			view, &viewlist, config, vconfig, &cachelist,
+			&server->kasplist, &server->keystorelist, bindkeys,
+			named_g_mctx, named_g_aclconfctx, false);
 		if (result != ISC_R_SUCCESS) {
 			dns_view_detach(&view);
 			goto cleanup_cachelist;
@@ -9585,6 +9631,15 @@ cleanup_kasplist:
 		dns_kasp_detach(&kasp);
 	}
 
+cleanup_keystorelist:
+	for (keystore = ISC_LIST_HEAD(keystorelist); keystore != NULL;
+	     keystore = keystore_next)
+	{
+		keystore_next = ISC_LIST_NEXT(keystore, link);
+		ISC_LIST_UNLINK(keystorelist, keystore, link);
+		dns_keystore_detach(&keystore);
+	}
+
 cleanup_v6portset:
 	isc_portset_destroy(named_g_mctx, &v6portset);
 
@@ -9849,6 +9904,7 @@ shutdown_server(void *arg) {
 	named_server_t *server = (named_server_t *)arg;
 	dns_view_t *view = NULL, *view_next = NULL;
 	dns_kasp_t *kasp = NULL, *kasp_next = NULL;
+	dns_keystore_t *keystore = NULL, *keystore_next = NULL;
 	bool flush = server->flushonshutdown;
 	named_cache_t *nsc = NULL;
 
@@ -9893,6 +9949,14 @@ shutdown_server(void *arg) {
 		kasp_next = ISC_LIST_NEXT(kasp, link);
 		ISC_LIST_UNLINK(server->kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
+	}
+
+	for (keystore = ISC_LIST_HEAD(server->keystorelist); keystore != NULL;
+	     keystore = keystore_next)
+	{
+		keystore_next = ISC_LIST_NEXT(keystore, link);
+		ISC_LIST_UNLINK(server->keystorelist, keystore, link);
+		dns_keystore_detach(&keystore);
 	}
 
 	for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
@@ -10001,6 +10065,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 
 	/* Initialize server data structures. */
 	ISC_LIST_INIT(server->kasplist);
+	ISC_LIST_INIT(server->keystorelist);
 	ISC_LIST_INIT(server->viewlist);
 
 	/* Must be first. */
@@ -10109,6 +10174,7 @@ named_server_destroy(named_server_t **serverp) {
 	dst_lib_destroy();
 
 	INSIST(ISC_LIST_EMPTY(server->kasplist));
+	INSIST(ISC_LIST_EMPTY(server->keystorelist));
 	INSIST(ISC_LIST_EMPTY(server->viewlist));
 	INSIST(ISC_LIST_EMPTY(server->cachelist));
 
@@ -13351,8 +13417,9 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Mark view unfrozen and configure zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, view,
-				&server->viewlist, &server->kasplist, cfg->actx,
-				true, false, false);
+				&server->viewlist, &server->kasplist,
+				&server->keystorelist, cfg->actx, true, false,
+				false);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume(named_g_loopmgr);
@@ -13536,8 +13603,9 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	/* Reconfigure the zone */
 	dns_view_thaw(view);
 	result = configure_zone(cfg->config, zoneobj, cfg->vconfig, view,
-				&server->viewlist, &server->kasplist, cfg->actx,
-				true, false, true);
+				&server->viewlist, &server->kasplist,
+				&server->keystorelist, cfg->actx, true, false,
+				true);
 	dns_view_freeze(view);
 
 	isc_loopmgr_resume(named_g_loopmgr);
@@ -14561,7 +14629,6 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	char output[4096];
 	isc_stdtime_t now, when;
 	isc_time_t timenow, timewhen;
-	const char *dir;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *version = NULL;
 
@@ -14696,7 +14763,6 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 	}
 
 	/* Get DNSSEC keys. */
-	dir = dns_zone_getkeydirectory(zone);
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &version);
 	LOCK(&kasp->lock);
@@ -14728,11 +14794,11 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 
 		LOCK(&kasp->lock);
 		if (use_keyid) {
-			result = dns_keymgr_checkds_id(kasp, &keys, dir, now,
-						       when, dspublish, keyid,
+			result = dns_keymgr_checkds_id(kasp, &keys, now, when,
+						       dspublish, keyid,
 						       (unsigned int)algorithm);
 		} else {
-			result = dns_keymgr_checkds(kasp, &keys, dir, now, when,
+			result = dns_keymgr_checkds(kasp, &keys, now, when,
 						    dspublish);
 		}
 		UNLOCK(&kasp->lock);
@@ -14783,7 +14849,7 @@ named_server_dnssec(named_server_t *server, isc_lex_t *lex,
 		isc_result_t ret;
 
 		LOCK(&kasp->lock);
-		result = dns_keymgr_rollover(kasp, &keys, dir, now, when, keyid,
+		result = dns_keymgr_rollover(kasp, &keys, now, when, keyid,
 					     (unsigned int)algorithm);
 		UNLOCK(&kasp->lock);
 

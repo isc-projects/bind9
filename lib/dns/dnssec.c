@@ -760,177 +760,6 @@ syncdelete(dst_key_t *key, isc_stdtime_t now) {
 	((dst_key_flags(key) & DNS_KEYFLAG_OWNERMASK) == DNS_KEYOWNER_ZONE)
 
 isc_result_t
-dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
-			const dns_name_t *name, const char *directory,
-			isc_stdtime_t now, isc_mem_t *mctx,
-			unsigned int maxkeys, dst_key_t **keys,
-			unsigned int *nkeys) {
-	dns_rdataset_t rdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	isc_result_t result;
-	dst_key_t *pubkey = NULL;
-	unsigned int count = 0;
-
-	REQUIRE(nkeys != NULL);
-	REQUIRE(keys != NULL);
-
-	*nkeys = 0;
-	memset(keys, 0, sizeof(*keys) * maxkeys);
-	dns_rdataset_init(&rdataset);
-	RETERR(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
-				   &rdataset, NULL));
-	RETERR(dns_rdataset_first(&rdataset));
-	while (result == ISC_R_SUCCESS && count < maxkeys) {
-		pubkey = NULL;
-		dns_rdataset_current(&rdataset, &rdata);
-		RETERR(dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey));
-		dst_key_setttl(pubkey, rdataset.ttl);
-
-		if (!is_zone_key(pubkey) ||
-		    (dst_key_flags(pubkey) & DNS_KEYTYPE_NOAUTH) != 0)
-		{
-			goto next;
-		}
-		/* Corrupted .key file? */
-		if (!dns_name_equal(name, dst_key_name(pubkey))) {
-			goto next;
-		}
-		keys[count] = NULL;
-		result = dst_key_fromfile(
-			dst_key_name(pubkey), dst_key_id(pubkey),
-			dst_key_alg(pubkey),
-			DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE,
-			directory, mctx, &keys[count]);
-
-		/*
-		 * If the key was revoked and the private file
-		 * doesn't exist, maybe it was revoked internally
-		 * by named.  Try loading the unrevoked version.
-		 */
-		if (result == ISC_R_FILENOTFOUND) {
-			uint32_t flags;
-			flags = dst_key_flags(pubkey);
-			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
-				dst_key_setflags(pubkey,
-						 flags & ~DNS_KEYFLAG_REVOKE);
-				result = dst_key_fromfile(
-					dst_key_name(pubkey),
-					dst_key_id(pubkey), dst_key_alg(pubkey),
-					DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-						DST_TYPE_STATE,
-					directory, mctx, &keys[count]);
-				if (result == ISC_R_SUCCESS &&
-				    dst_key_pubcompare(pubkey, keys[count],
-						       false))
-				{
-					dst_key_setflags(keys[count], flags);
-				}
-				dst_key_setflags(pubkey, flags);
-			}
-		}
-
-		if (result != ISC_R_SUCCESS) {
-			char filename[DNS_NAME_FORMATSIZE +
-				      DNS_SECALG_FORMATSIZE +
-				      sizeof("key file for //65535")];
-			isc_result_t result2;
-			isc_buffer_t buf;
-
-			isc_buffer_init(&buf, filename, NAME_MAX);
-			result2 = dst_key_getfilename(
-				dst_key_name(pubkey), dst_key_id(pubkey),
-				dst_key_alg(pubkey),
-				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-				 DST_TYPE_STATE),
-				directory, mctx, &buf);
-			if (result2 != ISC_R_SUCCESS) {
-				char namebuf[DNS_NAME_FORMATSIZE];
-				char algbuf[DNS_SECALG_FORMATSIZE];
-
-				dns_name_format(dst_key_name(pubkey), namebuf,
-						sizeof(namebuf));
-				dns_secalg_format(dst_key_alg(pubkey), algbuf,
-						  sizeof(algbuf));
-				snprintf(filename, sizeof(filename) - 1,
-					 "key file for %s/%s/%d", namebuf,
-					 algbuf, dst_key_id(pubkey));
-			}
-
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_DNSSEC, ISC_LOG_WARNING,
-				      "dns_dnssec_findzonekeys: error "
-				      "reading %s: %s",
-				      filename, isc_result_totext(result));
-		}
-
-		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
-			keys[count] = pubkey;
-			pubkey = NULL;
-			count++;
-			goto next;
-		}
-
-		if (result != ISC_R_SUCCESS) {
-			goto failure;
-		}
-
-		/*
-		 * If a key is marked inactive, skip it
-		 */
-		if (!dns_dnssec_keyactive(keys[count], now)) {
-			dst_key_setinactive(pubkey, true);
-			dst_key_free(&keys[count]);
-			keys[count] = pubkey;
-			pubkey = NULL;
-			count++;
-			goto next;
-		}
-
-		/*
-		 * Whatever the key's default TTL may have
-		 * been, the rdataset TTL takes priority.
-		 */
-		dst_key_setttl(keys[count], rdataset.ttl);
-
-		if ((dst_key_flags(keys[count]) & DNS_KEYTYPE_NOAUTH) != 0) {
-			/* We should never get here. */
-			dst_key_free(&keys[count]);
-			goto next;
-		}
-		count++;
-	next:
-		if (pubkey != NULL) {
-			dst_key_free(&pubkey);
-		}
-		dns_rdata_reset(&rdata);
-		result = dns_rdataset_next(&rdataset);
-	}
-	if (result != ISC_R_NOMORE) {
-		goto failure;
-	}
-	if (count == 0) {
-		result = ISC_R_NOTFOUND;
-	} else {
-		result = ISC_R_SUCCESS;
-	}
-
-failure:
-	if (dns_rdataset_isassociated(&rdataset)) {
-		dns_rdataset_disassociate(&rdataset);
-	}
-	if (pubkey != NULL) {
-		dst_key_free(&pubkey);
-	}
-	if (result != ISC_R_SUCCESS) {
-		while (count > 0) {
-			dst_key_free(&keys[--count]);
-		}
-	}
-	*nkeys = count;
-	return (result);
-}
-
-isc_result_t
 dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dns_rdata_sig_t sig; /* SIG(0) */
 	unsigned char data[512];
@@ -1396,32 +1225,18 @@ dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	}
 }
 
-/*%
- * Get a list of DNSSEC keys from the key repository.
- */
-isc_result_t
-dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
-			    isc_stdtime_t now, isc_mem_t *mctx,
-			    dns_dnsseckeylist_t *keylist) {
+static isc_result_t
+findmatchingkeys(const char *directory, char *namebuf, unsigned int len,
+		 isc_mem_t *mctx, isc_stdtime_t now,
+		 dns_dnsseckeylist_t *list) {
 	isc_result_t result = ISC_R_SUCCESS;
-	bool dir_open = false;
-	dns_dnsseckeylist_t list;
 	isc_dir_t dir;
+	bool dir_open = false;
+	unsigned int i, alg;
 	dns_dnsseckey_t *key = NULL;
 	dst_key_t *dstkey = NULL;
-	char namebuf[DNS_NAME_FORMATSIZE];
-	isc_buffer_t b;
-	unsigned int len, i, alg;
 
-	REQUIRE(keylist != NULL);
-	ISC_LIST_INIT(list);
 	isc_dir_init(&dir);
-
-	isc_buffer_init(&b, namebuf, sizeof(namebuf) - 1);
-	RETERR(dns_name_tofilenametext(origin, false, &b));
-	len = isc_buffer_usedlength(&b);
-	namebuf[len] = '\0';
-
 	if (directory == NULL) {
 		directory = ".";
 	}
@@ -1508,8 +1323,67 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 		if (key->legacy) {
 			dns_dnsseckey_destroy(mctx, &key);
 		} else {
-			ISC_LIST_APPEND(list, key, link);
+			ISC_LIST_APPEND(*list, key, link);
 			key = NULL;
+		}
+	}
+
+failure:
+	if (dir_open) {
+		isc_dir_close(&dir);
+	}
+	if (dstkey != NULL) {
+		dst_key_free(&dstkey);
+	}
+	return (result);
+}
+
+/*%
+ * Get a list of DNSSEC keys from the key repository.
+ */
+isc_result_t
+dns_dnssec_findmatchingkeys(const dns_name_t *origin, dns_kasp_t *kasp,
+			    const char *keydir, dns_keystorelist_t *keystores,
+			    isc_stdtime_t now, isc_mem_t *mctx,
+			    dns_dnsseckeylist_t *keylist) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_dnsseckeylist_t list;
+	dns_dnsseckey_t *key = NULL;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	isc_buffer_t b;
+	unsigned int len;
+
+	REQUIRE(keylist != NULL);
+	ISC_LIST_INIT(list);
+
+	isc_buffer_init(&b, namebuf, sizeof(namebuf) - 1);
+	RETERR(dns_name_tofilenametext(origin, false, &b));
+	len = isc_buffer_usedlength(&b);
+	namebuf[len] = '\0';
+
+	if (kasp == NULL || (strcmp(dns_kasp_getname(kasp), "none") == 0) ||
+	    (strcmp(dns_kasp_getname(kasp), "insecure") == 0))
+	{
+		RETERR(findmatchingkeys(keydir, namebuf, len, mctx, now,
+					&list));
+	} else if (keystores != NULL) {
+		for (dns_keystore_t *keystore = ISC_LIST_HEAD(*keystores);
+		     keystore != NULL; keystore = ISC_LIST_NEXT(keystore, link))
+		{
+			for (dns_kasp_key_t *kkey =
+				     ISC_LIST_HEAD(dns_kasp_keys(kasp));
+			     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+			{
+				if (dns_kasp_key_keystore(kkey) == keystore) {
+					const char *directory =
+						dns_keystore_directory(keystore,
+								       keydir);
+					RETERR(findmatchingkeys(
+						directory, namebuf, len, mctx,
+						now, &list));
+					break;
+				}
+			}
 		}
 	}
 
@@ -1521,18 +1395,11 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 	}
 
 failure:
-	if (dir_open) {
-		isc_dir_close(&dir);
-	}
-	INSIST(key == NULL);
 	while ((key = ISC_LIST_HEAD(list)) != NULL) {
 		ISC_LIST_UNLINK(list, key, link);
 		INSIST(key->key != NULL);
 		dst_key_free(&key->key);
 		dns_dnsseckey_destroy(mctx, &key);
-	}
-	if (dstkey != NULL) {
-		dst_key_free(&dstkey);
 	}
 	return (result);
 }
@@ -1641,15 +1508,46 @@ mark_active_keys(dns_dnsseckeylist_t *keylist, dns_rdataset_t *rrsigs) {
 	return (result);
 }
 
+static isc_result_t
+keyfromfile(dns_kasp_t *kasp, const char *keydir, dst_key_t *key, int type,
+	    isc_mem_t *mctx, dst_key_t **savekey) {
+	const char *directory = keydir;
+	isc_result_t result = ISC_R_NOTFOUND;
+
+	if (kasp == NULL || (strcmp(dns_kasp_getname(kasp), "none") == 0) ||
+	    (strcmp(dns_kasp_getname(kasp), "insecure") == 0))
+	{
+		result = dst_key_fromfile(dst_key_name(key), dst_key_id(key),
+					  dst_key_alg(key), type, directory,
+					  mctx, savekey);
+	} else {
+		for (dns_kasp_key_t *kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
+		     kkey != NULL; kkey = ISC_LIST_NEXT(kkey, link))
+		{
+			dns_keystore_t *ks = dns_kasp_key_keystore(kkey);
+			directory = dns_keystore_directory(ks, keydir);
+			result = dst_key_fromfile(dst_key_name(key),
+						  dst_key_id(key),
+						  dst_key_alg(key), type,
+						  directory, mctx, savekey);
+			if (result == ISC_R_SUCCESS) {
+				break;
+			}
+		}
+	}
+
+	return (result);
+}
+
 /*%
  * Add the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
  */
 isc_result_t
-dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
-			       isc_mem_t *mctx, dns_rdataset_t *keyset,
-			       dns_rdataset_t *keysigs, dns_rdataset_t *soasigs,
-			       bool savekeys, bool publickey,
-			       dns_dnsseckeylist_t *keylist) {
+dns_dnssec_keylistfromrdataset(const dns_name_t *origin, dns_kasp_t *kasp,
+			       const char *directory, isc_mem_t *mctx,
+			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
+			       dns_rdataset_t *soasigs, bool savekeys,
+			       bool publickey, dns_dnsseckeylist_t *keylist) {
 	dns_rdataset_t keys;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *dnskey = NULL, *pubkey = NULL, *privkey = NULL;
@@ -1695,21 +1593,19 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 		}
 
 		/* Try to read the public key. */
-		result = dst_key_fromfile(
-			dst_key_name(dnskey), dst_key_id(dnskey),
-			dst_key_alg(dnskey), (DST_TYPE_PUBLIC | DST_TYPE_STATE),
-			directory, mctx, &pubkey);
+		result = keyfromfile(kasp, directory, dnskey,
+				     (DST_TYPE_PUBLIC | DST_TYPE_STATE), mctx,
+				     &pubkey);
 		if (result == ISC_R_FILENOTFOUND || result == ISC_R_NOPERM) {
 			result = ISC_R_SUCCESS;
 		}
 		RETERR(result);
 
 		/* Now read the private key. */
-		result = dst_key_fromfile(
-			dst_key_name(dnskey), dst_key_id(dnskey),
-			dst_key_alg(dnskey),
+		result = keyfromfile(
+			kasp, directory, dnskey,
 			(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_STATE),
-			directory, mctx, &privkey);
+			mctx, &privkey);
 
 		/*
 		 * If the key was revoked and the private file
@@ -1722,12 +1618,11 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 			if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
 				dst_key_setflags(dnskey,
 						 flags & ~DNS_KEYFLAG_REVOKE);
-				result = dst_key_fromfile(
-					dst_key_name(dnskey),
-					dst_key_id(dnskey), dst_key_alg(dnskey),
-					(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
-					 DST_TYPE_STATE),
-					directory, mctx, &privkey);
+				result = keyfromfile(kasp, directory, dnskey,
+						     (DST_TYPE_PUBLIC |
+						      DST_TYPE_PRIVATE |
+						      DST_TYPE_STATE),
+						     mctx, &privkey);
 				if (result == ISC_R_SUCCESS &&
 				    dst_key_pubcompare(dnskey, privkey, false))
 				{
@@ -1750,7 +1645,7 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin, const char *directory,
 				dst_key_alg(dnskey),
 				(DST_TYPE_PUBLIC | DST_TYPE_PRIVATE |
 				 DST_TYPE_STATE),
-				directory, mctx, &buf);
+				NULL, mctx, &buf);
 			if (result2 != ISC_R_SUCCESS) {
 				char namebuf[DNS_NAME_FORMATSIZE];
 				char algbuf[DNS_SECALG_FORMATSIZE];

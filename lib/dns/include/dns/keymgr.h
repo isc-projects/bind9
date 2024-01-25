@@ -26,13 +26,13 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
-	       const char *directory, isc_mem_t *mctx,
-	       dns_dnsseckeylist_t *keyring, dns_dnsseckeylist_t *dnskeys,
+	       isc_mem_t *mctx, dns_dnsseckeylist_t *keyring,
+	       dns_dnsseckeylist_t *dnskeys, const char *keydir,
 	       dns_kasp_t *kasp, isc_stdtime_t now, isc_stdtime_t *nexttime);
 /*%<
  * Manage keys in 'keyring' and update timing data according to 'kasp' policy.
- * Create new keys for 'origin' if necessary in 'directory'.  Append all such
- * keys, along with use hints gleaned from their metadata, onto 'keyring'.
+ * Create new keys for 'origin' if necessary.  Append all such keys, along
+ * with use hints gleaned from their metadata, onto 'keyring'.
  *
  * Update key states and store changes back to disk. Store when to run next
  * in 'nexttime'.
@@ -54,13 +54,11 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_keymgr_checkds(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		   const char *directory, isc_stdtime_t now, isc_stdtime_t when,
-		   bool dspublish);
+		   isc_stdtime_t now, isc_stdtime_t when, bool dspublish);
 isc_result_t
 dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		      const char *directory, isc_stdtime_t now,
-		      isc_stdtime_t when, bool dspublish, dns_keytag_t id,
-		      unsigned int algorithm);
+		      isc_stdtime_t now, isc_stdtime_t when, bool dspublish,
+		      dns_keytag_t id, unsigned int algorithm);
 /*%<
  * Check DS for one key in 'keyring'. The key must have the KSK role.
  * If 'dspublish' is set to true, set the DS Publish time to 'now'.
@@ -82,8 +80,7 @@ dns_keymgr_checkds_id(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
 
 isc_result_t
 dns_keymgr_rollover(dns_kasp_t *kasp, dns_dnsseckeylist_t *keyring,
-		    const char *directory, isc_stdtime_t now,
-		    isc_stdtime_t when, dns_keytag_t id,
+		    isc_stdtime_t now, isc_stdtime_t when, dns_keytag_t id,
 		    unsigned int algorithm);
 /*%<
  * Rollover key with given 'id'. If the 'algorithm' is non-zero, it must

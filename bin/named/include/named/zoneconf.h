@@ -28,8 +28,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		     const cfg_obj_t *zconfig, cfg_aclconfctx_t *ac,
-		     dns_kasplist_t *kasplist, dns_zone_t *zone,
-		     dns_zone_t *raw);
+		     dns_kasplist_t *kasplist, dns_keystorelist_t *keystores,
+		     dns_zone_t *zone, dns_zone_t *raw);
 /*%<
  * Configure or reconfigure a zone according to the named.conf
  * data.

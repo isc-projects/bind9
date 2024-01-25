@@ -28,6 +28,11 @@ New Features
 - The statistics channel now includes counters that indicate the number
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
+- Add HSM support to :any:`dnssec-policy`. You can now configure keys with a
+  ``key-store`` that allows you to set the directory to store the key files and
+  set a PKCS#11 URI string. The latter requires OpenSSL 3 and a valid PKCS#11
+  provider to be configured for OpenSSL. :gl`#1129`.
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 

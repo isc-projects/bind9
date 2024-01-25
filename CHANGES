@@ -1,3 +1,8 @@
+6329.	[func]		Add HSM support for dnssec-policy. You can now
+			configure keys with a key-store that allows you to
+			set the directory to store key files and to set a
+			PKCS #11 URI string. [GL #1129]
+
 6328.	[doc]		Update ZSK minimum lifetime documentation in ARM, also
 			depends on signing delay. [GL #4510]
 

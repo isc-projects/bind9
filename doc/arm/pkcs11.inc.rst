@@ -91,6 +91,11 @@ When using engine_pkcs11, all BIND binaries potentially need the keys require
 Even though OpenSSL 3 has compatibility support for Engine API it is not
 recommended to be used due to bugs in OpenSSL and libp11.
 
+It is not possible to generate new keys via the engine_pkcs11 and therefore it
+is not recommended to use it in a ``dnssec-policy`` setup (although it is
+possible to put previously generated keys in the ``key-directory`` and let the
+key manager select those keys when a key rollover is started.
+
 Configuring engine_pkcs11
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -170,8 +175,8 @@ path to the PKCS#11 module which should be gatewayed to. This can be done by
 editing the OpenSSL configuration file, by engine specific controls, or by using
 the p11-kit proxy module.
 
-It is recommended that pkcs11-provider git commit 8672b98d2558aecb49f173df97b1463c7697b540
-from August 15, 2023 or later is used.
+It is required to use pkcs11-provider git commit
+2e8c26b4157fd21422c66f0b4d7b26cf8c320570 from October 2, 2023 or later.
 
 BIND support for pkcs11-provider is built in and the -E command line option
 explained above should not be used.

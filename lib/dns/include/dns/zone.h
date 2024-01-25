@@ -1595,7 +1595,7 @@ isc_result_t
 dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
 /*%<
  *	Sets the name of the directory where private keys used for
- *	online signing of dynamic zones are found.
+ *	online signing or dynamic zones are found.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -1618,16 +1618,59 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
  *	Pointer to null-terminated file name, or NULL.
  */
 
+void
+dns_zone_setkeystores(dns_zone_t *zone, dns_keystorelist_t *keystores);
+/*%<
+ *	Sets the keystore list where private keys used for
+ *	online signing or dynamic zones are found.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+dns_keystorelist_t *
+dns_zone_getkeystores(dns_zone_t *zone);
+/*%<
+ *	Gets the keystore list where private keys used for
+ *	online signing or dynamic zones are found.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *
+ * Returns:
+ *	Pointer to the keystore list, or NULL.
+ */
+
 isc_result_t
 dns_zone_getdnsseckeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		       isc_stdtime_t now, dns_dnsseckeylist_t *keys);
-/*%
+/*%<
  * Find DNSSEC keys used for signing with dnssec-policy. Load these keys
  * into 'keys'.
  *
  * Requires:
  *\li	'zone' to be valid initialised zone.
  *\li	'keys' to be an initialised DNSSEC keylist.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS
+ *\li	Error
+ */
+
+isc_result_t
+dns_zone_findkeys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
+		  isc_stdtime_t now, isc_mem_t *mctx, unsigned int maxkeys,
+		  dst_key_t **keys, unsigned int *nkeys);
+/*%<
+ * Finds a set of zone keys. Searches in the applicable key stores for the
+ * given 'zone' if there is a dnssec-policy attached, otherwise it looks up
+ * the keys in the zone's key-directory. The found keys are loaded into 'keys'.
+ *
+ * Requires:
+ *\li	'zone' to be a valid initialised zone.
+ *\li	'mctx' is not NULL.
+ *\li	'keys' is not NULL and has enough space form 'nkeys' keys.
+ *\li	'nkeys' is not NULL.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS

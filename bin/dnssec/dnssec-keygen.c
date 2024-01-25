@@ -92,6 +92,7 @@ struct keygen_ctx {
 	const char *policy;
 	const char *configfile;
 	const char *directory;
+	dns_keystore_t *keystore;
 	char *algname;
 	char *nametype;
 	char *type;
@@ -255,14 +256,42 @@ progress(int p) {
 
 static void
 kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
-	       dns_kasp_t **kaspp) {
+	       const char *keydir, const char *engine, dns_kasp_t **kaspp) {
+	isc_result_t result = ISC_R_NOTFOUND;
 	const cfg_listelt_t *element;
 	const cfg_obj_t *kasps = NULL;
 	dns_kasp_t *kasp = NULL, *kasp_next;
-	isc_result_t result = ISC_R_NOTFOUND;
 	dns_kasplist_t kasplist;
+	const cfg_obj_t *keystores = NULL;
+	dns_keystore_t *ks = NULL, *ks_next;
+	dns_keystorelist_t kslist;
 
 	ISC_LIST_INIT(kasplist);
+	ISC_LIST_INIT(kslist);
+
+	(void)cfg_map_get(config, "key-store", &keystores);
+	for (element = cfg_list_first(keystores); element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *kconfig = cfg_listelt_value(element);
+		ks = NULL;
+		result = cfg_keystore_fromconfig(kconfig, mctx, lctx, engine,
+						 &kslist, NULL);
+		if (result != ISC_R_SUCCESS) {
+			fatal("failed to configure key-store '%s': %s",
+			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
+			      isc_result_totext(result));
+		}
+	}
+	/* Default key-directory key store. */
+	ks = NULL;
+	(void)cfg_keystore_fromconfig(NULL, mctx, lctx, engine, &kslist, &ks);
+	INSIST(ks != NULL);
+	if (keydir != NULL) {
+		/* '-K keydir' takes priority */
+		dns_keystore_setdirectory(ks, keydir);
+	}
+	dns_keystore_detach(&ks);
 
 	(void)cfg_map_get(config, "dnssec-policy", &kasps);
 	for (element = cfg_list_first(kasps); element != NULL;
@@ -277,7 +306,7 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		}
 
 		result = cfg_kasp_fromconfig(kconfig, NULL, true, mctx, lctx,
-					     &kasplist, &kasp);
+					     &kslist, &kasplist, &kasp);
 		if (result != ISC_R_SUCCESS) {
 			fatal("failed to configure dnssec-policy '%s': %s",
 			      cfg_obj_asstring(cfg_tuple_get(kconfig, "name")),
@@ -297,6 +326,15 @@ kasp_from_conf(cfg_obj_t *config, isc_mem_t *mctx, const char *name,
 		kasp_next = ISC_LIST_NEXT(kasp, link);
 		ISC_LIST_UNLINK(kasplist, kasp, link);
 		dns_kasp_detach(&kasp);
+	}
+
+	/*
+	 * Cleanup keystore list.
+	 */
+	for (ks = ISC_LIST_HEAD(kslist); ks != NULL; ks = ks_next) {
+		ks_next = ISC_LIST_NEXT(ks, link);
+		ISC_LIST_UNLINK(kslist, ks, link);
+		dns_keystore_detach(&ks);
 	}
 }
 
@@ -655,16 +693,27 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 
 		if (!ctx->quiet && show_progress) {
 			fprintf(stderr, "Generating key pair.");
+		}
+
+		if (ctx->keystore != NULL && ctx->policy != NULL) {
+			ret = dns_keystore_keygen(
+				ctx->keystore, name, ctx->policy, ctx->rdclass,
+				mctx, ctx->alg, ctx->size, flags, &key);
+		} else if (!ctx->quiet && show_progress) {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
-					       ctx->rdclass, mctx, &key,
+					       ctx->rdclass, NULL, mctx, &key,
 					       &progress);
-			putc('\n', stderr);
-			fflush(stderr);
 		} else {
 			ret = dst_key_generate(name, ctx->alg, ctx->size, param,
 					       flags, ctx->protocol,
-					       ctx->rdclass, mctx, &key, NULL);
+					       ctx->rdclass, NULL, mctx, &key,
+					       NULL);
+		}
+
+		if (!ctx->quiet && show_progress) {
+			putc('\n', stderr);
+			fflush(stderr);
 		}
 
 		if (ret != ISC_R_SUCCESS) {
@@ -857,6 +906,18 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv) {
 	dst_key_free(&key);
 	if (prevkey != NULL) {
 		dst_key_free(&prevkey);
+	}
+}
+
+static void
+check_keystore_options(keygen_ctx_t *ctx) {
+	ctx->directory = dns_keystore_directory(ctx->keystore, NULL);
+	if (ctx->directory != NULL) {
+		isc_result_t ret = try_dir(ctx->directory);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("cannot open directory %s: %s", ctx->directory,
+			      isc_result_totext(ret));
+		}
 	}
 }
 
@@ -1269,7 +1330,8 @@ main(int argc, char **argv) {
 				      ctx.policy, ctx.configfile);
 			}
 
-			kasp_from_conf(config, mctx, ctx.policy, &kasp);
+			kasp_from_conf(config, mctx, ctx.policy, ctx.directory,
+				       engine, &kasp);
 			if (kasp == NULL) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);
@@ -1295,7 +1357,10 @@ main(int argc, char **argv) {
 				ctx.ksk = dns_kasp_key_ksk(kaspkey);
 				ctx.zsk = dns_kasp_key_zsk(kaspkey);
 				ctx.lifetime = dns_kasp_key_lifetime(kaspkey);
-
+				ctx.keystore = dns_kasp_key_keystore(kaspkey);
+				if (ctx.keystore != NULL) {
+					check_keystore_options(&ctx);
+				}
 				keygen(&ctx, mctx, argc, argv);
 
 				kaspkey = ISC_LIST_NEXT(kaspkey, link);

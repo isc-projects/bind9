@@ -866,8 +866,8 @@ process_notifytype(dns_notifytype_t ntype, dns_zonetype_t ztype,
 isc_result_t
 named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		     const cfg_obj_t *zconfig, cfg_aclconfctx_t *ac,
-		     dns_kasplist_t *kasplist, dns_zone_t *zone,
-		     dns_zone_t *raw) {
+		     dns_kasplist_t *kasplist, dns_keystorelist_t *keystorelist,
+		     dns_zone_t *zone, dns_zone_t *raw) {
 	isc_result_t result;
 	const char *zname;
 	dns_rdataclass_t zclass;
@@ -1576,6 +1576,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			filename = cfg_obj_asstring(obj);
 			CHECK(dns_zone_setkeydirectory(zone, filename));
 		}
+		/* Also save a reference to the keystore list. */
+		dns_zone_setkeystores(zone, keystorelist);
 
 		obj = NULL;
 		result = named_config_get(maps, "sig-signing-signatures", &obj);

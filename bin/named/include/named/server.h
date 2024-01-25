@@ -65,6 +65,7 @@ struct named_server {
 	dns_zonemgr_t	  *zonemgr;
 	dns_viewlist_t	   viewlist;
 	dns_kasplist_t	   kasplist;
+	dns_keystorelist_t keystorelist;
 	ns_interfacemgr_t *interfacemgr;
 	dns_db_t	  *in_roothints;
 
