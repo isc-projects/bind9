@@ -1562,7 +1562,7 @@ dns__qpcache_expireheader(dns_slabheader_t *header,
 	dns__qpdb_mark(header, DNS_SLABHEADERATTR_ANCIENT);
 	QPDB_HEADERNODE(header)->dirty = 1;
 
-	if (isc_refcount_current(&QPDB_HEADERNODE(header)->references) == 0) {
+	if (isc_refcount_current(&QPDB_HEADERNODE(header)->erefs) == 0) {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_write;
 		dns_qpdb_t *qpdb = (dns_qpdb_t *)header->db;
 

@@ -775,14 +775,10 @@ add_changed(dns_slabheader_t *header,
 
 	if (changed != NULL) {
 		dns_qpdata_t *node = (dns_qpdata_t *)header->node;
-		uint_fast32_t refs = isc_refcount_increment(&node->references);
-#if DNS_DB_NODETRACE
-		fprintf(stderr,
-			"incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-			func, file, line, node, refs + 1);
-#else
-		UNUSED(refs);
-#endif
+
+		dns__qpdb_newref(qpdb, node,
+				 isc_rwlocktype_none DNS__DB_FLARG_PASS);
+
 		changed->node = node;
 		changed->dirty = false;
 		ISC_LIST_INITANDAPPEND(version->changed_list, changed, link);
@@ -1105,16 +1101,18 @@ dns__qpdb_newref(dns_qpdb_t *qpdb, dns_qpdata_t *node,
 		ISC_LIST_UNLINK(qpdb->deadnodes[node->locknum], node, deadlink);
 	}
 
-	refs = isc_refcount_increment0(&node->references);
+	dns_qpdata_ref(node);
+	refs = isc_refcount_increment0(&node->erefs);
+
 #if DNS_DB_NODETRACE
-	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
+	fprintf(stderr, "incr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
 		func, file, line, node, refs + 1);
 #else
 	UNUSED(refs);
 #endif
 
 	if (refs == 0) {
-		/* this is the first reference to the node */
+		/* this is the first external reference to the node */
 		refs = isc_refcount_increment0(
 			&qpdb->node_locks[node->locknum].references);
 #if DNS_DB_NODETRACE
@@ -1263,11 +1261,13 @@ reactivate_node(dns_qpdb_t *qpdb, dns_qpdata_t *node,
  * threads are decreasing the reference to zero simultaneously and at least
  * one of them is going to free the node.
  *
- * This function returns true if and only if the node reference decreases
- * to zero.
+ * This decrements both the internal and external node reference counters.
+ * If the external reference count drops to zero, then the node lock
+ * reference count is also decremented.
  *
- * NOTE: Decrementing the reference count of a node to zero does not mean it
- * will be immediately freed.
+ * This function returns true if and only if the node reference decreases
+ * to zero.  (NOTE: Decrementing the reference count of a node to zero does
+ * not mean it will be immediately freed.)
  */
 bool
 dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
@@ -1291,10 +1291,11 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 
 	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, qpdb, locked)) {
-		refs = isc_refcount_decrement(&node->references);
+		refs = isc_refcount_decrement(&node->erefs);
+
 #if DNS_DB_NODETRACE
 		fprintf(stderr,
-			"decr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
+			"decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
 			func, file, line, node, refs - 1);
 #else
 		UNUSED(refs);
@@ -1309,10 +1310,13 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 #else
 			UNUSED(refs);
 #endif
-			return (true);
+			no_reference = true;
 		} else {
-			return (false);
+			no_reference = false;
 		}
+
+		dns_qpdata_unref(node);
+		return (no_reference);
 	}
 
 	/* Upgrade the lock? */
@@ -1320,16 +1324,18 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 		NODE_FORCEUPGRADE(&nodelock->lock, nlocktypep);
 	}
 
-	refs = isc_refcount_decrement(&node->references);
+	refs = isc_refcount_decrement(&node->erefs);
 #if DNS_DB_NODETRACE
-	fprintf(stderr, "decr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
+	fprintf(stderr, "decr:node:%s:%s:%u:%p->erefs = %" PRIuFAST32 "\n",
 		func, file, line, node, refs - 1);
-#else
-	UNUSED(refs);
 #endif
+
 	if (refs > 1) {
+		dns_qpdata_unref(node);
 		return (false);
 	}
+
+	INSIST(refs == 1);
 
 	if (node->dirty) {
 		if (IS_CACHE(qpdb)) {
@@ -1358,6 +1364,7 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 	 * we only do a trylock.
 	 */
 	/* We are allowed to upgrade the tree lock */
+
 	switch (*tlocktypep) {
 	case isc_rwlocktype_write:
 		result = ISC_R_SUCCESS;
@@ -1438,6 +1445,7 @@ restore_locks:
 		TREE_UNLOCK(&qpdb->tree_lock, tlocktypep);
 	}
 
+	dns_qpdata_unref(node);
 	return (no_reference);
 }
 
@@ -2160,15 +2168,10 @@ dns__qpdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
 	REQUIRE(VALID_QPDB((dns_qpdb_t *)db));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
+	dns_qpdb_t *qpdb = (dns_qpdb_t *)db;
 	dns_qpdata_t *node = (dns_qpdata_t *)source;
-	uint_fast32_t refs = isc_refcount_increment(&node->references);
 
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs + 1);
-#else
-	UNUSED(refs);
-#endif
+	dns__qpdb_newref(qpdb, node, isc_rwlocktype_none DNS__DB_FLARG_PASS);
 
 	*targetp = source;
 }
@@ -2282,7 +2285,6 @@ dns__qpdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
 	dns_qpdata_t *qpnode = (dns_qpdata_t *)node;
 	dns_qpdb_version_t *rbtversion = version;
 	qpdb_rdatasetiter_t *iterator = NULL;
-	uint_fast32_t refs;
 
 	REQUIRE(VALID_QPDB(qpdb));
 
@@ -2312,16 +2314,9 @@ dns__qpdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
 	iterator->common.version = (dns_dbversion_t *)rbtversion;
 	iterator->common.options = options;
 	iterator->common.now = now;
-
-	refs = isc_refcount_increment(&qpnode->references);
-#if DNS_DB_NODETRACE
-	fprintf(stderr, "incr:node:%s:%s:%u:%p->references = %" PRIuFAST32 "\n",
-		func, file, line, node, refs + 1);
-#else
-	UNUSED(refs);
-#endif
-
 	iterator->current = NULL;
+
+	dns__qpdb_newref(qpdb, qpnode, isc_rwlocktype_none DNS__DB_FLARG_PASS);
 
 	*iteratorp = (dns_rdatasetiter_t *)iterator;
 

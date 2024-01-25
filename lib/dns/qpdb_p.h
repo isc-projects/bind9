@@ -135,6 +135,7 @@ struct dns_qpdata {
 	uint8_t	      : 0; /* end of bitfields c/o node lock */
 	uint16_t locknum;  /* note that this is not in the bitfield */
 	isc_refcount_t references;
+	isc_refcount_t erefs;
 	/*@}*/
 };
 
