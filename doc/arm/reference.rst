@@ -6444,10 +6444,11 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     must be more than the publication interval (which is the sum of
     :any:`dnskey-ttl`, :any:`publish-safety`, and :any:`zone-propagation-delay`).
     It must also be more than the retire interval (which is the sum of
-    :any:`max-zone-ttl`, :any:`retire-safety` and :any:`zone-propagation-delay`
-    for ZSKs, and the sum of :any:`parent-ds-ttl`, :any:`retire-safety`, and
-    :any:`parent-propagation-delay` for KSKs and CSKs). BIND 9 treats a key
-    lifetime that is too short as an error.
+    :any:`max-zone-ttl`, :any:`retire-safety`, :any:`zone-propagation-delay`,
+    and signing delay (:any:`signatures-validity` minus
+    :any:`signatures-refresh`) for ZSKs, and the sum of :any:`parent-ds-ttl`,
+    :any:`retire-safety`, and :any:`parent-propagation-delay` for KSKs and
+    CSKs). BIND 9 treats a key lifetime that is too short as an error.
 
     The ``algorithm`` parameter specifies the key's algorithm, expressed
     either as a string ("rsasha256", "ecdsa384", etc.) or as a decimal
