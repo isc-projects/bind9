@@ -142,7 +142,11 @@ key_clear "KEY4"
 $KEYGEN -G -k "$POLICY" "$ZONE" >"keygen.out.$POLICY.test$n" 2>/dev/null || ret=1
 lines=$(wc -l <"keygen.out.$POLICY.test$n")
 test "$lines" -eq $NUM_KEYS || log_error "wrong number of keys created for policy default: $lines"
+# Temporarily adjust max search depth for this test
+MAXDEPTH=1
 ids=$(get_keyids "$DIR" "$ZONE")
+MAXDEPTH=3
+echo_i "found in dir $DIR for zone $ZONE the following keytags: $ids"
 for id in $ids; do
   check_key "KEY1" "$id"
   test "$ret" -eq 0 && key_save KEY1
