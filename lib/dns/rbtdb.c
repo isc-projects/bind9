@@ -2391,7 +2391,7 @@ dns__rbtdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
 static bool
 cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 	dns_slabheader_t *header = NULL, *header_next = NULL;
-	bool cname, other_data;
+	bool cname = false, other_data = false;
 	dns_rdatatype_t rdtype;
 
 	/*
@@ -2401,10 +2401,16 @@ cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 	/*
 	 * Look for CNAME and "other data" rdatasets active in our version.
 	 */
-	cname = false;
-	other_data = false;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
+		if (!prio_type(header->type)) {
+			/*
+			 * CNAME is in the priority list, so if we are done
+			 * with the priority list, we know there will not be
+			 * CNAME, so we are safe to skip the rest of the types.
+			 */
+			return (false);
+		}
 		if (header->type == dns_rdatatype_cname) {
 			/*
 			 * Look for an active extant CNAME.
@@ -2464,10 +2470,9 @@ cname_and_other_data(dns_rbtnode_t *node, uint32_t serial) {
 				}
 			}
 		}
-	}
-
-	if (cname && other_data) {
-		return (true);
+		if (cname && other_data) {
+			return (true);
+		}
 	}
 
 	return (false);
