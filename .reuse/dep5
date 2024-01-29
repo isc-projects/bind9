@@ -39,10 +39,25 @@ Files: **/*.after*
        bin/tests/system/doth/CA/index.txt
        bin/tests/system/doth/CA/index.txt.attr
        bin/tests/system/doth/CA/serial
-       bin/tests/system/notify/ns4/named.port.in
+       bin/tests/system/formerr/badnsec3owner
+       bin/tests/system/formerr/badrecordname
+       bin/tests/system/formerr/dupans
+       bin/tests/system/formerr/dupquestion
+       bin/tests/system/formerr/keyclass
+       bin/tests/system/formerr/malformeddeltype
+       bin/tests/system/formerr/malformedrrsig
        bin/tests/system/formerr/nametoolong
        bin/tests/system/formerr/noquestions
-       bin/tests/system/formerr/twoquestions
+       bin/tests/system/formerr/optwrongname
+       bin/tests/system/formerr/qtypeasanswer
+       bin/tests/system/formerr/questionclass
+       bin/tests/system/formerr/shortquestion
+       bin/tests/system/formerr/shortrecord
+       bin/tests/system/formerr/tsignotlast
+       bin/tests/system/formerr/tsigwrongclass
+       bin/tests/system/formerr/twoquestionnames
+       bin/tests/system/formerr/twoquestiontypes
+       bin/tests/system/formerr/wrongclass
        bin/tests/system/forward/CA/CA.cfg
        bin/tests/system/forward/CA/README
        bin/tests/system/forward/CA/index.txt
@@ -59,6 +74,7 @@ Files: **/*.after*
        bin/tests/system/masterfile/knowngood.include
        bin/tests/system/masterfile/knowngood.ttl1
        bin/tests/system/masterfile/knowngood.ttl2
+       bin/tests/system/notify/ns4/named.port.in
        bin/tests/system/nsupdate/CA/CA.cfg
        bin/tests/system/nsupdate/CA/README
        bin/tests/system/nsupdate/CA/index.txt
