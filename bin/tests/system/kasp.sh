@@ -34,6 +34,8 @@ SHA256="R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY="
 VIEW1="YPfMoAk6h+3iN8MDRQC004iSNHY="
 VIEW2="4xILSZQnuO1UKubXHkYUsvBRPu8="
 VIEW3="C1Azf+gGPMmxrUg/WQINP6eV9Y0="
+MINDEPTH=1
+MAXDEPTH=3
 
 ###############################################################################
 # Key properties                                                              #
@@ -179,7 +181,7 @@ get_keyids() {
   _zone=$2
   _regex="K${_zone}.+*+*.key"
 
-  find "${_dir}" -mindepth 1 -maxdepth 3 -name "${_regex}" | sed "s,.*/K${_zone}.+\([0-9]\{3\}\)+\([0-9]\{5\}\).key,\2,"
+  find "${_dir}" -mindepth $MINDEPTH -maxdepth $MAXDEPTH -name "${_regex}" | sed "s,.*/K${_zone}.+\([0-9]\{3\}\)+\([0-9]\{5\}\).key,\2,"
 }
 
 # By default log errors and don't quit immediately.
