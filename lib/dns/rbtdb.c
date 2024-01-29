@@ -335,6 +335,30 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 	}
 }
 
+static bool
+prio_type(dns_typepair_t type) {
+	switch (type) {
+	case dns_rdatatype_soa:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_soa):
+	case dns_rdatatype_a:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_a):
+	case dns_rdatatype_aaaa:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_aaaa):
+	case dns_rdatatype_nsec:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec):
+	case dns_rdatatype_nsec3:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec3):
+	case dns_rdatatype_ns:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ns):
+	case dns_rdatatype_ds:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ds):
+	case dns_rdatatype_cname:
+	case DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_cname):
+		return (true);
+	}
+	return (false);
+}
+
 /*%
  * These functions allow the heap code to rank the priority of each
  * element.  It returns true if v1 happens "sooner" than v2.
@@ -2482,6 +2506,7 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	rbtdb_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
+	dns_slabheader_t *prioheader = NULL;
 	unsigned char *merged = NULL;
 	isc_result_t result;
 	bool header_nx;
@@ -2615,6 +2640,9 @@ dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
 	for (topheader = rbtnode->data; topheader != NULL;
 	     topheader = topheader->next)
 	{
+		if (prio_type(topheader->type)) {
+			prioheader = topheader;
+		}
 		if (topheader->type == newheader->type ||
 		    topheader->type == negtype)
 		{
@@ -2999,9 +3027,21 @@ find_header:
 			/*
 			 * No rdatasets of the given type exist at the node.
 			 */
-			newheader->next = rbtnode->data;
-			newheader->down = NULL;
-			rbtnode->data = newheader;
+			INSIST(newheader->down == NULL);
+
+			if (prio_type(newheader->type)) {
+				/* This is a priority type, prepend it */
+				newheader->next = rbtnode->data;
+				rbtnode->data = newheader;
+			} else if (prioheader != NULL) {
+				/* Append after the priority headers */
+				newheader->next = prioheader->next;
+				prioheader->next = newheader;
+			} else {
+				/* There were no priority headers */
+				newheader->next = rbtnode->data;
+				rbtnode->data = newheader;
+			}
 		}
 	}
 
