@@ -132,3 +132,62 @@ def test_wildcard_with_star_not_synthesized(
     isctest.check.is_response_to(response_msg, query_msg)
     isctest.check.nxdomain(response_msg)
     isctest.check.empty_answer(query_msg)
+
+
+NESTED_SUFFIX = dns.name.from_text("*.*.nestedwild.test.")
+
+
+# Force `*.*.*.nestedwild.test.` to be checked.
+@example(name=isctest.name.prepend_label("*", NESTED_SUFFIX))
+@given(name=dns_names(suffix=NESTED_SUFFIX, min_labels=len(NESTED_SUFFIX) + 1))
+def test_name_in_between_wildcards(name: dns.name.Name, named_port: int) -> None:
+    """Check nested wildcard cases.
+
+    There are `*.nestedwild.test. A` and `*.*.*.nestedwild.test. A` records present in their zone.
+    This means that `foo.*.nestedwild.test. A` must not be synthetized (see test above)
+    but `foo.*.*.nestedwild.test A` must.
+    """
+
+    # `*.*.*.nestedwild.test.` and `*.foo.*.*.nestedwild.test.` must be NOERROR
+    # `foo.*.*.*.nestedwild.test` must be NXDOMAIN (see test below).
+    assume(
+        len(name) == len(NESTED_SUFFIX) + 1
+        or name.labels[-len(NESTED_SUFFIX) - 1] != b"*"
+    )
+
+    query_msg = dns.message.make_query(name, WILDCARD_RDTYPE)
+    response_msg = isctest.query.tcp(query_msg, IP_ADDR, named_port, timeout=TIMEOUT)
+
+    isctest.check.is_response_to(response_msg, query_msg)
+    isctest.check.noerror(response_msg)
+    expected_answer = [
+        dns.rrset.from_text(
+            query_msg.question[0].name,
+            300,  # TTL, ignored by dnspython comparison
+            dns.rdataclass.IN,
+            WILDCARD_RDTYPE,
+            WILDCARD_RDATA,
+        )
+    ]
+    assert response_msg.answer == expected_answer, str(response_msg)
+
+
+@given(
+    name=dns_names(
+        suffix=isctest.name.prepend_label("*", NESTED_SUFFIX),
+        min_labels=len(NESTED_SUFFIX) + 2,
+    )
+)
+def test_name_nested_wildcard_subdomains_not_synthesized(
+    name: dns.name.Name, named_port: int
+):
+    """Check nested wildcard cases.
+
+    `foo.*.*.*.nestedwild.test. A` must not be synthesized.
+    """
+    query_msg = dns.message.make_query(name, WILDCARD_RDTYPE)
+    response_msg = isctest.query.tcp(query_msg, IP_ADDR, named_port, timeout=TIMEOUT)
+
+    isctest.check.is_response_to(response_msg, query_msg)
+    isctest.check.nxdomain(response_msg)
+    isctest.check.empty_answer(query_msg)
