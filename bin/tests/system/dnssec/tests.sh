@@ -4396,7 +4396,7 @@ dig_with_opts @10.53.0.4 does-not-exist.too-many-iterations >dig.out.ns4.test$n 
 digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "flags: qr rd ra;" dig.out.ns4.test$n >/dev/null || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n >/dev/null || ret=1
-grep "ANSWER: 0, AUTHORITY: 6" dig.out.ns4.test$n >/dev/null || ret=1
+grep "ANSWER: 0, AUTHORITY: 8" dig.out.ns4.test$n >/dev/null || ret=1
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
