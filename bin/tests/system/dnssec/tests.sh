@@ -4273,6 +4273,11 @@ for qtype in "SOA" "TXT"; do
   status=$((status + ret))
 done
 
+# Put back the KSK.
+echo_i "put back the KSK $KSK_ID for zone $zone from disk"
+mv ns2/$KSK.key.bak ns2/$KSK.key
+mv ns2/$KSK.private.bak ns2/$KSK.private
+
 # Make the new ZSK (ZSK3) active.
 echo_i "make new ZSK $ZSK_ID3 active for zone $zone ($n)"
 ret=0
@@ -4295,6 +4300,11 @@ done
 n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
+
+# Remove the KSK from disk.
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
+mv ns2/$KSK.key ns2/$KSK.key.bak
+mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
 echo_i "update the zone with $zone IN TXT nsupdate added me one more time"
