@@ -212,6 +212,7 @@ hashtable_new(isc_ht_t *ht, const uint8_t idx, const uint8_t bits) {
 	size = ht->size[idx] * sizeof(isc_ht_node_t *);
 
 	ht->table[idx] = isc_mem_get(ht->mctx, size);
+	INSIST(ht->table[idx] != NULL);
 	memset(ht->table[idx], 0, size);
 }
 
@@ -246,6 +247,7 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits,
 	REQUIRE(bits >= 1 && bits <= HT_MAX_BITS);
 
 	ht = isc_mem_get(mctx, sizeof(*ht));
+	INSIST(ht != NULL);
 	*ht = (isc_ht_t){
 		.case_sensitive = case_sensitive,
 	};
@@ -290,6 +292,7 @@ isc__ht_add(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 	hash = hash_32(hashval, ht->hashbits[idx]);
 
 	node = isc_mem_get(ht->mctx, sizeof(*node) + keysize);
+	INSIST(node != NULL);
 	*node = (isc_ht_node_t){
 		.keysize = keysize,
 		.hashval = hashval,
@@ -446,6 +449,7 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	REQUIRE(itp != NULL && *itp == NULL);
 
 	it = isc_mem_get(ht->mctx, sizeof(isc_ht_iter_t));
+	INSIST(it != NULL);
 	*it = (isc_ht_iter_t){
 		.ht = ht,
 		.hindex = ht->hindex,
