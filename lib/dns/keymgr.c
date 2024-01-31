@@ -630,6 +630,13 @@ keymgr_dep(dst_key_t *k, dns_dnsseckeylist_t *keyring, uint32_t *dep) {
 		 * Check if k is a direct successor of d, e.g. d depends on k.
 		 */
 		if (keymgr_direct_dep(d->key, k)) {
+			dst_key_state_t hidden[NUM_KEYSTATES] = {
+				HIDDEN, HIDDEN, HIDDEN, HIDDEN
+			};
+			if (keymgr_key_match_state(d->key, k, NA, NA, hidden)) {
+				continue;
+			}
+
 			if (dep != NULL) {
 				*dep = dst_key_id(d->key);
 			}
