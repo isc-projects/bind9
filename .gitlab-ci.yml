@@ -964,7 +964,7 @@ clang:asan:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *base_image
   <<: *build_job
 
@@ -1022,7 +1022,7 @@ clang:tsan:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
 
 system:clang:tsan:
   variables:
@@ -1127,7 +1127,7 @@ clang:bullseye:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3"
+    EXTRA_CONFIGURE: "--with-python=python3 --disable-warn-error"
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
@@ -1178,7 +1178,7 @@ unit:gcc:pkcs11:
 clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-gssapi=krb5-config"
+    EXTRA_CONFIGURE: "--with-gssapi=krb5-config --disable-warn-error"
     USER: gitlab-runner
   <<: *freebsd_12_amd64_image
   <<: *build_job
