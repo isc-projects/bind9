@@ -197,7 +197,7 @@ client_trace(ns_client_t *client, int level, const char *message) {
 #define DNS_GETDB_NOLOG	     0x02U
 #define DNS_GETDB_PARTIAL    0x04U
 #define DNS_GETDB_IGNOREACL  0x08U
-#define DNS_GETDB_STALEFIRST 0X0CU
+#define DNS_GETDB_STALEFIRST 0X10U
 
 #define PENDINGOK(x) (((x) & DNS_DBFIND_PENDINGOK) != 0)
 
