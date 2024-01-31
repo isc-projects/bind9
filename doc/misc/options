@@ -21,6 +21,7 @@ dnssec-policy <string> {
 	publish-safety <duration>;
 	purge-keys <duration>;
 	retire-safety <duration>;
+	signatures-jitter <duration>;
 	signatures-refresh <duration>;
 	signatures-validity <duration>;
 	signatures-validity-dnskey <duration>;

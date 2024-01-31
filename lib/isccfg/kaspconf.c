@@ -312,7 +312,7 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	const char *kaspname = NULL;
 	dns_kasp_t *kasp = NULL;
 	size_t i = 0;
-	uint32_t sigrefresh = 0, sigvalidity = 0;
+	uint32_t sigjitter = 0, sigrefresh = 0, sigvalidity = 0;
 	uint32_t dnskeyttl = 0, dsttl = 0, maxttl = 0;
 	uint32_t publishsafety = 0, retiresafety = 0;
 	uint32_t zonepropdelay = 0, parentpropdelay = 0;
@@ -360,6 +360,10 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, dns_kasp_t *default_kasp,
 	maps[i] = NULL;
 
 	/* Configuration: Signatures */
+	sigjitter = get_duration(maps, "signatures-jitter",
+				 DNS_KASP_SIG_JITTER);
+	dns_kasp_setsigjitter(kasp, sigjitter);
+
 	sigrefresh = get_duration(maps, "signatures-refresh",
 				  DNS_KASP_SIG_REFRESH);
 	dns_kasp_setsigrefresh(kasp, sigrefresh);

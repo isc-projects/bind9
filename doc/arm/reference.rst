@@ -6509,6 +6509,16 @@ The following options can be specified in a :any:`dnssec-policy` statement:
     unforeseen events.  This increases the time a key remains published
     after it is no longer active.  The default is ``PT1H`` (1 hour).
 
+.. namedconf:statement:: signatures-jitter
+   :tags: dnssec
+   :short: Specifies a range for signatures expirations.
+
+    To prevent all signatures from expiring at the same moment, BIND 9 may
+    vary the validity interval of individual signatures. The validity of a
+    newly generated signatures is in range between :any:`signatures-validity`
+    (maximum) and :any:`signatures-validity` minus :any:`signatures-jitter`
+    (minimum). The default jitter is 12 hours.
+
 .. namedconf:statement:: signatures-refresh
    :tags: dnssec
    :short: Specifies how frequently an RRSIG record is refreshed.

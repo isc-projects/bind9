@@ -128,6 +128,22 @@ dns_kasp_signdelay(dns_kasp_t *kasp) {
 }
 
 uint32_t
+dns_kasp_sigjitter(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(kasp->frozen);
+
+	return (kasp->signatures_jitter);
+}
+
+void
+dns_kasp_setsigjitter(dns_kasp_t *kasp, uint32_t value) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	REQUIRE(!kasp->frozen);
+
+	kasp->signatures_jitter = value;
+}
+
+uint32_t
 dns_kasp_sigrefresh(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
