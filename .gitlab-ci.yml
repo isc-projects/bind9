@@ -16,9 +16,9 @@ variables:
   TEST_PARALLEL_JOBS: 6
 
   CONFIGURE: ./configure
-  CLANG: clang-13
-  SCAN_BUILD: scan-build-13
-  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-13/bin/llvm-symbolizer
+  CLANG: clang-17
+  SCAN_BUILD: scan-build-17
+  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
   CLANG_FORMAT: clang-format-13
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
