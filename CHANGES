@@ -1,17 +1,17 @@
-6328.	[doc]		Update ZSK minimum lifetime documentation in ARM, also
+6330.	[doc]		Update ZSK minimum lifetime documentation in ARM, also
 			depends on signing delay. [GL #4510]
 
-6326.	[func]		Add workaround to enforce dynamic linker to pull
+6328.	[func]		Add workaround to enforce dynamic linker to pull
 			jemalloc earlier than libc to ensure all memory
 			allocations are done via jemalloc. [GL #4404]
 
-6324.	[bug]		Changes to "listen-on" statements were ignored on
+6326.	[bug]		Changes to "listen-on" statements were ignored on
 			reconfiguration unless the port or interface address was
 			changed, making it impossible to change a related
 			listener transport type. Thanks to Thomas Amgarten.
 			[GL #4518] [GL #4528]
 
-6322.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
+6324.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
 
