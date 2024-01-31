@@ -60,10 +60,10 @@ dnssec-policy "not-enough-hours-in-day" {
 		zsk key-directory lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
 	};
 
-	/* validity 500 days, resign in 449 days */
+	/* validity 500 days, with one 1 day jitter (resign in 499 days) */
+	signatures-jitter 1d;
 	signatures-validity-dnskey 500d;
 	signatures-validity 500d;
-	signatures-refresh 449d;
 };
 
 zone "." {
