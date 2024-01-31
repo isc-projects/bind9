@@ -384,8 +384,6 @@ fetch_callback_dnskey(void *arg) {
 	isc_result_t eresult = resp->result;
 	isc_result_t result;
 
-	INSIST(resp->type == FETCHDONE);
-
 	/* Free resources which are not of interest. */
 	if (resp->node != NULL) {
 		dns_db_detachnode(resp->db, &resp->node);
@@ -454,8 +452,6 @@ fetch_callback_ds(void *arg) {
 	isc_result_t eresult = resp->result;
 	isc_result_t result;
 	bool trustchain;
-
-	INSIST(resp->type == FETCHDONE);
 
 	/*
 	 * Set 'trustchain' to true if we're walking a chain of

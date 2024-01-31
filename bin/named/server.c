@@ -4542,6 +4542,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		view->staleanswerclienttimeout = (uint32_t)-1;
 	} else {
 		view->staleanswerclienttimeout = cfg_obj_asuint32(obj);
+
+		/*
+		 * BIND 9 no longer supports non-zero values of
+		 * stale-answer-client-timeout.
+		 */
+		if (view->staleanswerclienttimeout != 0) {
+			view->staleanswerclienttimeout = 0;
+			isc_log_write(
+				named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				"BIND 9 no longer supports non-zero values of "
+				"stale-answer-client-timeout, adjusted to 0");
+		}
 	}
 
 	obj = NULL;
@@ -4805,27 +4818,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 	INSIST(result == ISC_R_SUCCESS);
 	query_timeout = cfg_obj_asuint32(obj);
 	dns_resolver_settimeout(view->resolver, query_timeout);
-
-	/*
-	 * Adjust stale-answer-client-timeout upper bound
-	 * to be resolver-query-timeout - 1s.
-	 * This assignment is safe as dns_resolver_settimeout()
-	 * ensures that resolver->querytimeout value will be in the
-	 * [MINIMUM_QUERY_TIMEOUT, MAXIMUM_QUERY_TIMEOUT] range and
-	 * MINIMUM_QUERY_TIMEOUT is > 1000 (in ms).
-	 */
-	if (view->staleanswerclienttimeout != (uint32_t)-1 &&
-	    view->staleanswerclienttimeout >
-		    (dns_resolver_gettimeout(view->resolver) - 1000))
-	{
-		view->staleanswerclienttimeout =
-			dns_resolver_gettimeout(view->resolver) - 1000;
-		isc_log_write(
-			named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			"stale-answer-client-timeout adjusted to %" PRIu32,
-			view->staleanswerclienttimeout);
-	}
 
 	/* Specify whether to use 0-TTL for negative response for SOA query */
 	dns_resolver_setzeronosoattl(view->resolver, zero_no_soattl);
@@ -7059,7 +7051,7 @@ tat_done(void *arg) {
 	dns_fetchresponse_t *resp = (dns_fetchresponse_t *)arg;
 	ns_tat_t *tat = NULL;
 
-	INSIST(resp != NULL && resp->type == FETCHDONE);
+	INSIST(resp != NULL);
 
 	tat = resp->arg;
 

@@ -144,10 +144,6 @@
 /*% Was the client already sent a response? */
 #define QUERY_ANSWERED(q) (((q)->attributes & NS_QUERYATTR_ANSWERED) != 0)
 
-/*% Have we already processed an answer via stale-answer-client-timeout? */
-#define QUERY_STALEPENDING(q) \
-	(((q)->attributes & NS_QUERYATTR_STALEPENDING) != 0)
-
 /*% Does the query allow stale data in the response? */
 #define QUERY_STALEOK(q) (((q)->attributes & NS_QUERYATTR_STALEOK) != 0)
 
@@ -2622,7 +2618,6 @@ cleanup_after_fetch(dns_fetchresponse_t *resp, const char *ctracestr,
 	dns_fetch_t **fetchp = NULL;
 	isc_result_t result;
 
-	REQUIRE(resp->type == FETCHDONE);
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	CTRACE(ISC_LOG_DEBUG(3), ctracestr);
@@ -5808,7 +5803,7 @@ ns__query_start(query_ctx_t *qctx) {
 		}
 	}
 
-	if (!qctx->is_zone && (qctx->view->staleanswerclienttimeout == 0) &&
+	if (!qctx->is_zone && qctx->view->staleanswerclienttimeout == 0 &&
 	    dns_view_staleanswerenabled(qctx->view))
 	{
 		/*
@@ -6012,13 +6007,8 @@ query_lookup(query_ctx_t *qctx) {
 	 * If DNS_DBFIND_STALETIMEOUT is set, a stale answer is requested.
 	 * This can happen if 'stale-answer-client-timeout' is enabled.
 	 *
-	 * If 'stale-answer-client-timeout' is set to 0, and a stale
-	 * answer is found, send it to the client, and try to refresh the
-	 * RRset.
-	 *
-	 * If 'stale-answer-client-timeout' is non-zero, and a stale
-	 * answer is found, send it to the client. Don't try to refresh the
-	 * RRset because a fetch is already in progress.
+	 * If a stale answer is found, send it to the client, and try to refresh
+	 * the RRset.
 	 */
 	stale_timeout = ((dboptions & DNS_DBFIND_STALETIMEOUT) != 0);
 
@@ -6140,35 +6130,7 @@ query_lookup(query_ctx_t *qctx) {
 				}
 			}
 		} else {
-			/*
-			 * The 'stale-answer-client-timeout' triggered, return
-			 * the stale answer if available, otherwise wait until
-			 * the resolver finishes.
-			 */
-			isc_log_write(
-				ns_lctx, NS_LOGCATEGORY_SERVE_STALE,
-				NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				"%s %s client timeout, stale answer %s (%s)",
-				namebuf, typebuf,
-				stale_found ? "used" : "unavailable",
-				isc_result_totext(result));
-			if (stale_found) {
-				ns_client_extendederror(qctx->client, ede,
-							"client timeout");
-			} else if (!answer_found) {
-				return (result);
-			}
-
-			if (!stale_client_answer(result)) {
-				return (result);
-			}
-
-			/*
-			 * There still might be real answer later. Mark the
-			 * query so we'll know we can skip answering.
-			 */
-			qctx->client->query.attributes |=
-				NS_QUERYATTR_STALEPENDING;
+			UNREACHABLE();
 		}
 	}
 
@@ -6243,36 +6205,6 @@ query_clear_stale(ns_client_t *client) {
 }
 
 /*
- * Create a new query context with the sole intent of looking up for a stale
- * RRset in cache. If an entry is found, we mark the original query as
- * answered, in order to avoid answering the query twice, when the original
- * fetch finishes.
- */
-static void
-query_lookup_stale(ns_client_t *client) {
-	query_ctx_t qctx;
-
-	qctx_init(client, NULL, client->query.qtype, &qctx);
-	if (DNS64(client)) {
-		qctx.qtype = qctx.type = dns_rdatatype_a;
-		qctx.dns64 = true;
-	}
-	if (DNS64EXCLUDE(client)) {
-		qctx.dns64_exclude = true;
-	}
-	dns_db_attach(client->view->cachedb, &qctx.db);
-	client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
-	client->query.dboptions |= DNS_DBFIND_STALETIMEOUT;
-	client->nodetach = true;
-	(void)query_lookup(&qctx);
-	if (qctx.node != NULL) {
-		dns_db_detachnode(qctx.db, &qctx.node);
-	}
-	qctx_freedata(&qctx);
-	qctx_destroy(&qctx);
-}
-
-/*
  * Event handler to resume processing a query after recursion, or when a
  * client timeout is triggered. If the query has timed out or been cancelled
  * or the system is shutting down, clean up and exit. If a client timeout is
@@ -6296,13 +6228,6 @@ fetch_callback(void *arg) {
 
 	CTRACE(ISC_LOG_DEBUG(3), "fetch_callback");
 
-	if (resp->type == TRYSTALE) {
-		if (resp->result != ISC_R_CANCELED) {
-			query_lookup_stale(client);
-		}
-		isc_mem_putanddetach(&resp->mctx, resp, sizeof(*resp));
-		return;
-	}
 	/*
 	 * We are resuming from recursion. Reset any attributes, options
 	 * that a lookup due to stale-answer-client-timeout may have set.
@@ -6310,22 +6235,13 @@ fetch_callback(void *arg) {
 	if (client->view->cachedb != NULL && client->view->recursion) {
 		client->query.attributes |= NS_QUERYATTR_RECURSIONOK;
 	}
-	client->query.fetchoptions &= ~DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	client->query.dboptions &= ~DNS_DBFIND_STALETIMEOUT;
 	client->nodetach = false;
 
 	LOCK(&client->query.fetchlock);
 	INSIST(FETCH_RECTYPE_NORMAL(client) == resp->fetch ||
 	       FETCH_RECTYPE_NORMAL(client) == NULL);
-	if (QUERY_STALEPENDING(&client->query)) {
-		/*
-		 * We've gotten an authoritative answer to a query that
-		 * was left pending after a stale timeout. We don't need
-		 * to do anything with it; free all the data and go home.
-		 */
-		FETCH_RECTYPE_NORMAL(client) = NULL;
-		fetch_answered = true;
-	} else if (FETCH_RECTYPE_NORMAL(client) != NULL) {
+	if (FETCH_RECTYPE_NORMAL(client) != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
@@ -6565,13 +6481,6 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 	if (!TCP(client)) {
 		peeraddr = &client->peeraddr;
-	}
-
-	if (client->view->staleanswerclienttimeout > 0 &&
-	    client->view->staleanswerclienttimeout != (uint32_t)-1 &&
-	    dns_view_staleanswerenabled(client->view))
-	{
-		client->query.fetchoptions |= DNS_FETCHOPT_TRYSTALE_ONTIMEOUT;
 	}
 
 	isc_nmhandle_attach(client->handle, &HANDLE_RECTYPE_NORMAL(client));
