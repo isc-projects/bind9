@@ -1,35 +1,39 @@
-6329.	[func]		Add HSM support for dnssec-policy. You can now
+6331.	[func]		Add HSM support for dnssec-policy. You can now
 			configure keys with a key-store that allows you to
 			set the directory to store key files and to set a
 			PKCS #11 URI string. [GL #1129]
 
-6328.	[doc]		Update ZSK minimum lifetime documentation in ARM, also
+6330.	[doc]		Update ZSK minimum lifetime documentation in ARM, also
 			depends on signing delay. [GL #4510]
 
-6327.	[func]		Nsupdate can now set the UL EDNS option when sending
+6329.	[func]		Nsupdate can now set the UL EDNS option when sending
 			UPDATE requests. [GL #4419]
 
-6326.	[func]		Add workaround to enforce dynamic linker to pull
+6328.	[func]		Add workaround to enforce dynamic linker to pull
 			jemalloc earlier than libc to ensure all memory
 			allocations are done via jemalloc. [GL #4404]
 
-6325.	[func]		Expose the TCP client count in statistics channel.
+6327.	[func]		Expose the TCP client count in statistics channel.
 			[GL #4425]
 
-6324.	[bug]		Changes to "listen-on" statements were ignored on
+6326.	[bug]		Changes to "listen-on" statements were ignored on
 			reconfiguration unless the port or interface address was
 			changed, making it impossible to change a related
 			listener transport type. Thanks to Thomas Amgarten.
 			[GL #4518] [GL #4528]
 
-6323.	[func]		The 'tls' block was extended with a new
+6325.	[func]		The 'tls' block was extended with a new
 			'cipher-suites' option that allows setting
 			allowed cipher suites for TLSv1.3.
 			[GL #3504]
 
-6322.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
+6324.	[bug]		Fix a possible crash in 'dig +nssearch +nofail' and
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
+
+6323.	[placeholder]
+
+6322.	[placeholder]
 
 6321.	[placeholder]
 
