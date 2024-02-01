@@ -230,14 +230,20 @@ ISC_RUN_TEST_IMPL(dns_dt_send) {
 			break;
 		}
 
-		dns_dt_send(view, dt, q, r, false, &zr, &p, &f, m);
-		dns_dt_send(view, dt, q, r, false, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, q, r, false, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, q, r, false, &zr, NULL, NULL, m);
-		dns_dt_send(view, dt, q, r, true, &zr, &p, &f, m);
-		dns_dt_send(view, dt, q, r, true, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, q, r, true, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, q, r, true, &zr, NULL, NULL, m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_UDP, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_UDP, &zr, NULL, &f,
+			    m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_UDP, &zr, &p, NULL,
+			    m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_UDP, &zr, NULL, NULL,
+			    m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_TCP, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_TCP, &zr, NULL, &f,
+			    m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_TCP, &zr, &p, NULL,
+			    m);
+		dns_dt_send(view, dt, q, r, DNS_TRANSPORT_TCP, &zr, NULL, NULL,
+			    m);
 	}
 
 	dns_dt_detach(&view->dtenv);

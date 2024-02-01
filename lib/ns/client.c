@@ -123,6 +123,40 @@ static void
 compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
 	       isc_buffer_t *buf);
 
+static dns_transport_type_t
+ns_client_transport_type(const ns_client_t *client) {
+	REQUIRE(client->handle != NULL);
+
+	switch (isc_nm_socket_type(client->handle)) {
+	case isc_nm_udpsocket:
+	case isc_nm_udplistener:
+	case isc_nm_proxyudpsocket:
+	case isc_nm_proxyudplistener:
+		return DNS_TRANSPORT_UDP;
+	case isc_nm_tlssocket:
+	case isc_nm_tlslistener:
+		return DNS_TRANSPORT_TLS;
+	case isc_nm_httpsocket:
+	case isc_nm_httplistener:
+		return DNS_TRANSPORT_HTTP;
+	case isc_nm_streamdnslistener:
+	case isc_nm_streamdnssocket:
+	case isc_nm_proxystreamlistener:
+	case isc_nm_proxystreamsocket:
+		/* If it isn't DoT, it is DNS-over-TCP */
+		if (isc_nm_has_encryption(client->handle)) {
+			return DNS_TRANSPORT_TLS;
+		}
+		FALLTHROUGH;
+	case isc_nm_tcpsocket:
+	case isc_nm_tcplistener:
+		return DNS_TRANSPORT_TCP;
+	case isc_nm_maxsocket:
+	case isc_nm_nonesocket:
+		UNREACHABLE();
+	}
+}
+
 void
 ns_client_recursing(ns_client_t *client) {
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -396,6 +430,10 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	isc_buffer_t buffer;
 	isc_region_t r;
 	isc_region_t *mr = NULL;
+#ifdef HAVE_DNSTAP
+	dns_transport_type_t transport_type;
+	dns_dtmsgtype_t dtmsgtype;
+#endif
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -427,8 +465,8 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 
 #ifdef HAVE_DNSTAP
 	if (client->view != NULL) {
-		bool tcp = TCP_CLIENT(client);
-		dns_dtmsgtype_t dtmsgtype;
+		transport_type = ns_client_transport_type(client);
+
 		if (client->message->opcode == dns_opcode_update) {
 			dtmsgtype = DNS_DTTYPE_UR;
 		} else if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0) {
@@ -437,7 +475,7 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 			dtmsgtype = DNS_DTTYPE_AR;
 		}
 		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
-			    &client->destsockaddr, tcp, NULL,
+			    &client->destsockaddr, transport_type, NULL,
 			    &client->requesttime, NULL, &buffer);
 	}
 #endif
@@ -470,6 +508,7 @@ ns_client_send(ns_client_t *client) {
 	dns_aclenv_t *env = NULL;
 #ifdef HAVE_DNSTAP
 	unsigned char zone[DNS_NAME_MAXWIRE];
+	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
 	isc_region_t zr;
 #endif /* HAVE_DNSTAP */
@@ -637,6 +676,8 @@ renderend:
 	} else {
 		dtmsgtype = DNS_DTTYPE_AR;
 	}
+
+	transport_type = ns_client_transport_type(client);
 #endif /* HAVE_DNSTAP */
 
 	if (cleanup_cctx) {
@@ -650,7 +691,7 @@ renderend:
 #ifdef HAVE_DNSTAP
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
-				    &client->destsockaddr, true, &zr,
+				    &client->destsockaddr, transport_type, &zr,
 				    &client->requesttime, NULL, &buffer);
 		}
 #endif /* HAVE_DNSTAP */
@@ -679,7 +720,7 @@ renderend:
 		 */
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
-				    &client->destsockaddr, false, &zr,
+				    &client->destsockaddr, transport_type, &zr,
 				    &client->requesttime, NULL, &buffer);
 		}
 #endif /* HAVE_DNSTAP */
@@ -1652,6 +1693,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 	size_t reqsize;
 	dns_aclenv_t *env = NULL;
 #ifdef HAVE_DNSTAP
+	dns_transport_type_t transport_type;
 	dns_dtmsgtype_t dtmsgtype;
 #endif /* ifdef HAVE_DNSTAP */
 	static const char *ra_reasons[] = {
@@ -2210,6 +2252,10 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		}
 	}
 
+#ifdef HAVE_DNSTAP
+	transport_type = ns_client_transport_type(client);
+#endif /* HAVE_DNSTAP */
+
 	/*
 	 * Dispatch the request.
 	 */
@@ -2224,7 +2270,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		}
 
 		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
-			    &client->destsockaddr, TCP_CLIENT(client), NULL,
+			    &client->destsockaddr, transport_type, NULL,
 			    &client->requesttime, NULL, buffer);
 #endif /* HAVE_DNSTAP */
 
@@ -2234,7 +2280,7 @@ ns_client_request(isc_nmhandle_t *handle, isc_result_t eresult,
 		CTRACE("update");
 #ifdef HAVE_DNSTAP
 		dns_dt_send(client->view, DNS_DTTYPE_UQ, &client->peeraddr,
-			    &client->destsockaddr, TCP_CLIENT(client), NULL,
+			    &client->destsockaddr, transport_type, NULL,
 			    &client->requesttime, NULL, buffer);
 #endif /* HAVE_DNSTAP */
 		ns_client_settimeout(client, 60);

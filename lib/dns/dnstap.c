@@ -643,7 +643,7 @@ cpbuf(isc_buffer_t *buf, ProtobufCBinaryData *p, protobuf_c_boolean *has) {
 }
 
 static void
-setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
+setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, dns_transport_type_t transport,
 	ProtobufCBinaryData *addr, protobuf_c_boolean *has_addr, uint32_t *port,
 	protobuf_c_boolean *has_port) {
 	int family = isc_sockaddr_pf(sa);
@@ -664,10 +664,22 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
 		*port = ntohs(sa->type.sin.sin_port);
 	}
 
-	if (tcp) {
+	switch (transport) {
+	case DNS_TRANSPORT_TCP:
 		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__TCP;
-	} else {
+		break;
+	case DNS_TRANSPORT_UDP:
 		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__UDP;
+		break;
+	case DNS_TRANSPORT_TLS:
+		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__DOT;
+		break;
+	case DNS_TRANSPORT_HTTP:
+		dm->m.socket_protocol = DNSTAP__SOCKET_PROTOCOL__DOH;
+		break;
+	case DNS_TRANSPORT_NONE:
+	case DNS_TRANSPORT_COUNT:
+		UNREACHABLE();
 	}
 
 	dm->m.has_socket_protocol = 1;
@@ -732,8 +744,9 @@ unlock_and_return:
 
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
-	    isc_sockaddr_t *raddr, bool tcp, isc_region_t *zone,
-	    isc_time_t *qtime, isc_time_t *rtime, isc_buffer_t *buf) {
+	    isc_sockaddr_t *raddr, dns_transport_type_t transport,
+	    isc_region_t *zone, isc_time_t *qtime, isc_time_t *rtime,
+	    isc_buffer_t *buf) {
 	isc_time_t now, *t;
 	dns_dtmsg_t dm;
 
@@ -833,12 +846,12 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype, isc_sockaddr_t *qaddr,
 	}
 
 	if (qaddr != NULL) {
-		setaddr(&dm, qaddr, tcp, &dm.m.query_address,
+		setaddr(&dm, qaddr, transport, &dm.m.query_address,
 			&dm.m.has_query_address, &dm.m.query_port,
 			&dm.m.has_query_port);
 	}
 	if (raddr != NULL) {
-		setaddr(&dm, raddr, tcp, &dm.m.response_address,
+		setaddr(&dm, raddr, transport, &dm.m.response_address,
 			&dm.m.has_response_address, &dm.m.response_port,
 			&dm.m.has_response_port);
 	}
@@ -1162,11 +1175,27 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 			protobuf_c_enum_descriptor_get_value(
 				&dnstap__socket_protocol__descriptor,
 				m->socket_protocol);
-		if (type != NULL && type->value == DNSTAP__SOCKET_PROTOCOL__TCP)
-		{
-			d->tcp = true;
+
+		if (type != NULL) {
+			switch (type->value) {
+			case DNSTAP__SOCKET_PROTOCOL__DNSCryptUDP:
+			case DNSTAP__SOCKET_PROTOCOL__DOQ:
+			case DNSTAP__SOCKET_PROTOCOL__UDP:
+				d->transport = DNS_TRANSPORT_UDP;
+				break;
+			case DNSTAP__SOCKET_PROTOCOL__DNSCryptTCP:
+			case DNSTAP__SOCKET_PROTOCOL__TCP:
+				d->transport = DNS_TRANSPORT_TCP;
+				break;
+			case DNSTAP__SOCKET_PROTOCOL__DOT:
+				d->transport = DNS_TRANSPORT_TLS;
+				break;
+			case DNSTAP__SOCKET_PROTOCOL__DOH:
+				d->transport = DNS_TRANSPORT_HTTP;
+				break;
+			}
 		} else {
-			d->tcp = false;
+			d->transport = DNS_TRANSPORT_UDP;
 		}
 	}
 
@@ -1292,10 +1321,24 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 	CHECK(putstr(dest, " "));
 
 	/* Protocol */
-	if (d->tcp) {
-		CHECK(putstr(dest, "TCP "));
-	} else {
+	switch (d->transport) {
+	case DNS_TRANSPORT_NONE:
+		CHECK(putstr(dest, "NUL "));
+		break;
+	case DNS_TRANSPORT_UDP:
 		CHECK(putstr(dest, "UDP "));
+		break;
+	case DNS_TRANSPORT_TCP:
+		CHECK(putstr(dest, "TCP "));
+		break;
+	case DNS_TRANSPORT_TLS:
+		CHECK(putstr(dest, "DOT "));
+		break;
+	case DNS_TRANSPORT_HTTP:
+		CHECK(putstr(dest, "DOH "));
+		break;
+	case DNS_TRANSPORT_COUNT:
+		UNREACHABLE();
 	}
 
 	/* Message size */

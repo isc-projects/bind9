@@ -269,7 +269,8 @@ print_yaml(dns_dtdata_t *dt) {
 		}
 	}
 
-	printf("  socket_protocol: %s\n", dt->tcp ? "TCP" : "UDP");
+	printf("  socket_protocol: %s\n",
+	       dt->transport == DNS_TRANSPORT_UDP ? "UDP" : "TCP");
 
 	if (m->has_query_address) {
 		ProtobufCBinaryData *ip = &m->query_address;
