@@ -7192,18 +7192,17 @@ calculate_rrsig_validity(dns_zone_t *zone, isc_stdtime_t now,
 	REQUIRE(soaexpire != NULL);
 	/* expire and fullexpire are optional */
 
-	isc_stdtime_t sigvalidityinterval =
-		dns_zone_getsigvalidityinterval(zone);
-	isc_stdtime_t expiryinterval = dns_zone_getsigresigninginterval(zone);
-	isc_stdtime_t normaljitter = 0, fulljitter = 0;
+	isc_stdtime_t jitter = DEFAULT_JITTER;
+	isc_stdtime_t sigvalidity = dns_zone_getsigvalidityinterval(zone);
+	isc_stdtime_t shortjitter = 0, fulljitter = 0;
+
+	if (zone->kasp != NULL) {
+		jitter = dns_kasp_sigjitter(zone->kasp);
+		sigvalidity = dns_kasp_sigvalidity(zone->kasp);
+	}
 
 	*inception = now - 3600; /* Allow for clock skew. */
-	*soaexpire = now + sigvalidityinterval;
-	if (expiryinterval > sigvalidityinterval) {
-		expiryinterval = sigvalidityinterval;
-	} else {
-		expiryinterval = sigvalidityinterval - expiryinterval;
-	}
+	*soaexpire = now + sigvalidity;
 
 	/*
 	 * Spread out signatures over time if they happen to be
@@ -7214,16 +7213,16 @@ calculate_rrsig_validity(dns_zone_t *zone, isc_stdtime_t now,
 	 * period we need to ensure that the clusters don't become
 	 * synchronised by using the full jitter range.
 	 */
-	if (sigvalidityinterval >= 3600U) {
-		if (sigvalidityinterval > 7200U) {
-			normaljitter = isc_random_uniform(3600);
-			fulljitter = isc_random_uniform(expiryinterval);
+	if (sigvalidity >= 3600U) {
+		if (sigvalidity > 7200U) {
+			shortjitter = isc_random_uniform(3600);
+			fulljitter = isc_random_uniform(jitter);
 		} else {
-			normaljitter = fulljitter = isc_random_uniform(1200);
+			shortjitter = fulljitter = isc_random_uniform(1200);
 		}
 	}
 
-	SET_IF_NOT_NULL(expire, *soaexpire - normaljitter - 1);
+	SET_IF_NOT_NULL(expire, *soaexpire - shortjitter - 1);
 	SET_IF_NOT_NULL(fullexpire, *soaexpire - fulljitter - 1);
 }
 
