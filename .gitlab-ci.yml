@@ -1706,7 +1706,7 @@ stress:rpz:fedora:39:arm64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
 
-stress:authoritative:freebsd12:amd64:
+stress:authoritative:freebsd13:amd64:
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
@@ -1720,7 +1720,7 @@ stress:authoritative:freebsd12:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
-stress:recursive:freebsd12:amd64:
+stress:recursive:freebsd13:amd64:
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
@@ -1734,7 +1734,7 @@ stress:recursive:freebsd12:amd64:
     variables:
       - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
-stress:rpz:freebsd12:amd64:
+stress:rpz:freebsd13:amd64:
   <<: *freebsd_stress_amd64
   <<: *stress_job
   variables:
