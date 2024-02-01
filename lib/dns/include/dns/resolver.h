@@ -579,6 +579,14 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp);
  */
 
 void
+dns_resolver_setmaxvalidations(dns_resolver_t *resolver, uint32_t max);
+void
+dns_resolver_setmaxvalidationfails(dns_resolver_t *resolver, uint32_t max);
+/*%
+ * Set maximum numbers of validations and maximum validation failures per fetch.
+ */
+
+void
 dns_resolver_setmaxdepth(dns_resolver_t *resolver, unsigned int maxdepth);
 unsigned int
 dns_resolver_getmaxdepth(dns_resolver_t *resolver);

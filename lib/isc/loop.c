@@ -138,6 +138,8 @@ static void
 shutdown_trigger_close_cb(uv_handle_t *handle) {
 	isc_loop_t *loop = uv_handle_get_data(handle);
 
+	loop->shuttingdown = true;
+
 	isc_loop_detach(&loop);
 }
 

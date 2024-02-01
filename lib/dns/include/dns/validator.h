@@ -53,6 +53,7 @@
 #include <isc/refcount.h>
 
 #include <dns/fixedname.h>
+#include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h> /* for dns_rdata_rrsig_t */
 #include <dns/types.h>
@@ -144,6 +145,13 @@ struct dns_validator {
 	unsigned int  authcount;
 	unsigned int  authfail;
 	isc_stdtime_t start;
+
+	bool	    digest_sha1;
+	bool	    supported_algorithm;
+	dns_rdata_t rdata;
+	bool	    resume;
+	uint32_t   *nvalidations;
+	uint32_t   *nfails;
 };
 
 /*%
@@ -161,6 +169,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_loop_t *loop, isc_job_cb cb, void *arg,
+		     uint32_t *nvalidations, uint32_t *nfails,
 		     dns_validator_t **validatorp);
 /*%<
  * Start a DNSSEC validation.
