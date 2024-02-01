@@ -875,6 +875,61 @@ check_ratelimit(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	return (result);
 }
 
+static isc_result_t
+check_fetchlimit(const cfg_obj_t *voptions, const cfg_obj_t *config,
+		 isc_log_t *logctx) {
+	const cfg_obj_t *map = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *obj = NULL;
+	double low, high, discount;
+
+	if (voptions != NULL) {
+		cfg_map_get(voptions, "fetch-quota-params", &map);
+	}
+	if (config != NULL && map == NULL) {
+		options = NULL;
+		cfg_map_get(config, "options", &options);
+		if (options != NULL) {
+			cfg_map_get(options, "fetch-quota-params", &map);
+		}
+	}
+	if (map == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	obj = cfg_tuple_get(map, "low");
+	low = (double)cfg_obj_asfixedpoint(obj) / 100.0;
+	if (low < 0.0 || low > 1.0) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "fetch-quota-param low value (%0.1f) "
+			    "out of range",
+			    low);
+		return (ISC_R_RANGE);
+	}
+
+	obj = cfg_tuple_get(map, "high");
+	high = (double)cfg_obj_asfixedpoint(obj) / 100.0;
+	if (high < 0.0 || high > 1.0) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "fetch-quota-param high value (%0.1f) "
+			    "out of range",
+			    high);
+		return (ISC_R_RANGE);
+	}
+
+	obj = cfg_tuple_get(map, "discount");
+	discount = (double)cfg_obj_asfixedpoint(obj) / 100.0;
+	if (discount < 0.0 || discount > 1.0) {
+		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+			    "fetch-quota-param discount value (%0.1f) "
+			    "out of range",
+			    discount);
+		return (ISC_R_RANGE);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 /*
  * Check allow-recursion and allow-recursion-on acls, and also log a
  * warning if they're inconsistent with the "recursion" option.
@@ -5735,6 +5790,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 
 	tresult = check_ratelimit(actx, voptions, config, logctx, mctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+
+	tresult = check_fetchlimit(voptions, config, logctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
