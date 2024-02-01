@@ -1,3 +1,6 @@
+6321.	[security]	Change 6315 inadvertently introduced regressions that
+			could cause named to crash. [GL #4234]
+
 6320.	[bug]		Under some circumstances, the DoT code in client
 			mode could process more than one message at a time when
 			that was not expected. That has been fixed. [GL #4487]
