@@ -142,7 +142,7 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 
 #if DNS_DB_TRACE
 		fprintf(stderr, "dns_db_create:%s:%s:%d:%p->references = 1\n",
-			__func__, __FILE__, __LINE__ + 1, *dbp);
+			__func__, __FILE__, __LINE__ 1, *dbp);
 #endif
 		return (result);
 	}
@@ -1148,4 +1148,16 @@ dns_db_deletedata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 	if (db->methods->deletedata != NULL) {
 		(db->methods->deletedata)(db, node, data);
 	}
+}
+
+isc_result_t
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
+	REQUIRE(db != NULL);
+	REQUIRE(node != NULL);
+	REQUIRE(name != NULL);
+
+	if (db->methods->nodefullname != NULL) {
+		return ((db->methods->nodefullname)(db, node, name));
+	}
+	return (ISC_R_NOTIMPLEMENTED);
 }

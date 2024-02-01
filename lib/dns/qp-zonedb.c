@@ -2379,6 +2379,7 @@ dns_dbmethods_t dns__qpdb_zonemethods = {
 	.unlocknode = dns__qpdb_unlocknode,
 	.addglue = addglue,
 	.deletedata = dns__qpdb_deletedata,
+	.nodefullname = dns__qpdb_nodefullname,
 };
 
 void

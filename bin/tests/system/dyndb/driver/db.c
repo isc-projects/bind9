@@ -76,21 +76,6 @@ struct sampledb {
 
 typedef struct sampledb sampledb_t;
 
-/*
- * Get full DNS name from the node.
- *
- * @warning
- * The code silently expects that "node" came from RBTDB and thus
- * assumption dns_dbnode_t (from RBTDB) == dns_rbtnode_t is correct.
- *
- * This should work as long as we use only RBTDB and nothing else.
- */
-static isc_result_t
-sample_name_fromnode(dns_dbnode_t *node, dns_name_t *name) {
-	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
-	return (dns_rbt_fullnamefromnode(rbtnode, name));
-}
-
 static void
 destroy(dns_db_t *db) {
 	sampledb_t *sampledb = (sampledb_t *)db;
@@ -252,7 +237,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (rdataset->type == dns_rdatatype_a ||
 	    rdataset->type == dns_rdatatype_aaaa)
 	{
-		CHECK(sample_name_fromnode(node, dns_fixedname_name(&name)));
+		CHECK(dns_db_nodefullname(sampledb->rbtdb, node,
+					  dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),
 			       rdataset, DNS_DIFFOP_ADD));
 	}
@@ -282,7 +268,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (rdataset->type == dns_rdatatype_a ||
 	    rdataset->type == dns_rdatatype_aaaa)
 	{
-		CHECK(sample_name_fromnode(node, dns_fixedname_name(&name)));
+		CHECK(dns_db_nodefullname(sampledb->rbtdb, node,
+					  dns_fixedname_name(&name)));
 		CHECK(syncptrs(sampledb->inst, dns_fixedname_name(&name),
 			       rdataset, DNS_DIFFOP_DEL));
 	}
@@ -431,6 +418,15 @@ setcachestats(dns_db_t *db, isc_stats_t *stats) {
 	return (dns_db_setcachestats(sampledb->rbtdb, stats));
 }
 
+static isc_result_t
+nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
+	sampledb_t *sampledb = (sampledb_t *)db;
+
+	REQUIRE(VALID_SAMPLEDB(sampledb));
+
+	return (dns_db_nodefullname(sampledb->rbtdb, node, name));
+}
+
 /*
  * DB interface definition. Database driver uses this structure to
  * determine which implementation of dns_db_*() function to call.
@@ -464,6 +460,7 @@ static dns_dbmethods_t sampledb_methods = {
 	.findnodeext = findnodeext,
 	.findext = findext,
 	.setcachestats = setcachestats,
+	.nodefullname = nodefullname,
 };
 
 /* Auxiliary driver functions. */

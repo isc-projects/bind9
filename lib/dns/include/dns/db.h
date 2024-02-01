@@ -179,6 +179,8 @@ typedef struct dns_dbmethods {
 				dns_rdataset_t *rdataset, dns_message_t *msg);
 	void (*expiredata)(dns_db_t *db, dns_dbnode_t *node, void *data);
 	void (*deletedata)(dns_db_t *db, dns_dbnode_t *node, void *data);
+	isc_result_t (*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
+				     dns_name_t *name);
 } dns_dbmethods_t;
 
 typedef isc_result_t (*dns_dbcreatefunc_t)(isc_mem_t	    *mctx,
@@ -1782,6 +1784,14 @@ dns_db_deletedata(dns_db_t *db, dns_dbnode_t *node, void *data);
  * data from an LRU list or a heap.
  */
 
-void
-dns_db_expiredata(dns_db_t *db, dns_dbnode_t *node, void *data);
+isc_result_t
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+/*%<
+ * Get the name associated with a database node.
+ *
+ * Requires:
+ *
+ * \li 'db' is a valid database
+ * \li 'node' and 'name' are not NULL
+ */
 ISC_LANG_ENDDECLS

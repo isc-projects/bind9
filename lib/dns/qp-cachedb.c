@@ -1549,6 +1549,7 @@ dns_dbmethods_t dns__qpdb_cachemethods = {
 	.unlocknode = dns__qpdb_unlocknode,
 	.expiredata = expiredata,
 	.deletedata = dns__qpdb_deletedata,
+	.nodefullname = dns__qpdb_nodefullname,
 };
 
 /*
