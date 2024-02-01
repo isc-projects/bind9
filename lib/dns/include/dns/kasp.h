@@ -117,6 +117,7 @@ struct dns_kasp {
 #define DNS_KASP_VALID(kasp) ISC_MAGIC_VALID(kasp, DNS_KASP_MAGIC)
 
 /* Defaults */
+#define DEFAULT_JITTER		     (12 * 3600)
 #define DNS_KASP_SIG_JITTER	     "PT12H"
 #define DNS_KASP_SIG_REFRESH	     "P5D"
 #define DNS_KASP_SIG_VALIDITY	     "P14D"
