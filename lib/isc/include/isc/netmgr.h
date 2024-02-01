@@ -750,6 +750,9 @@ isc_nm_verify_tls_peer_result_string(const isc_nmhandle_t *handle);
  *  \li 'handle' is a valid netmgr handle object.
  */
 
+#define ISC_NM_TASK_SLOW_OFFSET -2
+#define ISC_NM_TASK_SLOW(i)	(ISC_NM_TASK_SLOW_OFFSET - 1 - i)
+
 void
 isc_nm_task_enqueue(isc_nm_t *mgr, isc_task_t *task, int threadid);
 /*%<

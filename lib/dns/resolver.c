@@ -10408,8 +10408,8 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
 		 * Since we have a pool of tasks we bind them to task
 		 * queues to spread the load evenly
 		 */
-		result = isc_task_create_bound(taskmgr, 0,
-					       &res->buckets[i].task, i);
+		result = isc_task_create_bound(
+			taskmgr, 0, &res->buckets[i].task, ISC_NM_TASK_SLOW(i));
 		if (result != ISC_R_SUCCESS) {
 			ntasks = i;
 			isc_mutex_destroy(&res->buckets[i].lock);

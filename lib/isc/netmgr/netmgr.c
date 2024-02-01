@@ -189,12 +189,12 @@ isc__nm_force_tid(int tid) {
 }
 
 static void
-isc__nm_threadpool_initialize(uint32_t workers) {
+isc__nm_threadpool_initialize(uint32_t nworkers) {
 	char buf[11];
 	int r = uv_os_getenv("UV_THREADPOOL_SIZE", buf,
 			     &(size_t){ sizeof(buf) });
 	if (r == UV_ENOENT) {
-		snprintf(buf, sizeof(buf), "%" PRIu32, workers);
+		snprintf(buf, sizeof(buf), "%" PRIu32, nworkers);
 		uv_os_setenv("UV_THREADPOOL_SIZE", buf);
 	}
 }
@@ -212,11 +212,11 @@ isc__nm_threadpool_initialize(uint32_t workers) {
 #endif
 
 void
-isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
+isc__netmgr_create(isc_mem_t *mctx, uint32_t nworkers, isc_nm_t **netmgrp) {
 	isc_nm_t *mgr = NULL;
 	char name[32];
 
-	REQUIRE(workers > 0);
+	REQUIRE(nworkers > 0);
 
 #ifdef MAXIMAL_UV_VERSION
 	if (uv_version() > MAXIMAL_UV_VERSION) {
@@ -234,10 +234,13 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 			    uv_version_string(), UV_VERSION_STRING);
 	}
 
-	isc__nm_threadpool_initialize(workers);
+	isc__nm_threadpool_initialize(nworkers);
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
-	*mgr = (isc_nm_t){ .nworkers = workers };
+	*mgr = (isc_nm_t){
+		.nworkers = nworkers * 2,
+		.nlisteners = nworkers,
+	};
 
 	isc_mem_attach(mctx, &mgr->mctx);
 	isc_mutex_init(&mgr->lock);
@@ -272,11 +275,12 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 	atomic_init(&mgr->keepalive, 30000);
 	atomic_init(&mgr->advertised, 30000);
 
-	isc_barrier_init(&mgr->pausing, workers);
-	isc_barrier_init(&mgr->resuming, workers);
+	isc_barrier_init(&mgr->pausing, mgr->nworkers);
+	isc_barrier_init(&mgr->resuming, mgr->nworkers);
 
-	mgr->workers = isc_mem_get(mctx, workers * sizeof(isc__networker_t));
-	for (size_t i = 0; i < workers; i++) {
+	mgr->workers = isc_mem_get(mctx,
+				   mgr->nworkers * sizeof(isc__networker_t));
+	for (int i = 0; i < mgr->nworkers; i++) {
 		isc__networker_t *worker = &mgr->workers[i];
 		int r;
 
@@ -310,7 +314,7 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		mgr->workers_running++;
 		isc_thread_create(nm_thread, &mgr->workers[i], &worker->thread);
 
-		snprintf(name, sizeof(name), "isc-net-%04zu", i);
+		snprintf(name, sizeof(name), "isc-net-%04d", i);
 		isc_thread_setname(worker->thread, name);
 	}
 
@@ -817,9 +821,15 @@ isc_nm_task_enqueue(isc_nm_t *nm, isc_task_t *task, int threadid) {
 	isc__networker_t *worker = NULL;
 
 	if (threadid == -1) {
-		tid = (int)isc_random_uniform(nm->nworkers);
+		tid = (int)isc_random_uniform(nm->nlisteners);
+	} else if (threadid == ISC_NM_TASK_SLOW_OFFSET) {
+		tid = nm->nlisteners +
+		      (int)isc_random_uniform(nm->nworkers - nm->nlisteners);
+	} else if (threadid < ISC_NM_TASK_SLOW_OFFSET) {
+		tid = nm->nlisteners + (ISC_NM_TASK_SLOW(threadid) %
+					(nm->nworkers - nm->nlisteners));
 	} else {
-		tid = threadid % nm->nworkers;
+		tid = threadid % nm->nlisteners;
 	}
 
 	worker = &nm->workers[tid];
@@ -3778,7 +3788,7 @@ isc__nm_async_settlsctx(isc__networker_t *worker, isc__netievent_t *ev0) {
 static void
 set_tlsctx_workers(isc_nmsocket_t *listener, isc_tlsctx_t *tlsctx) {
 	/* Update the TLS context reference for every worker thread. */
-	for (size_t i = 0; i < (size_t)listener->mgr->nworkers; i++) {
+	for (size_t i = 0; i < (size_t)listener->mgr->nlisteners; i++) {
 		isc__netievent__tlsctx_t *ievent =
 			isc__nm_get_netievent_settlsctx(listener->mgr, listener,
 							tlsctx);
