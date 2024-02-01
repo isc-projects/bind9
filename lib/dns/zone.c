@@ -22108,20 +22108,20 @@ zone_rekey(dns_zone_t *zone) {
 		ISC_LIST_INIT(zone->checkds_ok);
 		UNLOCK_ZONE(zone);
 
-		result = dns_zone_getdnsseckeys(zone, db, ver, now,
-						&zone->checkds_ok);
-
-		if (result == ISC_R_SUCCESS) {
+		isc_result_t ret = dns_zone_getdnsseckeys(zone, db, ver, now,
+							  &zone->checkds_ok);
+		if (ret == ISC_R_SUCCESS) {
 			zone_checkds(zone);
 		} else {
 			dnssec_log(zone,
-				   (result == ISC_R_NOTFOUND) ? ISC_LOG_DEBUG(1)
-							      : ISC_LOG_ERROR,
+				   (ret == ISC_R_NOTFOUND) ? ISC_LOG_DEBUG(1)
+							   : ISC_LOG_ERROR,
 				   "zone_rekey:dns_zone_getdnsseckeys failed: "
 				   "%s",
-				   isc_result_totext(result));
+				   isc_result_totext(ret));
 		}
 
+		/* Run keymgr */
 		if (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND) {
 			dns_zone_lock_keyfiles(zone);
 			result = dns_keymgr_run(&zone->origin, zone->rdclass,
@@ -22142,6 +22142,12 @@ zone_rekey(dns_zone_t *zone) {
 
 	KASP_UNLOCK(kasp);
 
+	/*
+	 * Update CDS, CDNSKEY and DNSKEY record sets if the keymgr ran
+	 * successfully (dns_keymgr_run returned ISC_R_SUCCESS), or in
+	 * case of DNSSEC management without dnssec-policy if we have keys
+	 * (dns_dnssec_findmatchingkeys returned ISC_R_SUCCESS).
+	 */
 	if (result == ISC_R_SUCCESS) {
 		bool cdsdel = false;
 		bool cdnskeydel = false;
