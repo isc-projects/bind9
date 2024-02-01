@@ -28,21 +28,51 @@ DNSDEPLIBS =	../lib/dns/libdns.@A@
 LIBS =		@LIBS@
 
 OBJS =		main.@O@
-SRCS =		main.c dns_name_fromtext_target.c dns_rdata_fromwire_text.c
+SRCS =		main.c dns_master_load.c dns_message_checksig.c dns_message_parse.c dns_name_fromtext_target.c dns_rdata_fromtext.c dns_rdata_fromwire_text.c isc_lex_getmastertoken.c isc_lex_gettoken.c
 
 SUBDIRS =
-TARGETS =	dns_name_fromtext_target@EXEEXT@ \
-		dns_rdata_fromwire_text@EXEEXT@
+TARGETS =	dns_master_load@EXEEXT@ \
+		dns_message_checksig@EXEEXT@ \
+		dns_message_parse@EXEEXT@ \
+		dns_name_fromtext_target@EXEEXT@ \
+		dns_rdata_fromtext@EXEEXT@ \
+		dns_rdata_fromwire_text@EXEEXT@ \
+		isc_lex_getmastertoken@EXEEXT@ \
+		isc_lex_gettoken@EXEEXT@
 
 @BIND9_MAKE_RULES@
+
+dns_master_load@EXEEXT@: dns_master_load.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		dns_master_load.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+dns_message_checksig@EXEEXT@: dns_message_checksig.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		dns_message_checksig.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+dns_message_parse@EXEEXT@: dns_message_parse.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		dns_message_parse.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 dns_name_fromtext_target@EXEEXT@: dns_name_fromtext_target.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 		dns_name_fromtext_target.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
+dns_rdata_fromtext@EXEEXT@: dns_rdata_fromtext.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		dns_rdata_fromtext.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
 dns_rdata_fromwire_text@EXEEXT@: dns_rdata_fromwire_text.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 		dns_rdata_fromwire_text.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+isc_lex_getmastertoken@EXEEXT@: isc_lex_getmastertoken.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		isc_lex_getmastertoken.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+isc_lex_gettoken@EXEEXT@: isc_lex_gettoken.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		isc_lex_gettoken.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 check: ${TARGETS}
 	for fuzzer in ${TARGETS}; do \
