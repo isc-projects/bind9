@@ -22,6 +22,9 @@ New Features
 
 - None.
 
+- A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
+  spread out signature expiration times over a period of time. :gl:`#4554`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
