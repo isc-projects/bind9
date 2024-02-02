@@ -1465,6 +1465,7 @@ dst_key_format
 dst_key_free
 dst_key_frombuffer
 dst_key_fromdns
+dst_key_fromdns_ex
 dst_key_fromfile
 dst_key_fromgssapi
 dst_key_fromlabel
