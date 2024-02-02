@@ -2572,12 +2572,18 @@ Boolean Options
    If set to ``auto``, DNSSEC validation is enabled and a default trust
    anchor for the DNS root zone is used. This trust anchor is provided
    as part of BIND and is kept up-to-date using :ref:`rfc5011.support` key
-   management.
+   management. Adding an explicit static key using the :any:`trust-anchors`
+   statement with a ``static-key`` anchor type (or using the deprecated
+   :any:`trusted-keys` statement) for the root zone is not supported with the
+   ``auto`` setting, and is treated as a configuration error.
 
    If set to ``yes``, DNSSEC validation is enabled, but a trust anchor must be
    manually configured using a :any:`trust-anchors` statement (or the
    :any:`managed-keys` or :any:`trusted-keys` statements, both deprecated). If
-   there is no configured trust anchor, validation does not take place.
+   :any:`trust-anchors` is not configured, it is a configuration error. If
+   :any:`trust-anchors` does not include a valid root key, then validation does
+   not take place for names which are not covered by any of the configured trust
+   anchors.
 
    If set to ``no``, DNSSEC validation is disabled. (Note: the resolver
    will still set the DO bit in outgoing queries indicating that it can

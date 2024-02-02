@@ -27,6 +27,8 @@ options {
 	minimal-responses yes;
 };
 
+trust-anchors { };
+
 zone "." {
 	type hint;
 	file "root.db";

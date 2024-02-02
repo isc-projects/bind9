@@ -49,6 +49,8 @@ options {
 	nocookie-udp-size 512;
 };
 
+trust-anchors { };
+
 zone "." {
 	type hint;
 	file "root.hint";

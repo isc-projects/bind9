@@ -1,3 +1,8 @@
+6335.	[func]		The 'dnssec-validation yes' option now requires an
+			explicitly configured 'trust-anchors' statement (or
+			'managed-keys' or 'trusted-keys' statements, both
+			deprecated). [GL #4373]
+
 6334.	[doc]		Improve ARM parental-agents definition. [GL #4531]
 
 6333.	[bug]		Fix the DNS_GETDB_STALEFIRST flag, which was defined

@@ -53,6 +53,8 @@ options {
 	transfers-out 100;
 };
 
+trust-anchors { };
+
 zone "." {
 	type hint;
 	file "../../_common/root.hint";

@@ -5744,8 +5744,21 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (obj == NULL && options != NULL) {
 		(void)cfg_map_get(options, "dnssec-validation", &obj);
 	}
-	if (obj != NULL && !cfg_obj_isboolean(obj)) {
-		autovalidation = true;
+	if (obj != NULL) {
+		if (!cfg_obj_isboolean(obj)) {
+			autovalidation = true;
+		} else if (cfg_obj_asboolean(obj)) {
+			if (global_ta == NULL && view_ta == NULL &&
+			    global_tkeys == NULL && view_tkeys == NULL)
+			{
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "the 'dnssec-validation yes' "
+					    "option requires configured "
+					    "'trust-anchors'; consider using "
+					    "'dnssec-validation auto'.");
+				result = ISC_R_FAILURE;
+			}
+		}
 	}
 
 	tresult = check_ta_conflicts(global_ta, view_ta, global_tkeys,

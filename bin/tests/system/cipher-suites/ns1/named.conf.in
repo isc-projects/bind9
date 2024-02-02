@@ -69,6 +69,8 @@ options {
 	transfers-out 100;
 };
 
+trust-anchors { };
+
 zone "." {
 	type primary;
 	file "root.db";

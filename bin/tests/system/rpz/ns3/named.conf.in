@@ -64,6 +64,8 @@ options {
 	notify-delay 0;
 };
 
+trust-anchors { };
+
 logging { category rpz { default_debug; }; };
 
 key rndc_key {
