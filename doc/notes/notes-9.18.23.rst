@@ -41,6 +41,11 @@ Security Fixes
   features were enabled. This has been fixed. :cve:`2023-5679`
   :gl:`#4334`
 
+- Under certain circumstances, the DNS-over-TLS client code incorrectly
+  attempted to process more than one DNS message at a time, which could
+  cause :iscman:`named` to crash with an assertion failure. This has
+  been fixed. :gl:`#4487`
+
 Bug Fixes
 ~~~~~~~~~
 
