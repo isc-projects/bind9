@@ -1,3 +1,5 @@
+	--- 9.18.23 released ---
+
 6322.	[security]	Specific DNS answers could cause a denial-of-service
 			condition due to DNS validation taking a long time.
 			(CVE-2023-50387) [GL #4424]
