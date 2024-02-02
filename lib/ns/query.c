@@ -193,11 +193,13 @@ client_trace(ns_client_t *client, int level, const char *message) {
 #define CCTRACE(l, m) ((void)m)
 #endif /* WANT_QUERYTRACE */
 
-#define DNS_GETDB_NOEXACT    0x01U
-#define DNS_GETDB_NOLOG	     0x02U
-#define DNS_GETDB_PARTIAL    0x04U
-#define DNS_GETDB_IGNOREACL  0x08U
-#define DNS_GETDB_STALEFIRST 0X0CU
+enum {
+	DNS_GETDB_NOEXACT = 1 << 0,
+	DNS_GETDB_NOLOG = 1 << 1,
+	DNS_GETDB_PARTIAL = 1 << 2,
+	DNS_GETDB_IGNOREACL = 1 << 3,
+	DNS_GETDB_STALEFIRST = 1 << 4,
+};
 
 #define PENDINGOK(x) (((x) & DNS_DBFIND_PENDINGOK) != 0)
 
