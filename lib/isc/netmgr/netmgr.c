@@ -179,7 +179,6 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 	};
 
 	isc_mem_attach(mctx, &netmgr->mctx);
-	isc_mutex_init(&netmgr->lock);
 	isc_refcount_init(&netmgr->references, 1);
 	atomic_init(&netmgr->maxudp, 0);
 	atomic_init(&netmgr->shuttingdown, false);
@@ -252,8 +251,6 @@ nm_destroy(isc_nm_t **mgr0) {
 	if (mgr->stats != NULL) {
 		isc_stats_detach(&mgr->stats);
 	}
-
-	isc_mutex_destroy(&mgr->lock);
 
 	isc_mem_cput(mgr->mctx, mgr->workers, mgr->nloops,
 		     sizeof(mgr->workers[0]));
