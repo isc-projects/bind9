@@ -562,30 +562,6 @@ AC_ARG_WITH([locktype],
 			    (adaptive or standard)]),
 	    [], [with_locktype="adaptive"])
 
-AS_CASE([$with_locktype],
-	[adaptive],[
-	  AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
-	  AC_COMPILE_IFELSE(
-	    [AC_LANG_PROGRAM(
-	       [[
-		 #ifndef _GNU_SOURCE
-		 #define _GNU_SOURCE
-		 #endif
-		 #include <pthread.h>
-	       ]],
-	       [[
-		 return (PTHREAD_MUTEX_ADAPTIVE_NP);
-	       ]]
-	     )],
-	    [AC_MSG_RESULT([using adaptive lock type])
-	     AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], 1,
-		       [Support for PTHREAD_MUTEX_ADAPTIVE_NP]) ],
-	    [AC_MSG_RESULT([using standard lock type])]
-	  )],
-	[standard],[AC_MSG_RESULT([using standard lock type])],
-	[AC_MSG_ERROR([You must specify "adaptive" or "standard" for --with-locktype.])]
-       )
-
 AC_CHECK_HEADERS([sched.h])
 
 AC_SEARCH_LIBS([sched_yield],[rt])
