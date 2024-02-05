@@ -1,3 +1,5 @@
+6341.	[bug]		Address use after free in ccmsg_senddone. [GL #4549]
+
 6340.	[test]		Fix incorrectly reported errors when running tests
 			with `make test` on platforms with older pytest.
 			[GL #4560]
