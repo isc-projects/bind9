@@ -168,7 +168,7 @@ def wait_for_proc_termination(proc, max_timeout=10):
 # In both methods named should exit gracefully.
 @pytest.mark.parametrize(
     "kill_method",
-    [pytest.param("rndc", marks=pytest.mark.xfail(reason="GL#4060")), "sigterm"],
+    ["rndc", "sigterm"],
 )
 def test_named_shutdown(ports, kill_method):
     # pylint: disable-msg=too-many-locals
