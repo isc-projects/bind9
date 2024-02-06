@@ -26,6 +26,9 @@ New Features
 - A new DNSSEC tool :iscman:`dnssec-ksr` is added to create Key Signing Request
   (KSR) and Signed Key Response (SKR) files. :gl:`#1128`
 
+- Queries and responses now emit distinct dnstap entries for DoT and DoH.
+  :any:`dnstap-read` understands DoH and DoT entries. :gl:`#4523`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
