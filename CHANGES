@@ -1,3 +1,7 @@
+6338.	[func]		Optimize slabheader placement, so the infrastructure
+			records are put in the beginning of the slabheader
+			linked list. [GL !8675]
+
 6334.	[doc]		Improve ARM parental-agents definition. [GL #4531]
 
 6333.	[bug]		Fix the DNS_GETDB_STALEFIRST flag, which was defined
