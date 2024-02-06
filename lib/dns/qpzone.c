@@ -1682,32 +1682,30 @@ delegating_type(qpzonedb_t *qpdb, qpdata_t *node, dns_typepair_t type) {
 }
 
 static void
-loading_addnode(qpzonedb_t *qpdb, const dns_name_t *name, dns_rdatatype_t type,
-		dns_rdatatype_t covers, qpdata_t **nodep) {
+loading_addnode(qpdb_load_t *loadctx, const dns_name_t *name,
+		dns_rdatatype_t type, dns_rdatatype_t covers,
+		qpdata_t **nodep) {
+	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
 	isc_result_t result;
 	qpdata_t *node = NULL, *nsecnode = NULL;
-	dns_qp_t *qp = NULL, *nsec = NULL;
 
 	if (type == dns_rdatatype_nsec3 || covers == dns_rdatatype_nsec3) {
-		dns_qpmulti_write(qpdb->nsec3, &qp);
-		result = dns_qp_getname(qp, name, (void **)&node, NULL);
+		result = dns_qp_getname(loadctx->nsec3, name, (void **)&node,
+					NULL);
 		if (result == ISC_R_SUCCESS) {
 			*nodep = node;
 		} else {
 			node = new_qpdata(qpdb, name);
-			result = dns_qp_insert(qp, node, 0);
+			result = dns_qp_insert(loadctx->nsec3, node, 0);
 			INSIST(result == ISC_R_SUCCESS);
 			node->nsec = DNS_DB_NSEC_NSEC3;
 			*nodep = node;
 			qpdata_detach(&node);
 		}
-		dns_qp_compact(qp, DNS_QPGC_MAYBE);
-		dns_qpmulti_commit(qpdb->nsec3, &qp);
 		return;
 	}
 
-	dns_qpmulti_write(qpdb->tree, &qp);
-	result = dns_qp_getname(qp, name, (void **)&node, NULL);
+	result = dns_qp_getname(loadctx->tree, name, (void **)&node, NULL);
 	if (result == ISC_R_SUCCESS) {
 		if (type == dns_rdatatype_nsec &&
 		    node->nsec == DNS_DB_NSEC_HAS_NSEC)
@@ -1717,7 +1715,7 @@ loading_addnode(qpzonedb_t *qpdb, const dns_name_t *name, dns_rdatatype_t type,
 	} else {
 		INSIST(node == NULL);
 		node = new_qpdata(qpdb, name);
-		result = dns_qp_insert(qp, node, 0);
+		result = dns_qp_insert(loadctx->tree, node, 0);
 		INSIST(result == ISC_R_SUCCESS);
 		qpdata_unref(node);
 	}
@@ -1730,9 +1728,8 @@ loading_addnode(qpzonedb_t *qpdb, const dns_name_t *name, dns_rdatatype_t type,
 	 * too. This tree speeds searches for closest NSECs that would
 	 * otherwise need to examine many irrelevant nodes in large TLDs.
 	 */
-	dns_qpmulti_write(qpdb->nsec, &nsec);
 	nsecnode = new_qpdata(qpdb, name);
-	result = dns_qp_insert(nsec, nsecnode, 0);
+	result = dns_qp_insert(loadctx->nsec, nsecnode, 0);
 	node->nsec = DNS_DB_NSEC_HAS_NSEC;
 	if (result == ISC_R_SUCCESS) {
 		nsecnode->nsec = DNS_DB_NSEC_NSEC;
@@ -1740,13 +1737,6 @@ loading_addnode(qpzonedb_t *qpdb, const dns_name_t *name, dns_rdatatype_t type,
 	qpdata_detach(&nsecnode);
 
 done:
-	if (nsec != NULL) {
-		dns_qp_compact(nsec, DNS_QPGC_MAYBE);
-		dns_qpmulti_commit(qpdb->nsec, &nsec);
-	}
-
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
-	dns_qpmulti_commit(qpdb->tree, &qp);
 	*nodep = node;
 }
 
@@ -2167,7 +2157,6 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	isc_region_t region;
 	dns_slabheader_t *newheader = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-	dns_qp_t *qp = NULL;
 
 	REQUIRE(rdataset->rdclass == qpdb->common.rdclass);
 
@@ -2180,11 +2169,10 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 		return (DNS_R_NOTZONETOP);
 	}
 
-	dns_qpmulti_write(qpdb->tree, &qp);
 	if (rdataset->type != dns_rdatatype_nsec3 &&
 	    rdataset->covers != dns_rdatatype_nsec3)
 	{
-		addwildcards(qpdb, qp, name, false);
+		addwildcards(qpdb, loadctx->tree, name, false);
 	}
 
 	if (dns_name_iswildcard(name)) {
@@ -2192,23 +2180,20 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 			/*
 			 * NS owners cannot legally be wild cards.
 			 */
-			result = DNS_R_INVALIDNS;
-		} else if (rdataset->type == dns_rdatatype_nsec3) {
+			return (DNS_R_INVALIDNS);
+		}
+
+		if (rdataset->type == dns_rdatatype_nsec3) {
 			/*
 			 * NSEC3 owners cannot legally be wild cards.
 			 */
-			result = DNS_R_INVALIDNSEC3;
-		} else {
-			wildcardmagic(qpdb, qp, name, false);
+			return (DNS_R_INVALIDNSEC3);
 		}
-	}
-	dns_qp_compact(qp, DNS_QPGC_MAYBE);
-	dns_qpmulti_commit(qpdb->tree, &qp);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+
+		wildcardmagic(qpdb, loadctx->tree, name, false);
 	}
 
-	loading_addnode(qpdb, name, rdataset->type, rdataset->covers, &node);
+	loading_addnode(loadctx, name, rdataset->type, rdataset->covers, &node);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
 					    &region, sizeof(dns_slabheader_t));
 	if (result != ISC_R_SUCCESS) {
@@ -2252,6 +2237,35 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	return (result);
 }
 
+static void
+loading_setup(void *arg) {
+	qpdb_load_t *loadctx = arg;
+	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
+
+	dns_qpmulti_write(qpdb->tree, &loadctx->tree);
+	dns_qpmulti_write(qpdb->nsec, &loadctx->nsec);
+	dns_qpmulti_write(qpdb->nsec3, &loadctx->nsec3);
+}
+
+static void
+loading_commit(void *arg) {
+	qpdb_load_t *loadctx = arg;
+	qpzonedb_t *qpdb = (qpzonedb_t *)loadctx->db;
+
+	if (loadctx->tree != NULL) {
+		dns_qp_compact(loadctx->tree, DNS_QPGC_MAYBE);
+		dns_qpmulti_commit(qpdb->tree, &loadctx->tree);
+	}
+	if (loadctx->nsec != NULL) {
+		dns_qp_compact(loadctx->nsec, DNS_QPGC_MAYBE);
+		dns_qpmulti_commit(qpdb->nsec, &loadctx->nsec);
+	}
+	if (loadctx->nsec3 != NULL) {
+		dns_qp_compact(loadctx->nsec3, DNS_QPGC_MAYBE);
+		dns_qpmulti_commit(qpdb->nsec3, &loadctx->nsec3);
+	}
+}
+
 static isc_result_t
 beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	qpdb_load_t *loadctx = NULL;
@@ -2262,9 +2276,7 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(VALID_QPZONE(qpdb));
 
 	loadctx = isc_mem_get(qpdb->common.mctx, sizeof(*loadctx));
-
-	loadctx->db = db;
-	loadctx->now = 0;
+	*loadctx = (qpdb_load_t){ .db = db };
 
 	RWLOCK(&qpdb->lock, isc_rwlocktype_write);
 
@@ -2275,6 +2287,8 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	RWUNLOCK(&qpdb->lock, isc_rwlocktype_write);
 
 	callbacks->add = loading_addrdataset;
+	callbacks->setup = loading_setup;
+	callbacks->commit = loading_commit;
 	callbacks->add_private = loadctx;
 
 	return (ISC_R_SUCCESS);
@@ -2308,6 +2322,8 @@ endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	}
 
 	callbacks->add = NULL;
+	callbacks->setup = NULL;
+	callbacks->commit = NULL;
 	callbacks->add_private = NULL;
 
 	isc_mem_put(qpdb->common.mctx, loadctx, sizeof(*loadctx));

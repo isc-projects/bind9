@@ -243,19 +243,15 @@ dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
  */
 
 isc_result_t
-dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
-	      void *add_private);
+dns_diff_load(dns_diff_t *diff, dns_rdatacallbacks_t *callbacks);
 /*%<
  * Like dns_diff_apply, but for use when loading a new database
  * instead of modifying an existing one.  This bypasses the
  * database transaction mechanisms.
  *
  * Requires:
- *\li	'addfunc' is a valid dns_addradatasetfunc_t obtained from
- *	dns_db_beginload()
- *
- *\li	'add_private' points to a corresponding dns_dbload_t *
- *      (XXX why is it a void pointer, then?)
+ *\li	'callbacks' points to a dns_rdatacallbacks_t structure obtained
+ *	from dns_db_beginload()
  */
 
 isc_result_t

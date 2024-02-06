@@ -37,9 +37,20 @@ struct dns_rdatacallbacks {
 	unsigned int magic;
 
 	/*%
-	 * dns_load_master calls this when it has rdatasets to commit.
+	 * dns_load_master calls 'add' when it has an rdataset to add
+	 * to the database. If defined, it calls 'setup' before and
+	 * 'commit' after adding rdatasets.
+	 *
+	 * Some database implementations will commit each rdataset as
+	 * soon as it's added, in which case 'setup' and 'commit' need
+	 * not be defined.  However, other implementations can be
+	 * optimized by grouping rdatasets into a transaction; the
+	 * setup and commit functions allow this transaction to be
+	 * opened and committed.
 	 */
 	dns_addrdatasetfunc_t add;
+	dns_transactionfunc_t setup;
+	dns_transactionfunc_t commit;
 
 	/*%
 	 * dns_master_load*() call this when loading a raw zonefile,
