@@ -196,20 +196,23 @@ def test_named_shutdown(ports, kill_method):
     resolver.nameservers = ["10.53.0.3"]
     resolver.port = named_ports.dns
 
-    named_cmdline = [named, "-c", cfg_file, "-f"]
-    with subprocess.Popen(named_cmdline, cwd=cfg_dir) as named_proc:
-        try:
-            assert named_proc.poll() is None, "named isn't running"
-            assert wait_for_named_loaded(resolver)
-            do_work(
-                named_proc,
-                resolver,
-                instance,
-                kill_method,
-                n_workers=12,
-                n_queries=16,
-            )
-            assert wait_for_proc_termination(named_proc)
-            assert named_proc.returncode == 0, "named crashed"
-        finally:  # Ensure named is terminated in case of an exception
-            named_proc.kill()
+    named_cmdline = [named, "-c", cfg_file, "-d", "99", "-g"]
+    with open(os.path.join(cfg_dir, "named.run"), "ab") as named_log:
+        with subprocess.Popen(
+            named_cmdline, cwd=cfg_dir, stderr=named_log
+        ) as named_proc:
+            try:
+                assert named_proc.poll() is None, "named isn't running"
+                assert wait_for_named_loaded(resolver)
+                do_work(
+                    named_proc,
+                    resolver,
+                    instance,
+                    kill_method,
+                    n_workers=12,
+                    n_queries=16,
+                )
+                assert wait_for_proc_termination(named_proc)
+                assert named_proc.returncode == 0, "named crashed"
+            finally:  # Ensure named is terminated in case of an exception
+                named_proc.kill()
