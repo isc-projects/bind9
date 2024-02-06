@@ -1,3 +1,5 @@
+6337.	[bug]		Nsupdate could assert while shutting down. [GL #4529]
+
 6336.	[func]		Expose the zones with the 'first refresh' flag set in
 			statistics channel's "Incoming Zone Transfers" section
 			to indicate the zones that are not yet fully ready, and
