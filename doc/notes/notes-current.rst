@@ -41,7 +41,9 @@ New Features
 Removed Features
 ~~~~~~~~~~~~~~~~
 
-- None.
+- BIND 9 no longer supports non-zero :any:`stale-answer-client-timeout` values,
+  when the feature is turned on. When using a non-zero value, ``named`` now
+  generates a warning log message, and treats the value as ``0``. :gl:`#4447`
 
 Feature Changes
 ~~~~~~~~~~~~~~~
