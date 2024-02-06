@@ -1470,7 +1470,7 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	dns_zonestat_level_t statlevel;
 	int xmlrc;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_presoa, is_pending;
+	bool is_firstrefresh, is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -1482,8 +1482,9 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred, &is_presoa,
-			    &is_pending, &needs_refresh) != ISC_R_SUCCESS)
+	if (dns_zone_getxfr(zone, &xfr, &is_firstrefresh, &is_running,
+			    &is_deferred, &is_presoa, &is_pending,
+			    &needs_refresh) != ISC_R_SUCCESS)
 	{
 		/*
 		 * Failed to get information about the zone's incoming transfer
@@ -1548,6 +1549,11 @@ xfrin_xmlrender(dns_zone_t *zone, void *arg) {
 	} else {
 		TRY0(xmlTextWriterWriteString(writer, ISC_XMLCHAR "-"));
 	}
+	TRY0(xmlTextWriterEndElement(writer));
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "firstrefresh"));
+	TRY0(xmlTextWriterWriteString(
+		writer, ISC_XMLCHAR(is_firstrefresh ? "Yes" : "No")));
 	TRY0(xmlTextWriterEndElement(writer));
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "state"));
@@ -2538,7 +2544,7 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 	dns_transport_type_t transport_type;
 	dns_zonestat_level_t statlevel;
 	dns_xfrin_t *xfr = NULL;
-	bool is_running, is_deferred, is_presoa, is_pending;
+	bool is_firstrefresh, is_running, is_deferred, is_presoa, is_pending;
 	bool needs_refresh;
 	bool is_first_data_received, is_ixfr;
 	unsigned int nmsg = 0;
@@ -2570,8 +2576,9 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 		goto cleanup;
 	}
 
-	result = dns_zone_getxfr(zone, &xfr, &is_running, &is_deferred,
-				 &is_presoa, &is_pending, &needs_refresh);
+	result = dns_zone_getxfr(zone, &xfr, &is_firstrefresh, &is_running,
+				 &is_deferred, &is_presoa, &is_pending,
+				 &needs_refresh);
 	if (result != ISC_R_SUCCESS) {
 		result = ISC_R_SUCCESS;
 		goto cleanup;
@@ -2596,6 +2603,10 @@ xfrin_jsonrender(dns_zone_t *zone, void *arg) {
 					       json_object_new_int64(serial));
 		}
 	}
+
+	json_object_object_add(
+		xfrinobj, "firstrefresh",
+		json_object_new_string(is_firstrefresh ? "Yes" : "No"));
 
 	if (is_running) {
 		const char *xfr_state = NULL;

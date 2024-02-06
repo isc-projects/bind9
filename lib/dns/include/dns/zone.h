@@ -116,6 +116,18 @@ typedef enum {
 	DNS_ZONEKEY___MAX = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zonekey_t;
 
+/*
+ * Zone states
+ */
+typedef enum {
+	DNS_ZONESTATE_XFERRUNNING = 1,
+	DNS_ZONESTATE_XFERDEFERRED,
+	DNS_ZONESTATE_XFERFIRSTREFRESH,
+	DNS_ZONESTATE_SOAQUERY,
+	DNS_ZONESTATE_ANY,
+	DNS_ZONESTATE_AUTOMATIC,
+} dns_zonestate_t;
+
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH 300 /*%< 5 minutes */
 #endif				/* ifndef DNS_ZONE_MINREFRESH */
@@ -136,12 +148,6 @@ typedef enum {
 	60 /*%< 1 minute, subject to \
 	    * exponential backoff */
 #endif	   /* ifndef DNS_ZONE_DEFAULTRETRY */
-
-#define DNS_ZONESTATE_XFERRUNNING  1
-#define DNS_ZONESTATE_XFERDEFERRED 2
-#define DNS_ZONESTATE_SOAQUERY	   3
-#define DNS_ZONESTATE_ANY	   4
-#define DNS_ZONESTATE_AUTOMATIC	   5
 
 ISC_LANG_BEGINDECLS
 
@@ -1870,19 +1876,19 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr);
  */
 
 unsigned int
-dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
+dns_zonemgr_getcount(dns_zonemgr_t *zmgr, dns_zonestate_t state);
 /*%<
  *	Returns the number of zones in the specified state.
  *
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
- *\li	'state' to be a valid DNS_ZONESTATE_ constant.
+ *\li	'state' to be a valid DNS_ZONESTATE_ enum.
  */
 
 isc_result_t
-dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
-		bool *is_deferred, bool *is_presoa, bool *is_pending,
-		bool *needs_refresh);
+dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_firstrefresh,
+		bool *is_running, bool *is_deferred, bool *is_presoa,
+		bool *is_pending, bool *needs_refresh);
 /*%<
  *	Returns the xfrin associated with the zone (if any) with the current
  * 	transfer states (as booleans). When no longer needed, the returned xfrin
@@ -1891,6 +1897,7 @@ dns_zone_getxfr(dns_zone_t *zone, dns_xfrin_t **xfrp, bool *is_running,
  * Requires:
  *\li	'zone' to be a valid zone.
  *\li	'xfrp' to be non NULL and '*xfrp' to be NULL.
+ *\li	'is_firstrefresh' to be non NULL.
  *\li	'is_running' to be non NULL.
  *\li	'is_deferred' to be non NULL.
  *\li	'is_presoa' to be non NULL.

@@ -67,3 +67,9 @@ zone "example-tls" {
 	file "example-tls.db";
 	allow-transfer { any; };
 };
+
+zone "example-new" {
+	type primary;
+	file "example-new.db";
+	allow-transfer { any; };
+};

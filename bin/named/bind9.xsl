@@ -919,6 +919,7 @@
                   <th>Local Serial</th>
                   <th>Remote Serial</th>
                   <th>IXFR</th>
+                  <th>First Refresh</th>
                   <th>State</th>
                   <th>Additional Refresh Queued</th>
                   <th>Local Address</th>
@@ -946,6 +947,7 @@
                     <td><xsl:value-of select="serial"/></td>
                     <td><xsl:value-of select="remoteserial"/></td>
                     <td><xsl:value-of select="ixfr"/></td>
+                    <td><xsl:value-of select="firstrefresh"/></td>
                     <td><xsl:value-of select="state"/></td>
                     <td><xsl:value-of select="refreshqueued"/></td>
                     <td><xsl:value-of select="localaddr"/></td>

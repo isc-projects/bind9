@@ -689,7 +689,14 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
-echo_i "Retransfering 'example' from ns1 to ns3 in slow mode ($n)"
+echo_i "Checking that there are no 'first refresh' zones in ns3 ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status | grep -E '^xfers first refresh: 0$' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Transfering zones from ns1 to ns3 in slow mode ($n)"
 ret=0
 i=0
 # Restart ns1 with '-T transferslowly' to see the xfrins information in ns3's statschannel while it's ongoing
@@ -700,6 +707,7 @@ nextpart ns3/named.run >/dev/null
 $RNDCCMD 10.53.0.3 retransfer example | sed "s/^/ns3 /" | cat_i
 $RNDCCMD 10.53.0.3 retransfer example-tcp | sed "s/^/ns3 /" | cat_i
 $RNDCCMD 10.53.0.3 retransfer example-tls | sed "s/^/ns3 /" | cat_i
+$RNDCCMD 10.53.0.3 addzone 'example-new { type secondary; primaries { 10.53.0.1; }; file "example-new.db"; };' 2>&1 | sed "s/^/ns3 /" | cat_i
 wait_for_log_fast 200 "zone example/IN: Transfer started" ns3/named.run || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
@@ -708,11 +716,26 @@ n=$((n + 1))
 _wait_for_transfers() {
   getxfrins xml x$n || return 1
   getxfrins json j$n || return 1
+
   # XML is encoded in one line, use awk to separate each transfer with a newline
+
+  # We expect 4 transfers
   count=$(awk '{ gsub("<xfrin ", "\n<xfrin ") } 1' xfrins.xml.x$n | grep -c -E '<state>(Zone Transfer Request|First Data|Receiving AXFR Data)</state>')
-  if [ $count != 3 ]; then return 1; fi
+  if [ $count != 4 ]; then return 1; fi
   count=$(grep -c -E '"state":"(Zone Transfer Request|First Data|Receiving AXFR Data)"' xfrins.json.j$n)
+  if [ $count != 4 ]; then return 1; fi
+
+  # We expect 3 of 4 to be retransfers
+  count=$(awk '{ gsub("<xfrin ", "\n<xfrin ") } 1' xfrins.xml.x$n | grep -c -F '<firstrefresh>No</firstrefresh>')
   if [ $count != 3 ]; then return 1; fi
+  count=$(grep -c -F '"firstrefresh":"No"' xfrins.json.j$n)
+  if [ $count != 3 ]; then return 1; fi
+
+  # We expect 1 of 4 to be a new transfer
+  count=$(awk '{ gsub("<xfrin ", "\n<xfrin ") } 1' xfrins.xml.x$n | grep -c -F '<firstrefresh>Yes</firstrefresh>')
+  if [ $count != 1 ]; then return 1; fi
+  count=$(grep -c -F '"firstrefresh":"Yes"' xfrins.json.j$n)
+  if [ $count != 1 ]; then return 1; fi
 }
 
 # We have now less than one second to catch the zone transfers in progress
@@ -723,10 +746,17 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 n=$((n + 1))
 
+echo_i "Checking that there is one 'first refresh' zone in ns3 ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 status | grep -E '^xfers first refresh: 1$' >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
 if [ $PERL_JSON ]; then
   echo_i "Checking zone transfer transports ($n)"
   ret=0
-  cp xfrins.json.j$((n - 1)) xfrins.json.j$n
+  cp xfrins.json.j$((n - 2)) xfrins.json.j$n
   $PERL xfrins-json.pl xfrins.json.j$n example >xfrins.example.format$n
   echo "soatransport: UDP" >xfrins.example.expect$n
   echo "transport: TCP" >>xfrins.example.expect$n
