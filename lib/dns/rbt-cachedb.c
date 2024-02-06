@@ -909,13 +909,18 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				 */
 				found = header;
 				if (header->type == dns_rdatatype_cname &&
-				    cname_ok && cnamesig != NULL)
+				    cname_ok)
 				{
 					/*
 					 * If we've already got the
 					 * CNAME RRSIG, use it.
 					 */
-					foundsig = cnamesig;
+					if (cnamesig != NULL) {
+						foundsig = cnamesig;
+					} else {
+						sigtype =
+							RBTDB_RDATATYPE_SIGCNAME;
+					}
 				}
 			} else if (header->type == sigtype) {
 				/*
