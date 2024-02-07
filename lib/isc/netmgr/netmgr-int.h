@@ -328,7 +328,6 @@ struct isc_nm {
 	isc_mem_t *mctx;
 	isc_loopmgr_t *loopmgr;
 	uint32_t nloops;
-	isc_mutex_t lock;
 	isc__networker_t *workers;
 
 	isc_stats_t *stats;
