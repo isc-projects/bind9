@@ -478,8 +478,6 @@ exists(const cfg_obj_t *obj, const char *name, int value, isc_symtab_t *symtab,
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, fmt, key, file, line);
 		isc_mem_free(mctx, key);
 		result = ISC_R_EXISTS;
-	} else if (result != ISC_R_SUCCESS) {
-		isc_mem_free(mctx, key);
 	}
 	return (result);
 }
@@ -2146,10 +2144,6 @@ check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
 			isc_mem_free(mctx, tmp);
 			result = tresult;
 			break;
-		} else if (tresult != ISC_R_SUCCESS) {
-			isc_mem_free(mctx, tmp);
-			result = tresult;
-			break;
 		}
 
 		elt = cfg_list_next(elt);
@@ -3305,9 +3299,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				tresult = isc_symtab_define(
 					inview, tmp, 1, symvalue,
 					isc_symexists_replace);
-				if (tresult == ISC_R_NOMEMORY) {
-					isc_mem_free(mctx, tmp);
-				}
 				if (result == ISC_R_SUCCESS &&
 				    tresult != ISC_R_SUCCESS)
 				{
@@ -4984,10 +4975,6 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 					   isc_symexists_reject);
 		if (result == ISC_R_EXISTS) {
 			isc_mem_free(mctx, p);
-		} else if (result != ISC_R_SUCCESS) {
-			isc_mem_free(mctx, p);
-			ret = result;
-			continue;
 		}
 	}
 
@@ -6258,8 +6245,6 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 					    "view '%s': already exists "
 					    "previous definition: %s:%u",
 					    key, file, line);
-				result = tresult;
-			} else if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			} else if ((strcasecmp(key, "_bind") == 0 &&
 				    vclass == dns_rdataclass_ch) ||
