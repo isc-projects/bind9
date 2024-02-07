@@ -13,13 +13,15 @@
 
 /*! \file */
 
-#include "util.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/tls.h>
+
+#include "util.h"
 
 extern bool verbose;
 extern const char *progname;
@@ -46,5 +48,5 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fprintf(stderr, "\n");
 	isc__tls_setfatalmode();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }

@@ -264,7 +264,7 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fprintf(stderr, "\n");
 	isc__tls_setfatalmode();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void

@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/attributes.h>
 #include <isc/buffer.h>
@@ -75,7 +76,7 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fputc('\n', stderr);
 	cleanup();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 int

@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
@@ -84,7 +85,9 @@ fatal(const char *format, ...) {
 		(*fatalcallback)();
 	}
 	isc__tls_setfatalmode();
-	exit(1);
+
+	/* Make sure that various atexit() calls are skipped */
+	_exit(EXIT_FAILURE);
 }
 
 void

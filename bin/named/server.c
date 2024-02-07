@@ -10204,7 +10204,7 @@ fatal(const char *msg, isc_result_t result) {
 		      "exiting (due to fatal error)");
 	named_os_shutdown();
 	isc__tls_setfatalmode();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static isc_result_t
