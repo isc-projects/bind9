@@ -148,11 +148,11 @@
 #endif /* HAVE_LMDB */
 
 #ifndef SIZE_MAX
-#define SIZE_MAX ((size_t) - 1)
+#define SIZE_MAX ((size_t)-1)
 #endif /* ifndef SIZE_MAX */
 
 #ifndef SIZE_AS_PERCENT
-#define SIZE_AS_PERCENT ((size_t) - 2)
+#define SIZE_AS_PERCENT ((size_t)-2)
 #endif /* ifndef SIZE_AS_PERCENT */
 
 #ifdef TUNE_LARGE
@@ -221,8 +221,9 @@
 #define CHECKFATAL(op, msg)                         \
 	do {                                        \
 		result = (op);                      \
-		if (result != ISC_R_SUCCESS)        \
+		if (result != ISC_R_SUCCESS) {      \
 			fatal(server, msg, result); \
+		}                                   \
 	} while (0)
 
 /*%
@@ -10426,7 +10427,7 @@ fatal(named_server_t *server, const char *msg, isc_result_t result) {
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_CRITICAL,
 		      "exiting (due to fatal error)");
 	named_os_shutdown();
-	exit(1);
+	_exit(1);
 }
 
 static void

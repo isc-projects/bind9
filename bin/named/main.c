@@ -184,7 +184,7 @@ named_main_earlyfatal(const char *format, ...) {
 	}
 	va_end(args);
 
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 noreturn static void
@@ -238,7 +238,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	if (named_g_coreok) {
 		abort();
 	}
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 noreturn static void
@@ -278,7 +278,7 @@ library_fatal_error(const char *file, int line, const char *func,
 	if (named_g_coreok) {
 		abort();
 	}
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void

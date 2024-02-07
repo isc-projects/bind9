@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
@@ -81,7 +82,7 @@ fatal(const char *format, ...) {
 	if (fatalcallback != NULL) {
 		(*fatalcallback)();
 	}
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 void

@@ -383,8 +383,6 @@ get_reverse(char *reverse, size_t len, char *value, bool strict) {
 	}
 }
 
-void (*dighost_pre_exit_hook)(void) = NULL;
-
 #if TARGET_OS_IPHONE
 void
 warn(const char *format, ...) {
@@ -417,10 +415,7 @@ digexit(void) {
 		exitcode = 10;
 	}
 	if (fatalexit != 0) {
-		exitcode = fatalexit;
-	}
-	if (dighost_pre_exit_hook != NULL) {
-		dighost_pre_exit_hook();
+		_exit(fatalexit);
 	}
 	exit(exitcode);
 }
@@ -435,6 +430,11 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
+	if (fatalexit == 0 && exitcode != 0) {
+		fatalexit = exitcode;
+	} else if (fatalexit == 0) {
+		fatalexit = EXIT_FAILURE;
+	}
 	digexit();
 }
 

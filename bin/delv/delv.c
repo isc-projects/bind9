@@ -221,7 +221,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void

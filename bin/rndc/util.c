@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/print.h>
 
@@ -45,5 +46,5 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	exit(1);
+	_exit(EXIT_FAILURE);
 }

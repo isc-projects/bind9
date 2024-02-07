@@ -901,7 +901,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	exit(-2);
+	_exit(EXIT_FAILURE);
 }
 
 static isc_result_t
