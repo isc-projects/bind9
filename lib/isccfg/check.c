@@ -478,8 +478,6 @@ exists(const cfg_obj_t *obj, const char *name, int value, isc_symtab_t *symtab,
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR, fmt, key, file, line);
 		isc_mem_free(mctx, key);
 		result = ISC_R_EXISTS;
-	} else if (result != ISC_R_SUCCESS) {
-		isc_mem_free(mctx, key);
 	}
 	return (result);
 }
@@ -2146,10 +2144,6 @@ check_remoteserverlist(const cfg_obj_t *cctx, const char *list,
 			isc_mem_free(mctx, tmp);
 			result = tresult;
 			break;
-		} else if (tresult != ISC_R_SUCCESS) {
-			isc_mem_free(mctx, tmp);
-			result = tresult;
-			break;
 		}
 
 		elt = cfg_list_next(elt);
@@ -3242,12 +3236,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    "zone '%s': is not a valid name", znamestr);
 		result = ISC_R_FAILURE;
 	} else {
-		char namebuf[DNS_NAME_FORMATSIZE + 128];
-		char *tmp = namebuf;
-		size_t len = sizeof(namebuf);
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
+		char *key = NULL;
+		const char *vname = NULL;
+		size_t len = 0;
+		int n;
 
 		zname = dns_fixedname_name(&fixedname);
 		dns_name_format(zname, namebuf, sizeof(namebuf));
+		dns_rdataclass_format(zclass, classbuf, sizeof(classbuf));
+
 		tresult = exists(
 			zconfig, namebuf,
 			ztype == CFG_ZONE_HINT	     ? 1
@@ -3266,15 +3265,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		} else if (dns_name_isula(zname)) {
 			ula = true;
 		}
-		len -= strlen(tmp);
-		tmp += strlen(tmp);
-		(void)snprintf(tmp, len, "%u/%s", zclass,
-			       (ztype == CFG_ZONE_INVIEW) ? target
-			       : (viewname != NULL)	  ? viewname
-							  : "_default");
+		vname = (ztype == CFG_ZONE_INVIEW) ? target
+			: (viewname != NULL)	   ? viewname
+						   : "_default";
+		len = strlen(namebuf) + strlen(classbuf) + strlen(vname) + 3;
+		key = isc_mem_get(mctx, len);
+		n = snprintf(key, len, "%s/%s/%s", namebuf, classbuf, vname);
+		RUNTIME_CHECK(n > 0 && (size_t)n < len);
 		switch (ztype) {
 		case CFG_ZONE_INVIEW:
-			tresult = isc_symtab_lookup(inview, namebuf, 0, NULL);
+			tresult = isc_symtab_lookup(inview, key, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(inviewobj, logctx, ISC_LOG_ERROR,
 					    "'in-view' zone '%s' "
@@ -3297,28 +3297,19 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		case CFG_ZONE_MIRROR:
 		case CFG_ZONE_HINT:
 		case CFG_ZONE_STUB:
-		case CFG_ZONE_STATICSTUB:
-			tmp = isc_mem_strdup(mctx, namebuf);
-			{
-				isc_symvalue_t symvalue;
-				symvalue.as_cpointer = NULL;
-				tresult = isc_symtab_define(
-					inview, tmp, 1, symvalue,
-					isc_symexists_replace);
-				if (tresult == ISC_R_NOMEMORY) {
-					isc_mem_free(mctx, tmp);
-				}
-				if (result == ISC_R_SUCCESS &&
-				    tresult != ISC_R_SUCCESS)
-				{
-					result = tresult;
-				}
-			}
-			break;
+		case CFG_ZONE_STATICSTUB: {
+			char *tmp = isc_mem_strdup(mctx, key);
+			isc_symvalue_t symvalue;
+			symvalue.as_cpointer = NULL;
+			tresult = isc_symtab_define(inview, tmp, 1, symvalue,
+						    isc_symexists_replace);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+		} break;
 
 		default:
 			UNREACHABLE();
 		}
+		isc_mem_put(mctx, key, len);
 	}
 
 	if (ztype == CFG_ZONE_INVIEW) {
@@ -4243,6 +4234,7 @@ keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
 	symvalue.as_cpointer = zcfg;
 	result = isc_symtab_define(symtab, symkey, 2, symvalue,
 				   isc_symexists_reject);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	return (result);
 }
 
@@ -4984,10 +4976,6 @@ record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
 					   isc_symexists_reject);
 		if (result == ISC_R_EXISTS) {
 			isc_mem_free(mctx, p);
-		} else if (result != ISC_R_SUCCESS) {
-			isc_mem_free(mctx, p);
-			ret = result;
-			continue;
 		}
 	}
 
@@ -5888,9 +5876,7 @@ check_logging(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	for (i = 0; default_channels[i] != NULL; i++) {
 		tresult = isc_symtab_define(symtab, default_channels[i], 1,
 					    symvalue, isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS) {
-			result = tresult;
-		}
+		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 	}
 
 	cfg_map_get(logobj, "channel", &channels);
@@ -5928,9 +5914,7 @@ check_logging(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 		tresult = isc_symtab_define(symtab, channelname, 1, symvalue,
 					    isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS) {
-			result = tresult;
-		}
+		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 	}
 
 	cfg_map_get(logobj, "category", &categories);
@@ -6258,8 +6242,6 @@ isccfg_check_namedconf(const cfg_obj_t *config, unsigned int flags,
 					    "view '%s': already exists "
 					    "previous definition: %s:%u",
 					    key, file, line);
-				result = tresult;
-			} else if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
 			} else if ((strcasecmp(key, "_bind") == 0 &&
 				    vclass == dns_rdataclass_ch) ||
