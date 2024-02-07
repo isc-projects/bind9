@@ -61,7 +61,7 @@
 		if ((x) != ISC_R_SUCCESS) {                                 \
 			fprintf(stderr, "mdig: %s failed with %s\n", (str), \
 				isc_result_totext(x));                      \
-			exit(-1);                                           \
+			exit(EXIT_FAILURE);                                 \
 		}                                                           \
 	}
 
@@ -208,7 +208,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		if (continue_on_error) {
 			goto cleanup;
 		} else {
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -789,7 +789,7 @@ usage(void) {
 			"           {local-opt} [ host {local-opt} [...]]\n"
 			"\nUse \"mdig -h\" (or \"mdig -h | more\") "
 			"for complete list of options\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 /*% help */
@@ -1703,7 +1703,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			break;
 		case 'h':
 			help();
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 		case 'i':
 			/* deprecated */
@@ -1715,7 +1715,7 @@ dash_option(const char *option, char *next, struct query *query, bool global,
 			break;
 		case 'v':
 			fprintf(stderr, "mDiG %s\n", PACKAGE_VERSION);
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 		}
 		if (strlen(option) > 1U) {

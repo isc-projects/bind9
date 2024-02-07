@@ -64,7 +64,7 @@ usage(void) {
 		program);
 	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",
 		program);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 typedef void

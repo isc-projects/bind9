@@ -31,7 +31,7 @@ const char *progname = NULL;
 static void
 usage(void) {
 	fprintf(stderr, "Usage: %s [-dux] journal\n", progname);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 /*
@@ -85,7 +85,7 @@ main(int argc, char **argv) {
 			if (endp == isc_commandline_argument || *endp != 0) {
 				fprintf(stderr, "invalid serial: %s\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'd':

@@ -68,7 +68,7 @@ EVP_PKEY *pkey;
 				msg, isc_result_totext(result), __FILE__,     \
 				__LINE__);                                    \
 			ERR_clear_error();                                    \
-			exit(1);                                              \
+			exit(EXIT_FAILURE);                                   \
 		}                                                             \
 	} while (0)
 
@@ -86,7 +86,7 @@ main(int argc, char **argv) {
 	{
 		fprintf(stderr, "fatal error: basic OpenSSL failure\n");
 		ERR_clear_error();
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/* e = 0x1000000000001 */
@@ -102,7 +102,7 @@ main(int argc, char **argv) {
 			"at file %s line %d\n",
 			__FILE__, __LINE__);
 		ERR_clear_error();
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	isc_mem_create(&mctx);

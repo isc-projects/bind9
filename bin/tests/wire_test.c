@@ -42,7 +42,7 @@ CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
 
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -57,7 +57,7 @@ fromhex(char c) {
 	}
 
 	fprintf(stderr, "bad input format: %02x\n", c);
-	exit(3);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -164,7 +164,7 @@ main(int argc, char *argv[]) {
 			break;
 		default:
 			usage();
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -175,7 +175,7 @@ main(int argc, char *argv[]) {
 		f = fopen(argv[0], "r");
 		if (f == NULL) {
 			fprintf(stderr, "%s: fopen failed\n", argv[0]);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		need_close = true;
 	} else {
@@ -215,7 +215,7 @@ main(int argc, char *argv[]) {
 			if (len % 2 != 0U) {
 				fprintf(stderr, "bad input format: %lu\n",
 					(unsigned long)len);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			rp = s;
@@ -240,13 +240,13 @@ main(int argc, char *argv[]) {
 
 			if (isc_buffer_remaininglength(input) < 2) {
 				fprintf(stderr, "premature end of packet\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			tcplen = isc_buffer_getuint16(input);
 
 			if (isc_buffer_remaininglength(input) < tcplen) {
 				fprintf(stderr, "premature end of packet\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			process_message(input);
 		}

@@ -349,7 +349,7 @@ main(int argc, char *argv[]) {
 			break;
 		default:
 			usage();
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
