@@ -3303,10 +3303,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			symvalue.as_cpointer = NULL;
 			tresult = isc_symtab_define(inview, tmp, 1, symvalue,
 						    isc_symexists_replace);
-			if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
-			{
-				result = tresult;
-			}
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 		} break;
 
 		default:
@@ -5879,9 +5876,7 @@ check_logging(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	for (i = 0; default_channels[i] != NULL; i++) {
 		tresult = isc_symtab_define(symtab, default_channels[i], 1,
 					    symvalue, isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS) {
-			result = tresult;
-		}
+		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 	}
 
 	cfg_map_get(logobj, "channel", &channels);
@@ -5919,9 +5914,7 @@ check_logging(const cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 		tresult = isc_symtab_define(symtab, channelname, 1, symvalue,
 					    isc_symexists_replace);
-		if (tresult != ISC_R_SUCCESS) {
-			result = tresult;
-		}
+		RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 	}
 
 	cfg_map_get(logobj, "category", &categories);
