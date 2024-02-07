@@ -350,7 +350,7 @@ main(int argc, char **argv) {
 
 		case 'v':
 			printf("%s\n", PACKAGE_VERSION);
-			exit(0);
+			exit(EXIT_SUCCESS);
 
 		case 'w':
 			workdir = isc_commandline_argument;

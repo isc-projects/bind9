@@ -3300,7 +3300,7 @@ usage(void) {
 	fprintf(stderr, "(default: all zone keys that have private keys)\n");
 	fprintf(stderr, "\tkeyfile (Kname+alg+tag)\n");
 
-	exit(0);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -3550,7 +3550,7 @@ main(int argc, char *argv[]) {
 			if (*endp != '\0') {
 				fprintf(stderr, "source serial number "
 						"must be numeric");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
@@ -3565,7 +3565,7 @@ main(int argc, char *argv[]) {
 			if (*endp != '\0') {
 				fprintf(stderr, "maximum TTL "
 						"must be numeric");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
@@ -3689,7 +3689,7 @@ main(int argc, char *argv[]) {
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", program,
 				isc_commandline_option);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -3818,7 +3818,7 @@ main(int argc, char *argv[]) {
 			    rawversion > 1U)
 			{
 				fprintf(stderr, "unknown raw format version\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 		} else {
 			fatal("unknown file format: %s", outputformatstr);

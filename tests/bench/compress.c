@@ -31,7 +31,7 @@ static void
 CHECKRESULT(isc_result_t result, const char *msg) {
 	if (result != ISC_R_SUCCESS) {
 		printf("%s: %s\n", msg, isc_result_totext(result));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 

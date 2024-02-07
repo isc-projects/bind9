@@ -87,7 +87,7 @@ const dns_qpmethods_t qpmethods = {
 			dns_name_format(name, buf, sizeof(buf));    \
 			fprintf(stderr, "%s: %s\n", buf,            \
 				isc_result_totext(result));         \
-			exit(1);                                    \
+			exit(EXIT_FAILURE);                         \
 		}                                                   \
 	} while (0)
 
@@ -459,7 +459,7 @@ static struct fun fun_list[] = {
 	do {                                                                   \
 		if (!(check)) {                                                \
 			fprintf(stderr, "%s:%zu: %s\n", filename, lines, msg); \
-			exit(1);                                               \
+			exit(EXIT_FAILURE);                                    \
 		}                                                              \
 	} while (0)
 
@@ -480,7 +480,7 @@ main(int argc, char *argv[]) {
 	if (argc != 2) {
 		fprintf(stderr,
 			"usage: load-names <filename.csv> <nthreads>\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	filename = argv[1];
@@ -488,7 +488,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
 			isc_result_totext(result));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	filesize = (size_t)fileoff;
 
@@ -496,7 +496,7 @@ main(int argc, char *argv[]) {
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	fclose(fp);
 	filetext[filesize] = '\0';

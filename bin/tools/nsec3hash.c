@@ -49,7 +49,7 @@ fatal(const char *format, ...) {
 	va_end(args);
 	fprintf(stderr, "\n");
 	isc__tls_setfatalmode();
-	_exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void
@@ -65,7 +65,7 @@ usage(void) {
 		program);
 	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",
 		program);
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 typedef void

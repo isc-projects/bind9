@@ -247,7 +247,7 @@ usage(void) {
 		"process)\n"
 		"                 +[no]yaml           (Present the results as "
 		"YAML)\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 noreturn static void
@@ -1163,7 +1163,7 @@ plus_option(char *option) {
 			if (state) {
 				fprintf(stderr, "Invalid option: "
 						"+dlv is obsolete\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'n': /* dnssec */
@@ -1430,7 +1430,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			break;
 		case 'h':
 			usage();
-			exit(0);
+			exit(EXIT_SUCCESS);
 		case 'i':
 			no_sigs = true;
 			root_validation = false;
@@ -1440,7 +1440,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			break;
 		case 'v':
 			printf("delv %s\n", PACKAGE_VERSION);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		default:
 			UNREACHABLE();
 		}
@@ -1577,7 +1577,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			typeset = true;
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		return (value_from_next);
 	invalid_option:

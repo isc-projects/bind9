@@ -63,7 +63,7 @@ usage(void) {
 		"usage: %s [-achijlvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n",
 		program);
-	exit(1);
+	exit(EXIT_SUCCESS);
 }
 
 /*% directory callback */

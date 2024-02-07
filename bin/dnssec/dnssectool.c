@@ -117,7 +117,7 @@ vbprintf(int level, const char *fmt, ...) {
 void
 version(const char *name) {
 	printf("%s %s\n", name, PACKAGE_VERSION);
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 void
