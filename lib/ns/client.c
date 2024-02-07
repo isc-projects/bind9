@@ -155,6 +155,8 @@ ns_client_transport_type(const ns_client_t *client) {
 	case isc_nm_nonesocket:
 		UNREACHABLE();
 	}
+
+	return DNS_TRANSPORT_UDP;
 }
 
 void
