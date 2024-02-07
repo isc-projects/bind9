@@ -4237,6 +4237,7 @@ keydirexist(const cfg_obj_t *zcfg, const char *optname, dns_name_t *zname,
 	symvalue.as_cpointer = zcfg;
 	result = isc_symtab_define(symtab, symkey, 2, symvalue,
 				   isc_symexists_reject);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	return (result);
 }
 
