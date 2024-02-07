@@ -77,12 +77,6 @@ isc__tls_set_thread_id(CRYPTO_THREADID *id) {
 }
 #endif
 
-#ifdef ISC_TEST_OPENSSL_MEMORY_LEAKS
-static atomic_bool handle_fatal = false;
-#else
-static atomic_bool handle_fatal = true;
-#endif
-
 #if !defined(LIBRESSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER >= 0x30000000L
 /*
  * This was crippled with LibreSSL, so just skip it:
@@ -115,7 +109,7 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 	if (ptr == NULL) {
 		return;
 	}
-	if (!atomic_load(&handle_fatal) || isc__tls_mctx != NULL) {
+	if (isc__tls_mctx != NULL) {
 		isc__mem_free(isc__tls_mctx, ptr, 0, file, (unsigned int)line);
 	}
 }
@@ -143,7 +137,7 @@ isc__tls_free_ex(void *ptr, const char *file, int line) {
 	if (ptr == NULL) {
 		return;
 	}
-	if (!atomic_load(&handle_fatal) || isc__tls_mctx != NULL) {
+	if (isc__tls_mctx != NULL) {
 		isc__mem_free(isc__tls_mctx, ptr, 0);
 	}
 }
@@ -1795,9 +1789,4 @@ isc_tlsctx_set_random_session_id_context(isc_tlsctx_t *ctx) {
 
 	RUNTIME_CHECK(
 		SSL_CTX_set_session_id_context(ctx, session_id_ctx, len) == 1);
-}
-
-void
-isc__tls_setfatalmode(void) {
-	atomic_store(&handle_fatal, true);
 }

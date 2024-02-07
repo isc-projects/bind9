@@ -897,7 +897,6 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	isc__tls_setfatalmode();
 	_exit(EXIT_FAILURE);
 }
 

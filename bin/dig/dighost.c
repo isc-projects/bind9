@@ -406,7 +406,6 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
-	isc__tls_setfatalmode();
 	if (fatalexit == 0 && exitcode != 0) {
 		fatalexit = exitcode;
 	} else if (fatalexit == 0) {

@@ -84,9 +84,6 @@ fatal(const char *format, ...) {
 	if (fatalcallback != NULL) {
 		(*fatalcallback)();
 	}
-	isc__tls_setfatalmode();
-
-	/* Make sure that various atexit() calls are skipped */
 	_exit(EXIT_FAILURE);
 }
 
