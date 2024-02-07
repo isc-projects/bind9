@@ -1641,6 +1641,7 @@ fctx__done(fetchctx_t *fctx, isc_result_t result, const char *func,
 	bool no_response = false;
 	bool age_untried = false;
 
+	REQUIRE(fctx != NULL);
 	REQUIRE(fctx->tid == isc_tid());
 
 	FCTXTRACE("done");
@@ -10352,6 +10353,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		}
 		new_fctx = true;
 	}
+
+	RUNTIME_CHECK(fctx != NULL);
 
 	if (fctx->depth > depth) {
 		fctx->depth = depth;
