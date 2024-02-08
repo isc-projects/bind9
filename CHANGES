@@ -1,3 +1,7 @@
+6338.	[func]		Optimize slabheader placement, so the infrastructure
+			records are put in the beginning of the slabheader
+			linked list. [GL !8675]
+
 6337.	[bug]		Nsupdate could assert while shutting down. [GL #4529]
 
 6336.	[func]		Expose the zones with the 'first refresh' flag set in
