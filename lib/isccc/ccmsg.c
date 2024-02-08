@@ -102,10 +102,7 @@ recv_data(isc_nmhandle_t *handle, isc_result_t eresult, isc_region_t *region,
 
 done:
 	isc_nm_read_stop(handle);
-	if (ccmsg->reading) {
-		ccmsg->reading = false;
-		ccmsg->recv_cb(handle, eresult, ccmsg->recv_cbarg);
-	}
+	ccmsg->recv_cb(handle, eresult, ccmsg->recv_cbarg);
 
 	return;
 }
@@ -145,7 +142,6 @@ isccc_ccmsg_readmessage(isccc_ccmsg_t *ccmsg, isc_nm_cb_t cb, void *cbarg) {
 	ccmsg->recv_cbarg = cbarg;
 	ccmsg->length_received = false;
 
-	ccmsg->reading = true;
 	isc_nm_read(ccmsg->handle, recv_data, ccmsg);
 }
 
@@ -154,14 +150,12 @@ ccmsg_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	isccc_ccmsg_t *ccmsg = arg;
 
 	REQUIRE(VALID_CCMSG(ccmsg));
+	REQUIRE(ccmsg->send_cb != NULL);
 
-	INSIST(ccmsg->send_cb != NULL);
-	ccmsg->send_cb(handle, eresult, ccmsg->send_cbarg);
+	isc_nm_cb_t send_cb = ccmsg->send_cb;
 	ccmsg->send_cb = NULL;
 
-	if (eresult != ISC_R_SUCCESS && ccmsg->reading) {
-		recv_data(handle, eresult, NULL, ccmsg);
-	}
+	send_cb(handle, eresult, ccmsg->send_cbarg);
 
 	isc_nmhandle_detach(&handle);
 }
@@ -184,6 +178,7 @@ isccc_ccmsg_disconnect(isccc_ccmsg_t *ccmsg) {
 	REQUIRE(VALID_CCMSG(ccmsg));
 
 	if (ccmsg->handle != NULL) {
+		isc_nm_read_stop(ccmsg->handle);
 		isc_nmhandle_close(ccmsg->handle);
 		isc_nmhandle_detach(&ccmsg->handle);
 	}

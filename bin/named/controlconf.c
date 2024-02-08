@@ -262,10 +262,11 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 		/* Everything is peachy, continue reading from the socket */
 		isccc_ccmsg_readmessage(&conn->ccmsg, control_recvmessage,
 					conn);
-		goto done;
+		/* Detach the sending reference */
+		controlconnection_detach(&conn);
+		return;
 	}
 
-	/* This is the error path */
 	if (result != ISC_R_SHUTTINGDOWN) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_t peeraddr = isc_nmhandle_peeraddr(handle);
@@ -277,9 +278,9 @@ control_senddone(isc_nmhandle_t *handle, isc_result_t result, void *arg) {
 			      socktext, isc_result_totext(result));
 	}
 
+	/* Shutdown the reading */
 	conn_shutdown(conn);
 
-done:
 	/* Detach the sending reference */
 	controlconnection_detach(&conn);
 }
@@ -559,9 +560,6 @@ cleanup:
 	case ISC_R_EOF:
 		break;
 	default:
-		/* We can't get here on normal path */
-		INSIST(result != ISC_R_SUCCESS);
-
 		log_invalid(&conn->ccmsg, result);
 	}
 
