@@ -2500,7 +2500,7 @@ burst() {
     num=$((num - 1))
     echo "fetch${num}.example A" >>burst.input.$$
   done
-  $PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 burst.input.$$
+  $PERL ../ditch.pl -p ${PORT} -s 10.53.0.3 -b ${EXTRAPORT8} burst.input.$$
   rm -f burst.input.$$
 }
 
