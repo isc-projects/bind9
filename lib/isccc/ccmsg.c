@@ -150,10 +150,12 @@ ccmsg_senddone(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	isccc_ccmsg_t *ccmsg = arg;
 
 	REQUIRE(VALID_CCMSG(ccmsg));
+	REQUIRE(ccmsg->send_cb != NULL);
 
-	INSIST(ccmsg->send_cb != NULL);
-	ccmsg->send_cb(handle, eresult, ccmsg->send_cbarg);
+	isc_nm_cb_t send_cb = ccmsg->send_cb;
 	ccmsg->send_cb = NULL;
+
+	send_cb(handle, eresult, ccmsg->send_cbarg);
 
 	isc_nmhandle_detach(&handle);
 }
