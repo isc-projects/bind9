@@ -109,6 +109,7 @@ STATIC_ASSERT(ISC_NETMGR_TCP_RECVBUF_SIZE <= ISC_NETMGR_RECVBUF_SIZE,
  * How many isc_nmhandles and isc_nm_uvreqs will we be
  * caching for reuse in a socket.
  */
+#define ISC_NM_NMSOCKET_MAX  64
 #define ISC_NM_NMHANDLES_MAX 64
 #define ISC_NM_UVREQS_MAX    64
 
@@ -210,6 +211,7 @@ typedef struct isc__networker {
 
 	ISC_LIST(isc_nmsocket_t) active_sockets;
 
+	isc_mempool_t *nmsocket_pool;
 	isc_mempool_t *uvreq_pool;
 } isc__networker_t;
 
@@ -301,14 +303,9 @@ struct isc__nm_uvreq {
 
 	union {
 		uv_handle_t handle;
-		uv_req_t req;
-		uv_getaddrinfo_t getaddrinfo;
-		uv_getnameinfo_t getnameinfo;
-		uv_shutdown_t shutdown;
 		uv_write_t write;
 		uv_connect_t connect;
 		uv_udp_send_t udp_send;
-		uv_fs_t fs;
 	} uv_req;
 	ISC_LINK(isc__nm_uvreq_t) link;
 	ISC_LINK(isc__nm_uvreq_t) active_link;
@@ -534,7 +531,7 @@ struct isc_nmsocket {
 	} tlsstream;
 
 #if HAVE_LIBNGHTTP2
-	isc_nmsocket_h2_t h2;
+	isc_nmsocket_h2_t *h2;
 #endif /* HAVE_LIBNGHTTP2 */
 
 	struct {
@@ -1038,9 +1035,6 @@ isc__nmhandle_http_keepalive(isc_nmhandle_t *handle, bool value);
 /*%<
  * Set the keepalive value on the underlying session handle
  */
-
-void
-isc__nm_http_initsocket(isc_nmsocket_t *sock);
 
 void
 isc__nm_http_cleanup_data(isc_nmsocket_t *sock);

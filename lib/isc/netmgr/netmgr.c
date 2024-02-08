@@ -222,6 +222,11 @@ isc_netmgr_create(isc_mem_t *mctx, isc_loopmgr_t *loopmgr, isc_nm_t **netmgrp) {
 
 		isc_mem_attach(loop->mctx, &worker->mctx);
 
+		isc_mempool_create(worker->mctx, sizeof(isc_nmsocket_t),
+				   &worker->nmsocket_pool);
+		isc_mempool_setfreemax(worker->nmsocket_pool,
+				       ISC_NM_NMSOCKET_MAX);
+
 		isc_mempool_create(worker->mctx, sizeof(isc__nm_uvreq_t),
 				   &worker->uvreq_pool);
 		isc_mempool_setfreemax(worker->uvreq_pool, ISC_NM_UVREQS_MAX);
@@ -492,7 +497,7 @@ nmsocket_cleanup(void *arg) {
 
 		ISC_LIST_UNLINK(worker->active_sockets, sock, active_link);
 
-		isc_mem_put(worker->mctx, sock, sizeof(*sock));
+		isc_mempool_put(worker->nmsocket_pool, sock);
 	}
 
 	isc__networker_detach(&worker);
@@ -742,6 +747,17 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 			UNREACHABLE();
 		}
 		break;
+		switch (family) {
+		case AF_INET:
+			sock->statsindex = tcp4statsindex;
+			break;
+		case AF_INET6:
+			sock->statsindex = tcp6statsindex;
+			break;
+		default:
+			UNREACHABLE();
+		}
+		break;
 	default:
 		break;
 	}
@@ -753,10 +769,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 	NETMGR_TRACE_LOG("isc__nmsocket_init():%p->references = %" PRIuFAST32
 			 "\n",
 			 sock, isc_refcount_current(&sock->references));
-
-#if HAVE_LIBNGHTTP2
-	isc__nm_http_initsocket(sock);
-#endif
 
 	sock->magic = NMSOCK_MAGIC;
 
@@ -878,8 +890,10 @@ isc___nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t const *peer,
 	}
 
 #if HAVE_LIBNGHTTP2
-	if (sock->type == isc_nm_httpsocket && sock->h2.session) {
-		isc__nm_httpsession_attach(sock->h2.session,
+	if (sock->type == isc_nm_httpsocket && sock->h2 != NULL &&
+	    sock->h2->session)
+	{
+		isc__nm_httpsession_attach(sock->h2->session,
 					   &handle->httpsession);
 	}
 #endif
@@ -2191,8 +2205,11 @@ get_proxy_handle(isc_nmhandle_t *handle) {
 		return (handle);
 #ifdef HAVE_LIBNGHTTP2
 	case isc_nm_httpsocket:
-		return (get_proxy_handle(
-			isc__nm_httpsession_handle(sock->h2.session)));
+		if (sock->h2 != NULL) {
+			return (get_proxy_handle(
+				isc__nm_httpsession_handle(sock->h2->session)));
+		}
+		return (NULL);
 #endif /* HAVE_LIBNGHTTP2 */
 	default:
 		break;
@@ -2559,6 +2576,7 @@ isc__networker_destroy(isc__networker_t *worker) {
 	isc_loop_detach(&worker->loop);
 
 	isc_mempool_destroy(&worker->uvreq_pool);
+	isc_mempool_destroy(&worker->nmsocket_pool);
 
 	isc_mem_putanddetach(&worker->mctx, worker->recvbuf,
 			     ISC_NETMGR_RECVBUF_SIZE);
