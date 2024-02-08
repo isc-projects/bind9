@@ -1,3 +1,7 @@
+6338.	[func]		Optimize slabheader placement, so the infrastructure
+			records are put in the beginning of the slabheader
+			linked list. [GL !8675]
+
 6304.	[bug]		The wrong time was being used to determine what RRSIGs
 			where to be generated when dnssec-policy was in use.
 			[GL #4494]
