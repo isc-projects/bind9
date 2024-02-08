@@ -388,7 +388,7 @@ AC_COMPILE_IFELSE(
   ],
   [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])])
 
-AC_CHECK_HEADERS([stdalign.h stdnoreturn.h],
+AC_CHECK_HEADERS([stdnoreturn.h],
 		 [],
 		 [AC_MSG_ERROR([C11 standard headers not found, update your toolchain.])])
 

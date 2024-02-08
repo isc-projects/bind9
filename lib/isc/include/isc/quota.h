@@ -30,7 +30,6 @@
  *** Imports.
  ***/
 
-#include <isc/align.h>
 #include <isc/atomic.h>
 #include <isc/job.h>
 #include <isc/lang.h>
@@ -57,14 +56,19 @@ ISC_LANG_BEGINDECLS
  * synchronization between multiple threads (see urcu/wfcqueue.h for
  * detailed description).
  */
+STATIC_ASSERT(ISC_OS_CACHELINE_SIZE >= sizeof(struct __cds_wfcq_head),
+	      "ISC_OS_CACHELINE_SIZE smaller than "
+	      "sizeof(struct __cds_wfcq_head)");
 struct isc_quota {
 	int		     magic;
 	atomic_uint_fast32_t max;
 	atomic_uint_fast32_t used;
 	atomic_uint_fast32_t soft;
 	struct {
-		alignas(ISC_OS_CACHELINE_SIZE) struct cds_wfcq_head head;
-		alignas(ISC_OS_CACHELINE_SIZE) struct cds_wfcq_tail tail;
+		struct cds_wfcq_head head;
+		uint8_t		     __padding[ISC_OS_CACHELINE_SIZE -
+				       sizeof(struct __cds_wfcq_head)];
+		struct cds_wfcq_tail tail;
 	} jobs;
 	ISC_LINK(isc_quota_t) link;
 };

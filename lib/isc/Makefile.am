@@ -4,7 +4,6 @@ lib_LTLIBRARIES = libisc.la
 
 libisc_ladir = $(includedir)/isc
 libisc_la_HEADERS =			\
-	include/isc/align.h		\
 	include/isc/ascii.h		\
 	include/isc/assertions.h	\
 	include/isc/async.h		\

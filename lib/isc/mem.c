@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <isc/align.h>
 #include <isc/hash.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
