@@ -146,7 +146,8 @@ main(int argc, char **argv) {
 			keyfile = isc_commandline_argument;
 			break;
 		case 'h':
-			usage(0);
+			usage(EXIT_SUCCESS);
+			break;
 		case 'k':
 		case 'y': /* Compatible with rndc -y. */
 			keyname = isc_commandline_argument;
@@ -192,15 +193,15 @@ main(int argc, char **argv) {
 			if (isc_commandline_option != '?') {
 				fprintf(stderr, "%s: invalid argument -%c\n",
 					program, isc_commandline_option);
-				usage(1);
+				usage(EXIT_FAILURE);
 			} else {
-				usage(0);
+				usage(EXIT_SUCCESS);
 			}
 			break;
 		default:
 			fprintf(stderr, "%s: unhandled option -%c\n", program,
 				isc_commandline_option);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -209,7 +210,7 @@ main(int argc, char **argv) {
 	POST(argv);
 
 	if (argc > 0) {
-		usage(1);
+		usage(EXIT_FAILURE);
 	}
 
 	if (alg == DST_ALG_HMACMD5) {

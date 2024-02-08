@@ -12,7 +12,7 @@
  */
 
 /*
- * -a		exit(0) if dnsrps is available or dlopen() msg if not
+ * -a		exit(EXIT_SUCCESS) if dnsrps is available or dlopen() msg if not
  * -n domain	print the serial number of a domain to check if a new
  *		    version of a policy zone is ready.
  *		    Exit(1) if dnsrps is not available

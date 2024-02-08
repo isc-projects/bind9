@@ -46,7 +46,7 @@
 		if ((x) != ISC_R_SUCCESS) {                  \
 			fprintf(stderr, "I:%s: %s\n", (str), \
 				isc_result_totext(x));       \
-			exit(-1);                            \
+			exit(EXIT_FAILURE);                  \
 		}                                            \
 	}
 
@@ -76,7 +76,7 @@ recvresponse(void *arg) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "I:request event result: %s\n",
 			isc_result_totext(result));
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	dns_message_create(mctx, NULL, NULL, DNS_MESSAGE_INTENTPARSE,
@@ -90,7 +90,7 @@ recvresponse(void *arg) {
 		result = dns_result_fromrcode(response->rcode);
 		fprintf(stderr, "I:response rcode: %s\n",
 			isc_result_totext(result));
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 	if (response->counts[DNS_SECTION_ANSWER] != 1U) {
 		fprintf(stderr, "I:response answer count (%u!=1)\n",
@@ -234,7 +234,7 @@ main(int argc, char *argv[]) {
 			if (result != ISC_R_SUCCESS) {
 				fprintf(stderr, "bad port '%s'\n",
 					isc_commandline_argument);
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case 'r':

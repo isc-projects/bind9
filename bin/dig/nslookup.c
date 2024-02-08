@@ -849,7 +849,7 @@ usage(void) {
 			"'host' using default server\n");
 	fprintf(stderr, "   nslookup [-opt ...] host server # just look up "
 			"'host' using 'server'\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 
 static void
@@ -862,7 +862,7 @@ parse_args(int argc, char **argv) {
 		if (argv[0][0] == '-') {
 			if (strncasecmp(argv[0], "-ver", 4) == 0) {
 				printf("nslookup %s\n", PACKAGE_VERSION);
-				exit(0);
+				exit(EXIT_SUCCESS);
 			} else if (argv[0][1] != 0) {
 				setoption(&argv[0][1]);
 			} else {

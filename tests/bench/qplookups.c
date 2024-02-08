@@ -124,7 +124,7 @@ const dns_qpmethods_t methods = {
 static void
 usage(void) {
 	fprintf(stderr, "usage: lookups <filename>\n");
-	exit(0);
+	exit(EXIT_FAILURE);
 }
 
 static size_t
@@ -140,7 +140,7 @@ load_qp(dns_qp_t *qp, const char *filename) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
 			isc_result_totext(result));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	filesize = (size_t)fileoff;
@@ -148,7 +148,7 @@ load_qp(dns_qp_t *qp, const char *filename) {
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	fclose(fp);
 	filetext[filesize] = '\0';
@@ -186,7 +186,7 @@ load_qp(dns_qp_t *qp, const char *filename) {
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "%s:%zu: %s %s\n", filename, names,
 				domain, isc_result_totext(result));
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		names++;

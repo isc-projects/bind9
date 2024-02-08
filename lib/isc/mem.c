@@ -192,6 +192,9 @@ static void
 print_active(isc_mem_t *ctx, FILE *out);
 #endif /* ISC_MEM_TRACKLINES */
 
+static void
+isc__mem_rcu_barrier(isc_mem_t *ctx);
+
 #if ISC_MEM_TRACKLINES
 /*!
  * mctx must not be locked.
@@ -435,9 +438,17 @@ isc__mem_initialize(void) {
 
 static void
 mem_shutdown(void) {
+	bool empty;
+
 	isc__mem_checkdestroyed();
 
-	isc_mutex_destroy(&contextslock);
+	LOCK(&contextslock);
+	empty = ISC_LIST_EMPTY(contexts);
+	UNLOCK(&contextslock);
+
+	if (empty) {
+		isc_mutex_destroy(&contextslock);
+	}
 }
 
 void
@@ -577,6 +588,7 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
 				ctx, file, line);
 		}
 #endif
+		isc__mem_rcu_barrier(ctx);
 		destroy(ctx);
 	}
 }
@@ -594,23 +606,47 @@ isc__mem_detach(isc_mem_t **ctxp FLARG) {
 void
 isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size,
 		      int flags FLARG) {
-	isc_mem_t *ctx = NULL;
-
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 	REQUIRE(ptr != NULL);
 	REQUIRE(size != 0);
 
-	ctx = *ctxp;
+	isc_mem_t *ctx = *ctxp;
 	*ctxp = NULL;
 
-	DELETE_TRACE(ctx, ptr, size, file, line);
+	isc__mem_put(ctx, ptr, size, flags FLARG_PASS);
+	isc__mem_detach(&ctx FLARG_PASS);
+}
 
-	mem_putstats(ctx, size);
-	mem_put(ctx, ptr, size, flags);
+static void
+isc__mem_rcu_barrier(isc_mem_t *ctx) {
+	/*
+	 * wait for asynchronous memory reclamation to complete
+	 * before checking for memory leaks.
+	 *
+	 * Because rcu_barrier() needs to be called as many times
+	 * as the number of nested call_rcu() calls (call_rcu()
+	 * calls made from call_rcu thread), and currently there's
+	 * no mechanism to detect whether there are more call_rcu
+	 * callbacks scheduled, we simply call the rcu_barrier()
+	 * until there's no progression in the memory freed.
+	 *
+	 * The overhead is negligible and it prevents rare assertion failures
+	 * caused by the check for memory leaks below.
+	 */
+	size_t inuse;
+	uint_fast32_t references;
+	for (inuse = atomic_load(&ctx->inuse),
+	    references = isc_refcount_current(&ctx->references);
+	     inuse > 0 || references > 1; inuse = atomic_load(&ctx->inuse),
+	    references = isc_refcount_current(&ctx->references))
+	{
+		rcu_barrier();
 
-	if (isc_refcount_decrement(&ctx->references) == 1) {
-		isc_refcount_destroy(&ctx->references);
-		destroy(ctx);
+		if (inuse == atomic_load(&ctx->inuse) &&
+		    references == isc_refcount_current(&ctx->references))
+		{
+			break;
+		}
 	}
 }
 
@@ -628,27 +664,7 @@ isc__mem_destroy(isc_mem_t **ctxp FLARG) {
 	ctx = *ctxp;
 	*ctxp = NULL;
 
-	/*
-	 * wait for asynchronous memory reclamation to complete
-	 * before checking for memory leaks.
-	 *
-	 * Because rcu_barrier() needs to be called as many times
-	 * as the number of nested call_rcu() calls (call_rcu()
-	 * calls made from call_rcu thread), and currently there's
-	 * no mechanism to detect whether there are more call_rcu
-	 * callbacks scheduled, we simply call the rcu_barrier()
-	 * multiple times.  The overhead is negligible and it
-	 * prevents rare assertion failures caused by the check
-	 * for memory leaks below.
-	 *
-	 * If there's more nested call_rcu() calls than five levels,
-	 * we are doing something horribly wrong...
-	 */
-	rcu_barrier();
-	rcu_barrier();
-	rcu_barrier();
-	rcu_barrier();
-	rcu_barrier();
+	isc__mem_rcu_barrier(ctx);
 
 #if ISC_MEM_TRACKLINES
 	if ((ctx->debugging & ISC_MEM_DEBUGTRACE) != 0) {

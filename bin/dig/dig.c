@@ -119,7 +119,7 @@ usage(void) {
 	print_usage(stderr);
 	fprintf(stderr, "\nUse \"dig -h\" (or \"dig -h | more\") "
 			"for complete list of options\n");
-	exit(1);
+	exit(EXIT_FAILURE);
 }
 #endif /* if TARGET_OS_IPHONE */
 
@@ -2624,7 +2624,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			break;
 		case 'h':
 			help();
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 		case 'i':
 			fatal("-%c removed", option[0]);
@@ -2642,7 +2642,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			break;
 		case 'v':
 			printf("DiG %s\n", PACKAGE_VERSION);
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 		}
 		if (strlen(option) > 1U) {
@@ -2851,7 +2851,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			ISC_LIST_APPEND(lookup_list, *lookup, link);
 		} else {
 			fprintf(stderr, "Invalid IP address %s\n", value);
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		return (value_from_next);
 	invalid_option:

@@ -152,7 +152,7 @@ main(int argc, char *argv[]) {
 			continue;
 		default:
 			usage();
-			exit(1);
+			exit(EXIT_FAILURE);
 			continue;
 		}
 	}
@@ -162,7 +162,7 @@ main(int argc, char *argv[]) {
 	if (argc != 1) {
 		/* must exit 0 to appease test runner */
 		usage();
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	isc_mem_create(&mctx);
@@ -172,7 +172,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "stat(%s): %s\n", filename,
 			isc_result_totext(result));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	filesize = (size_t)fileoff;
@@ -180,7 +180,7 @@ main(int argc, char *argv[]) {
 	fp = fopen(filename, "r");
 	if (fp == NULL || fread(filetext, 1, filesize, fp) < filesize) {
 		fprintf(stderr, "read(%s): %s\n", filename, strerror(errno));
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	fclose(fp);
 	filetext[filesize] = '\0';
@@ -220,7 +220,7 @@ main(int argc, char *argv[]) {
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "%s:%zu: %s %s\n", filename, names,
 				domain, isc_result_totext(result));
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 
 		wirebytes += name->length;

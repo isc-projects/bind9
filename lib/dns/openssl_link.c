@@ -74,7 +74,7 @@ enable_fips_mode(void) {
 
 	if (isc_fips_set_mode(1) != ISC_R_SUCCESS) {
 		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 }

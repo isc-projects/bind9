@@ -194,7 +194,7 @@ named_main_earlyfatal(const char *format, ...) {
 	}
 	va_end(args);
 
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 noreturn static void
@@ -233,7 +233,7 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	if (named_g_coreok) {
 		abort();
 	}
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 noreturn static void
@@ -273,7 +273,7 @@ library_fatal_error(const char *file, int line, const char *func,
 	if (named_g_coreok) {
 		abort();
 	}
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 static void
@@ -892,7 +892,7 @@ parse_command_line(int argc, char *argv[]) {
 			printf("# Built-in default values. "
 			       "This is NOT the run-time configuration!\n");
 			printf("%s", named_config_getdefault());
-			exit(0);
+			exit(EXIT_SUCCESS);
 		case 'd':
 			named_g_debuglevel = parse_int(isc_commandline_argument,
 						       "debug "
@@ -955,10 +955,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'v':
 			printversion(false);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		case 'V':
 			printversion(true);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		case 'x':
 			/* Obsolete. No longer in use. Ignore. */
 			break;
@@ -993,7 +993,7 @@ parse_command_line(int argc, char *argv[]) {
 		case '?':
 			usage();
 			if (isc_commandline_option == '?') {
-				exit(0);
+				exit(EXIT_SUCCESS);
 			}
 			p = strchr(NAMED_MAIN_ARGS, isc_commandline_option);
 			if (p == NULL || *++p != ':') {

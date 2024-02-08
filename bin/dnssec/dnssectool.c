@@ -20,6 +20,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/base32.h>
 #include <isc/buffer.h>
@@ -83,8 +84,7 @@ fatal(const char *format, ...) {
 	if (fatalcallback != NULL) {
 		(*fatalcallback)();
 	}
-	isc__tls_setfatalmode();
-	exit(1);
+	_exit(EXIT_FAILURE);
 }
 
 void
@@ -114,7 +114,7 @@ vbprintf(int level, const char *fmt, ...) {
 void
 version(const char *name) {
 	printf("%s %s\n", name, PACKAGE_VERSION);
-	exit(0);
+	exit(EXIT_SUCCESS);
 }
 
 void
