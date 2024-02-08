@@ -1,3 +1,7 @@
+6340.	[test]		Fix incorrectly reported errors when running tests
+			with `make test` on platforms with older pytest.
+			[GL #4560]
+
 6339.	[bug]		The alignas() can't be used on types larger than
 			max_align_t; instead add padding into the structures
 			where we want avoid false memory sharing. [GL #4187]
