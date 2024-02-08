@@ -1632,13 +1632,13 @@ shotgun:udp:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: udp
-    SHOTGUN_TRAFFIC_MULTIPLIER: 15
+    SHOTGUN_TRAFFIC_MULTIPLIER: 10
 
 shotgun:tcp:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: tcp
-    SHOTGUN_TRAFFIC_MULTIPLIER: 6
+    SHOTGUN_TRAFFIC_MULTIPLIER: 4
   when: delayed
   start_in: 5 minutes
 
@@ -1646,7 +1646,7 @@ shotgun:dot:
   <<: *shotgun_job
   variables:
     SHOTGUN_SCENARIO: dot
-    SHOTGUN_TRAFFIC_MULTIPLIER: 3
+    SHOTGUN_TRAFFIC_MULTIPLIER: 2
   when: delayed
   start_in: 5 minutes
 
