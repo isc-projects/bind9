@@ -54,7 +54,6 @@ typedef struct isccc_ccmsg {
 	void	       *recv_cbarg;
 	isc_nm_cb_t	send_cb;
 	void	       *send_cbarg;
-	bool		reading;
 } isccc_ccmsg_t;
 
 ISC_LANG_BEGINDECLS
