@@ -1,3 +1,5 @@
+6342.	[placeholder]
+
 6341.	[bug]		Address use after free in ccmsg_senddone. [GL #4549]
 
 6340.	[test]		Fix incorrectly reported errors when running tests
