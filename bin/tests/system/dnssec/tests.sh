@@ -743,6 +743,21 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking mixed-case positive validation ($n)"
+ret=0
+for type in a txt aaaa loc; do
+  $DIG $DIGOPTS +noauth mixedcase.secure.example. \
+    @10.53.0.3 $type >dig.out.$type.ns3.test$n || ret=1
+  $DIG $DIGOPTS +noauth mixedcase.secure.example. \
+    @10.53.0.4 $type >dig.out.$type.ns4.test$n || ret=1
+  digcomp --lc dig.out.$type.ns3.test$n dig.out.$type.ns4.test$n || ret=1
+  grep "status: NOERROR" dig.out.$type.ns4.test$n >/dev/null || ret=1
+  grep "flags:.*ad.*QUERY" dig.out.$type.ns4.test$n >/dev/null || ret=1
+done
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking multi-stage positive validation NSEC/NSEC3 ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.nsec3.example. \
