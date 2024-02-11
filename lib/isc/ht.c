@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include <isc/ascii.h>
 #include <isc/hash.h>
 #include <isc/ht.h>
 #include <isc/magic.h>
@@ -95,9 +96,11 @@ isc__ht_iter_next(isc_ht_iter_t *it);
 
 static bool
 isc__ht_node_match(isc_ht_node_t *node, const uint32_t hashval,
-		   const uint8_t *key, uint32_t keysize) {
+		   const uint8_t *key, uint32_t keysize, bool case_sensitive) {
 	return (node->hashval == hashval && node->keysize == keysize &&
-		memcmp(node->key, key, keysize) == 0);
+		(case_sensitive
+			 ? (memcmp(node->key, key, keysize) == 0)
+			 : (isc_ascii_lowerequal(node->key, key, keysize))));
 }
 
 static uint32_t
@@ -338,7 +341,9 @@ nexttable:
 	for (isc_ht_node_t *node = ht->table[findex][hash]; node != NULL;
 	     node = node->next)
 	{
-		if (isc__ht_node_match(node, hashval, key, keysize)) {
+		if (isc__ht_node_match(node, hashval, key, keysize,
+				       ht->case_sensitive))
+		{
 			return (node);
 		}
 	}
@@ -385,7 +390,9 @@ isc__ht_delete(isc_ht_t *ht, const unsigned char *key, const uint32_t keysize,
 	for (isc_ht_node_t *node = ht->table[idx][hash]; node != NULL;
 	     prev = node, node = node->next)
 	{
-		if (isc__ht_node_match(node, hashval, key, keysize)) {
+		if (isc__ht_node_match(node, hashval, key, keysize,
+				       ht->case_sensitive))
+		{
 			if (prev == NULL) {
 				ht->table[idx][hash] = node->next;
 			} else {
