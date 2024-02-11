@@ -24,6 +24,10 @@ Security Fixes
   Applied Cybersecurity ATHENE for bringing this vulnerability to our
   attention. :gl:`#4424`
 
+- Preparing an NSEC3 closest encloser proof could cause excessive CPU
+  load, leading to a denial-of-service condition. This has been fixed.
+  :cve:`2023-50868` :gl:`#4459`
+
 - Parsing DNS messages with many different names could cause excessive
   CPU load. This has been fixed. :cve:`2023-4408`
 
