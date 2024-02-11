@@ -771,6 +771,21 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+echo_i "checking mixed-case positive validation ($n)"
+ret=0
+for type in a txt aaaa loc; do
+  dig_with_opts +noauth mixedcase.secure.example. \
+    @10.53.0.3 $type >dig.out.$type.ns3.test$n || ret=1
+  dig_with_opts +noauth mixedcase.secure.example. \
+    @10.53.0.4 $type >dig.out.$type.ns4.test$n || ret=1
+  digcomp --lc dig.out.$type.ns3.test$n dig.out.$type.ns4.test$n || ret=1
+  grep "status: NOERROR" dig.out.$type.ns4.test$n >/dev/null || ret=1
+  grep "flags:.*ad.*QUERY" dig.out.$type.ns4.test$n >/dev/null || ret=1
+done
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 echo_i "checking multi-stage positive validation NSEC/NSEC3 ($n)"
 ret=0
 dig_with_opts +noauth a.nsec3.example. \
