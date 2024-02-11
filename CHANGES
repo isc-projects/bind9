@@ -1,3 +1,5 @@
+	--- 9.16.48 released ---
+
 6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
 			[GL #4568]
 
