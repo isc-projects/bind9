@@ -1,3 +1,25 @@
+6355.	[func]		The red-black tree data structure underlying the
+			RBTDB has been replaced with QP-tries.  This is
+			expected to improve scalability and reduce
+			CPU consumption under load. It is currently known to
+			have higher memory consumption than RBTDB; this
+			will be addressed in future releases.
+
+			Nodes in a QP-trie contain the full domain name,
+			while nodes in a red-black tree only contain names
+			relative to a parent.  Because of this difference,
+			zone files dumped with masterfile-style "relative"
+			will no longer have multiple different $ORIGIN
+			statements throughout the file.
+
+			This version is a minimal adaptation, keeping RBTDB
+			code largely unchanged, except as needed to replace
+			the underlying data structure. It uses the
+			single-thread "dns_qp" interface with locks for
+			synchronization. A future version will use the
+			multithreaded "dns_qpmulti" interface instead,
+			and will be renamed to QPDB. [GL #4411]
+
 6354.	[bug]		Change 6035 introduced a regression when chasing DS
 			records resulting in an assertion failure. [GL #4612]
 
@@ -32,7 +54,8 @@
 6345.	[bug]		Added missing dns_rdataset_disassociate calls in
 			validator.c:findnsec3proofs. [GL #4571]
 
-6344.	[placeholder]
+6344.	[bug]		Fix case insensitive setting for isc_ht hashtable.
+			[GL #4568]
 
 6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
 			[GL #4568]
