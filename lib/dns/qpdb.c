@@ -3782,16 +3782,15 @@ dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		goto cleanup_tree_lock;
 	}
 	INSIST(qpdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
-	qpdb->node_locks = isc_mem_get(mctx, qpdb->node_lock_count *
-						     sizeof(db_nodelock_t));
+	qpdb->node_locks = isc_mem_cget(mctx, qpdb->node_lock_count,
+					sizeof(db_nodelock_t));
 
 	qpdb->common.update_listeners = cds_lfht_new(16, 16, 0, 0, NULL);
 
 	if (IS_CACHE(qpdb)) {
 		dns_rdatasetstats_create(mctx, &qpdb->rrsetstats);
-		qpdb->lru = isc_mem_get(mctx,
-					qpdb->node_lock_count *
-						sizeof(dns_slabheaderlist_t));
+		qpdb->lru = isc_mem_cget(mctx, qpdb->node_lock_count,
+					 sizeof(dns_slabheaderlist_t));
 		for (i = 0; i < (int)qpdb->node_lock_count; i++) {
 			ISC_LIST_INIT(qpdb->lru[i]);
 		}
@@ -3800,8 +3799,8 @@ dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Create the heaps.
 	 */
-	qpdb->heaps = isc_mem_get(hmctx,
-				  qpdb->node_lock_count * sizeof(isc_heap_t *));
+	qpdb->heaps = isc_mem_cget(hmctx, qpdb->node_lock_count,
+				   sizeof(isc_heap_t *));
 	for (i = 0; i < (int)qpdb->node_lock_count; i++) {
 		qpdb->heaps[i] = NULL;
 	}
@@ -3815,8 +3814,8 @@ dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Create deadnode lists.
 	 */
-	qpdb->deadnodes = isc_mem_get(mctx, qpdb->node_lock_count *
-						    sizeof(dns_qpdatalist_t));
+	qpdb->deadnodes = isc_mem_cget(mctx, qpdb->node_lock_count,
+				       sizeof(dns_qpdatalist_t));
 	for (i = 0; i < (int)qpdb->node_lock_count; i++) {
 		ISC_LIST_INIT(qpdb->deadnodes[i]);
 	}
