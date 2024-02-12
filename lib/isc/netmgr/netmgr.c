@@ -747,17 +747,6 @@ isc___nmsocket_init(isc_nmsocket_t *sock, isc__networker_t *worker,
 			UNREACHABLE();
 		}
 		break;
-		switch (family) {
-		case AF_INET:
-			sock->statsindex = tcp4statsindex;
-			break;
-		case AF_INET6:
-			sock->statsindex = tcp6statsindex;
-			break;
-		default:
-			UNREACHABLE();
-		}
-		break;
 	default:
 		break;
 	}
