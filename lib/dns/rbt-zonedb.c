@@ -312,27 +312,30 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	return (DNS_R_DELEGATION);
 }
 
+typedef enum { FORWARD, BACK } direction_t;
+
+/*
+ * Step backwards or forwards through the database until we find a
+ * node with data in it for the desired version. If 'nextname' is not NULL,
+ * and we found a predecessor or successor, save the name we found in it.
+ * Return true if we found a predecessor or successor.
+ */
 static bool
-activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
-	    const dns_name_t *name) {
-	dns_fixedname_t fnext;
+step(rbtdb_search_t *search, dns_rbtnodechain_t *chain, direction_t direction,
+     dns_name_t *nextname) {
 	dns_fixedname_t forigin;
-	dns_name_t *next = NULL;
 	dns_name_t *origin = NULL;
 	dns_name_t prefix;
 	dns_rbtdb_t *rbtdb = NULL;
 	dns_rbtnode_t *node = NULL;
-	isc_result_t result;
-	bool answer = false;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_slabheader_t *header = NULL;
 
 	rbtdb = search->rbtdb;
 
 	dns_name_init(&prefix, NULL);
-	next = dns_fixedname_initname(&fnext);
 	origin = dns_fixedname_initname(&forigin);
 
-	result = dns_rbtnodechain_next(chain, NULL, NULL);
 	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 		node = NULL;
@@ -356,115 +359,87 @@ activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
 		if (header != NULL) {
 			break;
 		}
-		result = dns_rbtnodechain_next(chain, NULL, NULL);
+		if (direction == FORWARD) {
+			result = dns_rbtnodechain_next(chain, NULL, NULL);
+		} else {
+			result = dns_rbtnodechain_prev(chain, NULL, NULL);
+		}
+	};
+	if (result == ISC_R_SUCCESS) {
+		result = dns_name_concatenate(&prefix, origin, nextname, NULL);
 	}
 	if (result == ISC_R_SUCCESS) {
-		result = dns_name_concatenate(&prefix, origin, next, NULL);
+		return (true);
 	}
-	if (result == ISC_R_SUCCESS && dns_name_issubdomain(next, name)) {
-		answer = true;
+	return (false);
+}
+
+/*
+ * Use step() to find the successor to the current name, and then
+ * check to see whether it's a subdomain of the current name. If so,
+ * then this is an empty non-terminal in the currently active version
+ * of the database.
+ */
+static bool
+activeempty(rbtdb_search_t *search, dns_rbtnodechain_t *chain,
+	    const dns_name_t *current) {
+	isc_result_t result;
+	dns_fixedname_t fnext;
+	dns_name_t *next = dns_fixedname_initname(&fnext);
+
+	result = dns_rbtnodechain_next(chain, NULL, NULL);
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		return (false);
 	}
-	return (answer);
+	return (step(search, chain, FORWARD, next) &&
+		dns_name_issubdomain(next, current));
 }
 
 static bool
-activeemptynode(rbtdb_search_t *search, const dns_name_t *qname,
-		dns_name_t *wname) {
+wildcard_blocked(rbtdb_search_t *search, const dns_name_t *qname,
+		 dns_name_t *wname) {
+	isc_result_t result;
 	dns_fixedname_t fnext;
-	dns_fixedname_t forigin;
 	dns_fixedname_t fprev;
-	dns_name_t *next = NULL;
-	dns_name_t *origin = NULL;
-	dns_name_t *prev = NULL;
+	dns_name_t *next = NULL, *prev = NULL;
 	dns_name_t name;
 	dns_name_t rname;
 	dns_name_t tname;
-	dns_rbtdb_t *rbtdb = NULL;
-	dns_rbtnode_t *node = NULL;
 	dns_rbtnodechain_t chain;
-	bool check_next = true;
-	bool check_prev = true;
-	bool answer = false;
-	isc_result_t result;
-	dns_slabheader_t *header = NULL;
+	bool check_next = false;
+	bool check_prev = false;
 	unsigned int n;
-
-	rbtdb = search->rbtdb;
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&tname, NULL);
 	dns_name_init(&rname, NULL);
 	next = dns_fixedname_initname(&fnext);
 	prev = dns_fixedname_initname(&fprev);
-	origin = dns_fixedname_initname(&forigin);
 
 	/*
-	 * Find if qname is at or below a empty node.
-	 * Use our own copy of the chain.
+	 * The qname seems to have matched a wildcard, but we
+	 * need to find out if there's an empty nonterminal node
+	 * between the wildcard level and the qname.
+	 *
+	 * search->chain should now be pointing at the predecessor
+	 * of the searched-for name. We are using a local copy of the
+	 * chain so as not to change the state of search->chain.
+	 * step() will walk backward until we find a predecessor with
+	 * data.
 	 */
-
 	chain = search->chain;
-	do {
-		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		node = NULL;
-		result = dns_rbtnodechain_current(&chain, &name, origin, &node);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
-		NODE_RDLOCK(&(rbtdb->node_locks[node->locknum].lock),
-			    &nlocktype);
-		for (header = node->data; header != NULL; header = header->next)
-		{
-			if (header->serial <= search->serial &&
-			    !IGNORE(header) && EXISTS(header))
-			{
-				break;
-			}
-		}
-		NODE_UNLOCK(&(rbtdb->node_locks[node->locknum].lock),
-			    &nlocktype);
-		if (header != NULL) {
-			break;
-		}
-		result = dns_rbtnodechain_prev(&chain, NULL, NULL);
-	} while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN);
+	check_prev = step(search, &chain, BACK, prev);
+
+	/* Now reset the chain and look for a successor with data. */
+	chain = search->chain;
+	result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	if (result == ISC_R_SUCCESS) {
-		result = dns_name_concatenate(&name, origin, prev, NULL);
-	}
-	if (result != ISC_R_SUCCESS) {
-		check_prev = false;
+		check_next = step(search, &chain, FORWARD, next);
 	}
 
-	result = dns_rbtnodechain_next(&chain, NULL, NULL);
-	while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
-		isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-		node = NULL;
-		result = dns_rbtnodechain_current(&chain, &name, origin, &node);
-		if (result != ISC_R_SUCCESS) {
-			break;
-		}
-		NODE_RDLOCK(&(rbtdb->node_locks[node->locknum].lock),
-			    &nlocktype);
-		for (header = node->data; header != NULL; header = header->next)
-		{
-			if (header->serial <= search->serial &&
-			    !IGNORE(header) && EXISTS(header))
-			{
-				break;
-			}
-		}
-		NODE_UNLOCK(&(rbtdb->node_locks[node->locknum].lock),
-			    &nlocktype);
-		if (header != NULL) {
-			break;
-		}
-		result = dns_rbtnodechain_next(&chain, NULL, NULL);
-	}
-	if (result == ISC_R_SUCCESS) {
-		result = dns_name_concatenate(&name, origin, next, NULL);
-	}
-	if (result != ISC_R_SUCCESS) {
-		check_next = false;
+	if (!check_prev && !check_next) {
+		/* No predecessor or successor was found at all? */
+		return (false);
 	}
 
 	dns_name_clone(qname, &rname);
@@ -479,16 +454,17 @@ activeemptynode(rbtdb_search_t *search, const dns_name_t *qname,
 		if ((check_prev && dns_name_issubdomain(prev, &rname)) ||
 		    (check_next && dns_name_issubdomain(next, &rname)))
 		{
-			answer = true;
-			break;
+			return (true);
 		}
+
 		/*
-		 * Remove the left hand label.
+		 * Remove the leftmost label from the qname and check again.
 		 */
 		n = dns_name_countlabels(&rname);
 		dns_name_getlabelsequence(&rname, 1, n - 1, &rname);
 	} while (!dns_name_equal(&rname, &tname));
-	return (answer);
+
+	return (false);
 }
 
 static isc_result_t
@@ -607,8 +583,8 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 				if (header != NULL ||
 				    activeempty(search, &wchain, wname))
 				{
-					if (activeemptynode(search, qname,
-							    wname))
+					if (wildcard_blocked(search, qname,
+							     wname))
 					{
 						return (ISC_R_NOTFOUND);
 					}
