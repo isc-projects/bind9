@@ -226,26 +226,35 @@ add_server(isc_mem_t *mctx, const char *address_str,
 		return (ISC_R_BADADDRESSFORM);
 	}
 
-	/* XXX: special case: treat all-0 IPv4 address as loopback */
-	if (res->ai_family == AF_INET) {
-		struct in_addr *v4;
-		unsigned char zeroaddress[] = { 0, 0, 0, 0 };
-		unsigned char loopaddress[] = { 127, 0, 0, 1 };
-
-		v4 = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
-		if (memcmp(v4, zeroaddress, 4) == 0) {
-			memmove(v4, loopaddress, 4);
-		}
-	}
-
 	address = isc_mem_get(mctx, sizeof(*address));
 	if (res->ai_addrlen > sizeof(address->type)) {
 		isc_mem_put(mctx, address, sizeof(*address));
 		result = ISC_R_RANGE;
 		goto cleanup;
 	}
+
+	if (res->ai_family == AF_INET) {
+		struct in_addr *v4;
+		unsigned char zeroaddress[] = { 0, 0, 0, 0 };
+		unsigned char loopaddress[] = { 127, 0, 0, 1 };
+
+		/* XXX: special case: treat all-0 IPv4 address as loopback */
+		v4 = &((struct sockaddr_in *)res->ai_addr)->sin_addr;
+		if (memcmp(v4, zeroaddress, 4) == 0) {
+			memmove(v4, loopaddress, 4);
+		}
+		memmove(&address->type.sin, res->ai_addr, res->ai_addrlen);
+	} else if (res->ai_family == AF_INET6) {
+		memmove(&address->type.sin6, res->ai_addr, res->ai_addrlen);
+	} else {
+		isc_mem_put(mctx, address, sizeof(*address));
+		UNEXPECTED_ERROR("ai_family (%d) not INET nor INET6",
+				 res->ai_family);
+		result = ISC_R_UNEXPECTED;
+		goto cleanup;
+	}
 	address->length = (unsigned int)res->ai_addrlen;
-	memmove(&address->type.sa, res->ai_addr, res->ai_addrlen);
+
 	ISC_LINK_INIT(address, link);
 	ISC_LIST_APPEND(*nameservers, address, link);
 
