@@ -57,7 +57,6 @@ class LogFile:
 
 
 class WatchLog(abc.ABC):
-
     """
     Wait for a log message to appear in a text file.
 
@@ -294,19 +293,18 @@ class WatchLogFromHere(WatchLog):
 
 # pylint: disable=too-few-public-methods
 class RNDCExecutor(abc.ABC):
-
     """
     An interface which RNDC executors have to implement in order for the
     `NamedInstance` class to be able to use them.
     """
 
     @overload
-    def call(self, ip: str, port: int, command: str, timeout: int = 10) -> str:
-        ...
+    def call(self, ip: str, port: int, command: str, timeout: int = 10) -> str: ...
 
     @overload
-    def call(self, ip: str, port: int, command: List[str], timeout: int = 10) -> str:
-        ...
+    def call(
+        self, ip: str, port: int, command: List[str], timeout: int = 10
+    ) -> str: ...
 
     @abc.abstractmethod
     def call(
@@ -326,7 +324,6 @@ class RNDCException(Exception):
 
 
 class RNDCBinaryExecutor(RNDCExecutor):
-
     """
     An `RNDCExecutor` which sends RNDC commands to servers using the `rndc`
     binary.
@@ -342,12 +339,12 @@ class RNDCBinaryExecutor(RNDCExecutor):
         self._base_cmdline = [rndc_path, "-c", rndc_conf]
 
     @overload
-    def call(self, ip: str, port: int, command: str, timeout: int = 10) -> str:
-        ...
+    def call(self, ip: str, port: int, command: str, timeout: int = 10) -> str: ...
 
     @overload
-    def call(self, ip: str, port: int, command: List[str], timeout: int = 10) -> str:
-        ...
+    def call(
+        self, ip: str, port: int, command: List[str], timeout: int = 10
+    ) -> str: ...
 
     def call(
         self, ip: str, port: int, command: Union[str, List[str]], timeout: int = 10
