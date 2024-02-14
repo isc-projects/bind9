@@ -18152,6 +18152,7 @@ got_transfer_quota(void *arg) {
 	const char *soa_before = "";
 	bool loaded;
 	isc_tlsctx_cache_t *zmgr_tlsctx_cache = NULL;
+	dns_xfrin_t *xfr = NULL;
 
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING)) {
 		zone_xfrdone(zone, NULL, ISC_R_CANCELED);
@@ -18302,7 +18303,7 @@ got_transfer_quota(void *arg) {
 	result = dns_xfrin_create(zone, xfrtype, &primaryaddr, &sourceaddr,
 				  zone->tsigkey, soa_transport_type,
 				  zone->transport, zmgr_tlsctx_cache,
-				  zone->mctx, zone_xfrdone, &zone->xfr);
+				  zone->mctx, zone_xfrdone, &xfr);
 
 	isc_tlsctx_cache_detach(&zmgr_tlsctx_cache);
 
@@ -18317,6 +18318,7 @@ got_transfer_quota(void *arg) {
 	}
 
 	LOCK_ZONE(zone);
+	zone->xfr = xfr;
 	if (xfrtype == dns_rdatatype_axfr) {
 		if (isc_sockaddr_pf(&primaryaddr) == PF_INET) {
 			inc_stats(zone, dns_zonestatscounter_axfrreqv4);
