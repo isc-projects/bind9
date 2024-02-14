@@ -23,6 +23,8 @@ New Features
 - The statistics channel now includes counters that indicate the number
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
+- Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
