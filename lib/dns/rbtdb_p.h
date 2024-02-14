@@ -29,124 +29,7 @@
 #define VALID_RBTDB(rbtdb) \
 	((rbtdb) != NULL && (rbtdb)->common.impmagic == RBTDB_MAGIC)
 
-#define RBTDB_RDATATYPE_SIGNSEC \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec)
-#define RBTDB_RDATATYPE_SIGNSEC3 \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_nsec3)
-#define RBTDB_RDATATYPE_SIGNS \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ns)
-#define RBTDB_RDATATYPE_SIGCNAME \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_cname)
-#define RBTDB_RDATATYPE_SIGDNAME \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_dname)
-#define RBTDB_RDATATYPE_SIGDS \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_ds)
-#define RBTDB_RDATATYPE_SIGSOA \
-	DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, dns_rdatatype_soa)
-#define RBTDB_RDATATYPE_NCACHEANY DNS_TYPEPAIR_VALUE(0, dns_rdatatype_any)
-
-#define RBTDB_INITLOCK(l)    isc_rwlock_init((l))
-#define RBTDB_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define RBTDB_LOCK(l, t)     RWLOCK((l), (t))
-#define RBTDB_UNLOCK(l, t)   RWUNLOCK((l), (t))
-
-#ifdef DNS_RBTDB_STRONG_RWLOCK_CHECK
-#define STRONG_RWLOCK_CHECK(cond) REQUIRE(cond)
-#else
-#define STRONG_RWLOCK_CHECK(cond)
-#endif
-
-#define NODE_INITLOCK(l)    isc_rwlock_init((l))
-#define NODE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define NODE_LOCK(l, t, tp)                                      \
-	{                                                        \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
-		RWLOCK((l), (t));                                \
-		*tp = t;                                         \
-	}
-#define NODE_UNLOCK(l, tp)                                       \
-	{                                                        \
-		STRONG_RWLOCK_CHECK(*tp != isc_rwlocktype_none); \
-		RWUNLOCK(l, *tp);                                \
-		*tp = isc_rwlocktype_none;                       \
-	}
-#define NODE_RDLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_read, tp);
-#define NODE_WRLOCK(l, tp) NODE_LOCK(l, isc_rwlocktype_write, tp);
-#define NODE_TRYLOCK(l, t, tp)                                   \
-	({                                                       \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
-		isc_result_t _result = isc_rwlock_trylock(l, t); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = t;                                 \
-		};                                               \
-		_result;                                         \
-	})
-#define NODE_TRYRDLOCK(l, tp) NODE_TRYLOCK(l, isc_rwlocktype_read, tp)
-#define NODE_TRYWRLOCK(l, tp) NODE_TRYLOCK(l, isc_rwlocktype_write, tp)
-#define NODE_TRYUPGRADE(l, tp)                                   \
-	({                                                       \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_read); \
-		isc_result_t _result = isc_rwlock_tryupgrade(l); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = isc_rwlocktype_write;              \
-		};                                               \
-		_result;                                         \
-	})
-#define NODE_FORCEUPGRADE(l, tp)                       \
-	if (NODE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-		NODE_UNLOCK(l, tp);                    \
-		NODE_WRLOCK(l, tp);                    \
-	}
-
-#define TREE_INITLOCK(l)    isc_rwlock_init(l)
-#define TREE_DESTROYLOCK(l) isc_rwlock_destroy(l)
-#define TREE_LOCK(l, t, tp)                                      \
-	{                                                        \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
-		RWLOCK(l, t);                                    \
-		*tp = t;                                         \
-	}
-#define TREE_UNLOCK(l, tp)                                       \
-	{                                                        \
-		STRONG_RWLOCK_CHECK(*tp != isc_rwlocktype_none); \
-		RWUNLOCK(l, *tp);                                \
-		*tp = isc_rwlocktype_none;                       \
-	}
-#define TREE_RDLOCK(l, tp) TREE_LOCK(l, isc_rwlocktype_read, tp);
-#define TREE_WRLOCK(l, tp) TREE_LOCK(l, isc_rwlocktype_write, tp);
-#define TREE_TRYLOCK(l, t, tp)                                   \
-	({                                                       \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_none); \
-		isc_result_t _result = isc_rwlock_trylock(l, t); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = t;                                 \
-		};                                               \
-		_result;                                         \
-	})
-#define TREE_TRYRDLOCK(l, tp) TREE_TRYLOCK(l, isc_rwlocktype_read, tp)
-#define TREE_TRYWRLOCK(l, tp) TREE_TRYLOCK(l, isc_rwlocktype_write, tp)
-#define TREE_TRYUPGRADE(l, tp)                                   \
-	({                                                       \
-		STRONG_RWLOCK_CHECK(*tp == isc_rwlocktype_read); \
-		isc_result_t _result = isc_rwlock_tryupgrade(l); \
-		if (_result == ISC_R_SUCCESS) {                  \
-			*tp = isc_rwlocktype_write;              \
-		};                                               \
-		_result;                                         \
-	})
-#define TREE_FORCEUPGRADE(l, tp)                       \
-	if (TREE_TRYUPGRADE(l, tp) != ISC_R_SUCCESS) { \
-		TREE_UNLOCK(l, tp);                    \
-		TREE_WRLOCK(l, tp);                    \
-	}
-
-#define RDATASET_RBTDB(r)  ((dns_rbtdb_t *)(r)->slab.db)
-#define RDATASET_DBNODE(r) ((dns_rbtnode_t *)(r)->slab.node)
-
-#define HEADER_NODE(h) ((dns_rbtnode_t *)((h)->node))
-
-#define IS_STUB(rbtdb)	(((rbtdb)->common.attributes & DNS_DBATTR_STUB) != 0)
-#define IS_CACHE(rbtdb) (((rbtdb)->common.attributes & DNS_DBATTR_CACHE) != 0)
+#define RBTDB_HEADERNODE(h) ((dns_rbtnode_t *)((h)->node))
 
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
@@ -165,14 +48,6 @@
 
 ISC_LANG_BEGINDECLS
 
-typedef struct {
-	isc_rwlock_t lock;
-	/* Protected in the refcount routines. */
-	isc_refcount_t references;
-	/* Locked by lock. */
-	bool exiting;
-} rbtdb_nodelock_t;
-
 typedef struct rbtdb_changed {
 	dns_rbtnode_t *node;
 	bool dirty;
@@ -180,25 +55,6 @@ typedef struct rbtdb_changed {
 } rbtdb_changed_t;
 
 typedef ISC_LIST(rbtdb_changed_t) rbtdb_changedlist_t;
-
-struct dns_glue {
-	struct dns_glue *next;
-	dns_fixedname_t fixedname;
-	dns_rdataset_t rdataset_a;
-	dns_rdataset_t sigrdataset_a;
-	dns_rdataset_t rdataset_aaaa;
-	dns_rdataset_t sigrdataset_aaaa;
-
-	isc_mem_t *mctx;
-	struct rcu_head rcu_head;
-};
-
-typedef struct {
-	dns_glue_t *glue_list;
-	dns_rbtdb_t *rbtdb;
-	dns_rbtdb_version_t *rbtversion;
-	dns_name_t *nodename;
-} dns_glue_additionaldata_ctx_t;
 
 struct dns_rbtdb_version {
 	/* Not locked */
@@ -246,7 +102,7 @@ struct dns_rbtdb {
 	isc_rwlock_t tree_lock;
 	/* Locks for individual tree nodes */
 	unsigned int node_lock_count;
-	rbtdb_nodelock_t *node_locks;
+	db_nodelock_t *node_locks;
 	dns_rbtnode_t *origin_node;
 	dns_rbtnode_t *nsec3_origin_node;
 	dns_stats_t *rrsetstats;     /* cache DB only */
@@ -338,17 +194,9 @@ typedef struct {
  * Load Context
  */
 typedef struct {
-	dns_rbtdb_t *rbtdb;
+	dns_db_t *db;
 	isc_stdtime_t now;
 } rbtdb_load_t;
-
-/*%
- * Prune context
- */
-typedef struct {
-	dns_db_t *db;
-	dns_rbtnode_t *node;
-} prune_t;
 
 extern dns_dbmethods_t dns__rbtdb_zonemethods;
 extern dns_dbmethods_t dns__rbtdb_cachemethods;
@@ -575,18 +423,18 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
  * Functions specific to zone databases that are also called from rbtdb.c.
  */
 void
-dns__zonedb_resigninsert(dns_rbtdb_t *rbtdb, int idx,
-			 dns_slabheader_t *newheader);
+dns__zonerbt_resigninsert(dns_rbtdb_t *rbtdb, int idx,
+			  dns_slabheader_t *newheader);
 void
-dns__zonedb_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
-			 dns_slabheader_t *header DNS__DB_FLARG);
+dns__zonerbt_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
+			  dns_slabheader_t *header DNS__DB_FLARG);
 /*%<
  * Insert/delete a node from the zone database's resigning heap.
  */
 
 isc_result_t
-dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
-			  bool lock);
+dns__zonerbt_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
+			   bool lock);
 /*%<
  * Add the necessary magic for the wildcard name 'name'
  * to be found in 'rbtdb'.
@@ -603,7 +451,8 @@ dns__zonedb_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
  * The tree must be write-locked.
  */
 isc_result_t
-dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name, bool lock);
+dns__zonerbt_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
+			  bool lock);
 /*%<
  * If 'name' is or contains a wildcard name, create a node for it in the
  * database. The tree must be write-locked.
@@ -613,11 +462,11 @@ dns__zonedb_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name, bool lock);
  * Cache-specific functions that are called from rbtdb.c
  */
 void
-dns__cachedb_expireheader(dns_slabheader_t *header,
-			  isc_rwlocktype_t *tlocktypep,
-			  dns_expire_t reason DNS__DB_FLARG);
+dns__cacherbt_expireheader(dns_slabheader_t *header,
+			   isc_rwlocktype_t *tlocktypep,
+			   dns_expire_t reason DNS__DB_FLARG);
 void
-dns__cachedb_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
-		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
+dns__cacherbt_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
+		      isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
 
 ISC_LANG_ENDDECLS

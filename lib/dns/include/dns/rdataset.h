@@ -184,12 +184,12 @@ struct dns_rdataset {
 		 * comments in rbtdb.c for details.)
 		 */
 		struct {
-			struct dns_db *db;
-			dns_dbnode_t  *node;
-			unsigned char *raw;
-			unsigned char *iter_pos;
-			unsigned int   iter_count;
-			dns_proof_t   *noqname, *closest;
+			struct dns_db	       *db;
+			dns_dbnode_t	       *node;
+			unsigned char	       *raw;
+			unsigned char	       *iter_pos;
+			unsigned int		iter_count;
+			dns_slabheader_proof_t *noqname, *closest;
 		} slab;
 
 		/*

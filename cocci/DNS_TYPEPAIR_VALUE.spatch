@@ -1,0 +1,7 @@
+@@
+identifier RRSIG = dns_rdatatype_rrsig;
+expression T;
+@@
+
+- DNS_TYPEPAIR_VALUE(RRSIG, T)
++ DNS_SIGTYPE(T)

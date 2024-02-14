@@ -61,6 +61,7 @@
 #include <dns/zone.h>
 #include <dns/zonekey.h>
 
+#include "db_p.h"
 #include "rbtdb_p.h"
 
 #define CHECK(op)                            \
@@ -186,9 +187,10 @@ update_header(dns_rbtdb_t *rbtdb, dns_slabheader_t *header, isc_stdtime_t now) {
 	/* To be checked: can we really assume this? XXXMLG */
 	INSIST(ISC_LINK_LINKED(header, link));
 
-	ISC_LIST_UNLINK(rbtdb->lru[HEADER_NODE(header)->locknum], header, link);
+	ISC_LIST_UNLINK(rbtdb->lru[RBTDB_HEADERNODE(header)->locknum], header,
+			link);
 	header->last_used = now;
-	ISC_LIST_PREPEND(rbtdb->lru[HEADER_NODE(header)->locknum], header,
+	ISC_LIST_PREPEND(rbtdb->lru[RBTDB_HEADERNODE(header)->locknum], header,
 			 link);
 }
 
@@ -417,7 +419,7 @@ check_stale_header(dns_rbtnode_t *node, dns_slabheader_t *header,
 			} else {
 				dns__rbtdb_mark(header,
 						DNS_SLABHEADERATTR_ANCIENT);
-				HEADER_NODE(header)->dirty = 1;
+				RBTDB_HEADERNODE(header)->dirty = 1;
 				*header_prev = header;
 			}
 		} else {
@@ -463,7 +465,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name,
 		{
 			dname_header = header;
 			header_prev = header;
-		} else if (header->type == RBTDB_RDATATYPE_SIGDNAME &&
+		} else if (header->type == DNS_SIGTYPE(dns_rdatatype_dname) &&
 			   EXISTS(header) && !ANCIENT(header))
 		{
 			sigdname_header = header;
@@ -545,7 +547,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 						break;
 					}
 				} else if (header->type ==
-					   RBTDB_RDATATYPE_SIGNS)
+					   DNS_SIGTYPE(dns_rdatatype_ns))
 				{
 					foundsig = header;
 					if (found != NULL) {
@@ -680,8 +682,7 @@ find_coveringnsec(rbtdb_search_t *search, const dns_name_t *name,
 	fname = dns_fixedname_initname(&fixed);
 
 	matchtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_nsec, 0);
-	sigmatchtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig,
-					  dns_rdatatype_nsec);
+	sigmatchtype = DNS_SIGTYPE(dns_rdatatype_nsec);
 
 	/*
 	 * Extract predecessor from chain.
@@ -865,7 +866,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 */
 	found = NULL;
 	foundsig = NULL;
-	sigtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, type);
+	sigtype = DNS_SIGTYPE(type);
 	negtype = DNS_TYPEPAIR_VALUE(0, type);
 	nsheader = NULL;
 	nsecheader = NULL;
@@ -918,8 +919,8 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 					if (cnamesig != NULL) {
 						foundsig = cnamesig;
 					} else {
-						sigtype =
-							RBTDB_RDATATYPE_SIGCNAME;
+						sigtype = DNS_SIGTYPE(
+							dns_rdatatype_cname);
 					}
 				}
 			} else if (header->type == sigtype) {
@@ -928,7 +929,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				 * target type.  Remember it.
 				 */
 				foundsig = header;
-			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
+			} else if (header->type == RDATATYPE_NCACHEANY ||
 				   header->type == negtype)
 			{
 				/*
@@ -942,7 +943,9 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				 * we might need it later.
 				 */
 				nsheader = header;
-			} else if (header->type == RBTDB_RDATATYPE_SIGNS) {
+			} else if (header->type ==
+				   DNS_SIGTYPE(dns_rdatatype_ns))
+			{
 				/*
 				 * If we need the NS rdataset, we'll also
 				 * need its signature.
@@ -950,10 +953,11 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 				nssig = header;
 			} else if (header->type == dns_rdatatype_nsec) {
 				nsecheader = header;
-			} else if (header->type == RBTDB_RDATATYPE_SIGNSEC) {
+			} else if (header->type ==
+				   DNS_SIGTYPE(dns_rdatatype_nsec))
+			{
 				nsecsig = header;
-			} else if (cname_ok &&
-				   header->type == RBTDB_RDATATYPE_SIGCNAME)
+			} else if (cname_ok && DNS_SIGTYPE(dns_rdatatype_cname))
 			{
 				/*
 				 * If we get a CNAME match, we'll also need
@@ -1272,7 +1276,9 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 				 * we might need it later.
 				 */
 				found = header;
-			} else if (header->type == RBTDB_RDATATYPE_SIGNS) {
+			} else if (header->type ==
+				   DNS_SIGTYPE(dns_rdatatype_ns))
+			{
 				/*
 				 * If we need the NS rdataset, we'll also
 				 * need its signature.
@@ -1373,7 +1379,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	matchtype = DNS_TYPEPAIR_VALUE(type, covers);
 	negtype = DNS_TYPEPAIR_VALUE(0, type);
 	if (covers == 0) {
-		sigmatchtype = DNS_TYPEPAIR_VALUE(dns_rdatatype_rrsig, type);
+		sigmatchtype = DNS_SIGTYPE(type);
 	} else {
 		sigmatchtype = 0;
 	}
@@ -1399,12 +1405,12 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 */
 				dns__rbtdb_mark(header,
 						DNS_SLABHEADERATTR_ANCIENT);
-				HEADER_NODE(header)->dirty = 1;
+				RBTDB_HEADERNODE(header)->dirty = 1;
 			}
 		} else if (EXISTS(header) && !ANCIENT(header)) {
 			if (header->type == matchtype) {
 				found = header;
-			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
+			} else if (header->type == RDATATYPE_NCACHEANY ||
 				   header->type == negtype)
 			{
 				found = header;
@@ -1447,11 +1453,9 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 static size_t
 hashsize(dns_db_t *db) {
-	dns_rbtdb_t *rbtdb = NULL;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	size_t size;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
-
-	rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -1539,8 +1543,8 @@ expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
-	dns__cachedb_expireheader(header, &tlocktype,
-				  dns_expire_flush DNS__DB_FLARG_PASS);
+	dns__cacherbt_expireheader(header, &tlocktype,
+				   dns_expire_flush DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	INSIST(tlocktype == isc_rwlocktype_none);
 }
@@ -1582,14 +1586,14 @@ dns_dbmethods_t dns__rbtdb_cachemethods = {
  * Caller must hold the node (write) lock.
  */
 void
-dns__cachedb_expireheader(dns_slabheader_t *header,
-			  isc_rwlocktype_t *tlocktypep,
-			  dns_expire_t reason DNS__DB_FLARG) {
+dns__cacherbt_expireheader(dns_slabheader_t *header,
+			   isc_rwlocktype_t *tlocktypep,
+			   dns_expire_t reason DNS__DB_FLARG) {
 	dns__rbtdb_setttl(header, 0);
 	dns__rbtdb_mark(header, DNS_SLABHEADERATTR_ANCIENT);
-	HEADER_NODE(header)->dirty = 1;
+	RBTDB_HEADERNODE(header)->dirty = 1;
 
-	if (isc_refcount_current(&HEADER_NODE(header)->references) == 0) {
+	if (isc_refcount_current(&RBTDB_HEADERNODE(header)->references) == 0) {
 		isc_rwlocktype_t nlocktype = isc_rwlocktype_write;
 		dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)header->db;
 
@@ -1598,10 +1602,11 @@ dns__cachedb_expireheader(dns_slabheader_t *header,
 		 * We first need to gain a new reference to the node to meet a
 		 * requirement of dns__rbtdb_decref().
 		 */
-		dns__rbtdb_newref(rbtdb, HEADER_NODE(header),
+		dns__rbtdb_newref(rbtdb, RBTDB_HEADERNODE(header),
 				  nlocktype DNS__DB_FLARG_PASS);
-		dns__rbtdb_decref(rbtdb, HEADER_NODE(header), 0, &nlocktype,
-				  tlocktypep, true, false DNS__DB_FLARG_PASS);
+		dns__rbtdb_decref(rbtdb, RBTDB_HEADERNODE(header), 0,
+				  &nlocktype, tlocktypep, true,
+				  false DNS__DB_FLARG_PASS);
 
 		if (rbtdb->cachestats == NULL) {
 			return;
@@ -1655,8 +1660,8 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
 		 * TTL was reset to 0.
 		 */
 		ISC_LIST_UNLINK(rbtdb->lru[locknum], header, link);
-		dns__cachedb_expireheader(header, tlocktypep,
-					  dns_expire_lru DNS__DB_FLARG_PASS);
+		dns__cacherbt_expireheader(header, tlocktypep,
+					   dns_expire_lru DNS__DB_FLARG_PASS);
 		purged += header_size;
 	}
 
@@ -1674,13 +1679,14 @@ expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
  * A write lock on the tree must be held.
  */
 void
-dns__cachedb_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
-		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG) {
+dns__cacherbt_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
+		      isc_rwlocktype_t *tlocktypep DNS__DB_FLARG) {
 	uint32_t locknum_start = rbtdb->lru_sweep++ % rbtdb->node_lock_count;
 	uint32_t locknum = locknum_start;
 	/* Size of added data, possible node and possible ENT node. */
-	size_t purgesize = rdataset_size(newheader) +
-			   2 * dns__rbtnode_getsize(HEADER_NODE(newheader));
+	size_t purgesize =
+		rdataset_size(newheader) +
+		2 * dns__rbtnode_getsize(RBTDB_HEADERNODE(newheader));
 	size_t purged = 0;
 	isc_stdtime_t min_last_used = 0;
 	size_t max_passes = 8;
