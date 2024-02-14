@@ -16,7 +16,6 @@ import subprocess
 
 # pylint: disable=too-few-public-methods
 class RNDCExecutor(abc.ABC):
-
     """
     An interface which RNDC executors have to implement in order for the
     `NamedInstance` class to be able to use them.
@@ -38,7 +37,6 @@ class RNDCException(Exception):
 
 
 class RNDCBinaryExecutor(RNDCExecutor):
-
     """
     An `RNDCExecutor` which sends RNDC commands to servers using the `rndc`
     binary.

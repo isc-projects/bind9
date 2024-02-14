@@ -343,7 +343,7 @@ dswithdrawn_tests = [
         zone="resolver-dswithdrawn.checkds",
         logs_to_wait_for=("empty DS response from 10.53.0.8",),
         expected_parent_state="DSRemoved",
-    )
+    ),
     # TBD: DS withdrawn from all parents, but one has bogus signature.
 ]
 

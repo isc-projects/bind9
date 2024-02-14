@@ -27,7 +27,6 @@ class NamedPorts(NamedTuple):
 
 
 class NamedInstance:
-
     """
     A class representing a `named` instance used in a system test.
 
