@@ -20,7 +20,7 @@ Security Fixes
 New Features
 ~~~~~~~~~~~~
 
-- None.
+- Added RESOLVER.ARPA to the built in empty zones. :gl:`#4580`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
