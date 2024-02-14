@@ -1,10 +1,10 @@
 6345.	[bug]		Added missing dns_rdataset_disassociate calls in
 			validator.c:findnsec3proofs. [GL #4571]
 
-6344.	[bug]		Fix case insensitive setting for isc_ht hashtable.
-			[GL #4568]
+6344.	[placeholder]
 
-6343.	[placeholder]
+6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
+			[GL #4568]
 
 6342.	[placeholder]
 
