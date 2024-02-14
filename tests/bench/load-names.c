@@ -311,15 +311,30 @@ new_rbt(isc_mem_t *mem) {
 
 static isc_result_t
 add_rbt(void *rbt, size_t count) {
-	isc_result_t result = dns_rbt_addname(rbt, &item[count].fixed.name,
-					      &item[count]);
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	result = dns_rbt_addnode(rbt, &item[count].fixed.name, &node);
+	if (result == ISC_R_SUCCESS ||
+	    (result == ISC_R_EXISTS && node->data == NULL))
+	{
+		node->data = &item[count];
+		result = ISC_R_SUCCESS;
+	}
+
 	return (result);
 }
 
 static isc_result_t
 get_rbt(void *rbt, size_t count, void **pval) {
-	isc_result_t result = dns_rbt_findname(rbt, &item[count].fixed.name, 0,
-					       NULL, pval);
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	result = dns_rbt_findnode(rbt, &item[count].fixed.name, NULL, &node,
+				  NULL, 0, NULL, NULL);
+	if (result == ISC_R_SUCCESS) {
+		*pval = node->data;
+	}
 	return (result);
 }
 

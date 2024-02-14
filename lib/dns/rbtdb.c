@@ -516,7 +516,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 		}
 
 		start = isc_time_now();
-		result = dns_rbt_destroy2(treep, rbtdb->quantum);
+		result = dns_rbt_destroy(treep, rbtdb->quantum);
 		if (result == ISC_R_QUOTA) {
 			INSIST(rbtdb->loop != NULL);
 			if (rbtdb->quantum != 0) {

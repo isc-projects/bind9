@@ -150,7 +150,8 @@ test_context_setup(void) {
 	for (i = 0; i < domain_names_count; i++) {
 		size_t *n;
 		dns_fixedname_t fname;
-		dns_name_t *name;
+		dns_name_t *name = NULL;
+		dns_rbtnode_t *node = NULL;
 
 		dns_test_namefromstring(domain_names[i], &fname);
 
@@ -159,13 +160,16 @@ test_context_setup(void) {
 		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = i + 1;
-		result = dns_rbt_addname(ctx->rbt, name, n);
+		result = dns_rbt_addnode(ctx->rbt, name, &node);
 		assert_int_equal(result, ISC_R_SUCCESS);
+		node->data = n;
 
+		node = NULL;
 		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
 		*n = node_distances[i];
-		result = dns_rbt_addname(ctx->rbt_distances, name, n);
+		result = dns_rbt_addnode(ctx->rbt_distances, name, &node);
+		node->data = n;
 		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -174,8 +178,8 @@ test_context_setup(void) {
 
 static void
 test_context_teardown(test_context_t *ctx) {
-	dns_rbt_destroy(&ctx->rbt);
-	dns_rbt_destroy(&ctx->rbt_distances);
+	dns_rbt_destroy(&ctx->rbt, 0);
+	dns_rbt_destroy(&ctx->rbt_distances, 0);
 
 	isc_mem_put(mctx, ctx, sizeof(*ctx));
 }
@@ -194,15 +198,18 @@ check_test_data(dns_rbt_t *rbt) {
 
 	for (i = 0; i < domain_names_count; i++) {
 		dns_fixedname_t fname;
-		dns_name_t *name;
-		size_t *n;
+		dns_rbtnode_t *node = NULL;
+		dns_name_t *name = NULL;
+		size_t *n = NULL;
 
 		dns_test_namefromstring(domain_names[i], &fname);
 
 		name = dns_fixedname_name(&fname);
 		n = NULL;
-		result = dns_rbt_findname(rbt, name, 0, foundname, (void *)&n);
+		result = dns_rbt_findnode(rbt, name, foundname, &node, NULL, 0,
+					  NULL, NULL);
 		assert_int_equal(result, ISC_R_SUCCESS);
+		n = node->data;
 		assert_int_equal(*n, i + 1);
 	}
 }
@@ -311,7 +318,7 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_random) {
 	 * yueojmhyffslpvfmgyfwioxegfhepnqq.
 	 */
 	for (i = 0; i < (1 << log_num_nodes); i++) {
-		size_t *n;
+		size_t *n = NULL;
 		char namebuf[34];
 
 		n = isc_mem_get(mctx, sizeof(size_t));
@@ -321,7 +328,8 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_random) {
 		while (1) {
 			int j;
 			dns_fixedname_t fname;
-			dns_name_t *name;
+			dns_rbtnode_t *node = NULL;
+			dns_name_t *name = NULL;
 
 			for (j = 0; j < 32; j++) {
 				uint32_t v = isc_random_uniform(26);
@@ -333,7 +341,8 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_random) {
 			dns_test_namefromstring(namebuf, &fname);
 			name = dns_fixedname_name(&fname);
 
-			result = dns_rbt_addname(mytree, name, n);
+			result = dns_rbt_addnode(mytree, name, &node);
+			node->data = n;
 			if (result == ISC_R_SUCCESS) {
 				break;
 			}
@@ -352,7 +361,7 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_random) {
 	tree_ok = dns__rbt_checkproperties(mytree);
 	assert_true(tree_ok);
 
-	dns_rbt_destroy(&mytree);
+	dns_rbt_destroy(&mytree, 0);
 }
 
 /*
@@ -389,7 +398,8 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_ordered) {
 		size_t *n;
 		char namebuf[14];
 		dns_fixedname_t fname;
-		dns_name_t *name;
+		dns_name_t *name = NULL;
+		dns_rbtnode_t *node = NULL;
 
 		n = isc_mem_get(mctx, sizeof(size_t));
 		assert_non_null(n);
@@ -399,8 +409,9 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_ordered) {
 		dns_test_namefromstring(namebuf, &fname);
 		name = dns_fixedname_name(&fname);
 
-		result = dns_rbt_addname(mytree, name, n);
+		result = dns_rbt_addnode(mytree, name, &node);
 		assert_int_equal(result, ISC_R_SUCCESS);
+		node->data = n;
 	}
 
 	/* 1 (root . node) + (1 << log_num_nodes) */
@@ -415,7 +426,7 @@ ISC_RUN_TEST_IMPL(rbt_check_distance_ordered) {
 	tree_ok = dns__rbt_checkproperties(mytree);
 	assert_true(tree_ok);
 
-	dns_rbt_destroy(&mytree);
+	dns_rbt_destroy(&mytree, 0);
 }
 
 static isc_result_t
@@ -610,6 +621,26 @@ ISC_RUN_TEST_IMPL(rbt_insert) {
  * as a red-black tree. This test checks node deletion when upper nodes
  * have data.
  */
+static isc_result_t
+deletename(dns_rbt_t *mytree, const dns_name_t *name) {
+	isc_result_t result;
+	dns_rbtnode_t *node = NULL;
+
+	result = dns_rbt_findnode(mytree, name, NULL, &node, NULL, 0, NULL,
+				  NULL);
+	if (result == ISC_R_SUCCESS) {
+		if (node->data != NULL) {
+			result = dns_rbt_deletenode(mytree, node, false);
+		} else {
+			result = ISC_R_NOTFOUND;
+		}
+	} else if (result == DNS_R_PARTIALMATCH) {
+		result = ISC_R_NOTFOUND;
+	}
+
+	return (result);
+}
+
 ISC_RUN_TEST_IMPL(rbt_remove) {
 	isc_result_t result;
 	size_t j;
@@ -673,7 +704,7 @@ ISC_RUN_TEST_IMPL(rbt_remove) {
 
 			name = dns_fixedname_name(&fname);
 
-			result = dns_rbt_deletename(mytree, name, false);
+			result = deletename(mytree, name);
 			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 
@@ -783,7 +814,7 @@ ISC_RUN_TEST_IMPL(rbt_remove) {
 		/* We should have reached the end of the tree. */
 		assert_null(node);
 
-		dns_rbt_destroy(&mytree);
+		dns_rbt_destroy(&mytree, 0);
 	}
 }
 
@@ -840,22 +871,22 @@ remove_nodes(dns_rbt_t *mytree, char **names, size_t *names_count,
 	UNUSED(mytree);
 
 	for (i = 0; i < num_names; i++) {
-		uint32_t node;
-		dns_fixedname_t fname;
-		dns_name_t *name;
 		isc_result_t result;
+		dns_fixedname_t fname;
+		dns_name_t *name = NULL;
+		uint32_t num;
 
-		node = isc_random_uniform(*names_count);
+		num = isc_random_uniform(*names_count);
 
-		dns_test_namefromstring(names[node], &fname);
+		dns_test_namefromstring(names[num], &fname);
 		name = dns_fixedname_name(&fname);
 
-		result = dns_rbt_deletename(mytree, name, false);
+		result = deletename(mytree, name);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		isc_mem_free(mctx, names[node]);
+		isc_mem_free(mctx, names[num]);
 		if (*names_count > 0) {
-			names[node] = names[*names_count - 1];
+			names[num] = names[*names_count - 1];
 			names[*names_count - 1] = NULL;
 			*names_count -= 1;
 		}
@@ -901,7 +932,8 @@ check_tree(dns_rbt_t *mytree, char **names, size_t names_count) {
 ISC_RUN_TEST_IMPL(rbt_insert_and_remove) {
 	isc_result_t result;
 	dns_rbt_t *mytree = NULL;
-	size_t *n;
+	size_t *n = NULL;
+	dns_rbtnode_t *node = NULL;
 	char *names[1024];
 	size_t names_count;
 	int i;
@@ -913,8 +945,9 @@ ISC_RUN_TEST_IMPL(rbt_insert_and_remove) {
 
 	n = isc_mem_get(mctx, sizeof(size_t));
 	assert_non_null(n);
-	result = dns_rbt_addname(mytree, dns_rootname, n);
+	result = dns_rbt_addnode(mytree, dns_rootname, &node);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	node->data = n;
 
 	memset(names, 0, sizeof(names));
 	names_count = 0;
@@ -954,116 +987,11 @@ ISC_RUN_TEST_IMPL(rbt_insert_and_remove) {
 		}
 	}
 
-	result = dns_rbt_deletename(mytree, dns_rootname, false);
+	result = deletename(mytree, dns_rootname);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(dns_rbt_nodecount(mytree), 0);
 
-	dns_rbt_destroy(&mytree);
-}
-
-/* Test findname return values */
-ISC_RUN_TEST_IMPL(rbt_findname) {
-	isc_result_t result;
-	test_context_t *ctx = NULL;
-	dns_fixedname_t fname, found;
-	dns_name_t *name = NULL, *foundname = NULL;
-	size_t *n = NULL;
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-
-	ctx = test_context_setup();
-
-	/* Try to find a name that exists. */
-	dns_test_namefromstring("d.e.f.", &fname);
-	name = dns_fixedname_name(&fname);
-
-	foundname = dns_fixedname_initname(&found);
-
-	result = dns_rbt_findname(ctx->rbt, name, DNS_RBTFIND_EMPTYDATA,
-				  foundname, (void *)&n);
-	assert_true(dns_name_equal(foundname, name));
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/* Now without EMPTYDATA */
-	result = dns_rbt_findname(ctx->rbt, name, 0, foundname, (void *)&n);
-	assert_int_equal(result, ISC_R_NOTFOUND);
-
-	/* Now one that partially matches */
-	dns_test_namefromstring("d.e.f.g.h.i.j.", &fname);
-	name = dns_fixedname_name(&fname);
-	result = dns_rbt_findname(ctx->rbt, name, DNS_RBTFIND_EMPTYDATA,
-				  foundname, (void *)&n);
-	assert_int_equal(result, DNS_R_PARTIALMATCH);
-
-	/* Now one that doesn't match */
-	dns_test_namefromstring("1.2.", &fname);
-	name = dns_fixedname_name(&fname);
-	result = dns_rbt_findname(ctx->rbt, name, DNS_RBTFIND_EMPTYDATA,
-				  foundname, (void *)&n);
-	assert_int_equal(result, DNS_R_PARTIALMATCH);
-	assert_true(dns_name_equal(foundname, dns_rootname));
-
-	test_context_teardown(ctx);
-}
-
-/* Test addname return values */
-ISC_RUN_TEST_IMPL(rbt_addname) {
-	isc_result_t result;
-	test_context_t *ctx = NULL;
-	dns_fixedname_t fname;
-	dns_name_t *name = NULL;
-	size_t *n;
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-
-	ctx = test_context_setup();
-
-	n = isc_mem_get(mctx, sizeof(size_t));
-	assert_non_null(n);
-	*n = 1;
-
-	dns_test_namefromstring("d.e.f.g.h.i.j.k.", &fname);
-	name = dns_fixedname_name(&fname);
-
-	/* Add a name that doesn't exist */
-	result = dns_rbt_addname(ctx->rbt, name, n);
-	assert_int_equal(result, ISC_R_SUCCESS);
-
-	/* Now add again, should get ISC_R_EXISTS */
-	n = isc_mem_get(mctx, sizeof(size_t));
-	assert_non_null(n);
-	*n = 2;
-	result = dns_rbt_addname(ctx->rbt, name, n);
-	assert_int_equal(result, ISC_R_EXISTS);
-	isc_mem_put(mctx, n, sizeof(size_t));
-
-	test_context_teardown(ctx);
-}
-
-/* Test deletename return values */
-ISC_RUN_TEST_IMPL(rbt_deletename) {
-	isc_result_t result;
-	test_context_t *ctx = NULL;
-	dns_fixedname_t fname;
-	dns_name_t *name = NULL;
-
-	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-
-	ctx = test_context_setup();
-
-	/* Delete a name that doesn't exist */
-	dns_test_namefromstring("z.x.y.w.", &fname);
-	name = dns_fixedname_name(&fname);
-	result = dns_rbt_deletename(ctx->rbt, name, false);
-	assert_int_equal(result, ISC_R_NOTFOUND);
-
-	/* Now one that does */
-	dns_test_namefromstring("d.e.f.", &fname);
-	name = dns_fixedname_name(&fname);
-	result = dns_rbt_deletename(ctx->rbt, name, false);
-	assert_int_equal(result, ISC_R_NOTFOUND);
-
-	test_context_teardown(ctx);
+	dns_rbt_destroy(&mytree, 0);
 }
 
 /* Test nodechain */
@@ -1124,7 +1052,7 @@ ISC_RUN_TEST_IMPL(rbt_nodechain) {
 	test_context_teardown(ctx);
 }
 
-/* Test addname return values */
+/* Test name lengths */
 ISC_RUN_TEST_IMPL(rbtnode_namelen) {
 	isc_result_t result;
 	test_context_t *ctx = NULL;
@@ -1270,7 +1198,7 @@ ISC_RUN_TEST_IMPL(benchmark) {
 	free(names);
 	free(fnames);
 
-	dns_rbt_destroy(&mytree);
+	dns_rbt_destroy(&mytree, 0);
 }
 #endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)  */
 
@@ -1283,9 +1211,6 @@ ISC_TEST_ENTRY(rbt_check_distance_ordered)
 ISC_TEST_ENTRY(rbt_insert)
 ISC_TEST_ENTRY(rbt_remove)
 ISC_TEST_ENTRY(rbt_insert_and_remove)
-ISC_TEST_ENTRY(rbt_findname)
-ISC_TEST_ENTRY(rbt_addname)
-ISC_TEST_ENTRY(rbt_deletename)
 ISC_TEST_ENTRY(rbt_nodechain)
 ISC_TEST_ENTRY(rbtnode_namelen)
 #if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
