@@ -1621,7 +1621,7 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 		 * Add a node to the auxiliary NSEC tree for an old node
 		 * just now getting an NSEC record.
 		 */
-		if (node->nsec == DNS_RBT_NSEC_HAS_NSEC) {
+		if (node->nsec == DNS_DB_NSEC_HAS_NSEC) {
 			goto done;
 		}
 	} else if (noderesult != ISC_R_SUCCESS) {
@@ -1638,8 +1638,8 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 	 */
 	nsecresult = dns_rbt_addnode(rbtdb->nsec, name, &nsecnode);
 	if (nsecresult == ISC_R_SUCCESS) {
-		nsecnode->nsec = DNS_RBT_NSEC_NSEC;
-		node->nsec = DNS_RBT_NSEC_HAS_NSEC;
+		nsecnode->nsec = DNS_DB_NSEC_NSEC;
+		node->nsec = DNS_DB_NSEC_HAS_NSEC;
 		goto done;
 	}
 
@@ -1649,7 +1649,7 @@ loadnode(dns_rbtdb_t *rbtdb, const dns_name_t *name, dns_rbtnode_t **nodep,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 			      "addnode: NSEC node already exists");
 #endif /* if 1 */
-		node->nsec = DNS_RBT_NSEC_HAS_NSEC;
+		node->nsec = DNS_DB_NSEC_HAS_NSEC;
 		goto done;
 	}
 
@@ -1734,7 +1734,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	{
 		result = dns_rbt_addnode(rbtdb->nsec3, name, &node);
 		if (result == ISC_R_SUCCESS) {
-			node->nsec = DNS_RBT_NSEC_NSEC3;
+			node->nsec = DNS_DB_NSEC_NSEC3;
 		}
 	} else if (rdataset->type == dns_rdatatype_nsec) {
 		result = loadnode(rbtdb, name, &node, true);
@@ -2469,7 +2469,7 @@ dns__zonerbt_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 		return (result);
 	}
 	if (result == ISC_R_SUCCESS) {
-		node->nsec = DNS_RBT_NSEC_NORMAL;
+		node->nsec = DNS_DB_NSEC_NORMAL;
 	}
 	node->find_callback = 1;
 	if (lock) {
@@ -2509,7 +2509,7 @@ dns__zonerbt_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
 				return (result);
 			}
 			if (result == ISC_R_SUCCESS) {
-				node->nsec = DNS_RBT_NSEC_NORMAL;
+				node->nsec = DNS_DB_NSEC_NORMAL;
 			}
 		}
 		i++;

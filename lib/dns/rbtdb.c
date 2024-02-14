@@ -1072,10 +1072,10 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	}
 
 	switch (node->nsec) {
-	case DNS_RBT_NSEC_NORMAL:
+	case DNS_DB_NSEC_NORMAL:
 		result = dns_rbt_deletenode(rbtdb->tree, node, false);
 		break;
-	case DNS_RBT_NSEC_HAS_NSEC:
+	case DNS_DB_NSEC_HAS_NSEC:
 		/*
 		 * Though this may be wasteful, it has to be done before
 		 * node is deleted.
@@ -1110,10 +1110,10 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		}
 		result = dns_rbt_deletenode(rbtdb->tree, node, false);
 		break;
-	case DNS_RBT_NSEC_NSEC:
+	case DNS_DB_NSEC_NSEC:
 		result = dns_rbt_deletenode(rbtdb->nsec, node, false);
 		break;
-	case DNS_RBT_NSEC_NSEC3:
+	case DNS_DB_NSEC_NSEC3:
 		result = dns_rbt_deletenode(rbtdb->nsec3, node, false);
 		break;
 	}
@@ -2077,7 +2077,7 @@ dns__rbtdb_findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree,
 				}
 			}
 			if (tree == rbtdb->nsec3) {
-				node->nsec = DNS_RBT_NSEC_NSEC3;
+				node->nsec = DNS_DB_NSEC_NSEC3;
 			}
 		} else if (result == ISC_R_EXISTS) {
 			result = ISC_R_SUCCESS;
@@ -2087,7 +2087,7 @@ dns__rbtdb_findnodeintree(dns_rbtdb_t *rbtdb, dns_rbt_t *tree,
 	}
 
 	if (tree == rbtdb->nsec3) {
-		INSIST(node->nsec == DNS_RBT_NSEC_NSEC3);
+		INSIST(node->nsec == DNS_DB_NSEC_NSEC3);
 	}
 
 	reactivate_node(rbtdb, node, tlocktype DNS__DB_FLARG_PASS);
@@ -3208,10 +3208,10 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 			return (DNS_R_NOTZONETOP);
 		}
 		TREE_RDLOCK(&rbtdb->tree_lock, &tlocktype);
-		REQUIRE(((rbtnode->nsec == DNS_RBT_NSEC_NSEC3 &&
+		REQUIRE(((rbtnode->nsec == DNS_DB_NSEC_NSEC3 &&
 			  (rdataset->type == dns_rdatatype_nsec3 ||
 			   rdataset->covers == dns_rdatatype_nsec3)) ||
-			 (rbtnode->nsec != DNS_RBT_NSEC_NSEC3 &&
+			 (rbtnode->nsec != DNS_DB_NSEC_NSEC3 &&
 			  rdataset->type != dns_rdatatype_nsec3 &&
 			  rdataset->covers != dns_rdatatype_nsec3)));
 		TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
@@ -3314,7 +3314,7 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	 * Add to the auxiliary NSEC tree if we're adding an NSEC record.
 	 */
 	TREE_RDLOCK(&rbtdb->tree_lock, &tlocktype);
-	if (rbtnode->nsec != DNS_RBT_NSEC_HAS_NSEC &&
+	if (rbtnode->nsec != DNS_DB_NSEC_HAS_NSEC &&
 	    rdataset->type == dns_rdatatype_nsec)
 	{
 		newnsec = true;
@@ -3384,10 +3384,10 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 		result = dns_rbt_addnode(rbtdb->nsec, name, &nsecnode);
 		if (result == ISC_R_SUCCESS) {
-			nsecnode->nsec = DNS_RBT_NSEC_NSEC;
-			rbtnode->nsec = DNS_RBT_NSEC_HAS_NSEC;
+			nsecnode->nsec = DNS_DB_NSEC_NSEC;
+			rbtnode->nsec = DNS_DB_NSEC_HAS_NSEC;
 		} else if (result == ISC_R_EXISTS) {
-			rbtnode->nsec = DNS_RBT_NSEC_HAS_NSEC;
+			rbtnode->nsec = DNS_DB_NSEC_HAS_NSEC;
 			result = ISC_R_SUCCESS;
 		}
 	}
@@ -3443,10 +3443,10 @@ dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 
 	if (!IS_CACHE(rbtdb)) {
 		TREE_RDLOCK(&rbtdb->tree_lock, &tlocktype);
-		REQUIRE(((rbtnode->nsec == DNS_RBT_NSEC_NSEC3 &&
+		REQUIRE(((rbtnode->nsec == DNS_DB_NSEC_NSEC3 &&
 			  (rdataset->type == dns_rdatatype_nsec3 ||
 			   rdataset->covers == dns_rdatatype_nsec3)) ||
-			 (rbtnode->nsec != DNS_RBT_NSEC_NSEC3 &&
+			 (rbtnode->nsec != DNS_DB_NSEC_NSEC3 &&
 			  rdataset->type != dns_rdatatype_nsec3 &&
 			  rdataset->covers != dns_rdatatype_nsec3)));
 		TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
@@ -3975,7 +3975,7 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 			return (result);
 		}
 		INSIST(rbtdb->origin_node != NULL);
-		rbtdb->origin_node->nsec = DNS_RBT_NSEC_NORMAL;
+		rbtdb->origin_node->nsec = DNS_DB_NSEC_NORMAL;
 		/*
 		 * We need to give the origin node the right locknum.
 		 */
@@ -3995,7 +3995,7 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 			free_rbtdb(rbtdb, false);
 			return (result);
 		}
-		rbtdb->nsec3_origin_node->nsec = DNS_RBT_NSEC_NSEC3;
+		rbtdb->nsec3_origin_node->nsec = DNS_DB_NSEC_NSEC3;
 		/*
 		 * We need to give the nsec3 origin node the right locknum.
 		 */

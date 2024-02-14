@@ -228,6 +228,17 @@ struct dns_dbonupdatelistener {
 	struct rcu_head		rcu_head;
 };
 
+/*%
+ * Used in composite databases such as RBTDB to indicate whether a node
+ * exists in a specal tree for NSEC or NSEC3.
+ */
+enum {
+	DNS_DB_NSEC_NORMAL = 0,	  /* in main tree */
+	DNS_DB_NSEC_HAS_NSEC = 1, /* also has node in nsec tree */
+	DNS_DB_NSEC_NSEC = 2,	  /* in nsec tree */
+	DNS_DB_NSEC_NSEC3 = 3	  /* in nsec3 tree */
+};
+
 /*@{*/
 /*%
  * Options that can be specified for dns_db_find().
