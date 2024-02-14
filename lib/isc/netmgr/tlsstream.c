@@ -1264,18 +1264,18 @@ isc__nm_tls_verify_tls_peer_result_string(const isc_nmhandle_t *handle) {
 
 static void
 tls_init_listener_tlsctx(isc_nmsocket_t *listener, isc_tlsctx_t *ctx) {
-	size_t nworkers;
+	size_t nlisteners;
 
 	REQUIRE(VALID_NM(listener->mgr));
 	REQUIRE(ctx != NULL);
 
-	nworkers = (size_t)listener->mgr->nworkers;
-	INSIST(nworkers > 0);
+	nlisteners = (size_t)listener->mgr->nlisteners;
+	INSIST(nlisteners > 0);
 
 	listener->tlsstream.listener_tls_ctx = isc_mem_get(
-		listener->mgr->mctx, sizeof(isc_tlsctx_t *) * nworkers);
-	listener->tlsstream.n_listener_tls_ctx = nworkers;
-	for (size_t i = 0; i < nworkers; i++) {
+		listener->mgr->mctx, sizeof(isc_tlsctx_t *) * nlisteners);
+	listener->tlsstream.n_listener_tls_ctx = nlisteners;
+	for (size_t i = 0; i < nlisteners; i++) {
 		listener->tlsstream.listener_tls_ctx[i] = NULL;
 		isc_tlsctx_attach(ctx,
 				  &listener->tlsstream.listener_tls_ctx[i]);

@@ -1,9 +1,6 @@
 6345.	[bug]		Added missing dns_rdataset_disassociate calls in
 			validator.c:findnsec3proofs. [GL #4571]
 
-6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
-			[GL #4568]
-
 6340.	[test]		Fix incorrectly reported errors when running tests
 			with `make test` on platforms with older pytest.
 			[GL #4560]
@@ -38,6 +35,41 @@
 			the zone where not being updated to match the policy.
 			This lead to failures when DNSKEYs where updated as the
 			TTLs mismatched. [GL #4466]
+
+	--- 9.18.24 released ---
+
+6343.	[bug]		Fix case insensitive setting for isc_ht hashtable.
+			[GL #4568]
+
+	--- 9.18.23 released ---
+
+6322.	[security]	Specific DNS answers could cause a denial-of-service
+			condition due to DNS validation taking a long time.
+			(CVE-2023-50387) [GL #4424]
+
+6321.	[security]	Change 6315 inadvertently introduced regressions that
+			could cause named to crash. [GL #4234]
+
+6320.	[bug]		Under some circumstances, the DoT code in client
+			mode could process more than one message at a time when
+			that was not expected. That has been fixed. [GL #4487]
+
+	--- 9.18.22 released ---
+
+6319.	[func]		Limit isc_task_send() overhead for RBTDB tree pruning.
+			[GL #4383]
+
+6317.	[security]	Restore DNS64 state when handling a serve-stale timeout.
+			(CVE-2023-5679) [GL #4334]
+
+6316.	[security]	Specific queries could trigger an assertion check with
+			nxdomain-redirect enabled. (CVE-2023-5517) [GL #4281]
+
+6315.	[security]	Speed up parsing of DNS messages with many different
+			names. (CVE-2023-4408) [GL #4234]
+
+6314.	[bug]		Address race conditions in dns_tsigkey_find().
+			[GL #4182]
 
 6312.	[bug]		Conversion from NSEC3 signed to NSEC signed could
 			temporarily put the zone into a state where it was

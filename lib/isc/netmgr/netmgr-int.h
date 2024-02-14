@@ -776,6 +776,7 @@ struct isc_nm {
 	isc_refcount_t references;
 	isc_mem_t *mctx;
 	int nworkers;
+	int nlisteners;
 	isc_mutex_t lock;
 	isc_condition_t wkstatecond;
 	isc_condition_t wkpausecond;
