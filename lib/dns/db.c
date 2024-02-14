@@ -648,6 +648,8 @@ dns_db_createiterator(dns_db_t *db, unsigned int flags,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(iteratorp != NULL && *iteratorp == NULL);
+	REQUIRE((flags & (DNS_DB_NSEC3ONLY | DNS_DB_NONSEC3)) !=
+		(DNS_DB_NSEC3ONLY | DNS_DB_NONSEC3));
 
 	return (db->methods->createiterator(db, flags, iteratorp));
 }
