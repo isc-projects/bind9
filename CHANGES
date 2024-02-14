@@ -77,25 +77,37 @@
 			'host -C' commands when one of the name servers returns
 			SERVFAIL. [GL #4508]
 
+	--- 9.19.21 released ---
+
 6323.	[placeholder]
 
-6322.	[placeholder]
+6322.	[security]	Specific DNS answers could cause a denial-of-service
+			condition due to DNS validation taking a long time.
+			(CVE-2023-50387) [GL #4424]
 
-6321.	[placeholder]
+6321.	[security]	Change 6315 inadvertently introduced regressions that
+			could cause named to crash. [GL #4234]
 
 6320.	[placeholder]
 
-6319.	[placeholder]
+	--- 9.19.20 released ---
+
+6319.	[func]		Limit isc_async_run() overhead for RBTDB tree pruning.
+			[GL #4383]
 
 6318.	[placeholder]
 
-6317.	[placeholder]
+6317.	[security]	Restore DNS64 state when handling a serve-stale timeout.
+			(CVE-2023-5679) [GL #4334]
 
-6316.	[placeholder]
+6316.	[security]	Specific queries could trigger an assertion check with
+			nxdomain-redirect enabled. (CVE-2023-5517) [GL #4281]
 
-6315.	[placeholder]
+6315.	[security]	Speed up parsing of DNS messages with many different
+			names. (CVE-2023-4408) [GL #4234]
 
-6314.	[placeholder]
+6314.	[bug]		Address race conditions in dns_tsigkey_find().
+			[GL #4182]
 
 6313.	[bug]		When dnssec-policy is in effect the DNSKEY's TTLs in
 			the zone where not being updated to match the policy.

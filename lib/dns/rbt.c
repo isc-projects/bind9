@@ -1406,6 +1406,7 @@ rbtnode_new(isc_mem_t *mctx, const dns_name_t *name) {
 	};
 
 	ISC_LINK_INIT(node, deadlink);
+	ISC_LINK_INIT(node, prunelink);
 
 	isc_refcount_init(&node->references, 0);
 

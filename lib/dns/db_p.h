@@ -145,12 +145,4 @@ typedef struct {
 	bool exiting;
 } db_nodelock_t;
 
-/*%
- * Prune context
- */
-typedef struct {
-	dns_db_t *db;
-	dns_dbnode_t *node;
-} db_prune_t;
-
 ISC_LANG_ENDDECLS

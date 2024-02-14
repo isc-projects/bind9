@@ -152,6 +152,10 @@ struct dns_rbtdb {
 	 */
 	dns_rbtnodelist_t *deadnodes;
 
+	/* List of nodes from which recursive tree pruning can be started from.
+	 * Locked by tree_lock. */
+	dns_rbtnodelist_t prunenodes;
+
 	/*
 	 * Heaps.  These are used for TTL based expiry in a cache,
 	 * or for zone resigning in a zone DB.  hmctx is the memory

@@ -3736,6 +3736,21 @@ system.
    set to zero, :any:`max-clients-per-query` no longer applies and there is no
    upper bound, other than that imposed by :any:`recursive-clients`.
 
+.. namedconf:statement:: max-validations-per-fetch
+   :tags: server
+   :short: Set the maximum number of DNSSEC validations that can happen in single fetch
+
+   This is an **experimental** setting to set the maximum number of DNSSEC
+   validations that can happen in a single resolver fetch.  The default is 16.
+
+.. namedconf:statement:: max-validation-failures-per-fetch
+   :tags: server
+   :short: Set the maximum number of DNSSEC validation failures that can happen in single fetch
+
+   This is an **experimental** setting to set the maximum number of DNSSEC
+   validation failures that can happen in a single resolver fetch.  The default
+   is 1.
+
 .. namedconf:statement:: fetches-per-zone
    :tags: server, query
    :short: Sets the maximum number of simultaneous iterative queries allowed to any one domain before the server blocks new queries for data in or beneath that zone.
