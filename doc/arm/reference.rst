@@ -4781,6 +4781,7 @@ The current list of empty zones is:
 -  B.E.F.IP6.ARPA
 -  EMPTY.AS112.ARPA
 -  HOME.ARPA
+-  RESOLVER.ARPA
 
 Empty zones can be set at the view level and only apply to views of
 class IN. Disabled empty zones are only inherited from options if there
