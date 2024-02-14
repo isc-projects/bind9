@@ -1544,7 +1544,7 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	 * simplifies update_from_db
 	 */
 
-	isc_ht_init(&zone->nodes, rpzs->mctx, 1);
+	isc_ht_init(&zone->nodes, rpzs->mctx, 1, ISC_HT_CASE_SENSITIVE);
 
 	dns_name_init(&zone->origin, NULL);
 	dns_name_init(&zone->client_ip, NULL);
@@ -1722,7 +1722,8 @@ setup_update(dns_rpz_zone_t *rpz) {
 		      ISC_LOG_DEBUG(1), "rpz: %s: using hashtable size %d",
 		      domain, hashsize);
 
-	isc_ht_init(&rpz->newnodes, rpz->rpzs->mctx, hashsize);
+	isc_ht_init(&rpz->newnodes, rpz->rpzs->mctx, hashsize,
+		    ISC_HT_CASE_SENSITIVE);
 
 	result = dns_db_createiterator(rpz->updb, DNS_DB_NONSEC3, &rpz->updbit);
 	if (result != ISC_R_SUCCESS) {

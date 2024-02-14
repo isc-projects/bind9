@@ -69,6 +69,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <isc/ht.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/region.h> /* Required for storage size of dns_label_t. */
@@ -112,6 +113,7 @@ struct dns_name {
 	isc_buffer_t  *buffer;
 	ISC_LINK(dns_name_t) link;
 	ISC_LIST(dns_rdataset_t) list;
+	isc_ht_t *ht;
 };
 
 #define DNS_NAME_MAGIC ISC_MAGIC('D', 'N', 'S', 'n')
@@ -167,30 +169,24 @@ LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_wildcardname;
  *	unsigned char offsets[] = { 0, 6 };
  *	dns_name_t value = DNS_NAME_INITABSOLUTE(data, offsets);
  */
-#define DNS_NAME_INITNONABSOLUTE(A, B)                         \
-	{                                                      \
-		DNS_NAME_MAGIC, A, (sizeof(A) - 1), sizeof(B), \
-			DNS_NAMEATTR_READONLY, B, NULL,        \
-			{ (void *)-1, (void *)-1 }, {          \
-			NULL, NULL                             \
-		}                                              \
+#define DNS_NAME_INITNONABSOLUTE(A, B)                                   \
+	{                                                                \
+		DNS_NAME_MAGIC, A, (sizeof(A) - 1), sizeof(B),           \
+			DNS_NAMEATTR_READONLY, B, NULL,                  \
+			{ (void *)-1, (void *)-1 }, { NULL, NULL }, NULL \
 	}
 
-#define DNS_NAME_INITABSOLUTE(A, B)                                       \
-	{                                                                 \
-		DNS_NAME_MAGIC, A, sizeof(A), sizeof(B),                  \
-			DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, B, \
-			NULL, { (void *)-1, (void *)-1 }, {               \
-			NULL, NULL                                        \
-		}                                                         \
+#define DNS_NAME_INITABSOLUTE(A, B)                                            \
+	{                                                                      \
+		DNS_NAME_MAGIC, A, sizeof(A), sizeof(B),                       \
+			DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, B,      \
+			NULL, { (void *)-1, (void *)-1 }, { NULL, NULL }, NULL \
 	}
 
-#define DNS_NAME_INITEMPTY                                 \
-	{                                                  \
-		DNS_NAME_MAGIC, NULL, 0, 0, 0, NULL, NULL, \
-			{ (void *)-1, (void *)-1 }, {      \
-			NULL, NULL                         \
-		}                                          \
+#define DNS_NAME_INITEMPTY                                               \
+	{                                                                \
+		DNS_NAME_MAGIC, NULL, 0, 0, 0, NULL, NULL,               \
+			{ (void *)-1, (void *)-1 }, { NULL, NULL }, NULL \
 	}
 
 /*%
@@ -1357,6 +1353,7 @@ ISC_LANG_ENDDECLS
 		_n->buffer = NULL;                \
 		ISC_LINK_INIT(_n, link);          \
 		ISC_LIST_INIT(_n->list);          \
+		_n->ht = NULL;                    \
 	} while (0)
 
 #define DNS_NAME_RESET(n)                                  \

@@ -87,7 +87,9 @@ keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone
 
 cat "$infile" "$cnameandkey.key" "$dnameandkey.key" "$keyname.key" >"$zonefile"
 
-"$SIGNER" -P -o "$zone" "$zonefile" >/dev/null
+"$SIGNER" -P -D -o "$zone" "$zonefile" >/dev/null
+cat "$zonefile" "$zonefile".signed >"$zonefile".tmp
+mv "$zonefile".tmp "$zonefile".signed
 
 zone=bogus.example.
 infile=bogus.example.db.in

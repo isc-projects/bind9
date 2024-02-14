@@ -61,7 +61,7 @@ test_ht_full(int bits, uintptr_t count) {
 	isc_result_t result;
 	uintptr_t i;
 
-	isc_ht_init(&ht, test_mctx, bits);
+	isc_ht_init(&ht, test_mctx, bits, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 
 	for (i = 1; i < count; i++) {
@@ -206,7 +206,7 @@ test_ht_iterator() {
 	unsigned char key[16];
 	size_t tksize;
 
-	isc_ht_init(&ht, test_mctx, 16);
+	isc_ht_init(&ht, test_mctx, 16, ISC_HT_CASE_SENSITIVE);
 	assert_non_null(ht);
 	for (i = 1; i <= count; i++) {
 		/*
@@ -333,9 +333,62 @@ isc_ht_iterator_test(void **state) {
 	test_ht_iterator();
 }
 
+static void
+isc_ht_case(void **state) {
+	UNUSED(state);
+
+	isc_ht_t *ht = NULL;
+	void *f = NULL;
+	isc_result_t result = ISC_R_UNSET;
+
+	unsigned char lower[16] = { "test case" };
+	unsigned char same[16] = { "test case" };
+	unsigned char upper[16] = { "TEST CASE" };
+	unsigned char mixed[16] = { "tEsT CaSe" };
+
+	isc_ht_init(&ht, test_mctx, 8, ISC_HT_CASE_SENSITIVE);
+	assert_non_null(ht);
+
+	result = isc_ht_add(ht, lower, 16, (void *)lower);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_ht_add(ht, same, 16, (void *)same);
+	assert_int_equal(result, ISC_R_EXISTS);
+
+	result = isc_ht_add(ht, upper, 16, (void *)upper);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_ht_find(ht, mixed, 16, &f);
+	assert_int_equal(result, ISC_R_NOTFOUND);
+	assert_null(f);
+
+	isc_ht_destroy(&ht);
+	assert_null(ht);
+
+	isc_ht_init(&ht, test_mctx, 8, ISC_HT_CASE_INSENSITIVE);
+	assert_non_null(ht);
+
+	result = isc_ht_add(ht, lower, 16, (void *)lower);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_ht_add(ht, same, 16, (void *)same);
+	assert_int_equal(result, ISC_R_EXISTS);
+
+	result = isc_ht_add(ht, upper, 16, (void *)upper);
+	assert_int_equal(result, ISC_R_EXISTS);
+
+	result = isc_ht_find(ht, mixed, 16, &f);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_ptr_equal(f, &lower);
+
+	isc_ht_destroy(&ht);
+	assert_null(ht);
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(isc_ht_case),
 		cmocka_unit_test(isc_ht_20),
 		cmocka_unit_test(isc_ht_8),
 		cmocka_unit_test(isc_ht_1),
