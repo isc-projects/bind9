@@ -312,9 +312,11 @@ def dspublished_tests(checkds, addr):
         CheckDSTest(
             zone=f"bad.{checkds}.dspublish.ns6",
             logs_to_wait_for=(
-                "bad DS response from 10.53.0.6"
-                if checkds == "explicit"
-                else "error during parental-agents processing",
+                (
+                    "bad DS response from 10.53.0.6"
+                    if checkds == "explicit"
+                    else "error during parental-agents processing"
+                ),
             ),
             expected_parent_state="!DSPublish",
         ),
@@ -394,9 +396,11 @@ def dswithdrawn_tests(checkds, addr):
         CheckDSTest(
             zone=f"bad.{checkds}.dsremoved.ns6",
             logs_to_wait_for=(
-                "bad DS response from 10.53.0.6"
-                if checkds == "explicit"
-                else "error during parental-agents processing",
+                (
+                    "bad DS response from 10.53.0.6"
+                    if checkds == "explicit"
+                    else "error during parental-agents processing"
+                ),
             ),
             expected_parent_state="!DSRemoved",
         ),
