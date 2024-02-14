@@ -85,6 +85,10 @@
 			condition due to DNS validation taking a long time.
 			(CVE-2023-50387) [GL #4424]
 
+			The same code change also addresses another problem:
+			preparing NSEC3 closest encloser proofs could exhaust
+			available CPU resources. (CVE-2023-50868) [GL #4459]
+
 6321.	[security]	Change 6315 inadvertently introduced regressions that
 			could cause named to crash. [GL #4234]
 
