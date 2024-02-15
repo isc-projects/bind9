@@ -9,12 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Iterator, Optional, TextIO, Dict, Any, overload, List, Union
+from typing import Iterator, Optional, TextIO, Dict, Any
 
 import abc
 import os
-import shlex
-import subprocess
 import time
 
 
