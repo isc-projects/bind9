@@ -63,6 +63,8 @@ stages:
 .linux-amd64: &linux_amd64
   tags:
     - linux
+    - aws
+    - runner-manager
     - amd64
 
 .linux-i386: &linux_i386
