@@ -9,4 +9,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+from .basic import (
+    deinit_module_logger,
+    deinit_test_logger,
+    init_module_logger,
+    init_test_logger,
+    debug,
+    info,
+    warning,
+    error,
+    critical,
+)
+
 from .watchlog import LogFile, WatchLogFromStart, WatchLogFromHere
