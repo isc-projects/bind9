@@ -1089,6 +1089,8 @@ dns_db_createiterator(dns_db_t *db, unsigned int options,
  *
  * \li	iteratorp != NULL && *iteratorp == NULL
  *
+ * \li	'flags' contains at most one of #DNS_DB_NSEC3ONLY and #DNS_DB_NONSEC3.
+ *
  * Ensures:
  *
  * \li	On success, *iteratorp will be a valid database iterator.
