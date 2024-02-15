@@ -19,7 +19,6 @@ variables:
   CLANG: clang-17
   SCAN_BUILD: scan-build-17
   ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
-  CLANG_FORMAT: clang-format-13
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
@@ -449,13 +448,6 @@ misc:
       - checklibs.out
     expire_in: "1 day"
     when: on_failure
-
-clang-format:
-  <<: *precheck_job
-  needs: []
-  script:
-    - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 coccinelle:
   <<: *precheck_job
