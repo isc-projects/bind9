@@ -123,9 +123,19 @@ static void
 compute_cookie(ns_client_t *client, uint32_t when, const unsigned char *secret,
 	       isc_buffer_t *buf);
 
+#ifdef HAVE_DNSTAP
 static dns_transport_type_t
 ns_client_transport_type(const ns_client_t *client) {
-	REQUIRE(client->handle != NULL);
+	/*
+	 * Early escape hatch for libtest/ns.c
+	 *
+	 * When DoQ support this had to be removed to get correct DoQ entries.
+	 */
+	if (!TCP_CLIENT(client)) {
+		return DNS_TRANSPORT_UDP;
+	}
+
+	INSIST(client->handle != NULL);
 
 	switch (isc_nm_socket_type(client->handle)) {
 	case isc_nm_udpsocket:
@@ -158,6 +168,7 @@ ns_client_transport_type(const ns_client_t *client) {
 
 	return DNS_TRANSPORT_UDP;
 }
+#endif /* HAVE_DNSTAP */
 
 void
 ns_client_recursing(ns_client_t *client) {
