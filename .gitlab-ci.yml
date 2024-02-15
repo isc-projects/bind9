@@ -468,17 +468,6 @@ danger:
     variables:
       - $DANGER_GITLAB_API_TOKEN
 
-flake8:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
-  script:
-    - *configure
-    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
-
 pylint:
   <<: *default_triggering_rules
   <<: *base_image
