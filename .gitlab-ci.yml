@@ -1502,44 +1502,6 @@ abi-check:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
-gcov:
-  <<: *base_image
-  <<: *default_triggering_rules
-  stage: postcheck
-  needs:
-    - job: system:gcc:bullseye:amd64
-      artifacts: true
-  script:
-    # *.gcno and *.gcda files generated for shared library objects are created
-    # in directories in which gcovr is unable to process them properly
-    # (.../.libs/...).  Move such *.gcno and *.gcda files one level higher.
-    - find . -regex ".*/\.libs/.*\.\(gcda\|gcno\)" -execdir mv "{}" .. \;
-    # Help gcovr process the nasty tricks in lib/dns/code.h, where we include C
-    # source files from lib/dns/rdata/*/, using an even nastier trick.
-    - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
-    # These drivers are built into bin/named/named in a way which trips up
-    # gcovr.  Copy them to where gcovr expects them.
-    - cp contrib/dlz/drivers/dlz_drivers.c contrib/dlz/drivers/dlz_filesystem_driver.c contrib/dlz/drivers/sdlz_helper.c bin/named/
-    # The same reasoning applies for some libisc source files.
-    - cp lib/isc/app_api.c lib/isc/socket_api.c lib/isc/unix/
-    - cp lib/isc/x86_64/include/isc/atomic.h lib/dns/
-    # Generate XML file in the Cobertura XML format suitable for use by GitLab
-    # for the purpose of displaying code coverage information in the diff view
-    # of a given merge request.
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --xml -o coverage.xml
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
-    - tail -n 3 coverage.txt
-  artifacts:
-    paths:
-      - coverage*.html
-      - coverage.txt
-      - coverage.xml
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-
 # Pairwise testing of ./configure options
 
 pairwise:
