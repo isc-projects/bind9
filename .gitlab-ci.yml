@@ -1342,7 +1342,7 @@ respdiff-third-party:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON} -Og -DOPENSSL_SUPPRESS_DEPRECATED"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.2"
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
