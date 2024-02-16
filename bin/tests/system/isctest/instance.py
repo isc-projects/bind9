@@ -18,7 +18,7 @@ import os
 import re
 
 from .rndc import RNDCBinaryExecutor, RNDCException, RNDCExecutor
-from .log import LogFile, WatchLogFromStart, WatchLogFromHere
+from .log import info, LogFile, WatchLogFromStart, WatchLogFromHere
 
 
 class NamedPorts(NamedTuple):
@@ -64,7 +64,7 @@ class NamedInstance:
         self.ports = ports
         self.log = LogFile(os.path.join(identifier, "named.run"))
         self._rndc_executor = rndc_executor or RNDCBinaryExecutor()
-        self._rndc_logger = rndc_logger or logging.getLogger()
+        self._rndc_logger = rndc_logger
 
     @staticmethod
     def _identifier_to_ip(identifier: str) -> str:
@@ -156,12 +156,13 @@ class NamedInstance:
         current working directory.
         """
         fmt = '%(ip)s: "%(command)s"\n%(separator)s\n%(response)s%(separator)s'
-        self._rndc_logger.info(
-            fmt,
-            {
-                "ip": self.ip,
-                "command": command,
-                "separator": "-" * 80,
-                "response": response,
-            },
-        )
+        args = {
+            "ip": self.ip,
+            "command": command,
+            "separator": "-" * 80,
+            "response": response,
+        }
+        if self._rndc_logger is None:
+            info(fmt, args)
+        else:
+            self._rndc_logger.info(fmt, args)
