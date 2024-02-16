@@ -93,7 +93,6 @@ struct dns_fetchresponse {
 	isc_loop_t	     *loop;
 	isc_job_cb	      cb;
 	void		     *arg;
-	enum { FETCHDONE, TRYSTALE } type;
 	ISC_LINK(dns_fetchresponse_t) link;
 };
 
@@ -130,7 +129,6 @@ enum {
 						* on ip6.arpa. */
 	DNS_FETCHOPT_NOFORWARD = 1 << 15,      /*%< Do not use forwarders if
 						* possible. */
-	DNS_FETCHOPT_TRYSTALE_ONTIMEOUT = 1 << 16,
 
 	/*% EDNS version bits: */
 	DNS_FETCHOPT_EDNSVERSIONSET = 1 << 23,
@@ -291,11 +289,10 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
  *	we figure out how selective forwarding will work.
  *
  *\li	When the fetch completes (successfully or otherwise), a
- *	dns_fetchresponse_t option is sent to callback 'cb' with
- *	'type' set to FETCHDONE.
+ *	dns_fetchresponse_t option is sent to callback 'cb'.
  *
  *\li	The values of 'rdataset' and 'sigrdataset' will be returned in
- *	the FETCHDONE event.
+ *	the fetch completion event.
  *
  *\li	'client' and 'id' are used for duplicate query detection.  '*client'
  *	must remain stable until after 'action' has been called or
@@ -342,7 +339,7 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch);
  *
  * Notes:
  *
- *\li	If 'fetch' has not completed, post its FETCHDONE event with a
+ *\li	If 'fetch' has not completed, post its completion event with a
  *	result code of #ISC_R_CANCELED.
  *
  * Requires:
@@ -359,7 +356,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
  *
  *\li	'*fetchp' is a valid fetch.
  *
- *\li	The caller has received the FETCHDONE event (either because the
+ *\li	The caller has received the fetch completion event (either because the
  *	fetch completed or because dns_resolver_cancelfetch() was called).
  *
  * Ensures:

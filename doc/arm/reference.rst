@@ -2368,11 +2368,13 @@ Boolean Options
    ``off`` or ``disabled``. It also has no effect if :any:`stale-answer-enable`
    is disabled.
 
-   The maximum value for this option is :any:`resolver-query-timeout` minus
-   one second. The minimum value, ``0``, causes a cached (stale) RRset to be
+   The minimum value, ``0``, causes a cached (stale) RRset to be
    immediately returned if it is available while still attempting to
-   refresh the data in cache. :rfc:`8767` recommends a value of ``1800``
-   (milliseconds).
+   refresh the data in cache.
+
+   When this option is enabled, the only supported value in the current version
+   of BIND 9 is ``0``. Non-zero values generate a warning message, and are
+   treated as ``0``.
 
 .. namedconf:statement:: stale-cache-enable
    :tags: server, query

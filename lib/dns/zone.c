@@ -10118,7 +10118,7 @@ keyfetch_done(void *arg) {
 	dns_rdataset_t *dnskeys = NULL, *dnskeysigs = NULL;
 	dns_rdataset_t *keydataset = NULL, dsset;
 
-	INSIST(resp != NULL && resp->type == FETCHDONE);
+	INSIST(resp != NULL);
 
 	kfetch = resp->arg;
 
@@ -21409,7 +21409,7 @@ nsfetch_done(void *arg) {
 	dns_rdataset_t *nsrrset = NULL;
 	dns_rdataset_t *nssigset = NULL;
 
-	INSIST(resp != NULL && resp->type == FETCHDONE);
+	INSIST(resp != NULL);
 
 	nsfetch = resp->arg;
 
