@@ -1590,6 +1590,10 @@ validate_answer(dns_validator_t *val, bool resume) {
 		}
 
 		vresult = verify(val, val->key, &rdata, val->siginfo->keyid);
+		if (vresult == DNS_R_SIGEXPIRED || vresult == DNS_R_SIGFUTURE) {
+			resume = false;
+			continue;
+		}
 		if (vresult != ISC_R_SUCCESS) {
 			val->failed = true;
 			validator_log(val, ISC_LOG_DEBUG(3),
