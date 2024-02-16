@@ -4747,14 +4747,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			 */
 			isc_mem_create(&cmctx);
 			isc_mem_setname(cmctx, "cache");
-			isc_mem_create(&hmctx);
-			isc_mem_setname(hmctx, "cache_heap");
-			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
+			CHECK(dns_cache_create(cmctx, named_g_taskmgr,
 					       named_g_timermgr, view->rdclass,
 					       cachename, "rbt", 0, NULL,
 					       &cache));
 			isc_mem_detach(&cmctx);
-			isc_mem_detach(&hmctx);
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
 		nsc->cache = NULL;
