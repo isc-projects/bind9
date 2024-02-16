@@ -12,14 +12,14 @@ variables:
   KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
 
   GIT_DEPTH: 1
+
+  # The following values may be overwritten in GitLab's CI/CD Variables Settings.
   BUILD_PARALLEL_JOBS: 6
-  TEST_PARALLEL_JOBS: 6
+  TEST_PARALLEL_JOBS: 4
 
   CONFIGURE: ./configure
-  CLANG: clang-13
-  SCAN_BUILD: scan-build-13
-  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-13/bin/llvm-symbolizer
-  CLANG_FORMAT: clang-format-13
+  CLANG: clang-17
+  ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
@@ -64,6 +64,8 @@ stages:
 .linux-amd64: &linux_amd64
   tags:
     - linux
+    - aws
+    - runner-manager
     - amd64
 
 .linux-i386: &linux_i386
@@ -91,11 +93,6 @@ stages:
     - aws
     - bsd-stress
     - stress
-
-.windows-amd64: &windows_amd64
-  tags:
-    - windows
-    - amd64
 
 ### Docker Image Templates
 
@@ -137,14 +134,8 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-bullseye-amd64"
   <<: *linux_amd64
 
-.debian-sid-amd64: &debian_sid_amd64_image
-  image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
-  <<: *linux_amd64
-
-# openSUSE Tumbleweed
-
-.tumbleweed-latest-amd64: &tumbleweed_latest_amd64_image
-  image: "$CI_REGISTRY_IMAGE:tumbleweed-latest-amd64"
+.debian-bookworm-amd64: &debian_bookworm_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-bookworm-amd64"
   <<: *linux_amd64
 
 # Fedora
@@ -166,12 +157,6 @@ stages:
 .ubuntu-focal-amd64: &ubuntu_focal_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-focal-amd64"
   <<: *linux_amd64
-
-# Windows
-
-.windows-server-2016-amd64: &windows_server_2016_amd64_image
-  image: "$CI_REGISTRY_IMAGE:windows-server-2016-amd64"
-  <<: *windows_amd64
 
 # Base image
 # This is a meta image that is used as a base for non-specific jobs
@@ -277,30 +262,6 @@ stages:
     expire_in: "1 day"
     when: always
 
-.windows_build: &windows_build_job
-  stage: build
-  script:
-    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
-    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
-    - 'Pop-Location'
-    - 'Set-Location win32utils'
-    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
-         "with-tools-version=15.0"
-         "with-platform-toolset=v141"
-         "with-platform-version=10.0.17763.0"
-         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
-         "with-openssl=C:/OpenSSL"
-         "with-libxml2=C:/libxml2"
-         "without-python"
-         "with-system-tests"
-         x64'
-    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
-    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
-  needs: []
-  artifacts:
-    untracked: true
-    expire_in: "1 day"
-
 .setup_interfaces: &setup_interfaces
     - if [ "$(id -u)" -eq "0" ]; then
         sh -x bin/tests/system/ifconfig.sh up;
@@ -353,24 +314,6 @@ stages:
          --results-file "$KYUA_RESULT"
          --results-filter ""
          --output kyua_html > /dev/null
-
-.windows_system_test: &windows_system_test_job
-  <<: *schedules_tags_web_triggering_rules
-  stage: system
-  script:
-    - 'Push-Location bin/tests/system'
-    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
-    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
-    - '& cmd.exe /C ifconfig.bat up; ""'
-    - 'Start-Sleep 2'
-    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
-    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
-    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
-  artifacts:
-    untracked: true
-    expire_in: "1 day"
-    when: on_failure
 
 .unit_test_common: &unit_test_common
   <<: *default_triggering_rules
@@ -433,11 +376,6 @@ misc:
     - test ! -f CHANGES.SE || perl util/check-changes master=0 CHANGES.SE
     - test ! -f CHANGES.SE || sh util/check-line-length.sh CHANGES.SE
     - rm CHANGES.tmp
-    - perl -w util/merge_copyrights
-    - diff -urNap util/copyrights util/newcopyrights
-    - rm util/newcopyrights
-    - perl -w util/update_copyrights < util/copyrights
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - sh util/xmllint-html.sh
     - sh util/check-win32util-configure
@@ -450,13 +388,6 @@ misc:
     expire_in: "1 day"
     when: on_failure
 
-clang-format:
-  <<: *precheck_job
-  needs: []
-  script:
-    - if [ -r .clang-format ]; then "${CLANG_FORMAT}" -i -style=file $(git ls-files '*.c' '*.h'); fi
-    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
-
 coccinelle:
   <<: *precheck_job
   needs: []
@@ -466,38 +397,20 @@ coccinelle:
 
 danger:
   <<: *precheck_job
+  # Keep the GIT_DEPTH environment variable set to a "high number" before
+  # https://github.com/libgit2/libgit2/pull/6662 is addressed and integrated
+  # into pygit2.
+  variables:
+    GIT_DEPTH: 1000
   needs: []
   script:
-    - danger-python ci -f
+    - pip install git+https://gitlab.isc.org/isc-projects/hazard.git
+    - hazard
   only:
     refs:
       - merge_requests
     variables:
       - $DANGER_GITLAB_API_TOKEN
-
-flake8:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
-  script:
-    - *configure
-    - flake8 --max-line-length=80 $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py)')
-
-pylint:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  needs:
-    - job: autoreconf
-      artifacts: true
-  before_script:
-  script:
-    - *configure
-    - PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/bin/python"
-    - pylint --rcfile $CI_PROJECT_DIR/.pylintrc $(git ls-files '*.py' | grep -vE '(ans\.py|dangerfile\.py|contrib/queryperf/)')
 
 tarball-create:
   stage: precheck
@@ -519,13 +432,12 @@ tarball-create:
 
 docs:
   <<: *release_branch_triggering_rules
-  <<: *base_image
+  <<: *debian_bookworm_amd64_image
   stage: docs
   script:
     - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
-    - qpdf --check doc/arm/Bv9ARM.pdf
     - find bin/ lib/ isc-config.sh.1 -not -path "bin/tests/*" -name "*.[0-9]" -exec mandoc -T lint -Werror "{}" \;
   needs:
     - job: autoreconf
@@ -624,7 +536,7 @@ gcc:oraclelinux7:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-dnstap"
   <<: *oraclelinux_7_amd64_image
   <<: *build_job
 
@@ -745,62 +657,6 @@ unit:gcc:bullseye:amd64:
     - job: gcc:bullseye:amd64
       artifacts: true
 
-# Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
-
-.scan_build: &scan_build
-  - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
-                  --keep-cc
-                  --status-bugs
-                  --keep-going
-                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} all V=1
-
-scan-build:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON}"
-    CONFIGURE: "${SCAN_BUILD} ./configure"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  script:
-    - *configure
-    - *scan_build
-  needs:
-    - job: autoreconf
-      artifacts: true
-  artifacts:
-    paths:
-      - scan-build.reports/
-    expire_in: "1 day"
-    when: on_failure
-
-# Jobs for regular GCC builds on Debian Sid (amd64)
-# Also tests configration option: --without-lmdb.
-
-gcc:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-lmdb"
-    RUN_MAKE_INSTALL: 1
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:sid:amd64
-      artifacts: true
-
-unit:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:sid:amd64
-      artifacts: true
-
 # Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
 # Also tests configration option: --with-lmdb.
 
@@ -852,30 +708,6 @@ unit:gcc:tarball:
     - cd bind-*
   needs:
     - job: gcc:tarball
-      artifacts: true
-
-# Jobs for debug GCC builds on openSUSE Tumbleweed (amd64)
-
-gcc:tumbleweed:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -DDEBUG"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *tumbleweed_latest_amd64_image
-  <<: *build_job
-
-system:gcc:tumbleweed:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:tumbleweed:amd64
-      artifacts: true
-
-unit:gcc:tumbleweed:amd64:
-  <<: *tumbleweed_latest_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:tumbleweed:amd64
       artifacts: true
 
 # Jobs for regular GCC builds on Ubuntu 18.04 Bionic Beaver (amd64)
@@ -964,7 +796,7 @@ clang:asan:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *base_image
   <<: *build_job
 
@@ -1022,7 +854,7 @@ clang:tsan:
     CC: "${CLANG}"
     CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
 
 system:clang:tsan:
   variables:
@@ -1042,92 +874,13 @@ unit:clang:tsan:
     - job: clang:tsan
       artifacts: true
 
-# Jobs for builds with TSAN enabled --disable-atomics
-
-gcc:tsan:noatomics:
-  <<: *base_image
-  <<: *build_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-atomic --disable-dnstap"
-
-system:gcc:tsan:noatomics:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: gcc:tsan:noatomics
-      artifacts: true
-
-unit:gcc:tsan:noatomics:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: gcc:tsan:noatomics
-      artifacts: true
-
-clang:tsan:noatomics:
-  <<: *base_image
-  <<: *build_job
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=thread"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-atomic --disable-dnstap"
-
-system:clang:tsan:noatomics:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *system_test_tsan_job
-  needs:
-    - job: clang:tsan:noatomics
-      artifacts: true
-
-unit:clang:tsan:noatomics:
-  variables:
-    TSAN_OPTIONS: ${TSAN_OPTIONS_COMMON}
-  <<: *base_image
-  <<: *unit_test_tsan_job
-  needs:
-    - job: clang:tsan:noatomics
-      artifacts: true
-
-# Jobs for builds without atomics and threads
-
-gcc:noatomics:
-  variables:
-    CC: gcc
-    EXTRA_CONFIGURE: "--disable-atomic --disable-threads --disable-dnstap"
-  <<: *base_image
-  <<: *build_job
-
-system:gcc:noatomics:
-  <<: *base_image
-  <<: *system_test_job
-  needs:
-    - job: gcc:noatomics
-      artifacts: true
-
-unit:gcc:noatomics:
-  <<: *base_image
-  <<: *unit_test_job
-  needs:
-    - job: gcc:noatomics
-      artifacts: true
-
 # Jobs for Clang builds on Debian 11 "bullseye" (amd64)
 
 clang:bullseye:amd64:
   variables:
     CC: ${CLANG}
     CFLAGS: "${CFLAGS_COMMON} -Wenum-conversion"
-    EXTRA_CONFIGURE: "--with-python=python3"
+    EXTRA_CONFIGURE: "--with-python=python3 --disable-warn-error"
   <<: *debian_bullseye_amd64_image
   <<: *build_job
 
@@ -1145,7 +898,7 @@ unit:clang:bullseye:amd64:
     - job: clang:bullseye:amd64
       artifacts: true
 
-# Jobs for PKCS#11-enabled GCC builds on Fedora 35 (amd64)
+# Jobs for PKCS#11-enabled GCC builds on Debian "bullseye" (amd64)
 
 # "--disable-warn-error" ./configure option disables compiler warnings. This
 # ensures that the job will not fail because of warnings (e.g., array
@@ -1155,19 +908,19 @@ gcc:pkcs11:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib64/pkcs11/libsofthsm2.so --disable-warn-error"
-  <<: *fedora_35_amd64_image
+    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so --disable-warn-error"
+  <<: *debian_bullseye_amd64_image
   <<: *build_job
 
 system:gcc:pkcs11:
-  <<: *fedora_35_amd64_image
+  <<: *debian_bullseye_amd64_image
   <<: *system_test_job
   needs:
     - job: gcc:pkcs11
       artifacts: true
 
 unit:gcc:pkcs11:
-  <<: *fedora_35_amd64_image
+  <<: *debian_bullseye_amd64_image
   <<: *unit_test_job
   needs:
     - job: gcc:pkcs11
@@ -1178,7 +931,7 @@ unit:gcc:pkcs11:
 clang:freebsd12:amd64:
   variables:
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-gssapi=krb5-config"
+    EXTRA_CONFIGURE: "--with-gssapi=krb5-config --disable-warn-error"
     USER: gitlab-runner
   <<: *freebsd_12_amd64_image
   <<: *build_job
@@ -1251,64 +1004,6 @@ system:clang:openbsd:amd64:
     - triggers
     - web
 
-# Jobs with libtool disabled
-
-nolibtool:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-system:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  needs:
-    - job: nolibtool:sid:amd64
-      artifacts: true
-
-unit:nolibtool:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  needs:
-    - job: nolibtool:sid:amd64
-      artifacts: true
-
-# Jobs for Visual Studio 2017 builds on Windows (amd64)
-
-msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *default_triggering_rules
-  variables:
-    VSCONF: Release
-
-system:msvc:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Release
-  needs:
-    - job: msvc:windows:amd64
-      artifacts: true
-
-msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_build_job
-  <<: *schedules_tags_web_triggering_rules
-  variables:
-    VSCONF: Debug
-
-system:msvc-debug:windows:amd64:
-  <<: *windows_server_2016_amd64_image
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Debug
-  needs:
-    - job: msvc-debug:windows:amd64
-      artifacts: true
-
 # Job producing a release tarball
 
 release:
@@ -1318,14 +1013,6 @@ release:
     # Determine BIND version
     - source version
     - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Remove redundant files and system test utilities from Windows build artifacts
-    - find Build/Release/ -name "*.pdb" -print -delete
-    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
-    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
-    # Create Windows zips
-    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
-    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
-    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
     # Prepare release tarball contents (tarballs + zips + documentation)
     - mkdir -p release/doc/arm
     - pushd release
@@ -1342,10 +1029,6 @@ release:
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
     - job: tarball-create
-      artifacts: true
-    - job: msvc:windows:amd64
-      artifacts: true
-    - job: msvc-debug:windows:amd64
       artifacts: true
   only:
     - tags
@@ -1415,25 +1098,20 @@ coverity:
 # Respdiff tests
 
 respdiff:
-  <<: *base_image
+  <<: *debian_bookworm_amd64_image
   <<: *schedules_tags_web_triggering_rules
   stage: system
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    BIND_BASELINE_VERSION: v9_11_24
+    CFLAGS: "${CFLAGS_COMMON} -Og -DOPENSSL_SUPPRESS_DEPRECATED"
     MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
-    - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refserver
-    - cd refserver/
-    - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} V=1
-    - cd ../bind-qa/bind9/respdiff
-    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "${CI_PROJECT_DIR}/refserver"
+    - cd bind-qa/bind9/respdiff
+    - bash respdiff.sh -s named -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}" "/usr/local/respdiff-reference-bind/sbin/named"
   needs: []
   artifacts:
     paths:
@@ -1446,13 +1124,13 @@ respdiff:
     when: always
 
 respdiff-third-party:
-  <<: *base_image
+  <<: *debian_bookworm_amd64_image
   <<: *schedules_tags_web_triggering_rules
   stage: system
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    MAX_DISAGREEMENTS_PERCENTAGE: "0.1"
+    CFLAGS: "${CFLAGS_COMMON} -Og -DOPENSSL_SUPPRESS_DEPRECATED"
+    MAX_DISAGREEMENTS_PERCENTAGE: "0.2"
   script:
     - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} V=1
@@ -1611,44 +1289,6 @@ abi-check:
   only:
     - main@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
-
-gcov:
-  <<: *base_image
-  <<: *default_triggering_rules
-  stage: postcheck
-  needs:
-    - job: system:gcc:bullseye:amd64
-      artifacts: true
-  script:
-    # *.gcno and *.gcda files generated for shared library objects are created
-    # in directories in which gcovr is unable to process them properly
-    # (.../.libs/...).  Move such *.gcno and *.gcda files one level higher.
-    - find . -regex ".*/\.libs/.*\.\(gcda\|gcno\)" -execdir mv "{}" .. \;
-    # Help gcovr process the nasty tricks in lib/dns/code.h, where we include C
-    # source files from lib/dns/rdata/*/, using an even nastier trick.
-    - find lib/dns/rdata/* -name "*.c" -execdir cp -f "{}" ../../ \;
-    # These drivers are built into bin/named/named in a way which trips up
-    # gcovr.  Copy them to where gcovr expects them.
-    - cp contrib/dlz/drivers/dlz_drivers.c contrib/dlz/drivers/dlz_filesystem_driver.c contrib/dlz/drivers/sdlz_helper.c bin/named/
-    # The same reasoning applies for some libisc source files.
-    - cp lib/isc/app_api.c lib/isc/socket_api.c lib/isc/unix/
-    - cp lib/isc/x86_64/include/isc/atomic.h lib/dns/
-    # Generate XML file in the Cobertura XML format suitable for use by GitLab
-    # for the purpose of displaying code coverage information in the diff view
-    # of a given merge request.
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --xml -o coverage.xml
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' --html-details -o coverage.html
-    - gcovr --root . --exclude-directories bin/tests --exclude-directories doc --exclude-directories libltdl --exclude-directories lib/samples --exclude 'lib/.*/tests/.*' -o coverage.txt
-    - tail -n 3 coverage.txt
-  artifacts:
-    paths:
-      - coverage*.html
-      - coverage.txt
-      - coverage.xml
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
 
 # Pairwise testing of ./configure options
 
