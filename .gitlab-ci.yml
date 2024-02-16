@@ -19,7 +19,6 @@ variables:
 
   CONFIGURE: ./configure
   CLANG: clang-17
-  SCAN_BUILD: scan-build-17
   ASAN_SYMBOLIZER_PATH: /usr/lib/llvm-17/bin/llvm-symbolizer
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
@@ -657,36 +656,6 @@ unit:gcc:bullseye:amd64:
   needs:
     - job: gcc:bullseye:amd64
       artifacts: true
-
-# Jobs for scan-build builds on Debian 11 "bullseye" (amd64)
-
-.scan_build: &scan_build
-  - ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)"
-                  --keep-cc
-                  --status-bugs
-                  --keep-going
-                  -o scan-build.reports make -j${BUILD_PARALLEL_JOBS:-1} all V=1
-
-scan-build:
-  <<: *default_triggering_rules
-  <<: *base_image
-  stage: postcheck
-  variables:
-    CC: "${CLANG}"
-    CFLAGS: "${CFLAGS_COMMON}"
-    CONFIGURE: "${SCAN_BUILD} ./configure"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  script:
-    - *configure
-    - *scan_build
-  needs:
-    - job: autoreconf
-      artifacts: true
-  artifacts:
-    paths:
-      - scan-build.reports/
-    expire_in: "1 day"
-    when: on_failure
 
 # Job for out-of-tree GCC build on Debian 11 "bullseye" (amd64)
 # Also tests configration option: --with-lmdb.
