@@ -208,8 +208,8 @@ assigned port numbers. They're also set as environment variables. These include:
 
 Each module has a separate log which will be saved as pytest.log.txt in the
 temporary directory in which the test is executed. This log includes messages
-for this module setup/teardown as well as any logging from the tests using the
-`logger` fixture. Logging level DEBUG and above will be present in this log.
+for this module setup/teardown as well as any logging from the tests. Logging
+level DEBUG and above will be present in this log.
 
 In general, any log messages using INFO or above will also be printed out
 during pytest execution. In CI, the pytest output is also saved to
@@ -276,7 +276,6 @@ is possible to pass fixtures to the test function by specifying their name as
 function arguments. Fixtures are used to provide context to the tests, e.g.:
 
 - `ports` is a dictionary with assigned port numbers
-- `logger` is a test-specific logging object
 
 ### tests_sh_*.py
 
