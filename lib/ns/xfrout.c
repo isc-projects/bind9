@@ -674,6 +674,9 @@ typedef struct {
 	isc_nm_timer_t *maxtime_timer;
 
 	uint64_t idletime; /*%< XFR idle timeout (in ms) */
+
+	/* Delayed send */
+	isc_nm_timer_t *delayed_send_timer;
 } xfrout_ctx_t;
 
 static void
@@ -711,6 +714,9 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename, dns_rdataclass_t rdclass,
 static void
 xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+
+static void
+xfrout_delayed_timeout(void *arg, isc_result_t result);
 
 /**************************************************************************/
 
@@ -1248,6 +1254,9 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	isc_nm_timer_create(xfr->client->handle, xfrout_client_timeout, xfr,
 			    &xfr->maxtime_timer);
 
+	isc_nm_timer_create(xfr->client->handle, xfrout_delayed_timeout, xfr,
+			    &xfr->delayed_send_timer);
+
 	/*
 	 * Allocate a temporary buffer for the uncompressed response
 	 * message data.  The buffer size must be 65535 bytes
@@ -1279,6 +1288,74 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->stream = stream;
 
 	*xfrp = xfr;
+}
+
+static void
+xfrout_send(xfrout_ctx_t *xfr) {
+	const bool is_tcp = ((xfr->client->attributes & NS_CLIENTATTR_TCP) !=
+			     0);
+
+	if (is_tcp) {
+		isc_region_t used;
+
+		isc_buffer_usedregion(&xfr->txbuf, &used);
+
+		isc_nmhandle_attach(xfr->client->handle,
+				    &xfr->client->sendhandle);
+		if (xfr->idletime > 0) {
+			isc_nmhandle_setwritetimeout(xfr->client->sendhandle,
+						     xfr->idletime);
+		}
+		isc_nm_send(xfr->client->sendhandle, &used, xfrout_senddone,
+			    xfr);
+		xfr->sends++;
+		xfr->cbytes = used.length;
+	} else {
+		ns_client_send(xfr->client);
+		xfr->stream->methods->pause(xfr->stream);
+		isc_nmhandle_detach(&xfr->client->reqhandle);
+		xfrout_ctx_destroy(&xfr);
+	}
+}
+
+static void
+xfrout_delayed_timeout(void *arg, isc_result_t result) {
+	xfrout_ctx_t *xfr = (xfrout_ctx_t *)arg;
+	UNUSED(result);
+
+	isc_nm_timer_stop(xfr->delayed_send_timer);
+	xfrout_send(xfr);
+}
+
+static void
+xfrout_enqueue_send(xfrout_ctx_t *xfr) {
+	uint64_t timeout = 0;
+
+	/*
+	 * System test helper options to simulate network issues.
+	 *
+	 * Both "transferslowly" and "transferstuck" are not meant to be
+	 * used together (and are not actually used this way).
+	 */
+	if (ns_server_getoption(xfr->client->manager->sctx,
+				NS_SERVER_TRANSFERSLOWLY))
+	{
+		/* Sleep for a bit over a second. */
+		timeout = 1000;
+	} else if (ns_server_getoption(xfr->client->manager->sctx,
+				       NS_SERVER_TRANSFERSTUCK))
+	{
+		/* Sleep for a bit over a minute. */
+		timeout = 60 * 1000;
+	}
+
+	if (timeout == 0) {
+		xfrout_send(xfr);
+		return;
+	}
+
+	/* delay */
+	isc_nm_timer_start(xfr->delayed_send_timer, timeout);
 }
 
 /*
@@ -1519,7 +1596,6 @@ sendstream(xfrout_ctx_t *xfr) {
 	}
 
 	if (is_tcp) {
-		isc_region_t used;
 		dns_compress_init(&cctx, xfr->mctx,
 				  DNS_COMPRESS_CASE | DNS_COMPRESS_LARGE);
 		cleanup_cctx = true;
@@ -1530,60 +1606,15 @@ sendstream(xfrout_ctx_t *xfr) {
 		dns_compress_invalidate(&cctx);
 		cleanup_cctx = false;
 
-		isc_buffer_usedregion(&xfr->txbuf, &used);
-
 		xfrout_log(xfr, ISC_LOG_DEBUG(8),
-			   "sending TCP message of %d bytes", used.length);
+			   "sending TCP message of %d bytes",
+			   isc_buffer_usedlength(&xfr->txbuf));
 
-		/* System test helper options to simulate network issues. */
-		if (ns_server_getoption(xfr->client->manager->sctx,
-					NS_SERVER_TRANSFERSLOWLY))
-		{
-			/* Sleep for a bit over a second. */
-			select(0, NULL, NULL, NULL,
-			       &(struct timeval){ 1, 1000 });
-		}
-		if (ns_server_getoption(xfr->client->manager->sctx,
-					NS_SERVER_TRANSFERSTUCK))
-		{
-			/* Sleep for a bit over a minute. */
-			select(0, NULL, NULL, NULL,
-			       &(struct timeval){ 60, 1000 });
-		}
-
-		isc_nmhandle_attach(xfr->client->handle,
-				    &xfr->client->sendhandle);
-		if (xfr->idletime > 0) {
-			isc_nmhandle_setwritetimeout(xfr->client->sendhandle,
-						     xfr->idletime);
-		}
-		isc_nm_send(xfr->client->sendhandle, &used, xfrout_senddone,
-			    xfr);
-		xfr->sends++;
-		xfr->cbytes = used.length;
+		xfrout_enqueue_send(xfr);
 	} else {
 		xfrout_log(xfr, ISC_LOG_DEBUG(8), "sending IXFR UDP response");
 
-		/* System test helper options to simulate network issues. */
-		if (ns_server_getoption(xfr->client->manager->sctx,
-					NS_SERVER_TRANSFERSLOWLY))
-		{
-			/* Sleep for a bit over a second. */
-			select(0, NULL, NULL, NULL,
-			       &(struct timeval){ 1, 1000 });
-		}
-		if (ns_server_getoption(xfr->client->manager->sctx,
-					NS_SERVER_TRANSFERSTUCK))
-		{
-			/* Sleep for a bit over a minute. */
-			select(0, NULL, NULL, NULL,
-			       &(struct timeval){ 60, 1000 });
-		}
-
-		ns_client_send(xfr->client);
-		xfr->stream->methods->pause(xfr->stream);
-		isc_nmhandle_detach(&xfr->client->reqhandle);
-		xfrout_ctx_destroy(&xfr);
+		xfrout_enqueue_send(xfr);
 		return;
 	}
 
@@ -1608,10 +1639,6 @@ failure:
 		return;
 	}
 
-	if (xfr->client->sendhandle != NULL) {
-		isc_nmhandle_detach(&xfr->client->sendhandle);
-	}
-
 	xfrout_fail(xfr, result, "sending zone data");
 }
 
@@ -1621,6 +1648,9 @@ xfrout_ctx_destroy(xfrout_ctx_t **xfrp) {
 	*xfrp = NULL;
 
 	INSIST(xfr->sends == 0);
+
+	isc_nm_timer_stop(xfr->delayed_send_timer);
+	isc_nm_timer_detach(&xfr->delayed_send_timer);
 
 	isc_nm_timer_stop(xfr->maxtime_timer);
 	isc_nm_timer_detach(&xfr->maxtime_timer);
