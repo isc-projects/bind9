@@ -1905,10 +1905,14 @@ dns__qpdb_findnodeintree(dns_qpdb_t *qpdb, dns_qp_t *tree,
 		 * Try to upgrade the lock and if that fails unlock then relock.
 		 */
 		TREE_FORCEUPGRADE(&qpdb->tree_lock, &tlocktype);
-		node = dns_qpdata_create(qpdb, name);
-		result = dns_qp_insert(tree, node, 0);
-		INSIST(result == ISC_R_SUCCESS);
-		dns_qpdata_unref(node);
+		result = dns_qp_lookup(tree, name, NULL, NULL, NULL,
+				       (void **)&node, NULL);
+		if (result != ISC_R_SUCCESS) {
+			node = dns_qpdata_create(qpdb, name);
+			result = dns_qp_insert(tree, node, 0);
+			INSIST(result == ISC_R_SUCCESS);
+			dns_qpdata_unref(node);
+		}
 
 		if (tree == qpdb->tree) {
 			dns__qpzone_addwildcards(qpdb, name, true);
