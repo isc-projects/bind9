@@ -208,8 +208,6 @@ qp_triename(void *uctx, char *buf, size_t size) {
 }
 
 static void
-prune_tree(void *arg);
-static void
 free_gluetable(struct cds_wfs_stack *glue_stack);
 
 static void
@@ -1129,27 +1127,6 @@ dns__qpdb_newref(dns_qpdb_t *qpdb, dns_qpdata_t *node,
 }
 
 /*%
- * The tree lock must be held for the result to be valid.
- */
-static bool
-is_leaf(dns_qpdata_t *node) {
-	return (node->parent != NULL && node->parent->down == node &&
-		node->left == NULL && node->right == NULL);
-}
-
-static void
-send_to_prune_tree(dns_qpdb_t *qpdb, dns_qpdata_t *node,
-		   isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
-	qpdb_prune_t *prune = isc_mem_get(qpdb->common.mctx, sizeof(*prune));
-	*prune = (qpdb_prune_t){ .node = node };
-
-	dns_db_attach((dns_db_t *)qpdb, &prune->db);
-	dns__qpdb_newref(qpdb, node, nlocktype DNS__DB_FLARG_PASS);
-
-	isc_async_run(qpdb->loop, prune_tree, prune);
-}
-
-/*%
  * Clean up dead nodes.  These are nodes which have no references, and
  * have no data.  They are dead but we could not or chose not to delete
  * them when we deleted all the data at that node because we did not want
@@ -1179,24 +1156,8 @@ cleanup_dead_nodes(dns_qpdb_t *qpdb, int bucketnum DNS__DB_FLARG) {
 			continue;
 		}
 
-		if (is_leaf(node) && qpdb->loop != NULL) {
-			send_to_prune_tree(
-				qpdb, node,
-				isc_rwlocktype_write DNS__DB_FLARG_PASS);
-		} else if (node->down == NULL && node->data == NULL) {
-			/*
-			 * Not a interior node and not needing to be
-			 * reactivated.
-			 */
-			delete_node(qpdb, node);
-		} else if (node->data == NULL) {
-			/*
-			 * A interior node without data. Leave linked to
-			 * to be cleaned up when node->down becomes NULL.
-			 */
-			ISC_LIST_APPEND(qpdb->deadnodes[bucketnum], node,
-					deadlink);
-		}
+		delete_node(qpdb, node);
+
 		node = ISC_LIST_HEAD(qpdb->deadnodes[bucketnum]);
 		count--;
 	}
@@ -1284,14 +1245,16 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 
 	REQUIRE(*nlocktypep != isc_rwlocktype_none);
 
+	UNUSED(pruning);
+
 	nodelock = &qpdb->node_locks[bucket];
 
-#define KEEP_NODE(n, r, l)                                  \
-	((n)->data != NULL || ((l) && (n)->down != NULL) || \
-	 (n) == (r)->origin_node || (n) == (r)->nsec3_origin_node)
+#define KEEP_NODE(n, r)                                  \
+	((n)->data != NULL || (n) == (r)->origin_node || \
+	 (n) == (r)->nsec3_origin_node)
 
 	/* Handle easy and typical case first. */
-	if (!node->dirty && KEEP_NODE(node, qpdb, locked)) {
+	if (!node->dirty && KEEP_NODE(node, qpdb)) {
 		refs = isc_refcount_decrement(&node->erefs);
 
 #if DNS_DB_NODETRACE
@@ -1397,7 +1360,7 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 	UNUSED(refs);
 #endif
 
-	if (KEEP_NODE(node, qpdb, (locked || write_locked))) {
+	if (KEEP_NODE(node, qpdb)) {
 		goto restore_locks;
 	}
 
@@ -1405,31 +1368,9 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 
 	if (write_locked) {
 		/*
-		 * If this node is the only one in the level it's in, deleting
-		 * this node may recursively make its parent the only node in
-		 * the parent level; if so, and if no one is currently using
-		 * the parent node, this is almost the only opportunity to
-		 * clean it up.  But the recursive cleanup is not that trivial
-		 * since the child and parent may be in different lock buckets,
-		 * which would cause a lock order reversal problem.  To avoid
-		 * the trouble, we'll dispatch a separate event for batch
-		 * cleaning.  We need to check whether we're deleting the node
-		 * as a result of pruning to avoid infinite dispatching.
-		 * Note: pruning happens only when a loop has been set for the
-		 * qpdb.  If the user of the qpdb chooses not to set a loop,
-		 * it's their responsibility to purge stale leaves (e.g. by
-		 * periodic walk-through).
+		 * We can now delete the node.
 		 */
-
-		if (!pruning && is_leaf(node) && qpdb->loop != NULL) {
-			send_to_prune_tree(qpdb, node,
-					   *nlocktypep DNS__DB_FLARG_PASS);
-			no_reference = false;
-		} else {
-			/*  We can now delete the node. */
-
-			delete_node(qpdb, node);
-		}
+		delete_node(qpdb, node);
 	} else {
 		INSIST(node->data == NULL);
 		if (!ISC_LINK_LINKED(node, deadlink)) {
@@ -1448,46 +1389,6 @@ restore_locks:
 
 	dns_qpdata_unref(node);
 	return (no_reference);
-}
-
-/*
- * Prune the tree by cleaning up single leaves.  A single execution of this
- * function cleans up a single node; if the parent of the latter becomes a
- * single leaf on its own level as a result, the parent is then also sent to
- * this function.
- */
-static void
-prune_tree(void *arg) {
-	qpdb_prune_t *prune = (qpdb_prune_t *)arg;
-	dns_qpdb_t *qpdb = (dns_qpdb_t *)prune->db;
-	dns_qpdata_t *node = prune->node;
-	dns_qpdata_t *parent = NULL;
-	unsigned int locknum = node->locknum;
-	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
-	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
-
-	isc_mem_put(qpdb->common.mctx, prune, sizeof(*prune));
-
-	TREE_WRLOCK(&qpdb->tree_lock, &tlocktype);
-
-	parent = node->parent;
-
-	NODE_WRLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
-	dns__qpdb_decref(qpdb, node, 0, &nlocktype, &tlocktype, true,
-			 true DNS__DB_FILELINE);
-	NODE_UNLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
-
-	if (parent != NULL && is_leaf(parent)) {
-		NODE_WRLOCK(&qpdb->node_locks[parent->locknum].lock,
-			    &nlocktype);
-		send_to_prune_tree(qpdb, parent, nlocktype);
-		NODE_UNLOCK(&qpdb->node_locks[parent->locknum].lock,
-			    &nlocktype);
-	}
-
-	TREE_UNLOCK(&qpdb->tree_lock, &tlocktype);
-
-	dns_db_detach((dns_db_t **)&qpdb);
 }
 
 static void

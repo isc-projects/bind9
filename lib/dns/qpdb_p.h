@@ -86,18 +86,9 @@ struct dns_qpdata {
 	/*@}*/
 
 	/*%
-	 * These are needed for hashing. The 'uppernode' points to the
-	 * node's superdomain node in the parent subtree, so that it can
-	 * be reached from a child that was found by a hash lookup.
+	 * This is needed for hashing.
 	 */
 	unsigned int hashval;
-	dns_qpdata_t *uppernode;
-	dns_qpdata_t *hashnext;
-
-	dns_qpdata_t *parent;
-	dns_qpdata_t *left;
-	dns_qpdata_t *right;
-	dns_qpdata_t *down;
 
 	dns_fixedname_t fn;
 	dns_name_t *name;
