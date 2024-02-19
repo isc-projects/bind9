@@ -51,10 +51,6 @@ variables:
   # cross-testrun files as there is no need to use that feature in CI.
   PYTEST_ADDOPTS: "-p no:cacheprovider"
 
-  # Default platforms to run "stress" tests on
-  BIND_STRESS_TEST_OS: linux
-  BIND_STRESS_TEST_ARCH: amd64
-
   HYPOTHESIS_PROFILE: "ci"
 
 default:
@@ -1706,278 +1702,28 @@ shotgun:doh-get:
 
 .stress-test: &stress_test
   stage: performance
+
+generate-stress-test-configs:
+  <<: *base_image
+  <<: *default_triggering_rules
+  stage: precheck
   script:
-    - *configure
-    - *setup_interfaces
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
-    - make DESTDIR="${INSTALL_PATH}" install
-    - git clone --depth 1 https://gitlab.isc.org/isc-projects/bind9-qa.git
-    - cd bind9-qa/stress
-    - LD_LIBRARY_PATH="${INSTALL_PATH}/usr/local/lib" BIND_INSTALL_PATH="${INSTALL_PATH}/usr/local" WORKSPACE="${CI_PROJECT_DIR}" bash stress.sh
+    - util/generate-stress-test-configs.py > stress-test-configs.yml
+  artifacts:
+    paths:
+      - stress-test-configs.yml
+  needs: []
+
+stress-test-child-pipeline:
+  <<: *default_triggering_rules
+  stage: performance
+  trigger:
+    include:
+      - artifact: stress-test-configs.yml
+        job: generate-stress-test-configs
   needs:
-    - job: autoreconf
+    - job: generate-stress-test-configs
       artifacts: true
-
-.stress-test-long: &stress_test_long_job
-  <<: *stress_test
-  artifacts:
-    untracked: true
-    exclude:
-      - "output/ns4/*.dtq*"
-      - "output/ns4/large-delta-rpz*.local"
-      - "output/rpz_*"
-    expire_in: "1 week"
-    when: always
-  timeout: 2h
-
-.stress-test-short: &stress_test_short_job
-  <<: *stress_test
-  only:
-    - merge_requests
-  artifacts:
-    untracked: true
-    exclude:
-      - "output/ns4/*.dtq*"
-      - "output/ns4/large-delta-rpz*.local"
-      - "output/rpz_*"
-    when: always
-
-stress:short:authoritative:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:recursive:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:rpz:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 15
-
-stress:short:authoritative:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:recursive:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:rpz:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_short_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 15
-
-stress:short:authoritative:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:recursive:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 15
-
-stress:short:rpz:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_short_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 15
-
-stress:authoritative:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:recursive:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:rpz:fedora:41:amd64:
-  <<: *fedora_41_amd64_image
-  <<: *linux_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:authoritative:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
-
-stress:recursive:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
-
-stress:rpz:fedora:41:arm64:
-  <<: *fedora_41_arm64_image
-  <<: *linux_arm64
-  <<: *stress_test_long_job
-  variables:
-    CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /linux/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /arm64/i)
-
-stress:authoritative:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: authoritative
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /authoritative/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:recursive:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: recursive
-    RATE: 10000
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /recursive/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
-
-stress:rpz:freebsd13:amd64:
-  <<: *freebsd_stress_amd64
-  <<: *stress_test_long_job
-  variables:
-    CC: clang
-    CFLAGS: "${CFLAGS_COMMON} -Og"
-    FLAME: /usr/local/bin/flame
-    MODE: rpz
-    RATE: 1500
-    RUN_TIME: 60
-  only:
-    variables:
-      - $CI_COMMIT_TAG || ($BIND_STRESS_TEST_OS =~ /freebsd/i && $BIND_STRESS_TEST_MODE =~ /rpz/i && $BIND_STRESS_TEST_ARCH =~ /amd64/i)
 
 # git fsck operates over the whole repository and is sufficient to schedule it
 # only in one branch, preferably "main". GitLab's clone strategy prevents us
