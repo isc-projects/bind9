@@ -337,6 +337,10 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 	} else {
 		isc_heap_decreased(header->heap, header->heap_index);
 	}
+
+	if (newttl == 0) {
+		isc_heap_delete(header->heap, header->heap_index);
+	}
 }
 
 static bool
@@ -4851,7 +4855,6 @@ dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
 	if (header->heap != NULL && header->heap_index != 0) {
 		isc_heap_delete(header->heap, header->heap_index);
 	}
-	header->heap_index = 0;
 
 	if (IS_CACHE(rbtdb)) {
 		update_rrsetstats(rbtdb->rrsetstats, header->type,
