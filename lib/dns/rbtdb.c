@@ -972,6 +972,10 @@ set_ttl(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, dns_ttl_t newttl) {
 	} else {
 		isc_heap_decreased(heap, header->heap_index);
 	}
+
+	if (newttl == 0) {
+		isc_heap_delete(heap, header->heap_index);
+	}
 }
 
 /*%
