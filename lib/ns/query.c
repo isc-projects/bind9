@@ -6217,7 +6217,6 @@ fetch_callback(void *arg) {
 	ns_client_t *client = resp->arg;
 	dns_fetch_t *fetch = NULL;
 	bool fetch_canceled = false;
-	bool fetch_answered = false;
 	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	isc_result_t result;
 	int errorloglevel;
@@ -6288,7 +6287,7 @@ fetch_callback(void *arg) {
 	 */
 	qctx_init(client, &resp, 0, &qctx);
 
-	if (fetch_canceled || fetch_answered) {
+	if (fetch_canceled) {
 		/*
 		 * We've timed out or are shutting down. We can now
 		 * free the event and other resources held by qctx, but
@@ -6298,14 +6297,10 @@ fetch_callback(void *arg) {
 		qctx_freedata(&qctx);
 
 		/*
-		 * Return an error to the client, or just drop.
+		 * Return an error to the client.
 		 */
-		if (fetch_canceled) {
-			CTRACE(ISC_LOG_ERROR, "fetch cancelled");
-			query_error(client, DNS_R_SERVFAIL, __LINE__);
-		} else {
-			query_next(client, ISC_R_CANCELED);
-		}
+		CTRACE(ISC_LOG_ERROR, "fetch cancelled");
+		query_error(client, DNS_R_SERVFAIL, __LINE__);
 
 		/*
 		 * Free any persistent plugin data that was allocated to
