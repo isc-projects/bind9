@@ -1820,8 +1820,9 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
  */
 static void
 new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-	      isc_rwlocktype_t locktype) {
-	if (locktype == isc_rwlocktype_write && ISC_LINK_LINKED(node, deadlink))
+	      isc_rwlocktype_t nlocktype) {
+	if (nlocktype == isc_rwlocktype_write &&
+	    ISC_LINK_LINKED(node, deadlink))
 	{
 		ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum], node,
 				deadlink);
@@ -1844,13 +1845,13 @@ is_leaf(dns_rbtnode_t *node) {
 
 static void
 send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		   isc_rwlocktype_t locktype) {
+		   isc_rwlocktype_t nlocktype) {
 	isc_event_t *ev;
 	dns_db_t *db;
 
 	ev = isc_event_allocate(rbtdb->common.mctx, NULL, DNS_EVENT_RBTPRUNE,
 				prune_tree, node, sizeof(isc_event_t));
-	new_reference(rbtdb, node, locktype);
+	new_reference(rbtdb, node, nlocktype);
 	db = NULL;
 	attach((dns_db_t *)rbtdb, &db);
 	ev->ev_sender = db;
@@ -2071,10 +2072,6 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	if (write_locked) {
 		/*
-		 * We can now delete the node.
-		 */
-
-		/*
 		 * If this node is the only one in the level it's in, deleting
 		 * this node may recursively make its parent the only node in
 		 * the parent level; if so, and if no one is currently using
@@ -2094,6 +2091,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			send_to_prune_tree(rbtdb, node, isc_rwlocktype_write);
 			no_reference = false;
 		} else {
+			/*  We can now delete the node. */
 			delete_node(rbtdb, node);
 		}
 	} else {
@@ -2129,62 +2127,39 @@ restore_locks:
 }
 
 /*
- * Prune the tree by recursively cleaning-up single leaves.  In the worst
- * case, the number of iteration is the number of tree levels, which is at
- * most the maximum number of domain name labels, i.e, 127.  In practice, this
- * should be much smaller (only a few times), and even the worst case would be
- * acceptable for a single event.
+ * Prune the tree by cleaning up single leaves.  A single execution of this
+ * function cleans up a single node; if the parent of the latter becomes a
+ * single leaf on its own level as a result, the parent is then also sent to
+ * this function.
  */
 static void
 prune_tree(isc_task_t *task, isc_event_t *event) {
 	dns_rbtdb_t *rbtdb = event->ev_sender;
 	dns_rbtnode_t *node = event->ev_arg;
-	dns_rbtnode_t *parent;
-	unsigned int locknum;
+	dns_rbtnode_t *parent = NULL;
+	unsigned int locknum = node->locknum;
 
 	UNUSED(task);
 
 	isc_event_free(&event);
 
 	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
-	locknum = node->locknum;
+
+	parent = node->parent;
+
 	NODE_LOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
-	do {
-		parent = node->parent;
-		decrement_reference(rbtdb, node, 0, isc_rwlocktype_write,
-				    isc_rwlocktype_write, true);
-
-		if (parent != NULL && parent->down == NULL) {
-			/*
-			 * node was the only down child of the parent and has
-			 * just been removed.  We'll then need to examine the
-			 * parent.  Keep the lock if possible; otherwise,
-			 * release the old lock and acquire one for the parent.
-			 */
-			if (parent->locknum != locknum) {
-				NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
-					    isc_rwlocktype_write);
-				locknum = parent->locknum;
-				NODE_LOCK(&rbtdb->node_locks[locknum].lock,
-					  isc_rwlocktype_write);
-			}
-
-			/*
-			 * We need to gain a reference to the node before
-			 * decrementing it in the next iteration.
-			 */
-			if (ISC_LINK_LINKED(parent, deadlink)) {
-				ISC_LIST_UNLINK(rbtdb->deadnodes[locknum],
-						parent, deadlink);
-			}
-			new_reference(rbtdb, parent, isc_rwlocktype_write);
-		} else {
-			parent = NULL;
-		}
-
-		node = parent;
-	} while (node != NULL);
+	decrement_reference(rbtdb, node, 0, isc_rwlocktype_write,
+			    isc_rwlocktype_write, true);
 	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
+
+	if (parent != NULL && is_leaf(parent)) {
+		NODE_LOCK(&rbtdb->node_locks[parent->locknum].lock,
+			  isc_rwlocktype_write);
+		send_to_prune_tree(rbtdb, parent, isc_rwlocktype_write);
+		NODE_UNLOCK(&rbtdb->node_locks[parent->locknum].lock,
+			    isc_rwlocktype_write);
+	}
+
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
 	detach((dns_db_t **)&rbtdb);
