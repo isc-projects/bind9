@@ -467,7 +467,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	unsigned int i;
 	isc_result_t result;
 	char buf[DNS_NAME_FORMATSIZE];
-	dns_rbtnode_t *node = NULL;
 	dns_rbt_t **treep = NULL;
 	isc_time_t start;
 
@@ -490,17 +489,13 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log) {
 	 * the overhead of unlinking all nodes here should be negligible.
 	 */
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
+		dns_rbtnode_t *node = NULL;
+
 		node = ISC_LIST_HEAD(rbtdb->deadnodes[i]);
 		while (node != NULL) {
 			ISC_LIST_UNLINK(rbtdb->deadnodes[i], node, deadlink);
 			node = ISC_LIST_HEAD(rbtdb->deadnodes[i]);
 		}
-	}
-
-	node = ISC_LIST_HEAD(rbtdb->prunenodes);
-	while (node != NULL) {
-		ISC_LIST_UNLINK(rbtdb->prunenodes, node, prunelink);
-		node = ISC_LIST_HEAD(rbtdb->prunenodes);
 	}
 
 	rbtdb->quantum = (rbtdb->loop != NULL) ? 100 : 0;
@@ -1181,26 +1176,16 @@ is_leaf(dns_rbtnode_t *node) {
 		node->left == NULL && node->right == NULL);
 }
 
-/*%
- * The tree lock must be held when this function is called as it reads and
- * updates rbtdb->prunenodes.
- */
 static void
 send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		   isc_rwlocktype_t locktype DNS__DB_FLARG) {
-	bool pruning_queued = (ISC_LIST_HEAD(rbtdb->prunenodes) != NULL);
+	prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
+	*prune = (prune_t){ .node = node };
 
-	INSIST(locktype == isc_rwlocktype_write);
-
+	dns_db_attach((dns_db_t *)rbtdb, &prune->db);
 	dns__rbtdb_newref(rbtdb, node, locktype DNS__DB_FLARG_PASS);
-	INSIST(!ISC_LINK_LINKED(node, prunelink));
-	ISC_LIST_APPEND(rbtdb->prunenodes, node, prunelink);
 
-	if (!pruning_queued) {
-		dns_db_t *db = NULL;
-		dns_db_attach((dns_db_t *)rbtdb, &db);
-		isc_async_run(rbtdb->loop, prune_tree, db);
-	}
+	isc_async_run(rbtdb->loop, prune_tree, prune);
 }
 
 /*%
@@ -1498,83 +1483,64 @@ restore_locks:
 }
 
 /*
- * Prune the tree by recursively cleaning up single leaves.  Go through all
- * nodes stored in the rbtdb->prunenodes list; for each of them, in the worst
- * case, it will be necessary to traverse a number of tree levels equal to the
- * maximum legal number of domain name labels (127); in practice, the number of
- * tree levels to traverse will virtually always be much smaller (a few levels
- * at most).  While holding the tree lock throughout this entire operation is
- * less than ideal, so is splitting the latter up by queueing a separate
- * prune_tree() run for each node to start pruning from (as queueing requires
- * allocating memory and can therefore potentially be exploited to exhaust
- * available memory).  Also note that actually freeing up the memory used by
- * RBTDB nodes (which is what this function does) is essential to keeping cache
- * memory use in check, so since the tree lock needs to be acquired anyway,
- * freeing as many nodes as possible before the tree lock gets released is
- * prudent.
+ * Prune the tree by recursively cleaning-up single leaves.  In the worst
+ * case, the number of iteration is the number of tree levels, which is at
+ * most the maximum number of domain name labels, i.e, 127.  In practice, this
+ * should be much smaller (only a few times), and even the worst case would be
+ * acceptable for a single event.
  */
 static void
 prune_tree(void *arg) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)arg;
-	dns_rbtnode_t *node = NULL;
+	prune_t *prune = (prune_t *)arg;
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)prune->db;
+	dns_rbtnode_t *node = prune->node;
 	dns_rbtnode_t *parent = NULL;
 	unsigned int locknum;
 	isc_rwlocktype_t tlocktype = isc_rwlocktype_none;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
+	isc_mem_put(rbtdb->common.mctx, prune, sizeof(*prune));
+
 	TREE_WRLOCK(&rbtdb->tree_lock, &tlocktype);
+	locknum = node->locknum;
+	NODE_WRLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
+	do {
+		parent = node->parent;
+		dns__rbtdb_decref(rbtdb, node, 0, &nlocktype, &tlocktype, true,
+				  true DNS__DB_FILELINE);
 
-	while ((node = ISC_LIST_HEAD(rbtdb->prunenodes)) != NULL) {
-		locknum = node->locknum;
-		NODE_WRLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
-		do {
-			if (ISC_LINK_LINKED(node, prunelink)) {
-				ISC_LIST_UNLINK(rbtdb->prunenodes, node,
-						prunelink);
+		if (parent != NULL && parent->down == NULL) {
+			/*
+			 * node was the only down child of the parent and has
+			 * just been removed.  We'll then need to examine the
+			 * parent.  Keep the lock if possible; otherwise,
+			 * release the old lock and acquire one for the parent.
+			 */
+			if (parent->locknum != locknum) {
+				NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
+					    &nlocktype);
+				locknum = parent->locknum;
+				NODE_WRLOCK(&rbtdb->node_locks[locknum].lock,
+					    &nlocktype);
 			}
 
-			parent = node->parent;
-			dns__rbtdb_decref(rbtdb, node, 0, &nlocktype,
-					  &tlocktype, true,
-					  true DNS__DB_FILELINE);
-
-			if (parent != NULL && parent->down == NULL) {
-				/*
-				 * node was the only down child of the parent
-				 * and has just been removed.  We'll then need
-				 * to examine the parent.  Keep the lock if
-				 * possible; otherwise, release the old lock and
-				 * acquire one for the parent.
-				 */
-				if (parent->locknum != locknum) {
-					NODE_UNLOCK(
-						&rbtdb->node_locks[locknum].lock,
-						&nlocktype);
-					locknum = parent->locknum;
-					NODE_WRLOCK(
-						&rbtdb->node_locks[locknum].lock,
-						&nlocktype);
-				}
-
-				/*
-				 * We need to gain a reference to the node
-				 * before decrementing it in the next iteration.
-				 */
-				if (ISC_LINK_LINKED(parent, deadlink)) {
-					ISC_LIST_UNLINK(
-						rbtdb->deadnodes[locknum],
+			/*
+			 * We need to gain a reference to the node before
+			 * decrementing it in the next iteration.
+			 */
+			if (ISC_LINK_LINKED(parent, deadlink)) {
+				ISC_LIST_UNLINK(rbtdb->deadnodes[locknum],
 						parent, deadlink);
-				}
-				dns__rbtdb_newref(rbtdb, parent,
-						  nlocktype DNS__DB_FILELINE);
-			} else {
-				parent = NULL;
 			}
+			dns__rbtdb_newref(rbtdb, parent,
+					  nlocktype DNS__DB_FILELINE);
+		} else {
+			parent = NULL;
+		}
 
-			node = parent;
-		} while (node != NULL);
-		NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
-	}
+		node = parent;
+	} while (node != NULL);
+	NODE_UNLOCK(&rbtdb->node_locks[locknum].lock, &nlocktype);
 	TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 
 	dns_db_detach((dns_db_t **)&rbtdb);
@@ -3950,8 +3916,6 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	for (i = 0; i < (int)rbtdb->node_lock_count; i++) {
 		ISC_LIST_INIT(rbtdb->deadnodes[i]);
 	}
-
-	ISC_LIST_INIT(rbtdb->prunenodes);
 
 	rbtdb->active = rbtdb->node_lock_count;
 
