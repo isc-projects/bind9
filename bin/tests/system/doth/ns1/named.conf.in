@@ -108,6 +108,12 @@ zone "." {
 	allow-transfer port @TLSPORT@ transport tls { any; };
 };
 
+zone "test.example.com" {
+	type primary;
+	file "example.db";
+	allow-transfer transport tls { any; };
+};
+
 zone "example" {
 	type primary;
 	file "example.db";

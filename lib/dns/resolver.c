@@ -2107,7 +2107,26 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	resquery_ref(query);
 	result = dns_dispatch_connect(query->dispentry);
 
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != ISC_R_SUCCESS && (query->options & DNS_FETCHOPT_TCP) != 0)
+	{
+		int log_level = ISC_LOG_NOTICE;
+		if (isc_log_wouldlog(dns_lctx, log_level)) {
+			char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+
+			isc_sockaddr_format(&sockaddr, peerbuf,
+					    ISC_SOCKADDR_FORMATSIZE);
+
+			isc_log_write(
+				dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				DNS_LOGMODULE_RESOLVER, log_level,
+				"Unable to establish a connection to %s: %s\n",
+				peerbuf, isc_result_totext(result));
+		}
+		dns_dispatch_done(&query->dispentry);
+		goto cleanup_fetch;
+	} else {
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
 
 	return (result);
 
@@ -2119,6 +2138,7 @@ cleanup_udpfetch:
 		}
 	}
 
+cleanup_fetch:
 	LOCK(&fctx->lock);
 	if (ISC_LINK_LINKED(query, link)) {
 		atomic_fetch_sub_release(&fctx->nqueries, 1);

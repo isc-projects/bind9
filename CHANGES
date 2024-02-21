@@ -1,3 +1,9 @@
+6348.	[bug]		BIND could previously abort when trying to
+			establish a connection to a remote server using an
+			incorrect 'tls' configuration. That has been
+			fixed. Thanks to Tobias Wolter for bringing
+			the issue to our attention. [GL #4572]
+
 6347.	[func]		Disallow stale-answer-client-timeout non-zero values.
 			[GL #4447]
 
