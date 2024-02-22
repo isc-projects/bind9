@@ -10618,19 +10618,19 @@ update_header(dns_rbtdb_t *rbtdb, rdatasetheader_t *header, isc_stdtime_t now) {
 static size_t
 expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum, size_t purgesize,
 		   bool tree_locked) {
-	rdatasetheader_t *header, *header_prev;
+	rdatasetheader_t *header;
 	size_t purged = 0;
 
 	for (header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]);
-	     header != NULL && purged <= purgesize; header = header_prev)
+	     header != NULL && purged <= purgesize;
+	     header = ISC_LIST_TAIL(rbtdb->rdatasets[locknum]))
 	{
-		header_prev = ISC_LIST_PREV(header, link);
 		/*
 		 * Unlink the entry at this point to avoid checking it
 		 * again even if it's currently used someone else and
 		 * cannot be purged at this moment.  This entry won't be
 		 * referenced any more (so unlinking is safe) since the
-		 * TTL was reset to 0.
+		 * TTL will be reset to 0.
 		 */
 		ISC_LIST_UNLINK(rbtdb->rdatasets[locknum], header, link);
 		size_t header_size = rdataset_size(header);
