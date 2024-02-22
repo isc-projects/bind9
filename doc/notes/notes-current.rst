@@ -23,6 +23,9 @@ New Features
 - A new option :any:`signatures-jitter` is added to :any:`dnssec-policy` to
   spread out signature expiration times over a period of time. :gl:`#4554`
 
+- A new DNSSEC tool :iscman:`dnssec-ksr` is added to create Key Signing Request
+  (KSR) and Signed Key Response (SKR) files. :gl:`#1128`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
