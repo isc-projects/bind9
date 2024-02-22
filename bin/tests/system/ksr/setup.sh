@@ -19,6 +19,7 @@ set -e
 $SHELL clean.sh
 
 mkdir keydir
+mkdir offline
 
 copy_setports named.conf.in named.conf
 
@@ -30,6 +31,8 @@ create_ksk () {
 	do
 		num=$(($num+1))
 		cat "${ksk}.key" | grep -v ";.*" > "$1.ksk$num"
+		cp "${ksk}.key" offline/
+		cp "${ksk}.private" offline/
 	done
 }
 create_ksk common.test common

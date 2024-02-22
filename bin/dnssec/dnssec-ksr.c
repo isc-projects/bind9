@@ -520,6 +520,8 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t rdataset = DNS_RDATASET_INIT;
+	isc_bufferlist_t cleanup = ISC_LIST_INITIALIZER;
+	isc_buffer_t *cbuf = NULL;
 	isc_result_t ret = ISC_R_SUCCESS;
 	isc_stdtime_t next_bundle = next_inception;
 
@@ -583,6 +585,8 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_dnskey, &r);
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+		ISC_LIST_APPEND(cleanup, newbuf, link);
+		isc_buffer_clear(newbuf);
 	}
 	/* Error if no key pair found. */
 	if (ISC_LIST_EMPTY(rdatalist->rdata)) {
@@ -595,6 +599,17 @@ print_dnskeys(dns_kasp_key_t *kaspkey, dns_ttl_t ttl, dns_dnsseckeylist_t *keys,
 	print_rdata(&rdataset);
 
 fail:
+	/* Cleanup */
+	freerrset(&rdataset);
+
+	cbuf = ISC_LIST_HEAD(cleanup);
+	while (cbuf != NULL) {
+		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
+		ISC_LIST_UNLINK(cleanup, cbuf, link);
+		isc_buffer_free(&cbuf);
+		cbuf = nbuf;
+	}
+
 	if (ret != ISC_R_SUCCESS) {
 		fatal("failed to print %s/%s %s key pair found for bundle %s",
 		      namestr, algstr, rolestr, timestr);
@@ -610,6 +625,8 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	char utc[sizeof("YYYYMMDDHHSSMM")];
 	dns_rdatalist_t *rrsiglist = NULL;
 	dns_rdataset_t rrsigset = DNS_RDATASET_INIT;
+	isc_bufferlist_t cleanup = ISC_LIST_INITIALIZER;
+	isc_buffer_t *cbuf = NULL;
 	isc_buffer_t timebuf;
 	isc_buffer_t b;
 	isc_region_t r;
@@ -644,19 +661,17 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	{
 		isc_buffer_t buf;
 		isc_buffer_t *newbuf = NULL;
-		dns_rdata_t *rdata = NULL;
+		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_t *rrsig = NULL;
 		isc_region_t rs;
 		unsigned char rdatabuf[SIG_FORMATSIZE];
 		isc_stdtime_t clockskew = inception - 3600;
 
-		rdata = isc_mem_get(mctx, sizeof(*rdata));
 		rrsig = isc_mem_get(mctx, sizeof(*rrsig));
-		dns_rdata_init(rdata);
 		dns_rdata_init(rrsig);
 		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
 		ret = dns_dnssec_sign(name, rrset, dk->key, &clockskew,
-				      &expiration, mctx, &buf, rdata);
+				      &expiration, mctx, &buf, &rdata);
 		if (ret != ISC_R_SUCCESS) {
 			fatal("failed to sign KSR");
 		}
@@ -667,11 +682,20 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 		dns_rdata_fromregion(rrsig, dns_rdataclass_in,
 				     dns_rdatatype_rrsig, &rs);
 		ISC_LIST_APPEND(rrsiglist->rdata, rrsig, link);
+		ISC_LIST_APPEND(cleanup, newbuf, link);
 		isc_buffer_clear(newbuf);
 	}
 	dns_rdatalist_tordataset(rrsiglist, &rrsigset);
 	print_rdata(&rrsigset);
 	freerrset(&rrsigset);
+
+	cbuf = ISC_LIST_HEAD(cleanup);
+	while (cbuf != NULL) {
+		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
+		ISC_LIST_UNLINK(cleanup, cbuf, link);
+		isc_buffer_free(&cbuf);
+		cbuf = nbuf;
+	}
 }
 
 static void
@@ -871,6 +895,8 @@ sign(ksr_ctx_t *ksr) {
 	dns_dnsseckeylist_t keys;
 	dns_kasp_t *kasp = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
+	isc_bufferlist_t cleanup_list = ISC_LIST_INITIALIZER;
+	isc_buffer_t *cbuf = NULL;
 	isc_result_t ret;
 	isc_stdtime_t inception;
 	isc_lex_t *lex = NULL;
@@ -985,6 +1011,8 @@ sign(ksr_ctx_t *ksr) {
 			isc_region_t r;
 			u_char rdatabuf[DST_KEY_MAXSIZE];
 
+			INSIST(rdatalist != NULL);
+
 			rdata = isc_mem_get(mctx, sizeof(*rdata));
 			dns_rdata_init(rdata);
 			isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
@@ -1005,6 +1033,8 @@ sign(ksr_ctx_t *ksr) {
 			}
 
 			ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+			ISC_LIST_APPEND(cleanup_list, newbuf, link);
+			isc_buffer_clear(newbuf);
 		}
 	}
 
@@ -1028,6 +1058,14 @@ sign(ksr_ctx_t *ksr) {
 
 fail:
 	/* Clean up */
+	cbuf = ISC_LIST_HEAD(cleanup_list);
+	while (cbuf != NULL) {
+		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
+		ISC_LIST_UNLINK(cleanup_list, cbuf, link);
+		isc_buffer_free(&cbuf);
+		cbuf = nbuf;
+	}
+
 	isc_lex_destroy(&lex);
 	cleanup(&keys, kasp);
 }
