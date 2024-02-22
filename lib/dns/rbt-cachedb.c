@@ -1643,23 +1643,22 @@ static size_t
 expire_lru_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
 		   isc_rwlocktype_t *tlocktypep,
 		   size_t purgesize DNS__DB_FLARG) {
-	dns_slabheader_t *header = NULL, *header_prev = NULL;
+	dns_slabheader_t *header = NULL;
 	size_t purged = 0;
 
 	for (header = ISC_LIST_TAIL(rbtdb->lru[locknum]);
 	     header != NULL && header->last_used <= rbtdb->last_used &&
 	     purged <= purgesize;
-	     header = header_prev)
+	     header = ISC_LIST_TAIL(rbtdb->lru[locknum]))
 	{
 		size_t header_size = rdataset_size(header);
-		header_prev = ISC_LIST_PREV(header, link);
 
 		/*
 		 * Unlink the entry at this point to avoid checking it
 		 * again even if it's currently used someone else and
 		 * cannot be purged at this moment.  This entry won't be
 		 * referenced any more (so unlinking is safe) since the
-		 * TTL was reset to 0.
+		 * TTL will be reset to 0.
 		 */
 		ISC_LIST_UNLINK(rbtdb->lru[locknum], header, link);
 		dns__cacherbt_expireheader(header, tlocktypep,
