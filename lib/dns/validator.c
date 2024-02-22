@@ -1207,6 +1207,12 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
  * val->key at it.
  *
  * If val->key is non-NULL, this returns the next matching key.
+ * If val->key is already non-NULL, start searching from the next position in
+ * 'rdataset' to find the *next* key that could have signed 'siginfo', then
+ * set val->key to that.
+ *
+ * Returns ISC_R_SUCCESS if a possible matching key has been found,
+ * ISC_R_NOTFOUND if not. Any other value indicates error.
  */
 static isc_result_t
 get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
@@ -1216,54 +1222,59 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	isc_buffer_t b;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dst_key_t *oldkey = val->key;
-	bool foundold;
+	bool no_rdata = false;
 
-	if (oldkey == NULL)
-		foundold = true;
-	else {
-		foundold = false;
+	if (oldkey == NULL) {
+		result = dns_rdataset_first(rdataset);
+	} else {
+		dst_key_free(&oldkey);
 		val->key = NULL;
+		result = dns_rdataset_next(rdataset);
 	}
 
-	result = dns_rdataset_first(rdataset);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	if (result != ISC_R_SUCCESS) {
+		goto done;
+	}
+
 	do {
 		dns_rdataset_current(rdataset, &rdata);
 
 		isc_buffer_init(&b, rdata.data, rdata.length);
 		isc_buffer_add(&b, rdata.length);
 		INSIST(val->key == NULL);
-		result = dst_key_fromdns(&siginfo->signer, rdata.rdclass, &b,
-					 val->view->mctx, &val->key);
+		result = dst_key_fromdns_ex(&siginfo->signer, rdata.rdclass, &b,
+					    val->view->mctx, no_rdata,
+					    &val->key);
 		if (result == ISC_R_SUCCESS) {
 			if (siginfo->algorithm ==
 				    (dns_secalg_t)dst_key_alg(val->key) &&
 			    siginfo->keyid ==
 				    (dns_keytag_t)dst_key_id(val->key) &&
+			    (dst_key_flags(val->key) & DNS_KEYFLAG_REVOKE) ==
+				    0 &&
 			    dst_key_iszonekey(val->key))
 			{
-				if (foundold) {
-					/*
-					 * This is the key we're looking for.
-					 */
-					return (ISC_R_SUCCESS);
-				} else if (dst_key_compare(oldkey, val->key)) {
-					foundold = true;
-					dst_key_free(&oldkey);
+				if (no_rdata) {
+					/* Retry with full key */
+					dns_rdata_reset(&rdata);
+					dst_key_free(&val->key);
+					no_rdata = false;
+					continue;
 				}
+				/* This is the key we're looking for. */
+				goto done;
 			}
 			dst_key_free(&val->key);
 		}
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
+		no_rdata = true;
 	} while (result == ISC_R_SUCCESS);
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_NOTFOUND;
 
- failure:
-	if (oldkey != NULL)
-		dst_key_free(&oldkey);
+done:
+	if (result == ISC_R_NOMORE) {
+		result = ISC_R_NOTFOUND;
+	}
 
 	return (result);
 }
@@ -1633,37 +1644,13 @@ validate(dns_validator_t *val, bool resume) {
 			continue;
 		}
 
-		do {
-			vresult = verify(val, val->key, &rdata,
-					val->siginfo->keyid);
-			if (vresult == ISC_R_SUCCESS)
-				break;
-			if (val->keynode != NULL) {
-				dns_keynode_t *nextnode = NULL;
-				result = dns_keytable_findnextkeynode(
-							val->keytable,
-							val->keynode,
-							&nextnode);
-				dns_keytable_detachkeynode(val->keytable,
-							   &val->keynode);
-				val->keynode = nextnode;
-				if (result != ISC_R_SUCCESS) {
-					val->key = NULL;
-					break;
-				}
-				val->key = dns_keynode_key(val->keynode);
-				if (val->key == NULL)
-					break;
-			} else {
-				if (get_dst_key(val, val->siginfo, val->keyset)
-				    != ISC_R_SUCCESS)
-					break;
-			}
-		} while (1);
-		if (vresult != ISC_R_SUCCESS)
+		vresult = verify(val, val->key, &rdata,
+				val->siginfo->keyid);
+		if (vresult != ISC_R_SUCCESS) {
+			val->failed = true;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "failed to verify rdataset");
-		else {
+		} else {
 			dns_rdataset_trimttl(event->rdataset,
 					     event->sigrdataset,
 					     val->siginfo, val->start,
@@ -1700,8 +1687,12 @@ validate(dns_validator_t *val, bool resume) {
 		} else {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "verify failure: %s",
-				      isc_result_totext(result));
+				      isc_result_totext(vresult));
 			resume = false;
+		}
+		if (val->failed) {
+			result = ISC_R_NOMORE;
+			break;
 		}
 	}
 	if (result != ISC_R_NOMORE) {

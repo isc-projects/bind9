@@ -105,6 +105,7 @@ static isc_result_t	frombuffer(dns_name_t *name,
 				   dns_rdataclass_t rdclass,
 				   isc_buffer_t *source,
 				   isc_mem_t *mctx,
+				   bool no_rdata,
 				   dst_key_t **keyp);
 
 static isc_result_t	algorithm_status(unsigned int alg);
@@ -741,6 +742,13 @@ isc_result_t
 dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 		isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {
+	return (dst_key_fromdns_ex(name, rdclass, source, mctx, false, keyp));
+}
+
+isc_result_t
+dst_key_fromdns_ex(dns_name_t *name, dns_rdataclass_t rdclass,
+		   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
+		   dst_key_t **keyp) {
 	uint8_t alg, proto;
 	uint32_t flags, extflags;
 	dst_key_t *key = NULL;
@@ -769,7 +777,7 @@ dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 	}
 
 	result = frombuffer(name, alg, flags, proto, rdclass, source,
-			    mctx, &key);
+			    mctx, no_rdata, &key);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	key->key_id = id;
@@ -791,7 +799,7 @@ dst_key_frombuffer(dns_name_t *name, unsigned int alg,
 	REQUIRE(dst_initialized);
 
 	result = frombuffer(name, alg, flags, protocol, rdclass, source,
-			    mctx, &key);
+			    mctx, false, &key);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -1892,7 +1900,8 @@ computeid(dst_key_t *key) {
 static isc_result_t
 frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
 	   unsigned int protocol, dns_rdataclass_t rdclass,
-	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
+	   isc_buffer_t *source, isc_mem_t *mctx, bool no_rdata,
+	   dst_key_t **keyp)
 {
 	dst_key_t *key;
 	isc_result_t ret;
@@ -1917,10 +1926,12 @@ frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
 			return (DST_R_UNSUPPORTEDALG);
 		}
 
-		ret = key->func->fromdns(key, source);
-		if (ret != ISC_R_SUCCESS) {
-			dst_key_free(&key);
-			return (ret);
+		if (!no_rdata) {
+			ret = key->func->fromdns(key, source);
+			if (ret != ISC_R_SUCCESS) {
+				dst_key_free(&key);
+				return (ret);
+			}
 		}
 	}
 
