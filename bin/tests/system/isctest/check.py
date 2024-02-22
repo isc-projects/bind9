@@ -32,3 +32,10 @@ def rcode(message: dns.message.Message, expected_rcode) -> None:
 
 def noerror(message: dns.message.Message) -> None:
     rcode(message, dns_rcode.NOERROR)
+
+
+def rrsets_equal(first_rrset: dns.rrset.RRset, second_rrset: dns.rrset.RRset) -> None:
+    for rr in first_rrset:
+        assert rr in second_rrset
+    for rr in second_rrset:
+        assert rr in first_rrset
