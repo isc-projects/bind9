@@ -2,6 +2,9 @@
 			records are put in the beginning of the slabheader
 			linked list. [GL !8675]
 
+6315.	[security]	Speed up parsing of DNS messages with many different
+			names. (CVE-2023-4408) [GL #4234]
+
 6245.	[security]	Limit the amount of recursion that can be performed
 			by isccc_cc_fromwire. (CVE-2023-3341) [GL #4152]
 

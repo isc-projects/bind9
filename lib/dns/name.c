@@ -215,6 +215,7 @@ dns_name_invalidate(dns_name_t *name) {
 	name->offsets = NULL;
 	name->buffer = NULL;
 	ISC_LINK_INIT(name, link);
+	INSIST(name->ht == NULL);
 }
 
 bool
