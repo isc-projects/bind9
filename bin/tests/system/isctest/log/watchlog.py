@@ -9,7 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from typing import Iterator, Optional, TextIO, Dict, Any
+from typing import Iterator, Optional, TextIO, Dict, Any, Union, Pattern
 
 import abc
 import os
@@ -100,8 +100,9 @@ class WatchLog(abc.ABC):
         Block execution until a line containing the provided `string` appears
         in the log file.  Return `None` once the line is found or raise a
         `TimeoutError` after `timeout` seconds (default: 10) if `string` does
-        not appear in the log file.  (Catching this exception is discouraged as
-        it indicates that the test code did not behave as expected.)
+        not appear in the log file (strings and regular expressions are
+        supported).  (Catching this exception is discouraged as it indicates
+        that the test code did not behave as expected.)
 
         Recommended use:
 
@@ -156,7 +157,9 @@ class WatchLog(abc.ABC):
         """
         return self._wait_for({string: None}, timeout)
 
-    def wait_for_lines(self, strings: Dict[str, Any], timeout: int = 10) -> None:
+    def wait_for_lines(
+        self, strings: Dict[Union[str, Pattern], Any], timeout: int = 10
+    ) -> None:
         """
         Block execution until a line of interest appears in the log file.  This
         function is a "multi-match" variant of `wait_for_line()` which is
@@ -165,10 +168,11 @@ class WatchLog(abc.ABC):
 
         `strings` is a `dict` associating each string to look for with the
         value this function should return when that string is found in the log
-        file.  If none of the `strings` being looked for appear in the log file
-        after `timeout` seconds, a `TimeoutError` is raised.
-        (Catching this exception is discouraged as it indicates that the test
-        code did not behave as expected.)
+        file (strings and regular expressions are supported).  If none of the
+        `strings` being looked for appear in the log file after `timeout`
+        seconds, a `TimeoutError` is raised.  (Catching this exception is
+        discouraged as it indicates that the test code did not behave as
+        expected.)
 
         Since `strings` is a `dict` and preserves key order (in CPython 3.6 as
         implementation detail, since 3.7 by language design), each line is
@@ -212,7 +216,7 @@ class WatchLog(abc.ABC):
         """
         return self._wait_for(strings, timeout)
 
-    def _wait_for(self, strings: Dict[str, Any], timeout: int) -> Any:
+    def _wait_for(self, patterns: Dict[Union[str, Pattern], Any], timeout: int) -> Any:
         """
         Block execution until one of the `strings` being looked for appears in
         the log file.  Raise a `TimeoutError` if none of the `strings` being
@@ -234,13 +238,15 @@ class WatchLog(abc.ABC):
                 else:
                     line = leftover + line
                     leftover = ""
-                    for string, retval in strings.items():
-                        if string in line:
+                    for string, retval in patterns.items():
+                        if isinstance(string, Pattern) and string.search(line):
+                            return retval
+                        if isinstance(string, str) and string in line:
                             return retval
             time.sleep(0.1)
         raise TimeoutError(
             "Timeout reached watching {} for {}".format(
-                self._path, list(strings.keys())
+                self._path, list(patterns.keys())
             )
         )
 
