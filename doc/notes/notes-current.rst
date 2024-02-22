@@ -70,6 +70,10 @@ Bug Fixes
   ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
   this issue to our attention.
 
+- A regression in cache-cleaning code enabled memory use to grow
+  significantly more quickly than before, until the configured
+  :any:`max-cache-size` limit was reached. This has been fixed.
+  :gl:`#4596`
 
 Known Issues
 ~~~~~~~~~~~~
