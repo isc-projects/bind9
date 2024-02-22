@@ -13,13 +13,16 @@
 
 /*! \file */
 
+#include <ctype.h>
 #include <stdio.h>
 
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/fips.h>
+#include <isc/lex.h>
 #include <isc/mem.h>
 
+#include <dns/callbacks.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -27,6 +30,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/time.h>
+#include <dns/ttl.h>
 
 #include "dnssectool.h"
 
@@ -50,6 +54,7 @@ static dns_name_t *name = NULL;
 struct ksr_ctx {
 	const char *policy;
 	const char *configfile;
+	const char *file;
 	const char *keydir;
 	dns_keystore_t *keystore;
 	isc_stdtime_t now;
@@ -65,6 +70,8 @@ struct ksr_ctx {
 	time_t propagation;
 	time_t publishsafety;
 	time_t retiresafety;
+	time_t sigrefresh;
+	time_t sigvalidity;
 	time_t signdelay;
 	time_t ttlsig;
 };
@@ -76,6 +83,29 @@ typedef struct ksr_ctx ksr_ctx_t;
  */
 static int min_rsa = 1024;
 static int min_dh = 128;
+
+#define KSR_LINESIZE   1500 /* should be long enough for any DNSKEY record */
+#define DATETIME_INDEX 25
+
+#define TTL_MAX INT32_MAX
+#define MAXWIRE (64 * 1024)
+
+#define STR(t) ((t).value.as_textregion.base)
+
+#define READLINE(lex, opt, token)
+
+#define NEXTTOKEN(lex, opt, token)                       \
+	{                                                \
+		ret = isc_lex_gettoken(lex, opt, token); \
+		if (ret != ISC_R_SUCCESS)                \
+			goto cleanup;                    \
+	}
+
+#define BADTOKEN()                           \
+	{                                    \
+		ret = ISC_R_UNEXPECTEDTOKEN; \
+		goto cleanup;                \
+	}
 
 #define CHECK(r)                    \
 	ret = (r);                  \
@@ -91,20 +121,23 @@ usage(int ret) {
 	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "    -e <date/offset>: end date\n");
 	fprintf(stderr, "    -E <engine>: name of an OpenSSL engine to use\n");
+	fprintf(stderr, "    -e <date/offset>: end date\n");
 	fprintf(stderr, "    -F: FIPS mode\n");
+	fprintf(stderr, "    -f: KSR file to sign\n");
 	fprintf(stderr, "    -i <date/offset>: start date\n");
-	fprintf(stderr, "    -K <directory>: write keys into directory\n");
+	fprintf(stderr, "    -K <directory>: key directory\n");
 	fprintf(stderr, "    -k <policy>: name of a DNSSEC policy\n");
 	fprintf(stderr, "    -l <file>: file with dnssec-policy config\n");
 	fprintf(stderr, "    -h: print usage and exit\n");
-	fprintf(stderr, "    -v <level>: set verbosity level\n");
 	fprintf(stderr, "    -V: print version information\n");
+	fprintf(stderr, "    -v <level>: set verbosity level\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Commands:\n");
 	fprintf(stderr, "    keygen:  pregenerate ZSKs\n");
 	fprintf(stderr, "    request: create a Key Signing Request (KSR)\n");
+	fprintf(stderr, "    sign:    sign a KSR, creating a Signed Key "
+			"Response (SKR)\n");
 	exit(ret);
 }
 
@@ -208,6 +241,8 @@ setcontext(ksr_ctx_t *ksr, dns_kasp_t *kasp) {
 	ksr->propagation = dns_kasp_zonepropagationdelay(kasp);
 	ksr->publishsafety = dns_kasp_publishsafety(kasp);
 	ksr->retiresafety = dns_kasp_retiresafety(kasp);
+	ksr->sigvalidity = dns_kasp_sigvalidity_dnskey(kasp);
+	ksr->sigrefresh = dns_kasp_sigrefresh(kasp);
 	ksr->signdelay = dns_kasp_signdelay(kasp);
 	ksr->ttl = dns_kasp_dnskeyttl(kasp);
 	ksr->ttlsig = dns_kasp_zonemaxttl(kasp, true);
@@ -245,6 +280,27 @@ progress(int p) {
 	}
 	(void)putc(c, stderr);
 	(void)fflush(stderr);
+}
+
+static void
+freerrset(dns_rdataset_t *rdataset) {
+	dns_rdatalist_t *rdlist;
+	dns_rdata_t *rdata;
+
+	if (!dns_rdataset_isassociated(rdataset)) {
+		return;
+	}
+
+	dns_rdatalist_fromrdataset(rdataset, &rdlist);
+
+	for (rdata = ISC_LIST_HEAD(rdlist->rdata); rdata != NULL;
+	     rdata = ISC_LIST_HEAD(rdlist->rdata))
+	{
+		ISC_LIST_UNLINK(rdlist->rdata, rdata, link);
+		isc_mem_put(mctx, rdata, sizeof(*rdata));
+	}
+	isc_mem_put(mctx, rdlist, sizeof(*rdlist));
+	dns_rdataset_disassociate(rdataset);
 }
 
 static void
@@ -548,6 +604,161 @@ fail:
 }
 
 static void
+sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
+	   dns_rdataset_t *rrset, dns_dnsseckeylist_t *keys) {
+	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+	char utc[sizeof("YYYYMMDDHHSSMM")];
+	dns_rdatalist_t *rrsiglist = NULL;
+	dns_rdataset_t rrsigset = DNS_RDATASET_INIT;
+	isc_buffer_t timebuf;
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t ret;
+
+	UNUSED(ksr);
+
+	/* Bundle header */
+	isc_buffer_init(&timebuf, timestr, sizeof(timestr));
+	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
+	isc_buffer_init(&b, utc, sizeof(utc));
+	ret = dns_time32_totext(inception, &b);
+	if (ret != ISC_R_SUCCESS) {
+		fatal("failed to convert bundle time32 to text: %s",
+		      isc_result_totext(ret));
+	}
+	isc_buffer_usedregion(&b, &r);
+	fprintf(stdout, ";; SignedKeyResponse 1.0 %.*s (%s)\n", (int)r.length,
+		r.base, timestr);
+
+	/* DNSKEY RRset */
+	print_rdata(rrset);
+
+	/* Signatures */
+	rrsiglist = isc_mem_get(mctx, sizeof(*rrsiglist));
+	dns_rdatalist_init(rrsiglist);
+	rrsiglist->rdclass = dns_rdataclass_in;
+	rrsiglist->type = dns_rdatatype_rrsig;
+	rrsiglist->ttl = rrset->ttl;
+	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(*keys); dk != NULL;
+	     dk = ISC_LIST_NEXT(dk, link))
+	{
+		isc_buffer_t buf;
+		isc_buffer_t *newbuf = NULL;
+		dns_rdata_t *rdata = NULL;
+		dns_rdata_t *rrsig = NULL;
+		isc_region_t rs;
+		unsigned char rdatabuf[SIG_FORMATSIZE];
+		isc_stdtime_t clockskew = inception - 3600;
+
+		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		rrsig = isc_mem_get(mctx, sizeof(*rrsig));
+		dns_rdata_init(rdata);
+		dns_rdata_init(rrsig);
+		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
+		ret = dns_dnssec_sign(name, rrset, dk->key, &clockskew,
+				      &expiration, mctx, &buf, rdata);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("failed to sign KSR");
+		}
+		isc_buffer_usedregion(&buf, &rs);
+		isc_buffer_allocate(mctx, &newbuf, rs.length);
+		isc_buffer_putmem(newbuf, rs.base, rs.length);
+		isc_buffer_usedregion(newbuf, &rs);
+		dns_rdata_fromregion(rrsig, dns_rdataclass_in,
+				     dns_rdatatype_rrsig, &rs);
+		ISC_LIST_APPEND(rrsiglist->rdata, rrsig, link);
+		isc_buffer_clear(newbuf);
+	}
+	dns_rdatalist_tordataset(rrsiglist, &rrsigset);
+	print_rdata(&rrsigset);
+	freerrset(&rrsigset);
+}
+
+static void
+sign_bundle(ksr_ctx_t *ksr, isc_stdtime_t inception,
+	    isc_stdtime_t next_inception, dns_rdatalist_t *rdatalist,
+	    dns_dnsseckeylist_t *keys) {
+	dns_rdataset_t rrset = DNS_RDATASET_INIT;
+	isc_stdtime_t expiration;
+
+	dns_rdataset_init(&rrset);
+	dns_rdatalist_tordataset(rdatalist, &rrset);
+	expiration = inception + ksr->sigvalidity;
+	while (inception <= next_inception) {
+		sign_rrset(ksr, inception, expiration, &rrset, keys);
+		inception = expiration - ksr->sigrefresh;
+		expiration = inception + ksr->sigvalidity;
+	}
+	freerrset(&rrset);
+}
+
+static isc_result_t
+parse_dnskey(isc_lex_t *lex, char *owner, isc_buffer_t *buf, dns_ttl_t *ttl) {
+	dns_fixedname_t dfname;
+	dns_name_t *dname = NULL;
+	dns_rdataclass_t rdclass = dns_rdataclass_in;
+	isc_buffer_t b;
+	isc_result_t ret;
+	isc_token_t token;
+	unsigned int opt = ISC_LEXOPT_EOL;
+
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
+	/* Read the domain name */
+	if (!strcmp(owner, "@")) {
+		BADTOKEN();
+	}
+
+	dname = dns_fixedname_initname(&dfname);
+	isc_buffer_init(&b, owner, strlen(owner));
+	isc_buffer_add(&b, strlen(owner));
+	ret = dns_name_fromtext(dname, &b, dns_rootname, 0, NULL);
+	if (ret != ISC_R_SUCCESS) {
+		return (ret);
+	}
+	if (dns_name_compare(dname, name) != 0) {
+		return (DNS_R_BADOWNERNAME);
+	}
+	isc_buffer_clear(&b);
+
+	/* Read the next word: either TTL, class, or type */
+	NEXTTOKEN(lex, opt, &token);
+	if (token.type != isc_tokentype_string) {
+		BADTOKEN();
+	}
+
+	/* If it's a TTL, read the next one */
+	ret = dns_ttl_fromtext(&token.value.as_textregion, ttl);
+	if (ret == ISC_R_SUCCESS) {
+		NEXTTOKEN(lex, opt, &token);
+	}
+	if (token.type != isc_tokentype_string) {
+		BADTOKEN();
+	}
+
+	/* If it's a class, read the next one */
+	ret = dns_rdataclass_fromtext(&rdclass, &token.value.as_textregion);
+	if (ret == ISC_R_SUCCESS) {
+		NEXTTOKEN(lex, opt, &token);
+	}
+	if (token.type != isc_tokentype_string) {
+		BADTOKEN();
+	}
+
+	/* Must be the type */
+	if (strcasecmp(STR(token), "DNSKEY") != 0) {
+		BADTOKEN();
+	}
+
+	ret = dns_rdata_fromtext(NULL, rdclass, dns_rdatatype_dnskey, lex, name,
+				 0, mctx, buf, NULL);
+
+cleanup:
+	isc_lex_setcomments(lex, 0);
+	return (ret);
+}
+
+static void
 keygen(ksr_ctx_t *ksr) {
 	dns_kasp_t *kasp = NULL;
 	dns_dnsseckeylist_t keys;
@@ -653,6 +864,174 @@ request(ksr_ctx_t *ksr) {
 	cleanup(&keys, kasp);
 }
 
+static void
+sign(ksr_ctx_t *ksr) {
+	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+	bool have_bundle = false;
+	dns_dnsseckeylist_t keys;
+	dns_kasp_t *kasp = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
+	isc_result_t ret;
+	isc_stdtime_t inception;
+	isc_lex_t *lex = NULL;
+	isc_lexspecials_t specials;
+	isc_token_t token;
+	unsigned int opt = ISC_LEXOPT_EOL;
+
+	/* Check parameters */
+	checkparams(ksr, "sign");
+	if (ksr->file == NULL) {
+		fatal("'sign' requires a KSR file");
+	}
+	/* Get the policy */
+	getkasp(ksr, &kasp);
+	/* Get keys */
+	get_dnskeys(ksr, &keys);
+	/* Set context */
+	setcontext(ksr, kasp);
+	/* Sign request */
+	inception = ksr->start;
+	isc_lex_create(mctx, KSR_LINESIZE, &lex);
+	memset(specials, 0, sizeof(specials));
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	ret = isc_lex_openfile(lex, ksr->file);
+	if (ret != ISC_R_SUCCESS) {
+		fatal("unable to open KSR file %s: %s", ksr->file,
+		      isc_result_totext(ret));
+	}
+
+	for (ret = isc_lex_gettoken(lex, opt, &token); ret == ISC_R_SUCCESS;
+	     ret = isc_lex_gettoken(lex, opt, &token))
+	{
+		if (token.type != isc_tokentype_string) {
+			fatal("bad KSR file %s(%lu): syntax error", ksr->file,
+			      isc_lex_getsourceline(lex));
+		}
+
+		if (strcmp(STR(token), ";;") == 0) {
+			char bundle[KSR_LINESIZE];
+			isc_stdtime_t next_inception;
+
+			CHECK(isc_lex_gettoken(lex, opt, &token));
+			if (token.type != isc_tokentype_string ||
+			    strcmp(STR(token), "KeySigningRequest") != 0)
+			{
+				fatal("bad KSR file %s(%lu): expected "
+				      "'KeySigningRequest'",
+				      ksr->file, isc_lex_getsourceline(lex));
+			}
+
+			CHECK(isc_lex_gettoken(lex, opt, &token));
+			if (token.type != isc_tokentype_string) {
+				fatal("bad KSR file %s(%lu): expected string",
+				      ksr->file, isc_lex_getsourceline(lex));
+			}
+
+			if (strcmp(STR(token), "generated") == 0) {
+				/* Final bundle */
+				goto readline;
+			} else if (strcmp(STR(token), "1.0") != 0) {
+				fatal("bad KSR file %s(%lu): expected version",
+				      ksr->file, isc_lex_getsourceline(lex));
+			}
+			/* Date and time of bundle */
+			CHECK(isc_lex_gettoken(lex, opt, &token));
+			if (token.type != isc_tokentype_string) {
+				fatal("bad KSR file %s(%lu): expected datetime",
+				      ksr->file, isc_lex_getsourceline(lex));
+			}
+
+			sscanf(STR(token), "%s", bundle);
+			next_inception = strtotime(bundle, ksr->now, ksr->now,
+						   NULL);
+
+			if (have_bundle) {
+				/* Sign previous bundle */
+				sign_bundle(ksr, inception, next_inception,
+					    rdatalist, &keys);
+				fprintf(stdout, "\n");
+			}
+
+			/* Start next bundle */
+			rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
+			dns_rdatalist_init(rdatalist);
+			rdatalist->rdclass = dns_rdataclass_in;
+			rdatalist->type = dns_rdatatype_dnskey;
+			rdatalist->ttl = TTL_MAX;
+			inception = next_inception;
+			have_bundle = true;
+
+		readline:
+			/* Read remainder of header line */
+			do {
+				ret = isc_lex_gettoken(lex, opt, &token);
+				if (ret != ISC_R_SUCCESS) {
+					fatal("bad KSR file %s(%lu): bad "
+					      "header (%s)",
+					      ksr->file,
+					      isc_lex_getsourceline(lex),
+					      isc_result_totext(ret));
+				}
+			} while (token.type != isc_tokentype_eol);
+		} else {
+			/* Parse DNSKEY */
+			dns_ttl_t ttl = TTL_MAX;
+			isc_buffer_t buf;
+			isc_buffer_t *newbuf = NULL;
+			dns_rdata_t *rdata = NULL;
+			isc_region_t r;
+			u_char rdatabuf[DST_KEY_MAXSIZE];
+
+			rdata = isc_mem_get(mctx, sizeof(*rdata));
+			dns_rdata_init(rdata);
+			isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
+			ret = parse_dnskey(lex, STR(token), &buf, &ttl);
+			if (ret != ISC_R_SUCCESS) {
+				fatal("bad KSR file %s(%lu): bad DNSKEY (%s)",
+				      ksr->file, isc_lex_getsourceline(lex),
+				      isc_result_totext(ret));
+			}
+			isc_buffer_usedregion(&buf, &r);
+			isc_buffer_allocate(mctx, &newbuf, r.length);
+			isc_buffer_putmem(newbuf, r.base, r.length);
+			isc_buffer_usedregion(newbuf, &r);
+			dns_rdata_fromregion(rdata, dns_rdataclass_in,
+					     dns_rdatatype_dnskey, &r);
+			if (rdatalist != NULL && ttl < rdatalist->ttl) {
+				rdatalist->ttl = ttl;
+			}
+
+			ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+		}
+	}
+
+	if (ret != ISC_R_EOF) {
+		fatal("bad KSR file %s(%lu): trailing garbage data", ksr->file,
+		      isc_lex_getsourceline(lex));
+	}
+
+	/* Final bundle */
+	if (have_bundle && rdatalist != NULL) {
+		sign_bundle(ksr, inception, ksr->end, rdatalist, &keys);
+	} else {
+		fatal("bad KSR file %s(%lu): no bundles", ksr->file,
+		      isc_lex_getsourceline(lex));
+	}
+
+	/* Bundle footer */
+	isc_stdtime_tostring(ksr->now, timestr, sizeof(timestr));
+	fprintf(stdout, ";; SignedKeyResponse 1.0 generated at %s by %s\n",
+		timestr, PACKAGE_VERSION);
+
+fail:
+	/* Clean up */
+	isc_lex_destroy(&lex);
+	cleanup(&keys, kasp);
+}
+
 int
 main(int argc, char *argv[]) {
 	isc_result_t ret;
@@ -671,18 +1050,21 @@ main(int argc, char *argv[]) {
 
 	isc_commandline_errprint = false;
 
-#define OPTIONS "E:e:Fhi:K:k:l:v:V"
+#define OPTIONS "E:e:Ff:hi:K:k:l:v:V"
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
+		case 'E':
+			engine = isc_commandline_argument;
+			break;
 		case 'e':
 			ksr.end = strtotime(isc_commandline_argument, ksr.now,
 					    ksr.now, &ksr.setend);
 			break;
-		case 'E':
-			engine = isc_commandline_argument;
-			break;
 		case 'F':
 			set_fips_mode = true;
+			break;
+		case 'f':
+			ksr.file = isc_commandline_argument;
 			break;
 		case 'h':
 			usage(0);
@@ -776,6 +1158,8 @@ main(int argc, char *argv[]) {
 		keygen(&ksr);
 	} else if (strcmp(argv[0], "request") == 0) {
 		request(&ksr);
+	} else if (strcmp(argv[0], "sign") == 0) {
+		sign(&ksr);
 	} else {
 		fatal("unknown command '%s'", argv[0]);
 	}

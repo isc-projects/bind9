@@ -114,6 +114,11 @@ Commands
 
   Create a Key Signing Request (KSR), given a DNSSEC policy and an interval.
 
+.. option:: sign
+
+  Sign a Key Signing Request (KSR), given a DNSSEC policy and an interval,
+  creating a Signed Key Response (SKR).
+
 Exit Status
 ~~~~~~~~~~~
 
@@ -130,11 +135,21 @@ given a ``dnssec-policy`` named "mypolicy":
 
     dnssec-ksr -i now -e +1y -k mypolicy -l named.conf keygen example.com
 
-Creating a Key Signing Request for the same zone and period can be done with:
+Creating a KSR for the same zone and period can be done with:
 
 ::
 
-    dnssec-ksr -i now -e +1y -k mypolicy -l named.conf request example.com
+    dnssec-ksr -i now -e +1y -k mypolicy -l named.conf request example.com > ksr.txt
+
+Typically you would now transfer the KSR to the system that has access to the KSK.
+
+Signing the KSR created above can be done with:
+
+::
+
+    dnssec-ksr -i now -e +1y -k kskpolicy -l named.conf -f ksr.txt sign example.com
+
+Make sure that the DNSSEC parameters in ``kskpolicy`` match those in ``mypolicy``.
 
 See Also
 ~~~~~~~~
