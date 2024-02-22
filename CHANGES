@@ -1,3 +1,7 @@
+6352.	[bug]		Revert change 6319 and decrease lock contention during
+			RBTDB tree pruning by not cleaning up nodes recursively
+			within a single prune_tree() call. [GL #4596]
+
 6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
 	--- 9.18.24 released ---
