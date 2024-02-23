@@ -37,6 +37,13 @@ Bug Fixes
 
 - None.
 
+- A use-after-free assertion might get triggered when the overmem cache
+  cleaning triggers. :gl:`#4595`
+
+  ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
+  this issue to our attention.
+
+
 Known Issues
 ~~~~~~~~~~~~
 
