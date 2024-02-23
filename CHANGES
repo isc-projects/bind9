@@ -1,3 +1,5 @@
+6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
+
 6349.	[placeholder]
 
 6348.	[bug]		BIND could previously abort when trying to
