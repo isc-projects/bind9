@@ -9,6 +9,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import time
 
-def test_xferquota(run_tests_sh):
-    run_tests_sh()
+
+def retry_with_timeout(func, timeout, delay=1, msg=None):
+    start_time = time.time()
+    while time.time() < start_time + timeout:
+        if func():
+            return
+        time.sleep(delay)
+    if msg is None:
+        msg = f"{func.__module__}.{func.__qualname__} timed out after {timeout} s"
+    assert False, msg

@@ -13,6 +13,7 @@ from . import check
 from . import instance
 from . import query
 from . import rndc
+from . import run
 from . import log
 
 # isctest.mark module is intentionally NOT imported, because it relies on
