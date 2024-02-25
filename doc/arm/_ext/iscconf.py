@@ -41,12 +41,18 @@ logger = logging.getLogger(__name__)
 
 def split_csv(argument, required):
     argument = argument or ""
-    outlist = list(filter(len, (s.strip() for s in argument.split(","))))
-    if required and not outlist:
+    values = list(filter(len, (s.strip() for s in argument.split(","))))
+    if required and not values:
         raise ValueError(
             "a non-empty list required; provide at least one value or remove"
             " this option"
         )
+    # Order-preserving de-duplication
+    outlist, seen = list(), set()  # pylint: disable=use-list-literal
+    for value in values:
+        if value not in seen:
+            seen.add(value)
+            outlist.append(value)
     return outlist
 
 
@@ -73,10 +79,8 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
         def run(self):
             placeholder = todolist("")
-            placeholder["isc_filter_tags"] = set(self.options.get("filter_tags", []))
-            placeholder["isc_filter_blocks"] = set(
-                self.options.get("filter_blocks", [])
-            )
+            placeholder["isc_filter_tags"] = self.options.get("filter_tags", [])
+            placeholder["isc_filter_blocks"] = self.options.get("filter_blocks", [])
             return [placeholder]
 
     class ISCConfDomain(Domain):
@@ -127,7 +131,7 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
 
             @property
             def isc_tags(self):
-                return set(self.options.get("tags", []))
+                return self.options.get("tags", [])
 
             @property
             def isc_short(self):
@@ -475,11 +479,11 @@ def domain_factory(domainname, domainlabel, todolist, grammar):
                             lambda item: (
                                 (
                                     not acceptable_tags
-                                    or item["tags"].intersection(acceptable_tags)
+                                    or set(item["tags"]).intersection(acceptable_tags)
                                 )
                                 and (
                                     not acceptable_blocks
-                                    or item["block_names"].intersection(
+                                    or set(item["block_names"]).intersection(
                                         acceptable_blocks
                                     )
                                 )
