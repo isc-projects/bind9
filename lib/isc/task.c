@@ -1115,7 +1115,7 @@ dispatch(isc__taskmgr_t *manager, isc_taskqueue_t qid) {
 		}
 #else /* USE_WORKER_THREADS */
 		if (total_dispatch_count >= DEFAULT_TASKMGR_QUANTUM ||
-		    empty_readyq(manager))
+		    empty_readyq(manager, qid))
 			break;
 #endif /* USE_WORKER_THREADS */
 		XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
@@ -1318,11 +1318,11 @@ dispatch(isc__taskmgr_t *manager, isc_taskqueue_t qid) {
 	}
 
 #ifndef USE_WORKER_THREADS
-	ISC_LIST_APPENDLIST(manager->ready_tasks, new_ready_tasks, ready_link);
-	ISC_LIST_APPENDLIST(manager->ready_priority_tasks, new_priority_tasks,
+	ISC_LIST_APPENDLIST(manager->ready_tasks[isc_taskqueue_normal], new_ready_tasks, ready_link);
+	ISC_LIST_APPENDLIST(manager->ready_priority_tasks[isc_taskqueue_normal], new_priority_tasks,
 			    ready_priority_link);
 	manager->tasks_ready += tasks_ready;
-	if (empty_readyq(manager))
+	if (empty_readyq(manager, isc_taskqueue_normal))
 		manager->mode = isc_taskmgrmode_normal;
 #endif
 
@@ -1713,7 +1713,7 @@ isc__taskmgr_ready(isc_taskmgr_t *manager0) {
 		return (false);
 
 	LOCK(&manager->lock);
-	is_ready = !empty_readyq(manager);
+	is_ready = !empty_readyq(manager, isc_taskqueue_normal);
 	UNLOCK(&manager->lock);
 
 	return (is_ready);
@@ -1730,7 +1730,7 @@ isc__taskmgr_dispatch(isc_taskmgr_t *manager0) {
 	if (manager == NULL)
 		return (ISC_R_NOTFOUND);
 
-	dispatch(manager);
+	dispatch(manager, isc_taskqueue_normal);
 
 	return (ISC_R_SUCCESS);
 }
