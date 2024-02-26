@@ -2373,6 +2373,22 @@ ISC_RUN_TEST_IMPL(rkey) {
 		    dns_rdatatype_rkey, sizeof(dns_rdata_rkey_t));
 }
 
+ISC_RUN_TEST_IMPL(resinfo) {
+	text_ok_t text_ok[] = {
+		TEXT_VALID_CHANGED("qnamemin exterr=15,16,17 "
+				   "infourl=https://resolver.example.com/guide",
+				   "\"qnamemin\" \"exterr=15,16,17\" "
+				   "\"infourl=https://resolver.example.com/"
+				   "guide\""),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	check_rdata(text_ok, NULL, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_resinfo, sizeof(dns_rdata_rkey_t));
+}
+
 /* SSHFP RDATA manipulations */
 ISC_RUN_TEST_IMPL(sshfp) {
 	text_ok_t text_ok[] = { TEXT_INVALID(""),     /* too short */
@@ -3153,6 +3169,7 @@ ISC_TEST_ENTRY(nsec)
 ISC_TEST_ENTRY(nsec3)
 ISC_TEST_ENTRY(nxt)
 ISC_TEST_ENTRY(rkey)
+ISC_TEST_ENTRY(resinfo)
 ISC_TEST_ENTRY(sshfp)
 ISC_TEST_ENTRY(wks)
 ISC_TEST_ENTRY(zonemd)

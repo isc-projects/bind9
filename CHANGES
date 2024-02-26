@@ -1,3 +1,6 @@
+6351.	[protocol]	Support for the RESINFO record type has been added.
+			[GL #4413]
+
 6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
 6349.	[placeholder]
