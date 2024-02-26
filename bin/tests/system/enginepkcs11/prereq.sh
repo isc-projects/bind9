@@ -23,7 +23,6 @@
   exit 255
 }
 
-parse_openssl_config
 [ -f "$SOFTHSM2_MODULE" ] || {
   echo_i "skip: softhsm2 module not available"
   exit 1

@@ -20,7 +20,6 @@ $SHELL clean.sh
 
 OPENSSL_CONF= softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "softhsm2-enginepkcs11" | awk '/^The token has been initialized and is reassigned to slot/ { print $NF }'
 
-parse_openssl_config
 printf '%s' "${HSMPIN:-1234}" >ns1/pin
 PWD=$(pwd)
 

@@ -572,28 +572,4 @@ copy_setports() {
     $1 >$2
 }
 
-# parse_openssl_config - Parse OpenSSL configuration for HSM settings
-#
-# Will set SOFTHSM2_MODULE, OPENSSL_ENGINE and ENGINE_ARG based on openssl configuration.
-parse_openssl_config() {
-  ENGINE_ARG=""
-  [ -f "$OPENSSL_CONF" ] || return 0
-  while IFS="=" read key val; do
-    # trim variables
-    key="${key## }"
-    key="${key%% }"
-    val="${val## }"
-    val="${val%% }"
-    case "$key" in
-      "engine_id")
-        OPENSSL_ENGINE="$val"
-        ENGINE_ARG="-E $OPENSSL_ENGINE"
-        ;;
-      "MODULE_PATH" | "pkcs11-module-path")
-        SOFTHSM2_MODULE="$val"
-        ;;
-    esac
-  done <"$OPENSSL_CONF"
-}
-
 grep_v() { grep -v "$@" || test $? = 1; }
