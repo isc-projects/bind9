@@ -1,0 +1,10 @@
+ttl1.			3	IN	SOA	ns.ttl1. hostmaster.ttl1. 1 3600 1800 1814400 3
+ttl1.			3	IN	NS	ns.ttl1.
+a.ttl1.			3	IN	TXT	"soa minttl 3"
+b.ttl1.			2	IN	TXT	"explicit ttl 2"
+c.ttl1.			3	IN	TXT	"soa minttl 3"
+d.ttl1.			1	IN	TXT	"default ttl 1"
+e.ttl1.			4	IN	TXT	"explicit ttl 4"
+f.ttl1.			1	IN	TXT	"default ttl 1"
+ns.ttl1.		3	IN	A	10.53.0.1
+ttl1.			3	IN	SOA	ns.ttl1. hostmaster.ttl1. 1 3600 1800 1814400 3
