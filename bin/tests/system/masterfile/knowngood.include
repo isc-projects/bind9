@@ -1,0 +1,12 @@
+include.		300	IN	SOA	ns.include. hostmaster.include. 1 3600 1800 1814400 3600
+include.		300	IN	NS	ns.include.
+a.include.		300	IN	A	10.0.0.1
+a.include.		300	IN	A	10.0.0.99
+a.a.include.		300	IN	A	10.0.1.1
+b.foo.a.include.	300	IN	A	10.0.2.2
+b.include.		300	IN	A	10.0.0.2
+a.b.include.		300	IN	A	10.0.1.1
+c.b.include.		300	IN	A	10.0.0.3
+b.foo.b.include.	300	IN	A	10.0.2.2
+ns.include.		300	IN	A	127.0.0.1
+include.		300	IN	SOA	ns.include. hostmaster.include. 1 3600 1800 1814400 3600
