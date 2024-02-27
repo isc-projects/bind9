@@ -856,7 +856,8 @@ typedef enum {
 	STATID_SENDFAIL = 8,
 	STATID_RECVFAIL = 9,
 	STATID_ACTIVE = 10,
-	STATID_MAX = 11,
+	STATID_CLIENTS = 11,
+	STATID_MAX = 12,
 } isc__nm_statid_t;
 
 #if HAVE_LIBNGHTTP2

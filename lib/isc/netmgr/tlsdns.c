@@ -895,6 +895,7 @@ destroy:
 	 * had a chance to be executed.
 	 */
 	if (sock->quota != NULL) {
+		isc__nm_decstats(sock, STATID_CLIENTS);
 		isc_quota_detach(&sock->quota);
 	}
 }
@@ -1628,6 +1629,8 @@ accept_connection(isc_nmsocket_t *ssock, isc_quota_t *quota) {
 	UV_RUNTIME_CHECK(uv_timer_init, r);
 	uv_handle_set_data((uv_handle_t *)&csock->read_timer, csock);
 
+	isc__nm_incstats(csock, STATID_CLIENTS);
+
 	r = uv_accept(&ssock->uv_handle.stream, &csock->uv_handle.stream);
 	if (r != 0) {
 		result = isc__nm_uverr2result(r);
@@ -2109,6 +2112,7 @@ tlsdns_close_direct(isc_nmsocket_t *sock) {
 	REQUIRE(sock->tls.pending_req == NULL);
 
 	if (sock->quota != NULL) {
+		isc__nm_decstats(sock, STATID_CLIENTS);
 		isc_quota_detach(&sock->quota);
 	}
 

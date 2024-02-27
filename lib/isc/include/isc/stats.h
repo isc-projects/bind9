@@ -100,7 +100,10 @@ enum {
 	isc_sockstatscounter_rawrecvfail = 60,
 	isc_sockstatscounter_rawactive = 61,
 
-	isc_sockstatscounter_max = 62
+	isc_sockstatscounter_tcp4clients = 62,
+	isc_sockstatscounter_tcp6clients = 63,
+
+	isc_sockstatscounter_max = 64
 };
 
 ISC_LANG_BEGINDECLS

@@ -626,6 +626,11 @@ init_desc(void) {
 	SET_SOCKSTATDESC(unixactive, "Unix domain sockets active",
 			 "UnixActive");
 	SET_SOCKSTATDESC(rawactive, "Raw sockets active", "RawActive");
+	SET_SOCKSTATDESC(tcp4clients, "TCP/IPv4 clients currently connected",
+			 "TCP4Clients");
+	SET_SOCKSTATDESC(tcp6clients, "TCP/IPv6 clients currently connected",
+			 "TCP6Clients");
+
 	INSIST(i == isc_sockstatscounter_max);
 
 	/* Initialize DNSSEC statistics */
