@@ -11246,20 +11246,49 @@ query_addbestns(query_ctx_t *qctx) {
 	isc_buffer_t b;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	dns_name_t qname;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_addbestns");
 
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 
+	dns_name_init(&qname, NULL);
+	dns_name_clone(client->query.qname, &qname);
+
 	/*
 	 * Find the right database.
 	 */
-	result = query_getdb(client, client->query.qname, dns_rdatatype_ns, 0,
-			     &zone, &db, &version, &is_zone);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	do {
+		result = query_getdb(client, &qname, dns_rdatatype_ns, 0, &zone,
+				     &db, &version, &is_zone);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+
+		/*
+		 * If this is a static stub zone look for a parent zone.
+		 */
+		if (zone != NULL &&
+		    dns_zone_gettype(zone) == dns_zone_staticstub)
+		{
+			unsigned int labels = dns_name_countlabels(&qname);
+			dns_db_detach(&db);
+			dns_zone_detach(&zone);
+			version = NULL;
+			if (labels != 1) {
+				dns_name_split(&qname, labels - 1, NULL,
+					       &qname);
+				continue;
+			}
+			if (!USECACHE(client)) {
+				goto cleanup;
+			}
+			dns_db_attach(client->view->cachedb, &db);
+			is_zone = false;
+		}
+		break;
+	} while (true);
 
 db_find:
 	/*
