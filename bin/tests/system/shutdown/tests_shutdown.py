@@ -170,7 +170,7 @@ def wait_for_proc_termination(proc, max_timeout=10):
     "kill_method",
     ["rndc", "sigterm"],
 )
-def test_named_shutdown(ports, kill_method):
+def test_named_shutdown(kill_method):
     # pylint: disable-msg=too-many-locals
     cfg_dir = os.path.join(os.getcwd(), "resolver")
     assert os.path.isdir(cfg_dir)
@@ -186,9 +186,7 @@ def test_named_shutdown(ports, kill_method):
     # necessary for sending RNDC commands to that instance.  This "custom"
     # instance listens on 10.53.0.3, so use "ns3" as the identifier passed to
     # the NamedInstance constructor.
-    named_ports = isctest.instance.NamedPorts(
-        dns=ports["PORT"], rndc=ports["CONTROLPORT"]
-    )
+    named_ports = isctest.instance.NamedPorts.from_env()
     instance = isctest.instance.NamedInstance("ns3", named_ports)
 
     # We create a resolver instance that will be used to send queries.
