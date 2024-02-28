@@ -9,4 +9,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import os
+
 from .all import ALL
+from .openssl import parse_openssl_config
+from .. import log
+
+
+# env variable initialization
+parse_openssl_config(ALL["OPENSSL_CONF"])
+
+os.environ.update(ALL)
+log.debug("setting following env vars: %s", ", ".join([str(key) for key in ALL]))

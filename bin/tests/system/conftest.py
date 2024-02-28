@@ -17,7 +17,7 @@ import shutil
 import subprocess
 import tempfile
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 import pytest
 
@@ -64,14 +64,6 @@ PRIORITY_TESTS = [
 PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
 SYSTEM_TEST_NAME_RE = re.compile(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
 SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_.*)\.py")
-
-# ---------------------- Module initialization ---------------------------
-
-# Set environment variables for tests.
-os.environ.update(isctest.vars.ALL)
-isctest.log.debug(
-    "variables in env: %s", ", ".join([str(key) for key in isctest.vars.ALL])
-)
 
 # ----------------------- Global requirements ----------------------------
 
@@ -257,14 +249,6 @@ def control_port():
 
 
 @pytest.fixture(scope="module")
-def env():
-    """Dictionary containing environment variables for the test."""
-    env = dict(isctest.vars.ALL)
-    os.environ.update(env)
-    return env
-
-
-@pytest.fixture(scope="module")
 def system_test_name(request):
     """Name of the system test directory."""
     path = Path(request.fspath)
@@ -413,7 +397,6 @@ def system_test_dir(
 
 
 def _run_script(  # pylint: disable=too-many-arguments
-    env,
     system_test_dir: Path,
     interpreter: str,
     script: str,
@@ -437,7 +420,6 @@ def _run_script(  # pylint: disable=too-many-arguments
     cmd = [interpreter, script] + args
     with subprocess.Popen(
         cmd,
-        env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         bufsize=1,
@@ -455,15 +437,15 @@ def _run_script(  # pylint: disable=too-many-arguments
 
 
 @pytest.fixture(scope="module")
-def shell(env, system_test_dir):
+def shell(system_test_dir):
     """Function to call a shell script with arguments."""
-    return partial(_run_script, env, system_test_dir, env["SHELL"])
+    return partial(_run_script, system_test_dir, os.environ["SHELL"])
 
 
 @pytest.fixture(scope="module")
-def perl(env, system_test_dir):
+def perl(system_test_dir):
     """Function to call a perl script with arguments."""
-    return partial(_run_script, env, system_test_dir, env["PERL"])
+    return partial(_run_script, system_test_dir, os.environ["PERL"])
 
 
 @pytest.fixture(scope="module")
@@ -479,7 +461,6 @@ def run_tests_sh(system_test_dir, shell):
 @pytest.fixture(scope="module", autouse=True)
 def system_test(  # pylint: disable=too-many-arguments,too-many-statements
     request,
-    env: Dict[str, str],
     system_test_dir,
     shell,
     perl,
@@ -508,7 +489,7 @@ def system_test(  # pylint: disable=too-many-arguments,too-many-statements
 
     def check_net_interfaces():
         try:
-            perl("testsock.pl", ["-p", env["PORT"]])
+            perl("testsock.pl", ["-p", os.environ["PORT"]])
         except subprocess.CalledProcessError as exc:
             isctest.log.error("testsock.pl: exited with code %d", exc.returncode)
             pytest.skip("Network interface aliases not set up.")
@@ -532,7 +513,7 @@ def system_test(  # pylint: disable=too-many-arguments,too-many-statements
 
     def start_servers():
         try:
-            perl("start.pl", ["--port", env["PORT"], system_test_dir.name])
+            perl("start.pl", ["--port", os.environ["PORT"], system_test_dir.name])
         except subprocess.CalledProcessError as exc:
             isctest.log.error("Failed to start servers")
             pytest.fail(f"start.pl exited with {exc.returncode}")
@@ -553,7 +534,7 @@ def system_test(  # pylint: disable=too-many-arguments,too-many-statements
             pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
 
     isctest.log.info(f"test started: {request.node.name}")
-    port = int(env["PORT"])
+    port = int(os.environ["PORT"])
     isctest.log.info(
         "using port range: <%d, %d>", port, port + isctest.vars.ports.PORTS_PER_TEST - 1
     )

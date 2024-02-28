@@ -50,6 +50,3 @@ def parse_openssl_config(path: Optional[str]):
                     log.debug(
                         "SOFTHSM2_MODULE set to {OPENSSL_VARS['SOFTHSM2_MODULE']}"
                     )
-
-
-parse_openssl_config(OPENSSL_VARS["OPENSSL_CONF"])
