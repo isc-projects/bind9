@@ -49,6 +49,9 @@ Files: **/*.after*
        bin/tests/system/keepalive/expected
        bin/tests/system/legacy/ns6/edns512.db.signed
        bin/tests/system/legacy/ns7/edns512-notcp.db.signed
+       bin/tests/system/masterfile/knowngood.include
+       bin/tests/system/masterfile/knowngood.ttl1
+       bin/tests/system/masterfile/knowngood.ttl2
        bin/tests/system/nsupdate/commandlist
        bin/tests/system/nsupdate/verylarge.in
        bin/tests/system/org.isc.bind.system.plist
