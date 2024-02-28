@@ -24,6 +24,7 @@ import pytest
 pytest.register_assert_rewrite("isctest")
 
 import isctest
+from isctest.vars.dirs import SYSTEM_TEST_DIR_GIT_PATH
 
 
 # Silence warnings caused by passing a pytest fixture to another fixture.
@@ -61,7 +62,6 @@ PRIORITY_TESTS = [
     "upforwd/",
 ]
 PRIORITY_TESTS_RE = re.compile("|".join(PRIORITY_TESTS))
-SYSTEM_TEST_DIR_GIT_PATH = "bin/tests/system"
 SYSTEM_TEST_NAME_RE = re.compile(f"{SYSTEM_TEST_DIR_GIT_PATH}" + r"/([^/]+)")
 SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_.*)\.py")
 
@@ -260,8 +260,6 @@ def control_port():
 def env():
     """Dictionary containing environment variables for the test."""
     env = dict(isctest.vars.ALL)
-    env["builddir"] = f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
-    env["srcdir"] = f"{env['TOP_SRCDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
     os.environ.update(env)
     return env
 
@@ -354,14 +352,13 @@ def system_test_dir(
             pass
 
     # Create a temporary directory with a copy of the original system test dir contents
-    system_test_root = Path(
-        f"{isctest.vars.ALL['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
-    )
+    system_test_root = Path(os.environ["builddir"])
     testdir = Path(
         tempfile.mkdtemp(prefix=f"{system_test_name}_tmp_", dir=system_test_root)
     )
     shutil.rmtree(testdir)
     shutil.copytree(system_test_root / system_test_name, testdir)
+    isctest.vars.dirs.set_system_test_name(testdir.name)
 
     # Create a convenience symlink with a stable and predictable name
     module_name = SYMLINK_REPLACEMENT_RE.sub(r"\1", request.node.name)

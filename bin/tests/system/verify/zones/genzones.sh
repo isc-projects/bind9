@@ -13,8 +13,6 @@
 
 . ../../conf.sh
 
-SYSTESTDIR=verify
-
 dumpit() {
   echo_d "${debug}: dumping ${1}"
   cat "${1}" | cat_d
