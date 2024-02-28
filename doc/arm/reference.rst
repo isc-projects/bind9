@@ -5967,6 +5967,25 @@ uses a temporary key and certificate created for the current :iscman:`named`
 session only, and ``none``, which can be used when setting up an HTTP
 listener with no encryption.
 
+The main motivation behind having the ``ephemeral`` configuration is
+to aid in testing, as trusted certificate authorities do not issue the
+certificates associated with this configuration. Thus, these
+certificates will never be trusted by any clients that verify TLS
+certificates. They provide encryption of the traffic but no
+authentification of the transmission channel. That might be enough in
+the case of deployment in a controlled environment.
+
+It should be noted that on reconfiguration, the ``ephemeral`` TLS key
+and the certificate are recreated, and all TLS certificates and keys,
+as well as associated data, are reloaded from the disk. In that case,
+listening sockets associated with TLS remain intact.
+
+Please keep in mind that doing reconfiguration can cause a short
+interruption in BIND's ability to process inbound client packets. The
+length of interruption is environment and configuration-specific. A
+good example of when reconfiguration is necessary is when TLS keys and
+certificates are updated on the disk.
+
 BIND supports the following TLS authentication mechanisms described in
 the RFC 9103, Section 9.3: Opportunistic TLS, Strict TLS, and Mutual
 TLS.
