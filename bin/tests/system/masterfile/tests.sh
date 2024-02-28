@@ -25,13 +25,25 @@ n=$((n + 1))
 echo_i "test master file \$INCLUDE semantics ($n)"
 $DIG $DIGOPTS +nostats +nocmd include. axfr @10.53.0.1 >dig.out.$n || ret=1
 
+diff dig.out.$n knowngood.include || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+ret=0
+n=$((n + 1))
 echo_i "test master file BIND 8 compatibility TTL and \$TTL semantics ($n)"
-$DIG $DIGOPTS +nostats +nocmd ttl2. axfr @10.53.0.1 >>dig.out.$n || ret=1
+$DIG $DIGOPTS +nostats +nocmd ttl1. axfr @10.53.0.1 >dig.out.$n || ret=1
 
+diff dig.out.$n knowngood.ttl1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+ret=0
+n=$((n + 1))
 echo_i "test of master file RFC1035 TTL and \$TTL semantics ($n)"
-$DIG $DIGOPTS +nostats +nocmd ttl2. axfr @10.53.0.1 >>dig.out.$n || ret=1
+$DIG $DIGOPTS +nostats +nocmd ttl2. axfr @10.53.0.1 >dig.out.$n || ret=1
 
-diff dig.out.$n knowngood.dig.out || status=1
+diff dig.out.$n knowngood.ttl2 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
