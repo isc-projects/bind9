@@ -11,21 +11,27 @@
 
 import os
 import re
+from typing import Optional
 
 from .. import log
 
 
 OPENSSL_VARS = {
-    "OPENSSL_CONF": os.getenv("OPENSSL_CONF", ""),
-    "SOFTHSM2_CONF": os.getenv("SOFTHSM2_CONF", ""),
-    "SOFTHSM2_MODULE": "",
-    "ENGINE_ARG": "",
+    "OPENSSL_CONF": os.getenv("OPENSSL_CONF", None),
+    "SOFTHSM2_CONF": os.getenv("SOFTHSM2_CONF", None),
+    "SOFTHSM2_MODULE": None,
+    "ENGINE_ARG": None,
 }
 
 
-def parse_openssl_config(path: str):
-    if not os.path.isfile(path):
+def parse_openssl_config(path: Optional[str]):
+    if path is None or not os.path.isfile(path):
+        OPENSSL_VARS["ENGINE_ARG"] = None
+        OPENSSL_VARS["SOFTHSM2_MODULE"] = None
+        os.environ.pop("ENGINE_ARG", None)
+        os.environ.pop("SOFTHSM2_MODULE", None)
         return
+
     regex = re.compile(r"([^=]+)=(.*)")
     log.debug(f"parsing openssl config: {path}")
     with open(path, "r", encoding="utf-8") as conf:
