@@ -1,3 +1,8 @@
+6353.	[bug]		Improve the TTL-based cleaning by removing the expired
+			headers from the heap, so they don't block the next
+			cleaning round and clean more than a single item for
+			each new addition to the RBTDB. [GL #4591]
+
 6352.	[bug]		Revert change 6319 and decrease lock contention during
 			RBTDB tree pruning by not cleaning up nodes recursively
 			within a single prune_tree() call. [GL #4596]
