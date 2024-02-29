@@ -1,3 +1,8 @@
+6352.	[bug]		Decrease lock contention during RBTDB tree pruning
+			introduced in change 6319 by making the prunenodes list
+			bucketed and not cleaning up nodes recursively within a
+			single prune_tree() call. [GL #4596]
+
 6350.	[bug]		Address use after free in expire_lru_headers. [GL #4495]
 
 	--- 9.16.48 released ---
