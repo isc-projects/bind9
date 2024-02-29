@@ -1,3 +1,7 @@
+6352.	[bug]		Revert change 6319 and decrease lock contention during
+			RBTDB tree pruning by not cleaning up nodes recursively
+			within a single prune_tree() call. [GL #4596]
+
 6351.	[protocol]	Support for the RESINFO record type has been added.
 			[GL #4413]
 
