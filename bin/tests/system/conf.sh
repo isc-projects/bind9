@@ -11,6 +11,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+# When sourcing the script outside the pytest environment (e.g. during helper
+# script development), the env variables have to be loaded.
+if [ -z "$TOP_SRCDIR" ]; then
+    SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd | sed -E 's|(.*bin/tests/system).*|\1|')
+    eval "$(PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH" /usr/bin/env python3 -m isctest)"
+fi
+
 testsock6() {
 	if test -n "$PERL" && $PERL -e "use IO::Socket::IP;" 2> /dev/null
 	then
