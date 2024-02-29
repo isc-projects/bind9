@@ -1,3 +1,6 @@
+6354.	[bug]		Change 6035 introduced a regression when chasing DS
+			records resulting in an assertion failure. [GL #4612]
+
 6353.	[bug]		Improve the TTL-based cleaning by removing the expired
 			headers from the heap, so they don't block the next
 			cleaning round and clean more than a single item for
