@@ -1656,7 +1656,7 @@ AC_CONFIG_FILES([tests/unit-test-driver.sh],
 
 AC_CONFIG_FILES([bin/tests/Makefile
 		 bin/tests/system/Makefile
-		 bin/tests/system/conf.sh
+		 bin/tests/system/isctest/vars/autoconf.py
 		 bin/tests/system/dyndb/driver/Makefile
 		 bin/tests/system/dlzexternal/driver/Makefile
 		 bin/tests/system/hooks/driver/Makefile

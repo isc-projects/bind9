@@ -9,15 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-from . import check
-from . import instance
-from . import query
-from . import rndc
-from . import run
-from . import log
-from . import vars  # pylint: disable=redefined-builtin
+# pylint: disable=import-error
+from .autoconf import AC_VARS  # type: ignore
 
-# isctest.mark module is intentionally NOT imported, because it relies on
-# environment variables which might not be set at the time of import of the
-# `isctest` package. To use the marks, manual `import isctest.mark` is needed
-# instead.
+# pylint: enable=import-error
+from .basic import BASIC_VARS
+
+ALL = {**AC_VARS, **BASIC_VARS}

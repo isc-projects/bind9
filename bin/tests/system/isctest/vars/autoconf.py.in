@@ -1,0 +1,23 @@
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+#
+# SPDX-License-Identifier: MPL-2.0
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0.  If a copy of the MPL was not distributed with this
+# file, you can obtain one at https://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
+AC_VARS = {
+    "TOP_BUILDDIR": "@abs_top_builddir@",
+    "TOP_SRCDIR": "@abs_top_srcdir@",
+    "FSTRM_CAPTURE": "@FSTRM_CAPTURE@",
+    "SHELL": "@SHELL@",
+    "PYTHON": "@PYTHON@",
+    "PERL": "@PERL@",
+    "CURL": "@CURL@",
+    "NC": "@NC@",
+    "XSLTPROC": "@XSLTPROC@",
+    "PYTEST": "@PYTEST@",
+}

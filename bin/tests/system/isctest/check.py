@@ -9,6 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+import shutil
 from typing import Any, Optional
 
 import dns.rcode
@@ -95,3 +96,8 @@ def zones_equal(
                 )
                 assert found_rdataset
                 assert found_rdataset.ttl == rdataset.ttl
+
+
+def is_executable(cmd: str, errmsg: str) -> None:
+    executable = shutil.which(cmd)
+    assert executable is not None, errmsg

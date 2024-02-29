@@ -70,42 +70,16 @@ SYMLINK_REPLACEMENT_RE = re.compile(r"/tests(_.*)\.py")
 
 # ---------------------- Module initialization ---------------------------
 
+# Set environment variables for tests.
+os.environ.update(isctest.vars.ALL)
+isctest.log.debug(
+    "variables in env: %s", ", ".join([str(key) for key in isctest.vars.ALL])
+)
 
-def parse_env(env_bytes):
-    """Parse the POSIX env format into Python dictionary."""
-    out = {}
-    for line in env_bytes.splitlines():
-        match = ENV_RE.match(line)
-        if match:
-            # EL8+ workaround for https://access.redhat.com/solutions/6994985
-            # FUTURE: can be removed when we no longer need to parse env vars
-            if match.groups()[0] in [b"which_declare", b"BASH_FUNC_which%%"]:
-                continue
-            out[match.groups()[0]] = match.groups()[1]
-    return out
+# ----------------------- Global requirements ----------------------------
 
-
-def get_env_bytes(cmd):
-    try:
-        proc = subprocess.run(
-            [cmd],
-            shell=True,
-            check=True,
-            cwd=FILE_DIR,
-            stdout=subprocess.PIPE,
-        )
-    except subprocess.CalledProcessError as exc:
-        isctest.log.error("failed to get shell env: %s", exc)
-        raise exc
-    env_bytes = proc.stdout
-    return parse_env(env_bytes)
-
-
-# Read common environment variables for running tests from conf.sh.
-# FUTURE: Remove conf.sh entirely and define all variables in pytest only.
-CONF_ENV = get_env_bytes(". ./conf.sh && env")
-os.environb.update(CONF_ENV)
-isctest.log.debug("variables in env: %s", ", ".join([str(key) for key in CONF_ENV]))
+isctest.check.is_executable(isctest.vars.ALL["PYTHON"], "Python interpreter required")
+isctest.check.is_executable(isctest.vars.ALL["PERL"], "Perl interpreter required")
 
 # --------------------------- pytest hooks -------------------------------
 
@@ -348,7 +322,7 @@ def logger(request, system_test_name):
 
 @pytest.fixture(scope="module")
 def system_test_dir(
-    request, env, system_test_name
+    request, system_test_name
 ):  # pylint: disable=too-many-statements,too-many-locals
     """
     Temporary directory for executing the test.
@@ -398,7 +372,9 @@ def system_test_dir(
             pass
 
     # Create a temporary directory with a copy of the original system test dir contents
-    system_test_root = Path(f"{env['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}")
+    system_test_root = Path(
+        f"{isctest.vars.ALL['TOP_BUILDDIR']}/{SYSTEM_TEST_DIR_GIT_PATH}"
+    )
     testdir = Path(
         tempfile.mkdtemp(prefix=f"{system_test_name}_tmp_", dir=system_test_root)
     )
@@ -597,7 +573,6 @@ def system_test(  # pylint: disable=too-many-arguments,too-many-statements
             isctest.log.error("Found core dumps or sanitizer reports")
             pytest.fail(f"get_core_dumps.sh exited with {exc.returncode}")
 
-    os.environ.update(env)  # Ensure pytests have the same env vars as shell tests.
     isctest.log.info(f"test started: {request.node.name}")
     port = int(env["PORT"])
     isctest.log.info("using port range: <%d, %d>", port, port + PORTS_PER_TEST - 1)

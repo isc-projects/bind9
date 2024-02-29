@@ -19,6 +19,7 @@ named.run
 /start.sh
 /stop.sh
 /ifconfig.sh
+/isctest/vars/autoconf.py
 
 # Ignore file names with underscore in their name except python or shell files.
 # This is done to ignore the temporary directories and symlinks created by the

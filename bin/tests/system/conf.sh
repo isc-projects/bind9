@@ -20,9 +20,6 @@ testsock6() {
 	fi
 }
 
-export LANG=C
-export SYSTESTDIR="$(basename $PWD)"
-
 echofail () {
     echo "$*"
 }
