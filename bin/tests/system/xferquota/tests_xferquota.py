@@ -36,7 +36,7 @@ def test_xferquota(named_port, servers):
             with open(file_path, "r", encoding="utf-8") as zonefile:
                 # Count the number of lines containing the search string
                 for line in zonefile:
-                    if "xyzzy			A	10.0.0.2" in line:
+                    if re.search(r"xyzzy.zone[0-9]+.example.*A\s+10\.0\.0\.2", line):
                         matching_line_count += 1
         return matching_line_count == 300
 
