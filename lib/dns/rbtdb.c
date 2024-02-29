@@ -1980,7 +1980,9 @@ send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		   isc_rwlocktype_t nlocktype) {
 	bool pruning_queued = !ISC_LIST_EMPTY(rbtdb->prunenodes[node->locknum]);
 
-	INSIST(!ISC_LINK_LINKED(node, prunelink));
+	if (ISC_LINK_LINKED(node, prunelink)) {
+		return;
+	}
 
 	new_reference(rbtdb, node, nlocktype);
 	ISC_LIST_APPEND(rbtdb->prunenodes[node->locknum], node, prunelink);
