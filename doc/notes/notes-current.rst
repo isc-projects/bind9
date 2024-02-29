@@ -36,6 +36,11 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
+- A regression in cache-cleaning code enabled memory use to grow
+  significantly more quickly than before, until the configured
+  :any:`max-cache-size` limit was reached. This has been fixed.
+  :gl:`#4596`
+
 - Changes to ``listen-on`` statements were ignored on reconfiguration
   unless the port or interface address was changed, making it
   impossible to change a related listener transport type. That issue
