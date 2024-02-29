@@ -35,7 +35,9 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- None.
+- A regression in cache-cleaning code enabled memory use to grow
+  significantly more quickly than before, until the configured
+  ``max-cache-size`` limit was reached. This has been fixed. :gl:`#4596`
 
 Known Issues
 ~~~~~~~~~~~~
