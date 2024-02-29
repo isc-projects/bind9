@@ -154,6 +154,14 @@
 #define DEFAULT_CACHE_NODE_LOCK_COUNT 17
 #endif /* DNS_RBTDB_CACHE_NODE_LOCK_COUNT */
 
+/*
+ * This defines the number of headers that we try to expire each time the
+ * expire_ttl_headers() is run.  The number should be small enough, so the
+ * TTL-based header expiration doesn't take too long, but it should be large
+ * enough, so we expire enough headers if their TTL is clustered.
+ */
+#define DNS_RBTDB_EXPIRE_TTL_COUNT 10
+
 static void
 delete_callback(void *data, void *arg);
 static void
@@ -336,6 +344,10 @@ dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl) {
 		isc_heap_increased(header->heap, header->heap_index);
 	} else {
 		isc_heap_decreased(header->heap, header->heap_index);
+	}
+
+	if (newttl == 0) {
+		isc_heap_delete(header->heap, header->heap_index);
 	}
 }
 
@@ -3160,6 +3172,11 @@ cleanup:
 	return (result);
 }
 
+static void
+expire_ttl_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
+		   isc_rwlocktype_t *tlocktypep, isc_stdtime_t now,
+		   bool cache_is_overmem DNS__DB_FLARG);
+
 isc_result_t
 dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		       dns_dbversion_t *version, isc_stdtime_t now,
@@ -3170,7 +3187,6 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 	dns_rbtdb_version_t *rbtversion = version;
 	isc_region_t region;
 	dns_slabheader_t *newheader = NULL;
-	dns_slabheader_t *header = NULL;
 	isc_result_t result;
 	bool delegating;
 	bool newnsec;
@@ -3342,14 +3358,8 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 					   rbtnode->locknum DNS__DB_FLARG_PASS);
 		}
 
-		header = isc_heap_element(rbtdb->heaps[rbtnode->locknum], 1);
-		if (header != NULL && header->ttl + STALE_TTL(header, rbtdb) <
-					      now - RBTDB_VIRTUAL)
-		{
-			dns__cacherbt_expireheader(
-				header, &tlocktype,
-				dns_expire_ttl DNS__DB_FLARG_PASS);
-		}
+		expire_ttl_headers(rbtdb, rbtnode->locknum, &tlocktype, now,
+				   cache_is_overmem DNS__DB_FLARG_PASS);
 
 		/*
 		 * If we've been holding a write lock on the tree just for
@@ -4851,7 +4861,6 @@ dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
 	if (header->heap != NULL && header->heap_index != 0) {
 		isc_heap_delete(header->heap, header->heap_index);
 	}
-	header->heap_index = 0;
 
 	if (IS_CACHE(rbtdb)) {
 		update_rrsetstats(rbtdb->rrsetstats, header->type,
@@ -4874,5 +4883,44 @@ dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
 		if (header->glue_list) {
 			dns__rbtdb_freeglue(header->glue_list);
 		}
+	}
+}
+
+/*
+ * Caller must be holding the node write lock.
+ */
+static void
+expire_ttl_headers(dns_rbtdb_t *rbtdb, unsigned int locknum,
+		   isc_rwlocktype_t *tlocktypep, isc_stdtime_t now,
+		   bool cache_is_overmem DNS__DB_FLARG) {
+	isc_heap_t *heap = rbtdb->heaps[locknum];
+
+	for (size_t i = 0; i < DNS_RBTDB_EXPIRE_TTL_COUNT; i++) {
+		dns_slabheader_t *header = isc_heap_element(heap, 1);
+
+		if (header == NULL) {
+			/* No headers left on this TTL heap; exit cleaning */
+			return;
+		}
+
+		dns_ttl_t ttl = header->ttl;
+
+		if (!cache_is_overmem) {
+			/* Only account for stale TTL if cache is not overmem */
+			ttl += STALE_TTL(header, rbtdb);
+		}
+
+		if (ttl >= now - RBTDB_VIRTUAL) {
+			/*
+			 * The header at the top of this TTL heap is not yet
+			 * eligible for expiry, so none of the other headers on
+			 * the same heap can be eligible for expiry, either;
+			 * exit cleaning.
+			 */
+			return;
+		}
+
+		dns__cacherbt_expireheader(header, tlocktypep,
+					   dns_expire_ttl DNS__DB_FLARG_PASS);
 	}
 }
