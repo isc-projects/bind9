@@ -274,7 +274,7 @@ options {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
-	sortlist { <address_match_element>; ... };
+	sortlist { <address_match_element>; ... }; // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;
 	stale-answer-ttl <duration>;
@@ -569,7 +569,7 @@ view <string> [ <class> ] {
 	sig-signing-signatures <integer>;
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ]; // obsolete
-	sortlist { <address_match_element>; ... };
+	sortlist { <address_match_element>; ... }; // deprecated
 	stale-answer-client-timeout ( disabled | off | <integer> );
 	stale-answer-enable <boolean>;
 	stale-answer-ttl <duration>;
