@@ -1121,3 +1121,12 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+void
+dns_db_setmaxrrperset(dns_db_t *db, uint32_t value) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	if (db->methods->setmaxrrperset != NULL) {
+		(db->methods->setmaxrrperset)(db, value);
+	}
+}

@@ -309,6 +309,7 @@ struct dns_zone {
 	uint32_t minretry;
 
 	uint32_t maxrecords;
+	uint32_t maxrrperset;
 
 	isc_sockaddr_t *primaries;
 	dns_name_t **primarykeynames;
@@ -12298,6 +12299,16 @@ dns_zone_setmaxrecords(dns_zone_t *zone, uint32_t val) {
 	zone->maxrecords = val;
 }
 
+void
+dns_zone_setmaxrrperset(dns_zone_t *zone, uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->maxrrperset = val;
+	if (zone->db != NULL) {
+		dns_db_setmaxrrperset(zone->db, val);
+	}
+}
+
 static bool
 notify_isqueued(dns_zone_t *zone, unsigned int flags, dns_name_t *name,
 		isc_sockaddr_t *addr, dns_tsigkey_t *key,
@@ -14786,6 +14797,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 				goto cleanup;
 			}
 			dns_db_settask(stub->db, zone->task, zone->task);
+			dns_db_setmaxrrperset(stub->db, zone->maxrrperset);
 		}
 
 		result = dns_db_newversion(stub->db, &stub->version);
@@ -17890,6 +17902,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 	}
 	zone_attachdb(zone, db);
 	dns_db_settask(zone->db, zone->task, zone->task);
+	dns_db_setmaxrrperset(zone->db, zone->maxrrperset);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED | DNS_ZONEFLG_NEEDNOTIFY);
 	return (ISC_R_SUCCESS);
 
@@ -24315,6 +24328,7 @@ dns_zone_makedb(dns_zone_t *zone, dns_db_t **dbp) {
 	}
 
 	dns_db_settask(db, zone->task, zone->task);
+	dns_db_setmaxrrperset(db, zone->maxrrperset);
 
 	*dbp = db;
 

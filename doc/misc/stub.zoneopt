@@ -12,6 +12,7 @@ zone <string> [ <class> ] {
 	masterfile-format ( raw | text );
 	masterfile-style ( full | relative );
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-refresh-time <integer>;
 	max-retry-time <integer>;
 	max-transfer-idle-in <integer>;

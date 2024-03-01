@@ -181,6 +181,7 @@ options {
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-recursion-depth <integer>;
 	max-recursion-queries <integer>;
 	max-refresh-time <integer>;
@@ -471,6 +472,7 @@ view <string> [ <class> ] {
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-ncache-ttl <duration>;
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-recursion-depth <integer>;
 	max-recursion-queries <integer>;
 	max-refresh-time <integer>;

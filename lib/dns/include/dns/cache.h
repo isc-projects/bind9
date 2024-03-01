@@ -280,6 +280,12 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result);
  * Update cache statistics based on result code in 'result'
  */
 
+void
+dns_cache_setmaxrrperset(dns_cache_t *cache, uint32_t value);
+/*%<
+ * Set the maximum resource records per RRSet that can be cached.
+ */
+
 #ifdef HAVE_LIBXML2
 int
 dns_cache_renderxml(dns_cache_t *cache, void *writer0);
