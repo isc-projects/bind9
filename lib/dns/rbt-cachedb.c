@@ -1582,6 +1582,7 @@ dns_dbmethods_t dns__rbtdb_cachemethods = {
 	.unlocknode = dns__rbtdb_unlocknode,
 	.expiredata = expiredata,
 	.deletedata = dns__rbtdb_deletedata,
+	.setmaxrrperset = dns__rbtdb_setmaxrrperset,
 };
 
 /*

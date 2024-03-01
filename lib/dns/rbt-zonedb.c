@@ -1749,7 +1749,8 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    rbtdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -2418,6 +2419,7 @@ dns_dbmethods_t dns__rbtdb_zonemethods = {
 	.addglue = addglue,
 	.deletedata = dns__rbtdb_deletedata,
 	.nodefullname = dns__rbtdb_nodefullname,
+	.setmaxrrperset = dns__rbtdb_setmaxrrperset,
 };
 
 void

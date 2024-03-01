@@ -367,6 +367,19 @@ dns_zone_getmaxrecords(dns_zone_t *zone);
  */
 
 void
+dns_zone_setmaxrrperset(dns_zone_t *zone, uint32_t maxrrperset);
+/*%<
+ * 	Sets the maximum number of records per rrset permitted in a zone.
+ *	0 implies unlimited.
+ *
+ * Requires:
+ *\li	'zone' to be valid initialised zone.
+ *
+ * Returns:
+ *\li	void
+ */
+
+void
 dns_zone_setmaxttl(dns_zone_t *zone, uint32_t maxttl);
 /*%<
  * 	Sets the max ttl of the zone.

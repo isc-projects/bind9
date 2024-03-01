@@ -16,6 +16,7 @@ zone <string> [ <class> ] {
 	max-ixfr-ratio ( unlimited | <percentage> );
 	max-journal-size ( default | unlimited | <sizeval> );
 	max-records <integer>;
+	max-records-per-type <integer>;
 	max-refresh-time <integer>;
 	max-retry-time <integer>;
 	max-transfer-idle-in <integer>;

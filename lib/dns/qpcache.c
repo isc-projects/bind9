@@ -217,6 +217,8 @@ struct qpcache {
 	/* Locked by lock. */
 	unsigned int active;
 
+	uint32_t maxrrperset; /* Maximum RRs per RRset */
+
 	/*
 	 * The time after a failed lookup, where stale answers from cache
 	 * may be used directly in a DNS response without attempting a
@@ -3280,7 +3282,7 @@ find_header:
 }
 
 static isc_result_t
-addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *noqname = NULL;
@@ -3291,12 +3293,12 @@ addnoqname(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getnoqname(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3319,7 +3321,7 @@ cleanup:
 }
 
 static isc_result_t
-addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
+addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader, uint32_t maxrrperset,
 	   dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dns_slabheader_proof_t *closest = NULL;
@@ -3330,12 +3332,12 @@ addclosest(isc_mem_t *mctx, dns_slabheader_t *newheader,
 	result = dns_rdataset_getclosest(rdataset, &name, &neg, &negsig);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0);
+	result = dns_rdataslab_fromrdataset(&neg, mctx, &r1, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0);
+	result = dns_rdataslab_fromrdataset(&negsig, mctx, &r2, 0, maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3386,7 +3388,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
-					    &region, sizeof(dns_slabheader_t));
+					    &region, sizeof(dns_slabheader_t),
+					    qpdb->maxrrperset);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3423,14 +3426,16 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_OPTOUT);
 	}
 	if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
-		result = addnoqname(qpdb->common.mctx, newheader, rdataset);
+		result = addnoqname(qpdb->common.mctx, newheader,
+				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
 			return (result);
 		}
 	}
 	if ((rdataset->attributes & DNS_RDATASETATTR_CLOSEST) != 0) {
-		result = addclosest(qpdb->common.mctx, newheader, rdataset);
+		result = addclosest(qpdb->common.mctx, newheader,
+				    qpdb->maxrrperset, rdataset);
 		if (result != ISC_R_SUCCESS) {
 			dns_slabheader_destroy(&newheader);
 			return (result);
@@ -4330,6 +4335,15 @@ expire_ttl_headers(qpcache_t *qpdb, unsigned int locknum,
 	}
 }
 
+static void
+setmaxrrperset(dns_db_t *db, uint32_t value) {
+	qpcache_t *qpdb = (qpcache_t *)db;
+
+	REQUIRE(VALID_QPDB(qpdb));
+
+	qpdb->maxrrperset = value;
+}
+
 static dns_dbmethods_t qpdb_cachemethods = {
 	.destroy = qpdb_destroy,
 	.findnode = findnode,
@@ -4354,6 +4368,7 @@ static dns_dbmethods_t qpdb_cachemethods = {
 	.unlocknode = unlocknode,
 	.expiredata = expiredata,
 	.deletedata = deletedata,
+	.setmaxrrperset = setmaxrrperset,
 };
 
 static void
