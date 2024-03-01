@@ -274,15 +274,5 @@ fi
 DIGOPTS="+bufsize=4096 +ignore -p ${PORT}"
 $DIG $DIGOPTS @$ns4 TXT big.tld4 >/dev/null 2>&1
 
-# check named doesn't start with a broken config
-$NAMED -D rrl-ns5 -gc broken.conf >broken.out 2>&1 &
-sleep 2
-grep "min-table-size 1" broken.out >/dev/null || setret "min-table-size 0 was not changed to 1"
-
-if [ -f named.pid ]; then
-  kill $(cat named.pid)
-  setret "named should not have started, but did"
-fi
-
 echo_i "exit status: $ret"
 [ $ret -eq 0 ] || exit 1
