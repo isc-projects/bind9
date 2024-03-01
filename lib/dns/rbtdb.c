@@ -462,6 +462,7 @@ struct dns_rbtdb {
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
 	isc_task_t *task;
+	isc_task_t *prunetask;
 	dns_dbnode_t *soanode;
 	dns_dbnode_t *nsnode;
 
@@ -1162,6 +1163,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 	isc_refcount_destroy(&rbtdb->references);
 	if (rbtdb->task != NULL) {
 		isc_task_detach(&rbtdb->task);
+	}
+	if (rbtdb->prunetask != NULL) {
+		isc_task_detach(&rbtdb->prunetask);
 	}
 
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
@@ -1867,7 +1871,7 @@ send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	db = NULL;
 	attach((dns_db_t *)rbtdb, &db);
 	ev->ev_sender = db;
-	isc_task_send(rbtdb->task, &ev);
+	isc_task_send(rbtdb->prunetask, &ev);
 }
 
 /*%
@@ -7763,7 +7767,7 @@ hashsize(dns_db_t *db) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask) {
 	dns_rbtdb_t *rbtdb;
 
 	rbtdb = (dns_rbtdb_t *)db;
@@ -7776,6 +7780,12 @@ settask(dns_db_t *db, isc_task_t *task) {
 	}
 	if (task != NULL) {
 		isc_task_attach(task, &rbtdb->task);
+	}
+	if (rbtdb->prunetask != NULL) {
+		isc_task_detach(&rbtdb->prunetask);
+	}
+	if (prunetask != NULL) {
+		isc_task_attach(prunetask, &rbtdb->prunetask);
 	}
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
@@ -8454,6 +8464,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	isc_refcount_init(&rbtdb->references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->task = NULL;
+	rbtdb->prunetask = NULL;
 	rbtdb->serve_stale_ttl = 0;
 
 	/*
