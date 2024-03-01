@@ -621,33 +621,35 @@ fail:
 static void
 sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 	   dns_rdataset_t *rrset, dns_dnsseckeylist_t *keys) {
-	char timestr[26]; /* Minimal buf as per ctime_r() spec. */
-	char utc[sizeof("YYYYMMDDHHSSMM")];
 	dns_rdatalist_t *rrsiglist = NULL;
 	dns_rdataset_t rrsigset = DNS_RDATASET_INIT;
 	isc_bufferlist_t cleanup = ISC_LIST_INITIALIZER;
 	isc_buffer_t *cbuf = NULL;
-	isc_buffer_t timebuf;
-	isc_buffer_t b;
-	isc_region_t r;
 	isc_result_t ret;
 
 	UNUSED(ksr);
 
 	/* Bundle header */
-	isc_buffer_init(&timebuf, timestr, sizeof(timestr));
-	isc_stdtime_tostring(inception, timestr, sizeof(timestr));
-	isc_buffer_init(&b, utc, sizeof(utc));
-	ret = dns_time32_totext(inception, &b);
-	if (ret != ISC_R_SUCCESS) {
-		fatal("failed to convert bundle time32 to text: %s",
-		      isc_result_totext(ret));
+	if (rrset->type == dns_rdatatype_dnskey) {
+		char timestr[26]; /* Minimal buf as per ctime_r() spec. */
+		char utc[sizeof("YYYYMMDDHHSSMM")];
+		isc_buffer_t timebuf;
+		isc_buffer_t b;
+		isc_region_t r;
+		isc_buffer_init(&timebuf, timestr, sizeof(timestr));
+		isc_stdtime_tostring(inception, timestr, sizeof(timestr));
+		isc_buffer_init(&b, utc, sizeof(utc));
+		ret = dns_time32_totext(inception, &b);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("failed to convert bundle time32 to text: %s",
+			      isc_result_totext(ret));
+		}
+		isc_buffer_usedregion(&b, &r);
+		fprintf(stdout, ";; SignedKeyResponse 1.0 %.*s (%s)\n",
+			(int)r.length, r.base, timestr);
 	}
-	isc_buffer_usedregion(&b, &r);
-	fprintf(stdout, ";; SignedKeyResponse 1.0 %.*s (%s)\n", (int)r.length,
-		r.base, timestr);
 
-	/* DNSKEY RRset */
+	/* RRset */
 	print_rdata(rrset);
 
 	/* Signatures */
@@ -699,8 +701,98 @@ sign_rrset(ksr_ctx_t *ksr, isc_stdtime_t inception, isc_stdtime_t expiration,
 }
 
 static void
+create_cds(ksr_ctx_t *ksr, dns_kasp_t *kasp, dns_dnsseckeylist_t *keys,
+	   dns_rdataset_t *cdnskeyset, dns_rdataset_t *cdsset) {
+	dns_rdatalist_t *cdnskeylist = isc_mem_get(mctx, sizeof(*cdnskeylist));
+	dns_rdatalist_t *cdslist = isc_mem_get(mctx, sizeof(*cdslist));
+	isc_bufferlist_t cleanup = ISC_LIST_INITIALIZER;
+	isc_buffer_t *cbuf = NULL;
+	isc_result_t ret = ISC_R_SUCCESS;
+	dns_kasp_digestlist_t digests = dns_kasp_digests(kasp);
+
+	dns_rdatalist_init(cdnskeylist);
+	cdnskeylist->rdclass = dns_rdataclass_in;
+	cdnskeylist->type = dns_rdatatype_cdnskey;
+	cdnskeylist->ttl = ksr->ttl;
+
+	dns_rdatalist_init(cdslist);
+	cdslist->rdclass = dns_rdataclass_in;
+	cdslist->type = dns_rdatatype_cds;
+	cdslist->ttl = ksr->ttl;
+
+	for (dns_dnsseckey_t *dk = ISC_LIST_HEAD(*keys); dk != NULL;
+	     dk = ISC_LIST_NEXT(dk, link))
+	{
+		isc_buffer_t buf;
+		isc_buffer_t *newbuf = NULL;
+		dns_rdata_t *rdata = NULL;
+		isc_region_t r;
+		isc_region_t rcds;
+		unsigned char rdatabuf[DST_KEY_MAXSIZE];
+		unsigned char cdsbuf[DNS_DS_BUFFERSIZE];
+
+		rdata = isc_mem_get(mctx, sizeof(*rdata));
+		dns_rdata_init(rdata);
+
+		isc_buffer_init(&buf, rdatabuf, sizeof(rdatabuf));
+		CHECK(dst_key_todns(dk->key, &buf));
+		isc_buffer_usedregion(&buf, &r);
+		isc_buffer_allocate(mctx, &newbuf, r.length);
+		isc_buffer_putmem(newbuf, r.base, r.length);
+		isc_buffer_usedregion(newbuf, &r);
+		dns_rdata_fromregion(rdata, dns_rdataclass_in,
+				     dns_rdatatype_cdnskey, &r);
+		if (dns_kasp_cdnskey(kasp)) {
+			ISC_LIST_APPEND(cdnskeylist->rdata, rdata, link);
+		}
+		ISC_LIST_APPEND(cleanup, newbuf, link);
+		isc_buffer_clear(newbuf);
+
+		for (dns_kasp_digest_t *alg = ISC_LIST_HEAD(digests);
+		     alg != NULL; alg = ISC_LIST_NEXT(alg, link))
+		{
+			dns_rdata_t *rdata2 = NULL;
+			dns_rdata_t cds = DNS_RDATA_INIT;
+
+			rdata2 = isc_mem_get(mctx, sizeof(*rdata2));
+			dns_rdata_init(rdata2);
+
+			newbuf = NULL;
+			CHECK(dns_ds_buildrdata(name, rdata, alg->digest,
+						cdsbuf, &cds));
+			cds.type = dns_rdatatype_cds;
+			dns_rdata_toregion(&cds, &rcds);
+			isc_buffer_allocate(mctx, &newbuf, rcds.length);
+			isc_buffer_putmem(newbuf, rcds.base, rcds.length);
+			isc_buffer_usedregion(newbuf, &rcds);
+			dns_rdata_fromregion(rdata2, dns_rdataclass_in,
+					     dns_rdatatype_cds, &rcds);
+			ISC_LIST_APPEND(cdslist->rdata, rdata2, link);
+			ISC_LIST_APPEND(cleanup, newbuf, link);
+			isc_buffer_clear(newbuf);
+		}
+	}
+	/* All good */
+	dns_rdatalist_tordataset(cdnskeylist, cdnskeyset);
+	dns_rdatalist_tordataset(cdslist, cdsset);
+	return;
+
+fail:
+	cbuf = ISC_LIST_HEAD(cleanup);
+	while (cbuf != NULL) {
+		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
+		ISC_LIST_UNLINK(cleanup, cbuf, link);
+		isc_buffer_free(&cbuf);
+		cbuf = nbuf;
+	}
+
+	fatal("failed to create CDS/CDNSKEY");
+}
+
+static void
 sign_bundle(ksr_ctx_t *ksr, isc_stdtime_t inception,
 	    isc_stdtime_t next_inception, dns_rdatalist_t *rdatalist,
+	    dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 	    dns_dnsseckeylist_t *keys) {
 	dns_rdataset_t rrset = DNS_RDATASET_INIT;
 	isc_stdtime_t expiration;
@@ -710,6 +802,12 @@ sign_bundle(ksr_ctx_t *ksr, isc_stdtime_t inception,
 	expiration = inception + ksr->sigvalidity;
 	while (inception <= next_inception) {
 		sign_rrset(ksr, inception, expiration, &rrset, keys);
+		if (dns_rdataset_count(cdnskey) > 0) {
+			sign_rrset(ksr, inception, expiration, cdnskey, keys);
+		}
+		if (dns_rdataset_count(cds) > 0) {
+			sign_rrset(ksr, inception, expiration, cds, keys);
+		}
 		inception = expiration - ksr->sigrefresh;
 		expiration = inception + ksr->sigvalidity;
 	}
@@ -895,6 +993,8 @@ sign(ksr_ctx_t *ksr) {
 	dns_dnsseckeylist_t keys;
 	dns_kasp_t *kasp = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdataset_t cdnskey = DNS_RDATASET_INIT;
+	dns_rdataset_t cds = DNS_RDATASET_INIT;
 	isc_bufferlist_t cleanup_list = ISC_LIST_INITIALIZER;
 	isc_buffer_t *cbuf = NULL;
 	isc_result_t ret;
@@ -928,6 +1028,9 @@ sign(ksr_ctx_t *ksr) {
 		fatal("unable to open KSR file %s: %s", ksr->file,
 		      isc_result_totext(ret));
 	}
+
+	/* CDS and CDNSKEY */
+	create_cds(ksr, kasp, &keys, &cdnskey, &cds);
 
 	for (ret = isc_lex_gettoken(lex, opt, &token); ret == ISC_R_SUCCESS;
 	     ret = isc_lex_gettoken(lex, opt, &token))
@@ -977,7 +1080,7 @@ sign(ksr_ctx_t *ksr) {
 			if (have_bundle) {
 				/* Sign previous bundle */
 				sign_bundle(ksr, inception, next_inception,
-					    rdatalist, &keys);
+					    rdatalist, &cds, &cdnskey, &keys);
 				fprintf(stdout, "\n");
 			}
 
@@ -1045,7 +1148,8 @@ sign(ksr_ctx_t *ksr) {
 
 	/* Final bundle */
 	if (have_bundle && rdatalist != NULL) {
-		sign_bundle(ksr, inception, ksr->end, rdatalist, &keys);
+		sign_bundle(ksr, inception, ksr->end, rdatalist, &cds, &cdnskey,
+			    &keys);
 	} else {
 		fatal("bad KSR file %s(%lu): no bundles", ksr->file,
 		      isc_lex_getsourceline(lex));
@@ -1058,6 +1162,9 @@ sign(ksr_ctx_t *ksr) {
 
 fail:
 	/* Clean up */
+	freerrset(&cds);
+	freerrset(&cdnskey);
+
 	cbuf = ISC_LIST_HEAD(cleanup_list);
 	while (cbuf != NULL) {
 		isc_buffer_t *nbuf = ISC_LIST_NEXT(cbuf, link);
