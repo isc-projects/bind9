@@ -2336,14 +2336,18 @@ prune_tree(isc_task_t *task, isc_event_t *event) {
 
 		if (parent->locknum == locknum) {
 			/*
-			 * Add the parent to the matching prunenodes list
-			 * manually, because send_to_prune_tree() would create
-			 * new event in the case the current node was the last
-			 * node on the prunenodes list.
+			 * The parent belongs to the same node bucket as the
+			 * node we just processed, so there is no need to
+			 * switch node locks.  Directly add the parent to the
+			 * prunenodes list we are currently processing (unless
+			 * the parent is already on that list).
 			 */
-			new_reference(rbtdb, parent, isc_rwlocktype_write);
-			ISC_LIST_APPEND(rbtdb->prunenodes[parent->locknum],
-					parent, prunelink);
+			if (!ISC_LINK_LINKED(node, prunelink)) {
+				new_reference(rbtdb, parent,
+					      isc_rwlocktype_write);
+				ISC_LIST_APPEND(rbtdb->prunenodes[locknum],
+						parent, prunelink);
+			}
 			NODE_UNLOCK(&rbtdb->node_locks[locknum].lock,
 				    isc_rwlocktype_write);
 		} else {
