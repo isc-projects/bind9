@@ -500,6 +500,7 @@ struct dns_rbtdb {
 	rbtdb_version_t *future_version;
 	rbtdb_versionlist_t open_versions;
 	isc_task_t *task;
+	isc_task_t *prunetask;
 	dns_dbnode_t *soanode;
 	dns_dbnode_t *nsnode;
 
@@ -528,10 +529,6 @@ struct dns_rbtdb {
 	 * nodes that await being cleaned up.
 	 */
 	rbtnodelist_t *deadnodes;
-
-	/* List of nodes from which recursive tree pruning can be started from.
-	 * Locked by tree_lock. */
-	rbtnodelist_t *prunenodes;
 
 	/*
 	 * Heaps.  These are used for TTL based expiry in a cache,
@@ -1140,14 +1137,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 		}
 	}
 
-	for (i = 0; i < rbtdb->node_lock_count; i++) {
-		node = ISC_LIST_HEAD(rbtdb->prunenodes[i]);
-		while (node != NULL) {
-			ISC_LIST_UNLINK(rbtdb->prunenodes[i], node, prunelink);
-			node = ISC_LIST_HEAD(rbtdb->prunenodes[i]);
-		}
-	}
-
 	if (event == NULL) {
 		rbtdb->quantum = (rbtdb->task != NULL) ? 100 : 0;
 	}
@@ -1235,17 +1224,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 			    rbtdb->node_lock_count * sizeof(rbtnodelist_t));
 	}
 	/*
-	 * Clean up prune node buckets.
-	 */
-	if (rbtdb->prunenodes != NULL) {
-		for (i = 0; i < rbtdb->node_lock_count; i++) {
-			INSIST(ISC_LIST_EMPTY(rbtdb->prunenodes[i]));
-		}
-		isc_mem_put(rbtdb->common.mctx, rbtdb->prunenodes,
-			    rbtdb->node_lock_count *
-				    sizeof(rbtdb->prunenodes[i]));
-	}
-	/*
 	 * Clean up heap objects.
 	 */
 	if (rbtdb->heaps != NULL) {
@@ -1272,6 +1250,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 	isc_refcount_destroy(&rbtdb->references);
 	if (rbtdb->task != NULL) {
 		isc_task_detach(&rbtdb->task);
+	}
+	if (rbtdb->prunetask != NULL) {
+		isc_task_detach(&rbtdb->prunetask);
 	}
 
 	RBTDB_DESTROYLOCK(&rbtdb->lock);
@@ -1897,7 +1878,6 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	isc_result_t result = ISC_R_UNEXPECTED;
 
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
-	INSIST(!ISC_LINK_LINKED(node, prunelink));
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
@@ -1995,10 +1975,6 @@ is_last_node_on_its_level(dns_rbtnode_t *node) {
 		node->left == NULL && node->right == NULL);
 }
 
-/*%
- * The tree lock must be held when this function is called as it reads and
- * updates rbtdb->prunenodes.
- */
 static void
 send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		   isc_rwlocktype_t nlocktype) {
@@ -8243,7 +8219,7 @@ adjusthashsize(dns_db_t *db, size_t size) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask) {
 	dns_rbtdb_t *rbtdb;
 
 	rbtdb = (dns_rbtdb_t *)db;
@@ -8256,6 +8232,12 @@ settask(dns_db_t *db, isc_task_t *task) {
 	}
 	if (task != NULL) {
 		isc_task_attach(task, &rbtdb->task);
+	}
+	if (rbtdb->prunetask != NULL) {
+		isc_task_detach(&rbtdb->prunetask);
+	}
+	if (prunetask != NULL) {
+		isc_task_attach(prunetask, &rbtdb->prunetask);
 	}
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
 }
@@ -8831,12 +8813,6 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		ISC_LIST_INIT(rbtdb->deadnodes[i]);
 	}
 
-	rbtdb->prunenodes = isc_mem_get(
-		mctx, rbtdb->node_lock_count * sizeof(rbtdb->prunenodes[0]));
-	for (i = 0; i < (int)rbtdb->node_lock_count; i++) {
-		ISC_LIST_INIT(rbtdb->prunenodes[i]);
-	}
-
 	rbtdb->active = rbtdb->node_lock_count;
 
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
@@ -8944,6 +8920,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	isc_refcount_init(&rbtdb->references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->task = NULL;
+	rbtdb->prunetask = NULL;
 	rbtdb->serve_stale_ttl = 0;
 
 	/*
