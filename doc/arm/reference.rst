@@ -2945,6 +2945,18 @@ system.
    This sets the maximum number of records permitted in a zone. The default is
    zero, which means the maximum is unlimited.
 
+``max-records-per-type``
+   This sets the maximum number of resource records that can be stored
+   in an RRset in a database. When configured in ``options``
+   or ``view``, it controls the cache database; it also sets
+   the default value for zone databases, which can be overridden by setting
+   it at the ``zone`` level.
+
+   If set to a positive value, any attempt to cache or to add to a zone
+   an RRset with more than the specified number of records will result in
+   a failure.  If set to 0, there is no cap on RRset size.  The default is
+   100.
+
 ``recursive-clients``
    This sets the maximum number (a "hard quota") of simultaneous recursive lookups
    the server performs on behalf of clients. The default is

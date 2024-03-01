@@ -871,6 +871,8 @@ dns_view_setcache(dns_view_t *view, dns_cache_t *cache, bool shared) {
 	dns_cache_attach(cache, &view->cache);
 	dns_cache_attachdb(cache, &view->cachedb);
 	INSIST(DNS_DB_VALID(view->cachedb));
+
+	dns_cache_setmaxrrperset(view->cache, view->maxrrperset);
 }
 
 bool
@@ -2639,4 +2641,13 @@ dns_view_staleanswerenabled(dns_view_t *view) {
 	}
 
 	return (result);
+}
+
+void
+dns_view_setmaxrrperset(dns_view_t *view, uint32_t value) {
+	REQUIRE(DNS_VIEW_VALID(view));
+	view->maxrrperset = value;
+	if (view->cache != NULL) {
+		dns_cache_setmaxrrperset(view->cache, value);
+	}
 }

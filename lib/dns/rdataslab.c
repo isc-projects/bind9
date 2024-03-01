@@ -118,7 +118,8 @@ fillin_offsets(unsigned char *offsetbase, unsigned int *offsettable,
 
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, unsigned int reservelen) {
+			   isc_region_t *region, unsigned int reservelen,
+			   uint32_t maxrrperset) {
 	/*
 	 * Use &removed as a sentinel pointer for duplicate
 	 * rdata as rdata.data == NULL is valid.
@@ -160,7 +161,7 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 		return (ISC_R_SUCCESS);
 	}
 
-	if (nitems > DNS_RDATASET_MAX_RECORDS) {
+	if (maxrrperset > 0 && nitems > maxrrperset) {
 		return (DNS_R_TOOMANYRECORDS);
 	}
 
@@ -492,7 +493,8 @@ isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned int flags, unsigned char **tslabp) {
+		    unsigned int flags, uint32_t maxrrperset,
+		    unsigned char **tslabp) {
 	unsigned char *ocurrent, *ostart, *ncurrent, *tstart, *tcurrent, *data;
 	unsigned int ocount, ncount, count, olength, tlength, tcount, length;
 	dns_rdata_t ordata = DNS_RDATA_INIT;
@@ -532,7 +534,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 #endif /* if DNS_RDATASET_FIXED */
 	INSIST(ocount > 0 && ncount > 0);
 
-	if (ocount + ncount > DNS_RDATASET_MAX_RECORDS) {
+	if (maxrrperset > 0 && ocount + ncount > maxrrperset) {
 		return (DNS_R_TOOMANYRECORDS);
 	}
 

@@ -205,8 +205,6 @@ xfrin_create(isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db, isc_task_t *task,
 static isc_result_t
 axfr_init(dns_xfrin_ctx_t *xfr);
 static isc_result_t
-axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp);
-static isc_result_t
 axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op, dns_name_t *name,
 	     dns_ttl_t ttl, dns_rdata_t *rdata);
 static isc_result_t
@@ -279,27 +277,15 @@ axfr_init(dns_xfrin_ctx_t *xfr) {
 		dns_db_detach(&xfr->db);
 	}
 
-	CHECK(axfr_makedb(xfr, &xfr->db));
+	CHECK(dns_zone_makedb(xfr->zone, &xfr->db));
+
+	dns_zone_rpz_enable_db(xfr->zone, xfr->db);
+	dns_zone_catz_enable_db(xfr->zone, xfr->db);
+
 	dns_rdatacallbacks_init(&xfr->axfr);
 	CHECK(dns_db_beginload(xfr->db, &xfr->axfr));
 	result = ISC_R_SUCCESS;
 failure:
-	return (result);
-}
-
-static isc_result_t
-axfr_makedb(dns_xfrin_ctx_t *xfr, dns_db_t **dbp) {
-	isc_result_t result;
-
-	result = dns_db_create(xfr->mctx, /* XXX */
-			       "rbt",	  /* XXX guess */
-			       &xfr->name, dns_dbtype_zone, xfr->rdclass, 0,
-			       NULL, /* XXX guess */
-			       dbp);
-	if (result == ISC_R_SUCCESS) {
-		dns_zone_rpz_enable_db(xfr->zone, *dbp);
-		dns_zone_catz_enable_db(xfr->zone, *dbp);
-	}
 	return (result);
 }
 

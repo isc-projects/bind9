@@ -975,7 +975,8 @@ static dns_dbmethods_t rpsdb_db_methods = {
 	NULL, /* setservestalerefresh */
 	NULL, /* getservestalerefresh */
 	NULL, /* setgluecachestats */
-	NULL  /* adjusthashsize */
+	NULL, /* adjusthashsize */
+	NULL  /* setmaxrrperset */
 };
 
 static dns_rdatasetmethods_t rpsdb_rdataset_methods = {

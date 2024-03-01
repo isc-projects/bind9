@@ -151,6 +151,8 @@ struct dns_cache {
 	/* Locked by 'filelock'. */
 	char *filename;
 	/* Access to the on-disk cache file is also locked by 'filelock'. */
+
+	uint32_t maxrrperset;
 };
 
 /***
@@ -184,6 +186,7 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	}
 
 	dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+	dns_db_setmaxrrperset(*db, cache->maxrrperset);
 
 	if (cache->taskmgr == NULL) {
 		return (ISC_R_SUCCESS);
@@ -1313,6 +1316,16 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result) {
 	default:
 		isc_stats_increment(cache->stats,
 				    dns_cachestatscounter_querymisses);
+	}
+}
+
+void
+dns_cache_setmaxrrperset(dns_cache_t *cache, uint32_t value) {
+	REQUIRE(VALID_CACHE(cache));
+
+	cache->maxrrperset = value;
+	if (cache->db != NULL) {
+		dns_db_setmaxrrperset(cache->db, value);
 	}
 }
 
