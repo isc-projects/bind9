@@ -251,6 +251,8 @@ check_ksr() {
   start=$3
   end=$4
   numzsks=$5
+  cds=$($DSFROMKEY -T 3600 -a SHA-256 -C -w $(cat "${zone}.ksk1.id"))
+  cdnskey=$(awk '{sub(/DNSKEY/,"CDNSKEY")}1' <${zone}.ksk1)
 
   echo_i "check ksr: zone $1 file $2 from $3 to $4 num-zsk $5"
 
@@ -272,7 +274,11 @@ check_ksr() {
     # ;; SignedKeyResponse (header)
     # ;; DNSKEY 257 (ksk)
     # ;; one or two (during rollover) DNSKEY 256 (zsk1, zsk2)
-    # ;; RRSIG (rrsig)
+    # ;; RRSIG(DNSKEY) (rrsig-dnskey)
+    # ;; CDNSKEY (cdnskey)
+    # ;; RRSIG(CDNSKEY) (rrsig-cdnskey)
+    # ;; CDS (cds)
+    # ;; RRSIG(CDS) (rrsig-cds)
     err=0
     lineno=$((lineno + 1))
 
@@ -283,27 +289,47 @@ check_ksr() {
 
     if [ "$expect" = "header" ]; then
       expected=";; SignedKeyResponse 1.0 $inception"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
+      echo $line | grep "$expected" >/dev/null || err=1
       next_inception=$(addtime $inception 777600)
       expect="ksk"
     elif [ "$expect" = "ksk" ]; then
       expected="$(cat ${zone}.ksk1)"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
+      echo $line | grep "$expected" >/dev/null || err=1
       expect="zsk1"
+    elif [ "$expect" = "cdnskey" ]; then
+      expected="$cdnskey"
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="rrsig-cdnskey"
+    elif [ "$expect" = "cds" ]; then
+      expected="$cds"
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="rrsig-cds"
     elif [ "$expect" = "zsk1" ]; then
       expected="$(cat $key1)"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
-      expect="rrsig"
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="rrsig-dnskey"
       [ "$rollover" -eq 1 ] && expect="zsk2"
     elif [ "$expect" = "zsk2" ]; then
       expected="$(cat $key2)"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
-      expect="rrsig"
-    elif [ "$expect" = "rrsig" ]; then
-      expiration=$(addtime $inception 1209600) # signature-validity 14 days
-      inception=$(addtime $inception -3600)    # adjust for one hour clock skew
-      expected="${zone}. 3600 IN RRSIG DNSKEY 13 2 3600 $expiration $inception"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="rrsig-dnskey"
+    elif [ "$expect" = "rrsig-dnskey" ]; then
+      exp=$(addtime $inception 1209600) # signature-validity 14 days
+      inc=$(addtime $inception -3600)   # adjust for one hour clock skew
+      expected="${zone}. 3600 IN RRSIG DNSKEY 13 2 3600 $exp $inc"
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="cdnskey"
+    elif [ "$expect" = "rrsig-cdnskey" ]; then
+      exp=$(addtime $inception 1209600) # signature-validity 14 days
+      inc=$(addtime $inception -3600)   # adjust for one hour clock skew
+      expected="${zone}. 3600 IN RRSIG CDNSKEY 13 2 3600 $exp $inc"
+      echo $line | grep "$expected" >/dev/null || err=1
+      expect="cds"
+    elif [ "$expect" = "rrsig-cds" ]; then
+      exp=$(addtime $inception 1209600) # signature-validity 14 days
+      inc=$(addtime $inception -3600)   # adjust for one hour clock skew
+      expected="${zone}. 3600 IN RRSIG CDS 13 2 3600 $exp $inc"
+      echo $line | grep "$expected" >/dev/null || err=1
 
       inception=$next_inception
       expect="header"
@@ -630,33 +656,65 @@ cp ksr.request.expect.$n ksr.request.expect
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+num_occurrences() {
+  count="$1"
+  file="$2"
+  line="$3"
+  exclude="$4"
+
+  if [ -z "$exclude" ]; then
+    lines=$(cat "$file" | while read line; do echo $line; done | grep "$line" | wc -l)
+    echo_i "$lines occurrences: $1 $2 $3"
+  else
+    lines=$(cat "$file" | while read line; do echo $line; done | grep -v "$exclude" | grep "$line" | wc -l)
+    echo_i "$lines occurrences: $1 $2 $3 (exclude $4)"
+  fi
+
+  test "$lines" -eq "$count" || return 1
+}
+
 # Sign request: two-tone
 n=$((n + 1))
 echo_i "check that 'dnssec-ksr sign' creates correct SKR with multiple algorithms ($n)"
 ret=0
 ksr two-tone -i $created -e +6mo -K offline -f ksr.request.expect sign two-tone.test >ksr.sign.out.$n 2>&1 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
 # Weak testing:
 zone="two-tone.test"
 # expect 24 headers (including the footer)
-lines=$(grep ";; SignedKeyResponse 1.0" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 24 || ret=1
-# expect 23 KSKs (for each header one)
-lines=$(grep "DNSKEY.*257 3 8" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 23 || ret=1
-lines=$(grep "DNSKEY.*257 3 13" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 23 || ret=1
-# and thus 23 signatures
-lines=$(grep "RRSIG.*DNSKEY 8" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 23 || ret=1
-lines=$(grep "RRSIG.*DNSKEY 13" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 23 || ret=1
+num_occurrences 24 ksr.sign.out.$n ";; SignedKeyResponse 1.0" || ret=1
+# expect 23 KSKs and its signatures (for each header one)
+num_occurrences 23 ksr.sign.out.$n "DNSKEY 257 3 8" "CDNSKEY" || ret=1 # exclude CDNSKEY lines
+test "$ret" -eq 0 || echo_i "2 failed"
+num_occurrences 23 ksr.sign.out.$n "DNSKEY 257 3 13" "CDNSKEY" || ret=1 # exclude CDNSKEY lines
+test "$ret" -eq 0 || echo_i "3 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG DNSKEY 8" "CDNSKEY" || ret=1 # exclude CDNSKEY lines
+test "$ret" -eq 0 || echo_i "4 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG DNSKEY 13" "CDNSKEY" || ret=1 # exclude CDNSKEY lines
+test "$ret" -eq 0 || echo_i "5 failed"
+# ... 23 CDNSKEY records and its signatures
+num_occurrences 23 ksr.sign.out.$n "CDNSKEY 257 3 8" || ret=1
+test "$ret" -eq 0 || echo_i "6 failed"
+num_occurrences 23 ksr.sign.out.$n "CDNSKEY 257 3 13" || ret=1
+test "$ret" -eq 0 || echo_i "7 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG CDNSKEY 8" || ret=1
+test "$ret" -eq 0 || echo_i "8 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG CDNSKEY 13" || ret=1
+test "$ret" -eq 0 || echo_i "9 failed"
+# ... 23 CDS records and its signatures
+num_occurrences 23 ksr.sign.out.$n "CDS 8 2" || ret=1
+test "$ret" -eq 0 || echo_i "10 failed"
+num_occurrences 23 ksr.sign.out.$n "CDS 13 2" || ret=1
+test "$ret" -eq 0 || echo_i "11 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG CDS 8" || ret=1
+test "$ret" -eq 0 || echo_i "12 failed"
+num_occurrences 23 ksr.sign.out.$n "RRSIG CDS 13" || ret=1
+test "$ret" -eq 0 || echo_i "13 failed"
 # expect 25 ZSK (two more for double keys during the rollover)
-lines=$(grep "DNSKEY.*256 3 8" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 25 || ret=1
-lines=$(grep "DNSKEY.*256 3 13" ksr.sign.out.$n | wc -l)
-test "$lines" -eq 25 || ret=1
-
-test "$ret" -eq 0 || echo_i "failed"
+num_occurrences 25 ksr.sign.out.$n "DNSKEY 256 3 8" || ret=1
+test "$ret" -eq 0 || echo_i "14 failed"
+num_occurrences 25 ksr.sign.out.$n "DNSKEY 256 3 13" || ret=1
+test "$ret" -eq 0 || echo_i "15 failed"
 status=$((status + ret))
 
 echo_i "exit status: $status"

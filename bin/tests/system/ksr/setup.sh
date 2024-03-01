@@ -29,6 +29,7 @@ create_ksk() {
   num=0
   for ksk in $KSK; do
     num=$(($num + 1))
+    echo $ksk >"${1}.ksk${num}.id"
     cat "${ksk}.key" | grep -v ";.*" >"$1.ksk$num"
     cp "${ksk}.key" offline/
     cp "${ksk}.private" offline/
