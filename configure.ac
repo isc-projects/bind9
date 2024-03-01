@@ -1203,8 +1203,8 @@ AC_ARG_ENABLE([fixed-rrset],
 			      [enable fixed rrset ordering [default=no]])],
 	      [], [enable_fixed_rrset="no"])
 AS_IF([test "$enable_fixed_rrset" = "yes"],
-      [AC_DEFINE([DNS_RDATASET_FIXED], [1],
-		 [Define to enable "rrset-order fixed" syntax.])])
+      [AC_MSG_WARN([fixed rrset ordering is deprecated and will be removed in the future release])
+       AC_DEFINE([DNS_RDATASET_FIXED], [1], [Define to enable "rrset-order fixed" syntax.])])
 
 #
 # Activate dnstap?

@@ -4132,6 +4132,8 @@ RRset Ordering
    ``fixed``
        Records are returned in the order they are defined in the zone file.
 
+       This value is deprecated and will be removed in a future release.
+
    .. note::
 
        The ``fixed`` option is only available if BIND is configured with
