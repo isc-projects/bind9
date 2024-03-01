@@ -831,10 +831,10 @@ dns_db_hashsize(dns_db_t *db) {
 }
 
 void
-dns_db_settask(dns_db_t *db, isc_task_t *task) {
+dns_db_settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask) {
 	REQUIRE(DNS_DB_VALID(db));
 
-	(db->methods->settask)(db, task);
+	(db->methods->settask)(db, task, prunetask);
 }
 
 isc_result_t
