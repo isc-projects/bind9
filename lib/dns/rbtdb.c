@@ -2318,7 +2318,7 @@ prune_tree(isc_task_t *task, isc_event_t *event) {
 			 * prunenodes list we are currently processing (unless
 			 * the parent is already on that list).
 			 */
-			if (!ISC_LINK_LINKED(node, prunelink)) {
+			if (!ISC_LINK_LINKED(parent, prunelink)) {
 				new_reference(rbtdb, parent,
 					      isc_rwlocktype_write);
 				ISC_LIST_APPEND(rbtdb->prunenodes[locknum],
