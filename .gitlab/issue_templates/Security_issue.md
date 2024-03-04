@@ -107,10 +107,12 @@ gather system-wide statistics.
 - Does this issue affect multiple implementations?
 <!--
 Issues affecting multiple implementations require very careful coordination. We
-have to make the information does not leak to public until vendors are ready to
-release fixed versions. If that's the case we need to know about this situation
-as soon as possible to start (confidential!) coordination process within
+have to make sure the information does not leak to the public until vendors are ready to
+release fixed versions. If it is a multi-vendor issue, we need to know about the situation
+as soon as possible to start the (confidential!) coordination process within
 DNS-OARC and other suitable fora.
+
+Please list implementations you have tested.
 -->
 
 - Have you shared the information with anyone else?
