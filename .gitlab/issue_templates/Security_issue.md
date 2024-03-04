@@ -1,10 +1,10 @@
 ### Summary
-
-<!-- Concisely summarize the bug encountered,
-preferably in one paragraph or less. -->
+<!--
+Concisely summarize the bug encountered,
+preferably in one paragraph or less.
+-->
 
 ### BIND versions affected
-
 <!--
 Make sure you are testing with the **latest** supported version of BIND.
 See https://kb.isc.org/docs/supported-platforms for the current list.
@@ -14,7 +14,6 @@ Paste the output of `named -V` here.
 -->
 
 ### Preconditions and assumptions
-
 <!--
 Is a specific setup needed?
 
@@ -29,7 +28,6 @@ E.g. Attacker can affect system clock on the server running BIND.
 -->
 
 ### Attacker's abilities
-
 <!--
 What resources does an attacker need to have under their control to mount this attack?
 
@@ -57,7 +55,6 @@ traffic drops to 1/1000 within the first minute of the attack.
 
 
 ### Steps to reproduce
-
 <!--
 This is extremely important! Be precise and use itemized lists, please.
 
@@ -87,12 +84,13 @@ The server crashes immediately.
 ### What is the expected *correct* behavior?
 
 <!--
-If the attack causes resource exhaustion, what do you think the correct behavior should be? Should BIND refuse to process more requests?
+If the attack causes resource exhaustion, what do you think the correct
+behavior should be? Should BIND refuse to process more requests?
+
 What heuristic do you propose to distinguish legitimate and attack traffic?
 -->
 
 ### Relevant logs
-
 <!--
 Please provide log files from your testing. Include full named logs and also
 the output from any testing tools (e.g. dnsperf, DNS Shotgun, kxdpgun, etc.)
@@ -105,10 +103,35 @@ data. You can use https://gitlab.isc.org/isc-projects/resource-monitor/ to
 gather system-wide statistics.
 -->
 
-<!-- DO NOT modify the following two lines. -->
+### Coordination
+- Does this issue affect multiple implementations?
+<!--
+Issues affecting multiple implementations require very careful coordination. We
+have to make the information does not leak to public until vendors are ready to
+release fixed versions. If that's the case we need to know about this situation
+as soon as possible to start (confidential!) coordination process within
+DNS-OARC and other suitable fora.
+-->
+
+- Have you shared the information with anyone else?
+<!--
+Have you informed other affected vendors? Or maybe submitted a paper for
+review?
+-->
+
+- What is your plan to publicize this issue?
+<!--
+E.g. we plan to go public during conference XYZ on 20XX-XX-XX
+-->
 
 ### Acknowledgements
-<!-- Please specify whether and how you would like to be publicly credited with discovering the issue. We normally use the format "First_name Last_name, Company or Team".  -->
+<!--
+Please specify whether and how you would like to be publicly credited with
+discovering the issue. We normally use the format:
+First_name Last_name, Company_or_Team.
+-->
+
+<!-- DO NOT modify the following two lines. -->
 
 /label ~Bug ~Security
 /confidential
