@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <isc/async.h>
 #include <isc/hash.h>
 #include <isc/hashmap.h>
 #include <isc/loop.h>
@@ -1777,6 +1778,16 @@ tcp_startrecv(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 }
 
 static void
+resp_connected(void *arg) {
+	dns_dispentry_t *resp = arg;
+	dispentry_log(resp, ISC_LOG_DEBUG(90), "connect callback: %s",
+		      isc_result_totext(resp->result));
+
+	resp->connected(resp->result, NULL, resp->arg);
+	dns_dispentry_detach(&resp); /* DISPENTRY005 */
+}
+
+static void
 tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 	dns_dispatch_t *disp = (dns_dispatch_t *)arg;
 	dns_dispentry_t *resp = NULL;
@@ -1846,10 +1857,7 @@ tcp_connected(isc_nmhandle_t *handle, isc_result_t eresult, void *arg) {
 		next = ISC_LIST_NEXT(resp, rlink);
 		ISC_LIST_UNLINK(resps, resp, rlink);
 
-		dispentry_log(resp, ISC_LOG_DEBUG(90), "connect callback: %s",
-			      isc_result_totext(resp->result));
-		resp->connected(resp->result, NULL, resp->arg);
-		dns_dispentry_detach(&resp); /* DISPENTRY005 */
+		resp_connected(resp);
 	}
 
 	dns_dispatch_detach(&disp); /* DISPATCH003 */
@@ -1999,10 +2007,9 @@ tcp_dispatch_connect(dns_dispatch_t *disp, dns_dispentry_t *resp) {
 			tcp_startrecv(disp, resp);
 		}
 
-		/* We are already connected; call the connected cb */
-		dispentry_log(resp, ISC_LOG_DEBUG(90), "connect callback: %s",
-			      isc_result_totext(ISC_R_SUCCESS));
-		resp->connected(ISC_R_SUCCESS, NULL, resp->arg);
+		/* Already connected; call the connected cb asynchronously */
+		dns_dispentry_ref(resp); /* DISPENTRY005 */
+		isc_async_run(resp->loop, resp_connected, resp);
 		break;
 
 	default:
