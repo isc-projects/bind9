@@ -31,6 +31,23 @@ dnssec-policy "unlimited" {
 	};
 };
 
+dnssec-policy "no-cdnskey" {
+	keys {
+		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+	cdnskey no;
+	cds-digest-types { SHA-1; SHA-256; SHA-384; };
+};
+
+dnssec-policy "no-cds" {
+	keys {
+		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+		zsk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;
+	};
+	cds-digest-types { };
+};
+
 dnssec-policy "two-tone" {
 	keys {
 		ksk lifetime unlimited algorithm @DEFAULT_ALGORITHM@;

@@ -18,6 +18,11 @@
 
 set -e
 
+CDS_SHA1="no"
+CDS_SHA256="yes"
+CDS_SHA384="no"
+CDNSKEY="yes"
+
 status=0
 n=0
 
@@ -251,7 +256,9 @@ check_ksr() {
   start=$3
   end=$4
   numzsks=$5
-  cds=$($DSFROMKEY -T 3600 -a SHA-256 -C -w $(cat "${zone}.ksk1.id"))
+  cds1=$($DSFROMKEY -T 3600 -a SHA-1 -C -w $(cat "${zone}.ksk1.id"))
+  cds2=$($DSFROMKEY -T 3600 -a SHA-256 -C -w $(cat "${zone}.ksk1.id"))
+  cds4=$($DSFROMKEY -T 3600 -a SHA-384 -C -w $(cat "${zone}.ksk1.id"))
   cdnskey=$(awk '{sub(/DNSKEY/,"CDNSKEY")}1' <${zone}.ksk1)
 
   echo_i "check ksr: zone $1 file $2 from $3 to $4 num-zsk $5"
@@ -269,8 +276,9 @@ check_ksr() {
   echo_i "check ksr: inception $inception rollover-start $rollover_start rollover-done $rollover_done"
 
   lineno=0
+  complete=0
   while IFS= read -r line; do
-    # A single signed key response will consist of:
+    # A single signed key response may consist of:
     # ;; SignedKeyResponse (header)
     # ;; DNSKEY 257 (ksk)
     # ;; one or two (during rollover) DNSKEY 256 (zsk1, zsk2)
@@ -300,8 +308,26 @@ check_ksr() {
       expected="$cdnskey"
       echo $line | grep "$expected" >/dev/null || err=1
       expect="rrsig-cdnskey"
-    elif [ "$expect" = "cds" ]; then
-      expected="$cds"
+    elif [ "$expect" = "cds1" ]; then
+      expected="$cds1"
+      echo $line | grep "$expected" >/dev/null || err=1
+      if [ "$CDS_SHA256" = "yes" ]; then
+        expect="cds2"
+      elif [ "$CDS_SHA384" = "yes" ]; then
+        expect="cds4"
+      else
+        expect="rrsig-cds"
+      fi
+    elif [ "$expect" = "cds2" ]; then
+      expected="$cds2"
+      echo $line | grep "$expected" >/dev/null || err=1
+      if [ "$CDS_SHA384" = "yes" ]; then
+        expect="cds4"
+      else
+        expect="rrsig-cds"
+      fi
+    elif [ "$expect" = "cds4" ]; then
+      expected="$cds4"
       echo $line | grep "$expected" >/dev/null || err=1
       expect="rrsig-cds"
     elif [ "$expect" = "zsk1" ]; then
@@ -318,19 +344,59 @@ check_ksr() {
       inc=$(addtime $inception -3600)   # adjust for one hour clock skew
       expected="${zone}. 3600 IN RRSIG DNSKEY 13 2 3600 $exp $inc"
       echo $line | grep "$expected" >/dev/null || err=1
-      expect="cdnskey"
+      if [ "$CDNSKEY" = "yes" ]; then
+        expect="cdnskey"
+      elif [ "$CDS_SHA1" = "yes" ]; then
+        expect="cds1"
+      elif [ "$CDS_SHA256" = "yes" ]; then
+        expect="cds2"
+      elif [ "$CDS_SHA384" = "yes" ]; then
+        expect="cds4"
+      else
+        complete=1
+      fi
     elif [ "$expect" = "rrsig-cdnskey" ]; then
       exp=$(addtime $inception 1209600) # signature-validity 14 days
       inc=$(addtime $inception -3600)   # adjust for one hour clock skew
       expected="${zone}. 3600 IN RRSIG CDNSKEY 13 2 3600 $exp $inc"
       echo $line | grep "$expected" >/dev/null || err=1
-      expect="cds"
+      if [ "$CDS_SHA1" = "yes" ]; then
+        expect="cds1"
+      elif [ "$CDS_SHA256" = "yes" ]; then
+        expect="cds2"
+      elif [ "$CDS_SHA384" = "yes" ]; then
+        expect="cds4"
+      else
+        complete=1
+      fi
     elif [ "$expect" = "rrsig-cds" ]; then
       exp=$(addtime $inception 1209600) # signature-validity 14 days
       inc=$(addtime $inception -3600)   # adjust for one hour clock skew
       expected="${zone}. 3600 IN RRSIG CDS 13 2 3600 $exp $inc"
       echo $line | grep "$expected" >/dev/null || err=1
+      complete=1
+    elif [ "$expect" = "footer" ]; then
+      expected=";; SignedKeyResponse 1.0 generated at"
+      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
 
+      expect="eof"
+    elif [ "$expect" = "eof" ]; then
+      expected="EOF"
+      echo_i "failed: expected EOF"
+      err=1
+    else
+      echo_i "failed: bad expect value $expect"
+      err=1
+    fi
+
+    echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
+    if [ "$err" -ne 0 ]; then
+      echo_i "unexpected data on line $lineno:"
+      echo_i "line:     $(echo $line | tr -s ' ')"
+      echo_i "expected: $expected"
+    fi
+
+    if [ "$complete" -eq 1 ]; then
       inception=$next_inception
       expect="header"
 
@@ -356,28 +422,11 @@ check_ksr() {
           zsk2=$(cat $key2.id)
         fi
       fi
-    elif [ "$expect" = "footer" ]; then
-      expected=";; SignedKeyResponse 1.0 generated at"
-      echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
-
-      expect="eof"
-    elif [ "$expect" = "eof" ]; then
-      expected="EOF"
-      echo_i "failed: expected EOF"
-      err=1
-    else
-      echo_i "failed: bad expect value $expect"
-      err=1
-    fi
-
-    echo "$(echo $line | tr -s ' ')" | grep "$expected" >/dev/null || err=1
-    if [ "$err" -ne 0 ]; then
-      echo_i "unexpected data on line $lineno:"
-      echo_i "line:     $(echo $line | tr -s ' ')"
-      echo_i "expected: $expected"
+      complete=0
     fi
 
     _ret=$((_ret + err))
+    test "$_ret" -eq 0 || exit $_ret
   done <$file
 
   return $_ret
@@ -565,6 +614,42 @@ end=$(addtime $start 126144000) # four years
 check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
+
+# Sign request: unlimited (no-cdnskey)
+n=$((n + 1))
+echo_i "check that 'dnssec-ksr sign' creates correct SKR with unlimited zsk, no cdnskey ($n)"
+ret=0
+ksr no-cdnskey -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat $key.state | grep "Generated" | awk '{print $2}')
+end=$(addtime $start 126144000) # four years
+CDNSKEY="no"
+CDS_SHA1="yes"
+CDS_SHA256="yes"
+CDS_SHA384="yes"
+check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Sign request: unlimited (no-cds)
+n=$((n + 1))
+echo_i "check that 'dnssec-ksr sign' creates correct SKR with unlimited zsk, no cds ($n)"
+ret=0
+ksr no-cds -i $created -e +4y -K offline -f ksr.request.expect sign unlimited.test >ksr.sign.out.$n 2>&1 || ret=1
+start=$(cat $key.state | grep "Generated" | awk '{print $2}')
+end=$(addtime $start 126144000) # four years
+CDNSKEY="yes"
+CDS_SHA1="no"
+CDS_SHA256="no"
+CDS_SHA384="no"
+check_ksr "unlimited.test" "ksr.sign.out.$n" $start $end 1 || ret=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
+# Reset CDS and CDNSKEY to default values
+CDNSKEY="yes"
+CDS_SHA1="no"
+CDS_SHA256="yes"
+CDS_SHA384="no"
 
 # Key generation: two-tone
 n=$((n + 1))
