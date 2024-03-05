@@ -206,7 +206,7 @@ stages:
 ### QCOW2 Image Templates
 
 .freebsd-13-amd64: &freebsd_13_amd64_image
-  image: "freebsd-13.2-x86_64"
+  image: "freebsd-13.3-x86_64"
   <<: *libvirt_amd64
 
 .freebsd-14-amd64: &freebsd_14_amd64_image
