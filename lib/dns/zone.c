@@ -1006,7 +1006,7 @@ zmgr_tlsctx_attach(dns_zonemgr_t *zmgr, isc_tlsctx_cache_t **ptlsctx_cache);
 #define ENTER zone_debuglog(zone, __func__, 1, "enter")
 
 static const unsigned int dbargc_default = 1;
-static const char *dbargv_default[] = { "rbt" };
+static const char *dbargv_default[] = { "qp" };
 
 #define DNS_ZONE_JITTER_ADD(a, b, c)                                         \
 	do {                                                                 \
@@ -1876,7 +1876,7 @@ dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
 	 * Only zones that are loaded instead of mmap()ed create the
 	 * summary data and so can be policy zones.
 	 */
-	if (strcmp(zone->db_argv[0], "rbt") != 0) {
+	if (strcmp(zone->db_argv[0], "qp") != 0) {
 		return (ISC_R_NOTIMPLEMENTED);
 	}
 
@@ -2118,7 +2118,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 
 	INSIST(zone->db_argc >= 1);
 
-	rbt = strcmp(zone->db_argv[0], "rbt") == 0;
+	rbt = strcmp(zone->db_argv[0], "qp") == 0;
 
 	if (zone->db != NULL && zone->masterfile == NULL && rbt) {
 		/*
@@ -11324,7 +11324,7 @@ zone_expire(dns_zone_t *zone) {
 		isc_result_t result;
 		dns_rpz_zone_t *rpz = zone->rpzs->zones[zone->rpz_num];
 
-		CHECK(dns_db_create(zone->mctx, "rbt", &zone->origin,
+		CHECK(dns_db_create(zone->mctx, "qp", &zone->origin,
 				    dns_dbtype_zone, zone->rdclass, 0, NULL,
 				    &db));
 		CHECK(dns_rpz_dbupdate_callback(db, rpz));

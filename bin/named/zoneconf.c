@@ -885,7 +885,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	uint32_t count;
 	unsigned int dbargc;
 	char **dbargv;
-	static char default_dbtype[] = "rbt";
+	static char default_dbtype[] = "qp";
 	static char dlz_dbtype[] = "dlz";
 	char *cpval = default_dbtype;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);

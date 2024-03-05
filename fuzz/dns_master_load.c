@@ -49,7 +49,7 @@ LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 	dns_db_t *db = NULL;
 
 	isc_mem_create(&mctx);
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(mctx, "qp", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		return 0;

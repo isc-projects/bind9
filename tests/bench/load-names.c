@@ -463,7 +463,7 @@ static struct fun fun_list[] = {
 	{ "lfht", new_lfht, thread_lfht },
 	{ "ht", new_ht, thread_ht },
 	{ "hashmap", new_hashmap, thread_hashmap },
-	{ "rbt", new_rbt, thread_rbt },
+	{ "qp", new_rbt, thread_rbt },
 	{ "qp", new_qp, thread_qp },
 	{ "qp+nosqz", new_qp, thread_qp_nosqz },
 	{ "qp+barrier", new_qp, thread_qp_brr },

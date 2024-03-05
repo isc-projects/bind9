@@ -3377,7 +3377,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *zconfig;
 	const cfg_obj_t *zoptions;
-	const char *rbt_dbtype[4] = { "rbt" };
+	const char *rbt_dbtype[4] = { "qp" };
 	const char *sep = ": view ";
 	const char *str;
 	const char *viewname = view->name;
@@ -3432,7 +3432,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 			}
 		}
 		if (db == NULL) {
-			CHECK(dns_db_create(view->mctx, "rbt", name,
+			CHECK(dns_db_create(view->mctx, "qp", name,
 					    dns_dbtype_zone, view->rdclass, 0,
 					    NULL, &db));
 			CHECK(dns_db_newversion(db, &version));

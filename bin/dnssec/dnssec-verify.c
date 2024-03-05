@@ -109,7 +109,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		      isc_result_totext(result));
 	}
 
-	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone, rdclass, 0,
+	result = dns_db_create(mctx, "qp", name, dns_dbtype_zone, rdclass, 0,
 			       NULL, db);
 	check_result(result, "dns_db_create()");
 

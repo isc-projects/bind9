@@ -293,7 +293,7 @@ ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
 
 	isc_mem_create(&mctx2);
 
-	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx2, "qp", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -337,7 +337,7 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 
 	isc_mem_create(&mctx2);
 
-	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx2, "qp", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 

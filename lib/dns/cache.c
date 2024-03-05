@@ -90,12 +90,12 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	char *argv[1] = { 0 };
 
 	/*
-	 * For databases of type "rbt" (which is the only cache
+	 * For databases of type "qp" (which is the only cache
 	 * implementation currently in existence) we pass hmctx to
 	 * dns_db_create() via argv[0].
 	 */
 	argv[0] = (char *)cache->hmctx;
-	result = dns_db_create(cache->mctx, "rbt", dns_rootname,
+	result = dns_db_create(cache->mctx, "qp", dns_rootname,
 			       dns_dbtype_cache, cache->rdclass, 1, argv, db);
 	if (result == ISC_R_SUCCESS) {
 		dns_db_setservestalettl(*db, cache->serve_stale_ttl);

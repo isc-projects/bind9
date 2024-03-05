@@ -625,7 +625,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	sampledb->inst = driverarg;
 
 	/* Create internal instance of RBT DB implementation from BIND. */
-	CHECK(dns_db_create(mctx, "rbt", origin, dns_dbtype_zone,
+	CHECK(dns_db_create(mctx, "qp", origin, dns_dbtype_zone,
 			    dns_rdataclass_in, 0, NULL, &sampledb->rbtdb));
 
 	/* Create fake SOA, NS, and A records to make database loadable. */

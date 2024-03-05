@@ -67,7 +67,7 @@ loadzone(dns_db_t **db, const char *origin, const char *filename) {
 		return (result);
 	}
 
-	result = dns_db_create(mctx, "rbt", name, dns_dbtype_zone,
+	result = dns_db_create(mctx, "qp", name, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, db);
 	if (result != ISC_R_SUCCESS) {
 		return (result);

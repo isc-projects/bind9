@@ -73,7 +73,7 @@
 #define ERR_IS_MXCNAME	   6
 #define ERR_IS_SRVCNAME	   7
 
-static const char *dbtype[] = { "rbt" };
+static const char *dbtype[] = { "qp" };
 
 int debug = 0;
 const char *journal = NULL;
