@@ -1327,27 +1327,6 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  *\li	#DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
  */
 
-isc_result_t
-dns_message_rechecksig(dns_message_t *msg, dns_view_t *view);
-/*%<
- * Reset the signature state and then if the message was signed,
- * verify the message.
- *
- * Requires:
- *
- *\li	msg is a valid parsed message.
- *\li	view is a valid view or NULL
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS		- the message was unsigned, or the message
- *				  was signed correctly.
- *
- *\li	#DNS_R_EXPECTEDTSIG	- A TSIG was expected, but not seen
- *\li	#DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
- *\li	#DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
- */
-
 void
 dns_message_resetsig(dns_message_t *msg);
 /*%<

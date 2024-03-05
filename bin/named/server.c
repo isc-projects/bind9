@@ -10117,7 +10117,8 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 			}
 
 			/* Check the signature, then release the quota  */
-			*sigresult = dns_message_rechecksig(message, view);
+			dns_message_resetsig(message);
+			*sigresult = dns_message_checksig(message, view);
 			if (sig0_qresult == ISC_R_SUCCESS) {
 				isc_quota_release(&sctx->sig0checksquota);
 			}
