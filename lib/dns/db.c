@@ -78,7 +78,7 @@ initialize(void) {
 
 	rbtimp = (dns_dbimplementation_t){
 		.name = "rbt",
-		.create = dns__rbtdb_create,
+		.create = dns__qpdb_create,
 		.link = ISC_LINK_INITIALIZER,
 	};
 

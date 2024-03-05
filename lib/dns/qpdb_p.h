@@ -26,17 +26,17 @@
  * Note that "impmagic" is not the first four bytes of the struct, so
  * ISC_MAGIC_VALID cannot be used.
  */
-#define RBTDB_MAGIC ISC_MAGIC('R', 'B', 'D', '4')
-#define VALID_RBTDB(rbtdb) \
-	((rbtdb) != NULL && (rbtdb)->common.impmagic == RBTDB_MAGIC)
+#define QPDB_MAGIC ISC_MAGIC('Q', 'P', 'D', '4')
+#define VALID_QPDB(qpdb) \
+	((qpdb) != NULL && (qpdb)->common.impmagic == QPDB_MAGIC)
 
-#define RBTDB_HEADERNODE(h) ((dns_rbtnode_t *)((h)->node))
+#define QPDB_HEADERNODE(h) ((dns_rbtnode_t *)((h)->node))
 
 /*
  * Allow clients with a virtual time of up to 5 minutes in the past to see
  * records that would have otherwise have expired.
  */
-#define RBTDB_VIRTUAL 300
+#define QPDB_VIRTUAL 300
 
 /*****
 ***** Module Info
@@ -44,7 +44,7 @@
 
 /*! \file
  * \brief
- * DNS RBTDB Implementation (that actually uses qp tries)
+ * DNS QPDB Implementation (minimally adapted from RBTDB)
  */
 
 ISC_LANG_BEGINDECLS
@@ -108,13 +108,7 @@ struct dns_qpdata {
 	 * have no data any longer, but we cannot unlink at that exact moment
 	 * because we did not or could not obtain a write lock on the tree.
 	 */
-	ISC_LINK(dns_rbtdbnode_t) deadlink;
-
-	/*%
-	 * This linked list is used to store nodes from which tree pruning can
-	 * be started.
-	 */
-	ISC_LINK(dns_rbtdbnode_t) prunelink;
+	ISC_LINK(dns_qpdbnode_t) deadlink;
 
 	/*@{*/
 	/*!
@@ -144,18 +138,18 @@ struct dns_qpdata {
 	/*@}*/
 };
 
-typedef struct rbtdb_changed {
+typedef struct qpdb_changed {
 	dns_rbtnode_t *node;
 	bool dirty;
-	ISC_LINK(struct rbtdb_changed) link;
-} rbtdb_changed_t;
+	ISC_LINK(struct qpdb_changed) link;
+} qpdb_changed_t;
 
-typedef ISC_LIST(rbtdb_changed_t) rbtdb_changedlist_t;
+typedef ISC_LIST(qpdb_changed_t) qpdb_changedlist_t;
 
-struct dns_rbtdb_version {
+struct dns_qpdb_version {
 	/* Not locked */
 	uint32_t serial;
-	dns_rbtdb_t *rbtdb;
+	dns_qpdb_t *qpdb;
 	/*
 	 * Protected in the refcount routines.
 	 * XXXJT: should we change the lock policy based on the refcount
@@ -165,9 +159,9 @@ struct dns_rbtdb_version {
 	/* Locked by database lock. */
 	bool writer;
 	bool commit_ok;
-	rbtdb_changedlist_t changed_list;
+	qpdb_changedlist_t changed_list;
 	dns_slabheaderlist_t resigned_list;
-	ISC_LINK(dns_rbtdb_version_t) link;
+	ISC_LINK(dns_qpdb_version_t) link;
 	bool secure;
 	bool havensec3;
 	/* NSEC3 parameters */
@@ -187,9 +181,9 @@ struct dns_rbtdb_version {
 	struct cds_wfs_stack glue_stack;
 };
 
-typedef ISC_LIST(dns_rbtdb_version_t) rbtdb_versionlist_t;
+typedef ISC_LIST(dns_qpdb_version_t) qpdb_versionlist_t;
 
-struct dns_rbtdb {
+struct dns_qpdb {
 	/* Unlocked. */
 	dns_db_t common;
 	/* Locks the data in this struct */
@@ -210,9 +204,9 @@ struct dns_rbtdb {
 	uint32_t current_serial;
 	uint32_t least_serial;
 	uint32_t next_serial;
-	dns_rbtdb_version_t *current_version;
-	dns_rbtdb_version_t *future_version;
-	rbtdb_versionlist_t open_versions;
+	dns_qpdb_version_t *current_version;
+	dns_qpdb_version_t *future_version;
+	qpdb_versionlist_t open_versions;
 	isc_loop_t *loop;
 	dns_dbnode_t *soanode;
 	dns_dbnode_t *nsnode;
@@ -271,8 +265,8 @@ struct dns_rbtdb {
  * Search Context
  */
 typedef struct {
-	dns_rbtdb_t *rbtdb;
-	dns_rbtdb_version_t *rbtversion;
+	dns_qpdb_t *qpdb;
+	dns_qpdb_version_t *rbtversion;
 	uint32_t serial;
 	unsigned int options;
 	dns_rbtnodechain_t chain;
@@ -284,7 +278,7 @@ typedef struct {
 	dns_slabheader_t *zonecut_sigheader;
 	dns_fixedname_t zonecut_name;
 	isc_stdtime_t now;
-} rbtdb_search_t;
+} qpdb_search_t;
 
 /*%
  * Load Context
@@ -292,7 +286,7 @@ typedef struct {
 typedef struct {
 	dns_db_t *db;
 	isc_stdtime_t now;
-} rbtdb_load_t;
+} qpdb_load_t;
 
 /*%
  * Prune context
@@ -300,10 +294,10 @@ typedef struct {
 typedef struct {
 	dns_db_t *db;
 	dns_rbtnode_t *node;
-} prune_t;
+} qpdb_prune_t;
 
-extern dns_dbmethods_t dns__rbtdb_zonemethods;
-extern dns_dbmethods_t dns__rbtdb_cachemethods;
+extern dns_dbmethods_t dns__qpdb_zonemethods;
+extern dns_dbmethods_t dns__qpdb_cachemethods;
 
 /*
  * Common DB implementation methods shared by both cache and zone RBT
@@ -311,9 +305,9 @@ extern dns_dbmethods_t dns__rbtdb_cachemethods;
  */
 
 isc_result_t
-dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
-		  dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-		  void *driverarg, dns_db_t **dbp);
+dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
+		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
+		 void *driverarg, dns_db_t **dbp);
 /*%<
  * Create a new database of type "rbt". Called via dns_db_create();
  * see documentation for that function for more details.
@@ -328,22 +322,22 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
  */
 
 void
-dns__rbtdb_destroy(dns_db_t *arg);
+dns__qpdb_destroy(dns_db_t *arg);
 /*%<
  * Implement dns_db_destroy() for RBT databases, see documentation
  * for that function for more details.
  */
 
 void
-dns__rbtdb_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
+dns__qpdb_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
 isc_result_t
-dns__rbtdb_newversion(dns_db_t *db, dns_dbversion_t **versionp);
+dns__qpdb_newversion(dns_db_t *db, dns_dbversion_t **versionp);
 void
-dns__rbtdb_attachversion(dns_db_t *db, dns_dbversion_t *source,
-			 dns_dbversion_t **targetp);
+dns__qpdb_attachversion(dns_db_t *db, dns_dbversion_t *source,
+			dns_dbversion_t **targetp);
 void
-dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
-			bool commit DNS__DB_FLARG);
+dns__qpdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
+		       bool commit DNS__DB_FLARG);
 /*%<
  * Implement the dns_db_currentversion(), _newversion(),
  * _attachversion() and _closeversion() methods for RBT databases;
@@ -351,58 +345,58 @@ dns__rbtdb_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  */
 
 isc_result_t
-dns__rbtdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
-		    dns_dbnode_t **nodep DNS__DB_FLARG);
+dns__qpdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
+		   dns_dbnode_t **nodep DNS__DB_FLARG);
 isc_result_t
-dns__rbtdb_findnodeintree(dns_rbtdb_t *rbtdb, dns_qp_t *tree,
-			  const dns_name_t *name, bool create,
-			  dns_dbnode_t **nodep DNS__DB_FLARG);
+dns__qpdb_findnodeintree(dns_qpdb_t *qpdb, dns_qp_t *tree,
+			 const dns_name_t *name, bool create,
+			 dns_dbnode_t **nodep DNS__DB_FLARG);
 /*%<
  * Implement the dns_db_findnode() and _findnodeintree() methods for
  * RBT databases; see documentation of those functions for more details.
  */
 
 void
-dns__rbtdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
-		      dns_dbnode_t **targetp DNS__DB_FLARG);
+dns__qpdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
+		     dns_dbnode_t **targetp DNS__DB_FLARG);
 void
-dns__rbtdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
+dns__qpdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG);
 /*%<
  * Implement the dns_db_attachnode() and _detachnode() methods for
  * RBT databases; see documentation of those functions for more details.
  */
 
 isc_result_t
-dns__rbtdb_createiterator(dns_db_t *db, unsigned int options,
-			  dns_dbiterator_t **iteratorp);
+dns__qpdb_createiterator(dns_db_t *db, unsigned int options,
+			 dns_dbiterator_t **iteratorp);
 /*%<
  * Implement dns_db_createiterator() for RBT databases; see documentation of
  * that function for more details.
  */
 
 isc_result_t
-dns__rbtdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
-			dns_dbversion_t *version, unsigned int options,
-			isc_stdtime_t now,
-			dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
+dns__qpdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node,
+		       dns_dbversion_t *version, unsigned int options,
+		       isc_stdtime_t now,
+		       dns_rdatasetiter_t **iteratorp DNS__DB_FLARG);
 /*%<
  * Implement dns_db_allrdatasets() for RBT databases; see documentation of
  * that function for more details.
  */
 isc_result_t
-dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
-		       dns_dbversion_t *version, isc_stdtime_t now,
-		       dns_rdataset_t *rdataset, unsigned int options,
-		       dns_rdataset_t *addedrdataset DNS__DB_FLARG);
+dns__qpdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
+		      dns_dbversion_t *version, isc_stdtime_t now,
+		      dns_rdataset_t *rdataset, unsigned int options,
+		      dns_rdataset_t *addedrdataset DNS__DB_FLARG);
 isc_result_t
-dns__rbtdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
-			    dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			    unsigned int options,
-			    dns_rdataset_t *newrdataset DNS__DB_FLARG);
+dns__qpdb_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
+			   dns_dbversion_t *version, dns_rdataset_t *rdataset,
+			   unsigned int options,
+			   dns_rdataset_t *newrdataset DNS__DB_FLARG);
 isc_result_t
-dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
-			  dns_dbversion_t *version, dns_rdatatype_t type,
-			  dns_rdatatype_t covers DNS__DB_FLARG);
+dns__qpdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
+			 dns_dbversion_t *version, dns_rdatatype_t type,
+			 dns_rdatatype_t covers DNS__DB_FLARG);
 /*%<
  * Implement the dns_db_addrdataset(), _subtractrdataset() and
  * _deleterdataset() methods for RBT databases; see documentation of
@@ -410,38 +404,38 @@ dns__rbtdb_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  */
 
 unsigned int
-dns__rbtdb_nodecount(dns_db_t *db, dns_dbtree_t tree);
+dns__qpdb_nodecount(dns_db_t *db, dns_dbtree_t tree);
 /*%<
  * Implement dns_db_nodecount() for RBT databases; see documentation of
  * that function for more details.
  */
 
 void
-dns__rbtdb_setloop(dns_db_t *db, isc_loop_t *loop);
+dns__qpdb_setloop(dns_db_t *db, isc_loop_t *loop);
 /*%<
  * Implement dns_db_setloop() for RBT databases; see documentation of
  * that function for more details.
  */
 
 isc_result_t
-dns__rbtdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
+dns__qpdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG);
 /*%<
  * Implement dns_db_getoriginnode() for RBT databases; see documentation of
  * that function for more details.
  */
 
 void
-dns__rbtdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
-		      dns_dbnode_t *node ISC_ATTR_UNUSED, void *data);
+dns__qpdb_deletedata(dns_db_t *db ISC_ATTR_UNUSED,
+		     dns_dbnode_t *node ISC_ATTR_UNUSED, void *data);
 /*%<
  * Implement dns_db_deletedata() for RBT databases; see documentation of
  * that function for more details.
  */
 
 void
-dns__rbtdb_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+dns__qpdb_locknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
 void
-dns__rbtdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
+dns__qpdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
 /*%<
  * Implement the dns_db_locknode() and _unlocknode() methods for
  * RBT databases; see documentation of those functions for more details.
@@ -449,24 +443,24 @@ dns__rbtdb_unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type);
 
 /*%
  * Functions used for the RBT implementation which are defined and
- * used in rbtdb.c but may also be called from rbt-zonedb.c or
+ * used in qpdb.c but may also be called from rbt-zonedb.c or
  * rbt-cachedb.c:
  */
 void
-dns__rbtdb_bindrdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-			dns_slabheader_t *header, isc_stdtime_t now,
-			isc_rwlocktype_t locktype,
-			dns_rdataset_t *rdataset DNS__DB_FLARG);
+dns__qpdb_bindrdataset(dns_qpdb_t *qpdb, dns_rbtnode_t *node,
+		       dns_slabheader_t *header, isc_stdtime_t now,
+		       isc_rwlocktype_t locktype,
+		       dns_rdataset_t *rdataset DNS__DB_FLARG);
 
 isc_result_t
-dns__rbtdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+dns__qpdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
 void
-dns__rbtdb_freeglue(dns_glue_t *glue_list);
+dns__qpdb_freeglue(dns_glue_t *glue_list);
 
 void
-dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  isc_rwlocktype_t locktype DNS__DB_FLARG);
+dns__qpdb_newref(dns_qpdb_t *qpdb, dns_rbtnode_t *node,
+		 isc_rwlocktype_t locktype DNS__DB_FLARG);
 /*%<
  * Increment the reference counter to a node in an RBT database.
  * If the caller holds a node lock then its lock type is specified
@@ -476,10 +470,9 @@ dns__rbtdb_newref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
  */
 
 bool
-dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-		  uint32_t least_serial, isc_rwlocktype_t *nlocktypep,
-		  isc_rwlocktype_t *tlocktypep, bool tryupgrade,
-		  bool pruning DNS__DB_FLARG);
+dns__qpdb_decref(dns_qpdb_t *qpdb, dns_rbtnode_t *node, uint32_t least_serial,
+		 isc_rwlocktype_t *nlocktypep, isc_rwlocktype_t *tlocktypep,
+		 bool tryupgrade, bool pruning DNS__DB_FLARG);
 /*%<
  * Decrement the reference counter to a node in an RBT database.
  * 'nlocktypep' and 'tlocktypep' are pointers to the current status
@@ -490,18 +483,18 @@ dns__rbtdb_decref(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
  */
 
 isc_result_t
-dns__rbtdb_add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode,
-	       const dns_name_t *nodename, dns_rbtdb_version_t *rbtversion,
-	       dns_slabheader_t *newheader, unsigned int options, bool loading,
-	       dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
+dns__qpdb_add(dns_qpdb_t *qpdb, dns_rbtnode_t *rbtnode,
+	      const dns_name_t *nodename, dns_qpdb_version_t *rbtversion,
+	      dns_slabheader_t *newheader, unsigned int options, bool loading,
+	      dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
 /*%<
  * Add a slab header 'newheader' to a node in an RBT database.
  * The caller must have the node write-locked.
  */
 
 void
-dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
-		     dns_dbnode_t *origin);
+dns__qpdb_setsecure(dns_db_t *db, dns_qpdb_version_t *version,
+		    dns_dbnode_t *origin);
 /*%<
  * Update the secure status for an RBT database version 'version'.
  * The version will be marked secure if it is fully signed and
@@ -509,7 +502,7 @@ dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
  */
 
 void
-dns__rbtdb_mark(dns_slabheader_t *header, uint_least16_t flag);
+dns__qpdb_mark(dns_slabheader_t *header, uint_least16_t flag);
 /*%<
  * Set attribute 'flag' in a slab header 'header' - for example,
  * DNS_SLABHEADERATTR_STALE or DNS_SLABHEADERATTR_ANCIENT - and,
@@ -517,31 +510,30 @@ dns__rbtdb_mark(dns_slabheader_t *header, uint_least16_t flag);
  */
 
 void
-dns__rbtdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
+dns__qpdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
 /*%<
  * Set the TTL in a slab header 'header'. In a cache database,
  * also update the TTL heap accordingly.
  */
 
 /*
- * Functions specific to zone databases that are also called from rbtdb.c.
+ * Functions specific to zone databases that are also called from qpdb.c.
  */
 void
-dns__zonerbt_resigninsert(dns_rbtdb_t *rbtdb, int idx,
-			  dns_slabheader_t *newheader);
+dns__qpzone_resigninsert(dns_qpdb_t *qpdb, int idx,
+			 dns_slabheader_t *newheader);
 void
-dns__zonerbt_resigndelete(dns_rbtdb_t *rbtdb, dns_rbtdb_version_t *version,
-			  dns_slabheader_t *header DNS__DB_FLARG);
+dns__qpzone_resigndelete(dns_qpdb_t *qpdb, dns_qpdb_version_t *version,
+			 dns_slabheader_t *header DNS__DB_FLARG);
 /*%<
  * Insert/delete a node from the zone database's resigning heap.
  */
 
 isc_result_t
-dns__zonerbt_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
-			   bool lock);
+dns__qpzone_wildcardmagic(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock);
 /*%<
  * Add the necessary magic for the wildcard name 'name'
- * to be found in 'rbtdb'.
+ * to be found in 'qpdb'.
  *
  * In order for wildcard matching to work correctly in
  * zone_find(), we must ensure that a node for the wildcarding
@@ -555,29 +547,28 @@ dns__zonerbt_wildcardmagic(dns_rbtdb_t *rbtdb, const dns_name_t *name,
  * The tree must be write-locked.
  */
 isc_result_t
-dns__zonerbt_addwildcards(dns_rbtdb_t *rbtdb, const dns_name_t *name,
-			  bool lock);
+dns__qpzone_addwildcards(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock);
 /*%<
  * If 'name' is or contains a wildcard name, create a node for it in the
  * database. The tree must be write-locked.
  */
 
 /*
- * Cache-specific functions that are called from rbtdb.c
+ * Cache-specific functions that are called from qpdb.c
  */
 void
-dns__cacherbt_expireheader(dns_slabheader_t *header,
-			   isc_rwlocktype_t *tlocktypep,
-			   dns_expire_t reason DNS__DB_FLARG);
+dns__qpcache_expireheader(dns_slabheader_t *header,
+			  isc_rwlocktype_t *tlocktypep,
+			  dns_expire_t reason DNS__DB_FLARG);
 void
-dns__cacherbt_overmem(dns_rbtdb_t *rbtdb, dns_slabheader_t *newheader,
-		      isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
+dns__qpcache_overmem(dns_qpdb_t *qpdb, dns_slabheader_t *newheader,
+		     isc_rwlocktype_t *tlocktypep DNS__DB_FLARG);
 
 /*
  * Create a new qpdata node.
  */
 dns_qpdata_t *
-dns_qpdata_create(dns_rbtdb_t *rbtdb, const dns_name_t *name);
+dns_qpdata_create(dns_qpdb_t *qpdb, const dns_name_t *name);
 
 /*
  * Destroy a qpdata node.

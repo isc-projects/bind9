@@ -1192,8 +1192,8 @@ is_leaf(dns_rbtnode_t *node) {
 static void
 send_to_prune_tree(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		   isc_rwlocktype_t nlocktype DNS__DB_FLARG) {
-	prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
-	*prune = (prune_t){ .node = node };
+	rbtdb_prune_t *prune = isc_mem_get(rbtdb->common.mctx, sizeof(*prune));
+	*prune = (rbtdb_prune_t){ .node = node };
 
 	dns_db_attach((dns_db_t *)rbtdb, &prune->db);
 	dns__rbtdb_newref(rbtdb, node, nlocktype DNS__DB_FLARG_PASS);
@@ -1501,7 +1501,7 @@ restore_locks:
  */
 static void
 prune_tree(void *arg) {
-	prune_t *prune = (prune_t *)arg;
+	rbtdb_prune_t *prune = (rbtdb_prune_t *)arg;
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)prune->db;
 	dns_rbtnode_t *node = prune->node;
 	dns_rbtnode_t *parent = NULL;

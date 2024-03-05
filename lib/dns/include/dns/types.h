@@ -130,6 +130,8 @@ typedef struct dns_slabheader_proof dns_slabheader_proof_t;
 typedef struct dns_rbt		    dns_rbt_t;
 typedef struct dns_rbtdb	    dns_rbtdb_t;
 typedef struct dns_rbtdb_version    dns_rbtdb_version_t;
+typedef struct dns_qpdb		    dns_qpdb_t;
+typedef struct dns_qpdb_version	    dns_qpdb_version_t;
 typedef struct dns_rbtnode	    dns_rbtnode_t;
 typedef ISC_LIST(dns_rbtnode_t) dns_rbtnodelist_t;
 typedef uint16_t		  dns_rcode_t;
