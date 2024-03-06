@@ -29,6 +29,7 @@
 #include <isc/string.h>
 #include <isc/utf8.h>
 #include <isc/util.h>
+#include <isc/work.h>
 
 #include <dns/dnssec.h>
 #include <dns/keyvalues.h>
@@ -179,6 +180,18 @@ msgblock_allocate(isc_mem_t *, unsigned int, unsigned int);
 
 #define msgblock_get(block, type) \
 	((type *)msgblock_internalget(block, sizeof(type)))
+
+/*
+ * A context type to pass information when checking a message signature
+ * asynchronously.
+ */
+typedef struct checksig_ctx {
+	dns_message_t *msg;
+	dns_view_t *view;
+	dns_message_cb_t cb;
+	void *cbarg;
+	isc_result_t result;
+} checksig_ctx_t;
 
 /*
  * This function differs from public dns_message_puttemprdataset() that it
@@ -3204,6 +3217,47 @@ dns_message_dumpsig(dns_message_t *msg, char *txt1) {
 	}
 }
 #endif /* ifdef SKAN_MSG_DEBUG */
+
+static void
+checksig_run(void *arg) {
+	checksig_ctx_t *chsigctx = arg;
+
+	chsigctx->result = dns_message_checksig(chsigctx->msg, chsigctx->view);
+}
+
+static void
+checksig_cb(void *arg) {
+	checksig_ctx_t *chsigctx = arg;
+	dns_message_t *msg = chsigctx->msg;
+
+	chsigctx->cb(chsigctx->cbarg, chsigctx->result);
+
+	dns_view_detach(&chsigctx->view);
+	isc_mem_put(msg->mctx, chsigctx, sizeof(*chsigctx));
+	dns_message_detach(&msg);
+}
+
+isc_result_t
+dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
+			   isc_loop_t *loop, dns_message_cb_t cb, void *cbarg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	REQUIRE(view != NULL);
+	REQUIRE(loop != NULL);
+	REQUIRE(cb != NULL);
+
+	checksig_ctx_t *chsigctx = isc_mem_get(msg->mctx, sizeof(*chsigctx));
+	*chsigctx = (checksig_ctx_t){
+		.cb = cb,
+		.cbarg = cbarg,
+		.result = ISC_R_UNSET,
+	};
+	dns_message_attach(msg, &chsigctx->msg);
+	dns_view_attach(view, &chsigctx->view);
+
+	isc_work_enqueue(loop, checksig_run, checksig_cb, chsigctx);
+
+	return (DNS_R_WAIT);
+}
 
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {

@@ -352,6 +352,8 @@ struct dns_ednsopt {
 	unsigned char *value;
 };
 
+typedef void (*dns_message_cb_t)(void *arg, isc_result_t result);
+
 /***
  *** Functions
  ***/
@@ -1325,6 +1327,26 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  *\li	#DNS_R_EXPECTEDTSIG	- A TSIG was expected, but not seen
  *\li	#DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
  *\li	#DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
+ */
+
+isc_result_t
+dns_message_checksig_async(dns_message_t *msg, dns_view_t *view,
+			   isc_loop_t *loop, dns_message_cb_t cb, void *cbarg);
+/*%<
+ * Run dns_message_checksig() in an offloaded thread and return its result
+ * using the 'cb' callback function, running on the 'loop'.
+ *
+ * Requires:
+ *
+ *\li	msg is a valid parsed message.
+ *\li	view is a valid view or NULL.
+ *\li	loop is a valid loop.
+ *\li	cb is a valid callback function.
+ *
+ * Returns:
+ *
+ *\li	#DNS_R_WAIT
+ *
  */
 
 void
