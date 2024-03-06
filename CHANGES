@@ -1,4 +1,6 @@
-6356.	[placeholder]
+6356.	[bug]		Attach the loop also in the dns_cache_flush(), so
+			the cache pruning still works after the flush.
+			[GL #4621]
 
 6355.	[func]		The red-black tree data structure underlying the
 			RBTDB has been replaced with QP-tries.  This is
