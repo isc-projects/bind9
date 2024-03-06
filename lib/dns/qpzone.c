@@ -5190,6 +5190,22 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	return (result);
 }
 
+static isc_result_t
+nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
+	qpdata_t *qpnode = (qpdata_t *)node;
+	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
+
+	REQUIRE(VALID_QPZONE(qpdb));
+	REQUIRE(node != NULL);
+	REQUIRE(name != NULL);
+
+	NODE_RDLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
+	dns_name_copy(qpnode->name, name);
+	NODE_UNLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
+	return (ISC_R_SUCCESS);
+}
+
 static dns_glue_t *
 new_gluelist(isc_mem_t *mctx, dns_name_t *name) {
 	dns_glue_t *glue = isc_mem_get(mctx, sizeof(*glue));
@@ -5519,6 +5535,7 @@ static dns_dbmethods_t qpdb_zonemethods = {
 	.unlocknode = unlocknode,
 	.addglue = addglue,
 	.deletedata = deletedata,
+	.nodefullname = nodefullname,
 };
 
 static void
