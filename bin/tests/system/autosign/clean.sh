@@ -35,7 +35,7 @@ rm -f ns2/child.nsec3.example.db
 rm -f ns2/child.optout.example.db
 rm -f ns2/example.db
 rm -f ns2/insecure.secure.example.db
-rm -f ns2/optout-with-ent.db
+rm -f ns2/nsec3-with-ent.db
 rm -f ns2/private.secure.example.db
 rm -f ns2/signing.*
 rm -f ns3/*.nzd ns3/*.nzd-lock ns3/*.nzf

@@ -530,7 +530,9 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	       const char *testfile) {
 	isc_result_t result;
 	dns_fixedname_t fixed;
-	dns_name_t *name;
+	dns_name_t *name = NULL;
+	const char *dbimp = (dbtype == dns_dbtype_zone) ? ZONEDB_DEFAULT
+							: CACHEDB_DEFAULT;
 
 	name = dns_fixedname_initname(&fixed);
 
@@ -539,7 +541,7 @@ ns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 		return (result);
 	}
 
-	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in, 0,
+	result = dns_db_create(mctx, dbimp, name, dbtype, dns_rdataclass_in, 0,
 			       NULL, db);
 	if (result != ISC_R_SUCCESS) {
 		return (result);

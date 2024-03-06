@@ -297,11 +297,8 @@ static isc_result_t
 axfr_makedb(dns_xfrin_t *xfr, dns_db_t **dbp) {
 	isc_result_t result;
 
-	result = dns_db_create(xfr->mctx, /* XXX */
-			       "rbt",	  /* XXX guess */
-			       &xfr->name, dns_dbtype_zone, xfr->rdclass, 0,
-			       NULL, /* XXX guess */
-			       dbp);
+	result = dns_db_create(xfr->mctx, ZONEDB_DEFAULT, &xfr->name,
+			       dns_dbtype_zone, xfr->rdclass, 0, NULL, dbp);
 	if (result == ISC_R_SUCCESS) {
 		dns_zone_rpz_enable_db(xfr->zone, *dbp);
 		dns_zone_catz_enable_db(xfr->zone, *dbp);

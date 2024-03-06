@@ -36,7 +36,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #undef CHECK
-#include "rbtdb.c"
+#include "qpdb.c"
 #pragma GCC diagnostic pop
 
 #undef CHECK
@@ -97,20 +97,20 @@ static bool
 ownercase_test_one(const char *str1, const char *str2) {
 	isc_result_t result;
 	db_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = {
-		.common.methods = &dns__rbtdb_zonemethods,
+	dns_qpdb_t qpdb = {
+		.common.methods = &dns__qpdb_zonemethods,
 		.common.mctx = mctx,
 		.node_locks = node_locks,
 	};
-	dns_rbtnode_t rbtnode = { .locknum = 0 };
+	dns_qpdata_t rbtnode = { .locknum = 0 };
 	dns_slabheader_t header = {
 		.node = &rbtnode,
-		.db = (dns_db_t *)&rbtdb,
+		.db = (dns_db_t *)&qpdb,
 	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.slab = { .db = (dns_db_t *)&rbtdb,
+		.slab = { .db = (dns_db_t *)&qpdb,
 			  .node = &rbtnode,
 			  .raw = raw },
 		.methods = &dns_rdataslab_rdatasetmethods,
@@ -122,7 +122,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 
 	memset(node_locks, 0, sizeof(node_locks));
 	/* Minimal initialization of the mock objects */
-	NODE_INITLOCK(&rbtdb.node_locks[0].lock);
+	NODE_INITLOCK(&qpdb.node_locks[0].lock);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -142,7 +142,7 @@ ownercase_test_one(const char *str1, const char *str2) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&rbtdb.node_locks[0].lock);
+	NODE_DESTROYLOCK(&qpdb.node_locks[0].lock);
 
 	return (dns_name_caseequal(name1, name2));
 }
@@ -164,20 +164,20 @@ ISC_RUN_TEST_IMPL(ownercase) {
 ISC_RUN_TEST_IMPL(setownercase) {
 	isc_result_t result;
 	db_nodelock_t node_locks[1];
-	dns_rbtdb_t rbtdb = {
-		.common.methods = &dns__rbtdb_zonemethods,
+	dns_qpdb_t qpdb = {
+		.common.methods = &dns__qpdb_zonemethods,
 		.common.mctx = mctx,
 		.node_locks = node_locks,
 	};
-	dns_rbtnode_t rbtnode = { .locknum = 0 };
+	dns_qpdata_t rbtnode = { .locknum = 0 };
 	dns_slabheader_t header = {
 		.node = &rbtnode,
-		.db = (dns_db_t *)&rbtdb,
+		.db = (dns_db_t *)&qpdb,
 	};
 	unsigned char *raw = (unsigned char *)(&header) + sizeof(header);
 	dns_rdataset_t rdataset = {
 		.magic = DNS_RDATASET_MAGIC,
-		.slab = { .db = (dns_db_t *)&rbtdb,
+		.slab = { .db = (dns_db_t *)&qpdb,
 			  .node = &rbtnode,
 			  .raw = raw },
 		.methods = &dns_rdataslab_rdatasetmethods,
@@ -193,7 +193,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 
 	/* Minimal initialization of the mock objects */
 	memset(node_locks, 0, sizeof(node_locks));
-	NODE_INITLOCK(&rbtdb.node_locks[0].lock);
+	NODE_INITLOCK(&qpdb.node_locks[0].lock);
 
 	isc_buffer_constinit(&b, str1, strlen(str1));
 	isc_buffer_add(&b, strlen(str1));
@@ -210,7 +210,7 @@ ISC_RUN_TEST_IMPL(setownercase) {
 	/* Retrieve the case to name2 */
 	dns_rdataset_getownercase(&rdataset, name2);
 
-	NODE_DESTROYLOCK(&rbtdb.node_locks[0].lock);
+	NODE_DESTROYLOCK(&qpdb.node_locks[0].lock);
 
 	assert_true(dns_name_caseequal(name1, name2));
 }
@@ -293,8 +293,9 @@ ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
 
 	isc_mem_create(&mctx2);
 
-	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
-			       dns_rdataclass_in, 0, NULL, &db);
+	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
+			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mem_setwater(mctx2, hiwater, lowater);
@@ -337,8 +338,9 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 
 	isc_mem_create(&mctx2);
 
-	result = dns_db_create(mctx2, "rbt", dns_rootname, dns_dbtype_cache,
-			       dns_rdataclass_in, 0, NULL, &db);
+	result = dns_db_create(mctx2, CACHEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_cache, dns_rdataclass_in, 0, NULL,
+			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mem_setwater(mctx2, hiwater, lowater);

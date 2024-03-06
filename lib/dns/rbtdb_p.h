@@ -204,7 +204,7 @@ typedef struct {
 typedef struct {
 	dns_db_t *db;
 	dns_rbtnode_t *node;
-} prune_t;
+} rbtdb_prune_t;
 
 extern dns_dbmethods_t dns__rbtdb_zonemethods;
 extern dns_dbmethods_t dns__rbtdb_cachemethods;

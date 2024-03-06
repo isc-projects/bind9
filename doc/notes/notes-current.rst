@@ -53,6 +53,23 @@ Feature Changes
   operationally required, then please consider using ``dnssec-validation auto``
   instead. :gl:`#4373`
 
+- The red-black tree data structure used in the RBTDB (the default
+  database implementation for cache and zone databases),
+  has been replaced with QP-tries.  This is expected to improve
+  performance and scalability, though in the current implementation
+  it is known to have larger memory consumption.
+
+  A side effect of this change is that zone files that are created with
+  :any:`masterfile-style` ``relative`` - for example, the output of
+  :any:`dnssec-signzone` - will no longer have multiple different
+  `$ORIGIN` statements. There should be no other changes to server
+  behavior.
+
+  The old RBT-based database still exists for now, and can be used by
+  specifying ``database rbt`` in a ``zone`` statement in ``named.conf``,
+  or by compiling with ``configure --with-zonedb=rbt --with-cachedb=rbt``.
+  :gl:`#4411`.
+
 Bug Fixes
 ~~~~~~~~~
 

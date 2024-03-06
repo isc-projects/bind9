@@ -134,14 +134,14 @@ zone "child.optout.example" {
 	dnssec-policy optout;
 };
 
-zone "optout-with-ent" {
+zone "nsec3-with-ent" {
 	type primary;
-	file "optout-with-ent.db";
+	file "nsec3-with-ent.db";
 	allow-query { any; };
 	allow-transfer { any; };
 	allow-update { any; };
 	inline-signing no;
-	dnssec-policy optout;
+	dnssec-policy nsec3;
 };
 
 include "trusted.conf";

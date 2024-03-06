@@ -1569,6 +1569,35 @@ AS_IF([test -z "$DTRACE"],
 
 AC_SUBST([DTRACE])
 
+#
+# Which should be the default zone database, RBTDB or QPDB?
+# [pairwise: --with-zonedb=qp, --with-zonedb=rbt]
+#
+AC_ARG_WITH([zonedb],
+	    [AS_HELP_STRING([--with-zonedb=detect],[specify default zone database type (default is "qp")])],
+	    [],[with_zonedb=qp])
+zonedb="qp"
+AS_CASE([$with_zonedb],
+	[RBT*|rbt*],[zonedb="rbt"],
+        [QP*|qp*],[],
+	[AC_MSG_ERROR([Unknown zone database type])]
+       )
+AC_DEFINE_UNQUOTED([ZONEDB_DEFAULT], ["$zonedb"], [Default zone database type])
+
+#
+# Which should be the default cache database, RBTDB or QPDB?
+# [pairwise: --with-cachedb=qp, --with-cachedb=rbt]
+#
+AC_ARG_WITH([cachedb],
+	    [AS_HELP_STRING([--with-cachedb=detect],[specify default cache database type (default is "qp")])],
+	    [],[with_cachedb=qp])
+cachedb="qp"
+AS_CASE([$with_cachedb],
+	[RBT*|rbt*],[cachedb="rbt"],
+        [QP*|qp*],[],
+	[AC_MSG_ERROR([Unknown cache database type])]
+       )
+AC_DEFINE_UNQUOTED([CACHEDB_DEFAULT], ["$cachedb"], [Default cache database type])
 
 #
 # Files to configure.  These are listed here because we used to
@@ -1667,6 +1696,12 @@ report() {
     echo "Optional features enabled:"
     if test "yes" = "$with_jemalloc"; then
 	echo "    Memory allocator: jemalloc"
+    fi
+    if test "yes" = "$enable_full_report" -o "rbt" = "$zonedb"; then
+            echo "    Default zone database type: $zonedb"
+    fi
+    if test "yes" = "$enable_full_report" -o "rbt" = "$zonedb"; then
+            echo "    Default cache database type: $cachedb"
     fi
     if test "yes" = "$enable_full_report" -o "standard" = "$with_locktype"; then
 	echo "    Mutex lock type: $with_locktype"

@@ -3377,7 +3377,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *zconfig;
 	const cfg_obj_t *zoptions;
-	const char *rbt_dbtype[4] = { "rbt" };
+	const char *default_dbtype[4] = { ZONEDB_DEFAULT };
 	const char *sep = ": view ";
 	const char *str;
 	const char *viewname = view->name;
@@ -3390,7 +3390,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	dns_name_t *ns;
 	dns_name_t *zname;
 	dns_zone_t *zone = NULL;
-	int rbt_dbtypec = 1;
+	int default_dbtypec = 1;
 	isc_result_t result;
 	dns_namereln_t namereln;
 	int order;
@@ -3432,7 +3432,7 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 			}
 		}
 		if (db == NULL) {
-			CHECK(dns_db_create(view->mctx, "rbt", name,
+			CHECK(dns_db_create(view->mctx, ZONEDB_DEFAULT, name,
 					    dns_dbtype_zone, view->rdclass, 0,
 					    NULL, &db));
 			CHECK(dns_db_newversion(db, &version));
@@ -3452,15 +3452,15 @@ create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 	}
 
 	/*
-	 * Is the existing zone the ok to use?
+	 * Is the existing zone ok to use?
 	 */
 	if (pzone != NULL) {
 		unsigned int typec;
-		const char **dbargv;
+		const char **dbargv = NULL;
 
 		if (db != NULL) {
-			typec = rbt_dbtypec;
-			dbargv = rbt_dbtype;
+			typec = default_dbtypec;
+			dbargv = default_dbtype;
 		} else {
 			typec = empty_dbtypec;
 			dbargv = empty_dbtype;
