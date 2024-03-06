@@ -1,3 +1,7 @@
+6356.	[bug]		Create the pruning task in the dns_cache_flush(), so
+			the cache pruning still works after the flush.
+			[GL #4621]
+
 6353.	[bug]		Improve the TTL-based cleaning by removing the expired
 			headers from the heap, so they don't block the next
 			cleaning round and clean more than a single item for

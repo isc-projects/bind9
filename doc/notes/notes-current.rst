@@ -49,6 +49,11 @@ Bug Fixes
   ISC would like to thank Thomas Amgarten for bringing this issue to
   our attention. :gl:`#4518`, :gl:`#4528`
 
+- Using :option:`rndc flush` inadvertently caused cache cleaning to
+  become less effective. This could ultimately lead to the configured
+  :any:`max-cache-size` limit being exceeded and has now been fixed.
+  :gl:`#4621`
+
 Known Issues
 ~~~~~~~~~~~~
 
