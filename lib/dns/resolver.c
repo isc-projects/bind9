@@ -645,6 +645,8 @@ resquery_send(resquery_t *query);
 static void
 resquery_response(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
+resquery_response_continue(void *arg, isc_result_t result);
+static void
 resquery_connected(isc_result_t eresult, isc_region_t *region, void *arg);
 static void
 fctx_try(fetchctx_t *fctx, bool retrying, bool badcache);
@@ -777,6 +779,7 @@ release_fctx(fetchctx_t *fctx);
 typedef struct respctx {
 	resquery_t *query;
 	fetchctx_t *fctx;
+	isc_mem_t *mctx;
 	isc_result_t result;
 	isc_buffer_t buffer;
 	unsigned int retryopts; /* updated options to pass to
@@ -7233,7 +7236,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	isc_result_t result;
 	resquery_t *query = (resquery_t *)arg;
 	fetchctx_t *fctx = NULL;
-	respctx_t rctx;
+	respctx_t *rctx = NULL;
 
 	if (eresult == ISC_R_CANCELED) {
 		return;
@@ -7252,21 +7255,22 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		inc_stats(fctx->res, dns_resstatscounter_responsev6);
 	}
 
-	rctx_respinit(query, fctx, eresult, region, &rctx);
+	rctx = isc_mem_get(fctx->mctx, sizeof(*rctx));
+	rctx_respinit(query, fctx, eresult, region, rctx);
 
 	if (eresult == ISC_R_SHUTTINGDOWN ||
 	    atomic_load_acquire(&fctx->res->exiting))
 	{
 		result = ISC_R_SHUTTINGDOWN;
 		FCTXTRACE("resolver shutting down");
-		rctx.finish = NULL;
-		rctx_done(&rctx, result);
-		return;
+		rctx->finish = NULL;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
-	result = rctx_timedout(&rctx);
+	result = rctx_timedout(rctx);
 	if (result == ISC_R_COMPLETE) {
-		return;
+		goto cleanup;
 	}
 
 	fctx->addrinfo = query->addrinfo;
@@ -7276,9 +7280,9 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	/*
 	 * Check whether the dispatcher has failed; if so we're done
 	 */
-	result = rctx_dispfail(&rctx);
+	result = rctx_dispfail(rctx);
 	if (result == ISC_R_COMPLETE) {
-		return;
+		goto cleanup;
 	}
 
 	if (query->tsig != NULL) {
@@ -7290,17 +7294,18 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 						query->tsigkey);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("unable to set tsig key", result);
-			rctx_done(&rctx, result);
-			return;
+			rctx_done(rctx, result);
+			goto cleanup;
 		}
 	}
 
 	dns_message_setclass(query->rmessage, fctx->res->rdclass);
 
-	if ((rctx.retryopts & DNS_FETCHOPT_TCP) == 0) {
-		if ((rctx.retryopts & DNS_FETCHOPT_NOEDNS0) == 0) {
-			dns_adb_setudpsize(fctx->adb, query->addrinfo,
-					   isc_buffer_usedlength(&rctx.buffer));
+	if ((rctx->retryopts & DNS_FETCHOPT_TCP) == 0) {
+		if ((rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0) {
+			dns_adb_setudpsize(
+				fctx->adb, query->addrinfo,
+				isc_buffer_usedlength(&rctx->buffer));
 		} else {
 			dns_adb_plainresponse(fctx->adb, query->addrinfo);
 		}
@@ -7309,38 +7314,39 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	/*
 	 * Parse response message.
 	 */
-	result = rctx_parse(&rctx);
+	result = rctx_parse(rctx);
 	if (result == ISC_R_COMPLETE) {
-		return;
+		goto cleanup;
 	}
 
 	/*
 	 * Log the incoming packet.
 	 */
-	rctx_logpacket(&rctx);
+	rctx_logpacket(rctx);
 
 	if (query->rmessage->rdclass != fctx->res->rdclass) {
-		rctx.resend = true;
+		rctx->resend = true;
 		FCTXTRACE("bad class");
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
 	 * Process receive opt record.
 	 */
-	rctx.opt = dns_message_getopt(query->rmessage);
-	if (rctx.opt != NULL) {
-		rctx_opt(&rctx);
+	rctx->opt = dns_message_getopt(query->rmessage);
+	if (rctx->opt != NULL) {
+		rctx_opt(rctx);
 	}
 
-	if (query->rmessage->cc_bad && (rctx.retryopts & DNS_FETCHOPT_TCP) == 0)
+	if (query->rmessage->cc_bad &&
+	    (rctx->retryopts & DNS_FETCHOPT_TCP) == 0)
 	{
 		/*
 		 * If the COOKIE is bad, assume it is an attack and
 		 * keep listening for a good answer.
 		 */
-		rctx.nextitem = true;
+		rctx->nextitem = true;
 		if (isc_log_wouldlog(dns_lctx, ISC_LOG_INFO)) {
 			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 			isc_sockaddr_format(&query->addrinfo->sockaddr, addrbuf,
@@ -7349,8 +7355,8 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 				      "bad cookie from %s", addrbuf);
 		}
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
@@ -7377,27 +7383,55 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		result = same_question(fctx, query->rmessage);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE3("question section invalid", result);
-			rctx.nextitem = true;
-			rctx_done(&rctx, result);
-			return;
+			rctx->nextitem = true;
+			rctx_done(rctx, result);
+			goto cleanup;
 		}
 		break;
 	}
 
-	/*
-	 * If the message is signed, check the signature.  If not, this
-	 * returns success anyway.
-	 */
-	result = dns_message_checksig(query->rmessage, fctx->res->view);
+	if (query->rmessage->tsigkey == NULL && query->rmessage->tsig == NULL &&
+	    query->rmessage->sig0 != NULL)
+	{
+		/*
+		 * If the message is not TSIG-signed (which has priorty) and is
+		 * SIG(0)-signed (which consumes more resources), then run an
+		 * asynchronous check.
+		 */
+		result = dns_message_checksig_async(
+			query->rmessage, fctx->res->view, fctx->loop,
+			resquery_response_continue, rctx);
+		INSIST(result == DNS_R_WAIT);
+	} else {
+		/*
+		 * If the message is signed, check the signature.  If not, this
+		 * returns success anyway.
+		 */
+		result = dns_message_checksig(query->rmessage, fctx->res->view);
+		resquery_response_continue(rctx, result);
+	}
+
+	return;
+
+cleanup:
+	isc_mem_putanddetach(&rctx->mctx, rctx, sizeof(*rctx));
+}
+
+static void
+resquery_response_continue(void *arg, isc_result_t result) {
+	respctx_t *rctx = arg;
+	fetchctx_t *fctx = rctx->fctx;
+	resquery_t *query = rctx->query;
+
 	if (result != ISC_R_SUCCESS) {
 		FCTXTRACE3("signature check failed", result);
 		if (result == DNS_R_UNEXPECTEDTSIG ||
 		    result == DNS_R_EXPECTEDTSIG)
 		{
-			rctx.nextitem = true;
+			rctx->nextitem = true;
 		}
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
@@ -7415,7 +7449,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	 */
 	if (dns_message_gettsig(query->rmessage, NULL) == NULL &&
 	    !query->rmessage->cc_ok && !query->rmessage->cc_bad &&
-	    (rctx.retryopts & DNS_FETCHOPT_TCP) == 0)
+	    (rctx->retryopts & DNS_FETCHOPT_TCP) == 0)
 	{
 		if (dns_adb_getcookie(query->addrinfo, NULL, 0) >
 		    CLIENT_COOKIE_SIZE)
@@ -7431,10 +7465,10 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 					"from %s",
 					addrbuf);
 			}
-			rctx.retryopts |= DNS_FETCHOPT_TCP;
-			rctx.resend = true;
-			rctx_done(&rctx, result);
-			return;
+			rctx->retryopts |= DNS_FETCHOPT_TCP;
+			rctx->resend = true;
+			rctx_done(rctx, result);
+			goto cleanup;
 		} else if (fctx->res->view->peers != NULL) {
 			dns_peer_t *peer = NULL;
 			isc_netaddr_t netaddr;
@@ -7467,47 +7501,47 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 							"from %s",
 							addrbuf);
 					}
-					rctx.retryopts |= DNS_FETCHOPT_TCP;
-					rctx.resend = true;
-					rctx_done(&rctx, result);
-					return;
+					rctx->retryopts |= DNS_FETCHOPT_TCP;
+					rctx->resend = true;
+					rctx_done(rctx, result);
+					goto cleanup;
 				}
 			}
 		}
 	}
 
-	rctx_edns(&rctx);
+	rctx_edns(rctx);
 
 	/*
 	 * Deal with truncated responses by retrying using TCP.
 	 */
 	if ((query->rmessage->flags & DNS_MESSAGEFLAG_TC) != 0) {
-		rctx.truncated = true;
+		rctx->truncated = true;
 	}
 
-	if (rctx.truncated) {
+	if (rctx->truncated) {
 		inc_stats(fctx->res, dns_resstatscounter_truncated);
-		if ((rctx.retryopts & DNS_FETCHOPT_TCP) != 0) {
-			rctx.broken_server = DNS_R_TRUNCATEDTCP;
-			rctx.next_server = true;
+		if ((rctx->retryopts & DNS_FETCHOPT_TCP) != 0) {
+			rctx->broken_server = DNS_R_TRUNCATEDTCP;
+			rctx->next_server = true;
 		} else {
-			rctx.retryopts |= DNS_FETCHOPT_TCP;
-			rctx.resend = true;
+			rctx->retryopts |= DNS_FETCHOPT_TCP;
+			rctx->resend = true;
 		}
 		FCTXTRACE3("message truncated", result);
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
 	 * Is it a query response?
 	 */
 	if (query->rmessage->opcode != dns_opcode_query) {
-		rctx.broken_server = DNS_R_UNEXPECTEDOPCODE;
-		rctx.next_server = true;
+		rctx->broken_server = DNS_R_UNEXPECTEDOPCODE;
+		rctx->next_server = true;
 		FCTXTRACE("invalid message opcode");
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
@@ -7543,17 +7577,17 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	/*
 	 * Bad server?
 	 */
-	result = rctx_badserver(&rctx, result);
+	result = rctx_badserver(rctx, result);
 	if (result == ISC_R_COMPLETE) {
-		return;
+		goto cleanup;
 	}
 
 	/*
 	 * Lame server?
 	 */
-	result = rctx_lameserver(&rctx);
+	result = rctx_lameserver(rctx);
 	if (result == ISC_R_COMPLETE) {
-		return;
+		goto cleanup;
 	}
 
 	/*
@@ -7578,9 +7612,9 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	     query->rmessage->rcode == dns_rcode_yxdomain ||
 	     query->rmessage->rcode == dns_rcode_nxdomain))
 	{
-		result = rctx_answer(&rctx);
+		result = rctx_answer(rctx);
 		if (result == ISC_R_COMPLETE) {
-			return;
+			goto cleanup;
 		}
 	} else if (query->rmessage->counts[DNS_SECTION_AUTHORITY] > 0 ||
 		   query->rmessage->rcode == dns_rcode_noerror ||
@@ -7590,7 +7624,7 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 		 * This might be an NXDOMAIN, NXRRSET, or referral.
 		 * Call rctx_answer_none() to determine which it is.
 		 */
-		result = rctx_answer_none(&rctx);
+		result = rctx_answer_none(rctx);
 		switch (result) {
 		case ISC_R_SUCCESS:
 		case DNS_R_CHASEDSSERVERS:
@@ -7609,28 +7643,28 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 			 * Something has gone wrong.
 			 */
 			if (result == DNS_R_FORMERR) {
-				rctx.next_server = true;
+				rctx->next_server = true;
 			}
 			FCTXTRACE3("rctx_answer_none", result);
-			rctx_done(&rctx, result);
-			return;
+			rctx_done(rctx, result);
+			goto cleanup;
 		}
 	} else {
 		/*
 		 * The server is insane.
 		 */
 		/* XXXRTH Log */
-		rctx.broken_server = DNS_R_UNEXPECTEDRCODE;
-		rctx.next_server = true;
+		rctx->broken_server = DNS_R_UNEXPECTEDRCODE;
+		rctx->next_server = true;
 		FCTXTRACE("broken server: unexpected rcode");
-		rctx_done(&rctx, result);
-		return;
+		rctx_done(rctx, result);
+		goto cleanup;
 	}
 
 	/*
 	 * Follow additional section data chains.
 	 */
-	rctx_additional(&rctx);
+	rctx_additional(rctx);
 
 	/*
 	 * Cache the cacheable parts of the message.  This may also
@@ -7639,21 +7673,24 @@ resquery_response(isc_result_t eresult, isc_region_t *region, void *arg) {
 	if (WANTCACHE(fctx)) {
 		isc_result_t tresult;
 		tresult = cache_message(fctx, query->rmessage, query->addrinfo,
-					rctx.now);
+					rctx->now);
 		if (tresult != ISC_R_SUCCESS) {
 			FCTXTRACE3("cache_message complete", tresult);
-			rctx_done(&rctx, tresult);
-			return;
+			rctx_done(rctx, tresult);
+			goto cleanup;
 		}
 	}
 
 	/*
 	 * Negative caching
 	 */
-	rctx_ncache(&rctx);
+	rctx_ncache(rctx);
 
 	FCTXTRACE("resquery_response done");
-	rctx_done(&rctx, result);
+	rctx_done(rctx, result);
+
+cleanup:
+	isc_mem_putanddetach(&rctx->mctx, rctx, sizeof(*rctx));
 }
 
 /*
@@ -7680,6 +7717,7 @@ rctx_respinit(resquery_t *query, fetchctx_t *fctx, isc_result_t result,
 	rctx->tnow = isc_time_now();
 	rctx->finish = &rctx->tnow;
 	rctx->now = (isc_stdtime_t)isc_time_seconds(&rctx->tnow);
+	isc_mem_attach(fctx->mctx, &rctx->mctx);
 }
 
 /*
