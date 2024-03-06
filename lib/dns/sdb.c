@@ -1262,9 +1262,10 @@ overmem(dns_db_t *db, bool over) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask) {
 	UNUSED(db);
 	UNUSED(task);
+	UNUSED(prunetask);
 }
 
 static dns_dbmethods_t sdb_methods = {

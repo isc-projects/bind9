@@ -429,12 +429,12 @@ overmem(dns_db_t *db, bool over) {
 }
 
 static void
-settask(dns_db_t *db, isc_task_t *task) {
+settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
-	dns_db_settask(sampledb->rbtdb, task);
+	dns_db_settask(sampledb->rbtdb, task, prunetask);
 }
 
 static isc_result_t
