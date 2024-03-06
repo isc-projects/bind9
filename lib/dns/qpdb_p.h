@@ -74,14 +74,8 @@ struct dns_qpdata {
 	 * after acquiring the tree lock.
 	 */
 	unsigned int		   : 0; /* start of bitfields c/o tree lock */
-	unsigned int is_root	   : 1; /*%< range is 0..1 */
-	unsigned int color	   : 1; /*%< range is 0..1 */
 	unsigned int find_callback : 1; /*%< range is 0..1 */
-	bool absolute		   : 1; /*%< node with absolute DNS name */
 	unsigned int nsec	   : 2; /*%< range is 0..3 */
-	unsigned int namelen	   : 8; /*%< range is 1..255 */
-	unsigned int offsetlen	   : 8; /*%< range is 1..128 */
-	unsigned int oldnamelen	   : 8; /*%< range is 1..255 */
 	unsigned int		   : 0; /* end of bitfields c/o tree lock */
 	/*@}*/
 
@@ -103,7 +97,7 @@ struct dns_qpdata {
 
 	/*@{*/
 	/*!
-	 * These values are used in the RBT DB implementation.  The appropriate
+	 * These values are used in the QPDB implementation.  The appropriate
 	 * node lock must be held before accessing them.
 	 *
 	 * Note: The two "unsigned int :0;" unnamed bitfields on either
@@ -122,7 +116,6 @@ struct dns_qpdata {
 	void *data;
 	uint8_t	      : 0; /* start of bitfields c/o node lock */
 	uint8_t dirty : 1;
-	uint8_t wild  : 1;
 	uint8_t	      : 0; /* end of bitfields c/o node lock */
 	uint16_t locknum;  /* note that this is not in the bitfield */
 	isc_refcount_t references;
@@ -137,43 +130,6 @@ typedef struct qpdb_changed {
 } qpdb_changed_t;
 
 typedef ISC_LIST(qpdb_changed_t) qpdb_changedlist_t;
-
-struct dns_qpdb_version {
-	/* Not locked */
-	uint32_t serial;
-	dns_qpdb_t *qpdb;
-	/*
-	 * Protected in the refcount routines.
-	 * XXXJT: should we change the lock policy based on the refcount
-	 * performance?
-	 */
-	isc_refcount_t references;
-	/* Locked by database lock. */
-	bool writer;
-	bool commit_ok;
-	qpdb_changedlist_t changed_list;
-	dns_slabheaderlist_t resigned_list;
-	ISC_LINK(dns_qpdb_version_t) link;
-	bool secure;
-	bool havensec3;
-	/* NSEC3 parameters */
-	dns_hash_t hash;
-	uint8_t flags;
-	uint16_t iterations;
-	uint8_t salt_length;
-	unsigned char salt[DNS_NSEC3_SALTSIZE];
-
-	/*
-	 * records and xfrsize are covered by rwlock.
-	 */
-	isc_rwlock_t rwlock;
-	uint64_t records;
-	uint64_t xfrsize;
-
-	struct cds_wfs_stack glue_stack;
-};
-
-typedef ISC_LIST(dns_qpdb_version_t) qpdb_versionlist_t;
 
 struct dns_qpdb {
 	/* Unlocked. */
@@ -196,9 +152,6 @@ struct dns_qpdb {
 	uint32_t current_serial;
 	uint32_t least_serial;
 	uint32_t next_serial;
-	dns_qpdb_version_t *current_version;
-	dns_qpdb_version_t *future_version;
-	qpdb_versionlist_t open_versions;
 	isc_loop_t *loop;
 	dns_dbnode_t *soanode;
 	dns_dbnode_t *nsnode;
@@ -242,7 +195,6 @@ struct dns_qpdb {
 	 */
 	isc_mem_t *hmctx;
 	isc_heap_t **heaps;
-	isc_heapcompare_t sooner;
 
 	/* Locked by tree_lock. */
 	dns_qp_t *tree;
@@ -258,7 +210,6 @@ struct dns_qpdb {
  */
 typedef struct {
 	dns_qpdb_t *qpdb;
-	dns_qpdb_version_t *rbtversion;
 	uint32_t serial;
 	unsigned int options;
 	dns_qpchain_t chain;
@@ -449,9 +400,6 @@ isc_result_t
 dns__qpdb_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
 
 void
-dns__qpdb_freeglue(dns_glue_t *glue_list);
-
-void
 dns__qpdb_newref(dns_qpdb_t *qpdb, dns_qpdata_t *node,
 		 isc_rwlocktype_t locktype DNS__DB_FLARG);
 /*%<
@@ -477,21 +425,12 @@ dns__qpdb_decref(dns_qpdb_t *qpdb, dns_qpdata_t *node, uint32_t least_serial,
 
 isc_result_t
 dns__qpdb_add(dns_qpdb_t *qpdb, dns_qpdata_t *qpnode,
-	      const dns_name_t *nodename, dns_qpdb_version_t *rbtversion,
-	      dns_slabheader_t *newheader, unsigned int options, bool loading,
-	      dns_rdataset_t *addedrdataset, isc_stdtime_t now DNS__DB_FLARG);
+	      const dns_name_t *nodename, dns_slabheader_t *newheader,
+	      unsigned int options, bool loading, dns_rdataset_t *addedrdataset,
+	      isc_stdtime_t now DNS__DB_FLARG);
 /*%<
  * Add a slab header 'newheader' to a node in an RBT database.
  * The caller must have the node write-locked.
- */
-
-void
-dns__qpdb_setsecure(dns_db_t *db, dns_qpdb_version_t *version,
-		    dns_dbnode_t *origin);
-/*%<
- * Update the secure status for an RBT database version 'version'.
- * The version will be marked secure if it is fully signed and
- * and contains a complete NSEC/NSEC3 chain.
  */
 
 void
@@ -507,43 +446,6 @@ dns__qpdb_setttl(dns_slabheader_t *header, dns_ttl_t newttl);
 /*%<
  * Set the TTL in a slab header 'header'. In a cache database,
  * also update the TTL heap accordingly.
- */
-
-/*
- * Functions specific to zone databases that are also called from qpdb.c.
- */
-void
-dns__qpzone_resigninsert(dns_qpdb_t *qpdb, int idx,
-			 dns_slabheader_t *newheader);
-void
-dns__qpzone_resigndelete(dns_qpdb_t *qpdb, dns_qpdb_version_t *version,
-			 dns_slabheader_t *header DNS__DB_FLARG);
-/*%<
- * Insert/delete a node from the zone database's resigning heap.
- */
-
-isc_result_t
-dns__qpzone_wildcardmagic(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock);
-/*%<
- * Add the necessary magic for the wildcard name 'name'
- * to be found in 'qpdb'.
- *
- * In order for wildcard matching to work correctly in
- * zone_find(), we must ensure that a node for the wildcarding
- * level exists in the database, and has its 'find_callback'
- * and 'wild' bits set.
- *
- * E.g. if the wildcard name is "*.sub.example." then we
- * must ensure that "sub.example." exists and is marked as
- * a wildcard level.
- *
- * The tree must be write-locked.
- */
-isc_result_t
-dns__qpzone_addwildcards(dns_qpdb_t *qpdb, const dns_name_t *name, bool lock);
-/*%<
- * If 'name' is or contains a wildcard name, create a node for it in the
- * database. The tree must be write-locked.
  */
 
 /*

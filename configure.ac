@@ -1570,9 +1570,8 @@ AS_IF([test -z "$DTRACE"],
 AC_SUBST([DTRACE])
 
 #
-# Which should be the default zone database, RBTDB, QPDB (based on dns_qp),
-# or QPZONE (based on dns_qpmulti)?
-# [pairwise: --with-zonedb=qp, --with-zonedb=qpzone, --with-zonedb=rbt]
+# Which should be the default zone database, RBTDB or QPZONE?
+# [pairwise: --with-zonedb=qp, --with-zonedb=rbt]
 #
 AC_ARG_WITH([zonedb],
 	    [AS_HELP_STRING([--with-zonedb=detect],[specify default zone database type (default is "qpzone")])],
@@ -1580,8 +1579,7 @@ AC_ARG_WITH([zonedb],
 zonedb="qpzone"
 AS_CASE([$with_zonedb],
 	[RBT*|rbt*],[zonedb="rbt"],
-        [QP|qp],[zonedb="qp"],
-        [QPZ*|qpz*],[],
+        [QP|qp],[],
 	[AC_MSG_ERROR([Unknown zone database type])]
        )
 AC_DEFINE_UNQUOTED([ZONEDB_DEFAULT], ["$zonedb"], [Default zone database type])

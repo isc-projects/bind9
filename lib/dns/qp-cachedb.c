@@ -1521,10 +1521,6 @@ expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 
 dns_dbmethods_t dns__qpdb_cachemethods = {
 	.destroy = dns__qpdb_destroy,
-	.currentversion = dns__qpdb_currentversion,
-	.newversion = dns__qpdb_newversion,
-	.attachversion = dns__qpdb_attachversion,
-	.closeversion = dns__qpdb_closeversion,
 	.findnode = dns__qpdb_findnode,
 	.find = cache_find,
 	.findzonecut = cache_findzonecut,
@@ -1534,7 +1530,6 @@ dns_dbmethods_t dns__qpdb_cachemethods = {
 	.findrdataset = cache_findrdataset,
 	.allrdatasets = dns__qpdb_allrdatasets,
 	.addrdataset = dns__qpdb_addrdataset,
-	.subtractrdataset = dns__qpdb_subtractrdataset,
 	.deleterdataset = dns__qpdb_deleterdataset,
 	.nodecount = dns__qpdb_nodecount,
 	.setloop = dns__qpdb_setloop,
@@ -1549,7 +1544,6 @@ dns_dbmethods_t dns__qpdb_cachemethods = {
 	.unlocknode = dns__qpdb_unlocknode,
 	.expiredata = expiredata,
 	.deletedata = dns__qpdb_deletedata,
-	.nodefullname = dns__qpdb_nodefullname,
 };
 
 /*

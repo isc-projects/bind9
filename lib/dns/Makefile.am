@@ -224,7 +224,6 @@ libdns_la_SOURCES =			\
 	rbtdb.c				\
 	rbtdb_p.h			\
 	qp-cachedb.c			\
-	qp-zonedb.c			\
 	qpdb_p.h			\
 	qpdb.c				\
 	rcode.c				\
