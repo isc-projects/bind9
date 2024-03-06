@@ -156,7 +156,7 @@ typedef struct {
 typedef uint32_t librpz_idx_t;
 #define LIBRPZ_IDX_NULL 0
 #define LIBRPZ_IDX_MIN	1
-#define LIBRPZ_IDX_BAD	((librpz_idx_t)-1)
+#define LIBRPZ_IDX_BAD	((librpz_idx_t) - 1)
 /**
  * Partial decoded results of a set of RPZ queries for a single DNS response
  * or iteration through the mapped file.

@@ -356,9 +356,9 @@ mock_assert(const int result, const char *const expression,
  * Alignment
  */
 #ifdef __GNUC__
-#define ISC_ALIGN(x, a) (((x) + (a)-1) & ~((typeof(x))(a)-1))
+#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((typeof(x))(a) - 1))
 #else /* ifdef __GNUC__ */
-#define ISC_ALIGN(x, a) (((x) + (a)-1) & ~((uintmax_t)(a)-1))
+#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((uintmax_t)(a) - 1))
 #endif /* ifdef __GNUC__ */
 
 /*%

@@ -89,7 +89,7 @@ typedef uint8_t dns_rpz_num_t;
  */
 typedef uint64_t dns_rpz_zbits_t;
 
-#define DNS_RPZ_ALL_ZBITS ((dns_rpz_zbits_t)-1)
+#define DNS_RPZ_ALL_ZBITS ((dns_rpz_zbits_t) - 1)
 
 #define DNS_RPZ_INVALID_NUM DNS_RPZ_MAX_ZONES
 
