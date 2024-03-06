@@ -131,6 +131,7 @@ struct dns_cache {
 	isc_mutex_t filelock;
 	isc_mem_t *mctx;  /* Main cache memory */
 	isc_mem_t *hmctx; /* Heap memory */
+	isc_taskmgr_t *taskmgr;
 	char *name;
 	isc_refcount_t references;
 	isc_refcount_t live_tasks;
@@ -172,12 +173,46 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 static isc_result_t
 cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	isc_result_t result;
+	isc_task_t *dbtask = NULL;
+	isc_task_t *prunetask = NULL;
+
 	result = dns_db_create(cache->mctx, cache->db_type, dns_rootname,
 			       dns_dbtype_cache, cache->rdclass, cache->db_argc,
 			       cache->db_argv, db);
-	if (result == ISC_R_SUCCESS) {
-		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
+
+	dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+
+	if (cache->taskmgr == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = isc_task_create(cache->taskmgr, 1, &dbtask);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_db;
+	}
+	isc_task_setname(dbtask, "cache_dbtask", NULL);
+
+	result = isc_task_create(cache->taskmgr, UINT_MAX, &prunetask);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_dbtask;
+	}
+	isc_task_setname(prunetask, "cache_prunetask", NULL);
+
+	dns_db_settask(*db, dbtask, prunetask);
+
+	isc_task_detach(&prunetask);
+	isc_task_detach(&dbtask);
+
+	return (ISC_R_SUCCESS);
+
+cleanup_dbtask:
+	isc_task_detach(&dbtask);
+cleanup_db:
+	dns_db_detach(db);
+
 	return (result);
 }
 
@@ -194,6 +229,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	REQUIRE(*cachep == NULL);
 	REQUIRE(cmctx != NULL);
 	REQUIRE(hmctx != NULL);
+	REQUIRE(taskmgr != NULL || strcmp(db_type, "rbt") != 0);
 	REQUIRE(cachename != NULL);
 
 	cache = isc_mem_get(cmctx, sizeof(*cache));
@@ -201,6 +237,11 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->mctx = cache->hmctx = NULL;
 	isc_mem_attach(cmctx, &cache->mctx);
 	isc_mem_attach(hmctx, &cache->hmctx);
+
+	cache->taskmgr = NULL;
+	if (taskmgr != NULL) {
+		isc_taskmgr_attach(taskmgr, &cache->taskmgr);
+	}
 
 	cache->name = NULL;
 	if (cachename != NULL) {
@@ -259,27 +300,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_dbargv;
 	}
-	if (taskmgr != NULL) {
-		isc_task_t *dbtask = NULL;
-		isc_task_t *prunetask = NULL;
-
-		result = isc_task_create(taskmgr, 1, &dbtask);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup_db;
-		}
-		isc_task_setname(dbtask, "cache_dbtask", NULL);
-
-		result = isc_task_create(taskmgr, UINT_MAX, &prunetask);
-		if (result != ISC_R_SUCCESS) {
-			isc_task_detach(&dbtask);
-			goto cleanup_db;
-		}
-		isc_task_setname(prunetask, "cache_prunetask", NULL);
-
-		dns_db_settask(cache->db, dbtask, prunetask);
-		isc_task_detach(&dbtask);
-		isc_task_detach(&prunetask);
-	}
 
 	cache->filename = NULL;
 
@@ -326,6 +346,9 @@ cleanup_filelock:
 	isc_mutex_destroy(&cache->lock);
 	if (cache->name != NULL) {
 		isc_mem_free(cmctx, cache->name);
+	}
+	if (cache->taskmgr != NULL) {
+		isc_taskmgr_detach(&cache->taskmgr);
 	}
 	isc_mem_detach(&cache->hmctx);
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
@@ -396,6 +419,10 @@ cache_free(dns_cache_t *cache) {
 
 	if (cache->stats != NULL) {
 		isc_stats_detach(&cache->stats);
+	}
+
+	if (cache->taskmgr != NULL) {
+		isc_taskmgr_detach(&cache->taskmgr);
 	}
 
 	isc_mutex_destroy(&cache->lock);
