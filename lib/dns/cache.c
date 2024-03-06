@@ -68,6 +68,7 @@ struct dns_cache {
 	isc_mutex_t lock;
 	isc_mem_t *mctx;  /* Main cache memory */
 	isc_mem_t *hmctx; /* Heap memory */
+	isc_loop_t *loop;
 	char *name;
 	isc_refcount_t references;
 
@@ -101,6 +102,9 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
 		dns_db_setservestalerefresh(*db, cache->serve_stale_refresh);
 	}
+
+	dns_db_setloop(cache->db, cache->loop);
+
 	return (result);
 }
 
@@ -137,6 +141,7 @@ dns_cache_create(isc_loopmgr_t *loopmgr, dns_rdataclass_t rdclass,
 		.hmctx = hmctx,
 		.rdclass = rdclass,
 		.name = isc_mem_strdup(mctx, cachename),
+		.loop = isc_loop_ref(isc_loop_main(loopmgr)),
 	};
 
 	isc_mutex_init(&cache->lock);
@@ -174,6 +179,7 @@ cleanup_stats:
 	isc_stats_detach(&cache->stats);
 	isc_mutex_destroy(&cache->lock);
 	isc_mem_free(mctx, cache->name);
+	isc_loop_detach(&cache->loop);
 	isc_mem_detach(&cache->hmctx);
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
 	return (result);
@@ -191,6 +197,8 @@ cache_free(dns_cache_t *cache) {
 	isc_stats_detach(&cache->stats);
 
 	isc_mutex_destroy(&cache->lock);
+
+	isc_loop_detach(&cache->loop);
 
 	cache->magic = 0;
 	isc_mem_detach(&cache->hmctx);
