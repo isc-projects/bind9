@@ -472,8 +472,9 @@ ISC_RUN_TEST_IMPL(dumpraw) {
 				   &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mctx, "qp", &dnsorigin, dns_dbtype_zone,
-			       dns_rdataclass_in, 0, NULL, &db);
+	result = dns_db_create(mctx, ZONEDB_DEFAULT, &dnsorigin,
+			       dns_dbtype_zone, dns_rdataclass_in, 0, NULL,
+			       &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_dir_chdir(SRCDIR);

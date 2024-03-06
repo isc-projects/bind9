@@ -62,8 +62,13 @@ Feature Changes
   A side effect of this change is that zone files that are created with
   :any:`masterfile-style` ``relative`` - for example, the output of
   :any:`dnssec-signzone` - will no longer have multiple different
-  `$ORIGIN` statements. There should be no other behavior changes to
-  server behavior. :gl:`#4411`.
+  `$ORIGIN` statements. There should be no other changes to server
+  behavior.
+
+  The old RBT-based database still exists for now, and can be used by
+  specifying ``database rbt`` in a ``zone`` statement in ``named.conf``,
+  or by compiling with ``configure --with-zonedb=rbt --with-cachedb=rbt``.
+  :gl:`#4411`.
 
 Bug Fixes
 ~~~~~~~~~

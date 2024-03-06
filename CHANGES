@@ -2,8 +2,8 @@
 			RBTDB has been replaced with QP-tries.  This is
 			expected to improve scalability and reduce
 			CPU consumption under load. It is currently known to
-			have higher memory consumption than RBTDB; this
-			will be addressed in future releases.
+			have higher memory consumption than the traditional
+			RBTDB; this will be addressed in future releases.
 
 			Nodes in a QP-trie contain the full domain name,
 			while nodes in a red-black tree only contain names
@@ -18,7 +18,13 @@
 			single-thread "dns_qp" interface with locks for
 			synchronization. A future version will use the
 			multithreaded "dns_qpmulti" interface instead,
-			and will be renamed to QPDB. [GL #4411]
+			and will be renamed to QPDB.
+
+			The RBT-based version of RBTDB is still in place
+			for now, and can be used by specifying "database rbt"
+			in a "zone" statement, or by compiling with
+			"configure --with-zonedb=rbt --with-cachedb=rbt".
+			[GL #4411]
 
 6354.	[bug]		Change 6035 introduced a regression when chasing DS
 			records resulting in an assertion failure. [GL #4612]

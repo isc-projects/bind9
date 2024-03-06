@@ -3986,9 +3986,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    "and 'database'",
 			    znamestr);
 		result = ISC_R_FAILURE;
-	} else if (!dlz && (tresult == ISC_R_NOTFOUND ||
-			    (tresult == ISC_R_SUCCESS &&
-			     strcmp("qp", cfg_obj_asstring(obj)) == 0)))
+	} else if (!dlz &&
+		   (tresult == ISC_R_NOTFOUND ||
+		    (tresult == ISC_R_SUCCESS &&
+		     strcmp(ZONEDB_DEFAULT, cfg_obj_asstring(obj)) == 0)))
 	{
 		isc_result_t res1;
 		const cfg_obj_t *fileobj = NULL;

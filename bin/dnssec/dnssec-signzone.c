@@ -998,8 +998,8 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 	}
 	isc_buffer_putuint8(&b, 0);
 
-	result = dns_db_create(mctx, "qp", dns_rootname, dns_dbtype_zone,
-			       rdclass, 0, NULL, dbp);
+	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_zone, rdclass, 0, NULL, dbp);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*dbp, filename, inputformat, DNS_MASTER_HINT);
@@ -2572,8 +2572,8 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		      isc_result_totext(result));
 	}
 
-	result = dns_db_create(mctx, "qp", name, dns_dbtype_zone, rdclass, 0,
-			       NULL, db);
+	result = dns_db_create(mctx, ZONEDB_DEFAULT, name, dns_dbtype_zone,
+			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(*db, file, inputformat, 0);
@@ -3162,8 +3162,8 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 		dns_diff_append(&diff, &tuple);
 	}
 
-	result = dns_db_create(mctx, "qp", dns_rootname, dns_dbtype_zone,
-			       gclass, 0, NULL, &db);
+	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_zone, gclass, 0, NULL, &db);
 	check_result(result, "dns_db_create");
 
 	result = dns_db_newversion(db, &dbversion);

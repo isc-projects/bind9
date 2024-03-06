@@ -238,8 +238,8 @@ dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	result = dns_db_create(mctx, "qp", dns_rootname, dns_dbtype_zone,
-			       rdclass, 0, NULL, &db);
+	result = dns_db_create(mctx, ZONEDB_DEFAULT, dns_rootname,
+			       dns_dbtype_zone, rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
