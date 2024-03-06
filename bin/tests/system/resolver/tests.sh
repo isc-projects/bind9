@@ -829,6 +829,14 @@ grep "status: NOERROR" dig.out.${n} >/dev/null || ret=1
 nextpart ns5/named.run | grep "$msg" >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
+n=$((n + 1))
+echo_i "GL#4612 regression test: DS query against broken NODATA responses (${n})"
+# servers ns2 and ns3 return authority SOA which matches QNAME rather than the zone
+ret=0
+dig_with_opts @10.53.0.7 a.a.gl6412 DS >dig.out.${n} || ret=1
+grep "status: SERVFAIL" dig.out.${n} >/dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
 status=$((status + ret))
 
 echo_i "exit status: $status"
