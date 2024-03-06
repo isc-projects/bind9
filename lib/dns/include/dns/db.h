@@ -139,7 +139,7 @@ typedef struct dns_dbmethods {
 	unsigned int (*nodecount)(dns_db_t *db, dns_dbtree_t);
 	bool (*ispersistent)(dns_db_t *db);
 	void (*overmem)(dns_db_t *db, bool overmem);
-	void (*settask)(dns_db_t *db, isc_task_t *);
+	void (*settask)(dns_db_t *db, isc_task_t *, isc_task_t *);
 	isc_result_t (*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void (*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 			     dns_dbnode_t **targetp);
@@ -1389,13 +1389,14 @@ dns_db_hashsize(dns_db_t *db);
  */
 
 void
-dns_db_settask(dns_db_t *db, isc_task_t *task);
+dns_db_settask(dns_db_t *db, isc_task_t *task, isc_task_t *prunetask);
 /*%<
  * If task is set then the final detach maybe performed asynchronously.
  *
  * Requires:
  * \li	'db' is a valid database.
- * \li	'task' to be valid or NULL.
+ * \li	'task' to be valid or NULL (default task to send events to).
+ * \li	'prunetask' to be valid or NULL (task to send tree-pruning events to).
  */
 
 bool

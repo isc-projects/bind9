@@ -47,6 +47,11 @@ Bug Fixes
   :gl:`#4596`
 
 
+- Using :option:`rndc flush` inadvertently caused cache cleaning to
+  become less effective. This could ultimately lead to the configured
+  :any:`max-cache-size` limit being exceeded and has now been fixed.
+  :gl:`#4621`
+
 Known Issues
 ~~~~~~~~~~~~
 
