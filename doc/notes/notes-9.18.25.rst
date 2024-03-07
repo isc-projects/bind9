@@ -25,6 +25,11 @@ Bug Fixes
   :any:`max-cache-size` limit being exceeded and has now been fixed.
   :gl:`#4621`
 
+- The logic for cleaning up cached DNS records whose TTL has expired was
+  tweaked to be more aggressive. This change helps with enforcing
+  :any:`max-cache-ttl` and :any:`max-ncache-ttl` in a timely manner.
+  :gl:`#4591`
+
 - A use-after-free assertion might get triggered when the overmem cache
   cleaning triggers. :gl:`#4595`
 
