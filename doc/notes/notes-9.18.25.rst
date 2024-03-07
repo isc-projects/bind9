@@ -12,45 +12,24 @@
 Notes for BIND 9.18.25
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
-
-- A use-after-free assertion might get triggered when the overmem cache
-  cleaning triggers. :gl:`#4595`
-
-  ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
-  this issue to our attention.
 
 - A regression in cache-cleaning code enabled memory use to grow
   significantly more quickly than before, until the configured
   :any:`max-cache-size` limit was reached. This has been fixed.
   :gl:`#4596`
 
-
 - Using :option:`rndc flush` inadvertently caused cache cleaning to
   become less effective. This could ultimately lead to the configured
   :any:`max-cache-size` limit being exceeded and has now been fixed.
   :gl:`#4621`
+
+- A use-after-free assertion might get triggered when the overmem cache
+  cleaning triggers. :gl:`#4595`
+
+  ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
+  this issue to our attention.
 
 Known Issues
 ~~~~~~~~~~~~
