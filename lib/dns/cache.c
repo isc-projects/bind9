@@ -101,9 +101,8 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	if (result == ISC_R_SUCCESS) {
 		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
 		dns_db_setservestalerefresh(*db, cache->serve_stale_refresh);
+		dns_db_setloop(*db, cache->loop);
 	}
-
-	dns_db_setloop(cache->db, cache->loop);
 
 	return (result);
 }
