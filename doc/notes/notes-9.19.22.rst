@@ -80,6 +80,11 @@ Bug Fixes
   :any:`max-cache-size` limit being exceeded and has now been fixed.
   :gl:`#4621`
 
+- The logic for cleaning up expired cached DNS records was
+  tweaked to be more aggressive. This change helps with enforcing
+  :any:`max-cache-ttl` and :any:`max-ncache-ttl` in a timely manner.
+  :gl:`#4591`
+
 - Changes to ``listen-on`` statements were ignored on reconfiguration
   unless the port or interface address was changed, making it
   impossible to change a related listener transport type. That issue
