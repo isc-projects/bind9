@@ -45,6 +45,7 @@ def lines_containing(lines, string):
 changes_issue_or_mr_id_regex = re.compile(rb"\[(GL [#!]|RT #)[0-9]+\]")
 relnotes_issue_or_mr_id_regex = re.compile(rb":gl:`[#!][0-9]+`")
 release_notes_regex = re.compile(r"doc/(arm|notes)/notes-.*\.(rst|xml)")
+rdata_regex = re.compile(r"lib/dns/rdata/")
 
 modified_files = danger.git.modified_files
 affected_files = (
@@ -336,6 +337,11 @@ if changes_added_lines:
 #       Notes" label set.  (This ensures that merge requests updating release
 #       notes can be easily found using the "Release Notes" label.)
 #
+#     * A file was added to or deleted from the lib/dns/rdata/ subdirectory but
+#       release notes were not modified. This is probably a mistake because new
+#       RR types are a user-visible change (and so is removing support for
+#       existing ones).
+#
 # - WARN if any of the following is true:
 #
 #     * This merge request does not update release notes and has the "Customer"
@@ -359,6 +365,16 @@ if not release_notes_changed:
         warn(
             "This merge request has the *Customer* label set. "
             "Update release notes unless the changes introduced are trivial."
+        )
+    rdata_types_add_rm = list(
+        filter(rdata_regex.match, danger.git.created_files + danger.git.deleted_files)
+    )
+    if rdata_types_add_rm:
+        fail(
+            "This merge request adds new files to `lib/dns/rdata/` and/or "
+            "deletes existing files from that directory, which almost certainly "
+            "means that it adds support for a new RR type or removes support "
+            "for an existing one. Please add a relevant release note."
         )
 if release_notes_changed and not release_notes_label_set:
     fail(
