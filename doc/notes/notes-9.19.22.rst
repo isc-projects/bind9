@@ -33,6 +33,8 @@ New Features
   set a PKCS#11 URI string. The latter requires OpenSSL 3 and a valid PKCS#11
   provider to be configured for OpenSSL. :gl`#1129`.
 
+- Add support for RESINFO record type. :gl:`#4413`
+
 Removed Features
 ~~~~~~~~~~~~~~~~
 
