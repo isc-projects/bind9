@@ -339,6 +339,11 @@ if changes_added_lines:
 #       RR types are a user-visible change (and so is removing support for
 #       existing ones).
 #
+#     * "Release notes" and "No CHANGES" labels are both set at the same time.
+#       (If something is worth a release note, it should surely show up in
+#       CHANGES.) MRs with certain labels set ("Documentation", "Release") are
+#       exempt because these are typically used during release process.
+#
 # - WARN if any of the following is true:
 #
 #     * This merge request does not update release notes and has the "Customer"
@@ -377,6 +382,15 @@ if release_notes_changed and not release_notes_label_set:
     fail(
         "This merge request modifies release notes. "
         "Revert release note modifications or set the *Release Notes* label."
+    )
+if (
+    release_notes_label_set
+    and no_changes_label_set
+    and not ("Documentation" in mr_labels or "Release" in mr_labels)
+):
+    fail(
+        "This merge request is labeled with both *Release notes* and *No CHANGES*. "
+        "A user-visible change should also be mentioned in the `CHANGES` file."
     )
 
 if release_notes_changed:
