@@ -62,7 +62,7 @@ struct dns_dbimplementation {
  */
 
 #include "db_p.h"
-#include "qpdb_p.h"
+#include "qpcache_p.h"
 #include "qpzone_p.h"
 #include "rbtdb_p.h"
 
@@ -89,8 +89,8 @@ initialize(void) {
 	};
 
 	qpimp = (dns_dbimplementation_t){
-		.name = "qp",
-		.create = dns__qpdb_create,
+		.name = "qpcache",
+		.create = dns__qpcache_create,
 		.link = ISC_LINK_INITIALIZER,
 	};
 

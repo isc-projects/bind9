@@ -37,9 +37,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #undef CHECK
-#include "db_p.h"
 #include "qpzone.c"
-#include "qpzone_p.h"
 #pragma GCC diagnostic pop
 
 #undef CHECK

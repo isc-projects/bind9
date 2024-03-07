@@ -62,7 +62,7 @@
 #include <dns/zonekey.h>
 
 #include "db_p.h"
-#include "qpdb_p.h"
+#include "qpcache_p.h"
 
 #define CHECK(op)                            \
 	do {                                 \
@@ -3862,9 +3862,10 @@ unlocknode(dns_db_t *db, dns_dbnode_t *node, isc_rwlocktype_t type) {
 }
 
 isc_result_t
-dns__qpdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
-		 dns_rdataclass_t rdclass, unsigned int argc, char *argv[],
-		 void *driverarg ISC_ATTR_UNUSED, dns_db_t **dbp) {
+dns__qpcache_create(isc_mem_t *mctx, const dns_name_t *origin,
+		    dns_dbtype_t type, dns_rdataclass_t rdclass,
+		    unsigned int argc, char *argv[],
+		    void *driverarg ISC_ATTR_UNUSED, dns_db_t **dbp) {
 	dns_qpdb_t *qpdb = NULL;
 	isc_result_t result;
 	isc_mem_t *hmctx = mctx;

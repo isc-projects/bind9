@@ -1585,13 +1585,13 @@ AS_CASE([$with_zonedb],
 AC_DEFINE_UNQUOTED([ZONEDB_DEFAULT], ["$zonedb"], [Default zone database type])
 
 #
-# Which should be the default zone database, RBTDB or QPDB (based on dns_qp)?
+# Which should be the default zone database, RBTDB or QPCACHE?
 # [pairwise: --with-cachedb=qp, --with-cachedb=rbt]
 #
 AC_ARG_WITH([cachedb],
-	    [AS_HELP_STRING([--with-cachedb=detect],[specify default cache database type (default is "qp")])],
+	    [AS_HELP_STRING([--with-cachedb=detect],[specify default cache database type (default is "qpcache")])],
 	    [],[with_cachedb=qp])
-cachedb="qp"
+cachedb="qpcache"
 AS_CASE([$with_cachedb],
 	[RBT*|rbt*],[cachedb="rbt"],
         [QP*|qp*],[],
