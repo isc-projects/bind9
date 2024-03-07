@@ -793,6 +793,18 @@ task_run(isc_task_t *task) {
 	LOCK(&task->lock);
 	quantum = task->quantum;
 
+	/*
+	 * Don't run more events than already scheduled.  If the quantum is set
+	 * to a high value, the following code would execute already scheduled,
+	 * and all events that result from running event->ev_action().  Setting
+	 * quantum to a number of scheduled events will postpone events
+	 * scheduled after we enter the loop here to the next task_run()
+	 * invocation.
+	 */
+	if (quantum > task->nevents) {
+		quantum = task->nevents;
+	}
+
 	if (task->state != task_state_ready) {
 		goto done;
 	}
