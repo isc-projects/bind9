@@ -293,7 +293,7 @@ status=$((status + ret))
 echo_i "checking corrupt map files fail to load (bad node header) ($n)"
 ret=0
 cp map.5 badmap
-stomp badmap 3706 2 99
+stomp badmap 3578 2 99
 $CHECKZONE -D -f map -F text -o text.5 example.nil badmap >/dev/null
 [ $? = 1 ] || ret=1
 n=$((n + 1))
@@ -303,7 +303,7 @@ status=$((status + ret))
 echo_i "checking corrupt map files fail to load (bad node data) ($n)"
 ret=0
 cp map.5 badmap
-stomp badmap 3137 5 127
+stomp badmap 3057 5 127
 $CHECKZONE -D -f map -F text -o text.5 example.nil badmap >/dev/null
 [ $? = 1 ] || ret=1
 n=$((n + 1))
