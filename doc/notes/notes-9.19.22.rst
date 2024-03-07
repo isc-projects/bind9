@@ -15,31 +15,31 @@ Notes for BIND 9.19.22
 New Features
 ~~~~~~~~~~~~
 
-- The statistics channel's incoming zone transfers information now also shows
+- Information on incoming zone transfers in the statistics channel now also shows
   the zones' "first refresh" flag, which indicates that a zone is not fully
-  ready yet, and its first ever refresh is pending or is in-progress. The number
+  ready and that its first ever refresh is pending or is in progress. The number
   of such zones is now also exposed by the ``rndc status`` command. :gl:`#4241`
 
 - The statistics channel now includes counters that indicate the number
   of currently connected TCP IPv4/IPv6 clients. :gl:`#4425`
 
-- Add HSM support to :any:`dnssec-policy`. You can now configure keys with a
-  ``key-store`` that allows you to set the directory to store the key files and
+- HSM support was added to :any:`dnssec-policy`. Keys can now be configured with a
+  ``key-store`` that allows users to set the directory where key files are stored and to
   set a PKCS#11 URI string. The latter requires OpenSSL 3 and a valid PKCS#11
-  provider to be configured for OpenSSL. :gl`#1129`.
+  provider to be configured for OpenSSL. :gl:`#1129`
 
 - The ``tls`` block was extended with a new ``cipher-suites`` option
-  that allows setting allowed cipher suites for TLSv1.3. Please
+  that allows permitted cipher suites for TLSv1.3 to be set. Please
   consult the documentation for additional details.
   :gl:`#3504`
 
-- Add support for RESINFO record type. :gl:`#4413`
+- Support for the RESINFO record type was added. :gl:`#4413`
 
 Removed Features
 ~~~~~~~~~~~~~~~~
 
 - BIND 9 no longer supports non-zero :any:`stale-answer-client-timeout` values,
-  when the feature is turned on. When using a non-zero value, ``named`` now
+  when the feature is turned on. When using a non-zero value, :iscman:`named` now
   generates a warning log message, and treats the value as ``0``. :gl:`#4447`
 
 Feature Changes
@@ -65,7 +65,7 @@ Feature Changes
   The old RBT-based database still exists for now, and can be used by
   specifying ``database rbt`` in a ``zone`` statement in ``named.conf``,
   or by compiling with ``configure --with-zonedb=rbt --with-cachedb=rbt``.
-  :gl:`#4411`.
+  :gl:`#4411`
 
 Bug Fixes
 ~~~~~~~~~
@@ -91,12 +91,12 @@ Bug Fixes
   has been fixed.
 
   ISC would like to thank Thomas Amgarten for bringing this issue to
-  our attention. :gl:`#4518`, :gl:`#4528`
+  our attention. :gl:`#4518` :gl:`#4528`
 
-- A use-after-free assertion might get triggered when the overmem cache
-  cleaning triggers. :gl:`#4595`
+- It was possible to trigger a use-after-free assertion when the overmem cache
+  cleaning was initiated. This has been fixed. :gl:`#4595`
 
-  ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
+  ISC would like to thank Jinmei Tatuya of Infoblox for bringing
   this issue to our attention.
 
 Known Issues
