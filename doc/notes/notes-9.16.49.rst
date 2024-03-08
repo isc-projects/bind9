@@ -12,44 +12,29 @@
 Notes for BIND 9.16.49
 ----------------------
 
-Security Fixes
-~~~~~~~~~~~~~~
-
-- None.
-
-New Features
-~~~~~~~~~~~~
-
-- None.
-
-Removed Features
-~~~~~~~~~~~~~~~~
-
-- None.
-
-Feature Changes
-~~~~~~~~~~~~~~~
-
-- None.
-
 Bug Fixes
 ~~~~~~~~~
 
 - A regression in cache-cleaning code enabled memory use to grow
   significantly more quickly than before, until the configured
-  ``max-cache-size`` limit was reached. This has been fixed. :gl:`#4596`
+  ``max-cache-size`` limit was reached. This has been fixed.
+  :gl:`#4596`
 
-- Using :option:`rndc flush` inadvertently caused cache cleaning to
+- Using ``rndc flush`` inadvertently caused cache cleaning to
   become less effective. This could ultimately lead to the configured
   ``max-cache-size`` limit being exceeded and has now been fixed.
   :gl:`#4621`
 
-- A use-after-free assertion might get triggered when the overmem cache
-  cleaning triggers. :gl:`#4595`
+- The logic for cleaning up expired cached DNS records was
+  tweaked to be more aggressive. This change helps with enforcing
+  ``max-cache-ttl`` and ``max-ncache-ttl`` in a timely manner.
+  :gl:`#4591`
 
-  ISC would like to thank to Jinmei Tatuya from Infoblox for bringing
+- It was possible to trigger a use-after-free assertion when the overmem cache
+  cleaning was initiated. This has been fixed. :gl:`#4595`
+
+  ISC would like to thank Jinmei Tatuya of Infoblox for bringing
   this issue to our attention.
-
 
 Known Issues
 ~~~~~~~~~~~~
