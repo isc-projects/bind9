@@ -37,6 +37,9 @@ Bug Fixes
 
 - None.
 
+- Some ISO 8601 durations were accepted erroneously, leading to shorter
+  durations than expected. This has been fixed. :gl:`#4624`
+
 Known Issues
 ~~~~~~~~~~~~
 
