@@ -1976,7 +1976,7 @@ validate_dnskey_dsset(dns_validator_t *val) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no RRSIG matching DS key");
 
-		return (result);
+		return (DNS_R_NOVALIDSIG);
 	}
 
 	return (ISC_R_SUCCESS);
