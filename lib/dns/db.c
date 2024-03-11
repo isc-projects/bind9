@@ -62,7 +62,8 @@ struct dns_dbimplementation {
  */
 
 #include "db_p.h"
-#include "qpdb_p.h"
+#include "qpcache_p.h"
+#include "qpzone_p.h"
 #include "rbtdb_p.h"
 
 unsigned int dns_pps = 0U;
@@ -73,6 +74,7 @@ static isc_once_t once = ISC_ONCE_INIT;
 
 static dns_dbimplementation_t rbtimp;
 static dns_dbimplementation_t qpimp;
+static dns_dbimplementation_t qpzoneimp;
 
 static void
 initialize(void) {
@@ -87,13 +89,20 @@ initialize(void) {
 	};
 
 	qpimp = (dns_dbimplementation_t){
-		.name = "qp",
-		.create = dns__qpdb_create,
+		.name = "qpcache",
+		.create = dns__qpcache_create,
+		.link = ISC_LINK_INITIALIZER,
+	};
+
+	qpzoneimp = (dns_dbimplementation_t){
+		.name = "qpzone",
+		.create = dns__qpzone_create,
 		.link = ISC_LINK_INITIALIZER,
 	};
 
 	ISC_LIST_APPEND(implementations, &rbtimp, link);
 	ISC_LIST_APPEND(implementations, &qpimp, link);
+	ISC_LIST_APPEND(implementations, &qpzoneimp, link);
 }
 
 static dns_dbimplementation_t *

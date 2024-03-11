@@ -343,7 +343,7 @@ axfr_apply(void *arg) {
 		goto failure;
 	}
 
-	CHECK(dns_diff_load(&xfr->diff, xfr->axfr.add, xfr->axfr.add_private));
+	CHECK(dns_diff_load(&xfr->diff, &xfr->axfr));
 	if (xfr->maxrecords != 0U) {
 		result = dns_db_getsize(xfr->db, xfr->ver, &records, NULL);
 		if (result == ISC_R_SUCCESS && records > xfr->maxrecords) {

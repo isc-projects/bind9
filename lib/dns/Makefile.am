@@ -216,15 +216,15 @@ libdns_la_SOURCES =			\
 	probes.d			\
 	qp.c				\
 	qp_p.h				\
+	qpzone_p.h			\
+	qpzone.c			\
 	rbt.c				\
 	rbt-cachedb.c			\
 	rbt-zonedb.c			\
 	rbtdb.c				\
 	rbtdb_p.h			\
-	qp-cachedb.c			\
-	qp-zonedb.c			\
-	qpdb_p.h			\
-	qpdb.c				\
+	qpcache.c				\
+	qpcache_p.h			\
 	rcode.c				\
 	rdata.c				\
 	rdatalist.c			\

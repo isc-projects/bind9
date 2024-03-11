@@ -91,9 +91,9 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	char *argv[1] = { 0 };
 
 	/*
-	 * For databases of type "qp" (which is the only cache
-	 * implementation currently in existence) we pass hmctx to
-	 * dns_db_create() via argv[0].
+	 * For databases of type "qpcache" or "rbt" (which are the
+	 * only cache implementations currently in existence) we pass
+	 * hmctx to dns_db_create() via argv[0].
 	 */
 	argv[0] = (char *)cache->hmctx;
 	result = dns_db_create(cache->mctx, CACHEDB_DEFAULT, dns_rootname,

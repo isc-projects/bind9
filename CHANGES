@@ -1,3 +1,12 @@
+6357.	[func]		The QP zone database implementation introduced in
+			change #6355 has now been replaced with a version
+			based on the multithreaded dns_qpmulti API, which
+			is based on RCU and reduces the need for locking.
+			The new implementation is called "qpzone". The
+			previous "qp" implementation has been renamed
+			"qpcache", and can only be used for the cache.
+			[GL #4348]
+
 6356.	[bug]		Attach the loop also in the dns_cache_flush(), so
 			the cache pruning still works after the flush.
 			[GL #4621]

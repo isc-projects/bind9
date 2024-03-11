@@ -1546,7 +1546,7 @@ expiredata(dns_db_t *db, dns_dbnode_t *node, void *data) {
 
 	NODE_WRLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	dns__cacherbt_expireheader(header, &tlocktype,
-				   dns_expire_flush DNS__DB_FLARG_PASS);
+				   dns_expire_flush DNS__DB_FILELINE);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock, &nlocktype);
 	INSIST(tlocktype == isc_rwlocktype_none);
 }

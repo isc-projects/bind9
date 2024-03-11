@@ -370,7 +370,8 @@ rpsdb_destroy(dns_db_t *db) {
 }
 
 static void
-rpsdb_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
+rpsdb_attachnode(dns_db_t *db, dns_dbnode_t *source,
+		 dns_dbnode_t **targetp DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 
 	REQUIRE(VALID_RPSDB(rpsdb));
@@ -382,7 +383,7 @@ rpsdb_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 }
 
 static void
-rpsdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
+rpsdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 
 	REQUIRE(VALID_RPSDB(rpsdb));
@@ -395,7 +396,7 @@ rpsdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 
 static isc_result_t
 rpsdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
-	       dns_dbnode_t **nodep) {
+	       dns_dbnode_t **nodep DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 	dns_db_t *dbp = NULL;
 
@@ -465,7 +466,7 @@ static isc_result_t
 rpsdb_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   dns_rdatatype_t type, dns_rdatatype_t covers,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   dns_rdataset_t *sigrdataset) {
+		   dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 	dns_rdatatype_t foundtype;
 	dns_rdataclass_t class;
@@ -575,7 +576,8 @@ static isc_result_t
 rpsdb_finddb(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	     dns_dbnode_t **nodep, dns_name_t *foundname,
-	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	     dns_rdataset_t *rdataset,
+	     dns_rdataset_t *sigrdataset DNS__DB_FLARG) {
 	dns_dbnode_t *node = NULL;
 
 	UNUSED(version);
@@ -587,16 +589,16 @@ rpsdb_finddb(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		node = NULL;
 		nodep = &node;
 	}
-	rpsdb_findnode(db, name, false, nodep);
+	rpsdb_findnode(db, name, false, nodep DNS__DB_FLARG_PASS);
 	dns_name_copy(name, foundname);
 	return (rpsdb_findrdataset(db, *nodep, NULL, type, 0, 0, rdataset,
-				   sigrdataset));
+				   sigrdataset DNS__DB_FLARG_PASS));
 }
 
 static isc_result_t
 rpsdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   unsigned int options, isc_stdtime_t now,
-		   dns_rdatasetiter_t **iteratorp) {
+		   dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 	rpsdb_rdatasetiter_t *rpsdb_iter = NULL;
 
@@ -616,7 +618,7 @@ rpsdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		},
 	};
 
-	rpsdb_attachnode(db, node, &rpsdb_iter->common.node);
+	rpsdb_attachnode(db, node, &rpsdb_iter->common.node DNS__DB_FLARG_PASS);
 
 	*iteratorp = &rpsdb_iter->common;
 
@@ -631,18 +633,18 @@ rpsdb_issecure(dns_db_t *db) {
 }
 
 static isc_result_t
-rpsdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
+rpsdb_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = (dns_rpsdb_t *)db;
 
 	REQUIRE(VALID_RPSDB(rpsdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
-	rpsdb_attachnode(db, &rpsdb->origin_node, nodep);
+	rpsdb_attachnode(db, &rpsdb->origin_node, nodep DNS__DB_FLARG_PASS);
 	return (ISC_R_SUCCESS);
 }
 
 static void
-rpsdb_rdataset_disassociate(dns_rdataset_t *rdataset) {
+rpsdb_rdataset_disassociate(dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_db_t *db = NULL;
 
 	/*
@@ -759,7 +761,8 @@ rpsdb_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 }
 
 static void
-rpsdb_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+rpsdb_rdataset_clone(dns_rdataset_t *source,
+		     dns_rdataset_t *target DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = NULL;
 	dns_db_t *dbp = NULL;
 
@@ -786,7 +789,7 @@ rpsdb_rdataset_count(dns_rdataset_t *rdataset) {
 }
 
 static void
-rpsdb_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
+rpsdb_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = NULL;
 	dns_rdatasetiter_t *iterator = NULL;
 	isc_mem_t *mctx = NULL;
@@ -802,7 +805,7 @@ rpsdb_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 }
 
 static isc_result_t
-rpsdb_rdatasetiter_next(dns_rdatasetiter_t *iter) {
+rpsdb_rdatasetiter_next(dns_rdatasetiter_t *iter DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = NULL;
 	rpsdb_rdatasetiter_t *rpsdb_iter = NULL;
 	dns_rdatatype_t next_type, type;
@@ -872,7 +875,7 @@ rpsdb_rdatasetiter_next(dns_rdatasetiter_t *iter) {
 }
 
 static isc_result_t
-rpsdb_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
+rpsdb_rdatasetiter_first(dns_rdatasetiter_t *iterator DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = NULL;
 	rpsdb_rdatasetiter_t *rpsdb_iter = NULL;
 
@@ -882,12 +885,12 @@ rpsdb_rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 
 	rpsdb_iter->type = dns_rdatatype_none;
 	rpsdb_iter->class = dns_rdataclass_reserved0;
-	return (rpsdb_rdatasetiter_next(iterator));
+	return (rpsdb_rdatasetiter_next(iterator DNS__DB_FLARG_PASS));
 }
 
 static void
 rpsdb_rdatasetiter_current(dns_rdatasetiter_t *iterator,
-			   dns_rdataset_t *rdataset) {
+			   dns_rdataset_t *rdataset DNS__DB_FLARG) {
 	dns_rpsdb_t *rpsdb = NULL;
 	rpsdb_rdatasetiter_t *rpsdb_iter = NULL;
 

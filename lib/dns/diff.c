@@ -24,6 +24,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/diff.h>
 #include <dns/log.h>
@@ -506,12 +507,15 @@ dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver) {
 /* XXX this duplicates lots of code in diff_apply(). */
 
 isc_result_t
-dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
-	      void *add_private) {
+dns_diff_load(dns_diff_t *diff, dns_rdatacallbacks_t *callbacks) {
 	dns_difftuple_t *t;
 	isc_result_t result;
 
 	REQUIRE(DNS_DIFF_VALID(diff));
+
+	if (callbacks->setup != NULL) {
+		callbacks->setup(callbacks->add_private);
+	}
 
 	t = ISC_LIST_HEAD(diff->tuples);
 	while (t != NULL) {
@@ -551,8 +555,8 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 			rds.trust = dns_trust_ultimate;
 
 			INSIST(op == DNS_DIFFOP_ADD);
-			result = (*addfunc)(add_private, name,
-					    &rds DNS__DB_FILELINE);
+			result = callbacks->add(callbacks->add_private, name,
+						&rds DNS__DB_FILELINE);
 			if (result == DNS_R_UNCHANGED) {
 				isc_log_write(DIFF_COMMON_LOGARGS,
 					      ISC_LOG_WARNING,
@@ -570,7 +574,11 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 		}
 	}
 	result = ISC_R_SUCCESS;
+
 failure:
+	if (callbacks->commit != NULL) {
+		callbacks->commit(callbacks->add_private);
+	}
 	return (result);
 }
 

@@ -1871,16 +1871,6 @@ isc_result_t
 dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
 		    dns_rpz_num_t rpz_num) {
 	/*
-	 * Only RBTDB zones can be used for response policy zones,
-	 * because only they have the code to create the summary data.
-	 * Only zones that are loaded instead of mmap()ed create the
-	 * summary data and so can be policy zones.
-	 */
-	if (strcmp(zone->db_argv[0], "qp") != 0) {
-		return (ISC_R_NOTIMPLEMENTED);
-	}
-
-	/*
 	 * This must happen only once or be redundant.
 	 */
 	LOCK_ZONE(zone);
@@ -17230,7 +17220,7 @@ receive_secure_db(void *arg) {
 		goto failure;
 	}
 
-	result = dns_db_createiterator(rawdb, 0, &dbiterator);
+	result = dns_db_createiterator(rawdb, DNS_DB_NONSEC3, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
 		goto failure;
 	}
