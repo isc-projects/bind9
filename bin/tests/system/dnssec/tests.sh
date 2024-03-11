@@ -3672,6 +3672,18 @@ n=$((n + 1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status + ret))
 
+# Check that a query for a domain that has a KSK that is not actively signing
+# the DNSKEY RRset. This should not result in a broken trust chain if there is
+# another KSK that is signing the DNSKEY RRset.
+echo_i "checking that a secure chain with one active and one inactive KSK validates as secure ($n)"
+ret=0
+dig_with_opts @10.53.0.4 a.lazy-ksk A >dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns4.test$n >/dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n >/dev/null || ret=1
+n=$((n + 1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status + ret))
+
 # TODO: test case for GL #1689.
 # If we allow the dnssec tools to use deprecated algorithms (such as RSAMD5)
 # we could write a test that signs a zone with supported and unsupported
