@@ -287,6 +287,10 @@ and B. Wellington.
 *Secret Key Transaction Authentication for DNS (TSIG).*
 November 2020.
 
+:rfc:`9460` - B. Schwartz, M. Bishop and E. Nygren, *Service Binding and
+Parameter Specification via the DNS (SVCB and HTTPS Resource Records).*
+November 2023.
+
 Best Current Practice RFCs
 --------------------------
 
@@ -417,6 +421,9 @@ Notes
 .. [#rfc4294] Section 5.1 - DNAME records are fully supported.
 
 .. [#rfc8078] Updating of parent zones is not yet implemented.
+
+.. [#rfc9460] Additional section processing is not supported for HTTPS and
+   SVCB records.
 
 .. _internet_drafts:
 
