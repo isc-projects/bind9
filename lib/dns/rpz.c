@@ -174,8 +174,7 @@ struct dns_rpz_nm_zbits {
  */
 typedef struct nmdata nmdata_t;
 struct nmdata {
-	dns_fixedname_t fn;
-	dns_name_t *name;
+	dns_name_t name;
 	isc_mem_t *mctx;
 	isc_refcount_t references;
 	dns_rpz_nm_zbits_t set;
@@ -1408,10 +1407,10 @@ new_nmdata(isc_mem_t *mctx, const dns_name_t *name, const nmdata_t *data) {
 	*newdata = (nmdata_t){
 		.set = data->set,
 		.wild = data->wild,
+		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
-	newdata->name = dns_fixedname_initname(&newdata->fn);
-	dns_name_copy(name, newdata->name);
+	dns_name_dupwithoffsets(name, mctx, &newdata->name);
 	isc_mem_attach(mctx, &newdata->mctx);
 
 #ifdef DNS_RPZ_TRACE
@@ -2683,6 +2682,7 @@ dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
 
 static void
 destroy_nmdata(nmdata_t *data) {
+	dns_name_free(&data->name, data->mctx);
 	isc_mem_putanddetach(&data->mctx, data, sizeof(nmdata_t));
 }
 
@@ -2710,7 +2710,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	nmdata_t *data = pval;
-	return (dns_qpkey_fromname(key, data->name));
+	return (dns_qpkey_fromname(key, &data->name));
 }
 
 static void
