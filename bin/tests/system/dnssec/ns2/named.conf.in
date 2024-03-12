@@ -206,4 +206,11 @@ zone "too-many-iterations" {
 	file "too-many-iterations.db.signed";
 };
 
+zone "lazy-ksk" {
+	type primary;
+	file "lazy-ksk.db";
+	dnssec-policy "dnssec";
+	allow-update { any; };
+};
+
 include "trusted.conf";
