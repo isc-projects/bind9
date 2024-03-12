@@ -1,3 +1,5 @@
+	--- 9.18.25 released ---
+
 6356.	[bug]		Create the pruning task in the dns_cache_flush(), so
 			the cache pruning still works after the flush.
 			[GL #4621]
