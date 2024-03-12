@@ -45,6 +45,7 @@
 #include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
+#include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/qp.h>
@@ -150,8 +151,7 @@ struct qpdb_version {
 typedef ISC_LIST(qpdb_version_t) qpdb_versionlist_t;
 
 struct qpdata {
-	dns_fixedname_t fn;
-	dns_name_t *name;
+	dns_name_t name;
 	isc_mem_t *mctx;
 	isc_refcount_t references;
 	isc_refcount_t erefs;
@@ -597,11 +597,11 @@ static qpdata_t *
 new_qpdata(qpzonedb_t *qpdb, const dns_name_t *name) {
 	qpdata_t *newdata = isc_mem_get(qpdb->common.mctx, sizeof(*newdata));
 	*newdata = (qpdata_t){
+		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
 	newdata->locknum = dns_name_hash(name) % qpdb->node_lock_count;
-	newdata->name = dns_fixedname_initname(&newdata->fn);
-	dns_name_copy(name, newdata->name);
+	dns_name_dupwithoffsets(name, qpdb->common.mctx, &newdata->name);
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
 
 #if DNS_DB_NODETRACE
@@ -2517,7 +2517,7 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 			     rdataset DNS__DB_FLARG_PASS);
 
 		if (foundname != NULL) {
-			dns_name_copy(HEADERNODE(header)->name, foundname);
+			dns_name_copy(&HEADERNODE(header)->name, foundname);
 		}
 
 		NODE_UNLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
@@ -2922,7 +2922,7 @@ find_wildcard(qpdb_search_t *search, qpdata_t **nodep,
 			 * Construct the wildcard name for this level.
 			 */
 			result = dns_name_concatenate(dns_wildcardname,
-						      node->name, wname, NULL);
+						      &node->name, wname, NULL);
 			if (result != ISC_R_SUCCESS) {
 				break;
 			}
@@ -3355,7 +3355,7 @@ check_zonecut(qpdata_t *node, void *arg DNS__DB_FLARG) {
 			 * is, we need to remember the node name.
 			 */
 			zcname = dns_fixedname_name(&search->zonecut_name);
-			dns_name_copy(node->name, zcname);
+			dns_name_copy(&node->name, zcname);
 			search->copy_name = true;
 		}
 	} else {
@@ -4604,7 +4604,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	REQUIRE(qpdbiter->node != NULL);
 
 	if (name != NULL) {
-		dns_name_copy(qpdbiter->node->name, name);
+		dns_name_copy(&qpdbiter->node->name, name);
 	}
 
 	newref(qpdb, node DNS__DB_FLARG_PASS);
@@ -4785,7 +4785,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		return (result);
 	}
 
-	dns_name_copy(node->name, name);
+	dns_name_copy(&node->name, name);
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
@@ -4923,7 +4923,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		  rdataset->type != dns_rdatatype_nsec3 &&
 		  rdataset->covers != dns_rdatatype_nsec3)));
 
-	dns_name_copy(node->name, nodename);
+	dns_name_copy(&node->name, nodename);
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
 					    &region, sizeof(dns_slabheader_t));
 	if (result != ISC_R_SUCCESS) {
@@ -5113,7 +5113,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	atomic_init(&newheader->attributes, DNS_SLABHEADERATTR_NONEXISTENT);
 	newheader->serial = version->serial;
 
-	dns_name_copy(node->name, nodename);
+	dns_name_copy(&node->name, nodename);
 
 	NODE_WRLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
 	result = add(qpdb, node, nodename, version, newheader, DNS_DBADD_FORCE,
@@ -5133,7 +5133,7 @@ nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name) {
 	REQUIRE(name != NULL);
 
 	NODE_RDLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
-	dns_name_copy(qpnode->name, name);
+	dns_name_copy(&qpnode->name, name);
 	NODE_UNLOCK(&qpdb->node_locks[qpnode->locknum].lock, &nlocktype);
 	return (ISC_R_SUCCESS);
 }
@@ -5372,7 +5372,7 @@ newglue(qpzonedb_t *qpdb, qpdb_version_t *version, qpdata_t *node,
 	 * determining which NS records in the delegation are
 	 * in-bailiwick).
 	 */
-	dns_name_copy(node->name, ctx.nodename);
+	dns_name_copy(&node->name, ctx.nodename);
 
 	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
 					  glue_nsdname_cb, &ctx);
@@ -5487,6 +5487,7 @@ destroy_qpdata(qpdata_t *node) {
 		dns_slabheader_destroy(&current);
 	}
 
+	dns_name_free(&node->name, node->mctx);
 	isc_mem_putanddetach(&node->mctx, node, sizeof(qpdata_t));
 }
 
@@ -5514,7 +5515,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	qpdata_t *data = pval;
-	return (dns_qpkey_fromname(key, data->name));
+	return (dns_qpkey_fromname(key, &data->name));
 }
 
 static void
