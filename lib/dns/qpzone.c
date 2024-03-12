@@ -501,29 +501,20 @@ free_db_rcu(struct rcu_head *rcu_head) {
 
 static void
 free_qpdb(qpzonedb_t *qpdb, bool log) {
-	REQUIRE(qpdb->current_version != NULL || EMPTY(qpdb->open_versions));
 	REQUIRE(qpdb->future_version == NULL);
 
-	if (qpdb->current_version != NULL) {
-		isc_refcount_decrementz(&qpdb->current_version->references);
+	isc_refcount_decrementz(&qpdb->current_version->references);
 
-		isc_refcount_destroy(&qpdb->current_version->references);
-		UNLINK(qpdb->open_versions, qpdb->current_version, link);
-		cds_wfs_destroy(&qpdb->current_version->glue_stack);
-		isc_rwlock_destroy(&qpdb->current_version->rwlock);
-		isc_mem_put(qpdb->common.mctx, qpdb->current_version,
-			    sizeof(*qpdb->current_version));
-	}
+	isc_refcount_destroy(&qpdb->current_version->references);
+	UNLINK(qpdb->open_versions, qpdb->current_version, link);
+	cds_wfs_destroy(&qpdb->current_version->glue_stack);
+	isc_rwlock_destroy(&qpdb->current_version->rwlock);
+	isc_mem_put(qpdb->common.mctx, qpdb->current_version,
+		    sizeof(*qpdb->current_version));
 
-	if (qpdb->tree != NULL) {
-		dns_qpmulti_destroy(&qpdb->tree);
-	}
-	if (qpdb->nsec != NULL) {
-		dns_qpmulti_destroy(&qpdb->nsec);
-	}
-	if (qpdb->nsec3 != NULL) {
-		dns_qpmulti_destroy(&qpdb->nsec3);
-	}
+	dns_qpmulti_destroy(&qpdb->tree);
+	dns_qpmulti_destroy(&qpdb->nsec);
+	dns_qpmulti_destroy(&qpdb->nsec3);
 
 	if (log) {
 		char buf[DNS_NAME_FORMATSIZE];
@@ -705,15 +696,17 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Make a copy of the origin name.
 	 */
-	result = dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
-	if (result != ISC_R_SUCCESS) {
-		free_qpdb(qpdb, false);
-		return (result);
-	}
+	dns_name_dupwithoffsets(origin, mctx, &qpdb->common.origin);
 
 	dns_qpmulti_create(mctx, &qpmethods, qpdb, &qpdb->tree);
 	dns_qpmulti_create(mctx, &qpmethods, qpdb, &qpdb->nsec);
 	dns_qpmulti_create(mctx, &qpmethods, qpdb, &qpdb->nsec3);
+
+	/*
+	 * Version initialization.
+	 */
+	qpdb->current_version = allocate_version(mctx, 1, 1, false);
+	qpdb->current_version->qpdb = qpdb;
 
 	/*
 	 * In order to set the node callback bit correctly in zone databases,
@@ -755,12 +748,6 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		free_qpdb(qpdb, false);
 		return (result);
 	}
-
-	/*
-	 * Version Initialization.
-	 */
-	qpdb->current_version = allocate_version(mctx, 1, 1, false);
-	qpdb->current_version->qpdb = qpdb;
 
 	/*
 	 * Keep the current version in the open list so that list operation
@@ -1313,10 +1300,8 @@ resigndelete(qpzonedb_t *qpdb, qpdb_version_t *version,
 		isc_heap_delete(qpdb->heaps[HEADERNODE(header)->locknum],
 				header->heap_index);
 		header->heap_index = 0;
-		if (version != NULL) {
-			newref(qpdb, HEADERNODE(header) DNS__DB_FLARG_PASS);
-			ISC_LIST_APPEND(version->resigned_list, header, link);
-		}
+		newref(qpdb, HEADERNODE(header) DNS__DB_FLARG_PASS);
+		ISC_LIST_APPEND(version->resigned_list, header, link);
 	}
 }
 
@@ -1839,7 +1824,7 @@ maybe_update_recordsandsize(bool add, qpdb_version_t *version,
 	unsigned char *hdr = (unsigned char *)header;
 	size_t hdrsize = sizeof(*header);
 
-	if (version == NULL || NONEXISTENT(header)) {
+	if (NONEXISTENT(header)) {
 		return;
 	}
 
@@ -3904,7 +3889,7 @@ tree_exit:
 
 static isc_result_t
 allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
-	     unsigned int options, isc_stdtime_t now,
+	     unsigned int options, isc_stdtime_t now ISC_ATTR_UNUSED,
 	     dns_rdatasetiter_t **iteratorp DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpdata_t *node = (qpdata_t *)dbnode;
@@ -3913,39 +3898,26 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 	REQUIRE(VALID_QPZONE(qpdb));
 
-	iterator = isc_mem_get(qpdb->common.mctx, sizeof(*iterator));
-
-	if ((db->attributes & DNS_DBATTR_CACHE) == 0) {
-		now = 0;
-		if (version == NULL) {
-			currentversion(db,
-				       (dns_dbversion_t **)(void *)(&version));
-		} else {
-			INSIST(version->qpdb == qpdb);
-
-			(void)isc_refcount_increment(&version->references);
-		}
+	if (version == NULL) {
+		currentversion(db, (dns_dbversion_t **)(void *)(&version));
 	} else {
-		if (now == 0) {
-			now = isc_stdtime_now();
-		}
-		version = NULL;
+		INSIST(version->qpdb == qpdb);
+		isc_refcount_increment(&version->references);
 	}
 
-	iterator->common.magic = DNS_RDATASETITER_MAGIC;
-	iterator->common.methods = &rdatasetiter_methods;
-	iterator->common.db = db;
-	iterator->common.node = node;
-	iterator->common.version = (dns_dbversion_t *)version;
-	iterator->common.options = options;
-	iterator->common.now = now;
+	iterator = isc_mem_get(qpdb->common.mctx, sizeof(*iterator));
+	*iterator = (qpdb_rdatasetiter_t){
+		.common.methods = &rdatasetiter_methods,
+		.common.db = db,
+		.common.node = node,
+		.common.version = (dns_dbversion_t *)version,
+		.common.options = options,
+		.common.magic = DNS_RDATASETITER_MAGIC,
+	};
 
 	newref(qpdb, node DNS__DB_FLARG_PASS);
 
-	iterator->current = NULL;
-
 	*iteratorp = (dns_rdatasetiter_t *)iterator;
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -4773,8 +4745,8 @@ cleanup:
 
 static isc_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset, unsigned int options,
-	    dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
+	    isc_stdtime_t now ISC_ATTR_UNUSED, dns_rdataset_t *rdataset,
+	    unsigned int options, dns_rdataset_t *addedrdataset DNS__DB_FLARG) {
 	isc_result_t result;
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	qpdata_t *node = (qpdata_t *)dbnode;
@@ -4787,7 +4759,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	dns_qp_t *nsec = NULL;
 
 	REQUIRE(VALID_QPZONE(qpdb));
-	INSIST(version == NULL || version->qpdb == qpdb);
+	INSIST(version->qpdb == qpdb);
 
 	/*
 	 * SOA records are only allowed at top of zone.
@@ -4803,14 +4775,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		  rdataset->type != dns_rdatatype_nsec3 &&
 		  rdataset->covers != dns_rdatatype_nsec3)));
 
-	if (version == NULL) {
-		if (now == 0) {
-			now = isc_stdtime_now();
-		}
-	} else {
-		now = 0;
-	}
-
 	result = dns_rdataslab_fromrdataset(rdataset, qpdb->common.mctx,
 					    &region, sizeof(dns_slabheader_t));
 	if (result != ISC_R_SUCCESS) {
@@ -4824,12 +4788,11 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	*newheader = (dns_slabheader_t){
 		.type = DNS_TYPEPAIR_VALUE(rdataset->type, rdataset->covers),
 		.trust = rdataset->trust,
-		.last_used = now,
 		.node = node,
 	};
 
 	dns_slabheader_reset(newheader, db, node);
-	newheader->ttl = rdataset->ttl + now;
+	newheader->ttl = rdataset->ttl;
 	if (rdataset->ttl == 0U) {
 		DNS_SLABHEADER_SETATTR(newheader, DNS_SLABHEADERATTR_ZEROTTL);
 	}
@@ -4837,7 +4800,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 		    atomic_fetch_add_relaxed(&init_count, 1));
 	if (version != NULL) {
 		newheader->serial = version->serial;
-		now = 0;
 
 		if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
 			DNS_SLABHEADER_SETATTR(newheader,
@@ -4908,7 +4870,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 	if (result == ISC_R_SUCCESS) {
 		result = add(qpdb, node, name, version, newheader, options,
-			     false, addedrdataset, now DNS__DB_FLARG_PASS);
+			     false, addedrdataset, 0 DNS__DB_FLARG_PASS);
 	}
 
 	/*
@@ -4925,14 +4887,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 	if (nsec != NULL) {
 		dns_qpmulti_commit(qpdb->nsec, &nsec);
-	}
-
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL) {
-		setsecure(db, version, qpdb->origin);
 	}
 
 	return (result);
@@ -5124,18 +5078,6 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 
 unlock:
 	NODE_UNLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
-
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL) {
-		RWLOCK(&qpdb->lock, isc_rwlocktype_read);
-		version = qpdb->current_version;
-		RWUNLOCK(&qpdb->lock, isc_rwlocktype_read);
-		setsecure(db, version, qpdb->origin);
-	}
-
 	return (result);
 }
 
@@ -5152,7 +5094,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_QPZONE(qpdb));
-	INSIST(version == NULL || version->qpdb == qpdb);
+	REQUIRE(version != NULL && version->qpdb == qpdb);
 
 	if (type == dns_rdatatype_any) {
 		return (ISC_R_NOTIMPLEMENTED);
@@ -5165,9 +5107,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	newheader->type = DNS_TYPEPAIR_VALUE(type, covers);
 	newheader->ttl = 0;
 	atomic_init(&newheader->attributes, DNS_SLABHEADERATTR_NONEXISTENT);
-	if (version != NULL) {
-		newheader->serial = version->serial;
-	}
+	newheader->serial = version->serial;
 
 	dns_name_copy(node->name, nodename);
 
@@ -5175,18 +5115,6 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 	result = add(qpdb, node, nodename, version, newheader, DNS_DBADD_FORCE,
 		     false, NULL, 0 DNS__DB_FLARG_PASS);
 	NODE_UNLOCK(&qpdb->node_locks[node->locknum].lock, &nlocktype);
-
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL) {
-		RWLOCK(&qpdb->lock, isc_rwlocktype_read);
-		version = qpdb->current_version;
-		RWUNLOCK(&qpdb->lock, isc_rwlocktype_read);
-		setsecure(db, version, qpdb->origin);
-	}
-
 	return (result);
 }
 
