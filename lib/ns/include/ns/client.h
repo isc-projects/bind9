@@ -158,6 +158,8 @@ struct ns_clientmgr {
 	/* Lock covers the recursing list */
 	isc_mutex_t   reclock;
 	client_list_t recursing; /*%< Recursing clients */
+
+	isc_mempool_t *tcp_buffers;
 };
 
 /*% nameserver client structure */

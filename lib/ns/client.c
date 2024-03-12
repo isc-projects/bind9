@@ -98,6 +98,9 @@
 #define COOKIE_SIZE 24U /* 8 + 4 + 4 + 8 */
 #define ECS_SIZE    20U /* 2 + 1 + 1 + [0..16] */
 
+#define TCPBUFFERS_FILLCOUNT 1U
+#define TCPBUFFERS_FREEMAX   8U
+
 #define WANTNSID(x)	(((x)->attributes & NS_CLIENTATTR_WANTNSID) != 0)
 #define WANTEXPIRE(x)	(((x)->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0)
 #define WANTPAD(x)	(((x)->attributes & NS_CLIENTATTR_WANTPAD) != 0)
@@ -370,6 +373,30 @@ client_senddone(isc_nmhandle_t *handle, isc_result_t result, void *cbarg) {
 }
 
 static void
+client_setup_tcp_buffer(ns_client_t *client) {
+	REQUIRE(client->tcpbuf == NULL);
+
+	client->tcpbuf = isc_mempool_get(client->manager->tcp_buffers);
+	client->tcpbuf_size = NS_CLIENT_TCP_BUFFER_SIZE;
+}
+
+static void
+client_put_tcp_buffer(ns_client_t *client) {
+	if (client->tcpbuf == NULL) {
+		return;
+	}
+
+	if (client->tcpbuf_size == NS_CLIENT_TCP_BUFFER_SIZE) {
+		isc_mempool_put(client->manager->tcp_buffers, client->tcpbuf);
+	} else {
+		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
+			    client->tcpbuf_size);
+	}
+
+	client->tcpbuf_size = 0;
+}
+
+static void
 client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 		    unsigned char **datap) {
 	unsigned char *data;
@@ -378,12 +405,9 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 	REQUIRE(datap != NULL);
 
 	if (TCP_CLIENT(client)) {
-		INSIST(client->tcpbuf == NULL);
-		client->tcpbuf = isc_mem_get(client->manager->send_mctx,
-					     NS_CLIENT_TCP_BUFFER_SIZE);
-		client->tcpbuf_size = NS_CLIENT_TCP_BUFFER_SIZE;
+		client_setup_tcp_buffer(client);
 		data = client->tcpbuf;
-		isc_buffer_init(buffer, data, NS_CLIENT_TCP_BUFFER_SIZE);
+		isc_buffer_init(buffer, data, client->tcpbuf_size);
 	} else {
 		data = client->sendbuf;
 		if ((client->attributes & NS_CLIENTATTR_HAVECOOKIE) == 0) {
@@ -416,11 +440,56 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 
 	if (isc_buffer_base(buffer) == client->tcpbuf) {
 		size_t used = isc_buffer_usedlength(buffer);
-		client->tcpbuf = isc_mem_creget(
-			client->manager->send_mctx, client->tcpbuf,
-			client->tcpbuf_size, used, sizeof(char));
-		client->tcpbuf_size = used;
-		r.base = client->tcpbuf;
+		const size_t threshold = (3 * NS_CLIENT_TCP_BUFFER_SIZE) / 4;
+
+		INSIST(client->tcpbuf_size == NS_CLIENT_TCP_BUFFER_SIZE);
+		/*
+		 * Copy the data into a smaller buffer before sending,
+		 * and keep the original big TCP send buffer for reuse
+		 * by other clients.
+		 */
+		if (used > threshold) {
+			/*
+			 * The data in the buffer is very large, so there is
+			 * no point in using a smaller buffer.
+			 */
+			r.base = buffer->base;
+		} else if (used > NS_CLIENT_SEND_BUFFER_SIZE) {
+			/*
+			 * We can save space by allocating a new buffer with a
+			 * correct size and freeing the big buffer.
+			 */
+			unsigned char *new_tcpbuf =
+				isc_mem_get(client->manager->send_mctx, used);
+			memmove(new_tcpbuf, buffer->base, used);
+
+			/*
+			 * Put the big buffer so we can replace the pointer
+			 * and the size with the new ones.
+			 */
+			client_put_tcp_buffer(client);
+
+			/*
+			 * Keep the new buffer's information so it can be freed.
+			 */
+			client->tcpbuf = new_tcpbuf;
+			client->tcpbuf_size = used;
+
+			r.base = new_tcpbuf;
+		} else {
+			/*
+			 * The data fits in the available space in
+			 * 'sendbuf', there is no need for a new buffer.
+			 */
+			memmove(client->sendbuf, buffer->base, used);
+
+			/*
+			 * Put the big buffer, we don't need a dynamic buffer.
+			 */
+			client_put_tcp_buffer(client);
+
+			r.base = client->sendbuf;
+		}
 		r.length = used;
 	} else {
 		isc_buffer_usedregion(buffer, &r);
@@ -498,8 +567,7 @@ ns_client_sendraw(ns_client_t *client, dns_message_t *message) {
 	return;
 done:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
-			    client->tcpbuf_size);
+		client_put_tcp_buffer(client);
 	}
 
 	ns_client_drop(client, result);
@@ -785,8 +853,7 @@ renderend:
 
 cleanup:
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
-			    client->tcpbuf_size);
+		client_put_tcp_buffer(client);
 	}
 
 	if (cleanup_cctx) {
@@ -1625,8 +1692,7 @@ ns__client_reset_cb(void *client0) {
 
 	ns_client_endrequest(client);
 	if (client->tcpbuf != NULL) {
-		isc_mem_put(client->manager->send_mctx, client->tcpbuf,
-			    client->tcpbuf_size);
+		client_put_tcp_buffer(client);
 	}
 
 	if (client->keytag != NULL) {
@@ -2373,6 +2439,7 @@ ns__client_setup(ns_client_t *client, ns_clientmgr_t *mgr, bool new) {
 
 		client->sendbuf = isc_mem_get(client->manager->send_mctx,
 					      NS_CLIENT_SEND_BUFFER_SIZE);
+
 		/*
 		 * Set magic earlier than usual because ns_query_init()
 		 * and the functions it calls will require it.
@@ -2446,6 +2513,8 @@ clientmgr_destroy_cb(void *arg) {
 	ns_server_detach(&manager->sctx);
 
 	dns_message_destroypools(&manager->rdspool, &manager->namepool);
+
+	isc_mempool_destroy(&manager->tcp_buffers);
 
 	isc_mem_detach(&manager->send_mctx);
 
@@ -2537,6 +2606,13 @@ ns_clientmgr_create(ns_server_t *sctx, isc_loopmgr_t *loopmgr,
 	 * dirty pages cache and backs it.
 	 */
 	(void)isc_mem_arena_set_muzzy_decay_ms(manager->send_mctx, 0);
+
+	isc_mempool_create(manager->send_mctx,
+			   (size_t)NS_CLIENT_TCP_BUFFER_SIZE,
+			   &manager->tcp_buffers);
+	isc_mempool_setfillcount(manager->tcp_buffers, TCPBUFFERS_FILLCOUNT);
+	isc_mempool_setfreemax(manager->tcp_buffers, TCPBUFFERS_FREEMAX);
+	isc_mempool_setname(manager->tcp_buffers, "ns_clientmgr_tcp");
 
 	manager->magic = MANAGER_MAGIC;
 
