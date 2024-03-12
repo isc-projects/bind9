@@ -320,7 +320,9 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
 					    ? DNS_RDATASLAB_OFFLINE
 					    : 0;
 		}
-		memmove(rawbuf, x[i].rdata.data, x[i].rdata.length);
+		if (x[i].rdata.length != 0) {
+			memmove(rawbuf, x[i].rdata.data, x[i].rdata.length);
+		}
 		rawbuf += x[i].rdata.length;
 	}
 
