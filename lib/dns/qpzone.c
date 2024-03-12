@@ -4416,10 +4416,9 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 				       qpdbiter->current, NULL,
 				       (void **)&qpdbiter->node, NULL);
 		if (result == DNS_R_PARTIALMATCH) {
-			qpznode_t *node = NULL;
 			tresult = dns_qp_lookup(qpdbiter->nsnap, name, NULL,
 						&qpdbiter->nsec3iter, NULL,
-						(void **)&node, NULL);
+						NULL, NULL);
 			if (tresult == ISC_R_SUCCESS) {
 				qpdbiter->current = &qpdbiter->nsec3iter;
 				result = tresult;
@@ -5344,9 +5343,9 @@ destroy_qpznode(qpznode_t *node) {
 }
 
 #if DNS_DB_NODETRACE
-ISC_REFCOUNT_TRACE_IMPL(qpznode, destroy_qpznode);
+ISC_REFCOUNT_STATIC_TRACE_IMPL(qpznode, destroy_qpznode);
 #else
-ISC_REFCOUNT_IMPL(qpznode, destroy_qpznode);
+ISC_REFCOUNT_STATIC_IMPL(qpznode, destroy_qpznode);
 #endif
 
 static void
