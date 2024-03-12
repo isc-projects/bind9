@@ -1784,7 +1784,7 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 	}
 }
 
-isc_result_t
+void
 dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 			dns_name_t *target) {
 	/*
@@ -1819,8 +1819,6 @@ dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 	} else {
 		set_offsets(target, target->offsets, NULL);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -1999,7 +1997,7 @@ dns_name_fromstring(dns_name_t *target, const char *src,
 	}
 
 	if (name != target) {
-		result = dns_name_dupwithoffsets(name, mctx, target);
+		dns_name_dupwithoffsets(name, mctx, target);
 	}
 	return (result);
 }

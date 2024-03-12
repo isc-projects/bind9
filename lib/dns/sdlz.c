@@ -1357,7 +1357,6 @@ static isc_result_t
 dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		  const dns_name_t *name, dns_rdataclass_t rdclass,
 		  dns_db_t **dbp) {
-	isc_result_t result;
 	dns_sdlz_db_t *sdlzdb;
 	dns_sdlzimplementation_t *imp;
 
@@ -1379,10 +1378,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 
 	/* initialize and set origin */
 	dns_name_init(&sdlzdb->common.origin, NULL);
-	result = dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
-	if (result != ISC_R_SUCCESS) {
-		goto mem_cleanup;
-	}
+	dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
 
 	isc_refcount_init(&sdlzdb->common.references, 1);
 
@@ -1394,10 +1390,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	sdlzdb->common.impmagic = SDLZDB_MAGIC;
 	*dbp = (dns_db_t *)sdlzdb;
 
-	return (result);
-mem_cleanup:
-	isc_mem_put(mctx, sdlzdb, sizeof(*sdlzdb));
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t

@@ -614,7 +614,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	isc_mem_attach(mctx, &sampledb->common.mctx);
 	dns_name_init(&sampledb->common.origin, NULL);
 
-	CHECK(dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin));
+	dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin);
 
 	isc_refcount_init(&sampledb->common.references, 1);
 

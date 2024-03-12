@@ -3958,11 +3958,7 @@ dns__rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Make a copy of the origin name.
 	 */
-	result = dns_name_dupwithoffsets(origin, mctx, &rbtdb->common.origin);
-	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, false);
-		return (result);
-	}
+	dns_name_dupwithoffsets(origin, mctx, &rbtdb->common.origin);
 
 	/*
 	 * Make the Red-Black Trees.
