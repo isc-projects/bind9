@@ -3072,7 +3072,6 @@ add(dns_qpdb_t *qpdb, dns_qpdata_t *qpnode,
     const dns_name_t *nodename ISC_ATTR_UNUSED, dns_slabheader_t *newheader,
     unsigned int options, bool loading, dns_rdataset_t *addedrdataset,
     isc_stdtime_t now DNS__DB_FLARG) {
-	qpdb_changed_t *changed = NULL;
 	dns_slabheader_t *topheader = NULL, *topheader_prev = NULL;
 	dns_slabheader_t *header = NULL, *sigheader = NULL;
 	dns_slabheader_t *prioheader = NULL;
@@ -3405,9 +3404,6 @@ find_header:
 			newheader->down = topheader;
 			topheader->next = newheader;
 			qpnode->dirty = 1;
-			if (changed != NULL) {
-				changed->dirty = true;
-			}
 			mark_ancient(header);
 			if (sigheader != NULL) {
 				mark_ancient(sigheader);
@@ -3455,9 +3451,6 @@ find_header:
 			newheader->down = topheader;
 			topheader->next = newheader;
 			qpnode->dirty = 1;
-			if (changed != NULL) {
-				changed->dirty = true;
-			}
 		} else {
 			/*
 			 * No rdatasets of the given type exist at the node.
