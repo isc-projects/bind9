@@ -1,3 +1,5 @@
+	--- 9.19.22 released ---
+
 6358.	[bug]		Fix validate_dnskey_dsset when KSK is not signing,
 			do not skip remainder of DS RRset. [GL #4625]
 
