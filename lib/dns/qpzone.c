@@ -2786,7 +2786,11 @@ activeempty(qpdb_search_t *search, dns_qpiter_t *it,
 	 * subdomain of the one we were looking for, then we're
 	 * at an active empty nonterminal node.
 	 */
-	dns_qpiter_next(it, NULL, NULL, NULL);
+	isc_result_t result = dns_qpiter_next(it, NULL, NULL, NULL);
+	if (result != ISC_R_SUCCESS) {
+		/* An ENT at the end of the zone is impossible */
+		return (false);
+	}
 	return (step(search, it, FORWARD, next) &&
 		dns_name_issubdomain(next, current));
 }
