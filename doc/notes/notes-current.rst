@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.18.25
+Notes for BIND 9.18.26
 ----------------------
 
 Security Fixes
@@ -36,11 +36,6 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- A regression in cache-cleaning code enabled memory use to grow
-  significantly more quickly than before, until the configured
-  :any:`max-cache-size` limit was reached. This has been fixed.
-  :gl:`#4596`
-
 - Changes to ``listen-on`` statements were ignored on reconfiguration
   unless the port or interface address was changed, making it
   impossible to change a related listener transport type. That issue
@@ -48,11 +43,6 @@ Bug Fixes
 
   ISC would like to thank Thomas Amgarten for bringing this issue to
   our attention. :gl:`#4518`, :gl:`#4528`
-
-- Using :option:`rndc flush` inadvertently caused cache cleaning to
-  become less effective. This could ultimately lead to the configured
-  :any:`max-cache-size` limit being exceeded and has now been fixed.
-  :gl:`#4621`
 
 Known Issues
 ~~~~~~~~~~~~
