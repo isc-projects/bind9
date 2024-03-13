@@ -188,7 +188,8 @@ struct qpzonedb {
 	isc_loop_t *loop;
 	struct rcu_head rcu_head;
 
-	isc_heap_t **heaps; /* Resigning heaps, one per nodelock bucket */
+	isc_mutex_t heaplock;
+	isc_heap_t *heap; /* Resigning heap */
 
 	dns_qpmulti_t *tree;  /* Main QP trie for data storage */
 	dns_qpmulti_t *nsec;  /* NSEC nodes only */
@@ -466,16 +467,8 @@ free_db_rcu(struct rcu_head *rcu_head) {
 		NODE_DESTROYLOCK(&qpdb->node_locks[i].lock);
 	}
 
-	/*
-	 * Clean up heap objects.
-	 */
-	if (qpdb->heaps != NULL) {
-		for (int i = 0; i < qpdb->node_lock_count; i++) {
-			isc_heap_destroy(&qpdb->heaps[i]);
-		}
-		isc_mem_cput(qpdb->common.mctx, qpdb->heaps,
-			     qpdb->node_lock_count, sizeof(isc_heap_t *));
-	}
+	isc_heap_destroy(&qpdb->heap);
+	isc_mutex_destroy(&qpdb->heaplock);
 
 	if (qpdb->gluecachestats != NULL) {
 		isc_stats_detach(&qpdb->gluecachestats);
@@ -664,19 +657,8 @@ dns__qpzone_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	qpdb->common.update_listeners = cds_lfht_new(16, 16, 0, 0, NULL);
 
-	/*
-	 * Create the heaps.
-	 */
-	qpdb->heaps = isc_mem_cget(mctx, qpdb->node_lock_count,
-				   sizeof(isc_heap_t *));
-	for (int i = 0; i < qpdb->node_lock_count; i++) {
-		qpdb->heaps[i] = NULL;
-	}
-
-	for (int i = 0; i < (int)qpdb->node_lock_count; i++) {
-		isc_heap_create(mctx, resign_sooner, set_index, 0,
-				&qpdb->heaps[i]);
-	}
+	isc_mutex_init(&qpdb->heaplock);
+	isc_heap_create(mctx, resign_sooner, set_index, 0, &qpdb->heap);
 
 	qpdb->active = qpdb->node_lock_count;
 
@@ -1285,20 +1267,25 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 }
 
 static void
-resigninsert(qpzonedb_t *qpdb, int idx, dns_slabheader_t *newheader) {
+resigninsert(qpzonedb_t *qpdb, dns_slabheader_t *newheader) {
 	INSIST(newheader->heap_index == 0);
 	INSIST(!ISC_LINK_LINKED(newheader, link));
 
-	isc_heap_insert(qpdb->heaps[idx], newheader);
-	newheader->heap = qpdb->heaps[idx];
+	LOCK(&qpdb->heaplock);
+	isc_heap_insert(qpdb->heap, newheader);
+	UNLOCK(&qpdb->heaplock);
+
+	newheader->heap = qpdb->heap;
 }
 
 static void
 resigndelete(qpzonedb_t *qpdb, qpdb_version_t *version,
 	     dns_slabheader_t *header DNS__DB_FLARG) {
 	if (header != NULL && header->heap_index != 0) {
-		isc_heap_delete(qpdb->heaps[HEADERNODE(header)->locknum],
-				header->heap_index);
+		LOCK(&qpdb->heaplock);
+		isc_heap_delete(qpdb->heap, header->heap_index);
+		UNLOCK(&qpdb->heaplock);
+
 		header->heap_index = 0;
 		newref(qpdb, HEADERNODE(header) DNS__DB_FLARG_PASS);
 		ISC_LIST_APPEND(version->resigned_list, header, link);
@@ -1537,7 +1524,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		lock = &qpdb->node_locks[HEADERNODE(header)->locknum].lock;
 		NODE_WRLOCK(lock, &nlocktype);
 		if (rollback && !IGNORE(header)) {
-			resigninsert(qpdb, HEADERNODE(header)->locknum, header);
+			resigninsert(qpdb, header);
 		}
 		decref(qpdb, HEADERNODE(header), least_serial,
 		       &nlocktype DNS__DB_FLARG_PASS);
@@ -1851,7 +1838,6 @@ add(qpzonedb_t *qpdb, qpdata_t *node, const dns_name_t *nodename,
 	unsigned char *merged = NULL;
 	isc_result_t result;
 	bool merge = false;
-	int idx;
 
 	if ((options & DNS_DBADD_MERGE) != 0) {
 		REQUIRE(version != NULL);
@@ -1951,9 +1937,8 @@ add(qpzonedb_t *qpdb, qpdata_t *node, const dns_name_t *nodename,
 		INSIST(version->serial >= topheader->serial);
 		if (loading) {
 			newheader->down = NULL;
-			idx = HEADERNODE(newheader)->locknum;
 			if (RESIGN(newheader)) {
-				resigninsert(qpdb, idx, newheader);
+				resigninsert(qpdb, newheader);
 				/* resigndelete not needed here */
 			}
 
@@ -1973,9 +1958,8 @@ add(qpzonedb_t *qpdb, qpdata_t *node, const dns_name_t *nodename,
 						    nodename->length);
 			dns_slabheader_destroy(&header);
 		} else {
-			idx = HEADERNODE(newheader)->locknum;
 			if (RESIGN(newheader)) {
-				resigninsert(qpdb, idx, newheader);
+				resigninsert(qpdb, newheader);
 				resigndelete(qpdb, version,
 					     header DNS__DB_FLARG_PASS);
 			}
@@ -2006,9 +1990,8 @@ add(qpzonedb_t *qpdb, qpdata_t *node, const dns_name_t *nodename,
 			return (DNS_R_UNCHANGED);
 		}
 
-		idx = HEADERNODE(newheader)->locknum;
 		if (RESIGN(newheader)) {
-			resigninsert(qpdb, idx, newheader);
+			resigninsert(qpdb, newheader);
 			resigndelete(qpdb, version, header DNS__DB_FLARG_PASS);
 		}
 
@@ -2429,24 +2412,20 @@ setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, isc_stdtime_t resign) {
 	}
 	if (header->heap_index != 0) {
 		INSIST(RESIGN(header));
+		LOCK(&qpdb->heaplock);
 		if (resign == 0) {
-			isc_heap_delete(
-				qpdb->heaps[HEADERNODE(header)->locknum],
-				header->heap_index);
+			isc_heap_delete(qpdb->heap, header->heap_index);
 			header->heap_index = 0;
 			header->heap = NULL;
 		} else if (resign_sooner(header, &oldheader)) {
-			isc_heap_increased(
-				qpdb->heaps[HEADERNODE(header)->locknum],
-				header->heap_index);
+			isc_heap_increased(qpdb->heap, header->heap_index);
 		} else if (resign_sooner(&oldheader, header)) {
-			isc_heap_decreased(
-				qpdb->heaps[HEADERNODE(header)->locknum],
-				header->heap_index);
+			isc_heap_decreased(qpdb->heap, header->heap_index);
 		}
+		UNLOCK(&qpdb->heaplock);
 	} else if (resign != 0) {
 		DNS_SLABHEADER_SETATTR(header, DNS_SLABHEADERATTR_RESIGN);
-		resigninsert(qpdb, HEADERNODE(header)->locknum, header);
+		resigninsert(qpdb, header);
 	}
 	NODE_UNLOCK(&qpdb->node_locks[HEADERNODE(header)->locknum].lock,
 		    &nlocktype);
@@ -2457,74 +2436,30 @@ static isc_result_t
 getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 	       dns_name_t *foundname DNS__DB_FLARG) {
 	qpzonedb_t *qpdb = (qpzonedb_t *)db;
-	dns_slabheader_t *header = NULL, *this = NULL;
-	isc_result_t result = ISC_R_NOTFOUND;
-	unsigned int locknum = 0;
+	dns_slabheader_t *header = NULL;
 	isc_rwlocktype_t nlocktype = isc_rwlocktype_none;
 
 	REQUIRE(VALID_QPZONE(qpdb));
 
-	for (int i = 0; i < qpdb->node_lock_count; i++) {
-		NODE_RDLOCK(&qpdb->node_locks[i].lock, &nlocktype);
+	LOCK(&qpdb->heaplock);
+	header = isc_heap_element(qpdb->heap, 1);
+	UNLOCK(&qpdb->heaplock);
 
-		/*
-		 * Find for the earliest signing time among all of the
-		 * heaps, each of which is covered by a different bucket
-		 * lock.
-		 */
-		this = isc_heap_element(qpdb->heaps[i], 1);
-		if (this == NULL) {
-			/* Nothing found; unlock and try the next heap. */
-			NODE_UNLOCK(&qpdb->node_locks[i].lock, &nlocktype);
-			continue;
-		}
-
-		if (header == NULL) {
-			/*
-			 * Found a signing time: retain the bucket lock and
-			 * preserve the lock number so we can unlock it
-			 * later.
-			 */
-			header = this;
-			locknum = i;
-			nlocktype = isc_rwlocktype_none;
-		} else if (resign_sooner(this, header)) {
-			/*
-			 * Found an earlier signing time; release the
-			 * previous bucket lock and retain this one instead.
-			 */
-			NODE_UNLOCK(&qpdb->node_locks[locknum].lock,
-				    &nlocktype);
-			header = this;
-			locknum = i;
-		} else {
-			/*
-			 * Earliest signing time in this heap isn't
-			 * an improvement; unlock and try the next heap.
-			 */
-			NODE_UNLOCK(&qpdb->node_locks[i].lock, &nlocktype);
-		}
+	if (header == NULL) {
+		return (ISC_R_NOTFOUND);
 	}
 
-	if (header != NULL) {
-		nlocktype = isc_rwlocktype_read;
-		/*
-		 * Found something; pass back the answer and unlock
-		 * the bucket.
-		 */
-		bindrdataset(qpdb, HEADERNODE(header), header, 0,
-			     rdataset DNS__DB_FLARG_PASS);
-
-		if (foundname != NULL) {
-			dns_name_copy(&HEADERNODE(header)->name, foundname);
-		}
-
-		NODE_UNLOCK(&qpdb->node_locks[locknum].lock, &nlocktype);
-
-		result = ISC_R_SUCCESS;
+	NODE_RDLOCK(&qpdb->node_locks[HEADERNODE(header)->locknum].lock,
+		    &nlocktype);
+	bindrdataset(qpdb, HEADERNODE(header), header, 0,
+		     rdataset DNS__DB_FLARG_PASS);
+	if (foundname != NULL) {
+		dns_name_copy(&HEADERNODE(header)->name, foundname);
 	}
+	NODE_UNLOCK(&qpdb->node_locks[HEADERNODE(header)->locknum].lock,
+		    &nlocktype);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -4069,10 +4004,13 @@ unlocknode(dns_db_t *db, dns_dbnode_t *dbnode, isc_rwlocktype_t type) {
 static void
 deletedata(dns_db_t *db ISC_ATTR_UNUSED, dns_dbnode_t *node ISC_ATTR_UNUSED,
 	   void *data) {
+	qpzonedb_t *qpdb = (qpzonedb_t *)db;
 	dns_slabheader_t *header = data;
 
 	if (header->heap != NULL && header->heap_index != 0) {
+		LOCK(&qpdb->heaplock);
 		isc_heap_delete(header->heap, header->heap_index);
+		UNLOCK(&qpdb->heaplock);
 	}
 	header->heap_index = 0;
 
@@ -4902,7 +4840,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *dbnode, dns_dbversion_t *dbversion,
 					newheader, DNS_SLABHEADERATTR_RESIGN);
 				newheader->resign = header->resign;
 				newheader->resign_lsb = header->resign_lsb;
-				resigninsert(qpdb, node->locknum, newheader);
+				resigninsert(qpdb, newheader);
 			}
 			/*
 			 * We have to set the serial since the rdataslab
