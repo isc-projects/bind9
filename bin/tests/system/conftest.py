@@ -30,6 +30,9 @@ import isctest
 # pylint: disable=redefined-outer-name
 
 
+isctest.log.init_conftest_logger()
+isctest.log.avoid_duplicated_logs()
+
 # ----------------- Older pytest / xdist compatibility -------------------
 # As of 2023-01-11, the minimal supported pytest / xdist versions are
 # determined by what is available in EL8/EPEL8:
