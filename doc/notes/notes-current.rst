@@ -9,7 +9,7 @@
 .. See the COPYRIGHT file distributed with this work for additional
 .. information regarding copyright ownership.
 
-Notes for BIND 9.16.49
+Notes for BIND 9.16.50
 ----------------------
 
 Security Fixes
@@ -35,14 +35,7 @@ Feature Changes
 Bug Fixes
 ~~~~~~~~~
 
-- A regression in cache-cleaning code enabled memory use to grow
-  significantly more quickly than before, until the configured
-  ``max-cache-size`` limit was reached. This has been fixed. :gl:`#4596`
-
-- Using :option:`rndc flush` inadvertently caused cache cleaning to
-  become less effective. This could ultimately lead to the configured
-  ``max-cache-size`` limit being exceeded and has now been fixed.
-  :gl:`#4621`
+- None.
 
 Known Issues
 ~~~~~~~~~~~~
