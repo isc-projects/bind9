@@ -1,3 +1,5 @@
+6359.	[bug]		Fix bug in Depends (keymgr_dep) function. [GL #4552]
+
 6358.	[bug]		Fix validate_dnskey_dsset when KSK is not signing,
 			do not skip remainder of DS RRset. [GL #4625]
 
