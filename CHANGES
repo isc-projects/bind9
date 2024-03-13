@@ -1,4 +1,6 @@
-6356.	[bug]		Create the pruning task in the dns_cache_flush(), so
+6359.	[bug]		Fix bug in Depends (keymgr_dep) function. [GL #4552]
+
+6356.	[bug]		Attach the loop also in the dns_cache_flush(), so
 			the cache pruning still works after the flush.
 			[GL #4621]
 
