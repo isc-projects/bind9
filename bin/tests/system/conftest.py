@@ -33,6 +33,9 @@ import isctest
 if sys.version_info[1] < 10:
     raise RuntimeError("Python 3.10 or newer is required to run system tests.")
 
+isctest.log.init_conftest_logger()
+isctest.log.avoid_duplicated_logs()
+
 # ----------------------- Globals definition -----------------------------
 
 XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "")
