@@ -1077,14 +1077,18 @@ isc_result_t
 dns_db_createiterator(dns_db_t *db, unsigned int options,
 		      dns_dbiterator_t **iteratorp);
 /*%<
- * Create an iterator for version 'version' of 'db'.
+ * Create an iterator for 'db'.
  *
  * Notes:
  *
- * \li	One or more of the following options can be set.
+ * \li	One or more of the following options can be set:
+ *
  *	#DNS_DB_RELATIVENAMES
  *	#DNS_DB_NSEC3ONLY
  *	#DNS_DB_NONSEC3
+ *
+ *	(Note that it is not mandatory to implement these flags;
+ *	some databases will ignore them.)
  *
  * Requires:
  *
