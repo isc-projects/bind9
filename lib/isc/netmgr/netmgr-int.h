@@ -883,13 +883,8 @@ typedef enum isc_http_scheme_type {
 	ISC_HTTP_SCHEME_UNSUPPORTED
 } isc_http_scheme_type_t;
 
-typedef struct isc_nm_httpcbarg {
-	isc_nm_recv_cb_t cb;
-	void *cbarg;
-	LINK(struct isc_nm_httpcbarg) link;
-} isc_nm_httpcbarg_t;
-
 typedef struct isc_nm_httphandler {
+	int magic;
 	char *path;
 	isc_nm_recv_cb_t cb;
 	void *cbarg;
@@ -902,7 +897,6 @@ struct isc_nm_http_endpoints {
 	isc_mem_t *mctx;
 
 	ISC_LIST(isc_nm_httphandler_t) handlers;
-	ISC_LIST(isc_nm_httpcbarg_t) handler_cbargs;
 
 	isc_refcount_t references;
 	atomic_bool in_use;
@@ -914,7 +908,6 @@ typedef struct isc_nmsocket_h2 {
 	char *query_data;
 	size_t query_data_len;
 	bool query_too_large;
-	isc_nm_httphandler_t *handler;
 
 	isc_buffer_t rbuf;
 	isc_buffer_t wbuf;
@@ -946,6 +939,8 @@ typedef struct isc_nmsocket_h2 {
 
 	isc_nm_http_endpoints_t **listener_endpoints;
 	size_t n_listener_endpoints;
+
+	isc_nm_http_endpoints_t *peer_endpoints;
 
 	bool response_submitted;
 	struct {
