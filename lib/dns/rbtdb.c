@@ -2301,6 +2301,8 @@ iszonesecure(dns_db_t *db, rbtdb_version_t *version, dns_dbnode_t *origin) {
 	bool hasnsec = false;
 	isc_result_t result;
 
+	REQUIRE(version != NULL);
+
 	dns_rdataset_init(&keyset);
 	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_dnskey,
 				     0, 0, &keyset, NULL);
@@ -7151,14 +7153,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 	}
 
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		iszonesecure(db, version, rbtdb->origin_node);
-	}
-
 	return (result);
 }
 
@@ -7374,17 +7368,6 @@ unlock:
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
 
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
-		version = rbtdb->current_version;
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		iszonesecure(db, version, rbtdb->origin_node);
-	}
-
 	return (result);
 }
 
@@ -7437,17 +7420,6 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		       DNS_DBADD_FORCE, false, NULL, 0);
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
-
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
-		version = rbtdb->current_version;
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
-		iszonesecure(db, version, rbtdb->origin_node);
-	}
 
 	return (result);
 }
