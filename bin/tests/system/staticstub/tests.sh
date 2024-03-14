@@ -211,5 +211,25 @@ grep "status: NOERROR" dig.out.ns2.soa.test$n >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))
 
+n=$((n + 1))
+echo_i "checking static-stub synthesised NS is not returned ($n)"
+ret=0
+$DIG $DIGOPTS unsigned. @10.53.0.2 ns >dig.out.ns2.ns.test$n || ret=1
+sleep 2
+$DIG $DIGOPTS data.unsigned @10.53.0.2 txt >dig.out.ns2.txt1.test$n || ret=1
+sleep 4
+$DIG $DIGOPTS data.unsigned @10.53.0.2 txt >dig.out.ns2.txt2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.ns.test$n >/dev/null || ret=1
+grep "status: NOERROR" dig.out.ns2.txt1.test$n >/dev/null || ret=1
+# NS RRset from zone is returned
+grep '^unsigned\..*NS.ns\.unsigned\.$' dig.out.ns2.txt1.test$n >/dev/null || ret=1
+grep '^unsigned\..*NS.unsigned\.$' dig.out.ns2.txt1.test$n >/dev/null && ret=1
+# NS expired and synthesised response is not returned
+grep "status: NOERROR" dig.out.ns2.txt2.test$n >/dev/null || ret=1
+grep '^unsigned\..*NS.ns\.unsigned\.$' dig.out.ns2.txt2.test$n >/dev/null && ret=1
+grep '^unsigned\..*NS.unsigned\.$' dig.out.ns2.txt2.test$n >/dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

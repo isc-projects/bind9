@@ -1,3 +1,6 @@
+6360.	[bug]		Don't return static-stub synthesised NS RRset.
+			[GL #4608]
+
 6359.	[bug]		Fix bug in Depends (keymgr_dep) function. [GL #4552]
 
 6356.	[bug]		Attach the loop also in the dns_cache_flush(), so
