@@ -1,3 +1,6 @@
+6361.	[bug]		Some invalid ISO 8601 durations were accepted
+			erroneously. [GL #4624]
+
 6360.	[bug]		Don't return static-stub synthesised NS RRset.
 			[GL #4608]
 
