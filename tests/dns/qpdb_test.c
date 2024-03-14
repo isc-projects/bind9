@@ -42,6 +42,9 @@
 #undef CHECK
 #include <tests/dns.h>
 
+/* Set to true (or use -v option) for verbose output */
+static bool verbose = false;
+
 /*
  * Add to a cache DB 'db' an rdataset of type 'rtype' at a name
  * <idx>.example.com. The rdataset would contain one data, and rdata_len is
@@ -140,12 +143,16 @@ ISC_RUN_TEST_IMPL(overmempurge_bigrdata) {
 
 	/*
 	 * Then try to add the same number of entries, each has very large data.
-	 * 'overmem purge' should keep the total cache size from not exceeding
+	 * 'overmem purge' should keep the total cache size from exceeding
 	 * the 'hiwater' mark too much. So we should be able to assume the
 	 * cache size doesn't reach the "max".
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054, 65535, false);
+		if (verbose) {
+			print_message("# inuse: %zd max: %zd\n",
+				      isc_mem_inuse(mctx2), maxcache);
+		}
 		assert_true(isc_mem_inuse(mctx2) < maxcache);
 	}
 
@@ -191,6 +198,10 @@ ISC_RUN_TEST_IMPL(overmempurge_longname) {
 	 */
 	while (i-- > 0) {
 		overmempurge_addrdataset(db, now, i, 50054, 0, true);
+		if (verbose) {
+			print_message("# inuse: %zd max: %zd\n",
+				      isc_mem_inuse(mctx2), maxcache);
+		}
 		assert_true(isc_mem_inuse(mctx2) < maxcache);
 	}
 

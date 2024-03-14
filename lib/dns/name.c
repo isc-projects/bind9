@@ -1845,6 +1845,24 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx) {
 	dns_name_invalidate(name);
 }
 
+size_t
+dns_name_size(const dns_name_t *name) {
+	size_t size;
+
+	REQUIRE(DNS_NAME_VALID(name));
+
+	if (!name->attributes.dynamic) {
+		return (0);
+	}
+
+	size = name->length;
+	if (name->attributes.dynoffsets) {
+		size += name->labels;
+	}
+
+	return (size);
+}
+
 isc_result_t
 dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 	dns_name_t downname;
