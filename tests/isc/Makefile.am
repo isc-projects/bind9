@@ -115,10 +115,12 @@ proxyheader_test_SOURCES =	\
 	proxyheader_test_data.h
 
 proxystream_test_CPPFLAGS =	\
-	$(AM_CPPFLAGS)
+	$(AM_CPPFLAGS)		\
+	$(OPENSSL_CFLAGS)
 
 proxystream_test_LDADD =	\
-	$(LDADD)
+	$(LDADD)		\
+	$(OPENSSL_LIBS)
 
 proxystream_test_SOURCES =	\
 	proxystream_test.c \
