@@ -3459,12 +3459,12 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fwd = ISC_LIST_HEAD(forwarders->fwdrs);
 			fctx->fwdpolicy = forwarders->fwdpolicy;
-			dns_name_copy(forwarders->name, fctx->fwdname);
+			dns_name_copy(&forwarders->name, fctx->fwdname);
 			if (fctx->fwdpolicy == dns_fwdpolicy_only &&
-			    isstrictsubdomain(forwarders->name, fctx->domain))
+			    isstrictsubdomain(&forwarders->name, fctx->domain))
 			{
 				fcount_decr(fctx);
-				dns_name_copy(forwarders->name, fctx->domain);
+				dns_name_copy(&forwarders->name, fctx->domain);
 				result = fcount_incr(fctx, true);
 				if (result != ISC_R_SUCCESS) {
 					dns_forwarders_detach(&forwarders);
@@ -4565,7 +4565,7 @@ fctx_create(dns_resolver_t *res, isc_loop_t *loop, const dns_name_t *name,
 					   &forwarders);
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 			fctx->fwdpolicy = forwarders->fwdpolicy;
-			dns_name_copy(forwarders->name, fctx->fwdname);
+			dns_name_copy(&forwarders->name, fctx->fwdname);
 			dns_forwarders_detach(&forwarders);
 		}
 
@@ -6555,7 +6555,7 @@ name_external(const dns_name_t *name, dns_rdatatype_t type, fetchctx_t *fctx) {
 		 * See if the forwarder declaration is better.
 		 */
 		if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
-			bool better = !dns_name_equal(forwarders->name,
+			bool better = !dns_name_equal(&forwarders->name,
 						      fctx->fwdname);
 			dns_forwarders_detach(&forwarders);
 			return (better);

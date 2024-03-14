@@ -216,13 +216,7 @@ struct dns_qpdata {
 	unsigned int		   : 0; /* end of bitfields c/o tree lock */
 	/*@}*/
 
-	/*%
-	 * This is needed for hashing.
-	 */
-	unsigned int hashval;
-
-	dns_fixedname_t fn;
-	dns_name_t *name;
+	dns_name_t name;
 	isc_mem_t *mctx;
 
 	/*%
@@ -409,7 +403,7 @@ static size_t
 qp_makekey(dns_qpkey_t key, void *uctx ISC_ATTR_UNUSED, void *pval,
 	   uint32_t ival ISC_ATTR_UNUSED) {
 	dns_qpdata_t *data = pval;
-	return (dns_qpkey_fromname(key, data->name));
+	return (dns_qpkey_fromname(key, &data->name));
 }
 
 static void
@@ -672,7 +666,7 @@ delete_node(dns_qpdb_t *qpdb, dns_qpdata_t *node) {
 
 	if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 		char printname[DNS_NAME_FORMATSIZE];
-		dns_name_format(node->name, printname, sizeof(printname));
+		dns_name_format(&node->name, printname, sizeof(printname));
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
 			      "delete_node(): %p %s (bucket %d)", node,
@@ -685,7 +679,7 @@ delete_node(dns_qpdb_t *qpdb, dns_qpdata_t *node) {
 		 * Delete the corresponding node from the auxiliary NSEC
 		 * tree before deleting from the main tree.
 		 */
-		result = dns_qp_deletename(qpdb->nsec, node->name, NULL, NULL);
+		result = dns_qp_deletename(qpdb->nsec, &node->name, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
@@ -695,13 +689,14 @@ delete_node(dns_qpdb_t *qpdb, dns_qpdata_t *node) {
 		}
 		/* FALLTHROUGH */
 	case DNS_DB_NSEC_NORMAL:
-		result = dns_qp_deletename(qpdb->tree, node->name, NULL, NULL);
+		result = dns_qp_deletename(qpdb->tree, &node->name, NULL, NULL);
 		break;
 	case DNS_DB_NSEC_NSEC:
-		result = dns_qp_deletename(qpdb->nsec, node->name, NULL, NULL);
+		result = dns_qp_deletename(qpdb->nsec, &node->name, NULL, NULL);
 		break;
 	case DNS_DB_NSEC_NSEC3:
-		result = dns_qp_deletename(qpdb->nsec3, node->name, NULL, NULL);
+		result = dns_qp_deletename(qpdb->nsec3, &node->name, NULL,
+					   NULL);
 		break;
 	}
 	if (result != ISC_R_SUCCESS) {
@@ -1486,7 +1481,7 @@ find_deepest_zonecut(qpdb_search_t *search, dns_qpdata_t *node,
 			 * anything else.
 			 */
 			if (foundname != NULL) {
-				dns_name_copy(node->name, foundname);
+				dns_name_copy(&node->name, foundname);
 			}
 			result = DNS_R_DELEGATION;
 			if (nodep != NULL) {
@@ -2860,13 +2855,12 @@ new_qpdata(dns_qpdb_t *qpdb, const dns_name_t *name) {
 	dns_qpdata_t *newdata = isc_mem_get(qpdb->common.mctx,
 					    sizeof(*newdata));
 	*newdata = (dns_qpdata_t){
+		.name = DNS_NAME_INITEMPTY,
 		.references = ISC_REFCOUNT_INITIALIZER(1),
 	};
-	newdata->hashval = dns_name_hash(name);
-	newdata->locknum = newdata->hashval % qpdb->node_lock_count;
-	newdata->name = dns_fixedname_initname(&newdata->fn);
-	dns_name_copy(name, newdata->name);
+	newdata->locknum = dns_name_hash(name) % qpdb->node_lock_count;
 	isc_mem_attach(qpdb->common.mctx, &newdata->mctx);
+	dns_name_dupwithoffsets(name, newdata->mctx, &newdata->name);
 
 	ISC_LINK_INIT(newdata, deadlink);
 
@@ -3594,7 +3588,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	}
 
 	name = dns_fixedname_initname(&fixed);
-	dns_name_copy(qpnode->name, name);
+	dns_name_copy(&qpnode->name, name);
 	dns_rdataset_getownercase(rdataset, name);
 
 	newheader = (dns_slabheader_t *)region.base;
@@ -4491,7 +4485,7 @@ dbiterator_seek(dns_dbiterator_t *iterator,
 
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		qpdbiter->new_origin = true;
-		dns_name_copy(qpdbiter->node->name, qpdbiter->name);
+		dns_name_copy(&qpdbiter->node->name, qpdbiter->name);
 		reference_iter_node(qpdbiter DNS__DB_FLARG_PASS);
 	} else {
 		qpdbiter->node = NULL;
@@ -4642,7 +4636,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	}
 
 	if (name != NULL) {
-		dns_name_copy(qpdbiter->node->name, name);
+		dns_name_copy(&qpdbiter->node->name, name);
 
 		if (qpdbiter->common.relative_names && qpdbiter->new_origin) {
 			result = DNS_R_NEWORIGIN;
@@ -4807,6 +4801,7 @@ qpdata_destroy(dns_qpdata_t *data) {
 		dns_slabheader_destroy(&current);
 	}
 
+	dns_name_free(&data->name, data->mctx);
 	isc_mem_putanddetach(&data->mctx, data, sizeof(dns_qpdata_t));
 }
 
