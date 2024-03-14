@@ -303,6 +303,10 @@ November 2020.
 :rfc:`9103` - W. Toorop, S. Dickinson, S. Sahib, P. Aras, and A. Mankin.
 *DNS Zone Transfer over TLS.* August 2021. [#rfc9103]_
 
+:rfc:`9460` - B. Schwartz, M. Bishop and E. Nygren, *Service Binding and
+Parameter Specification via the DNS (SVCB and HTTPS Resource Records).*
+November 2023.
+
 Best Current Practice RFCs
 --------------------------
 
@@ -441,6 +445,9 @@ Notes
 
 .. [#rfc9103] Strict TLS and Mutual TLS authentication mechanisms are
    not supported yet.
+
+.. [#rfc9460] Additional section processing is not supported for HTTPS and
+   SVCB records.
 
 .. _internet_drafts:
 
