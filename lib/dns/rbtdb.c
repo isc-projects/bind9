@@ -1627,6 +1627,8 @@ dns__rbtdb_setsecure(dns_db_t *db, dns_rbtdb_version_t *version,
 	bool hasnsec = false;
 	isc_result_t result;
 
+	REQUIRE(version != NULL);
+
 	dns_rdataset_init(&keyset);
 	result = dns_db_findrdataset(db, origin, version, dns_rdatatype_dnskey,
 				     0, 0, &keyset, NULL);
@@ -3445,14 +3447,6 @@ dns__rbtdb_addrdataset(dns_db_t *db, dns_dbnode_t *node,
 		TREE_UNLOCK(&rbtdb->tree_lock, &tlocktype);
 	}
 	INSIST(tlocktype == isc_rwlocktype_none);
-
-	/*
-	 * Update the zone's secure status.  If version is non-NULL
-	 * this is deferred until dns__rbtdb_closeversion() is called.
-	 */
-	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb)) {
-		dns__rbtdb_setsecure(db, version, rbtdb->origin_node);
-	}
 
 	return (result);
 }

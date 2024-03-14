@@ -2417,6 +2417,7 @@ dns_dbmethods_t dns__rbtdb_zonemethods = {
 	.unlocknode = dns__rbtdb_unlocknode,
 	.addglue = addglue,
 	.deletedata = dns__rbtdb_deletedata,
+	.nodefullname = dns__rbtdb_nodefullname,
 };
 
 void
