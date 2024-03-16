@@ -1366,6 +1366,9 @@ plus_option(char *option, struct query *query, bool global) {
 							"ednsflags");
 						CHECK("parse_xint(ednsflags)",
 						      result);
+						if (query->edns == -1) {
+							query->edns = 1;
+						}
 						query->ednsflags = num;
 						break;
 					case 'o':
