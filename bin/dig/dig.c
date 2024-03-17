@@ -1453,6 +1453,10 @@ plus_option(char *option, bool is_batchfile, bool *need_clone,
 							     "ednsflags");
 							goto exit_or_usage;
 						}
+						if (lookup->edns == -1) {
+							lookup->edns =
+								DEFAULT_EDNS_VERSION;
+						}
 						lookup->ednsflags = num;
 						break;
 					case 'n':
